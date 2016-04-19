@@ -260,7 +260,7 @@ namespace BansheeEngine
 			EditorWidgetBase* widget = thisPtr->getEditorWidget();
 			*bounds = thisPtr->getEditorWidget()->getBounds();
 			
-			Vector2I widgetPos(bounds->x, bounds->y);
+			Vector2I widgetPos(0, 0);
 			Vector2I screenPos = widget->widgetToScreenPos(widgetPos);
 
 			bounds->x = screenPos.x;

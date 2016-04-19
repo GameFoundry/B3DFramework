@@ -119,7 +119,7 @@ namespace BansheeEditor
                 return;
 
             meshField = new GUIResourceField(typeof(Mesh), new LocEdString("Mesh"));
-            layersField = new GUIListBoxField(Layers.Names, true, new LocEdString("Layers"));
+            layersField = new GUIListBoxField(Layers.Names, false, new LocEdString("Layer"));
 
             Layout.AddElement(meshField);
             Layout.AddElement(layersField);
