@@ -41,7 +41,7 @@ namespace BansheeEngine
 		PxSphericalJointFlags flags;
 
 		if (((UINT32)desc.flag & (UINT32)Flag::Limit) != 0)
-			flags &= PxSphericalJointFlag::eLIMIT_ENABLED;
+			flags |= PxSphericalJointFlag::eLIMIT_ENABLED;
 
 		joint->setSphericalJointFlags(flags);
 

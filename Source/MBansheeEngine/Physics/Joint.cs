@@ -754,6 +754,7 @@ namespace BansheeEngine
     [SerializeObject]
     public class LimitCommon
     {
+        [SerializeField]
         private LimitCommonData data;
 
         /// <summary>
@@ -835,6 +836,7 @@ namespace BansheeEngine
     [SerializeObject]
     public class LimitLinearRange : LimitCommon
     {
+        [SerializeField]
         private LimitLinearRangeData data;
 
         /// <summary>
@@ -952,6 +954,7 @@ namespace BansheeEngine
     [SerializeObject]
     public class LimitLinear : LimitCommon
     {
+        [SerializeField]
         private LimitLinearData data;
 
         /// <summary>
@@ -1058,6 +1061,7 @@ namespace BansheeEngine
     [SerializeObject]
     public class LimitAngularRange : LimitCommon
 	{
+        [SerializeField]
         private LimitAngularRangeData data;
 
         /// <summary>
@@ -1174,6 +1178,7 @@ namespace BansheeEngine
     [SerializeObject]
     public class LimitConeRange : LimitCommon
     {
+        [SerializeField]
         private LimitConeRangeData data;
 
         /// <summary>
@@ -1290,7 +1295,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by HingeJointDrive.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential), SerializeObject]
     public struct HingeJointDriveData // Note: Must match C++ struct HingeJoint::Drive
     {
         /// <summary>
@@ -1317,7 +1322,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by D6JointDrive.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential), SerializeObject]
     public struct D6JointDriveData // Note: Must match C++ struct D6Joint::Drive
     {
         /// <summary>
@@ -1344,6 +1349,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by LimitCommon.
     /// </summary>
+    [SerializeObject]
     public struct LimitCommonData
     {
         /// <summary>
@@ -1365,6 +1371,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by LimitLinearRange.
     /// </summary>
+    [SerializeObject]
     public struct LimitLinearRangeData
     {
         /// <summary>
@@ -1380,6 +1387,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by LimitLinear.
     /// </summary>
+    [SerializeObject]
     public struct LimitLinearData
     {
         /// <summary>
@@ -1391,6 +1399,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by LimitAngularRange.
     /// </summary>
+    [SerializeObject]
     public struct LimitAngularRangeData
     {
         /// <summary>
@@ -1406,6 +1415,7 @@ namespace BansheeEngine
     /// <summary>
     /// Contains data used by LimitConeRange.
     /// </summary>
+    [SerializeObject]
     public struct LimitConeRangeData
     {
         /// <summary>

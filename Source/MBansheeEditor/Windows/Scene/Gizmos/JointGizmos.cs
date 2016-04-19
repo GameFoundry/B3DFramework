@@ -47,15 +47,23 @@ namespace BansheeEditor
         [DrawGizmo(DrawGizmoFlags.Selected | DrawGizmoFlags.ParentSelected)]
         private static void DrawFixedJoint(FixedJoint joint)
         {
-            Vector3 anchorA = GetAnchor(joint, JointBody.Target);
-            Vector3 anchorB = GetAnchor(joint, JointBody.Anchor);
+            Vector3 target = GetAnchor(joint, JointBody.Target);
+            Vector3 anchor = GetAnchor(joint, JointBody.Anchor);
+            Vector3 center = target;
+
+            Rigidbody rigidbody = joint.GetRigidbody(JointBody.Target);
+            if (rigidbody != null)
+                center = rigidbody.SceneObject.Position;
 
             Gizmos.Color = Color.White;
-            Gizmos.DrawSphere(anchorA, 0.05f);
-            Gizmos.DrawSphere(anchorB, 0.05f);
+            Gizmos.DrawSphere(center, 0.05f);
+
+            Gizmos.Color = Color.Yellow;
+            Gizmos.DrawSphere(target, 0.05f);
+            Gizmos.DrawSphere(anchor, 0.05f);
 
             Gizmos.Color = Color.Green;
-            Gizmos.DrawLine(anchorA, anchorB);
+            Gizmos.DrawLine(target, center);
         }
 
         /// <summary>
@@ -111,38 +119,34 @@ namespace BansheeEditor
         [DrawGizmo(DrawGizmoFlags.Selected | DrawGizmoFlags.ParentSelected)]
         private static void DrawSliderJoint(SliderJoint joint)
         {
-            Vector3 anchorA = GetAnchor(joint, JointBody.Target);
-            Vector3 anchorB = GetAnchor(joint, JointBody.Anchor);
-
-            Gizmos.Color = Color.White;
-            Gizmos.DrawSphere(anchorA, 0.05f);
-            Gizmos.DrawSphere(anchorB, 0.05f);
-
-            Gizmos.Color = Color.Red;
-            Vector3 diff = anchorB - anchorA;
-
-            float length = diff.Length;
-            Vector3 normal = diff.Normalized;
-
-            float min = 0.0f;
-            float max = length;
+            Vector3 anchor = GetAnchor(joint, JointBody.Anchor);
+            Vector3 target = GetAnchor(joint, JointBody.Target);
+            Vector3 normal = -joint.SceneObject.Right;
 
             if (joint.EnableLimit)
             {
                 LimitLinearRange limit = joint.Limit;
 
-                max = MathEx.Min(10000.0f, limit.Upper);
-                min = MathEx.Clamp(limit.Lower, 0.0f, max);
+                float max = MathEx.Min(10000.0f, limit.Upper);
+                float min = MathEx.Clamp(limit.Lower, 0.0f, max);
                 max = MathEx.Max(max, min);
 
-                Gizmos.DrawLine(anchorA, anchorA + normal * min);
+                Gizmos.Color = Color.Red;
+                Gizmos.DrawLine(anchor, anchor + normal*min);
 
-                if (length > max)
-                    Gizmos.DrawLine(anchorA + normal * max, anchorA + normal * length);
+                Gizmos.Color = Color.Green;
+                Gizmos.DrawLine(anchor + normal*min, anchor + normal*max);
+            }
+            else
+            {
+                Gizmos.Color = Color.Green;
+
+                float length = 100.0f;
+                Gizmos.DrawLine(anchor, anchor + normal * length);
             }
 
-            Gizmos.Color = Color.Green;
-            Gizmos.DrawLine(anchorA + normal * min, anchorA + normal * MathEx.Min(max, length));
+            Gizmos.Color = Color.Yellow;
+            Gizmos.DrawSphere(target, 0.05f);
         }
 
         /// <summary>

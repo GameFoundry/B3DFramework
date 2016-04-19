@@ -43,10 +43,10 @@ namespace BansheeEngine
 		PxRevoluteJointFlags flags;
 
 		if (((UINT32)desc.flag & (UINT32)Flag::Limit) != 0)
-			flags &= PxRevoluteJointFlag::eLIMIT_ENABLED;
+			flags |= PxRevoluteJointFlag::eLIMIT_ENABLED;
 
 		if (((UINT32)desc.flag & (UINT32)Flag::Drive) != 0)
-			flags &= PxRevoluteJointFlag::eDRIVE_ENABLED;
+			flags |= PxRevoluteJointFlag::eDRIVE_ENABLED;
 
 		joint->setRevoluteJointFlags(flags);
 

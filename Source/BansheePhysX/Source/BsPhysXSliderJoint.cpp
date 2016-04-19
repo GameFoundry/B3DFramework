@@ -42,7 +42,7 @@ namespace BansheeEngine
 		PxPrismaticJointFlags flags;
 
 		if (((UINT32)desc.flag & (UINT32)Flag::Limit) != 0)
-			flags &= PxPrismaticJointFlag::eLIMIT_ENABLED;
+			flags |= PxPrismaticJointFlag::eLIMIT_ENABLED;
 
 		joint->setPrismaticJointFlags(flags);
 

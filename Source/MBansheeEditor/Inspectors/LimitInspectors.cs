@@ -136,7 +136,7 @@ namespace BansheeEditor
                 ToggleLimitFields();
             };
 
-            contactDistanceField.OnChanged += x => { limitData.contactDist = x; MarkAsModified(); };
+            contactDistanceField.OnChanged += x => { this.limitData.contactDist = x; MarkAsModified(); };
             contactDistanceField.OnFocusLost += ConfirmModify;
             contactDistanceField.OnConfirmed += ConfirmModify;
 
@@ -146,7 +146,7 @@ namespace BansheeEditor
                 ToggleLimitFields();
             };
 
-            restitutionField.OnChanged += x => { limitData.restitution = x; MarkAsModified(); };
+            restitutionField.OnChanged += x => { this.limitData.restitution = x; MarkAsModified(); };
             restitutionField.OnFocusLost += ConfirmModify;
 
             springFoldout.OnToggled += x =>
@@ -177,7 +177,7 @@ namespace BansheeEditor
 
                     GUILayoutY springContentsLayout = springLayout.AddLayoutY();
                     springGUI = new SpringGUI(limitData.spring, springContentsLayout);
-                    springGUI.OnChanged += x => { limitData.spring = x; MarkAsModified(); };
+                    springGUI.OnChanged += x => { this.limitData.spring = x; MarkAsModified(); };
                     springGUI.OnConfirmed += ConfirmModify;
                 }
             }
@@ -248,7 +248,7 @@ namespace BansheeEditor
         ///                          </param>
         public LimitLinearGUI(LimitLinear limit, GUILayout layout, SerializableProperties properties)
         {
-            this.limitData = limit.Data;
+            limitData = limit.Data;
 
             limitExtentField.OnChanged += x => { limitData.extent = x; MarkAsModified(); };
             limitExtentField.OnFocusLost += ConfirmModify;
