@@ -54,30 +54,6 @@ namespace BansheeEngine
 			CCD = 0x04
 		};
 
-		/** Determines interpolation mode for a rigidbody transform during physics simulation. */
-		enum class InterpolationMode
-		{
-			/** 
-			 * No interpolation is performed, physics transform is copied straight to the rigidbody when physics tick is 
-			 * done. 
-			 */
-			None, 
-			/** 
-			 * Physics transfrom from the most recent tick is saved and slowly interpolated to during the following render 
-			 * frames. This can improve smoothness of the visible movement at framerates higher than the physics simulation 
-			 * but will introduce a delay of one physics tick to all such objects. This can create slight inconsistencies as
-			 * non-interpolated objects will have no such delay, as well as cause input lag due to the delayed reaction.
-			 */
-			Interpolate, 
-			/** 
-			 * Physics transform movement will be extrapolated from the last physics simulation tick. This will improve
-			 * smoothness of visible movement at framerates higher than the physics simulation. Unlike Interpolate it will
-			 * not introduce an input delay, but will introduce an error as the exact position/rotation of the objects is
-			 * extrapolated from the last frame's movement and velocities. 
-			 */
-			Extrapolate
-		};
-
 		/** 
 		 * Constructs a new rigidbody. 
 		 *
@@ -237,12 +213,6 @@ namespace BansheeEngine
 		/** Gets the number of iterations to use when solving for velocity. */
 		virtual UINT32 getVelocitySolverCount() const = 0;
 
-		/** Sets interpolation mode that controls how is the rigidbody transfrom updated from the physics simulation. */
-		virtual void setInterpolationMode(InterpolationMode value) { mInterpolationMode = value; }
-
-		/** Gets interpolation mode that controls how is the rigidbody transfrom updated from the physics simulation. */
-		virtual InterpolationMode getInterpolationMode() const { return mInterpolationMode; }
-
 		/** Sets flags that control the behaviour of the rigidbody. */
 		virtual void setFlags(Flag flags) { mFlags = flags; }
 
@@ -357,9 +327,7 @@ namespace BansheeEngine
 		friend class FCollider;
 
 		Flag mFlags = Flag::None;
-		InterpolationMode mInterpolationMode = InterpolationMode::None;
 		PhysicsObjectOwner mOwner;
-		UINT32 mPriority = 0;
 		UINT32 mPhysicsId = 0;
 		HSceneObject mLinkedSO;
 	};

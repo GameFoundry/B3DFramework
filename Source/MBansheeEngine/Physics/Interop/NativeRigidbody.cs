@@ -134,12 +134,6 @@ namespace BansheeEngine
             set { Internal_SetVelocitySolverCount(mCachedPtr, value); }
         }
 
-        public RigidbodyInterpolationMode InterpolationMode
-        {
-            get { return Internal_GetInterpolationMode(mCachedPtr); }
-            set { Internal_SetInterpolationMode(mCachedPtr, value); }
-        }
-
         public RigidbodyFlag Flags
         {
             get { return Internal_GetFlags(mCachedPtr); }
@@ -345,12 +339,6 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern int Internal_GetVelocitySolverCount(IntPtr thisPtr);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetInterpolationMode(IntPtr thisPtr, RigidbodyInterpolationMode value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern RigidbodyInterpolationMode Internal_GetInterpolationMode(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetFlags(IntPtr thisPtr, RigidbodyFlag flags);

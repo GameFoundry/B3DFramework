@@ -301,21 +301,6 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Determines interpolation mode that controls how is the rigidbody transfrom updated from the physics simulation.
-        /// </summary>
-        public RigidbodyInterpolationMode InterpolationMode
-        {
-            get { return serializableData.interpolationMode; }
-            set
-            {
-                serializableData.interpolationMode = value;
-
-                if (native != null)
-                    serializableData.interpolationMode = value;
-            }
-        }
-
-        /// <summary>
         /// Determines which (if any) collision events are reported.
         /// </summary>
         public CollisionReportMode CollisionReportMode
@@ -679,7 +664,6 @@ namespace BansheeEngine
             native.SleepThreshold = serializableData.sleepThreshold;
             native.UseGravity = serializableData.useGravity;
             native.Kinematic = serializableData.isKinematic;
-            native.InterpolationMode = serializableData.interpolationMode;
             native.Flags = serializableData.flags;
 
             if ((serializableData.flags & RigidbodyFlag.AutoTensors) == 0)
@@ -707,7 +691,6 @@ namespace BansheeEngine
             public int positionSolverCount = 4;
             public int velocitySolverCount = 1;
             public RigidbodyFlag flags = RigidbodyFlag.AutoTensors | RigidbodyFlag.AutoMass;
-            public RigidbodyInterpolationMode interpolationMode = RigidbodyInterpolationMode.None;
             public CollisionReportMode collisionReportMode = CollisionReportMode.None;
             public Vector3 centerMassPosition = Vector3.Zero;
             public Quaternion centerMassRotation = Quaternion.Identity;
@@ -783,31 +766,6 @@ namespace BansheeEngine
         /// This must also be enabled globally in Physics otherwise the flag will be ignored.
         /// </summary>
 		CCD = 0x04
-    }
-
-    /// <summary>
-    /// Determines interpolation mode for a rigidbody transform during physics simulation.
-    /// </summary>
-    public enum RigidbodyInterpolationMode
-    {
-        /// <summary>
-        /// No interpolation is performed, physics transform is copied straight to the rigidbody when physics tick is done.
-        /// </summary>
-        None,
-        /// <summary>
-        /// Physics transfrom from the most recent tick is saved and slowly interpolated to during the following render 
-        /// frames. This can improve smoothness of the visible movement at framerates higher than the physics simulation 
-        /// but will introduce a delay of one physics tick to all such objects. This can create slight inconsistencies as
-        /// non-interpolated objects will have no such delay, as well as cause input lag due to the delayed reaction.
-        /// </summary>
-        Interpolate,
-        /// <summary>
-        /// Physics transform movement will be extrapolated from the last physics simulation tick. This will improve
-        /// smoothness of visible movement at framerates higher than the physics simulation. Unlike Interpolate it will
-        /// not introduce an input delay, but will introduce an error as the exact position/rotation of the objects is
-        /// extrapolated from the last frame's movement and velocities. 
-        /// </summary>
-        Extrapolate
     }
 
     /** @} */

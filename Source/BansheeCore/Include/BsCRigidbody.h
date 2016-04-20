@@ -121,13 +121,6 @@ namespace BansheeEngine
 		/** @copydoc Rigidbody::getVelocitySolverCount */
 		UINT32 getVelocitySolverCount() const { return mVelocitySolverCount; }
 
-		/** @copydoc Rigidbody::setInterpolationMode */
-		void setInterpolationMode(Rigidbody::InterpolationMode value);
-
-		/** @copydoc Rigidbody::getInterpolationMode */
-		Rigidbody::InterpolationMode getInterpolationMode(Rigidbody::InterpolationMode value) const 
-			{ return mInterpolationMode; }
-
 		/** Sets a value that determines which (if any) collision events are reported. */
 		inline void setCollisionReportMode(CollisionReportMode mode);
 
@@ -245,7 +238,6 @@ namespace BansheeEngine
 		UINT32 mPositionSolverCount = 4;
 		UINT32 mVelocitySolverCount = 1;
 		Rigidbody::Flag mFlags = (Rigidbody::Flag)((UINT32)Rigidbody::Flag::AutoTensors | (UINT32)Rigidbody::Flag::AutoMass);
-		Rigidbody::InterpolationMode mInterpolationMode = Rigidbody::InterpolationMode::None;
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
 		Vector3 mCMassPosition;
 		Quaternion mCMassRotation;

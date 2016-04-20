@@ -550,32 +550,11 @@ namespace BansheeEngine
 	protected:
 		friend class Rigidbody;
 
-		/** 
-		 * Registers a new rigidbody. Should be called whenever a new rigidbody is created. 
-		 * 
-		 * @param[in]	body		Newly created rigidbody.
-		 * @param[in]	priority	Priority that determines in what order is the physics simulation update applied to
-		 *							rigidbodes. Higher priority means it is applied before lower priority.
-		 */
-		void registerRigidbody(Rigidbody* body, UINT32 priority);
-
-		/** 
-		 * Unregisters a rigidbody. Should be called before a rigidbody is destroyed.
-		 *
-		 * @param[in]	id			ID of the rigidbody to remove.
-		 * @param[in]	priority	Original priority of the rigidbody.
-		 */
-		void unregisterRigidbody(UINT32 id, UINT32 priority);
-
-		/** Changes the priority of a rigidbody. */
-		void updatePriority(UINT32 id, UINT32 oldPriority, UINT32 newPriority);
-
 		mutable Mutex mMutex;
 		bool mCollisionMap[CollisionMapSize][CollisionMapSize];
 
 		bool mUpdateInProgress = false;
 		PhysicsFlags mFlags;
-		Vector<Vector<Rigidbody*>> mRigidbodies; // TODO: Unused for now, but keeping it here just in case I change the design. Remove later.
 
 		const static UINT32 MAX_PRIORITY = 128;
 	};

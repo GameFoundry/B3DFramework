@@ -94,9 +94,6 @@ namespace BansheeEngine
 		static void internal_SetVelocitySolverCount(ScriptRigidbody* thisPtr, UINT32 count);
 		static UINT32 internal_GetVelocitySolverCount(ScriptRigidbody* thisPtr);
 
-		static void internal_SetInterpolationMode(ScriptRigidbody* thisPtr, Rigidbody::InterpolationMode value);
-		static Rigidbody::InterpolationMode internal_GetInterpolationMode(ScriptRigidbody* thisPtr);
-
 		static void internal_SetFlags(ScriptRigidbody* thisPtr, Rigidbody::Flag flags);
 		static Rigidbody::Flag internal_GetFlags(ScriptRigidbody* thisPtr);
 

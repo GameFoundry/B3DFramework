@@ -82,9 +82,6 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetVelocitySolverCount", &ScriptRigidbody::internal_SetVelocitySolverCount);
 		metaData.scriptClass->addInternalCall("Internal_GetVelocitySolverCount", &ScriptRigidbody::internal_GetVelocitySolverCount);
 
-		metaData.scriptClass->addInternalCall("Internal_SetInterpolationMode", &ScriptRigidbody::internal_SetInterpolationMode);
-		metaData.scriptClass->addInternalCall("Internal_GetInterpolationMode", &ScriptRigidbody::internal_GetInterpolationMode);
-
 		metaData.scriptClass->addInternalCall("Internal_SetFlags", &ScriptRigidbody::internal_SetFlags);
 		metaData.scriptClass->addInternalCall("Internal_GetFlags", &ScriptRigidbody::internal_GetFlags);
 
@@ -313,16 +310,6 @@ namespace BansheeEngine
 	UINT32 ScriptRigidbody::internal_GetVelocitySolverCount(ScriptRigidbody* thisPtr)
 	{
 		return thisPtr->mRigidbody->getVelocitySolverCount();
-	}
-
-	void ScriptRigidbody::internal_SetInterpolationMode(ScriptRigidbody* thisPtr, Rigidbody::InterpolationMode value)
-	{
-		thisPtr->mRigidbody->setInterpolationMode(value);
-	}
-
-	Rigidbody::InterpolationMode ScriptRigidbody::internal_GetInterpolationMode(ScriptRigidbody* thisPtr)
-	{
-		return thisPtr->mRigidbody->getInterpolationMode();
 	}
 
 	void ScriptRigidbody::internal_SetFlags(ScriptRigidbody* thisPtr, Rigidbody::Flag flags)

@@ -20,8 +20,6 @@ namespace BansheeEditor
         private GUIFloatField massField = new GUIFloatField(new LocEdString("Mass"));
         private GUIFloatField linearDragField = new GUIFloatField(new LocEdString("Linear drag"));
         private GUIFloatField angularDragField = new GUIFloatField(new LocEdString("Angular drag"));
-        private GUIEnumField interpolationModeField = new GUIEnumField(typeof (RigidbodyInterpolationMode),
-            new LocEdString("Interpolation mode"));
         private GUIEnumField reportModeField = new GUIEnumField(typeof (CollisionReportMode),
             new LocEdString("Collision report mode"));
         private GUIToggleField ccdField = new GUIToggleField(new LocEdString("Continous"));
@@ -47,7 +45,6 @@ namespace BansheeEditor
             massField.Value = body.Mass;
             linearDragField.Value = body.Drag;
             angularDragField.Value = body.AngularDrag;
-            interpolationModeField.Value = (ulong)body.InterpolationMode;
             reportModeField.Value = (ulong) body.CollisionReportMode;
             ccdField.Value = (body.Flags & RigidbodyFlag.CCD) != 0;
 
@@ -96,14 +93,6 @@ namespace BansheeEditor
             angularDragField.OnConfirmed += ConfirmModify;
             angularDragField.OnFocusLost += ConfirmModify;
 
-            interpolationModeField.OnSelectionChanged += x =>
-            {
-                body.InterpolationMode = (RigidbodyInterpolationMode)x;
-
-                MarkAsModified();
-                ConfirmModify();
-            };
-
             reportModeField.OnSelectionChanged += x =>
             {
                 body.CollisionReportMode = (CollisionReportMode) x;
@@ -131,7 +120,6 @@ namespace BansheeEditor
             Layout.AddElement(massField);
             Layout.AddElement(linearDragField);
             Layout.AddElement(angularDragField);
-            Layout.AddElement(interpolationModeField);
             Layout.AddElement(reportModeField);
             Layout.AddElement(ccdField);
         }
