@@ -67,6 +67,30 @@ namespace BansheeEngine
             return joint;
         }
 
+        /// <inheritdoc/>
+        protected override void GetLocalTransform(JointBody body, out Vector3 position, out Quaternion rotation)
+        {
+            position = commonData.positions[(int)body];
+            rotation = commonData.rotations[(int)body];
+
+            Rigidbody rigidbody = commonData.bodies[(int)body];
+            if (rigidbody == null) // Get world space transform if not relative to any body
+            {
+                Quaternion worldRot = SceneObject.Rotation;
+
+                rotation = worldRot * rotation;
+                position = worldRot.Rotate(position) + SceneObject.Position;
+            }
+            else
+            {
+                // Use only the offset for positioning, but for rotation use both the offset and target SO rotation.
+                // (Needed because we need to rotate the joint SO in order to orient the slider direction, so we need an
+                // additional transform that allows us to orient the object)
+                position = rotation.Rotate(position);
+                rotation = (rigidbody.SceneObject.Rotation*rotation).Inverse*SceneObject.Rotation;
+            }
+        }
+
         /// <summary>
         /// Holds all data the joint component needs to persist through serialization.
         /// </summary>

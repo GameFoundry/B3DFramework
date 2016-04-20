@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsCSliderJoint.h"
 #include "BsSceneObject.h"
+#include "BsCRigidbody.h"
 #include "BsCSliderJointRTTI.h"
 
 namespace BansheeEngine
@@ -74,6 +75,29 @@ namespace BansheeEngine
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;
+	}
+
+	void CSliderJoint::getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation)
+	{
+		position = mPositions[(int)body];
+		rotation = mRotations[(int)body];
+
+		HRigidbody rigidbody = mBodies[(int)body];
+		if (rigidbody == nullptr) // Get world space transform if no relative to any body
+		{
+			Quaternion worldRot = SO()->getWorldRotation();
+
+			rotation = worldRot*rotation;
+			position = worldRot.rotate(position) + SO()->getWorldPosition();
+		}
+		else
+		{
+			// Use only the offset for positioning, but for rotation use both the offset and target SO rotation.
+			// (Needed because we need to rotate the joint SO in order to orient the slider direction, so we need an
+			// additional transform that allows us to orient the object)
+			position = rotation.rotate(position);
+			rotation = (rigidbody->SO()->getWorldRotation()*rotation).inverse()*SO()->getWorldRotation();
+		}
 	}
 
 	RTTITypeBase* CSliderJoint::getRTTIStatic()

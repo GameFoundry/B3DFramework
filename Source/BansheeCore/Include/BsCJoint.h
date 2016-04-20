@@ -99,6 +99,9 @@ namespace BansheeEngine
 		/** Creates the internal representation of the Joint and restores the values saved by the Component. */
 		virtual void restoreInternal();
 
+		/** Calculates the local position/rotation that needs to be applied to the particular joint body. */
+		virtual void getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation);
+
 		/** Destroys the internal joint representation. */
 		void destroyInternal();
 
@@ -107,9 +110,6 @@ namespace BansheeEngine
 
 		/** Checks can the provided rigidbody be used for initializing the joint. */
 		bool isBodyValid(const HRigidbody& body);
-
-		/** Calculates the local position/rotation that needs to be applied to the particular joint body. */
-		void getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation);
 
 		/** Updates the local transform for the specified body attached to the joint. */
 		void updateTransform(JointBody body);

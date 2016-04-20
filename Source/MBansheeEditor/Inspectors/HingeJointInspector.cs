@@ -148,7 +148,7 @@ namespace BansheeEditor
             ToggleLimitFields(joint.EnableLimit);
             ToggleDriveFields(joint.EnableDrive);
 
-            base.BuildGUI(joint);
+            base.BuildGUI(joint, true);
         }
 
         /// <summary>

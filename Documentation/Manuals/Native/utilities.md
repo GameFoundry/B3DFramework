@@ -54,7 +54,7 @@ The @ref BansheeEngine::FileSystem "FileSystem" module allows you to open and cr
 An example creating a folder and a file:
 ~~~~~~~~~~~~~{.cpp}
 FileSystem::createDir("C:\\Path\\To\\");
-SPtr<DataStreamPtr> fileStream = FileSystem::createAndOpenFile("C:\\Path\\To\\File.txt");
+SPtr<DataStream> fileStream = FileSystem::createAndOpenFile("C:\\Path\\To\\File.txt");
 ... write to data stream...
 ~~~~~~~~~~~~~
 # Data streams {#utilities_d}
@@ -64,7 +64,7 @@ You create memory streams by providing them with a pointer and size of a memory 
 
 Once you have a stream you can seek to a position within a stream and read/write to it. For example:
 ~~~~~~~~~~~~~{.cpp}
-SPtr<DataStreamPtr> fileStream = FileSystem::createAndOpenFile("C:\\Path\\To\\File.txt");
+SPtr<DataStream> fileStream = FileSystem::createAndOpenFile("C:\\Path\\To\\File.txt");
 // Write some string data
 fileStream.writeString("Writing to a file");
 // Write some binary data

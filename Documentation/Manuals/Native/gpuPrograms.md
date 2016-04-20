@@ -39,7 +39,7 @@ Instead @ref BansheeEngine::GpuProgram::createParameters "GpuProgram::createPara
 
 For example to assign a texture and a 2D vector as input to the program we created earlier:
 ~~~~~~~~~~~~~{.cpp}
-GpuParamsPtr params = myProgram->createParameters();
+SPtr<GpuParams> params = myProgram->createParameters();
 
 // Retrieve GPU params we can then read/write to
 GpuParamVec2 myVectorParam;

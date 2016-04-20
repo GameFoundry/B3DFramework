@@ -58,6 +58,9 @@ namespace BansheeEngine
 		/** @copydoc CJoint::createInternal */
 		SPtr<Joint> createInternal() override;
 
+		/** @copydoc CJoint::getLocalTransform */
+		void getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation) override;
+
 		SLIDER_JOINT_DESC mDesc;
 
 		/************************************************************************/

@@ -126,6 +126,14 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns the native joint wrapped by this component.
+        /// </summary>
+        private NativeHingeJoint Native
+        {
+            get { return (NativeHingeJoint)native; }
+        }
+
+        /// <summary>
         /// Toggles a specific distance joint flag on or off.
         /// </summary>
         /// <param name="flag">Flag to toggle.</param>
@@ -145,14 +153,6 @@ namespace BansheeEngine
 
             data.@internal.flags = newFlags;
             return true;
-        }
-
-        /// <summary>
-        /// Returns the native joint wrapped by this component.
-        /// </summary>
-        private NativeHingeJoint Native
-        {
-            get { return (NativeHingeJoint)native; }
         }
 
         /// <inheritdoc/>

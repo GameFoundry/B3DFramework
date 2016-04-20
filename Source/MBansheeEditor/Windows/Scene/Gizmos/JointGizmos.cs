@@ -49,21 +49,13 @@ namespace BansheeEditor
         {
             Vector3 target = GetAnchor(joint, JointBody.Target);
             Vector3 anchor = GetAnchor(joint, JointBody.Anchor);
-            Vector3 center = target;
-
-            Rigidbody rigidbody = joint.GetRigidbody(JointBody.Target);
-            if (rigidbody != null)
-                center = rigidbody.SceneObject.Position;
 
             Gizmos.Color = Color.White;
-            Gizmos.DrawSphere(center, 0.05f);
-
-            Gizmos.Color = Color.Yellow;
             Gizmos.DrawSphere(target, 0.05f);
             Gizmos.DrawSphere(anchor, 0.05f);
 
             Gizmos.Color = Color.Green;
-            Gizmos.DrawLine(target, center);
+            Gizmos.DrawLine(target, anchor);
         }
 
         /// <summary>
@@ -179,8 +171,8 @@ namespace BansheeEditor
             {
                 LimitConeRange limit = joint.Limit;
 
-                Radian zAngle = MathEx.Min(new Degree(360), limit.ZLimitAngle*2.0f);
-                Radian yAngle = MathEx.Min(new Degree(360), limit.YLimitAngle*2.0f);
+                Radian zAngle = MathEx.Min(new Degree(360), limit.ZLimitAngle * 2.0f);
+                Radian yAngle = MathEx.Min(new Degree(360), limit.YLimitAngle * 2.0f);
 
                 Gizmos.Transform = joint.SceneObject.WorldTransform;
                 Gizmos.DrawWireArc(Vector3.Zero, Vector3.ZAxis, 0.25f, zAngle * -0.5f + new Degree(90), zAngle);

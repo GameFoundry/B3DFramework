@@ -13,16 +13,17 @@ namespace BansheeEditor
     /// </summary>
     internal abstract class JointInspector : Inspector
     {
-        private GUIGameObjectField targetField = new GUIGameObjectField(typeof(Rigidbody), new LocEdString("Target"));
-        private GUIVector3Field targetOffsetField = new GUIVector3Field(new LocEdString("Target offset"));
+        private GUIGameObjectField targetField;
+        private GUIVector3Field targetOffsetField;
 
-        private GUIGameObjectField anchorField = new GUIGameObjectField(typeof(Rigidbody), new LocEdString("Anchor"));
-        private GUIVector3Field anchorOffsetField = new GUIVector3Field(new LocEdString("Anchor offset"));
+        private GUIGameObjectField anchorField;
+        private GUIVector3Field anchorOffsetField;
 
-        private GUIFloatField breakForceField = new GUIFloatField(new LocEdString("Break force"));
-        private GUIFloatField breakTorqueField = new GUIFloatField(new LocEdString("Break torque"));
-        private GUIToggleField collisionField = new GUIToggleField(new LocEdString("Enable collision"));
-        
+        private GUIFloatField breakForceField;
+        private GUIFloatField breakTorqueField;
+        private GUIToggleField collisionField;
+
+        private bool showOffsets;
         protected InspectableState modifyState;
 
         /// <summary>
@@ -32,10 +33,13 @@ namespace BansheeEditor
         protected virtual void Refresh(Joint joint)
         {
             targetField.Value = joint.GetRigidbody(JointBody.Target);
-            targetOffsetField.Value = joint.GetPosition(JointBody.Target);
-
             anchorField.Value = joint.GetRigidbody(JointBody.Anchor);
-            anchorOffsetField.Value = joint.GetPosition(JointBody.Anchor);
+
+            if (showOffsets)
+            {
+                targetOffsetField.Value = joint.GetPosition(JointBody.Target);
+                anchorOffsetField.Value = joint.GetPosition(JointBody.Anchor);
+            }
 
             breakForceField.Value = joint.BreakForce;
             breakTorqueField.Value = joint.BreakTorque;
@@ -45,17 +49,36 @@ namespace BansheeEditor
         /// <summary>
         /// Creates GUI elements for fields common to all joints.
         /// </summary>
-        protected virtual void BuildGUI(Joint joint)
+        protected virtual void BuildGUI(Joint joint, bool showOffsets)
         {
-            targetField.OnChanged += x => { joint.SetRigidbody(JointBody.Target, (Rigidbody)x); MarkAsModified(); ConfirmModify(); };
-            targetOffsetField.OnChanged += x => { joint.SetPosition(JointBody.Target, x); MarkAsModified(); };
-            targetOffsetField.OnFocusLost += ConfirmModify;
-            targetOffsetField.OnConfirmed += ConfirmModify;
+            this.showOffsets = showOffsets;
 
+            targetField = new GUIGameObjectField(typeof(Rigidbody), new LocEdString("Target"));
+            anchorField = new GUIGameObjectField(typeof(Rigidbody), new LocEdString("Anchor"));
+            
+            if (showOffsets)
+            {
+                targetOffsetField = new GUIVector3Field(new LocEdString("Target offset"));
+                anchorOffsetField = new GUIVector3Field(new LocEdString("Anchor offset"));
+            }
+
+            breakForceField = new GUIFloatField(new LocEdString("Break force"));
+            breakTorqueField = new GUIFloatField(new LocEdString("Break torque"));
+            collisionField = new GUIToggleField(new LocEdString("Enable collision"));
+
+            targetField.OnChanged += x => { joint.SetRigidbody(JointBody.Target, (Rigidbody)x); MarkAsModified(); ConfirmModify(); };
             anchorField.OnChanged += x => { joint.SetRigidbody(JointBody.Anchor, (Rigidbody)x); MarkAsModified(); ConfirmModify(); };
-            anchorOffsetField.OnChanged += x => { joint.SetPosition(JointBody.Anchor, x); MarkAsModified(); };
-            anchorOffsetField.OnFocusLost += ConfirmModify;
-            anchorOffsetField.OnConfirmed += ConfirmModify;
+
+            if(showOffsets)
+            { 
+                targetOffsetField.OnChanged += x => { joint.SetPosition(JointBody.Target, x); MarkAsModified(); };
+                targetOffsetField.OnFocusLost += ConfirmModify;
+                targetOffsetField.OnConfirmed += ConfirmModify;
+
+                anchorOffsetField.OnChanged += x => { joint.SetPosition(JointBody.Anchor, x); MarkAsModified(); };
+                anchorOffsetField.OnFocusLost += ConfirmModify;
+                anchorOffsetField.OnConfirmed += ConfirmModify;
+            }
 
             breakForceField.OnChanged += x => { joint.BreakForce = x; MarkAsModified(); };
             breakForceField.OnFocusLost += ConfirmModify;
@@ -68,9 +91,11 @@ namespace BansheeEditor
             collisionField.OnChanged += x => { joint.EnableCollision = x; MarkAsModified(); ConfirmModify(); };
             
             Layout.AddElement(targetField);
-            Layout.AddElement(targetOffsetField);
+            if(showOffsets)
+                Layout.AddElement(targetOffsetField);
             Layout.AddElement(anchorField);
-            Layout.AddElement(anchorOffsetField);
+            if(showOffsets)
+                Layout.AddElement(anchorOffsetField);
             Layout.AddElement(breakForceField);
             Layout.AddElement(breakTorqueField);
             Layout.AddElement(collisionField);

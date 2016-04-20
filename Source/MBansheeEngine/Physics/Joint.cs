@@ -325,17 +325,17 @@ namespace BansheeEngine
         /// <param name="body">Body to calculate the transform for.</param>
         /// <param name="position">Output position for the body.</param>
         /// <param name="rotation">Output rotation for the body.</param>
-        private void GetLocalTransform(JointBody body, out Vector3 position, out Quaternion rotation)
+        protected virtual void GetLocalTransform(JointBody body, out Vector3 position, out Quaternion rotation)
         {
             position = commonData.positions[(int)body];
             rotation = commonData.rotations[(int)body];
 
             Rigidbody rigidbody = commonData.bodies[(int)body];
-            if (rigidbody == null) // Get world space transform if no relative to any body
+            if (rigidbody == null) // Get world space transform if not relative to any body
             {
                 Quaternion worldRot = SceneObject.Rotation;
 
-                rotation = worldRot*rotation;
+                rotation = worldRot * rotation;
                 position = worldRot.Rotate(position) + SceneObject.Position;
             }
             else

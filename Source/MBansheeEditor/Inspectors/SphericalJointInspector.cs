@@ -76,7 +76,7 @@ namespace BansheeEditor
 
             ToggleLimitFields(joint.EnableLimit);
 
-            base.BuildGUI(joint);
+            base.BuildGUI(joint, true);
         }
 
         /// <summary>

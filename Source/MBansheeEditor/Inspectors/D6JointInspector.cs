@@ -195,7 +195,7 @@ namespace BansheeEditor
             swingLimitLayout.Active = Persistent.GetBool("swingLimit_Expanded");
             driveLayout.Active = Persistent.GetBool("drive_Expanded");
 
-            base.BuildGUI(joint);
+            base.BuildGUI(joint, true);
         }
 
         /// <summary>

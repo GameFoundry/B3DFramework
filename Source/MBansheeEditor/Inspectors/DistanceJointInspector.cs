@@ -121,7 +121,7 @@ namespace BansheeEditor
             maxLimitField.Active = joint.EnableMaxDistanceLimit;
             springLayout.Active = joint.EnableSpring;
 
-            base.BuildGUI(joint);
+            base.BuildGUI(joint, true);
         }
 
         /// <summary>

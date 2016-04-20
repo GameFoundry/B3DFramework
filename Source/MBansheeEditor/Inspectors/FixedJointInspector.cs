@@ -20,7 +20,7 @@ namespace BansheeEditor
             FixedJoint joint = InspectedObject as FixedJoint;
 
             if (joint != null)
-                BuildGUI(joint);
+                BuildGUI(joint, false);
         }
 
         /// <inheritdoc/>
