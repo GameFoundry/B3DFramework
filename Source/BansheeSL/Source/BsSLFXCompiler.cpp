@@ -1033,6 +1033,7 @@ namespace BansheeEngine
 				passData->geometryCode = techniqueData.commonPassData.geometryCode + passData->geometryCode;
 				passData->hullCode = techniqueData.commonPassData.hullCode + passData->hullCode;
 				passData->domainCode = techniqueData.commonPassData.domainCode + passData->domainCode;
+				passData->computeCode = techniqueData.commonPassData.computeCode + passData->computeCode;
 				passData->commonCode = techniqueData.commonPassData.commonCode + passData->commonCode;
 				
 				parsePass(passNode, codeBlocks, *passData);

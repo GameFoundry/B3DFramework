@@ -27,7 +27,7 @@ namespace BansheeEngine
 		virtual ~D3D9RenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */
-		void getCustomAttribute(const String& name, void* pData) const override;
+		void getCustomAttribute(const String& name, void* data) const override;
 
 		/** @copydoc D3D9Resource::notifyOnDeviceCreate */
 		void notifyOnDeviceCreate(IDirect3DDevice9* d3d9Device) override;

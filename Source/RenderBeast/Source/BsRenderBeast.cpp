@@ -476,7 +476,13 @@ namespace BansheeEngine
 
 			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
-				render(renderTargetData, i, delta);
+			{
+				bool isOverlayCamera = ((UINT32)cameras[i]->getFlags() & (UINT32)CameraFlags::Overlay) != 0;
+				if (!isOverlayCamera)
+					render(renderTargetData, i, delta);
+				else
+					renderOverlay(renderTargetData, i, delta);
+			}
 
 			RenderAPICore::instance().endFrame();
 			RenderAPICore::instance().swapBuffers(target);
@@ -495,25 +501,20 @@ namespace BansheeEngine
 		SPtr<ViewportCore> viewport = camera->getViewport();
 		CameraShaderData cameraShaderData = getCameraShaderData(*camera);
 
+		assert(((UINT32)camera->getFlags() & (UINT32)CameraFlags::Overlay) == 0);
+
 		mStaticHandler->updatePerCameraBuffers(cameraShaderData);
 
 		// Render scene objects to g-buffer
-		bool hasGBuffer = ((UINT32)camera->getFlags() & (UINT32)CameraFlags::Overlay) == 0;
+		bool createGBuffer = camData.target == nullptr ||
+			camData.target->getHDR() != mCoreOptions->hdr ||
+			camData.target->getNumSamples() != mCoreOptions->msaa;
 
-		if (hasGBuffer)
-		{
-			bool createGBuffer = camData.target == nullptr ||
-				camData.target->getHDR() != mCoreOptions->hdr ||
-				camData.target->getNumSamples() != mCoreOptions->msaa;
+		if (createGBuffer)
+			camData.target = RenderTargets::create(viewport, mCoreOptions->hdr, mCoreOptions->msaa);
 
-			if (createGBuffer)
-				camData.target = RenderTargets::create(viewport, mCoreOptions->hdr, mCoreOptions->msaa);
-
-			camData.target->allocate();
-			camData.target->bindGBuffer();
-		}
-		else
-			camData.target = nullptr;
+		camData.target->allocate();
+		camData.target->bindGBuffer();
 
 		// Trigger pre-scene callbacks
 		auto iterCameraCallbacks = mRenderCallbacks.find(camera);
@@ -533,150 +534,119 @@ namespace BansheeEngine
 			}
 		}
 		
-		if (hasGBuffer)
+		// Render base pass
+		const Vector<RenderQueueElement>& opaqueElements = camData.opaqueQueue->getSortedElements();
+		for (auto iter = opaqueElements.begin(); iter != opaqueElements.end(); ++iter)
 		{
-			// Render base pass
-			const Vector<RenderQueueElement>& opaqueElements = camData.opaqueQueue->getSortedElements();
-			for (auto iter = opaqueElements.begin(); iter != opaqueElements.end(); ++iter)
+			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
+			SPtr<MaterialCore> material = renderElem->material;
+
+			UINT32 rendererId = renderElem->renderableId;
+			Matrix4 worldViewProjMatrix = cameraShaderData.viewProj * mRenderableShaderData[rendererId].worldTransform;
+
+			mStaticHandler->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
+			mStaticHandler->bindGlobalBuffers(*renderElem); // Note: If I can keep global buffer slot indexes the same between shaders I could only bind these once
+			mStaticHandler->bindPerObjectBuffers(*renderElem);
+
+			if (iter->applyPass)
 			{
-				BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
-				SPtr<MaterialCore> material = renderElem->material;
-
-				UINT32 rendererId = renderElem->renderableId;
-				Matrix4 worldViewProjMatrix = cameraShaderData.viewProj * mRenderableShaderData[rendererId].worldTransform;
-
-				mStaticHandler->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
-				mStaticHandler->bindGlobalBuffers(*renderElem); // Note: If I can keep global buffer slot indexes the same between shaders I could only bind these once
-				mStaticHandler->bindPerObjectBuffers(*renderElem);
-
-				if (iter->applyPass)
-				{
-					SPtr<PassCore> pass = material->getPass(iter->passIdx);
-					setPass(pass);
-				}
-
-				SPtr<PassParametersCore> passParams = material->getPassParameters(iter->passIdx);
-
-				if (renderElem->samplerOverrides != nullptr)
-					setPassParams(passParams, &renderElem->samplerOverrides->passes[iter->passIdx]);
-				else
-					setPassParams(passParams, nullptr);
-
-				gRendererUtility().draw(iter->renderElem->mesh, iter->renderElem->subMesh);
+				SPtr<PassCore> pass = material->getPass(iter->passIdx);
+				setPass(pass);
 			}
 
-			camData.target->bindSceneColor(true);
+			SPtr<PassParametersCore> passParams = material->getPassParameters(iter->passIdx);
 
-			// Render light pass
-			SPtr<GpuParamBlockBufferCore> perCameraBuffer = mStaticHandler->getPerCameraParams().getBuffer();
+			if (renderElem->samplerOverrides != nullptr)
+				setPassParams(passParams, &renderElem->samplerOverrides->passes[iter->passIdx]);
+			else
+				setPassParams(passParams, nullptr);
 
-			SPtr<MaterialCore> dirMaterial = mDirLightMat->getMaterial();
-			SPtr<PassCore> dirPass = dirMaterial->getPass(0);
-
-			setPass(dirPass);
-			mDirLightMat->setStaticParameters(camData.target, perCameraBuffer);
-
-			for (auto& light : mDirectionalLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				mDirLightMat->setParameters(light.internal);
-
-				// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
-				//  - I can't think of a good way to do this automatically. Probably best to do it in setParameters()
-				setPassParams(dirMaterial->getPassParameters(0), nullptr);
-				gRendererUtility().drawScreenQuad();
-			}
-
-			// Draw point lights which our camera is within
-			SPtr<MaterialCore> pointInsideMaterial = mPointLightInMat->getMaterial();
-			SPtr<PassCore> pointInsidePass = pointInsideMaterial->getPass(0);
-
-			// TODO - Possibly use instanced drawing here as only two meshes are drawn with various properties
-			setPass(pointInsidePass);
-			mPointLightInMat->setStaticParameters(camData.target, perCameraBuffer);
-
-			// TODO - Cull lights based on visibility, right now I just iterate over all of them. 
-			for (auto& light : mPointLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
-
-				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
-				if (!cameraInLightGeometry)
-					continue;
-
-				mPointLightInMat->setParameters(light.internal);
-
-				// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
-				//  - I can't think of a good way to do this automatically. Probably best to do it in setParameters()
-				setPassParams(pointInsideMaterial->getPassParameters(0), nullptr);
-				SPtr<MeshCore> mesh = light.internal->getMesh();
-				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
-			}
-
-			// Draw other point lights
-			SPtr<MaterialCore> pointOutsideMaterial = mPointLightOutMat->getMaterial();
-			SPtr<PassCore> pointOutsidePass = pointOutsideMaterial->getPass(0);
-
-			setPass(pointOutsidePass);
-			mPointLightOutMat->setStaticParameters(camData.target, perCameraBuffer);
-
-			for (auto& light : mPointLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
-
-				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
-				if (cameraInLightGeometry)
-					continue;
-
-				mPointLightOutMat->setParameters(light.internal);
-
-				// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
-				setPassParams(pointOutsideMaterial->getPassParameters(0), nullptr);
-				SPtr<MeshCore> mesh = light.internal->getMesh();
-				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
-			}
-
-			camData.target->bindSceneColor(false);
-		}
-		else
-		{
-			// Prepare final render target
-			SPtr<RenderTargetCore> target = rtData.target;
-
-			RenderAPICore::instance().setRenderTarget(target);
-			RenderAPICore::instance().setViewport(viewport->getNormArea());
-
-			// If first camera in render target, prepare the render target
-			if (camIdx == 0)
-			{
-				UINT32 clearBuffers = 0;
-				if (viewport->getRequiresColorClear())
-					clearBuffers |= FBT_COLOR;
-
-				if (viewport->getRequiresDepthClear())
-					clearBuffers |= FBT_DEPTH;
-
-				if (viewport->getRequiresStencilClear())
-					clearBuffers |= FBT_STENCIL;
-
-				if (clearBuffers != 0)
-				{
-					RenderAPICore::instance().clearViewport(clearBuffers, viewport->getClearColor(),
-						viewport->getClearDepthValue(), viewport->getClearStencilValue());
-				}
-			}
+			gRendererUtility().draw(iter->renderElem->mesh, iter->renderElem->subMesh);
 		}
 
+		camData.target->bindSceneColor(true);
+
+		// Render light pass
+		SPtr<GpuParamBlockBufferCore> perCameraBuffer = mStaticHandler->getPerCameraParams().getBuffer();
+
+		SPtr<MaterialCore> dirMaterial = mDirLightMat->getMaterial();
+		SPtr<PassCore> dirPass = dirMaterial->getPass(0);
+
+		setPass(dirPass);
+		mDirLightMat->setStaticParameters(camData.target, perCameraBuffer);
+
+		for (auto& light : mDirectionalLights)
+		{
+			if (!light.internal->getIsActive())
+				continue;
+
+			mDirLightMat->setParameters(light.internal);
+
+			// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
+			//  - I can't think of a good way to do this automatically. Probably best to do it in setParameters()
+			setPassParams(dirMaterial->getPassParameters(0), nullptr);
+			gRendererUtility().drawScreenQuad();
+		}
+
+		// Draw point lights which our camera is within
+		SPtr<MaterialCore> pointInsideMaterial = mPointLightInMat->getMaterial();
+		SPtr<PassCore> pointInsidePass = pointInsideMaterial->getPass(0);
+
+		// TODO - Possibly use instanced drawing here as only two meshes are drawn with various properties
+		setPass(pointInsidePass);
+		mPointLightInMat->setStaticParameters(camData.target, perCameraBuffer);
+
+		// TODO - Cull lights based on visibility, right now I just iterate over all of them. 
+		for (auto& light : mPointLights)
+		{
+			if (!light.internal->getIsActive())
+				continue;
+
+			float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
+			float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
+
+			bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
+			if (!cameraInLightGeometry)
+				continue;
+
+			mPointLightInMat->setParameters(light.internal);
+
+			// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
+			//  - I can't think of a good way to do this automatically. Probably best to do it in setParameters()
+			setPassParams(pointInsideMaterial->getPassParameters(0), nullptr);
+			SPtr<MeshCore> mesh = light.internal->getMesh();
+			gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+		}
+
+		// Draw other point lights
+		SPtr<MaterialCore> pointOutsideMaterial = mPointLightOutMat->getMaterial();
+		SPtr<PassCore> pointOutsidePass = pointOutsideMaterial->getPass(0);
+
+		setPass(pointOutsidePass);
+		mPointLightOutMat->setStaticParameters(camData.target, perCameraBuffer);
+
+		for (auto& light : mPointLights)
+		{
+			if (!light.internal->getIsActive())
+				continue;
+
+			float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
+			float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
+
+			bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
+			if (cameraInLightGeometry)
+				continue;
+
+			mPointLightOutMat->setParameters(light.internal);
+
+			// TODO - Bind parameters to the pipeline manually as I don't need to re-bind gbuffer textures for every light
+			setPassParams(pointOutsideMaterial->getPassParameters(0), nullptr);
+			SPtr<MeshCore> mesh = light.internal->getMesh();
+			gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+		}
+
+		camData.target->bindSceneColor(false);
+		
 		// Render transparent objects (TODO - No lighting yet)
 		const Vector<RenderQueueElement>& transparentElements = camData.transparentQueue->getSortedElements();
 		for (auto iter = transparentElements.begin(); iter != transparentElements.end(); ++iter)
@@ -724,18 +694,9 @@ namespace BansheeEngine
 			}
 		}
 
-		if (hasGBuffer)
-		{
-			//PostProcessing::instance().postProcess(camData.target->getSceneColorRT(), camData.postProcessInfo, delta);
-
-			// TODO - Instead of doing a separate resolve here I could potentially perform a resolve directly in some
-			// post-processing pass (e.g. tone mapping). Right now it is just an unnecessary blit.
-			camData.target->resolve();
-		}
-		else
-		{
-			// TODO - Post process without gbuffer
-		}
+		// TODO - If GBuffer has multiple samples, I should resolve them before post-processing
+		PostProcessing::instance().postProcess(camData.target->getSceneColorRT(), 
+			viewport, camData.postProcessInfo, delta);
 
 		// Render overlay post-scene callbacks
 		if (iterCameraCallbacks != mRenderCallbacks.end())
@@ -751,14 +712,74 @@ namespace BansheeEngine
 			}
 		}
 
-		if (hasGBuffer)
-			camData.target->release();
+		camData.target->release();
 
 		gProfilerCPU().endSample("Render");
+	}
+
+	void RenderBeast::renderOverlay(RenderTargetData& rtData, UINT32 camIdx, float delta)
+	{
+		gProfilerCPU().beginSample("RenderOverlay");
+
+		const CameraCore* camera = rtData.cameras[camIdx];
+		CameraData& camData = mCameraData[camera];
+
+		assert(((UINT32)camera->getFlags() & (UINT32)CameraFlags::Overlay) != 0);
+
+		SPtr<ViewportCore> viewport = camera->getViewport();
+		CameraShaderData cameraShaderData = getCameraShaderData(*camera);
+
+		mStaticHandler->updatePerCameraBuffers(cameraShaderData);
+
+		SPtr<RenderTargetCore> target = rtData.target;
+
+		RenderAPICore::instance().setRenderTarget(target);
+		RenderAPICore::instance().setViewport(viewport->getNormArea());
+
+		// If first camera in render target, prepare the render target
+		if (camIdx == 0)
+		{
+			UINT32 clearBuffers = 0;
+			if (viewport->getRequiresColorClear())
+				clearBuffers |= FBT_COLOR;
+
+			if (viewport->getRequiresDepthClear())
+				clearBuffers |= FBT_DEPTH;
+
+			if (viewport->getRequiresStencilClear())
+				clearBuffers |= FBT_STENCIL;
+
+			if (clearBuffers != 0)
+			{
+				RenderAPICore::instance().clearViewport(clearBuffers, viewport->getClearColor(),
+					viewport->getClearDepthValue(), viewport->getClearStencilValue());
+			}
+		}
+
+		// Render overlay post-scene callbacks
+		auto iterCameraCallbacks = mRenderCallbacks.find(camera);
+		if (iterCameraCallbacks != mRenderCallbacks.end())
+		{
+			for (auto& callbackPair : iterCameraCallbacks->second)
+			{
+				const RenderCallbackData& callbackData = callbackPair.second;
+
+				if (!callbackData.overlay)
+					continue;
+
+				callbackData.callback();
+			}
+		}
+
+		gProfilerCPU().endSample("RenderOverlay");
 	}
 	
 	void RenderBeast::determineVisible(const CameraCore& camera)
 	{
+		bool isOverlayCamera = ((UINT32)camera.getFlags() & (UINT32)CameraFlags::Overlay) != 0;
+		if (isOverlayCamera)
+			return;
+
 		CameraData& cameraData = mCameraData[&camera];
 
 		UINT64 cameraLayers = camera.getLayers();

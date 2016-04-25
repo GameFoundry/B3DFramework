@@ -191,6 +191,22 @@ namespace BansheeEngine
 		MaterialParamTextureCore mReducedHistogramTex;
 	};
 
+	/** Shader that applies tonemapping and converts a HDR image into a LDR image. */
+	class TonemappingMat : public RendererMaterial<TonemappingMat>
+	{
+		RMAT_DEF("PPTonemapping.bsl");
+
+	public:
+		TonemappingMat();
+
+		/** Executes the post-process effect with the provided parameters. */
+		void execute(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport,
+			PostProcessInfo& ppInfo);
+	private:
+		MaterialParamTextureCore mInputTex;
+		MaterialParamTextureCore mEyeAdaptationTex;
+	};
+
 	/**
 	 * Renders post-processing effects for the provided render target.
 	 *
@@ -200,13 +216,15 @@ namespace BansheeEngine
 	{
 	public:
 		/** Renders post-processing effects for the provided render target. */
-		void postProcess(const SPtr<RenderTextureCore>& target, PostProcessInfo& ppInfo, float frameDelta);
+		void postProcess(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport,
+			PostProcessInfo& ppInfo, float frameDelta);
 		
 	private:
 		DownsampleMat mDownsample;
 		EyeAdaptHistogramMat mEyeAdaptHistogram;
 		EyeAdaptHistogramReduceMat mEyeAdaptHistogramReduce;
 		EyeAdaptationMat mEyeAdaptation;
+		TonemappingMat mTonemapping;
 	};
 
 	/** @} */

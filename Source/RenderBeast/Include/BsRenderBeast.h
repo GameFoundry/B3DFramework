@@ -191,6 +191,17 @@ namespace BansheeEngine
 		 */
 		void render(RenderTargetData& rtData, UINT32 camIdx, float delta);
 
+		/**
+		 * Renders all overlay callbacks attached to the provided camera.
+		 *
+		 * @param[in]	rtData	Render target data containing the camera to render.
+		 * @param[in]	camIdx	Index of the camera to render.
+		 * @param[in]	delta	Time elapsed since the last frame.
+		 * 					
+		 * @note	Core thread only.
+		 */
+		void renderOverlay(RenderTargetData& rtData, UINT32 camIdx, float delta);
+
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore();
 

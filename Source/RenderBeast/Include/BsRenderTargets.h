@@ -50,9 +50,6 @@ namespace BansheeEngine
 		/**	Binds the scene color render target for rendering. */
 		void bindSceneColor(bool readOnlyDepthStencil);
 
-		/**	Resolves the GBuffer scene color into the output scene color buffer. */
-		void resolve();
-
 		/** Returns the scene color render target. */
 		SPtr<RenderTextureCore> getSceneColorRT() const { return mSceneColorRT; }
 
@@ -90,6 +87,7 @@ namespace BansheeEngine
 		SPtr<MultiRenderTextureCore> mGBufferRT;
 		SPtr<RenderTextureCore> mSceneColorRT;
 
+		PixelFormat mSceneColorFormat;
 		PixelFormat mDiffuseFormat;
 		PixelFormat mNormalFormat;
 		UINT32 mNumSamples;

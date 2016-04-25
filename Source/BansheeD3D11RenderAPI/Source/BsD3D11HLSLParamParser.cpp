@@ -146,9 +146,35 @@ namespace BansheeEngine
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D11_SIT_UAV_RWTYPED:
-					memberDesc.type = GPOT_RWTYPED_BUFFER;
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+				{
+					switch (resourceDesc.Dimension)
+					{
+					case D3D_SRV_DIMENSION_TEXTURE1D:
+						memberDesc.type = GPOT_TEXTURE1D;
+						desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE2D:
+						memberDesc.type = GPOT_TEXTURE2D;
+						desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE3D:
+						memberDesc.type = GPOT_TEXTURE3D;
+						desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_TEXTURECUBE:
+						memberDesc.type = GPOT_TEXTURECUBE;
+						desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_BUFFER:
+						memberDesc.type = GPOT_RWTYPED_BUFFER;
+						desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					default:
+						LOGWRN("Skipping typed UAV because it has unsupported dimension: " + toString(resourceDesc.Dimension));
+					}
+
 					break;
+				}
 				case D3D11_SIT_UAV_RWSTRUCTURED:
 					memberDesc.type = GPOT_RWSTRUCTURED_BUFFER;
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));

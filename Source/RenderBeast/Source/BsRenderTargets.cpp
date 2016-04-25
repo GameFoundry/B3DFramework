@@ -12,12 +12,10 @@ namespace BansheeEngine
 	RenderTargets::RenderTargets(const SPtr<ViewportCore>& viewport, bool hdr, UINT32 numSamples)
 		:mViewport(viewport), mNumSamples(numSamples), mHDR(hdr)
 	{
-		if (hdr)
-			mDiffuseFormat = PF_FLOAT_R11G11B10;
-		else
-			mDiffuseFormat = PF_B8G8R8X8;
-
-		mNormalFormat = PF_UNORM_R10G10B10A2;
+		// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
+		mSceneColorFormat = hdr ? PF_FLOAT16_RGBA : PF_B8G8R8X8;
+		mDiffuseFormat = PF_B8G8R8X8; // Note: Also consider customizable format (e.g. 16-bit float?)
+		mNormalFormat = PF_UNORM_R10G10B10A2; // Note: Also consider customizable format (e.g. 16-bit float?)
 	}
 
 	SPtr<RenderTargets> RenderTargets::create(const SPtr<ViewportCore>& viewport, bool hdr, UINT32 numSamples)
@@ -32,28 +30,14 @@ namespace BansheeEngine
 		UINT32 width = getWidth();
 		UINT32 height = getHeight();
 
+		SPtr<PooledRenderTexture> newColorRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width, height, TU_RENDERTARGET,
+			mNumSamples, false));
 		SPtr<PooledRenderTexture> newAlbedoRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mDiffuseFormat, width, 
 			height, TU_RENDERTARGET, mNumSamples, false));
 		SPtr<PooledRenderTexture> newNormalRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mNormalFormat, width, 
 			height, TU_RENDERTARGET, mNumSamples, false));
 		SPtr<PooledRenderTexture> newDepthRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D24S8, width, height, 
 			TU_DEPTHSTENCIL, mNumSamples, false));
-
-		SPtr<PooledRenderTexture> newColorRT = nullptr;
-
-		// See if I can use the final output color target for gbuffer rendering, this saves a little memory
-		SPtr<RenderTargetCore> resolvedRT = mViewport->getTarget();
-		const RenderTargetProperties& resolvedRTProps = resolvedRT->getProperties();
-
-		bool useResolvedColor = !resolvedRTProps.isWindow() &&
-			mViewport->getWidth() == getWidth() &&
-			mViewport->getHeight() == getHeight() &&
-			((resolvedRTProps.getMultisampleCount() <= 1) == (mNumSamples <= 1) ||
-			resolvedRTProps.getMultisampleCount() == mNumSamples);
-
-		if (!useResolvedColor)
-			newColorRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_B8G8R8X8, width, height, TU_RENDERTARGET, 
-				mNumSamples, false));
 
 		bool rebuildTargets = newColorRT != mSceneColorTex || newAlbedoRT != mAlbedoTex || newNormalRT != mNormalTex || newDepthRT != mDepthTex;
 
@@ -67,17 +51,7 @@ namespace BansheeEngine
 			MULTI_RENDER_TEXTURE_CORE_DESC gbufferDesc;
 			gbufferDesc.colorSurfaces.resize(3);
 
-			SPtr<TextureCore> sceneColorTex = nullptr;
-
-			if (newColorRT != nullptr)
-				sceneColorTex = newColorRT->texture;
-			else // Re-using output scene color texture
-			{
-				SPtr<RenderTextureCore> resolvedRTex = std::static_pointer_cast<RenderTextureCore>(resolvedRT);
-				sceneColorTex = resolvedRTex->getBindableColorTexture();
-			}
-
-			gbufferDesc.colorSurfaces[0].texture = sceneColorTex;
+			gbufferDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
 			gbufferDesc.colorSurfaces[0].face = 0;
 			gbufferDesc.colorSurfaces[0].mipLevel = 0;
 
@@ -96,7 +70,7 @@ namespace BansheeEngine
 			mGBufferRT = TextureCoreManager::instance().createMultiRenderTexture(gbufferDesc);
 
 			RENDER_TEXTURE_CORE_DESC sceneColorDesc;
-			sceneColorDesc.colorSurface.texture = sceneColorTex;
+			sceneColorDesc.colorSurface.texture = mSceneColorTex->texture;
 			sceneColorDesc.colorSurface.face = 0;
 			sceneColorDesc.colorSurface.mipLevel = 0;
 
@@ -115,9 +89,7 @@ namespace BansheeEngine
 
 		RenderTexturePool& texPool = RenderTexturePool::instance();
 
-		if (mSceneColorTex != nullptr)
-			texPool.release(mSceneColorTex);
-
+		texPool.release(mSceneColorTex);
 		texPool.release(mAlbedoTex);
 		texPool.release(mNormalTex);
 		texPool.release(mDepthTex);
@@ -159,42 +131,6 @@ namespace BansheeEngine
 
 		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
 		rapi.setViewport(area);
-	}
-
-	void RenderTargets::resolve()
-	{
-		// Prepare final render target
-		SPtr<RenderTargetCore> target = mViewport->getTarget();
-
-		RenderAPICore::instance().setRenderTarget(target);
-		RenderAPICore::instance().setViewport(mViewport->getNormArea());
-
-		// If using a separate scene color texture clear the final render target
-		if (mSceneColorTex == nullptr)
-		{
-			// Do nothing as final render target is already our scene color target
-		}
-		else
-		{
-			UINT32 clearBuffers = 0;
-			if (mViewport->getRequiresColorClear())
-				clearBuffers |= FBT_COLOR;
-
-			if (mViewport->getRequiresDepthClear())
-				clearBuffers |= FBT_DEPTH;
-
-			if (mViewport->getRequiresStencilClear())
-				clearBuffers |= FBT_STENCIL;
-
-			if (clearBuffers != 0)
-			{
-				RenderAPICore::instance().clearViewport(clearBuffers, mViewport->getClearColor(),
-					mViewport->getClearDepthValue(), mViewport->getClearStencilValue());
-			}
-
-			// TODO - Merge this blit into some post-processing shader, no reason for it to be on its own
-			gRendererUtility().blit(mSceneColorTex->texture);
-		}
 	}
 
 	SPtr<TextureCore> RenderTargets::getTextureA() const

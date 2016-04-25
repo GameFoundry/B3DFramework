@@ -102,6 +102,8 @@ namespace BansheeEngine
 
 		// TODO - Clear downsampled scene texture as render target before dispatch?
 		RenderAPICore& rapi = RenderAPICore::instance();
+
+		gRendererUtility().setComputePass(mMaterial);
 		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
 
 		mOutput = ppInfo.histogramTex->renderTexture;
@@ -255,9 +257,42 @@ namespace BansheeEngine
 		gRendererUtility().drawScreenQuad();
 	}
 
-	void PostProcessing::postProcess(const SPtr<RenderTextureCore>& target, PostProcessInfo& ppInfo, float frameDelta)
+	TonemappingMat::TonemappingMat()
 	{
-		mDownsample.execute(target, ppInfo);
+		mInputTex = mMaterial->getParamTexture("gInputTex");
+		mEyeAdaptationTex = mMaterial->getParamTexture("gEyeAdaptationTex");
+	}
+
+	void TonemappingMat::_initDefines(ShaderDefines& defines)
+	{
+		// Do nothing
+	}
+
+	void TonemappingMat::execute(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport, 
+		PostProcessInfo& ppInfo)
+	{
+		// Set parameters
+		SPtr<TextureCore> colorTexture = sceneColor->getBindableColorTexture();
+		mInputTex.set(colorTexture);
+
+		SPtr<TextureCore> eyeAdaptationTexture = ppInfo.eyeAdaptationTex[ppInfo.lastEyeAdaptationTex]->texture;
+		mEyeAdaptationTex.set(eyeAdaptationTexture);
+
+		// Render
+		RenderAPICore& rapi = RenderAPICore::instance();
+		SPtr<RenderTargetCore> target = outputViewport->getTarget();
+
+		rapi.setRenderTarget(target);
+		rapi.setViewport(outputViewport->getNormArea());
+
+		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().drawScreenQuad();
+	}
+
+	void PostProcessing::postProcess(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport, 
+		PostProcessInfo& ppInfo, float frameDelta)
+	{
+		mDownsample.execute(sceneColor, ppInfo);
 		mEyeAdaptHistogram.execute(ppInfo);
 		mDownsample.release(ppInfo);
 
@@ -267,6 +302,9 @@ namespace BansheeEngine
 		mEyeAdaptation.execute(ppInfo, frameDelta);
 		mEyeAdaptHistogramReduce.release(ppInfo);
 
-		// TODO - Generate LUT, run tonemapping, output everything to scene
+		// TODO - Generate LUT with white balancing, color grading, filmic tonemapping
+		// TODO - Apply LUT during tonemapping
+
+		mTonemapping.execute(sceneColor, outputViewport, ppInfo);
 	}
 }

@@ -29,7 +29,7 @@ namespace BansheeEngine
 		virtual ~GLRenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */
-		virtual void getCustomAttribute(const String& name, void* pData) const override;
+		virtual void getCustomAttribute(const String& name, void* data) const override;
 
 	protected:
 		friend class GLRenderTexture;

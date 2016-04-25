@@ -12,7 +12,6 @@
 #include "BsScriptAssemblyManager.h"
 #include "BsMonoAssembly.h"
 #include "BsPlayInEditorManager.h"
-#include "BsDebug.h"
 
 namespace BansheeEngine
 {

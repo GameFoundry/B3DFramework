@@ -37,7 +37,17 @@ namespace BansheeEngine
 		 *
 		 * @note	Core thread.
 		 */
-		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx);
+		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+
+		/**
+		 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
+		 *
+		 * @param[in]	material	Material containing the pass.
+		 * @param[in]	passIdx		Index of the pass in the material.
+		 *
+		 * @note	Core thread.
+		 */
+		void setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
 
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.

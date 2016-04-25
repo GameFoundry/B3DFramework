@@ -43,25 +43,22 @@ namespace BansheeEngine
 		mDX9DepthStencilSurface = nullptr;
 	}
 
-	void D3D9RenderTextureCore::getCustomAttribute(const String& name, void* pData) const
+	void D3D9RenderTextureCore::getCustomAttribute(const String& name, void* data) const
 	{
 		if(name == "DDBACKBUFFER")
 		{
-			IDirect3DSurface9 ** pSurf = (IDirect3DSurface9 **)pData;
-			*pSurf = mDX9ColorSurface;
-			return;
+			IDirect3DSurface9** surf = (IDirect3DSurface9**)data;
+			*surf = mDX9ColorSurface;
 		}
 		else if(name == "D3DZBUFFER")
 		{
-			IDirect3DSurface9 ** pSurf = (IDirect3DSurface9 **)pData;
-			*pSurf = mDX9DepthStencilSurface;
-			return;
+			IDirect3DSurface9** surf = (IDirect3DSurface9**)data;
+			*surf = mDX9DepthStencilSurface;
 		}
 		else if(name == "HWND")
 		{
-			HWND *pHwnd = (HWND*)pData;
-			*pHwnd = NULL;
-			return;
+			HWND* hWnd = (HWND*)data;
+			*hWnd = nullptr;
 		}
 	}
 

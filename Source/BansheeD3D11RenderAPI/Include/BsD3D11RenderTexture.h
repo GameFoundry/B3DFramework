@@ -26,7 +26,7 @@ namespace BansheeEngine
 		virtual ~D3D11RenderTextureCore() { }
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */
-		void getCustomAttribute(const String& name, void* pData) const override;
+		void getCustomAttribute(const String& name, void* data) const override;
 
 	protected:
 		/** @copydoc RenderTextureCore::getProperties */

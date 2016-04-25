@@ -129,7 +129,7 @@ namespace BansheeEngine
 			SPtr<GpuProgramCore> program;
 		};
 
-		const UINT32 numStages = 6;
+		const UINT32 numStages = 5;
 		StageData stages[numStages] =
 		{
 			{
@@ -151,10 +151,6 @@ namespace BansheeEngine
 			{
 				GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(),
 				passParams->mDomainParams, pass->getDomainProgram()
-			},
-			{
-				GPT_COMPUTE_PROGRAM, pass->hasComputeProgram(),
-				passParams->mComputeParams, pass->getComputeProgram()
 			}
 		};
 
@@ -187,6 +183,22 @@ namespace BansheeEngine
 			rs.setRasterizerState(pass->getRasterizerState());
 		else
 			rs.setRasterizerState(RasterizerStateCore::getDefault());
+	}
+
+	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	{
+		RenderAPICore& rs = RenderAPICore::instance();
+
+		SPtr<PassCore> pass = material->getPass(passIdx);
+		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
+
+		if(pass->hasComputeProgram())
+		{
+			rs.bindGpuProgram(pass->getComputeProgram());
+			rs.setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
+		}
+		else
+			rs.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
 	}
 
 	void RendererUtility::setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx)

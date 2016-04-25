@@ -69,15 +69,15 @@ namespace BansheeEngine
 		mFB->bindDepthStencil(depthStencilBuffer);
 	}
 
-	void GLRenderTextureCore::getCustomAttribute(const String& name, void* pData) const
+	void GLRenderTextureCore::getCustomAttribute(const String& name, void* data) const
 	{
 		if(name=="FBO")
 		{
-			*static_cast<GLFrameBufferObject **>(pData) = mFB;
+			*static_cast<GLFrameBufferObject**>(data) = mFB;
 		}
 		else if (name == "GL_FBOID" || name == "GL_MULTISAMPLEFBOID")
 		{
-			*static_cast<GLuint*>(pData) = mFB->getGLFBOID();
+			*static_cast<GLuint*>(data) = mFB->getGLFBOID();
 		}
 	}
 
