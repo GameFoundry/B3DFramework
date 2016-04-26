@@ -372,6 +372,11 @@ namespace BansheeEngine
 		}
 	}
 
+	void RenderBeast::notifyCameraUpdated(const CameraCore* camera, const Vector3& position, const Quaternion& rotation)
+	{
+		/* Do nothing, we poll position/rotation every frame anyway. */
+	}
+
 	void RenderBeast::notifyCameraRemoved(const CameraCore* camera)
 	{
 		mCameraData.erase(camera);

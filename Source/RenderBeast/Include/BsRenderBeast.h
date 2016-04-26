@@ -132,28 +132,31 @@ namespace BansheeEngine
 		virtual void destroy() override;
 
 	private:
-		/** @copydoc Renderer::_notifyCameraAdded */
+		/** @copydoc Renderer::notifyCameraAdded */
 		void notifyCameraAdded(const CameraCore* camera) override;
 
-		/** @copydocRenderer::_notifyCameraRemoved */
+		/** @copydoc Renderer::notifyCameraUpdated */
+		void notifyCameraUpdated(const CameraCore* camera, const Vector3& position, const Quaternion& rotation) override;
+
+		/** @copydocRenderer::notifyCameraRemoved */
 		void notifyCameraRemoved(const CameraCore* camera) override;
 
-		/** @copydoc Renderer::_notifyLightAdded */
+		/** @copydoc Renderer::notifyLightAdded */
 		void notifyLightAdded(LightCore* light) override;
 
-		/** @copydoc Renderer::_notifyLightUpdated */
+		/** @copydoc Renderer::notifyLightUpdated */
 		void notifyLightUpdated(LightCore* light) override;
 
-		/** @copydoc Renderer::_notifyLightRemoved */
+		/** @copydoc Renderer::notifyLightRemoved */
 		void notifyLightRemoved(LightCore* light) override;
 
-		/** @copydoc Renderer::_notifyRenderableAdded */
+		/** @copydoc Renderer::notifyRenderableAdded */
 		void notifyRenderableAdded(RenderableCore* renderable) override;
 
-		/** @copydoc Renderer::_notifyRenderableUpdated */
+		/** @copydoc Renderer::notifyRenderableUpdated */
 		void notifyRenderableUpdated(RenderableCore* renderable) override;
 
-		/** @copydoc Renderer::_notifyRenderableRemoved */
+		/** @copydoc Renderer::notifyRenderableRemoved */
 		void notifyRenderableRemoved(RenderableCore* renderable) override;
 
 		/**

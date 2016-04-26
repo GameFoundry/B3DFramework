@@ -75,6 +75,13 @@ namespace BansheeEngine
 		virtual void notifyCameraAdded(const CameraCore* camera) { }
 
 		/**
+		 * Called whenever a camera's position or rotation is updated.
+		 *
+		 * @note	Core thread.
+		 */
+		virtual void notifyCameraUpdated(const CameraCore* camera, const Vector3& position, const Quaternion& rotation) { }
+
+		/**
 		 * Called whenever a camera is destroyed.
 		 *
 		 * @note	Core thread.

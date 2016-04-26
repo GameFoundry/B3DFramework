@@ -507,7 +507,7 @@ namespace BansheeEngine
 		mPosition = position;
 
 		mRecalcView = true;
-		_markCoreDirty();
+		_markCoreDirty(CameraDirtyFlag::Transform);
 	}
 
 	void CameraBase::setRotation(const Quaternion& rotation)
@@ -515,7 +515,7 @@ namespace BansheeEngine
 		mRotation = rotation;
 
 		mRecalcView = true;
-		_markCoreDirty();
+		_markCoreDirty(CameraDirtyFlag::Transform);
 	}
 
 	void CameraBase::invalidateFrustum() const
@@ -707,32 +707,42 @@ namespace BansheeEngine
 
 	void CameraCore::syncToCore(const CoreSyncData& data)
 	{
-		RendererManager::instance().getActive()->notifyCameraRemoved(this);
-
 		char* dataPtr = (char*)data.getBuffer();
 
-		dataPtr = rttiReadElem(mLayers, dataPtr);
+		CameraDirtyFlag dirtyFlag;
+		dataPtr = rttiReadElem(dirtyFlag, dataPtr);
 		dataPtr = rttiReadElem(mPosition, dataPtr);
 		dataPtr = rttiReadElem(mRotation, dataPtr);
-		dataPtr = rttiReadElem(mProjType, dataPtr);
-		dataPtr = rttiReadElem(mHorzFOV, dataPtr);
-		dataPtr = rttiReadElem(mFarDist, dataPtr);
-		dataPtr = rttiReadElem(mNearDist, dataPtr);
-		dataPtr = rttiReadElem(mAspect, dataPtr);
-		dataPtr = rttiReadElem(mOrthoHeight, dataPtr);
-		dataPtr = rttiReadElem(mPriority, dataPtr);
-		dataPtr = rttiReadElem(mCustomViewMatrix, dataPtr);
-		dataPtr = rttiReadElem(mCustomProjMatrix, dataPtr);
-		dataPtr = rttiReadElem(mFrustumExtentsManuallySet, dataPtr);
-		dataPtr = rttiReadElem(mCameraFlags, dataPtr);
-		dataPtr = rttiReadElem(mIsActive, dataPtr);
 
 		mRecalcFrustum = true;
 		mRecalcFrustumPlanes = true;
 		mRecalcView = true;
 
-		if(mIsActive)
-			RendererManager::instance().getActive()->notifyCameraAdded(this);
+		if (dirtyFlag == CameraDirtyFlag::Transform)
+		{
+			RendererManager::instance().getActive()->notifyCameraUpdated(this, mPosition, mRotation);
+		}
+		else 
+		{
+			dataPtr = rttiReadElem(mLayers, dataPtr);
+			dataPtr = rttiReadElem(mProjType, dataPtr);
+			dataPtr = rttiReadElem(mHorzFOV, dataPtr);
+			dataPtr = rttiReadElem(mFarDist, dataPtr);
+			dataPtr = rttiReadElem(mNearDist, dataPtr);
+			dataPtr = rttiReadElem(mAspect, dataPtr);
+			dataPtr = rttiReadElem(mOrthoHeight, dataPtr);
+			dataPtr = rttiReadElem(mPriority, dataPtr);
+			dataPtr = rttiReadElem(mCustomViewMatrix, dataPtr);
+			dataPtr = rttiReadElem(mCustomProjMatrix, dataPtr);
+			dataPtr = rttiReadElem(mFrustumExtentsManuallySet, dataPtr);
+			dataPtr = rttiReadElem(mCameraFlags, dataPtr);
+			dataPtr = rttiReadElem(mIsActive, dataPtr);
+
+			RendererManager::instance().getActive()->notifyCameraRemoved(this);
+
+			if (mIsActive)
+				RendererManager::instance().getActive()->notifyCameraAdded(this);
+		}
 	}
 
 	Camera::Camera(SPtr<RenderTarget> target, float left, float top, float width, float height)
@@ -784,41 +794,53 @@ namespace BansheeEngine
 
 	CoreSyncData Camera::syncToCore(FrameAlloc* allocator)
 	{
+		UINT32 dirtyFlag = getCoreDirtyFlags();
+
 		UINT32 size = 0;
-		size += rttiGetElemSize(mLayers);
+		size += rttiGetElemSize(dirtyFlag);
 		size += rttiGetElemSize(mPosition);
 		size += rttiGetElemSize(mRotation);
-		size += rttiGetElemSize(mProjType);
-		size += rttiGetElemSize(mHorzFOV);
-		size += rttiGetElemSize(mFarDist);
-		size += rttiGetElemSize(mNearDist);
-		size += rttiGetElemSize(mAspect);
-		size += rttiGetElemSize(mOrthoHeight);
-		size += rttiGetElemSize(mPriority);
-		size += rttiGetElemSize(mCustomViewMatrix);
-		size += rttiGetElemSize(mCustomProjMatrix);
-		size += rttiGetElemSize(mFrustumExtentsManuallySet);
-		size += rttiGetElemSize(mCameraFlags);
-		size += rttiGetElemSize(mIsActive);
+
+		if (dirtyFlag != (UINT32)CameraDirtyFlag::Transform)
+		{
+			size += rttiGetElemSize(mLayers);
+			size += rttiGetElemSize(mProjType);
+			size += rttiGetElemSize(mHorzFOV);
+			size += rttiGetElemSize(mFarDist);
+			size += rttiGetElemSize(mNearDist);
+			size += rttiGetElemSize(mAspect);
+			size += rttiGetElemSize(mOrthoHeight);
+			size += rttiGetElemSize(mPriority);
+			size += rttiGetElemSize(mCustomViewMatrix);
+			size += rttiGetElemSize(mCustomProjMatrix);
+			size += rttiGetElemSize(mFrustumExtentsManuallySet);
+			size += rttiGetElemSize(mCameraFlags);
+			size += rttiGetElemSize(mIsActive);
+		}
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
-		dataPtr = rttiWriteElem(mLayers, dataPtr);
+		dataPtr = rttiWriteElem(dirtyFlag, dataPtr);
 		dataPtr = rttiWriteElem(mPosition, dataPtr);
 		dataPtr = rttiWriteElem(mRotation, dataPtr);
-		dataPtr = rttiWriteElem(mProjType, dataPtr);
-		dataPtr = rttiWriteElem(mHorzFOV, dataPtr);
-		dataPtr = rttiWriteElem(mFarDist, dataPtr);
-		dataPtr = rttiWriteElem(mNearDist, dataPtr);
-		dataPtr = rttiWriteElem(mAspect, dataPtr);
-		dataPtr = rttiWriteElem(mOrthoHeight, dataPtr);
-		dataPtr = rttiWriteElem(mPriority, dataPtr);
-		dataPtr = rttiWriteElem(mCustomViewMatrix, dataPtr);
-		dataPtr = rttiWriteElem(mCustomProjMatrix, dataPtr);
-		dataPtr = rttiWriteElem(mFrustumExtentsManuallySet, dataPtr);
-		dataPtr = rttiWriteElem(mCameraFlags, dataPtr);
-		dataPtr = rttiWriteElem(mIsActive, dataPtr);
+
+		if (dirtyFlag != (UINT32)CameraDirtyFlag::Transform)
+		{
+			dataPtr = rttiWriteElem(mLayers, dataPtr);
+			dataPtr = rttiWriteElem(mProjType, dataPtr);
+			dataPtr = rttiWriteElem(mHorzFOV, dataPtr);
+			dataPtr = rttiWriteElem(mFarDist, dataPtr);
+			dataPtr = rttiWriteElem(mNearDist, dataPtr);
+			dataPtr = rttiWriteElem(mAspect, dataPtr);
+			dataPtr = rttiWriteElem(mOrthoHeight, dataPtr);
+			dataPtr = rttiWriteElem(mPriority, dataPtr);
+			dataPtr = rttiWriteElem(mCustomViewMatrix, dataPtr);
+			dataPtr = rttiWriteElem(mCustomProjMatrix, dataPtr);
+			dataPtr = rttiWriteElem(mFrustumExtentsManuallySet, dataPtr);
+			dataPtr = rttiWriteElem(mCameraFlags, dataPtr);
+			dataPtr = rttiWriteElem(mIsActive, dataPtr);
+		}
 
 		return CoreSyncData(buffer, size);
 	}
@@ -828,9 +850,9 @@ namespace BansheeEngine
 		dependencies.push_back(mViewport.get());
 	}
 
-	void Camera::_markCoreDirty()
+	void Camera::_markCoreDirty(CameraDirtyFlag flag)
 	{
-		markCoreDirty();
+		markCoreDirty((UINT32)flag);
 	}
 
 	RTTITypeBase* Camera::getRTTIStatic()

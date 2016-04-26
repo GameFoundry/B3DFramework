@@ -20,6 +20,13 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/**	Signals which portion of a Camera is dirty. */
+	enum class CameraDirtyFlag
+	{
+		Transform = 0x01,
+		Everything = 0x02
+	};
+
 	/**	Projection type to use by the camera. */
     enum ProjectionType
     {
@@ -420,7 +427,7 @@ namespace BansheeEngine
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core 
 		 * thread counterpart. 
 		 */
-		virtual void _markCoreDirty() { }
+		virtual void _markCoreDirty(CameraDirtyFlag flag = CameraDirtyFlag::Everything) { }
 
     protected:
 		UINT64 mLayers; /**< Bitfield that can be used for filtering what objects the camera sees. */
@@ -541,7 +548,7 @@ namespace BansheeEngine
 		SPtr<CoreObjectCore> createCore() const override;
 
 		/** @copydoc CameraBase::_markCoreDirty */
-		void _markCoreDirty() override;
+		void _markCoreDirty(CameraDirtyFlag flag = CameraDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
