@@ -16,41 +16,43 @@ namespace BansheeEngine
 	/** Settings that control the post-process operation. */
 	struct PostProcessSettings
 	{
+		PostProcessSettings();
+
 		/** 
 		 * Determines minimum luminance value in the eye adaptation histogram. In log2 units (-8 = 1/256). In the range
 		 * [-16, 0]. 
 		 */
-		float histogramLog2Min = -8.0f; 
+		float histogramLog2Min; 
 
 		/** 
 		 * Determines maximum luminance value in the eye adaptation histogram. In log2 units (4 = 16). In the range
 		 * [0, 16]. 
 		 */
-		float histogramLog2Max = 4.0f;
+		float histogramLog2Max;
 
 		/** Percentage below which to ignore values in the eye adaptation histogram. In range [0.0f, 1.0f]. */
-		float histogramPctLow = 0.8f;
+		float histogramPctLow;
 
 		/** Percentage above which to ignore values in the eye adaptation histogram. In range [0.0f, 1.0f]. */
-		float histogramPctHigh = 0.983f;
+		float histogramPctHigh;
 
 		/** Clamps the minimum eye adaptation scale (pre-exposure scale) to this value. In range [0.0f, 10.0f]. */
-		float minEyeAdaptation = 0.03f;
+		float minEyeAdaptation;
 
 		/** Clamps the maximum eye adaptation scale (pre-exposure scale) to this value. In range [0.0f, 10.0f]. */
-		float maxEyeAdaptation = 2.0f;
+		float maxEyeAdaptation;
 
 		/** 
 		 * Log2 value to scale the eye adaptation by. Smaller values yield darker image, while larger yield brighter image. 
 		 * In range [-8, 8].
 		 */
-		float exposureScale = 0.0f;
+		float exposureScale;
 
 		/** Determines how quickly does the eye adaptation adjust to larger values. In range [0.01f, 20.0f]. */
-		float eyeAdaptationSpeedUp = 3.0f;
+		float eyeAdaptationSpeedUp;
 
 		/** Determines how quickly does the eye adaptation adjust to smaller values. In range [0.01f, 20.0f]. */
-		float eyeAdaptationSpeedDown = 3.0f;
+		float eyeAdaptationSpeedDown;
 	};
 
 	/** Contains per-camera data used by post process effects. */
@@ -143,7 +145,7 @@ namespace BansheeEngine
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EyeAdaptHistogramReduceParams)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gThreadGroupCount)
+		BS_PARAM_BLOCK_ENTRY(int, gThreadGroupCount)
 	BS_PARAM_BLOCK_END
 
 	/** Shader that reduces the luminance histograms created by EyeAdaptHistogramMat into a single histogram. */

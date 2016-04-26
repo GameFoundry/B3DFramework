@@ -167,7 +167,6 @@ namespace BansheeEngine
 	{
 		mRunMainLoop = true;
 
-		gCoreThread().queueCommand(std::bind(&CoreApplication::beginCoreProfiling, this));
 		while(mRunMainLoop)
 		{
 			// Limit FPS if needed
@@ -217,10 +216,6 @@ namespace BansheeEngine
 			PROFILE_CALL(gCoreSceneManager()._update(), "SceneManager");
 			gPhysics().update();
 
-			gCoreThread().queueCommand(std::bind(&RenderWindowCoreManager::_update, RenderWindowCoreManager::instancePtr()));
-			gCoreThread().queueCommand(std::bind(&QueryManager::_update, QueryManager::instancePtr()));
-			gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this));
-
 			// Update plugins
 			for (auto& pluginUpdateFunc : mPluginUpdateFunctions)
 				pluginUpdateFunc.second();
@@ -258,10 +253,13 @@ namespace BansheeEngine
 
 			gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this));
 
+			gCoreThread().queueCommand(std::bind(&RenderWindowCoreManager::_update, RenderWindowCoreManager::instancePtr()));
+			gCoreThread().queueCommand(std::bind(&QueryManager::_update, QueryManager::instancePtr()));
+			gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this));
+
 			gProfilerCPU().endThread();
 			gProfiler()._update();
 		}
-		gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this));
 
 		// Wait until last core frame is finished before exiting
 		{

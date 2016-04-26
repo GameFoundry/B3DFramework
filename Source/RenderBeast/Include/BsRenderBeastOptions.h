@@ -51,7 +51,7 @@ namespace BansheeEngine
 		 * range of values. The stored light is then converted into visible colors using a tone mapping operator depending
 		 * on average scene brightness.
 		 */
-		bool hdr = false;
+		bool hdr = true;
 
 		/**
 		 * Controls if and how a render queue groups renderable objects by material in order to reduce number of state

@@ -8,6 +8,12 @@
 
 namespace BansheeEngine
 {
+	PostProcessSettings::PostProcessSettings()
+		: histogramLog2Min(-8.0f), histogramLog2Max(4.0f), histogramPctLow(0.8f), histogramPctHigh(0.985f)
+		, minEyeAdaptation(0.03f), maxEyeAdaptation(2.0f), exposureScale(0.0f), eyeAdaptationSpeedUp(3.0f)
+		, eyeAdaptationSpeedDown(3.0f)
+	{ }
+
 	DownsampleMat::DownsampleMat()
 	{
 		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
@@ -173,7 +179,9 @@ namespace BansheeEngine
 		mEyeAdaptationTex.set(eyeAdaptationTex);
 
 		Vector2I threadGroupCount = EyeAdaptHistogramMat::getThreadGroupCount(ppInfo.downsampledSceneTex->renderTexture);
-		mParams.gThreadGroupCount.set(threadGroupCount);
+		UINT32 numHistograms = threadGroupCount.x * threadGroupCount.y;
+
+		mParams.gThreadGroupCount.set(numHistograms);
 
 		// Set output
 		mOutputDesc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
@@ -186,7 +194,7 @@ namespace BansheeEngine
 		rapi.setRenderTarget(ppInfo.histogramReduceTex->renderTexture, true);
 
 		gRendererUtility().setPass(mMaterial, 0);
-		Rect2 drawUV(0.0f, 0.0f, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2);
+		Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
 		gRendererUtility().drawScreenQuad(drawUV);
 
 		rapi.setRenderTarget(nullptr);
