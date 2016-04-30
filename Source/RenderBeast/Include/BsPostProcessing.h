@@ -78,6 +78,9 @@ namespace BansheeEngine
 		/** Determines should the final output be tonemapped. */
 		bool tonemapping;
 
+		/** Determines should automatic exposure be applied to the HDR image. */
+		bool autoExposure;
+
 		/** Gamma value to adjust the image for. Larger values result in a brighter image. */
 		float gamma;
 	};
@@ -244,17 +247,20 @@ namespace BansheeEngine
 		/** Releases the output render target. */
 		void release(PostProcessInfo& ppInfo);
 
+		/** Size of the 3D color lookup table. */
+		static const UINT32 LUT_SIZE = 32;
 	private:
 		CreateTonemapLUTParams mParams;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TonemappingParams)
 		BS_PARAM_BLOCK_ENTRY(float, gRawGamma)
+		BS_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
 	BS_PARAM_BLOCK_END
 
 	/** Shader that applies tonemapping and converts a HDR image into a LDR image. */
-	template<bool GammaOnly>
-	class TonemappingMat : public RendererMaterial<TonemappingMat<GammaOnly>>
+	template<bool GammaOnly, bool AutoExposure>
+	class TonemappingMat : public RendererMaterial<TonemappingMat<GammaOnly, AutoExposure>>
 	{
 		RMAT_DEF("PPTonemapping.bsl");
 
@@ -265,8 +271,6 @@ namespace BansheeEngine
 		void execute(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport,
 			PostProcessInfo& ppInfo);
 
-		/** Size of the 3D color lookup table. */
-		static const UINT32 LUT_SIZE = 32;
 	private:
 		TonemappingParams mParams;
 
@@ -294,8 +298,10 @@ namespace BansheeEngine
 		EyeAdaptationMat mEyeAdaptation;
 
 		CreateTonemapLUTMat mCreateLUT;
-		TonemappingMat<false> mTonemapping;
-		TonemappingMat<true> mTonemappingGammaOnly;
+		TonemappingMat<false, true> mTonemapping_AE;
+		TonemappingMat<true, true> mTonemapping_AE_GO;
+		TonemappingMat<false, false> mTonemapping;
+		TonemappingMat<true, false> mTonemapping_GO;
 	};
 
 	/** @} */
