@@ -220,6 +220,7 @@ namespace BansheeEngine
 		TID_Light = 30011,
 		TID_CLight = 30012,
 		TID_GameSettings = 30013,
-		TID_ResourceMapping = 30014
+		TID_ResourceMapping = 30014,
+		TID_PostProcessSettings = 30015
 	};
 }

@@ -124,6 +124,9 @@ namespace BansheeEngine
 		/**	Checks is the provided object instance of this class' type. */
 		bool isInstanceOfType(MonoObject* object) const;
 
+		/** Returns the size of an instance of this class, in bytes. */
+		UINT32 getInstanceSize() const;
+
 		/**
 		 * Shortcut for invoking a method on a class. Invokes a method with the provided name and number of parameters.
 		 *

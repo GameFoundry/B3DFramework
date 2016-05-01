@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Rendering\PostProcessSettings.cs" />
     <Compile Include="Utility\AsyncOp.cs" />
     <Compile Include="Math\Bounds.cs" />
     <Compile Include="Utility\Builtin.cs" />

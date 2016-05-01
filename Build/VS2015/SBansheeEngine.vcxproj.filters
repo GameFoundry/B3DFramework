@@ -440,6 +440,9 @@
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptResourceRef.h">
       <Filter>Header Files\Wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPostProcessSettings.h">
+      <Filter>Header Files\Wrappers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptEnginePlugin.cpp">
@@ -809,6 +812,9 @@
       <Filter>Source Files\Wrappers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptRenderable.cpp">
+      <Filter>Source Files\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPostProcessSettings.cpp">
       <Filter>Source Files\Wrappers</Filter>
     </ClCompile>
   </ItemGroup>

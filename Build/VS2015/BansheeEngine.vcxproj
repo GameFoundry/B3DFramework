@@ -271,6 +271,7 @@
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsCLight.cpp" />
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsPlainText.cpp" />
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsPlainTextImporter.cpp" />
+    <ClCompile Include="..\..\Source\BansheeEngine\Source\BsPostProcessSettings.cpp" />
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsRenderableHandler.cpp" />
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsRenderable.cpp" />
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsRenderer.cpp" />
@@ -318,6 +319,8 @@
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPlainText.h" />
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPlainTextImporter.h" />
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPlainTextRTTI.h" />
+    <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPostProcessSettings.h" />
+    <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPostProcessSettingsRTTI.h" />
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsRenderableElement.h" />
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsRenderable.h" />
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsRenderableRTTI.h" />

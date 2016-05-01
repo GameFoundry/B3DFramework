@@ -338,6 +338,7 @@
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPixelUtility.h" />
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPlainText.h" />
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPlaneCollider.h" />
+    <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPostProcessSettings.h" />
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptPrefab.h" />
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptProfilerOverlayInternal.h" />
     <ClInclude Include="..\..\Source\SBansheeEngine\Include\BsScriptRenderable.h" />
@@ -463,6 +464,7 @@
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPixelUtility.cpp" />
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPlainText.cpp" />
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPlaneCollider.cpp" />
+    <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPostProcessSettings.cpp" />
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptPrefab.cpp" />
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptProfilerOverlayInternal.cpp" />
     <ClCompile Include="..\..\Source\SBansheeEngine\Source\BsScriptRenderable.cpp" />

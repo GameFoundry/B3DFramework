@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\BrowseDialog.cs" />
     <Compile Include="Windows\Build\BuildManager.cs" />

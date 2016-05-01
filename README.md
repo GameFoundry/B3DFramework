@@ -30,4 +30,4 @@ Aside from being a fully featured game engine and toolkit, Banshee also aims to 
 # Author
 Banshee was created and is developed by Marko Pintera. The goal of Banshee is to create a high quality open source game engine that is intuitive to use and easy to extend.
 
-I'm happy to connect with other developers, feel free to contact me at [e-mail] (http://scr.im/39d1) or add me on [LinkedIn] (https://goo.gl/t6pPPs). 
+I'm happy to connect with other developers, feel free to contact me at marko.pintera@gmail.com or add me on [LinkedIn] (https://goo.gl/t6pPPs). 

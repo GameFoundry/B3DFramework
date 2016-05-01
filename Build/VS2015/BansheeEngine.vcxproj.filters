@@ -410,6 +410,12 @@
     <ClInclude Include="..\..\Source\BansheeEngine\Include\BsResourceMappingRTTI.h">
       <Filter>Header Files\RTTI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPostProcessSettings.h">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\BansheeEngine\Include\BsPostProcessSettingsRTTI.h">
+      <Filter>Header Files\RTTI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsGUIElement.cpp">
@@ -684,6 +690,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\BansheeEngine\Source\BsGameResourceManager.cpp">
       <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BansheeEngine\Source\BsPostProcessSettings.cpp">
+      <Filter>Source Files\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -326,4 +326,14 @@ namespace BansheeEngine
 		::MonoClass* monoClass = mono_object_get_class(object);
 		return mono_class_is_subclass_of(monoClass, mClass, false) != 0;
 	}
+
+	UINT32 MonoClass::getInstanceSize() const
+	{
+		UINT32 dummy = 0;
+
+		if (mono_class_is_valuetype(mClass))
+			return mono_class_value_size(mClass, &dummy);
+		
+		return mono_class_instance_size(mClass);
+	}
 }
