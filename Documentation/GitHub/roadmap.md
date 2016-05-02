@@ -3,8 +3,8 @@
 The focus right now is to implement the most critical missing features:
  - Animation (skeletal, blend shapes, generic script variables)
  - Audio (popular file format support, music, 3D audio)
- 
-These should be finished roughly around mid-2016.
+
+Planned for Q3 2016 release.
 
 ---------------------------------------------------
 
@@ -14,7 +14,7 @@ Quickly to follow will be:
  - Physically based renderer
  - Website for the community
  
-These are planned for an early 2017 release.
+Planned for Q2 2017 release (Version 1.0 beta).
 
 ---------------------------------------------------
 
@@ -26,13 +26,12 @@ There are many more features planned, but these are without a specific timeline 
  - Occlussion culling
  - Terrain
  - Effects/Particle editor
- - AI support
+ - AI (pathfinding, navmesh)
  - VR support
  - Cinematics editor
- - Higher level resource streaming support (including level and texture streaming)
  - Unified shading language
  - Visual shader editor
- - More specialized 2D editor features
+ - More specialized editor tools for 2D games
  - Script debugging
  - Level of detail
  - XBONE/PS4 ports

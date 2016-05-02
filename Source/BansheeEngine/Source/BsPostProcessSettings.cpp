@@ -11,8 +11,8 @@ namespace BansheeEngine
 	{ }
 
 	TonemappingSettings::TonemappingSettings()
-		: filmicCurveShoulderStrength(0.22f), filmicCurveLinearStrength(0.3f), filmicCurveLinearAngle(0.1f)
-		, filmicCurveToeStrength(0.2f), filmicCurveToeNumerator(0.01f), filmicCurveToeDenominator(0.3f)
+		: filmicCurveShoulderStrength(0.15f), filmicCurveLinearStrength(0.5f), filmicCurveLinearAngle(0.1f)
+		, filmicCurveToeStrength(0.2f), filmicCurveToeNumerator(0.02f), filmicCurveToeDenominator(0.3f)
 		, filmicCurveLinearWhitePoint(11.2f)
 	{ }
 
