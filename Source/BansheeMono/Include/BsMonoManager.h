@@ -31,7 +31,7 @@ namespace BansheeEngine
 		 * @param[in]	path	Absolute path to the assembly .dll.
 		 * @param[in]	name	Unique name for the assembly.
 		 */
-		MonoAssembly& loadAssembly(const String& path, const String& name);
+		MonoAssembly& loadAssembly(const WString& path, const String& name);
 
 		/**	Searches all loaded assemblies for the specified class. */
 		MonoClass* findClass(const String& ns, const String& typeName);

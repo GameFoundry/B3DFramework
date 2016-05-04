@@ -74,13 +74,15 @@ namespace BansheeEngine
 		}
 	}
 
-	MonoAssembly& MonoManager::loadAssembly(const String& path, const String& name)
+	MonoAssembly& MonoManager::loadAssembly(const WString& path, const String& name)
 	{
 		MonoAssembly* assembly = nullptr;
 
 		if (mScriptDomain == nullptr)
 		{
-			mScriptDomain = mono_domain_create_appdomain(const_cast<char *>(path.c_str()), nullptr);
+			String appDomainName = toString(path);
+
+			mScriptDomain = mono_domain_create_appdomain(const_cast<char *>(appDomainName.c_str()), nullptr);
 			mono_domain_set(mScriptDomain, false);
 
 			if (mScriptDomain == nullptr)
@@ -137,7 +139,7 @@ namespace BansheeEngine
 			auto iterFind = mAssemblies.find("corlib");
 			if (iterFind == mAssemblies.end())
 			{
-				corlib = new (bs_alloc<MonoAssembly>()) MonoAssembly("corlib", "corlib");
+				corlib = new (bs_alloc<MonoAssembly>()) MonoAssembly(L"corlib", "corlib");
 				mAssemblies["corlib"] = corlib;
 			}
 			else

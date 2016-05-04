@@ -167,17 +167,18 @@ namespace BansheeEditor
             searchBarLayout = contentLayout.AddLayoutX();
             searchField = new GUITextField();
             searchField.OnChanged += OnSearchChanged;
+            searchField.OnFocusGained += StopRename;
 
             GUIContent clearIcon = new GUIContent(EditorBuiltin.GetLibraryWindowIcon(LibraryWindowIcon.Clear), 
                 new LocEdString("Clear"));
             GUIButton clearSearchBtn = new GUIButton(clearIcon);
-            clearSearchBtn.OnClick += ClearSearch;
+            clearSearchBtn.OnClick += OnClearClicked;
             clearSearchBtn.SetWidth(40);
 
             GUIContent optionsIcon = new GUIContent(EditorBuiltin.GetLibraryWindowIcon(LibraryWindowIcon.Options), 
                 new LocEdString("Options"));
             optionsButton = new GUIButton(optionsIcon);
-            optionsButton.OnClick += OpenOptionsWindow;
+            optionsButton.OnClick += OnOptionsClicked;
             optionsButton.SetWidth(40);
             searchBarLayout.AddElement(searchField);
             searchBarLayout.AddElement(clearSearchBtn);
@@ -335,7 +336,7 @@ namespace BansheeEditor
             }
             else
             {
-                if (isRenameInProgress)
+                if (isRenameInProgress && !HasFocus)
                     StopRename();
             }
 
@@ -1186,8 +1187,10 @@ namespace BansheeEditor
         /// <summary>
         /// Clears the search bar and refreshes the content area to display contents of the current directory.
         /// </summary>
-        private void ClearSearch()
+        private void OnClearClicked()
         {
+            StopRename();
+
             searchField.Value = "";
             searchQuery = "";
             Refresh();
@@ -1230,8 +1233,10 @@ namespace BansheeEditor
         /// <summary>
         /// Opens the drop down options window that allows you to customize library window look and feel.
         /// </summary>
-        private void OpenOptionsWindow()
+        private void OnOptionsClicked()
         {
+            StopRename();
+
             Vector2I openPosition;
             Rect2I buttonBounds = GUILayoutUtility.CalculateBounds(optionsButton, GUI);
 
@@ -1523,6 +1528,7 @@ namespace BansheeEditor
         /// <param name="path">Project library path to the folder to enter.</param>
         private void OnFolderButtonClicked(string path)
         {
+            StopRename();
             EnterDirectory(path);
         }
 
@@ -1540,6 +1546,8 @@ namespace BansheeEditor
         /// </summary>
         private void OnHomeClicked()
         {
+            StopRename();
+
             CurrentFolder = ProjectLibrary.Root.Path;
             Refresh();
         }
@@ -1550,6 +1558,8 @@ namespace BansheeEditor
         /// </summary>
         private void OnUpClicked()
         {
+            StopRename();
+
             string currentDir = CurrentFolder;
             currentDir = currentDir.Trim(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 

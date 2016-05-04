@@ -57,21 +57,21 @@ namespace BansheeEngine
 		}
 		else // Otherwise just additively load them
 		{
-			MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
+			MonoManager::instance().loadAssembly(engineAssemblyPath.toWString(), ENGINE_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
 
 			if (FileSystem::exists(gameAssemblyPath))
 			{
-				MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
+				MonoManager::instance().loadAssembly(gameAssemblyPath.toWString(), SCRIPT_GAME_ASSEMBLY);
 				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
 			}
 
-			MonoManager::instance().loadAssembly(editorAssemblyPath.toString(), EDITOR_ASSEMBLY);
+			MonoManager::instance().loadAssembly(editorAssemblyPath.toWString(), EDITOR_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(EDITOR_ASSEMBLY);
 
 			if (FileSystem::exists(editorScriptAssemblyPath))
 			{
-				MonoManager::instance().loadAssembly(editorScriptAssemblyPath.toString(), SCRIPT_EDITOR_ASSEMBLY);
+				MonoManager::instance().loadAssembly(editorScriptAssemblyPath.toWString(), SCRIPT_EDITOR_ASSEMBLY);
 				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_EDITOR_ASSEMBLY);
 			}
 

@@ -22,7 +22,7 @@ namespace BansheeEngine
 		if (!FileSystem::exists(parentDir))
 			FileSystem::createDir(parentDir);
 
-		mOutputStream.open(fileLocation.toString().c_str(), std::ios::out | std::ios::binary);
+		mOutputStream.open(fileLocation.toWString().c_str(), std::ios::out | std::ios::binary);
 		if (mOutputStream.fail())
 		{
 			LOGWRN("Failed to save file: \"" + fileLocation.toString() + "\". Error: " + strerror(errno) + ".");
@@ -63,7 +63,7 @@ namespace BansheeEngine
 
 	FileDecoder::FileDecoder(const Path& fileLocation)
 	{
-		mInputStream.open(fileLocation.toString().c_str(), std::ios::in | std::ios::ate | std::ios::binary);
+		mInputStream.open(fileLocation.toWString().c_str(), std::ios::in | std::ios::ate | std::ios::binary);
 
 		if (mInputStream.fail())
 		{

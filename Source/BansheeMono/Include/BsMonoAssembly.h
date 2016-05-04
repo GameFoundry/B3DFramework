@@ -63,7 +63,7 @@ namespace BansheeEngine
 	private:
 		friend class MonoManager;
 
-		MonoAssembly(const String& path, const String& name);
+		MonoAssembly(const WString& path, const String& name);
 
 		/**
 	     * Attempts to find a managed class with the specified namespace and name in this assembly. Registers a new class
@@ -96,7 +96,7 @@ namespace BansheeEngine
 		bool isGenericClass(const String& name) const;
 
 		String mName;
-		String mPath;
+		WString mPath;
 		MonoImage* mMonoImage;
 		::MonoAssembly* mMonoAssembly;
 		bool mIsLoaded;

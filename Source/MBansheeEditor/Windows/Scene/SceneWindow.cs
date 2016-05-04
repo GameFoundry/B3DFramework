@@ -813,7 +813,8 @@ namespace BansheeEditor
             width = MathEx.Max(20, width);
             height = MathEx.Max(20, height);
 
-            renderTexture = new RenderTexture2D(PixelFormat.R8G8B8A8, width, height);
+            // Note: Depth buffer is required because ScenePicking uses it
+            renderTexture = new RenderTexture2D(PixelFormat.R8G8B8A8, width, height, 1, false, true);
             renderTexture.Priority = 1;
 
 		    if (camera == null)

@@ -5,7 +5,7 @@
 # been built before executing this script.
 
 # Usage: "package_editor $Configuration"
-# Where: $Configuration - e.g. Debug, DebugRelease
+# Where: $Configuration - e.g. Debug, OptimizedDebug
 
 # TODO: Don't package Settings.asset, Game binaries, Example binaries
 
@@ -13,7 +13,7 @@ import os
 import sys
 import shutil
 
-configuration = 'DebugRelease' #sys.argv[1]
+configuration = 'OptimizedDebug' #sys.argv[1]
 dataFoldersToIgnore = ['Examples', 'Raw']
 
 dataFolder = 'Data'

@@ -39,7 +39,7 @@ namespace BansheeEngine
 
 	}
 
-	MonoAssembly::MonoAssembly(const String& path, const String& name)
+	MonoAssembly::MonoAssembly(const WString& path, const String& name)
 		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mIsLoaded(false), mIsDependency(false)
 		, mHaveCachedClassList(false)
 	{
@@ -60,7 +60,7 @@ namespace BansheeEngine
 		SPtr<DataStream> assemblyStream = FileSystem::openFile(mPath, true);
 		if (assemblyStream == nullptr)
 		{
-			LOGERR("Cannot load assembly at path \"" + mPath + "\" because the file doesn't exist");
+			LOGERR("Cannot load assembly at path \"" + toString(mPath) + "\" because the file doesn't exist");
 			return;
 		}
 
@@ -68,18 +68,20 @@ namespace BansheeEngine
 		char* assemblyData = (char*)bs_stack_alloc(assemblySize);
 		assemblyStream->read(assemblyData, assemblySize);
 
-		MonoImageOpenStatus status;
-		MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, mPath.c_str());
+		String imageName = Path(mPath).getFilename();
+
+		MonoImageOpenStatus status = MONO_IMAGE_OK;
+		MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, imageName.c_str());
 		bs_stack_free(assemblyData);
 
 		if (status != MONO_IMAGE_OK || image == nullptr)
 		{
-			LOGERR("Failed loading image data for assembly \"" + mPath + "\"");
+			LOGERR("Failed loading image data for assembly \"" + toString(mPath) + "\"");
 			return;
 		}
 
 		// Load MDB file
-		Path mdbPath = mPath + ".mdb";
+		Path mdbPath = mPath + L".mdb";
 		if (FileSystem::exists(mdbPath))
 		{
 			SPtr<DataStream> mdbStream = FileSystem::openFile(mdbPath, true);
@@ -95,10 +97,10 @@ namespace BansheeEngine
 			}
 		}
 
-		mMonoAssembly = mono_assembly_load_from_full(image, mPath.c_str(), &status, false);
+		mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
 		if (status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
 		{
-			LOGERR("Failed loading assembly \"" + mPath + "\"");
+			LOGERR("Failed loading assembly \"" + toString(mPath) + "\"");
 			return;
 		}
 		
