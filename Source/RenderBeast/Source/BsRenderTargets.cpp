@@ -14,7 +14,7 @@ namespace BansheeEngine
 	{
 		// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
 		mSceneColorFormat = hdr ? PF_FLOAT16_RGBA : PF_B8G8R8A8;
-		mDiffuseFormat = PF_B8G8R8X8; // Note: Also consider customizable format (e.g. 16-bit float?)
+		mAlbedoFormat = PF_B8G8R8X8; // Note: Also consider customizable format (e.g. 16-bit float?)
 		mNormalFormat = PF_UNORM_R10G10B10A2; // Note: Also consider customizable format (e.g. 16-bit float?)
 	}
 
@@ -30,10 +30,14 @@ namespace BansheeEngine
 		UINT32 width = getWidth();
 		UINT32 height = getHeight();
 
+		// Note: Albedo is allocated as SRGB, meaning when reading from textures during depth pass we decode from sRGB into linear,
+		// then back into sRGB when writing to albedo, and back to linear when reading from albedo during light pass. This /might/ have
+		// a performance impact. In which case we could just use a higher precision albedo buffer, which can then store linear color
+		// directly (storing linear in 8bit buffer causes too much detail to be lost in the blacks).
 		SPtr<PooledRenderTexture> newColorRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width, height, TU_RENDERTARGET,
 			mNumSamples, false));
-		SPtr<PooledRenderTexture> newAlbedoRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mDiffuseFormat, width, 
-			height, TU_RENDERTARGET, mNumSamples, false));
+		SPtr<PooledRenderTexture> newAlbedoRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mAlbedoFormat, width, 
+			height, TU_RENDERTARGET, mNumSamples, true));
 		SPtr<PooledRenderTexture> newNormalRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mNormalFormat, width, 
 			height, TU_RENDERTARGET, mNumSamples, false));
 		SPtr<PooledRenderTexture> newDepthRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D24S8, width, height, 

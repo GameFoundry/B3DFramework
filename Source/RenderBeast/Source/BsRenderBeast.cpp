@@ -328,68 +328,52 @@ namespace BansheeEngine
 
 	void RenderBeast::notifyCameraAdded(const CameraCore* camera)
 	{
-		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();
-		if (renderTarget == nullptr)
-			return;
-
-		CameraData& camData = mCameraData[camera];
-		camData.opaqueQueue = bs_shared_ptr_new<RenderQueue>(mCoreOptions->stateReductionMode);
-
-		StateReduction transparentStateReduction = mCoreOptions->stateReductionMode;
-		if (transparentStateReduction == StateReduction::Material)
-			transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
-
-		camData.transparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
-		camData.postProcessInfo.settings = camera->getPostProcessSettings();
-		camData.postProcessInfo.settingDirty = true;
-
-		// Register in render target list
-		auto findIter = std::find_if(mRenderTargets.begin(), mRenderTargets.end(), 
-			[&](const RenderTargetData& x) { return x.target == renderTarget; });
-
-		if (findIter != mRenderTargets.end())
-		{
-			findIter->cameras.push_back(camera);
-		}
-		else
-		{
-			mRenderTargets.push_back(RenderTargetData());
-			RenderTargetData& renderTargetData = mRenderTargets.back();
-
-			renderTargetData.target = renderTarget;
-			renderTargetData.cameras.push_back(camera);
-		}
-
-		// Sort render targets based on priority
-		auto cameraComparer = [&](const CameraCore* a, const CameraCore* b) { return a->getPriority() > b->getPriority(); };
-		auto renderTargetInfoComparer = [&](const RenderTargetData& a, const RenderTargetData& b)
-		{ return a.target->getProperties().getPriority() > b.target->getProperties().getPriority(); };
-		std::sort(begin(mRenderTargets), end(mRenderTargets), renderTargetInfoComparer);
-
-		for (auto& camerasPerTarget : mRenderTargets)
-		{
-			Vector<const CameraCore*>& cameras = camerasPerTarget.cameras;
-
-			std::sort(begin(cameras), end(cameras), cameraComparer);
-		}
+		updateCameraData(camera);
 	}
 
 	void RenderBeast::notifyCameraUpdated(const CameraCore* camera, UINT32 updateFlag)
 	{
-		CameraDirtyFlag dirtyFlag = (CameraDirtyFlag)updateFlag;
-		if(dirtyFlag == CameraDirtyFlag::PostProcess)
+		if((updateFlag & (UINT32)CameraDirtyFlag::Everything) != 0)
+		{
+			updateCameraData(camera);
+		}
+		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
 		{
 			CameraData& camData = mCameraData[camera];
 			camData.postProcessInfo.settings = camera->getPostProcessSettings();
 			camData.postProcessInfo.settingDirty = true;
-		}
+		} 
 	}
 
 	void RenderBeast::notifyCameraRemoved(const CameraCore* camera)
 	{
-		mCameraData.erase(camera);
+		updateCameraData(camera, true);
+	}
+
+	void RenderBeast::updateCameraData(const CameraCore* camera, bool forceRemove)
+	{
+		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();
+		if(forceRemove)
+		{
+			mCameraData.erase(camera);
+			renderTarget = nullptr;
+		}
+		else
+		{
+			CameraData& camData = mCameraData[camera];
+			camData.opaqueQueue = bs_shared_ptr_new<RenderQueue>(mCoreOptions->stateReductionMode);
+
+			StateReduction transparentStateReduction = mCoreOptions->stateReductionMode;
+			if (transparentStateReduction == StateReduction::Material)
+				transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
+
+			camData.transparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
+			camData.postProcessInfo.settings = camera->getPostProcessSettings();
+			camData.postProcessInfo.settingDirty = true;
+		}
 
 		// Remove from render target list
+		int rtChanged = 0; // 0 - No RT, 1 - RT found, 2 - RT changed
 		for (auto iterTarget = mRenderTargets.begin(); iterTarget != mRenderTargets.end(); ++iterTarget)
 		{
 			RenderTargetData& target = *iterTarget;
@@ -397,7 +381,15 @@ namespace BansheeEngine
 			{
 				if (camera == *iterCam)
 				{
-					target.cameras.erase(iterCam);
+					if (renderTarget != target.target)
+					{
+						target.cameras.erase(iterCam);
+						rtChanged = 2;
+
+					}
+					else
+						rtChanged = 1;
+
 					break;
 				}
 			}
@@ -406,6 +398,39 @@ namespace BansheeEngine
 			{
 				mRenderTargets.erase(iterTarget);
 				break;
+			}
+		}
+
+		// Register in render target list
+		if (renderTarget != nullptr && (rtChanged == 0 || rtChanged == 2))
+		{
+			auto findIter = std::find_if(mRenderTargets.begin(), mRenderTargets.end(),
+				[&](const RenderTargetData& x) { return x.target == renderTarget; });
+
+			if (findIter != mRenderTargets.end())
+			{
+				findIter->cameras.push_back(camera);
+			}
+			else
+			{
+				mRenderTargets.push_back(RenderTargetData());
+				RenderTargetData& renderTargetData = mRenderTargets.back();
+
+				renderTargetData.target = renderTarget;
+				renderTargetData.cameras.push_back(camera);
+			}
+
+			// Sort render targets based on priority
+			auto cameraComparer = [&](const CameraCore* a, const CameraCore* b) { return a->getPriority() > b->getPriority(); };
+			auto renderTargetInfoComparer = [&](const RenderTargetData& a, const RenderTargetData& b)
+			{ return a.target->getProperties().getPriority() > b.target->getProperties().getPriority(); };
+			std::sort(begin(mRenderTargets), end(mRenderTargets), renderTargetInfoComparer);
+
+			for (auto& camerasPerTarget : mRenderTargets)
+			{
+				Vector<const CameraCore*>& cameras = camerasPerTarget.cameras;
+
+				std::sort(begin(cameras), end(cameras), cameraComparer);
 			}
 		}
 	}

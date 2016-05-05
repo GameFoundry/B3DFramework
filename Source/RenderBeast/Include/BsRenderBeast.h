@@ -159,6 +159,15 @@ namespace BansheeEngine
 		/** @copydoc Renderer::notifyRenderableRemoved */
 		void notifyRenderableRemoved(RenderableCore* renderable) override;
 
+		/** 
+		 * Updates (or adds) renderer specific data for the specified camera. Should be called whenever camera properties
+		 * change. 
+		 *
+		 * @param[in]	camera		Camera whose data to update.
+		 * @param[in]	forceRemove	If true, the camera data will be removed instead of updated.
+		 */
+		void updateCameraData(const CameraCore* camera, bool forceRemove = false);
+
 		/**
 		 * Updates the render options on the core thread.
 		 *

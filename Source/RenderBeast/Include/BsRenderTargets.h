@@ -88,7 +88,7 @@ namespace BansheeEngine
 		SPtr<RenderTextureCore> mSceneColorRT;
 
 		PixelFormat mSceneColorFormat;
-		PixelFormat mDiffuseFormat;
+		PixelFormat mAlbedoFormat;
 		PixelFormat mNormalFormat;
 		UINT32 mNumSamples;
 		bool mHDR;

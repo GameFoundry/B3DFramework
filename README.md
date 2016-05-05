@@ -1,4 +1,4 @@
-# What is Banshee?
+# What is Banshee? 
 A high quality modern game development toolkit. It provides a **high performance multi-threaded game engine** written in C++14 that runs 2D and 3D games. The engine offers a wide variety of high level systems needed for game development, ranging from math and utility libraries, to DirectX 11 and OpenGL support all the way to input, GUI, physics, scripting and support for many popular resource formats (e.g. FBX, PNG, PSD, TTF).
 
 On top of the engine Banshee also provides a highly intuitive and customizable **editor** that is easy to use by artists, designers and programmers alike. The editor allows you to manage all your project's assets, build levels, compile scripts, test and publish your game. Editor is also fully extensible via scripting to ensure developers can easily customize for the exact needs of their projects.
@@ -28,6 +28,4 @@ Aside from being a fully featured game engine and toolkit, Banshee also aims to 
 [Link] (https://youtu.be/WJsYOyCXGEU)
 
 # Author
-Banshee was created and is developed by Marko Pintera. The goal of Banshee is to create a high quality open source game engine that is intuitive to use and easy to extend.
-
-I'm happy to connect with other developers, feel free to contact me at marko.pintera@gmail.com or add me on [LinkedIn] (https://goo.gl/t6pPPs). 
+Banshee was created and is developed by Marko Pintera. I'm happy to connect with other developers, feel free to contact me at marko.pintera@gmail.com or add me on [LinkedIn] (https://goo.gl/t6pPPs). 

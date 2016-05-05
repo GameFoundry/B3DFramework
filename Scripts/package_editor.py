@@ -7,14 +7,14 @@
 # Usage: "package_editor $Configuration"
 # Where: $Configuration - e.g. Debug, OptimizedDebug
 
-# TODO: Don't package Settings.asset, Game binaries, Example binaries
-
 import os
 import sys
 import shutil
 
 configuration = 'OptimizedDebug' #sys.argv[1]
-dataFoldersToIgnore = ['Examples', 'Raw']
+dataEntriesToIgnore = ['Examples', 'Raw', 'Settings.asset']
+binEntriesToIgnore = ['Game.exe', 'Game.pdb', 'ExampleProject.exe', 'ExampleProject.pdb',
+                      'BansheeD3D9RenderAPI.dll', 'BansheeD3D9RenderAPI.pdb']
 
 dataFolder = 'Data'
 assembliesFolder = 'Assemblies'
@@ -38,7 +38,7 @@ def ignore_data(path, entries):
     if path != inputDataFolder:
         return []
 
-    return list(set(dataFoldersToIgnore) & set(entries))    
+    return list(set(dataEntriesToIgnore) & set(entries))    
 
 def package_editor():
     if os.path.exists(outputBaseFolder):
@@ -52,7 +52,8 @@ def package_editor():
     for root, dirs, files in os.walk(inputLibFolder):
         for file in files:
             if(file.lower().endswith(('.dll', '.exe', '.pdb', '.so'))):
-                filePath = os.path.join(root, file)
-                shutil.copy(filePath, outputLibFolder)
+                if(not file in binEntriesToIgnore):
+                    filePath = os.path.join(root, file)
+                    shutil.copy(filePath, outputLibFolder)
 
 package_editor()

@@ -727,11 +727,7 @@ namespace BansheeEngine
 		mRecalcFrustumPlanes = true;
 		mRecalcView = true;
 
-		if (dirtyFlag == CameraDirtyFlag::Transform)
-		{
-			RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
-		}
-		else 
+		if (dirtyFlag != CameraDirtyFlag::Transform)
 		{
 			dataPtr = rttiReadElem(mLayers, dataPtr);
 			dataPtr = rttiReadElem(mProjType, dataPtr);
@@ -748,19 +744,9 @@ namespace BansheeEngine
 			dataPtr = rttiReadElem(mIsActive, dataPtr);
 			dataPtr = rttiReadElem(mMSAA, dataPtr);
 			dataPtr = rttiReadElem(mPPSettings, dataPtr);
-
-			if(dirtyFlag == CameraDirtyFlag::PostProcess)
-			{
-				RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
-			}
-			else
-			{
-				RendererManager::instance().getActive()->notifyCameraRemoved(this);
-
-				if (mIsActive)
-					RendererManager::instance().getActive()->notifyCameraAdded(this);
-			}
 		}
+
+		RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
 	}
 
 	Camera::Camera(SPtr<RenderTarget> target, float left, float top, float width, float height)

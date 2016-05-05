@@ -29,13 +29,13 @@ namespace BansheeEngine
 		virtual ~GLRenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */
-		virtual void getCustomAttribute(const String& name, void* data) const override;
+		void getCustomAttribute(const String& name, void* data) const override;
 
 	protected:
 		friend class GLRenderTexture;
 
 		/** @copydoc RenderTextureCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/** @copydoc RenderTextureCore::getProperties */
 		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
