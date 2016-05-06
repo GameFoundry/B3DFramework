@@ -2,8 +2,10 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include <windows.h>
 
+// Engine includes
 #include "BsApplication.h"
 #include "BsImporter.h"
+#include "BsResources.h"
 #include "BsTextureImportOptions.h"
 #include "BsMaterial.h"
 #include "BsShader.h"
@@ -13,10 +15,10 @@
 #include "BsCGUIWidget.h"
 #include "BsGUILayoutX.h"
 #include "BsGUILayoutY.h"
+#include "BsGUIPanel.h"
 #include "BsGUISpace.h"
 #include "BsGUILabel.h"
 #include "BsGUIButton.h"
-#include "BsGUIPanel.h"
 #include "BsRenderAPI.h"
 #include "BsGUIListBox.h"
 #include "BsBuiltinResources.h"
@@ -27,6 +29,7 @@
 #include "BsCoreThread.h"
 #include "BsProfilerOverlay.h"
 
+// Example includes
 #include "CameraFlyer.h"
 
 namespace BansheeEngine
@@ -38,7 +41,7 @@ namespace BansheeEngine
 	void setUpExample();
 
 	/** Import mesh/texture/GPU programs used by the example. */
-	void importAssets(HMesh& model, HTexture& texture, HShader& shader);
+	void loadAssets(HMesh& model, HTexture& texture, HShader& shader);
 
 	/** Create a material used by our example model. */
 	HMaterial createMaterial(const HTexture& texture, const HShader& shader);
@@ -135,7 +138,7 @@ namespace BansheeEngine
 		HTexture exampleTexture;
 		HShader exampleShader;
 
-		importAssets(exampleModel, exampleTexture, exampleShader);
+		loadAssets(exampleModel, exampleTexture, exampleShader);
 		HMaterial exampleMaterial = createMaterial(exampleTexture, exampleShader);
 
 		setUp3DScene(exampleModel, exampleMaterial);
@@ -143,46 +146,83 @@ namespace BansheeEngine
 		setUpInput();
 	}
 
-	void importAssets(HMesh& model, HTexture& texture, HShader& shader)
+	/**
+	 * Load the required resources. First try to load a pre-processed version of the resources. If they don't exist import
+	 * resources from the source formats into engine format, and save them for next time.
+	 */
+	void loadAssets(HMesh& model, HTexture& texture, HShader& shader)
 	{
-		// Import mesh, texture and shader from the disk. In a normal application you would want to save the imported assets
-		// so next time the application is ran you can just load them directly. This can be done with Resources::save/load.
+		// Set up paths to pre-processed versions of example resources.
+		Path exampleModelAssetPath = exampleModelPath;
+		Path exampleTextureAssetPath = exampleTexturePath;
+		Path exampleShaderAssetPath = exampleShaderPath;
 
-		// Import an FBX mesh.
-		model = Importer::instance().import<Mesh>(exampleModelPath);
+		exampleModelAssetPath.setExtension(exampleModelAssetPath.getExtension() + ".asset");
+		exampleTextureAssetPath.setExtension(exampleTextureAssetPath.getExtension() + ".asset");
+		exampleShaderAssetPath.setExtension(exampleShaderAssetPath.getExtension() + ".asset");
 
-		// When importing you may specify optional import options that control how is the asset imported.
-		SPtr<ImportOptions> textureImportOptions = Importer::instance().createImportOptions(exampleTexturePath);
-
-		// rtti_is_of_type checks if the import options are of valid type, in case the provided path is pointing to a non-texture resource.
-		// This is similar to dynamic_cast but uses Banshee internal RTTI system for type checking.
-		if (rtti_is_of_type<TextureImportOptions>(textureImportOptions))
+		// Load an FBX mesh.
+		model = gResources().load<Mesh>(exampleModelAssetPath);
+		if(model == nullptr) // Mesh file doesn't exist, import from the source file.
 		{
-			TextureImportOptions* importOptions = static_cast<TextureImportOptions*>(textureImportOptions.get());
+			model = gImporter().import<Mesh>(exampleModelPath);
 
-			// We want maximum number of mipmaps to be generated
-			importOptions->setGenerateMipmaps(true);
+			// Save for later use, so we don't have to import on the next run.
+			gResources().save(model, exampleModelAssetPath, true);
 		}
 
-		// Import texture with specified import options
-		texture = Importer::instance().import<Texture>(exampleTexturePath, textureImportOptions);
+		// Load an TGA texture.
+		texture = gResources().load<Texture>(exampleTextureAssetPath);
+		if (texture == nullptr) // Texture file doesn't exist, import from the source file.
+		{
+			// When importing you may specify optional import options that control how is the asset imported.
+			SPtr<ImportOptions> textureImportOptions = Importer::instance().createImportOptions(exampleTexturePath);
 
-		// Import shader
-		shader = Importer::instance().import<Shader>(exampleShaderPath);
+			// rtti_is_of_type checks if the import options are of valid type, in case the provided path is pointing to a non-texture resource.
+			// This is similar to dynamic_cast but uses Banshee internal RTTI system for type checking.
+			if (rtti_is_of_type<TextureImportOptions>(textureImportOptions))
+			{
+				TextureImportOptions* importOptions = static_cast<TextureImportOptions*>(textureImportOptions.get());
+
+				// We want maximum number of mipmaps to be generated
+				importOptions->setGenerateMipmaps(true);
+
+				// The texture is in sRGB space
+				importOptions->setSRGB(true);
+			}
+
+			// Import texture with specified import options
+			texture = gImporter().import<Texture>(exampleTexturePath, textureImportOptions);
+
+			// Save for later use, so we don't have to import on the next run.
+			gResources().save(texture, exampleTextureAssetPath, true);
+		}
+
+		// Load a shader.
+		shader = gResources().load<Shader>(exampleShaderAssetPath);
+		if (shader == nullptr) // Mesh file doesn't exist, import from the source file.
+		{
+			shader = gImporter().import<Shader>(exampleShaderPath);
+
+			// Save for later use, so we don't have to import on the next run.
+			gResources().save(shader, exampleShaderAssetPath, true);
+		}
 	}
 
+	/** Create a material using the provided shader, and assign the provided texture to it. */
 	HMaterial createMaterial(const HTexture& texture, const HShader& shader)
 	{
-		// And finally create a material with the newly created shader
+		// Create a material with the provided shader.
 		HMaterial exampleMaterial = Material::create(shader);
 
 		// And set the texture to be used by the "tex" shader parameter. We leave the "samp"
-		// parameter at its defaults.
+		// parameter at its defaults. These parameters are defined in the shader (.bsl) file.
 		exampleMaterial->setTexture("tex", texture);
 
 		return exampleMaterial;
 	}
 
+	/** Set up the 3D object used by the example, and the camera to view the world through. */
 	void setUp3DScene(const HMesh& mesh, const HMaterial& material)
 	{
 		/************************************************************************/
@@ -244,6 +284,7 @@ namespace BansheeEngine
 		sceneCameraSO->lookAt(Vector3(0, 0, 0));
 	}
 
+	/** Register mouse and keyboard inputs that will be used for controlling the camera. */
 	void setUpInput()
 	{
 		// Register input configuration
@@ -283,6 +324,7 @@ namespace BansheeEngine
 		VirtualInput::instance().onButtonUp.connect(&buttonUp);
 	}
 
+	/** Set up graphical user interface used by the example. */
 	void setUpGUI()
 	{
 		// Create a scene object that will contain GUI components
@@ -394,6 +436,7 @@ namespace BansheeEngine
 		videoModeListBox->onSelectionToggled.connect(&videoModeChanged);
 	}
 
+	/** Callback method that toggles between fullscreen and windowed modes. */
 	void toggleFullscreen()
 	{
 		SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
@@ -420,6 +463,7 @@ namespace BansheeEngine
 		fullscreen = !fullscreen;
 	}
 
+	/** Callback triggered wheneve the user resizes the example window. */
 	void renderWindowResized()
 	{
 		SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
@@ -434,6 +478,7 @@ namespace BansheeEngine
 		sceneCamera->setAspectRatio(rwProps.getWidth() / (float)rwProps.getHeight());
 	}
 
+	/** Callback triggered when the user selects a new video mode from the GUI drop down element. */
 	void videoModeChanged(UINT32 idx, bool enabled)
 	{
 		if (!enabled)
@@ -448,11 +493,11 @@ namespace BansheeEngine
 		}
 	}
 
+	/** Callback triggered when a user hits a button. */
 	void buttonUp(const VirtualButton& button, UINT32 deviceIdx)
 	{
-		// Check if the pressed button is one of the either buttons we defined
-		// in "setUpExample", and toggle profiler overlays accordingly.
-		// Device index is ignored for now, as it is assumed the user is using a single keyboard,
+		// Check if the pressed button is one of the either buttons we defined in "setUpExample", and toggle profiler
+		// overlays accordingly. Device index is ignored for now, as it is assumed the user is using a single keyboard,
 		// but if you wanted support for multiple gamepads you would check deviceIdx.
 		if (button == toggleCPUProfilerBtn)
 		{
