@@ -4,7 +4,7 @@ Banshee Shading Language FX			{#bslfx}
 
 BSLFX is a material definition language that allows you to specify non-programmable render states together with programmable ones. For example BSLFX will allow you to define a set of input parameters, rasterizer, depth-stencil and blend states along with actual vertex/fragment GPU program code.
 
-Actual GPU program code itself it written in any of the standard languages: HLSL or GLSL. A unified shading language is in the works so you will don't have to write separate code for DirectX and OpenGL renderers.
+Actual GPU program code itself is written in any of the standard languages: HLSL or GLSL. A unified shading language is in the works so you will don't have to write separate code for DirectX and OpenGL renderers.
 
 Before continuing it is highly suggested you read the [material](@ref materials) manual, as it describes how to create shaders without the use of BSLFX which can provide a good background of where BSLFX is useful.
 

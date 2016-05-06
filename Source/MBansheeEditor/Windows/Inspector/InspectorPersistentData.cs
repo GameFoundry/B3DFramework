@@ -49,7 +49,7 @@ namespace BansheeEditor
             SerializableProperties output;
             if (!resourceProperties.TryGetValue(uuid, out output))
             {
-                output = new SerializableProperties(); ;
+                output = new SerializableProperties();
                 resourceProperties[uuid] = output;
             }
 

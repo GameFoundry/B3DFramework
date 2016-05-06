@@ -201,9 +201,9 @@ namespace BansheeEngine
 		case MONO_TYPE_U4:
 			return MonoPrimitiveType::U32;
 		case MONO_TYPE_I8:
-			return MonoPrimitiveType::I32;
+			return MonoPrimitiveType::I64;
 		case MONO_TYPE_U8:
-			return MonoPrimitiveType::U32;
+			return MonoPrimitiveType::U64;
 		case MONO_TYPE_R4:
 			return MonoPrimitiveType::R32;
 		case MONO_TYPE_R8:
