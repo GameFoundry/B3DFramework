@@ -6,9 +6,7 @@
 #include "BsMath.h"
 #include "BsSceneObject.h"
 #include "BsCCamera.h"
-#include "BsPlatform.h"
 #include "BsCursor.h"
-#include "BsDebug.h"
 
 namespace BansheeEngine
 {
@@ -18,6 +16,7 @@ namespace BansheeEngine
 	const float CameraFlyer::FAST_MODE_MULTIPLIER = 2.0f;
 	const float CameraFlyer::ROTATION_SPEED = 360.0f; // Degrees/second
 
+	/** Wraps an angle so it always stays in [0, 360) range. */
 	Degree wrapAngle(Degree angle)
 	{
 		if (angle.valueDegrees() < -360.0f)
@@ -32,11 +31,14 @@ namespace BansheeEngine
 	CameraFlyer::CameraFlyer(const HSceneObject& parent)
 		:Component(parent), mPitch(0.0f), mYaw(0.0f), mLastButtonState(false)
 	{
+		// Set a name for the component, so we can find it later if needed
 		setName("CameraFlyer");
 
+		// Find the camera component we're influencing (must be on the same SceneObject we're on)
 		mCamera = sceneObject()->getComponent<CCamera>();
 		mCamera->setNearClipDistance(5);
 
+		// Get handles for key bindings. Actual keys attached to these bindings will be registered during app start-up.
 		mMoveForward = VirtualButton("Forward");
 		mMoveBack = VirtualButton("Back");
 		mMoveLeft = VirtualButton("Left");
@@ -49,6 +51,7 @@ namespace BansheeEngine
 
 	void CameraFlyer::update()
 	{
+		// Check if any movement or rotation keys are being held
 		bool goingForward = gVirtualInput().isButtonHeld(mMoveForward);
 		bool goingBack = gVirtualInput().isButtonHeld(mMoveBack);
 		bool goingLeft = gVirtualInput().isButtonHeld(mMoveLeft);
@@ -56,6 +59,7 @@ namespace BansheeEngine
 		bool fastMove = gVirtualInput().isButtonHeld(mFastMove);
 		bool camRotating = gVirtualInput().isButtonHeld(mRotateCam);
 
+		// If switch to or from rotation mode, hide or show the cursor
 		if (camRotating != mLastButtonState)
 		{
 			if (camRotating)
@@ -66,6 +70,8 @@ namespace BansheeEngine
 			mLastButtonState = camRotating;
 		}
 
+		// If camera is rotating, apply new pitch/yaw rotation values depending on the amount of rotation from the
+		// vertical/horizontal axes.
 		float frameDelta = gTime().getFrameDelta();
 		if (camRotating)
 		{
@@ -87,20 +93,24 @@ namespace BansheeEngine
 			SO()->setRotation(camRot);
 		}
 
+		// If the movement button is pressed, determine direction to move in
 		Vector3 direction = Vector3::ZERO;
 		if (goingForward) direction += SO()->getForward();
 		if (goingBack) direction -= SO()->getForward();
 		if (goingRight) direction += SO()->getRight();
 		if (goingLeft) direction -= SO()->getRight();
 
+		// If a direction is chosen, normalize it to determine final direction.
 		if (direction.squaredLength() != 0)
 		{
 			direction.normalize();
 
+			// Apply fast move multiplier if the fast move button is held.
 			float multiplier = 1.0f;
 			if (fastMove)
 				multiplier = FAST_MODE_MULTIPLIER;
 
+			// Calculate current speed of the camera
 			mCurrentSpeed = Math::clamp(mCurrentSpeed + ACCELERATION * frameDelta, START_SPEED, TOP_SPEED);
 			mCurrentSpeed *= multiplier;
 		}
@@ -109,6 +119,7 @@ namespace BansheeEngine
 			mCurrentSpeed = 0.0f;
 		}
 
+		// If the current speed isn't too small, move the camera in the wanted direction
 		float tooSmall = std::numeric_limits<float>::epsilon();
 		if (mCurrentSpeed > tooSmall)
 		{
