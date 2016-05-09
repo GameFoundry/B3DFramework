@@ -16,15 +16,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT AudioClipImportOptionsRTTI : public RTTIType<AudioClipImportOptions, ImportOptions, AudioClipImportOptionsRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mFormat);
-		BS_PLAIN_MEMBER(mReadMode);
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mFormat, 0)
+			BS_RTTI_MEMBER_PLAIN(mReadMode, 1)
+		BS_END_RTTI_MEMBERS
 	public:
 		AudioClipImportOptionsRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFormat, 0);
-			BS_ADD_PLAIN_FIELD(mReadMode, 1);
-		}
+			:mInitMembers(this)
+		{ }
 
 		/** @copydoc RTTIType::getRTTIName */
 		const String& getRTTIName() override

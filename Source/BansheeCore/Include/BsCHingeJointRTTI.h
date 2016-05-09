@@ -16,33 +16,24 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CHingeJointRTTI : public RTTIType<CHingeJoint, CJoint, CHingeJointRTTI>
 	{
-		BS_PLAIN_MEMBER_NAMED(mFlag, mDesc.flag)
-		BS_PLAIN_MEMBER_NAMED(mDriveSpeed, mDesc.drive.speed)
-		BS_PLAIN_MEMBER_NAMED(mDriveForceLimit, mDesc.drive.forceLimit)
-		BS_PLAIN_MEMBER_NAMED(mDriveGearRatio, mDesc.drive.gearRatio)
-		BS_PLAIN_MEMBER_NAMED(mDriveFreeSpin, mDesc.drive.freeSpin)
-		BS_PLAIN_MEMBER_NAMED(mLimitLower, mDesc.limit.lower)
-		BS_PLAIN_MEMBER_NAMED(mLimitUpper, mDesc.limit.upper)
-		BS_PLAIN_MEMBER_NAMED(mLimitContactDist, mDesc.limit.contactDist)
-		BS_PLAIN_MEMBER_NAMED(mLimitRestitution, mDesc.limit.restitution)
-		BS_PLAIN_MEMBER_NAMED(mSpringDamping, mDesc.limit.spring.damping)
-		BS_PLAIN_MEMBER_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.flag, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveSpeed, mDesc.drive.speed, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveForceLimit, mDesc.drive.forceLimit, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveGearRatio, mDesc.drive.gearRatio, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveFreeSpin, mDesc.drive.freeSpin, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLower, mDesc.limit.lower, 5)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitUpper, mDesc.limit.upper, 6)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitContactDist, mDesc.limit.contactDist, 7)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitRestitution, mDesc.limit.restitution, 8)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.limit.spring.damping, 9)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness, 10)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		CHingeJointRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFlag, 0);
-			BS_ADD_PLAIN_FIELD(mDriveSpeed, 1);
-			BS_ADD_PLAIN_FIELD(mDriveForceLimit, 2);
-			BS_ADD_PLAIN_FIELD(mDriveGearRatio, 3);
-			BS_ADD_PLAIN_FIELD(mDriveFreeSpin, 4);
-			BS_ADD_PLAIN_FIELD(mLimitLower, 5);
-			BS_ADD_PLAIN_FIELD(mLimitUpper, 6);
-			BS_ADD_PLAIN_FIELD(mLimitContactDist, 7);
-			BS_ADD_PLAIN_FIELD(mLimitRestitution, 8);
-			BS_ADD_PLAIN_FIELD(mSpringDamping, 9);
-			BS_ADD_PLAIN_FIELD(mSpringStiffness, 10);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

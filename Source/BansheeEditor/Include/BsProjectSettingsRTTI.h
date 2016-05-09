@@ -16,13 +16,13 @@ namespace BansheeEngine
 	class ProjectSettingsRTTI : public RTTIType <ProjectSettings, Settings, ProjectSettingsRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mLastOpenScene);
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mLastOpenScene, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		ProjectSettingsRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mLastOpenScene, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

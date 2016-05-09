@@ -16,25 +16,19 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CSliderJointRTTI : public RTTIType<CSliderJoint, CJoint, CSliderJointRTTI>
 	{
-		BS_PLAIN_MEMBER_NAMED(mFlag, mDesc.flag)
-		BS_PLAIN_MEMBER_NAMED(mLimitLower, mDesc.limit.lower)
-		BS_PLAIN_MEMBER_NAMED(mLimitUpper, mDesc.limit.upper)
-		BS_PLAIN_MEMBER_NAMED(mLimitContactDist, mDesc.limit.contactDist)
-		BS_PLAIN_MEMBER_NAMED(mLimitRestitution, mDesc.limit.restitution)
-		BS_PLAIN_MEMBER_NAMED(mSpringDamping, mDesc.limit.spring.damping)
-		BS_PLAIN_MEMBER_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.flag, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLower, mDesc.limit.lower, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitUpper, mDesc.limit.upper, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitContactDist, mDesc.limit.contactDist, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitRestitution, mDesc.limit.restitution, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.limit.spring.damping, 5)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness, 6)
+		BS_END_RTTI_MEMBERS
 	public:
 		CSliderJointRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFlag, 0);
-			BS_ADD_PLAIN_FIELD(mLimitLower, 1);
-			BS_ADD_PLAIN_FIELD(mLimitUpper, 2);
-			BS_ADD_PLAIN_FIELD(mLimitContactDist, 3);
-			BS_ADD_PLAIN_FIELD(mLimitRestitution, 4);
-			BS_ADD_PLAIN_FIELD(mSpringDamping, 5);
-			BS_ADD_PLAIN_FIELD(mSpringStiffness, 6);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

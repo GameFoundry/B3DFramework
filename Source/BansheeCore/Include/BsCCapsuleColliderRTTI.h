@@ -17,16 +17,15 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CCapsuleColliderRTTI : public RTTIType<CCapsuleCollider, CCollider, CCapsuleColliderRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mNormal)
-		BS_PLAIN_MEMBER(mRadius)
-		BS_PLAIN_MEMBER(mHalfHeight)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mNormal, 0)
+			BS_RTTI_MEMBER_PLAIN(mRadius, 1)
+			BS_RTTI_MEMBER_PLAIN(mHalfHeight, 2)
+		BS_END_RTTI_MEMBERS
 	public:
 		CCapsuleColliderRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mNormal, 0);
-			BS_ADD_PLAIN_FIELD(mRadius, 1);
-			BS_ADD_PLAIN_FIELD(mHalfHeight, 2);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

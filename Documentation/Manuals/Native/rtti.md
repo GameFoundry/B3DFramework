@@ -232,6 +232,51 @@ If possible you should prefer implementing an @ref BansheeEngine::IReflectable "
  - @ref BansheeEngine::rttiWriteElem "rttiWriteElem" - Serializes an object into the provided buffer and returns offset into the buffer after the written data
  - @ref BansheeEngine::rttiGetElemSize "rttiGetElemSize" - Returns a size an object
 
+## RTTI field macros  {#rtti_b_f} 
+In order to make definitions for fields in an RTTI type simpler, Banshee provides a set of macros you can use. These macros will automatically create getter/setter methods, and register the field. The macros are:
+ - BS_RTTI_MEMBER_PLAIN(name, id) - Registers a new plain field for the variable `name` with a unique id `id`. 
+ - BS_RTTI_MEMBER_PLAIN_NAMED(name, field, id) - Registers a new plain field for the variable `field` with a unique id `id`, and name `name`. Useful when the variable name cannot be used for the field name as it's done in BS_RTTI_MEMBER_PLAIN (e.g. if it is nested within another structure).
+ - BS_RTTI_MEMBER_PLAIN_ARRAY(name, id) - Registers a new plain field for the variable `field` with a unique id `id`. The field contains a `Vector` of plain values.
+ - BS_RTTI_MEMBER_REFL(name, id) - Same as BS_RTTI_MEMBER_PLAIN but for reflectable fields.
+ - BS_RTTI_MEMBER_REFL_NAMED(name, field, id) - Same as BS_RTTI_MEMBER_PLAIN_NAMED but for reflectable fields.
+ - BS_RTTI_MEMBER_REFL_ARRAY(name, id) - Same as BS_RTTI_MEMBER_PLAIN_ARRAY but for reflectable fields.
+ - BS_RTTI_MEMBER_REFLPTR(name, id) - Same as BS_RTTI_MEMBER_PLAIN but for reflectable pointer fields.
+ - BS_RTTI_MEMBER_REFLPTR_NAMED(name, field, id) - Same as BS_RTTI_MEMBER_PLAIN_NAMED but for reflectable pointer fields.
+ - BS_RTTI_MEMBER_REFLPTR_ARRAY(name, id) - Same as BS_RTTI_MEMBER_PLAIN_ARRAY but for reflectable pointer fields.
+ 
+Before you use any of those macros you must first call @ref BS_BEGIN_RTTI_MEMBERS() "BS_BEGIN_RTTI_MEMBERS" macro, and follow it with @ref BS_END_RTTI_MEMBERS() "BS_END_RTTI_MEMBERS" macro. These macros will define a new field `mInitMembers` in the @ref BansheeEngine::RTTITypeBase "RTTIType", which you need to initialize in the constructor with the `this` pointer.
+
+If we refactor our `TextureRTTI` example from above to use macros, it would look like so:
+~~~~~~~~~~~~~{.cpp}
+class TextureRTTI : public RTTIType<Texture, IReflectable, TextureRTTI>
+{
+	BS_BEGIN_RTTI_MEMBERS
+		BS_RTTI_MEMBER_PLAIN(width, 0)
+		BS_RTTI_MEMBER_PLAIN(height, 1)
+	BS_END_RTTI_MEMBERS
+	
+	TextureRTTI ()
+		:mInitMembers(this)
+	{ }
+
+	const String& getRTTIName() override
+	{
+		static String name = "Texture";
+		return name;
+	}
+
+	UINT32 getRTTIId() override
+	{
+		return TID_Texture;
+	}
+
+	SPtr<IReflectable> newRTTIObject() override
+	{
+		return bs_shared_ptr_new<Texture>();
+	}
+};
+~~~~~~~~~~~~~
+ 
 # Advanced serialization  {#rtti_c}
 Implementations of @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" can optionally override @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onSerializationStarted "RTTIType::onSerializationStarted", @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onSerializationEnded "RTTIType::onSerializationEnded", @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationStarted "RTTIType::onDeserializationStarted" and @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationEnded "RTTIType::onDeserializationEnded" methods. As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Most other systems (other than serialization) that access field data will also call these functions before reading, and after writing field data.
 

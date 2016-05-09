@@ -16,12 +16,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT AudioClipRTTI : public RTTIType <AudioClip, Resource, AudioClipRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER_NAMED(readMode, mDesc.readMode);
-		BS_PLAIN_MEMBER_NAMED(format, mDesc.format);
-		BS_PLAIN_MEMBER_NAMED(frequency, mDesc.frequency);
-		BS_PLAIN_MEMBER_NAMED(bitDepth, mDesc.bitDepth);
-		BS_PLAIN_MEMBER_NAMED(numChannels, mDesc.numChannels);
-		BS_PLAIN_MEMBER(mNumSamples);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(readMode, mDesc.readMode, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(format, mDesc.format, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(frequency, mDesc.frequency, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(bitDepth, mDesc.bitDepth, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(numChannels, mDesc.numChannels, 4)
+			BS_RTTI_MEMBER_PLAIN(mNumSamples, 5)
+		BS_END_RTTI_MEMBERS
 
 		ManagedDataBlock getData(AudioClip* obj)
 		{
@@ -43,14 +45,8 @@ namespace BansheeEngine
 
 	public:
 		AudioClipRTTI()
+			:mInitMembers(this)
 		{
-			BS_ADD_PLAIN_FIELD(readMode, 0);
-			BS_ADD_PLAIN_FIELD(format, 1);
-			BS_ADD_PLAIN_FIELD(frequency, 2);
-			BS_ADD_PLAIN_FIELD(bitDepth, 3);
-			BS_ADD_PLAIN_FIELD(numChannels, 4);
-			BS_ADD_PLAIN_FIELD(mNumSamples, 5);
-
 			addDataBlockField("mData", 6, &AudioClipRTTI::getData, &AudioClipRTTI::setData, 
 				0, &AudioClipRTTI::allocateData);
 		}

@@ -34,18 +34,18 @@ namespace BansheeEngine
 			addReflectableField("ref2", 1, &TestComponentARTTI::getRef2, &TestComponentARTTI::setRef2);
 		}
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestComponentA";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestComponentA;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return GameObjectRTTI::createGameObject<TestComponentA>();
 		}
@@ -67,18 +67,18 @@ namespace BansheeEngine
 			addPlainField("val1", 1, &TestComponentBRTTI::getVal1, &TestComponentBRTTI::setVal1);
 		}
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestComponentB";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestComponentB;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return GameObjectRTTI::createGameObject<TestComponentB>();
 		}
@@ -123,7 +123,7 @@ namespace BansheeEngine
 	public:
 		friend class TestObjectBRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	struct TestObjectA : IReflectable
@@ -169,72 +169,53 @@ namespace BansheeEngine
 	public:
 		friend class TestObjectARTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	class TestObjectARTTI : public RTTIType < TestObjectA, IReflectable, TestObjectARTTI >
 	{
 	private:
-		BS_PLAIN_MEMBER(intA);
-		BS_PLAIN_MEMBER(strA);
-		BS_PLAIN_MEMBER(strB);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(intA, 0)
+			BS_RTTI_MEMBER_PLAIN(strA, 1)
+			BS_RTTI_MEMBER_PLAIN(strB, 2)
 
-		BS_REFL_MEMBER(objA);
-		BS_REFL_MEMBER(objB);
+			BS_RTTI_MEMBER_REFL(objA, 3)
+			BS_RTTI_MEMBER_REFL(objB, 4)
 
-		BS_REFLPTR_MEMBER(objPtrA);
-		BS_REFLPTR_MEMBER(objPtrB);
-		BS_REFLPTR_MEMBER(objPtrC);
-		BS_REFLPTR_MEMBER(objPtrD);
+			BS_RTTI_MEMBER_REFLPTR(objPtrA, 5)
+			BS_RTTI_MEMBER_REFLPTR(objPtrB, 6)
+			BS_RTTI_MEMBER_REFLPTR(objPtrC, 7)
+			BS_RTTI_MEMBER_REFLPTR(objPtrD, 8)
 
-		BS_PLAIN_MEMBER_VEC(arrStrA);
-		BS_PLAIN_MEMBER_VEC(arrStrB);
-		BS_PLAIN_MEMBER_VEC(arrStrC);
+			BS_RTTI_MEMBER_PLAIN_ARRAY(arrStrA, 9)
+			BS_RTTI_MEMBER_PLAIN_ARRAY(arrStrB, 10)
+			BS_RTTI_MEMBER_PLAIN_ARRAY(arrStrC, 11)
 
-		BS_REFL_MEMBER_VEC(arrObjA);
-		BS_REFL_MEMBER_VEC(arrObjB);
+			BS_RTTI_MEMBER_REFL_ARRAY(arrObjA, 12)
+			BS_RTTI_MEMBER_REFL_ARRAY(arrObjB, 13)
 
-		BS_REFLPTR_MEMBER_VEC(arrObjPtrA);
-		BS_REFLPTR_MEMBER_VEC(arrObjPtrB);
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(arrObjPtrA, 14)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(arrObjPtrB, 15)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		TestObjectARTTI()
-		{
-			BS_ADD_PLAIN_FIELD(intA, 0);
-			BS_ADD_PLAIN_FIELD(strA, 1);
-			BS_ADD_PLAIN_FIELD(strB, 2);
+			:mInitMembers(this)
+		{ }
 
-			BS_ADD_REFL_FIELD(objA, 3);
-			BS_ADD_REFL_FIELD(objB, 4);
-
-			BS_ADD_REFLPTR_FIELD(objPtrA, 5);
-			BS_ADD_REFLPTR_FIELD(objPtrB, 6);
-			BS_ADD_REFLPTR_FIELD(objPtrC, 7);
-			BS_ADD_REFLPTR_FIELD(objPtrD, 8);
-
-			BS_ADD_PLAIN_FIELD_ARR(arrStrA, 9);
-			BS_ADD_PLAIN_FIELD_ARR(arrStrB, 10);
-			BS_ADD_PLAIN_FIELD_ARR(arrStrC, 11);
-
-			BS_ADD_REFL_FIELD_ARR(arrObjA, 12);
-			BS_ADD_REFL_FIELD_ARR(arrObjB, 13);
-
-			BS_ADD_REFLPTR_FIELD_ARR(arrObjPtrA, 14);
-			BS_ADD_REFLPTR_FIELD_ARR(arrObjPtrB, 15);
-		}
-
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestObjectA";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestObjectA;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<TestObjectA>();
 		}
@@ -243,28 +224,28 @@ namespace BansheeEngine
 	class TestObjectBRTTI : public RTTIType < TestObjectB, IReflectable, TestObjectBRTTI >
 	{
 	private:
-		BS_PLAIN_MEMBER(intA);
-		BS_PLAIN_MEMBER(strA);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(intA, 0)
+			BS_RTTI_MEMBER_PLAIN(strA, 1)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		TestObjectBRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(intA, 0);
-			BS_ADD_PLAIN_FIELD(strA, 1);
-		}
+			:mInitMembers(this)
+		{ }
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestObjectB";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestObjectB;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<TestObjectB>();
 		}
@@ -312,7 +293,7 @@ namespace BansheeEngine
 	public:
 		friend class TestComponentCRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 
 	protected:
 		TestComponentC() {} // Serialization only
@@ -349,26 +330,27 @@ namespace BansheeEngine
 	class TestComponentCRTTI : public RTTIType < TestComponentC, Component, TestComponentCRTTI >
 	{
 	private:
-		BS_REFL_MEMBER(obj)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL(obj, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		TestComponentCRTTI()
-		{
-			BS_ADD_REFL_FIELD(obj, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestComponentC";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestComponentC;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return GameObjectRTTI::createGameObject<TestComponentC>();
 		}
@@ -377,26 +359,27 @@ namespace BansheeEngine
 	class TestComponentDRTTI : public RTTIType < TestComponentD, Component, TestComponentDRTTI >
 	{
 	private:
-		BS_REFL_MEMBER(obj)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL(obj, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		TestComponentDRTTI()
-		{
-			BS_ADD_REFL_FIELD(obj, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "TestComponentD";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_TestComponentD;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return GameObjectRTTI::createGameObject<TestComponentD>();
 		}

@@ -16,27 +16,20 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT MeshImportOptionsRTTI : public RTTIType <MeshImportOptions, ImportOptions, MeshImportOptionsRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mCPUReadable)
-		BS_PLAIN_MEMBER(mImportNormals)
-		BS_PLAIN_MEMBER(mImportTangents)
-		BS_PLAIN_MEMBER(mImportBlendShapes)
-		BS_PLAIN_MEMBER(mImportSkin)
-		BS_PLAIN_MEMBER(mImportAnimation)
-		BS_PLAIN_MEMBER(mImportScale)
-		BS_PLAIN_MEMBER(mCollisionMeshType)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mCPUReadable, 0)
+			BS_RTTI_MEMBER_PLAIN(mImportNormals, 1)
+			BS_RTTI_MEMBER_PLAIN(mImportTangents, 2)
+			BS_RTTI_MEMBER_PLAIN(mImportBlendShapes, 3)
+			BS_RTTI_MEMBER_PLAIN(mImportSkin, 4)
+			BS_RTTI_MEMBER_PLAIN(mImportAnimation, 5)
+			BS_RTTI_MEMBER_PLAIN(mImportScale, 6)
+			BS_RTTI_MEMBER_PLAIN(mCollisionMeshType, 7)
+		BS_END_RTTI_MEMBERS
 	public:
 		MeshImportOptionsRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mCPUReadable, 0);
-			BS_ADD_PLAIN_FIELD(mImportNormals, 1);
-			BS_ADD_PLAIN_FIELD(mImportTangents, 2);
-			BS_ADD_PLAIN_FIELD(mImportBlendShapes, 3);
-			BS_ADD_PLAIN_FIELD(mImportSkin, 4);
-			BS_ADD_PLAIN_FIELD(mImportAnimation, 5);
-			BS_ADD_PLAIN_FIELD(mImportScale, 6);
-			BS_ADD_PLAIN_FIELD(mCollisionMeshType, 7);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

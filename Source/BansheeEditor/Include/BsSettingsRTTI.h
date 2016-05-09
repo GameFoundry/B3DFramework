@@ -16,19 +16,16 @@ namespace BansheeEngine
 	class SettingsRTTI : public RTTIType <Settings, IReflectable, SettingsRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mFloatProperties);
-		BS_PLAIN_MEMBER(mIntProperties);
-		BS_PLAIN_MEMBER(mBoolProperties);
-		BS_PLAIN_MEMBER(mStringProperties);
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mFloatProperties, 13)
+			BS_RTTI_MEMBER_PLAIN(mIntProperties, 14)
+			BS_RTTI_MEMBER_PLAIN(mBoolProperties, 15)
+			BS_RTTI_MEMBER_PLAIN(mStringProperties, 16)
+		BS_END_RTTI_MEMBERS
 	public:
 		SettingsRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFloatProperties, 13);
-			BS_ADD_PLAIN_FIELD(mIntProperties, 14);
-			BS_ADD_PLAIN_FIELD(mBoolProperties, 15);
-			BS_ADD_PLAIN_FIELD(mStringProperties, 16);
-		}
+			:mInitMembers(this)
+		{ }
 
 		virtual const String& getRTTIName() override
 		{

@@ -22,83 +22,198 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Similar to BS_PLAIN_MEMBER but allows you to specify name of the field and the variable it's referencing separately. */
-#define BS_PLAIN_MEMBER_NAMED(name, field)														\
-	decltype(OwnerType::field)& get##name(OwnerType* obj) { return obj->field; }				\
-	void set##name(OwnerType* obj, decltype(OwnerType::field)& val) { obj->field = val; } 
+	 /**
+	  * Starts definitions for member fields within a RTTI type. Follow this with calls to BS_RTTI_MEMBER* calls, and finish by
+	  * calling BS_END_RTTI_MEMBERS. You must also initialize mInitMembers field in the parent class' constructor.
+	  */
+#define BS_BEGIN_RTTI_MEMBERS																	\
+	struct META_FirstEntry {};																	\
+	void META_InitPrevEntry(META_FirstEntry typeId) { }											\
+																								\
+	typedef META_FirstEntry
 
-	/** Similar to BS_REFL_MEMBER but allows you to specify name of the field and the variable it's referencing separately. */
-#define BS_REFL_MEMBER_NAMED(name, field)														\
-	decltype(OwnerType::field)& get##name(OwnerType* obj) { return obj->field; }				\
-	void set##name(OwnerType* obj, decltype(OwnerType::field)& val) { obj->field = val; } 
+	  /**
+	   * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
+	   * The type of the member must be a valid plain type. Each field must specify a unique ID for @p id.
+	   */
+#define BS_RTTI_MEMBER_PLAIN(name, id)															\
+	META_Entry_##name;																			\
+																								\
+	decltype(OwnerType::name)& get##name(OwnerType* obj) { return obj->name; }					\
+	void set##name(OwnerType* obj, decltype(OwnerType::name)& val) { obj->name = val; }			\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addPlainField(#name, id, &MyType::get##name, &MyType::set##name);						\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
 
-	/** Similar to BS_REFLPTR_MEMBER but allows you to specify name of the field and the variable it's referencing separately. */
-#define BS_REFLPTR_MEMBER_NAMED(name, field)													\
+	   /** Same as BS_RTTI_MEMBER_PLAIN, but allows you to specify separate names for the field name and the member variable. */
+#define BS_RTTI_MEMBER_PLAIN_NAMED(name, field, id)												\
+	META_Entry_##name;																			\
+																								\
+	decltype(OwnerType::field)& get##name(OwnerType* obj) { return obj->field; }				\
+	void set##name(OwnerType* obj, decltype(OwnerType::field)& val) { obj->field = val; }		\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addPlainField(#name, id, &MyType::get##name, &MyType::set##name);						\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
+ * The type of the member must be an array of valid plain types. Each field must specify a unique ID for @p id.
+ */
+#define BS_RTTI_MEMBER_PLAIN_ARRAY(name, id)													\
+	META_Entry_##name;																			\
+																								\
+	std::common_type<decltype(OwnerType::name)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->name[idx]; }					\
+	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::name)>::type::value_type& val) { obj->name[idx] = val; }		\
+	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }																		\
+	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }																		\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addPlainArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name);						\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class. 
+ * The type of the member must be a valid reflectable (non-pointer) type. Each field must specify a unique ID for @p id.
+ */
+#define BS_RTTI_MEMBER_REFL(name, id)															\
+	META_Entry_##name;																			\
+																								\
+	decltype(OwnerType::name)& get##name(OwnerType* obj) { return obj->name; }					\
+	void set##name(OwnerType* obj, decltype(OwnerType::name)& val) { obj->name = val; }			\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectableField(#name, id, &MyType::get##name, &MyType::set##name);					\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/** Same as BS_RTTI_MEMBER_REFL, but allows you to specify separate names for the field name and the member variable. */
+#define BS_RTTI_MEMBER_REFL_NAMED(name, field, id)												\
+	META_Entry_##name;																			\
+																								\
+	decltype(OwnerType::field)& get##name(OwnerType* obj) { return obj->field; }				\
+	void set##name(OwnerType* obj, decltype(OwnerType::field)& val) { obj->field = val; }		\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectableField(#name, id, &MyType::get##name, &MyType::set##name);					\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class. 
+ * The type of the member must be an array of valid reflectable (non-pointer) types. Each field must specify a unique ID for
+ * @p id.
+ */
+#define BS_RTTI_MEMBER_REFL_ARRAY(name, id)														\
+	META_Entry_##name;																			\
+																								\
+	std::common_type<decltype(OwnerType::name)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->name[idx]; }					\
+	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::name)>::type::value_type& val) { obj->name[idx] = val; }		\
+	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }					\
+	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }					\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectableArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name);				\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class. 
+ * The type of the member must be a valid reflectable pointer type. Each field must specify a unique ID for @p id.
+ */
+#define BS_RTTI_MEMBER_REFLPTR(name, id)														\
+	META_Entry_##name;																			\
+																								\
+	decltype(OwnerType::name) get##name(OwnerType* obj) { return obj->name; }					\
+	void set##name(OwnerType* obj, decltype(OwnerType::name) val) { obj->name = val; }			\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectablePtrField(#name, id, &MyType::get##name, &MyType::set##name);				\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
+
+/** Same as BS_RTTI_MEMBER_REFLPTR, but allows you to specify separate names for the field name and the member variable. */
+#define BS_RTTI_MEMBER_REFLPTR_NAMED(name, field, id)											\
+	META_Entry_##name;																			\
+																								\
 	decltype(OwnerType::field) get##name(OwnerType* obj) { return obj->field; }					\
-	void set##name(OwnerType* obj, decltype(OwnerType::field) val) { obj->field = val; } 
+	void set##name(OwnerType* obj, decltype(OwnerType::field) val) { obj->field = val; }		\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectablePtrField(#name, id, &MyType::get##name, &MyType::set##name);				\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
 
-	/** Shortcut for defining getter/setter methods for a RTTI plain field. */
-#define BS_PLAIN_MEMBER(name)																	\
-	decltype(OwnerType::name)& get##name(OwnerType* obj) { return obj->name; }					\
-	void set##name(OwnerType* obj, decltype(OwnerType::name)& val) { obj->name = val; } 
-
-	/** Shortcut for defining getter/setter methods for a RTTI reflectable field. */
-#define BS_REFL_MEMBER(name)																	\
-	decltype(OwnerType::name)& get##name(OwnerType* obj) { return obj->name; }					\
-	void set##name(OwnerType* obj, decltype(OwnerType::name)& val) { obj->name = val; } 
-
-	/** Shortcut for defining getter/setter methods for a RTTI reflectable pointer field. */
-#define BS_REFLPTR_MEMBER(name)								\
-	decltype(OwnerType::name) get##name(OwnerType* obj) { return obj->name; }				\
-	void set##name(OwnerType* obj, decltype(OwnerType::name) val) { obj->name = val; } 
-
-	/** Registers a plain field defined with BS_PLAIN_MEMBER or BS_PLAIN_MEMBER_NAMED with the RTTI object. */
-#define BS_ADD_PLAIN_FIELD(name, id) \
-	addPlainField(#name, id, &MyType::get##name, &MyType::set##name);
-
-	/** Registers a plain field defined with BS_REFL_MEMBER or BS_REFL_MEMBER_NAMED with the RTTI object. */
-#define BS_ADD_REFL_FIELD(name, id) \
-	addReflectableField(#name, id, &MyType::get##name, &MyType::set##name);
-
-	/** Registers a plain field defined with BS_REFLPTR_MEMBER or BS_REFLPTR_MEMBER_NAMED with the RTTI object. */
-#define BS_ADD_REFLPTR_FIELD(name, id) \
-	addReflectablePtrField(#name, id, &MyType::get##name, &MyType::set##name);
-
-	/** Shortcut for defining getter/setter methods for a RTTI plain Vector<T> field. */
-#define BS_PLAIN_MEMBER_VEC(name)								\
-	std::common_type<decltype(OwnerType::name)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->name[idx]; }				\
-	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::name)>::type::value_type& val) { obj->name[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }	\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }
-
-	/** Shortcut for defining getter/setter methods for a RTTI reflectable Vector<T> field. */
-#define BS_REFL_MEMBER_VEC(name)								\
-	std::common_type<decltype(OwnerType::name)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->name[idx]; }				\
-	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::name)>::type::value_type& val) { obj->name[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }	\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }
-
-	/** Shortcut for defining getter/setter methods for a RTTI reflectable pointer Vector<T> field. */
-#define BS_REFLPTR_MEMBER_VEC(name)								\
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class. 
+ * The type of the member must be a valid reflectable pointer type. Each field must specify a unique ID for @p id.
+ */
+#define BS_RTTI_MEMBER_REFLPTR_ARRAY(name, id)													\
+	META_Entry_##name;																			\
+																								\
 	std::common_type<decltype(OwnerType::name)>::type::value_type get##name(OwnerType* obj, UINT32 idx) { return obj->name[idx]; }				\
 	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::name)>::type::value_type val) { obj->name[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }	\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }
+	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->name.size(); }					\
+	void setSize##name(OwnerType* obj, UINT32 val) { obj->name.resize(val); }					\
+																								\
+	struct META_NextEntry_##name{};																\
+	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
+	{																							\
+		addReflectablePtrArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name);			\
+		META_InitPrevEntry(META_Entry_##name());												\
+	}																							\
+																								\
+	typedef META_NextEntry_##name
 
-	/** Registers a plain array field defined with BS_PLAIN_MEMBER_VEC with the RTTI object. */
-#define BS_ADD_PLAIN_FIELD_ARR(name, id) \
-	addPlainArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, \
-	&MyType::set##name, &MyType::setSize##name);
-
-	/** Registers a reflectable object array field defined with BS_PLAIN_MEMBER_VEC with the RTTI object. */
-#define BS_ADD_REFL_FIELD_ARR(name, id) \
-	addReflectableArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, \
-	&MyType::set##name, &MyType::setSize##name);
-
-	/** Registers a reflectable pointer array field defined with BS_PLAIN_MEMBER_VEC with the RTTI object. */
-#define BS_ADD_REFLPTR_FIELD_ARR(name, id) \
-	addReflectablePtrArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, \
-	&MyType::set##name, &MyType::setSize##name);
+/** Ends definitions for member fields with a RTTI type. Must follow BS_BEGIN_RTTI_MEMBERS. */
+#define BS_END_RTTI_MEMBERS																		\
+	META_LastEntry;																				\
+																								\
+	struct META_InitAllMembers																	\
+	{																							\
+		META_InitAllMembers(MyType* owner)														\
+		{																						\
+			owner->META_InitPrevEntry(META_LastEntry());										\
+		}																						\
+	};																							\
+																								\
+	META_InitAllMembers mInitMembers;
 
 	/** @} */
 

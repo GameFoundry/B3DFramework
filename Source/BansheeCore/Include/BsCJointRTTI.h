@@ -15,14 +15,16 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CJointRTTI : public RTTIType<CJoint, Component, CJointRTTI>
 	{
-		BS_REFL_MEMBER_NAMED(mBodyA, mBodies[0]);
-		BS_REFL_MEMBER_NAMED(mBodyB, mBodies[1]);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL_NAMED(mBodyA, mBodies[0], 0)
+			BS_RTTI_MEMBER_REFL_NAMED(mBodyB, mBodies[1], 1)
 
-		BS_PLAIN_MEMBER_NAMED(mPositionA, mPositions[0]);
-		BS_PLAIN_MEMBER_NAMED(mPositionB, mPositions[1]);
+			BS_RTTI_MEMBER_PLAIN_NAMED(mPositionA, mPositions[0], 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mPositionB, mPositions[1], 3)
 
-		BS_PLAIN_MEMBER_NAMED(mRotationA, mRotations[0]);
-		BS_PLAIN_MEMBER_NAMED(mRotationB, mRotations[1]);
+			BS_RTTI_MEMBER_PLAIN_NAMED(mRotationA, mRotations[0], 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mRotationB, mRotations[1], 5)
+		BS_END_RTTI_MEMBERS
 
 		float& getBreakForce(OwnerType* obj) { return obj->mDesc.breakForce; }	
 		void setBreakForce(OwnerType* obj, float& val) { obj->mDesc.breakForce = val; }
@@ -35,16 +37,11 @@ namespace BansheeEngine
 
 	public:
 		CJointRTTI()
+			:mInitMembers(this)
 		{
-			BS_ADD_REFL_FIELD(mBodyA, 0);
-			BS_ADD_REFL_FIELD(mBodyB, 1);
-			BS_ADD_PLAIN_FIELD(mPositionA, 2);
-			BS_ADD_PLAIN_FIELD(mPositionB, 3);
-			BS_ADD_PLAIN_FIELD(mRotationA, 4);
-			BS_ADD_PLAIN_FIELD(mRotationB, 5);
-			BS_ADD_PLAIN_FIELD(BreakForce, 6);
-			BS_ADD_PLAIN_FIELD(BreakTorque, 7);
-			BS_ADD_PLAIN_FIELD(EnableCollision, 8);
+			addPlainField("BreakForce", 6, &CJointRTTI::getBreakForce, &CJointRTTI::setBreakForce);
+			addPlainField("BreakTorque", 7, &CJointRTTI::getBreakTorque, &CJointRTTI::setBreakTorque);
+			addPlainField("EnableCollision", 8, &CJointRTTI::getEnableCollision, &CJointRTTI::setEnableCollision);
 		}
 
 		const String& getRTTIName() override

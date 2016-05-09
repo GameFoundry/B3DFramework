@@ -17,13 +17,13 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CSphereColliderRTTI : public RTTIType<CSphereCollider, CCollider, CSphereColliderRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mRadius)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mRadius, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		CSphereColliderRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mRadius, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

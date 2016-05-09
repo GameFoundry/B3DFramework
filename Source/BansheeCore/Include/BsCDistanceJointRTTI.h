@@ -16,23 +16,19 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CDistanceJointRTTI : public RTTIType<CDistanceJoint, CJoint, CDistanceJointRTTI>
 	{
-		BS_PLAIN_MEMBER_NAMED(mFlag, mDesc.flag)
-		BS_PLAIN_MEMBER_NAMED(mMinDistance, mDesc.minDistance)
-		BS_PLAIN_MEMBER_NAMED(mMaxDistance, mDesc.maxDistance)
-		BS_PLAIN_MEMBER_NAMED(mTolerance, mDesc.tolerance)
-		BS_PLAIN_MEMBER_NAMED(mSpringDamping, mDesc.spring.damping)
-		BS_PLAIN_MEMBER_NAMED(mSpringStiffness, mDesc.spring.stiffness)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.flag, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mMinDistance, mDesc.minDistance, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mMaxDistance, mDesc.maxDistance, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mTolerance, mDesc.tolerance, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.spring.damping, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.spring.stiffness, 5)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		CDistanceJointRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFlag, 0);
-			BS_ADD_PLAIN_FIELD(mMinDistance, 1);
-			BS_ADD_PLAIN_FIELD(mMaxDistance, 2);
-			BS_ADD_PLAIN_FIELD(mTolerance, 3);
-			BS_ADD_PLAIN_FIELD(mSpringDamping, 4);
-			BS_ADD_PLAIN_FIELD(mSpringStiffness, 5);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

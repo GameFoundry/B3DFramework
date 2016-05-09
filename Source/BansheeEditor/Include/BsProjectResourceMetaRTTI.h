@@ -18,19 +18,16 @@ namespace BansheeEngine
 	class ProjectResourceMetaRTTI : public RTTIType<ProjectResourceMeta, IReflectable, ProjectResourceMetaRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mName)
-		BS_PLAIN_MEMBER(mUUID)
-		BS_PLAIN_MEMBER(mTypeId)
-		BS_REFLPTR_MEMBER(mResourceMeta)
-			
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mName, 0)
+			BS_RTTI_MEMBER_PLAIN(mUUID, 1)
+			BS_RTTI_MEMBER_PLAIN(mTypeId, 2)
+			BS_RTTI_MEMBER_REFLPTR(mResourceMeta, 3)
+		BS_END_RTTI_MEMBERS
 	public:
 		ProjectResourceMetaRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mName, 0);
-			BS_ADD_PLAIN_FIELD(mUUID, 1);
-			BS_ADD_PLAIN_FIELD(mTypeId, 2);
-			BS_ADD_REFLPTR_FIELD(mResourceMeta, 3);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -52,17 +49,16 @@ namespace BansheeEngine
 	class ProjectFileMetaRTTI : public RTTIType<ProjectFileMeta, IReflectable, ProjectFileMetaRTTI>
 	{
 	private:
-		BS_REFLPTR_MEMBER(mImportOptions)
-		BS_PLAIN_MEMBER(mIncludeInBuild)
-		BS_REFLPTR_MEMBER_VEC(mResourceMetaData)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mImportOptions, 1)
+			BS_RTTI_MEMBER_PLAIN(mIncludeInBuild, 4)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(mResourceMetaData, 5)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ProjectFileMetaRTTI()
-		{
-			BS_ADD_REFLPTR_FIELD(mImportOptions, 1);
-			BS_ADD_PLAIN_FIELD(mIncludeInBuild, 4);
-			BS_ADD_REFLPTR_FIELD_ARR(mResourceMetaData, 5);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
