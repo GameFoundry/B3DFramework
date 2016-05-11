@@ -22,7 +22,6 @@ set(BS_BANSHEEUTILITY_INC_PREREQUISITES
 set(BS_BANSHEEUTILITY_SRC_WIN32
 	"Source/Win32/BsWin32FileSystem.cpp"
 	"Source/Win32/BsWin32CrashHandler.cpp"
-	"Source/Win32/BsWin32Timer.cpp"
 	"Source/Win32/BsWin32PlatformUtility.cpp"
 	"Source/Win32/BsWin32Window.cpp"
 )
@@ -47,6 +46,7 @@ set(BS_BANSHEEUTILITY_SRC_GENERAL
 	"Source/BsDynLib.cpp"
 	"Source/BsDynLibManager.cpp"
 	"Source/BsMessageHandler.cpp"
+	"Source/BsTimer.cpp"
 	"Source/BsTime.cpp"
 	"Source/BsUtil.cpp"
 )
