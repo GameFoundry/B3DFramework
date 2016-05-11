@@ -11,28 +11,54 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Valid internal engine audio formats. */
 	enum class AudioFormat
 	{
-		PCM,
-		VORBIS
+		PCM, /**< Pulse code modulation audio ("raw" uncompressed audio). */
+		VORBIS /**< Vorbis compressed audio. */
 	};
 
+	/** Modes that determine how and when is audio data read. */
 	enum class AudioReadMode
 	{
-		LoadDecompressed,
+		/** Entire audio clip will be loaded and decompressed. Uses most memory but has lowest CPU impact. */
+		LoadDecompressed, 
+		/**
+		 * Entire audio clip will be loaded, but will be decompressed while playing. Uses medium amount of memory and has
+		 * the highest CPU impact. 
+		 */
 		LoadCompressed,
+		/** 
+		 * Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either
+		 * low or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk,
+		 * read speeds could also be a bottleneck.
+		 */
 		Stream
 	};
 
+	/** Descriptor used for initializing an audio clip. */
 	struct AUDIO_CLIP_DESC
 	{
+		/** Determines how is audio data read. */
 		AudioReadMode readMode = AudioReadMode::LoadDecompressed;
+
+		/** Determines in which format is the audio data in. */
 		AudioFormat format = AudioFormat::PCM;
+
+		/** Sample rate (frequency) of the audio data. */
 		UINT32 frequency = 44100;
+
+		/** Number of bits per sample. Not used for compressed formats. */
 		UINT32 bitDepth = 16;
+		
+		/** Number of channels. Each channel has its own step of samples. */
 		UINT32 numChannels = 2;
 	};
 
+	/** 
+	 * Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or
+	 * or other audio methods to be played.
+	 */
 	class BS_CORE_EXPORT AudioClip : public Resource
 	{
 	public:

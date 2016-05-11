@@ -249,6 +249,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAFileReader.h" />
     <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAFLACReader.h" />
     <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAImporter.h" />
     <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAOggVorbisReader.h" />

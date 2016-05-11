@@ -26,6 +26,9 @@
     <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAFLACReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\BansheeOpenAudio\Include\BsOAFileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\BansheeOpenAudio\Source\BsOAPlugin.cpp">

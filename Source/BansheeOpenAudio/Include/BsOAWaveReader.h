@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
+#include "BsOAFileReader.h"
 
 namespace BansheeEngine
 {
@@ -11,16 +12,22 @@ namespace BansheeEngine
 	 */
 
 	/** Used for reading .WAV audio files. */
-	class OAWaveReader
+	class OAWaveReader : public OAFileReader
 	{
 	public:
 		OAWaveReader();
 
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info);
-		void seek(UINT32 offset); // Offset in number of samples
-		UINT32 read(UINT8* samples, UINT32 numSamples);
+		/** @copydoc OAFileReader::open */
+		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info) override;
 
-		static bool isValid(const SPtr<DataStream>& stream);
+		/** @copydoc OAFileReader::read */
+		UINT32 read(UINT8* samples, UINT32 numSamples) override;
+
+		/** @copydoc OAFileReader::seek */
+		void seek(UINT32 offset) override;
+
+		/** @copydoc OAFileReader::isValid */
+		bool isValid(const SPtr<DataStream>& stream) override;
 	private:
 		bool parseHeader(AudioFileInfo& info);
 

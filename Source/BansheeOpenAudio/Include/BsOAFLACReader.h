@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
+#include "BsOAFileReader.h"
 #include "FLAC\stream_decoder.h"
 
 namespace BansheeEngine
@@ -11,6 +12,7 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Data used by the FLAC decoder. */
 	struct FLACDecoderData
 	{
 		SPtr<DataStream> stream;
@@ -23,17 +25,23 @@ namespace BansheeEngine
 	};
 
 	/** Used for reading FLAC audio files. */
-	class OAFLACReader
+	class OAFLACReader : public OAFileReader
 	{
 	public:
 		OAFLACReader();
 		~OAFLACReader();
 
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info);
-		void seek(UINT32 offset); // Offset in number of samples
-		UINT32 read(UINT8* samples, UINT32 numSamples);
+		/** @copydoc OAFileReader::open */
+		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info) override;
 
-		static bool isValid(const SPtr<DataStream>& stream);
+		/** @copydoc OAFileReader::seek */
+		void seek(UINT32 offset) override;
+
+		/** @copydoc OAFileReader::read */
+		UINT32 read(UINT8* samples, UINT32 numSamples) override;
+
+		/** @copydoc OAFileReader::isValid */
+		bool isValid(const SPtr<DataStream>& stream) override;
 	private:
 		void close();
 
