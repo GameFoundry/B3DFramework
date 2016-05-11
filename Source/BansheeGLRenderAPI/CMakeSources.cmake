@@ -34,9 +34,9 @@ set(BS_BANSHEEGLRENDERAPI_INC_NOFILTER
 
 set(BS_BANSHEEGLRENDERAPI_SRC_WIN32
 	"Source/win32/BsWin32Context.cpp"
-	"Source/Win32/BsWin32GLSupport.cpp"
-	"Source/Win32/BsWin32RenderWindow.cpp"
-	"Source/Win32/BsWin32VideoModeInfo.cpp"
+	"Source/win32/BsWin32GLSupport.cpp"
+	"Source/win32/BsWin32RenderWindow.cpp"
+	"Source/win32/BsWin32VideoModeInfo.cpp"
 )
 
 set(BS_BANSHEEGLRENDERAPI_SRC_NOFILTER
