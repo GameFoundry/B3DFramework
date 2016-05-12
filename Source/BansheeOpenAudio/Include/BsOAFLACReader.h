@@ -19,7 +19,6 @@ namespace BansheeEngine
 		AudioFileInfo info;
 		UINT8* output = nullptr;
 		Vector<UINT8> overflow;
-		UINT32 overflowBytesPerSample = 0;
 		UINT32 samplesToRead = 0;
 		bool error = false;
 	};

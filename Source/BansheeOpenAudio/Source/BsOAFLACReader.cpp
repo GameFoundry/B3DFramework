@@ -72,7 +72,7 @@ namespace BansheeEngine
 		if (!data->output) // Seek
 			return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 
-		UINT32 bytesPerSample = frame->header.bits_per_sample / 8;
+		UINT32 bytesPerSample = data->info.bitDepth / 8;
 		
 		// If we received more data than we need, store it in the overflow buffer
 		UINT32 frameSamples = frame->header.blocksize * frame->header.channels;
@@ -81,16 +81,6 @@ namespace BansheeEngine
 			UINT32 numExtraSamples = frameSamples - data->samplesToRead;
 			UINT32 extraBytes = numExtraSamples * bytesPerSample;
 			data->overflow.reserve(extraBytes);
-
-			if (data->overflowBytesPerSample != 0)
-			{
-				if (data->overflow.size() > 0) // Overflow already stores data but of a different size
-				{
-					assert(data->overflowBytesPerSample == bytesPerSample);
-				}
-			}
-			else
-				data->overflowBytesPerSample = bytesPerSample;
 		}
 
 		assert(bytesPerSample <= 4);
@@ -128,6 +118,7 @@ namespace BansheeEngine
 			data->info.numSamples = meta->data.stream_info.total_samples * meta->data.stream_info.channels;
 			data->info.sampleRate = meta->data.stream_info.sample_rate;
 			data->info.numChannels = meta->data.stream_info.channels;
+			data->info.bitDepth = meta->data.stream_info.bits_per_sample;
 		}
 	}
 
@@ -183,7 +174,6 @@ namespace BansheeEngine
 		FLAC__stream_decoder_init_stream(mDecoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof,
 			&streamWrite, &streamMetadata, &streamError, &mData);
 
-
 		if (!FLAC__stream_decoder_process_until_end_of_metadata(mDecoder))
 		{
 			close();
@@ -210,9 +200,10 @@ namespace BansheeEngine
 		UINT64 overflowSize = mData.overflow.size();
 		UINT64 overflowNumSamples = 0;
 		
+		UINT32 bytesPerSample = mData.info.bitDepth / 8;
 		if (overflowSize > 0)
 		{
-			UINT32 sampleSize = numSamples * mData.overflowBytesPerSample;
+			UINT32 sampleSize = numSamples * bytesPerSample;
 			if (overflowSize > sampleSize)
 			{
 				std::copy(mData.overflow.begin(), mData.overflow.begin() + sampleSize, samples);
@@ -223,7 +214,7 @@ namespace BansheeEngine
 			else
 				std::copy(mData.overflow.begin(), mData.overflow.end(), samples);
 
-			overflowNumSamples = overflowSize / mData.overflowBytesPerSample;
+			overflowNumSamples = overflowSize / bytesPerSample;
 		}
 
 		mData.output = samples + overflowSize;

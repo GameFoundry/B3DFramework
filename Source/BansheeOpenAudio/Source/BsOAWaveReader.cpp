@@ -94,6 +94,7 @@ namespace BansheeEngine
 
 				info.numChannels = numChannels;
 				info.sampleRate = sampleRate;
+				info.bitDepth = bitDepth;
 
 				if (bitDepth != 8 && bitDepth != 16 && bitDepth != 24 && bitDepth != 32)
 				{

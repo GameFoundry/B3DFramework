@@ -25,9 +25,10 @@ namespace BansheeEngine
 	/** Contains data describing an audio file. */
 	struct AudioFileInfo
 	{
-		UINT32 numSamples;
-		UINT32 sampleRate;
-		UINT32 numChannels;
+		UINT32 numSamples; /**< Total number of audio samples in the audio data (includes all channels). */
+		UINT32 sampleRate; /**< Number of audio samples per second, per channel. */
+		UINT32 numChannels; /**< Number of channels. Each channel has its own set of samples. */
+		UINT32 bitDepth; /**< Number of bits per sample. */
 	};
 }
 

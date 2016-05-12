@@ -80,6 +80,7 @@ namespace BansheeEngine
 		info.numChannels = vorbisInfo->channels;
 		info.sampleRate = vorbisInfo->rate;
 		info.numSamples = (UINT32)(ov_pcm_total(&mOggVorbisFile, -1) * vorbisInfo->channels);
+		info.bitDepth = 16;
 
 		mChannelCount = info.numChannels;
 		return true;
