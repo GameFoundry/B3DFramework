@@ -21,6 +21,16 @@ Optionally, if you are using VS2015 you can avoid compiling dependencies by down
 
 For older versions check the git release tag descriptions for links.
 
+## Windows dependencies
+For Windows additional dependencies not included in the dependencies package are needed.
+
+Make sure to:
+ - Install Windows SDK if on Windows 8 or higher.
+ - Install DirectX SDK.
+   - Set up DXSDK_DIR environment variable to point to the SDK install directory.
+ - Install DirectX Debug Layer in Windows 10:
+   - Settings panel->System->Apps & features->Manage optional Features->Add a feature->Select "Graphics Tools"
+
 # Data files
 You will also need data files (non-code resources like images, shaders, etc.) in order to run the editor, engine and example projects.
 
