@@ -192,8 +192,6 @@ namespace BansheeEngine
 		bool streamDataBlock = false;
 		if (!copyData && data->isFile())
 		{
-			LOGWRN("Deserializing without data copy but the source stream is a file stream. Enabling data copy.");
-
 			copyData = true;
 			streamDataBlock = true;
 		}
@@ -654,11 +652,11 @@ namespace BansheeEngine
 
 					for (int i = 0; i < arrayNumElems; i++)
 					{
+						SPtr<SerializedObject> serializedArrayEntry;
+						decodeEntry(data, dataLength, bytesRead, serializedArrayEntry, copyData, streamDataBlock);
+
 						if (curField != nullptr)
 						{
-							SPtr<SerializedObject> serializedArrayEntry;
-							decodeEntry(data, dataLength, bytesRead, serializedArrayEntry, copyData, streamDataBlock);
-
 							SerializedArrayEntry arrayEntry;
 							arrayEntry.serialized = serializedArrayEntry;
 							arrayEntry.index = i;
@@ -762,12 +760,11 @@ namespace BansheeEngine
 				case SerializableFT_Reflectable:
 				{
 					RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
+					SPtr<SerializedObject> serializedChildObj;
+					decodeEntry(data, dataLength, bytesRead, serializedChildObj, copyData, streamDataBlock);
 
 					if (curField != nullptr)
 					{
-						SPtr<SerializedObject> serializedChildObj;
-						decodeEntry(data, dataLength, bytesRead, serializedChildObj, copyData, streamDataBlock);
-
 						serializedEntry = serializedChildObj;
 						hasModification = true;
 					}
@@ -803,6 +800,7 @@ namespace BansheeEngine
 							data->skip(typeSize);
 						}
 
+						serializedField->size = typeSize;
 						serializedEntry = serializedField;
 						hasModification = true;
 					}
@@ -846,8 +844,8 @@ namespace BansheeEngine
 							serializedDataBlock->stream = stream;
 							serializedDataBlock->offset = 0;
 						}
+
 						serializedDataBlock->size = dataBlockSize;
-						
 						serializedEntry = serializedDataBlock;
 						hasModification = true;
 					}
