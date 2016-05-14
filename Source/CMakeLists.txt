@@ -23,6 +23,10 @@ if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 endif()
 
 # Global compile & linker flags
+## Compiler-agnostic settings
+### Target at least C++11
+set(CMAKE_CXX_STANDARD 11)
+## Compiler-specific settings
 if(MSVC)
 	# Linker
 	set(BS_LINKER_FLAGS_COMMON "/DLL /DYNAMICBASE /NOLOGO")
