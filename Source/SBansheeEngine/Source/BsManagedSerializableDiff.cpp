@@ -209,7 +209,7 @@ namespace BansheeEngine
 		const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData,
 		UINT32 entryTypeId)
 	{
-		bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive;
+		bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive || entryTypeId == TID_SerializableTypeInfoRef;
 
 		SPtr<Modification> newMod = nullptr;
 		if (isPrimitive)
@@ -430,6 +430,9 @@ namespace BansheeEngine
 					newMod = ModifiedEntry::create(newData);
 				}
 			}
+				break;
+			default:
+				assert(false); // Invalid type
 				break;
 			}
 		}
