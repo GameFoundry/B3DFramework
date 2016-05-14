@@ -11,19 +11,13 @@ namespace BansheeEngine
 
     DynLib* DynLibManager::load(const String& name)
     {
+		// Add the extension (.dll, .so, ...) if necessary.
 		String filename = name;
-#if BS_PLATFORM == BS_PLATFORM_LINUX
-		if (name.substr(name.length() - 3, 3) != ".so")
-			name += ".so";
-#elif BS_PLATFORM == BS_PLATFORM_OSX
-		if (name.substr(name.length() - 6, 6) != ".dylib")
-			name += ".dylib";
-#elif BS_PLATFORM == BS_PLATFORM_WIN32
-		// Although LoadLibraryEx will add .dll itself when you only specify the library name,
-		// if you include a relative path then it does not. So, add it to be sure.
-		if (filename.substr(filename.length() - 4, 4) != ".dll")
-			filename += ".dll";
-#endif
+		const int length = filename.length();
+		const String extension = "." + DynLib::extension;
+		const int ext_length = extension.length();
+		if (length <= ext_length || filename.substr(length - ext_length) != extension)
+			filename += extension;
 
 		auto iterFind = mLoadedLibraries.find(filename);
 		if (iterFind != mLoadedLibraries.end())

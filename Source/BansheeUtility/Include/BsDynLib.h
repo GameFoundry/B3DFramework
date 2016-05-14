@@ -39,6 +39,9 @@ namespace BansheeEngine
 	class BS_UTILITY_EXPORT DynLib
     {
     public:
+		/** System-specific file extension for a dynamic library (e.g. "dll"). */
+		static const String extension;
+
 		/** Constructs the dynamic library object and loads the library with the specified name. */
 		DynLib(const String& name);
         ~DynLib();
