@@ -9,13 +9,6 @@ data
 Dependencies
 Builds
 Documentation/html
+Build
 *.aps
 *.opendb
-/Build/VS2015/Banshee.VC.db
-/Build/VS2015/x64
-/Build/VS2015/Win32
-/Build/Generated
-CMakeFiles
-cmake_install.cmake
-*.dir
-CMakeCache.txt

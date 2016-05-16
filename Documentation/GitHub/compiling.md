@@ -8,8 +8,8 @@ It can be compiled using:
  - MSVC++ 14.0 (Visual Studio 2015)
  - Clang
  
-You can build it using a Visual Studio solution directly, available in the Build/VS2015 directory. Or you can generate a makefile or an IDE solution using CMake. CMake root file is available at Source/CMakeLists.txt.
-
+Use CMake to generate a VS solution, makefile or other type of build file. CMake root file is available at Source/CMakeLists.txt.
+ 
 Banshee currently only compiles on Windows, but Mac & Linux ports are coming soon.
 
 # Third party dependencies
