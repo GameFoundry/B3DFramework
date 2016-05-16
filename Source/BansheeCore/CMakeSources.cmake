@@ -467,6 +467,18 @@ set(BS_BANSHEECORE_SRC_SCENE
 	"Source/BsPrefabUtility.cpp"
 )
 
+set(BS_BANSHEECORE_INC_AUDIO
+	"Include/BsAudio.h"
+	"Include/BsAudioClip.h"
+	"Include/BsAudioClipImportOptions.h"
+)
+
+set(BS_BANSHEECORE_SRC_AUDIO
+	"Source/BsAudio.cpp"
+	"Source/BsAudioClip.cpp"
+	"Source/BsAudioClipImportOptions.cpp"
+)
+
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})
 source_group("Header Files\\Physics" FILES ${BS_BANSHEECORE_INC_PHYSICS})
 source_group("Header Files\\CoreThread" FILES ${BS_BANSHEECORE_INC_CORETHREAD})
@@ -501,6 +513,8 @@ source_group("Source Files\\RenderAPI" FILES ${BS_BANSHEECORE_SRC_RENDERAPI})
 source_group("Source Files" FILES ${BS_BANSHEECORE_SRC_NOFILTER})
 source_group("Source Files\\Physics" FILES ${BS_BANSHEECORE_SRC_PHYSICS})
 source_group("Source Files\\Scene" FILES ${BS_BANSHEECORE_SRC_SCENE})
+source_group("Header Files\\Audio" FILES ${BS_BANSHEECORE_INC_AUDIO})
+source_group("Source Files\\Audio" FILES ${BS_BANSHEECORE_SRC_AUDIO})
 
 set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_INC_COMPONENTS}
@@ -537,4 +551,5 @@ set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_SRC_NOFILTER}
 	${BS_BANSHEECORE_SRC_PHYSICS}
 	${BS_BANSHEECORE_SRC_SCENE}
+	${BS_BANSHEECORE_SRC_AUDIO}
 )

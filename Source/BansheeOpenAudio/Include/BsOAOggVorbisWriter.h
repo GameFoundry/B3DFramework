@@ -18,7 +18,7 @@ namespace BansheeEngine
 		OAOggVorbisWriter();
 		~OAOggVorbisWriter();
 
-		bool open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 numChannels);
+		bool open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, UINT32 numChannels);
 
 		void write(UINT8* samples, UINT32 numSamples); // Assumes 16-bit samples
 		void flush();
@@ -32,6 +32,7 @@ namespace BansheeEngine
 		UINT8 mBuffer[BUFFER_SIZE];
 		UINT32 mBufferOffset;
 		UINT32 mNumChannels;
+		UINT32 mBitDepth;
 
 		ogg_stream_state mOggState;
 		vorbis_info mVorbisInfo;

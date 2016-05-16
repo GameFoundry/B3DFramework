@@ -16,7 +16,7 @@ namespace BansheeEngine
 	}
 
 	OAOggVorbisWriter::OAOggVorbisWriter()
-		:mBufferOffset(0), mNumChannels(0)
+		:mBufferOffset(0), mNumChannels(0), mBitDepth(0)
 	{ }
 
 	OAOggVorbisWriter::~OAOggVorbisWriter()
@@ -24,9 +24,11 @@ namespace BansheeEngine
 		close();
 	}
 
-	bool OAOggVorbisWriter::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 numChannels)
+	bool OAOggVorbisWriter::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, 
+		UINT32 numChannels)
 	{
 		mNumChannels = numChannels;
+		mBitDepth = bitDepth;
 		mWriteCallback = writeCallback;
 
 		ogg_stream_init(&mOggState, std::rand());
@@ -79,16 +81,64 @@ namespace BansheeEngine
 		UINT32 numFrames = numSamples / mNumChannels;
 		float** buffer = vorbis_analysis_buffer(&mVorbisState, numFrames);
 
-		for (UINT32 i = 0; i < numFrames; i++)
+		if (mBitDepth == 8)
 		{
-			for (UINT32 j = 0; j < mNumChannels; j++)
+			for (UINT32 i = 0; i < numFrames; i++)
 			{
-				float encodedSample = *samples / 32767.0f;
-				buffer[j][i] = encodedSample;
+				for (UINT32 j = 0; j < mNumChannels; j++)
+				{
+					INT8 sample = *(INT8*)samples;
+					float encodedSample = sample / 127.0f;
+					buffer[j][i] = encodedSample;
 
-				samples++;
+					samples++;
+				}
 			}
 		}
+		else if (mBitDepth == 16)
+		{
+			for (UINT32 i = 0; i < numFrames; i++)
+			{
+				for (UINT32 j = 0; j < mNumChannels; j++)
+				{
+					INT16 sample = *(INT16*)samples;
+					float encodedSample = sample / 32767.0f;
+					buffer[j][i] = encodedSample;
+
+					samples++;
+				}
+			}
+		}
+		else if (mBitDepth == 24)
+		{
+			for (UINT32 i = 0; i < numFrames; i++)
+			{
+				for (UINT32 j = 0; j < mNumChannels; j++)
+				{
+					INT32 sample = (*(INT32*)samples) & 0x00FFFFFF;
+					float encodedSample = sample / 8388607.0f;
+					buffer[j][i] = encodedSample;
+
+					samples++;
+				}
+			}
+		}
+		else if (mBitDepth == 32)
+		{
+			for (UINT32 i = 0; i < numFrames; i++)
+			{
+				for (UINT32 j = 0; j < mNumChannels; j++)
+				{
+					INT32 sample = *(INT32*)samples;
+					float encodedSample = sample / 2147483647.0f;
+					buffer[j][i] = encodedSample;
+
+					samples++;
+				}
+			}
+		}
+		else
+			assert(false);
 
 		// Signal how many frames were written
 		vorbis_analysis_wrote(&mVorbisState, numFrames);

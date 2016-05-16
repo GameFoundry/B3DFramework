@@ -262,7 +262,7 @@ namespace BansheeEngine
 	 */
 
 	/** @copydoc MemStackInternal::alloc() */
-	BS_UTILITY_EXPORT inline void* bs_stack_alloc(UINT32 amount)
+	inline void* bs_stack_alloc(UINT32 amount)
 	{
 		return (void*)MemStack::alloc(amount);
 	}
@@ -351,7 +351,7 @@ namespace BansheeEngine
 	}
 
 	/** @copydoc MemStackInternal::dealloc() */
-	BS_UTILITY_EXPORT inline void bs_stack_free(void* data)
+	inline void bs_stack_free(void* data)
 	{
 		return MemStack::deallocLast((UINT8*)data);
 	}

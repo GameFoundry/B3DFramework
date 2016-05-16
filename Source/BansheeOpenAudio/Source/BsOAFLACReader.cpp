@@ -7,7 +7,7 @@ namespace BansheeEngine
 {
 	FLAC__StreamDecoderReadStatus streamRead(const FLAC__StreamDecoder*, FLAC__byte buffer[], size_t* bytes, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		INT64 count = (INT64)data->stream->read(buffer, *bytes);
 		if (count > 0)
@@ -24,7 +24,7 @@ namespace BansheeEngine
 
 	FLAC__StreamDecoderSeekStatus streamSeek(const FLAC__StreamDecoder*, FLAC__uint64 absoluteByteOffset, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		data->stream->seek(absoluteByteOffset);
 		INT64 position = (INT64)data->stream->tell();
@@ -36,7 +36,7 @@ namespace BansheeEngine
 
 	FLAC__StreamDecoderTellStatus streamTell(const FLAC__StreamDecoder*, FLAC__uint64* absoluteByteOffset, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		INT64 position = (INT64)data->stream->tell();
 		if (position >= 0)
@@ -52,7 +52,7 @@ namespace BansheeEngine
 
 	FLAC__StreamDecoderLengthStatus streamLength(const FLAC__StreamDecoder*, FLAC__uint64* streamLength, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		*streamLength = data->stream->size();
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
@@ -60,14 +60,14 @@ namespace BansheeEngine
 
 	FLAC__bool streamEof(const FLAC__StreamDecoder*, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		return data->stream->eof();
 	}
 
 	FLAC__StreamDecoderWriteStatus streamWrite(const FLAC__StreamDecoder*, const FLAC__Frame* frame, const FLAC__int32* const buffer[], void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		if (!data->output) // Seek
 			return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -111,7 +111,7 @@ namespace BansheeEngine
 
 	void streamMetadata(const FLAC__StreamDecoder*, const FLAC__StreamMetadata* meta, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		if (meta->type == FLAC__METADATA_TYPE_STREAMINFO)
 		{
@@ -124,7 +124,7 @@ namespace BansheeEngine
 
 	void streamError(const FLAC__StreamDecoder*, FLAC__StreamDecoderErrorStatus, void* clientData)
 	{
-		FLACDecoderData* data = static_cast<FLACDecoderData*>(clientData);
+		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 		data->error = true;
 	}
 
@@ -148,7 +148,7 @@ namespace BansheeEngine
 		FLACDecoderData data;
 		data.stream = stream;
 		FLAC__stream_decoder_init_stream(decoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof, 
-			&streamWrite, NULL, &streamError, &data);
+			&streamWrite, nullptr, &streamError, &data);
 
 		bool valid = FLAC__stream_decoder_process_until_end_of_metadata(decoder) != 0;
 

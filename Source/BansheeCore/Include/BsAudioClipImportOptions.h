@@ -24,6 +24,10 @@ namespace BansheeEngine
 
 		// Note: Add options to resample to a different frequency, reduce/increase bit depth, and stereo -> mono conversion
 
+	private:
+		AudioFormat mFormat = AudioFormat::PCM;
+		AudioReadMode mReadMode = AudioReadMode::LoadDecompressed;
+
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
@@ -31,10 +35,6 @@ namespace BansheeEngine
 		friend class AudioClipImportOptionsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
-
-	private:
-		AudioFormat mFormat = AudioFormat::PCM;
-		AudioReadMode mReadMode = AudioReadMode::LoadDecompressed;
 	};
 
 	/** @} */
