@@ -24,17 +24,23 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN_NAMED(bitDepth, mDesc.bitDepth, 3)
 			BS_RTTI_MEMBER_PLAIN_NAMED(numChannels, mDesc.numChannels, 4)
 			BS_RTTI_MEMBER_PLAIN(mNumSamples, 5)
+			BS_RTTI_MEMBER_PLAIN(mStreamSize, 7)
 		BS_END_RTTI_MEMBERS
 
 		SPtr<DataStream> getData(AudioClip* obj, UINT32& size)
 		{
-			size = obj->getDataSize();
-			return bs_shared_ptr_new<MemoryDataStream>(obj->getData(), size, false);
+			SPtr<DataStream> stream = obj->getSourceFormatData(size);
+
+			if (stream->isFile())
+				LOGWRN("Saving an AudioClip which uses streaming data. Streaming data might not be available if saving to the same file.");
+
+			return stream;
 		}
 
 		void setData(AudioClip* obj, const SPtr<DataStream>& val, UINT32 size)
 		{
-			// TODO - Load from steam
+			obj->mStreamData = val;
+			obj->mStreamSize = size;
 		}
 
 	public:
@@ -42,6 +48,12 @@ namespace BansheeEngine
 			:mInitMembers(this)
 		{
 			addDataBlockField("mData", 6, &AudioClipRTTI::getData, &AudioClipRTTI::setData, 0);
+		}
+
+		void onDeserializationEnded(IReflectable* obj) override
+		{
+			AudioClip* clip = static_cast<AudioClip*>(obj);
+			clip->initialize();
 		}
 
 		const String& getRTTIName() override
@@ -57,8 +69,7 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			AUDIO_CLIP_DESC desc;
-			return AudioClip::_createPtr(nullptr, 0, desc); // Initial values don't matter, they will get overwritten
+			return AudioClip::createEmpty();
 		}
 	};
 

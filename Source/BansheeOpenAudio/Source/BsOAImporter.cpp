@@ -70,50 +70,13 @@ namespace BansheeEngine
 		// Encode to Ogg Vorbis if needed
 		if(clipIO->getFormat() == AudioFormat::VORBIS)
 		{
-			struct EncodedBlock
-			{
-				UINT8* data;
-				UINT32 size;
-			};
-
-			Vector<EncodedBlock> blocks;
-			UINT32 totalEncodedSize = 0;
-			auto writeCallback = [&](UINT8* buffer, UINT32 size)
-			{
-				EncodedBlock newBlock;
-				newBlock.data = bs_frame_alloc(size);
-				newBlock.size = size;
-
-				memcpy(newBlock.data, buffer, size);
-				blocks.push_back(newBlock);
-				totalEncodedSize += size;
-			};
-
-			bs_frame_mark();
-
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			OAOggVorbisWriter writer;
-			writer.open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
-
-			writer.write(sampleBuffer, info.numSamples);
-			writer.close();
+			UINT8* encodedSamples = OAOggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
 			bs_free(sampleBuffer);
-			bufferSize = totalEncodedSize;
-
-			sampleBuffer = (UINT8*)bs_alloc(bufferSize);
-			UINT32 offset = 0;
-			for(auto& block : blocks)
-			{
-				memcpy(sampleBuffer + offset, block.data, block.size);
-				offset += block.size;
-
-				bs_frame_free(block.data);
-			}
-
-			bs_frame_clear();
+			sampleBuffer = encodedSamples;
 		}
 
 		SPtr<MemoryDataStream> sampleStream = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, bufferSize);
@@ -125,7 +88,7 @@ namespace BansheeEngine
 		clipDesc.numChannels = info.numChannels;
 		clipDesc.readMode = clipIO->getReadMode();
 
-		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, info.numSamples, clipDesc);
+		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
 
 		WString fileName = filePath.getWFilename(false);
 		clip->setName(fileName);

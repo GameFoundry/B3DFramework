@@ -6,6 +6,7 @@ set(BS_BANSHEEOPENAUDIO_INC_NOFILTER
 	"Include/BsOAFLACReader.h"
 	"Include/BsOAFileReader.h"
 	"Include/BsOAOggVorbisWriter.h"
+	"Include/BsOAAudioClip.h"
 )
 
 set(BS_BANSHEEOPENAUDIO_SRC_NOFILTER
@@ -15,6 +16,7 @@ set(BS_BANSHEEOPENAUDIO_SRC_NOFILTER
 	"Source/BsOAOggVorbisReader.cpp"
 	"Source/BsOAFLACReader.cpp"
 	"Source/BsOAOggVorbisWriter.cpp"
+	"Source/BsOAAudioClip.cpp"
 )
 
 source_group("Header Files" FILES ${BS_BANSHEEOPENAUDIO_INC_NOFILTER})

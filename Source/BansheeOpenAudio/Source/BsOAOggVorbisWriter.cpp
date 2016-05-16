@@ -1,4 +1,5 @@
 #include "BsOAOggVorbisWriter.h"
+#include "BsDataStream.h"
 
 namespace BansheeEngine
 {
@@ -194,6 +195,51 @@ namespace BansheeEngine
 		ogg_stream_clear(&mOggState);
 		vorbis_dsp_clear(&mVorbisState);
 		vorbis_info_clear(&mVorbisInfo);
+	}
+
+	UINT8* OAOggVorbisWriter::PCMToOggVorbis(UINT8* samples, const AudioFileInfo& info, UINT32& size)
+	{
+		struct EncodedBlock
+		{
+			UINT8* data;
+			UINT32 size;
+		};
+
+		Vector<EncodedBlock> blocks;
+		UINT32 totalEncodedSize = 0;
+		auto writeCallback = [&](UINT8* buffer, UINT32 size)
+		{
+			EncodedBlock newBlock;
+			newBlock.data = bs_frame_alloc(size);
+			newBlock.size = size;
+
+			memcpy(newBlock.data, buffer, size);
+			blocks.push_back(newBlock);
+			totalEncodedSize += size;
+		};
+
+		bs_frame_mark();
+
+		OAOggVorbisWriter writer;
+		writer.open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
+
+		writer.write(samples, info.numSamples);
+		writer.close();
+
+		UINT8* outSampleBuffer = (UINT8*)bs_alloc(totalEncodedSize);
+		UINT32 offset = 0;
+		for (auto& block : blocks)
+		{
+			memcpy(outSampleBuffer + offset, block.data, block.size);
+			offset += block.size;
+
+			bs_frame_free(block.data);
+		}
+
+		bs_frame_clear();
+		
+		size = totalEncodedSize;
+		return outSampleBuffer;
 	}
 
 #undef WRITE_TO_BUFFER

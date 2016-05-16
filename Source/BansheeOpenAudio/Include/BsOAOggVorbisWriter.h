@@ -23,6 +23,8 @@ namespace BansheeEngine
 		void write(UINT8* samples, UINT32 numSamples); // Assumes 16-bit samples
 		void flush();
 		void close();
+
+		static UINT8* PCMToOggVorbis(UINT8* samples, const AudioFileInfo& info, UINT32& size);
 	private:
 		void writeBlocks();
 

@@ -62,8 +62,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT AudioClip : public Resource
 	{
 	public:
-		static HAudioClip create(UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
-		static HAudioClip create(const SPtr<DataStream>& samples, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
+		virtual ~AudioClip() { }
 
 		UINT32 getBitDepth() const { return mDesc.bitDepth; }
 		UINT32 getFrequency() const { return mDesc.frequency; }
@@ -73,26 +72,39 @@ namespace BansheeEngine
 		UINT32 getLength() const { return mNumSamples / mDesc.frequency; }
 		UINT32 getNumSamples() const { return mNumSamples; }
 
-		virtual UINT32 getDataSize() const = 0;
-		virtual UINT8* getData() const = 0;
+		/** 
+		 * Returns audio samples in PCM format, channel data inerleaved. 
+		 *
+		 * @param[in]	samples		Previously allocated buffer to contain the samples.
+		 * @param[in]	count		Number of samples to read (should be a multiple of number of channels).
+		 * @param[in]	offset		Offset in number of samples at which to start reading (should be a multiple of number
+		 *							of channels).
+		 */
+		virtual void getSamples(UINT8* samples, UINT32 count, UINT32 offset = 0) const = 0;
 
-		// Note: This will convert internal audio read mode to LoadCompressed (if ogg) or LoadDecompressed (if PCM)
-		virtual void setData(UINT8* samples, UINT32 numSamples) = 0;
+		static HAudioClip create(UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
+		static HAudioClip create(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+			const AUDIO_CLIP_DESC& desc); // Note that ownership of stream is taken by the AudioClip
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
 
-		static SPtr<AudioClip> _createPtr(const SPtr<DataStream>& samples, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
+		static SPtr<AudioClip> _createPtr(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, 
+			const AUDIO_CLIP_DESC& desc);
 
 		/** @} */
-	private:
-		AudioClip(const SPtr<DataStream>& samples, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
+	protected:
+		AudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
+
+		/** Returns audio data in the original source format. */
+		virtual SPtr<DataStream> getSourceFormatData(UINT32& size) = 0;
 
 	protected:
 		AUDIO_CLIP_DESC mDesc;
 		UINT32 mNumSamples;
+		UINT32 mStreamSize;
 		SPtr<DataStream> mStreamData;
 
 		/************************************************************************/
@@ -102,6 +114,8 @@ namespace BansheeEngine
 		friend class AudioClipRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
+
+		static SPtr<AudioClip> createEmpty();
 	};
 
 	/** @} */
