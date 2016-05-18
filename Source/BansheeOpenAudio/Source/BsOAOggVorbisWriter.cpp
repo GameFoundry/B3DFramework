@@ -88,8 +88,8 @@ namespace BansheeEngine
 			{
 				for (UINT32 j = 0; j < mNumChannels; j++)
 				{
-					INT8 sample = *(INT8*)samples;
-					float encodedSample = sample / 127.0f;
+					UINT8 sample = *(UINT8*)samples;
+					float encodedSample = sample / 255.0f;
 					buffer[j][i] = encodedSample;
 
 					samples++;
@@ -106,7 +106,7 @@ namespace BansheeEngine
 					float encodedSample = sample / 32767.0f;
 					buffer[j][i] = encodedSample;
 
-					samples++;
+					samples += 2;
 				}
 			}
 		}
@@ -116,11 +116,11 @@ namespace BansheeEngine
 			{
 				for (UINT32 j = 0; j < mNumChannels; j++)
 				{
-					INT32 sample = (*(INT32*)samples) & 0x00FFFFFF;
+					INT32 sample = (INT32)(samples[2] << 16 | samples[1] << 8 | samples[0]);
 					float encodedSample = sample / 8388607.0f;
 					buffer[j][i] = encodedSample;
 
-					samples++;
+					samples += 3;
 				}
 			}
 		}
@@ -134,7 +134,7 @@ namespace BansheeEngine
 					float encodedSample = sample / 2147483647.0f;
 					buffer[j][i] = encodedSample;
 
-					samples++;
+					samples += 4;
 				}
 			}
 		}

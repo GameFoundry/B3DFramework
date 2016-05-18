@@ -40,6 +40,8 @@ namespace BansheeEngine
 		 * @param[in]	numSamples	Number of samples to read.
 		 * @return					Number of samples that were actually read (can be less than requested if the more data
 		 *							in the stream).
+		 *
+		 * @note 8-bit sample data is returned as unsigned values, while higher bit-depth all use signed values.
 		 */
 		virtual UINT32 read(UINT8* samples, UINT32 numSamples) = 0;
 

@@ -91,14 +91,20 @@ namespace BansheeEngine
 				if (data->samplesToRead > 0)
 				{
 					memcpy(data->output, &buffer[j][i], bytesPerSample);
-					data->output += bytesPerSample;
+					
+					if (bytesPerSample == 1) // Due to convention, convert 8-bit samples to unsigned
+						*data->output = (UINT8)(*(INT8*)data->output + 128);
 
+						data->output += bytesPerSample;
 					data->samplesToRead--;
 				}
 				else
 				{
 					UINT8 sample[4];
 					memcpy(sample, &buffer[j][i], bytesPerSample);
+
+					if (bytesPerSample == 1) // Due to convention, convert 8-bit samples to unsigned
+						sample[0] = (UINT8)(*(INT8*)&sample[0] + 128);
 
 					for(UINT32 k = 0; k < bytesPerSample; k++)
 						data->overflow.push_back(sample[k]);

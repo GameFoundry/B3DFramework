@@ -20,7 +20,7 @@ namespace BansheeEngine
 
 		bool open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, UINT32 numChannels);
 
-		void write(UINT8* samples, UINT32 numSamples); // Assumes 16-bit samples
+		void write(UINT8* samples, UINT32 numSamples); // 8-bit samples should be unsigned, but higher bit depths signed
 		void flush();
 		void close();
 
