@@ -64,7 +64,7 @@ int CALLBACK WinMain(
 
 	__try
 	{
-		EditorApplication::startUp(EditorRenderAPI::DX11);
+		EditorApplication::startUp(EditorRenderAPI::DX11, AudioPlugin::OpenAudio);
 		EditorApplication::instance().runMainLoop();
 		EditorApplication::shutDown();
 	}

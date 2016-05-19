@@ -22,11 +22,11 @@ namespace BansheeEngine
 	class BS_ED_EXPORT EditorApplication : public Application
 	{
 	public:
-		EditorApplication(EditorRenderAPI renderAPI);
+		EditorApplication(EditorRenderAPI renderAPI, AudioPlugin audio);
 		virtual ~EditorApplication();
 
-		/**	Starts the editor with the specified render system. */
-		static void startUp(EditorRenderAPI renderAPI);
+		/**	Starts the editor with the specified render and audio systems. */
+		static void startUp(EditorRenderAPI renderAPI, AudioPlugin audio);
 
 		/**	Checks whether the editor currently has a project loaded. */
 		bool isProjectLoaded() const { return mIsProjectLoaded; }

@@ -66,8 +66,8 @@ namespace BansheeEngine
 		return Paths::getRuntimeDataPath() + L"Settings.asset";
 	}
 
-	EditorApplication::EditorApplication(EditorRenderAPI renderAPIPlugin)
-		:Application(createRenderWindowDesc(), toEngineRenderAPI(renderAPIPlugin), RendererPlugin::Default, getImporters()),
+	EditorApplication::EditorApplication(EditorRenderAPI renderAPIPlugin, AudioPlugin audio)
+		:Application(createRenderWindowDesc(), toEngineRenderAPI(renderAPIPlugin), RendererPlugin::Default, audio, getImporters()),
 		mActiveRAPIPlugin(toEngineRenderAPI(renderAPIPlugin)), mIsProjectLoaded(false), mSBansheeEditorPlugin(nullptr)
 	{
 
@@ -147,9 +147,9 @@ namespace BansheeEngine
 		loadPlugin("SBansheeEditor", &mSBansheeEditorPlugin);
 	}
 
-	void EditorApplication::startUp(EditorRenderAPI renderAPI)
+	void EditorApplication::startUp(EditorRenderAPI renderAPI, AudioPlugin audio)
 	{
-		CoreApplication::startUp<EditorApplication>(renderAPI);
+		CoreApplication::startUp<EditorApplication>(renderAPI, audio);
 	}
 
 	void EditorApplication::preUpdate()

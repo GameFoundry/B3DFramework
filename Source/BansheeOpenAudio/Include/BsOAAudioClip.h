@@ -15,6 +15,7 @@ namespace BansheeEngine
 	class BS_OA_EXPORT OAAudioClip : public AudioClip
 	{
 	public:
+		OAAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
 		virtual ~OAAudioClip();
 
 		/** @copydoc AudioClip::getSamples */
@@ -38,8 +39,6 @@ namespace BansheeEngine
 		/** @copydoc AudioClip::getSourceFormatData */
 		SPtr<DataStream> getSourceStream(UINT32& size) override;
 	private:
-		OAAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
-
 		mutable Mutex mMutex;
 		mutable OAOggVorbisReader mVorbisReader;
 		bool mNeedsDecompression;

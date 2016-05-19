@@ -144,6 +144,10 @@
  *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
+/** @defgroup Audio-Internal Audio
+ *	Audio clips, 3D sound and music reproduction.
+ */
+
 /** @} */
 
 /** @} */

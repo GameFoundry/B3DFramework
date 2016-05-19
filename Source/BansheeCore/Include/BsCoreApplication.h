@@ -20,6 +20,7 @@ namespace BansheeEngine
 		String renderAPI; /**< Name of the render system plugin to use. */
 		String renderer; /**< Name of the renderer plugin to use. */
 		String physics; /**< Name of physics plugin to use. */
+		String audio; /**< Name of the audio plugin to use. */
 		String input; /**< Name of the input plugin to use. */
 
 		RENDER_WINDOW_DESC primaryWindowDesc; /**< Describes the window to create during start-up. */

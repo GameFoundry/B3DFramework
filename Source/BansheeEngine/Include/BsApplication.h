@@ -26,12 +26,19 @@ namespace BansheeEngine
 		Default
 	};
 
+	/**	Types of available audio systems. */
+	enum class AudioPlugin
+	{
+		OpenAudio, /**< Open-source audio implementation using OpenAL. */
+		FMOD /**< Audio system implementation using FMOD. */
+	};
+
 	/**	Primary entry point for Banshee engine. Handles startup and shutdown. */
 	class BS_EXPORT Application : public CoreApplication
 	{
 	public:
 		Application(RENDER_WINDOW_DESC primaryWindowDesc, RenderAPIPlugin renderAPI, RendererPlugin renderer, 
-			const Vector<String>& importers);
+			AudioPlugin audio, const Vector<String>& importers);
 		virtual ~Application();
 
 		/**
@@ -40,10 +47,12 @@ namespace BansheeEngine
 		 * @param[in]	primaryWindowDesc	Description of the primary render window that will be created on startup.
 		 * @param[in]	renderAPI			Render API plugin to use.
 		 * @param[in]	renderer			Renderer plugin to use.
+		 * @param[in]	audio				Audio plugin to use.
 		 * @param[in]	importers			A list of importer plugins to load on startup.
 		 */
 		static void startUp(RENDER_WINDOW_DESC& primaryWindowDesc, RenderAPIPlugin renderAPI, 
-			RendererPlugin renderer = RendererPlugin::Default, const Vector<String>& importers = Vector<String>());
+			RendererPlugin renderer = RendererPlugin::Default, AudioPlugin audio = AudioPlugin::OpenAudio, 
+			const Vector<String>& importers = Vector<String>());
 
 		/**	Returns the absolute path to the builtin managed engine assembly file. */
 		Path getEngineAssemblyPath() const;
@@ -87,6 +96,9 @@ namespace BansheeEngine
 
 		/**	Translates renderer type into library name. */
 		static String getLibNameForRenderer(RendererPlugin plugin);
+
+		/**	Translates audio system type into library name. */
+		static String getLibNameForAudio(AudioPlugin plugin);
 
 		DynLib* mMonoPlugin;
 		DynLib* mSBansheeEnginePlugin;

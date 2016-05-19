@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsOAAudio.h"
+#include "BsOAAudioClip.h"
 #include "BsOAAudioListener.h"
 #include "BsOAAudioSource.h"
 #include "BsMath.h"
@@ -152,6 +153,22 @@ namespace BansheeEngine
 	void OAAudio::_unregisterSource(OAAudioSource* source)
 	{
 		mSources.erase(source);
+	}
+
+	SPtr<AudioClip> OAAudio::createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+		const AUDIO_CLIP_DESC& desc)
+	{
+		return bs_shared_ptr_new<OAAudioClip>(samples, streamSize, numSamples, desc);
+	}
+
+	SPtr<AudioListener> OAAudio::createListener()
+	{
+		return bs_shared_ptr_new<OAAudioListener>();
+	}
+
+	SPtr<AudioSource> OAAudio::createSource()
+	{
+		return bs_shared_ptr_new<OAAudioSource>();
 	}
 
 	void OAAudio::rebuildContexts()

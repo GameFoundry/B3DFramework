@@ -23,11 +23,12 @@
 namespace BansheeEngine
 {
 	START_UP_DESC createStartUpDesc(RENDER_WINDOW_DESC& primaryWindowDesc, const String& renderAPI, const String& renderer, 
-		const Vector<String>& importers)
+		const String& audio, const Vector<String>& importers)
 	{
 		START_UP_DESC desc;
 		desc.renderAPI = renderAPI;
 		desc.renderer = renderer;
+		desc.audio = audio;
 		desc.physics = "BansheePhysX";
 		desc.input = "BansheeOISInput";
 
@@ -38,9 +39,10 @@ namespace BansheeEngine
 	}
 
 	Application::Application(RENDER_WINDOW_DESC primaryWindowDesc, RenderAPIPlugin renderAPI, RendererPlugin renderer, 
-		const Vector<String>& importers)
-		:CoreApplication(createStartUpDesc(primaryWindowDesc, getLibNameForRenderAPI(renderAPI), 
-		getLibNameForRenderer(renderer), importers)), mMonoPlugin(nullptr), mSBansheeEnginePlugin(nullptr)
+		AudioPlugin audio, const Vector<String>& importers)
+		: CoreApplication(createStartUpDesc(primaryWindowDesc, getLibNameForRenderAPI(renderAPI)
+		, getLibNameForRenderer(renderer), getLibNameForAudio(audio), importers)), mMonoPlugin(nullptr)
+		, mSBansheeEnginePlugin(nullptr)
 	{
 
 	}
@@ -98,9 +100,9 @@ namespace BansheeEngine
 	}
 
 	void Application::startUp(RENDER_WINDOW_DESC& primaryWindowDesc, RenderAPIPlugin renderAPI, 
-		RendererPlugin renderer, const Vector<String>& importers)
+		RendererPlugin renderer, AudioPlugin audio, const Vector<String>& importers)
 	{
-		CoreApplication::startUp<Application>(primaryWindowDesc, renderAPI, renderer, importers);
+		CoreApplication::startUp<Application>(primaryWindowDesc, renderAPI, renderer, audio, importers);
 	}
 
 	void Application::preUpdate()
@@ -215,6 +217,22 @@ namespace BansheeEngine
 			return DefaultName;
 		}
 	
+		return StringUtil::BLANK;
+	}
+
+	String Application::getLibNameForAudio(AudioPlugin plugin)
+	{
+		static String OpenAudioName = "BansheeOpenAudio";
+		static String FMODName = "BansheeFMOD";
+
+		switch (plugin)
+		{
+		case AudioPlugin::OpenAudio:
+			return OpenAudioName;
+		case AudioPlugin::FMOD:
+			return FMODName;
+		}
+
 		return StringUtil::BLANK;
 	}
 

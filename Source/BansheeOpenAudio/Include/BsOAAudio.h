@@ -62,6 +62,16 @@ namespace BansheeEngine
 		/** @} */
 
 	private:
+		/** @copydoc Audio::createClip */
+		SPtr<AudioClip> createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+			const AUDIO_CLIP_DESC& desc) override;
+
+		/** @copydoc Audio::createListener */
+		SPtr<AudioListener> createListener() override;
+
+		/** @copydoc Audio::createSource */
+		SPtr<AudioSource> createSource() override;
+
 		void rebuildContexts();
 		void clearContexts();
 

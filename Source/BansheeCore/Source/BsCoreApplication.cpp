@@ -45,6 +45,8 @@
 #include "BsShaderManager.h"
 #include "BsPhysicsManager.h"
 #include "BsPhysics.h"
+#include "BsAudioManager.h"
+#include "BsAudio.h"
 
 namespace BansheeEngine
 {
@@ -77,6 +79,7 @@ namespace BansheeEngine
 		// This must be done after all resources are released since it will unload the physics plugin, and some resources
 		// might be instances of types from that plugin.
 		PhysicsManager::shutDown();
+		AudioManager::shutDown();
 
 		RendererManager::shutDown();
 
@@ -155,6 +158,7 @@ namespace BansheeEngine
 		MaterialManager::startUp();
 		FontManager::startUp();
 		Importer::startUp();
+		AudioManager::startUp(mStartUpDesc.audio);
 		PhysicsManager::startUp(mStartUpDesc.physics, isEditor());
 
 		for (auto& importerName : mStartUpDesc.importers)
@@ -214,6 +218,7 @@ namespace BansheeEngine
 			preUpdate();
 
 			PROFILE_CALL(gCoreSceneManager()._update(), "SceneManager");
+			gAudio().update();
 			gPhysics().update();
 
 			// Update plugins

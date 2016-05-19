@@ -474,6 +474,7 @@ set(BS_BANSHEECORE_INC_AUDIO
 	"Include/BsAudioSource.h"
 	"Include/BsAudioClipImportOptions.h"
 	"Include/BsAudioUtility.h"
+	"Include/BsAudioManager.h"
 )
 
 set(BS_BANSHEECORE_SRC_AUDIO
@@ -483,6 +484,7 @@ set(BS_BANSHEECORE_SRC_AUDIO
 	"Source/BsAudioSource.cpp"
 	"Source/BsAudioClipImportOptions.cpp"
 	"Source/BsAudioUtility.cpp"
+	"Source/BsAudioManager.cpp"
 )
 
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})
