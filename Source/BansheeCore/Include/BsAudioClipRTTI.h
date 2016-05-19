@@ -26,11 +26,13 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mNumSamples, 5)
 			BS_RTTI_MEMBER_PLAIN(mStreamSize, 7)
 			BS_RTTI_MEMBER_PLAIN(mStreamOffset, 8)
+			BS_RTTI_MEMBER_PLAIN_NAMED(is3D, mDesc.is3D, 9)
+			BS_RTTI_MEMBER_PLAIN(mLength, 10)
 		BS_END_RTTI_MEMBERS
 
 		SPtr<DataStream> getData(AudioClip* obj, UINT32& size)
 		{
-			SPtr<DataStream> stream = obj->getSourceFormatData(size);
+			SPtr<DataStream> stream = obj->getSourceStream(size);
 			if (stream != nullptr && stream->isFile())
 				LOGWRN("Saving an AudioClip which uses streaming data. Streaming data might not be available if saving to the same file.");
 

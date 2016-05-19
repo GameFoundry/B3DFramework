@@ -9,10 +9,18 @@
 namespace BansheeEngine
 {
 	AudioClip::AudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
-		:Resource(false), mDesc(desc), mNumSamples(numSamples), mStreamData(samples), mStreamSize(streamSize), mStreamOffset(0)
+		: Resource(false), mDesc(desc), mNumSamples(numSamples), mStreamData(samples), mStreamSize(streamSize)
+		, mStreamOffset(0), mLength(0.0f), mKeepSourceData(true)
 	{
 		if (samples != nullptr)
 			mStreamOffset = (UINT32)samples->tell();
+	}
+
+	void AudioClip::initialize()
+	{
+		mLength = mNumSamples / mDesc.numChannels / (float)mDesc.frequency;
+
+		Resource::initialize();
 	}
 
 	HAudioClip AudioClip::create(UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)

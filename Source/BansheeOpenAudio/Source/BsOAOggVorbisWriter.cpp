@@ -1,5 +1,6 @@
 #include "BsOAOggVorbisWriter.h"
 #include "BsDataStream.h"
+#include "BsAudioUtility.h"
 
 namespace BansheeEngine
 {
@@ -116,7 +117,7 @@ namespace BansheeEngine
 			{
 				for (UINT32 j = 0; j < mNumChannels; j++)
 				{
-					INT32 sample = (INT32)(samples[2] << 16 | samples[1] << 8 | samples[0]);
+					INT32 sample = AudioUtility::convert24To32Bits(samples);
 					float encodedSample = sample / 8388607.0f;
 					buffer[j][i] = encodedSample;
 

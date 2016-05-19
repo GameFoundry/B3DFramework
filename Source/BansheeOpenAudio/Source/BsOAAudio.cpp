@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsOAAudio.h"
+#include "AL\al.h"
 
 namespace BansheeEngine
 {
@@ -62,5 +63,18 @@ namespace BansheeEngine
 	{
 		// TODO
 		return Vector<AudioDevice>();
+	}
+
+	bool OAAudio::isExtensionSupported(const String& extension) const
+	{
+		if ((extension.length() > 2) && (extension.substr(0, 3) == "ALC"))
+			return alcIsExtensionPresent(mDevice, extension.c_str()) != AL_FALSE;
+		else
+			return alIsExtensionPresent(extension.c_str()) != AL_FALSE;
+	}
+
+	OAAudio& gOAAudio()
+	{
+		return static_cast<OAAudio&>(OAAudio::instance());
 	}
 }

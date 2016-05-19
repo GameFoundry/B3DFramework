@@ -72,12 +72,14 @@ namespace BansheeEngine
 		UINT32 getNumChannels() const { return mDesc.numChannels; }
 		AudioFormat getFormat() const { return mDesc.format; }
 		AudioReadMode getReadMode() const { return mDesc.readMode; }
-		UINT32 getLength() const { return mNumSamples / mDesc.frequency; }
+		float getLength() const { return mLength; }
 		UINT32 getNumSamples() const { return mNumSamples; }
+		bool is3D() const { return mDesc.is3D; }
 
 		/** 
 		 * Returns audio samples in PCM format, channel data interleaved. Sample read pointer is advanced by the read 
-		 * amount.
+		 * amount. Only available if the audio data has been created with AudioReadMode::Stream, 
+		 * AudioReadMode::LoadCompressed (and the format is compressed), or if @p keepSourceData was enabled on creation.
 		 *
 		 * @param[in]	samples		Previously allocated buffer to contain the samples.
 		 * @param[in]	count		Number of samples to read (should be a multiple of number of channels).
@@ -87,7 +89,9 @@ namespace BansheeEngine
 		virtual void getSamples(UINT8* samples, UINT32 count) const = 0;
 
 		/**
-		 * Moves the read location from which the getSamples method retrieves samples.
+		 * Moves the read location from which the getSamples method retrieves samples. Only available if the audio data
+		 * has been created with AudioReadMode::Stream, AudioReadMode::LoadCompressed (and the format is compressed), 
+		 * or if @p keepSourceData was enabled on creation.
 		 *
 		 * @param[in]	offset	Offset in number of samples at which to start reading (should be a multiple of number
 		 *						of channels).
@@ -112,14 +116,19 @@ namespace BansheeEngine
 	protected:
 		AudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
 
-		/** Returns audio data in the original source format. */
-		virtual SPtr<DataStream> getSourceFormatData(UINT32& size) = 0;
+		/** @copydoc Resource::initialize */
+		void initialize() override;
+
+		/** Returns original audio data. Only available if @p keepSourceData has been provided on creation. */
+		virtual SPtr<DataStream> getSourceStream(UINT32& size) = 0;
 
 	protected:
 		AUDIO_CLIP_DESC mDesc;
 		UINT32 mNumSamples;
 		UINT32 mStreamSize;
 		UINT32 mStreamOffset;
+		float mLength;
+		bool mKeepSourceData;
 		SPtr<DataStream> mStreamData;
 
 		/************************************************************************/

@@ -4,6 +4,7 @@
 
 #include "BsOAPrerequisites.h"
 #include "BsAudio.h"
+#include "AL/alc.h"
 
 namespace BansheeEngine
 {
@@ -43,7 +44,21 @@ namespace BansheeEngine
 
 		/** @copydoc Audio::getAllDevices */
 		Vector<AudioDevice> getAllDevices() const override;
+
+		/** @name Internal 
+		 *  @{
+		 */
+
+		bool isExtensionSupported(const String& extension) const;
+
+		/** @} */
+
+	private:
+		ALCdevice* mDevice;
 	};
+
+	/** Provides easier access to OAAudio. */
+	OAAudio& gOAAudio();
 
 	/** @} */
 }

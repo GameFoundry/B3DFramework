@@ -4,7 +4,7 @@
 
 namespace BansheeEngine
 {
-	void convertToMono8(UINT8* input, UINT8* output, UINT32 numSamples, UINT32 numChannels)
+	void convertToMono8(const UINT8* input, UINT8* output, UINT32 numSamples, UINT32 numChannels)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -20,7 +20,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void convertToMono16(INT16* input, INT16* output, UINT32 numSamples, UINT32 numChannels)
+	void convertToMono16(const INT16* input, INT16* output, UINT32 numSamples, UINT32 numChannels)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -36,16 +36,7 @@ namespace BansheeEngine
 		}
 	}
 
-	INT32 convert24To32Bits(const UINT8* input)
-	{
-		bool isNegative = (input[2] & 0x80) != 0;
-		if (isNegative) // Sign extend if negative
-			return (0xFF << 24) | (input[2] << 16) | (input[1] << 8) | input[0];
-		else
-			return (input[2] << 16) | (input[1] << 8) | input[0];
-	}
-
-	void convert32To24Bits(INT32 input, UINT8* output)
+	void convert32To24Bits(const INT32 input, UINT8* output)
 	{
 		UINT32 valToEncode = *(UINT32*)&input;
 		output[0] = valToEncode & 0x000000FF;
@@ -53,14 +44,14 @@ namespace BansheeEngine
 		output[2] = (valToEncode >> 16) & 0x000000FF;
 	}
 
-	void convertToMono24(UINT8* input, UINT8* output, UINT32 numSamples, UINT32 numChannels)
+	void convertToMono24(const UINT8* input, UINT8* output, UINT32 numSamples, UINT32 numChannels)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
 			INT32 sum = 0;
 			for (UINT32 j = 0; j < numChannels; j++)
 			{
-				sum += convert24To32Bits(input);
+				sum += AudioUtility::convert24To32Bits(input);
 				input += 3;
 			}
 
@@ -70,7 +61,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void convertToMono32(INT32* input, INT32* output, UINT32 numSamples, UINT32 numChannels)
+	void convertToMono32(const INT32* input, INT32* output, UINT32 numSamples, UINT32 numChannels)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -86,7 +77,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void convert8To32Bits(UINT8* input, INT32* output, UINT32 numSamples)
+	void convert8To32Bits(const UINT8* input, INT32* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -95,22 +86,22 @@ namespace BansheeEngine
 		}
 	}
 
-	void convert16To32Bits(INT16* input, INT32* output, UINT32 numSamples)
+	void convert16To32Bits(const INT16* input, INT32* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 			output[i] = input[i] << 16;
 	}
 
-	void convert24To32Bits(UINT8* input, INT32* output, UINT32 numSamples)
+	void convert24To32Bits(const UINT8* input, INT32* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
-			output[i] = convert24To32Bits(input);
+			output[i] = AudioUtility::convert24To32Bits(input);
 			input += 3;
 		}
 	}
 
-	void convert32To8Bits(INT32* input, UINT8* output, UINT32 numSamples)
+	void convert32To8Bits(const INT32* input, UINT8* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -119,13 +110,13 @@ namespace BansheeEngine
 		}
 	}
 
-	void convert32To16Bits(INT32* input, INT16* output, UINT32 numSamples)
+	void convert32To16Bits(const INT32* input, INT16* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 			output[i] = (INT16)(input[i] >> 16);
 	}
 
-	void convert32To24Bits(INT32* input, UINT8* output, UINT32 numSamples)
+	void convert32To24Bits(const INT32* input, UINT8* output, UINT32 numSamples)
 	{
 		for (UINT32 i = 0; i < numSamples; i++)
 		{
@@ -134,7 +125,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void AudioUtility::convertToMono(UINT8* input, UINT8* output, UINT32 bitDepth, UINT32 numSamples, UINT32 numChannels)
+	void AudioUtility::convertToMono(const UINT8* input, UINT8* output, UINT32 bitDepth, UINT32 numSamples, UINT32 numChannels)
 	{
 		switch (bitDepth)
 		{
@@ -156,7 +147,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void AudioUtility::convertBitDepth(UINT8* input, UINT32 inBitDepth, UINT8* output, UINT32 outBitDepth, UINT32 numSamples)
+	void AudioUtility::convertBitDepth(const UINT8* input, UINT32 inBitDepth, UINT8* output, UINT32 outBitDepth, UINT32 numSamples)
 	{
 		INT32* srcBuffer = nullptr;
 
@@ -212,5 +203,60 @@ namespace BansheeEngine
 			bs_stack_free(srcBuffer);
 			srcBuffer = nullptr;
 		}
+	}
+
+	void AudioUtility::convertToFloat(const UINT8* input, UINT32 inBitDepth, float* output, UINT32 numSamples)
+	{
+		if (inBitDepth == 8)
+		{
+			for (UINT32 i = 0; i < numSamples; i++)
+			{
+				UINT8 sample = *input;
+				output[i] = sample / 255.0f;
+
+				input++;
+			}
+		}
+		else if (inBitDepth == 16)
+		{
+			for (UINT32 i = 0; i < numSamples; i++)
+			{
+				INT16 sample = *(INT16*)input;
+				output[i] = sample / 32767.0f;
+
+				input += 2;
+			}
+		}
+		else if (inBitDepth == 24)
+		{
+			for (UINT32 i = 0; i < numSamples; i++)
+			{
+				INT32 sample = AudioUtility::convert24To32Bits(input);
+				output[i] = sample / 8388607.0f;
+
+				input += 3;
+			}
+		}
+		else if (inBitDepth == 32)
+		{
+			for (UINT32 i = 0; i < numSamples; i++)
+			{
+				INT32 sample = *(INT32*)input;
+				output[i] = sample / 2147483647.0f;
+
+				input += 4;
+			}
+		}
+		else
+			assert(false);
+	}
+
+	INT32 AudioUtility::convert24To32Bits(const UINT8* input)
+	{
+		bool isNegative = (input[2] & 0x80) != 0;
+		if (isNegative) // Sign extend if negative
+			return (0xFF << 24) | (input[2] << 16) | (input[1] << 8) | input[0];
+		else
+			return (input[2] << 16) | (input[1] << 8) | input[0];
 	}
 }
