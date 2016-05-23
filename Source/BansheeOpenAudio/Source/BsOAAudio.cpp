@@ -5,6 +5,7 @@
 #include "BsOAAudioListener.h"
 #include "BsOAAudioSource.h"
 #include "BsMath.h"
+#include "BsTaskScheduler.h"
 #include "AL\al.h"
 
 namespace BansheeEngine
@@ -97,7 +98,14 @@ namespace BansheeEngine
 
 	void OAAudio::_update()
 	{
-		// TODO
+		auto worker = [this]() { updateStreaming(); };
+
+		// If previous task still hasn't completed, just skip streaming this frame, queuing more tasks won't help
+		if (mStreamingTask != nullptr && !mStreamingTask->isComplete())
+			return;
+
+		mStreamingTask = Task::create("AudioStream", worker, TaskPriority::VeryHigh);
+		TaskScheduler::instance().addTask(mStreamingTask);
 	}
 
 	void OAAudio::setActiveDevice(const AudioDevice& device)
@@ -153,6 +161,29 @@ namespace BansheeEngine
 	void OAAudio::_unregisterSource(OAAudioSource* source)
 	{
 		mSources.erase(source);
+	}
+
+	void OAAudio::startStreaming(OAAudioSource* source, bool startPaused)
+	{
+		Lock(mMutex);
+
+		StreamingCommand command;
+		command.type = StreamingCommandType::Start;
+		command.source = source;
+		command.params[0] = startPaused;
+
+		mStreamingCommandQueue.push_back(command);
+	}
+
+	void OAAudio::stopStreaming(OAAudioSource* source)
+	{
+		Lock(mMutex);
+
+		StreamingCommand command;
+		command.type = StreamingCommandType::Stop;
+		command.source = source;
+
+		mStreamingCommandQueue.push_back(command);
 	}
 
 	ALCcontext* OAAudio::_getContext(const OAAudioListener* listener) const
@@ -226,6 +257,61 @@ namespace BansheeEngine
 			alcDestroyContext(context);
 
 		mContexts.clear();
+	}
+
+	void OAAudio::updateStreaming()
+	{
+		{
+			Lock(mMutex);
+
+			for(auto& command : mStreamingCommandQueue)
+			{
+				switch(command.type)
+				{
+				case StreamingCommandType::Start:
+				{
+					StreamingData data;
+					data.sourceIDs = command.source->mSourceIDs;
+					alGenBuffers(StreamingData::StreamBufferCount, data.streamBuffers);
+
+					mStreamingSources.insert(std::make_pair(command.source, data));
+
+					for(auto& )
+
+					// TODO - Store source IDs, start playback (possibly paused)
+				}
+					break;
+				case StreamingCommandType::Stop:
+					auto& contexts = gOAAudio()._getContexts(); // TODO - Don't use contexts here, use the source IDs directly
+					UINT32 numContexts = (UINT32)contexts.size();
+					for (UINT32 i = 0; i < numContexts; i++)
+					{
+						if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+							alcMakeContextCurrent(contexts[i]);
+
+						INT32 numQueuedBuffers;
+						alGetSourcei(mSourceIDs[i], AL_BUFFERS_QUEUED, &numQueuedBuffers);
+
+						UINT32 buffer;
+						for (INT32 j = 0; j < numQueuedBuffers; j++)
+							alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
+					}
+
+					alDeleteBuffers(StreamBufferCount, mStreamBuffers);
+
+					command.source->destroyStreamBuffers();
+					mStreamingSources.erase(command.source);
+					break;
+				default:
+					break;
+				}
+			}
+
+			mStreamingCommandQueue.clear();
+		}
+
+		for (auto& source : mStreamingSources)
+			source->stream();
 	}
 
 	OAAudio& gOAAudio()

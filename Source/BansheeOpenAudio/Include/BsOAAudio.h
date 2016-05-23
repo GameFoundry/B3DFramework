@@ -74,6 +74,39 @@ namespace BansheeEngine
 		/** @} */
 
 	private:
+		friend class OAAudioSource;
+
+		/** Type of a command that can be queued for a streaming audio source. */
+		enum class StreamingCommandType
+		{
+			Start,
+			Stop
+		};
+
+		/** Command queued for a streaming audio source. */
+		struct StreamingCommand
+		{
+			StreamingCommand()
+				:type((StreamingCommandType)0), source(nullptr), params()
+			{ }
+
+			StreamingCommandType type;
+			OAAudioSource* source;
+			UINT32 params[2];
+		};
+
+		/** Data required for maintaining a streaming audio source. */
+		struct StreamingData
+		{
+			StreamingData()
+				:streamBuffers()
+			{ }
+
+			static const UINT32 StreamBufferCount = 3;
+			UINT32 streamBuffers[StreamBufferCount];
+			Vector<UINT32> sourceIDs;
+		};
+
 		/** @copydoc Audio::createClip */
 		SPtr<AudioClip> createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
 			const AUDIO_CLIP_DESC& desc) override;
@@ -95,6 +128,15 @@ namespace BansheeEngine
 		/** Delete all existing OpenAL contexts. */
 		void clearContexts();
 
+		/** Streams new data to audio sources that require it. */
+		void updateStreaming();
+
+		/** Starts data streaming for the provided source. */
+		void startStreaming(OAAudioSource* source, bool startPaused);
+
+		/** Stops data streaming for the provided source. */
+		void stopStreaming(OAAudioSource* source);
+
 		float mVolume;
 
 		ALCdevice* mDevice;
@@ -106,6 +148,11 @@ namespace BansheeEngine
 		Vector<ALCcontext*> mContexts;
 		UnorderedSet<OAAudioSource*> mSources;
 
+		// Streaming thread
+		Vector<StreamingCommand> mStreamingCommandQueue;
+		UnorderedMap<OAAudioSource*, StreamingData> mStreamingSources;
+		SPtr<Task> mStreamingTask;
+		mutable Mutex mMutex;
 	};
 
 	/** Provides easier access to OAAudio. */

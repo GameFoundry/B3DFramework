@@ -3,12 +3,12 @@
 #include "BsOAAudioSource.h"
 #include "BsOAAudio.h"
 #include "BsOAAudioClip.h"
-#include "AL\al.h"
+#include "AL/al.h"
 
 namespace BansheeEngine
 {
 	OAAudioSource::OAAudioSource()
-		:mSeekPosition(0.0f), mStreamBuffers()
+		:mSeekPosition(0), mRequiresStreaming(false)
 	{
 		gOAAudio()._registerSource(this);
 		rebuild();
@@ -16,15 +16,16 @@ namespace BansheeEngine
 
 	OAAudioSource::~OAAudioSource()
 	{
+		clear();
 		gOAAudio()._unregisterSource(this);
-		destroyStreamBuffers();
 	}
 
 	void OAAudioSource::setClip(const HAudioClip& clip)
 	{
-		bool wasStreaming = isStreaming();
-
 		AudioSource::setClip(clip);
+
+		stop(); // TODO: I should wait until all buffers are unqueued before proceeding
+		mRequiresStreaming = isStreaming();
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -35,7 +36,7 @@ namespace BansheeEngine
 
 			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());
 
-			if (!isStreaming())
+			if (!mRequiresStreaming)
 			{
 				UINT32 oaBuffer = 0;
 				if (clip.isLoaded())
@@ -46,18 +47,7 @@ namespace BansheeEngine
 				
 				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
 			}
-			else
-				alSourcei(mSourceIDs[i], AL_BUFFER, 0);
 		}
-
-		if(wasStreaming && !isStreaming())
-			destroyStreamBuffers();
-
-		if(!wasStreaming && isStreaming())
-			createStreamBuffers();
-
-		//if(isStreaming())
-		//	stream(); // TODO
 	}
 
 	void OAAudioSource::setPosition(const Vector3& position)
@@ -180,24 +170,37 @@ namespace BansheeEngine
 
 	void OAAudioSource::play()
 	{
+		AudioSourceState state = getState();
 		AudioSource::play();
 
-		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.size();
-		for (UINT32 i = 0; i < numContexts; i++)
+		if (state == AudioSourceState::Playing)
+			return;
+		
+		if(!mRequiresStreaming || state == AudioSourceState::Paused)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(contexts[i]);
+			auto& contexts = gOAAudio()._getContexts();
+			UINT32 numContexts = (UINT32)contexts.size();
+			for (UINT32 i = 0; i < numContexts; i++)
+			{
+				if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+					alcMakeContextCurrent(contexts[i]);
 
-			alSourcePlay(mSourceIDs[i]);
+				alSourcePlay(mSourceIDs[i]);
+			}
+		} 
+		else // Streaming and currently stopped
+		{
+			gOAAudio().startStreaming(this, false);
 		}
-
-		// TODO - Update streaming thread state
 	}
 
 	void OAAudioSource::pause()
 	{
+		AudioSourceState state = getState();
 		AudioSource::pause();
+
+		if (state == AudioSourceState::Paused)
+			return;
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -208,13 +211,15 @@ namespace BansheeEngine
 
 			alSourcePause(mSourceIDs[i]);
 		}
-
-		// TODO - Update streaming thread state
 	}
 
 	void OAAudioSource::stop()
 	{
+		AudioSourceState state = getState();
 		AudioSource::stop();
+
+		if (state == AudioSourceState::Stopped)
+			return;
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -226,37 +231,78 @@ namespace BansheeEngine
 			alSourceStop(mSourceIDs[i]);
 		}
 
-		// TODO - Update streaming thread state, seek to zero
+		if (mRequiresStreaming)
+			gOAAudio().stopStreaming(this);
 	}
 
 	void OAAudioSource::seek(float position)
 	{
-		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.size();
-		for (UINT32 i = 0; i < numContexts; i++)
+		if (mAudioClip.isLoaded())
+			mSeekPosition = position * mAudioClip->getFrequency() * mAudioClip->getNumChannels();
+		else
+			mSeekPosition = 0;
+
+		if (!mRequiresStreaming)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(contexts[i]);
+			auto& contexts = gOAAudio()._getContexts();
+			UINT32 numContexts = (UINT32)contexts.size();
+			for (UINT32 i = 0; i < numContexts; i++)
+			{
+				if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+					alcMakeContextCurrent(contexts[i]);
 
-			alSourcef(mSourceIDs[i], AL_SEC_OFFSET, position);
+				alSourcef(mSourceIDs[i], AL_SEC_OFFSET, position);
+			}
 		}
-
-		mSeekPosition = position;
-
-		// TODO - Update streaming thread position
+		else
+		{
+			AudioSourceState state = getState();
+			if(state != AudioSourceState::Stopped)
+			{
+				gOAAudio().stopStreaming(this);
+				gOAAudio().startStreaming(this, state == AudioSourceState::Paused);
+			}
+		}
 	}
 
 	void OAAudioSource::clear()
 	{
-		for (auto& source : mSourceIDs)
-			alSourcei(source, AL_BUFFER, 0);
+		if (mAudioClip.isLoaded())
+			mSeekPosition = tell() * mAudioClip->getFrequency() * mAudioClip->getNumChannels();
+		else
+			mSeekPosition = 0;
 
-		alDeleteSources((UINT32)mSourceIDs.size(), mSourceIDs.data());
-		mSourceIDs.clear();
+		auto destroySources = [this]()
+		{
+			for (auto& source : mSourceIDs)
+				alSourcei(source, AL_BUFFER, 0);
+
+			alDeleteSources((UINT32)mSourceIDs.size(), mSourceIDs.data());
+			mSourceIDs.clear();
+		};
+
+		if(mRequiresStreaming)
+		{
+			AudioSourceState state = getState();
+			if (state != AudioSourceState::Stopped)
+			{
+				gOAAudio().stopStreaming(this);
+				gOAAudio().queueCommand(destroySources);
+			}
+		}
+		else
+		{
+			// Still used by the streaming thread
+			if (gOAAudio().isStreaming(this)) // Assuming stopStreaming was already called
+				gOAAudio().queueCommand(destroySources);
+			else
+				destroySources();
+		}
 	}
 
 	void OAAudioSource::rebuild()
 	{
+		AudioSourceState state = getState();
 		auto& contexts = gOAAudio()._getContexts();
 
 		mSourceIDs.resize(contexts.size());
@@ -287,7 +333,7 @@ namespace BansheeEngine
 				alSource3f(mSourceIDs[i], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 			}
 
-			if (!isStreaming())
+			if (!mRequiresStreaming)
 			{
 				UINT32 oaBuffer = 0;
 				if (mAudioClip.isLoaded())
@@ -297,13 +343,27 @@ namespace BansheeEngine
 				}
 
 				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
+
+				float offset = 0.0f;
+				if (mAudioClip.isLoaded())
+					offset = (float)mSeekPosition / mAudioClip->getFrequency() / mAudioClip->getNumChannels();
+
+				alSourcef(mSourceIDs[i], AL_SEC_OFFSET, offset);
 			}
 			else
-			{
-				alSourcei(mSourceIDs[i], AL_BUFFER, 0);
+				alSourcef(mSourceIDs[i], AL_SEC_OFFSET, 0.0f); // Offset handled by the streaming system
 
-				//applyStreamBuffers(); // TODO
-			}
+			if (state == AudioSourceState::Playing || state == AudioSourceState::Paused)
+				alSourcePlay(mSourceIDs[i]);
+			
+			if (state == AudioSourceState::Paused)
+				alSourcePause(mSourceIDs[i]);
+		}
+
+		if(mRequiresStreaming)
+		{
+			if (state != AudioSourceState::Stopped)
+				gOAAudio().startStreaming(this, state == AudioSourceState::Paused);
 		}
 	}
 
@@ -324,30 +384,5 @@ namespace BansheeEngine
 		bool isCompressed = readMode == AudioReadMode::LoadCompressed && mAudioClip->getFormat() != AudioFormat::PCM;
 
 		return (readMode == AudioReadMode::Stream) || isCompressed;
-	}
-
-	void OAAudioSource::createStreamBuffers()
-	{
-		alGenBuffers(StreamBufferCount, mStreamBuffers);
-	}
-
-	void OAAudioSource::destroyStreamBuffers()
-	{
-		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.size();
-		for (UINT32 i = 0; i < numContexts; i++)
-		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(contexts[i]);
-
-			INT32 numQueuedBuffers;
-			alGetSourcei(mSourceIDs[i], AL_BUFFERS_QUEUED, &numQueuedBuffers);
-
-			UINT32 buffer;
-			for (INT32 j = 0; j < numQueuedBuffers; j++)
-				alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
-		}
-
-		alDeleteBuffers(StreamBufferCount, mStreamBuffers);
 	}
 }

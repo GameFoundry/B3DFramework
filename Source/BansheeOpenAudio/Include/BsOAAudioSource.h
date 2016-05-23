@@ -74,21 +74,13 @@ namespace BansheeEngine
 
 		/** 
 		 * Returns true if the audio source is receiving audio data from a separate thread (as opposed to loading it all
-		 * at once. */
+		 * at once. 
+		 */
 		bool isStreaming() const;
 
-		/** Creates OpenAL buffers used for streaming. */
-		void createStreamBuffers();
-
-		/** Destroys OpenAL buffers used for streaming. */
-		void destroyStreamBuffers();
-
 		Vector<UINT32> mSourceIDs;
-		float mSeekPosition;
-
-		static const UINT32 StreamBufferCount = 3;
-		mutable Mutex mMutex;
-		UINT32 mStreamBuffers[StreamBufferCount];
+		UINT32 mSeekPosition;
+		bool mRequiresStreaming;
 	};
 
 	/** @} */
