@@ -484,6 +484,8 @@ namespace BansheeEditor
                         return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.PhysicsMaterial, size);
                     case ResourceType.PhysicsMesh:
                         return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.PhysicsMesh, size);
+                    case ResourceType.AudioClip:
+                        return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.AudioClip, size);
                 }
             }
 

@@ -82,6 +82,8 @@ namespace BansheeEngine
 	const WString BuiltinEditorResources::GUISkinIconTex = L"GUISkinIcon.psd";
 	const WString BuiltinEditorResources::PhysicsMaterialIconTex = L"PhysicsMaterialIcon.psd";
 	const WString BuiltinEditorResources::PhysicsMeshIconTex = L"PhysicsMeshIcon.psd";
+	const WString BuiltinEditorResources::AudioClipIconTex = L"AudioClipIcon.psd";
+	const WString BuiltinEditorResources::AnimationClipIconTex = L"AnimationClipIcon.psd";
 
 	const WString BuiltinEditorResources::ButtonNormalTex = L"ButtonNormal.png";
 	const WString BuiltinEditorResources::ButtonHoverTex = L"ButtonHover.png";
@@ -415,7 +417,7 @@ namespace BansheeEngine
 
 		WString iconsToProcess[] = { FolderIconTex, FontIconTex, MeshIconTex, TextureIconTex, PlainTextIconTex, 
 			ScriptCodeIconTex, ShaderIconTex, ShaderIncludeIconTex, MaterialIconTex, SpriteTextureIconTex, PrefabIconTex,
-			GUISkinIconTex, PhysicsMaterialIconTex, PhysicsMeshIconTex };
+			GUISkinIconTex, PhysicsMaterialIconTex, PhysicsMeshIconTex, AudioClipIconTex, AnimationClipIconTex };
 
 		SPtr<PixelData> srcData[sizeof(iconsToProcess)/sizeof(iconsToProcess[0])];
 
@@ -2106,6 +2108,12 @@ namespace BansheeEngine
 			break;
 		case ProjectIcon::PhysicsMesh:
 			iconName = PhysicsMeshIconTex;
+			break;
+		case ProjectIcon::AudioClip:
+			iconName = AudioClipIconTex;
+			break;
+		case ProjectIcon::AnimationClip:
+			iconName = AnimationClipIconTex;
 			break;
 		}
 

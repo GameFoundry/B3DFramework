@@ -49,8 +49,8 @@ namespace BansheeEditor
     public enum LibraryItemIcon // Note: Must match C++ enum ProjectIcon
 	{
 		Folder, Mesh, Font, Texture, PlainText, ScriptCode, SpriteTexture, Shader, ShaderInclude, Material, Prefab, GUISkin,
-        PhysicsMaterial, PhysicsMesh
-	};
+        PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip
+    };
 
     /// <summary>
     /// Types of icons that can be used for displaying types of log messages.
