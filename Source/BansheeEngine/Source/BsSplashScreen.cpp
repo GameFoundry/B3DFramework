@@ -38,8 +38,8 @@ namespace BansheeEngine
 
 		WINDOW_DESC windowDesc;
 		windowDesc.border = WindowBorder::None;
-		windowDesc.width = 600;
-		windowDesc.height = 662;
+		windowDesc.width = 675;
+		windowDesc.height = 821;
 		windowDesc.left = -1;
 		windowDesc.top = -1;
 		windowDesc.title = "Banshee Splash";

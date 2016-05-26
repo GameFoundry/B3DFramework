@@ -44,6 +44,8 @@ namespace BansheeEngine
 			return ScriptFontImportOptions::create(std::static_pointer_cast<FontImportOptions>(importOptions));
 		case TID_ScriptCodeImportOptions:
 			return ScriptScriptCodeImportOptions::create(std::static_pointer_cast<ScriptCodeImportOptions>(importOptions));
+		case TID_AudioClipImportOptions:
+			return ScriptAudioClipImportOptions::create(std::static_pointer_cast<AudioClipImportOptions>(importOptions));
 		}
 
 		MonoObject* managedInstance = metaData.scriptClass->createInstance();

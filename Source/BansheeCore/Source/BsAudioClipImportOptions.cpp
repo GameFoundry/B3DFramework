@@ -5,6 +5,12 @@
 
 namespace BansheeEngine
 {
+	AudioClipImportOptions::AudioClipImportOptions()
+		:mFormat(AudioFormat::PCM), mReadMode(AudioReadMode::LoadDecompressed), mIs3D(true), mBitDepth(16)
+	{
+		
+	}
+
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/
 	/************************************************************************/

@@ -43,9 +43,10 @@ namespace BansheeEngine
 				mSourceStreamSize = mStreamSize;
 			}
 
-			if(mDesc.readMode == AudioReadMode::LoadDecompressed && mDesc.format == AudioFormat::VORBIS)
+			// Load decompressed data into a sound buffer
+			if(mDesc.readMode == AudioReadMode::LoadDecompressed)
 			{
-				// Read all uncompressed data into memory
+				// Read all data into memory
 				SPtr<DataStream> stream;
 				UINT32 offset = 0;
 				if (mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
@@ -57,28 +58,34 @@ namespace BansheeEngine
 				}
 
 				stream->seek(offset);
+				UINT32 bufferSize = info.numSamples * (info.bitDepth / 8);
+				UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
 
 				// Decompress from Ogg
-				OAOggVorbisReader reader;
-				if (reader.open(stream, info))
+				if (mDesc.format == AudioFormat::VORBIS)
 				{
-					UINT32 bufferSize = info.numSamples * info.bitDepth;
-					UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
-
-					reader.read(sampleBuffer, info.numSamples);
-
-					alGenBuffers(1, &mBufferId);
-					gOAAudio()._writeToOpenALBuffer(mBufferId, sampleBuffer, info);
-
-					mStreamData = nullptr;
-					mStreamOffset = 0;
-					mStreamSize = 0;
-
-					bs_stack_free(sampleBuffer);
+					OAOggVorbisReader reader;
+					if (reader.open(stream, info))
+						reader.read(sampleBuffer, info.numSamples);
+					else
+						LOGERR("Failed decompressing AudioClip stream.");
 				}
+				// Load directly
 				else
-					LOGERR("Failed decompressing AudioClip stream.");
+				{
+					stream->read(sampleBuffer, bufferSize);
+				}
+
+				alGenBuffers(1, &mBufferId);
+				gOAAudio()._writeToOpenALBuffer(mBufferId, sampleBuffer, info);
+
+				mStreamData = nullptr;
+				mStreamOffset = 0;
+				mStreamSize = 0;
+
+				bs_stack_free(sampleBuffer);
 			}
+			// Load compressed data for streaming from memory
 			else if(mDesc.readMode == AudioReadMode::LoadCompressed)
 			{
 				// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
@@ -98,6 +105,11 @@ namespace BansheeEngine
 
 					mStreamOffset = 0;
 				}
+			}
+			// Keep original stream for streaming from file
+			else
+			{
+				// Do nothing
 			}
 
 			if (mDesc.format == AudioFormat::VORBIS && mDesc.readMode != AudioReadMode::LoadDecompressed)

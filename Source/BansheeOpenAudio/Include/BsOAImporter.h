@@ -26,6 +26,9 @@ namespace BansheeEngine
 
 		/** @copydoc SpecificImporter::import */
 		SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+
+		/** @copydoc SpecificImporter::createImportOptions */
+		SPtr<ImportOptions> createImportOptions() const override;
 	};
 
 	/** @} */

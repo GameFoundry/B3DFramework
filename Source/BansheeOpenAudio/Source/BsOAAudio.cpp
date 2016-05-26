@@ -30,9 +30,14 @@ namespace BansheeEngine
 					if (deviceName.size() == 0)
 						break;
 
-					mAllDevices.push_back({ WString(deviceName.data(), deviceName.size()) });
+					// Clean up the name to get the actual hardware name
+					WString fixedName(deviceName.data(), deviceName.size());
+					fixedName = StringUtil::replaceAll(fixedName, L"OpenAL Soft on ", L"");
+
+					mAllDevices.push_back({ fixedName });
 					deviceName.clear();
 
+					devices++;
 					continue;
 				}
 

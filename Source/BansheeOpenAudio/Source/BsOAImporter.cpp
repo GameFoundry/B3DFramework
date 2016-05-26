@@ -37,6 +37,11 @@ namespace BansheeEngine
 		return true;
 	}
 
+	SPtr<ImportOptions> OAImporter::createImportOptions() const
+	{
+		return bs_shared_ptr_new<AudioClipImportOptions>();
+	}
+
 	SPtr<Resource> OAImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		SPtr<DataStream> stream = FileSystem::openFile(filePath);
@@ -45,11 +50,11 @@ namespace BansheeEngine
 		StringUtil::toLowerCase(extension);
 
 		UPtr<OAFileReader> reader(nullptr, nullptr);
-		if(extension == L"wav")
+		if(extension == L".wav")
 			reader = bs_unique_ptr<OAFileReader>(bs_new<OAWaveReader>());
-		else if(extension == L"flac")
+		else if(extension == L".flac")
 			reader = bs_unique_ptr<OAFileReader>(bs_new<OAFLACReader>());
-		else if(extension == L"ogg")
+		else if(extension == L".ogg")
 			reader = bs_unique_ptr<OAFileReader>(bs_new<OAOggVorbisReader>());
 
 		if (reader == nullptr)
@@ -62,7 +67,8 @@ namespace BansheeEngine
 		if (!reader->open(stream, info))
 			return nullptr;
 
-		UINT32 bufferSize = info.numSamples * info.bitDepth;
+		UINT32 bytesPerSample = info.bitDepth / 8;
+		UINT32 bufferSize = info.numSamples * bytesPerSample;
 		UINT8* sampleBuffer = (UINT8*)bs_alloc(bufferSize);
 		reader->read(sampleBuffer, info.numSamples);
 
@@ -73,7 +79,7 @@ namespace BansheeEngine
 		{
 			UINT32 numSamplesPerChannel = info.numSamples / info.numChannels;
 
-			UINT32 monoBufferSize = numSamplesPerChannel * info.bitDepth;
+			UINT32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 			UINT8* monoBuffer = (UINT8*)bs_alloc(monoBufferSize);
 
 			AudioUtility::convertToMono(sampleBuffer, monoBuffer, info.bitDepth, numSamplesPerChannel, info.numChannels);

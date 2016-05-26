@@ -16,6 +16,8 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT AudioClipImportOptions : public ImportOptions
 	{
 	public:
+		AudioClipImportOptions();
+
 		/** Returns the audio format to import the audio clip as. */
 		AudioFormat getFormat() const { return mFormat; }
 
@@ -46,10 +48,10 @@ namespace BansheeEngine
 		// Note: Add options to resample to a different frequency
 
 	private:
-		AudioFormat mFormat = AudioFormat::PCM;
-		AudioReadMode mReadMode = AudioReadMode::LoadDecompressed;
-		bool mIs3D = true;
-		UINT32 mBitDepth = 16;
+		AudioFormat mFormat;
+		AudioReadMode mReadMode;
+		bool mIs3D;
+		UINT32 mBitDepth;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

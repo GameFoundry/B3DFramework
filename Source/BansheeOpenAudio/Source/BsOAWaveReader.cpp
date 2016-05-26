@@ -59,37 +59,40 @@ namespace BansheeEngine
 				return false;
 
 			UINT32 subChunkSize = 0;
-			if (mStream->read(&subChunkSize, sizeof(subChunkSize) != sizeof(subChunkSize)))
+			if (mStream->read(&subChunkSize, sizeof(subChunkSize)) != sizeof(subChunkSize))
 				return false;
 
 			// FMT chunk
 			if (subChunkId[0] == 'f' && subChunkId[1] == 'm' && subChunkId[2] == 't' && subChunkId[3] == ' ')
 			{
 				UINT16 format = 0;
-				if (mStream->read(&format, sizeof(format) != sizeof(format)))
+				if (mStream->read(&format, sizeof(format)) != sizeof(format))
 					return false;
 
 				if (format != 1) // It's not PCM
+				{
+					LOGWRN("Wave file doesn't contain raw PCM data. Not supported.");
 					return false;
+				}
 
 				UINT16 numChannels = 0;
-				if (mStream->read(&numChannels, sizeof(numChannels) != sizeof(numChannels)))
+				if (mStream->read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
 					return false;
 
 				UINT32 sampleRate = 0;
-				if (mStream->read(&sampleRate, sizeof(sampleRate) != sizeof(sampleRate)))
+				if (mStream->read(&sampleRate, sizeof(sampleRate)) != sizeof(sampleRate))
 					return false;
 
 				UINT32 byteRate = 0;
-				if (mStream->read(&byteRate, sizeof(byteRate) != sizeof(byteRate)))
+				if (mStream->read(&byteRate, sizeof(byteRate)) != sizeof(byteRate))
 					return false;
 
 				UINT16 blockAlign = 0;
-				if (mStream->read(&blockAlign, sizeof(blockAlign) != sizeof(blockAlign)))
+				if (mStream->read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
 					return false;
 
 				UINT16 bitDepth = 0;
-				if (mStream->read(&bitDepth, sizeof(bitDepth) != sizeof(bitDepth)))
+				if (mStream->read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
 					return false;
 
 				info.numChannels = numChannels;
