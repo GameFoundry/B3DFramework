@@ -67,6 +67,7 @@ namespace BansheeEngine
 		if (stream == nullptr)
 			return false;
 
+		stream->seek(0);
 		mStream = stream;
 
 		int status = ov_open_callbacks(stream.get(), &mOggVorbisFile, nullptr, 0, callbacks);
@@ -102,7 +103,7 @@ namespace BansheeEngine
 			{
 				UINT32 samplesRead = bytesRead / sizeof(INT16);
 				numReadSamples += samplesRead;
-				samples += samplesRead;
+				samples += samplesRead * sizeof(INT16);
 			}
 			else
 				break;

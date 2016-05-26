@@ -169,6 +169,8 @@ namespace BansheeEngine
 		if (stream == nullptr)
 			return false;
 
+		stream->seek(0);
+
 		mDecoder = FLAC__stream_decoder_new();
 		if (mDecoder == nullptr)
 		{

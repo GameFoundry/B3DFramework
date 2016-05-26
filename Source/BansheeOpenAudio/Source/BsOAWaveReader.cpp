@@ -5,6 +5,9 @@
 
 namespace BansheeEngine
 {
+#define WAVE_FORMAT_PCM			0x0001
+#define WAVE_FORMAT_EXTENDED	0xFFFE
+
 	OAWaveReader::OAWaveReader()
 		:mDataOffset(0), mBytesPerSample(0)
 	{ }
@@ -69,7 +72,7 @@ namespace BansheeEngine
 				if (mStream->read(&format, sizeof(format)) != sizeof(format))
 					return false;
 
-				if (format != 1) // It's not PCM
+				if (format != WAVE_FORMAT_PCM && format != WAVE_FORMAT_EXTENDED)
 				{
 					LOGWRN("Wave file doesn't contain raw PCM data. Not supported.");
 					return false;
@@ -105,15 +108,40 @@ namespace BansheeEngine
 					return false;
 				}
 
-				mBytesPerSample = bitDepth / 8;
-
-				// Skip extra data, if any
-				if (subChunkSize > 16)
+				// Read extension data, and get the actual format
+				if(format == WAVE_FORMAT_EXTENDED)
 				{
-					mStream->skip(subChunkSize - 16);
-					if (mStream->eof())
+					UINT16 extensionSize = 0;
+					if (mStream->read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
 						return false;
+
+					if(extensionSize != 22)
+					{
+						LOGWRN("Wave file doesn't contain raw PCM data. Not supported.");
+						return false;
+					}
+
+					UINT16 validBitDepth = 0;
+					if (mStream->read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
+						return false;
+
+					UINT32 channelMask = 0;
+					if (mStream->read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
+						return false;
+
+					UINT8 subFormat[16];
+					if (mStream->read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
+						return false;
+
+					memcpy(&format, subFormat, sizeof(format));
+					if (format != WAVE_FORMAT_PCM)
+					{
+						LOGWRN("Wave file doesn't contain raw PCM data. Not supported.");
+						return false;
+					}
 				}
+
+				mBytesPerSample = bitDepth / 8;
 			}
 			// DATA chunk
 			else if (subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
