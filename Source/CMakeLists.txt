@@ -183,40 +183,37 @@ add_subdirectory(BansheeUtility)
 add_subdirectory(BansheeCore)
 add_subdirectory(BansheeEngine)
 
-#if(BUILD_EDITOR)
+if(BUILD_EDITOR OR MSVC)
 	add_subdirectory(BansheeEditor)
-#endif()
+endif()
 
 ## Plugins
-
-if(RENDER_API_MODULE MATCHES "DirectX 11")
+### If using MSVC include all plugins in the solution (which ones actually build is controlled by dependencies)
+if(MSVC)
 	add_subdirectory(BansheeD3D11RenderAPI)
-	set(RENDER_API_MODULE_LIB BansheeD3D11RenderAPI)
-elseif(RENDER_API_MODULE MATCHES "DirectX 9")
 	add_subdirectory(BansheeD3D9RenderAPI)
-	set(RENDER_API_MODULE_LIB BansheeD3D9RenderAPI)
-else()
 	add_subdirectory(BansheeGLRenderAPI)
-	set(RENDER_API_MODULE_LIB BansheeGLRenderAPI)
+	add_subdirectory(BansheeFMOD)
+	add_subdirectory(BansheeOpenAudio)
+else() # Otherwise include only chosen ones
+	if(RENDER_API_MODULE MATCHES "DirectX 11")
+		add_subdirectory(BansheeD3D11RenderAPI)
+	elseif(RENDER_API_MODULE MATCHES "DirectX 9")
+		add_subdirectory(BansheeD3D9RenderAPI)
+	else()
+		add_subdirectory(BansheeGLRenderAPI)
+	endif()
+
+	if(AUDIO_MODULE MATCHES "FMOD")
+		add_subdirectory(BansheeFMOD)
+	else() # Default to OpenAudio
+		add_subdirectory(BansheeOpenAudio)
+	endif()
 endif()
 
 add_subdirectory(RenderBeast)
-set(RENDERER_MODULE_LIB RenderBeast)
-
 add_subdirectory(BansheeOISInput)
-set(INPUT_MODULE_LIB BansheeOISInput)
-
 add_subdirectory(BansheePhysX)
-set(PHYSICS_MODULE_LIB BansheePhysX)
-
-if(AUDIO_MODULE MATCHES "FMOD")
-	add_subdirectory(BansheeFMOD)
-	set(AUDIO_MODULE_LIB BansheeFMOD)
-else() # Default to OpenAudio
-	add_subdirectory(BansheeOpenAudio)
-	set(AUDIO_MODULE_LIB BansheeOpenAudio)
-endif()
-
 add_subdirectory(BansheeFBXImporter)
 add_subdirectory(BansheeFontImporter)
 add_subdirectory(BansheeFreeImgImporter)
@@ -226,7 +223,7 @@ add_subdirectory(BansheeSL)
 ## Script interop
 add_subdirectory(SBansheeEngine)
 
-if(BUILD_EDITOR)
+if(BUILD_EDITOR OR MSVC)
 	add_subdirectory(SBansheeEditor)
 endif()
 
@@ -234,7 +231,7 @@ endif()
 add_subdirectory(Game)
 add_subdirectory(ExampleProject)
 
-if(BUILD_EDITOR)
+if(BUILD_EDITOR OR MSVC)
 	add_subdirectory(BansheeEditorExec)
 endif()
 
@@ -255,4 +252,24 @@ else()
 endif()
 
 # Config file
+## Set names of libraries used in the config file
+if(RENDER_API_MODULE MATCHES "DirectX 11")
+	set(RENDER_API_MODULE_LIB BansheeD3D11RenderAPI)
+elseif(RENDER_API_MODULE MATCHES "DirectX 9")
+	set(RENDER_API_MODULE_LIB BansheeD3D9RenderAPI)
+else()
+	set(RENDER_API_MODULE_LIB BansheeGLRenderAPI)
+endif()
+
+if(AUDIO_MODULE MATCHES "FMOD")
+	set(AUDIO_MODULE_LIB BansheeFMOD)
+else() # Default to OpenAudio
+	set(AUDIO_MODULE_LIB BansheeOpenAudio)
+endif()
+
+set(RENDERER_MODULE_LIB RenderBeast)
+set(INPUT_MODULE_LIB BansheeOISInput)
+set(PHYSICS_MODULE_LIB BansheePhysX)
+
+## Generate config file
 configure_file("${PROJECT_SOURCE_DIR}/CMake/BsEngineConfig.h.in" "${PROJECT_SOURCE_DIR}/BansheeEngine/Include/BsEngineConfig.h")

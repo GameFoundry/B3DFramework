@@ -1,15 +1,25 @@
 set(BS_BANSHEEFMOD_INC_NOFILTER
-	""
+	"Include/BsFMODPrerequisites.h"
+	"Include/BsFMODAudio.h"
+	"Include/BsFMODImporter.h"
+	"Include/BsFMODAudioSource.h"
+	"Include/BsFMODAudioListener.h"
+	"Include/BsFMODAudioClip.h"
 )
 
 set(BS_BANSHEEFMOD_SRC_NOFILTER
-	""
+	"Source/BsFMODPlugin.cpp"
+	"Source/BsFMODAudio.cpp"
+	"Source/BsFMODImporter.cpp"
+	"Source/BsFMODAudioSource.cpp"
+	"Source/BsFMODAudioListener.cpp"
+	"Source/BsFMODAudioClip.cpp"
 )
 
 source_group("Header Files" FILES ${BS_BANSHEEFMOD_INC_NOFILTER})
 source_group("Source Files" FILES ${BS_BANSHEEFMOD_SRC_NOFILTER})
 
-set(BS_BANSHEEOPENAUDIO_SRC
+set(BS_BANSHEEFMOD_SRC
 	${BS_BANSHEEFMOD_INC_NOFILTER}
 	${BS_BANSHEEFMOD_SRC_NOFILTER}
 )

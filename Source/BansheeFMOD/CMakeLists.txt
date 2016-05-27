@@ -1,11 +1,15 @@
 # Source files and their filters
 include(CMakeSources.cmake)
 
+# Packages
+find_package(FMOD)
+
 # Includes
 set(BansheeFMOD_INC 
 	"Include" 
 	"../BansheeUtility/Include" 
-	"../BansheeCore/Include")
+	"../BansheeCore/Include"
+	${FMOD_INCLUDE_DIRS})
 
 include_directories(${BansheeFMOD_INC})	
 	
@@ -15,13 +19,15 @@ add_library(BansheeFMOD SHARED ${BS_BANSHEEFMOD_SRC})
 # Defines
 target_compile_definitions(BansheeFMOD PRIVATE -DBS_FMOD_EXPORTS)
 
-# Options
-set(FMOD_PATH "C:\\Program Files (x86)\\FMOD SoundSystem\\FMOD Studio API Windows" CACHE PATH "Path to the FMOD installation directory.")
-mark_as_advanced(FMOD_PATH)
-
 # Libraries
 ## External libs: FMOD
-# TODO
+add_library(FMOD STATIC IMPORTED)
+
+set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_DEBUG "${FMOD_LIBRARIES_DEBUG}")
+set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_OPTIMIZEDDEBUG "${FMOD_LIBRARIES_DEBUG}")
+set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_RELEASE "${FMOD_LIBRARIES_OPTIMIZED}")	
+
+target_link_libraries(BansheeFMOD PRIVATE FMOD)	
 
 ## Local libs
 target_link_libraries(BansheeFMOD PUBLIC BansheeUtility BansheeCore)
