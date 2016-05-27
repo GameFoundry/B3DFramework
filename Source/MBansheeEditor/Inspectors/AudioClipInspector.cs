@@ -18,7 +18,7 @@ namespace BansheeEditor
         private GUIEnumField readModeField = new GUIEnumField(typeof(AudioReadMode), new LocEdString("Read mode"));
         private GUIEnumField bitDepthField = new GUIEnumField(typeof(AudioBitDepth), new LocEdString("Bit depth"));
         private GUIToggleField is3DField = new GUIToggleField(new LocEdString("3D"));
-        
+
         private GUIButton reimportButton = new GUIButton(new LocEdString("Reimport"));
 
         private AudioClipImportOptions importOptions;
@@ -34,7 +34,7 @@ namespace BansheeEditor
                 readModeField.OnSelectionChanged += x => importOptions.ReadMode = (AudioReadMode)x;
                 bitDepthField.OnSelectionChanged += x => importOptions.BitDepth = (AudioBitDepth)x;
                 is3DField.OnChanged += x => importOptions.Is3D = x;
-                
+
                 reimportButton.OnClick += TriggerReimport;
 
                 Layout.AddElement(formatField);

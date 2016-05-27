@@ -207,7 +207,7 @@ namespace BansheeEngine
 	SPtr<AudioClip> OAAudio::createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
 		const AUDIO_CLIP_DESC& desc)
 	{
-		return bs_shared_ptr_new<OAAudioClip>(samples, streamSize, numSamples, desc);
+		return bs_core_ptr_new<OAAudioClip>(samples, streamSize, numSamples, desc);
 	}
 
 	SPtr<AudioListener> OAAudio::createListener()

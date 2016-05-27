@@ -40,7 +40,9 @@ namespace BansheeEngine
 
 	OAOggVorbisReader::OAOggVorbisReader()
 		:mChannelCount(0)
-	{ }
+	{
+		mOggVorbisFile.datasource = nullptr;
+	}
 
 	OAOggVorbisReader::~OAOggVorbisReader()
 	{

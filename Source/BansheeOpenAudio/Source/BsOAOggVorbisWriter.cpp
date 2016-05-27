@@ -118,7 +118,7 @@ namespace BansheeEngine
 				for (UINT32 j = 0; j < mNumChannels; j++)
 				{
 					INT32 sample = AudioUtility::convert24To32Bits(samples);
-					float encodedSample = sample / 8388607.0f;
+					float encodedSample = sample / 2147483647.0f;
 					buffer[j][i] = encodedSample;
 
 					samples += 3;

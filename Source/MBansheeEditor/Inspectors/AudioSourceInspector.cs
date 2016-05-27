@@ -21,7 +21,8 @@ namespace BansheeEditor
         private GUIIntField priorityField = new GUIIntField(new LocEdString("Priority"));
         private GUIFloatField minDistanceField = new GUIFloatField(new LocEdString("Min. distance"));
         private GUIFloatField attenuationField = new GUIFloatField(new LocEdString("Attenuation"));
-        
+        private GUIToggleField playOnStartField = new GUIToggleField(new LocEdString("Play on start"));
+
         private InspectableState modifyState;
         
         /// <inheritdoc/>
@@ -44,6 +45,7 @@ namespace BansheeEditor
             priorityField.Value = (int)source.Priority;
             minDistanceField.Value = source.MinDistance;
             attenuationField.Value = source.Attenuation;
+            playOnStartField.Value = source.PlayOnStart;
 
             InspectableState oldState = modifyState;
             if (modifyState.HasFlag(InspectableState.Modified))
@@ -102,6 +104,13 @@ namespace BansheeEditor
             attenuationField.OnConfirmed += ConfirmModify;
             attenuationField.OnFocusLost += ConfirmModify;
 
+            playOnStartField.OnChanged += x =>
+            {
+                source.PlayOnStart = x;
+                MarkAsModified();
+                ConfirmModify();
+            };
+
             Layout.AddElement(audioClipField);
             Layout.AddElement(volumeField);
             Layout.AddElement(pitchField);
@@ -109,6 +118,7 @@ namespace BansheeEditor
             Layout.AddElement(priorityField);
             Layout.AddElement(minDistanceField);
             Layout.AddElement(attenuationField);
+            Layout.AddElement(playOnStartField);
         }
         
         /// <summary>

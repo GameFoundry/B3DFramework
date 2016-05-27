@@ -176,6 +176,7 @@ namespace BansheeEngine
 		if (mGloballyPaused)
 			return;
 
+		if(requiresStreaming())
 		{
 			Lock(mMutex);
 			
@@ -269,11 +270,12 @@ namespace BansheeEngine
 		AudioSourceState state = getState();
 		stop();
 
-		float clipTime = 0.0f;
+		bool needsStreaming = requiresStreaming();
+		float clipTime;
 		{
 			Lock(mMutex);
 
-			if (!mIsStreaming)
+			if (!needsStreaming)
 				clipTime = time;
 			else
 			{
@@ -312,8 +314,9 @@ namespace BansheeEngine
 		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 			alcMakeContextCurrent(contexts[0]);
 
+		bool needsStreaming = requiresStreaming();
 		float time;
-		if (!mIsStreaming)
+		if (!needsStreaming)
 		{
 			alGetSourcef(mSourceIDs[0], AL_SEC_OFFSET, &time);
 			return time;
