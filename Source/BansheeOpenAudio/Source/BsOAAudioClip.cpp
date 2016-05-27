@@ -44,7 +44,11 @@ namespace BansheeEngine
 			}
 
 			// Load decompressed data into a sound buffer
-			if(mDesc.readMode == AudioReadMode::LoadDecompressed)
+			bool loadDecompressed = 
+				mDesc.readMode == AudioReadMode::LoadDecompressed || 
+				(mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format == AudioFormat::PCM);
+
+			if(loadDecompressed)
 			{
 				// Read all data into memory
 				SPtr<DataStream> stream;
