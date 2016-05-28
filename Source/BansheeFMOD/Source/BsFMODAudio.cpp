@@ -79,6 +79,7 @@ namespace BansheeEngine
 
 	FMODAudio::~FMODAudio()
 	{
+		assert(mListeners.size() == 0 && mSources.size() == 0); // Everything should be destroyed at this point
 		mFMOD->release();
 	}
 
@@ -138,6 +139,52 @@ namespace BansheeEngine
 	SPtr<AudioSource> FMODAudio::createSource()
 	{
 		return bs_shared_ptr_new<FMODAudioSource>();
+	}
+
+	void FMODAudio::_registerListener(FMODAudioListener* listener)
+	{
+		mListeners.push_back(listener);
+
+		rebuildListeners();
+	}
+
+	void FMODAudio::_unregisterListener(FMODAudioListener* listener)
+	{
+		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
+		if (iterFind != mListeners.end())
+			mListeners.erase(iterFind);
+
+		rebuildListeners();
+	}
+
+	void FMODAudio::rebuildListeners()
+	{
+		INT32 numListeners = (INT32)mListeners.size();
+		if (numListeners > 0)
+		{
+			mFMOD->set3DNumListeners(numListeners);
+			for (INT32 i = 0; i < numListeners; i++)
+				mListeners[i]->rebuild(i);
+		}
+		else // Always keep at least one listener
+		{
+			mFMOD->set3DNumListeners(1);
+			FMOD_VECTOR zero = { 0.0f, 0.0f, 0.0f };
+			FMOD_VECTOR forward = { 0.0f, 0.0f, -1.0f };
+			FMOD_VECTOR up = { 0.0f, 1.0f, 0.0f };
+
+			mFMOD->set3DListenerAttributes(0, &zero, &zero, &forward, &up);
+		}
+	}
+
+	void FMODAudio::_registerSource(FMODAudioSource* source)
+	{
+		mSources.insert(source);
+	}
+
+	void FMODAudio::_unregisterSource(FMODAudioSource* source)
+	{
+		mSources.erase(source);
 	}
 
 	FMODAudio& gFMODAudio()

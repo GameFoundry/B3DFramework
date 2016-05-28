@@ -29,6 +29,14 @@ namespace BansheeEngine
 
 		/** @copydoc AudioListener::setVelocity */
 		void setVelocity(const Vector3& velocity) override;
+
+	private:
+		friend class FMODAudio;
+
+		/** Called by the FMODAudio system when the listener list changes. */
+		void rebuild(INT32 id);
+
+		INT32 mId;
 	};
 
 	/** @} */

@@ -8,11 +8,13 @@ namespace BansheeEngine
 {
 	FMODAudioSource::FMODAudioSource()
 	{
+		gFMODAudio()._registerSource(this);
 		// TODO
 	}
 
 	FMODAudioSource::~FMODAudioSource()
 	{
+		gFMODAudio()._unregisterSource(this);
 		// TODO
 	}
 

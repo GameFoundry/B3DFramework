@@ -44,7 +44,28 @@ namespace BansheeEngine
 		AudioDevice getDefaultDevice() const override { return mDefaultDevice; }
 
 		/** @copydoc Audio::getAllDevices */
-		const Vector<AudioDevice>& getAllDevices() const override { return mAllDevices; };
+		const Vector<AudioDevice>& getAllDevices() const override { return mAllDevices; }
+
+		/** @name Internal 
+		 *  @{
+		 */
+
+		/** Registers a new AudioListener. Should be called on listener creation. */
+		void _registerListener(FMODAudioListener* listener);
+
+		/** Unregisters an existing AudioListener. Should be called before listener destruction. */
+		void _unregisterListener(FMODAudioListener* listener);
+
+		/** Registers a new AudioSource. Should be called on source creation. */
+		void _registerSource(FMODAudioSource* source);
+
+		/** Unregisters an existing AudioSource. Should be called before source destruction. */
+		void _unregisterSource(FMODAudioSource* source);
+
+		/** Returns internal FMOD system instance. */
+		FMOD::System* _getFMOD() const { return mFMOD; }
+
+		/** @} */
 	private:
 		/** @copydoc Audio::createClip */
 		SPtr<AudioClip> createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
@@ -56,11 +77,17 @@ namespace BansheeEngine
 		/** @copydoc Audio::createSource */
 		SPtr<AudioSource> createSource() override;
 
+		/** Rebuilds information about all listeners. Should be called when listener list changes. */
+		void rebuildListeners();
+
 		FMOD::System* mFMOD;
 		FMOD::ChannelGroup* mMasterChannelGroup;
 
 		float mVolume;
 		bool mIsPaused;
+
+		Vector<FMODAudioListener*> mListeners;
+		UnorderedSet<FMODAudioSource*> mSources;
 
 		Vector<AudioDevice> mAllDevices;
 		AudioDevice mDefaultDevice;

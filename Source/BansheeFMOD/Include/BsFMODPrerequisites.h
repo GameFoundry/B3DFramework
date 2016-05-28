@@ -22,6 +22,10 @@
 
 namespace BansheeEngine
 {
+	class FMODAudioListener;
+	class FMODAudioSource;
+	class FMODAudioClip;
+
 	/** Contains data describing an audio file. */
 	struct AudioFileInfo
 	{
