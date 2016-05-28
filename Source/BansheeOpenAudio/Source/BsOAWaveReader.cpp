@@ -12,9 +12,9 @@ namespace BansheeEngine
 		:mDataOffset(0), mBytesPerSample(0)
 	{ }
 
-	bool OAWaveReader::isValid(const SPtr<DataStream>& stream)
+	bool OAWaveReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
-		stream->seek(0);
+		stream->seek(offset);
 
 		INT8 header[MAIN_CHUNK_SIZE];
 		if (stream->read(header, sizeof(header)) < (sizeof(header)))
@@ -24,14 +24,14 @@ namespace BansheeEngine
 			&& (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 	}
 
-	bool OAWaveReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info)
+	bool OAWaveReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
 
 		mStream = stream;
-		mStream->seek(MAIN_CHUNK_SIZE);
-
+		mStream->seek(offset + MAIN_CHUNK_SIZE);
+		
 		if (!parseHeader(info))
 		{
 			LOGERR("Provided file is not a valid WAVE file.");

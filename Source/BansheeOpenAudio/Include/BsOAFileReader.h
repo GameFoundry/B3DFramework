@@ -21,9 +21,10 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	stream	Data stream audio data is stored in.
 		 * @param[out]	info	Output information describing meta-data of the audio in the stream.
+		 * @param[in]	offset	Offset at which audio data in the stream begins, in bytes.
 		 * @return				True if the data is valid, false otherwise.
 		 */
-		virtual bool open(const SPtr<DataStream>& stream, AudioFileInfo& info) = 0;
+		virtual bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) = 0;
 
 		/** 
 		 * Moves the read pointer to the specified offset. Any further read() calls will read from this location. User must
@@ -48,8 +49,12 @@ namespace BansheeEngine
 		/** 
 		 * Checks if the data in the provided stream valid audio data for the current format. You should check this before
 		 * calling open().
+		 *
+		 * @param[in]	stream	Stream to check.
+		 * @param[in]	offset	Offset at which audio data in the stream begins, in bytes.
+		 * @return				True if the data is valid, false otherwise.
 		 */
-		virtual bool isValid(const SPtr<DataStream>& stream) = 0;
+		virtual bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) = 0;
 	};
 
 	/** @} */

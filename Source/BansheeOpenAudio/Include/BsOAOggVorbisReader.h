@@ -12,6 +12,17 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Information used by the active decoder. */
+	struct OggDecoderData
+	{
+		OggDecoderData()
+			: offset(0)
+		{ }
+
+		SPtr<DataStream> stream;
+		UINT32 offset;
+	};
+
 	/** Used for reading Ogg Vorbis audio data. */
 	class OAOggVorbisReader : public OAFileReader
 	{
@@ -20,7 +31,7 @@ namespace BansheeEngine
 		~OAOggVorbisReader();
 
 		/** @copydoc OAFileReader::open */
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info) override;
+		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) override;
 
 		/** @copydoc OAFileReader::read */
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;
@@ -29,9 +40,9 @@ namespace BansheeEngine
 		void seek(UINT32 offset) override;
 
 		/** @copydoc OAFileReader::isValid */
-		bool isValid(const SPtr<DataStream>& stream) override;
+		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
-		SPtr<DataStream> mStream;
+		OggDecoderData mDecoderData;
 		OggVorbis_File mOggVorbisFile;
 		UINT32 mChannelCount;
 	};

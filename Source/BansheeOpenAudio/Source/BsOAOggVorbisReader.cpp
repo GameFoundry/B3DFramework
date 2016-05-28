@@ -8,32 +8,34 @@ namespace BansheeEngine
 {
 	size_t oggRead(void* ptr, size_t size, size_t nmemb, void* data)
 	{
-		DataStream* stream = static_cast<DataStream*>(data);
-		return static_cast<std::size_t>(stream->read(ptr, size * nmemb));
+		OggDecoderData* decoderData = static_cast<OggDecoderData*>(data);
+		return static_cast<std::size_t>(decoderData->stream->read(ptr, size * nmemb));
 	}
 
 	int oggSeek(void* data, ogg_int64_t offset, int whence)
 	{
-		DataStream* stream = static_cast<DataStream*>(data);
+		OggDecoderData* decoderData = static_cast<OggDecoderData*>(data);
 		switch (whence)
 		{
 		case SEEK_SET:
+			offset += decoderData->offset;
 			break;
 		case SEEK_CUR:
-			offset += stream->tell();
+			offset += decoderData->stream->tell();
 			break;
 		case SEEK_END:
-			offset = stream->size() - offset;
+			offset = std::max(0, (INT32)decoderData->stream->size() - 1);
+			break;
 		}
 
-		stream->seek(offset);
-		return (int)stream->tell();
+		decoderData->stream->seek(offset);
+		return (int)(decoderData->stream->tell() - decoderData->offset);
 	}
 
 	long oggTell(void* data)
 	{
-		DataStream* stream = static_cast<DataStream*>(data);
-		return static_cast<long>(stream->tell());
+		OggDecoderData* decoderData = static_cast<OggDecoderData*>(data);
+		return (long)(decoderData->stream->tell() - decoderData->offset);
 	}
 
 	static ov_callbacks callbacks = { &oggRead, &oggSeek, nullptr, &oggTell };
@@ -50,12 +52,14 @@ namespace BansheeEngine
 			ov_clear(&mOggVorbisFile);
 	}
 
-	bool OAOggVorbisReader::isValid(const SPtr<DataStream>& stream)
+	bool OAOggVorbisReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
-		stream->seek(0);
+		stream->seek(offset);
+		mDecoderData.stream = stream;
+		mDecoderData.offset = offset;
 
 		OggVorbis_File file;
-		if (ov_test_callbacks(stream.get(), &file, nullptr, 0, callbacks) == 0)
+		if (ov_test_callbacks(&mDecoderData, &file, nullptr, 0, callbacks) == 0)
 		{
 			ov_clear(&file);
 			return true;
@@ -64,15 +68,16 @@ namespace BansheeEngine
 		return false;
 	}
 
-	bool OAOggVorbisReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info)
+	bool OAOggVorbisReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
 
-		stream->seek(0);
-		mStream = stream;
+		stream->seek(offset);
+		mDecoderData.stream = stream;
+		mDecoderData.offset = offset;
 
-		int status = ov_open_callbacks(stream.get(), &mOggVorbisFile, nullptr, 0, callbacks);
+		int status = ov_open_callbacks(&mDecoderData, &mOggVorbisFile, nullptr, 0, callbacks);
 		if (status < 0)
 		{
 			LOGERR("Failed to open Ogg Vorbis file.");

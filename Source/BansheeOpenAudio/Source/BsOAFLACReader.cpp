@@ -26,8 +26,8 @@ namespace BansheeEngine
 	{
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
-		data->stream->seek(absoluteByteOffset);
-		INT64 position = (INT64)data->stream->tell();
+		data->stream->seek(data->streamOffset + absoluteByteOffset);
+		INT64 position = (INT64)(data->stream->tell() - data->streamOffset);
 		if (position >= 0)
 			return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 		else
@@ -38,7 +38,7 @@ namespace BansheeEngine
 	{
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
-		INT64 position = (INT64)data->stream->tell();
+		INT64 position = (INT64)(data->stream->tell() - data->streamOffset);
 		if (position >= 0)
 		{
 			*absoluteByteOffset = position;
@@ -54,7 +54,7 @@ namespace BansheeEngine
 	{
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
-		*streamLength = data->stream->size();
+		*streamLength = data->stream->size() - data->streamOffset;
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
 	}
 
@@ -143,9 +143,9 @@ namespace BansheeEngine
 		close();
 	}
 
-	bool OAFLACReader::isValid(const SPtr<DataStream>& stream)
+	bool OAFLACReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
-		stream->seek(0);
+		stream->seek(offset);
 
 		FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
 		if (!decoder)
@@ -153,6 +153,7 @@ namespace BansheeEngine
 
 		FLACDecoderData data;
 		data.stream = stream;
+		mData.streamOffset = offset;
 		FLAC__stream_decoder_init_stream(decoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof, 
 			&streamWrite, nullptr, &streamError, &data);
 
@@ -164,12 +165,12 @@ namespace BansheeEngine
 		return valid && !data.error;
 	}
 
-	bool OAFLACReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info)
+	bool OAFLACReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
 
-		stream->seek(0);
+		stream->seek(offset);
 
 		mDecoder = FLAC__stream_decoder_new();
 		if (mDecoder == nullptr)
@@ -179,6 +180,7 @@ namespace BansheeEngine
 		}
 
 		mData.stream = stream;
+		mData.streamOffset = offset;
 		FLAC__stream_decoder_init_stream(mDecoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof,
 			&streamWrite, &streamMetadata, &streamError, &mData);
 

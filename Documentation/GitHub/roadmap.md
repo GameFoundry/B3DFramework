@@ -35,6 +35,7 @@ There are many more features planned, but these are without a specific timeline 
  - Script debugging
  - Level of detail
  - XBONE/PS4 ports
+ - BSP brushes for level prototyping
  - And more to be decided later...
  
 Implementation times for each of those roughly ranges from 1-4 months.

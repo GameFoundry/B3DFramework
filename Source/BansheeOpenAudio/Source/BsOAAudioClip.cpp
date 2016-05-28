@@ -61,7 +61,6 @@ namespace BansheeEngine
 					offset = mStreamOffset;
 				}
 
-				stream->seek(offset);
 				UINT32 bufferSize = info.numSamples * (info.bitDepth / 8);
 				UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
 
@@ -69,7 +68,7 @@ namespace BansheeEngine
 				if (mDesc.format == AudioFormat::VORBIS)
 				{
 					OAOggVorbisReader reader;
-					if (reader.open(stream, info))
+					if (reader.open(stream, info, offset))
 						reader.read(sampleBuffer, info.numSamples);
 					else
 						LOGERR("Failed decompressing AudioClip stream.");
@@ -77,6 +76,7 @@ namespace BansheeEngine
 				// Load directly
 				else
 				{
+					stream->seek(offset);
 					stream->read(sampleBuffer, bufferSize);
 				}
 
@@ -122,13 +122,10 @@ namespace BansheeEngine
 
 				if (mStreamData != nullptr)
 				{
-					if (!mVorbisReader.open(mStreamData, info))
+					if (!mVorbisReader.open(mStreamData, info, mStreamOffset))
 						LOGERR("Failed decompressing AudioClip stream.");
 				}
 			}
-
-			if (mStreamData != nullptr)
-				mStreamData->seek(mStreamOffset);
 		}
 
 		AudioClip::initialize();
@@ -139,7 +136,7 @@ namespace BansheeEngine
 		Lock lock(mMutex);
 
 		// Try to read from normal stream, and if that fails read from in-memory stream if it exists
-		if (mStreamData == nullptr)
+		if (mStreamData != nullptr)
 		{
 			if (mNeedsDecompression)
 			{

@@ -16,6 +16,7 @@ namespace BansheeEngine
 	struct FLACDecoderData
 	{
 		SPtr<DataStream> stream;
+		UINT32 streamOffset = 0;
 		AudioFileInfo info;
 		UINT8* output = nullptr;
 		Vector<UINT8> overflow;
@@ -31,7 +32,7 @@ namespace BansheeEngine
 		~OAFLACReader();
 
 		/** @copydoc OAFileReader::open */
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info) override;
+		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) override;
 
 		/** @copydoc OAFileReader::seek */
 		void seek(UINT32 offset) override;
@@ -40,7 +41,7 @@ namespace BansheeEngine
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;
 
 		/** @copydoc OAFileReader::isValid */
-		bool isValid(const SPtr<DataStream>& stream) override;
+		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
 		/** Cleans up the FLAC decoder. */
 		void close();
