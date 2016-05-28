@@ -4,6 +4,7 @@
 
 #include "BsFMODPrerequisites.h"
 #include "BsAudio.h"
+#include "fmod.hpp"
 
 namespace BansheeEngine
 {
@@ -54,6 +55,9 @@ namespace BansheeEngine
 
 		/** @copydoc Audio::createSource */
 		SPtr<AudioSource> createSource() override;
+
+		FMOD::System* mFMOD;
+		FMOD::ChannelGroup* mMasterChannelGroup;
 
 		float mVolume;
 		bool mIsPaused;
