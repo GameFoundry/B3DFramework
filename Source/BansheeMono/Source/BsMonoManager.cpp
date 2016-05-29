@@ -15,6 +15,7 @@
 #include <mono/metadata/mono-config.h>
 #include <mono/metadata/mono-gc.h>
 #include <mono/metadata/mono-debug.h>
+#include <mono/utils/mono-logger.h>
 
 namespace BansheeEngine
 {
@@ -34,6 +35,60 @@ namespace BansheeEngine
 		{ MONO_LIB_DIR + "mono\\4.5", "v4.0.30319" }
 	};
 
+	void monoLogCallback(const char* logDomain, const char* logLevel, const char* message, mono_bool fatal, void* userData)
+	{
+		static const char* monoErrorLevels[] =
+		{
+			nullptr,
+			"error",
+			"critical",
+			"warning",
+			"message",
+			"info",
+			"debug"
+		};
+
+		UINT32 errorLevel = 0;
+		if (logLevel != nullptr)
+		{
+			for (UINT32 i = 1; i < 7; i++)
+			{
+				if (strcmp(monoErrorLevels[i], logLevel) == 0)
+				{
+					errorLevel = i;
+					break;
+				}
+			}
+		}
+
+		if (errorLevel == 0)
+		{
+			LOGERR(StringUtil::format("Mono: {0} in domain {1}", message, logDomain));
+		}
+		else if (errorLevel <= 2)
+		{
+			LOGERR(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+		}
+		else if (errorLevel <= 3)
+		{
+			LOGWRN(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+		}
+		else
+		{
+			LOGDBG(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+		}
+	}
+
+	void monoPrintCallback(const char* string, mono_bool isStdout)
+	{
+		LOGWRN(StringUtil::format("Mono error: {0}", string));
+	}
+
+	void monoPrintErrorCallback(const char* string, mono_bool isStdout)
+	{
+		LOGERR(StringUtil::format("Mono error: {0}", string));
+	}
+
 	MonoManager::MonoManager()
 		:mScriptDomain(nullptr), mRootDomain(nullptr), mIsCoreLoaded(false)
 	{
@@ -45,9 +100,21 @@ namespace BansheeEngine
 		mono_set_assemblies_path(assembliesDir.toString().c_str());
 
 #if BS_DEBUG_MODE
-		mono_set_signal_chaining(true);
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+
+		char* options[] = {
+			"--soft-breakpoints",
+			"--debugger-agent=transport=dt_socket,address=127.0.0.1:17615,embedding=1,server=y,suspend=n"
+		};
+		mono_jit_parse_options(2, options);
+		mono_trace_set_level_string("warning"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
+#else
+		mono_trace_set_level_string("warning");
 #endif
+
+		mono_trace_set_log_handler(monoLogCallback, this);
+		mono_trace_set_print_handler(monoPrintCallback);
+		mono_trace_set_printerr_handler(monoPrintErrorCallback);
 
 		mono_config_parse(nullptr);
 
@@ -83,12 +150,16 @@ namespace BansheeEngine
 			String appDomainName = toString(path);
 
 			mScriptDomain = mono_domain_create_appdomain(const_cast<char *>(appDomainName.c_str()), nullptr);
-			mono_domain_set(mScriptDomain, false);
+			mono_domain_set(mScriptDomain, true);
 
 			if (mScriptDomain == nullptr)
 			{
 				BS_EXCEPT(InternalErrorException, "Cannot create script app domain.");
 			}
+
+#if BS_DEBUG_MODE
+			mono_debug_domain_create(mScriptDomain);
+#endif
 		}
 
 		auto iterFind = mAssemblies.find(name);
@@ -197,7 +268,7 @@ namespace BansheeEngine
 		{
 			onDomainUnload();
 
-			mono_domain_set(mono_get_root_domain(), false);
+			mono_domain_set(mono_get_root_domain(), true);
 			mono_domain_finalize(mScriptDomain, 2000);
 
 			MonoObject* exception = nullptr;

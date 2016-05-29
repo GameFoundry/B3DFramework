@@ -99,6 +99,7 @@ namespace BansheeEngine
 		WString mPath;
 		MonoImage* mMonoImage;
 		::MonoAssembly* mMonoAssembly;
+		UINT8* mDebugData;
 		bool mIsLoaded;
 		bool mIsDependency;
 		
