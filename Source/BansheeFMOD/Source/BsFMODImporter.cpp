@@ -5,6 +5,9 @@
 #include "BsFileSystem.h"
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
+#include "BsFMODAudio.h"
+
+#include <fmod.hpp>
 
 namespace BansheeEngine
 {
@@ -24,7 +27,9 @@ namespace BansheeEngine
 		WString lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"wav" || lowerCaseExt == L"flac" || lowerCaseExt == L"ogg";
+		return lowerCaseExt == L"wav" || lowerCaseExt == L"flac" || lowerCaseExt == L"ogg" || lowerCaseExt == L"mp3" ||
+			lowerCaseExt == L"wma" || lowerCaseExt == L"asf" || lowerCaseExt == L"wmv" || lowerCaseExt == L"midi" || 
+			lowerCaseExt == L"fsb" || lowerCaseExt == L"aif" || lowerCaseExt == L"aiff";
 	}
 
 	bool FMODImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -40,29 +45,73 @@ namespace BansheeEngine
 
 	SPtr<Resource> FMODImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		SPtr<DataStream> stream = FileSystem::openFile(filePath);
-
 		WString extension = filePath.getWExtension();
 		StringUtil::toLowerCase(extension);
 
 		AudioFileInfo info;
 
+		FMOD::Sound* sound;
+		String pathStr = filePath.toString();
+		if(gFMODAudio()._getFMOD()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
+		{
+			LOGERR("Failed importing audio file: " + pathStr);
+			return nullptr;
+		}
 
+		FMOD_SOUND_FORMAT format;
+		INT32 numChannels = 0;
+		INT32 numBits = 0;
 
+		sound->getFormat(nullptr, &format, &numChannels, &numBits);
 
-		// TODO - Parse audio meta-data
+		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24 
+			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
+		{
+			LOGERR("Failed importing audio file, invalid imported format: " + pathStr);
+			return nullptr;
+		}
 
+		float frequency = 0.0f;
+		sound->getDefaults(&frequency, nullptr);
 
-
+		UINT32 size;
+		sound->getLength(&size, FMOD_TIMEUNIT_PCMBYTES);
+		
+		info.bitDepth = numBits;
+		info.numChannels = numChannels;
+		info.sampleRate = (UINT32)frequency;
+		info.numSamples = size / (info.bitDepth / 8);
 
 		UINT32 bytesPerSample = info.bitDepth / 8;
 		UINT32 bufferSize = info.numSamples * bytesPerSample;
 		UINT8* sampleBuffer = (UINT8*)bs_alloc(bufferSize);
+		assert(bufferSize == size);
 		
+		UINT8* startData = nullptr;
+		UINT8* endData = nullptr;
+		UINT32 startSize = 0;
+		UINT32 endSize = 0;
+		sound->lock(0, size, (void**)&startData, (void**)&endData, &startSize, &endSize);
 
+		if(format == FMOD_SOUND_FORMAT_PCMFLOAT)
+		{
+			assert(info.bitDepth == 32);
 
-		// TODO - Read audio data
+			UINT32* output = (UINT32*)sampleBuffer;
+			for(UINT32 i = 0; i < info.numSamples; i++)
+			{
+				float value = *(((float*)startData) + i);
+				*output = (UINT32)(value * 2147483647.0f);
+				output++;
+			}
+		}
+		else
+		{
+			memcpy(sampleBuffer, startData, bufferSize);
+		}
 
+		sound->unlock((void**)&startData, (void**)&endData, startSize, endSize);
+		sound->release();
 
 		SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 

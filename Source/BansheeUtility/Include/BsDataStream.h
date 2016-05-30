@@ -263,6 +263,9 @@ namespace BansheeEngine
         /** @copydoc DataStream::close */
 		void close() override;
 
+		/** Returns the path of the file opened by the stream. */
+		const Path& getPath() const { return mPath; }
+
 	protected:
 		Path mPath;
 		SPtr<std::istream> mInStream;

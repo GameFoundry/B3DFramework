@@ -4,6 +4,7 @@
 
 #include "BsFMODPrerequisites.h"
 #include "BsAudioClip.h"
+#include <fmod.hpp>
 
 namespace BansheeEngine
 {
@@ -18,8 +19,11 @@ namespace BansheeEngine
 		FMODAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
 		virtual ~FMODAudioClip();
 
-		/** @copydoc AudioClip::getSamples */
-		void getSamples(UINT8* samples, UINT32 offset, UINT32 count) const override;
+		/** 
+		 * Creates a new streaming sound. Only valid if the clip was created with AudioReadMode::Stream. Caller is
+		 * responsible for releasing the sound.
+		 */
+		FMOD::Sound* createStreamingSound() const;
 
 	protected:
 		/** @copydoc Resource::initialize */
@@ -27,6 +31,13 @@ namespace BansheeEngine
 
 		/** @copydoc AudioClip::getSourceFormatData */
 		SPtr<DataStream> getSourceStream(UINT32& size) override;
+
+		FMOD::Sound* mSound;
+
+		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
+		// manual data manipulation). In normal usage (in-game) these will be null so no memory is wasted.
+		SPtr<DataStream> mSourceStreamData;
+		UINT32 mSourceStreamSize;
 	};
 
 	/** @} */

@@ -19,8 +19,19 @@ namespace BansheeEngine
 		OAAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);
 		virtual ~OAAudioClip();
 
-		/** @copydoc AudioClip::getSamples */
-		void getSamples(UINT8* samples, UINT32 offset, UINT32 count) const override;
+		/** 
+		 * Returns audio samples in PCM format, channel data interleaved. Only available if the audio data has been created
+		 * with AudioReadMode::Stream, AudioReadMode::LoadCompressed (and the format is compressed), or if @p keepSourceData
+		 * was enabled on creation.
+		 *
+		 * @param[in]	samples		Previously allocated buffer to contain the samples.
+		 * @param[in]	offset		Offset in number of samples at which to start reading (should be a multiple of number
+		 *							of channels).
+		 * @param[in]	count		Number of samples to read (should be a multiple of number of channels).
+		 *
+		 * @note	Implementation must be thread safe as this will get called from audio streaming thread.
+		 */
+		void getSamples(UINT8* samples, UINT32 offset, UINT32 count) const;
 
 		/** @name Internal
 		 *  @{

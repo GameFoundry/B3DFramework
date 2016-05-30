@@ -571,7 +571,9 @@ namespace BansheeEngine
 
 		UINT8* samples = (UINT8*)bs_stack_alloc(sampleBufferSize);
 
-		mAudioClip->getSamples(samples, mStreamQueuedPosition, numSamples);
+		OAAudioClip* audioClip = static_cast<OAAudioClip*>(mAudioClip.get());
+
+		audioClip->getSamples(samples, mStreamQueuedPosition, numSamples);
 		mStreamQueuedPosition += numSamples;
 
 		info.numSamples = numSamples;
