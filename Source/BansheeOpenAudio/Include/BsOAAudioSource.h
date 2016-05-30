@@ -37,7 +37,7 @@ namespace BansheeEngine
 		void setIsLooping(bool loop) override;
 
 		/** @copydoc AudioSource::setPriority */
-		void setPriority(UINT32 priority) override;
+		void setPriority(INT32 priority) override;
 
 		/** @copydoc AudioSource::setMinDistance */
 		void setMinDistance(float distance) override;
@@ -59,6 +59,9 @@ namespace BansheeEngine
 
 		/** @copydoc AudioSource::stop */
 		void stop() override;
+
+		/** @copydoc AudioSource::getState */
+		AudioSourceState getState() const override { return mState; }
 
 	private:
 		friend class OAAudio;
@@ -98,6 +101,7 @@ namespace BansheeEngine
 
 		Vector<UINT32> mSourceIDs;
 		float mSavedTime;
+		AudioSourceState mState;
 		bool mGloballyPaused;
 
 		static const UINT32 StreamBufferCount = 3;

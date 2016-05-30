@@ -2,12 +2,12 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsAudioSource.h"
 #include "BsAudio.h"
+#include "BsMath.h"
 
 namespace BansheeEngine
 {
 	AudioSource::AudioSource()
 		: mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0), mMinDistance(1.0f), mAttenuation(1.0f)
-		, mState(AudioSourceState::Stopped)
 	{
 
 	}
@@ -29,7 +29,7 @@ namespace BansheeEngine
 
 	void AudioSource::setVolume(float volume)
 	{
-		mVolume = volume;
+		mVolume = Math::clamp01(volume);
 	}
 
 	void AudioSource::setPitch(float pitch)
@@ -42,7 +42,7 @@ namespace BansheeEngine
 		mLoop = loop;
 	}
 
-	void AudioSource::setPriority(UINT32 priority)
+	void AudioSource::setPriority(INT32 priority)
 	{
 		mPriority = priority;
 	}
@@ -55,21 +55,6 @@ namespace BansheeEngine
 	void AudioSource::setAttenuation(float attenuation)
 	{
 		mAttenuation = attenuation;
-	}
-
-	void AudioSource::play()
-	{
-		mState = AudioSourceState::Playing;
-	}
-
-	void AudioSource::pause()
-	{
-		mState = AudioSourceState::Paused;
-	}
-
-	void AudioSource::stop()
-	{
-		mState = AudioSourceState::Stopped;
 	}
 
 	SPtr<AudioSource> AudioSource::create()

@@ -4,6 +4,7 @@
 
 #include "BsFMODPrerequisites.h"
 #include "BsAudioSource.h"
+#include "BsFMODAudio.h"
 
 namespace BansheeEngine
 {
@@ -37,13 +38,7 @@ namespace BansheeEngine
 		void setIsLooping(bool loop) override;
 
 		/** @copydoc AudioSource::setPriority */
-		void setPriority(UINT32 priority) override;
-
-		/** @copydoc AudioSource::setMinDistance */
-		void setMinDistance(float distance) override;
-
-		/** @copydoc AudioSource::setAttenuation */
-		void setAttenuation(float attenuation) override;
+		void setPriority(INT32 priority) override;
 
 		/** @copydoc AudioSource::setTime */
 		void setTime(float setTime) override;
@@ -59,6 +54,22 @@ namespace BansheeEngine
 
 		/** @copydoc AudioSource::stop */
 		void stop() override;
+
+		/** @copydoc AudioSource::getState */
+		AudioSourceState getState() const override;
+
+	private:
+		friend class FMODAudio;
+
+		/** Pauses or resumes audio playback due to the global pause setting. */
+		void setGlobalPause(bool pause);
+
+		FMOD::Channel* mChannel;
+		FMOD::Sound* mStreamingSound;
+
+		float mTime;
+		bool mGloballyPaused;
+		AudioSourceState mGlobalUnpauseState;
 	};
 
 	/** @} */

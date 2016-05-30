@@ -44,8 +44,10 @@ namespace BansheeEngine
 		else
 			flags |= FMOD_2D;
 
-		// Load decompressed data into a sound buffer
-		if(mDesc.readMode == AudioReadMode::LoadDecompressed || mDesc.readMode == AudioReadMode::LoadCompressed)
+		// Load data into a sound buffer
+		// TODO - Vorbis cannot be decompressed from memory by FMOD. Instead we force AudioReadMode::Stream for it.
+		if(mDesc.readMode == AudioReadMode::LoadDecompressed || 
+			(mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format != AudioFormat::VORBIS))
 		{
 			// Read all data into memory
 			SPtr<DataStream> stream;
@@ -69,9 +71,7 @@ namespace BansheeEngine
 			exInfo.cbsize = sizeof(exInfo);
 			exInfo.length = bufferSize;
 
-			// TODO - Vorbis cannot be decompressed from memory by FMOD. Instead we force AudioReadMode::Stream for it.
-			bool loadCompressed =
-				mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format != AudioFormat::VORBIS;
+			bool loadCompressed = mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format != AudioFormat::PCM;
 
 			if (loadCompressed)
 				flags |= FMOD_CREATECOMPRESSEDSAMPLE;
@@ -119,6 +119,9 @@ namespace BansheeEngine
 		String pathStr;
 		if(mStreamData->isFile())
 		{
+			exInfo.length = mStreamSize;
+			exInfo.fileoffset = mStreamOffset;
+
 			SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
 			pathStr = fileStream->getPath().toString();
 
@@ -129,7 +132,7 @@ namespace BansheeEngine
 			SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
 
 			flags |= FMOD_OPENMEMORY_POINT;
-			exInfo.length = (UINT32)memStream->size();
+			exInfo.length = mStreamSize;
 
 			memStream->seek(mStreamOffset);
 			streamData = (const char*)memStream->getCurrentPtr();

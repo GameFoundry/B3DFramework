@@ -28,8 +28,11 @@ namespace BansheeEngine
 	float F_CALLBACK FMOD3DRolloff(FMOD_CHANNELCONTROL* channelControl, float distance)
 	{
 		FMODAudioSource* source = nullptr;
-		FMOD::Channel* channel = (FMOD::Channel*)channelControl;
+		FMOD::ChannelControl* channel = (FMOD::ChannelControl*)channelControl;
 		channel->getUserData((void**)&source);
+
+		if (source == nullptr)
+			return 1.0f;
 
 		// Calculate standard inverse rolloff, but use different attenuation per source (also ignore max distance)
 		float minDistance = source->getMinDistance();

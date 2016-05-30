@@ -72,7 +72,7 @@ namespace BansheeEngine
 		 * might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources
 		 * with lower priority.
 		 */
-		virtual void setPriority(UINT32 priority);
+		virtual void setPriority(INT32 priority);
 
 		/**
 		 * Gets the priority of the audio source. 
@@ -107,13 +107,13 @@ namespace BansheeEngine
 		float getAttenuation() const { return mAttenuation; }
 
 		/** Starts playing the currently assigned audio clip. */
-		virtual void play();
+		virtual void play() = 0;
 
 		/** Pauses the audio playback. */
-		virtual void pause();
+		virtual void pause() = 0;
 
 		/** Stops audio playback, rewinding it to the start. */
-		virtual void stop();
+		virtual void stop() = 0;
 
 		/**
 		 * Sets the time at which playback will begin.
@@ -130,7 +130,7 @@ namespace BansheeEngine
 		virtual float getTime() const = 0;
 
 		/** Returns the current state of the audio playback (playing/paused/stopped). */
-		AudioSourceState getState() const { return mState; }
+		virtual AudioSourceState getState() const = 0;
 
 		/** Creates a new audio source. */
 		static SPtr<AudioSource> create();
@@ -144,10 +144,9 @@ namespace BansheeEngine
 		float mVolume;
 		float mPitch;
 		bool mLoop;
-		UINT32 mPriority;
+		INT32 mPriority;
 		float mMinDistance;
 		float mAttenuation;
-		AudioSourceState mState;
 	};
 
 	/** @} */

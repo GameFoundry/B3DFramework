@@ -25,6 +25,9 @@ namespace BansheeEngine
 		 */
 		FMOD::Sound* createStreamingSound() const;
 
+		/** Returns FMOD sound representing this clip. Only valid for non-streaming clips. */
+		FMOD::Sound* getSound() const { return mSound; }
+
 	protected:
 		/** @copydoc Resource::initialize */
 		void initialize() override;

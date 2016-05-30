@@ -8,8 +8,8 @@
 namespace BansheeEngine
 {
 	OAAudioSource::OAAudioSource()
-		: mSavedTime(0.0f), mGloballyPaused(false), mStreamBuffers(), mBusyBuffers(), mStreamProcessedPosition(0)
-		, mStreamQueuedPosition(0), mIsStreaming(false)
+		: mSavedTime(0.0f), mState(AudioSourceState::Stopped), mGloballyPaused(false), mStreamBuffers(), mBusyBuffers()
+		, mStreamProcessedPosition(0), mStreamQueuedPosition(0), mIsStreaming(false)
 	{
 		gOAAudio()._registerSource(this);
 		rebuild();
@@ -101,7 +101,7 @@ namespace BansheeEngine
 			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 				alcMakeContextCurrent(contexts[i]);
 
-			alSourcef(mSourceIDs[i], AL_GAIN, volume);
+			alSourcef(mSourceIDs[i], AL_GAIN, mVolume);
 		}
 	}
 
@@ -139,7 +139,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OAAudioSource::setPriority(UINT32 priority)
+	void OAAudioSource::setPriority(INT32 priority)
 	{
 		AudioSource::setPriority(priority);
 
@@ -178,7 +178,7 @@ namespace BansheeEngine
 
 	void OAAudioSource::play()
 	{
-		AudioSource::play();
+		mState = AudioSourceState::Playing;
 
 		if (mGloballyPaused)
 			return;
@@ -207,7 +207,7 @@ namespace BansheeEngine
 
 	void OAAudioSource::pause()
 	{
-		AudioSource::pause();
+		mState = AudioSourceState::Paused;
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -222,7 +222,7 @@ namespace BansheeEngine
 
 	void OAAudioSource::stop()
 	{
-		AudioSource::stop();
+		mState = AudioSourceState::Stopped;
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
