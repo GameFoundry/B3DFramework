@@ -23,8 +23,9 @@ All features listed here are the ones currently available (implemented). If you 
   * Extensible importer system
   * Available importer plugins for:
     * FBX, OBJ, DAE meshes
-    * PNG, PSD, BMP, JPG, ... images
+    * PNG, PSD, BMP, JPG, etc. images
     * OTF, TTF fonts
+	* OGG, FLAC, WAV, MP3 sounds
     * HLSL9, HLSL11, GLSL shaders
 * __GUI system__
   * Unicode text rendering and input
@@ -64,6 +65,14 @@ All features listed here are the ones currently available (implemented). If you 
 	* Save/load data with no additional code
 	* Handles complex types (e.g. array, list, dictionary) and references
 	* Fast and small memory footprint
+* __Audio__
+  * 3D sounds
+  * Music
+  * Streaming
+  * Multiple backends
+    * OpenAL
+	* FMOD
+	* Extensible to others
 * __Other__
   * CPU & GPU profiler
   * Advanced run-time type information for C++ code

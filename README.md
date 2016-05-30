@@ -1,5 +1,5 @@
 # What is Banshee? 
-A high quality modern game development toolkit. It provides a **high performance multi-threaded game engine** written in C++14 that runs 2D and 3D games. The engine offers a wide variety of high level systems needed for game development, ranging from math and utility libraries, to DirectX 11 and OpenGL support all the way to input, GUI, physics, scripting and support for many popular resource formats (e.g. FBX, PNG, PSD, TTF).
+A high quality modern game development toolkit. It provides a **high performance multi-threaded game engine** written in C++14 that runs 2D and 3D games. The engine offers a wide variety of high level systems needed for game development, ranging from math and utility libraries, to DirectX 11 and OpenGL support all the way to input, GUI, physics, audio, scripting and support for many popular resource formats (e.g. FBX, PNG, PSD, TTF).
 
 On top of the engine Banshee also provides a highly intuitive and customizable **editor** that is easy to use by artists, designers and programmers alike. The editor allows you to manage all your project's assets, build levels, compile scripts, test and publish your game. Editor is also fully extensible via scripting to ensure developers can easily customize it for the exact needs of their projects.
 
