@@ -110,34 +110,19 @@ namespace BansheeEngine
 		}
 
 		FMOD_MODE flags = FMOD_CREATESTREAM;
-		const char* streamData;
 
 		FMOD_CREATESOUNDEXINFO exInfo;
 		memset(&exInfo, 0, sizeof(exInfo));
 		exInfo.cbsize = sizeof(exInfo);
 		
-		String pathStr;
-		if(mStreamData->isFile())
-		{
-			exInfo.length = mStreamSize;
-			exInfo.fileoffset = mStreamOffset;
+		// Streaming from memory not supported.
+		assert(mStreamData->isFile());
 
-			SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
-			pathStr = fileStream->getPath().toString();
+		exInfo.length = mStreamSize;
+		exInfo.fileoffset = mStreamOffset;
 
-			streamData = pathStr.c_str();
-		}
-		else
-		{
-			SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
-
-			flags |= FMOD_OPENMEMORY_POINT;
-			exInfo.length = mStreamSize;
-
-			memStream->seek(mStreamOffset);
-			streamData = (const char*)memStream->getCurrentPtr();
-			
-		}
+		SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
+		String pathStr = fileStream->getPath().toString();
 
 		if (is3D())
 			flags |= FMOD_3D;
@@ -146,7 +131,7 @@ namespace BansheeEngine
 
 		FMOD::Sound* sound = nullptr;
 		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		if (fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
+		if (fmod->createSound(pathStr.c_str(), flags, &exInfo, &sound) != FMOD_OK)
 		{
 			LOGERR("Failed creating a streaming sound.");
 			return nullptr;
