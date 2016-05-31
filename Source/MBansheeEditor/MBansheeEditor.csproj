@@ -205,7 +205,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\..\Dependencies\tools\pdb2mdb.bat "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)..\..\Scripts\pdb2mdb.bat "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
