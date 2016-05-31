@@ -239,6 +239,8 @@ namespace BansheeEngine
 			Lock(mMutex);
 
 			mStreamProcessedPosition = 0;
+			mStreamQueuedPosition = 0;
+
 			if (mIsStreaming)
 				stopStreaming();
 		}
@@ -294,6 +296,7 @@ namespace BansheeEngine
 				else
 					mStreamProcessedPosition = 0;
 
+				mStreamQueuedPosition = mStreamProcessedPosition;
 				clipTime = 0.0f;
 			}
 		}

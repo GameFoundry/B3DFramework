@@ -45,9 +45,7 @@ namespace BansheeEngine
 			flags |= FMOD_2D;
 
 		// Load data into a sound buffer
-		// TODO - Vorbis cannot be decompressed from memory by FMOD. Instead we force AudioReadMode::Stream for it.
-		if(mDesc.readMode == AudioReadMode::LoadDecompressed || 
-			(mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format != AudioFormat::VORBIS))
+		if(mDesc.readMode == AudioReadMode::LoadDecompressed || mDesc.readMode == AudioReadMode::LoadCompressed)
 		{
 			// Read all data into memory
 			SPtr<DataStream> stream;
@@ -137,19 +135,36 @@ namespace BansheeEngine
 		}
 
 		FMOD_MODE flags = FMOD_CREATESTREAM;
+		const char* streamData;
 
 		FMOD_CREATESOUNDEXINFO exInfo;
 		memset(&exInfo, 0, sizeof(exInfo));
 		exInfo.cbsize = sizeof(exInfo);
-		
-		// Streaming from memory not supported.
-		assert(mStreamData->isFile());
 
-		exInfo.length = mStreamSize;
-		exInfo.fileoffset = mStreamOffset;
+		String pathStr;
+		if (mStreamData->isFile())
+		{
+			exInfo.length = mStreamSize;
+			exInfo.fileoffset = mStreamOffset;
 
-		SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
-		String pathStr = fileStream->getPath().toString();
+			SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
+			pathStr = fileStream->getPath().toString();
+
+			streamData = pathStr.c_str();
+		}
+		else
+		{
+			SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
+
+			// Note: I could use FMOD_OPENMEMORY_POINT here to save on memory, but then the caller would need to make
+			// sure the memory is not deallocated. I'm ignoring this for now as streaming from memory should be a rare
+			// occurence (normally only in editor)
+			flags |= FMOD_OPENMEMORY;
+			exInfo.length = mStreamSize;
+
+			memStream->seek(mStreamOffset);
+			streamData = (const char*)memStream->getCurrentPtr();
+		}
 
 		if (is3D())
 			flags |= FMOD_3D;
@@ -185,7 +200,7 @@ namespace BansheeEngine
 
 		FMOD::Sound* sound = nullptr;
 		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		if (fmod->createSound(pathStr.c_str(), flags, &exInfo, &sound) != FMOD_OK)
+		if (fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
 		{
 			LOGERR("Failed creating a streaming sound.");
 			return nullptr;
