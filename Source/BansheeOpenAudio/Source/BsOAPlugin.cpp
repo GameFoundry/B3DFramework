@@ -23,14 +23,14 @@ namespace BansheeEngine
 	};
 
 	/**	Returns a name of the plugin. */
-	extern "C" const char* getPluginName()
+	extern "C" BS_OA_EXPORT const char* getPluginName()
 	{
 		static const char* pluginName = "OpenAudio";
 		return pluginName;
 	}
 
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" void* loadPlugin()
+	extern "C" BS_OA_EXPORT void* loadPlugin()
 	{
 		OAImporter* importer = bs_new<OAImporter>();
 		Importer::instance()._registerAssetImporter(importer);
@@ -39,7 +39,7 @@ namespace BansheeEngine
 	}
 
 	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" void unloadPlugin(OAFactory* instance)
+	extern "C" BS_OA_EXPORT void unloadPlugin(OAFactory* instance)
 	{
 		bs_delete(instance);
 	}

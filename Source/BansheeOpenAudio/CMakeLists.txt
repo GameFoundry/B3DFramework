@@ -16,6 +16,9 @@ include_directories(${BansheeOpenAudio_INC})
 # Target
 add_library(BansheeOpenAudio SHARED ${BS_BANSHEEOPENAUDIO_SRC})
 
+# Defines
+target_compile_definitions(BansheeOpenAudio PRIVATE -DBS_OA_EXPORTS)
+
 # Libraries
 ## External libs: FLAC, Vorbis, Ogg, OpenAL
 add_library_per_config(BansheeOpenAudio libFLAC libFLAC libFLAC)

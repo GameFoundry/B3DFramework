@@ -8,7 +8,7 @@
 
 namespace BansheeEngine
 {
-	class BS_FMOD_EXPORT FMODFactory : public AudioFactory
+	class FMODFactory : public AudioFactory
 	{
 	public:
 		void startUp() override

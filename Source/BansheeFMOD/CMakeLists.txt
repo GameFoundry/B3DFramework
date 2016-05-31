@@ -19,6 +19,9 @@ include_directories(${BansheeFMOD_INC})
 # Target
 add_library(BansheeFMOD SHARED ${BS_BANSHEEFMOD_SRC})
 
+# Defines
+target_compile_definitions(BansheeFMOD PRIVATE -DBS_FMOD_EXPORTS)
+
 # Libraries
 ## External libs: FMOD, Vorbis, Ogg
 add_library(FMOD STATIC IMPORTED)
