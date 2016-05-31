@@ -8,7 +8,7 @@
 
 namespace BansheeEngine
 {
-	class BS_OA_EXPORT OAFactory : public AudioFactory
+	class OAFactory : public AudioFactory
 	{
 	public:
 		void startUp() override
@@ -23,14 +23,14 @@ namespace BansheeEngine
 	};
 
 	/**	Returns a name of the plugin. */
-	extern "C" BS_OA_EXPORT const char* getPluginName()
+	extern "C" const char* getPluginName()
 	{
 		static const char* pluginName = "OpenAudio";
 		return pluginName;
 	}
 
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_OA_EXPORT void* loadPlugin()
+	extern "C" void* loadPlugin()
 	{
 		OAImporter* importer = bs_new<OAImporter>();
 		Importer::instance()._registerAssetImporter(importer);
@@ -39,7 +39,7 @@ namespace BansheeEngine
 	}
 
 	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" BS_OA_EXPORT void unloadPlugin(OAFactory* instance)
+	extern "C" void unloadPlugin(OAFactory* instance)
 	{
 		bs_delete(instance);
 	}

@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 
 	/** Importer using for importing WAV/FLAC/OGGVORBIS audio files. */
-	class BS_FMOD_EXPORT FMODImporter : public SpecificImporter
+	class FMODImporter : public SpecificImporter
 	{
 	public:
 		FMODImporter();

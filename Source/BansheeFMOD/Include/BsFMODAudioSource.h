@@ -13,7 +13,7 @@ namespace BansheeEngine
 	 */
 	
 	/** FMOD implementation of an AudioSource. */
-	class BS_FMOD_EXPORT FMODAudioSource : public AudioSource
+	class FMODAudioSource : public AudioSource
 	{
 	public:
 		FMODAudioSource();

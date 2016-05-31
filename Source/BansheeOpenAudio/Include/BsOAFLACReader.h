@@ -17,7 +17,7 @@ namespace BansheeEngine
 	{
 		SPtr<DataStream> stream;
 		UINT32 streamOffset = 0;
-		AudioFileInfo info;
+		AudioDataInfo info;
 		UINT8* output = nullptr;
 		Vector<UINT8> overflow;
 		UINT32 samplesToRead = 0;
@@ -32,7 +32,7 @@ namespace BansheeEngine
 		~OAFLACReader();
 
 		/** @copydoc OAFileReader::open */
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) override;
+		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
 		/** @copydoc OAFileReader::seek */
 		void seek(UINT32 offset) override;

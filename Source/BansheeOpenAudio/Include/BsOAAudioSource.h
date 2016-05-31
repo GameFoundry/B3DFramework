@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 	
 	/** OpenAL implementation of an AudioSource. */
-	class BS_OA_EXPORT OAAudioSource : public AudioSource
+	class OAAudioSource : public AudioSource
 	{
 	public:
 		OAAudioSource();
@@ -97,7 +97,7 @@ namespace BansheeEngine
 		bool requiresStreaming() const;
 
 		/** Fills the provided buffer with streaming data. */
-		bool fillBuffer(UINT32 buffer, AudioFileInfo& info, UINT32 maxNumSamples);
+		bool fillBuffer(UINT32 buffer, AudioDataInfo& info, UINT32 maxNumSamples);
 
 		Vector<UINT32> mSourceIDs;
 		float mSavedTime;

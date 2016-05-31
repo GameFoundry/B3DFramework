@@ -31,7 +31,7 @@ namespace BansheeEngine
 		~OAOggVorbisReader();
 
 		/** @copydoc OAFileReader::open */
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) override;
+		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
 		/** @copydoc OAFileReader::read */
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;

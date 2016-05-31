@@ -13,7 +13,7 @@ namespace BansheeEngine
 	 */
 	
 	/** Global manager for the audio implementation using FMOD as the backend. */
-	class BS_FMOD_EXPORT FMODAudio : public Audio
+	class FMODAudio : public Audio
 	{
 	public:
 		FMODAudio();

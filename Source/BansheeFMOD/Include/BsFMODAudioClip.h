@@ -13,7 +13,7 @@ namespace BansheeEngine
 	 */
 	
 	/** FMOD implementation of an AudioClip. */
-	class BS_FMOD_EXPORT FMODAudioClip : public AudioClip
+	class FMODAudioClip : public AudioClip
 	{
 	public:
 		FMODAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc);

@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsOAAudioClip.h"
-#include "BsOAOggVorbisWriter.h"
+#include "BsOggVorbisWriter.h"
 #include "BsOAOggVorbisReader.h"
 #include "BsDataStream.h"
 #include "BsOAAudio.h"
@@ -25,7 +25,7 @@ namespace BansheeEngine
 			Lock lock(mMutex); // Needs to be called even if stream data is null, to ensure memory fence is added so the
 							   // other thread sees properly initialized AudioClip members
 
-			AudioFileInfo info;
+			AudioDataInfo info;
 			info.bitDepth = mDesc.bitDepth;
 			info.numChannels = mDesc.numChannels;
 			info.numSamples = mNumSamples;

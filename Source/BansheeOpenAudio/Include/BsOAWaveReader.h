@@ -18,7 +18,7 @@ namespace BansheeEngine
 		OAWaveReader();
 
 		/** @copydoc OAFileReader::open */
-		bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) override;
+		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
 		/** @copydoc OAFileReader::read */
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;
@@ -30,7 +30,7 @@ namespace BansheeEngine
 		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
 		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
-		bool parseHeader(AudioFileInfo& info);
+		bool parseHeader(AudioDataInfo& info);
 
 		SPtr<DataStream> mStream;
 		UINT32 mDataOffset;

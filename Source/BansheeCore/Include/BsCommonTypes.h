@@ -392,6 +392,15 @@ namespace BansheeEngine
 		UINT32 numArraySlices;
 	};
 
+	/** Meta-data describing a chunk of audio. */
+	struct AudioDataInfo
+	{
+		UINT32 numSamples; /**< Total number of audio samples in the audio data (includes all channels). */
+		UINT32 sampleRate; /**< Number of audio samples per second, per channel. */
+		UINT32 numChannels; /**< Number of channels. Each channel has its own set of samples. */
+		UINT32 bitDepth; /**< Number of bits per sample. */
+	};
+
 	/** Helper class for syncing dirty data from sim CoreObject to core CoreObject and other way around. */
 	class CoreSyncData
 	{

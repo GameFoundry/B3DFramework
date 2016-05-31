@@ -24,7 +24,7 @@ namespace BansheeEngine
 		 * @param[in]	offset	Offset at which audio data in the stream begins, in bytes.
 		 * @return				True if the data is valid, false otherwise.
 		 */
-		virtual bool open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset = 0) = 0;
+		virtual bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) = 0;
 
 		/** 
 		 * Moves the read pointer to the specified offset. Any further read() calls will read from this location. User must

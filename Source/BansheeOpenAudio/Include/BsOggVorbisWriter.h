@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsOAPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "vorbis\vorbisenc.h"
 
 namespace BansheeEngine
@@ -11,12 +11,12 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Used for writing Ogg Vorbis audio data. */
-	class OAOggVorbisWriter
+	/** Used for encoding PCM to Ogg Vorbis audio data. */
+	class OggVorbisWriter
 	{
 	public:
-		OAOggVorbisWriter();
-		~OAOggVorbisWriter();
+		OggVorbisWriter();
+		~OggVorbisWriter();
 
 		/** 
 		 * Sets up the writer. Should be called before calling write(). 
@@ -60,7 +60,7 @@ namespace BansheeEngine
 		 * @param[out]	size		Number of bytes written to the output buffer.
 		 * @return					Buffer containing the encoded samples, allocated using the general allocator.
 		 */
-		static UINT8* PCMToOggVorbis(UINT8* samples, const AudioFileInfo& info, UINT32& size);
+		static UINT8* PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size);
 	private:
 		/** Writes Vorbis blocks into Ogg packets. */
 		void writeBlocks();

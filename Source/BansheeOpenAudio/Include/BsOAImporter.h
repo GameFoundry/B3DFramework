@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 
 	/** Importer using for importing WAV/FLAC/OGGVORBIS audio files. */
-	class BS_OA_EXPORT OAImporter : public SpecificImporter
+	class OAImporter : public SpecificImporter
 	{
 	public:
 		OAImporter();

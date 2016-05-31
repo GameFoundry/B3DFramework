@@ -351,7 +351,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OAAudio::_writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioFileInfo& info)
+	void OAAudio::_writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info)
 	{
 		if (info.numChannels <= 2) // Mono or stereo
 		{

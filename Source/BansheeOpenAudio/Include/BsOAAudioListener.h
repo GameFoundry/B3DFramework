@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 	
 	/** OpenAL implementation of an AudioListener. */
-	class BS_OA_EXPORT OAAudioListener : public AudioListener
+	class OAAudioListener : public AudioListener
 	{
 	public:
 		OAAudioListener();

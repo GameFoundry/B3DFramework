@@ -18,7 +18,7 @@ namespace BansheeEngine
 
 	void FMODAudioClip::initialize()
 	{
-		AudioFileInfo info;
+		AudioDataInfo info;
 		info.bitDepth = mDesc.bitDepth;
 		info.numChannels = mDesc.numChannels;
 		info.numSamples = mNumSamples;

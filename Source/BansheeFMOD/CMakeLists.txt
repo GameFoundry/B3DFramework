@@ -9,18 +9,18 @@ set(BansheeFMOD_INC
 	"Include" 
 	"../BansheeUtility/Include" 
 	"../BansheeCore/Include"
-	${FMOD_INCLUDE_DIRS})
+	"../BansheeOpenAudio/Include"
+	${FMOD_INCLUDE_DIRS}
+	"../../Dependencies/libogg/include"
+	"../../Dependencies/libvorbis/include")
 
 include_directories(${BansheeFMOD_INC})	
 	
 # Target
 add_library(BansheeFMOD SHARED ${BS_BANSHEEFMOD_SRC})
 
-# Defines
-target_compile_definitions(BansheeFMOD PRIVATE -DBS_FMOD_EXPORTS)
-
 # Libraries
-## External libs: FMOD
+## External libs: FMOD, Vorbis, Ogg
 add_library(FMOD STATIC IMPORTED)
 
 set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_DEBUG "${FMOD_LIBRARIES_DEBUG}")
@@ -28,6 +28,9 @@ set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_OPTIMIZEDDEBUG "${FMOD_L
 set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_RELEASE "${FMOD_LIBRARIES_OPTIMIZED}")	
 
 target_link_libraries(BansheeFMOD PRIVATE FMOD)	
+
+add_library_per_config(BansheeFMOD libvorbis libvorbis libvorbis)
+add_library_per_config(BansheeFMOD libogg Release/libogg Debug/libogg)
 
 ## Local libs
 target_link_libraries(BansheeFMOD PUBLIC BansheeUtility BansheeCore)

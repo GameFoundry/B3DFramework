@@ -24,7 +24,7 @@ namespace BansheeEngine
 			&& (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 	}
 
-	bool OAWaveReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset)
+	bool OAWaveReader::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -51,7 +51,7 @@ namespace BansheeEngine
 		return (UINT32)mStream->read(samples, numSamples * mBytesPerSample);
 	}
 
-	bool OAWaveReader::parseHeader(AudioFileInfo& info)
+	bool OAWaveReader::parseHeader(AudioDataInfo& info)
 	{
 		bool foundData = false;
 		while (!foundData)

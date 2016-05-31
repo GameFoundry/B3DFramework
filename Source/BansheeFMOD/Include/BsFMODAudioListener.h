@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 	
 	/** FMOD implementation of an AudioListener. */
-	class BS_FMOD_EXPORT FMODAudioListener : public AudioListener
+	class FMODAudioListener : public AudioListener
 	{
 	public:
 		FMODAudioListener();

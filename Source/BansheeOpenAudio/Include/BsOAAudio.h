@@ -13,7 +13,7 @@ namespace BansheeEngine
 	 */
 	
 	/** Global manager for the audio implementation using OpenAL as the backend. */
-	class BS_OA_EXPORT OAAudio : public Audio
+	class OAAudio : public Audio
 	{
 	public:
 		OAAudio();
@@ -81,7 +81,7 @@ namespace BansheeEngine
 		 * Writes provided samples into the OpenAL buffer with the provided ID. If the provided format is not supported the
 		 * samples will first be converted into a valid format.
 		 */
-		void _writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioFileInfo& info);
+		void _writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info);
 
 		/** @} */
 

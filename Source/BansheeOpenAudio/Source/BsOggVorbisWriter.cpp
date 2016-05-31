@@ -1,4 +1,4 @@
-#include "BsOAOggVorbisWriter.h"
+#include "BsOggVorbisWriter.h"
 #include "BsDataStream.h"
 #include "BsAudioUtility.h"
 
@@ -17,16 +17,16 @@ namespace BansheeEngine
 		mBufferOffset += length;						\
 	}
 
-	OAOggVorbisWriter::OAOggVorbisWriter()
+	OggVorbisWriter::OggVorbisWriter()
 		:mBufferOffset(0), mNumChannels(0), mBitDepth(0), mClosed(true)
 	{ }
 
-	OAOggVorbisWriter::~OAOggVorbisWriter()
+	OggVorbisWriter::~OggVorbisWriter()
 	{
 		close();
 	}
 
-	bool OAOggVorbisWriter::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, 
+	bool OggVorbisWriter::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, 
 		UINT32 numChannels)
 	{
 		mNumChannels = numChannels;
@@ -78,7 +78,7 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void OAOggVorbisWriter::write(UINT8* samples, UINT32 numSamples)
+	void OggVorbisWriter::write(UINT8* samples, UINT32 numSamples)
 	{
 		static const UINT32 WRITE_LENGTH = 1024;
 
@@ -155,7 +155,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OAOggVorbisWriter::writeBlocks()
+	void OggVorbisWriter::writeBlocks()
 	{
 		while (vorbis_analysis_blockout(&mVorbisState, &mVorbisBlock) == 1)
 		{
@@ -180,7 +180,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OAOggVorbisWriter::flush()
+	void OggVorbisWriter::flush()
 	{
 		if (mBufferOffset > 0 && mWriteCallback != nullptr)
 			mWriteCallback(mBuffer, mBufferOffset);
@@ -188,7 +188,7 @@ namespace BansheeEngine
 		mBufferOffset = 0;
 	}
 
-	void OAOggVorbisWriter::close()
+	void OggVorbisWriter::close()
 	{
 		if (mClosed)
 			return;
@@ -206,7 +206,7 @@ namespace BansheeEngine
 		mClosed = true;
 	}
 
-	UINT8* OAOggVorbisWriter::PCMToOggVorbis(UINT8* samples, const AudioFileInfo& info, UINT32& size)
+	UINT8* OggVorbisWriter::PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size)
 	{
 		struct EncodedBlock
 		{
@@ -229,7 +229,7 @@ namespace BansheeEngine
 
 		bs_frame_mark();
 
-		OAOggVorbisWriter writer;
+		OggVorbisWriter writer;
 		writer.open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
 
 		writer.write(samples, info.numSamples);

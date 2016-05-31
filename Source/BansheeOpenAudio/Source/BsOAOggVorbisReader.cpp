@@ -68,7 +68,7 @@ namespace BansheeEngine
 		return false;
 	}
 
-	bool OAOggVorbisReader::open(const SPtr<DataStream>& stream, AudioFileInfo& info, UINT32 offset)
+	bool OAOggVorbisReader::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;

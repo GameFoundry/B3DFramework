@@ -6,7 +6,7 @@
 #include "BsOAWaveReader.h"
 #include "BsOAFLACReader.h"
 #include "BsOAOggVorbisReader.h"
-#include "BsOAOggVorbisWriter.h"
+#include "BsOggVorbisWriter.h"
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
 
@@ -60,7 +60,7 @@ namespace BansheeEngine
 		if (reader == nullptr)
 			return nullptr;
 
-		AudioFileInfo info;
+		AudioDataInfo info;
 		if (!reader->isValid(stream))
 			return nullptr;
 
@@ -115,7 +115,7 @@ namespace BansheeEngine
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			UINT8* encodedSamples = OAOggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
+			UINT8* encodedSamples = OggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
 			bs_free(sampleBuffer);
 			sampleBuffer = encodedSamples;

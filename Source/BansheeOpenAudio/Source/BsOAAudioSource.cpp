@@ -469,7 +469,7 @@ namespace BansheeEngine
 		// ends up to be needed, then I'll need to lock every audio source operation to avoid other thread changing
 		// the context.
 
-		AudioFileInfo info;
+		AudioDataInfo info;
 		info.bitDepth = mAudioClip->getBitDepth();
 		info.numChannels = mAudioClip->getNumChannels();
 		info.sampleRate = mAudioClip->getFrequency();
@@ -551,7 +551,7 @@ namespace BansheeEngine
 		}
 	}
 
-	bool OAAudioSource::fillBuffer(UINT32 buffer, AudioFileInfo& info, UINT32 maxNumSamples)
+	bool OAAudioSource::fillBuffer(UINT32 buffer, AudioDataInfo& info, UINT32 maxNumSamples)
 	{
 		UINT32 numRemainingSamples = maxNumSamples - mStreamQueuedPosition;
 		if (numRemainingSamples == 0) // Reached the end

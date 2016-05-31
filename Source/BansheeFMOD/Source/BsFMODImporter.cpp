@@ -6,6 +6,7 @@
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
 #include "BsFMODAudio.h"
+#include "BsOggVorbisWriter.h"
 
 #include <fmod.hpp>
 
@@ -48,7 +49,7 @@ namespace BansheeEngine
 		WString extension = filePath.getWExtension();
 		StringUtil::toLowerCase(extension);
 
-		AudioFileInfo info;
+		AudioDataInfo info;
 
 		FMOD::Sound* sound;
 		String pathStr = filePath.toString();
@@ -153,14 +154,13 @@ namespace BansheeEngine
 		// Encode to Ogg Vorbis if needed
 		if (clipIO->getFormat() == AudioFormat::VORBIS)
 		{
+			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
+			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
+			// specific quality, and the the import source might have lower or higher bitrate/quality.
+			UINT8* encodedSamples = OggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
-
-
-			// TODO - Encode to Ogg Vorbis!
-
-
-
-
+			bs_free(sampleBuffer);
+			sampleBuffer = encodedSamples;
 		}
 
 		SPtr<MemoryDataStream> sampleStream = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, bufferSize);
