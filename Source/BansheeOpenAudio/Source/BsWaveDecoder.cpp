@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsOAWaveReader.h"
+#include "BsWaveDecoder.h"
 #include "BsDataStream.h"
 
 namespace BansheeEngine
@@ -8,11 +8,11 @@ namespace BansheeEngine
 #define WAVE_FORMAT_PCM			0x0001
 #define WAVE_FORMAT_EXTENDED	0xFFFE
 
-	OAWaveReader::OAWaveReader()
+	WaveDecoder::WaveDecoder()
 		:mDataOffset(0), mBytesPerSample(0)
 	{ }
 
-	bool OAWaveReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool WaveDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 
@@ -24,7 +24,7 @@ namespace BansheeEngine
 			&& (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 	}
 
-	bool OAWaveReader::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool WaveDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -41,12 +41,12 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void OAWaveReader::seek(UINT32 offset)
+	void WaveDecoder::seek(UINT32 offset)
 	{
 		mStream->seek(mDataOffset + offset * mBytesPerSample);
 	}
 
-	UINT32 OAWaveReader::read(UINT8* samples, UINT32 numSamples)
+	UINT32 WaveDecoder::read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 numRead = (UINT32)mStream->read(samples, numSamples * mBytesPerSample);
 
@@ -62,7 +62,7 @@ namespace BansheeEngine
 		return numRead;
 	}
 
-	bool OAWaveReader::parseHeader(AudioDataInfo& info)
+	bool WaveDecoder::parseHeader(AudioDataInfo& info)
 	{
 		bool foundData = false;
 		while (!foundData)

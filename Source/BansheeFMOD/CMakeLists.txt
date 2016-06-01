@@ -32,7 +32,8 @@ set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_RELEASE "${FMOD_LIBRARIE
 
 target_link_libraries(BansheeFMOD PRIVATE FMOD)	
 
-add_library_per_config(BansheeFMOD libvorbis libvorbis libvorbis)
+add_library_per_config_multi(BansheeFMOD libvorbis libvorbis libvorbis libvorbis)
+add_library_per_config_multi(BansheeFMOD libvorbisfile libvorbis libvorbisfile libvorbisfile)
 add_library_per_config(BansheeFMOD libogg Release/libogg Debug/libogg)
 
 ## Local libs

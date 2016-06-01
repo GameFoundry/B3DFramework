@@ -12,11 +12,11 @@ namespace BansheeEngine
 	 */
 
 	/** Used for encoding PCM to Ogg Vorbis audio data. */
-	class OggVorbisWriter
+	class OggVorbisEncoder
 	{
 	public:
-		OggVorbisWriter();
-		~OggVorbisWriter();
+		OggVorbisEncoder();
+		~OggVorbisEncoder();
 
 		/** 
 		 * Sets up the writer. Should be called before calling write(). 

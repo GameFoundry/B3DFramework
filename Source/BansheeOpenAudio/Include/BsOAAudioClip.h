@@ -4,7 +4,7 @@
 
 #include "BsOAPrerequisites.h"
 #include "BsAudioClip.h"
-#include "BsOAOggVorbisReader.h"
+#include "BsOggVorbisDecoder.h"
 
 namespace BansheeEngine
 {
@@ -49,7 +49,7 @@ namespace BansheeEngine
 		SPtr<DataStream> getSourceStream(UINT32& size) override;
 	private:
 		mutable Mutex mMutex;
-		mutable OAOggVorbisReader mVorbisReader;
+		mutable OggVorbisDecoder mVorbisReader;
 		bool mNeedsDecompression;
 		UINT32 mBufferId;
 

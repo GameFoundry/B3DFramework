@@ -1,4 +1,4 @@
-#include "BsOggVorbisWriter.h"
+#include "BsOggVorbisEncoder.h"
 #include "BsDataStream.h"
 #include "BsAudioUtility.h"
 
@@ -17,21 +17,22 @@ namespace BansheeEngine
 		mBufferOffset += length;						\
 	}
 
-	OggVorbisWriter::OggVorbisWriter()
+	OggVorbisEncoder::OggVorbisEncoder()
 		:mBufferOffset(0), mNumChannels(0), mBitDepth(0), mClosed(true)
 	{ }
 
-	OggVorbisWriter::~OggVorbisWriter()
+	OggVorbisEncoder::~OggVorbisEncoder()
 	{
 		close();
 	}
 
-	bool OggVorbisWriter::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, 
+	bool OggVorbisEncoder::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth, 
 		UINT32 numChannels)
 	{
 		mNumChannels = numChannels;
 		mBitDepth = bitDepth;
 		mWriteCallback = writeCallback;
+		mClosed = false;
 
 		ogg_stream_init(&mOggState, std::rand());
 		vorbis_info_init(&mVorbisInfo);
@@ -78,7 +79,7 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void OggVorbisWriter::write(UINT8* samples, UINT32 numSamples)
+	void OggVorbisEncoder::write(UINT8* samples, UINT32 numSamples)
 	{
 		static const UINT32 WRITE_LENGTH = 1024;
 
@@ -155,7 +156,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OggVorbisWriter::writeBlocks()
+	void OggVorbisEncoder::writeBlocks()
 	{
 		while (vorbis_analysis_blockout(&mVorbisState, &mVorbisBlock) == 1)
 		{
@@ -180,7 +181,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void OggVorbisWriter::flush()
+	void OggVorbisEncoder::flush()
 	{
 		if (mBufferOffset > 0 && mWriteCallback != nullptr)
 			mWriteCallback(mBuffer, mBufferOffset);
@@ -188,7 +189,7 @@ namespace BansheeEngine
 		mBufferOffset = 0;
 	}
 
-	void OggVorbisWriter::close()
+	void OggVorbisEncoder::close()
 	{
 		if (mClosed)
 			return;
@@ -206,7 +207,7 @@ namespace BansheeEngine
 		mClosed = true;
 	}
 
-	UINT8* OggVorbisWriter::PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size)
+	UINT8* OggVorbisEncoder::PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size)
 	{
 		struct EncodedBlock
 		{
@@ -229,7 +230,7 @@ namespace BansheeEngine
 
 		bs_frame_mark();
 
-		OggVorbisWriter writer;
+		OggVorbisEncoder writer;
 		writer.open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
 
 		writer.write(samples, info.numSamples);

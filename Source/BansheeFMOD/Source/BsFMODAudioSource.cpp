@@ -18,7 +18,7 @@ namespace BansheeEngine
 		gFMODAudio()._unregisterSource(this);
 
 		if (mStreamingSound != nullptr)
-			mStreamingSound->release();
+			FMODAudioClip::releaseStreamingSound(mStreamingSound);
 
 		if (mChannel != nullptr)
 			mChannel->stop();
@@ -103,7 +103,7 @@ namespace BansheeEngine
 			
 			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.get());
 			FMOD::Sound* sound;
-			if(mAudioClip->getReadMode() == AudioReadMode::Stream)
+			if(fmodClip->requiresStreaming())
 			{
 				mStreamingSound = fmodClip->createStreamingSound();
 				sound = mStreamingSound;
@@ -119,7 +119,7 @@ namespace BansheeEngine
 
 				if (mStreamingSound != nullptr)
 				{
-					mStreamingSound->release();
+					FMODAudioClip::releaseStreamingSound(mStreamingSound);
 					mStreamingSound = nullptr;
 				}
 
@@ -161,7 +161,9 @@ namespace BansheeEngine
 
 		if(mStreamingSound != nullptr)
 		{
-			mStreamingSound->release();
+			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.get());
+
+			FMODAudioClip::releaseStreamingSound(mStreamingSound);
 			mStreamingSound = nullptr;
 		}
 

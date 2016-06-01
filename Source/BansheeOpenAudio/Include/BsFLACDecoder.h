@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
-#include "BsOAFileReader.h"
+#include "BsAudioDecoder.h"
+#include "FLAC\stream_decoder.h"
 
 namespace BansheeEngine
 {
@@ -11,32 +12,42 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Used for reading .WAV audio files. */
-	class OAWaveReader : public OAFileReader
+	/** Data used by the FLAC decoder. */
+	struct FLACDecoderData
+	{
+		SPtr<DataStream> stream;
+		UINT32 streamOffset = 0;
+		AudioDataInfo info;
+		UINT8* output = nullptr;
+		Vector<UINT8> overflow;
+		UINT32 samplesToRead = 0;
+		bool error = false;
+	};
+
+	/** Decodes FLAC audio data into raw PCM samples. */
+	class FLACDecoder : public AudioDecoder
 	{
 	public:
-		OAWaveReader();
+		FLACDecoder();
+		~FLACDecoder();
 
 		/** @copydoc OAFileReader::open */
 		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
-		/** @copydoc OAFileReader::read */
-		UINT32 read(UINT8* samples, UINT32 numSamples) override;
-
 		/** @copydoc OAFileReader::seek */
 		void seek(UINT32 offset) override;
+
+		/** @copydoc OAFileReader::read */
+		UINT32 read(UINT8* samples, UINT32 numSamples) override;
 
 		/** @copydoc OAFileReader::isValid */
 		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
-		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
-		bool parseHeader(AudioDataInfo& info);
+		/** Cleans up the FLAC decoder. */
+		void close();
 
-		SPtr<DataStream> mStream;
-		UINT32 mDataOffset;
-		UINT32 mBytesPerSample;
-
-		static const UINT32 MAIN_CHUNK_SIZE = 12;
+		FLAC__StreamDecoder* mDecoder;
+		FLACDecoderData mData;
 	};
 
 	/** @} */

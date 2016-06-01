@@ -1,8 +1,8 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsOAAudioClip.h"
-#include "BsOggVorbisWriter.h"
-#include "BsOAOggVorbisReader.h"
+#include "BsOggVorbisEncoder.h"
+#include "BsOggVorbisDecoder.h"
 #include "BsDataStream.h"
 #include "BsOAAudio.h"
 #include "AL/al.h"
@@ -67,7 +67,7 @@ namespace BansheeEngine
 				// Decompress from Ogg
 				if (mDesc.format == AudioFormat::VORBIS)
 				{
-					OAOggVorbisReader reader;
+					OggVorbisDecoder reader;
 					if (reader.open(stream, info, offset))
 						reader.read(sampleBuffer, info.numSamples);
 					else

@@ -6,7 +6,7 @@
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
 #include "BsFMODAudio.h"
-#include "BsOggVorbisWriter.h"
+#include "BsOggVorbisEncoder.h"
 
 #include <fmod.hpp>
 
@@ -157,7 +157,7 @@ namespace BansheeEngine
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			UINT8* encodedSamples = OggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
+			UINT8* encodedSamples = OggVorbisEncoder::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
 			bs_free(sampleBuffer);
 			sampleBuffer = encodedSamples;

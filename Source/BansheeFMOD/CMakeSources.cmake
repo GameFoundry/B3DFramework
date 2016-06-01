@@ -5,7 +5,9 @@ set(BS_BANSHEEFMOD_INC_NOFILTER
 	"Include/BsFMODAudioSource.h"
 	"Include/BsFMODAudioListener.h"
 	"Include/BsFMODAudioClip.h"
-	"../BansheeOpenAudio/Include/BsOggVorbisWriter.h"
+	"../BansheeOpenAudio/Include/BsOggVorbisEncoder.h"
+	"../BansheeOpenAudio/Include/BsAudioDecoder.h"
+	"../BansheeOpenAudio/Include/BsOggVorbisDecoder.h"
 )
 
 set(BS_BANSHEEFMOD_SRC_NOFILTER
@@ -15,7 +17,8 @@ set(BS_BANSHEEFMOD_SRC_NOFILTER
 	"Source/BsFMODAudioSource.cpp"
 	"Source/BsFMODAudioListener.cpp"
 	"Source/BsFMODAudioClip.cpp"
-	"../BansheeOpenAudio/Source/BsOggVorbisWriter.cpp"
+	"../BansheeOpenAudio/Source/BsOggVorbisEncoder.cpp"
+	"../BansheeOpenAudio/Source/BsOggVorbisDecoder.cpp"
 )
 
 source_group("Header Files" FILES ${BS_BANSHEEFMOD_INC_NOFILTER})

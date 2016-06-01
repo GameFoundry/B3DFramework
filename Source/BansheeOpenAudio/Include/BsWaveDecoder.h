@@ -3,8 +3,7 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
-#include "BsOAFileReader.h"
-#include "vorbis\vorbisfile.h"
+#include "BsAudioDecoder.h"
 
 namespace BansheeEngine
 {
@@ -12,23 +11,11 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Information used by the active decoder. */
-	struct OggDecoderData
-	{
-		OggDecoderData()
-			: offset(0)
-		{ }
-
-		SPtr<DataStream> stream;
-		UINT32 offset;
-	};
-
-	/** Used for reading Ogg Vorbis audio data. */
-	class OAOggVorbisReader : public OAFileReader
+	/** Decodes .WAV audio data into raw PCM format. */
+	class WaveDecoder : public AudioDecoder
 	{
 	public:
-		OAOggVorbisReader();
-		~OAOggVorbisReader();
+		WaveDecoder();
 
 		/** @copydoc OAFileReader::open */
 		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
@@ -42,9 +29,14 @@ namespace BansheeEngine
 		/** @copydoc OAFileReader::isValid */
 		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
-		OggDecoderData mDecoderData;
-		OggVorbis_File mOggVorbisFile;
-		UINT32 mChannelCount;
+		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
+		bool parseHeader(AudioDataInfo& info);
+
+		SPtr<DataStream> mStream;
+		UINT32 mDataOffset;
+		UINT32 mBytesPerSample;
+
+		static const UINT32 MAIN_CHUNK_SIZE = 12;
 	};
 
 	/** @} */

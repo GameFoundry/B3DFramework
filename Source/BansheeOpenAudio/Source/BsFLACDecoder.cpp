@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsOAFLACReader.h"
+#include "BsFLACDecoder.h"
 #include "BsDataStream.h"
 
 namespace BansheeEngine
@@ -128,16 +128,16 @@ namespace BansheeEngine
 		data->error = true;
 	}
 
-	OAFLACReader::OAFLACReader()
+	FLACDecoder::FLACDecoder()
 		:mDecoder(nullptr)
 	{ }
 
-	OAFLACReader::~OAFLACReader()
+	FLACDecoder::~FLACDecoder()
 	{
 		close();
 	}
 
-	bool OAFLACReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool FLACDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 
@@ -159,7 +159,7 @@ namespace BansheeEngine
 		return valid && !data.error;
 	}
 
-	bool OAFLACReader::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool FLACDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -190,7 +190,7 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void OAFLACReader::seek(UINT32 offset)
+	void FLACDecoder::seek(UINT32 offset)
 	{
 		mData.output = nullptr;
 		mData.samplesToRead = 0;
@@ -199,7 +199,7 @@ namespace BansheeEngine
 		FLAC__stream_decoder_seek_absolute(mDecoder, offset);
 	}
 
-	UINT32 OAFLACReader::read(UINT8* samples, UINT32 numSamples)
+	UINT32 FLACDecoder::read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 overflowSize = (UINT32)mData.overflow.size();
 		UINT32 overflowNumSamples = 0;
@@ -237,7 +237,7 @@ namespace BansheeEngine
 		return numSamples - mData.samplesToRead;
 	}
 
-	void OAFLACReader::close()
+	void FLACDecoder::close()
 	{
 		if (mDecoder != nullptr)
 		{

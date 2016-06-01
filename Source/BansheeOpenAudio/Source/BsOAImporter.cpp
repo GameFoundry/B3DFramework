@@ -3,10 +3,10 @@
 #include "BsOAImporter.h"
 #include "BsDataStream.h"
 #include "BsFileSystem.h"
-#include "BsOAWaveReader.h"
-#include "BsOAFLACReader.h"
-#include "BsOAOggVorbisReader.h"
-#include "BsOggVorbisWriter.h"
+#include "BsWaveDecoder.h"
+#include "BsFLACDecoder.h"
+#include "BsOggVorbisDecoder.h"
+#include "BsOggVorbisEncoder.h"
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
 
@@ -49,13 +49,13 @@ namespace BansheeEngine
 		WString extension = filePath.getWExtension();
 		StringUtil::toLowerCase(extension);
 
-		UPtr<OAFileReader> reader(nullptr, nullptr);
+		UPtr<AudioDecoder> reader(nullptr, nullptr);
 		if(extension == L".wav")
-			reader = bs_unique_ptr<OAFileReader>(bs_new<OAWaveReader>());
+			reader = bs_unique_ptr<AudioDecoder>(bs_new<WaveDecoder>());
 		else if(extension == L".flac")
-			reader = bs_unique_ptr<OAFileReader>(bs_new<OAFLACReader>());
+			reader = bs_unique_ptr<AudioDecoder>(bs_new<FLACDecoder>());
 		else if(extension == L".ogg")
-			reader = bs_unique_ptr<OAFileReader>(bs_new<OAOggVorbisReader>());
+			reader = bs_unique_ptr<AudioDecoder>(bs_new<OggVorbisDecoder>());
 
 		if (reader == nullptr)
 			return nullptr;
@@ -115,7 +115,7 @@ namespace BansheeEngine
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			UINT8* encodedSamples = OggVorbisWriter::PCMToOggVorbis(sampleBuffer, info, bufferSize);
+			UINT8* encodedSamples = OggVorbisEncoder::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
 			bs_free(sampleBuffer);
 			sampleBuffer = encodedSamples;

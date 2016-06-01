@@ -3,8 +3,8 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
-#include "BsOAFileReader.h"
-#include "FLAC\stream_decoder.h"
+#include "BsAudioDecoder.h"
+#include "vorbis\vorbisfile.h"
 
 namespace BansheeEngine
 {
@@ -12,42 +12,39 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Data used by the FLAC decoder. */
-	struct FLACDecoderData
+	/** Information used by the active decoder. */
+	struct OggDecoderData
 	{
+		OggDecoderData()
+			: offset(0)
+		{ }
+
 		SPtr<DataStream> stream;
-		UINT32 streamOffset = 0;
-		AudioDataInfo info;
-		UINT8* output = nullptr;
-		Vector<UINT8> overflow;
-		UINT32 samplesToRead = 0;
-		bool error = false;
+		UINT32 offset;
 	};
 
-	/** Used for reading FLAC audio data. */
-	class OAFLACReader : public OAFileReader
+	/** Used for reading Ogg Vorbis audio data. */
+	class OggVorbisDecoder : public AudioDecoder
 	{
 	public:
-		OAFLACReader();
-		~OAFLACReader();
+		OggVorbisDecoder();
+		~OggVorbisDecoder();
 
 		/** @copydoc OAFileReader::open */
 		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
-		/** @copydoc OAFileReader::seek */
-		void seek(UINT32 offset) override;
-
 		/** @copydoc OAFileReader::read */
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;
+
+		/** @copydoc OAFileReader::seek */
+		void seek(UINT32 offset) override;
 
 		/** @copydoc OAFileReader::isValid */
 		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
-		/** Cleans up the FLAC decoder. */
-		void close();
-
-		FLAC__StreamDecoder* mDecoder;
-		FLACDecoderData mData;
+		OggDecoderData mDecoderData;
+		OggVorbis_File mOggVorbisFile;
+		UINT32 mChannelCount;
 	};
 
 	/** @} */

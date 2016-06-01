@@ -10,11 +10,11 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Interface used for implementations that parse audio formats into a set of samples. */
-	class OAFileReader
+	/** Interface used for implementations that parse audio formats into a set of PCM samples. */
+	class AudioDecoder
 	{
 	public:
-		virtual ~OAFileReader() { }
+		virtual ~AudioDecoder() { }
 
 		/** 
 		 * Attempts to open audio data from the provided stream. Must be called before any reads or seeks. 

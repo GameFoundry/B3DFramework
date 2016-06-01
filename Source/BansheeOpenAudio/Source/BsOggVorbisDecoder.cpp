@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsOAOggVorbisReader.h"
+#include "BsOggVorbisDecoder.h"
 #include "BsDataStream.h"
 #include <vorbis\codec.h>
 
@@ -40,19 +40,19 @@ namespace BansheeEngine
 
 	static ov_callbacks callbacks = { &oggRead, &oggSeek, nullptr, &oggTell };
 
-	OAOggVorbisReader::OAOggVorbisReader()
+	OggVorbisDecoder::OggVorbisDecoder()
 		:mChannelCount(0)
 	{
 		mOggVorbisFile.datasource = nullptr;
 	}
 
-	OAOggVorbisReader::~OAOggVorbisReader()
+	OggVorbisDecoder::~OggVorbisDecoder()
 	{
 		if (mOggVorbisFile.datasource != nullptr)
 			ov_clear(&mOggVorbisFile);
 	}
 
-	bool OAOggVorbisReader::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool OggVorbisDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 		mDecoderData.stream = stream;
@@ -68,7 +68,7 @@ namespace BansheeEngine
 		return false;
 	}
 
-	bool OAOggVorbisReader::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool OggVorbisDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -94,12 +94,12 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void OAOggVorbisReader::seek(UINT32 offset)
+	void OggVorbisDecoder::seek(UINT32 offset)
 	{
 		ov_pcm_seek(&mOggVorbisFile, offset / mChannelCount);
 	}
 
-	UINT32 OAOggVorbisReader::read(UINT8* samples, UINT32 numSamples)
+	UINT32 OggVorbisDecoder::read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 numReadSamples = 0;
 		while (numReadSamples < numSamples)
