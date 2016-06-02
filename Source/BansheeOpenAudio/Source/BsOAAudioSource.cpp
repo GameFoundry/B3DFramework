@@ -8,8 +8,9 @@
 namespace BansheeEngine
 {
 	OAAudioSource::OAAudioSource()
-		: mSavedTime(0.0f), mState(AudioSourceState::Stopped), mGloballyPaused(false), mStreamBuffers(), mBusyBuffers()
-		, mStreamProcessedPosition(0), mStreamQueuedPosition(0), mIsStreaming(false)
+		: mSavedTime(0.0f), mState(AudioSourceState::Stopped), mSavedState(AudioSourceState::Stopped)
+		, mGloballyPaused(false), mStreamBuffers(), mBusyBuffers(), mStreamProcessedPosition(0), mStreamQueuedPosition(0)
+		, mIsStreaming(false)
 	{
 		gOAAudio()._registerSource(this);
 		rebuild();
@@ -39,7 +40,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			if (is3D())
@@ -57,7 +58,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			if (is3D())
@@ -75,7 +76,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_GAIN, mVolume);
@@ -90,7 +91,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_PITCH, pitch);
@@ -109,7 +110,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_LOOPING, loop);
@@ -131,7 +132,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_REFERENCE_DISTANCE, distance);
@@ -146,7 +147,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_ROLLOFF_FACTOR, attenuation);
@@ -175,10 +176,17 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcePlay(mSourceIDs[i]);
+
+			// Non-3D clips need to play only on a single source
+			// Note: I'm still creating sourcs objects (and possibly queuing streaming buffers) for these non-playing 
+			// sources. It would be possible to optimize them out at cost of more complexity. At this time it doesn't feel
+			// worth it.
+			if(!is3D()) 
+				break;
 		}
 	}
 
@@ -190,7 +198,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcePause(mSourceIDs[i]);
@@ -205,7 +213,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourceStop(mSourceIDs[i]);
@@ -238,7 +246,7 @@ namespace BansheeEngine
 				UINT32 numContexts = (UINT32)contexts.size();
 				for (UINT32 i = 0; i < numContexts; i++)
 				{
-					if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+					if (contexts.size() > 1)
 						alcMakeContextCurrent(contexts[i]);
 
 					alSourcePause(mSourceIDs[i]);
@@ -282,7 +290,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_SEC_OFFSET, clipTime);
@@ -301,7 +309,7 @@ namespace BansheeEngine
 
 		auto& contexts = gOAAudio()._getContexts();
 
-		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		if (contexts.size() > 1)
 			alcMakeContextCurrent(contexts[0]);
 
 		bool needsStreaming = requiresStreaming();
@@ -325,36 +333,49 @@ namespace BansheeEngine
 
 	void OAAudioSource::clear()
 	{
+		mSavedState = getState();
 		mSavedTime = getTime();
 		stop();
 		
-		for (auto& source : mSourceIDs)
-			alSourcei(source, AL_BUFFER, 0);
-
+		auto& contexts = gOAAudio()._getContexts();
+		UINT32 numContexts = (UINT32)contexts.size();
+		
+		Lock(mMutex);
+		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			Lock(mMutex);
+			if (contexts.size() > 1)
+				alcMakeContextCurrent(contexts[i]);
 
-			alDeleteSources((UINT32)mSourceIDs.size(), mSourceIDs.data());
-			mSourceIDs.clear();
+			alSourcei(mSourceIDs[i], AL_BUFFER, 0);
+			alDeleteSources(1, &mSourceIDs[i]);
 		}
+
+		mSourceIDs.clear();
 	}
 
 	void OAAudioSource::rebuild()
 	{
-		AudioSourceState state = getState();
 		auto& contexts = gOAAudio()._getContexts();
+		UINT32 numContexts = (UINT32)contexts.size();
 
 		{
 			Lock(mMutex);
 
-			mSourceIDs.resize(contexts.size());
-			alGenSources((UINT32)mSourceIDs.size(), mSourceIDs.data());
+			for (UINT32 i = 0; i < numContexts; i++)
+			{
+				if (contexts.size() > 1)
+					alcMakeContextCurrent(contexts[i]);
+
+				UINT32 source = 0;
+				alGenSources(1, &source);
+
+				mSourceIDs.push_back(source);
+			}
 		}
 
-		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_PITCH, mPitch);
@@ -398,10 +419,10 @@ namespace BansheeEngine
 
 		setTime(mSavedTime);
 
-		if (state != AudioSourceState::Stopped)
+		if (mSavedState != AudioSourceState::Stopped)
 			play();
 
-		if (state == AudioSourceState::Paused)
+		if (mSavedState == AudioSourceState::Paused)
 			pause();
 	}
 
@@ -427,7 +448,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			INT32 numQueuedBuffers;
@@ -445,10 +466,6 @@ namespace BansheeEngine
 	{
 		Lock(mMutex);
 
-		// Note: Not setting context here. This might be an issue when multiple contexts are used. If context setting
-		// ends up to be needed, then I'll need to lock every audio source operation to avoid other thread changing
-		// the context.
-
 		AudioDataInfo info;
 		info.bitDepth = mAudioClip->getBitDepth();
 		info.numChannels = mAudioClip->getNumChannels();
@@ -457,66 +474,76 @@ namespace BansheeEngine
 
 		UINT32 totalNumSamples = mAudioClip->getNumSamples();
 
-		// Note: This code only uses the first source to determine the number of processed buffers. This will be an issue
-		// if other sources haven't yet processed those same buffers. No easy way to fix that situation other than to
-		// use different buffers for each source.
-
-		INT32 numProcessedBuffers = 0;
-		alGetSourcei(mSourceIDs[0], AL_BUFFERS_PROCESSED, &numProcessedBuffers);
-
-		for (INT32 i = numProcessedBuffers; i > 0; i--)
+		// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
+		// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.
+		auto& contexts = gOAAudio()._getContexts();
+		UINT32 numContexts = (UINT32)contexts.size();
+		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			UINT32 buffer;
-			alSourceUnqueueBuffers(mSourceIDs[0], 1, &buffer);
+			if (contexts.size() > 1)
+				alcMakeContextCurrent(contexts[i]);
 
-			INT32 bufferIdx = -1;
-			for (UINT32 j = 0; j < StreamBufferCount; j++)
+			INT32 numProcessedBuffers = 0;
+			alGetSourcei(mSourceIDs[i], AL_BUFFERS_PROCESSED, &numProcessedBuffers);
+
+			for (INT32 j = numProcessedBuffers; j > 0; j--)
 			{
-				if (buffer == mStreamBuffers[j])
+				UINT32 buffer;
+				alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
+
+				INT32 bufferIdx = -1;
+				for (UINT32 k = 0; k < StreamBufferCount; k++)
 				{
-					bufferIdx = j;
-					break;
+					if (buffer == mStreamBuffers[k])
+					{
+						bufferIdx = k;
+						break;
+					}
 				}
-			}
-			
-			// Possibly some buffer from previous playback remained unqueued, in which case ignore it
-			if (bufferIdx == -1)
-				continue;
 
-			mBusyBuffers[bufferIdx] = false;
+				// Possibly some buffer from previous playback remained unqueued, in which case ignore it
+				if (bufferIdx == -1)
+					continue;
 
-			INT32 bufferSize;
-			INT32 bufferBits;
+				mBusyBuffers[bufferIdx] &= ~(1 << bufferIdx);
 
-			alGetBufferi(buffer, AL_SIZE, &bufferSize);
-			alGetBufferi(buffer, AL_BITS, &bufferBits);
+				// Check if all sources are done with this buffer
+				if (mBusyBuffers[bufferIdx] != 0)
+					break;
 
-			if (bufferBits == 0)
-			{
-				LOGERR("Error decoding stream.");
-				return;
-			}
-			else
-			{
-				UINT32 bytesPerSample = bufferBits / 8;
-				mStreamProcessedPosition += bufferSize / bytesPerSample;
-			}
+				INT32 bufferSize;
+				INT32 bufferBits;
 
-			if (mStreamProcessedPosition == totalNumSamples) // Reached the end
-			{
-				mStreamProcessedPosition = 0;
+				alGetBufferi(buffer, AL_SIZE, &bufferSize);
+				alGetBufferi(buffer, AL_BITS, &bufferBits);
 
-				if (!mLoop) // Variable used on both threads and not thread safe, but it doesn't matter
+				if (bufferBits == 0)
 				{
-					stopStreaming();
+					LOGERR("Error decoding stream.");
 					return;
+				}
+				else
+				{
+					UINT32 bytesPerSample = bufferBits / 8;
+					mStreamProcessedPosition += bufferSize / bytesPerSample;
+				}
+
+				if (mStreamProcessedPosition == totalNumSamples) // Reached the end
+				{
+					mStreamProcessedPosition = 0;
+
+					if (!mLoop) // Variable used on both threads and not thread safe, but it doesn't matter
+					{
+						stopStreaming();
+						return;
+					}
 				}
 			}
 		}
 
 		for(UINT32 i = 0; i < StreamBufferCount; i++)
 		{
-			if (mBusyBuffers[i])
+			if (mBusyBuffers[i] != 0)
 				continue;
 
 			if (fillBuffer(mStreamBuffers[i], info, totalNumSamples))
@@ -524,7 +551,7 @@ namespace BansheeEngine
 				for (auto& source : mSourceIDs)
 					alSourceQueueBuffers(source, 1, &mStreamBuffers[i]);
 
-				mBusyBuffers[i] = true;
+				mBusyBuffers[i] |= 1 << i;
 			}
 			else
 				break;
@@ -570,7 +597,7 @@ namespace BansheeEngine
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());

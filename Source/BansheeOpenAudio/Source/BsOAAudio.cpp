@@ -174,6 +174,7 @@ namespace BansheeEngine
 		Lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Start, source });
+		mDestroyedSources.erase(source);
 	}
 
 	void OAAudio::stopStreaming(OAAudioSource* source)

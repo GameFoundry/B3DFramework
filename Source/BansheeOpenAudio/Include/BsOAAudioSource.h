@@ -107,12 +107,13 @@ namespace BansheeEngine
 
 		Vector<UINT32> mSourceIDs;
 		float mSavedTime;
+		AudioSourceState mSavedState;
 		AudioSourceState mState;
 		bool mGloballyPaused;
 
-		static const UINT32 StreamBufferCount = 3;
+		static const UINT32 StreamBufferCount = 3; // Maximum 32
 		UINT32 mStreamBuffers[StreamBufferCount];
-		bool mBusyBuffers[StreamBufferCount];
+		UINT32 mBusyBuffers[StreamBufferCount];
 		UINT32 mStreamProcessedPosition;
 		UINT32 mStreamQueuedPosition;
 		bool mIsStreaming;

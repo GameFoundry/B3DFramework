@@ -22,13 +22,13 @@ namespace BansheeEngine
 		AudioListener::setPosition(position);
 
 		auto& contexts = gOAAudio()._getContexts();
-		for (auto& context : contexts)
+		if (contexts.size() > 1)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(context);
-
-			updatePosition();
+			auto context = gOAAudio()._getContext(this);
+			alcMakeContextCurrent(context);
 		}
+
+		updatePosition();
 	}
 
 	void OAAudioListener::setDirection(const Vector3& direction)
@@ -37,13 +37,13 @@ namespace BansheeEngine
 
 		std::array<float, 6> orientation = getOrientation();
 		auto& contexts = gOAAudio()._getContexts();
-		for (auto& context : contexts)
+		if (contexts.size() > 1)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(context);
-
-			updateOrientation(orientation);
+			auto context = gOAAudio()._getContext(this);
+			alcMakeContextCurrent(context);
 		}
+
+		updateOrientation(orientation);
 	}
 
 	void OAAudioListener::setUp(const Vector3& up)
@@ -52,13 +52,14 @@ namespace BansheeEngine
 
 		std::array<float, 6> orientation = getOrientation();
 		auto& contexts = gOAAudio()._getContexts();
-		for (auto& context : contexts)
-		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(context);
 
-			updateOrientation(orientation);
+		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		{
+			auto context = gOAAudio()._getContext(this);
+			alcMakeContextCurrent(context);
 		}
+
+		updateOrientation(orientation);
 	}
 
 	void OAAudioListener::setVelocity(const Vector3& velocity)
@@ -66,13 +67,13 @@ namespace BansheeEngine
 		AudioListener::setVelocity(velocity);
 
 		auto& contexts = gOAAudio()._getContexts();
-		for (auto& context : contexts)
+		if (contexts.size() > 1)
 		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(context);
-
-			updateVelocity();
+			auto context = gOAAudio()._getContext(this);
+			alcMakeContextCurrent(context);
 		}
+
+		updateVelocity();
 	}
 
 	void OAAudioListener::rebuild()
@@ -82,7 +83,7 @@ namespace BansheeEngine
 		float globalVolume = gAudio().getVolume();
 		std::array<float, 6> orientation = getOrientation();
 
-		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		if (contexts.size() > 1)
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
