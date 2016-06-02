@@ -161,8 +161,6 @@ namespace BansheeEngine
 
 		if(mStreamingSound != nullptr)
 		{
-			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.get());
-
 			FMODAudioClip::releaseStreamingSound(mStreamingSound);
 			mStreamingSound = nullptr;
 		}
@@ -231,5 +229,21 @@ namespace BansheeEngine
 		}
 
 		return 0.0f;
+	}
+
+	void FMODAudioSource::onClipChanged()
+	{
+		AudioSourceState state = getState();
+		float savedTime = getTime();
+
+		stop();
+
+		setTime(savedTime);
+
+		if (state != AudioSourceState::Stopped)
+			play();
+
+		if (state == AudioSourceState::Paused)
+			pause();
 	}
 }

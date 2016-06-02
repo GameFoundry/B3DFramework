@@ -564,6 +564,7 @@ namespace BansheeEngine
 		}
 
 		onResourceModified(handle);
+		ResourceListenerManager::instance().notifyListeners(uuid);
 	}
 
 	Vector<String> Resources::getDependencies(const Path& filePath)

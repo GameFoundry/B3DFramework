@@ -64,6 +64,9 @@ namespace BansheeEngine
 		/** Pauses or resumes audio playback due to the global pause setting. */
 		void setGlobalPause(bool pause);
 
+		/** @copydoc IResourceListener::onClipChanged */
+		void onClipChanged() override;
+
 		FMOD::Channel* mChannel;
 		FMOD::Sound* mStreamingSound;
 

@@ -48,6 +48,9 @@ namespace BansheeEngine
 		/** @copydoc IResourceListener::notifyResourceChanged */
 		void notifyResourceChanged(const HResource& resource) override;
 
+		/** 
+		 * Triggered by the resources system whenever the attached collision mesh changed (e.g. was reimported) or loaded. 
+		 */
 		virtual void onMeshChanged() { }
 
 		HPhysicsMesh mMesh;

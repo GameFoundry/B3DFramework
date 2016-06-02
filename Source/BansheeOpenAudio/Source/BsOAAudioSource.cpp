@@ -28,30 +28,7 @@ namespace BansheeEngine
 		Lock(mMutex);
 		AudioSource::setClip(clip);
 
-		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.size();
-		for (UINT32 i = 0; i < numContexts; i++)
-		{
-			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
-				alcMakeContextCurrent(contexts[i]);
-
-			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());
-
-			if (!requiresStreaming())
-			{
-				UINT32 oaBuffer = 0;
-				if (clip.isLoaded())
-				{
-					OAAudioClip* oaClip = static_cast<OAAudioClip*>(clip.get());
-					oaBuffer = oaClip->_getOpenALBuffer();
-				}
-				
-				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
-			}
-		}
-
-		// Looping is influenced by streaming mode, so re-apply it in case it changed
-		setIsLooping(mLoop);
+		applyClip();
 	}
 
 	void OAAudioSource::setPosition(const Vector3& position)
@@ -585,6 +562,55 @@ namespace BansheeEngine
 		bs_stack_free(samples);
 
 		return true;
+	}
+
+	void OAAudioSource::applyClip()
+	{
+		auto& contexts = gOAAudio()._getContexts();
+		UINT32 numContexts = (UINT32)contexts.size();
+		for (UINT32 i = 0; i < numContexts; i++)
+		{
+			if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+				alcMakeContextCurrent(contexts[i]);
+
+			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());
+
+			if (!requiresStreaming())
+			{
+				UINT32 oaBuffer = 0;
+				if (mAudioClip.isLoaded())
+				{
+					OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.get());
+					oaBuffer = oaClip->_getOpenALBuffer();
+				}
+
+				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
+			}
+		}
+
+		// Looping is influenced by streaming mode, so re-apply it in case it changed
+		setIsLooping(mLoop);
+	}
+
+	void OAAudioSource::onClipChanged()
+	{
+		AudioSourceState state = getState();
+		float savedTime = getTime();
+
+		stop();
+
+		{
+			Lock(mMutex);
+			applyClip();
+		}
+
+		setTime(savedTime);
+
+		if (state != AudioSourceState::Stopped)
+			play();
+
+		if (state == AudioSourceState::Paused)
+			pause();
 	}
 
 	bool OAAudioSource::is3D() const

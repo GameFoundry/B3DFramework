@@ -15,6 +15,8 @@ namespace BansheeEngine
 	void AudioSource::setClip(const HAudioClip& clip)
 	{
 		mAudioClip = clip;
+
+		markListenerResourcesDirty();
 	}
 
 	void AudioSource::setPosition(const Vector3& position)
@@ -60,5 +62,16 @@ namespace BansheeEngine
 	SPtr<AudioSource> AudioSource::create()
 	{
 		return gAudio().createSource();
+	}
+
+	void AudioSource::getListenerResources(Vector<HResource>& resources)
+	{
+		if (mAudioClip != nullptr)
+			resources.push_back(mAudioClip);
+	}
+
+	void AudioSource::notifyResourceChanged(const HResource& resource)
+	{
+		onClipChanged();
 	}
 }

@@ -99,6 +99,12 @@ namespace BansheeEngine
 		/** Fills the provided buffer with streaming data. */
 		bool fillBuffer(UINT32 buffer, AudioDataInfo& info, UINT32 maxNumSamples);
 
+		/** Makes the current audio clip active. Should be called whenever the audio clip changes. */
+		void applyClip();
+
+		/** @copydoc IResourceListener::onClipChanged */
+		void onClipChanged() override;
+
 		Vector<UINT32> mSourceIDs;
 		float mSavedTime;
 		AudioSourceState mState;

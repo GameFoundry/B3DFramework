@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "BsIResourceListener.h"
 #include "BsVector3.h"
 
 namespace BansheeEngine
@@ -26,7 +27,7 @@ namespace BansheeEngine
 	 * Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a
 	 * spatial audio source is controlled by its position and the AudioListener's position/direction/velocity.
 	 */
-	class BS_CORE_EXPORT AudioSource
+	class BS_CORE_EXPORT AudioSource : public IResourceListener
 	{
 	public:
 		virtual ~AudioSource() { }
@@ -137,6 +138,15 @@ namespace BansheeEngine
 
 	protected:
 		AudioSource();
+
+		/** @copydoc IResourceListener::getListenerResources */
+		void getListenerResources(Vector<HResource>& resources) override;
+
+		/** @copydoc IResourceListener::notifyResourceChanged */
+		void notifyResourceChanged(const HResource& resource) override;
+
+		/** Triggered by the resources system whenever the attached audio clip changed (e.g. was reimported.) */
+		virtual void onClipChanged() { }
 
 		HAudioClip mAudioClip;
 		Vector3 mPosition;
