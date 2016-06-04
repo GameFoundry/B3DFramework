@@ -630,23 +630,23 @@ namespace BansheeEngine
 
 namespace std
 {
-/** Hash value generator for Path. */
-template<>
-struct hash<BansheeEngine::Path>
-{
-	size_t operator()(const BansheeEngine::Path& path) const
+	/** Hash value generator for Path. */
+	template<>
+	struct hash<BansheeEngine::Path>
 	{
-		size_t hash = 0;
-		BansheeEngine::hash_combine(hash, path.mFilename);
-		BansheeEngine::hash_combine(hash, path.mDevice);
-		BansheeEngine::hash_combine(hash, path.mNode);
+		size_t operator()(const BansheeEngine::Path& path) const
+		{
+			size_t hash = 0;
+			BansheeEngine::hash_combine(hash, path.mFilename);
+			BansheeEngine::hash_combine(hash, path.mDevice);
+			BansheeEngine::hash_combine(hash, path.mNode);
 
-		for (auto& dir : path.mDirectories)
-			BansheeEngine::hash_combine(hash, dir);
+			for (auto& dir : path.mDirectories)
+				BansheeEngine::hash_combine(hash, dir);
 
-		return hash;
-	}
-};
+			return hash;
+		}
+	};
 }
 
 /** @endcond */

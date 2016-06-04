@@ -5,7 +5,7 @@
 #include "BsColor.h"
 #include "BsMath.h"
 #include "BsException.h"
-#include <nvtt/nvtt.h>
+#include <nvtt.h>
 
 namespace BansheeEngine 
 {
