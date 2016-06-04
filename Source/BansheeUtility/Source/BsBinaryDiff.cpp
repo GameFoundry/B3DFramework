@@ -127,6 +127,7 @@ namespace BansheeEngine
 
 		IReflectable* destObject = nullptr;
 		Stack<IReflectable*> objectStack;
+		Vector<RTTITypeBase*> rttiTypes;
 
 		for (auto& command : commands)
 		{
@@ -146,9 +147,13 @@ namespace BansheeEngine
 				RTTITypeBase* curRtti = destObject->getRTTI();
 				while (curRtti != nullptr)
 				{
-					curRtti->onDeserializationStarted(destObject, dummyParams);
+					rttiTypes.push_back(curRtti);
 					curRtti = curRtti->getBaseClass();
 				}
+
+				// Call base class first, followed by derived classes
+				for(auto iter = rttiTypes.rbegin(); iter != rttiTypes.rend(); ++iter)
+					(*iter)->onDeserializationStarted(destObject, dummyParams);
 			}
 				break;
 			case Diff_ObjectEnd:

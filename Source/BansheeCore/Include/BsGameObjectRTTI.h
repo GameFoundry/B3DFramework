@@ -55,13 +55,7 @@ namespace BansheeEngine
 		static SPtr<T> createGameObject()
 		{
 			SPtr<T> component = SceneObject::createEmptyComponent<T>();
-
-			// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
-			component->mRTTIData = GODeserializationData();
-			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(component->mRTTIData);
-
-			// Store shared pointer since the system only provides us with raw ones
-			deserializationData.ptr = component;
+			component->mRTTIData = component;
 
 			return component;
 		}
@@ -72,6 +66,25 @@ namespace BansheeEngine
 			addPlainField("mInstanceID", 0, &GameObjectRTTI::getInstanceID, &GameObjectRTTI::setInstanceID);
 			addPlainField("mName", 1, &GameObjectRTTI::getName, &GameObjectRTTI::setName);
 			addPlainField("mLinkId", 2, &GameObjectRTTI::getLinkId, &GameObjectRTTI::setLinkId);
+		}
+
+		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
+		{
+			GameObject* gameObject = static_cast<GameObject*>(obj);
+
+			// It's possible we're just accessing the game object fields, in which case the process below is not needed
+			// (it's only required for new game objects).
+			if (gameObject->mRTTIData.empty())
+				return;
+
+			SPtr<GameObject> gameObjectPtr = any_cast<SPtr<GameObject>>(gameObject->mRTTIData);
+
+			// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
+			gameObject->mRTTIData = GODeserializationData();
+			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(gameObject->mRTTIData);
+
+			// Store shared pointer since the system only provides us with raw ones
+			deserializationData.ptr = gameObjectPtr;
 		}
 
 		const String& getRTTIName() override

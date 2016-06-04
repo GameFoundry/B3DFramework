@@ -165,8 +165,10 @@ namespace BansheeEngine
 	{
 		static const UnorderedMap<String, UINT64> dummyParams;
 
-		for (auto& subObject : referenceData.subObjectData)
+		for(auto iter = referenceData.subObjectData.rbegin(); iter != referenceData.subObjectData.rend(); ++iter)
 		{
+			const SubObjectReferenceData& subObject = *iter;
+
 			if (subObject.references.size() > 0)
 			{
 				subObject.rtti->onDeserializationStarted(object, dummyParams);
@@ -183,7 +185,10 @@ namespace BansheeEngine
 
 				subObject.rtti->onDeserializationEnded(object, dummyParams);
 			}
+		}
 
+		for (auto& subObject : referenceData.subObjectData)
+		{
 			if (subObject.children.size() > 0)
 			{
 				subObject.rtti->onSerializationStarted(object, dummyParams);

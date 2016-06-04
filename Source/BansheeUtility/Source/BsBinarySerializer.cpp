@@ -884,9 +884,11 @@ namespace BansheeEngine
 	void BinarySerializer::decodeEntry(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serializableObject)
 	{
 		UINT32 numSubObjects = (UINT32)serializableObject->subObjects.size();
+		if (numSubObjects == 0)
+			return;
 
 		Vector<RTTITypeBase*> rttiTypes;
-		for (UINT32 subObjectIdx = 0; subObjectIdx < numSubObjects; subObjectIdx++)
+		for (INT32 subObjectIdx = numSubObjects - 1; subObjectIdx >= 0; subObjectIdx--)
 		{
 			const SerializedSubObject& subObject = serializableObject->subObjects[subObjectIdx];
 
@@ -1107,7 +1109,7 @@ namespace BansheeEngine
 			}
 		}
 
-		for (auto iterFind = rttiTypes.rbegin(); iterFind != rttiTypes.rend(); ++iterFind)
+		for (auto iterFind = rttiTypes.begin(); iterFind != rttiTypes.end(); ++iterFind)
 		{
 			(*iterFind)->onDeserializationEnded(object.get(), mParams);
 		}

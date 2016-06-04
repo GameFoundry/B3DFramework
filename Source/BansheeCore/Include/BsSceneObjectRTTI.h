@@ -100,7 +100,17 @@ namespace BansheeEngine
 			// If this is the root scene object we're deserializing, activate game object deserialization so the system
 			// can resolve deserialized handles to the newly created objects
 			SceneObject* so = static_cast<SceneObject*>(obj);
+
+			// It's possible we're just accessing the game object fields, in which case the process below is not needed
+			// (it's only required for new scene objects).
+			if (so->mRTTIData.empty())
+				return;
+
+			// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
 			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(so->mRTTIData);
+
+			// We delay adding children/components and instead store them here
+			deserializationData.moreData = SODeserializationData();
 
 			if (!GameObjectManager::instance().isGameObjectDeserializationActive())
 			{
@@ -116,6 +126,12 @@ namespace BansheeEngine
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SceneObject* so = static_cast<SceneObject*>(obj);
+
+			// It's possible we're just accessing the game object fields, in which case the process below is not needed
+			// (it's only required for new scene objects).
+			if (so->mRTTIData.empty())
+				return;
+
 			GODeserializationData& goDeserializationData = any_cast_ref<GODeserializationData>(so->mRTTIData);
 
 			// Register the newly created SO with the GameObjectManager and provide it with the original ID so that
@@ -165,21 +181,11 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			SPtr<SceneObject> sceneObjectPtr = 
-				SPtr<SceneObject>(new (bs_alloc<SceneObject>()) SceneObject("", SOF_DontInstantiate),
+			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new (bs_alloc<SceneObject>()) SceneObject("", SOF_DontInstantiate),
 				&bs_delete<SceneObject>, StdAlloc<SceneObject>());
+			sceneObject->mRTTIData = sceneObject;
 
-			// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
-			sceneObjectPtr->mRTTIData = GODeserializationData();
-			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(sceneObjectPtr->mRTTIData);
-
-			// Store shared pointer since the system only provides us with raw ones
-			deserializationData.ptr = sceneObjectPtr;
-
-			// We delay adding children/components and instead store them here
-			deserializationData.moreData = SODeserializationData();
-
-			return sceneObjectPtr;
+			return sceneObject;
 		}
 	};
 

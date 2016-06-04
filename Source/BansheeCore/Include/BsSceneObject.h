@@ -651,7 +651,7 @@ namespace BansheeEngine
 		friend class GameObjectRTTI;
 		friend class SceneObjectRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */
