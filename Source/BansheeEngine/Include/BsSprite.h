@@ -142,7 +142,7 @@ namespace BansheeEngine
 			const Rect2I& clipRect, bool clip = true) const;
 
 		/**
-		 * Clips the provided vertices to the provided clip rectangle. The vertices must for axis aligned quads.
+		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices must form axis aligned quads.
 		 *
 		 * @param[in, out]	vertices	Pointer to the start of the buffer containing vertex positions.
 		 * @param[in, out]	uv			Pointer to the start of the buffer containing UV coordinates.
@@ -155,17 +155,21 @@ namespace BansheeEngine
 		static void clipQuadsToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect);
 
 		/**
-		 * Clips the provided triangles vertices to the provided clip rectangle.
+		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices can be arbitrary triangles.
 		 *
-		 * @param[in, out]	vertices	Pointer to the start of the buffer containing vertex positions.
-		 * @param[in, out]	uv			Pointer to the start of the buffer containing UV coordinates.
-		 * @param[in]		numTris		Number of triangles in the provided buffer pointers.
-		 * @param[in]		vertStride	Number of bytes to skip when going to the next vertex. This assumes both position
-		 *								and uv coordinates have the same stride (as they are likely pointing to the same 
+		 * @param[in]	vertices		Pointer to the start of the buffer containing vertex positions.
+		 * @param[in]	uv				Pointer to the start of the buffer containing UV coordinates.
+		 * @param[in]	numTris			Number of triangles in the provided buffer pointers.
+		 * @param[in]	vertStride		Number of bytes to skip when going to the next vertex. This assumes both position
+		 *								and uv coordinates have the same stride (as they are likely pointing to the same
 		 *								buffer).
-		 * @param[in]		clipRect	Rectangle to clip the geometry to.
+		 * @param[in]	clipRect		Rectangle to clip the geometry to.
+		 * @param[in]	writeCallback	Callback that will be triggered when clipped vertices and UV coordinates are
+		 *								generated and need to be stored. Vertices are always generate in tuples of three,
+		 *								forming a single triangle.
 		 */
-		static void clipTrianglesToRect(UINT8* vertices, UINT8* uv, UINT32 numTris, UINT32 vertStride, const Rect2I& clipRect);
+		static void clipTrianglesToRect(UINT8* vertices, UINT8* uv, UINT32 numTris, UINT32 vertStride, 
+			const Rect2I& clipRect, const std::function<void(Vector2*, Vector2*, UINT32)>& writeCallback);
 	protected:
 		/**	Returns the offset needed to move the sprite in order for it to respect the provided anchor. */
 		static Vector2I getAnchorOffset(SpriteAnchor anchor, UINT32 width, UINT32 height);
