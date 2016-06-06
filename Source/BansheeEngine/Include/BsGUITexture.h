@@ -119,7 +119,7 @@ namespace BansheeEngine
 
 		/**
 		 * Creates a new GUI texture element. Uses the "normal" texture from the active GUI element style.
-		 *			Uses the default StretchToFit scale mode.
+		 * Uses the default StretchToFit scale mode.
 		 *
 		 * @param[in]	options			Options that allow you to control how is the element positioned and sized. This will
 		 *								override any similar options set by style.

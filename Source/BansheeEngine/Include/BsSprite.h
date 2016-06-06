@@ -161,7 +161,8 @@ namespace BansheeEngine
 		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices can be arbitrary triangles.
 		 *
 		 * @param[in]	vertices		Pointer to the start of the buffer containing vertex positions.
-		 * @param[in]	uv				Pointer to the start of the buffer containing UV coordinates.
+		 * @param[in]	uv				Pointer to the start of the buffer containing UV coordinates. Can be null if UV is
+		 *								not needed.
 		 * @param[in]	numTris			Number of triangles in the provided buffer pointers.
 		 * @param[in]	vertStride		Number of bytes to skip when going to the next vertex. This assumes both position
 		 *								and uv coordinates have the same stride (as they are likely pointing to the same

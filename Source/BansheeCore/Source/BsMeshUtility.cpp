@@ -550,13 +550,26 @@ namespace BansheeEngine
 		UINT32 numVertices = numTris * 3;
 		mesh.verts.resize(numVertices);
 
-		for (UINT32 i = 0; i < numVertices; i++)
+		if (uvs != nullptr)
 		{
-			ClipVert& clipVert = mesh.verts[i];
-			Vector2 vector2D = *(Vector2*)(vertices + vertexStride * i);
+			for (UINT32 i = 0; i < numVertices; i++)
+			{
+				ClipVert& clipVert = mesh.verts[i];
+				Vector2 vector2D = *(Vector2*)(vertices + vertexStride * i);
 
-			clipVert.point = Vector3(vector2D.x, vector2D.y, 0.0f);
-			clipVert.uv = *(Vector2*)(uvs + vertexStride * i);
+				clipVert.point = Vector3(vector2D.x, vector2D.y, 0.0f);
+				clipVert.uv = *(Vector2*)(uvs + vertexStride * i);
+			}
+		}
+		else
+		{
+			for (UINT32 i = 0; i < numVertices; i++)
+			{
+				ClipVert& clipVert = mesh.verts[i];
+				Vector2 vector2D = *(Vector2*)(vertices + vertexStride * i);
+
+				clipVert.point = Vector3(vector2D.x, vector2D.y, 0.0f);
+			}
 		}
 
 		addEdgesAndFaces();
@@ -636,12 +649,25 @@ namespace BansheeEngine
 		UINT32 numVertices = numTris * 3;
 		mesh.verts.resize(numVertices);
 
-		for (UINT32 i = 0; i < numVertices; i++)
+		if (uvs != nullptr)
 		{
-			ClipVert& clipVert = mesh.verts[i];
+			for (UINT32 i = 0; i < numVertices; i++)
+			{
+				ClipVert& clipVert = mesh.verts[i];
 
-			clipVert.point = *(Vector3*)(vertices + vertexStride * i);
-			clipVert.uv = *(Vector2*)(uvs + vertexStride * i);
+				clipVert.point = *(Vector3*)(vertices + vertexStride * i);
+				clipVert.uv = *(Vector2*)(uvs + vertexStride * i);
+			}
+		}
+		else
+		{
+			for (UINT32 i = 0; i < numVertices; i++)
+			{
+				ClipVert& clipVert = mesh.verts[i];
+				Vector2 vector2D = *(Vector2*)(vertices + vertexStride * i);
+
+				clipVert.point = Vector3(vector2D.x, vector2D.y, 0.0f);
+			}
 		}
 
 		addEdgesAndFaces();

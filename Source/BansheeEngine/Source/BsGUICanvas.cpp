@@ -5,6 +5,8 @@
 #include "BsSpriteTexture.h"
 #include "BsGUIDimensions.h"
 #include "BsGUITexture.h"
+#include "BsShapeMeshes2D.h"
+#include "BsException.h"
 
 namespace BansheeEngine
 {
@@ -15,7 +17,7 @@ namespace BansheeEngine
 	}
 
 	GUICanvas::GUICanvas(const String& styleName, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mOutVertices(nullptr)
+		:GUIElement(styleName, dimensions), mNumRenderElements(0), mForceTriangleBuild(false)
 	{
 
 	}
@@ -42,13 +44,21 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Line;
 		element.color = color;
-
+		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = 2;
 
-		mVertexData.push_back(a);
-		mVertexData.push_back(b);
+		// TODO - Add actual triangle line data here
+		mVertexData.push_back(Vector2((float)a.x, (float)a.y));
+		mVertexData.push_back(Vector2((float)b.x, (float)b.y));
 
+		mTriangleElementData.push_back(TriangleElementData());
+		TriangleElementData& elemData = mTriangleElementData.back();
+		elemData.matInfo.groupId = 0;
+		elemData.matInfo.tint = color;
+		elemData.matInfo.type = SpriteMaterial::ImageAlpha; // TODO - Use line material here
+
+		mForceTriangleBuild = true;
 		_markContentAsDirty();
 	}
 
@@ -65,11 +75,21 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Line;
 		element.color = color;
-
+		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
 
-		mVertexData.insert(mVertexData.end(), vertices.begin(), vertices.end());
+		// TODO - Add actual triangle line data here
+		for (auto& vertex : vertices)
+			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
+
+		mTriangleElementData.push_back(TriangleElementData());
+		TriangleElementData& elemData = mTriangleElementData.back();
+		elemData.matInfo.groupId = 0;
+		elemData.matInfo.tint = color;
+		elemData.matInfo.type = SpriteMaterial::ImageAlpha; // TODO - Use line material here
+
+		mForceTriangleBuild = true;
 		_markContentAsDirty();
 	}
 
@@ -81,7 +101,7 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Image;
 		element.color = color;
-		element.imageDataId = (UINT32)mImageData.size();
+		element.dataId = (UINT32)mImageData.size();
 		element.scaleMode = scaleMode;
 		element.imageSprite = bs_new<ImageSprite>();
 
@@ -102,18 +122,25 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Triangle;
 		element.color = color;
-
+		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)(vertices.size() - 2) * 3;
 
 		// Convert strip to list
 		for(UINT32 i = 2; i < (UINT32)vertices.size(); i++)
 		{
-			mVertexData.push_back(vertices[i - 2]);
-			mVertexData.push_back(vertices[i - 1]);
-			mVertexData.push_back(vertices[i - 0]);
+			mVertexData.push_back(Vector2((float)vertices[i - 2].x, (float)vertices[i - 2].y));
+			mVertexData.push_back(Vector2((float)vertices[i - 1].x, (float)vertices[i - 1].y));
+			mVertexData.push_back(Vector2((float)vertices[i - 0].x, (float)vertices[i - 0].y));
 		}
 
+		mTriangleElementData.push_back(TriangleElementData());
+		TriangleElementData& elemData = mTriangleElementData.back();
+		elemData.matInfo.groupId = 0;
+		elemData.matInfo.tint = color;
+		elemData.matInfo.type = SpriteMaterial::ImageAlpha;
+
+		mForceTriangleBuild = true;
 		_markContentAsDirty();
 	}
 
@@ -130,11 +157,20 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Triangle;
 		element.color = color;
-
+		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
 
-		mVertexData.insert(mVertexData.end(), vertices.begin(), vertices.end());
+		for (auto& vertex : vertices)
+			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
+
+		mTriangleElementData.push_back(TriangleElementData());
+		TriangleElementData& elemData = mTriangleElementData.back();
+		elemData.matInfo.groupId = 0;
+		elemData.matInfo.tint = color;
+		elemData.matInfo.type = SpriteMaterial::ImageAlpha; // TODO - Use line material here
+
+		mForceTriangleBuild = true;
 		_markContentAsDirty();
 	}
 
@@ -146,7 +182,7 @@ namespace BansheeEngine
 
 		element.type = CanvasElementType::Text;
 		element.color = color;
-		element.textDataId = (UINT32)mTextData.size();
+		element.dataId = (UINT32)mTextData.size();
 		element.size = size;
 		element.textSprite = bs_new<TextSprite>();
 
@@ -156,9 +192,6 @@ namespace BansheeEngine
 
 	void GUICanvas::clear()
 	{
-		bs_delete(mOutVertices);
-		mOutVertices = nullptr;
-
 		for (auto& element : mElements)
 		{
 			if(element.imageSprite != nullptr)
@@ -166,34 +199,36 @@ namespace BansheeEngine
 		}
 
 		mElements.clear();
+		mNumRenderElements = 0;
 
 		mVertexData.clear();
 		mImageData.clear();
 		mTextData.clear();
+		mTriangleElementData.clear();
+		mClippedVertices.clear();
+		mForceTriangleBuild = false;
 	}
 
 	UINT32 GUICanvas::_getNumRenderElements() const
 	{
-		return (UINT32)mElements.size();
+		return mNumRenderElements;
 	}
 
 	const SpriteMaterialInfo& GUICanvas::_getMaterial(UINT32 renderElementIdx) const
 	{
 		static const SpriteMaterialInfo defaultMatInfo;
 
-		const CanvasElement& element = mElements[renderElementIdx];
+		const CanvasElement& element = findElement(renderElementIdx);
 		switch (element.type)
 		{
 		case CanvasElementType::Line:
-			// TODO
-			return defaultMatInfo;
+			return mTriangleElementData[element.dataId].matInfo;
 		case CanvasElementType::Image:
 			return element.imageSprite->getMaterialInfo(renderElementIdx);
 		case CanvasElementType::Text:
 			return element.textSprite->getMaterialInfo(renderElementIdx);
 		case CanvasElementType::Triangle:
-			// TODO
-			return defaultMatInfo;
+			return mTriangleElementData[element.dataId].matInfo;
 		default:
 			return defaultMatInfo;
 		}
@@ -201,14 +236,13 @@ namespace BansheeEngine
 
 	void GUICanvas::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
 	{
-		const CanvasElement& element = mElements[renderElementIdx];
+		Vector2 offset((float)mLayoutData.area.x, (float)mLayoutData.area.y);
+		Rect2I clipRect = mLayoutData.getLocalClipRect();
+		buildAllTriangleElementsIfDirty(offset, clipRect);
+
+		const CanvasElement& element = findElement(renderElementIdx);
 		switch (element.type)
 		{
-		case CanvasElementType::Line:
-			// TODO
-			numVertices = 0;
-			numIndices = 0;
-			break;
 		case CanvasElementType::Image:
 		{
 			UINT32 numQuads = element.imageSprite->getNumQuads(renderElementIdx);
@@ -221,13 +255,12 @@ namespace BansheeEngine
 			numVertices = numQuads * 4;
 			numIndices = numQuads * 6;
 		}
+		case CanvasElementType::Line:
 		case CanvasElementType::Triangle:
-			// TODO
-			numVertices = 0;
-			numIndices = 0;
+			numVertices = element.clippedNumVertices;
+			numIndices = element.clippedNumVertices;
 			break;
 		default:
-			// TODO
 			numVertices = 0;
 			numIndices = 0;
 			break;
@@ -236,36 +269,118 @@ namespace BansheeEngine
 
 	void GUICanvas::updateRenderElementsInternal()
 	{
-		bs_delete(mOutVertices);
-		mOutVertices = nullptr;
-
+		mNumRenderElements = 0;
 		for(auto& element : mElements)
 		{
 			switch(element.type)
 			{
-			case CanvasElementType::Line:
-				// TODO
-				break;
 			case CanvasElementType::Image:
 				buildImageElement(element);
+				element.renderElemStart = mNumRenderElements;
+				element.renderElemEnd = element.renderElemStart + element.imageSprite->getNumRenderElements();
 				break;
 			case CanvasElementType::Text:
 				buildTextElement(element);
+				element.renderElemStart = mNumRenderElements;
+				element.renderElemEnd = element.renderElemStart + element.textSprite->getNumRenderElements();
 				break;
+			case CanvasElementType::Line:
 			case CanvasElementType::Triangle:
-				// TODO
+				element.renderElemStart = mNumRenderElements;
+				element.renderElemEnd = element.renderElemStart + 1;
+
+				mTriangleElementData[element.dataId].matInfo.groupId = (UINT64)_getParentWidget();
+
+				// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 				break;
 			}
+
+			mNumRenderElements = element.renderElemEnd;
 		}
 
 		GUIElement::updateRenderElementsInternal();
+	}
+
+	Vector2I GUICanvas::_getOptimalSize() const
+	{
+		return Vector2I(10, 10);
+	}
+
+	void GUICanvas::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	{
+		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
+		Rect2I clipRect = mLayoutData.getLocalClipRect();
+
+		Vector2 floatOffset((float)offset.x, (float)offset.y);
+		buildAllTriangleElementsIfDirty(floatOffset, clipRect);
+
+		const CanvasElement& element = findElement(renderElementIdx);
+		switch(element.type)
+		{
+		case CanvasElementType::Image:
+		{
+			const Rect2I& area = mImageData[element.dataId].area;
+
+			offset.x += area.x;
+			offset.y += area.y;
+			clipRect.x -= area.x;
+			clipRect.y -= area.y;
+
+			element.imageSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+				vertexStride, indexStride, renderElementIdx, offset, clipRect);
+		}
+			break;
+		case CanvasElementType::Text:
+		{
+			const Vector2I& position = mTextData[element.dataId].position;
+			offset += position;
+			clipRect.x += position.x;
+			clipRect.y += position.y;
+
+			element.textSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+				vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+		}
+			break;
+		case CanvasElementType::Triangle:
+		case CanvasElementType::Line:
+		{
+			UINT32 startVert = vertexOffset;
+			UINT32 startIndex = indexOffset;
+
+			UINT32 maxVertIdx = maxNumVerts;
+			UINT32 maxIndexIdx = maxNumIndices;
+
+			UINT32 numVertices = element.clippedNumVertices;
+			UINT32 numIndices = numVertices;
+
+			assert((startVert + numVertices) <= maxVertIdx);
+			assert((startIndex + numIndices) <= maxIndexIdx);
+
+			UINT8* vertDst = vertices + startVert * vertexStride;
+			UINT8* uvDst = uv + startVert * vertexStride;
+			UINT32* indexDst = indices + startIndex;
+
+			Vector2 zeroUV;
+			for(UINT32 i = 0; i < element.clippedNumVertices; i++)
+			{
+				memcpy(vertDst, &mClippedVertices[element.clippedVertexStart + i], sizeof(Vector2));
+				memcpy(uvDst, &zeroUV, sizeof(Vector2));
+
+				vertDst += vertexStride;
+				uvDst += vertexStride;
+				indexDst[i] = i;
+			}
+		}
+			break;
+		}
 	}
 
 	void GUICanvas::buildImageElement(const CanvasElement& element)
 	{
 		assert(element.type == CanvasElementType::Image);
 
-		const ImageElementData& imageData = mImageData[element.imageDataId];
+		const ImageElementData& imageData = mImageData[element.dataId];
 
 		IMAGE_SPRITE_DESC desc;
 		desc.width = imageData.area.width;
@@ -292,7 +407,7 @@ namespace BansheeEngine
 	{
 		assert(element.type == CanvasElementType::Text);
 
-		const TextElementData& textData = mTextData[element.textDataId];
+		const TextElementData& textData = mTextData[element.dataId];
 
 		TEXT_SPRITE_DESC desc;
 		desc.font = textData.font;
@@ -303,50 +418,69 @@ namespace BansheeEngine
 		element.textSprite->update(desc, (UINT64)_getParentWidget());
 	}
 
-	Vector2I GUICanvas::_getOptimalSize() const
+	void GUICanvas::buildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const
 	{
-		return Vector2I(10, 10);
+		assert(element.type == CanvasElementType::Triangle || element.type == CanvasElementType::Line);
+
+		UINT8* inputVertices = (UINT8*)&mVertexData[element.vertexStart];
+		UINT32 numTris = element.numVertices / 3;
+
+		element.clippedVertexStart = (UINT32)mClippedVertices.size();
+		element.clippedNumVertices = 0;
+		auto writeCallback = [&](Vector2* vertices, Vector2* uvs, UINT32 count)
+		{
+			for (UINT32 i = 0; i < count; i++)
+				mClippedVertices.push_back(vertices[i] + offset);
+
+			element.clippedNumVertices += count;
+		};
+
+		ImageSprite::clipTrianglesToRect(inputVertices, nullptr, numTris, sizeof(Vector2), clipRect, writeCallback);
 	}
 
-	void GUICanvas::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUICanvas::buildAllTriangleElementsIfDirty(const Vector2& offset, const Rect2I& clipRect) const
 	{
-		const CanvasElement& element = mElements[renderElementIdx];
+		// We need to rebuild if new triangle element(s) were added, or if offset or clip rectangle changed
+		bool isDirty = mForceTriangleBuild || (mLastOffset != offset) || (mLastClipRect != clipRect);
+		if (!isDirty)
+			return;
 
-		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
-		Rect2I clipRect = mLayoutData.getLocalClipRect();
-		switch(element.type)
+		mClippedVertices.clear();
+		for(auto& element : mElements)
 		{
-		case CanvasElementType::Line:
-			// TODO - Handle offset and clipping, output vertices
-			break;
-		case CanvasElementType::Image:
+			if (element.type != CanvasElementType::Triangle && element.type != CanvasElementType::Line)
+				continue;
+
+			buildTriangleElement(element, offset, clipRect);
+		}
+
+		mLastOffset = offset;
+		mLastClipRect = clipRect;
+		mForceTriangleBuild = false;
+	}
+
+	const GUICanvas::CanvasElement& GUICanvas::findElement(UINT32 renderElementIdx) const
+	{
+		INT32 start = 0;
+		INT32 end = (INT32)mElements.size();
+
+		while (start < end)
 		{
-			const Rect2I& area = mImageData[element.imageDataId].area;
+			INT32 middle = (start + end) / 2;
+			const CanvasElement& current = mElements[middle];
 
-			offset.x += area.x;
-			offset.y += area.y;
-			clipRect.x -= area.x;
-			clipRect.y -= area.y;
+			if (current.renderElemStart >= renderElementIdx && renderElementIdx < current.renderElemEnd)
+				return current;
 
-			element.imageSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, offset, clipRect);
+			if (renderElementIdx < current.renderElemStart)
+				end = middle - 1;
+			else
+				start = middle + 1;
 		}
-			break;
-		case CanvasElementType::Text:
-		{
-			const Vector2I& position = mTextData[element.textDataId].position;
-			offset += position;
-			clipRect.x += position.x;
-			clipRect.y += position.y;
 
-			element.textSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
-		}
-			break;
-		case CanvasElementType::Triangle:
-			// TODO - Handle offset and clipping, output vertices
-			break;
-		}
+		BS_EXCEPT(InvalidParametersException, "Cannot find requested GUI render element.");
+
+		static CanvasElement dummyElement;
+		return dummyElement;
 	}
 }

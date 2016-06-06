@@ -132,11 +132,13 @@ namespace BansheeEngine
 		{
 			CanvasElementType type;
 			Color color;
+			UINT32 renderElemStart;
+			UINT32 renderElemEnd;
+			UINT32 dataId;
 
 			union
 			{
 				ImageSprite* imageSprite;
-				UINT32 imageDataId;
 				TextureScaleMode scaleMode;
 			};
 
@@ -144,12 +146,13 @@ namespace BansheeEngine
 			{
 				UINT32 vertexStart;
 				UINT32 numVertices;
+				mutable UINT32 clippedVertexStart;
+				mutable UINT32 clippedNumVertices;
 			};
 
 			union
 			{
 				TextSprite* textSprite;
-				UINT32 textDataId;
 				UINT32 size;
 			};
 		};
@@ -167,6 +170,12 @@ namespace BansheeEngine
 		{
 			HSpriteTexture texture;
 			Rect2I area;
+		};
+
+		/** Information required for drawing an arbitrary triangle canvas element. */
+		struct TriangleElementData
+		{
+			SpriteMaterialInfo matInfo;
 		};
 
 		GUICanvas(const String& styleName, const GUIDimensions& dimensions);
@@ -194,13 +203,30 @@ namespace BansheeEngine
 		/** Build a text sprite from the provided canvas element. */
 		void buildTextElement(const CanvasElement& element);
 
+		/** Build a set of clipped triangles from the source triangles provided by the canvas element. */
+		void buildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const;
+
+		/** 
+		 * Rebuilds all triangle elements on the canvas, by constructing a set of clipped and offset triangles from the
+		 * triangles provided by the canvas elements. 
+		 */
+		void buildAllTriangleElementsIfDirty(const Vector2& offset, const Rect2I& clipRect) const;
+
+		/** Finds the canvas element that contains the render element with the specified index. */
+		const CanvasElement& findElement(UINT32 renderElementIdx) const;
+
 		Vector<CanvasElement> mElements;
+		UINT32 mNumRenderElements;
 
 		Vector<ImageElementData> mImageData;
 		Vector<TextElementData> mTextData;
-		Vector<Vector2I> mVertexData;
+		Vector<TriangleElementData> mTriangleElementData;
+		Vector<Vector2> mVertexData;
 
-		Vector2I* mOutVertices;
+		mutable Vector<Vector2> mClippedVertices;
+		mutable Vector2 mLastOffset;
+		mutable Rect2I mLastClipRect;
+		mutable bool mForceTriangleBuild;
 	};
 
 	/** @} */
