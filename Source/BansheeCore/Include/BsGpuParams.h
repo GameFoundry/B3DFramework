@@ -75,6 +75,9 @@ namespace BansheeEngine
 		/**	Checks if load/store texture parameter with the specified name exists. */
 		bool hasLoadStoreTexture(const String& name) const;
 
+		/**	Checks if buffer parameter with the specified name exists. */
+		bool hasBuffer(const String& name) const;
+
 		/**	Checks if sampler state parameter with the specified name exists. */
 		bool hasSamplerState(const String& name) const;
 
@@ -105,6 +108,7 @@ namespace BansheeEngine
 		UINT32 mNumParamBlocks;
 		UINT32 mNumTextures;
 		UINT32 mNumLoadStoreTextures;
+		UINT32 mNumBuffers;
 		UINT32 mNumSamplerStates;
 
 		TextureSurface* mLoadStoreSurfaces;
@@ -117,6 +121,7 @@ namespace BansheeEngine
 	{
 		typedef GpuParams GpuParamsType;
 		typedef HTexture TextureType;
+		typedef SPtr<GpuBuffer> BufferType;
 		typedef SPtr<SamplerState> SamplerType;
 		typedef SPtr<GpuParamBlockBuffer> ParamsBufferType;
 	};
@@ -125,6 +130,7 @@ namespace BansheeEngine
 	{
 		typedef GpuParamsCore GpuParamsType;
 		typedef SPtr<TextureCore> TextureType;
+		typedef SPtr<GpuBufferCore> BufferType;
 		typedef SPtr<SamplerStateCore> SamplerType;
 		typedef SPtr<GpuParamBlockBufferCore> ParamsBufferType;
 	};
@@ -136,6 +142,7 @@ namespace BansheeEngine
 	public:
 		typedef typename TGpuParamsTypes<Core>::GpuParamsType GpuParamsType;
 		typedef typename TGpuParamsTypes<Core>::TextureType TextureType;
+		typedef typename TGpuParamsTypes<Core>::BufferType BufferType;
 		typedef typename TGpuParamsTypes<Core>::SamplerType SamplerType;
 		typedef typename TGpuParamsTypes<Core>::ParamsBufferType ParamsBufferType;
 
@@ -187,6 +194,9 @@ namespace BansheeEngine
 		void getLoadStoreTextureParam(const String& name, TGpuParamLoadStoreTexture<Core>& output) const;
 
 		/** @copydoc getParam */
+		void getBufferParam(const String& name, TGpuParamBuffer<Core>& output) const;
+
+		/** @copydoc getParam */
 		void getSamplerStateParam(const String& name, TGpuParamSampState<Core>& output) const;
 
 		/**	Gets a parameter block buffer from the specified slot. */
@@ -198,6 +208,9 @@ namespace BansheeEngine
 		/**	Gets a load/store texture bound to the specified slot. */
 		TextureType getLoadStoreTexture(UINT32 slot);
 
+		/**	Gets a buffer bound to the specified slot. */
+		BufferType getBuffer(UINT32 slot);
+
 		/**	Gets a sampler state bound to the specified slot. */
 		SamplerType getSamplerState(UINT32 slot);
 
@@ -206,6 +219,9 @@ namespace BansheeEngine
 
 		/**	Sets a load/store texture at the specified slot. */
 		void setLoadStoreTexture(UINT32 slot, const TextureType& texture, const TextureSurface& surface);
+
+		/**	Sets a buffer at the specified slot. */
+		void setBuffer(UINT32 slot, const BufferType& buffer);
 
 		/**	Sets a sampler state at the specified slot. */
 		void setSamplerState(UINT32 slot, const SamplerType& sampler);
@@ -217,6 +233,7 @@ namespace BansheeEngine
 		ParamsBufferType* mParamBlockBuffers;
 		TextureType* mTextures;
 		TextureType* mLoadStoreTextures;
+		BufferType* mBuffers;
 		SamplerType* mSamplerStates;
 	};
 

@@ -58,9 +58,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize, 
-		GpuBufferType type, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 	{
-		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) GpuBuffer(elementCount, elementSize, type, usage, randomGpuWrite, useCounter));
+		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) 
+			GpuBuffer(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter));
 		gbuf->_setThisPtr(gbuf);
 		gbuf->initialize();
 
@@ -111,9 +112,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 	{
-		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(elementCount, elementSize, type, usage, randomGpuWrite, useCounter);
+		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(elementCount, elementSize, type, format, usage, randomGpuWrite, 
+			useCounter);
 		gbuf->initialize();
 
 		return gbuf;

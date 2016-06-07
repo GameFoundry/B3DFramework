@@ -266,6 +266,16 @@ namespace BansheeEngine
 					rs.setLoadStoreTexture(stage.type, iter->second.slot, true, texture, surface);
 			}
 
+			for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+			{
+				SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
+
+				bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+					iter->second.type != GPOT_STRUCTURED_BUFFER;
+
+				rs.setBuffer(stage.type, iter->second.slot, buffer, isLoadStore);
+			}
+
 			rs.setConstantBuffers(stage.type, params);
 		}
 	}

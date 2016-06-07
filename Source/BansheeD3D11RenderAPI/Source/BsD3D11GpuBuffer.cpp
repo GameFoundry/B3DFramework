@@ -12,9 +12,14 @@
 namespace BansheeEngine
 {
 	D3D11GpuBufferCore::D3D11GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: GpuBufferCore(elementCount, elementSize, type, usage, randomGpuWrite, useCounter), mBuffer(nullptr)
-	{ }
+		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		: GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter), mBuffer(nullptr)
+	{
+		if (type != GBT_STANDARD)
+			assert(format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
+		else
+			assert(elementSize != 0 && "No element size can be provided for standard buffer. Size is determined from format.");
+	}
 
 	D3D11GpuBufferCore::~D3D11GpuBufferCore()
 	{ 
@@ -32,6 +37,7 @@ namespace BansheeEngine
 
 		switch (props.getType())
 		{
+		case GBT_STANDARD:
 		case GBT_STRUCTURED:
 			bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
 			break;
@@ -50,6 +56,14 @@ namespace BansheeEngine
 
 		mBuffer = bs_new<D3D11HardwareBuffer>(bufferType, props.getUsage(), props.getElementCount(), props.getElementSize(),
 			d3d11rs->getPrimaryDevice(), false, false, props.getRandomGpuWrite(), props.getUseCounter());
+
+		SPtr<D3D11GpuBufferCore> thisPtr = std::static_pointer_cast<D3D11GpuBufferCore>(getThisPtr());
+		UINT32 usage = GVU_DEFAULT;
+		if (props.getRandomGpuWrite())
+			usage |= GVU_RANDOMWRITE;
+
+		// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
+		mBufferView = static_cast<D3D11GpuBufferView*>(requestView(thisPtr, 0, props.getElementCount(), (GpuViewUsage)usage));
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
@@ -114,5 +128,15 @@ namespace BansheeEngine
 	{
 		if(view != nullptr)
 			bs_delete(view);
+	}
+
+	ID3D11ShaderResourceView* D3D11GpuBufferCore::getSRV() const
+	{
+		return mBufferView->getSRV();
+	}
+
+	ID3D11UnorderedAccessView* D3D11GpuBufferCore::getUAV() const
+	{
+		return mBufferView->getUAV();
 	}
 }

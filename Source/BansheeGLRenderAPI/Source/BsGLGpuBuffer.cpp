@@ -3,23 +3,46 @@
 #include "BsGLGpuBuffer.h"
 #include "BsDebug.h"
 #include "BsRenderStats.h"
+#include "BsGLPixelFormat.h"
+#include "BsGLHardwareBufferManager.h"
 
 namespace BansheeEngine
 {
-	GLGpuBufferCore::GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: GpuBufferCore(elementCount, elementSize, type, usage, randomGpuWrite, useCounter)
+	GLGpuBufferCore::GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
+		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		: GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter), mTextureID(0), mFormat(0)
 	{
+		if(type != GBT_STANDARD)
+			LOGERR("Only standard buffers are support on OpenGL.");
+
+		if (useCounter)
+			LOGERR("Buffer counters not supported on OpenGL.");
+
+		// Note: Implement OpenGL shader storage buffers, append/consume buffers, transform feedback buffers, 
+		// indirect argument buffers and counter buffers
+
+		mFormat = GLPixelUtil::getBufferFormat(format);
 	}
 
 	GLGpuBufferCore::~GLGpuBufferCore()
 	{
+		glDeleteTextures(1, &mTextureID);
+
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 		clearBufferViews();
 	}
 
 	void GLGpuBufferCore::initialize()
 	{
-		LOGWRN("Generic buffers are not supported in OpenGL. Creating a dummy buffer. All operations on it will either be no-op or return a nullptr.");
+		// Create buffer
+		const auto& props = getProperties();
+		UINT32 size = props.getElementCount() * props.getElementSize();
+		mBuffer = GLBuffer(GL_TEXTURE_BUFFER, size, props.getUsage());
+		
+		// Create texture
+		glGenTextures(1, &mTextureID);
+		glBindTexture(GL_TEXTURE_BUFFER, mTextureID);
+		glTexBuffer(GL_TEXTURE_BUFFER, mFormat, mBuffer.getGLBufferId());
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 		GpuBufferCore::initialize();
@@ -39,34 +62,45 @@ namespace BansheeEngine
 		}
 #endif
 
-		return nullptr;
+		return mBuffer.lock(offset, length, options);
 	}
 
 	void GLGpuBufferCore::unlock()
 	{
+		mBuffer.unlock();
 	}
 
 	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* pDest)
 	{
+		mBuffer.readData(offset, length, pDest);
+
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 	}
 
 	void GLGpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags)
 	{
+		mBuffer.writeData(offset, length, pSource, writeFlags);
+
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
 	}
 
 	void GLGpuBufferCore::copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,
 		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer)
 	{
+		GLGpuBufferCore& glSrcBuffer = static_cast<GLGpuBufferCore&>(srcBuffer);
+
+		GLuint srcId = glSrcBuffer.getGLBufferId();
+		glCopyBufferSubData(srcId, getGLBufferId(), srcOffset, dstOffset, length);
 	}
 
 	GpuBufferView* GLGpuBufferCore::createView()
 	{
+		// Not used for OpenGL
 		return nullptr;
 	}
 
 	void GLGpuBufferCore::destroyView(GpuBufferView* view)
 	{
+		// Not used for OpenGL
 	}
 }

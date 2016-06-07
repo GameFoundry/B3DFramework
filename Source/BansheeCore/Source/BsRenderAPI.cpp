@@ -14,6 +14,7 @@
 #include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
 #include "BsGpuParamDesc.h"
+#include "BsGpuBuffer.h"
 #include "BsShader.h"
 
 using namespace std::placeholders;
@@ -35,6 +36,13 @@ namespace BansheeEngine
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::setLoadStoreTexture, RenderAPICore::instancePtr(), gptype, unit, enabled, texPtr->getCore(),
 			surface));
+	}
+
+	void RenderAPI::setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
+		bool loadStore)
+	{
+		accessor.queueCommand(std::bind(&RenderAPICore::setBuffer, RenderAPICore::instancePtr(), gptype, unit, 
+			buffer->getCore(), loadStore));
 	}
 
 	void RenderAPI::setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerState>& samplerState)
@@ -427,6 +435,16 @@ namespace BansheeEngine
 				setLoadStoreTexture(gptype, iter->second.slot, false, nullptr, surface);
 			else
 				setLoadStoreTexture(gptype, iter->second.slot, true, texture, surface);
+		}
+
+		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+		{
+			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
+
+			bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+				iter->second.type != GPOT_STRUCTURED_BUFFER;
+
+			setBuffer(gptype, iter->second.slot, buffer, isLoadStore);
 		}
 
 		setConstantBuffers(gptype, params);

@@ -38,9 +38,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<GpuBufferCore> GLHardwareBufferCoreManager::createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 	{
-		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(elementCount, elementSize, type, usage, randomGpuWrite, useCounter);
+		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(elementCount, elementSize, type, format,
+			usage, randomGpuWrite, useCounter);
 
 		SPtr<GpuBufferCore> bufferPtr = bs_shared_ptr<GLGpuBufferCore>(buffer);
 		bufferPtr->_setThisPtr(bufferPtr);

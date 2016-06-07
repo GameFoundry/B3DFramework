@@ -43,7 +43,7 @@ namespace BansheeEngine
 		/** Type of material parameter. */
 		enum class ParamType
 		{
-			Data, Texture, Sampler
+			Data, Texture, Sampler, Buffer
 		};
 
 		/** Result codes for getParam method. */
@@ -73,7 +73,7 @@ namespace BansheeEngine
 
 			friend class StructParamDataRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/** Data for a single texture parameter. */
@@ -86,7 +86,7 @@ namespace BansheeEngine
 
 			friend class TextureParamDataRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/** Creates a new material params object and initializes enough room for parameters from the provided shader. */
@@ -207,6 +207,24 @@ namespace BansheeEngine
 		void setLoadStoreTexture(const String& name, const HTexture& value, const TextureSurface& surface);
 
 		/** 
+		 * Returns the value of a shader buffer parameter with the specified name. If the parameter name or type is not 
+		 * valid a warning will be logged and output value will not be retrieved.
+		 * 
+		 * @param[in]	name		Name of the shader parameter.
+		 * @param[out]	value		Output value of the parameter.
+		 */
+		void getBuffer(const String& name, SPtr<GpuBuffer>& value) const;
+
+		/** 
+		 * Sets the value of a shader buffer parameter with the specified name. If the parameter name or type is not 
+		 * valid a warning will be logged and output value will not be set.
+		 * 
+		 * @param[in]	name		Name of the shader parameter.
+		 * @param[in]	value		New value of the parameter.
+		 */
+		void setBuffer(const String& name, const SPtr<GpuBuffer>& value);
+
+		/** 
 		 * Sets the value of a shader sampler state parameter with the specified name. If the parameter name or type is not 
 		 * valid a warning will be logged and output value will not be set.
 		 * 
@@ -315,6 +333,18 @@ namespace BansheeEngine
 		void setTexture(UINT32 index, const HTexture& value);
 
 		/** 
+		 * Equivalent to getBuffer(const String&, SPtr<GpuBuffer>&) except it uses the internal parameter index directly, 
+		 * avoiding the name lookup. Caller must guarantee the index is valid.
+		 */
+		void getBuffer(UINT32 index, SPtr<GpuBuffer>& value) const;
+
+		/** 
+		 * Equivalent to setBuffer(const String&, SPtr<GpuBuffer>&) except it uses the internal parameter index directly, 
+		 * avoiding the name lookup. Caller must guarantee the index is valid.
+		 */
+		void setBuffer(UINT32 index, const SPtr<GpuBuffer>& value);
+
+		/** 
 		 * Equivalent to getLoadStoreTexture(const String&, HTexture&, TextureSurface&) except it uses the internal 
 		 * parameter index directly, avoiding the name lookup. Caller must guarantee the index is valid.
 		 */
@@ -364,6 +394,7 @@ namespace BansheeEngine
 		UINT8* mDataParamsBuffer = nullptr;
 		StructParamData* mStructParams = nullptr;
 		TextureParamData* mTextureParams = nullptr;
+		SPtr<GpuBuffer>* mBufferParams = nullptr;
 		SPtr<SamplerState>* mSamplerStateParams = nullptr;
 		HTexture* mDefaultTextureParams = nullptr;
 		SPtr<SamplerState>* mDefaultSamplerStateParams = nullptr;
@@ -371,6 +402,7 @@ namespace BansheeEngine
 		UINT32 mDataSize = 0;
 		UINT32 mNumStructParams = 0;
 		UINT32 mNumTextureParams = 0;
+		UINT32 mNumBufferParams = 0;
 		UINT32 mNumSamplerParams = 0;
 
 		mutable StaticAlloc<STATIC_BUFFER_SIZE, STATIC_BUFFER_SIZE> mAlloc;

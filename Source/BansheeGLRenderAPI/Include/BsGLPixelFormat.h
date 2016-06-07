@@ -44,6 +44,10 @@ namespace BansheeEngine
 
 		/**	Converts an OpenGL internal format into base format. */
 		static GLenum getBaseFormatFromCompressedInternalFormat(GLenum internalFormat);
+
+		/** Converts engine GPU buffer format to OpenGL GPU buffer format. */
+		static GLenum getBufferFormat(GpuBufferFormat format);
+
 	};
 
 	/** @} */

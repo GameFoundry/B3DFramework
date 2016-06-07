@@ -4,6 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "BsVertexBuffer.h"
+#include "BsGLBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
 namespace BansheeEngine 
@@ -27,7 +28,7 @@ namespace BansheeEngine
 			BufferWriteType writeFlags = BufferWriteType::Normal) override;
 
 		/**	Returns internal OpenGL buffer ID. */
-        GLuint getGLBufferId() const { return mBufferId; }
+        GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
 
 		/**	Registers a new VertexArrayObject that uses this vertex buffer. */
 		void registerVAO(const GLVertexArrayObject& vao);
@@ -46,8 +47,7 @@ namespace BansheeEngine
 		void unlockImpl() override;
 
 	private:
-		GLuint mBufferId;
-		bool mZeroLocked;
+		GLBuffer mBuffer;
 
 		Vector<GLVertexArrayObject> mVAObjects;
     };

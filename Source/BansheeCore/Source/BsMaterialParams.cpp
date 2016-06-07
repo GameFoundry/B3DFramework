@@ -22,9 +22,11 @@ namespace BansheeEngine
 		}
 
 		auto& textureParams = shader->getTextureParams();
+		auto& bufferParams = shader->getBufferParams();
 		auto& samplerParams = shader->getSamplerParams();
 
 		mNumTextureParams = (UINT32)textureParams.size();
+		mNumBufferParams = (UINT32)bufferParams.size();
 		mNumSamplerParams = (UINT32)samplerParams.size();
 
 		mDataParamsBuffer = mAlloc.alloc(mDataSize);
@@ -32,14 +34,16 @@ namespace BansheeEngine
 
 		mStructParams = mAlloc.construct<StructParamData>(mNumStructParams);
 		mTextureParams = mAlloc.construct<TextureParamData>(mNumTextureParams);
+		mBufferParams = mAlloc.construct<SPtr<GpuBuffer>>(mNumBufferParams);
 		mSamplerStateParams = mAlloc.construct<SPtr<SamplerState>>(mNumSamplerParams);
 		mDefaultTextureParams = mAlloc.construct<HTexture>(mNumTextureParams);
 		mDefaultSamplerStateParams = mAlloc.construct<SPtr<SamplerState>>(mNumSamplerParams);
 
-		UINT32 mDataBufferIdx = 0;
-		UINT32 mStructIdx = 0;
-		UINT32 mTextureIdx = 0;
-		UINT32 mSamplerIdx = 0;
+		UINT32 dataBufferIdx = 0;
+		UINT32 structIdx = 0;
+		UINT32 textureIdx = 0;
+		UINT32 bufferIdx = 0;
+		UINT32 samplerIdx = 0;
 
 		for (auto& entry : dataParams)
 		{
@@ -53,19 +57,19 @@ namespace BansheeEngine
 			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)dataParam.dataType];
 			UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
 
-			dataParam.index = mDataBufferIdx;
-			mDataBufferIdx += arraySize * paramSize;
+			dataParam.index = dataBufferIdx;
+			dataBufferIdx += arraySize * paramSize;
 
 			if(entry.second.type == GPDT_STRUCT)
 			{
 				for (UINT32 i = 0; i < arraySize; i++)
 				{
-					StructParamData& param = mStructParams[mStructIdx];
+					StructParamData& param = mStructParams[structIdx];
 					param.dataSize = entry.second.elementSize;
 					param.data = mAlloc.alloc(param.dataSize);
 
-					dataParam.index = mStructIdx;
-					mStructIdx++;
+					dataParam.index = structIdx;
+					structIdx++;
 				}
 			}
 		}
@@ -77,15 +81,27 @@ namespace BansheeEngine
 			dataParam.arraySize = 1;
 			dataParam.type = ParamType::Texture;
 			dataParam.dataType = GPDT_UNKNOWN;
-			dataParam.index = mTextureIdx;
+			dataParam.index = textureIdx;
 
-			TextureParamData& param = mTextureParams[mTextureIdx];
+			TextureParamData& param = mTextureParams[textureIdx];
 			param.isLoadStore = false;
 
 			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultTextureParams[mTextureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
+				mDefaultTextureParams[textureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
 
-			mTextureIdx++;
+			textureIdx++;
+		}
+
+		for (auto& entry : bufferParams)
+		{
+			ParamData& dataParam = mParams[entry.first];
+
+			dataParam.arraySize = 1;
+			dataParam.type = ParamType::Buffer;
+			dataParam.dataType = GPDT_UNKNOWN;
+			dataParam.index = bufferIdx;
+
+			bufferIdx++;
 		}
 
 		for (auto& entry : samplerParams)
@@ -95,12 +111,12 @@ namespace BansheeEngine
 			dataParam.arraySize = 1;
 			dataParam.type = ParamType::Sampler;
 			dataParam.dataType = GPDT_UNKNOWN;
-			dataParam.index = mSamplerIdx;
+			dataParam.index = samplerIdx;
 
 			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultSamplerStateParams[mTextureIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
+				mDefaultSamplerStateParams[textureIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
 
-			mSamplerIdx++;
+			samplerIdx++;
 		}
 	}
 
@@ -115,6 +131,7 @@ namespace BansheeEngine
 		mAlloc.free(mDataParamsBuffer);
 		mAlloc.destruct(mStructParams, mNumStructParams);
 		mAlloc.destruct(mTextureParams, mNumTextureParams);
+		mAlloc.destruct(mBufferParams, mNumBufferParams);
 		mAlloc.destruct(mSamplerStateParams, mNumSamplerParams);
 
 		if(mDefaultTextureParams != nullptr)
@@ -202,6 +219,32 @@ namespace BansheeEngine
 		}
 
 		setLoadStoreTexture(param->index, value, surface);
+	}
+
+	void MaterialParams::getBuffer(const String& name, SPtr<GpuBuffer>& value) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getBuffer(param->index, value);
+	}
+
+	void MaterialParams::setBuffer(const String& name, const SPtr<GpuBuffer>& value)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setBuffer(param->index, value);
 	}
 
 	void MaterialParams::getSamplerState(const String& name, SPtr<SamplerState>& value) const
@@ -310,6 +353,16 @@ namespace BansheeEngine
 		TextureParamData& textureParam = mTextureParams[index];
 		textureParam.value = value;
 		textureParam.isLoadStore = false;
+	}
+
+	void MaterialParams::getBuffer(UINT32 index, SPtr<GpuBuffer>& value) const
+	{
+		value = mBufferParams[index];
+	}
+
+	void MaterialParams::setBuffer(UINT32 index, const SPtr<GpuBuffer>& value)
+	{
+		mBufferParams[index] = value;
 	}
 
 	void MaterialParams::getLoadStoreTexture(UINT32 index, HTexture& value, TextureSurface& surface) const

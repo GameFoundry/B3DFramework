@@ -598,6 +598,41 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
+	TMaterialParamBuffer<Core> TMaterial<Core>::getParamBuffer(const String& name) const
+	{
+		throwIfNotInitialized();
+
+		SPtr<Vector<TGpuParamBuffer<Core>>> gpuParams;
+
+		auto iterFind = mValidParams.find(name);
+		if (iterFind != mValidParams.end())
+		{
+			const String& gpuVarName = iterFind->second;
+			gpuParams = bs_shared_ptr_new<Vector<TGpuParamBuffer<Core>>>();
+
+			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
+			{
+				SPtr<PassParamsType> params = *iter;
+
+				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
+				{
+					GpuParamsType& paramPtr = params->getParamByIdx(i);
+					if (paramPtr)
+					{
+						if (paramPtr->hasBuffer(gpuVarName))
+						{
+							gpuParams->push_back(TGpuParamBuffer<Core>());
+							paramPtr->getBufferParam(gpuVarName, gpuParams->back());
+						}
+					}
+				}
+			}
+		}
+
+		return createBufferParam(name, gpuParams);
+	}
+
+	template<bool Core>
 	TMaterialParamSampState<Core> TMaterial<Core>::getParamSamplerState(const String& name) const
 	{
 		throwIfNotInitialized();
@@ -1393,6 +1428,22 @@ namespace BansheeEngine
 				params->getLoadStoreTexture(paramData->index, texture, surface);
 				curParam.set(texture, surface);
 			}
+		}
+
+		auto& bufferParams = mShader->getBufferParams();
+		for (auto& param : bufferParams)
+		{
+			const MaterialParams::ParamData* paramData = nullptr;
+			auto result = params->getParamData(param.first, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, &paramData);
+
+			if (result != MaterialParams::GetParamResult::Success)
+				continue;
+
+			TMaterialParamBuffer<false> curParam = getParamBuffer(param.first);
+
+			SPtr<GpuBuffer> buffer;
+			params->getBuffer(paramData->index, buffer);
+			curParam.set(buffer);
 		}
 
 		auto& samplerParams = mShader->getSamplerParams();

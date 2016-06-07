@@ -215,6 +215,50 @@ namespace BansheeEngine
 
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
+	class BS_CORE_EXPORT TMaterialParamBuffer
+	{ };
+
+	/** @copydoc TMaterialDataParam */
+	template<>
+	class BS_CORE_EXPORT TMaterialParamBuffer<false>
+	{
+	public:
+		TMaterialParamBuffer(const String& name, const SPtr<MaterialParams>& params,
+			const SPtr<Vector<TGpuParamBuffer<false>>>& gpuParams);
+		TMaterialParamBuffer() { }
+
+		/** @copydoc GpuParamBuffer::set */
+		void set(const SPtr<GpuBuffer>& buffer);
+
+		/** @copydoc GpuParamBuffer::get */
+		SPtr<GpuBuffer> get();
+
+	protected:
+		UINT32 mParamIndex;
+		SPtr<MaterialParams> mMaterialParams;
+		SPtr<Vector<TGpuParamBuffer<false>>> mGPUParams;
+	};
+
+	/** @copydoc TMaterialDataParam */
+	template<>
+	class BS_CORE_EXPORT TMaterialParamBuffer<true>
+	{
+	public:
+		TMaterialParamBuffer(const SPtr<Vector<TGpuParamBuffer<true>>>& params);
+		TMaterialParamBuffer() { }
+
+		/** @copydoc GpuParamBuffer::set */
+		void set(const SPtr<GpuBufferCore>& buffer);
+
+		/** @copydoc GpuParamBuffer::get */
+		SPtr<GpuBufferCore> get();
+
+	protected:
+		SPtr<Vector<TGpuParamBuffer<true>>> mParams;
+	};
+
+	/** @copydoc TMaterialDataParam */
+	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamSampState
 	{ };
 

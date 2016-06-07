@@ -159,6 +159,8 @@ namespace BansheeEngine
 	/** Types of generic GPU buffers that may be attached to GPU programs. */
 	enum GpuBufferType
 	{
+		/** Buffer containing an array of primitives (e.g. float4's). */
+		GBT_STANDARD,
 		/** 
 		 * Buffer containing an array of structures. Structure parameters can usually be easily accessed from within the
 		 * GPU program.
@@ -173,6 +175,46 @@ namespace BansheeEngine
 		GBT_INDIRECTARGUMENT,
 		/** A stack-like buffer that allows you to add or remove elements to/from the buffer from within the GPU program. */
 		GBT_APPENDCONSUME
+	};
+
+	/** Types of valid formats used for standard GPU buffers. */
+	enum GpuBufferFormat
+	{
+		BF_16X1F, /**< 1D 16-bit floating-point format. */
+		BF_16X2F, /**< 2D 16-bit floating-point format. */
+		BF_16X4F, /**< 4D 16-bit floating-point format. */
+		BF_32X1F, /**< 1D 32-bit floating-point format. */
+		BF_32X2F, /**< 2D 32-bit floating-point format. */
+		BF_32X3F, /**< 3D 32-bit floating-point format. */
+		BF_32X4F, /**< 4D 32-bit floating-point format. */
+		BF_8X1,   /**< 1D 8-bit normalized format. */
+		BF_8X2,   /**< 2D 8-bit normalized format. */
+		BF_8X4,   /**< 4D 8-bit normalized format. */
+		BF_16X1,  /**< 1D 16-bit normalized format. */
+		BF_16X2,  /**< 2D 16-bit normalized format. */
+		BF_16X4,  /**< 4D 16-bit normalized format. */
+		BF_8X1S,  /**< 1D 8-bit signed integer format. */
+		BF_8X2S,  /**< 2D 8-bit signed integer format. */
+		BF_8X4S,  /**< 4D 8-bit signed integer format. */
+		BF_16X1S, /**< 1D 16-bit signed integer format. */
+		BF_16X2S, /**< 2D 16-bit signed integer format. */
+		BF_16X4S, /**< 4D 16-bit signed integer format. */
+		BF_32X1S, /**< 1D 32-bit signed integer format. */
+		BF_32X2S, /**< 2D 32-bit signed integer format. */
+		BF_32X3S, /**< 3D 32-bit signed integer format. */
+		BF_32X4S, /**< 4D 32-bit signed integer format. */
+		BF_8X1U,  /**< 1D 8-bit unsigned integer format. */
+		BF_8X2U,  /**< 2D 8-bit unsigned integer format. */
+		BF_8X4U,  /**< 4D 8-bit unsigned integer format. */
+		BF_16X1U, /**< 1D 16-bit unsigned integer format. */
+		BF_16X2U, /**< 2D 16-bit unsigned integer format. */
+		BF_16X4U, /**< 4D 16-bit unsigned integer format. */
+		BF_32X1U, /**< 1D 32-bit unsigned integer format. */
+		BF_32X2U, /**< 2D 32-bit unsigned integer format. */
+		BF_32X3U, /**< 3D 32-bit unsigned integer format. */
+		BF_32X4U, /**< 4D 32-bit unsigned integer format. */
+		BF_COUNT, /**< Not a valid format. Keep just before BS_UNKNOWN. */
+		BF_UNKNOWN = 0xffff /**< Unknown format (used for non-standard buffers, like structured or raw. */
 	};
 
 	/** Different types of GPU views that control how GPU sees a hardware buffer. */

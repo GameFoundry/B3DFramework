@@ -29,6 +29,7 @@
 #include "BsException.h"
 #include "BsRenderStats.h"
 #include "BsGpuParamDesc.h"
+#include "BsD3D11GpuBuffer.h"
 
 namespace BansheeEngine
 {
@@ -354,6 +355,72 @@ namespace BansheeEngine
 		}
 		else
 			BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+
+		BS_INC_RENDER_STAT(NumTextureBinds);
+	}
+
+	void D3D11RenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
+	{
+		THROW_IF_NOT_CORE_THREAD;
+
+		if(!loadStore)
+		{
+			ID3D11ShaderResourceView* viewArray[1];
+			if (buffer != nullptr)
+			{
+				D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+				viewArray[0] = d3d11buffer->getSRV();
+			}
+			else
+				viewArray[0] = nullptr;
+
+			switch (gptype)
+			{
+			case GPT_VERTEX_PROGRAM:
+				mDevice->getImmediateContext()->VSSetShaderResources(unit, 1, viewArray);
+				break;
+			case GPT_FRAGMENT_PROGRAM:
+				mDevice->getImmediateContext()->PSSetShaderResources(unit, 1, viewArray);
+				break;
+			case GPT_GEOMETRY_PROGRAM:
+				mDevice->getImmediateContext()->GSSetShaderResources(unit, 1, viewArray);
+				break;
+			case GPT_DOMAIN_PROGRAM:
+				mDevice->getImmediateContext()->DSSetShaderResources(unit, 1, viewArray);
+				break;
+			case GPT_HULL_PROGRAM:
+				mDevice->getImmediateContext()->HSSetShaderResources(unit, 1, viewArray);
+				break;
+			case GPT_COMPUTE_PROGRAM:
+				mDevice->getImmediateContext()->CSSetShaderResources(unit, 1, viewArray);
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+			}
+		}
+		else
+		{
+			ID3D11UnorderedAccessView* viewArray[1];
+			if (buffer != nullptr)
+			{
+				D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+				viewArray[0] = d3d11buffer->getUAV();
+			}
+			else
+				viewArray[0] = nullptr;
+
+			if (gptype == GPT_FRAGMENT_PROGRAM)
+			{
+				mDevice->getImmediateContext()->OMSetRenderTargetsAndUnorderedAccessViews(
+					D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, unit, 1, viewArray, nullptr);
+			}
+			else if (gptype == GPT_COMPUTE_PROGRAM)
+			{
+				mDevice->getImmediateContext()->CSSetUnorderedAccessViews(unit, 1, viewArray, nullptr);
+			}
+			else
+				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+		}
 
 		BS_INC_RENDER_STAT(NumTextureBinds);
 	}

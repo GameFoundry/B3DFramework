@@ -211,6 +211,37 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
+	TGpuParamBuffer<Core>::TGpuParamBuffer()
+		:mParamDesc(nullptr)
+	{ }
+
+	template<bool Core>
+	TGpuParamBuffer<Core>::TGpuParamBuffer(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent)
+		: mParent(parent), mParamDesc(paramDesc)
+	{ }
+
+	template<bool Core>
+	void TGpuParamBuffer<Core>::set(const BufferType& texture)
+	{
+		if (mParent == nullptr)
+			return;
+
+		mParent->setBuffer(mParamDesc->slot, texture);
+
+		mParent->_markResourcesDirty();
+		mParent->_markCoreDirty();
+	}
+
+	template<bool Core>
+	typename TGpuParamBuffer<Core>::BufferType TGpuParamBuffer<Core>::get()
+	{
+		if (mParent == nullptr)
+			return BufferType();
+
+		return mParent->getBuffer(mParamDesc->slot);
+	}
+
+	template<bool Core>
 	TGpuParamLoadStoreTexture<Core>::TGpuParamLoadStoreTexture()
 		:mParamDesc(nullptr)
 	{ }
@@ -315,6 +346,9 @@ namespace BansheeEngine
 
 	template class TGpuParamTexture < false > ;
 	template class TGpuParamTexture < true > ;
+
+	template class TGpuParamBuffer < false >;
+	template class TGpuParamBuffer < true >;
 
 	template class TGpuParamSampState < false > ;
 	template class TGpuParamSampState < true > ;

@@ -57,6 +57,14 @@ namespace BansheeEngine
 		static void setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, bool enabled, 
 			const SPtr<Texture>& texPtr, const TextureSurface& surface);
 
+		/**  
+		 * @copydoc RenderAPICore::setBuffer()
+		 *
+		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 */
+		static void setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
+			bool loadStore = false);
+
 		/** 
 		 * @copydoc RenderAPICore::setSamplerState()
 		 *
@@ -408,6 +416,18 @@ namespace BansheeEngine
 		 */
 		virtual void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, bool enabled,
 			const SPtr<TextureCore>& texPtr, const TextureSurface& surface) = 0;
+
+		/**
+		 * Binds a buffer that can be used for read or write operations on the GPU.
+		 *
+		 * @param[in]	gptype		Determines to which GPU program slot to bind the buffer.
+		 * @param[in]	unit		GPU program unit index to bind the buffer to.
+		 * @param[in]	buffer		Buffer to bind.
+		 * @param[in]	loadStore	If true the buffer will be bound with support for unordered reads and writes, otherwise
+		 *							it will only be bound for reads.
+		 */
+		virtual void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, 
+			bool loadStore = false) = 0;
 
 		/**
 		 * Signals that rendering for a specific viewport has started. Any draw calls need to be called between beginFrame()

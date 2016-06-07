@@ -5,9 +5,9 @@
 
 namespace BansheeEngine
 {
-	D3D9GpuBufferCore::D3D9GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: GpuBufferCore(elementCount, elementSize, type, usage, randomGpuWrite, useCounter)
+	D3D9GpuBufferCore::D3D9GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
+		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		: GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
 	{
 	}
 

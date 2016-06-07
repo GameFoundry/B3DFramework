@@ -486,6 +486,13 @@ namespace BansheeEngine
 		LOGWRN("Texture random load/store not supported on DX9.");
 	}
 
+	void D3D9RenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
+	{
+		THROW_IF_NOT_CORE_THREAD;
+
+		LOGWRN("Generic GPU buffers not supported on DX9.");
+	}
+
 	void D3D9RenderAPI::setSamplerState(GpuProgramType gptype, UINT16 unit, const SPtr<SamplerStateCore>& state)
 	{
 		THROW_IF_NOT_CORE_THREAD;

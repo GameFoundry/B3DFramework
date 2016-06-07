@@ -7,17 +7,18 @@
 
 namespace BansheeEngine
 {
-	GpuBufferProperties::GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: mType(type), mUsage(usage), mRandomGpuWrite(randomGpuWrite), mUseCounter(useCounter), mElementCount(elementCount)
-		, mElementSize(elementSize)
+	GpuBufferProperties::GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
+		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		: mType(type), mUsage(usage), mFormat(format), mRandomGpuWrite(randomGpuWrite), mUseCounter(useCounter)
+		, mElementCount(elementCount), mElementSize(elementSize)
 	{
-
+		if(type == GBT_STANDARD)
+			mElementSize = GpuBuffer::getFormatSize(format);
 	}
 
-	GpuBufferCore::GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage,
-		bool randomGpuWrite, bool useCounter)
-		: mProperties(elementCount, elementSize, type, usage, randomGpuWrite, useCounter)
+	GpuBufferCore::GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
+		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		: mProperties(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
 	{
 	}
 
@@ -39,14 +40,17 @@ namespace BansheeEngine
 	}
 
 	GpuBufferView* GpuBufferCore::requestView(const SPtr<GpuBufferCore>& buffer, UINT32 firstElement,
-		UINT32 elementWidth, UINT32 numElements, bool useCounter, GpuViewUsage usage)
+		UINT32 numElements, GpuViewUsage usage)
 	{
+		const auto& props = buffer->getProperties();
+
 		GPU_BUFFER_DESC key;
 		key.firstElement = firstElement;
-		key.elementWidth = elementWidth;
-		key.numElements = numElements;
+		key.elementWidth = props.getElementSize();
 		key.numElements = numElements;
 		key.usage = usage;
+		key.format = props.getFormat();
+		key.useCounter = props.getUseCounter();
 
 		auto iterFind = buffer->mBufferViews.find(key);
 		if (iterFind == buffer->mBufferViews.end())
@@ -85,9 +89,9 @@ namespace BansheeEngine
 		}
 	}
 
-	GpuBuffer::GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage, 
-		bool randomGpuWrite, bool useCounter)
-		:mProperties(elementCount, elementSize, type, usage, randomGpuWrite, useCounter)
+	GpuBuffer::GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
+		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		:mProperties(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
 	{  
 	}
 
@@ -99,6 +103,57 @@ namespace BansheeEngine
 	SPtr<CoreObjectCore> GpuBuffer::createCore() const
 	{
 		return HardwareBufferCoreManager::instance().createGpuBufferInternal(mProperties.getElementCount(), 
-			mProperties.getElementSize(), mProperties.getType(), mProperties.getUsage(), mProperties.getRandomGpuWrite(), mProperties.getUseCounter());
+			mProperties.getElementSize(), mProperties.getType(), mProperties.getFormat(), mProperties.getUsage(), 
+			mProperties.getRandomGpuWrite(), mProperties.getUseCounter());
+	}
+
+	UINT32 GpuBuffer::getFormatSize(GpuBufferFormat format)
+	{
+		static bool lookupInitialized = false;
+
+		static UINT32 lookup[BF_COUNT];
+		if (!lookupInitialized)
+		{
+			lookup[BF_16X1F] = 2;
+			lookup[BF_16X2F] = 4;
+			lookup[BF_16X4F] = 8;
+			lookup[BF_32X1F] = 4;
+			lookup[BF_32X2F] = 8;
+			lookup[BF_32X3F] = 12;
+			lookup[BF_32X4F] = 16;
+			lookup[BF_8X1] = 1;
+			lookup[BF_8X2] = 2;
+			lookup[BF_8X4] = 4;
+			lookup[BF_16X1] = 2;
+			lookup[BF_16X2] = 4;
+			lookup[BF_16X4] = 8;
+			lookup[BF_8X1S] = 1;
+			lookup[BF_8X2S] = 2;
+			lookup[BF_8X4S] = 4;
+			lookup[BF_16X1S] = 2;
+			lookup[BF_16X2S] = 4;
+			lookup[BF_16X4S] = 8;
+			lookup[BF_32X1S] = 4;
+			lookup[BF_32X2S] = 8;
+			lookup[BF_32X3S] = 12;
+			lookup[BF_32X4S] = 16;
+			lookup[BF_8X1U] = 1;
+			lookup[BF_8X2U] = 2;
+			lookup[BF_8X4U] = 4;
+			lookup[BF_16X1U] = 1;
+			lookup[BF_16X2U] = 2;
+			lookup[BF_16X4U] = 4;
+			lookup[BF_32X1U] = 4;
+			lookup[BF_32X2U] = 8;
+			lookup[BF_32X3U] = 12;
+			lookup[BF_32X4U] = 16;
+
+			lookupInitialized = true;
+		}
+
+		if (format >= BF_COUNT)
+			return 0;
+
+		return lookup[(UINT32)format];
 	}
 }

@@ -19,7 +19,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT GpuBufferProperties
 	{
 	public:
-		GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
+		GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
 			GpuBufferUsage usage, bool randomGpuWrite, bool useCounter);
 
 		/**
@@ -27,6 +27,9 @@ namespace BansheeEngine
 		 * and how is data read or modified in it.
 		 */
 		GpuBufferType getType() const { return mType; }
+
+		/** Returns format used by the buffer. Only relevant for standard buffers. */
+		GpuBufferFormat getFormat() const { return mFormat; }
 
 		/** Returns buffer usage which determines how are planning on updating the buffer contents. */
 		GpuBufferUsage getUsage() const { return mUsage; }
@@ -46,6 +49,7 @@ namespace BansheeEngine
 	protected:
 		GpuBufferType mType;
 		GpuBufferUsage mUsage;
+		GpuBufferFormat mFormat;
 		bool mRandomGpuWrite;
 		bool mUseCounter;
 		UINT32 mElementCount;
@@ -80,17 +84,17 @@ namespace BansheeEngine
 		/** Retrieves a core implementation of a GPU buffer usable only from the core thread. */
 		SPtr<GpuBufferCore> getCore() const;
 
+		/** Returns the size of a single element in the buffer, of the provided format, in bytes. */
+		static UINT32 getFormatSize(GpuBufferFormat format);
+
 	protected:
 		friend class HardwareBufferManager;
 
-		GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage, 
+		GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage,
 			bool randomGpuWrite = false, bool useCounter = false);
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
-
-		/** @copydoc HardwareBufferManager::createGpuParamBlockBuffer */
-		static SPtr<GpuParamBlockBuffer> create(UINT32 size, GpuParamBlockUsage usage = GPBU_DYNAMIC);
 
 		GpuBufferProperties mProperties;
     };
@@ -169,17 +173,16 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	buffer			Buffer to create the view for.
 		 * @param[in]	firstElement	Position of the first element visible by the view.
-		 * @param[in]	elementWidth	Width of one element in bytes.
-		 * @param[in]	numElements		Number of elements in the buffer.
-		 * @param[in]	useCounter		Should the buffer allow use of a counter. This is only relevant for random read write buffers.
-		 * @param[in]	usage			Determines type of the view we are creating, and which slots in the pipeline will the view be bindable to.
+		 * @param[in]	numElements		Number of elements to bind to the view.
+		 * @param[in]	usage			Determines type of the view we are creating, and which slots in the pipeline will
+		 *								the view be bindable to.
 		 *
 		 * @note If a view with this exact parameters already exists, it will be returned and new one will not be created.
 		 * @note Only Default and RandomWrite views are supported for this type of buffer. 
 		 */
 		// TODO Low Priority: Perhaps reflect usage flag limitation by having an enum with only the supported two options?
-		static GpuBufferView* requestView(const SPtr<GpuBufferCore>& buffer, UINT32 firstElement, UINT32 elementWidth, 
-			UINT32 numElements, bool useCounter, GpuViewUsage usage);
+		static GpuBufferView* requestView(const SPtr<GpuBufferCore>& buffer, UINT32 firstElement, 
+			UINT32 numElements, GpuViewUsage usage);
 
 		/**
 		 * Releases a view created with requestView. 
@@ -189,7 +192,7 @@ namespace BansheeEngine
 		static void releaseView(GpuBufferView* view);
 
 	protected:
-		GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
+		GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
 			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
 
 		/** Creates an empty view for the current buffer. */

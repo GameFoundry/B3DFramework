@@ -690,6 +690,56 @@ namespace BansheeEngine
 		}
 	}
 
+	DXGI_FORMAT D3D11Mappings::getBF(GpuBufferFormat format)
+	{
+		static bool lookupInitialized = false;
+
+		static DXGI_FORMAT lookup[BF_COUNT];
+		if (!lookupInitialized)
+		{
+			lookup[BF_16X1F] = DXGI_FORMAT_R16_FLOAT;
+			lookup[BF_16X2F] = DXGI_FORMAT_R16G16_FLOAT;
+			lookup[BF_16X4F] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			lookup[BF_32X1F] = DXGI_FORMAT_R32_FLOAT;
+			lookup[BF_32X2F] = DXGI_FORMAT_R32G32_FLOAT;
+			lookup[BF_32X3F] = DXGI_FORMAT_R32G32B32_FLOAT;
+			lookup[BF_32X4F] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			lookup[BF_8X1] = DXGI_FORMAT_R8_UNORM;
+			lookup[BF_8X2] = DXGI_FORMAT_R8G8_UNORM;
+			lookup[BF_8X4] = DXGI_FORMAT_R8G8B8A8_UNORM;
+			lookup[BF_16X1] = DXGI_FORMAT_R16_UNORM;
+			lookup[BF_16X2] = DXGI_FORMAT_R16G16_UNORM;
+			lookup[BF_16X4] = DXGI_FORMAT_R16G16B16A16_UNORM;
+			lookup[BF_8X1S] = DXGI_FORMAT_R8_SINT;
+			lookup[BF_8X2S] = DXGI_FORMAT_R8G8_SINT;
+			lookup[BF_8X4S] = DXGI_FORMAT_R8G8B8A8_SINT;
+			lookup[BF_16X1S] = DXGI_FORMAT_R16_SINT;
+			lookup[BF_16X2S] = DXGI_FORMAT_R16G16_SINT;
+			lookup[BF_16X4S] = DXGI_FORMAT_R16G16B16A16_SINT;
+			lookup[BF_32X1S] = DXGI_FORMAT_R32_SINT;
+			lookup[BF_32X2S] = DXGI_FORMAT_R32G32_SINT;
+			lookup[BF_32X3S] = DXGI_FORMAT_R32G32B32_SINT;
+			lookup[BF_32X4S] = DXGI_FORMAT_R32G32B32A32_SINT;
+			lookup[BF_8X1U] = DXGI_FORMAT_R8_UINT;
+			lookup[BF_8X2U] = DXGI_FORMAT_R8G8_UINT;
+			lookup[BF_8X4U] = DXGI_FORMAT_R8G8B8A8_UINT;
+			lookup[BF_16X1U] = DXGI_FORMAT_R16_UINT;
+			lookup[BF_16X2U] = DXGI_FORMAT_R16G16_UINT;
+			lookup[BF_16X4U] = DXGI_FORMAT_R16G16B16A16_UINT;
+			lookup[BF_32X1U] = DXGI_FORMAT_R32_UINT;
+			lookup[BF_32X2U] = DXGI_FORMAT_R32G32_UINT;
+			lookup[BF_32X3U] = DXGI_FORMAT_R32G32B32_UINT;
+			lookup[BF_32X4U] = DXGI_FORMAT_R32G32B32A32_UINT;
+
+			lookupInitialized = true;
+		}
+		
+		if (format >= BF_COUNT)
+			return DXGI_FORMAT_UNKNOWN;
+
+		return lookup[(UINT32)format];
+	}
+
 	DXGI_FORMAT D3D11Mappings::getTypelessDepthStencilPF(PixelFormat format)
 	{
 		switch(format)

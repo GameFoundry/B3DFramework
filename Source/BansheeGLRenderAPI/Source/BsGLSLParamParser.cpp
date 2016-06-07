@@ -266,6 +266,7 @@ namespace BansheeEngine
 
 			bool isSampler = false;
 			bool isImage = false;
+			bool isBuffer = false;
 			switch (uniformType)
 			{
 			case GL_SAMPLER_1D:
@@ -281,6 +282,10 @@ namespace BansheeEngine
 			case GL_IMAGE_CUBE:
 			case GL_IMAGE_2D_MULTISAMPLE:
 				isImage = true;
+				break;
+			case GL_SAMPLER_BUFFER:
+			case GL_IMAGE_BUFFER:
+				isBuffer = false;
 				break;
 			}
 
@@ -344,6 +349,19 @@ namespace BansheeEngine
 				}
 
 				returnParamDesc.loadStoreTextures.insert(std::make_pair(paramName, textureParam));
+			}
+			else if (isBuffer)
+			{
+				GpuParamObjectDesc bufferParam;
+				bufferParam.name = paramName;
+				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
+
+				if (uniformType == GL_IMAGE_BUFFER)
+					bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
+				else // Sampler buffer
+					bufferParam.type = GPOT_STRUCTURED_BUFFER;
+
+				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
 			}
 			else
 			{

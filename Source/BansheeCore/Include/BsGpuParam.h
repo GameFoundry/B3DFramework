@@ -34,6 +34,10 @@ namespace BansheeEngine
 	template<> struct TGpuParamBufferType < false > { typedef SPtr<GpuParamBlockBuffer> Type; };
 	template<> struct TGpuParamBufferType < true > { typedef SPtr<GpuParamBlockBufferCore> Type; };
 
+	template<bool Core> struct TGpuBufferType { };
+	template<> struct TGpuBufferType < false > { typedef SPtr<GpuBuffer> Type; };
+	template<> struct TGpuBufferType < true > { typedef SPtr<GpuBufferCore> Type; };
+
 	/**
 	 * Policy class that allows us to re-use this template class for matrices which might need transposing, and other 
 	 * types which do not. Matrix needs to be transposed for certain render systems depending on how they store them 
@@ -222,6 +226,38 @@ namespace BansheeEngine
 
 	/** @copydoc TGpuDataParam */
 	template<bool Core>
+	class BS_CORE_EXPORT TGpuParamBuffer
+	{
+	private:
+		friend class GpuParams;
+		friend class GpuParamsCore;
+
+		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
+		typedef typename TGpuBufferType<Core>::Type BufferType;
+
+	public:
+		TGpuParamBuffer();
+		TGpuParamBuffer(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent);
+
+		/** @copydoc TGpuDataParam::set */
+		void set(const BufferType& texture);
+
+		/** @copydoc TGpuDataParam::get */
+		BufferType get();
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t &nullval) const
+		{
+			return mParamDesc == nullptr;
+		}
+
+	protected:
+		GpuParamsType mParent;
+		GpuParamObjectDesc* mParamDesc;
+	};
+
+	/** @copydoc TGpuDataParam */
+	template<bool Core>
 	class BS_CORE_EXPORT TGpuParamSampState
 	{
 	private:
@@ -287,6 +323,9 @@ namespace BansheeEngine
 
 	typedef TGpuParamTexture<false> GpuParamTexture;
 	typedef TGpuParamTexture<true> GpuParamTextureCore;
+	
+	typedef TGpuParamBuffer<false> GpuParamBuffer;
+	typedef TGpuParamBuffer<true> GpuParamBufferCore;
 
 	typedef TGpuParamSampState<false> GpuParamSampState;
 	typedef TGpuParamSampState<true> GpuParamSampStateCore;

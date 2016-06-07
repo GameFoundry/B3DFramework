@@ -161,6 +161,7 @@ namespace BansheeEngine
 	public:
 		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
 		typedef typename TGpuParamBlockBufferPtrType<Core>::Type ParamBlockPtrType;
 		typedef typename TGpuParamBlockBufferType<Core>::Type ParamBlockType;
@@ -248,6 +249,9 @@ namespace BansheeEngine
 		{ 
 			return getParamLoadStoreTexture(name).set(value, surface); 
 		}
+
+		/** Assigns a buffer to the shader parameter with the specified name. */
+		void setBuffer(const String& name, const BufferType& value) { return getParamBuffer(name).set(value); }
 
 		/** Assigns a sampler state to the shader parameter with the specified name. */
 		void setSamplerState(const String& name, const SamplerStateType& value) { return getParamSamplerState(name).set(value); }
@@ -485,6 +489,18 @@ namespace BansheeEngine
 		TMaterialParamLoadStoreTexture<Core> getParamLoadStoreTexture(const String& name) const;
 
 		/**
+		 * Returns a buffer GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
+		 * values than calling Material::get* / Material::set* methods. 
+		 *
+		 * @note	
+		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * use it throughout material lifetime to assign and retrieve parameter values.
+		 * @note
+		 * If material shader changes this handle will be invalidated.
+		 */
+		TMaterialParamBuffer<Core> getParamBuffer(const String& name) const;
+
+		/**
 		 * Returns a sampler state GPU parameter. This parameter may be used for more efficiently getting/setting GPU 
 		 * parameter values than calling Material::get* / Material::set* methods. 
 		 *
@@ -601,6 +617,26 @@ namespace BansheeEngine
 			const SPtr<Vector<TGpuParamLoadStoreTexture<true>>>& gpuParams) const
 		{
 			return TMaterialParamLoadStoreTexture<true>(gpuParams);
+		}
+
+		/** 
+		 * Creates a material param out of multiple GPU params. Caller must ensure all GPU params reference the same 
+		 * parameter. 
+		 */
+		TMaterialParamBuffer<false> createBufferParam(const String& name, 
+			const SPtr<Vector<TGpuParamBuffer<false>>>& gpuParams) const
+		{
+			return TMaterialParamBuffer<false>(name, getCachedParams(), gpuParams);
+		}
+
+		/** 
+		 * Creates a material param out of multiple GPU params. Caller must ensure all GPU params reference the same 
+		 * parameter. 
+		 */
+		TMaterialParamBuffer<true> createBufferParam(const String& name,
+			const SPtr<Vector<TGpuParamBuffer<true>>>& gpuParams) const
+		{
+			return TMaterialParamBuffer<true>(gpuParams);
 		}
 
 		/** 

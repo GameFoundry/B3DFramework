@@ -24,6 +24,7 @@
 #include "BsDebug.h"
 #include "BsRenderStats.h"
 #include "BsGpuParamDesc.h"
+#include "BsGLGpuBuffer.h"
 
 namespace BansheeEngine 
 {
@@ -453,6 +454,23 @@ namespace BansheeEngine
 			SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
 			glBindImageTexture(unit, tex->getGLID(), surface.mipLevel, surface.numArraySlices > 1, 
 				surface.arraySlice, tex->getGLFormat(), GL_READ_WRITE);
+		}
+		else
+			glBindImageTexture(unit, 0, 0, false, 0, 0, GL_READ_WRITE);
+
+		BS_INC_RENDER_STAT(NumTextureBinds);
+	}
+
+	/** @copydoc RenderAPICore::setBuffer */
+	void GLRenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
+	{
+		THROW_IF_NOT_CORE_THREAD;
+
+		if (buffer != nullptr)
+		{
+			SPtr<GLGpuBufferCore> glBuffer = std::static_pointer_cast<GLGpuBufferCore>(buffer);
+			glBindImageTexture(unit, glBuffer->getGLTextureId(), 0, false,
+				0, glBuffer->getGLFormat(), GL_READ_WRITE);
 		}
 		else
 			glBindImageTexture(unit, 0, 0, false, 0, 0, GL_READ_WRITE);

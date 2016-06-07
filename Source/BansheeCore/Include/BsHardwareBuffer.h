@@ -54,7 +54,7 @@ namespace BansheeEngine
             return this->lock(0, mSizeInBytes, options);
         }
 
-		/**	Releases the lock on this buffer.  */
+		/**	Releases the lock on this buffer. */
 		virtual void unlock()
         {
             assert(isLocked() && "Cannot unlock this buffer, it is not locked!");
