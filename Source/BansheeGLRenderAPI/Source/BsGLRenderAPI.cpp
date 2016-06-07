@@ -465,7 +465,7 @@ namespace BansheeEngine
 		THROW_IF_NOT_CORE_THREAD;
 
 		SPtr<GLGpuBufferCore> glBuffer = std::static_pointer_cast<GLGpuBufferCore>(buffer);
-		if (loadStore)
+		if (!loadStore)
 		{
 			unit = getGLTextureUnit(gptype, unit);
 			if (!activateGLTextureUnit(unit))
