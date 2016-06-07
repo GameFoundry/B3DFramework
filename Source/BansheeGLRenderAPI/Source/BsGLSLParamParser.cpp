@@ -285,7 +285,7 @@ namespace BansheeEngine
 				break;
 			case GL_SAMPLER_BUFFER:
 			case GL_IMAGE_BUFFER:
-				isBuffer = false;
+				isBuffer = true;
 				break;
 			}
 
