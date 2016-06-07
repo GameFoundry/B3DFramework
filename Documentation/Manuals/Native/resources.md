@@ -41,7 +41,7 @@ Handles are used instead of pointers because:
  
 A little more elaboration for the last point. If you have read the [RTTI](@ref rtti) manual you know that objects can reference different field types. And resource handles can be referenced by "Reflectable" field types, allowing you to easily save/load references to resources within your objects with no additional code.
 
-Each handle internally stores a GUID that uniquely identifies the resource. You can access it by calling @ref BansheeEngine::ResourceHandleBase::getUUID() "HResource::getUUID".
+Each handle internally stores an UUID that uniquely identifies the resource. You can access it by calling @ref BansheeEngine::ResourceHandleBase::getUUID() "HResource::getUUID".
 
 ## Resource dependencies {#resource_a_b}
 We mentioned in the last section that objects (including resources) can reference resources. For example a @ref BansheeEngine::Font "Font" resource will reference @ref BansheeEngine::Texture "Texture" resources which store its pre-rendered font glyphs.
