@@ -3,21 +3,15 @@
 #include "BsShapeMeshes2D.h"
 #include "BsRect2.h"
 #include "BsMesh.h"
-#include "BsTime.h"
 #include "BsVector2.h"
-#include "BsMaterial.h"
+#include "BsLine2.h"
 #include "BsPass.h"
-#include "BsCoreApplication.h"
-#include "BsRenderQueue.h"
-#include "BsCCamera.h"
-#include "BsCoreThreadAccessor.h"
-#include "BsBuiltinResources.h"
 #include "BsVertexDataDesc.h"
 
 namespace BansheeEngine
 {
-	const UINT32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 8;
-	const UINT32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 30;
+	const UINT32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 4;
+	const UINT32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 6;
 
 	void ShapeMeshes2D::solidQuad(const Rect2& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
@@ -47,16 +41,11 @@ namespace BansheeEngine
 		pixelLine(a, b, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes2D::antialiasedLine(const Vector2& a, const Vector2& b, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes2D::quadLine(const Vector2& a, const Vector2& b, float width, const Color& color, 
+		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* colorData = meshData->getElementData(VES_COLOR);
-
-		assert((vertexOffset + NUM_VERTICES_AA_LINE) <= meshData->getNumVertices());
-		assert((indexOffset + NUM_INDICES_AA_LINE) <= meshData->getNumIndices());
-
-		antialiasedLine(a, b, width, borderWidth, color, positionData, colorData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		Vector<Vector2> linePoints = { a, b };
+		quadLineList(linePoints, width, color, meshData, vertexOffset, indexOffset);
 	}
 
 	void ShapeMeshes2D::pixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
@@ -82,30 +71,127 @@ namespace BansheeEngine
 		}
 	}
 
-	void ShapeMeshes2D::antialiasedLineList(const Vector<Vector2>& linePoints, float width, float borderWidth, const Color& color,
+	void ShapeMeshes2D::quadLineList(const Vector<Vector2>& linePoints, float width, const Color& color,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.size() % 2 == 0);
+		assert(linePoints.size() >= 2 && linePoints.size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.size() * 4) <= meshData->getNumVertices());
-		assert((indexOffset + linePoints.size() * 15) <= meshData->getNumIndices());
+		UINT32 numLines = (UINT32)linePoints.size() / 2;
+		assert((vertexOffset + (numLines * 2 + 2)) <= meshData->getNumVertices());
+		assert((indexOffset + (numLines * 6)) <= meshData->getNumIndices());
 
-		UINT32 curVertOffset = vertexOffset;
-		UINT32 curIdxOffset = indexOffset;
+		UINT32* outIndices = indexOffset + meshData->getIndices32();
+		UINT8* outVertices = vertexOffset + meshData->getElementData(VES_POSITION);
+		UINT8* outColors = vertexOffset + meshData->getElementData(VES_COLOR);
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* colorData = meshData->getElementData(VES_COLOR);
+		RGBA colorValue = color.getAsRGBA();
 
-		UINT32 numPoints = (UINT32)linePoints.size();
-		for(UINT32 i = 0; i < numPoints; i += 2)
+		// Start segment
 		{
-			antialiasedLine(linePoints[i], linePoints[i + 1], width, borderWidth, color, positionData, colorData, 
-				curVertOffset, meshData->getVertexDesc()->getVertexStride(), indexData, curIdxOffset);
+			Vector2 a = linePoints[0];
+			Vector2 b = linePoints[1];
 
-			curVertOffset += NUM_VERTICES_AA_LINE;
-			curIdxOffset += NUM_INDICES_AA_LINE;
+			Vector2 diff = b - a;
+			diff.normalize();
+
+			// Flip 90 degrees
+			Vector2 normal(diff.y, -diff.x);
+
+			Vector2 lineA = a + normal * width;
+			Vector2 lineB = a - normal * width;
+
+			memcpy(outVertices, &lineA, sizeof(lineA));
+			outVertices += vertexOffset;
+
+			memcpy(outVertices, &lineB, sizeof(lineB));
+			outVertices += vertexOffset;
 		}
+
+		// Middle segments
+		{
+			for(UINT32 i = 1; i < numLines; i++)
+			{
+				Vector2 a = linePoints[i - 1];
+				Vector2 b = linePoints[i];
+				Vector2 c = linePoints[i + 1];
+
+				Vector2 diffPrev = b - a;
+				diffPrev.normalize();
+
+				Vector2 diffNext = c - b;
+				diffNext.normalize();
+
+				// Flip 90 degrees
+				Vector2 normalPrev(diffPrev.y, -diffPrev.x);
+				Vector2 normalNext(diffNext.y, -diffNext.x);
+
+				const float sign[] = { 1.0f, -1.0f };
+				for(UINT32 j = 0; j < 2; j++)
+				{
+					Vector2 linePrevPoint = a + normalPrev * width * sign[j];
+					Line2 linePrev(linePrevPoint, diffPrev);
+					
+					Vector2 lineNextPoint = b + normalNext * width * sign[j];
+					Line2 lineNext(lineNextPoint, diffNext);
+
+					auto intersect = linePrev.intersects(lineNext);
+					Vector2 intersectPoint;
+					if(intersect.second != 0.0f) // Not parallel
+						intersectPoint = linePrev.getPoint(intersect.second);
+					else
+						intersectPoint = lineNextPoint;
+
+					memcpy(outVertices, &intersectPoint, sizeof(intersectPoint));
+					outVertices += vertexOffset;
+				}
+			}
+		}
+
+		// End segment
+		{
+			Vector2 a = linePoints[linePoints.size() - 2];
+			Vector2 b = linePoints[linePoints.size() - 1];
+
+			Vector2 diff = b - a;
+			diff.normalize();
+
+			// Flip 90 degrees
+			Vector2 normal(diff.y, -diff.x);
+
+			Vector2 lineA = a + normal * width;
+			Vector2 lineB = a - normal * width;
+
+			memcpy(outVertices, &lineA, sizeof(lineA));
+			outVertices += vertexOffset;
+
+			memcpy(outVertices, &lineB, sizeof(lineB));
+			outVertices += vertexOffset;
+		}
+
+		// Colors and indices
+		for(UINT32 i = 0; i < numLines; i++)
+		{
+			memcpy(outColors, &colorValue, sizeof(colorValue));
+			outColors += vertexOffset;
+
+			memcpy(outColors, &colorValue, sizeof(colorValue));
+			outColors += vertexOffset;
+
+			UINT32 idxStart = i * 6;
+			outIndices[idxStart + 0] = vertexOffset + idxStart + 0;
+			outIndices[idxStart + 1] = vertexOffset + idxStart + 1;
+			outIndices[idxStart + 2] = vertexOffset + idxStart + 2;
+
+			outIndices[idxStart + 3] = vertexOffset + idxStart + 0;
+			outIndices[idxStart + 4] = vertexOffset + idxStart + 2;
+			outIndices[idxStart + 5] = vertexOffset + idxStart + 3;
+		}
+
+		memcpy(outColors, &colorValue, sizeof(colorValue));
+		outColors += vertexOffset;
+
+		memcpy(outColors, &colorValue, sizeof(colorValue));
+		outColors += vertexOffset;
 	}
 
 	void ShapeMeshes2D::pixelWirePolygon(const Vector<Vector2>& points, UINT8* outVertices, UINT8* outColors,
@@ -160,142 +246,5 @@ namespace BansheeEngine
 		outIndices += indexOffset;
 		outIndices[0] = vertexOffset + 0;
 		outIndices[1] = vertexOffset + 1;
-	}
-
-	void ShapeMeshes2D::antialiasedLine(const Vector2& a, const Vector2& b, float width, float borderWidth, const Color& color, UINT8* outVertices, UINT8* outColors,
-		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
-	{
-		Vector2 dir = b - a;
-		dir.normalize();
-
-		Vector2 nrm(dir.y, -dir.x);
-
-		Vector<Vector2> points(4);
-
-		float r = width - 1.0f;
-		r *= 0.5f;
-		if (r < 0.01f) 
-			r = 0.01f;
-
-		dir = dir * r;
-		nrm = nrm * r;
-
-		Vector2 v0 = a - dir - nrm;
-		Vector2 v1 = a - dir + nrm;
-		Vector2 v2 = b + dir + nrm;
-		Vector2 v3 = b + dir - nrm;
-
-		points[0] = v0;
-		points[1] = v1;
-		points[2] = v2;
-		points[3] = v3;
-
-		antialiasedPolygon(points, borderWidth, color, outVertices, outColors, vertexOffset, vertexStride, outIndices, indexOffset);
-	}
-
-	void ShapeMeshes2D::antialiasedPolygon(const Vector<Vector2>& points, float borderWidth, const Color& color, UINT8* outVertices, UINT8* outColors,
-		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
-	{
-		UINT32 numCoords = (UINT32)points.size();
-
-		outVertices += vertexOffset * vertexStride;
-		outColors += vertexOffset * vertexStride;
-		Vector<Vector2> tempNormals(numCoords);
-
-		for(UINT32 i = 0, j = numCoords - 1; i < numCoords; j = i++)
-		{
-			const Vector2& v0 = points[j];
-			const Vector2& v1 = points[i];
-
-			Vector2 d = v1 - v0;
-			d.normalize();
-
-			// Rotate by 90 degrees
-			std::swap(d.x, d.y); // TODO - Not properly ported
-			d.y = -d.y;
-
-			tempNormals[j] = d;
-
-			// Also start populating the vertex array
-			Vector2* vertices = (Vector2*)outVertices;
-			*vertices = v1;
-
-			UINT32* colors = (UINT32*)outColors;
-			*colors = color.getAsRGBA();
-
-			outVertices += vertexStride;
-			outColors += vertexStride;
-		}
-
-		Color transparentColor = color;
-		transparentColor.a = 0.0f;
-
-		for(UINT32 i = 0, j = numCoords - 1; i < numCoords; j = i++)
-		{
-			const Vector2& n0 = tempNormals[j];
-			const Vector2& n1 = tempNormals[i];
-
-			Vector2 avgNrm = (n0 + n1) * 0.5f;
-			float magSqrd = avgNrm.squaredLength();
-
-			if (magSqrd > 0.000001f)
-			{
-				float scale = 1.0f / magSqrd;
-				if (scale > 10.0f) 
-					scale = 10.0f;
-
-				avgNrm = avgNrm * scale;
-			}
-
-			Vector2 tempCoord = points[i] + avgNrm * borderWidth;
-
-			// Move it to the vertex array
-			Vector2* vertices = (Vector2*)outVertices;
-			*vertices = tempCoord;
-
-			UINT32* colors = (UINT32*)outColors;
-			*colors = transparentColor.getAsRGBA();
-
-			outVertices += vertexStride;
-			outColors += vertexStride;
-		}
-
-		// Populate index buffer
-		outIndices += indexOffset;
-
-		UINT32 idxCnt = 0;
-		for(UINT32 i = 0, j = numCoords - 1; i < numCoords; j = i++)
-		{
-			outIndices[idxCnt++] = vertexOffset + i;
-			outIndices[idxCnt++] = vertexOffset + j;
-			outIndices[idxCnt++] = vertexOffset + numCoords + j;
-
-			outIndices[idxCnt++] = vertexOffset + numCoords + j;
-			outIndices[idxCnt++] = vertexOffset + numCoords + i;
-			outIndices[idxCnt++] = vertexOffset + i;
-		}
-
-		for(UINT32 i = 2; i < numCoords; ++i)
-		{
-			outIndices[idxCnt++] = vertexOffset + 0;
-			outIndices[idxCnt++] = vertexOffset + i - 1;
-			outIndices[idxCnt++] = vertexOffset + i;
-		}
-	}
-
-	Rect2 ShapeMeshes2D::normalizedCoordToClipSpace(const Rect2& area)
-	{
-		Rect2 clipSpaceRect;
-		clipSpaceRect.x = area.x * 2.0f - 1.0f;
-		clipSpaceRect.width = area.width * 2.0f;
-		clipSpaceRect.y = -area.y * 2.0f + 1.0f;
-		clipSpaceRect.height = area.height * -2.0f;
-
-		return clipSpaceRect;
-	}
-
-	Vector2 ShapeMeshes2D::normalizedCoordToClipSpace(const Vector2& pos)
-	{
-		return Vector2(pos.x * 2.0f - 1.0f, -pos.y * 2.0f + 1.0f);
 	}
 }

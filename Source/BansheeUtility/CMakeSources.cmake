@@ -155,6 +155,7 @@ set(BS_BANSHEEUTILITY_SRC_MATH
 	"Source/BsRect2I.cpp"
 	"Source/BsLineSegment3.cpp"
 	"Source/BsCapsule.cpp"
+	"Source/BsLine2.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_TESTING
@@ -201,6 +202,7 @@ set(BS_BANSHEEUTILITY_INC_MATH
 	"Include/BsCapsule.h"
 	"Include/BsMatrixNxM.h"
 	"Include/BsVectorNI.h"
+	"Include/BsLine2.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_ERROR
