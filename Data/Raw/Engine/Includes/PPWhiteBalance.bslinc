@@ -1,0 +1,211 @@
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Fragment =
+		{
+			/**
+			 * Calculates correlated color temperature from chomaticity coordinates using the McCamy's formula.
+			 * Coordinates should be near the Planckian locus otherwise the returned temperature becomes meaningless.
+			 *
+			 * @param 	coords	CIE 1931 x chomaticity coordinates.
+			 * @return			Correlated color temperature in degrees Kelvin.
+			 */
+			float CCT(float2 coords)
+			{
+				float n = (coords.x - 0.3320f) / (0.1858f - coords.y);
+				float n2 = n * n;
+				float n3 = n2 * n;
+				
+				return -449.0f * n3 + 3525.0f * n2 - 6823.3f * n + 5520.33f;
+			}
+
+			/**
+			 * Calculates chromaticity coordinates from a correlated color temperature. Uses the Planckian locus formula
+			 * which works for values in range [1000K, 15000K].
+			 *
+			 * @param	T	Correlated color temperature in degrees Kelvin.
+			 * @return		CIE 1960 UCS chomaticity coordinates.
+			 */
+			float2 PlanckianLocusChromaticity(float T)
+			{
+				float T2 = T * T;
+
+				// Calculates CIE 1960 UCS coordinates
+				float u = (0.860117757f + 1.54118254e-4f * T + 1.28641212e-7f * T2) / (1.0f + 8.42420235e-4f * T + 7.08145163e-7f * T2);
+				float v = (0.317398726f + 4.22806245e-5f * T + 4.20481691e-8f * T2) / (1.0f - 2.89741816e-5f * T + 1.61456053e-7f * T2);
+				
+				return float2(u, v);
+			}
+
+			/**
+			 * Calculates chromaticity coordinates from a correlated color temperature. Uses the formula for series
+			 * D standard illuminants (D55, D65, D75, etc.). Valid for values in range [4000K, 25000K].
+			 *
+			 * @param	T	Correlated color temperature in degrees Kelvin.
+			 * @return		CIE 1931 chomaticity coordinates.
+			 */
+			float2 DSeriesIlluminantChromaticity(float T)
+			{
+				float x = T <= 7000.0f 
+					? 0.244063f + (0.09911e3 + (2.9678e6 - 4.6070e9 / T) / T) / T 
+					: 0.237040f + (0.24748e3 + (1.9018e6 - 2.0064e9 / T) / T) / T;
+				
+				float y = -3.0f * x * x + 2.87f * x - 0.275f;
+
+				return float2(x, y);
+			}
+
+			/**
+			 * Converts chomaticity coordinates from CIE 1960 uniform color space to CIE 1931 color space.
+			 *
+			 * @param	uv	Chromaticity coordinates in CIE 1960 UCS.
+			 * @return		Chromaticity coordinates in CIE 1931.
+			 */
+			float2 CIE1960ToCIE1931(float2 uv)
+			{
+				float x = (3 * uv.x) / (2 * uv.x - 8 * uv.y + 4);
+				float y = (2 * uv.y) / (2 * uv.x - 8 * uv.y + 4);
+
+				return float2(x, y);
+			}
+
+			/**
+			 * Adds the specified offset along the Planckian isothermal line and returns the chromaticity coordinates for the offset position.
+			 *
+			 * @param	uv		Chromaticity coordiantes in CIE 1960 UCS for the correlated color temperature along the Planckian locus.
+			 * @param	offset	Offset to be added along the isothermal. In range [-1, 1]. The actual offset in chromaticity
+			 *					coordinates is scaled to |0.05| since values farther than that usually aren't useful.
+			 * @return			CIE 1931 chomaticity coordinates.
+			 */
+			float2 PlanckianIsothermalOffset(float2 uv, float offset)
+			{
+				// Rotate uv by 90 degrees and normalize it to get the isotherm line
+				float2 isotherm = normalize(float2(-uv.y, uv.x));
+				
+				uv += isotherm * offset * 0.05f;
+				return CIE1960ToCIE1931(uv);
+			}
+			
+			/**
+			 * Converts from CIE 1931 xyY color space to XYZ color space.
+			 *
+			 * @param	xyY		Coordinates in xyY color space.
+			 * @return			Coordinates in XYZ color space.
+			 */
+			float3 xyYToXYZ(float3 xyY)
+			{
+				float divisor = max(xyY.y, 1e-10f);
+			
+				float3 XYZ;
+				XYZ.x = (xyY.x * xyY.z) / divisor;
+				XYZ.y = xyY.z;  
+				XYZ.z = ((1.0 - xyY.x - xyY.y) * xyY.z) / divisor;
+
+				return XYZ;
+			}
+			
+			/**
+			 * Converts from CIE 1931 XYZ color space to xyY color space.
+			 *
+			 * @param	XYZ		Coordinates in XYZ color space.
+			 * @return			Coordinates in xyY color space.
+			 */
+			float3 XYZToxyY(float3 XYZ)
+			{
+				float3 xyY;
+				float divisor = XYZ.x + XYZ.y + XYZ.z;
+				if (divisor == 0.0f) 
+					divisor = 1e-10f;
+				
+				xyY.x = XYZ.x / divisor;
+				xyY.y = XYZ.y / divisor;  
+				xyY.z = XYZ.y;
+			  
+				return xyY;
+			}			
+			
+			/**
+			 * Returns a matrix that transform XYZ tristimulus values for a given white point to
+			 * a new white point.
+			 *
+			 * @param	orgWhite	Chromaticity coordinates in CIE 1931 for the original white point.
+			 * @param	newWhite	Chromaticity coordinates in CIE 1931 for the new white point.
+			 * @return				Matrix that transform from the original to new white point.
+			 */
+			float3x3 ChromaticAdaptation(float2 orgWhite, float2 newWhite)
+			{
+				// Convert xyY to XYZ
+				float3 orgWhite3 = xyYToXYZ(float3(orgWhite.xy, 1.0f));
+				float3 newWhite3 = xyYToXYZ(float3(newWhite.xy, 1.0f));
+				
+				// Convert to cone response domain using Bradford's matrix
+				const float3x3 coneResponse =
+				{
+					 0.8951f,  0.2664f, -0.1614f,
+					-0.7502f,  1.7135f,  0.0367f,
+					 0.0389f, -0.0685f,  1.0296f,
+				};
+				
+				const float3x3 invConeResponse =
+				{
+					 0.9870f, -0.1471f,  0.1600f,
+					 0.4323f,  0.5184f,  0.0493f,
+					-0.0085f,  0.0400f,  0.9685f,
+				};
+				
+				orgWhite3 = mul(coneResponse, orgWhite3);
+				newWhite3 = mul(coneResponse, newWhite3);
+				
+				// Generate transformation matrix
+				float3x3 adaptation =
+				{
+					newWhite3.x / orgWhite3.x, 0.0f, 0.0f,
+					0.0f, newWhite3.y / orgWhite3.y, 0.0f,
+					0.0f, 0.0f, newWhite3.z / orgWhite3.z
+				};
+				
+				return mul(invConeResponse, mul(adaptation, coneResponse));
+			}
+			
+			cbuffer WhiteBalanceInput
+			{
+				float gWhiteTemp;
+				float gWhiteOffset;
+			}
+			
+			/**
+			 * Applies color balancing to the provided color. The color is transformed from its original white point
+			 * (provided by gWhiteTemp and gWhiteOffset) to a D65 white point.
+			 * 
+			 * @param	color 	Color in linear sRGB/Rec.709 color space.
+			 * @return			White balanced linear color.
+			 */
+			float3 WhiteBalance(float3 color)
+			{
+				float2 orgPlanckianUV = PlanckianLocusChromaticity(gWhiteTemp);
+				float2 orgWhiteXY;
+				if(gWhiteTemp < 4000)
+				{
+					orgWhiteXY = PlanckianIsothermalOffset(orgPlanckianUV, gWhiteOffset);
+				}
+				else
+				{
+					orgWhiteXY = DSeriesIlluminantChromaticity(gWhiteTemp);
+					float2 offsetXY = PlanckianIsothermalOffset(orgPlanckianUV, gWhiteOffset) - CIE1960ToCIE1931(orgPlanckianUV);
+					
+					orgWhiteXY += offsetXY;
+				}
+			
+				float2 newWhiteXY = float2(0.3128f, 0.3290f); // D65 white point
+				
+				float3x3 adaptation = ChromaticAdaptation(orgWhiteXY, newWhiteXY);
+				adaptation = mul(XYZTosRGBMatrix, mul(adaptation, sRGBToXYZMatrix));
+
+				return mul(adaptation, color);
+			}
+		};
+	};
+};

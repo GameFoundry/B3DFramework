@@ -5,9 +5,10 @@
 bin
 obj
 lib
-data
 Dependencies
 Builds
+Data/Binaries
+Data/Settings.asset
 Documentation/html
 Build
 *.aps

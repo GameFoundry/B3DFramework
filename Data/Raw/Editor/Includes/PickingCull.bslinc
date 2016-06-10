@@ -1,0 +1,107 @@
+Parameters =
+{
+	mat4x4		matWorldViewProj;
+	
+	float4		colorIndex;	
+};
+
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				out float4 oPosition : SV_Position)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+			}
+		};
+		
+		Fragment =
+		{
+			float4 colorIndex;
+
+			float4 main(in float4 inPos : SV_Position) : SV_Target
+			{
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique =
+{
+	Language = "HLSL9";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				out float4 oPosition : POSITION)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+			}
+		};
+		
+		Fragment =
+		{
+			float4 colorIndex;
+
+			float4 main(in float4 inPos : POSITION) : COLOR0
+			{
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			uniform mat4 matWorldViewProj;
+			in vec3 bs_position;
+
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+			
+			void main()
+			{
+				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
+			}
+		};
+		
+		Fragment =
+		{
+			uniform vec4 colorIndex;
+			out vec4 fragColor;
+
+			void main()
+			{
+				fragColor = colorIndex;
+			}
+		};
+	};
+};

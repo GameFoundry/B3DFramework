@@ -1,0 +1,51 @@
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		DepthWrite = false;
+		DepthRead = false;
+	
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_POSITION;
+				float2 uv0 : TEXCOORD0;
+			};
+		};
+
+		Vertex =
+		{
+			struct VertexInput
+			{
+				float2 screenPos : POSITION;
+				float2 uv0 : TEXCOORD0;
+			};
+			
+			VStoFS main(VertexInput input)
+			{
+				VStoFS output;
+			
+				output.position = float4(input.screenPos, 0, 1);
+				output.uv0 = input.uv0;
+
+				return output;
+			}			
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Vertex =
+		{
+			// TODO
+		};
+	};
+};

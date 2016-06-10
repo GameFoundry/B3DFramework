@@ -1,0 +1,1 @@
+#include "$ENGINE$\SpriteImage.bslinc"

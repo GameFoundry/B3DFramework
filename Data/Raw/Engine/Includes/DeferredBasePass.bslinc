@@ -1,0 +1,167 @@
+#include "$ENGINE$\GBuffer.bslinc"
+#include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerObjectData.bslinc"
+
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_Position;
+				float2 uv0 : TEXCOORD0;
+				
+				float3 worldPosition : POSITION;
+				float3 tangentToWorldZ : NORMAL;
+				float4 tangentToWorldX : TANGENT;
+			};
+		};
+
+		Vertex =
+		{			
+			struct VertexInput
+			{
+				float3 position : POSITION;
+				float3 normal : NORMAL;
+				float4 tangent : TANGENT;
+				float2 uv0 : TEXCOORD0;
+			};
+			
+			float3x3 getTangentToObject(VertexInput input, out float tangentSign)
+			{
+				float3x3 output;
+				
+				float3 normal = input.normal;
+				float4 tangent = input.tangent;
+				float3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+				tangentSign = tangent.w * gWorldDeterminantSign;
+				
+				// Note: Maybe it's better to store everything in row vector format?
+				output[0][0] = tangent.x;
+				output[1][0] = tangent.y;
+				output[2][0] = tangent.z;
+				
+				output[0][1] = bitangent.x;
+				output[1][1] = bitangent.y;
+				output[2][1] = bitangent.z;
+				
+				output[0][2] = normal.x;
+				output[1][2] = normal.y;
+				output[2][2] = normal.z;
+								
+				return output;
+			}
+
+			VStoFS main(VertexInput input)
+			{
+				VStoFS output;
+			
+				float4 worldPosition = mul(gMatWorld, float4(input.position, 1));
+			
+				output.position = mul(gMatViewProj, worldPosition);
+				output.worldPosition = worldPosition.xyz;
+				output.uv0 = input.uv0;
+				
+				float tangentSign;
+				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, getTangentToObject(input, tangentSign));
+
+				output.tangentToWorldZ = float3(tangentToWorld._m02_m12_m22); // Normal basis vector
+				output.tangentToWorldX = float4(tangentToWorld._m00_m10_m20, tangentSign); // Tangent basis vector
+										
+				return output;
+			}
+		};
+		
+		Fragment =
+		{
+			float3 calcWorldNormal(VStoFS input, float3 surfaceNormal)
+			{
+				float3 tangentToWorldX = input.tangentToWorldX.xyz;
+				float3 tangentToWorldZ = input.tangentToWorldZ;
+				float3 tangentToWorldY = cross(tangentToWorldZ, tangentToWorldX) * input.tangentToWorldX.w;
+				
+				float3x3 tangentToWorld = float3x3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
+				
+				// Multiplication order flipped because we stored basis vectors as rows
+				return normalize(mul(surfaceNormal, tangentToWorld));			
+			}
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Common = 
+		{
+			varying vec4 position;
+			varying vec2 uv0;
+			varying vec3 worldPosition;
+			varying vec3 tangentToWorldZ;
+			varying vec4 tangentToWorldX;	
+		};
+	
+		Vertex =
+		{			
+			in vec3 bs_position;
+			in vec3 bs_normal;
+			in vec4 bs_tangent;
+			in vec2 bs_texcoord0;
+		
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};		
+							
+			void getTangentToObject(vec3 normal, vec4 tangent, out float tangentSign, out mat3 tangentToObject)
+			{
+				vec3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+				tangentSign = tangent.w * gWorldDeterminantSign;
+				
+				tangentToObject[0] = tangent.xyz;
+				tangentToObject[1] = bitangent;
+				tangentToObject[2] = normal;
+			}
+
+			void main()
+			{
+				vec4 worldPos = gMatWorld * vec4(bs_position, 1);
+			
+				position = gMatViewProj * worldPos;
+				worldPosition = worldPos.xyz;
+				uv0 = bs_texcoord0;
+				
+				float tangentSign;
+				mat3 tangentToObject;
+				getTangentToObject(bs_normal, bs_tangent, tangentSign, tangentToObject);
+				
+				mat3 tangentToWorld = mat3(gMatWorldNoScale) * tangentToObject;
+
+				tangentToWorldZ = tangentToWorld[2]; // Normal basis vector
+				tangentToWorldX = vec4(tangentToWorld[0].xyz, tangentSign); // Tangent basis vector
+				
+				gl_Position = position;
+			}
+		};
+		
+		Fragment =
+		{
+			vec3 calcWorldNormal(vec3 normal, vec4 tangent, vec3 surfaceNormal)
+			{
+				vec3 tangentToWorldX = tangent.xyz;
+				vec3 tangentToWorldZ = normal;
+				vec3 tangentToWorldY = cross(tangentToWorldZ, tangentToWorldX) * tangent.w;
+				
+				mat3 tangentToWorld = mat3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
+				return normalize(tangentToWorld * surfaceNormal);
+			}
+		};
+	};
+};

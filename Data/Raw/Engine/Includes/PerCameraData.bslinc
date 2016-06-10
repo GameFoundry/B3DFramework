@@ -1,0 +1,77 @@
+Parameters =
+{
+	float3 		gViewDir : auto("ViewDir");
+	float3 		gViewOrigin : auto("ViewOrigin");
+	mat4x4		gMatViewProj : auto("VP");	
+	mat4x4		gMatView : auto("V");
+	mat4x4		gMatProj : auto("P");
+	mat4x4		gMatInvProj : auto("IP");
+	mat4x4		gMatInvViewProj : auto("IVP");
+	
+	// Special inverse view-projection matrix that had projection entries that affect z and w eliminated.
+	// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, 
+	// and view_z/view_w in view space, into world space
+	mat4x4      gMatScreenToWorld : auto("ScreenToWorld");
+	
+	// Converts device Z to world Z using this formula: worldZ = (1 / (deviceZ + y)) * x
+	float2		gDeviceZToWorldZ : auto("DeviceToWorldZ");
+	
+	// xy - (Viewport size in pixels / 2) / Target size in pixels
+	// zw - (Viewport offset in pixels + (Viewport size in pixels / 2) + Optional pixel center offset) / Target size in pixels	
+	float4 		gClipToUVScaleOffset : auto("ClipToUVScaleOffset");		
+};
+
+Blocks =
+{
+	Block PerCamera : auto("PerCamera");
+};
+
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Common = 
+		{
+			cbuffer PerCamera
+			{
+				float3	 gViewDir;
+				float3 	 gViewOrigin;
+				float4x4 gMatViewProj;
+				float4x4 gMatView;
+				float4x4 gMatProj;
+				float4x4 gMatInvProj;
+				float4x4 gMatInvViewProj;
+				float4x4 gMatScreenToWorld;
+				float2 	 gDeviceZToWorldZ;
+				float4 	 gClipToUVScaleOffset;				
+			}
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Common = 
+		{
+			layout(std140) uniform PerCamera
+			{
+				vec3 gViewDir;
+				vec3 gViewOrigin;
+				mat4 gMatViewProj;
+				mat4 gMatView;
+				mat4 gMatProj;
+				mat4 gMatInvProj;
+				mat4 gMatInvViewProj;
+				mat4 gMatScreenToWorld;
+				vec2 gDeviceZToWorldZ;
+				vec4 gClipToUVScaleOffset;				
+			};
+		};
+	};
+};

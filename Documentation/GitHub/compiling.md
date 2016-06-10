@@ -12,19 +12,11 @@ Banshee currently only compiles on Windows, but Mac & Linux ports are coming soo
 
 To compile follow these steps:
  1. Download source code
- 2. Download [data files](#data) and extract them into the source directory
- 3. Set up [third party dependencies](#dependencies)
- 4. Generate a build file (e.g. Visual Studio solution or a Makefile) using CMake
+ 2. Set up [third party dependencies](#dependencies)
+ 3. Generate a build file (e.g. Visual Studio solution or a Makefile) using CMake
   - You can customize your build by choosing options like render API (DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
- 5. Compile using your favorite tool
+ 4. Compile using your favorite tool
 
-# <a name="data"></a>Data files
-Data files are non-code resources like images, shaders, etc. needed to run the editor, engine and example projects.
-
-[Download data files (Latest)] (http://bearishsun.thalassa.feralhosting.com/BansheeData_Master.zip)
-
-For older versions check the git release tag descriptions for links.
- 
 # <a name="dependencies"></a>Third party dependencies
 Banshee relies on a variety of third party dependencies. We provide a set of pre-compiled dependencies needed for the latest version of Banshee using Visual Studio 2015, to save you the hassle of compiling them yourself. If you are not using VS2015 or want to compile the dependencies yourself for some other reason, a guide is provided below.
 

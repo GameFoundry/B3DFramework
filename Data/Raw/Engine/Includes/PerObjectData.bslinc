@@ -1,0 +1,56 @@
+Parameters =
+{
+	mat4x4		gMatWorldViewProj : auto("WVP");
+	mat4x4		gMatWorld : auto("W");
+	mat4x4		gMatInvWorld : auto("IW");
+	mat4x4		gMatWorldNoScale : auto("WNoScale");
+	mat4x4		gMatInvWorldNoScale : auto("IWNoScale");
+	float		gWorldDeterminantSign : auto("WorldDeterminantSign");
+};
+
+Blocks =
+{
+	Block PerObject : auto("PerObject");
+};
+
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Common = 
+		{
+			cbuffer PerObject
+			{
+				float4x4 gMatWorldViewProj;
+				float4x4 gMatWorld;
+				float4x4 gMatInvWorld;
+				float4x4 gMatWorldNoScale;
+				float4x4 gMatInvWorldNoScale;
+				float gWorldDeterminantSign;
+			}			
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Common = 
+		{
+			layout(std140) uniform PerObject
+			{
+				mat4 gMatWorldViewProj;
+				mat4 gMatWorld;
+				mat4 gMatInvWorld;
+				mat4 gMatWorldNoScale;
+				mat4 gMatInvWorldNoScale;
+				float gWorldDeterminantSign;
+			};			
+		};
+	};
+};
