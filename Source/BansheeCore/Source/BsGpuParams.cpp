@@ -617,7 +617,7 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		UINT32 samplerArraySize = mNumSamplerStates * sizeof(SPtr<SamplerStateCore>);
 
 		UINT32 totalSize = loadStoreSurfacesSize + paramBufferSize + textureArraySize + loadStoreTextureArraySize 
-			+ samplerArraySize;
+			+ bufferArraySize + samplerArraySize;
 
 		UINT32 textureInfoOffset = 0;
 		UINT32 paramBufferOffset = textureInfoOffset + loadStoreSurfacesSize;

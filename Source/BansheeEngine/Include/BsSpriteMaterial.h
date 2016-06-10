@@ -15,19 +15,44 @@ namespace BansheeEngine
 
 	/** Extension structure that can be used by SpriteMaterial%s to access specialized data. */
 	struct SpriteMaterialExtraInfo
-	{ };
+	{
+		virtual ~SpriteMaterialExtraInfo() { }
+
+		/** Creates a new deep copy of the object. */
+		virtual SPtr<SpriteMaterialExtraInfo> clone() const
+		{
+			return bs_shared_ptr_new<SpriteMaterialExtraInfo>();
+		}
+	};
 
 	/** Contains information for initializing a sprite material. */
 	struct SpriteMaterialInfo
 	{
 		SpriteMaterialInfo()
-			:groupId(0), additionalData(nullptr)
+			:groupId(0)
 		{ }
+
+		/** 
+		 * Creates a new deep copy of the object. This is different from standard copy constructor which will just reference
+		 * the original "additionalData" field, while this will copy it.
+		 */
+		SpriteMaterialInfo clone() const
+		{
+			SpriteMaterialInfo info;
+			info.groupId = groupId;
+			info.texture = texture;
+			info.tint = tint;
+
+			if(additionalData != nullptr)
+				info.additionalData = additionalData->clone();
+
+			return info;
+		}
 
 		UINT64 groupId;
 		HTexture texture;
 		Color tint;
-		SpriteMaterialExtraInfo* additionalData;
+		SPtr<SpriteMaterialExtraInfo> additionalData;
 	};
 
 	/** Interfaced implemented by materials used for rendering sprites. This is expected to be used as a singleton. */
@@ -71,7 +96,7 @@ namespace BansheeEngine
 		 */
 		virtual void render(const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture,
 			const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform, 
-			const Vector2& invViewportSize, SpriteMaterialExtraInfo* additionalData) const;
+			const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
 	protected:
 		/** Perform initialization of core-thread specific objects. */

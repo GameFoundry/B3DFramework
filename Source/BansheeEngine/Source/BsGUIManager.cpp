@@ -571,7 +571,7 @@ namespace BansheeEngine
 						foundGroup->minDepth = elemDepth;
 						foundGroup->bounds = tfrmedBounds;
 						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
-						foundGroup->matInfo = matInfo;
+						foundGroup->matInfo = matInfo.clone();
 						foundGroup->material = spriteMaterial;
 
 						guiElem->_getMeshSize(renderElemIdx, foundGroup->numVertices, foundGroup->numIndices);

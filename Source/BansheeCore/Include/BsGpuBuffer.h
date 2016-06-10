@@ -87,6 +87,10 @@ namespace BansheeEngine
 		/** Returns the size of a single element in the buffer, of the provided format, in bytes. */
 		static UINT32 getFormatSize(GpuBufferFormat format);
 
+		/** @copydoc HardwareBufferManager::createGpuBuffer */
+		static SPtr<GpuBuffer> create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
+			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+
 	protected:
 		friend class HardwareBufferManager;
 
@@ -190,6 +194,10 @@ namespace BansheeEngine
 		 * @note	View will only truly get released once all references to it are released.
 		 */
 		static void releaseView(GpuBufferView* view);
+
+		/** @copydoc HardwareBufferManager::createGpuBuffer */
+		static SPtr<GpuBufferCore> create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
+			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
 
 	protected:
 		GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,

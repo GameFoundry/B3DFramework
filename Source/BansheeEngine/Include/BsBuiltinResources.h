@@ -84,14 +84,17 @@ namespace BansheeEngine
 		/**	Returns a shader used for rendering only a diffuse texture. */
 		HShader getDiffuseShader() const { return mShaderDiffuse; }
 
-		/**	Creates material used for textual sprite rendering (for example text in GUI). */
+		/**	Creates a material used for textual sprite rendering (for example text in GUI). */
 		HMaterial createSpriteTextMaterial() const;
 
-		/**	Creates material used for image sprite rendering (for example images in GUI). */
+		/**	Creates a material used for image sprite rendering (for example images in GUI). */
 		HMaterial createSpriteImageMaterial() const;
 
-		/**	Creates material used for non-transparent image sprite rendering (for example images in GUI). */
+		/**	Creates a material used for non-transparent image sprite rendering (for example images in GUI). */
 		HMaterial createSpriteNonAlphaImageMaterial() const;
+
+		/** Creates a material used for antialiased line rendering (for example curve rendering in GUI). */
+		HMaterial createSpriteLineMaterial() const;
 
 		/**	Retrieves one of the builtin meshes. */
 		HMesh getMesh(BuiltinMesh mesh) const;
@@ -165,6 +168,7 @@ namespace BansheeEngine
 		HShader mShaderSpriteText;
 		HShader mShaderSpriteImage;
 		HShader mShaderSpriteNonAlphaImage;
+		HShader mShaderSpriteLine;
 		HShader mShaderDiffuse;
 
 		SPtr<ResourceManifest> mResourceManifest;
@@ -292,6 +296,7 @@ namespace BansheeEngine
 		static const WString ShaderSpriteTextFile;
 		static const WString ShaderSpriteImageAlphaFile;
 		static const WString ShaderSpriteImageNoAlphaFile;
+		static const WString ShaderSpriteLineFile;
 		static const WString ShaderDiffuseFile;
 
 		static const WString MeshSphereFile;

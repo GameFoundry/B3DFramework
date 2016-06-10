@@ -21,6 +21,7 @@ namespace BansheeEngine
 			ImageTransparent,
 			ImageOpaque,
 			Text,
+			Line,
 			Count // Keep at end
 		};
 
@@ -39,6 +40,10 @@ namespace BansheeEngine
 		/** Returns the material used for rendering text sprites. */
 		SpriteMaterial* getTextMaterial() const
 			{ return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Text]); }
+
+		/** Returns the material used for rendering antialiased lines. */
+		SpriteMaterial* getLineMaterial() const
+			{ return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Line]); }
 
 		/** Returns a sprite material with the specified ID. Returns null if one cannot be found. */
 		SpriteMaterial* getMaterial(UINT32 id) const;

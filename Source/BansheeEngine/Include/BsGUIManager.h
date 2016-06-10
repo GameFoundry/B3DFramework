@@ -77,7 +77,7 @@ namespace BansheeEngine
 			SpriteMaterial* material;
 			Color tint;
 			Matrix4 worldTransform;
-			SpriteMaterialExtraInfo* additionalData;
+			SPtr<SpriteMaterialExtraInfo> additionalData;
 		};
 
 		/**	Container for a GUI widget. */

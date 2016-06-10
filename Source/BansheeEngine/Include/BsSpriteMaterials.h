@@ -32,5 +32,43 @@ namespace BansheeEngine
 		SpriteTextMaterial();
 	};
 
+	/** Sprite material used for antialiased lines. */
+	class BS_EXPORT SpriteLineMaterial : public SpriteMaterial
+	{
+	public:
+		SpriteLineMaterial();
+
+		/** @copydoc SpriteMaterial::getMergeHash */
+		UINT64 getMergeHash(const SpriteMaterialInfo& info) const override;
+
+		/** @copydoc SpriteMaterial::merge */
+		void merge(SpriteMaterialInfo& mergeInto, const SpriteMaterialInfo& mergeFrom) const override;
+
+		/** @copydoc SpriteMaterial::render */
+		void render(const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture,
+			const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform,
+			const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const override;
+	};
+
+	/** Extra data required by the SpriteLineMaterial. */
+	struct SpriteMaterialLineInfo : SpriteMaterialExtraInfo
+	{
+		/** @copydoc SpriteMaterialLineInfo::clone() */
+		SPtr<SpriteMaterialExtraInfo> clone() const override
+		{
+			SPtr<SpriteMaterialLineInfo> info = bs_shared_ptr_new<SpriteMaterialLineInfo>();
+			info->points = points;
+			info->width = width;
+
+			return info;
+		}
+
+		Vector<Vector2> points;
+		float width;
+
+		// Core thread only
+		SPtr<GpuBufferCore> pointBuffer;
+	};
+
 	/** @} */
 }

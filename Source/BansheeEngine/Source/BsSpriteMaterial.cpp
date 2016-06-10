@@ -58,7 +58,7 @@ namespace BansheeEngine
 
 	void SpriteMaterial::render(const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture,
 		const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform,
-		const Vector2& invViewportSize, SpriteMaterialExtraInfo* additionalData) const
+		const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const
 	{
 		mTextureParam.set(texture);
 		mSamplerParam.set(sampler);

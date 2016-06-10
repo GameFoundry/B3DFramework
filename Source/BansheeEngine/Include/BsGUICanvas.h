@@ -46,9 +46,10 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	a		Starting point of the line, relative to the canvas origin (top-left).
 		 * @param[in]	b		Ending point of the line, relative to the canvas origin (top-left).
+		 * @param[in]	width	Width of the line, in pixels.
 		 * @param[in]	color	Color of the line.
 		 */
-		void drawLine(const Vector2I& a, const Vector2I& b, const Color& color = Color::White);
+		void drawLine(const Vector2I& a, const Vector2I& b, float width = 1.0f, const Color& color = Color::White);
 
 		/** 
 		 * Draws multiple lines following the path by the provided vertices. First vertex connects to the second vertex,
@@ -56,9 +57,10 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	vertices	Points to use for drawing the line. Must have at least two elements. All points are 
 		 *							relative to the canvas origin (top-left).
+		 * @param[in]	width		Width of the line, in pixels.
 		 * @param[in]	color		Color of the line.
 		 */
-		void drawPolyLine(const Vector<Vector2I>& vertices, const Color& color = Color::White);
+		void drawPolyLine(const Vector<Vector2I>& vertices, float width = 1.0f, const Color& color = Color::White);
 
 		/** 
 		 * Draws a quad with a the provided texture displayed.
@@ -139,16 +141,17 @@ namespace BansheeEngine
 
 			union
 			{
-				ImageSprite* imageSprite;
-				TextureScaleMode scaleMode;
-			};
-
-			union
-			{
 				UINT32 vertexStart;
 				UINT32 numVertices;
 				mutable UINT32 clippedVertexStart;
 				mutable UINT32 clippedNumVertices;
+				float lineWidth;
+			};
+
+			union
+			{
+				ImageSprite* imageSprite;
+				TextureScaleMode scaleMode;
 			};
 
 			union

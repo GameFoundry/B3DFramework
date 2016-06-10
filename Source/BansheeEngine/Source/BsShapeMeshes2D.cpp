@@ -74,9 +74,10 @@ namespace BansheeEngine
 	void ShapeMeshes2D::quadLineList(const Vector<Vector2>& linePoints, float width, const Color& color,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.size() >= 2 && linePoints.size() % 2 == 0);
+		UINT32 numPoints = (UINT32)linePoints.size();
+		assert(numPoints >= 2);
 
-		UINT32 numLines = (UINT32)linePoints.size() / 2;
+		UINT32 numLines = (UINT32)linePoints.size() - 1;
 		assert((vertexOffset + (numLines * 2 + 2)) <= meshData->getNumVertices());
 		assert((indexOffset + (numLines * 6)) <= meshData->getNumIndices());
 
@@ -84,7 +85,44 @@ namespace BansheeEngine
 		UINT8* outVertices = vertexOffset + meshData->getElementData(VES_POSITION);
 		UINT8* outColors = vertexOffset + meshData->getElementData(VES_COLOR);
 
+		UINT32 vertexStride = meshData->getVertexDesc()->getVertexStride();
+		quadLineList(&linePoints[0], numPoints, width, outVertices, vertexStride, true);
+
 		RGBA colorValue = color.getAsRGBA();
+
+		// Colors and indices
+		for(UINT32 i = 0; i < numLines; i++)
+		{
+			memcpy(outColors, &colorValue, sizeof(colorValue));
+			outColors += vertexStride;
+
+			memcpy(outColors, &colorValue, sizeof(colorValue));
+			outColors += vertexStride;
+
+			UINT32 idxStart = i * 6;
+			outIndices[idxStart + 0] = vertexOffset + idxStart + 0;
+			outIndices[idxStart + 1] = vertexOffset + idxStart + 1;
+			outIndices[idxStart + 2] = vertexOffset + idxStart + 2;
+
+			outIndices[idxStart + 3] = vertexOffset + idxStart + 1;
+			outIndices[idxStart + 4] = vertexOffset + idxStart + 3;
+			outIndices[idxStart + 5] = vertexOffset + idxStart + 2;
+		}
+
+		memcpy(outColors, &colorValue, sizeof(colorValue));
+		outColors += vertexStride;
+
+		memcpy(outColors, &colorValue, sizeof(colorValue));
+		outColors += vertexStride;
+	}
+
+	void ShapeMeshes2D::quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, UINT8* outVertices,
+		UINT32 vertexStride, bool indexed)
+	{
+		assert(numPoints >= 2);
+		UINT32 numLines = numPoints - 1;
+
+		Vector2 prevPoints[2];
 
 		// Start segment
 		{
@@ -97,19 +135,19 @@ namespace BansheeEngine
 			// Flip 90 degrees
 			Vector2 normal(diff.y, -diff.x);
 
-			Vector2 lineA = a + normal * width;
-			Vector2 lineB = a - normal * width;
+			prevPoints[0] = a - normal * width;
+			prevPoints[1] = a + normal * width;
 
-			memcpy(outVertices, &lineA, sizeof(lineA));
-			outVertices += vertexOffset;
+			memcpy(outVertices, &prevPoints[0], sizeof(prevPoints[0]));
+			outVertices += vertexStride;
 
-			memcpy(outVertices, &lineB, sizeof(lineB));
-			outVertices += vertexOffset;
+			memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
+			outVertices += vertexStride;
 		}
 
 		// Middle segments
 		{
-			for(UINT32 i = 1; i < numLines; i++)
+			for (UINT32 i = 1; i < numLines; i++)
 			{
 				Vector2 a = linePoints[i - 1];
 				Vector2 b = linePoints[i];
@@ -125,32 +163,48 @@ namespace BansheeEngine
 				Vector2 normalPrev(diffPrev.y, -diffPrev.x);
 				Vector2 normalNext(diffNext.y, -diffNext.x);
 
-				const float sign[] = { 1.0f, -1.0f };
-				for(UINT32 j = 0; j < 2; j++)
+				Vector2 curPoints[2];
+
+				const float sign[] = { -1.0f, 1.0f };
+				for (UINT32 j = 0; j < 2; j++)
 				{
 					Vector2 linePrevPoint = a + normalPrev * width * sign[j];
 					Line2 linePrev(linePrevPoint, diffPrev);
-					
+
 					Vector2 lineNextPoint = b + normalNext * width * sign[j];
 					Line2 lineNext(lineNextPoint, diffNext);
 
 					auto intersect = linePrev.intersects(lineNext);
-					Vector2 intersectPoint;
-					if(intersect.second != 0.0f) // Not parallel
-						intersectPoint = linePrev.getPoint(intersect.second);
+					if (intersect.second != 0.0f) // Not parallel
+						curPoints[j] = linePrev.getPoint(intersect.second);
 					else
-						intersectPoint = lineNextPoint;
+						curPoints[j] = lineNextPoint;
 
-					memcpy(outVertices, &intersectPoint, sizeof(intersectPoint));
-					outVertices += vertexOffset;
+					memcpy(outVertices, &curPoints[j], sizeof(curPoints[j]));
+					outVertices += vertexStride;
+				}
+
+				if (!indexed)
+				{
+					memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
+					outVertices += vertexStride;
+
+					memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
+					outVertices += vertexStride;
+
+					memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+					outVertices += vertexStride;
+
+					prevPoints[0] = curPoints[0];
+					prevPoints[1] = curPoints[1];
 				}
 			}
 		}
 
 		// End segment
 		{
-			Vector2 a = linePoints[linePoints.size() - 2];
-			Vector2 b = linePoints[linePoints.size() - 1];
+			Vector2 a = linePoints[numPoints - 2];
+			Vector2 b = linePoints[numPoints - 1];
 
 			Vector2 diff = b - a;
 			diff.normalize();
@@ -158,53 +212,27 @@ namespace BansheeEngine
 			// Flip 90 degrees
 			Vector2 normal(diff.y, -diff.x);
 
-			Vector2 lineA = a + normal * width;
-			Vector2 lineB = a - normal * width;
+			Vector2 curPoints[2];
+			curPoints[0] = a - normal * width;
+			curPoints[1] = a + normal * width;
 
-			memcpy(outVertices, &lineA, sizeof(lineA));
-			outVertices += vertexOffset;
+			memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+			outVertices += vertexStride;
 
-			memcpy(outVertices, &lineB, sizeof(lineB));
-			outVertices += vertexOffset;
-		}
+			memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
+			outVertices += vertexStride;
 
-		// Colors and indices
-		for(UINT32 i = 0; i < numLines; i++)
-		{
-			memcpy(outColors, &colorValue, sizeof(colorValue));
-			outColors += vertexOffset;
+			if (!indexed)
+			{
+				memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
+				outVertices += vertexStride;
 
-			memcpy(outColors, &colorValue, sizeof(colorValue));
-			outColors += vertexOffset;
+				memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
+				outVertices += vertexStride;
 
-			UINT32 idxStart = i * 6;
-			outIndices[idxStart + 0] = vertexOffset + idxStart + 0;
-			outIndices[idxStart + 1] = vertexOffset + idxStart + 1;
-			outIndices[idxStart + 2] = vertexOffset + idxStart + 2;
-
-			outIndices[idxStart + 3] = vertexOffset + idxStart + 0;
-			outIndices[idxStart + 4] = vertexOffset + idxStart + 2;
-			outIndices[idxStart + 5] = vertexOffset + idxStart + 3;
-		}
-
-		memcpy(outColors, &colorValue, sizeof(colorValue));
-		outColors += vertexOffset;
-
-		memcpy(outColors, &colorValue, sizeof(colorValue));
-		outColors += vertexOffset;
-	}
-
-	void ShapeMeshes2D::pixelWirePolygon(const Vector<Vector2>& points, UINT8* outVertices, UINT8* outColors,
-		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
-	{
-		INT32 numPoints = (INT32)points.size();
-		UINT32 curVertOffset = vertexOffset;
-		UINT32 curIdxOffset = indexOffset;
-		for (INT32 i = 0, j = numPoints - 1; i < numPoints; j = i++)
-		{
-			pixelLine(points[j], points[i], outVertices, curVertOffset, vertexStride, outIndices, curIdxOffset);
-			curVertOffset += 2;
-			curIdxOffset += 2;
+				memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+				outVertices += vertexStride;
+			}
 		}
 	}
 

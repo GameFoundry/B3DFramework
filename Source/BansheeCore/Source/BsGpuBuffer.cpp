@@ -89,6 +89,13 @@ namespace BansheeEngine
 		}
 	}
 
+	SPtr<GpuBufferCore> GpuBufferCore::create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
+		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	{
+		return HardwareBufferCoreManager::instance().createGpuBufferInternal(elementCount, elementSize, type, format,
+			usage, randomGpuWrite, useCounter);
+	}
+
 	GpuBuffer::GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
 		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 		:mProperties(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
@@ -155,5 +162,12 @@ namespace BansheeEngine
 			return 0;
 
 		return lookup[(UINT32)format];
+	}
+
+	SPtr<GpuBuffer> GpuBuffer::create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
+		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	{
+		return HardwareBufferManager::instance().createGpuBuffer(elementCount, elementSize, type, format,
+			usage, randomGpuWrite, useCounter);
 	}
 }

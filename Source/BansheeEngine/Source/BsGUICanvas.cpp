@@ -7,6 +7,7 @@
 #include "BsGUITexture.h"
 #include "BsShapeMeshes2D.h"
 #include "BsSpriteManager.h"
+#include "BsSpriteMaterials.h"
 #include "BsException.h"
 
 namespace BansheeEngine
@@ -38,31 +39,12 @@ namespace BansheeEngine
 		return new (bs_alloc<GUICanvas>()) GUICanvas(getStyleName<GUICanvas>(styleName), GUIDimensions::create());
 	}
 
-	void GUICanvas::drawLine(const Vector2I& a, const Vector2I& b, const Color& color)
+	void GUICanvas::drawLine(const Vector2I& a, const Vector2I& b, float width, const Color& color)
 	{
-		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.back();
-
-		element.type = CanvasElementType::Line;
-		element.color = color;
-		element.dataId = (UINT32)mTriangleElementData.size();
-		element.vertexStart = (UINT32)mVertexData.size();
-		element.numVertices = 2;
-
-		// TODO - Add actual triangle line data here
-		mVertexData.push_back(Vector2((float)a.x, (float)a.y));
-		mVertexData.push_back(Vector2((float)b.x, (float)b.y));
-
-		mTriangleElementData.push_back(TriangleElementData());
-		TriangleElementData& elemData = mTriangleElementData.back();
-		elemData.matInfo.groupId = 0;
-		elemData.matInfo.tint = color;
-
-		mForceTriangleBuild = true;
-		_markContentAsDirty();
+		drawPolyLine({ a, b }, width, color);
 	}
 
-	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, const Color& color)
+	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, float width, const Color& color)
 	{
 		if(vertices.size() < 2)
 		{
@@ -78,15 +60,23 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
-
-		// TODO - Add actual triangle line data here
-		for (auto& vertex : vertices)
-			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
+		element.lineWidth = width;
 
 		mTriangleElementData.push_back(TriangleElementData());
 		TriangleElementData& elemData = mTriangleElementData.back();
 		elemData.matInfo.groupId = 0;
 		elemData.matInfo.tint = color;
+
+		SPtr<SpriteMaterialLineInfo> lineInfo = bs_shared_ptr_new<SpriteMaterialLineInfo>();
+		lineInfo->width = width;
+
+		for (auto& vertex : vertices)
+		{
+			Vector2 point = Vector2((float)vertex.x, (float)vertex.y);
+
+			mVertexData.push_back(point);
+			lineInfo->points.push_back(point);
+		}
 
 		mForceTriangleBuild = true;
 		_markContentAsDirty();
@@ -124,6 +114,7 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)(vertices.size() - 2) * 3;
+		element.lineWidth = 0.0f; // Not used
 
 		// Convert strip to list
 		for(UINT32 i = 2; i < (UINT32)vertices.size(); i++)
@@ -158,6 +149,7 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
+		element.lineWidth = 0.0f; // Not used
 
 		for (auto& vertex : vertices)
 			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
@@ -219,7 +211,7 @@ namespace BansheeEngine
 		switch (element.type)
 		{
 		case CanvasElementType::Line:
-			*material = nullptr; // TODO - Assign line material and additionalData of .matInfo
+			*material = SpriteManager::instance().getLineMaterial();
 			return mTriangleElementData[element.dataId].matInfo;
 		case CanvasElementType::Image:
 			*material = element.imageSprite->getMaterial(0);
@@ -424,8 +416,28 @@ namespace BansheeEngine
 	{
 		assert(element.type == CanvasElementType::Triangle || element.type == CanvasElementType::Line);
 
-		UINT8* inputVertices = (UINT8*)&mVertexData[element.vertexStart];
-		UINT32 numTris = element.numVertices / 3;
+		UINT8* verticesToClip;
+		UINT32 trianglesToClip;
+		bool freeVertices;
+
+		if (element.type == CanvasElementType::Triangle)
+		{
+			verticesToClip = (UINT8*)&mVertexData[element.vertexStart];
+			trianglesToClip = element.numVertices / 3;
+			freeVertices = false;
+		}
+		else
+		{
+			UINT32 numLines = element.numVertices - 1;
+
+			verticesToClip = (UINT8*)bs_stack_alloc(sizeof(Vector2) * (numLines * 6));
+			trianglesToClip = numLines * 2;
+			freeVertices = true;
+
+			const Vector2* linePoints = &mVertexData[element.vertexStart];
+			ShapeMeshes2D::quadLineList(linePoints, element.numVertices, element.lineWidth, verticesToClip,
+				sizeof(Vector2), false);
+		}
 
 		element.clippedVertexStart = (UINT32)mClippedVertices.size();
 		element.clippedNumVertices = 0;
@@ -437,7 +449,10 @@ namespace BansheeEngine
 			element.clippedNumVertices += count;
 		};
 
-		ImageSprite::clipTrianglesToRect(inputVertices, nullptr, numTris, sizeof(Vector2), clipRect, writeCallback);
+		ImageSprite::clipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect, writeCallback);
+
+		if(freeVertices)
+			bs_stack_free(verticesToClip);
 	}
 
 	void GUICanvas::buildAllTriangleElementsIfDirty(const Vector2& offset, const Rect2I& clipRect) const

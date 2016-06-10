@@ -20,7 +20,7 @@ namespace BansheeEngine
 		 * Fills the mesh data with vertices representing a quad (2 triangles).
 		 *
 		 * @param[in]	area			Area in which to draw the quad.
-		 * @param[in]	meshData		Mesh data that will be populated.
+		 * @param[out]	meshData		Mesh data that will be populated.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 * 							
@@ -37,11 +37,11 @@ namespace BansheeEngine
 		/**
 		 * Fills the mesh data with vertices representing a per-pixel line.
 		 *
-		 * @param	a				Start point of the line.
-		 * @param	b				End point of the line.
-		 * @param	meshData		Mesh data that will be populated.
-		 * @param	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		 * @param	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	a				Start point of the line.
+		 * @param[in]	b				End point of the line.
+		 * @param[out]	meshData		Mesh data that will be populated.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 * 							
 		 * @note	
 		 * Provided MeshData must have some specific elements at least:
@@ -57,13 +57,13 @@ namespace BansheeEngine
 		/**
 		 * Fills the mesh data with vertices representing a line of specific width as a quad. 
 		 *
-		 * @param	a				Start point of the line.
-		 * @param	b				End point of the line.
-		 * @param	width			Width of the line.
-		 * @param	color			Color of the line.
-		 * @param	meshData		Mesh data that will be populated by this method.
-		 * @param	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		 * @param	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	a				Start point of the line.
+		 * @param[in]	b				End point of the line.
+		 * @param[in]	width			Width of the line.
+		 * @param[in]	color			Color of the line.
+		 * @param[out]	meshData		Mesh data that will be populated by this method.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 * 							
 		 * @note	
 		 * Provided MeshData must have some specific elements at least:
@@ -80,10 +80,10 @@ namespace BansheeEngine
 		/**
 		 * Fills the mesh data with vertices representing per-pixel lines.
 		 *
-		 * @param	linePoints		A list of start and end points for the lines. Must be a multiple of 2.
-		 * @param	meshData		Mesh data that will be populated.
-		 * @param	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		 * @param	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	linePoints		A list of start and end points for the lines. Must be a multiple of 2.
+		 * @param[out]	meshData		Mesh data that will be populated.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 * 							
 		 * @note	
 		 * Provided MeshData must have some specific elements at least:
@@ -99,12 +99,12 @@ namespace BansheeEngine
 		/**
 		 * Fills the mesh data with vertices representing a polyline of specific width as a set of quads. 
 		 *
-		 * @param	linePoints		A list of start and end points for the lines. Must be a multiple of 2.
-		 * @param	width			Width of the line.
-		 * @param	color			Color of the line.
-		 * @param	meshData		Mesh data that will be populated by this method.
-		 * @param	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		 * @param	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	linePoints		A list of start and end points for the lines.
+		 * @param[in]	width			Width of the line.
+		 * @param[in]	color			Color of the line.
+		 * @param[out]	meshData		Mesh data that will be populated by this method.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 * 							
 		 * @note	
 		 * Provided MeshData must have some specific elements at least:
@@ -117,6 +117,23 @@ namespace BansheeEngine
 		 */
 		static void quadLineList(const Vector<Vector2>& linePoints, float width, 
 			const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset);
+
+		/**
+		 * Fills the provided buffers with vertices representing a polyline of specific width as a set of quads 
+		 * (triangle list).
+		 *
+		 * @param[in]	linePoints		A list of start and end points for the lines.
+		 * @param[in]	numPoints		Number of points in the @p linePoints buffer.
+		 * @param[in]	width			Width of the line.
+		 * @param[out]	outVertices		Pre-allocated buffer for the vertices, of size ((numLines * 2) + 2) * @p vertexStride
+		 *								if @p indexed is true, or (numLines * 6) * @p vertexStride if false.
+		 * @param[in]	vertexStride	Distance between two vertices in the output buffer. Must be at least sizeof(Vector2).
+		 * @param[in]	indexed			If true there will be ((numLines * 2) + 2) vertices generated, assuming an index
+		 *								buffer will be used for rendering. If false then (numLines * 6) vertices will be
+		 *								generated.
+		 */
+		static void quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, UINT8* outVertices, 
+			UINT32 vertexStride, bool indexed);
 
 		static const UINT32 NUM_VERTICES_AA_LINE;
 		static const UINT32 NUM_INDICES_AA_LINE;
@@ -147,20 +164,6 @@ namespace BansheeEngine
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
 		static void pixelSolidPolygon(const Vector<Vector2>& points, UINT8* outVertices,
-			UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset);
-
-		/**
-		 * Fills the provided buffers with vertices representing a pixel-wide polygon border.
-		 *
-		 * @param[in]	points			Points defining the polygon. First point is assumed to be the start and end point.
-		 * @param[out]	outVertices		Output buffer that will store the vertex position data.
-		 * @param[out]	outColors		Output buffer that will store the vertex color data.
-		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and color buffer)
-		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
-		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 */
-		static void pixelWirePolygon(const Vector<Vector2>& points, UINT8* outVertices, UINT8* outColors,
 			UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset);
 	};
 
