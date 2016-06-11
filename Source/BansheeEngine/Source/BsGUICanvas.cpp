@@ -228,7 +228,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void GUICanvas::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
+	void GUICanvas::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		Vector2 offset((float)mLayoutData.area.x, (float)mLayoutData.area.y);
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
@@ -242,21 +242,29 @@ namespace BansheeEngine
 			UINT32 numQuads = element.imageSprite->getNumQuads(renderElementIdx);
 			numVertices = numQuads * 4;
 			numIndices = numQuads * 6;
+			type = GUIMeshType::Triangle;
 		}
 		case CanvasElementType::Text:
 		{
 			UINT32 numQuads = element.textSprite->getNumQuads(renderElementIdx);
 			numVertices = numQuads * 4;
 			numIndices = numQuads * 6;
+			type = GUIMeshType::Triangle;
 		}
 		case CanvasElementType::Line:
+			numVertices = element.clippedNumVertices;
+			numIndices = element.clippedNumVertices;
+			type = GUIMeshType::Line;
+			break;
 		case CanvasElementType::Triangle:
 			numVertices = element.clippedNumVertices;
 			numIndices = element.clippedNumVertices;
+			type = GUIMeshType::Triangle;
 			break;
 		default:
 			numVertices = 0;
 			numIndices = 0;
+			type = GUIMeshType::Triangle;
 			break;
 		}
 	}
@@ -300,9 +308,12 @@ namespace BansheeEngine
 		return Vector2I(10, 10);
 	}
 
-	void GUICanvas::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUICanvas::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 indexStride = sizeof(UINT32);
+
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
 
@@ -314,6 +325,7 @@ namespace BansheeEngine
 		{
 		case CanvasElementType::Image:
 		{
+			UINT32 vertexStride = sizeof(Vector2) * 2;
 			const Rect2I& area = mImageData[element.dataId].area;
 
 			offset.x += area.x;
@@ -321,24 +333,26 @@ namespace BansheeEngine
 			clipRect.x -= area.x;
 			clipRect.y -= area.y;
 
-			element.imageSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+			element.imageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 				vertexStride, indexStride, renderElementIdx, offset, clipRect);
 		}
 			break;
 		case CanvasElementType::Text:
 		{
+			UINT32 vertexStride = sizeof(Vector2) * 2;
 			const Vector2I& position = mTextData[element.dataId].position;
 			offset += position;
 			clipRect.x += position.x;
 			clipRect.y += position.y;
 
-			element.textSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+			element.textSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 				vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 		}
 			break;
 		case CanvasElementType::Triangle:
-		case CanvasElementType::Line:
 		{
+			UINT32 vertexStride = sizeof(Vector2) * 2;
+
 			UINT32 startVert = vertexOffset;
 			UINT32 startIndex = indexOffset;
 
@@ -352,7 +366,7 @@ namespace BansheeEngine
 			assert((startIndex + numIndices) <= maxIndexIdx);
 
 			UINT8* vertDst = vertices + startVert * vertexStride;
-			UINT8* uvDst = uv + startVert * vertexStride;
+			UINT8* uvDst = uvs + startVert * vertexStride;
 			UINT32* indexDst = indices + startIndex;
 
 			Vector2 zeroUV;
@@ -367,6 +381,39 @@ namespace BansheeEngine
 			}
 		}
 			break;
+		case CanvasElementType::Line:
+		{
+			UINT32 vertexStride = sizeof(Vector2) + sizeof(UINT32);
+
+			UINT32 startVert = vertexOffset;
+			UINT32 startIndex = indexOffset;
+
+			UINT32 maxVertIdx = maxNumVerts;
+			UINT32 maxIndexIdx = maxNumIndices;
+
+			UINT32 numVertices = element.clippedNumVertices;
+			UINT32 numIndices = numVertices;
+
+			assert((startVert + numVertices) <= maxVertIdx);
+			assert((startIndex + numIndices) <= maxIndexIdx);
+
+			UINT8* vertDst = vertices + startVert * vertexStride;
+			UINT8* lineIdxDst = vertDst + sizeof(UINT32);
+			UINT32* indexDst = indices + startIndex;
+
+			for (UINT32 i = 0; i < element.clippedNumVertices; i++)
+			{
+				UINT32 lineIdx = i / 6;
+
+				memcpy(vertDst, &mClippedVertices[element.clippedVertexStart + i], sizeof(Vector2));
+				memcpy(lineIdxDst, &lineIdx, sizeof(UINT32));
+
+				vertDst += vertexStride;
+				lineIdxDst += vertexStride;
+				indexDst[i] = i;
+			}
+		}
+		break;
 		}
 	}
 

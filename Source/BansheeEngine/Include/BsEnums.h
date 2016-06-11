@@ -44,5 +44,14 @@ namespace BansheeEngine
 		RepeatToFit /**< Image will keep its original size, but will repeat in order to fill the assigned area. */
 	};
 
+	/** Types of GUI meshes that can be output by GUI elements. */
+	enum class GUIMeshType
+	{
+		/** Mesh containing a set of vertices as 2D position followed by 2D UV coordinates. */
+		Triangle,
+		/** Mesh containing a set of vertices as 2D position followed by vertex indices. */
+		Line
+	};
+
 	/** @} */
 }

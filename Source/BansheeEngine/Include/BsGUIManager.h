@@ -48,11 +48,13 @@ namespace BansheeEngine
 			Dragging
 		};
 
-		/** Material data required for rendering a single GUI mesh. */
-		struct GUIMaterialData
+		/** Data required for rendering a single GUI mesh. */
+		struct GUIMeshData
 		{
+			SPtr<TransientMesh> mesh;
 			SpriteMaterial* material;
 			SpriteMaterialInfo matInfo;
+			GUIWidget* widget;
 		};
 
 		/**	GUI render data for a single viewport. */
@@ -62,9 +64,8 @@ namespace BansheeEngine
 				:isDirty(true)
 			{ }
 
-			Vector<SPtr<TransientMesh>> cachedMeshes;
-			Vector<GUIMaterialData> cachedMaterials;
-			Vector<GUIWidget*> cachedWidgetsPerMesh;
+			Vector<GUIMeshData> cachedTriangleMeshes;
+			Vector<GUIMeshData> cachedLineMeshes;
 			Vector<GUIWidget*> widgets;
 			bool isDirty;
 		};
@@ -347,12 +348,14 @@ namespace BansheeEngine
 
 		Vector<WidgetInfo> mWidgets;
 		UnorderedMap<const Viewport*, GUIRenderData> mCachedGUIData;
-		SPtr<MeshHeap> mMeshHeap;
+		SPtr<MeshHeap> mTriangleMeshHeap;
+		SPtr<MeshHeap> mLineMeshHeap;
 
 		std::atomic<GUIManagerCore*> mCore;
 		bool mCoreDirty;
 
-		SPtr<VertexDataDesc> mVertexDesc;
+		SPtr<VertexDataDesc> mTriangleVertexDesc;
+		SPtr<VertexDataDesc> mLineVertexDesc;
 
 		Stack<GUIElement*> mScheduledForDestruction;
 

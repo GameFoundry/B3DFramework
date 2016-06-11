@@ -108,19 +108,19 @@ namespace BansheeEngine
 		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const = 0;
 
 		/**
-		 * Returns the number of vertices and indices that the specified render element will use. You will need this value
-		 * when creating the buffers before calling _fillBuffer().
+		 * Returns the type of mesh and number of vertices and indices that the specified render element will use. You will
+		 * need this value when creating the buffers before calling _fillBuffer().
 		 *
 		 * @see		_getNumRenderElements()
 		 * @see		_fillBuffer()
 		 */
-		virtual void _getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const = 0;
+		virtual void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const = 0;
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
 		 * 			
-		 * @param[out]	vertices			Previously allocated buffer where to store the vertices.
-		 * @param[out]	uv					Previously allocated buffer where to store the uv coordinates.
+		 * @param[out]	vertices			Previously allocated buffer where to store the vertices. Output is expected
+		 *									to match the GUIMeshType as returned by _getMeshInfo.
 		 * @param[out]	indices				Previously allocated buffer where to store the indices.
 		 * @param[in]	vertexOffset		At which vertex should the method start filling the buffer.
 		 * @param[in]	indexOffset			At which index should the method start filling the buffer.
@@ -128,15 +128,13 @@ namespace BansheeEngine
 		 *									safety.
 		 * @param[in]	maxNumIndices		Total number of indices the buffers were allocated for. Used only for memory
 		 *									safety.
-		 * @param[in]	vertexStride		Number of bytes between of vertices in the provided vertex and uv data.
-		 * @param[in]	indexStride			Number of bytes between two indexes in the provided index data.
 		 * @param[in]	renderElementIdx	Zero-based index of the render element.
 		 *
 		 * @see		_getNumRenderElements()
 		 * @see		_getMeshSize()
 		 */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const = 0;
+		virtual void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const = 0;
 
 		/**
 		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element

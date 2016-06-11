@@ -74,12 +74,13 @@ namespace BansheeEngine
 		return mImageSprite->getMaterialInfo(renderElementIdx);
 	}
 
-	void GUIScrollBar::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
+	void GUIScrollBar::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		UINT32 numQuads = mImageSprite->getNumQuads(renderElementIdx);
 
 		numVertices = numQuads * 4;
 		numIndices = numQuads * 6;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIScrollBar::updateRenderElementsInternal()
@@ -118,11 +119,15 @@ namespace BansheeEngine
 		return 3;
 	}
 
-	void GUIScrollBar::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIScrollBar::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 vertexStride = sizeof(Vector2) * 2;
+		UINT32 indexStride = sizeof(UINT32);
+
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
-		mImageSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 			vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 	}
 

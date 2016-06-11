@@ -53,10 +53,11 @@ namespace BansheeEngine
 		return dummy;
 	}
 
-	void GUIViewport::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
+	void GUIViewport::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		numVertices = 0;
 		numIndices = 0;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIViewport::updateClippedBounds()
@@ -70,8 +71,8 @@ namespace BansheeEngine
 		return Vector2I(0, 0);
 	}
 
-	void GUIViewport::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIViewport::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
 
 	}

@@ -19,8 +19,8 @@ Technique =
 			struct VStoFS
 			{
 				float4 position : SV_POSITION;
-				float2 uv : TEXCOORD0;
-				float3 screenAndLinePos : TEXCOORD1;
+				float2 screenPos : TEXCOORD1;
+				uint lineIdx : BLENDINDICES0;
 			};
 		};
 		
@@ -33,8 +33,7 @@ Technique =
 			struct VertexInput
 			{
 				float2 position : POSITION;
-				float2 uv : TEXCOORD0;
-				uint vertexIdx : SV_VERTEXID;
+				uint lineIdx : LINEIDX;
 			};			
 			
 			VStoFS main(VertexInput input)
@@ -46,11 +45,8 @@ Technique =
 
 				VStoFS output;
 				output.position = float4(tfrmdX, tfrmdY, 0, 1);
-				output.uv = input.uv;
-				output.screenAndLinePos.xy = input.position;
-				
-				uint segmentIdx = input.vertexIdx / 2;
-				output.screenAndLinePos.z = (float)segmentIdx;
+				output.screenPos.xy = input.position;
+				output.lineIdx = input.lineIdx;
 				
 				return output;
 			}
@@ -90,26 +86,25 @@ Technique =
 								
 				// Find nearest line
 				//// Distance to current line
-				///// This will get interpolated between two nearest line segments, truncate to get the line index
-				int lineIdx = (int)input.screenAndLinePos.z;
+				int lineIdx = (int)input.lineIdx;
 				float2 a = linePoints.Load(lineIdx * 2 + 0);				
 				float2 b = linePoints.Load(lineIdx * 2 + 1);
 				
-				float minSquaredDistance = getSquaredDistanceToLine(a, b, input.screenAndLinePos.xy);
+				float minSquaredDistance = getSquaredDistanceToLine(a, b, input.screenPos);
 
 				//// Distance to previous line
 				int prevLineIdx = max(0, lineIdx - 1);
 				a = linePoints.Load(prevLineIdx * 2 + 0);				
 				b = linePoints.Load(prevLineIdx * 2 + 1);
 				
-				minSquaredDistance = min(minSquaredDistance, getSquaredDistanceToLine(a, b, input.screenAndLinePos.xy));
+				minSquaredDistance = min(minSquaredDistance, getSquaredDistanceToLine(a, b, input.screenPos));
 				
 				//// Distance to next line
 				int nextLineIdx = min((int)numPoints - 1, lineIdx + 1);
 				a = linePoints.Load(nextLineIdx * 2 + 0);				
 				b = linePoints.Load(nextLineIdx * 2 + 1);
 				
-				minSquaredDistance = min(minSquaredDistance, getSquaredDistanceToLine(a, b, input.screenAndLinePos.xy));
+				minSquaredDistance = min(minSquaredDistance, getSquaredDistanceToLine(a, b, input.screenPos));
 				
 				// TODO - Use a different filter like Gaussian
 				float weight = clamp(minSquaredDistance / (lineWidth * lineWidth), 0, 1);

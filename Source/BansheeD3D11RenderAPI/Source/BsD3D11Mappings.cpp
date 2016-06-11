@@ -160,13 +160,10 @@ namespace BansheeEngine
 		{
 		case FT_MIN:
 			return D3D11_MIN_FILTER_SHIFT;
-			break;
 		case FT_MAG:
 			return D3D11_MAG_FILTER_SHIFT;
-			break;
 		case FT_MIP:
 			return D3D11_MIP_FILTER_SHIFT;
-			break;
 		}
 
 		// Unsupported type
@@ -282,34 +279,44 @@ namespace BansheeEngine
 		case VET_COLOR_ABGR:
 		case VET_COLOR_ARGB:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
 		case VET_FLOAT1:
 			return DXGI_FORMAT_R32_FLOAT;
-			break;
 		case VET_FLOAT2:
 			return DXGI_FORMAT_R32G32_FLOAT;
-			break;
 		case VET_FLOAT3:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-			break;
 		case VET_FLOAT4:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-			break;
+		case VET_USHORT1:
+			return DXGI_FORMAT_R16_UINT;
+		case VET_USHORT2:
+			return DXGI_FORMAT_R16G16_UINT;
+		case VET_USHORT4:
+			return DXGI_FORMAT_R16G16B16A16_UINT;
+		case VET_SHORT1:
+			return DXGI_FORMAT_R16_SINT;
 		case VET_SHORT2:
 			return DXGI_FORMAT_R16G16_SINT;
-			break;
 		case VET_SHORT4:
 			return DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
-		case VET_UBYTE4:
-			return DXGI_FORMAT_R8G8B8A8_UINT;
-			break;
+		case VET_UINT1:
+			return DXGI_FORMAT_R32_UINT;
+		case VET_UINT2:
+			return DXGI_FORMAT_R32G32_UINT;
+		case VET_UINT3:
+			return DXGI_FORMAT_R32G32B32_UINT;
 		case VET_UINT4:
 			return DXGI_FORMAT_R32G32B32A32_UINT;
-			break;
-		case VET_SINT4:
+		case VET_INT1:
+			return DXGI_FORMAT_R32_SINT;
+		case VET_INT2:
+			return DXGI_FORMAT_R32G32_SINT;
+		case VET_INT3:
+			return DXGI_FORMAT_R32G32B32_SINT;
+		case VET_INT4:
 			return DXGI_FORMAT_R32G32B32A32_SINT;
-			break;
+		case VET_UBYTE4:
+			return DXGI_FORMAT_R8G8B8A8_UINT;
 		}
 
 		// Unsupported type
@@ -349,34 +356,24 @@ namespace BansheeEngine
 		{
 		case VES_BLEND_INDICES:
 			return "BLENDINDICES";
-			break;
 		case VES_BLEND_WEIGHTS:
 			return "BLENDWEIGHT";
-			break;
 		case VES_COLOR:
 			return "COLOR";
-			break;
 		case VES_NORMAL:
 			return "NORMAL";
-			break;
 		case VES_POSITION:
 			return "POSITION";
-			break;
 		case VES_TEXCOORD:
 			return "TEXCOORD";
-			break;
 		case VES_BITANGENT:
 			return "BINORMAL";
-			break;
 		case VES_TANGENT:
 			return "TANGENT";
-			break;
 		case VES_POSITIONT:
 			return "POSITIONT";
-			break;
 		case VES_PSIZE:
 			return "PSIZE";
-			break;
 		}
 
 		// Unsupported type
@@ -390,7 +387,7 @@ namespace BansheeEngine
 		case D3D_REGISTER_COMPONENT_FLOAT32:
 			return VET_FLOAT4;
 		case D3D_REGISTER_COMPONENT_SINT32:
-			return VET_SINT4;
+			return VET_INT4;
 		case D3D_REGISTER_COMPONENT_UINT32:
 			return VET_UINT4;
 		default:
