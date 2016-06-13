@@ -258,6 +258,7 @@ namespace BansheeEngine
 		mWhiteSpriteTexture = getSkinTexture(WhiteTex);
 		mDummySpriteTexture = SpriteTexture::create(mDummyTexture);
 
+		mFont = gResources().load<Font>(mBuiltinDataFolder + (DefaultFontFilename + L".asset"));
 		mSkin = gResources().load<GUISkin>(mBuiltinDataFolder + (GUISkinFile + L".asset"));
 		mEmptySkin = GUISkin::create();
 

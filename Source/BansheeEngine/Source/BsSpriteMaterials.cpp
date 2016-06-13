@@ -58,8 +58,7 @@ namespace BansheeEngine
 		mMaterial->setBuffer("linePoints", lineInfo->pointBuffer);
 		mMaterial->setFloat("lineWidth", lineInfo->width);
 
-		// TODO - Create a filter texture
-
+		// Note: If the line shader ends up using a more complex filter, generate a filter LUT as a pre-process step
 		SpriteMaterial::render(mesh, texture, sampler, tint, worldTransform, invViewportSize, additionalData);
 	}
 }
