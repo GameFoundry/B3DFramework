@@ -184,11 +184,36 @@ namespace BansheeEngine
 			return *this;
 		}
 
-        Quaternion operator+ (const Quaternion& rhs) const;
-        Quaternion operator- (const Quaternion& rhs) const;
-        Quaternion operator* (const Quaternion& rhs) const;
-        Quaternion operator* (float rhs) const;
-        Quaternion operator- () const;
+        Quaternion operator+ (const Quaternion& rhs) const 
+		{
+			return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
+		}
+
+        Quaternion operator- (const Quaternion& rhs) const
+		{
+			return Quaternion(w - rhs.w, x - rhs.x, y - rhs.y, z - rhs.z);
+		}
+
+		Quaternion operator* (const Quaternion& rhs) const
+		{
+			return Quaternion
+			(
+				w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z,
+				w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
+				w * rhs.y + y * rhs.w + z * rhs.x - x * rhs.z,
+				w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x
+			);
+		}
+
+		Quaternion operator* (float rhs) const
+		{
+			return Quaternion(rhs * w, rhs * x, rhs * y, rhs * z);
+		}
+
+        Quaternion operator- () const
+		{
+			return Quaternion(-w, -x, -y, -z);
+		}
 
         bool operator== (const Quaternion& rhs) const
 		{
@@ -200,13 +225,25 @@ namespace BansheeEngine
 			return !operator==(rhs);
 		}
 
-		friend Quaternion operator* (float lhs, const Quaternion& rhs);
+		friend Quaternion operator* (float lhs, const Quaternion& rhs)
+		{
+			return Quaternion(lhs * rhs.w, lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
+		}
 
         /** Calculates the dot product of this quaternion and another. */
-        float dot(const Quaternion& other) const;  
+        float dot(const Quaternion& other) const
+        {
+			return w * other.w + x * other.x + y * other.y + z * other.z;
+        }
 
         /** Normalizes this quaternion, and returns the previous length. */
-        float normalize(); 
+        float normalize()
+        {
+			float len = w*w + x*x + y*y + z*z;
+			float factor = 1.0f / Math::sqrt(len);
+			*this = *this * factor;
+			return len;
+        }
 
         /**
          * Gets the inverse.

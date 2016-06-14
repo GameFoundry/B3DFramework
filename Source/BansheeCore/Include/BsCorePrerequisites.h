@@ -17,6 +17,10 @@
  *	Audio clips, 3D sound and music reproduction.
  */
 
+/** @defgroup Animation Animation
+ *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
 /** @defgroup CoreThread Core thread
  *	Core objects and interaction with the core (rendering) thread.
  */
@@ -351,6 +355,8 @@ namespace BansheeEngine
 	class AudioListener;
 	class AudioSource;
 	class AudioClipImportOptions;
+	class AnimationClip;
+	struct AnimationInstanceData;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

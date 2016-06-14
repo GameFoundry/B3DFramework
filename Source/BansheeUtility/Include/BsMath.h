@@ -593,6 +593,49 @@ namespace BansheeEngine
 			return numRoots;
 		}
 
+		/**
+		 * Evaluates a cubic Hermite curve at a specific point.
+		 *
+		 * @param[in]	t			Parameter that at which to evaluate the curve, in range [0, 1].
+		 * @param[in]	pointA		Starting point (at t=0).
+		 * @param[in]	pointB		Ending point (at t=1).
+		 * @param[in]	tangentA	Starting tangent (at t=0).
+		 * @param[in]	tangentB	Ending tangent (at t = 1).
+		 * @return					Evaluated value at @p t.
+		 */
+		template<class T>
+		static T cubicHermite(float t, const T& pointA, const T& pointB, const T& tangentA, const T& tangentB)
+		{
+			float t2 = t * t;
+			float t3 = t2 * t;
+
+			float a = 2 * t3 - 3 * t2 + 1;
+			float b = t3 - 2 * t2 + t;
+			float c = -2 * t3 + 3 * t2;
+			float d = t3 - t2;
+
+			return a * pointA + b * tangentA + c * tangentB + d * pointB;
+		}
+
+		/**
+		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form.
+		 *
+		 * @param[in]	pointA			Starting point (at t=0).
+		 * @param[in]	pointB			Ending point (at t=1).
+		 * @param[in]	tangentA		Starting tangent (at t=0).
+		 * @param[in]	tangentB		Ending tangent (at t = 1).
+		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 */
+		template<class T>
+		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, 
+			T (&coefficients)[4])
+		{
+			coefficients[0] = 2 * pointA - 2 * pointB + tangentA + tangentB;
+			coefficients[1] = -3 * pointA + 3 * pointB - 2 * tangentA - tangentB;
+			coefficients[2] = tangentA;
+			coefficients[4] = pointA;
+		}
+
         static const float POS_INFINITY;
         static const float NEG_INFINITY;
         static const float PI;
