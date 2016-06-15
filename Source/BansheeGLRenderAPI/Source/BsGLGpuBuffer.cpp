@@ -37,7 +37,7 @@ namespace BansheeEngine
 		// Create buffer
 		const auto& props = getProperties();
 		UINT32 size = props.getElementCount() * props.getElementSize();
-		mBuffer = GLBuffer(GL_TEXTURE_BUFFER, size, props.getUsage());
+		mBuffer.initialize(GL_TEXTURE_BUFFER, size, props.getUsage());
 		
 		// Create texture
 		glGenTextures(1, &mTextureID);
