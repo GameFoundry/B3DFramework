@@ -507,7 +507,8 @@ namespace BansheeEngine
 		TID_AudioClip = 1111,
 		TID_AudioClipImportOptions = 1112,
 		TID_CAudioListener = 1113,
-		TID_CAudioSource = 1114
+		TID_CAudioSource = 1114,
+		TID_AnimationClip = 1115
 	};
 }
 
@@ -535,6 +536,7 @@ namespace BansheeEngine
 	typedef ResourceHandle<PhysicsMaterial> HPhysicsMaterial;
 	typedef ResourceHandle<PhysicsMesh> HPhysicsMesh;
 	typedef ResourceHandle<AudioClip> HAudioClip;
+	typedef ResourceHandle<AnimationClip> HAnimationClip;
 
 	/** @} */
 }

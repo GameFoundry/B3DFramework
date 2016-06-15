@@ -364,6 +364,7 @@ namespace BansheeEngine
 		Quaternion rotation((Radian)rotationEuler.x, (Radian)rotationEuler.y, (Radian)rotationEuler.z);
 
 		node->localTransform.setTRS(translation, rotation, scale);
+		node->name = fbxNode->GetNameWithoutNameSpacePrefix().Buffer();
 		node->fbxNode = fbxNode;
 
 		if (parent != nullptr)

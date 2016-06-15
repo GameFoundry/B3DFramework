@@ -23,6 +23,10 @@ namespace BansheeEngine
      *  Audio clips, 3D sound and music reproduction.
      */
 
+    /** @defgroup Animation Animation
+     *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+     */
+
     /** @defgroup Math Math 
      *  Variety of general purpose math functionality.
      */

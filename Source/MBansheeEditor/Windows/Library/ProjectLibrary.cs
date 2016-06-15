@@ -453,7 +453,7 @@ namespace BansheeEditor
     public enum ResourceType // Note: Must match the C++ enum ScriptResourceType
     {
         Texture, SpriteTexture, Mesh, Font, Shader, ShaderInclude, Material, Prefab, PlainText, 
-        ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, AudioClip, Undefined
+        ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip, Undefined
     }
 
     /// <summary>

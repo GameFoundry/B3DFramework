@@ -35,6 +35,7 @@ namespace BansheeEngine
 
 		Matrix4 localTransform;
 		Matrix4 worldTransform;
+		String name;
 		FbxNode* fbxNode;
 
 		Vector<FBXImportNode*> children;

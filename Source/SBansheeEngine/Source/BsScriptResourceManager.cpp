@@ -22,6 +22,7 @@
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
 #include "BsScriptAudioClip.h"
+#include "BsScriptAnimationClip.h"
 #include "BsScriptManagedResource.h"
 #include "BsScriptAssemblyManager.h"
 
@@ -155,6 +156,8 @@ namespace BansheeEngine
 				return ScriptResourceManager_createScriptResource(thisPtr, static_resource_cast<PhysicsMesh>(resourceHandle), (ScriptPhysicsMesh**)out);
 			case TID_AudioClip:
 				return ScriptResourceManager_createScriptResource(thisPtr, static_resource_cast<AudioClip>(resourceHandle), (ScriptAudioClip**)out);
+			case TID_AnimationClip:
+				return ScriptResourceManager_createScriptResource(thisPtr, static_resource_cast<AnimationClip>(resourceHandle), (ScriptAnimationClip**)out);
 			case TID_ManagedResource:
 				BS_EXCEPT(InternalErrorException, "Managed resources must have a managed instance by default, this call is invalid.")
 					break;
@@ -182,6 +185,7 @@ namespace BansheeEngine
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<PhysicsMesh>&, ScriptPhysicsMesh**);
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<PhysicsMaterial>&, ScriptPhysicsMaterial**);
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<AudioClip>&, ScriptAudioClip**);
+		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<AnimationClip>&, ScriptAnimationClip**);
 	}
 
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Texture>&, ScriptTexture2D**);
@@ -201,6 +205,7 @@ namespace BansheeEngine
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<PhysicsMesh>&, ScriptPhysicsMesh**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<PhysicsMaterial>&, ScriptPhysicsMaterial**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<AudioClip>&, ScriptAudioClip**);
+	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<AnimationClip>&, ScriptAnimationClip**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<ManagedResource>&, ScriptManagedResource**);
 
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTexture2D** out, bool create);
@@ -221,6 +226,7 @@ namespace BansheeEngine
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<PhysicsMesh>& resourceHandle, ScriptPhysicsMesh** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<PhysicsMaterial>& resourceHandle, ScriptPhysicsMaterial** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<AudioClip>& resourceHandle, ScriptAudioClip** out, bool create);
+	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<AnimationClip>& resourceHandle, ScriptAnimationClip** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<ManagedResource>& resourceHandle, ScriptManagedResource** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Resource>& resourceHandle, ScriptResourceBase** out, bool create);
 

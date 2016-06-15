@@ -21,6 +21,7 @@
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptAudioClip.h"
 #include "BsScriptPrefab.h"
+#include "BsScriptAnimationClip.h"
 
 namespace BansheeEngine
 {
@@ -92,6 +93,8 @@ namespace BansheeEngine
 			return ScriptPhysicsMesh::getMetaData()->scriptClass;
 		case TID_AudioClip:
 			return ScriptAudioClip::getMetaData()->scriptClass;
+		case TID_AnimationClip:
+			return ScriptAnimationClip::getMetaData()->scriptClass;
 		}
 
 		return nullptr;
@@ -131,6 +134,8 @@ namespace BansheeEngine
 			return ScriptResourceType::PhysicsMesh;
 		case TID_AudioClip:
 			return ScriptResourceType::AudioClip;
+		case TID_AnimationClip:
+			return ScriptResourceType::AnimationClip;
 		}
 
 		return ScriptResourceType::Undefined;
@@ -170,6 +175,8 @@ namespace BansheeEngine
 			return TID_PhysicsMesh;
 		case ScriptResourceType::AudioClip:
 			return TID_AudioClip;
+		case ScriptResourceType::AnimationClip:
+			return TID_AnimationClip;
 		default:
 			break;
 		}
