@@ -618,7 +618,9 @@ namespace BansheeEngine
 		}
 
 		/**
-		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form.
+		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form. Assumes @p t has been normalized is
+		 * in range [0, 1]. Tangents must be scaled by the length of the curve (length is the maximum value of @p t before
+		 * it was normalized).
 		 *
 		 * @param[in]	pointA			Starting point (at t=0).
 		 * @param[in]	pointB			Ending point (at t=1).
@@ -630,8 +632,40 @@ namespace BansheeEngine
 		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, 
 			T (&coefficients)[4])
 		{
-			coefficients[0] = 2 * pointA - 2 * pointB + tangentA + tangentB;
-			coefficients[1] = -3 * pointA + 3 * pointB - 2 * tangentA - tangentB;
+			T diff = pointA - pointB;
+
+			coefficients[0] = 2 * diff + tangentA + tangentB;
+			coefficients[1] = -3 * diff - 2 * tangentA - tangentB;
+			coefficients[2] = tangentA;
+			coefficients[4] = pointA;
+		}
+
+		/**
+		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form. Assumes @p t is in range 
+		 * [0, @p length]. Tangents must not be scaled by @p length.
+		 *
+		 * @param[in]	pointA			Starting point (at t=0).
+		 * @param[in]	pointB			Ending point (at t=length).
+		 * @param[in]	tangentA		Starting tangent (at t=0).
+		 * @param[in]	tangentB		Ending tangent (at t=length).
+		 * @param[in]	length			Maximum value the curve will be evaluated at.
+		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 */
+		template<class T>
+		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, 
+			float length, T (&coefficients)[4])
+		{
+			float length2 = length * length;
+			float invLength2 = 1.0f / length2;
+			float invLength3 = 1.0f / (length2 * length);
+
+			T scaledTangentA = tangentA * length;
+			T scaledTangentB = tangentB * length;
+
+			T diff = pointA - pointB;
+
+			coefficients[0] = (2 * diff + scaledTangentA + scaledTangentB) * invLength3;
+			coefficients[1] = (-3 * diff - 2 * scaledTangentA - scaledTangentB) * invLength2;
 			coefficients[2] = tangentA;
 			coefficients[4] = pointA;
 		}

@@ -1,0 +1,41 @@
+//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
+//**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+#pragma once
+
+#include "BsCorePrerequisites.h"
+
+namespace BansheeEngine
+{
+	/** @addtogroup Animation-Internal
+	 *  @{
+	 */
+
+	/** 
+	 * Data used for evaluating an AnimationCurve. Holds cached information so that sequential evaluations can be sped up.
+	 * You should not use the same instance of this object for evaluating multiple different animation curves.
+	 */
+	template <class T>
+	struct AnimationInstanceData
+	{
+	public:
+		AnimationInstanceData()
+			: time(0.0f), cachedKey((UINT32)-1), cachedCurveStart(std::numeric_limits<float>::infinity())
+			, cachedCurveEnd(0.0f), cachedCubicCoefficients()
+		{ }
+
+		float time; /**< Time at which to evaluate the curve. */
+	private:
+		template <class U> friend class TAnimationCurve;
+
+		mutable UINT32 cachedKey; /**< Left-most key the curve was last evaluated at. -1 if no cached data. */
+		mutable float cachedCurveStart; /**< Time relative to the animation curve, at which the cached data starts. */
+		mutable float cachedCurveEnd; /**< Time relative to the animation curve, at which the cached data end. */
+		/** 
+		 * Coefficients of the cubic hermite curve, in order [t^3, t^2, t, 1]. Coefficients assume unnormalized @p t, with
+		 * length of @p cachedCurveEnd - @p cachedCurveStart.
+		 */
+		mutable T cachedCubicCoefficients[4]; 
+	};
+
+	/** @} */
+}

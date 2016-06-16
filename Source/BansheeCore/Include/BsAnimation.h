@@ -10,17 +10,5 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	struct AnimationInstanceData
-	{
-	public:
-		AnimationInstanceData();
-
-		float time;
-	private:
-		template <class T> friend class TAnimationCurve;
-
-		mutable UINT32 cachedKey;
-	};
-
 	/** @} */
 }

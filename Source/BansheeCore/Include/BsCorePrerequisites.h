@@ -124,6 +124,10 @@
   *	Interface for interacting with the render API (DirectX, OpenGL, etc.).
   */
 
+/** @defgroup Animation-Internal Animation
+ *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
 /** @defgroup Renderer-Internal Renderer
   *	Abstract interface and helper functionality for rendering scene objects.
   */
@@ -356,7 +360,6 @@ namespace BansheeEngine
 	class AudioSource;
 	class AudioClipImportOptions;
 	class AnimationClip;
-	struct AnimationInstanceData;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

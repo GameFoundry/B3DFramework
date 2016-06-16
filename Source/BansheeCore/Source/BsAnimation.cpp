@@ -4,9 +4,5 @@
 
 namespace BansheeEngine
 {
-	AnimationInstanceData::AnimationInstanceData()
-		:time(0.0f), cachedKey((UINT32)-1)
-	{
-		
-	}
+
 }

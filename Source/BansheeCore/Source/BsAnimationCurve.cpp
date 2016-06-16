@@ -1,7 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsAnimationCurve.h"
-#include "BsAnimation.h"
 #include "BsVector3.h"
 #include "BsQuaternion.h"
 #include "BsMath.h"
@@ -43,38 +42,106 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	T TAnimationCurve<T>::evaluate(const AnimationInstanceData& animInstance, bool loop)
+	T TAnimationCurve<T>::evaluate(const AnimationInstanceData<T>& animInstance, bool loop)
 	{
 		if (mKeyframes.size() == 0)
 			return T();
 
 		float time = animInstance.time;
 
-		// TODO - If within cache evaluate it
+		// Wrap time if looping
+		if(loop)
+		{
+			if (time < mStart)
+				time = time - std::floor(time / mLength) * mLength;
+			else if (time > mEnd)
+				time = time - std::floor(time / mLength) * mLength;
+		}
+
+		// If time is within cache, evaluate it directly
+		if (time >= animInstance.cachedCurveStart && time < animInstance.cachedCurveEnd)
+			return evaluateCache(animInstance);
+
+		// Clamp to start, cache constant of the first key and return
+		if(time < mStart)
+		{
+			animInstance.cachedCurveStart = -std::numeric_limits<float>::infinity();
+			animInstance.cachedCurveEnd = mStart;
+			animInstance.cachedKey = 0;
+			animInstance.cachedCubicCoefficients[0] = 0.0f;
+			animInstance.cachedCubicCoefficients[1] = 0.0f;
+			animInstance.cachedCubicCoefficients[2] = 0.0f;
+			animInstance.cachedCubicCoefficients[3] = mKeyframes[0].value;
+
+			return mKeyframes[0].value;
+		}
+		
+		if(time > mEnd) // Clamp to end, cache constant of the final key and return
+		{
+			UINT32 lastKey = (UINT32)mKeyframes.size() - 1;
+
+			animInstance.cachedCurveStart = mEnd;
+			animInstance.cachedCurveEnd = std::numeric_limits<float>::infinity();
+			animInstance.cachedKey = lastKey;
+			animInstance.cachedCubicCoefficients[0] = 0.0f;
+			animInstance.cachedCubicCoefficients[1] = 0.0f;
+			animInstance.cachedCubicCoefficients[2] = 0.0f;
+			animInstance.cachedCubicCoefficients[3] = mKeyframes[lastKey].value;
+
+			return mKeyframes[lastKey].value;
+		}
+
+		// Since our value is not in cache, search for the valid pair of keys of interpolate
+		UINT32 leftKeyIdx;
+		UINT32 rightKeyIdx;
+
+		findKeys(time, animInstance, leftKeyIdx, rightKeyIdx);
+
+		// Calculate cubic hermite curve coefficients so we can store them in cache
+		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
+		const KeyFrame& rightKey = mKeyframes[rightKeyIdx];
+
+		float length = rightKey.time - leftKey.time;
+		
+		animInstance.cachedCurveStart = leftKey.time;
+		animInstance.cachedCurveEnd = rightKey.time;
+		Math::cubicHermiteCoefficients(leftKey.value, rightKey.value, leftKey.outTangent, rightKey.inTangent, length,
+			animInstance.cachedCubicCoefficients);
+		// TODO - Handle stepped curve - If tangents are infinite assume constant value from left key is used
+
+		T output = evaluateCache(animInstance);
+
+		return output;
+	}
+
+	template <class T>
+	T TAnimationCurve<T>::evaluate(float time, bool loop)
+	{
+		if (mKeyframes.size() == 0)
+			return T();
 
 		// Clamp to start or loop
-		if(time < mStart)
+		if (time < mStart)
 		{
 			if (loop)
 				time = time - std::floor(time / mLength) * mLength;
-			else
-				time = mStart; // TODO - Cache cubic hermite spline coefficients
+			else // Clamping
+				time = mStart;
 		}
 
 		// Clamp to end or loop
-		if(time > mEnd)
+		if (time > mEnd)
 		{
-			// TODO - Cache cubic hermite spline coefficients
-			if(loop)
+			if (loop)
 				time = time - std::floor(time / mLength) * mLength;
-			else
-				time = mEnd; // TODO - Cache cubic hermite spline coefficients
+			else // Clamping
+				time = mEnd;
 		}
 
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(animInstance, leftKeyIdx, rightKeyIdx);
+		findKeys(time, leftKeyIdx, rightKeyIdx);
 
 		// Evaluate curve as hermite cubic spline
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
@@ -98,20 +165,21 @@ namespace BansheeEngine
 			rightTangent = rightKey.inTangent * length;
 		}
 
-		T output = Math::cubicHermite(t, leftKey.value, rightKey.value, leftTangent, rightTangent);
-
-		// TODO - Handle stepped curve - If tangents are infinite assume constant value from left key is used
-
-		// TODO - Cache cubic hermite spline coefficients
-
-		return output;
+		return Math::cubicHermite(t, leftKey.value, rightKey.value, leftTangent, rightTangent);
 	}
 
 	template <class T>
-	void TAnimationCurve<T>::findKeys(const AnimationInstanceData& animInstance, UINT32& leftKey, UINT32& rightKey)
+	T TAnimationCurve<T>::evaluateCache(const AnimationInstanceData<T>& animInstance)
 	{
-		float time = animInstance.time;
+		float t = animInstance.time - animInstance.cachedCurveStart;
 
+		const T* coeffs = animInstance.cachedCubicCoefficients;
+		return t * (t * (t * coeffs[0] + coeffs[1]) + coeffs[2]) + coeffs[3];
+	}
+
+	template <class T>
+	void TAnimationCurve<T>::findKeys(float time, const AnimationInstanceData<T>& animInstance, UINT32& leftKey, UINT32& rightKey)
+	{
 		// Check nearby keys first if there is cached data
 		if (animInstance.cachedKey != (UINT32)-1)
 		{
