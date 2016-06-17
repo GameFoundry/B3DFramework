@@ -99,13 +99,55 @@ namespace BansheeEngine
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TKeyframe<T>& data)
+		static UINT32 getDynamicSize(const TAnimationCurve<T>& data)
 		{
 			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.mStart);
 			dataSize += rttiGetElemSize(data.mEnd);
 			dataSize += rttiGetElemSize(data.mLength);
 			dataSize += rttiGetElemSize(data.mKeyframes);
+
+			assert(dataSize <= std::numeric_limits<UINT32>::max());
+
+			return (UINT32)dataSize;
+		}
+	};
+
+	template<class T> struct RTTIPlainType<TNamedAnimationCurve<T>>
+	{
+		enum { id = TID_NamedAnimationCurve }; enum { hasDynamicSize = 1 };
+
+		/** @copydoc RTTIPlainType::toMemory */
+		static void toMemory(const TNamedAnimationCurve<T>& data, char* memory)
+		{
+			UINT32 size = sizeof(UINT32);
+			char* memoryStart = memory;
+			memory += sizeof(UINT32);
+
+			memory = rttiWriteElem(data.name, memory, size);
+			memory = rttiWriteElem(data.curve, memory, size);
+
+			memcpy(memoryStart, &size, sizeof(UINT32));
+		}
+
+		/** @copydoc RTTIPlainType::fromMemory */
+		static UINT32 fromMemory(TNamedAnimationCurve<T>& data, char* memory)
+		{
+			UINT32 size = 0;
+			memory = rttiReadElem(size, memory);
+
+			memory = rttiReadElem(data.name, memory);
+			memory = rttiReadElem(data.curve, memory);
+
+			return size;
+		}
+
+		/** @copydoc RTTIPlainType::getDynamicSize */
+		static UINT32 getDynamicSize(const TNamedAnimationCurve<T>& data)
+		{
+			UINT64 dataSize = sizeof(UINT32);
+			dataSize += rttiGetElemSize(data.name);
+			dataSize += rttiGetElemSize(data.curve);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 

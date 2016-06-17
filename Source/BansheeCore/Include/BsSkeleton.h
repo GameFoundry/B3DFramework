@@ -43,7 +43,7 @@ namespace BansheeEngine
 		UINT32 numBones;
 	};
 
-	class Skeleton
+	class Skeleton // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
 		Skeleton(BONE_DESC* bones, UINT32 numBones);

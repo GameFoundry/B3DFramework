@@ -26,11 +26,12 @@ namespace BansheeEngine
 	 * spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.
 	 */
 	template <class T>
-	class BS_CORE_EXPORT TAnimationCurve
+	class BS_CORE_EXPORT TAnimationCurve // Note: Curves are expected to be immutable for threading purposes
 	{
 	public:
 		typedef TKeyframe<T> KeyFrame;
 
+		TAnimationCurve();
 		TAnimationCurve(const Vector<KeyFrame>& keyframes);
 
 		/**
@@ -44,7 +45,7 @@ namespace BansheeEngine
 		 *								maintained.
 		 * @param[in]	loop			If true the curve will loop when it goes past the end or beggining. Otherwise the
 		 *								curve value will be clamped.
-		 @return						Interpolated value from the curve at provided time.
+		 * @return						Interpolated value from the curve at provided time.
 		 */
 		T evaluate(const AnimationInstanceData<T>& animInstance, bool loop = true);
 
@@ -55,7 +56,7 @@ namespace BansheeEngine
 		 * @param[i]	time	Time to evaluate the curve at.		
 		 * @param[in]	loop	If true the curve will loop when it goes past the end or beggining. Otherwise the curve 
 		 *						value will be clamped.
-		 @return				Interpolated value from the curve at provided time.
+		 * @return				Interpolated value from the curve at provided time.
 		 */
 		T evaluate(float time, bool loop = true);
 
@@ -101,6 +102,14 @@ namespace BansheeEngine
 		float mStart;
 		float mEnd;
 		float mLength;
+	};
+
+	/** An animation curve and its name. */
+	template <class T>
+	struct TNamedAnimationCurve
+	{
+		String name;
+		TAnimationCurve<T> curve;
 	};
 
 	/** @} */

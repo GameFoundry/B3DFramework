@@ -50,7 +50,7 @@ namespace BansheeEngine
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
 		SPtr<RendererMeshData> importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-			Vector<SubMesh>& subMeshes);
+			Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animationClips);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -97,6 +97,9 @@ namespace BansheeEngine
 
 		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
 		void importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end);
+
+		/** Converts FBX animation clips into engine-ready animation curve format. */
+		void convertAnimations(const Vector<FBXAnimationClip>& clips, UnorderedMap<String, SPtr<AnimationCurves>>& output);
 
 		/**	Converts a set of curves containing rotation in euler angles into a set of curves using	quaternion rotation. */
 		void eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4]);

@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsAnimationCurve.h"
+#include "BsAnimationCurveRTTI.h"
 #include "BsVector3.h"
 #include "BsQuaternion.h"
 #include "BsMath.h"
@@ -9,6 +10,13 @@ namespace BansheeEngine
 {
 	template <class T>
 	const UINT32 TAnimationCurve<T>::CACHE_LOOKAHEAD = 3;
+
+	template <class T>
+	TAnimationCurve<T>::TAnimationCurve()
+		:mStart(0.0f), mEnd(0.0f), mLength(0.0f)
+	{
+		
+	}
 
 	template <class T>
 	TAnimationCurve<T>::TAnimationCurve(const Vector<KeyFrame>& keyframes)

@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsAnimationClip.h"
+#include "BsAnimationCurveRTTI.h"
 
 namespace BansheeEngine
 {
@@ -16,9 +17,15 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT AnimationClipRTTI : public RTTIType <AnimationClip, Resource, AnimationClipRTTI>
 	{
 	private:
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(positionCurves, mCurves->position, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(rotationCurves, mCurves->rotation, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(scaleCurves, mCurves->scale, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(genericCurves, mCurves->generic, 3)
+		BS_END_RTTI_MEMBERS
 	public:
 		AnimationClipRTTI()
+			:mInitMembers(this)
 		{
 			
 		}

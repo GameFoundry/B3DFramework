@@ -17,6 +17,8 @@
 #include "BsRendererMeshData.h"
 #include "BsMeshImportOptions.h"
 #include "BsPhysicsMesh.h"
+#include "BsAnimationCurve.h"
+#include "BsAnimationClip.h"
 #include "BsPhysics.h"
 
 namespace BansheeEngine
@@ -113,7 +115,8 @@ namespace BansheeEngine
 	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubMesh> subMeshes;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes);
+		UnorderedMap<String, SPtr<AnimationCurves>> dummy;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, dummy);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -132,7 +135,8 @@ namespace BansheeEngine
 	Vector<SubResourceRaw> FBXImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubMesh> subMeshes;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes);
+		UnorderedMap<String, SPtr<AnimationCurves>> animationClips;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, animationClips);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -166,7 +170,13 @@ namespace BansheeEngine
 				{
 					LOGWRN("Cannot generate a collision mesh as the physics module was not started.");
 				}
+			}
 
+			for(auto& entry : animationClips)
+			{
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.second);
+
+				output.push_back({ toWString(entry.first), clip });
 			}
 		}
 
@@ -174,7 +184,7 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-		Vector<SubMesh>& subMeshes)
+		Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animation)
 	{
 		FbxScene* fbxScene = nullptr;
 
@@ -209,6 +219,10 @@ namespace BansheeEngine
 		generateMissingTangentSpace(importedScene, fbxImportOptions);
 
 		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
+
+		// Import animation clips
+		if (!importedScene.clips.empty())
+			convertAnimations(importedScene.clips, animation);
 
 		// TODO - Later: Optimize mesh: Remove bad and degenerate polygons, weld nearby vertices, optimize for vertex cache
 
@@ -400,6 +414,93 @@ namespace BansheeEngine
 		}
 
 		scene.meshes = splitMeshes;
+	}
+
+	void FBXImporter::convertAnimations(const Vector<FBXAnimationClip>& clips, 
+		UnorderedMap<String, SPtr<AnimationCurves>>& output)
+	{
+		for (auto& clip : clips)
+		{
+			SPtr<AnimationCurves> curves = bs_shared_ptr_new<AnimationCurves>();
+			output.insert(std::make_pair(clip.name, curves));
+
+			for (auto& bone : clip.boneAnimations)
+			{
+				// Translation curves
+				{
+					assert((bone.translation[0].keyframes.size() == bone.translation[1].keyframes.size()) &&
+						(bone.translation[0].keyframes.size() == bone.translation[2].keyframes.size()));
+
+					UINT32 numKeyframes = (UINT32)bone.translation[0].keyframes.size();
+					Vector <TKeyframe<Vector3>> keyFrames(numKeyframes);
+					for (UINT32 i = 0; i < numKeyframes; i++)
+					{
+						const FBXKeyFrame& keyFrameX = bone.translation[0].keyframes[i];
+						const FBXKeyFrame& keyFrameY = bone.translation[1].keyframes[i];
+						const FBXKeyFrame& keyFrameZ = bone.translation[2].keyframes[i];
+
+						keyFrames[i].value = Vector3(keyFrameX.value, keyFrameY.value, keyFrameZ.value);
+
+						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time));
+						keyFrames[i].time = keyFrameX.time;
+						keyFrames[i].inTangent = Vector3(keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
+						keyFrames[i].outTangent = Vector3(keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
+					}
+
+					curves->position.push_back({ bone.node->name, keyFrames });
+				}
+
+				// Rotation curves
+				{
+					assert((bone.rotation[0].keyframes.size() == bone.rotation[1].keyframes.size()) &&
+						(bone.rotation[0].keyframes.size() == bone.rotation[2].keyframes.size()) &&
+						(bone.rotation[0].keyframes.size() == bone.rotation[3].keyframes.size()));
+
+					UINT32 numKeyframes = (UINT32)bone.rotation[0].keyframes.size();
+					Vector <TKeyframe<Quaternion>> keyFrames(numKeyframes);
+					for (UINT32 i = 0; i < numKeyframes; i++)
+					{
+						const FBXKeyFrame& keyFrameW = bone.rotation[0].keyframes[i];
+						const FBXKeyFrame& keyFrameX = bone.rotation[1].keyframes[i];
+						const FBXKeyFrame& keyFrameY = bone.rotation[2].keyframes[i];
+						const FBXKeyFrame& keyFrameZ = bone.rotation[3].keyframes[i];
+
+						keyFrames[i].value = Quaternion(keyFrameW.value, keyFrameX.value, keyFrameY.value, keyFrameZ.value);
+
+						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time) && (keyFrameX.time == keyFrameW.time));
+						keyFrames[i].time = keyFrameX.time;
+						keyFrames[i].inTangent = Quaternion(keyFrameW.inTangent, keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
+						keyFrames[i].outTangent = Quaternion(keyFrameW.outTangent, keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
+					}
+
+					curves->rotation.push_back({ bone.node->name, keyFrames });
+				}
+
+				// Scale curves
+				{
+					assert((bone.scale[0].keyframes.size() == bone.scale[1].keyframes.size()) &&
+						(bone.scale[0].keyframes.size() == bone.scale[2].keyframes.size()));
+
+					UINT32 numKeyframes = (UINT32)bone.scale[0].keyframes.size();
+					Vector <TKeyframe<Vector3>> keyFrames(numKeyframes);
+					for (UINT32 i = 0; i < numKeyframes; i++)
+					{
+						const FBXKeyFrame& keyFrameX = bone.scale[0].keyframes[i];
+						const FBXKeyFrame& keyFrameY = bone.scale[1].keyframes[i];
+						const FBXKeyFrame& keyFrameZ = bone.scale[2].keyframes[i];
+
+						keyFrames[i].value = Vector3(keyFrameX.value, keyFrameY.value, keyFrameZ.value);
+
+						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time));
+						keyFrames[i].time = keyFrameX.time;
+						keyFrames[i].inTangent = Vector3(keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
+						keyFrames[i].outTangent = Vector3(keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
+					}
+
+					curves->scale.push_back({ bone.node->name, keyFrames });
+				}
+			}
+		}
 	}
 
 	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes)
