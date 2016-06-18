@@ -225,6 +225,26 @@ namespace BansheeEngine
 			return !operator==(rhs);
 		}
 
+		Quaternion& operator+= (const Quaternion& rhs)
+		{
+			w += rhs.w;
+			x += rhs.x;
+			y += rhs.y;
+			z += rhs.z;
+
+			return *this;
+		}
+
+		Quaternion& operator-= (const Quaternion& rhs)
+		{
+			w -= rhs.w;
+			x -= rhs.x;
+			y -= rhs.y;
+			z -= rhs.z;
+
+			return *this;
+		}
+
 		friend Quaternion operator* (float lhs, const Quaternion& rhs)
 		{
 			return Quaternion(lhs * rhs.w, lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);

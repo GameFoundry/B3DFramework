@@ -16,15 +16,15 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT SkeletonRTTI : public RTTIType <Skeleton, IReflectable, SkeletonRTTI>
 	{
 	private:
-		Matrix4& getBindPose(Skeleton* obj, UINT32 idx) { return obj->mBindPoses[idx]; }
-		void setBindPose(Skeleton* obj, UINT32 idx, Matrix4& value) { obj->mBindPoses[idx] = value; }
+		Matrix4& getBindPose(Skeleton* obj, UINT32 idx) { return obj->mInvBindPoses[idx]; }
+		void setBindPose(Skeleton* obj, UINT32 idx, Matrix4& value) { obj->mInvBindPoses[idx] = value; }
 
 		void setNumBindPoses(Skeleton* obj, UINT32 size)
 		{
 			obj->mNumBones = size;
 			
-			assert(obj->mBindPoses == nullptr);
-			obj->mBindPoses = bs_newN<Matrix4>(size);
+			assert(obj->mInvBindPoses == nullptr);
+			obj->mInvBindPoses = bs_newN<Matrix4>(size);
 		}
 
 		SkeletonBoneInfo& getBoneInfo(Skeleton* obj, UINT32 idx) { return obj->mBoneInfo[idx]; }

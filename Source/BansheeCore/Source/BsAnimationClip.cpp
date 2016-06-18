@@ -246,17 +246,17 @@ namespace BansheeEngine
 		Resource::initialize();
 	}
 
-	void AnimationClip::getBoneMapping(const SPtr<Skeleton>& skeleton, AnimationCurveMapping* mapping)
+	void AnimationClip::getBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const
 	{
-		UINT32 numBones = skeleton->getNumBones();
+		UINT32 numBones = skeleton.getNumBones();
 		for(UINT32 i = 0; i < numBones; i++)
 		{
-			const SkeletonBoneInfo& boneInfo = skeleton->getBoneInfo(i);
+			const SkeletonBoneInfo& boneInfo = skeleton.getBoneInfo(i);
 
 			auto iterFind = mNameMapping.find(boneInfo.name);
 			if(iterFind != mNameMapping.end())
 			{
-				UINT32* indices = iterFind->second;
+				const UINT32* indices = iterFind->second;
 
 				mapping[i].position = indices[(UINT32)CurveType::Position];
 				mapping[i].rotation = indices[(UINT32)CurveType::Rotation];

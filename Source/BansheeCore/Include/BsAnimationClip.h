@@ -14,6 +14,8 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	struct AnimationCurveMapping;
+
 	/** A set of animation curves representing translation/rotation/scale and generic animation. */
 	struct AnimationCurves
 	{
@@ -21,14 +23,6 @@ namespace BansheeEngine
 		Vector<TNamedAnimationCurve<Quaternion>> rotation;
 		Vector<TNamedAnimationCurve<Vector3>> scale;
 		Vector<TNamedAnimationCurve<float>> generic;
-	};
-
-	/** Contains indices for position/rotation/scale animation curves. */
-	struct AnimationCurveMapping
-	{
-		UINT32 position;
-		UINT32 rotation;
-		UINT32 scale;
 	};
 
 	/** Types of curves in an AnimationClip. */
@@ -144,7 +138,7 @@ namespace BansheeEngine
 		 *							be large enough to store an index for every bone in the @p skeleton. Bones that have
 		 *							no related animation curves will be assigned value -1.
 		 */
-		void getBoneMapping(const SPtr<Skeleton>& skeleton, AnimationCurveMapping* mapping);
+		void getBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const;
 
 		/** 
 		 * Returns a version that can be used for detecting modifications on the clip by external systems. Whenever the clip

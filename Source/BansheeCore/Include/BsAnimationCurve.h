@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "BsAnimationInstance.h"
+#include "BsCurveEvaluator.h"
 
 namespace BansheeEngine
 {
@@ -47,7 +47,7 @@ namespace BansheeEngine
 		 *								curve value will be clamped.
 		 * @return						Interpolated value from the curve at provided time.
 		 */
-		T evaluate(const AnimationInstanceData<T>& animInstance, bool loop = true);
+		T evaluate(const TCurveEvaluator<T>& animInstance, bool loop = true) const;
 
 		/**
 		 * Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider
@@ -58,7 +58,7 @@ namespace BansheeEngine
 		 *						value will be clamped.
 		 * @return				Interpolated value from the curve at provided time.
 		 */
-		T evaluate(float time, bool loop = true);
+		T evaluate(float time, bool loop = true) const;
 
 	private:
 		friend struct RTTIPlainType<TAnimationCurve<T>>;
@@ -75,7 +75,7 @@ namespace BansheeEngine
 		 * @param[out]	leftKey			Index of the key to interpolate from.
 		 * @param[out]	rightKey		Index of the key to interpolate to.
 		 */
-		void findKeys(float time, const AnimationInstanceData<T>& animInstance, UINT32& leftKey, UINT32& rightKey);
+		void findKeys(float time, const TCurveEvaluator<T>& animInstance, UINT32& leftKey, UINT32& rightKey) const;
 
 		/** 
 		 * Returns a pair of keys that can be used for interpolating to field the value at the provided time. 
@@ -85,7 +85,7 @@ namespace BansheeEngine
 		 * @param[out]	leftKey			Index of the key to interpolate from.
 		 * @param[out]	rightKey		Index of the key to interpolate to.
 		 */
-		void findKeys(float time, UINT32& leftKey, UINT32& rightKey);
+		void findKeys(float time, UINT32& leftKey, UINT32& rightKey) const;
 
 		/** 
 		 * Evaluates a value at the cached curve. Caller must ensure the request time falls within the cached curve range.
@@ -94,7 +94,7 @@ namespace BansheeEngine
 		 *								data from previous requests.
 		 * @return						Interpolated value from the curve at provided time.
 		 */
-		T evaluateCache(const AnimationInstanceData<T>& animInstance);
+		T evaluateCache(const TCurveEvaluator<T>& animInstance) const;
 
 		static const UINT32 CACHE_LOOKAHEAD;
 

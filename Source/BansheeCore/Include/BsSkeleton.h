@@ -5,12 +5,23 @@
 #include "BsCorePrerequisites.h"
 #include "BsIReflectable.h"
 #include "BsMatrix4.h"
+#include "BsVector3.h"
+#include "BsQuaternion.h"
+#include "BsCurveEvaluator.h"
 
 namespace BansheeEngine
 {
 	/** @addtogroup Animation-Internal
 	 *  @{
 	 */
+
+	/** Contains indices for position/rotation/scale animation curves. */
+	struct AnimationCurveMapping
+	{
+		UINT32 position;
+		UINT32 rotation;
+		UINT32 scale;
+	};
 
 	struct BONE_DESC
 	{
@@ -22,7 +33,13 @@ namespace BansheeEngine
 
 	struct ANIM_BLEND_STATE_DESC
 	{
-		const AnimationClip* clip;
+		SPtr<AnimationCurves> curves;
+		Vector<AnimationCurveMapping> boneToCurveMapping;
+
+		TCurveEvaluator<Vector3> positionEval;
+		TCurveEvaluator<Quaternion> rotationEval;
+		TCurveEvaluator<Vector3> scaleEval;
+
 		float weight;
 		bool loop;
 		UINT8 layer;
@@ -30,16 +47,13 @@ namespace BansheeEngine
 
 	struct SkeletonPose
 	{
-		SkeletonPose(UINT32 numBones)
-			:numBones(numBones), bonePoses(bs_newN<Matrix4>(numBones))
-		{}
+		SkeletonPose(UINT32 numBones);
+		~SkeletonPose();
 
-		~SkeletonPose()
-		{
-			bs_deleteN(bonePoses, numBones);
-		}
-
-		Matrix4* bonePoses;
+		Matrix4* bonePoses; // Global bone poses
+		Vector3* positions; // Local positions
+		Quaternion* rotations; // Local rotations
+		Vector3* scales; // Local scales
 		UINT32 numBones;
 	};
 
@@ -55,11 +69,13 @@ namespace BansheeEngine
 		~Skeleton();
 
 		void getPose(SkeletonPose& pose, const AnimationClip& clip, float time, bool loop = true);
-		void getPose(SkeletonPose& pose, const ANIM_BLEND_STATE_DESC* states, UINT32 numStates, float time);
+
+		// Animations in same layer must be consecutive. Layers must be arranged in ascending order.
+		void getPose(SkeletonPose& pose, const ANIM_BLEND_STATE_DESC* states, UINT32 numStates);
 
 		UINT32 getNumBones() const { return mNumBones; }
 		const SkeletonBoneInfo& getBoneInfo(UINT32 idx) const { return mBoneInfo[idx]; }
-		const Matrix4& getBindPose(UINT32 idx) const { return mBindPoses[idx]; }
+		const Matrix4& getBindPose(UINT32 idx) const { return mInvBindPoses[idx]; }
 
 		static SPtr<Skeleton> create(BONE_DESC* bones, UINT32 numBones);
 
@@ -68,7 +84,7 @@ namespace BansheeEngine
 		Skeleton(BONE_DESC* bones, UINT32 numBones);
 
 		UINT32 mNumBones;
-		Matrix4* mBindPoses;
+		Matrix4* mInvBindPoses;
 		SkeletonBoneInfo* mBoneInfo;
 
 		/************************************************************************/

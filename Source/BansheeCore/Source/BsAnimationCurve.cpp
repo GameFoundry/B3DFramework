@@ -50,7 +50,7 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	T TAnimationCurve<T>::evaluate(const AnimationInstanceData<T>& animInstance, bool loop)
+	T TAnimationCurve<T>::evaluate(const TCurveEvaluator<T>& animInstance, bool loop) const
 	{
 		if (mKeyframes.size() == 0)
 			return T();
@@ -123,7 +123,7 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	T TAnimationCurve<T>::evaluate(float time, bool loop)
+	T TAnimationCurve<T>::evaluate(float time, bool loop) const
 	{
 		if (mKeyframes.size() == 0)
 			return T();
@@ -177,7 +177,7 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	T TAnimationCurve<T>::evaluateCache(const AnimationInstanceData<T>& animInstance)
+	T TAnimationCurve<T>::evaluateCache(const TCurveEvaluator<T>& animInstance) const
 	{
 		float t = animInstance.time - animInstance.cachedCurveStart;
 
@@ -186,7 +186,7 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	void TAnimationCurve<T>::findKeys(float time, const AnimationInstanceData<T>& animInstance, UINT32& leftKey, UINT32& rightKey)
+	void TAnimationCurve<T>::findKeys(float time, const TCurveEvaluator<T>& animInstance, UINT32& leftKey, UINT32& rightKey) const
 	{
 		// Check nearby keys first if there is cached data
 		if (animInstance.cachedKey != (UINT32)-1)
@@ -234,7 +234,7 @@ namespace BansheeEngine
 	}
 
 	template <class T>
-	void TAnimationCurve<T>::findKeys(float time, UINT32& leftKey, UINT32& rightKey)
+	void TAnimationCurve<T>::findKeys(float time, UINT32& leftKey, UINT32& rightKey) const
 	{
 		INT32 start = 0;
 		INT32 searchLength = (INT32)mKeyframes.size();
