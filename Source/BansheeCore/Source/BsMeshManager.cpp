@@ -20,10 +20,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<Mesh> MeshManager::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) 
-			Mesh(numVertices, numIndices, vertexDesc, usage, drawOp, indexType));
+			Mesh(numVertices, numIndices, vertexDesc, usage, drawOp, indexType, skeleton));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
@@ -31,28 +31,30 @@ namespace BansheeEngine
 	}
 
 	SPtr<Mesh> MeshManager::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>())
-			Mesh(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType));
+			Mesh(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType, skeleton));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, int usage, DrawOperationType drawOp)
+	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, int usage, DrawOperationType drawOp, 
+		const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, usage, drawOp));
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, usage, drawOp, skeleton));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage)
+	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage, 
+		const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, subMeshes, usage));
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, subMeshes, usage, skeleton));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 

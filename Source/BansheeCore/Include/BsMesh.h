@@ -28,7 +28,7 @@ namespace BansheeEngine
 		virtual ~Mesh();
 
 		/** @copydoc MeshBase::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/**
 		 * Updates the mesh with new data. The actual write will be queued for later execution on the core thread. Provided 
@@ -95,17 +95,15 @@ namespace BansheeEngine
 		friend class MeshManager;
 
 		Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-			int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST,
-			IndexType indexType = IT_32BIT);
+			int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton);
 
 		Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-			const Vector<SubMesh>& subMeshes, int usage = MU_STATIC,
-			IndexType indexType = IT_32BIT);
+			const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton);
 
-		Mesh(const SPtr<MeshData>& initialMeshData, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+		Mesh(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, const SPtr<Skeleton>& skeleton);
 
-		Mesh(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC);
+		Mesh(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage, 
+			const SPtr<Skeleton>& skeleton);
 
 		/**	Updates bounds by calculating them from the vertices in the provided mesh data object. */
 		void updateBounds(const MeshData& meshData);
@@ -128,6 +126,7 @@ namespace BansheeEngine
 		SPtr<VertexDataDesc> mVertexDesc;
 		int mUsage;
 		IndexType mIndexType;
+		SPtr<Skeleton> mSkeleton; // Immutable
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -138,7 +137,7 @@ namespace BansheeEngine
 	public:
 		friend class MeshRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 
 		/************************************************************************/
 		/* 								STATICS		                     		*/
@@ -159,9 +158,10 @@ namespace BansheeEngine
 		 *								option is a triangle list, where three indices represent a single triangle.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static HMesh create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new empty mesh. Created mesh will have specified sub-meshes you may render independently.
@@ -177,9 +177,10 @@ namespace BansheeEngine
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static HMesh create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, const Vector<SubMesh>& subMeshes,
-			int usage = MU_STATIC, IndexType indexType = IT_32BIT);
+			int usage = MU_STATIC, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -189,9 +190,10 @@ namespace BansheeEngine
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default 
 		 *								option is a triangle strip, where three indices represent a single triangle.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static HMesh create(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described by
@@ -201,8 +203,10 @@ namespace BansheeEngine
 		 * @param[in]	subMeshes		Defines how are indices separated into sub-meshes, and how are those sub-meshes 
 		 *								rendered. Sub-meshes may be rendered independently.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
-		static HMesh create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC);
+		static HMesh create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC, 
+			const SPtr<Skeleton>& skeleton = nullptr);
 
 		/** @name Internal
 		 *  @{
@@ -213,18 +217,18 @@ namespace BansheeEngine
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(UINT32 numVertices, UINT32 numIndices, 
-			const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+		static SPtr<Mesh> _createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
+			int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, 
+			const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * @copydoc	create(UINT32, UINT32, const SPtr<VertexDataDesc>&, const Vector<SubMesh>&, int, IndexType)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(UINT32 numVertices, UINT32 numIndices, 
-			const SPtr<VertexDataDesc>& vertexDesc, const Vector<SubMesh>& subMeshes,
-			int usage = MU_STATIC, IndexType indexType = IT_32BIT);
+		static SPtr<Mesh> _createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
+			const Vector<SubMesh>& subMeshes, int usage = MU_STATIC, IndexType indexType = IT_32BIT, 
+			const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * @copydoc	create(const SPtr<MeshData>&, int, DrawOperationType)
@@ -232,7 +236,7 @@ namespace BansheeEngine
 		 * @note	Internal method. Use create() for normal use.
 		 */
 		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * @copydoc	create(const SPtr<MeshData>&, const Vector<SubMesh>&, int)
@@ -240,7 +244,7 @@ namespace BansheeEngine
 		 * @note	Internal method. Use create() for normal use.
 		 */
 		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes,
-			int usage = MU_STATIC);
+			int usage = MU_STATIC, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/** @} */
 	};
@@ -260,22 +264,25 @@ namespace BansheeEngine
 	{
 	public:
 		MeshCore(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-			const Vector<SubMesh>& subMeshes, int usage, IndexType indexType,
-			SPtr<MeshData> initialMeshData);
+			const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton,
+			const SPtr<MeshData>& initialMeshData);
 
 		~MeshCore();
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/** @copydoc MeshCoreBase::getVertexData */
-		virtual SPtr<VertexData> getVertexData() const override;
+		SPtr<VertexData> getVertexData() const override;
 
 		/** @copydoc MeshCoreBase::getIndexBuffer */
-		virtual SPtr<IndexBufferCore> getIndexBuffer() const override;
+		SPtr<IndexBufferCore> getIndexBuffer() const override;
 
 		/** @copydoc MeshCoreBase::getVertexDesc */
-		virtual SPtr<VertexDataDesc> getVertexDesc() const override;
+		SPtr<VertexDataDesc> getVertexDesc() const override;
+
+		/** Returns a skeleton that can be used for animating the mesh. */
+		SPtr<Skeleton> getSkeleton() const { return mSkeleton; }
 
 		/**
 		 * Updates a part of the current mesh with the provided data.
@@ -314,9 +321,10 @@ namespace BansheeEngine
 		 *								option is a triangle list, where three indices represent a single triangle.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static SPtr<MeshCore> create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new empty mesh. Created mesh will have specified sub-meshes you may render independently.
@@ -332,9 +340,10 @@ namespace BansheeEngine
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not 
 		 *								to go over the number of vertices limited by the size.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static SPtr<MeshCore> create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, const Vector<SubMesh>& subMeshes,
-			int usage = MU_STATIC, IndexType indexType = IT_32BIT);
+			int usage = MU_STATIC, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -344,9 +353,10 @@ namespace BansheeEngine
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default 
 		 *								option is a triangle strip, where three indices represent a single triangle.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
 		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -356,8 +366,10 @@ namespace BansheeEngine
 		 * @param[in]	subMeshes		Defines how are indices separated into sub-meshes, and how are those sub-meshes 
 		 *								rendered. Sub-meshes may be rendered independently.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
+		 * @param[in]	skeleton		Optional skeleton that can be used for skeletal animation of the mesh.
 		 */
-		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC);
+		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, 
+			int usage = MU_STATIC, const SPtr<Skeleton>& skeleton = nullptr);
 
 	protected:
 		friend class Mesh;
@@ -371,6 +383,7 @@ namespace BansheeEngine
 		SPtr<VertexDataDesc> mVertexDesc;
 		int mUsage;
 		IndexType mIndexType;
+		SPtr<Skeleton> mSkeleton;
 		SPtr<MeshData> mTempInitialMeshData;
 	};
 

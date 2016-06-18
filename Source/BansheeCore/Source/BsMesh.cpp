@@ -15,9 +15,11 @@
 namespace BansheeEngine
 {
 	MeshCore::MeshCore(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, SPtr<MeshData> initialMeshData)
-		:MeshCoreBase(numVertices, numIndices, subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), 
-		mVertexDesc(vertexDesc), mUsage(usage), mIndexType(indexType), mTempInitialMeshData(initialMeshData)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton, 
+		const SPtr<MeshData>& initialMeshData)
+		: MeshCoreBase(numVertices, numIndices, subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr)
+		, mVertexDesc(vertexDesc), mUsage(usage), mIndexType(indexType), mSkeleton(skeleton)
+		, mTempInitialMeshData(initialMeshData)
 	{ }
 
 	MeshCore::~MeshCore()
@@ -276,12 +278,12 @@ namespace BansheeEngine
 	}
 
 	SPtr<MeshCore> MeshCore::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
 		SubMesh subMesh(0, numIndices, drawOp);
 
 		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices, 
-			vertexDesc, { subMesh }, usage, indexType, nullptr));
+			vertexDesc, { subMesh }, usage, indexType, skeleton, nullptr));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
@@ -289,10 +291,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<MeshCore> MeshCore::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
 		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, subMeshes, usage, indexType, nullptr));
+			vertexDesc, subMeshes, usage, indexType, skeleton, nullptr));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -300,7 +302,8 @@ namespace BansheeEngine
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, 
+		const SPtr<Skeleton>& skeleton)
 	{
 		UINT32 numVertices = initialMeshData->getNumVertices();
 		UINT32 numIndices = initialMeshData->getNumIndices();
@@ -309,7 +312,7 @@ namespace BansheeEngine
 		IndexType indexType = initialMeshData->getIndexType();
 		
 		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, { subMesh }, usage, indexType, initialMeshData));
+			vertexDesc, { subMesh }, usage, indexType, skeleton, initialMeshData));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -317,7 +320,8 @@ namespace BansheeEngine
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage, 
+		const SPtr<Skeleton>& skeleton)
 	{
 		UINT32 numVertices = initialMeshData->getNumVertices();
 		UINT32 numIndices = initialMeshData->getNumIndices();
@@ -325,7 +329,7 @@ namespace BansheeEngine
 		IndexType indexType = initialMeshData->getIndexType();
 
 		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, subMeshes, usage, indexType, initialMeshData));
+			vertexDesc, subMeshes, usage, indexType, skeleton, initialMeshData));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -334,33 +338,33 @@ namespace BansheeEngine
 	}
 
 	Mesh::Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton)
 		:MeshBase(numVertices, numIndices, drawOp), mVertexDesc(vertexDesc), mUsage(usage),
-		mIndexType(indexType)
+		mIndexType(indexType), mSkeleton(skeleton)
 	{
 
 	}
 
 	Mesh::Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton)
 		:MeshBase(numVertices, numIndices, subMeshes), mVertexDesc(vertexDesc), mUsage(usage), 
-		mIndexType(indexType)
+		mIndexType(indexType), mSkeleton(skeleton)
 	{
 
 	}
 
-	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, const SPtr<Skeleton>& skeleton)
 		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), drawOp), 
 		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()),
-		mUsage(usage), mIndexType(initialMeshData->getIndexType())
+		mUsage(usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(skeleton)
 	{
 
 	}
 
-	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage, const SPtr<Skeleton>& skeleton)
 		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), subMeshes),
 		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()), 
-		mUsage(usage), mIndexType(initialMeshData->getIndexType())
+		mUsage(usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(skeleton)
 	{
 
 	}
@@ -445,7 +449,7 @@ namespace BansheeEngine
 	SPtr<CoreObjectCore> Mesh::createCore() const
 	{
 		MeshCore* obj = new (bs_alloc<MeshCore>()) MeshCore(mProperties.mNumVertices, mProperties.mNumIndices, 
-			mVertexDesc, mProperties.mSubMeshes, mUsage, mIndexType, mCPUData);
+			mVertexDesc, mProperties.mSubMeshes, mUsage, mIndexType, mSkeleton, mCPUData);
 
 		SPtr<CoreObjectCore> meshCore = bs_shared_ptr<MeshCore>(obj);
 		meshCore->_setThisPtr(meshCore);
@@ -540,54 +544,54 @@ namespace BansheeEngine
 	/************************************************************************/
 
 	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, usage, drawOp, indexType);
+		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, usage, drawOp, indexType, skeleton);
 
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
 	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType);
+		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType, skeleton);
 
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp);
+		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp, skeleton);
 
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage, const SPtr<Skeleton>& skeleton)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, subMeshes, usage);
+		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, subMeshes, usage, skeleton);
 
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
 	SPtr<Mesh> Mesh::_createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
-		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, usage, drawOp, indexType);
+		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, usage, drawOp, indexType, skeleton);
 	}
 
 	SPtr<Mesh> Mesh::_createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, const SPtr<Skeleton>& skeleton)
 	{
-		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType);
+		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType, skeleton);
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, const SPtr<Skeleton>& skeleton)
 	{
-		return MeshManager::instance().create(initialMeshData, usage, drawOp);
+		return MeshManager::instance().create(initialMeshData, usage, drawOp, skeleton);
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage, const SPtr<Skeleton>& skeleton)
 	{
-		return MeshManager::instance().create(initialMeshData, subMeshes, usage);
+		return MeshManager::instance().create(initialMeshData, subMeshes, usage, skeleton);
 	}
 }

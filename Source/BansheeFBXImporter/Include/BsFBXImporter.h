@@ -50,7 +50,7 @@ namespace BansheeEngine
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
 		SPtr<RendererMeshData> importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-			Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animationClips);
+			Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animationClips, SPtr<Skeleton>& skeleton);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -120,8 +120,9 @@ namespace BansheeEngine
 		 */
 		void generateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options);
 
-		/**Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
-		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& subMeshes);
+		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
+		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
+			Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

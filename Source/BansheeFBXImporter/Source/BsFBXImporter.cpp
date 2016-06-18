@@ -19,6 +19,7 @@
 #include "BsPhysicsMesh.h"
 #include "BsAnimationCurve.h"
 #include "BsAnimationClip.h"
+#include "BsSkeleton.h"
 #include "BsPhysics.h"
 
 namespace BansheeEngine
@@ -116,7 +117,8 @@ namespace BansheeEngine
 	{
 		Vector<SubMesh> subMeshes;
 		UnorderedMap<String, SPtr<AnimationCurves>> dummy;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, dummy);
+		SPtr<Skeleton> skeleton;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, dummy, skeleton);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -124,7 +126,7 @@ namespace BansheeEngine
 		if (meshImportOptions->getCPUReadable())
 			usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage, skeleton);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -136,7 +138,8 @@ namespace BansheeEngine
 	{
 		Vector<SubMesh> subMeshes;
 		UnorderedMap<String, SPtr<AnimationCurves>> animationClips;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, animationClips);
+		SPtr<Skeleton> skeleton;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, animationClips, skeleton);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
@@ -144,7 +147,7 @@ namespace BansheeEngine
 		if (meshImportOptions->getCPUReadable())
 			usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage, skeleton);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -184,7 +187,7 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-		Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animation)
+		Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animation, SPtr<Skeleton>& skeleton)
 	{
 		FbxScene* fbxScene = nullptr;
 
@@ -218,7 +221,7 @@ namespace BansheeEngine
 		splitMeshVertices(importedScene);
 		generateMissingTangentSpace(importedScene, fbxImportOptions);
 
-		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
+		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes, skeleton);
 
 		// Import animation clips
 		if (!importedScene.clips.empty())
@@ -503,12 +506,16 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes)
+	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
+		Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton)
 	{
 		Matrix4 importScale = Matrix4::scaling(options.importScale);
 
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
+		Vector<BONE_DESC> allBones;
+		UnorderedMap<FBXImportNode*, UINT32> boneMap;
+		UINT32 boneIndexOffset = 0;
 
 		for (auto& mesh : scene.meshes)
 		{
@@ -680,10 +687,10 @@ namespace BansheeEngine
 					BoneWeight* weights = (BoneWeight*)bs_stack_alloc(bufferSize);
 					for(UINT32 i = 0; i < (UINT32)numVertices; i++)
 					{
-						weights[i].index0 = mesh->boneInfluences[i].indices[0];
-						weights[i].index1 = mesh->boneInfluences[i].indices[1];
-						weights[i].index2 = mesh->boneInfluences[i].indices[2];
-						weights[i].index3 = mesh->boneInfluences[i].indices[3];
+						weights[i].index0 = mesh->boneInfluences[i].indices[0] + boneIndexOffset;
+						weights[i].index1 = mesh->boneInfluences[i].indices[1] + boneIndexOffset;
+						weights[i].index2 = mesh->boneInfluences[i].indices[2] + boneIndexOffset;
+						weights[i].index3 = mesh->boneInfluences[i].indices[3] + boneIndexOffset;
 
 						weights[i].weight0 = mesh->boneInfluences[i].weights[0];
 						weights[i].weight1 = mesh->boneInfluences[i].weights[1];
@@ -700,6 +707,76 @@ namespace BansheeEngine
 				allMeshData.push_back(meshData->getData());
 				allSubMeshes.push_back(subMeshes);
 			}
+
+			// Create bones
+			UINT32 numBones = (UINT32)mesh->bones.size();
+			for(auto& fbxBone : mesh->bones)
+			{
+				UINT32 boneIdx = (UINT32)allBones.size();
+				boneMap[fbxBone.node] = boneIdx;
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = fbxBone.node->name;
+				bone.invBindPose = fbxBone.bindPose;
+			}
+
+			boneIndexOffset += numBones;
+		}
+
+		// Generate skeleton
+		if (allBones.size() > 0)
+		{
+			// Find bone parents
+			UINT32 numProcessedBones = 0;
+
+			// Generate common root bone for all meshes
+			UINT32 rootBoneIdx = (UINT32)-1;
+			if(allMeshData.size() > 1)
+			{
+				rootBoneIdx = (UINT32)allBones.size();
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = "MultiMeshRoot";
+				bone.invBindPose = Matrix4::IDENTITY;
+				bone.parent = (UINT32)-1;
+
+				numProcessedBones++;
+			}
+
+			Stack<std::pair<FBXImportNode*, UINT32>> todo;
+			todo.push({ scene.rootNode, rootBoneIdx });
+
+			while(!todo.empty())
+			{
+				auto entry = todo.top();
+				todo.pop();
+
+				FBXImportNode* node = entry.first;
+				UINT32 parentBoneIdx = entry.second;
+
+				auto boneIter = boneMap.find(node);
+				if (boneIter != boneMap.end())
+				{
+					UINT32 boneIdx = boneIter->second;
+					allBones[boneIdx].parent = parentBoneIdx;
+					numProcessedBones++;
+
+					parentBoneIdx = boneIdx;
+				}
+
+				for (auto& child : node->children)
+					todo.push({ child, parentBoneIdx });
+			}
+
+			UINT32 numAllBones = (UINT32)allBones.size();
+			if (numProcessedBones == numAllBones)
+				outputSkeleton = Skeleton::create(allBones.data(), numAllBones);
+			else
+				LOGERR("Not all bones were found in the node hierarchy. Skeleton invalid.");
 		}
 
 		if (allMeshData.size() > 1)
