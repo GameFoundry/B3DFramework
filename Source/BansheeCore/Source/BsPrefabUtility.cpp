@@ -28,6 +28,9 @@ namespace BansheeEngine
 		so->destroyInternal(currentSO, true);
 
 		HSceneObject newInstance = prefabLink->instantiate();
+
+		// Remove default parent, and replace with original one
+		newInstance->mParent->removeChild(newInstance);
 		newInstance->mParent = parent;
 
 		restoreLinkedInstanceData(newInstance, soProxy, linkedInstanceData);
