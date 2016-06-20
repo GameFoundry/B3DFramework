@@ -148,7 +148,7 @@ namespace BansheeEngine
 		// Attempt to auto-expand elements we are dragging over
 		if(acceptDragAndDrop())
 		{
-			const GUITreeView::InteractableElement* element = findElementUnderCoord(mDragPosition);
+			const InteractableElement* element = findElementUnderCoord(mDragPosition);
 			temporarilyExpandElement(element);
 		}
 
@@ -208,7 +208,7 @@ namespace BansheeEngine
 			if(DragAndDropManager::instance().isDragInProgress())
 				return false;
 
-			const GUITreeView::InteractableElement* element = findElementUnderCoord(event.getPosition());
+			const InteractableElement* element = findElementUnderCoord(event.getPosition());
 			TreeElement* treeElement = nullptr;
 
 			if(element != nullptr && element->isTreeElement())
@@ -352,7 +352,7 @@ namespace BansheeEngine
 			{
 				if(dist > DRAG_MIN_DISTANCE && mEditElement == nullptr)
 				{
-					const GUITreeView::InteractableElement* element = findElementUnderCoord(mDragStartPosition);
+					const InteractableElement* element = findElementUnderCoord(mDragStartPosition);
 					Vector<TreeElement*> draggedElements;
 
 					if(element != nullptr && element->isTreeElement())
@@ -410,7 +410,7 @@ namespace BansheeEngine
 		{
 			if(acceptDragAndDrop())
 			{
-				const GUITreeView::InteractableElement* element = findElementUnderCoord(event.getPosition());
+				const InteractableElement* element = findElementUnderCoord(event.getPosition());
 
 				TreeElement* treeElement = nullptr;
 				if(element != nullptr)
@@ -422,6 +422,7 @@ namespace BansheeEngine
 				}
 
 				dragAndDropEnded(treeElement);
+				mDragInProgress = false;
 				unselectAll();
 
 				return true;
@@ -1236,7 +1237,7 @@ namespace BansheeEngine
 		temporarilyExpandElement(nullptr);
 	}
 
-	void GUITreeView::temporarilyExpandElement(const GUITreeView::InteractableElement* mouseOverElement)
+	void GUITreeView::temporarilyExpandElement(const InteractableElement* mouseOverElement)
 	{
 		TreeElement* treeElement = nullptr;
 		if(mouseOverElement != nullptr && mouseOverElement->isTreeElement())

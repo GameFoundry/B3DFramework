@@ -142,20 +142,20 @@ namespace BansheeEngine
 		void updateClippedBounds() override;
 
 		/** @copydoc GUIElement::_updateLayoutInternal */
-		virtual void _updateLayoutInternal(const GUILayoutData& data) override;
+		void _updateLayoutInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElement::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElement::_commandEvent */
-		virtual bool _commandEvent(const GUICommandEvent& ev) override;
+		bool _commandEvent(const GUICommandEvent& ev) override;
 
 		/**
 		 * Attempts to find an interactable element under the specified coordinates. Returns null if one cannot be found.
 		 *
 		 * @param[in]	coord	Coordinates relative to parent GUI widget.
 		 */
-		const GUITreeView::InteractableElement* findElementUnderCoord(const Vector2I& coord) const;
+		const InteractableElement* findElementUnderCoord(const Vector2I& coord) const;
 
 		/**	Returns the top-most selected tree element if selection is active, null otherwise. */
 		TreeElement* getTopMostSelectedElement() const;
