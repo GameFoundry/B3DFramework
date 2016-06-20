@@ -1477,7 +1477,7 @@ namespace BansheeEditor
                     if (so == null)
                         continue;
 
-                    Prefab newPrefab = new Prefab(so);
+                    Prefab newPrefab = new Prefab(so, false);
 
                     string destination = LibraryUtility.GetUniquePath(Path.Combine(destinationFolder, so.Name + ".prefab"));
                     addedResources.Add(destination);

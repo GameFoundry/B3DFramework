@@ -1,5 +1,7 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BansheeEngine;
@@ -78,6 +80,20 @@ namespace BansheeEditor
             return Internal_FindDependencies(resource, recursive);
         }
 
+        /// <summary>
+        /// Checks is the provided scene object internal (hidden from normal user, used in internal engine systems).
+        /// </summary>
+        /// <param name="so">Scene object to check.</param>
+        /// <returns>True if internal, false otherwise. </returns>
+        public static bool IsInternal(SceneObject so)
+        {
+            if (so == null)
+                return false;
+
+            IntPtr objPtr = so.GetCachedPtr();
+            return Internal_IsInternal(objPtr);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CalculateBounds(SceneObject so, out AABox bounds);
 
@@ -86,6 +102,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Resource[] Internal_FindDependencies(Resource resource, bool recursive);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_IsInternal(IntPtr soPtr);
     }
 
     /** @} */

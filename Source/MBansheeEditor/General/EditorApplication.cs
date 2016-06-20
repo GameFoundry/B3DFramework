@@ -412,10 +412,17 @@ namespace BansheeEditor
                 string scenePath = ProjectLibrary.GetPath(Scene.ActiveSceneUUID);
                 if (!string.IsNullOrEmpty(scenePath))
                 {
-                    SaveScene(scenePath);
+                    if (Scene.IsGenericPrefab)
+                    {
+                        SaveGenericPrefab(onSuccess, onFailure);
+                    }
+                    else
+                    {
+                        SaveScene(scenePath);
 
-                    if (onSuccess != null)
-                        onSuccess();
+                        if (onSuccess != null)
+                            onSuccess();
+                    }
                 }
                 else
                     SaveSceneAs(onSuccess, onFailure);
@@ -507,13 +514,64 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="path">Path relative to the resource folder. This can be the path to the existing scene
         ///                    prefab if it just needs updating. </param>
-        public static void SaveScene(string path)
+        private static void SaveScene(string path)
         {
             Prefab scene = Internal_SaveScene(path);
             Scene.SetActive(scene);
 
             ProjectLibrary.Refresh(true);
             SetSceneDirty(false);
+        }
+
+        /// <summary>
+        /// Attempts to save the current scene by applying the changes to a prefab, instead of saving it as a brand new
+        /// scene. This is necessary for generic prefabs that have don't have a scene root included in the prefab. If the
+        /// object added any other objects to the root, or has moved or deleted the original generic prefab the user
+        /// will be asked to save the scene normally, creating a brand new prefab.
+        /// </summary>
+        private static void SaveGenericPrefab(Action onSuccess = null, Action onFailure = null)
+        {
+            // Find prefab root
+            SceneObject root = null;
+
+            int numChildren = Scene.Root.GetNumChildren();
+            int numNormalChildren = 0;
+
+            for (int i = 0; i < numChildren; i++)
+            {
+                SceneObject child = Scene.Root.GetChild(i);
+
+                string prefabUUID = PrefabUtility.GetPrefabUUID(child);
+                if (prefabUUID == Scene.ActiveSceneUUID)
+                    root = child;
+
+                if (EditorUtility.IsInternal(child))
+                    continue;
+
+                // If user added any other prefabs other than the initial one, the scene no longer represents a generic
+                // prefab (as we can now longer save it by applying changes only to that prefab)
+                numNormalChildren++;
+                if (numNormalChildren > 1)
+                {
+                    root = null;
+                    break;
+                }
+            }
+            
+            if (root != null)
+            {
+                PrefabUtility.ApplyPrefab(root);
+
+                ProjectLibrary.Refresh(true);
+                SetSceneDirty(false);
+
+                if (onSuccess != null)
+                    onSuccess();
+            }
+            else
+            {
+                SaveSceneAs(onSuccess, onFailure);
+            }
         }
 
         /// <summary>

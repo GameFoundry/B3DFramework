@@ -11,6 +11,7 @@
 #include "BsScriptResource.h"
 #include "BsScriptResourceManager.h"
 #include "BsUtility.h"
+#include "BsSceneObject.h"
 
 namespace BansheeEngine
 {
@@ -23,6 +24,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_CalculateBounds", &ScriptEditorUtility::internal_CalculateBounds);
 		metaData.scriptClass->addInternalCall("Internal_CalculateBoundsArray", &ScriptEditorUtility::internal_CalculateBoundsArray);
 		metaData.scriptClass->addInternalCall("Internal_FindDependencies", &ScriptEditorUtility::internal_FindDependencies);
+		metaData.scriptClass->addInternalCall("Internal_IsInternal", &ScriptEditorUtility::internal_IsInternal);
 	}
 
 	void ScriptEditorUtility::internal_CalculateBounds(MonoObject* so, AABox* bounds)
@@ -77,5 +79,14 @@ namespace BansheeEngine
 		}
 
 		return output.getInternal();
+	}
+
+	bool ScriptEditorUtility::internal_IsInternal(ScriptSceneObject* soPtr)
+	{
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
+			return false;
+
+		HSceneObject so = soPtr->getNativeSceneObject();
+		return so->hasFlag(SOF_Internal);
 	}
 }

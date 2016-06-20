@@ -86,6 +86,20 @@ namespace BansheeEditor
             return Internal_GetPrefabParent(objPtr);
         }
 
+        /// <summary>
+        /// Returns the UUID of the prefab attached to the provided scene object. Only works on root prefab objects.
+        /// </summary>
+        /// <param name="obj">Scene object to retrieve the prefab UUID for.</param>
+        /// <returns>Prefab UUID if the object is part of a prefab, null otherwise. </returns>
+        public static string GetPrefabUUID(SceneObject obj)
+        {
+            if (obj == null)
+                return null;
+
+            IntPtr objPtr = obj.GetCachedPtr();
+            return Internal_GetPrefabUUID(objPtr);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_BreakPrefab(IntPtr nativeInstance);
 
@@ -100,6 +114,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SceneObject Internal_GetPrefabParent(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern string Internal_GetPrefabUUID(IntPtr nativeInstance);
     }
 
     /** @} */

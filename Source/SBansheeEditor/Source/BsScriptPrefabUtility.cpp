@@ -8,6 +8,7 @@
 #include "BsSceneObject.h"
 #include "BsPrefab.h"
 #include "BsResources.h"
+#include "BsMonoUtil.h"
 #include "BsScriptGameObjectManager.h"
 
 namespace BansheeEngine
@@ -23,6 +24,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_RevertPrefab", &ScriptPrefabUtility::internal_revertPrefab);
 		metaData.scriptClass->addInternalCall("Internal_HasPrefabLink", &ScriptPrefabUtility::internal_hasPrefabLink);
 		metaData.scriptClass->addInternalCall("Internal_GetPrefabParent", &ScriptPrefabUtility::internal_getPrefabParent);
+		metaData.scriptClass->addInternalCall("Internal_GetPrefabUUID", &ScriptPrefabUtility::internal_GetPrefabUUID);
 	}
 
 	void ScriptPrefabUtility::internal_breakPrefab(ScriptSceneObject* nativeInstance)
@@ -80,5 +82,19 @@ namespace BansheeEngine
 		}
 
 		return nullptr;
+	}
+
+	MonoString* ScriptPrefabUtility::internal_GetPrefabUUID(ScriptSceneObject* nativeInstance)
+	{
+		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+			return nullptr;
+
+		HSceneObject so = nativeInstance->getNativeSceneObject();
+
+		String prefabUUID = nativeInstance->getNativeSceneObject()->getPrefabLink();
+		if (prefabUUID.empty())
+			return nullptr;
+
+		return MonoUtil::stringToMono(prefabUUID);
 	}
 }

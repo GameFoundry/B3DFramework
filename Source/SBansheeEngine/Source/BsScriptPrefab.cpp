@@ -4,10 +4,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptGameObjectManager.h"
 #include "BsScriptMeta.h"
-#include "BsMonoField.h"
 #include "BsMonoClass.h"
-#include "BsMonoArray.h"
-#include "BsMonoManager.h"
 #include "BsScriptSceneObject.h"
 
 namespace BansheeEngine
@@ -22,11 +19,12 @@ namespace BansheeEngine
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptPrefab::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_Instantiate", &ScriptPrefab::internal_Instantiate);
+		metaData.scriptClass->addInternalCall("Internal_IsScene", &ScriptPrefab::internal_IsScene);
 	}
 
-	void ScriptPrefab::internal_CreateInstance(MonoObject* instance, ScriptSceneObject* so)
+	void ScriptPrefab::internal_CreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene)
 	{
-		HPrefab prefab = Prefab::create(so->getNativeSceneObject());
+		HPrefab prefab = Prefab::create(so->getNativeSceneObject(), isScene);
 
 		ScriptPrefab* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, prefab, &scriptInstance);
@@ -40,6 +38,12 @@ namespace BansheeEngine
 		ScriptSceneObject* scriptInstance = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(instance);
 
 		return scriptInstance->getManagedInstance();
+	}
+
+	bool ScriptPrefab::internal_IsScene(ScriptPrefab* thisPtr)
+	{
+		HPrefab prefab = thisPtr->getHandle();
+		return prefab->isScene();
 	}
 
 	MonoObject* ScriptPrefab::createInstance()
