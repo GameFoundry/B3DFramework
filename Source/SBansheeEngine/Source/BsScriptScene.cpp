@@ -57,13 +57,17 @@ namespace BansheeEngine
 		HPrefab prefab = GameResourceManager::instance().load<Prefab>(nativePath, true);
 		if (prefab.isLoaded(false))
 		{
-			HSceneObject root = prefab->instantiate();
-
 			// If scene replace current root node, otherwise just append to the current root node
 			if (prefab->isScene())
+			{
+				HSceneObject root = prefab->instantiate();
 				gSceneManager()._setRootNode(root);
+			}
 			else
+			{
 				gSceneManager().clearScene();
+				prefab->instantiate();
+			}
 
 			ScriptPrefab* scriptPrefab;
 			ScriptResourceManager::instance().getScriptResource(prefab, &scriptPrefab, true);

@@ -541,12 +541,12 @@ namespace BansheeEditor
             {
                 SceneObject child = Scene.Root.GetChild(i);
 
+                if (EditorUtility.IsInternal(child))
+                    continue;
+
                 string prefabUUID = PrefabUtility.GetPrefabUUID(child);
                 if (prefabUUID == Scene.ActiveSceneUUID)
                     root = child;
-
-                if (EditorUtility.IsInternal(child))
-                    continue;
 
                 // If user added any other prefabs other than the initial one, the scene no longer represents a generic
                 // prefab (as we can now longer save it by applying changes only to that prefab)

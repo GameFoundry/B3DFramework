@@ -81,7 +81,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Checks is the provided scene object internal (hidden from normal user, used in internal engine systems).
+        /// Checks is the provided scene object internal (hidden from normal user, used by internal engine systems).
         /// </summary>
         /// <param name="so">Scene object to check.</param>
         /// <returns>True if internal, false otherwise. </returns>
