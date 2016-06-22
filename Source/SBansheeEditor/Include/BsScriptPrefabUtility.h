@@ -27,6 +27,7 @@ namespace BansheeEngine
 		static bool internal_hasPrefabLink(ScriptSceneObject* nativeInstance);
 		static MonoObject* internal_getPrefabParent(ScriptSceneObject* nativeInstance);
 		static MonoString* internal_GetPrefabUUID(ScriptSceneObject* nativeInstance);
+		static void internal_UpdateFromPrefab(ScriptSceneObject* nativeInstance);
 
 		ScriptPrefabUtility(MonoObject* instance);
 	};

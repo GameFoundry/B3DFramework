@@ -512,7 +512,7 @@ namespace BansheeEngine
 
 			if (isInstantiated())
 			{
-				newComponent->instantiate();
+				newComponent->_instantiate();
 				newComponent->onInitialized();
 
 				if (getActive())

@@ -58,6 +58,20 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Updates all of the objects belonging to the same prefab instance as the provided object (if any). The update
+        /// will apply any changes from the linked prefab to the hierarchy(if any).
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void UpdateFromPrefab(SceneObject obj)
+        {
+            if (obj == null)
+                return;
+
+            IntPtr objPtr = obj.GetCachedPtr();
+            Internal_UpdateFromPrefab(objPtr);
+        }
+
+        /// <summary>
         /// Checks if a scene object has a prefab link. Scene objects with a prefab link will be automatically updated
         /// when their prefab changes in order to reflect its changes.
         /// </summary>
@@ -111,6 +125,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool Internal_HasPrefabLink(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_UpdateFromPrefab(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SceneObject Internal_GetPrefabParent(IntPtr nativeInstance);

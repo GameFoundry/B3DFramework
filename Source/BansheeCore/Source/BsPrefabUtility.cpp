@@ -110,11 +110,12 @@ namespace BansheeEngine
 
 				current->destroy(true);
 				HSceneObject newInstance = prefabLink->_clone();
+				newInstance->_instantiate();
 
 				// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
 				// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to
 				// change to which GameObjectInstanceData it points. But the GameObjectManager ensures that all handles deserialized
-				// at once (i.e. during the ::instantiate() call above) will share GameObjectHandleData so we can simply replace
+				// at once (i.e. during the ::_clone() call above) will share GameObjectHandleData so we can simply replace
 				// to what they point to, affecting all of the handles to that object. (In another words, we can modify the
 				// new handles at this point, but old ones must keep referencing what they already were.)
 				restoreLinkedInstanceData(newInstance, soProxy, linkedInstanceData);

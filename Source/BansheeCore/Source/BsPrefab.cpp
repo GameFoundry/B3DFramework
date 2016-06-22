@@ -10,7 +10,7 @@
 namespace BansheeEngine
 {
 	Prefab::Prefab()
-		:Resource(false), mHash(0), mNextLinkId(0), mIsScene(false)
+		:Resource(false), mHash(0), mNextLinkId(0), mIsScene(true)
 	{
 		
 	}
@@ -157,7 +157,7 @@ namespace BansheeEngine
 			return HSceneObject();
 
 		mRoot->mPrefabHash = mHash;
-		return mRoot->clone();
+		return mRoot->clone(false);
 	}
 
 	RTTITypeBase* Prefab::getRTTIStatic()

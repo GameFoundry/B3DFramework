@@ -122,8 +122,8 @@ namespace BansheeEngine
 
 		ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType);
 
-		/** @copydoc Component::instantiate */
-		void instantiate() override;
+		/** @copydoc Component::_instantiate */
+		void _instantiate() override;
 
 		/** @copydoc Component::onInitialized */
 		void onInitialized() override;

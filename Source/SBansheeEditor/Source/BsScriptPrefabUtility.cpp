@@ -25,6 +25,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_HasPrefabLink", &ScriptPrefabUtility::internal_hasPrefabLink);
 		metaData.scriptClass->addInternalCall("Internal_GetPrefabParent", &ScriptPrefabUtility::internal_getPrefabParent);
 		metaData.scriptClass->addInternalCall("Internal_GetPrefabUUID", &ScriptPrefabUtility::internal_GetPrefabUUID);
+		metaData.scriptClass->addInternalCall("Internal_UpdateFromPrefab", &ScriptPrefabUtility::internal_UpdateFromPrefab);
 	}
 
 	void ScriptPrefabUtility::internal_breakPrefab(ScriptSceneObject* nativeInstance)
@@ -96,5 +97,14 @@ namespace BansheeEngine
 			return nullptr;
 
 		return MonoUtil::stringToMono(prefabUUID);
+	}
+
+	void ScriptPrefabUtility::internal_UpdateFromPrefab(ScriptSceneObject* nativeInstance)
+	{
+		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+			return;
+
+		HSceneObject so = nativeInstance->getNativeSceneObject();
+		PrefabUtility::updateFromPrefab(so);
 	}
 }

@@ -115,6 +115,9 @@ namespace BansheeEngine
 			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeFromIntermediate(addedComponentData));
 
 			object->addComponentInternal(component);
+
+			if(object->isInstantiated())
+				component->_instantiate();
 		}
 
 		for (auto& addedChildData : diff->addedChildren)

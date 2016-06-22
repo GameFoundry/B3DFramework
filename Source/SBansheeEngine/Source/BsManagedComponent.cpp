@@ -323,7 +323,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void ManagedComponent::instantiate()
+	void ManagedComponent::_instantiate()
 	{
 		mObjInfo = nullptr;
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mTypeName, mObjInfo))

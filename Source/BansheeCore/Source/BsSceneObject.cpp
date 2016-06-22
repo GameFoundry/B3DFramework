@@ -207,7 +207,7 @@ namespace BansheeEngine
 				gCoreSceneManager().registerNewSO(obj->mThisHandle);
 
 			for (auto& component : obj->mComponents)
-				component->instantiate();
+				component->_instantiate();
 
 			for (auto& child : obj->mChildren)
 				instantiateRecursive(child.get());
@@ -685,6 +685,8 @@ namespace BansheeEngine
 	{
 		if (!instantiate)
 			setFlags(SOF_DontInstantiate);
+		else
+			unsetFlags(SOF_DontInstantiate);
 
 		UINT32 bufferSize = 0;
 
@@ -697,6 +699,8 @@ namespace BansheeEngine
 
 		if (!instantiate)
 			unsetFlags(SOF_DontInstantiate);
+		else
+			setFlags(SOF_DontInstantiate);
 
 		return cloneObj->mThisHandle;
 	}
