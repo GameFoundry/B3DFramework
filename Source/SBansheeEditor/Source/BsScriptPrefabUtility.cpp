@@ -26,6 +26,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetPrefabParent", &ScriptPrefabUtility::internal_getPrefabParent);
 		metaData.scriptClass->addInternalCall("Internal_GetPrefabUUID", &ScriptPrefabUtility::internal_GetPrefabUUID);
 		metaData.scriptClass->addInternalCall("Internal_UpdateFromPrefab", &ScriptPrefabUtility::internal_UpdateFromPrefab);
+		metaData.scriptClass->addInternalCall("Internal_RecordPrefabDiff", &ScriptPrefabUtility::internal_RecordPrefabDiff);
 	}
 
 	void ScriptPrefabUtility::internal_breakPrefab(ScriptSceneObject* nativeInstance)
@@ -76,7 +77,7 @@ namespace BansheeEngine
 		HSceneObject so = nativeInstance->getNativeSceneObject();
 		HSceneObject parent = so->getPrefabParent();
 
-		if(parent != nullptr)
+		if (parent != nullptr)
 		{
 			ScriptSceneObject* scriptParent = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(parent);
 			return scriptParent->getManagedInstance();
@@ -106,5 +107,14 @@ namespace BansheeEngine
 
 		HSceneObject so = nativeInstance->getNativeSceneObject();
 		PrefabUtility::updateFromPrefab(so);
+	}
+
+	void ScriptPrefabUtility::internal_RecordPrefabDiff(ScriptSceneObject* nativeInstance)
+	{
+		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+			return;
+
+		HSceneObject so = nativeInstance->getNativeSceneObject();
+		PrefabUtility::recordPrefabDiff(so);
 	}
 }

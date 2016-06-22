@@ -381,9 +381,6 @@ namespace BansheeEditor
                     btnApplyPrefab.OnClick += () =>
                     {
                         PrefabUtility.ApplyPrefab(activeSO);
-
-                        // Refresh any prefab instances in the scene
-                        PrefabUtility.UpdateFromPrefab(Scene.Root);
                     };
                     btnRevertPrefab.OnClick += () =>
                     {

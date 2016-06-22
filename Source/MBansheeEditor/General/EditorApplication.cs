@@ -560,7 +560,7 @@ namespace BansheeEditor
             
             if (root != null)
             {
-                PrefabUtility.ApplyPrefab(root);
+                PrefabUtility.ApplyPrefab(root, false);
 
                 ProjectLibrary.Refresh(true);
                 SetSceneDirty(false);

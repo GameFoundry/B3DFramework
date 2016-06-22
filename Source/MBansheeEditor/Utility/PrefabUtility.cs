@@ -34,13 +34,29 @@ namespace BansheeEditor
         /// is not a prefab instance nothing happens.
         /// </summary>
         /// <param name="obj">Prefab instance whose prefab to update.</param>
-        public static void ApplyPrefab(SceneObject obj)
+        /// <param name="refreshScene">If true, all prefab instances in the current scene will be updated so they consistent
+        ///                            with the newly saved data.</param>
+        public static void ApplyPrefab(SceneObject obj, bool refreshScene = true)
         {
             if (obj == null)
                 return;
 
+            if (refreshScene)
+            {
+                SceneObject root = Scene.Root;
+                if (root != null)
+                    Internal_RecordPrefabDiff(root.GetCachedPtr());
+            }
+
             IntPtr objPtr = obj.GetCachedPtr();
             Internal_ApplyPrefab(objPtr);
+
+            if (refreshScene)
+            {
+                SceneObject root = Scene.Root;
+                if (root != null)
+                    Internal_UpdateFromPrefab(root.GetCachedPtr());
+            }
         }
 
         /// <summary>
@@ -119,6 +135,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_ApplyPrefab(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_RecordPrefabDiff(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_RevertPrefab(IntPtr nativeInstance);

@@ -607,9 +607,6 @@ namespace BansheeEditor
                 return;
 
             PrefabUtility.ApplyPrefab(so);
-
-            // Refresh any prefab instances in the scene
-            PrefabUtility.UpdateFromPrefab(Scene.Root);
         }
 
         /// <summary>
