@@ -27,7 +27,7 @@ namespace BansheeEngine
 	{
 		if(!mThisHandle.isDestroyed())
 		{
-			LOGWRN("Object is being deleted without being destroyed first?");
+			LOGWRN("Object is being deleted without being destroyed first? " + mName);
 			destroyInternal(mThisHandle, true);
 		}
 	}
@@ -114,7 +114,8 @@ namespace BansheeEngine
 		GameObject::_setInstanceData(other);
 
 		// Instance data changed, so make sure to refresh the handles to reflect that
-		mThisHandle._setHandleData(mThisHandle.getInternalPtr());
+		SPtr<SceneObject> thisPtr = mThisHandle.getInternalPtr();
+		mThisHandle._setHandleData(thisPtr);
 	}
 
 	String SceneObject::getPrefabLink() const
@@ -172,7 +173,7 @@ namespace BansheeEngine
 		{
 			rootObj->mPrefabLinkUUID = "";
 			rootObj->mPrefabDiff = nullptr;
-			PrefabUtility::clearPrefabIds(rootObj->getHandle());
+			PrefabUtility::clearPrefabIds(rootObj->getHandle(), true, false);
 		}
 	}
 
@@ -683,7 +684,7 @@ namespace BansheeEngine
 
 	HSceneObject SceneObject::clone(bool instantiate)
 	{
-		UINT32 flags = mFlags;
+		bool isInstantiated = !hasFlag(SOF_DontInstantiate);
 
 		if (!instantiate)
 			setFlags(SOF_DontInstantiate);
@@ -699,7 +700,10 @@ namespace BansheeEngine
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(serializer.decode(buffer, bufferSize));
 		bs_free(buffer);
 
-		mFlags = flags;
+		if(isInstantiated)
+			unsetFlags(SOF_DontInstantiate);
+		else
+			setFlags(SOF_DontInstantiate);
 
 		return cloneObj->mThisHandle;
 	}

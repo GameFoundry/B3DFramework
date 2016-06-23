@@ -177,10 +177,13 @@ namespace BansheeEngine
 		return startingId;
 	}
 
-	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive)
+	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive, bool clearRoot)
 	{
 		Stack<HSceneObject> todo;
 		todo.push(sceneObject);
+
+		if (clearRoot)
+			sceneObject->mLinkId = (UINT32)-1;
 
 		while (!todo.empty())
 		{
@@ -310,9 +313,6 @@ namespace BansheeEngine
 	{
 		Stack<HSceneObject> todo;
 		todo.push(so);
-
-		// Root is not in the instance data map because its link ID belongs to the parent prefab, if any
-		so->_setInstanceData(proxy.instanceData);
 
 		while (!todo.empty())
 		{
