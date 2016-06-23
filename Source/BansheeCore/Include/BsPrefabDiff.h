@@ -96,6 +96,10 @@ namespace BansheeEngine
 		/**
 		 * Applies the internal prefab diff to the provided object. The object should have similar hierarchy as the prefab
 		 * the diff was created for, otherwise the results are undefined.
+		 *
+		 * @note	Be aware that this method will not instantiate newly added components or scene objects. It's expected
+		 *			that this method will be called on a fresh copy of a scene object hierarchy, and everything to be
+		 *			instantiated at once after diff is applied.
 		 */
 		void apply(const HSceneObject& object);
 

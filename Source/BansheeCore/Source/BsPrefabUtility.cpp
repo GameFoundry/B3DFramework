@@ -110,7 +110,6 @@ namespace BansheeEngine
 
 				current->destroy(true);
 				HSceneObject newInstance = prefabLink->_clone();
-				newInstance->_instantiate();
 
 				// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
 				// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to
@@ -125,7 +124,7 @@ namespace BansheeEngine
 			}
 		}
 
-		// Once everything is instantiated, apply diffs, restore old parents & link IDs for root.
+		// Once everything is cloned, apply diffs, restore old parents & link IDs for root.
 		for (auto& entry : newPrefabInstanceData)
 		{
 			// Diffs must be applied after everything is instantiated and instance data restored since it may contain
@@ -138,6 +137,10 @@ namespace BansheeEngine
 			entry.newInstance->setParent(entry.originalParent, false);
 			entry.newInstance->mLinkId = entry.originalLinkId;
 		}
+
+		// Finally, instantiate everything
+		for (auto& entry : newPrefabInstanceData)
+			entry.newInstance->_instantiate(true);
 
 		gResources().unloadAllUnused();
 	}

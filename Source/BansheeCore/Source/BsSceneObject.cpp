@@ -198,7 +198,7 @@ namespace BansheeEngine
 			child->unsetFlags(flags);
 	}
 
-	void SceneObject::_instantiate()
+	void SceneObject::_instantiate(bool prefabOnly)
 	{
 		std::function<void(SceneObject*)> instantiateRecursive = [&](SceneObject* obj)
 		{
@@ -211,7 +211,10 @@ namespace BansheeEngine
 				component->_instantiate();
 
 			for (auto& child : obj->mChildren)
-				instantiateRecursive(child.get());
+			{
+				if(!prefabOnly || child->getPrefabLink().empty())
+					instantiateRecursive(child.get());
+			}
 		};
 
 		std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
@@ -225,7 +228,10 @@ namespace BansheeEngine
 			}
 
 			for (auto& child : obj->mChildren)
-				triggerEventsRecursive(child.get());
+			{
+				if (!prefabOnly || child->getPrefabLink().empty())
+					triggerEventsRecursive(child.get());
+			}
 		};
 
 		instantiateRecursive(this);

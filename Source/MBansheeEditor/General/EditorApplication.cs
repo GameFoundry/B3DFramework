@@ -514,7 +514,7 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="path">Path relative to the resource folder. This can be the path to the existing scene
         ///                    prefab if it just needs updating. </param>
-        private static void SaveScene(string path)
+        internal static void SaveScene(string path)
         {
             Prefab scene = Internal_SaveScene(path);
             Scene.SetActive(scene);

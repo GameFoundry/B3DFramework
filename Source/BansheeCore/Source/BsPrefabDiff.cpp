@@ -115,9 +115,6 @@ namespace BansheeEngine
 			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeFromIntermediate(addedComponentData));
 
 			object->addComponentInternal(component);
-
-			if(object->isInstantiated())
-				component->_instantiate();
 		}
 
 		for (auto& addedChildData : diff->addedChildren)
@@ -125,7 +122,6 @@ namespace BansheeEngine
 			BinarySerializer bs;
 			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeFromIntermediate(addedChildData));
 			sceneObject->setParent(object);
-			sceneObject->_instantiate();
 		}
 
 		for (auto& componentDiff : diff->componentDiffs)
