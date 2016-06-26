@@ -48,7 +48,7 @@ namespace BansheeEditor
                 Vector2I b = new Vector2I(100, 20);
                 Vector2I c = new Vector2I(240, 60);
 
-                Vector2I[] vertices = {c, b};
+                Vector2I[] vertices = {a, b};
                 canvas.DrawPolyLine(vertices, 1.0f);
             }
 

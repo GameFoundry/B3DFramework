@@ -517,12 +517,12 @@ namespace BansheeEngine
 
 					auto splitCurves = [&](auto& inCurves, auto& outCurves)
 					{
-						UINT32 numCurves = inCurves.size();
+						UINT32 numCurves = (UINT32)inCurves.size();
 						outCurves.resize(numCurves);
 
 						for (UINT32 i = 0; i < numCurves; i++)
 						{
-							TAnimationCurve<Vector3>& animCurve = inCurves[i].curve;
+							auto& animCurve = inCurves[i].curve;
 							outCurves[i].name = inCurves[i].name;
 
 							UINT32 numFrames = animCurve.getNumKeyFrames();
@@ -533,10 +533,10 @@ namespace BansheeEngine
 							float startTime = animCurve.getKeyFrame(std::min(split.startFrame, lastFrame)).time;
 							float endTime = animCurve.getKeyFrame(std::min(split.endFrame, lastFrame)).time;
 
-							outCurves[i].curve = inCurves->position[i].curve.split(startTime, endTime);
+							outCurves[i].curve = inCurves[i].curve.split(startTime, endTime);
 
 							if (split.isAdditive)
-								outCurves[i].curve->makeAdditive();
+								outCurves[i].curve.makeAdditive();
 						}
 					};
 
