@@ -1,0 +1,193 @@
+Technique =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_Position;
+				float2 uv0 : TEXCOORD0;
+				
+				float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
+				float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
+			};
+		};
+
+		Vertex =
+		{
+			StructuredBuffer<float4> boneMatrices;
+		
+			struct VertexInput
+			{
+				float3 position : POSITION;
+				float3 normal : NORMAL; // Note: Half-precision could be used
+				float4 tangent : TANGENT; // Note: Half-precision could be used
+				float2 uv0 : TEXCOORD0;
+				uint4 blendIndices : BLENDINDICES;
+				float4 blendWeights : BLENDWEIGHT;
+				
+				#if USE_BLEND_SHAPES
+					float3 deltaPosition : POSITION1;
+					float4 deltaNormal : NORMAL1;
+				#endif
+			};
+			
+			struct VertexIntermediate
+			{
+				float3x4 blendMatrix;
+			
+				float3 worldNormal; // Note: Half-precision could be used
+				float4 worldTangent; // Note: Half-precision could be used
+			};
+			
+			float3x4 getBoneMatrix(uint idx)
+			{
+				float4 row0 = boneMatrices[idx * 3 + 0];
+				float4 row1 = boneMatrices[idx * 3 + 1];
+				float4 row2 = boneMatrices[idx * 3 + 2];
+				
+				return float3x4(row0, row1, row2);
+			}
+			
+			float3x4 getBlendMatrix(VertexInput input)
+			{
+				float3x4 result = input.blendWeights.x * boneMatrices[input.blendIndices.x];
+				result += input.blendWeights.y * boneMatrices[input.blendIndices.y];
+				result += input.blendWeights.z * boneMatrices[input.blendIndices.z];
+				result += input.blendWeights.w * boneMatrices[input.blendIndices.w];
+				
+				return result;
+			}
+			
+			float3x3 getSkinnedTangentToLocal(VertexInput input, float3x4 blendMatrix, out float tangentSign)
+			{
+				tangentSign = input.tangent.w;
+			
+				#if USE_BLEND_SHAPES
+					float3 normal = input.normal;
+					float3 tangent = input.tangent.xyz;
+					
+					normal = normalize(normal + input.deltaNormal * input.deltaNormal.w);
+					tangent = normalize(tangent - dot(tangent, normal) * normal);
+				#else
+					float3 normal = input.normal;
+					float3 tangent = input.tangent.xyz;
+				#endif
+				
+				normal = mul(blendMatrix, float4(normal, 0.0f)).xyz;
+				tangent = mul(blendMatrix, float4(tangent, 0.0f)).xyz;
+				
+				float3 bitangent = cross(normal, tangent) * tangentSign;
+				tangentSign *= gWorldDeterminantSign;
+				
+				float3x3 result = float3x3(tangent, bitangent, normal);
+				result = transpose(result);
+												
+				return result;
+			}
+			
+			VertexIntermediate getVertexIntermediate(VertexInput input)
+			{
+				VertexIntermediate result;
+				
+				result.blendMatrix = getBlendMatrix(input);
+				
+				float tangentSign;
+				float3x3 tangentToLocal = getSkinnedTangentToLocal(input, result.blendMatrix, tangentSign);
+				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
+				
+				result.worldNormal = float3(tangentToWorld._m02_m12_m22); // Normal basis vector
+				result.worldTangent = float4(tangentToWorld._m00_m10_m20, tangentSign); // Tangent basis vector
+				
+				return result;
+			}
+			
+			float4 getVertexWorldPosition(VertexInput input, VertexIntermediate intermediate)
+			{
+				#if USE_BLEND_SHAPES
+					float4 position = float4(input.position + input.deltaPosition, 1.0f);
+				#else
+					float4 position = float4(input.position, 1.0f);
+				#endif
+			
+				position = mul(intermediate.blendMatrix, position);
+				return mul(gMatWorld, position);
+			}
+			
+			void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)
+			{
+				result.uv0 = input.uv0;
+				
+				result.tangentToWorldZ = float3(intermediate.tangentToWorld._m02_m12_m22); // Normal basis vector
+				result.tangentToWorldX = float4(intermediate.tangentToWorld._m00_m10_m20, tangentSign); // Tangent basis vector
+			}
+		};
+	};
+};
+
+Technique =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Common = 
+		{
+			varying vec2 uv0;
+			varying vec3 tangentToWorldZ;
+			varying vec4 tangentToWorldX;	
+		};
+	
+		Vertex =
+		{			
+			in vec3 bs_position;
+			in vec3 bs_normal;
+			in vec4 bs_tangent;
+			in vec2 bs_texcoord0;
+		
+			struct VertexIntermediate
+			{
+				mat3 tangentToLocal;
+				mat3 tangentToWorld;
+				float tangentSign;
+			};
+		
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+							
+			void getTangentToLocal(vec3 normal, vec4 tangent, out float tangentSign, out mat3 tangentToObject)
+			{
+				vec3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+				tangentSign = tangent.w * gWorldDeterminantSign;
+				
+				tangentToObject[0] = tangent.xyz;
+				tangentToObject[1] = bitangent;
+				tangentToObject[2] = normal;
+			}
+
+			void getVertexIntermediate(out VertexIntermediate result)
+			{
+				getTangentToLocal(bs_normal, bs_tangent, result.tangentSign, result.tangentToLocal);
+				result.tangentToWorld = mat3(gMatWorldNoScale) * result.tangentToLocal;
+			}
+			
+			void getVertexWorldPosition(out vec4 result)
+			{
+				result = gMatWorld * vec4(bs_position, 1);
+			}
+			
+			void populateVertexOutput(VertexIntermediate intermediate)
+			{
+				uv0 = bs_texcoord0;
+				
+				tangentToWorldZ = intermediate.tangentToWorld[2]; // Normal basis vector
+				tangentToWorldX = vec4(intermediate.tangentToWorld[0].xyz, intermediate.tangentSign); // Tangent basis vector
+			}
+		};
+	};
+};
