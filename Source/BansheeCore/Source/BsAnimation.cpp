@@ -76,7 +76,7 @@ namespace BansheeEngine
 					AnimationStateLayer& newLayer = tempLayers.back();
 
 					newLayer.index = clipInfo.state.layer;
-					newLayer.normalizeWeights = false; // TODO - This needs to be deduced from PlayingClipInfo
+					newLayer.additive = !clipInfo.clip->isAdditive();
 				}
 			}
 
@@ -252,6 +252,7 @@ namespace BansheeEngine
 
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
+
 	void Animation::setSpeed(float speed)
 	{
 		mDefaultSpeed = speed;

@@ -122,6 +122,22 @@ namespace BansheeEngine
 		}
 	}
 
+	/** Calculates the difference between two values. */
+	float getDiff(float lhs, float rhs)
+	{
+		return lhs - rhs;
+	}
+
+	Vector3 getDiff(const Vector3& lhs, const Vector3& rhs)
+	{
+		return lhs - rhs;
+	}
+
+	Quaternion getDiff(const Quaternion& lhs, const Quaternion& rhs)
+	{
+		return rhs.inverse() * lhs;
+	}
+
 	template <class T>
 	const UINT32 TAnimationCurve<T>::CACHE_LOOKAHEAD = 3;
 
@@ -479,7 +495,14 @@ namespace BansheeEngine
 	template <class T>
 	void TAnimationCurve<T>::makeAdditive()
 	{
-		
+		if (mKeyframes.size() < 2)
+			return;
+
+		const KeyFrame& refKey = mKeyframes[0];
+		UINT32 numKeys = (UINT32)mKeyframes.size();
+
+		for(UINT32 i = 1; i < numKeys; i++)
+			mKeyframes[i].value = getDiff(mKeyframes[i].value, refKey.value);
 	}
 
 	template class TAnimationCurve<Vector3>;

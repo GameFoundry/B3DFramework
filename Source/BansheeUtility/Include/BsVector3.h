@@ -389,6 +389,15 @@ namespace BansheeEngine
 				a.x * b.y - a.y * b.x);
         }
 
+		/** 
+		 * Linearly interpolates between the two vectors using @p t. t should be in [0, 1] range, where t = 0 corresponds
+		 * to the left vector, while t = 1 corresponds to the right vector. 
+		 */
+		static Vector3 lerp(float t, const Vector3& a, const Vector3& b)
+		{
+			return (1.0f - t) * a + t * b;
+		}
+
 		/** Checks are any of the vector components not a number. */
 		inline bool isNaN() const;
 

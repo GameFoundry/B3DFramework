@@ -245,6 +245,21 @@ namespace BansheeEngine
 			return *this;
 		}
 
+		Quaternion& operator*= (const Quaternion& rhs)
+		{
+			float newW = w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z;
+			float newX = w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y;
+			float newY = w * rhs.y + y * rhs.w + z * rhs.x - x * rhs.z;
+			float newZ = w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x;
+
+			w = newW;
+			x = newX;
+			y = newY;
+			z = newZ;
+
+			return *this;
+		}
+
 		friend Quaternion operator* (float lhs, const Quaternion& rhs)
 		{
 			return Quaternion(lhs * rhs.w, lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
@@ -297,12 +312,39 @@ namespace BansheeEngine
 			return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
 		}
 
+		/** Calculates the dot product between two quaternions. */
+		static float dot(const Quaternion& lhs, const Quaternion& rhs)
+		{
+			return lhs.w * rhs.w + lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+		}
+
+		/** Normalizes the provided quaternion. */
+		static Quaternion normalize(const Quaternion& q)
+		{
+			float len = dot(q, q);
+			float factor = 1.0f / Math::sqrt(len);
+
+			return q * factor;
+		}
+
         /**
          * Performs spherical interpolation between two quaternions. Spherical interpolation neatly interpolates between 
 		 * two rotations without modifying the size of the vector it is applied to (unlike linear interpolation).
          */
-        static Quaternion slerp(float t, const Quaternion& p,
-            const Quaternion& q, bool shortestPath = true);
+        static Quaternion slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath = true);
+
+		/** 
+		 * Linearly interpolates between the two quaternions using @p t. t should be in [0, 1] range, where t = 0 
+		 * corresponds to the left vector, while t = 1 corresponds to the right vector.
+		 */
+		static Quaternion lerp(float t, const Quaternion& a, const Quaternion& b)
+		{
+			float d = dot(a, b);
+			float flip = d >= 0.0f ? 1.0f : -1.0f;
+			
+			Quaternion output = flip * (1.0f - t) * a + t * b;
+			return normalize(output);
+		}
 
         /** Gets the shortest arc quaternion to rotate this vector to the destination vector. */
         static Quaternion getRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis = Vector3::ZERO);

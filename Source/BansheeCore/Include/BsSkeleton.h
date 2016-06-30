@@ -60,10 +60,11 @@ namespace BansheeEngine
 		UINT8 index; /**< Unique index of the animation layer. */
 
 		/**
-		 * Determines should weights of individual states be normalized or kept as is. Non-normalized weights allow the
-		 * total contribution of all states to be less than one.
+		 * If true animations from this layer will be added on top of other layers using the per-state weights. If false
+		 * the weights will be normalized, animations will be blended with each other according to the normalized weights
+		 * and then added on top of other layers.
 		 */
-		bool normalizeWeights;
+		bool additive;
 	};
 
 	/** 

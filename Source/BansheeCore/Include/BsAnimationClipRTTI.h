@@ -22,6 +22,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN_NAMED(rotationCurves, mCurves->rotation, 1)
 			BS_RTTI_MEMBER_PLAIN_NAMED(scaleCurves, mCurves->scale, 2)
 			BS_RTTI_MEMBER_PLAIN_NAMED(genericCurves, mCurves->generic, 3)
+			BS_RTTI_MEMBER_PLAIN(mIsAdditive, 4)
 		BS_END_RTTI_MEMBERS
 	public:
 		AnimationClipRTTI()

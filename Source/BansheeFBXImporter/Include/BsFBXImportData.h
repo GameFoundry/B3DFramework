@@ -130,6 +130,18 @@ namespace BansheeEngine
 		Vector<FBXBlendShapeAnimation> blendShapeAnimations;
 	};
 
+	/** All information required for creating an animation clip. */
+	struct FBXAnimationClipData
+	{
+		FBXAnimationClipData(const String& name, bool isAdditive, const SPtr<AnimationCurves>& curves)
+			:name(name), isAdditive(isAdditive), curves(curves)
+		{ }
+
+		String name;
+		bool isAdditive;
+		SPtr<AnimationCurves> curves;
+	};
+
 	/**	Imported mesh data. */
 	struct FBXImportMesh
 	{

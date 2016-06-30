@@ -116,7 +116,7 @@ namespace BansheeEngine
 	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubMesh> subMeshes;
-		UnorderedMap<String, SPtr<AnimationCurves>> dummy;
+		Vector<FBXAnimationClipData> dummy;
 		SPtr<Skeleton> skeleton;
 		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, dummy, skeleton);
 
@@ -137,7 +137,7 @@ namespace BansheeEngine
 	Vector<SubResourceRaw> FBXImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubMesh> subMeshes;
-		UnorderedMap<String, SPtr<AnimationCurves>> animationClips;
+		Vector<FBXAnimationClipData> animationClips;
 		SPtr<Skeleton> skeleton;
 		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, animationClips, skeleton);
 
@@ -177,9 +177,9 @@ namespace BansheeEngine
 
 			for(auto& entry : animationClips)
 			{
-				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.second);
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive);
 
-				output.push_back({ toWString(entry.first), clip });
+				output.push_back({ toWString(entry.name), clip });
 			}
 		}
 
@@ -187,7 +187,7 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-		Vector<SubMesh>& subMeshes, UnorderedMap<String, SPtr<AnimationCurves>>& animation, SPtr<Skeleton>& skeleton)
+		Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, SPtr<Skeleton>& skeleton)
 	{
 		FbxScene* fbxScene = nullptr;
 
@@ -423,8 +423,10 @@ namespace BansheeEngine
 	}
 
 	void FBXImporter::convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits,
-		UnorderedMap<String, SPtr<AnimationCurves>>& output)
+		Vector<FBXAnimationClipData>& output)
 	{
+		UnorderedSet<String> names;
+
 		bool isFirstClip = true;
 		for (auto& clip : clips)
 		{
@@ -548,13 +550,14 @@ namespace BansheeEngine
 					// Search for a unique name
 					String name = split.name;
 					UINT32 attemptIdx = 0;
-					while (output.find(name) != output.end())
+					while (names.find(name) != names.end())
 					{
 						name = clip.name + "_" + toString(attemptIdx);
 						attemptIdx++;
 					}
 
-					output.insert(std::make_pair(name, splitClipCurve));
+					names.insert(name);
+					output.push_back(FBXAnimationClipData(name, split.isAdditive, splitClipCurve));
 				}
 			}
 			else
@@ -562,13 +565,14 @@ namespace BansheeEngine
 				// Search for a unique name
 				String name = clip.name;
 				UINT32 attemptIdx = 0;
-				while(output.find(name) != output.end())
+				while(names.find(name) != names.end())
 				{
 					name = clip.name + "_" + toString(attemptIdx);
 					attemptIdx++;
 				}
 
-				output.insert(std::make_pair(name, curves));
+				names.insert(name);
+				output.push_back(FBXAnimationClipData(name, false, curves));
 			}
 
 			isFirstClip = false;

@@ -102,7 +102,7 @@ namespace BansheeEngine
 
 			AnimationStateLayer layer;
 			layer.index = 0;
-			layer.normalizeWeights = false;
+			layer.additive = false;
 			layer.states = &state;
 			layer.numStates = 1;
 
@@ -132,11 +132,11 @@ namespace BansheeEngine
 			const AnimationStateLayer& layer = layers[i];
 
 			float invLayerWeight;
-			if (layer.normalizeWeights)
+			if (layer.additive)
 			{
 				float weightSum = 0.0f;
 				for (UINT32 j = 0; j < layer.numStates; j++)
-					weightSum += layer.normalizeWeights;
+					weightSum += layer.states[j].weight;
 
 				invLayerWeight = 1.0f / weightSum;
 			}
@@ -145,7 +145,7 @@ namespace BansheeEngine
 
 			for (UINT32 j = 0; j < layer.numStates; j++)
 			{
-				const AnimationState& state = layer.states[i];
+				const AnimationState& state = layer.states[j];
 
 				float normWeight = state.weight * invLayerWeight;
 				for (UINT32 k = 0; k < mNumBones; k++)
@@ -157,17 +157,47 @@ namespace BansheeEngine
 						const TAnimationCurve<Vector3>& curve = state.curves->position[mapping.position].curve;
 						localPose.positions[k] += curve.evaluate(state.time, state.positionCaches[k], state.loop) * normWeight;
 					}
+				}
 
-					if (mapping.rotation != (UINT32)-1)
-					{
-						const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
-						localPose.rotations[k] += curve.evaluate(state.time, state.rotationCaches[k], state.loop) * normWeight;
-					}
+				for (UINT32 k = 0; k < mNumBones; k++)
+				{
+					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 
 					if (mapping.scale != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[mapping.scale].curve;
 						localPose.scales[k] += curve.evaluate(state.time, state.scaleCaches[k], state.loop) * normWeight;
+					}
+				}
+
+				if(layer.additive)
+				{
+					for (UINT32 k = 0; k < mNumBones; k++)
+					{
+						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+
+						if (mapping.rotation != (UINT32)-1)
+						{
+							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
+
+							Quaternion value = curve.evaluate(state.time, state.rotationCaches[k], state.loop);
+							value = Quaternion::lerp(normWeight, Quaternion::IDENTITY, value);
+
+							localPose.rotations[k] *= value;
+						}
+					}
+				}
+				else
+				{
+					for (UINT32 k = 0; k < mNumBones; k++)
+					{
+						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+
+						if (mapping.rotation != (UINT32)-1)
+						{
+							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
+							localPose.rotations[k] += curve.evaluate(state.time, state.rotationCaches[k], state.loop) * normWeight;
+						}
 					}
 				}
 			}

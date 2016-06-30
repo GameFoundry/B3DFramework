@@ -141,6 +141,12 @@ namespace BansheeEngine
 		void getBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const;
 
 		/** 
+		 * Checks are the curves contained within the clip additive. Additive clips are intended to be added on top of
+		 * other clips.
+		 */
+		bool isAdditive() const { return mIsAdditive; }
+
+		/** 
 		 * Returns a version that can be used for detecting modifications on the clip by external systems. Whenever the clip
 		 * is modified the version is increased by one.
 		 */
@@ -150,14 +156,16 @@ namespace BansheeEngine
 		 * Creates an animation clip with no curves. After creation make sure to register some animation curves before
 		 * using it. 
 		 */
-		static HAnimationClip create();
+		static HAnimationClip create(bool isAdditive = false);
 
 		/** 
 		 * Creates an animation clip with specified curves.
 		 *
-		 * @param[in]	curves	Curves to initialize the animation with.
+		 * @param[in]	curves		Curves to initialize the animation with.
+		 * @param[in]	isAdditive	Determines does the clip contain additive curve data. This will change the behaviour
+		 *							how is the clip blended with other animations.
 		 */
-		static HAnimationClip create(const SPtr<AnimationCurves>& curves);
+		static HAnimationClip create(const SPtr<AnimationCurves>& curves, bool isAdditive = false);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -165,13 +173,13 @@ namespace BansheeEngine
 		 */
 
 		/** Creates a new AnimationClip without initializing it. Use create() for normal use. */
-		static SPtr<AnimationClip> _createPtr(const SPtr<AnimationCurves>& curves);
+		static SPtr<AnimationClip> _createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive = false);
 
 		/** @} */
 
 	protected:
 		AnimationClip();
-		AnimationClip(const SPtr<AnimationCurves>& curves);
+		AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive);
 
 		/** @copydoc Resource::initialize() */
 		void initialize() override;
@@ -192,6 +200,8 @@ namespace BansheeEngine
 		 * Contains a map from curve name to curve index. Indices are stored as specified in CurveType enum. 
 		 */
 		UnorderedMap<String, UINT32[4]> mNameMapping;
+
+		bool mIsAdditive;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

@@ -8,28 +8,25 @@
 namespace BansheeEngine
 {
 	AnimationClip::AnimationClip()
-		: Resource(false), mVersion(0), mCurves(bs_shared_ptr_new<AnimationCurves>())
+		: Resource(false), mVersion(0), mCurves(bs_shared_ptr_new<AnimationCurves>()), mIsAdditive(false)
 	{
 
 	}
 
-	AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves)
-		: Resource(false), mVersion(0), mCurves(curves)
+	AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive)
+		: Resource(false), mVersion(0), mCurves(curves), mIsAdditive(isAdditive)
 	{
 
 	}
 
-	HAnimationClip AnimationClip::create()
+	HAnimationClip AnimationClip::create(bool isAdditive)
 	{
-		SPtr<AnimationClip> newClip = createEmpty();
-		newClip->initialize();
-
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(newClip));
+		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(nullptr, isAdditive)));
 	}
 
-	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves)
+	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves, bool isAdditive)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(curves)));
+		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(curves, isAdditive)));
 	}
 
 	SPtr<AnimationClip> AnimationClip::createEmpty()
@@ -42,9 +39,9 @@ namespace BansheeEngine
 		return newClip;
 	}
 
-	SPtr<AnimationClip> AnimationClip::_createPtr(const SPtr<AnimationCurves>& curves)
+	SPtr<AnimationClip> AnimationClip::_createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive)
 	{
-		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip(curves);
+		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip(curves, isAdditive);
 
 		SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
 		newClip->_setThisPtr(newClip);
