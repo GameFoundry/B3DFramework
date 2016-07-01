@@ -533,7 +533,6 @@ namespace BansheeEngine
 	{
 		gProfilerCPU().beginSample("Render");
 
-		RenderAPICore& rapi = RenderAPICore::instance();
 		const CameraCore* camera = rtData.cameras[camIdx];
 		CameraData& camData = mCameraData[camera];
 
@@ -591,10 +590,7 @@ namespace BansheeEngine
 			mStaticHandler->bindPerObjectBuffers(*renderElem);
 
 			if (iter->applyPass)
-			{
-				SPtr<PassCore> pass = material->getPass(iter->passIdx);
-				setPass(pass);
-			}
+				RendererUtility::instance().setPass(material, iter->passIdx, false);
 
 			SPtr<PassParametersCore> passParams = material->getPassParameters(iter->passIdx);
 
@@ -612,28 +608,19 @@ namespace BansheeEngine
 		{
 			SPtr<GpuParamBlockBufferCore> perCameraBuffer = mStaticHandler->getPerCameraParams().getBuffer();
 
-			SPtr<MaterialCore> dirMaterial = mDirLightMat->getMaterial();
-			SPtr<PassCore> dirPass = dirMaterial->getPass(0);
-
-			setPass(dirPass);
-			mDirLightMat->setStaticParameters(rapi, camData.target, perCameraBuffer);
-
+			mDirLightMat->bind(camData.target, perCameraBuffer);
 			for (auto& light : mDirectionalLights)
 			{
 				if (!light.internal->getIsActive())
 					continue;
 
-				mDirLightMat->setParameters(light.internal);
+				mDirLightMat->setPerLightParams(light.internal);
 				gRendererUtility().drawScreenQuad();
 			}
 
 			// Draw point lights which our camera is within
-			SPtr<MaterialCore> pointInsideMaterial = mPointLightInMat->getMaterial();
-			SPtr<PassCore> pointInsidePass = pointInsideMaterial->getPass(0);
-
 			// TODO - Possibly use instanced drawing here as only two meshes are drawn with various properties
-			setPass(pointInsidePass);
-			mPointLightInMat->setStaticParameters(rapi, camData.target, perCameraBuffer);
+			mPointLightInMat->bind(camData.target, perCameraBuffer);
 
 			// TODO - Cull lights based on visibility, right now I just iterate over all of them. 
 			for (auto& light : mPointLights)
@@ -648,18 +635,14 @@ namespace BansheeEngine
 				if (!cameraInLightGeometry)
 					continue;
 
-				mPointLightInMat->setParameters(light.internal);
+				mPointLightInMat->setPerLightParams(light.internal);
 
 				SPtr<MeshCore> mesh = light.internal->getMesh();
 				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
 			}
 
 			// Draw other point lights
-			SPtr<MaterialCore> pointOutsideMaterial = mPointLightOutMat->getMaterial();
-			SPtr<PassCore> pointOutsidePass = pointOutsideMaterial->getPass(0);
-
-			setPass(pointOutsidePass);
-			mPointLightOutMat->setStaticParameters(rapi, camData.target, perCameraBuffer);
+			mPointLightOutMat->bind(camData.target, perCameraBuffer);
 
 			for (auto& light : mPointLights)
 			{
@@ -673,7 +656,7 @@ namespace BansheeEngine
 				if (cameraInLightGeometry)
 					continue;
 
-				mPointLightOutMat->setParameters(light.internal);
+				mPointLightOutMat->setPerLightParams(light.internal);
 
 				SPtr<MeshCore> mesh = light.internal->getMesh();
 				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
@@ -697,10 +680,7 @@ namespace BansheeEngine
 			mStaticHandler->bindPerObjectBuffers(*renderElem);
 
 			if (iter->applyPass)
-			{
-				SPtr<PassCore> pass = material->getPass(iter->passIdx);
-				setPass(pass);
-			}
+				RendererUtility::instance().setPass(material, iter->passIdx, false);
 
 			SPtr<PassParametersCore> passParams = material->getPassParameters(iter->passIdx);
 
@@ -995,57 +975,6 @@ namespace BansheeEngine
 				}
 			}
 		}
-	}
-
-	void RenderBeast::setPass(const SPtr<PassCore>& pass)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		RenderAPICore& rs = RenderAPICore::instance();
-
-		struct StageData
-		{
-			GpuProgramType type;
-			bool enable;
-			SPtr<GpuProgramCore> program;
-		};
-
-		const UINT32 numStages = 6;
-		StageData stages[numStages] =
-		{
-			{ GPT_VERTEX_PROGRAM, pass->hasVertexProgram(), pass->getVertexProgram() },
-			{ GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(), pass->getFragmentProgram() },
-			{ GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(), pass->getGeometryProgram() },
-			{ GPT_HULL_PROGRAM, pass->hasHullProgram(), pass->getHullProgram() },
-			{ GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(), pass->getDomainProgram() },
-			{ GPT_COMPUTE_PROGRAM, pass->hasComputeProgram(), pass->getComputeProgram() }
-		};
-
-		for (UINT32 i = 0; i < numStages; i++)
-		{
-			const StageData& stage = stages[i];
-
-			if (stage.enable)
-				rs.bindGpuProgram(stage.program);
-			else
-				rs.unbindGpuProgram(stage.type);
-		}
-
-		// Set up non-texture related pass settings
-		if (pass->getBlendState() != nullptr)
-			rs.setBlendState(pass->getBlendState());
-		else
-			rs.setBlendState(BlendStateCore::getDefault());
-
-		if (pass->getDepthStencilState() != nullptr)
-			rs.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
-		else
-			rs.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
-
-		if (pass->getRasterizerState() != nullptr)
-			rs.setRasterizerState(pass->getRasterizerState());
-		else
-			rs.setRasterizerState(RasterizerStateCore::getDefault());
 	}
 
 	void RenderBeast::setPassParams(const SPtr<PassParametersCore>& passParams, const PassSamplerOverrides* samplerOverrides)

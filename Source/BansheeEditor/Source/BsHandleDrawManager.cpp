@@ -333,13 +333,13 @@ namespace BansheeEngine
 			currentType = meshes[0].type;
 
 			if (currentType == MeshType::Solid)
-				gRendererUtility().setPass(mSolidMaterial.mat, 0);
+				gRendererUtility().setPass(mSolidMaterial.mat);
 			else if(currentType == MeshType::Line)
-				gRendererUtility().setPass(mLineMaterial.mat, 0);
+				gRendererUtility().setPass(mLineMaterial.mat);
 			else
 			{
 				mTextMaterial.texture.set(meshes[0].texture);
-				gRendererUtility().setPass(mTextMaterial.mat, 0);
+				gRendererUtility().setPass(mTextMaterial.mat);
 			}
 		}
 
@@ -349,19 +349,16 @@ namespace BansheeEngine
 			{
 				if (meshData.type == MeshType::Solid)
 				{
-					gRendererUtility().setPass(mSolidMaterial.mat, 0);
-					gRendererUtility().setPassParams(mSolidMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mSolidMaterial.mat);
 				}
 				else if (meshData.type == MeshType::Line)
 				{
-					gRendererUtility().setPass(mLineMaterial.mat, 0);
-					gRendererUtility().setPassParams(mLineMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mLineMaterial.mat);
 				}
 				else
 				{
 					mTextMaterial.texture.set(meshData.texture);
-					gRendererUtility().setPass(mTextMaterial.mat, 0);
-					gRendererUtility().setPassParams(mTextMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mTextMaterial.mat);
 				}
 
 				currentType = meshData.type;

@@ -116,9 +116,9 @@ namespace BansheeEngine
 
 	}
 
-	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 
 		SPtr<PassCore> pass = material->getPass(passIdx);
 		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
@@ -162,52 +162,54 @@ namespace BansheeEngine
 
 			if (stage.enable)
 			{
-				rs.bindGpuProgram(stage.program);
-				setGpuParams(stage.type, stage.params);
+				rapi.bindGpuProgram(stage.program);
+
+				if(bindParameters)
+					setGpuParams(stage.type, stage.params);
 
 			}
 			else
-				rs.unbindGpuProgram(stage.type);
+				rapi.unbindGpuProgram(stage.type);
 		}
 
 		// Set up non-texture related pass settings
 		if (pass->getBlendState() != nullptr)
-			rs.setBlendState(pass->getBlendState());
+			rapi.setBlendState(pass->getBlendState());
 		else
-			rs.setBlendState(BlendStateCore::getDefault());
+			rapi.setBlendState(BlendStateCore::getDefault());
 
 		if (pass->getDepthStencilState() != nullptr)
-			rs.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
 		else
-			rs.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
 
 		if (pass->getRasterizerState() != nullptr)
-			rs.setRasterizerState(pass->getRasterizerState());
+			rapi.setRasterizerState(pass->getRasterizerState());
 		else
-			rs.setRasterizerState(RasterizerStateCore::getDefault());
+			rapi.setRasterizerState(RasterizerStateCore::getDefault());
 	}
 
-	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 
 		SPtr<PassCore> pass = material->getPass(passIdx);
 		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
 
 		if(pass->hasComputeProgram())
 		{
-			rs.bindGpuProgram(pass->getComputeProgram());
-			setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
+			rapi.bindGpuProgram(pass->getComputeProgram());
+
+			if (bindParameters)
+				setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
 		}
 		else
-			rs.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
+			rapi.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
 	}
 
 	void RendererUtility::setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx)
 	{
 		const SPtr<PassParametersCore>& passParams = material->getPassParameters(passIdx);
-
-		RenderAPICore& rs = RenderAPICore::instance();
 
 		struct StageData
 		{

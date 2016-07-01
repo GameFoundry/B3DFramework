@@ -247,15 +247,6 @@ namespace BansheeEngine
 		static CameraShaderData getCameraShaderData(const CameraCore& camera);
 
 		/**
-		 * Activates the specified pass on the pipeline.
-		 *
-		 * @param[in]	pass	Pass to activate.
-		 * 
-		 * @note	Core thread.
-		 */
-		static void setPass(const SPtr<PassCore>& pass);
-
-		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
 		 * @param[in]	passParams			Structure containing parameters for all stages of the pass.

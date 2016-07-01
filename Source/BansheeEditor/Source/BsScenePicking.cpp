@@ -293,16 +293,16 @@ namespace BansheeEngine
 				md.mParamPickingAlphaColor.set(color);
 				md.mParamPickingAlphaTexture.set(renderable.mainTexture->getCore());
 
-				RendererUtility::setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingAlphaVertParams);
-				RendererUtility::setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingAlphaFragParams);
+				gRendererUtility().setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingAlphaVertParams);
+				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingAlphaFragParams);
 			}
 			else
 			{
 				md.mParamPickingWVP.set(renderable.wvpTransform);
 				md.mParamPickingColor.set(color);
 
-				RendererUtility::setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingVertParams);
-				RendererUtility::setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingFragParams);
+				gRendererUtility().setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingVertParams);
+				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingFragParams);
 			}
 
 			UINT32 numSubmeshes = renderable.mesh->getProperties().getNumSubMeshes();

@@ -7,51 +7,36 @@
 #include "BsRenderTargets.h"
 #include "BsGpuParams.h"
 #include "BsLight.h"
+#include "BsRendererUtility.h"
 
 namespace BansheeEngine
 {
 	LightRenderingParams::LightRenderingParams(const SPtr<MaterialCore>& material)
+		:mMaterial(material)
 	{
 		auto& texParams = material->getShader()->getTextureParams();
-		SPtr<GpuParamsCore> fragParams = material->getGpuParams(0, GPT_FRAGMENT_PROGRAM);
 		for (auto& entry : texParams)
 		{
 			if (entry.second.rendererSemantic == RPS_GBufferA)
-				fragParams->getTextureParam(entry.second.name, mGBufferA);
+				mGBufferA = material->getParamTexture(entry.second.name);
 			else if (entry.second.rendererSemantic == RPS_GBufferB)
-				fragParams->getTextureParam(entry.second.name, mGBufferB);
+				mGBufferB = material->getParamTexture(entry.second.name);
 			else if (entry.second.rendererSemantic == RPS_GBufferDepth)
-				fragParams->getTextureParam(entry.second.name, mGBufferDepth);
+				mGBufferDepth = material->getParamTexture(entry.second.name);
 		}
-
-		mParamDescFP = &fragParams->getParamDesc();
-		mPerLightBlockDescFP = fragParams->getParamBlockDesc("PerLight");
-		mPerCameraBlockDescFP = fragParams->getParamBlockDesc("PerCamera");
-
-		SPtr<GpuParamsCore> vertParams = material->getGpuParams(0, GPT_VERTEX_PROGRAM);
-		mParamDescVP = &vertParams->getParamDesc();
-		mPerLightBlockDescVP = vertParams->getParamBlockDesc("PerLight");
-		mPerCameraBlockDescVP = vertParams->getParamBlockDesc("PerCamera");
 	}
 
-	void LightRenderingParams::setStaticParameters(RenderAPICore& rapi, const SPtr<RenderTargets>& gbuffer,
+	void LightRenderingParams::setStaticParameters(const SPtr<RenderTargets>& gbuffer, 
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		rapi.setTexture(GPT_FRAGMENT_PROGRAM, mGBufferA.getDesc().slot, gbuffer->getTextureA());
-		rapi.setTexture(GPT_FRAGMENT_PROGRAM, mGBufferB.getDesc().slot, gbuffer->getTextureB());
-		rapi.setTexture(GPT_FRAGMENT_PROGRAM, mGBufferDepth.getDesc().slot, gbuffer->getTextureDepth());
+		mGBufferA.set(gbuffer->getTextureA());
+		mGBufferB.set(gbuffer->getTextureB());
+		mGBufferDepth.set(gbuffer->getTextureDepth());
 
-		rapi.setSamplerState(GPT_FRAGMENT_PROGRAM, 0, SamplerStateCore::getDefault());
-		rapi.setSamplerState(GPT_FRAGMENT_PROGRAM, 1, SamplerStateCore::getDefault());
-		rapi.setSamplerState(GPT_FRAGMENT_PROGRAM, 2, SamplerStateCore::getDefault());
+		mMaterial->setParamBlockBuffer("PerLight", getBuffer());
+		mMaterial->setParamBlockBuffer("PerCamera", perCamera);
 
-		rapi.setParamBuffer(GPT_FRAGMENT_PROGRAM, mPerLightBlockDescFP->slot, mBuffer.getBuffer(), *mParamDescFP);
-		rapi.setParamBuffer(GPT_FRAGMENT_PROGRAM, mPerCameraBlockDescFP->slot, perCamera, *mParamDescFP);
-
-		if(mPerLightBlockDescVP != nullptr)
-			rapi.setParamBuffer(GPT_VERTEX_PROGRAM, mPerLightBlockDescVP->slot, mBuffer.getBuffer(), *mParamDescVP);
-
-		rapi.setParamBuffer(GPT_VERTEX_PROGRAM, mPerCameraBlockDescVP->slot, perCamera, *mParamDescVP);
+		gRendererUtility().setPassParams(mMaterial);
 	}
 
 	void LightRenderingParams::setParameters(const LightCore* light)
@@ -129,13 +114,14 @@ namespace BansheeEngine
 		// Do nothing
 	}
 
-	void DirectionalLightMat::setStaticParameters(RenderAPICore& rapi, const SPtr<RenderTargets>& gbuffer, 
+	void DirectionalLightMat::bind(const SPtr<RenderTargets>& gbuffer,
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		mParams.setStaticParameters(rapi, gbuffer, perCamera);
+		RendererUtility::instance().setPass(mMaterial, 0, false);
+		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 
-	void DirectionalLightMat::setParameters(const LightCore* light)
+	void DirectionalLightMat::setPerLightParams(const LightCore* light)
 	{
 		mParams.setParameters(light);
 	}
@@ -151,13 +137,14 @@ namespace BansheeEngine
 		// Do nothing
 	}
 
-	void PointLightInMat::setStaticParameters(RenderAPICore& rapi, const SPtr<RenderTargets>& gbuffer, 
+	void PointLightInMat::bind(const SPtr<RenderTargets>& gbuffer, 
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		mParams.setStaticParameters(rapi, gbuffer, perCamera);
+		RendererUtility::instance().setPass(mMaterial, 0, false);
+		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 
-	void PointLightInMat::setParameters(const LightCore* light)
+	void PointLightInMat::setPerLightParams(const LightCore* light)
 	{
 		mParams.setParameters(light);
 	}
@@ -173,13 +160,14 @@ namespace BansheeEngine
 		// Do nothing
 	}
 
-	void PointLightOutMat::setStaticParameters(RenderAPICore& rapi, const SPtr<RenderTargets>& gbuffer, 
+	void PointLightOutMat::bind(const SPtr<RenderTargets>& gbuffer,
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		mParams.setStaticParameters(rapi, gbuffer, perCamera);
+		RendererUtility::instance().setPass(mMaterial, 0, false);
+		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 
-	void PointLightOutMat::setParameters(const LightCore* light)
+	void PointLightOutMat::setPerLightParams(const LightCore* light)
 	{
 		mParams.setParameters(light);
 	}

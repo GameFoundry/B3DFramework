@@ -32,22 +32,28 @@ namespace BansheeEngine
 		/**
 		 * Activates the specified material pass for rendering. Any further draw calls will be executed using this pass.
 		 *
-		 * @param[in]	material	Material containing the pass.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	material		Material containing the pass.
+		 * @param[in]	passIdx			Index of the pass in the material.
+		 * @param[in]	bindParameters	If true, any GPU program parameters will be bound as well. Otherwise the caller
+		 *								is required to bind them manually via setPassParams() or setGpuParams() before
+		 *								using the pass.
 		 *
 		 * @note	Core thread.
 		 */
-		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, bool bindParameters = true);
 
 		/**
 		 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
 		 *
-		 * @param[in]	material	Material containing the pass.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	material		Material containing the pass.
+		 * @param[in]	passIdx			Index of the pass in the material.
+		 * @param[in]	bindParameters	If true, any GPU program parameters will be bound as well. Otherwise the caller
+		 *								is required to bind them manually via setPassParams() or setGpuParams() before
+		 *								using the pass.
 		 *
 		 * @note	Core thread.
 		 */
-		void setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, bool bindParameters = true);
 
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
@@ -57,7 +63,7 @@ namespace BansheeEngine
 		 *					
 		 * @note	Core thread.
 		 */
-		static void setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
 
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the provided GPU program type.
@@ -65,7 +71,7 @@ namespace BansheeEngine
 		 * @param[in]	type		Type of the GPU program to assign the parameters to.
 		 * @param[in]	params		Parameters to assign.
 		 */
-		static void setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params);
+		void setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params);
 
 		/**
 		 * Draws the specified mesh.
