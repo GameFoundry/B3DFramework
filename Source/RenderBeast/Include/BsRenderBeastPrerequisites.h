@@ -32,7 +32,7 @@
 
 namespace BansheeEngine
 {
-	class StaticRenderableHandler;
+	class ObjectRenderer;
 	struct RenderBeastOptions;
 	struct PooledRenderTexture;
 	class RenderTargets;

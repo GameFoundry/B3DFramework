@@ -6,9 +6,6 @@
 #include "BsMaterial.h"
 #include "BsMesh.h"
 #include "BsPass.h"
-#include "BsBlendState.h"
-#include "BsRasterizerState.h"
-#include "BsDepthStencilState.h"
 #include "BsSamplerState.h"
 #include "BsCoreApplication.h"
 #include "BsViewport.h"
@@ -19,7 +16,6 @@
 #include "BsProfilerCPU.h"
 #include "BsShader.h"
 #include "BsGpuParamBlockBuffer.h"
-#include "BsStaticRenderableHandler.h"
 #include "BsTime.h"
 #include "BsRenderableElement.h"
 #include "BsCoreObjectManager.h"
@@ -29,7 +25,6 @@
 #include "BsRenderTexturePool.h"
 #include "BsRenderTargets.h"
 #include "BsRendererUtility.h"
-#include "BsRenderStateManager.h"
 
 using namespace std::placeholders;
 
@@ -37,7 +32,7 @@ namespace BansheeEngine
 {
 	RenderBeast::RenderBeast()
 		: mDefaultMaterial(nullptr), mPointLightInMat(nullptr), mPointLightOutMat(nullptr), mDirLightMat(nullptr)
-		, mStaticHandler(nullptr), mOptions(bs_shared_ptr_new<RenderBeastOptions>()), mOptionsDirty(true)
+		, mObjectRenderer(nullptr), mOptions(bs_shared_ptr_new<RenderBeastOptions>()), mOptionsDirty(true)
 	{
 
 	}
@@ -68,7 +63,7 @@ namespace BansheeEngine
 		RendererUtility::startUp();
 
 		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>();
-		mStaticHandler = bs_new<StaticRenderableHandler>();
+		mObjectRenderer = bs_new<ObjectRenderer>();
 
 		mDefaultMaterial = bs_new<DefaultMaterial>();
 		mPointLightInMat = bs_new<PointLightInMat>();
@@ -81,11 +76,11 @@ namespace BansheeEngine
 
 	void RenderBeast::destroyCore()
 	{
-		if (mStaticHandler != nullptr)
-			bs_delete(mStaticHandler);
+		if (mObjectRenderer != nullptr)
+			bs_delete(mObjectRenderer);
 
 		mRenderTargets.clear();
-		mCameraData.clear();
+		mCameras.clear();
 		mRenderables.clear();
 
 		PostProcessing::shutDown();
@@ -107,12 +102,12 @@ namespace BansheeEngine
 
 		renderable->setRendererId(renderableId);
 
-		mRenderables.push_back(RenderableData());
+		mRenderables.push_back(RendererObject());
 		mRenderableShaderData.push_back(RenderableShaderData());
 		mWorldBounds.push_back(renderable->getBounds());
 
-		RenderableData& renderableData = mRenderables.back();
-		renderableData.renderable = renderable;
+		RendererObject& rendererObject = mRenderables.back();
+		rendererObject.renderable = renderable;
 
 		RenderableShaderData& shaderData = mRenderableShaderData.back();
 		shaderData.worldTransform = renderable->getTransform();
@@ -120,11 +115,6 @@ namespace BansheeEngine
 		shaderData.worldNoScaleTransform = renderable->getTransformNoScale();
 		shaderData.invWorldNoScaleTransform = shaderData.worldNoScaleTransform.inverseAffine();
 		shaderData.worldDeterminantSign = shaderData.worldTransform.determinant3x3() >= 0.0f ? 1.0f : -1.0f;
-
-		if (renderable->getRenderableType() == RenType_LitTextured)
-			renderableData.controller = mStaticHandler;
-		else
-			renderableData.controller = nullptr;
 
 		SPtr<MeshCore> mesh = renderable->getMesh();
 		if (mesh != nullptr)
@@ -134,8 +124,8 @@ namespace BansheeEngine
 
 			for (UINT32 i = 0; i < meshProps.getNumSubMeshes(); i++)
 			{
-				renderableData.elements.push_back(BeastRenderableElement());
-				BeastRenderableElement& renElement = renderableData.elements.back();
+				rendererObject.elements.push_back(BeastRenderableElement());
+				BeastRenderableElement& renElement = rendererObject.elements.back();
 
 				renElement.mesh = mesh;
 				renElement.subMesh = meshProps.getSubMesh(i);
@@ -192,8 +182,7 @@ namespace BansheeEngine
 					samplerOverrides->refCount++;
 				}
 
-				if (renderableData.controller != nullptr)
-					renderableData.controller->initializeRenderElem(renElement);
+				mObjectRenderer->initElement(renElement);
 			}
 		}
 	}
@@ -339,9 +328,8 @@ namespace BansheeEngine
 		}
 		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
 		{
-			CameraData& camData = mCameraData[camera];
-			camData.postProcessInfo.settings = camera->getPostProcessSettings();
-			camData.postProcessInfo.settingDirty = true;
+			RendererCamera& rendererCam = mCameras[camera];
+			rendererCam.updatePP();
 		} 
 	}
 
@@ -355,21 +343,12 @@ namespace BansheeEngine
 		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();
 		if(forceRemove)
 		{
-			mCameraData.erase(camera);
+			mCameras.erase(camera);
 			renderTarget = nullptr;
 		}
 		else
 		{
-			CameraData& camData = mCameraData[camera];
-			camData.opaqueQueue = bs_shared_ptr_new<RenderQueue>(mCoreOptions->stateReductionMode);
-
-			StateReduction transparentStateReduction = mCoreOptions->stateReductionMode;
-			if (transparentStateReduction == StateReduction::Material)
-				transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
-
-			camData.transparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
-			camData.postProcessInfo.settings = camera->getPostProcessSettings();
-			camData.postProcessInfo.settingDirty = true;
+			mCameras[camera] = RendererCamera(camera, mCoreOptions->stateReductionMode);
 		}
 
 		// Remove from render target list
@@ -457,15 +436,10 @@ namespace BansheeEngine
 
 		*mCoreOptions = options;
 
-		for (auto& cameraData : mCameraData)
+		for (auto& entry : mCameras)
 		{
-			cameraData.second.opaqueQueue->setStateReduction(mCoreOptions->stateReductionMode);
-
-			StateReduction transparentStateReduction = mCoreOptions->stateReductionMode;
-			if (transparentStateReduction == StateReduction::Material)
-				transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
-
-			cameraData.second.transparentQueue->setStateReduction(transparentStateReduction);
+			RendererCamera& rendererCam = entry.second;
+			rendererCam.update(mCoreOptions->stateReductionMode);
 		}
 	}
 
@@ -495,14 +469,11 @@ namespace BansheeEngine
 		refreshSamplerOverrides();
 
 		// Update global per-frame hardware buffers
-		mStaticHandler->updatePerFrameBuffers(time);
+		mObjectRenderer->updatePerFrameBuffers(time);
 
 		// Generate render queues per camera
-		for (auto& cameraData : mCameraData)
-		{
-			const CameraCore* camera = cameraData.first;
-			determineVisible(*camera);
-		}
+		for (auto& entry : mCameras)
+			entry.second.determineVisible(mRenderables, mWorldBounds);
 
 		// Render everything, target by target
 		for (auto& renderTargetData : mRenderTargets)
@@ -534,28 +505,16 @@ namespace BansheeEngine
 		gProfilerCPU().beginSample("Render");
 
 		const CameraCore* camera = rtData.cameras[camIdx];
-		CameraData& camData = mCameraData[camera];
-
-		SPtr<ViewportCore> viewport = camera->getViewport();
-		CameraShaderData cameraShaderData = getCameraShaderData(*camera);
+		RendererCamera& rendererCam = mCameras[camera];
+		CameraShaderData cameraShaderData = rendererCam.getShaderData();
 
 		assert(!camera->getFlags().isSet(CameraFlag::Overlay));
 
-		mStaticHandler->updatePerCameraBuffers(cameraShaderData);
+		mObjectRenderer->updatePerCameraBuffers(cameraShaderData);
+		rendererCam.beginRendering(true);
 
-		bool useHDR = camera->getFlags().isSet(CameraFlag::HDR);
-		UINT32 msaaCount = camera->getMSAACount();
-
-		// Render scene objects to g-buffer
-		bool createGBuffer = camData.target == nullptr ||
-			camData.target->getHDR() != useHDR ||
-			camData.target->getNumSamples() != msaaCount;
-
-		if (createGBuffer)
-			camData.target = RenderTargets::create(viewport, useHDR, msaaCount);
-
-		camData.target->allocate();
-		camData.target->bindGBuffer();
+		SPtr<RenderTargets> renderTargets = rendererCam.getRenderTargets();
+		renderTargets->bindGBuffer();
 
 		//// Trigger pre-scene callbacks
 		auto iterCameraCallbacks = mRenderCallbacks.find(camera);
@@ -576,7 +535,7 @@ namespace BansheeEngine
 		}
 		
 		//// Render base pass
-		const Vector<RenderQueueElement>& opaqueElements = camData.opaqueQueue->getSortedElements();
+		const Vector<RenderQueueElement>& opaqueElements = rendererCam.getOpaqueQueue()->getSortedElements();
 		for (auto iter = opaqueElements.begin(); iter != opaqueElements.end(); ++iter)
 		{
 			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
@@ -585,9 +544,7 @@ namespace BansheeEngine
 			UINT32 rendererId = renderElem->renderableId;
 			Matrix4 worldViewProjMatrix = cameraShaderData.viewProj * mRenderableShaderData[rendererId].worldTransform;
 
-			mStaticHandler->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
-			mStaticHandler->bindGlobalBuffers(*renderElem); // Note: If I can keep global buffer slot indexes the same between shaders I could only bind these once
-			mStaticHandler->bindPerObjectBuffers(*renderElem);
+			mObjectRenderer->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
 
 			if (iter->applyPass)
 				RendererUtility::instance().setPass(material, iter->passIdx, false);
@@ -602,13 +559,13 @@ namespace BansheeEngine
 			gRendererUtility().draw(iter->renderElem->mesh, iter->renderElem->subMesh);
 		}
 
-		camData.target->bindSceneColor(true);
+		renderTargets->bindSceneColor(true);
 
 		//// Render light pass
 		{
-			SPtr<GpuParamBlockBufferCore> perCameraBuffer = mStaticHandler->getPerCameraParams().getBuffer();
+			SPtr<GpuParamBlockBufferCore> perCameraBuffer = mObjectRenderer->getPerCameraParams().getBuffer();
 
-			mDirLightMat->bind(camData.target, perCameraBuffer);
+			mDirLightMat->bind(renderTargets, perCameraBuffer);
 			for (auto& light : mDirectionalLights)
 			{
 				if (!light.internal->getIsActive())
@@ -620,7 +577,7 @@ namespace BansheeEngine
 
 			// Draw point lights which our camera is within
 			// TODO - Possibly use instanced drawing here as only two meshes are drawn with various properties
-			mPointLightInMat->bind(camData.target, perCameraBuffer);
+			mPointLightInMat->bind(renderTargets, perCameraBuffer);
 
 			// TODO - Cull lights based on visibility, right now I just iterate over all of them. 
 			for (auto& light : mPointLights)
@@ -642,7 +599,7 @@ namespace BansheeEngine
 			}
 
 			// Draw other point lights
-			mPointLightOutMat->bind(camData.target, perCameraBuffer);
+			mPointLightOutMat->bind(renderTargets, perCameraBuffer);
 
 			for (auto& light : mPointLights)
 			{
@@ -663,10 +620,10 @@ namespace BansheeEngine
 			}
 		}
 
-		camData.target->bindSceneColor(false);
+		renderTargets->bindSceneColor(false);
 		
 		// Render transparent objects (TODO - No lighting yet)
-		const Vector<RenderQueueElement>& transparentElements = camData.transparentQueue->getSortedElements();
+		const Vector<RenderQueueElement>& transparentElements = rendererCam.getTransparentQueue()->getSortedElements();
 		for (auto iter = transparentElements.begin(); iter != transparentElements.end(); ++iter)
 		{
 			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
@@ -675,9 +632,7 @@ namespace BansheeEngine
 			UINT32 rendererId = renderElem->renderableId;
 			Matrix4 worldViewProjMatrix = cameraShaderData.viewProj * mRenderableShaderData[rendererId].worldTransform;
 
-			mStaticHandler->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
-			mStaticHandler->bindGlobalBuffers(*renderElem); // Note: If I can keep global buffer slot indexes the same between shaders I could only bind these once
-			mStaticHandler->bindPerObjectBuffers(*renderElem);
+			mObjectRenderer->updatePerObjectBuffers(*renderElem, mRenderableShaderData[rendererId], worldViewProjMatrix);
 
 			if (iter->applyPass)
 				RendererUtility::instance().setPass(material, iter->passIdx, false);
@@ -691,9 +646,6 @@ namespace BansheeEngine
 
 			gRendererUtility().draw(iter->renderElem->mesh, iter->renderElem->subMesh);
 		}
-
-		camData.opaqueQueue->clear();
-		camData.transparentQueue->clear();
 
 		// Render non-overlay post-scene callbacks
 		if (iterCameraCallbacks != mRenderCallbacks.end())
@@ -710,8 +662,8 @@ namespace BansheeEngine
 		}
 
 		// TODO - If GBuffer has multiple samples, I should resolve them before post-processing
-		PostProcessing::instance().postProcess(camData.target->getSceneColorRT(), 
-			camera, camData.postProcessInfo, delta);
+		PostProcessing::instance().postProcess(renderTargets->getSceneColorRT(),
+			camera, rendererCam.getPPInfo(), delta);
 
 		// Render overlay post-scene callbacks
 		if (iterCameraCallbacks != mRenderCallbacks.end())
@@ -727,7 +679,7 @@ namespace BansheeEngine
 			}
 		}
 
-		camData.target->release();
+		rendererCam.endRendering();
 
 		gProfilerCPU().endSample("Render");
 	}
@@ -740,9 +692,11 @@ namespace BansheeEngine
 		assert(camera->getFlags().isSet(CameraFlag::Overlay));
 
 		SPtr<ViewportCore> viewport = camera->getViewport();
-		CameraShaderData cameraShaderData = getCameraShaderData(*camera);
+		RendererCamera& rendererCam = mCameras[camera];
+		CameraShaderData cameraShaderData = rendererCam.getShaderData();
 
-		mStaticHandler->updatePerCameraBuffers(cameraShaderData);
+		mObjectRenderer->updatePerCameraBuffers(cameraShaderData);
+		rendererCam.beginRendering(false);
 
 		SPtr<RenderTargetCore> target = rtData.target;
 
@@ -784,146 +738,11 @@ namespace BansheeEngine
 			}
 		}
 
+		rendererCam.endRendering();
+
 		gProfilerCPU().endSample("RenderOverlay");
 	}
 	
-	void RenderBeast::determineVisible(const CameraCore& camera)
-	{
-		bool isOverlayCamera = camera.getFlags().isSet(CameraFlag::Overlay);
-		if (isOverlayCamera)
-			return;
-
-		CameraData& cameraData = mCameraData[&camera];
-
-		UINT64 cameraLayers = camera.getLayers();
-		ConvexVolume worldFrustum = camera.getWorldFrustum();
-
-		// Update per-object param buffers and queue render elements
-		for (auto& renderableData : mRenderables)
-		{
-			RenderableCore* renderable = renderableData.renderable;
-			UINT32 rendererId = renderable->getRendererId();
-
-			if ((renderable->getLayer() & cameraLayers) == 0)
-				continue;
-
-			// Do frustum culling
-			// TODO - This is bound to be a bottleneck at some point. When it is ensure that intersect
-			// methods use vector operations, as it is trivial to update them.
-			const Sphere& boundingSphere = mWorldBounds[rendererId].getSphere();
-			if (worldFrustum.intersects(boundingSphere))
-			{
-				// More precise with the box
-				const AABox& boundingBox = mWorldBounds[rendererId].getBox();
-
-				if (worldFrustum.intersects(boundingBox))
-				{
-					float distanceToCamera = (camera.getPosition() - boundingBox.getCenter()).length();
-
-					for (auto& renderElem : renderableData.elements)
-					{
-						bool isTransparent = (renderElem.material->getShader()->getFlags() & (UINT32)ShaderFlags::Transparent) != 0;
-
-						if (isTransparent)
-							cameraData.transparentQueue->add(&renderElem, distanceToCamera);
-						else
-							cameraData.opaqueQueue->add(&renderElem, distanceToCamera);
-					}
-
-				}
-			}
-		}
-
-		cameraData.opaqueQueue->sort();
-		cameraData.transparentQueue->sort();
-	}
-
-	Vector2 RenderBeast::getDeviceZTransform(const Matrix4& projMatrix)
-	{
-		// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
-		// in world space. This involes applying the inverse projection transform to the depth value. When you multiply
-		// a vector with the projection matrix you get [clipX, clipY, Az + B, C * z], where we don't care about clipX/clipY.
-		// A is [2, 2], B is [2, 3] and C is [3, 2] elements of the projection matrix (only ones that matter for our depth 
-		// value). The hardware will also automatically divide the z value with w to get the depth, therefore the final 
-		// formula is:
-		// depth = (Az + B) / (C * z)
-
-		// To get the z coordinate back we simply do the opposite: 
-		// z = B / (depth * C - A)
-
-		// However some APIs will also do a transformation on the depth values before storing them to the texture 
-		// (e.g. OpenGL will transform from [-1, 1] to [0, 1]). And we need to reverse that as well. Therefore the final 
-		// formula is:
-		// z = B / ((depth * (maxDepth - minDepth) + minDepth) * C - A)
-
-		// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
-		// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
-
-		RenderAPICore& rapi = RenderAPICore::instance();
-		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
-
-		float depthRange = rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue();
-		float minDepth = rapiInfo.getMinimumDepthInputValue();
-
-		float a = projMatrix[2][2];
-		float b = projMatrix[2][3];
-		float c = projMatrix[3][2];
-
-		Vector2 output;
-		output.x = b / (depthRange * c);
-		output.y = minDepth / depthRange - a / (depthRange * c);
-
-		return output;
-	}
-
-	CameraShaderData RenderBeast::getCameraShaderData(const CameraCore& camera)
-	{
-		CameraShaderData data;
-		data.proj = camera.getProjectionMatrixRS();
-		data.view = camera.getViewMatrix();
-		data.viewProj = data.proj * data.view;
-		data.invProj = data.proj.inverse();
-		data.invViewProj = data.viewProj.inverse(); // Note: Calculate inverses separately (better precision possibly)
-
-		// Construct a special inverse view-projection matrix that had projection entries that affect z and w eliminated.
-		// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and 
-		// view_z/view_w in view space, into world space.
-
-		// Only projects z/w coordinates
-		Matrix4 projZ = Matrix4::IDENTITY;
-		projZ[2][2] = data.proj[2][2];
-		projZ[2][3] = data.proj[2][3];
-		projZ[3][2] = data.proj[3][2];
-		projZ[3][3] = 0.0f;
-
-		data.screenToWorld = data.invViewProj * projZ;
-		data.viewDir = camera.getForward();
-		data.viewOrigin = camera.getPosition();
-		data.deviceZToWorldZ = getDeviceZTransform(data.proj);
-
-		SPtr<ViewportCore> viewport = camera.getViewport();
-		SPtr<RenderTargetCore> rt = viewport->getTarget();
-
-		float halfWidth = viewport->getWidth() * 0.5f;
-		float halfHeight = viewport->getHeight() * 0.5f;
-
-		float rtWidth = (float)rt->getProperties().getWidth();
-		float rtHeight = (float)rt->getProperties().getHeight();
-
-		RenderAPICore& rapi = RenderAPICore::instance();
-		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
-
-		data.clipToUVScaleOffset.x = halfWidth / rtWidth;
-		data.clipToUVScaleOffset.y = -halfHeight / rtHeight;
-		data.clipToUVScaleOffset.z = viewport->getX() / rtWidth + (halfWidth + rapiInfo.getHorizontalTexelOffset()) / rtWidth;
-		data.clipToUVScaleOffset.w = viewport->getY() / rtHeight + (halfHeight + rapiInfo.getVerticalTexelOffset()) / rtHeight;
-
-		if (!rapiInfo.getNDCYAxisDown())
-			data.clipToUVScaleOffset.y = -data.clipToUVScaleOffset.y;
-
-		return data;
-	}
-
 	void RenderBeast::refreshSamplerOverrides(bool force)
 	{
 		for (auto& entry : mSamplerOverrides)
@@ -1050,10 +869,5 @@ namespace BansheeEngine
 				rs.setParamBuffer(stage.type, iter->second.slot, blockBuffer, paramDesc);
 			}
 		}
-	}
-
-	void DefaultMaterial::_initDefines(ShaderDefines& defines)
-	{
-		// Do nothing
 	}
 }

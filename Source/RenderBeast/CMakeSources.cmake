@@ -6,9 +6,11 @@ set(BS_RENDERBEAST_INC_NOFILTER
 	"Include/BsRenderBeastFactory.h"
 	"Include/BsRenderBeastPrerequisites.h"
 	"Include/BsRenderTargets.h"
-	"Include/BsStaticRenderableHandler.h"
+	"Include/BsObjectRendering.h"
 	"Include/BsLightRendering.h"
 	"Include/BsPostProcessing.h"
+	"Include/BsRendererCamera.h"
+	"Include/BsRendererObject.h"
 )
 
 set(BS_RENDERBEAST_SRC_NOFILTER
@@ -18,9 +20,10 @@ set(BS_RENDERBEAST_SRC_NOFILTER
 	"Source/BsRenderBeastFactory.cpp"
 	"Source/BsRenderBeastPlugin.cpp"
 	"Source/BsRenderTargets.cpp"
-	"Source/BsStaticRenderableHandler.cpp"
+	"Source/BsObjectRendering.cpp"
 	"Source/BsLightRendering.cpp"
 	"Source/BsPostProcessing.cpp"
+	"Source/BsRendererCamera.cpp"
 )
 
 source_group("Header Files" FILES ${BS_RENDERBEAST_INC_NOFILTER})

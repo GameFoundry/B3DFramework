@@ -5,11 +5,13 @@
 #include "BsRenderBeastPrerequisites.h"
 #include "BsRenderer.h"
 #include "BsBounds.h"
-#include "BsRenderableElement.h"
 #include "BsSamplerOverrides.h"
 #include "BsRendererMaterial.h"
 #include "BsLightRendering.h"
+#include "BsObjectRendering.h"
 #include "BsPostProcessing.h"
+#include "BsRendererCamera.h"
+#include "BsRendererObject.h"
 
 namespace BansheeEngine
 {
@@ -17,66 +19,10 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	class BeastRenderableElement;
-
 	/** Semantics that may be used for signaling the renderer for what is a certain shader parameter used for. */
 	static StringID RPS_GBufferA = "GBufferA";
 	static StringID RPS_GBufferB = "GBufferB";
 	static StringID RPS_GBufferDepth = "GBufferDepth";
-
-	/** Basic shader that is used when no other is available. */
-	class DefaultMaterial : public RendererMaterial<DefaultMaterial> { RMAT_DEF("Default.bsl"); };
-
-	/**	Data used by the renderer when rendering renderable handlers. */
-	struct RenderableData
-	{
-		RenderableCore* renderable;
-		Vector<BeastRenderableElement> elements;
-		RenderableHandler* controller;
-	};
-
-	/**	Data bound to the shader when rendering a specific renderable. */
-	struct RenderableShaderData
-	{
-		Matrix4 worldTransform;
-		Matrix4 invWorldTransform;
-		Matrix4 worldNoScaleTransform;
-		Matrix4 invWorldNoScaleTransform;
-		float worldDeterminantSign;
-	};
-
-	/**	Data bound to the shader when rendering a with a specific camera. */
-	struct CameraShaderData
-	{
-		Vector3 viewDir;
-		Vector3 viewOrigin;
-		Matrix4 view;
-		Matrix4 proj;
-		Matrix4 viewProj;
-		Matrix4 invProj;
-		Matrix4 invViewProj;
-		Matrix4 screenToWorld;
-		Vector2 deviceZToWorldZ;
-		Vector4 clipToUVScaleOffset;
-	};
-
-	/**
-	 * @copydoc	RenderableElement
-	 *
-	 * Contains additional data specific to RenderBeast renderer.
-	 */
-	class BS_BSRND_EXPORT BeastRenderableElement : public RenderableElement
-	{
-	public:
-		/**
-		 * Optional overrides for material sampler states. Used when renderer wants to override certain sampling properties
-		 * on a global scale (for example filtering most commonly).
-		 */
-		MaterialSamplerOverrides* samplerOverrides;
-
-		/**	Identifier of the owner renderable. */
-		UINT32 renderableId;
-	};
 
 	/**
 	 * Default renderer for Banshee. Performs frustum culling, sorting and renders objects in custom ways determine by
@@ -84,23 +30,13 @@ namespace BansheeEngine
 	 *
 	 * @note	Sim thread unless otherwise noted.
 	 */
-	class BS_BSRND_EXPORT RenderBeast : public Renderer
+	class RenderBeast : public Renderer
 	{
 		/**	Render data for a single render target. */
 		struct RenderTargetData
 		{
 			SPtr<RenderTargetCore> target;
 			Vector<const CameraCore*> cameras;
-		};
-
-		/**	Data used by the renderer for a camera. */
-		struct CameraData
-		{
-			SPtr<RenderQueue> opaqueQueue;
-			SPtr<RenderQueue> transparentQueue;
-
-			SPtr<RenderTargets> target;
-			PostProcessInfo postProcessInfo;
 		};
 
 		/**	Data used by the renderer for lights. */
@@ -186,13 +122,6 @@ namespace BansheeEngine
 		void renderAllCore(float time, float delta);
 
 		/**
-		 * Populates camera render queues by determining visible renderable object.
-		 *
-		 * @param[in]	camera	The camera to determine visibility for.
-		 */
-		void determineVisible(const CameraCore& camera);
-
-		/**
 		 * Renders all objects visible by the provided camera.
 		 *
 		 * @param[in]	rtData	Render target data containing the camera to render.
@@ -229,24 +158,6 @@ namespace BansheeEngine
 		void refreshSamplerOverrides(bool force = false);
 
 		/**
-		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value into
-		 * world Z value.
-		 * 			
-		 * @param[in]	projMatrix	Projection matrix that was used to create the device Z value to transform.
-		 * @return					Returns two values that can be used to transform device z to world z using this formula:
-		 * 							z = (deviceZ + y) * x.
-		 */
-		static Vector2 getDeviceZTransform(const Matrix4& projMatrix);
-
-		/**
-		 * Populates the provided camera shader data object with data from the provided camera. The object can then be used
-		 * for populating per-camera parameter buffers.
-		 * 			
-		 * @note	Core thread.
-		 */
-		static CameraShaderData getCameraShaderData(const CameraCore& camera);
-
-		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
 		 * @param[in]	passParams			Structure containing parameters for all stages of the pass.
@@ -259,10 +170,10 @@ namespace BansheeEngine
 
 		// Core thread only fields
 		Vector<RenderTargetData> mRenderTargets;
-		UnorderedMap<const CameraCore*, CameraData> mCameraData;
+		UnorderedMap<const CameraCore*, RendererCamera> mCameras;
 		UnorderedMap<SPtr<MaterialCore>, MaterialSamplerOverrides*> mSamplerOverrides;
 
-		Vector<RenderableData> mRenderables;
+		Vector<RendererObject> mRenderables;
 		Vector<RenderableShaderData> mRenderableShaderData;
 		Vector<Bounds> mWorldBounds;
 
@@ -277,8 +188,9 @@ namespace BansheeEngine
 		PointLightOutMat* mPointLightOutMat;
 		DirectionalLightMat* mDirLightMat;
 
+		ObjectRenderer* mObjectRenderer;
+
 		// Sim thread only fields
-		StaticRenderableHandler* mStaticHandler;
 		SPtr<RenderBeastOptions> mOptions;
 		bool mOptionsDirty;
 	};

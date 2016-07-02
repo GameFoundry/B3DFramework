@@ -26,15 +26,6 @@ namespace BansheeEngine
 		Count
 	};
 
-	/**
-	 * Contains a basic sent of renderable types that may be supported by a renderer. These can be used just as a guide 
-	 * since renderer plugins can use their own types as needed.
-	 */
-	enum RenderableType
-	{
-		RenType_LitTextured
-	};
-
 	/**	Type of scaling modes for GUI images. */
 	enum class TextureScaleMode
 	{

@@ -161,9 +161,6 @@ namespace BansheeEngine
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
 
-		/**	Returns the type that controls how is this object rendered. */
-		RenderableType getRenderableType() const { return RenType_LitTextured; }
-
 		/**	Sets an ID that can be used for uniquely identifying this handler by the renderer. */
 		void setRendererId(UINT32 id) { mRendererId = id; }
 
