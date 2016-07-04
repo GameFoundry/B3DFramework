@@ -41,22 +41,40 @@ namespace BansheeEngine
 			mInternal->setSpeed(speed);
 	}
 
-	void CAnimation::play(const HAnimationClip& clip, UINT32 layer, AnimPlayMode playMode)
+	void CAnimation::play(const HAnimationClip& clip)
 	{
 		if (mInternal != nullptr)
-			mInternal->play(clip, layer, playMode);
+			mInternal->play(clip);
 	}
 
-	void CAnimation::blend(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
+	void CAnimation::blendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
 	{
 		if (mInternal != nullptr)
-			mInternal->blend(clip, weight, fadeLength, layer);
+			mInternal->play(clip);
 	}
 
-	void CAnimation::crossFade(const HAnimationClip& clip, float fadeLength, UINT32 layer, AnimPlayMode playMode)
+	void CAnimation::blendSequential(const BlendSequentialInfo& info)
 	{
 		if (mInternal != nullptr)
-			mInternal->crossFade(clip, fadeLength, layer, playMode);
+			mInternal->blendSequential(info);
+	}
+
+	void CAnimation::blend1D(const Blend1DInfo& info, float t)
+	{
+		if (mInternal != nullptr)
+			mInternal->blend1D(info, t);
+	}
+
+	void CAnimation::blend2D(const Blend2DInfo& info, const Vector2& t)
+	{
+		if (mInternal != nullptr)
+			mInternal->blend2D(info, t);
+	}
+
+	void CAnimation::crossFade(const HAnimationClip& clip, float fadeLength)
+	{
+		if (mInternal != nullptr)
+			mInternal->crossFade(clip, fadeLength);
 	}
 
 	void CAnimation::stop(UINT32 layer)

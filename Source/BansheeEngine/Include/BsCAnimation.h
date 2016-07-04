@@ -37,14 +37,22 @@ namespace BansheeEngine
 		void setSpeed(float speed);
 
 		/** @copydoc Animation::play */
-		void play(const HAnimationClip& clip, UINT32 layer = 0, AnimPlayMode playMode = AnimPlayMode::StopLayer);
+		void play(const HAnimationClip& clip);
 
-		/** @copydoc Animation::blend */
-		void blend(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, UINT32 layer = 0);
+		/** @copydoc Animation::blendAdditive */
+		void blendAdditive(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, UINT32 layer = 0);
+
+		/** @copydoc Animation::blendSequential */
+		void blendSequential(const BlendSequentialInfo& info);
+
+		/** @copydoc Animation::blend1D */
+		void blend1D(const Blend1DInfo& info, float t);
+
+		/** @copydoc Animation::blend2D */
+		void blend2D(const Blend2DInfo& info, const Vector2& t);
 
 		/** @copydoc Animation::crossFade */
-		void crossFade(const HAnimationClip& clip, float fadeLength, UINT32 layer = 0, 
-			AnimPlayMode playMode = AnimPlayMode::StopLayer);
+		void crossFade(const HAnimationClip& clip, float fadeLength);
 
 		/** @copydoc Animation::stop */
 		void stop(UINT32 layer);

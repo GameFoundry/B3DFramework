@@ -6,6 +6,7 @@
 #include "BsCoreObject.h"
 #include "BsFlags.h"
 #include "BsSkeleton.h"
+#include "BsVector2.h"
 
 namespace BansheeEngine
 {
@@ -18,13 +19,6 @@ namespace BansheeEngine
 	{
 		Loop, /**< Loop around to the beginning/end when the last/first frame is reached. */
 		Clamp /**< Clamp to end/beginning, keeping the last/first frame active. */
-	};
-
-	/** Determines what happens to other animation clips when a new clip starts playing. */
-	enum class AnimPlayMode
-	{
-		StopAll, /**< All other animation clips are stopped. */
-		StopLayer /**< Only the clips within the current layer are stopped. */
 	};
 
 	/** Flags that determine which portion of Animation was changed and needs to be updated. */
@@ -62,6 +56,10 @@ namespace BansheeEngine
 		HAnimationClip clip;
 		AnimationClipState state;
 		
+		float fadeDirection;
+		float fadeTime;
+		float fadeLength;
+
 		/** 
 		 * Version of the animation curves used by the AnimationProxy. Used to detecting the internal animation curves
 		 * changed. 
@@ -69,6 +67,43 @@ namespace BansheeEngine
 		UINT64 curveVersion; 
 		UINT32 layerIdx; /**< Layer index this clip belongs to in AnimationProxy structure. */
 		UINT32 stateIdx; /**< State index this clip belongs to in AnimationProxy structure. */
+	};
+
+	/** Defines a single animation clip in BlendSequentialInfo. */
+	struct BS_CORE_EXPORT BlendSequentialClipInfo
+	{
+		BlendSequentialClipInfo() { }
+
+		HAnimationClip clip;
+		float fadeTime = 0.0f;
+		float startTime = 0.0f;
+		float endTime = 0.0f;
+	};
+
+	/** Defines a sequential blend where one animation clip is played after another, with an optional fade between them. */
+	struct BS_CORE_EXPORT BlendSequentialInfo
+	{
+		BlendSequentialInfo(UINT32 numClips);
+		~BlendSequentialInfo();
+
+		BlendSequentialClipInfo* clips;
+		UINT32 numClips;
+	};
+
+	/** Defines a 1D blend where two animation clips are blended between each other using linear interpolation. */
+	struct Blend1DInfo
+	{
+		HAnimationClip leftClip;
+		HAnimationClip rightClip;
+	};
+
+	/** Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation. */
+	struct Blend2DInfo
+	{
+		HAnimationClip topLeftClip;
+		HAnimationClip topRightClip;
+		HAnimationClip botLeftClip;
+		HAnimationClip botRightClip;
 	};
 
 	/** Represents a copy of the Animation data for use specifically on the animation thread. */
@@ -157,39 +192,71 @@ namespace BansheeEngine
 		void setSpeed(float speed);
 
 		/** 
-		 * Plays the specified animation clip at the specified layer. 
+		 * Plays the specified animation clip. 
 		 *
 		 * @param[in]	clip		Clip to play.
-		 * @param[in]	layer		Layer to play the clip in. Multiple clips can be playing at once in separate layers.
-		 * @param[in]	playMode	Determines how are other playing animations handled when this animation starts.
 		 */
-		void play(const HAnimationClip& clip, UINT32 layer = 0, AnimPlayMode playMode = AnimPlayMode::StopLayer);
+		void play(const HAnimationClip& clip);
 
 		/**
-		 * Blends the specified animation clip with other animation clips playing in the specified layer.
+		 * Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple
+		 * such clips can be playing at once, as long as you ensure each is given its own layer. Each animation can
+		 * also have a weight that determines how much it influences the main animation.
 		 *
-		 * @param[in]	clip		Clip to blend.
+		 * @param[in]	clip		Clip to additively blend. Must contain additive animation curves.
 		 * @param[in]	weight		Determines how much of an effect will the blended animation have on the final output.
-		 *							In range [0, 1]. All animation weights on the same layer will be normalized.
+		 *							In range [0, 1].
 		 * @param[in]	fadeLength	Applies the blend over a specified time period, increasing the weight as the time
 		 *							passes. Set to zero to blend immediately. In seconds.
-		 * @param[in]	layer		Layer to play the clip in. Multiple clips can be playing at once in separate layers.
+		 * @param[in]	layer		Layer to play the clip in. Multiple additive clips can be playing at once in separate
+		 *							layers and each layer has its own weight.
 		 */
-		void blend(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, UINT32 layer = 0);
+		void blendAdditive(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, UINT32 layer = 0);
 
 		/**
-		 * Fades the specified animation clip in, while fading other playing animations out, over the specified time
+		 * Plays a set of animation clips sequentially one after another, with an optional fade between them.
+		 *
+		 * @param[in]	info		Describes all animation clips to play.
+		 */
+		void blendSequential(const BlendSequentialInfo& info);
+
+		/**
+		 * Blend two animation clips between each other using linear interpolation. Unlike normal animations these
+		 * animations are not advanced with the progress of time, and is instead expected the user manually changes the
+		 * @p t parameter.
+		 *
+		 * @param[in]	info	Information about the clips to blend.
+		 * @param[in]	t		Parameter that controls the blending, in range [0, 1]. t = 0 means left animation has full
+		 *						influence, t = 1 means right animation has full influence.
+		 */
+		void blend1D(const Blend1DInfo& info, float t);
+
+		/**
+		 * Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these
+		 * animations are not advanced with the progress of time, and is instead expected the user manually changes the
+		 * @p t parameter.
+		 *
+		 * @param[in]	info	Information about the clips to blend.
+		 * @param[in]	t		Parameter that controls the blending, in range [(0, 0), (1, 1)]. t = (0, 0) means top left
+		 *						animation has full influence, t = (0, 1) means top right animation has full influence,
+		 *						t = (1, 0) means bottom left animation has full influence, t = (1, 1) means bottom right
+		 *						animation has full influence.
+		 */
+		void blend2D(const Blend2DInfo& info, const Vector2& t);
+
+		/**
+		 * Fades the specified animation clip in, while fading other playing animation out, over the specified time
 		 * period.
 		 *
 		 * @param[in]	clip		Clip to fade in.
 		 * @param[in]	fadeLength	Determines the time period over which the fade occurs. In seconds.
-		 * @param[in]	layer		Layer to play the clip in. Multiple clips can be playing at once in separate layers.
-		 * @param[in]	playMode	Determines should all other animations be faded out, or just the ones on the same layer.
 		 */
-		void crossFade(const HAnimationClip& clip, float fadeLength, UINT32 layer = 0, 
-			AnimPlayMode playMode = AnimPlayMode::StopLayer);
+		void crossFade(const HAnimationClip& clip, float fadeLength);
 
-		/** Stops playing all animations on the provided layer. */
+		/** 
+		 * Stops playing all animations on the provided layer. Specify -1 to stop animation on the main layer 
+		 * (non-additive animations). 
+		 */
 		void stop(UINT32 layer);
 
 		/** Stops playing all animations. */
@@ -240,8 +307,12 @@ namespace BansheeEngine
 		 */
 		void updateAnimProxy(float timeDelta);
 
-		/** Checks if all the clips in the provided layer are additive. If not it prints out a warning. */
-		void checkAdditiveLayer(UINT32 layerIdx);
+		/** 
+		 * Registers a new animation in the specified layer, or returns an existing animation clip info if the animation is
+		 * already registered. If @p stopExisting is true any existing animations in the layer will be stopped. Layout
+		 * will be marked as dirty if any changes were made.
+		 */
+		AnimationClipInfo* addClip(const HAnimationClip& clip, UINT32 layer, bool stopExisting = true);
 
 		UINT64 mId;
 		AnimWrapMode mDefaultWrapMode;

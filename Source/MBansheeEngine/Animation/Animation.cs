@@ -25,18 +25,42 @@ namespace BansheeEngine
     }
 
     /// <summary>
-    /// Determines what happens to other animation clips when a new clip starts playing.
+    /// Defines a single animation clip in <see cref="BlendSequentialInfo"/>.
     /// </summary>
-    public enum AnimPlayMode // Note: Must match C++ enum AnimPlayMode
+    public class BlendSequentialClipInfo
     {
-        /// <summary>
-        /// All other animation clips are stopped.
-        /// </summary>
-        StopAll,
-        /// <summary>
-        /// Only the clips within the current layer are stopped.
-        /// </summary>
-		StopLayer
+        public AnimationClip clip;
+        public float fadeTime = 0.0f;
+        public float startTime = 0.0f;
+        public float endTime = 0.0f;
+    }
+
+    /// <summary>
+    /// Defines a sequential blend where one animation clip is played after another, with an optional fade between them.
+    /// </summary>
+    public class BlendSequentialInfo
+    {
+        public BlendSequentialClipInfo[] clips;
+    }
+
+    /// <summary>
+    /// Defines a 1D blend where two animation clips are blended between each other using linear interpolation.
+    /// </summary>
+    public class Blend1DInfo
+    {
+        public AnimationClip leftClip;
+        public AnimationClip rightClip;
+    }
+
+    /// <summary>
+    /// Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.
+    /// </summary>
+    public class Blend2DInfo
+    {
+        public AnimationClip topLeftClip;
+        public AnimationClip topRightClip;
+        public AnimationClip botLeftClip;
+        public AnimationClip botRightClip;
     }
 
     /// <summary>
@@ -115,7 +139,7 @@ namespace BansheeEngine
                 serializableData.defaultClip = value;
 
                 if (value != null && _native != null)
-                    _native.Play(value, 0, AnimPlayMode.StopLayer);
+                    _native.Play(value);
             }
         }
 
@@ -166,46 +190,83 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Plays the specified animation clip at the specified layer.
+        /// Plays the specified animation clip. 
         /// </summary>
         /// <param name="clip">Clip to play.</param>
-        /// <param name="layer">Layer to play the clip in. Multiple clips can be playing at once in separate layers.</param>
-        /// <param name="playMode">Determines how are other playing animations handled when this animation starts.</param>
-        public void Play(AnimationClip clip, int layer = 0, AnimPlayMode playMode = AnimPlayMode.StopLayer)
+        public void Play(AnimationClip clip)
         {
             if(_native != null)
-                _native.Play(clip, layer, playMode);
+                _native.Play(clip);
         }
 
         /// <summary>
-        /// Blends the specified animation clip with other animation clips playing in the specified layer.
+        /// Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple such
+        /// clips can be playing at once, as long as you ensure each is given its own layer. Each animation can also have a
+        /// weight that determines how much it influences the main animation.        
         /// </summary>
-        /// <param name="clip">Clip to blend.</param>
+        /// <param name="clip">Clip to additively blend. Must contain additive animation curves.</param>
         /// <param name="weight">Determines how much of an effect will the blended animation have on the final output.
-        ///                      In range [0, 1]. All animation weights on the same layer will be normalized.</param>
+        ///                      In range [0, 1].</param>
         /// <param name="fadeLength">Applies the blend over a specified time period, increasing the weight as the time
         ///                          passes. Set to zero to blend immediately. In seconds.</param>
-        /// <param name="layer">Layer to play the clip in. Multiple clips can be playing at once in separate layers.</param>
-        public void Blend(AnimationClip clip, float weight = 1.0f, float fadeLength = 0.0f, int layer = 0)
+        /// <param name="layer">Layer to play the clip in. Multiple additive clips can be playing at once in separate layers
+        ///                     and each layer has its own weight.</param>
+        public void BlendAdditive(AnimationClip clip, float weight, float fadeLength, int layer)
         {
             if (_native != null)
-                _native.Blend(clip, weight, fadeLength, layer);
+                _native.BlendAdditive(clip, weight, fadeLength, layer);
         }
 
         /// <summary>
-        /// Fades the specified animation clip in, while fading other playing animations out, over the specified time 
-        /// period.
+        /// Plays a set of animation clips sequentially one after another, with an optional fade between them.
+        /// </summary>
+        /// <param name="info">Describes all animation clips to play.</param>
+        public void BlendSequential(BlendSequentialInfo info)
+        {
+            if (_native != null)
+                _native.BlendSequential(info);
+        }
+
+        /// <summary>
+        /// Blend two animation clips between each other using linear interpolation. Unlike normal animations these
+        /// animations are not advanced with the progress of time, and is instead expected the user manually changes the
+        /// <see cref="t"/> parameter.
+        /// </summary>
+        /// <param name="info">Information about the clips to blend.</param>
+        /// <param name="t">Parameter that controls the blending, in range [0, 1]. t = 0 means left animation has full
+        ///                 influence, t = 1 means right animation has full influence.</param>
+        public void Blend1D(Blend1DInfo info, float t)
+        {
+            if (_native != null)
+                _native.Blend1D(info, t);
+        }
+
+        /// <summary>
+        /// Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these
+        /// animations are not advanced with the progress of time, and is instead expected the user manually changes the
+        /// <see cref="t"/> parameter.
+        /// </summary>
+        /// <param name="info">Information about the clips to blend.</param>
+        /// <param name="t">Parameter that controls the blending, in range [(0, 0), (1, 1)]. t = (0, 0) means top left
+        ///                 animation has full influence, t = (0, 1) means top right animation has full influence, 
+        ///                 t = (1, 0) means bottom left animation has full influence, t = (1, 1) means bottom right
+        ///                 animation has full influence.
+        ///                 </param>
+        public void Blend2D(Blend2DInfo info, Vector2 t)
+        {
+            if (_native != null)
+                _native.Blend2D(info, t);
+        }
+
+        /// <summary>
+        /// Fades the specified animation clip in, while fading other playing animation out, over the specified time period.
         /// </summary>
         /// <param name="clip">Clip to fade in.</param>
         /// <param name="fadeLength">Determines the time period over which the fade occurs. In seconds.</param>
-        /// <param name="layer">Layer to play the clip in. Multiple clips can be playing at once in separate layers.</param>
-        /// <param name="playMode">Determines should all other animations be faded out, or just the ones on the same layer.
-        ///                        </param>
-        public void CrossFade(AnimationClip clip, float fadeLength = 0.0f, int layer = 0, 
-            AnimPlayMode playMode = AnimPlayMode.StopLayer)
+        public void CrossFade(AnimationClip clip, float fadeLength)
         {
             if (_native != null)
-                _native.CrossFade(clip, fadeLength, layer, playMode);
+                _native.CrossFade(clip, fadeLength);
         }
 
         /// <summary>
@@ -285,7 +346,7 @@ namespace BansheeEngine
             _native.Speed = serializableData.speed;
 
             if (serializableData.defaultClip != null)
-                _native.Play(serializableData.defaultClip, 0, AnimPlayMode.StopLayer);
+                _native.Play(serializableData.defaultClip);
 
             Renderable renderable = SceneObject.GetComponent<Renderable>();
             if (renderable == null)
