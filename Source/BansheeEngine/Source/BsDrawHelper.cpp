@@ -936,6 +936,7 @@ namespace BansheeEngine
 			{
 				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(batch.numVertices, batch.numIndices, mWireVertexDesc);
 
+				UINT32 curVertexOffset = 0;
 				UINT32 curIndexOffset = 0;
 
 				auto positionIter = meshData->getVec3DataIter(VES_POSITION);
@@ -958,7 +959,7 @@ namespace BansheeEngine
 						color = wireMeshData.color.getAsRGBA();
 
 						auto vertIterRead = wireMeshData.meshData->getVec3DataIter(VES_POSITION);
-						for (UINT32 i = 0; i < vertIterRead.getNumElements(); i++)
+						for (UINT32 j = 0; j < vertIterRead.getNumElements(); j++)
 						{
 							Vector3 worldPos = transform->multiplyAffine(vertIterRead.getValue());
 
@@ -971,19 +972,22 @@ namespace BansheeEngine
 						UINT32* srcIndexData = wireMeshData.meshData->getIndices32();
 						UINT32* destIndexData = meshData->getIndices32() + curIndexOffset;
 
-						memcpy(destIndexData, srcIndexData, sizeof(UINT32) * shapeData.numIndices);
+						for(UINT32 j = 0; j < shapeData.numIndices; j++)
+							destIndexData[j] = srcIndexData[j] + curVertexOffset;
+
+						curVertexOffset += shapeData.numVertices;
 						curIndexOffset += shapeData.numIndices;
 					}
 					break;
 					default:
 						break;
 					}
-
-					mMeshes.push_back(ShapeMeshData());
-					ShapeMeshData& newMesh = mMeshes.back();
-					newMesh.mesh = mWireMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
-					newMesh.type = MeshType::Wire;
 				}
+
+				mMeshes.push_back(ShapeMeshData());
+				ShapeMeshData& newMesh = mMeshes.back();
+				newMesh.mesh = mWireMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
+				newMesh.type = MeshType::Wire;
 			}
 			else if(batch.type == MeshType::Line)
 			{
