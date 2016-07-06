@@ -177,6 +177,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetImportAnimation", &ScriptMeshImportOptions::internal_SetImportAnimation);
 		metaData.scriptClass->addInternalCall("Internal_GetImportBlendShapes", &ScriptMeshImportOptions::internal_GetImportBlendShapes);
 		metaData.scriptClass->addInternalCall("Internal_SetImportBlendShapes", &ScriptMeshImportOptions::internal_SetImportBlendShapes);
+		metaData.scriptClass->addInternalCall("Internal_GetKeyFrameReduction", &ScriptMeshImportOptions::internal_GetKeyFrameReduction);
+		metaData.scriptClass->addInternalCall("Internal_SetKeyFrameReduction", &ScriptMeshImportOptions::internal_SetKeyFrameReduction);
 		metaData.scriptClass->addInternalCall("Internal_GetScale", &ScriptMeshImportOptions::internal_GetScale);
 		metaData.scriptClass->addInternalCall("Internal_SetScale", &ScriptMeshImportOptions::internal_SetScale);
 		metaData.scriptClass->addInternalCall("Internal_GetCollisionMeshType", &ScriptMeshImportOptions::internal_GetCollisionMeshType);
@@ -267,6 +269,16 @@ namespace BansheeEngine
 	void ScriptMeshImportOptions::internal_SetImportBlendShapes(ScriptMeshImportOptions* thisPtr, bool value)
 	{
 		thisPtr->getMeshImportOptions()->setImportBlendShapes(value);
+	}
+
+	bool ScriptMeshImportOptions::internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr)
+	{
+		return thisPtr->getMeshImportOptions()->getKeyFrameReduction();
+	}
+
+	void ScriptMeshImportOptions::internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value)
+	{
+		thisPtr->getMeshImportOptions()->setKeyFrameReduction(value);
 	}
 
 	float ScriptMeshImportOptions::internal_GetScale(ScriptMeshImportOptions* thisPtr)

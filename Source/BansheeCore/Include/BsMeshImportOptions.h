@@ -110,6 +110,19 @@ namespace BansheeEngine
 		/** Returns a copy of the animation splits array. */
 		Vector<AnimationSplitInfo> getAnimationClipSplits() const { return mAnimationSplits; }
 
+		/**	
+		 * Enables or disabled keyframe reduction. Keyframe reduction will reduce the number of key-frames in an animation
+		 * clip by removing identical keyframes, and therefore reducing the size of the clip.
+		 */
+		void setKeyFrameReduction(bool enabled) { mReduceKeyFrames = enabled; }
+
+		/**	
+		 * Checks is keyframe reduction enabled.
+		 *
+		 * @see	setKeyFrameReduction
+		 */
+		bool getKeyFrameReduction() const { return mReduceKeyFrames; }
+
 	private:
 		bool mCPUReadable;
 		bool mImportNormals;
@@ -117,6 +130,7 @@ namespace BansheeEngine
 		bool mImportBlendShapes;
 		bool mImportSkin;
 		bool mImportAnimation;
+		bool mReduceKeyFrames;
 		float mImportScale;
 		CollisionMeshType mCollisionMeshType;
 		Vector<AnimationSplitInfo> mAnimationSplits;

@@ -209,6 +209,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Determines if keyframe reduction is enabled. Keyframe reduction will reduce the number of key-frames in an
+        /// animation clip by removing identical keyframes, and therefore reducing the size of the clip.
+        /// </summary>
+        public bool KeyframeReduction
+        {
+            get { return Internal_GetKeyFrameReduction(mCachedPtr); }
+            set { Internal_SetKeyFrameReduction(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Controls what type (if any) of collision mesh should be imported.
         /// </summary>
         public CollisionMeshType CollisionMeshType
@@ -266,6 +276,12 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetImportBlendShapes(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetKeyFrameReduction(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetKeyFrameReduction(IntPtr thisPtr, bool value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern AnimationSplitInfo[] Internal_GetAnimationClipSplits(IntPtr thisPtr);

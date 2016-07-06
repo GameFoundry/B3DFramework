@@ -23,6 +23,7 @@ namespace BansheeEditor
         private GUIFloatField scaleField;
         private GUIToggleField cpuReadableField;
         private GUIEnumField collisionMeshTypeField;
+        private GUIToggleField keyFrameReductionField;
         private GUIArrayField<AnimationSplitInfo, AnimSplitArrayRow> animSplitInfoField;
         private GUIButton reimportButton;
 
@@ -69,6 +70,7 @@ namespace BansheeEditor
             scaleField.Value = newImportOptions.Scale;
             cpuReadableField.Value = newImportOptions.CPUReadable;
             collisionMeshTypeField.Value = (ulong)newImportOptions.CollisionMeshType;
+            keyFrameReductionField.Value = newImportOptions.KeyframeReduction;
 
             importOptions = newImportOptions;
 
@@ -90,6 +92,7 @@ namespace BansheeEditor
             scaleField = new GUIFloatField(new LocEdString("Scale"));
             cpuReadableField = new GUIToggleField(new LocEdString("CPU readable"));
             collisionMeshTypeField = new GUIEnumField(typeof(CollisionMeshType), new LocEdString("Collision mesh"));
+            keyFrameReductionField = new GUIToggleField(new LocEdString("Keyframe Reduction"));
             reimportButton = new GUIButton(new LocEdString("Reimport"));
 
             normalsField.OnChanged += x => importOptions.ImportNormals = x;
@@ -100,6 +103,7 @@ namespace BansheeEditor
             scaleField.OnChanged += x => importOptions.Scale = x;
             cpuReadableField.OnChanged += x => importOptions.CPUReadable = x;
             collisionMeshTypeField.OnSelectionChanged += x => importOptions.CollisionMeshType = (CollisionMeshType)x;
+            keyFrameReductionField.OnChanged += x => importOptions.KeyframeReduction = x;
 
             reimportButton.OnClick += TriggerReimport;
 
@@ -111,6 +115,7 @@ namespace BansheeEditor
             Layout.AddElement(scaleField);
             Layout.AddElement(cpuReadableField);
             Layout.AddElement(collisionMeshTypeField);
+            Layout.AddElement(keyFrameReductionField);
 
             animSplitInfoField = GUIArrayField<AnimationSplitInfo, AnimSplitArrayRow>.Create(
                 new LocEdString("Animation splits"), importOptions.AnimationClipSplits, Layout);

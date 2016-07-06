@@ -19,9 +19,8 @@ namespace BansheeEngine
 	}
 
 	MeshImportOptions::MeshImportOptions()
-		:mCPUReadable(false), mImportNormals(true), mImportTangents(true),
-		mImportBlendShapes(false), mImportSkin(false), mImportAnimation(false),
-		mImportScale(1.0f), mCollisionMeshType(CollisionMeshType::None)
+		: mCPUReadable(false), mImportNormals(true), mImportTangents(true), mImportBlendShapes(false), mImportSkin(false)
+		, mImportAnimation(false), mReduceKeyFrames(true), mImportScale(1.0f), mCollisionMeshType(CollisionMeshType::None)
 	{ }
 
 	/************************************************************************/

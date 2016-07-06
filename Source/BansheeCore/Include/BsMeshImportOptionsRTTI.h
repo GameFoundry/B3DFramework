@@ -26,6 +26,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mImportScale, 6)
 			BS_RTTI_MEMBER_PLAIN(mCollisionMeshType, 7)
 			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationSplits, 8)
+			BS_RTTI_MEMBER_PLAIN(mReduceKeyFrames, 9)
 		BS_END_RTTI_MEMBERS
 	public:
 		MeshImportOptionsRTTI()

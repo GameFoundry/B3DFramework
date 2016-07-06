@@ -112,6 +112,8 @@ namespace BansheeEngine
 		static void internal_SetImportAnimation(ScriptMeshImportOptions* thisPtr, bool value);
 		static bool internal_GetImportBlendShapes(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetImportBlendShapes(ScriptMeshImportOptions* thisPtr, bool value);
+		static bool internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value);
 		static float internal_GetScale(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetScale(ScriptMeshImportOptions* thisPtr, float value);
 		static int internal_GetCollisionMeshType(ScriptMeshImportOptions* thisPtr);
