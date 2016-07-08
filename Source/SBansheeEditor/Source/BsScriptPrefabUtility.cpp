@@ -10,6 +10,7 @@
 #include "BsResources.h"
 #include "BsMonoUtil.h"
 #include "BsScriptGameObjectManager.h"
+#include "BsScriptPrefab.h"
 
 namespace BansheeEngine
 {
@@ -29,52 +30,44 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_RecordPrefabDiff", &ScriptPrefabUtility::internal_RecordPrefabDiff);
 	}
 
-	void ScriptPrefabUtility::internal_breakPrefab(ScriptSceneObject* nativeInstance)
+	void ScriptPrefabUtility::internal_breakPrefab(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return;
 
-		nativeInstance->getNativeSceneObject()->breakPrefabLink();
+		soPtr->getNativeSceneObject()->breakPrefabLink();
 	}
 
-	void ScriptPrefabUtility::internal_applyPrefab(ScriptSceneObject* nativeInstance)
+	void ScriptPrefabUtility::internal_applyPrefab(ScriptSceneObject* soPtr, ScriptPrefab* prefabPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return;
 
-		ResourceLoadFlags loadFlags = ResourceLoadFlag::KeepInternalRef | ResourceLoadFlag::KeepSourceData;
-
-		String prefabLinkUUID = nativeInstance->getNativeSceneObject()->getPrefabLink();
-		HPrefab prefab = static_resource_cast<Prefab>(gResources().loadFromUUID(prefabLinkUUID, false, loadFlags));
-
-		if (prefab != nullptr)
-			prefab->update(nativeInstance->getNativeSceneObject());
-
-		gResources().save(prefab);
+		prefabPtr->getHandle()->update(soPtr->getNativeSceneObject());
 	}
 
-	void ScriptPrefabUtility::internal_revertPrefab(ScriptSceneObject* nativeInstance)
+	void ScriptPrefabUtility::internal_revertPrefab(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return;
 
-		PrefabUtility::revertToPrefab(nativeInstance->getNativeSceneObject());
+		PrefabUtility::revertToPrefab(soPtr->getNativeSceneObject());
 	}
 
-	bool ScriptPrefabUtility::internal_hasPrefabLink(ScriptSceneObject* nativeInstance)
+	bool ScriptPrefabUtility::internal_hasPrefabLink(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return false;
 
-		return !nativeInstance->getNativeSceneObject()->getPrefabLink(true).empty();
+		return !soPtr->getNativeSceneObject()->getPrefabLink(true).empty();
 	}
 
-	MonoObject* ScriptPrefabUtility::internal_getPrefabParent(ScriptSceneObject* nativeInstance)
+	MonoObject* ScriptPrefabUtility::internal_getPrefabParent(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return nullptr;
 
-		HSceneObject so = nativeInstance->getNativeSceneObject();
+		HSceneObject so = soPtr->getNativeSceneObject();
 		HSceneObject parent = so->getPrefabParent();
 
 		if (parent != nullptr)
@@ -86,35 +79,38 @@ namespace BansheeEngine
 		return nullptr;
 	}
 
-	MonoString* ScriptPrefabUtility::internal_GetPrefabUUID(ScriptSceneObject* nativeInstance)
+	MonoString* ScriptPrefabUtility::internal_GetPrefabUUID(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return nullptr;
 
-		HSceneObject so = nativeInstance->getNativeSceneObject();
+		HSceneObject so = soPtr->getNativeSceneObject();
 
-		String prefabUUID = nativeInstance->getNativeSceneObject()->getPrefabLink(true);
+		String prefabUUID = soPtr->getNativeSceneObject()->getPrefabLink(true);
 		if (prefabUUID.empty())
 			return nullptr;
 
 		return MonoUtil::stringToMono(prefabUUID);
 	}
 
-	void ScriptPrefabUtility::internal_UpdateFromPrefab(ScriptSceneObject* nativeInstance)
+	void ScriptPrefabUtility::internal_UpdateFromPrefab(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return;
 
-		HSceneObject so = nativeInstance->getNativeSceneObject();
-		PrefabUtility::updateFromPrefab(so);
+		HSceneObject so = soPtr->getNativeSceneObject();
+		HSceneObject prefabParent = so->getPrefabParent();
+
+		if(prefabParent != nullptr)
+			PrefabUtility::updateFromPrefab(prefabParent);
 	}
 
-	void ScriptPrefabUtility::internal_RecordPrefabDiff(ScriptSceneObject* nativeInstance)
+	void ScriptPrefabUtility::internal_RecordPrefabDiff(ScriptSceneObject* soPtr)
 	{
-		if (ScriptSceneObject::checkIfDestroyed(nativeInstance))
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
 			return;
 
-		HSceneObject so = nativeInstance->getNativeSceneObject();
+		HSceneObject so = soPtr->getNativeSceneObject();
 		PrefabUtility::recordPrefabDiff(so);
 	}
 }
