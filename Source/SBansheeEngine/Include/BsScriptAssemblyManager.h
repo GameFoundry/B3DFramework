@@ -77,6 +77,9 @@ namespace BansheeEngine
 
 		/**	Gets the managed class for BansheeEngine.SceneObject type. */
 		MonoClass* getSceneObjectClass() const { return mSceneObjectClass; }
+
+		/** Gets the managed class for BansheeEngine.Range attribute */
+		MonoClass* getRangeAttribute() const { return mRangeAttribute; }
 	private:
 		/**	Deletes all stored managed serializable object infos for all assemblies. */
 		void clearScriptObjects();
@@ -103,6 +106,7 @@ namespace BansheeEngine
 		MonoClass* mDontSerializeFieldAttribute;
 		MonoClass* mSerializeFieldAttribute;
 		MonoClass* mHideInInspectorAttribute;
+		MonoClass* mRangeAttribute;
 	};
 
 	/** @} */

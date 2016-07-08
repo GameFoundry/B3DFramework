@@ -29,10 +29,10 @@ namespace BansheeEditor
                 {
                     if (!field.Inspectable)
                         continue;
-
+                    
                     string path = field.Name;
                     InspectableField inspectableField = InspectableField.CreateInspectable(this, field.Name, path,
-                        currentIndex, 0, new InspectableFieldLayout(Layout), field.GetProperty());
+                        currentIndex, 0, new InspectableFieldLayout(Layout), field.GetProperty(), InspectableFieldStyle.Create(field));
 
                     inspectableFields.Add(inspectableField);
                     isEmpty = false;

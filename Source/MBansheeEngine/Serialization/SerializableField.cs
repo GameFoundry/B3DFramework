@@ -53,6 +53,38 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns true if the field accepts a defined range.
+        /// </summary>
+        public bool Range
+        {
+            get { return (flags & 0x04) != 0; }
+        }
+
+        /// <summary>
+        /// Returns the upper bound of the range
+        /// </summary>
+        public float RangeMaximum
+        {
+            get { return Range? Internal_GetRangeMaximum(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
+        /// Returns the lower bound of the range
+        /// </summary>
+        public float RangeMinimum
+        {
+            get { return Range? Internal_GetRangeMinimum(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
+        /// Returns the step of the range
+        /// </summary>
+        public float RangeStep
+        {
+            get { return Range ? Internal_GetRangeStep(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
         /// Returns true if the field will be visible in the default inspector.
         /// </summary>
         public bool Inspectable
@@ -112,6 +144,15 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetValue(IntPtr nativeInstance, object instance, object value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMaximum(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMinimum(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeStep(IntPtr field);
     }
 
     /** @} */

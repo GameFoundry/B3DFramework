@@ -33,7 +33,7 @@ namespace BansheeEngine
 		: mBaseTypesInitialized(false), mSystemArrayClass(nullptr), mSystemGenericListClass(nullptr)
 		, mSystemGenericDictionaryClass(nullptr), mSystemTypeClass(nullptr), mComponentClass(nullptr)
 		, mSceneObjectClass(nullptr), mMissingComponentClass(nullptr), mSerializeObjectAttribute(nullptr)
-		, mDontSerializeFieldAttribute(nullptr), mSerializeFieldAttribute(nullptr), mHideInInspectorAttribute(nullptr)
+		, mDontSerializeFieldAttribute(nullptr), mSerializeFieldAttribute(nullptr), mHideInInspectorAttribute(nullptr), mRangeAttribute(nullptr)
 	{
 
 	}
@@ -138,6 +138,8 @@ namespace BansheeEngine
 					if (field->hasAttribute(mSerializeFieldAttribute))
 						fieldInfo->mFlags = (ScriptFieldFlags)((UINT32)fieldInfo->mFlags | (UINT32)ScriptFieldFlags::Serializable);
 				}
+				if (field->hasAttribute(mRangeAttribute))
+					fieldInfo->mFlags = (ScriptFieldFlags)((UINT32)fieldInfo->mFlags | (UINT32)ScriptFieldFlags::Range);
 
 				objInfo->mFieldNameToId[fieldInfo->mName] = fieldInfo->mFieldId;
 				objInfo->mFields[fieldInfo->mFieldId] = fieldInfo;
@@ -433,6 +435,7 @@ namespace BansheeEngine
 
 		mSerializeFieldAttribute = nullptr;
 		mHideInInspectorAttribute = nullptr;
+		mRangeAttribute = nullptr;
 	}
 
 	void ScriptAssemblyManager::initializeBaseTypes()
@@ -469,6 +472,10 @@ namespace BansheeEngine
 		mDontSerializeFieldAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "DontSerializeField");
 		if(mDontSerializeFieldAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find DontSerializeField managed class.");
+
+		mRangeAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "Range");
+		if (mRangeAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Range managed class.");
 
 		mComponentClass = bansheeEngineAssembly->getClass("BansheeEngine", "Component");
 		if(mComponentClass == nullptr)

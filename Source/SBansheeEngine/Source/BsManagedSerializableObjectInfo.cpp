@@ -5,6 +5,7 @@
 #include "BsMonoUtil.h"
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
+#include "BsMonoField.h"
 #include "BsScriptTexture2D.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptAssemblyManager.h"
@@ -92,6 +93,54 @@ namespace BansheeEngine
 		:mFieldId(0), mFlags((ScriptFieldFlags)0), mMonoField(nullptr)
 	{
 
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMinimum() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float min = 0;
+				range->getField("min")->getValue(mMonoField->getAttribute(range), &min);
+				return min;
+			}
+		}
+		return 0;
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMaximum() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float max = 0;
+				range->getField("max")->getValue(mMonoField->getAttribute(range), &max);
+				return max;
+			}
+		}
+		return 0;
+	}
+
+	float ManagedSerializableFieldInfo::getRangeStep() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float step = 0;
+				range->getField("step")->getValue(mMonoField->getAttribute(range), &step);
+				return step;
+			}
+		}
+		return 0;
 	}
 
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTIStatic()
