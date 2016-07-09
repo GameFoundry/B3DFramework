@@ -76,7 +76,7 @@
     <Compile Include="Utility\FileEx.cs" />
     <Compile Include="GUI\Font.cs" />
     <Compile Include="Scene\GameObject.cs" />
-    <Compile Include="GUI\GUILayoutUtility.cs" />
+    <Compile Include="GUI\GUIUtility.cs" />
     <Compile Include="GUI\GUIButton.cs" />
     <Compile Include="GUI\GUIContent.cs" />
     <Compile Include="GUI\GUIElement.cs" />

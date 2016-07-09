@@ -49,6 +49,17 @@ namespace BansheeEngine
 		 */
 		static Vector2I calcOptimalContentsSize(const WString& text, const GUIElementStyle& style, 
 			const GUIDimensions& dimensions);
+
+		/**
+		 * Calculates optimal content size for the provided text using the provided font and size. Size is calculated
+		 * without word wrap.
+		 *
+		 * @param[in]	text			Text to calculate the size for.
+		 * @param[in]	font			Font to use for rendering the text.
+		 * @param[in]	fontSize		Size of individual characters in the font, in points.
+		 * @return						Width/height required to display the text, in pixels.
+		 */
+		static Vector2I calcTextSize(const WString& text, const HFont& font, UINT32 fontSize);
 	};
 
 	/** @} */

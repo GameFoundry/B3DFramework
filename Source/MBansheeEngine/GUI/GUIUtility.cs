@@ -10,10 +10,9 @@ namespace BansheeEngine
      */
 
     /// <summary>
-    /// Helper class that performs various operations related to
-    /// GUILayout and GUI element sizing/placement.
+    /// Various helper functionality that's useful when creating GUI elements.
     /// </summary>
-    public class GUILayoutUtility
+    public class GUIUtility
     {
         /// <summary>
         /// Calculates optimal size of a GUI element.
@@ -47,11 +46,37 @@ namespace BansheeEngine
             return output;
         }
 
+        /// <summary>
+        /// Calculates optimal content size for the provided text using the provided font and size. Size is calculated
+        /// without word wrap.
+        /// </summary>
+        /// <param name="text">Text to calculate the bounds for.</param>
+        /// <param name="font">Font that will be used for rendering the text.</param>
+        /// <param name="fontSize">Size of individual characters in the font, in points.</param>
+        /// <returns>Width/height required to display the text, in pixels.</returns>
+        public static Vector2I CalculateTextBounds(string text, Font font, int fontSize)
+        {
+            Vector2I output;
+
+            if (font != null && text != null)
+            {
+                IntPtr fontPtr = font.GetCachedPtr();
+                Internal_CalculateTextBounds(text, fontPtr, fontSize, out output);
+            }
+            else
+                output = new Vector2I();
+
+            return output;
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CalculateOptimalSize(IntPtr element, out Vector2I output);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CalculateBounds(IntPtr element, IntPtr relativeTo, out Rect2I output);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_CalculateTextBounds(string text, IntPtr fontPtr, int fontSize, out Vector2I output);
     }
 
     /** @} */

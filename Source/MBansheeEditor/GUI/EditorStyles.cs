@@ -12,6 +12,7 @@ namespace BansheeEditor
     /// </summary>
     public static class EditorStyles
     {
+        public const int DefaultFontSize = 8;
         public const string Blank = "Blank";
         public const string Label = "Label";
         public const string LabelCentered = "LabelCentered";

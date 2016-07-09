@@ -13,7 +13,7 @@ namespace BansheeEditor
     /// </summary>
     internal class AnimationWindow : EditorWindow
     {
-        private GUICanvas canvas;
+        private GUITimeline timeline;
 
         /// <summary>
         /// Opens the animation window.
@@ -32,27 +32,7 @@ namespace BansheeEditor
 
         private void OnInitialize()
         {
-            canvas = new GUICanvas(GUIOption.FixedWidth(200), GUIOption.FixedHeight(200));
-
-            {
-                Vector2I a = new Vector2I(0, 0);
-                Vector2I b = new Vector2I(200, 0);
-                Vector2I c = new Vector2I(200, 200);
-                Vector2I d = new Vector2I(0, 200);
-
-                canvas.DrawTriangleStrip(new Vector2I[] { b, c, a, d }, Color.BansheeOrange);
-            }
-
-            {
-                Vector2I a = new Vector2I(50, 20);
-                Vector2I b = new Vector2I(100, 20);
-                Vector2I c = new Vector2I(240, 60);
-
-                Vector2I[] vertices = {a, b};
-                canvas.DrawPolyLine(vertices, 1.0f);
-            }
-
-            GUI.AddElement(canvas);
+            timeline = new GUITimeline(GUI, 300, 40);
         }
 
         private void OnEditorUpdate()

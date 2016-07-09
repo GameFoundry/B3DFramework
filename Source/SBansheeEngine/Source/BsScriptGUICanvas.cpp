@@ -43,14 +43,13 @@ namespace BansheeEngine
 		new (bs_alloc<ScriptGUICanvas>()) ScriptGUICanvas(instance, guiCanvas);
 	}
 
-	void ScriptGUICanvas::internal_drawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, float width, Color* color)
+	void ScriptGUICanvas::internal_drawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
-		canvas->drawLine(*a, *b, width, *color);
+		canvas->drawLine(*a, *b, *color);
 	}
 
-	void ScriptGUICanvas::internal_drawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, float width, 
-		Color* color)
+	void ScriptGUICanvas::internal_drawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
 
@@ -60,7 +59,7 @@ namespace BansheeEngine
 		Vector<Vector2I> nativeVertices(size);
 		memcpy(nativeVertices.data(), verticesArray.getRawPtr<Vector2I>(), sizeof(Vector2I) * size);
 
-		canvas->drawPolyLine(nativeVertices, width, *color);
+		canvas->drawPolyLine(nativeVertices, *color);
 	}
 
 	void ScriptGUICanvas::internal_drawTexture(ScriptGUICanvas* nativeInstance, ScriptSpriteTexture* texture, Rect2I* area,

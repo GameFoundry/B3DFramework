@@ -64,6 +64,11 @@ namespace BansheeEditor
      *  @{
      */
 
+    /** @defgroup AnimationEditor Animation Editor 
+     *  Animation editor window and related functionality.
+     *  @{
+     */
+
     /** @defgroup Gizmos Gizmos 
      *  Interface for creating custom gizmos.
      */

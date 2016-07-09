@@ -108,7 +108,6 @@ namespace BansheeEngine
 
 		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		mLineVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
-		mLineVertexDesc->addVertElem(VET_UINT1, VES_BLEND_INDICES);
 
 		mLineMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mLineVertexDesc);
 
@@ -724,7 +723,7 @@ namespace BansheeEngine
 						if (guiMeshData.mesh != nullptr)
 							mLineMeshHeap->dealloc(guiMeshData.mesh);
 
-						guiMeshData.mesh = mLineMeshHeap->alloc(meshData);
+						guiMeshData.mesh = mLineMeshHeap->alloc(meshData, DOT_LINE_LIST);
 						lineMeshIdx++;
 					}
 				}
