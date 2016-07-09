@@ -51,8 +51,15 @@
  *  Entry point into the application.
  */
 
-/** @defgroup Internal-Engine [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @} */
+/** @} */
+
+/** @addtogroup Internals
+ *  @{
+ */
+
+/** @defgroup Internal-Engine Engine
+ *	Layer that builds upon Core, providing specific implementations of its interfaces as well as other high level systems.
  *  @{
  */
 
@@ -79,8 +86,6 @@
 /** @defgroup Utility-Engine-Internal Utility
  *  Various utility methods and types used by the engine layer.
  */
-
-/** @} */
 
 /** @} */
 /** @} */

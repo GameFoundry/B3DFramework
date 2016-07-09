@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace BansheeEngine
 {
     /** @addtogroup BansheeEngine
-     *  Primary scripting API.
+     *  Documentation for the engine scripting API.
      *  @{
      */
 

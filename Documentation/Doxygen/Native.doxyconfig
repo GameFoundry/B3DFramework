@@ -68,7 +68,7 @@ OUTPUT_DIRECTORY       = ../Generated/Native
 # performance problems for the file system.
 # The default value is: NO.
 
-CREATE_SUBDIRS         = YES
+CREATE_SUBDIRS         = NO
 
 # If the ALLOW_UNICODE_NAMES tag is set to YES, doxygen will allow non-ASCII
 # characters to appear in the names of generated files. If set to NO, non-ASCII
@@ -694,7 +694,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            = layout.xml
+LAYOUT_FILE            = NativeLayout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib
@@ -1184,7 +1184,8 @@ HTML_STYLESHEET        =
 # list). For an example see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  = doxystyle.css
+HTML_EXTRA_STYLESHEET  = doxystyle.css \
+                         doxystyle_native.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note

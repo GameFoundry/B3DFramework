@@ -39,7 +39,7 @@ a:visited {
 div.contents {
 	margin: auto;
 	width: 960px;
-	padding-bottom: 150px;
+	padding-bottom: 170px;
 }
 
 /* Nav bar */
@@ -121,7 +121,7 @@ div.contents {
 /* Page header */
 div.header {
 	width: 960px;
-	margin: auto;
+	margin: auto auto 15px auto;
 	background-image: none;
 	border-bottom: 1px solid rgba(89, 160, 195, 0.86);
 }

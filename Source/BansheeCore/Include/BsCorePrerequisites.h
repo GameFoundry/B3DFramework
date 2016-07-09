@@ -87,8 +87,15 @@
  *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
-/** @defgroup Internal-Core [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @} */
+/** @} */
+
+/** @addtogroup Internals
+ *  @{
+ */
+
+/** @defgroup Internal-Core Core
+ *	Second lowest layer that provides core engine functionality and abstract interfaces for various systems.
  *  @{
  */
 
@@ -155,8 +162,6 @@
 /** @defgroup Audio-Internal Audio
  *	Audio clips, 3D sound and music reproduction.
  */
-
-/** @} */
 
 /** @} */
 /** @} */

@@ -67,8 +67,15 @@
  *  Entry point into the editor application.
  */
 
-/** @defgroup Internal-Editor [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @} */
+/** @} */
+
+/** @addtogroup Internals
+ *  @{
+ */
+
+/** @defgroup Internal-Editor Editor
+ *	Functionality specific to the Banshee Editor.
  *  @{
  */
 
@@ -95,8 +102,6 @@
 /** @defgroup Scene-Editor-Internal Scene
   *	Rendering/interacting with the scene view in editor.
   */
-
-/** @} */
 
 /** @} */
 /** @} */
