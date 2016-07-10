@@ -13,13 +13,21 @@
  *  @{
  */
 
-/** @defgroup Audio Audio
- *	Audio clips, 3D sound and music reproduction.
+/** @defgroup Animation Animation
+ *	%Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
  */
 
-/** @defgroup Animation Animation
- *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+/** @defgroup Application-Core Application
+ *  Entry point into the application and other general functionality.
  */
+
+/** @defgroup Audio Audio
+ *	%Audio clips, 3D sound and music reproduction.
+ */
+
+/** @defgroup Components-Core Components
+  *	Built-in components (elements that may be attached to scene objects).
+  */
 
 /** @defgroup CoreThread Core thread
  *	Core objects and interaction with the core (rendering) thread.
@@ -39,6 +47,10 @@
 
 /** @defgroup Material Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Physics Physics
+ *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
  /** @defgroup Profiling Profiling
@@ -75,23 +87,19 @@
  *  Various utility methods and types used by the core layer.
  */
 
-/** @defgroup Application-Core Application
- *  Entry point into the application and other general functionality.
- */
-
-/** @defgroup Components-Core Components
-  *	Built-in components (elements that may be attached to scene objects).
-  */
-
-/** @defgroup Physics Physics
- *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
 /** @} */
 /** @} */
 
 /** @addtogroup Internals
  *  @{
+ */
+
+/** @defgroup Animation-Internal Animation
+ *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
+/** @defgroup Audio-Internal Audio
+ *	Audio clips, 3D sound and music reproduction.
  */
 
 /** @defgroup Internal-Core Core
@@ -119,6 +127,10 @@
  *	Materials, shaders and related functionality.
  */
 
+/** @defgroup Physics-Internal Physics
+ *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
+ */
+
 /** @defgroup Platform-Internal Platform
  *	Interface for interacting with the platform (OS).
  */
@@ -130,10 +142,6 @@
 /** @defgroup RenderAPI-Internal RenderAPI
   *	Interface for interacting with the render API (DirectX, OpenGL, etc.).
   */
-
-/** @defgroup Animation-Internal Animation
- *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
- */
 
 /** @defgroup Renderer-Internal Renderer
   *	Abstract interface and helper functionality for rendering scene objects.
@@ -153,14 +161,6 @@
 
 /** @defgroup Utility-Core-Internal Utility
  *  Various utility methods and types used by the core layer.
- */
-
-/** @defgroup Physics-Internal Physics
- *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
-/** @defgroup Audio-Internal Audio
- *	Audio clips, 3D sound and music reproduction.
  */
 
 /** @} */

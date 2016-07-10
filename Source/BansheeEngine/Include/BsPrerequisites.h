@@ -17,6 +17,10 @@
   *	Two dimensional geometry (sprites).
   */
 
+/** @defgroup Application-Engine Application
+ *  Entry point into the application.
+ */
+
 /** @defgroup Components Components
   *	Built-in components.
   */
@@ -29,26 +33,22 @@
  *	User input (mouse, keyboard, gamepad, etc.).
  */
 
+/** @defgroup Platform-Engine Platform
+ *  %Platform specific functionality.
+ */
+
+/** @defgroup Resources-Engine Resources
+  *	Builtin engine resource types and a manager for such resources.
+  */
+
 /** @cond RTTI */
 /** @defgroup RTTI-Impl-Engine RTTI types
  *  Types containing RTTI for specific classes.
  */
 /** @endcond */
 
-/** @defgroup Resources-Engine Resources
-  *	Builtin engine resource types and a manager for such resources.
-  */
-
 /** @defgroup Utility-Engine Utility
  *  Various utility methods and types used by the engine layer.
- */
-
-/** @defgroup Platform-Engine Platform
- *  %Platform specific functionality.
- */
-
-/** @defgroup Application-Engine Application
- *  Entry point into the application.
  */
 
 /** @} */

@@ -8,6 +8,18 @@
  *  @{
  */
 
+/** @defgroup Application-Editor Application
+ *  Entry point into the editor application.
+ */
+
+/** @defgroup Build Build
+  *	Building (publishing) the game from within the editor.
+  */
+
+/** @defgroup CodeEditor CodeEditor
+  *	Integration of the Banshee Editor with external code editors.
+  */
+
 /** @defgroup Editor Editor
  *	Functionality specific to the Banshee Editor.
  *  @{
@@ -17,20 +29,8 @@
  *  Creating, managing and interacting with editor windows.
  */
 
-/** @defgroup Utility-Editor Utility
- *  Various utility methods and types used by the editor layer.
- */
-
 /** @defgroup GUI-Editor GUI
   *	Editor specific GUI elements.
-  */
-
-/** @defgroup Build Build
-  *	Building (publishing) the game from within the editor.
-  */
-
-/** @defgroup CodeEditor CodeEditor
-  *	Integration of the Banshee Editor with external code editors.
   */
 
 /** @defgroup Handles Handles
@@ -63,8 +63,8 @@
  *  Undoing and redoing actions within the editor.
  */
 
-/** @defgroup Application-Editor Application
- *  Entry point into the editor application.
+/** @defgroup Utility-Editor Utility
+ *  Various utility methods and types used by the editor layer.
  */
 
 /** @} */

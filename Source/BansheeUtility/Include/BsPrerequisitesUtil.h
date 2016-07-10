@@ -14,22 +14,6 @@
  *  @{
  */
 
-/** @defgroup Math Math
- *	Variety of general purpose math functionality.
- */
-
-/** @defgroup RTTI RTTI
- *  Run-time type information defining and querying.
- */
-
-/** @defgroup Serialization Serialization
- *  Serialization and deserialization of native objects.
- */
-
-/** @defgroup Memory Memory
- *  Allocators, deallocators and memory manipulation.
- */
-
 /** @defgroup Containers Containers
  *  Templated commonly used containers.
  */
@@ -54,6 +38,32 @@
  *  Manipulating images.
  */
 
+/** @defgroup Math Math
+ *	Variety of general purpose math functionality.
+ */
+
+/** @defgroup Memory Memory
+ *  Allocators, deallocators and memory manipulation.
+ */
+
+/** @defgroup Platform-Utility Platform
+ *  %Platform specific functionality.
+ */
+
+/** @defgroup RTTI RTTI
+ *  Run-time type information defining and querying.
+ */
+
+/** @cond RTTI */
+/** @defgroup RTTI-Impl-Utility RTTI types
+ *  RTTI implementations for classes within the utility layer.
+ */
+/** @endcond */
+
+/** @defgroup Serialization Serialization
+ *  Serialization and deserialization of native objects.
+ */
+
 /** @defgroup String String
  *  String manipulation.
  */
@@ -64,16 +74,6 @@
 
 /** @defgroup Threading Threading
  *  Thread manipulation and synchronization.
- */
-
-/** @cond RTTI */
-/** @defgroup RTTI-Impl-Utility RTTI types
- *  RTTI implementations for classes within the utility layer.
- */
-/** @endcond */
-
-/** @defgroup Platform-Utility Platform
- *  %Platform specific functionality.
  */
 
 /** @} */
