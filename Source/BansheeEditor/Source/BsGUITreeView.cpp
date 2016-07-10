@@ -98,7 +98,7 @@ namespace BansheeEngine
 			mElementBtnStyle = "TreeViewElementBtn";
 
 		if(mFoldoutBtnStyle == StringUtil::BLANK)
-			mFoldoutBtnStyle = "TreeViewFoldoutBtn";
+			mFoldoutBtnStyle = "Expand";
 
 		if(mSelectionBackgroundStyle == StringUtil::BLANK)
 			mSelectionBackgroundStyle = "TreeViewSelectionBackground";

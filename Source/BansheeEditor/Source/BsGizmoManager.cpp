@@ -402,7 +402,7 @@ namespace BansheeEngine
 	{
 		HFont myFont = font;
 		if (myFont == nullptr)
-			myFont = BuiltinEditorResources::instance().getDefaultFont();
+			myFont = BuiltinEditorResources::instance().getDefaultAAFont();
 
 		mTextData.push_back(TextData());
 		TextData& textData = mTextData.back();

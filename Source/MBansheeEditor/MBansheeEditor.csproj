@@ -48,6 +48,7 @@
     <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\AnimationWindow.cs" />
+    <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
     <Compile Include="Windows\Animation\GUITimeline.cs" />
     <Compile Include="Windows\BrowseDialog.cs" />
     <Compile Include="Windows\Build\BuildManager.cs" />

@@ -72,6 +72,9 @@ namespace BansheeEngine
 		/** Returns the default font used by the editor. */
 		const HFont& getDefaultFont() const { return mDefaultFont; }
 
+		/** Returns the default antialiased font used by the editor. */
+		const HFont& getDefaultAAFont() const { return mDefaultAAFont; }
+
 		/**	Creates a material used for docking drop overlay used by the editor. */
 		HMaterial createDockDropOverlayMaterial() const;
 
@@ -207,6 +210,7 @@ namespace BansheeEngine
 		HShader mShaderSelection;
 
 		HFont mDefaultFont;
+		HFont mDefaultAAFont;
 		HGUISkin mSkin;
 
 		SPtr<ResourceManifest> mResourceManifest;

@@ -7,6 +7,8 @@
 #include "BsMonoUtil.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptGUIContentImages.h"
+#include "BsScriptResourceManager.h"
+#include "BsScriptFont.h"
 
 namespace BansheeEngine
 {
@@ -25,6 +27,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetInspectorWindowIcon", &ScriptEditorBuiltin::internal_GetInspectorWindowIcon);
 		metaData.scriptClass->addInternalCall("Internal_GetSceneWindowIcon", &ScriptEditorBuiltin::internal_GetSceneWindowIcon);
 		metaData.scriptClass->addInternalCall("Internal_GetLogIcon", &ScriptEditorBuiltin::internal_GetLogIcon);
+		metaData.scriptClass->addInternalCall("Internal_GetDefaultFont", &ScriptEditorBuiltin::internal_GetDefaultFont);
 	}
 
 	MonoObject* ScriptEditorBuiltin::internal_getLibraryItemIcon(ProjectIcon icon, int size)
@@ -88,5 +91,15 @@ namespace BansheeEngine
 		HSpriteTexture tex = BuiltinEditorResources::instance().getLogMessageIcon(icon, size, dark);
 
 		return ScriptSpriteTexture::toManaged(tex);
+	}
+	
+	MonoObject* ScriptEditorBuiltin::internal_GetDefaultFont()
+	{
+		HFont font = BuiltinEditorResources::instance().getDefaultFont();
+
+		ScriptFont* scriptFont;
+		ScriptResourceManager::instance().getScriptResource(font, &scriptFont, true);
+
+		return scriptFont->getManagedInstance();
 	}
 }

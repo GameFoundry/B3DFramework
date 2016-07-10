@@ -177,7 +177,7 @@ namespace BansheeEngine
 
 		HFont myFont = font;
 		if (myFont == nullptr)
-			myFont = BuiltinEditorResources::instance().getDefaultFont();
+			myFont = BuiltinEditorResources::instance().getDefaultAAFont();
 
 		mDrawHelper->text(position, text, myFont, fontSize);
 	}

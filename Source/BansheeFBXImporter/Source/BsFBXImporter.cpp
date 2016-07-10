@@ -1597,7 +1597,7 @@ namespace BansheeEngine
 		Vector<FBXKeyFrame> newKeyframes[3];
 
 		bool lastWasEqual = false;
-		for (int i = 0; i < keyCount; i++)
+		for (UINT32 i = 0; i < keyCount; i++)
 		{
 			bool isEqual = true;
 

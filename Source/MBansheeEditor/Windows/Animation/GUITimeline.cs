@@ -12,15 +12,18 @@ namespace BansheeEditor
     // TODO DOC
     public class GUITimeline
     {
-        private const float LARGE_TICK_HEIGHT_PCT = 0.5f;
-        private const float SMALL_TICK_HEIGHT_PCT = 0.25f;
+        private const float LARGE_TICK_HEIGHT_PCT = 0.4f;
+        private const float SMALL_TICK_HEIGHT_PCT = 0.2f;
+        private const int PADDING = 30;
+        private const int TEXT_PADDING = 2;
+        private const int MIN_TICK_DISTANCE = 10;
 
         private GUICanvas canvas;
         private int width;
         private int height;
         private float rangeStart = 0.0f;
         private float rangeEnd = 60.0f;
-        private int fps = 60;
+        private int fps = 1;
 
         public GUITimeline(GUILayout layout, int width, int height)
         {
@@ -60,17 +63,18 @@ namespace BansheeEditor
         {
             canvas.Clear();
 
-            canvas.DrawLine(new Vector2I(50, 20), new Vector2I(50, 40), Color.White);
-            canvas.DrawLine(new Vector2I(100, 20), new Vector2I(100, 40), Color.White);
-
-            return;
-
             // TODO - Calculate interval sizes based on set range, width and FPS
             //      - Dynamically change tick heights?
-            //      - Draw text (and convert seconds to minutes/hours as needed)
 
-            float largeTickInterval = 50.0f; // TODO - Must be multiple of small tick interval
-            float smallTickInterval = 10.0f; // TODO
+            int drawableWidth = Math.Max(0, width - PADDING * 2);
+            float rangeLength = rangeEnd - rangeStart;
+            float numSmallTicksPerLarge = 5.0f;
+
+            int totalNumFrames = MathEx.FloorToInt(rangeLength*fps);
+            int numVisibleTicks = Math.Min(totalNumFrames, MathEx.FloorToInt(drawableWidth / (float) MIN_TICK_DISTANCE));
+
+            float smallTickInterval = rangeLength / numVisibleTicks;
+            float largeTickInterval = smallTickInterval * numSmallTicksPerLarge;
 
             float offsetLarge = MathEx.CeilToInt(rangeStart / largeTickInterval) * largeTickInterval - rangeStart;
             float offsetSmall = MathEx.CeilToInt(rangeStart / smallTickInterval) * smallTickInterval - rangeStart;
@@ -80,20 +84,18 @@ namespace BansheeEditor
 
             bool drawSmallTicks = true; // TODO
 
-            float length = rangeEnd - rangeStart;
-            for (float t = offsetSmall; t <= length; t += smallTickInterval)
+            float t = offsetSmall;
+            for (int i = 0; i < numVisibleTicks; i++)
             {
-                Debug.Log(t + " - " + length + " - " + width);
-
                 float distanceToLargeTick = MathEx.CeilToInt(t / largeTickInterval) * largeTickInterval - t;
                 if (MathEx.ApproxEquals(distanceToLargeTick, 0.0f))
                 {
-                    int xPos = (int)((t/length)*width);
+                    int xPos = (int)((t/rangeLength)* drawableWidth) + PADDING;
 
                     Vector2I start = new Vector2I(xPos, height - largeTickHeight);
                     Vector2I end = new Vector2I(xPos, height);
 
-                    canvas.DrawLine(start, end, Color.DarkGray);
+                    canvas.DrawLine(start, end, Color.LightGray);
 
                     TimeSpan intervalSpan = TimeSpan.FromSeconds(largeTickInterval);
                     TimeSpan timeSpan = TimeSpan.FromSeconds(rangeStart + t);
@@ -104,20 +106,21 @@ namespace BansheeEditor
                     else
                         timeString = timeSpan.ToString(@"ss\:fff");
 
-                    Vector2I textBounds = GUIUtility.CalculateTextBounds(timeString, Builtin.DefaultFont, 
+                    Vector2I textBounds = GUIUtility.CalculateTextBounds(timeString, EditorBuiltin.DefaultFont, 
                         EditorStyles.DefaultFontSize);
 
                     Vector2I textPosition = new Vector2I();
-                    textPosition.x = -textBounds.x/2;
+                    textPosition.x = xPos - textBounds.x/2;
+                    textPosition.y = TEXT_PADDING;
 
-                    //canvas.DrawText(timeString, textPosition, Builtin.DefaultFont, Color.DarkGray, 
-                    //    EditorStyles.DefaultFontSize);
+                    canvas.DrawText(timeString, textPosition, EditorBuiltin.DefaultFont, Color.LightGray, 
+                        EditorStyles.DefaultFontSize);
                 }
                 else
                 {
                     if (drawSmallTicks)
                     {
-                        int xPos = (int)((t / length) * width);
+                        int xPos = (int)((t / rangeLength) * drawableWidth) + PADDING;
 
                         Vector2I start = new Vector2I(xPos, height - smallTickHeight);
                         Vector2I end = new Vector2I(xPos, height);
@@ -125,6 +128,8 @@ namespace BansheeEditor
                         canvas.DrawLine(start, end, Color.LightGray);
                     }
                 }
+
+                t += smallTickInterval;
             }
         }
     }

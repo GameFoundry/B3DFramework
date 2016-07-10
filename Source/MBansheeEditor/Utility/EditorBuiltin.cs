@@ -75,6 +75,14 @@ namespace BansheeEditor
         public static string EmptyCSScriptCode { get { return Internal_GetEmptyCSScriptCode(); } }
 
         /// <summary>
+        /// Returns the default Font used in the editor.
+        /// </summary>
+        public static Font DefaultFont
+        {
+            get { return Internal_GetDefaultFont(); }
+        }
+
+        /// <summary>
         /// Retrieves an icon used for displaying an entry in the library window.
         /// </summary>
         /// <param name="icon">Type of the icon to retrieve.</param>
@@ -164,6 +172,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SpriteTexture Internal_GetLogIcon(LogIcon icon, int size, bool dark);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern Font Internal_GetDefaultFont();
     }
 
     /** @} */

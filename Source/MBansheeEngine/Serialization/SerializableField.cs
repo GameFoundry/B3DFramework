@@ -45,6 +45,14 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns the actual type of the object contained in the field.
+        /// </summary>
+        public Type InternalType
+        {
+            get { return internalType; }
+        }
+
+        /// <summary>
         /// Returns the name of the field.
         /// </summary>
         public string Name
