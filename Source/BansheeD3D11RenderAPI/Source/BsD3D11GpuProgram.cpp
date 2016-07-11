@@ -10,6 +10,7 @@
 #include "BsHardwareBufferManager.h"
 #include "BsD3D11HLSLParamParser.h"
 #include "BsRenderStats.h"
+#include <regex>
 
 namespace BansheeEngine
 {
@@ -65,10 +66,27 @@ namespace BansheeEngine
 		GpuProgramCore::initialize();
 	}
 
+	UINT32 D3D11GpuProgramCore::parseErrorMessage(const char* message)
+	{
+		if (message == nullptr)
+			return 0;
+
+		String pattern = R"(\(([0-9]*),.*\))";
+		std::regex regex(pattern);
+
+		std::cmatch results;
+		if (std::regex_search(message, results, regex))
+		{
+			std::string result = results[1].str();
+
+			return strtol(result.c_str(), nullptr, 10) - 1;
+		}
+
+		return 0;
+	}
+
 	ID3DBlob* D3D11GpuProgramCore::compileMicrocode(const String& profile)
 	{
-		// TODO - Preprocessor defines aren't supported
-
 		UINT compileFlags = 0;
 #if defined(BS_DEBUG_MODE)
 		compileFlags |= D3DCOMPILE_DEBUG;
@@ -102,9 +120,19 @@ namespace BansheeEngine
 
 		if (FAILED(hr))
 		{
+			const char* errorMessage = static_cast<const char*>(errors->GetBufferPointer());
+			UINT32 errorLineIdx = parseErrorMessage(errorMessage);
+
+			Vector<String> sourceLines = StringUtil::split(source, "\n");
+			String sourceLine;
+			if (errorLineIdx < sourceLines.size())
+				sourceLine = sourceLines[errorLineIdx];
+
 			mIsCompiled = false;
 			mCompileError = "Cannot compile D3D11 high-level shader. Errors:\n" +
-				String(static_cast<const char*>(errors->GetBufferPointer()));
+				String(errorMessage) + "\n" +
+				"\n" +
+				"Line " + toString(errorLineIdx) + ": " + sourceLine;
 
 			SAFE_RELEASE(microCode);
 			SAFE_RELEASE(errors);

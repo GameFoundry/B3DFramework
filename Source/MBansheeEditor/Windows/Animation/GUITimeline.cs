@@ -69,11 +69,16 @@ namespace BansheeEditor
                 60.0f, 120.0f, 300.0f, 600.0f, 1800.0f, 3600.0f // Minutes
             };
 
+            float timePerFrame = 1.0f/fps;
             int bestIntervalIdx = 0;
             float bestDistance = float.MaxValue;
 
             for(int i = 0; i < validIntervals.Length; i++)
             {
+                // Cannot choose an interval that would display ticks for below the frame-rate
+                if (validIntervals[i] < timePerFrame)
+                    continue;
+
                 float tickCount = length/validIntervals[i];
                 float distance = Math.Abs(tickCount - OPTIMAL_TICK_COUNT);
                 if (distance < bestDistance)
@@ -161,9 +166,6 @@ namespace BansheeEditor
         {
             canvas.Clear();
 
-            // TODO - Enforce a minimum limit between ticks, so when width is too small they don't come too close together
-            // TODO - Don't draw ticks below the frame rate
-
             // TODO - Text from invisible ticks should be displayed (otherwise it will just pop in was the tick is shown)
 
             // TODO - Draw small ticks (don't forget to handle offset properly)
@@ -208,62 +210,6 @@ namespace BansheeEditor
                 t += tickInterval;
                 t = Math.Min(t, rangeLength);
             }
-
-            //float offsetLarge = MathEx.CeilToInt(rangeStart / largeTickInterval) * largeTickInterval - rangeStart;
-            //float offsetSmall = MathEx.CeilToInt(rangeStart / smallTickInterval) * smallTickInterval - rangeStart;
-
-            //int largeTickHeight = (int)(height * LARGE_TICK_HEIGHT_PCT);
-            //int smallTickHeight = (int)(height * SMALL_TICK_HEIGHT_PCT);
-
-            //bool drawSmallTicks = true; // TODO
-
-            //float t = offsetSmall;
-            //for (int i = 0; i < numVisibleTicks; i++)
-            //{
-            //    float distanceToLargeTick = MathEx.CeilToInt(t / largeTickInterval) * largeTickInterval - t;
-            //    if (MathEx.ApproxEquals(distanceToLargeTick, 0.0f))
-            //    {
-            //        int xPos = (int)((t/rangeLength)* drawableWidth) + PADDING;
-
-            //        Vector2I start = new Vector2I(xPos, height - largeTickHeight);
-            //        Vector2I end = new Vector2I(xPos, height);
-
-            //        canvas.DrawLine(start, end, Color.LightGray);
-
-            //        TimeSpan intervalSpan = TimeSpan.FromSeconds(largeTickInterval);
-            //        TimeSpan timeSpan = TimeSpan.FromSeconds(rangeStart + t);
-
-            //        string timeString;
-            //        if(intervalSpan.Minutes > 0)
-            //            timeString = timeSpan.ToString(@"m\:ss");
-            //        else
-            //            timeString = timeSpan.ToString(@"ss\:fff");
-
-            //        Vector2I textBounds = GUIUtility.CalculateTextBounds(timeString, EditorBuiltin.DefaultFont, 
-            //            EditorStyles.DefaultFontSize);
-
-            //        Vector2I textPosition = new Vector2I();
-            //        textPosition.x = xPos - textBounds.x/2;
-            //        textPosition.y = TEXT_PADDING;
-
-            //        canvas.DrawText(timeString, textPosition, EditorBuiltin.DefaultFont, Color.LightGray, 
-            //            EditorStyles.DefaultFontSize);
-            //    }
-            //    else
-            //    {
-            //        if (drawSmallTicks)
-            //        {
-            //            int xPos = (int)((t / rangeLength) * drawableWidth) + PADDING;
-
-            //            Vector2I start = new Vector2I(xPos, height - smallTickHeight);
-            //            Vector2I end = new Vector2I(xPos, height);
-
-            //            canvas.DrawLine(start, end, Color.LightGray);
-            //        }
-            //    }
-
-            //    t += smallTickInterval;
-            //}
         }
     }
 

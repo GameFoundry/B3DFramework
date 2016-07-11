@@ -254,7 +254,13 @@ namespace BansheeEngine
 				UINT32 localStateIdx = 0;
 				for(auto& clipInfo : clipInfos)
 				{
-					if (clipInfo.state.layer != layer.index)
+					UINT32 clipLayer = clipInfo.state.layer;
+					if (clipLayer == (UINT32)-1)
+						clipLayer = 0;
+					else
+						clipLayer += 1;
+
+					if (clipLayer != layer.index)
 						continue;
 
 					AnimationState& state = states[curStateIdx];

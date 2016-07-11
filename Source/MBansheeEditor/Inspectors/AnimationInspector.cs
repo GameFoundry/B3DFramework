@@ -14,7 +14,7 @@ namespace BansheeEditor
     [CustomInspector(typeof(Animation))]
     internal class AnimationInspector : Inspector
     {
-        private GUIResourceField animationClipField = new GUIResourceField(typeof(AudioClip), new LocEdString("Clip"));
+        private GUIResourceField animationClipField = new GUIResourceField(typeof(AnimationClip), new LocEdString("Clip"));
         private GUIEnumField wrapModeField = new GUIEnumField(typeof(AnimWrapMode), new LocEdString("Wrap mode"));
         private GUIFloatField speedField = new GUIFloatField(new LocEdString("Speed"));
         private InspectableState modifyState;

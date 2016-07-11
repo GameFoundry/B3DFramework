@@ -41,6 +41,9 @@ namespace BansheeEngine
 		 */
 		void populateParametersAndConstants(ID3DBlob* microcode);
 
+		/** Parses compiler error message and returns the line number at which the error occurred. */
+		UINT32 parseErrorMessage(const char* message);
+
 	protected:
 		static UINT32 GlobalProgramId;
 
