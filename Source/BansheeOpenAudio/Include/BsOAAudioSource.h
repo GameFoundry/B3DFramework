@@ -46,7 +46,7 @@ namespace BansheeEngine
 		void setAttenuation(float attenuation) override;
 
 		/** @copydoc AudioSource::setTime */
-		void setTime(float setTime) override;
+		void setTime(float time) override;
 
 		/** @copydoc AudioSource::getTime */
 		float getTime() const override;

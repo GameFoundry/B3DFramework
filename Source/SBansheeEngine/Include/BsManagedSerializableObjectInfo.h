@@ -53,6 +53,7 @@ namespace BansheeEngine
 		PhysicsMaterial,
 		PhysicsMesh,
 		AudioClip,
+		AnimationClip,
 		ManagedComponent,
 		Resource,
 		Count // Keep at end

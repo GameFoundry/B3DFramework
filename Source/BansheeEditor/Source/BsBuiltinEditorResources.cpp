@@ -357,7 +357,8 @@ namespace BansheeEngine
 		mShaderHandleLine = getShader(ShaderLineHandleFile);
 		mShaderSelection = getShader(ShaderSelectionFile);
 
-		mDefaultFont = gResources().load<Font>(BuiltinDataFolder + (DefaultAAFontFilename + L".asset"));
+		mDefaultFont = gResources().load<Font>(BuiltinDataFolder + (DefaultFontFilename + L".asset"));
+		mDefaultAAFont = gResources().load<Font>(BuiltinDataFolder + (DefaultAAFontFilename + L".asset"));
 		mSkin = gResources().load<GUISkin>(BuiltinDataFolder + (GUISkinFile + L".asset"));
 	}
 
@@ -1213,19 +1214,19 @@ namespace BansheeEngine
 		/************************************************************************/
 
 		// Expand button
-		GUIElementStyle treeViewExpandButtonStyle;
-		treeViewExpandButtonStyle.normal.texture = getGUITexture(TreeViewExpandButtonOffNormal);
-		treeViewExpandButtonStyle.hover.texture = getGUITexture(TreeViewExpandButtonOffHover);
-		treeViewExpandButtonStyle.active.texture = treeViewExpandButtonStyle.hover.texture;
-		treeViewExpandButtonStyle.normalOn.texture = getGUITexture(TreeViewExpandButtonOnNormal);
-		treeViewExpandButtonStyle.hoverOn.texture = getGUITexture(TreeViewExpandButtonOnHover);
-		treeViewExpandButtonStyle.activeOn.texture = treeViewExpandButtonStyle.hoverOn.texture;
-		treeViewExpandButtonStyle.fixedHeight = true;
-		treeViewExpandButtonStyle.fixedWidth = true;
-		treeViewExpandButtonStyle.height = 10;
-		treeViewExpandButtonStyle.width = 10;
+		GUIElementStyle expandButtonStyle;
+		expandButtonStyle.normal.texture = getGUITexture(TreeViewExpandButtonOffNormal);
+		expandButtonStyle.hover.texture = getGUITexture(TreeViewExpandButtonOffHover);
+		expandButtonStyle.active.texture = expandButtonStyle.hover.texture;
+		expandButtonStyle.normalOn.texture = getGUITexture(TreeViewExpandButtonOnNormal);
+		expandButtonStyle.hoverOn.texture = getGUITexture(TreeViewExpandButtonOnHover);
+		expandButtonStyle.activeOn.texture = expandButtonStyle.hoverOn.texture;
+		expandButtonStyle.fixedHeight = true;
+		expandButtonStyle.fixedWidth = true;
+		expandButtonStyle.height = 10;
+		expandButtonStyle.width = 10;
 
-		skin->setStyle("TreeViewFoldoutBtn", treeViewExpandButtonStyle);
+		skin->setStyle("Expand", expandButtonStyle);
 
 		// Entry
 		GUIElementStyle treeViewEntryStyle;

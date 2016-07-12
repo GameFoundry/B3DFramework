@@ -124,7 +124,7 @@ private:
 ~~~~~~~~~~~~~	
 	
 All @ref BansheeEngine::ScriptObject "ScriptObjects" must begin with a @ref SCRIPT_OBJ macro. The macro accepts (in order): 
- - the name of the assembly (.dll) the manager script object is in, this is either `ENGINE_ASSEMBLY` or `EDITOR_ASSEMBLY`
+ - the name of the assembly (.dll) the managed script object is in, this is either `ENGINE_ASSEMBLY` or `EDITOR_ASSEMBLY`
  - the namespace the type is in
  - the name of the managed type
 

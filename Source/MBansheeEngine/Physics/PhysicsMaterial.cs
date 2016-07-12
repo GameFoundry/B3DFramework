@@ -18,7 +18,7 @@ namespace BansheeEngine
         /// <summary>
         /// Constructor for internal use by the runtime.
         /// </summary>
-        private PhysicsMaterial(int dummy)
+        private PhysicsMaterial(bool dummy)
         { }
 
         /// <summary>

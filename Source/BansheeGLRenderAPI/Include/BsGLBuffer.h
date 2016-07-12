@@ -16,9 +16,18 @@ namespace BansheeEngine
     class BS_RSGL_EXPORT GLBuffer
     {
     public:
+		/** Creates an uninitialized buffer object. You must call initialize() before using it. */
 		GLBuffer();
+
+		/** Creates and initializes the buffer object. */
 		GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage);
 		~GLBuffer();
+
+		/** 
+		 * Initializes the internal buffer object. Done automatically if the buffer was constructed using non-zero
+		 * parameter constructor.
+		 */
+		void initialize(GLenum target, UINT32 size, GpuBufferUsage usage);
 
 		/**
 		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.

@@ -122,14 +122,30 @@ public:
 	 * @note	Sim thread only.
 	 */
 	FrameAlloc* getFrameAlloc() const;
-private:
-	static const int NUM_FRAME_ALLOCS = 2;
 
+	/** 
+	 * Returns number of buffers needed to sync data between core and sim thread. Currently the sim thread can be one frame
+	 * ahead of the core thread, meaning we need two buffers. If this situation changes increase this number.
+	 *
+	 * For example:
+	 *  - Sim thread frame starts, it writes some data to buffer 0.
+	 *  - Core thread frame starts, it reads some data from buffer 0.
+	 *  - Sim thread frame finishes
+	 *  - New sim thread frame starts, it writes some data to buffer 1.
+	 *  - Core thread still working, reading from buffer 0. (If we were using just one buffer at this point core thread 
+	 *	  would be reading wrong data).
+	 *  - Sim thread waiting for core thread (application defined that it cannot go ahead more than one frame)
+	 *  - Core thread frame finishes.
+	 *  - New core thread frame starts, it reads some data from buffer 1.
+	 *  - ...
+	 */
+	static const int NUM_SYNC_BUFFERS = 2;
+private:
 	/**
 	 * Double buffered frame allocators. Means sim thread cannot be more than 1 frame ahead of core thread (If that changes
 	 * you should be able to easily add more).
 	 */
-	FrameAlloc* mFrameAllocs[NUM_FRAME_ALLOCS];
+	FrameAlloc* mFrameAllocs[NUM_SYNC_BUFFERS];
 	UINT32 mActiveFrameAlloc;
 
 	static AccessorData mAccessor;

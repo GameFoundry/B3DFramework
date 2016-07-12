@@ -432,7 +432,7 @@ namespace BansheeEditor
             scenePos = screenPos;
             Vector2I windowPos = ScreenToWindowPos(screenPos);
 
-            Rect2I bounds = GUILayoutUtility.CalculateBounds(renderTextureGUI, GUI);
+            Rect2I bounds = GUIUtility.CalculateBounds(renderTextureGUI, GUI);
             if (bounds.Contains(windowPos))
             {
                 scenePos.x = windowPos.x - bounds.x;
@@ -865,7 +865,7 @@ namespace BansheeEditor
 
             Rect2I rtBounds = new Rect2I(0, 0, width, height);
             renderTextureGUI.Bounds = rtBounds;
-            focusCatcher.Bounds = GUILayoutUtility.CalculateBounds(rtPanel, GUI);
+            focusCatcher.Bounds = GUIUtility.CalculateBounds(rtPanel, GUI);
 
             sceneAxesGUI.SetPosition(width - HandleAxesGUISize - HandleAxesGUIPaddingX, HandleAxesGUIPaddingY);
 

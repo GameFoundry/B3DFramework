@@ -188,7 +188,7 @@ namespace BansheeEditor
             }
 
             /// <inheritdoc/>
-            internal protected override InspectableState Refresh()
+            protected internal override InspectableState Refresh()
             {
                 sizeField.Value = GetValue<int>();
 
@@ -243,7 +243,7 @@ namespace BansheeEditor
             }
 
             /// <inheritdoc/>
-            internal protected override InspectableState Refresh()
+            protected internal override InspectableState Refresh()
             {
                 CharRange newValue = GetValue<CharRange>();
                 rangeStartField.Value = newValue.start;

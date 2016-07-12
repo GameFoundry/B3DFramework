@@ -24,6 +24,7 @@ namespace BansheeEngine
 
 	String ScriptScene::ActiveSceneUUID;
 	WString ScriptScene::ActiveSceneName;
+	bool ScriptScene::IsGenericPrefab;
 
 	ScriptScene::ScriptScene(MonoObject* instance)
 		:ScriptObject(instance)
@@ -56,8 +57,17 @@ namespace BansheeEngine
 		HPrefab prefab = GameResourceManager::instance().load<Prefab>(nativePath, true);
 		if (prefab.isLoaded(false))
 		{
-			HSceneObject root = prefab->instantiate();
-			gSceneManager()._setRootNode(root);
+			// If scene replace current root node, otherwise just append to the current root node
+			if (prefab->isScene())
+			{
+				HSceneObject root = prefab->instantiate();
+				gSceneManager()._setRootNode(root);
+			}
+			else
+			{
+				gSceneManager().clearScene();
+				prefab->instantiate();
+			}
 
 			ScriptPrefab* scriptPrefab;
 			ScriptResourceManager::instance().getScriptResource(prefab, &scriptPrefab, true);
@@ -80,6 +90,10 @@ namespace BansheeEngine
 		MonoMethod* nameMethod = metaData.scriptClass->getMethod("GetSceneName");
 		if (nameMethod != nullptr)
 			ActiveSceneName = MonoUtil::monoToWString((MonoString*)nameMethod->invoke(nullptr, nullptr));
+
+		MonoMethod* genericPrefabMethod = metaData.scriptClass->getMethod("GetIsGenericPrefab");
+		if (genericPrefabMethod != nullptr)
+			IsGenericPrefab = *(bool*)MonoUtil::unbox(genericPrefabMethod->invoke(nullptr, nullptr));
 	}
 
 	void ScriptScene::onRefreshDomainLoaded()
@@ -100,6 +114,13 @@ namespace BansheeEngine
 			params[0] = MonoUtil::wstringToMono(ActiveSceneName);
 
 			nameMethod->invoke(nullptr, params);
+		}
+
+		MonoMethod* genericPrefabMethod = metaData.scriptClass->getMethod("SetIsGenericPrefab", 1);
+		if (genericPrefabMethod != nullptr)
+		{
+			void* params[1] = { &IsGenericPrefab };
+			genericPrefabMethod->invoke(nullptr, params);
 		}
 	}
 

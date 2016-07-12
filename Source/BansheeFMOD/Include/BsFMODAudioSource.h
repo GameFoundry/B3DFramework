@@ -41,7 +41,7 @@ namespace BansheeEngine
 		void setPriority(INT32 priority) override;
 
 		/** @copydoc AudioSource::setTime */
-		void setTime(float setTime) override;
+		void setTime(float time) override;
 
 		/** @copydoc AudioSource::getTime */
 		float getTime() const override;

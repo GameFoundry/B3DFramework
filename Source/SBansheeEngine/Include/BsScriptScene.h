@@ -37,6 +37,7 @@ namespace BansheeEngine
 
 		static String ActiveSceneUUID;
 		static WString ActiveSceneName;
+		static bool IsGenericPrefab;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

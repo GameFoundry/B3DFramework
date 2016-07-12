@@ -106,6 +106,9 @@ namespace BansheeEngine
 		 */
 		HShader getShader(const Path& path);
 
+		/** Returns the default font used by the engine. */
+		HFont getDefaultFont() const { return mFont; }
+
 		/**	Retrieves one of the builtin textures. */
 		static HTexture getTexture(BuiltinTexture type);
 
@@ -147,6 +150,7 @@ namespace BansheeEngine
 
 		HGUISkin mEmptySkin;
 		HGUISkin mSkin;
+		HFont mFont;
 
 		SPtr<PixelData> mCursorArrow;
 		SPtr<PixelData> mCursorArrowDrag;

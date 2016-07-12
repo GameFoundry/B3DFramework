@@ -114,7 +114,8 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	samples		Data streams containing the samples to load. Data will be read starting from the current
 		 *							position in the stream. The samples should be in audio format as specified in the 
-		 *							@p desc parameter.
+		 *							@p desc parameter. Ownership of the data stream is taken by the audio clip and the
+		 *							caller must not close it manually.
 		 * @param[in]	streamSize	Number of bytes to read from the @p samples stream.
 		 * @param[in]	numSamples	Total number of samples (including all channels).
 		 * @param[in]	desc		Descriptor containing meta-data for the provided samples.
@@ -122,7 +123,7 @@ namespace BansheeEngine
 		 * @note	If the provided samples are in PCM format, they should be signed integers of provided bit depth.
 		 */
 		static HAudioClip create(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
-			const AUDIO_CLIP_DESC& desc); // Note that ownership of stream is taken by the AudioClip
+			const AUDIO_CLIP_DESC& desc);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

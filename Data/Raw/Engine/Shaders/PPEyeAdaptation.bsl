@@ -5,6 +5,11 @@ Parameters =
 	Texture2D 	gHistogramTex;
 };
 
+Blocks =
+{
+	Block Input;
+};
+
 Technique =
 {
 	Language = "HLSL11";

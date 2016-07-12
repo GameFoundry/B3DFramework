@@ -7,6 +7,11 @@ Parameters =
 	Texture2D 	gInputTex;
 };
 
+Blocks =
+{
+	Block Input;
+};
+
 Technique =
 {
 	Language = "HLSL11";

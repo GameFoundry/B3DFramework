@@ -28,6 +28,9 @@ namespace BansheeEngine
 		so->destroyInternal(currentSO, true);
 
 		HSceneObject newInstance = prefabLink->instantiate();
+
+		// Remove default parent, and replace with original one
+		newInstance->mParent->removeChild(newInstance);
 		newInstance->mParent = parent;
 
 		restoreLinkedInstanceData(newInstance, soProxy, linkedInstanceData);
@@ -47,6 +50,9 @@ namespace BansheeEngine
 			else
 				topLevelObject = nullptr;
 		}
+
+		if (topLevelObject == nullptr)
+			topLevelObject = so;
 
 		Stack<HSceneObject> todo;
 		todo.push(topLevelObject);
@@ -111,7 +117,7 @@ namespace BansheeEngine
 				// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
 				// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to
 				// change to which GameObjectInstanceData it points. But the GameObjectManager ensures that all handles deserialized
-				// at once (i.e. during the ::instantiate() call above) will share GameObjectHandleData so we can simply replace
+				// at once (i.e. during the ::_clone() call above) will share GameObjectHandleData so we can simply replace
 				// to what they point to, affecting all of the handles to that object. (In another words, we can modify the
 				// new handles at this point, but old ones must keep referencing what they already were.)
 				restoreLinkedInstanceData(newInstance, soProxy, linkedInstanceData);
@@ -121,7 +127,7 @@ namespace BansheeEngine
 			}
 		}
 
-		// Once everything is instantiated, apply diffs, restore old parents & link IDs for root.
+		// Once everything is cloned, apply diffs, restore old parents & link IDs for root.
 		for (auto& entry : newPrefabInstanceData)
 		{
 			// Diffs must be applied after everything is instantiated and instance data restored since it may contain
@@ -134,6 +140,10 @@ namespace BansheeEngine
 			entry.newInstance->setParent(entry.originalParent, false);
 			entry.newInstance->mLinkId = entry.originalLinkId;
 		}
+
+		// Finally, instantiate everything
+		for (auto& entry : newPrefabInstanceData)
+			entry.newInstance->_instantiate(true);
 
 		gResources().unloadAllUnused();
 	}
@@ -173,10 +183,13 @@ namespace BansheeEngine
 		return startingId;
 	}
 
-	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive)
+	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive, bool clearRoot)
 	{
 		Stack<HSceneObject> todo;
 		todo.push(sceneObject);
+
+		if (clearRoot)
+			sceneObject->mLinkId = (UINT32)-1;
 
 		while (!todo.empty())
 		{
@@ -306,9 +319,6 @@ namespace BansheeEngine
 	{
 		Stack<HSceneObject> todo;
 		todo.push(so);
-
-		// Root is not in the instance data map because its link ID belongs to the parent prefab, if any
-		so->_setInstanceData(proxy.instanceData);
 
 		while (!todo.empty())
 		{

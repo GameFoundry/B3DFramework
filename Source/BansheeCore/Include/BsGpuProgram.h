@@ -12,17 +12,6 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Types of programs that may run on GPU. */
-	enum GpuProgramType
-	{
-		GPT_VERTEX_PROGRAM, /**< Vertex program. */
-		GPT_FRAGMENT_PROGRAM, /**< Fragment(pixel) program. */
-		GPT_GEOMETRY_PROGRAM, /**< Geometry program. */
-		GPT_DOMAIN_PROGRAM, /**< Domain (tesselation evaluation) program. */
-		GPT_HULL_PROGRAM, /**< Hull (tesselation control) program. */
-		GPT_COMPUTE_PROGRAM /**< Compute program. */
-	};
-
 	/**	GPU program profiles representing supported feature sets. */
 	enum GpuProgramProfile
 	{

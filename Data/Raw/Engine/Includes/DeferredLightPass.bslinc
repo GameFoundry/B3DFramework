@@ -2,7 +2,7 @@
 #include "$ENGINE$\PerCameraData.bslinc"
 
 Parameters =
-{		
+{
 	Sampler2D 	gGBufferASamp : alias("gGBufferATex");
 	Sampler2D 	gGBufferBSamp : alias("gGBufferBTex");
 	Sampler2D 	gDepthBufferSamp : alias("gDepthBufferTex");

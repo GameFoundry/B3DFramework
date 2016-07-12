@@ -71,9 +71,10 @@ namespace BansheeEngine
 		/**
 		 * Returns the UUID of the prefab this object is linked to, if any. 
 		 *
-		 * @note	Requires a search of all parents potentially.
+		 * @param[in]	onlyDirect	If true, this method will return prefab link only for the root object of the prefab
+		 *							instance. If false the parent objects will be searched for the prefab ID.
 		 */
-		String getPrefabLink() const;
+		String getPrefabLink(bool onlyDirect = false) const;
 
 		/** 
 		 * Returns the root object of the prefab instance that this object belongs to, if any. Returns null if the object 
@@ -98,8 +99,13 @@ namespace BansheeEngine
 		/** @copydoc GameObject::_setInstanceData */
 		void _setInstanceData(GameObjectInstanceDataPtr& other) override;
 
-		/** Register the scene object with the scene and activate all of its components. */
-		void _instantiate();
+		/** 
+		 * Register the scene object with the scene and activate all of its components. 
+		 *
+		 * @param[in]	prefabOnly	If true, only objects within the current prefab will be instantiated. If false all child
+		 *							objects and components will.
+		 */
+		void _instantiate(bool prefabOnly = false);
 
 		/**
 		 * Clears the internally stored prefab diff. If this object is updated from prefab its instance specific changes 
@@ -512,7 +518,7 @@ namespace BansheeEngine
 
 			if (isInstantiated())
 			{
-				newComponent->instantiate();
+				newComponent->_instantiate();
 				newComponent->onInitialized();
 
 				if (getActive())

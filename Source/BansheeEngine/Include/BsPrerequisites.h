@@ -17,6 +17,10 @@
   *	Two dimensional geometry (sprites).
   */
 
+/** @defgroup Application-Engine Application
+ *  Entry point into the application.
+ */
+
 /** @defgroup Components Components
   *	Built-in components.
   */
@@ -29,30 +33,33 @@
  *	User input (mouse, keyboard, gamepad, etc.).
  */
 
+/** @defgroup Platform-Engine Platform
+ *  %Platform specific functionality.
+ */
+
+/** @defgroup Resources-Engine Resources
+  *	Builtin engine resource types and a manager for such resources.
+  */
+
 /** @cond RTTI */
 /** @defgroup RTTI-Impl-Engine RTTI types
  *  Types containing RTTI for specific classes.
  */
 /** @endcond */
 
-/** @defgroup Resources-Engine Resources
-  *	Builtin engine resource types and a manager for such resources.
-  */
-
 /** @defgroup Utility-Engine Utility
  *  Various utility methods and types used by the engine layer.
  */
 
-/** @defgroup Platform-Engine Platform
- *  %Platform specific functionality.
+/** @} */
+/** @} */
+
+/** @addtogroup Internals
+ *  @{
  */
 
-/** @defgroup Application-Engine Application
- *  Entry point into the application.
- */
-
-/** @defgroup Internal-Engine [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @defgroup Internal-Engine Engine
+ *	Layer that builds upon Core, providing specific implementations of its interfaces as well as other high level systems.
  *  @{
  */
 
@@ -79,8 +86,6 @@
 /** @defgroup Utility-Engine-Internal Utility
  *  Various utility methods and types used by the engine layer.
  */
-
-/** @} */
 
 /** @} */
 /** @} */
@@ -194,10 +199,12 @@ namespace BansheeEngine
 	class CRenderable;
 	class CCamera;
 	class CLight;
+	class CAnimation;
 
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
 	typedef GameObjectHandle<CCamera> HCamera;
 	typedef GameObjectHandle<CRenderable> HRenderable;
+	typedef GameObjectHandle<CAnimation> HAnimation;
 	typedef GameObjectHandle<ProfilerOverlay> HProfilerOverlay;
 
 	typedef ResourceHandle<SpriteTexture> HSpriteTexture;

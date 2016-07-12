@@ -402,7 +402,7 @@ namespace BansheeEngine
 	{
 		HFont myFont = font;
 		if (myFont == nullptr)
-			myFont = BuiltinEditorResources::instance().getDefaultFont();
+			myFont = BuiltinEditorResources::instance().getDefaultAAFont();
 
 		mTextData.push_back(TextData());
 		TextData& textData = mTextData.back();
@@ -1109,36 +1109,29 @@ namespace BansheeEngine
 		case GizmoManager::GizmoMaterial::Solid:
 			mSolidMaterial.mViewProj.set(viewProjMat);
 			mSolidMaterial.mViewDir.set((Vector4)viewDir);
-			gRendererUtility().setPass(mSolidMaterial.mat, 0);
-			gRendererUtility().setPassParams(mSolidMaterial.mat);
+			gRendererUtility().setPass(mSolidMaterial.mat);
 			break;
 		case GizmoManager::GizmoMaterial::Wire:
 			mWireMaterial.mViewProj.set(viewProjMat);
-			gRendererUtility().setPass(mWireMaterial.mat, 0);
-			gRendererUtility().setPassParams(mWireMaterial.mat);
+			gRendererUtility().setPass(mWireMaterial.mat);
 			break;
 		case GizmoManager::GizmoMaterial::Line:
 			mLineMaterial.mViewProj.set(viewProjMat);
-			gRendererUtility().setPass(mLineMaterial.mat, 0);
-			gRendererUtility().setPassParams(mLineMaterial.mat);
+			gRendererUtility().setPass(mLineMaterial.mat);
 			break;
 		case GizmoManager::GizmoMaterial::Picking:
 			mPickingMaterial.mViewProj.set(viewProjMat);
-			gRendererUtility().setPass(mPickingMaterial.mat, 0);
-			gRendererUtility().setPassParams(mPickingMaterial.mat);
+			gRendererUtility().setPass(mPickingMaterial.mat);
 			break;
 		case GizmoManager::GizmoMaterial::PickingAlpha:
 			mAlphaPickingMaterial.mViewProj.set(viewProjMat);
 			mAlphaPickingMaterial.mTexture.set(texture);
-			gRendererUtility().setPass(mAlphaPickingMaterial.mat, 0);
-			gRendererUtility().setPassParams(mAlphaPickingMaterial.mat);
+			gRendererUtility().setPass(mAlphaPickingMaterial.mat);
 			break;
 		case GizmoManager::GizmoMaterial::Text:
 			mTextMaterial.mViewProj.set(viewProjMat);
 			mTextMaterial.mTexture.set(texture);
-
-			gRendererUtility().setPass(mTextMaterial.mat, 0);
-			gRendererUtility().setPassParams(mTextMaterial.mat);
+			gRendererUtility().setPass(mTextMaterial.mat);
 			break;
 		}
 		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
@@ -1190,7 +1183,7 @@ namespace BansheeEngine
 				for (auto curRenderData : *renderData)
 				{
 					mIconMaterial.mTexture[passIdx].set(curRenderData.texture);
-					rapi.setGpuParams(GPT_FRAGMENT_PROGRAM, mIconMaterial.mFragParams[passIdx]);
+					gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, mIconMaterial.mFragParams[passIdx]);
 
 					rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 					curIndexOffset += curRenderData.count * 6;
@@ -1207,7 +1200,7 @@ namespace BansheeEngine
 			for (auto curRenderData : *renderData)
 			{
 				mAlphaPickingMaterial.mTexture.set(curRenderData.texture);
-				rapi.setGpuParams(GPT_FRAGMENT_PROGRAM, mAlphaPickingMaterial.mFragParams);
+				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, mAlphaPickingMaterial.mFragParams);
 
 				rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 				curIndexOffset += curRenderData.count * 6;

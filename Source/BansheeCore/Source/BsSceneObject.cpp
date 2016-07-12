@@ -27,7 +27,7 @@ namespace BansheeEngine
 	{
 		if(!mThisHandle.isDestroyed())
 		{
-			LOGWRN("Object is being deleted without being destroyed first?");
+			LOGWRN("Object is being deleted without being destroyed first? " + mName);
 			destroyInternal(mThisHandle, true);
 		}
 	}
@@ -85,9 +85,11 @@ namespace BansheeEngine
 
 			mChildren.clear();
 
-			for (auto iter = mComponents.begin(); iter != mComponents.end(); ++iter)
+			// It's important to remove the elements from the array as soon as they're destroyed, as OnDestroy callbacks
+			// for components might query the SO's components, and we want to only return live ones 
+			while (!mComponents.empty())
 			{
-				HComponent component = *iter;
+				HComponent component = mComponents.back();
 				component->_setIsDestroyed();
 
 				if (isInstantiated())
@@ -98,10 +100,9 @@ namespace BansheeEngine
 					component->onDestroyed();
 				}
 
-				component->destroyInternal(*iter, true);
+				component->destroyInternal(component, true);
+				mComponents.erase(mComponents.end() - 1);
 			}
-
-			mComponents.clear();
 
 			GameObjectManager::instance().unregisterObject(handle);
 		}
@@ -114,10 +115,11 @@ namespace BansheeEngine
 		GameObject::_setInstanceData(other);
 
 		// Instance data changed, so make sure to refresh the handles to reflect that
-		mThisHandle._setHandleData(mThisHandle.getInternalPtr());
+		SPtr<SceneObject> thisPtr = mThisHandle.getInternalPtr();
+		mThisHandle._setHandleData(thisPtr);
 	}
 
-	String SceneObject::getPrefabLink() const
+	String SceneObject::getPrefabLink(bool onlyDirect) const
 	{
 		const SceneObject* curObj = this;
 
@@ -126,7 +128,7 @@ namespace BansheeEngine
 			if (!curObj->mPrefabLinkUUID.empty())
 				return curObj->mPrefabLinkUUID;
 
-			if (curObj->mParent != nullptr)
+			if (curObj->mParent != nullptr && !onlyDirect)
 				curObj = curObj->mParent.get();
 			else
 				curObj = nullptr;
@@ -172,7 +174,7 @@ namespace BansheeEngine
 		{
 			rootObj->mPrefabLinkUUID = "";
 			rootObj->mPrefabDiff = nullptr;
-			PrefabUtility::clearPrefabIds(rootObj->getHandle());
+			PrefabUtility::clearPrefabIds(rootObj->getHandle(), true, false);
 		}
 	}
 
@@ -197,7 +199,7 @@ namespace BansheeEngine
 			child->unsetFlags(flags);
 	}
 
-	void SceneObject::_instantiate()
+	void SceneObject::_instantiate(bool prefabOnly)
 	{
 		std::function<void(SceneObject*)> instantiateRecursive = [&](SceneObject* obj)
 		{
@@ -207,10 +209,13 @@ namespace BansheeEngine
 				gCoreSceneManager().registerNewSO(obj->mThisHandle);
 
 			for (auto& component : obj->mComponents)
-				component->instantiate();
+				component->_instantiate();
 
 			for (auto& child : obj->mChildren)
-				instantiateRecursive(child.get());
+			{
+				if(!prefabOnly || child->mPrefabLinkUUID.empty())
+					instantiateRecursive(child.get());
+			}
 		};
 
 		std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
@@ -224,7 +229,10 @@ namespace BansheeEngine
 			}
 
 			for (auto& child : obj->mChildren)
-				triggerEventsRecursive(child.get());
+			{
+				if (!prefabOnly || child->mPrefabLinkUUID.empty())
+					triggerEventsRecursive(child.get());
+			}
 		};
 
 		instantiateRecursive(this);
@@ -683,8 +691,12 @@ namespace BansheeEngine
 
 	HSceneObject SceneObject::clone(bool instantiate)
 	{
+		bool isInstantiated = !hasFlag(SOF_DontInstantiate);
+
 		if (!instantiate)
 			setFlags(SOF_DontInstantiate);
+		else
+			unsetFlags(SOF_DontInstantiate);
 
 		UINT32 bufferSize = 0;
 
@@ -695,8 +707,10 @@ namespace BansheeEngine
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(serializer.decode(buffer, bufferSize));
 		bs_free(buffer);
 
-		if (!instantiate)
+		if(isInstantiated)
 			unsetFlags(SOF_DontInstantiate);
+		else
+			setFlags(SOF_DontInstantiate);
 
 		return cloneObj->mThisHandle;
 	}

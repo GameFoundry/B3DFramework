@@ -40,11 +40,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Inspectors\AnimationClipInspector.cs" />
+    <Compile Include="Inspectors\AnimationInspector.cs" />
     <Compile Include="Inspectors\AudioClipInspector.cs" />
     <Compile Include="Inspectors\AudioListenerInspector.cs" />
     <Compile Include="Inspectors\AudioSourceInspector.cs" />
     <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
     <Compile Include="Windows\AboutBox.cs" />
+    <Compile Include="Windows\AnimationWindow.cs" />
+    <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
+    <Compile Include="Windows\Animation\GUITimeline.cs" />
     <Compile Include="Windows\BrowseDialog.cs" />
     <Compile Include="Windows\Build\BuildManager.cs" />
     <Compile Include="Windows\Build\BuildWindow.cs" />

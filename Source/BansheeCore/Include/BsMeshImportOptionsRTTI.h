@@ -25,6 +25,8 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mImportAnimation, 5)
 			BS_RTTI_MEMBER_PLAIN(mImportScale, 6)
 			BS_RTTI_MEMBER_PLAIN(mCollisionMeshType, 7)
+			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationSplits, 8)
+			BS_RTTI_MEMBER_PLAIN(mReduceKeyFrames, 9)
 		BS_END_RTTI_MEMBERS
 	public:
 		MeshImportOptionsRTTI()
@@ -45,6 +47,37 @@ namespace BansheeEngine
 		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<MeshImportOptions>();
+		}
+	};
+
+	class BS_CORE_EXPORT AnimationSplitInfoRTTI : public RTTIType <AnimationSplitInfo, IReflectable, AnimationSplitInfoRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(name, 0)
+			BS_RTTI_MEMBER_PLAIN(startFrame, 1)
+			BS_RTTI_MEMBER_PLAIN(endFrame, 2)
+			BS_RTTI_MEMBER_PLAIN(isAdditive, 3)
+		BS_END_RTTI_MEMBERS
+	public:
+		AnimationSplitInfoRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "AnimationSplitInfo";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_AnimationSplitInfo;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<AnimationSplitInfo>();
 		}
 	};
 

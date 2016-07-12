@@ -411,6 +411,21 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Adds an ANimation component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Animation", 7029)]
+        private static void AddAnimation()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+                return;
+
+            UndoRedo.RecordSO(so, false, "Added an Animation component");
+            so.AddComponent<Animation>();
+            EditorApplication.SetSceneDirty();
+        }
+
+        /// <summary>
         /// Creates a new empty scene object.
         /// </summary>
         [MenuItem("Scene Objects/Scene Object", 8051)]

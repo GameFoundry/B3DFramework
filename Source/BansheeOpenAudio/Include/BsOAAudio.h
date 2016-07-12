@@ -31,7 +31,7 @@ namespace BansheeEngine
 		/** @copydoc Audio::isPaused */
 		bool isPaused() const override { return mIsPaused; }
 
-		/** @copydoc Audio::update */
+		/** @copydoc Audio::_update */
 		void _update() override;
 
 		/** @copydoc Audio::setActiveDevice */

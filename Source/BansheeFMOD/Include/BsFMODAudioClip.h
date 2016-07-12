@@ -50,7 +50,7 @@ namespace BansheeEngine
 		/** @copydoc Resource::initialize */
 		void initialize() override;
 
-		/** @copydoc AudioClip::getSourceFormatData */
+		/** @copydoc AudioClip::getSourceStream */
 		SPtr<DataStream> getSourceStream(UINT32& size) override;
 
 		FMOD::Sound* mSound;

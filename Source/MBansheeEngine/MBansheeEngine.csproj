@@ -43,6 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\AnimationClip.cs" />
+    <Compile Include="Animation\AnimationCurve.cs" />
+    <Compile Include="Animation\Interop\NativeAnimation.cs" />
     <Compile Include="Audio\Audio.cs" />
     <Compile Include="Audio\AudioClip.cs" />
     <Compile Include="Audio\AudioListener.cs" />
@@ -73,7 +77,7 @@
     <Compile Include="Utility\FileEx.cs" />
     <Compile Include="GUI\Font.cs" />
     <Compile Include="Scene\GameObject.cs" />
-    <Compile Include="GUI\GUILayoutUtility.cs" />
+    <Compile Include="GUI\GUIUtility.cs" />
     <Compile Include="GUI\GUIButton.cs" />
     <Compile Include="GUI\GUIContent.cs" />
     <Compile Include="GUI\GUIElement.cs" />

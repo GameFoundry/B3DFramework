@@ -84,6 +84,9 @@ namespace BansheeEngine
 		/** Checks if a parameter block with the specified name exists. */
 		bool hasParamBlock(const String& name) const;
 
+		/**	Gets a descriptor for a parameter block buffer with the specified name. */
+		GpuParamBlockDesc* getParamBlockDesc(const String& name) const;
+
 		/** Returns information that determines which texture surfaces to bind as load/store parameters. */
 		const TextureSurface& getLoadStoreSurface(UINT32 slot) const;
 
@@ -252,9 +255,6 @@ namespace BansheeEngine
 	{
 	public:
 		~GpuParamsCore() { }
-
-		/** Uploads all CPU stored parameter buffer data to the GPU buffers. */
-		void updateHardwareBuffers();
 
 		/** @copydoc GpuParamsBase::GpuParamsBase */
 		static SPtr<GpuParamsCore> create(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);

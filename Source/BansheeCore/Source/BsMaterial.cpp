@@ -667,6 +667,31 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
+	typename TMaterial<Core>::GpuParamsType TMaterial<Core>::getGpuParams(UINT32 passIdx, BansheeEngine::GpuProgramType type)
+	{
+		if (passIdx >= mParametersPerPass.size())
+			return nullptr;
+
+		switch(type)
+		{
+		case GPT_VERTEX_PROGRAM:
+			return mParametersPerPass[passIdx]->mVertParams;
+		case GPT_FRAGMENT_PROGRAM:
+			return mParametersPerPass[passIdx]->mFragParams;
+		case GPT_GEOMETRY_PROGRAM:
+			return mParametersPerPass[passIdx]->mGeomParams;
+		case GPT_HULL_PROGRAM:
+			return mParametersPerPass[passIdx]->mHullParams;
+		case GPT_DOMAIN_PROGRAM:
+			return mParametersPerPass[passIdx]->mDomainParams;
+		case GPT_COMPUTE_PROGRAM:
+			return mParametersPerPass[passIdx]->mComputeParams;
+		}
+
+		return nullptr;
+	}
+
+	template<bool Core>
 	void TMaterial<Core>::setParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock)
 	{
 		auto iterFind = mValidShareableParamBlocks.find(name);

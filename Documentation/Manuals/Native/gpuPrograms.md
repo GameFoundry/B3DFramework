@@ -57,9 +57,11 @@ As you can see we must first retrieve a handle to the parameter, and then we can
 # Using GPU programs for rendering {#gpuPrograms_c}
 You can bind a GPU program to the pipeline by calling @ref BansheeEngine::RenderAPI::bindGpuProgram "RenderAPI::bindGpuProgram". Any draw calls following this bind will use the bound GPU program. You can unbind a program by calling @ref BansheeEngine::RenderAPI::unbindGpuProgram "RenderAPI::unbindGpuProgram".
 
-You can bind parameters by calling @ref BansheeEngine::RenderAPI::setGpuParams "RenderAPI::setGpuParams" and providing them with the GPU program type and a @ref BansheeEngine::GpuParams "GpuParams" object which you previously populated with parameter values.
+You can bind parameters for use in the GPU program by calling @ref BansheeEngine::RenderAPICore::setParamBuffer "RenderAPICore::setParamBuffer" for primitive parameters (vector, float, etc.) organized as @ref BansheeEngine::GpuParamBlockBuffer "GpuParamBlockBuffer", and @ref BansheeEngine::RenderAPICore::setTexture "RenderAPICore::setTexture", @ref BansheeEngine::RenderAPICore::setLoadStoreTexture "RenderAPICore::setLoadStoreTexture", @ref BansheeEngine::RenderAPICore::setBuffer "RenderAPICore::setBuffer", @ref BansheeEngine::RenderAPICore::setSamplerState "RenderAPICore::setSamplerState" for textures, buffers and sampler states.
 
-Optionally you can also call @ref BansheeEngine::RenderAPI::setConstantBuffers "RenderAPI::setConstantBuffers" using the same parameters, which will only set the primitive parameters (vectors, floats, etc.) but not textures/samplers/buffers. Sometimes this is useful if you want to set textures/samplers/buffers manually.
+You can retrieve the primitive parameter buffer from a @ref BansheeEngine::Material "Material" by calling @ref BansheeEngine::Material::getParamBuffer "Material::getParamBuffer", or by manually creating and populating one.
+
+Alternatively you can use the helper method @ref BansheeEngine::RendererUtility::setGpuParams "RendererUtility::setGpuParams" which will bind both object and data parameters in the @ref BansheeEngine::GpuParams "BansheeEngine::GpuParams" object.
 
 To learn more about the render API read the [manual](@ref renderAPI).
 

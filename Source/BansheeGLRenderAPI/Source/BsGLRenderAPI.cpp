@@ -248,141 +248,129 @@ namespace BansheeEngine
 		RenderAPICore::unbindGpuProgram(gptype);
 	}
 
-	void GLRenderAPI::setConstantBuffers(GpuProgramType gptype, const SPtr<GpuParamsCore>& bindableParams)
+	void GLRenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
+		const GpuParamDesc& paramDesc)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		bindableParams->updateHardwareBuffers();
-		const GpuParamDesc& paramDesc = bindableParams->getParamDesc();
+		if (buffer == nullptr)
+			return;
+
 		SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
 		GLuint glProgram = activeProgram->getGLHandle();
 
-		UINT8* uniformBufferData = nullptr;
-
-		UINT32 blockBinding = 0;
-		for(auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
+		// 0 means uniforms are not in block, in which case we handle it specially
+		if (slot == 0)
 		{
-			SPtr<GpuParamBlockBufferCore> paramBlockBuffer = bindableParams->getParamBlockBuffer(iter->second.slot);
-			if(paramBlockBuffer == nullptr)
-				continue;
+			UINT8* uniformBufferData = (UINT8*)bs_stack_alloc(buffer->getSize());
+			buffer->readFromGPU(uniformBufferData); // TODO - Don't read from GPU!? Just read the cached version
 
-			if(iter->second.slot == 0)
+			bool hasBoundAtLeastOne = false;
+			for (auto iter = paramDesc.params.begin(); iter != paramDesc.params.end(); ++iter)
 			{
-				// 0 means uniforms are not in block, in which case we handle it specially
-				if (uniformBufferData == nullptr && paramBlockBuffer->getSize() > 0)
+				const GpuParamDataDesc& param = iter->second;
+
+				if (param.paramBlockSlot != 0) // 0 means uniforms are not in a block
+					continue;
+
+				const UINT8* ptrData = uniformBufferData + param.cpuMemOffset * sizeof(UINT32);
+				hasBoundAtLeastOne = true;
+
+				// Note: We don't transpose matrices here even though we don't use column major format
+				// because they are assumed to be pre-transposed in the GpuParams buffer
+				switch (param.type)
 				{
-					uniformBufferData = (UINT8*)bs_alloc(paramBlockBuffer->getSize());
-					paramBlockBuffer->readFromGPU(uniformBufferData); // TODO - Don't read from GPU!? Just read the cached version
+				case GPDT_FLOAT1:
+					glProgramUniform1fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+					break;
+				case GPDT_FLOAT2:
+					glProgramUniform2fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+					break;
+				case GPDT_FLOAT3:
+					glProgramUniform3fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+					break;
+				case GPDT_FLOAT4:
+					glProgramUniform4fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_2X2:
+					glProgramUniformMatrix2fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_2X3:
+					glProgramUniformMatrix3x2fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_2X4:
+					glProgramUniformMatrix4x2fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_3X2:
+					glProgramUniformMatrix2x3fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_3X3:
+					glProgramUniformMatrix3fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_3X4:
+					glProgramUniformMatrix4x3fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_4X2:
+					glProgramUniformMatrix2x4fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_4X3:
+					glProgramUniformMatrix3x4fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_MATRIX_4X4:
+					glProgramUniformMatrix4fv(glProgram, param.gpuMemOffset, param.arraySize,
+						GL_FALSE, (GLfloat*)ptrData);
+					break;
+				case GPDT_INT1:
+					glProgramUniform1iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+					break;
+				case GPDT_INT2:
+					glProgramUniform2iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+					break;
+				case GPDT_INT3:
+					glProgramUniform3iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+					break;
+				case GPDT_INT4:
+					glProgramUniform4iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+					break;
+				case GPDT_BOOL:
+					glProgramUniform1uiv(glProgram, param.gpuMemOffset, param.arraySize, (GLuint*)ptrData);
+					break;
+				default:
+				case GPDT_UNKNOWN:
+					break;
 				}
-
-				continue;
 			}
 
-			const GLGpuParamBlockBufferCore* glParamBlockBuffer = static_cast<const GLGpuParamBlockBufferCore*>(paramBlockBuffer.get());
+			if (hasBoundAtLeastOne)
+				BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
 
-			UINT32 globalBlockBinding = getGLUniformBlockBinding(gptype, blockBinding);
-			glUniformBlockBinding(glProgram, iter->second.slot - 1, globalBlockBinding);
-			glBindBufferRange(GL_UNIFORM_BUFFER, globalBlockBinding, glParamBlockBuffer->getGLHandle(), 0, glParamBlockBuffer->getSize());
-
-			blockBinding++;
-
-			BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
-		}
-
-		bool hasBoundAtLeastOne = false;
-		for(auto iter = paramDesc.params.begin(); iter != paramDesc.params.end(); ++iter)
-		{
-			const GpuParamDataDesc& paramDesc = iter->second;
-
-			if(paramDesc.paramBlockSlot != 0) // 0 means uniforms are not in a block
-				continue;
-
-			const UINT8* ptrData = uniformBufferData + paramDesc.cpuMemOffset * sizeof(UINT32);
-			hasBoundAtLeastOne = true;
-
-			// Note: We don't transpose matrices here even though we don't use column major format
-			// because they are assumed to be pre-transposed in the GpuParams buffer
-			switch(paramDesc.type)
+			if (uniformBufferData != nullptr)
 			{
-			case GPDT_FLOAT1:
-				glProgramUniform1fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLfloat*)ptrData);
-				break;
-			case GPDT_FLOAT2:
-				glProgramUniform2fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLfloat*)ptrData);
-				break;
-			case GPDT_FLOAT3:
-				glProgramUniform3fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLfloat*)ptrData);
-				break;
-			case GPDT_FLOAT4:
-				glProgramUniform4fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_2X2:
-				glProgramUniformMatrix2fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_2X3:
-				glProgramUniformMatrix3x2fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_2X4:
-				glProgramUniformMatrix4x2fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_3X2:
-				glProgramUniformMatrix2x3fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_3X3:
-				glProgramUniformMatrix3fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_3X4:
-				glProgramUniformMatrix4x3fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_4X2:
-				glProgramUniformMatrix2x4fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_4X3:
-				glProgramUniformMatrix3x4fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_MATRIX_4X4:
-				glProgramUniformMatrix4fv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, 
-					GL_FALSE, (GLfloat*)ptrData);
-				break;
-			case GPDT_INT1:
-				glProgramUniform1iv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLint*)ptrData);
-				break;
-			case GPDT_INT2:
-				glProgramUniform2iv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLint*)ptrData);
-				break;
-			case GPDT_INT3:
-				glProgramUniform3iv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLint*)ptrData);
-				break;
-			case GPDT_INT4:
-				glProgramUniform4iv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLint*)ptrData);
-				break;
-			case GPDT_BOOL:
-				glProgramUniform1uiv(glProgram, paramDesc.gpuMemOffset, paramDesc.arraySize, (GLuint*)ptrData);
-				break;
-			default:
-			case GPDT_UNKNOWN:
-				break;
+				bs_stack_free(uniformBufferData);
 			}
 		}
-
-		if (hasBoundAtLeastOne)
-			BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
-
-		if(uniformBufferData != nullptr)
+		else
 		{
-			bs_free(uniformBufferData);
+			const GLGpuParamBlockBufferCore* glParamBlockBuffer = static_cast<const GLGpuParamBlockBufferCore*>(buffer.get());
+
+			UINT32 globalBlockBinding = getGLUniformBlockBinding(gptype, slot - 1);
+			glUniformBlockBinding(glProgram, slot - 1, globalBlockBinding);
+			glBindBufferRange(GL_UNIFORM_BUFFER, globalBlockBinding, glParamBlockBuffer->getGLHandle(), 0, 
+				glParamBlockBuffer->getSize());
+
+			BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
 		}
 	}
 
-	void GLRenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, bool enabled, const SPtr<TextureCore>& texPtr)
+	void GLRenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -391,7 +379,7 @@ namespace BansheeEngine
 			return;
 
 		SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
-		if (enabled && tex)
+		if (tex != nullptr)
 		{
 			mTextureTypes[unit] = tex->getGLTextureTarget();
 			glBindTexture(mTextureTypes[unit], tex->getGLID());
@@ -1380,11 +1368,11 @@ namespace BansheeEngine
 		if (!activateGLTextureUnit(unit))
 			return;
 
-		GLfloat largest_supported_anisotropy = 0;
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_supported_anisotropy);
-		if (maxAnisotropy > largest_supported_anisotropy)
-			maxAnisotropy = largest_supported_anisotropy ? 
-			static_cast<UINT32>(largest_supported_anisotropy) : 1;
+		GLfloat maxSupportAnisotropy = 0;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxSupportAnisotropy);
+		if (maxAnisotropy > maxSupportAnisotropy)
+			maxAnisotropy = maxSupportAnisotropy ? 
+			static_cast<UINT32>(maxSupportAnisotropy) : 1;
 
 		if(maxAnisotropy < 1)
 			maxAnisotropy = 1;

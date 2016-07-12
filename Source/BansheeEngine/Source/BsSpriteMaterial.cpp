@@ -60,7 +60,13 @@ namespace BansheeEngine
 		const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform,
 		const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const
 	{
-		mTextureParam.set(texture);
+		SPtr<TextureCore> spriteTexture;
+		if (texture != nullptr)
+			spriteTexture = texture;
+		else
+			spriteTexture = TextureCore::WHITE;
+
+		mTextureParam.set(spriteTexture);
 		mSamplerParam.set(sampler);
 		mTintParam.set(tint);
 		mInvViewportWidthParam.set(invViewportSize.x);

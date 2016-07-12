@@ -11,6 +11,7 @@
 #include "BsRasterizerState.h"
 #include "BsGpuParams.h"
 #include "BsGpuParamDesc.h"
+#include "BsGpuParamBlockBuffer.h"
 #include "BsShapeMeshes3D.h"
 #include "BsLight.h"
 #include "BsShader.h"
@@ -115,9 +116,9 @@ namespace BansheeEngine
 
 	}
 
-	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 
 		SPtr<PassCore> pass = material->getPass(passIdx);
 		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
@@ -161,52 +162,54 @@ namespace BansheeEngine
 
 			if (stage.enable)
 			{
-				rs.bindGpuProgram(stage.program);
-				rs.setGpuParams(stage.type, stage.params);
+				rapi.bindGpuProgram(stage.program);
+
+				if(bindParameters)
+					setGpuParams(stage.type, stage.params);
 
 			}
 			else
-				rs.unbindGpuProgram(stage.type);
+				rapi.unbindGpuProgram(stage.type);
 		}
 
 		// Set up non-texture related pass settings
 		if (pass->getBlendState() != nullptr)
-			rs.setBlendState(pass->getBlendState());
+			rapi.setBlendState(pass->getBlendState());
 		else
-			rs.setBlendState(BlendStateCore::getDefault());
+			rapi.setBlendState(BlendStateCore::getDefault());
 
 		if (pass->getDepthStencilState() != nullptr)
-			rs.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
 		else
-			rs.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
 
 		if (pass->getRasterizerState() != nullptr)
-			rs.setRasterizerState(pass->getRasterizerState());
+			rapi.setRasterizerState(pass->getRasterizerState());
 		else
-			rs.setRasterizerState(RasterizerStateCore::getDefault());
+			rapi.setRasterizerState(RasterizerStateCore::getDefault());
 	}
 
-	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 
 		SPtr<PassCore> pass = material->getPass(passIdx);
 		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
 
 		if(pass->hasComputeProgram())
 		{
-			rs.bindGpuProgram(pass->getComputeProgram());
-			rs.setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
+			rapi.bindGpuProgram(pass->getComputeProgram());
+
+			if (bindParameters)
+				setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
 		}
 		else
-			rs.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
+			rapi.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
 	}
 
 	void RendererUtility::setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx)
 	{
 		const SPtr<PassParametersCore>& passParams = material->getPassParameters(passIdx);
-
-		RenderAPICore& rs = RenderAPICore::instance();
 
 		struct StageData
 		{
@@ -233,50 +236,59 @@ namespace BansheeEngine
 			if (params == nullptr)
 				continue;
 
-			const GpuParamDesc& paramDesc = params->getParamDesc();
+			setGpuParams(stage.type, params);
+		}
+	}
 
-			for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-			{
-				SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
+	void RendererUtility::setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params)
+	{
+		RenderAPICore& rapi = RenderAPICore::instance();
+		const GpuParamDesc& paramDesc = params->getParamDesc();
 
-				if (samplerState == nullptr)
-					rs.setSamplerState(stage.type, iter->second.slot, SamplerStateCore::getDefault());
-				else
-					rs.setSamplerState(stage.type, iter->second.slot, samplerState);
-			}
+		for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+		{
+			SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
 
-			for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
-			{
-				SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
+			if (samplerState == nullptr)
+				rapi.setSamplerState(type, iter->second.slot, SamplerStateCore::getDefault());
+			else
+				rapi.setSamplerState(type, iter->second.slot, samplerState);
+		}
 
-				if (texture == nullptr)
-					rs.setTexture(stage.type, iter->second.slot, false, nullptr);
-				else
-					rs.setTexture(stage.type, iter->second.slot, true, texture);
-			}
+		for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
+		{
+			SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
 
-			for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
-			{
-				SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
-				const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
+			rapi.setTexture(type, iter->second.slot, texture);
+		}
 
-				if (texture == nullptr)
-					rs.setLoadStoreTexture(stage.type, iter->second.slot, false, nullptr, surface);
-				else
-					rs.setLoadStoreTexture(stage.type, iter->second.slot, true, texture, surface);
-			}
+		for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
+		{
+			SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
+			const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
 
-			for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
-			{
-				SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
+			if (texture == nullptr)
+				rapi.setLoadStoreTexture(type, iter->second.slot, false, nullptr, surface);
+			else
+				rapi.setLoadStoreTexture(type, iter->second.slot, true, texture, surface);
+		}
 
-				bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
-					iter->second.type != GPOT_STRUCTURED_BUFFER;
+		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+		{
+			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
 
-				rs.setBuffer(stage.type, iter->second.slot, buffer, isLoadStore);
-			}
+			bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+				iter->second.type != GPOT_STRUCTURED_BUFFER;
 
-			rs.setConstantBuffers(stage.type, params);
+			rapi.setBuffer(type, iter->second.slot, buffer, isLoadStore);
+		}
+
+		for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
+		{
+			SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
+			blockBuffer->flushToGPU();
+
+			rapi.setParamBuffer(type, iter->second.slot, blockBuffer, paramDesc);
 		}
 	}
 

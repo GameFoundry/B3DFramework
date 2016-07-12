@@ -60,6 +60,9 @@ namespace BansheeEngine
 		 * @param[in]	a				Start point of the line.
 		 * @param[in]	b				End point of the line.
 		 * @param[in]	width			Width of the line.
+		 * @param[in]	border			Optional border that will increase the width and the length at both end-points. 
+		 *								Useful if you are using some kind of filtering for the line rendering, as the
+		 *								filtered pixels can belong to the border region.
 		 * @param[in]	color			Color of the line.
 		 * @param[out]	meshData		Mesh data that will be populated by this method.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
@@ -74,7 +77,7 @@ namespace BansheeEngine
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void quadLine(const Vector2& a, const Vector2& b, float width, const Color& color,
+		static void quadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color,
 			const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset);
 
 		/**
@@ -101,6 +104,9 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	linePoints		A list of start and end points for the lines.
 		 * @param[in]	width			Width of the line.
+		 * @param[in]	border			Optional border that will increase the width and the length at both end-points.
+		 *								Useful if you are using some kind of filtering for the line rendering, as the
+		 *								filtered pixels can belong to the border region.
 		 * @param[in]	color			Color of the line.
 		 * @param[out]	meshData		Mesh data that will be populated by this method.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
@@ -115,7 +121,7 @@ namespace BansheeEngine
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void quadLineList(const Vector<Vector2>& linePoints, float width, 
+		static void quadLineList(const Vector<Vector2>& linePoints, float width, float border,
 			const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset);
 
 		/**
@@ -125,6 +131,9 @@ namespace BansheeEngine
 		 * @param[in]	linePoints		A list of start and end points for the lines.
 		 * @param[in]	numPoints		Number of points in the @p linePoints buffer.
 		 * @param[in]	width			Width of the line.
+		 * @param[in]	border			Optional border that will increase the width and the length at both end-points.
+		 *								Useful if you are using some kind of filtering for the line rendering, as the
+		 *								filtered pixels can belong to the border region.
 		 * @param[out]	outVertices		Pre-allocated buffer for the vertices, of size ((numLines * 2) + 2) * @p vertexStride
 		 *								if @p indexed is true, or (numLines * 6) * @p vertexStride if false.
 		 * @param[in]	vertexStride	Distance between two vertices in the output buffer. Must be at least sizeof(Vector2).
@@ -132,7 +141,7 @@ namespace BansheeEngine
 		 *								buffer will be used for rendering. If false then (numLines * 6) vertices will be
 		 *								generated.
 		 */
-		static void quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, UINT8* outVertices, 
+		static void quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, float border, UINT8* outVertices,
 			UINT32 vertexStride, bool indexed);
 
 		static const UINT32 NUM_VERTICES_AA_LINE;

@@ -54,11 +54,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="a">Starting point of the line, relative to the canvas origin (top-left).</param>
         /// <param name="b">Ending point of the line, relative to the canvas origin (top-left).</param>
-        /// <param name="width">Color of the line.</param>
-        public void DrawLine(Vector2I a, Vector2I b, float width = 1.0f)
+        public void DrawLine(Vector2I a, Vector2I b)
         {
             Color color = Color.White;
-            Internal_DrawLine(mCachedPtr, ref a, ref b, width, ref color);
+            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color);
         }
 
         /// <summary>
@@ -66,11 +65,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="a">Starting point of the line, relative to the canvas origin (top-left).</param>
         /// <param name="b">Ending point of the line, relative to the canvas origin (top-left).</param>
-        /// <param name="color">Width of the line, in pixels.</param>
-        /// <param name="width">Color of the line.</param>
-        public void DrawLine(Vector2I a, Vector2I b, Color color, float width = 1.0f)
+        /// <param name="color">Color of the line.</param>
+        public void DrawLine(Vector2I a, Vector2I b, Color color)
         {
-            Internal_DrawLine(mCachedPtr, ref a, ref b, width, ref color);
+            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color);
         }
 
         /// <summary>
@@ -79,11 +77,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="vertices">Points to use for drawing the line. Must have at least two elements. All points are 
         ///                        relative to the canvas origin(top-left).</param>
-        /// <param name="width">Width of the line, in pixels.</param>
-        public void DrawPolyLine(Vector2I[] vertices, float width = 1.0f)
+        public void DrawPolyLine(Vector2I[] vertices)
         {
             Color color = Color.White;
-            Internal_DrawPolyLine(mCachedPtr, vertices, width, ref color);
+            Internal_DrawPolyLine(mCachedPtr, vertices, ref color);
         }
 
         /// <summary>
@@ -93,10 +90,9 @@ namespace BansheeEngine
         /// <param name="vertices">Points to use for drawing the line. Must have at least two elements. All points are 
         ///                        relative to the canvas origin(top-left).</param>
         /// <param name="color">Color of the line.</param>
-        /// <param name="width">Width of the line, in pixels.</param>
-        public void DrawPolyLine(Vector2I[] vertices, Color color, float width = 1.0f)
+        public void DrawPolyLine(Vector2I[] vertices, Color color)
         {
-            Internal_DrawPolyLine(mCachedPtr, vertices, width, ref color);
+            Internal_DrawPolyLine(mCachedPtr, vertices, ref color);
         }
 
         /// <summary>
@@ -233,11 +229,11 @@ namespace BansheeEngine
         private static extern void Internal_CreateInstance(GUICanvas instance, string style, GUIOption[] options);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_DrawLine(IntPtr nativeInstance, ref Vector2I a, ref Vector2I b, float width, 
+        private static extern void Internal_DrawLine(IntPtr nativeInstance, ref Vector2I a, ref Vector2I b,
             ref Color color);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_DrawPolyLine(IntPtr nativeInstance, Vector2I[] vertices, float width, 
+        private static extern void Internal_DrawPolyLine(IntPtr nativeInstance, Vector2I[] vertices,
             ref Color color);
 
         [MethodImpl(MethodImplOptions.InternalCall)]

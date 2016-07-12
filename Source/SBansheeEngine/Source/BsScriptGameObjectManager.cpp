@@ -74,10 +74,6 @@ namespace BansheeEngine
 
 	ScriptComponent* ScriptGameObjectManager::createScriptComponent(MonoObject* existingInstance, const GameObjectHandle<ManagedComponent>& component)
 	{
-		ScriptGameObjectBase* comp = getScriptComponent(component.getInstanceId());
-		if (comp != nullptr)
-			BS_EXCEPT(InvalidStateException, "Script object for this Component already exists.");
-
 		ScriptComponent* nativeInstance = new (bs_alloc<ScriptComponent>()) ScriptComponent(existingInstance);
 		nativeInstance->setNativeHandle(component);
 

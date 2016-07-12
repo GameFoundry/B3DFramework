@@ -208,7 +208,7 @@ namespace BansheeEngine
 		BoneWeight* weightDst = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			int* indices = (int*)indexPtr;
+			UINT8* indices = indexPtr;
 			float* weights = (float*)weightPtr;
 
 			weightDst->index0 = indices[0];
@@ -246,7 +246,7 @@ namespace BansheeEngine
 		BoneWeight* weightSrc = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			int* indices = (int*)indexPtr;
+			UINT8* indices = indexPtr;
 			float* weights = (float*)weightPtr;
 
 			indices[0] = weightSrc->index0;

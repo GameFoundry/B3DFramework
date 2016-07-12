@@ -24,7 +24,7 @@ namespace BansheeEngine
 
 	void GLVertexBufferCore::initialize()
 	{
-		mBuffer = GLBuffer(GL_ARRAY_BUFFER, mSizeInBytes, mUsage);
+		mBuffer.initialize(GL_ARRAY_BUFFER, mSizeInBytes, mUsage);
 		
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexBuffer);
 		VertexBufferCore::initialize();

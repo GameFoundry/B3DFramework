@@ -4,6 +4,11 @@ Parameters =
 	RWTexture2D gOutputTex;
 };
 
+Blocks =
+{
+	Block Input;
+};
+
 #define NUM_BUCKETS (THREADGROUP_SIZE_X * THREADGROUP_SIZE_Y)
 
 Technique =

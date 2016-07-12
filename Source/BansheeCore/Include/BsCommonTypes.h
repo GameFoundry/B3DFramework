@@ -141,6 +141,17 @@ namespace BansheeEngine
 		GBL_WRITE_ONLY	
 	};
 
+	/** Types of programs that may run on GPU. */
+	enum GpuProgramType
+	{
+		GPT_VERTEX_PROGRAM, /**< Vertex program. */
+		GPT_FRAGMENT_PROGRAM, /**< Fragment(pixel) program. */
+		GPT_GEOMETRY_PROGRAM, /**< Geometry program. */
+		GPT_DOMAIN_PROGRAM, /**< Domain (tesselation evaluation) program. */
+		GPT_HULL_PROGRAM, /**< Hull (tesselation control) program. */
+		GPT_COMPUTE_PROGRAM /**< Compute program. */
+	};
+
 	/**
 	 * Values that represent hardware buffer usage. These usually determine in what type of memory is buffer placed in,
 	 * however that depends on rendering API.

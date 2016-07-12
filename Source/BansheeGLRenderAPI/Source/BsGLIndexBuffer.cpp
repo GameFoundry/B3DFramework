@@ -18,7 +18,7 @@ namespace BansheeEngine
 
 	void GLIndexBufferCore::initialize()
 	{
-		mBuffer = GLBuffer(GL_ELEMENT_ARRAY_BUFFER, mSizeInBytes, mUsage);
+		mBuffer.initialize(GL_ELEMENT_ARRAY_BUFFER, mSizeInBytes, mUsage);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_IndexBuffer);
 		IndexBufferCore::initialize();

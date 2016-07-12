@@ -1238,7 +1238,7 @@ namespace BansheeEditor
             StopRename();
 
             Vector2I openPosition;
-            Rect2I buttonBounds = GUILayoutUtility.CalculateBounds(optionsButton, GUI);
+            Rect2I buttonBounds = GUIUtility.CalculateBounds(optionsButton, GUI);
 
             openPosition.x = buttonBounds.x + buttonBounds.width / 2;
             openPosition.y = buttonBounds.y + buttonBounds.height / 2;
@@ -1477,7 +1477,7 @@ namespace BansheeEditor
                     if (so == null)
                         continue;
 
-                    Prefab newPrefab = new Prefab(so);
+                    Prefab newPrefab = new Prefab(so, false);
 
                     string destination = LibraryUtility.GetUniquePath(Path.Combine(destinationFolder, so.Name + ".prefab"));
                     addedResources.Add(destination);

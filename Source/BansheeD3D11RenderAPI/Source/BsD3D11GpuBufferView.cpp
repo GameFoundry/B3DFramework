@@ -57,8 +57,8 @@ namespace BansheeEngine
 		{
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-			desc.Buffer.ElementOffset = firstElement * elementWidth;
-			desc.Buffer.ElementWidth = elementWidth;
+			desc.Buffer.FirstElement = firstElement;
+			desc.Buffer.NumElements = numElements;
 		}
 		else if (props.getType() == GBT_RAW)
 		{

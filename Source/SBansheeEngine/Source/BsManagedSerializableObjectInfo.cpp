@@ -23,6 +23,7 @@
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
 #include "BsScriptAudioClip.h"
+#include "BsScriptAnimationClip.h"
 #include "BsScriptPrefab.h"
 #include "BsScriptManagedResource.h"
 
@@ -257,6 +258,7 @@ namespace BansheeEngine
 		case ScriptReferenceType::PhysicsMaterial:
 		case ScriptReferenceType::PhysicsMesh:
 		case ScriptReferenceType::AudioClip:
+		case ScriptReferenceType::AnimationClip:
 		case ScriptReferenceType::SceneObject:
 		case ScriptReferenceType::Component:
 			return true;
@@ -307,6 +309,8 @@ namespace BansheeEngine
 			return ScriptPhysicsMesh::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::AudioClip:
 			return ScriptAudioClip::getMetaData()->scriptClass->_getInternalClass();
+		case ScriptReferenceType::AnimationClip:
+			return ScriptAnimationClip::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::SceneObject:
 			return ScriptAssemblyManager::instance().getSceneObjectClass()->_getInternalClass();
 		case ScriptReferenceType::Component:

@@ -98,7 +98,7 @@ namespace BansheeEngine
 		/** Returns position of the pointer (for example mouse cursor) relative to the screen. */
 		Vector2I getPointerPosition() const;
 
-		/** Returns difference between last and current pointer position. */
+		/** Returns difference between pointer position between current and last frame. */
 		Vector2I getPointerDelta() const { return mPointerDelta; }
 
 		/**

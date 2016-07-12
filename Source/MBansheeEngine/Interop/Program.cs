@@ -7,8 +7,16 @@ using System.Runtime.CompilerServices;
 namespace BansheeEngine
 {
     /** @addtogroup BansheeEngine
-     *  Primary scripting API.
+     *  Documentation for the engine scripting API.
      *  @{
+     */
+
+    /** @defgroup Animation Animation
+     *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+     */
+
+    /** @defgroup Audio Audio
+     *  Audio clips, 3D sound and music reproduction.
      */
 
     /** @defgroup GUI-Engine GUI 
@@ -19,9 +27,11 @@ namespace BansheeEngine
      *  %Input (mouse, keyboard, gamepad, etc.).
      */
 
-    /** @defgroup Audio Audio
-     *  Audio clips, 3D sound and music reproduction.
+    /** @cond INTEROP */
+    /** @defgroup Interop Interop 
+     *  Glue types that are used for C++/C# interop.
      */
+    /** @endcond */
 
     /** @defgroup Math Math 
      *  Variety of general purpose math functionality.
@@ -30,12 +40,6 @@ namespace BansheeEngine
     /** @defgroup Physics Physics 
      *  %Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
      */
-
-    /** @cond INTEROP */
-    /** @defgroup Interop Interop 
-     *  Glue types that are used for C++/C# interop.
-     */
-    /** @endcond */
 
     /** @defgroup Rendering Rendering 
      *  Materials, shaders, textures, meshes and components relating to rendering.

@@ -60,9 +60,15 @@ namespace BansheeEngine
 		/**
 		 * Clears all prefab "link" IDs in the provided object and its children.
 		 *
+		 * @param[in]	sceneObject		Prefab instance to clear the link IDs from.
+		 * @param[in]	recursive		If true, all children of the provided scene object will be cleared as well.
+		 * @param[in]	clearRoot		If true, the root provided object will have its link ID cleared. If false the root
+		 *								object's components will have their IDs cleared but not the scene object itself.
+		 *								(Child scene objects will have their link IDs cleared in case @p recursive is true.)
+		 *
 		 * @note	If any of its children belong to another prefab they will not be cleared.
 		 */
-		static void clearPrefabIds(const HSceneObject& sceneObject, bool recursive = true);
+		static void clearPrefabIds(const HSceneObject& sceneObject, bool recursive = true, bool clearRoot = true);
 
 		/**
 		 * Updates the internal prefab diff data by recording the difference between the current values in the provided

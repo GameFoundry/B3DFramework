@@ -36,6 +36,9 @@ namespace BansheeEngine
 		}
 
 		GameObjectManager::instance().destroyQueuedObjects();
+
+		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
+		_setRootNode(newRoot);
 	}
 
 	void CoreSceneManager::_setRootNode(const HSceneObject& root)

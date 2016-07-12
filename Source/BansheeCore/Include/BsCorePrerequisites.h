@@ -13,9 +13,21 @@
  *  @{
  */
 
-/** @defgroup Audio Audio
- *	Audio clips, 3D sound and music reproduction.
+/** @defgroup Animation Animation
+ *	%Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
  */
+
+/** @defgroup Application-Core Application
+ *  Entry point into the application and other general functionality.
+ */
+
+/** @defgroup Audio Audio
+ *	%Audio clips, 3D sound and music reproduction.
+ */
+
+/** @defgroup Components-Core Components
+  *	Built-in components (elements that may be attached to scene objects).
+  */
 
 /** @defgroup CoreThread Core thread
  *	Core objects and interaction with the core (rendering) thread.
@@ -35,6 +47,10 @@
 
 /** @defgroup Material Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Physics Physics
+ *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
  /** @defgroup Profiling Profiling
@@ -71,21 +87,24 @@
  *  Various utility methods and types used by the core layer.
  */
 
-/** @defgroup Application-Core Application
- *  Entry point into the application and other general functionality.
- */
+/** @} */
+/** @} */
 
-/** @defgroup Components-Core Components
-  *	Built-in components (elements that may be attached to scene objects).
-  */
-
-/** @defgroup Physics Physics
- *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
-/** @defgroup Internal-Core [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @addtogroup Internals
  *  @{
+ */
+
+/** @defgroup Internal-Core Core
+ *	Second lowest layer that provides core engine functionality and abstract interfaces for various systems.
+ *  @{
+ */
+
+/** @defgroup Animation-Internal Animation
+ *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
+/** @defgroup Audio-Internal Audio
+ *	Audio clips, 3D sound and music reproduction.
  */
 
 /** @defgroup CoreThread-Internal Core thread
@@ -106,6 +125,10 @@
 
 /** @defgroup Material-Internal Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Physics-Internal Physics
+ *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
 /** @defgroup Platform-Internal Platform
@@ -139,16 +162,6 @@
 /** @defgroup Utility-Core-Internal Utility
  *  Various utility methods and types used by the core layer.
  */
-
-/** @defgroup Physics-Internal Physics
- *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
-/** @defgroup Audio-Internal Audio
- *	Audio clips, 3D sound and music reproduction.
- */
-
-/** @} */
 
 /** @} */
 /** @} */
@@ -351,6 +364,11 @@ namespace BansheeEngine
 	class AudioListener;
 	class AudioSource;
 	class AudioClipImportOptions;
+	class AnimationClip;
+	template <class T> class TAnimationCurve;
+	struct AnimationCurves;
+	class Skeleton;
+	class Animation;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -501,7 +519,15 @@ namespace BansheeEngine
 		TID_AudioClip = 1111,
 		TID_AudioClipImportOptions = 1112,
 		TID_CAudioListener = 1113,
-		TID_CAudioSource = 1114
+		TID_CAudioSource = 1114,
+		TID_AnimationClip = 1115,
+		TID_AnimationCurve = 1116,
+		TID_KeyFrame = 1117,
+		TID_NamedAnimationCurve = 1118,
+		TID_Skeleton = 1119,
+		TID_SkeletonBoneInfo = 1120,
+		TID_AnimationSplitInfo = 1121,
+		TID_CAnimation = 1122
 	};
 }
 
@@ -529,6 +555,7 @@ namespace BansheeEngine
 	typedef ResourceHandle<PhysicsMaterial> HPhysicsMaterial;
 	typedef ResourceHandle<PhysicsMesh> HPhysicsMesh;
 	typedef ResourceHandle<AudioClip> HAudioClip;
+	typedef ResourceHandle<AnimationClip> HAnimationClip;
 
 	/** @} */
 }

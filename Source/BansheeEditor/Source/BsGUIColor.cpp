@@ -78,7 +78,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void GUIColor::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
+	void GUIColor::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		UINT32 alphaSpriteIdx = mColorSprite->getNumRenderElements();
 
@@ -90,6 +90,7 @@ namespace BansheeEngine
 
 		numVertices = numQuads * 4;
 		numIndices = numQuads * 6;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIColor::updateRenderElementsInternal()
@@ -119,15 +120,19 @@ namespace BansheeEngine
 		return GUIHelper::calcOptimalContentsSize(Vector2I(80, 10), *_getStyle(), _getDimensions()); // Arbitrary size
 	}
 
-	void GUIColor::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIColor::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 vertexStride = sizeof(Vector2) * 2;
+		UINT32 indexStride = sizeof(UINT32);
+		
 		UINT32 alphaSpriteIdx = mColorSprite->getNumRenderElements();
-
+		
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
 		if(renderElementIdx < alphaSpriteIdx)
 		{
-			mColorSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+			mColorSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 				vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 		}
 		else if(renderElementIdx >= alphaSpriteIdx)
@@ -139,7 +144,7 @@ namespace BansheeEngine
 			Rect2I alphaClipRect = mLayoutData.getLocalClipRect();
 			alphaClipRect.x -= xOffset;
 
-			mAlphaSprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+			mAlphaSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 				vertexStride, indexStride, alphaSpriteIdx - renderElementIdx, alphaOffset, alphaClipRect);
 		}
 	}

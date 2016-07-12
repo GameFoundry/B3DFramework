@@ -69,6 +69,9 @@ namespace BansheeEngine
 		/**	Saves the current state of the scene in memory. */
 		void saveSceneInMemory();
 
+		/** Pauses or unpauses all pausable engine systems. */
+		void setSystemsPauseState(bool paused);
+
 		PlayInEditorState mState;
 		PlayInEditorState mNextState;
 		bool mFrameStepActive;

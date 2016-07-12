@@ -15,6 +15,21 @@ namespace BansheeEngine
 	GLBuffer::GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage)
 		:mTarget(target), mBufferId(0), mZeroLocked(false)
 	{
+		initialize(target, size, usage);
+	}
+
+	GLBuffer::~GLBuffer()
+	{
+		if(mBufferId != 0)
+			glDeleteBuffers(1, &mBufferId);
+	}
+
+	void GLBuffer::initialize(GLenum target, UINT32 size, GpuBufferUsage usage)
+	{
+		assert(mBufferId == 0 && "Buffer already initialized");
+
+		mTarget = target;
+
 		glGenBuffers(1, &mBufferId);
 
 		if (!mBufferId)
@@ -24,11 +39,6 @@ namespace BansheeEngine
 
 		glBindBuffer(target, mBufferId);
 		glBufferData(target, size, nullptr, GLHardwareBufferCoreManager::getGLUsage(usage));
-	}
-
-	GLBuffer::~GLBuffer()
-	{
-		glDeleteBuffers(1, &mBufferId);
 	}
 
 	void* GLBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options)

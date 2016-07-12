@@ -133,6 +133,9 @@ namespace BansheeEngine
 		/**	Marks the resource dependencies list as dirty and schedules it for rebuild. */
 		virtual void _markResourcesDirty() { }
 
+		/** Triggered whenever the renderable's mesh changes. */
+		virtual void onMeshChanged() { }
+
 		MeshType mMesh;
 		Vector<MaterialType> mMaterials;
 		UINT64 mLayer;
@@ -158,14 +161,17 @@ namespace BansheeEngine
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
 
-		/**	Returns the type that controls how is this object rendered. */
-		RenderableType getRenderableType() const { return RenType_LitTextured; }
-
 		/**	Sets an ID that can be used for uniquely identifying this handler by the renderer. */
 		void setRendererId(UINT32 id) { mRendererId = id; }
 
 		/**	Retrieves an ID that can be used for uniquely identifying this handler by the renderer. */
 		UINT32 getRendererId() const { return mRendererId; }
+
+		/** Checks is the mesh geometry rendered by this renderable animated using skeleton or blend shape animation. */
+		bool isAnimated() const { return mAnimationId != (UINT64)-1; }
+
+		/** Returns the identifier of the animation, if this object is animated using skeleton or blend shape animation. */
+		UINT64 getAnimationId() const { return mAnimationId; }
 
 	protected:
 		friend class Renderable;
@@ -179,6 +185,7 @@ namespace BansheeEngine
 		void syncToCore(const CoreSyncData& data) override;
 
 		UINT32 mRendererId;
+		UINT64 mAnimationId;
 	};
 
 	/** @copydoc TRenderable */
@@ -187,6 +194,9 @@ namespace BansheeEngine
 	public:
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
+
+		/** Sets the animation that will be used for animating the attached mesh. */
+		void setAnimation(const SPtr<Animation>& animation);
 
 		/**	Retrieves an implementation of a renderable handler usable only from the core thread. */
 		SPtr<RenderableCore> getCore() const;
@@ -205,6 +215,9 @@ namespace BansheeEngine
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
+
+		/** @copydoc TRenderable::onMeshChanged */
+		void onMeshChanged() override;
 
 		/** @copydoc TRenderable::_markCoreDirty */
 		void _markCoreDirty(RenderableDirtyFlag flag = RenderableDirtyFlag::Everything) override;
@@ -234,6 +247,7 @@ namespace BansheeEngine
 		static SPtr<Renderable> createEmpty();
 
 		UINT32 mLastUpdateHash;
+		SPtr<Animation> mAnimation;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -241,7 +255,7 @@ namespace BansheeEngine
 	public:
 		friend class RenderableRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

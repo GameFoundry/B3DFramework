@@ -18,7 +18,7 @@ namespace BansheeEngine
 		if (type != GBT_STANDARD)
 			assert(format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
 		else
-			assert(elementSize != 0 && "No element size can be provided for standard buffer. Size is determined from format.");
+			assert(elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
 	}
 
 	D3D11GpuBufferCore::~D3D11GpuBufferCore()

@@ -203,7 +203,7 @@ namespace BansheeEngine
         public static event PointerEventDelegate OnPointerReleased;
 
         /// <summary>
-        /// Triggered when a button on the pointing device (mouse, touch) is pressed twice in rappid succession.
+        /// Triggered when a button on the pointing device (mouse, touch) is pressed twice in rapid succession.
         /// </summary>
         public static event PointerEventDelegate OnPointerDoubleClick;
 
@@ -305,7 +305,7 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Returns difference between last and current pointer position.
+        /// Returns difference pointer position of the current and last frame.
         /// </summary>
         public static Vector2I PointerDelta
         {

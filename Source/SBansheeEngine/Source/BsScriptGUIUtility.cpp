@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsScriptGUILayoutUtility.h"
+#include "BsScriptGUIUtility.h"
 #include "BsScriptMeta.h"
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
@@ -11,6 +11,8 @@
 #include "BsGUIElementBase.h"
 #include "BsScriptGUILayout.h"
 #include "BsGUILayoutUtility.h"
+#include "BsGUIHelper.h"
+#include "BsScriptFont.h"
 
 namespace BansheeEngine
 {
@@ -22,6 +24,7 @@ namespace BansheeEngine
 	{
 		metaData.scriptClass->addInternalCall("Internal_CalculateOptimalSize", &ScriptGUILayoutUtility::internal_CalculateOptimalSize);
 		metaData.scriptClass->addInternalCall("Internal_CalculateBounds", &ScriptGUILayoutUtility::internal_CalculateBounds);
+		metaData.scriptClass->addInternalCall("Internal_CalculateTextBounds", &ScriptGUILayoutUtility::internal_CalculateTextBounds);
 	}
 
 	void ScriptGUILayoutUtility::internal_CalculateOptimalSize(ScriptGUIElementBaseTBase* guiElement, Vector2I* output)
@@ -36,5 +39,13 @@ namespace BansheeEngine
 			relativeToPanel = static_cast<GUIPanel*>(relativeTo->getGUIElement());
 
 		*output = guiElement->getGUIElement()->getBounds(relativeToPanel);
+	}
+
+	void ScriptGUILayoutUtility::internal_CalculateTextBounds(MonoString* text, ScriptFont* fontPtr, int fontSize, Vector2I* output)
+	{
+		WString nativeText = MonoUtil::monoToWString(text);
+		HFont nativeFont = fontPtr->getHandle();
+
+		*output = GUIHelper::calcTextSize(nativeText, nativeFont, fontSize);
 	}
 }

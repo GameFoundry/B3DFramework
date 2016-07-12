@@ -3,8 +3,6 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "BsBounds.h"
-#include "BsMatrix4.h"
 #include "BsSubMesh.h"
 
 namespace BansheeEngine
@@ -17,19 +15,6 @@ namespace BansheeEngine
 	class BS_EXPORT RenderableElement
 	{
 	public:
-		/**	Contains a hardware GPU parameter buffer and index of the parameters and the slot it binds to in a material. */
-		struct BS_EXPORT BufferBindInfo
-		{
-			BufferBindInfo(UINT32 passIdx, UINT32 paramsIdx, UINT32 slotIdx, const SPtr<GpuParamBlockBufferCore>& buffer)
-				:passIdx(passIdx), paramsIdx(paramsIdx), slotIdx(slotIdx), buffer(buffer)
-			{ }
-
-			UINT32 passIdx;
-			UINT32 paramsIdx;
-			UINT32 slotIdx;
-			SPtr<GpuParamBlockBufferCore> buffer;
-		};
-
 		/**	Reference to the mesh to render. */
 		SPtr<MeshCore> mesh;
 
@@ -38,11 +23,6 @@ namespace BansheeEngine
 
 		/**	Material to render the mesh with. */
 		SPtr<MaterialCore> material;
-
-		/**	Custom data that may optionally be set by the RenderableHandler. */
-		Any rendererData;
-
-		Vector<BufferBindInfo> rendererBuffers;
 	};
 
 	/** @} */

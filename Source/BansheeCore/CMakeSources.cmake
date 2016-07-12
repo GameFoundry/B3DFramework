@@ -247,7 +247,7 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCD6Joint.cpp"
 	"Source/BsCCharacterController.cpp"
 	"Source/BsCAudioSource.cpp"
-	"Source/BsCAudioListener.cpp"	
+	"Source/BsCAudioListener.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM
@@ -337,6 +337,9 @@ set(BS_BANSHEECORE_INC_RTTI
 	"Include/BsAudioClipRTTI.h"
 	"Include/BsCAudioSourceRTTI.h"
 	"Include/BsCAudioListenerRTTI.h"
+	"Include/BsAnimationClipRTTI.h"
+	"Include/BsAnimationCurveRTTI.h"
+	"Include/BsSkeletonRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER
@@ -494,6 +497,23 @@ set(BS_BANSHEECORE_SRC_AUDIO
 	"Source/BsAudioManager.cpp"
 )
 
+set(BS_BANSHEECORE_INC_ANIMATION
+	"Include/BsAnimationCurve.h"
+	"Include/BsAnimationClip.h"
+	"Include/BsSkeleton.h"
+	"Include/BsAnimation.h"
+	"Include/BsAnimationManager.h"
+	"Include/BsCurveCache.h"
+)
+
+set(BS_BANSHEECORE_SRC_ANIMATION
+	"Source/BsAnimationCurve.cpp"
+	"Source/BsAnimationClip.cpp"
+	"Source/BsSkeleton.cpp"
+	"Source/BsAnimation.cpp"
+	"Source/BsAnimationManager.cpp"
+)
+
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})
 source_group("Header Files\\Physics" FILES ${BS_BANSHEECORE_INC_PHYSICS})
 source_group("Header Files\\CoreThread" FILES ${BS_BANSHEECORE_INC_CORETHREAD})
@@ -530,6 +550,8 @@ source_group("Source Files\\Physics" FILES ${BS_BANSHEECORE_SRC_PHYSICS})
 source_group("Source Files\\Scene" FILES ${BS_BANSHEECORE_SRC_SCENE})
 source_group("Header Files\\Audio" FILES ${BS_BANSHEECORE_INC_AUDIO})
 source_group("Source Files\\Audio" FILES ${BS_BANSHEECORE_SRC_AUDIO})
+source_group("Header Files\\Animation" FILES ${BS_BANSHEECORE_INC_ANIMATION})
+source_group("Source Files\\Animation" FILES ${BS_BANSHEECORE_SRC_ANIMATION})
 
 set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_INC_COMPONENTS}
@@ -568,4 +590,6 @@ set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_SRC_SCENE}
 	${BS_BANSHEECORE_INC_AUDIO}
 	${BS_BANSHEECORE_SRC_AUDIO}
+	${BS_BANSHEECORE_INC_ANIMATION}
+	${BS_BANSHEECORE_SRC_ANIMATION}
 )

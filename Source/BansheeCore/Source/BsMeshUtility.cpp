@@ -182,12 +182,12 @@ namespace BansheeEngine
 			clipEdge0.verts[1] = idx1;
 
 			ClipEdge& clipEdge1 = mesh.edges[idx1];
-			clipEdge0.verts[0] = idx1;
-			clipEdge0.verts[1] = idx2;
+			clipEdge1.verts[0] = idx1;
+			clipEdge1.verts[1] = idx2;
 
 			ClipEdge& clipEdge2 = mesh.edges[idx2];
-			clipEdge0.verts[0] = idx2;
-			clipEdge0.verts[1] = idx0;
+			clipEdge2.verts[0] = idx2;
+			clipEdge2.verts[1] = idx0;
 
 			ClipFace& clipFace = mesh.faces[i];
 
@@ -204,8 +204,6 @@ namespace BansheeEngine
 				clipFace.normal += Vector3::cross(mesh.verts[verts[j]].point, mesh.verts[verts[j + 1]].point);
 
 			clipFace.normal.normalize();
-
-			mesh.faces.push_back(clipFace);
 		}
 	}
 
@@ -346,7 +344,7 @@ namespace BansheeEngine
 				{
 					ClipEdge& edge = mesh.edges[face.edges[j]];
 					ClipVert& v0 = mesh.verts[edge.verts[0]];
-					ClipVert& v1 = mesh.verts[edge.verts[0]];
+					ClipVert& v1 = mesh.verts[edge.verts[1]];
 
 					v0.occurs = 0;
 					v1.occurs = 0;
@@ -381,7 +379,7 @@ namespace BansheeEngine
 			if (edge.visible)
 			{
 				ClipVert& v0 = mesh.verts[edge.verts[0]];
-				ClipVert& v1 = mesh.verts[edge.verts[0]];
+				ClipVert& v1 = mesh.verts[edge.verts[1]];
 
 				v0.occurs++;
 				v1.occurs++;
@@ -477,7 +475,7 @@ namespace BansheeEngine
 		UINT32 numEdges = (UINT32)face.edges.size();
 		UINT32* sortedEdges = (UINT32*)bs_stack_alloc(sizeof(UINT32) * numEdges);
 		for (UINT32 i = 0; i < numEdges; i++)
-			sortedEdges[i] = i;
+			sortedEdges[i] = face.edges[i];
 
 		// Bubble sort to arrange edges in contiguous order
 		for (UINT32 i0 = 0, i1 = 1, choice = 1; i1 < numEdges - 1; i0 = i1, i1++)

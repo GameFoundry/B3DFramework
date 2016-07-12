@@ -15,20 +15,16 @@
 #include "BsRasterizerState.h"
 #include "BsGpuParamDesc.h"
 #include "BsGpuBuffer.h"
+#include "BsGpuParamBlockBuffer.h"
 #include "BsShader.h"
 
 using namespace std::placeholders;
 
 namespace BansheeEngine 
 {
-	void RenderAPI::disableTextureUnit(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit)
+	void RenderAPI::setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<Texture> &texPtr)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::disableTextureUnit, RenderAPICore::instancePtr(), gptype, texUnit));
-	}
-
-	void RenderAPI::setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, bool enabled, const SPtr<Texture> &texPtr)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setTexture, RenderAPICore::instancePtr(), gptype, unit, enabled, texPtr->getCore()));
+		accessor.queueCommand(std::bind(&RenderAPICore::setTexture, RenderAPICore::instancePtr(), gptype, unit, texPtr->getCore()));
 	}
 
 	void RenderAPI::setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, bool enabled, const SPtr<Texture>& texPtr,
@@ -135,16 +131,6 @@ namespace BansheeEngine
 	void RenderAPI::unbindGpuProgram(CoreAccessor& accessor, GpuProgramType gptype)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::unbindGpuProgram, RenderAPICore::instancePtr(), gptype));
-	}
-
-	void RenderAPI::setConstantBuffers(CoreAccessor& accessor, GpuProgramType gptype, const SPtr<GpuParams>& params)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setConstantBuffers, RenderAPICore::instancePtr(), gptype, params->getCore()));
-	}
-
-	void RenderAPI::setGpuParams(CoreAccessor& accessor, GpuProgramType gptype, const SPtr<GpuParams>& params)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setGpuParams, RenderAPICore::instancePtr(), gptype, params->getCore()));
 	}
 
 	void RenderAPI::beginRender(CoreAccessor& accessor)
@@ -282,13 +268,6 @@ namespace BansheeEngine
 		return mDriverVersion; 
 	}
 
-    void RenderAPICore::disableTextureUnit(GpuProgramType gptype, UINT16 texUnit)
-    {
-		THROW_IF_NOT_CORE_THREAD;
-
-		setTexture(gptype, texUnit, false, SPtr<TextureCore>());
-    }
-
 	void RenderAPICore::addClipPlane(const Plane &p)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -401,55 +380,7 @@ namespace BansheeEngine
 
         return false;
 	}
-
-	void RenderAPICore::setGpuParams(GpuProgramType gptype, const SPtr<GpuParamsCore>& params)
-	{
-		const GpuParamDesc& paramDesc = params->getParamDesc();
-
-		for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-		{
-			SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
-
-			if (samplerState == nullptr)
-				setSamplerState(gptype, iter->second.slot, SamplerStateCore::getDefault());
-			else
-				setSamplerState(gptype, iter->second.slot, samplerState);
-		}
-
-		for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
-		{
-			SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
-
-			if (texture == nullptr)
-				setTexture(gptype, iter->second.slot, false, nullptr);
-			else
-				setTexture(gptype, iter->second.slot, true, texture);
-		}
-
-		for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
-		{
-			SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
-			const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
-
-			if (texture == nullptr)
-				setLoadStoreTexture(gptype, iter->second.slot, false, nullptr, surface);
-			else
-				setLoadStoreTexture(gptype, iter->second.slot, true, texture, surface);
-		}
-
-		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
-		{
-			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
-
-			bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
-				iter->second.type != GPOT_STRUCTURED_BUFFER;
-
-			setBuffer(gptype, iter->second.slot, buffer, isLoadStore);
-		}
-
-		setConstantBuffers(gptype, params);
-	}
-
+	
 	void RenderAPICore::swapBuffers(const SPtr<RenderTargetCore>& target)
 	{
 		THROW_IF_NOT_CORE_THREAD;

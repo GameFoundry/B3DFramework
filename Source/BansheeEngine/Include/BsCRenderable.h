@@ -80,7 +80,7 @@ namespace BansheeEngine
 
 	public:
 		/** @copydoc Component::update */
-		virtual void update() override;
+		void update() override;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -88,7 +88,7 @@ namespace BansheeEngine
 	public:
 		friend class CRenderableRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 
 	protected:
 		CRenderable() {} // Serialization only

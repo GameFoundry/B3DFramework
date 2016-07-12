@@ -122,7 +122,6 @@ namespace BansheeEngine
 			BinarySerializer bs;
 			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeFromIntermediate(addedChildData));
 			sceneObject->setParent(object);
-			sceneObject->_instantiate();
 		}
 
 		for (auto& componentDiff : diff->componentDiffs)

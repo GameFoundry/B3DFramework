@@ -57,7 +57,9 @@ namespace BansheeEngine
 		mDimensions.x = x;
 		mDimensions.y = y;
 
-		_markMeshAsDirty();
+		// Note: I could call _markMeshAsDirty with a little more work. If parent is layout then this call can be ignored
+		// and if it's a panel, we can immediately change the position without a full layout rebuild.
+		_markLayoutAsDirty();
 	}
 
 	void GUIElementBase::setWidth(UINT32 width)

@@ -30,7 +30,7 @@ namespace BansheeEngine
 	}
 
 	template<class T>
-	void TMaterialDataParam<T, false>::set(const T& value, UINT32 arrayIdx)
+	void TMaterialDataParam<T, false>::set(const T& value, UINT32 arrayIdx) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -52,7 +52,7 @@ namespace BansheeEngine
 	}
 
 	template<class T>
-	T TMaterialDataParam<T, false>::get(UINT32 arrayIdx)
+	T TMaterialDataParam<T, false>::get(UINT32 arrayIdx) const
 	{
 		T output = T();
 		if (mMaterialParams == nullptr || arrayIdx >= mArraySize)
@@ -68,7 +68,7 @@ namespace BansheeEngine
 	{ }
 
 	template<class T>
-	void TMaterialDataParam<T, true>::set(const T& value, UINT32 arrayIdx)
+	void TMaterialDataParam<T, true>::set(const T& value, UINT32 arrayIdx) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -78,7 +78,7 @@ namespace BansheeEngine
 	}
 
 	template<class T>
-	T TMaterialDataParam<T, true>::get(UINT32 arrayIdx)
+	T TMaterialDataParam<T, true>::get(UINT32 arrayIdx) const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 			return T();
@@ -106,7 +106,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamStruct<false>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TMaterialParamStruct<false>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -127,7 +127,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamStruct<false>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TMaterialParamStruct<false>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mMaterialParams == nullptr || arrayIdx >= mArraySize)
 			return;
@@ -144,7 +144,7 @@ namespace BansheeEngine
 		:mParams(params)
 	{ }
 
-	void TMaterialParamStruct<true>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TMaterialParamStruct<true>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -153,7 +153,7 @@ namespace BansheeEngine
 			param.set(value, sizeBytes, arrayIdx);
 	}
 
-	void TMaterialParamStruct<true>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TMaterialParamStruct<true>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 		{
@@ -191,7 +191,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamTexture<false>::set(const HTexture& texture)
+	void TMaterialParamTexture<false>::set(const HTexture& texture) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -210,7 +210,7 @@ namespace BansheeEngine
 		}
 	}
 
-	HTexture TMaterialParamTexture<false>::get()
+	HTexture TMaterialParamTexture<false>::get() const
 	{
 		HTexture texture;
 		if (mMaterialParams == nullptr)
@@ -225,7 +225,7 @@ namespace BansheeEngine
 		:mParams(params)
 	{ }
 
-	void TMaterialParamTexture<true>::set(const SPtr<TextureCore>& texture)
+	void TMaterialParamTexture<true>::set(const SPtr<TextureCore>& texture) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -234,7 +234,7 @@ namespace BansheeEngine
 			param.set(texture);
 	}
 
-	SPtr<TextureCore> TMaterialParamTexture<true>::get()
+	SPtr<TextureCore> TMaterialParamTexture<true>::get() const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 			return SPtr<TextureCore>();
@@ -261,7 +261,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamLoadStoreTexture<false>::set(const HTexture& texture, const TextureSurface& surface)
+	void TMaterialParamLoadStoreTexture<false>::set(const HTexture& texture, const TextureSurface& surface) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -275,7 +275,7 @@ namespace BansheeEngine
 		}
 	}
 
-	HTexture TMaterialParamLoadStoreTexture<false>::get()
+	HTexture TMaterialParamLoadStoreTexture<false>::get() const
 	{
 		HTexture texture;
 		if (mMaterialParams == nullptr)
@@ -291,7 +291,7 @@ namespace BansheeEngine
 		:mParams(params)
 	{ }
 
-	void TMaterialParamLoadStoreTexture<true>::set(const SPtr<TextureCore>& texture, const TextureSurface& surface)
+	void TMaterialParamLoadStoreTexture<true>::set(const SPtr<TextureCore>& texture, const TextureSurface& surface) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -300,7 +300,7 @@ namespace BansheeEngine
 			param.set(texture, surface);
 	}
 
-	SPtr<TextureCore> TMaterialParamLoadStoreTexture<true>::get()
+	SPtr<TextureCore> TMaterialParamLoadStoreTexture<true>::get() const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 			return SPtr<TextureCore>();
@@ -327,7 +327,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamBuffer<false>::set(const SPtr<GpuBuffer>& buffer)
+	void TMaterialParamBuffer<false>::set(const SPtr<GpuBuffer>& buffer) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -341,7 +341,7 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<GpuBuffer> TMaterialParamBuffer<false>::get()
+	SPtr<GpuBuffer> TMaterialParamBuffer<false>::get() const
 	{
 		SPtr<GpuBuffer> buffer;
 		if (mMaterialParams == nullptr)
@@ -356,7 +356,7 @@ namespace BansheeEngine
 		:mParams(params)
 	{ }
 
-	void TMaterialParamBuffer<true>::set(const SPtr<GpuBufferCore>& buffer)
+	void TMaterialParamBuffer<true>::set(const SPtr<GpuBufferCore>& buffer) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -365,7 +365,7 @@ namespace BansheeEngine
 			param.set(buffer);
 	}
 
-	SPtr<GpuBufferCore> TMaterialParamBuffer<true>::get()
+	SPtr<GpuBufferCore> TMaterialParamBuffer<true>::get() const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 			return SPtr<GpuBufferCore>();
@@ -392,7 +392,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void TMaterialParamSampState<false>::set(const SPtr<SamplerState>& sampState)
+	void TMaterialParamSampState<false>::set(const SPtr<SamplerState>& sampState) const
 	{
 		if (mMaterialParams == nullptr)
 			return;
@@ -411,7 +411,7 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<SamplerState> TMaterialParamSampState<false>::get()
+	SPtr<SamplerState> TMaterialParamSampState<false>::get() const
 	{
 		SPtr<SamplerState> samplerState;
 		if (mMaterialParams == nullptr)
@@ -425,7 +425,7 @@ namespace BansheeEngine
 		:mParams(params)
 	{ }
 
-	void TMaterialParamSampState<true>::set(const SPtr<SamplerStateCore>& sampState)
+	void TMaterialParamSampState<true>::set(const SPtr<SamplerStateCore>& sampState) const
 	{
 		if (mParams == nullptr)
 			return;
@@ -434,7 +434,7 @@ namespace BansheeEngine
 			param.set(sampState);
 	}
 
-	SPtr<SamplerStateCore> TMaterialParamSampState<true>::get()
+	SPtr<SamplerStateCore> TMaterialParamSampState<true>::get() const
 	{
 		if (mParams == nullptr || mParams->size() == 0)
 			return SPtr<SamplerStateCore>();

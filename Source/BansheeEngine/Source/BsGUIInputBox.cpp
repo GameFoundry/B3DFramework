@@ -130,7 +130,7 @@ namespace BansheeEngine
 		return sprite->getMaterialInfo(localRenderElementIdx);
 	}
 
-	void GUIInputBox::_getMeshSize(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices) const
+	void GUIInputBox::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
@@ -138,6 +138,7 @@ namespace BansheeEngine
 		UINT32 numQuads = sprite->getNumQuads(localRenderElementIdx);
 		numVertices = numQuads * 4;
 		numIndices = numQuads * 6;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIInputBox::updateRenderElementsInternal()
@@ -386,15 +387,19 @@ namespace BansheeEngine
 		return false;
 	}
 
-	void GUIInputBox::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIInputBox::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 vertexStride = sizeof(Vector2) * 2;
+		UINT32 indexStride = sizeof(UINT32);
+
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
 		Vector2I offset = renderElemToOffset(renderElementIdx);
 		Rect2I clipRect = renderElemToClipRect(renderElementIdx);
 
-		sprite->fillBuffer(vertices, uv, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, 
+		sprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, 
 			indexStride, localRenderElementIdx, offset, clipRect);
 	}
 

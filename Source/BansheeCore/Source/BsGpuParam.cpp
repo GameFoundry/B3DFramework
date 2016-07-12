@@ -22,7 +22,7 @@ namespace BansheeEngine
 	{ }
 
 	template<class T, bool Core>
-	void TGpuDataParam<T, Core>::set(const T& value, UINT32 arrayIdx)
+	void TGpuDataParam<T, Core>::set(const T& value, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -61,7 +61,7 @@ namespace BansheeEngine
 	}
 
 	template<class T, bool Core>
-	T TGpuDataParam<T, Core>::get(UINT32 arrayIdx)
+	T TGpuDataParam<T, Core>::get(UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return T();
@@ -101,7 +101,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamStruct<Core>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TGpuParamStruct<Core>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -141,7 +141,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	void TGpuParamStruct<Core>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TGpuParamStruct<Core>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -190,7 +190,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamTexture<Core>::set(const TextureType& texture)
+	void TGpuParamTexture<Core>::set(const TextureType& texture) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -202,7 +202,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamTexture<Core>::TextureType TGpuParamTexture<Core>::get()
+	typename TGpuParamTexture<Core>::TextureType TGpuParamTexture<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return TextureType();
@@ -221,7 +221,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamBuffer<Core>::set(const BufferType& texture)
+	void TGpuParamBuffer<Core>::set(const BufferType& texture) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -233,7 +233,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamBuffer<Core>::BufferType TGpuParamBuffer<Core>::get()
+	typename TGpuParamBuffer<Core>::BufferType TGpuParamBuffer<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return BufferType();
@@ -252,7 +252,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamLoadStoreTexture<Core>::set(const TextureType& texture, const TextureSurface& surface)
+	void TGpuParamLoadStoreTexture<Core>::set(const TextureType& texture, const TextureSurface& surface) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -264,7 +264,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamLoadStoreTexture<Core>::TextureType TGpuParamLoadStoreTexture<Core>::get()
+	typename TGpuParamLoadStoreTexture<Core>::TextureType TGpuParamLoadStoreTexture<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return TextureType();
@@ -283,7 +283,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamSampState<Core>::set(const SamplerStateType& samplerState)
+	void TGpuParamSampState<Core>::set(const SamplerStateType& samplerState) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -295,7 +295,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamSampState<Core>::SamplerStateType TGpuParamSampState<Core>::get()
+	typename TGpuParamSampState<Core>::SamplerStateType TGpuParamSampState<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return SamplerStateType();

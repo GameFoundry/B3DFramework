@@ -23,6 +23,6 @@ os.environ["PATH"] += os.pathsep + msbuildPath
 os.system("msbuild {0} /p:Configuration=OptimizedDebug;Platform=x64 /m".format(solutionPath))
 
 # Build Win32 game executable
-os.system("msbuild {0} /t:Game /p:Configuration=Release;Platform=x64;BuildProjectReferences=false /m".format(solutionPath))
+os.system("msbuild {0} /p:Configuration=Release;Platform=x64 /m".format(solutionPath))
 
 os.system("package_editor.py " + configuration)

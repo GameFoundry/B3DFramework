@@ -257,32 +257,18 @@ namespace BansheeEngine
 		RenderAPICore::unbindGpuProgram(gptype);
 	}
 
-	void D3D9RenderAPI::setConstantBuffers(GpuProgramType gptype, const SPtr<GpuParamsCore>& bindableParams)
+	void D3D9RenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer,
+		const GpuParamDesc& paramDesc)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		bindableParams->updateHardwareBuffers();
-		const GpuParamDesc& paramDesc = bindableParams->getParamDesc();
+		if (buffer == nullptr)
+			return;
 
 		// Read all the buffer data so we can assign it. Not the most efficient way of accessing data
 		// but it is required in order to have standardized buffer interface.
-		UnorderedMap<UINT32, UINT8*> bufferData;
-
-		for(auto& curParam : paramDesc.params)
-		{
-			UINT32 paramBlockSlot = curParam.second.paramBlockSlot;
-			auto iterFind = bufferData.find(paramBlockSlot);
-
-			if(iterFind == bufferData.end())
-			{
-				SPtr<GpuParamBlockBufferCore> paramBlock = bindableParams->getParamBlockBuffer(paramBlockSlot);
-
-				UINT8* data = (UINT8*)bs_alloc(paramBlock->getSize());
-				paramBlock->readFromGPU(data);
-
-				bufferData[paramBlockSlot] = data;
-			}
-		}
+		UINT8* uniformBufferData = (UINT8*)bs_stack_alloc(buffer->getSize());
+		buffer->readFromGPU(uniformBufferData);
 
 		HRESULT hr;
 
@@ -292,11 +278,11 @@ namespace BansheeEngine
 			{
 				for(auto iter = paramDesc.params.begin(); iter != paramDesc.params.end(); ++iter)
 				{
-					const GpuParamDataDesc& paramDesc = iter->second;
+					const GpuParamDataDesc& param = iter->second;
 
-					const UINT8* ptrData = bufferData[paramDesc.paramBlockSlot] + paramDesc.cpuMemOffset * sizeof(UINT32);
+					const UINT8* ptrData = uniformBufferData+ param.cpuMemOffset * sizeof(UINT32);
 
-					switch(paramDesc.type)
+					switch(param.type)
 					{
 					case GPDT_FLOAT1:
 					case GPDT_FLOAT2:
@@ -312,10 +298,10 @@ namespace BansheeEngine
 					case GPDT_MATRIX_4X3:
 					case GPDT_MATRIX_4X4:
 						{
-							UINT32 slotCount = (paramDesc.elementSize / 4) * paramDesc.arraySize;
-							assert (paramDesc.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
+							UINT32 slotCount = (param.elementSize / 4) * param.arraySize;
+							assert (param.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
 
-							if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantF(paramDesc.gpuMemOffset, (const float*)ptrData, slotCount))) 
+							if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantF(param.gpuMemOffset, (const float*)ptrData, slotCount))) 
 								BS_EXCEPT(RenderingAPIException, "Unable to upload vertex shader float parameters.");
 							break;
 						}
@@ -324,15 +310,15 @@ namespace BansheeEngine
 					case GPDT_INT3:
 					case GPDT_INT4:
 						{
-							UINT32 slotCount = (paramDesc.elementSize / 4) * paramDesc.arraySize;
-							assert (paramDesc.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
+							UINT32 slotCount = (param.elementSize / 4) * param.arraySize;
+							assert (param.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
 
-							if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantI(paramDesc.gpuMemOffset, (const INT32*)ptrData, slotCount))) 
+							if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantI(param.gpuMemOffset, (const INT32*)ptrData, slotCount))) 
 								BS_EXCEPT(RenderingAPIException, "Unable to upload vertex shader int parameters.");
 							break;
 						}
 					case GPDT_BOOL:
-						if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantB(paramDesc.gpuMemOffset, (const BOOL*)ptrData, paramDesc.arraySize))) 
+						if (FAILED(hr = getActiveD3D9Device()->SetVertexShaderConstantB(param.gpuMemOffset, (const BOOL*)ptrData, param.arraySize))) 
 							BS_EXCEPT(RenderingAPIException, "Unable to upload vertex shader bool parameters.");
 						break;
 					}
@@ -343,11 +329,11 @@ namespace BansheeEngine
 			{
 				for(auto iter = paramDesc.params.begin(); iter != paramDesc.params.end(); ++iter)
 				{
-					const GpuParamDataDesc& paramDesc = iter->second;
+					const GpuParamDataDesc& param = iter->second;
 
-					const UINT8* ptrData = bufferData[paramDesc.paramBlockSlot] + paramDesc.cpuMemOffset * sizeof(UINT32);
+					const UINT8* ptrData = uniformBufferData + param.cpuMemOffset * sizeof(UINT32);
 
-					switch(paramDesc.type)
+					switch(param.type)
 					{
 					case GPDT_FLOAT1:
 					case GPDT_FLOAT2:
@@ -363,10 +349,10 @@ namespace BansheeEngine
 					case GPDT_MATRIX_4X3:
 					case GPDT_MATRIX_4X4:
 						{
-							UINT32 slotCount = (paramDesc.elementSize / 4) * paramDesc.arraySize;
-							assert (paramDesc.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
+							UINT32 slotCount = (param.elementSize / 4) * param.arraySize;
+							assert (param.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
 
-							if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantF(paramDesc.gpuMemOffset, (const float*)ptrData, slotCount))) 
+							if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantF(param.gpuMemOffset, (const float*)ptrData, slotCount))) 
 								BS_EXCEPT(RenderingAPIException, "Unable to upload pixel shader float parameters.");
 							break;
 						}
@@ -375,15 +361,15 @@ namespace BansheeEngine
 					case GPDT_INT3:
 					case GPDT_INT4:
 						{
-							UINT32 slotCount = (paramDesc.elementSize / 4) * paramDesc.arraySize;
-							assert (paramDesc.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
+							UINT32 slotCount = (param.elementSize / 4) * param.arraySize;
+							assert (param.elementSize % 4 == 0 && "Should not have any elements less than 4 wide for D3D9");
 
-							if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantI(paramDesc.gpuMemOffset, (const INT32*)ptrData, slotCount))) 
+							if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantI(param.gpuMemOffset, (const INT32*)ptrData, slotCount))) 
 								BS_EXCEPT(RenderingAPIException, "Unable to upload pixel shader int parameters.");
 							break;
 						}
 					case GPDT_BOOL:
-						if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantB(paramDesc.gpuMemOffset, (const BOOL*)ptrData, paramDesc.arraySize))) 
+						if (FAILED(hr = getActiveD3D9Device()->SetPixelShaderConstantB(param.gpuMemOffset, (const BOOL*)ptrData, param.arraySize))) 
 							BS_EXCEPT(RenderingAPIException, "Unable to upload pixel shader bool parameters.");
 						break;
 					}
@@ -392,15 +378,12 @@ namespace BansheeEngine
 			break;
 		};
 
-		for(auto& curBufferData : bufferData)
-		{
-			bs_free(curBufferData.second);
-		}
+		bs_stack_free(uniformBufferData);
 
 		BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
 	}
 
-	void D3D9RenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, bool enabled, const SPtr<TextureCore>& tex)
+	void D3D9RenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& tex)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -420,7 +403,7 @@ namespace BansheeEngine
 
 		HRESULT hr;
 		SPtr<D3D9TextureCore> dt = std::static_pointer_cast<D3D9TextureCore>(tex);
-		if (enabled && (dt != nullptr))
+		if (dt != nullptr)
 		{
 			IDirect3DBaseTexture9 *pTex = dt->getTexture_internal();
 			if (mTexStageDesc[unit].pTex != pTex)

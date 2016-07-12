@@ -9,6 +9,7 @@
 #include "BsRenderQueue.h"
 #include "BsBounds.h"
 #include "BsRenderer.h"
+#include "BsAnimation.h"
 #include "BsFrameAlloc.h"
 #include "BsDebug.h"
 
@@ -46,6 +47,8 @@ namespace BansheeEngine
 			numSubMeshes = mesh->getProperties().getNumSubMeshes();
 
 		mMaterials.resize(numSubMeshes);
+
+		onMeshChanged();
 
 		_markDependenciesDirty();
 		_markResourcesDirty();
@@ -124,7 +127,7 @@ namespace BansheeEngine
 	template class TRenderable < true >;
 
 	RenderableCore::RenderableCore() 
-		:mRendererId(0)
+		:mRendererId(0), mAnimationId((UINT64)-1)
 	{
 	}
 
@@ -179,6 +182,7 @@ namespace BansheeEngine
 		dataPtr = rttiReadElem(mTransformNoScale, dataPtr);
 		dataPtr = rttiReadElem(mPosition, dataPtr);
 		dataPtr = rttiReadElem(mIsActive, dataPtr);
+		dataPtr = rttiReadElem(mAnimationId, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 
 		SPtr<MeshCore>* mesh = (SPtr<MeshCore>*)dataPtr;
@@ -222,6 +226,16 @@ namespace BansheeEngine
 		
 	}
 
+	void Renderable::setAnimation(const SPtr<Animation>& animation)
+	{
+		mAnimation = animation;
+
+		if (mAnimation != nullptr && mMesh.isLoaded(false))
+			mAnimation->setSkeleton(mMesh->getSkeleton());
+
+		_markCoreDirty();
+	}
+
 	Bounds Renderable::getBounds() const
 	{
 		HMesh mesh = getMesh();
@@ -256,6 +270,17 @@ namespace BansheeEngine
 		return handlerPtr;
 	}
 
+	void Renderable::onMeshChanged()
+	{
+		if(mAnimation != nullptr)
+		{
+			if (mMesh.isLoaded(false))
+				mAnimation->setSkeleton(mMesh->getSkeleton());
+			else
+				mAnimation->setSkeleton(nullptr);
+		}
+	}
+
 	void Renderable::_markCoreDirty(RenderableDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);
@@ -275,6 +300,12 @@ namespace BansheeEngine
 	{
 		UINT32 numMaterials = (UINT32)mMaterials.size();
 
+		UINT64 animationId;
+		if (mAnimation != nullptr)
+			animationId = mAnimation->_getId();
+		else
+			animationId = (UINT64)-1;
+
 		UINT32 size = rttiGetElemSize(mLayer) + 
 			rttiGetElemSize(mWorldBounds) + 
 			rttiGetElemSize(numMaterials) + 
@@ -282,6 +313,7 @@ namespace BansheeEngine
 			rttiGetElemSize(mTransformNoScale) +
 			rttiGetElemSize(mPosition) +
 			rttiGetElemSize(mIsActive) +
+			rttiGetElemSize(animationId) + 
 			rttiGetElemSize(getCoreDirtyFlags()) +
 			sizeof(SPtr<MeshCore>) + 
 			numMaterials * sizeof(SPtr<MaterialCore>);
@@ -295,6 +327,7 @@ namespace BansheeEngine
 		dataPtr = rttiWriteElem(mTransformNoScale, dataPtr);
 		dataPtr = rttiWriteElem(mPosition, dataPtr);
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
+		dataPtr = rttiWriteElem(animationId, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
 		SPtr<MeshCore>* mesh = new (dataPtr) SPtr<MeshCore>();

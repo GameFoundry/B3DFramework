@@ -39,60 +39,66 @@ namespace BansheeEngine
 
 		mFB = bs_new<GLFrameBufferObject>();
 
-		GLTextureCore* glTexture = static_cast<GLTextureCore*>(mColorSurface->getTexture().get());
-
-		GLSurfaceDesc surfaceDesc;
-		surfaceDesc.numSamples = getProperties().getMultisampleCount();
-
-		if(mColorSurface->getNumArraySlices() == 1) // Binding a single texture layer
+		if (mColorSurface != nullptr && mColorSurface->getTexture() != nullptr)
 		{
-			surfaceDesc.allLayers = false;
+			GLTextureCore* glTexture = static_cast<GLTextureCore*>(mColorSurface->getTexture().get());
 
-			if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
+			GLSurfaceDesc surfaceDesc;
+			surfaceDesc.numSamples = getProperties().getMultisampleCount();
+
+			if (mColorSurface->getNumArraySlices() == 1) // Binding a single texture layer
 			{
-				surfaceDesc.zoffset = 0;
-				surfaceDesc.buffer = glTexture->getBuffer(mColorSurface->getFirstArraySlice(), mColorSurface->getMostDetailedMip());
+				surfaceDesc.allLayers = glTexture->getProperties().getNumFaces() == 1;
+
+				if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
+				{
+					surfaceDesc.zoffset = 0;
+					surfaceDesc.buffer = glTexture->getBuffer(mColorSurface->getFirstArraySlice(), mColorSurface->getMostDetailedMip());
+				}
+				else
+				{
+					surfaceDesc.zoffset = mColorSurface->getFirstArraySlice();
+					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
+				}
 			}
-			else
+			else // Binding an array of textures or a range of 3D texture slices
 			{
-				surfaceDesc.zoffset = mColorSurface->getFirstArraySlice();
-				surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
+				surfaceDesc.allLayers = true;
+
+				if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
+				{
+					if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getNumFaces())
+						LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
+
+					surfaceDesc.zoffset = 0;
+					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
+				}
+				else
+				{
+					if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getDepth())
+						LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
+
+					surfaceDesc.zoffset = 0;
+					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
+				}
 			}
-		}
-		else // Binding an array of textures or a range of 3D texture slices
-		{
-			surfaceDesc.allLayers = true;
 
-			if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
-			{
-				if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getNumFaces())
-					LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
-
-				surfaceDesc.zoffset = 0;
-				surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
-			}
-			else
-			{
-				if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getDepth())
-					LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
-
-				surfaceDesc.zoffset = 0;
-				surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
-			}
-		}
-
-		mFB->bindSurface(0, surfaceDesc);
-
-		GLTextureCore* glDepthStencilTexture = static_cast<GLTextureCore*>(mDepthStencilSurface->getTexture().get());
-		SPtr<GLPixelBuffer> depthStencilBuffer = nullptr;
-
-		if (glDepthStencilTexture->getProperties().getTextureType() != TEX_TYPE_3D)
-		{
-			depthStencilBuffer = glDepthStencilTexture->getBuffer(mDepthStencilSurface->getFirstArraySlice(),
-				mDepthStencilSurface->getMostDetailedMip());
+			mFB->bindSurface(0, surfaceDesc);
 		}
 
-		mFB->bindDepthStencil(depthStencilBuffer);
+		if (mDepthStencilSurface != nullptr && mDepthStencilSurface->getTexture() != nullptr)
+		{
+			GLTextureCore* glDepthStencilTexture = static_cast<GLTextureCore*>(mDepthStencilSurface->getTexture().get());
+			SPtr<GLPixelBuffer> depthStencilBuffer = nullptr;
+
+			if (glDepthStencilTexture->getProperties().getTextureType() != TEX_TYPE_3D)
+			{
+				depthStencilBuffer = glDepthStencilTexture->getBuffer(mDepthStencilSurface->getFirstArraySlice(),
+					mDepthStencilSurface->getMostDetailedMip());
+			}
+
+			mFB->bindDepthStencil(depthStencilBuffer);
+		}
 	}
 
 	void GLRenderTextureCore::getCustomAttribute(const String& name, void* data) const

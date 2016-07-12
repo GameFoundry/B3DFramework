@@ -204,10 +204,22 @@ namespace BansheeEngine
 		template<class T> static std::string toString(T* param) { static_assert("Invalid pointer type."); }
 
 		/**	Helper method that converts a narrow character array to a narrow string. */
-		static std::string toString(const char* param) { return std::string(param); }
+		static std::string toString(const char* param)
+		{
+			if (param == nullptr)
+				return std::string();
+
+			return std::string(param);
+		}
 
 		/**	Helper method that converts a narrow character array to a narrow string. */
-		static std::string toString(char* param) { return std::string(param); }
+		static std::string toString(char* param)
+		{
+			if (param == nullptr)
+				return std::string();
+
+			return std::string(param);
+		}
 
 		/**	Helper method for converting any data type to a wide string. */
 		template<class T> static std::wstring toWString(const T& param) { return std::to_wstring(param); }
@@ -225,10 +237,22 @@ namespace BansheeEngine
 		template<class T> static std::wstring toWString(T* param) { static_assert("Invalid pointer type."); }
 
 		/**	Helper method that converts a wide character array to a wide string. */
-		static std::wstring toWString(const wchar_t* param) { return std::wstring(param); }
+		static std::wstring toWString(const wchar_t* param)
+		{
+			if (param == nullptr)
+				return std::wstring();
+
+			return std::wstring(param);
+		}
 
 		/**	Helper method that converts a wide character array to a wide string. */
-		static std::wstring toWString(wchar_t* param) { return std::wstring(param); }
+		static std::wstring toWString(wchar_t* param)
+		{
+			if (param == nullptr)
+				return std::wstring();
+
+			return std::wstring(param);
+		}
 
 		/**
 		 * Converts all the provided parameters into string representations and populates the provided @p parameters array.

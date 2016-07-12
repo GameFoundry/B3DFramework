@@ -2,6 +2,7 @@ set(BS_BANSHEEENGINE_INC_COMPONENTS
 	"Include/BsCCamera.h"
 	"Include/BsCRenderable.h"
 	"Include/BsCLight.h"
+	"Include/BsCAnimation.h"
 )
 
 set(BS_BANSHEEENGINE_SRC_RESOURCES
@@ -91,7 +92,6 @@ set(BS_BANSHEEENGINE_INC_RENDERER
 	"Include/BsLight.h"
 	"Include/BsRenderable.h"
 	"Include/BsRenderableElement.h"
-	"Include/BsRenderableHandler.h"
 	"Include/BsRenderer.h"
 	"Include/BsRendererMaterial.h"
 	"Include/BsRendererMaterialManager.h"
@@ -151,6 +151,7 @@ set(BS_BANSHEEENGINE_INC_RTTI
 	"Include/BsCGUIWidgetRTTI.h"
 	"Include/BsGameSettingsRTTI.h"
 	"Include/BsResourceMappingRTTI.h"
+	"Include/BsCAnimationRTTI.h"
 )
 
 set(BS_BANSHEEENGINE_INC_NOFILTER
@@ -173,6 +174,7 @@ set(BS_BANSHEEENGINE_SRC_COMPONENTS
 	"Source/BsCCamera.cpp"
 	"Source/BsCRenderable.cpp"
 	"Source/BsCLight.cpp"
+	"Source/BsCAnimation.cpp"
 )
 
 set(BS_BANSHEEENGINE_INC_SCRIPT
@@ -194,7 +196,6 @@ set(BS_BANSHEEENGINE_SRC_RENDERER
 	"Source/BsCamera.cpp"
 	"Source/BsLight.cpp"
 	"Source/BsRenderable.cpp"
-	"Source/BsRenderableHandler.cpp"
 	"Source/BsRenderer.cpp"
 	"Source/BsRendererMaterial.cpp"
 	"Source/BsRendererMaterialManager.cpp"

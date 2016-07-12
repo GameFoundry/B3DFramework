@@ -184,6 +184,9 @@ namespace BansheeEngine
 		{
 			for (auto& field : curObjInfo->mFields)
 			{
+				if (!field.second->isSerializable())
+					continue;
+
 				UINT32 fieldTypeId = field.second->mTypeInfo->getTypeId();
 
 				SPtr<ManagedSerializableFieldData> oldData = oldObj->getFieldData(field.second);
@@ -210,6 +213,21 @@ namespace BansheeEngine
 		UINT32 entryTypeId)
 	{
 		bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive || entryTypeId == TID_SerializableTypeInfoRef;
+
+		// It's possible the field data is null if the class structure changed (i.e. new field was added that is not present
+		// in serialized data). Check for this case first to ensure field data is valid for the remainder of the method.
+		if(oldData == nullptr)
+		{
+			if (newData == nullptr)
+				return nullptr;
+			else
+				return ModifiedEntry::create(newData);
+		}
+		else
+		{
+			if (newData == nullptr)
+				return nullptr;
+		}
 
 		SPtr<Modification> newMod = nullptr;
 		if (isPrimitive)

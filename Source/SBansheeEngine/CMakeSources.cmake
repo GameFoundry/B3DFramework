@@ -30,7 +30,7 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS_GUI
 	"Source/BsScriptGUIToggle.cpp"
 	"Source/BsScriptGUIToggleGroup.cpp"
 	"Source/BsScriptGUIElement.cpp"
-	"Source/BsScriptGUILayoutUtility.cpp"
+	"Source/BsScriptGUIUtility.cpp"
 	"Source/BsScriptGUIRenderTexture.cpp"
 	"Source/BsScriptGUISlider.cpp"
 	"Source/BsScriptGUIProgressBar.cpp"
@@ -138,6 +138,9 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Include/BsScriptAudio.h"
 	"Include/BsScriptAudioSource.h"
 	"Include/BsScriptAudioListener.h"
+	"Include/BsScriptAnimationClip.h"
+	"Include/BsScriptAnimation.h"
+	"Include/BsScriptAnimationCurve.h"
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
@@ -156,7 +159,7 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
 	"Include/BsScriptGUIToggle.h"
 	"Include/BsScriptGUIToggleGroup.h"
 	"Include/BsScriptGUIElement.h"
-	"Include/BsScriptGUILayoutUtility.h"
+	"Include/BsScriptGUIUtility.h"
 	"Include/BsScriptGUIRenderTexture.h"
 	"Include/BsScriptGUISlider.h"
 	"Include/BsScriptGUIProgressBar.h"
@@ -266,6 +269,9 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Source/BsScriptAudio.cpp"
 	"Source/BsScriptAudioSource.cpp"
 	"Source/BsScriptAudioListener.cpp"
+	"Source/BsScriptAnimationClip.cpp"
+	"Source/BsScriptAnimation.cpp"
+	"Source/BsScriptAnimationCurve.cpp"
 )
 
 set(BS_SBANSHEEENGINE_INC_SERIALIZATION

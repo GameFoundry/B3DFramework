@@ -515,6 +515,16 @@ namespace BansheeEngine
 		/** Returns a set of parameters for all GPU programs in the specified shader pass. */
 		SPtr<PassParamsType> getPassParameters(UINT32 passIdx) const { return mParametersPerPass[passIdx]; }
 
+		/** 
+		 * Returns a set of GPU parameters for an individual GPU program of the specified pass. 
+		 *
+		 * @param[in]	passIdx		Pass in which to look the GPU program for in.
+		 * @param[in]	type		Type of the program to retrieve parameters for.
+		 * @return					GPU parameters object that can be used for setting parameters of a GPU program 
+		 *							individually. Returns null if program or pass doesn't exist.
+		 */
+		GpuParamsType getGpuParams(UINT32 passIdx, BansheeEngine::GpuProgramType type);
+
 		/**
 		 * Assign a parameter block buffer with the specified name.
 		 *

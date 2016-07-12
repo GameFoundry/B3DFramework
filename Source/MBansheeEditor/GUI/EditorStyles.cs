@@ -12,6 +12,7 @@ namespace BansheeEditor
     /// </summary>
     public static class EditorStyles
     {
+        public const int DefaultFontSize = 8;
         public const string Blank = "Blank";
         public const string Label = "Label";
         public const string LabelCentered = "LabelCentered";
@@ -24,6 +25,7 @@ namespace BansheeEditor
         public const string Toggle = "Toggle";
         public const string InputBox = "InputBox";
         public const string Foldout = "Foldout";
+        public const string Expand = "Expand";
         public const string ColorSliderHorz = "ColorSliderHorz";
         public const string ColorSliderVert = "ColorSliderVert";
         public const string ColorSlider2DHandle = "ColorSlider2DHandle";

@@ -26,6 +26,7 @@ namespace BansheeEngine
 		float importScale = 0.01f;
 		float animSampleRate = 1.0f / 60.0f;
 		bool animResample = false;
+		bool reduceKeyframes = true;
 	};
 
 	/**	Represents a single node in the FBX transform hierarchy. */
@@ -35,6 +36,7 @@ namespace BansheeEngine
 
 		Matrix4 localTransform;
 		Matrix4 worldTransform;
+		String name;
 		FbxNode* fbxNode;
 
 		Vector<FBXImportNode*> children;
@@ -127,6 +129,18 @@ namespace BansheeEngine
 
 		Vector<FBXBoneAnimation> boneAnimations;
 		Vector<FBXBlendShapeAnimation> blendShapeAnimations;
+	};
+
+	/** All information required for creating an animation clip. */
+	struct FBXAnimationClipData
+	{
+		FBXAnimationClipData(const String& name, bool isAdditive, const SPtr<AnimationCurves>& curves)
+			:name(name), isAdditive(isAdditive), curves(curves)
+		{ }
+
+		String name;
+		bool isAdditive;
+		SPtr<AnimationCurves> curves;
 	};
 
 	/**	Imported mesh data. */

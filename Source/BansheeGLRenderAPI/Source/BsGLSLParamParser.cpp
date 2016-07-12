@@ -68,8 +68,24 @@ namespace BansheeEngine
 			return VET_FLOAT3;
 		case GL_FLOAT_VEC4:
 			return VET_FLOAT4;
+		case GL_INT:
+			return VET_INT1;
+		case GL_INT_VEC2:
+			return VET_INT2;
+		case GL_INT_VEC3:
+			return VET_INT3;
+		case GL_INT_VEC4:
+			return VET_INT4;
+		case GL_UNSIGNED_INT:
+			return VET_UINT1;
+		case GL_UNSIGNED_INT_VEC2:
+			return VET_UINT2;
+		case GL_UNSIGNED_INT_VEC3:
+			return VET_UINT3;
+		case GL_UNSIGNED_INT_VEC4:
+			return VET_UINT4;
 		default:
-			BS_EXCEPT(NotImplementedException, "OpenGL render system currently only supports float parameters.");
+			BS_EXCEPT(NotImplementedException, "Unsupported vertex attribute type.");
 		}
 
 		return VET_FLOAT4;

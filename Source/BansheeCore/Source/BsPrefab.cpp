@@ -10,7 +10,7 @@
 namespace BansheeEngine
 {
 	Prefab::Prefab()
-		:Resource(false), mHash(0), mNextLinkId(0)
+		:Resource(false), mHash(0), mNextLinkId(0), mIsScene(true)
 	{
 		
 	}
@@ -21,9 +21,10 @@ namespace BansheeEngine
 			mRoot->destroy(true);
 	}
 
-	HPrefab Prefab::create(const HSceneObject& sceneObject)
+	HPrefab Prefab::create(const HSceneObject& sceneObject, bool isScene)
 	{
 		SPtr<Prefab> newPrefab = createEmpty();
+		newPrefab->mIsScene = isScene;
 		newPrefab->initialize(sceneObject);
 
 		HPrefab handle = static_resource_cast<Prefab>(gResources()._createResourceHandle(newPrefab));
@@ -156,7 +157,7 @@ namespace BansheeEngine
 			return HSceneObject();
 
 		mRoot->mPrefabHash = mHash;
-		return mRoot->clone();
+		return mRoot->clone(false);
 	}
 
 	RTTITypeBase* Prefab::getRTTIStatic()

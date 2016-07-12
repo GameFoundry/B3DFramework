@@ -48,6 +48,18 @@ namespace BansheeEngine
             set { Internal_SetLayers(mCachedPtr, value); }
         }
 
+        internal NativeAnimation Animation
+        {
+            set
+            {
+                IntPtr animationPtr = IntPtr.Zero;
+                if (value != null)
+                    animationPtr = value.GetCachedPtr();
+
+                Internal_SetAnimation(mCachedPtr, animationPtr);
+            }
+        }
+
         private Material[] materials = new Material[1];
         private Mesh mesh;
         
@@ -109,6 +121,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Create(NativeRenderable instance, IntPtr parentSO);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetAnimation(IntPtr thisPtr, IntPtr animation);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_UpdateTransform(IntPtr thisPtr, IntPtr parentSO);

@@ -27,6 +27,7 @@ namespace BansheeEngine
 		static MonoObject* internal_GetWhiteTexture();
 		static MonoObject* internal_GetDiffuseShader();
 		static MonoObject* internal_GetMesh(BuiltinMesh meshType);
+		static MonoObject* internal_GetDefaultFont();
 	};
 
 	/** @} */

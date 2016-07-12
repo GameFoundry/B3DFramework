@@ -77,6 +77,14 @@ namespace BansheeEngine
             get { return Internal_GetMesh(BuiltinMesh.Disc); }
         }
 
+        /// <summary>
+        /// Returns the default Font used in the engine.
+        /// </summary>
+        public static Font DefaultFont
+        {
+            get { return Internal_GetDefaultFont(); }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SpriteTexture Internal_GetWhiteTexture();
 
@@ -85,6 +93,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Mesh Internal_GetMesh(BuiltinMesh mesh);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern Font Internal_GetDefaultFont();
     }
 
     /** @} */

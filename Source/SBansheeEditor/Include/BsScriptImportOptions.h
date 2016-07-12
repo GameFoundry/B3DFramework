@@ -6,6 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsPixelData.h"
 #include "BsAudioClipImportOptions.h"
+#include "BsMeshImportOptions.h"
 #include "BsGpuProgram.h"
 
 namespace BansheeEngine
@@ -111,10 +112,14 @@ namespace BansheeEngine
 		static void internal_SetImportAnimation(ScriptMeshImportOptions* thisPtr, bool value);
 		static bool internal_GetImportBlendShapes(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetImportBlendShapes(ScriptMeshImportOptions* thisPtr, bool value);
+		static bool internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value);
 		static float internal_GetScale(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetScale(ScriptMeshImportOptions* thisPtr, float value);
 		static int internal_GetCollisionMeshType(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetCollisionMeshType(ScriptMeshImportOptions* thisPtr, int value);
+		static MonoArray* internal_GetAnimationClipSplits(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value);
 	};
 
 	/**	Interop class between C++ & CLR for FontImportOptions. */
@@ -212,6 +217,30 @@ namespace BansheeEngine
 		static void internal_SetIs3D(ScriptAudioClipImportOptions* thisPtr, bool is3d);
 		static UINT32 internal_GetBitDepth(ScriptAudioClipImportOptions* thisPtr);
 		static void internal_SetBitDepth(ScriptAudioClipImportOptions* thisPtr, UINT32 bitDepth);
+	};
+
+	/** Helper class for dealing with AnimationSplitInfo structure. */
+	class BS_SCR_BED_EXPORT ScriptAnimationSplitInfo : public ScriptObject<ScriptAnimationSplitInfo>
+	{
+	public:
+		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "AnimationSplitInfo")
+
+		/** Converts managed split info to its native counterpart. */
+		static AnimationSplitInfo fromManaged(MonoObject* object);
+
+		/** Converts native split info to its managed counterpart. */
+		static MonoObject* toManaged(const AnimationSplitInfo& splitInfo);
+
+	private:
+		ScriptAnimationSplitInfo(MonoObject* instance);
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static MonoField* nameField;
+		static MonoField* startFrameField;
+		static MonoField* endFrameField;
+		static MonoField* isAdditiveField;
 	};
 
 	/** @} */

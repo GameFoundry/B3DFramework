@@ -30,16 +30,16 @@ namespace BansheeEngine
 		OggVorbisDecoder();
 		~OggVorbisDecoder();
 
-		/** @copydoc OAFileReader::open */
+		/** @copydoc AudioDecoder::open */
 		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
 
-		/** @copydoc OAFileReader::read */
+		/** @copydoc AudioDecoder::read */
 		UINT32 read(UINT8* samples, UINT32 numSamples) override;
 
-		/** @copydoc OAFileReader::seek */
+		/** @copydoc AudioDecoder::seek */
 		void seek(UINT32 offset) override;
 
-		/** @copydoc OAFileReader::isValid */
+		/** @copydoc AudioDecoder::isValid */
 		bool isValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
 		OggDecoderData mDecoderData;

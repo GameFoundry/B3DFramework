@@ -7,6 +7,8 @@
 
 namespace BansheeEngine
 {
+	class ScriptAnimation;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -17,7 +19,7 @@ namespace BansheeEngine
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "NativeRenderable")
 
-		/**	Returns the native wrapped renderable handler. */
+		/**	Returns the native wrapped renderable. */
 		SPtr<Renderable> getInternal() const { return mRenderable; }
 
 	private:
@@ -27,7 +29,7 @@ namespace BansheeEngine
 		/** Updates the internal transform of the renderable handled according to the scene object it is attached to. */
 		void updateTransform(const HSceneObject& parent);
 
-		/**	Destroys the internal renderable handler object. */
+		/**	Destroys the internal renderable object. */
 		void destroy();
 
 		/** @copydoc ScriptObject::_onManagedInstanceDeleted */
@@ -40,6 +42,7 @@ namespace BansheeEngine
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void internal_Create(MonoObject* instance, ScriptSceneObject* parentSO);
+		static void internal_SetAnimation(ScriptRenderable* thisPtr, ScriptAnimation* animation);
 		static void internal_UpdateTransform(ScriptRenderable* thisPtr, ScriptSceneObject* parentSO);
 		static void internal_SetMesh(ScriptRenderable* thisPtr, ScriptMesh* mesh);
 		static void internal_GetBounds(ScriptRenderable* thisPtr, ScriptSceneObject* parentSO, AABox* box, Sphere* sphere);

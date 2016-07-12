@@ -41,11 +41,11 @@ namespace BansheeEngine
 		pixelLine(a, b, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes2D::quadLine(const Vector2& a, const Vector2& b, float width, const Color& color, 
+	void ShapeMeshes2D::quadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		Vector<Vector2> linePoints = { a, b };
-		quadLineList(linePoints, width, color, meshData, vertexOffset, indexOffset);
+		quadLineList(linePoints, width, border, color, meshData, vertexOffset, indexOffset);
 	}
 
 	void ShapeMeshes2D::pixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
@@ -71,7 +71,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void ShapeMeshes2D::quadLineList(const Vector<Vector2>& linePoints, float width, const Color& color,
+	void ShapeMeshes2D::quadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		UINT32 numPoints = (UINT32)linePoints.size();
@@ -86,7 +86,7 @@ namespace BansheeEngine
 		UINT8* outColors = vertexOffset + meshData->getElementData(VES_COLOR);
 
 		UINT32 vertexStride = meshData->getVertexDesc()->getVertexStride();
-		quadLineList(&linePoints[0], numPoints, width, outVertices, vertexStride, true);
+		quadLineList(&linePoints[0], numPoints, width, border, outVertices, vertexStride, true);
 
 		RGBA colorValue = color.getAsRGBA();
 
@@ -116,11 +116,13 @@ namespace BansheeEngine
 		outColors += vertexStride;
 	}
 
-	void ShapeMeshes2D::quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, UINT8* outVertices,
+	void ShapeMeshes2D::quadLineList(const Vector2* linePoints, UINT32 numPoints, float width, float border, UINT8* outVertices,
 		UINT32 vertexStride, bool indexed)
 	{
 		assert(numPoints >= 2);
 		UINT32 numLines = numPoints - 1;
+
+		width += border;
 
 		Vector2 prevPoints[2];
 
@@ -135,8 +137,8 @@ namespace BansheeEngine
 			// Flip 90 degrees
 			Vector2 normal(diff.y, -diff.x);
 
-			prevPoints[0] = a - normal * width;
-			prevPoints[1] = a + normal * width;
+			prevPoints[0] = a - normal * width - diff * border;
+			prevPoints[1] = a + normal * width - diff * border;
 
 			memcpy(outVertices, &prevPoints[0], sizeof(prevPoints[0]));
 			outVertices += vertexStride;
@@ -186,13 +188,16 @@ namespace BansheeEngine
 
 				if (!indexed)
 				{
+					memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+					outVertices += vertexStride;
+
 					memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
 					outVertices += vertexStride;
 
-					memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
+					memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
 					outVertices += vertexStride;
 
-					memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+					memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
 					outVertices += vertexStride;
 
 					prevPoints[0] = curPoints[0];
@@ -213,8 +218,8 @@ namespace BansheeEngine
 			Vector2 normal(diff.y, -diff.x);
 
 			Vector2 curPoints[2];
-			curPoints[0] = a - normal * width;
-			curPoints[1] = a + normal * width;
+			curPoints[0] = b - normal * width + diff * border;
+			curPoints[1] = b + normal * width + diff * border;
 
 			memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
 			outVertices += vertexStride;
@@ -224,13 +229,10 @@ namespace BansheeEngine
 
 			if (!indexed)
 			{
-				memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
-				outVertices += vertexStride;
-
-				memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
-				outVertices += vertexStride;
-
 				memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
+				outVertices += vertexStride;
+
+				memcpy(outVertices, &prevPoints[1], sizeof(prevPoints[1]));
 				outVertices += vertexStride;
 			}
 		}

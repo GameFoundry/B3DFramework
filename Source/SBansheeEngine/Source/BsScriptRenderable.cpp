@@ -12,6 +12,7 @@
 #include "BsSceneObject.h"
 #include "BsSceneManager.h"
 #include "BsScriptMesh.h"
+#include "BsScriptAnimation.h"
 #include "BsScriptMaterial.h"
 
 namespace BansheeEngine
@@ -29,6 +30,7 @@ namespace BansheeEngine
 	void ScriptRenderable::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Create", &ScriptRenderable::internal_Create);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimation", &ScriptRenderable::internal_SetAnimation);
 		metaData.scriptClass->addInternalCall("Internal_UpdateTransform", &ScriptRenderable::internal_UpdateTransform);
 		metaData.scriptClass->addInternalCall("Internal_SetMesh", &ScriptRenderable::internal_SetMesh);
 		metaData.scriptClass->addInternalCall("Internal_GetBounds", &ScriptRenderable::internal_GetBounds);
@@ -63,6 +65,15 @@ namespace BansheeEngine
 			so = parentSO->getNativeHandle();
 
 		new (bs_alloc<ScriptRenderable>()) ScriptRenderable(instance, so);
+	}
+
+	void ScriptRenderable::internal_SetAnimation(ScriptRenderable* thisPtr, ScriptAnimation* animation)
+	{
+		SPtr<Animation> anim;
+		if (animation != nullptr)
+			anim = animation->getInternal();
+
+		thisPtr->getInternal()->setAnimation(anim);
 	}
 
 	void ScriptRenderable::internal_UpdateTransform(ScriptRenderable* thisPtr, ScriptSceneObject* parent)

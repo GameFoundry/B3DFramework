@@ -43,6 +43,7 @@ namespace BansheeEngine
 																															\
 		const SPtr<GpuParamBlockBufferCore>& getBuffer() const { return mBuffer; }											\
 		const GpuParamBlockDesc& getDesc() const { return mBlockDesc; }														\
+		void flushToGPU() {	mBuffer->flushToGPU(); }																		\
 																															\
 	private:																												\
 		struct META_FirstEntry {};																							\

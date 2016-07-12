@@ -125,6 +125,15 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		return nullptr;
 	}
 
+	GpuParamBlockDesc* GpuParamsBase::getParamBlockDesc(const String& name) const
+	{
+		auto paramBlockIter = mParamDesc->paramBlocks.find(name);
+		if (paramBlockIter != mParamDesc->paramBlocks.end())
+			return &paramBlockIter->second;
+
+		return nullptr;
+	}
+
 	const TextureSurface& GpuParamsBase::getLoadStoreSurface(UINT32 slot) const
 	{
 		if (slot >= mNumLoadStoreTextures)
@@ -474,17 +483,6 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		return std::static_pointer_cast<GpuParamsCore>(getThisPtr());
 	}
 
-	void GpuParamsCore::updateHardwareBuffers()
-	{
-		for (UINT32 i = 0; i < mNumParamBlocks; i++)
-		{
-			if (mParamBlockBuffers[i] != nullptr)
-			{
-				mParamBlockBuffers[i]->flushToGPU();
-			}
-		}
-	}
-
 	void GpuParamsCore::syncToCore(const CoreSyncData& data)
 	{
 		UINT32 loadStoreSurfacesSize = mNumLoadStoreTextures * sizeof(TextureSurface);
@@ -501,8 +499,8 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		UINT32 paramBufferOffset = textureInfoOffset + loadStoreSurfacesSize;
 		UINT32 textureArrayOffset = paramBufferOffset + paramBufferSize;
 		UINT32 loadStoreTextureArrayOffset = textureArrayOffset + textureArraySize;
-		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + bufferArraySize;
-		UINT32 samplerArrayOffset = bufferArrayOffset + loadStoreTextureArraySize;
+		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 samplerArrayOffset = bufferArrayOffset + bufferArraySize;
 
 		assert(data.getBufferSize() == totalSize);
 
@@ -623,8 +621,8 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		UINT32 paramBufferOffset = textureInfoOffset + loadStoreSurfacesSize;
 		UINT32 textureArrayOffset = paramBufferOffset + paramBufferSize;
 		UINT32 loadStoreTextureArrayOffset = textureArrayOffset + textureArraySize;
-		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + bufferArraySize;
-		UINT32 samplerArrayOffset = bufferArrayOffset + loadStoreTextureArraySize;
+		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 samplerArrayOffset = bufferArrayOffset + bufferArraySize;
 
 		UINT8* data = allocator->alloc(totalSize);
 

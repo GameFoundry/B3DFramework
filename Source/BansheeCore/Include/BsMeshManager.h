@@ -19,19 +19,21 @@ namespace BansheeEngine
 		MeshManager();
 		~MeshManager();
 
-		/** @copydoc Mesh::create(UINT32, UINT32, const SPtr<VertexDataDesc>&, int, DrawOperationType, IndexType) */
+		/** @copydoc Mesh::create(UINT32, UINT32, const SPtr<VertexDataDesc>&, int, DrawOperationType, IndexType, const SPtr<Skeleton>&) */
 		SPtr<Mesh> create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC, 
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
-		/** @copydoc Mesh::create(UINT32, UINT32, const SPtr<VertexDataDesc>&, const Vector<SubMesh>&, int, IndexType) */
+		/** @copydoc Mesh::create(UINT32, UINT32, const SPtr<VertexDataDesc>&, const Vector<SubMesh>&, int, IndexType, const SPtr<Skeleton>&) */
 		SPtr<Mesh> create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, const Vector<SubMesh>& subMeshes, 
-			int usage = MU_STATIC, IndexType indexType = IT_32BIT);
+			int usage = MU_STATIC, IndexType indexType = IT_32BIT, const SPtr<Skeleton>& skeleton = nullptr);
 
-		/** @copydoc Mesh::create(const SPtr<MeshData>&, int, DrawOperationType) */
-		SPtr<Mesh> create(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+		/** @copydoc Mesh::create(const SPtr<MeshData>&, int, DrawOperationType, const SPtr<Skeleton>&) */
+		SPtr<Mesh> create(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, 
+			const SPtr<Skeleton>& skeleton = nullptr);
 
-		/** @copydoc Mesh::create(const SPtr<MeshData>&, const Vector<SubMesh>&, int) */
-		SPtr<Mesh> create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC);
+		/** @copydoc Mesh::create(const SPtr<MeshData>&, const Vector<SubMesh>&, int, const SPtr<Skeleton>&) */
+		SPtr<Mesh> create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage = MU_STATIC, 
+			const SPtr<Skeleton>& skeleton = nullptr);
 
 		/**
 		 * Creates a new empty and uninitialized mesh. You will need to manually initialize the mesh before using it.

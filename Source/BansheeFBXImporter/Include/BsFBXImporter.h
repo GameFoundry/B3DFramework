@@ -15,6 +15,8 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	struct AnimationSplitInfo;
+
 	/** Importer implementation that handles FBX/OBJ/DAE/3DS file import by using the FBX SDK. */
 	class BS_FBX_EXPORT FBXImporter : public SpecificImporter
 	{
@@ -50,7 +52,7 @@ namespace BansheeEngine
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
 		SPtr<RendererMeshData> importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-			Vector<SubMesh>& subMeshes);
+			Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -80,10 +82,10 @@ namespace BansheeEngine
 		void importBlendShapeFrame(FbxShape* shape, const FBXImportMesh& mesh, const FBXImportOptions& options, FBXBlendShapeFrame& outFrame);
 
 		/**	Imports skinning information and bones for all meshes. */
-		void importSkin(FBXImportScene& scene);
+		void importSkin(FBXImportScene& scene, const FBXImportOptions& options);
 
 		/**	Imports skinning information and bones for the specified mesh. */
-		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh);
+		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options);
 
 		/**	Imports all bone and blend shape animations from the FBX. */
 		void importAnimations(FbxScene* scene, FBXImportOptions& importOptions, FBXImportScene& importScene);
@@ -97,6 +99,16 @@ namespace BansheeEngine
 
 		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
 		void importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end);
+
+		/** Converts FBX animation clips into engine-ready animation curve format. */
+		void convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, 
+			Vector<FBXAnimationClipData>& output);
+
+		/** 
+		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all
+		 * the curves in order for it to be removed.
+		 */
+		void reduceKeyframes(FBXAnimationCurve(&curves)[3]);
 
 		/**	Converts a set of curves containing rotation in euler angles into a set of curves using	quaternion rotation. */
 		void eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4]);
@@ -117,8 +129,9 @@ namespace BansheeEngine
 		 */
 		void generateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options);
 
-		/**Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
-		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& subMeshes);
+		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
+		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
+			Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

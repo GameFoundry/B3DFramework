@@ -128,9 +128,13 @@ rapi.setSamplerState(GPT_FRAGMENT_PROGRAM, 0, mySamplerState);
 ~~~~~~~~~~~~~
 
 ### Data parameters {#renderAPI_c_a_b}
-Data parameters are bound to calling @ref BansheeEngine::RenderAPICore::setConstantBuffers "RenderAPICore::setConstantBuffers". You can only bind all data parameters at once. [GPU program](@ref gpuPrograms) manual has a lot more information about GPU parameters.
+Data parameters are bound to calling @ref BansheeEngine::RenderAPICore::setParamBuffer "RenderAPICore::setParamBuffer". You can manually populate the parameter buffer with required values, but generally you should use either @ref BansheeEngine::GpuParamsCore "GpuParamsCore" or @ref BansheeEngine::MaterialCore "MaterialCore" to set the parameters and then retrieve the existing parameter buffer.
 
-Optionally you can call @ref BansheeEngine::RenderAPICore::setGpuParams "RenderAPICore::setGpuParams" which will bind both object and data parameters in the @ref BansheeEngine::GpuParamsCore "BansheeEngine::GpuParamsCore" object.
+Each buffer need to be bound to a specific slot, and these slots can be read from the @ref BansheeEngine::GpuParamDesc "GpuParamDesc" structure accessible from @ref BansheeEngine::GpuProgramCore::getParamDesc "GpuProgramCore::getParamDesc". [GPU program](@ref gpuPrograms) manual has more information about GPU parameters.
+
+Alternatively you can call @ref BansheeEngine::RendererUtility::setGpuParams "RendererUtility::setGpuParams" helper method which will bind both object and data parameters in the @ref BansheeEngine::GpuParamsCore "BansheeEngine::GpuParamsCore" object.
+
+You can also call @ref BansheeEngine::RendererUtility::setPassParams "RendererUtility::setPassParams" to bind parameters for all GPU programs in a specific @ref BansheeEngine::MaterialCore "MaterialCore" pass.
 
 For example:
 ~~~~~~~~~~~~~{.cpp}
@@ -138,13 +142,10 @@ SPtr<GpuProgramCore> program = ...;
 SPtr<GpuParamsCore> params = program->createParameters();
 
 ... set param values ...
-
-RenderAPICore& rapi = RenderAPICore::instance();
-
 ... bind GPU program ...
 
-// Set all data parameters for the currently bound fragment program
-rapi.setConstantBuffers(GPT_FRAGMENT_PROGRAM, params);
+// Set all parameters for the currently bound fragment program
+gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, params);
 
 ... execute some draw calls ...
 

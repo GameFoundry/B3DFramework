@@ -6,6 +6,11 @@ Parameters =
 	Texture2D 	gEyeAdaptationTex;
 };
 
+Blocks =
+{
+	Block Input;
+};
+
 Technique =
 {
 	Language = "HLSL11";

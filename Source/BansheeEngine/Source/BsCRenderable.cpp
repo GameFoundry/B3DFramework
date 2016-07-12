@@ -3,10 +3,9 @@
 #include "BsCRenderable.h"
 #include "BsCRenderableRTTI.h"
 #include "BsSceneObject.h"
-#include "BsBuiltinResources.h"
 #include "BsMesh.h"
 #include "BsMaterial.h"
-#include "BsRenderQueue.h"
+#include "BsCAnimation.h"
 #include "BsBounds.h"
 #include "BsSceneManager.h"
 
@@ -28,6 +27,10 @@ namespace BansheeEngine
 			mInternal = Renderable::create();
 
 		gSceneManager()._registerRenderable(mInternal, sceneObject());
+
+		HAnimation animationComponent = SO()->getComponent<CAnimation>();
+		if(animationComponent != nullptr)
+			mInternal->setAnimation(animationComponent->_getInternal());
 	}
 
 	Bounds CRenderable::getBounds() const

@@ -129,6 +129,10 @@ namespace BansheeEngine
                 _native.Materials = serializableData.materials;
 
             _native.Layers = serializableData.layers;
+
+            Animation animation = SceneObject.GetComponent<Animation>();
+            if (animation != null)
+                _native.Animation = animation.Native;
         }
 
         private void OnUpdate()

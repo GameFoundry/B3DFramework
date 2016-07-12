@@ -5,30 +5,13 @@
 #include <assert.h>
 
 /** @defgroup Layers Layers 
- *	Core layers of the engine. 
+ *	User facing API for the engine core, categorized per layer. 
  *  @{
  */
 
 /** @defgroup Utility Utility
- *	Lowest layer of the engine containing a collection of very decoupled and separate systems that are 
- *  likely to be used throughout all of the higher layers.
+ *	Lowest layer of the engine containing various utility and helper classes.
  *  @{
- */
-
-/** @defgroup Math Math
- *	Variety of general purpose math functionality.
- */
-
-/** @defgroup RTTI RTTI
- *  Run-time type information defining and querying.
- */
-
-/** @defgroup Serialization Serialization
- *  Serialization and deserialization of native objects.
- */
-
-/** @defgroup Memory Memory
- *  Allocators, deallocators and memory manipulation.
  */
 
 /** @defgroup Containers Containers
@@ -55,6 +38,32 @@
  *  Manipulating images.
  */
 
+/** @defgroup Math Math
+ *	Variety of general purpose math functionality.
+ */
+
+/** @defgroup Memory Memory
+ *  Allocators, deallocators and memory manipulation.
+ */
+
+/** @defgroup Platform-Utility Platform
+ *  %Platform specific functionality.
+ */
+
+/** @defgroup RTTI RTTI
+ *  Run-time type information defining and querying.
+ */
+
+/** @cond RTTI */
+/** @defgroup RTTI-Impl-Utility RTTI types
+ *  RTTI implementations for classes within the utility layer.
+ */
+/** @endcond */
+
+/** @defgroup Serialization Serialization
+ *  Serialization and deserialization of native objects.
+ */
+
 /** @defgroup String String
  *  String manipulation.
  */
@@ -67,18 +76,16 @@
  *  Thread manipulation and synchronization.
  */
 
-/** @cond RTTI */
-/** @defgroup RTTI-Impl-Utility RTTI types
- *  RTTI implementations for classes within the utility layer.
- */
-/** @endcond */
+/** @} */
+/** @} */
 
-/** @defgroup Platform-Utility Platform
- *  %Platform specific functionality.
+/** @defgroup Internals Internals 
+ *	Non-user-facing low-level classes and methods, useful primarily to those modifying the engine.
+ *  @{
  */
 
-/** @defgroup Internal-Utility [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @defgroup Utility-Internal Utility
+ *	Lowest layer of the engine containing various utility and helper classes.
  *  @{
  */
 
@@ -115,12 +122,10 @@
  */
 
 /** @} */
-
-/** @} */
 /** @} */
 
 /** @defgroup Plugins Plugins
- *	Implementations of various systems defined in the core layers.
+ *	Reference documentation for implementations of various plugins, useful primarily to those extending the engine.
  */
 
 /** @defgroup Implementation [IMPLEMENTATION]

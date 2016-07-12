@@ -3,14 +3,11 @@
   <!-- Navigation index tabs for HTML output -->
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
-    <tab type="modules" visible="yes"
-                        title="API reference"
-                        intro="API reference with classes separated in logical groups."/>
-
-    <tab type="classlist" visible="true"
-                            title="Class list"
-                            intro="A complete list of all classes."/>
-
+	<tab type="user" url="manuals.html" title="Manuals"/>
+    <tab type="user" url="group___layers.html" title="Core API"/>
+	<tab type="user" url="group___internals.html" title="Internals"/>
+	<tab type="user" url="group___plugins.html" title="Plugins"/>
+	
     <!-- We don't use what's below -->
     <tab type="namespaces" visible="no" title="">
       <tab type="namespacelist" visible="no" title="" intro=""/>

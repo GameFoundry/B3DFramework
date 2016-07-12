@@ -59,6 +59,7 @@ namespace BansheeEngine
 	{
 		SpriteMaterial* material;
 		SpriteMaterialInfo matInfo;
+		GUIMeshType meshType;
 		UINT32 numVertices;
 		UINT32 numIndices;
 		UINT32 depth;
@@ -99,11 +100,16 @@ namespace BansheeEngine
 		GUIDropDownBoxManager::startUp();
 		GUITooltipManager::startUp();
 
-		mVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
-		mVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
+		mTriangleVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
+		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 
-		mMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mVertexDesc);
+		mTriangleMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mTriangleVertexDesc);
+
+		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		mLineVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
+
+		mLineMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mLineVertexDesc);
 
 		// Need to defer this call because I want to make sure all managers are initialized first
 		deferredCall(std::bind(&GUIManager::updateCaretTexture, this));
@@ -215,10 +221,16 @@ namespace BansheeEngine
 
 		if(renderData.widgets.size() == 0)
 		{
-			for (auto& mesh : renderData.cachedMeshes)
+			for (auto& entry : renderData.cachedTriangleMeshes)
 			{
-				if (mesh != nullptr)
-					mMeshHeap->dealloc(mesh);
+				if (entry.mesh != nullptr)
+					mTriangleMeshHeap->dealloc(entry.mesh);
+			}
+
+			for (auto& entry : renderData.cachedLineMeshes)
+			{
+				if (entry.mesh != nullptr)
+					mLineMeshHeap->dealloc(entry.mesh);
 			}
 
 			mCachedGUIData.erase(renderTarget);
@@ -385,35 +397,38 @@ namespace BansheeEngine
 				auto insertedData = corePerCameraData.insert(std::make_pair(camera->getCore(), Vector<GUICoreRenderData>()));
 				Vector<GUICoreRenderData>& cameraData = insertedData.first->second;
 
+				const Vector<GUIMeshData>* cachedMeshSets[2] = { &renderData.cachedTriangleMeshes, &renderData.cachedLineMeshes };
+
 				UINT32 meshIdx = 0;
-				for (auto& mesh : renderData.cachedMeshes)
+				for (auto& meshSet : cachedMeshSets)
 				{
-					const GUIMaterialData& guiMaterial = renderData.cachedMaterials[meshIdx];
-					GUIWidget* widget = renderData.cachedWidgetsPerMesh[meshIdx];
-
-					if (guiMaterial.matInfo.texture == nullptr || !guiMaterial.matInfo.texture.isLoaded())
+					const Vector<GUIMeshData>& cachedMeshes = *meshSet;
+					for (auto& entry : cachedMeshes)
 					{
+						if (entry.mesh == nullptr)
+						{
+							meshIdx++;
+							continue;
+						}
+
+						cameraData.push_back(GUICoreRenderData());
+						GUICoreRenderData& newEntry = cameraData.back();
+
+						SPtr<TextureCore> textureCore;
+						if (entry.matInfo.texture.isLoaded())
+							textureCore = entry.matInfo.texture->getCore();
+						else
+							textureCore = nullptr;
+
+						newEntry.material = entry.material;
+						newEntry.texture = textureCore;
+						newEntry.tint = entry.matInfo.tint;
+						newEntry.mesh = entry.mesh->getCore();
+						newEntry.worldTransform = entry.widget->getWorldTfrm();
+						newEntry.additionalData = entry.matInfo.additionalData;
+
 						meshIdx++;
-						continue;
 					}
-
-					if (mesh == nullptr)
-					{
-						meshIdx++;
-						continue;
-					}
-
-					cameraData.push_back(GUICoreRenderData());
-					GUICoreRenderData& newEntry = cameraData.back();
-
-					newEntry.material = guiMaterial.material;
-					newEntry.texture = guiMaterial.matInfo.texture->getCore();
-					newEntry.tint = guiMaterial.matInfo.tint;
-					newEntry.mesh = mesh->getCore();
-					newEntry.worldTransform = widget->getWorldTfrm();
-					newEntry.additionalData = guiMaterial.matInfo.additionalData;
-
-					meshIdx++;
 				}
 			}
 
@@ -574,7 +589,7 @@ namespace BansheeEngine
 						foundGroup->matInfo = matInfo.clone();
 						foundGroup->material = spriteMaterial;
 
-						guiElem->_getMeshSize(renderElemIdx, foundGroup->numVertices, foundGroup->numIndices);
+						guiElem->_getMeshInfo(renderElemIdx, foundGroup->numVertices, foundGroup->numIndices, foundGroup->meshType);
 					}
 					else
 					{
@@ -584,7 +599,10 @@ namespace BansheeEngine
 						
 						UINT32 numVertices;
 						UINT32 numIndices;
-						guiElem->_getMeshSize(renderElemIdx, numVertices, numIndices);
+						GUIMeshType meshType;
+						guiElem->_getMeshInfo(renderElemIdx, numVertices, numIndices, meshType);
+						assert(meshType == foundGroup->meshType); // It's expected that GUI element doesn't use same material for different mesh types so this should always be true
+
 						foundGroup->numVertices += numVertices;
 						foundGroup->numIndices += numIndices;
 
@@ -600,68 +618,83 @@ namespace BansheeEngine
 					// requires all elements to be unique
 				};
 
+				UINT32 numTriangleMeshes = 0;
+				UINT32 numLineMeshes = 0;
 				FrameSet<GUIMaterialGroup*, std::function<bool(GUIMaterialGroup*, GUIMaterialGroup*)>> sortedGroups(groupComp);
 				for(auto& material : materialGroups)
 				{
 					for(auto& group : material.second)
 					{
 						sortedGroups.insert(&group);
+
+						if (group.meshType == GUIMeshType::Triangle)
+							numTriangleMeshes++;
+						else // Line
+							numLineMeshes++;
 					}
 				}
 
-				UINT32 numMeshes = (UINT32)sortedGroups.size();
-				UINT32 oldNumMeshes = (UINT32)renderData.cachedMeshes.size();
+				UINT32 oldNumTriangleMeshes = (UINT32)renderData.cachedTriangleMeshes.size();
+				for (UINT32 i = numTriangleMeshes; i < oldNumTriangleMeshes; i++)
+					mTriangleMeshHeap->dealloc(renderData.cachedTriangleMeshes[i].mesh);
 
-				if(numMeshes < oldNumMeshes)
-				{
-					for (UINT32 i = numMeshes; i < oldNumMeshes; i++)
-						mMeshHeap->dealloc(renderData.cachedMeshes[i]);
+				renderData.cachedTriangleMeshes.resize(numTriangleMeshes);
 
-					renderData.cachedMeshes.resize(numMeshes);
-				}
+				UINT32 oldNumLineMeshes = (UINT32)renderData.cachedLineMeshes.size();
+				for (UINT32 i = numLineMeshes; i < oldNumLineMeshes; i++)
+					mLineMeshHeap->dealloc(renderData.cachedLineMeshes[i].mesh);
 
-				renderData.cachedMaterials.resize(numMeshes);
-
-				if(mSeparateMeshesByWidget)
-					renderData.cachedWidgetsPerMesh.resize(numMeshes);
+				renderData.cachedLineMeshes.resize(numLineMeshes);
 
 				// Fill buffers for each group and update their meshes
-				UINT32 groupIdx = 0;
+				UINT32 triangleMeshIdx = 0;
+				UINT32 lineMeshIdx = 0;
 				for(auto& group : sortedGroups)
 				{
-					GUIMaterialData& matData = renderData.cachedMaterials[groupIdx];
-					matData.matInfo = group->matInfo;
-					matData.material = group->material;
+					SPtr<MeshData> meshData;
+					GUIWidget* widget;
 
-					if(mSeparateMeshesByWidget)
+					if (group->elements.size() == 0)
+						widget = nullptr;
+					else
 					{
-						if(group->elements.size() == 0)
-							renderData.cachedWidgetsPerMesh[groupIdx] = nullptr;
-						else
-						{
-							GUIElement* elem = group->elements.begin()->element;
-							renderData.cachedWidgetsPerMesh[groupIdx] = elem->_getParentWidget();
-						}
+						GUIElement* elem = group->elements.begin()->element;
+						widget = elem->_getParentWidget();
 					}
 
-					SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mVertexDesc);
+					if (group->meshType == GUIMeshType::Triangle)
+					{
+						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mTriangleVertexDesc);
+
+						GUIMeshData& guiMeshData = renderData.cachedTriangleMeshes[triangleMeshIdx];
+						guiMeshData.matInfo = group->matInfo;
+						guiMeshData.material = group->material;
+						guiMeshData.widget = widget;
+					}
+					else // Line
+					{
+						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mLineVertexDesc);
+
+						GUIMeshData& guiMeshData = renderData.cachedLineMeshes[lineMeshIdx];
+						guiMeshData.matInfo = group->matInfo;
+						guiMeshData.material = group->material;
+						guiMeshData.widget = widget;
+					}
 
 					UINT8* vertices = meshData->getElementData(VES_POSITION);
-					UINT8* uvs = meshData->getElementData(VES_TEXCOORD);
 					UINT32* indices = meshData->getIndices32();
-					UINT32 vertexStride = meshData->getVertexDesc()->getVertexStride();
-					UINT32 indexStride = meshData->getIndexElementSize();
 
 					UINT32 indexOffset = 0;
 					UINT32 vertexOffset = 0;
 					for(auto& matElement : group->elements)
 					{
-						matElement.element->_fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, group->numVertices,
-							group->numIndices, vertexStride, indexStride, matElement.renderElement);
+						matElement.element->_fillBuffer(vertices, indices, vertexOffset, indexOffset, group->numVertices,
+							group->numIndices, matElement.renderElement);
 
 						UINT32 numVertices;
 						UINT32 numIndices;
-						matElement.element->_getMeshSize(matElement.renderElement, numVertices, numIndices);
+						GUIMeshType meshType;
+						matElement.element->_getMeshInfo(matElement.renderElement, numVertices, numIndices, meshType);
 
 						UINT32 indexStart = indexOffset;
 						UINT32 indexEnd = indexStart + numIndices;
@@ -673,17 +706,26 @@ namespace BansheeEngine
 						vertexOffset += numVertices;
 					}
 
-					if(groupIdx < (UINT32)renderData.cachedMeshes.size())
+					if (group->meshType == GUIMeshType::Triangle)
 					{
-						mMeshHeap->dealloc(renderData.cachedMeshes[groupIdx]);
-						renderData.cachedMeshes[groupIdx] = mMeshHeap->alloc(meshData);
-					}
-					else
-					{
-						renderData.cachedMeshes.push_back(mMeshHeap->alloc(meshData));
-					}
+						GUIMeshData& guiMeshData = renderData.cachedTriangleMeshes[triangleMeshIdx];
 
-					groupIdx++;
+						if(guiMeshData.mesh != nullptr)
+							mTriangleMeshHeap->dealloc(guiMeshData.mesh);
+
+						guiMeshData.mesh = mTriangleMeshHeap->alloc(meshData);
+						triangleMeshIdx++;
+					}
+					else // Line
+					{
+						GUIMeshData& guiMeshData = renderData.cachedLineMeshes[lineMeshIdx];
+
+						if (guiMeshData.mesh != nullptr)
+							mLineMeshHeap->dealloc(guiMeshData.mesh);
+
+						guiMeshData.mesh = mLineMeshHeap->alloc(meshData, DOT_LINE_LIST);
+						lineMeshIdx++;
+					}
 				}
 			}
 

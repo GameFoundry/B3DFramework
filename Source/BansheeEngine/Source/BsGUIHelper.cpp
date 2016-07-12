@@ -57,4 +57,22 @@ namespace BansheeEngine
 
 		return Vector2I(contentWidth, contentHeight);
 	}
+
+	Vector2I GUIHelper::calcTextSize(const WString& text, const HFont& font, UINT32 fontSize)
+	{
+		Vector2I size;
+		if (font != nullptr)
+		{
+			bs_frame_mark();
+
+			TextData<FrameAlloc> textData(text, font, fontSize, 0, 0, false);
+
+			size.x = textData.getWidth();
+			size.y = textData.getNumLines() * textData.getLineHeight();
+
+			bs_frame_clear();
+		}
+
+		return size;
+	}
 }

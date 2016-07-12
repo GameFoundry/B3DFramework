@@ -28,7 +28,7 @@ namespace BansheeEngine
 		:ScriptObjectBase(instance)
 	{ }
 
-	void ScriptImportOptions::initRuntimeData() 
+	void ScriptImportOptions::initRuntimeData()
 	{ }
 
 	MonoObject* ScriptImportOptions::create(const SPtr<ImportOptions>& importOptions)
@@ -57,12 +57,12 @@ namespace BansheeEngine
 
 	ScriptImportOptions::ScriptImportOptions(MonoObject* instance)
 		:ScriptObject(instance)
-	{ 
+	{
 		mImportOptions = bs_shared_ptr_new<ImportOptions>();
 	}
 
 	ScriptTextureImportOptions::ScriptTextureImportOptions(MonoObject* instance)
-		:ScriptObject(instance)
+		: ScriptObject(instance)
 	{
 		mImportOptions = bs_shared_ptr_new<TextureImportOptions>();
 	}
@@ -177,10 +177,14 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetImportAnimation", &ScriptMeshImportOptions::internal_SetImportAnimation);
 		metaData.scriptClass->addInternalCall("Internal_GetImportBlendShapes", &ScriptMeshImportOptions::internal_GetImportBlendShapes);
 		metaData.scriptClass->addInternalCall("Internal_SetImportBlendShapes", &ScriptMeshImportOptions::internal_SetImportBlendShapes);
+		metaData.scriptClass->addInternalCall("Internal_GetKeyFrameReduction", &ScriptMeshImportOptions::internal_GetKeyFrameReduction);
+		metaData.scriptClass->addInternalCall("Internal_SetKeyFrameReduction", &ScriptMeshImportOptions::internal_SetKeyFrameReduction);
 		metaData.scriptClass->addInternalCall("Internal_GetScale", &ScriptMeshImportOptions::internal_GetScale);
 		metaData.scriptClass->addInternalCall("Internal_SetScale", &ScriptMeshImportOptions::internal_SetScale);
 		metaData.scriptClass->addInternalCall("Internal_GetCollisionMeshType", &ScriptMeshImportOptions::internal_GetCollisionMeshType);
 		metaData.scriptClass->addInternalCall("Internal_SetCollisionMeshType", &ScriptMeshImportOptions::internal_SetCollisionMeshType);
+		metaData.scriptClass->addInternalCall("Internal_GetAnimationClipSplits", &ScriptMeshImportOptions::internal_GetAnimationClipSplits);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimationClipSplits", &ScriptMeshImportOptions::internal_SetAnimationClipSplits);
 	}
 
 	SPtr<MeshImportOptions> ScriptMeshImportOptions::getMeshImportOptions()
@@ -267,6 +271,16 @@ namespace BansheeEngine
 		thisPtr->getMeshImportOptions()->setImportBlendShapes(value);
 	}
 
+	bool ScriptMeshImportOptions::internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr)
+	{
+		return thisPtr->getMeshImportOptions()->getKeyFrameReduction();
+	}
+
+	void ScriptMeshImportOptions::internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value)
+	{
+		thisPtr->getMeshImportOptions()->setKeyFrameReduction(value);
+	}
+
 	float ScriptMeshImportOptions::internal_GetScale(ScriptMeshImportOptions* thisPtr)
 	{
 		return thisPtr->getMeshImportOptions()->getImportScale();
@@ -285,6 +299,33 @@ namespace BansheeEngine
 	void ScriptMeshImportOptions::internal_SetCollisionMeshType(ScriptMeshImportOptions* thisPtr, int value)
 	{
 		thisPtr->getMeshImportOptions()->setCollisionMeshType((CollisionMeshType)value);
+	}
+
+	MonoArray* ScriptMeshImportOptions::internal_GetAnimationClipSplits(ScriptMeshImportOptions* thisPtr)
+	{
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		Vector<AnimationSplitInfo> splitInfos = io->getAnimationClipSplits();
+		UINT32 numSplitInfos = (UINT32)splitInfos.size();
+		ScriptArray outputArray = ScriptArray::create<ScriptAnimationSplitInfo>(numSplitInfos);
+		for(UINT32 i = 0; i < numSplitInfos; i++)
+			outputArray.set(i, ScriptAnimationSplitInfo::toManaged(splitInfos[i]));
+
+		return outputArray.getInternal();
+	}
+
+	void ScriptMeshImportOptions::internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value)
+	{
+		ScriptArray inputArray(value);
+
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		UINT32 numSplits = inputArray.size();
+		Vector<AnimationSplitInfo> splitInfos(numSplits);
+		for (UINT32 i = 0; i < numSplits; i++)
+			splitInfos[i] = ScriptAnimationSplitInfo::fromManaged(inputArray.get<MonoObject*>(i));
+
+		io->setAnimationClipSplits(splitInfos);
 	}
 
 	ScriptFontImportOptions::ScriptFontImportOptions(MonoObject* instance)
@@ -560,5 +601,49 @@ namespace BansheeEngine
 	{
 		auto io = thisPtr->getClipImportOptions();
 		io->setBitDepth(bitDepth);
+	}
+
+	MonoField* ScriptAnimationSplitInfo::nameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::startFrameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::endFrameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::isAdditiveField = nullptr;
+
+	ScriptAnimationSplitInfo::ScriptAnimationSplitInfo(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
+	void ScriptAnimationSplitInfo::initRuntimeData()
+	{
+		nameField = metaData.scriptClass->getField("name");
+		startFrameField = metaData.scriptClass->getField("startFrame");
+		endFrameField = metaData.scriptClass->getField("endFrame");
+		isAdditiveField = metaData.scriptClass->getField("isAdditive");
+	}
+
+	AnimationSplitInfo ScriptAnimationSplitInfo::fromManaged(MonoObject* instance)
+	{
+		AnimationSplitInfo output;
+
+		MonoString* monoName = nullptr;
+		nameField->getValue(instance, &monoName);
+
+		output.name = MonoUtil::monoToString(monoName);
+
+		startFrameField->getValue(instance, &output.startFrame);
+		endFrameField->getValue(instance, &output.endFrame);
+		isAdditiveField->getValue(instance, &output.isAdditive);
+
+		return output;
+	}
+
+	MonoObject* ScriptAnimationSplitInfo::toManaged(const AnimationSplitInfo& splitInfo)
+	{
+		MonoString* monoString = MonoUtil::stringToMono(splitInfo.name);
+		UINT32 startFrame = splitInfo.startFrame;
+		UINT32 endFrame = splitInfo.endFrame;
+		bool isAdditive = splitInfo.isAdditive;
+
+		void* params[4] = { monoString, &startFrame, &endFrame, &isAdditive };
+		return metaData.scriptClass->createInstance("string, int, int, bool", params);
 	}
 }

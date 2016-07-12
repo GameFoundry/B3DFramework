@@ -24,7 +24,7 @@ namespace BansheeEngine
 	Plane::Plane(const Vector3& normal, float d)
 	{
 		this->normal = normal;
-		this->d = -d;
+		this->d = d;
 	}
 
 	Plane::Plane(float a, float b, float c, float _d)
@@ -34,7 +34,7 @@ namespace BansheeEngine
 	Plane::Plane(const Vector3& normal, const Vector3& point)
 	{
 		this->normal = normal;
-		d = -normal.dot(point);
+		d = normal.dot(point);
 	}
 
 	Plane::Plane(const Vector3& point0, const Vector3& point1, const Vector3& point2)
@@ -43,12 +43,12 @@ namespace BansheeEngine
 		Vector3 kEdge2 = point2 - point0;
 		normal = kEdge1.cross(kEdge2);
 		normal.normalize();
-		d = -normal.dot(point0);
+		d = normal.dot(point0);
 	}
 
 	float Plane::getDistance(const Vector3& point) const
 	{
-		return normal.dot(point) + d;
+		return normal.dot(point) - d;
 	}
 
 	Plane::Side Plane::getSide(const Vector3& point) const
@@ -150,7 +150,7 @@ namespace BansheeEngine
 		}
 		else
 		{
-			float nom = normal.dot(ray.getOrigin()) + d;
+			float nom = normal.dot(ray.getOrigin()) - d;
 			float t = -(nom/denom);
 			return std::pair<bool, float>(t >= 0.0f, t);
 		}

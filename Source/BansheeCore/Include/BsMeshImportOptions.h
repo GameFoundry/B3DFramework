@@ -19,6 +19,25 @@ namespace BansheeEngine
 		Convex /**< A convex hull will be generated from the source mesh. */
 	};
 
+	/** Information about how to split an AnimationClip into multiple separate clips. */
+	struct BS_CORE_EXPORT AnimationSplitInfo : IReflectable
+	{
+		AnimationSplitInfo() { }
+
+		String name;
+		UINT32 startFrame = 0;
+		UINT32 endFrame = 0;
+		bool isAdditive = false;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class AnimationSplitInfoRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/**
 	 * Contains import options you may use to control how is a mesh imported from some external format into engine format.
 	 */
@@ -81,13 +100,28 @@ namespace BansheeEngine
 		/**	Retrieves a value that controls what type (if any) of collision mesh should be imported. */
 		CollisionMeshType getCollisionMeshType() const { return mCollisionMeshType; }
 
-		/************************************************************************/
-		/* 								SERIALIZATION                      		*/
-		/************************************************************************/
-	public:
-		friend class MeshImportOptionsRTTI;
-		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		/** 
+		 * Registers animation split infos that determine how will the source animation clip be split. If no splits
+		 * are present the data will be imported as one clip, but if splits are present the data will be split according
+		 * to the split infos. Split infos only affect the primary animation clip, other clips will not be split.
+		 */
+		void setAnimationClipSplits(const Vector<AnimationSplitInfo>& splitInfos) { mAnimationSplits = splitInfos; }
+
+		/** Returns a copy of the animation splits array. */
+		Vector<AnimationSplitInfo> getAnimationClipSplits() const { return mAnimationSplits; }
+
+		/**	
+		 * Enables or disabled keyframe reduction. Keyframe reduction will reduce the number of key-frames in an animation
+		 * clip by removing identical keyframes, and therefore reducing the size of the clip.
+		 */
+		void setKeyFrameReduction(bool enabled) { mReduceKeyFrames = enabled; }
+
+		/**	
+		 * Checks is keyframe reduction enabled.
+		 *
+		 * @see	setKeyFrameReduction
+		 */
+		bool getKeyFrameReduction() const { return mReduceKeyFrames; }
 
 	private:
 		bool mCPUReadable;
@@ -96,8 +130,18 @@ namespace BansheeEngine
 		bool mImportBlendShapes;
 		bool mImportSkin;
 		bool mImportAnimation;
+		bool mReduceKeyFrames;
 		float mImportScale;
 		CollisionMeshType mCollisionMeshType;
+		Vector<AnimationSplitInfo> mAnimationSplits;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class MeshImportOptionsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

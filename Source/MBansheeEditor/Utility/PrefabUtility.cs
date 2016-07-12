@@ -34,13 +34,42 @@ namespace BansheeEditor
         /// is not a prefab instance nothing happens.
         /// </summary>
         /// <param name="obj">Prefab instance whose prefab to update.</param>
-        public static void ApplyPrefab(SceneObject obj)
+        /// <param name="refreshScene">If true, all prefab instances in the current scene will be updated so they consistent
+        ///                            with the newly saved data.</param>
+        public static void ApplyPrefab(SceneObject obj, bool refreshScene = true)
         {
             if (obj == null)
                 return;
 
-            IntPtr objPtr = obj.GetCachedPtr();
-            Internal_ApplyPrefab(objPtr);
+            SceneObject prefabInstanceRoot = GetPrefabParent(obj);
+            if (prefabInstanceRoot == null)
+                return;
+
+            if (refreshScene)
+            {
+                SceneObject root = Scene.Root;
+                if (root != null)
+                    Internal_RecordPrefabDiff(root.GetCachedPtr());
+            }
+
+            string prefabUUID = GetPrefabUUID(prefabInstanceRoot);
+            string prefabPath = ProjectLibrary.GetPath(prefabUUID);
+            Prefab prefab = ProjectLibrary.Load<Prefab>(prefabPath);
+            if (prefab != null)
+            {
+                IntPtr soPtr = prefabInstanceRoot.GetCachedPtr();
+                IntPtr prefabPtr = prefab.GetCachedPtr();
+
+                Internal_ApplyPrefab(soPtr, prefabPtr);
+                ProjectLibrary.Save(prefab);
+            }
+
+            if (refreshScene)
+            {
+                SceneObject root = Scene.Root;
+                if (root != null)
+                    Internal_UpdateFromPrefab(root.GetCachedPtr());
+            }
         }
 
         /// <summary>
@@ -55,6 +84,20 @@ namespace BansheeEditor
 
             IntPtr objPtr = obj.GetCachedPtr();
             Internal_RevertPrefab(objPtr);
+        }
+
+        /// <summary>
+        /// Updates all of the objects belonging to the same prefab instance as the provided object (if any). The update
+        /// will apply any changes from the linked prefab to the hierarchy(if any).
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void UpdateFromPrefab(SceneObject obj)
+        {
+            if (obj == null)
+                return;
+
+            IntPtr objPtr = obj.GetCachedPtr();
+            Internal_UpdateFromPrefab(objPtr);
         }
 
         /// <summary>
@@ -86,20 +129,43 @@ namespace BansheeEditor
             return Internal_GetPrefabParent(objPtr);
         }
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_BreakPrefab(IntPtr nativeInstance);
+        /// <summary>
+        /// Returns the UUID of the prefab attached to the provided scene object. Only works on root prefab objects.
+        /// </summary>
+        /// <param name="obj">Scene object to retrieve the prefab UUID for.</param>
+        /// <returns>Prefab UUID if the object is part of a prefab, null otherwise. </returns>
+        public static string GetPrefabUUID(SceneObject obj)
+        {
+            if (obj == null)
+                return null;
+
+            IntPtr objPtr = obj.GetCachedPtr();
+            return Internal_GetPrefabUUID(objPtr);
+        }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_ApplyPrefab(IntPtr nativeInstance);
+        private static extern void Internal_BreakPrefab(IntPtr soPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_RevertPrefab(IntPtr nativeInstance);
+        private static extern void Internal_ApplyPrefab(IntPtr soPtr, IntPtr prefabPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_HasPrefabLink(IntPtr nativeInstance);
+        private static extern void Internal_RecordPrefabDiff(IntPtr soPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SceneObject Internal_GetPrefabParent(IntPtr nativeInstance);
+        private static extern void Internal_RevertPrefab(IntPtr soPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_HasPrefabLink(IntPtr soPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_UpdateFromPrefab(IntPtr soPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern SceneObject Internal_GetPrefabParent(IntPtr soPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern string Internal_GetPrefabUUID(IntPtr soPtr);
     }
 
     /** @} */

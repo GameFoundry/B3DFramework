@@ -112,6 +112,27 @@ namespace BansheeEditor
     }
 
     /// <summary>
+    /// Information about how to split an AnimationClip into multiple separate clips.
+    /// </summary>
+    public class AnimationSplitInfo
+    {
+        public AnimationSplitInfo() { }
+
+        public AnimationSplitInfo(string name, int startFrame, int endFrame, bool isAdditive)
+        {
+            this.name = name;
+            this.startFrame = startFrame;
+            this.endFrame = endFrame;
+            this.isAdditive = isAdditive;
+        }
+
+        public string name;
+        public int startFrame = 0;
+        public int endFrame = 0;
+        public bool isAdditive = false;
+    }
+    
+    /// <summary>
     /// Provides options for controlling how is a mesh resource imported.
     /// </summary>
     public class MeshImportOptions : ImportOptions
@@ -188,12 +209,33 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Determines if keyframe reduction is enabled. Keyframe reduction will reduce the number of key-frames in an
+        /// animation clip by removing identical keyframes, and therefore reducing the size of the clip.
+        /// </summary>
+        public bool KeyframeReduction
+        {
+            get { return Internal_GetKeyFrameReduction(mCachedPtr); }
+            set { Internal_SetKeyFrameReduction(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Controls what type (if any) of collision mesh should be imported.
         /// </summary>
         public CollisionMeshType CollisionMeshType
         {
             get { return (CollisionMeshType)Internal_GetCollisionMeshType(mCachedPtr); }
             set { Internal_SetCollisionMeshType(mCachedPtr, (int)value); }
+        }
+
+        /// <summary>
+        /// Split information that allows you to split the animation clip contained in the mesh file into multiple separate
+        /// clips. The split always applies to the first clip in the file (if the file contains multiple), other clips are
+        /// imported as is.
+        /// </summary>
+        public AnimationSplitInfo[] AnimationClipSplits
+        {
+            get { return Internal_GetAnimationClipSplits(mCachedPtr); }
+            set { Internal_SetAnimationClipSplits(mCachedPtr, value); }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -234,6 +276,18 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetImportBlendShapes(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetKeyFrameReduction(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetKeyFrameReduction(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern AnimationSplitInfo[] Internal_GetAnimationClipSplits(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetAnimationClipSplits(IntPtr thisPtr, AnimationSplitInfo[] value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetScale(IntPtr thisPtr);
