@@ -77,12 +77,30 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Sets a step value that determines the minimal increment the slider can be increased or decreased by.
+        /// The upper bound of the slider range
         /// </summary>
-        /// <param name="step">Step value in percent if range is not defined, otherwise in same units as the range.</param>
-        public void SetStep(float step)
+        /// <returns>The upper bound of the slider range</returns>
+        public float GetRangeMaximum()
         {
-            Internal_SetStep(mCachedPtr, step);
+            return Internal_GetRangeMaximum(mCachedPtr);
+        }
+
+        /// <summary>
+        /// The lower bound of the slider range
+        /// </summary>
+        /// <returns>The lower bound of the slider range</returns>
+        public float GetRangeMinimum()
+        {
+            return Internal_GetRangeMinimum(mCachedPtr);
+        }
+
+        /// <summary>
+        /// A step value that determines the minimal increment the slider can be increased or decreased by.
+        /// </summary>
+        public float Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+            set { Internal_SetStep(mCachedPtr, value); }
         }
 
         /// <summary>
@@ -123,7 +141,16 @@ namespace BansheeEngine
         private static extern void Internal_SetRange(IntPtr nativeInstance, float min, float max);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMaximum(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMinimum(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetStep(IntPtr nativeInstance, float step);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetStep(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color color);
@@ -197,12 +224,30 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Sets a step value that determines the minimal increment the slider can be increased or decreased by.
+        /// The upper bound of the slider range
         /// </summary>
-        /// <param name="step">Step value in percent if range is not defined, otherwise in same units as the range.</param>
-        public void SetStep(float step)
+        /// <returns>The upper bound of the slider range</returns>
+        public float GetRangeMaximum()
         {
-            Internal_SetStep(mCachedPtr, step);
+            return Internal_GetRangeMaximum(mCachedPtr);
+        }
+
+        /// <summary>
+        /// The lower bound of the slider range
+        /// </summary>
+        /// <returns>The lower bound of the slider range</returns>
+        public float GetRangeMinimum()
+        {
+            return Internal_GetRangeMinimum(mCachedPtr);
+        }
+
+        /// <summary>
+        /// A step value that determines the minimal increment the slider can be increased or decreased by.
+        /// </summary>
+        public float Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+            set { Internal_SetStep(mCachedPtr, value); }
         }
 
         /// <summary>
@@ -243,7 +288,16 @@ namespace BansheeEngine
         private static extern void Internal_SetRange(IntPtr nativeInstance, float min, float max);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMaximum(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMinimum(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetStep(IntPtr nativeInstance, float step);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetStep(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color color);

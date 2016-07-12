@@ -32,6 +32,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// A step value that determines the minimal increment the slider can be increased or decreased by.
+        /// </summary>
+        /// <param name="step">Step value in percent if range is not defined, otherwise in same units as the range.</param>
+        public float Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+            set { Internal_SetStep(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Creates a new slider field element with a label.
         /// </summary>
         /// <param name="min">Minimum boundary of the range to clamp values to.</param>
@@ -65,6 +75,20 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Checks does the element currently has input focus. Input focus means the element has an input caret displayed
+        /// and will accept input from the keyboard.
+        /// </summary>
+        public bool HasInputFocus
+        {
+            get
+            {
+                bool value;
+                Internal_HasInputFocus(mCachedPtr, out value);
+                return value;
+            }
+        }
+
+        /// <summary>
         /// Colors the element with a specific tint.
         /// </summary>
         /// <param name="color">Tint to apply to the element.</param>
@@ -85,15 +109,6 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Sets a step value that determines the minimal increment the slider can be increased or decreased by.
-        /// </summary>
-        /// <param name="step">Step value in percent if range is not defined, otherwise in same units as the range.</param>
-        public void SetStep(float step)
-        {
-            Internal_SetStep(mCachedPtr, step);
-        }
-
-        /// <summary>
         /// Triggered by the runtime when the value of the float field changes.
         /// </summary>
         /// <param name="newValue">New value of the float field.</param>
@@ -111,7 +126,13 @@ namespace BansheeEditor
         private static extern float Internal_GetValue(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetValue(IntPtr nativeInstance, float value);
+        private static extern float Internal_GetStep(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_SetValue(IntPtr nativeInstance, float value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_HasInputFocus(IntPtr nativeInstance, out bool focus);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color color);

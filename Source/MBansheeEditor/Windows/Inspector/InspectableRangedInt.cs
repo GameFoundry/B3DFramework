@@ -52,7 +52,7 @@ namespace BansheeEditor
         /// <inheritdoc/>
         public override InspectableState Refresh(int layoutIndex)
         {
-            if (guiIntField != null)
+            if (guiIntField != null && !guiIntField.HasInputFocus)
                 guiIntField.Value = property.GetValue<float>();
 
             InspectableState oldState = state;

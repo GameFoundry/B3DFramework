@@ -1,5 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+#include "math.h"
 #include "BsGUISliderHandle.h"
 #include "BsImageSprite.h"
 #include "BsGUISkin.h"
@@ -48,8 +49,11 @@ namespace BansheeEngine
 	void GUISliderHandle::_setHandlePos(float pct)
 	{
 		float maxPct = 1.0f;
-		if (mStep > 0.0f)
+		if (mStep > 0.0f && pct < maxPct)
+		{
+			pct = (pct + mStep * 0.5f) - fmod(pct + mStep * 0.5f, mStep);
 			maxPct = Math::floor(1.0f / mStep) * mStep;
+		}
 
 		mPctHandlePos = Math::clamp(pct, 0.0f, maxPct);
 	}
@@ -57,6 +61,11 @@ namespace BansheeEngine
 	float GUISliderHandle::getHandlePos() const
 	{
 		return mPctHandlePos;;
+	}
+
+	float GUISliderHandle::getStep() const
+	{
+		return mStep;
 	}
 
 	void GUISliderHandle::setStep(float step)
@@ -159,13 +168,13 @@ namespace BansheeEngine
 
 	bool GUISliderHandle::_mouseEvent(const GUIMouseEvent& ev)
 	{
-		if(ev.getType() == GUIMouseEventType::MouseMove)
+		if(ev.getType() == GUIMouseEventType::MouseMove) //Mouse moves
 		{
 			if (!_isDisabled())
 			{
-				if (mMouseOverHandle)
+				if (mMouseOverHandle) //It was on the handle
 				{
-					if (!isOnHandle(ev.getPosition()))
+					if (!isOnHandle(ev.getPosition())) //It isn't anymore
 					{
 						mMouseOverHandle = false;
 
@@ -175,9 +184,9 @@ namespace BansheeEngine
 						return true;
 					}
 				}
-				else
+				else //It wasn't on the handle
 				{
-					if (isOnHandle(ev.getPosition()))
+					if (isOnHandle(ev.getPosition())) //It is now
 					{
 						mMouseOverHandle = true;
 
@@ -190,14 +199,14 @@ namespace BansheeEngine
 			}
 		}
 
-		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || mJumpOnClick))
+		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || mJumpOnClick)) //Mouse button is down, and the handle is being dragged or it is supposed to jump
 		{
 			if (!_isDisabled())
 			{
 				mState = State::Active;
 				_markLayoutAsDirty();
 
-				if (mJumpOnClick)
+				if (mJumpOnClick) //If it is supposed to jump
 				{
 					float handlePosPx = 0.0f;
 
@@ -207,6 +216,7 @@ namespace BansheeEngine
 						handlePosPx = (float)(ev.getPosition().y - (INT32)mLayoutData.area.y - mHandleSize * 0.5f);
 
 					setHandlePosPx((INT32)handlePosPx);
+					onHandleMoved(mPctHandlePos);
 				}
 
 				if (mHorizontal)
@@ -219,7 +229,7 @@ namespace BansheeEngine
 					INT32 top = (INT32)mLayoutData.area.y + getHandlePosPx();
 					mDragStartPos = ev.getPosition().y - top;
 				}
-
+				
 				mHandleDragged = true;
 			}
 
@@ -273,45 +283,45 @@ namespace BansheeEngine
 					mState = State::Hover;
 				else
 					mState = State::Normal;
-
-				// If we clicked above or below the scroll handle, scroll by one page
-				INT32 handlePosPx = getHandlePosPx();
-				if (!mJumpOnClick)
-				{
-					UINT32 stepSizePx = 0;
-					if (mStep > 0.0f)
-						stepSizePx = (UINT32)(mStep * getMaxSize());
-					else
-						stepSizePx = mHandleSize;
-
-					INT32 handleOffset = 0;
-					if (mHorizontal)
+				if (!mHandleDragged) {
+					// If we clicked above or below the scroll handle, scroll by one page
+					INT32 handlePosPx = getHandlePosPx();
+					if (!mJumpOnClick)
 					{
-						INT32 handleLeft = (INT32)mLayoutData.area.x + handlePosPx;
-						INT32 handleRight = handleLeft + mHandleSize;
+						UINT32 stepSizePx = 0;
+						if (mStep > 0.0f)
+							stepSizePx = (UINT32)(mStep * getMaxSize());
+						else
+							stepSizePx = mHandleSize;
 
-						if (ev.getPosition().x < handleLeft)
-							handleOffset -= stepSizePx;
-						else if (ev.getPosition().x > handleRight)
-							handleOffset += stepSizePx;
+						INT32 handleOffset = 0;
+						if (mHorizontal)
+						{
+							INT32 handleLeft = (INT32)mLayoutData.area.x + handlePosPx;
+							INT32 handleRight = handleLeft + mHandleSize;
+
+							if (ev.getPosition().x < handleLeft)
+								handleOffset -= stepSizePx;
+							else if (ev.getPosition().x > handleRight)
+								handleOffset += stepSizePx;
+						}
+						else
+						{
+							INT32 handleTop = (INT32)mLayoutData.area.y + handlePosPx;
+							INT32 handleBottom = handleTop + mHandleSize;
+
+							if (ev.getPosition().y < handleTop)
+								handleOffset -= stepSizePx;
+							else if (ev.getPosition().y > handleBottom)
+								handleOffset += stepSizePx;
+						}
+
+						handlePosPx += handleOffset;
 					}
-					else
-					{
-						INT32 handleTop = (INT32)mLayoutData.area.y + handlePosPx;
-						INT32 handleBottom = handleTop + mHandleSize;
 
-						if (ev.getPosition().y < handleTop)
-							handleOffset -= stepSizePx;
-						else if (ev.getPosition().y > handleBottom)
-							handleOffset += stepSizePx;
-					}
-
-					handlePosPx += handleOffset;
+					setHandlePosPx(handlePosPx);
+					onHandleMoved(mPctHandlePos);
 				}
-
-				setHandlePosPx(handlePosPx);
-				onHandleMoved(mPctHandlePos);
-
 				mHandleDragged = false;
 				_markLayoutAsDirty();
 			}
@@ -324,7 +334,6 @@ namespace BansheeEngine
 			if (!_isDisabled())
 			{
 				mHandleDragged = false;
-
 				if (mMouseOverHandle)
 					mState = State::Hover;
 				else
@@ -370,11 +379,7 @@ namespace BansheeEngine
 	void GUISliderHandle::setHandlePosPx(INT32 pos)
 	{
 		float maxScrollAmount = (float)getMaxSize() - mHandleSize;
-		float maxPct = 1.0f;
-		if (mStep > 0.0f)
-			maxPct = Math::floor(1.0f / mStep) * mStep;
-
-		mPctHandlePos = Math::clamp(pos / maxScrollAmount, 0.0f, maxPct);
+		_setHandlePos(pos / maxScrollAmount);
 	}
 
 	UINT32 GUISliderHandle::getMaxSize() const
