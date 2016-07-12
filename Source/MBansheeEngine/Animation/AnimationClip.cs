@@ -8,7 +8,11 @@ namespace BansheeEngine
     /** @addtogroup Animation
      *  @{
      */
-     
+
+    /// <summary>
+    /// Contains animation curves for translation/rotation/scale of scene objects/skeleton bones, as well as curves for
+    /// generic property animation.
+    /// </summary>
     public class AnimationClip : Resource
     {
         /// <summary>

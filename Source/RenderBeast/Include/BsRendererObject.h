@@ -37,6 +37,9 @@ namespace BansheeEngine
 		 * Parameter for setting global bone pose transforms used for an element with skeletal animation, null otherwise. 
 		 */
 		MaterialParamBufferCore boneMatricesParam;
+
+		/** GPU buffer containing element's bone matrices, if it requires any. */
+		SPtr<GpuBufferCore> boneMatrixBuffer;
 	};
 
 	 /** Contains information about a Renderable, used by the Renderer. */

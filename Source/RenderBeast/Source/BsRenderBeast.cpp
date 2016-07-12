@@ -26,6 +26,7 @@
 #include "BsRenderTargets.h"
 #include "BsRendererUtility.h"
 #include "BsAnimationManager.h"
+#include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
 
 using namespace std::placeholders;
@@ -725,11 +726,11 @@ namespace BansheeEngine
 		UINT32 rendererId = element.renderableId;
 		Matrix4 worldViewProjMatrix = viewProj * mRenderableShaderData[rendererId].worldTransform;
 
-		SPtr<GpuBufferCore> boneMatrices;
+		SPtr<GpuBufferCore> boneMatrices = element.boneMatrixBuffer;
 		if(element.animationId != (UINT64)-1)
 		{
-			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be created
-			// earlier and then shared by all elements
+			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
+			// all such elements
 
 			const RendererAnimationData& animData = frameInfo.animData;
 
@@ -738,9 +739,7 @@ namespace BansheeEngine
 			{
 				const RendererAnimationData::PoseInfo& poseInfo = iterFind->second;
 
-				boneMatrices = GpuBufferCore::create(poseInfo.numBones * 3, 0, GBT_STANDARD, BF_32X4F, GBU_STATIC);
 				UINT8* dest = (UINT8*)boneMatrices->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
-
 				for(UINT32 i = 0; i < poseInfo.numBones; i++)
 				{
 					const Matrix4& transform = animData.transforms[poseInfo.startIdx + i];

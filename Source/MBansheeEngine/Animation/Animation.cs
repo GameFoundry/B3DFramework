@@ -117,8 +117,9 @@ namespace BansheeEngine
 
         /// <summary>
         /// Determines the default clip to play as soon as the component is enabled. If more control over playing clips is
-        /// needed use the <see cref="Play"/>, <see cref="Blend"/> and <see cref="CrossFade"/> methods to queue clips for
-        /// playback manually, and <see cref="SetState"/> method for modify their states individually.
+        /// needed use the <see cref="Play"/>, <see cref="Blend1D"/>, <see cref="Blend2D"/> and <see cref="CrossFade"/> 
+        /// methods to queue clips for playback manually, and <see cref="SetState"/> method for modify their states 
+        /// individually.
         /// </summary>
         public AnimationClip DefaultClip
         {

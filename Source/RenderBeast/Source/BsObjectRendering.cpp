@@ -5,6 +5,9 @@
 #include "BsGpuParams.h"
 #include "BsRenderBeast.h"
 #include "BsMaterial.h"
+#include "BsMesh.h"
+#include "BsSkeleton.h"
+#include "BsGpuBuffer.h"
 
 namespace BansheeEngine
 {
@@ -50,8 +53,33 @@ namespace BansheeEngine
 		element.material->setParamBlockBuffer(perCameraBlockName, mPerCameraParams.getBuffer());
 		element.material->setParamBlockBuffer(perObjectBlockName, mPerObjectParams.getBuffer());
 
-		if(!boneMatricesParamName.empty())
+		if (!boneMatricesParamName.empty())
+		{
+			// Note: Bone matrices should be shared between all sub-meshes, so maybe it's better to create this buffer
+			// on a per-Renderable basis, rather than per-element?
 			element.boneMatricesParam = element.material->getParamBuffer(boneMatricesParamName);
+
+			SPtr<Skeleton> skeleton = element.mesh->getSkeleton();
+			UINT32 numBones = skeleton != nullptr ? skeleton->getNumBones() : 0;
+
+			if (numBones > 0)
+			{
+				SPtr<GpuBufferCore> buffer = GpuBufferCore::create(numBones * 3, 0, GBT_STANDARD, BF_32X4F, GBU_DYNAMIC);
+				UINT8* dest = (UINT8*)buffer->lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+
+				// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
+				for (UINT32 i = 0; i < numBones; i++)
+				{
+					memcpy(dest, &Matrix4::IDENTITY, 12 * sizeof(float)); // Assuming row-major format
+
+					dest += 12 * sizeof(float);
+				}
+
+				buffer->unlock();
+
+				element.boneMatrixBuffer = buffer;
+			}
+		}
 	}
 
 	void ObjectRenderer::setParamFrameParams(float time)
@@ -87,8 +115,7 @@ namespace BansheeEngine
 		mPerObjectParams.gWorldDeterminantSign.set(data.worldDeterminantSign);
 		mPerObjectParams.gMatWorldViewProj.set(wvpMatrix);
 
-		if(element.animationId != (UINT64)-1)
-			element.boneMatricesParam.set(boneMatrices);
+		element.boneMatricesParam.set(boneMatrices);
 	}
 
 	void DefaultMaterial::_initDefines(ShaderDefines& defines)

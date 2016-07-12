@@ -48,6 +48,12 @@ namespace BansheeEngine
 		/** @copydoc TGpuDataParam::get */
 		T get(UINT32 arrayIdx = 0) const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
@@ -68,6 +74,12 @@ namespace BansheeEngine
 
 		/** @copydoc TGpuDataParam::get */
 		T get(UINT32 arrayIdx = 0) const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuDataParam<T, true>>> mParams;
@@ -96,6 +108,12 @@ namespace BansheeEngine
 		/** @copydoc TGpuParamStruct::getElementSize */
 		UINT32 getElementSize() const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
@@ -119,6 +137,12 @@ namespace BansheeEngine
 
 		/** @copydoc TGpuParamStruct::getElementSize */
 		UINT32 getElementSize() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuParamStruct<true>>> mParams;
@@ -144,6 +168,12 @@ namespace BansheeEngine
 		/** @copydoc GpuParamTexture::get */
 		HTexture get() const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParams> mMaterialParams;
@@ -163,6 +193,12 @@ namespace BansheeEngine
 
 		/** @copydoc GpuParamTexture::get */
 		SPtr<TextureCore> get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuParamTexture<true>>> mParams;
@@ -188,6 +224,12 @@ namespace BansheeEngine
 		/** @copydoc GpuParamLoadStoreTexture::get */
 		HTexture get() const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParams> mMaterialParams;
@@ -208,6 +250,12 @@ namespace BansheeEngine
 
 		/** @copydoc GpuParamLoadStoreTexture::get */
 		SPtr<TextureCore> get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuParamLoadStoreTexture<true>>> mParams;
@@ -233,6 +281,12 @@ namespace BansheeEngine
 		/** @copydoc GpuParamBuffer::get */
 		SPtr<GpuBuffer> get() const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParams> mMaterialParams;
@@ -252,6 +306,12 @@ namespace BansheeEngine
 
 		/** @copydoc GpuParamBuffer::get */
 		SPtr<GpuBufferCore> get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuParamBuffer<true>>> mParams;
@@ -277,6 +337,12 @@ namespace BansheeEngine
 		/** @copydoc GpuParamSampState::get */
 		SPtr<SamplerState> get() const;
 
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mGPUParams == nullptr;
+		}
+
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParams> mMaterialParams;
@@ -296,6 +362,12 @@ namespace BansheeEngine
 
 		/** @copydoc GpuParamSampState::get */
 		SPtr<SamplerStateCore> get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mParams == nullptr;
+		}
 
 	protected:
 		SPtr<Vector<TGpuParamSampState<true>>> mParams;
