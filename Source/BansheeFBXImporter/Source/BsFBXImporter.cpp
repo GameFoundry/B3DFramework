@@ -213,7 +213,7 @@ namespace BansheeEngine
 			importBlendShapes(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importSkin)
-			importSkin(importedScene);
+			importSkin(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importAnimation)
 			importAnimations(fbxScene, fbxImportOptions, importedScene);
@@ -468,10 +468,10 @@ namespace BansheeEngine
 					Vector <TKeyframe<Quaternion>> keyFrames(numKeyframes);
 					for (UINT32 i = 0; i < numKeyframes; i++)
 					{
-						const FBXKeyFrame& keyFrameW = bone.rotation[0].keyframes[i];
-						const FBXKeyFrame& keyFrameX = bone.rotation[1].keyframes[i];
-						const FBXKeyFrame& keyFrameY = bone.rotation[2].keyframes[i];
-						const FBXKeyFrame& keyFrameZ = bone.rotation[3].keyframes[i];
+						const FBXKeyFrame& keyFrameX = bone.rotation[0].keyframes[i];
+						const FBXKeyFrame& keyFrameY = bone.rotation[1].keyframes[i];
+						const FBXKeyFrame& keyFrameZ = bone.rotation[2].keyframes[i];
+						const FBXKeyFrame& keyFrameW = bone.rotation[3].keyframes[i];
 
 						keyFrames[i].value = Quaternion(keyFrameW.value, keyFrameX.value, keyFrameY.value, keyFrameZ.value);
 
@@ -1268,7 +1268,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene)
+	void FBXImporter::importSkin(FBXImportScene& scene, const FBXImportOptions& options)
 	{
 		for (auto& mesh : scene.meshes)
 		{
@@ -1292,16 +1292,17 @@ namespace BansheeEngine
 						continue;
 				}
 
-				importSkin(scene, deformer, *mesh);
+				importSkin(scene, deformer, *mesh, options);
 			}
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh)
+	void FBXImporter::importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options)
 	{
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
 
+		Matrix4 importScale = Matrix4::scaling(options.importScale);
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
 		for (UINT32 i = 0; i < boneCount; i++)
@@ -1327,6 +1328,7 @@ namespace BansheeEngine
 
 			FbxAMatrix bindPose = linkTransform.Inverse() * clusterTransform;
 			bone.bindPose = FBXToNativeType(bindPose);
+			bone.bindPose = (bone.node->worldTransform * importScale) * bone.bindPose;
 
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;

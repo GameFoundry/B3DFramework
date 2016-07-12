@@ -82,10 +82,10 @@ namespace BansheeEngine
 		void importBlendShapeFrame(FbxShape* shape, const FBXImportMesh& mesh, const FBXImportOptions& options, FBXBlendShapeFrame& outFrame);
 
 		/**	Imports skinning information and bones for all meshes. */
-		void importSkin(FBXImportScene& scene);
+		void importSkin(FBXImportScene& scene, const FBXImportOptions& options);
 
 		/**	Imports skinning information and bones for the specified mesh. */
-		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh);
+		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options);
 
 		/**	Imports all bone and blend shape animations from the FBX. */
 		void importAnimations(FbxScene* scene, FBXImportOptions& importOptions, FBXImportScene& importScene);
