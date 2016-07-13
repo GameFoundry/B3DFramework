@@ -2286,12 +2286,70 @@ namespace BansheeEngine
 		return HSpriteTexture();
 	}
 
+	GUIContentImages BuiltinEditorResources::getAnimationWindowIcon(AnimationWindowIcon icon) const
+	{
+		HSpriteTexture off;
+		HSpriteTexture on;
+
+		switch (icon)
+		{
+		case AnimationWindowIcon::Play:
+			off = getGUIIcon(L"AnimationPlayIcon.png");
+			on = getGUIIcon(L"AnimationPlayIconOn.png");
+			break;
+		case AnimationWindowIcon::Record:
+			off = getGUIIcon(L"AnimationRecordIcon.png");
+			on = getGUIIcon(L"AnimationRecordIconOn.png");
+			break;
+		case AnimationWindowIcon::FrameForward:
+			off = getGUIIcon(L"AnimationFrameForwardIcon.png");
+			on = getGUIIcon(L"AnimationFrameForwardIconOn.png");
+			break;
+		case AnimationWindowIcon::FrameBack:
+			off = getGUIIcon(L"AnimationFrameBackIcon.png");
+			on = getGUIIcon(L"AnimationFrameBackIconOn.png");
+			break;
+		case AnimationWindowIcon::AddEvent:
+			off = getGUIIcon(L"AnimationAddEventIcon.png");
+			on = getGUIIcon(L"AnimationAddEventIconOn.png");
+			break;
+		case AnimationWindowIcon::AddKeyframe:
+			off = getGUIIcon(L"AnimationAddKeyframeIcon.png");
+			on = getGUIIcon(L"AnimationAddKeyframeIconOn.png");
+			break;
+		case AnimationWindowIcon::Event:
+			off = getGUIIcon(L"AnimationEventIcon.png");
+			on = off;
+			break;
+		case AnimationWindowIcon::Keyframe:
+			off = getGUIIcon(L"AnimationKeyframeIcon.png");
+			on = off;
+			break;
+		}
+
+		GUIContentImages output;
+		output.normal = off;
+		output.hover = off;
+		output.active = on;
+		output.focused = off;
+		output.normalOn = on;
+		output.hoverOn = on;
+		output.activeOn = on;
+		output.focusedOn = on;
+
+		return output;
+	}
+
 	HSpriteTexture BuiltinEditorResources::getIcon(EditorIcon icon) const
 	{
 		switch (icon)
 		{
-		case EditorIcon::XBtn:
+		case EditorIcon::X:
 			return getGUIIcon(XButtonNormalTex);
+		case EditorIcon::Component:
+			return getGUIIcon(L"IconComponent.png");
+		case EditorIcon::SceneObject:
+			return getGUIIcon(L"IconSceneObject.png");
 		}
 
 		return HSpriteTexture();

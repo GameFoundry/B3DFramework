@@ -17,7 +17,7 @@ namespace BansheeEditor
         NewCamera, NewRenderable, NewPointLight, NewDirLight, NewSpotLight, NewSceneObject, NewCube, NewSphere, NewCone, 
         NewQuad, NewMat, NewCSScript, NewShader, NewSpriteTex, Pause, Play, Step, Undo, Redo, OpenProject, SaveProject, 
         SaveScene
-	};
+	}
 
     /// <summary>
     /// Types of icons that may be displayed in the scene window.
@@ -25,7 +25,7 @@ namespace BansheeEditor
     public enum SceneWindowIcon // Note: Must match C++ enum SceneWindowIcon
 	{
 		View, Move, Rotate, Scale, Pivot, Center, Local, World, MoveSnap, RotateSnap
-	};
+	}
 
     /// <summary>
     /// Types of icons that may be displayed in the library window.
@@ -33,7 +33,7 @@ namespace BansheeEditor
     public enum LibraryWindowIcon // Note: Must match C++ enum LibraryWindowIcon
 	{
 		Home, Up, Clear, Options
-	};
+	}
 
     /// <summary>
     /// Types of icons that may be displayed in the inspector window.
@@ -41,7 +41,7 @@ namespace BansheeEditor
 	public enum InspectorWindowIcon  // Note: Must match C++ enum InspectorWindowIcon
 	{
 		Create, Clone, Clear, Resize, Delete, MoveUp, MoveDown, Edit, Apply, Add, Cancel
-	};
+	}
 
     /// <summary>
     /// Types of icons that may be displayed for resources in the library window.
@@ -50,6 +50,14 @@ namespace BansheeEditor
 	{
 		Folder, Mesh, Font, Texture, PlainText, ScriptCode, SpriteTexture, Shader, ShaderInclude, Material, Prefab, GUISkin,
         PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip
+    }
+
+    /// <summary>
+    /// Types of icons that may be displayed in the animation editor window.
+    /// </summary>
+    public enum AnimationWindowIcon // Note: Must match C++ enum AnimationWindowIcon
+    {
+        Play, Record, FrameForward, FrameBack, AddKeyframe, AddEvent, Keyframe, Event
     };
 
     /// <summary>
@@ -61,13 +69,18 @@ namespace BansheeEditor
     }
 
     /// <summary>
+    /// Types of icons used in various areas throughout the editor. 
+    /// </summary>
+    public enum EditorIcon // Note: Must match C++ enum EditorIcon
+    {
+        X, Component, SceneObject
+    }
+
+    /// <summary>
     /// Contains various editor-specific resources that are always available.
     /// </summary>
     public static class EditorBuiltin
     {
-        /// <summary>Returns a texture displaying an X button.</summary>
-        public static SpriteTexture XBtnIcon { get { return Internal_GetXBtnIcon(); } }
-
         /// <summary>Returns text contained in the default "empty" shader.</summary>
         public static string EmptyShaderCode { get { return Internal_GetEmptyShaderCode(); } }
 
@@ -128,10 +141,20 @@ namespace BansheeEditor
         /// Retrieves an icon that may be displayed on the scene window.
         /// </summary>
         /// <param name="icon">Type of icon to retrieve.</param>
-        /// <returns>Sprite texture of the icon.</returns>
+        /// <returns>Sprite textures of the icon.</returns>
         public static GUIContentImages GetSceneWindowIcon(SceneWindowIcon icon)
         {
             return Internal_GetSceneWindowIcon(icon);
+        }
+
+        /// <summary>
+        /// Retrieves an icon that may be displayed on the animation window.
+        /// </summary>
+        /// <param name="icon">Type of icon to retrieve.</param>
+        /// <returns>Sprite textures of the icon.</returns>
+        public static GUIContentImages GetAnimationWindowIcon(AnimationWindowIcon icon)
+        {
+            return Internal_GetAnimationWindowIcon(icon);
         }
 
         /// <summary>
@@ -146,12 +169,19 @@ namespace BansheeEditor
             return Internal_GetLogIcon(icon, size, dark);
         }
 
+        /// <summary>
+        /// Retrieves an icon used throughout the editor.
+        /// </summary>
+        /// <param name="icon">Type of icon to retrieve.</param>
+        /// <returns>Sprite texture of the icon.</returns>
+        public static SpriteTexture GetEditorIcon(EditorIcon icon)
+        {
+            return Internal_GetEditorIcon(icon);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SpriteTexture Internal_GetLibraryItemIcon(LibraryItemIcon icon, int size);
         
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SpriteTexture Internal_GetXBtnIcon();
-
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern string Internal_GetEmptyShaderCode();
 
@@ -171,7 +201,13 @@ namespace BansheeEditor
         private static extern GUIContentImages Internal_GetSceneWindowIcon(SceneWindowIcon icon);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern GUIContentImages Internal_GetAnimationWindowIcon(AnimationWindowIcon icon);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SpriteTexture Internal_GetLogIcon(LogIcon icon, int size, bool dark);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern SpriteTexture Internal_GetEditorIcon(EditorIcon icon);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Font Internal_GetDefaultFont();

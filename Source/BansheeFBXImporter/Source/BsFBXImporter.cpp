@@ -1352,7 +1352,6 @@ namespace BansheeEngine
 
 			FbxAMatrix invLinkTransform = linkTransform.Inverse() * clusterTransform;
 			bone.bindPose = FBXToNativeType(invLinkTransform) * invBakedTransform;
-			//bone.bindPose = bone.bindPose * FBXToNativeType(clusterTransform);
 
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;
