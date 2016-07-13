@@ -165,7 +165,7 @@ namespace BansheeEngine
 		setValue(value);
 
 		if(triggerEvent)
-			onValueChanged(value);
+			onValueChanged(mValue);
 	}
 
 	const String& GUIFloatField::getGUITypeName()
