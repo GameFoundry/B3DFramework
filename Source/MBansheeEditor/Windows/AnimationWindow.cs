@@ -14,8 +14,7 @@ namespace BansheeEditor
     internal class AnimationWindow : EditorWindow
     {
         private GUITimeline timeline;
-        private GUIFloatField startField;
-        private GUIFloatField endField;
+        private GUIFloatField lengthField;
         private GUIIntField fpsField;
 
         /// <summary>
@@ -35,20 +34,17 @@ namespace BansheeEditor
 
         private void OnInitialize()
         {
-            startField = new GUIFloatField(new LocEdString("Start"), 50);
-            endField = new GUIFloatField(new LocEdString("End"), 50);
+            lengthField = new GUIFloatField(new LocEdString("Length"), 50);
             fpsField = new GUIIntField(new LocEdString("FPS"), 50);
 
-            endField.Value = 60.0f;
+            lengthField.Value = 60.0f;
             fpsField.Value = 1;
 
-            startField.OnChanged += x => timeline.SetRange(x, endField.Value);
-            endField.OnChanged += x => timeline.SetRange(startField.Value, x);
+            lengthField.OnChanged += x => timeline.SetRange(lengthField.Value);
             fpsField.OnChanged += x => timeline.SetFPS(x);
 
             GUILayout buttonLayout = GUI.AddLayoutX();
-            buttonLayout.AddElement(startField);
-            buttonLayout.AddElement(endField);
+            buttonLayout.AddElement(lengthField);
             buttonLayout.AddElement(fpsField);
 
             timeline = new GUITimeline(GUI, Width, 20);
