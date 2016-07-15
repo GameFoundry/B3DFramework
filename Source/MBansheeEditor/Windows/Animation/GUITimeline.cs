@@ -137,7 +137,6 @@ namespace BansheeEditor
 
             // TODO - Transition between interval sizes more lightly (dynamically change tick height?)
             // TODO - Calculate min width
-            // TODO - When at optimal width it should display the entire range
             // TODO - Time values change as width changes, keep them constant?
 
             float range = GetRange();

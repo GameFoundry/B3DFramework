@@ -14,6 +14,7 @@ namespace BansheeEditor
     internal class AnimationWindow : EditorWindow
     {
         private GUITimeline timeline;
+        private GUICurveDrawing curveDrawing;
         private GUIFloatField lengthField;
         private GUIIntField fpsField;
 
@@ -48,22 +49,45 @@ namespace BansheeEditor
             buttonLayout.AddElement(fpsField);
 
             timeline = new GUITimeline(GUI, Width, 20);
+
+            EdAnimationCurve[] curves = CreateDummyCurves();
+            curveDrawing = new GUICurveDrawing(GUI, Width, Height - 20, curves);
+
+            // TODO - Calculate min/max Y and range to set as default
+            //  - Also recalculate whenever curves change and increase as needed
+        }
+
+        private EdAnimationCurve[] CreateDummyCurves()
+        {
+            EdAnimationCurve[] curves = new EdAnimationCurve[1];
+
+            curves[0].AddKeyframe(0.0f, 1.0f);
+
+            KeyFrame[] keyFrames = new KeyFrame[3];
+            keyFrames[0].time = 0.0f;
+            keyFrames[0].value = 1.0f;
+
+            keyFrames[1].time = 10.0f;
+            keyFrames[1].value = 5.0f;
+
+            keyFrames[2].time = 15.0f;
+            keyFrames[2].value = -2.0f;
+
+            // TODO - Set up tangents
+
+            return curves;
         }
 
         protected override void WindowResized(int width, int height)
         {
             timeline.SetSize(width, 20);
+            curveDrawing.SetSize(width, height - 20);
         }
 
         private void OnEditorUpdate()
         {
             //int position = (int)(MathEx.Sin(Time.RealElapsed)*50.0f + 50.0f);
             //canvas.SetPosition(position, 0);
-        }
-
-        private void OnDestroy()
-        {
-            // TODO
         }
     }
 
