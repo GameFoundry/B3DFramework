@@ -17,6 +17,7 @@ namespace BansheeEditor
         private GUICurveDrawing curveDrawing;
         private GUIFloatField lengthField;
         private GUIIntField fpsField;
+        private GUIFloatField yRangeField;
 
         /// <summary>
         /// Opens the animation window.
@@ -37,21 +38,39 @@ namespace BansheeEditor
         {
             lengthField = new GUIFloatField(new LocEdString("Length"), 50);
             fpsField = new GUIIntField(new LocEdString("FPS"), 50);
+            yRangeField = new GUIFloatField(new LocEdString("Y range"), 50);
 
             lengthField.Value = 60.0f;
             fpsField.Value = 1;
+            yRangeField.Value = 20.0f;
 
-            lengthField.OnChanged += x => timeline.SetRange(lengthField.Value);
+            lengthField.OnChanged += x =>
+            {
+                timeline.SetRange(lengthField.Value);
+                curveDrawing.SetRange(lengthField.Value, yRangeField.Value * -0.5f, yRangeField.Value * 0.5f);
+            };
             fpsField.OnChanged += x => timeline.SetFPS(x);
+            yRangeField.OnChanged += x =>
+            {
+                curveDrawing.SetRange(lengthField.Value, x * -0.5f, x * 0.5f);
+            };
 
-            GUILayout buttonLayout = GUI.AddLayoutX();
+            GUILayout mainLayout = GUI.AddLayoutY();
+
+            GUILayout buttonLayout = mainLayout.AddLayoutX();
+            buttonLayout.AddSpace(5);
             buttonLayout.AddElement(lengthField);
+            buttonLayout.AddSpace(5);
+            buttonLayout.AddElement(yRangeField);
+            buttonLayout.AddSpace(5);
             buttonLayout.AddElement(fpsField);
+            buttonLayout.AddSpace(5);
 
-            timeline = new GUITimeline(GUI, Width, 20);
+            timeline = new GUITimeline(mainLayout, Width, 20);
 
             EdAnimationCurve[] curves = CreateDummyCurves();
-            curveDrawing = new GUICurveDrawing(GUI, Width, Height - 20, curves);
+            curveDrawing = new GUICurveDrawing(mainLayout, Width, Height - 20, curves);
+            curveDrawing.SetRange(60.0f, -10.0f, 10.0f);
 
             // TODO - Calculate min/max Y and range to set as default
             //  - Also recalculate whenever curves change and increase as needed
@@ -60,20 +79,11 @@ namespace BansheeEditor
         private EdAnimationCurve[] CreateDummyCurves()
         {
             EdAnimationCurve[] curves = new EdAnimationCurve[1];
+            curves[0] = new EdAnimationCurve();
 
             curves[0].AddKeyframe(0.0f, 1.0f);
-
-            KeyFrame[] keyFrames = new KeyFrame[3];
-            keyFrames[0].time = 0.0f;
-            keyFrames[0].value = 1.0f;
-
-            keyFrames[1].time = 10.0f;
-            keyFrames[1].value = 5.0f;
-
-            keyFrames[2].time = 15.0f;
-            keyFrames[2].value = -2.0f;
-
-            // TODO - Set up tangents
+            curves[0].AddKeyframe(10.0f, 5.0f);
+            curves[0].AddKeyframe(15.0f, -2.0f);
 
             return curves;
         }

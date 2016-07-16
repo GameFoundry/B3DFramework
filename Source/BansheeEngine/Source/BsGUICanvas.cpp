@@ -50,10 +50,7 @@ namespace BansheeEngine
 	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, const Color& color)
 	{
 		if(vertices.size() < 2)
-		{
-			LOGWRN("Invalid number of vertices. Ignoring call.");
 			return;
-		}
 
 		mElements.push_back(CanvasElement());
 		CanvasElement& element = mElements.back();

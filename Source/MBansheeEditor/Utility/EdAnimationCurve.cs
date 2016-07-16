@@ -34,6 +34,14 @@ namespace BansheeEditor
             get { return tangentModes; }
         }
 
+        internal EdAnimationCurve()
+        {
+            KeyFrame[] keyframes = new KeyFrame[0];
+            native = new AnimationCurve(keyframes);
+
+            tangentModes = new TangentMode[0];
+        }
+
         // Tangent modes should match number of curve keyframes
         internal EdAnimationCurve(AnimationCurve native, TangentMode[] tangentModes)
         {

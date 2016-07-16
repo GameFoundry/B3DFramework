@@ -32,7 +32,7 @@ namespace BansheeEngine
 		UINT32 getScrollableSize() const;
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		void setTint(const Color& color) override;
 
 		/**
 		 * Triggered whenever the scrollbar handle is moved. Value provided is the handle position in percent 
@@ -60,7 +60,7 @@ namespace BansheeEngine
 		void _setScrollPos(float pct);
 
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
