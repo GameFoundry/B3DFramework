@@ -47,12 +47,12 @@ namespace BansheeEditor
             lengthField.OnChanged += x =>
             {
                 timeline.SetRange(lengthField.Value);
-                curveDrawing.SetRange(lengthField.Value, yRangeField.Value * -0.5f, yRangeField.Value * 0.5f);
+                curveDrawing.SetRange(lengthField.Value, yRangeField.Value);
             };
             fpsField.OnChanged += x => timeline.SetFPS(x);
             yRangeField.OnChanged += x =>
             {
-                curveDrawing.SetRange(lengthField.Value, x * -0.5f, x * 0.5f);
+                curveDrawing.SetRange(lengthField.Value, x);
             };
 
             GUILayout mainLayout = GUI.AddLayoutY();
@@ -70,7 +70,7 @@ namespace BansheeEditor
 
             EdAnimationCurve[] curves = CreateDummyCurves();
             curveDrawing = new GUICurveDrawing(mainLayout, Width, Height - 20, curves);
-            curveDrawing.SetRange(60.0f, -10.0f, 10.0f);
+            curveDrawing.SetRange(60.0f, 20.0f);
 
             // TODO - Calculate min/max Y and range to set as default
             //  - Also recalculate whenever curves change and increase as needed
@@ -96,6 +96,27 @@ namespace BansheeEditor
 
         private void OnEditorUpdate()
         {
+            if (Input.IsPointerButtonDown(PointerButton.Left))
+            {
+                Vector2I windowPos = ScreenToWindowPos(Input.PointerPosition);
+
+                Vector2 curveCoord;
+                if (curveDrawing.GetCurveCoordinates(windowPos, out curveCoord))
+                {
+                    Debug.Log("Click coord: " + curveCoord);
+                }
+                else
+                {
+                    float time;
+                    if (timeline.GetTime(windowPos, out time))
+                    {
+                        Debug.Log("Click time: " + time);
+                    }
+                    else
+                        Debug.Log("Clicked outside!");
+                }
+            }
+
             //int position = (int)(MathEx.Sin(Time.RealElapsed)*50.0f + 50.0f);
             //canvas.SetPosition(position, 0);
         }

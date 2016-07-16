@@ -46,6 +46,25 @@ namespace BansheeEditor
             SetSize(width, height);
         }
 
+        public bool GetTime(Vector2I windowCoords, out float time)
+        {
+            Rect2I bounds = canvas.Bounds;
+
+            if (windowCoords.x < (bounds.x + PADDING) || windowCoords.x >= (bounds.x + bounds.width - PADDING) ||
+                windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
+            {
+                time = 0.0f;
+                return false;
+            }
+
+            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + PADDING, bounds.y);
+
+            float lengthPerPixel = rangeLength / drawableWidth;
+            time = relativeCoords.x * lengthPerPixel;
+
+            return true;
+        }
+
         public void SetSize(int width, int height)
         {
             this.width = width;

@@ -15,14 +15,13 @@ namespace BansheeEditor
     {
         private const int PADDING = 30; // TODO - Shared with GUITimeline
         private const int LINE_SPLIT_WIDTH = 2;
-        private readonly static Color COLOR_MID_GRAY = new Color(90.0f / 255.0f, 90.0f / 255.0f, 90.0f / 255.0f, 1.0f);
+        private static readonly Color COLOR_MID_GRAY = new Color(90.0f / 255.0f, 90.0f / 255.0f, 90.0f / 255.0f, 1.0f);
 
         private EdAnimationCurve[] curves;
         private int width;
         private int height;
-        private float length = 60.0f;
-        private float minY = -1.0f;
-        private float maxY = 1.0f;
+        private float xRange = 60.0f;
+        private float yRange = 20.0f;
 
         private int drawableWidth;
         private GUICanvas canvas;
@@ -35,6 +34,31 @@ namespace BansheeEditor
             this.curves = curves;
 
             SetSize(width, height);
+        }
+
+        public bool GetCurveCoordinates(Vector2I windowCoords, out Vector2 curveCoords)
+        {
+            Rect2I bounds = canvas.Bounds;
+
+            if (windowCoords.x < (bounds.x + PADDING) || windowCoords.x >= (bounds.x + bounds.width - PADDING) ||
+                windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
+            {
+                curveCoords = new Vector2();
+                return false;
+            }
+
+            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + PADDING, bounds.y);
+
+            float lengthPerPixel = xRange / drawableWidth;
+            float heightPerPixel = yRange / height;
+
+            float yOffset = yRange/2.0f;
+
+            curveCoords = new Vector2();
+            curveCoords.x = relativeCoords.x * lengthPerPixel;
+            curveCoords.y = yOffset - relativeCoords.y * heightPerPixel;
+
+            return true;
         }
 
         public void SetCurves(EdAnimationCurve[] curves)
@@ -57,19 +81,10 @@ namespace BansheeEditor
             Rebuild();
         }
 
-        public void SetRange(float length, float minY, float maxY)
+        public void SetRange(float xRange, float yRange)
         {
-            this.length = length;
-
-            if (minY > maxY)
-            {
-                float temp = maxY;
-                maxY = minY;
-                minY = temp;
-            }
-
-            this.minY = minY;
-            this.maxY = maxY;
+            this.xRange = xRange;
+            this.yRange = yRange;
 
             Rebuild();
         }
@@ -93,23 +108,20 @@ namespace BansheeEditor
 
         private void DrawCurve(EdAnimationCurve curve, Color color)
         {
-            float lengthPerPixel = length/drawableWidth;
-            float pixelsPerHeight = height/(maxY - minY);
+            float lengthPerPixel = xRange/drawableWidth;
+            float pixelsPerHeight = height/yRange;
 
             int heightOffset = height/2; // So that y = 0 is at center of canvas
 
             KeyFrame[] keyframes = curve.Native.KeyFrames;
-            if (keyframes.Length == 0)
+            if (keyframes.Length < 0)
                 return;
-
-            float start = MathEx.Clamp(keyframes[0].time, 0.0f, length);
-            float end = MathEx.Clamp(keyframes[keyframes.Length - 1].time, 0.0f, length);
-
-            int startPixel = (int)(start / lengthPerPixel);
-            int endPixel = (int)(end / lengthPerPixel);
 
             // Draw start line
             {
+                float start = MathEx.Clamp(keyframes[0].time, 0.0f, xRange);
+                int startPixel = (int)(start / lengthPerPixel);
+
                 int xPosStart = 0;
                 int xPosEnd = PADDING + startPixel;
 
@@ -122,37 +134,62 @@ namespace BansheeEditor
                 canvas.DrawLine(a, b, COLOR_MID_GRAY);
             }
 
-            // Draw in between
-            float fNumSplits = (endPixel - startPixel)/(float) LINE_SPLIT_WIDTH;
+            List<Vector2I> linePoints = new List<Vector2I>();
 
-            int numSplits = MathEx.FloorToInt(fNumSplits);
-            float remainder = fNumSplits - numSplits;
-
-            float lengthRounded = (end - start)*(numSplits / fNumSplits);
-            float timeIncrement = lengthRounded/numSplits;
-
-            numSplits += MathEx.CeilToInt(remainder) + 1;
-
-            Vector2I[] linePoints = new Vector2I[numSplits];
-            for (int i = 0; i < numSplits; i++)
+            // Draw in between keyframes
+            for (int i = 0; i < keyframes.Length - 1; i++)
             {
-                int xPos = Math.Min(startPixel + i * LINE_SPLIT_WIDTH, endPixel);
-                float t = Math.Min(start + i * timeIncrement, end);
+                float start = MathEx.Clamp(keyframes[i].time, 0.0f, xRange);
+                float end = MathEx.Clamp(keyframes[i + 1].time, 0.0f, xRange);
+                
+                int startPixel = (int)(start / lengthPerPixel);
+                int endPixel = (int)(end / lengthPerPixel);
 
-                int yPos = (int)(curve.Native.Evaluate(t, false) * pixelsPerHeight);
-                yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
+                int numSplits;
+                float timeIncrement;
+                if (startPixel != endPixel)
+                {
+                    float fNumSplits = (endPixel - startPixel)/(float) LINE_SPLIT_WIDTH;
 
-                linePoints[i] = new Vector2I(PADDING + xPos, yPos);
+                    numSplits = MathEx.FloorToInt(fNumSplits);
+                    float remainder = fNumSplits - numSplits;
+
+                    float lengthRounded = (end - start)*(numSplits/fNumSplits);
+                    timeIncrement = lengthRounded/numSplits;
+
+                    numSplits += MathEx.CeilToInt(remainder) + 1;
+                }
+                else
+                {
+                    numSplits = 1;
+                    timeIncrement = 0.0f;
+                }
+
+                // TODO - Make sure that step tangents work
+
+                for (int j = 0; j < numSplits; j++)
+                {
+                    int xPos = Math.Min(startPixel + j * LINE_SPLIT_WIDTH, endPixel);
+                    float t = Math.Min(start + j * timeIncrement, end);
+
+                    int yPos = (int)(curve.Native.Evaluate(t, false) * pixelsPerHeight);
+                    yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
+
+                    linePoints.Add(new Vector2I(PADDING + xPos, yPos));
+                }
             }
-
-            canvas.DrawPolyLine(linePoints, color);
+            
+            canvas.DrawPolyLine(linePoints.ToArray(), color);
 
             // Draw end line
             {
+                float end = MathEx.Clamp(keyframes[keyframes.Length - 1].time, 0.0f, xRange);
+                int endPixel = (int)(end / lengthPerPixel);
+
                 int xPosStart = PADDING + endPixel;
                 int xPosEnd = width;
 
-                int yPos = (int)(curve.Native.Evaluate(length, false) * pixelsPerHeight);
+                int yPos = (int)(curve.Native.Evaluate(xRange, false) * pixelsPerHeight);
                 yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
                 Vector2I a = new Vector2I(xPosStart, yPos);
