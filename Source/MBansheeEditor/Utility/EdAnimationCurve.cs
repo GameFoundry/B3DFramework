@@ -1,28 +1,22 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
-using System.Collections.Generic;
 using BansheeEngine;
 
 namespace BansheeEditor
 {
-    internal enum TangentAutoType
+    internal enum TangentMode
     {
-        Auto, Linear, Step
-    }
-
-    internal enum TangentModeType
-    {
-        Auto, Free, Broken
-    }
-
-    internal struct TangentMode
-    {
-        public TangentAutoType inTangent;
-        public TangentAutoType outTangent;
-        public TangentModeType type;
-
-        public static readonly TangentMode AUTO = new TangentMode();
+        Auto        = 0,
+        Free        = 1 << 0,
+        InAuto      = 1 << 1,
+        OutAuto     = 1 << 2,
+        InFree      = 1 << 3,
+        OutFree     = 1 << 4,
+        InLinear    = 1 << 5,
+        OutLinear   = 1 << 6,
+        InStep      = 1 << 7,
+        OutStep     = 1 << 8
     }
 
     internal class EdAnimationCurve
@@ -59,7 +53,7 @@ namespace BansheeEditor
 
         internal void AddKeyframe(float time, float value)
         {
-            AddKeyframe(time, value, TangentMode.AUTO);
+            AddKeyframe(time, value, TangentMode.Auto);
         }
 
         internal void AddKeyframe(float time, float value, TangentMode tangentMode)
@@ -161,30 +155,77 @@ namespace BansheeEditor
 
                 keyThis.inTangent = 0.0f;
 
-                if (tangentModes[0].type == TangentModeType.Auto)
+                TangentMode tangentMode = tangentModes[0];
+                if (tangentMode == TangentMode.Auto || tangentMode == TangentMode.OutAuto || tangentMode == TangentMode.OutLinear)
                 {
-                    TangentAutoType autoType = tangentModes[0].outTangent;
-
-                    switch (autoType)
-                    {
-                        case TangentAutoType.Auto:
-                        case TangentAutoType.Linear:
-                            float diff = keyNext.time - keyThis.time;
-                            keyThis.outTangent = (keyNext.value - keyThis.value)/diff;
-
-                            break;
-                        case TangentAutoType.Step:
-                            keyThis.outTangent = float.PositiveInfinity;
-                            break;
-                    }
+                    float diff = keyNext.time - keyThis.time;
+                    keyThis.outTangent = (keyNext.value - keyThis.value) / diff;
+                }
+                else if (tangentMode == TangentMode.OutStep)
+                {
+                    keyThis.outTangent = float.PositiveInfinity;
                 }
 
                 keyFrames[0] = keyThis;
             }
 
-            // TODO - Middle keyframes
-            
-            // TODO - How to handle transition from broken to free? 
+            // Inner keyframes
+            for(int i = 1; i < keyFrames.Length - 1; i++)
+            {
+                KeyFrame keyPrev = keyFrames[i - 1];
+                KeyFrame keyThis = keyFrames[i];
+                KeyFrame keyNext = keyFrames[i + 1];
+
+                keyThis.inTangent = 0.0f;
+
+                TangentMode tangentMode = tangentModes[i];
+                if (tangentMode == TangentMode.Auto) // Both automatic
+                {
+                    float diff = keyNext.time - keyPrev.time;
+                    keyThis.outTangent = (keyNext.value - keyPrev.value) / diff;
+                    keyThis.inTangent = keyThis.outTangent;
+                }
+                else if (tangentMode == TangentMode.Free) // Both free
+                {
+                    keyThis.inTangent = keyThis.outTangent;
+                }
+                else // Different per-tangent modes
+                {
+                    // In tangent
+                    if (tangentMode.HasFlag(TangentMode.InAuto))
+                    {
+                        float diff = keyNext.time - keyPrev.time;
+                        keyThis.inTangent = (keyNext.value - keyPrev.value) / diff;
+                    }
+                    else if (tangentMode.HasFlag(TangentMode.InLinear))
+                    {
+                        float diff = keyThis.time - keyPrev.time;
+                        keyThis.inTangent = (keyThis.value - keyPrev.value) / diff;
+                    }
+                    else if (tangentMode.HasFlag(TangentMode.InStep))
+                    {
+                        keyThis.inTangent = float.PositiveInfinity;
+                    }
+
+                    // Out tangent
+                    if (tangentMode.HasFlag(TangentMode.OutAuto))
+                    {
+                        float diff = keyNext.time - keyPrev.time;
+                        keyThis.outTangent = (keyNext.value - keyPrev.value) / diff;
+                    }
+                    else if (tangentMode.HasFlag(TangentMode.OutLinear))
+                    {
+                        float diff = keyNext.time - keyThis.time;
+                        keyThis.outTangent = (keyNext.value - keyThis.value) / diff;
+                    }
+                    else if (tangentMode.HasFlag(TangentMode.OutStep))
+                    {
+                        keyThis.outTangent = float.PositiveInfinity;
+                    }
+                }
+
+                keyFrames[i] = keyThis;
+            }
 
             // Last keyframe
             {
@@ -193,22 +234,15 @@ namespace BansheeEditor
 
                 keyThis.outTangent = 0.0f;
 
-                if (tangentModes[0].type == TangentModeType.Auto)
+                TangentMode tangentMode = tangentModes[tangentModes.Length - 1];
+                if (tangentMode == TangentMode.Auto || tangentMode == TangentMode.InAuto || tangentMode == TangentMode.InLinear)
                 {
-                    TangentAutoType autoType = tangentModes[0].outTangent;
-
-                    switch (autoType)
-                    {
-                        case TangentAutoType.Auto:
-                        case TangentAutoType.Linear:
-                            float diff = keyThis.time - keyPrev.time;
-                            keyThis.inTangent = (keyThis.value - keyPrev.value) / diff;
-
-                            break;
-                        case TangentAutoType.Step:
-                            keyThis.inTangent = float.PositiveInfinity;
-                            break;
-                    }
+                    float diff = keyThis.time - keyPrev.time;
+                    keyThis.inTangent = (keyThis.value - keyPrev.value) / diff;
+                }
+                else if (tangentMode == TangentMode.InStep)
+                {
+                    keyThis.inTangent = float.PositiveInfinity;
                 }
 
                 keyFrames[keyFrames.Length - 1] = keyThis;
