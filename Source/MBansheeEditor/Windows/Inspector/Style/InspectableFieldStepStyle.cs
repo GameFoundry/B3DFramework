@@ -1,7 +1,7 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 
-namespace BansheeEditor.Windows.Inspector.Style
+namespace BansheeEditor
 {
     /// <summary>
     /// Contains information about the minimum change allowed to a field value

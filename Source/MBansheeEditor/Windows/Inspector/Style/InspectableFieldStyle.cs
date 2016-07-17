@@ -3,45 +3,73 @@
 
 using System;
 using System.Collections.Generic;
-using BansheeEditor.Windows.Inspector.Style;
 using BansheeEngine;
 
 namespace BansheeEditor
 {
     /// <summary>
+    /// Contains boolean information about a field style
+    /// </summary>
+    public enum InstectableFieldStyleFlags
+    {
+        None = 0,
+        UseSlider = 1,   
+    }
+
+    /// <summary>
+    /// Contains all the information about a field style
+    /// </summary>
+    public struct InspectableFieldStyleInfo
+    {
+        /// <summary>
+        /// Information about the field range
+        /// </summary>
+        public InspectableFieldRangeStyle RangeStyle;
+
+        /// <summary>
+        /// Information about the field stepping
+        /// </summary>
+        public InspectableFieldStepStyle StepStyle;
+
+        /// <summary>
+        /// Boolean information about the field
+        /// </summary>
+        public InstectableFieldStyleFlags StyleFlags;
+    }
+    /// <summary>
     /// Contains style information about inspectable items
     /// </summary>
-    public class InspectableFieldStyle
+    public abstract class InspectableFieldStyle
     {
         /// <summary>
         /// Creates all the relevant style information for a SerializableField
         /// </summary>
         /// <param name="field">A SerializableField</param>
         /// <returns>Style information</returns>
-        public static InspectableFieldStyle[] Create(SerializableField field)
+        public static InspectableFieldStyleInfo Create(SerializableField field)
         {
-            List<InspectableFieldStyle> styles = new List<InspectableFieldStyle>();
-            if (field.Range)
-                styles.Add(new InspectableFieldRangeStyle(field.RangeMinimum, field.RangeMaximum));
-            if (field.Step != default(float))
-                styles.Add(new InspectableFieldStepStyle(field.Step));
-            return styles.ToArray();
-        }
+            var styleInfo = new InspectableFieldStyleInfo();
 
-        /// <summary>
-        /// Finds a specific type of style information
-        /// </summary>
-        /// <typeparam name="T">The specified type</typeparam>
-        /// <param name="styleInfo">The array to search into</param>
-        /// <returns>The desired style or default</returns>
-        public static T FindStyle<T>(InspectableFieldStyle[] styleInfo) where T : InspectableFieldStyle
-        {
-            for  (int i = 0; i < styleInfo.Length; i++)
+            styleInfo.RangeStyle = field.Range? new InspectableFieldRangeStyle(field.RangeMinimum, field.RangeMaximum) : null;
+            styleInfo.StepStyle = field.Step != 0? new InspectableFieldStepStyle(field.Step) : null;
+            if (styleInfo.StepStyle != null)
             {
-                if (styleInfo[i].GetType() == typeof(T))
-                    return (T)styleInfo[i];
+                Debug.Log(styleInfo.StepStyle.Step);
             }
-            return default(T);
+            else
+            {
+                Debug.Log("Step null");
+            }
+            if (styleInfo.RangeStyle != null)
+            {
+                Debug.Log(styleInfo.RangeStyle.Max);
+                Debug.Log(styleInfo.RangeStyle.Min);
+            }
+            else
+            {
+                Debug.Log("Range null");
+            }
+            return styleInfo;
         }
     }
 }

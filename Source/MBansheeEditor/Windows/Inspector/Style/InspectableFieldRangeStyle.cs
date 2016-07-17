@@ -8,11 +8,10 @@ namespace BansheeEditor
     /// </summary>
     public sealed class InspectableFieldRangeStyle : InspectableFieldStyle
     {
-        public InspectableFieldRangeStyle(float min, float max, float step = 0.0f)
+        public InspectableFieldRangeStyle(float min, float max)
         {
             this.Max = max;
             this.Min = min;
-            this.Step = step;
         }
 
         /// <summary>
@@ -23,7 +22,5 @@ namespace BansheeEditor
         /// The minimum value the field can be assigned
         /// </summary>
         public float Min { get; set; }
-
-        public float Step { get; set; }
     }
 }
