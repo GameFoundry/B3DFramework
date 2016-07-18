@@ -113,8 +113,8 @@ namespace BansheeEditor
                 else
                 {
                     int frameIdx = timeline.GetFrame(windowPos);
-                    timeline.SetFrameMarker(frameIdx);
-                    curveDrawing.SetFrameMarker(frameIdx);
+                    timeline.SetMarkedFrame(frameIdx);
+                    curveDrawing.SetMarkedFrame(frameIdx);
                 }
             }
         }

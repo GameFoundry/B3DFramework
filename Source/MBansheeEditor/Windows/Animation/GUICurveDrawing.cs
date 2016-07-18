@@ -13,9 +13,9 @@ namespace BansheeEditor
     // TODO DOC
     internal class GUICurveDrawing
     {
-        private const int PADDING = 30; // TODO - Shared with GUITimeline
-        private const int LINE_SPLIT_WIDTH = 15;
+        private const int LINE_SPLIT_WIDTH = 2;
         private static readonly Color COLOR_MID_GRAY = new Color(90.0f / 255.0f, 90.0f / 255.0f, 90.0f / 255.0f, 1.0f);
+        private static readonly Color COLOR_DARK_GRAY = new Color(40.0f / 255.0f, 40.0f / 255.0f, 40.0f / 255.0f, 1.0f);
 
         private EdAnimationCurve[] curves;
         private int width;
@@ -23,7 +23,7 @@ namespace BansheeEditor
         private float xRange = 60.0f;
         private float yRange = 20.0f;
         private int fps = 1;
-        private int frameMarkerIdx = -1;
+        private int markedFrameIdx = -1;
 
         private int drawableWidth;
         private GUICanvas canvas;
@@ -53,7 +53,7 @@ namespace BansheeEditor
             canvas.SetWidth(width);
             canvas.SetHeight(height);
 
-            drawableWidth = Math.Max(0, width - PADDING * 2);
+            drawableWidth = Math.Max(0, width - GUITimeline.PADDING * 2);
 
             Rebuild();
         }
@@ -74,9 +74,9 @@ namespace BansheeEditor
         }
 
         // Set to -1 to clear it
-        public void SetFrameMarker(int frameIdx)
+        public void SetMarkedFrame(int frameIdx)
         {
-            frameMarkerIdx = frameIdx;
+            markedFrameIdx = frameIdx;
 
             Rebuild();
         }
@@ -85,14 +85,14 @@ namespace BansheeEditor
         {
             Rect2I bounds = canvas.Bounds;
 
-            if (windowCoords.x < (bounds.x + PADDING) || windowCoords.x >= (bounds.x + bounds.width - PADDING) ||
+            if (windowCoords.x < (bounds.x + GUITimeline.PADDING) || windowCoords.x >= (bounds.x + bounds.width - GUITimeline.PADDING) ||
                 windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
             {
                 curveCoords = new Vector2();
                 return false;
             }
 
-            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + PADDING, bounds.y);
+            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + GUITimeline.PADDING, bounds.y);
 
             float lengthPerPixel = xRange / drawableWidth;
             float heightPerPixel = yRange / height;
@@ -106,14 +106,24 @@ namespace BansheeEditor
             return true;
         }
 
-        private void DrawFrameMarker(float t)
+        private void DrawFrameMarker(float t, Color color)
         {
-            int xPos = (int)((t / GetRange()) * drawableWidth) + PADDING;
+            int xPos = (int)((t / GetRange()) * drawableWidth) + GUITimeline.PADDING;
 
             Vector2I start = new Vector2I(xPos, 0);
             Vector2I end = new Vector2I(xPos, height);
 
-            canvas.DrawLine(start, end, Color.Red);
+            canvas.DrawLine(start, end, color);
+        }
+
+        private void DrawCenterLine()
+        {
+            int heightOffset = height / 2; // So that y = 0 is at center of canvas
+
+            Vector2I start = new Vector2I(0, heightOffset);
+            Vector2I end = new Vector2I(width, heightOffset);
+
+            canvas.DrawLine(start, end, COLOR_DARK_GRAY);
         }
 
         // Returns range rounded to the nearest multiple of FPS
@@ -131,7 +141,28 @@ namespace BansheeEditor
             if (curves == null)
                 return;
 
-            // TODO - Draw vertical frame markers
+            float range = GetRange();
+            int numFrames = (int)range * fps;
+            float timePerFrame = range / numFrames;
+
+            // Draw vertical frame markers
+            float frameWidth = drawableWidth / (float)numFrames;
+            int markerInterval = (int)Math.Max(1.0f, GUITimeline.OPTIMAL_TICK_WIDTH / frameWidth) * 5;
+
+            //// Draw extra frames to prevent the out-of-frame ticks from popping in and out as range changes
+            float extraWidth = GUITimeline.PADDING;
+            numFrames += (int)(extraWidth / frameWidth);
+
+            float t = 0.0f;
+            for (int i = 0; i < numFrames; i += markerInterval)
+            {
+                DrawFrameMarker(t, COLOR_DARK_GRAY);
+                t += timePerFrame * markerInterval;
+            }
+
+            // Draw center line
+            DrawCenterLine();
+
             // TODO - Draw horizontal value markers with text
 
             foreach (var curve in curves)
@@ -140,14 +171,9 @@ namespace BansheeEditor
                 DrawCurve(curve, Color.Red);
             }
 
-            // Draw frame marker
-            float range = GetRange();
-
-            int numFrames = (int)range * fps;
-            float timePerFrame = range / numFrames;
-
-            if (frameMarkerIdx != -1)
-                DrawFrameMarker(frameMarkerIdx * timePerFrame);
+            // Draw selected frame marker
+            if (markedFrameIdx != -1)
+                DrawFrameMarker(markedFrameIdx * timePerFrame, Color.Red);
         }
 
         private void DrawCurve(EdAnimationCurve curve, Color color)
@@ -167,7 +193,7 @@ namespace BansheeEditor
                 int startPixel = (int)(start / lengthPerPixel);
 
                 int xPosStart = 0;
-                int xPosEnd = PADDING + startPixel;
+                int xPosEnd = GUITimeline.PADDING + startPixel;
 
                 int yPos = (int)(curve.Native.Evaluate(0.0f, false) * pixelsPerHeight);
                 yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
@@ -200,16 +226,16 @@ namespace BansheeEditor
                     int yPosStart = (int)(curve.Native.Evaluate(start, false) * pixelsPerHeight);
                     yPosStart = heightOffset - yPosStart; // Offset and flip height (canvas Y goes down)
 
-                    linePoints.Add(new Vector2I(PADDING + xPos, yPosStart));
+                    linePoints.Add(new Vector2I(GUITimeline.PADDING + xPos, yPosStart));
 
                     xPos = endPixel;
-                    linePoints.Add(new Vector2I(PADDING + xPos, yPosStart));
+                    linePoints.Add(new Vector2I(GUITimeline.PADDING + xPos, yPosStart));
 
                     // Line representing the step
                     int yPosEnd = (int)(curve.Native.Evaluate(end, false) * pixelsPerHeight);
                     yPosEnd = heightOffset - yPosEnd; // Offset and flip height (canvas Y goes down)
 
-                    linePoints.Add(new Vector2I(PADDING + xPos, yPosEnd));
+                    linePoints.Add(new Vector2I(GUITimeline.PADDING + xPos, yPosEnd));
                 }
                 else // Draw normally
                 {
@@ -241,7 +267,7 @@ namespace BansheeEditor
                         int yPos = (int)(curve.Native.Evaluate(t, false) * pixelsPerHeight);
                         yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
-                        linePoints.Add(new Vector2I(PADDING + xPos, yPos));
+                        linePoints.Add(new Vector2I(GUITimeline.PADDING + xPos, yPos));
                     }
                 }
             }
@@ -253,7 +279,7 @@ namespace BansheeEditor
                 float end = MathEx.Clamp(keyframes[keyframes.Length - 1].time, 0.0f, xRange);
                 int endPixel = (int)(end / lengthPerPixel);
 
-                int xPosStart = PADDING + endPixel;
+                int xPosStart = GUITimeline.PADDING + endPixel;
                 int xPosEnd = width;
 
                 int yPos = (int)(curve.Native.Evaluate(xRange, false) * pixelsPerHeight);

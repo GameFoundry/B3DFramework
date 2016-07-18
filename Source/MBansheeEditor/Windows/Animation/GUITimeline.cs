@@ -12,12 +12,13 @@ namespace BansheeEditor
     // TODO DOC
     public class GUITimeline
     {
+        public const int PADDING = 30;
+        public const int OPTIMAL_TICK_WIDTH = 15;
+
         private const float LARGE_TICK_HEIGHT_PCT = 0.4f;
         private const float SMALL_TICK_HEIGHT_PCT = 0.2f;
-        private const int PADDING = 30;
         private const int TEXT_PADDING = 2;
-        private const int OPTIMAL_TICK_WIDTH = 15;
-
+        
         private int maxTextWidth;
         private int largeTickHeight;
         private int smallTickHeight;
@@ -29,7 +30,7 @@ namespace BansheeEditor
         private int width;
         private int height;
         private int fps = 1;
-        private int frameMarkerIdx = -1;
+        private int markedFrameIdx = -1;
 
         public int MinWidth
         {
@@ -66,9 +67,9 @@ namespace BansheeEditor
         }
 
         // Set to -1 to clear it
-        public void SetFrameMarker(int frameIdx)
+        public void SetMarkedFrame(int frameIdx)
         {
-            frameMarkerIdx = frameIdx;
+            markedFrameIdx = frameIdx;
 
             Rebuild();
         }
@@ -212,8 +213,8 @@ namespace BansheeEditor
                 t += timePerFrame;
             }
 
-            if (frameMarkerIdx != -1)
-                DrawFrameMarker(frameMarkerIdx * timePerFrame);
+            if (markedFrameIdx != -1)
+                DrawFrameMarker(markedFrameIdx * timePerFrame);
         }
     }
 
