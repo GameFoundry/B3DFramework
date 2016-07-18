@@ -104,7 +104,7 @@ namespace BansheeEngine
 		floatField->setStep(step);
 	}
 
-	INT32 ScriptGUIFloatField::internal_getStep(ScriptGUIFloatField* nativeInstance)
+	float ScriptGUIFloatField::internal_getStep(ScriptGUIFloatField* nativeInstance)
 	{
 		GUIFloatField* floatField = (GUIFloatField*)nativeInstance->getGUIElement();
 		return floatField->getStep();

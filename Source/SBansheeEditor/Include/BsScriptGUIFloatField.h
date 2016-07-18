@@ -47,7 +47,7 @@ namespace BansheeEngine
 		static void internal_setTint(ScriptGUIFloatField* nativeInstance, Color* color);
 		static void internal_setRange(ScriptGUIFloatField* nativeInstance, float min, float max);
 		static void internal_setStep(ScriptGUIFloatField* nativeInstance, float step);
-		static INT32 internal_getStep(ScriptGUIFloatField* nativeInstance);
+		static float internal_getStep(ScriptGUIFloatField* nativeInstance);
 
 		typedef void(__stdcall *OnChangedThunkDef) (MonoObject*, float, MonoException**);
 		typedef void(__stdcall *OnConfirmedThunkDef) (MonoObject*, MonoException**);
