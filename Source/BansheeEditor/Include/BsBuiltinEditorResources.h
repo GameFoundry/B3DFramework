@@ -47,10 +47,16 @@ namespace BansheeEngine
 		Home, Up, Clear, Options
 	};
 
+	/**	Types of icons that may be displayed in the animation editor window. */
+	enum class AnimationWindowIcon
+	{
+		Play, Record, FrameForward, FrameBack, AddKeyframe, AddEvent, Keyframe, Event
+	};
+
 	/**	Types of icons used in various areas throughout the editor. */
 	enum class EditorIcon
 	{
-		XBtn
+		X, Component, SceneObject
 	};
 
 	/**	Types of icons to be used along with log messages depending on their severity. */
@@ -137,6 +143,9 @@ namespace BansheeEngine
 
 		/**	Retrieves an icon that may be displayed on the inspector window. */
 		HSpriteTexture getInspectorWindowIcon(InspectorWindowIcon icon) const;
+
+		/**	Retrieves an icon that may be displayed on the animation editor window. */
+		GUIContentImages getAnimationWindowIcon(AnimationWindowIcon icon) const;
 
 		/**	Retrieves an icon that represents a specific generic editor icon. */
 		HSpriteTexture getIcon(EditorIcon icon) const;

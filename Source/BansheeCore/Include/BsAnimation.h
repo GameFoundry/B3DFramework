@@ -45,6 +45,11 @@ namespace BansheeEngine
 		float weight = 1.0f; /**< Determines how much of an influence does the clip have on the final pose. */
 		/** Determines what happens to other animation clips when a new clip starts playing. */
 		AnimWrapMode wrapMode = AnimWrapMode::Loop;
+		/** 
+		 * Determines should the time be advanced automatically. Certain type of animation clips don't involve playback 
+		 * (e.g. for blending where animation weight controls the animation).
+		 */
+		bool stopped = false;
 	};
 
 	/** Internal information about a single playing animation clip within Animation. */

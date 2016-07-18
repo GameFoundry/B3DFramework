@@ -201,7 +201,7 @@ namespace BansheeEngine
 					if (mapping.scale != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[mapping.scale].curve;
-						localPose.scales[k] += curve.evaluate(state.time, state.scaleCaches[k], state.loop) * normWeight;
+						localPose.scales[k] *= curve.evaluate(state.time, state.scaleCaches[k], state.loop) * normWeight;
 					}
 				}
 

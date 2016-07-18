@@ -66,6 +66,12 @@ namespace BansheeEngine
 		memcpy(nativeKeyframes.data(), (UINT8*)inArray.getRawPtr<TKeyframe<float>>(),
 			numKeyframes * sizeof(TKeyframe<float>));
 
+		std::sort(nativeKeyframes.begin(), nativeKeyframes.end(), 
+			[](const TKeyframe<float>& x, const TKeyframe<float>& y)
+		{
+			return x.time < y.time;
+		});
+
 		thisPtr->mCurve = bs_shared_ptr_new<TAnimationCurve<float>>(nativeKeyframes);
 	}
 

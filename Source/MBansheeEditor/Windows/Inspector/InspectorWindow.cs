@@ -193,7 +193,9 @@ namespace BansheeEditor
                 data.instanceId = allComponents[i].InstanceId;
 
                 data.foldout = new GUIToggle(allComponents[i].GetType().Name, EditorStyles.Foldout);
-                data.removeBtn = new GUIButton(new GUIContent(EditorBuiltin.XBtnIcon), GUIOption.FixedWidth(30));
+
+                SpriteTexture xBtnIcon = EditorBuiltin.GetEditorIcon(EditorIcon.X);
+                data.removeBtn = new GUIButton(new GUIContent(xBtnIcon), GUIOption.FixedWidth(30));
 
                 data.title = inspectorLayout.AddLayoutX();
                 data.title.AddElement(data.foldout);

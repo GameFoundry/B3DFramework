@@ -407,7 +407,7 @@ namespace BansheeEngine
 		for (auto& clipInfo : mClipInfos)
 		{
 			// Special case: Ignore non-moving ones
-			if(clipInfo.state.speed != 0.0f)
+			if(!clipInfo.state.stopped)
 				clipInfo.state.speed = speed;
 		}
 
@@ -536,6 +536,7 @@ namespace BansheeEngine
 			if (clipInfo != nullptr)
 			{
 				clipInfo->state.time = 0.0f;
+				clipInfo->state.stopped = true;
 				clipInfo->state.speed = 0.0f;
 				clipInfo->state.wrapMode = AnimWrapMode::Clamp;
 
@@ -557,6 +558,7 @@ namespace BansheeEngine
 		if (topLeftClipInfo != nullptr)
 		{
 			topLeftClipInfo->state.time = 0.0f;
+			topLeftClipInfo->state.stopped = true;
 			topLeftClipInfo->state.speed = 0.0f;
 			topLeftClipInfo->state.weight = (1.0f - t.x) * (1.0f - t.y);
 			topLeftClipInfo->state.wrapMode = AnimWrapMode::Clamp;
@@ -566,7 +568,8 @@ namespace BansheeEngine
 		if (topRightClipInfo != nullptr)
 		{
 			topRightClipInfo->state.time = 0.0f;
-			topRightClipInfo->state.speed = 0.0f;
+			topRightClipInfo->state.stopped = true;
+			topLeftClipInfo->state.speed = 0.0f;
 			topRightClipInfo->state.weight = t.x * (1.0f - t.y);
 			topRightClipInfo->state.wrapMode = AnimWrapMode::Clamp;
 		}
@@ -575,7 +578,8 @@ namespace BansheeEngine
 		if (botLeftClipInfo != nullptr)
 		{
 			botLeftClipInfo->state.time = 0.0f;
-			botLeftClipInfo->state.speed = 0.0f;
+			botLeftClipInfo->state.stopped = true;
+			topLeftClipInfo->state.speed = 0.0f;
 			botLeftClipInfo->state.weight = (1.0f - t.x) * t.y;
 			botLeftClipInfo->state.wrapMode = AnimWrapMode::Clamp;
 		}
@@ -584,6 +588,7 @@ namespace BansheeEngine
 		if (botRightClipInfo != nullptr)
 		{
 			botRightClipInfo->state.time = 0.0f;
+			botRightClipInfo->state.stopped = true;
 			botRightClipInfo->state.speed = 0.0f;
 			botRightClipInfo->state.weight = t.x * t.y;
 			botRightClipInfo->state.wrapMode = AnimWrapMode::Clamp;

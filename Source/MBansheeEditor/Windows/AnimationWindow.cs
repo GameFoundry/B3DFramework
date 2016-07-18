@@ -14,9 +14,10 @@ namespace BansheeEditor
     internal class AnimationWindow : EditorWindow
     {
         private GUITimeline timeline;
-        private GUIFloatField startField;
-        private GUIFloatField endField;
+        private GUICurveDrawing curveDrawing;
+        private GUIFloatField lengthField;
         private GUIIntField fpsField;
+        private GUIFloatField yRangeField;
 
         /// <summary>
         /// Opens the animation window.
@@ -35,39 +36,87 @@ namespace BansheeEditor
 
         private void OnInitialize()
         {
-            startField = new GUIFloatField(new LocEdString("Start"), 50);
-            endField = new GUIFloatField(new LocEdString("End"), 50);
+            lengthField = new GUIFloatField(new LocEdString("Length"), 50);
             fpsField = new GUIIntField(new LocEdString("FPS"), 50);
+            yRangeField = new GUIFloatField(new LocEdString("Y range"), 50);
 
-            endField.Value = 60.0f;
+            lengthField.Value = 60.0f;
             fpsField.Value = 1;
+            yRangeField.Value = 20.0f;
 
-            startField.OnChanged += x => timeline.SetRange(x, endField.Value);
-            endField.OnChanged += x => timeline.SetRange(startField.Value, x);
-            fpsField.OnChanged += x => timeline.SetFPS(x);
+            lengthField.OnChanged += x =>
+            {
+                timeline.SetRange(lengthField.Value);
+                curveDrawing.SetRange(lengthField.Value, yRangeField.Value);
+            };
+            fpsField.OnChanged += x =>
+            {
+                timeline.SetFPS(x);
+                curveDrawing.SetFPS(x);
+            };
+            yRangeField.OnChanged += x =>
+            {
+                curveDrawing.SetRange(lengthField.Value, x);
+            };
 
-            GUILayout buttonLayout = GUI.AddLayoutX();
-            buttonLayout.AddElement(startField);
-            buttonLayout.AddElement(endField);
+            GUILayout mainLayout = GUI.AddLayoutY();
+
+            GUILayout buttonLayout = mainLayout.AddLayoutX();
+            buttonLayout.AddSpace(5);
+            buttonLayout.AddElement(lengthField);
+            buttonLayout.AddSpace(5);
+            buttonLayout.AddElement(yRangeField);
+            buttonLayout.AddSpace(5);
             buttonLayout.AddElement(fpsField);
+            buttonLayout.AddSpace(5);
 
-            timeline = new GUITimeline(GUI, Width, 20);
+            timeline = new GUITimeline(mainLayout, Width, 20);
+
+            EdAnimationCurve[] curves = CreateDummyCurves();
+            curveDrawing = new GUICurveDrawing(mainLayout, Width, Height - 20, curves);
+            curveDrawing.SetRange(60.0f, 20.0f);
+
+            // TODO - Calculate min/max Y and range to set as default
+            //  - Also recalculate whenever curves change and increase as needed
+        }
+
+        private EdAnimationCurve[] CreateDummyCurves()
+        {
+            EdAnimationCurve[] curves = new EdAnimationCurve[1];
+            curves[0] = new EdAnimationCurve();
+
+            curves[0].AddKeyframe(0.0f, 1.0f);
+            curves[0].AddKeyframe(10.0f, 5.0f);
+            curves[0].AddKeyframe(15.0f, -2.0f);
+            curves[0].AddKeyframe(20.0f, 3.0f, TangentMode.InStep);
+
+            return curves;
         }
 
         protected override void WindowResized(int width, int height)
         {
             timeline.SetSize(width, 20);
+            curveDrawing.SetSize(width, height - 20);
         }
 
         private void OnEditorUpdate()
         {
-            //int position = (int)(MathEx.Sin(Time.RealElapsed)*50.0f + 50.0f);
-            //canvas.SetPosition(position, 0);
-        }
+            if (Input.IsPointerButtonHeld(PointerButton.Left))
+            {
+                Vector2I windowPos = ScreenToWindowPos(Input.PointerPosition);
 
-        private void OnDestroy()
-        {
-            // TODO
+                Vector2 curveCoord;
+                if (curveDrawing.GetCurveCoordinates(windowPos, out curveCoord))
+                {
+                    Debug.Log("Click coord: " + curveCoord);
+                }
+                else
+                {
+                    int frameIdx = timeline.GetFrame(windowPos);
+                    timeline.SetMarkedFrame(frameIdx);
+                    curveDrawing.SetMarkedFrame(frameIdx);
+                }
+            }
         }
     }
 

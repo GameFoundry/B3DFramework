@@ -25,7 +25,6 @@ namespace BansheeEngine
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static MonoObject* internal_getLibraryItemIcon(ProjectIcon icon, int size);
-		static MonoObject* internal_getXBtnIcon();
 
 		static MonoString* internal_GetEmptyShaderCode();
 		static MonoString* internal_GetEmptyCSScriptCode();
@@ -34,7 +33,9 @@ namespace BansheeEngine
 		static MonoObject* internal_GetLibraryWindowIcon(LibraryWindowIcon icon);
 		static MonoObject* internal_GetInspectorWindowIcon(InspectorWindowIcon icon);
 		static MonoObject* internal_GetSceneWindowIcon(SceneWindowIcon icon);
+		static MonoObject* internal_GetAnimationWindowIcon(AnimationWindowIcon icon);
 		static MonoObject* internal_GetLogIcon(LogMessageIcon icon, int size, bool dark);
+		static MonoObject* internal_GetEditorIcon(EditorIcon icon);
 
 		static MonoObject* internal_GetDefaultFont();
 	};

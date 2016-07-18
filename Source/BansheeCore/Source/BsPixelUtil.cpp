@@ -1227,7 +1227,7 @@ namespace BansheeEngine
 				((UINT8*)dest)[0] = (UINT8)Bitwise::floatToFixed(r, 8);
 				break;
             default:
-                BS_EXCEPT(NotImplementedException, "Pack to " + getFormatName(format) + " not implemented");
+                LOGERR("Pack to " + getFormatName(format) + " not implemented");
                 break;
             }
         }
@@ -1353,7 +1353,7 @@ namespace BansheeEngine
 				*a = 1.0f;
 				break;
             default:
-                BS_EXCEPT(NotImplementedException, "Unpack from " + getFormatName(format) + " not implemented");
+                LOGERR("Unpack from " + getFormatName(format) + " not implemented");
                 break;
             }
         }
@@ -1375,7 +1375,8 @@ namespace BansheeEngine
 			}
 			else
 			{
-				BS_EXCEPT(NotImplementedException, "This method can not be used to compress or decompress images");
+				LOGERR("bulkPixelConversion() cannot be used to compress or decompress images");
+				return;
 			}
 		}
 
@@ -1649,17 +1650,29 @@ namespace BansheeEngine
 	void PixelUtil::compress(const PixelData& src, PixelData& dst, const CompressionOptions& options)
 	{
 		if (!isCompressed(options.format))
-			BS_EXCEPT(InvalidParametersException, "Wanted format is not a compressed format.");
+		{
+			LOGERR("Compression failed. Destination format is not a valid compressed format.")
+			return;
+		}
 
 		// Note: NVTT site has implementations for these two formats for when I decide to add them
 		if (options.format == PF_BC6H || options.format == PF_BC7)
-			BS_EXCEPT(InvalidParametersException, "Specified formats are not yet supported.");
+		{
+			LOGERR("Compression failed. BC6H and BC7 formats are currently not supported.")
+			return;
+		}
 
 		if (src.getDepth() != 1)
-			BS_EXCEPT(InvalidParametersException, "3D textures are not supported.");
+		{
+			LOGERR("Compression failed. 3D texture compression not supported.")
+			return;
+		}
 
 		if (isCompressed(src.getFormat()))
-			BS_EXCEPT(InvalidParametersException, "Source data cannot be compressed.");
+		{
+			LOGERR("Compression failed. Source data cannot be compressed.");
+			return;
+		}
 
 		PixelData bgraData(src.getWidth(), src.getHeight(), 1, PF_B8G8R8A8);
 		bgraData.allocateInternalBuffer();
@@ -1689,21 +1702,35 @@ namespace BansheeEngine
 		
 		nvtt::Compressor compressor;
 		if (!compressor.process(io, co, oo))
-			BS_EXCEPT(InternalErrorException, "Compressing failed.");
+		{
+			LOGERR("Compression failed. Internal error.");
+			return;
+		}	
 	}
 
 	Vector<SPtr<PixelData>> PixelUtil::genMipmaps(const PixelData& src, const MipMapGenOptions& options)
 	{
+		Vector<SPtr<PixelData>> outputMipBuffers;
+
 		if (src.getDepth() != 1)
-			BS_EXCEPT(InvalidParametersException, "3D textures are not supported.");
+		{
+			LOGERR("Mipmap generation failed. 3D texture formats not supported.")
+			return outputMipBuffers;
+		}
 
 		// Note: Add support for floating point mips, no reason they shouldn't be supported other than
 		// nvtt doesn't support them natively
 		if (isCompressed(src.getFormat()) || isFloatingPoint(src.getFormat()))
-			BS_EXCEPT(InvalidParametersException, "Source data cannot be compressed or in floating point format.");
+		{
+			LOGERR("Mipmap generation failed. Source data cannot be compressed or in floating point format.")
+			return outputMipBuffers;
+		}
 
 		if (!Math::isPow2(src.getWidth()) || !Math::isPow2(src.getHeight()))
-			BS_EXCEPT(InvalidParametersException, "Texture width & height must be powers of 2.");
+		{
+			LOGERR("Mipmap generation failed. Texture width & height must be powers of 2.");
+			return outputMipBuffers;
+		}
 
 		PixelData argbData(src.getWidth(), src.getHeight(), 1, PF_A8R8G8B8);
 		argbData.allocateInternalBuffer();
@@ -1752,11 +1779,13 @@ namespace BansheeEngine
 
 		nvtt::Compressor compressor;
 		if (!compressor.process(io, co, oo))
-			BS_EXCEPT(InternalErrorException, "Mipmap generation failed.");
+		{
+			LOGERR("Mipmap generation failed. Internal error.");
+			return outputMipBuffers;
+		}
 
 		argbData.freeInternalBuffer();
 
-		Vector<SPtr<PixelData>> outputMipBuffers;
 		for (UINT32 i = 0; i < (UINT32)argbMipBuffers.size(); i++)
 		{
 			SPtr<PixelData> argbBuffer = argbMipBuffers[i];

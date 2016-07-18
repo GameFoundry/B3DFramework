@@ -1030,6 +1030,7 @@ namespace BansheeEngine
 
 			importMesh->referencedBy.push_back(parentNode);
 			importMesh->fbxMesh = mesh;
+
 			outputScene.meshMap[mesh] = (UINT32)outputScene.meshes.size() - 1;
 		}
 
@@ -1302,7 +1303,18 @@ namespace BansheeEngine
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
 
-		Matrix4 importScale = Matrix4::scaling(options.importScale);
+		Matrix4 invBakedTransform;
+		if (mesh.referencedBy.size() > 0)
+		{
+			Matrix4 importScale = Matrix4::scaling(options.importScale);
+			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform * importScale;
+
+			invBakedTransform = bakedTransform.inverseAffine();
+			invBakedTransform.inverseAffine();
+		}
+		else
+			invBakedTransform = Matrix4::IDENTITY;
+		
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
 		for (UINT32 i = 0; i < boneCount; i++)
@@ -1326,9 +1338,20 @@ namespace BansheeEngine
 			FbxAMatrix linkTransform;
 			cluster->GetTransformLinkMatrix(linkTransform);
 
-			FbxAMatrix bindPose = linkTransform.Inverse() * clusterTransform;
-			bone.bindPose = FBXToNativeType(bindPose);
-			bone.bindPose = (bone.node->worldTransform * importScale) * bone.bindPose;
+			// For nodes attached to meshes we bake their transform directly into mesh vertices. We need to remove that
+			// transform
+
+			if(mesh.referencedBy.size() > 1)
+			{
+				// Note: If this becomes a relevant issue (unlikely), then I will have to duplicate skeleton bones for
+				// each such mesh, since they will all require their own bind poses. Animation curves will also need to be
+				// handled specially (likely by allowing them to be applied to multiple bones at once). The other option is
+				// not to bake the node transform into mesh vertices and handle it on a Scene Object level.
+				LOGWRN("Skinned mesh has multiple different instances. This is not supported.");
+			}
+
+			FbxAMatrix invLinkTransform = linkTransform.Inverse() * clusterTransform;
+			bone.bindPose = FBXToNativeType(invLinkTransform) * invBakedTransform;
 
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;

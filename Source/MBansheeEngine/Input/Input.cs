@@ -220,7 +220,7 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Query if the provided button is currently being held (this frame or previous frames).
+        /// Query if the provided button is currently being held (true for every frame the button is held for).
         /// </summary>
         /// <param name="code">Code of the button to query.</param>
         /// <param name="deviceIdx">Device to query the button on (0 - primary).</param>
@@ -253,7 +253,7 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Query if the provided pointer button is currently being held (this frame or previous frames).
+        /// Query if the provided pointer button is currently being held (true for every frame the button is held for).
         /// </summary>
         /// <param name="code">Code of the button to query.</param>
         /// <returns>True if the button is being held.</returns>
