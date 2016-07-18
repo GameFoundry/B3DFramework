@@ -141,7 +141,7 @@ namespace BansheeEngine
 		}
 		else
 		{
-			LOGWRN("Unrealiable GPU timer query detected.");
+			LOGWRN_VERBOSE("Unrealiable GPU timer query detected.");
 		}
 	}
 
