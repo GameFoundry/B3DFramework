@@ -50,25 +50,8 @@ namespace BansheeEditor
         {
             var styleInfo = new InspectableFieldStyleInfo();
 
-            styleInfo.RangeStyle = field.Range? new InspectableFieldRangeStyle(field.RangeMinimum, field.RangeMaximum) : null;
-            styleInfo.StepStyle = field.Step != 0? new InspectableFieldStepStyle(field.Step) : null;
-            if (styleInfo.StepStyle != null)
-            {
-                Debug.Log(styleInfo.StepStyle.Step);
-            }
-            else
-            {
-                Debug.Log("Step null");
-            }
-            if (styleInfo.RangeStyle != null)
-            {
-                Debug.Log(styleInfo.RangeStyle.Max);
-                Debug.Log(styleInfo.RangeStyle.Min);
-            }
-            else
-            {
-                Debug.Log("Range null");
-            }
+            styleInfo.RangeStyle = field.Ranged? new InspectableFieldRangeStyle(field.RangeMinimum, field.RangeMaximum, field.IsSlider) : null;
+            styleInfo.StepStyle = field.Stepped? new InspectableFieldStepStyle(field.Step) : null;
             return styleInfo;
         }
     }

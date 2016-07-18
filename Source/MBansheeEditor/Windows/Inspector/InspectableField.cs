@@ -148,7 +148,7 @@ namespace BansheeEditor
                 switch (property.Type)
                 {
                     case SerializableProperty.FieldType.Int:
-                        if (style.RangeStyle == null)
+                        if (style.RangeStyle == null || !style.RangeStyle.Slider)
                         {
                             field = new InspectableInt(parent, title, path, depth, layout, property, style);
                         }
@@ -158,7 +158,7 @@ namespace BansheeEditor
                         }
                         break;
                     case SerializableProperty.FieldType.Float:
-                        if (style.RangeStyle == null)
+                        if (style.RangeStyle == null || !style.RangeStyle.Slider)
                         {
                             field = new InspectableFloat(parent, title, path, depth, layout, property, style);
                         }
