@@ -258,13 +258,16 @@ namespace BansheeEngine
 		/**	Determines should the field be serialized when serializing the parent object. */
 		bool isSerializable() const { return ((UINT32)mFlags & (UINT32)ScriptFieldFlags::Serializable) != 0; }
 
-		/** Returns the minimum value associated to a Range attribute */
+		/** Returns the minimum value associated to a Range attribute. */
 		float getRangeMinimum() const;
 
-		/** Returns the maximum value associated to a Range attribute */
+		/** Returns the maximum value associated to a Range attribute. */
 		float getRangeMaximum() const;
 
-		/** Returns the step value of a Range attribute */
+		/** Whether the field should be rendered as a slider. */
+		bool renderAsSlider() const;
+
+		/** Returns the step value of the field. */
 		float getStep() const;
 
 		String mName;

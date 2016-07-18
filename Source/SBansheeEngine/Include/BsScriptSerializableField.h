@@ -38,6 +38,7 @@ namespace BansheeEngine
 		static void internal_setValue(ScriptSerializableField* nativeInstance, MonoObject* instance, MonoObject* value);
 		static float internal_getRangeMaximum(ScriptSerializableField* nativeInstance);
 		static float internal_getRangeMinimum(ScriptSerializableField* nativeInstance);
+		static bool internal_renderAsSlider(ScriptSerializableField* nativeInstance);
 		static float internal_getStep(ScriptSerializableField* nativeInstance);
 	};
 

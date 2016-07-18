@@ -128,17 +128,33 @@ namespace BansheeEngine
 		return 0;
 	}
 
+	bool ManagedSerializableFieldInfo::renderAsSlider() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				bool slider = false;
+				range->getField("slider")->getValue(mMonoField->getAttribute(range), &slider);
+				return slider;
+			}
+		}
+		return false;
+	}
+
+
 	float ManagedSerializableFieldInfo::getStep() const
 	{
 		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Step) != 0)
 		{
 
-			MonoClass* range = ScriptAssemblyManager::instance().getStepAttribute();
-			if (range != nullptr)
+			MonoClass* step = ScriptAssemblyManager::instance().getStepAttribute();
+			if (step != nullptr)
 			{
-				float step = 0;
-				range->getField("step")->getValue(mMonoField->getAttribute(range), &step);
-				return step;
+				float value = 0;
+				step->getField("step")->getValue(mMonoField->getAttribute(step), &value);
+				return value;
 			}
 		}
 		return 0;

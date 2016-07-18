@@ -63,7 +63,7 @@ namespace BansheeEngine
         /// <summary>
         /// Returns true if the field accepts a defined range.
         /// </summary>
-        public bool Range
+        public bool Ranged
         {
             get { return (flags & 0x04) != 0; }
         }
@@ -73,7 +73,7 @@ namespace BansheeEngine
         /// </summary>
         public float RangeMaximum
         {
-            get { return Range? Internal_GetRangeMaximum(mCachedPtr) : 0; }
+            get { return Ranged? Internal_GetRangeMaximum(mCachedPtr) : 0; }
         }
 
         /// <summary>
@@ -81,7 +81,20 @@ namespace BansheeEngine
         /// </summary>
         public float RangeMinimum
         {
-            get { return Range? Internal_GetRangeMinimum(mCachedPtr) : 0; }
+            get { return Ranged? Internal_GetRangeMinimum(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
+        /// Whether the field is rendered as a slider
+        /// </summary>
+        public bool IsSlider
+        {
+            get { return (Ranged && Internal_RenderAsSlider(mCachedPtr)); }
+        }
+
+        public bool Stepped
+        {
+            get { return (flags & 0x04) != 0; }
         }
 
         /// <summary>
@@ -89,7 +102,7 @@ namespace BansheeEngine
         /// </summary>
         public float Step
         {
-            get { return Range ? Internal_GetStep(mCachedPtr) : 0; }
+            get { return Internal_GetStep(mCachedPtr); }
         }
 
         /// <summary>
@@ -158,6 +171,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetRangeMinimum(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_RenderAsSlider(IntPtr field);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetStep(IntPtr field);
