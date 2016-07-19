@@ -1,6 +1,5 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-using System;
 using BansheeEngine;
 
 namespace BansheeEditor
@@ -10,16 +9,13 @@ namespace BansheeEditor
      */
 
     /// <summary>
-    /// Inspectable field displays GUI elements for a single <see cref="SerializableProperty"/>. This is a base class that
-    /// should be specialized for all supported types contained by <see cref="SerializableProperty"/>. Inspectable fields
-    /// can and should be created recursively - normally complex types like objects and arrays will contain fields of their 
-    /// own, while primitive types like integer or boolean will consist of only a GUI element.
+    /// IsnpectableRangedField is a <see cref="InspectableField"/> that has a Range attribute and must be rendered as a slider.
     /// </summary>
     public abstract class InspectableRangedField : InspectableField
     {
         protected InspectableFieldStyleInfo style;
         /// <summary>
-        /// Creates a new inspectable field GUI for the specified property.
+        /// Creates a new inspectable ranged field GUI for the specified property.
         /// </summary>
         /// <param name="parent">Parent Inspector this field belongs to.</param>
         /// <param name="title">Name of the property, or some other value to set as the title.</param>

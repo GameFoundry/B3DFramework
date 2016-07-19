@@ -318,7 +318,7 @@ namespace BansheeEditor
 
                 string entryPath = arrayParent.Path + "[" + SeqIndex + "]";
                 field = CreateInspectable(arrayParent.Inspector, SeqIndex + ".", entryPath, 0, Depth + 1,
-                    new InspectableFieldLayout(layout), property, new InspectableFieldStyleInfo());
+                    new InspectableFieldLayout(layout), property);
 
                 return field.GetTitleLayout();
             }

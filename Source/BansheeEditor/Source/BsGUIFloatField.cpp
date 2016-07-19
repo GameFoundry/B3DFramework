@@ -136,9 +136,9 @@ namespace BansheeEngine
 
 	float GUIFloatField::setValue(float value)
 	{
-		mValue = Math::clamp(value, mMinValue, mMaxValue);
 		if (mStep != 0.0f)
-			mValue = mValue - fmod(mValue, mStep);
+			value = value - fmod(value, mStep);
+		mValue = Math::clamp(value, mMinValue, mMaxValue);
 		// Only update with new value if it actually changed, otherwise
 		// problems can occur when user types in "0." and the field
 		// updates back to "0" effectively making "." unusable
@@ -222,7 +222,6 @@ namespace BansheeEngine
 		{
 			UndoRedo::instance().popGroup("InputBox");
 			valueChanged(parseFloat(mInputBox->getText()));
-			onConfirm();
 			mHasInputFocus = false;
 		}
 	}

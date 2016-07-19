@@ -377,7 +377,7 @@ namespace BansheeEditor
 
                 string entryPath = dictParent.Path + "Key[" + RowIdx + "]";
                 fieldKey = CreateInspectable(dictParent.Inspector, "Key", entryPath, 0, Depth + 1,
-                    new InspectableFieldLayout(layout), property, new InspectableFieldStyleInfo());
+                    new InspectableFieldLayout(layout), property);
 
                 return fieldKey.GetTitleLayout();
             }
@@ -390,7 +390,7 @@ namespace BansheeEditor
 
                 string entryPath = dictParent.Path + "Value[" + RowIdx + "]";
                 fieldValue = CreateInspectable(dictParent.Inspector, "Value", entryPath, 0, Depth + 1,
-                    new InspectableFieldLayout(layout), property, new InspectableFieldStyleInfo());
+                    new InspectableFieldLayout(layout), property);
             }
 
             /// <inheritdoc/>

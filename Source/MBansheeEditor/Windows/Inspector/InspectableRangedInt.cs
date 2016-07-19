@@ -9,7 +9,7 @@ namespace BansheeEditor
      */
 
     /// <summary>
-    /// Displays GUI for a serializable property containing a floating point value.
+    /// Displays GUI for a serializable property containing an integer value with a range.
     /// </summary>
     public class InspectableRangedInt : InspectableRangedField
     {
@@ -26,7 +26,7 @@ namespace BansheeEditor
         ///                     contain other fields, in which case you should increase this value by one.</param>
         /// <param name="layout">Parent layout that all the field elements will be added to.</param>
         /// <param name="property">Serializable property referencing the array whose contents to display.</param>
-        /// <param name="style">Information about the range of the field</param>
+        /// <param name="style">Information about the range of the field.</param>
         public InspectableRangedInt(Inspector parent, string title, string path, int depth, InspectableFieldLayout layout,
             SerializableProperty property, InspectableFieldStyleInfo style)
             : base(parent, title, path, SerializableProperty.FieldType.Float, depth, layout, property, style)
@@ -40,7 +40,7 @@ namespace BansheeEditor
             if (property != null)
             {
                 guiIntField = new GUISliderField(style.RangeStyle.Min, style.RangeStyle.Max, new GUIContent(title));
-                if (style.StepStyle != null && style.StepStyle.Step != 0)
+                if (style != null && style.StepStyle != null && style.StepStyle.Step != 0)
                     guiIntField.Step = style.StepStyle.Step;
                 guiIntField.OnChanged += OnFieldValueChanged;
                 guiIntField.OnFocusLost += OnFieldValueConfirm;
@@ -63,7 +63,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Triggered when the user inputs a new floating point value.
+        /// Triggered when the user inputs a new integer value.
         /// </summary>
         /// <param name="newValue">New value of the float field.</param>
         private void OnFieldValueChanged(float newValue)
@@ -73,7 +73,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Triggered when the user confirms input in the float field.
+        /// Triggered when the user confirms input in the int field.
         /// </summary>
         private void OnFieldValueConfirm()
         {

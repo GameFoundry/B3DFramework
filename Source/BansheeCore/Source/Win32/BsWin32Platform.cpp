@@ -855,13 +855,6 @@ namespace BansheeEngine
 					break; 
 				default:    // displayable character 
 					{
-						UINT8 scanCode = (lParam >> 16) & 0xFF;
-
-						BYTE keyState[256];
-						HKL layout = GetKeyboardLayout(0);
-						if(GetKeyboardState(keyState) == 0)
-							return 0;
-
 						UINT32 finalChar = (UINT32)wParam;
 
 						if(!onCharInput.empty())

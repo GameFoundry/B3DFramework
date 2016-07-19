@@ -30,7 +30,7 @@ namespace BansheeEngine
 		/**	Returns the value of the input field. */
 		INT32 getValue() const { return mValue; }
 
-		/**	Sets a new value in the input field. */
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
 		INT32 setValue(INT32 value);
 
 		/**

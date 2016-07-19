@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsManagedSerializableObjectInfo.h"
 #include "BsManagedSerializableObjectInfoRTTI.h"
+#include "BsScriptRange.h"
 #include "BsMonoUtil.h"
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
@@ -26,6 +27,7 @@
 #include "BsScriptAnimationClip.h"
 #include "BsScriptPrefab.h"
 #include "BsScriptManagedResource.h"
+#include <BsScriptStep.h>
 
 namespace BansheeEngine
 {
@@ -105,7 +107,7 @@ namespace BansheeEngine
 			if (range != nullptr)
 			{
 				float min = 0;
-				range->getField("min")->getValue(mMonoField->getAttribute(range), &min);
+				ScriptRange::getMinRangeField()->getValue(mMonoField->getAttribute(range), &min);
 				return min;
 			}
 		}
@@ -121,7 +123,7 @@ namespace BansheeEngine
 			if (range != nullptr)
 			{
 				float max = 0;
-				range->getField("max")->getValue(mMonoField->getAttribute(range), &max);
+				ScriptRange::getMaxRangeField()->getValue(mMonoField->getAttribute(range), &max);
 				return max;
 			}
 		}
@@ -136,7 +138,7 @@ namespace BansheeEngine
 			if (range != nullptr)
 			{
 				bool slider = false;
-				range->getField("slider")->getValue(mMonoField->getAttribute(range), &slider);
+				ScriptRange::getSliderField()->getValue(mMonoField->getAttribute(range), &slider);
 				return slider;
 			}
 		}
@@ -153,7 +155,7 @@ namespace BansheeEngine
 			if (step != nullptr)
 			{
 				float value = 0;
-				step->getField("step")->getValue(mMonoField->getAttribute(step), &value);
+				ScriptStep::getStepField()->getValue(mMonoField->getAttribute(step), &value);
 				return value;
 			}
 		}

@@ -4,7 +4,7 @@
 namespace BansheeEditor
 {
     /// <summary>
-    /// Contains information about the minimum change allowed to a field value
+    /// Contains information about the minimum change allowed to a field value.
     /// </summary>
     public sealed class InspectableFieldStepStyle : InspectableFieldStyle
     {
@@ -15,7 +15,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Minimum change of the field. Every change will be rounded to a multiple of this value
+        /// Minimum change of the field. Every change will be rounded to a multiple of this value.
         /// </summary>
         public float Step { get; set; }
     }

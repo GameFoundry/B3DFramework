@@ -41,10 +41,13 @@ namespace BansheeEditor
             if (property != null)
             {
                 guiFloatField = new GUIFloatField(new GUIContent(title));
-                if (style.StepStyle != null && style.StepStyle.Step != 0)
-                    guiFloatField.Step = style.StepStyle.Step;
-                if (style.RangeStyle != null)
-                    guiFloatField.SetRange(style.RangeStyle.Min, style.RangeStyle.Max);
+                if (style != null)
+                {
+                    if (style.StepStyle != null && style.StepStyle.Step != 0)
+                        guiFloatField.Step = style.StepStyle.Step;
+                    if (style.RangeStyle != null)
+                        guiFloatField.SetRange(style.RangeStyle.Min, style.RangeStyle.Max);
+                }
                 guiFloatField.OnChanged += OnFieldValueChanged;
                 guiFloatField.OnConfirmed += OnFieldValueConfirm;
                 guiFloatField.OnFocusLost += OnFieldValueConfirm;

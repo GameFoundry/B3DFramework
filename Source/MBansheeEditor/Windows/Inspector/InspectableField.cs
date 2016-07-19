@@ -1,7 +1,6 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
-using System.Linq;
 using BansheeEngine;
  
 namespace BansheeEditor
@@ -134,7 +133,7 @@ namespace BansheeEditor
         /// <returns>Inspectable field implementation that can be used for displaying the GUI for a serializable property
         ///          of the provided type.</returns>
         public static InspectableField CreateInspectable(Inspector parent, string title, string path, int layoutIndex, 
-            int depth, InspectableFieldLayout layout, SerializableProperty property, InspectableFieldStyleInfo style)
+            int depth, InspectableFieldLayout layout, SerializableProperty property, InspectableFieldStyleInfo style = null)
         {
             InspectableField field = null;
 
@@ -148,7 +147,7 @@ namespace BansheeEditor
                 switch (property.Type)
                 {
                     case SerializableProperty.FieldType.Int:
-                        if (style.RangeStyle == null || !style.RangeStyle.Slider)
+                        if (style?.RangeStyle == null || !style.RangeStyle.Slider)
                         {
                             field = new InspectableInt(parent, title, path, depth, layout, property, style);
                         }
@@ -158,7 +157,7 @@ namespace BansheeEditor
                         }
                         break;
                     case SerializableProperty.FieldType.Float:
-                        if (style.RangeStyle == null || !style.RangeStyle.Slider)
+                        if (style?.RangeStyle == null || !style.RangeStyle.Slider)
                         {
                             field = new InspectableFloat(parent, title, path, depth, layout, property, style);
                         }

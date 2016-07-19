@@ -30,7 +30,7 @@ namespace BansheeEngine
 		/**	Returns the value of the input field. */
 		float getValue() const { return mValue; }
 
-		/**	Sets a new value in the input field. */
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
 		float setValue(float value);
 
 		/**

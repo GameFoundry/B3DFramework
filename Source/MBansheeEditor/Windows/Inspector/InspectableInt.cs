@@ -42,11 +42,13 @@ namespace BansheeEditor
             if (property != null)
             {
                 guiIntField = new GUIIntField(new GUIContent(title));
-                if (style.StepStyle != null && style.StepStyle.Step != 0)
-                    guiIntField.Step = (int)style.StepStyle.Step;
-
-                if (style.RangeStyle != null)
-                    guiIntField.SetRange((int)style.RangeStyle.Min, (int)style.RangeStyle.Max);
+                if (style != null)
+                {
+                    if (style.StepStyle != null && style.StepStyle.Step != 0)
+                        guiIntField.Step = (int) style.StepStyle.Step;
+                    if (style.RangeStyle != null)
+                        guiIntField.SetRange((int) style.RangeStyle.Min, (int) style.RangeStyle.Max);
+                }
                 guiIntField.OnChanged += OnFieldValueChanged;
                 guiIntField.OnConfirmed += OnFieldValueConfirm;
                 guiIntField.OnFocusLost += OnFieldValueConfirm;

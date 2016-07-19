@@ -15,9 +15,9 @@ namespace BansheeEngine
     public sealed class Step : Attribute
     {
         /// <summary>
-        /// Creates a new Step attribute
+        /// Creates a new Step attribute.
         /// </summary>
-        /// <param name="step">Minimum change of the field. Every change will be rounded to a multiple of this value</param>
+        /// <param name="step">Minimum change of the field. Every change will be rounded to a multiple of this value.</param>
         public Step(float step)
         {
             this.step = step;

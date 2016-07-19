@@ -15,6 +15,8 @@ set(BS_SBANSHEEENGINE_INC_NOFILTER
 )
 
 set(BS_SBANSHEEENGINE_SRC_WRAPPERS_GUI
+	"Source/BsScriptRange.cpp"
+	"Source/BsScriptStep.cpp"
 	"Source/BsScriptGUIButton.cpp"
 	"Source/BsScriptGUIContent.cpp"
 	"Source/BsScriptGUIElementStateStyle.cpp"
@@ -144,6 +146,8 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
+	"Include/BsScriptRange.h"
+	"Include/BsScriptStep.h"
 	"Include/BsScriptGUIButton.h"
 	"Include/BsScriptGUIContent.h"
 	"Include/BsScriptGUIElementStateStyle.h"

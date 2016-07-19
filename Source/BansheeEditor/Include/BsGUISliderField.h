@@ -36,7 +36,7 @@ namespace BansheeEngine
 		/** Gets the minimum percentual variation of the handle position */
 		float getStep() const;
 
-		/**	Sets a new value in the input field/slider. */
+		/**	Sets a new value in the input field/slider, it returns the clamped value according to range and step. */
 		float setValue(float value);
 
 		/**
@@ -80,7 +80,7 @@ namespace BansheeEngine
 		void inputBoxValueChanged(bool confirmed = true);
 
 		/**	Triggered when the input box value is changing. */
-		void inputBoxValueChanging(const WString&);
+		void inputBoxValueChanging(const WString& newValue);
 
 		/**	Triggered when the slider is moved. */
 		void sliderChanged(float newValue);

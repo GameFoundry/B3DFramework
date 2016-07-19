@@ -19,7 +19,7 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="min">Minimum boundary of the range to clamp the field value to.</param>
         /// <param name="max">Maximum boundary of the range to clamp the field value to.</param>
-        /// <param name="slider">Whether the field should be rendered as a slider</param>
+        /// <param name="slider">Whether the field should be rendered as a slider.</param>
         public Range(float min, float max, bool slider = true)
         {
             this.min = min;

@@ -26,7 +26,7 @@ namespace BansheeEditor
         ///                     contain other fields, in which case you should increase this value by one.</param>
         /// <param name="layout">Parent layout that all the field elements will be added to.</param>
         /// <param name="property">Serializable property referencing the array whose contents to display.</param>
-        /// <param name="style">Contains information about the field style</param>
+        /// <param name="style">Contains information about the field style.</param>
         public InspectableRangedFloat(Inspector parent, string title, string path, int depth, InspectableFieldLayout layout,
             SerializableProperty property, InspectableFieldStyleInfo style)
             : base(parent, title, path, SerializableProperty.FieldType.Float, depth, layout, property, style)
@@ -40,7 +40,7 @@ namespace BansheeEditor
             if (property != null)
             {
                 guiFloatField = new GUISliderField(style.RangeStyle.Min, style.RangeStyle.Max, new GUIContent(title));
-                if (style.StepStyle != null && style.StepStyle.Step != 0)
+                if (style != null && style.StepStyle != null && style.StepStyle.Step != 0)
                     guiFloatField.Step = style.StepStyle.Step;
                 guiFloatField.OnChanged += OnFieldValueChanged;
                 guiFloatField.OnFocusLost += OnFieldValueConfirm;

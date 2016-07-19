@@ -41,16 +41,13 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Minimum change of the field
+        /// Minimum change of the field.
         /// </summary>
         public int Step
         {
-            get
-            {
-                return Internal_GetStep(mCachedPtr);
-            }
+            get { return Internal_GetStep(mCachedPtr); }
 
-            set { Internal_SetStep(mCachedPtr, value);}
+            set { Internal_SetStep(mCachedPtr, value); }
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
 namespace BansheeEditor
 {
     /// <summary>
-    /// Contains info about the range of values a field can store
+    /// Contains info about the range of values a field can store.
     /// </summary>
     public sealed class InspectableFieldRangeStyle : InspectableFieldStyle
     {
@@ -16,17 +16,17 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// The maximum value the field can be assigned
+        /// The maximum value the field can be assigned.
         /// </summary>
         public float Max { get; set; }
 
         /// <summary>
-        /// The minimum value the field can be assigned
+        /// The minimum value the field can be assigned.
         /// </summary>
         public float Min { get; set; }
 
         /// <summary>
-        /// Whether the field is rendered as a slider
+        /// Whether the field is rendered as a slider.
         /// </summary>
         public bool Slider { get; set; }
     }

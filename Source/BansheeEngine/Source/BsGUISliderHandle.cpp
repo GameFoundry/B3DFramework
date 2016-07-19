@@ -173,13 +173,13 @@ namespace BansheeEngine
 
 	bool GUISliderHandle::_mouseEvent(const GUIMouseEvent& ev)
 	{
-		if(ev.getType() == GUIMouseEventType::MouseMove) //Mouse moves
+		if(ev.getType() == GUIMouseEventType::MouseMove)
 		{
 			if (!_isDisabled())
 			{
-				if (mMouseOverHandle) //It was on the handle
+				if (mMouseOverHandle)
 				{
-					if (!isOnHandle(ev.getPosition())) //It isn't anymore
+					if (!isOnHandle(ev.getPosition()))
 					{
 						mMouseOverHandle = false;
 
@@ -189,9 +189,9 @@ namespace BansheeEngine
 						return true;
 					}
 				}
-				else //It wasn't on the handle
+				else
 				{
-					if (isOnHandle(ev.getPosition())) //It is now
+					if (isOnHandle(ev.getPosition()))
 					{
 						mMouseOverHandle = true;
 
@@ -204,14 +204,14 @@ namespace BansheeEngine
 			}
 		}
 
-		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || mJumpOnClick)) //Mouse button is down, and the handle is being dragged or it is supposed to jump
+		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || mJumpOnClick))
 		{
 			if (!_isDisabled())
 			{
 				mState = State::Active;
 				_markLayoutAsDirty();
 
-				if (mJumpOnClick) //If it is supposed to jump
+				if (mJumpOnClick)
 				{
 					float handlePosPx = 0.0f;
 
@@ -288,7 +288,9 @@ namespace BansheeEngine
 					mState = State::Hover;
 				else
 					mState = State::Normal;
-				if (!mHandleDragged) {
+
+				if (!mHandleDragged) 
+				{
 					// If we clicked above or below the scroll handle, scroll by one page
 					INT32 handlePosPx = getHandlePosPx();
 					if (!mJumpOnClick)

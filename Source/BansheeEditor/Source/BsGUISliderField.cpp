@@ -24,7 +24,7 @@ namespace BansheeEngine
 		mInputBox->setFilter(&GUISliderField::floatFilter);
 
 		mInputBox->onValueChanged.connect(std::bind((void(GUISliderField::*)(const WString&))&GUISliderField::inputBoxValueChanging, this, _1));
-		mInputBox->onConfirm.connect(std::bind((void(GUISliderField::*)(void))&GUISliderField::inputBoxValueChanged, this));
+		mInputBox->onConfirm.connect(std::bind(&GUISliderField::inputBoxValueChanged, this, true));
 		mInputBox->onFocusChanged.connect(std::bind(&GUISliderField::inputBoxFocusChanged, this, _1));
 
 		mLayout->addElement(mSlider);
@@ -160,7 +160,6 @@ namespace BansheeEngine
 
 	void GUISliderField::sliderChanged(float newValue)
 	{
-		//float old = mSlider->getValue();
 		_setValue(newValue, true);
 	}
 

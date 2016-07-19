@@ -10,6 +10,17 @@ namespace BansheeEngine
      */
 
     /// <summary>
+    /// Flags as defined in native code in BsManagedSerializableObjectInfo.h
+    /// </summary>
+    enum SerializableFieldAttributes : byte
+    {
+        Serializable = 0x01,
+        Inspectable = 0x02,
+        Ranged = 0x04,
+        Stepped = 0x08
+    }
+
+    /// <summary>
     /// Allows you to access meta-data about field in an object. Similar to Reflection but simpler and faster.
     /// </summary>
     public class SerializableField : ScriptObject
@@ -63,38 +74,41 @@ namespace BansheeEngine
         /// <summary>
         /// Returns true if the field accepts a defined range.
         /// </summary>
-        public bool Ranged
+        public bool IsRanged
         {
-            get { return (flags & 0x04) != 0; }
+            get { return (flags & (byte)SerializableFieldAttributes.Ranged) != 0; }
         }
 
         /// <summary>
-        /// Returns the upper bound of the range
+        /// Returns the upper bound of the range.
         /// </summary>
         public float RangeMaximum
         {
-            get { return Ranged? Internal_GetRangeMaximum(mCachedPtr) : 0; }
+            get { return IsRanged? Internal_GetRangeMaximum(mCachedPtr) : 0; }
         }
 
         /// <summary>
-        /// Returns the lower bound of the range
+        /// Returns the lower bound of the range.
         /// </summary>
         public float RangeMinimum
         {
-            get { return Ranged? Internal_GetRangeMinimum(mCachedPtr) : 0; }
+            get { return IsRanged? Internal_GetRangeMinimum(mCachedPtr) : 0; }
         }
 
         /// <summary>
-        /// Whether the field is rendered as a slider
+        /// Whether the field is rendered as a slider.
         /// </summary>
         public bool IsSlider
         {
-            get { return (Ranged && Internal_RenderAsSlider(mCachedPtr)); }
+            get { return (IsRanged && Internal_RenderAsSlider(mCachedPtr)); }
         }
 
-        public bool Stepped
+        /// <summary>
+        /// Whether the field has an associated step value.
+        /// </summary>
+        public bool IsStepped
         {
-            get { return (flags & 0x04) != 0; }
+            get { return (flags & (byte)SerializableFieldAttributes.Stepped) != 0; }
         }
 
         /// <summary>
@@ -102,7 +116,7 @@ namespace BansheeEngine
         /// </summary>
         public float Step
         {
-            get { return Internal_GetStep(mCachedPtr); }
+            get { return IsStepped? Internal_GetStep(mCachedPtr) : 0; }
         }
 
         /// <summary>
@@ -110,7 +124,7 @@ namespace BansheeEngine
         /// </summary>
         public bool Inspectable
         {
-            get { return (flags & 0x02) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Inspectable) != 0; }
         }
 
         /// <summary>
@@ -118,7 +132,7 @@ namespace BansheeEngine
         /// </summary>
         public bool Serializable
         {
-            get { return (flags & 0x01) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Serializable) != 0; }
         }
 
         /// <summary>

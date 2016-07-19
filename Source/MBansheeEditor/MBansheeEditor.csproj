@@ -84,6 +84,7 @@
     <Compile Include="Windows\Inspector\InspectableRangedField.cs" />
     <Compile Include="Windows\Inspector\InspectableRangedFloat.cs" />
     <Compile Include="Windows\Inspector\InspectableRangedInt.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStyleInfo.cs" />
     <Compile Include="Windows\LogWindow.cs" />
     <Compile Include="Window\DefaultSize.cs" />
     <Compile Include="Windows\DialogBox.cs" />
