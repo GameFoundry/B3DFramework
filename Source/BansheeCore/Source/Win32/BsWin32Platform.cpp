@@ -455,22 +455,22 @@ namespace BansheeEngine
 	 * @param[in]	ignoreMovement	If true, then movement keys (up/down/left/right) will be ignored and not considered
 	 *								as input commands (useful if you need to parse num keys as numbers and not movement).
 	 */
-	bool getCommand(unsigned int virtualKeyCode, InputCommandType& command, bool ignoreMovement = false)
+	bool getCommand(unsigned int virtualKeyCode, InputCommandType& command)
 	{
 		switch (virtualKeyCode) 
 		{ 
 		case VK_LEFT:
 			command = isShiftPressed ? InputCommandType::SelectLeft : InputCommandType::CursorMoveLeft;
-			return !ignoreMovement;
+			return true;
 		case VK_RIGHT:
 			command = isShiftPressed ? InputCommandType::SelectRight : InputCommandType::CursorMoveRight;
-			return !ignoreMovement;
+			return true;
 		case VK_UP:
 			command = isShiftPressed ? InputCommandType::SelectUp : InputCommandType::CursorMoveUp;
-			return !ignoreMovement;
+			return true;
 		case VK_DOWN:
 			command = isShiftPressed ? InputCommandType::SelectDown : InputCommandType::CursorMoveDown;
-			return !ignoreMovement;
+			return true;
 		case VK_ESCAPE:
 			command = InputCommandType::Escape;
 			return true;
@@ -855,21 +855,6 @@ namespace BansheeEngine
 					break; 
 				default:    // displayable character 
 					{
-						UINT8 scanCode = (lParam >> 16) & 0xFF;
-
-						BYTE keyState[256];
-						HKL layout = GetKeyboardLayout(0);
-						if(GetKeyboardState(keyState) == 0)
-							return 0;
-
-						unsigned int vk = MapVirtualKeyEx(scanCode, MAPVK_VSC_TO_VK_EX, layout);
-						if(vk == 0)
-							return 0;
-
-						InputCommandType command = InputCommandType::Backspace;
-						if(getCommand(vk, command, true)) // We ignore character combinations that are special commands
-							return 0;
-
 						UINT32 finalChar = (UINT32)wParam;
 
 						if(!onCharInput.empty())

@@ -15,7 +15,7 @@ namespace BansheeEngine
 {
 	GUISliderField::GUISliderField(const PrivatelyConstruct& dummy, const GUIContent& labelContent, UINT32 labelWidth,
 		const String& style, const GUIDimensions& dimensions, bool withLabel)
-		:TGUIField(dummy, labelContent, labelWidth, style, dimensions, withLabel), mInputBox(nullptr), mSlider(nullptr)
+		:TGUIField(dummy, labelContent, labelWidth, style, dimensions, withLabel), mInputBox(nullptr), mSlider(nullptr), mHasInputFocus(false)
 	{
 		mSlider = GUISliderHorz::create(GUIOptions(GUIOption::flexibleWidth()), getSubStyleName(getSliderStyleType()));
 		mSlider->onChanged.connect(std::bind(&GUISliderField::sliderChanged, this, _1));
@@ -23,7 +23,9 @@ namespace BansheeEngine
 		mInputBox = GUIInputBox::create(false, GUIOptions(GUIOption::fixedWidth(75)), getSubStyleName(getInputStyleType()));
 		mInputBox->setFilter(&GUISliderField::floatFilter);
 
-		mInputBox->onValueChanged.connect(std::bind((void(GUISliderField::*)(const WString&))&GUISliderField::valueChanged, this, _1));
+		mInputBox->onValueChanged.connect(std::bind((void(GUISliderField::*)(const WString&))&GUISliderField::inputBoxValueChanging, this, _1));
+		mInputBox->onConfirm.connect(std::bind(&GUISliderField::inputBoxValueChanged, this, true));
+		mInputBox->onFocusChanged.connect(std::bind(&GUISliderField::inputBoxFocusChanged, this, _1));
 
 		mLayout->addElement(mSlider);
 		mLayout->addNewElement<GUIFixedSpace>(5);
@@ -43,7 +45,12 @@ namespace BansheeEngine
 		return mSlider->getValue();
 	}
 
-	void GUISliderField::setValue(float value)
+	float GUISliderField::getStep() const
+	{
+		return mSlider->getStep();
+	}
+
+	float GUISliderField::setValue(float value)
 	{
 		float origValue = mSlider->getValue();
 		if (origValue != value)
@@ -57,6 +64,7 @@ namespace BansheeEngine
 		float curValue = parseFloat(mInputBox->getText());
 		if (clampedValue != curValue)
 			mInputBox->setText(toWString(clampedValue));
+		return clampedValue;
 	}
 
 	void GUISliderField::setRange(float min, float max)
@@ -66,7 +74,7 @@ namespace BansheeEngine
 
 	void GUISliderField::setStep(float step)
 	{
-		mSlider->setStep(step);
+		mSlider->setStep(step / (mSlider->getRangeMaximum() - mSlider->getRangeMinimum()));
 	}
 
 	void GUISliderField::setTint(const Color& color)
@@ -79,10 +87,10 @@ namespace BansheeEngine
 
 	void GUISliderField::_setValue(float value, bool triggerEvent)
 	{
-		setValue(value);
+		float clamped = setValue(value);
 
 		if (triggerEvent)
-			onValueChanged(value);
+			onValueChanged(clamped);
 	}
 
 	const String& GUISliderField::getGUITypeName()
@@ -112,22 +120,52 @@ namespace BansheeEngine
 		mInputBox->setStyle(getSubStyleName(getInputStyleType()));
 	}
 
-	void GUISliderField::valueChanged(const WString& newValue)
-	{
-		float newFloatValue = parseFloat(newValue);
+	void GUISliderField::inputBoxValueChanging(const WString& newValue) {
+		inputBoxValueChanged(false);
+	}
 
-		CmdInputFieldValueChange<GUISliderField, float>::execute(this, newFloatValue);
+	void GUISliderField::inputBoxValueChanged(bool confirmed)
+	{
+		float newFloatValue = parseFloat(mInputBox->getText());
+		if (mSlider->getValue() != newFloatValue) {
+			if (confirmed) {
+				CmdInputFieldValueChange<GUISliderField, float>::execute(this, newFloatValue);
+			}
+			else
+			{
+				mSlider->setValue(newFloatValue);
+				onValueChanged(mSlider->getValue());
+			}
+		}
+		else if (mInputBox->getText() == L"" && confirmed) //Avoid leaving label blank
+		{
+			mInputBox->setText(L"0");
+		}
+	}
+
+	void GUISliderField::inputBoxFocusChanged(bool focus)
+	{
+		if (focus)
+		{
+			UndoRedo::instance().pushGroup("InputBox");
+			mHasInputFocus = true;
+		}
+		else
+		{
+			UndoRedo::instance().popGroup("InputBox");
+			inputBoxValueChanged();
+			mHasInputFocus = false;
+		}
 	}
 
 	void GUISliderField::sliderChanged(float newValue)
 	{
-		setValue(mSlider->getValue());
-
-		onValueChanged(newValue);
+		_setValue(newValue, true);
 	}
 
 	bool GUISliderField::floatFilter(const WString& str)
 	{
-		return std::regex_match(str, std::wregex(L"-?(\\d+(\\.\\d*)?)?"));
+		bool result = std::regex_match(str, std::wregex(L"-?(\\d*(\\.\\d*)?)?"));
+		return result;
 	}
 }

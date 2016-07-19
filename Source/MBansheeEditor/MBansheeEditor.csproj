@@ -80,6 +80,13 @@
     <Compile Include="Inspectors\SliderJointInspector.cs" />
     <Compile Include="Inspectors\SphereColliderInspector.cs" />
     <Compile Include="Inspectors\SphericalJointInspector.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldRangeStyle.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStepStyle.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStyle.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedField.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedFloat.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedInt.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStyleInfo.cs" />
     <Compile Include="Windows\LogWindow.cs" />
     <Compile Include="Window\DefaultSize.cs" />
     <Compile Include="Windows\DialogBox.cs" />

@@ -162,7 +162,7 @@ namespace BansheeEditor
                            string childPath = path + "/" + field.Name;
 
                            InspectableField inspectable = CreateInspectable(parent, field.Name, childPath,
-                               currentIndex, depth + 1, new InspectableFieldLayout(guiContentLayout), field.GetProperty());
+                               currentIndex, depth + 1, new InspectableFieldLayout(guiContentLayout), field.GetProperty(), InspectableFieldStyle.Create(field));
 
                            children.Add(inspectable);
                            currentIndex += inspectable.GetNumLayoutElements();

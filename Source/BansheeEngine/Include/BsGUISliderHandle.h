@@ -56,6 +56,9 @@ namespace BansheeEngine
 		/**	Gets the current position of the handle, in percent ranging [0.0f, 1.0f]. */
 		float getHandlePos() const;
 
+		/** Gets the minimum percentual variation of the handle position */
+		float getStep() const;
+
 		/**	Returns the position of the slider handle, in pixels. Relative to this object. */
 		INT32 getHandlePosPx() const;
 

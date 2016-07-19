@@ -169,9 +169,24 @@ namespace BansheeEngine
 		mMaxRange = max;
 	}
 
+	float GUISlider::getRangeMaximum() const
+	{
+		return mMaxRange;
+	}
+
+	float GUISlider::getRangeMinimum() const
+	{
+		return mMinRange;
+	}
+
 	void GUISlider::setStep(float step)
 	{
 		mSliderHandle->setStep(step);
+	}
+
+	float GUISlider::getStep() const 
+	{
+		return mSliderHandle->getStep();
 	}
 
 	void GUISlider::setTint(const Color& color)

@@ -63,7 +63,9 @@ namespace BansheeEngine
 	enum class ScriptFieldFlags
 	{
 		Serializable = 0x01,
-		Inspectable = 0x02
+		Inspectable = 0x02,
+		Range = 0x04,
+		Step = 0x08
 	};
 
 	/**	Contains information about a type of a managed serializable object. */
@@ -255,6 +257,18 @@ namespace BansheeEngine
 
 		/**	Determines should the field be serialized when serializing the parent object. */
 		bool isSerializable() const { return ((UINT32)mFlags & (UINT32)ScriptFieldFlags::Serializable) != 0; }
+
+		/** Returns the minimum value associated to a Range attribute. */
+		float getRangeMinimum() const;
+
+		/** Returns the maximum value associated to a Range attribute. */
+		float getRangeMaximum() const;
+
+		/** Whether the field should be rendered as a slider. */
+		bool renderAsSlider() const;
+
+		/** Returns the step value of the field. */
+		float getStep() const;
 
 		String mName;
 		UINT32 mFieldId;

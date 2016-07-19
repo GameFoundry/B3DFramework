@@ -21,12 +21,12 @@ namespace BansheeEngine
 		const String& style, const GUIDimensions& dimensions, bool withLabel)
 		: TGUIField(dummy, labelContent, labelWidth, style, dimensions, withLabel), mInputBox(nullptr), mValue(0.0f)
 		, mLastDragPos(0), mMinValue(std::numeric_limits<float>::lowest()), mMaxValue(std::numeric_limits<float>::max())
-		, mIsDragging(false), mHasInputFocus(false)
+		, mIsDragging(false), mHasInputFocus(false), mStep(0.0f)
 	{
 		mInputBox = GUIInputBox::create(false, GUIOptions(GUIOption::flexibleWidth()), getSubStyleName(getInputStyleType()));
 		mInputBox->setFilter(&GUIFloatField::floatFilter);
 
-		mInputBox->onValueChanged.connect(std::bind((void(GUIFloatField::*)(const WString&))&GUIFloatField::valueChanged, this, _1));
+		mInputBox->onValueChanged.connect(std::bind((void(GUIFloatField::*)(const WString&))&GUIFloatField::valueChanging, this, _1));
 		mInputBox->onFocusChanged.connect(std::bind(&GUIFloatField::focusChanged, this, _1));
 		mInputBox->onConfirm.connect(std::bind(&GUIFloatField::inputConfirmed, this));
 
@@ -116,7 +116,7 @@ namespace BansheeEngine
 					if (oldValue != newValue)
 					{
 						setValue(newValue);
-						valueChanged(newValue);
+						valueChanged(newValue, true);
 					}
 				}
 			}
@@ -134,22 +134,29 @@ namespace BansheeEngine
 		return false;
 	}
 
-	void GUIFloatField::setValue(float value)
+	float GUIFloatField::setValue(float value)
 	{
+		if (mStep != 0.0f)
+			value = value - fmod(value, mStep);
 		mValue = Math::clamp(value, mMinValue, mMaxValue);
-
 		// Only update with new value if it actually changed, otherwise
 		// problems can occur when user types in "0." and the field
 		// updates back to "0" effectively making "." unusable
 		float curValue = parseFloat(mInputBox->getText());
 		if (mValue != curValue)
 			mInputBox->setText(toWString(mValue));
+		return mValue;
 	}
 
 	void GUIFloatField::setRange(float min, float max)
 	{
 		mMinValue = min;
 		mMaxValue = max;
+	}
+
+	void GUIFloatField::setStep(float step) 
+	{
+		mStep = step;
 	}
 
 	void GUIFloatField::setTint(const Color& color)
@@ -188,14 +195,20 @@ namespace BansheeEngine
 		mInputBox->setStyle(getSubStyleName(getInputStyleType()));
 	}
 
-	void GUIFloatField::valueChanged(const WString& newValue)
+	void GUIFloatField::valueChanging(const WString& newValue)
 	{
-		valueChanged(parseFloat(newValue));
+		valueChanged(parseFloat(newValue), false);
 	}
 
-	void GUIFloatField::valueChanged(float newValue)
+	void GUIFloatField::valueChanged(float newValue, bool confirmed)
 	{
-		CmdInputFieldValueChange<GUIFloatField, float>::execute(this, newValue);
+		if (confirmed) {
+			CmdInputFieldValueChange<GUIFloatField, float>::execute(this, newValue);
+		}
+		else
+		{
+			onValueChanged(newValue);
+		}
 	}
 
 	void GUIFloatField::focusChanged(bool focus)
@@ -208,17 +221,19 @@ namespace BansheeEngine
 		else
 		{
 			UndoRedo::instance().popGroup("InputBox");
+			valueChanged(parseFloat(mInputBox->getText()));
 			mHasInputFocus = false;
 		}
 	}
 
 	void GUIFloatField::inputConfirmed()
 	{
+		valueChanged(parseFloat(mInputBox->getText()));
 		onConfirm();
 	}
 
 	bool GUIFloatField::floatFilter(const WString& str)
 	{
-		return std::regex_match(str, std::wregex(L"-?(\\d+(\\.\\d*)?)?"));
+		return std::regex_match(str, std::wregex(L"-?(\\d*(\\.\\d*)?)?"));
 	}
 }

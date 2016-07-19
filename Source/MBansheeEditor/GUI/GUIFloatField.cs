@@ -41,6 +41,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Minimum change of the field.
+        /// </summary>
+        public float Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+
+            set { Internal_SetStep(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Checks does the element currently has input focus. Input focus means the element has an input caret displayed
         /// and will accept input from the keyboard.
         /// </summary>
@@ -139,6 +149,12 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetRange(IntPtr nativeInstance, float min, float max);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetStep(IntPtr nativeInstance, float step);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetStep(IntPtr nativeInstance);
     }
 
     /** @} */

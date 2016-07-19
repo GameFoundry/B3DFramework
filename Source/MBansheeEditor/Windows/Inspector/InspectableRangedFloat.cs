@@ -11,14 +11,13 @@ namespace BansheeEditor
     /// <summary>
     /// Displays GUI for a serializable property containing a floating point value.
     /// </summary>
-    public class InspectableFloat : InspectableField
+    public class InspectableRangedFloat : InspectableRangedField
     {
-        private GUIFloatField guiFloatField;
+        private GUISliderField guiFloatField;
         private InspectableState state;
-        private InspectableFieldStyleInfo style;
 
         /// <summary>
-        /// Creates a new inspectable float GUI for the specified property.
+        /// Creates a new inspectable float GUI for the specified property with a range.
         /// </summary>
         /// <param name="parent">Parent Inspector this field belongs to.</param>
         /// <param name="title">Name of the property, or some other value to set as the title.</param>
@@ -27,12 +26,12 @@ namespace BansheeEditor
         ///                     contain other fields, in which case you should increase this value by one.</param>
         /// <param name="layout">Parent layout that all the field elements will be added to.</param>
         /// <param name="property">Serializable property referencing the array whose contents to display.</param>
-        /// <param name="style">Contains information about the field style</param>
-        public InspectableFloat(Inspector parent, string title, string path, int depth, InspectableFieldLayout layout, 
+        /// <param name="style">Contains information about the field style.</param>
+        public InspectableRangedFloat(Inspector parent, string title, string path, int depth, InspectableFieldLayout layout,
             SerializableProperty property, InspectableFieldStyleInfo style)
-            : base(parent, title, path, SerializableProperty.FieldType.Float, depth, layout, property)
+            : base(parent, title, path, SerializableProperty.FieldType.Float, depth, layout, property, style)
         {
-            this.style = style;
+
         }
 
         /// <inheritoc/>
@@ -40,16 +39,10 @@ namespace BansheeEditor
         {
             if (property != null)
             {
-                guiFloatField = new GUIFloatField(new GUIContent(title));
-                if (style != null)
-                {
-                    if (style.StepStyle != null && style.StepStyle.Step != 0)
-                        guiFloatField.Step = style.StepStyle.Step;
-                    if (style.RangeStyle != null)
-                        guiFloatField.SetRange(style.RangeStyle.Min, style.RangeStyle.Max);
-                }
+                guiFloatField = new GUISliderField(style.RangeStyle.Min, style.RangeStyle.Max, new GUIContent(title));
+                if (style != null && style.StepStyle != null && style.StepStyle.Step != 0)
+                    guiFloatField.Step = style.StepStyle.Step;
                 guiFloatField.OnChanged += OnFieldValueChanged;
-                guiFloatField.OnConfirmed += OnFieldValueConfirm;
                 guiFloatField.OnFocusLost += OnFieldValueConfirm;
 
                 layout.AddElement(layoutIndex, guiFloatField);

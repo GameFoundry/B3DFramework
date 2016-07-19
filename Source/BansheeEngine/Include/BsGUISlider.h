@@ -50,11 +50,20 @@ namespace BansheeEngine
 		 */
 		void setRange(float min, float max);
 
+		/** Returns the minimum value of the slider */
+		float getRangeMinimum() const;
+
+		/** Returns the maximum value of the slider */
+		float getRangeMaximum() const;
+
 		/**
 		 * Sets a step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no
 		 * step.
 		 */
 		void setStep(float step);
+
+		/** Gets the minimum percentual variation of the handle position */
+		float getStep() const;
 
 		/** @copydoc GUIElement::setTint */
 		virtual void setTint(const Color& color) override;

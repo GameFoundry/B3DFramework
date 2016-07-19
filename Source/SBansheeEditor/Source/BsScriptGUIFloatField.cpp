@@ -32,6 +32,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_HasInputFocus", &ScriptGUIFloatField::internal_hasInputFocus);
 		metaData.scriptClass->addInternalCall("Internal_SetTint", &ScriptGUIFloatField::internal_setTint);
 		metaData.scriptClass->addInternalCall("Internal_SetRange", &ScriptGUIFloatField::internal_setRange);
+		metaData.scriptClass->addInternalCall("Internal_SetStep", &ScriptGUIFloatField::internal_setStep);
+		metaData.scriptClass->addInternalCall("Internal_GetStep", &ScriptGUIFloatField::internal_getStep);
 
 		onChangedThunk = (OnChangedThunkDef)metaData.scriptClass->getMethod("Internal_DoOnChanged", 1)->getThunk();
 		onConfirmedThunk = (OnConfirmedThunkDef)metaData.scriptClass->getMethod("Internal_DoOnConfirmed", 0)->getThunk();
@@ -72,7 +74,7 @@ namespace BansheeEngine
 		*output = floatField->getValue();
 	}
 
-	void ScriptGUIFloatField::internal_setValue(ScriptGUIFloatField* nativeInstance, float value)
+	float ScriptGUIFloatField::internal_setValue(ScriptGUIFloatField* nativeInstance, float value)
 	{
 		GUIFloatField* floatField = static_cast<GUIFloatField*>(nativeInstance->getGUIElement());
 		return floatField->setValue(value);
@@ -84,16 +86,28 @@ namespace BansheeEngine
 		*output = floatField->hasInputFocus();
 	}
 
+	void ScriptGUIFloatField::internal_setRange(ScriptGUIFloatField* nativeInstance, float min, float max)
+	{
+		GUIFloatField* intField = static_cast<GUIFloatField*>(nativeInstance->getGUIElement());
+		intField->setRange(min, max);
+	}
+
 	void ScriptGUIFloatField::internal_setTint(ScriptGUIFloatField* nativeInstance, Color* color)
 	{
 		GUIFloatField* floatField = (GUIFloatField*)nativeInstance->getGUIElement();
 		floatField->setTint(*color);
 	}
 
-	void ScriptGUIFloatField::internal_setRange(ScriptGUIFloatField* nativeInstance, float min, float max)
+	void ScriptGUIFloatField::internal_setStep(ScriptGUIFloatField* nativeInstance, float step)
 	{
-		GUIFloatField* intField = static_cast<GUIFloatField*>(nativeInstance->getGUIElement());
-		intField->setRange(min, max);
+		GUIFloatField* floatField = (GUIFloatField*)nativeInstance->getGUIElement();
+		floatField->setStep(step);
+	}
+
+	float ScriptGUIFloatField::internal_getStep(ScriptGUIFloatField* nativeInstance)
+	{
+		GUIFloatField* floatField = (GUIFloatField*)nativeInstance->getGUIElement();
+		return floatField->getStep();
 	}
 
 	void ScriptGUIFloatField::onChanged(MonoObject* instance, float newValue)

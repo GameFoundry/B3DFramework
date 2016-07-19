@@ -10,6 +10,17 @@ namespace BansheeEngine
      */
 
     /// <summary>
+    /// Flags as defined in native code in BsManagedSerializableObjectInfo.h
+    /// </summary>
+    enum SerializableFieldAttributes : byte
+    {
+        Serializable = 0x01,
+        Inspectable = 0x02,
+        Ranged = 0x04,
+        Stepped = 0x08
+    }
+
+    /// <summary>
     /// Allows you to access meta-data about field in an object. Similar to Reflection but simpler and faster.
     /// </summary>
     public class SerializableField : ScriptObject
@@ -61,11 +72,59 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns true if the field accepts a defined range.
+        /// </summary>
+        public bool IsRanged
+        {
+            get { return (flags & (byte)SerializableFieldAttributes.Ranged) != 0; }
+        }
+
+        /// <summary>
+        /// Returns the upper bound of the range.
+        /// </summary>
+        public float RangeMaximum
+        {
+            get { return IsRanged? Internal_GetRangeMaximum(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
+        /// Returns the lower bound of the range.
+        /// </summary>
+        public float RangeMinimum
+        {
+            get { return IsRanged? Internal_GetRangeMinimum(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
+        /// Whether the field is rendered as a slider.
+        /// </summary>
+        public bool IsSlider
+        {
+            get { return (IsRanged && Internal_RenderAsSlider(mCachedPtr)); }
+        }
+
+        /// <summary>
+        /// Whether the field has an associated step value.
+        /// </summary>
+        public bool IsStepped
+        {
+            get { return (flags & (byte)SerializableFieldAttributes.Stepped) != 0; }
+        }
+
+        /// <summary>
+        /// Returns the step of the range
+        /// </summary>
+        public float Step
+        {
+            get { return IsStepped? Internal_GetStep(mCachedPtr) : 0; }
+        }
+
+        /// <summary>
         /// Returns true if the field will be visible in the default inspector.
         /// </summary>
         public bool Inspectable
         {
-            get { return (flags & 0x02) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Inspectable) != 0; }
         }
 
         /// <summary>
@@ -73,7 +132,7 @@ namespace BansheeEngine
         /// </summary>
         public bool Serializable
         {
-            get { return (flags & 0x01) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Serializable) != 0; }
         }
 
         /// <summary>
@@ -120,6 +179,18 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetValue(IntPtr nativeInstance, object instance, object value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMaximum(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetRangeMinimum(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_RenderAsSlider(IntPtr field);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern float Internal_GetStep(IntPtr field);
     }
 
     /** @} */

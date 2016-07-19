@@ -30,14 +30,20 @@ namespace BansheeEngine
 		/**	Returns the value of the input field. */
 		float getValue() const { return mValue; }
 
-		/**	Sets a new value in the input field. */
-		void setValue(float value);
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
+		float setValue(float value);
 
 		/**
-		 * Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't
+		 * Sets a minimum and maximum allowed values in the input field. Set to large negative/positive values if you don't
 		 * require clamping.
 		 */
 		void setRange(float min, float max);
+
+		/**	Sets the minimum change allowed for the input field. */
+		void setStep(float step);
+
+		/** Returns the minimum change allowed for the input field. */
+		float getStep() const{ return mStep; }
 
 		/**	Checks is the input field currently active. */
 		bool hasInputFocus() const { return mHasInputFocus; }
@@ -72,13 +78,12 @@ namespace BansheeEngine
 		void styleUpdated() override;
 
 		/**	Triggered when the input box value changes. */
-		void valueChanged(const WString& newValue);
+		void valueChanging(const WString& newValue);
 
 		/**
-		 * Triggered when the input box value changes, but unlike the previous overload the value is parsed into a floating
-		 * point value.
+		 * Triggered when the input box value changes and is confirmed.
 		 */
-		void valueChanged(float newValue);
+		void valueChanged(float newValue, bool confirmed = true);
 
 		/**	Triggers when the input box receives or loses keyboard focus. */
 		void focusChanged(bool focus);
@@ -96,6 +101,7 @@ namespace BansheeEngine
 		INT32 mLastDragPos;
 		float mMinValue;
 		float mMaxValue;
+		float mStep;
 		bool mIsDragging;
 		bool mHasInputFocus;
 	};

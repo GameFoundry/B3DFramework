@@ -25,7 +25,6 @@ namespace BansheeEngine
 		 *								provided parent object.
 		 */
 		static ScriptSerializableField* create(MonoObject* parentObject, const SPtr<ManagedSerializableFieldInfo>& fieldInfo);
-
 	private:
 		ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableFieldInfo>& fieldInfo);
 
@@ -37,6 +36,10 @@ namespace BansheeEngine
 		static MonoObject* internal_createProperty(ScriptSerializableField* nativeInstance);
 		static MonoObject* internal_getValue(ScriptSerializableField* nativeInstance, MonoObject* instance);
 		static void internal_setValue(ScriptSerializableField* nativeInstance, MonoObject* instance, MonoObject* value);
+		static float internal_getRangeMaximum(ScriptSerializableField* nativeInstance);
+		static float internal_getRangeMinimum(ScriptSerializableField* nativeInstance);
+		static bool internal_renderAsSlider(ScriptSerializableField* nativeInstance);
+		static float internal_getStep(ScriptSerializableField* nativeInstance);
 	};
 
 	/** @} */

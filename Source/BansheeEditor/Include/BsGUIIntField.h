@@ -30,14 +30,20 @@ namespace BansheeEngine
 		/**	Returns the value of the input field. */
 		INT32 getValue() const { return mValue; }
 
-		/**	Sets a new value in the input field. */
-		void setValue(INT32 value);
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
+		INT32 setValue(INT32 value);
 
 		/**
 		 * Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't
 		 * require clamping.
 		 */
 		void setRange(INT32 min, INT32 max);
+
+		/**	Sets the minimum change allowed for the input field. */
+		void setStep(INT32 step);
+
+		/** Returns the minimum change allowed for the input field. */
+		INT32 getStep() const { return mStep; }
 
 		/**	Checks is the input field currently active. */
 		bool hasInputFocus() const { return mHasInputFocus; }
@@ -96,6 +102,7 @@ namespace BansheeEngine
 		INT32 mLastDragPos;
 		INT32 mMinValue;
 		INT32 mMaxValue;
+		INT32 mStep;
 		bool mIsDragging;
 		bool mIsDragCursorSet;
 		bool mHasInputFocus;

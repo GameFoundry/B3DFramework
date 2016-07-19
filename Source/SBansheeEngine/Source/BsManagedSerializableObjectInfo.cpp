@@ -2,9 +2,11 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsManagedSerializableObjectInfo.h"
 #include "BsManagedSerializableObjectInfoRTTI.h"
+#include "BsScriptRange.h"
 #include "BsMonoUtil.h"
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
+#include "BsMonoField.h"
 #include "BsScriptTexture2D.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptAssemblyManager.h"
@@ -25,6 +27,7 @@
 #include "BsScriptAnimationClip.h"
 #include "BsScriptPrefab.h"
 #include "BsScriptManagedResource.h"
+#include <BsScriptStep.h>
 
 namespace BansheeEngine
 {
@@ -93,6 +96,70 @@ namespace BansheeEngine
 		:mFieldId(0), mFlags((ScriptFieldFlags)0), mMonoField(nullptr)
 	{
 
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMinimum() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float min = 0;
+				ScriptRange::getMinRangeField()->getValue(mMonoField->getAttribute(range), &min);
+				return min;
+			}
+		}
+		return 0;
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMaximum() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float max = 0;
+				ScriptRange::getMaxRangeField()->getValue(mMonoField->getAttribute(range), &max);
+				return max;
+			}
+		}
+		return 0;
+	}
+
+	bool ManagedSerializableFieldInfo::renderAsSlider() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Range) != 0)
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				bool slider = false;
+				ScriptRange::getSliderField()->getValue(mMonoField->getAttribute(range), &slider);
+				return slider;
+			}
+		}
+		return false;
+	}
+
+
+	float ManagedSerializableFieldInfo::getStep() const
+	{
+		if (((UINT32)mFlags & (UINT32)ScriptFieldFlags::Step) != 0)
+		{
+
+			MonoClass* step = ScriptAssemblyManager::instance().getStepAttribute();
+			if (step != nullptr)
+			{
+				float value = 0;
+				ScriptStep::getStepField()->getValue(mMonoField->getAttribute(step), &value);
+				return value;
+			}
+		}
+		return 0;
 	}
 
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTIStatic()

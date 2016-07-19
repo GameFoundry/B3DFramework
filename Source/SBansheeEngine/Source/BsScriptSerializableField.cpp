@@ -11,6 +11,7 @@
 
 namespace BansheeEngine
 {
+
 	ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableFieldInfo>& fieldInfo)
 		:ScriptObject(instance), mFieldInfo(fieldInfo)
 	{
@@ -22,6 +23,10 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_CreateProperty", &ScriptSerializableField::internal_createProperty);
 		metaData.scriptClass->addInternalCall("Internal_GetValue", &ScriptSerializableField::internal_getValue);
 		metaData.scriptClass->addInternalCall("Internal_SetValue", &ScriptSerializableField::internal_setValue);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMaximum", &ScriptSerializableField::internal_getRangeMaximum);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMinimum", &ScriptSerializableField::internal_getRangeMinimum);
+		metaData.scriptClass->addInternalCall("Internal_RenderAsSlider", &ScriptSerializableField::internal_renderAsSlider);
+		metaData.scriptClass->addInternalCall("Internal_GetStep", &ScriptSerializableField::internal_getStep);
 	}
 
 	ScriptSerializableField* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableFieldInfo>& fieldInfo)
@@ -60,4 +65,8 @@ namespace BansheeEngine
 		else
 			nativeInstance->mFieldInfo->mMonoField->setValue(instance, value);
 	}
+	float ScriptSerializableField::internal_getRangeMaximum(ScriptSerializableField* nativeInstance) { return nativeInstance->mFieldInfo->getRangeMaximum(); }
+	float ScriptSerializableField::internal_getRangeMinimum(ScriptSerializableField* nativeInstance) { return nativeInstance->mFieldInfo->getRangeMinimum(); }
+	bool ScriptSerializableField::internal_renderAsSlider(ScriptSerializableField* nativeInstance) { return  nativeInstance->mFieldInfo->renderAsSlider(); }
+	float ScriptSerializableField::internal_getStep(ScriptSerializableField* nativeInstance) { return nativeInstance->mFieldInfo->getStep(); }
 }

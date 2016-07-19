@@ -41,6 +41,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Minimum change of the field.
+        /// </summary>
+        public int Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+
+            set { Internal_SetStep(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Checks does the element currently has input focus. Input focus means the element has an input caret displayed
         /// and will accept input from the keyboard.
         /// </summary>
@@ -129,7 +139,7 @@ namespace BansheeEditor
         private static extern void Internal_GetValue(IntPtr nativeInstance, out int value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetValue(IntPtr nativeInstance, int value);
+        private static extern int Internal_SetValue(IntPtr nativeInstance, int value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_HasInputFocus(IntPtr nativeInstance, out bool value);
@@ -139,6 +149,12 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color color);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetStep(IntPtr nativeInstance, int step);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetStep(IntPtr nativeInstance);
     }
 
     /** @} */

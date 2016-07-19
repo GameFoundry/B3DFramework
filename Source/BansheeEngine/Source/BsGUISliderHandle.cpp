@@ -1,5 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+#include "math.h"
 #include "BsGUISliderHandle.h"
 #include "BsImageSprite.h"
 #include "BsGUISkin.h"
@@ -48,8 +49,11 @@ namespace BansheeEngine
 	void GUISliderHandle::_setHandlePos(float pct)
 	{
 		float maxPct = 1.0f;
-		if (mStep > 0.0f)
+		if (mStep > 0.0f && pct < maxPct)
+		{
+			pct = (pct + mStep * 0.5f) - fmod(pct + mStep * 0.5f, mStep);
 			maxPct = Math::floor(1.0f / mStep) * mStep;
+		}
 
 		mPctHandlePos = Math::clamp(pct, 0.0f, maxPct);
 	}
@@ -57,6 +61,11 @@ namespace BansheeEngine
 	float GUISliderHandle::getHandlePos() const
 	{
 		return mPctHandlePos;;
+	}
+
+	float GUISliderHandle::getStep() const
+	{
+		return mStep;
 	}
 
 	void GUISliderHandle::setStep(float step)
@@ -212,6 +221,7 @@ namespace BansheeEngine
 						handlePosPx = (float)(ev.getPosition().y - (INT32)mLayoutData.area.y - mHandleSize * 0.5f);
 
 					setHandlePosPx((INT32)handlePosPx);
+					onHandleMoved(mPctHandlePos);
 				}
 
 				if (mHorizontal)
@@ -224,7 +234,7 @@ namespace BansheeEngine
 					INT32 top = (INT32)mLayoutData.area.y + getHandlePosPx();
 					mDragStartPos = ev.getPosition().y - top;
 				}
-
+				
 				mHandleDragged = true;
 			}
 
@@ -279,44 +289,46 @@ namespace BansheeEngine
 				else
 					mState = State::Normal;
 
-				// If we clicked above or below the scroll handle, scroll by one page
-				INT32 handlePosPx = getHandlePosPx();
-				if (!mJumpOnClick)
+				if (!mHandleDragged) 
 				{
-					UINT32 stepSizePx = 0;
-					if (mStep > 0.0f)
-						stepSizePx = (UINT32)(mStep * getMaxSize());
-					else
-						stepSizePx = mHandleSize;
-
-					INT32 handleOffset = 0;
-					if (mHorizontal)
+					// If we clicked above or below the scroll handle, scroll by one page
+					INT32 handlePosPx = getHandlePosPx();
+					if (!mJumpOnClick)
 					{
-						INT32 handleLeft = (INT32)mLayoutData.area.x + handlePosPx;
-						INT32 handleRight = handleLeft + mHandleSize;
+						UINT32 stepSizePx = 0;
+						if (mStep > 0.0f)
+							stepSizePx = (UINT32)(mStep * getMaxSize());
+						else
+							stepSizePx = mHandleSize;
 
-						if (ev.getPosition().x < handleLeft)
-							handleOffset -= stepSizePx;
-						else if (ev.getPosition().x > handleRight)
-							handleOffset += stepSizePx;
+						INT32 handleOffset = 0;
+						if (mHorizontal)
+						{
+							INT32 handleLeft = (INT32)mLayoutData.area.x + handlePosPx;
+							INT32 handleRight = handleLeft + mHandleSize;
+
+							if (ev.getPosition().x < handleLeft)
+								handleOffset -= stepSizePx;
+							else if (ev.getPosition().x > handleRight)
+								handleOffset += stepSizePx;
+						}
+						else
+						{
+							INT32 handleTop = (INT32)mLayoutData.area.y + handlePosPx;
+							INT32 handleBottom = handleTop + mHandleSize;
+
+							if (ev.getPosition().y < handleTop)
+								handleOffset -= stepSizePx;
+							else if (ev.getPosition().y > handleBottom)
+								handleOffset += stepSizePx;
+						}
+
+						handlePosPx += handleOffset;
 					}
-					else
-					{
-						INT32 handleTop = (INT32)mLayoutData.area.y + handlePosPx;
-						INT32 handleBottom = handleTop + mHandleSize;
 
-						if (ev.getPosition().y < handleTop)
-							handleOffset -= stepSizePx;
-						else if (ev.getPosition().y > handleBottom)
-							handleOffset += stepSizePx;
-					}
-
-					handlePosPx += handleOffset;
+					setHandlePosPx(handlePosPx);
+					onHandleMoved(mPctHandlePos);
 				}
-
-				setHandlePosPx(handlePosPx);
-				onHandleMoved(mPctHandlePos);
-
 				mHandleDragged = false;
 				_markLayoutAsDirty();
 			}
@@ -329,7 +341,6 @@ namespace BansheeEngine
 			if (!_isDisabled())
 			{
 				mHandleDragged = false;
-
 				if (mMouseOverHandle)
 					mState = State::Hover;
 				else
@@ -375,11 +386,7 @@ namespace BansheeEngine
 	void GUISliderHandle::setHandlePosPx(INT32 pos)
 	{
 		float maxScrollAmount = (float)getMaxSize() - mHandleSize;
-		float maxPct = 1.0f;
-		if (mStep > 0.0f)
-			maxPct = Math::floor(1.0f / mStep) * mStep;
-
-		mPctHandlePos = Math::clamp(pos / maxScrollAmount, 0.0f, maxPct);
+		_setHandlePos(pos / maxScrollAmount);
 	}
 
 	UINT32 GUISliderHandle::getMaxSize() const

@@ -33,8 +33,11 @@ namespace BansheeEngine
 		/**	Returns the value of the input field/slider. */
 		float getValue() const;
 
-		/**	Sets a new value in the input field/slider. */
-		void setValue(float value);
+		/** Gets the minimum percentual variation of the handle position */
+		float getStep() const;
+
+		/**	Sets a new value in the input field/slider, it returns the clamped value according to range and step. */
+		float setValue(float value);
 
 		/**
 		 * Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't
@@ -47,6 +50,9 @@ namespace BansheeEngine
 		 * step.
 		 */
 		void setStep(float step);
+
+		/**	Checks is the input field currently active. */
+		bool hasInputFocus() const { return mHasInputFocus; }
 
 		/** @copydoc GUIElement::setTint */
 		void setTint(const Color& color) override;
@@ -70,17 +76,24 @@ namespace BansheeEngine
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;
 
-		/**	Triggered when the input box value changes. */
-		void valueChanged(const WString& newValue);
+		/**	Triggered when the input box value changes definitively. */
+		void inputBoxValueChanged(bool confirmed = true);
+
+		/**	Triggered when the input box value is changing. */
+		void inputBoxValueChanging(const WString& newValue);
 
 		/**	Triggered when the slider is moved. */
 		void sliderChanged(float newValue);
+
+		/**	Triggers when the input box receives or loses keyboard focus. */
+		void inputBoxFocusChanged(bool focus);
 
 		/**	Callback that checks can the provided string be	converted to a floating point value. */
 		static bool floatFilter(const WString& str);
 
 		GUIInputBox* mInputBox;
 		GUISliderHorz* mSlider;
+		bool mHasInputFocus;
 	};
 
 	/** @} */
