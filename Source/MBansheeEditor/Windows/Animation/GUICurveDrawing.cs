@@ -163,17 +163,25 @@ namespace BansheeEditor
             // Draw center line
             DrawCenterLine();
 
-            // TODO - Draw horizontal value markers with text
-
+            int idx = 0;
             foreach (var curve in curves)
             {
-                // TODO - Pick unique color for each curve
-                DrawCurve(curve, Color.Red);
+                Color color = GetUniqueColor(idx);
+                DrawCurve(curve, color);
+                idx++;
             }
 
             // Draw selected frame marker
             if (markedFrameIdx != -1)
                 DrawFrameMarker(markedFrameIdx * timePerFrame, Color.Red);
+        }
+
+        private Color GetUniqueColor(int idx)
+        {
+            const int COLOR_SPACING = 359 / 15;
+
+            float hue = ((idx * COLOR_SPACING) % 359) / 359.0f;
+            return Color.HSV2RGB(new Color(hue, 175.0f / 255.0f, 175.0f / 255.0f));
         }
 
         private void DrawCurve(EdAnimationCurve curve, Color color)
