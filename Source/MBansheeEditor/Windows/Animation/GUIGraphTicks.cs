@@ -9,14 +9,28 @@ namespace BansheeEditor
      *  @{
      */
 
+    /// <summary>
+    /// Determines how should ticks reported by <see cref="GUIGraphTicks"/> be distributed. 
+    /// </summary>
     internal enum GUITickStepType
     {
+        /// <summary>
+        /// Ticks represent time values (Multiples of 60).
+        /// </summary>
         Time,
+        /// <summary>
+        /// Ticks represent generic values (Multiples of 10).
+        /// </summary>
         Generic
     }
 
-    // TODO DOC
-    internal class GUITicks
+    /// <summary>
+    /// Generates a set of locations that can be used for rendering ticks on a graph. As input the class takes valid range,
+    /// size of the area the ticks will be displayed on, type of ticks and minimum/maximum spacing and outputs a set of
+    /// coordinates along which ticks should be positioned. Ticks are reported as multiple separate levels with different
+    /// strengths, depending on how close their distribution is to the upper valid range.
+    /// </summary>
+    internal class GUIGraphTicks
     {
         private int pixelRange = 100;
         private float valueRangeStart = 0.0f;
@@ -32,7 +46,11 @@ namespace BansheeEditor
 
         public int NumLevels { get { return numLevels; } }
 
-        internal GUITicks(GUITickStepType stepType = GUITickStepType.Generic)
+        /// <summary>
+        /// Contructs a new tick generating object.
+        /// </summary>
+        /// <param name="stepType">Determines how will ticks be distributed.</param>
+        internal GUIGraphTicks(GUITickStepType stepType = GUITickStepType.Generic)
         {
             if(stepType == GUITickStepType.Generic)
                 SetGenericSteps();
@@ -42,6 +60,12 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Sets the range which ticks are to be displayed for, and the range along which the ticks will be displayed.
+        /// </summary>
+        /// <param name="valueRangeStart">Start of the range the ticks are to display.</param>
+        /// <param name="valueRangeEnd">End of the range the ticks are to display.</param>
+        /// <param name="pixelRange">Width or height on which the ticks will be rendered. In pixels.</param>
         internal void SetRange(float valueRangeStart, float valueRangeEnd, int pixelRange)
         {
             this.valueRangeStart = valueRangeStart;
@@ -51,6 +75,12 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Sets valid spacing between two ticks. Tick strength will be determined by how far away are they from either
+        /// end of this range.
+        /// </summary>
+        /// <param name="minPx">Minimum spacing between two ticks, in pixels.</param>
+        /// <param name="maxPx">Maximum spacing between two ticks, in pixels.</param>
         internal void SetTickSpacing(int minPx, int maxPx)
         {
             minTickSpacingPx = minPx;
@@ -59,14 +89,28 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Returns the strength of a particular tick level. Levels are ordered in descending order of strength (level 0 is
+        /// the strongest).
+        /// </summary>
+        /// <param name="level">Level for which to retrieve the strength. Must not be larger than 
+        ///                     <see cref="NumLevels"/> - 1.</param>
+        /// <returns>Strength of the ticks at this level, in range [0, 1].</returns>
         internal float GetLevelStrength(int level)
         {
             if (level < 0 || level >= numLevels)
                 return 0.0f;
 
-            return levelStrengths[maxLevel + level];
+            return MathEx.Clamp01(levelStrengths[maxLevel + level]);
         }
 
+        /// <summary>
+        /// Returns positions of all ticks of the provided level. The ticks will be within the range provided to
+        /// <see cref="SetRange"/>.
+        /// </summary>
+        /// <param name="level">Level for which to retrieve the positions. Must not be larger than 
+        ///                     <see cref="NumLevels"/> - 1.</param>
+        /// <returns>Positions of all ticks of the provided level.</returns>
         internal float[] GetTicks(int level)
         {
             if (level < 0 || level >= numLevels)
@@ -89,6 +133,9 @@ namespace BansheeEditor
             return ticks;
         }
 
+        /// <summary>
+        /// Rebuilds the tick positions and strengths after some relevant parameter changes.
+        /// </summary>
         private void Rebuild()
         {
             levelStrengths = new float[validSteps.Length];
@@ -114,6 +161,10 @@ namespace BansheeEditor
                 numLevels = 0;
         }
 
+        /// <summary>
+        /// Sets tick steps corresponding to time values. This will split the ticks into intervals relevant for displaying
+        /// times.
+        /// </summary>
         private void SetTimeSteps()
         {
             validSteps = new float[]
@@ -124,6 +175,9 @@ namespace BansheeEditor
             };
         }
 
+        /// <summary>
+        /// Sets tick steps corresponding to generic values (as opposed to displaying time values).
+        /// </summary>
         private void SetGenericSteps()
         {
             float minStep = 0.0000001f;

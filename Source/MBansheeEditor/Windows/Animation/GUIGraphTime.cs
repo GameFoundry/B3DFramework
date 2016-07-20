@@ -9,8 +9,11 @@ namespace BansheeEditor
      *  @{
      */
 
-    // TODO DOC
-    public class GUITimeline
+    /// <summary>
+    /// Renders a timeline that may be used as a header for a graph display. User can set the range of the times to display,
+    /// as well as its physical dimensions.
+    /// </summary>
+    public class GUIGraphTime
     {
         public const int PADDING = 30;
 
@@ -22,22 +25,33 @@ namespace BansheeEditor
         private float rangeLength = 60.0f;
 
         private GUICanvas canvas;
-        private GUITicks tickHandler;
+        private GUIGraphTicks tickHandler;
         private int width;
         private int height;
         private int fps = 1;
         private int markedFrameIdx = -1;
 
-        public GUITimeline(GUILayout layout, int width, int height)
+        /// <summary>
+        /// Constructs a new timeline and adds it to the specified layout.
+        /// </summary>
+        /// <param name="layout">Layout to add the timeline GUI to.</param>
+        /// <param name="width">Width of the timeline in pixels.</param>
+        /// <param name="height">Height of the timeline in pixels.</param>
+        public GUIGraphTime(GUILayout layout, int width, int height)
         {
             canvas = new GUICanvas();
             layout.AddElement(canvas);
 
-            tickHandler = new GUITicks(GUITickStepType.Time);
+            tickHandler = new GUIGraphTicks(GUITickStepType.Time);
 
             SetSize(width, height);
         }
 
+        /// <summary>
+        /// Uses the assigned FPS, range and physical size to calculate the frame that is under the provided coordinates.
+        /// </summary>
+        /// <param name="windowCoords">Coordinate relative to the window the GUI element is on.</param>
+        /// <returns>Frame that was clicked on, or -1 if the coordinates are outside of valid bounds. </returns>
         public int GetFrame(Vector2I windowCoords)
         {
             Rect2I bounds = canvas.Bounds;
@@ -56,7 +70,10 @@ namespace BansheeEditor
             return (int)(time * fps);
         }
 
-        // Set to -1 to clear it
+        /// <summary>
+        /// Sets the frame at which to display the frame marker.
+        /// </summary>
+        /// <param name="frameIdx">Index of the frame to display the marker on, or -1 to clear the marker.</param>
         public void SetMarkedFrame(int frameIdx)
         {
             markedFrameIdx = frameIdx;
@@ -64,6 +81,11 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Sets the physical size onto which to draw the timeline.
+        /// </summary>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
         public void SetSize(int width, int height)
         {
             this.width = width;
@@ -80,6 +102,10 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Sets the range of values to display on the timeline.
+        /// </summary>
+        /// <param name="length">Amount of time to display, in seconds.</param>
         public void SetRange(float length)
         {
             rangeLength = Math.Max(0.0f, length);
@@ -89,6 +115,10 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Number of frames per second, used for frame selection and marking.
+        /// </summary>
+        /// <param name="fps">Number of prames per second.</param>
         public void SetFPS(int fps)
         {
             this.fps = Math.Max(1, fps);
@@ -98,6 +128,12 @@ namespace BansheeEditor
             Rebuild();
         }
         
+        /// <summary>
+        /// Draws text displaying the time at the provided position.
+        /// </summary>
+        /// <param name="xPos">Position to draw the text at.</param>
+        /// <param name="seconds">Time to display, in seconds.</param>
+        /// <param name="minutes">If true the time will be displayed in minutes, otherwise in seconds.</param>
         private void DrawTime(int xPos, float seconds, bool minutes)
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(seconds);
@@ -119,11 +155,17 @@ namespace BansheeEditor
                 EditorStyles.DefaultFontSize);
         }
 
+        /// <summary>
+        /// Draws one tick of the timeline, at the specified time.
+        /// </summary>
+        /// <param name="t">Time at which to draw the tick.</param>
+        /// <param name="strength">Strength of the tick (determines size and color), in range [0, 1].</param>
+        /// <param name="drawText">If true the text displaying the time will be drawn above this tick.</param>
+        /// <param name="displayAsMinutes">Should the text drawn be displayed as minutes (if true), or seconds (false).
+        ///                                Ignored if no text is drawn.</param>
         private void DrawTick(float t, float strength, bool drawText, bool displayAsMinutes)
         {
             int xPos = (int)((t / GetRange()) * drawableWidth) + PADDING;
-
-            strength = MathEx.Clamp01(strength);
 
             // Draw tick
             Vector2I start = new Vector2I(xPos, height - (int)(tickHeight * strength));
@@ -139,6 +181,10 @@ namespace BansheeEditor
                 DrawTime(xPos, t, displayAsMinutes);
         }
 
+        /// <summary>
+        /// Draws a vertical frame marker at the specified time.
+        /// </summary>
+        /// <param name="t">Time at which to draw the marker.</param>
         private void DrawFrameMarker(float t)
         {
             int xPos = (int)((t / GetRange()) * drawableWidth) + PADDING;
@@ -149,7 +195,10 @@ namespace BansheeEditor
             canvas.DrawLine(start, end, Color.BansheeOrange);
         }
 
-        // Returns range rounded to the nearest multiple of FPS
+        /// <summary>
+        /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
+        /// </summary>
+        /// <returns>Time range rounded to a multiple of FPS.</returns>
         private float GetRange()
         {
             float spf = 1.0f/fps;
@@ -157,6 +206,9 @@ namespace BansheeEditor
             return ((int)rangeLength/spf) * spf;
         }
 
+        /// <summary>
+        /// Rebuilds the internal GUI elements. Should be called whenever timeline properties change.
+        /// </summary>
         private void Rebuild()
         {
             canvas.Clear();

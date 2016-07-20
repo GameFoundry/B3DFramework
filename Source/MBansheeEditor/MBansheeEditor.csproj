@@ -52,8 +52,8 @@
     <Compile Include="Windows\Animation\GUICurveDrawing.cs" />
     <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
     <Compile Include="Windows\Animation\GUIGraphValues.cs" />
-    <Compile Include="Windows\Animation\GUITicks.cs" />
-    <Compile Include="Windows\Animation\GUITimeline.cs" />
+    <Compile Include="Windows\Animation\GUIGraphTicks.cs" />
+    <Compile Include="Windows\Animation\GUIGraphTime.cs" />
     <Compile Include="Windows\BrowseDialog.cs" />
     <Compile Include="Windows\Build\BuildManager.cs" />
     <Compile Include="Windows\Build\BuildWindow.cs" />

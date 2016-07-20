@@ -9,13 +9,16 @@ namespace BansheeEditor
      *  @{
      */
 
-    // TODO DOC
+    /// <summary>
+    /// Renders a vertical value display that may be used as a side-bar for a graph display. User can set the range of the
+    /// values to display, as well as its physical dimensions.
+    /// </summary>
     internal class GUIGraphValues
     {
         private static readonly Color COLOR_TRANSPARENT_LIGHT_GRAY = 
             new Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 0.5f);
 
-        private GUITicks tickHandler;
+        private GUIGraphTicks tickHandler;
         private GUICanvas canvas;
 
         private int width = 20;
@@ -23,16 +26,27 @@ namespace BansheeEditor
         private float rangeStart = -1.0f;
         private float rangeEnd = 1.0f;
 
+        /// <summary>
+        /// Constructs a new value display and adds it to the specified layout.
+        /// </summary>
+        /// <param name="layout">Layout to add the GUI element to.</param>
+        /// <param name="width">Width of the timeline in pixels.</param>
+        /// <param name="height">Height of the timeline in pixels.</param>
         public GUIGraphValues(GUILayout layout, int width, int height)
         {
             canvas = new GUICanvas();
             layout.AddElement(canvas);
 
-            tickHandler = new GUITicks();
+            tickHandler = new GUIGraphTicks();
 
             SetSize(width, height);
         }
 
+        /// <summary>
+        /// Sets the physical size onto which to draw the value display.
+        /// </summary>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
         public void SetSize(int width, int height)
         {
             this.width = width;
@@ -46,6 +60,11 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Sets the range of values to display.
+        /// </summary>
+        /// <param name="start">Minimum value to display.</param>
+        /// <param name="end">Maximum value to display.</param>
         public void SetRange(float start, float end)
         {
             if (start > end)
@@ -63,6 +82,13 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        /// <summary>
+        /// Draws text displaying the time at the provided position.
+        /// </summary>
+        /// <param name="yPos">Position to draw the text at.</param>
+        /// <param name="seconds">Time to display, in seconds.</param>
+        /// <param name="minutes">If true the time will be displayed in minutes, otherwise in seconds.</param>
+        /// <param name="above">If true the text will be displayed above the provided position, otherwise below.</param>
         private void DrawTime(int yPos, float seconds, bool minutes, bool above)
         {
             TimeSpan timeSpan = TimeSpan.FromSeconds(seconds);
@@ -90,6 +116,9 @@ namespace BansheeEditor
                 EditorStyles.DefaultFontSize);
         }
 
+        /// <summary>
+        /// Rebuilds the internal GUI elements. Should be called whenever timeline properties change.
+        /// </summary>
         private void Rebuild()
         {
             canvas.Clear();
@@ -122,7 +151,7 @@ namespace BansheeEditor
                         Vector2I end = new Vector2I((int) (width*strength), yPos);
 
                         Color color = COLOR_TRANSPARENT_LIGHT_GRAY;
-                        color.a *= MathEx.Clamp01(strength);
+                        color.a *= strength;
 
                         canvas.DrawLine(start, end, color);
 

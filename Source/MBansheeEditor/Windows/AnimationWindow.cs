@@ -13,7 +13,7 @@ namespace BansheeEditor
     /// </summary>
     internal class AnimationWindow : EditorWindow
     {
-        private GUITimeline timeline;
+        private GUIGraphTime timeline;
         private GUICurveDrawing curveDrawing;
         private GUIGraphValues sidebar;
 
@@ -75,7 +75,7 @@ namespace BansheeEditor
             buttonLayout.AddElement(fpsField);
             buttonLayout.AddSpace(5);
 
-            timeline = new GUITimeline(mainLayout, Width, 20);
+            timeline = new GUIGraphTime(mainLayout, Width, 20);
 
             EdAnimationCurve[] curves = CreateDummyCurves();
             curveDrawing = new GUICurveDrawing(mainLayout, Width, Height - 20, curves);
