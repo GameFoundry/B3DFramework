@@ -97,7 +97,7 @@ namespace BansheeEditor
             tickHeight = (int)(height * TICK_HEIGHT_PCT);
             drawableWidth = Math.Max(0, width - PADDING * 2);
 
-            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
+            tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
 
             Rebuild();
         }
@@ -110,7 +110,7 @@ namespace BansheeEditor
         {
             rangeLength = Math.Max(0.0f, length);
 
-            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
+            tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
 
             Rebuild();
         }
@@ -123,7 +123,7 @@ namespace BansheeEditor
         {
             this.fps = Math.Max(1, fps);
 
-            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
+            tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
 
             Rebuild();
         }
@@ -198,12 +198,20 @@ namespace BansheeEditor
         /// <summary>
         /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
         /// </summary>
+        /// <param name="padding">If true, extra range will be included to cover the right-most padding.</param>
         /// <returns>Time range rounded to a multiple of FPS.</returns>
-        private float GetRange()
+        private float GetRange(bool padding = false)
         {
             float spf = 1.0f/fps;
 
-            return ((int)rangeLength/spf) * spf;
+            float range = rangeLength;
+            if (padding)
+            {
+                float lengthPerPixel = rangeLength/drawableWidth;
+                range += lengthPerPixel * PADDING;
+            }
+
+            return ((int)range / spf) * spf;
         }
 
         /// <summary>
