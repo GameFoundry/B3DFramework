@@ -163,14 +163,17 @@ namespace BansheeEngine
 	INT32 GUIIntField::setValue(INT32 value)
 	{
 		if (mStep != 0)
-			mValue = mValue - fmod(mValue, mStep);
+			mValue = mValue - mValue % mStep;
+
 		mValue = Math::clamp(value, mMinValue, mMaxValue);
+
 		// Only update with new value if it actually changed, otherwise
 		// problems can occur when user types in "0." and the field
 		// updates back to "0" effectively making "." unusable
 		float curValue = parseFloat(mInputBox->getText());
 		if (mValue != curValue)
 			mInputBox->setText(toWString(mValue));
+
 		return mValue;
 	}
 

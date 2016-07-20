@@ -27,11 +27,14 @@ namespace BansheeEditor
 
         private int drawableWidth;
         private GUICanvas canvas;
+        private GUITicks tickHandler;
 
         public GUICurveDrawing(GUILayout layout, int width, int height, EdAnimationCurve[] curves)
         {
             canvas = new GUICanvas();
             layout.AddElement(canvas);
+
+            tickHandler = new GUITicks(GUITickStepType.Time);
 
             this.curves = curves;
 
@@ -55,6 +58,8 @@ namespace BansheeEditor
 
             drawableWidth = Math.Max(0, width - GUITimeline.PADDING * 2);
 
+            tickHandler.SetRange(0.0f, xRange, drawableWidth);
+
             Rebuild();
         }
 
@@ -63,12 +68,16 @@ namespace BansheeEditor
             this.xRange = xRange;
             this.yRange = yRange;
 
+            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
+
             Rebuild();
         }
 
         public void SetFPS(int fps)
         {
             this.fps = Math.Max(1, fps);
+
+            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
 
             Rebuild();
         }
@@ -141,28 +150,26 @@ namespace BansheeEditor
             if (curves == null)
                 return;
 
-            float range = GetRange();
-            int numFrames = (int)range * fps;
-            float timePerFrame = range / numFrames;
-
             // Draw vertical frame markers
-            float frameWidth = drawableWidth / (float)numFrames;
-            int markerInterval = (int)Math.Max(1.0f, GUITimeline.OPTIMAL_TICK_WIDTH / frameWidth) * 5;
-
-            //// Draw extra frames to prevent the out-of-frame ticks from popping in and out as range changes
-            float extraWidth = GUITimeline.PADDING;
-            numFrames += (int)(extraWidth / frameWidth);
-
-            float t = 0.0f;
-            for (int i = 0; i < numFrames; i += markerInterval)
+            int numTickLevels = tickHandler.NumLevels;
+            for (int i = numTickLevels - 1; i >= 0; i--)
             {
-                DrawFrameMarker(t, COLOR_DARK_GRAY);
-                t += timePerFrame * markerInterval;
+                float[] ticks = tickHandler.GetTicks(i);
+                float strength = tickHandler.GetLevelStrength(i);
+
+                for (int j = 0; j < ticks.Length; j++)
+                {
+                    Color color = COLOR_DARK_GRAY;
+                    color.a *= MathEx.Clamp01(strength);
+
+                    DrawFrameMarker(ticks[j], color);
+                }
             }
 
             // Draw center line
             DrawCenterLine();
 
+            // Draw curves
             int idx = 0;
             foreach (var curve in curves)
             {
@@ -173,7 +180,13 @@ namespace BansheeEditor
 
             // Draw selected frame marker
             if (markedFrameIdx != -1)
-                DrawFrameMarker(markedFrameIdx * timePerFrame, Color.Red);
+            {
+                float range = GetRange();
+                int numFrames = (int)range * fps;
+                float timePerFrame = range / numFrames;
+
+                DrawFrameMarker(markedFrameIdx*timePerFrame, Color.BansheeOrange);
+            }
         }
 
         private Color GetUniqueColor(int idx)

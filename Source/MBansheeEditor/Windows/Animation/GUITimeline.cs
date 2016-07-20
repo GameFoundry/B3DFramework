@@ -13,37 +13,27 @@ namespace BansheeEditor
     public class GUITimeline
     {
         public const int PADDING = 30;
-        public const int OPTIMAL_TICK_WIDTH = 15;
 
-        private const float LARGE_TICK_HEIGHT_PCT = 0.4f;
-        private const float SMALL_TICK_HEIGHT_PCT = 0.2f;
+        private const float TICK_HEIGHT_PCT = 0.4f;
         private const int TEXT_PADDING = 2;
         
-        private int maxTextWidth;
-        private int largeTickHeight;
-        private int smallTickHeight;
+        private int tickHeight;
         private int drawableWidth;
         private float rangeLength = 60.0f;
-        private int minWidth = 0;
 
         private GUICanvas canvas;
+        private GUITicks tickHandler;
         private int width;
         private int height;
         private int fps = 1;
         private int markedFrameIdx = -1;
-
-        public int MinWidth
-        {
-            get { return minWidth; }
-        }
 
         public GUITimeline(GUILayout layout, int width, int height)
         {
             canvas = new GUICanvas();
             layout.AddElement(canvas);
 
-            maxTextWidth = GUIUtility.CalculateTextBounds("99:999", EditorBuiltin.DefaultFont,
-               EditorStyles.DefaultFontSize).x;
+            tickHandler = new GUITicks(GUITickStepType.Time);
 
             SetSize(width, height);
         }
@@ -82,9 +72,10 @@ namespace BansheeEditor
             canvas.SetWidth(width);
             canvas.SetHeight(height);
 
-            largeTickHeight = (int)(height * LARGE_TICK_HEIGHT_PCT);
-            smallTickHeight = (int)(height * SMALL_TICK_HEIGHT_PCT);
+            tickHeight = (int)(height * TICK_HEIGHT_PCT);
             drawableWidth = Math.Max(0, width - PADDING * 2);
+
+            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
 
             Rebuild();
         }
@@ -93,12 +84,16 @@ namespace BansheeEditor
         {
             rangeLength = Math.Max(0.0f, length);
 
+            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
+
             Rebuild();
         }
 
         public void SetFPS(int fps)
         {
             this.fps = Math.Max(1, fps);
+
+            tickHandler.SetRange(0.0f, GetRange(), drawableWidth);
 
             Rebuild();
         }
@@ -124,30 +119,24 @@ namespace BansheeEditor
                 EditorStyles.DefaultFontSize);
         }
 
-        private void DrawLargeTick(float t, bool drawText, bool displayAsMinutes)
+        private void DrawTick(float t, float strength, bool drawText, bool displayAsMinutes)
         {
             int xPos = (int)((t / GetRange()) * drawableWidth) + PADDING;
 
+            strength = MathEx.Clamp01(strength);
+
             // Draw tick
-            Vector2I start = new Vector2I(xPos, height - largeTickHeight);
+            Vector2I start = new Vector2I(xPos, height - (int)(tickHeight * strength));
             Vector2I end = new Vector2I(xPos, height);
 
-            canvas.DrawLine(start, end, Color.LightGray);
+            Color color = Color.LightGray;
+            color.a *= strength;
+
+            canvas.DrawLine(start, end, color);
 
             // Draw text if it fits
             if (drawText)
                 DrawTime(xPos, t, displayAsMinutes);
-        }
-
-        private void DrawSmallTick(float t)
-        {
-            int xPos = (int)((t / GetRange()) * drawableWidth) + PADDING;
-
-            // Draw tick
-            Vector2I start = new Vector2I(xPos, height - smallTickHeight);
-            Vector2I end = new Vector2I(xPos, height);
-
-            canvas.DrawLine(start, end, Color.LightGray);
         }
 
         private void DrawFrameMarker(float t)
@@ -157,7 +146,7 @@ namespace BansheeEditor
             Vector2I start = new Vector2I(xPos, 0);
             Vector2I end = new Vector2I(xPos, height);
 
-            canvas.DrawLine(start, end, Color.Red);
+            canvas.DrawLine(start, end, Color.BansheeOrange);
         }
 
         // Returns range rounded to the nearest multiple of FPS
@@ -170,51 +159,34 @@ namespace BansheeEditor
 
         private void Rebuild()
         {
-            const int TEXT_SPACING = 10;
             canvas.Clear();
-
-            // TODO - Transition between interval sizes more lightly (dynamically change tick height?)
-            // TODO - Calculate min width
-            // TODO - Time values change as width changes, keep them constant?
 
             float range = GetRange();
 
-            int numFrames = (int)range * fps;
-            float frameWidth = drawableWidth / (float)numFrames;
-            
-            int tickInterval = (int)Math.Max(1.0f, OPTIMAL_TICK_WIDTH / frameWidth);
-            int largeTickInterval = tickInterval * 5;
-            float largeTickWidth = frameWidth * largeTickInterval;
-
-            float timePerFrame = range / numFrames;
-            float timePerTick = timePerFrame*tickInterval;
-            bool displayAsMinutes = TimeSpan.FromSeconds(timePerTick).Minutes > 0;
-
-            int textInterval = MathEx.CeilToInt((maxTextWidth + TEXT_SPACING) / largeTickWidth);
-
-            // Draw extra frames to prevent the out-of-frame ticks from popping in and out as range changes
-            float extraWidth = PADDING + maxTextWidth / 2;
-            numFrames += (int)(extraWidth / frameWidth);
-
-            float t = 0.0f;
-            for (int i = 0; i < numFrames; i++)
+            int numTickLevels = tickHandler.NumLevels;
+            for (int i = numTickLevels - 1; i >= 0; i--)
             {
-                if (i%largeTickInterval == 0)
+                bool drawText = i == 0;
+
+                float[] ticks = tickHandler.GetTicks(i);
+                float strength = tickHandler.GetLevelStrength(i);
+
+                if (ticks.Length > 0)
                 {
-                    int textIdx = i/largeTickInterval;
-                    bool drawText = textIdx % textInterval == 0;
-
-                    DrawLargeTick(t, drawText, displayAsMinutes);
+                    float valuePerTick = range/ticks.Length;
+                    bool displayAsMinutes = TimeSpan.FromSeconds(valuePerTick).Minutes > 0;
+                    for (int j = 0; j < ticks.Length; j++)
+                        DrawTick(ticks[j], strength, drawText, displayAsMinutes);
                 }
-                else if (i%tickInterval == 0)
-                    DrawSmallTick(t);
-
-                // Move to next tick
-                t += timePerFrame;
             }
 
             if (markedFrameIdx != -1)
-                DrawFrameMarker(markedFrameIdx * timePerFrame);
+            {
+                int numFrames = (int)range * fps;
+                float timePerFrame = range / numFrames;
+
+                DrawFrameMarker(markedFrameIdx*timePerFrame);
+            }
         }
     }
 

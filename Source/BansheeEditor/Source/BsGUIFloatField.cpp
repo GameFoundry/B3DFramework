@@ -138,13 +138,16 @@ namespace BansheeEngine
 	{
 		if (mStep != 0.0f)
 			value = value - fmod(value, mStep);
+
 		mValue = Math::clamp(value, mMinValue, mMaxValue);
+
 		// Only update with new value if it actually changed, otherwise
 		// problems can occur when user types in "0." and the field
 		// updates back to "0" effectively making "." unusable
 		float curValue = parseFloat(mInputBox->getText());
 		if (mValue != curValue)
 			mInputBox->setText(toWString(mValue));
+
 		return mValue;
 	}
 
