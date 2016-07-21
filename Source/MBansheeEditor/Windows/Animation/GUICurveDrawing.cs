@@ -28,7 +28,7 @@ namespace BansheeEditor
         private float xRange = 60.0f;
         private float yRange = 20.0f;
         private int fps = 1;
-        private int markedFrameIdx = -1;
+        private int markedFrameIdx = 0;
 
         private int drawableWidth;
         private GUICanvas canvas;
@@ -143,6 +143,20 @@ namespace BansheeEditor
                 KeyFrame[] keyframes = curves[i].Native.KeyFrames;
                 selectedKeyframes[i] = new bool[keyframes.Length];
             }
+        }
+
+        /// <summary>
+        /// Returns time for a frame with the specified index. Depends on set range and FPS.
+        /// </summary>
+        /// <param name="frameIdx">Index of the frame (not a key-frame) to get the time for.</param>
+        /// <returns>Time of the frame with the provided index. </returns>
+        public float GetTimeForFrame(int frameIdx)
+        {
+            float range = GetRange();
+            int numFrames = (int)range * fps;
+            float timePerFrame = range / numFrames;
+
+            return frameIdx* timePerFrame;
         }
 
         /// <summary>
@@ -378,13 +392,7 @@ namespace BansheeEditor
 
             // Draw selected frame marker
             if (markedFrameIdx != -1)
-            {
-                float range = GetRange();
-                int numFrames = (int)range * fps;
-                float timePerFrame = range / numFrames;
-
-                DrawFrameMarker(markedFrameIdx*timePerFrame, Color.BansheeOrange);
-            }
+                DrawFrameMarker(GetTimeForFrame(markedFrameIdx), Color.BansheeOrange);
         }
 
         /// <summary>

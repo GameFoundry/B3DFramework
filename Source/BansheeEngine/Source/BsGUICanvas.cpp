@@ -72,6 +72,8 @@ namespace BansheeEngine
 		for (auto& vertex : vertices)
 		{
 			Vector2 point = Vector2((float)vertex.x, (float)vertex.y);
+			point += Vector2(0.5f, 0.5f); // Offset to the middle of the pixel
+
 			mVertexData.push_back(point);
 		}
 
@@ -123,15 +125,15 @@ namespace BansheeEngine
 		{
 			if (i % 2 == 0)
 			{
-				mVertexData.push_back(Vector2((float)vertices[i - 2].x, (float)vertices[i - 2].y));
-				mVertexData.push_back(Vector2((float)vertices[i - 1].x, (float)vertices[i - 1].y));
-				mVertexData.push_back(Vector2((float)vertices[i - 0].x, (float)vertices[i - 0].y));
+				mVertexData.push_back(Vector2((float)vertices[i - 2].x + 0.5f, (float)vertices[i - 2].y + 0.5f));
+				mVertexData.push_back(Vector2((float)vertices[i - 1].x + 0.5f, (float)vertices[i - 1].y + 0.5f));
+				mVertexData.push_back(Vector2((float)vertices[i - 0].x + 0.5f, (float)vertices[i - 0].y + 0.5f));
 			}
 			else
 			{
-				mVertexData.push_back(Vector2((float)vertices[i - 0].x, (float)vertices[i - 0].y));
-				mVertexData.push_back(Vector2((float)vertices[i - 1].x, (float)vertices[i - 1].y));
-				mVertexData.push_back(Vector2((float)vertices[i - 2].x, (float)vertices[i - 2].y));
+				mVertexData.push_back(Vector2((float)vertices[i - 0].x + 0.5f, (float)vertices[i - 0].y + 0.5f));
+				mVertexData.push_back(Vector2((float)vertices[i - 1].x + 0.5f, (float)vertices[i - 1].y + 0.5f));
+				mVertexData.push_back(Vector2((float)vertices[i - 2].x + 0.5f, (float)vertices[i - 2].y + 0.5f));
 			}
 		}
 
@@ -165,7 +167,7 @@ namespace BansheeEngine
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		for (auto& vertex : vertices)
-			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
+			mVertexData.push_back(Vector2((float)vertex.x + 0.5f, (float)vertex.y + 0.5f));
 
 		mTriangleElementData.push_back(TriangleElementData());
 		TriangleElementData& elemData = mTriangleElementData.back();
