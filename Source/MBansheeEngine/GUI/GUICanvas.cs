@@ -54,10 +54,13 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="a">Starting point of the line, relative to the canvas origin (top-left).</param>
         /// <param name="b">Ending point of the line, relative to the canvas origin (top-left).</param>
-        public void DrawLine(Vector2I a, Vector2I b)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawLine(Vector2I a, Vector2I b, byte depth = 128)
         {
             Color color = Color.White;
-            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color);
+            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color, depth);
         }
 
         /// <summary>
@@ -66,9 +69,12 @@ namespace BansheeEngine
         /// <param name="a">Starting point of the line, relative to the canvas origin (top-left).</param>
         /// <param name="b">Ending point of the line, relative to the canvas origin (top-left).</param>
         /// <param name="color">Color of the line.</param>
-        public void DrawLine(Vector2I a, Vector2I b, Color color)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawLine(Vector2I a, Vector2I b, Color color, byte depth = 128)
         {
-            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color);
+            Internal_DrawLine(mCachedPtr, ref a, ref b, ref color, depth);
         }
 
         /// <summary>
@@ -77,10 +83,13 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="vertices">Points to use for drawing the line. Must have at least two elements. All points are 
         ///                        relative to the canvas origin(top-left).</param>
-        public void DrawPolyLine(Vector2I[] vertices)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawPolyLine(Vector2I[] vertices, byte depth = 128)
         {
             Color color = Color.White;
-            Internal_DrawPolyLine(mCachedPtr, vertices, ref color);
+            Internal_DrawPolyLine(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -90,9 +99,12 @@ namespace BansheeEngine
         /// <param name="vertices">Points to use for drawing the line. Must have at least two elements. All points are 
         ///                        relative to the canvas origin(top-left).</param>
         /// <param name="color">Color of the line.</param>
-        public void DrawPolyLine(Vector2I[] vertices, Color color)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawPolyLine(Vector2I[] vertices, Color color, byte depth = 128)
         {
-            Internal_DrawPolyLine(mCachedPtr, vertices, ref color);
+            Internal_DrawPolyLine(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -103,15 +115,18 @@ namespace BansheeEngine
         ///                    (top-left). If size is zero, the default texture size will be used.</param>
         /// <param name="scaleMode">Scale mode to use when sizing the texture. Only relevant if the provided quad size 
         ///                         doesn't match the texture size.</param>
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
         public void DrawTexture(SpriteTexture texture, Rect2I area,
-            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit)
+            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit, byte depth = 128)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)
                 texturePtr = texture.GetCachedPtr();
 
             Color color = Color.White;
-            Internal_DrawTexture(mCachedPtr, texturePtr, ref area, scaleMode, ref color);
+            Internal_DrawTexture(mCachedPtr, texturePtr, ref area, scaleMode, ref color, depth);
         }
 
         /// <summary>
@@ -123,14 +138,17 @@ namespace BansheeEngine
         /// <param name="color">Color to tint the drawn texture with.</param>
         /// <param name="scaleMode">Scale mode to use when sizing the texture. Only relevant if the provided quad size 
         ///                         doesn't match the texture size.</param>
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
         public void DrawTexture(SpriteTexture texture, Rect2I area, Color color,
-            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit)
+            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit, byte depth = 128)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)
                 texturePtr = texture.GetCachedPtr();
 
-            Internal_DrawTexture(mCachedPtr, texturePtr, ref area, scaleMode, ref color);
+            Internal_DrawTexture(mCachedPtr, texturePtr, ref area, scaleMode, ref color, depth);
         }
 
         /// <summary>
@@ -139,10 +157,13 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="vertices">A set of points defining the triangles. Must have at least three elements. All points
         ///                        are relative to the canvas origin(top-left).</param>
-        public void DrawTriangleStrip(Vector2I[] vertices)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawTriangleStrip(Vector2I[] vertices, byte depth = 128)
         {
             Color color = Color.White;
-            Internal_DrawTriangleStrip(mCachedPtr, vertices, ref color);
+            Internal_DrawTriangleStrip(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -152,9 +173,12 @@ namespace BansheeEngine
         /// <param name="vertices">A set of points defining the triangles. Must have at least three elements. All points
         ///                        are relative to the canvas origin(top-left).</param>
         /// <param name="color">Color of the triangles.</param>
-        public void DrawTriangleStrip(Vector2I[] vertices, Color color)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawTriangleStrip(Vector2I[] vertices, Color color, byte depth = 128)
         {
-            Internal_DrawTriangleStrip(mCachedPtr, vertices, ref color);
+            Internal_DrawTriangleStrip(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -162,10 +186,13 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="vertices">A set of points defining the triangles. Must have at least three elements, and its size
         ///                        must be a multiple of three.</param>
-        public void DrawTriangleList(Vector2I[] vertices)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawTriangleList(Vector2I[] vertices, byte depth = 128)
         {
             Color color = Color.White;
-            Internal_DrawTriangleList(mCachedPtr, vertices, ref color);
+            Internal_DrawTriangleList(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -174,9 +201,12 @@ namespace BansheeEngine
         /// <param name="vertices">A set of points defining the triangles. Must have at least three elements, and its size
         ///                        must be a multiple of three.</param>
         /// <param name="color">Color of the triangles.</param>
-        public void DrawTriangleList(Vector2I[] vertices, Color color)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawTriangleList(Vector2I[] vertices, Color color, byte depth = 128)
         {
-            Internal_DrawTriangleList(mCachedPtr, vertices, ref color);
+            Internal_DrawTriangleList(mCachedPtr, vertices, ref color, depth);
         }
 
         /// <summary>
@@ -189,13 +219,16 @@ namespace BansheeEngine
         /// <param name="font">Font to draw the text with.</param>
         /// <param name="color">Color of the text.</param>
         /// <param name="size">Size of the font.</param>
-        public void DrawText(string text, Vector2I position, Font font, Color color, int size = 10)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawText(string text, Vector2I position, Font font, Color color, int size = 10, byte depth = 128)
         {
             IntPtr fontPtr = IntPtr.Zero;
             if (font != null)
                 fontPtr = font.GetCachedPtr();
 
-            Internal_DrawText(mCachedPtr, text, ref position, fontPtr, size, ref color);
+            Internal_DrawText(mCachedPtr, text, ref position, fontPtr, size, ref color, depth);
         }
 
         /// <summary>
@@ -207,14 +240,17 @@ namespace BansheeEngine
         ///                        relative to the canvas origin(top-left).</param>
         /// <param name="font">Font to draw the text with.</param>
         /// <param name="size">Size of the font.</param>
-        public void DrawText(string text, Vector2I position, Font font, int size = 10)
+        /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
+        ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
+        ///                     submitted if they share the same depth.</param>
+        public void DrawText(string text, Vector2I position, Font font, int size = 10, byte depth = 128)
         {
             IntPtr fontPtr = IntPtr.Zero;
             if (font != null)
                 fontPtr = font.GetCachedPtr();
 
             Color color = Color.White;
-            Internal_DrawText(mCachedPtr, text, ref position, fontPtr, size, ref color);
+            Internal_DrawText(mCachedPtr, text, ref position, fontPtr, size, ref color, depth);
         }
 
         /// <summary>
@@ -230,25 +266,27 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawLine(IntPtr nativeInstance, ref Vector2I a, ref Vector2I b,
-            ref Color color);
+            ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawPolyLine(IntPtr nativeInstance, Vector2I[] vertices,
-            ref Color color);
+            ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawTexture(IntPtr nativeInstance, IntPtr texture, ref Rect2I area,
-            GUITextureScaleMode scaleMode, ref Color color);
+            GUITextureScaleMode scaleMode, ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_DrawTriangleStrip(IntPtr nativeInstance, Vector2I[] vertices, ref Color color);
+        private static extern void Internal_DrawTriangleStrip(IntPtr nativeInstance, Vector2I[] vertices, ref Color color, 
+            byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_DrawTriangleList(IntPtr nativeInstance, Vector2I[] vertices, ref Color color);
+        private static extern void Internal_DrawTriangleList(IntPtr nativeInstance, Vector2I[] vertices, ref Color color, 
+            byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawText(IntPtr nativeInstance, string text, ref Vector2I position,
-            IntPtr font, int size, ref Color color);
+            IntPtr font, int size, ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Clear(IntPtr nativeInstance);

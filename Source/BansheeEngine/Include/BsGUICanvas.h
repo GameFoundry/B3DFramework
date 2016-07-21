@@ -47,8 +47,11 @@ namespace BansheeEngine
 		 * @param[in]	a		Starting point of the line, relative to the canvas origin (top-left).
 		 * @param[in]	b		Ending point of the line, relative to the canvas origin (top-left).
 		 * @param[in]	color	Color of the line.
+		 * @param[in]	depth	Depth at which to draw the element. Elements with higher depth will be drawn before others.
+		 *						Additionally elements of the same type (triangle or line) will be drawn in order they are
+		 *						submitted if they share the same depth.
 		 */
-		void drawLine(const Vector2I& a, const Vector2I& b, const Color& color = Color::White);
+		void drawLine(const Vector2I& a, const Vector2I& b, const Color& color = Color::White, UINT8 depth = 128);
 
 		/** 
 		 * Draws multiple lines following the path by the provided vertices. First vertex connects to the second vertex,
@@ -57,8 +60,11 @@ namespace BansheeEngine
 		 * @param[in]	vertices	Points to use for drawing the line. Must have at least two elements. All points are 
 		 *							relative to the canvas origin (top-left).
 		 * @param[in]	color		Color of the line.
+		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before 
+		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *							they are submitted if they share the same depth.
 		 */
-		void drawPolyLine(const Vector<Vector2I>& vertices, const Color& color = Color::White);
+		void drawPolyLine(const Vector<Vector2I>& vertices, const Color& color = Color::White, UINT8 depth = 128);
 
 		/** 
 		 * Draws a quad with a the provided texture displayed.
@@ -69,9 +75,12 @@ namespace BansheeEngine
 		 * @param[in]	scaleMode	Scale mode to use when sizing the texture. Only relevant if the provided quad size
 		 *							doesn't match the texture size.
 		 * @param[in]	color		Color to tint the drawn texture with.
+		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before 
+		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *							they are submitted if they share the same depth.
 		 */
 		void drawTexture(const HSpriteTexture& texture, const Rect2I& area, 
-			TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::White);
+			TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::White, UINT8 depth = 128);
 
 		/** 
 		 * Draws a triangle strip. First three vertices are used to form the initial triangle, and every next vertex will
@@ -80,8 +89,11 @@ namespace BansheeEngine
 		 * @param[in]	vertices	A set of points defining the triangles. Must have at least three elements. All points
 		 *							are relative to the canvas origin (top-left).
 		 * @param[in]	color		Color of the triangles.
+		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *							they are submitted if they share the same depth.
 		 */
-		void drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color = Color::White);
+		void drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color = Color::White, UINT8 depth = 128);
 
 		/** 
 		 * Draws a triangle list. Every three vertices in the list represent a unique triangle.
@@ -89,8 +101,11 @@ namespace BansheeEngine
 		 * @param[in]	vertices	A set of points defining the triangles. Must have at least three elements, and its size
 		 *							must be a multiple of three.
 		 * @param[in]	color		Color of the triangles.
+		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *							they are submitted if they share the same depth.
 		 */
-		void drawTriangleList(const Vector<Vector2I>& vertices, const Color& color = Color::White);
+		void drawTriangleList(const Vector<Vector2I>& vertices, const Color& color = Color::White, UINT8 depth = 128);
 
 		/**
 		 * Draws a piece of text with the wanted font. The text will be aligned to the top-left corner of the provided
@@ -102,9 +117,12 @@ namespace BansheeEngine
 		 * @param[in]	font		Font to draw the text with.
 		 * @param[in]	size		Size of the font.
 		 * @param[in]	color		Color of the text.
+		 * @param[in]	depth		Depth at which to draw the element. Elements with higher depth will be drawn before
+		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
+		 *							they are submitted if they share the same depth.
 		 */
 		void drawText(const WString& text, const Vector2I& position, const HFont& font, UINT32 size = 10, 
-			const Color& color = Color::White);
+			const Color& color = Color::White, UINT8 depth = 128);
 
 		/** Clears the canvas, removing any previously drawn elements. */
 		void clear();
@@ -136,6 +154,7 @@ namespace BansheeEngine
 			UINT32 renderElemStart;
 			UINT32 renderElemEnd;
 			UINT32 dataId;
+			UINT8 depth;
 
 			union
 			{
@@ -198,6 +217,12 @@ namespace BansheeEngine
 		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
 			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
+		/** @copydoc GUIElement::_getRenderElementDepth */
+		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
+
+		/** @copydoc GUIElement::_getRenderElementDepthRange */
+		UINT32 _getRenderElementDepthRange() const override { return mDepthRange; }
+
 		/** @copydoc GUIElement::updateRenderElementsInternal */
 		void updateRenderElementsInternal() override;
 
@@ -221,6 +246,7 @@ namespace BansheeEngine
 
 		Vector<CanvasElement> mElements;
 		UINT32 mNumRenderElements;
+		UINT8 mDepthRange;
 
 		Vector<ImageElementData> mImageData;
 		Vector<TextElementData> mTextData;

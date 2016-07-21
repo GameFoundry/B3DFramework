@@ -22,7 +22,7 @@ namespace BansheeEngine
 	}
 
 	GUICanvas::GUICanvas(const String& styleName, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mNumRenderElements(0), mForceTriangleBuild(false)
+		:GUIElement(styleName, dimensions), mNumRenderElements(0), mDepthRange(1), mForceTriangleBuild(false)
 	{
 
 	}
@@ -42,12 +42,12 @@ namespace BansheeEngine
 		return new (bs_alloc<GUICanvas>()) GUICanvas(getStyleName<GUICanvas>(styleName), GUIDimensions::create());
 	}
 
-	void GUICanvas::drawLine(const Vector2I& a, const Vector2I& b, const Color& color)
+	void GUICanvas::drawLine(const Vector2I& a, const Vector2I& b, const Color& color, UINT8 depth)
 	{
-		drawPolyLine({ a, b }, color);
+		drawPolyLine({ a, b }, color, depth);
 	}
 
-	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, const Color& color)
+	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if(vertices.size() < 2)
 			return;
@@ -60,6 +60,9 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
+		element.depth = depth;
+
+		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mTriangleElementData.push_back(TriangleElementData());
 		TriangleElementData& elemData = mTriangleElementData.back();
@@ -69,8 +72,6 @@ namespace BansheeEngine
 		for (auto& vertex : vertices)
 		{
 			Vector2 point = Vector2((float)vertex.x, (float)vertex.y);
-			point += Vector2(0.5f, 0.5f); // Offset to the middle of the pixel
-
 			mVertexData.push_back(point);
 		}
 
@@ -79,7 +80,7 @@ namespace BansheeEngine
 	}
 
 	void GUICanvas::drawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode, 
-		const Color& color)
+		const Color& color, UINT8 depth)
 	{
 		mElements.push_back(CanvasElement());
 		CanvasElement& element = mElements.back();
@@ -89,12 +90,15 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mImageData.size();
 		element.scaleMode = scaleMode;
 		element.imageSprite = bs_new<ImageSprite>();
+		element.depth = depth;
+
+		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mImageData.push_back({ texture, area });
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color)
+	void GUICanvas::drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if (vertices.size() < 3)
 		{
@@ -110,6 +114,9 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)(vertices.size() - 2) * 3;
+		element.depth = depth;
+
+		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		// Convert strip to list
 		for(UINT32 i = 2; i < (UINT32)vertices.size(); i++)
@@ -137,7 +144,7 @@ namespace BansheeEngine
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::drawTriangleList(const Vector<Vector2I>& vertices, const Color& color)
+	void GUICanvas::drawTriangleList(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if (vertices.size() < 3 || vertices.size() % 3 != 0)
 		{
@@ -153,6 +160,9 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTriangleElementData.size();
 		element.vertexStart = (UINT32)mVertexData.size();
 		element.numVertices = (UINT32)vertices.size();
+		element.depth = depth;
+
+		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		for (auto& vertex : vertices)
 			mVertexData.push_back(Vector2((float)vertex.x, (float)vertex.y));
@@ -167,7 +177,7 @@ namespace BansheeEngine
 	}
 
 	void GUICanvas::drawText(const WString& text, const Vector2I& position, const HFont& font, UINT32 size, 
-		const Color& color)
+		const Color& color, UINT8 depth)
 	{
 		mElements.push_back(CanvasElement());
 		CanvasElement& element = mElements.back();
@@ -177,6 +187,9 @@ namespace BansheeEngine
 		element.dataId = (UINT32)mTextData.size();
 		element.size = size;
 		element.textSprite = bs_new<TextSprite>();
+		element.depth = depth;
+
+		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mTextData.push_back({ text, font, position });
 		_markContentAsDirty();
@@ -195,6 +208,7 @@ namespace BansheeEngine
 
 		mElements.clear();
 		mNumRenderElements = 0;
+		mDepthRange = 1;
 
 		mVertexData.clear();
 		mImageData.clear();
@@ -208,6 +222,12 @@ namespace BansheeEngine
 	UINT32 GUICanvas::_getNumRenderElements() const
 	{
 		return mNumRenderElements;
+	}
+
+	UINT32 GUICanvas::_getRenderElementDepth(UINT32 renderElementIdx) const
+	{
+		const CanvasElement& element = findElement(renderElementIdx);
+		return _getDepth() + element.depth;
 	}
 
 	const SpriteMaterialInfo& GUICanvas::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const

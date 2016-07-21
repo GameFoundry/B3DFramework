@@ -183,6 +183,37 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Draws a keyframe a the specified time and value.
+        /// </summary>
+        /// <param name="t">Time to draw the keyframe at.</param>
+        /// <param name="y">Y value to draw the keyframe at.</param>
+        /// <param name="selected">Determines should the keyframe be drawing using the selected color scheme, or normally.
+        ///                        </param>
+        private void DrawKeyframe(float t, float y, bool selected)
+        {
+            int heightOffset = height / 2; // So that y = 0 is at center of canvas
+
+            int xPos = (int)((t / GetRange()) * drawableWidth) + GUIGraphTime.PADDING;
+            int yPos = heightOffset - (int)((y/yRange)*height);
+
+            Vector2I a = new Vector2I(xPos - 3, yPos);
+            Vector2I b = new Vector2I(xPos, yPos - 3);
+            Vector2I c = new Vector2I(xPos + 3, yPos);
+            Vector2I d = new Vector2I(xPos, yPos + 3);
+
+            // Draw diamond shape
+            Vector2I[] linePoints = new Vector2I[] { a, b, c, d, a };
+            Vector2I[] trianglePoints = new Vector2I[] { b, c, a, d };
+
+            canvas.DrawTriangleStrip(trianglePoints, Color.White, 101);
+
+            if (selected)
+                canvas.DrawPolyLine(linePoints, Color.BansheeOrange, 100);
+            else
+                canvas.DrawPolyLine(linePoints, Color.Black, 100);
+        }
+
+        /// <summary>
         /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
         /// </summary>
         /// <param name="padding">If true, extra range will be included to cover the right-most padding.</param>
@@ -236,6 +267,13 @@ namespace BansheeEditor
             {
                 Color color = GetUniqueColor(idx);
                 DrawCurve(curve, color);
+
+                // Draw keyframes
+                KeyFrame[] keyframes = curve.Native.KeyFrames;
+
+                for (int i = 0; i < keyframes.Length; i++)
+                    DrawKeyframe(keyframes[i].time, keyframes[i].value, false);
+
                 idx++;
             }
 
