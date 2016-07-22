@@ -45,7 +45,8 @@ namespace BansheeEngine
 	struct EventInternalData
 	{
 		EventInternalData()
-			:mConnections(nullptr), mFreeConnections(nullptr)
+			:mConnections(nullptr), mLastConnection(nullptr), mFreeConnections(nullptr), mNewConnections(nullptr), 
+			mIsCurrentlyTriggering(false)
 		{ }
 
 		~EventInternalData()
@@ -67,6 +68,30 @@ namespace BansheeEngine
 
 				conn = next;
 			}
+
+			conn = mNewConnections;
+			while (conn != nullptr)
+			{
+				BaseConnectionData* next = conn->next;
+				bs_free(conn);
+
+				conn = next;
+			}
+		}
+
+		/** Appends a new connection to the active connection array. */
+		void connect(BaseConnectionData* conn)
+		{
+			conn->prev = mLastConnection;
+
+			if (mLastConnection != nullptr)
+				mLastConnection->next = conn;
+
+			mLastConnection = conn;
+
+			// First connection
+			if (mConnections == nullptr)
+				mConnections = conn;
 		}
 
 		/**
@@ -101,6 +126,9 @@ namespace BansheeEngine
 
 				conn = next;
 			}
+
+			mConnections = nullptr;
+			mLastConnection = nullptr;
 		}
 
 		/**
@@ -127,6 +155,8 @@ namespace BansheeEngine
 
 			if (conn->next != nullptr)
 				conn->next->prev = conn->prev;
+			else
+				mLastConnection = conn->prev;
 
 			conn->prev = nullptr;
 			conn->next = nullptr;
@@ -142,9 +172,12 @@ namespace BansheeEngine
 		}
 
 		BaseConnectionData* mConnections;
+		BaseConnectionData* mLastConnection;
 		BaseConnectionData* mFreeConnections;
+		BaseConnectionData* mNewConnections;
 
 		RecursiveMutex mMutex;
+		bool mIsCurrentlyTriggering;
 	};
 
 	/** @} */
@@ -286,12 +319,21 @@ namespace BansheeEngine
 			if (connData == nullptr)
 				connData = bs_new<ConnectionData>();
 
-			connData->next = mInternalData->mConnections;
+			// If currently iterating over the connection list, delay modifying it until done
+			if(mInternalData->mIsCurrentlyTriggering)
+			{
+				connData->prev = mInternalData->mNewConnections;
 
-			if (mInternalData->mConnections != nullptr)
-				mInternalData->mConnections->prev = connData;
+				if (mInternalData->mNewConnections != nullptr)
+					mInternalData->mNewConnections->next = connData;
 
-			mInternalData->mConnections = connData;
+				mInternalData->mNewConnections = connData;
+			}
+			else
+			{
+				mInternalData->connect(connData);
+			}
+
 			connData->func = func;
 
 			return HEvent(mInternalData, connData);
@@ -305,9 +347,8 @@ namespace BansheeEngine
 			SPtr<EventInternalData> internalData = mInternalData;
 
 			RecursiveLock lock(internalData->mMutex);
+			internalData->mIsCurrentlyTriggering = true;
 
-			// Hidden dependency: If any new connections are made during these callbacks they must be
-			// inserted at the start of the linked list so that we don't trigger them here.
 			ConnectionData* conn = static_cast<ConnectionData*>(internalData->mConnections);
 			while (conn != nullptr)
 			{
@@ -318,6 +359,29 @@ namespace BansheeEngine
 					conn->func(std::forward<Args>(args)...);
 
 				conn = next;
+			}
+
+			internalData->mIsCurrentlyTriggering = false;
+
+			// If any new connections were added during the above calls, add them to the connection list
+			if(internalData->mNewConnections != nullptr)
+			{
+				BaseConnectionData* lastNewConnection = internalData->mNewConnections;
+				while (lastNewConnection != nullptr)
+					lastNewConnection = lastNewConnection->next;
+
+				BaseConnectionData* currentConnection = lastNewConnection;
+				while(currentConnection != nullptr)
+				{
+					BaseConnectionData* prevConnection = currentConnection->prev;
+					currentConnection->next = nullptr;
+					currentConnection->prev = nullptr;
+
+					mInternalData->connect(currentConnection);
+					currentConnection = prevConnection;
+				}
+
+				internalData->mNewConnections = nullptr;
 			}
 		}
 
