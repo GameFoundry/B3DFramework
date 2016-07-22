@@ -50,6 +50,7 @@
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\AnimationWindow.cs" />
     <Compile Include="Windows\Animation\GUICurveDrawing.cs" />
+    <Compile Include="Windows\Animation\GUICurveEditor.cs" />
     <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
     <Compile Include="Windows\Animation\GUIGraphValues.cs" />
     <Compile Include="Windows\Animation\GUIGraphTicks.cs" />

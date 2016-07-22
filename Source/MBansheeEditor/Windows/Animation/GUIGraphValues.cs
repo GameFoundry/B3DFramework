@@ -56,8 +56,6 @@ namespace BansheeEditor
             canvas.SetHeight(height);
 
             tickHandler.SetRange(rangeStart, rangeEnd, height);
-
-            Rebuild();
         }
 
         /// <summary>
@@ -78,8 +76,6 @@ namespace BansheeEditor
             rangeEnd = end;
 
             tickHandler.SetRange(rangeStart, rangeEnd, height);
-
-            Rebuild();
         }
 
         /// <summary>
@@ -119,7 +115,7 @@ namespace BansheeEditor
         /// <summary>
         /// Rebuilds the internal GUI elements. Should be called whenever timeline properties change.
         /// </summary>
-        private void Rebuild()
+        public void Rebuild()
         {
             canvas.Clear();
 

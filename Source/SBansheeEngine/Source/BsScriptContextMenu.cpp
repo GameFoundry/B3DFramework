@@ -10,6 +10,7 @@
 #include "BsGUIContextMenu.h"
 #include "BsScriptHString.h"
 #include "BsScriptGUILayout.h"
+#include "BsGUILayout.h"
 
 using namespace std::placeholders;
 
@@ -41,12 +42,17 @@ namespace BansheeEngine
 
 	void ScriptContextMenu::internal_Open(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr)
 	{
-		GUIWidget* widget = layoutPtr->getGUIElement()->_getParentWidget();
+		GUIElementBase* layout = layoutPtr->getGUIElement();
+
+		GUIWidget* widget = layout->_getParentWidget();
 		if (widget == nullptr)
 			return;
 
+		Rect2I bounds = layout->getGlobalBounds();
+		Vector2I windowPosition = *position + Vector2I(bounds.x, bounds.y);
+
 		SPtr<GUIContextMenu> contextMenu = instance->getInternal();
-		contextMenu->open(*position, *widget);
+		contextMenu->open(windowPosition, *widget);
 	}
 
 	void ScriptContextMenu::internal_AddItem(ScriptContextMenu* instance, MonoString* path, UINT32 callbackIdx,

@@ -77,8 +77,6 @@ namespace BansheeEditor
         public void SetMarkedFrame(int frameIdx)
         {
             markedFrameIdx = frameIdx;
-
-            Rebuild();
         }
 
         /// <summary>
@@ -98,8 +96,6 @@ namespace BansheeEditor
             drawableWidth = Math.Max(0, width - PADDING * 2);
 
             tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
-
-            Rebuild();
         }
 
         /// <summary>
@@ -111,8 +107,6 @@ namespace BansheeEditor
             rangeLength = Math.Max(0.0f, length);
 
             tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
-
-            Rebuild();
         }
 
         /// <summary>
@@ -124,8 +118,6 @@ namespace BansheeEditor
             this.fps = Math.Max(1, fps);
 
             tickHandler.SetRange(0.0f, GetRange(true), drawableWidth + PADDING);
-
-            Rebuild();
         }
         
         /// <summary>
@@ -217,7 +209,7 @@ namespace BansheeEditor
         /// <summary>
         /// Rebuilds the internal GUI elements. Should be called whenever timeline properties change.
         /// </summary>
-        private void Rebuild()
+        public void Rebuild()
         {
             canvas.Clear();
 

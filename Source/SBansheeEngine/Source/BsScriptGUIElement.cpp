@@ -103,6 +103,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetContextMenu", &ScriptGUIElement::internal_SetContextMenu);
 		metaData.scriptClass->addInternalCall("Internal_GetStyle", &ScriptGUIElement::internal_GetStyle);
 		metaData.scriptClass->addInternalCall("Internal_SetStyle", &ScriptGUIElement::internal_SetStyle);
+		metaData.scriptClass->addInternalCall("Internal_GetParent", &ScriptGUIElement::internal_getParent);
 
 		onFocusGainedThunk = (OnFocusChangedThunkDef)metaData.scriptClass->getMethod("Internal_OnFocusGained", 0)->getThunk();
 		onFocusLostThunk = (OnFocusChangedThunkDef)metaData.scriptClass->getMethod("Internal_OnFocusLost", 0)->getThunk();

@@ -41,11 +41,8 @@ namespace BansheeEngine
             if (parent == null)
                 return;
 
-            Rect2I bounds = GUIUtility.CalculateBounds(parent, null);
-            Vector2I windowPosition = position + new Vector2I(bounds.x, bounds.y);
-
             IntPtr parentPtr = parent.GetCachedPtr();
-            Internal_Open(mCachedPtr, ref windowPosition, parentPtr);
+            Internal_Open(mCachedPtr, ref position, parentPtr);
         }
 
         /// <summary>
