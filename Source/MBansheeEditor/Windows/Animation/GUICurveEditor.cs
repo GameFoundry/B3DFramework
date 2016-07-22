@@ -27,6 +27,7 @@ namespace BansheeEditor
         private const int TIMELINE_HEIGHT = 20;
         private const int SIDEBAR_WIDTH = 30;
 
+        private EditorWindow window;
         private GUILayout gui;
         private GUIPanel drawingPanel;
         private GUIGraphTime guiTimeline;
@@ -42,12 +43,14 @@ namespace BansheeEditor
         private int markedFrameIdx;
         private List<KeyframeRef> selectedKeyframes = new List<KeyframeRef>();
 
+        private bool isPointerHeld;
         private bool isMousePressedOverKey;
         private KeyFrame[] draggedKeyframes;
         private Vector2 dragStart;
 
-        public GUICurveEditor(GUILayout gui, int width, int height)
+        public GUICurveEditor(EditorWindow window, GUILayout gui, int width, int height)
         {
+            this.window = window;
             this.gui = gui;
 
             blankContextMenu = new ContextMenu();
@@ -80,6 +83,128 @@ namespace BansheeEditor
 
             guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT);
             guiSidebar.SetRange(-10.0f, 10.0f);
+
+            EditorInput.OnPointerPressed += OnPointerPressed;
+            EditorInput.OnPointerMoved += OnPointerMoved;
+            EditorInput.OnPointerReleased += OnPointerReleased;
+            EditorInput.OnButtonUp += OnButtonUp;
+        }
+
+        private void OnPointerPressed(PointerEvent ev)
+        {
+            if (ev.IsUsed)
+                return;
+
+            Vector2I windowPos = window.ScreenToWindowPos(ev.ScreenPos);
+
+            Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
+            Vector2I pointerPos = windowPos - new Vector2I(elementBounds.x, elementBounds.y);
+
+            Rect2I drawingBounds = drawingPanel.Bounds;
+            Vector2I drawingPos = pointerPos - new Vector2I(drawingBounds.x, drawingBounds.y);
+
+            if (ev.Button == PointerButton.Left)
+            {
+                Vector2 curveCoord;
+                int curveIdx;
+                int keyIdx;
+                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
+                {
+                    if (keyIdx == -1)
+                        ClearSelection();
+                    else
+                    {
+                        if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
+                            ClearSelection();
+
+                        SelectKeyframe(curveIdx, keyIdx);
+
+                        isMousePressedOverKey = true;
+                        dragStart = curveCoord;
+                    }
+
+                    guiCurveDrawing.Rebuild();
+                }
+                else
+                {
+                    int frameIdx = guiTimeline.GetFrame(pointerPos);
+
+                    if (frameIdx != -1)
+                        SetMarkedFrame(frameIdx);
+                }
+
+                isPointerHeld = true;
+            }
+            else if (ev.Button == PointerButton.Right)
+            {
+                Vector2 curveCoord;
+                int curveIdx;
+                int keyIdx;
+                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
+                {
+                    contextClickPosition = pointerPos;
+
+                    if (keyIdx == -1)
+                    {
+                        ClearSelection();
+
+                        blankContextMenu.Open(contextClickPosition, gui);
+                    }
+                    else
+                    {
+                        // If clicked outside of current selection, just select the one keyframe
+                        if (!IsSelected(curveIdx, keyIdx))
+                        {
+                            ClearSelection();
+                            SelectKeyframe(curveIdx, keyIdx);
+
+                            guiCurveDrawing.Rebuild();
+                        }
+
+                        keyframeContextMenu.Open(contextClickPosition, gui);
+                    }
+                }
+            }
+        }
+
+        private void OnPointerMoved(PointerEvent ev)
+        {
+            if (ev.Button != PointerButton.Left)
+                return;
+
+            if (isPointerHeld)
+            {
+                if (isMousePressedOverKey)
+                {
+                    // TODO - Check if pointer moves some minimal amount
+                    // - If so, start drag. Record all current positions
+                    // - Calculate offset in curve space and apply to all keyframes
+                }
+                else
+                {
+                    Vector2I windowPos = window.ScreenToWindowPos(ev.ScreenPos);
+
+                    Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
+                    Vector2I pointerPos = windowPos - new Vector2I(elementBounds.x, elementBounds.y);
+
+                    int frameIdx = guiTimeline.GetFrame(pointerPos);
+
+                    if (frameIdx != -1)
+                        SetMarkedFrame(frameIdx);
+                }
+            }
+        }
+
+        private void OnPointerReleased(PointerEvent ev)
+        {
+            isPointerHeld = false;
+            isMousePressedOverKey = false;
+        }
+
+        private void OnButtonUp(ButtonEvent ev)
+        {
+            if(ev.Button == ButtonCode.Delete)
+                DeleteSelectedKeyframes();
         }
 
         /// <summary>
@@ -174,101 +299,64 @@ namespace BansheeEditor
             guiTimeline.Rebuild();
             guiSidebar.Rebuild();
         }
-
-        public void HandleInput(Vector2I pointerPos)
-        {
-            Rect2I drawingBounds = drawingPanel.Bounds;
-            Vector2I drawingPos = pointerPos - new Vector2I(drawingBounds.x, drawingBounds.y);
-
-            if (Input.IsPointerButtonDown(PointerButton.Left))
-            {
-                Vector2 curveCoord;
-                int curveIdx;
-                int keyIdx;
-                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
-                {
-                    if (keyIdx == -1)
-                        ClearSelection();
-                    else
-                    {
-                        if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
-                            ClearSelection();
-
-                        SelectKeyframe(curveIdx, keyIdx);
-
-                        isMousePressedOverKey = true;
-                        dragStart = curveCoord;
-                    }
-
-                    guiCurveDrawing.Rebuild();
-                }
-            }
-
-            if (Input.IsPointerButtonHeld(PointerButton.Left))
-            {
-                if (isMousePressedOverKey)
-                {
-                    // TODO - Check if pointer moves some minimal amount
-                    // - If so, start drag. Record all current positions
-                    // - Calculate offset in curve space and apply to all keyframes
-                }
-                else
-                {
-                    int frameIdx = guiTimeline.GetFrame(pointerPos);
-
-                    if (frameIdx != -1)
-                        SetMarkedFrame(frameIdx);
-                }
-            }
-
-            if (Input.IsPointerButtonUp(PointerButton.Left))
-            {
-                isMousePressedOverKey = false;
-            }
-
-            if (Input.IsPointerButtonDown(PointerButton.Right))
-            {
-                Vector2 curveCoord;
-                int curveIdx;
-                int keyIdx;
-                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
-                {
-                    contextClickPosition = pointerPos;
-
-                    if (keyIdx == -1)
-                    {
-                        ClearSelection();
-
-                        blankContextMenu.Open(contextClickPosition, gui);
-                    }
-                    else
-                    {
-                        // If clicked outside of current selection, just select the one keyframe
-                        if (!IsSelected(curveIdx, keyIdx))
-                        {
-                            ClearSelection();
-                            SelectKeyframe(curveIdx, keyIdx);
-
-                            guiCurveDrawing.Rebuild();
-                        }
-
-                        keyframeContextMenu.Open(contextClickPosition, gui);
-                    }
-                }
-            }
-
-            if (Input.IsButtonUp(ButtonCode.Delete))
-                DeleteSelectedKeyframes();
-        }
-
+        
         private void ChangeSelectionTangentMode(TangentMode mode)
         {
-            // TODO - When changing just left or right, make sure to persist opposite tangent mode (or switch to equivalent broken mode if it wasn't broken)
+            foreach (var keyframe in selectedKeyframes)
+            {
+                EdAnimationCurve curve = curves[keyframe.curveIdx];
+
+                if (mode == TangentMode.Auto || mode == TangentMode.Free)
+                    curve.SetTangentMode(keyframe.keyIdx, mode);
+                else
+                {
+                    TangentMode newMode = curve.TangentModes[keyframe.keyIdx];
+
+                    if (mode.HasFlag(TangentTypes.In))
+                    {
+                        // Replace only the in tangent mode, keeping the out tangent as is
+                        TangentMode inFlags = (TangentMode.InAuto | TangentMode.InFree | TangentMode.InLinear |
+                                               TangentMode.InAuto);
+
+                        newMode &= ~inFlags;
+                        newMode |= (mode & inFlags);
+                    }
+                    else
+                    {
+                        // Replace only the out tangent mode, keeping the in tangent as is
+                        TangentMode outFlags = (TangentMode.OutAuto | TangentMode.OutFree | TangentMode.OutLinear |
+                                               TangentMode.OutAuto);
+
+                        newMode &= ~outFlags;
+                        newMode |= (mode & outFlags);
+                    }
+
+                    curve.SetTangentMode(keyframe.keyIdx, newMode);
+                }
+            }
         }
 
         private void AddKeyframeAtPosition()
         {
-            // TODO
+            Vector2 curveCoord;
+            int curveIdx;
+            int keyIdx;
+            if (guiCurveDrawing.GetCoordInfo(contextClickPosition, out curveCoord, out curveIdx, out keyIdx))
+            {
+                ClearSelection();
+
+                foreach (var curve in curves)
+                {
+                    float t = curveCoord.x;
+                    float value = curveCoord.y;
+
+                    curve.AddKeyframe(t, value);
+                }
+
+                // TODO - UNDOREDO
+
+                guiCurveDrawing.Rebuild();
+            }
         }
 
         private void AddEventAtPosition()

@@ -15,16 +15,19 @@ namespace BansheeEngine
 	{
 		internal ButtonCode buttonCode;
         internal int deviceIdx;
+        internal bool isUsed;
 
         /// <summary>
         /// Creates a new button input event. For runtime use only.
         /// </summary>
         /// <param name="buttonCode">Button code this event is referring to.</param>
         /// <param name="deviceIdx">Index of the device that the event originated from.</param>
-	    internal ButtonEvent(ButtonCode buttonCode, int deviceIdx)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+	    internal ButtonEvent(ButtonCode buttonCode, int deviceIdx, bool isUsed)
 	    {
 	        this.buttonCode = buttonCode;
 	        this.deviceIdx = deviceIdx;
+            this.isUsed = isUsed;
 	    }
 
         /// <summary>
@@ -51,7 +54,12 @@ namespace BansheeEngine
         /// Query is the pressed button a gamepad button.
         /// </summary>
         public bool IsGamepad { get { return ((int)buttonCode & 0x40000000) != 0; } }
-	};
+
+        /// <summary>
+        /// Returns true if the event was handled previously by some internal system (like GUI).
+        /// </summary>
+        public bool IsUsed { get { return isUsed; } }
+    };
 
     /// <summary>
     /// Pointer buttons. Generally these correspond to mouse buttons, but may be used in some form for touch input as well.
@@ -67,15 +75,16 @@ namespace BansheeEngine
     /// </summary>
     public struct PointerEvent
     {
-        internal Vector2I _screenPos;
-        internal Vector2I _delta;
-        internal PointerButton _button;
+        internal Vector2I screenPos;
+        internal Vector2I delta;
+        internal PointerButton button;
 
-        internal bool _shift;
-        internal bool _control;
-        internal bool _alt;
+        internal bool shift;
+        internal bool control;
+        internal bool alt;
 
-        internal float _mouseWheelScrollAmount;
+        internal float mouseWheelScrollAmount;
+        internal bool isUsed;
 
         /// <summary>
         /// Creates a new pointer event. For runtime use only.
@@ -89,55 +98,62 @@ namespace BansheeEngine
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="mouseWheelScrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                                      move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         internal PointerEvent(Vector2I screenPos, Vector2I delta, PointerButton button,
-            bool shift, bool control, bool alt, float mouseWheelScrollAmount)
+            bool shift, bool control, bool alt, float mouseWheelScrollAmount, bool isUsed)
         {
-            _screenPos = screenPos;
-            _delta = delta;
-            _button = button;
+            this.screenPos = screenPos;
+            this.delta = delta;
+            this.button = button;
 
-            _shift = shift;
-            _control = control;
-            _alt = alt;
+            this.shift = shift;
+            this.control = control;
+            this.alt = alt;
 
-            _mouseWheelScrollAmount = mouseWheelScrollAmount;
+            this.mouseWheelScrollAmount = mouseWheelScrollAmount;
+            this.isUsed = isUsed;
         }
 
         /// <summary>
         /// Screen position where the input event occurred.
         /// </summary>
-        public Vector2I ScreenPos { get { return _screenPos; } }
+        public Vector2I ScreenPos { get { return screenPos; } }
 
         /// <summary>
         /// Change in movement since last sent event.
         /// </summary>
-        public Vector2I Delta { get { return _delta; } }
+        public Vector2I Delta { get { return delta; } }
 
         /// <summary>
         /// Button that triggered the pointer event. Might be irrelevant depending on event type. 
         /// (for example move events don't correspond to a button.
         /// </summary>
-        public PointerButton Button { get { return _button; } }
+        public PointerButton Button { get { return button; } }
 
         /// <summary>
         /// Is shift button on the keyboard being held down.
         /// </summary>
-        public bool Shift { get { return _shift; } }
+        public bool Shift { get { return shift; } }
 
         /// <summary>
         /// Is control button on the keyboard being held down.
         /// </summary>
-        public bool Control { get { return _control; } }
+        public bool Control { get { return control; } }
 
         /// <summary>
         /// Is alt button on the keyboard being held down.
         /// </summary>
-        public bool Alt { get { return _alt; } }
+        public bool Alt { get { return alt; } }
 
         /// <summary>
         /// If mouse wheel is being scrolled, what is the amount. Only relevant for move events.
         /// </summary>
-        public float ScrollAmount { get { return _mouseWheelScrollAmount; } }
+        public float ScrollAmount { get { return mouseWheelScrollAmount; } }
+
+        /// <summary>
+        /// Returns true if the event was handled previously by some internal system (like GUI).
+        /// </summary>
+        public bool IsUsed { get { return isUsed; } }
     }
 
     /// <summary>
@@ -147,20 +163,28 @@ namespace BansheeEngine
     public struct TextInputEvent
     {
         internal int textChar;
+        internal bool isUsed;
 
         /// <summary>
         /// Creates a new text input event. For runtime use only.
         /// </summary>
         /// <param name="textChar">Character the that was input.</param>
-        internal TextInputEvent(int textChar)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        internal TextInputEvent(int textChar, bool isUsed)
         {
             this.textChar = textChar;
+            this.isUsed = isUsed;
         }
 
         /// <summary>
         /// Character the that was input.
         /// </summary>
         public int Char { get { return textChar; } }
+
+        /// <summary>
+        /// Returns true if the event was handled previously by some internal system (like GUI).
+        /// </summary>
+        public bool IsUsed { get { return isUsed; } }
     }
 
     /// <summary>
@@ -322,9 +346,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="code">Code of the pressed button.</param>
         /// <param name="deviceIdx">Device the event originated from.</param>
-        private static void Internal_TriggerButtonDown(ButtonCode code, int deviceIdx)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerButtonDown(ButtonCode code, int deviceIdx, bool isUsed)
         {
-            ButtonEvent ev = new ButtonEvent(code, deviceIdx);
+            ButtonEvent ev = new ButtonEvent(code, deviceIdx, isUsed);
 
             if (OnButtonDown != null)
                 OnButtonDown(ev);
@@ -335,9 +360,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="code">Code of the released button.</param>
         /// <param name="deviceIdx">Device the event originated from.</param>
-        private static void Internal_TriggerButtonUp(ButtonCode code, int deviceIdx)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerButtonUp(ButtonCode code, int deviceIdx, bool isUsed)
         {
-            ButtonEvent ev = new ButtonEvent(code, deviceIdx);
+            ButtonEvent ev = new ButtonEvent(code, deviceIdx, isUsed);
 
             if (OnButtonUp != null)
                 OnButtonUp(ev);
@@ -347,9 +373,10 @@ namespace BansheeEngine
         /// Triggered by runtime when character is input.
         /// </summary>
         /// <param name="textChar">Code of input character.</param>
-        private static void Internal_TriggerCharInput(int textChar)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerCharInput(int textChar, bool isUsed)
         {
-            TextInputEvent ev = new TextInputEvent(textChar);
+            TextInputEvent ev = new TextInputEvent(textChar, isUsed);
 
             if (OnCharInput != null)
                 OnCharInput(ev);
@@ -367,10 +394,11 @@ namespace BansheeEngine
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerMove(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift, 
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerMoved != null)
                 OnPointerMoved(ev);
@@ -388,10 +416,11 @@ namespace BansheeEngine
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerPressed(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerPressed != null)
                 OnPointerPressed(ev);
@@ -409,10 +438,11 @@ namespace BansheeEngine
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerReleased(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerReleased != null)
                 OnPointerReleased(ev);
@@ -430,10 +460,11 @@ namespace BansheeEngine
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerDoubleClick(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerDoubleClick != null)
                 OnPointerDoubleClick(ev);

@@ -66,7 +66,7 @@ namespace BansheeEditor
         /// </summary>
         public bool Active { get { return Internal_IsActive(mCachedPtr); } }
 
-        protected GUIPanel GUI;
+        public GUIPanel GUI;
 
         /// <summary>
         /// Opens an editor window. If window is already open it returns the existing instance.

@@ -79,6 +79,9 @@ namespace BansheeEngine
 		, mCaretColor(1.0f, 0.6588f, 0.0f), mCaretBlinkInterval(0.5f), mCaretLastBlinkTime(0.0f), mIsCaretOn(false)
 		, mActiveCursor(CursorType::Arrow), mTextSelectionColor(0.0f, 114/255.0f, 188/255.0f)
 	{
+		// Note: Hidden dependency. GUI must receive input events before other systems, in order so it can mark them as used
+		// if required. e.g. clicking on a context menu should mark the event as used so that other non-GUI systems know
+		// that they probably should not process such event themselves.
 		mOnPointerMovedConn = gInput().onPointerMoved.connect(std::bind(&GUIManager::onPointerMoved, this, _1));
 		mOnPointerPressedConn = gInput().onPointerPressed.connect(std::bind(&GUIManager::onPointerPressed, this, _1));
 		mOnPointerReleasedConn = gInput().onPointerReleased.connect(std::bind(&GUIManager::onPointerReleased, this, _1));
@@ -1088,9 +1091,6 @@ namespace BansheeEngine
 				sendCommandEvent(elementInfo.element, mCommandEvent);
 			}
 		}
-
-		if(mElementsUnderPointer.size() > 0)
-			event.markAsUsed();
 
 		mElementsInFocus.swap(mNewElementsInFocus);
 

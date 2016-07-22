@@ -85,7 +85,7 @@ namespace BansheeEditor
             editorPanel = mainLayout.AddPanel();
             buttonLayoutHeight = lengthField.Bounds.height;
 
-            guiCurveEditor = new GUICurveEditor(editorPanel, Width, Height - buttonLayoutHeight);
+            guiCurveEditor = new GUICurveEditor(this, editorPanel, Width, Height - buttonLayoutHeight);
             guiCurveEditor.SetCurves(CreateDummyCurves());
             guiCurveEditor.Redraw();
         }
@@ -111,11 +111,7 @@ namespace BansheeEditor
 
         private void OnEditorUpdate()
         {
-            Vector2I windowPos = ScreenToWindowPos(Input.PointerPosition);
-            Rect2I curveEditorBounds = editorPanel.Bounds;
-
-            Vector2I offset = new Vector2I(curveEditorBounds.x, curveEditorBounds.y);
-            guiCurveEditor.HandleInput(windowPos - offset);
+            
         }
     }
 

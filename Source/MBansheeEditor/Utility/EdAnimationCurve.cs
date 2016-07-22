@@ -5,18 +5,25 @@ using BansheeEngine;
 
 namespace BansheeEditor
 {
+    internal enum TangentTypes
+    {
+        In = 1 << 0,
+        Out = 1 << 1
+    }
+
+    [Flags]
     internal enum TangentMode
     {
         Auto        = 0,
-        Free        = 1 << 0,
-        InAuto      = 1 << 1,
-        OutAuto     = 1 << 2,
-        InFree      = 1 << 3,
-        OutFree     = 1 << 4,
-        InLinear    = 1 << 5,
-        OutLinear   = 1 << 6,
-        InStep      = 1 << 7,
-        OutStep     = 1 << 8
+        InAuto      = TangentTypes.In | 1 << 2,
+        InFree      = TangentTypes.In | 1 << 3,
+        InLinear    = TangentTypes.In | 1 << 4,
+        InStep      = TangentTypes.In | 1 << 5,
+        OutAuto     = TangentTypes.Out | 1 << 6,
+        OutFree     = TangentTypes.Out | 1 << 7,
+        OutLinear   = TangentTypes.Out | 1 << 8,
+        OutStep     = TangentTypes.Out | 1 << 9,
+        Free        = 1 << 10,
     }
 
     internal class EdAnimationCurve
@@ -164,12 +171,12 @@ namespace BansheeEditor
                 keyThis.inTangent = 0.0f;
 
                 TangentMode tangentMode = tangentModes[0];
-                if (tangentMode == TangentMode.Auto || tangentMode == TangentMode.OutAuto || tangentMode == TangentMode.OutLinear)
+                if (tangentMode == TangentMode.Auto || tangentMode.HasFlag(TangentMode.OutAuto) || tangentMode.HasFlag(TangentMode.OutLinear))
                 {
                     float diff = keyNext.time - keyThis.time;
                     keyThis.outTangent = (keyNext.value - keyThis.value) / diff;
                 }
-                else if (tangentMode == TangentMode.OutStep)
+                else if (tangentMode.HasFlag(TangentMode.OutStep))
                 {
                     keyThis.outTangent = float.PositiveInfinity;
                 }
@@ -243,12 +250,12 @@ namespace BansheeEditor
                 keyThis.outTangent = 0.0f;
 
                 TangentMode tangentMode = tangentModes[tangentModes.Length - 1];
-                if (tangentMode == TangentMode.Auto || tangentMode == TangentMode.InAuto || tangentMode == TangentMode.InLinear)
+                if (tangentMode == TangentMode.Auto || tangentMode.HasFlag(TangentMode.InAuto) || tangentMode.HasFlag(TangentMode.InLinear))
                 {
                     float diff = keyThis.time - keyPrev.time;
                     keyThis.inTangent = (keyThis.value - keyPrev.value) / diff;
                 }
-                else if (tangentMode == TangentMode.InStep)
+                else if (tangentMode.HasFlag(TangentMode.InStep))
                 {
                     keyThis.inTangent = float.PositiveInfinity;
                 }
