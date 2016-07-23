@@ -115,21 +115,20 @@ namespace BansheeEditor
         /// <summary>
         /// Marks the specified key-frame as selected, changing the way it is displayed.
         /// </summary>
-        /// <param name="curveIdx">Index of the curve the keyframe is on.</param>
-        /// <param name="keyIdx">Index of the keyframe.</param>
+        /// <param name="keyframeRef">Keyframe reference containing the curve and keyframe index.</param>
         /// <param name="selected">True to select it, false to deselect it.</param>
-        public void SelectKeyframe(int curveIdx, int keyIdx, bool selected)
+        public void SelectKeyframe(KeyframeRef keyframeRef, bool selected)
         {
             if (selectedKeyframes == null)
                 return;
 
-            if (curveIdx < 0 || curveIdx >= selectedKeyframes.Length)
+            if (keyframeRef.curveIdx < 0 || keyframeRef.curveIdx >= selectedKeyframes.Length)
                 return;
 
-            if (keyIdx < 0 || keyIdx >= selectedKeyframes[curveIdx].Length)
+            if (keyframeRef.keyIdx < 0 || keyframeRef.keyIdx >= selectedKeyframes[keyframeRef.curveIdx].Length)
                 return;
 
-            selectedKeyframes[curveIdx][keyIdx] = selected;
+            selectedKeyframes[keyframeRef.curveIdx][keyframeRef.keyIdx] = selected;
         }
 
         /// <summary>
@@ -161,50 +160,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Retrieves information under the provided window coordinates. This involves coordinates of the curve, as well
-        /// as curve and key-frame indices that were under the coordinates (if any).
+        /// Attempts to find a keyframe under the provided coordinates.
         /// </summary>
-        /// <param name="windowCoords">Coordinate relative to the window the GUI element is on.</param>
-        /// <param name="curveCoords">Curve coordinates within the range as specified by <see cref="SetRange"/>. Only
-        ///                           Valid when function returns true.</param>
-        /// <param name="curveIdx">Sequential index of the curve that's under the coordinates. -1 if no curve. Index
-        ///                        corresponds to the curve index as provided by the curve array in the constructor or
-        ///                        <see cref="SetCurves"/>.</param>
-        /// <param name="keyIdx">Index of a keyframe that that's under the coordinates, on the curve as referenced by
-        ///                      <paramref name="curveIdx"/>. -1 if no keyframe.</param>
-        /// <returns>True if the window coordinates were within the curve area, false otherwise.</returns>
-        public bool GetCoordInfo(Vector2I windowCoords, out Vector2 curveCoords, out int curveIdx, out int keyIdx)
+        /// <param name="pixelCoords">Coordinates relative to this GUI element in pixels.</param>
+        /// <param name="keyframe">Output object containing keyframe index and index of the curve it belongs to. Only valid
+        ///                        if method returns true.</param>
+        /// <returns>True if there is a keyframe under the coordinates, false otherwise.</returns>
+        public bool FindKeyFrame(Vector2I pixelCoords, out KeyframeRef keyframe)
         {
-            Rect2I bounds = canvas.Bounds;
+            keyframe = new KeyframeRef();
 
-            // Check if outside of curve drawing bounds
-            if (windowCoords.x < (bounds.x + GUIGraphTime.PADDING) || windowCoords.x >= (bounds.x + bounds.width - GUIGraphTime.PADDING) ||
-                windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
-            {
-                curveCoords = new Vector2();
-                curveIdx = -1;
-                keyIdx = -1;
-                return false;
-            }
-
-            // Find time and value of the place under the coordinates
-            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + GUIGraphTime.PADDING, bounds.y);
-
-            float lengthPerPixel = xRange / drawableWidth;
-            float heightPerPixel = yRange / height;
-
-            float yOffset = yRange/2.0f;
-
-            float t = relativeCoords.x*lengthPerPixel;
-            float value = yOffset - relativeCoords.y*heightPerPixel;
-
-            curveCoords = new Vector2();
-            curveCoords.x = t;
-            curveCoords.y = value;
-
-            // Find nearest keyframe, if any
-            keyIdx = -1;
-            curveIdx = -1;
             float nearestDistance = float.MaxValue;
             for (int i = 0; i < curves.Length; i++)
             {
@@ -213,55 +178,120 @@ namespace BansheeEditor
 
                 for (int j = 0; j < keyframes.Length; j++)
                 {
-                    Vector2I keyframeCoords = new Vector2I((int)(keyframes[j].time / lengthPerPixel),
-                        (int)((yOffset - keyframes[j].value) / heightPerPixel));
+                    Vector2 keyframeCurveCoords = new Vector2(keyframes[j].time, keyframes[j].value);
+                    Vector2I keyframeCoords = CurveToPixelSpace(keyframeCurveCoords);
 
-                    float distanceToKey = Vector2I.Distance(relativeCoords, keyframeCoords);
+                    float distanceToKey = Vector2I.Distance(pixelCoords, keyframeCoords);
                     if (distanceToKey < nearestDistance)
                     {
                         nearestDistance = distanceToKey;
-                        keyIdx = j;
-                        curveIdx = i;
+                        keyframe.keyIdx = j;
+                        keyframe.curveIdx = i;
                     }
                 }
-
-                // We're not near any keyframe
-                if (nearestDistance > 5.0f)
-                    keyIdx = -1;
             }
 
-            // Find nearest curve, if any
-            if (keyIdx == -1)
+            // We're not near any keyframe
+            if (nearestDistance > 5.0f)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to find a a tangent handle under the provided coordinates.
+        /// </summary>
+        /// <param name="pixelCoords">Coordinates relative to this GUI element in pixels.</param>
+        /// <param name="tangent">Output object containing keyframe information and tangent type. Only valid if method
+        ///                       returns true.</param>
+        /// <returns>True if there is a tangent handle under the coordinates, false otherwise.</returns>
+        public bool FindTangent(Vector2I pixelCoords, out TangentRef tangent)
+        {
+            tangent = new TangentRef();
+
+            float nearestDistance = float.MaxValue;
+            for (int i = 0; i < curves.Length; i++)
             {
-                // Note: This will not detect a curve if coordinate is over a step, and in general this works poorly with large slopes
-                curveIdx = -1;
-                nearestDistance = float.MaxValue;
-                for (int i = 0; i < curves.Length; i++)
+                EdAnimationCurve curve = curves[i];
+                KeyFrame[] keyframes = curve.Native.KeyFrames;
+
+                for (int j = 0; j < keyframes.Length; j++)
                 {
-                    EdAnimationCurve curve = curves[i];
-                    KeyFrame[] keyframes = curve.Native.KeyFrames;
-
-                    if (keyframes.Length == 0)
+                    if (!IsSelected(i, j))
                         continue;
 
-                    if (t < keyframes[0].time || t > keyframes[keyframes.Length - 1].time)
-                        continue;
+                    TangentMode tangentMode = curve.TangentModes[j];
 
-                    float curveValue = curves[i].Native.Evaluate(t);
-
-                    float distanceToCurve = Math.Abs(curveValue - value);
-                    if (distanceToCurve < nearestDistance)
+                    if (IsTangentDisplayed(tangentMode, TangentType.In))
                     {
-                        nearestDistance = distanceToCurve;
-                        curveIdx = i;
+                        Vector2I tangentCoords = GetTangentPosition(keyframes[j], TangentType.In);
+
+                        float distanceToHandle = Vector2I.Distance(pixelCoords, tangentCoords);
+                        if (distanceToHandle < nearestDistance)
+                        {
+                            nearestDistance = distanceToHandle;
+                            tangent.keyframeRef.keyIdx = j;
+                            tangent.keyframeRef.curveIdx = i;
+                            tangent.type = TangentType.In;
+                        }
+;                    }
+
+                    if (IsTangentDisplayed(tangentMode, TangentType.Out))
+                    {
+                        Vector2I tangentCoords = GetTangentPosition(keyframes[j], TangentType.Out);
+
+                        float distanceToHandle = Vector2I.Distance(pixelCoords, tangentCoords);
+                        if (distanceToHandle < nearestDistance)
+                        {
+                            nearestDistance = distanceToHandle;
+                            tangent.keyframeRef.keyIdx = j;
+                            tangent.keyframeRef.curveIdx = i;
+                            tangent.type = TangentType.Out;
+                        }
                     }
                 }
-
-                // We're not near any curve
-                float nearestDistancePx = nearestDistance/heightPerPixel;
-                if (nearestDistancePx > 15.0f)
-                    curveIdx = -1;
             }
+
+            // We're not near any keyframe
+            if (nearestDistance > 5.0f)
+                return false;
+
+            return true;
+        }
+        
+        /// <summary>
+        /// Converts pixel coordinates into coordinates in curve space.
+        /// </summary>
+        /// <param name="pixelCoords">Coordinates relative to this GUI element, in pixels.</param>
+        /// <param name="curveCoords">Curve coordinates within the range as specified by <see cref="SetRange"/>. Only
+        ///                           valid when function returns true.</param>
+        /// <returns>True if the window coordinates were within the curve area, false otherwise.</returns>
+        public bool PixelToCurveSpace(Vector2I pixelCoords, out Vector2 curveCoords)
+        {
+            Rect2I bounds = canvas.Bounds;
+
+            // Check if outside of curve drawing bounds
+            if (pixelCoords.x < (bounds.x + GUIGraphTime.PADDING) || pixelCoords.x >= (bounds.x + bounds.width - GUIGraphTime.PADDING) ||
+                pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
+            {
+                curveCoords = new Vector2();
+                return false;
+            }
+
+            // Find time and value of the place under the coordinates
+            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + GUIGraphTime.PADDING, bounds.y);
+
+            float lengthPerPixel = GetRange() / drawableWidth;
+            float heightPerPixel = yRange / height;
+
+            float yOffset = yRange / 2.0f;
+
+            float t = relativeCoords.x * lengthPerPixel;
+            float value = yOffset - relativeCoords.y * heightPerPixel;
+
+            curveCoords = new Vector2();
+            curveCoords.x = t;
+            curveCoords.y = value;
 
             return true;
         }
@@ -271,7 +301,7 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="curveCoords">Time and value of the location to convert.</param>
         /// <returns>Coordinates relative to this element's origin, in pixels.</returns>
-        private Vector2I CurveToPixelSpace(Vector2 curveCoords)
+        public Vector2I CurveToPixelSpace(Vector2 curveCoords)
         {
             int heightOffset = height / 2; // So that y = 0 is at center of canvas
 
@@ -542,7 +572,9 @@ namespace BansheeEditor
         /// <param name="color">Color to draw the curve with.</param>
         private void DrawCurve(EdAnimationCurve curve, Color color)
         {
-            float lengthPerPixel = xRange/drawableWidth;
+            float range = GetRange();
+
+            float lengthPerPixel = range / drawableWidth;
             float pixelsPerHeight = height/yRange;
 
             int heightOffset = height/2; // So that y = 0 is at center of canvas
@@ -553,7 +585,7 @@ namespace BansheeEditor
 
             // Draw start line
             {
-                float start = MathEx.Clamp(keyframes[0].time, 0.0f, xRange);
+                float start = MathEx.Clamp(keyframes[0].time, 0.0f, range);
                 int startPixel = (int)(start / lengthPerPixel);
 
                 int xPosStart = 0;
@@ -573,8 +605,8 @@ namespace BansheeEditor
             // Draw in between keyframes
             for (int i = 0; i < keyframes.Length - 1; i++)
             {
-                float start = MathEx.Clamp(keyframes[i].time, 0.0f, xRange);
-                float end = MathEx.Clamp(keyframes[i + 1].time, 0.0f, xRange);
+                float start = MathEx.Clamp(keyframes[i].time, 0.0f, range);
+                float end = MathEx.Clamp(keyframes[i + 1].time, 0.0f, range);
                 
                 int startPixel = (int)(start / lengthPerPixel);
                 int endPixel = (int)(end / lengthPerPixel);
@@ -640,13 +672,13 @@ namespace BansheeEditor
 
             // Draw end line
             {
-                float end = MathEx.Clamp(keyframes[keyframes.Length - 1].time, 0.0f, xRange);
+                float end = MathEx.Clamp(keyframes[keyframes.Length - 1].time, 0.0f, range);
                 int endPixel = (int)(end / lengthPerPixel);
 
                 int xPosStart = GUIGraphTime.PADDING + endPixel;
                 int xPosEnd = width;
 
-                int yPos = (int)(curve.Native.Evaluate(xRange, false) * pixelsPerHeight);
+                int yPos = (int)(curve.Native.Evaluate(range, false) * pixelsPerHeight);
                 yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
                 Vector2I a = new Vector2I(xPosStart, yPos);

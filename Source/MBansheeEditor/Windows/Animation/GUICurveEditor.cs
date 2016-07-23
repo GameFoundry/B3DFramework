@@ -12,18 +12,6 @@ namespace BansheeEditor
 
     internal class GUICurveEditor
     {
-        public struct KeyframeRef
-        {
-            public KeyframeRef(int curveIdx, int keyIdx)
-            {
-                this.curveIdx = curveIdx;
-                this.keyIdx = keyIdx;
-            }
-
-            public int curveIdx;
-            public int keyIdx;
-        }
-
         private const int TIMELINE_HEIGHT = 20;
         private const int SIDEBAR_WIDTH = 30;
 
@@ -106,18 +94,17 @@ namespace BansheeEditor
             if (ev.Button == PointerButton.Left)
             {
                 Vector2 curveCoord;
-                int curveIdx;
-                int keyIdx;
-                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
+                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord))
                 {
-                    if (keyIdx == -1)
+                    KeyframeRef keyframeRef;
+                    if (!guiCurveDrawing.FindKeyFrame(drawingPos, out keyframeRef))
                         ClearSelection();
                     else
                     {
                         if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
                             ClearSelection();
 
-                        SelectKeyframe(curveIdx, keyIdx);
+                        SelectKeyframe(keyframeRef);
 
                         isMousePressedOverKey = true;
                         dragStart = curveCoord;
@@ -138,30 +125,29 @@ namespace BansheeEditor
             else if (ev.Button == PointerButton.Right)
             {
                 Vector2 curveCoord;
-                int curveIdx;
-                int keyIdx;
-                if (guiCurveDrawing.GetCoordInfo(drawingPos, out curveCoord, out curveIdx, out keyIdx))
+                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord))
                 {
-                    contextClickPosition = pointerPos;
+                    contextClickPosition = drawingPos;
 
-                    if (keyIdx == -1)
+                    KeyframeRef keyframeRef;
+                    if (!guiCurveDrawing.FindKeyFrame(drawingPos, out keyframeRef))
                     {
                         ClearSelection();
 
-                        blankContextMenu.Open(contextClickPosition, gui);
+                        blankContextMenu.Open(pointerPos, gui);
                     }
                     else
                     {
                         // If clicked outside of current selection, just select the one keyframe
-                        if (!IsSelected(curveIdx, keyIdx))
+                        if (!IsSelected(keyframeRef))
                         {
                             ClearSelection();
-                            SelectKeyframe(curveIdx, keyIdx);
+                            SelectKeyframe(keyframeRef);
 
                             guiCurveDrawing.Rebuild();
                         }
 
-                        keyframeContextMenu.Open(contextClickPosition, gui);
+                        keyframeContextMenu.Open(pointerPos, gui);
                     }
                 }
             }
@@ -343,9 +329,7 @@ namespace BansheeEditor
         private void AddKeyframeAtPosition()
         {
             Vector2 curveCoord;
-            int curveIdx;
-            int keyIdx;
-            if (guiCurveDrawing.GetCoordInfo(contextClickPosition, out curveCoord, out curveIdx, out keyIdx))
+            if (guiCurveDrawing.PixelToCurveSpace(contextClickPosition, out curveCoord))
             {
                 ClearSelection();
 
@@ -397,19 +381,19 @@ namespace BansheeEditor
             isMousePressedOverKey = false;
         }
 
-        private void SelectKeyframe(int curveIdx, int keyIdx)
+        private void SelectKeyframe(KeyframeRef keyframeRef)
         {
-            guiCurveDrawing.SelectKeyframe(curveIdx, keyIdx, true);
+            guiCurveDrawing.SelectKeyframe(keyframeRef, true);
 
-            if (!IsSelected(curveIdx, keyIdx))
-                selectedKeyframes.Add(new GUICurveEditor.KeyframeRef(curveIdx, keyIdx));
+            if (!IsSelected(keyframeRef))
+                selectedKeyframes.Add(keyframeRef);
         }
 
-        private bool IsSelected(int curveIdx, int keyIdx)
+        private bool IsSelected(KeyframeRef keyframeRef)
         {
             int existingIdx = selectedKeyframes.FindIndex(x =>
             {
-                return x.curveIdx == curveIdx && x.keyIdx == keyIdx;
+                return x.curveIdx == keyframeRef.curveIdx && x.keyIdx == keyframeRef.keyIdx;
             });
 
             return (existingIdx != -1);

@@ -311,4 +311,28 @@ namespace BansheeEditor
             }
         }
     }
+
+    internal struct KeyframeRef
+    {
+        public KeyframeRef(int curveIdx, int keyIdx)
+        {
+            this.curveIdx = curveIdx;
+            this.keyIdx = keyIdx;
+        }
+
+        public int curveIdx;
+        public int keyIdx;
+    }
+
+    internal struct TangentRef
+    {
+        public TangentRef(KeyframeRef keyframeRef, TangentType type)
+        {
+            this.keyframeRef = keyframeRef;
+            this.type = type;
+        }
+
+        public KeyframeRef keyframeRef;
+        public TangentType type;
+    }
 }
