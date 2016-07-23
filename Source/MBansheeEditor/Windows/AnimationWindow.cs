@@ -99,6 +99,7 @@ namespace BansheeEditor
             curves[0].AddKeyframe(10.0f, 5.0f);
             curves[0].AddKeyframe(15.0f, -2.0f);
             curves[0].AddKeyframe(20.0f, 3.0f, TangentMode.InStep);
+            curves[0].Apply();
 
             return curves;
         }

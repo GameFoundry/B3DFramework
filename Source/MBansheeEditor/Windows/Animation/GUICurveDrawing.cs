@@ -140,7 +140,7 @@ namespace BansheeEditor
 
             for (int i = 0; i < curves.Length; i++)
             {
-                KeyFrame[] keyframes = curves[i].Native.KeyFrames;
+                KeyFrame[] keyframes = curves[i].KeyFrames;
                 selectedKeyframes[i] = new bool[keyframes.Length];
             }
         }
@@ -174,7 +174,7 @@ namespace BansheeEditor
             for (int i = 0; i < curves.Length; i++)
             {
                 EdAnimationCurve curve = curves[i];
-                KeyFrame[] keyframes = curve.Native.KeyFrames;
+                KeyFrame[] keyframes = curve.KeyFrames;
 
                 for (int j = 0; j < keyframes.Length; j++)
                 {
@@ -213,7 +213,7 @@ namespace BansheeEditor
             for (int i = 0; i < curves.Length; i++)
             {
                 EdAnimationCurve curve = curves[i];
-                KeyFrame[] keyframes = curve.Native.KeyFrames;
+                KeyFrame[] keyframes = curve.KeyFrames;
 
                 for (int j = 0; j < keyframes.Length; j++)
                 {
@@ -511,7 +511,7 @@ namespace BansheeEditor
                 DrawCurve(curve, color);
 
                 // Draw keyframes
-                KeyFrame[] keyframes = curve.Native.KeyFrames;
+                KeyFrame[] keyframes = curve.KeyFrames;
 
                 for (int i = 0; i < keyframes.Length; i++)
                 {
@@ -579,7 +579,7 @@ namespace BansheeEditor
 
             int heightOffset = height/2; // So that y = 0 is at center of canvas
 
-            KeyFrame[] keyframes = curve.Native.KeyFrames;
+            KeyFrame[] keyframes = curve.KeyFrames;
             if (keyframes.Length < 0)
                 return;
 
@@ -591,7 +591,7 @@ namespace BansheeEditor
                 int xPosStart = 0;
                 int xPosEnd = GUIGraphTime.PADDING + startPixel;
 
-                int yPos = (int)(curve.Native.Evaluate(0.0f, false) * pixelsPerHeight);
+                int yPos = (int)(curve.Evaluate(0.0f, false) * pixelsPerHeight);
                 yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
                 Vector2I a = new Vector2I(xPosStart, yPos);
@@ -619,7 +619,7 @@ namespace BansheeEditor
                 {
                     // Line from left to right frame
                     int xPos = startPixel;
-                    int yPosStart = (int)(curve.Native.Evaluate(start, false) * pixelsPerHeight);
+                    int yPosStart = (int)(curve.Evaluate(start, false) * pixelsPerHeight);
                     yPosStart = heightOffset - yPosStart; // Offset and flip height (canvas Y goes down)
 
                     linePoints.Add(new Vector2I(GUIGraphTime.PADDING + xPos, yPosStart));
@@ -628,7 +628,7 @@ namespace BansheeEditor
                     linePoints.Add(new Vector2I(GUIGraphTime.PADDING + xPos, yPosStart));
 
                     // Line representing the step
-                    int yPosEnd = (int)(curve.Native.Evaluate(end, false) * pixelsPerHeight);
+                    int yPosEnd = (int)(curve.Evaluate(end, false) * pixelsPerHeight);
                     yPosEnd = heightOffset - yPosEnd; // Offset and flip height (canvas Y goes down)
 
                     linePoints.Add(new Vector2I(GUIGraphTime.PADDING + xPos, yPosEnd));
@@ -660,7 +660,7 @@ namespace BansheeEditor
                         int xPos = Math.Min(startPixel + j * LINE_SPLIT_WIDTH, endPixel);
                         float t = Math.Min(start + j * timeIncrement, end);
 
-                        int yPos = (int)(curve.Native.Evaluate(t, false) * pixelsPerHeight);
+                        int yPos = (int)(curve.Evaluate(t, false) * pixelsPerHeight);
                         yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
                         linePoints.Add(new Vector2I(GUIGraphTime.PADDING + xPos, yPos));
@@ -678,7 +678,7 @@ namespace BansheeEditor
                 int xPosStart = GUIGraphTime.PADDING + endPixel;
                 int xPosEnd = width;
 
-                int yPos = (int)(curve.Native.Evaluate(range, false) * pixelsPerHeight);
+                int yPos = (int)(curve.Evaluate(range, false) * pixelsPerHeight);
                 yPos = heightOffset - yPos; // Offset and flip height (canvas Y goes down)
 
                 Vector2I a = new Vector2I(xPosStart, yPos);

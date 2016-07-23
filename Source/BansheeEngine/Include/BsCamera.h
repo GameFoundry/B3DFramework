@@ -74,6 +74,8 @@ namespace BansheeEngine
 	/**
 	 * Camera determines how is world geometry projected onto a 2D surface. You may position and orient it in space, set
 	 * options like aspect ratio and field or view and it outputs view and projection matrices required for rendering.
+	 *
+	 * This class contains funcionality common to both core and non-core versions of the camera.
 	 */
 	class BS_EXPORT CameraBase
     {
@@ -520,7 +522,7 @@ namespace BansheeEngine
 		void initialize() override;
 
 		/** @copydoc CameraBase */
-		virtual Rect2I getViewportRect() const override;
+		Rect2I getViewportRect() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
@@ -571,7 +573,7 @@ namespace BansheeEngine
 			float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
 
 		/** @copydoc CameraBase */
-		virtual Rect2I getViewportRect() const override;
+		Rect2I getViewportRect() const override;
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
@@ -598,7 +600,7 @@ namespace BansheeEngine
 	public:
 		friend class CameraRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
      };
 
 	/** @} */

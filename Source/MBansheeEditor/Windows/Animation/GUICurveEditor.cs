@@ -12,8 +12,33 @@ namespace BansheeEditor
 
     internal class GUICurveEditor
     {
+        class SelectedKeyframes
+        {
+            public int curveIdx;
+            public List<int> keyIndices = new List<int>();
+        }
+
+        struct DraggedKeyframe
+        {
+            public DraggedKeyframe(int index, KeyFrame original)
+            {
+                this.index = index;
+                this.original = original;
+            }
+
+            public int index;
+            public KeyFrame original;
+        }
+
+        class DraggedKeyframes
+        {
+            public int curveIdx;
+            public List<DraggedKeyframe> keys = new List<DraggedKeyframe>();
+        }
+
         private const int TIMELINE_HEIGHT = 20;
         private const int SIDEBAR_WIDTH = 30;
+        private const int DRAG_START_DISTANCE = 3;
 
         private EditorWindow window;
         private GUILayout gui;
@@ -29,12 +54,15 @@ namespace BansheeEditor
         private EdAnimationCurve[] curves = new EdAnimationCurve[0];
 
         private int markedFrameIdx;
-        private List<KeyframeRef> selectedKeyframes = new List<KeyframeRef>();
+        private List<SelectedKeyframes> selectedKeyframes = new List<SelectedKeyframes>();
 
         private bool isPointerHeld;
         private bool isMousePressedOverKey;
-        private KeyFrame[] draggedKeyframes;
-        private Vector2 dragStart;
+        private bool isMousePressedOverTangent;
+        private bool isDragInProgress;
+        private List<DraggedKeyframes> draggedKeyframes = new List<DraggedKeyframes>();
+        private TangentRef draggedTangent;
+        private Vector2I dragStart;
 
         public GUICurveEditor(EditorWindow window, GUILayout gui, int width, int height)
         {
@@ -98,16 +126,29 @@ namespace BansheeEditor
                 {
                     KeyframeRef keyframeRef;
                     if (!guiCurveDrawing.FindKeyFrame(drawingPos, out keyframeRef))
+                    {
                         ClearSelection();
+
+                        TangentRef tangentRef;
+                        if (guiCurveDrawing.FindTangent(drawingPos, out tangentRef))
+                        {
+                            isMousePressedOverTangent = true;
+                            dragStart = drawingPos;
+                            draggedTangent = tangentRef;
+                        }
+                    }
                     else
                     {
-                        if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
-                            ClearSelection();
+                        if (!IsSelected(keyframeRef))
+                        {
+                            if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
+                                ClearSelection();
 
-                        SelectKeyframe(keyframeRef);
+                            SelectKeyframe(keyframeRef);
+                        }
 
                         isMousePressedOverKey = true;
-                        dragStart = curveCoord;
+                        dragStart = drawingPos;
                     }
 
                     guiCurveDrawing.Rebuild();
@@ -160,19 +201,100 @@ namespace BansheeEditor
 
             if (isPointerHeld)
             {
-                if (isMousePressedOverKey)
+                Vector2I windowPos = window.ScreenToWindowPos(ev.ScreenPos);
+
+                Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
+                Vector2I pointerPos = windowPos - new Vector2I(elementBounds.x, elementBounds.y);
+
+                if (isMousePressedOverKey || isMousePressedOverTangent)
                 {
-                    // TODO - Check if pointer moves some minimal amount
-                    // - If so, start drag. Record all current positions
-                    // - Calculate offset in curve space and apply to all keyframes
+                    Rect2I drawingBounds = drawingPanel.Bounds;
+                    Vector2I drawingPos = pointerPos - new Vector2I(drawingBounds.x, drawingBounds.y);
+
+                    if (!isDragInProgress)
+                    {
+                        int distance = Vector2I.Distance(drawingPos, dragStart);
+                        if (distance >= DRAG_START_DISTANCE)
+                        {
+                            if (isMousePressedOverKey)
+                            {
+                                draggedKeyframes.Clear();
+                                foreach (var selectedEntry in selectedKeyframes)
+                                {
+                                    EdAnimationCurve curve = curves[selectedEntry.curveIdx];
+                                    KeyFrame[] keyFrames = curve.KeyFrames;
+
+                                    DraggedKeyframes newEntry = new DraggedKeyframes();
+                                    draggedKeyframes.Add(newEntry);
+
+                                    foreach (var keyframeIdx in selectedEntry.keyIndices)
+                                        newEntry.keys.Add(new DraggedKeyframe(keyframeIdx, keyFrames[keyframeIdx]));
+                                }
+                            }
+
+                            // TODO - UNDOREDO record keyframe or tangent
+
+                            isDragInProgress = true;
+                        }
+                    }
+
+                    if (isDragInProgress)
+                    {
+                        if (isMousePressedOverKey)
+                        {
+                            Vector2 diff = Vector2.Zero;
+
+                            Vector2 dragStartCurve;
+                            if (guiCurveDrawing.PixelToCurveSpace(dragStart, out dragStartCurve))
+                            {
+                                Vector2 currentPosCurve;
+                                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out currentPosCurve))
+                                    diff = currentPosCurve - dragStartCurve;
+                            }
+
+                            foreach (var draggedEntry in draggedKeyframes)
+                            {
+                                EdAnimationCurve curve = curves[draggedEntry.curveIdx];
+
+                                for (int i = 0; i < draggedEntry.keys.Count; i++)
+                                {
+                                    DraggedKeyframe draggedKey = draggedEntry.keys[i];
+
+                                    float newTime = draggedKey.original.time + diff.x;
+                                    float newValue = draggedKey.original.value + diff.y;
+
+                                    int newIndex = curve.UpdateKeyframe(draggedKey.index, newTime, newValue);
+
+                                    // It's possible key changed position due to time change, but since we're moving all
+                                    // keys at once they cannot change position relative to one another, otherwise we would
+                                    // need to update indices for other keys as well.
+                                    draggedKey.index = newIndex;
+                                    draggedEntry.keys[i] = draggedKey;
+                                }
+
+                                curve.Apply();
+                            }
+
+                            // Rebuild selected keys from dragged keys (after potential sorting)
+                            ClearSelection();
+                            foreach (var draggedEntry in draggedKeyframes)
+                            {
+                                foreach (var keyframe in draggedEntry.keys)
+                                    SelectKeyframe(new KeyframeRef(draggedEntry.curveIdx, keyframe.index));
+                            }
+
+                            guiCurveDrawing.Rebuild();
+                        }
+                        else if (isMousePressedOverTangent)
+                        {
+                            // TODO - Update tangent
+
+                            guiCurveDrawing.Rebuild();
+                        }
+                    }
                 }
-                else
+                else // Move frame marker
                 {
-                    Vector2I windowPos = window.ScreenToWindowPos(ev.ScreenPos);
-
-                    Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
-                    Vector2I pointerPos = windowPos - new Vector2I(elementBounds.x, elementBounds.y);
-
                     int frameIdx = guiTimeline.GetFrame(pointerPos);
 
                     if (frameIdx != -1)
@@ -184,7 +306,9 @@ namespace BansheeEditor
         private void OnPointerReleased(PointerEvent ev)
         {
             isPointerHeld = false;
+            isDragInProgress = false;
             isMousePressedOverKey = false;
+            isMousePressedOverTangent = false;
         }
 
         private void OnButtonUp(ButtonEvent ev)
@@ -269,9 +393,10 @@ namespace BansheeEditor
             foreach (var curve in curves)
             {
                 float t = guiCurveDrawing.GetTimeForFrame(markedFrameIdx);
-                float value = curve.Native.Evaluate(t);
+                float value = curve.Evaluate(t);
 
                 curve.AddKeyframe(t, value);
+                curve.Apply();
             }
 
             // TODO - UNDOREDO
@@ -288,37 +413,42 @@ namespace BansheeEditor
         
         private void ChangeSelectionTangentMode(TangentMode mode)
         {
-            foreach (var keyframe in selectedKeyframes)
+            foreach (var selectedEntry in selectedKeyframes)
             {
-                EdAnimationCurve curve = curves[keyframe.curveIdx];
+                EdAnimationCurve curve = curves[selectedEntry.curveIdx];
 
-                if (mode == TangentMode.Auto || mode == TangentMode.Free)
-                    curve.SetTangentMode(keyframe.keyIdx, mode);
-                else
+                foreach (var keyframeIdx in selectedEntry.keyIndices)
                 {
-                    TangentMode newMode = curve.TangentModes[keyframe.keyIdx];
-
-                    if (mode.HasFlag((TangentMode)TangentType.In))
-                    {
-                        // Replace only the in tangent mode, keeping the out tangent as is
-                        TangentMode inFlags = (TangentMode.InAuto | TangentMode.InFree | TangentMode.InLinear |
-                                               TangentMode.InAuto);
-
-                        newMode &= ~inFlags;
-                        newMode |= (mode & inFlags);
-                    }
+                    if (mode == TangentMode.Auto || mode == TangentMode.Free)
+                        curve.SetTangentMode(keyframeIdx, mode);
                     else
                     {
-                        // Replace only the out tangent mode, keeping the in tangent as is
-                        TangentMode outFlags = (TangentMode.OutAuto | TangentMode.OutFree | TangentMode.OutLinear |
-                                               TangentMode.OutAuto);
+                        TangentMode newMode = curve.TangentModes[keyframeIdx];
 
-                        newMode &= ~outFlags;
-                        newMode |= (mode & outFlags);
+                        if (mode.HasFlag((TangentMode) TangentType.In))
+                        {
+                            // Replace only the in tangent mode, keeping the out tangent as is
+                            TangentMode inFlags = (TangentMode.InAuto | TangentMode.InFree | TangentMode.InLinear |
+                                                   TangentMode.InAuto);
+
+                            newMode &= ~inFlags;
+                            newMode |= (mode & inFlags);
+                        }
+                        else
+                        {
+                            // Replace only the out tangent mode, keeping the in tangent as is
+                            TangentMode outFlags = (TangentMode.OutAuto | TangentMode.OutFree | TangentMode.OutLinear |
+                                                    TangentMode.OutAuto);
+
+                            newMode &= ~outFlags;
+                            newMode |= (mode & outFlags);
+                        }
+
+                        curve.SetTangentMode(keyframeIdx, newMode);
                     }
-
-                    curve.SetTangentMode(keyframe.keyIdx, newMode);
                 }
+
+                curve.Apply();
             }
 
             // TODO - UNDOREDO
@@ -339,6 +469,7 @@ namespace BansheeEditor
                     float value = curveCoord.y;
 
                     curve.AddKeyframe(t, value);
+                    curve.Apply();
                 }
 
                 // TODO - UNDOREDO
@@ -354,18 +485,21 @@ namespace BansheeEditor
 
         private void DeleteSelectedKeyframes()
         {
-            // Sort keys from highest to lowest so they can be removed without changing the indices of the keys
-            // after them
-            selectedKeyframes.Sort((x, y) =>
+            foreach (var selectedEntry in selectedKeyframes)
             {
-                if (x.curveIdx.Equals(y.curveIdx))
-                    return y.keyIdx.CompareTo(x.keyIdx);
+                EdAnimationCurve curve = curves[selectedEntry.curveIdx];
 
-                return x.curveIdx.CompareTo(y.curveIdx);
-            });
+                // Sort keys from highest to lowest so the indices don't change
+                selectedEntry.keyIndices.Sort((x, y) =>
+                {
+                    return y.CompareTo(x);
+                });
 
-            foreach (var keyframe in selectedKeyframes)
-                curves[keyframe.curveIdx].RemoveKeyframe(keyframe.keyIdx);
+                foreach (var keyframeIdx in selectedEntry.keyIndices)
+                    curve.RemoveKeyframe(keyframeIdx);
+
+                curve.Apply();
+            }
 
             // TODO - UNDOREDO
 
@@ -378,7 +512,6 @@ namespace BansheeEditor
         {
             guiCurveDrawing.ClearSelectedKeyframes();
             selectedKeyframes.Clear();
-            isMousePressedOverKey = false;
         }
 
         private void SelectKeyframe(KeyframeRef keyframeRef)
@@ -386,17 +519,38 @@ namespace BansheeEditor
             guiCurveDrawing.SelectKeyframe(keyframeRef, true);
 
             if (!IsSelected(keyframeRef))
-                selectedKeyframes.Add(keyframeRef);
+            {
+                int curveIdx = selectedKeyframes.FindIndex(x =>
+                {
+                    return x.curveIdx == keyframeRef.curveIdx;
+                });
+
+                if (curveIdx == -1)
+                {
+                    curveIdx = selectedKeyframes.Count;
+                    selectedKeyframes.Add(new SelectedKeyframes());
+                }
+
+                selectedKeyframes[curveIdx].keyIndices.Add(keyframeRef.keyIdx);
+            }
         }
 
         private bool IsSelected(KeyframeRef keyframeRef)
         {
-            int existingIdx = selectedKeyframes.FindIndex(x =>
+            int curveIdx = selectedKeyframes.FindIndex(x =>
             {
-                return x.curveIdx == keyframeRef.curveIdx && x.keyIdx == keyframeRef.keyIdx;
+                return x.curveIdx == keyframeRef.curveIdx;
             });
 
-            return (existingIdx != -1);
+            if (curveIdx == -1)
+                return false;
+
+            int keyIdx = selectedKeyframes[curveIdx].keyIndices.FindIndex(x =>
+            {
+                return x == keyframeRef.keyIdx;
+            });
+
+            return keyIdx != -1;
         }
     }
 

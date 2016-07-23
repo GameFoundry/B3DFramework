@@ -64,10 +64,10 @@ namespace BansheeEditor
 
             Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + PADDING, bounds.y);
 
-            float lengthPerPixel = rangeLength / drawableWidth;
+            float lengthPerPixel = GetRange() / drawableWidth;
             float time = relativeCoords.x * lengthPerPixel;
 
-            return (int)(time * fps);
+            return MathEx.RoundToInt(time * fps);
         }
 
         /// <summary>

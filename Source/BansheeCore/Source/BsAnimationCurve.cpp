@@ -159,7 +159,7 @@ namespace BansheeEngine
 			float time = keyframes[0].time;
 			for (UINT32 i = 1; i < (UINT32)keyframes.size(); i++)
 			{
-				assert(keyframes[i].time > time);
+				assert(keyframes[i].time >= time);
 				time = keyframes[i].time;
 			}
 		}
