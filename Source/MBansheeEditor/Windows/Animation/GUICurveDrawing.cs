@@ -317,14 +317,21 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="t">Time at which to draw the marker.</param>
         /// <param name="color">Color with which to draw the marker.</param>
-        private void DrawFrameMarker(float t, Color color)
+        /// <param name="onTop">Determines should the marker be drawn above or below the curve.</param>
+        private void DrawFrameMarker(float t, Color color, bool onTop)
         {
             int xPos = (int)((t / GetRange()) * drawableWidth) + GUIGraphTime.PADDING;
 
             Vector2I start = new Vector2I(xPos, 0);
             Vector2I end = new Vector2I(xPos, height);
 
-            canvas.DrawLine(start, end, color);
+            byte depth;
+            if (onTop)
+                depth = 110;
+            else
+                depth = 128;
+
+            canvas.DrawLine(start, end, color, depth);
         }
 
         /// <summary>
@@ -448,9 +455,9 @@ namespace BansheeEditor
                 return true;
 
             if (type == TangentType.In)
-                return !mode.HasFlag(TangentMode.InAuto);
+                return mode.HasFlag(TangentMode.InFree);
             else
-                return !mode.HasFlag(TangentMode.OutAuto);
+                return mode.HasFlag(TangentMode.OutFree);
         }
 
         /// <summary>
@@ -496,7 +503,7 @@ namespace BansheeEditor
                     Color color = COLOR_DARK_GRAY;
                     color.a *= strength;
 
-                    DrawFrameMarker(ticks[j], color);
+                    DrawFrameMarker(ticks[j], color, false);
                 }
             }
 
@@ -528,7 +535,7 @@ namespace BansheeEditor
 
             // Draw selected frame marker
             if (markedFrameIdx != -1)
-                DrawFrameMarker(GetTimeForFrame(markedFrameIdx), Color.BansheeOrange);
+                DrawFrameMarker(GetTimeForFrame(markedFrameIdx), Color.BansheeOrange, true);
         }
 
         /// <summary>
