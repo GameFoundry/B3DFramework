@@ -134,6 +134,58 @@ namespace BansheeEngine
                 return 0;
         }
 
+        /// <summary>
+        /// Uses the provided path elements to find an dictionary element with the specified key, and returns a property
+        /// to the element, or to a child property of that element.
+        /// </summary>
+        /// <param name="pathElements">Path elements representing field names and keys to look for.</param>
+        /// <param name="elementIdx">Index in the <paramref name="pathElements"/> array to start the search at.</param>
+        /// <returns>Property representing the final path element, or null if not found (key or property with that path
+        ///          doesn't exist).</returns>
+        internal SerializableProperty FindProperty(PropertyPathElement[] pathElements, int elementIdx)
+        {
+            if (pathElements[elementIdx].key == null)
+                return null;
+
+            object key = null;
+            switch (KeyPropertyType)
+            {
+                case SerializableProperty.FieldType.String:
+                    key = pathElements[elementIdx].key;
+                    break;
+                case SerializableProperty.FieldType.Bool:
+                    bool boolKey;
+                    if (bool.TryParse(pathElements[elementIdx].key, out boolKey))
+                        key = boolKey;
+
+                    break;
+                case SerializableProperty.FieldType.Int:
+                    int intKey;
+                    if (int.TryParse(pathElements[elementIdx].key, out intKey))
+                        key = intKey;
+
+                    break;
+                case SerializableProperty.FieldType.Float:
+                    float floatKey;
+                    if (float.TryParse(pathElements[elementIdx].key, out floatKey))
+                        key = floatKey;
+
+                    break;
+            }
+
+            if (key == null)
+                return null;
+
+            SerializableProperty property = GetProperty(key).Value;
+            if (elementIdx == (pathElements.Length - 1))
+                return property;
+
+            if(property != null)
+                return property.FindProperty(pathElements, elementIdx + 1);
+
+            return null;
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SerializableProperty Internal_CreateKeyProperty(IntPtr nativeInstance);
 

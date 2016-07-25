@@ -10,9 +10,9 @@ namespace BansheeEngine
      */
 
     /// <summary>
-    /// Flags as defined in native code in BsManagedSerializableObjectInfo.h
+    /// Flags that are used to define properties of a single field in a managed object.
     /// </summary>
-    enum SerializableFieldAttributes : byte
+    internal enum SerializableFieldAttributes // Note: Must match C++ enum ScriptFieldFlags
     {
         Serializable = 0x01,
         Inspectable = 0x02,

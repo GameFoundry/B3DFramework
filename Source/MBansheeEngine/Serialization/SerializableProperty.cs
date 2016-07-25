@@ -242,6 +242,47 @@ namespace BansheeEngine
             return Internal_CreateManagedDictionaryInstance(mCachedPtr);
         }
 
+        /// <summary>
+        /// Helper method used for finding child properties of the specified property, using a property path.
+        /// <see cref="SerializableObject.FindProperty(string)"/>.
+        /// </summary>
+        /// <param name="pathElements">Path elements representing field names and keys to look for.</param>
+        /// <param name="elementIdx">Index in the <paramref name="pathElements"/> array to start the search at.</param>
+        /// <returns>Property representing the final path element, or null if not found (array index is out of range, or 
+        ///          property with that path doesn't exist).</returns>
+        internal SerializableProperty FindProperty(PropertyPathElement[] pathElements, int elementIdx)
+        {
+            switch (type)
+            {
+                case FieldType.Object:
+                    {
+                        SerializableObject childObject = GetObject();
+
+                        return childObject.FindProperty(pathElements, elementIdx);
+                    }
+                case FieldType.Array:
+                    {
+                        SerializableArray childArray = GetArray();
+
+                        return childArray.FindProperty(pathElements, elementIdx);
+                    }
+                case FieldType.List:
+                    {
+                        SerializableList childList = GetList();
+
+                        return childList.FindProperty(pathElements, elementIdx);
+                    }
+                case FieldType.Dictionary:
+                    {
+                        SerializableDictionary childDictionary = GetDictionary();
+
+                        return childDictionary.FindProperty(pathElements, elementIdx);
+                    }
+            }
+
+            return null;
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CreateInstance(SerializableProperty instance, Type type);
 
