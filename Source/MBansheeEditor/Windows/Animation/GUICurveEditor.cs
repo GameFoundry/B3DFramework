@@ -6,7 +6,7 @@ using BansheeEngine;
 
 namespace BansheeEditor
 {
-    /** @addtogroup Windows
+    /** @addtogroup AnimationEditor
      *  @{
      */
 
@@ -225,6 +225,7 @@ namespace BansheeEditor
                                     KeyFrame[] keyFrames = curve.KeyFrames;
 
                                     DraggedKeyframes newEntry = new DraggedKeyframes();
+                                    newEntry.curveIdx = selectedEntry.curveIdx;
                                     draggedKeyframes.Add(newEntry);
 
                                     foreach (var keyframeIdx in selectedEntry.keyIndices)
@@ -558,7 +559,11 @@ namespace BansheeEditor
                 if (curveIdx == -1)
                 {
                     curveIdx = selectedKeyframes.Count;
-                    selectedKeyframes.Add(new SelectedKeyframes());
+
+                    SelectedKeyframes newKeyframes = new SelectedKeyframes();
+                    newKeyframes.curveIdx = keyframeRef.curveIdx;
+
+                    selectedKeyframes.Add(newKeyframes);
                 }
 
                 selectedKeyframes[curveIdx].keyIndices.Add(keyframeRef.keyIdx);

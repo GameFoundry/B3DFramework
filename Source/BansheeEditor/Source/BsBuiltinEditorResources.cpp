@@ -241,6 +241,7 @@ namespace BansheeEngine
 
 	const WString BuiltinEditorResources::SelectionAreaTex = L"SelectionHighlight.png";
 	const WString BuiltinEditorResources::SelectionBgTex = L"SelectionBg.psd";
+	const WString BuiltinEditorResources::SelectionLblAltTex = L"SelectionLblAlt.png";
 
 	const WString BuiltinEditorResources::TextureDropTex = L"TextureDrop.png";
 	const WString BuiltinEditorResources::TextureDropOnTex = L"TextureDropHover.png";
@@ -1844,6 +1845,24 @@ namespace BansheeEngine
 		selectableLabelStyle.normal.textColor = TextNormalColor;
 
 		skin->setStyle("SelectableLabel", selectableLabelStyle);
+
+		// Selectable label with an alternate background
+		GUIElementStyle selectableLabelAltStyle;
+		selectableLabelAltStyle.normal.texture = getGUITexture(SelectionLblAltTex);
+		selectableLabelAltStyle.hover.texture = selectableLabelAltStyle.normal.texture;
+		selectableLabelAltStyle.active.texture = selectableLabelAltStyle.normal.texture;
+		selectableLabelAltStyle.normalOn.texture = getGUITexture(SelectionBgTex);
+		selectableLabelAltStyle.hoverOn.texture = selectableLabelAltStyle.normalOn.texture;
+		selectableLabelAltStyle.activeOn.texture = selectableLabelAltStyle.normalOn.texture;
+		selectableLabelAltStyle.fixedHeight = true;
+		selectableLabelAltStyle.height = 11;
+		selectableLabelAltStyle.minWidth = 10;
+		selectableLabelAltStyle.font = defaultFont;
+		selectableLabelAltStyle.fontSize = DefaultFontSize;
+		selectableLabelAltStyle.textHorzAlign = THA_Left;
+		selectableLabelAltStyle.normal.textColor = TextNormalColor;
+
+		skin->setStyle("SelectableLabelAlt", selectableLabelAltStyle);
 
 		// Scroll area background
 		GUIElementStyle scrollAreaBg;

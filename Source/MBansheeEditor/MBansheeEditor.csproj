@@ -51,6 +51,7 @@
     <Compile Include="Utility\SerializedObject.cs" />
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\AnimationWindow.cs" />
+    <Compile Include="Windows\Animation\GUIAnimFieldDisplay.cs" />
     <Compile Include="Windows\Animation\GUICurveDrawing.cs" />
     <Compile Include="Windows\Animation\GUICurveEditor.cs" />
     <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
