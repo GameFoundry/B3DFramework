@@ -61,7 +61,6 @@ namespace BansheeEngine
 		GUILayout* mLayout;
 		Vector<ChildInfo> mChildren;
 
-		bool mIsDestroyed;
 		bool mOwnsNative;
 
 	private:

@@ -34,8 +34,14 @@ namespace BansheeEngine
 
 	void ScriptGUILayoutUtility::internal_CalculateBounds(ScriptGUIElementBaseTBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output)
 	{
+		if (guiElement->isDestroyed())
+		{
+			*output = Rect2I();
+			return;
+		}
+
 		GUIPanel* relativeToPanel = nullptr;
-		if (relativeTo != nullptr)
+		if (relativeTo != nullptr && !relativeTo->isDestroyed())
 			relativeToPanel = static_cast<GUIPanel*>(relativeTo->getGUIElement());
 
 		*output = guiElement->getGUIElement()->getBounds(relativeToPanel);

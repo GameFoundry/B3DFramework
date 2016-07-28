@@ -99,14 +99,9 @@ namespace BansheeEditor
 
             guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT);
             guiSidebar.SetRange(-10.0f, 10.0f);
-
-            EditorInput.OnPointerPressed += OnPointerPressed;
-            EditorInput.OnPointerMoved += OnPointerMoved;
-            EditorInput.OnPointerReleased += OnPointerReleased;
-            EditorInput.OnButtonUp += OnButtonUp;
         }
 
-        private void OnPointerPressed(PointerEvent ev)
+        internal void OnPointerPressed(PointerEvent ev)
         {
             if (ev.IsUsed)
                 return;
@@ -194,7 +189,7 @@ namespace BansheeEditor
             }
         }
 
-        private void OnPointerMoved(PointerEvent ev)
+        internal void OnPointerMoved(PointerEvent ev)
         {
             if (ev.Button != PointerButton.Left)
                 return;
@@ -334,7 +329,7 @@ namespace BansheeEditor
             }
         }
 
-        private void OnPointerReleased(PointerEvent ev)
+        internal void OnPointerReleased(PointerEvent ev)
         {
             isPointerHeld = false;
             isDragInProgress = false;
@@ -342,7 +337,7 @@ namespace BansheeEditor
             isMousePressedOverTangent = false;
         }
 
-        private void OnButtonUp(ButtonEvent ev)
+        internal void OnButtonUp(ButtonEvent ev)
         {
             if(ev.Button == ButtonCode.Delete)
                 DeleteSelectedKeyframes();

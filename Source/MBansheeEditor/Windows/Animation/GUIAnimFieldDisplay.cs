@@ -14,20 +14,37 @@ namespace BansheeEditor
     internal class GUIAnimFieldDisplay
     {
         private SceneObject root;
+        private int width;
+        private int height;
+
         private GUIScrollArea scrollArea;
         private List<string> paths = new List<string>();
 
         private GUIAnimFieldEntry[] fields;
+        private GUIAnimFieldLayouts layouts;
 
-        public GUIAnimFieldDisplay(GUILayout layout, SceneObject root)
+        public GUIAnimFieldDisplay(GUILayout layout, int width, int height, SceneObject root)
         {
             this.root = root;
 
             scrollArea = new GUIScrollArea();
             layout.AddElement(scrollArea);
+
+            SetSize(width, height);
         }
 
-        public Action<string[]> OnSelectionChanged;
+        public Action<string, bool> OnSelectionChanged;
+
+        public void SetSize(int width, int height)
+        {
+            this.width = width;
+            this.height = height;
+
+            scrollArea.SetWidth(width);
+            scrollArea.SetHeight(height);
+
+            Rebuild();
+        }
 
         public void SetFields(string[] paths)
         {
@@ -39,9 +56,25 @@ namespace BansheeEditor
 
         public void AddField(string path)
         {
-            paths.Add(path);
+            if (!paths.Contains(path))
+            {
+                paths.Add(path);
+                Rebuild();
+            }
+        }
 
-            Rebuild();
+        public void SetDisplayValues(GUIAnimFieldPathValue[] values)
+        {
+            for (int i = 0; i < fields.Length; i++)
+            {
+                string path = fields[i].Path;
+
+                for (int j = 0; j < values.Length; j++)
+                {
+                    if(path == values[j].path)
+                        fields[i].SetValue(values[j].value);
+                }
+            }
         }
 
         private SerializableProperty FindProperty(string path)
@@ -58,11 +91,14 @@ namespace BansheeEditor
             {
                 string entry = entries[pathIdx];
 
+                if (string.IsNullOrEmpty(entry))
+                    continue;
+
                 // Not a scene object, break
                 if (entry[0] != '!')
                     break;
 
-                if (pathIdx == 0)
+                if (so == null)
                     so = root;
                 else
                 {
@@ -78,7 +114,6 @@ namespace BansheeEditor
             if (so == null)
                 return null;
 
-            pathIdx++;
             if (pathIdx >= entries.Length)
                 return null;
 
@@ -163,6 +198,16 @@ namespace BansheeEditor
             if (paths == null || root == null)
                 return;
 
+            layouts = new GUIAnimFieldLayouts();
+            GUIPanel rootPanel = scrollArea.Layout.AddPanel();
+            GUIPanel mainPanel = rootPanel.AddPanel();
+            GUIPanel underlayPanel = rootPanel.AddPanel(1);
+            GUIPanel overlayPanel = rootPanel.AddPanel(-1);
+
+            layouts.main = mainPanel.AddLayoutY();
+            layouts.underlay = underlayPanel.AddLayoutY();
+            layouts.overlay = overlayPanel.AddLayoutY();
+
             fields = new GUIAnimFieldEntry[paths.Count];
             for (int i = 0; i < paths.Count; i++)
             {
@@ -172,57 +217,94 @@ namespace BansheeEditor
                     switch (property.Type)
                     {
                         case SerializableProperty.FieldType.Vector2:
-                            fields[i] = new GUIAnimVec2Entry(scrollArea.Layout, paths[i]);
+                            fields[i] = new GUIAnimVec2Entry(layouts, paths[i]);
                             break;
                         case SerializableProperty.FieldType.Vector3:
-                            fields[i] = new GUIAnimVec3Entry(scrollArea.Layout, paths[i]);
+                            fields[i] = new GUIAnimVec3Entry(layouts, paths[i]);
                             break;
                         case SerializableProperty.FieldType.Vector4:
-                            fields[i] = new GUIAnimVec4Entry(scrollArea.Layout, paths[i]);
+                            fields[i] = new GUIAnimVec4Entry(layouts, paths[i]);
                             break;
                         case SerializableProperty.FieldType.Color:
-                            fields[i] = new GUIAnimColorEntry(scrollArea.Layout, paths[i]);
+                            fields[i] = new GUIAnimColorEntry(layouts, paths[i]);
                             break;
                         case SerializableProperty.FieldType.Bool:
                         case SerializableProperty.FieldType.Int:
                         case SerializableProperty.FieldType.Float:
-                            fields[i] = new GUIAnimFieldEntry(scrollArea.Layout, paths[i]);
+                            fields[i] = new GUIAnimSimpleEntry(layouts, paths[i]);
                             break;
                     }
+
+                    if (fields[i] != null)
+                        fields[i].OnSelectionChanged += OnSelectionChanged;
                 }
                 else
                 {
-                    // TODO - Add special field type for missing properties
+                    fields[i] = new GUIAnimMissingEntry(layouts, paths[i]);
                 }
             }
+
+            layouts.main.AddFlexibleSpace();
+            layouts.underlay.AddFlexibleSpace();
+            layouts.overlay.AddFlexibleSpace();
         }
     }
 
-    internal class GUIAnimFieldEntry
+    internal class GUIAnimFieldLayouts
+    {
+        public GUILayout main;
+        public GUILayout underlay;
+        public GUILayout overlay;
+    }
+
+    internal struct GUIAnimFieldPathValue
+    {
+        public string path;
+        public object value;
+    }
+
+    internal abstract class GUIAnimFieldEntry
     {
         private const int MAX_PATH_LENGTH = 20;
         protected const int INDENT_AMOUNT = 10;
 
-        private GUIToggle toggle;
         protected string path;
+        private GUIToggle toggle;
+
+        private int entryHeight;
 
         public Action<string, bool> OnSelectionChanged;
 
-        public GUIAnimFieldEntry(GUILayout layout, string path)
+        public string Path { get { return path; } }
+
+        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path)
         {
-            toggle = new GUIToggle(GetDisplayName(path), EditorStyles.SelectableLabel);
-            layout.AddElement(toggle);
-
-            // TODO - Show current value (if not complex)
-            // TODO - Button to remove properties
-
             this.path = path;
+
+            GUILayoutX toggleLayout = layouts.main.AddLayoutX();
+            toggleLayout.AddSpace(15);
+
+            toggle = new GUIToggle(GetDisplayName(path), EditorStyles.SelectableLabel, GUIOption.FlexibleWidth());
+            toggle.OnToggled += x => { OnSelectionChanged?.Invoke(path, x); };
+
+            toggleLayout.AddElement(toggle);
+
+            entryHeight = toggle.Bounds.height;
         }
 
         public virtual void Toggle(bool on)
-        { }
+        {
+            toggle.Active = on;
+        }
 
-        private static string GetDisplayName(string path)
+        public virtual void SetValue(object value) { }
+
+        protected int GetEntryHeight()
+        {
+            return entryHeight;
+        }
+
+        protected static string GetDisplayName(string path)
         {
             if (string.IsNullOrEmpty(path))
                 return "";
@@ -248,7 +330,7 @@ namespace BansheeEditor
                 return soName + "." + truncatedPropPath;
         }
 
-        private static void GetNames(string path, out string soName, out string compName, out string propertyPath)
+        protected static void GetNames(string path, out string soName, out string compName, out string propertyPath)
         {
             string[] entries = path.Split('/');
 
@@ -258,12 +340,15 @@ namespace BansheeEditor
             {
                 string entry = entries[pathIdx];
 
+                if (string.IsNullOrEmpty(entry))
+                    continue;
+
                 // Not a scene object, break
                 if (entry[0] != '!')
                     break;
             }
 
-            if (pathIdx >= entries.Length)
+            if (pathIdx == 0)
             {
                 soName = null;
                 compName = null;
@@ -272,9 +357,8 @@ namespace BansheeEditor
                 return;
             }
 
-            soName = entries[pathIdx].Substring(1, entries[pathIdx].Length - 1);
+            soName = entries[pathIdx - 1].Substring(1, entries[pathIdx - 1].Length - 1);
 
-            pathIdx++;
             if (pathIdx >= entries.Length)
             {
                 compName = null;
@@ -310,67 +394,181 @@ namespace BansheeEditor
         }
     }
 
+    internal class GUIAnimSimpleEntry : GUIAnimFieldEntry
+    {
+        private GUILabel valueDisplay;
+        private GUILayoutX underlayLayout;
+        private GUILabel overlaySpacing;
+
+        public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path)
+        {
+            valueDisplay = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
+            underlayLayout = layouts.underlay.AddLayoutX();
+            underlayLayout.AddFlexibleSpace();
+            underlayLayout.AddElement(valueDisplay);
+            underlayLayout.AddSpace(50);
+
+            overlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
+            layouts.overlay.AddElement(overlaySpacing);
+
+            // TODO - Alternating backgrounds
+        }
+
+        public override void Toggle(bool on)
+        {
+            underlayLayout.Active = on;
+            overlaySpacing.Active = on;
+
+            base.Toggle(on);
+        }
+
+        public override void SetValue(object value)
+        {
+            if (value == null)
+                return;
+
+            string strValue = value.ToString();
+            valueDisplay.SetContent(strValue);
+        }
+    }
+
     internal class GUIAnimComplexEntry : GUIAnimFieldEntry
     {
-        private GUIToggle[] children;
-        private GUILayout childLayout;
+        private GUILayout foldoutLayout;
+        private GUIToggle foldout;
+        private GUILabel underlaySpacing;
 
-        protected GUIAnimComplexEntry(GUILayout layout, string path, string[] childEntries)
-            : base(layout, path)
+        protected GUIAnimSimpleEntry[] children;
+
+        public GUIAnimComplexEntry(GUIAnimFieldLayouts layouts, string path, string[] childEntries)
+            : base(layouts, path)
         {
-            childLayout = layout.AddLayoutX();
-            childLayout.AddSpace(INDENT_AMOUNT);
+            foldout = new GUIToggle("", EditorStyles.Expand);
+            foldout.OnToggled += Toggle;
+            foldoutLayout = layouts.overlay.AddLayoutX();
 
-            // TODO - Foldout to expand/collapse child layout
+            foldoutLayout.AddElement(foldout);
+            foldoutLayout.AddFlexibleSpace();
 
-            GUILayout indentLayout = childLayout.AddLayoutY();
+            underlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
+            layouts.underlay.AddElement(underlaySpacing);
 
-            children = new GUIToggle[childEntries.Length];
+            children = new GUIAnimSimpleEntry[childEntries.Length];
             for (int i = 0; i < childEntries.Length; i++)
-            {
-                int index = i;
-
-                children[i] = new GUIToggle(new LocEdString(childEntries[i]), EditorStyles.SelectableLabel);
-                children[i].OnToggled += x => { OnSelectionChanged?.Invoke(path + childEntries[index], x); };
-
-                indentLayout.AddElement(children[i]);
-            }
+                children[i] = new GUIAnimSimpleEntry(layouts, path + childEntries[i]);
 
             Toggle(false);
         }
 
         public override void Toggle(bool on)
         {
-            childLayout.Active = on;
+            foreach(var child in children)
+                child.Toggle(on);
         }
     }
 
     internal class GUIAnimVec2Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec2Entry(GUILayout layout, string path)
-            : base(layout, path,  new[] { ".x", ".y" })
+        public GUIAnimVec2Entry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path,  new[] { ".x", ".y" })
         { }
+
+        public override void SetValue(object value)
+        {
+            if (value == null)
+                return;
+
+            Vector2 vector = (Vector2)value;
+            children[0].SetValue(vector.x);
+            children[1].SetValue(vector.y);
+        }
     }
 
     internal class GUIAnimVec3Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec3Entry(GUILayout layout, string path)
-            : base(layout, path, new[] { ".x", ".y", ".z" })
+        public GUIAnimVec3Entry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path, new[] { ".x", ".y", ".z" })
         { }
+
+        public override void SetValue(object value)
+        {
+            if (value == null)
+                return;
+
+            Vector3 vector = (Vector3)value;
+            children[0].SetValue(vector.x);
+            children[1].SetValue(vector.y);
+            children[2].SetValue(vector.z);
+        }
     }
 
     internal class GUIAnimVec4Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec4Entry(GUILayout layout, string path)
-            : base(layout, path,  new[] { ".x", ".y", ".z", ".w" })
+        public GUIAnimVec4Entry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path,  new[] { ".x", ".y", ".z", ".w" })
         { }
+
+        public override void SetValue(object value)
+        {
+            if (value == null)
+                return;
+
+            Vector4 vector = (Vector4)value;
+            children[0].SetValue(vector.x);
+            children[1].SetValue(vector.y);
+            children[2].SetValue(vector.z);
+            children[3].SetValue(vector.w);
+        }
     }
 
     internal class GUIAnimColorEntry : GUIAnimComplexEntry
     {
-        public GUIAnimColorEntry(GUILayout layout, string path)
-            : base(layout, path, new[] { ".r", ".g", ".b", ".a" })
+        public GUIAnimColorEntry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path, new[] { ".r", ".g", ".b", ".a" })
         { }
+
+        public override void SetValue(object value)
+        {
+            if (value == null)
+                return;
+
+            Color color = (Color)value;
+            children[0].SetValue(color.r);
+            children[1].SetValue(color.g);
+            children[2].SetValue(color.b);
+            children[3].SetValue(color.a);
+        }
+    }
+
+    internal class GUIAnimMissingEntry : GUIAnimFieldEntry
+    {
+        private GUILabel missingLabel;
+        private GUILayoutX underlayLayout;
+        private GUILabel overlaySpacing;
+
+        public GUIAnimMissingEntry(GUIAnimFieldLayouts layouts, string path)
+            : base(layouts, path)
+        {
+            missingLabel = new GUILabel("Missing property!", GUIOption.FixedHeight(GetEntryHeight()));
+            underlayLayout = layouts.underlay.AddLayoutX();
+            underlayLayout.AddFlexibleSpace();
+            underlayLayout.AddElement(missingLabel);
+            underlayLayout.AddSpace(50);
+
+            overlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
+            layouts.overlay.AddElement(overlaySpacing);
+
+            // TODO - Alternating backgrounds
+        }
+
+        public override void Toggle(bool on)
+        {
+            underlayLayout.Active = on;
+            overlaySpacing.Active = on;
+
+            base.Toggle(on);
+        }
     }
 
     /** @} */

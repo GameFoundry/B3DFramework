@@ -587,7 +587,7 @@ namespace BansheeEditor
             int heightOffset = height/2; // So that y = 0 is at center of canvas
 
             KeyFrame[] keyframes = curve.KeyFrames;
-            if (keyframes.Length < 0)
+            if (keyframes.Length <= 0)
                 return;
 
             // Draw start line

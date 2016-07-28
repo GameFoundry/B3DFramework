@@ -61,7 +61,7 @@ namespace BansheeEditor
         /// 
         /// For example: !My Scene Object/:Camera/path/to/field
         /// </summary>
-        public Action<SceneObject, Component, string> OnElementSelected;
+        public Action<SceneObject, Component, string, SerializableProperty.FieldType> OnElementSelected;
 
         /// <summary>
         /// Creates a new GUIFieldSelector and registers its GUI elements in the provided layout.
@@ -88,7 +88,11 @@ namespace BansheeEditor
                 return;
 
             rootElement.so = rootSO;
+            rootElement.childLayout = mainLayout;
+            rootElement.indentLayout = null;
+
             AddSceneObjectRows(rootElement);
+            mainLayout.AddFlexibleSpace();
         }
 
         /// <summary>
@@ -107,7 +111,7 @@ namespace BansheeEditor
             SpriteTexture compIcon = EditorBuiltin.GetEditorIcon(EditorIcon.Component);
 
             // Add transform
-            parent.children[0] = AddFoldoutRow(mainLayout, soIcon, "Transform", parent.so, 
+            parent.children[0] = AddFoldoutRow(parent.childLayout, soIcon, "Transform", parent.so, 
                 null, parent.path + "/" + soName, ToggleTransformFoldout);
 
             // Add components
@@ -123,13 +127,16 @@ namespace BansheeEditor
                 
                 string name = childComponent.GetType().Name;
                 string path = parent.path + "/" + soName + "/:" + name;
-                parent.children[i + 1] = AddFoldoutRow(mainLayout, compIcon, name, parent.so, childComponent, path,
+                parent.children[i + 1] = AddFoldoutRow(parent.childLayout, compIcon, name, parent.so, childComponent, path,
                     toggleCallback);
             }
 
             // Add children
-            parent.children[parent.children.Length - 1] = AddFoldoutRow(mainLayout, soIcon, "Children", parent.so, null,
-                parent.path + "/" + soName, ToggleChildFoldout);
+            if (parent.so.GetNumChildren() > 0)
+            {
+                parent.children[parent.children.Length - 1] = AddFoldoutRow(parent.childLayout, soIcon, "Children",
+                    parent.so, null, parent.path + "/" + soName, ToggleChildFoldout);
+            }
         }
 
         /// <summary>
@@ -156,7 +163,7 @@ namespace BansheeEditor
                     case SerializableProperty.FieldType.Vector2:
                     case SerializableProperty.FieldType.Vector3:
                     case SerializableProperty.FieldType.Vector4:
-                        elements.Add(AddFieldRow(parent.childLayout, field.Name, parent.so, parent.comp, propertyPath));
+                        elements.Add(AddFieldRow(parent.childLayout, field.Name, parent.so, parent.comp, propertyPath, field.Type));
                         break;
                     case SerializableProperty.FieldType.Object:
                         Action<Element, bool> toggleCallback = 
@@ -184,8 +191,9 @@ namespace BansheeEditor
         /// <param name="component">Parent component of the field. Can be null if field belongs to <see cref="SceneObject"/>.
         ///                         </param>
         /// <param name="path">Slash separated path to the field from its parent object.</param>
+        /// <param name="type">Data type stored in the field.</param>
         /// <returns>Element object storing all information about the added field.</returns>
-        private Element AddFieldRow(GUILayout layout, string name, SceneObject so, Component component, string path)
+        private Element AddFieldRow(GUILayout layout, string name, SceneObject so, Component component, string path, SerializableProperty.FieldType type)
         {
             Element element = new Element(so, component, path);
 
@@ -195,7 +203,7 @@ namespace BansheeEditor
             elementLayout.AddElement(label);
 
             GUIButton selectBtn = new GUIButton(new LocEdString("Select"));
-            selectBtn.OnClick += () => { DoOnElementSelected(element); };
+            selectBtn.OnClick += () => { DoOnElementSelected(element, type); };
 
             elementLayout.AddFlexibleSpace();
             elementLayout.AddElement(selectBtn);
@@ -226,7 +234,7 @@ namespace BansheeEditor
             GUILayoutY elementLayout = layout.AddLayoutY();
             GUILayoutX foldoutLayout = elementLayout.AddLayoutX();
 
-            element.toggle = new GUIToggle(EditorStyles.Expand);
+            element.toggle = new GUIToggle("", EditorStyles.Expand);
             element.toggle.OnToggled += x => toggleCallback(element, x);
 
             foldoutLayout.AddElement(element.toggle);
@@ -267,9 +275,9 @@ namespace BansheeEditor
             {
                 parent.children = new Element[3];
 
-                parent.children[0] = AddFieldRow(parent.childLayout, "Position", parent.so, null, parent.path + "/Position");
-                parent.children[1] = AddFieldRow(parent.childLayout, "Rotation", parent.so, null, parent.path + "/Rotation");
-                parent.children[2] = AddFieldRow(parent.childLayout, "Scale", parent.so, null, parent.path + "/Scale");
+                parent.children[0] = AddFieldRow(parent.childLayout, "Position", parent.so, null, parent.path + "/Position", SerializableProperty.FieldType.Vector3);
+                parent.children[1] = AddFieldRow(parent.childLayout, "Rotation", parent.so, null, parent.path + "/Rotation", SerializableProperty.FieldType.Vector4);
+                parent.children[2] = AddFieldRow(parent.childLayout, "Scale", parent.so, null, parent.path + "/Scale", SerializableProperty.FieldType.Vector3);
             }
         }
 
@@ -344,10 +352,11 @@ namespace BansheeEditor
         /// Triggered when the user selects a field.
         /// </summary>
         /// <param name="element">Row element for the field that was selected.</param>
-        private void DoOnElementSelected(Element element)
+        /// <param name="type">Data type stored in the field.</param>
+        private void DoOnElementSelected(Element element, SerializableProperty.FieldType type)
         {
             if (OnElementSelected != null)
-                OnElementSelected(element.so, element.comp, element.path);
+                OnElementSelected(element.so, element.comp, element.path, type);
         }
     }
 
