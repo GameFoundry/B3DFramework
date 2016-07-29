@@ -53,7 +53,6 @@ namespace BansheeEditor
         {
             Vector3 center;
             Internal_CalculateArrayCenter(objects, out center);
-            Debug.Log(center);
             return center;
         }
 

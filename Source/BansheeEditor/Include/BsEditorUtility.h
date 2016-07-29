@@ -27,9 +27,7 @@ namespace BansheeEngine
 		 */
 		static AABox calculateBounds(const Vector<HSceneObject>& objects);
 
-		/**
-		 * Calculates world space center of the specified scene objects.
-		 */
+		/** Calculates world space center of the specified scene objects. */
 		static Vector3 calculateCenter(const Vector<HSceneObject>& objects);
 
 	private:
