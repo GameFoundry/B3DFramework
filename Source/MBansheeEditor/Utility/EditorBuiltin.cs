@@ -96,6 +96,14 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns the default GUI skin used in the editor.
+        /// </summary>
+        public static GUISkin GUISkin
+        {
+            get { return Internal_GetGUISkin(); }
+        }
+
+        /// <summary>
         /// Retrieves an icon used for displaying an entry in the library window.
         /// </summary>
         /// <param name="icon">Type of the icon to retrieve.</param>
@@ -211,6 +219,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Font Internal_GetDefaultFont();
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern GUISkin Internal_GetGUISkin();
     }
 
     /** @} */

@@ -27,13 +27,13 @@ namespace BansheeEditor
         {
             this.root = root;
 
-            scrollArea = new GUIScrollArea();
+            scrollArea = new GUIScrollArea(ScrollBarType.ShowIfDoesntFit, ScrollBarType.NeverShow);
             layout.AddElement(scrollArea);
 
             SetSize(width, height);
         }
 
-        public Action<string, bool> OnSelectionChanged;
+        public Action<string> OnEntrySelected;
 
         public void SetSize(int width, int height)
         {
@@ -77,12 +77,46 @@ namespace BansheeEditor
             }
         }
 
+        public void SetSelection(string[] paths)
+        {
+            Action<GUIAnimFieldEntry> updateSelection = field =>
+            {
+                bool foundSelected = false;
+                for (int j = 0; j < paths.Length; j++)
+                {
+                    if (field.Path == paths[j])
+                    {
+                        field.SetSelection(true);
+                        foundSelected = true;
+                        break;
+                    }
+                }
+
+                if (!foundSelected)
+                    field.SetSelection(false);
+            };
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                updateSelection(fields[i]);
+
+                // Check children (only one level allowed)
+                GUIAnimFieldEntry[] children = fields[i].GetChildren();
+                if (children == null)
+                    continue;
+
+                for (int j = 0; j < children.Length; j++)
+                    updateSelection(children[j]);
+            }
+        }
+
         private SerializableProperty FindProperty(string path)
         {
             if (string.IsNullOrEmpty(path) || root == null)
                 return null;
 
-            string[] entries = path.Split('/');
+            string trimmedPath = path.Trim('/');
+            string[] entries = trimmedPath.Split('/');
 
             // Find scene object referenced by the path
             SceneObject so = null;
@@ -203,10 +237,23 @@ namespace BansheeEditor
             GUIPanel mainPanel = rootPanel.AddPanel();
             GUIPanel underlayPanel = rootPanel.AddPanel(1);
             GUIPanel overlayPanel = rootPanel.AddPanel(-1);
+            GUIPanel backgroundPanel = rootPanel.AddPanel(2);
 
             layouts.main = mainPanel.AddLayoutY();
             layouts.underlay = underlayPanel.AddLayoutY();
             layouts.overlay = overlayPanel.AddLayoutY();
+            layouts.background = backgroundPanel.AddLayoutY();
+
+            GUIButton catchAll = new GUIButton("", EditorStyles.Blank);
+            catchAll.Bounds = new Rect2I(0, 0, width, height);
+            catchAll.OnClick += () => OnEntrySelected(null);
+
+            underlayPanel.AddElement(catchAll);
+
+            layouts.main.AddSpace(5);
+            layouts.underlay.AddSpace(5);
+            layouts.overlay.AddSpace(5);
+            layouts.background.AddSpace(5);
 
             fields = new GUIAnimFieldEntry[paths.Count];
             for (int i = 0; i < paths.Count; i++)
@@ -234,19 +281,25 @@ namespace BansheeEditor
                             fields[i] = new GUIAnimSimpleEntry(layouts, paths[i]);
                             break;
                     }
-
-                    if (fields[i] != null)
-                        fields[i].OnSelectionChanged += OnSelectionChanged;
                 }
                 else
                 {
                     fields[i] = new GUIAnimMissingEntry(layouts, paths[i]);
                 }
+
+                if (fields[i] != null)
+                    fields[i].OnEntrySelected += OnEntrySelected;
             }
+
+            layouts.main.AddSpace(5);
+            layouts.underlay.AddSpace(5);
+            layouts.overlay.AddSpace(5);
+            layouts.background.AddSpace(5);
 
             layouts.main.AddFlexibleSpace();
             layouts.underlay.AddFlexibleSpace();
             layouts.overlay.AddFlexibleSpace();
+            layouts.background.AddFlexibleSpace();
         }
     }
 
@@ -255,6 +308,7 @@ namespace BansheeEditor
         public GUILayout main;
         public GUILayout underlay;
         public GUILayout overlay;
+        public GUILayout background;
     }
 
     internal struct GUIAnimFieldPathValue
@@ -269,42 +323,67 @@ namespace BansheeEditor
         protected const int INDENT_AMOUNT = 10;
 
         protected string path;
-        private GUIToggle toggle;
+        private GUIButton selectionBtn;
+        private GUITexture backgroundTexture;
 
         private int entryHeight;
 
-        public Action<string, bool> OnSelectionChanged;
+        public Action<string> OnEntrySelected;
 
         public string Path { get { return path; } }
 
-        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path)
+        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path, bool shortName)
         {
             this.path = path;
 
             GUILayoutX toggleLayout = layouts.main.AddLayoutX();
             toggleLayout.AddSpace(15);
 
-            toggle = new GUIToggle(GetDisplayName(path), EditorStyles.SelectableLabel, GUIOption.FlexibleWidth());
-            toggle.OnToggled += x => { OnSelectionChanged?.Invoke(path, x); };
+            selectionBtn = new GUIButton(GetDisplayName(path, shortName), EditorStyles.Label, GUIOption.FlexibleWidth());
+            selectionBtn.OnClick += () =>
+            {
+                OnEntrySelected?.Invoke(path);
+            };
 
-            toggleLayout.AddElement(toggle);
+            toggleLayout.AddElement(selectionBtn);
 
-            entryHeight = toggle.Bounds.height;
+            entryHeight = selectionBtn.Bounds.height;
+
+            backgroundTexture = new GUITexture(Builtin.WhiteTexture, GUITextureScaleMode.StretchToFit, 
+                GUIOption.FlexibleWidth());
+            backgroundTexture.SetTint(Color.Transparent);
+            backgroundTexture.SetHeight(entryHeight);
+
+            layouts.background.AddElement(backgroundTexture);
         }
 
         public virtual void Toggle(bool on)
         {
-            toggle.Active = on;
+            selectionBtn.Active = on;
+            backgroundTexture.Active = on;
+        }
+
+        public void SetSelection(bool selected)
+        {
+            if(selected)
+                backgroundTexture.SetTint(Color.DarkCyan);
+            else
+                backgroundTexture.SetTint(Color.Transparent);
         }
 
         public virtual void SetValue(object value) { }
+
+        public virtual GUIAnimFieldEntry[] GetChildren()
+        {
+            return null;
+        }
 
         protected int GetEntryHeight()
         {
             return entryHeight;
         }
 
-        protected static string GetDisplayName(string path)
+        protected static string GetDisplayName(string path, bool shortName)
         {
             if (string.IsNullOrEmpty(path))
                 return "";
@@ -313,24 +392,30 @@ namespace BansheeEditor
             string compName;
             string propertyPath;
 
-            GetNames(path, out soName, out compName, out propertyPath);
+            string trimmedPath = path.Trim('/');
+            GetNames(trimmedPath, shortName, out soName, out compName, out propertyPath);
 
             if (soName == null || propertyPath == null)
                 return "";
 
-            string truncatedPropPath;
-            if (propertyPath.Length > MAX_PATH_LENGTH)
-                truncatedPropPath = "..." + propertyPath.Substring(propertyPath.Length - MAX_PATH_LENGTH);
+            if (shortName)
+                return propertyPath;
             else
-                truncatedPropPath = propertyPath;
+            {
+                string truncatedPropPath;
+                if (propertyPath.Length > MAX_PATH_LENGTH)
+                    truncatedPropPath = "..." + propertyPath.Substring(propertyPath.Length - MAX_PATH_LENGTH);
+                else
+                    truncatedPropPath = propertyPath;
 
-            if (compName != null)
-                return soName + "(" + compName + ")." + truncatedPropPath;
-            else
-                return soName + "." + truncatedPropPath;
+                if (compName != null)
+                    return soName + "(" + compName + ") - " + truncatedPropPath;
+                else
+                    return soName + " - " + truncatedPropPath;
+            }
         }
 
-        protected static void GetNames(string path, out string soName, out string compName, out string propertyPath)
+        protected static void GetNames(string path, bool shortName, out string soName, out string compName, out string propertyPath)
         {
             string[] entries = path.Split('/');
 
@@ -386,11 +471,24 @@ namespace BansheeEditor
                 }
             }
 
-            StringBuilder pathBuilder = new StringBuilder();
-            for (; pathIdx < entries.Length; pathIdx++)
-                pathBuilder.Append(entries[pathIdx] + "/");
+            if (shortName)
+            {
+                if (pathIdx < entries.Length)
+                    propertyPath = entries[entries.Length - 1];
+                else
+                    propertyPath = null;
+            }
+            else
+            {
+                StringBuilder pathBuilder = new StringBuilder();
+                for (; pathIdx < entries.Length - 1; pathIdx++)
+                    pathBuilder.Append(entries[pathIdx] + "/");
 
-            propertyPath = pathBuilder.ToString();
+                if (pathIdx < entries.Length)
+                    pathBuilder.Append(entries[pathIdx]);
+
+                propertyPath = pathBuilder.ToString();
+            }
         }
     }
 
@@ -400,8 +498,8 @@ namespace BansheeEditor
         private GUILayoutX underlayLayout;
         private GUILabel overlaySpacing;
 
-        public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path)
+        public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path, bool child = false)
+            : base(layouts, path, child)
         {
             valueDisplay = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();
@@ -411,8 +509,6 @@ namespace BansheeEditor
 
             overlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             layouts.overlay.AddElement(overlaySpacing);
-
-            // TODO - Alternating backgrounds
         }
 
         public override void Toggle(bool on)
@@ -442,7 +538,7 @@ namespace BansheeEditor
         protected GUIAnimSimpleEntry[] children;
 
         public GUIAnimComplexEntry(GUIAnimFieldLayouts layouts, string path, string[] childEntries)
-            : base(layouts, path)
+            : base(layouts, path, false)
         {
             foldout = new GUIToggle("", EditorStyles.Expand);
             foldout.OnToggled += Toggle;
@@ -456,7 +552,10 @@ namespace BansheeEditor
 
             children = new GUIAnimSimpleEntry[childEntries.Length];
             for (int i = 0; i < childEntries.Length; i++)
-                children[i] = new GUIAnimSimpleEntry(layouts, path + childEntries[i]);
+            {
+                children[i] = new GUIAnimSimpleEntry(layouts, path + childEntries[i], true);
+                children[i].OnEntrySelected += x => { OnEntrySelected?.Invoke(x); };
+            }
 
             Toggle(false);
         }
@@ -465,6 +564,11 @@ namespace BansheeEditor
         {
             foreach(var child in children)
                 child.Toggle(on);
+        }
+
+        public override GUIAnimFieldEntry[] GetChildren()
+        {
+            return children;
         }
     }
 
@@ -548,7 +652,7 @@ namespace BansheeEditor
         private GUILabel overlaySpacing;
 
         public GUIAnimMissingEntry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path)
+            : base(layouts, path, false)
         {
             missingLabel = new GUILabel("Missing property!", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();

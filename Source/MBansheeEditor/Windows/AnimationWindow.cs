@@ -82,7 +82,7 @@ namespace BansheeEditor
             if (!isInitialized)
                 return;
 
-            guiFieldDisplay.SetSize(width, height - buttonLayoutHeight*2);
+            guiFieldDisplay.SetSize(FIELD_DISPLAY_WIDTH, height - buttonLayoutHeight*2);
 
             int curveEditorWidth = Math.Max(0, width - FIELD_DISPLAY_WIDTH);
             guiCurveEditor.SetSize(curveEditorWidth, height - buttonLayoutHeight);
@@ -186,7 +186,7 @@ namespace BansheeEditor
 
             guiFieldDisplay = new GUIAnimFieldDisplay(fieldDisplayLayout, FIELD_DISPLAY_WIDTH,
                 Height - buttonLayoutHeight * 2, selectedSO);
-            guiFieldDisplay.OnSelectionChanged += OnFieldSelectionChanged;
+            guiFieldDisplay.OnEntrySelected += OnFieldSelected;
 
             GUILayout bottomButtonLayout = fieldDisplayLayout.AddLayoutX();
             bottomButtonLayout.AddElement(addPropertyBtn);
@@ -314,12 +314,36 @@ namespace BansheeEditor
             UpdateDisplayedCurves();
         }
 
-        private void OnFieldSelectionChanged(string path, bool selected)
+        private bool IsPathParent(string child, string parent)
         {
-            if (selected)
+            string[] childEntries = child.Split('/', '.');
+            string[] parentEntries = parent.Split('/', '.');
+
+            if (parentEntries.Length >= child.Length)
+                return false;
+
+            int compareLength = Math.Min(childEntries.Length, parentEntries.Length);
+            for (int i = 0; i < compareLength; i++)
+            {
+                if (childEntries[i] != parentEntries[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void OnFieldSelected(string path)
+        {
+            if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
+                selectedFields.Clear();
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                selectedFields.RemoveAll(x => { return x == path || IsPathParent(x, path); });
                 selectedFields.Add(path);
-            else
-                selectedFields.Remove(path);
+            }
+
+            guiFieldDisplay.SetSelection(selectedFields.ToArray());
 
             UpdateDisplayedCurves();
         }

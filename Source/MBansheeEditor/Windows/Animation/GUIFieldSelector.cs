@@ -18,8 +18,10 @@ namespace BansheeEditor
     public class GUIFieldSelector
     {
         private const int INDENT_AMOUNT = 5;
+        private const int PADDING = 5;
 
-        private GUILayoutY mainLayout;
+        private GUIScrollArea scrollArea;
+        private int foldoutWidth;
 
         private SceneObject rootSO;
         private Element rootElement;
@@ -47,8 +49,8 @@ namespace BansheeEditor
             public string path;
 
             public GUIToggle toggle;
-            public GUILayoutY childLayout;
-            public GUILayoutX indentLayout;
+            public GUILayout childLayout;
+            public GUILayout indentLayout;
 
             public Element[] children;
         }
@@ -68,10 +70,21 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="layout">Layout into which to add the selector GUI hierarchy.</param>
         /// <param name="so">Scene object to inspect the fields for.</param>
-        public GUIFieldSelector(GUILayout layout, SceneObject so)
+        /// <param name="width">Width of the selector area, in pixels.</param>
+        /// <param name="height">Height of the selector area, in pixels.</param>
+        public GUIFieldSelector(GUILayout layout, SceneObject so, int width, int height)
         {
             rootSO = so;
-            mainLayout = layout.AddLayoutY();
+
+            scrollArea = new GUIScrollArea();
+            scrollArea.SetWidth(width);
+            scrollArea.SetHeight(height);
+
+            layout.AddElement(scrollArea);
+
+            GUISkin skin = EditorBuiltin.GUISkin;
+            GUIElementStyle style = skin.GetStyle(EditorStyles.Expand);
+            foldoutWidth = style.Width;
 
             Rebuild();
         }
@@ -81,18 +94,20 @@ namespace BansheeEditor
         /// </summary>
         private void Rebuild()
         {
-            mainLayout.Clear();
+            scrollArea.Layout.Clear();
             rootElement = new Element();
 
             if (rootSO == null)
                 return;
 
             rootElement.so = rootSO;
-            rootElement.childLayout = mainLayout;
+            rootElement.childLayout = scrollArea.Layout;
             rootElement.indentLayout = null;
 
+            scrollArea.Layout.AddSpace(5);
             AddSceneObjectRows(rootElement);
-            mainLayout.AddFlexibleSpace();
+            scrollArea.Layout.AddSpace(5);
+            scrollArea.Layout.AddFlexibleSpace();
         }
 
         /// <summary>
@@ -198,7 +213,9 @@ namespace BansheeEditor
             Element element = new Element(so, component, path);
 
             GUILayoutX elementLayout = layout.AddLayoutX();
-           
+
+            elementLayout.AddSpace(PADDING);
+            elementLayout.AddSpace(foldoutWidth);
             GUILabel label = new GUILabel(new LocEdString(name));
             elementLayout.AddElement(label);
 
@@ -237,6 +254,7 @@ namespace BansheeEditor
             element.toggle = new GUIToggle("", EditorStyles.Expand);
             element.toggle.OnToggled += x => toggleCallback(element, x);
 
+            foldoutLayout.AddSpace(PADDING);
             foldoutLayout.AddElement(element.toggle);
 
             if (icon != null)

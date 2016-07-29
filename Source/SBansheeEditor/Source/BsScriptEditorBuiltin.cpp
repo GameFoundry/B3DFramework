@@ -9,6 +9,7 @@
 #include "BsScriptGUIContentImages.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptFont.h"
+#include "BsScriptGUISkin.h"
 
 namespace BansheeEngine
 {
@@ -29,6 +30,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetLogIcon", &ScriptEditorBuiltin::internal_GetLogIcon);
 		metaData.scriptClass->addInternalCall("Internal_GetEditorIcon", &ScriptEditorBuiltin::internal_GetEditorIcon);
 		metaData.scriptClass->addInternalCall("Internal_GetDefaultFont", &ScriptEditorBuiltin::internal_GetDefaultFont);
+		metaData.scriptClass->addInternalCall("Internal_GetGUISkin", &ScriptEditorBuiltin::internal_GetGUISkin);
 	}
 
 	MonoObject* ScriptEditorBuiltin::internal_getLibraryItemIcon(ProjectIcon icon, int size)
@@ -109,5 +111,15 @@ namespace BansheeEngine
 		ScriptResourceManager::instance().getScriptResource(font, &scriptFont, true);
 
 		return scriptFont->getManagedInstance();
+	}
+
+	MonoObject* ScriptEditorBuiltin::internal_GetGUISkin()
+	{
+		HGUISkin guiSkin = BuiltinEditorResources::instance().getSkin();
+
+		ScriptGUISkin* scriptGUISkin;
+		ScriptResourceManager::instance().getScriptResource(guiSkin, &scriptGUISkin, true);
+
+		return scriptGUISkin->getManagedInstance();
 	}
 }

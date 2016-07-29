@@ -22,19 +22,11 @@ namespace BansheeEditor
         /// </summary>
         public FieldSelectionWindow()
         {
-            GUILayout layoutY = GUI.AddLayoutY();
-            layoutY.AddSpace(5);
-            GUILayout layoutX = layoutY.AddLayoutX();
-            layoutY.AddSpace(5);
-
-            layoutX.AddSpace(5);
-            GUILayout selectorLayout = layoutX.AddLayoutY();
-            layoutX.AddSpace(5);
-
-            guiFieldSelector = new GUIFieldSelector(selectorLayout, Selection.SceneObject);
+            guiFieldSelector = new GUIFieldSelector(GUI, Selection.SceneObject, Width, Height);
             guiFieldSelector.OnElementSelected += (so, comp, path, type) =>
             {
                 OnFieldSelected?.Invoke(path, type);
+                Close();
             };
         }
     }

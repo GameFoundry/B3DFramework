@@ -352,6 +352,8 @@ namespace BansheeEngine
                     return FieldType.Vector3;
                 else if (internalType == typeof (Vector4))
                     return FieldType.Vector4;
+                else if (internalType == typeof(Quaternion))
+                    return FieldType.Vector4;
                 else if (internalType == typeof (Color))
                     return FieldType.Color;
                 else if (internalType.IsSubclassOf(typeof (GameObject)))

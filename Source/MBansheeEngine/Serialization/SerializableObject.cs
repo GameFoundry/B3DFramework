@@ -95,7 +95,8 @@ namespace BansheeEngine
             if (path == null)
                 return null;
 
-            string[] pathEntries = path.Split('/');
+            string trimmedPath = path.Trim('/');
+            string[] pathEntries = trimmedPath.Split('/');
             PropertyPathElement[] pathElements = new PropertyPathElement[pathEntries.Length];
             for (int i = 0; i < pathEntries.Length; i++)
             {

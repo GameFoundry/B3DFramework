@@ -38,6 +38,7 @@ namespace BansheeEngine
 		static MonoObject* internal_GetEditorIcon(EditorIcon icon);
 
 		static MonoObject* internal_GetDefaultFont();
+		static MonoObject* internal_GetGUISkin();
 	};
 
 	/** @} */
