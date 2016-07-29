@@ -44,6 +44,19 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Calculates the center of all axis aligned boxes of the provided scene objects.
+        /// Only certain components like <see cref="Renderable"/> will be included in center calculations.
+        /// </summary>
+        /// <param name="objects">Scene objects to calculate the center for.</param>
+        /// <returns>Center of the objects group in world space.</returns>
+        public static Vector3 CalculateCenter(SceneObject[] objects)
+        {
+            Vector3 center;
+            Internal_CalculateArrayCenter(objects, out center);
+            return center;
+        }
+
+        /// <summary>
         /// Converts a hierarchy of scene objects and their children into a flat array. Doesn't modify the scene object's
         /// themselves. 
         /// </summary>
@@ -99,6 +112,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CalculateBoundsArray(SceneObject[] objects, out AABox bounds);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_CalculateArrayCenter(SceneObject[] objects, out Vector3 center);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Resource[] Internal_FindDependencies(Resource resource, bool recursive);

@@ -105,8 +105,7 @@ namespace BansheeEditor
                     foreach (var so in selectedSceneObjects)
                         flatenedHierarchy.AddRange(EditorUtility.FlattenHierarchy(so));
 
-                    AABox selectionBounds = EditorUtility.CalculateBounds(flatenedHierarchy.ToArray());
-                    position = selectionBounds.Center;
+                    position = EditorUtility.CalculateCenter(flatenedHierarchy.ToArray());
                 }
 
                 activeHandle.Position = position;
