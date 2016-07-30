@@ -60,6 +60,17 @@ namespace BansheeEngine
 		 */
 		T evaluate(float time, bool loop = true) const;
 
+		/**
+		 * Evaluate the animation curve at the specified time and returns a new keyframe containing the evaluated value
+		 * and tangents.
+		 *
+		 * @param[in]	time	Time to evaluate the curve at.		
+		 * @param[in]	loop	If true the curve will loop when it goes past the end or beggining. Otherwise the curve 
+		 *						value will be clamped.
+		 * @return				Keyframe containing the interpolated value and tangents at provided time.
+		 */
+		KeyFrame evaluateKey(float time, bool loop = true) const;
+
 		/** 
 		 * Splits a piece of the animation curve into a separate animation curve. 
 		 *
@@ -120,7 +131,7 @@ namespace BansheeEngine
 		 * @param[in]	t		Curve time to interpolate the keys at.
 		 * @return				Interpolated key value.
 		 */
-		KeyFrame evaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time);
+		KeyFrame evaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time) const;
 
 		/** 
 		 * Evaluates a value at the cached curve. Caller must ensure the request time falls within the cached curve range.
@@ -131,6 +142,9 @@ namespace BansheeEngine
 		 * @return						Interpolated value from the curve at provided time.
 		 */
 		T evaluateCache(float time, const TCurveCache<T>& animInstance) const;
+
+		/** Clamps the time argument to valid range. */
+		void clampTime(float& time, bool loop) const;
 
 		static const UINT32 CACHE_LOOKAHEAD;
 

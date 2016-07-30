@@ -31,6 +31,17 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_Evaluate", &ScriptAnimationCurve::internal_Evaluate);
 	}
 
+	MonoObject* ScriptAnimationCurve::create(const TAnimationCurve<float>& curve)
+	{
+		SPtr<TAnimationCurve<float>> curvePtr = bs_shared_ptr_new<TAnimationCurve<float>>();
+		*curvePtr = curve;
+
+		MonoObject* instance = metaData.scriptClass->createInstance();
+		new (bs_alloc<ScriptAnimationCurve>()) ScriptAnimationCurve(instance, curvePtr);
+
+		return instance;
+	}
+
 	void ScriptAnimationCurve::internal_Create(MonoObject* instance, MonoArray* keyFrames)
 	{
 		ScriptArray inArray(keyFrames);

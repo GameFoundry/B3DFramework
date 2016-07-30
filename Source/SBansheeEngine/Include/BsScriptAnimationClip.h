@@ -29,6 +29,8 @@ namespace BansheeEngine
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
+		static MonoObject* internal_GetAnimationCurves(ScriptAnimationClip* thisPtr);
+		static void internal_SetAnimationCurves(ScriptAnimationClip* thisPtr, MonoObject* curves);
 	};
 
 	/** @} */

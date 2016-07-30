@@ -7,6 +7,79 @@
 
 namespace BansheeEngine
 {
+
+	void AnimationCurves::addPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
+	{
+		auto iterFind = std::find_if(position.begin(), position.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != position.end())
+			iterFind->curve = curve;
+		else
+			position.push_back({ name, curve });
+	}
+
+	void AnimationCurves::addRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
+	{
+		auto iterFind = std::find_if(rotation.begin(), rotation.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != rotation.end())
+			iterFind->curve = curve;
+		else
+			rotation.push_back({ name, curve });
+	}
+
+	void AnimationCurves::addScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
+	{
+		auto iterFind = std::find_if(scale.begin(), scale.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != scale.end())
+			iterFind->curve = curve;
+		else
+			scale.push_back({ name, curve });
+	}
+
+	void AnimationCurves::addGenericCurve(const String& name, const TAnimationCurve<float>& curve)
+	{
+		auto iterFind = std::find_if(generic.begin(), generic.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != generic.end())
+			iterFind->curve = curve;
+		else
+			generic.push_back({ name, curve });
+	}
+
+	void AnimationCurves::removePositionCurve(const String& name)
+	{
+		auto iterFind = std::find_if(position.begin(), position.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != position.end())
+			position.erase(iterFind);
+	}
+
+	void AnimationCurves::removeRotationCurve(const String& name)
+	{
+		auto iterFind = std::find_if(rotation.begin(), rotation.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != rotation.end())
+			rotation.erase(iterFind);
+	}
+
+	void AnimationCurves::removeScaleCurve(const String& name)
+	{
+		auto iterFind = std::find_if(scale.begin(), scale.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != scale.end())
+			scale.erase(iterFind);
+	}
+
+	void AnimationCurves::removeGenericCurve(const String& name)
+	{
+		auto iterFind = std::find_if(generic.begin(), generic.end(), [&](auto x) { return x.name == name; });
+
+		if (iterFind != generic.end())
+			generic.erase(iterFind);
+	}
+
 	AnimationClip::AnimationClip()
 		: Resource(false), mVersion(0), mCurves(bs_shared_ptr_new<AnimationCurves>()), mIsAdditive(false)
 	{
@@ -50,156 +123,9 @@ namespace BansheeEngine
 		return newClip;
 	}
 
-	void AnimationClip::addPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
+	void AnimationClip::setCurves(const AnimationCurves& curves)
 	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->rotation = mCurves->rotation;
-		newCurves->scale = mCurves->scale;
-		newCurves->generic = mCurves->generic;
-
-		for(auto& entry : mCurves->position)
-		{
-			if (entry.name != name)
-				newCurves->position.push_back(entry);
-		}
-
-		newCurves->position.push_back({ name, curve });
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::addRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->scale = mCurves->scale;
-		newCurves->generic = mCurves->generic;
-
-		for (auto& entry : mCurves->rotation)
-		{
-			if (entry.name != name)
-				newCurves->rotation.push_back(entry);
-		}
-
-		newCurves->rotation.push_back({ name, curve });
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::addScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->rotation = mCurves->rotation;
-		newCurves->generic = mCurves->generic;
-
-		for (auto& entry : mCurves->scale)
-		{
-			if (entry.name != name)
-				newCurves->scale.push_back(entry);
-		}
-
-		newCurves->scale.push_back({ name, curve });
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::addGenericCurve(const String& name, const TAnimationCurve<float>& curve)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->rotation = mCurves->rotation;
-		newCurves->scale = mCurves->scale;
-
-		for (auto& entry : mCurves->generic)
-		{
-			if (entry.name != name)
-				newCurves->generic.push_back(entry);
-		}
-
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::removePositionCurve(const String& name)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->rotation = mCurves->rotation;
-		newCurves->scale = mCurves->scale;
-		newCurves->generic = mCurves->generic;
-
-		for (auto& entry : mCurves->position)
-		{
-			if (entry.name != name)
-				newCurves->position.push_back(entry);
-		}
-
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::removeRotationCurve(const String& name)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->scale = mCurves->scale;
-		newCurves->generic = mCurves->generic;
-
-		for (auto& entry : mCurves->rotation)
-		{
-			if (entry.name != name)
-				newCurves->rotation.push_back(entry);
-		}
-
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::removeScaleCurve(const String& name)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->rotation = mCurves->rotation;
-		newCurves->generic = mCurves->generic;
-
-		for (auto& entry : mCurves->scale)
-		{
-			if (entry.name != name)
-				newCurves->scale.push_back(entry);
-		}
-
-		mCurves = newCurves;
-
-		buildNameMapping();
-		mVersion++;
-	}
-
-	void AnimationClip::removeGenericCurve(const String& name)
-	{
-		SPtr<AnimationCurves> newCurves = bs_shared_ptr_new<AnimationCurves>();
-		newCurves->position = mCurves->position;
-		newCurves->rotation = mCurves->rotation;
-		newCurves->scale = mCurves->scale;
-
-		for (auto& entry : mCurves->generic)
-		{
-			if (entry.name != name)
-				newCurves->generic.push_back(entry);
-		}
-
-		mCurves = newCurves;
+		*mCurves = curves;
 
 		buildNameMapping();
 		mVersion++;

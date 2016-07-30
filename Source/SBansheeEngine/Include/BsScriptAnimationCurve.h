@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
+#include "BsAnimationCurve.h"
 
 namespace BansheeEngine
 {
@@ -26,6 +27,12 @@ namespace BansheeEngine
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "AnimationCurve")
+
+		/** Returns the internal native curve stored in this wrapper. */
+		SPtr<TAnimationCurve<float>> getInternal() const { return mCurve; }
+
+		/** Creates a new managed object wrapping the provided curve. */
+		static MonoObject* create(const TAnimationCurve<float>& curve);
 
 	private:
 		ScriptAnimationCurve(MonoObject* instance, const SPtr<TAnimationCurve<float>>& curve);

@@ -37,6 +37,12 @@ namespace BansheeEngine
     public class AnimationCurve : ScriptObject
     {
         /// <summary>
+        /// Constructor for internal runtime use only.
+        /// </summary>
+        private AnimationCurve()
+        { }
+
+        /// <summary>
         /// Creates a new animation curve.
         /// </summary>
         /// <param name="keyFrames">Keyframes to initialize the curve with.</param>
@@ -77,5 +83,73 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_Evaluate(IntPtr thisPtr, float time, bool loop);
+    }
+    
+    /// <summary>
+    /// A set of animation curves for a 3D vector paired with a name.
+    /// </summary>
+    public class NamedVector3Curve
+    {
+        /// <summary>
+        /// Constructs a new named animation curve.
+        /// </summary>
+        /// <param name="name">Name of the curve.</param>
+        /// <param name="x">Curve representing the x axis of the vector.</param>
+        /// <param name="y">Curve representing the y axis of the vector.</param>
+        /// <param name="z">Curve representing the z axis of the vector.</param>
+        public NamedVector3Curve(string name, AnimationCurve x, AnimationCurve y, AnimationCurve z)
+        {
+            Name = name;
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        /// <summary>
+        /// Name of the curve.
+        /// </summary>
+        public string Name;
+
+        /// <summary>
+        /// Animation curve for the x axis.
+        /// </summary>
+        public AnimationCurve X;
+
+        /// <summary>
+        /// Animation curve for the y axis.
+        /// </summary>
+        public AnimationCurve Y;
+
+        /// <summary>
+        /// Animation curve for the z axis.
+        /// </summary>
+        public AnimationCurve Z;
+    }
+
+    /// <summary>
+    /// An animatio curve for a single floating point value paired with a name.
+    /// </summary>
+    public class NamedFloatCurve
+    {
+        /// <summary>
+        /// Constructs a new named animation curve.
+        /// </summary>
+        /// <param name="name">Name of the curve.</param>
+        /// <param name="curve">Curve representing the floating point values.</param>
+        public NamedFloatCurve(string name, AnimationCurve curve)
+        {
+            Name = name;
+            Curve = curve;
+        }
+
+        /// <summary>
+        /// Name of the curve.
+        /// </summary>
+        public string Name;
+
+        /// <summary>
+        /// Animation curve.
+        /// </summary>
+        public AnimationCurve Curve;
     }
 }

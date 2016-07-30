@@ -87,7 +87,7 @@ namespace BansheeEngine
 		}
 
 		if (gotOneMesh)
-			return center / count;
+			return center / (float)count;
 
 		return Vector3::ZERO;
 	}
