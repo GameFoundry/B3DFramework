@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsMeshImportOptions.h"
+#include "BsAnimationClipRTTI.h"
 
 namespace BansheeEngine
 {
@@ -27,6 +28,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mCollisionMeshType, 7)
 			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationSplits, 8)
 			BS_RTTI_MEMBER_PLAIN(mReduceKeyFrames, 9)
+			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationEvents, 10)
 		BS_END_RTTI_MEMBERS
 	public:
 		MeshImportOptionsRTTI()
@@ -50,6 +52,35 @@ namespace BansheeEngine
 		}
 	};
 
+	class BS_CORE_EXPORT ImportedAnimationEventsRTTI : public RTTIType <ImportedAnimationEvents, IReflectable, ImportedAnimationEventsRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(name, 0)
+			BS_RTTI_MEMBER_PLAIN(events, 1)
+		BS_END_RTTI_MEMBERS
+	public:
+		ImportedAnimationEventsRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "ImportedAnimationEvents";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ImportedAnimationEvents;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ImportedAnimationEvents>();
+		}
+	};
+
 	class BS_CORE_EXPORT AnimationSplitInfoRTTI : public RTTIType <AnimationSplitInfo, IReflectable, AnimationSplitInfoRTTI>
 	{
 	private:
@@ -58,7 +89,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(startFrame, 1)
 			BS_RTTI_MEMBER_PLAIN(endFrame, 2)
 			BS_RTTI_MEMBER_PLAIN(isAdditive, 3)
-		BS_END_RTTI_MEMBERS
+			BS_END_RTTI_MEMBERS
 	public:
 		AnimationSplitInfoRTTI()
 			:mInitMembers(this)

@@ -5,9 +5,6 @@
 
 namespace BansheeEngine
 {
-	/************************************************************************/
-	/* 								SERIALIZATION                      		*/
-	/************************************************************************/
 	RTTITypeBase* AnimationSplitInfo::getRTTIStatic()
 	{
 		return AnimationSplitInfoRTTI::instance();
@@ -18,14 +15,21 @@ namespace BansheeEngine
 		return AnimationSplitInfo::getRTTIStatic();
 	}
 
+	RTTITypeBase* ImportedAnimationEvents::getRTTIStatic()
+	{
+		return ImportedAnimationEventsRTTI::instance();
+	}
+
+	RTTITypeBase* ImportedAnimationEvents::getRTTI() const
+	{
+		return ImportedAnimationEvents::getRTTIStatic();
+	}
+
 	MeshImportOptions::MeshImportOptions()
 		: mCPUReadable(false), mImportNormals(true), mImportTangents(true), mImportBlendShapes(false), mImportSkin(false)
 		, mImportAnimation(false), mReduceKeyFrames(true), mImportScale(1.0f), mCollisionMeshType(CollisionMeshType::None)
 	{ }
 
-	/************************************************************************/
-	/* 								SERIALIZATION                      		*/
-	/************************************************************************/
 	RTTITypeBase* MeshImportOptions::getRTTIStatic()
 	{
 		return MeshImportOptionsRTTI::instance();

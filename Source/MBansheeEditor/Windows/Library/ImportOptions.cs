@@ -131,6 +131,15 @@ namespace BansheeEditor
         public int endFrame = 0;
         public bool isAdditive = false;
     }
+
+    /// <summary>
+    /// A set of animation events that will be added to an animation clip during animation import.
+    /// </summary>
+    public class ImportedAnimationEvents
+    {
+        public string name;
+        public AnimationEvent[] events;
+    }
     
     /// <summary>
     /// Provides options for controlling how is a mesh resource imported.
@@ -238,6 +247,15 @@ namespace BansheeEditor
             set { Internal_SetAnimationClipSplits(mCachedPtr, value); }
         }
 
+        /// <summary>
+        /// A set of events that will be added to the animation clip, if animation import is enabled.
+        /// </summary>
+        public ImportedAnimationEvents[] AnimationEvents
+        {
+            get { return Internal_GetAnimationEvents(mCachedPtr); }
+            set { Internal_SetAnimationEvents(mCachedPtr, value); }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CreateInstance(MeshImportOptions instance);
 
@@ -288,6 +306,12 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetAnimationClipSplits(IntPtr thisPtr, AnimationSplitInfo[] value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ImportedAnimationEvents[] Internal_GetAnimationEvents(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetAnimationEvents(IntPtr thisPtr, ImportedAnimationEvents[] value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetScale(IntPtr thisPtr);

@@ -14,6 +14,7 @@
 #include "BsRenderer.h"
 #include "BsScriptFont.h"
 #include "BsRTTIType.h"
+#include "BsScriptAnimationClip.h"
 
 using namespace std::placeholders;
 
@@ -326,6 +327,33 @@ namespace BansheeEngine
 			splitInfos[i] = ScriptAnimationSplitInfo::fromManaged(inputArray.get<MonoObject*>(i));
 
 		io->setAnimationClipSplits(splitInfos);
+	}
+
+	MonoArray* ScriptMeshImportOptions::internal_GetAnimationEvents(ScriptMeshImportOptions* thisPtr)
+	{
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		Vector<ImportedAnimationEvents> animationEvents = io->getAnimationEvents();
+		UINT32 count = (UINT32)animationEvents.size();
+		ScriptArray outputArray = ScriptArray::create<ScriptImportedAnimationEvents>(count);
+		for (UINT32 i = 0; i < count; i++)
+			outputArray.set(i, ScriptImportedAnimationEvents::toManaged(animationEvents[i]));
+
+		return outputArray.getInternal();
+	}
+
+	void ScriptMeshImportOptions::internal_SetAnimationEvents(ScriptMeshImportOptions* thisPtr, MonoArray* value)
+	{
+		ScriptArray inputArray(value);
+
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		UINT32 count = inputArray.size();
+		Vector<ImportedAnimationEvents> animationEvents(count);
+		for (UINT32 i = 0; i < count; i++)
+			animationEvents[i] = ScriptImportedAnimationEvents::fromManaged(inputArray.get<MonoObject*>(i));
+
+		io->setAnimationEvents(animationEvents);
 	}
 
 	ScriptFontImportOptions::ScriptFontImportOptions(MonoObject* instance)
@@ -645,5 +673,65 @@ namespace BansheeEngine
 
 		void* params[4] = { monoString, &startFrame, &endFrame, &isAdditive };
 		return metaData.scriptClass->createInstance("string, int, int, bool", params);
+	}
+
+	MonoField* ScriptImportedAnimationEvents::nameField = nullptr;
+	MonoField* ScriptImportedAnimationEvents::eventsField = nullptr;
+
+	ScriptImportedAnimationEvents::ScriptImportedAnimationEvents(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
+	void ScriptImportedAnimationEvents::initRuntimeData()
+	{
+		nameField = metaData.scriptClass->getField("name");
+		eventsField = metaData.scriptClass->getField("events");
+	}
+
+	ImportedAnimationEvents ScriptImportedAnimationEvents::fromManaged(MonoObject* instance)
+	{
+		ImportedAnimationEvents output;
+
+		MonoString* monoName = nullptr;
+		nameField->getValue(instance, &monoName);
+
+		output.name = MonoUtil::monoToString(monoName);
+
+		MonoArray* monoEvents;
+		eventsField->getValue(instance, &monoEvents);
+
+		if (monoEvents != nullptr)
+		{
+			ScriptArray scriptEvents(monoEvents);
+			for (UINT32 i = 0; i < scriptEvents.size(); i++)
+			{
+				MonoObject* monoEvent = scriptEvents.get<MonoObject*>(i);
+				AnimationEvent event = ScriptAnimationEvent::toNative(monoEvent);
+
+				output.events.push_back(event);
+			}
+		}
+
+		return output;
+	}
+
+	MonoObject* ScriptImportedAnimationEvents::toManaged(const ImportedAnimationEvents& events)
+	{
+		MonoString* monoString = MonoUtil::stringToMono(events.name);
+		
+		UINT32 numEvents = (UINT32)events.events.size();
+		ScriptArray scriptEvents = ScriptArray::create<ScriptAnimationEvent>(numEvents);
+
+		for (UINT32 i = 0; i < numEvents; i++)
+		{
+			MonoObject* monoEvent = ScriptAnimationEvent::toManaged(events.events[i]);
+			scriptEvents.set(i, monoEvent);
+		}
+
+		MonoObject* instance = metaData.scriptClass->createInstance();
+		nameField->setValue(instance, monoString);
+		eventsField->setValue(instance, scriptEvents.getInternal());
+
+		return instance;
 	}
 }

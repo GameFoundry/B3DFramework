@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsImportOptions.h"
+#include "BsAnimationClip.h"
 
 namespace BansheeEngine
 {
@@ -34,6 +35,23 @@ namespace BansheeEngine
 		/************************************************************************/
 	public:
 		friend class AnimationSplitInfoRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** A set of animation events that will be added to an animation clip during animation import. */
+	struct BS_CORE_EXPORT ImportedAnimationEvents : IReflectable
+	{
+		ImportedAnimationEvents() { }
+
+		String name;
+		Vector<AnimationEvent> events;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class ImportedAnimationEventsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};
@@ -107,8 +125,14 @@ namespace BansheeEngine
 		 */
 		void setAnimationClipSplits(const Vector<AnimationSplitInfo>& splitInfos) { mAnimationSplits = splitInfos; }
 
-		/** Returns a copy of the animation splits array. */
+		/** Returns a copy of the animation splits array. @see setAnimationClipSplits. */
 		Vector<AnimationSplitInfo> getAnimationClipSplits() const { return mAnimationSplits; }
+
+		/** Assigns a set of events that will be added to the animation clip, if animation import is enabled. */
+		void setAnimationEvents(const Vector<ImportedAnimationEvents>& events) { mAnimationEvents = events; }
+
+		/** Returns a copy of the animation events array. @see setAnimationEvents. */
+		Vector<ImportedAnimationEvents> getAnimationEvents() const { return mAnimationEvents; }
 
 		/**	
 		 * Enables or disabled keyframe reduction. Keyframe reduction will reduce the number of key-frames in an animation
@@ -134,6 +158,7 @@ namespace BansheeEngine
 		float mImportScale;
 		CollisionMeshType mCollisionMeshType;
 		Vector<AnimationSplitInfo> mAnimationSplits;
+		Vector<ImportedAnimationEvents> mAnimationEvents;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

@@ -175,9 +175,19 @@ namespace BansheeEngine
 				}
 			}
 
+			Vector<ImportedAnimationEvents> events = meshImportOptions->getAnimationEvents();
 			for(auto& entry : animationClips)
 			{
 				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive);
+				
+				for(auto& eventsEntry : events)
+				{
+					if(entry.name == eventsEntry.name)
+					{
+						clip->setEvents(eventsEntry.events);
+						break;
+					}
+				}
 
 				output.push_back({ toWString(entry.name), clip });
 			}

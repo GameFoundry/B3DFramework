@@ -120,6 +120,8 @@ namespace BansheeEngine
 		static void internal_SetCollisionMeshType(ScriptMeshImportOptions* thisPtr, int value);
 		static MonoArray* internal_GetAnimationClipSplits(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value);
+		static MonoArray* internal_GetAnimationEvents(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetAnimationEvents(ScriptMeshImportOptions* thisPtr, MonoArray* value);
 	};
 
 	/**	Interop class between C++ & CLR for FontImportOptions. */
@@ -241,6 +243,28 @@ namespace BansheeEngine
 		static MonoField* startFrameField;
 		static MonoField* endFrameField;
 		static MonoField* isAdditiveField;
+	};
+
+	/** Helper class for dealing with ImportedAnimationEvents structure. */
+	class BS_SCR_BED_EXPORT ScriptImportedAnimationEvents : public ScriptObject<ScriptImportedAnimationEvents>
+	{
+	public:
+		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "ImportedAnimationEvents")
+
+		/** Converts managed events info to its native counterpart. */
+		static ImportedAnimationEvents fromManaged(MonoObject* object);
+
+		/** Converts native events info to its managed counterpart. */
+		static MonoObject* toManaged(const ImportedAnimationEvents& events);
+
+	private:
+		ScriptImportedAnimationEvents(MonoObject* instance);
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static MonoField* nameField;
+		static MonoField* eventsField;
 	};
 
 	/** @} */
