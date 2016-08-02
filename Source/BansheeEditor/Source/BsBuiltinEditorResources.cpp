@@ -66,8 +66,9 @@ namespace BansheeEngine
 
 	const char* BuiltinEditorResources::ShaderFolder = "Shaders\\";
 	const char* BuiltinEditorResources::SkinFolder = "Skin\\";
-	const char* BuiltinEditorResources::IconFolder = "Skin\\Icons";
+	const char* BuiltinEditorResources::IconFolder = "Icons\\";
 	const char* BuiltinEditorResources::ShaderIncludeFolder = "Includes\\";
+	const char* BuiltinEditorResources::SpriteSubFolder = "Sprites\\";
 
 	const WString BuiltinEditorResources::FolderIconTex = L"FolderIcon.psd";
 	const WString BuiltinEditorResources::MeshIconTex = L"MeshIcon.psd";
@@ -308,12 +309,15 @@ namespace BansheeEngine
 		// Set up paths
 		BuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw\\Editor\\";
 		EditorRawSkinFolder = BuiltinRawDataFolder + SkinFolder;
+		EditorRawIconsFolder = BuiltinRawDataFolder + IconFolder;
 		EditorRawShaderFolder = BuiltinRawDataFolder + ShaderFolder;
 		EditorRawShaderIncludeFolder = BuiltinRawDataFolder + ShaderIncludeFolder;
 
 		BuiltinDataFolder = Paths::getRuntimeDataPath() + EDITOR_DATA_FOLDER;
 		EditorSkinFolder = BuiltinDataFolder + SkinFolder;
+		EditorSkinSpritesFolder = EditorSkinFolder + SpriteSubFolder;
 		EditorIconFolder = BuiltinDataFolder + IconFolder;
+		EditorIconSpritesFolder = EditorIconFolder + SpriteSubFolder;
 		EditorShaderFolder = BuiltinDataFolder + ShaderFolder;
 		EditorShaderIncludeFolder = BuiltinDataFolder + ShaderIncludeFolder;
 
@@ -381,6 +385,7 @@ namespace BansheeEngine
 		BuiltinResourcesHelper::importAssets(EditorRawShaderIncludeFolder, EditorShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
 		BuiltinResourcesHelper::importAssets(EditorRawShaderFolder, EditorShaderFolder, mResourceManifest);
 		BuiltinResourcesHelper::importAssets(EditorRawSkinFolder, EditorSkinFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(EditorRawIconsFolder, EditorIconFolder, mResourceManifest);
 
 		// Generate different sizes of resource icons
 		generateResourceIcons(EditorIconFolder, mResourceManifest);
@@ -393,7 +398,8 @@ namespace BansheeEngine
 			BuiltinDataFolder, { TitleFontSize }, true, mResourceManifest);
 
 		// Generate & save GUI sprite textures
-		BuiltinResourcesHelper::generateSpriteTextures(EditorSkinFolder, mResourceManifest);
+		BuiltinResourcesHelper::generateSpriteTextures(EditorSkinFolder, EditorSkinSpritesFolder, mResourceManifest);
+		BuiltinResourcesHelper::generateSpriteTextures(EditorIconFolder, EditorIconSpritesFolder, mResourceManifest);
 
 		// Generate & save GUI skin
 		{
@@ -2026,7 +2032,7 @@ namespace BansheeEngine
 
 	HSpriteTexture BuiltinEditorResources::getGUITexture(const WString& name) const
 	{
-		Path texturePath = EditorSkinFolder;
+		Path texturePath = EditorSkinSpritesFolder;
 		texturePath.append(L"sprite_" + name + L".asset");
 
 		return gResources().load<SpriteTexture>(texturePath);
@@ -2034,7 +2040,7 @@ namespace BansheeEngine
 
 	HSpriteTexture BuiltinEditorResources::getGUIIcon(const WString& name) const
 	{
-		Path texturePath = EditorIconFolder;
+		Path texturePath = EditorIconSpritesFolder;
 		texturePath.append(L"sprite_" + name + L".asset");
 
 		return gResources().load<SpriteTexture>(texturePath);

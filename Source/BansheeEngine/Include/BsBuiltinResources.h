@@ -186,6 +186,7 @@ namespace BansheeEngine
 
 		Path mBuiltinDataFolder;
 		Path mEngineSkinFolder;
+		Path mEngineSkinSpritesFolder;
 		Path mEngineCursorFolder;
 		Path mEngineIconFolder;
 		Path mEngineShaderFolder;
@@ -200,6 +201,7 @@ namespace BansheeEngine
 		static const char* ShaderFolder;
 		static const char* ShaderIncludeFolder;
 		static const char* SkinFolder;
+		static const char* SkinSpritesFolder;
 		static const char* MeshFolder;
 		static const char* TextureFolder;
 
@@ -337,10 +339,10 @@ namespace BansheeEngine
 			const Vector<UINT32>& fontSizes, bool antialiasing, const SPtr<ResourceManifest>& manifest);
 
 		/**
-		 * Generates sprite textures for all texture assets in the specified folder. Results are written in the same folder
-		 * with a "sprite_" prefix. All saved resources are registered in the provided resource manifest.
+		 * Generates sprite textures for all texture assets in the @p input folder. Results are written in the @p output
+		 * folder with a "sprite_" prefix. All saved resources are registered in the provided resource manifest.
 		 */
-		static void generateSpriteTextures(const Path& folder, const SPtr<ResourceManifest>& manifest);
+		static void generateSpriteTextures(const Path& input, const Path& output, const SPtr<ResourceManifest>& manifest);
 
 		/** Writes a timestamp with the current date and time in the specified file. */
 		static void writeTimestamp(const Path& file);

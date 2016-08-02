@@ -228,15 +228,19 @@ namespace BansheeEngine
 		static const char* SkinFolder;
 		static const char* IconFolder;
 		static const char* ShaderIncludeFolder;
+		static const char* SpriteSubFolder;
 
 		Path BuiltinDataFolder;
 		Path EditorSkinFolder;
+		Path EditorSkinSpritesFolder;
 		Path EditorIconFolder;
+		Path EditorIconSpritesFolder;
 		Path EditorShaderFolder;
 		Path EditorShaderIncludeFolder;
 
 		Path BuiltinRawDataFolder;
 		Path EditorRawSkinFolder;
+		Path EditorRawIconsFolder;
 		Path EditorRawShaderIncludeFolder;
 		Path EditorRawShaderFolder;
 
