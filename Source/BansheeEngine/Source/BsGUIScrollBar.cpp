@@ -16,10 +16,14 @@ namespace BansheeEngine
 {
 	const UINT32 GUIScrollBar::ButtonScrollAmount = 10;
 
-	GUIScrollBar::GUIScrollBar(bool horizontal, const String& styleName, const GUIDimensions& dimensions)
+	GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions)
 		:GUIElement(styleName, dimensions), mHorizontal(horizontal)
 	{
 		mImageSprite = bs_new<ImageSprite>();
+
+		GUISliderHandleFlags flags;
+		if (resizable)
+			flags |= GUISliderHandleFlag::Resizeable;
 
 		if(mHorizontal)
 		{
@@ -29,7 +33,7 @@ namespace BansheeEngine
 			mUpBtn = GUIButton::create(HString(L""), "ScrollLeftBtn");
 			mDownBtn = GUIButton::create(HString(L""), "ScrollRightBtn");
 
-			mHandleBtn = GUISliderHandle::create(mHorizontal, false, "ScrollBarHorzBtn");
+			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Horizontal, "ScrollBarHorzBtn");
 		}
 		else
 		{
@@ -39,7 +43,7 @@ namespace BansheeEngine
 			mUpBtn = GUIButton::create(HString(L""), "ScrollUpBtn");
 			mDownBtn = GUIButton::create(HString(L""), "ScrollDownBtn");
 
-			mHandleBtn = GUISliderHandle::create(mHorizontal, false, "ScrollBarVertBtn");
+			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Vertical, "ScrollBarVertBtn");
 		}
 
 		mLayout->addNewElement<GUIFixedSpace>(2);
@@ -48,7 +52,7 @@ namespace BansheeEngine
 		mLayout->addElement(mDownBtn);
 		mLayout->addNewElement<GUIFixedSpace>(2);
 
-		mHandleBtn->onHandleMoved.connect(std::bind(&GUIScrollBar::handleMoved, this, _1));
+		mHandleBtn->onHandleMovedOrResized.connect(std::bind(&GUIScrollBar::handleMoved, this, _1, _2));
 
 		mUpBtn->onClick.connect(std::bind(&GUIScrollBar::upButtonClicked, this));
 		mDownBtn->onClick.connect(std::bind(&GUIScrollBar::downButtonClicked, this));
@@ -131,10 +135,10 @@ namespace BansheeEngine
 			vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 	}
 
-	void GUIScrollBar::handleMoved(float handlePct)
+	void GUIScrollBar::handleMoved(float handlePct, float sizePct)
 	{
-		if(!onScrollPositionChanged.empty())
-			onScrollPositionChanged(handlePct);
+		if(!onScrollOrResize.empty())
+			onScrollOrResize(handlePct, sizePct);
 	}
 
 	void GUIScrollBar::upButtonClicked()
@@ -170,14 +174,14 @@ namespace BansheeEngine
 		{
 			mHandleBtn->_markLayoutAsDirty();
 
-			if (!onScrollPositionChanged.empty())
-				onScrollPositionChanged(newHandlePos);
+			if (!onScrollOrResize.empty())
+				onScrollOrResize(newHandlePos, mHandleBtn->_getHandleSizePct());
 		}
 	}
 
-	void GUIScrollBar::_setHandleSize(UINT32 size)
+	void GUIScrollBar::_setHandleSize(float pct)
 	{
-		mHandleBtn->_setHandleSize(size);
+		mHandleBtn->_setHandleSize(pct);
 	}
 
 	void GUIScrollBar::_setScrollPos(float pct)
@@ -188,11 +192,6 @@ namespace BansheeEngine
 	float GUIScrollBar::getScrollPos() const
 	{
 		return mHandleBtn->getHandlePos();
-	}
-
-	UINT32 GUIScrollBar::getMaxHandleSize() const
-	{
-		return mHandleBtn->getMaxSize();
 	}
 
 	UINT32 GUIScrollBar::getScrollableSize() const

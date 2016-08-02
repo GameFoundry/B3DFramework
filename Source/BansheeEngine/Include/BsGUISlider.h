@@ -91,7 +91,7 @@ namespace BansheeEngine
 		void styleUpdated() override;
 
 		/**	Triggered when the slider handles moves. */
-		void onHandleMoved(float newPosition);
+		void onHandleMoved(float newPosition, float newSize);
 
 	private:
 		GUISliderHandle* mSliderHandle;

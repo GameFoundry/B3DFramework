@@ -5,8 +5,8 @@
 
 namespace BansheeEngine
 {
-	GUIScrollBarVert::GUIScrollBarVert(const String& styleName, const GUIDimensions& dimensions)
-		:GUIScrollBar(false, styleName, dimensions)
+	GUIScrollBarVert::GUIScrollBarVert(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
+		:GUIScrollBar(false, resizeable, styleName, dimensions)
 	{
 
 	}
@@ -18,12 +18,26 @@ namespace BansheeEngine
 
 	GUIScrollBarVert* GUIScrollBarVert::create(const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(getStyleName<GUIScrollBarVert>(styleName), GUIDimensions::create());
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, getStyleName<GUIScrollBarVert>(styleName), 
+			GUIDimensions::create());
+	}
+
+	GUIScrollBarVert* GUIScrollBarVert::create(bool resizeable, const String& styleName)
+	{
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, getStyleName<GUIScrollBarVert>(styleName), 
+			GUIDimensions::create());
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(getStyleName<GUIScrollBarVert>(styleName), GUIDimensions::create(options));
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, getStyleName<GUIScrollBarVert>(styleName), 
+			GUIDimensions::create(options));
+	}
+
+	GUIScrollBarVert* GUIScrollBarVert::create(bool resizeable, const GUIOptions& options, const String& styleName)
+	{
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, getStyleName<GUIScrollBarVert>(styleName), 
+			GUIDimensions::create(options));
 	}
 
 	const String& GUIScrollBarVert::getGUITypeName()

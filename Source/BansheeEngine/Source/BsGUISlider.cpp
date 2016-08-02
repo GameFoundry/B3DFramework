@@ -12,7 +12,10 @@ namespace BansheeEngine
 	GUISlider::GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions)
 		:GUIElementContainer(dimensions, styleName), mHorizontal(horizontal), mMinRange(0.0f), mMaxRange(1.0f)
 	{
-		mSliderHandle = GUISliderHandle::create(horizontal, true, getSubStyleName(getHandleStyleType()));
+		GUISliderHandleFlags flags = horizontal ? GUISliderHandleFlag::Horizontal : GUISliderHandleFlag::Vertical;
+		flags |= GUISliderHandleFlag::JumpOnClick;
+
+		mSliderHandle = GUISliderHandle::create(flags, getSubStyleName(getHandleStyleType()));
 		mBackground = GUITexture::create(getSubStyleName(getBackgroundStyleType()));
 		mFillBackground = GUITexture::create(getSubStyleName(getFillStyleType()));
 
@@ -23,7 +26,7 @@ namespace BansheeEngine
 		_registerChildElement(mBackground);
 		_registerChildElement(mFillBackground);
 
-		mHandleMovedConn = mSliderHandle->onHandleMoved.connect(std::bind(&GUISlider::onHandleMoved, this, _1));
+		mHandleMovedConn = mSliderHandle->onHandleMovedOrResized.connect(std::bind(&GUISlider::onHandleMoved, this, _1, _2));
 	}
 
 	GUISlider::~GUISlider()
@@ -195,7 +198,7 @@ namespace BansheeEngine
 		mSliderHandle->setTint(color);
 	}
 
-	void GUISlider::onHandleMoved(float newPosition)
+	void GUISlider::onHandleMoved(float newPosition, float newSize)
 	{
 		onChanged(getValue());
 	}

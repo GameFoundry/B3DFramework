@@ -10,15 +10,18 @@
 
 namespace BansheeEngine
 {
+	const UINT32 GUISliderHandle::MIN_HANDLE_SIZE = 16;
+	const UINT32 GUISliderHandle::RESIZE_HANDLE_SIZE = 8;
+
 	const String& GUISliderHandle::getGUITypeName()
 	{
 		static String name = "SliderHandle";
 		return name;
 	}
 
-	GUISliderHandle::GUISliderHandle(bool horizontal, bool jumpOnClick, const String& styleName, const GUIDimensions& dimensions)
-		: GUIElement(styleName, dimensions), mHandleSize(0), mHorizontal(horizontal), mJumpOnClick(jumpOnClick)
-		, mPctHandlePos(0.0f), mStep(0.0f), mDragStartPos(0), mMouseOverHandle(false), mHandleDragged(false)
+	GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions)
+		: GUIElement(styleName, dimensions), mHandleSize(0), mFlags(flags), mPctHandlePos(0.0f), mStep(0.0f)
+		, mDragStartPos(0), mDragState(DragState::Normal), mMouseOverHandle(false), mHandleDragged(false)
 		, mState(State::Normal)
 	{
 		mImageSprite = bs_new<ImageSprite>();
@@ -29,21 +32,23 @@ namespace BansheeEngine
 		bs_delete(mImageSprite);
 	}
 
-	GUISliderHandle* GUISliderHandle::create(bool horizontal, bool jumpOnClick, const String& styleName)
+	GUISliderHandle* GUISliderHandle::create(GUISliderHandleFlags flags, const String& styleName)
 	{
-		return new (bs_alloc<GUISliderHandle>()) GUISliderHandle(horizontal, jumpOnClick, 
+		return new (bs_alloc<GUISliderHandle>()) GUISliderHandle(flags, 
 			getStyleName<GUISliderHandle>(styleName), GUIDimensions::create());
 	}
 
-	GUISliderHandle* GUISliderHandle::create(bool horizontal, bool jumpOnClick, const GUIOptions& options, const String& styleName)
+	GUISliderHandle* GUISliderHandle::create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUISliderHandle>()) GUISliderHandle(horizontal, jumpOnClick, 
+		return new (bs_alloc<GUISliderHandle>()) GUISliderHandle(flags, 
 			getStyleName<GUISliderHandle>(styleName), GUIDimensions::create(options));
 	}
 
-	void GUISliderHandle::_setHandleSize(UINT32 size)
+	void GUISliderHandle::_setHandleSize(float pct)
 	{
-		mHandleSize = std::min(getMaxSize(), size);
+		pct = Math::clamp01(pct);
+
+		mHandleSize = std::max(MIN_HANDLE_SIZE, (UINT32)(getMaxSize() * pct));
 	}
 
 	void GUISliderHandle::_setHandlePos(float pct)
@@ -105,7 +110,7 @@ namespace BansheeEngine
 		if(SpriteTexture::checkIsLoaded(activeTex))
 			desc.texture = activeTex.getInternalPtr();
 
-		if (mHorizontal)
+		if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
 		{
 			if (mHandleSize == 0 && desc.texture != nullptr)
 				mHandleSize = desc.texture->getWidth();
@@ -156,16 +161,18 @@ namespace BansheeEngine
 		UINT32 indexStride = sizeof(UINT32);
 
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
-		if(mHorizontal)
-			offset.x += getHandlePosPx();
-		else
-			offset.y += getHandlePosPx();
-
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
-		if(mHorizontal)
+
+		if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
+		{
+			offset.x += getHandlePosPx();
 			clipRect.x -= getHandlePosPx();
+		}
 		else
+		{
+			offset.y += getHandlePosPx();
 			clipRect.y -= getHandlePosPx();
+		}
 
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 			vertexStride, indexStride, renderElementIdx, offset, clipRect);
@@ -204,34 +211,68 @@ namespace BansheeEngine
 			}
 		}
 
-		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || mJumpOnClick))
+		bool jumpOnClick = mFlags.isSet(GUISliderHandleFlag::JumpOnClick);
+		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || jumpOnClick))
 		{
 			if (!_isDisabled())
 			{
 				mState = State::Active;
 				_markLayoutAsDirty();
 
-				if (mJumpOnClick)
+				if (jumpOnClick)
 				{
 					float handlePosPx = 0.0f;
 
-					if (mHorizontal)
+					if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
 						handlePosPx = (float)(ev.getPosition().x - (INT32)mLayoutData.area.x - mHandleSize * 0.5f);
 					else
 						handlePosPx = (float)(ev.getPosition().y - (INT32)mLayoutData.area.y - mHandleSize * 0.5f);
 
 					setHandlePosPx((INT32)handlePosPx);
-					onHandleMoved(mPctHandlePos);
+					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
 				}
 
-				if (mHorizontal)
+				bool isResizeable = mFlags.isSet(GUISliderHandleFlag::Resizeable);
+				if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
 				{
 					INT32 left = (INT32)mLayoutData.area.x + getHandlePosPx();
+
+					if(isResizeable)
+					{
+						INT32 right = left + mHandleSize;
+
+						INT32 clickPos = ev.getPosition().x;
+						if(clickPos >= left && clickPos < (left + (INT32)RESIZE_HANDLE_SIZE))
+							mDragState = DragState::LeftResize;
+						else if(clickPos >= (right - (INT32)RESIZE_HANDLE_SIZE) && clickPos < right)
+							mDragState = DragState::RightResize;
+						else
+							mDragState = DragState::Normal;
+					}
+					else
+						mDragState = DragState::Normal;
+
 					mDragStartPos = ev.getPosition().x - left;
 				}
 				else
 				{
 					INT32 top = (INT32)mLayoutData.area.y + getHandlePosPx();
+
+					if(isResizeable)
+					{
+						INT32 bottom = top + mHandleSize;
+
+						INT32 clickPos = ev.getPosition().y;
+						if (clickPos >= top && clickPos < (top + (INT32)RESIZE_HANDLE_SIZE))
+							mDragState = DragState::LeftResize;
+						else if (clickPos >= (bottom - (INT32)RESIZE_HANDLE_SIZE) && clickPos < bottom)
+							mDragState = DragState::RightResize;
+						else
+							mDragState = DragState::Normal;
+					}
+					else
+						mDragState = DragState::Normal;
+
 					mDragStartPos = ev.getPosition().y - top;
 				}
 				
@@ -245,18 +286,37 @@ namespace BansheeEngine
 		{
 			if (!_isDisabled())
 			{
-				float handlePosPx = 0.0f;
-				if (mHorizontal)
-				{
-					handlePosPx = (float)(ev.getPosition().x - mDragStartPos - mLayoutData.area.x);
-				}
+				INT32 handlePosPx;
+				if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
+					handlePosPx = ev.getPosition().x - mDragStartPos - mLayoutData.area.x;
 				else
-				{
-					handlePosPx = (float)(ev.getPosition().y - mDragStartPos - mLayoutData.area.y);
-				}
+					handlePosPx = ev.getPosition().y - mDragStartPos - mLayoutData.area.y;
 
-				setHandlePosPx((INT32)handlePosPx);
-				onHandleMoved(mPctHandlePos);
+				if (mDragState == DragState::Normal)
+				{
+					setHandlePosPx(handlePosPx);
+					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+				}
+				else // Resizing
+				{
+					if(mDragState == DragState::LeftResize)
+					{
+						INT32 right = getHandlePosPx() + mHandleSize;
+						INT32 newHandleSize = right - handlePosPx;
+
+						_setHandleSize(newHandleSize / (float)getMaxSize());
+						setHandlePosPx(handlePosPx);
+						onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+					}
+					else if(mDragState == DragState::RightResize)
+					{
+						INT32 left = getHandlePosPx();
+						INT32 newHandleSize = handlePosPx - left;
+
+						_setHandleSize(newHandleSize / (float)getMaxSize());
+						onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+					}
+				}
 
 				_markLayoutAsDirty();
 			}
@@ -293,7 +353,7 @@ namespace BansheeEngine
 				{
 					// If we clicked above or below the scroll handle, scroll by one page
 					INT32 handlePosPx = getHandlePosPx();
-					if (!mJumpOnClick)
+					if (!mFlags.isSet(GUISliderHandleFlag::JumpOnClick))
 					{
 						UINT32 stepSizePx = 0;
 						if (mStep > 0.0f)
@@ -302,7 +362,7 @@ namespace BansheeEngine
 							stepSizePx = mHandleSize;
 
 						INT32 handleOffset = 0;
-						if (mHorizontal)
+						if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
 						{
 							INT32 handleLeft = (INT32)mLayoutData.area.x + handlePosPx;
 							INT32 handleRight = handleLeft + mHandleSize;
@@ -327,7 +387,7 @@ namespace BansheeEngine
 					}
 
 					setHandlePosPx(handlePosPx);
-					onHandleMoved(mPctHandlePos);
+					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
 				}
 				mHandleDragged = false;
 				_markLayoutAsDirty();
@@ -357,7 +417,7 @@ namespace BansheeEngine
 
 	bool GUISliderHandle::isOnHandle(const Vector2I& pos) const
 	{
-		if(mHorizontal)
+		if(mFlags.isSet(GUISliderHandleFlag::Horizontal))
 		{
 			INT32 left = (INT32)mLayoutData.area.x + getHandlePosPx();
 			INT32 right = left + mHandleSize;
@@ -383,6 +443,11 @@ namespace BansheeEngine
 		return Math::floorToInt(mPctHandlePos * maxScrollAmount);
 	}
 
+	float GUISliderHandle::_getHandleSizePct() const
+	{
+		return Math::clamp01(mHandleSize / (float)getMaxSize());
+	}
+
 	void GUISliderHandle::setHandlePosPx(INT32 pos)
 	{
 		float maxScrollAmount = (float)getMaxSize() - mHandleSize;
@@ -392,7 +457,7 @@ namespace BansheeEngine
 	UINT32 GUISliderHandle::getMaxSize() const
 	{
 		UINT32 maxSize = mLayoutData.area.height;
-		if(mHorizontal)
+		if(mFlags.isSet(GUISliderHandleFlag::Horizontal))
 			maxSize = mLayoutData.area.width;
 
 		return maxSize;
