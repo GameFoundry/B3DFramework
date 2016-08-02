@@ -73,6 +73,18 @@ namespace BansheeEngine
 
 		/**	Checks if the sprite texture and its internal texture have been loaded. */
 		static bool checkIsLoaded(const HSpriteTexture& tex);
+
+		/** @name Internal
+		 *  @{
+		 */
+
+		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
+		static SPtr<SpriteTexture> _createPtr(const HTexture& texture);
+
+		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
+		static SPtr<SpriteTexture> _createPtr(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
+
+		/** @} */
 	private:
 		friend class SpriteTextureRTTI;
 

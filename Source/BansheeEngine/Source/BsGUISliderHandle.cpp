@@ -10,8 +10,8 @@
 
 namespace BansheeEngine
 {
-	const UINT32 GUISliderHandle::MIN_HANDLE_SIZE = 16;
-	const UINT32 GUISliderHandle::RESIZE_HANDLE_SIZE = 8;
+	const UINT32 GUISliderHandle::MIN_HANDLE_SIZE = 15;
+	const UINT32 GUISliderHandle::RESIZE_HANDLE_SIZE = 7;
 
 	const String& GUISliderHandle::getGUITypeName()
 	{

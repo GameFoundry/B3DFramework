@@ -55,6 +55,7 @@
     <Compile Include="Audio\Interop\NativeAudioListener.cs" />
     <Compile Include="Audio\Interop\NativeAudioSource.cs" />
     <Compile Include="GUI\GUICanvas.cs" />
+    <Compile Include="GUI\GUIScrollBar.cs" />
     <Compile Include="Rendering\PostProcessSettings.cs" />
     <Compile Include="Serialization\ShowInInspector.cs" />
     <Compile Include="Serialization\Step.cs" />

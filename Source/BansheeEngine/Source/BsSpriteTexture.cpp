@@ -65,16 +65,30 @@ namespace BansheeEngine
 
 	HSpriteTexture SpriteTexture::create(const HTexture& texture)
 	{
+		SPtr<SpriteTexture> texturePtr = _createPtr(texture);
+
+		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+	}
+
+	HSpriteTexture SpriteTexture::create(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
+	{
+		SPtr<SpriteTexture> texturePtr = _createPtr(uvOffset, uvScale, texture);
+
+		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+	}
+
+	SPtr<SpriteTexture> SpriteTexture::_createPtr(const HTexture& texture)
+	{
 		SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), texture));
 
 		texturePtr->_setThisPtr(texturePtr);
 		texturePtr->initialize();
 
-		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+		return texturePtr;
 	}
 
-	HSpriteTexture SpriteTexture::create(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
+	SPtr<SpriteTexture> SpriteTexture::_createPtr(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
 	{
 		SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(uvOffset, uvScale, texture));
@@ -82,7 +96,7 @@ namespace BansheeEngine
 		texturePtr->_setThisPtr(texturePtr);
 		texturePtr->initialize();
 
-		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+		return texturePtr;
 	}
 
 	SPtr<SpriteTexture> SpriteTexture::createEmpty()

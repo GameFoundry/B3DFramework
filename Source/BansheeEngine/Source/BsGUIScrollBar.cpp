@@ -16,6 +16,18 @@ namespace BansheeEngine
 {
 	const UINT32 GUIScrollBar::ButtonScrollAmount = 10;
 
+	const String& GUIScrollBar::getHScrollHandleType()
+	{
+		static String typeName = "UIScrollBarHHandle";
+		return typeName;
+	}
+
+	const String& GUIScrollBar::getVScrollHandleType()
+	{
+		static String typeName = "UIScrollBarVHandle";
+		return typeName;
+	}
+
 	GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions)
 		:GUIElement(styleName, dimensions), mHorizontal(horizontal)
 	{
@@ -33,7 +45,7 @@ namespace BansheeEngine
 			mUpBtn = GUIButton::create(HString(L""), "ScrollLeftBtn");
 			mDownBtn = GUIButton::create(HString(L""), "ScrollRightBtn");
 
-			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Horizontal, "ScrollBarHorzBtn");
+			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Horizontal, getSubStyleName(getHScrollHandleType()));
 		}
 		else
 		{
@@ -43,7 +55,7 @@ namespace BansheeEngine
 			mUpBtn = GUIButton::create(HString(L""), "ScrollUpBtn");
 			mDownBtn = GUIButton::create(HString(L""), "ScrollDownBtn");
 
-			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Vertical, "ScrollBarVertBtn");
+			mHandleBtn = GUISliderHandle::create(flags | GUISliderHandleFlag::Vertical, getSubStyleName(getVScrollHandleType()));
 		}
 
 		mLayout->addNewElement<GUIFixedSpace>(2);
@@ -192,6 +204,26 @@ namespace BansheeEngine
 	float GUIScrollBar::getScrollPos() const
 	{
 		return mHandleBtn->getHandlePos();
+	}
+
+	void GUIScrollBar::setScrollPos(float pct)
+	{
+		float oldHandlePos = mHandleBtn->getHandlePos();
+		mHandleBtn->_setHandlePos(pct);
+
+		if (oldHandlePos != mHandleBtn->getHandlePos())
+			mHandleBtn->_markLayoutAsDirty();
+	}
+
+	float GUIScrollBar::getHandleSize() const
+	{
+		return mHandleBtn->_getHandleSizePct();
+	}
+
+	void GUIScrollBar::setHandleSize(float pct)
+	{
+		mHandleBtn->_setHandleSize(pct);
+		mHandleBtn->_markLayoutAsDirty();
 	}
 
 	UINT32 GUIScrollBar::getScrollableSize() const

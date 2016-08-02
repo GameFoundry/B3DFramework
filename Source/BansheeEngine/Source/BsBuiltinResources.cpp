@@ -1297,9 +1297,22 @@ namespace BansheeEngine
 
 			if (source != nullptr)
 			{
-				HSpriteTexture spriteTex = SpriteTexture::create(source);
-				Resources::instance().save(spriteTex, outputPath, true);
-				manifest->registerResource(spriteTex.getUUID(), outputPath);
+				HResource resource;
+				if (FileSystem::exists(outputPath))
+				{
+					resource = gResources().load(outputPath);
+					SPtr<SpriteTexture> spriteTex = SpriteTexture::_createPtr(source);
+
+					gResources().update(resource, spriteTex);
+					Resources::instance().save(resource, outputPath, true);
+					manifest->registerResource(resource.getUUID(), outputPath);
+				}
+				else
+				{
+					HSpriteTexture spriteTex = SpriteTexture::create(source);
+					Resources::instance().save(spriteTex, outputPath, true);
+					manifest->registerResource(spriteTex.getUUID(), outputPath);
+				}
 			}
 		}
 	}

@@ -28,6 +28,7 @@
 #include "BsGUIStatusBar.h"
 #include "BsGUIMenuBar.h"
 #include "BsGUIListBox.h"
+#include "BsGUIScrollBar.h"
 #include "BsCoreThread.h"
 #include "BsFont.h"
 #include "BsTexture.h"
@@ -177,6 +178,14 @@ namespace BansheeEngine
 	const WString BuiltinEditorResources::ScrollBarHandleVertNormalTex = L"ScrollBarVHandleNormal.png";
 	const WString BuiltinEditorResources::ScrollBarHandleVertHoverTex = L"ScrollBarVHandleHover.png";
 	const WString BuiltinEditorResources::ScrollBarHandleVertActiveTex = L"ScrollBarVHandleActive.png";
+
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzNormalTex = L"ScrollBarHHandleResizeableNormal.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzHoverTex = L"ScrollBarHHandleResizeableHover.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzActiveTex = L"ScrollBarHHandleResizeableActive.png";
+
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertNormalTex = L"ScrollBarVHandleResizeableNormal.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertHoverTex = L"ScrollBarVHandleResizeableHover.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertActiveTex = L"ScrollBarVHandleResizeableActive.png";
 
 	const WString BuiltinEditorResources::ScrollBarHBgTex = L"ScrollBarHBackground.png";
 	const WString BuiltinEditorResources::ScrollBarVBgTex = L"ScrollBarVBackground.png";
@@ -854,6 +863,9 @@ namespace BansheeEngine
 		vertScrollBarStyle.minHeight = 8;
 		vertScrollBarStyle.width = 16;
 
+		vertScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		vertScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarVert", vertScrollBarStyle);
 
 		// Horizontal scroll bar
@@ -866,7 +878,68 @@ namespace BansheeEngine
 		horzScrollBarStyle.minWidth = 8;
 		horzScrollBarStyle.height = 16;
 
+		horzScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		horzScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarHorz", horzScrollBarStyle);
+
+		// Horizontal resizeable handle
+		GUIElementStyle scrollBarHorzResizeableBtnStyle;
+		scrollBarHorzResizeableBtnStyle.normal.texture = getGUITexture(ScrollBarResizeableHandleHorzNormalTex);
+		scrollBarHorzResizeableBtnStyle.hover.texture = getGUITexture(ScrollBarResizeableHandleHorzHoverTex);
+		scrollBarHorzResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleHorzActiveTex);
+		scrollBarHorzResizeableBtnStyle.fixedHeight = true;
+		scrollBarHorzResizeableBtnStyle.fixedWidth = false;
+		scrollBarHorzResizeableBtnStyle.width = 13;
+		scrollBarHorzResizeableBtnStyle.height = 15;
+		scrollBarHorzResizeableBtnStyle.border.left = 7;
+		scrollBarHorzResizeableBtnStyle.border.right = 7;
+
+		skin->setStyle("ScrollBarResizeableHorzBtn", scrollBarHorzResizeableBtnStyle);
+
+		// Vertical resizeable handle
+		GUIElementStyle scrollBarVertResizeableBtnStyle;
+		scrollBarVertResizeableBtnStyle.normal.texture = getGUITexture(ScrollBarResizeableHandleVertNormalTex);
+		scrollBarVertResizeableBtnStyle.hover.texture = getGUITexture(ScrollBarResizeableHandleVertHoverTex);
+		scrollBarVertResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleVertActiveTex);
+		scrollBarVertResizeableBtnStyle.fixedHeight = false;
+		scrollBarVertResizeableBtnStyle.fixedWidth = true;
+		scrollBarVertResizeableBtnStyle.width = 15;
+		scrollBarVertResizeableBtnStyle.height = 13;
+		scrollBarVertResizeableBtnStyle.border.top = 7;
+		scrollBarVertResizeableBtnStyle.border.bottom = 7;
+
+		skin->setStyle("ScrollBarResizeableVertBtn", scrollBarVertResizeableBtnStyle);
+
+		// Vertical resizeable scroll bar
+		GUIElementStyle vertResizeableScrollBarStyle;
+		vertResizeableScrollBarStyle.normal.texture = getGUITexture(ScrollBarVBgTex);
+		vertResizeableScrollBarStyle.hover.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.active.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.fixedHeight = false;
+		vertResizeableScrollBarStyle.fixedWidth = true;
+		vertResizeableScrollBarStyle.minHeight = 8;
+		vertResizeableScrollBarStyle.width = 16;
+
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarVert", vertResizeableScrollBarStyle);
+
+		// Horizontal resizeable scroll bar
+		GUIElementStyle horzResizeableScrollBarStyle;
+		horzResizeableScrollBarStyle.normal.texture = getGUITexture(ScrollBarHBgTex);
+		horzResizeableScrollBarStyle.hover.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.active.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.fixedHeight = true;
+		horzResizeableScrollBarStyle.fixedWidth = false;
+		horzResizeableScrollBarStyle.minWidth = 8;
+		horzResizeableScrollBarStyle.height = 16;
+
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarHorz", horzResizeableScrollBarStyle);
 
 		/************************************************************************/
 		/* 								DROP DOWN BOX                      		*/

@@ -40,6 +40,7 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS_GUI
 	"Source/BsScriptGUIWidget.cpp"
 	"Source/BsScriptGUI.cpp"
 	"Source/BsScriptGUICanvas.cpp"
+	"Source/BsScriptGUIScrollBar.cpp"
 )
 
 set(BS_SBANSHEEENGINE_INC_SERIALIZATION_RTTI
@@ -172,6 +173,7 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
 	"Include/BsScriptGUIWidget.h"
 	"Include/BsScriptGUI.h"
 	"Include/BsScriptGUICanvas.h"
+	"Include/BsScriptGUIScrollBar.h"
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_PHYSICS

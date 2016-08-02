@@ -358,6 +358,14 @@ namespace BansheeEngine
 		static const WString ScrollBarHandleVertHoverTex;
 		static const WString ScrollBarHandleVertActiveTex;
 
+		static const WString ScrollBarResizeableHandleHorzNormalTex;
+		static const WString ScrollBarResizeableHandleHorzHoverTex;
+		static const WString ScrollBarResizeableHandleHorzActiveTex;
+
+		static const WString ScrollBarResizeableHandleVertNormalTex;
+		static const WString ScrollBarResizeableHandleVertHoverTex;
+		static const WString ScrollBarResizeableHandleVertActiveTex;
+
 		static const WString ScrollBarHBgTex;
 		static const WString ScrollBarVBgTex;
 

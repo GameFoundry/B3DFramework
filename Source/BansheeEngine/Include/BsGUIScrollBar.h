@@ -16,8 +16,23 @@ namespace BansheeEngine
 	class BS_EXPORT GUIScrollBar : public GUIElement
 	{
 	public:
+		/** Style type name for the horizontal scroll handle. */
+		static const String& getHScrollHandleType();
+
+		/** Style type name for the vertical scroll handle. */
+		static const String& getVScrollHandleType();
+
 		/**	Returns the position of the scroll handle in percent (ranging [0, 1]). */
 		float getScrollPos() const;
+
+		/** Sets the position of the scroll handle in percent (ranging [0, 1]). */
+		void setScrollPos(float pct);
+
+		/** Gets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
+		float getHandleSize() const;
+
+		/** Sets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
+		void setHandleSize(float pct);
 
 		/**
 		 * Moves the handle by some amount. Amount is specified in the percentage of the entire scrollable area. Values out
