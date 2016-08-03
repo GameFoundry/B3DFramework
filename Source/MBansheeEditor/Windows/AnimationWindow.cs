@@ -16,13 +16,29 @@ namespace BansheeEditor
     [DefaultSize(900, 500)]
     internal class AnimationWindow : EditorWindow
     {
+        /// <summary>
+        /// A set of animation curves for a field of a certain type.
+        /// </summary>
+        private struct FieldCurves
+        {
+            public SerializableProperty.FieldType type;
+            public EdAnimationCurve[] curves;
+        }
+
         private const int FIELD_DISPLAY_WIDTH = 200;
 
         private bool isInitialized;
-        private GUIFloatField lengthField;
-        private GUIIntField fpsField;
-        private GUIFloatField yRangeField;
-        private GUIButton addKeyframeBtn;
+        private GUIButton playButton;
+        private GUIButton recordButton;
+
+        private GUIButton prevFrameButton;
+        private GUIIntField frameInputField;
+        private GUIButton nextFrameButton;
+
+        private GUIButton addKeyframeButton;
+        private GUIButton addEventButton;
+
+        private GUIButton optionsButton;
 
         private GUIButton addPropertyBtn;
         private GUIButton delPropertyBtn;
@@ -34,8 +50,18 @@ namespace BansheeEditor
         private GUIAnimFieldDisplay guiFieldDisplay;
         private GUICurveEditor guiCurveEditor;
 
-        private Dictionary<string, EdAnimationCurve> curves = new Dictionary<string, EdAnimationCurve>();
+        private SceneObject selectedSO;
+        private int currentFrameIdx;
+        private int fps = 1;
+
+        private Dictionary<string, FieldCurves> curves = new Dictionary<string, FieldCurves>();
         private List<string> selectedFields = new List<string>();
+
+        internal int FPS
+        {
+            get { return fps; }
+            set { guiCurveEditor.SetFPS(value); fps = MathEx.Max(value, 1); }
+        }
 
         /// <summary>
         /// Opens the animation window.
@@ -96,7 +122,7 @@ namespace BansheeEditor
             curves.Clear();
             isInitialized = false;
 
-            SceneObject selectedSO = Selection.SceneObject;
+            selectedSO = Selection.SceneObject;
             if (selectedSO == null)
             {
                 GUILabel warningLbl = new GUILabel(new LocEdString("Select an object to animate in the Hierarchy or Scene windows."));
@@ -116,17 +142,85 @@ namespace BansheeEditor
             // TODO - Retrieve Animation & AnimationClip from the selected object, fill curves dictionary
             //  - If not available, show a button to create new animation clip
 
-            lengthField = new GUIFloatField(new LocEdString("Length"), 50);
-            fpsField = new GUIIntField(new LocEdString("FPS"), 50);
-            yRangeField = new GUIFloatField(new LocEdString("Y range"), 50);
-            addKeyframeBtn = new GUIButton(new LocEdString("Add keyframe"));
+            // Top button row
+            GUIContent playIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.Play),
+                new LocEdString("Play"));
+            GUIContent recordIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.Record),
+                new LocEdString("Record"));
 
+            GUIContent prevFrameIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.FrameBack),
+                new LocEdString("Previous frame"));
+            GUIContent nextFrameIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.FrameForward),
+                new LocEdString("Next frame"));
+
+            GUIContent addKeyframeIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.AddKeyframe),
+                new LocEdString("Add keyframe"));
+            GUIContent addEventIcon = new GUIContent(EditorBuiltin.GetAnimationWindowIcon(AnimationWindowIcon.AddEvent),
+                new LocEdString("Add event"));
+
+            GUIContent optionsIcon = new GUIContent(EditorBuiltin.GetLibraryWindowIcon(LibraryWindowIcon.Options),
+                new LocEdString("Options"));
+
+            playButton = new GUIButton(playIcon);
+            recordButton = new GUIButton(recordIcon);
+
+            prevFrameButton = new GUIButton(prevFrameIcon);
+            frameInputField = new GUIIntField();
+            nextFrameButton = new GUIButton(nextFrameIcon);
+
+            addKeyframeButton = new GUIButton(addKeyframeIcon);
+            addEventButton = new GUIButton(addEventIcon);
+
+            optionsButton = new GUIButton(optionsIcon);
+
+            playButton.OnClick += () =>
+            {
+                // TODO
+                // - Record current state of the scene object hierarchy
+                // - Evaluate all curves manually and update them
+                // - On end, restore original values of the scene object hierarchy
+            };
+
+            recordButton.OnClick += () =>
+            {
+                // TODO
+                // - Every frame read back current values of all the current curve's properties and assign it to the current frame
+            };
+
+            prevFrameButton.OnClick += () =>
+            {
+                SetCurrentFrame(currentFrameIdx - 1);
+            };
+
+            frameInputField.OnChanged += SetCurrentFrame;
+
+            nextFrameButton.OnClick += () =>
+            {
+                SetCurrentFrame(currentFrameIdx + 1);
+            };
+
+            addKeyframeButton.OnClick += () =>
+            {
+                guiCurveEditor.AddKeyFrameAtMarker();
+
+                // TODO - Update local curves?
+            };
+
+            addEventButton.OnClick += () =>
+            {
+                // TODO - Add event
+            };
+
+            optionsButton.OnClick += () =>
+            {
+                Vector2I openPosition = ScreenToWindowPos(Input.PointerPosition);
+                AnimationOptions dropDown = DropDownWindow.Open<AnimationOptions>(this, openPosition);
+                dropDown.Initialize(this);
+            };
+
+            // Property buttons
             addPropertyBtn = new GUIButton(new LocEdString("Add property"));
             delPropertyBtn = new GUIButton(new LocEdString("Delete selected"));
-
-            lengthField.Value = 60.0f;
-            fpsField.Value = 1;
-            yRangeField.Value = 20.0f;
 
             addPropertyBtn.OnClick += () =>
             {
@@ -149,37 +243,24 @@ namespace BansheeEditor
                 });
             };
 
-            lengthField.OnChanged += x =>
-            {
-                guiCurveEditor.SetRange(lengthField.Value, yRangeField.Value);
-            };
-            fpsField.OnChanged += x =>
-            {
-                guiCurveEditor.SetFPS(x);
-            };
-            yRangeField.OnChanged += x =>
-            {
-                guiCurveEditor.SetRange(lengthField.Value, yRangeField.Value);
-            };
-            addKeyframeBtn.OnClick += () =>
-            {
-                guiCurveEditor.AddKeyFrameAtMarker();
-            };
-
             GUILayout mainLayout = GUI.AddLayoutY();
 
             buttonLayout = mainLayout.AddLayoutX();
             buttonLayout.AddSpace(5);
-            buttonLayout.AddElement(lengthField);
+            buttonLayout.AddElement(playButton);
+            buttonLayout.AddElement(recordButton);
             buttonLayout.AddSpace(5);
-            buttonLayout.AddElement(yRangeField);
+            buttonLayout.AddElement(prevFrameButton);
+            buttonLayout.AddElement(frameInputField);
+            buttonLayout.AddElement(nextFrameButton);
             buttonLayout.AddSpace(5);
-            buttonLayout.AddElement(fpsField);
+            buttonLayout.AddElement(addKeyframeButton);
+            buttonLayout.AddElement(addEventButton);
             buttonLayout.AddSpace(5);
-            buttonLayout.AddElement(addKeyframeBtn);
-            buttonLayout.AddSpace(5);
+            buttonLayout.AddElement(optionsButton);
+            buttonLayout.AddFlexibleSpace();
 
-            buttonLayoutHeight = lengthField.Bounds.height;
+            buttonLayoutHeight = playButton.Bounds.height;
 
             GUILayout contentLayout = mainLayout.AddLayoutX();
             GUILayout fieldDisplayLayout = contentLayout.AddLayoutY(GUIOption.FixedWidth(FIELD_DISPLAY_WIDTH));
@@ -198,9 +279,85 @@ namespace BansheeEditor
 
             int curveEditorWidth = Math.Max(0, Width - FIELD_DISPLAY_WIDTH);
             guiCurveEditor = new GUICurveEditor(this, editorPanel, curveEditorWidth, Height - buttonLayoutHeight);
+            guiCurveEditor.OnFrameSelected += OnFrameSelected;
             guiCurveEditor.Redraw();
 
+            SetCurrentFrame(currentFrameIdx);
             isInitialized = true;
+        }
+
+        private void SetCurrentFrame(int frameIdx)
+        {
+            currentFrameIdx = Math.Max(0, frameIdx);
+
+            frameInputField.Value = currentFrameIdx;
+            guiCurveEditor.SetMarkedFrame(currentFrameIdx);
+
+            float time = guiCurveEditor.GetTimeForFrame(currentFrameIdx);
+
+            List<GUIAnimFieldPathValue> values = new List<GUIAnimFieldPathValue>();
+            foreach (var kvp in curves)
+            {
+                SerializableProperty property = GUIAnimFieldDisplay.FindProperty(selectedSO, kvp.Key);
+                if (property != null)
+                {
+                    GUIAnimFieldPathValue fieldValue = new GUIAnimFieldPathValue();
+                    fieldValue.path = kvp.Key;
+
+                    switch (kvp.Value.type)
+                    {
+                        case SerializableProperty.FieldType.Vector2:
+                        {
+                            Vector2 value = new Vector2();
+
+                            for(int i = 0; i < 2; i++)
+                                value[i] = kvp.Value.curves[i].Evaluate(time, false);
+
+                            fieldValue.value = value;
+                        }
+                            break;
+                        case SerializableProperty.FieldType.Vector3:
+                            {
+                                Vector3 value = new Vector3();
+
+                                for (int i = 0; i < 3; i++)
+                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+
+                                fieldValue.value = value;
+                            }
+                            break;
+                        case SerializableProperty.FieldType.Vector4:
+                            {
+                                Vector4 value = new Vector4();
+
+                                for (int i = 0; i < 4; i++)
+                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+
+                                fieldValue.value = value;
+                            }
+                            break;
+                        case SerializableProperty.FieldType.Color:
+                            {
+                                Color value = new Color();
+
+                                for (int i = 0; i < 4; i++)
+                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+
+                                fieldValue.value = value;
+                            }
+                            break;
+                        case SerializableProperty.FieldType.Bool:
+                        case SerializableProperty.FieldType.Int:
+                        case SerializableProperty.FieldType.Float:
+                            fieldValue.value = kvp.Value.curves[0].Evaluate(time, false); ;
+                            break;
+                    }
+
+                    values.Add(fieldValue);
+                }
+            }
+
+            guiFieldDisplay.SetDisplayValues(values.ToArray());
         }
 
         private void OnPointerPressed(PointerEvent ev)
@@ -241,7 +398,7 @@ namespace BansheeEditor
             for (int i = 0; i < selectedFields.Count; i++)
             {
                 EdAnimationCurve curve;
-                if(curves.TryGetValue(selectedFields[i], out curve))
+                if(TryGetCurve(selectedFields[i], out curve))
                     curvesToDisplay.Add(curve);
             }
 
@@ -286,6 +443,58 @@ namespace BansheeEditor
             }
         }
 
+        private bool TryGetCurve(string path, out EdAnimationCurve curve)
+        {
+            int index = path.LastIndexOf(".");
+            string parentPath;
+            string subPathSuffix = null;
+            if (index == -1)
+            {
+                parentPath = path;
+            }
+            else
+            {
+                parentPath = path.Substring(0, index);
+                subPathSuffix = path.Substring(index, path.Length - index);
+            }
+
+            FieldCurves fieldCurves;
+            if (curves.TryGetValue(parentPath, out fieldCurves))
+            {
+                if (!string.IsNullOrEmpty(subPathSuffix))
+                {
+                    if (subPathSuffix == ".x" || subPathSuffix == ".r")
+                    {
+                        curve = fieldCurves.curves[0];
+                        return true;
+                    }
+                    else if (subPathSuffix == ".y" || subPathSuffix == ".g")
+                    {
+                        curve = fieldCurves.curves[1];
+                        return true;
+                    }
+                    else if (subPathSuffix == ".z" || subPathSuffix == ".b")
+                    {
+                        curve = fieldCurves.curves[2];
+                        return true;
+                    }
+                    else if (subPathSuffix == ".w" || subPathSuffix == ".a")
+                    {
+                        curve = fieldCurves.curves[3];
+                        return true;
+                    }
+                }
+                else
+                {
+                    curve = fieldCurves.curves[0];
+                    return true;
+                }
+            }
+
+            curve = null;
+            return false;
+        }
+
         private void OnFieldAdded(string path, SerializableProperty.FieldType type)
         {
             guiFieldDisplay.AddField(path);
@@ -294,56 +503,82 @@ namespace BansheeEditor
             {
                 case SerializableProperty.FieldType.Vector4:
                 {
-                    string[] subPaths = { ".x", ".y", ".z", ".w" };
+                    FieldCurves fieldCurves = new FieldCurves();
+                    fieldCurves.type = type;
+                    fieldCurves.curves = new EdAnimationCurve[4];
 
+                    string[] subPaths = { ".x", ".y", ".z", ".w" };
                     for (int i = 0; i < subPaths.Length; i++)
                     {
                         string subFieldPath = path + subPaths[i];
-                        curves[subFieldPath] = new EdAnimationCurve();
+                        fieldCurves.curves[i] = new EdAnimationCurve();
                         selectedFields.Add(subFieldPath);
                     }
+
+                    curves[path] = fieldCurves;
                 }
                     break;
                 case SerializableProperty.FieldType.Vector3:
                     {
-                        string[] subPaths = { ".x", ".y", ".z" };
+                        FieldCurves fieldCurves = new FieldCurves();
+                        fieldCurves.type = type;
+                        fieldCurves.curves = new EdAnimationCurve[3];
 
+                        string[] subPaths = { ".x", ".y", ".z" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            curves[subFieldPath] = new EdAnimationCurve();
+                            fieldCurves.curves[i] = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
+
+                        curves[path] = fieldCurves;
                     }
                     break;
                 case SerializableProperty.FieldType.Vector2:
                     {
-                        string[] subPaths = { ".x", ".y" };
+                        FieldCurves fieldCurves = new FieldCurves();
+                        fieldCurves.type = type;
+                        fieldCurves.curves = new EdAnimationCurve[2];
 
+                        string[] subPaths = { ".x", ".y" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            curves[subFieldPath] = new EdAnimationCurve();
+                            fieldCurves.curves[i] = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
+
+                        curves[path] = fieldCurves;
                     }
                     break;
                 case SerializableProperty.FieldType.Color:
                     {
-                        string[] subPaths = { ".r", ".g", ".b", ".a" };
+                        FieldCurves fieldCurves = new FieldCurves();
+                        fieldCurves.type = type;
+                        fieldCurves.curves = new EdAnimationCurve[4];
 
+                        string[] subPaths = { ".r", ".g", ".b", ".a" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            curves[subFieldPath] = new EdAnimationCurve();
+                            fieldCurves.curves[i] = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
+
+                        curves[path] = fieldCurves;
                     }
                     break;
                 default: // Primitive type
                     {
-                        curves[path] = new EdAnimationCurve();
+                        FieldCurves fieldCurves = new FieldCurves();
+                        fieldCurves.type = type;
+                        fieldCurves.curves = new EdAnimationCurve[1];
+
+                        fieldCurves.curves[0] = new EdAnimationCurve();
                         selectedFields.Add(path);
+
+                        curves[path] = fieldCurves;
                     }
                     break;
             }
@@ -369,6 +604,15 @@ namespace BansheeEditor
             return true;
         }
 
+        private string GetSubPathParent(string path)
+        {
+            int index = path.LastIndexOf(".");
+            if (index == -1)
+                return path;
+
+            return path.Substring(0, index);
+        }
+
         private void OnFieldSelected(string path)
         {
             if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
@@ -390,7 +634,7 @@ namespace BansheeEditor
             for (int i = 0; i < selectedFields.Count; i++)
             {
                 selectedFields.Remove(selectedFields[i]);
-                curves.Remove(selectedFields[i]);
+                curves.Remove(GetSubPathParent(selectedFields[i]));
             }
 
             List<string> existingFields = new List<string>();
@@ -406,6 +650,43 @@ namespace BansheeEditor
         private void OnSelectionChanged(SceneObject[] sceneObjects, string[] resourcePaths)
         {
             Rebuild();
+        }
+
+        private void OnFrameSelected(int frameIdx)
+        {
+            SetCurrentFrame(frameIdx);
+        }
+    }
+
+    /// <summary>
+    /// Drop down window that displays options used by the animation window.
+    /// </summary>
+    [DefaultSize(100, 50)]
+    internal class AnimationOptions : DropDownWindow
+    {
+        private AnimationWindow parent;
+
+        /// <summary>
+        /// Initializes the drop down window by creating the necessary GUI. Must be called after construction and before
+        /// use.
+        /// </summary>
+        /// <param name="parent">Animation window that this drop down window is a part of.</param>
+        internal void Initialize(AnimationWindow parent)
+        {
+            this.parent = parent;
+
+            GUIIntField fpsField = new GUIIntField(new LocEdString("FPS"), 40);
+            fpsField.Value = parent.FPS;
+            fpsField.OnChanged += x => { parent.FPS = x; };
+            
+            GUILayoutY vertLayout = GUI.AddLayoutY();
+
+            vertLayout.AddFlexibleSpace();
+            GUILayoutX contentLayout = vertLayout.AddLayoutX();
+            contentLayout.AddFlexibleSpace();
+            contentLayout.AddElement(fpsField);
+            contentLayout.AddFlexibleSpace();
+            vertLayout.AddFlexibleSpace();
         }
     }
 

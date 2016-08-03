@@ -110,7 +110,7 @@ namespace BansheeEditor
             }
         }
 
-        private SerializableProperty FindProperty(string path)
+        public static SerializableProperty FindProperty(SceneObject root, string path)
         {
             if (string.IsNullOrEmpty(path) || root == null)
                 return null;
@@ -258,7 +258,7 @@ namespace BansheeEditor
             fields = new GUIAnimFieldEntry[paths.Count];
             for (int i = 0; i < paths.Count; i++)
             {
-                SerializableProperty property = FindProperty(paths[i]);
+                SerializableProperty property = FindProperty(root, paths[i]);
                 if (property != null)
                 {
                     switch (property.Type)
