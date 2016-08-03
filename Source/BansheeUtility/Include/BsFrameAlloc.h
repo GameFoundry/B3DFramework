@@ -2,6 +2,9 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
+#include <limits>
+#include <new>                  /* For 'placement new' */
+
 #include "BsPrerequisitesUtil.h"
 
 namespace BansheeEngine
@@ -151,6 +154,12 @@ namespace BansheeEngine
 	{
 	public:
 		typedef T value_type;
+		typedef value_type* pointer;
+		typedef const value_type* const_pointer;
+		typedef value_type& reference;
+		typedef const value_type& const_reference;
+		typedef std::size_t size_type;
+		typedef std::ptrdiff_t difference_type;
 
 		StdFrameAlloc() noexcept 
 			:mFrameAlloc(nullptr)
@@ -160,12 +169,13 @@ namespace BansheeEngine
 			:mFrameAlloc(alloc)
 		{ }
 
-		template<class T> StdFrameAlloc(const StdFrameAlloc<T>& alloc) noexcept
+		template<class U> StdFrameAlloc(const StdFrameAlloc<U>& alloc) noexcept
 			:mFrameAlloc(alloc.mFrameAlloc)
 		{ }
 
-		template<class T> bool operator==(const StdFrameAlloc<T>&) const noexcept { return true; }
-		template<class T> bool operator!=(const StdFrameAlloc<T>&) const noexcept { return false; }
+		template<class U> bool operator==(const StdFrameAlloc<U>&) const noexcept { return true; }
+		template<class U> bool operator!=(const StdFrameAlloc<U>&) const noexcept { return false; }
+		template<class U> class rebind { public: typedef StdFrameAlloc<U> other; };
 
 		/** Allocate but don't initialize number elements of type T.*/
 		T* allocate(const size_t num) const
@@ -190,6 +200,13 @@ namespace BansheeEngine
 		}
 
 		FrameAlloc* mFrameAlloc;
+
+		size_t max_size() const { return std::numeric_limits<size_type>::max() / sizeof(T); }
+		void construct(pointer p, const_reference t) { new (p) T(t); }
+		void destroy(pointer p) { p->~T(); }
+		template<class U, class... Args>
+		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
+
 	};
 
 	/** Return that all specializations of this allocator are interchangeable. */
