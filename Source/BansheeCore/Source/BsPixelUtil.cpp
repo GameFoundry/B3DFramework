@@ -740,11 +740,11 @@ namespace BansheeEngine
 	//-----------------------------------------------------------------------
 		{"PF_D32_S8X24",
 		/* Bytes per element */
-		4,
+		8,
 		/* Flags */
 		PFF_DEPTH | PFF_FLOAT,
 		/* Component type and count */
-		PCT_FLOAT32, 1,
+		PCT_FLOAT32, 2,
 		/* rbits, gbits, bbits, abits */
 		0, 0, 0, 0,
 		/* Masks and shifts */
@@ -753,11 +753,11 @@ namespace BansheeEngine
 	//-----------------------------------------------------------------------
 		{"PF_D24_S8",
 		/* Bytes per element */
-		8,
+		4,
 		/* Flags */
 		PFF_DEPTH | PFF_FLOAT,
 		/* Component type and count */
-		PCT_FLOAT32, 2,
+		PCT_FLOAT32, 1,
 		/* rbits, gbits, bbits, abits */
 		0, 0, 0, 0,
 		/* Masks and shifts */
@@ -1275,7 +1275,6 @@ namespace BansheeEngine
     void PixelUtil::unpackColor(float* r, float* g, float* b, float* a, PixelFormat format, const void* src)
     {
         const PixelFormatDescription &des = getDescriptionFor(format);
-
         if(des.flags & PFF_NATIVEENDIAN) 
 		{
             // Shortcut for integer formats unpacking
@@ -1358,6 +1357,32 @@ namespace BansheeEngine
             }
         }
     }
+
+	void PixelUtil::packDepth(float depth, const PixelFormat format, void* dest)
+	{
+		if (!isDepth(format))
+		{
+			LOGERR("Cannot convert depth to " + getFormatName(format) + ": it is not a depth format");
+			return;
+		}
+			
+
+
+	}
+
+	void PixelUtil::unpackDepth(float& depth, PixelFormat format, void* src)
+	{
+		const PixelFormatDescription &des = getDescriptionFor(format);
+		if (!isDepth(format))
+		{
+			LOGERR("Cannot unpack from " + getFormatName(format) + ": it is not a depth format");
+			return;
+		}
+		//TODO fancy checks
+		UINT32* color = (UINT32 *)src;
+		float d = static_cast<float>(*color & 0x00FFFFFF);
+		depth = d / (float)16777216;
+	}
 
     void PixelUtil::bulkPixelConversion(const PixelData &src, PixelData &dst)
     {

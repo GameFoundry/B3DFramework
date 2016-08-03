@@ -13,6 +13,13 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	 /** Contains the results of a scene picking. */
+	struct PickResults
+	{
+		Vector<UINT32> results;
+		Vector3 pickPosition;
+	};
+
 	class ScenePickingCore;
 
 	/**	Handles picking of scene objects with a pointer in scene view. */

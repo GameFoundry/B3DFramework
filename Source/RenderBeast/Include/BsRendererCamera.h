@@ -67,16 +67,6 @@ namespace BansheeEngine
 		CameraShaderData getShaderData();
 
 	private:
-		/**
-		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value into
-		 * world Z value.
-		 * 			
-		 * @param[in]	projMatrix	Projection matrix that was used to create the device Z value to transform.
-		 * @return					Returns two values that can be used to transform device z to world z using this formula:
-		 * 							z = (deviceZ + y) * x.
-		 */
-		Vector2 getDeviceZTransform(const Matrix4& projMatrix);
-
 		const CameraCore* mCamera;
 		SPtr<RenderQueue> mOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;

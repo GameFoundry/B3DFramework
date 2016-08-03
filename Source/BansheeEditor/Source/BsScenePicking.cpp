@@ -169,7 +169,11 @@ namespace BansheeEngine
 
 		assert(op.hasCompleted());
 
-		Vector<UINT32> selectedObjects = op.getReturnValue<Vector<UINT32>>();
+		PickResults returnValue = op.getReturnValue<PickResults>();
+		Vector3 pos = returnValue.pickPosition;
+		pos = cam->screenToWorldPoint(Vector2I(pos.x, pos.y), 
+			(1.0f / (pos.z + cam->getDeviceZTransform().y)) * cam->getDeviceZTransform().x);
+		Vector<UINT32> selectedObjects = returnValue.results;
 		Vector<HSceneObject> results;
 
 		for (auto& selectedObjectIdx : selectedObjects)
@@ -316,6 +320,10 @@ namespace BansheeEngine
 		const Vector2I& area, AsyncOp& asyncOp)
 	{
 		const RenderTargetProperties& rtProps = target->getProperties();
+		RenderAPICore& rs = RenderAPICore::instance();
+
+		rs.endFrame();
+		rs.setRenderTarget(nullptr);
 
 		if (rtProps.isWindow())
 		{
@@ -325,6 +333,7 @@ namespace BansheeEngine
 
 		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
 		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
+		SPtr<TextureCore> depthTexture = rtt->getBindableDepthStencilTexture();
 
 		if (position.x < 0 || position.x >= (INT32)outputTexture->getProperties().getWidth() ||
 			position.y < 0 || position.y >= (INT32)outputTexture->getProperties().getHeight())
@@ -334,17 +343,15 @@ namespace BansheeEngine
 		}
 
 		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocateSubresourceBuffer(0);
-		AsyncOp unused;
+		SPtr<PixelData> depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
 
-		RenderAPICore& rs = RenderAPICore::instance();
-
-		rs.endFrame();
 		outputTexture->readSubresource(0, *outputPixelData);
 
 		Map<UINT32, UINT32> selectionScores;
 		UINT32 maxWidth = std::min((UINT32)(position.x + area.x), outputPixelData->getWidth());
 		UINT32 maxHeight = std::min((UINT32)(position.y + area.y), outputPixelData->getHeight());
 
+		bool needs = rtProps.requiresTextureFlipping();
 		if (rtProps.requiresTextureFlipping())
 		{
 			UINT32 vertOffset = outputPixelData->getHeight() - 1;
@@ -404,10 +411,20 @@ namespace BansheeEngine
 			return b.score < a.score;
 		});
 
-		Vector<UINT32> results;
+		Vector<UINT32> objects;
 		for (auto& selectedObject : selectedObjects)
-			results.push_back(selectedObject.index);
+			objects.push_back(selectedObject.index);
+		
+		depthTexture->readSubresource(0, *depthPixelData);
+		float depth;
+		if (rtProps.requiresTextureFlipping())
+			depth = depthPixelData->getDepthAt(position.x, depthPixelData->getHeight() - position.y);
+		else
+			depth = depthPixelData->getDepthAt(position.x, position.y);
 
-		asyncOp._completeOperation(results);
+		PickResults result;
+		result.results = objects;
+		result.pickPosition = Vector3(position.x, position.y, depth);
+		asyncOp._completeOperation(result);
 	}
 }

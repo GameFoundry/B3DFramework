@@ -415,6 +415,15 @@ namespace BansheeEngine
 		 */
 		Ray screenPointToRay(const Vector2I& screenPoint) const;
 
+		/**
+		* Extracts the necessary values from the projection matrix that allow you to transform device Z value into
+		* world Z value.
+		*
+		* @return					Returns two values that can be used to transform device z to world z using this formula:
+		* 							z = (deviceZ + y) * x.
+		*/
+		Vector2 getDeviceZTransform() const;
+
 		/**	Projects a point from view to normalized device space. */
 		Vector3 projectPoint(const Vector3& point) const;
 
