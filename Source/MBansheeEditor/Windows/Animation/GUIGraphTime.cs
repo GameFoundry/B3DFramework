@@ -110,6 +110,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Sets the position of the GUI element relative to its parent.
+        /// </summary>
+        /// <param name="x">Horizontal position in pixels.</param>
+        /// <param name="y">Vertical position in pixels.</param>
+        public void SetPosition(int x, int y)
+        {
+            canvas.SetPosition(x, y);
+        }
+
+        /// <summary>
         /// Number of frames per second, used for frame selection and marking.
         /// </summary>
         /// <param name="fps">Number of prames per second.</param>

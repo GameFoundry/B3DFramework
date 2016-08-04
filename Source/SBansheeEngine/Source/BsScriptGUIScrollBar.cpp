@@ -23,10 +23,10 @@ namespace BansheeEngine
 	void ScriptGUIScrollBar::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_SetTint", &ScriptGUIScrollBar::internal_SetTint);
-		metaData.scriptClass->addInternalCall("internal_GetPosition", &ScriptGUIScrollBar::internal_GetPosition);
-		metaData.scriptClass->addInternalCall("internal_SetPosition", &ScriptGUIScrollBar::internal_SetPosition);
-		metaData.scriptClass->addInternalCall("internal_GetHandleSize", &ScriptGUIScrollBar::internal_GetHandleSize);
-		metaData.scriptClass->addInternalCall("internal_SetHandleSize", &ScriptGUIScrollBar::internal_SetHandleSize);
+		metaData.scriptClass->addInternalCall("Internal_GetPosition", &ScriptGUIScrollBar::internal_GetPosition);
+		metaData.scriptClass->addInternalCall("Internal_SetPosition", &ScriptGUIScrollBar::internal_SetPosition);
+		metaData.scriptClass->addInternalCall("Internal_GetHandleSize", &ScriptGUIScrollBar::internal_GetHandleSize);
+		metaData.scriptClass->addInternalCall("Internal_SetHandleSize", &ScriptGUIScrollBar::internal_SetHandleSize);
 	}
 
 	float ScriptGUIScrollBar::internal_GetPosition(ScriptGUIElementBaseTBase* nativeInstance)

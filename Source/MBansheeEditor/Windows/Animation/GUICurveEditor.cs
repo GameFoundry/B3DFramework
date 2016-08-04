@@ -43,6 +43,7 @@ namespace BansheeEditor
         private EditorWindow window;
         private GUILayout gui;
         private GUIPanel drawingPanel;
+        private GUIPanel sidebarPanel;
         private GUIGraphTime guiTimeline;
         private GUICurveDrawing guiCurveDrawing;
         private GUIGraphValues guiSidebar;
@@ -52,8 +53,11 @@ namespace BansheeEditor
         private Vector2I contextClickPosition;
 
         private EdAnimationCurve[] curves = new EdAnimationCurve[0];
-        private float xRange;
-        private float yRange;
+        private float xRange = 60.0f;
+        private float yRange = 10.0f;
+
+        private int width;
+        private int height;
 
         private int markedFrameIdx;
         private List<SelectedKeyframes> selectedKeyframes = new List<SelectedKeyframes>();
@@ -87,10 +91,29 @@ namespace BansheeEditor
             get { return yRange; }
         }
 
+        /// <summary>
+        /// Returns the width of the curve editor, in pixels.
+        /// </summary>
+        public int Width
+        {
+            get { return width; }
+        }
+
+        /// <summary>
+        /// Returns the height of the curve editor, in pixels.
+        /// </summary>
+        public int Height
+        {
+            get { return height; }
+        }
+
         public GUICurveEditor(EditorWindow window, GUILayout gui, int width, int height)
         {
             this.window = window;
             this.gui = gui;
+
+            this.width = width;
+            this.height = height;
 
             blankContextMenu = new ContextMenu();
             blankContextMenu.AddItem("Add keyframe", AddKeyframeAtPosition);
@@ -116,11 +139,22 @@ namespace BansheeEditor
             guiCurveDrawing = new GUICurveDrawing(drawingPanel, width, height - TIMELINE_HEIGHT, curves);
             guiCurveDrawing.SetRange(60.0f, 20.0f);
 
-            GUIPanel sidebarPanel = gui.AddPanel(-10);
+            sidebarPanel = gui.AddPanel(-10);
             sidebarPanel.SetPosition(0, TIMELINE_HEIGHT);
 
             guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT);
             guiSidebar.SetRange(-10.0f, 10.0f);
+        }
+
+        public bool WindowToCurveSpace(Vector2I windowPos, out Vector2 curveCoord)
+        {
+            Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
+            Vector2I pointerPos = windowPos - new Vector2I(elementBounds.x, elementBounds.y);
+
+            Rect2I drawingBounds = drawingPanel.Bounds;
+            Vector2I drawingPos = pointerPos - new Vector2I(drawingBounds.x, drawingBounds.y);
+
+            return guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord);
         }
 
         internal void OnPointerPressed(PointerEvent ev)
@@ -382,12 +416,27 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Sets the position of the GUI element relative to its parent.
+        /// </summary>
+        /// <param name="x">Horizontal position in pixels.</param>
+        /// <param name="y">Vertical position in pixels.</param>
+        public void SetPosition(int x, int y)
+        {
+            guiTimeline.SetPosition(x, y);
+            drawingPanel.SetPosition(x, y + TIMELINE_HEIGHT);
+            sidebarPanel.SetPosition(x, y + TIMELINE_HEIGHT);
+        }
+
+        /// <summary>
         /// Change the physical size of the GUI element.
         /// </summary>
         /// <param name="width">Width of the element in pixels.</param>
         /// <param name="height">Height of the element in pixels.</param>
         public void SetSize(int width, int height)
         {
+            this.width = width;
+            this.height = height;
+
             guiTimeline.SetSize(width, TIMELINE_HEIGHT);
             guiCurveDrawing.SetSize(width, height - TIMELINE_HEIGHT);
             guiSidebar.SetSize(SIDEBAR_WIDTH, height - TIMELINE_HEIGHT);

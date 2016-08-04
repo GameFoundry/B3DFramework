@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using BansheeEngine;
 
 namespace BansheeEditor
@@ -26,6 +27,9 @@ namespace BansheeEditor
         }
 
         private const int FIELD_DISPLAY_WIDTH = 200;
+        private const int DRAG_START_DISTANCE = 3;
+        private const float DRAG_SCALE = 10.0f;
+        private const float ZOOM_SCALE = 15.0f;
 
         private bool isInitialized;
         private GUIButton playButton;
@@ -59,6 +63,13 @@ namespace BansheeEditor
         private SceneObject selectedSO;
         private int currentFrameIdx;
         private int fps = 1;
+
+        private Vector2I dragStartPos;
+        private bool isButtonHeld;
+        private bool isDragInProgress;
+
+        private Vector2 minimalRange;
+        private Vector2 visibleOffset;
 
         private Dictionary<string, FieldCurves> curves = new Dictionary<string, FieldCurves>();
         private List<string> selectedFields = new List<string>();
@@ -95,9 +106,173 @@ namespace BansheeEditor
             Rebuild();
         }
 
+        private Vector2 GetVisibleRange()
+        {
+            float unitsPerXPixel = guiCurveEditor.XRange / guiCurveEditor.Width;
+            float unitsPerYPixel = guiCurveEditor.YRange / guiCurveEditor.Height;
+
+            Vector2I visibleSize = GetCurveEditorSize();
+            return new Vector2(unitsPerXPixel * visibleSize.x, unitsPerYPixel * visibleSize.y);
+        }
+
+        private void SetVisibleOffset(Vector2 offset)
+        {
+            visibleOffset = offset;
+
+            float pixelsPerXUnit = guiCurveEditor.Width / guiCurveEditor.XRange;
+            float pixelsPerYUnit = guiCurveEditor.Height / (guiCurveEditor.YRange * 2.0f);
+
+            int x = (int) (pixelsPerXUnit*visibleOffset.x);
+            int y = (int) (pixelsPerYUnit*visibleOffset.y);
+
+            guiCurveEditor.SetPosition(x, y);
+        }
+
+        // Increases range without zooming in (increasing width/height accordingly)
+        private void SetTotalRange(float x, float y)
+        {
+            float pixelsPerXUnit = guiCurveEditor.Width / guiCurveEditor.XRange;
+            float pixelsPerYUnit = guiCurveEditor.Height / (guiCurveEditor.YRange * 2.0f);
+
+            int width = (int) (pixelsPerXUnit * x);
+            int height = (int) (pixelsPerYUnit * y);
+
+            guiCurveEditor.SetRange(x, y);
+            guiCurveEditor.SetSize(width, height);
+
+            UpdateScrollBarSize();
+        }
+
+        private void UpdateScrollBarSize()
+        {
+            Vector2 visibleRange = GetVisibleRange();
+            Vector2 totalRange = new Vector2(guiCurveEditor.XRange, guiCurveEditor.YRange);
+
+            horzScrollBar.HandleSize = visibleRange.x / totalRange.x;
+            vertScrollBar.HandleSize = visibleRange.y / totalRange.y;
+        }
+
+        private void UpdateScrollBarPosition()
+        {
+            Vector2 visibleRange = GetVisibleRange();
+            Vector2 totalRange = new Vector2(guiCurveEditor.XRange, guiCurveEditor.YRange);
+            Vector2 scrollableRange = totalRange - visibleRange;
+
+            horzScrollBar.Position = visibleOffset.x / scrollableRange.x;
+            vertScrollBar.Position = visibleOffset.y / scrollableRange.y;
+        }
+
+        private void Zoom(Vector2 curvePos, float amount)
+        {
+            Vector2 relativePos = curvePos - visibleOffset;
+            Vector2 visibleRange = GetVisibleRange();
+
+            relativePos.x /= visibleRange.x;
+            relativePos.y /= visibleRange.y;
+
+            relativePos.x = relativePos.x * 2.0f - 1.0f;
+            relativePos.y = relativePos.y * 2.0f - 1.0f;
+
+            Vector2 offset = visibleOffset;
+            offset.x += relativePos.x * amount;
+            offset.y += relativePos.y * amount;
+
+            offset.x = Math.Max(0.0f, offset.x);
+
+            SetVisibleOffset(offset);
+            UpdateScrollBarPosition();
+
+            int width = guiCurveEditor.Width + (int)amount;
+            int height = guiCurveEditor.Height + (int)amount;
+
+            // If we aren't at the minimum size, modify size and offset
+            Vector2I visibleSize = GetCurveEditorSize();
+            if (width > visibleSize.x || height > visibleSize.y)
+            {
+                width = Math.Max(width, visibleSize.x);
+                height = Math.Max(height, visibleSize.y);
+
+                guiCurveEditor.SetSize(width, height);
+                UpdateScrollBarSize();
+            }
+            else // Otherwise start increasing range for zoom in
+            {
+                float unitsPerXPixel = guiCurveEditor.XRange / guiCurveEditor.Width;
+                float unitsPerYPixel = guiCurveEditor.YRange / guiCurveEditor.Height;
+
+                float rangeX = guiCurveEditor.XRange + unitsPerXPixel * amount;
+                float rangeY = guiCurveEditor.YRange + unitsPerYPixel * amount;
+
+                SetTotalRange(rangeX, rangeY);
+            }
+        }
+
         private void OnEditorUpdate()
         {
+            if (!isInitialized)
+                return;
 
+            // Handle middle mouse dragging
+            if (isDragInProgress)
+            {
+                float dragX = Input.GetAxisValue(InputAxis.MouseX) * DRAG_SCALE;
+                float dragY = Input.GetAxisValue(InputAxis.MouseY) * DRAG_SCALE;
+
+                Vector2 totalRange = new Vector2(guiCurveEditor.XRange, guiCurveEditor.YRange);
+                Vector2 visibleRange = GetVisibleRange();
+                Vector2 offset = visibleOffset;
+
+                if (dragX > 0.0f)
+                {
+                    offset.x += dragX;
+
+                    float visibleRight = offset.x + visibleRange.x;
+                    if (visibleRight > totalRange.x)
+                        totalRange.x = visibleRight;
+                }
+                else
+                {
+                    float actualDragX = offset.x - Math.Max(0.0f, offset.x + dragX);
+
+                    offset.x -= actualDragX;
+
+                    float visibleRight = offset.x + visibleRange.x;
+                    totalRange.x = Math.Max(minimalRange.x, visibleRight);
+                }
+
+                if (dragY > 0.0f)
+                {
+                    offset.y += dragY;
+
+                    float visibleTop = offset.y + visibleRange.y;
+                    if (visibleTop > totalRange.y)
+                        totalRange.y = visibleTop;
+                }
+                else
+                {
+                    offset.y += dragY;
+
+                    float visibleYMax = Math.Abs(offset.y) + visibleRange.y;
+                    totalRange.y = Math.Max(minimalRange.y, visibleYMax);
+                }
+
+                SetTotalRange(totalRange.x, totalRange.y);
+                SetVisibleOffset(offset);
+                UpdateScrollBarPosition();
+            }
+
+            // Handle zoom in/out
+            float scroll = Input.GetAxisValue(InputAxis.MouseZ);
+            if (scroll != 0.0f)
+            {
+                Vector2I windowPos = ScreenToWindowPos(Input.PointerPosition);
+                Vector2 curvePos;
+                if (guiCurveEditor.WindowToCurveSpace(windowPos, out curvePos))
+                {
+                    float zoom = scroll*ZOOM_SCALE;
+                    Zoom(curvePos, zoom);
+                }
+            }
         }
 
         private void OnDestroy()
@@ -122,6 +297,9 @@ namespace BansheeEditor
 
             horzScrollBar.SetWidth(curveEditorSize.x);
             vertScrollBar.SetHeight(curveEditorSize.y);
+
+            UpdateScrollBarSize();
+            UpdateScrollBarPosition();
         }
 
         private void Rebuild()
@@ -310,6 +488,9 @@ namespace BansheeEditor
             vertScrollBar.SetHeight(curveEditorSize.y);
 
             SetCurrentFrame(currentFrameIdx);
+            UpdateScrollBarSize();
+
+            visibleOffset = new Vector2(0.0f, 0.0f);
             isInitialized = true;
         }
 
@@ -393,6 +574,17 @@ namespace BansheeEditor
                 return;
 
             guiCurveEditor.OnPointerPressed(ev);
+
+            if (ev.button == PointerButton.Middle)
+            {
+                Vector2I windowPos = ScreenToWindowPos(ev.ScreenPos);
+                Vector2 curvePos;
+                if (guiCurveEditor.WindowToCurveSpace(windowPos, out curvePos))
+                {
+                    dragStartPos = windowPos;
+                    isButtonHeld = true;
+                }
+            }
         }
 
         private void OnPointerMoved(PointerEvent ev)
@@ -401,10 +593,40 @@ namespace BansheeEditor
                 return;
 
             guiCurveEditor.OnPointerMoved(ev);
+
+            if (isButtonHeld)
+            {
+                Vector2I windowPos = ScreenToWindowPos(ev.ScreenPos);
+
+                int distance = Vector2I.Distance(dragStartPos, windowPos);
+                if (distance >= DRAG_START_DISTANCE)
+                {
+                    isDragInProgress = true;
+
+                    Cursor.Hide();
+
+                    Rect2I clipRect;
+                    clipRect.x = ev.ScreenPos.x - 2;
+                    clipRect.y = ev.ScreenPos.y - 2;
+                    clipRect.width = 4;
+                    clipRect.height = 4;
+
+                    Cursor.ClipToRect(clipRect);
+                }
+            }
         }
 
         private void OnPointerReleased(PointerEvent ev)
         {
+            if (isDragInProgress)
+            {
+                Cursor.Show();
+                Cursor.ClipDisable();
+            }
+
+            isButtonHeld = false;
+            isDragInProgress = false;
+
             if (!isInitialized)
                 return;
 
@@ -446,11 +668,14 @@ namespace BansheeEditor
             yRange *= 1.05f;
 
             // Don't reduce visible range
+            minimalRange.x = Math.Max(xRange, minimalRange.x);
+            minimalRange.y = Math.Max(yRange, minimalRange.y);
+
             xRange = Math.Max(xRange, guiCurveEditor.XRange);
             yRange = Math.Max(yRange, guiCurveEditor.YRange);
 
             guiCurveEditor.SetRange(xRange, yRange);
-            guiCurveEditor.Redraw();
+            UpdateScrollBarSize();
         }
 
         private Vector2I GetCurveEditorSize()
@@ -649,14 +874,32 @@ namespace BansheeEditor
             return path.Substring(0, index);
         }
 
-        private void OnVertScrollOrResize(float arg1, float arg2)
+        private void OnHorzScrollOrResize(float position, float size)
         {
-            throw new NotImplementedException();
+            Vector2 visibleRange = GetVisibleRange();
+            float scrollableRange = guiCurveEditor.XRange - visibleRange.x;
+
+            Vector2 offset = visibleOffset;
+            offset.x = scrollableRange * position;
+
+            SetVisibleOffset(offset);
+
+            int width = (int)(guiCurveEditor.Width / size);
+            guiCurveEditor.SetSize(width, guiCurveEditor.Height);
         }
 
-        private void OnHorzScrollOrResize(float arg1, float arg2)
+        private void OnVertScrollOrResize(float position, float size)
         {
-            throw new NotImplementedException();
+            Vector2 visibleRange = GetVisibleRange();
+            float scrollableRange = guiCurveEditor.YRange - visibleRange.y;
+
+            Vector2 offset = visibleOffset;
+            offset.y = scrollableRange*position;
+
+            SetVisibleOffset(offset);
+
+            int height = (int)(guiCurveEditor.Height / size);
+            guiCurveEditor.SetSize(guiCurveEditor.Width, height);
         }
 
         private void OnFieldSelected(string path)
