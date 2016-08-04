@@ -47,10 +47,10 @@ namespace BansheeEngine
 	const char* BuiltinResources::IconFolder = "Icons\\";
 	const char* BuiltinResources::ShaderFolder = "Shaders\\";
 	const char* BuiltinResources::SkinFolder = "Skin\\";
-	const char* BuiltinResources::SkinSpritesFolder = "SkinSprites\\";
 	const char* BuiltinResources::ShaderIncludeFolder = "Includes\\";
 	const char* BuiltinResources::MeshFolder = "Meshes\\";
 	const char* BuiltinResources::TextureFolder = "Textures\\";
+	const char* BuiltinResources::SpriteSubFolder = "Sprites\\";
 
 	/************************************************************************/
 	/* 								GUI TEXTURES                      		*/
@@ -208,7 +208,7 @@ namespace BansheeEngine
 
 		mBuiltinDataFolder = Paths::getEngineDataPath();
 		mEngineSkinFolder = mBuiltinDataFolder + SkinFolder;
-		mEngineSkinSpritesFolder = mBuiltinDataFolder + SkinSpritesFolder;
+		mEngineSkinSpritesFolder = mEngineSkinFolder + SpriteSubFolder;
 		mEngineCursorFolder = mBuiltinDataFolder + CursorFolder;
 		mEngineIconFolder = mBuiltinDataFolder + IconFolder;
 		mEngineShaderFolder = mBuiltinDataFolder + ShaderFolder;
@@ -218,28 +218,45 @@ namespace BansheeEngine
 
 		ResourceManifestPath = mBuiltinDataFolder + "ResourceManifest.asset";
 
-		// Load manifest
-		if (FileSystem::exists(ResourceManifestPath))
-			mResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
-
-		if (mResourceManifest == nullptr)
-			mResourceManifest = ResourceManifest::create("BuiltinResources");
-
-		gResources().registerResourceManifest(mResourceManifest);
-
 		// Update from raw assets if needed
 #if BS_DEBUG_MODE
 		if (FileSystem::exists(mBuiltinRawDataFolder))
 		{
 			if (BuiltinResourcesHelper::checkForModifications(mBuiltinRawDataFolder, mBuiltinDataFolder + L"Timestamp.asset"))
 			{
+				SPtr<ResourceManifest> oldResourceManifest;
+				if (FileSystem::exists(ResourceManifestPath))
+				{
+					oldResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
+					if (oldResourceManifest != nullptr)
+						gResources().registerResourceManifest(oldResourceManifest);
+				}
+
+				mResourceManifest = ResourceManifest::create("BuiltinResources");
+				gResources().registerResourceManifest(mResourceManifest);
+
 				preprocess();
 				BuiltinResourcesHelper::writeTimestamp(mBuiltinDataFolder + L"Timestamp.asset");
 
 				ResourceManifest::save(mResourceManifest, ResourceManifestPath, mBuiltinDataFolder);
+
+				if (oldResourceManifest != nullptr)
+					gResources().unregisterResourceManifest(oldResourceManifest);
 			}
 		}
 #endif
+
+		// Load manifest
+		if (mResourceManifest == nullptr)
+		{
+			if (FileSystem::exists(ResourceManifestPath))
+				mResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
+
+			if (mResourceManifest == nullptr)
+				mResourceManifest = ResourceManifest::create("BuiltinResources");
+
+			gResources().registerResourceManifest(mResourceManifest);
+		}
 		
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
@@ -1289,7 +1306,7 @@ namespace BansheeEngine
 			return true;
 		};
 
-		FileSystem::iterate(input, gather);
+		FileSystem::iterate(input, gather, nullptr, false);
 
 		UnorderedSet<Path> outputAssets;
 		for (auto& filePath : filesToProcess)
@@ -1334,7 +1351,7 @@ namespace BansheeEngine
 			return true;
 		};
 
-		FileSystem::iterate(output, gatherObsolete);
+		FileSystem::iterate(output, gatherObsolete, nullptr, false);
 
 		for (auto& obsoleteAssetPath : obsoleteAssets)
 			FileSystem::remove(obsoleteAssetPath);

@@ -16,7 +16,7 @@ namespace BansheeEngine
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
-		static const String& getGUITypeName();
+		static const String& getGUITypeName(bool resizeable);
 
 		/**
 		 * Creates a new vertical scroll bar.

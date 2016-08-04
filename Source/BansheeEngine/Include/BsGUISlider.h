@@ -66,7 +66,7 @@ namespace BansheeEngine
 		float getStep() const;
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		void setTint(const Color& color) override;
 
 		/** Triggered when the user changes the value of the slider. */
 		Event<void(float percent)> onChanged;
@@ -77,7 +77,7 @@ namespace BansheeEngine
 		 */
 
 		/** @copydoc GUIElementContainer::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -85,7 +85,7 @@ namespace BansheeEngine
 		virtual ~GUISlider();
 
 		/** @copydoc GUIElementContainer::_updateLayoutInternal */
-		virtual void _updateLayoutInternal(const GUILayoutData& data) override;
+		void _updateLayoutInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;

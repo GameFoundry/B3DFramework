@@ -18,31 +18,36 @@ namespace BansheeEngine
 
 	GUIScrollBarHorz* GUIScrollBarHorz::create(const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(false, getStyleName<GUIScrollBarHorz>(styleName), 
+		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(false, getStyleName<GUIScrollBarHorz>(false, styleName), 
 			GUIDimensions::create());
 	}
 
 	GUIScrollBarHorz* GUIScrollBarHorz::create(bool resizeable, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(resizeable, getStyleName<GUIScrollBarHorz>(styleName), 
+		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(resizeable, getStyleName<GUIScrollBarHorz>(resizeable, styleName), 
 			GUIDimensions::create());
 	}
 
 	GUIScrollBarHorz* GUIScrollBarHorz::create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(false, getStyleName<GUIScrollBarHorz>(styleName), 
+		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(false, getStyleName<GUIScrollBarHorz>(false, styleName), 
 			GUIDimensions::create(options));
 	}
 
 	GUIScrollBarHorz* GUIScrollBarHorz::create(bool resizeable, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(resizeable, getStyleName<GUIScrollBarHorz>(styleName), 
+		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(resizeable, getStyleName<GUIScrollBarHorz>(resizeable, styleName), 
 			GUIDimensions::create(options));
 	}
 
-	const String& GUIScrollBarHorz::getGUITypeName()
+	const String& GUIScrollBarHorz::getGUITypeName(bool resizable)
 	{
 		static String typeName = "ScrollBarHorz";
-		return typeName;
+		static String resizableTypeName = "ResizeableScrollBarHorz";
+
+		if(resizable)
+			return resizableTypeName;
+		else
+			return typeName;
 	}
 }

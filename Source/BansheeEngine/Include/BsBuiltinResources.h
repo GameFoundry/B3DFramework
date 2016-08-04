@@ -201,9 +201,9 @@ namespace BansheeEngine
 		static const char* ShaderFolder;
 		static const char* ShaderIncludeFolder;
 		static const char* SkinFolder;
-		static const char* SkinSpritesFolder;
 		static const char* MeshFolder;
 		static const char* TextureFolder;
+		static const char* SpriteSubFolder;
 
 		static const WString DefaultFontFilename;
 		static const UINT32 DefaultFontSize;

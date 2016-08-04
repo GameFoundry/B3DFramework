@@ -44,7 +44,13 @@ namespace BansheeEditor
         private GUIButton delPropertyBtn;
 
         private GUILayout buttonLayout;
+
         private int buttonLayoutHeight;
+        private int scrollBarWidth;
+        private int scrollBarHeight;
+
+        private GUIResizeableScrollBarH horzScrollBar;
+        private GUIResizeableScrollBarV vertScrollBar;
 
         private GUIPanel editorPanel;
         private GUIAnimFieldDisplay guiFieldDisplay;
@@ -110,9 +116,12 @@ namespace BansheeEditor
 
             guiFieldDisplay.SetSize(FIELD_DISPLAY_WIDTH, height - buttonLayoutHeight*2);
 
-            int curveEditorWidth = Math.Max(0, width - FIELD_DISPLAY_WIDTH);
-            guiCurveEditor.SetSize(curveEditorWidth, height - buttonLayoutHeight);
+            Vector2I curveEditorSize = GetCurveEditorSize();
+            guiCurveEditor.SetSize(curveEditorSize.x, curveEditorSize.y);
             guiCurveEditor.Redraw();
+
+            horzScrollBar.SetWidth(curveEditorSize.x);
+            vertScrollBar.SetHeight(curveEditorSize.y);
         }
 
         private void Rebuild()
@@ -261,7 +270,7 @@ namespace BansheeEditor
             buttonLayout.AddFlexibleSpace();
 
             buttonLayoutHeight = playButton.Bounds.height;
-
+            
             GUILayout contentLayout = mainLayout.AddLayoutX();
             GUILayout fieldDisplayLayout = contentLayout.AddLayoutY(GUIOption.FixedWidth(FIELD_DISPLAY_WIDTH));
 
@@ -273,14 +282,32 @@ namespace BansheeEditor
             bottomButtonLayout.AddElement(addPropertyBtn);
             bottomButtonLayout.AddElement(delPropertyBtn);
 
+            horzScrollBar = new GUIResizeableScrollBarH();
+            horzScrollBar.OnScrollOrResize += OnHorzScrollOrResize;
+            
+            vertScrollBar = new GUIResizeableScrollBarV();
+            vertScrollBar.OnScrollOrResize += OnVertScrollOrResize;
+            
             GUILayout curveLayout = contentLayout.AddLayoutY();
+            GUILayout curveLayoutHorz = curveLayout.AddLayoutX();
+            GUILayout horzScrollBarLayout = curveLayout.AddLayoutX();
+            horzScrollBarLayout.AddElement(horzScrollBar);
+            horzScrollBarLayout.AddFlexibleSpace();
 
-            editorPanel = curveLayout.AddPanel();
+            editorPanel = curveLayoutHorz.AddPanel();
+            curveLayoutHorz.AddElement(vertScrollBar);
+            curveLayoutHorz.AddFlexibleSpace();
 
-            int curveEditorWidth = Math.Max(0, Width - FIELD_DISPLAY_WIDTH);
-            guiCurveEditor = new GUICurveEditor(this, editorPanel, curveEditorWidth, Height - buttonLayoutHeight);
+            scrollBarHeight = horzScrollBar.Bounds.height;
+            scrollBarWidth = vertScrollBar.Bounds.width;
+
+            Vector2I curveEditorSize = GetCurveEditorSize();
+            guiCurveEditor = new GUICurveEditor(this, editorPanel, curveEditorSize.x, curveEditorSize.y);
             guiCurveEditor.OnFrameSelected += OnFrameSelected;
             guiCurveEditor.Redraw();
+
+            horzScrollBar.SetWidth(curveEditorSize.x);
+            vertScrollBar.SetHeight(curveEditorSize.y);
 
             SetCurrentFrame(currentFrameIdx);
             isInitialized = true;
@@ -424,6 +451,15 @@ namespace BansheeEditor
 
             guiCurveEditor.SetRange(xRange, yRange);
             guiCurveEditor.Redraw();
+        }
+
+        private Vector2I GetCurveEditorSize()
+        {
+            Vector2I output = new Vector2I();
+            output.x = Math.Max(0, Width - FIELD_DISPLAY_WIDTH - scrollBarWidth);
+            output.y = Math.Max(0, Height - buttonLayoutHeight - scrollBarHeight);
+
+            return output;
         }
 
         private static void CalculateRange(List<EdAnimationCurve> curves, out float xRange, out float yRange)
@@ -613,6 +649,16 @@ namespace BansheeEditor
             return path.Substring(0, index);
         }
 
+        private void OnVertScrollOrResize(float arg1, float arg2)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnHorzScrollOrResize(float arg1, float arg2)
+        {
+            throw new NotImplementedException();
+        }
+
         private void OnFieldSelected(string path)
         {
             if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
@@ -664,8 +710,6 @@ namespace BansheeEditor
     [DefaultSize(100, 50)]
     internal class AnimationOptions : DropDownWindow
     {
-        private AnimationWindow parent;
-
         /// <summary>
         /// Initializes the drop down window by creating the necessary GUI. Must be called after construction and before
         /// use.
@@ -673,8 +717,6 @@ namespace BansheeEditor
         /// <param name="parent">Animation window that this drop down window is a part of.</param>
         internal void Initialize(AnimationWindow parent)
         {
-            this.parent = parent;
-
             GUIIntField fpsField = new GUIIntField(new LocEdString("FPS"), 40);
             fpsField.Value = parent.FPS;
             fpsField.OnChanged += x => { parent.FPS = x; };

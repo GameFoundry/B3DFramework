@@ -37,14 +37,14 @@ namespace BansheeEngine
 		void _updateLayoutInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementContainer::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
 		virtual ~GUIFieldBase() { }
 
 		/** @copydoc GUIElementContainer::styleUpdated */
-		virtual void styleUpdated() override;
+		void styleUpdated() override;
 
 		static const UINT32 DEFAULT_LABEL_WIDTH;
 

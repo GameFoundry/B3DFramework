@@ -147,6 +147,14 @@ namespace BansheeEngine
 			vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 	}
 
+	void GUIScrollBar::styleUpdated()
+	{
+		if (mHorizontal)
+			mHandleBtn->setStyle(getSubStyleName(getHScrollHandleType()));
+		else
+			mHandleBtn->setStyle(getSubStyleName(getVScrollHandleType()));
+	}
+
 	void GUIScrollBar::handleMoved(float handlePct, float sizePct)
 	{
 		if(!onScrollOrResize.empty())

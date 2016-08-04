@@ -327,6 +327,14 @@ namespace BansheeEngine
 #if BS_DEBUG_MODE
 		if (BuiltinResourcesHelper::checkForModifications(BuiltinRawDataFolder, BuiltinDataFolder + L"Timestamp.asset"))
 		{
+			SPtr<ResourceManifest> oldResourceManifest;
+			if (FileSystem::exists(ResourceManifestPath))
+			{
+				oldResourceManifest = ResourceManifest::load(ResourceManifestPath, BuiltinDataFolder);
+				if(oldResourceManifest != nullptr)
+					gResources().registerResourceManifest(oldResourceManifest);
+			}
+
 			mResourceManifest = ResourceManifest::create("BuiltinResources");
 			gResources().registerResourceManifest(mResourceManifest);
 
@@ -334,6 +342,9 @@ namespace BansheeEngine
 			BuiltinResourcesHelper::writeTimestamp(BuiltinDataFolder + L"Timestamp.asset");
 
 			ResourceManifest::save(mResourceManifest, ResourceManifestPath, BuiltinDataFolder);
+
+			if (oldResourceManifest != nullptr)
+				gResources().unregisterResourceManifest(oldResourceManifest);
 		}
 #endif
 
@@ -896,8 +907,8 @@ namespace BansheeEngine
 		scrollBarHorzResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleHorzActiveTex);
 		scrollBarHorzResizeableBtnStyle.fixedHeight = true;
 		scrollBarHorzResizeableBtnStyle.fixedWidth = false;
-		scrollBarHorzResizeableBtnStyle.width = 13;
-		scrollBarHorzResizeableBtnStyle.height = 15;
+		scrollBarHorzResizeableBtnStyle.width = 15;
+		scrollBarHorzResizeableBtnStyle.height = 13;
 		scrollBarHorzResizeableBtnStyle.border.left = 7;
 		scrollBarHorzResizeableBtnStyle.border.right = 7;
 
@@ -910,8 +921,8 @@ namespace BansheeEngine
 		scrollBarVertResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleVertActiveTex);
 		scrollBarVertResizeableBtnStyle.fixedHeight = false;
 		scrollBarVertResizeableBtnStyle.fixedWidth = true;
-		scrollBarVertResizeableBtnStyle.width = 15;
-		scrollBarVertResizeableBtnStyle.height = 13;
+		scrollBarVertResizeableBtnStyle.width = 13;
+		scrollBarVertResizeableBtnStyle.height = 15;
 		scrollBarVertResizeableBtnStyle.border.top = 7;
 		scrollBarVertResizeableBtnStyle.border.bottom = 7;
 
@@ -924,7 +935,7 @@ namespace BansheeEngine
 		vertResizeableScrollBarStyle.active.texture = vertResizeableScrollBarStyle.normal.texture;
 		vertResizeableScrollBarStyle.fixedHeight = false;
 		vertResizeableScrollBarStyle.fixedWidth = true;
-		vertResizeableScrollBarStyle.minHeight = 8;
+		vertResizeableScrollBarStyle.minHeight = 15;
 		vertResizeableScrollBarStyle.width = 16;
 
 		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
@@ -939,7 +950,7 @@ namespace BansheeEngine
 		horzResizeableScrollBarStyle.active.texture = horzResizeableScrollBarStyle.normal.texture;
 		horzResizeableScrollBarStyle.fixedHeight = true;
 		horzResizeableScrollBarStyle.fixedWidth = false;
-		horzResizeableScrollBarStyle.minWidth = 8;
+		horzResizeableScrollBarStyle.minWidth = 15;
 		horzResizeableScrollBarStyle.height = 16;
 
 		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";

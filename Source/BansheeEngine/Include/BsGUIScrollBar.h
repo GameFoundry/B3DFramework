@@ -114,6 +114,22 @@ namespace BansheeEngine
 
 		/** @copydoc	GUIElement::_getRenderElementDepthRange */
 		UINT32 _getRenderElementDepthRange() const override;
+
+		/** @copydoc GUIElementContainer::styleUpdated */
+		void styleUpdated() override;
+
+		/**
+		 * Helper method that returns style name used by a specific scrollbar type. If override style is empty, default
+		 * style for that type is returned.
+		 */
+		template<class T>
+		static const String& getStyleName(bool resizeable, const String& overrideStyle)
+		{
+			if(overrideStyle == StringUtil::BLANK)
+				return T::getGUITypeName(resizeable);
+
+			return overrideStyle;
+		}
 	private:
 		/**
 		 * Triggered whenever the scroll handle moves. Provided value represents the new position and size of the handle 
