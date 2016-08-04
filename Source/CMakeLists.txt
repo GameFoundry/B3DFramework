@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5.1)
+cmake_minimum_required (VERSION 3.6.1)
 project (Banshee)
 
 # Version
@@ -253,6 +253,7 @@ if(MSVC)
 		include_external_msproject(MBansheeEditor ${PROJECT_SOURCE_DIR}/MBansheeEditor/MBansheeEditor.csproj)
 		add_dependencies(BansheeEditorExec MBansheeEngine MBansheeEditor)
 		set_property(TARGET MBansheeEditor PROPERTY FOLDER Script)
+		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BansheeEditorExec)
 	endif()
 else()
 # TODO - Use Mono compiler to build the managed code as a pre-build step
