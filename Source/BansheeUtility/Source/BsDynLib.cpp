@@ -12,7 +12,6 @@
 #endif
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
-#   include "macUtils.h"
 #   include <dlfcn.h>
 #endif
 
