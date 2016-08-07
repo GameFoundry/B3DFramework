@@ -52,6 +52,7 @@
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\AnimationWindow.cs" />
     <Compile Include="Windows\Animation\FieldSelectionWindow.cs" />
+    <Compile Include="Windows\Animation\GUIAnimEvents.cs" />
     <Compile Include="Windows\Animation\GUIAnimFieldDisplay.cs" />
     <Compile Include="Windows\Animation\GUICurveDrawing.cs" />
     <Compile Include="Windows\Animation\GUICurveEditor.cs" />

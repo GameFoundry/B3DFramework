@@ -394,8 +394,6 @@ namespace BansheeEditor
 
             horzScrollBar.HandleSize = visibleRange.x / totalRange.x;
             vertScrollBar.HandleSize = visibleRange.y / totalRange.y;
-
-            Debug.Log(visibleRange.y + " - " + totalRange.y + " - " + (visibleRange.y / totalRange.y));
         }
 
         private void UpdateScrollBarPosition()
