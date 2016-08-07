@@ -117,7 +117,7 @@ namespace BansheeEngine
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 			parseWindows(pathStr, numChars);
-#elif BS_PLATFORM == BS_PLATFORM_APPLE || BS_PLATFORM == BS_PLATFORM_LINUX
+#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
 			parseUnix(pathStr, numChars);
 #else
 			static_assert(false, "Unsupported platform for path.");
@@ -139,7 +139,7 @@ namespace BansheeEngine
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 			parseWindows(pathStr, numChars);
-#elif BS_PLATFORM == BS_PLATFORM_APPLE || BS_PLATFORM == BS_PLATFORM_LINUX
+#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
 			parseUnix(pathStr, numChars);
 #else
 			static_assert(false, "Unsupported platform for path.");
@@ -159,7 +159,7 @@ namespace BansheeEngine
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 			return buildWindows();
-#elif BS_PLATFORM == BS_PLATFORM_APPLE || BS_PLATFORM == BS_PLATFORM_LINUX
+#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
 			return buildUnix();
 #else
 			static_assert(false, "Unsupported platform for path.");
@@ -179,7 +179,7 @@ namespace BansheeEngine
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 			return BansheeEngine::toString(buildWindows());
-#elif BS_PLATFORM == BS_PLATFORM_APPLE || BS_PLATFORM == BS_PLATFORM_LINUX
+#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
 			return BansheeEngine::toString(buildUnix());
 #else
 			static_assert(false, "Unsupported platform for path.");

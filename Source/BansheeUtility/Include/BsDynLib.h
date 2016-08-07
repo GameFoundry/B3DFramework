@@ -27,7 +27,7 @@ namespace BansheeEngine
 #    define DYNLIB_GETSYM( a, b ) dlsym( a, b )
 #    define DYNLIB_UNLOAD( a ) dlclose( a )
 
-#elif BS_PLATFORM == BS_PLATFORM_APPLE
+#elif BS_PLATFORM == BS_PLATFORM_OSX
 #    define DYNLIB_HANDLE void*
 #    define DYNLIB_LOAD( a ) mac_loadDylib( a )
 #    define DYNLIB_GETSYM( a, b ) dlsym( a, b )

@@ -96,7 +96,7 @@ namespace BansheeEngine
         // Free the buffer.
         LocalFree(lpMsgBuf);
         return ret;
-#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_APPLE
+#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
         return String(dlerror());
 #else
         return String("");

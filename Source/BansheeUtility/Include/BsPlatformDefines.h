@@ -51,7 +51,7 @@
 #if defined( __WIN32__ ) || defined( _WIN32 )
 #   define BS_PLATFORM BS_PLATFORM_WIN32
 #elif defined( __APPLE_CC__)
-#   define BS_PLATFORM BS_PLATFORM_APPLE
+#   define BS_PLATFORM BS_PLATFORM_OSX
 #else
 #   define BS_PLATFORM BS_PLATFORM_LINUX
 #endif
