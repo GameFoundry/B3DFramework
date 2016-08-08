@@ -1366,7 +1366,7 @@ namespace BansheeEngine
 			return;
 		}
 			
-
+		//TODO implement depth packing
 
 	}
 
@@ -1378,10 +1378,24 @@ namespace BansheeEngine
 			LOGERR("Cannot unpack from " + getFormatName(format) + ": it is not a depth format");
 			return;
 		}
-		//TODO fancy checks
 		UINT32* color = (UINT32 *)src;
-		float d = static_cast<float>(*color & 0x00FFFFFF);
-		depth = d / (float)16777216;
+		switch (format) {
+		case PF_D24S8:
+			depth = static_cast<float>(*color & 0x00FFFFFF) / (float)16777216;
+			break;
+		case PF_D16:
+			depth = static_cast<float>(*color & 0xFFFF) / (float)65536;
+			break;
+		case PF_D32:
+			depth = static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			break;
+		case PF_D32_S8X24:
+			depth = static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			break;
+		default:
+			LOGERR("Cannot unpack from " + getFormatName(format));
+			break;
+		}
 	}
 
     void PixelUtil::bulkPixelConversion(const PixelData &src, PixelData &dst)
