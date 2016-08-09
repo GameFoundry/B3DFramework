@@ -5,27 +5,72 @@ using BansheeEngine;
 
 namespace BansheeEditor
 {
+    /** @addtogroup AnimationEditor
+     *  @{
+     */
+
+    /// <summary>
+    /// Type of tangent on a keyframe in an animation curve.
+    /// </summary>
     internal enum TangentType
     {
         In = 1 << 0,
         Out = 1 << 1
     }
 
+    /// <summary>
+    /// Flags that are used for describing how are tangents calculated for a specific keyframe in an animation curve. 
+    /// Modes for "in" and "out" tangents can be combined.
+    /// </summary>
     [Flags]
     internal enum TangentMode
     {
-        Auto        = 0,
-        InAuto      = TangentType.In | 1 << 2,
-        InFree      = TangentType.In | 1 << 3,
-        InLinear    = TangentType.In | 1 << 4,
-        InStep      = TangentType.In | 1 << 5,
-        OutAuto     = TangentType.Out | 1 << 6,
-        OutFree     = TangentType.Out | 1 << 7,
-        OutLinear   = TangentType.Out | 1 << 8,
-        OutStep     = TangentType.Out | 1 << 9,
-        Free        = 1 << 10,
+        /// <summary>
+        /// Both tangents are calculated automatically based on the two surrounding keyframes.
+        /// </summary>
+        Auto = 0,
+        /// <summary>
+        /// Left tangent is calculated automatically based on the two surrounding keyframes.
+        /// </summary>
+        InAuto = TangentType.In | 1 << 2,
+        /// <summary>
+        /// Left tangent is manually adjusted by the user.
+        /// </summary>
+        InFree = TangentType.In | 1 << 3,
+        /// <summary>
+        /// Tangent is calculated automatically based on the previous keyframe.
+        /// </summary>
+        InLinear = TangentType.In | 1 << 4,
+        /// <summary>
+        /// Tangent is infinite, ensuring there is a instantaneus jump between previous and current keyframe value.
+        /// </summary>
+        InStep = TangentType.In | 1 << 5,
+        /// <summary>
+        /// Right tangents are calculated automatically based on the two surrounding keyframes.
+        /// </summary>
+        OutAuto = TangentType.Out | 1 << 6,
+        /// <summary>
+        /// Right tangent is manually adjusted by the user.
+        /// </summary>
+        OutFree = TangentType.Out | 1 << 7,
+        /// <summary>
+        /// Tangent is calculated automatically based on the next keyframe.
+        /// </summary>
+        OutLinear = TangentType.Out | 1 << 8,
+        /// <summary>
+        /// Tangent is infinite, ensuring there is a instantaneus jump between current and next keyframe value.
+        /// </summary>
+        OutStep = TangentType.Out | 1 << 9,
+        /// <summary>
+        /// Both tangents are manually adjusted by the user.
+        /// </summary>
+        Free = 1 << 10,
     }
 
+    /// <summary>
+    /// <see cref="AnimationCurve"/> wrapper for use in editor only. Allows easier manipulation of animation keyframes, and
+    /// also stores keyframe tangent modes which are not required for non-editor curves.
+    /// </summary>
     internal class EdAnimationCurve
     {
         private AnimationCurve native;
@@ -33,16 +78,27 @@ namespace BansheeEditor
         private KeyFrame[] keyFrames;
         private TangentMode[] tangentModes;
 
+        /// <summary>
+        /// Returns tangent modes for each keyframe. Array is guaranteed to be the same size as <see cref="KeyFrames"/>.
+        /// If modifying the array values, make sure to call <see cref="Apply"/> to save the changes on the curve.
+        /// </summary>
         public TangentMode[] TangentModes
         {
             get { return tangentModes; }
         }
 
+        /// <summary>
+        /// All keyframes belonging to the animation curve. If modifying the keyframe values, make sure to call 
+        /// <see cref="Apply"/> to save the changes on the curve.
+        /// </summary>
         public KeyFrame[] KeyFrames
         {
             get { return keyFrames; }
         }
 
+        /// <summary>
+        /// Creates a new animation curve with zero keyframes.
+        /// </summary>
         internal EdAnimationCurve()
         {
             keyFrames = new KeyFrame[0];
@@ -51,7 +107,13 @@ namespace BansheeEditor
             tangentModes = new TangentMode[0];
         }
 
-        // Tangent modes should match number of curve keyframes
+        /// <summary>
+        /// Creates a new editor animation curve using an existing animation curve as a basis.
+        /// </summary>
+        /// <param name="native">Animation curve to retrieve the keyframes from.</param>
+        /// <param name="tangentModes">A set of tangent modes for each keyframe. Should be the same size as the number
+        ///                            of keyframes in the provided animation. Can be null in which case all keyframes will
+        ///                            have tangents set to automatic.</param>
         internal EdAnimationCurve(AnimationCurve native, TangentMode[] tangentModes)
         {
             this.native = native;
@@ -80,11 +142,22 @@ namespace BansheeEditor
             return native.Evaluate(time, loop);
         }
 
+        /// <summary>
+        /// Adds a new keyframe to the animation curve. Keyframe will use the automatic tangent mode.
+        /// </summary>
+        /// <param name="time">Time at which to add the keyframe.</param>
+        /// <param name="value">Value of the keyframe.</param>
         internal void AddKeyframe(float time, float value)
         {
             AddKeyframe(time, value, TangentMode.Auto);
         }
 
+        /// <summary>
+        /// Adds a new keyframe to the animation curve.
+        /// </summary>
+        /// <param name="time">Time at which to add the keyframe.</param>
+        /// <param name="value">Value of the keyframe.</param>
+        /// <param name="tangentMode">Tangent mode of the keyframe.</param>
         internal void AddKeyframe(float time, float value, TangentMode tangentMode)
         {
             KeyFrame[] newKeyFrames = new KeyFrame[keyFrames.Length + 1];
@@ -123,6 +196,10 @@ namespace BansheeEditor
             keyFrames = newKeyFrames;
         }
 
+        /// <summary>
+        /// Removes a keyframe at the specified index.
+        /// </summary>
+        /// <param name="index">Index of the keyframe, referencing the <see cref="KeyFrames"/> array.</param>
         internal void RemoveKeyframe(int index)
         {
             if (index < 0 || index >= KeyFrames.Length)
@@ -145,7 +222,14 @@ namespace BansheeEditor
             keyFrames = newKeyFrames;
         }
 
-        // Updates key-frame value and returns new keyframe index
+        /// <summary>
+        /// Updates key-frame time and value. Since keyframes are ordered by time the index of the keyframe might change,
+        /// so a new index of the keyframe is returned by this method. 
+        /// </summary>
+        /// <param name="index">Index of the keyframe to update, referencing the <see cref="KeyFrames"/> array.</param>
+        /// <param name="time">Time to which to set the keyframe.</param>
+        /// <param name="value">Value of the keyframe.</param>
+        /// <returns>New index of the keyframe, referencing the <see cref="KeyFrames"/> array.</returns>
         internal int UpdateKeyframe(int index, float time, float value)
         {
             if (index < 0 || index >= keyFrames.Length)
@@ -198,6 +282,11 @@ namespace BansheeEditor
             return currentKeyIndex;
         }
 
+        /// <summary>
+        /// Changes the tangent mode of a keyframe at the specified index.
+        /// </summary>
+        /// <param name="index">Index of the keyframe to update, referencing the <see cref="KeyFrames"/> array.</param>
+        /// <param name="mode">New tangent mode of the keyframe.</param>
         internal void SetTangentMode(int index, TangentMode mode)
         {
             if (index < 0 || index >= tangentModes.Length)
@@ -206,6 +295,11 @@ namespace BansheeEditor
             tangentModes[index] = mode;
         }
 
+        /// <summary>
+        /// Converts a keyframe tangent (slope) value into a 2D normal vector.
+        /// </summary>
+        /// <param name="tangent">Keyframe tangent (slope).</param>
+        /// <returns>Normalized 2D vector pointing in the direction of the tangent.</returns>
         internal static Vector2 TangentToNormal(float tangent)
         {
             if(tangent == float.PositiveInfinity)
@@ -215,6 +309,11 @@ namespace BansheeEditor
             return Vector2.Normalize(normal);
         }
 
+        /// <summary>
+        /// Converts a 2D normal vector into a keyframe tangent (slope).
+        /// </summary>
+        /// <param name="normal">Normalized 2D vector pointing in the direction of the tangent.</param>
+        /// <returns>Keyframe tangent (slope).</returns>
         internal static float NormalToTangent(Vector2 normal)
         {
             // We know the X value must be one, use that to deduce pre-normalized length
@@ -224,6 +323,9 @@ namespace BansheeEditor
             return MathEx.Sqrt(length*length - 1) * MathEx.Sign(normal.y);
         }
 
+        /// <summary>
+        /// Applies the changes of the editor curve, to the actual underlying animation curve.
+        /// </summary>
         internal void Apply()
         {
             Array.Sort(keyFrames, (x, y) =>
@@ -235,6 +337,9 @@ namespace BansheeEditor
             native.KeyFrames = keyFrames;
         }
 
+        /// <summary>
+        /// Recalculates tangents for all keyframes using the keyframe values and set tangent modes.
+        /// </summary>
         private void UpdateTangents()
         {
             if (keyFrames.Length == 0)
@@ -379,6 +484,9 @@ namespace BansheeEditor
         }
     }
 
+    /// <summary>
+    /// Structure containing a reference to a keyframe as a curve index, and a keyframe index within that curve.
+    /// </summary>
     internal struct KeyframeRef
     {
         public KeyframeRef(int curveIdx, int keyIdx)
@@ -391,6 +499,9 @@ namespace BansheeEditor
         public int keyIdx;
     }
 
+    /// <summary>
+    /// Structure containing a reference to a keyframe tangent, as a keyframe reference and type of the tangent.
+    /// </summary>
     internal struct TangentRef
     {
         public TangentRef(KeyframeRef keyframeRef, TangentType type)
@@ -402,4 +513,6 @@ namespace BansheeEditor
         public KeyframeRef keyframeRef;
         public TangentType type;
     }
+
+    /** @} */
 }

@@ -51,19 +51,19 @@ namespace BansheeEditor
         /// <summary>
         /// Uses the assigned FPS, range and physical size to calculate the frame that is under the provided coordinates.
         /// </summary>
-        /// <param name="windowCoords">Coordinate relative to the window the GUI element is on.</param>
+        /// <param name="pixelCoords">Coordinate relative to the layout the GUI element is on.</param>
         /// <returns>Frame that was clicked on, or -1 if the coordinates are outside of valid bounds. </returns>
-        public int GetFrame(Vector2I windowCoords)
+        public int GetFrame(Vector2I pixelCoords)
         {
             Rect2I bounds = canvas.Bounds;
 
-            if (windowCoords.x < (bounds.x + PADDING) || windowCoords.x >= (bounds.x + bounds.width - PADDING) ||
-                windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
+            if (pixelCoords.x < (bounds.x + PADDING) || pixelCoords.x >= (bounds.x + bounds.width - PADDING) ||
+                pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
             {
                 return -1;
             }
 
-            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + PADDING, bounds.y);
+            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + PADDING, bounds.y);
 
             float lengthPerPixel = GetRange() / drawableWidth;
             float time = rangeOffset + relativeCoords.x * lengthPerPixel;
@@ -113,7 +113,7 @@ namespace BansheeEditor
         /// <summary>
         /// Returns the offset at which the displayed timeline values start at.
         /// </summary>
-        /// <param name="offset">Value to start the timeline values at.</param>
+        /// <param name="offset">Value to start the timeline values at, in seconds.</param>
         public void SetOffset(float offset)
         {
             rangeOffset = offset;

@@ -10,14 +10,24 @@ namespace BansheeEditor
      *  @{
      */
 
+    /// <summary>
+    /// Displays a set of animation curves and events. Allows manipulation of both by adding, removing and modifying
+    /// curve keyframes, and animation events.
+    /// </summary>
     internal class GUICurveEditor
     {
+        /// <summary>
+        /// Information about currently selected set of keyframes for a specific curve.
+        /// </summary>
         class SelectedKeyframes
         {
             public int curveIdx;
             public List<int> keyIndices = new List<int>();
         }
 
+        /// <summary>
+        /// Information about a keyframe that is currently being dragged.
+        /// </summary>
         struct DraggedKeyframe
         {
             public DraggedKeyframe(int index, KeyFrame original)
@@ -30,6 +40,9 @@ namespace BansheeEditor
             public KeyFrame original;
         }
 
+        /// <summary>
+        /// Information about all keyframes of a specific curve that are currently being dragged.
+        /// </summary>
         class DraggedKeyframes
         {
             public int curveIdx;
@@ -74,7 +87,7 @@ namespace BansheeEditor
         private Vector2I dragStart;
 
         /// <summary>
-        /// Triggers whenever user selects a new frame.
+        /// Triggers whenever user selects a new frame. Reports the index of the selected frame.
         /// </summary>
         public Action<int> OnFrameSelected;
 
@@ -101,7 +114,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Returns the offset of the displayed curve values.
+        /// Determines how much to offset the displayed curve values.
         /// </summary>
         public Vector2 Offset
         {
@@ -135,6 +148,13 @@ namespace BansheeEditor
             get { return height; }
         }
 
+        /// <summary>
+        /// Creates a new curve editor GUI elements.
+        /// </summary>
+        /// <param name="window">Parent window of the GUI element.</param>
+        /// <param name="gui">GUI layout into which to place the GUI element.</param>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
         public GUICurveEditor(EditorWindow window, GUILayout gui, int width, int height)
         {
             this.window = window;
@@ -201,6 +221,13 @@ namespace BansheeEditor
             return guiCurveDrawing.CurveToPixelSpace(curveCoords);
         }
 
+        /// <summary>
+        /// Converts coordinates in window space (relative to the parent window origin) into coordinates in curve space.
+        /// </summary>
+        /// <param name="windowPos">Coordinates relative to parent editor window, in pixels.</param>
+        /// <param name="curveCoord">Curve coordinates within the range as specified by <see cref="Range"/>. Only
+        ///                          valid when function returns true.</param>
+        /// <returns>True if the coordinates are within the curve area, false otherwise.</returns>
         public bool WindowToCurveSpace(Vector2I windowPos, out Vector2 curveCoord)
         {
             Rect2I elementBounds = GUIUtility.CalculateBounds(gui, window.GUI);
@@ -212,6 +239,10 @@ namespace BansheeEditor
             return guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord);
         }
 
+        /// <summary>
+        /// Handles input. Should be called by the owning window whenever a pointer is pressed.
+        /// </summary>
+        /// <param name="ev">Object containing pointer press event information.</param>
         internal void OnPointerPressed(PointerEvent ev)
         {
             if (ev.IsUsed)
@@ -310,6 +341,10 @@ namespace BansheeEditor
             }
         }
 
+        /// <summary>
+        /// Handles input. Should be called by the owning window whenever a pointer is moved.
+        /// </summary>
+        /// <param name="ev">Object containing pointer move event information.</param>
         internal void OnPointerMoved(PointerEvent ev)
         {
             if (ev.Button != PointerButton.Left)
@@ -452,6 +487,10 @@ namespace BansheeEditor
             }
         }
 
+        /// <summary>
+        /// Handles input. Should be called by the owning window whenever a pointer is released.
+        /// </summary>
+        /// <param name="ev">Object containing pointer release event information.</param>
         internal void OnPointerReleased(PointerEvent ev)
         {
             isPointerHeld = false;
@@ -460,6 +499,10 @@ namespace BansheeEditor
             isMousePressedOverTangent = false;
         }
 
+        /// <summary>
+        /// Handles input. Should be called by the owning window whenever a button is released.
+        /// </summary>
+        /// <param name="ev">Object containing button release event information.</param>
         internal void OnButtonUp(ButtonEvent ev)
         {
             if(ev.Button == ButtonCode.Delete)
@@ -533,6 +576,9 @@ namespace BansheeEditor
             Redraw();
         }
 
+        /// <summary>
+        /// Adds a new keyframe at the currently selected frame.
+        /// </summary>
         public void AddKeyFrameAtMarker()
         {
             ClearSelection();
@@ -551,6 +597,9 @@ namespace BansheeEditor
             guiCurveDrawing.Rebuild();
         }
 
+        /// <summary>
+        /// Rebuilds the entire curve editor GUI.
+        /// </summary>
         public void Redraw()
         {
             guiCurveDrawing.Rebuild();
@@ -559,6 +608,11 @@ namespace BansheeEditor
             guiSidebar.Rebuild();
         }
         
+        /// <summary>
+        /// Changes the tangent mode for all currently selected keyframes.
+        /// </summary>
+        /// <param name="mode">Tangent mode to set. If only in or out tangent mode is provided, the mode for the opposite 
+        ///                    tangent will be kept as is.</param>
         private void ChangeSelectionTangentMode(TangentMode mode)
         {
             foreach (var selectedEntry in selectedKeyframes)
@@ -604,6 +658,9 @@ namespace BansheeEditor
             guiCurveDrawing.Rebuild();
         }
 
+        /// <summary>
+        /// Adds a new keyframe at the position the context menu was opened at.
+        /// </summary>
         private void AddKeyframeAtPosition()
         {
             Vector2 curveCoord;
@@ -626,6 +683,9 @@ namespace BansheeEditor
             }
         }
 
+        /// <summary>
+        /// Removes all currently selected keyframes from the curves.
+        /// </summary>
         private void DeleteSelectedKeyframes()
         {
             foreach (var selectedEntry in selectedKeyframes)
@@ -651,12 +711,19 @@ namespace BansheeEditor
             guiCurveDrawing.Rebuild();
         }
 
+        /// <summary>
+        /// Unselects any selected keyframes.
+        /// </summary>
         private void ClearSelection()
         {
             guiCurveDrawing.ClearSelectedKeyframes();
             selectedKeyframes.Clear();
         }
 
+        /// <summary>
+        /// Adds the provided keyframe to the selection list (doesn't clear existing ones).
+        /// </summary>
+        /// <param name="keyframeRef">Keyframe to select.</param>
         private void SelectKeyframe(KeyframeRef keyframeRef)
         {
             guiCurveDrawing.SelectKeyframe(keyframeRef, true);
@@ -682,6 +749,11 @@ namespace BansheeEditor
             }
         }
 
+        /// <summary>
+        /// Checks is the provided keyframe currently selected.
+        /// </summary>
+        /// <param name="keyframeRef">Keyframe to check.</param>
+        /// <returns>True if selected, false otherwise.</returns>
         private bool IsSelected(KeyframeRef keyframeRef)
         {
             int curveIdx = selectedKeyframes.FindIndex(x =>

@@ -9,6 +9,10 @@ namespace BansheeEditor
      *  @{
      */
 
+    /// <summary>
+    /// Renders a list of animation events in a form of a timeline. User can set the range of the times to display,
+    /// as well as its physical dimensions.
+    /// </summary>
     public class GUIAnimEvents
     {
         private const int EVENT_HALF_WIDTH = 2;
@@ -25,6 +29,12 @@ namespace BansheeEditor
         private AnimationEvent[] events = new AnimationEvent[0];
         private bool[] selectedEvents = new bool[0];
 
+        /// <summary>
+        /// Constructs a new events timeline and adds it to the specified layout.
+        /// </summary>
+        /// <param name="layout">Layout to add the events GUI to.</param>
+        /// <param name="width">Width of the GUI element in pixels.</param>
+        /// <param name="height">Height of the GUI element in pixels.</param>
         public GUIAnimEvents(GUILayout layout, int width, int height)
         {
             canvas = new GUICanvas();
@@ -33,18 +43,25 @@ namespace BansheeEditor
             SetSize(width, height);
         }
 
-        public bool FindEvent(Vector2I windowCoords, out int eventIdx)
+        /// <summary>
+        /// Attempts to find an event under the provided coordinates.
+        /// </summary>
+        /// <param name="pixelCoords">Coordinates relative to the layout the GUI element is on.</param>
+        /// <param name="eventIdx">Index of the event that was clicked on. Index references the events array as provided
+        ///                        to <see cref="SetEvents"/>. Only valid if method returns true.</param>
+        /// <returns>True if an event was found under the coordinates, false otherwise.</returns>
+        public bool FindEvent(Vector2I pixelCoords, out int eventIdx)
         {
             Rect2I bounds = canvas.Bounds;
 
-            if (windowCoords.x < (bounds.x + GUIGraphTime.PADDING) || windowCoords.x >= (bounds.x + bounds.width - GUIGraphTime.PADDING) ||
-                windowCoords.y < bounds.y || windowCoords.y >= (bounds.y + bounds.height))
+            if (pixelCoords.x < (bounds.x + GUIGraphTime.PADDING) || pixelCoords.x >= (bounds.x + bounds.width - GUIGraphTime.PADDING) ||
+                pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
             {
                 eventIdx = -1;
                 return false;
             }
 
-            Vector2I relativeCoords = windowCoords - new Vector2I(bounds.x + GUIGraphTime.PADDING, bounds.y);
+            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + GUIGraphTime.PADDING, bounds.y);
             for (int i = 0; i < events.Length; i++)
             {
                 AnimationEvent evnt = events[i];
@@ -62,6 +79,11 @@ namespace BansheeEditor
             return false;
         }
 
+        /// <summary>
+        /// Sets the physical size of the GUI element.
+        /// </summary>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
         public void SetSize(int width, int height)
         {
             this.width = width;
@@ -73,21 +95,39 @@ namespace BansheeEditor
             drawableWidth = Math.Max(0, width - GUIGraphTime.PADDING * 2);
         }
 
+        /// <summary>
+        /// Sets the range of values over which to display the events.
+        /// </summary>
+        /// <param name="length">Amount of time to display, in seconds.</param>
         public void SetRange(float length)
         {
             rangeLength = Math.Max(0.0f, length);
         }
 
+        /// <summary>
+        /// Returns the offset at which the displayed event values start at.
+        /// </summary>
+        /// <param name="offset">Value to start displaying the events at, in seconds.</param>
         public void SetOffset(float offset)
         {
             rangeOffset = offset;
         }
 
+        /// <summary>
+        /// Number of frames per second, used for rounding up the displayed range.
+        /// </summary>
+        /// <param name="fps">Number of prames per second.</param>
         public void SetFPS(int fps)
         {
             this.fps = Math.Max(1, fps);
         }
 
+        /// <summary>
+        /// Changes the set of displayed animation events.
+        /// </summary>
+        /// <param name="events">Events to display on the timeline.</param>
+        /// <param name="selected">Array of the same size as the <paramref name="events"/> array, determining which
+        ///                        events should be displayed as selected.</param>
         public void SetEvents(AnimationEvent[] events, bool[] selected)
         {
             int numEvents;
@@ -105,6 +145,11 @@ namespace BansheeEditor
                 Array.Copy(selected, selectedEvents, MathEx.Min(numEvents, selected.Length));
         }
 
+        /// <summary>
+        /// Draws a marker for a single event.
+        /// </summary>
+        /// <param name="t">Time to draw the marker at.</param>
+        /// <param name="selected">If true the marker will be drawn as selected.</param>
         private void DrawEventMarker(float t, bool selected)
         {
             int xPos = (int)(((t - rangeOffset) / GetRange()) * drawableWidth) + GUIGraphTime.PADDING;
@@ -123,6 +168,11 @@ namespace BansheeEditor
             canvas.DrawPolyLine(linePoints, outerColor, 100);
         }
 
+        /// <summary>
+        /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
+        /// </summary>
+        /// <param name="padding">If true, extra range will be included to cover the right-most padding.</param>
+        /// <returns>Time range rounded to a multiple of FPS.</returns>
         private float GetRange(bool padding = false)
         {
             float spf = 1.0f / fps;
