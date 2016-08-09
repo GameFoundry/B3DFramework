@@ -112,11 +112,12 @@ namespace BansheeEngine
 	/** Contains information about a scene object that is animated by a specific animation curve. */
 	struct AnimatedSceneObjectInfo
 	{
-		UINT64 id;
+		UINT64 id; /**< Instance ID of the scene object. */
 		INT32 boneIdx; /**< Bone from which to access the transform. If -1 then no bone mapping is present. */
 		INT32 layerIdx; /**< If no bone mapping, layer on which the animation containing the referenced curve is in. */
 		INT32 stateIdx; /**< If no bone mapping, animation state containing the referenced curve. */
 		AnimationCurveMapping curveIndices; /**< Indices of the curves used for the transform. */
+		UINT32 hash; /**< Hash value of the scene object's transform. */
 	};
 
 	/** Represents a copy of the Animation data for use specifically on the animation thread. */
@@ -164,6 +165,14 @@ namespace BansheeEngine
 		 */
 		void updateValues(const Vector<AnimationClipInfo>& clipInfos);
 
+		/**
+		 * Updates the proxy data with new scene object transforms. Caller must guarantee that clip layout didn't 
+		 * change since the last call to rebuild().
+		 *
+		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 */
+		void updateTransforms(const Vector<AnimatedSceneObject>& sceneObjects);
+
 		/** 
 		 * Updates the proxy data with new clip times. Caller must guarantee that clip layout didn't change since the last
 		 * call to rebuild().
@@ -181,6 +190,7 @@ namespace BansheeEngine
 		SPtr<Skeleton> skeleton;
 		UINT32 numSceneObjects;
 		AnimatedSceneObjectInfo* sceneObjectInfos;
+		Matrix4* sceneObjectTransforms;
 
 		// Evaluation results
 		LocalSkeletonPose skeletonPose;

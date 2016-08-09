@@ -118,6 +118,21 @@ namespace BansheeEngine
 				info.numBones = numBones;
 
 				Matrix4* boneDst = renderData.transforms.data() + curBoneIdx;
+
+				// Copy transforms from mapped scene objects
+				UINT32 boneTfrmIdx = 0;
+				for(UINT32 i = 0; i < anim->numSceneObjects; i++)
+				{
+					const AnimatedSceneObjectInfo& soInfo = anim->sceneObjectInfos[i];
+
+					if (soInfo.boneIdx == -1)
+						continue;
+
+					boneDst[soInfo.boneIdx] = anim->sceneObjectTransforms[boneTfrmIdx];
+					boneTfrmIdx++;
+				}
+
+				// Animate bones
 				anim->skeleton->getPose(boneDst, anim->skeletonPose, anim->layers, anim->numLayers);
 
 				renderData.poseInfos[anim->id] = info;

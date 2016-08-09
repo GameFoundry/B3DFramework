@@ -30,7 +30,8 @@ namespace BansheeEngine
 	}
 
 	AnimationProxy::AnimationProxy(UINT64 id)
-		:id(id), layers(nullptr), numLayers(0), numSceneObjects(0), sceneObjectInfos(nullptr), genericCurveOutputs(nullptr)
+		: id(id), layers(nullptr), numLayers(0), numSceneObjects(0), sceneObjectInfos(nullptr)
+		, sceneObjectTransforms(nullptr), genericCurveOutputs(nullptr)
 	{ }
 
 	AnimationProxy::~AnimationProxy()
@@ -101,6 +102,7 @@ namespace BansheeEngine
 		layers = nullptr;
 		genericCurveOutputs = nullptr;
 		sceneObjectInfos = nullptr;
+		sceneObjectTransforms = nullptr;
 
 		numLayers = 0;
 		numSceneObjects = 0;
@@ -188,6 +190,31 @@ namespace BansheeEngine
 				numGenCurves += (UINT32)curves->generic.size();
 			}
 
+			UINT32* mappedBoneIndices = (UINT32*)bs_frame_alloc(sizeof(UINT32) * numSceneObjects);
+			for (UINT32 i = 0; i < numSceneObjects; i++)
+				mappedBoneIndices[i] = -1;
+
+			UINT32 numBoneMappedSOs = 0;
+			if (skeleton != nullptr)
+			{
+				for (UINT32 i = 0; i < numSceneObjects; i++)
+				{
+					for (UINT32 j = 0; j < numBones; j++)
+					{
+						if (sceneObjects[i].so.isDestroyed(true))
+							continue;
+
+						if (skeleton->getBoneInfo(j).name == sceneObjects[i].curveName)
+						{
+							mappedBoneIndices[i] = j;
+
+							numBoneMappedSOs++;
+							break;
+						}
+					}
+				}
+			}
+
 			UINT32 numBoneMappings = numBones * numClips;
 			UINT32 layersSize = sizeof(AnimationStateLayer) * numLayers;
 			UINT32 clipsSize = sizeof(AnimationState) * numClips;
@@ -198,9 +225,10 @@ namespace BansheeEngine
 			UINT32 genCacheSize = numGenCurves * sizeof(TCurveCache<float>);
 			UINT32 genericCurveOutputSize = numGenCurves * sizeof(float);
 			UINT32 sceneObjectIdsSize = numSceneObjects * sizeof(AnimatedSceneObjectInfo);
+			UINT32 sceneObjectTransformsSize = numBoneMappedSOs * sizeof(Matrix4);
 
 			UINT8* data = (UINT8*)bs_alloc(layersSize + clipsSize + boneMappingSize + posCacheSize + rotCacheSize + 
-				scaleCacheSize + genCacheSize + genericCurveOutputSize + sceneObjectIdsSize);
+				scaleCacheSize + genCacheSize + genericCurveOutputSize + sceneObjectIdsSize + sceneObjectTransformsSize);
 
 			layers = (AnimationStateLayer*)data;
 			memcpy(layers, tempLayers.data(), layersSize);
@@ -247,6 +275,12 @@ namespace BansheeEngine
 
 			sceneObjectInfos = (AnimatedSceneObjectInfo*)data;
 			data += sceneObjectIdsSize;
+
+			sceneObjectTransforms = (Matrix4*)data;
+			for (UINT32 i = 0; i < numBoneMappedSOs; i++)
+				sceneObjectTransforms[i] = Matrix4::IDENTITY;
+
+			data += sceneObjectTransformsSize;
 
 			UINT32 curLayerIdx = 0;
 			UINT32 curStateIdx = 0;
@@ -350,46 +384,52 @@ namespace BansheeEngine
 				assert(layer.numStates > 0);
 			}
 
+			UINT32 boneIdx = 0;
 			for(UINT32 i = 0; i < numSceneObjects; i++)
 			{
+				HSceneObject so = sceneObjects[i].so;
 				AnimatedSceneObjectInfo& soInfo = sceneObjectInfos[i];
-				soInfo.id = sceneObjects[i].so.getInstanceId();
-				soInfo.boneIdx = -1;
+				soInfo.id = so.getInstanceId();
+				soInfo.boneIdx = mappedBoneIndices[i];
 
-				// Check if the scene object maps to a bone (in which case we the system can just re-use the skeleton pose)
-				if (skeleton != nullptr)
-				{
-					for(UINT32 j = 0; j < numBones; j++)
-					{
-						if(skeleton->getBoneInfo(j).name == sceneObjects[i].curveName)
-						{
-							soInfo.boneIdx = j;
-							break;
-						}
-					}
-				}
+				bool isSOValid = !so.isDestroyed(true);
+				if (isSOValid)
+					soInfo.hash = so->getTransformHash();
+				else
+					soInfo.hash = 0;
 
 				// If no bone mapping, find curves directly
 				if(soInfo.boneIdx == -1)
 				{
 					soInfo.curveIndices = { (UINT32)-1, (UINT32)-1, (UINT32)-1 };
 
-					for(auto& clipInfo : clipInfos)
+					if (isSOValid)
 					{
-						soInfo.layerIdx = clipInfo.layerIdx;
-						soInfo.stateIdx = clipInfo.stateIdx;
-
-						bool isClipValid = clipInfo.clip.isLoaded();
-						if (isClipValid)
+						for (auto& clipInfo : clipInfos)
 						{
-							// Note: If there are multiple clips with the relevant curve name, we only use the first
+							soInfo.layerIdx = clipInfo.layerIdx;
+							soInfo.stateIdx = clipInfo.stateIdx;
 
-							clipInfo.clip->getCurveMapping(sceneObjects[i].curveName, soInfo.curveIndices);
-							break;
+							bool isClipValid = clipInfo.clip.isLoaded();
+							if (isClipValid)
+							{
+								// Note: If there are multiple clips with the relevant curve name, we only use the first
+
+								clipInfo.clip->getCurveMapping(sceneObjects[i].curveName, soInfo.curveIndices);
+								break;
+							}
 						}
 					}
 				}
+				else
+				{
+					// No need to check if SO is valid, if it has a bone connection it must be
+					sceneObjectTransforms[boneIdx] = so->getWorldTfrm();
+					boneIdx++;
+				}
 			}
+
+			bs_frame_free(mappedBoneIndices);
 		}
 		bs_frame_clear();
 	}
@@ -403,6 +443,28 @@ namespace BansheeEngine
 			state.loop = clipInfo.state.wrapMode == AnimWrapMode::Loop;
 			state.weight = clipInfo.state.weight;
 			state.time = clipInfo.state.time;
+		}
+	}
+
+	void AnimationProxy::updateTransforms(const Vector<AnimatedSceneObject>& sceneObjects)
+	{
+		UINT32 boneIdx = 0;
+		for (UINT32 i = 0; i < numSceneObjects; i++)
+		{
+			HSceneObject so = sceneObjects[i].so;
+			if (so.isDestroyed(true))
+			{
+				sceneObjectInfos[i].hash = 0;
+				continue;
+			}
+
+			sceneObjectInfos[i].hash = so->getTransformHash();
+
+			if (sceneObjectInfos[i].boneIdx == -1)
+				continue;
+
+			sceneObjectTransforms[boneIdx] = sceneObjects[i].so->getWorldTfrm();
+			boneIdx++;
 		}
 	}
 
@@ -889,26 +951,56 @@ namespace BansheeEngine
 		}
 		else
 		{
-			if (mDirty.isSet(AnimDirtyStateFlag::Skeleton))
-			{
-				Vector<AnimatedSceneObject> animatedSO(mSceneObjects.size());
-				UINT32 idx = 0;
-				for(auto& entry : mSceneObjects)
-					animatedSO[idx++] = entry.second;
-
-				mAnimProxy->rebuild(mSkeleton, mClipInfos, animatedSO);
-			}
-			else if (mDirty.isSet(AnimDirtyStateFlag::Layout))
+			auto getAnimatedSOList = [&]()
 			{
 				Vector<AnimatedSceneObject> animatedSO(mSceneObjects.size());
 				UINT32 idx = 0;
 				for (auto& entry : mSceneObjects)
 					animatedSO[idx++] = entry.second;
 
-				mAnimProxy->rebuild(mClipInfos, animatedSO);
+				return animatedSO;
+			};
+
+			bool didFullRebuild = false;
+			if (mDirty.isSet(AnimDirtyStateFlag::Skeleton))
+			{
+				Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
+
+				mAnimProxy->rebuild(mSkeleton, mClipInfos, animatedSOs);
+				didFullRebuild = true;
+			}
+			else if (mDirty.isSet(AnimDirtyStateFlag::Layout))
+			{
+				Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
+
+				mAnimProxy->rebuild(mClipInfos, animatedSOs);
+				didFullRebuild = true;
 			}
 			else if (mDirty.isSet(AnimDirtyStateFlag::Value))
 				mAnimProxy->updateValues(mClipInfos);
+
+			// Check if there are dirty transforms
+			if(!didFullRebuild)
+			{
+				UINT32 numSceneObjects = (UINT32)mSceneObjects.size();
+				for (UINT32 i = 0; i < numSceneObjects; i++)
+				{
+					UINT32 hash;
+
+					HSceneObject so = mSceneObjects[i].so;
+					if (so.isDestroyed(true))
+						hash = 0;
+					else
+						hash = so->getTransformHash();
+
+					if(hash != mAnimProxy->sceneObjectInfos[i].hash)
+					{
+						Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
+						mAnimProxy->updateTransforms(animatedSOs);
+						break;
+					}
+				}
+			}
 		}
 
 		mDirty = AnimDirtyState();
@@ -926,7 +1018,7 @@ namespace BansheeEngine
 				continue;
 
 			HSceneObject so = iterFind->second.so;
-			if (so.isDestroyed())
+			if (so.isDestroyed(true))
 				continue;
 
 			if(soInfo.boneIdx != -1)
