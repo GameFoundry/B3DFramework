@@ -354,12 +354,19 @@ namespace BansheeEditor
                     else
                     {
                         int eventIdx;
-                        if (guiEvents.FindEvent(pointerPos, out eventIdx))
+                        if (guiEvents.FindEvent(eventPos, out eventIdx))
                         {
                             if (!Input.IsButtonHeld(ButtonCode.LeftShift) && !Input.IsButtonHeld(ButtonCode.RightShift))
                                 ClearSelection();
 
                             events[eventIdx].selected = true;
+                            UpdateEventsGUI();
+                        }
+                        else
+                        {
+                            ClearSelection();
+
+                            guiCurveDrawing.Rebuild();
                             UpdateEventsGUI();
                         }
                     }
@@ -406,7 +413,7 @@ namespace BansheeEditor
                     contextClickPosition = eventPos;
 
                     int eventIdx;
-                    if (guiEvents.FindEvent(eventPos, out eventIdx))
+                    if (!guiEvents.FindEvent(eventPos, out eventIdx))
                     {
                         ClearSelection();
 
@@ -978,9 +985,9 @@ namespace BansheeEditor
 
             Vector2I position = new Vector2I();
             position.x = guiEvents.GetOffset(animEvent.Time);
-            position.y = height/2;
+            position.y = EVENTS_HEIGHT/2;
 
-            Rect2I eventBounds = eventsPanel.Bounds;
+            Rect2I eventBounds = GUIUtility.CalculateBounds(eventsPanel, window.GUI);
             Vector2I windowPos = position + new Vector2I(eventBounds.x, eventBounds.y);
 
             EventEditWindow editWindow = DropDownWindow.Open<EventEditWindow>(window, windowPos);
@@ -994,7 +1001,7 @@ namespace BansheeEditor
     /// <summary>
     /// Drop down window that displays input boxes used for editing an event.
     /// </summary>
-    [DefaultSize(70, 50)]
+    [DefaultSize(200, 50)]
     internal class EventEditWindow : DropDownWindow
     {
         /// <summary>
@@ -1005,13 +1012,13 @@ namespace BansheeEditor
         /// <param name="updateCallback">Callback triggered when event values change.</param>
         internal void Initialize(AnimationEvent animEvent, Action updateCallback)
         {
-            GUIFloatField timeField = new GUIFloatField(new LocEdString("Time"), 40);
+            GUIFloatField timeField = new GUIFloatField(new LocEdString("Time"), 40, "");
             timeField.Value = animEvent.Time;
-            timeField.OnChanged += x => { animEvent.Time = x; }; // TODO UNDOREDO  
+            timeField.OnChanged += x => { animEvent.Time = x; updateCallback(); }; // TODO UNDOREDO  
 
-            GUITextField methodField = new GUITextField(new LocEdString("Method"), 40);
+            GUITextField methodField = new GUITextField(new LocEdString("Method"), 40, false, "", GUIOption.FixedWidth(190));
             methodField.Value = animEvent.Name;
-            methodField.OnChanged += x => { animEvent.Name = x; }; // TODO UNDOREDO 
+            methodField.OnChanged += x => { animEvent.Name = x; updateCallback(); }; // TODO UNDOREDO 
 
             GUILayoutY vertLayout = GUI.AddLayoutY();
 
@@ -1019,8 +1026,14 @@ namespace BansheeEditor
             GUILayoutX horzLayout = vertLayout.AddLayoutX();
             horzLayout.AddFlexibleSpace();
             GUILayout contentLayout = horzLayout.AddLayoutY();
-            contentLayout.AddElement(timeField);
-            contentLayout.AddElement(methodField);
+            GUILayout timeLayout = contentLayout.AddLayoutX();
+            timeLayout.AddSpace(5);
+            timeLayout.AddElement(timeField);
+            timeLayout.AddFlexibleSpace();
+            GUILayout methodLayout = contentLayout.AddLayoutX();
+            methodLayout.AddSpace(5);
+            methodLayout.AddElement(methodField);
+            methodLayout.AddFlexibleSpace();
             horzLayout.AddFlexibleSpace();
             vertLayout.AddFlexibleSpace();
         }

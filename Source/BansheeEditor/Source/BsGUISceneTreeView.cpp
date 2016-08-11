@@ -94,10 +94,10 @@ namespace BansheeEngine
 
 			HSceneObject currentSOChild = currentSO->getChild(i);
 
-//#if BS_DEBUG_MODE == 0
+#if BS_DEBUG_MODE == 0
 			if (currentSOChild->hasFlag(SOF_Internal))
 				continue;
-//#endif
+#endif
 
 			SceneTreeElement* currentChild = static_cast<SceneTreeElement*>(element->mChildren[visibleChildCount]);
 			visibleChildCount++;
@@ -132,10 +132,10 @@ namespace BansheeEngine
 				// Only count it as a prefab instance if its not scene root (otherwise every object would be colored as a prefab)
 				bool isPrefabInstance = prefabParent != nullptr && prefabParent->getParent() != nullptr;
 
-//#if BS_DEBUG_MODE == 0
+#if BS_DEBUG_MODE == 0
 				if (isInternal)
 					continue;
-//#endif
+#endif
 
 				UINT64 curId = currentSOChild->getInstanceId();
 				bool found = false;

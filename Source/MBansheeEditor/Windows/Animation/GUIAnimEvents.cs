@@ -48,14 +48,15 @@ namespace BansheeEditor
                 return false;
             }
 
-            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + PADDING, bounds.y);
+            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x, bounds.y);
             for (int i = 0; i < events.Length; i++)
             {
                 AnimationEvent evnt = events[i];
 
                 int xPos = (int)(((evnt.Time - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
 
-                if (relativeCoords.x >= (xPos - EVENT_HALF_WIDTH) || relativeCoords.y >= (xPos + EVENT_HALF_WIDTH))
+                Debug.Log(i + ". " + xPos);
+                if (relativeCoords.x >= (xPos - EVENT_HALF_WIDTH) && relativeCoords.x <= (xPos + EVENT_HALF_WIDTH))
                 {
                     eventIdx = i;
                     return true;
@@ -98,10 +99,10 @@ namespace BansheeEditor
         {
             int xPos = (int)(((t - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
 
-            Vector2I a = new Vector2I(xPos - EVENT_HALF_WIDTH, height - 1);
-            Vector2I b = new Vector2I(xPos, 0);
+            Vector2I a = new Vector2I(xPos - EVENT_HALF_WIDTH, 0);
+            Vector2I b = new Vector2I(xPos + EVENT_HALF_WIDTH, 0);
             Vector2I c = new Vector2I(xPos + EVENT_HALF_WIDTH, height - 1);
-            Vector2I d = new Vector2I(xPos, 0);
+            Vector2I d = new Vector2I(xPos - EVENT_HALF_WIDTH, height - 1);
 
             // Draw square shape
             Vector2I[] linePoints = { a, b, c, d, a };
