@@ -82,16 +82,6 @@ set(BS_BANSHEECORE_INC_INPUT
 	"Include/BsInput.h"
 )
 
-set(BS_BANSHEECORE_INC_PLATFORM
-	"Include/Win32/BsWin32FolderMonitor.h"
-	"Include/Win32/BsWin32DropTarget.h"
-	"Include/BsPlatform.h"
-	"Include/BsFolderMonitor.h"
-	"Include/Win32/BsWin32Defs.h"
-	"Include/Win32/BSWin32PlatformData.h"
-	"Include/Win32/BsWin32Platform.h"
-)
-
 set(BS_BANSHEECORE_INC_RENDERER
 	"Include/BsRendererManager.h"
 	"Include/BsRendererFactory.h"
@@ -255,13 +245,6 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCAudioSource.cpp"
 	"Source/BsCAudioListener.cpp"
 	"Source/BsCCamera.cpp"
-)
-
-set(BS_BANSHEECORE_SRC_PLATFORM
-	"Source/Win32/BsWin32FolderMonitor.cpp"
-	"Source/BsPlatform.cpp"
-	"Source/Win32/BsWin32Platform.cpp"
-	"Source/Win32/BsWin32BrowseDialogs.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_IMPORTER
@@ -537,6 +520,34 @@ set(BS_BANSHEECORE_SRC_ANIMATION
 	"Source/BsSkeletonMask.cpp"
 	"Source/BsMorphShapes.cpp"
 )
+
+set(BS_BANSHEECORE_INC_PLATFORM
+	"Include/BsPlatform.h"
+	"Include/BsFolderMonitor.h"
+)
+
+set(BS_BANSHEECORE_INC_PLATFORM_WIN32
+	"Include/Win32/BsWin32FolderMonitor.h"
+	"Include/Win32/BsWin32DropTarget.h"
+	"Include/Win32/BsWin32Defs.h"
+	"Include/Win32/BSWin32PlatformData.h"
+	"Include/Win32/BsWin32Platform.h"
+)
+
+set(BS_BANSHEECORE_SRC_PLATFORM
+	"Source/BsPlatform.cpp"
+)
+
+set(BS_BANSHEECORE_SRC_PLATFORM_WIN32
+	"Source/Win32/BsWin32FolderMonitor.cpp"
+	"Source/Win32/BsWin32Platform.cpp"
+	"Source/Win32/BsWin32BrowseDialogs.cpp"
+)
+
+if(WIN32)
+	list(APPEND BS_BANSHEECORE_INC_PLATFORM ${BS_BANSHEECORE_INC_PLATFORM_WIN32})
+	list(APPEND BS_BANSHEECORE_SRC_PLATFORM ${BS_BANSHEECORE_SRC_PLATFORM_WIN32})
+endif()
 
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})
 source_group("Header Files\\Physics" FILES ${BS_BANSHEECORE_INC_PHYSICS})

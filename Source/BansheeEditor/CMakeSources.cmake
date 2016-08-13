@@ -27,11 +27,6 @@ set(BS_BANSHEEEDITOR_INC_EDITORWINDOW
 	"Include/BsModalWindow.h"
 )
 
-set(BS_BANSHEEEDITOR_SRC_CODEEDITOR
-	"Source/BsCodeEditor.cpp"
-	"Source/Win32/BsVSCodeEditor.cpp"
-)
-
 set(BS_BANSHEEEDITOR_INC_SCENE
 	"Include/BsGizmoManager.h"
 	"Include/BsSceneGrid.h"
@@ -203,11 +198,6 @@ set(BS_BANSHEEEDITOR_SRC_UNDOREDO
 	"Source/BsUndoRedo.cpp"
 )
 
-set(BS_BANSHEEEDITOR_INC_CODEEDITOR
-	"Include/BsCodeEditor.h"
-	"Include/Win32/BsVSCodeEditor.h"
-)
-
 set(BS_BANSHEEEDITOR_INC_BUILD
 	"Include/BsBuildManager.h"
 	"Include/BsPlatformInfo.h"
@@ -232,6 +222,27 @@ set(BS_BANSHEEEDITOR_SRC_HANDLES
 set(BS_BANSHEEEDITOR_INC_TESTING
 	"Include/BsEditorTestSuite.h"
 )
+
+set(BS_BANSHEEEDITOR_INC_CODEEDITOR
+	"Include/BsCodeEditor.h"
+)
+
+set(BS_BANSHEEEDITOR_SRC_CODEEDITOR
+	"Source/BsCodeEditor.cpp"
+)
+
+set(BS_BANSHEEEDITOR_INC_CODEEDITOR_WIN32
+	"Include/Win32/BsVSCodeEditor.h"
+)
+
+set(BS_BANSHEEEDITOR_SRC_CODEEDITOR_WIN32
+	"Source/Win32/BsVSCodeEditor.cpp"
+)
+
+if(WIN32)
+	list(APPEND BS_BANSHEEEDITOR_INC_PLATFORM ${BS_BANSHEEEDITOR_INC_PLATFORM_WIN32})
+	list(APPEND BS_BANSHEEEDITOR_SRC_PLATFORM ${BS_BANSHEEEDITOR_SRC_PLATFORM_WIN32})
+endif()
 
 source_group("Header Files\\Settings" FILES ${BS_BANSHEEEDITOR_INC_SETTINGS})
 source_group("Source Files\\Library" FILES ${BS_BANSHEEEDITOR_SRC_LIBRARY})
