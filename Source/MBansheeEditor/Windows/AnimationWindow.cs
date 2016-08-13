@@ -24,6 +24,14 @@ namespace BansheeEditor
 
         private SceneObject selectedSO;
 
+        /// <summary>
+        /// Scene object for which are we currently changing the animation for.
+        /// </summary>
+        internal SceneObject SelectedSO
+        {
+            get { return selectedSO; }
+        }
+
         #region Overrides
 
         /// <summary>
@@ -45,7 +53,7 @@ namespace BansheeEditor
         {
             Selection.OnSelectionChanged += OnSelectionChanged;
 
-            UpdateSelectedSO();
+            UpdateSelectedSO(true);
         }
 
         private void OnEditorUpdate()
@@ -562,10 +570,10 @@ namespace BansheeEditor
             return ProjectLibrary.IsSubresource(resourcePath);
         }
 
-        private void UpdateSelectedSO()
+        private void UpdateSelectedSO(bool force)
         {
             SceneObject so = Selection.SceneObject;
-            if (selectedSO != so)
+            if (selectedSO != so || force)
             {
                 if (selectedSO != null && so == null)
                 {
@@ -1079,7 +1087,7 @@ namespace BansheeEditor
 
         private void OnSelectionChanged(SceneObject[] sceneObjects, string[] resourcePaths)
         {
-            UpdateSelectedSO();
+            UpdateSelectedSO(false);
         }
 
         private void OnFrameSelected(int frameIdx)

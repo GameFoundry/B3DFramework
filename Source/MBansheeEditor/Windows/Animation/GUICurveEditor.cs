@@ -63,7 +63,7 @@ namespace BansheeEditor
         private const int SIDEBAR_WIDTH = 30;
         private const int DRAG_START_DISTANCE = 3;
 
-        private EditorWindow window;
+        private AnimationWindow window;
         private GUILayout gui;
         private GUIPanel drawingPanel;
         private GUIPanel eventsPanel;
@@ -232,7 +232,7 @@ namespace BansheeEditor
         /// <param name="gui">GUI layout into which to place the GUI element.</param>
         /// <param name="width">Width in pixels.</param>
         /// <param name="height">Height in pixels.</param>
-        public GUICurveEditor(EditorWindow window, GUILayout gui, int width, int height)
+        public GUICurveEditor(AnimationWindow window, GUILayout gui, int width, int height)
         {
             this.window = window;
             this.gui = gui;
@@ -1056,8 +1056,14 @@ namespace BansheeEditor
             Rect2I eventBounds = GUIUtility.CalculateBounds(eventsPanel, window.GUI);
             Vector2I windowPos = position + new Vector2I(eventBounds.x, eventBounds.y);
 
+            SceneObject so = window.SelectedSO;
+            Component[] components = so.GetComponents();
+            string[] componentNames = new string[components.Length];
+            for (int i = 0; i < components.Length; i++)
+                componentNames[i] = components[i].GetType().Name;
+
             EventEditWindow editWindow = DropDownWindow.Open<EventEditWindow>(window, windowPos);
-            editWindow.Initialize(animEvent, () =>
+            editWindow.Initialize(animEvent, componentNames, () =>
             {
                 UpdateEventsGUI();
                 OnEventModified?.Invoke();
@@ -1068,7 +1074,7 @@ namespace BansheeEditor
     /// <summary>
     /// Drop down window that displays input boxes used for editing an event.
     /// </summary>
-    [DefaultSize(200, 50)]
+    [DefaultSize(200, 80)]
     internal class EventEditWindow : DropDownWindow
     {
         /// <summary>
@@ -1076,16 +1082,57 @@ namespace BansheeEditor
         /// use.
         /// </summary>
         /// <param name="animEvent">Event whose properties to edit.</param>
+        /// <param name="componentNames">List of component names that the user can select from.</param>
         /// <param name="updateCallback">Callback triggered when event values change.</param>
-        internal void Initialize(AnimationEvent animEvent, Action updateCallback)
+        internal void Initialize(AnimationEvent animEvent, string[] componentNames, Action updateCallback)
         {
+            int selectedIndex = -1;
+            if (!string.IsNullOrEmpty(animEvent.Name))
+            {
+                string[] nameEntries = animEvent.Name.Split('/');
+                if (nameEntries.Length > 1)
+                {
+                    string typeName = nameEntries[0];
+                    for (int i = 0; i < componentNames.Length; i++)
+                    {
+                        if (componentNames[i] == typeName)
+                        {
+                            selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
             GUIFloatField timeField = new GUIFloatField(new LocEdString("Time"), 40, "");
             timeField.Value = animEvent.Time;
             timeField.OnChanged += x => { animEvent.Time = x; updateCallback(); }; // TODO UNDOREDO  
 
+            GUIListBoxField componentField = new GUIListBoxField(componentNames, new LocEdString("Component"), 40);
+            if (selectedIndex != -1)
+                componentField.Index = selectedIndex;
+
+            componentField.OnSelectionChanged += x =>
+            {
+                string compName = "";
+                if (x != -1)
+                    compName = componentNames[x] + "/";
+
+                animEvent.Name = compName + x;
+                updateCallback();
+            };// TODO UNDOREDO 
+
             GUITextField methodField = new GUITextField(new LocEdString("Method"), 40, false, "", GUIOption.FixedWidth(190));
             methodField.Value = animEvent.Name;
-            methodField.OnChanged += x => { animEvent.Name = x; updateCallback(); }; // TODO UNDOREDO 
+            methodField.OnChanged += x =>
+            {
+                string compName = "";
+                if(componentField.Index != -1)
+                    compName = componentNames[componentField.Index] + "/";
+
+                animEvent.Name = compName + x;
+                updateCallback();
+            }; // TODO UNDOREDO 
 
             GUILayoutY vertLayout = GUI.AddLayoutY();
 
@@ -1097,6 +1144,10 @@ namespace BansheeEditor
             timeLayout.AddSpace(5);
             timeLayout.AddElement(timeField);
             timeLayout.AddFlexibleSpace();
+            GUILayout componentLayout = contentLayout.AddLayoutX();
+            componentLayout.AddSpace(5);
+            componentLayout.AddElement(componentField);
+            componentLayout.AddFlexibleSpace();
             GUILayout methodLayout = contentLayout.AddLayoutX();
             methodLayout.AddSpace(5);
             methodLayout.AddElement(methodField);

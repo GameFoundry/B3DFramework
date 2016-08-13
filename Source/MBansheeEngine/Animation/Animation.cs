@@ -684,7 +684,26 @@ namespace BansheeEngine
         /// <param name="name">Name of the event.</param>
         private void EventTriggered(AnimationClip clip, string name)
         {
-            // TODO - Find a scene object, component and method based on the event name, and call it
+            // Event should be in format "ComponentType/MethodName"
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            string[] nameEntries = name.Split('/');
+            if (nameEntries.Length != 2)
+                return;
+
+            string typeName = nameEntries[0];
+            string methodName = nameEntries[1];
+
+            Component[] components = SceneObject.GetComponents();
+            for (int i = 0; i < components.Length; i++)
+            {
+                if (components[i].GetType().Name == typeName)
+                {
+                    components[i].Invoke(methodName);
+                    break;
+                }
+            }
         }
 
         /// <summary>

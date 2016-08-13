@@ -54,8 +54,6 @@ namespace BansheeEditor
                 AnimationEvent evnt = events[i];
 
                 int xPos = (int)(((evnt.Time - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
-
-                Debug.Log(i + ". " + xPos);
                 if (relativeCoords.x >= (xPos - EVENT_HALF_WIDTH) && relativeCoords.x <= (xPos + EVENT_HALF_WIDTH))
                 {
                     eventIdx = i;
