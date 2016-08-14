@@ -11,6 +11,8 @@
 
 namespace BansheeEngine
 {
+	class SkeletonMask;
+
 	/** @addtogroup Animation-Internal
 	 *  @{
 	 */
@@ -114,6 +116,7 @@ namespace BansheeEngine
 		 *
 		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
+		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
 		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
 		 * @param[in]	clip		Clip to evaluate.
@@ -123,7 +126,8 @@ namespace BansheeEngine
 		 * @note	It is more efficient to use the other getPose overload as sequential calls can benefit from animation
 		 *			evaluator cache.
 		 */
-		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationClip& clip, float time, bool loop = true);
+		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, 
+			float time, bool loop = true);
 
 		/** 
 		 * Outputs a skeleton pose containing required transforms for transforming the skeleton to the values specified by
@@ -131,12 +135,14 @@ namespace BansheeEngine
 		 *
 		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
+		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
 		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
 		 * @param[in]	layers		One or multiple layers, containing one or multiple animation states to evaluate.
 		 * @param[in]	numLayers	Number of layers in the @p layers array.
 		 */
-		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationStateLayer* layers, UINT32 numLayers);
+		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, 
+			const AnimationStateLayer* layers, UINT32 numLayers);
 
 		/** Returns the total number of bones in the skeleton. */
 		UINT32 getNumBones() const { return mNumBones; }

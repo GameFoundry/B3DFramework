@@ -6,6 +6,7 @@
 #include "BsCoreObject.h"
 #include "BsFlags.h"
 #include "BsSkeleton.h"
+#include "BsSkeletonMask.h"
 #include "BsVector2.h"
 
 namespace BansheeEngine
@@ -134,6 +135,7 @@ namespace BansheeEngine
 		 * whenever the animation skeleton changes.
 		 *
 		 * @param[in]		skeleton		New skeleton to assign to the proxy.
+		 * @param[in]		mask			Mask that filters which skeleton bones are enabled or disabled.
 		 * @param[in, out]	clipInfos		Potentially new clip infos that will be used for rebuilding the proxy. Once the
 		 *									method completes clip info layout and state indices will be populated for 
 		 *									further use in the update*() methods.
@@ -141,7 +143,7 @@ namespace BansheeEngine
 		 *
 		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
 		 */
-		void rebuild(const SPtr<Skeleton>& skeleton, Vector<AnimationClipInfo>& clipInfos, 
+		void rebuild(const SPtr<Skeleton>& skeleton, const SkeletonMask& mask, Vector<AnimationClipInfo>& clipInfos, 
 			const Vector<AnimatedSceneObject>& sceneObjects);
 
 		/** 
@@ -188,6 +190,7 @@ namespace BansheeEngine
 		AnimationStateLayer* layers;
 		UINT32 numLayers;
 		SPtr<Skeleton> skeleton;
+		SkeletonMask skeletonMask;
 		UINT32 numSceneObjects;
 		AnimatedSceneObjectInfo* sceneObjectInfos;
 		Matrix4* sceneObjectTransforms;
@@ -215,6 +218,12 @@ namespace BansheeEngine
 		 * the animation will only evaluate the generic curves, and the root translation/rotation/scale curves.
 		 */
 		void setSkeleton(const SPtr<Skeleton>& skeleton);
+
+		/** 
+		 * Sets a mask that allows certain bones from the skeleton to be disabled. Caller must ensure that the mask matches
+		 * the skeleton assigned to the animation.
+		 */
+		void setMask(const SkeletonMask& mask);
 
 		/** 
 		 * Changes the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the 
@@ -404,6 +413,7 @@ namespace BansheeEngine
 		AnimDirtyState mDirty;
 
 		SPtr<Skeleton> mSkeleton;
+		SkeletonMask mSkeletonMask;
 		Vector<AnimationClipInfo> mClipInfos;
 		UnorderedMap<UINT64, AnimatedSceneObject> mSceneObjects;
 		Vector<float> mGenericCurveOutputs;

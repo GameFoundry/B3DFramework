@@ -133,7 +133,7 @@ namespace BansheeEngine
 				}
 
 				// Animate bones
-				anim->skeleton->getPose(boneDst, anim->skeletonPose, anim->layers, anim->numLayers);
+				anim->skeleton->getPose(boneDst, anim->skeletonPose, anim->skeletonMask, anim->layers, anim->numLayers);
 
 				renderData.poseInfos[anim->id] = info;
 				curBoneIdx += numBones;

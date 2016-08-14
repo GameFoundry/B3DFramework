@@ -505,6 +505,7 @@ set(BS_BANSHEECORE_INC_ANIMATION
 	"Include/BsAnimationManager.h"
 	"Include/BsCurveCache.h"
 	"Include/BsAnimationUtility.h"
+	"Include/BsSkeletonMask.h"
 )
 
 set(BS_BANSHEECORE_SRC_ANIMATION
@@ -514,6 +515,7 @@ set(BS_BANSHEECORE_SRC_ANIMATION
 	"Source/BsAnimation.cpp"
 	"Source/BsAnimationManager.cpp"
 	"Source/BsAnimationUtility.cpp"
+	"Source/BsSkeletonMask.cpp"
 )
 
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})

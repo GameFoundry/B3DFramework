@@ -109,10 +109,11 @@ namespace BansheeEngine
 		numGenericCurves = 0;
 	}
 
-	void AnimationProxy::rebuild(const SPtr<Skeleton>& skeleton, Vector<AnimationClipInfo>& clipInfos, 
-		const Vector<AnimatedSceneObject>& sceneObjects)
+	void AnimationProxy::rebuild(const SPtr<Skeleton>& skeleton, const SkeletonMask& mask, 
+		Vector<AnimationClipInfo>& clipInfos, const Vector<AnimatedSceneObject>& sceneObjects)
 	{
 		this->skeleton = skeleton;
+		this->skeletonMask = skeletonMask;
 
 		// Note: I could avoid having a separate allocation for LocalSkeletonPoses and use the same buffer as the rest
 		// of AnimationProxy
@@ -518,6 +519,12 @@ namespace BansheeEngine
 	void Animation::setSkeleton(const SPtr<Skeleton>& skeleton)
 	{
 		mSkeleton = skeleton;
+		mDirty |= AnimDirtyStateFlag::Skeleton;
+	}
+
+	void Animation::setMask(const SkeletonMask& mask)
+	{
+		mSkeletonMask = mask;
 		mDirty |= AnimDirtyStateFlag::Skeleton;
 	}
 
@@ -1014,7 +1021,7 @@ namespace BansheeEngine
 			{
 				Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
 
-				mAnimProxy->rebuild(mSkeleton, mClipInfos, animatedSOs);
+				mAnimProxy->rebuild(mSkeleton, mSkeletonMask, mClipInfos, animatedSOs);
 				didFullRebuild = true;
 			}
 			else if (mDirty.isSet(AnimDirtyStateFlag::Layout))
