@@ -1023,7 +1023,32 @@ namespace BansheeEditor
             if (disableCurveEdit)
                 return;
 
-            // TODO - Open keyframe edit window
+            if (selectedKeyframes.Count == 0)
+                return;
+
+            EdAnimationCurve curve = curves[selectedKeyframes[0].curveIdx];
+            KeyFrame[] keyFrames = curve.KeyFrames;
+
+            int keyIndex = selectedKeyframes[0].keyIndices[0];
+            KeyFrame keyFrame = keyFrames[keyIndex];
+            Vector2I position = guiCurveDrawing.CurveToPixelSpace(new Vector2(keyFrame.time, keyFrame.value));
+
+            Rect2I drawingBounds = GUIUtility.CalculateBounds(drawingPanel, window.GUI);
+            position.x = MathEx.Clamp(position.x, 0, drawingBounds.width);
+            position.y = MathEx.Clamp(position.y, 0, drawingBounds.height);
+
+            Vector2I windowPos = position + new Vector2I(drawingBounds.x, drawingBounds.y);
+            
+            KeyframeEditWindow editWindow = DropDownWindow.Open<KeyframeEditWindow>(window, windowPos);
+            editWindow.Initialize(keyFrame, x =>
+            {
+                curve.UpdateKeyframe(keyIndex, x.time, x.value);
+                curve.Apply();
+                // TODO UNDOREDO
+
+                guiCurveDrawing.Rebuild();
+                OnCurveModified?.Invoke();
+            });
         }
 
         /// <summary>
@@ -1068,6 +1093,47 @@ namespace BansheeEditor
                 UpdateEventsGUI();
                 OnEventModified?.Invoke();
             });
+        }
+    }
+
+    /// <summary>
+    /// Drop down window that displays input boxes used for editing a keyframe.
+    /// </summary>
+    [DefaultSize(120, 80)]
+    internal class KeyframeEditWindow : DropDownWindow
+    {
+        /// <summary>
+        /// Initializes the drop down window by creating the necessary GUI. Must be called after construction and before
+        /// use.
+        /// </summary>
+        /// <param name="keyFrame">Keyframe whose properties to edit.</param>
+        /// <param name="updateCallback">Callback triggered when event values change.</param>
+        internal void Initialize(KeyFrame keyFrame, Action<KeyFrame> updateCallback)
+        {
+            GUIFloatField timeField = new GUIFloatField(new LocEdString("Time"), 40, "");
+            timeField.Value = keyFrame.time;
+            timeField.OnChanged += x => { keyFrame.time = x; updateCallback(keyFrame); };
+
+            GUIFloatField valueField = new GUIFloatField(new LocEdString("Value"), 40, "");
+            valueField.Value = keyFrame.value;
+            valueField.OnChanged += x => { keyFrame.value = x; updateCallback(keyFrame); };
+
+            GUILayoutY vertLayout = GUI.AddLayoutY();
+
+            vertLayout.AddFlexibleSpace();
+            GUILayoutX horzLayout = vertLayout.AddLayoutX();
+            horzLayout.AddFlexibleSpace();
+            GUILayout contentLayout = horzLayout.AddLayoutY();
+            GUILayout timeLayout = contentLayout.AddLayoutX();
+            timeLayout.AddSpace(5);
+            timeLayout.AddElement(timeField);
+            timeLayout.AddFlexibleSpace();
+            GUILayout componentLayout = contentLayout.AddLayoutX();
+            componentLayout.AddSpace(5);
+            componentLayout.AddElement(valueField);
+            componentLayout.AddFlexibleSpace();
+            horzLayout.AddFlexibleSpace();
+            vertLayout.AddFlexibleSpace();
         }
     }
 
