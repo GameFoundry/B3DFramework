@@ -121,6 +121,20 @@ namespace BansheeEngine
 		/** Returns properties that describe the render texture. */
 		const MultiRenderTextureProperties& getProperties() const;
 
+		/**
+		* Returns a depth/stencil surface texture you may bind as an input to an GPU program.
+		*
+		* @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
+		*/
+		const SPtr<TextureView> getBindableDepthStencilTexture() const { return mDepthStencilSurface; }
+
+		/**
+		* Returns a color surface texture you may bind as an input to an GPU program.
+		*
+		* @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
+		*/
+		const SPtr<TextureView>& getBindableColorTexture(UINT32 idx) const { return mColorSurfaces[idx]; }
+
 		/** @copydoc	TextureManager::createMultiRenderTexture(const MULTI_RENDER_TEXTURE_DESC&) */
 		static SPtr<MultiRenderTextureCore> create(const MULTI_RENDER_TEXTURE_CORE_DESC& desc);
 

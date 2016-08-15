@@ -14,7 +14,7 @@ namespace BansheeEngine
 	 */
 
 	 /** Contains the data of a scene picking action. */
-	struct PickData
+	struct SnapData
 	{
 		Vector3 normal;
 		Vector3 pickPosition;
@@ -24,7 +24,7 @@ namespace BansheeEngine
 	struct PickResults
 	{
 		Vector<UINT32> objects;
-		PickData data;
+		SnapData data;
 	};
 
 	class ScenePickingCore;
@@ -54,10 +54,11 @@ namespace BansheeEngine
 		 * @param[in]	position	Pointer position relative to the camera viewport, in pixels.
 		 * @param[in]	area		Width/height of the checked area in pixels. Use (1, 1) if you want the exact position
 		 *							under the pointer.
+		 * @param[in]	ignoreRenderables		A list of objects that should not be rendered during scene picking.
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					Nearest SceneObject under the provided area, or an empty handle if no object is found.
 		 */
-		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, PickData& data);
+		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables);
 
 		/**
 		 * Attempts to find all scene objects under the provided position and area. This does not mean objects occluded by
@@ -67,10 +68,11 @@ namespace BansheeEngine
 		 * @param[in]	position	Pointer position relative to the camera viewport, in pixels.
 		 * @param[in]	area		Width/height of the checked area in pixels. Use (1, 1) if you want the exact position
 		 *							under the pointer.
+		 * @param[in]	ignoreRenderables		A list of objects that should not be rendered during scene picking.
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					A list of SceneObject%s under the provided area.
 		 */
-		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, PickData& data);
+		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables);
 
 	private:
 		friend class ScenePickingCore;
@@ -149,6 +151,8 @@ namespace BansheeEngine
 
 	private:
 		friend class ScenePicking;
+
+		SPtr<MultiRenderTextureCore> mNormalsTexture;
 
 		static const float ALPHA_CUTOFF;
 

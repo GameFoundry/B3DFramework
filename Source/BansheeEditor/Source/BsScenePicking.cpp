@@ -19,6 +19,7 @@
 #include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
 #include "BsRenderTarget.h"
+#include "BsMultiRenderTexture.h"
 #include "BsPixelData.h"
 #include "BsGpuParams.h"
 #include "BsBuiltinEditorResources.h"
@@ -54,16 +55,20 @@ namespace BansheeEngine
 		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
 	}
 
-	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, PickData& data)
+	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables)
 	{
-		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, data);
+		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, data, ignoreRenderables);
 		if (selectedObjects.size() == 0)
 			return HSceneObject();
-
+		Matrix3 rotation;
+		selectedObjects[0]->getWorldRotation().toRotationMatrix(rotation);
+		data.normal = rotation.inverse().transpose().transform(data.normal);
+		LOGWRN("Pos: " + toString(data.pickPosition.x) + " & " + toString(data.pickPosition.y) + " & " + toString(data.pickPosition.z));
+		LOGWRN("Norm: " + toString(data.normal.x) + " & " + toString(data.normal.y) + " & " + toString(data.normal.z));
 		return selectedObjects[0];
 	}
 
-	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, PickData& data)
+	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables)
 	{
 		auto comparePickElement = [&] (const ScenePicking::RenderablePickData& a, const ScenePicking::RenderablePickData& b)
 		{
@@ -95,6 +100,18 @@ namespace BansheeEngine
 
 			HMesh mesh = renderable->getMesh();
 			if (!mesh.isLoaded())
+				continue;
+
+			bool found = false;
+			for (int i = 0; i < ignoreRenderables.size(); i++)
+			{
+				if (ignoreRenderables[i] == so)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (found)
 				continue;
 
 			Bounds worldBounds = mesh->getProperties().getBounds();
@@ -187,6 +204,7 @@ namespace BansheeEngine
 		pos = cam->viewToWorldPoint(worldPoint3D);
 		data = returnValue.data;
 		data.pickPosition = pos;
+		//Todo: camera to world ray if object is too far
 
 		Vector<UINT32> selectedObjects = returnValue.objects;
 		Vector<HSceneObject> results;
@@ -280,8 +298,28 @@ namespace BansheeEngine
 	{
 		RenderAPICore& rs = RenderAPICore::instance();
 
+		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
+		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
+		TextureProperties outputTextureProperties = outputTexture->getProperties();
+		SPtr<TextureCore> depthTexture = rtt->getBindableDepthStencilTexture();
+
+		MULTI_RENDER_TEXTURE_CORE_DESC multiTextureDescription;
+		multiTextureDescription.colorSurfaces.resize(2);
+		multiTextureDescription.colorSurfaces[0].face = 0;
+		multiTextureDescription.colorSurfaces[0].texture = outputTexture;
+		multiTextureDescription.colorSurfaces[1].face = 0;
+		SPtr<TextureCore> core = TextureCore::create(TextureType::TEX_TYPE_2D, outputTextureProperties.getWidth(),
+			outputTextureProperties.getHeight(), 0, PixelFormat::PF_R8G8B8A8, TU_RENDERTARGET, false, 1);
+		multiTextureDescription.colorSurfaces[1].texture = core;
+		RENDER_SURFACE_CORE_DESC depthStencilDescription;
+		depthStencilDescription.face = 0;
+		depthStencilDescription.texture = depthTexture;
+		multiTextureDescription.depthStencilSurface = depthStencilDescription;
+		
+		mNormalsTexture = MultiRenderTextureCore::create(multiTextureDescription);
+
 		rs.beginFrame();
-		rs.setRenderTarget(target);
+		rs.setRenderTarget(mNormalsTexture);
 		rs.setViewport(viewportArea);
 		rs.clearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White);
 		rs.setScissorRect(position.x, position.y, position.x + area.x, position.y + area.y);
@@ -346,9 +384,9 @@ namespace BansheeEngine
 			BS_EXCEPT(NotImplementedException, "Picking is not supported on render windows as framebuffer readback methods aren't implemented");
 		}
 
-		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
-		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
-		SPtr<TextureCore> depthTexture = rtt->getBindableDepthStencilTexture();
+		SPtr<TextureCore> outputTexture = mNormalsTexture->getBindableColorTexture(0)->getTexture();
+		SPtr<TextureCore> normalsTexture = mNormalsTexture->getBindableColorTexture(1)->getTexture();
+		SPtr<TextureCore> depthTexture = mNormalsTexture->getBindableDepthStencilTexture()->getTexture();
 
 		if (position.x < 0 || position.x >= (INT32)outputTexture->getProperties().getWidth() ||
 			position.y < 0 || position.y >= (INT32)outputTexture->getProperties().getHeight())
@@ -358,6 +396,7 @@ namespace BansheeEngine
 		}
 
 		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocateSubresourceBuffer(0);
+		SPtr<PixelData> normalsPixelData = normalsTexture->getProperties().allocateSubresourceBuffer(0);
 		SPtr<PixelData> depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
 
 		outputTexture->readSubresource(0, *outputPixelData);
@@ -431,19 +470,29 @@ namespace BansheeEngine
 			objects.push_back(selectedObject.index);
 		
 		depthTexture->readSubresource(0, *depthPixelData);
+		normalsTexture->readSubresource(0, *normalsPixelData);
 		float depth;
+		Color normal;
 		if (rtProps.requiresTextureFlipping())
+		{
 			depth = depthPixelData->getDepthAt(position.x, depthPixelData->getHeight() - position.y);
+			normal = normalsPixelData->getColorAt(position.x, depthPixelData->getHeight() - position.y);
+		}
 		else
+		{
 			depth = depthPixelData->getDepthAt(position.x, position.y);
+			normal = normalsPixelData->getColorAt(position.x, position.y);
+		}
 
 		PickResults result;
-		PickData data;
+		SnapData data;
 		result.objects = objects;
 		const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
 		depth = depth * Math::abs(rapiInfo.getMinimumDepthInputValue() - rapiInfo.getMinimumDepthInputValue()) + rapiInfo.getMinimumDepthInputValue();
 		data.pickPosition = Vector3(position.x, position.y, depth);
+		data.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
 		result.data = data;
 		asyncOp._completeOperation(result);
+		mNormalsTexture = nullptr;
 	}
 }
