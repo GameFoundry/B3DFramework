@@ -85,6 +85,7 @@ namespace BansheeEditor
         private bool dragActive;
         private SceneObject draggedSO;
         private Vector3 draggedSOOffset;
+        private Vector2I dragBegin;
 
         /// <summary>
         /// Returns the scene camera.
@@ -512,6 +513,11 @@ namespace BansheeEditor
                         Selection.SceneObject = draggedSO;
                         EditorApplication.SetSceneDirty();
                     }
+                    else
+                    {
+                        //Selection.SceneObjects = sceneSelection.PickObjects(dragBegin, scenePos - dragBegin,
+                        //    Input.IsButtonHeld(ButtonCode.LeftControl));
+                    }
 
                     draggedSO = null;
                 }
@@ -520,6 +526,7 @@ namespace BansheeEditor
                     if (!dragActive)
                     {
                         dragActive = true;
+                        dragBegin = scenePos;
 
                         ResourceDragDropData dragData = (ResourceDragDropData)DragDrop.Data;
 
@@ -540,7 +547,6 @@ namespace BansheeEditor
 
                                         Renderable renderable = draggedSO.AddComponent<Renderable>();
                                         renderable.Mesh = mesh;
-
                                         if (mesh != null)
                                             draggedSOOffset = mesh.Bounds.Box.Center;
                                         else
@@ -573,8 +579,19 @@ namespace BansheeEditor
 
                     if (draggedSO != null)
                     {
-                        Ray worldRay = camera.ViewportToWorldRay(scenePos);
-                        draggedSO.Position = worldRay*DefaultPlacementDepth - draggedSOOffset;
+                        if (Input.IsButtonHeld(ButtonCode.Space))
+                        {
+                            SnapData snapData = sceneSelection.Snap(scenePos, new SceneObject[] {draggedSO});
+                            Debug.Log(snapData.normal);
+                            Debug.Log(snapData.position);
+                            draggedSO.Position = snapData.position;
+                            draggedSO.Rotation = Quaternion.FromAxisAngle(snapData.normal, new Degree(0));
+                        }
+                        else
+                        {
+                            Ray worldRay = camera.ViewportToWorldRay(scenePos);
+                            draggedSO.Position = worldRay * DefaultPlacementDepth - draggedSOOffset;
+                        }
                     }
                 }
 
@@ -617,7 +634,7 @@ namespace BansheeEditor
                             bool ctrlHeld = Input.IsButtonHeld(ButtonCode.LeftControl) ||
                                             Input.IsButtonHeld(ButtonCode.RightControl);
 
-                            sceneSelection.PickObject(scenePos, ctrlHeld);
+                            sceneSelection.PickObject(scenePos, ctrlHeld, new SceneObject[] { draggedSO });
                         }
                     }
                 }

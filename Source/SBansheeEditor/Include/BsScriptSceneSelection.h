@@ -4,6 +4,7 @@
 
 #include "BsScriptEditorPrerequisites.h"
 #include "BsScriptObject.h"
+#include "BsScenePicking.h"
 
 namespace BansheeEngine
 {
@@ -29,7 +30,8 @@ namespace BansheeEngine
 		/************************************************************************/
 		static void internal_Create(MonoObject* managedInstance, ScriptCamera* camera);
 		static void internal_Draw(ScriptSceneSelection* thisPtr);
-		static void internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive);
+		static void internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive, MonoArray* ignoreRenderables);
+		static void internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables);
 	};
 
 	/** @} */
