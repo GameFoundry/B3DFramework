@@ -116,6 +116,22 @@ namespace BansheeEngine
             return Internal_GetGenericCurveValue(mCachedPtr, curveIdx, out value);
         }
 
+        public void MapCurveToSceneObject(string curve, SceneObject sceneObject)
+        {
+            if (string.IsNullOrEmpty(curve) || sceneObject == null)
+                return;
+
+            Internal_MapCurveToSceneObject(mCachedPtr, curve, sceneObject.GetCachedPtr());
+        }
+
+        public void UnmapSceneObject(SceneObject sceneObject)
+        {
+            if (sceneObject == null)
+                return;
+
+            Internal_UnmapSceneObject(mCachedPtr, sceneObject.GetCachedPtr());
+        }
+
         internal NativeAnimation()
         {
             Internal_Create(this);
@@ -182,6 +198,12 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool Internal_GetGenericCurveValue(IntPtr thisPtr, int curveIdx, out float value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_MapCurveToSceneObject(IntPtr thisPtr, string curve, IntPtr sceneObjectPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_UnmapSceneObject(IntPtr thisPtr, IntPtr sceneObjectPtr);
     }
 
     /** @endcond */

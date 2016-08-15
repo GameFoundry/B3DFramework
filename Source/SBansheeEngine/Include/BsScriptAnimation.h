@@ -57,6 +57,9 @@ namespace BansheeEngine
 		static UINT32 internal_GetNumClips(ScriptAnimation* thisPtr);
 		static MonoObject* internal_GetClip(ScriptAnimation* thisPtr, UINT32 idx);
 
+		static void internal_MapCurveToSceneObject(ScriptAnimation* thisPtr, MonoString* curve, ScriptSceneObject* so);
+		static void internal_UnmapSceneObject(ScriptAnimation* thisPtr, ScriptSceneObject* so);
+
 		static bool internal_GetGenericCurveValue(ScriptAnimation* thisPtr, UINT32 curveIdx, float* value);
 
 		typedef void(__stdcall *OnEventTriggeredThunkDef) (MonoObject*, MonoObject*, MonoString*, MonoException**);

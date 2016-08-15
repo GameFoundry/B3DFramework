@@ -109,7 +109,8 @@ namespace BansheeEngine
         [SerializeField] private SerializableData serializableData = new SerializableData();
 
         private FloatCurvePropertyInfo[] floatProperties;
-        private AnimationClip floatPropertyClip;
+        private List<SceneObjectMappingInfo> mappingInfo = new List<SceneObjectMappingInfo>();
+        private AnimationClip primaryClip;
 
         /// <summary>
         /// Contains mapping for a suffix used by property paths used for curve identifiers, to their index and type.
@@ -458,6 +459,49 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Searches the scene object hierarchy to find a child scene object using the provided path.
+        /// </summary>
+        /// <param name="root">Root scene object to which the path is relative to.</param>
+        /// <param name="path">Path to the property, where each element of the path is separated with "/". 
+        /// 
+        ///                    Path elements signify names of child scene objects (first one relative to 
+        ///                    <paramref name="root"/>. Name of the root element should not be included in the path.
+        ///                    Elements must be prefixed with "!" in order to match the path format of 
+        ///                    <see cref="FindProperty"/>.</param>
+        /// <returns>Child scene object if found, or null otherwise.</returns>
+        internal static SceneObject FindSceneObject(SceneObject root, string path)
+        {
+            if (string.IsNullOrEmpty(path) || root == null)
+                return null;
+
+            string trimmedPath = path.Trim('/');
+            string[] entries = trimmedPath.Split('/');
+
+            // Find scene object referenced by the path
+            SceneObject so = root;
+            int pathIdx = 0;
+            for (; pathIdx < entries.Length; pathIdx++)
+            {
+                string entry = entries[pathIdx];
+
+                if (string.IsNullOrEmpty(entry))
+                    continue;
+
+                // Not a scene object, break
+                if (entry[0] != '!')
+                    break;
+
+                string childName = entry.Substring(1, entry.Length - 1);
+                so = so.FindChild(childName);
+
+                if (so == null)
+                    break;
+            }
+
+            return so;
+        }
+
+        /// <summary>
         /// Changes the state of a playing animation clip. If animation clip is not currently playing the state change is
         /// ignored.
         /// </summary>
@@ -474,19 +518,24 @@ namespace BansheeEngine
             if (_native == null)
                 return;
 
-            AnimationClip primaryClip = _native.GetClip(0);
-            if (primaryClip != floatPropertyClip)
+            AnimationClip newPrimaryClip = _native.GetClip(0);
+            if (newPrimaryClip != primaryClip)
             {
-                RebuildFloatProperties(primaryClip);
-                floatPropertyClip = primaryClip;
+                RebuildFloatProperties(newPrimaryClip);
+                primaryClip = newPrimaryClip;
+
+                UpdateSceneObjectMapping();
             }
 
-            // Apply values from generic float curves 
-            foreach (var entry in floatProperties)
+            // Apply values from generic float curves
+            if (floatProperties != null)
             {
-                float curveValue;
-                if (_native.GetGenericCurveValue(entry.curveIdx, out curveValue))
-                    entry.setter(curveValue);
+                foreach (var entry in floatProperties)
+                {
+                    float curveValue;
+                    if (_native.GetGenericCurveValue(entry.curveIdx, out curveValue))
+                        entry.setter(curveValue);
+                }
             }
         }
 
@@ -523,6 +572,13 @@ namespace BansheeEngine
             if (serializableData.defaultClip != null)
                 _native.Play(serializableData.defaultClip);
 
+            primaryClip = _native.GetClip(0);
+            if (primaryClip != null)
+                RebuildFloatProperties(primaryClip);
+
+            SetBoneMappings();
+            UpdateSceneObjectMapping();
+
             Renderable renderable = SceneObject.GetComponent<Renderable>();
             if (renderable == null)
                 return;
@@ -551,6 +607,178 @@ namespace BansheeEngine
                 _native.Destroy();
                 _native = null;
             }
+
+            primaryClip = null;
+            mappingInfo.Clear();
+            floatProperties = null;
+        }
+
+        /// <summary>
+        /// Finds any curves that affect a transform of a specific scene object, and ensures that animation properly updates
+        /// those transforms. This does not include curves referencing bones.
+        /// </summary>
+        private void UpdateSceneObjectMapping()
+        {
+            List<SceneObjectMappingInfo> newMappingInfos = new List<SceneObjectMappingInfo>();
+            foreach(var entry in mappingInfo)
+            {
+                if (entry.isMappedToBone)
+                    newMappingInfos.Add(entry);
+                else
+                    _native.UnmapSceneObject(entry.sceneObject);
+            }
+
+            if (primaryClip != null)
+            {
+                SceneObject root = SceneObject;
+                AnimationCurves curves = primaryClip.Curves;
+                foreach (var curve in curves.PositionCurves)
+                {
+                    if (curve.Flags.HasFlag(AnimationCurveFlags.ImportedCurve))
+                        continue;
+
+                    SceneObject currentSO = FindSceneObject(root, curve.Name);
+
+                    bool found = false;
+                    for (int i = 0; i < newMappingInfos.Count; i++)
+                    {
+                        if (newMappingInfos[i].sceneObject == currentSO)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        SceneObjectMappingInfo newMappingInfo = new SceneObjectMappingInfo();
+                        newMappingInfo.isMappedToBone = false;
+                        newMappingInfo.sceneObject = currentSO;
+
+                        newMappingInfos.Add(newMappingInfo);
+
+                        _native.MapCurveToSceneObject(curve.Name, currentSO);
+                    }
+                }
+            }
+
+            mappingInfo = newMappingInfos;
+        }
+
+        /// <summary>
+        /// Registers a new bone component, creating a new transform mapping from the bone name to the scene object
+        /// the component is attached to.
+        /// </summary>
+        /// <param name="bone">Bone component to register.</param>
+        internal void AddBone(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            SceneObject currentSO = bone.SceneObject;
+
+            SceneObjectMappingInfo newMapping = new SceneObjectMappingInfo();
+            newMapping.sceneObject = currentSO;
+            newMapping.isMappedToBone = true;
+            newMapping.bone = bone;
+
+            mappingInfo.Add(newMapping);
+            _native.MapCurveToSceneObject(bone.Name, newMapping.sceneObject);
+        }
+
+        /// <summary>
+        /// Unregisters a bone component, removing the bone -> scene object mapping.
+        /// </summary>
+        /// <param name="bone">Bone to unregister.</param>
+        internal void RemoveBone(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            SceneObject newSO = null;
+            for (int i = 0; i < mappingInfo.Count; i++)
+            {
+                if (mappingInfo[i].bone == bone)
+                {
+                    mappingInfo.RemoveAt(i);
+                    _native.UnmapSceneObject(mappingInfo[i].sceneObject);
+                    i--;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called whenever the bone the <see cref="Bone"/> component points to changed.
+        /// </summary>
+        /// <param name="bone">Bone component to modify.</param>
+        internal void NotifyBoneChanged(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            for (int i = 0; i < mappingInfo.Count; i++)
+            {
+                if (mappingInfo[i].bone == bone)
+                {
+                    _native.UnmapSceneObject(mappingInfo[i].sceneObject);
+                    _native.MapCurveToSceneObject(bone.Name, mappingInfo[i].sceneObject);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds any scene objects that are mapped to bone transforms. Such object's transforms will be affected by
+        /// skeleton bone animation.
+        /// </summary>
+        private void SetBoneMappings()
+        {
+            mappingInfo.Clear();
+
+            SceneObjectMappingInfo rootMapping = new SceneObjectMappingInfo();
+            rootMapping.sceneObject = SceneObject;
+            rootMapping.isMappedToBone = true;
+
+            mappingInfo.Add(rootMapping);
+            _native.MapCurveToSceneObject("", rootMapping.sceneObject);
+
+            Bone[] childBones = FindChildBones();
+            foreach (var entry in childBones)
+                AddBone(entry);
+        }
+
+        /// <summary>
+        /// Searches child scene objects for <see cref="Bone"/> components and returns any found ones.
+        /// </summary>
+        private Bone[] FindChildBones()
+        {
+            Stack<SceneObject> todo = new Stack<SceneObject>();
+            todo.Push(SceneObject);
+
+            List<Bone> bones = new List<Bone>();
+            while (todo.Count > 0)
+            {
+                SceneObject currentSO = todo.Pop();
+
+                Bone bone = currentSO.GetComponent<Bone>();
+                if (bone != null)
+                {
+                    bone.SetParent(this, true);
+                    bones.Add(bone);
+                }
+
+                int childCount = currentSO.GetNumChildren();
+                for (int i = 0; i < childCount; i++)
+                {
+                    SceneObject child = currentSO.GetChild(i);
+                    if (child.GetComponent<Animation>() != null)
+                        continue;
+
+                    todo.Push(child);
+                }
+            }
+
+            return bones.ToArray();
         }
 
         /// <summary>
@@ -739,6 +967,16 @@ namespace BansheeEngine
 
             public int elementIdx;
             public bool isVector;
+        }
+
+        /// <summary>
+        /// Information about scene objects bound to a specific animation curve.
+        /// </summary>
+        internal struct SceneObjectMappingInfo
+        {
+            public SceneObject sceneObject;
+            public bool isMappedToBone;
+            public Bone bone;
         }
     }
 

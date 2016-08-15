@@ -215,17 +215,30 @@ namespace BansheeEngine
 			{
 				for (UINT32 i = 0; i < numSceneObjects; i++)
 				{
-					for (UINT32 j = 0; j < numBones; j++)
+					if (sceneObjects[i].so.isDestroyed(true))
+						continue;
+
+					// Empty string always means root bone
+					if (sceneObjects[i].curveName.empty())
 					{
-						if (sceneObjects[i].so.isDestroyed(true))
-							continue;
-
-						if (skeleton->getBoneInfo(j).name == sceneObjects[i].curveName)
+						UINT32 rootBoneIdx = skeleton->getRootBoneIndex();
+						if (rootBoneIdx != (UINT32)-1)
 						{
-							mappedBoneIndices[i] = j;
-
+							mappedBoneIndices[i] = rootBoneIdx;
 							numBoneMappedSOs++;
-							break;
+						}
+					}
+					else
+					{
+						for (UINT32 j = 0; j < numBones; j++)
+						{
+							if (skeleton->getBoneInfo(j).name == sceneObjects[i].curveName)
+							{
+								mappedBoneIndices[i] = j;
+
+								numBoneMappedSOs++;
+								break;
+							}
 						}
 					}
 				}

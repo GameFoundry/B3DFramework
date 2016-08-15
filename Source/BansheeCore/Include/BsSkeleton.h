@@ -150,6 +150,9 @@ namespace BansheeEngine
 		/** Returns information about a bone at the provided index. */
 		const SkeletonBoneInfo& getBoneInfo(UINT32 idx) const { return mBoneInfo[idx]; }
 
+		/** Searches all bones to find a root bone. Returns -1 if no root can be found. */
+		UINT32 getRootBoneIndex() const;
+
 		/** Returns the inverse bind pose for the bone at the provided index. */
 		const Matrix4& getInvBindPose(UINT32 idx) const { return mInvBindPoses[idx]; }
 

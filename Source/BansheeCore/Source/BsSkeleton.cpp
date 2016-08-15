@@ -289,6 +289,17 @@ namespace BansheeEngine
 		bs_stack_free(isGlobal);
 	}
 
+	UINT32 Skeleton::getRootBoneIndex() const
+	{
+		for (UINT32 i = 0; i < mNumBones; i++)
+		{
+			if (mBoneInfo[i].parent == (UINT32)-1)
+				return i;
+		}
+
+		return (UINT32)-1;
+	}
+
 	SPtr<Skeleton> Skeleton::createEmpty()
 	{
 		Skeleton* rawPtr = new (bs_alloc<Skeleton>()) Skeleton();

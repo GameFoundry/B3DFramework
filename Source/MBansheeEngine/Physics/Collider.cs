@@ -222,7 +222,7 @@ namespace BansheeEngine
         internal abstract NativeCollider CreateCollider();
 
         /// <summary>
-        /// Changes the rigidbody parent of the collider. Meant to be called from the Rigidbody itself. 
+        /// Changes the rigidbody parent of the collider.
         /// </summary>
         /// <param name="rigidbody">New rigidbody to assign as the parent to the collider.</param>
         /// <param name="isInternal">If true the rigidbody will just be changed internally, but parent rigidbody will not be

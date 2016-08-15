@@ -338,7 +338,8 @@ namespace BansheeEngine
 		 * the provided scene object. Also allow the opposite operation which can allow scene object transform changes
 		 * to manipulate object bones.
 		 *
-		 * @param[in]	curve	Name of the curve (bone) to connect the scene object with.
+		 * @param[in]	curve	Name of the curve (bone) to connect the scene object with. Use empty string to map to the
+		 *						root bone, regardless of the bone name.
 		 * @param[in]	so		Scene object to influence by the curve modifications, and vice versa.
 		 */
 		void mapCurveToSceneObject(const String& curve, const HSceneObject& so);
