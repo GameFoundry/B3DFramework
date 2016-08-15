@@ -15,6 +15,18 @@ namespace BansheeEngine
     /// </summary>
     public class AnimationClip : Resource
     {
+        // Constructor for runtime use only (dummy parameter to differentiate from the normal constructor)
+        private AnimationClip(bool dummy)
+        { }
+
+        /// <summary>
+        /// Creates a new animation clip with no curves or events.
+        /// </summary>
+        public AnimationClip()
+        {
+            Internal_CreateInstance(this);
+        }
+
         /// <summary>
         /// Returns the length of the animation clip, in seconds.
         /// </summary>
@@ -41,11 +53,8 @@ namespace BansheeEngine
             set { Internal_SetAnimationEvents(mCachedPtr, value); }
         }
 
-        /// <summary>
-        /// Constructor for internal use by the runtime.
-        /// </summary>
-        private AnimationClip()
-        { }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_CreateInstance(AnimationClip instance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern AnimationCurves Internal_GetAnimationCurves(IntPtr thisPtr);

@@ -11,6 +11,8 @@
 
 namespace BansheeEngine
 {
+	class SkeletonMask;
+
 	/** @addtogroup Animation-Internal
 	 *  @{
 	 */
@@ -40,6 +42,7 @@ namespace BansheeEngine
 	{
 		SPtr<AnimationCurves> curves; /**< All curves in the animation clip. */
 		AnimationCurveMapping* boneToCurveMapping; /**< Mapping of bone indices to curve indices for quick lookup .*/
+		AnimationCurveMapping* soToCurveMapping; /**< Mapping of scene object indices to curve indices for quick lookup. */
 
 		TCurveCache<Vector3>* positionCaches; /**< Cache used for evaluating position curves. */
 		TCurveCache<Quaternion>* rotationCaches; /**< Cache used for evaluating rotation curves. */
@@ -49,6 +52,7 @@ namespace BansheeEngine
 		float time; /**< Time to evaluate the curve at. */
 		float weight; /**< Determines how much of an influence will this clip have in regard to others in the same layer. */
 		bool loop; /**< Determines should the animation loop (wrap) once ending or beginning frames are passed. */
+		bool disabled; /**< If true the clip state will not be evaluated. */
 	};
 
 	/** Contains animation states for a single animation layer. */
@@ -112,6 +116,7 @@ namespace BansheeEngine
 		 *
 		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
+		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
 		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
 		 * @param[in]	clip		Clip to evaluate.
@@ -121,7 +126,8 @@ namespace BansheeEngine
 		 * @note	It is more efficient to use the other getPose overload as sequential calls can benefit from animation
 		 *			evaluator cache.
 		 */
-		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationClip& clip, float time, bool loop = true);
+		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, 
+			float time, bool loop = true);
 
 		/** 
 		 * Outputs a skeleton pose containing required transforms for transforming the skeleton to the values specified by
@@ -129,18 +135,23 @@ namespace BansheeEngine
 		 *
 		 * @param[out]	pose		Output pose containing the requested transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone matrices of this skeleton.
+		 * @param[in]	mask		Mask that filters which skeleton bones are enabled or disabled.
 		 * @param[out]	localPose	Output pose containing the local transforms. Must be pre-allocated with enough space
 		 *							to hold all the bone data of this skeleton.
 		 * @param[in]	layers		One or multiple layers, containing one or multiple animation states to evaluate.
 		 * @param[in]	numLayers	Number of layers in the @p layers array.
 		 */
-		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationStateLayer* layers, UINT32 numLayers);
+		void getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, 
+			const AnimationStateLayer* layers, UINT32 numLayers);
 
 		/** Returns the total number of bones in the skeleton. */
 		UINT32 getNumBones() const { return mNumBones; }
 
 		/** Returns information about a bone at the provided index. */
 		const SkeletonBoneInfo& getBoneInfo(UINT32 idx) const { return mBoneInfo[idx]; }
+
+		/** Searches all bones to find a root bone. Returns -1 if no root can be found. */
+		UINT32 getRootBoneIndex() const;
 
 		/** Returns the inverse bind pose for the bone at the provided index. */
 		const Matrix4& getInvBindPose(UINT32 idx) const { return mInvBindPoses[idx]; }

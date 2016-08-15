@@ -110,6 +110,7 @@ namespace BansheeEngine
 			memory += sizeof(UINT32);
 
 			memory = rttiWriteElem(data.name, memory, size);
+			memory = rttiWriteElem(data.flags, memory, size);
 			memory = rttiWriteElem(data.curve, memory, size);
 
 			memcpy(memoryStart, &size, sizeof(UINT32));
@@ -122,6 +123,7 @@ namespace BansheeEngine
 			memory = rttiReadElem(size, memory);
 
 			memory = rttiReadElem(data.name, memory);
+			memory = rttiReadElem(data.flags, memory);
 			memory = rttiReadElem(data.curve, memory);
 
 			return size;
@@ -132,6 +134,7 @@ namespace BansheeEngine
 		{
 			UINT64 dataSize = sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.name);
+			dataSize += rttiGetElemSize(data.flags);
 			dataSize += rttiGetElemSize(data.curve);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());

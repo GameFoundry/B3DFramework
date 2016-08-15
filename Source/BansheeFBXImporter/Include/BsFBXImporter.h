@@ -98,7 +98,8 @@ namespace BansheeEngine
 			FBXAnimationClip& clip, FBXImportScene& importScene);
 
 		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
-		void importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end);
+		template<class T, int C>
+		TAnimationCurve<T> importCurve(FbxAnimCurve*(&fbxCurve)[C], FBXImportOptions& importOptions, float start, float end);
 
 		/** Converts FBX animation clips into engine-ready animation curve format. */
 		void convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, 
@@ -108,10 +109,7 @@ namespace BansheeEngine
 		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all
 		 * the curves in order for it to be removed.
 		 */
-		void reduceKeyframes(FBXAnimationCurve(&curves)[3]);
-
-		/**	Converts a set of curves containing rotation in euler angles into a set of curves using	quaternion rotation. */
-		void eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4]);
+		TAnimationCurve<Vector3> reduceKeyframes(TAnimationCurve<Vector3>& curve);
 
 		/**
 		 * Converts all the meshes from per-index attributes to per-vertex attributes.

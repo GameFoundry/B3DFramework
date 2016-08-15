@@ -154,11 +154,22 @@ namespace BansheeEngine
 		float mLength;
 	};
 
+	/** Flags that described an TAnimationCurve<T>. */
+	enum class AnimationCurveFlag
+	{
+		/** Signifies that the curve was imported from an external file, and not created manually in-engine. */
+		ImportedCurve
+	};
+
+	typedef Flags<AnimationCurveFlag> AnimationCurveFlags;
+	BS_FLAGS_OPERATORS(AnimationCurveFlag);
+
 	/** An animation curve and its name. */
 	template <class T>
 	struct TNamedAnimationCurve
 	{
 		String name;
+		AnimationCurveFlags flags;
 		TAnimationCurve<T> curve;
 	};
 

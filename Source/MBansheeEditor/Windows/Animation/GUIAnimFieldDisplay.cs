@@ -110,120 +110,6 @@ namespace BansheeEditor
             }
         }
 
-        public static SerializableProperty FindProperty(SceneObject root, string path)
-        {
-            if (string.IsNullOrEmpty(path) || root == null)
-                return null;
-
-            string trimmedPath = path.Trim('/');
-            string[] entries = trimmedPath.Split('/');
-
-            // Find scene object referenced by the path
-            SceneObject so = null;
-            int pathIdx = 0;
-            for (; pathIdx < entries.Length; pathIdx++)
-            {
-                string entry = entries[pathIdx];
-
-                if (string.IsNullOrEmpty(entry))
-                    continue;
-
-                // Not a scene object, break
-                if (entry[0] != '!')
-                    break;
-
-                if (so == null)
-                    so = root;
-                else
-                {
-                    string childName = entry.Substring(1, entry.Length - 1);
-                    so = so.FindChild(childName);
-
-                    if (so == null)
-                        break;
-                }
-            }
-
-            // Cannot find scene object with specified hierarchy & name
-            if (so == null)
-                return null;
-
-            if (pathIdx >= entries.Length)
-                return null;
-
-            // If path is referencing a component, find it
-            Component component = null;
-            {
-                string entry = entries[pathIdx];
-                if (entry[0] == ':')
-                {
-                    string componentName = entry.Substring(1, entry.Length - 1);
-
-                    Component[] components = so.GetComponents();
-                    component = Array.Find(components, x => x.GetType().Name == componentName);
-
-                    // Cannot find component with specified type
-                    if (component == null)
-                        return null;
-                }
-            }
-
-            // Look for a field within a component
-            if (component != null)
-            {
-                pathIdx++;
-                if (pathIdx >= entries.Length)
-                    return null;
-
-                SerializableObject componentObj = new SerializableObject(component);
-
-                StringBuilder pathBuilder = new StringBuilder();
-                for(; pathIdx < entries.Length; pathIdx++)
-                    pathBuilder.Append(entries[pathIdx] + "/");
-
-                return componentObj.FindProperty(pathBuilder.ToString());
-            }
-            else // Field is one of the builtin ones on the SceneObject itself
-            {
-                if ((pathIdx + 1) < entries.Length)
-                    return null;
-
-                string entry = entries[pathIdx];
-                if (entry == "Position")
-                {
-                    SerializableProperty property = new SerializableProperty(
-                        SerializableProperty.FieldType.Vector3,
-                        typeof(Vector3),
-                        () => so.LocalPosition, 
-                        (x) => so.LocalPosition = (Vector3)x);
-
-                    return property;
-                }
-                else if (entry == "Rotation")
-                {
-                    SerializableProperty property = new SerializableProperty(
-                        SerializableProperty.FieldType.Vector3,
-                        typeof(Vector3),
-                        () => so.LocalRotation.ToEuler(), 
-                        (x) => so.LocalRotation = Quaternion.FromEuler((Vector3)x));
-
-                    return property;
-                }
-                else if (entry == "Scale")
-                {
-                    SerializableProperty property = new SerializableProperty(
-                        SerializableProperty.FieldType.Vector3,
-                        typeof(Vector3),
-                        () => so.LocalScale, 
-                        (x) => so.LocalScale = (Vector3)x);
-
-                    return property;
-                }
-
-                return null;
-            }
-        }
-
         private void Rebuild()
         {
             scrollArea.Layout.Clear();
@@ -258,7 +144,12 @@ namespace BansheeEditor
             fields = new GUIAnimFieldEntry[paths.Count];
             for (int i = 0; i < paths.Count; i++)
             {
-                SerializableProperty property = FindProperty(root, paths[i]);
+                if (string.IsNullOrEmpty(paths[i]))
+                    continue;
+
+                string pathSuffix;
+                SerializableProperty property = Animation.FindProperty(root, paths[i], out pathSuffix);
+
                 if (property != null)
                 {
                     switch (property.Type)
@@ -395,7 +286,7 @@ namespace BansheeEditor
             string trimmedPath = path.Trim('/');
             GetNames(trimmedPath, shortName, out soName, out compName, out propertyPath);
 
-            if (soName == null || propertyPath == null)
+            if (propertyPath == null)
                 return "";
 
             if (shortName)
@@ -408,10 +299,20 @@ namespace BansheeEditor
                 else
                     truncatedPropPath = propertyPath;
 
-                if (compName != null)
-                    return soName + "(" + compName + ") - " + truncatedPropPath;
+                if (soName != null)
+                {
+                    if (compName != null)
+                        return soName + "(" + compName + ") - " + truncatedPropPath;
+                    else
+                        return soName + " - " + truncatedPropPath;
+                }
                 else
-                    return soName + " - " + truncatedPropPath;
+                {
+                    if (compName != null)
+                        return "(" + compName + ") - " + truncatedPropPath;
+                    else
+                        return truncatedPropPath;
+                }
             }
         }
 
@@ -421,6 +322,7 @@ namespace BansheeEditor
 
             // Find name of the last scene object in the path
             int pathIdx = 0;
+            soName = null;
             for (; pathIdx < entries.Length; pathIdx++)
             {
                 string entry = entries[pathIdx];
@@ -430,19 +332,16 @@ namespace BansheeEditor
 
                 // Not a scene object, break
                 if (entry[0] != '!')
+                {
+                    if (pathIdx > 0)
+                    {
+                        string prevEntry = entries[pathIdx - 1];
+                        soName = prevEntry.Substring(1, prevEntry.Length - 1);
+                    }
+
                     break;
+                }
             }
-
-            if (pathIdx == 0)
-            {
-                soName = null;
-                compName = null;
-                propertyPath = null;
-
-                return;
-            }
-
-            soName = entries[pathIdx - 1].Substring(1, entries[pathIdx - 1].Length - 1);
 
             if (pathIdx >= entries.Length)
             {

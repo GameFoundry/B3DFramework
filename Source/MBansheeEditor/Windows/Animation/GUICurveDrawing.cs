@@ -14,7 +14,7 @@ namespace BansheeEditor
     /// Draws one or multiple curves over the specified physical area. User can specify horizontal and vertical range to
     /// display, as well as physical size of the GUI area.
     /// </summary>
-    internal class GUICurveDrawing
+    internal class GUICurveDrawing : GUITimelineBase
     {
         private const int LINE_SPLIT_WIDTH = 2;
         private const int TANGENT_LINE_DISTANCE = 30;
@@ -24,16 +24,9 @@ namespace BansheeEditor
         private EdAnimationCurve[] curves;
         private bool[][] selectedKeyframes;
 
-        private int width;
-        private int height;
-        private float xRange = 60.0f;
         private float yRange = 20.0f;
-        private Vector2 offset;
-        private int fps = 1;
-        private int markedFrameIdx = 0;
+        private float yOffset;
 
-        private int drawableWidth;
-        private GUICanvas canvas;
         private GUIGraphTicks tickHandler;
 
         /// <summary>
@@ -44,18 +37,12 @@ namespace BansheeEditor
         /// <param name="height">Height of the element in pixels.</param>
         /// <param name="curves">Initial set of curves to display. </param>
         public GUICurveDrawing(GUILayout layout, int width, int height, EdAnimationCurve[] curves)
+            :base(layout, width, height)
         {
-            canvas = new GUICanvas();
-            layout.AddElement(canvas);
-
             tickHandler = new GUIGraphTicks(GUITickStepType.Time);
-
             this.curves = curves;
             
-            SetSize(width, height);
             ClearSelectedKeyframes(); // Makes sure the array is initialized
-
-            Rebuild();
         }
 
         /// <summary>
@@ -66,23 +53,7 @@ namespace BansheeEditor
         {
             this.curves = curves;
         }
-
-        /// <summary>
-        /// Change the physical size of the GUI element.
-        /// </summary>
-        /// <param name="width">Width of the element in pixels.</param>
-        /// <param name="height">Height of the element in pixels.</param>
-        public void SetSize(int width, int height)
-        {
-            this.width = width;
-            this.height = height;
-
-            canvas.SetWidth(width);
-            canvas.SetHeight(height);
-
-            drawableWidth = Math.Max(0, width - GUIGraphTime.PADDING * 2);
-        }
-
+        
         /// <summary>
         /// Changes the visible range that the GUI element displays.
         /// </summary>
@@ -91,7 +62,7 @@ namespace BansheeEditor
         ///                      [-yRange * 0.5, yRange * 0.5]</param>
         public void SetRange(float xRange, float yRange)
         {
-            this.xRange = xRange;
+            SetRange(xRange);
             this.yRange = yRange;
         }
 
@@ -101,27 +72,10 @@ namespace BansheeEditor
         /// <param name="offset">Value to start the timeline values at.</param>
         public void SetOffset(Vector2 offset)
         {
-            this.offset = offset;
+            SetOffset(offset.x);
+            yOffset = offset.y;
         }
-
-        /// <summary>
-        /// Number of frames per second, used for frame selection and marking.
-        /// </summary>
-        /// <param name="fps">Number of prames per second.</param>
-        public void SetFPS(int fps)
-        {
-            this.fps = Math.Max(1, fps);
-        }
-
-        /// <summary>
-        /// Sets the frame at which to display the frame marker.
-        /// </summary>
-        /// <param name="frameIdx">Index of the frame to display the marker on, or -1 to clear the marker.</param>
-        public void SetMarkedFrame(int frameIdx)
-        {
-            markedFrameIdx = frameIdx;
-        }
-
+        
         /// <summary>
         /// Marks the specified key-frame as selected, changing the way it is displayed.
         /// </summary>
@@ -153,20 +107,6 @@ namespace BansheeEditor
                 KeyFrame[] keyframes = curves[i].KeyFrames;
                 selectedKeyframes[i] = new bool[keyframes.Length];
             }
-        }
-
-        /// <summary>
-        /// Returns time for a frame with the specified index. Depends on set range and FPS.
-        /// </summary>
-        /// <param name="frameIdx">Index of the frame (not a key-frame) to get the time for.</param>
-        /// <returns>Time of the frame with the provided index. </returns>
-        public float GetTimeForFrame(int frameIdx)
-        {
-            float range = GetRange();
-            int numFrames = (int)range * fps;
-            float timePerFrame = range / numFrames;
-
-            return frameIdx* timePerFrame;
         }
 
         /// <summary>
@@ -281,7 +221,7 @@ namespace BansheeEditor
             Rect2I bounds = canvas.Bounds;
 
             // Check if outside of curve drawing bounds
-            if (pixelCoords.x < (bounds.x + GUIGraphTime.PADDING) || pixelCoords.x >= (bounds.x + bounds.width - GUIGraphTime.PADDING) ||
+            if (pixelCoords.x < (bounds.x + PADDING) || pixelCoords.x >= (bounds.x + bounds.width - PADDING) ||
                 pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
             {
                 curveCoords = new Vector2();
@@ -289,15 +229,15 @@ namespace BansheeEditor
             }
 
             // Find time and value of the place under the coordinates
-            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + GUIGraphTime.PADDING, bounds.y);
+            Vector2I relativeCoords = pixelCoords - new Vector2I(bounds.x + PADDING, bounds.y);
 
             float lengthPerPixel = GetRange() / drawableWidth;
             float heightPerPixel = yRange / height;
 
-            float yOffset = yRange / 2.0f;
+            float centerOffset = yRange / 2.0f;
 
-            float t = offset.x + relativeCoords.x * lengthPerPixel;
-            float value = offset.y + yOffset - relativeCoords.y * heightPerPixel;
+            float t = rangeOffset + relativeCoords.x * lengthPerPixel;
+            float value = yOffset + centerOffset - relativeCoords.y * heightPerPixel;
 
             curveCoords = new Vector2();
             curveCoords.x = t;
@@ -315,10 +255,10 @@ namespace BansheeEditor
         {
             int heightOffset = height / 2; // So that y = 0 is at center of canvas
 
-            Vector2 relativeCurveCoords = curveCoords - offset;
+            Vector2 relativeCurveCoords = curveCoords - new Vector2(rangeOffset, yOffset);
 
             Vector2I pixelCoords = new Vector2I();
-            pixelCoords.x = (int)((relativeCurveCoords.x / GetRange()) * drawableWidth) + GUIGraphTime.PADDING;
+            pixelCoords.x = (int)((relativeCurveCoords.x / GetRange()) * drawableWidth) + PADDING;
             pixelCoords.y = heightOffset - (int)((relativeCurveCoords.y / yRange) * height);
 
             return pixelCoords;
@@ -332,7 +272,7 @@ namespace BansheeEditor
         /// <param name="onTop">Determines should the marker be drawn above or below the curve.</param>
         private void DrawFrameMarker(float t, Color color, bool onTop)
         {
-            int xPos = (int)(((t - offset.x) / GetRange()) * drawableWidth) + GUIGraphTime.PADDING;
+            int xPos = (int)(((t - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
 
             Vector2I start = new Vector2I(xPos, 0);
             Vector2I end = new Vector2I(xPos, height);
@@ -473,35 +413,16 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
-        /// </summary>
-        /// <param name="padding">If true, extra range will be included to cover the right-most padding.</param>
-        /// <returns>Time range rounded to a multiple of FPS.</returns>
-        private float GetRange(bool padding = false)
-        {
-            float spf = 1.0f / fps;
-
-            float range = xRange;
-            if (padding)
-            {
-                float lengthPerPixel = xRange / drawableWidth;
-                range += lengthPerPixel * GUIGraphTime.PADDING;
-            }
-
-            return ((int)range / spf) * spf;
-        }
-
-        /// <summary>
         /// Rebuilds the internal GUI elements. Should be called whenever timeline properties change.
         /// </summary>
-        public void Rebuild()
+        public override void Rebuild()
         {
             canvas.Clear();
 
             if (curves == null)
                 return;
 
-            tickHandler.SetRange(offset.x, offset.x + GetRange(true), drawableWidth + GUIGraphTime.PADDING);
+            tickHandler.SetRange(rangeOffset, rangeOffset + GetRange(true), drawableWidth + GUIGraphTime.PADDING);
 
             // Draw vertical frame markers
             int numTickLevels = tickHandler.NumLevels;

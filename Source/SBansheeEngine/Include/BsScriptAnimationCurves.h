@@ -53,6 +53,7 @@ namespace BansheeEngine
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static MonoField* sNameField;
+		static MonoField* sFlagsField;
 		static MonoField* sXCurveField;
 		static MonoField* sYCurveField;
 		static MonoField* sZCurveField;
@@ -76,6 +77,7 @@ namespace BansheeEngine
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static MonoField* sNameField;
+		static MonoField* sFlagsField;
 		static MonoField* sCurveField;
 	};
 

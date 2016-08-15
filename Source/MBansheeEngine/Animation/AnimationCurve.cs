@@ -31,6 +31,19 @@ namespace BansheeEngine
     }
 
     /// <summary>
+    /// Flags that describe an <see cref="AnimationCurve"/>
+    /// </summary>
+    public enum AnimationCurveFlags // Note: Must match C++ enum AnimationCurveFlags
+    {
+        /// <summary>
+        /// If enabled, the curve was imported from an external file and not created within the engine. This will affect
+        /// how are animation results applied to scene objects (with imported animations it is assumed the curve is
+        /// animating bones and with in-engine curves it is assumed the curve is animating scene objects).
+        /// </summary>
+        ImportedCurve
+    }
+
+    /// <summary>
     /// Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The
     /// spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.
     /// </summary>
@@ -91,6 +104,23 @@ namespace BansheeEngine
     public class NamedVector3Curve
     {
         /// <summary>
+        /// Constructor for internal runtime use only.
+        /// </summary>
+        /// <param name="name">Name of the curve.</param>
+        /// <param name="flags">Flags that describe the animation curve, of type <see cref="AnimationCurveFlags"/>.</param>
+        /// <param name="x">Curve representing the x axis of the vector.</param>
+        /// <param name="y">Curve representing the y axis of the vector.</param>
+        /// <param name="z">Curve representing the z axis of the vector.</param>
+        private NamedVector3Curve(string name, int flags, AnimationCurve x, AnimationCurve y, AnimationCurve z)
+        {
+            Name = name;
+            Flags = (AnimationCurveFlags) flags;
+            X = x;
+            Y = y;
+            Z = z;
+        }
+
+        /// <summary>
         /// Constructs a new named animation curve.
         /// </summary>
         /// <param name="name">Name of the curve.</param>
@@ -111,6 +141,11 @@ namespace BansheeEngine
         public string Name;
 
         /// <summary>
+        /// Flags that describe the animation curve.
+        /// </summary>
+        public AnimationCurveFlags Flags;
+
+        /// <summary>
         /// Animation curve for the x axis.
         /// </summary>
         public AnimationCurve X;
@@ -127,10 +162,23 @@ namespace BansheeEngine
     }
 
     /// <summary>
-    /// An animatio curve for a single floating point value paired with a name.
+    /// An animation curve for a single floating point value paired with a name.
     /// </summary>
     public class NamedFloatCurve
     {
+        /// <summary>
+        /// Constructor for internal runtime use only.
+        /// </summary>
+        /// <param name="name">Name of the curve.</param>
+        /// <param name="flags">Flags that describe the animation curve, of type <see cref="AnimationCurveFlags"/>.</param>
+        /// <param name="curve">Curve representing the floating point values.</param>
+        private NamedFloatCurve(string name, int flags, AnimationCurve curve)
+        {
+            Name = name;
+            Flags = (AnimationCurveFlags)flags;
+            Curve = curve;
+        }
+
         /// <summary>
         /// Constructs a new named animation curve.
         /// </summary>
@@ -146,6 +194,11 @@ namespace BansheeEngine
         /// Name of the curve.
         /// </summary>
         public string Name;
+
+        /// <summary>
+        /// Flags that describe the animation curve.
+        /// </summary>
+        public AnimationCurveFlags Flags;
 
         /// <summary>
         /// Animation curve.

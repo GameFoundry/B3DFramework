@@ -327,14 +327,23 @@ namespace BansheeEngine
 
 						newHandleSize = std::max((INT32)mMinHandleSize, right - newLeft);
 						newLeft = right - newHandleSize;
-						newHandlePos = newLeft / (float)(maxSize - newHandleSize);
+
+						float scrollableSize = (float)(maxSize - newHandleSize);
+						if (scrollableSize > 0.0f)
+							newHandlePos = newLeft / scrollableSize;
+						else
+							newHandlePos = 0.0f;
 					}
 					else // Right resize
 					{
 						INT32 newRight = clickPosPx;
 						newHandleSize = std::max((INT32)mMinHandleSize, std::min(newRight, (INT32)maxSize) - left);
 
-						newHandlePos = left / (float)(maxSize - newHandleSize);
+						float scrollableSize = (float)(maxSize - newHandleSize);
+						if (scrollableSize > 0.0f)
+							newHandlePos = left / scrollableSize;
+						else
+							newHandlePos = 0.0f;
 					}
 
 					_setHandleSize(newHandleSize / (float)maxSize);
@@ -493,8 +502,12 @@ namespace BansheeEngine
 
 	void GUISliderHandle::setHandlePosPx(INT32 pos)
 	{
-		float maxScrollAmount = (float)getMaxSize() - getHandleSize();
-		_setHandlePos(pos / maxScrollAmount);
+		float scrollableSize = (float)getMaxSize() - getHandleSize();
+
+		if (scrollableSize > 0.0f)
+			_setHandlePos(pos / scrollableSize);
+		else
+			_setHandlePos(0.0f);
 	}
 
 	UINT32 GUISliderHandle::getMaxSize() const

@@ -183,6 +183,14 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns an object that can be used for storing data that persists throughout the entire editor session.
+        /// </summary>
+        internal static EditorPersistentData PersistentData
+        {
+            get { return persistentData; }
+        }
+
+        /// <summary>
         /// Returns the path where the script compiler is located at.
         /// </summary>
         internal static string CompilerPath { get { return Internal_GetCompilerPath(); } }
@@ -630,12 +638,17 @@ namespace BansheeEditor
         [ToolbarItem("Save Project", ToolbarIcon.SaveProject, "Save project", 1999)]
         public static void SaveProject()
         {
+            // Apply changes to any animation clips edited using the animation editor
+            foreach (var KVP in persistentData.dirtyAnimClips)
+                KVP.Value.SaveToClip();
+
+            // Save all dirty resources to disk
             foreach (var KVP in persistentData.dirtyResources)
             {
                 string resourceUUID = KVP.Key;
                 string path = ProjectLibrary.GetPath(resourceUUID);
                 if (!IsNative(path))
-                    continue; // Native resources can't be changed
+                    continue; // Imported resources can't be changed
 
                 Resource resource = ProjectLibrary.Load<Resource>(path);
 
@@ -643,6 +656,7 @@ namespace BansheeEditor
                     ProjectLibrary.Save(resource);
             }
 
+            persistentData.dirtyAnimClips.Clear();
             persistentData.dirtyResources.Clear();
             SetStatusProject(false);
 
@@ -709,6 +723,14 @@ namespace BansheeEditor
 
             SetStatusProject(true);
             persistentData.dirtyResources[resource.UUID] = true;
+        }
+
+        /// <summary>
+        /// Marks the current project dirty (requires saving in order for changes not to be lost).
+        /// </summary>
+        public static void SetProjectDirty()
+        {
+            SetStatusProject(true);
         }
 
         /// <summary>

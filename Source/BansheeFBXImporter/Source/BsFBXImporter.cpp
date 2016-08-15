@@ -10,7 +10,6 @@
 #include "BsVector2.h"
 #include "BsVector3.h"
 #include "BsVector4.h"
-#include "BsQuaternion.h"
 #include "BsVertexDataDesc.h"
 #include "BsFBXUtility.h"
 #include "BsMeshUtility.h"
@@ -19,6 +18,7 @@
 #include "BsPhysicsMesh.h"
 #include "BsAnimationCurve.h"
 #include "BsAnimationClip.h"
+#include "BsAnimationUtility.h"
 #include "BsSkeleton.h"
 #include "BsPhysics.h"
 
@@ -446,79 +446,9 @@ namespace BansheeEngine
 			
 			for (auto& bone : clip.boneAnimations)
 			{
-				// Translation curves
-				{
-					assert((bone.translation[0].keyframes.size() == bone.translation[1].keyframes.size()) &&
-						(bone.translation[0].keyframes.size() == bone.translation[2].keyframes.size()));
-
-					UINT32 numKeyframes = (UINT32)bone.translation[0].keyframes.size();
-					Vector <TKeyframe<Vector3>> keyFrames(numKeyframes);
-					for (UINT32 i = 0; i < numKeyframes; i++)
-					{
-						const FBXKeyFrame& keyFrameX = bone.translation[0].keyframes[i];
-						const FBXKeyFrame& keyFrameY = bone.translation[1].keyframes[i];
-						const FBXKeyFrame& keyFrameZ = bone.translation[2].keyframes[i];
-
-						keyFrames[i].value = Vector3(keyFrameX.value, keyFrameY.value, keyFrameZ.value);
-
-						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time));
-						keyFrames[i].time = keyFrameX.time;
-						keyFrames[i].inTangent = Vector3(keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
-						keyFrames[i].outTangent = Vector3(keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
-					}
-
-					curves->position.push_back({ bone.node->name, keyFrames });
-				}
-
-				// Rotation curves
-				{
-					assert((bone.rotation[0].keyframes.size() == bone.rotation[1].keyframes.size()) &&
-						(bone.rotation[0].keyframes.size() == bone.rotation[2].keyframes.size()) &&
-						(bone.rotation[0].keyframes.size() == bone.rotation[3].keyframes.size()));
-
-					UINT32 numKeyframes = (UINT32)bone.rotation[0].keyframes.size();
-					Vector <TKeyframe<Quaternion>> keyFrames(numKeyframes);
-					for (UINT32 i = 0; i < numKeyframes; i++)
-					{
-						const FBXKeyFrame& keyFrameX = bone.rotation[0].keyframes[i];
-						const FBXKeyFrame& keyFrameY = bone.rotation[1].keyframes[i];
-						const FBXKeyFrame& keyFrameZ = bone.rotation[2].keyframes[i];
-						const FBXKeyFrame& keyFrameW = bone.rotation[3].keyframes[i];
-
-						keyFrames[i].value = Quaternion(keyFrameW.value, keyFrameX.value, keyFrameY.value, keyFrameZ.value);
-
-						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time) && (keyFrameX.time == keyFrameW.time));
-						keyFrames[i].time = keyFrameX.time;
-						keyFrames[i].inTangent = Quaternion(keyFrameW.inTangent, keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
-						keyFrames[i].outTangent = Quaternion(keyFrameW.outTangent, keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
-					}
-
-					curves->rotation.push_back({ bone.node->name, keyFrames });
-				}
-
-				// Scale curves
-				{
-					assert((bone.scale[0].keyframes.size() == bone.scale[1].keyframes.size()) &&
-						(bone.scale[0].keyframes.size() == bone.scale[2].keyframes.size()));
-
-					UINT32 numKeyframes = (UINT32)bone.scale[0].keyframes.size();
-					Vector <TKeyframe<Vector3>> keyFrames(numKeyframes);
-					for (UINT32 i = 0; i < numKeyframes; i++)
-					{
-						const FBXKeyFrame& keyFrameX = bone.scale[0].keyframes[i];
-						const FBXKeyFrame& keyFrameY = bone.scale[1].keyframes[i];
-						const FBXKeyFrame& keyFrameZ = bone.scale[2].keyframes[i];
-
-						keyFrames[i].value = Vector3(keyFrameX.value, keyFrameY.value, keyFrameZ.value);
-
-						assert((keyFrameX.time == keyFrameY.time) && (keyFrameX.time == keyFrameZ.time));
-						keyFrames[i].time = keyFrameX.time;
-						keyFrames[i].inTangent = Vector3(keyFrameX.inTangent, keyFrameY.inTangent, keyFrameZ.inTangent);
-						keyFrames[i].outTangent = Vector3(keyFrameX.outTangent, keyFrameY.outTangent, keyFrameZ.outTangent);
-					}
-
-					curves->scale.push_back({ bone.node->name, keyFrames });
-				}
+				curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.translation });
+				curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.rotation });
+				curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.scale });
 			}
 
 			// See if any splits are required. We only split the first clip as it is assumed if FBX has multiple clips the
@@ -1564,27 +1494,18 @@ namespace BansheeEngine
 			FBXBoneAnimation& boneAnim = clip.boneAnimations.back();
 			boneAnim.node = importScene.nodeMap[node];
 
-			importCurve(translation[0], importOptions, boneAnim.translation[0], clip.start, clip.end);
-			importCurve(translation[1], importOptions, boneAnim.translation[1], clip.start, clip.end);
-			importCurve(translation[2], importOptions, boneAnim.translation[2], clip.start, clip.end);
+			boneAnim.translation = importCurve<Vector3, 3>(translation, importOptions, clip.start, clip.end);
+			boneAnim.scale = importCurve<Vector3, 3>(scale, importOptions, clip.start, clip.end);
 
-			importCurve(scale[0], importOptions, boneAnim.scale[0], clip.start, clip.end);
-			importCurve(scale[1], importOptions, boneAnim.scale[1], clip.start, clip.end);
-			importCurve(scale[2], importOptions, boneAnim.scale[2], clip.start, clip.end);
-
-			FBXAnimationCurve tempCurveRotation[3];
-			importCurve(rotation[0], importOptions, tempCurveRotation[0], clip.start, clip.end);
-			importCurve(rotation[1], importOptions, tempCurveRotation[1], clip.start, clip.end);
-			importCurve(rotation[2], importOptions, tempCurveRotation[2], clip.start, clip.end);
-
+			TAnimationCurve<Vector3> eulerAnimation = importCurve<Vector3, 3>(rotation, importOptions, clip.start, clip.end);
 			if(importOptions.reduceKeyframes)
 			{
-				reduceKeyframes(boneAnim.translation);
-				reduceKeyframes(boneAnim.scale);
-				reduceKeyframes(tempCurveRotation);
+				boneAnim.translation = reduceKeyframes(boneAnim.translation);
+				boneAnim.scale = reduceKeyframes(boneAnim.scale);
+				eulerAnimation = reduceKeyframes(eulerAnimation);
 			}
 
-			eulerToQuaternionCurves(tempCurveRotation, boneAnim.rotation);
+			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}
 
 		if (importOptions.importBlendShapes)
@@ -1609,7 +1530,8 @@ namespace BansheeEngine
 							FBXBlendShapeAnimation& blendShapeAnim = clip.blendShapeAnimations.back();
 							blendShapeAnim.blendShape = channel->GetName();
 
-							importCurve(curve, importOptions, blendShapeAnim.curve, clip.start, clip.end);
+							FbxAnimCurve* curves[1] = { curve };
+							blendShapeAnim.curve = importCurve<float, 1>(curves, importOptions, clip.start, clip.end);
 						}
 					}
 				}
@@ -1624,268 +1546,172 @@ namespace BansheeEngine
 		}
 	}
 
-	void FBXImporter::reduceKeyframes(FBXAnimationCurve(&curves)[3])
+	TAnimationCurve<Vector3> FBXImporter::reduceKeyframes(TAnimationCurve<Vector3>& curve)
 	{
-		UINT32 keyCount = (UINT32)curves[0].keyframes.size();
+		UINT32 keyCount = curve.getNumKeyFrames();
 
-		assert((keyCount == (UINT32)curves[1].keyframes.size()) &&
-			(keyCount == (UINT32)curves[2].keyframes.size()));
-
-		Vector<FBXKeyFrame> newKeyframes[3];
+		Vector<TKeyframe<Vector3>> newKeyframes;
 
 		bool lastWasEqual = false;
 		for (UINT32 i = 0; i < keyCount; i++)
 		{
 			bool isEqual = true;
 
+			const TKeyframe<Vector3>& curKey = curve.getKeyFrame(i);
 			if (i > 0)
 			{
-				for (int j = 0; j < 3; j++)
-				{
-					FBXKeyFrame& curKey = curves[j].keyframes[i];
-					FBXKeyFrame& prevKey = newKeyframes[j].back();
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
 
-					isEqual = Math::approxEquals(prevKey.value, curKey.value) &&
-						Math::approxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
-				}
+				isEqual = Math::approxEquals(prevKey.value, curKey.value) &&
+					Math::approxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
 			}
 			else
 				isEqual = false;
 
-			for (int j = 0; j < 3; j++)
+			// More than two keys in a row are equal, remove previous key by replacing it with this one
+			if (lastWasEqual && isEqual)
 			{
-				FBXKeyFrame& curKey = curves[j].keyframes[i];
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
 
-				// More than two keys in a row are equal, remove previous key by replacing it with this one
-				if (lastWasEqual && isEqual)
-				{
-					FBXKeyFrame& prevKey = newKeyframes[j].back();
+				// Other properties are guaranteed unchanged
+				prevKey.time = curKey.time;
+				prevKey.outTangent = curKey.outTangent;
 
-					// Other properties are guaranteed unchanged
-					prevKey.time = curKey.time;
-					prevKey.outTangent = curKey.outTangent;
-
-					continue;
-				}
-
-				newKeyframes[j].push_back(curKey);
+				continue;
 			}
 
+			newKeyframes.push_back(curKey);
 			lastWasEqual = isEqual;
 		}
 
-		for (int j = 0; j < 3; j++)
-		{
-			curves[j].keyframes.clear();
-			std::swap(curves[j].keyframes, newKeyframes[j]);
-		}
+		return TAnimationCurve<Vector3>(newKeyframes);
+	}
+	
+	template<class T>
+	void setKeyframeValues(TKeyframe<T>& keyFrame, int idx, float value, float inTangent, float outTangent)
+	{
+		keyFrame.value = value;
+		keyFrame.inTangent = inTangent;
+		keyFrame.outTangent = outTangent;
 	}
 
-	void FBXImporter::eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4])
+	template<>
+	void setKeyframeValues<Vector3>(TKeyframe<Vector3>& keyFrame, int idx, float value, float inTangent, float outTangent)
 	{
-		const float FIT_TIME = 0.33f;
+		keyFrame.value[idx] = value;
+		keyFrame.inTangent[idx] = inTangent;
+		keyFrame.outTangent[idx] = outTangent;
+	}
 
-		INT32 numKeys = (INT32)eulerCurves[0].keyframes.size();
+	template<class T, int C>
+	TAnimationCurve<T> FBXImporter::importCurve(FbxAnimCurve*(&fbxCurve)[C], FBXImportOptions& importOptions,
+		float start, float end)
+	{
+		// If curve key-counts don't match, we need to force resampling 
+		bool forceResample = fbxCurve[0]->KeyGetCount() != fbxCurve[1]->KeyGetCount() ||
+			fbxCurve[0]->KeyGetCount() != fbxCurve[2]->KeyGetCount();
 
-		if (numKeys != (INT32)eulerCurves[1].keyframes.size() || numKeys != (INT32)eulerCurves[2].keyframes.size())
-			return;
-
-		auto eulerToQuaternion = [&](INT32 keyIdx, float time, const Quaternion& lastQuat)
+		// Read keys directly
+		if(!importOptions.animResample && !forceResample)
 		{
-			Degree x = (Degree)eulerCurves[0].evaluate(time);
-			Degree y = (Degree)eulerCurves[1].evaluate(time);
-			Degree z = (Degree)eulerCurves[2].evaluate(time);
-
-			Quaternion quat(x, y, z);
-
-			// Flip quaternion in case rotation is over 180 degrees
-			if (keyIdx > 0)
+			bool foundMismatch = false;
+			int keyCount = fbxCurve[0]->KeyGetCount();
+			Vector<TKeyframe<T>> keyframes;
+			for (int i = 0; i < keyCount; i++)
 			{
-				float dot = quat.dot(lastQuat);
-				if (dot < 0.0f)
-					quat = -quat;
-			}
+				FbxTime fbxTime = fbxCurve[0]->KeyGetTime(i);
+				float time = (float)fbxTime.GetSecondDouble();
 
-			return quat;
-		};
+				// Ensure times from other curves match
+				fbxTime = fbxCurve[1]->KeyGetTime(i);
+				float time1 = (float)fbxTime.GetSecondDouble();
 
-		struct FitKeyframe
-		{
-			float time;
-			Quaternion value;
-		};
+				fbxTime = fbxCurve[2]->KeyGetTime(i);
+				float time2 = (float)fbxTime.GetSecondDouble();
 
-		Vector<FitKeyframe> fitQuaternions(numKeys * 2);
+				if(!Math::approxEquals(time, time1) || !Math::approxEquals(time, time2))
+				{
+					foundMismatch = true;
+					break;
+				}
 
-		Quaternion lastQuat;
-		for (INT32 i = 0; i < numKeys; i++)
-		{
-			float time = eulerCurves[0].keyframes[i].time;
-			Quaternion quat = eulerToQuaternion(i, time, lastQuat);
+				if (time < start || time > end)
+					continue;
 
-			// Calculate extra values between keys so we can better approximate tangents
-			if ((i + 1) < numKeys)
-			{
-				float nextTime = eulerCurves[0].keyframes[i + 1].time;
-				float dt = nextTime - time;
+				keyframes.push_back(TKeyframe<T>());
+				TKeyframe<T>& keyFrame = keyframes.back();
 
-				FitKeyframe& fitStart = fitQuaternions[i * 2 + 0];
-				FitKeyframe& fitEnd = fitQuaternions[i * 2 + 1];
-
-				fitStart.time = time + dt * FIT_TIME;
-				fitEnd.time = time + dt * (1.0f - FIT_TIME);
-
-				fitStart.value = eulerToQuaternion(i, fitStart.time, quat);
-				fitEnd.value = eulerToQuaternion(i, fitEnd.time, fitStart.value);
-
-				lastQuat = fitStart.value;
-			}
-
-			// TODO - If animation is looping I should also compare last and first for continuity
-
-			for (INT32 j = 0; j < 4; j++)
-			{
-				quatCurves[j].keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = quatCurves[j].keyframes.back();
 				keyFrame.time = time;
-				keyFrame.value = quat[j];
 
-				keyFrame.inTangent = 0;
-				keyFrame.outTangent = 0;
+				for (int j = 0; j < C; j++)
+				{
+					setKeyframeValues(keyFrame, j,
+						fbxCurve[j]->KeyGetValue(i),
+						fbxCurve[j]->KeyGetLeftDerivative(i),
+						fbxCurve[j]->KeyGetRightDerivative(i));
+				}
 			}
+
+			if (!foundMismatch)
+				return TAnimationCurve<T>(keyframes);
+			else
+				forceResample = true;
 		}
 
-		// Recalculate tangents for quaternion curves
+		if (!importOptions.animResample && forceResample)
+			LOGWRN("Animation has different keyframes for different curve components, forcing resampling.");
 
-		// TODO - There must be an analytical way to convert euler angle tangents
-		//        to quaternion tangents, but I don't want to bother figuring it out
-		//        until I have a test-bed for animation.
-		if (numKeys > 1)
+		// Resample keys
+		float curveStart = std::numeric_limits<float>::infinity();
+		float curveEnd = -std::numeric_limits<float>::infinity();
+
+		for (INT32 i = 0; i < C; i++)
 		{
-			// TODO - I could check per-key curve interpolation originally assigned in FBX
-			//        and use that to generate linear/constant slopes. Currently I assume 
-			//        its all cubic.
-
-			// First key
+			int keyCount = fbxCurve[i]->KeyGetCount();
+			for (INT32 j = 0; j < keyCount; j++)
 			{
-				const FitKeyframe& fitKeyFrame = fitQuaternions[0];
-
-				for (INT32 j = 0; j < 4; j++)
-				{
-					FBXKeyFrame& keyFrame = quatCurves[j].keyframes[0];
-
-					float dt = fitKeyFrame.time - keyFrame.time;
-
-					keyFrame.inTangent = (fitKeyFrame.value[j] - keyFrame.value) / dt;
-					keyFrame.outTangent = keyFrame.inTangent;
-				}
-			}
-
-			// In-between keys
-			{
-				for (INT32 i = 1; i < (numKeys - 1); i++)
-				{
-					const FitKeyframe& fitPointStart = fitQuaternions[i * 2 - 1];
-					const FitKeyframe& fitPointEnd = fitQuaternions[i * 2 + 0];
-
-					for (INT32 j = 0; j < 4; j++)
-					{
-						FBXKeyFrame& keyFrame = quatCurves[j].keyframes[i];
-
-						float dt0 = fitPointEnd.time - keyFrame.time;
-						float dt1 = keyFrame.time - fitPointStart.time;
-
-						float t0 = fitPointEnd.value[j] - keyFrame.value;
-						float t1 = keyFrame.value - fitPointStart.value[j];
-
-						keyFrame.inTangent = t0 / (0.5f * dt0) + t1 / (0.5f * dt1);
-						keyFrame.outTangent = keyFrame.inTangent;
-					}
-				}
-			}
-
-			// Last key
-			{
-				const FitKeyframe& fitKeyFrame = fitQuaternions[(numKeys - 2) * 2];
-
-				for (INT32 j = 0; j < 4; j++)
-				{
-					FBXKeyFrame& keyFrame = quatCurves[j].keyframes[numKeys - 2];
-
-					float dt = keyFrame.time - fitKeyFrame.time;
-
-					keyFrame.inTangent = (keyFrame.value - fitKeyFrame.value[j]) / dt;
-					keyFrame.outTangent = keyFrame.inTangent;
-				}
-			}
-		}
-	}
-
-	void FBXImporter::importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end)
-	{
-		if (fbxCurve == nullptr)
-			return;
-
-		INT32 keyCount = fbxCurve->KeyGetCount();
-		if (importOptions.animResample)
-		{
-			float curveStart = std::numeric_limits<float>::infinity();
-			float curveEnd = -std::numeric_limits<float>::infinity();
-
-			for (INT32 i = 0; i < keyCount; i++)
-			{
-				FbxTime fbxTime = fbxCurve->KeyGetTime(i);
+				FbxTime fbxTime = fbxCurve[i]->KeyGetTime(j);
 				float time = (float)fbxTime.GetSecondDouble();
 
 				curveStart = std::min(time, curveStart);
 				curveEnd = std::max(time, curveEnd);
 			}
-
-			curveStart = Math::clamp(curveStart, start, end);
-			curveEnd = Math::clamp(curveEnd, start, end);
-
-			float curveLength = curveEnd - curveStart;
-			INT32 numSamples = Math::ceilToInt(curveLength / importOptions.animSampleRate);
-
-			// We don't use the exact provided sample rate but instead modify it slightly so it
-			// completely covers the curve range including start/end points while maintaining
-			// constant time step between keyframes.
-			float dt = curveLength / (float)numSamples; 
-
-			INT32 lastKeyframe = 0;
-			INT32 lastLeftTangent = 0;
-			INT32 lastRightTangent = 0;
-			for (INT32 i = 0; i < numSamples; i++)
-			{
-				float sampleTime = std::min(curveStart + i * dt, curveEnd);
-				FbxTime fbxSampleTime;
-				fbxSampleTime.SetSecondDouble(sampleTime);
-
-				curve.keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = curve.keyframes.back();
-				keyFrame.time = sampleTime;
-				keyFrame.value = fbxCurve->Evaluate(fbxSampleTime, &lastKeyframe);
-				keyFrame.inTangent = fbxCurve->EvaluateLeftDerivative(fbxSampleTime, &lastLeftTangent);
-				keyFrame.outTangent = fbxCurve->EvaluateRightDerivative(fbxSampleTime, &lastRightTangent);
-			}
 		}
-		else
+
+		curveStart = Math::clamp(curveStart, start, end);
+		curveEnd = Math::clamp(curveEnd, start, end);
+
+		float curveLength = curveEnd - curveStart;
+		INT32 numSamples = Math::ceilToInt(curveLength / importOptions.animSampleRate);
+
+		// We don't use the exact provided sample rate but instead modify it slightly so it
+		// completely covers the curve range including start/end points while maintaining
+		// constant time step between keyframes.
+		float dt = curveLength / (float)numSamples; 
+
+		INT32 lastKeyframe[] = { 0, 0, 0 };
+		INT32 lastLeftTangent[] = { 0, 0, 0 };
+		INT32 lastRightTangent[] = { 0, 0, 0 };
+
+		Vector<TKeyframe<T>> keyframes(numSamples);
+		for (INT32 i = 0; i < numSamples; i++)
 		{
-			for (int i = 0; i < keyCount; i++)
+			float sampleTime = std::min(curveStart + i * dt, curveEnd);
+			FbxTime fbxSampleTime;
+			fbxSampleTime.SetSecondDouble(sampleTime);
+
+			TKeyframe<T>& keyFrame = keyframes[i];
+			keyFrame.time = sampleTime;
+
+			for (int j = 0; j < C; j++)
 			{
-				FbxTime fbxTime = fbxCurve->KeyGetTime(i);
-				float time = (float)fbxTime.GetSecondDouble();
-
-				if (time < start || time > end)
-					continue;
-
-				curve.keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = curve.keyframes.back();
-				keyFrame.time = time;
-				keyFrame.value = fbxCurve->KeyGetValue(i);
-				keyFrame.inTangent = fbxCurve->KeyGetLeftDerivative(i);
-				keyFrame.outTangent = fbxCurve->KeyGetRightDerivative(i);
+				setKeyframeValues(keyFrame, j,
+					fbxCurve[j]->Evaluate(fbxSampleTime, &lastKeyframe[j]),
+					fbxCurve[j]->EvaluateLeftDerivative(fbxSampleTime, &lastLeftTangent[j]),
+					fbxCurve[j]->EvaluateRightDerivative(fbxSampleTime, &lastRightTangent[j]));
 			}
 		}
+
+		return TAnimationCurve<T>(keyframes);
 	}
 }

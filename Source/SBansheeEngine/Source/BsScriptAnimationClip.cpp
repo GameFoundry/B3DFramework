@@ -4,6 +4,7 @@
 #include "BsScriptAnimationCurves.h"
 #include "BsScriptMeta.h"
 #include "BsMonoClass.h"
+#include "BsScriptResourceManager.h"
 
 namespace BansheeEngine
 {
@@ -15,6 +16,7 @@ namespace BansheeEngine
 
 	void ScriptAnimationClip::initRuntimeData()
 	{
+		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptAnimationClip::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetAnimationCurves", &ScriptAnimationClip::internal_GetAnimationCurves);
 		metaData.scriptClass->addInternalCall("Internal_SetAnimationCurves", &ScriptAnimationClip::internal_SetAnimationCurves);
 		metaData.scriptClass->addInternalCall("Internal_GetAnimationEvents", &ScriptAnimationClip::internal_GetAnimationEvents);
@@ -24,7 +26,20 @@ namespace BansheeEngine
 
 	MonoObject* ScriptAnimationClip::createInstance()
 	{
-		return metaData.scriptClass->createInstance();
+		bool dummy = false;
+
+		void* params[1];
+		params[0] = &dummy;
+
+		return metaData.scriptClass->createInstance("bool", params);
+	}
+
+	void ScriptAnimationClip::internal_CreateInstance(MonoObject* instance)
+	{
+		HAnimationClip clip = AnimationClip::create();
+
+		ScriptAnimationClip* scriptInstance;
+		ScriptResourceManager::instance().createScriptResource(instance, clip, &scriptInstance);
 	}
 
 	MonoObject* ScriptAnimationClip::internal_GetAnimationCurves(ScriptAnimationClip* thisPtr)

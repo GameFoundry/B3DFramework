@@ -1,7 +1,9 @@
 ﻿//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace BansheeEngine
 {
@@ -104,8 +106,27 @@ namespace BansheeEngine
     {
         private NativeAnimation _native;
 
-        [SerializeField]
-        private SerializableData serializableData = new SerializableData();
+        [SerializeField] private SerializableData serializableData = new SerializableData();
+
+        private FloatCurvePropertyInfo[] floatProperties;
+        private List<SceneObjectMappingInfo> mappingInfo = new List<SceneObjectMappingInfo>();
+        private AnimationClip primaryClip;
+
+        /// <summary>
+        /// Contains mapping for a suffix used by property paths used for curve identifiers, to their index and type.
+        /// </summary>
+        internal static readonly Dictionary<string, PropertySuffixInfo> PropertySuffixInfos = new Dictionary
+            <string, PropertySuffixInfo>
+        {
+            {".x", new PropertySuffixInfo(0, true)},
+            {".y", new PropertySuffixInfo(1, true)},
+            {".z", new PropertySuffixInfo(2, true)},
+            {".w", new PropertySuffixInfo(3, true)},
+            {".r", new PropertySuffixInfo(0, false)},
+            {".g", new PropertySuffixInfo(1, false)},
+            {".b", new PropertySuffixInfo(2, false)},
+            {".a", new PropertySuffixInfo(3, false)}
+        };
 
         /// <summary>
         /// Returns the non-component version of Animation that is wrapped by this component. 
@@ -185,7 +206,7 @@ namespace BansheeEngine
         /// <param name="clip">Clip to play.</param>
         public void Play(AnimationClip clip)
         {
-            if(_native != null)
+            if (_native != null)
                 _native.Play(clip);
         }
 
@@ -286,6 +307,201 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Searches the scene object hierarchy to find a property at the given path.
+        /// </summary>
+        /// <param name="root">Root scene object to which the path is relative to.</param>
+        /// <param name="path">Path to the property, where each element of the path is separated with "/". 
+        /// 
+        ///                    Path elements prefixed with "!" signify names of child scene objects (first one relative to 
+        ///                    <paramref name="root"/>. Name of the root element should not be included in the path. 
+        /// 
+        ///                    Path element prefixed with ":" signify names of components. If a path doesn't have a
+        ///                    component element, it is assumed the field is relative to the scene object itself (only 
+        ///                    "Translation", "Rotation" and "Scale fields are supported in such case). Only one component
+        ///                    path element per path is allowed.
+        /// 
+        ///                    Path entries with no prefix are considered regular script object fields. Each path must have
+        ///                    at least one such entry. Last field entry can optionally have a suffix separated from the
+        ///                    path name with ".". This suffix is not parsed internally, but will be returned as 
+        ///                    <paramref name="suffix"/>.
+        /// 
+        ///                    Path examples:
+        ///                     :MyComponent/myInt (path to myInt variable on a component attached to this object)
+        ///                     !childSO/:MyComponent/myInt (path to myInt variable on a child scene object)
+        ///                     !childSO/Translation (path to the scene object translation)
+        ///                     :MyComponent/myVector.z (path to the z component of myVector on this object)
+        ///                    </param>
+        /// <param name="suffix">Suffix of the last field entry, if it has any. Contains the suffix separator ".".</param>
+        /// <returns>If found, property object you can use for setting and getting the value from the property, otherwise 
+        ///          null.</returns>
+        internal static SerializableProperty FindProperty(SceneObject root, string path, out string suffix)
+        {
+            suffix = null;
+
+            if (string.IsNullOrEmpty(path) || root == null)
+                return null;
+
+            string trimmedPath = path.Trim('/');
+            string[] entries = trimmedPath.Split('/');
+
+            // Find scene object referenced by the path
+            SceneObject so = root;
+            int pathIdx = 0;
+            for (; pathIdx < entries.Length; pathIdx++)
+            {
+                string entry = entries[pathIdx];
+
+                if (string.IsNullOrEmpty(entry))
+                    continue;
+
+                // Not a scene object, break
+                if (entry[0] != '!')
+                    break;
+
+                string childName = entry.Substring(1, entry.Length - 1);
+                so = so.FindChild(childName);
+
+                if (so == null)
+                    break;
+            }
+
+            // Child scene object couldn't be found
+            if (so == null)
+                return null;
+
+            // Path too short, no field entry
+            if (pathIdx >= entries.Length)
+                return null;
+
+            // Check if path is referencing a component, and if so find it
+            Component component = null;
+            {
+                string entry = entries[pathIdx];
+                if (entry[0] == ':')
+                {
+                    string componentName = entry.Substring(1, entry.Length - 1);
+
+                    Component[] components = so.GetComponents();
+                    component = Array.Find(components, x => x.GetType().Name == componentName);
+
+                    // Cannot find component with specified type
+                    if (component == null)
+                        return null;
+                }
+            }
+
+            // Look for a field within a component
+            if (component != null)
+            {
+                pathIdx++;
+                if (pathIdx >= entries.Length)
+                    return null;
+
+                SerializableObject componentObj = new SerializableObject(component);
+
+                StringBuilder pathBuilder = new StringBuilder();
+                for (; pathIdx < entries.Length - 1; pathIdx++)
+                    pathBuilder.Append(entries[pathIdx] + "/");
+
+                // Check last path entry for suffix and remove it
+                int suffixIdx = entries[pathIdx].LastIndexOf(".");
+                if (suffixIdx != -1)
+                {
+                    string entryNoSuffix = entries[pathIdx].Substring(0, suffixIdx);
+                    suffix = entries[pathIdx].Substring(suffixIdx, entries[pathIdx].Length - suffixIdx);
+
+                    pathBuilder.Append(entryNoSuffix);
+                }
+                else
+                    pathBuilder.Append(entries[pathIdx]);
+
+                return componentObj.FindProperty(pathBuilder.ToString());
+            }
+            else // Field is one of the builtin ones on the SceneObject itself
+            {
+                if ((pathIdx + 1) < entries.Length)
+                    return null;
+
+                string entry = entries[pathIdx];
+                if (entry == "Position")
+                {
+                    SerializableProperty property = new SerializableProperty(
+                        SerializableProperty.FieldType.Vector3,
+                        typeof(Vector3),
+                        () => so.LocalPosition,
+                        (x) => so.LocalPosition = (Vector3) x);
+
+                    return property;
+                }
+                else if (entry == "Rotation")
+                {
+                    SerializableProperty property = new SerializableProperty(
+                        SerializableProperty.FieldType.Vector3,
+                        typeof(Vector3),
+                        () => so.LocalRotation.ToEuler(),
+                        (x) => so.LocalRotation = Quaternion.FromEuler((Vector3) x));
+
+                    return property;
+                }
+                else if (entry == "Scale")
+                {
+                    SerializableProperty property = new SerializableProperty(
+                        SerializableProperty.FieldType.Vector3,
+                        typeof(Vector3),
+                        () => so.LocalScale,
+                        (x) => so.LocalScale = (Vector3) x);
+
+                    return property;
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Searches the scene object hierarchy to find a child scene object using the provided path.
+        /// </summary>
+        /// <param name="root">Root scene object to which the path is relative to.</param>
+        /// <param name="path">Path to the property, where each element of the path is separated with "/". 
+        /// 
+        ///                    Path elements signify names of child scene objects (first one relative to 
+        ///                    <paramref name="root"/>. Name of the root element should not be included in the path.
+        ///                    Elements must be prefixed with "!" in order to match the path format of 
+        ///                    <see cref="FindProperty"/>.</param>
+        /// <returns>Child scene object if found, or null otherwise.</returns>
+        internal static SceneObject FindSceneObject(SceneObject root, string path)
+        {
+            if (string.IsNullOrEmpty(path) || root == null)
+                return null;
+
+            string trimmedPath = path.Trim('/');
+            string[] entries = trimmedPath.Split('/');
+
+            // Find scene object referenced by the path
+            SceneObject so = root;
+            int pathIdx = 0;
+            for (; pathIdx < entries.Length; pathIdx++)
+            {
+                string entry = entries[pathIdx];
+
+                if (string.IsNullOrEmpty(entry))
+                    continue;
+
+                // Not a scene object, break
+                if (entry[0] != '!')
+                    break;
+
+                string childName = entry.Substring(1, entry.Length - 1);
+                so = so.FindChild(childName);
+
+                if (so == null)
+                    break;
+            }
+
+            return so;
+        }
+
+        /// <summary>
         /// Changes the state of a playing animation clip. If animation clip is not currently playing the state change is
         /// ignored.
         /// </summary>
@@ -295,6 +511,32 @@ namespace BansheeEngine
         {
             if (_native != null)
                 _native.SetState(clip, state);
+        }
+
+        private void OnUpdate()
+        {
+            if (_native == null)
+                return;
+
+            AnimationClip newPrimaryClip = _native.GetClip(0);
+            if (newPrimaryClip != primaryClip)
+            {
+                RebuildFloatProperties(newPrimaryClip);
+                primaryClip = newPrimaryClip;
+
+                UpdateSceneObjectMapping();
+            }
+
+            // Apply values from generic float curves
+            if (floatProperties != null)
+            {
+                foreach (var entry in floatProperties)
+                {
+                    float curveValue;
+                    if (_native.GetGenericCurveValue(entry.curveIdx, out curveValue))
+                        entry.setter(curveValue);
+                }
+            }
         }
 
         private void OnEnable()
@@ -330,6 +572,13 @@ namespace BansheeEngine
             if (serializableData.defaultClip != null)
                 _native.Play(serializableData.defaultClip);
 
+            primaryClip = _native.GetClip(0);
+            if (primaryClip != null)
+                RebuildFloatProperties(primaryClip);
+
+            SetBoneMappings();
+            UpdateSceneObjectMapping();
+
             Renderable renderable = SceneObject.GetComponent<Renderable>();
             if (renderable == null)
                 return;
@@ -358,6 +607,302 @@ namespace BansheeEngine
                 _native.Destroy();
                 _native = null;
             }
+
+            primaryClip = null;
+            mappingInfo.Clear();
+            floatProperties = null;
+        }
+
+        /// <summary>
+        /// Finds any curves that affect a transform of a specific scene object, and ensures that animation properly updates
+        /// those transforms. This does not include curves referencing bones.
+        /// </summary>
+        private void UpdateSceneObjectMapping()
+        {
+            List<SceneObjectMappingInfo> newMappingInfos = new List<SceneObjectMappingInfo>();
+            foreach(var entry in mappingInfo)
+            {
+                if (entry.isMappedToBone)
+                    newMappingInfos.Add(entry);
+                else
+                    _native.UnmapSceneObject(entry.sceneObject);
+            }
+
+            if (primaryClip != null)
+            {
+                SceneObject root = SceneObject;
+                AnimationCurves curves = primaryClip.Curves;
+                foreach (var curve in curves.PositionCurves)
+                {
+                    if (curve.Flags.HasFlag(AnimationCurveFlags.ImportedCurve))
+                        continue;
+
+                    SceneObject currentSO = FindSceneObject(root, curve.Name);
+
+                    bool found = false;
+                    for (int i = 0; i < newMappingInfos.Count; i++)
+                    {
+                        if (newMappingInfos[i].sceneObject == currentSO)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        SceneObjectMappingInfo newMappingInfo = new SceneObjectMappingInfo();
+                        newMappingInfo.isMappedToBone = false;
+                        newMappingInfo.sceneObject = currentSO;
+
+                        newMappingInfos.Add(newMappingInfo);
+
+                        _native.MapCurveToSceneObject(curve.Name, currentSO);
+                    }
+                }
+            }
+
+            mappingInfo = newMappingInfos;
+        }
+
+        /// <summary>
+        /// Registers a new bone component, creating a new transform mapping from the bone name to the scene object
+        /// the component is attached to.
+        /// </summary>
+        /// <param name="bone">Bone component to register.</param>
+        internal void AddBone(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            SceneObject currentSO = bone.SceneObject;
+
+            SceneObjectMappingInfo newMapping = new SceneObjectMappingInfo();
+            newMapping.sceneObject = currentSO;
+            newMapping.isMappedToBone = true;
+            newMapping.bone = bone;
+
+            mappingInfo.Add(newMapping);
+            _native.MapCurveToSceneObject(bone.Name, newMapping.sceneObject);
+        }
+
+        /// <summary>
+        /// Unregisters a bone component, removing the bone -> scene object mapping.
+        /// </summary>
+        /// <param name="bone">Bone to unregister.</param>
+        internal void RemoveBone(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            SceneObject newSO = null;
+            for (int i = 0; i < mappingInfo.Count; i++)
+            {
+                if (mappingInfo[i].bone == bone)
+                {
+                    mappingInfo.RemoveAt(i);
+                    _native.UnmapSceneObject(mappingInfo[i].sceneObject);
+                    i--;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called whenever the bone the <see cref="Bone"/> component points to changed.
+        /// </summary>
+        /// <param name="bone">Bone component to modify.</param>
+        internal void NotifyBoneChanged(Bone bone)
+        {
+            if (_native == null)
+                return;
+
+            for (int i = 0; i < mappingInfo.Count; i++)
+            {
+                if (mappingInfo[i].bone == bone)
+                {
+                    _native.UnmapSceneObject(mappingInfo[i].sceneObject);
+                    _native.MapCurveToSceneObject(bone.Name, mappingInfo[i].sceneObject);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds any scene objects that are mapped to bone transforms. Such object's transforms will be affected by
+        /// skeleton bone animation.
+        /// </summary>
+        private void SetBoneMappings()
+        {
+            mappingInfo.Clear();
+
+            SceneObjectMappingInfo rootMapping = new SceneObjectMappingInfo();
+            rootMapping.sceneObject = SceneObject;
+            rootMapping.isMappedToBone = true;
+
+            mappingInfo.Add(rootMapping);
+            _native.MapCurveToSceneObject("", rootMapping.sceneObject);
+
+            Bone[] childBones = FindChildBones();
+            foreach (var entry in childBones)
+                AddBone(entry);
+        }
+
+        /// <summary>
+        /// Searches child scene objects for <see cref="Bone"/> components and returns any found ones.
+        /// </summary>
+        private Bone[] FindChildBones()
+        {
+            Stack<SceneObject> todo = new Stack<SceneObject>();
+            todo.Push(SceneObject);
+
+            List<Bone> bones = new List<Bone>();
+            while (todo.Count > 0)
+            {
+                SceneObject currentSO = todo.Pop();
+
+                Bone bone = currentSO.GetComponent<Bone>();
+                if (bone != null)
+                {
+                    bone.SetParent(this, true);
+                    bones.Add(bone);
+                }
+
+                int childCount = currentSO.GetNumChildren();
+                for (int i = 0; i < childCount; i++)
+                {
+                    SceneObject child = currentSO.GetChild(i);
+                    if (child.GetComponent<Animation>() != null)
+                        continue;
+
+                    todo.Push(child);
+                }
+            }
+
+            return bones.ToArray();
+        }
+
+        /// <summary>
+        /// Builds a list of properties that will be animated using float animation curves.
+        /// </summary>
+        /// <param name="clip">Clip to retrieve the float animation curves from.</param>
+        private void RebuildFloatProperties(AnimationClip clip)
+        {
+            if (clip == null)
+            {
+                floatProperties = null;
+                return;
+            }
+
+            AnimationCurves curves = clip.Curves;
+
+            List<FloatCurvePropertyInfo> newFloatProperties = new List<FloatCurvePropertyInfo>();
+            for (int i = 0; i < curves.FloatCurves.Length; i++)
+            {
+                string suffix;
+                SerializableProperty property = FindProperty(SceneObject, curves.FloatCurves[i].Name, out suffix);
+                if (property == null)
+                    continue;
+
+                int elementIdx = 0;
+                if (!string.IsNullOrEmpty(suffix))
+                {
+                    PropertySuffixInfo suffixInfo;
+                    if (PropertySuffixInfos.TryGetValue(suffix, out suffixInfo))
+                        elementIdx = suffixInfo.elementIdx;
+                }
+
+                Action<float> setter = null;
+
+                Type internalType = property.InternalType;
+                switch (property.Type)
+                {
+                    case SerializableProperty.FieldType.Vector2:
+                        if (internalType == typeof(Vector2))
+                        {
+                            setter = f =>
+                            {
+                                Vector2 value = property.GetValue<Vector2>();
+                                value[elementIdx] = f;
+                                property.SetValue(value);
+                            };
+                        }
+
+                        break;
+                    case SerializableProperty.FieldType.Vector3:
+                        if (internalType == typeof(Vector3))
+                        {
+                            setter = f =>
+                            {
+                                Vector3 value = property.GetValue<Vector3>();
+                                value[elementIdx] = f;
+                                property.SetValue(value);
+                            };
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Vector4:
+                        if (internalType == typeof(Vector4))
+                        {
+                            setter = f =>
+                            {
+                                Vector4 value = property.GetValue<Vector4>();
+                                value[elementIdx] = f;
+                                property.SetValue(value);
+                            };
+                        }
+                        else if (internalType == typeof(Quaternion))
+                        {
+                            setter = f =>
+                            {
+                                Quaternion value = property.GetValue<Quaternion>();
+                                value[elementIdx] = f;
+                                property.SetValue(value);
+                            };
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Color:
+                        if (internalType == typeof(Color))
+                        {
+                            setter = f =>
+                            {
+                                Color value = property.GetValue<Color>();
+                                value[elementIdx] = f;
+                                property.SetValue(value);
+                            };
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Bool:
+                            setter = f =>
+                            {
+                                bool value = f > 0.0f;
+                                property.SetValue(value);
+                            };
+                        break;
+                    case SerializableProperty.FieldType.Int:
+                        setter = f =>
+                        {
+                            int value = (int)f;
+                            property.SetValue(value);
+                        };
+                        break;
+                    case SerializableProperty.FieldType.Float:
+                        setter = f =>
+                        {
+                            property.SetValue(f);
+                        };
+                        break;
+                }
+
+                if (setter == null)
+                    continue;
+
+                FloatCurvePropertyInfo propertyInfo = new FloatCurvePropertyInfo();
+                propertyInfo.curveIdx = i;
+                propertyInfo.setter = setter;
+
+                newFloatProperties.Add(propertyInfo);
+            }
+
+            floatProperties = newFloatProperties.ToArray();
         }
 
         /// <summary>
@@ -367,7 +912,26 @@ namespace BansheeEngine
         /// <param name="name">Name of the event.</param>
         private void EventTriggered(AnimationClip clip, string name)
         {
-            // TODO - Find a scene object, component and method based on the event name, and call it
+            // Event should be in format "ComponentType/MethodName"
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            string[] nameEntries = name.Split('/');
+            if (nameEntries.Length != 2)
+                return;
+
+            string typeName = nameEntries[0];
+            string methodName = nameEntries[1];
+
+            Component[] components = SceneObject.GetComponents();
+            for (int i = 0; i < components.Length; i++)
+            {
+                if (components[i].GetType().Name == typeName)
+                {
+                    components[i].Invoke(methodName);
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -379,6 +943,40 @@ namespace BansheeEngine
             public AnimationClip defaultClip;
             public AnimWrapMode wrapMode = AnimWrapMode.Loop;
             public float speed = 1.0f;
+        }
+
+        /// <summary>
+        /// Contains information about a property animated by a generic animation curve.
+        /// </summary>
+        private class FloatCurvePropertyInfo
+        {
+            public int curveIdx;
+            public Action<float> setter;
+        }
+
+        /// <summary>
+        /// Information about a suffix used in a property path.
+        /// </summary>
+        internal struct PropertySuffixInfo
+        {
+            public PropertySuffixInfo(int elementIdx, bool isVector)
+            {
+                this.elementIdx = elementIdx;
+                this.isVector = isVector;
+            }
+
+            public int elementIdx;
+            public bool isVector;
+        }
+
+        /// <summary>
+        /// Information about scene objects bound to a specific animation curve.
+        /// </summary>
+        internal struct SceneObjectMappingInfo
+        {
+            public SceneObject sceneObject;
+            public bool isMappedToBone;
+            public Bone bone;
         }
     }
 

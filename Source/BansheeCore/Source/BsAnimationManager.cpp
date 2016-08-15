@@ -41,10 +41,10 @@ namespace BansheeEngine
 
 		// Trigger events
 		for (auto& anim : mAnimations)
+		{
+			anim.second->updateFromProxy();
 			anim.second->triggerEvents(mAnimationTime, gTime().getFrameDelta());
-
-		// TODO - Write TRS animation results to relevant SceneObjects
-		// TODO - Transfer generic curve evaluated data back to Animation
+		}
 
 		mWorkerRunning = false;
 	}
@@ -118,44 +118,71 @@ namespace BansheeEngine
 				info.numBones = numBones;
 
 				Matrix4* boneDst = renderData.transforms.data() + curBoneIdx;
-				anim->skeleton->getPose(boneDst, anim->localPose, anim->layers, anim->numLayers);
+
+				// Copy transforms from mapped scene objects
+				UINT32 boneTfrmIdx = 0;
+				for(UINT32 i = 0; i < anim->numSceneObjects; i++)
+				{
+					const AnimatedSceneObjectInfo& soInfo = anim->sceneObjectInfos[i];
+
+					if (soInfo.boneIdx == -1)
+						continue;
+
+					boneDst[soInfo.boneIdx] = anim->sceneObjectTransforms[boneTfrmIdx];
+					boneTfrmIdx++;
+				}
+
+				// Animate bones
+				anim->skeleton->getPose(boneDst, anim->skeletonPose, anim->skeletonMask, anim->layers, anim->numLayers);
 
 				renderData.poseInfos[anim->id] = info;
 				curBoneIdx += numBones;
 			}
-			else
+
+			// Update mapped scene objects
+			for(UINT32 i = 0; i < anim->numSceneObjects; i++)
 			{
-				// Note: No blending for non-skeletal animations, just use first animation
-				if(anim->numLayers > 0 && anim->layers[0].numStates > 0)
+				const AnimatedSceneObjectInfo& soInfo = anim->sceneObjectInfos[i];
+
+				// We already evaluated bones
+				if (soInfo.boneIdx != -1)
+					continue;
+
+				const AnimationState& state = anim->layers[soInfo.layerIdx].states[soInfo.stateIdx];
+				if (state.disabled)
+					continue;
+
 				{
-					const AnimationState& state = anim->layers[0].states[0];
-
+					UINT32 curveIdx = soInfo.curveIndices.position;
+					if (curveIdx != (UINT32)-1)
 					{
-						UINT32 numCurves = (UINT32)state.curves->position.size();
-						for(UINT32 i = 0; i < numCurves; i++)
-						{
-							const TAnimationCurve<Vector3>& curve = state.curves->position[i].curve;
-							anim->localPose.positions[i] = curve.evaluate(state.time, state.positionCaches[i], state.loop);
-						}
+						const TAnimationCurve<Vector3>& curve = state.curves->position[curveIdx].curve;
+						anim->sceneObjectPose.positions[curveIdx] = curve.evaluate(state.time, state.positionCaches[curveIdx], state.loop);
 					}
+					else
+						anim->sceneObjectPose.positions[curveIdx] = Vector3::ZERO;
+				}
 
+				{
+					UINT32 curveIdx = soInfo.curveIndices.rotation;
+					if (curveIdx != (UINT32)-1)
 					{
-						UINT32 numCurves = (UINT32)state.curves->rotation.size();
-						for (UINT32 i = 0; i < numCurves; i++)
-						{
-							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[i].curve;
-							anim->localPose.rotations[i] = curve.evaluate(state.time, state.rotationCaches[i], state.loop);
-						}
+						const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
+						anim->sceneObjectPose.rotations[curveIdx] = curve.evaluate(state.time, state.rotationCaches[curveIdx], state.loop);
 					}
+					else
+						anim->sceneObjectPose.rotations[curveIdx] = Quaternion::ZERO;
+				}
 
+				{
+					UINT32 curveIdx = soInfo.curveIndices.scale;
+					if (curveIdx != (UINT32)-1)
 					{
-						UINT32 numCurves = (UINT32)state.curves->scale.size();
-						for (UINT32 i = 0; i < numCurves; i++)
-						{
-							const TAnimationCurve<Vector3>& curve = state.curves->scale[i].curve;
-							anim->localPose.scales[i] = curve.evaluate(state.time, state.scaleCaches[i], state.loop);
-						}
+						const TAnimationCurve<Vector3>& curve = state.curves->scale[curveIdx].curve;
+						anim->sceneObjectPose.scales[curveIdx] = curve.evaluate(state.time, state.scaleCaches[curveIdx], state.loop);
 					}
+					else
+						anim->sceneObjectPose.scales[curveIdx] = Vector3::ONE;
 				}
 			}
 
@@ -163,6 +190,8 @@ namespace BansheeEngine
 			if (anim->numLayers > 0 && anim->layers[0].numStates > 0)
 			{
 				const AnimationState& state = anim->layers[0].states[0];
+				if (state.disabled)
+					continue;
 
 				{
 					UINT32 numCurves = (UINT32)state.curves->generic.size();

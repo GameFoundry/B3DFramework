@@ -6,6 +6,7 @@
 #include "BsCoreObject.h"
 #include "BsFlags.h"
 #include "BsSkeleton.h"
+#include "BsSkeletonMask.h"
 #include "BsVector2.h"
 
 namespace BansheeEngine
@@ -102,6 +103,24 @@ namespace BansheeEngine
 		HAnimationClip botRightClip;
 	};
 
+	/** Contains a mapping between a scene object and an animation curve it is animated with. */
+	struct AnimatedSceneObject
+	{
+		HSceneObject so;
+		String curveName;
+	};
+
+	/** Contains information about a scene object that is animated by a specific animation curve. */
+	struct AnimatedSceneObjectInfo
+	{
+		UINT64 id; /**< Instance ID of the scene object. */
+		INT32 boneIdx; /**< Bone from which to access the transform. If -1 then no bone mapping is present. */
+		INT32 layerIdx; /**< If no bone mapping, layer on which the animation containing the referenced curve is in. */
+		INT32 stateIdx; /**< If no bone mapping, animation state containing the referenced curve. */
+		AnimationCurveMapping curveIndices; /**< Indices of the curves used for the transform. */
+		UINT32 hash; /**< Hash value of the scene object's transform. */
+	};
+
 	/** Represents a copy of the Animation data for use specifically on the animation thread. */
 	struct AnimationProxy
 	{
@@ -115,26 +134,30 @@ namespace BansheeEngine
 		 * Rebuilds the internal proxy data according to the newly assigned skeleton and clips. This should be called
 		 * whenever the animation skeleton changes.
 		 *
-		 * @param[in]		skeleton	New skeleton to assign to the proxy.
-		 * @param[in, out]	clipInfos	Potentially new clip infos that will be used for rebuilding the proxy. Once the
-		 *								method completes clip info layout and state indices will be populated for 
-		 *								further use in the update*() methods.
+		 * @param[in]		skeleton		New skeleton to assign to the proxy.
+		 * @param[in]		mask			Mask that filters which skeleton bones are enabled or disabled.
+		 * @param[in, out]	clipInfos		Potentially new clip infos that will be used for rebuilding the proxy. Once the
+		 *									method completes clip info layout and state indices will be populated for 
+		 *									further use in the update*() methods.
+		 * @param[in]		sceneObjects	A list of scene objects that are influenced by specific animation curves.
 		 *
 		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
 		 */
-		void rebuild(const SPtr<Skeleton>& skeleton, Vector<AnimationClipInfo>& clipInfos);
+		void rebuild(const SPtr<Skeleton>& skeleton, const SkeletonMask& mask, Vector<AnimationClipInfo>& clipInfos, 
+			const Vector<AnimatedSceneObject>& sceneObjects);
 
 		/** 
 		 * Rebuilds the internal proxy data according to the newly clips. This should be called whenever clips are added
 		 * or removed, or clip layout indices change.
 		 *
-		 * @param[in, out]	clipInfos	New clip infos that will be used for rebuilding the proxy. Once the method completes
-		 *								clip info layout and state indices will be populated for further use in the
-		 *								update*() methods.
+		 * @param[in, out]	clipInfos		New clip infos that will be used for rebuilding the proxy. Once the method 
+		 *									completes clip info layout and state indices will be populated for further use 
+		 *									in the update*() methods.
+		 * @param[in]		sceneObjects	A list of scene objects that are influenced by specific animation curves.
 		 *
 		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
 		 */
-		void rebuild(Vector<AnimationClipInfo>& clipInfos);
+		void rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<AnimatedSceneObject>& sceneObjects);
 
 		/** 
 		 * Updates the proxy data with new information about the clips. Caller must guarantee that clip layout didn't 
@@ -143,6 +166,14 @@ namespace BansheeEngine
 		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
 		 */
 		void updateValues(const Vector<AnimationClipInfo>& clipInfos);
+
+		/**
+		 * Updates the proxy data with new scene object transforms. Caller must guarantee that clip layout didn't 
+		 * change since the last call to rebuild().
+		 *
+		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 */
+		void updateTransforms(const Vector<AnimatedSceneObject>& sceneObjects);
 
 		/** 
 		 * Updates the proxy data with new clip times. Caller must guarantee that clip layout didn't change since the last
@@ -159,9 +190,15 @@ namespace BansheeEngine
 		AnimationStateLayer* layers;
 		UINT32 numLayers;
 		SPtr<Skeleton> skeleton;
+		SkeletonMask skeletonMask;
+		UINT32 numSceneObjects;
+		AnimatedSceneObjectInfo* sceneObjectInfos;
+		Matrix4* sceneObjectTransforms;
 
 		// Evaluation results
-		LocalSkeletonPose localPose;
+		LocalSkeletonPose skeletonPose;
+		LocalSkeletonPose sceneObjectPose;
+		UINT32 numGenericCurves;
 		float* genericCurveOutputs;
 	};
 
@@ -181,6 +218,12 @@ namespace BansheeEngine
 		 * the animation will only evaluate the generic curves, and the root translation/rotation/scale curves.
 		 */
 		void setSkeleton(const SPtr<Skeleton>& skeleton);
+
+		/** 
+		 * Sets a mask that allows certain bones from the skeleton to be disabled. Caller must ensure that the mask matches
+		 * the skeleton assigned to the animation.
+		 */
+		void setMask(const SkeletonMask& mask);
 
 		/** 
 		 * Changes the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the 
@@ -260,6 +303,17 @@ namespace BansheeEngine
 		/** Checks if any animation clips are currently playing. */
 		bool isPlaying() const;
 
+		/** Returns the total number of animation clips influencing this animation. */
+		UINT32 getNumClips() const;
+
+		/** 
+		 * Returns one of the animation clips influencing this animation. 
+		 *
+		 * @param[in]	idx		Sequential index of the animation clip to retrieve. In range [0, getNumClips()].
+		 * @return				Animation clip at the specified index, or null if the index is out of range.
+		 */
+		HAnimationClip getClip(UINT32 idx) const;
+
 		/** 
 		 * Retrieves detailed information about a currently playing animation clip. 
 		 *
@@ -280,12 +334,31 @@ namespace BansheeEngine
 		void setState(const HAnimationClip& clip, AnimationClipState state);
 
 		/** 
-		 * Triggers any events between the last frame and current one. 
+		 * Ensures that any position/rotation/scale animation of a specific animation curve is transfered to the
+		 * the provided scene object. Also allow the opposite operation which can allow scene object transform changes
+		 * to manipulate object bones.
 		 *
-		 * @param[in]	lastFrameTime	Time of the last frame.
-		 * @param[in]	delta			Difference between the last and this frame.
+		 * @param[in]	curve	Name of the curve (bone) to connect the scene object with. Use empty string to map to the
+		 *						root bone, regardless of the bone name.
+		 * @param[in]	so		Scene object to influence by the curve modifications, and vice versa.
 		 */
-		void triggerEvents(float lastFrameTime, float delta);
+		void mapCurveToSceneObject(const String& curve, const HSceneObject& so);
+
+		/** Removes the curve <-> scene object mapping that was set via mapCurveToSceneObject(). */
+		void unmapSceneObject(const HSceneObject& so);
+
+		/** 
+		 * Retrieves an evaluated value for a generic curve with the specified index. 
+		 *
+		 * @param[in]	curveIdx	The curve index referencing a set of curves from the first playing animation clip. 
+		 *							Generic curves from all other clips are ignored.
+		 * @param[out]	value		Value of the generic curve. Only valid if the method return true.
+		 * @return					True if the value was retrieved successfully. The method might fail if animation update
+		 *							didn't yet have a chance to execute and values are not yet available, or if the
+		 *							animation clip changed since the last frame (the last problem can be avoided by ensuring
+		 *							to read the curve values before changing the clip).
+		 */
+		bool getGenericCurveValue(UINT32 curveIdx, float& value);
 
 		/** Creates a new empty Animation object. */
 		static SPtr<Animation> create();
@@ -307,11 +380,26 @@ namespace BansheeEngine
 		Animation();
 
 		/** 
+		 * Triggers any events between the last frame and current one. 
+		 *
+		 * @param[in]	lastFrameTime	Time of the last frame.
+		 * @param[in]	delta			Difference between the last and this frame.
+		 */
+		void triggerEvents(float lastFrameTime, float delta);
+
+		/** 
 		 * Updates the animation proxy object based on the currently set skeleton, playing clips and dirty flags. 
 		 *
 		 * @param[in]	timeDelta	Seconds passed since the last call to this method.
 		 */
 		void updateAnimProxy(float timeDelta);
+
+		/**
+		 * Applies any outputs stored in the animation proxy (as written by the animation thread), and uses them to update
+		 * the animation state on the simulation thread. Caller must ensure that the animation thread has finished
+		 * with the animation proxy.
+		 */
+		void updateFromProxy();
 
 		/** 
 		 * Registers a new animation in the specified layer, or returns an existing animation clip info if the animation is
@@ -326,7 +414,11 @@ namespace BansheeEngine
 		AnimDirtyState mDirty;
 
 		SPtr<Skeleton> mSkeleton;
+		SkeletonMask mSkeletonMask;
 		Vector<AnimationClipInfo> mClipInfos;
+		UnorderedMap<UINT64, AnimatedSceneObject> mSceneObjects;
+		Vector<float> mGenericCurveOutputs;
+		bool mGenericCurveValuesValid;
 
 		// Animation thread only
 		SPtr<AnimationProxy> mAnimProxy;

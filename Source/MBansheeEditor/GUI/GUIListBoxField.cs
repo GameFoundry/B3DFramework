@@ -26,7 +26,7 @@ namespace BansheeEditor
         public event OnSelectionChangedDelegate OnSelectionChanged;
 
         /// <summary>
-        /// Index of the list box entry currently selected.
+        /// Index of the list box entry currently selected. Returns -1 if nothing is selected.
         /// </summary>
         public int Index
         {

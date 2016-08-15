@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace BansheeEditor
 {
-    /** @addtogroup Inspector
+    /** @addtogroup General
      *  @{
      */
 
@@ -16,6 +16,9 @@ namespace BansheeEditor
     {
         [SerializeField]
         internal Dictionary<string, bool> dirtyResources = new Dictionary<string, bool>();
+
+        [SerializeField]
+        internal Dictionary<string, EditorAnimClipInfo> dirtyAnimClips = new Dictionary<string, EditorAnimClipInfo>();
     }
 
     /** @} */

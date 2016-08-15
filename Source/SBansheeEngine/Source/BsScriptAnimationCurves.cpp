@@ -7,6 +7,7 @@
 #include "BsMonoField.h"
 #include "BsAnimationCurve.h"
 #include "BsAnimationClip.h"
+#include "BsAnimationUtility.h"
 #include "BsMath.h"
 #include "BsVector3.h"
 
@@ -29,30 +30,6 @@ namespace BansheeEngine
 		sRotationCurvesField = metaData.scriptClass->getField("RotationCurves");
 		sScaleCurvesField = metaData.scriptClass->getField("ScaleCurves");
 		sFloatCurvesField = metaData.scriptClass->getField("FloatCurves");
-	}
-
-	TAnimationCurve<Quaternion> eulerAngleToQuaternionCurve(const TAnimationCurve<Vector3>& inCurve)
-	{
-		UINT32 numKeys = (UINT32)inCurve.getNumKeyFrames();
-		Vector<TKeyframe<Quaternion>> quatKeys(numKeys);
-		for (UINT32 j = 0; j < numKeys; j++)
-		{
-			// TODO - Not implemented. Convert euler angle rotation to quaternion.
-		}
-
-		return TAnimationCurve<Quaternion>(quatKeys);
-	}
-
-	TAnimationCurve<Vector3> quaternionToEulerAngleCurve(const TAnimationCurve<Quaternion>& inCurve)
-	{
-		UINT32 numKeys = (UINT32)inCurve.getNumKeyFrames();
-		Vector<TKeyframe<Vector3>> eulerKeys(numKeys);
-		for (UINT32 j = 0; j < numKeys; j++)
-		{
-			// TODO - Not implemented. Convert quaternion rotation to euler angles.
-		}
-
-		return TAnimationCurve<Vector3>(eulerKeys);
 	}
 
 	SPtr<AnimationCurves> ScriptAnimationCurves::toNative(MonoObject* instance)
@@ -85,7 +62,7 @@ namespace BansheeEngine
 
 				TNamedAnimationCurve<Quaternion> quatRotation;
 				quatRotation.name = eulerRotation.name;
-				quatRotation.curve = eulerAngleToQuaternionCurve(eulerRotation.curve);
+				quatRotation.curve = AnimationUtility::eulerToQuaternionCurve(eulerRotation.curve);
 
 				output->rotation.push_back(quatRotation);
 			}
@@ -138,7 +115,7 @@ namespace BansheeEngine
 		{
 			TNamedAnimationCurve<Vector3> eulerRotationCurve;
 			eulerRotationCurve.name = curves->rotation[i].name;
-			eulerRotationCurve.curve = quaternionToEulerAngleCurve(curves->rotation[i].curve);
+			eulerRotationCurve.curve = AnimationUtility::quaternionToEulerCurve(curves->rotation[i].curve);
 
 			MonoObject* monoCurve = ScriptNamedVector3Curve::toManaged(eulerRotationCurve);
 			scriptRotationCurves.set(i, monoCurve);
@@ -172,6 +149,7 @@ namespace BansheeEngine
 	}
 
 	MonoField* ScriptNamedVector3Curve::sNameField = nullptr;
+	MonoField* ScriptNamedVector3Curve::sFlagsField = nullptr;
 	MonoField* ScriptNamedVector3Curve::sXCurveField = nullptr;
 	MonoField* ScriptNamedVector3Curve::sYCurveField = nullptr;
 	MonoField* ScriptNamedVector3Curve::sZCurveField = nullptr;
@@ -183,6 +161,7 @@ namespace BansheeEngine
 	void ScriptNamedVector3Curve::initRuntimeData()
 	{
 		sNameField = metaData.scriptClass->getField("Name");
+		sFlagsField = metaData.scriptClass->getField("Flags");
 		sXCurveField = metaData.scriptClass->getField("X");
 		sYCurveField = metaData.scriptClass->getField("Y");
 		sZCurveField = metaData.scriptClass->getField("Z");
@@ -196,6 +175,10 @@ namespace BansheeEngine
 		sNameField->getValue(instance, &monoName);
 
 		output.name = MonoUtil::monoToString(monoName);
+
+		UINT32 flags;
+		sFlagsField->getValue(instance, &flags);
+		output.flags = (AnimationCurveFlags)flags;
 
 		// Convert from three separate floating point curves, to a Vector3 curve
 		MonoObject* monoCurves[3];
@@ -235,7 +218,6 @@ namespace BansheeEngine
 		}
 
 		// Populate keyframe values
-
 		Vector<TKeyframe<Vector3>> keyframeList(keyFrames.size());
 		for(auto& entry : keyFrames)
 		{
@@ -302,11 +284,14 @@ namespace BansheeEngine
 		MonoObject* monoYCurve = ScriptAnimationCurve::create(yCurve);
 		MonoObject* monoZCurve = ScriptAnimationCurve::create(zCurve);
 
-		void* params[4] = { monoString, monoXCurve, monoYCurve, monoZCurve };
-		return metaData.scriptClass->createInstance("string, AnimationCurve, AnimationCurve, AnimationCurve", params);
+		UINT32 flags = curve.flags;
+
+		void* params[5] = { monoString, &flags, monoXCurve, monoYCurve, monoZCurve };
+		return metaData.scriptClass->createInstance("string, int, AnimationCurve, AnimationCurve, AnimationCurve", params);
 	}
 
 	MonoField* ScriptNamedFloatCurve::sNameField = nullptr;
+	MonoField* ScriptNamedFloatCurve::sFlagsField = nullptr;
 	MonoField* ScriptNamedFloatCurve::sCurveField = nullptr;
 
 	ScriptNamedFloatCurve::ScriptNamedFloatCurve(MonoObject* instance)
@@ -316,6 +301,7 @@ namespace BansheeEngine
 	void ScriptNamedFloatCurve::initRuntimeData()
 	{
 		sNameField = metaData.scriptClass->getField("Name");
+		sFlagsField = metaData.scriptClass->getField("Flags");
 		sCurveField = metaData.scriptClass->getField("Curve");
 	}
 
@@ -327,6 +313,10 @@ namespace BansheeEngine
 		sNameField->getValue(instance, &monoName);
 
 		output.name = MonoUtil::monoToString(monoName);
+
+		UINT32 flags;
+		sFlagsField->getValue(instance, &flags);
+		output.flags = (AnimationCurveFlags)flags;
 
 		MonoObject* monoCurve = nullptr;
 		sCurveField->getValue(instance, &monoCurve);
@@ -345,7 +335,8 @@ namespace BansheeEngine
 		MonoString* monoString = MonoUtil::stringToMono(curve.name);
 		MonoObject* monoCurve = ScriptAnimationCurve::create(curve.curve);
 
-		void* params[2] = { monoString, monoCurve };
-		return metaData.scriptClass->createInstance("string, AnimationCurve", params);
+		UINT32 flags = curve.flags;
+		void* params[3] = { monoString, &flags, monoCurve };
+		return metaData.scriptClass->createInstance("string, int, AnimationCurve", params);
 	}
 }

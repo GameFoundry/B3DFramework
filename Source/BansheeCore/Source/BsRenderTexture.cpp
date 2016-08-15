@@ -148,13 +148,22 @@ namespace BansheeEngine
 		const TextureProperties& colorProps = mColorSurface->getTexture()->getProperties();
 		const TextureProperties& depthProps = mDepthStencilSurface->getTexture()->getProperties();
 
+		UINT32 colorMsCount = colorProps.getMultisampleCount();
+		UINT32 depthMsCount = depthProps.getMultisampleCount();
+
+		if (colorMsCount == 0)
+			colorMsCount = 1;
+
+		if (depthMsCount == 0)
+			depthMsCount = 1;
+
 		if (colorProps.getWidth() != depthProps.getWidth() ||
 			colorProps.getHeight() != depthProps.getHeight() ||
-			colorProps.getMultisampleCount() != depthProps.getMultisampleCount())
+			colorMsCount != depthMsCount)
 		{
 			String errorInfo = "\nWidth: " + toString(colorProps.getWidth()) + "/" + toString(depthProps.getWidth());
 			errorInfo += "\nHeight: " + toString(colorProps.getHeight()) + "/" + toString(depthProps.getHeight());
-			errorInfo += "\nMultisample Count: " + toString(colorProps.getMultisampleCount()) + "/" + toString(depthProps.getMultisampleCount());
+			errorInfo += "\nMultisample Count: " + toString(colorMsCount) + "/" + toString(depthMsCount);
 
 			BS_EXCEPT(InvalidParametersException, "Provided texture and depth stencil buffer don't match!" + errorInfo);
 		}

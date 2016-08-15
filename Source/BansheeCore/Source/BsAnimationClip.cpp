@@ -15,7 +15,7 @@ namespace BansheeEngine
 		if (iterFind != position.end())
 			iterFind->curve = curve;
 		else
-			position.push_back({ name, curve });
+			position.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
 	void AnimationCurves::addRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
@@ -25,7 +25,7 @@ namespace BansheeEngine
 		if (iterFind != rotation.end())
 			iterFind->curve = curve;
 		else
-			rotation.push_back({ name, curve });
+			rotation.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
 	void AnimationCurves::addScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
@@ -35,7 +35,7 @@ namespace BansheeEngine
 		if (iterFind != scale.end())
 			iterFind->curve = curve;
 		else
-			scale.push_back({ name, curve });
+			scale.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
 	void AnimationCurves::addGenericCurve(const String& name, const TAnimationCurve<float>& curve)
@@ -45,7 +45,7 @@ namespace BansheeEngine
 		if (iterFind != generic.end())
 			iterFind->curve = curve;
 		else
-			generic.push_back({ name, curve });
+			generic.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
 	void AnimationCurves::removePositionCurve(const String& name)
@@ -195,18 +195,23 @@ namespace BansheeEngine
 		{
 			const SkeletonBoneInfo& boneInfo = skeleton.getBoneInfo(i);
 
-			auto iterFind = mNameMapping.find(boneInfo.name);
-			if(iterFind != mNameMapping.end())
-			{
-				const UINT32* indices = iterFind->second;
-
-				mapping[i].position = indices[(UINT32)CurveType::Position];
-				mapping[i].rotation = indices[(UINT32)CurveType::Rotation];
-				mapping[i].scale = indices[(UINT32)CurveType::Scale];
-			}
-			else
-				mapping[i] = { (UINT32)-1, (UINT32)-1, (UINT32)-1 };
+			getCurveMapping(boneInfo.name, mapping[i]);
 		}
+	}
+
+	void AnimationClip::getCurveMapping(const String& name, AnimationCurveMapping& mapping) const
+	{
+		auto iterFind = mNameMapping.find(name);
+		if (iterFind != mNameMapping.end())
+		{
+			const UINT32* indices = iterFind->second;
+
+			mapping.position = indices[(UINT32)CurveType::Position];
+			mapping.rotation = indices[(UINT32)CurveType::Rotation];
+			mapping.scale = indices[(UINT32)CurveType::Scale];
+		}
+		else
+			mapping = { (UINT32)-1, (UINT32)-1, (UINT32)-1 };
 	}
 
 	RTTITypeBase* AnimationClip::getRTTIStatic()

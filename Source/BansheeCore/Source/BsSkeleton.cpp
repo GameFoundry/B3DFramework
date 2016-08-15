@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsSkeleton.h"
 #include "BsAnimationClip.h"
+#include "BsSkeletonMask.h"
 #include "BsSkeletonRTTI.h"
 
 namespace BansheeEngine
@@ -107,8 +108,8 @@ namespace BansheeEngine
 		return bs_shared_ptr<Skeleton>(rawPtr);
 	}
 
-	void Skeleton::getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationClip& clip, float time,
-		bool loop)
+	void Skeleton::getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, 
+		const AnimationClip& clip, float time, bool loop)
 	{
 		bs_frame_mark();
 		{
@@ -129,6 +130,7 @@ namespace BansheeEngine
 			state.rotationCaches = rotationCache.data();
 			state.scaleCaches = scaleCache.data();
 			state.genericCaches = nullptr;
+			state.disabled = false;
 
 			AnimationStateLayer layer;
 			layer.index = 0;
@@ -138,13 +140,13 @@ namespace BansheeEngine
 
 			clip.getBoneMapping(*this, state.boneToCurveMapping);
 
-			getPose(pose, localPose, &layer, 1);
+			getPose(pose, localPose, mask, &layer, 1);
 		}
 		bs_frame_clear();
 	}
 
-	void Skeleton::getPose(Matrix4* pose, LocalSkeletonPose& localPose, const AnimationStateLayer* layers,
-		UINT32 numLayers)
+	void Skeleton::getPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, 
+		const AnimationStateLayer* layers, UINT32 numLayers)
 	{
 		// Note: If more performance is required this method could be optimized with vector instructions
 
@@ -176,6 +178,8 @@ namespace BansheeEngine
 			for (UINT32 j = 0; j < layer.numStates; j++)
 			{
 				const AnimationState& state = layer.states[j];
+				if (state.disabled)
+					continue;
 
 				float normWeight = state.weight * invLayerWeight;
 
@@ -185,8 +189,10 @@ namespace BansheeEngine
 
 				for (UINT32 k = 0; k < mNumBones; k++)
 				{
-					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+					if (!mask.isEnabled(k))
+						continue;
 
+					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 					if (mapping.position != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->position[mapping.position].curve;
@@ -196,8 +202,10 @@ namespace BansheeEngine
 
 				for (UINT32 k = 0; k < mNumBones; k++)
 				{
-					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+					if (!mask.isEnabled(k))
+						continue;
 
+					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 					if (mapping.scale != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[mapping.scale].curve;
@@ -209,8 +217,10 @@ namespace BansheeEngine
 				{
 					for (UINT32 k = 0; k < mNumBones; k++)
 					{
-						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+						if (!mask.isEnabled(k))
+							continue;
 
+						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 						if (mapping.rotation != (UINT32)-1)
 						{
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
@@ -226,8 +236,10 @@ namespace BansheeEngine
 				{
 					for (UINT32 k = 0; k < mNumBones; k++)
 					{
-						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
+						if (!mask.isEnabled(k))
+							continue;
 
+						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 						if (mapping.rotation != (UINT32)-1)
 						{
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
@@ -275,6 +287,17 @@ namespace BansheeEngine
 		}
 
 		bs_stack_free(isGlobal);
+	}
+
+	UINT32 Skeleton::getRootBoneIndex() const
+	{
+		for (UINT32 i = 0; i < mNumBones; i++)
+		{
+			if (mBoneInfo[i].parent == (UINT32)-1)
+				return i;
+		}
+
+		return (UINT32)-1;
 	}
 
 	SPtr<Skeleton> Skeleton::createEmpty()

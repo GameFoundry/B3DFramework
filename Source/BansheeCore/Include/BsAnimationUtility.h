@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "BsCoreObject.h"
+#include "BsAnimationCurve.h"
 
 namespace BansheeEngine
 {
@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 */
 
 	/** Helper class for dealing with animations, animation clips and curves. */
-	class BS_CORE_EXPORT AnimationUtility : public CoreObject
+	class BS_CORE_EXPORT AnimationUtility
 	{
 	public:
 		/**
@@ -24,6 +24,12 @@ namespace BansheeEngine
 		 * @param[in]		loop	If true the value will be wrapped, otherwise clamped to range.
 		 */
 		static void wrapTime(float& time, float start, float end, bool loop);
+
+		/** Converts a curve in euler angles (in degrees) into a curve using quaternions. */
+		static TAnimationCurve<Quaternion> eulerToQuaternionCurve(const TAnimationCurve<Vector3>& eulerCurve);
+
+		/** Converts a curve in quaternions into a curve using euler angles (in degrees). */
+		static TAnimationCurve<Vector3> quaternionToEulerCurve(const TAnimationCurve<Quaternion>& quatCurve);
 	};
 
 	/** @} */

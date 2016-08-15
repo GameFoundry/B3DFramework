@@ -47,6 +47,7 @@
     <Compile Include="Animation\AnimationClip.cs" />
     <Compile Include="Animation\AnimationCurve.cs" />
     <Compile Include="Animation\AnimationCurves.cs" />
+    <Compile Include="Animation\Bone.cs" />
     <Compile Include="Animation\Interop\NativeAnimation.cs" />
     <Compile Include="Audio\Audio.cs" />
     <Compile Include="Audio\AudioClip.cs" />

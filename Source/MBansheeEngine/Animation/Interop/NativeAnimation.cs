@@ -23,6 +23,11 @@ namespace BansheeEngine
             set { Internal_SetSpeed(mCachedPtr, value); }
         }
 
+        public int NumClips
+        {
+            get { return Internal_GetNumClips(mCachedPtr); }
+        }
+
         public Action<AnimationClip, string> OnEventTriggered;
 
         public void Play(AnimationClip clip)
@@ -83,6 +88,11 @@ namespace BansheeEngine
             return Internal_IsPlaying(mCachedPtr);
         }
 
+        public AnimationClip GetClip(int index)
+        {
+            return Internal_GetClip(mCachedPtr, index);
+        }
+
         public bool GetState(AnimationClip clip, out AnimationClipState state)
         {
             IntPtr clipPtr = IntPtr.Zero;
@@ -99,6 +109,27 @@ namespace BansheeEngine
                 clipPtr = clip.GetCachedPtr();
 
             Internal_SetState(mCachedPtr, clipPtr, ref state);
+        }
+
+        public bool GetGenericCurveValue(int curveIdx, out float value)
+        {
+            return Internal_GetGenericCurveValue(mCachedPtr, curveIdx, out value);
+        }
+
+        public void MapCurveToSceneObject(string curve, SceneObject sceneObject)
+        {
+            if (string.IsNullOrEmpty(curve) || sceneObject == null)
+                return;
+
+            Internal_MapCurveToSceneObject(mCachedPtr, curve, sceneObject.GetCachedPtr());
+        }
+
+        public void UnmapSceneObject(SceneObject sceneObject)
+        {
+            if (sceneObject == null)
+                return;
+
+            Internal_UnmapSceneObject(mCachedPtr, sceneObject.GetCachedPtr());
         }
 
         internal NativeAnimation()
@@ -158,6 +189,21 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetState(IntPtr thisPtr, IntPtr clipPtr, ref AnimationClipState state);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetNumClips(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern AnimationClip Internal_GetClip(IntPtr thisPtr, int idx);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetGenericCurveValue(IntPtr thisPtr, int curveIdx, out float value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_MapCurveToSceneObject(IntPtr thisPtr, string curve, IntPtr sceneObjectPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_UnmapSceneObject(IntPtr thisPtr, IntPtr sceneObjectPtr);
     }
 
     /** @endcond */

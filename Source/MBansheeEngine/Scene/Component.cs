@@ -72,7 +72,7 @@ namespace BansheeEngine
         /// <param name="box">Bounds in world space represented as an axis aligned bounding box.</param>
         /// <param name="sphere">Bounds in world space represented as a sphere.</param>
         /// <returns>True if the bounds have non-zero volume, false otherwise.</returns>
-        internal protected virtual bool CalculateBounds(out AABox box, out Sphere sphere)
+        protected internal virtual bool CalculateBounds(out AABox box, out Sphere sphere)
         {
             Vector3 pos = SceneObject.Position;
 
@@ -80,6 +80,15 @@ namespace BansheeEngine
             sphere = new Sphere(pos, 0.0f);
 
             return false;
+        }
+
+        /// <summary>
+        /// Calls a parameterless method with the specified name, on the component. 
+        /// </summary>
+        /// <param name="name">Name of the method to call.</param>
+        protected internal void Invoke(string name)
+        {
+            Internal_Invoke(mCachedPtr, name);
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -105,6 +114,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Internal_SetNotifyFlags(IntPtr nativeInstance, TransformChangedFlags flags);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Internal_Invoke(IntPtr nativeInstance, string name);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Destroy(IntPtr nativeInstance, bool immediate);

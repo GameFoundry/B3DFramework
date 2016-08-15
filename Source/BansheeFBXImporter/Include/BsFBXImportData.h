@@ -7,6 +7,8 @@
 #include "BsColor.h"
 #include "BsVector2.h"
 #include "BsVector4.h"
+#include "BsQuaternion.h"
+#include "BsAnimationCurve.h"
 #include "BsSubMesh.h"
 
 namespace BansheeEngine
@@ -83,41 +85,21 @@ namespace BansheeEngine
 		INT32 indices[FBX_IMPORT_MAX_BONE_INFLUENCES];
 	};
 
-	/**
-	 * Represents a single frame in an animation curve. Contains a value at a specific time as well as the in and out 
-	 * tangents at that position.
-	 */
-	struct FBXKeyFrame
-	{
-		float time;
-		float value;
-		float inTangent;
-		float outTangent;
-	};
-
-	/**	Curve with a set of key frames used for animation of a single value. */
-	struct FBXAnimationCurve
-	{
-		Vector<FBXKeyFrame> keyframes;
-
-		float evaluate(float time);
-	};
-
 	/**	Animation curves required to animate a single bone. */
 	struct FBXBoneAnimation
 	{
 		FBXImportNode* node;
 
-		FBXAnimationCurve translation[3];
-		FBXAnimationCurve rotation[4];
-		FBXAnimationCurve scale[3];
+		TAnimationCurve<Vector3> translation;
+		TAnimationCurve<Quaternion> rotation;
+		TAnimationCurve<Vector3> scale;
 	};
 
 	/**	Animation curve required to animate a blend shape. */
 	struct FBXBlendShapeAnimation
 	{
 		String blendShape;
-		FBXAnimationCurve curve;
+		TAnimationCurve<float> curve;
 	};
 
 	/** Animation clip containing a set of bone or blend shape animations. */

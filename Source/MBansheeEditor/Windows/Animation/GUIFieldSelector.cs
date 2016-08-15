@@ -294,7 +294,7 @@ namespace BansheeEditor
                 parent.children = new Element[3];
 
                 parent.children[0] = AddFieldRow(parent.childLayout, "Position", parent.so, null, parent.path + "/Position", SerializableProperty.FieldType.Vector3);
-                parent.children[1] = AddFieldRow(parent.childLayout, "Rotation", parent.so, null, parent.path + "/Rotation", SerializableProperty.FieldType.Vector4);
+                parent.children[1] = AddFieldRow(parent.childLayout, "Rotation", parent.so, null, parent.path + "/Rotation", SerializableProperty.FieldType.Vector3);
                 parent.children[2] = AddFieldRow(parent.childLayout, "Scale", parent.so, null, parent.path + "/Scale", SerializableProperty.FieldType.Vector3);
             }
         }

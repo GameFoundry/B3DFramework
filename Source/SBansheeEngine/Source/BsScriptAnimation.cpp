@@ -7,6 +7,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
+#include "BsScriptSceneObject.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptAnimationClip.h"
 
@@ -46,6 +47,14 @@ namespace BansheeEngine
 
 		metaData.scriptClass->addInternalCall("Internal_GetState", &ScriptAnimation::internal_GetState);
 		metaData.scriptClass->addInternalCall("Internal_SetState", &ScriptAnimation::internal_SetState);
+
+		metaData.scriptClass->addInternalCall("Internal_GetNumClips", &ScriptAnimation::internal_GetNumClips);
+		metaData.scriptClass->addInternalCall("Internal_GetClip", &ScriptAnimation::internal_GetClip);
+
+		metaData.scriptClass->addInternalCall("Internal_MapCurveToSceneObject", &ScriptAnimation::internal_MapCurveToSceneObject);
+		metaData.scriptClass->addInternalCall("Internal_UnmapSceneObject", &ScriptAnimation::internal_UnmapSceneObject);
+
+		metaData.scriptClass->addInternalCall("Internal_GetGenericCurveValue", &ScriptAnimation::internal_GetGenericCurveValue);
 
 		sOnEventTriggeredThunk = (OnEventTriggeredThunkDef)metaData.scriptClass->getMethod("Internal_OnEventTriggered", 2)->getThunk();
 	}
@@ -135,6 +144,23 @@ namespace BansheeEngine
 		return thisPtr->getInternal()->isPlaying();
 	}
 
+	UINT32 ScriptAnimation::internal_GetNumClips(ScriptAnimation* thisPtr)
+	{
+		return thisPtr->getInternal()->getNumClips();
+	}
+
+	MonoObject* ScriptAnimation::internal_GetClip(ScriptAnimation* thisPtr, UINT32 idx)
+	{
+		HAnimationClip clip = thisPtr->getInternal()->getClip(idx);
+		if (!clip.isLoaded())
+			return nullptr;
+
+		ScriptAnimationClip* scriptClip;
+		ScriptResourceManager::instance().getScriptResource(clip, &scriptClip, true);
+
+		return scriptClip->getManagedInstance();
+	}
+
 	bool ScriptAnimation::internal_GetState(ScriptAnimation* thisPtr, ScriptAnimationClip* clip, AnimationClipState* state)
 	{
 		HAnimationClip nativeClip;
@@ -151,6 +177,25 @@ namespace BansheeEngine
 			nativeClip = clip->getHandle();
 
 		thisPtr->getInternal()->setState(nativeClip, *state);
+	}
+
+	bool ScriptAnimation::internal_GetGenericCurveValue(ScriptAnimation* thisPtr, UINT32 curveIdx, float* value)
+	{
+		return thisPtr->getInternal()->getGenericCurveValue(curveIdx, *value);
+	}
+
+	void ScriptAnimation::internal_MapCurveToSceneObject(ScriptAnimation* thisPtr, MonoString* curve, ScriptSceneObject* so)
+	{
+		String curveName = MonoUtil::monoToString(curve);
+		HSceneObject soHandle = so->getNativeHandle();
+
+		thisPtr->getInternal()->mapCurveToSceneObject(curveName, soHandle);
+	}
+
+	void ScriptAnimation::internal_UnmapSceneObject(ScriptAnimation* thisPtr, ScriptSceneObject* so)
+	{
+		HSceneObject soHandle = so->getNativeHandle();
+		thisPtr->getInternal()->unmapSceneObject(soHandle);
 	}
 
 	MonoField* ScriptBlendClipInfo::clipField = nullptr;

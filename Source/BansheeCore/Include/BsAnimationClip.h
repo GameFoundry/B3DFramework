@@ -122,7 +122,7 @@ namespace BansheeEngine
 		void setEvents(const Vector<AnimationEvent>& events) { mEvents = events; }
 
 		/**
-		 * Maps skeleton bone names to animation clip names, and returns a set of indices that can be easily used for
+		 * Maps skeleton bone names to animation curve names, and returns a set of indices that can be easily used for
 		 * locating an animation curve based on the bone index.
 		 *
 		 * @param[in]	skeleton	Skeleton to create the mapping for.
@@ -131,6 +131,16 @@ namespace BansheeEngine
 		 *							no related animation curves will be assigned value -1.
 		 */
 		void getBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const;
+
+		/** 
+		 * Attempts to find translation/rotation/scale curves with the specified name and fills the mapping structure with
+		 * their indices, which can then be used for quick lookup.
+		 *
+		 * @param[in]	name		Name of the curves to look up.
+		 * @param[out]	mapping		Triple containing the translation/rotation/scale indices of the found curves. Indices
+		 *							will be -1 for curves that haven't been found.
+		 */
+		void getCurveMapping(const String& name, AnimationCurveMapping& mapping) const;
 
 		/** 
 		 * Checks are the curves contained within the clip additive. Additive clips are intended to be added on top of

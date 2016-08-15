@@ -140,7 +140,7 @@ namespace BansheeEditor
         /// <summary>
         /// Attempts to save the current scene, and keeps retrying if failed or until user cancels.
         /// </summary>
-        static void TrySaveScene()
+        static void TrySaveSceneOnQuit()
         {
             Action success = () =>
             {
@@ -148,7 +148,7 @@ namespace BansheeEditor
                 EditorApplication.Quit();
             };
 
-            EditorApplication.SaveScene(success, TrySaveScene);
+            EditorApplication.SaveScene(success, TrySaveSceneOnQuit);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace BansheeEditor
             (result) =>
             {
                 if (result == DialogBox.ResultType.Yes)
-                    TrySaveScene();
+                    TrySaveSceneOnQuit();
                 else if (result == DialogBox.ResultType.No)
                 {
                     EditorApplication.SaveProject();
