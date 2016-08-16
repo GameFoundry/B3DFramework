@@ -6,11 +6,14 @@
 
 namespace BansheeEngine
 {
-	MaterialParams::MaterialParams(const HShader& shader)
+	MaterialParamsBase::MaterialParamsBase(
+		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams,
+		const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams,
+		const Map<String, SHADER_OBJECT_PARAM_DESC>& bufferParams,
+		const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams)
 	{
 		mDataSize = 0;
 
-		auto& dataParams = shader->getDataParams();
 		for (auto& param : dataParams)
 		{
 			UINT32 arraySize = param.second.arraySize > 1 ? param.second.arraySize : 1;
@@ -18,12 +21,7 @@ namespace BansheeEngine
 			UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
 
 			mDataSize += arraySize * paramSize;
-
 		}
-
-		auto& textureParams = shader->getTextureParams();
-		auto& bufferParams = shader->getBufferParams();
-		auto& samplerParams = shader->getSamplerParams();
 
 		mNumTextureParams = (UINT32)textureParams.size();
 		mNumBufferParams = (UINT32)bufferParams.size();
@@ -31,16 +29,8 @@ namespace BansheeEngine
 
 		mDataParamsBuffer = mAlloc.alloc(mDataSize);
 		memset(mDataParamsBuffer, 0, mDataSize);
-
-		mStructParams = mAlloc.construct<StructParamData>(mNumStructParams);
-		mTextureParams = mAlloc.construct<TextureParamData>(mNumTextureParams);
-		mBufferParams = mAlloc.construct<SPtr<GpuBuffer>>(mNumBufferParams);
-		mSamplerStateParams = mAlloc.construct<SPtr<SamplerState>>(mNumSamplerParams);
-		mDefaultTextureParams = mAlloc.construct<HTexture>(mNumTextureParams);
-		mDefaultSamplerStateParams = mAlloc.construct<SPtr<SamplerState>>(mNumSamplerParams);
-
+		
 		UINT32 dataBufferIdx = 0;
-		UINT32 structIdx = 0;
 		UINT32 textureIdx = 0;
 		UINT32 bufferIdx = 0;
 		UINT32 samplerIdx = 0;
@@ -53,25 +43,12 @@ namespace BansheeEngine
 			dataParam.arraySize = arraySize;
 			dataParam.type = ParamType::Data;
 			dataParam.dataType = entry.second.type;
-			
+
 			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)dataParam.dataType];
 			UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
 
 			dataParam.index = dataBufferIdx;
 			dataBufferIdx += arraySize * paramSize;
-
-			if(entry.second.type == GPDT_STRUCT)
-			{
-				for (UINT32 i = 0; i < arraySize; i++)
-				{
-					StructParamData& param = mStructParams[structIdx];
-					param.dataSize = entry.second.elementSize;
-					param.data = mAlloc.alloc(param.dataSize);
-
-					dataParam.index = structIdx;
-					structIdx++;
-				}
-			}
 		}
 
 		for (auto& entry : textureParams)
@@ -82,12 +59,6 @@ namespace BansheeEngine
 			dataParam.type = ParamType::Texture;
 			dataParam.dataType = GPDT_UNKNOWN;
 			dataParam.index = textureIdx;
-
-			TextureParamData& param = mTextureParams[textureIdx];
-			param.isLoadStore = false;
-
-			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultTextureParams[textureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
 
 			textureIdx++;
 		}
@@ -113,167 +84,18 @@ namespace BansheeEngine
 			dataParam.dataType = GPDT_UNKNOWN;
 			dataParam.index = samplerIdx;
 
-			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultSamplerStateParams[textureIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
-
 			samplerIdx++;
 		}
 	}
 
-	MaterialParams::~MaterialParams()
+	MaterialParamsBase::~MaterialParamsBase()
 	{
-		if (mStructParams != nullptr)
-		{
-			for (UINT32 i = 0; mNumStructParams; i++)
-				mAlloc.free(mStructParams[i].data);
-		}
-
 		mAlloc.free(mDataParamsBuffer);
-		mAlloc.destruct(mStructParams, mNumStructParams);
-		mAlloc.destruct(mTextureParams, mNumTextureParams);
-		mAlloc.destruct(mBufferParams, mNumBufferParams);
-		mAlloc.destruct(mSamplerStateParams, mNumSamplerParams);
-
-		if(mDefaultTextureParams != nullptr)
-			mAlloc.destruct(mDefaultTextureParams, mNumTextureParams);
-
-		if (mDefaultSamplerStateParams != nullptr)
-			mAlloc.destruct(mDefaultSamplerStateParams, mNumSamplerParams);
-
+		
 		mAlloc.clear();
 	}
 
-	void MaterialParams::getStructData(const String& name, void* value, UINT32 size, UINT32 arrayIdx) const
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, arrayIdx);
-			return;
-		}
-
-		getStructData(param->index + arrayIdx, value, size);
-	}
-
-	void MaterialParams::setStructData(const String& name, const void* value, UINT32 size, UINT32 arrayIdx)
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, arrayIdx);
-			return;
-		}
-
-		setStructData(param->index + arrayIdx, value, size);
-	}
-
-	void MaterialParams::getTexture(const String& name, HTexture& value) const
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		getTexture(param->index, value);
-	}
-
-	void MaterialParams::setTexture(const String& name, const HTexture& value)
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		setTexture(param->index, value);
-	}
-
-	void MaterialParams::getLoadStoreTexture(const String& name, HTexture& value, TextureSurface& surface) const
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		getLoadStoreTexture(param->index, value, surface);
-	}
-
-	void MaterialParams::setLoadStoreTexture(const String& name, const HTexture& value, const TextureSurface& surface)
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		setLoadStoreTexture(param->index, value, surface);
-	}
-
-	void MaterialParams::getBuffer(const String& name, SPtr<GpuBuffer>& value) const
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		getBuffer(param->index, value);
-	}
-
-	void MaterialParams::setBuffer(const String& name, const SPtr<GpuBuffer>& value)
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		setBuffer(param->index, value);
-	}
-
-	void MaterialParams::getSamplerState(const String& name, SPtr<SamplerState>& value) const
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
-		if (result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		getSamplerState(param->index, value);
-	}
-
-	void MaterialParams::setSamplerState(const String& name, const SPtr<SamplerState>& value)
-	{
-		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
-		if(result != GetParamResult::Success)
-		{
-			reportGetParamError(result, name, 0);
-			return;
-		}
-
-		setSamplerState(param->index, value);
-	}
-
-	MaterialParams::GetParamResult MaterialParams::getParamData(const String& name, ParamType type, GpuParamDataType dataType,
+	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamData(const String& name, ParamType type, GpuParamDataType dataType,
 		UINT32 arrayIdx, const ParamData** output) const
 	{
 		auto iterFind = mParams.find(name);
@@ -292,9 +114,9 @@ namespace BansheeEngine
 		return GetParamResult::Success;
 	}
 
-	void MaterialParams::reportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const
+	void MaterialParamsBase::reportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const
 	{
-		switch(errorCode)
+		switch (errorCode)
 		{
 		case GetParamResult::NotFound:
 			LOGWRN("Material doesn't have a parameter named " + name + ".");
@@ -310,9 +132,252 @@ namespace BansheeEngine
 		}
 	}
 
-	void MaterialParams::getStructData(UINT32 index, void* value, UINT32 size) const
+	RTTITypeBase* MaterialParamStructData::getRTTIStatic()
 	{
-		const StructParamData& structParam = mStructParams[index];
+		return MaterialParamStructDataRTTI::instance();
+	}
+
+	RTTITypeBase* MaterialParamStructData::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	RTTITypeBase* MaterialParamTextureData::getRTTIStatic()
+	{
+		return MaterialParamTextureDataRTTI::instance();
+	}
+
+	RTTITypeBase* MaterialParamTextureData::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	template<bool Core>
+	TMaterialParams<Core>::TMaterialParams(const ShaderType& shader)
+		:MaterialParamsBase(
+			shader->getDataParams(),
+			shader->getTextureParams(),
+			shader->getBufferParams(),
+			shader->getSamplerParams())
+	{
+		auto& dataParams = shader->getDataParams();
+		auto& textureParams = shader->getTextureParams();
+		auto& bufferParams = shader->getBufferParams();
+		auto& samplerParams = shader->getSamplerParams();
+
+		mStructParams = mAlloc.construct<ParamStructDataType>(mNumStructParams);
+		mTextureParams = mAlloc.construct<ParamTextureDataType>(mNumTextureParams);
+		mBufferParams = mAlloc.construct<BufferType>(mNumBufferParams);
+		mSamplerStateParams = mAlloc.construct<SamplerType>(mNumSamplerParams);
+		mDefaultTextureParams = mAlloc.construct<TextureType>(mNumTextureParams);
+		mDefaultSamplerStateParams = mAlloc.construct<SamplerType>(mNumSamplerParams);
+
+		UINT32 structIdx = 0;
+		UINT32 textureIdx = 0;
+		UINT32 bufferIdx = 0;
+		UINT32 samplerIdx = 0;
+
+		for (auto& entry : dataParams)
+		{
+			if(entry.second.type == GPDT_STRUCT)
+			{
+				UINT32 arraySize = entry.second.arraySize > 1 ? entry.second.arraySize : 1;
+				for (UINT32 i = 0; i < arraySize; i++)
+				{
+					ParamStructDataType& param = mStructParams[structIdx];
+					param.dataSize = entry.second.elementSize;
+					param.data = mAlloc.alloc(param.dataSize);
+
+					structIdx++;
+				}
+			}
+		}
+
+		for (auto& entry : textureParams)
+		{
+			ParamTextureDataType& param = mTextureParams[textureIdx];
+			param.isLoadStore = false;
+
+			if (entry.second.defaultValueIdx != (UINT32)-1)
+				mDefaultTextureParams[textureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
+
+			textureIdx++;
+		}
+
+		for (auto& entry : samplerParams)
+		{
+			if (entry.second.defaultValueIdx != (UINT32)-1)
+				mDefaultSamplerStateParams[samplerIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
+
+			samplerIdx++;
+		}
+	}
+
+	template<bool Core>
+	TMaterialParams<Core>::~TMaterialParams()
+	{
+		if (mStructParams != nullptr)
+		{
+			for (UINT32 i = 0; mNumStructParams; i++)
+				mAlloc.free(mStructParams[i].data);
+		}
+
+		mAlloc.destruct(mStructParams, mNumStructParams);
+		mAlloc.destruct(mTextureParams, mNumTextureParams);
+		mAlloc.destruct(mBufferParams, mNumBufferParams);
+		mAlloc.destruct(mSamplerStateParams, mNumSamplerParams);
+
+		if(mDefaultTextureParams != nullptr)
+			mAlloc.destruct(mDefaultTextureParams, mNumTextureParams);
+
+		if (mDefaultSamplerStateParams != nullptr)
+			mAlloc.destruct(mDefaultSamplerStateParams, mNumSamplerParams);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getStructData(const String& name, void* value, UINT32 size, UINT32 arrayIdx) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, arrayIdx);
+			return;
+		}
+
+		getStructData(param->index + arrayIdx, value, size);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setStructData(const String& name, const void* value, UINT32 size, UINT32 arrayIdx)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, arrayIdx);
+			return;
+		}
+
+		setStructData(param->index + arrayIdx, value, size);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getTexture(const String& name, TextureType& value) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getTexture(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setTexture(const String& name, const TextureType& value)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setTexture(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getLoadStoreTexture(const String& name, TextureType& value, TextureSurface& surface) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getLoadStoreTexture(param->index, value, surface);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setLoadStoreTexture(param->index, value, surface);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getBuffer(const String& name, BufferType& value) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getBuffer(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setBuffer(const String& name, const BufferType& value)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setBuffer(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getSamplerState(const String& name, SamplerType& value) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getSamplerState(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setSamplerState(const String& name, const SamplerType& value)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
+		if(result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setSamplerState(param->index, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getStructData(UINT32 index, void* value, UINT32 size) const
+	{
+		const ParamStructDataType& structParam = mStructParams[index];
 		if (structParam.dataSize != size)
 		{
 			LOGWRN("Size mismatch when writing to a struct. Provided size was " + toString(size) + " bytes but the "
@@ -323,9 +388,10 @@ namespace BansheeEngine
 		memcpy(value, structParam.data, structParam.dataSize);
 	}
 
-	void MaterialParams::setStructData(UINT32 index, const void* value, UINT32 size)
+	template<bool Core>
+	void TMaterialParams<Core>::setStructData(UINT32 index, const void* value, UINT32 size)
 	{
-		const StructParamData& structParam = mStructParams[index];
+		const ParamStructDataType& structParam = mStructParams[index];
 		if (structParam.dataSize != size)
 		{
 			LOGWRN("Size mismatch when writing to a struct. Provided size was " + toString(size) + " bytes but the "
@@ -336,94 +402,97 @@ namespace BansheeEngine
 		memcpy(structParam.data, value, structParam.dataSize);
 	}
 
-	UINT32 MaterialParams::getStructSize(UINT32 index) const
+	template<bool Core>
+	UINT32 TMaterialParams<Core>::getStructSize(UINT32 index) const
 	{
-		const StructParamData& structParam = mStructParams[index];
+		const ParamStructDataType& structParam = mStructParams[index];
 		return structParam.dataSize;
 	}
 
-	void MaterialParams::getTexture(UINT32 index, HTexture& value) const
+	template<bool Core>
+	void TMaterialParams<Core>::getTexture(UINT32 index, TextureType& value) const
 	{
-		TextureParamData& textureParam = mTextureParams[index];
+		ParamTextureDataType& textureParam = mTextureParams[index];
 		value = textureParam.value;
 	}
-
-	void MaterialParams::setTexture(UINT32 index, const HTexture& value)
+	
+	template<bool Core>
+	void TMaterialParams<Core>::setTexture(UINT32 index, const TextureType& value)
 	{
-		TextureParamData& textureParam = mTextureParams[index];
+		ParamTextureDataType& textureParam = mTextureParams[index];
 		textureParam.value = value;
 		textureParam.isLoadStore = false;
 	}
 
-	void MaterialParams::getBuffer(UINT32 index, SPtr<GpuBuffer>& value) const
+	template<bool Core>
+	void TMaterialParams<Core>::getBuffer(UINT32 index, BufferType& value) const
 	{
 		value = mBufferParams[index];
 	}
 
-	void MaterialParams::setBuffer(UINT32 index, const SPtr<GpuBuffer>& value)
+	template<bool Core>
+	void TMaterialParams<Core>::setBuffer(UINT32 index, const BufferType& value)
 	{
 		mBufferParams[index] = value;
 	}
 
-	void MaterialParams::getLoadStoreTexture(UINT32 index, HTexture& value, TextureSurface& surface) const
+	template<bool Core>
+	void TMaterialParams<Core>::getLoadStoreTexture(UINT32 index, TextureType& value, TextureSurface& surface) const
 	{
-		TextureParamData& textureParam = mTextureParams[index];
+		ParamTextureDataType& textureParam = mTextureParams[index];
 		value = textureParam.value;
 		surface = textureParam.surface;
 	}
 
-	void MaterialParams::setLoadStoreTexture(UINT32 index, const HTexture& value, const TextureSurface& surface)
+	template<bool Core>
+	void TMaterialParams<Core>::setLoadStoreTexture(UINT32 index, const TextureType& value, const TextureSurface& surface)
 	{
-		TextureParamData& textureParam = mTextureParams[index];
+		ParamTextureDataType& textureParam = mTextureParams[index];
 		textureParam.value = value;
 		textureParam.isLoadStore = true;
 		textureParam.surface = surface;
 	}
 
-	bool MaterialParams::getIsTextureLoadStore(UINT32 index) const
+	template<bool Core>
+	bool TMaterialParams<Core>::getIsTextureLoadStore(UINT32 index) const
 	{
 		return mTextureParams[index].isLoadStore;
 	}
 
-	void MaterialParams::getSamplerState(UINT32 index, SPtr<SamplerState>& value) const
+	template<bool Core>
+	void TMaterialParams<Core>::getSamplerState(UINT32 index, SamplerType& value) const
 	{
 		value = mSamplerStateParams[index];
 	}
 
-	void MaterialParams::setSamplerState(UINT32 index, const SPtr<SamplerState>& value)
+	template<bool Core>
+	void TMaterialParams<Core>::setSamplerState(UINT32 index, const SamplerType& value)
 	{
 		mSamplerStateParams[index] = value;
 	}
 
-	void MaterialParams::getDefaultTexture(UINT32 index, HTexture& value) const
+	template<bool Core>
+	void TMaterialParams<Core>::getDefaultTexture(UINT32 index, TextureType& value) const
 	{
 		value = mDefaultTextureParams[index];
 	}
 
-	void MaterialParams::getDefaultSamplerState(UINT32 index, SPtr<SamplerState>& value) const
+	template<bool Core>
+	void TMaterialParams<Core>::getDefaultSamplerState(UINT32 index, SamplerType& value) const
 	{
 		value = mDefaultSamplerStateParams[index];
 	}
 
-	RTTITypeBase* MaterialParams::TextureParamData::getRTTIStatic()
-	{
-		return TextureParamDataRTTI::instance();
-	}
+	template class TMaterialParams<true>;
+	template class TMaterialParams<false>;
 
-	RTTITypeBase* MaterialParams::TextureParamData::getRTTI() const
-	{
-		return getRTTIStatic();
-	}
+	MaterialParamsCore::MaterialParamsCore(const SPtr<ShaderCore>& shader)
+		:TMaterialParams(shader)
+	{ }
 
-	RTTITypeBase* MaterialParams::StructParamData::getRTTIStatic()
-	{
-		return StructParamDataRTTI::instance();
-	}
-
-	RTTITypeBase* MaterialParams::StructParamData::getRTTI() const
-	{
-		return getRTTIStatic();
-	}
+	MaterialParams::MaterialParams(const HShader& shader)
+		:TMaterialParams(shader)
+	{ }
 
 	RTTITypeBase* MaterialParams::getRTTIStatic()
 	{

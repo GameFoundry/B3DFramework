@@ -15,24 +15,18 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	class BS_CORE_EXPORT TextureParamDataRTTI : public RTTIType<MaterialParams::TextureParamData, IReflectable, TextureParamDataRTTI>
+	class BS_CORE_EXPORT MaterialParamTextureDataRTTI : public RTTIType<MaterialParamTextureData, IReflectable, MaterialParamTextureDataRTTI>
 	{
 	public:
-		HTexture& getTexture(MaterialParams::TextureParamData* obj) { return obj->value; }
-		void setTexture(MaterialParams::TextureParamData* obj, HTexture& value) { obj->value = value; }
-
-		bool& getIsLoadStore(MaterialParams::TextureParamData* obj) { return obj->isLoadStore; }
-		void setIsLoadStore(MaterialParams::TextureParamData* obj, bool& value) { obj->isLoadStore = value; }
-
-		TextureSurface& getSurface(MaterialParams::TextureParamData* obj) { return obj->surface; }
-		void setSurface(MaterialParams::TextureParamData* obj, TextureSurface& value) { obj->surface = value; }
-
-		TextureParamDataRTTI()
-		{
-			addReflectableField("texture", 0, &TextureParamDataRTTI::getTexture, &TextureParamDataRTTI::setTexture);
-			addPlainField("isLoadStore", 1, &TextureParamDataRTTI::getIsLoadStore, &TextureParamDataRTTI::setIsLoadStore);
-			addPlainField("surface", 2, &TextureParamDataRTTI::getSurface, &TextureParamDataRTTI::setSurface);
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL(value, 0)
+			BS_RTTI_MEMBER_PLAIN(isLoadStore, 1)
+			BS_RTTI_MEMBER_PLAIN(surface, 2)
+		BS_END_RTTI_MEMBERS
+		
+		MaterialParamTextureDataRTTI()
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -47,21 +41,21 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return bs_shared_ptr_new<MaterialParams::TextureParamData>();
+			return bs_shared_ptr_new<MaterialParamTextureData>();
 		}
 	};
 
-	class BS_CORE_EXPORT StructParamDataRTTI : public RTTIType<MaterialParams::StructParamData, IReflectable, StructParamDataRTTI>
+	class BS_CORE_EXPORT MaterialParamStructDataRTTI : public RTTIType<MaterialParamStructData, IReflectable, MaterialParamStructDataRTTI>
 	{
 	public:
-		SPtr<DataStream> getDataBuffer(MaterialParams::StructParamData* obj, UINT32& size)
+		SPtr<DataStream> getDataBuffer(MaterialParamStructData* obj, UINT32& size)
 		{
 			size = obj->dataSize;
 
 			return bs_shared_ptr_new<MemoryDataStream>(obj->data, obj->dataSize, false);
 		}
 
-		void setDataBuffer(MaterialParams::StructParamData* obj, const SPtr<DataStream>& value, UINT32 size)
+		void setDataBuffer(MaterialParamStructData* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
 			obj->data = (UINT8*)bs_alloc(size);
 			value->read(obj->data, size);
@@ -69,9 +63,9 @@ namespace BansheeEngine
 			obj->dataSize = size;
 		}
 
-		StructParamDataRTTI()
+		MaterialParamStructDataRTTI()
 		{
-			addDataBlockField("dataBuffer", 0, &StructParamDataRTTI::getDataBuffer, &StructParamDataRTTI::setDataBuffer, 0);
+			addDataBlockField("dataBuffer", 0, &MaterialParamStructDataRTTI::getDataBuffer, &MaterialParamStructDataRTTI::setDataBuffer, 0);
 		}
 
 		const String& getRTTIName() override
@@ -87,7 +81,7 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return bs_shared_ptr_new<MaterialParams::StructParamData>();
+			return bs_shared_ptr_new<MaterialParamStructData>();
 		}
 	};
 
@@ -137,10 +131,10 @@ namespace BansheeEngine
 			obj->mDataSize = size;
 		}
 
-		MaterialParams::StructParamData& getStructParam(MaterialParams* obj, UINT32 idx) { return obj->mStructParams[idx]; }
-		void setStructParam(MaterialParams* obj, UINT32 idx, MaterialParams::StructParamData& param)
+		MaterialParamStructData& getStructParam(MaterialParams* obj, UINT32 idx) { return obj->mStructParams[idx]; }
+		void setStructParam(MaterialParams* obj, UINT32 idx, MaterialParamStructData& param)
 		{
-			MaterialParams::StructParamData& newStructParam = obj->mStructParams[idx];
+			MaterialParamStructData& newStructParam = obj->mStructParams[idx];
 			newStructParam.data = (UINT8*)obj->mAlloc.alloc(param.dataSize);
 			memcpy(newStructParam.data, param.data, param.dataSize);
 			newStructParam.dataSize = param.dataSize;
@@ -152,16 +146,16 @@ namespace BansheeEngine
 		void setStructArraySize(MaterialParams* obj, UINT32 size)
 		{
 			obj->mNumStructParams = size;
-			obj->mStructParams = obj->mAlloc.construct<MaterialParams::StructParamData>(size);
+			obj->mStructParams = obj->mAlloc.construct<MaterialParamStructData>(size);
 		}
 
-		MaterialParams::TextureParamData& getTextureParam(MaterialParams* obj, UINT32 idx) { return obj->mTextureParams[idx]; }
-		void setTextureParam(MaterialParams* obj, UINT32 idx, MaterialParams::TextureParamData& param) { obj->mTextureParams[idx] = param; }
+		MaterialParamTextureData& getTextureParam(MaterialParams* obj, UINT32 idx) { return obj->mTextureParams[idx]; }
+		void setTextureParam(MaterialParams* obj, UINT32 idx, MaterialParamTextureData& param) { obj->mTextureParams[idx] = param; }
 		UINT32 getTextureArraySize(MaterialParams* obj) { return (UINT32)obj->mNumTextureParams; }
 		void setTextureArraySize(MaterialParams* obj, UINT32 size)
 		{
 			obj->mNumTextureParams = size;
-			obj->mTextureParams = obj->mAlloc.construct<MaterialParams::TextureParamData>(size);
+			obj->mTextureParams = obj->mAlloc.construct<MaterialParamTextureData>(size);
 		}
 
 		SPtr<SamplerState> getSamplerStateParam(MaterialParams* obj, UINT32 idx) { return obj->mSamplerStateParams[idx]; }

@@ -840,7 +840,7 @@ namespace BansheeEngine
 	public:
 		friend class MaterialRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */
