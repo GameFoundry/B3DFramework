@@ -42,6 +42,8 @@
 #   define BS_COMPILER BS_COMPILER_MSVC
 #   define BS_COMP_VER _MSC_VER
 #	define BS_THREADLOCAL __declspec(thread)
+#	undef __PRETTY_FUNCTION__
+#	define __PRETTY_FUNCTION__ __FUNCSIG__
 #else
 #   pragma error "No known compiler. "
 

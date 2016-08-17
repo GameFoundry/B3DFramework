@@ -4,11 +4,6 @@
 
 #include "BsPrerequisitesUtil.h"
 
-#if defined(_MSC_VER)
-#undef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ __FUNCSIG__
-#endif
-
 namespace BansheeEngine
 {
 	/** @addtogroup Error

@@ -102,7 +102,10 @@ namespace BansheeEngine
 
 		void setParamData(MaterialParams* obj, UINT32 idx, MaterialParam& param)
 		{
-			obj->mParams[param.name] = param.data;
+			UINT32 paramIdx = (UINT32)obj->mParams.size();
+			obj->mParams.push_back(param.data);
+
+			obj->mParamLookup[param.name] = paramIdx;
 		}
 
 		UINT32 getParamDataArraySize(MaterialParams* obj)
@@ -158,13 +161,13 @@ namespace BansheeEngine
 			obj->mTextureParams = obj->mAlloc.construct<MaterialParamTextureData>(size);
 		}
 
-		SPtr<SamplerState> getSamplerStateParam(MaterialParams* obj, UINT32 idx) { return obj->mSamplerStateParams[idx]; }
-		void setSamplerStateParam(MaterialParams* obj, UINT32 idx, SPtr<SamplerState> param) { obj->mSamplerStateParams[idx] = param; }
+		SPtr<SamplerState> getSamplerStateParam(MaterialParams* obj, UINT32 idx) { return obj->mSamplerStateParams[idx].value; }
+		void setSamplerStateParam(MaterialParams* obj, UINT32 idx, SPtr<SamplerState> param) { obj->mSamplerStateParams[idx].value = param; }
 		UINT32 getSamplerStateArraySize(MaterialParams* obj) { return (UINT32)obj->mNumSamplerParams; }
 		void setSamplerStateArraySize(MaterialParams* obj, UINT32 size)
 		{
 			obj->mNumSamplerParams = size;
-			obj->mSamplerStateParams = obj->mAlloc.construct<SPtr<SamplerState>>(size);
+			obj->mSamplerStateParams = obj->mAlloc.construct<MaterialParamSamplerStateData>(size);
 		}
 
 		MaterialParamsRTTI()
@@ -187,10 +190,13 @@ namespace BansheeEngine
 		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			MaterialParams* paramsObj = static_cast<MaterialParams*>(obj);
-			Vector<MaterialParam> matParams;
 
-			for(auto& entry : paramsObj->mParams)
-				matParams.push_back({ entry.first, entry.second });
+			Vector<MaterialParam> matParams;
+			for (auto& entry : paramsObj->mParamLookup)
+			{
+				UINT32 paramIdx = entry.second;
+				matParams.push_back({ entry.first, paramsObj->mParams[paramIdx] });
+			}
 
 			paramsObj->mRTTIData = matParams;
 		}
@@ -215,6 +221,37 @@ namespace BansheeEngine
 		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<MaterialParams>();
+		}
+	};
+
+	template<> struct RTTIPlainType<MaterialParamsBase::ParamData>
+	{
+		enum { id = TID_MaterialParamData }; enum { hasDynamicSize = 0 };
+
+		static void toMemory(const MaterialParamsBase::ParamData& data, char* memory)
+		{
+			memory = rttiWriteElem(data.type, memory);
+			memory = rttiWriteElem(data.dataType, memory);
+			memory = rttiWriteElem(data.index, memory);
+			memory = rttiWriteElem(data.arraySize, memory);
+		}
+
+		static UINT32 fromMemory(MaterialParamsBase::ParamData& data, char* memory)
+		{
+			UINT32 size = 0;
+			memory = rttiReadElem(data.type, memory, size);
+			memory = rttiReadElem(data.dataType, memory, size);
+			memory = rttiReadElem(data.index, memory, size);
+			memory = rttiReadElem(data.arraySize, memory, size);
+			data.dirtyFlags = (UINT32)-1;
+
+			return size;
+		}
+
+		static UINT32 getDynamicSize(const MaterialParamsBase::ParamData& data)
+		{
+			assert(false);
+			return 0;
 		}
 	};
 

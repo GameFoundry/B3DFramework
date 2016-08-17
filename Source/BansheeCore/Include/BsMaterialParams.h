@@ -6,14 +6,6 @@
 #include "BsIReflectable.h"
 #include "BsStaticAlloc.h"
 #include "BsVector2.h"
-#include "BsVector3.h"
-#include "BsVector4.h"
-#include "BsVector2I.h"
-#include "BsVectorNI.h"
-#include "BsColor.h"
-#include "BsMatrix3.h"
-#include "BsMatrix4.h"
-#include "BsMatrixNxM.h"
 #include "BsGpuParams.h"
 
 namespace BansheeEngine
@@ -51,6 +43,7 @@ namespace BansheeEngine
 			GpuParamDataType dataType;
 			UINT32 index;
 			UINT32 arraySize;
+			UINT32 dirtyFlags;
 		};
 
 		/** 
@@ -149,7 +142,7 @@ namespace BansheeEngine
 		void reportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const;
 
 		/**
-		 * Equivalent to getStructData(const String&, UINT32, T&) except it uses the internal parameter index
+		 * Equivalent to getDataParam(const String&, UINT32, T&) except it uses the internal parameter index
 		 * directly, avoiding the name lookup. Caller must guarantee the index is valid.
 		 */
 		template <typename T>
@@ -183,7 +176,8 @@ namespace BansheeEngine
 	protected:
 		const static UINT32 STATIC_BUFFER_SIZE = 256;
 
-		UnorderedMap<String, ParamData> mParams;
+		UnorderedMap<String, UINT32> mParamLookup;
+		Vector<ParamData> mParams;
 
 		UINT8* mDataParamsBuffer = nullptr;
 
@@ -238,6 +232,34 @@ namespace BansheeEngine
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Data for a single buffer parameter. */
+	class BS_CORE_EXPORT MaterialParamBufferDataCore
+	{
+	public:
+		SPtr<GpuBufferCore> value;
+	};
+
+	/** Data for a single buffer parameter. */
+	class BS_CORE_EXPORT MaterialParamBufferData
+	{
+	public:
+		SPtr<GpuBuffer> value;
+	};
+
+	/** Data for a single sampler state parameter. */
+	class BS_CORE_EXPORT MaterialParamSamplerStateDataCore
+	{
+	public:
+		SPtr<SamplerStateCore> value;
+	};
+
+	/** Data for a single sampler state parameter. */
+	class BS_CORE_EXPORT MaterialParamSamplerStateData
+	{
+	public:
+		SPtr<SamplerState> value;
+	};
+
 	/** Helper typedefs that reference types used by either core or sim thread implementation of TMaterialParams<Core>. */
 	template<bool Core> struct TMaterialParamsTypes { };
 	template<> struct TMaterialParamsTypes < false >
@@ -249,6 +271,8 @@ namespace BansheeEngine
 		typedef SPtr<GpuParamBlockBuffer> ParamsBufferType;
 		typedef MaterialParamStructData StructParamDataType;
 		typedef MaterialParamTextureData TextureParamDataType;
+		typedef MaterialParamBufferData BufferParamDataType;
+		typedef MaterialParamSamplerStateData SamplerStateParamDataType;
 		typedef HShader ShaderType;
 	};
 
@@ -261,6 +285,8 @@ namespace BansheeEngine
 		typedef SPtr<GpuParamBlockBufferCore> ParamsBufferType;
 		typedef MaterialParamStructDataCore StructParamDataType;
 		typedef MaterialParamTextureDataCore TextureParamDataType;
+		typedef MaterialParamBufferDataCore BufferParamDataType;
+		typedef MaterialParamSamplerStateDataCore SamplerStateParamDataType;
 		typedef SPtr<ShaderCore> ShaderType;
 	};
 
@@ -273,10 +299,11 @@ namespace BansheeEngine
 		typedef typename TMaterialParamsTypes<Core>::TextureType TextureType;
 		typedef typename TMaterialParamsTypes<Core>::BufferType BufferType;
 		typedef typename TMaterialParamsTypes<Core>::SamplerType SamplerType;
-		typedef typename TMaterialParamsTypes<Core>::ParamsBufferType ParamsBufferType;
 		typedef typename TMaterialParamsTypes<Core>::ShaderType ShaderType;
 		typedef typename TMaterialParamsTypes<Core>::StructParamDataType ParamStructDataType;
 		typedef typename TMaterialParamsTypes<Core>::TextureParamDataType ParamTextureDataType;
+		typedef typename TMaterialParamsTypes<Core>::BufferParamDataType ParamBufferDataType;
+		typedef typename TMaterialParamsTypes<Core>::SamplerStateParamDataType ParamSamplerStateDataType;
 
 		/** Creates a new material params object and initializes enough room for parameters from the provided shader. */
 		TMaterialParams(const ShaderType& shader);
@@ -469,8 +496,8 @@ namespace BansheeEngine
 	protected:
 		ParamStructDataType* mStructParams = nullptr;
 		ParamTextureDataType* mTextureParams = nullptr;
-		BufferType* mBufferParams = nullptr;
-		SamplerType* mSamplerStateParams = nullptr;
+		ParamBufferDataType* mBufferParams = nullptr;
+		ParamSamplerStateDataType* mSamplerStateParams = nullptr;
 		TextureType* mDefaultTextureParams = nullptr;
 		SamplerType* mDefaultSamplerStateParams = nullptr;
 	};
@@ -481,6 +508,15 @@ namespace BansheeEngine
 	public:
 		/** @copydoc TMaterialParams<Core>::TMaterialParams */
 		MaterialParamsCore(const SPtr<ShaderCore>& shader);
+
+		/** 
+		 * Updates the stored parameters from the provided buffer, allowing changed to be transfered between the sim and 
+		 * core thread material param objects. Buffer must be retrieved from MaterialParams::getSyncData. 
+		 *
+		 * @param[in]		buffer		Buffer containing the dirty data.
+		 * @param[in, out]	size		Size of the provided buffer.
+		 */
+		void setSyncData(UINT8* buffer, UINT32 size);
 	};
 
 	/** 
@@ -504,6 +540,17 @@ namespace BansheeEngine
 		/** @copydoc TMaterialParams<Core>::TMaterialParams */
 		MaterialParams(const HShader& shader);
 
+		/** 
+		 * Populates the provided buffer with parameters that can be used for syncing this object with its core-thread
+		 * counterpart. Can be applied by calling MaterialParamsCore::setSyncData.
+		 *
+		 * @param[in]		buffer		Pre-allocated buffer to store the sync data in. Set to null to calculate the size
+		 *								of the required buffer.
+		 * @param[in, out]	size		Size of the provided allocated buffer. Or if the buffer is null, this parameter will
+		 *								contain the required buffer size when the method executes.
+		 */
+		void getSyncData(UINT8* buffer, UINT32& size);
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -514,10 +561,6 @@ namespace BansheeEngine
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};
-
-	/** @cond SPECIALIZATIONS */
-	BS_ALLOW_MEMCPY_SERIALIZATION(MaterialParamsBase::ParamData);
-	/** @endcond */
 
 	/** @} */
 }
