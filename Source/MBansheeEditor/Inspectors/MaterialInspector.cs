@@ -17,6 +17,7 @@ namespace BansheeEditor
     {
         private MaterialParamGUI[] guiParams;
         private GUIResourceField shaderField;
+        private GUIEnumField builtinShaderField;
 
         /// <inheritdoc/>
         protected internal override void Initialize()
@@ -25,7 +26,25 @@ namespace BansheeEditor
             if (material == null)
                 return;
 
-            shaderField = new GUIResourceField(typeof(Shader), new LocEdString("Shader"));
+            Shader activeShader = material.Shader;
+            BuiltinShader builtinType = ShaderToBuiltin(activeShader);
+
+            builtinShaderField = new GUIEnumField(typeof(BuiltinShader), new LocEdString("Shader"));
+            builtinShaderField.Value = (ulong) builtinType;
+            builtinShaderField.OnSelectionChanged += x =>
+            {
+                BuiltinShader newBuiltinType = (BuiltinShader) x;
+
+                material.Shader = Builtin.GetShader(newBuiltinType);
+                EditorApplication.SetDirty(material);
+                RebuildParamGUI(material);
+
+                bool newIsCustom = newBuiltinType == BuiltinShader.Custom;
+                builtinShaderField.Active = !newIsCustom;
+                shaderField.Active = newIsCustom;
+            };
+
+            shaderField = new GUIResourceField(typeof(Shader), new LocEdString("Shader file"));
             shaderField.Value = material.Shader;
             shaderField.OnChanged += (x) =>
             {
@@ -36,6 +55,11 @@ namespace BansheeEditor
                 RebuildParamGUI(material);
             };
 
+            bool isCustom = builtinType == BuiltinShader.Custom;
+            builtinShaderField.Active = !isCustom;
+            shaderField.Active = isCustom;
+
+            Layout.AddElement(builtinShaderField);
             Layout.AddElement(shaderField);
 
             RebuildParamGUI(material);
@@ -81,6 +105,20 @@ namespace BansheeEditor
                 guiParams = CreateMaterialGUI(material, Layout);
         }
 
+        /// <summary>
+        /// Converts a shader resource into a builtin shader.
+        /// </summary>
+        /// <param name="shader">Shader resource to convert.</param>
+        /// <returns>Type of builtin shader, if any.</returns>
+        private BuiltinShader ShaderToBuiltin(Shader shader)
+        {
+            // Note: Need a better way to detect the builtin shader perhaps (store it in Material?)
+            Shader standardShader = Builtin.GetShader(BuiltinShader.Standard);
+            if(standardShader == shader)
+                return BuiltinShader.Standard;
+            
+            return BuiltinShader.Custom;
+        }
 
         /// <summary>
         /// Creates a set of objects in which each object represents a GUI for a material parameter.

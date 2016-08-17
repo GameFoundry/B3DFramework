@@ -36,7 +36,7 @@ namespace BansheeEditor
             string path = Path.Combine(folder, "New Material.asset");
             path = GetUniquePath(path);
 
-            Material material = new Material(Builtin.DiffuseShader);
+            Material material = new Material(Builtin.GetShader(BuiltinShader.Standard));
             ProjectLibrary.Create(material, path);
         }
 

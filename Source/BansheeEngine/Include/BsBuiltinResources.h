@@ -14,16 +14,22 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/**	Types of builtin meshes that are always available in the engine. */
+	/**	Types of builtin meshes that are always available. */
 	enum class BuiltinMesh
 	{
 		Box, Sphere, Cone, Quad, Disc
 	};
 
-	/**	Types of builtin textures that are always available in the engine. */
+	/**	Types of builtin textures that are always available. */
 	enum class BuiltinTexture
 	{
 		White, Black, Normal
+	};
+
+	/** Types of builtin shaders that are always available. */
+	enum class BuiltinShader
+	{
+		Standard, Custom
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */
@@ -82,7 +88,7 @@ namespace BansheeEngine
 		const PixelData& getBansheeIcon();
 
 		/**	Returns a shader used for rendering only a diffuse texture. */
-		HShader getDiffuseShader() const { return mShaderDiffuse; }
+		HShader getBuiltinShader(BuiltinShader type) const;
 
 		/**	Creates a material used for textual sprite rendering (for example text in GUI). */
 		HMaterial createSpriteTextMaterial() const;

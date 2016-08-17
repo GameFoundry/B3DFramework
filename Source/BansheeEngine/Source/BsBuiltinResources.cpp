@@ -1103,6 +1103,17 @@ namespace BansheeEngine
 		return gResources().load<Mesh>(meshPath);
 	}
 
+	HShader BuiltinResources::getBuiltinShader(BuiltinShader type) const
+	{
+		switch(type)
+		{
+		case BuiltinShader::Standard:
+				return mShaderDiffuse;
+		}
+
+		return HShader();
+	}
+
 	HTexture BuiltinResources::getTexture(BuiltinTexture type)
 	{
 		Path texturePath = Paths::getEngineDataPath();

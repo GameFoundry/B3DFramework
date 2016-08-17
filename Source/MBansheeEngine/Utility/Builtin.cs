@@ -8,6 +8,16 @@ namespace BansheeEngine
      *  @{
      */
 
+
+    /// <summary>
+    /// Available builtin shader types.
+    /// </summary>
+    public enum BuiltinShader // Note: Must match C++ BuiltinShader enum
+    {
+        Standard,
+        Custom
+    }
+
     /// <summary>
     /// Contains various builtin resources that are always available.
     /// </summary>
@@ -30,11 +40,14 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Returns the default shader to be used with renderables.
+        /// Returns one of the builtin shaders
         /// </summary>
-        public static Shader DiffuseShader
+        public static Shader GetShader(BuiltinShader shader)
         {
-            get { return Internal_GetDiffuseShader(); }
+            if (shader == BuiltinShader.Custom)
+                return null;
+
+            return Internal_GetBuiltinShader((int)shader);
         }
 
         /// <summary>
@@ -89,7 +102,7 @@ namespace BansheeEngine
         private static extern SpriteTexture Internal_GetWhiteTexture();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Shader Internal_GetDiffuseShader();
+        private static extern Shader Internal_GetBuiltinShader(int shaderType);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Mesh Internal_GetMesh(BuiltinMesh mesh);
