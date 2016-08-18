@@ -421,6 +421,7 @@ namespace BansheeEngine
 			lookup[PT_Int2] = { GPDT_INT2, false };
 			lookup[PT_Int3] = { GPDT_INT3, false };
 			lookup[PT_Int4] = { GPDT_INT4, false };
+			lookup[PT_Color] = { GPDT_COLOR, false };
 
 			lookup[PT_Mat2x2] = { GPDT_MATRIX_2X2, false };
 			lookup[PT_Mat2x3] = { GPDT_MATRIX_2X3, false };

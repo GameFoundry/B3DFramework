@@ -467,7 +467,7 @@ namespace BansheeEngine
 	public:
 		friend class ShaderRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */
@@ -487,7 +487,7 @@ namespace BansheeEngine
 	public:
 		friend class ShaderMetaDataRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

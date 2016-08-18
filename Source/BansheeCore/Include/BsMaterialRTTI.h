@@ -19,7 +19,7 @@ namespace BansheeEngine
 		HShader& getShader(Material* obj) { return obj->mShader; }
 		void setShader(Material* obj, HShader& val) { obj->mShader = val; }
 
-		SPtr<MaterialParams> getMaterialParams(Material* obj) { return obj->mCachedParams; }
+		SPtr<MaterialParams> getMaterialParams(Material* obj) { return obj->mParams; }
 		void setMaterialParams(Material* obj, SPtr<MaterialParams> value) { obj->mRTTIData = value; }
 
 	public:

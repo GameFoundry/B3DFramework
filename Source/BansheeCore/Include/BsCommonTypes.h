@@ -305,6 +305,7 @@ namespace BansheeEngine
 			lookup[(UINT32)GPDT_FLOAT2] = { 4, 8, 8, 1, 2 };
 			lookup[(UINT32)GPDT_FLOAT3] = { 4, 16, 16, 1, 3 };
 			lookup[(UINT32)GPDT_FLOAT4] = { 4, 16, 16, 1, 4 };
+			lookup[(UINT32)GPDT_COLOR]  = { 4, 16, 16, 1, 4 };
 			lookup[(UINT32)GPDT_MATRIX_2X2] = { 4, 16, 8, 2, 2 };
 			lookup[(UINT32)GPDT_MATRIX_2X3] = { 4, 32, 16, 2, 3 };
 			lookup[(UINT32)GPDT_MATRIX_2X4] = { 4, 32, 16, 2, 4 };

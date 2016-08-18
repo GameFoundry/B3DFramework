@@ -524,7 +524,7 @@ namespace BansheeEngine
 			}
 		}
 
-		return createStructParam(name, gpuParams);
+		return TMaterialParamStruct<Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -559,7 +559,7 @@ namespace BansheeEngine
 			}
 		}
 
-		return createTextureParam(name, gpuParams);
+		return TMaterialParamTexture<Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -594,7 +594,7 @@ namespace BansheeEngine
 			}
 		}
 
-		return createLoadStoreTextureParam(name, gpuParams);
+		return TMaterialParamLoadStoreTexture<Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -629,7 +629,7 @@ namespace BansheeEngine
 			}
 		}
 
-		return createBufferParam(name, gpuParams);
+		return TMaterialParamBuffer<Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -663,7 +663,7 @@ namespace BansheeEngine
 			}
 		}
 
-		return createSamplerStateParam(name, gpuParams);
+		return TMaterialParamSampState<Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -725,8 +725,7 @@ namespace BansheeEngine
 
 		if (isShaderValid(mShader))
 		{
-			createCachedParams(mShader);
-
+			mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
 			mBestTechnique = mShader->getBestTechnique();
 
 			if (mBestTechnique == nullptr)
@@ -1001,7 +1000,7 @@ namespace BansheeEngine
 			}
 		}
 
-		output = createDataParam(name, gpuParams);
+		output = TMaterialDataParam<T, Core>(name, mParams, gpuParams);
 	}
 
 	template<bool Core>
@@ -1066,9 +1065,10 @@ namespace BansheeEngine
 
 	MaterialCore::MaterialCore(const SPtr<ShaderCore>& shader, const SPtr<TechniqueCore>& bestTechnique,
 		const Set<String>& validShareableParamBlocks, const Map<String, String>& validParams,
-		const Vector<SPtr<PassParametersCore>>& passParams)
+		const SPtr<MaterialParamsCore>& materialParams, const Vector<SPtr<PassParametersCore>>& passParams)
 	{
 		mShader = shader;
+		mParams = materialParams;
 		mBestTechnique = bestTechnique;
 		mValidShareableParamBlocks = validShareableParamBlocks;
 		mValidParams = validParams;
@@ -1121,6 +1121,13 @@ namespace BansheeEngine
 		mBestTechnique = *technique;
 		technique->~SPtr<TechniqueCore>();
 		dataPtr += sizeof(SPtr<TechniqueCore>);
+
+		UINT32 paramsSize = 0;
+		dataPtr = rttiReadElem(paramsSize, dataPtr);
+		if (mParams != nullptr)
+			mParams->setSyncData((UINT8*)dataPtr, paramsSize);
+
+		dataPtr += paramsSize;
 	}
 
 	SPtr<MaterialCore> MaterialCore::create(const SPtr<ShaderCore>& shader)
@@ -1201,7 +1208,10 @@ namespace BansheeEngine
 				for (auto& passParam : mParametersPerPass)
 					passParams.push_back(convertParamsToCore(passParam));
 
-				material = new (bs_alloc<MaterialCore>()) MaterialCore(shader, technique, mValidShareableParamBlocks, mValidParams, passParams);
+				SPtr<MaterialParamsCore> materialParams = bs_shared_ptr_new<MaterialParamsCore>(shader, mParams);
+
+				material = new (bs_alloc<MaterialCore>()) MaterialCore(shader, technique, 
+					mValidShareableParamBlocks, mValidParams, materialParams, passParams);
 			}
 		}
 		
@@ -1218,9 +1228,13 @@ namespace BansheeEngine
 	{
 		UINT32 numPasses = (UINT32)mParametersPerPass.size();
 
-		UINT32 size = sizeof(UINT32) + numPasses * sizeof(SPtr<PassParametersCore>)
+		UINT32 paramsSize = 0;
+		if (mParams != nullptr)
+			mParams->getSyncData(nullptr, paramsSize);
+
+		UINT32 size = sizeof(UINT32) * 2 + numPasses * sizeof(SPtr<PassParametersCore>)
 			+ sizeof(SPtr<ShaderCore>) + sizeof(SPtr<TechniqueCore>) + rttiGetElemSize(mValidShareableParamBlocks)
-			+ rttiGetElemSize(mValidParams);
+			+ rttiGetElemSize(mValidParams) + paramsSize;
 
 		UINT8* buffer = allocator->alloc(size);
 		char* dataPtr = (char*)buffer;
@@ -1251,6 +1265,12 @@ namespace BansheeEngine
 			*technique = nullptr;
 
 		dataPtr += sizeof(SPtr<TechniqueCore>);
+
+		dataPtr = rttiWriteElem(paramsSize, dataPtr);
+		if (mParams != nullptr)
+			mParams->getSyncData((UINT8*)dataPtr, paramsSize);
+
+		dataPtr += paramsSize;
 
 		return CoreSyncData(buffer, size);
 	}
@@ -1292,7 +1312,7 @@ namespace BansheeEngine
 				mLoadFlags = Load_All;
 
 				// Shader about to change, so save parameters, rebuild material and restore parameters
-				SPtr<MaterialParams> oldParams = mCachedParams;
+				SPtr<MaterialParams> oldParams = mParams;
 
 				initBestTechnique();
 				markCoreDirty();
@@ -1311,11 +1331,6 @@ namespace BansheeEngine
 				markListenerResourcesDirty(); // Need to register resources dependent on shader now
 			}
 		}
-	}
-
-	void Material::createCachedParams(const HShader& shader)
-	{
-		mCachedParams = bs_shared_ptr_new<MaterialParams>(shader);
 	}
 
 	void Material::notifyResourceLoaded(const HResource& resource)

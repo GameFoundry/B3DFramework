@@ -502,10 +502,15 @@ namespace BansheeEngine
 		SamplerType* mDefaultSamplerStateParams = nullptr;
 	};
 
+	class MaterialParams;
+
 	/** Core thread version of MaterialParams. */
 	class BS_CORE_EXPORT MaterialParamsCore : public TMaterialParams<true>
 	{
 	public:
+		/** Initializes the core thread version of MaterialParams from its sim thread counterpart. */
+		MaterialParamsCore(const SPtr<ShaderCore>& shader, const SPtr<MaterialParams>& params);
+		
 		/** @copydoc TMaterialParams<Core>::TMaterialParams */
 		MaterialParamsCore(const SPtr<ShaderCore>& shader);
 
@@ -550,6 +555,9 @@ namespace BansheeEngine
 		 *								contain the required buffer size when the method executes.
 		 */
 		void getSyncData(UINT8* buffer, UINT32& size);
+
+	private:
+		friend class MaterialParamsCore;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

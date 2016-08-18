@@ -4,6 +4,7 @@
 #include "BsMaterial.h"
 #include "BsTexture.h"
 #include "BsMesh.h"
+#include "BsShader.h"
 #include "BsRendererUtility.h"
 #include "BsCoreThread.h"
 
@@ -28,8 +29,14 @@ namespace BansheeEngine
 		// Make sure that mMaterial assignment completes on the previous thread before continuing
 		std::atomic_thread_fence(std::memory_order_acquire);
 
-		mTextureParam = mMaterial->getParamTexture("mainTexture");
-		mSamplerParam = mMaterial->getParamSamplerState("mainTexSamp");
+		SPtr<ShaderCore> shader = mMaterial->getShader();
+
+		if(shader->hasTextureParam("mainTexture"))
+		{
+			mTextureParam = mMaterial->getParamTexture("mainTexture");
+			mSamplerParam = mMaterial->getParamSamplerState("mainTexSamp");
+		}
+
 		mTintParam = mMaterial->getParamColor("tint");
 		mInvViewportWidthParam = mMaterial->getParamFloat("invViewportWidth");
 		mInvViewportHeightParam = mMaterial->getParamFloat("invViewportHeight");

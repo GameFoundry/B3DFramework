@@ -50,7 +50,7 @@ namespace BansheeEngine
 			dataParam.arraySize = arraySize;
 			dataParam.type = ParamType::Data;
 			dataParam.dataType = entry.second.type;
-			dataParam.dirtyFlags = (UINT32)-1;
+			dataParam.dirtyFlags = 0xFFFFFFFF;
 
 			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)dataParam.dataType];
 			UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
@@ -71,7 +71,7 @@ namespace BansheeEngine
 			dataParam.type = ParamType::Texture;
 			dataParam.dataType = GPDT_UNKNOWN;
 			dataParam.index = textureIdx;
-			dataParam.dirtyFlags = (UINT32)-1;
+			dataParam.dirtyFlags = 0xFFFFFFFF;
 
 			textureIdx++;
 		}
@@ -88,7 +88,7 @@ namespace BansheeEngine
 			dataParam.type = ParamType::Buffer;
 			dataParam.dataType = GPDT_UNKNOWN;
 			dataParam.index = bufferIdx;
-			dataParam.dirtyFlags = (UINT32)-1;
+			dataParam.dirtyFlags = 0xFFFFFFFF;
 
 			bufferIdx++;
 		}
@@ -105,7 +105,7 @@ namespace BansheeEngine
 			dataParam.type = ParamType::Sampler;
 			dataParam.dataType = GPDT_UNKNOWN;
 			dataParam.index = samplerIdx;
-			dataParam.dirtyFlags = (UINT32)-1;
+			dataParam.dirtyFlags = 0xFFFFFFFF;
 
 			samplerIdx++;
 		}
@@ -512,6 +512,55 @@ namespace BansheeEngine
 		:TMaterialParams(shader)
 	{ }
 
+	MaterialParamsCore::MaterialParamsCore(const SPtr<ShaderCore>& shader, const SPtr<MaterialParams>& params)
+		: TMaterialParams(shader)
+	{
+		memcpy(mDataParamsBuffer, params->mDataParamsBuffer, mDataSize);
+
+		for (auto& param : mParams)
+		{
+			switch (param.type)
+			{
+			case ParamType::Texture:
+			{
+				HTexture texture = params->mTextureParams[param.index].value;
+				SPtr<TextureCore> textureCore;
+				if (texture.isLoaded())
+					textureCore = texture->getCore();
+
+				mTextureParams[param.index].value = textureCore;
+				mTextureParams[param.index].isLoadStore = params->mTextureParams[param.index].isLoadStore;
+				mTextureParams[param.index].surface = params->mTextureParams[param.index].surface;
+			}
+				break;
+			case ParamType::Buffer:
+			{
+				SPtr<GpuBuffer> buffer = params->mBufferParams[param.index].value;
+				SPtr<GpuBufferCore> bufferCore;
+				if (buffer != nullptr)
+					bufferCore = buffer->getCore();
+
+				mBufferParams[param.index].value = bufferCore;
+			}
+				break;
+			case ParamType::Sampler:
+			{
+				SPtr<SamplerState> sampState = params->mSamplerStateParams[param.index].value;
+				SPtr<SamplerStateCore> sampStateCore;
+				if (sampState != nullptr)
+					sampStateCore = sampState->getCore();
+
+				mSamplerStateParams[param.index].value = sampStateCore;
+			}
+				break;
+			}
+		}
+
+		// Clean flags so it doesn't immediately require sync
+		for (auto& entry : params->mParams)
+			entry.dirtyFlags &= ~0x80000000;
+	}
+
 	void MaterialParamsCore::setSyncData(UINT8* buffer, UINT32 size)
 	{
 		char* sourceData = (char*)buffer;
@@ -605,7 +654,7 @@ namespace BansheeEngine
 		UINT32 dataParamSize = 0;
 		for(auto& param : mParams)
 		{
-			if (param.dirtyFlags != 0x8000000)
+			if ((param.dirtyFlags & 0x8000000) == 0)
 				continue;
 
 			switch(param.type)
@@ -670,7 +719,7 @@ namespace BansheeEngine
 		for(UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
 			ParamData& param = mParams[i];
-			if (param.dirtyFlags != 0x8000000)
+			if ((param.dirtyFlags & 0x8000000) == 0)
 				continue;
 
 			param.dirtyFlags &= ~0x80000000;

@@ -4,7 +4,7 @@ Parameters =
 	float	invViewportWidth;
 	float	invViewportHeight;
 
-	float4	tint;
+	color	tint;
 };
 
 Technique =

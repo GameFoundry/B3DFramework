@@ -7,7 +7,7 @@ Parameters =
 	Sampler2D	mainTexSamp : alias("mainTexture");
 	Texture2D	mainTexture;
 	
-	float4		tint;
+	color		tint;
 };
 
 Technique =

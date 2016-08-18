@@ -4,7 +4,7 @@ Parameters =
 {
 	mat4x4		matViewProj;
 	float4		worldCameraPos;
-	float4		gridColor;
+	color		gridColor;
 	float3		gridPlaneNormal;
 	float		gridSpacing;
 	float		gridBorderWidth;
