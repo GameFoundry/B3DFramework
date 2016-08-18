@@ -247,11 +247,8 @@ namespace BansheeEngine
 		/** Returns the total number of techniques in this shader. */
 		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
 
-		/**
-		 * Gets the best supported technique based on current render and other systems. Returns null if not a single 
-		 * technique is supported.
-		 */
-		SPtr<TechniqueType> getBestTechnique() const;
+		/** Returns the list of all supported techniques based on current render API and renderer. */
+		Vector<SPtr<TechniqueType>> getCompatibleTechniques() const;
 
 		/**
 		 * Returns currently active queue sort type.
@@ -317,6 +314,9 @@ namespace BansheeEngine
 
 		/** Checks if the parameter with the specified name exists, and is a buffer parameter. */
 		bool hasBufferParam(const String& name) const;
+
+		/** Checks if the parameter block with the specified name exists. */
+		bool hasParamBlock(const String& name) const;
 
 		/**	Returns a map of all data parameters in the shader. */
 		const Map<String, SHADER_DATA_PARAM_DESC>& getDataParams() const { return mDesc.dataParams; }

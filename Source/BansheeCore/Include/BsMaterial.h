@@ -146,9 +146,6 @@ namespace BansheeEngine
 
 		/** Returns all GPU parameter descriptions in the specified technique. */
 		static Vector<SPtr<GpuParamDesc>> getAllParamDescs(const SPtr<TechniqueCore>& technique);
-
-		Set<String> mValidShareableParamBlocks;
-		Map<String, String> mValidParams; // Also maps Shader param name -> gpu variable name
 	};
 
 	/** @copydoc MaterialBase */
@@ -175,11 +172,30 @@ namespace BansheeEngine
 		/** Returns the currently active shader. */
 		ShaderType getShader() const { return mShader; }
 
-		/** Returns the number of passes that are used by the shader used in the material. */
-		UINT32 getNumPasses() const;
+		/** Returns the total number of techniques supported by this material. */
+		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
 
-		/** Retrieves a specific shader pass. */
-		SPtr<PassType> getPass(UINT32 passIdx) const;
+		/** Attempts to find a technique with the supported tag. Returns an index of the technique, or -1 if not found. */
+		UINT32 findTechnique(const StringID& tag);
+
+		/** 
+		 * Returns the number of passes that are used by the technique at the specified index. 
+		 *
+		 * @param[in]	techniqueIdx	Index of the technique to retrieve the number of passes for. 0 is always guaranteed
+		 *								to be the default technique.
+		 * @return						Number of passes used by the technique.
+		 */
+		UINT32 getNumPasses(UINT32 techniqueIdx = 0) const;
+
+		/** 
+		 * Retrieves a specific shader pass from the provided technique. 
+		 *
+		 * @param[in]	passIdx			Sequential index of the pass to retrieve.
+		 * @param[in]	techniqueIdx	Index of the technique to retrieve the pass for. 0 is always guaranteed to be
+		 *								the default technique.
+		 * @return						Pass if found, null otherwise.
+		 */
+		SPtr<PassType> getPass(UINT32 passIdx, UINT32 techniqueIdx = 0) const;
 
 		/**   
 		 * Assigns a float value to the shader parameter with the specified name. 
@@ -513,16 +529,6 @@ namespace BansheeEngine
 		/** Returns a set of parameters for all GPU programs in the specified shader pass. */
 		SPtr<PassParamsType> getPassParameters(UINT32 passIdx) const { return mParametersPerPass[passIdx]; }
 
-		/** 
-		 * Returns a set of GPU parameters for an individual GPU program of the specified pass. 
-		 *
-		 * @param[in]	passIdx		Pass in which to look the GPU program for in.
-		 * @param[in]	type		Type of the program to retrieve parameters for.
-		 * @return					GPU parameters object that can be used for setting parameters of a GPU program 
-		 *							individually. Returns null if program or pass doesn't exist.
-		 */
-		GpuParamsType getGpuParams(UINT32 passIdx, BansheeEngine::GpuProgramType type);
-
 		/**
 		 * Assign a parameter block buffer with the specified name.
 		 *
@@ -555,10 +561,10 @@ namespace BansheeEngine
 		void setParamValue(const String& name, UINT8* buffer, UINT32 numElements);
 
 		/**
-		 * Initializes the material by using the best technique from the currently set shader. Shader must contain the 
-		 * technique that matches the current renderer and render system.
+		 * Initializes the material by using the compatible techniques from the currently set shader. Shader must contain 
+		 * the techniques that matches the current renderer and render system.
 		 */
-		void initBestTechnique();
+		void initializeTechniques();
 
 		/** Assigns all the default parameters specified in the shader to the material. */
 		void initDefaultParameters();
@@ -568,9 +574,9 @@ namespace BansheeEngine
 
 		ShaderType mShader;
 		SPtr<MaterialParamsType> mParams;
+		Vector<SPtr<TechniqueType>> mTechniques;
 
 		Vector<SPtr<PassParamsType>> mParametersPerPass;
-		SPtr<TechniqueType> mBestTechnique;
 	};
 
 	/** @} */
@@ -596,10 +602,8 @@ namespace BansheeEngine
 
 		MaterialCore() { }
 		MaterialCore(const SPtr<ShaderCore>& shader);
-		MaterialCore(const SPtr<ShaderCore>& shader, const SPtr<TechniqueCore>& bestTechnique, 
-			const Set<String>& validShareableParamBlocks, const Map<String, String>& validParams, 
-			const SPtr<MaterialParamsCore>& materialParams,
-			const Vector<SPtr<PassParametersCore>>& passParams);
+		MaterialCore(const SPtr<ShaderCore>& shader, const Vector<SPtr<TechniqueCore>>& techniques,
+			const SPtr<MaterialParamsCore>& materialParams, const Vector<SPtr<PassParametersCore>>& passParams);
 
 		/** @copydoc CoreObjectCore::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;

@@ -269,6 +269,16 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
+	bool TShader<Core>::hasParamBlock(const String& name) const
+	{
+		auto findIterObject = mDesc.paramBlocks.find(name);
+		if (findIterObject != mDesc.paramBlocks.end())
+			return true;
+
+		return false;
+	}
+
+	template<bool Core>
 	typename TShader<Core>::TextureType TShader<Core>::getDefaultTexture(UINT32 index) const
 	{
 		if (index < (UINT32)mDesc.textureDefaultValues.size())
@@ -296,19 +306,16 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	SPtr<typename TShader<Core>::TechniqueType> TShader<Core>::getBestTechnique() const
+	Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::getCompatibleTechniques() const
 	{
-		for (auto iter = mTechniques.begin(); iter != mTechniques.end(); ++iter)
+		Vector<SPtr<TechniqueType>> output;
+		for (auto& technique : mTechniques)
 		{
-			if ((*iter)->isSupported())
-			{
-				return *iter;
-			}
+			if (technique->isSupported())
+				output.push_back(technique);
 		}
 
-		return nullptr;
-
-		// TODO - Low priority. Instead of returning null use an extremely simple technique that will be supported almost everywhere as a fallback.
+		return output;
 	}
 
 	template class TShader < false > ;

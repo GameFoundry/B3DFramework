@@ -14,7 +14,7 @@ namespace BansheeEngine
 		if(material->mRTTIData.empty())
 			return;
 
-		material->initBestTechnique();
+		material->initializeTechniques();
 
 		SPtr<MaterialParams> matParams = any_cast<SPtr<MaterialParams>>(material->mRTTIData);
 		material->setParams(matParams);

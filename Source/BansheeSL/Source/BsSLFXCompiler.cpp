@@ -121,15 +121,15 @@ namespace BansheeEngine
 			bool hasError = false;
 			if (output.shader != nullptr)
 			{
-				SPtr<Technique> bestTechnique = output.shader->getBestTechnique();
+				Vector<SPtr<Technique>> techniques = output.shader->getCompatibleTechniques();
 
-				if (bestTechnique != nullptr)
+				for (auto& technique : techniques)
 				{
-					UINT32 numPasses = bestTechnique->getNumPasses();
+					UINT32 numPasses = technique->getNumPasses();
 
 					for (UINT32 i = 0; i < numPasses; i++)
 					{
-						SPtr<Pass> pass = bestTechnique->getPass(i);
+						SPtr<Pass> pass = technique->getPass(i);
 
 						auto checkCompileStatus = [&](const String& prefix, const SPtr<GpuProgram>& prog)
 						{
@@ -140,7 +140,7 @@ namespace BansheeEngine
 								if (!prog->isCompiled())
 								{
 									hasError = true;
-									gpuProgError << prefix <<": " << prog->getCompileErrorMessage() << std::endl;
+									gpuProgError << prefix << ": " << prog->getCompileErrorMessage() << std::endl;
 								}
 							}
 						};

@@ -30,6 +30,9 @@ namespace BansheeEngine
 		/**	Checks if this technique is supported based on current render and other systems. */
 		bool isSupported() const;
 
+		/** Checks if the technique has the specified tag. */
+		bool hasTag(const StringID& tag);
+
 	protected:
 		StringID mRenderAPI;
 		StringID mRenderer;

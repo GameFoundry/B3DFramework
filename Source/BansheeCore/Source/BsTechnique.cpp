@@ -30,6 +30,12 @@ namespace BansheeEngine
 		return false;
 	}
 
+	bool TechniqueBase::hasTag(const StringID& tag)
+	{
+		// TODO - Not implemented
+		return false;
+	}
+
 	template<bool Core>
 	TTechnique<Core>::TTechnique(const StringID& renderAPI, const StringID& renderer, const Vector<SPtr<PassType>>& passes)
 		: TechniqueBase(renderAPI, renderer), mPasses(passes)
