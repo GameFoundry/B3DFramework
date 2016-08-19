@@ -53,24 +53,34 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="pointerPos">Position of the pointer relative to the scene camera viewport.</param>
         /// <param name="controlHeld">Should this selection add to the existing selection, or replace it.</param>
-        /// <param name="ignoreRenderables">An array of renderables that should not be rendered during scene picking.</param>
-        internal void PickObject(Vector2I pointerPos, bool controlHeld, SceneObject[] ignoreRenderables = null)
+        /// <param name="ignoreSceneObjects">An array of renderables that should not be rendered during scene picking.</param>
+        internal void PickObject(Vector2I pointerPos, bool controlHeld, SceneObject[] ignoreSceneObjects = null)
         {
-            Internal_PickObject(mCachedPtr, ref pointerPos, controlHeld, ignoreRenderables);
+            Internal_PickObject(mCachedPtr, ref pointerPos, controlHeld, ignoreSceneObjects);
+        }
+
+        /// <summary>
+        /// Attempts to select a scene object in the specified area.
+        /// </summary>
+        /// <param name="pointerPos">Position of the pointer relative to the scene camera viewport.</param>
+        /// <param name="area">The screen area in which objects will be selected.</param>
+        /// <param name="controlHeld">Should this selection add to the existing selection, or replace it.</param>
+        /// <param name="ignoreSceneObjects">An array of renderables that should not be rendered during scene picking.</param>
+        internal void PickObjects(Vector2I pointerPos, Vector2I area, bool controlHeld, SceneObject[] ignoreSceneObjects = null)
+        {
+            Internal_PickObjects(mCachedPtr, ref pointerPos, ref area, controlHeld, ignoreSceneObjects);
         }
 
         /// <summary>
         /// Returns the 3D position of an object under the cursor, along with the surface normal in that point.
         /// </summary>
         /// <param name="pointerPos">Position of the pointer relative to the scene camera viewport.</param>
-        /// <param name="ignoreRenderables">An array of renderables that should not be rendered during scene picking.</param>
+        /// <param name="ignoreSceneObjects">An array of renderables that should not be rendered during scene picking.</param>
         /// <returns>The position on the object surface and the normal in that point.</returns>
-        internal SnapData Snap(Vector2I pointerPos, SceneObject[] ignoreRenderables = null)
+        internal SnapData Snap(Vector2I pointerPos, SceneObject[] ignoreSceneObjects = null)
         {
             SnapData data;
-            if (ignoreRenderables == null)
-                ignoreRenderables = new SceneObject[0];
-            Internal_Snap(mCachedPtr, ref pointerPos, out data, ignoreRenderables);
+            Internal_Snap(mCachedPtr, ref pointerPos, out data, ignoreSceneObjects);
             return data;
         }
 
@@ -82,6 +92,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_PickObject(IntPtr thisPtr, ref Vector2I pointerPos, bool controlHeld, SceneObject[] ignoreRenderables);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_PickObjects(IntPtr thisPtr, ref Vector2I pointerPos, ref Vector2I extents, bool controlHeld, SceneObject[] ignoreRenderables);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Snap(IntPtr thisPtr, ref Vector2I pointerPos, out SnapData data, SceneObject[] ignoreRenderables);

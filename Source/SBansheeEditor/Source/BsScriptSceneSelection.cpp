@@ -26,6 +26,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_Create", &ScriptSceneSelection::internal_Create);
 		metaData.scriptClass->addInternalCall("Internal_Draw", &ScriptSceneSelection::internal_Draw);
 		metaData.scriptClass->addInternalCall("Internal_PickObject", &ScriptSceneSelection::internal_PickObject);
+		metaData.scriptClass->addInternalCall("Internal_PickObjects", &ScriptSceneSelection::internal_PickObjects);
 		metaData.scriptClass->addInternalCall("Internal_Snap", &ScriptSceneSelection::internal_Snap);
 	}
 
@@ -41,7 +42,7 @@ namespace BansheeEngine
 
 	void ScriptSceneSelection::internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive, MonoArray* ignoreRenderables)
 	{
-		// TODO - Handle multi-selection (i.e. selection rectangle when dragging)
+		assert(_CrtCheckMemory() == 1);
 		SnapData data;
 
 		Vector<HSceneObject> ignoredSceneObjects;
@@ -64,8 +65,8 @@ namespace BansheeEngine
 			}
 		}
 
-		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), data, ignoredSceneObjects);
-
+		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects);
+		assert(_CrtCheckMemory() == 1);
 		if (pickedObject)
 		{
 			if (additive) // Append to existing selection
@@ -88,8 +89,64 @@ namespace BansheeEngine
 				Selection::instance().setSceneObjects(selectedSOs);
 			}
 		}
-		else
+		else //TODO: Should we clear when it is additive?
 			Selection::instance().clearSceneSelection();
+		assert(_CrtCheckMemory() == 1);
+	}
+
+	void ScriptSceneSelection::internal_PickObjects(ScriptSceneSelection* thisPtr, Vector2I* inputPos, Vector2I* area, bool additive, MonoArray* ignoreRenderables)
+	{
+		SnapData data;
+		assert(_CrtCheckMemory() == 1);
+		Vector<HSceneObject> ignoredSceneObjects;
+
+		if (ignoreRenderables != nullptr)
+		{
+			ScriptArray scriptArray(ignoreRenderables);
+
+			UINT32 arrayLen = scriptArray.size();
+			for (UINT32 i = 0; i < arrayLen; i++)
+			{
+				MonoObject* monoSO = scriptArray.get<MonoObject*>(i);
+				ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(monoSO);
+
+				if (scriptSO == nullptr)
+					continue;
+
+				HSceneObject so = static_object_cast<SceneObject>(scriptSO->getNativeHandle());
+				ignoredSceneObjects.push_back(so);
+			}
+		}
+		assert(_CrtCheckMemory() == 1);
+		Vector<HSceneObject> pickedObjects = ScenePicking::instance().pickObjects(thisPtr->mCamera, *inputPos, *area, ignoredSceneObjects);
+		assert(_CrtCheckMemory() == 1);
+		if (pickedObjects.size() != 0)
+		{
+			if (additive) // Append to existing selection
+			{
+				Vector<HSceneObject> selectedSOs = Selection::instance().getSceneObjects();
+
+				for (int i = 0; i < pickedObjects.size(); i++) {
+					bool found = false;
+					for (int j = 0; j < selectedSOs.size(); j++)
+					{
+						if (selectedSOs[j] == pickedObjects[i])
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						selectedSOs.push_back(pickedObjects[i]);
+				}
+				Selection::instance().setSceneObjects(selectedSOs);
+			}
+			else
+				Selection::instance().setSceneObjects(pickedObjects);
+		}
+		else //TODO: Should we clear when it is additive?
+			Selection::instance().clearSceneSelection();
+		assert(_CrtCheckMemory() == 1);
 	}
 
 	void ScriptSceneSelection::internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables)
@@ -114,7 +171,7 @@ namespace BansheeEngine
 			}
 		}
 
-  		ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), *data, ignoredSceneObjects);
+  		ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects, data);
 	}
 
 }
