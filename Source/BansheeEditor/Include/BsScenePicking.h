@@ -58,7 +58,7 @@ namespace BansheeEngine
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					Nearest SceneObject under the provided area, or an empty handle if no object is found.
 		 */
-		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables);
+		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data = nullptr);
 
 		/**
 		 * Attempts to find all scene objects under the provided position and area. This does not mean objects occluded by
@@ -72,7 +72,7 @@ namespace BansheeEngine
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					A list of SceneObject%s under the provided area.
 		 */
-		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables);
+		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data = nullptr);
 
 	private:
 		friend class ScenePickingCore;
@@ -143,11 +143,12 @@ namespace BansheeEngine
 		 * @param[in]	viewportArea	Normalized area of the render target we're rendering in.
 		 * @param[in]	position		Position of the pointer where to pick objects, in pixels relative to viewport.
 		 * @param[in]	area			Width/height of the area to pick objects, in pixels.
+		 * @param[in]	gatherSnapData	Whether it should gather normal and picking position information.
 		 * @param[out]	asyncOp			Async operation handle that when complete will contain the results of the picking
 		 *								operation in the form of Vector<SelectedObject>.
 		 */
 		void corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, const Vector2I& position,
-			const Vector2I& area, AsyncOp& asyncOp);
+			const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp);
 
 	private:
 		friend class ScenePicking;

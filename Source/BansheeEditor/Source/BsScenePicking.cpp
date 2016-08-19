@@ -55,20 +55,23 @@ namespace BansheeEngine
 		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
 	}
 
-	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables)
+	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data)
 	{
-		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, data, ignoreRenderables);
+		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, ignoreRenderables, data);
 		if (selectedObjects.size() == 0)
 			return HSceneObject();
-		Matrix3 rotation;
-		selectedObjects[0]->getWorldRotation().toRotationMatrix(rotation);
-		data.normal = rotation.inverse().transpose().transform(data.normal);
-		LOGWRN("Pos: " + toString(data.pickPosition.x) + " & " + toString(data.pickPosition.y) + " & " + toString(data.pickPosition.z));
-		LOGWRN("Norm: " + toString(data.normal.x) + " & " + toString(data.normal.y) + " & " + toString(data.normal.z));
+		if (data != nullptr)
+		{
+			Matrix3 rotation;
+			selectedObjects[0]->getWorldRotation().toRotationMatrix(rotation);
+			data->normal = rotation.inverse().transpose().transform(data->normal);
+			LOGWRN("Pos: " + toString(data->pickPosition.x) + " & " + toString(data->pickPosition.y) + " & " + toString(data->pickPosition.z));
+			LOGWRN("Norm: " + toString(data->normal.x) + " & " + toString(data->normal.y) + " & " + toString(data->normal.z));
+		}
 		return selectedObjects[0];
 	}
 
-	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, SnapData& data, Vector<HSceneObject> ignoreRenderables)
+	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data)
 	{
 		auto comparePickElement = [&] (const ScenePicking::RenderablePickData& a, const ScenePicking::RenderablePickData& b)
 		{
@@ -181,30 +184,34 @@ namespace BansheeEngine
 		GizmoManager::instance().renderForPicking(cam, [&](UINT32 inputIdx) { return encodeIndex(firstGizmoIdx + inputIdx); });
 
 		AsyncOp op = gCoreAccessor().queueReturnCommand(std::bind(&ScenePickingCore::corePickingEnd, mCore, target, 
-			cam->getViewport()->getNormArea(), position, area, _1));
+			cam->getViewport()->getNormArea(), position, area, data != nullptr, _1));
 		gCoreAccessor().submitToCoreThread(true);
 
 		assert(op.hasCompleted());
 
 		PickResults returnValue = op.getReturnValue<PickResults>();
-		Vector3 pos = returnValue.data.pickPosition;
-		Vector2 ndcPoint = cam->screenToNdcPoint(Vector2I(pos.x,pos.y));
-		Vector4 worldPoint(ndcPoint.x, ndcPoint.y, pos.z, 1.0f);
-		worldPoint = cam->getProjectionMatrixRS().inverse().multiply(worldPoint);
-		Vector3 worldPoint3D;
 
-		if (Math::abs(worldPoint.w) > 1e-7f)
+		if (data != nullptr)
 		{
-			float invW = 1.0f / worldPoint.w;
+			Vector3 pos = returnValue.data.pickPosition;
+			Vector2 ndcPoint = cam->screenToNdcPoint(Vector2I(pos.x, pos.y));
+			Vector4 worldPoint(ndcPoint.x, ndcPoint.y, pos.z, 1.0f);
+			worldPoint = cam->getProjectionMatrixRS().inverse().multiply(worldPoint);
+			Vector3 worldPoint3D;
 
-			worldPoint3D.x = worldPoint.x * invW;
-			worldPoint3D.y = worldPoint.y * invW;
-			worldPoint3D.z = worldPoint.z * invW;
+			if (Math::abs(worldPoint.w) > 1e-7f)
+			{
+				float invW = 1.0f / worldPoint.w;
+
+				worldPoint3D.x = worldPoint.x * invW;
+				worldPoint3D.y = worldPoint.y * invW;
+				worldPoint3D.z = worldPoint.z * invW;
+			}
+			pos = cam->viewToWorldPoint(worldPoint3D);
+			*data = returnValue.data;
+			data->pickPosition = pos;
+			//Todo: camera to world ray if object is too far
 		}
-		pos = cam->viewToWorldPoint(worldPoint3D);
-		data = returnValue.data;
-		data.pickPosition = pos;
-		//Todo: camera to world ray if object is too far
 
 		Vector<UINT32> selectedObjects = returnValue.objects;
 		Vector<HSceneObject> results;
@@ -370,7 +377,7 @@ namespace BansheeEngine
 	}
 
 	void ScenePickingCore::corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, const Vector2I& position,
-		const Vector2I& area, AsyncOp& asyncOp)
+		const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp)
 	{
 		const RenderTargetProperties& rtProps = target->getProperties();
 		RenderAPICore& rs = RenderAPICore::instance();
@@ -396,8 +403,13 @@ namespace BansheeEngine
 		}
 
 		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocateSubresourceBuffer(0);
-		SPtr<PixelData> normalsPixelData = normalsTexture->getProperties().allocateSubresourceBuffer(0);
-		SPtr<PixelData> depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
+		SPtr<PixelData> normalsPixelData;
+		SPtr<PixelData> depthPixelData;
+		if (gatherSnapData)
+		{
+			normalsPixelData = normalsTexture->getProperties().allocateSubresourceBuffer(0);
+			depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
+		}
 
 		outputTexture->readSubresource(0, *outputPixelData);
 
@@ -469,29 +481,33 @@ namespace BansheeEngine
 		for (auto& selectedObject : selectedObjects)
 			objects.push_back(selectedObject.index);
 		
-		depthTexture->readSubresource(0, *depthPixelData);
-		normalsTexture->readSubresource(0, *normalsPixelData);
-		float depth;
-		Color normal;
-		if (rtProps.requiresTextureFlipping())
-		{
-			depth = depthPixelData->getDepthAt(position.x, depthPixelData->getHeight() - position.y);
-			normal = normalsPixelData->getColorAt(position.x, depthPixelData->getHeight() - position.y);
-		}
-		else
-		{
-			depth = depthPixelData->getDepthAt(position.x, position.y);
-			normal = normalsPixelData->getColorAt(position.x, position.y);
-		}
-
 		PickResults result;
-		SnapData data;
+		if (gatherSnapData)
+		{
+			depthTexture->readSubresource(0, *depthPixelData);
+			normalsTexture->readSubresource(0, *normalsPixelData);
+			float depth;
+			Color normal;
+			if (rtProps.requiresTextureFlipping())
+			{
+				depth = depthPixelData->getDepthAt(position.x, depthPixelData->getHeight() - position.y);
+				normal = normalsPixelData->getColorAt(position.x, depthPixelData->getHeight() - position.y);
+			}
+			else
+			{
+				depth = depthPixelData->getDepthAt(position.x, position.y);
+				normal = normalsPixelData->getColorAt(position.x, position.y);
+			}
+			LOGWRN(toString(normal.r) + " & " + toString(normal.g) + " & " + toString(normal.b));
+
+			SnapData data;
+			const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
+			depth = depth * Math::abs(rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue()) + rapiInfo.getMinimumDepthInputValue();
+			data.pickPosition = Vector3(position.x, position.y, depth);
+			data.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
+			result.data = data;
+		}
 		result.objects = objects;
-		const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
-		depth = depth * Math::abs(rapiInfo.getMinimumDepthInputValue() - rapiInfo.getMinimumDepthInputValue()) + rapiInfo.getMinimumDepthInputValue();
-		data.pickPosition = Vector3(position.x, position.y, depth);
-		data.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
-		result.data = data;
 		asyncOp._completeOperation(result);
 		mNormalsTexture = nullptr;
 	}
