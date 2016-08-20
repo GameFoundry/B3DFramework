@@ -21,7 +21,7 @@ namespace BansheeEngine
 
 	SpriteMaterial::~SpriteMaterial()
 	{
-		gCoreAccessor().queueCommand(std::bind(&SpriteMaterial::destroy, mMaterial));
+		gCoreAccessor().queueCommand(std::bind(&SpriteMaterial::destroy, mMaterial, mParams));
 	}
 
 	void SpriteMaterial::initialize()
@@ -29,6 +29,7 @@ namespace BansheeEngine
 		// Make sure that mMaterial assignment completes on the previous thread before continuing
 		std::atomic_thread_fence(std::memory_order_acquire);
 
+		mParams = mMaterial->createParamsSet();
 		SPtr<ShaderCore> shader = mMaterial->getShader();
 
 		if(shader->hasTextureParam("mainTexture"))
@@ -43,7 +44,7 @@ namespace BansheeEngine
 		mWorldTransformParam = mMaterial->getParamMat4("worldTransform");
 	}
 
-	void SpriteMaterial::destroy(const SPtr<MaterialCore>& material)
+	void SpriteMaterial::destroy(const SPtr<MaterialCore>& material, const SPtr<GpuParamsSetCore>& params)
 	{
 		// Do nothing, we just need to make sure the material pointer's last reference is lost while on the core thread
 	}
@@ -80,7 +81,10 @@ namespace BansheeEngine
 		mInvViewportHeightParam.set(invViewportSize.y);
 		mWorldTransformParam.set(worldTransform);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		mMaterial->updateParamsSet(mParams);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParams);
 		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
 	}
 }

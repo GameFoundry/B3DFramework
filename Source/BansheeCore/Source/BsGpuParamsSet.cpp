@@ -575,7 +575,7 @@ namespace BansheeEngine
 					GpuParamsType paramPtr = getParamByIdx(j, i);
 					if (paramPtr == nullptr)
 					{
-						stageOffsets += sizeof(UINT32) * 4;
+						stageOffsets += 4;
 						continue;
 					}
 
@@ -597,7 +597,7 @@ namespace BansheeEngine
 							paramInfo.paramIdx = paramIdx;
 							paramInfo.slotIdx = param.second.slot;
 
-							offsets[stageIdx]++;
+							stageOffsets[stageIdx]++;
 							totalNumObjects++;
 						}
 					};
@@ -608,7 +608,7 @@ namespace BansheeEngine
 					processObjectParams(desc.buffers, 2, MaterialParams::ParamType::Buffer);
 					processObjectParams(desc.samplers, 3, MaterialParams::ParamType::Sampler);
 
-					stageOffsets += sizeof(UINT32) * 4;
+					stageOffsets += 4;
 				}
 			}
 
@@ -671,7 +671,7 @@ namespace BansheeEngine
 						objInfoOffset += numEntries;
 					}
 
-					stageOffsets += sizeof(UINT32) * 4;
+					stageOffsets += 4;
 				}
 			}
 
@@ -769,7 +769,7 @@ namespace BansheeEngine
 		for(auto& paramInfo : mDataParamInfos)
 		{
 			ParamBlockPtrType paramBlock = mBlocks[paramInfo.blockIdx].buffer;
-			if (paramBlock != nullptr)
+			if (paramBlock == nullptr)
 				continue;
 
 			const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
@@ -793,7 +793,7 @@ namespace BansheeEngine
 						memcpy(&temp, data + arrayOffset, paramSize);
 						temp.transpose();
 
-						paramBlock->write(paramInfo.offset + arrayOffset, &temp, paramSize);
+						paramBlock->write((paramInfo.offset + arrayOffset) * sizeof(UINT32), &temp, paramSize);
 					}
 				};
 
@@ -855,13 +855,13 @@ namespace BansheeEngine
 					break;
 				default:
 				{
-					paramBlock->write(paramInfo.offset, data, paramSize * arraySize);
+					paramBlock->write(paramInfo.offset * sizeof(UINT32), data, paramSize * arraySize);
 					break;
 				}
 				}
 			}
 			else
-				paramBlock->write(paramInfo.offset, data, paramSize * arraySize);
+				paramBlock->write(paramInfo.offset * sizeof(UINT32), data, paramSize * arraySize);
 		}
 
 		// Update object params

@@ -810,9 +810,10 @@ namespace BansheeEngine
 			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)
 			{
 				SamplerOverride& override = materialOverrides->overrides[i];
+				const MaterialParamsBase::ParamData* materialParamData = materialParams->getParamData(override.paramIdx);
 
 				SPtr<SamplerStateCore> samplerState;
-				materialParams->getSamplerState(override.paramIdx, samplerState);
+				materialParams->getSamplerState(materialParamData->index, samplerState);
 
 				UINT64 hash = 0;
 				if (samplerState != nullptr)
