@@ -8,6 +8,7 @@
 #include "BsBuiltinEditorResources.h"
 #include "BsMaterial.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsRenderAPI.h"
 #include "BsCoreRenderer.h"
 #include "BsRendererManager.h"
@@ -97,11 +98,12 @@ namespace BansheeEngine
 		THROW_IF_NOT_CORE_THREAD;
 
 		mMaterial = mat;
+		mParams = mat->createParamsSet();
 
-		SPtr<GpuParamsCore> vertParams = mat->getPassParameters(0)->mVertParams;
+		SPtr<GpuParamsCore> vertParams = mParams->getGpuParams(GPT_VERTEX_PROGRAM);
 		vertParams->getParam("matWorldViewProj", mMatWorldViewProj);
 
-		SPtr<GpuParamsCore> fragParams = mat->getPassParameters(0)->mFragParams;
+		SPtr<GpuParamsCore> fragParams = mParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 		fragParams->getParam("selColor", mColor);
 	}
 
@@ -138,6 +140,7 @@ namespace BansheeEngine
 			mColor.set(SELECTION_COLOR);
 
 			gRendererUtility().setPass(mMaterial, 0);
+			gRendererUtility().setPassParams(mParams, 0);
 
 			UINT32 numSubmeshes = objData.mesh->getProperties().getNumSubMeshes();
 

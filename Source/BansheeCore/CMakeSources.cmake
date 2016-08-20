@@ -182,6 +182,7 @@ set(BS_BANSHEECORE_INC_MATERIAL
 	"Include/BsShaderManager.h"
 	"Include/BsMaterialParams.h"
 	"Include/BsShaderDefines.h"
+	"Include/BsGpuParamsSet.h"
 )
 
 set(BS_BANSHEECORE_INC_RESOURCES
@@ -380,6 +381,7 @@ set(BS_BANSHEECORE_SRC_MATERIAL
 	"Source/BsShaderManager.cpp"
 	"Source/BsMaterialParams.cpp"
 	"Source/BsShaderDefines.cpp"
+	"Source/BsGpuParamsSet.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_INPUT

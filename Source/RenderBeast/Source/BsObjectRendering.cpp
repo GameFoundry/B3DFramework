@@ -8,6 +8,7 @@
 #include "BsMesh.h"
 #include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
+#include "BsGpuParamsSet.h"
 
 namespace BansheeEngine
 {
@@ -49,9 +50,9 @@ namespace BansheeEngine
 		
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the provided
 		// buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-		element.material->setParamBlockBuffer(perFrameBlockName, mPerFrameParams.getBuffer());
-		element.material->setParamBlockBuffer(perCameraBlockName, mPerCameraParams.getBuffer());
-		element.material->setParamBlockBuffer(perObjectBlockName, mPerObjectParams.getBuffer());
+		element.params->setParamBlockBuffer(perFrameBlockName, mPerFrameParams.getBuffer());
+		element.params->setParamBlockBuffer(perCameraBlockName, mPerCameraParams.getBuffer());
+		element.params->setParamBlockBuffer(perObjectBlockName, mPerObjectParams.getBuffer());
 
 		if (!boneMatricesParamName.empty())
 		{

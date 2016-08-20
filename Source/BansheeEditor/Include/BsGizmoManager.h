@@ -487,39 +487,43 @@ namespace BansheeEngine
 		struct SolidMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			GpuParamMat4Core mViewProj;
-			GpuParamVec4Core mViewDir;
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj;
+			GpuParamVec4Core viewDir;
 		};
 
 		/**	Wire gizmo material and parameter handles. */
 		struct WireMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			GpuParamMat4Core mViewProj;
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj;
 		};
 
 		/**	Icon gizmo material and parameter handles. */
 		struct IconMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			SPtr<GpuParamsCore> mFragParams[2];
-			GpuParamMat4Core mViewProj[2];
-			GpuParamTextureCore mTexture[2];
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj[2];
+			GpuParamTextureCore texture[2];
 		};
 
 		/**	Text gizmo material and parameter handles. */
 		struct TextMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			GpuParamMat4Core mViewProj;
-			GpuParamTextureCore mTexture;
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj;
+			GpuParamTextureCore texture;
 		};
 
 		/**	Gizmo material and parameter handles used for picking. */
 		struct PickingMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			GpuParamMat4Core mViewProj;
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj;
 		};
 
 		/**
@@ -528,9 +532,9 @@ namespace BansheeEngine
 		struct AlphaPickingMaterialData
 		{
 			SPtr<MaterialCore> mat;
-			SPtr<GpuParamsCore> mFragParams;
-			GpuParamMat4Core mViewProj;
-			GpuParamTextureCore mTexture;
+			SPtr<GpuParamsSetCore> params;
+			GpuParamMat4Core viewProj;
+			GpuParamTextureCore texture;
 		};
 
 		/** Type of mesh that can be drawn. */

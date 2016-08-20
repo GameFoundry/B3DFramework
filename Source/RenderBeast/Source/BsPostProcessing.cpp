@@ -6,12 +6,13 @@
 #include "BsRendererUtility.h"
 #include "BsTextureManager.h"
 #include "BsCamera.h"
+#include "BsGpuParamsSet.h"
 
 namespace BansheeEngine
 {
 	DownsampleMat::DownsampleMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
 		mInputTexture = mMaterial->getParamTexture("gInputTex");
 		mInvTexSize = mMaterial->getParamVec2("gInvTexSize");
@@ -47,7 +48,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.downsampledSceneTex->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -63,7 +65,7 @@ namespace BansheeEngine
 
 	EyeAdaptHistogramMat::EyeAdaptHistogramMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
 		mSceneColor = mMaterial->getParamTexture("gSceneColorTex");
 		mOutputTex = mMaterial->getParamLoadStoreTexture("gOutputTex");
@@ -105,6 +107,7 @@ namespace BansheeEngine
 
 		RenderAPICore& rapi = RenderAPICore::instance();
 		gRendererUtility().setComputePass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
 
 		// Note: This is ugly, add a better way to clear load/store textures?
@@ -147,7 +150,7 @@ namespace BansheeEngine
 
 	EyeAdaptHistogramReduceMat::EyeAdaptHistogramReduceMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
 		mHistogramTex = mMaterial->getParamTexture("gHistogramTex");
 		mEyeAdaptationTex = mMaterial->getParamTexture("gEyeAdaptationTex");
@@ -188,7 +191,9 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.histogramReduceTex->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+
 		Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
 		gRendererUtility().drawScreenQuad(drawUV);
 
@@ -205,7 +210,7 @@ namespace BansheeEngine
 
 	EyeAdaptationMat::EyeAdaptationMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
 		mReducedHistogramTex = mMaterial->getParamTexture("gHistogramTex");
 	}
@@ -263,7 +268,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(eyeAdaptationRT->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -271,8 +277,8 @@ namespace BansheeEngine
 
 	CreateTonemapLUTMat::CreateTonemapLUTMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
-		mMaterial->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParams.getBuffer());
 	}
 
 	void CreateTonemapLUTMat::_initDefines(ShaderDefines& defines)
@@ -323,7 +329,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.colorLUT->renderTexture);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad(LUT_SIZE);
 	}
 
@@ -335,7 +342,7 @@ namespace BansheeEngine
 	template<bool GammaOnly, bool AutoExposure>
 	TonemappingMat<GammaOnly, AutoExposure>::TonemappingMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
 		mInputTex = mMaterial->getParamTexture("gInputTex");
 		mColorLUT = mMaterial->getParamTexture("gColorLUT");
@@ -384,7 +391,8 @@ namespace BansheeEngine
 		rapi.setRenderTarget(target);
 		rapi.setViewport(outputViewport->getNormArea());
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 	}
 

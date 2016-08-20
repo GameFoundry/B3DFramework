@@ -13,6 +13,7 @@
 #include "BsBuiltinEditorResources.h"
 #include "BsMaterial.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsRenderAPI.h"
 #include "BsCoreRenderer.h"
 #include "BsRendererUtility.h"
@@ -958,78 +959,72 @@ namespace BansheeEngine
 		mAlphaPickingMaterial.mat = initData.alphaPickingMat;
 
 		{
-			SPtr<MaterialCore> mat = mLineMaterial.mat;
-			SPtr<GpuParamsCore> vertParams = mat->getPassParameters(0)->mVertParams;
+			mLineMaterial.params = mLineMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mLineMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
 
-			vertParams->getParam("matViewProj", mLineMaterial.mViewProj);
+			vertParams->getParam("matViewProj", mLineMaterial.viewProj);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mSolidMaterial.mat;
-			SPtr<GpuParamsCore> vertParams = mat->getPassParameters(0)->mVertParams;
-			SPtr<GpuParamsCore> fragParams = mat->getPassParameters(0)->mFragParams;
+			mSolidMaterial.params = mSolidMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mSolidMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mSolidMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-			vertParams->getParam("matViewProj", mSolidMaterial.mViewProj);
-			fragParams->getParam("viewDir", mSolidMaterial.mViewDir);
+			vertParams->getParam("matViewProj", mSolidMaterial.viewProj);
+			fragParams->getParam("viewDir", mSolidMaterial.viewDir);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mWireMaterial.mat;
-			SPtr<GpuParamsCore> vertParams = mat->getPassParameters(0)->mVertParams;
-			SPtr<GpuParamsCore> fragParams = mat->getPassParameters(0)->mFragParams;
+			mWireMaterial.params = mWireMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mWireMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mWireMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-			vertParams->getParam("matViewProj", mWireMaterial.mViewProj);
+			vertParams->getParam("matViewProj", mWireMaterial.viewProj);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mIconMaterial.mat;
-			SPtr<PassParametersCore> pass0Params = mat->getPassParameters(0);
-			SPtr<PassParametersCore> pass1Params = mat->getPassParameters(1);
+			mIconMaterial.params = mIconMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams0 = mIconMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM, 0);
+			SPtr<GpuParamsCore> vertParams1 = mIconMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM, 1);
 
-			SPtr<GpuParamsCore> vertParams0 = pass0Params->mVertParams;
-			SPtr<GpuParamsCore> vertParams1 = pass1Params->mVertParams;
+			SPtr<GpuParamsCore> fragParams0 = mIconMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM, 0);
+			SPtr<GpuParamsCore> fragParams1 = mIconMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM, 1);
 
-			vertParams0->getParam("matViewProj", mIconMaterial.mViewProj[0]);
-			vertParams1->getParam("matViewProj", mIconMaterial.mViewProj[1]);
+			vertParams0->getParam("matViewProj", mIconMaterial.viewProj[0]);
+			vertParams1->getParam("matViewProj", mIconMaterial.viewProj[1]);
 
-			mIconMaterial.mFragParams[0] = pass0Params->mFragParams;
-			mIconMaterial.mFragParams[1] = pass1Params->mFragParams;
-
-			mIconMaterial.mFragParams[0]->getTextureParam("mainTexture", mIconMaterial.mTexture[0]);
-			mIconMaterial.mFragParams[1]->getTextureParam("mainTexture", mIconMaterial.mTexture[1]);
+			fragParams0->getTextureParam("mainTexture", mIconMaterial.texture[0]);
+			fragParams1->getTextureParam("mainTexture", mIconMaterial.texture[1]);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mPickingMaterial.mat;
-			SPtr<GpuParamsCore> vertParams = mat->getPassParameters(0)->mVertParams;
+			mPickingMaterial.params = mPickingMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mPickingMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
 
-			vertParams->getParam("matViewProj", mPickingMaterial.mViewProj);
+			vertParams->getParam("matViewProj", mPickingMaterial.viewProj);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mAlphaPickingMaterial.mat;
-			SPtr<PassParametersCore> passParams = mat->getPassParameters(0);
-			SPtr<GpuParamsCore> vertParams = passParams->mVertParams;
+			mAlphaPickingMaterial.params = mAlphaPickingMaterial.mat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mAlphaPickingMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mAlphaPickingMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-			vertParams->getParam("matViewProj", mAlphaPickingMaterial.mViewProj);
-
-			mAlphaPickingMaterial.mFragParams = passParams->mFragParams;
-			mAlphaPickingMaterial.mFragParams->getTextureParam("mainTexture", mAlphaPickingMaterial.mTexture);
+			vertParams->getParam("matViewProj", mAlphaPickingMaterial.viewProj);
+			fragParams->getTextureParam("mainTexture", mAlphaPickingMaterial.texture);
 
 			GpuParamFloatCore alphaCutoffParam;
-			mAlphaPickingMaterial.mFragParams->getParam("alphaCutoff", alphaCutoffParam);
+			fragParams->getParam("alphaCutoff", alphaCutoffParam);
 			alphaCutoffParam.set(PICKING_ALPHA_CUTOFF);
 		}
 
 		{
-			SPtr<MaterialCore> mat = mTextMaterial.mat;
+			mTextMaterial.params = mTextMaterial.mat->createParamsSet();
 
-			SPtr<PassParametersCore> passParams = mat->getPassParameters(0);
-			SPtr<GpuParamsCore> vertParams = passParams->mVertParams;
-			SPtr<GpuParamsCore> fragParams = passParams->mFragParams;
+			SPtr<GpuParamsCore> vertParams = mTextMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mTextMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-			vertParams->getParam("matViewProj", mTextMaterial.mViewProj);
-			fragParams->getTextureParam("mainTexture", mTextMaterial.mTexture);
+			vertParams->getParam("matViewProj", mTextMaterial.viewProj);
+			fragParams->getTextureParam("mainTexture", mTextMaterial.texture);
 		}
 	}
 
@@ -1107,31 +1102,37 @@ namespace BansheeEngine
 		switch (material)
 		{
 		case GizmoManager::GizmoMaterial::Solid:
-			mSolidMaterial.mViewProj.set(viewProjMat);
-			mSolidMaterial.mViewDir.set((Vector4)viewDir);
+			mSolidMaterial.viewProj.set(viewProjMat);
+			mSolidMaterial.viewDir.set((Vector4)viewDir);
 			gRendererUtility().setPass(mSolidMaterial.mat);
+			gRendererUtility().setPassParams(mSolidMaterial.params);
 			break;
 		case GizmoManager::GizmoMaterial::Wire:
-			mWireMaterial.mViewProj.set(viewProjMat);
+			mWireMaterial.viewProj.set(viewProjMat);
 			gRendererUtility().setPass(mWireMaterial.mat);
+			gRendererUtility().setPassParams(mWireMaterial.params);
 			break;
 		case GizmoManager::GizmoMaterial::Line:
-			mLineMaterial.mViewProj.set(viewProjMat);
+			mLineMaterial.viewProj.set(viewProjMat);
 			gRendererUtility().setPass(mLineMaterial.mat);
+			gRendererUtility().setPassParams(mLineMaterial.params);
 			break;
 		case GizmoManager::GizmoMaterial::Picking:
-			mPickingMaterial.mViewProj.set(viewProjMat);
+			mPickingMaterial.viewProj.set(viewProjMat);
 			gRendererUtility().setPass(mPickingMaterial.mat);
+			gRendererUtility().setPassParams(mPickingMaterial.params);
 			break;
 		case GizmoManager::GizmoMaterial::PickingAlpha:
-			mAlphaPickingMaterial.mViewProj.set(viewProjMat);
-			mAlphaPickingMaterial.mTexture.set(texture);
+			mAlphaPickingMaterial.viewProj.set(viewProjMat);
+			mAlphaPickingMaterial.texture.set(texture);
 			gRendererUtility().setPass(mAlphaPickingMaterial.mat);
+			gRendererUtility().setPassParams(mAlphaPickingMaterial.params);
 			break;
 		case GizmoManager::GizmoMaterial::Text:
-			mTextMaterial.mViewProj.set(viewProjMat);
-			mTextMaterial.mTexture.set(texture);
+			mTextMaterial.viewProj.set(viewProjMat);
+			mTextMaterial.texture.set(texture);
 			gRendererUtility().setPass(mTextMaterial.mat);
+			gRendererUtility().setPassParams(mTextMaterial.params);
 			break;
 		}
 		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
@@ -1172,18 +1173,21 @@ namespace BansheeEngine
 
 		if (!usePickingMaterial)
 		{
-			mIconMaterial.mViewProj[0].set(projMat);
-			mIconMaterial.mViewProj[1].set(projMat);
+			mIconMaterial.viewProj[0].set(projMat);
+			mIconMaterial.viewProj[1].set(projMat);
 
 			for (UINT32 passIdx = 0; passIdx < 2; passIdx++)
 			{
 				gRendererUtility().setPass(mIconMaterial.mat, passIdx);
+				gRendererUtility().setPassParams(mIconMaterial.params, passIdx);
 
 				UINT32 curIndexOffset = mesh->getIndexOffset();
 				for (auto curRenderData : *renderData)
 				{
-					mIconMaterial.mTexture[passIdx].set(curRenderData.texture);
-					gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, mIconMaterial.mFragParams[passIdx]);
+					mIconMaterial.texture[passIdx].set(curRenderData.texture);
+
+					SPtr<GpuParamsCore> fragParams = mIconMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM, passIdx);
+					gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, fragParams);
 
 					rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 					curIndexOffset += curRenderData.count * 6;
@@ -1192,15 +1196,18 @@ namespace BansheeEngine
 		}
 		else
 		{
-			mAlphaPickingMaterial.mViewProj.set(projMat);
+			mAlphaPickingMaterial.viewProj.set(projMat);
 
-			gRendererUtility().setPass(mAlphaPickingMaterial.mat, 0);
+			gRendererUtility().setPass(mAlphaPickingMaterial.mat);
+			gRendererUtility().setPassParams(mAlphaPickingMaterial.params);
 
 			UINT32 curIndexOffset = 0;
 			for (auto curRenderData : *renderData)
 			{
-				mAlphaPickingMaterial.mTexture.set(curRenderData.texture);
-				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, mAlphaPickingMaterial.mFragParams);
+				mAlphaPickingMaterial.texture.set(curRenderData.texture);
+
+				SPtr<GpuParamsCore> fragParams = mAlphaPickingMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
+				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, fragParams);
 
 				rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 				curIndexOffset += curRenderData.count * 6;

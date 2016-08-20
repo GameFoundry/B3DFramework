@@ -25,7 +25,7 @@ namespace BansheeEngine
 	class LightRenderingParams
 	{
 	public:
-		LightRenderingParams(const SPtr<MaterialCore>& lightMaterial);
+		LightRenderingParams(const SPtr<MaterialCore>& lightMaterial, const SPtr<GpuParamsSetCore>& paramsSet);
 
 		/** Updates parameters that are common for all lights. */
 		void setStaticParameters(const SPtr<RenderTargets>& gbuffer,
@@ -38,6 +38,7 @@ namespace BansheeEngine
 		const SPtr<GpuParamBlockBufferCore>& getBuffer() const;
 	private:
 		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParamsSet;
 
 		MaterialParamTextureCore mGBufferA;
 		MaterialParamTextureCore mGBufferB;

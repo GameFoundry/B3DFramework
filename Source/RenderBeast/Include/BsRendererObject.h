@@ -27,6 +27,9 @@ namespace BansheeEngine
 		 */
 		MaterialSamplerOverrides* samplerOverrides;
 
+		/** All GPU parameters from the material used by the renderable. */
+		SPtr<GpuParamsSetCore> params;
+
 		/**	Identifier of the owner renderable. */
 		UINT32 renderableId;
 

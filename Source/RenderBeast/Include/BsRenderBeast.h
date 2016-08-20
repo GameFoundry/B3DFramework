@@ -57,6 +57,13 @@ namespace BansheeEngine
 			LightCore* internal;
 		};
 
+		/** Renderer information for a single material. */
+		struct RendererMaterial
+		{
+			Vector<SPtr<GpuParamsSetCore>> params;
+			UINT32 matVersion;
+		};
+
 	public:
 		RenderBeast();
 		~RenderBeast() { }
@@ -185,13 +192,15 @@ namespace BansheeEngine
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
-		 * @param[in]	passParams			Structure containing parameters for all stages of the pass.
+		 * @param[in]	paramsSet			Structure containing parameters for a material.
 		 * @param[in]	samplerOverrides	Optional samplers to use instead of the those in the pass parameters. Number of
 		 *									samplers must match number in pass parameters.
+		 * @param[in]	passIdx				Index of the pass whose parameters to bind.
 		 *
 		 * @note	Core thread.
 		 */
-		static void setPassParams(const SPtr<PassParametersCore>& passParams, const PassSamplerOverrides* samplerOverrides);
+		static void setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const PassSamplerOverrides* samplerOverrides, 
+			UINT32 passIdx);
 
 		// Core thread only fields
 		Vector<RendererRenderTarget> mRenderTargets;

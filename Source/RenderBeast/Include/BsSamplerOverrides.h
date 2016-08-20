@@ -37,10 +37,10 @@ namespace BansheeEngine
 	{
 	public:
 		/**
-		 * Generates a set of sampler overrides for the specified material. Overrides are generates according to the
-		 * provided render options. 
+		 * Generates a set of sampler overrides for the specified set of GPU program parameters. Overrides are generates
+		 * according to the provided render options. 
 		 */
-		static MaterialSamplerOverrides* generateSamplerOverrides(const SPtr<MaterialCore>& material, 
+		static MaterialSamplerOverrides* generateSamplerOverrides(const SPtr<GpuParamsSetCore>& paramsSet,
 			const SPtr<RenderBeastOptions>& options);
 
 		/**	Destroys sampler overrides previously generated with generateSamplerOverrides(). */

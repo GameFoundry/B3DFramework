@@ -8,9 +8,8 @@
 namespace BansheeEngine
 {
 	template<class T, bool Core>
-	TMaterialDataParam<T, Core>::TMaterialDataParam(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuDataParam<T, Core>>>& gpuParams)
-		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialDataParam<T, Core>::TMaterialDataParam(const String& name, const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr)
 	{
 		if(params != nullptr)
 		{
@@ -43,12 +42,6 @@ namespace BansheeEngine
 		}
 
 		mMaterialParams->setDataParam(mParamIndex, arrayIdx, value);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(value, arrayIdx);
-		}
 	}
 
 	template<class T, bool Core>
@@ -63,9 +56,8 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	TMaterialParamStruct<Core>::TMaterialParamStruct(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamStruct<Core>>>& gpuParams)
-		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamStruct<Core>::TMaterialParamStruct(const String& name, const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr)
 	{
 		if (params != nullptr)
 		{
@@ -97,12 +89,6 @@ namespace BansheeEngine
 		}
 
 		mMaterialParams->setStructData(mParamIndex + arrayIdx, value, sizeBytes);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(value, sizeBytes, arrayIdx);
-		}
 	}
 
 	template<bool Core>
@@ -121,9 +107,8 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	TMaterialParamTexture<Core>::TMaterialParamTexture(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamTexture<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamTexture<Core>::TMaterialParamTexture(const String& name, const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mMaterialParams(nullptr)
 	{
 		if (params != nullptr)
 		{
@@ -152,12 +137,6 @@ namespace BansheeEngine
 			mMaterialParams->getDefaultTexture(mParamIndex, newValue);
 
 		mMaterialParams->setTexture(mParamIndex, newValue);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(newValue);
-		}
 	}
 
 	template<bool Core>
@@ -173,9 +152,9 @@ namespace BansheeEngine
 	}
 	
 	template<bool Core>
-	TMaterialParamLoadStoreTexture<Core>::TMaterialParamLoadStoreTexture(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamLoadStoreTexture<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamLoadStoreTexture<Core>::TMaterialParamLoadStoreTexture(const String& name, 
+		const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mMaterialParams(nullptr)
 	{
 		if (params != nullptr)
 		{
@@ -199,12 +178,6 @@ namespace BansheeEngine
 			return;
 
 		mMaterialParams->setLoadStoreTexture(mParamIndex, texture, surface);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(texture, surface);
-		}
 	}
 
 	template<bool Core>
@@ -221,9 +194,8 @@ namespace BansheeEngine
 	}
 	
 	template<bool Core>
-	TMaterialParamBuffer<Core>::TMaterialParamBuffer(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamBuffer<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamBuffer<Core>::TMaterialParamBuffer(const String& name, const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mMaterialParams(nullptr)
 	{
 		if (params != nullptr)
 		{
@@ -247,12 +219,6 @@ namespace BansheeEngine
 			return;
 
 		mMaterialParams->setBuffer(mParamIndex, buffer);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(buffer);
-		}
 	}
 
 	template<bool Core>
@@ -268,9 +234,8 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	TMaterialParamSampState<Core>::TMaterialParamSampState(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamSampState<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamSampState<Core>::TMaterialParamSampState(const String& name, const SPtr<MaterialParamsType>& params)
+		:mParamIndex(0), mMaterialParams(nullptr)
 	{
 		if (params != nullptr)
 		{
@@ -299,12 +264,6 @@ namespace BansheeEngine
 			mMaterialParams->getDefaultSamplerState(mParamIndex, newValue);
 
 		mMaterialParams->setSamplerState(mParamIndex, newValue);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(newValue);
-		}
 	}
 
 	template<bool Core>

@@ -15,12 +15,11 @@
 #include "BsRenderAPI.h"
 #include "BsMaterial.h"
 #include "BsPass.h"
-#include "BsBlendState.h"
-#include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
 #include "BsRenderTarget.h"
 #include "BsPixelData.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsBuiltinEditorResources.h"
 #include "BsShader.h"
 #include "BsCoreRenderer.h"
@@ -224,28 +223,25 @@ namespace BansheeEngine
 			MaterialData& md = mMaterialData[i];
 
 			{
-				SPtr<PassParametersCore> passParams = md.mMatPickingCore->getPassParameters(0);
+				md.mPickingParams = md.mMatPickingCore->createParamsSet();
+				SPtr<GpuParamsCore> vertParams = md.mPickingParams->getGpuParams(GPT_VERTEX_PROGRAM);
+				SPtr<GpuParamsCore> fragParams = md.mPickingParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				md.mParamPickingVertParams = passParams->mVertParams;
-				md.mParamPickingVertParams->getParam("matWorldViewProj", md.mParamPickingWVP);
-
-				md.mParamPickingFragParams = passParams->mFragParams;
-				md.mParamPickingFragParams->getParam("colorIndex", md.mParamPickingColor);
+				vertParams->getParam("matWorldViewProj", md.mParamPickingWVP);
+				fragParams->getParam("colorIndex", md.mParamPickingColor);
 			}
 
 			{
-				SPtr<PassParametersCore> passParams = md.mMatPickingAlphaCore->getPassParameters(0);
+				md.mPickingAlphaParams = md.mMatPickingAlphaCore->createParamsSet();
+				SPtr<GpuParamsCore> vertParams = md.mPickingAlphaParams->getGpuParams(GPT_VERTEX_PROGRAM);
+				SPtr<GpuParamsCore> fragParams = md.mPickingAlphaParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				md.mParamPickingAlphaVertParams = passParams->mVertParams;
-				md.mParamPickingAlphaVertParams->getParam("matWorldViewProj", md.mParamPickingAlphaWVP);
-
-				md.mParamPickingAlphaFragParams = passParams->mFragParams;
-
-				md.mParamPickingAlphaFragParams->getParam("colorIndex", md.mParamPickingAlphaColor);
-				md.mParamPickingAlphaFragParams->getTextureParam("mainTexture", md.mParamPickingAlphaTexture);
+				vertParams->getParam("matWorldViewProj", md.mParamPickingAlphaWVP);
+				fragParams->getParam("colorIndex", md.mParamPickingAlphaColor);
+				fragParams->getTextureParam("mainTexture", md.mParamPickingAlphaTexture);
 
 				GpuParamFloatCore alphaCutoffParam;
-				md.mParamPickingAlphaFragParams->getParam("alphaCutoff", alphaCutoffParam);
+				fragParams->getParam("alphaCutoff", alphaCutoffParam);
 				alphaCutoffParam.set(ALPHA_CUTOFF);
 			}
 		}
@@ -268,6 +264,8 @@ namespace BansheeEngine
 		rs.setScissorRect(position.x, position.y, position.x + area.x, position.y + area.y);
 
 		gRendererUtility().setPass(mMaterialData[0].mMatPickingCore, 0);
+		gRendererUtility().setPassParams(mMaterialData[0].mPickingParams, 0);
+
 		bool activeMaterialIsAlpha = false;
 		CullingMode activeMaterialCull = (CullingMode)0;
 
@@ -293,16 +291,14 @@ namespace BansheeEngine
 				md.mParamPickingAlphaColor.set(color);
 				md.mParamPickingAlphaTexture.set(renderable.mainTexture->getCore());
 
-				gRendererUtility().setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingAlphaVertParams);
-				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingAlphaFragParams);
+				gRendererUtility().setPassParams(md.mPickingAlphaParams);
 			}
 			else
 			{
 				md.mParamPickingWVP.set(renderable.wvpTransform);
 				md.mParamPickingColor.set(color);
 
-				gRendererUtility().setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingVertParams);
-				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingFragParams);
+				gRendererUtility().setPassParams(md.mPickingParams);
 			}
 
 			UINT32 numSubmeshes = renderable.mesh->getProperties().getNumSubMeshes();

@@ -40,8 +40,7 @@ namespace BansheeEngine
 		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
 
 	public:
-		TMaterialDataParam(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuDataParam<T, Core>>>& gpuParams);
+		TMaterialDataParam(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialDataParam() { }
 
 		/** @copydoc TGpuDataParam::set */
@@ -53,14 +52,13 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuDataParam<T, Core>>> mGPUParams;
 	};
 	
 	/** @copydoc TMaterialDataParam */
@@ -70,8 +68,7 @@ namespace BansheeEngine
 		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
 
 	public:
-		TMaterialParamStruct(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuParamStruct<Core>>>& gpuParams);
+		TMaterialParamStruct(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialParamStruct() { }
 
 		/** @copydoc TGpuParamStruct::set */
@@ -86,14 +83,13 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuParamStruct<Core>>> mGPUParams;
 	};
 
 	/** @copydoc TMaterialDataParam */
@@ -104,8 +100,7 @@ namespace BansheeEngine
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 
 	public:
-		TMaterialParamTexture(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuParamTexture<Core>>>& gpuParams);
+		TMaterialParamTexture(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialParamTexture() { }
 
 		/** @copydoc GpuParamTexture::set */
@@ -117,13 +112,12 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuParamTexture<Core>>> mGPUParams;
 	};
 
 	/** @copydoc TMaterialDataParam */
@@ -134,8 +128,7 @@ namespace BansheeEngine
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 
 	public:
-		TMaterialParamLoadStoreTexture(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuParamLoadStoreTexture<Core>>>& gpuParams);
+		TMaterialParamLoadStoreTexture(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialParamLoadStoreTexture() { }
 
 		/** @copydoc GpuParamLoadStoreTexture::set */
@@ -147,13 +140,12 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuParamLoadStoreTexture<Core>>> mGPUParams;
 	};
 	
 	/** @copydoc TMaterialDataParam */
@@ -164,8 +156,7 @@ namespace BansheeEngine
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 
 	public:
-		TMaterialParamBuffer(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuParamBuffer<Core>>>& gpuParams);
+		TMaterialParamBuffer(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialParamBuffer() { }
 
 		/** @copydoc GpuParamBuffer::set */
@@ -177,13 +168,12 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuParamBuffer<Core>>> mGPUParams;
 	};
 
 	/** @copydoc TMaterialDataParam */
@@ -194,8 +184,7 @@ namespace BansheeEngine
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
 
 	public:
-		TMaterialParamSampState(const String& name, const SPtr<MaterialParamsType>& params,
-			const SPtr<Vector<TGpuParamSampState<Core>>>& gpuParams);
+		TMaterialParamSampState(const String& name, const SPtr<MaterialParamsType>& params);
 		TMaterialParamSampState() { }
 
 		/** @copydoc GpuParamSampState::set */
@@ -207,13 +196,12 @@ namespace BansheeEngine
 		/** Checks if param is initialized. */
 		bool operator==(const nullptr_t& nullval) const
 		{
-			return mGPUParams == nullptr;
+			return mMaterialParams == nullptr;
 		}
 
 	protected:
 		UINT32 mParamIndex;
 		SPtr<MaterialParamsType> mMaterialParams;
-		SPtr<Vector<TGpuParamSampState<Core>>> mGPUParams;
 	};
 
 	/** @} */

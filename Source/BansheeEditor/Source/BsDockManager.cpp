@@ -1145,6 +1145,7 @@ namespace BansheeEngine
 	void DockOverlayRenderer::initialize(const SPtr<MaterialCore>& material)
 	{
 		mMaterial = material;
+		mParams = material->createParamsSet();
 	}
 
 	void DockOverlayRenderer::updateData(const SPtr<CameraCore>& camera, const SPtr<MeshCore>& mesh, bool active, 
@@ -1205,8 +1206,10 @@ namespace BansheeEngine
 		}
 
 		mMaterial->setColor("highlightActive", highlightColor);
+		mMaterial->updateParamsSet(mParams);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParams);
 		gRendererUtility().draw(mMesh, mMesh->getProperties().getSubMesh(0));
 	}
 }
