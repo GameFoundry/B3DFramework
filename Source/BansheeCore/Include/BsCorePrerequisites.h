@@ -371,6 +371,7 @@ namespace BansheeEngine
 	class Animation;
 	class GpuParamsSet;
 	class GpuParamsSetCore;
+	class MaterialParamsCore;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

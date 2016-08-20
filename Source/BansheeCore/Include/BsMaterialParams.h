@@ -141,6 +141,9 @@ namespace BansheeEngine
 		 */
 		const ParamData* getParamData(UINT32 index) const;
 
+		/** Returns the total number of parameters managed by this object. */
+		UINT32 getNumParams() const { return (UINT32)mParams.size(); }
+
 		/**
 		 * Logs an error that was reported by getParamData().
 		 *

@@ -213,7 +213,10 @@ namespace BansheeEngine
 				}
 				else
 				{
-					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(renElement.params, mCoreOptions);
+					SPtr<ShaderCore> shader = renElement.material->getShader();
+					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(shader,
+						renElement.material->_getInternalParams(), renElement.params, mCoreOptions);
+
 					mSamplerOverrides[renElement.material] = samplerOverrides;
 
 					renElement.samplerOverrides = samplerOverrides;
@@ -790,7 +793,7 @@ namespace BansheeEngine
 			RendererUtility::instance().setPass(material, passIdx);
 
 		if (element.samplerOverrides != nullptr)
-			setPassParams(element.params, &element.samplerOverrides->passes[passIdx], passIdx);
+			setPassParams(element.params, element.samplerOverrides, passIdx);
 		else
 			setPassParams(element.params, nullptr, passIdx);
 
@@ -801,55 +804,32 @@ namespace BansheeEngine
 	{
 		for (auto& entry : mSamplerOverrides)
 		{
-			SPtr<GpuParamsSetCore> paramsSet = nullptr;// entry.first;
+			SPtr<MaterialParamsCore> materialParams = entry.first->_getInternalParams();
 
-			if (force)
+			MaterialSamplerOverrides* materialOverrides = entry.second;
+			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)
 			{
-				SamplerOverrideUtility::destroySamplerOverrides(entry.second);
-				entry.second = SamplerOverrideUtility::generateSamplerOverrides(paramsSet, mCoreOptions);
-			}
-			else
-			{
-				MaterialSamplerOverrides* materialOverrides = entry.second;
-				UINT32 numPasses = paramsSet->getNumPasses();
+				SamplerOverride& override = materialOverrides->overrides[i];
 
-				assert(numPasses == materialOverrides->numPasses);
-				for (UINT32 i = 0; i < numPasses; i++)
+				SPtr<SamplerStateCore> samplerState;
+				materialParams->getSamplerState(override.paramIdx, samplerState);
+
+				UINT64 hash = 0;
+				if (samplerState != nullptr)
+					hash = samplerState->getProperties().getHash();
+
+				if (hash != override.originalStateHash || force)
 				{
-					PassSamplerOverrides& passOverrides = materialOverrides->passes[i];
-
-					for (UINT32 j = 0; j < GpuParamsSetCore::NUM_STAGES; j++)
-					{
-						StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
-
-						SPtr<GpuParamsCore> params = paramsSet->getParamByIdx(j, i);
-						if (params == nullptr)
-							continue;
-
-						const GpuParamDesc& paramDesc = params->getParamDesc();
-
-						for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-						{
-							UINT32 slot = iter->second.slot;
-							SPtr<SamplerStateCore> samplerState = params->getSamplerState(slot);
-
-							assert(stageOverrides.numStates > slot);
-
-							if (samplerState != stageOverrides.stateOverrides[slot])
-							{
-								if (samplerState != nullptr)
-									stageOverrides.stateOverrides[slot] = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
-								else
-									stageOverrides.stateOverrides[slot] = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);;
-							}	
-						}
-					}
+					if (samplerState != nullptr)
+						override.state = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
+					else
+						override.state = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);;
 				}
 			}
 		}
 	}
 
-	void RenderBeast::setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const PassSamplerOverrides* samplerOverrides, 
+	void RenderBeast::setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides,
 		UINT32 passIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -886,8 +866,13 @@ namespace BansheeEngine
 				SPtr<SamplerStateCore> samplerState;
 
 				if (samplerOverrides != nullptr)
-					samplerState = samplerOverrides->stages[i].stateOverrides[iter->second.slot];
-				else
+				{
+					UINT32 overrideIndex = samplerOverrides->passes[passIdx].stages[i].stateOverrides[iter->second.slot];
+					if(overrideIndex != (UINT32)-1)
+						samplerState = samplerOverrides->overrides[overrideIndex].state;
+				}
+				
+				if(samplerState == nullptr)
 					samplerState = params->getSamplerState(iter->second.slot);
 
 				if (samplerState == nullptr)

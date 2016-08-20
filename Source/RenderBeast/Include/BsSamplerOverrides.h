@@ -13,7 +13,7 @@ namespace BansheeEngine
 	/**	Contains data about an overridden sampler states for a single pass stage. */
 	struct StageSamplerOverrides
 	{
-		SPtr<SamplerStateCore>* stateOverrides;
+		UINT32* stateOverrides;
 		UINT32 numStates;
 	};
 
@@ -24,11 +24,21 @@ namespace BansheeEngine
 		UINT32 numStages;
 	};
 
+	/** Contains data about a single overriden sampler state. */
+	struct SamplerOverride
+	{
+		UINT32 paramIdx;
+		UINT64 originalStateHash;
+		SPtr<SamplerStateCore> state;
+	};
+
 	/**	Contains data about an overridden sampler states in the entire material. */
 	struct MaterialSamplerOverrides
 	{
 		PassSamplerOverrides* passes;
+		SamplerOverride* overrides;
 		UINT32 numPasses;
+		UINT32 numOverrides;
 		UINT32 refCount;
 	};
 
@@ -40,7 +50,9 @@ namespace BansheeEngine
 		 * Generates a set of sampler overrides for the specified set of GPU program parameters. Overrides are generates
 		 * according to the provided render options. 
 		 */
-		static MaterialSamplerOverrides* generateSamplerOverrides(const SPtr<GpuParamsSetCore>& paramsSet,
+		static MaterialSamplerOverrides* generateSamplerOverrides(const SPtr<ShaderCore>& shader,
+			const SPtr<MaterialParamsCore>& params, 
+			const SPtr<GpuParamsSetCore>& paramsSet,
 			const SPtr<RenderBeastOptions>& options);
 
 		/**	Destroys sampler overrides previously generated with generateSamplerOverrides(). */

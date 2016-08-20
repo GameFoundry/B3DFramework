@@ -199,7 +199,7 @@ namespace BansheeEngine
 		 *
 		 * @note	Core thread.
 		 */
-		static void setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const PassSamplerOverrides* samplerOverrides, 
+		static void setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides, 
 			UINT32 passIdx);
 
 		// Core thread only fields
