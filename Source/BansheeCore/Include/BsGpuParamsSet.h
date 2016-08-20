@@ -57,7 +57,6 @@ namespace BansheeEngine
 			UINT32 paramIdx;
 			UINT32 blockIdx;
 			UINT32 offset;
-			UINT32 size;
 		};
 
 		/** Information about how an object parameter maps from a material parameter to a GPU stage slot. */

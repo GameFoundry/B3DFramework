@@ -7,6 +7,7 @@
 #include "BsGpuProgram.h"
 #include "BsMaterialParams.h"
 #include "BsGpuParamDesc.h"
+#include "BsRenderAPI.h"
 #include "BsGpuParamBlockBuffer.h"
 
 namespace BansheeEngine
@@ -549,11 +550,6 @@ namespace BansheeEngine
 							paramInfo.paramIdx = paramIdx;
 							paramInfo.blockIdx = globalBlockIdx;
 							paramInfo.offset = dataParam.second.cpuMemOffset;
-
-							const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)dataParam.second.type];
-							UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
-
-							paramInfo.size = paramSize * dataParam.second.arraySize;
 						}
 					}
 				}
@@ -780,9 +776,92 @@ namespace BansheeEngine
 			if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
 				continue;
 
-			// TODO - Handle transposing matrices (POTENTIALLY add this to Material setters directly)
+			UINT32 arraySize = materialParamInfo->arraySize == 0 ? 1 : materialParamInfo->arraySize;
+			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)materialParamInfo->dataType];
+			UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
+
 			UINT8* data = params->getData(materialParamInfo->index);
-			paramBlock->write(paramInfo.offset, data, paramInfo.size);
+
+			bool transposeMatrices = RenderAPICore::instance().getAPIInfo().getGpuProgramHasColumnMajorMatrices();
+			if (transposeMatrices)
+			{
+				auto writeTransposed = [&](auto& temp)
+				{
+					for (UINT32 i = 0; i < arraySize; i++)
+					{
+						UINT32 arrayOffset = i * paramSize;
+						memcpy(&temp, data + arrayOffset, paramSize);
+						temp.transpose();
+
+						paramBlock->write(paramInfo.offset + arrayOffset, &temp, paramSize);
+					}
+				};
+
+				switch (materialParamInfo->dataType)
+				{
+				case GPDT_MATRIX_2X2:
+				{
+					MatrixNxM<2, 2> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_2X3:
+				{
+					MatrixNxM<2, 3> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_2X4:
+				{
+					MatrixNxM<2, 4> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_3X2:
+				{
+					MatrixNxM<3, 2> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_3X3:
+				{
+					Matrix3 matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_3X4:
+				{
+					MatrixNxM<3, 4> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_4X2:
+				{
+					MatrixNxM<4, 2> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_4X3:
+				{
+					MatrixNxM<4, 3> matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				case GPDT_MATRIX_4X4:
+				{
+					Matrix4 matrix;
+					writeTransposed(matrix);
+				}
+					break;
+				default:
+				{
+					paramBlock->write(paramInfo.offset, data, paramSize * arraySize);
+					break;
+				}
+				}
+			}
+			else
+				paramBlock->write(paramInfo.offset, data, paramSize * arraySize);
 		}
 
 		// Update object params
