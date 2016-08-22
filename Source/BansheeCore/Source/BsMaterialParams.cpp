@@ -146,15 +146,6 @@ namespace BansheeEngine
 		return GetParamResult::Success;
 	}
 
-	const MaterialParamsBase::ParamData* MaterialParamsBase::getParamData(UINT32 index) const
-	{
-		if (index == -1)
-			return nullptr;
-
-		const ParamData& param = mParams[index];
-		return &param;
-	}
-
 	void MaterialParamsBase::reportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const
 	{
 		switch (errorCode)
@@ -171,6 +162,14 @@ namespace BansheeEngine
 		default:
 			break;
 		}
+	}
+
+	void MaterialParamsBase::clearDirtyFlags(UINT32 techniqueIdx)
+	{
+		UINT32 mask = ~(1 << techniqueIdx);
+
+		for (auto& entry : mParams)
+			entry.dirtyFlags &= mask;
 	}
 
 	RTTITypeBase* MaterialParamStructData::getRTTIStatic()

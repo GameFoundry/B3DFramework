@@ -183,7 +183,7 @@ namespace BansheeEngine
 					matInfo.params[0] = renElement.material->createParamsSet(0);
 					matInfo.matVersion = renElement.material->getVersion();
 
-					renElement.material->updateParamsSet(matInfo.params[0], true);
+					renElement.material->updateParamsSet(matInfo.params[0], 0, true);
 					renElement.material->setRendererData(matInfo);
 					renElement.params = matInfo.params[0];
 				}
@@ -198,7 +198,7 @@ namespace BansheeEngine
 						matInfo.params[0] = renElement.material->createParamsSet(0);
 						matInfo.matVersion = renElement.material->getVersion();
 
-						renElement.material->updateParamsSet(matInfo.params[0], true);
+						renElement.material->updateParamsSet(matInfo.params[0], 0, true);
 					}
 
 					renElement.params = matInfo.params[0];

@@ -415,9 +415,9 @@ namespace BansheeEngine
 	const UINT32 TGpuParamsSet<Core>::NUM_STAGES = 6;
 
 	template<bool Core>
-	TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, UINT32 techniqueIdx,
+	TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader,
 		const SPtr<MaterialParamsType>& params)
-		:mPassParams(technique->getNumPasses()), mTechniqueIdx(techniqueIdx)
+		:mPassParams(technique->getNumPasses())
 	{
 		UINT32 numPasses = technique->getNumPasses();
 
@@ -757,15 +757,15 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	void TGpuParamsSet<Core>::update(const SPtr<MaterialParamsType>& params, bool updateAll)
+	void TGpuParamsSet<Core>::update(const SPtr<MaterialParamsType>& params, UINT32 dirtyBitIdx, bool updateAll)
 	{
 		// Note: Instead of iterating over every single parameter, it might be more efficient for @p params to keep
 		// a ring buffer and a version number. Then we could just iterate over the ring buffer and only access dirty
 		// parameters. If the version number is too high (larger than ring buffer can store), then we force update for all.
 
 		// Maximum of 31 techniques are supported. Bit 32 is reserved.
-		assert(mTechniqueIdx < 31);
-		UINT32 dirtyFlagCheck = 1 << mTechniqueIdx;
+		assert(dirtyBitIdx < 31);
+		UINT32 dirtyFlagMask = 1 << dirtyBitIdx;
 
 		// Update data params
 		for(auto& paramInfo : mDataParamInfos)
@@ -775,7 +775,7 @@ namespace BansheeEngine
 				continue;
 
 			const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-			if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
+			if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
 				continue;
 
 			UINT32 arraySize = materialParamInfo->arraySize == 0 ? 1 : materialParamInfo->arraySize;
@@ -883,7 +883,7 @@ namespace BansheeEngine
 						const ObjectParamInfo& paramInfo = stageInfo.textures[k];
 
 						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
+						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
 							continue;
 
 						TextureType texture;
@@ -897,7 +897,7 @@ namespace BansheeEngine
 						const ObjectParamInfo& paramInfo = stageInfo.loadStoreTextures[k];
 
 						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
+						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
 							continue;
 
 						TextureSurface surface;
@@ -912,7 +912,7 @@ namespace BansheeEngine
 						const ObjectParamInfo& paramInfo = stageInfo.buffers[k];
 
 						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
+						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
 							continue;
 
 						BufferType buffer;
@@ -926,7 +926,7 @@ namespace BansheeEngine
 						const ObjectParamInfo& paramInfo = stageInfo.samplerStates[k];
 
 						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagCheck) == 0 && !updateAll)
+						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
 							continue;
 
 						SamplerStateType samplerState;

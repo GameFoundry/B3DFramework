@@ -88,7 +88,7 @@ namespace BansheeEngine
 
 	public:
 		TGpuParamsSet() {}
-		TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, UINT32 techniqueIdx, 
+		TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader,
 			const SPtr<MaterialParamsType>& params);
 		~TGpuParamsSet();
 
@@ -162,18 +162,20 @@ namespace BansheeEngine
 		/**
 		 * Updates internal GPU params for all passes and stages from the provided material parameters object.
 		 *
-		 * @param[in]	params		Object containing the parameter data to update from. Layout of the object must match the
-		 *							object used for creating this object (be created for the same shader).
-		 * @param[in]	updateAll	By default the system will only update parameters marked as dirty in @p params. If this
-		 *							is set to true, all parameters will be updated instead.
+		 * @param[in]	params			Object containing the parameter data to update from. Layout of the object must match the
+		 *								object used for creating this object (be created for the same shader).
+		 * @param[in]	dirtyBitIdx		Index to use when checking if parameters are dirty. Must be in range [0, 31]. Allows
+		 *								the same material params to record dirty state for multiple sets of GPU params
+		 *								(each with their own index).
+		 * @param[in]	updateAll		By default the system will only update parameters marked as dirty in @p params. If this
+		 *								is set to true, all parameters will be updated instead.
 		 */
-		void update(const SPtr<MaterialParamsType>& params, bool updateAll = false);
+		void update(const SPtr<MaterialParamsType>& params, UINT32 dirtyBitIdx, bool updateAll = false);
 
 		static const UINT32 NUM_STAGES;
 	private:
 		template<bool Core2> friend class TMaterial;
 
-		UINT32 mTechniqueIdx;
 		Vector<PassParams> mPassParams;
 		Vector<BlockInfo> mBlocks;
 		Vector<DataParamInfo> mDataParamInfos;
@@ -185,9 +187,9 @@ namespace BansheeEngine
 	{
 	public:
 		GpuParamsSet() { }
-		GpuParamsSet(const SPtr<Technique>& technique, const HShader& shader, UINT32 techniqueIdx, 
+		GpuParamsSet(const SPtr<Technique>& technique, const HShader& shader, 
 			const SPtr<MaterialParams>& params)
-			:TGpuParamsSet(technique, shader, techniqueIdx, params)
+			:TGpuParamsSet(technique, shader, params)
 		{ }
 	};
 
@@ -196,9 +198,9 @@ namespace BansheeEngine
 	{
 	public:
 		GpuParamsSetCore() { }
-		GpuParamsSetCore(const SPtr<TechniqueCore>& technique, const SPtr<ShaderCore>& shader, UINT32 techniqueIdx,
+		GpuParamsSetCore(const SPtr<TechniqueCore>& technique, const SPtr<ShaderCore>& shader,
 			const SPtr<MaterialParamsCore>& params)
-			:TGpuParamsSet(technique, shader, techniqueIdx, params)
+			:TGpuParamsSet(technique, shader, params)
 		{ }
 	};
 

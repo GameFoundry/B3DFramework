@@ -147,10 +147,14 @@ namespace BansheeEngine
 		 * will not be able to track which parameters were updated since the last call.
 		 *
 		 * @param[in]	paramsSet		Parameter set to update.
+		 * @param[in]	dirtyBitIdx		Index to use when checking if parameters are dirty. Must be in range [0, 30]. Allows
+		 *								the same material params to record dirty state for multiple sets of GPU params
+		 *								(each with their own index). Dirty state for the specified index will be cleared
+		 *								after the call.
 		 * @param[in]	forceRefresh	If true all material parameters will be assigned to the params set, regardless if
 		 *								they are marked dirty or not.
 		 */
-		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, bool forceRefresh = false);
+		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, UINT32 dirtyBitIdx = 0, bool forceRefresh = false);
 
 		/**   
 		 * Assigns a float value to the shader parameter with the specified name. 

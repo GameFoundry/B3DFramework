@@ -136,10 +136,9 @@ namespace BansheeEngine
 			const ParamData** output) const;
 
 		/**
-		 * Returns information about a parameter at the specified global index, as retrieved by getParamIndex(). Returns
-		 * null if the index is out of range.
+		 * Returns information about a parameter at the specified global index, as retrieved by getParamIndex(). 
 		 */
-		const ParamData* getParamData(UINT32 index) const;
+		const ParamData* getParamData(UINT32 index) const { return &mParams[index]; }
 
 		/** Returns the total number of parameters managed by this object. */
 		UINT32 getNumParams() const { return (UINT32)mParams.size(); }
@@ -190,6 +189,13 @@ namespace BansheeEngine
 		{
 			return &mDataParamsBuffer[index];
 		}
+
+		/** 
+		 * Clears dirty flags for all parameters, for the specified index. 
+		 *
+		 * @param[in]	index	Index of the bit to clear. Must be in range [0-31]
+		 */
+		void clearDirtyFlags(UINT32 index);
 
 	protected:
 		const static UINT32 STATIC_BUFFER_SIZE = 256;

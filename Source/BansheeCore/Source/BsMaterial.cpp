@@ -40,15 +40,15 @@ namespace BansheeEngine
 			return nullptr;
 
 		SPtr<TechniqueType> technique = mTechniques[techniqueIdx];
-		return bs_shared_ptr_new<GpuParamsSetType>(technique, mShader, techniqueIdx, mParams);
+		return bs_shared_ptr_new<GpuParamsSetType>(technique, mShader, mParams);
 	}
 
 	template<bool Core>
-	void TMaterial<Core>::updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, bool forceRefresh)
+	void TMaterial<Core>::updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, UINT32 dirtyBitIdx, bool forceRefresh)
 	{
-		paramsSet->update(mParams, forceRefresh);
+		paramsSet->update(mParams, dirtyBitIdx, forceRefresh);
 
-		// TODO - Clear dirty flags
+		mParams->clearDirtyFlags(dirtyBitIdx);
 	}
 
 	template<bool Core>
