@@ -65,6 +65,7 @@ namespace BansheeEngine
 		{
 			StringID renderer = RendererAny;
 			StringID renderAPI = RenderAPIAny;
+			Vector<StringID> tags;
 			String language;
 
 			PassData commonPassData;
@@ -83,7 +84,8 @@ namespace BansheeEngine
 		 * Retrieves the renderer and language specified for the technique. These two values are considered a unique 
 		 * identifier for a technique.
 		 */
-		static void getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language);
+		static void getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language, 
+			Vector<StringID>& tags);
 
 		/** Checks if two techniques can be matched based on the options specified in their child nodes. */
 		static bool doTechniquesMatch(ASTFXNode* into, ASTFXNode* from);

@@ -174,24 +174,37 @@ Blocks all begin with the Block keyword, followed by a name. The name must match
 
 # Technique {#bslfx_c}
 
-This is the meat of your shader. A technique contains code for your vertex/fragment/geometry/hull/domain/compute programs, as well as blend/rasterizer/depth-stencil states. A shader can contain multiple techniques but only a single technique is ever used at once. Different techniques can be specified for each shading language (e.g. HLSL, GLSL) and different renderer (in case you're using something other than the default).
+This is the meat of your shader. A technique contains code for your vertex/fragment/geometry/hull/domain/compute programs, as well as blend/rasterizer/depth-stencil states. A shader can contain multiple techniques but only a single technique is ever used at once. Different techniques can be specified for:
+ - Shading language (e.g. HLSL, GLSL) 
+ - Renderer (in case you're using something other than the default)
+ - Per-object properties (e.g. different technique for an animated object vs. a static object)
 
 ## Properties {#bslfx_c_a}
 
-Technique block should therefore always contain a "Language" property like so:
+Technique block should therefore always contain a "Language" property. This will ensure the proper technique is used depending on the render API the engine is set to use.
 ~~~~~~~~~~~~~~
 	Language = "HLSL"
 ~~~~~~~~~~~~~~
 
 Supported values are "HLSL" (DirectX 11 HLSL), "HLSL9" (DirectX 9 HLSL), and "GLSL".
 
-You can also specify a renderer using the "Renderer" property:
+In case you are using a non-standard render, you can also specify a renderer using the "Renderer" property. This will ensure the propert technique is used as you switch between renderers.
 ~~~~~~~~~~~~~~
 	Renderer = "Default"
 ~~~~~~~~~~~~~~
 
 Supported values are "Any", or "Default". More values could be available if you are using a custom renderer, but otherwise you don't need to set this property.
 
+And finally you may specify an optional set of tags that serve as hints to the renderer when rendering a specific object. You may specify zero or multiple tags:
+~~~~~~~~~~~~~~
+	Tags = { "Animated", "OtherTag" }
+~~~~~~~~~~~~~~
+
+Currently recognized tags by the default renderer are:
+ - Animated - When renderer detects it is rendering a mesh that supports skeletal or blend shape animation, it will prefer to pick a technique with this tag, rather than one without it.
+
+Unrecognized tags will just be ignored. Renderer can be extended so it supports custom tags.
+ 
 Once the base properties are defined you can start defining code blocks and states.
 
 ## Code blocks {#bslfx_c_b}

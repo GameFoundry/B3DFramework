@@ -20,6 +20,7 @@ enum tagNodeType
 	NT_AddrMode,
 	NT_Parameter,
 	NT_Block,
+	NT_Tags,
 	NT_CodeVertex,
 	NT_CodeFragment,
 	NT_CodeGeometry,
@@ -97,6 +98,8 @@ enum tagOptionType
 	OT_SamplerState,
 	OT_Code,
 	OT_StencilRef,
+	OT_Tags,
+	OT_TagValue,
 	OT_Count
 };
 

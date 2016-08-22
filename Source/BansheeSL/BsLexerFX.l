@@ -110,6 +110,7 @@ Blocks			{ return TOKEN_BLOCKS; }
 	/* Technique keywords */
 Renderer		{ return TOKEN_RENDERER; }
 Language		{ return TOKEN_LANGUAGE; }
+Tags			{ return TOKEN_TAGS; }
 Pass			{ return TOKEN_PASS; }
 
 	/* Pass keywords */

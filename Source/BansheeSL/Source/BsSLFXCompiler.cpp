@@ -190,7 +190,8 @@ namespace BansheeEngine
 		yylex_destroy(scanner);
 	}
 
-	void BSLFXCompiler::getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language)
+	void BSLFXCompiler::getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language, 
+		Vector<StringID>& tags)
 	{
 		renderer = RendererAny;
 		language = "Any";
@@ -207,6 +208,18 @@ namespace BansheeEngine
 			case OT_Language:
 				language = removeQuotes(option->value.strValue);
 				break;
+			case OT_Tags:
+			{
+				ASTFXNode* tagsNode = option->value.nodePtr;
+				for (int j = 0; j < tagsNode->options->count; j++)
+				{
+					NodeOption* tagOption = &tagsNode->options->entries[j];
+
+					if (tagOption->type == OT_TagValue)
+						tags.push_back(removeQuotes(tagOption->value.strValue));
+				}
+			}
+			break;
 			default:
 				break;
 			}
@@ -217,14 +230,43 @@ namespace BansheeEngine
 	{
 		StringID intoRenderer = RendererAny;
 		String intoLanguage = "Any";
+		Vector<StringID> intoTags;
 
 		StringID fromRenderer = RendererAny;
 		String fromLanguage = "Any";
+		Vector<StringID> fromTags;
 
-		getTechniqueIdentifier(into, intoRenderer, intoLanguage);
-		getTechniqueIdentifier(from, fromRenderer, fromLanguage);
+		getTechniqueIdentifier(into, intoRenderer, intoLanguage, intoTags);
+		getTechniqueIdentifier(from, fromRenderer, fromLanguage, fromTags);
 
-		return (intoRenderer == fromRenderer || fromRenderer == RendererAny) && (intoLanguage == fromLanguage || fromLanguage == "Any");
+		bool matches = (intoRenderer == fromRenderer || fromRenderer == RendererAny) && (intoLanguage == fromLanguage || fromLanguage == "Any");
+		if(matches)
+		{
+			for (auto& intoTag : intoTags)
+			{
+				auto iterFind = std::find(fromTags.begin(), fromTags.end(), intoTag);
+				if(iterFind == fromTags.end())
+				{
+					matches = false;
+					break;
+				}
+			}
+		}
+
+		if (matches)
+		{
+			for (auto& fromTag : fromTags)
+			{
+				auto iterFind = std::find(intoTags.begin(), intoTags.end(), fromTag);
+				if (iterFind == intoTags.end())
+				{
+					matches = false;
+					break;
+				}
+			}
+		}
+
+		return matches;
 	}
 
 	StringID BSLFXCompiler::parseRenderer(const String& name)
@@ -1051,6 +1093,18 @@ namespace BansheeEngine
 			case OT_Language:
 				parseLanguage(removeQuotes(option->value.strValue), techniqueData.renderAPI, techniqueData.language);
 				break;
+			case OT_Tags:
+			{
+				ASTFXNode* tagsNode = option->value.nodePtr;
+				for (int j = 0; j < tagsNode->options->count; j++)
+				{
+					NodeOption* tagOption = &tagsNode->options->entries[j];
+
+					if(tagOption->type == OT_TagValue)
+						techniqueData.tags.push_back(removeQuotes(tagOption->value.strValue));
+				}
+			}
+			break;
 			case OT_Code:
 				parseCodeBlock(option->value.nodePtr, codeBlocks, techniqueData.commonPassData);
 				break;
@@ -1343,7 +1397,8 @@ namespace BansheeEngine
 
 			if (orderedPasses.size() > 0)
 			{
-				SPtr<Technique> technique = Technique::create(techniqueData.renderAPI, techniqueData.renderer, orderedPasses);
+				SPtr<Technique> technique = Technique::create(techniqueData.renderAPI, techniqueData.renderer, 
+					techniqueData.tags, orderedPasses);
 				techniques.push_back(technique);
 			}
 		}

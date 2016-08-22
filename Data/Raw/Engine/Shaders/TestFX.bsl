@@ -72,11 +72,11 @@ Parameters =
 	Sampler2DMS samp4;
 	ByteBuffer buffer1;
 	StructBuffer buffer2;
-	ByteBufferRW buffer3;
-	StructBufferRW buffer4;
+	RWByteBuffer buffer3;
+	RWStructBuffer buffer4;
 	AppendBuffer buffer5;
 	ConsumeBuffer buffer6;
-	TypedBufferRW buffer7;			  
+	RWTypedBuffer buffer7;			  
 };
 
 Blocks = 
@@ -89,6 +89,7 @@ Technique =
 {
 	Renderer = "Any";
 	Language = "HLSL11";
+	Tags = { "Animated", "OtherTag" };
 
 	Pass =
 	{

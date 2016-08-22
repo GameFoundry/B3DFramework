@@ -8,7 +8,7 @@ Welcome to the documentation for the native (C++) API of the Banshee Engine.
 This documentation contains a set of [manuals](@ref manuals) and an API reference for all native types.
 
 # Manuals # {#mainpage_a}
-Manuals should be your primary entry point into learning about Banshee. They will provide you with a view of the general architecture of the engine, as well as the architecture of the more important systems. They will also teach you have to extend/modify various parts of the engine, including adding custom GUI types, script objects, resources, importers, renderers and many more.
+Manuals should be your primary entry point into learning about Banshee. They will provide you with a view of the general architecture of the engine, as well as the architecture of the more important systems. They will also teach you how to extend/modify various parts of the engine, including adding custom GUI types, script objects, resources, importers, renderers and many more.
  
 The manuals generally do not cover user-facing functionality, and focus more on explaining the engine internals. To learn about user-facing functionality read the [scripting documentation](@ref TODO_LINK), the C++ interfaces are very similar and are usually just a direct reflection of their script counterparts.
  
