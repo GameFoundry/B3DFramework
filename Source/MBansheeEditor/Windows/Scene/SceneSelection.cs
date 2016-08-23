@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using BansheeEngine;
 
 namespace BansheeEditor
@@ -13,6 +14,7 @@ namespace BansheeEditor
     /// <summary>
     /// Contains information regarding object snapping.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     struct SnapData
     {
         /// <summary>

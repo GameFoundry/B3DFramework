@@ -42,9 +42,6 @@ namespace BansheeEngine
 
 	void ScriptSceneSelection::internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive, MonoArray* ignoreRenderables)
 	{
-		assert(_CrtCheckMemory() == 1);
-		SnapData data;
-
 		Vector<HSceneObject> ignoredSceneObjects;
 
 		if (ignoreRenderables != nullptr)
@@ -65,8 +62,7 @@ namespace BansheeEngine
 			}
 		}
 
-		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects);
-		assert(_CrtCheckMemory() == 1);
+		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects); //TODO REMOVE DATA
 		if (pickedObject)
 		{
 			if (additive) // Append to existing selection
@@ -89,15 +85,15 @@ namespace BansheeEngine
 				Selection::instance().setSceneObjects(selectedSOs);
 			}
 		}
-		else //TODO: Should we clear when it is additive?
+		else if (!additive)
+		{
 			Selection::instance().clearSceneSelection();
-		assert(_CrtCheckMemory() == 1);
+		}
+			
 	}
 
 	void ScriptSceneSelection::internal_PickObjects(ScriptSceneSelection* thisPtr, Vector2I* inputPos, Vector2I* area, bool additive, MonoArray* ignoreRenderables)
 	{
-		SnapData data;
-		assert(_CrtCheckMemory() == 1);
 		Vector<HSceneObject> ignoredSceneObjects;
 
 		if (ignoreRenderables != nullptr)
@@ -117,9 +113,8 @@ namespace BansheeEngine
 				ignoredSceneObjects.push_back(so);
 			}
 		}
-		assert(_CrtCheckMemory() == 1);
-		Vector<HSceneObject> pickedObjects = ScenePicking::instance().pickObjects(thisPtr->mCamera, *inputPos, *area, ignoredSceneObjects);
-		assert(_CrtCheckMemory() == 1);
+		Vector<HSceneObject> pickedObjects = ScenePicking::instance().pickObjects(thisPtr->mCamera, *inputPos, *area, ignoredSceneObjects); //TODO: REMOVE DATA
+
 		if (pickedObjects.size() != 0)
 		{
 			if (additive) // Append to existing selection
@@ -144,9 +139,10 @@ namespace BansheeEngine
 			else
 				Selection::instance().setSceneObjects(pickedObjects);
 		}
-		else //TODO: Should we clear when it is additive?
+		else if (!additive)
+		{
 			Selection::instance().clearSceneSelection();
-		assert(_CrtCheckMemory() == 1);
+		}
 	}
 
 	void ScriptSceneSelection::internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables)
