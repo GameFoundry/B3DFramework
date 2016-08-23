@@ -704,16 +704,16 @@ namespace BansheeEditor
         /// </summary>
         private static void FocusOnHierarchyOrScene()
         {
-            HierarchyWindow hierarchyWindow = EditorWindow.GetWindow<HierarchyWindow>();
-            if (hierarchyWindow != null)
+            SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
+            if (sceneWindow != null)
             {
-                hierarchyWindow.HasFocus = true;
+                sceneWindow.HasFocus = true;
                 return;
             }
 
-            SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
-            if (sceneWindow != null)
-                sceneWindow.HasFocus = true;
+            HierarchyWindow hierarchyWindow = EditorWindow.GetWindow<HierarchyWindow>();
+            if (hierarchyWindow != null)
+                hierarchyWindow.HasFocus = true;
         }
     }
 
