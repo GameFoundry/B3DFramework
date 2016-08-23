@@ -23,11 +23,14 @@ Technique =
 
 			void main(
 				in float3 inPos : POSITION,
+				in float3 inNorm : NORMAL,
 				in float2 uv : TEXCOORD0,
 				out float4 oPosition : SV_Position,
+				out float4 oNorm : NORMAL,
 				out float2 oUv : TEXCOORD0)
 			{
 				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oNorm = float4(inNorm, 0);
 				oUv = uv;
 			}
 		};
@@ -42,9 +45,12 @@ Technique =
 
 			float4 main(
 				in float4 inPos : SV_Position,
-				in float2 uv : TEXCOORD0) : SV_Target
+				in float4 inNorm : NORMAL,
+				in float2 uv : TEXCOORD0,
+				out float4 oNorm : SV_Target1) : SV_Target0
 			{
 				float4 color = mainTexture.Sample(mainTexSamp, uv);
+				oNorm = (inNorm + float4(1,1,1,0)) / 2;
 				if(color.a < alphaCutoff)
 					discard;
 				
@@ -111,6 +117,8 @@ Technique =
 			uniform mat4 matWorldViewProj;
 			in vec3 bs_position;
 			in vec2 bs_texcoord0;
+			in vec3 bs_normal;
+			out vec4 bs_outNorm
 			out vec2 texcoord0;
 
 			out gl_PerVertex
@@ -122,6 +130,7 @@ Technique =
 			{
 				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
 				texcoord0 = bs_texcoord0;
+				bs_outNorm = vec4(bs_normal, 0);
 			}
 		};
 		
@@ -130,7 +139,9 @@ Technique =
 			uniform sampler2D mainTexture;
 			uniform vec4 colorIndex;
 			uniform float alphaCutoff;
+			in vec4 bs_outNorm;
 			in vec2 texcoord0;
+			out vec4 normalsColor;
 			out vec4 fragColor;
 
 			void main()
@@ -138,7 +149,7 @@ Technique =
 				vec4 color = texture2D(mainTexture, texcoord0);
 				if(color.a < alphaCutoff)
 					discard;
-				
+				normalsColor = (bs_outNorm + vec4(1,1,1,0)) / 2;;
 				fragColor = colorIndex;
 			}
 		};

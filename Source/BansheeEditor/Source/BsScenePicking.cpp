@@ -498,7 +498,6 @@ namespace BansheeEngine
 				depth = depthPixelData->getDepthAt(position.x, position.y);
 				normal = normalsPixelData->getColorAt(position.x, position.y);
 			}
-			LOGWRN(toString(normal.r) + " & " + toString(normal.g) + " & " + toString(normal.b));
 
 			SnapData data;
 			const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
