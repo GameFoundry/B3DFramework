@@ -117,7 +117,7 @@ namespace BansheeEngine
 
 	}
 
-	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
 

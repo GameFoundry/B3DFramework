@@ -116,7 +116,10 @@ namespace BansheeEngine
 		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
 
 		/** Attempts to find a technique with the supported tag. Returns an index of the technique, or -1 if not found. */
-		UINT32 findTechnique(const StringID& tag);
+		UINT32 findTechnique(const StringID& tag) const;
+
+		/** Finds the index of the default (primary) technique to use. */
+		UINT32 getDefaultTechnique() const;
 
 		/** 
 		 * Returns the number of passes that are used by the technique at the specified index. 

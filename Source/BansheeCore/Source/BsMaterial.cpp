@@ -62,7 +62,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	UINT32 TMaterial<Core>::findTechnique(const StringID& tag)
+	UINT32 TMaterial<Core>::findTechnique(const StringID& tag) const
 	{
 		for(UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
@@ -70,7 +70,19 @@ namespace BansheeEngine
 				return i;
 		}
 
-		return -1;
+		return (UINT32)-1;
+	}
+
+	template<bool Core>
+	UINT32 TMaterial<Core>::getDefaultTechnique() const
+	{
+		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
+		{
+			if (!mTechniques[i]->hasTags())
+				return i;
+		}
+
+		return 0;
 	}
 
 	template<bool Core>

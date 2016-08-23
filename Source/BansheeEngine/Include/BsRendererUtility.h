@@ -34,10 +34,11 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	material		Material containing the pass.
 		 * @param[in]	passIdx			Index of the pass in the material.
+		 * @param[in]	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
 		 *
 		 * @note	Core thread.
 		 */
-		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, UINT32 techniqueIdx = 0);
 
 		/**
 		 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.

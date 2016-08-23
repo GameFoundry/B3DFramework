@@ -42,6 +42,27 @@ namespace BansheeEngine
 		UINT32 refCount;
 	};
 
+	/** Key used for uniquely identifying a sampler override entry. */
+	struct SamplerOverrideKey
+	{
+		SamplerOverrideKey(const SPtr<MaterialCore>& material, UINT32 techniqueIdx)
+			:material(material), techniqueIdx(techniqueIdx)
+		{ }
+
+		bool operator== (const SamplerOverrideKey& rhs) const
+		{ 
+			return material == rhs.material && techniqueIdx == rhs.techniqueIdx;
+		}
+
+		bool operator!= (const SamplerOverrideKey& rhs) const 
+		{ 
+			return !(*this == rhs); 
+		}
+
+		SPtr<MaterialCore> material;
+		UINT32 techniqueIdx;
+	};
+
 	/**	Helper class for generating sampler overrides. */
 	class BS_BSRND_EXPORT SamplerOverrideUtility
 	{
@@ -75,3 +96,24 @@ namespace BansheeEngine
 
 	/** @} */
 }
+
+/** @cond STDLIB */
+
+namespace std
+{
+	/** Hash value generator for SamplerOverrideKey. */
+	template<>
+	struct hash<BansheeEngine::SamplerOverrideKey>
+	{
+		size_t operator()(const BansheeEngine::SamplerOverrideKey& key) const
+		{
+			size_t hash = 0;
+			BansheeEngine::hash_combine(hash, key.material);
+			BansheeEngine::hash_combine(hash, key.techniqueIdx);
+
+			return hash;
+		}
+	};
+}
+
+/** @endcond */

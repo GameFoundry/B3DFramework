@@ -25,6 +25,9 @@ namespace BansheeEngine
 		/** Checks if the technique has the specified tag. */
 		bool hasTag(const StringID& tag);
 
+		/** Checks if the technique has any tags. */
+		UINT32 hasTags() const { return !mTags.empty(); }
+
 	protected:
 		StringID mRenderAPI;
 		StringID mRenderer;

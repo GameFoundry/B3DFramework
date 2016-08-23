@@ -174,38 +174,49 @@ namespace BansheeEngine
 				if (renElement.material == nullptr)
 					renElement.material = mDefaultMaterial->getMaterial();
 
+				// Determine which technique to use
+				UINT32 techniqueIdx = -1;
+				if(renderable->isAnimated())
+					techniqueIdx = renElement.material->findTechnique(RTag_Animated);
+
+				if (techniqueIdx == (UINT32)-1)
+					techniqueIdx = renElement.material->getDefaultTechnique();
+
+				renElement.techniqueIdx = techniqueIdx;
+
 				// Generate or assigned renderer specific data for the material
 				Any materialInfo = renElement.material->getRendererData();
 				if(materialInfo.empty())
 				{
 					RendererMaterial matInfo;
-					matInfo.params.resize(1);
-					matInfo.params[0] = renElement.material->createParamsSet(0);
+					matInfo.params.resize(techniqueIdx + 1);
+					matInfo.params[techniqueIdx] = renElement.material->createParamsSet(techniqueIdx);
 					matInfo.matVersion = renElement.material->getVersion();
 
-					renElement.material->updateParamsSet(matInfo.params[0], 0, true);
+					renElement.material->updateParamsSet(matInfo.params[techniqueIdx], techniqueIdx, true);
 					renElement.material->setRendererData(matInfo);
-					renElement.params = matInfo.params[0];
+					renElement.params = matInfo.params[techniqueIdx];
 				}
 				else
 				{
 					RendererMaterial& matInfo = any_cast_ref<RendererMaterial>(materialInfo);
 					if(matInfo.matVersion != renElement.material->getVersion())
 					{
-						if (matInfo.params.size() < 1)
-							matInfo.params.resize(1);
+						if (matInfo.params.size() <= techniqueIdx)
+							matInfo.params.resize(techniqueIdx + 1);
 
-						matInfo.params[0] = renElement.material->createParamsSet(0);
+						matInfo.params[techniqueIdx] = renElement.material->createParamsSet(techniqueIdx);
 						matInfo.matVersion = renElement.material->getVersion();
 
-						renElement.material->updateParamsSet(matInfo.params[0], 0, true);
+						renElement.material->updateParamsSet(matInfo.params[techniqueIdx], techniqueIdx, true);
 					}
 
-					renElement.params = matInfo.params[0];
+					renElement.params = matInfo.params[techniqueIdx];
 				}
 
 				// Generate or assign sampler state overrides
-				auto iterFind = mSamplerOverrides.find(renElement.material);
+				SamplerOverrideKey samplerKey(renElement.material, techniqueIdx);
+				auto iterFind = mSamplerOverrides.find(samplerKey);
 				if (iterFind != mSamplerOverrides.end())
 				{
 					renElement.samplerOverrides = iterFind->second;
@@ -217,7 +228,7 @@ namespace BansheeEngine
 					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(shader,
 						renElement.material->_getInternalParams(), renElement.params, mCoreOptions);
 
-					mSamplerOverrides[renElement.material] = samplerOverrides;
+					mSamplerOverrides[samplerKey] = samplerOverrides;
 
 					renElement.samplerOverrides = samplerOverrides;
 					samplerOverrides->refCount++;
@@ -237,7 +248,9 @@ namespace BansheeEngine
 		Vector<BeastRenderableElement>& elements = mRenderables[renderableId].elements;
 		for (auto& element : elements)
 		{
-			auto iterFind = mSamplerOverrides.find(element.material);
+			SamplerOverrideKey samplerKey(element.material, element.techniqueIdx);
+
+			auto iterFind = mSamplerOverrides.find(samplerKey);
 			assert(iterFind != mSamplerOverrides.end());
 
 			MaterialSamplerOverrides* samplerOverrides = iterFind->second;
@@ -788,10 +801,10 @@ namespace BansheeEngine
 		}
 
 		mObjectRenderer->setPerObjectParams(element, mRenderableShaderData[rendererId], worldViewProjMatrix, boneMatrices);
-		material->updateParamsSet(element.params);
+		material->updateParamsSet(element.params, element.techniqueIdx);
 
 		if (bindPass)
-			RendererUtility::instance().setPass(material, passIdx);
+			RendererUtility::instance().setPass(material, passIdx, element.techniqueIdx);
 
 		if (element.samplerOverrides != nullptr)
 			setPassParams(element.params, element.samplerOverrides, passIdx);
@@ -805,7 +818,7 @@ namespace BansheeEngine
 	{
 		for (auto& entry : mSamplerOverrides)
 		{
-			SPtr<MaterialParamsCore> materialParams = entry.first->_getInternalParams();
+			SPtr<MaterialParamsCore> materialParams = entry.first.material->_getInternalParams();
 
 			MaterialSamplerOverrides* materialOverrides = entry.second;
 			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)

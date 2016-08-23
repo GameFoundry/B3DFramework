@@ -36,6 +36,9 @@ namespace BansheeEngine
 		/** Identifier of the animation running on the renderable's mesh. -1 if no animation. */
 		UINT64 animationId;
 
+		/** Index of the technique in the material to render the element with. */
+		UINT32 techniqueIdx;
+
 		/** 
 		 * Parameter for setting global bone pose transforms used for an element with skeletal animation, null otherwise. 
 		 */
