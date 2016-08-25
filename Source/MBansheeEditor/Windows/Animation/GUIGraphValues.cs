@@ -84,9 +84,12 @@ namespace BansheeEditor
         /// <param name="yPos">Position to draw the text at.</param>
         /// <param name="value">Value to display.</param>
         /// <param name="above">If true the text will be displayed above the provided position, otherwise below.</param>
-        private void DrawValue(int yPos, float value,  bool above)
+        private void DrawValue(int yPos, float value, bool above)
         {
-            string valueString = value.ToString();
+            int exponent = MathEx.FloorToInt(MathEx.Log10(MathEx.Abs(value)));
+            int maxDecimalPoints = MathEx.Max(0, 1 - exponent);
+
+            string valueString = value.ToString("F" + maxDecimalPoints);
 
             Vector2I textBounds = GUIUtility.CalculateTextBounds(valueString, EditorBuiltin.DefaultFont,
                 EditorStyles.DefaultFontSize);

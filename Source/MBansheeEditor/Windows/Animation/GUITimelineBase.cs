@@ -169,7 +169,7 @@ namespace BansheeEditor
                 range += lengthPerPixel * PADDING;
             }
 
-            return ((int)range / spf) * spf;
+            return MathEx.Max(1.0f, range / spf) * spf;
         }
 
         /// <summary>
