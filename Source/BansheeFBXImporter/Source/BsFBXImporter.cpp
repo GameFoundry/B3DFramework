@@ -178,7 +178,7 @@ namespace BansheeEngine
 			Vector<ImportedAnimationEvents> events = meshImportOptions->getAnimationEvents();
 			for(auto& entry : animationClips)
 			{
-				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive);
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate);
 				
 				for(auto& eventsEntry : events)
 				{
@@ -505,7 +505,7 @@ namespace BansheeEngine
 					}
 
 					names.insert(name);
-					output.push_back(FBXAnimationClipData(name, split.isAdditive, splitClipCurve));
+					output.push_back(FBXAnimationClipData(name, split.isAdditive, clip.sampleRate, splitClipCurve));
 				}
 			}
 			else
@@ -520,7 +520,7 @@ namespace BansheeEngine
 				}
 
 				names.insert(name);
-				output.push_back(FBXAnimationClipData(name, false, curves));
+				output.push_back(FBXAnimationClipData(name, false, clip.sampleRate, curves));
 			}
 
 			isFirstClip = false;
@@ -1423,6 +1423,8 @@ namespace BansheeEngine
 			clip.start = (float)timeSpan.GetStart().GetSecondDouble();
 			clip.end = (float)timeSpan.GetStop().GetSecondDouble();
 
+			clip.sampleRate = (UINT32)FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
+
 			UINT32 layerCount = animStack->GetMemberCount<FbxAnimLayer>();
 			if (layerCount > 1)
 			{
@@ -1505,9 +1507,6 @@ namespace BansheeEngine
 				boneAnim.scale = reduceKeyframes(boneAnim.scale);
 				eulerAnimation = reduceKeyframes(eulerAnimation);
 			}
-
-			//if (importOptions.importScale != 1.0f)
-			//	boneAnim.translation = scaleKeyframes(boneAnim.translation, importOptions.importScale);
 
 			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}

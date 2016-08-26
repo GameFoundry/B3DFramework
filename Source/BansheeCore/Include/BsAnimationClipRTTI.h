@@ -74,6 +74,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mIsAdditive, 4)
 			BS_RTTI_MEMBER_PLAIN(mLength, 5)
 			BS_RTTI_MEMBER_PLAIN(mEvents, 6)
+			BS_RTTI_MEMBER_PLAIN(mSampleRate, 7)
 		BS_END_RTTI_MEMBERS
 	public:
 		AnimationClipRTTI()

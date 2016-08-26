@@ -62,6 +62,7 @@ namespace BansheeEditor
     {
         public AnimationClip clip;
         public bool isImported;
+        public int sampleRate;
         public Dictionary<string, FieldAnimCurves> curves = new Dictionary<string, FieldAnimCurves>();
         public AnimationEvent[] events = new AnimationEvent[0];
 
@@ -76,6 +77,7 @@ namespace BansheeEditor
             EditorAnimClipInfo clipInfo = new EditorAnimClipInfo();
             clipInfo.clip = clip;
             clipInfo.isImported = IsClipImported(clip);
+            clipInfo.sampleRate = clip.SampleRate;
 
             AnimationCurves clipCurves = clip.Curves;
             EditorAnimClipTangents editorCurveData = null;
@@ -386,6 +388,7 @@ namespace BansheeEditor
 
                 clip.Curves = newClipCurves;
                 clip.Events = events;
+                clip.SampleRate = sampleRate;
 
                 string resourcePath = ProjectLibrary.GetPath(clip);
                 ProjectLibrary.Save(clip);

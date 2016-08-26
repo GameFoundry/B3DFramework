@@ -35,6 +35,8 @@ namespace BansheeEngine
 		static MonoArray* internal_GetAnimationEvents(ScriptAnimationClip* thisPtr);
 		static void internal_SetAnimationEvents(ScriptAnimationClip* thisPtr, MonoArray* events);
 		static float internal_GetLength(ScriptAnimationClip* thisPtr);
+		static UINT32 internal_GetSampleRate(ScriptAnimationClip* thisPtr);
+		static void internal_SetSampleRate(ScriptAnimationClip* thisPtr, UINT32 sampleRate);
 	};
 
 	/**	Interop class between C++ & CLR for AnimationEvent. */

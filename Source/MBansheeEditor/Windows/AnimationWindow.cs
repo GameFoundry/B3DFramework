@@ -118,6 +118,8 @@ namespace BansheeEditor
         private void RebuildGUI()
         {
             GUI.Clear();
+            guiCurveEditor = null;
+            guiFieldDisplay = null;
 
             if (selectedSO == null)
             {
@@ -565,6 +567,7 @@ namespace BansheeEditor
             guiCurveEditor.DisableCurveEdit = clipInfo.isImported;
 
             SetCurrentFrame(0);
+            FPS = clipInfo.sampleRate;
         }
 
         private void UpdateSelectedSO(bool force)
@@ -610,7 +613,8 @@ namespace BansheeEditor
                 if(clipInfo == null)
                     clipInfo = new EditorAnimClipInfo();
 
-                UpdateDisplayedCurves(true);
+                if(selectedSO != null)
+                    UpdateDisplayedCurves(true);
             }
         }
 

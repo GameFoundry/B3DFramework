@@ -70,9 +70,6 @@ namespace BansheeEditor
 
         public void SetDisplayValues(GUIAnimFieldPathValue[] values)
         {
-            for(int i = 0; i < values.Length; i++)
-                Debug.Log(i + ". " + values[i].value);
-
             for (int i = 0; i < fields.Length; i++)
             {
                 string path = fields[i].Path;
