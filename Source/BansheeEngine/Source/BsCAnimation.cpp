@@ -146,10 +146,7 @@ namespace BansheeEngine
 		if (renderableComponent == nullptr)
 			return;
 
-		SPtr<Renderable> renderable = renderableComponent->_getRenderable();
-
-		if(renderable != nullptr)
-			renderable->setAnimation(mInternal);
+		renderableComponent->_setAnimation(mInternal);
 	}
 
 	void CAnimation::destroyInternal()

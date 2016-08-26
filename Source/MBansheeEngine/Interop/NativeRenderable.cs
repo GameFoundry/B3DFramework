@@ -109,9 +109,9 @@ namespace BansheeEngine
             Internal_SetMaterial(mCachedPtr, materialPtr, index);
         }
 
-        internal void UpdateTransform(SceneObject sceneObject)
+        internal void UpdateTransform(SceneObject sceneObject, bool force)
         {
-            Internal_UpdateTransform(mCachedPtr, sceneObject.mCachedPtr);
+            Internal_UpdateTransform(mCachedPtr, sceneObject.mCachedPtr, force);
         }
         
         internal void OnDestroy()
@@ -126,7 +126,7 @@ namespace BansheeEngine
         private static extern void Internal_SetAnimation(IntPtr thisPtr, IntPtr animation);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_UpdateTransform(IntPtr thisPtr, IntPtr parentSO);
+        private static extern void Internal_UpdateTransform(IntPtr thisPtr, IntPtr parentSO, bool force);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetMesh(IntPtr thisPtr, IntPtr mesh);

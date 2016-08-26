@@ -1079,7 +1079,7 @@ namespace BansheeEngine
 		// Write TRS animation results to relevant SceneObjects
 		for(UINT32 i = 0; i < mAnimProxy->numSceneObjects; i++)
 		{
-			const AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
+			AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
 
 			auto iterFind = mSceneObjects.find(soInfo.id);
 			if (iterFind == mSceneObjects.end())
@@ -1101,6 +1101,8 @@ namespace BansheeEngine
 				so->setRotation(mAnimProxy->sceneObjectPose.rotations[i]);
 				so->setScale(mAnimProxy->sceneObjectPose.scales[i]);
 			}
+
+			soInfo.hash = so->getTransformHash();
 		}
 
 		// Must ensure that clip in the proxy and current primary clip are the same

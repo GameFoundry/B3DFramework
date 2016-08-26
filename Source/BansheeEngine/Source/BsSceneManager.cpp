@@ -80,22 +80,13 @@ namespace BansheeEngine
 	{
 		for (auto& renderablePair : mRenderables)
 		{
-			SPtr<Renderable> handler = renderablePair.second.renderable;
+			SPtr<Renderable> renderable = renderablePair.second.renderable;
 			HSceneObject so = renderablePair.second.sceneObject;
 
-			UINT32 curHash = so->getTransformHash();
-			if (curHash != handler->_getLastModifiedHash())
-			{
-				Matrix4 transformNoScale = Matrix4::TRS(so->getWorldPosition(), so->getWorldRotation(), Vector3::ONE);
+			renderable->_updateTransform(so);
 
-				handler->setTransform(so->getWorldTfrm(), transformNoScale);
-				handler->_setLastModifiedHash(curHash);
-			}
-
-			if (so->getActive() != handler->getIsActive())
-			{
-				handler->setIsActive(so->getActive());
-			}
+			if (so->getActive() != renderable->getIsActive())
+				renderable->setIsActive(so->getActive());
 		}
 
 		for (auto& cameraPair : mCameras)

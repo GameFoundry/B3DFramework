@@ -281,6 +281,34 @@ namespace BansheeEngine
 		}
 	}
 
+	void Renderable::_updateTransform(const HSceneObject& so, bool force)
+	{
+		UINT32 curHash = so->getTransformHash();
+		if (curHash != _getLastModifiedHash() || force)
+		{
+			if (mAnimation != nullptr)
+			{
+				// Note: Technically we're checking child's hash but using parent's transform. Ideally we check the parent's
+				// hash to reduce the number of required updates.
+				HSceneObject parentSO = so->getParent();
+				if (parentSO != nullptr)
+				{
+					Matrix4 transformNoScale = Matrix4::TRS(parentSO->getWorldPosition(), parentSO->getWorldRotation(), Vector3::ONE);
+					setTransform(parentSO->getWorldTfrm(), transformNoScale);
+				}
+				else
+					setTransform(Matrix4::IDENTITY, Matrix4::IDENTITY);
+			}
+			else
+			{
+				Matrix4 transformNoScale = Matrix4::TRS(so->getWorldPosition(), so->getWorldRotation(), Vector3::ONE);
+				setTransform(so->getWorldTfrm(), transformNoScale);
+			}
+
+			_setLastModifiedHash(curHash);
+		}
+	}
+
 	void Renderable::_markCoreDirty(RenderableDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);

@@ -319,6 +319,13 @@ namespace BansheeEngine
 
 	void FBXImporter::parseScene(FbxScene* scene, const FBXImportOptions& options, FBXImportScene& outputScene)
 	{
+		float importScale = 1.0f;
+		if (options.importScale > 0.0001f)
+			importScale = options.importScale;
+
+		FbxSystemUnit scaledMeters(100.0f / importScale);
+		scaledMeters.ConvertScene(scene);
+
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
@@ -523,8 +530,6 @@ namespace BansheeEngine
 	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
 		Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton)
 	{
-		Matrix4 importScale = Matrix4::scaling(options.importScale);
-
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
 		Vector<BONE_DESC> allBones;
@@ -597,7 +602,7 @@ namespace BansheeEngine
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform * importScale;
+				Matrix4 worldTransform = node->worldTransform;
 				Matrix4 worldTransformIT = worldTransform.transpose();
 				worldTransformIT = worldTransformIT.inverse();
 
@@ -1247,14 +1252,12 @@ namespace BansheeEngine
 		Matrix4 invBakedTransform;
 		if (mesh.referencedBy.size() > 0)
 		{
-			Matrix4 importScale = Matrix4::scaling(options.importScale);
-			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform * importScale;
-
+			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform;
 			invBakedTransform = bakedTransform.inverseAffine();
 		}
 		else
 			invBakedTransform = Matrix4::IDENTITY;
-		
+
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
 		for (UINT32 i = 0; i < boneCount; i++)
@@ -1503,8 +1506,8 @@ namespace BansheeEngine
 				eulerAnimation = reduceKeyframes(eulerAnimation);
 			}
 
-			if (importOptions.importScale != 1.0f)
-				boneAnim.translation = scaleKeyframes(boneAnim.translation, importOptions.importScale);
+			//if (importOptions.importScale != 1.0f)
+			//	boneAnim.translation = scaleKeyframes(boneAnim.translation, importOptions.importScale);
 
 			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}

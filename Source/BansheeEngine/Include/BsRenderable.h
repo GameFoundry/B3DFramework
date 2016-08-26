@@ -199,6 +199,9 @@ namespace BansheeEngine
 		/**	Sets the hash value that can be used to identify if the internal data needs an update. */
 		void _setLastModifiedHash(UINT32 hash) { mLastUpdateHash = hash; }
 
+		/** Updates the transfrom from the provided scene object, if the scene object's data is detected to be dirty. */
+		void _updateTransform(const HSceneObject& so, bool force = false);
+
 		/**	Creates a new renderable handler instance. */
 		static SPtr<Renderable> create();
 

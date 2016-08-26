@@ -29,14 +29,13 @@ namespace BansheeEngine
 		gSceneManager()._registerRenderable(mInternal, sceneObject());
 
 		HAnimation animationComponent = SO()->getComponent<CAnimation>();
-		if(animationComponent != nullptr)
-			mInternal->setAnimation(animationComponent->_getInternal());
+		if (animationComponent != nullptr)
+			_setAnimation(animationComponent->_getInternal());
 	}
 
 	Bounds CRenderable::getBounds() const
 	{
-		updateTransform();
-
+		mInternal->_updateTransform(mThisHandle);
 		return mInternal->getBounds();
 	}
 
@@ -47,15 +46,15 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void CRenderable::updateTransform() const
+	void CRenderable::_setAnimation(const SPtr<Animation>& animation)
 	{
-		UINT32 curHash = SO()->getTransformHash();
-		if (curHash != mInternal->_getLastModifiedHash())
+		if (mInternal != nullptr)
 		{
-			Matrix4 transformNoScale = Matrix4::TRS(SO()->getWorldPosition(), SO()->getWorldRotation(), Vector3::ONE);
+			mInternal->setAnimation(animation);
 
-			mInternal->setTransform(SO()->getWorldTfrm(), transformNoScale);
-			mInternal->_setLastModifiedHash(curHash);
+			// Need to update transform because animated renderables handle local transforms through bones, so it shouldn't
+			// be included in the renderable's transform.
+			mInternal->_updateTransform(mThisHandle, true);
 		}
 	}
 

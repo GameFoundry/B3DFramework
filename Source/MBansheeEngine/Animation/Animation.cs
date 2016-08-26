@@ -583,9 +583,7 @@ namespace BansheeEngine
             if (renderable == null)
                 return;
 
-            NativeRenderable nativeRenderable = renderable.Native;
-            if (nativeRenderable != null)
-                nativeRenderable.Animation = _native;
+            renderable.NativeAnimation = _native;
         }
 
         /// <summary>

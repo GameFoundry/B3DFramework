@@ -29,6 +29,24 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Attaches an animation that will be used for animating the renderable's mesh.
+        /// </summary>
+        internal NativeAnimation NativeAnimation
+        {
+            set
+            {
+                if (_native != null)
+                {
+                    _native.Animation = value;
+
+                    // Need to update transform because animated renderables handle local transforms through bones, so it
+                    // shouldn't be included in the renderable's transform.
+                    _native.UpdateTransform(SceneObject, true);
+                }
+            }
+        }
+
+        /// <summary>
         /// Mesh to render. 
         /// </summary>
         public Mesh Mesh
@@ -132,12 +150,12 @@ namespace BansheeEngine
 
             Animation animation = SceneObject.GetComponent<Animation>();
             if (animation != null)
-                _native.Animation = animation.Native;
+                NativeAnimation = animation.Native;
         }
 
         private void OnUpdate()
         {
-            _native.UpdateTransform(SceneObject);
+            _native.UpdateTransform(SceneObject, false);
         }
 
         private void OnDestroy()

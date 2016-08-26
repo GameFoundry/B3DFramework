@@ -55,12 +55,12 @@ namespace BansheeEngine
 		/** Returns the internal renderable that is used for majority of operations by this component. */
 		SPtr<Renderable> _getRenderable() const { return mInternal; }
 
+		/** Attaches an animation that will be used for animating the renderable's mesh. */
+		void _setAnimation(const SPtr<Animation>& animation);
+
 		/** @} */
 
 	private:
-		/**	Updates the world transform if the SceneObject transform changed. */
-		void updateTransform() const;
-
 		mutable SPtr<Renderable> mInternal;
 
 		/************************************************************************/
