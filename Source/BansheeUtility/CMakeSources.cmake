@@ -167,11 +167,13 @@ set(BS_BANSHEEUTILITY_SRC_MATH
 set(BS_BANSHEEUTILITY_INC_TESTING
 	"Include/BsTestSuite.h"
 	"Include/BsTestOutput.h"
+	"Include/BsConsoleTestOutput.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_TESTING
 	"Source/BsTestSuite.cpp"
 	"Source/BsTestOutput.cpp"
+	"Source/BsConsoleTestOutput.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_SERIALIZATION
