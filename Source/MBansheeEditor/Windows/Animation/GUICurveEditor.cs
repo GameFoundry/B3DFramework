@@ -59,7 +59,8 @@ namespace BansheeEditor
         }
 
         private const int TIMELINE_HEIGHT = 20;
-        private const int EVENTS_HEIGHT = 10;
+        private const int VERT_PADDING = 2;
+        private const int EVENTS_HEIGHT = 15;
         private const int SIDEBAR_WIDTH = 30;
         private const int DRAG_START_DISTANCE = 3;
 
@@ -264,22 +265,35 @@ namespace BansheeEditor
             eventContextMenu.AddItem("Delete", DeleteSelectedEvents);
             eventContextMenu.AddItem("Edit", EditSelectedEvent);
 
-            guiTimeline = new GUIGraphTime(gui, width, TIMELINE_HEIGHT);
+            GUIPanel timelinePanel = gui.AddPanel();
+            guiTimeline = new GUIGraphTime(timelinePanel, width, TIMELINE_HEIGHT);
+
+            GUIPanel timelineBgPanel = gui.AddPanel(1);
+
+            GUITexture timelineBackground = new GUITexture(null, EditorStyles.Header);
+            timelineBackground.Bounds = new Rect2I(0, 0, width, TIMELINE_HEIGHT + VERT_PADDING);
+            timelineBgPanel.AddElement(timelineBackground);
 
             eventsPanel = gui.AddPanel();
-            eventsPanel.SetPosition(0, TIMELINE_HEIGHT);
+            eventsPanel.SetPosition(0, TIMELINE_HEIGHT + VERT_PADDING);
             guiEvents = new GUIAnimEvents(eventsPanel, width, EVENTS_HEIGHT);
-            
-            drawingPanel = gui.AddPanel();
-            drawingPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT);
 
-            guiCurveDrawing = new GUICurveDrawing(drawingPanel, width, height - TIMELINE_HEIGHT - EVENTS_HEIGHT, curveInfos);
+            GUIPanel eventsBgPanel = eventsPanel.AddPanel(1);
+
+            GUITexture eventsBackground = new GUITexture(null, EditorStyles.Header);
+            eventsBackground.Bounds = new Rect2I(0, 0, width, EVENTS_HEIGHT + VERT_PADDING);
+            eventsBgPanel.AddElement(eventsBackground);
+
+            drawingPanel = gui.AddPanel();
+            drawingPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT + VERT_PADDING);
+
+            guiCurveDrawing = new GUICurveDrawing(drawingPanel, width, height - TIMELINE_HEIGHT - EVENTS_HEIGHT - VERT_PADDING * 2, curveInfos);
             guiCurveDrawing.SetRange(60.0f, 20.0f);
 
             GUIPanel sidebarPanel = gui.AddPanel(-10);
-            sidebarPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT);
+            sidebarPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT + VERT_PADDING);
 
-            guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT - EVENTS_HEIGHT);
+            guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT - EVENTS_HEIGHT - VERT_PADDING * 2);
             guiSidebar.SetRange(-10.0f, 10.0f);
         }
 

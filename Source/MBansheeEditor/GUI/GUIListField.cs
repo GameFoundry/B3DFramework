@@ -171,8 +171,8 @@ namespace BansheeEditor
 
                 short backgroundDepth = (short)(Inspector.START_BACKGROUND_DEPTH - depth - 1);
                 string bgPanelStyle = depth % 2 == 0
-                    ? EditorStyles.InspectorContentBgAlternate
-                    : EditorStyles.InspectorContentBg;
+                    ? EditorStylesInternal.InspectorContentBgAlternate
+                    : EditorStylesInternal.InspectorContentBg;
 
                 GUIPanel backgroundPanel = guiContentPanel.AddPanel(backgroundDepth);
                 GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);

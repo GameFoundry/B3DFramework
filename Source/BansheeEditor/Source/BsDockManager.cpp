@@ -250,7 +250,7 @@ namespace BansheeEngine
 			mSlider = nullptr;
 		}
 
-		mSlider = GUIDockSlider::create(horizontal, "DockSliderBtn");
+		mSlider = GUIDockSlider::create(horizontal, "Separator");
 		mManager->_getParentWidget()->getPanel()->addElement(mSlider);
 		mSlider->onDragged.connect(std::bind(&DockManager::DockContainer::sliderDragged, this, _1));
 

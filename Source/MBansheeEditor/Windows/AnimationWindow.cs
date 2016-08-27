@@ -303,7 +303,10 @@ namespace BansheeEditor
                 }
             };
 
-            GUILayout mainLayout = GUI.AddLayoutY();
+            GUIPanel mainPanel = GUI.AddPanel();
+            GUIPanel backgroundPanel = GUI.AddPanel(1);
+
+            GUILayout mainLayout = mainPanel.AddLayoutY();
 
             buttonLayout = mainLayout.AddLayoutX();
             buttonLayout.AddSpace(5);
@@ -322,6 +325,10 @@ namespace BansheeEditor
 
             buttonLayoutHeight = playButton.Bounds.height;
 
+            GUITexture buttonBackground = new GUITexture(null, EditorStyles.HeaderBackground);
+            buttonBackground.Bounds = new Rect2I(0, 0, Width, buttonLayoutHeight);
+            backgroundPanel.AddElement(buttonBackground);
+
             GUILayout contentLayout = mainLayout.AddLayoutX();
             GUILayout fieldDisplayLayout = contentLayout.AddLayoutY(GUIOption.FixedWidth(FIELD_DISPLAY_WIDTH));
 
@@ -338,6 +345,9 @@ namespace BansheeEditor
 
             vertScrollBar = new GUIResizeableScrollBarV();
             vertScrollBar.OnScrollOrResize += OnVertScrollOrResize;
+
+            GUITexture separator = new GUITexture(null, EditorStyles.Separator, GUIOption.FixedWidth(3));
+            contentLayout.AddElement(separator);
 
             GUILayout curveLayout = contentLayout.AddLayoutY();
             GUILayout curveLayoutHorz = curveLayout.AddLayoutX();
@@ -720,9 +730,9 @@ namespace BansheeEditor
             {
                 for (int i = 0; i < selectedFields.Count; i++)
                 {
-                    CurveDrawInfo curveInfo;
-                    if (TryGetCurve(selectedFields[i], out curveInfo))
-                        curvesToDisplay.Add(curveInfo);
+                    CurveDrawInfo[] curveInfos;
+                    if (TryGetCurve(selectedFields[i], out curveInfos))
+                        curvesToDisplay.AddRange(curveInfos);
                 }
             }
 
@@ -947,7 +957,7 @@ namespace BansheeEditor
             }
         }
 
-        private bool TryGetCurve(string path, out CurveDrawInfo curveInfo)
+        private bool TryGetCurve(string path, out CurveDrawInfo[] curveInfos)
         {
             int index = path.LastIndexOf(".");
             string parentPath;
@@ -969,33 +979,33 @@ namespace BansheeEditor
                 {
                     if (subPathSuffix == ".x" || subPathSuffix == ".r")
                     {
-                        curveInfo = fieldCurves.curveInfos[0];
+                        curveInfos = new [] { fieldCurves.curveInfos[0] };
                         return true;
                     }
                     else if (subPathSuffix == ".y" || subPathSuffix == ".g")
                     {
-                        curveInfo = fieldCurves.curveInfos[1];
+                        curveInfos = new[] { fieldCurves.curveInfos[1] };
                         return true;
                     }
                     else if (subPathSuffix == ".z" || subPathSuffix == ".b")
                     {
-                        curveInfo = fieldCurves.curveInfos[2];
+                        curveInfos = new[] { fieldCurves.curveInfos[2] };
                         return true;
                     }
                     else if (subPathSuffix == ".w" || subPathSuffix == ".a")
                     {
-                        curveInfo = fieldCurves.curveInfos[3];
+                        curveInfos = new[] { fieldCurves.curveInfos[3] };
                         return true;
                     }
                 }
                 else
                 {
-                    curveInfo = fieldCurves.curveInfos[0];
+                    curveInfos = fieldCurves.curveInfos;
                     return true;
                 }
             }
 
-            curveInfo = new CurveDrawInfo();
+            curveInfos = new CurveDrawInfo[0];
             return false;
         }
 

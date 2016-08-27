@@ -5,6 +5,7 @@
 #include "BsPrerequisites.h"
 #include "BsGUIElement.h"
 #include "BsTextSprite.h"
+#include "BsImageSprite.h"
 #include "BsGUIContent.h"
 
 namespace BansheeEngine
@@ -87,6 +88,12 @@ namespace BansheeEngine
 		/** @copydoc GUIElement::_getMeshInfo() */
 		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
+		/** @copydoc GUIElement::_getRenderElementDepth */
+		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
+
+		/** @copydoc GUIElement::_getRenderElementDepthRange */
+		UINT32 _getRenderElementDepthRange() const override;
+
 		/** @copydoc GUIElement::_fillBuffer */
 		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
 			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
@@ -97,10 +104,13 @@ namespace BansheeEngine
 	private:
 		GUILabel(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions);
 
-		TextSprite* mTextSprite;
 		GUIContent mContent;
 
+		TextSprite* mTextSprite;
+		ImageSprite* mImageSprite;
+		
 		TEXT_SPRITE_DESC mDesc;
+		IMAGE_SPRITE_DESC mImageDesc;
 	};
 
 	/** @} */

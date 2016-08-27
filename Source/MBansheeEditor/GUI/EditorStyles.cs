@@ -26,6 +26,16 @@ namespace BansheeEditor
         public const string InputBox = "InputBox";
         public const string Foldout = "Foldout";
         public const string Expand = "Expand";
+        public const string Separator = "Separator";
+        public const string Header = "Header";
+        public const string HeaderBackground = "HeaderBackground";
+    }
+
+    /// <summary>
+    /// Editor GUI styles similar to <see cref="EditorStyles"/> but with a more specific use.
+    /// </summary>
+    internal static class EditorStylesInternal
+    {
         public const string ColorSliderHorz = "ColorSliderHorz";
         public const string ColorSliderVert = "ColorSliderVert";
         public const string ColorSlider2DHandle = "ColorSlider2DHandle";

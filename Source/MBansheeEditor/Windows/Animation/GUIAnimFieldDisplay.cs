@@ -123,6 +123,9 @@ namespace BansheeEditor
             if (fieldInfos == null || root == null)
                 return;
 
+            GUILabel header = new GUILabel(new LocEdString("Properties"), EditorStyles.Header);
+            scrollArea.Layout.AddElement(header);
+
             layouts = new GUIAnimFieldLayouts();
             GUIPanel rootPanel = scrollArea.Layout.AddPanel();
             GUIPanel mainPanel = rootPanel.AddPanel();
@@ -136,7 +139,7 @@ namespace BansheeEditor
             layouts.background = backgroundPanel.AddLayoutY();
 
             GUIButton catchAll = new GUIButton("", EditorStyles.Blank);
-            catchAll.Bounds = new Rect2I(0, 0, width, height);
+            catchAll.Bounds = new Rect2I(0, 0, width, height - header.Bounds.height);
             catchAll.OnClick += () => OnEntrySelected(null);
 
             underlayPanel.AddElement(catchAll);
@@ -206,6 +209,20 @@ namespace BansheeEditor
                     fields[i].OnEntrySelected += OnEntrySelected;
             }
 
+            if (fieldInfos.Count == 0)
+            {
+                GUILabel warningLbl = new GUILabel(new LocEdString("No properties. Add a new property to begin animating."));
+
+                GUILayoutY vertLayout = layouts.main.AddLayoutY();
+                vertLayout.AddFlexibleSpace();
+                GUILayoutX horzLayout = vertLayout.AddLayoutX();
+                vertLayout.AddFlexibleSpace();
+
+                horzLayout.AddFlexibleSpace();
+                horzLayout.AddElement(warningLbl);
+                horzLayout.AddFlexibleSpace();
+            }
+
             layouts.main.AddSpace(5);
             layouts.underlay.AddSpace(5);
             layouts.overlay.AddSpace(5);
@@ -247,12 +264,12 @@ namespace BansheeEditor
 
         public string Path { get { return path; } }
 
-        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path, bool child)
+        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path, bool child, int indentAmount)
         {
             this.path = path;
 
             GUILayoutX toggleLayout = layouts.main.AddLayoutX();
-            toggleLayout.AddSpace(child ? 45 : 30);
+            toggleLayout.AddSpace(indentAmount);
 
             selectionBtn = new GUIButton(GetDisplayName(path, child), EditorStyles.Label, GUIOption.FlexibleWidth());
             selectionBtn.OnClick += () =>
@@ -422,7 +439,7 @@ namespace BansheeEditor
         private GUILabel overlaySpacing;
 
         public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path, Color color, bool child = false)
-            : base(layouts, path, child)
+            : base(layouts, path, child, child ? 45 : 30)
         {
             valueDisplay = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();
@@ -468,7 +485,7 @@ namespace BansheeEditor
         protected GUIAnimSimpleEntry[] children;
 
         public GUIAnimComplexEntry(GUIAnimFieldLayouts layouts, string path, string[] childEntries, Color[] colors)
-            : base(layouts, path, false)
+            : base(layouts, path, false, 20)
         {
             foldout = new GUIToggle("", EditorStyles.Expand);
             foldout.OnToggled += Toggle;
@@ -477,6 +494,7 @@ namespace BansheeEditor
 
             foldoutLayout = layouts.overlay.AddLayoutX();
 
+            foldoutLayout.AddSpace(5);
             foldoutLayout.AddElement(foldout);
             foldoutLayout.AddElement(spacer);
             foldoutLayout.AddFlexibleSpace();
@@ -592,7 +610,7 @@ namespace BansheeEditor
         private GUILabel overlaySpacing;
 
         public GUIAnimMissingEntry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path, false)
+            : base(layouts, path, false, 15)
         {
             missingLabel = new GUILabel("Missing property!", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();

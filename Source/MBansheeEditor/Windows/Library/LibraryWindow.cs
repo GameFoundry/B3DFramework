@@ -917,7 +917,7 @@ namespace BansheeEditor
 
             if (dragSelection == null)
             {
-                dragSelection = new GUITexture(null, true, EditorStyles.SelectionArea);
+                dragSelection = new GUITexture(null, true, EditorStylesInternal.SelectionArea);
                 content.Overlay.AddElement(dragSelection);
             }
 

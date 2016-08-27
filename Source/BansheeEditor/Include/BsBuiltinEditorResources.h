@@ -416,8 +416,6 @@ namespace BansheeEngine
 
 		static const WString ToolBarSeparatorTex;
 
-		static const WString DockSliderNormalTex;
-
 		static const WString TreeViewExpandButtonOffNormal;
 		static const WString TreeViewExpandButtonOffHover;
 		static const WString TreeViewExpandButtonOnNormal;

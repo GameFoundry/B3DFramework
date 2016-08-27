@@ -3,13 +3,14 @@
 #include "BsGUILabel.h"
 #include "BsGUIElementStyle.h"
 #include "BsTextSprite.h"
+#include "BsSpriteTexture.h"
 #include "BsGUIDimensions.h"
 #include "BsGUIHelper.h"
 
 namespace BansheeEngine
 {
 	GUILabel::GUILabel(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mContent(content)
+		:GUIElement(styleName, dimensions), mImageSprite(nullptr), mContent(content)
 	{
 		mTextSprite = bs_new<TextSprite>();
 	}
@@ -17,30 +18,102 @@ namespace BansheeEngine
 	GUILabel::~GUILabel()
 	{
 		bs_delete(mTextSprite);
+
+		if (mImageSprite != nullptr)
+			bs_delete(mImageSprite);
 	}
 
 	UINT32 GUILabel::_getNumRenderElements() const
 	{
-		return mTextSprite->getNumRenderElements();
+		UINT32 numElements = mTextSprite->getNumRenderElements();
+
+		if(mImageSprite != nullptr)
+			numElements += mImageSprite->getNumRenderElements();
+
+		return numElements;
 	}
 
 	const SpriteMaterialInfo& GUILabel::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
 	{
-		*material = mTextSprite->getMaterial(renderElementIdx);
-		return mTextSprite->getMaterialInfo(renderElementIdx);
+		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
+
+		if(renderElementIdx >= imageSpriteIdx)
+		{
+			*material = mImageSprite->getMaterial(imageSpriteIdx - renderElementIdx);
+			return mImageSprite->getMaterialInfo(imageSpriteIdx - renderElementIdx);
+		}
+		else
+		{
+			*material = mTextSprite->getMaterial(renderElementIdx);
+			return mTextSprite->getMaterialInfo(renderElementIdx);
+		}
 	}
 
 	void GUILabel::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
-		UINT32 numQuads = mTextSprite->getNumQuads(renderElementIdx);
+		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
+
+		UINT32 numQuads;
+		if (renderElementIdx >= imageSpriteIdx)
+			numQuads = mImageSprite->getNumQuads(imageSpriteIdx - renderElementIdx);
+		else
+			numQuads = mTextSprite->getNumQuads(renderElementIdx);
 
 		numVertices = numQuads * 4;
 		numIndices = numQuads * 6;
 		type = GUIMeshType::Triangle;
 	}
 
+	UINT32 GUILabel::_getRenderElementDepth(UINT32 renderElementIdx) const
+	{
+		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
+
+		if (renderElementIdx >= imageSpriteIdx)
+			return _getDepth() + 1;
+		else
+			return _getDepth();
+	}
+
+	UINT32 GUILabel::_getRenderElementDepthRange() const
+	{
+		return 2;
+	}
+
 	void GUILabel::updateRenderElementsInternal()
 	{		
+		const HSpriteTexture& activeTex = _getStyle()->normal.texture;
+		if (SpriteTexture::checkIsLoaded(activeTex))
+		{
+			mImageDesc.texture = activeTex.getInternalPtr();
+
+			if (mImageSprite == nullptr)
+				mImageSprite = bs_new<ImageSprite>();
+		}
+		else
+		{
+			mImageDesc.texture = nullptr;
+
+			if (mImageSprite != nullptr)
+			{
+				bs_delete(mImageSprite);
+				mImageSprite = nullptr;
+			}
+		}
+
+		if (mImageSprite != nullptr)
+		{
+			mImageDesc.width = mLayoutData.area.width;
+			mImageDesc.height = mLayoutData.area.height;
+
+			mImageDesc.borderLeft = _getStyle()->border.left;
+			mImageDesc.borderRight = _getStyle()->border.right;
+			mImageDesc.borderTop = _getStyle()->border.top;
+			mImageDesc.borderBottom = _getStyle()->border.bottom;
+			mImageDesc.color = getTint();
+
+			mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
+		}
+
 		mDesc.font = _getStyle()->font;
 		mDesc.fontSize = _getStyle()->fontSize;
 		mDesc.wordWrap = _getStyle()->wordWrap;
@@ -69,8 +142,18 @@ namespace BansheeEngine
 		UINT32 indexStride = sizeof(UINT32);
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
 
-		mTextSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
-			indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
+
+		if (renderElementIdx < imageSpriteIdx)
+		{
+			mTextSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
+				indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+
+			return;
+		}
+
+		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
+			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, offset, mLayoutData.getLocalClipRect());
 	}
 
 	void GUILabel::setContent(const GUIContent& content)

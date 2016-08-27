@@ -230,8 +230,6 @@ namespace BansheeEngine
 
 	const WString BuiltinEditorResources::ToolBarSeparatorTex = L"ToolBarSeparator.png";
 
-	const WString BuiltinEditorResources::DockSliderNormalTex = L"DockSliderNormal.png";
-
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffNormal = L"ExpandArrowNormalOff.png";
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffHover = L"ExpandArrowHoverOff.png";
 	const WString BuiltinEditorResources::TreeViewExpandButtonOnNormal = L"ExpandArrowNormalOn.png";
@@ -1296,19 +1294,43 @@ namespace BansheeEngine
 		skin->setStyle(GUIMenuBar::getToolBarButtonStyleType(), toolBarBtnStyle);
 
 		/************************************************************************/
-		/* 								DOCK SLIDER	                     		*/
+		/* 								SEPARATOR	                     		*/
 		/************************************************************************/
 
-		GUIElementStyle dockSliderBtnStyle;
-		dockSliderBtnStyle.normal.texture = getGUITexture(DockSliderNormalTex);
-		dockSliderBtnStyle.hover.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.active.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.fixedHeight = false;
-		dockSliderBtnStyle.fixedWidth = false;
-		dockSliderBtnStyle.height = 2;
-		dockSliderBtnStyle.width = 2;
+		GUIElementStyle separator;
+		separator.normal.texture = getGUITexture(L"Separator.png");
+		separator.hover.texture = separator.normal.texture;
+		separator.active.texture = separator.normal.texture;
+		separator.fixedHeight = false;
+		separator.fixedWidth = false;
+		separator.height = 2;
+		separator.width = 2;
 
-		skin->setStyle("DockSliderBtn", dockSliderBtnStyle);
+		skin->setStyle("Separator", separator);
+
+		/************************************************************************/
+		/* 								HEADER	                     			*/
+		/************************************************************************/
+
+		GUIElementStyle headerBackground;
+		headerBackground.normal.texture = getGUITexture(L"HeaderBg.png");
+
+		skin->setStyle("HeaderBackground", headerBackground);
+
+		GUIElementStyle header;
+		header.normal.texture = getGUITexture(L"Header.png");
+		header.normal.textColor = TextNormalColor;
+		header.border.bottom = 2;
+		header.fixedHeight = true;
+		header.height = 21;
+		header.minWidth = 4;
+		header.minHeight = 4;
+		header.font = defaultFont;
+		header.fontSize = DefaultFontSize;
+		header.textHorzAlign = THA_Center;
+		header.textVertAlign = TVA_Center;
+
+		skin->setStyle("Header", header);
 
 		/************************************************************************/
 		/* 								TREE VIEW	                     		*/
@@ -2048,6 +2070,9 @@ namespace BansheeEngine
 		libraryEntryVertLastBg.border.right = 4;
 
 		skin->setStyle("LibraryEntryVertLastBg", libraryEntryVertLastBg);
+
+		GUIElementStyle canvas;
+		skin->setStyle("Canvas", canvas);
 
 		return skin;
 	}
