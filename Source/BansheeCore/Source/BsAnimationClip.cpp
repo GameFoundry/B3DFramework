@@ -96,7 +96,7 @@ namespace BansheeEngine
 
 	HAnimationClip AnimationClip::create(bool isAdditive)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(nullptr, isAdditive)));
+		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
 	}
 
 	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate)

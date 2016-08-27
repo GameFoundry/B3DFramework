@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using BansheeEngine;
 
@@ -235,25 +236,24 @@ namespace BansheeEditor
                     {
                         if (type == DialogBox.ResultType.Yes)
                         {
-                            string[] clipSavePaths;
-                            if (BrowseDialog.OpenFile(ProjectLibrary.ResourceFolder, "", false, out clipSavePaths))
+                            string clipSavePath;
+                            if (BrowseDialog.SaveFile(ProjectLibrary.ResourceFolder, "*.asset", out clipSavePath))
                             {
-                                if (clipSavePaths.Length > 0)
-                                {
-                                    AnimationClip newClip = new AnimationClip();
+                                clipSavePath = Path.ChangeExtension(clipSavePath, ".asset");
 
-                                    ProjectLibrary.Create(newClip, clipSavePaths[0]);
-                                    LoadAnimClip(newClip);
+                                AnimationClip newClip = new AnimationClip();
 
-                                    Animation animation = selectedSO.GetComponent<Animation>();
-                                    if (animation == null)
-                                        animation = selectedSO.AddComponent<Animation>();
+                                ProjectLibrary.Create(newClip, clipSavePath);
+                                LoadAnimClip(newClip);
 
-                                    animation.DefaultClip = newClip;
-                                    EditorApplication.SetSceneDirty();
+                                Animation animation = selectedSO.GetComponent<Animation>();
+                                if (animation == null)
+                                    animation = selectedSO.AddComponent<Animation>();
 
-                                    openPropertyWindow();
-                                }
+                                animation.DefaultClip = newClip;
+                                EditorApplication.SetSceneDirty();
+
+                                openPropertyWindow();
                             }
                         }
                     });

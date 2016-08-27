@@ -827,6 +827,12 @@ namespace BansheeEngine
 			return;
 
 		Path filePath = uuidToPath(resource.getUUID());
+		if(filePath.isEmpty())
+		{
+			LOGWRN("Trying to save a resource that hasn't been registered with the project library. Call ProjectLibrary::create first.");
+			return;
+		}
+
 		filePath.makeAbsolute(getResourcesFolder());
 
 		Resources::instance().save(resource, filePath, true);
