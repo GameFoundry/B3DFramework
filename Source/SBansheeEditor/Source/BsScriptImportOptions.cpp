@@ -186,6 +186,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetCollisionMeshType", &ScriptMeshImportOptions::internal_SetCollisionMeshType);
 		metaData.scriptClass->addInternalCall("Internal_GetAnimationClipSplits", &ScriptMeshImportOptions::internal_GetAnimationClipSplits);
 		metaData.scriptClass->addInternalCall("Internal_SetAnimationClipSplits", &ScriptMeshImportOptions::internal_SetAnimationClipSplits);
+		metaData.scriptClass->addInternalCall("Internal_GetAnimationEvents", &ScriptMeshImportOptions::internal_GetAnimationEvents);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimationEvents", &ScriptMeshImportOptions::internal_SetAnimationEvents);
 	}
 
 	SPtr<MeshImportOptions> ScriptMeshImportOptions::getMeshImportOptions()

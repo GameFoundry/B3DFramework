@@ -640,8 +640,6 @@ namespace BansheeEditor
 
             float time = guiCurveEditor.GetTimeForFrame(currentFrameIdx);
 
-            Debug.Log(currentFrameIdx + " - " + time);
-
             List<GUIAnimFieldPathValue> values = new List<GUIAnimFieldPathValue>();
             foreach (var kvp in clipInfo.curves)
             {

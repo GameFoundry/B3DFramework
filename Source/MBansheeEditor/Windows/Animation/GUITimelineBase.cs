@@ -64,6 +64,20 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns the time at the specified pixel value along the timeline.
+        /// </summary>
+        /// <param name="pixel">Coordinate relative to this GUI element, in pixels.</param>
+        /// <returns>Time along the curve at the specified coordinates.</returns>
+        public float GetTime(int pixel)
+        {
+            Rect2I bounds = canvas.Bounds;
+            int relativeCoords = pixel - (bounds.x + PADDING);
+
+            float lengthPerPixel = GetRange() / drawableWidth;
+            return rangeOffset + relativeCoords * lengthPerPixel;
+        }
+
+        /// <summary>
         /// Finds the pixel offset relative to the GUI element's origin, of the specified time.
         /// </summary>
         /// <param name="time">Time value to return the offset for.</param>

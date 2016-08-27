@@ -35,6 +35,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetSceneObject", &ScriptComponent::internal_getSceneObject);
 		metaData.scriptClass->addInternalCall("Internal_GetNotifyFlags", &ScriptComponent::internal_getNotifyFlags);
 		metaData.scriptClass->addInternalCall("Internal_SetNotifyFlags", &ScriptComponent::internal_setNotifyFlags);
+		metaData.scriptClass->addInternalCall("Internal_Invoke", &ScriptComponent::internal_invoke);
 		metaData.scriptClass->addInternalCall("Internal_Destroy", &ScriptComponent::internal_destroy);
 	}
 
@@ -199,7 +200,7 @@ namespace BansheeEngine
 			nativeInstance->mManagedComponent->mNotifyFlags = flags;
 	}
 
-	void ScriptComponent::internal_Invoke(ScriptComponent* nativeInstance, MonoString* name)
+	void ScriptComponent::internal_invoke(ScriptComponent* nativeInstance, MonoString* name)
 	{
 		HManagedComponent comp = nativeInstance->mManagedComponent;
 		if (checkIfDestroyed(nativeInstance->mManagedComponent))
@@ -230,7 +231,7 @@ namespace BansheeEngine
 
 		if (!found)
 		{
-			LOGWRN("Cannot find method \"" + methodName + "\" to invoke on component of type \"" + 
+			LOGWRN("Method invoke failed. Cannot find method \"" + methodName + "\" on component of type \"" + 
 				compClass->getTypeName() + "\".");
 		}
 	}

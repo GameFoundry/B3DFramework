@@ -888,8 +888,7 @@ namespace BansheeEditor
             if (frame != -1)
             {
                 ClearSelection();
-
-                float time = guiEvents.GetTimeForFrame(frame);
+                float time = guiEvents.GetTime(contextClickPosition.x);
 
                 EventInfo eventInfo = new EventInfo();
                 eventInfo.animEvent = new AnimationEvent("", time);
@@ -1178,6 +1177,7 @@ namespace BansheeEditor
         internal void Initialize(AnimationEvent animEvent, string[] componentNames, Action updateCallback)
         {
             int selectedIndex = -1;
+            string methodName = "";
             if (!string.IsNullOrEmpty(animEvent.Name))
             {
                 string[] nameEntries = animEvent.Name.Split('/');
@@ -1192,6 +1192,8 @@ namespace BansheeEditor
                             break;
                         }
                     }
+
+                    methodName = nameEntries[nameEntries.Length - 1];
                 }
             }
 
@@ -1214,7 +1216,7 @@ namespace BansheeEditor
             };// TODO UNDOREDO 
 
             GUITextField methodField = new GUITextField(new LocEdString("Method"), 40, false, "", GUIOption.FixedWidth(190));
-            methodField.Value = animEvent.Name;
+            methodField.Value = methodName;
             methodField.OnChanged += x =>
             {
                 string compName = "";
