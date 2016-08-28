@@ -606,7 +606,9 @@ namespace BansheeEditor
                                     if (normal.x > 0.0f)
                                         tangent = float.PositiveInfinity;
 
-                                    keyframe.inTangent = tangent;
+                                    keyframe.inTangent = -tangent;
+                                    if(curve.TangentModes[draggedTangent.keyframeRef.keyIdx] == TangentMode.Free)
+                                        keyframe.outTangent = -tangent;
                                 }
                                 else
                                 {
@@ -614,6 +616,8 @@ namespace BansheeEditor
                                         tangent = float.PositiveInfinity;
 
                                     keyframe.outTangent = tangent;
+                                    if (curve.TangentModes[draggedTangent.keyframeRef.keyIdx] == TangentMode.Free)
+                                        keyframe.inTangent = tangent;
                                 }
 
                                 curve.KeyFrames[draggedTangent.keyframeRef.keyIdx] = keyframe;

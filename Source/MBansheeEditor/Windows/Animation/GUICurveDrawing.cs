@@ -436,7 +436,7 @@ namespace BansheeEditor
             if (curveInfos == null)
                 return;
 
-            tickHandler.SetRange(rangeOffset, rangeOffset + GetRange(true), drawableWidth + GUIGraphTime.PADDING);
+            tickHandler.SetRange(rangeOffset, rangeOffset + GetRange(true), drawableWidth + PADDING);
 
             // Draw vertical frame markers
             int numTickLevels = tickHandler.NumLevels;
