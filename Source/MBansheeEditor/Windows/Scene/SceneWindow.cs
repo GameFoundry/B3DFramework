@@ -24,6 +24,8 @@ namespace BansheeEditor
         internal const string ScaleToolBinding = "ScaleTool";
         internal const string FrameBinding = "SceneFrame";
 
+        public SceneSelection sceneSelection;
+
         private const int HeaderHeight = 20;
         private const float DefaultPlacementDepth = 5.0f;
         private static readonly Color ClearColor = new Color(83.0f/255.0f, 83.0f/255.0f, 83.0f/255.0f);
@@ -41,7 +43,6 @@ namespace BansheeEditor
 
         private GUIRenderTexture renderTextureGUI;
         private SceneGrid sceneGrid;
-        private SceneSelection sceneSelection;
         private SceneGizmos sceneGizmos;
         private SceneHandles sceneHandles;
 
@@ -436,7 +437,7 @@ namespace BansheeEditor
         /// <param name="screenPos">Coordinates relative to the screen.</param>
         /// <param name="scenePos">Output coordinates relative to the scene view texture.</param>
         /// <returns>True if the coordinates are within the scene view texture, false otherwise.</returns>
-        private bool ScreenToScenePos(Vector2I screenPos, out Vector2I scenePos)
+        public bool ScreenToScenePos(Vector2I screenPos, out Vector2I scenePos)
         {
             scenePos = screenPos;
             Vector2I windowPos = ScreenToWindowPos(screenPos);
@@ -455,7 +456,6 @@ namespace BansheeEditor
 
         private void OnEditorUpdate()
         {
-
             if (HasFocus)
             {
                 if (!Input.IsPointerButtonHeld(PointerButton.Right))
@@ -519,9 +519,7 @@ namespace BansheeEditor
             {
                 if (DragDrop.DropInProgress)
                 {
-                    #region Drop and select
                     dragActive = false;
-                    Debug.Log("hey");
                     if (draggedSO != null)
                     {
                         Selection.SceneObject = draggedSO;
@@ -529,7 +527,6 @@ namespace BansheeEditor
                     }
                     
                     draggedSO = null;
-                    #endregion
                 }
                 else
                 {
@@ -588,12 +585,10 @@ namespace BansheeEditor
 
                     if (draggedSO != null)
                     {
-                        #region Move dragged object
                         if (Input.IsButtonHeld(ButtonCode.Space))
                         {
-                            SnapData snapData = sceneSelection.Snap(scenePos, new SceneObject[] {draggedSO});
-                            Debug.Log(snapData.normal);
-                            Debug.Log(snapData.position);
+                            SnapData snapData;
+                            sceneSelection.Snap(scenePos, out snapData, new SceneObject[] {draggedSO});
                             Quaternion q = Quaternion.FromToRotation(Vector3.YAxis, snapData.normal);
                             draggedSO.Position = snapData.position;
                             draggedSO.Rotation = q;
@@ -603,7 +598,6 @@ namespace BansheeEditor
                             Ray worldRay = camera.ViewportToWorldRay(scenePos);
                             draggedSO.Position = worldRay * DefaultPlacementDepth - draggedSOOffset;
                         }
-                        #endregion
                     }
                 }
 
@@ -623,11 +617,11 @@ namespace BansheeEditor
                 }
             }
 
-            if (HasContentFocus)
+            if (HasContentFocus || IsPointerHovering)
             {
                 cameraController.EnableInput(true);
 
-                if (inBounds)
+                if (inBounds && HasContentFocus)
                 {
                     bool newHandle = false;
                     SceneHandles.BeginInput();
@@ -959,7 +953,6 @@ namespace BansheeEditor
         /// <param name="scenePos">Coordinates relative to the scene where the drag originated.</param>
         private void StartDragSelection(Vector2I scenePos)
         {
-            Debug.Log("Started");
             isDraggingSelection = true;
             dragSelectionStart = scenePos;
             dragSelectionEnd = dragSelectionStart;
@@ -975,25 +968,12 @@ namespace BansheeEditor
         {
             if (!isDraggingSelection)
                 return false;
-            Debug.Log("Updated");
+
             if (dragSelection == null)
             {
-                Debug.Log("Created texture");
-                try
-                {
-                    dragSelection = new GUITexture(null, true, EditorStyles.SelectionArea);
-                    selectionPanel.AddElement(dragSelection);
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e.ToString());   
-                }
+                dragSelection = new GUITexture(null, true, EditorStyles.SelectionArea);
+                selectionPanel.AddElement(dragSelection);
             }
-            else
-            {
-                Debug.Log("Texture is here");
-            }
-
             
             dragSelectionEnd = scenePos;
 
@@ -1019,7 +999,7 @@ namespace BansheeEditor
         {
             if (!isDraggingSelection)
                 return false;
-            Debug.Log("Ended");
+
             if (dragSelection != null)
             {
                 dragSelection.Destroy();
@@ -1036,8 +1016,6 @@ namespace BansheeEditor
                     Math.Min(dragSelectionStart.y, dragSelectionEnd.y));
             Vector2I max = new Vector2I(Math.Max(dragSelectionStart.x, dragSelectionEnd.x),
                 Math.Max(dragSelectionStart.y, dragSelectionEnd.y));
-            Debug.Log(min);
-            Debug.Log(max);
             sceneSelection.PickObjects(min, max - min,
                 Input.IsButtonHeld(ButtonCode.LeftControl) || Input.IsButtonHeld(ButtonCode.RightControl));
             isDraggingSelection = false;

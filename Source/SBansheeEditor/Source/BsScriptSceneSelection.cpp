@@ -4,8 +4,10 @@
 #include "BsScriptCamera.h"
 #include "BsSelectionRenderer.h"
 #include "BsScriptSceneObject.h"
+#include "BsScriptGameObjectManager.h"
 #include "BsScenePicking.h"
 #include "BsSelection.h"
+#include "BsMonoPrerequisites.h"
 #include <BsMonoArray.h>
 
 namespace BansheeEngine
@@ -81,7 +83,6 @@ namespace BansheeEngine
 			else
 			{
 				Vector<HSceneObject> selectedSOs = { pickedObject };
-
 				Selection::instance().setSceneObjects(selectedSOs);
 			}
 		}
@@ -145,7 +146,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void ScriptSceneSelection::internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables)
+	MonoObject* ScriptSceneSelection::internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables)
 	{
 		Vector<HSceneObject> ignoredSceneObjects;
 
@@ -166,8 +167,12 @@ namespace BansheeEngine
 				ignoredSceneObjects.push_back(so);
 			}
 		}
+		HSceneObject instance = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects, data);
+		MonoObject* managedInstance = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(instance)->getManagedInstance();
+		if (instance == nullptr)
+			return nullptr;
 
-  		ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects, data);
+		return  managedInstance;
 	}
 
 }

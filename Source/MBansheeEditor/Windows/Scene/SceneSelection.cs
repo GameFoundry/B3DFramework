@@ -77,13 +77,12 @@ namespace BansheeEditor
         /// Returns the 3D position of an object under the cursor, along with the surface normal in that point.
         /// </summary>
         /// <param name="pointerPos">Position of the pointer relative to the scene camera viewport.</param>
+        /// <param name="data">A struct containing the position on the object surface and the normal in that point.</param>
         /// <param name="ignoreSceneObjects">An array of renderables that should not be rendered during scene picking.</param>
-        /// <returns>The position on the object surface and the normal in that point.</returns>
-        internal SnapData Snap(Vector2I pointerPos, SceneObject[] ignoreSceneObjects = null)
+        /// <returns>The object the pointer is snapping to.</returns>
+        internal SceneObject Snap(Vector2I pointerPos, out SnapData data, SceneObject[] ignoreSceneObjects = null)
         {
-            SnapData data;
-            Internal_Snap(mCachedPtr, ref pointerPos, out data, ignoreSceneObjects);
-            return data;
+            return Internal_Snap(mCachedPtr, ref pointerPos, out data, ignoreSceneObjects);
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -99,7 +98,7 @@ namespace BansheeEditor
         private static extern void Internal_PickObjects(IntPtr thisPtr, ref Vector2I pointerPos, ref Vector2I extents, bool controlHeld, SceneObject[] ignoreRenderables);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_Snap(IntPtr thisPtr, ref Vector2I pointerPos, out SnapData data, SceneObject[] ignoreRenderables);
+        private static extern SceneObject Internal_Snap(IntPtr thisPtr, ref Vector2I pointerPos, out SnapData data, SceneObject[] ignoreRenderables);
     }
 
     /** @} */
