@@ -1,6 +1,7 @@
 #include "$ENGINE$\DeferredLightPass.bslinc"
 
-Technique =
+Technique 
+ : inherits("DeferredLightPass") =
 {
 	Language = "HLSL11";
 	
@@ -125,7 +126,8 @@ Technique =
 	};
 };
 
-Technique =
+Technique
+ : inherits("DeferredLightPass") =
 {
 	Language = "GLSL";
 	

@@ -1,6 +1,6 @@
 #include "$EDITOR$/PickingAlphaCull.bslinc"
 
-Technique =
+Technique : inherits("PickingAlphaCull") =
 {
 	Language = "HLSL11";
 	
@@ -10,7 +10,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("PickingAlphaCull") =
 {
 	Language = "HLSL9";
 	
@@ -20,7 +20,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("PickingAlphaCull") =
 {
 	Language = "GLSL";
 	

@@ -217,7 +217,7 @@ namespace BansheeEngine
 		TGpuParamLoadStoreTexture(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::set */
-		void set(const TextureType& texture, const TextureSurface& surface) const;
+		void set(const TextureType& texture, const TextureSurface& surface = TextureSurface()) const;
 
 		/** @copydoc TGpuDataParam::get */
 		TextureType get() const;

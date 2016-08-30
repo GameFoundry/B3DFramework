@@ -64,6 +64,20 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns the time at the specified pixel value along the timeline.
+        /// </summary>
+        /// <param name="pixel">Coordinate relative to this GUI element, in pixels.</param>
+        /// <returns>Time along the curve at the specified coordinates.</returns>
+        public float GetTime(int pixel)
+        {
+            Rect2I bounds = canvas.Bounds;
+            int relativeCoords = pixel - (bounds.x + PADDING);
+
+            float lengthPerPixel = GetRange() / drawableWidth;
+            return rangeOffset + relativeCoords * lengthPerPixel;
+        }
+
+        /// <summary>
         /// Finds the pixel offset relative to the GUI element's origin, of the specified time.
         /// </summary>
         /// <param name="time">Time value to return the offset for.</param>
@@ -81,7 +95,7 @@ namespace BansheeEditor
         public float GetTimeForFrame(int frameIdx)
         {
             float range = GetRange();
-            int numFrames = (int)range * fps;
+            int numFrames = (int)(range * fps);
             float timePerFrame = range / numFrames;
 
             return frameIdx * timePerFrame;
@@ -169,7 +183,7 @@ namespace BansheeEditor
                 range += lengthPerPixel * PADDING;
             }
 
-            return ((int)range / spf) * spf;
+            return MathEx.Max(1.0f, range / spf) * spf;
         }
 
         /// <summary>
@@ -180,7 +194,7 @@ namespace BansheeEditor
             if (markedFrameIdx != -1)
             {
                 float range = GetRange();
-                int numFrames = (int)range * fps;
+                int numFrames = (int)(range * fps);
                 float timePerFrame = range / numFrames;
 
                 DrawFrameMarker(markedFrameIdx * timePerFrame);

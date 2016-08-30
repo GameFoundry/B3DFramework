@@ -10,9 +10,15 @@ using namespace std::placeholders;
 
 namespace BansheeEngine
 {
+	CAnimation::CAnimation()
+		:mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f), mEnableCull(true), mUseBounds(false)
+	{ }
+
 	CAnimation::CAnimation(const HSceneObject& parent)
-		: Component(parent), mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f)
+		: Component(parent), mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f), mEnableCull(true), mUseBounds(false)
 	{
+		mNotifyFlags = TCF_Transform;
+
 		setName("Animation");
 	}
 
@@ -106,6 +112,44 @@ namespace BansheeEngine
 			return mInternal->setState(clip, state);
 	}
 
+	void CAnimation::setBounds(const AABox& bounds)
+	{
+		mBounds = bounds;
+
+		if(mUseBounds)
+		{
+			if(mAnimatedRenderable != nullptr)
+			{
+				SPtr<Renderable> renderable = mAnimatedRenderable->_getRenderable();
+				if (renderable != nullptr)
+					renderable->setOverrideBounds(bounds);
+
+				if(mInternal != nullptr)
+				{
+					AABox bounds = mBounds;
+					bounds.transformAffine(SO()->getWorldTfrm());
+
+					mInternal->setBounds(bounds);
+				}
+			}
+		}
+	}
+
+	void CAnimation::setUseBounds(bool enable)
+	{
+		mUseBounds = enable;
+
+		_updateBounds();
+	}
+
+	void CAnimation::setEnableCull(bool enable)
+	{
+		mEnableCull = enable;
+
+		if (mInternal != nullptr)
+			mInternal->setCulling(enable);
+	}
+
 	void CAnimation::onInitialized()
 	{
 		
@@ -126,6 +170,15 @@ namespace BansheeEngine
 		restoreInternal();
 	}
 
+	void CAnimation::onTransformChanged(TransformChangedFlags flags)
+	{
+		if (!SO()->getActive())
+			return;
+
+		if ((flags & (TCF_Transform)) != 0)
+			_updateBounds(false);
+	}
+
 	void CAnimation::restoreInternal()
 	{
 		if (mInternal == nullptr)
@@ -134,34 +187,27 @@ namespace BansheeEngine
 			mInternal->onEventTriggered.connect(std::bind(&CAnimation::eventTriggered, this, _1, _2));
 		}
 
+		mAnimatedRenderable = SO()->getComponent<CRenderable>();
+
 		mInternal->setWrapMode(mWrapMode);
 		mInternal->setSpeed(mSpeed);
+		mInternal->setCulling(mEnableCull);
+
+		_updateBounds();
 
 		if (mDefaultClip.isLoaded())
 			mInternal->play(mDefaultClip);
 
 		setBoneMappings();
 
-		HRenderable renderableComponent = SO()->getComponent<CRenderable>();
-		if (renderableComponent == nullptr)
-			return;
-
-		SPtr<Renderable> renderable = renderableComponent->_getRenderable();
-
-		if(renderable != nullptr)
-			renderable->setAnimation(mInternal);
+		if (mAnimatedRenderable != nullptr)
+			mAnimatedRenderable->_registerAnimation(mThisHandle);
 	}
 
 	void CAnimation::destroyInternal()
 	{
-		HRenderable renderableComponent = SO()->getComponent<CRenderable>();
-		if (renderableComponent == nullptr)
-			return;
-
-		SPtr<Renderable> renderable = renderableComponent->_getRenderable();
-
-		if (renderable != nullptr)
-			renderable->setAnimation(nullptr);
+		if (mAnimatedRenderable != nullptr)
+			mAnimatedRenderable->_unregisterAnimation();
 
 		// This should release the last reference and destroy the internal listener
 		mInternal = nullptr;
@@ -212,6 +258,56 @@ namespace BansheeEngine
 				mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
 				mInternal->mapCurveToSceneObject(bone->getName(), mMappingInfos[i].sceneObject);
 				break;
+			}
+		}
+	}
+
+	void CAnimation::_registerRenderable(const HRenderable& renderable)
+	{
+		mAnimatedRenderable = renderable;
+
+		_updateBounds();
+	}
+
+	void CAnimation::_unregisterRenderable()
+	{
+		mAnimatedRenderable = nullptr;
+	}
+
+	void CAnimation::_updateBounds(bool updateRenderable)
+	{
+		SPtr<Renderable> renderable;
+		if (updateRenderable && mAnimatedRenderable != nullptr)
+			renderable = mAnimatedRenderable->_getRenderable();
+
+		if (mUseBounds)
+		{
+			if (renderable != nullptr)
+			{
+				renderable->setUseOverrideBounds(true);
+				renderable->setOverrideBounds(mBounds);
+			}
+
+			if (mInternal != nullptr)
+			{
+				AABox bounds = mBounds;
+				bounds.transformAffine(SO()->getWorldTfrm());
+
+				mInternal->setBounds(bounds);
+			}
+		}
+		else
+		{
+			if (renderable != nullptr)
+				renderable->setUseOverrideBounds(false);
+
+			if (mInternal != nullptr)
+			{
+				AABox bounds;
+				if (mAnimatedRenderable != nullptr)
+					bounds = mAnimatedRenderable->getBounds().getBox();
+
+				mInternal->setBounds(bounds);
 			}
 		}
 	}

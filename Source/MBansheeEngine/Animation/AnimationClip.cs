@@ -36,6 +36,17 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns the number of samples per second the animation clip curves were sampled at. This value is not used by
+        /// the animation clip or curves directly since unevenly spaced keyframes are supported. But it can be of value when
+        /// determining the original sample rate of an imported animation or similar.
+        /// </summary>
+        public int SampleRate
+        {
+            get { return Internal_GetSampleRate(mCachedPtr); }
+            set { Internal_SetSampleRate(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// A set of all curves stored in the animation clip.
         /// </summary>
         public AnimationCurves Curves
@@ -70,6 +81,12 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetLength(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetSampleRate(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetSampleRate(IntPtr thisPtr, int sampleRate);
     }
 
     /// <summary>

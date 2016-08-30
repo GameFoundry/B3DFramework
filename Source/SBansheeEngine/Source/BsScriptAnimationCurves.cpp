@@ -64,6 +64,9 @@ namespace BansheeEngine
 				quatRotation.name = eulerRotation.name;
 				quatRotation.curve = AnimationUtility::eulerToQuaternionCurve(eulerRotation.curve);
 
+				// DEBUG ONLY
+				TAnimationCurve<Vector3> eulerRotation2 = AnimationUtility::quaternionToEulerCurve(quatRotation.curve);
+
 				output->rotation.push_back(quatRotation);
 			}
 		}
@@ -219,6 +222,7 @@ namespace BansheeEngine
 
 		// Populate keyframe values
 		Vector<TKeyframe<Vector3>> keyframeList(keyFrames.size());
+		UINT32 idx = 0;
 		for(auto& entry : keyFrames)
 		{
 			TKeyframe<Vector3>& keyFrame = entry.second;
@@ -231,7 +235,8 @@ namespace BansheeEngine
 				keyFrame.outTangent[j] = currentKey.outTangent;
 			}
 
-			keyframeList.push_back(keyFrame);
+			keyframeList[idx] = keyFrame;
+			idx++;
 		}
 
 		output.curve = TAnimationCurve<Vector3>(keyframeList);
@@ -287,7 +292,7 @@ namespace BansheeEngine
 		UINT32 flags = curve.flags;
 
 		void* params[5] = { monoString, &flags, monoXCurve, monoYCurve, monoZCurve };
-		return metaData.scriptClass->createInstance("string, int, AnimationCurve, AnimationCurve, AnimationCurve", params);
+		return metaData.scriptClass->createInstance("string,int,AnimationCurve,AnimationCurve,AnimationCurve", params);
 	}
 
 	MonoField* ScriptNamedFloatCurve::sNameField = nullptr;
@@ -337,6 +342,6 @@ namespace BansheeEngine
 
 		UINT32 flags = curve.flags;
 		void* params[3] = { monoString, &flags, monoCurve };
-		return metaData.scriptClass->createInstance("string, int, AnimationCurve", params);
+		return metaData.scriptClass->createInstance("string,int,AnimationCurve", params);
 	}
 }

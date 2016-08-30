@@ -1,6 +1,6 @@
 #include "$ENGINE$\SpriteImage.bslinc"
 
-Technique =
+Technique : inherits("SpriteImage") =
 {
 	Language = "HLSL11";
 	
@@ -15,7 +15,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("SpriteImage") =
 {
 	Language = "HLSL9";
 	
@@ -30,7 +30,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("SpriteImage") =
 {
 	Language = "GLSL";
 	

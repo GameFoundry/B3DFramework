@@ -6,23 +6,26 @@
 #include "BsRenderBeast.h"
 #include "BsRenderTargets.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsLight.h"
 #include "BsRendererUtility.h"
 
 namespace BansheeEngine
 {
-	LightRenderingParams::LightRenderingParams(const SPtr<MaterialCore>& material)
-		:mMaterial(material)
+	LightRenderingParams::LightRenderingParams(const SPtr<MaterialCore>& material, const SPtr<GpuParamsSetCore>& paramsSet)
+		:mMaterial(material), mParamsSet(paramsSet)
 	{
+		SPtr<GpuParamsCore> fragmentParams = mParamsSet->getGpuParams(GPT_FRAGMENT_PROGRAM);
+
 		auto& texParams = material->getShader()->getTextureParams();
 		for (auto& entry : texParams)
 		{
 			if (entry.second.rendererSemantic == RPS_GBufferA)
-				mGBufferA = material->getParamTexture(entry.second.name);
+				fragmentParams->getTextureParam(entry.second.name, mGBufferA);
 			else if (entry.second.rendererSemantic == RPS_GBufferB)
-				mGBufferB = material->getParamTexture(entry.second.name);
+				fragmentParams->getTextureParam(entry.second.name, mGBufferB);
 			else if (entry.second.rendererSemantic == RPS_GBufferDepth)
-				mGBufferDepth = material->getParamTexture(entry.second.name);
+				fragmentParams->getTextureParam(entry.second.name, mGBufferDepth);
 		}
 	}
 
@@ -33,10 +36,10 @@ namespace BansheeEngine
 		mGBufferB.set(gbuffer->getTextureB());
 		mGBufferDepth.set(gbuffer->getTextureDepth());
 
-		mMaterial->setParamBlockBuffer("PerLight", getBuffer());
-		mMaterial->setParamBlockBuffer("PerCamera", perCamera);
+		mParamsSet->setParamBlockBuffer("PerLight", getBuffer());
+		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
 
-		gRendererUtility().setPassParams(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 	}
 
 	void LightRenderingParams::setParameters(const LightCore* light)
@@ -104,7 +107,7 @@ namespace BansheeEngine
 	}
 	
 	DirectionalLightMat::DirectionalLightMat()
-		:mParams(mMaterial)
+		:mParams(mMaterial, mParamsSet)
 	{
 		
 	}
@@ -117,7 +120,7 @@ namespace BansheeEngine
 	void DirectionalLightMat::bind(const SPtr<RenderTargets>& gbuffer,
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		RendererUtility::instance().setPass(mMaterial, 0, false);
+		RendererUtility::instance().setPass(mMaterial, 0);
 		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 
@@ -127,7 +130,7 @@ namespace BansheeEngine
 	}
 
 	PointLightInMat::PointLightInMat()
-		:mParams(mMaterial)
+		:mParams(mMaterial, mParamsSet)
 	{
 
 	}
@@ -140,7 +143,7 @@ namespace BansheeEngine
 	void PointLightInMat::bind(const SPtr<RenderTargets>& gbuffer, 
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		RendererUtility::instance().setPass(mMaterial, 0, false);
+		RendererUtility::instance().setPass(mMaterial, 0);
 		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 
@@ -150,7 +153,7 @@ namespace BansheeEngine
 	}
 
 	PointLightOutMat::PointLightOutMat()
-		:mParams(mMaterial)
+		:mParams(mMaterial, mParamsSet)
 	{
 		
 	}
@@ -163,7 +166,7 @@ namespace BansheeEngine
 	void PointLightOutMat::bind(const SPtr<RenderTargets>& gbuffer,
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		RendererUtility::instance().setPass(mMaterial, 0, false);
+		RendererUtility::instance().setPass(mMaterial, 0);
 		mParams.setStaticParameters(gbuffer, perCamera);
 	}
 

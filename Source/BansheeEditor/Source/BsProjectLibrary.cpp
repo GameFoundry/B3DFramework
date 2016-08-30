@@ -827,6 +827,12 @@ namespace BansheeEngine
 			return;
 
 		Path filePath = uuidToPath(resource.getUUID());
+		if(filePath.isEmpty())
+		{
+			LOGWRN("Trying to save a resource that hasn't been registered with the project library. Call ProjectLibrary::create first.");
+			return;
+		}
+
 		filePath.makeAbsolute(getResourcesFolder());
 
 		Resources::instance().save(resource, filePath, true);
@@ -1149,17 +1155,8 @@ namespace BansheeEngine
 			return;
 
 		FileEntry* fileEntry = static_cast<FileEntry*>(entry);
-		if (fileEntry->meta == nullptr)
-			return;
-
-		SPtr<ProjectResourceMeta> resMeta;
-		auto& resourceMetas = fileEntry->meta->getResourceMetaData();
-		for (auto& resMetaEntry : resourceMetas)
-		{
-			if (resMeta->getUniqueName() == path.getWTail())
-				resMeta = resMetaEntry;
-		}
-
+		SPtr<ProjectResourceMeta> resMeta = findResourceMeta(path);
+		
 		if (resMeta == nullptr)
 			return;
 

@@ -4,6 +4,7 @@
 #include "BsGpuParams.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsGpuParamDesc.h"
+#include "BsRenderAPI.h"
 #include "BsDebug.h"
 #include "BsException.h"
 #include "BsVectorNI.h"
@@ -42,7 +43,8 @@ namespace BansheeEngine
 		UINT32 elementSizeBytes = mParamDesc->elementSize * sizeof(UINT32);
 		UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-		if (TransposePolicy<T>::transposeEnabled(mParent->getTransposeMatrices()))
+		bool transposeMatrices = RenderAPICore::instance().getAPIInfo().getGpuProgramHasColumnMajorMatrices();
+		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 		{
 			T transposed = TransposePolicy<T>::transpose(value);
 			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
@@ -84,7 +86,8 @@ namespace BansheeEngine
 		T value;
 		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
-		if (TransposePolicy<T>::transposeEnabled(mParent->getTransposeMatrices()))
+		bool transposeMatrices = RenderAPICore::instance().getAPIInfo().getGpuProgramHasColumnMajorMatrices();
+		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 			return TransposePolicy<T>::transpose(value);
 		else
 			return value;

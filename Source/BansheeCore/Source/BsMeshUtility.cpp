@@ -573,7 +573,10 @@ namespace BansheeEngine
 		addEdgesAndFaces();
 
 		for (int i = 0; i < 4; i++)
-			clipByPlane(clipPlanes[i]);
+		{
+			if (clipByPlane(clipPlanes[i]) == -1)
+				return;
+		}
 
 		convertToMesh(writeCallback);
 	}
@@ -671,7 +674,10 @@ namespace BansheeEngine
 		addEdgesAndFaces();
 
 		for (int i = 0; i < 4; i++)
-			clipByPlane(clipPlanes[i]);
+		{
+			if (clipByPlane(clipPlanes[i]) == -1)
+				return;
+		}
 
 		convertToMesh(writeCallback);
 	}

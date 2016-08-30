@@ -18,7 +18,7 @@
 namespace BansheeEngine
 {
 	ScriptRenderable::ScriptRenderable(MonoObject* managedInstance, const HSceneObject& parentSO)
-		:ScriptObject(managedInstance), mRenderable(nullptr), mLastUpdateHash(0)
+		:ScriptObject(managedInstance), mRenderable(nullptr)
 	{
 		mRenderable = Renderable::create();
 		gSceneManager()._registerRenderable(mRenderable, parentSO);
@@ -38,24 +38,17 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetLayers", &ScriptRenderable::internal_SetLayers);
 		metaData.scriptClass->addInternalCall("Internal_SetMaterial", &ScriptRenderable::internal_SetMaterial);
 		metaData.scriptClass->addInternalCall("Internal_SetMaterials", &ScriptRenderable::internal_SetMaterials);
+		metaData.scriptClass->addInternalCall("Internal_SetOverrideBounds", &ScriptRenderable::internal_SetOverrideBounds);
+		metaData.scriptClass->addInternalCall("Internal_SetUseOverrideBounds", &ScriptRenderable::internal_SetUseOverrideBounds);
 		metaData.scriptClass->addInternalCall("Internal_OnDestroy", &ScriptRenderable::internal_OnDestroy);
 	}
 
-	void ScriptRenderable::updateTransform(const HSceneObject& parent)
+	void ScriptRenderable::updateTransform(const HSceneObject& parent, bool force)
 	{
-		UINT32 curHash = parent->getTransformHash();
-		if (curHash != mLastUpdateHash)
-		{
-			Matrix4 transformNoScale = Matrix4::TRS(parent->getWorldPosition(), parent->getWorldRotation(), Vector3::ONE);
-			mRenderable->setTransform(parent->getWorldTfrm(), transformNoScale);
-
-			mLastUpdateHash = curHash;
-		}
+		mRenderable->_updateTransform(parent, force);
 
 		if (parent->getActive() != mRenderable->getIsActive())
-		{
 			mRenderable->setIsActive(parent->getActive());
-		}
 	}
 
 	void ScriptRenderable::internal_Create(MonoObject* instance, ScriptSceneObject* parentSO)
@@ -76,11 +69,11 @@ namespace BansheeEngine
 		thisPtr->getInternal()->setAnimation(anim);
 	}
 
-	void ScriptRenderable::internal_UpdateTransform(ScriptRenderable* thisPtr, ScriptSceneObject* parent)
+	void ScriptRenderable::internal_UpdateTransform(ScriptRenderable* thisPtr, ScriptSceneObject* parent, bool force)
 	{
 		HSceneObject parentSO = parent->getNativeSceneObject();
 
-		thisPtr->updateTransform(parentSO);
+		thisPtr->updateTransform(parentSO, force);
 	}
 
 	void ScriptRenderable::internal_SetMesh(ScriptRenderable* thisPtr, ScriptMesh* mesh)
@@ -95,7 +88,7 @@ namespace BansheeEngine
 	void ScriptRenderable::internal_GetBounds(ScriptRenderable* thisPtr, ScriptSceneObject* parent, AABox* box, Sphere* sphere)
 	{
 		HSceneObject parentSO = parent->getNativeSceneObject();
-		thisPtr->updateTransform(parentSO);
+		thisPtr->updateTransform(parentSO, false);
 
 		Bounds bounds = thisPtr->getInternal()->getBounds();
 
@@ -144,6 +137,16 @@ namespace BansheeEngine
 			nativeMaterial = material->getHandle();
 
 		thisPtr->getInternal()->setMaterial(index, nativeMaterial);
+	}
+
+	void ScriptRenderable::internal_SetOverrideBounds(ScriptRenderable* thisPtr, AABox* box)
+	{
+		thisPtr->getInternal()->setOverrideBounds(*box);
+	}
+
+	void ScriptRenderable::internal_SetUseOverrideBounds(ScriptRenderable* thisPtr, bool enable)
+	{
+		thisPtr->getInternal()->setUseOverrideBounds(enable);
 	}
 
 	void ScriptRenderable::internal_OnDestroy(ScriptRenderable* thisPtr)

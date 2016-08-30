@@ -43,7 +43,7 @@ namespace BansheeEngine
 			GpuParamDataType dataType;
 			UINT32 index;
 			UINT32 arraySize;
-			UINT32 dirtyFlags;
+			mutable UINT32 dirtyFlags;
 		};
 
 		/** 
@@ -113,6 +113,31 @@ namespace BansheeEngine
 			memcpy(&mDataParamsBuffer[param->index + arrayIdx * paramTypeSize], input, sizeof(paramTypeSize));
 		}
 
+		/** 
+		 * Returns an index of the parameter with the specified name. Index can be used in a call to getParamData(UINT32) to
+		 * get the actual parameter data.
+		 *
+		 * @param[in]	name		Name of the shader parameter.
+		 * @return					Index of the parameter, or -1 if not found.
+		 */
+		UINT32 getParamIndex(const String& name) const;
+
+		/** 
+		 * Returns an index of the parameter with the specified name. Index can be used in a call to getParamData(UINT32) to
+		 * get the actual parameter data.
+		 *
+		 * @param[in]	name		Name of the shader parameter.
+		 * @param[in]	type		Type of the parameter retrieve. Error will be logged if actual type of the parameter
+		 *							doesn't match.
+		 * @param[in]	dataType	Only relevant if the parameter is a data type. Determines exact data type of the parameter
+		 *							to retrieve.
+		 * @param[in]	arrayIdx	Array index of the entry to retrieve.
+		 * @param[out]	output		Index of the requested parameter, only valid if success is returned.
+		 * @return					Success or error state of the request.
+		 */
+		GetParamResult getParamIndex(const String& name, ParamType type, GpuParamDataType dataType, UINT32 arrayIdx,
+			UINT32& output) const;
+
 		/**
 		 * Returns data about a parameter and reports an error if there is a type or size mismatch, or if the parameter
 		 * does exist.
@@ -126,11 +151,18 @@ namespace BansheeEngine
 		 * @param[out]	output		Object describing the parameter with an index to its data. If the parameter was not found
 		 *							this value is undefined. This value will still be valid if parameter was found but
 		 *							some other error was reported.
-		 *
 		 * @return					Success or error state of the request.
 		 */
 		GetParamResult getParamData(const String& name, ParamType type, GpuParamDataType dataType, UINT32 arrayIdx,
 			const ParamData** output) const;
+
+		/**
+		 * Returns information about a parameter at the specified global index, as retrieved by getParamIndex(). 
+		 */
+		const ParamData* getParamData(UINT32 index) const { return &mParams[index]; }
+
+		/** Returns the total number of parameters managed by this object. */
+		UINT32 getNumParams() const { return (UINT32)mParams.size(); }
 
 		/**
 		 * Logs an error that was reported by getParamData().
@@ -172,6 +204,19 @@ namespace BansheeEngine
 			assert(sizeof(input) == paramTypeSize);
 			memcpy(&mDataParamsBuffer[index + arrayIdx * paramTypeSize], &input, paramTypeSize);
 		}
+
+		/** Returns pointer to the internal data buffer for a data parameter at the specified index. */
+		UINT8* getData(UINT32 index) const
+		{
+			return &mDataParamsBuffer[index];
+		}
+
+		/** 
+		 * Clears dirty flags for all parameters, for the specified index. 
+		 *
+		 * @param[in]	index	Index of the bit to clear. Must be in range [0-31]
+		 */
+		void clearDirtyFlags(UINT32 index);
 
 	protected:
 		const static UINT32 STATIC_BUFFER_SIZE = 256;

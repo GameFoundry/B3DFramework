@@ -4,121 +4,151 @@
 #include "BsRenderBeastOptions.h"
 #include "BsMaterial.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsGpuParamDesc.h"
+#include "BsMaterialParams.h"
 #include "BsSamplerState.h"
 #include "BsRenderStateManager.h"
 
 namespace BansheeEngine
 {
-	MaterialSamplerOverrides* SamplerOverrideUtility::generateSamplerOverrides(const SPtr<MaterialCore>& material, const SPtr<RenderBeastOptions>& options)
+	MaterialSamplerOverrides* SamplerOverrideUtility::generateSamplerOverrides(const SPtr<ShaderCore>& shader, 
+		const SPtr<MaterialParamsCore>& params, const SPtr<GpuParamsSetCore>& paramsSet, 
+		const SPtr<RenderBeastOptions>& options)
 	{
-		UINT32 numPasses = material->getNumPasses();
+		MaterialSamplerOverrides* output = nullptr;
 
-		// First pass just determine if we even need to override and count the number of sampler states
-		UINT32 totalNumSamplerStates = 0;
-		for (UINT32 i = 0; i < numPasses; i++)
-		{
-			SPtr<PassParametersCore> passParams = material->getPassParameters(i);
-			UINT32 maxSamplerSlot = 0;
-
-			for (UINT32 j = 0; j < PassParametersCore::NUM_PARAMS; j++)
-			{
-				SPtr<GpuParamsCore> params = passParams->getParamByIdx(j);
-				if (params == nullptr)
-					continue;
-
-				const GpuParamDesc& paramDesc = params->getParamDesc();
-
-				for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-				{
-					UINT32 slot = iter->second.slot;
-					maxSamplerSlot = std::max(maxSamplerSlot, slot + 1);
-				}
-
-				totalNumSamplerStates += maxSamplerSlot;
-			}
-		}
-
-		UINT32 outputSize = sizeof(MaterialSamplerOverrides) +
-			numPasses * (sizeof(PassSamplerOverrides) + PassParametersCore::NUM_PARAMS * sizeof(StageSamplerOverrides)) +
-			totalNumSamplerStates * sizeof(SPtr<SamplerStateCore>);
-
-		UINT8* outputData = (UINT8*)bs_alloc(outputSize);
-		MaterialSamplerOverrides* output = (MaterialSamplerOverrides*)outputData;
-		outputData += sizeof(MaterialSamplerOverrides);
-
-		output->refCount = 0;
-		output->numPasses = numPasses;
-		output->passes = (PassSamplerOverrides*)outputData;
-		outputData += sizeof(PassSamplerOverrides) * numPasses;
+		if (shader == nullptr)
+			return nullptr;
 
 		bs_frame_mark();
 		{
-			FrameUnorderedMap<SPtr<SamplerStateCore>, SPtr<SamplerStateCore>> overrideMap;
+			// Generate a list of all sampler state overrides
+			FrameUnorderedMap<String, UINT32> overrideLookup;
+			Vector<SamplerOverride> overrides;
 
+			auto& samplerParams = shader->getSamplerParams();
+			for(auto& samplerParam : samplerParams)
+			{
+				UINT32 paramIdx;
+				auto result = params->getParamIndex(samplerParam.first, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 
+					0, paramIdx);
+
+				// Parameter shouldn't be in the valid parameter list if it cannot be found
+				assert(result == MaterialParams::GetParamResult::Success);
+				const MaterialParamsBase::ParamData* materialParamData = params->getParamData(paramIdx);
+
+				UINT32 overrideIdx = (UINT32)overrides.size();
+				overrides.push_back(SamplerOverride());
+				SamplerOverride& override = overrides.back();
+
+				SPtr<SamplerStateCore> samplerState;
+				params->getSamplerState(materialParamData->index, samplerState);
+
+				if (samplerState == nullptr)
+					samplerState = SamplerStateCore::getDefault();
+
+				override.paramIdx = paramIdx;
+				override.originalStateHash = samplerState->getProperties().getHash();
+
+				if (checkNeedsOverride(samplerState, options))
+					override.state = generateSamplerOverride(samplerState, options);
+				else
+					override.state = samplerState;
+
+				overrideLookup[samplerParam.first] = overrideIdx;
+			}
+
+			UINT32 numPasses = paramsSet->getNumPasses();
+
+			// First pass just determine if we even need to override and count the number of sampler states
+			UINT32 totalNumSamplerStates = 0;
 			for (UINT32 i = 0; i < numPasses; i++)
 			{
-				PassSamplerOverrides& passOverrides = output->passes[i];
-				passOverrides.numStages = PassParametersCore::NUM_PARAMS;
-				passOverrides.stages = (StageSamplerOverrides*)outputData;
-				outputData += sizeof(StageSamplerOverrides) * PassParametersCore::NUM_PARAMS;
+				UINT32 maxSamplerSlot = 0;
 
-				SPtr<PassParametersCore> passParams = material->getPassParameters(i);
-				for (UINT32 j = 0; j < passOverrides.numStages; j++)
+				for (UINT32 j = 0; j < GpuParamsSetCore::NUM_STAGES; j++)
 				{
-					StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
-					stageOverrides.numStates = 0;
-					stageOverrides.stateOverrides = (SPtr<SamplerStateCore>*)outputData;
-
-					SPtr<GpuParamsCore> params = passParams->getParamByIdx(j);
-					if (params == nullptr)
+					SPtr<GpuParamsCore> paramsPtr = paramsSet->getParamByIdx(j, i);
+					if (paramsPtr == nullptr)
 						continue;
 
-					const GpuParamDesc& paramDesc = params->getParamDesc();
+					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
 
 					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
-						while (slot >= stageOverrides.numStates)
+						maxSamplerSlot = std::max(maxSamplerSlot, slot + 1);
+					}
+
+					totalNumSamplerStates += maxSamplerSlot;
+				}
+			}
+
+			UINT32 outputSize = sizeof(MaterialSamplerOverrides) +
+				numPasses * (sizeof(PassSamplerOverrides) + GpuParamsSetCore::NUM_STAGES * sizeof(StageSamplerOverrides)) +
+				totalNumSamplerStates * sizeof(UINT32) +
+				(UINT32)overrides.size() * sizeof(SamplerOverride);
+
+			UINT8* outputData = (UINT8*)bs_alloc(outputSize);
+			output = (MaterialSamplerOverrides*)outputData;
+			outputData += sizeof(MaterialSamplerOverrides);
+
+			output->refCount = 0;
+			output->numPasses = numPasses;
+			output->passes = (PassSamplerOverrides*)outputData;
+			outputData += sizeof(PassSamplerOverrides) * numPasses;
+
+			for (UINT32 i = 0; i < numPasses; i++)
+			{
+				PassSamplerOverrides& passOverrides = output->passes[i];
+				passOverrides.numStages = GpuParamsSetCore::NUM_STAGES;
+				passOverrides.stages = (StageSamplerOverrides*)outputData;
+				outputData += sizeof(StageSamplerOverrides) * GpuParamsSetCore::NUM_STAGES;
+
+				for (UINT32 j = 0; j < passOverrides.numStages; j++)
+				{
+					StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
+					stageOverrides.numStates = 0;
+					stageOverrides.stateOverrides = (UINT32*)outputData;
+
+					SPtr<GpuParamsCore> paramsPtr = paramsSet->getParamByIdx(j, i);
+					if (paramsPtr == nullptr)
+						continue;
+
+					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
+
+					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						while (slot > stageOverrides.numStates)
 						{
-							new (&stageOverrides.stateOverrides[stageOverrides.numStates]) SPtr<SamplerStateCore>();
+							stageOverrides.stateOverrides[stageOverrides.numStates] = (UINT32)-1;
 							stageOverrides.numStates++;
 						}
 
 						stageOverrides.numStates = std::max(stageOverrides.numStates, slot + 1);
 
-						SPtr<SamplerStateCore> samplerState = params->getSamplerState(slot);
-						if (samplerState == nullptr)
-							samplerState = SamplerStateCore::getDefault();
-
-						bool needsOverride = checkNeedsOverride(samplerState, options);
-
-						if (needsOverride)
-						{
-							auto findIter = overrideMap.find(samplerState);
-							if (findIter != overrideMap.end())
-							{
-								stageOverrides.stateOverrides[slot] = findIter->second;
-							}
-							else
-							{
-								SPtr<SamplerStateCore> newState = generateSamplerOverride(samplerState, options);
-
-								overrideMap[samplerState] = newState;
-								stageOverrides.stateOverrides[slot] = newState;
-							}
-						}
+						auto iterFind = overrideLookup.find(iter->first);
+						if (iterFind != overrideLookup.end())
+							stageOverrides.stateOverrides[slot] = iterFind->second;
 						else
-						{
-							stageOverrides.stateOverrides[slot] = samplerState;
-						}
+							stageOverrides.stateOverrides[slot] = (UINT32)-1;						
 					}
 
-					outputData += sizeof(SPtr<SamplerStateCore>) * stageOverrides.numStates;
+					outputData += sizeof(UINT32) * stageOverrides.numStates;
 				}
 			}
-		}
 
+			output->numOverrides = (UINT32)overrides.size();
+			output->overrides = (SamplerOverride*)outputData;
+
+			for(UINT32 i = 0; i < output->numOverrides; i++)
+			{
+				new (&output->overrides[i].state) SPtr<SamplerStateCore>();
+				output->overrides[i] = overrides[i];
+			}
+		}
 		bs_frame_clear();
 
 		return output;
@@ -128,20 +158,11 @@ namespace BansheeEngine
 	{
 		if (overrides != nullptr)
 		{
-			for (UINT32 i = 0; i < overrides->numPasses; i++)
-			{
-				PassSamplerOverrides& passOverrides = overrides->passes[i];
-
-				for (UINT32 j = 0; j < passOverrides.numStages; j++)
-				{
-					StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
-
-					for (UINT32 k = 0; k < stageOverrides.numStates; k++)
-						stageOverrides.stateOverrides[k].~SPtr<SamplerStateCore>();
-				}
-			}
+			for (UINT32 i = 0; i < overrides->numOverrides; i++)
+				overrides->overrides[i].state.~SPtr<SamplerStateCore>();
 
 			bs_free(overrides);
+			overrides = nullptr;
 		}
 	}
 

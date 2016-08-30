@@ -17,6 +17,14 @@ namespace BansheeEngine
 		setName("Renderable");
 	}
 
+	void CRenderable::setMesh(HMesh mesh)
+	{
+		mInternal->setMesh(mesh);
+
+		if (mAnimation != nullptr)
+			mAnimation->_updateBounds(false);
+	}
+
 	void CRenderable::onInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
@@ -28,15 +36,17 @@ namespace BansheeEngine
 
 		gSceneManager()._registerRenderable(mInternal, sceneObject());
 
-		HAnimation animationComponent = SO()->getComponent<CAnimation>();
-		if(animationComponent != nullptr)
-			mInternal->setAnimation(animationComponent->_getInternal());
+		mAnimation = SO()->getComponent<CAnimation>();
+		if (mAnimation != nullptr)
+		{
+			_registerAnimation(mAnimation);
+			mAnimation->_registerRenderable(mThisHandle);
+		}
 	}
 
 	Bounds CRenderable::getBounds() const
 	{
-		updateTransform();
-
+		mInternal->_updateTransform(mThisHandle);
 		return mInternal->getBounds();
 	}
 
@@ -47,15 +57,31 @@ namespace BansheeEngine
 		return true;
 	}
 
-	void CRenderable::updateTransform() const
+	void CRenderable::_registerAnimation(const HAnimation& animation)
 	{
-		UINT32 curHash = SO()->getTransformHash();
-		if (curHash != mInternal->_getLastModifiedHash())
-		{
-			Matrix4 transformNoScale = Matrix4::TRS(SO()->getWorldPosition(), SO()->getWorldRotation(), Vector3::ONE);
+		mAnimation = animation;
 
-			mInternal->setTransform(SO()->getWorldTfrm(), transformNoScale);
-			mInternal->_setLastModifiedHash(curHash);
+		if (mInternal != nullptr)
+		{
+			mInternal->setAnimation(animation->_getInternal());
+
+			// Need to update transform because animated renderables handle local transforms through bones, so it
+			// shouldn't be included in the renderable's transform.
+			mInternal->_updateTransform(SO(), true);
+		}
+	}
+
+	void CRenderable::_unregisterAnimation()
+	{
+		mAnimation = nullptr;
+
+		if(mInternal != nullptr)
+		{
+			mInternal->setAnimation(nullptr);
+
+			// Need to update transform because animated renderables handle local transforms through bones, so it
+			// shouldn't be included in the renderable's transform.
+			mInternal->_updateTransform(SO(), true);
 		}
 	}
 
@@ -66,6 +92,9 @@ namespace BansheeEngine
 
 	void CRenderable::onDestroyed()
 	{
+		if (mAnimation != nullptr)
+			mAnimation->_unregisterRenderable();
+
 		gSceneManager()._unregisterRenderable(mInternal);
 	}
 

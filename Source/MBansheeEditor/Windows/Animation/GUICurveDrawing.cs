@@ -21,7 +21,7 @@ namespace BansheeEditor
         private static readonly Color COLOR_MID_GRAY = new Color(90.0f / 255.0f, 90.0f / 255.0f, 90.0f / 255.0f, 1.0f);
         private static readonly Color COLOR_DARK_GRAY = new Color(40.0f / 255.0f, 40.0f / 255.0f, 40.0f / 255.0f, 1.0f);
 
-        private EdAnimationCurve[] curves;
+        private CurveDrawInfo[] curveInfos;
         private bool[][] selectedKeyframes;
 
         private float yRange = 20.0f;
@@ -35,12 +35,12 @@ namespace BansheeEditor
         /// <param name="layout">Layout into which to add the GUI element.</param>
         /// <param name="width">Width of the element in pixels.</param>
         /// <param name="height">Height of the element in pixels.</param>
-        /// <param name="curves">Initial set of curves to display. </param>
-        public GUICurveDrawing(GUILayout layout, int width, int height, EdAnimationCurve[] curves)
+        /// <param name="curveInfos">Initial set of curves to display. </param>
+        public GUICurveDrawing(GUILayout layout, int width, int height, CurveDrawInfo[] curveInfos)
             :base(layout, width, height)
         {
             tickHandler = new GUIGraphTicks(GUITickStepType.Time);
-            this.curves = curves;
+            this.curveInfos = curveInfos;
             
             ClearSelectedKeyframes(); // Makes sure the array is initialized
         }
@@ -48,10 +48,10 @@ namespace BansheeEditor
         /// <summary>
         /// Change the set of curves to display.
         /// </summary>
-        /// <param name="curves">New set of curves to draw on the GUI element.</param>
-        public void SetCurves(EdAnimationCurve[] curves)
+        /// <param name="curveInfos">New set of curves to draw on the GUI element.</param>
+        public void SetCurves(CurveDrawInfo[] curveInfos)
         {
-            this.curves = curves;
+            this.curveInfos = curveInfos;
         }
         
         /// <summary>
@@ -100,11 +100,11 @@ namespace BansheeEditor
         /// </summary>
         public void ClearSelectedKeyframes()
         {
-            selectedKeyframes = new bool[curves.Length][];
+            selectedKeyframes = new bool[curveInfos.Length][];
 
-            for (int i = 0; i < curves.Length; i++)
+            for (int i = 0; i < curveInfos.Length; i++)
             {
-                KeyFrame[] keyframes = curves[i].KeyFrames;
+                KeyFrame[] keyframes = curveInfos[i].curve.KeyFrames;
                 selectedKeyframes[i] = new bool[keyframes.Length];
             }
         }
@@ -121,9 +121,9 @@ namespace BansheeEditor
             keyframe = new KeyframeRef();
 
             float nearestDistance = float.MaxValue;
-            for (int i = 0; i < curves.Length; i++)
+            for (int i = 0; i < curveInfos.Length; i++)
             {
-                EdAnimationCurve curve = curves[i];
+                EdAnimationCurve curve = curveInfos[i].curve;
                 KeyFrame[] keyframes = curve.KeyFrames;
 
                 for (int j = 0; j < keyframes.Length; j++)
@@ -160,9 +160,9 @@ namespace BansheeEditor
             tangent = new TangentRef();
 
             float nearestDistance = float.MaxValue;
-            for (int i = 0; i < curves.Length; i++)
+            for (int i = 0; i < curveInfos.Length; i++)
             {
-                EdAnimationCurve curve = curves[i];
+                EdAnimationCurve curve = curveInfos[i].curve;
                 KeyFrame[] keyframes = curve.KeyFrames;
 
                 for (int j = 0; j < keyframes.Length; j++)
@@ -262,6 +262,20 @@ namespace BansheeEditor
             pixelCoords.y = heightOffset - (int)((relativeCurveCoords.y / yRange) * height);
 
             return pixelCoords;
+        }
+
+        /// <summary>
+        /// Generates a unique color based on the provided index.
+        /// </summary>
+        /// <param name="idx">Index to use for generating a color. Should be less than 30 in order to guarantee reasonably
+        /// different colors.</param>
+        /// <returns>Unique color.</returns>
+        public static Color GetUniqueColor(int idx)
+        {
+            const int COLOR_SPACING = 359 / 15;
+
+            float hue = ((idx * COLOR_SPACING) % 359) / 359.0f;
+            return Color.HSV2RGB(new Color(hue, 175.0f / 255.0f, 175.0f / 255.0f));
         }
 
         /// <summary>
@@ -419,10 +433,10 @@ namespace BansheeEditor
         {
             canvas.Clear();
 
-            if (curves == null)
+            if (curveInfos == null)
                 return;
 
-            tickHandler.SetRange(rangeOffset, rangeOffset + GetRange(true), drawableWidth + GUIGraphTime.PADDING);
+            tickHandler.SetRange(rangeOffset, rangeOffset + GetRange(true), drawableWidth + PADDING);
 
             // Draw vertical frame markers
             int numTickLevels = tickHandler.NumLevels;
@@ -445,13 +459,12 @@ namespace BansheeEditor
 
             // Draw curves
             int curveIdx = 0;
-            foreach (var curve in curves)
+            foreach (var curveInfo in curveInfos)
             {
-                Color color = GetUniqueColor(curveIdx);
-                DrawCurve(curve, color);
+                DrawCurve(curveInfo.curve, curveInfo.color);
 
                 // Draw keyframes
-                KeyFrame[] keyframes = curve.KeyFrames;
+                KeyFrame[] keyframes = curveInfo.curve.KeyFrames;
 
                 for (int i = 0; i < keyframes.Length; i++)
                 {
@@ -460,7 +473,7 @@ namespace BansheeEditor
                     DrawKeyframe(keyframes[i].time, keyframes[i].value, isSelected);
 
                     if (isSelected)
-                        DrawTangents(keyframes[i], curve.TangentModes[i]);
+                        DrawTangents(keyframes[i], curveInfo.curve.TangentModes[i]);
                 }
 
                 curveIdx++;
@@ -469,20 +482,6 @@ namespace BansheeEditor
             // Draw selected frame marker
             if (markedFrameIdx != -1)
                 DrawFrameMarker(GetTimeForFrame(markedFrameIdx), Color.BansheeOrange, true);
-        }
-
-        /// <summary>
-        /// Generates a unique color based on the provided index.
-        /// </summary>
-        /// <param name="idx">Index to use for generating a color. Should be less than 30 in order to guarantee reasonably
-        /// different colors.</param>
-        /// <returns>Unique color.</returns>
-        private Color GetUniqueColor(int idx)
-        {
-            const int COLOR_SPACING = 359 / 15;
-
-            float hue = ((idx * COLOR_SPACING) % 359) / 359.0f;
-            return Color.HSV2RGB(new Color(hue, 175.0f / 255.0f, 175.0f / 255.0f));
         }
 
         /// <summary>
@@ -602,6 +601,21 @@ namespace BansheeEditor
                 canvas.DrawLine(start, end, COLOR_MID_GRAY);
             }
         }
+    }
+
+    /// <summary>
+    /// Information necessary to draw a curve.
+    /// </summary>
+    internal struct CurveDrawInfo
+    {
+        public CurveDrawInfo(EdAnimationCurve curve, Color color)
+        {
+            this.curve = curve;
+            this.color = color;
+        }
+
+        public EdAnimationCurve curve;
+        public Color color;
     }
 
     /** }@ */

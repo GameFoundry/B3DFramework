@@ -20,6 +20,9 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_REFL(mDefaultClip, 0)
 			BS_RTTI_MEMBER_PLAIN(mWrapMode, 1)
 			BS_RTTI_MEMBER_PLAIN(mSpeed, 2)
+			BS_RTTI_MEMBER_PLAIN(mEnableCull, 3)
+			BS_RTTI_MEMBER_PLAIN(mUseBounds, 4)
+			BS_RTTI_MEMBER_PLAIN(mBounds, 5)
 		BS_END_RTTI_MEMBERS
 	public:
 		CAnimationRTTI()

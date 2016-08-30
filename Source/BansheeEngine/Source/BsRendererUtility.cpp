@@ -5,6 +5,7 @@
 #include "BsMesh.h"
 #include "BsVertexDataDesc.h"
 #include "BsMaterial.h"
+#include "BsGpuParamsSet.h"
 #include "BsPass.h"
 #include "BsBlendState.h"
 #include "BsDepthStencilState.h"
@@ -116,44 +117,27 @@ namespace BansheeEngine
 
 	}
 
-	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
+	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
 
-		SPtr<PassCore> pass = material->getPass(passIdx);
-		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
+		SPtr<PassCore> pass = material->getPass(passIdx, techniqueIdx);
 
 		struct StageData
 		{
 			GpuProgramType type;
 			bool enable;
-			SPtr<GpuParamsCore> params;
 			SPtr<GpuProgramCore> program;
 		};
 
 		const UINT32 numStages = 5;
 		StageData stages[numStages] =
 		{
-			{
-				GPT_VERTEX_PROGRAM, pass->hasVertexProgram(),
-				passParams->mVertParams, pass->getVertexProgram()
-			},
-			{
-				GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(),
-				passParams->mFragParams, pass->getFragmentProgram()
-			},
-			{
-				GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(),
-				passParams->mGeomParams, pass->getGeometryProgram()
-			},
-			{
-				GPT_HULL_PROGRAM, pass->hasHullProgram(),
-				passParams->mHullParams, pass->getHullProgram()
-			},
-			{
-				GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(),
-				passParams->mDomainParams, pass->getDomainProgram()
-			}
+			{ GPT_VERTEX_PROGRAM, pass->hasVertexProgram(), pass->getVertexProgram() },
+			{ GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(), pass->getFragmentProgram() },
+			{ GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(), pass->getGeometryProgram() },
+			{ GPT_HULL_PROGRAM, pass->hasHullProgram(), pass->getHullProgram() },
+			{ GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(), pass->getDomainProgram() }
 		};
 
 		for (UINT32 i = 0; i < numStages; i++)
@@ -161,13 +145,7 @@ namespace BansheeEngine
 			const StageData& stage = stages[i];
 
 			if (stage.enable)
-			{
 				rapi.bindGpuProgram(stage.program);
-
-				if(bindParameters)
-					setGpuParams(stage.type, stage.params);
-
-			}
 			else
 				rapi.unbindGpuProgram(stage.type);
 		}
@@ -189,54 +167,37 @@ namespace BansheeEngine
 			rapi.setRasterizerState(RasterizerStateCore::getDefault());
 	}
 
-	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx, bool bindParameters)
+	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
-
 		SPtr<PassCore> pass = material->getPass(passIdx);
-		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
 
 		if(pass->hasComputeProgram())
-		{
 			rapi.bindGpuProgram(pass->getComputeProgram());
-
-			if (bindParameters)
-				setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
-		}
 		else
 			rapi.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
 	}
 
-	void RendererUtility::setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPassParams(const SPtr<GpuParamsSetCore>& params, UINT32 passIdx)
 	{
-		const SPtr<PassParametersCore>& passParams = material->getPassParameters(passIdx);
-
-		struct StageData
-		{
-			GpuProgramType type;
-			SPtr<GpuParamsCore> params;
-		};
-
 		const UINT32 numStages = 6;
-		StageData stages[numStages] =
+		GpuProgramType stages[numStages] =
 		{
-			{ GPT_VERTEX_PROGRAM, passParams->mVertParams },
-			{ GPT_FRAGMENT_PROGRAM, passParams->mFragParams },
-			{ GPT_GEOMETRY_PROGRAM, passParams->mGeomParams },
-			{ GPT_HULL_PROGRAM, passParams->mHullParams },
-			{ GPT_DOMAIN_PROGRAM, passParams->mDomainParams },
-			{ GPT_COMPUTE_PROGRAM, passParams->mComputeParams }
+			{ GPT_VERTEX_PROGRAM },
+			{ GPT_FRAGMENT_PROGRAM },
+			{ GPT_GEOMETRY_PROGRAM },
+			{ GPT_HULL_PROGRAM },
+			{ GPT_DOMAIN_PROGRAM },
+			{ GPT_COMPUTE_PROGRAM }
 		};
 
 		for (UINT32 i = 0; i < numStages; i++)
 		{
-			const StageData& stage = stages[i];
-
-			SPtr<GpuParamsCore> params = stage.params;
-			if (params == nullptr)
+			SPtr<GpuParamsCore> gpuParams = params->getGpuParams(stages[i], passIdx);
+			if (gpuParams == nullptr)
 				continue;
 
-			setGpuParams(stage.type, params);
+			setGpuParams(stages[i], gpuParams);
 		}
 	}
 
@@ -340,19 +301,22 @@ namespace BansheeEngine
 	{
 		auto& texProps = texture->getProperties();
 		SPtr<MaterialCore> mat;
+		SPtr<GpuParamsSetCore> params;
 		if (texProps.getMultisampleCount() > 1)
 		{
 			mat = mResolveMat->getMaterial();
+			params = mResolveMat->getParamsSet();
 			mResolveMat->setParameters(texture);
 		}
 		else
 		{
 			mat = mBlitMat->getMaterial();
+			params = mBlitMat->getParamsSet();
 			mBlitMat->setParameters(texture);
 		}
 
-		setPass(mat, 0);
-		setPassParams(mat);
+		setPass(mat);
+		setPassParams(params);
 
 		Rect2 fArea((float)area.x, (float)area.y, (float)area.width, (float)area.height);
 		if(area.width == 0 || area.height == 0)
@@ -440,6 +404,7 @@ namespace BansheeEngine
 	void BlitMat::setParameters(const SPtr<TextureCore>& source)
 	{
 		mSource.set(source);
+		mMaterial->updateParamsSet(mParamsSet);
 	}
 
 	ResolveMat::ResolveMat()
@@ -459,5 +424,7 @@ namespace BansheeEngine
 
 		UINT32 sampleCount = source->getProperties().getMultisampleCount();
 		mNumSamples.set(sampleCount);
+
+		mMaterial->updateParamsSet(mParamsSet);
 	}
 }

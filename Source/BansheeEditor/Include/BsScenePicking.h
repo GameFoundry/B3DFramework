@@ -102,10 +102,8 @@ namespace BansheeEngine
 			SPtr<MaterialCore> mMatPickingCore;
 			SPtr<MaterialCore> mMatPickingAlphaCore;
 
-			SPtr<GpuParamsCore> mParamPickingVertParams;
-			SPtr<GpuParamsCore> mParamPickingFragParams;
-			SPtr<GpuParamsCore> mParamPickingAlphaVertParams;
-			SPtr<GpuParamsCore> mParamPickingAlphaFragParams;
+			SPtr<GpuParamsSetCore> mPickingParams;
+			SPtr<GpuParamsSetCore> mPickingAlphaParams;
 
 			GpuParamMat4Core mParamPickingWVP;
 			GpuParamMat4Core mParamPickingAlphaWVP;

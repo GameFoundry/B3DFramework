@@ -1,7 +1,7 @@
-Technique =
+Technique : base("GBuffer") =
 {
 	Language = "HLSL11";
-	
+
 	Pass =
 	{
 		Common = 
@@ -23,10 +23,10 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("GBuffer") =
 {
 	Language = "GLSL";
-	
+
 	Pass =
 	{
 		Common = 

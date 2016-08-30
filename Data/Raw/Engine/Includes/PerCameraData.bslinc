@@ -26,10 +26,10 @@ Blocks =
 	Block PerCamera : auto("PerCamera");
 };
 
-Technique =
+Technique : base("PerCameraData") =
 {
 	Language = "HLSL11";
-	
+
 	Pass =
 	{
 		Common = 
@@ -51,10 +51,10 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PerCameraData") =
 {
 	Language = "GLSL";
-	
+
 	Pass =
 	{
 		Common = 

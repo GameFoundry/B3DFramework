@@ -74,6 +74,27 @@ namespace BansheeEngine
 		/** @copydoc Animation::setState */
 		void setState(const HAnimationClip& clip, AnimationClipState state);
 
+		/** Sets bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true. */
+		void setBounds(const AABox& bounds);
+
+		/** Gets animation bounds. @see setBounds. */
+		const AABox& getBounds() const { return mBounds; }
+
+		/** 
+		 * Determines should animation bounds be used for visibility determination (culling). If false the bounds of the
+         * mesh attached to the relevant CRenderable component will be used instead.
+		 */
+		void setUseBounds(bool enable);
+
+		/** Checks whether animation bounds are enabled. @see setUseBounds. */
+		bool getUseBounds() const { return mUseBounds; }
+
+		/** Enables or disables culling of the animation when out of view. Culled animation will not be evaluated. */
+		void setEnableCull(bool enable);
+
+		/** Checks whether the animation will be evaluated when it is out of view. */
+		bool getEnableCull() const { return mEnableCull; }
+
 		/** Triggered whenever an animation event is reached. */
 		Event<void(const HAnimationClip&, const String&)> onEventTriggered;
 
@@ -96,6 +117,21 @@ namespace BansheeEngine
 		/** Called whenever the bone name the Bone component points to changes. */
 		void _notifyBoneChanged(const HBone& bone);
 
+		/** 
+		 * Registers a Renderable component with the animation, should be called whenever a Renderable component is added
+		 * to the same scene object as this component.
+		 */
+		void _registerRenderable(const HRenderable& renderable);
+
+		/** 
+		 * Removes renderable from the animation component. Should be called when a Renderable component is removed from
+		 * this scene object.
+		 */
+		void _unregisterRenderable();
+
+		/** Re-applies the bounds to the internal animation object, and the relevant renderable object if one exists. */
+		void _updateBounds(bool updateRenderable = true);
+
 		/** @} */
 
 		/************************************************************************/
@@ -115,6 +151,9 @@ namespace BansheeEngine
 
 		/** @copydoc Component::onEnabled() */
 		void onEnabled() override;
+
+		/** @copydoc Component::onTransformChanged() */
+		void onTransformChanged(TransformChangedFlags flags) override;
     protected:
 		using Component::destroyInternal;
 
@@ -137,10 +176,14 @@ namespace BansheeEngine
 		Vector<HBone> findChildBones();
 
 		SPtr<Animation> mInternal;
+		HRenderable mAnimatedRenderable;
 
 		HAnimationClip mDefaultClip;
 		AnimWrapMode mWrapMode;
 		float mSpeed;
+		bool mEnableCull;
+		bool mUseBounds;
+		AABox mBounds;
 
 		Vector<SceneObjectMappingInfo> mMappingInfos;
 
@@ -153,7 +196,7 @@ namespace BansheeEngine
 		RTTITypeBase* getRTTI() const override;
 
 	protected:
-		CAnimation() {} // Serialization only
+		CAnimation(); // Serialization only
      };
 
 	 /** @} */

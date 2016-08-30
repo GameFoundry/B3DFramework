@@ -64,7 +64,7 @@ namespace BansheeEngine
 		static MonoObject* internal_getSceneObject(ScriptComponent* nativeInstance);
 		static TransformChangedFlags internal_getNotifyFlags(ScriptComponent* nativeInstance);
 		static void internal_setNotifyFlags(ScriptComponent* nativeInstance, TransformChangedFlags flags);
-		static void internal_Invoke(ScriptComponent* nativeInstance, MonoString* name);
+		static void internal_invoke(ScriptComponent* nativeInstance, MonoString* name);
 		static void internal_destroy(ScriptComponent* nativeInstance, bool immediate);
 	};
 

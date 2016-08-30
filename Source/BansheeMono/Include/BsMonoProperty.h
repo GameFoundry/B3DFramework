@@ -92,7 +92,7 @@ namespace BansheeEngine
 		::MonoMethod* mGetMethod;
 		::MonoMethod* mSetMethod;
 
-		mutable MonoClass* mGetReturnType;
+		mutable MonoClass* mReturnType;
 		mutable bool mIsIndexed;
 		mutable bool mIsFullyInitialized;
 	};

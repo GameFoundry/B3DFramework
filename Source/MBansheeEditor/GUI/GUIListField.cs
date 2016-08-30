@@ -171,8 +171,8 @@ namespace BansheeEditor
 
                 short backgroundDepth = (short)(Inspector.START_BACKGROUND_DEPTH - depth - 1);
                 string bgPanelStyle = depth % 2 == 0
-                    ? EditorStyles.InspectorContentBgAlternate
-                    : EditorStyles.InspectorContentBg;
+                    ? EditorStylesInternal.InspectorContentBgAlternate
+                    : EditorStylesInternal.InspectorContentBg;
 
                 GUIPanel backgroundPanel = guiContentPanel.AddPanel(backgroundDepth);
                 GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);
@@ -573,13 +573,12 @@ namespace BansheeEditor
             ElementType[] newArray = new ElementType[size];
 
             int maxSize = MathEx.Min(size, array.GetLength(0));
-
             for (int i = 0; i < maxSize; i++)
                 newArray.SetValue(array.GetValue(i), i);
 
             array = newArray;
 
-            if(OnChanged != null)
+            if (OnChanged != null)
                 OnChanged(array);
         }
 

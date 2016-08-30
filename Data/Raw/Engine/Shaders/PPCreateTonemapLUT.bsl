@@ -7,7 +7,10 @@ Parameters =
 
 };
 
-Technique =
+Technique
+ : inherits("VolumeRenderBase")
+ : inherits("PPTonemapCommon")
+ : inherits("PPWhiteBalance") =
 {
 	Language = "HLSL11";
 	
@@ -122,7 +125,10 @@ Technique =
 	};
 };
 
-Technique =
+Technique
+ : inherits("VolumeRenderBase")
+ : inherits("PPTonemapCommon")
+ : inherits("PPWhiteBalance") =
 {
 	Language = "GLSL";
 	

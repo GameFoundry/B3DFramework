@@ -97,6 +97,9 @@ namespace BansheeEngine
 		void importAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImportOptions& importOptions, 
 			FBXAnimationClip& clip, FBXImportScene& importScene);
 
+		/** Bakes all FBX node transforms into standard translation-rotation-scale transform components. */
+		void bakeTransforms(FbxScene* scene);
+
 		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
 		template<class T, int C>
 		TAnimationCurve<T> importCurve(FbxAnimCurve*(&fbxCurve)[C], FBXImportOptions& importOptions, float start, float end);
@@ -110,6 +113,9 @@ namespace BansheeEngine
 		 * the curves in order for it to be removed.
 		 */
 		TAnimationCurve<Vector3> reduceKeyframes(TAnimationCurve<Vector3>& curve);
+
+		/** Applies a scale to all keyframe values and tangents. */
+		TAnimationCurve<Vector3> scaleKeyframes(TAnimationCurve<Vector3>& curve, float scale);
 
 		/**
 		 * Converts all the meshes from per-index attributes to per-vertex attributes.

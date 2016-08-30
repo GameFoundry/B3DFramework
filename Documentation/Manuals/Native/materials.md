@@ -42,12 +42,13 @@ SPtr<Pass> pass = Pass::create(desc);
 [GPU program](@ref gpuPrograms) and [render API](@ref renderAPI) manuals teach you how to create GPU programs and render states. 
 
 ## Technique {#materials_a_b}
-Now that we know how to create a pass, we can use one or multiple passes to initialize a @ref BansheeEngine::Technique "Technique". A technique is just a container for passes, with names of the supported render API and renderer.
+Now that we know how to create a pass, we can use one or multiple passes to initialize a @ref BansheeEngine::Technique "Technique". A technique is just a container for passes for a specific render API and renderer.
 
 To create a technique call @ref BansheeEngine::Technique::create "Technique::create" and provide it with:
  - One or multiple passes
  - Supported render API name: Use built-in `RenderAPIAny` to signal that the technique works on any API, or use the render API identifier to signal that it only works on a specific one. By default supported identifiers are: `"D3D11RenderAPI"`, `"D3D9RenderAPI"`, `"GLRenderAPI"`, but more can be added via plugins. In general those identifiers are returned from @ref BansheeEngine::RenderAPICore::getName "RenderAPICore::getName". Most users should be okay by providing `RenderAPIAny`.
  - Supported renderer name: Use built-in `RendererAny` to signal that the technique works on any renderer, or use the renderer identifier to signal that it only works on a specific one. By default the only supported identifier is `"RenderBeast"`, but more can be added via plugins. In general those identifiers are returned from @ref BansheeEngine::Renderer::getName "Renderer::getName". Most users should be okay by providing `RendererAny`.
+ - An optional list of tags that allows renderer to pick which technique to use when rendering objects. Can be left empty in most cases.
 
 For example:
 ~~~~~~~~~~~~~{.cpp}
@@ -184,7 +185,11 @@ albedoParam.set(Texture::White);
 # Rendering with material {#materials_d}
 From the simulation thread you cannot use material to render manually (you must instead use GPU programs and states manually as described by the [render API](@ref renderAPI) manual). You are instead expected to set the material on a @ref BansheeEngine::Renderable "Renderable" object which will then be used for rendering automatically. Read the [renderer](@ref renderer) manual for more information.
 
-Core thread gives you more flexibility and you can use @ref BansheeEngine::RendererUtility::setPass "RendererUtility::setPass" to bind a specific pass from a material to the pipeline, and @ref BansheeEngine::RendererUtility::setPassParams "RendererUtility::setPassParams" to bind material parameters for a specific pass. You can follow these calls with draw calls as described in the [render API](@ref renderAPI) manual to render objects manually. 
+Core thread gives you more flexibility and you can use @ref BansheeEngine::RendererUtility::setPass "RendererUtility::setPass" to bind a specific pass from a material to the pipeline, and @ref BansheeEngine::RendererUtility::setPassParams "RendererUtility::setPassParams" to bind material parameters for a specific pass. 
+
+In order to retrieve a set of per-program @ref BansheeEngine::RendererUtility::GpuParams "GpuParams" that can be used for binding directly to the pipeline, call @ref BansheeEngine::Material::createParamsSet "Material::createParamsSet", followed by @ref BansheeEngine::Material::updateParamsSet "Material::updateParamsSet". You are required to call @ref BansheeEngine::Material::updateParamsSet "Material::updateParamsSet" whenever material parameters change, in order to transfer the new data to @ref BansheeEngine::RendererUtility::GpuParams "GpuParams".
+
+After pass and pass parameters are bound you can follow them with draw calls as described in the [render API](@ref renderAPI) manual to render objects manually. 
 
 # Saving/loading {#materials_e}
 A material is a @ref BansheeEngine::Resource "Resource" and can be saved/loaded like any other. See the [resource](@ref resources) manual.

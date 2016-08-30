@@ -13,10 +13,10 @@ Blocks =
 	Block PerObject : auto("PerObject");
 };
 
-Technique =
+Technique : base("PerObjectData") =
 {
 	Language = "HLSL11";
-	
+
 	Pass =
 	{
 		Common = 
@@ -34,10 +34,10 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PerObjectData") =
 {
 	Language = "GLSL";
-	
+
 	Pass =
 	{
 		Common = 

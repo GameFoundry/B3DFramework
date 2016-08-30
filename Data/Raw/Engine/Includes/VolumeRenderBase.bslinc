@@ -1,4 +1,4 @@
-Technique =
+Technique : base("VolumeRenderBase") =
 {
 	Language = "HLSL11";
 	
@@ -73,7 +73,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("VolumeRenderBase") =
 {
 	Language = "GLSL";
 	

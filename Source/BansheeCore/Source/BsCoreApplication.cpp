@@ -224,7 +224,7 @@ namespace BansheeEngine
 			PROFILE_CALL(gCoreSceneManager()._update(), "SceneManager");
 			gAudio()._update();
 			gPhysics().update();
-			AnimationManager::instance().postUpdate();
+			AnimationManager::instance().postUpdate({}); // TODO
 
 			// Update plugins
 			for (auto& pluginUpdateFunc : mPluginUpdateFunctions)

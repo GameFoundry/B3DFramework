@@ -28,6 +28,7 @@
 #include "BsAnimationManager.h"
 #include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
+#include "BsGpuParamsSet.h"
 
 using namespace std::placeholders;
 
@@ -173,7 +174,49 @@ namespace BansheeEngine
 				if (renElement.material == nullptr)
 					renElement.material = mDefaultMaterial->getMaterial();
 
-				auto iterFind = mSamplerOverrides.find(renElement.material);
+				// Determine which technique to use
+				UINT32 techniqueIdx = -1;
+				if(renderable->isAnimated())
+					techniqueIdx = renElement.material->findTechnique(RTag_Animated);
+
+				if (techniqueIdx == (UINT32)-1)
+					techniqueIdx = renElement.material->getDefaultTechnique();
+
+				renElement.techniqueIdx = techniqueIdx;
+
+				// Generate or assigned renderer specific data for the material
+				Any materialInfo = renElement.material->getRendererData();
+				if(materialInfo.empty())
+				{
+					RendererMaterial matInfo;
+					matInfo.params.resize(techniqueIdx + 1);
+					matInfo.params[techniqueIdx] = renElement.material->createParamsSet(techniqueIdx);
+					matInfo.matVersion = renElement.material->getVersion();
+
+					renElement.material->updateParamsSet(matInfo.params[techniqueIdx], techniqueIdx, true);
+					renElement.material->setRendererData(matInfo);
+					renElement.params = matInfo.params[techniqueIdx];
+				}
+				else
+				{
+					RendererMaterial& matInfo = any_cast_ref<RendererMaterial>(materialInfo);
+					if (matInfo.params.size() <= techniqueIdx)
+						matInfo.params.resize(techniqueIdx + 1);
+
+					if(matInfo.params[techniqueIdx] == nullptr || matInfo.matVersion != renElement.material->getVersion())
+					{
+						matInfo.params[techniqueIdx] = renElement.material->createParamsSet(techniqueIdx);
+						matInfo.matVersion = renElement.material->getVersion();
+
+						renElement.material->updateParamsSet(matInfo.params[techniqueIdx], techniqueIdx, true);
+					}
+
+					renElement.params = matInfo.params[techniqueIdx];
+				}
+
+				// Generate or assign sampler state overrides
+				SamplerOverrideKey samplerKey(renElement.material, techniqueIdx);
+				auto iterFind = mSamplerOverrides.find(samplerKey);
 				if (iterFind != mSamplerOverrides.end())
 				{
 					renElement.samplerOverrides = iterFind->second;
@@ -181,8 +224,11 @@ namespace BansheeEngine
 				}
 				else
 				{
-					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(renElement.material, mCoreOptions);
-					mSamplerOverrides[renElement.material] = samplerOverrides;
+					SPtr<ShaderCore> shader = renElement.material->getShader();
+					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(shader,
+						renElement.material->_getInternalParams(), renElement.params, mCoreOptions);
+
+					mSamplerOverrides[samplerKey] = samplerOverrides;
 
 					renElement.samplerOverrides = samplerOverrides;
 					samplerOverrides->refCount++;
@@ -202,7 +248,9 @@ namespace BansheeEngine
 		Vector<BeastRenderableElement>& elements = mRenderables[renderableId].elements;
 		for (auto& element : elements)
 		{
-			auto iterFind = mSamplerOverrides.find(element.material);
+			SamplerOverrideKey samplerKey(element.material, element.techniqueIdx);
+
+			auto iterFind = mSamplerOverrides.find(samplerKey);
 			assert(iterFind != mSamplerOverrides.end());
 
 			MaterialSamplerOverrides* samplerOverrides = iterFind->second;
@@ -753,16 +801,15 @@ namespace BansheeEngine
 		}
 
 		mObjectRenderer->setPerObjectParams(element, mRenderableShaderData[rendererId], worldViewProjMatrix, boneMatrices);
+		material->updateParamsSet(element.params, element.techniqueIdx);
 
 		if (bindPass)
-			RendererUtility::instance().setPass(material, passIdx, false);
-
-		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
+			RendererUtility::instance().setPass(material, passIdx, element.techniqueIdx);
 
 		if (element.samplerOverrides != nullptr)
-			setPassParams(passParams, &element.samplerOverrides->passes[passIdx]);
+			setPassParams(element.params, element.samplerOverrides, passIdx);
 		else
-			setPassParams(passParams, nullptr);
+			setPassParams(element.params, nullptr, passIdx);
 
 		gRendererUtility().draw(element.mesh, element.subMesh);
 	}
@@ -771,56 +818,34 @@ namespace BansheeEngine
 	{
 		for (auto& entry : mSamplerOverrides)
 		{
-			SPtr<MaterialCore> material = entry.first;
+			SPtr<MaterialParamsCore> materialParams = entry.first.material->_getInternalParams();
 
-			if (force)
+			MaterialSamplerOverrides* materialOverrides = entry.second;
+			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)
 			{
-				SamplerOverrideUtility::destroySamplerOverrides(entry.second);
-				entry.second = SamplerOverrideUtility::generateSamplerOverrides(material, mCoreOptions);
-			}
-			else
-			{
-				MaterialSamplerOverrides* materialOverrides = entry.second;
-				UINT32 numPasses = material->getNumPasses();
+				SamplerOverride& override = materialOverrides->overrides[i];
+				const MaterialParamsBase::ParamData* materialParamData = materialParams->getParamData(override.paramIdx);
 
-				assert(numPasses == materialOverrides->numPasses);
-				for (UINT32 i = 0; i < numPasses; i++)
+				SPtr<SamplerStateCore> samplerState;
+				materialParams->getSamplerState(materialParamData->index, samplerState);
+
+				UINT64 hash = 0;
+				if (samplerState != nullptr)
+					hash = samplerState->getProperties().getHash();
+
+				if (hash != override.originalStateHash || force)
 				{
-					SPtr<PassParametersCore> passParams = material->getPassParameters(i);
-					PassSamplerOverrides& passOverrides = materialOverrides->passes[i];
-
-					for (UINT32 j = 0; j < PassParametersCore::NUM_PARAMS; j++)
-					{
-						StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
-
-						SPtr<GpuParamsCore> params = passParams->getParamByIdx(j);
-						if (params == nullptr)
-							continue;
-
-						const GpuParamDesc& paramDesc = params->getParamDesc();
-
-						for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-						{
-							UINT32 slot = iter->second.slot;
-							SPtr<SamplerStateCore> samplerState = params->getSamplerState(slot);
-
-							assert(stageOverrides.numStates > slot);
-
-							if (samplerState != stageOverrides.stateOverrides[slot])
-							{
-								if (samplerState != nullptr)
-									stageOverrides.stateOverrides[slot] = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
-								else
-									stageOverrides.stateOverrides[slot] = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);;
-							}	
-						}
-					}
+					if (samplerState != nullptr)
+						override.state = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
+					else
+						override.state = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);;
 				}
 			}
 		}
 	}
 
-	void RenderBeast::setPassParams(const SPtr<PassParametersCore>& passParams, const PassSamplerOverrides* samplerOverrides)
+	void RenderBeast::setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides,
+		UINT32 passIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -833,21 +858,19 @@ namespace BansheeEngine
 		};
 
 		const UINT32 numStages = 6;
-		StageData stages[numStages] =
+		GpuProgramType stages[numStages] =
 		{
-			{ GPT_VERTEX_PROGRAM, passParams->mVertParams },
-			{ GPT_FRAGMENT_PROGRAM, passParams->mFragParams },
-			{ GPT_GEOMETRY_PROGRAM, passParams->mGeomParams },
-			{ GPT_HULL_PROGRAM, passParams->mHullParams },
-			{ GPT_DOMAIN_PROGRAM, passParams->mDomainParams },
-			{ GPT_COMPUTE_PROGRAM, passParams->mComputeParams }
+			{ GPT_VERTEX_PROGRAM },
+			{ GPT_FRAGMENT_PROGRAM },
+			{ GPT_GEOMETRY_PROGRAM },
+			{ GPT_HULL_PROGRAM },
+			{ GPT_DOMAIN_PROGRAM },
+			{ GPT_COMPUTE_PROGRAM }
 		};
 
 		for (UINT32 i = 0; i < numStages; i++)
 		{
-			const StageData& stage = stages[i];
-
-			SPtr<GpuParamsCore> params = stage.params;
+			SPtr<GpuParamsCore> params = paramsSet->getGpuParams(stages[i], passIdx);
 			if (params == nullptr)
 				continue;
 
@@ -858,20 +881,25 @@ namespace BansheeEngine
 				SPtr<SamplerStateCore> samplerState;
 
 				if (samplerOverrides != nullptr)
-					samplerState = samplerOverrides->stages[i].stateOverrides[iter->second.slot];
-				else
+				{
+					UINT32 overrideIndex = samplerOverrides->passes[passIdx].stages[i].stateOverrides[iter->second.slot];
+					if(overrideIndex != (UINT32)-1)
+						samplerState = samplerOverrides->overrides[overrideIndex].state;
+				}
+				
+				if(samplerState == nullptr)
 					samplerState = params->getSamplerState(iter->second.slot);
 
 				if (samplerState == nullptr)
-					rapi.setSamplerState(stage.type, iter->second.slot, SamplerStateCore::getDefault());
+					rapi.setSamplerState(stages[i], iter->second.slot, SamplerStateCore::getDefault());
 				else
-					rapi.setSamplerState(stage.type, iter->second.slot, samplerState);
+					rapi.setSamplerState(stages[i], iter->second.slot, samplerState);
 			}
 
 			for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
 			{
 				SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
-				rapi.setTexture(stage.type, iter->second.slot, texture);
+				rapi.setTexture(stages[i], iter->second.slot, texture);
 			}
 
 			for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
@@ -880,9 +908,9 @@ namespace BansheeEngine
 				const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
 
 				if (texture == nullptr)
-					rapi.setLoadStoreTexture(stage.type, iter->second.slot, false, nullptr, surface);
+					rapi.setLoadStoreTexture(stages[i], iter->second.slot, false, nullptr, surface);
 				else
-					rapi.setLoadStoreTexture(stage.type, iter->second.slot, true, texture, surface);
+					rapi.setLoadStoreTexture(stages[i], iter->second.slot, true, texture, surface);
 			}
 
 			for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
@@ -892,7 +920,7 @@ namespace BansheeEngine
 				bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
 					iter->second.type != GPOT_STRUCTURED_BUFFER;
 
-				rapi.setBuffer(stage.type, iter->second.slot, buffer, isLoadStore);
+				rapi.setBuffer(stages[i], iter->second.slot, buffer, isLoadStore);
 			}
 
 			for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
@@ -900,7 +928,7 @@ namespace BansheeEngine
 				SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
 				blockBuffer->flushToGPU();
 
-				rapi.setParamBuffer(stage.type, iter->second.slot, blockBuffer, paramDesc);
+				rapi.setParamBuffer(stages[i], iter->second.slot, blockBuffer, paramDesc);
 			}
 		}
 	}

@@ -411,7 +411,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Adds an ANimation component to the currently selected scene object.
+        /// Adds an Animation component to the currently selected scene object.
         /// </summary>
         [MenuItem("Components/Animation", 7029)]
         private static void AddAnimation()
@@ -422,6 +422,22 @@ namespace BansheeEditor
 
             UndoRedo.RecordSO(so, false, "Added an Animation component");
             so.AddComponent<Animation>();
+            EditorApplication.SetSceneDirty();
+        }
+
+
+        /// <summary>
+        /// Adds a Bone component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Bone", 7028)]
+        private static void AddBone()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+                return;
+
+            UndoRedo.RecordSO(so, false, "Added an Bone component");
+            so.AddComponent<Bone>();
             EditorApplication.SetSceneDirty();
         }
 

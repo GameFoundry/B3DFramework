@@ -1,6 +1,6 @@
 #include "$EDITOR$/LineGizmo.bslinc"
 
-Technique =
+Technique : inherits("LineGizmo") =
 {
 	Language = "HLSL11";
 	
@@ -21,7 +21,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("LineGizmo") =
 {
 	Language = "HLSL9";
 	
@@ -42,7 +42,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("LineGizmo") =
 {
 	Language = "GLSL";
 	

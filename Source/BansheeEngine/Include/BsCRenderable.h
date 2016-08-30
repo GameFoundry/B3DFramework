@@ -22,7 +22,7 @@ namespace BansheeEngine
 	{
 	public:
 		/** @copydoc Renderable::setMesh */
-		void setMesh(HMesh mesh) { mInternal->setMesh(mesh); }
+		void setMesh(HMesh mesh);
 
 		/** @copydoc Renderable::setMaterial */
 		void setMaterial(UINT32 idx, HMaterial material) { mInternal->setMaterial(idx, material); }
@@ -55,13 +55,17 @@ namespace BansheeEngine
 		/** Returns the internal renderable that is used for majority of operations by this component. */
 		SPtr<Renderable> _getRenderable() const { return mInternal; }
 
+		/** Registers an Animation component that will be used for animating the renderable's mesh. */
+		void _registerAnimation(const HAnimation& animation);
+
+		/** Removes the Animation component, making the renderable rendered as a static object. */
+		void _unregisterAnimation();
+
 		/** @} */
 
 	private:
-		/**	Updates the world transform if the SceneObject transform changed. */
-		void updateTransform() const;
-
 		mutable SPtr<Renderable> mInternal;
+		HAnimation mAnimation;
 
 		/************************************************************************/
 		/* 							COMPONENT OVERRIDES                    		*/

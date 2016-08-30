@@ -104,6 +104,9 @@ namespace BansheeEditor
             rootElement.childLayout = scrollArea.Layout;
             rootElement.indentLayout = null;
 
+            GUILabel header = new GUILabel(new LocEdString("Select a property"), EditorStyles.Header);
+            scrollArea.Layout.AddElement(header);
+
             scrollArea.Layout.AddSpace(5);
             AddSceneObjectRows(rootElement);
             scrollArea.Layout.AddSpace(5);
@@ -224,6 +227,7 @@ namespace BansheeEditor
 
             elementLayout.AddFlexibleSpace();
             elementLayout.AddElement(selectBtn);
+            elementLayout.AddSpace(5);
 
             element.path = path;
 

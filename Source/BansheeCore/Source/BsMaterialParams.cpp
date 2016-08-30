@@ -118,14 +118,44 @@ namespace BansheeEngine
 		mAlloc.clear();
 	}
 
-	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamData(const String& name, ParamType type, GpuParamDataType dataType,
-		UINT32 arrayIdx, const ParamData** output) const
+	UINT32 MaterialParamsBase::getParamIndex(const String& name) const
+	{
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
+			return (UINT32)-1;
+
+		return iterFind->second;
+	}
+
+	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamIndex(const String& name, ParamType type,
+		GpuParamDataType dataType, UINT32 arrayIdx, UINT32& output) const
 	{
 		auto iterFind = mParamLookup.find(name);
 		if (iterFind == mParamLookup.end())
 			return GetParamResult::NotFound;
 
-		const ParamData& param = mParams[iterFind->second];
+		UINT32 index = iterFind->second;
+		const ParamData& param = mParams[index];
+		
+		if (param.type != type || (type == ParamType::Data && param.dataType != dataType))
+			return GetParamResult::InvalidType;
+
+		if (arrayIdx >= param.arraySize)
+			return GetParamResult::IndexOutOfBounds;
+
+		output = index;
+		return GetParamResult::Success;
+	}
+
+	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamData(const String& name, ParamType type, 
+		GpuParamDataType dataType, UINT32 arrayIdx, const ParamData** output) const
+	{
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
+			return GetParamResult::NotFound;
+
+		UINT32 index = iterFind->second;
+		const ParamData& param = mParams[index];
 		*output = &param;
 
 		if (param.type != type || (type == ParamType::Data && param.dataType != dataType))
@@ -153,6 +183,14 @@ namespace BansheeEngine
 		default:
 			break;
 		}
+	}
+
+	void MaterialParamsBase::clearDirtyFlags(UINT32 techniqueIdx)
+	{
+		UINT32 mask = ~(1 << techniqueIdx);
+
+		for (auto& entry : mParams)
+			entry.dirtyFlags &= mask;
 	}
 
 	RTTITypeBase* MaterialParamStructData::getRTTIStatic()

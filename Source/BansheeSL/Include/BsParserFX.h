@@ -41,7 +41,7 @@ extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
 /* Line 2579 of glr.c  */
-#line 9 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsParserFX.y"
+#line 9 "F:/Backup marco 28-07-15/Programmazione/BansheeEngine/Source/BansheeSL/BsParserFX.y"
 
 #include "BsMMAlloc.h"
 #include "BsASTFX.h"
@@ -164,65 +164,68 @@ typedef struct YYLTYPE {
      TOKEN_ALIAS = 314,
      TOKEN_SHARED = 315,
      TOKEN_USAGE = 316,
-     TOKEN_SEPARABLE = 317,
-     TOKEN_SORT = 318,
-     TOKEN_PRIORITY = 319,
-     TOKEN_TRANSPARENT = 320,
-     TOKEN_PARAMETERS = 321,
-     TOKEN_BLOCKS = 322,
-     TOKEN_TECHNIQUE = 323,
-     TOKEN_RENDERER = 324,
-     TOKEN_LANGUAGE = 325,
-     TOKEN_PASS = 326,
-     TOKEN_VERTEX = 327,
-     TOKEN_FRAGMENT = 328,
-     TOKEN_GEOMETRY = 329,
-     TOKEN_HULL = 330,
-     TOKEN_DOMAIN = 331,
-     TOKEN_COMPUTE = 332,
-     TOKEN_COMMON = 333,
-     TOKEN_STENCILREF = 334,
-     TOKEN_FILLMODE = 335,
-     TOKEN_CULLMODE = 336,
-     TOKEN_DEPTHBIAS = 337,
-     TOKEN_SDEPTHBIAS = 338,
-     TOKEN_DEPTHCLIP = 339,
-     TOKEN_SCISSOR = 340,
-     TOKEN_MULTISAMPLE = 341,
-     TOKEN_AALINE = 342,
-     TOKEN_DEPTHREAD = 343,
-     TOKEN_DEPTHWRITE = 344,
-     TOKEN_COMPAREFUNC = 345,
-     TOKEN_STENCIL = 346,
-     TOKEN_STENCILREADMASK = 347,
-     TOKEN_STENCILWRITEMASK = 348,
-     TOKEN_STENCILOPFRONT = 349,
-     TOKEN_STENCILOPBACK = 350,
-     TOKEN_FAIL = 351,
-     TOKEN_ZFAIL = 352,
-     TOKEN_ALPHATOCOVERAGE = 353,
-     TOKEN_INDEPENDANTBLEND = 354,
-     TOKEN_TARGET = 355,
-     TOKEN_INDEX = 356,
-     TOKEN_BLEND = 357,
-     TOKEN_COLOR = 358,
-     TOKEN_ALPHA = 359,
-     TOKEN_WRITEMASK = 360,
-     TOKEN_SOURCE = 361,
-     TOKEN_DEST = 362,
-     TOKEN_OP = 363,
-     TOKEN_ADDRMODE = 364,
-     TOKEN_MINFILTER = 365,
-     TOKEN_MAGFILTER = 366,
-     TOKEN_MIPFILTER = 367,
-     TOKEN_MAXANISO = 368,
-     TOKEN_MIPBIAS = 369,
-     TOKEN_MIPMIN = 370,
-     TOKEN_MIPMAX = 371,
-     TOKEN_BORDERCOLOR = 372,
-     TOKEN_U = 373,
-     TOKEN_V = 374,
-     TOKEN_W = 375
+     TOKEN_BASE = 317,
+     TOKEN_INHERITS = 318,
+     TOKEN_SEPARABLE = 319,
+     TOKEN_SORT = 320,
+     TOKEN_PRIORITY = 321,
+     TOKEN_TRANSPARENT = 322,
+     TOKEN_PARAMETERS = 323,
+     TOKEN_BLOCKS = 324,
+     TOKEN_TECHNIQUE = 325,
+     TOKEN_RENDERER = 326,
+     TOKEN_LANGUAGE = 327,
+     TOKEN_PASS = 328,
+     TOKEN_TAGS = 329,
+     TOKEN_VERTEX = 330,
+     TOKEN_FRAGMENT = 331,
+     TOKEN_GEOMETRY = 332,
+     TOKEN_HULL = 333,
+     TOKEN_DOMAIN = 334,
+     TOKEN_COMPUTE = 335,
+     TOKEN_COMMON = 336,
+     TOKEN_STENCILREF = 337,
+     TOKEN_FILLMODE = 338,
+     TOKEN_CULLMODE = 339,
+     TOKEN_DEPTHBIAS = 340,
+     TOKEN_SDEPTHBIAS = 341,
+     TOKEN_DEPTHCLIP = 342,
+     TOKEN_SCISSOR = 343,
+     TOKEN_MULTISAMPLE = 344,
+     TOKEN_AALINE = 345,
+     TOKEN_DEPTHREAD = 346,
+     TOKEN_DEPTHWRITE = 347,
+     TOKEN_COMPAREFUNC = 348,
+     TOKEN_STENCIL = 349,
+     TOKEN_STENCILREADMASK = 350,
+     TOKEN_STENCILWRITEMASK = 351,
+     TOKEN_STENCILOPFRONT = 352,
+     TOKEN_STENCILOPBACK = 353,
+     TOKEN_FAIL = 354,
+     TOKEN_ZFAIL = 355,
+     TOKEN_ALPHATOCOVERAGE = 356,
+     TOKEN_INDEPENDANTBLEND = 357,
+     TOKEN_TARGET = 358,
+     TOKEN_INDEX = 359,
+     TOKEN_BLEND = 360,
+     TOKEN_COLOR = 361,
+     TOKEN_ALPHA = 362,
+     TOKEN_WRITEMASK = 363,
+     TOKEN_SOURCE = 364,
+     TOKEN_DEST = 365,
+     TOKEN_OP = 366,
+     TOKEN_ADDRMODE = 367,
+     TOKEN_MINFILTER = 368,
+     TOKEN_MAGFILTER = 369,
+     TOKEN_MIPFILTER = 370,
+     TOKEN_MAXANISO = 371,
+     TOKEN_MIPBIAS = 372,
+     TOKEN_MIPMIN = 373,
+     TOKEN_MIPMAX = 374,
+     TOKEN_BORDERCOLOR = 375,
+     TOKEN_U = 376,
+     TOKEN_V = 377,
+     TOKEN_W = 378
    };
 #endif
 
@@ -230,7 +233,7 @@ typedef struct YYLTYPE {
 typedef union YYSTYPE
 {
 /* Line 2579 of glr.c  */
-#line 73 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsParserFX.y"
+#line 73 "F:/Backup marco 28-07-15/Programmazione/BansheeEngine/Source/BansheeSL/BsParserFX.y"
 
 	int intValue;
 	float floatValue;
@@ -242,7 +245,7 @@ typedef union YYSTYPE
 
 
 /* Line 2579 of glr.c  */
-#line 246 "BsParserFX.h"
+#line 249 "BsParserFX.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

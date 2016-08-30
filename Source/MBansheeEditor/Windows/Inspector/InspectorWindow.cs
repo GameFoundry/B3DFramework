@@ -140,7 +140,7 @@ namespace BansheeEditor
 
             GUIPanel titleBgPanel = titlePanel.AddPanel(1);
 
-            GUITexture titleBg = new GUITexture(null, EditorStyles.InspectorTitleBg);
+            GUITexture titleBg = new GUITexture(null, EditorStylesInternal.InspectorTitleBg);
             titleBgPanel.AddElement(titleBg);
 
             inspectorLayout.AddSpace(COMPONENT_SPACING);
@@ -344,7 +344,7 @@ namespace BansheeEditor
 
             sceneObjectLayout.AddFlexibleSpace();
 
-            GUITexture titleBg = new GUITexture(null, EditorStyles.InspectorTitleBg);
+            GUITexture titleBg = new GUITexture(null, EditorStylesInternal.InspectorTitleBg);
             sceneObjectBgPanel.AddElement(titleBg);
         }
 

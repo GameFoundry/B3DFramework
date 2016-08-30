@@ -16,26 +16,17 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT TechniqueRTTI : public RTTIType<Technique, IReflectable, TechniqueRTTI>
 	{
 	private:
-		StringID& getRenderAPI(Technique* obj) { return obj->mRenderAPI; }
-		void setRenderAPI(Technique* obj, StringID& val) { obj->mRenderAPI = val; }
-
-		StringID& getRenderer(Technique* obj) { return obj->mRenderer; }
-		void setRenderer(Technique* obj, StringID& val) { obj->mRenderer = val; }
-
-		SPtr<Pass> getPass(Technique* obj, UINT32 idx) { return obj->mPasses[idx]; }
-		void setPass(Technique* obj, UINT32 idx, SPtr<Pass> val) { obj->mPasses[idx] = val; }
-
-		UINT32 getPassArraySize(Technique* obj) { return (UINT32)obj->mPasses.size(); }
-		void setPassArraySize(Technique* obj, UINT32 size) { obj->mPasses.resize(size); }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mRenderAPI, 0)
+			BS_RTTI_MEMBER_PLAIN(mRenderer, 1)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(mPasses, 2)
+			BS_RTTI_MEMBER_PLAIN_ARRAY(mTags, 3)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		TechniqueRTTI()
-		{
-			addPlainField("mRenderAPI", 0, &TechniqueRTTI::getRenderAPI, &TechniqueRTTI::setRenderAPI);
-			addPlainField("mRenderer", 1, &TechniqueRTTI::getRenderer, &TechniqueRTTI::setRenderer);
-
-			addReflectablePtrArrayField("mPasses", 2, &TechniqueRTTI::getPass, &TechniqueRTTI::getPassArraySize, &TechniqueRTTI::setPass, &TechniqueRTTI::setPassArraySize);
-		}
+			:mInitMembers(this)
+		{ }
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{

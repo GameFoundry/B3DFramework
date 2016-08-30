@@ -34,36 +34,31 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	material		Material containing the pass.
 		 * @param[in]	passIdx			Index of the pass in the material.
-		 * @param[in]	bindParameters	If true, any GPU program parameters will be bound as well. Otherwise the caller
-		 *								is required to bind them manually via setPassParams() or setGpuParams() before
-		 *								using the pass.
+		 * @param[in]	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
 		 *
 		 * @note	Core thread.
 		 */
-		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, bool bindParameters = true);
+		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, UINT32 techniqueIdx = 0);
 
 		/**
 		 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
 		 *
 		 * @param[in]	material		Material containing the pass.
 		 * @param[in]	passIdx			Index of the pass in the material.
-		 * @param[in]	bindParameters	If true, any GPU program parameters will be bound as well. Otherwise the caller
-		 *								is required to bind them manually via setPassParams() or setGpuParams() before
-		 *								using the pass.
 		 *
 		 * @note	Core thread.
 		 */
-		void setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, bool bindParameters = true);
+		void setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
 
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
-		 * @param[in]	material	Material whose pass' parameters to bind.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	params		Object containing the parameters.
+		 * @param[in]	passIdx		Pass for which to set the parameters.
 		 *					
 		 * @note	Core thread.
 		 */
-		void setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPassParams(const SPtr<GpuParamsSetCore>& params, UINT32 passIdx = 0);
 
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the provided GPU program type.

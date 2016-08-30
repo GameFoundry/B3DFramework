@@ -18,7 +18,7 @@ namespace BansheeEditor
         private int height;
 
         private GUIScrollArea scrollArea;
-        private List<string> paths = new List<string>();
+        private List<AnimFieldInfo> fieldInfos = new List<AnimFieldInfo>();
 
         private GUIAnimFieldEntry[] fields;
         private GUIAnimFieldLayouts layouts;
@@ -46,19 +46,24 @@ namespace BansheeEditor
             Rebuild();
         }
 
-        public void SetFields(string[] paths)
+        public void SetFields(AnimFieldInfo[] fields)
         {
-            this.paths.Clear();
-            this.paths.AddRange(paths);
+            this.fieldInfos.Clear();
+            this.fieldInfos.AddRange(fields);
 
             Rebuild();
         }
 
-        public void AddField(string path)
+        public void AddField(AnimFieldInfo field)
         {
-            if (!paths.Contains(path))
+            bool exists = fieldInfos.Exists(x =>
             {
-                paths.Add(path);
+                return x.path == field.path;
+            });
+
+            if (!exists)
+            {
+                fieldInfos.Add(field);
                 Rebuild();
             }
         }
@@ -115,8 +120,11 @@ namespace BansheeEditor
             scrollArea.Layout.Clear();
             fields = null;
 
-            if (paths == null || root == null)
+            if (fieldInfos == null || root == null)
                 return;
+
+            GUILabel header = new GUILabel(new LocEdString("Properties"), EditorStyles.Header);
+            scrollArea.Layout.AddElement(header);
 
             layouts = new GUIAnimFieldLayouts();
             GUIPanel rootPanel = scrollArea.Layout.AddPanel();
@@ -131,7 +139,7 @@ namespace BansheeEditor
             layouts.background = backgroundPanel.AddLayoutY();
 
             GUIButton catchAll = new GUIButton("", EditorStyles.Blank);
-            catchAll.Bounds = new Rect2I(0, 0, width, height);
+            catchAll.Bounds = new Rect2I(0, 0, width, height - header.Bounds.height);
             catchAll.OnClick += () => OnEntrySelected(null);
 
             underlayPanel.AddElement(catchAll);
@@ -139,47 +147,80 @@ namespace BansheeEditor
             layouts.main.AddSpace(5);
             layouts.underlay.AddSpace(5);
             layouts.overlay.AddSpace(5);
-            layouts.background.AddSpace(5);
+            layouts.background.AddSpace(3); // Minor hack: Background starts heigher to get it to center better
 
-            fields = new GUIAnimFieldEntry[paths.Count];
-            for (int i = 0; i < paths.Count; i++)
+            fields = new GUIAnimFieldEntry[fieldInfos.Count];
+            for (int i = 0; i < fieldInfos.Count; i++)
             {
-                if (string.IsNullOrEmpty(paths[i]))
+                if (string.IsNullOrEmpty(fieldInfos[i].path))
                     continue;
 
-                string pathSuffix;
-                SerializableProperty property = Animation.FindProperty(root, paths[i], out pathSuffix);
-
-                if (property != null)
+                bool entryIsMissing;
+                if (fieldInfos[i].isUserCurve)
                 {
-                    switch (property.Type)
+                    string pathSuffix;
+                    SerializableProperty property = Animation.FindProperty(root, fieldInfos[i].path, out pathSuffix);
+                    entryIsMissing = property == null;
+                }
+                else
+                    entryIsMissing = false;
+
+                if (!entryIsMissing)
+                {
+                    Color[] colors = new Color[fieldInfos[i].curveGroup.curveInfos.Length];
+                    for (int j = 0; j < fieldInfos[i].curveGroup.curveInfos.Length; j++)
+                        colors[j] = fieldInfos[i].curveGroup.curveInfos[j].color;
+
+                    switch (fieldInfos[i].curveGroup.type)
                     {
                         case SerializableProperty.FieldType.Vector2:
-                            fields[i] = new GUIAnimVec2Entry(layouts, paths[i]);
+                            fields[i] = new GUIAnimVec2Entry(layouts, fieldInfos[i].path, colors);
                             break;
                         case SerializableProperty.FieldType.Vector3:
-                            fields[i] = new GUIAnimVec3Entry(layouts, paths[i]);
+                            fields[i] = new GUIAnimVec3Entry(layouts, fieldInfos[i].path, colors);
                             break;
                         case SerializableProperty.FieldType.Vector4:
-                            fields[i] = new GUIAnimVec4Entry(layouts, paths[i]);
+                            fields[i] = new GUIAnimVec4Entry(layouts, fieldInfos[i].path, colors);
                             break;
                         case SerializableProperty.FieldType.Color:
-                            fields[i] = new GUIAnimColorEntry(layouts, paths[i]);
+                            fields[i] = new GUIAnimColorEntry(layouts, fieldInfos[i].path, colors);
                             break;
                         case SerializableProperty.FieldType.Bool:
                         case SerializableProperty.FieldType.Int:
                         case SerializableProperty.FieldType.Float:
-                            fields[i] = new GUIAnimSimpleEntry(layouts, paths[i]);
+                        {
+                            Color color;
+                            if (colors.Length > 0)
+                                color = colors[0];
+                            else
+                                color = Color.White;
+
+                            fields[i] = new GUIAnimSimpleEntry(layouts, fieldInfos[i].path, color);
                             break;
+                        }
                     }
                 }
                 else
                 {
-                    fields[i] = new GUIAnimMissingEntry(layouts, paths[i]);
+                    fields[i] = new GUIAnimMissingEntry(layouts, fieldInfos[i].path);
                 }
 
                 if (fields[i] != null)
                     fields[i].OnEntrySelected += OnEntrySelected;
+            }
+
+            if (fieldInfos.Count == 0)
+            {
+                GUILabel warningLbl = new GUILabel(new LocEdString("No properties. Add a new property to begin animating."));
+
+                GUILayoutY vertLayout = layouts.main.AddLayoutY();
+                vertLayout.AddFlexibleSpace();
+                GUILayoutX horzLayout = vertLayout.AddLayoutX();
+                vertLayout.AddFlexibleSpace();
+
+                horzLayout.AddFlexibleSpace();
+                horzLayout.AddElement(warningLbl);
+                horzLayout.AddFlexibleSpace();
             }
 
             layouts.main.AddSpace(5);
@@ -210,7 +251,7 @@ namespace BansheeEditor
 
     internal abstract class GUIAnimFieldEntry
     {
-        private const int MAX_PATH_LENGTH = 20;
+        private const int MAX_PATH_LENGTH = 30;
         protected const int INDENT_AMOUNT = 10;
 
         protected string path;
@@ -223,14 +264,14 @@ namespace BansheeEditor
 
         public string Path { get { return path; } }
 
-        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path, bool shortName)
+        public GUIAnimFieldEntry(GUIAnimFieldLayouts layouts, string path, bool child, int indentAmount)
         {
             this.path = path;
 
             GUILayoutX toggleLayout = layouts.main.AddLayoutX();
-            toggleLayout.AddSpace(15);
+            toggleLayout.AddSpace(indentAmount);
 
-            selectionBtn = new GUIButton(GetDisplayName(path, shortName), EditorStyles.Label, GUIOption.FlexibleWidth());
+            selectionBtn = new GUIButton(GetDisplayName(path, child), EditorStyles.Label, GUIOption.FlexibleWidth());
             selectionBtn.OnClick += () =>
             {
                 OnEntrySelected?.Invoke(path);
@@ -397,11 +438,18 @@ namespace BansheeEditor
         private GUILayoutX underlayLayout;
         private GUILabel overlaySpacing;
 
-        public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path, bool child = false)
-            : base(layouts, path, child)
+        public GUIAnimSimpleEntry(GUIAnimFieldLayouts layouts, string path, Color color, bool child = false)
+            : base(layouts, path, child, child ? 45 : 30)
         {
             valueDisplay = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();
+            underlayLayout.AddSpace(child ? 30 : 15);
+
+            GUITexture colorSquare = new GUITexture(Builtin.WhiteTexture, 
+                GUIOption.FixedWidth(10), GUIOption.FixedHeight(10));
+            colorSquare.SetTint(color);
+
+            underlayLayout.AddElement(colorSquare);
             underlayLayout.AddFlexibleSpace();
             underlayLayout.AddElement(valueDisplay);
             underlayLayout.AddSpace(50);
@@ -436,14 +484,19 @@ namespace BansheeEditor
 
         protected GUIAnimSimpleEntry[] children;
 
-        public GUIAnimComplexEntry(GUIAnimFieldLayouts layouts, string path, string[] childEntries)
-            : base(layouts, path, false)
+        public GUIAnimComplexEntry(GUIAnimFieldLayouts layouts, string path, string[] childEntries, Color[] colors)
+            : base(layouts, path, false, 20)
         {
             foldout = new GUIToggle("", EditorStyles.Expand);
             foldout.OnToggled += Toggle;
+
+            GUILabel spacer = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
+
             foldoutLayout = layouts.overlay.AddLayoutX();
 
+            foldoutLayout.AddSpace(5);
             foldoutLayout.AddElement(foldout);
+            foldoutLayout.AddElement(spacer);
             foldoutLayout.AddFlexibleSpace();
 
             underlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
@@ -452,7 +505,13 @@ namespace BansheeEditor
             children = new GUIAnimSimpleEntry[childEntries.Length];
             for (int i = 0; i < childEntries.Length; i++)
             {
-                children[i] = new GUIAnimSimpleEntry(layouts, path + childEntries[i], true);
+                Color color;
+                if (i < colors.Length)
+                    color = colors[i];
+                else
+                    color = Color.White;
+
+                children[i] = new GUIAnimSimpleEntry(layouts, path + childEntries[i], color, true);
                 children[i].OnEntrySelected += x => { OnEntrySelected?.Invoke(x); };
             }
 
@@ -473,8 +532,8 @@ namespace BansheeEditor
 
     internal class GUIAnimVec2Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec2Entry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path,  new[] { ".x", ".y" })
+        public GUIAnimVec2Entry(GUIAnimFieldLayouts layouts, string path, Color[] colors)
+            : base(layouts, path,  new[] { ".x", ".y" }, colors)
         { }
 
         public override void SetValue(object value)
@@ -490,8 +549,8 @@ namespace BansheeEditor
 
     internal class GUIAnimVec3Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec3Entry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path, new[] { ".x", ".y", ".z" })
+        public GUIAnimVec3Entry(GUIAnimFieldLayouts layouts, string path, Color[] colors)
+            : base(layouts, path, new[] { ".x", ".y", ".z" }, colors)
         { }
 
         public override void SetValue(object value)
@@ -508,8 +567,8 @@ namespace BansheeEditor
 
     internal class GUIAnimVec4Entry : GUIAnimComplexEntry
     {
-        public GUIAnimVec4Entry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path,  new[] { ".x", ".y", ".z", ".w" })
+        public GUIAnimVec4Entry(GUIAnimFieldLayouts layouts, string path, Color[] colors)
+            : base(layouts, path,  new[] { ".x", ".y", ".z", ".w" }, colors)
         { }
 
         public override void SetValue(object value)
@@ -527,8 +586,8 @@ namespace BansheeEditor
 
     internal class GUIAnimColorEntry : GUIAnimComplexEntry
     {
-        public GUIAnimColorEntry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path, new[] { ".r", ".g", ".b", ".a" })
+        public GUIAnimColorEntry(GUIAnimFieldLayouts layouts, string path, Color[] colors)
+            : base(layouts, path, new[] { ".r", ".g", ".b", ".a" }, colors)
         { }
 
         public override void SetValue(object value)
@@ -551,7 +610,7 @@ namespace BansheeEditor
         private GUILabel overlaySpacing;
 
         public GUIAnimMissingEntry(GUIAnimFieldLayouts layouts, string path)
-            : base(layouts, path, false)
+            : base(layouts, path, false, 15)
         {
             missingLabel = new GUILabel("Missing property!", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();
@@ -561,8 +620,6 @@ namespace BansheeEditor
 
             overlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             layouts.overlay.AddElement(overlaySpacing);
-
-            // TODO - Alternating backgrounds
         }
 
         public override void Toggle(bool on)
@@ -572,6 +629,20 @@ namespace BansheeEditor
 
             base.Toggle(on);
         }
+    }
+
+    internal struct AnimFieldInfo
+    {
+        public AnimFieldInfo(string path, FieldAnimCurves curveGroup, bool isUserCurve)
+        {
+            this.path = path;
+            this.curveGroup = curveGroup;
+            this.isUserCurve = isUserCurve;
+        }
+
+        public string path;
+        public FieldAnimCurves curveGroup;
+        public bool isUserCurve;
     }
 
     /** @} */

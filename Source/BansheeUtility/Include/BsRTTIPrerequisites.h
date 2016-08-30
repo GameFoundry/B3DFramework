@@ -189,7 +189,7 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 elementSize = RTTIPlainType<T>::getDynamicSize(*iter);
+				UINT32 elementSize = rttiGetElemSize(*iter);
 				RTTIPlainType<T>::toMemory(*iter, memory);
 
 				memory += elementSize;
@@ -227,8 +227,8 @@ namespace BansheeEngine
 		{ 
 			UINT64 dataSize = sizeof(UINT32) * 2;
 
-			for(auto iter = data.begin(); iter != data.end(); ++iter)
-				dataSize += RTTIPlainType<T>::getDynamicSize(*iter);		
+			for (auto iter = data.begin(); iter != data.end(); ++iter)
+				dataSize += rttiGetElemSize(*iter);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 
@@ -259,7 +259,7 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 elementSize = RTTIPlainType<T>::getDynamicSize(*iter);
+				UINT32 elementSize = rttiGetElemSize(*iter);
 				RTTIPlainType<T>::toMemory(*iter, memory);
 
 				memory += elementSize;
@@ -298,7 +298,7 @@ namespace BansheeEngine
 			UINT64 dataSize = sizeof(UINT32) * 2;
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
-				dataSize += RTTIPlainType<T>::getDynamicSize(*iter);		
+				dataSize += rttiGetElemSize(*iter);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 
@@ -329,13 +329,13 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(iter->first);
+				UINT32 keySize = rttiGetElemSize(iter->first);
 				RTTIPlainType<Key>::toMemory(iter->first, memory);
 
 				memory += keySize;
 				size += keySize;
 
-				UINT32 valueSize = RTTIPlainType<Value>::getDynamicSize(iter->second);
+				UINT32 valueSize = rttiGetElemSize(iter->second);
 				RTTIPlainType<Value>::toMemory(iter->second, memory);
 
 				memory += valueSize;
@@ -379,8 +379,8 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				dataSize += RTTIPlainType<Key>::getDynamicSize(iter->first);		
-				dataSize += RTTIPlainType<Value>::getDynamicSize(iter->second);
+				dataSize += rttiGetElemSize(iter->first);
+				dataSize += rttiGetElemSize(iter->second);
 			}
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
@@ -415,13 +415,13 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(iter->first);
+				UINT32 keySize = rttiGetElemSize(iter->first);
 				RTTIPlainType<Key>::toMemory(iter->first, memory);
 
 				memory += keySize;
 				size += keySize;
 
-				UINT32 valueSize = RTTIPlainType<Value>::getDynamicSize(iter->second);
+				UINT32 valueSize = rttiGetElemSize(iter->second);
 				RTTIPlainType<Value>::toMemory(iter->second, memory);
 
 				memory += valueSize;
@@ -501,7 +501,7 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(*iter);
+				UINT32 keySize = rttiGetElemSize(*iter);
 				RTTIPlainType<Key>::toMemory(*iter, memory);
 
 				memory += keySize;
@@ -541,7 +541,7 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				dataSize += RTTIPlainType<Key>::getDynamicSize(*iter);
+				dataSize += rttiGetElemSize(*iter);
 			}
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
@@ -566,13 +566,13 @@ namespace BansheeEngine
 			char* memoryStart = memory;
 			memory += sizeof(UINT32);
 
-			UINT32 firstSize = RTTIPlainType<A>::getDynamicSize(data.first);
+			UINT32 firstSize = rttiGetElemSize(data.first);
 			RTTIPlainType<A>::toMemory(data.first, memory);
 
 			memory += firstSize;
 			size += firstSize;
 
-			UINT32 secondSize = RTTIPlainType<B>::getDynamicSize(data.second);
+			UINT32 secondSize = rttiGetElemSize(data.second);
 			RTTIPlainType<B>::toMemory(data.second, memory);
 
 			memory += secondSize;
@@ -601,8 +601,8 @@ namespace BansheeEngine
 		static UINT32 getDynamicSize(const std::pair<A, B>& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32);
-			dataSize += RTTIPlainType<A>::getDynamicSize(data.first);		
-			dataSize += RTTIPlainType<B>::getDynamicSize(data.second);
+			dataSize += rttiGetElemSize(data.first);
+			dataSize += rttiGetElemSize(data.second);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 

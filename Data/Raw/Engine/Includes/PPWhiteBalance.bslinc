@@ -1,4 +1,4 @@
-Technique =
+Technique : base("PPWhiteBalance") =
 {
 	Language = "HLSL11";
 	
@@ -208,4 +208,9 @@ Technique =
 			}
 		};
 	};
+};
+
+Technique : base("PPWhiteBalance") =
+{
+	Language = "GLSL";
 };

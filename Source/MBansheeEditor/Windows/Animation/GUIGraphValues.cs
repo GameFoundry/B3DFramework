@@ -79,23 +79,19 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Draws text displaying the time at the provided position.
+        /// Draws text displaying the value at the provided position.
         /// </summary>
         /// <param name="yPos">Position to draw the text at.</param>
-        /// <param name="seconds">Time to display, in seconds.</param>
-        /// <param name="minutes">If true the time will be displayed in minutes, otherwise in seconds.</param>
+        /// <param name="value">Value to display.</param>
         /// <param name="above">If true the text will be displayed above the provided position, otherwise below.</param>
-        private void DrawTime(int yPos, float seconds, bool minutes, bool above)
+        private void DrawValue(int yPos, float value, bool above)
         {
-            TimeSpan timeSpan = TimeSpan.FromSeconds(seconds);
+            int exponent = MathEx.FloorToInt(MathEx.Log10(MathEx.Abs(value)));
+            int maxDecimalPoints = MathEx.Max(0, 1 - exponent);
 
-            string timeString;
-            if (minutes)
-                timeString = timeSpan.TotalMinutes.ToString("#0") + ":" + timeSpan.Seconds.ToString("D2");
-            else
-                timeString = timeSpan.TotalSeconds.ToString("#0.00");
+            string valueString = value.ToString("F" + maxDecimalPoints);
 
-            Vector2I textBounds = GUIUtility.CalculateTextBounds(timeString, EditorBuiltin.DefaultFont,
+            Vector2I textBounds = GUIUtility.CalculateTextBounds(valueString, EditorBuiltin.DefaultFont,
                 EditorStyles.DefaultFontSize);
 
             Vector2I textPosition = new Vector2I();
@@ -108,7 +104,7 @@ namespace BansheeEditor
                 const int PADDING = 3; // So the text doesn't touch the tick
                 textPosition.y = yPos + PADDING;
             }
-            canvas.DrawText(timeString, textPosition, EditorBuiltin.DefaultFont, COLOR_TRANSPARENT_LIGHT_GRAY,
+            canvas.DrawText(valueString, textPosition, EditorBuiltin.DefaultFont, COLOR_TRANSPARENT_LIGHT_GRAY,
                 EditorStyles.DefaultFontSize);
         }
 
@@ -138,7 +134,6 @@ namespace BansheeEditor
                 if (ticks.Length > 0)
                 {
                     float valuePerTick = (rangeEnd - rangeStart)/ticks.Length;
-                    bool displayAsMinutes = TimeSpan.FromSeconds(valuePerTick).Minutes > 0;
 
                     for (int j = 0; j < ticks.Length; j++)
                     {
@@ -155,7 +150,7 @@ namespace BansheeEditor
 
                         // Draw text for the highest level ticks
                         if (i == 0)
-                            DrawTime(yPos, ticks[j], displayAsMinutes, ticks[j] <= 0.0f);
+                            DrawValue(yPos, ticks[j], ticks[j] <= 0.0f);
                     }
                 }
             }

@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using BansheeEngine;
 
@@ -17,9 +18,9 @@ namespace BansheeEditor
     [DefaultSize(900, 500)]
     internal class AnimationWindow : EditorWindow
     {
-        private const int FIELD_DISPLAY_WIDTH = 200;
+        private const int FIELD_DISPLAY_WIDTH = 300;
         private const int DRAG_START_DISTANCE = 3;
-        private const float DRAG_SCALE = 1.0f;
+        private const float DRAG_SCALE = 3.0f;
         private const float ZOOM_SCALE = 0.1f/120.0f; // One scroll step is usually 120 units, we want 1/10 of that
 
         private SceneObject selectedSO;
@@ -118,6 +119,8 @@ namespace BansheeEditor
         private void RebuildGUI()
         {
             GUI.Clear();
+            guiCurveEditor = null;
+            guiFieldDisplay = null;
 
             if (selectedSO == null)
             {
@@ -233,32 +236,31 @@ namespace BansheeEditor
                     {
                         if (type == DialogBox.ResultType.Yes)
                         {
-                            string[] clipSavePaths;
-                            if (BrowseDialog.OpenFile(ProjectLibrary.ResourceFolder, "", false, out clipSavePaths))
+                            string clipSavePath;
+                            if (BrowseDialog.SaveFile(ProjectLibrary.ResourceFolder, "*.asset", out clipSavePath))
                             {
-                                if (clipSavePaths.Length > 0)
-                                {
-                                    AnimationClip newClip = new AnimationClip();
+                                clipSavePath = Path.ChangeExtension(clipSavePath, ".asset");
 
-                                    ProjectLibrary.Create(newClip, clipSavePaths[0]);
-                                    LoadAnimClip(newClip);
+                                AnimationClip newClip = new AnimationClip();
 
-                                    Animation animation = selectedSO.GetComponent<Animation>();
-                                    if (animation == null)
-                                        animation = selectedSO.AddComponent<Animation>();
+                                ProjectLibrary.Create(newClip, clipSavePath);
+                                LoadAnimClip(newClip);
 
-                                    animation.DefaultClip = newClip;
-                                    EditorApplication.SetSceneDirty();
+                                Animation animation = selectedSO.GetComponent<Animation>();
+                                if (animation == null)
+                                    animation = selectedSO.AddComponent<Animation>();
 
-                                    openPropertyWindow();
-                                }
+                                animation.DefaultClip = newClip;
+                                EditorApplication.SetSceneDirty();
+
+                                openPropertyWindow();
                             }
                         }
                     });
                 }
                 else
                 {
-                    if (IsClipImported(clipInfo.clip))
+                    if (clipInfo.isImported)
                     {
                         LocEdString title = new LocEdString("Warning");
                         LocEdString message =
@@ -277,7 +279,7 @@ namespace BansheeEditor
                 if (clipInfo.clip == null)
                     return;
 
-                if (IsClipImported(clipInfo.clip))
+                if (clipInfo.isImported)
                 {
                     LocEdString title = new LocEdString("Warning");
                     LocEdString message =
@@ -301,7 +303,10 @@ namespace BansheeEditor
                 }
             };
 
-            GUILayout mainLayout = GUI.AddLayoutY();
+            GUIPanel mainPanel = GUI.AddPanel();
+            GUIPanel backgroundPanel = GUI.AddPanel(1);
+
+            GUILayout mainLayout = mainPanel.AddLayoutY();
 
             buttonLayout = mainLayout.AddLayoutX();
             buttonLayout.AddSpace(5);
@@ -320,6 +325,10 @@ namespace BansheeEditor
 
             buttonLayoutHeight = playButton.Bounds.height;
 
+            GUITexture buttonBackground = new GUITexture(null, EditorStyles.HeaderBackground);
+            buttonBackground.Bounds = new Rect2I(0, 0, Width, buttonLayoutHeight);
+            backgroundPanel.AddElement(buttonBackground);
+
             GUILayout contentLayout = mainLayout.AddLayoutX();
             GUILayout fieldDisplayLayout = contentLayout.AddLayoutY(GUIOption.FixedWidth(FIELD_DISPLAY_WIDTH));
 
@@ -336,6 +345,9 @@ namespace BansheeEditor
 
             vertScrollBar = new GUIResizeableScrollBarV();
             vertScrollBar.OnScrollOrResize += OnVertScrollOrResize;
+
+            GUITexture separator = new GUITexture(null, EditorStyles.Separator, GUIOption.FixedWidth(3));
+            contentLayout.AddElement(separator);
 
             GUILayout curveLayout = contentLayout.AddLayoutY();
             GUILayout curveLayoutHorz = curveLayout.AddLayoutX();
@@ -362,7 +374,6 @@ namespace BansheeEditor
             horzScrollBar.SetWidth(curveEditorSize.x);
             vertScrollBar.SetHeight(curveEditorSize.y);
 
-            SetCurrentFrame(currentFrameIdx);
             UpdateScrollBarSize();
         }
 
@@ -394,13 +405,16 @@ namespace BansheeEditor
             // Handle middle mouse dragging
             if (isDragInProgress)
             {
-                float dragX = Input.GetAxisValue(InputAxis.MouseX) * DRAG_SCALE;
-                float dragY = Input.GetAxisValue(InputAxis.MouseY) * DRAG_SCALE;
+                float lengthPerPixel = guiCurveEditor.Range.x / guiCurveEditor.Width;
+                float heightPerPixel = guiCurveEditor.Range.y / guiCurveEditor.Height;
+
+                float dragX = Input.GetAxisValue(InputAxis.MouseX) * DRAG_SCALE * lengthPerPixel;
+                float dragY = Input.GetAxisValue(InputAxis.MouseY) * DRAG_SCALE * heightPerPixel;
 
                 Vector2 offset = guiCurveEditor.Offset;
                 offset.x = Math.Max(0.0f, offset.x + dragX);
                 offset.y -= dragY;
-                
+
                 guiCurveEditor.Offset = offset;
                 UpdateScrollBarSize();
                 UpdateScrollBarPosition();
@@ -540,13 +554,12 @@ namespace BansheeEditor
         {
             EditorPersistentData persistentData = EditorApplication.PersistentData;
 
-            bool clipIsImported = IsClipImported(clip);
             if (persistentData.dirtyAnimClips.TryGetValue(clip.UUID, out clipInfo))
             {
                 // If an animation clip is imported, we don't care about it's cached curve values as they could have changed
                 // since last modification, so we re-load the clip. But we persist the events as those can only be set
                 // within the editor.
-                if (clipIsImported)
+                if (clipInfo.isImported)
                 {
                     EditorAnimClipInfo newClipInfo = EditorAnimClipInfo.Create(clip);
                     newClipInfo.events = clipInfo.events;
@@ -558,16 +571,13 @@ namespace BansheeEditor
             persistentData.dirtyAnimClips[clip.UUID] = clipInfo;
 
             foreach (var curve in clipInfo.curves)
-                guiFieldDisplay.AddField(curve.Key);
+                guiFieldDisplay.AddField(new AnimFieldInfo(curve.Key, curve.Value, !clipInfo.isImported));
 
             guiCurveEditor.Events = clipInfo.events;
-            guiCurveEditor.DisableCurveEdit = clipIsImported;
-        }
+            guiCurveEditor.DisableCurveEdit = clipInfo.isImported;
 
-        private static bool IsClipImported(AnimationClip clip)
-        {
-            string resourcePath = ProjectLibrary.GetPath(clip);
-            return ProjectLibrary.IsSubresource(resourcePath);
+            SetCurrentFrame(0);
+            FPS = clipInfo.sampleRate;
         }
 
         private void UpdateSelectedSO(bool force)
@@ -594,9 +604,9 @@ namespace BansheeEditor
                 selectedSO = so;
                 selectedFields.Clear();
 
-                RebuildGUI();
-
                 clipInfo = null;
+
+                RebuildGUI();
 
                 // Load existing clip if one exists
                 if (selectedSO != null)
@@ -612,6 +622,9 @@ namespace BansheeEditor
 
                 if(clipInfo == null)
                     clipInfo = new EditorAnimClipInfo();
+
+                if(selectedSO != null)
+                    UpdateDisplayedCurves(true);
             }
         }
 
@@ -640,82 +653,99 @@ namespace BansheeEditor
             List<GUIAnimFieldPathValue> values = new List<GUIAnimFieldPathValue>();
             foreach (var kvp in clipInfo.curves)
             {
-                string suffix;
-                SerializableProperty property = Animation.FindProperty(selectedSO, kvp.Key, out suffix);
-                if (property != null)
+                GUIAnimFieldPathValue fieldValue = new GUIAnimFieldPathValue();
+                fieldValue.path = kvp.Key;
+
+                switch (kvp.Value.type)
                 {
-                    GUIAnimFieldPathValue fieldValue = new GUIAnimFieldPathValue();
-                    fieldValue.path = kvp.Key;
+                    case SerializableProperty.FieldType.Vector2:
+                        {
+                            Vector2 value = new Vector2();
 
-                    switch (kvp.Value.type)
-                    {
-                        case SerializableProperty.FieldType.Vector2:
-                            {
-                                Vector2 value = new Vector2();
+                            for (int i = 0; i < 2; i++)
+                                value[i] = kvp.Value.curveInfos[i].curve.Evaluate(time, false);
 
-                                for (int i = 0; i < 2; i++)
-                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+                            fieldValue.value = value;
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Vector3:
+                        {
+                            Vector3 value = new Vector3();
 
-                                fieldValue.value = value;
-                            }
-                            break;
-                        case SerializableProperty.FieldType.Vector3:
-                            {
-                                Vector3 value = new Vector3();
+                            for (int i = 0; i < 3; i++)
+                                value[i] = kvp.Value.curveInfos[i].curve.Evaluate(time, false);
 
-                                for (int i = 0; i < 3; i++)
-                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+                            fieldValue.value = value;
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Vector4:
+                        {
+                            Vector4 value = new Vector4();
 
-                                fieldValue.value = value;
-                            }
-                            break;
-                        case SerializableProperty.FieldType.Vector4:
-                            {
-                                Vector4 value = new Vector4();
+                            for (int i = 0; i < 4; i++)
+                                value[i] = kvp.Value.curveInfos[i].curve.Evaluate(time, false);
 
-                                for (int i = 0; i < 4; i++)
-                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
+                            fieldValue.value = value;
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Color:
+                        {
+                            Color value = new Color();
 
-                                fieldValue.value = value;
-                            }
-                            break;
-                        case SerializableProperty.FieldType.Color:
-                            {
-                                Color value = new Color();
+                            for (int i = 0; i < 4; i++)
+                                value[i] = kvp.Value.curveInfos[i].curve.Evaluate(time, false);
 
-                                for (int i = 0; i < 4; i++)
-                                    value[i] = kvp.Value.curves[i].Evaluate(time, false);
-
-                                fieldValue.value = value;
-                            }
-                            break;
-                        case SerializableProperty.FieldType.Bool:
-                        case SerializableProperty.FieldType.Int:
-                        case SerializableProperty.FieldType.Float:
-                            fieldValue.value = kvp.Value.curves[0].Evaluate(time, false); ;
-                            break;
-                    }
-
-                    values.Add(fieldValue);
+                            fieldValue.value = value;
+                        }
+                        break;
+                    case SerializableProperty.FieldType.Bool:
+                    case SerializableProperty.FieldType.Int:
+                    case SerializableProperty.FieldType.Float:
+                        fieldValue.value = kvp.Value.curveInfos[0].curve.Evaluate(time, false); ;
+                        break;
                 }
+
+                values.Add(fieldValue);
             }
 
             guiFieldDisplay.SetDisplayValues(values.ToArray());
         }
 
+        private CurveDrawInfo[] GetDisplayedCurves()
+        {
+            List<CurveDrawInfo> curvesToDisplay = new List<CurveDrawInfo>();
+
+            if (selectedFields.Count == 0) // Display all if nothing is selected
+            {
+                if (clipInfo == null)
+                    return curvesToDisplay.ToArray();
+
+                foreach (var curve in clipInfo.curves)
+                {
+                    for (int i = 0; i < curve.Value.curveInfos.Length; i++)
+                        curvesToDisplay.Add(curve.Value.curveInfos[i]);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < selectedFields.Count; i++)
+                {
+                    CurveDrawInfo[] curveInfos;
+                    if (TryGetCurve(selectedFields[i], out curveInfos))
+                        curvesToDisplay.AddRange(curveInfos);
+                }
+            }
+
+            return curvesToDisplay.ToArray();
+        }
+
         private Vector2 GetOptimalRange()
         {
-            List<EdAnimationCurve> displayedCurves = new List<EdAnimationCurve>();
-            for (int i = 0; i < selectedFields.Count; i++)
-            {
-                EdAnimationCurve curve;
-                if (TryGetCurve(selectedFields[i], out curve))
-                    displayedCurves.Add(curve);
-            }
+            CurveDrawInfo[] curvesToDisplay = GetDisplayedCurves();
 
             float xRange;
             float yRange;
-            CalculateRange(displayedCurves, out xRange, out yRange);
+            CalculateRange(curvesToDisplay, out xRange, out yRange);
 
             // Add padding to y range
             yRange *= 1.05f;
@@ -730,27 +760,33 @@ namespace BansheeEditor
             return new Vector2(xRange, yRange);
         }
 
-        private void UpdateDisplayedCurves()
+        private void UpdateCurveColors()
         {
-            List<EdAnimationCurve> curvesToDisplay = new List<EdAnimationCurve>();
-            for (int i = 0; i < selectedFields.Count; i++)
+            int globalCurveIdx = 0;
+            foreach (var curveGroup in clipInfo.curves)
             {
-                EdAnimationCurve curve;
-                if (TryGetCurve(selectedFields[i], out curve))
-                    curvesToDisplay.Add(curve);
+                for (int i = 0; i < curveGroup.Value.curveInfos.Length; i++)
+                    curveGroup.Value.curveInfos[i].color = GUICurveDrawing.GetUniqueColor(globalCurveIdx++);
             }
+        }
 
-            guiCurveEditor.SetCurves(curvesToDisplay.ToArray());
+        private void UpdateDisplayedCurves(bool allowReduce = false)
+        {
+            CurveDrawInfo[] curvesToDisplay = GetDisplayedCurves();
+            guiCurveEditor.SetCurves(curvesToDisplay);
 
             Vector2 newRange = GetOptimalRange();
-
-            // Don't reduce visible range
-            newRange.x = Math.Max(newRange.x, guiCurveEditor.Range.x);
-            newRange.y = Math.Max(newRange.y, guiCurveEditor.Range.y);
+            if (!allowReduce)
+            {
+                // Don't reduce visible range
+                newRange.x = Math.Max(newRange.x, guiCurveEditor.Range.x);
+                newRange.y = Math.Max(newRange.y, guiCurveEditor.Range.y);
+            }
 
             guiCurveEditor.Range = newRange;
             UpdateScrollBarSize();
         }
+
         #endregion 
 
         #region Field display
@@ -758,21 +794,21 @@ namespace BansheeEditor
 
         private void AddNewField(string path, SerializableProperty.FieldType type)
         {
-            guiFieldDisplay.AddField(path);
-
+            bool noSelection = selectedFields.Count == 0;
+            
             switch (type)
             {
                 case SerializableProperty.FieldType.Vector4:
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
-                        fieldCurves.curves = new EdAnimationCurve[4];
+                        fieldCurves.curveInfos = new CurveDrawInfo[4];
 
                         string[] subPaths = { ".x", ".y", ".z", ".w" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            fieldCurves.curves[i] = new EdAnimationCurve();
+                            fieldCurves.curveInfos[i].curve = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
 
@@ -783,13 +819,13 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
-                        fieldCurves.curves = new EdAnimationCurve[3];
+                        fieldCurves.curveInfos = new CurveDrawInfo[3];
 
                         string[] subPaths = { ".x", ".y", ".z" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            fieldCurves.curves[i] = new EdAnimationCurve();
+                            fieldCurves.curveInfos[i].curve = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
 
@@ -800,13 +836,13 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
-                        fieldCurves.curves = new EdAnimationCurve[2];
+                        fieldCurves.curveInfos = new CurveDrawInfo[2];
 
                         string[] subPaths = { ".x", ".y" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            fieldCurves.curves[i] = new EdAnimationCurve();
+                            fieldCurves.curveInfos[i].curve = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
 
@@ -817,13 +853,13 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
-                        fieldCurves.curves = new EdAnimationCurve[4];
+                        fieldCurves.curveInfos = new CurveDrawInfo[4];
 
                         string[] subPaths = { ".r", ".g", ".b", ".a" };
                         for (int i = 0; i < subPaths.Length; i++)
                         {
                             string subFieldPath = path + subPaths[i];
-                            fieldCurves.curves[i] = new EdAnimationCurve();
+                            fieldCurves.curveInfos[i].curve = new EdAnimationCurve();
                             selectedFields.Add(subFieldPath);
                         }
 
@@ -834,9 +870,9 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
-                        fieldCurves.curves = new EdAnimationCurve[1];
+                        fieldCurves.curveInfos = new CurveDrawInfo[1];
 
-                        fieldCurves.curves[0] = new EdAnimationCurve();
+                        fieldCurves.curveInfos[0].curve = new EdAnimationCurve();
                         selectedFields.Add(path);
 
                         clipInfo.curves[path] = fieldCurves;
@@ -844,8 +880,11 @@ namespace BansheeEditor
                     break;
             }
 
+            UpdateCurveColors();
+            UpdateDisplayedFields();
+
             EditorApplication.SetProjectDirty();
-            UpdateDisplayedCurves();
+            UpdateDisplayedCurves(noSelection);
         }
 
         private void SelectField(string path, bool additive)
@@ -853,6 +892,7 @@ namespace BansheeEditor
             if (!additive)
                 selectedFields.Clear();
 
+            bool noSelection = selectedFields.Count == 0;
             if (!string.IsNullOrEmpty(path))
             {
                 selectedFields.RemoveAll(x => { return x == path || IsPathParent(x, path); });
@@ -861,26 +901,29 @@ namespace BansheeEditor
 
             guiFieldDisplay.SetSelection(selectedFields.ToArray());
 
-            UpdateDisplayedCurves();
+            UpdateDisplayedCurves(noSelection);
         }
 
         private void RemoveSelectedFields()
         {
             for (int i = 0; i < selectedFields.Count; i++)
-            {
-                selectedFields.Remove(selectedFields[i]);
                 clipInfo.curves.Remove(GetSubPathParent(selectedFields[i]));
-            }
 
-            List<string> existingFields = new List<string>();
-            foreach (var KVP in clipInfo.curves)
-                existingFields.Add(KVP.Key);
-
-            guiFieldDisplay.SetFields(existingFields.ToArray());
+            UpdateCurveColors();
+            UpdateDisplayedFields();
 
             selectedFields.Clear();
             EditorApplication.SetProjectDirty();
             UpdateDisplayedCurves();
+        }
+
+        private void UpdateDisplayedFields()
+        {
+            List<AnimFieldInfo> existingFields = new List<AnimFieldInfo>();
+            foreach (var KVP in clipInfo.curves)
+                existingFields.Add(new AnimFieldInfo(KVP.Key, KVP.Value, !clipInfo.isImported));
+
+            guiFieldDisplay.SetFields(existingFields.ToArray());
         }
         #endregion
 
@@ -894,14 +937,14 @@ namespace BansheeEditor
             return output;
         }
 
-        private static void CalculateRange(List<EdAnimationCurve> curves, out float xRange, out float yRange)
+        private static void CalculateRange(CurveDrawInfo[] curveInfos, out float xRange, out float yRange)
         {
             xRange = 0.0f;
             yRange = 0.0f;
 
-            foreach (var curve in curves)
+            foreach (var curveInfo in curveInfos)
             {
-                KeyFrame[] keyframes = curve.KeyFrames;
+                KeyFrame[] keyframes = curveInfo.curve.KeyFrames;
 
                 foreach (var key in keyframes)
                 {
@@ -911,7 +954,7 @@ namespace BansheeEditor
             }
         }
 
-        private bool TryGetCurve(string path, out EdAnimationCurve curve)
+        private bool TryGetCurve(string path, out CurveDrawInfo[] curveInfos)
         {
             int index = path.LastIndexOf(".");
             string parentPath;
@@ -933,33 +976,33 @@ namespace BansheeEditor
                 {
                     if (subPathSuffix == ".x" || subPathSuffix == ".r")
                     {
-                        curve = fieldCurves.curves[0];
+                        curveInfos = new [] { fieldCurves.curveInfos[0] };
                         return true;
                     }
                     else if (subPathSuffix == ".y" || subPathSuffix == ".g")
                     {
-                        curve = fieldCurves.curves[1];
+                        curveInfos = new[] { fieldCurves.curveInfos[1] };
                         return true;
                     }
                     else if (subPathSuffix == ".z" || subPathSuffix == ".b")
                     {
-                        curve = fieldCurves.curves[2];
+                        curveInfos = new[] { fieldCurves.curveInfos[2] };
                         return true;
                     }
                     else if (subPathSuffix == ".w" || subPathSuffix == ".a")
                     {
-                        curve = fieldCurves.curves[3];
+                        curveInfos = new[] { fieldCurves.curveInfos[3] };
                         return true;
                     }
                 }
                 else
                 {
-                    curve = fieldCurves.curves[0];
+                    curveInfos = fieldCurves.curveInfos;
                     return true;
                 }
             }
 
-            curve = null;
+            curveInfos = new CurveDrawInfo[0];
             return false;
         }
 

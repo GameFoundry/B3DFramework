@@ -298,6 +298,7 @@ namespace BansheeEngine
 		
 		SPtr<CameraCore> mCamera;
 		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParams;
 		SPtr<MeshCore> mMesh;
 		DockManager::DockLocation mHighlightedDropLoc;
 		bool mShowOverlay;

@@ -10,7 +10,7 @@ Parameters =
 	color		tint;
 };
 
-Technique =
+Technique : base("SpriteImage") =
 {
 	Language = "HLSL11";
 	
@@ -56,7 +56,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("SpriteImage") =
 {
 	Language = "HLSL9";
 	
@@ -101,7 +101,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("SpriteImage") =
 {
 	Language = "GLSL";
 	

@@ -31,7 +31,7 @@ namespace BansheeEngine
 
 	AnimationProxy::AnimationProxy(UINT64 id)
 		: id(id), layers(nullptr), numLayers(0), numSceneObjects(0), sceneObjectInfos(nullptr)
-		, sceneObjectTransforms(nullptr), genericCurveOutputs(nullptr)
+		, sceneObjectTransforms(nullptr), mCullEnabled(true), numGenericCurves(0), genericCurveOutputs(nullptr)
 	{ }
 
 	AnimationProxy::~AnimationProxy()
@@ -517,7 +517,7 @@ namespace BansheeEngine
 	}
 
 	Animation::Animation()
-		: mDefaultWrapMode(AnimWrapMode::Loop), mDefaultSpeed(1.0f), mDirty(AnimDirtyStateFlag::Skeleton)
+		: mDefaultWrapMode(AnimWrapMode::Loop), mDefaultSpeed(1.0f), mCull(true), mDirty(AnimDirtyStateFlag::Skeleton)
 		, mGenericCurveValuesValid(false)
 	{
 		mId = AnimationManager::instance().registerAnimation(this);
@@ -563,6 +563,20 @@ namespace BansheeEngine
 		}
 
 		mDirty |= AnimDirtyStateFlag::Value;
+	}
+
+	void Animation::setBounds(const AABox& bounds)
+	{
+		mBounds = bounds;
+
+		mDirty |= AnimDirtyStateFlag::Culling;
+	}
+
+	void Animation::setCulling(bool cull)
+	{
+		mCull = cull;
+
+		mDirty |= AnimDirtyStateFlag::Culling;
 	}
 
 	void Animation::play(const HAnimationClip& clip)
@@ -940,23 +954,21 @@ namespace BansheeEngine
 
 			float clipLength = clipInfo.clip->getLength();
 			AnimationUtility::wrapTime(start, 0.0f, clipLength, loop);
-			AnimationUtility::wrapTime(end, 0.0f, clipLength, false);
+			AnimationUtility::wrapTime(end, 0.0f, clipLength, loop);
 
-			for (auto& event : events)
+			if (start < end)
 			{
-				if (event.time > start && event.time <= end)
-					onEventTriggered(clipInfo.clip, event.name);
-			}
-
-			// Check the looped portion
-			if(loop && end >= clipLength)
-			{
-				start = 0.0f;
-				end = end - clipLength;
-
 				for (auto& event : events)
 				{
 					if (event.time > start && event.time <= end)
+						onEventTriggered(clipInfo.clip, event.name);
+				}
+			}
+			else if(end < start) // End is looped, but start is not
+			{
+				for (auto& event : events)
+				{
+					if (event.time > start && event.time < clipLength && event.time > 0 && event.time <= end)
 						onEventTriggered(clipInfo.clip, event.name);
 				}
 			}
@@ -1047,6 +1059,12 @@ namespace BansheeEngine
 			else if (mDirty.isSet(AnimDirtyStateFlag::Value))
 				mAnimProxy->updateValues(mClipInfos);
 
+			if(mDirty.isSet(AnimDirtyStateFlag::Culling))
+			{
+				mAnimProxy->mCullEnabled = mCull;
+				mAnimProxy->mBounds = mBounds;
+			}
+
 			// Check if there are dirty transforms
 			if(!didFullRebuild)
 			{
@@ -1079,7 +1097,7 @@ namespace BansheeEngine
 		// Write TRS animation results to relevant SceneObjects
 		for(UINT32 i = 0; i < mAnimProxy->numSceneObjects; i++)
 		{
-			const AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
+			AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
 
 			auto iterFind = mSceneObjects.find(soInfo.id);
 			if (iterFind == mSceneObjects.end())
@@ -1101,11 +1119,13 @@ namespace BansheeEngine
 				so->setRotation(mAnimProxy->sceneObjectPose.rotations[i]);
 				so->setScale(mAnimProxy->sceneObjectPose.scales[i]);
 			}
+
+			soInfo.hash = so->getTransformHash();
 		}
 
 		// Must ensure that clip in the proxy and current primary clip are the same
 		mGenericCurveValuesValid = false;
-		if(mAnimProxy->numLayers > 0 || mAnimProxy->layers[0].numStates > 0)
+		if(mAnimProxy->numLayers > 0 && mAnimProxy->layers[0].numStates > 0)
 		{
 			const AnimationState& state = mAnimProxy->layers[0].states[0];
 

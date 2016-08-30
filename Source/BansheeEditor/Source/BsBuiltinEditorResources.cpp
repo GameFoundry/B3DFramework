@@ -230,8 +230,6 @@ namespace BansheeEngine
 
 	const WString BuiltinEditorResources::ToolBarSeparatorTex = L"ToolBarSeparator.png";
 
-	const WString BuiltinEditorResources::DockSliderNormalTex = L"DockSliderNormal.png";
-
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffNormal = L"ExpandArrowNormalOff.png";
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffHover = L"ExpandArrowHoverOff.png";
 	const WString BuiltinEditorResources::TreeViewExpandButtonOnNormal = L"ExpandArrowNormalOn.png";
@@ -461,6 +459,25 @@ namespace BansheeEngine
 
 		gCoreAccessor().submitToCoreThread(true);
 
+		auto saveTexture = [&](auto& pixelData, auto& path)
+		{
+			if (FileSystem::exists(path))
+			{
+				HResource resource = gResources().load(path);
+
+				SPtr<Texture> texture = Texture::_createPtr(pixelData);
+				gResources().update(resource, texture);
+				Resources::instance().save(resource, path, true);
+				manifest->registerResource(resource.getUUID(), path);
+			}
+			else
+			{
+				HTexture texture = Texture::create(pixelData);
+				Resources::instance().save(texture, path, true);
+				manifest->registerResource(texture.getUUID(), path);
+			}
+		};
+
 		idx = 0;
 		for (auto& iconName : iconsToProcess)
 		{
@@ -475,22 +492,14 @@ namespace BansheeEngine
 			SPtr<PixelData> scaled16 = PixelData::create(16, 16, 1, src->getFormat());
 			PixelUtil::scale(*scaled32, *scaled16);
 
-			HTexture tex48 = Texture::create(scaled48);
-			HTexture tex32 = Texture::create(scaled32);
-			HTexture tex16 = Texture::create(scaled16);
-
 			Path outputPath48 = inputFolder + (iconName + L"48.asset");
-			Resources::instance().save(tex48, outputPath48, true);
-			manifest->registerResource(tex48.getUUID(), outputPath48);
-
 			Path outputPath32 = inputFolder + (iconName + L"32.asset");
-			Resources::instance().save(tex32, outputPath32, true);
-			manifest->registerResource(tex32.getUUID(), outputPath32);
-
 			Path outputPath16 = inputFolder + (iconName + L"16.asset");
-			Resources::instance().save(tex16, outputPath16, true);
-			manifest->registerResource(tex16.getUUID(), outputPath16);
 
+			saveTexture(scaled48, outputPath48);
+			saveTexture(scaled32, outputPath32);
+			saveTexture(scaled16, outputPath16);
+					
 			idx++;
 		}
 	}
@@ -1285,19 +1294,43 @@ namespace BansheeEngine
 		skin->setStyle(GUIMenuBar::getToolBarButtonStyleType(), toolBarBtnStyle);
 
 		/************************************************************************/
-		/* 								DOCK SLIDER	                     		*/
+		/* 								SEPARATOR	                     		*/
 		/************************************************************************/
 
-		GUIElementStyle dockSliderBtnStyle;
-		dockSliderBtnStyle.normal.texture = getGUITexture(DockSliderNormalTex);
-		dockSliderBtnStyle.hover.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.active.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.fixedHeight = false;
-		dockSliderBtnStyle.fixedWidth = false;
-		dockSliderBtnStyle.height = 2;
-		dockSliderBtnStyle.width = 2;
+		GUIElementStyle separator;
+		separator.normal.texture = getGUITexture(L"Separator.png");
+		separator.hover.texture = separator.normal.texture;
+		separator.active.texture = separator.normal.texture;
+		separator.fixedHeight = false;
+		separator.fixedWidth = false;
+		separator.height = 2;
+		separator.width = 2;
 
-		skin->setStyle("DockSliderBtn", dockSliderBtnStyle);
+		skin->setStyle("Separator", separator);
+
+		/************************************************************************/
+		/* 								HEADER	                     			*/
+		/************************************************************************/
+
+		GUIElementStyle headerBackground;
+		headerBackground.normal.texture = getGUITexture(L"HeaderBg.png");
+
+		skin->setStyle("HeaderBackground", headerBackground);
+
+		GUIElementStyle header;
+		header.normal.texture = getGUITexture(L"Header.png");
+		header.normal.textColor = TextNormalColor;
+		header.border.bottom = 2;
+		header.fixedHeight = true;
+		header.height = 21;
+		header.minWidth = 4;
+		header.minHeight = 4;
+		header.font = defaultFont;
+		header.fontSize = DefaultFontSize;
+		header.textHorzAlign = THA_Center;
+		header.textVertAlign = TVA_Center;
+
+		skin->setStyle("Header", header);
 
 		/************************************************************************/
 		/* 								TREE VIEW	                     		*/
@@ -2037,6 +2070,9 @@ namespace BansheeEngine
 		libraryEntryVertLastBg.border.right = 4;
 
 		skin->setStyle("LibraryEntryVertLastBg", libraryEntryVertLastBg);
+
+		GUIElementStyle canvas;
+		skin->setStyle("Canvas", canvas);
 
 		return skin;
 	}

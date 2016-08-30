@@ -22,14 +22,6 @@ namespace BansheeEngine
 		Everything = 0x02
 	};
 
-	template<bool Core> struct TMeshType {};
-	template<> struct TMeshType < false > { typedef HMesh Type; };
-	template<> struct TMeshType < true > { typedef SPtr<MeshCore> Type; };
-
-	template<bool Core> struct TMaterialType {};
-	template<> struct TMaterialType < false > { typedef HMaterial Type; };
-	template<> struct TMaterialType < true > { typedef SPtr<MaterialCore> Type; };
-
 	/**
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
 	 * render any Renderable objects visible by a camera.
@@ -38,7 +30,7 @@ namespace BansheeEngine
 	class BS_EXPORT TRenderable
 	{
 		typedef typename TMeshType<Core>::Type MeshType;
-		typedef typename TMaterialType<Core>::Type MaterialType;
+		typedef typename TMaterialPtrType<Core>::Type MaterialType;
 
 	public:
 		TRenderable();
@@ -88,6 +80,20 @@ namespace BansheeEngine
 
 		/**	Sets whether the object should be rendered or not. */
 		void setIsActive(bool active);
+
+		/** 
+		 * Sets bounds that will be used when determining if object is visible. Only relevant if setUseOverrideBounds() is
+		 * set to true.
+		 *
+		 * @param[in]	bounds	Bounds in local space.
+		 */
+		void setOverrideBounds(const AABox& bounds);
+
+		/**
+		 * Enables or disables override bounds. When enabled the bounds provided to setOverrideBounds() will be used for
+		 * determining object visibility, otherwise the bounds from the object's mesh will be used. Disabled by default.
+		 */
+		void setUseOverrideBounds(bool enable);
 
 		/**
 		 * Gets the layer bitfield that controls whether a renderable is considered visible in a specific camera. 
@@ -139,7 +145,8 @@ namespace BansheeEngine
 		MeshType mMesh;
 		Vector<MaterialType> mMaterials;
 		UINT64 mLayer;
-		Vector<AABox> mWorldBounds;
+		AABox mOverrideBounds;
+		bool mUseOverrideBounds;
 		Vector3 mPosition;
 		Matrix4 mTransform;
 		Matrix4 mTransformNoScale;
@@ -206,6 +213,9 @@ namespace BansheeEngine
 
 		/**	Sets the hash value that can be used to identify if the internal data needs an update. */
 		void _setLastModifiedHash(UINT32 hash) { mLastUpdateHash = hash; }
+
+		/** Updates the transfrom from the provided scene object, if the scene object's data is detected to be dirty. */
+		void _updateTransform(const HSceneObject& so, bool force = false);
 
 		/**	Creates a new renderable handler instance. */
 		static SPtr<Renderable> create();

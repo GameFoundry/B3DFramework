@@ -20,59 +20,6 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Helper class containing parameters for all types of GPU programs used in a pass. */
-	template<bool Core>
-	class TPassParameters
-	{
-	public:
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
-
-		/**
-		 * Returns a set of GPU parameters based on an index.
-		 *
-		 * @note	Useful when needing to iterate over all sets of GPU parameters.
-		 */
-		GpuParamsType& getParamByIdx(UINT32 idx)
-		{
-			GpuParamsType* paramArray[] = { &mVertParams, &mFragParams, &mGeomParams, &mHullParams, &mDomainParams, &mComputeParams };
-
-			return *paramArray[idx];
-		}
-
-		/**
-		 * Sets GPU parameters based on an index.
-		 *
-		 * @note	Useful when needing to iterate over all sets of GPU parameters.
-		 */
-		void setParamByIdx(UINT32 idx, const GpuParamsType& params)
-		{
-			GpuParamsType* paramArray[] = { &mVertParams, &mFragParams, &mGeomParams, &mHullParams, &mDomainParams, &mComputeParams };
-
-			(*paramArray[idx]) = params;
-		}
-
-		GpuParamsType mVertParams;
-		GpuParamsType mFragParams;
-		GpuParamsType mGeomParams;
-		GpuParamsType mHullParams;
-		GpuParamsType mDomainParams;
-		GpuParamsType mComputeParams;
-	};
-
-	/** Contains sim thread pass parameters for each shader stage. */
-	class BS_CORE_EXPORT PassParameters : public TPassParameters<false>
-	{
-	public:
-		static const UINT32 NUM_PARAMS;
-	};
-
-	/** Contains core thread pass parameters for each shader stage. */
-	class BS_CORE_EXPORT PassParametersCore : public TPassParameters<true>
-	{
-	public:
-		static const UINT32 NUM_PARAMS;
-	};
-
 	template<bool Core> struct TGpuParamBlockBufferPtrType { };
 	template<> struct TGpuParamBlockBufferPtrType<false> { typedef SPtr<GpuParamBlockBuffer> Type; };
 	template<> struct TGpuParamBlockBufferPtrType<true> { typedef SPtr<GpuParamBlockBufferCore> Type; };
@@ -88,10 +35,10 @@ namespace BansheeEngine
 	template<bool Core> struct TGpuParamBlockBufferType {};
 	template<> struct TGpuParamBlockBufferType < false > { typedef GpuParamBlockBuffer Type; };
 	template<> struct TGpuParamBlockBufferType < true > { typedef GpuParamBlockBufferCore Type; };
-
-	template<bool Core> struct TPassParamsType {};
-	template<> struct TPassParamsType < false > { typedef PassParameters Type; };
-	template<> struct TPassParamsType < true > { typedef PassParametersCore Type; };
+	
+	template<bool Core> struct TGpuParamsSetType {};
+	template<> struct TGpuParamsSetType < false > { typedef GpuParamsSet Type; };
+	template<> struct TGpuParamsSetType < true > { typedef GpuParamsSetCore Type; };
 
 	/**
 	 * Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that
@@ -99,7 +46,6 @@ namespace BansheeEngine
 	 */
 	class BS_CORE_EXPORT MaterialBase
 	{
-
 	public:
 		/** Data used to describe a structure defined within a shader. */
 		struct StructData
@@ -107,8 +53,6 @@ namespace BansheeEngine
 			StructData()
 				:data(nullptr), size(0)
 			{ }
-
-
 
 			StructData(UINT32 _size)
 				:size(_size)
@@ -131,21 +75,20 @@ namespace BansheeEngine
 		MaterialBase() { }
 		virtual ~MaterialBase() { }
 
-	protected:
+		/** @name Internal
+		 *  @{
+		 */
+
 		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
 		virtual void _markCoreDirty() { }
 
+		/** @} */
+	protected:
 		/** @copydoc CoreObject::markDependenciesDirty */
 		virtual void _markDependenciesDirty() { }
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
 		virtual void _markResourcesDirty() { }
-
-		/** Returns all GPU parameter descriptions in the specified technique. */
-		static Vector<SPtr<GpuParamDesc>> getAllParamDescs(const SPtr<Technique>& technique);
-
-		/** Returns all GPU parameter descriptions in the specified technique. */
-		static Vector<SPtr<GpuParamDesc>> getAllParamDescs(const SPtr<TechniqueCore>& technique);
 	};
 
 	/** @copydoc MaterialBase */
@@ -153,17 +96,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT TMaterial : public MaterialBase
 	{
 	public:
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
-		typedef typename TGpuParamBlockBufferPtrType<Core>::Type ParamBlockPtrType;
-		typedef typename TGpuParamBlockBufferType<Core>::Type ParamBlockType;
 		typedef typename TGpuProgramType<Core>::Type GpuProgramType;
 		typedef typename TPassType<Core>::Type PassType;
 		typedef typename TTechniqueType<Core>::Type TechniqueType;
 		typedef typename TShaderType<Core>::Type ShaderType;
-		typedef typename TPassParamsType<Core>::Type PassParamsType;
+		typedef typename TGpuParamsSetType<Core>::Type GpuParamsSetType;
 		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
 
 		TMaterial() { }
@@ -176,7 +116,10 @@ namespace BansheeEngine
 		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
 
 		/** Attempts to find a technique with the supported tag. Returns an index of the technique, or -1 if not found. */
-		UINT32 findTechnique(const StringID& tag);
+		UINT32 findTechnique(const StringID& tag) const;
+
+		/** Finds the index of the default (primary) technique to use. */
+		UINT32 getDefaultTechnique() const;
 
 		/** 
 		 * Returns the number of passes that are used by the technique at the specified index. 
@@ -195,7 +138,31 @@ namespace BansheeEngine
 		 *								the default technique.
 		 * @return						Pass if found, null otherwise.
 		 */
-		SPtr<PassType> getPass(UINT32 passIdx, UINT32 techniqueIdx = 0) const;
+		SPtr<PassType> getPass(UINT32 passIdx = 0, UINT32 techniqueIdx = 0) const;
+
+		/**
+		 * Creates a set of GpuParams that may be used for binding material parameters to the GPU. The expected behaviour
+		 * is to create a set of GpuParams per-technique once, and then before binding them to the GPU call
+		 * updateParamsSet() to ensure any dirty parameters are transfered from the material to GpuParams. You may also
+		 * use the parameter set to manually modify parameters on a per-program basis, in which case no further updates from
+		 * the material are necessary.
+		 */
+		SPtr<GpuParamsSetType> createParamsSet(UINT32 techniqueIdx = 0);
+
+		/**
+		 * Updates the provided parameter set by recording in it any changes that were made since the last call. It is
+		 * assumed only a single parameter set exists per-material per-technique. If there are multiple the material
+		 * will not be able to track which parameters were updated since the last call.
+		 *
+		 * @param[in]	paramsSet		Parameter set to update.
+		 * @param[in]	dirtyBitIdx		Index to use when checking if parameters are dirty. Must be in range [0, 30]. Allows
+		 *								the same material params to record dirty state for multiple sets of GPU params
+		 *								(each with their own index). Dirty state for the specified index will be cleared
+		 *								after the call.
+		 * @param[in]	forceRefresh	If true all material parameters will be assigned to the params set, regardless if
+		 *								they are marked dirty or not.
+		 */
+		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, UINT32 dirtyBitIdx = 0, bool forceRefresh = false);
 
 		/**   
 		 * Assigns a float value to the shader parameter with the specified name. 
@@ -526,19 +493,6 @@ namespace BansheeEngine
 		 */
 		TMaterialParamSampState<Core> getParamSamplerState(const String& name) const;
 
-		/** Returns a set of parameters for all GPU programs in the specified shader pass. */
-		SPtr<PassParamsType> getPassParameters(UINT32 passIdx) const { return mParametersPerPass[passIdx]; }
-
-		/**
-		 * Assign a parameter block buffer with the specified name.
-		 *
-		 * @note	
-		 * Parameter block buffers can be used as quick way of setting multiple parameters on a material at once, or
-		 * potentially sharing parameters between multiple materials. This reduces driver overhead as the parameters
-		 * in the buffers need only be set once and then reused multiple times.
-		 */
-		void setParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock);
-
 		/**
 		 * Allows you to retrieve a handle to a parameter that you can then use for quickly setting and retrieving parameter
 		 * data. This allows you to set/get parameter data without all the cost of extra lookups otherwise required.
@@ -550,6 +504,18 @@ namespace BansheeEngine
 		template <typename T>
 		void getParam(const String& name, TMaterialDataParam<T, Core>& output) const;
 
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** 
+		 * Returns an object containg all of material's parameters. Allows the caller to manipulate the parameters more
+		 * directly. 
+		 */
+		SPtr<MaterialParamsType> _getInternalParams() const { return mParams; }
+
+		/** @} */
 	protected:
 		/**
 		 * Assigns a value from a raw buffer to the parameter with the specified name. Buffer must be of sizeof(T) * 
@@ -575,8 +541,6 @@ namespace BansheeEngine
 		ShaderType mShader;
 		SPtr<MaterialParamsType> mParams;
 		Vector<SPtr<TechniqueType>> mTechniques;
-
-		Vector<SPtr<PassParamsType>> mParametersPerPass;
 	};
 
 	/** @} */
@@ -594,6 +558,21 @@ namespace BansheeEngine
 		/** @copydoc Material::setShader */
 		void setShader(const SPtr<ShaderCore>& shader);
 
+		/** Returns any custom data set by the renderer. */
+		const Any& getRendererData() const { return mRendererData; }
+
+		/** 
+		 * Sets renderer-specific data on the material. This can by anything the renderer requires, as its not used by the
+		 * material directly. 
+		 */
+		void setRendererData(const Any& data) { mRendererData = data; }
+
+		/** 
+		 * Returns a version number that increments whenever the material's shader changes. Allows external systems to know
+		 * when they need to rebuild relevant cached data.
+		 */
+		UINT32 getVersion() const { return mVersion; }
+
 		/** Creates a new material with the specified shader. */
 		static SPtr<MaterialCore> create(const SPtr<ShaderCore>& shader);
 
@@ -603,10 +582,13 @@ namespace BansheeEngine
 		MaterialCore() { }
 		MaterialCore(const SPtr<ShaderCore>& shader);
 		MaterialCore(const SPtr<ShaderCore>& shader, const Vector<SPtr<TechniqueCore>>& techniques,
-			const SPtr<MaterialParamsCore>& materialParams, const Vector<SPtr<PassParametersCore>>& passParams);
+			const SPtr<MaterialParamsCore>& materialParams);
 
 		/** @copydoc CoreObjectCore::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
+
+		Any mRendererData;
+		UINT32 mVersion;
 	};
 
 	/** @} */
@@ -653,6 +635,14 @@ namespace BansheeEngine
 		/** Creates a new material with the specified shader. */
 		static HMaterial create(const HShader& shader);
 
+		/** @name Internal
+		 *  @{
+		 */
+
+		/** @copydoc CoreObject::markCoreDirty */
+		void _markCoreDirty() override;
+
+		/** @} */
 	private:
 		friend class MaterialManager;
 
@@ -667,9 +657,6 @@ namespace BansheeEngine
 
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
-
-		/** @copydoc CoreObject::markCoreDirty */
-		void _markCoreDirty() override;
 
 		/** @copydoc CoreObject::markDependenciesDirty */
 		void _markDependenciesDirty() override;

@@ -1,4 +1,4 @@
-Technique =
+Technique : base("PPBase") =
 {
 	Language = "HLSL11";
 	
@@ -37,7 +37,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PPBase") =
 {
 	Language = "GLSL";
 	

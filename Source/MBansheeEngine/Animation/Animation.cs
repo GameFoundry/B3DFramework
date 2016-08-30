@@ -12,91 +12,6 @@ namespace BansheeEngine
      */
 
     /// <summary>
-    /// Determines how an animation clip behaves when it reaches the end.
-    /// </summary>
-    public enum AnimWrapMode // Note: Must match C++ enum AnimWrapMode
-    {
-        /// <summary>
-        /// Loop around to the beginning/end when the last/first frame is reached.
-        /// </summary>
-        Loop,
-        /// <summary>
-        /// Clamp to end/beginning, keeping the last/first frame active.
-        /// </summary>
-	    Clamp
-    }
-
-    /// <summary>
-    /// Represents an animation clip used in 1D blending. Each clip has a position on the number line.
-    /// </summary>
-    public class BlendClipInfo
-    {
-        public AnimationClip clip;
-        public float position;
-    }
-
-    /// <summary>
-    /// Defines a 1D blend where two animation clips are blended between each other using linear interpolation.
-    /// </summary>
-    public class Blend1DInfo
-    {
-        public BlendClipInfo[] clips;
-    }
-
-    /// <summary>
-    /// Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.
-    /// </summary>
-    public class Blend2DInfo
-    {
-        public AnimationClip topLeftClip;
-        public AnimationClip topRightClip;
-        public AnimationClip botLeftClip;
-        public AnimationClip botRightClip;
-    }
-
-    /// <summary>
-    /// Contains information about a currently playing animation clip.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct AnimationClipState // Note: Must match C++ struct AnimationClipState
-    {
-        /// <summary>
-        /// Layer the clip is playing on. Multiple clips can be played simulatenously on different layers.
-        /// </summary>
-        public int layer;
-
-        /// <summary>
-        /// Current time the animation is playing from.
-        /// </summary>
-        public float time;
-
-        /// <summary>
-        /// Speed at which the animation is playing.
-        /// </summary>
-        public float speed;
-
-        /// <summary>
-        /// Determines how much of an influence does the clip have on the final pose.
-        /// </summary>
-        public float weight;
-
-        /// <summary>
-        /// Determines what happens to other animation clips when a new clip starts playing.
-        /// </summary>
-        public AnimWrapMode wrapMode;
-
-        /// <summary>
-        /// Initializes the state with default values.
-        /// </summary>
-        public void InitDefault()
-        {
-            speed = 1.0f;
-            weight = 1.0f;
-            wrapMode = AnimWrapMode.Loop;
-        }
-    }
-
-    /// <summary>
     /// Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update
     /// tick depending on set properties.The evaluated data is used by the core thread for skeletal animation, by the sim
     /// thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for
@@ -111,6 +26,7 @@ namespace BansheeEngine
         private FloatCurvePropertyInfo[] floatProperties;
         private List<SceneObjectMappingInfo> mappingInfo = new List<SceneObjectMappingInfo>();
         private AnimationClip primaryClip;
+        private Renderable animatedRenderable;
 
         /// <summary>
         /// Contains mapping for a suffix used by property paths used for curve identifiers, to their index and type.
@@ -197,6 +113,63 @@ namespace BansheeEngine
                     return _native.IsPlaying();
 
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Sets bounds that will be used for animation and mesh culling. Only relevant if <see cref="UseBounds"/> is set
+        /// to true.
+        /// </summary>
+        public AABox Bounds
+        {
+            get { return serializableData.bounds; }
+            set
+            {
+                serializableData.bounds = value;
+
+                if (serializableData.useBounds)
+                {
+                    if (animatedRenderable != null && animatedRenderable.Native != null)
+                        animatedRenderable.Native.OverrideBounds = value;
+
+                    if (_native != null)
+                    {
+                        AABox bounds = serializableData.bounds;
+                        bounds.TransformAffine(SceneObject.WorldTransform);
+
+                        _native.Bounds = bounds;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines should animation bounds be used for visibility determination (culling). If false the bounds of the
+        /// mesh attached to the relevant <see cref="Renderable"/> component will be used instead.
+        /// </summary>
+        public bool UseBounds
+        {
+            get { return serializableData.useBounds; }
+            set
+            {
+                serializableData.useBounds = value;
+
+                UpdateBounds();
+            }
+        }
+
+        /// <summary>
+        /// If true, the animation will not be evaluated when it is out of view.
+        /// </summary>
+        public bool Cull
+        {
+            get { return serializableData.cull; }
+            set
+            {
+                serializableData.cull = value;
+
+                if (_native != null)
+                    _native.Cull = value;
             }
         }
 
@@ -539,6 +512,11 @@ namespace BansheeEngine
             }
         }
 
+        private void OnInitialize()
+        {
+            NotifyFlags = TransformChangedFlags.Transform;
+        }
+
         private void OnEnable()
         {
             RestoreNative();
@@ -565,9 +543,14 @@ namespace BansheeEngine
             _native = new NativeAnimation();
             _native.OnEventTriggered += EventTriggered;
 
+            animatedRenderable = SceneObject.GetComponent<Renderable>();
+
             // Restore saved values after reset
             _native.WrapMode = serializableData.wrapMode;
             _native.Speed = serializableData.speed;
+            _native.Cull = serializableData.cull;
+
+            UpdateBounds();
 
             if (serializableData.defaultClip != null)
                 _native.Play(serializableData.defaultClip);
@@ -579,13 +562,8 @@ namespace BansheeEngine
             SetBoneMappings();
             UpdateSceneObjectMapping();
 
-            Renderable renderable = SceneObject.GetComponent<Renderable>();
-            if (renderable == null)
-                return;
-
-            NativeRenderable nativeRenderable = renderable.Native;
-            if (nativeRenderable != null)
-                nativeRenderable.Animation = _native;
+            if(animatedRenderable != null)
+                animatedRenderable.RegisterAnimation(this);
         }
 
         /// <summary>
@@ -593,14 +571,8 @@ namespace BansheeEngine
         /// </summary>
         private void DestroyNative()
         {
-            Renderable renderableComponent = SceneObject.GetComponent<Renderable>();
-            if (renderableComponent != null)
-            {
-                NativeRenderable renderable = renderableComponent.Native;
-
-                if (renderable != null)
-                    renderable.Animation = null;
-            }
+            if (animatedRenderable != null)
+                animatedRenderable.UnregisterAnimation();
 
             if (_native != null)
             {
@@ -611,6 +583,15 @@ namespace BansheeEngine
             primaryClip = null;
             mappingInfo.Clear();
             floatProperties = null;
+        }
+
+        private void OnTransformChanged(TransformChangedFlags flags)
+        {
+            if (!SceneObject.Active)
+                return;
+
+            if ((flags & (TransformChangedFlags.Transform)) != 0)
+                UpdateBounds(false);
         }
 
         /// <summary>
@@ -703,7 +684,6 @@ namespace BansheeEngine
             if (_native == null)
                 return;
 
-            SceneObject newSO = null;
             for (int i = 0; i < mappingInfo.Count; i++)
             {
                 if (mappingInfo[i].bone == bone)
@@ -787,6 +767,67 @@ namespace BansheeEngine
             }
 
             return bones.ToArray();
+        }
+
+
+        /// <summary>
+        /// Re-applies the bounds to the internal animation object, and the relevant renderable object if one exists.
+        /// </summary>
+        internal void UpdateBounds(bool updateRenderable = true)
+        {
+            NativeRenderable renderable = null;
+            if (updateRenderable && animatedRenderable != null)
+                renderable = animatedRenderable.Native;
+
+            if (serializableData.useBounds)
+            {
+                if (renderable != null)
+                {
+                    renderable.UseOverrideBounds = true;
+                    renderable.OverrideBounds = serializableData.bounds;
+                }
+
+                if (_native != null)
+                {
+                    AABox bounds = serializableData.bounds;
+                    bounds.TransformAffine(SceneObject.WorldTransform);
+
+                    _native.Bounds = bounds;
+                }
+            }
+            else
+            {
+                if (renderable != null)
+                    renderable.UseOverrideBounds = false;
+
+                if (_native != null)
+                {
+                    AABox bounds = new AABox();
+                    if (animatedRenderable != null)
+                        bounds = animatedRenderable.Bounds.Box;
+
+                    _native.Bounds = bounds;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Registers an <see cref="Renderable"/> component with the animation. Rendering will be affected by the animation.
+        /// </summary>
+        /// <param name="renderable">Component that was added</param>
+        internal void RegisterRenderable(Renderable renderable)
+        {
+            animatedRenderable = renderable;
+
+            UpdateBounds();
+        }
+
+        /// <summary>
+        /// Removes renderable from the animation component. Rendering will no longer be affected by animation.
+        /// </summary>
+        internal void UnregisterRenderable()
+        {
+            animatedRenderable = null;
         }
 
         /// <summary>
@@ -951,6 +992,9 @@ namespace BansheeEngine
             public AnimationClip defaultClip;
             public AnimWrapMode wrapMode = AnimWrapMode.Loop;
             public float speed = 1.0f;
+            public AABox bounds;
+            public bool useBounds;
+            public bool cull = true;
         }
 
         /// <summary>
@@ -985,6 +1029,92 @@ namespace BansheeEngine
             public SceneObject sceneObject;
             public bool isMappedToBone;
             public Bone bone;
+        }
+    }
+
+
+    /// <summary>
+    /// Determines how an animation clip behaves when it reaches the end.
+    /// </summary>
+    public enum AnimWrapMode // Note: Must match C++ enum AnimWrapMode
+    {
+        /// <summary>
+        /// Loop around to the beginning/end when the last/first frame is reached.
+        /// </summary>
+        Loop,
+        /// <summary>
+        /// Clamp to end/beginning, keeping the last/first frame active.
+        /// </summary>
+	    Clamp
+    }
+
+    /// <summary>
+    /// Represents an animation clip used in 1D blending. Each clip has a position on the number line.
+    /// </summary>
+    public class BlendClipInfo
+    {
+        public AnimationClip clip;
+        public float position;
+    }
+
+    /// <summary>
+    /// Defines a 1D blend where two animation clips are blended between each other using linear interpolation.
+    /// </summary>
+    public class Blend1DInfo
+    {
+        public BlendClipInfo[] clips;
+    }
+
+    /// <summary>
+    /// Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.
+    /// </summary>
+    public class Blend2DInfo
+    {
+        public AnimationClip topLeftClip;
+        public AnimationClip topRightClip;
+        public AnimationClip botLeftClip;
+        public AnimationClip botRightClip;
+    }
+
+    /// <summary>
+    /// Contains information about a currently playing animation clip.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential), SerializeObject]
+    public struct AnimationClipState // Note: Must match C++ struct AnimationClipState
+    {
+        /// <summary>
+        /// Layer the clip is playing on. Multiple clips can be played simulatenously on different layers.
+        /// </summary>
+        public int layer;
+
+        /// <summary>
+        /// Current time the animation is playing from.
+        /// </summary>
+        public float time;
+
+        /// <summary>
+        /// Speed at which the animation is playing.
+        /// </summary>
+        public float speed;
+
+        /// <summary>
+        /// Determines how much of an influence does the clip have on the final pose.
+        /// </summary>
+        public float weight;
+
+        /// <summary>
+        /// Determines what happens to other animation clips when a new clip starts playing.
+        /// </summary>
+        public AnimWrapMode wrapMode;
+
+        /// <summary>
+        /// Initializes the state with default values.
+        /// </summary>
+        public void InitDefault()
+        {
+            speed = 1.0f;
+            weight = 1.0f;
+            wrapMode = AnimWrapMode.Loop;
         }
     }
 

@@ -111,8 +111,6 @@ namespace BansheeEngine
 			BS_EXCEPT(InvalidParametersException, "Cannot get script assembly image.");
 		}
 
-		mono_jit_exec(domain, mMonoAssembly, 0, nullptr);
-
 		mIsLoaded = true;
 		mIsDependency = false;
 	}

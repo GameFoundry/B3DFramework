@@ -1,4 +1,4 @@
-Technique =
+Technique : base("NormalVertexInput") =
 {
 	Language = "HLSL11";
 	
@@ -78,7 +78,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("NormalVertexInput") =
 {
 	Language = "GLSL";
 	

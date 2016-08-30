@@ -1,4 +1,4 @@
-Technique =
+Technique : base("PPTonemapCommon") =
 {
 	Language = "HLSL11";
 	
@@ -115,7 +115,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PPTonemapCommon") =
 {
 	Language = "GLSL";
 	

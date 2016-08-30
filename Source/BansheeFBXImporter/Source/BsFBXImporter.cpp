@@ -180,7 +180,7 @@ namespace BansheeEngine
 			Vector<ImportedAnimationEvents> events = meshImportOptions->getAnimationEvents();
 			for(auto& entry : animationClips)
 			{
-				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive);
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate);
 				
 				for(auto& eventsEntry : events)
 				{
@@ -219,6 +219,7 @@ namespace BansheeEngine
 		fbxImportOptions.importScale = meshImportOptions->getImportScale();
 
 		FBXImportScene importedScene;
+		bakeTransforms(fbxScene);
 		parseScene(fbxScene, fbxImportOptions, importedScene);
 
 		if (fbxImportOptions.importBlendShapes)
@@ -320,6 +321,13 @@ namespace BansheeEngine
 
 	void FBXImporter::parseScene(FbxScene* scene, const FBXImportOptions& options, FBXImportScene& outputScene)
 	{
+		float importScale = 1.0f;
+		if (options.importScale > 0.0001f)
+			importScale = options.importScale;
+
+		FbxSystemUnit scaledMeters(100.0f / importScale);
+		scaledMeters.ConvertScene(scene);
+
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
@@ -499,7 +507,7 @@ namespace BansheeEngine
 					}
 
 					names.insert(name);
-					output.push_back(FBXAnimationClipData(name, split.isAdditive, splitClipCurve));
+					output.push_back(FBXAnimationClipData(name, split.isAdditive, clip.sampleRate, splitClipCurve));
 				}
 			}
 			else
@@ -514,7 +522,7 @@ namespace BansheeEngine
 				}
 
 				names.insert(name);
-				output.push_back(FBXAnimationClipData(name, false, curves));
+				output.push_back(FBXAnimationClipData(name, false, clip.sampleRate, curves));
 			}
 
 			isFirstClip = false;
@@ -524,8 +532,6 @@ namespace BansheeEngine
 	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
 		Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton)
 	{
-		Matrix4 importScale = Matrix4::scaling(options.importScale);
-
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
 		Vector<BONE_DESC> allBones;
@@ -598,7 +604,7 @@ namespace BansheeEngine
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform * importScale;
+				Matrix4 worldTransform = node->worldTransform;
 				Matrix4 worldTransformIT = worldTransform.transpose();
 				worldTransformIT = worldTransformIT.inverse();
 
@@ -1248,15 +1254,12 @@ namespace BansheeEngine
 		Matrix4 invBakedTransform;
 		if (mesh.referencedBy.size() > 0)
 		{
-			Matrix4 importScale = Matrix4::scaling(options.importScale);
-			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform * importScale;
-
+			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform;
 			invBakedTransform = bakedTransform.inverseAffine();
-			invBakedTransform.inverseAffine();
 		}
 		else
 			invBakedTransform = Matrix4::IDENTITY;
-		
+
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
 		for (UINT32 i = 0; i < boneCount; i++)
@@ -1422,6 +1425,8 @@ namespace BansheeEngine
 			clip.start = (float)timeSpan.GetStart().GetSecondDouble();
 			clip.end = (float)timeSpan.GetStop().GetSecondDouble();
 
+			clip.sampleRate = (UINT32)FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
+
 			UINT32 layerCount = animStack->GetMemberCount<FbxAnimLayer>();
 			if (layerCount > 1)
 			{
@@ -1546,6 +1551,60 @@ namespace BansheeEngine
 		}
 	}
 
+	void FBXImporter::bakeTransforms(FbxScene* scene)
+	{
+		// FBX stores transforms in a more complex way than just translation-rotation-scale as used by Banshee.
+		// Instead they also support rotations offsets and pivots, scaling pivots and more. We wish to bake all this data
+		// into a standard transform so we can access it using node's local TRS properties (e.g. FbxNode::LclTranslation).
+
+		double frameRate = FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
+
+		bs_frame_mark();
+		{
+			FrameStack<FbxNode*> todo;
+			todo.push(scene->GetRootNode());
+
+			while(todo.size() > 0)
+			{
+				FbxNode* node = todo.top();
+				todo.pop();
+
+				FbxVector4 zero(0, 0, 0);
+				FbxVector4 one(1, 1, 1);
+
+				// Activate pivot converting
+				node->SetPivotState(FbxNode::eSourcePivot, FbxNode::ePivotActive);
+				node->SetPivotState(FbxNode::eDestinationPivot, FbxNode::ePivotActive);
+
+				// We want to set all these to 0 (1 for scale) and bake them into the transforms
+				node->SetPostRotation(FbxNode::eDestinationPivot, zero);
+				node->SetPreRotation(FbxNode::eDestinationPivot, zero);
+				node->SetRotationOffset(FbxNode::eDestinationPivot, zero);
+				node->SetScalingOffset(FbxNode::eDestinationPivot, zero);
+				node->SetRotationPivot(FbxNode::eDestinationPivot, zero);
+				node->SetScalingPivot(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricTranslation(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricRotation(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricScaling(FbxNode::eDestinationPivot, one);
+
+				// Banshee assumes euler angles are in YXZ order
+				node->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderYXZ);
+
+				// Keep interpolation as is
+				node->SetQuaternionInterpolation(FbxNode::eDestinationPivot, node->GetQuaternionInterpolation(FbxNode::eSourcePivot));
+
+				for (int i = 0; i < node->GetChildCount(); i++)
+				{
+					FbxNode* childNode = node->GetChild(i);
+					todo.push(childNode);
+				}
+			}
+
+			scene->GetRootNode()->ConvertPivotAnimationRecursive(nullptr, FbxNode::eDestinationPivot, frameRate, false);
+		}
+		bs_frame_clear();
+	}
+
 	TAnimationCurve<Vector3> FBXImporter::reduceKeyframes(TAnimationCurve<Vector3>& curve)
 	{
 		UINT32 keyCount = curve.getNumKeyFrames();
@@ -1582,6 +1641,24 @@ namespace BansheeEngine
 
 			newKeyframes.push_back(curKey);
 			lastWasEqual = isEqual;
+		}
+
+		return TAnimationCurve<Vector3>(newKeyframes);
+	}
+
+	TAnimationCurve<Vector3> FBXImporter::scaleKeyframes(TAnimationCurve<Vector3>& curve, float scale)
+	{
+		UINT32 keyCount = curve.getNumKeyFrames();
+
+		Vector<TKeyframe<Vector3>> newKeyframes(keyCount);
+		for (UINT32 i = 0; i < keyCount; i++)
+		{
+			TKeyframe<Vector3> curKey = curve.getKeyFrame(i);
+			curKey.value *= scale;
+			curKey.inTangent *= scale;
+			curKey.outTangent *= scale;
+
+			newKeyframes[i] = curKey;
 		}
 
 		return TAnimationCurve<Vector3>(newKeyframes);

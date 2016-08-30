@@ -110,6 +110,7 @@ Blocks			{ return TOKEN_BLOCKS; }
 	/* Technique keywords */
 Renderer		{ return TOKEN_RENDERER; }
 Language		{ return TOKEN_LANGUAGE; }
+Tags			{ return TOKEN_TAGS; }
 Pass			{ return TOKEN_PASS; }
 
 	/* Pass keywords */
@@ -169,6 +170,8 @@ auto				{ return TOKEN_AUTO; }
 alias				{ return TOKEN_ALIAS; }
 shared				{ return TOKEN_SHARED; }
 usage				{ return TOKEN_USAGE; }
+base				{ return TOKEN_BASE; }
+inherits			{ return TOKEN_INHERITS; }
 
 	/* State values */
 WIRE			{ yylval->intValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }

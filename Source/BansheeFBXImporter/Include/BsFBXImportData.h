@@ -108,6 +108,7 @@ namespace BansheeEngine
 		String name;
 		float start;
 		float end;
+		UINT32 sampleRate;
 
 		Vector<FBXBoneAnimation> boneAnimations;
 		Vector<FBXBlendShapeAnimation> blendShapeAnimations;
@@ -116,12 +117,13 @@ namespace BansheeEngine
 	/** All information required for creating an animation clip. */
 	struct FBXAnimationClipData
 	{
-		FBXAnimationClipData(const String& name, bool isAdditive, const SPtr<AnimationCurves>& curves)
-			:name(name), isAdditive(isAdditive), curves(curves)
+		FBXAnimationClipData(const String& name, bool isAdditive, UINT32 sampleRate, const SPtr<AnimationCurves>& curves)
+			:name(name), isAdditive(isAdditive), sampleRate(sampleRate), curves(curves)
 		{ }
 
 		String name;
 		bool isAdditive;
+		UINT32 sampleRate;
 		SPtr<AnimationCurves> curves;
 	};
 

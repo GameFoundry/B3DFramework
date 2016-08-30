@@ -70,13 +70,7 @@ namespace BansheeEngine
     /// </summary>
     class Program
     {
-        /// <summary>
-        /// Assembly entry point. Unused.
-        /// </summary>
-        static void Start()
-        {
 
-        }
     }
 
     /** @endcond */

@@ -311,7 +311,7 @@ namespace BansheeEngine
 	class ShaderCore;
 	class ViewportCore;
 	class PassCore;
-	class PassParametersCore;
+	class GpuParamsSetCore;
 	class TechniqueCore;
 	class MaterialCore;
 	class GpuProgramCore;
@@ -369,6 +369,9 @@ namespace BansheeEngine
 	struct AnimationCurves;
 	class Skeleton;
 	class Animation;
+	class GpuParamsSet;
+	class GpuParamsSetCore;
+	class MaterialParamsCore;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

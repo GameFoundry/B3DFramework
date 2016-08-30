@@ -2,13 +2,10 @@
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 
-#ifdef USE_ANIMATION
-	#include "$ENGINE$\SkinnedVertexInput.bslinc"
-#else
-	#include "$ENGINE$\NormalVertexInput.bslinc"
-#endif
+#include "$ENGINE$\SkinnedVertexInput.bslinc"
+#include "$ENGINE$\NormalVertexInput.bslinc"
 
-Technique =
+Technique : base("DeferredBasePassCommon") =
 {
 	Language = "HLSL11";
 	
@@ -47,7 +44,29 @@ Technique =
 	};
 };
 
-Technique =
+Technique
+ : base("DeferredBasePass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("NormalVertexInput")
+ : inherits("DeferredBasePassCommon") =
+{ 
+	Language = "HLSL11";
+};
+
+Technique
+ : base("DeferredBasePassSkinned")
+ : inherits("GBuffer")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("SkinnedVertexInput")
+ : inherits("DeferredBasePassCommon") =
+{
+	Language = "HLSL11";
+};
+
+Technique : base("DeferredBasePassCommon") =
 {
 	Language = "GLSL";
 	
@@ -81,4 +100,26 @@ Technique =
 			}
 		};
 	};
+};
+
+Technique
+ : base("DeferredBasePass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("NormalVertexInput")
+ : inherits("DeferredBasePassCommon") =
+{ 
+	Language = "GLSL";
+};
+
+Technique
+ : base("DeferredBasePassSkinned")
+ : inherits("GBuffer")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("SkinnedVertexInput")
+ : inherits("DeferredBasePassCommon") =
+{
+	Language = "GLSL";
 };

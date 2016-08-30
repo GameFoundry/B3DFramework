@@ -3,7 +3,7 @@ Parameters =
 	mat4x4		matViewProj;
 };
 
-Technique =
+Technique : base("LineGizmo") =
 {
 	Language = "HLSL11";
 	
@@ -34,7 +34,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("LineGizmo") =
 {
 	Language = "HLSL9";
 	
@@ -65,7 +65,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("LineGizmo") =
 {
 	Language = "GLSL";
 	

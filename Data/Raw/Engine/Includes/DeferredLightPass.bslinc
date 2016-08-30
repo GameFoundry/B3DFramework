@@ -18,7 +18,10 @@ Blocks =
 	Block PerLight : auto("PerLight");
 };
 
-Technique =
+Technique
+ : base("DeferredLightPass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData") =
 {
 	Language = "HLSL11";
 	
@@ -171,7 +174,10 @@ Technique =
 	};
 };
 
-Technique =
+Technique
+ : base("DeferredLightPass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData") =
 {
 	Language = "GLSL";
 	

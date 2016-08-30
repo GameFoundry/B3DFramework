@@ -40,7 +40,6 @@ namespace BansheeEditor
                 RebuildParamGUI(material);
 
                 bool newIsCustom = newBuiltinType == BuiltinShader.Custom;
-                builtinShaderField.Active = !newIsCustom;
                 shaderField.Active = newIsCustom;
             };
 
@@ -56,7 +55,6 @@ namespace BansheeEditor
             };
 
             bool isCustom = builtinType == BuiltinShader.Custom;
-            builtinShaderField.Active = !isCustom;
             shaderField.Active = isCustom;
 
             Layout.AddElement(builtinShaderField);

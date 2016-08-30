@@ -50,8 +50,7 @@ namespace BansheeEngine
 		SPtr<RenderTextureCore> getOutput() const { return mOutput; }
 	private:
 		DownsampleParams mParams;
-		MaterialParamVec2Core mInvTexSize;
-		MaterialParamTextureCore mInputTexture;
+		GpuParamTextureCore mInputTexture;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -95,8 +94,8 @@ namespace BansheeEngine
 		static const UINT32 HISTOGRAM_NUM_TEXELS = (THREAD_GROUP_SIZE_X * THREAD_GROUP_SIZE_Y) / 4;
 	private:
 		EyeAdaptHistogramParams mParams;
-		MaterialParamTextureCore mSceneColor;
-		MaterialParamLoadStoreTextureCore mOutputTex;
+		GpuParamTextureCore mSceneColor;
+		GpuParamLoadStoreTextureCore mOutputTex;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -128,8 +127,8 @@ namespace BansheeEngine
 	private:
 		EyeAdaptHistogramReduceParams mParams;
 
-		MaterialParamTextureCore mHistogramTex;
-		MaterialParamTextureCore mEyeAdaptationTex;
+		GpuParamTextureCore mHistogramTex;
+		GpuParamTextureCore mEyeAdaptationTex;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -151,7 +150,7 @@ namespace BansheeEngine
 		void execute(PostProcessInfo& ppInfo, float frameDelta);
 	private:
 		EyeAdaptationParams mParams;
-		MaterialParamTextureCore mReducedHistogramTex;
+		GpuParamTextureCore mReducedHistogramTex;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(CreateTonemapLUTParams)
@@ -214,9 +213,9 @@ namespace BansheeEngine
 	private:
 		TonemappingParams mParams;
 
-		MaterialParamTextureCore mInputTex;
-		MaterialParamTextureCore mColorLUT;
-		MaterialParamTextureCore mEyeAdaptationTex;
+		GpuParamTextureCore mInputTex;
+		GpuParamTextureCore mColorLUT;
+		GpuParamTextureCore mEyeAdaptationTex;
 	};
 
 	/**

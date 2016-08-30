@@ -114,6 +114,7 @@ namespace BansheeEngine
 		SPtr<CameraCore> mCamera;
 		SPtr<MeshCore> mGridMesh;
 		SPtr<MaterialCore> mGridMaterial;
+		SPtr<GpuParamsSetCore> mMaterialParams;
 		float mSpacing = 1.0f;
 		bool mFadeGrid = true;
 		Vector3 mGridPlaneNormal;

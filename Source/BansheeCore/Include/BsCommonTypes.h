@@ -489,6 +489,14 @@ namespace BansheeEngine
 
 	typedef Map<String, String> NameValuePairList;
 
+	template<bool Core> struct TMeshType {};
+	template<> struct TMeshType < false > { typedef HMesh Type; };
+	template<> struct TMeshType < true > { typedef SPtr<MeshCore> Type; };
+
+	template<bool Core> struct TMaterialPtrType {};
+	template<> struct TMaterialPtrType < false > { typedef HMaterial Type; };
+	template<> struct TMaterialPtrType < true > { typedef SPtr<MaterialCore> Type; };
+
 	/** @cond SPECIALIZATIONS */
 	BS_ALLOW_MEMCPY_SERIALIZATION(TextureSurface);
 	/** @endcond */

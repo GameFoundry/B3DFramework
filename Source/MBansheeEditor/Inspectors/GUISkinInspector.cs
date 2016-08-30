@@ -214,8 +214,8 @@ namespace BansheeEditor
             {
                 short backgroundDepth = (short)(Inspector.START_BACKGROUND_DEPTH - depth - 1);
                 string bgPanelStyle = depth % 2 == 0
-                    ? EditorStyles.InspectorContentBgAlternate
-                    : EditorStyles.InspectorContentBg;
+                    ? EditorStylesInternal.InspectorContentBgAlternate
+                    : EditorStylesInternal.InspectorContentBg;
 
                 GUIToggle foldout = new GUIToggle(new LocEdString("Style"), EditorStyles.Foldout);
                 GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);

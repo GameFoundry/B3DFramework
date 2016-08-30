@@ -152,6 +152,22 @@ namespace BansheeEngine
 		float getLength() const { return mLength; }
 
 		/** 
+		 * Returns the number of samples per second the animation clip curves were sampled at.
+		 *
+		 * @note	This value is not used by the animation clip or curves directly since unevenly spaced keyframes are
+		 *			supported. But it can be of value when determining the original sample rate of an imported animation
+		 *			or similar.
+		 */
+		UINT32 getSampleRate() const { return mSampleRate; }
+
+		/** 
+		 * Sets the number of samples per second the animation clip curves were sampled at.
+		 *
+		 * @see	getSampleRate()
+		 */
+		void setSampleRate(UINT32 sampleRate) { mSampleRate = sampleRate; }
+
+		/** 
 		 * Returns a version that can be used for detecting modifications on the clip by external systems. Whenever the clip
 		 * is modified the version is increased by one.
 		 */
@@ -169,8 +185,10 @@ namespace BansheeEngine
 		 * @param[in]	curves		Curves to initialize the animation with.
 		 * @param[in]	isAdditive	Determines does the clip contain additive curve data. This will change the behaviour
 		 *							how is the clip blended with other animations.
+		 * @param[in]	sampleRate	If animation uses evenly spaced keyframes, number of samples per second. Not relevant
+		 *							if keyframes are unevenly spaced.
 		 */
-		static HAnimationClip create(const SPtr<AnimationCurves>& curves, bool isAdditive = false);
+		static HAnimationClip create(const SPtr<AnimationCurves>& curves, bool isAdditive = false, UINT32 sampleRate = 1);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -178,13 +196,13 @@ namespace BansheeEngine
 		 */
 
 		/** Creates a new AnimationClip without initializing it. Use create() for normal use. */
-		static SPtr<AnimationClip> _createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive = false);
+		static SPtr<AnimationClip> _createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive = false, UINT32 sampleRate = 1);
 
 		/** @} */
 
 	protected:
 		AnimationClip();
-		AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive);
+		AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate);
 
 		/** @copydoc Resource::initialize() */
 		void initialize() override;
@@ -212,6 +230,7 @@ namespace BansheeEngine
 		Vector<AnimationEvent> mEvents;
 		bool mIsAdditive;
 		float mLength;
+		UINT32 mSampleRate;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

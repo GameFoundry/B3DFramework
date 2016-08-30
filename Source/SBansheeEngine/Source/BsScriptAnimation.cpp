@@ -54,6 +54,9 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_MapCurveToSceneObject", &ScriptAnimation::internal_MapCurveToSceneObject);
 		metaData.scriptClass->addInternalCall("Internal_UnmapSceneObject", &ScriptAnimation::internal_UnmapSceneObject);
 
+		metaData.scriptClass->addInternalCall("Internal_SetBounds", &ScriptAnimation::internal_SetBounds);
+		metaData.scriptClass->addInternalCall("Internal_SetCull", &ScriptAnimation::internal_SetCull);
+
 		metaData.scriptClass->addInternalCall("Internal_GetGenericCurveValue", &ScriptAnimation::internal_GetGenericCurveValue);
 
 		sOnEventTriggeredThunk = (OnEventTriggeredThunkDef)metaData.scriptClass->getMethod("Internal_OnEventTriggered", 2)->getThunk();
@@ -196,6 +199,16 @@ namespace BansheeEngine
 	{
 		HSceneObject soHandle = so->getNativeHandle();
 		thisPtr->getInternal()->unmapSceneObject(soHandle);
+	}
+
+	void ScriptAnimation::internal_SetBounds(ScriptAnimation* thisPtr, AABox* bounds)
+	{
+		thisPtr->getInternal()->setBounds(*bounds);
+	}
+
+	void ScriptAnimation::internal_SetCull(ScriptAnimation* thisPtr, bool cull)
+	{
+		thisPtr->getInternal()->setCulling(cull);
 	}
 
 	MonoField* ScriptBlendClipInfo::clipField = nullptr;

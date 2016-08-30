@@ -1,7 +1,7 @@
 #include "$EDITOR$/SolidGizmo.bslinc"
 Priority = 10;
 
-Technique =
+Technique : inherits("SolidGizmo") =
 {
 	Language = "HLSL11";
 	
@@ -20,7 +20,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("SolidGizmo") =
 {
 	Language = "HLSL9";
 	
@@ -39,7 +39,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("SolidGizmo") =
 {
 	Language = "GLSL";
 	

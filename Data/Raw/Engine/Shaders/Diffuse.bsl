@@ -9,7 +9,7 @@ Parameters =
 	Texture2D	gNormalTex = "normal";
 };
 
-Technique =
+Technique : base("DiffuseCommon") =
 {
 	Language = "HLSL11";
 	
@@ -44,7 +44,22 @@ Technique =
 	};
 };
 
-Technique =
+Technique 
+ : inherits("DeferredBasePass")
+ : inherits("DiffuseCommon") =
+{
+	Language = "HLSL11";
+};
+
+Technique 
+ : inherits("DeferredBasePassSkinned")
+ : inherits("DiffuseCommon") =
+{
+	Language = "HLSL11";
+	Tags = { "Animated" };
+};
+
+Technique : base("DiffuseCommon") =
 {
 	Language = "GLSL";
 	
@@ -75,3 +90,17 @@ Technique =
 	};
 };
 
+Technique 
+ : inherits("DeferredBasePass")
+ : inherits("DiffuseCommon") =
+{
+	Language = "GLSL";
+};
+
+Technique 
+ : inherits("DeferredBasePassSkinned")
+ : inherits("DiffuseCommon") =
+{
+	Language = "GLSL";
+	Tags = { "Animated" };
+};

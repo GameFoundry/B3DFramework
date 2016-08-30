@@ -22,6 +22,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetAnimationEvents", &ScriptAnimationClip::internal_GetAnimationEvents);
 		metaData.scriptClass->addInternalCall("Internal_SetAnimationEvents", &ScriptAnimationClip::internal_SetAnimationEvents);
 		metaData.scriptClass->addInternalCall("Internal_GetLength", &ScriptAnimationClip::internal_GetLength);
+		metaData.scriptClass->addInternalCall("Internal_GetSampleRate", &ScriptAnimationClip::internal_GetSampleRate);
+		metaData.scriptClass->addInternalCall("Internal_SetSampleRate", &ScriptAnimationClip::internal_SetSampleRate);
 	}
 
 	MonoObject* ScriptAnimationClip::createInstance()
@@ -89,6 +91,16 @@ namespace BansheeEngine
 		return thisPtr->getHandle()->getLength();
 	}
 
+	UINT32 ScriptAnimationClip::internal_GetSampleRate(ScriptAnimationClip* thisPtr)
+	{
+		return thisPtr->getHandle()->getSampleRate();
+	}
+
+	void ScriptAnimationClip::internal_SetSampleRate(ScriptAnimationClip* thisPtr, UINT32 sampleRate)
+	{
+		thisPtr->getHandle()->setSampleRate(sampleRate);
+	}
+
 	MonoField* ScriptAnimationEvent::sNameField = nullptr;
 	MonoField* ScriptAnimationEvent::sTimeField = nullptr;
 
@@ -122,6 +134,6 @@ namespace BansheeEngine
 		float time = event.time;
 
 		void* params[2] = { monoString, &time };
-		return metaData.scriptClass->createInstance("string, float", params);
+		return metaData.scriptClass->createInstance("string,single", params);
 	}
 }

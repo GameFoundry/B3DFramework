@@ -27,6 +27,9 @@ namespace BansheeEngine
 	static StringID RPS_GBufferDepth = "GBufferDepth";
 	static StringID RPS_BoneMatrices = "BoneMatrices";
 
+	/** Technique tags. */
+	static StringID RTag_Animated = "Animated";
+
 	/**
 	 * Default renderer for Banshee. Performs frustum culling, sorting and renders objects in custom ways determine by
 	 * renderable handlers.
@@ -55,6 +58,13 @@ namespace BansheeEngine
 		struct RendererLight
 		{
 			LightCore* internal;
+		};
+
+		/** Renderer information for a single material. */
+		struct RendererMaterial
+		{
+			Vector<SPtr<GpuParamsSetCore>> params;
+			UINT32 matVersion;
 		};
 
 	public:
@@ -185,18 +195,20 @@ namespace BansheeEngine
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
-		 * @param[in]	passParams			Structure containing parameters for all stages of the pass.
+		 * @param[in]	paramsSet			Structure containing parameters for a material.
 		 * @param[in]	samplerOverrides	Optional samplers to use instead of the those in the pass parameters. Number of
 		 *									samplers must match number in pass parameters.
+		 * @param[in]	passIdx				Index of the pass whose parameters to bind.
 		 *
 		 * @note	Core thread.
 		 */
-		static void setPassParams(const SPtr<PassParametersCore>& passParams, const PassSamplerOverrides* samplerOverrides);
+		static void setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides, 
+			UINT32 passIdx);
 
 		// Core thread only fields
 		Vector<RendererRenderTarget> mRenderTargets;
 		UnorderedMap<const CameraCore*, RendererCamera> mCameras;
-		UnorderedMap<SPtr<MaterialCore>, MaterialSamplerOverrides*> mSamplerOverrides;
+		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
 
 		Vector<RendererObject> mRenderables;
 		Vector<RenderableShaderData> mRenderableShaderData;

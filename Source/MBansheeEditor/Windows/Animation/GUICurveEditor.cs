@@ -59,7 +59,8 @@ namespace BansheeEditor
         }
 
         private const int TIMELINE_HEIGHT = 20;
-        private const int EVENTS_HEIGHT = 10;
+        private const int VERT_PADDING = 2;
+        private const int EVENTS_HEIGHT = 15;
         private const int SIDEBAR_WIDTH = 30;
         private const int DRAG_START_DISTANCE = 3;
 
@@ -79,7 +80,7 @@ namespace BansheeEditor
         private ContextMenu eventContextMenu;
         private Vector2I contextClickPosition;
 
-        private EdAnimationCurve[] curves = new EdAnimationCurve[0];
+        private CurveDrawInfo[] curveInfos = new CurveDrawInfo[0];
         private bool disableCurveEdit = false;
 
         private float xRange = 60.0f;
@@ -248,7 +249,7 @@ namespace BansheeEditor
 
             keyframeContextMenu = new ContextMenu();
             keyframeContextMenu.AddItem("Delete", DeleteSelectedKeyframes);
-            keyframeContextMenu.AddItem("Delete", EditSelectedKeyframe);
+            keyframeContextMenu.AddItem("Edit", EditSelectedKeyframe);
             keyframeContextMenu.AddItem("Tangents/Auto", () => { ChangeSelectionTangentMode(TangentMode.Auto); });
             keyframeContextMenu.AddItem("Tangents/Free", () => { ChangeSelectionTangentMode(TangentMode.Free); });
             keyframeContextMenu.AddItem("Tangents/In/Auto", () => { ChangeSelectionTangentMode(TangentMode.InAuto); });
@@ -264,22 +265,35 @@ namespace BansheeEditor
             eventContextMenu.AddItem("Delete", DeleteSelectedEvents);
             eventContextMenu.AddItem("Edit", EditSelectedEvent);
 
-            guiTimeline = new GUIGraphTime(gui, width, TIMELINE_HEIGHT);
+            GUIPanel timelinePanel = gui.AddPanel();
+            guiTimeline = new GUIGraphTime(timelinePanel, width, TIMELINE_HEIGHT);
+
+            GUIPanel timelineBgPanel = gui.AddPanel(1);
+
+            GUITexture timelineBackground = new GUITexture(null, EditorStyles.Header);
+            timelineBackground.Bounds = new Rect2I(0, 0, width, TIMELINE_HEIGHT + VERT_PADDING);
+            timelineBgPanel.AddElement(timelineBackground);
 
             eventsPanel = gui.AddPanel();
-            eventsPanel.SetPosition(0, TIMELINE_HEIGHT);
+            eventsPanel.SetPosition(0, TIMELINE_HEIGHT + VERT_PADDING);
             guiEvents = new GUIAnimEvents(eventsPanel, width, EVENTS_HEIGHT);
-            
-            drawingPanel = gui.AddPanel();
-            drawingPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT);
 
-            guiCurveDrawing = new GUICurveDrawing(drawingPanel, width, height - TIMELINE_HEIGHT - EVENTS_HEIGHT, curves);
+            GUIPanel eventsBgPanel = eventsPanel.AddPanel(1);
+
+            GUITexture eventsBackground = new GUITexture(null, EditorStyles.Header);
+            eventsBackground.Bounds = new Rect2I(0, 0, width, EVENTS_HEIGHT + VERT_PADDING);
+            eventsBgPanel.AddElement(eventsBackground);
+
+            drawingPanel = gui.AddPanel();
+            drawingPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT + VERT_PADDING);
+
+            guiCurveDrawing = new GUICurveDrawing(drawingPanel, width, height - TIMELINE_HEIGHT - EVENTS_HEIGHT - VERT_PADDING * 2, curveInfos);
             guiCurveDrawing.SetRange(60.0f, 20.0f);
 
             GUIPanel sidebarPanel = gui.AddPanel(-10);
-            sidebarPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT);
+            sidebarPanel.SetPosition(0, TIMELINE_HEIGHT + EVENTS_HEIGHT + VERT_PADDING);
 
-            guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT - EVENTS_HEIGHT);
+            guiSidebar = new GUIGraphValues(sidebarPanel, SIDEBAR_WIDTH, height - TIMELINE_HEIGHT - EVENTS_HEIGHT - VERT_PADDING * 2);
             guiSidebar.SetRange(-10.0f, 10.0f);
         }
 
@@ -505,7 +519,7 @@ namespace BansheeEditor
                                 draggedKeyframes.Clear();
                                 foreach (var selectedEntry in selectedKeyframes)
                                 {
-                                    EdAnimationCurve curve = curves[selectedEntry.curveIdx];
+                                    EdAnimationCurve curve = curveInfos[selectedEntry.curveIdx].curve;
                                     KeyFrame[] keyFrames = curve.KeyFrames;
 
                                     DraggedKeyframes newEntry = new DraggedKeyframes();
@@ -539,7 +553,7 @@ namespace BansheeEditor
 
                             foreach (var draggedEntry in draggedKeyframes)
                             {
-                                EdAnimationCurve curve = curves[draggedEntry.curveIdx];
+                                EdAnimationCurve curve = curveInfos[draggedEntry.curveIdx].curve;
 
                                 for (int i = 0; i < draggedEntry.keys.Count; i++)
                                 {
@@ -574,7 +588,7 @@ namespace BansheeEditor
                         }
                         else if (isMousePressedOverTangent && !disableCurveEdit)
                         {
-                            EdAnimationCurve curve = curves[draggedTangent.keyframeRef.curveIdx];
+                            EdAnimationCurve curve = curveInfos[draggedTangent.keyframeRef.curveIdx].curve;
                             KeyFrame keyframe = curve.KeyFrames[draggedTangent.keyframeRef.keyIdx];
 
                             Vector2 keyframeCurveCoords = new Vector2(keyframe.time, keyframe.value);
@@ -592,7 +606,9 @@ namespace BansheeEditor
                                     if (normal.x > 0.0f)
                                         tangent = float.PositiveInfinity;
 
-                                    keyframe.inTangent = tangent;
+                                    keyframe.inTangent = -tangent;
+                                    if(curve.TangentModes[draggedTangent.keyframeRef.keyIdx] == TangentMode.Free)
+                                        keyframe.outTangent = -tangent;
                                 }
                                 else
                                 {
@@ -600,6 +616,8 @@ namespace BansheeEditor
                                         tangent = float.PositiveInfinity;
 
                                     keyframe.outTangent = tangent;
+                                    if (curve.TangentModes[draggedTangent.keyframeRef.keyIdx] == TangentMode.Free)
+                                        keyframe.inTangent = tangent;
                                 }
 
                                 curve.KeyFrames[draggedTangent.keyframeRef.keyIdx] = keyframe;
@@ -648,11 +666,11 @@ namespace BansheeEditor
         /// <summary>
         /// Change the set of curves to display.
         /// </summary>
-        /// <param name="curves">New set of curves to draw on the GUI element.</param>
-        public void SetCurves(EdAnimationCurve[] curves)
+        /// <param name="curveInfos">New set of curves to draw on the GUI element.</param>
+        public void SetCurves(CurveDrawInfo[] curveInfos)
         {
-            this.curves = curves;
-            guiCurveDrawing.SetCurves(curves);
+            this.curveInfos = curveInfos;
+            guiCurveDrawing.SetCurves(curveInfos);
 
             Redraw();
         }
@@ -722,15 +740,17 @@ namespace BansheeEditor
 
             if (!disableCurveEdit)
             {
-                foreach (var curve in curves)
+                foreach (var curveInfo in curveInfos)
                 {
                     float t = guiCurveDrawing.GetTimeForFrame(markedFrameIdx);
-                    float value = curve.Evaluate(t);
+                    float value = curveInfo.curve.Evaluate(t);
 
-                    curve.AddKeyframe(t, value);
-                    curve.Apply();
+                    curveInfo.curve.AddKeyframe(t, value);
+                    curveInfo.curve.Apply();
                 }
             }
+            else
+                ShowReadOnlyMessage();
 
             // TODO - UNDOREDO
 
@@ -796,11 +816,14 @@ namespace BansheeEditor
         private void ChangeSelectionTangentMode(TangentMode mode)
         {
             if (disableCurveEdit)
+            {
+                ShowReadOnlyMessage();
                 return;
+            }
 
             foreach (var selectedEntry in selectedKeyframes)
             {
-                EdAnimationCurve curve = curves[selectedEntry.curveIdx];
+                EdAnimationCurve curve = curveInfos[selectedEntry.curveIdx].curve;
 
                 foreach (var keyframeIdx in selectedEntry.keyIndices)
                 {
@@ -814,7 +837,7 @@ namespace BansheeEditor
                         {
                             // Replace only the in tangent mode, keeping the out tangent as is
                             TangentMode inFlags = (TangentMode.InAuto | TangentMode.InFree | TangentMode.InLinear |
-                                                   TangentMode.InAuto);
+                                                   TangentMode.InStep);
 
                             newMode &= ~inFlags;
                             newMode |= (mode & inFlags);
@@ -823,7 +846,7 @@ namespace BansheeEditor
                         {
                             // Replace only the out tangent mode, keeping the in tangent as is
                             TangentMode outFlags = (TangentMode.OutAuto | TangentMode.OutFree | TangentMode.OutLinear |
-                                                    TangentMode.OutAuto);
+                                                    TangentMode.OutStep);
 
                             newMode &= ~outFlags;
                             newMode |= (mode & outFlags);
@@ -854,15 +877,17 @@ namespace BansheeEditor
 
                 if (!disableCurveEdit)
                 {
-                    foreach (var curve in curves)
+                    foreach (var curveInfo in curveInfos)
                     {
                         float t = curveCoord.x;
                         float value = curveCoord.y;
 
-                        curve.AddKeyframe(t, value);
-                        curve.Apply();
+                        curveInfo.curve.AddKeyframe(t, value);
+                        curveInfo.curve.Apply();
                     }
                 }
+                else
+                    ShowReadOnlyMessage();
 
                 // TODO - UNDOREDO
 
@@ -881,8 +906,7 @@ namespace BansheeEditor
             if (frame != -1)
             {
                 ClearSelection();
-
-                float time = guiEvents.GetTimeForFrame(frame);
+                float time = guiEvents.GetTime(contextClickPosition.x);
 
                 EventInfo eventInfo = new EventInfo();
                 eventInfo.animEvent = new AnimationEvent("", time);
@@ -906,7 +930,7 @@ namespace BansheeEditor
             {
                 foreach (var selectedEntry in selectedKeyframes)
                 {
-                    EdAnimationCurve curve = curves[selectedEntry.curveIdx];
+                    EdAnimationCurve curve = curveInfos[selectedEntry.curveIdx].curve;
 
                     // Sort keys from highest to lowest so the indices don't change
                     selectedEntry.keyIndices.Sort((x, y) =>
@@ -920,6 +944,8 @@ namespace BansheeEditor
                     curve.Apply();
                 }
             }
+            else
+                ShowReadOnlyMessage();
 
             // TODO - UNDOREDO
 
@@ -1021,12 +1047,15 @@ namespace BansheeEditor
         private void EditSelectedKeyframe()
         {
             if (disableCurveEdit)
+            {
+                ShowReadOnlyMessage();
                 return;
+            }
 
             if (selectedKeyframes.Count == 0)
                 return;
 
-            EdAnimationCurve curve = curves[selectedKeyframes[0].curveIdx];
+            EdAnimationCurve curve = curveInfos[selectedKeyframes[0].curveIdx].curve;
             KeyFrame[] keyFrames = curve.KeyFrames;
 
             int keyIndex = selectedKeyframes[0].keyIndices[0];
@@ -1094,6 +1123,19 @@ namespace BansheeEditor
                 OnEventModified?.Invoke();
             });
         }
+
+        /// <summary>
+        /// Shows a dialog box that notifies the user that the animation clip is read only.
+        /// </summary>
+        private void ShowReadOnlyMessage()
+        {
+            LocEdString title = new LocEdString("Warning");
+            LocEdString message =
+                new LocEdString("You cannot edit keyframes on animation clips that" +
+                                " are imported from an external file.");
+
+            DialogBox.Open(title, message, DialogBox.Type.OK);
+        }
     }
 
     /// <summary>
@@ -1153,6 +1195,7 @@ namespace BansheeEditor
         internal void Initialize(AnimationEvent animEvent, string[] componentNames, Action updateCallback)
         {
             int selectedIndex = -1;
+            string methodName = "";
             if (!string.IsNullOrEmpty(animEvent.Name))
             {
                 string[] nameEntries = animEvent.Name.Split('/');
@@ -1167,6 +1210,8 @@ namespace BansheeEditor
                             break;
                         }
                     }
+
+                    methodName = nameEntries[nameEntries.Length - 1];
                 }
             }
 
@@ -1189,7 +1234,7 @@ namespace BansheeEditor
             };// TODO UNDOREDO 
 
             GUITextField methodField = new GUITextField(new LocEdString("Method"), 40, false, "", GUIOption.FixedWidth(190));
-            methodField.Value = animEvent.Name;
+            methodField.Value = methodName;
             methodField.OnChanged += x =>
             {
                 string compName = "";

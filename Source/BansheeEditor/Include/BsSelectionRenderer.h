@@ -87,6 +87,7 @@ namespace BansheeEngine
 
 		// Immutable
 		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParams;
 		GpuParamMat4Core mMatWorldViewProj;
 		GpuParamColorCore mColor;
 

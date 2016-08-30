@@ -4,7 +4,7 @@ Parameters =
 	float4		viewDir;
 };
 
-Technique =
+Technique : base("SolidGizmo") =
 {
 	Language = "HLSL11";
 	
@@ -43,7 +43,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("SolidGizmo") =
 {
 	Language = "HLSL9";
 	
@@ -82,7 +82,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("SolidGizmo") =
 {
 	Language = "GLSL";
 	

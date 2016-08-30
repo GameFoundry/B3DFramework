@@ -174,24 +174,37 @@ Blocks all begin with the Block keyword, followed by a name. The name must match
 
 # Technique {#bslfx_c}
 
-This is the meat of your shader. A technique contains code for your vertex/fragment/geometry/hull/domain/compute programs, as well as blend/rasterizer/depth-stencil states. A shader can contain multiple techniques but only a single technique is ever used at once. Different techniques can be specified for each shading language (e.g. HLSL, GLSL) and different renderer (in case you're using something other than the default).
+This is the meat of your shader. A technique contains code for your vertex/fragment/geometry/hull/domain/compute programs, as well as blend/rasterizer/depth-stencil states. A shader can contain multiple techniques but only a single technique is ever used at once. Different techniques can be specified for:
+ - Shading language (e.g. HLSL, GLSL) 
+ - Renderer (in case you're using something other than the default)
+ - Per-object properties (e.g. different technique for an animated object vs. a static object)
 
 ## Properties {#bslfx_c_a}
 
-Technique block should therefore always contain a "Language" property like so:
+Technique block should therefore always contain a "Language" property. This will ensure the proper technique is used depending on the render API the engine is set to use.
 ~~~~~~~~~~~~~~
 	Language = "HLSL"
 ~~~~~~~~~~~~~~
 
 Supported values are "HLSL" (DirectX 11 HLSL), "HLSL9" (DirectX 9 HLSL), and "GLSL".
 
-You can also specify a renderer using the "Renderer" property:
+In case you are using a non-standard render, you can also specify a renderer using the "Renderer" property. This will ensure the propert technique is used as you switch between renderers.
 ~~~~~~~~~~~~~~
 	Renderer = "Default"
 ~~~~~~~~~~~~~~
 
 Supported values are "Any", or "Default". More values could be available if you are using a custom renderer, but otherwise you don't need to set this property.
 
+And finally you may specify an optional set of tags that serve as hints to the renderer when rendering a specific object. You may specify zero or multiple tags:
+~~~~~~~~~~~~~~
+	Tags = { "Animated", "OtherTag" }
+~~~~~~~~~~~~~~
+
+Currently recognized tags by the default renderer are:
+ - Animated - When renderer detects it is rendering a mesh that supports skeletal or blend shape animation, it will prefer to pick a technique with this tag, rather than one without it.
+
+Unrecognized tags will just be ignored. Renderer can be extended so it supports custom tags.
+ 
 Once the base properties are defined you can start defining code blocks and states.
 
 ## Code blocks {#bslfx_c_b}
@@ -347,12 +360,48 @@ Technique
 
 # Advanced {#bslfx_d}
 
-## Block merging {#bslfx_d_a}
-If multiple Techniques using the same "Language" and "Renderer" are found in the file, they will internally be merged into a single larger technique. You may also use value of "Any" for both "Language" or "Renderer" properties to allow the technique to be merged with techniques that don't match it exactly.
+## Technique inheritance {#bslfx_d_a}
+Techniques can inherit code and properties from one another. Simply define one technique as a base technique and give it a unique name:
+~~~~~~~~~~~~~~
+Technique : base("MyBaseTechnique") =
+{
+   ...
+};
+~~~~~~~~~~~~~~
+
+Then inherit the technique as such:
+~~~~~~~~~~~~~~
+Technique : inherits("MyBaseTechnique") =
+{
+   ...
+};
+~~~~~~~~~~~~~~
+
+You can also chain multiple inherited techniques:
+~~~~~~~~~~~~~~
+Technique : base("MyMoreSpecificBaseTechnique") : inherits("MyBaseTechnique") = 
+{
+   ...
+};
+~~~~~~~~~~~~~~
+
+Or inherit from multiple techniques at once:
+~~~~~~~~~~~~~~
+Technique 
+ : inherits("MyBaseTechnique")
+ : inherits("MyOtherBaseTechnique") = 
+{
+   ...
+};
+~~~~~~~~~~~~~~
+
+Properties of inherited techniques will be combined, with more specific technique overriding base technique's properties. Techniques defined as base will never be instantiated on their own, and will not be available in the shader unless inherited by another technique. Base techniques should always be defined earlier then more specialized techniques.
+
+Only techniques that share the same "Renderer" and "Language" properties can be inherited. This allows you to use the same technique names across multiple renderers and languages. Optionally you may define technique's "Renderer" or "Language" as "Any" in which case the technique will be inheritable from any language, but its name should then be globally unique.
 
 When merging passes within techniques, pass "Index" properties are compared and passes with the same index are merged. If no index is specified, passes are merged sequentially according to their order in the techniques.
 
-Code blocks are also merged, in the order they are defined.
+Code blocks are merged in the order they are defined.
 
 ## Pre-processor {#bslfx_d_b}
 Use \#include "Path/To/File.bslinc" to share code by including other BSLFX files. Included files must end with a .bslinc extension but otherwise their syntax is the same as a normal BSLFX file. The provided path is a path to the shader relative to the project library if running in editor, or relative to the working directory otherwise. You can also use built-in $ENGINE$ and $EDITOR$ folders to access builtin shaders. e.g.

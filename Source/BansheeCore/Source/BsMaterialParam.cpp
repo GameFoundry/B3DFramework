@@ -4,24 +4,28 @@
 #include "BsVector2I.h"
 #include "BsVectorNI.h"
 #include "BsMaterialParams.h"
+#include "BsMaterial.h"
 
 namespace BansheeEngine
 {
 	template<class T, bool Core>
-	TMaterialDataParam<T, Core>::TMaterialDataParam(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuDataParam<T, Core>>>& gpuParams)
-		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialDataParam<T, Core>::TMaterialDataParam(const String& name, const MaterialPtrType& material)
+		:mParamIndex(0), mArraySize(0), mMaterial(nullptr)
 	{
-		if(params != nullptr)
+		if(material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Data, 
-				(GpuParamDataType)TGpuDataParamInfo<T>::TypeId, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Data, 
+				(GpuParamDataType)TGpuDataParamInfo<T>::TypeId, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				const MaterialParams::ParamData* data = params->getParamData(paramIndex);
+
+				mMaterial = material;
+				mParamIndex = paramIndex;
 				mArraySize = data->arraySize;
 			}
 			else
@@ -32,7 +36,7 @@ namespace BansheeEngine
 	template<class T, bool Core>
 	void TMaterialDataParam<T, Core>::set(const T& value, UINT32 arrayIdx) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
 
 		if(arrayIdx >= mArraySize)
@@ -42,40 +46,45 @@ namespace BansheeEngine
 			return;
 		}
 
-		mMaterialParams->setDataParam(mParamIndex, arrayIdx, value);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(value, arrayIdx);
-		}
+		params->setDataParam(data->index, arrayIdx, value);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<class T, bool Core>
 	T TMaterialDataParam<T, Core>::get(UINT32 arrayIdx) const
 	{
 		T output = T();
-		if (mMaterialParams == nullptr || arrayIdx >= mArraySize)
+		if (mMaterial == nullptr || arrayIdx >= mArraySize)
 			return output;
 
-		mMaterialParams->getDataParam(mParamIndex, arrayIdx, output);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+
+		params->getDataParam(data->index, arrayIdx, output);
 		return output;
 	}
 
 	template<bool Core>
-	TMaterialParamStruct<Core>::TMaterialParamStruct(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamStruct<Core>>>& gpuParams)
-		:mParamIndex(0), mArraySize(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamStruct<Core>::TMaterialParamStruct(const String& name, const MaterialPtrType& material)
+		:mParamIndex(0), mArraySize(0), mMaterial(nullptr)
 	{
-		if (params != nullptr)
+		if (material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Data, GPDT_STRUCT, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Data, GPDT_STRUCT, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				const MaterialParams::ParamData* data = params->getParamData(paramIndex);
+
+				mMaterial = material;
+				mParamIndex = paramIndex;
 				mArraySize = data->arraySize;
 			}
 			else
@@ -86,7 +95,7 @@ namespace BansheeEngine
 	template<bool Core>
 	void TMaterialParamStruct<Core>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
 
 		if (arrayIdx >= mArraySize)
@@ -96,44 +105,53 @@ namespace BansheeEngine
 			return;
 		}
 
-		mMaterialParams->setStructData(mParamIndex + arrayIdx, value, sizeBytes);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(value, sizeBytes, arrayIdx);
-		}
+		params->setStructData(data->index + arrayIdx, value, sizeBytes);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<bool Core>
 	void TMaterialParamStruct<Core>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
-		if (mMaterialParams == nullptr || arrayIdx >= mArraySize)
+		if (mMaterial == nullptr || arrayIdx >= mArraySize)
 			return;
 
-		mMaterialParams->getStructData(mParamIndex + arrayIdx, value, sizeBytes);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+
+		params->getStructData(data->index + arrayIdx, value, sizeBytes);
 	}
 
 	template<bool Core>
 	UINT32 TMaterialParamStruct<Core>::getElementSize() const
 	{
-		return mMaterialParams->getStructSize(mParamIndex);
+		if (mMaterial == nullptr)
+			return 0;
+
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+
+		return params->getStructSize(data->index);
 	}
 
 	template<bool Core>
-	TMaterialParamTexture<Core>::TMaterialParamTexture(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamTexture<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamTexture<Core>::TMaterialParamTexture(const String& name, const MaterialPtrType& material)
+		:mParamIndex(0), mMaterial(nullptr)
 	{
-		if (params != nullptr)
+		if (material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				mMaterial = material;
+				mParamIndex = paramIndex;
 			}
 			else
 				params->reportGetParamError(result, name, 0);
@@ -143,49 +161,52 @@ namespace BansheeEngine
 	template<bool Core>
 	void TMaterialParamTexture<Core>::set(const TextureType& texture) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
+
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
 		// If there is a default value, assign that instead of null
 		TextureType newValue = texture;
 		if (newValue == nullptr)
-			mMaterialParams->getDefaultTexture(mParamIndex, newValue);
+			params->getDefaultTexture(data->index, newValue);
 
-		mMaterialParams->setTexture(mParamIndex, newValue);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(newValue);
-		}
+		params->setTexture(data->index, newValue);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<bool Core>
 	typename TMaterialParamTexture<Core>::TextureType TMaterialParamTexture<Core>::get() const
 	{
 		TextureType texture;
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return texture;
 
-		mMaterialParams->getTexture(mParamIndex, texture);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
 
+		params->getTexture(data->index, texture);
 		return texture;
 	}
 	
 	template<bool Core>
-	TMaterialParamLoadStoreTexture<Core>::TMaterialParamLoadStoreTexture(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamLoadStoreTexture<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamLoadStoreTexture<Core>::TMaterialParamLoadStoreTexture(const String& name, 
+		const MaterialPtrType& material)
+		:mParamIndex(0), mMaterial(nullptr)
 	{
-		if (params != nullptr)
+		if (material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				mMaterial = material;
+				mParamIndex = paramIndex;
 			}
 			else
 				params->reportGetParamError(result, name, 0);
@@ -195,45 +216,48 @@ namespace BansheeEngine
 	template<bool Core>
 	void TMaterialParamLoadStoreTexture<Core>::set(const TextureType& texture, const TextureSurface& surface) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
 
-		mMaterialParams->setLoadStoreTexture(mParamIndex, texture, surface);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(texture, surface);
-		}
+		params->setLoadStoreTexture(data->index, texture, surface);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<bool Core>
 	typename TMaterialParamLoadStoreTexture<Core>::TextureType TMaterialParamLoadStoreTexture<Core>::get() const
 	{
 		TextureType texture;
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return texture;
 
 		TextureSurface surface;
-		mMaterialParams->getLoadStoreTexture(mParamIndex, texture, surface);
+
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		params->getLoadStoreTexture(data->index, texture, surface);
 
 		return texture;
 	}
 	
 	template<bool Core>
-	TMaterialParamBuffer<Core>::TMaterialParamBuffer(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamBuffer<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamBuffer<Core>::TMaterialParamBuffer(const String& name, const MaterialPtrType& material)
+		:mParamIndex(0), mMaterial(nullptr)
 	{
-		if (params != nullptr)
+		if (material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				mMaterial = material;
+				mParamIndex = paramIndex;
 			}
 			else
 				params->reportGetParamError(result, name, 0);
@@ -243,44 +267,46 @@ namespace BansheeEngine
 	template<bool Core>
 	void TMaterialParamBuffer<Core>::set(const BufferType& buffer) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
 
-		mMaterialParams->setBuffer(mParamIndex, buffer);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(buffer);
-		}
+		params->setBuffer(data->index, buffer);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<bool Core>
 	typename TMaterialParamBuffer<Core>::BufferType TMaterialParamBuffer<Core>::get() const
 	{
 		BufferType buffer;
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return buffer;
 
-		mMaterialParams->getBuffer(mParamIndex, buffer);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		params->getBuffer(data->index, buffer);
 
 		return buffer;
 	}
 
 	template<bool Core>
-	TMaterialParamSampState<Core>::TMaterialParamSampState(const String& name, const SPtr<MaterialParamsType>& params,
-		const SPtr<Vector<TGpuParamSampState<Core>>>& gpuParams)
-		:mParamIndex(0), mMaterialParams(nullptr), mGPUParams(gpuParams)
+	TMaterialParamSampState<Core>::TMaterialParamSampState(const String& name, const MaterialPtrType& material)
+		:mParamIndex(0), mMaterial(nullptr)
 	{
-		if (params != nullptr)
+		if (material != nullptr)
 		{
-			const MaterialParams::ParamData* data = nullptr;
-			auto result = params->getParamData(name, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 0, &data);
+			SPtr<MaterialParamsType> params = material->_getInternalParams();
+
+			UINT32 paramIndex;
+			auto result = params->getParamIndex(name, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				mMaterialParams = params;
-				mParamIndex = data->index;
+				mMaterial = material;
+				mParamIndex = paramIndex;
 			}
 			else
 				params->reportGetParamError(result, name, 0);
@@ -290,31 +316,33 @@ namespace BansheeEngine
 	template<bool Core>
 	void TMaterialParamSampState<Core>::set(const SamplerStateType& sampState) const
 	{
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return;
+
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		data->dirtyFlags = 0xFFFFFFFF;
 
 		// If there is a default value, assign that instead of null
 		SamplerStateType newValue = sampState;
 		if (newValue == nullptr)
-			mMaterialParams->getDefaultSamplerState(mParamIndex, newValue);
+			params->getDefaultSamplerState(data->index, newValue);
 
-		mMaterialParams->setSamplerState(mParamIndex, newValue);
-
-		if (mGPUParams != nullptr)
-		{
-			for (auto& param : *mGPUParams)
-				param.set(newValue);
-		}
+		params->setSamplerState(data->index, newValue);
+		mMaterial->_markCoreDirty();
 	}
 
 	template<bool Core>
 	typename TMaterialParamSampState<Core>::SamplerStateType TMaterialParamSampState<Core>::get() const
 	{
 		SamplerStateType samplerState;
-		if (mMaterialParams == nullptr)
+		if (mMaterial == nullptr)
 			return samplerState;
 
-		mMaterialParams->getSamplerState(mParamIndex, samplerState);
+		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
+		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+
+		params->getSamplerState(data->index, samplerState);
 		return samplerState;
 	}
 

@@ -197,6 +197,7 @@ namespace BansheeEngine
 	{
 		mCamera = camera;
 		mGridMaterial = material;
+		mMaterialParams = material->createParamsSet();
 
 		mViewProjParam = mGridMaterial->getParamMat4("matViewProj");
 		mWorldCameraPosParam = mGridMaterial->getParamVec4("worldCameraPos");
@@ -246,7 +247,10 @@ namespace BansheeEngine
 			mGridFadeOutEndParam.set(1500.0f);
 		}
 
+		mGridMaterial->updateParamsSet(mMaterialParams);
+
 		gRendererUtility().setPass(mGridMaterial, 0);
+		gRendererUtility().setPassParams(mMaterialParams);
 		gRendererUtility().draw(mGridMesh, mGridMesh->getProperties().getSubMesh(0));
 	}
 }

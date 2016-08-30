@@ -186,6 +186,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetCollisionMeshType", &ScriptMeshImportOptions::internal_SetCollisionMeshType);
 		metaData.scriptClass->addInternalCall("Internal_GetAnimationClipSplits", &ScriptMeshImportOptions::internal_GetAnimationClipSplits);
 		metaData.scriptClass->addInternalCall("Internal_SetAnimationClipSplits", &ScriptMeshImportOptions::internal_SetAnimationClipSplits);
+		metaData.scriptClass->addInternalCall("Internal_GetAnimationEvents", &ScriptMeshImportOptions::internal_GetAnimationEvents);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimationEvents", &ScriptMeshImportOptions::internal_SetAnimationEvents);
 	}
 
 	SPtr<MeshImportOptions> ScriptMeshImportOptions::getMeshImportOptions()
@@ -317,14 +319,25 @@ namespace BansheeEngine
 
 	void ScriptMeshImportOptions::internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value)
 	{
-		ScriptArray inputArray(value);
-
 		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		if(value == nullptr)
+		{
+			io->setAnimationClipSplits({});
+			return;
+		}
+
+		ScriptArray inputArray(value);
 
 		UINT32 numSplits = inputArray.size();
 		Vector<AnimationSplitInfo> splitInfos(numSplits);
 		for (UINT32 i = 0; i < numSplits; i++)
-			splitInfos[i] = ScriptAnimationSplitInfo::fromManaged(inputArray.get<MonoObject*>(i));
+		{
+			MonoObject* monoSplitInfo = inputArray.get<MonoObject*>(i);
+
+			if(monoSplitInfo != nullptr)
+				splitInfos[i] = ScriptAnimationSplitInfo::fromManaged(monoSplitInfo);
+		}
 
 		io->setAnimationClipSplits(splitInfos);
 	}
@@ -672,7 +685,7 @@ namespace BansheeEngine
 		bool isAdditive = splitInfo.isAdditive;
 
 		void* params[4] = { monoString, &startFrame, &endFrame, &isAdditive };
-		return metaData.scriptClass->createInstance("string, int, int, bool", params);
+		return metaData.scriptClass->createInstance("string,int,int,bool", params);
 	}
 
 	MonoField* ScriptImportedAnimationEvents::nameField = nullptr;

@@ -155,7 +155,7 @@ namespace BansheeEngine
 		for(UINT32 i = 0; i < mNumBones; i++)
 		{
 			localPose.positions[i] = Vector3::ZERO;
-			localPose.rotations[i] = Quaternion::IDENTITY;
+			localPose.rotations[i] = Quaternion::ZERO;
 			localPose.scales[i] = Vector3::ONE;
 		}
 
@@ -223,6 +223,10 @@ namespace BansheeEngine
 						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
 						if (mapping.rotation != (UINT32)-1)
 						{
+							bool isAssigned = localPose.rotations[k].w != 0.0f;
+							if (!isAssigned)
+								localPose.rotations[k] = Quaternion::IDENTITY;
+
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
 
 							Quaternion value = curve.evaluate(state.time, state.rotationCaches[k], state.loop);
@@ -243,7 +247,12 @@ namespace BansheeEngine
 						if (mapping.rotation != (UINT32)-1)
 						{
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
-							localPose.rotations[k] += curve.evaluate(state.time, state.rotationCaches[k], state.loop) * normWeight;
+							Quaternion value = curve.evaluate(state.time, state.rotationCaches[k], state.loop) * normWeight;
+
+							if (value.dot(localPose.rotations[k]) < 0.0f)
+								value = -value;
+							
+							localPose.rotations[k] += value;
 						}
 					}
 				}
@@ -253,10 +262,13 @@ namespace BansheeEngine
 		// Calculate local pose matrices
 		for(UINT32 i = 0; i < mNumBones; i++)
 		{
-			localPose.rotations[i].normalize();
+			bool isAssigned = localPose.rotations[i].w != 0.0f;
+			if (!isAssigned)
+				localPose.rotations[i] = Quaternion::IDENTITY;
+			else
+				localPose.rotations[i].normalize();
 
 			pose[i] = Matrix4::TRS(localPose.positions[i], localPose.rotations[i], localPose.scales[i]);
-			pose[i] = pose[i] * mInvBindPoses[i];
 		}
 
 		// Calculate global poses
@@ -285,6 +297,9 @@ namespace BansheeEngine
 			if (!isGlobal[i])
 				calcGlobal(i);
 		}
+
+		for (UINT32 i = 0; i < mNumBones; i++)
+			pose[i] = pose[i] * mInvBindPoses[i];
 
 		bs_stack_free(isGlobal);
 	}

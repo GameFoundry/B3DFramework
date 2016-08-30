@@ -14,7 +14,7 @@ Blocks =
 	Block Input;
 };
 
-Technique =
+Technique : inherits("PPTonemapCommon") =
 {
 	Language = "HLSL11";
 	
@@ -100,7 +100,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("PPTonemapCommon") =
 {
 	Language = "GLSL";
 	

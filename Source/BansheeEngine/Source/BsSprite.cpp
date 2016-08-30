@@ -330,8 +330,8 @@ namespace BansheeEngine
 		{
 			Plane(Vector3(1.0f, 0.0f, 0.0f), (float)clipRect.x),
 			Plane(Vector3(-1.0f, 0.0f, 0.0f), (float)-(clipRect.x + clipRect.width)),
-			Plane(Vector3(0, 1.0f, 0), (float)(clipRect.y + clipRect.height)),
-			Plane(Vector3(0.0f, -1.0f, 0.0f), (float)-clipRect.y)
+			Plane(Vector3(0.0f, 1.0f, 0.0f), (float)clipRect.y),
+			Plane(Vector3(0.0f, -1.0f, 0.0f), (float)-(clipRect.y + clipRect.height))
 		};
 
 		MeshUtility::clip2D(vertices, uv, numTris, vertStride, clipPlanes, writeCallback);

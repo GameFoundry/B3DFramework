@@ -10,7 +10,7 @@
 namespace BansheeEngine
 {
 	MonoProperty::MonoProperty(::MonoProperty* monoProp)
-		:mProperty(monoProp), mGetReturnType(nullptr), mIsIndexed(false), mIsFullyInitialized(false)
+		:mProperty(monoProp), mReturnType(nullptr), mIsIndexed(false), mIsFullyInitialized(false)
 	{
 		mGetMethod = mono_property_get_get_method(mProperty);
 		mSetMethod = mono_property_get_set_method(mProperty);
@@ -64,7 +64,7 @@ namespace BansheeEngine
 		if (!mIsFullyInitialized)
 			initializeDeferred();
 
-		return mGetReturnType;
+		return mReturnType;
 	}
 
 	bool MonoProperty::hasAttribute(MonoClass* monoClass)
@@ -132,7 +132,7 @@ namespace BansheeEngine
 			{
 				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
 				if (returnClass != nullptr)
-					mGetReturnType = MonoManager::instance().findClass(returnClass);
+					mReturnType = MonoManager::instance().findClass(returnClass);
 			}
 
 			UINT32 numParams = mono_signature_get_param_count(signature);
@@ -141,6 +141,14 @@ namespace BansheeEngine
 		else if(mSetMethod != nullptr)
 		{
 			MonoMethodSignature* signature = mono_method_signature(mSetMethod);
+
+			MonoType* returnType = mono_signature_get_return_type(signature);
+			if (returnType != nullptr)
+			{
+				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
+				if (returnClass != nullptr)
+					mReturnType = MonoManager::instance().findClass(returnClass);
+			}
 
 			UINT32 numParams = mono_signature_get_param_count(signature);
 			mIsIndexed = numParams == 2;

@@ -3,10 +3,10 @@ Parameters =
 	StructBuffer boneMatrices : auto("BoneMatrices");
 };
 
-Technique =
+Technique : base("SkinnedVertexInput") =
 {
 	Language = "HLSL11";
-	
+
 	Pass =
 	{
 		Common = 
@@ -130,7 +130,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("SkinnedVertexInput") =
 {
 	Language = "GLSL";
 	

@@ -5,6 +5,7 @@
 #include "BsAnimationClip.h"
 #include "BsTaskScheduler.h"
 #include "BsTime.h"
+#include "BsCoreSceneManager.h"
 
 namespace BansheeEngine
 {
@@ -49,7 +50,7 @@ namespace BansheeEngine
 		mWorkerRunning = false;
 	}
 
-	void AnimationManager::postUpdate()
+	void AnimationManager::postUpdate(const Vector<ConvexVolume>& cullFrustums)
 	{
 		if (mPaused)
 			return;
@@ -72,6 +73,8 @@ namespace BansheeEngine
 			anim.second->updateAnimProxy(timeDelta);
 			mProxies.push_back(anim.second->mAnimProxy);
 		}
+
+		mCullFrustums = cullFrustums;
 
 		// Make sure thread finishes writing all changes to the anim proxies as they will be read by the animation thread
 		std::atomic_thread_fence(std::memory_order_release);
@@ -108,6 +111,22 @@ namespace BansheeEngine
 		UINT32 curBoneIdx = 0;
 		for(auto& anim : mProxies)
 		{
+			if(anim->mCullEnabled)
+			{
+				bool isVisible = false;
+				for(auto& frustum : mCullFrustums)
+				{
+					if(frustum.intersects(anim->mBounds))
+					{
+						isVisible = true;
+						break;
+					}
+				}
+
+				if (!isVisible)
+					continue;
+			}
+
 			if (anim->skeleton != nullptr)
 			{
 				UINT32 numBones = anim->skeleton->getNumBones();
@@ -139,6 +158,14 @@ namespace BansheeEngine
 				curBoneIdx += numBones;
 			}
 
+			// Reset mapped SO transform
+			for (UINT32 i = 0; i < anim->sceneObjectPose.numBones; i++)
+			{
+				anim->sceneObjectPose.positions[i] = Vector3::ZERO;
+				anim->sceneObjectPose.rotations[i] = Quaternion::IDENTITY;
+				anim->sceneObjectPose.scales[i] = Vector3::ONE;
+			}
+
 			// Update mapped scene objects
 			for(UINT32 i = 0; i < anim->numSceneObjects; i++)
 			{
@@ -159,8 +186,6 @@ namespace BansheeEngine
 						const TAnimationCurve<Vector3>& curve = state.curves->position[curveIdx].curve;
 						anim->sceneObjectPose.positions[curveIdx] = curve.evaluate(state.time, state.positionCaches[curveIdx], state.loop);
 					}
-					else
-						anim->sceneObjectPose.positions[curveIdx] = Vector3::ZERO;
 				}
 
 				{
@@ -169,9 +194,8 @@ namespace BansheeEngine
 					{
 						const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
 						anim->sceneObjectPose.rotations[curveIdx] = curve.evaluate(state.time, state.rotationCaches[curveIdx], state.loop);
+						anim->sceneObjectPose.rotations[curveIdx].normalize();
 					}
-					else
-						anim->sceneObjectPose.rotations[curveIdx] = Quaternion::ZERO;
 				}
 
 				{
@@ -181,8 +205,6 @@ namespace BansheeEngine
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[curveIdx].curve;
 						anim->sceneObjectPose.scales[curveIdx] = curve.evaluate(state.time, state.scaleCaches[curveIdx], state.loop);
 					}
-					else
-						anim->sceneObjectPose.scales[curveIdx] = Vector3::ONE;
 				}
 			}
 

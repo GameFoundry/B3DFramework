@@ -52,6 +52,7 @@
     <Compile Include="Utility\SerializedObject.cs" />
     <Compile Include="Windows\AboutBox.cs" />
     <Compile Include="Windows\AnimationWindow.cs" />
+    <Compile Include="Windows\Animation\AnimationGizmo.cs" />
     <Compile Include="Windows\Animation\EditorAnimInfo.cs" />
     <Compile Include="Windows\Animation\FieldSelectionWindow.cs" />
     <Compile Include="Windows\Animation\GUIAnimEvents.cs" />

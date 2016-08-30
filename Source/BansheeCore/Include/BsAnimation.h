@@ -8,6 +8,7 @@
 #include "BsSkeleton.h"
 #include "BsSkeletonMask.h"
 #include "BsVector2.h"
+#include "BsAABox.h"
 
 namespace BansheeEngine
 {
@@ -28,7 +29,8 @@ namespace BansheeEngine
 		Clean = 0,
 		Value = 1 << 0,
 		Layout = 1 << 1,
-		Skeleton = 1 << 2
+		Skeleton = 1 << 2,
+		Culling = 1 << 3
 	};
 
 	typedef Flags<AnimDirtyStateFlag> AnimDirtyState;
@@ -195,6 +197,10 @@ namespace BansheeEngine
 		AnimatedSceneObjectInfo* sceneObjectInfos;
 		Matrix4* sceneObjectTransforms;
 
+		// Culling
+		AABox mBounds;
+		bool mCullEnabled;
+
 		// Evaluation results
 		LocalSkeletonPose skeletonPose;
 		LocalSkeletonPose sceneObjectPose;
@@ -235,6 +241,15 @@ namespace BansheeEngine
 
 		/** Changes the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse. */
 		void setSpeed(float speed);
+
+		/** Sets bounds that will be used for animation culling, if enabled. Bounds must be in world space. */
+		void setBounds(const AABox& bounds);
+
+		/** 
+		 * When enabled, animation that is not in a view of any camera will not be evaluated. View determination is done by
+		 * checking the bounds provided in setBounds().
+		 */
+		void setCulling(bool cull);
 
 		/** 
 		 * Plays the specified animation clip. 
@@ -411,6 +426,8 @@ namespace BansheeEngine
 		UINT64 mId;
 		AnimWrapMode mDefaultWrapMode;
 		float mDefaultSpeed;
+		AABox mBounds;
+		bool mCull;
 		AnimDirtyState mDirty;
 
 		SPtr<Skeleton> mSkeleton;

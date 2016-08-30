@@ -170,6 +170,17 @@ namespace BansheeEngine
 			obj->mSamplerStateParams = obj->mAlloc.construct<MaterialParamSamplerStateData>(size);
 		}
 
+		UINT32& getNumBufferParams(MaterialParams* obj)
+		{
+			return obj->mNumBufferParams;
+		}
+
+		void setNumBufferParams(MaterialParams* obj, UINT32& value)
+		{
+			obj->mNumBufferParams = value;
+			obj->mBufferParams = obj->mAlloc.construct<MaterialParamBufferData>(value);
+		}
+
 		MaterialParamsRTTI()
 		{
 			addPlainArrayField("paramData", 0, &MaterialParamsRTTI::getParamData, &MaterialParamsRTTI::getParamDataArraySize, 
@@ -185,6 +196,8 @@ namespace BansheeEngine
 
 			addReflectablePtrArrayField("samplerStateParams", 4, &MaterialParamsRTTI::getSamplerStateParam,
 				&MaterialParamsRTTI::getSamplerStateArraySize, &MaterialParamsRTTI::setSamplerStateParam, &MaterialParamsRTTI::setSamplerStateArraySize);
+
+			addPlainField("numBufferParams", 5, &MaterialParamsRTTI::getNumBufferParams, &MaterialParamsRTTI::setNumBufferParams);
 		}
 
 		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override

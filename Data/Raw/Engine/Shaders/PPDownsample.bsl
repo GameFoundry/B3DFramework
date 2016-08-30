@@ -12,7 +12,7 @@ Blocks =
 	Block Input;
 };
 
-Technique =
+Technique : inherits("PPBase") =
 {
 	Language = "HLSL11";
 	
@@ -51,7 +51,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : inherits("PPBase") =
 {
 	Language = "GLSL";
 	

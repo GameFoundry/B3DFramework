@@ -82,12 +82,13 @@ namespace BansheeEngine
 
 	AnimationClip::AnimationClip()
 		: Resource(false), mVersion(0), mCurves(bs_shared_ptr_new<AnimationCurves>()), mIsAdditive(false), mLength(0.0f)
+		, mSampleRate(1)
 	{
 
 	}
 
-	AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive)
-		: Resource(false), mVersion(0), mCurves(curves), mIsAdditive(isAdditive), mLength(0.0f)
+	AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate)
+		: Resource(false), mVersion(0), mCurves(curves), mIsAdditive(isAdditive), mLength(0.0f), mSampleRate(sampleRate)
 	{
 		buildNameMapping();
 		calculateLength();
@@ -95,12 +96,12 @@ namespace BansheeEngine
 
 	HAnimationClip AnimationClip::create(bool isAdditive)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(nullptr, isAdditive)));
+		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
 	}
 
-	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves, bool isAdditive)
+	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(curves, isAdditive)));
+		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(_createPtr(curves, isAdditive, sampleRate)));
 	}
 
 	SPtr<AnimationClip> AnimationClip::createEmpty()
@@ -113,9 +114,9 @@ namespace BansheeEngine
 		return newClip;
 	}
 
-	SPtr<AnimationClip> AnimationClip::_createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive)
+	SPtr<AnimationClip> AnimationClip::_createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate)
 	{
-		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip(curves, isAdditive);
+		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate);
 
 		SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
 		newClip->_setThisPtr(newClip);

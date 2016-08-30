@@ -103,12 +103,13 @@ namespace BansheeEngine
 		virtual void initialize();
 
 		/** Destroys the core thread material. */
-		static void destroy(const SPtr<MaterialCore>& material);
+		static void destroy(const SPtr<MaterialCore>& material, const SPtr<GpuParamsSetCore>& params);
 
 		UINT32 mId;
 
 		// Core thread only (everything below)
 		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParams;
 		mutable MaterialParamMat4Core mWorldTransformParam;
 		mutable MaterialParamFloatCore mInvViewportWidthParam;
 		mutable MaterialParamFloatCore mInvViewportHeightParam;

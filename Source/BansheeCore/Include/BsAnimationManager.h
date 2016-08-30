@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsModule.h"
 #include "BsCoreThread.h"
+#include "BsConvexVolume.h"
 
 namespace BansheeEngine
 {
@@ -62,7 +63,7 @@ namespace BansheeEngine
 		 * Synchronizes animation data to the animation thread, advances animation time and queues new animation evaluation
 		 * task.
 		 */
-		void postUpdate();
+		void postUpdate(const Vector<ConvexVolume>& cullFrustums);
 
 		/** 
 		 * Gets skeleton poses required by the renderer to display all the animations. This will block the animation thread
@@ -102,6 +103,7 @@ namespace BansheeEngine
 
 		// Animation thread
 		Vector<SPtr<AnimationProxy>> mProxies;
+		Vector<ConvexVolume> mCullFrustums;
 		RendererAnimationData mAnimData[CoreThread::NUM_SYNC_BUFFERS];
 
 		UINT32 mPoseReadBufferIdx;

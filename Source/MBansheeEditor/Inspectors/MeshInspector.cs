@@ -28,6 +28,7 @@ namespace BansheeEditor
         private GUIButton reimportButton;
 
         private MeshImportOptions importOptions;
+        private AnimationSplitInfo[] splitInfos;
 
         /// <inheritdoc/>
         protected internal override void Initialize()
@@ -60,7 +61,9 @@ namespace BansheeEditor
             if (rebuildGUI)
                 BuildGUI();
 
-            animSplitInfoField.Refresh();
+            InspectableState splitInfosModified = animSplitInfoField.Refresh();
+            if (splitInfosModified == InspectableState.Modified)
+                newImportOptions.AnimationClipSplits = splitInfos;
 
             normalsField.Value = newImportOptions.ImportNormals;
             tangentsField.Value = newImportOptions.ImportTangents;
@@ -117,9 +120,11 @@ namespace BansheeEditor
             Layout.AddElement(collisionMeshTypeField);
             Layout.AddElement(keyFrameReductionField);
 
+            splitInfos = importOptions.AnimationClipSplits;
+
             animSplitInfoField = GUIArrayField<AnimationSplitInfo, AnimSplitArrayRow>.Create(
-                new LocEdString("Animation splits"), importOptions.AnimationClipSplits, Layout);
-            animSplitInfoField.OnChanged += x => importOptions.AnimationClipSplits = x;
+                new LocEdString("Animation splits"), splitInfos, Layout);
+            animSplitInfoField.OnChanged += x => { splitInfos = x; importOptions.AnimationClipSplits = x; };
             animSplitInfoField.IsExpanded = Persistent.GetBool("animSplitInfos_Expanded");
             animSplitInfoField.OnExpand += x => Persistent.SetBool("animSplitInfos_Expanded", x);
 
@@ -185,18 +190,26 @@ namespace BansheeEditor
             protected override GUILayoutX CreateGUI(GUILayoutY layout)
             {
                 GUILayoutX titleLayout = layout.AddLayoutX();
-                nameField = new GUITextField(new LocEdString("Name"));
-                startFrameField = new GUIIntField(new LocEdString("Start"));
-                endFrameField = new GUIIntField(new LocEdString("End"));
-                isAdditiveField = new GUIToggleField(new LocEdString("Is additive"));
+                GUILayoutX contentLayout = layout.AddLayoutX();
+
+                GUILabel title = new GUILabel(new LocEdString(SeqIndex + ". "));
+                nameField = new GUITextField(new LocEdString("Name"), 40, false, "", GUIOption.FixedWidth(160));
+                startFrameField = new GUIIntField(new LocEdString("Start"), 40, "", GUIOption.FixedWidth(80));
+                endFrameField = new GUIIntField(new LocEdString("End"), 40, "", GUIOption.FixedWidth(80));
+                isAdditiveField = new GUIToggleField(new LocEdString("Is additive"), 50, "", GUIOption.FixedWidth(80));
 
                 startFrameField.SetRange(0, int.MaxValue);
                 endFrameField.SetRange(0, int.MaxValue);
 
+                titleLayout.AddElement(title);
                 titleLayout.AddElement(nameField);
-                titleLayout.AddElement(startFrameField);
-                titleLayout.AddElement(endFrameField);
-                titleLayout.AddElement(isAdditiveField);
+                titleLayout.AddFlexibleSpace();
+                contentLayout.AddSpace(10);
+                contentLayout.AddElement(startFrameField);
+                contentLayout.AddSpace(5);
+                contentLayout.AddElement(endFrameField);
+                contentLayout.AddSpace(5);
+                contentLayout.AddElement(isAdditiveField);
 
                 nameField.OnChanged += x =>
                 {
@@ -247,10 +260,14 @@ namespace BansheeEditor
             protected internal override InspectableState Refresh()
             {
                 AnimationSplitInfo splitInfo = GetValue<AnimationSplitInfo>();
-                nameField.Value = splitInfo.name;
-                startFrameField.Value = splitInfo.startFrame;
-                endFrameField.Value = splitInfo.endFrame;
-                isAdditiveField.Value = splitInfo.isAdditive;
+
+                if (splitInfo != null)
+                {
+                    nameField.Value = splitInfo.name;
+                    startFrameField.Value = splitInfo.startFrame;
+                    endFrameField.Value = splitInfo.endFrame;
+                    isAdditiveField.Value = splitInfo.isAdditive;
+                }
 
                 return base.Refresh();
             }

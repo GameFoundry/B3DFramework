@@ -5,7 +5,7 @@ Parameters =
 	float4		colorIndex;	
 };
 
-Technique =
+Technique : base("PickingCull") =
 {
 	Language = "HLSL11";
 	
@@ -45,7 +45,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PickingCull") =
 {
 	Language = "HLSL9";
 	
@@ -77,7 +77,7 @@ Technique =
 	};
 };
 
-Technique =
+Technique : base("PickingCull") =
 {
 	Language = "GLSL";
 	

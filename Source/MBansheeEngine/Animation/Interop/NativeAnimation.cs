@@ -28,6 +28,16 @@ namespace BansheeEngine
             get { return Internal_GetNumClips(mCachedPtr); }
         }
 
+        public AABox Bounds
+        {
+            set { Internal_SetBounds(mCachedPtr, ref value); }
+        }
+
+        public bool Cull
+        {
+            set { Internal_SetCull(mCachedPtr, value); }
+        }
+
         public Action<AnimationClip, string> OnEventTriggered;
 
         public void Play(AnimationClip clip)
@@ -118,7 +128,7 @@ namespace BansheeEngine
 
         public void MapCurveToSceneObject(string curve, SceneObject sceneObject)
         {
-            if (string.IsNullOrEmpty(curve) || sceneObject == null)
+            if (curve == null || sceneObject == null)
                 return;
 
             Internal_MapCurveToSceneObject(mCachedPtr, curve, sceneObject.GetCachedPtr());
@@ -204,6 +214,12 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_UnmapSceneObject(IntPtr thisPtr, IntPtr sceneObjectPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetBounds(IntPtr thisPtr, ref AABox bounds);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetCull(IntPtr thisPtr, bool cull);
     }
 
     /** @endcond */

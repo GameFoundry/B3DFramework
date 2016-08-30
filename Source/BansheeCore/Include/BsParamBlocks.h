@@ -34,7 +34,7 @@ namespace BansheeEngine
 			for (auto& param : params)																						\
 				paramsDesc->params[param.name] = param;																		\
 																															\
-			mParams = GpuParamsCore::create(paramsDesc, rapi.getAPIInfo().getGpuProgramHasColumnMajorMatrices());			\
+			mParams = GpuParamsCore::create(paramsDesc);																	\
 																															\
 			mBuffer = GpuParamBlockBufferCore::create(mBlockDesc.blockSize * sizeof(UINT32));								\
 			mParams->setParamBlockBuffer(#Name, mBuffer);																	\
