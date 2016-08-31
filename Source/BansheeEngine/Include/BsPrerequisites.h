@@ -179,9 +179,7 @@ namespace BansheeEngine
 	class ProfilerOverlay;
 	class ProfilerOverlayInternal;
 	class DrawHelper;
-	class Camera;
 	class Renderable;
-	class CameraCore;
 	class RenderableCore;
 	class PlainText;
 	class ScriptCode;
@@ -197,13 +195,11 @@ namespace BansheeEngine
 
 	// Components
 	class CRenderable;
-	class CCamera;
 	class CLight;
 	class CAnimation;
 	class CBone;
 
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
-	typedef GameObjectHandle<CCamera> HCamera;
 	typedef GameObjectHandle<CRenderable> HRenderable;
 	typedef GameObjectHandle<CAnimation> HAnimation;
 	typedef GameObjectHandle<CBone> HBone;
@@ -217,10 +213,10 @@ namespace BansheeEngine
 	/**	RTTI types. */
 	enum TypeID_Banshee
 	{
-		TID_CCamera = 30000,
+		/* TID_CCamera = 30000, */
 		TID_CRenderable = 30001,
 		TID_SpriteTexture = 30002,
-		TID_Camera = 30003,
+		/* TID_Camera = 30003, */
 		TID_Renderable = 30004,
 		TID_PlainText = 30005,
 		TID_ScriptCode = 30006,
@@ -231,6 +227,11 @@ namespace BansheeEngine
 		TID_Light = 30011,
 		TID_CLight = 30012,
 		TID_GameSettings = 30013,
-		TID_ResourceMapping = 30014
+		TID_ResourceMapping = 30014,
+		TID_StandardPostProcessSettings = 30015,
+		TID_AutoExposureSettings = 30016,
+		TID_TonemappingSettings = 30017,
+		TID_WhiteBalanceSettings = 30018,
+		TID_ColorGradingSettings = 30019
 	};
 }

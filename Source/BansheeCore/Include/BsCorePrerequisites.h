@@ -365,6 +365,7 @@ namespace BansheeEngine
 	class AudioSource;
 	class AudioClipImportOptions;
 	class AnimationClip;
+	class CCamera;
 	template <class T> class TAnimationCurve;
 	struct AnimationCurves;
 	class Skeleton;
@@ -372,6 +373,8 @@ namespace BansheeEngine
 	class GpuParamsSet;
 	class GpuParamsSetCore;
 	class MaterialParamsCore;
+	class Camera;
+	class CameraCore;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -534,7 +537,12 @@ namespace BansheeEngine
 		TID_AnimationEvent = 1123,
 		TID_ImportedAnimationEvents = 1124,
 		TID_CBone = 1125,
-		TID_MaterialParamData = 1126
+		TID_MaterialParamData = 1126,
+		TID_PostProcessSettings = 1127,
+
+		// Moved from Engine layer
+		TID_CCamera = 30000,
+		TID_Camera = 30003,
 	};
 }
 
@@ -579,6 +587,7 @@ namespace BansheeEngine
 	typedef GameObjectHandle<GameObject> HGameObject;
 	typedef GameObjectHandle<SceneObject> HSceneObject;
 	typedef GameObjectHandle<Component> HComponent;
+	typedef GameObjectHandle<CCamera> HCamera;
 	typedef GameObjectHandle<CRigidbody> HRigidbody;
 	typedef GameObjectHandle<CCollider> HCollider;
 	typedef GameObjectHandle<CBoxCollider> HBoxCollider;

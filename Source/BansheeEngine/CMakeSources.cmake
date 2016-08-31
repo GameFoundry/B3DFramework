@@ -1,5 +1,4 @@
 set(BS_BANSHEEENGINE_INC_COMPONENTS
-	"Include/BsCCamera.h"
 	"Include/BsCRenderable.h"
 	"Include/BsCLight.h"
 	"Include/BsCAnimation.h"
@@ -89,7 +88,6 @@ set(BS_BANSHEEENGINE_INC_PLATFORM
 )
 
 set(BS_BANSHEEENGINE_INC_RENDERER
-	"Include/BsCamera.h"
 	"Include/BsLight.h"
 	"Include/BsRenderable.h"
 	"Include/BsRenderableElement.h"
@@ -99,7 +97,7 @@ set(BS_BANSHEEENGINE_INC_RENDERER
 	"Include/BsRenderQueue.h"
 	"Include/BsSceneManager.h"
 	"Include/BsRendererUtility.h"
-	"Include/BsPostProcessSettings.h"	
+	"Include/BsStandardPostProcessSettings.h"	
 )
 
 set(BS_BANSHEEENGINE_SRC_RTTI
@@ -143,10 +141,8 @@ set(BS_BANSHEEENGINE_INC_RTTI
 	"Include/BsGUIElementStyleRTTI.h"
 	"Include/BsGUISkinRTTI.h"
 	"Include/BsProfilerOverlayRTTI.h"
-	"Include/BsCCameraRTTI.h"
 	"Include/BsCRenderableRTTI.h"
 	"Include/BsCLightRTTI.h"
-	"Include/BsCameraRTTI.h"
 	"Include/BsRenderableRTTI.h"
 	"Include/BsLightRTTI.h"
 	"Include/BsCGUIWidgetRTTI.h"
@@ -154,6 +150,7 @@ set(BS_BANSHEEENGINE_INC_RTTI
 	"Include/BsResourceMappingRTTI.h"
 	"Include/BsCAnimationRTTI.h"
 	"Include/BsCBoneRTTI.h"
+	"Include/BsStandardPostProcessSettingsRTTI.h"
 )
 
 set(BS_BANSHEEENGINE_INC_NOFILTER
@@ -173,7 +170,6 @@ set(BS_BANSHEEENGINE_INC_RESOURCES
 )
 
 set(BS_BANSHEEENGINE_SRC_COMPONENTS
-	"Source/BsCCamera.cpp"
 	"Source/BsCRenderable.cpp"
 	"Source/BsCLight.cpp"
 	"Source/BsCAnimation.cpp"
@@ -196,7 +192,6 @@ set(BS_BANSHEEENGINE_INC_UTILITY
 )
 
 set(BS_BANSHEEENGINE_SRC_RENDERER
-	"Source/BsCamera.cpp"
 	"Source/BsLight.cpp"
 	"Source/BsRenderable.cpp"
 	"Source/BsRenderer.cpp"
@@ -205,7 +200,7 @@ set(BS_BANSHEEENGINE_SRC_RENDERER
 	"Source/BsRenderQueue.cpp"
 	"Source/BsSceneManager.cpp"
 	"Source/BsRendererUtility.cpp"
-	"Source/BsPostProcessSettings.cpp"	
+	"Source/BsStandardPostProcessSettings.cpp"	
 )
 
 set(BS_BANSHEEENGINE_SRC_INPUT

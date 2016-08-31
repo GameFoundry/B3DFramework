@@ -3,7 +3,7 @@
 #include "BsCCamera.h"
 #include "BsCCameraRTTI.h"
 #include "BsSceneObject.h"
-#include "BsSceneManager.h"
+#include "BsCoreSceneManager.h"
 
 namespace BansheeEngine 
 {
@@ -50,7 +50,7 @@ namespace BansheeEngine
 	{
 		mInternal->setMain(main);
 
-		gSceneManager()._notifyMainCameraStateChanged(mInternal);
+		gCoreSceneManager()._notifyMainCameraStateChanged(mInternal);
 	}
 
 	void CCamera::update() 
@@ -70,12 +70,12 @@ namespace BansheeEngine
 			mTarget = nullptr;
 		}
 
-		gSceneManager()._registerCamera(mInternal, SO());
+		gCoreSceneManager()._registerCamera(mInternal, SO());
 	}
 
 	void CCamera::onDestroyed()
 	{
-		gSceneManager()._unregisterCamera(mInternal);
+		gCoreSceneManager()._unregisterCamera(mInternal);
 	}
 
 	RTTITypeBase* CCamera::getRTTIStatic()

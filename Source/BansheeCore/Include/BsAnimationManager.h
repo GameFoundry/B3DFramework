@@ -63,7 +63,7 @@ namespace BansheeEngine
 		 * Synchronizes animation data to the animation thread, advances animation time and queues new animation evaluation
 		 * task.
 		 */
-		void postUpdate(const Vector<ConvexVolume>& cullFrustums);
+		void postUpdate();
 
 		/** 
 		 * Gets skeleton poses required by the renderer to display all the animations. This will block the animation thread

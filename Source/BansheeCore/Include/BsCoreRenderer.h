@@ -8,6 +8,8 @@
 
 namespace BansheeEngine
 {
+	struct PostProcessSettings;
+
 	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
@@ -134,6 +136,9 @@ namespace BansheeEngine
 
 		/**	Returns current set of options used for controlling the rendering. */
 		virtual SPtr<CoreRendererOptions> getOptions() const { return SPtr<CoreRendererOptions>(); }
+
+		/** Creates post process settings that can be attached to a camera and processed by the active renderer. */
+		virtual SPtr<PostProcessSettings> createPostProcessSettings() const = 0;
 
 	protected:
 		/**	Contains information about a render callback. */

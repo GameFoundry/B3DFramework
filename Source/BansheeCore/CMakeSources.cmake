@@ -16,6 +16,7 @@ set(BS_BANSHEECORE_INC_COMPONENTS
 	"Include/BsCCharacterController.h"
 	"Include/BsCAudioSource.h"
 	"Include/BsCAudioListener.h"
+	"Include/BsCCamera.h"
 )
 
 set(BS_BANSHEECORE_INC_PHYSICS
@@ -97,6 +98,8 @@ set(BS_BANSHEECORE_INC_RENDERER
 	"Include/BsCoreRenderer.h"
 	"Include/BsRendererMeshData.h"
 	"Include/BsParamBlocks.h"
+	"Include/BsCamera.h"
+	"Include/BsPostProcessSettings.h"
 )
 
 set(BS_BANSHEECORE_SRC_LOCALIZATION
@@ -249,6 +252,7 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCCharacterController.cpp"
 	"Source/BsCAudioSource.cpp"
 	"Source/BsCAudioListener.cpp"
+	"Source/BsCCamera.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM
@@ -341,12 +345,17 @@ set(BS_BANSHEECORE_INC_RTTI
 	"Include/BsAnimationClipRTTI.h"
 	"Include/BsAnimationCurveRTTI.h"
 	"Include/BsSkeletonRTTI.h"
+	"Include/BsCCameraRTTI.h"
+	"Include/BsCameraRTTI.h"
+	"Include/BsPostProcessSettingsRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER
 	"Source/BsRendererManager.cpp"
 	"Source/BsCoreRenderer.cpp"
 	"Source/BsRendererMeshData.cpp"
+	"Source/BsCamera.cpp"
+	"Source/BsPostProcessSettings.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_RESOURCES

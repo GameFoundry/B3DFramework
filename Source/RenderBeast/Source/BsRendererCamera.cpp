@@ -33,7 +33,15 @@ namespace BansheeEngine
 
 	void RendererCamera::updatePP()
 	{
-		mPostProcessInfo.settings = mCamera->getPostProcessSettings();
+		if (mPostProcessInfo.settings == nullptr)
+			mPostProcessInfo.settings = bs_shared_ptr_new<StandardPostProcessSettings>();
+
+		SPtr<StandardPostProcessSettings> ppSettings = std::static_pointer_cast<StandardPostProcessSettings>(mCamera->getPostProcessSettings());
+		if (ppSettings != nullptr)
+			*mPostProcessInfo.settings = *ppSettings;
+		else
+			*mPostProcessInfo.settings = StandardPostProcessSettings();
+
 		mPostProcessInfo.settingDirty = true;
 	}
 

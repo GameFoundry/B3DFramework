@@ -24,6 +24,8 @@ namespace BansheeEngine
 		, mPriority(0), mCustomViewMatrix(false), mCustomProjMatrix(false), mMSAA(1), mFrustumExtentsManuallySet(false)
 		, mRecalcFrustum(true), mRecalcFrustumPlanes(true), mRecalcView(true)
 	{
+		mPPSettings = RendererManager::instance().getActive()->createPostProcessSettings();
+
 		mViewMatrix = Matrix4::ZERO;
 		mProjMatrixRS = Matrix4::ZERO;
 		mViewMatrixInv = Matrix4::ZERO;
@@ -760,7 +762,18 @@ namespace BansheeEngine
 			dataPtr = rttiReadElem(mCameraFlags, dataPtr);
 			dataPtr = rttiReadElem(mIsActive, dataPtr);
 			dataPtr = rttiReadElem(mMSAA, dataPtr);
-			dataPtr = rttiReadElem(mPPSettings, dataPtr);
+
+			UINT32 ppSize = 0;
+			dataPtr = rttiReadElem(ppSize, dataPtr);
+
+			if(ppSize > 0)
+			{
+				if (mPPSettings == nullptr)
+					mPPSettings = RendererManager::instance().getActive()->createPostProcessSettings();
+
+				mPPSettings->_setSyncData((UINT8*)dataPtr, ppSize);
+				dataPtr += ppSize;
+			}
 		}
 
 		RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
@@ -822,6 +835,7 @@ namespace BansheeEngine
 		size += rttiGetElemSize(mPosition);
 		size += rttiGetElemSize(mRotation);
 
+		UINT32 ppSize = 0;
 		if (dirtyFlag != (UINT32)CameraDirtyFlag::Transform)
 		{
 			size += rttiGetElemSize(mLayers);
@@ -838,7 +852,14 @@ namespace BansheeEngine
 			size += rttiGetElemSize(mCameraFlags);
 			size += rttiGetElemSize(mIsActive);
 			size += rttiGetElemSize(mMSAA);
-			size += rttiGetElemSize(mPPSettings);
+
+			size += sizeof(UINT32);
+
+			if(mPPSettings != nullptr)
+			{
+				mPPSettings->_getSyncData(nullptr, ppSize);
+				size += ppSize;
+			}
 		}
 
 		UINT8* buffer = allocator->alloc(size);
@@ -864,7 +885,12 @@ namespace BansheeEngine
 			dataPtr = rttiWriteElem(mCameraFlags, dataPtr);
 			dataPtr = rttiWriteElem(mIsActive, dataPtr);
 			dataPtr = rttiWriteElem(mMSAA, dataPtr);
-			dataPtr = rttiWriteElem(mPPSettings, dataPtr);
+			dataPtr = rttiWriteElem(ppSize, dataPtr);
+
+			if(mPPSettings != nullptr)
+				mPPSettings->_getSyncData((UINT8*)dataPtr, ppSize);
+
+			dataPtr += ppSize;
 		}
 
 		return CoreSyncData(buffer, size);

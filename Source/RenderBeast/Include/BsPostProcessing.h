@@ -6,7 +6,7 @@
 #include "BsRendererMaterial.h"
 #include "BsParamBlocks.h"
 #include "BsRenderTexturePool.h"
-#include "BsPostProcessSettings.h"
+#include "BsStandardPostProcessSettings.h"
 
 namespace BansheeEngine
 {
@@ -17,7 +17,7 @@ namespace BansheeEngine
 	/** Contains per-camera data used by post process effects. */
 	struct PostProcessInfo
 	{
-		PostProcessSettings settings;
+		SPtr<StandardPostProcessSettings> settings;
 		bool settingDirty = true;
 
 		SPtr<PooledRenderTexture> downsampledSceneTex;

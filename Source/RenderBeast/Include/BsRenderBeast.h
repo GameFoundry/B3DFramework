@@ -89,6 +89,9 @@ namespace BansheeEngine
 		/** @copydoc Renderer::destroy */
 		void destroy() override;
 
+		/** @copydoc Renderer::createPostProcessSettings */
+		SPtr<PostProcessSettings> createPostProcessSettings() const override;
+
 	private:
 		/** @copydoc Renderer::notifyCameraAdded */
 		void notifyCameraAdded(const CameraCore* camera) override;

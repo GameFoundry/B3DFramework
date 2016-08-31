@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "BsPostProcessSettings.h"
 #include "BsVector3.h"
 
 namespace BansheeEngine
@@ -12,7 +13,7 @@ namespace BansheeEngine
 	 */
 
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
-	struct BS_EXPORT AutoExposureSettings
+	struct BS_EXPORT AutoExposureSettings : public IReflectable
 	{
 		AutoExposureSettings();
 
@@ -73,10 +74,18 @@ namespace BansheeEngine
 		 * automatic exposure changes when the scene brightness decreases. In range [0.01f, 20.0f].
 		 */
 		float eyeAdaptationSpeedDown;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class AutoExposureSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Settings that control tonemap post-process. */
-	struct BS_EXPORT TonemappingSettings
+	struct BS_EXPORT TonemappingSettings : public IReflectable
 	{
 		TonemappingSettings();
 
@@ -112,10 +121,18 @@ namespace BansheeEngine
 
 		/** Controls the white point of the filmic curve used for tonemapping. Affects the entire curve. */
 		float filmicCurveLinearWhitePoint;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class TonemappingSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Settings that control white balance post-process. */
-	struct BS_EXPORT WhiteBalanceSettings
+	struct BS_EXPORT WhiteBalanceSettings : public IReflectable
 	{
 		WhiteBalanceSettings();
 
@@ -134,10 +151,18 @@ namespace BansheeEngine
 		 * In range [-1.0f, 1.0f].
 		 */
 		float tint;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class WhiteBalanceSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Settings that control color grading post-process. */
-	struct BS_EXPORT ColorGradingSettings
+	struct BS_EXPORT ColorGradingSettings : public IReflectable
 	{
 		ColorGradingSettings();
 
@@ -164,12 +189,20 @@ namespace BansheeEngine
 		 * In range [-1.0f, 1.0f].
 		 */
 		Vector3 offset;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class ColorGradingSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Settings that control the post-process operations. */
-	struct BS_EXPORT PostProcessSettings
+	struct BS_EXPORT StandardPostProcessSettings : public PostProcessSettings
 	{
-		PostProcessSettings();
+		StandardPostProcessSettings();
 
 		/**
 		 * Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness
@@ -229,13 +262,21 @@ namespace BansheeEngine
 		 * that curve. If tonemapping is turned off this is the exact value of the gamma curve that will be applied.
 		 */
 		float gamma;
+
+		/** @copydoc PostProcessSettings::_getSyncData */
+		void _getSyncData(UINT8* buffer, UINT32& size) override;
+
+		/** @copydoc PostProcessSettings::_setSyncData */
+		void _setSyncData(UINT8* buffer, UINT32 size) override;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class StandardPostProcessSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */
-
-	BS_ALLOW_MEMCPY_SERIALIZATION(AutoExposureSettings);
-	BS_ALLOW_MEMCPY_SERIALIZATION(WhiteBalanceSettings);
-	BS_ALLOW_MEMCPY_SERIALIZATION(ColorGradingSettings);
-	BS_ALLOW_MEMCPY_SERIALIZATION(TonemappingSettings);
-	BS_ALLOW_MEMCPY_SERIALIZATION(PostProcessSettings);
 }

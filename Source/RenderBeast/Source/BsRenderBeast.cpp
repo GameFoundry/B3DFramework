@@ -392,6 +392,11 @@ namespace BansheeEngine
 		updateCameraData(camera, true);
 	}
 
+	SPtr<PostProcessSettings> RenderBeast::createPostProcessSettings() const
+	{
+		return bs_shared_ptr_new<StandardPostProcessSettings>();
+	}
+
 	void RenderBeast::updateCameraData(const CameraCore* camera, bool forceRemove)
 	{
 		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();

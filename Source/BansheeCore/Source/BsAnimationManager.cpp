@@ -6,6 +6,7 @@
 #include "BsTaskScheduler.h"
 #include "BsTime.h"
 #include "BsCoreSceneManager.h"
+#include "BsCamera.h"
 
 namespace BansheeEngine
 {
@@ -50,7 +51,7 @@ namespace BansheeEngine
 		mWorkerRunning = false;
 	}
 
-	void AnimationManager::postUpdate(const Vector<ConvexVolume>& cullFrustums)
+	void AnimationManager::postUpdate()
 	{
 		if (mPaused)
 			return;
@@ -74,7 +75,19 @@ namespace BansheeEngine
 			mProxies.push_back(anim.second->mAnimProxy);
 		}
 
-		mCullFrustums = cullFrustums;
+		mCullFrustums.clear();
+
+		auto& allCameras = gCoreSceneManager().getAllCameras();
+		for(auto& entry : allCameras)
+		{
+			bool isOverlayCamera = entry.second.camera->getFlags().isSet(CameraFlag::Overlay);
+			if (isOverlayCamera)
+				continue;
+
+			// TODO: Not checking if camera and animation renderable's layers match. If we checked more animations could
+			// be culled.
+			mCullFrustums.push_back(entry.second.camera->getWorldFrustum());
+		}
 
 		// Make sure thread finishes writing all changes to the anim proxies as they will be read by the animation thread
 		std::atomic_thread_fence(std::memory_order_release);

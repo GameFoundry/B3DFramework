@@ -560,7 +560,7 @@ namespace BansheeEngine
 		MaterialParamsCore(const SPtr<ShaderCore>& shader);
 
 		/** 
-		 * Updates the stored parameters from the provided buffer, allowing changed to be transfered between the sim and 
+		 * Updates the stored parameters from the provided buffer, allowing changes to be transfered between the sim and 
 		 * core thread material param objects. Buffer must be retrieved from MaterialParams::getSyncData. 
 		 *
 		 * @param[in]		buffer		Buffer containing the dirty data.
