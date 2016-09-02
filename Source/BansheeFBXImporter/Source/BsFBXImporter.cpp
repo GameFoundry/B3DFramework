@@ -1136,6 +1136,10 @@ namespace BansheeEngine
 					importMesh->materials.push_back(materialIdx);
 				}
 			}
+			else
+			{
+				importMesh->materials.resize(importMesh->indices.size(), 0);
+			}
 		}
 	}
 

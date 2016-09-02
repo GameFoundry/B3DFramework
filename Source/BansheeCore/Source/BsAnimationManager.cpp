@@ -188,6 +188,9 @@ namespace BansheeEngine
 				if (soInfo.boneIdx != -1)
 					continue;
 
+				if (soInfo.layerIdx == (UINT32)-1 || soInfo.stateIdx == (UINT32)-1)
+					continue;
+
 				const AnimationState& state = anim->layers[soInfo.layerIdx].states[soInfo.stateIdx];
 				if (state.disabled)
 					continue;

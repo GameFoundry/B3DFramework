@@ -157,7 +157,7 @@ namespace BansheeEngine
 
 				if(meshData->getVertexDesc()->hasElement(element.getSemantic(), element.getSemanticIdx(), element.getStreamIdx()))
 				{
-					UINT32 srcVertexStride = vertexData->getVertexStride(element.getStreamIdx());
+					UINT32 srcVertexStride = meshData->getVertexDesc()->getVertexStride(element.getStreamIdx());
 					UINT8* srcData = meshData->getElementData(element.getSemantic(), element.getSemanticIdx(), element.getStreamIdx());
 
 					for(UINT32 i = 0; i < numSrcVertices; i++)

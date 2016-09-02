@@ -435,6 +435,9 @@ namespace BansheeEngine
 				else
 					soInfo.hash = 0;
 
+				soInfo.layerIdx = (UINT32)-1;
+				soInfo.stateIdx = (UINT32)-1;
+
 				// If no bone mapping, find curves directly
 				if(soInfo.boneIdx == -1)
 				{
