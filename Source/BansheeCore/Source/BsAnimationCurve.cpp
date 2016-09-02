@@ -190,9 +190,9 @@ namespace BansheeEngine
 		if(loop)
 		{
 			if (time < mStart)
-				time = time - std::floor(time / mLength) * mLength;
+				time = time + (std::floor(mEnd - time) / mLength) * mLength;
 			else if (time > mEnd)
-				time = time - std::floor(time / mLength) * mLength;
+				time = time - std::floor((time - mStart) / mLength) * mLength;
 		}
 
 		// If time is within cache, evaluate it directly

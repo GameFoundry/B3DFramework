@@ -11,7 +11,7 @@ namespace BansheeEngine
 	}
 
 	FBXImportScene::FBXImportScene()
-		:rootNode(nullptr)
+		:rootNode(nullptr), scaleFactor(1.0f), globalScale(Matrix4::IDENTITY)
 	{ }
 
 	FBXImportScene::~FBXImportScene()

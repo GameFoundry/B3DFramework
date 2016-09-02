@@ -166,6 +166,9 @@ namespace BansheeEngine
 		UnorderedMap<FbxMesh*, UINT32> meshMap;
 
 		Vector<FBXAnimationClip> clips;
+
+		float scaleFactor;
+		Matrix4 globalScale;
 	};
 
 	/** @} */

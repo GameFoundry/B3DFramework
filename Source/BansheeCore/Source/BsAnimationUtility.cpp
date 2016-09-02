@@ -45,7 +45,7 @@ namespace BansheeEngine
 		if (time < start)
 		{
 			if (loop)
-				time = time - std::floor(time / length) * length;
+				time = time + (std::floor(end - time) / length) * length;
 			else // Clamping
 				time = start;
 		}
@@ -54,7 +54,7 @@ namespace BansheeEngine
 		if (time > end)
 		{
 			if (loop)
-				time = time - std::floor(time / length) * length;
+				time = time - std::floor((time - start) / length) * length;
 			else // Clamping
 				time = end;
 		}
@@ -62,8 +62,10 @@ namespace BansheeEngine
 
 	TAnimationCurve<Quaternion> AnimationUtility::eulerToQuaternionCurve(const TAnimationCurve<Vector3>& eulerCurve)
 	{
-		// TODO: We calculate tangents by sampling. There must be an analytical way to calculate tangents when converting
-		// a curve.
+		// TODO: We calculate tangents by sampling which can introduce error in the tangents. The error can be exacerbated
+		// by the fact we constantly switch between the two representations, possibly losing precision every time. Instead 
+		// there must be an analytical way to calculate tangents when converting a curve, or a better way of dealing with
+		// tangents.
 		// Consider: 
 		//  - Sampling multiple points to calculate tangents to improve precision
 		//  - Store the original quaternion curve with the euler curve
@@ -72,6 +74,9 @@ namespace BansheeEngine
 		//		are converted between two formats back and forth.
 		//  - Don't store rotation tangents directly, instead store tangent parameters (TCB) which can be shared between
 		//    both curves, and used for tangent calculation.
+		//
+		// If we decide to keep tangents in the current form, then we should also enforce that all euler curve tangents are
+		// the same.
 		const float FIT_TIME = 0.001f;
 
 		auto eulerToQuaternion = [&](INT32 keyIdx, Vector3& angles, const Quaternion& lastQuat)
@@ -211,4 +216,26 @@ namespace BansheeEngine
 
 		return TAnimationCurve<Vector3>(eulerKeyframes);
 	}
+
+	template<class T>
+	TAnimationCurve<T> AnimationUtility::scaleCurve(const TAnimationCurve<T>& curve, float factor)
+	{
+		INT32 numKeys = (INT32)curve.getNumKeyFrames();
+
+		Vector<TKeyframe<T>> newKeyframes(numKeys);
+		for (INT32 i = 0; i < numKeys; i++)
+		{
+			const TKeyframe<T>& key = curve.getKeyFrame(i);
+			newKeyframes[i].time = key.time;
+			newKeyframes[i].value = key.value * factor;
+			newKeyframes[i].inTangent = key.inTangent * factor;
+			newKeyframes[i].outTangent = key.outTangent * factor;
+		}
+
+		return TAnimationCurve<T>(newKeyframes);
+	}
+
+	template BS_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::scaleCurve(const TAnimationCurve<Vector3>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::scaleCurve(const TAnimationCurve<Quaternion>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<float> AnimationUtility::scaleCurve(const TAnimationCurve<float>& curve, float factor);
 }

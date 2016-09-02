@@ -323,9 +323,11 @@ namespace BansheeEngine
 		if (options.importScale > 0.0001f)
 			importScale = options.importScale;
 
-		FbxSystemUnit scaledMeters(100.0f / importScale);
-		scaledMeters.ConvertScene(scene);
+		FbxSystemUnit units = scene->GetGlobalSettings().GetSystemUnit();
+		FbxSystemUnit bsScaledUnits(100.0f, importScale);
 
+		outputScene.scaleFactor = (float)units.GetConversionFactorTo(bsScaledUnits);
+		outputScene.globalScale = Matrix4::scaling(outputScene.scaleFactor);
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
@@ -602,9 +604,9 @@ namespace BansheeEngine
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform;
-				Matrix4 worldTransformIT = worldTransform.transpose();
-				worldTransformIT = worldTransformIT.inverse();
+				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransformIT = worldTransform.inverse();
+				worldTransformIT = worldTransformIT.transpose();
 
 				SPtr<RendererMeshData> meshData = RendererMeshData::create((UINT32)numVertices, numIndices, (VertexLayout)vertexLayout);
 
@@ -1249,14 +1251,7 @@ namespace BansheeEngine
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
 
-		Matrix4 invBakedTransform;
-		if (mesh.referencedBy.size() > 0)
-		{
-			Matrix4 bakedTransform = mesh.referencedBy[0]->worldTransform;
-			invBakedTransform = bakedTransform.inverseAffine();
-		}
-		else
-			invBakedTransform = Matrix4::IDENTITY;
+		Matrix4 invGlobalScale = scene.globalScale.inverseAffine();
 
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
@@ -1275,15 +1270,6 @@ namespace BansheeEngine
 			FBXBone& bone = mesh.bones.back();
 			bone.node = iterFind->second;
 
-			FbxAMatrix clusterTransform;
-			cluster->GetTransformMatrix(clusterTransform);
-
-			FbxAMatrix linkTransform;
-			cluster->GetTransformLinkMatrix(linkTransform);
-
-			// For nodes attached to meshes we bake their transform directly into mesh vertices. We need to remove that
-			// transform
-
 			if(mesh.referencedBy.size() > 1)
 			{
 				// Note: If this becomes a relevant issue (unlikely), then I will have to duplicate skeleton bones for
@@ -1293,8 +1279,29 @@ namespace BansheeEngine
 				LOGWRN("Skinned mesh has multiple different instances. This is not supported.");
 			}
 
+			// Calculate bind pose
+			FbxAMatrix clusterTransform;
+			cluster->GetTransformMatrix(clusterTransform);
+
+			FbxAMatrix linkTransform;
+			cluster->GetTransformLinkMatrix(linkTransform);
+
 			FbxAMatrix invLinkTransform = linkTransform.Inverse() * clusterTransform;
-			bone.bindPose = FBXToNativeType(invLinkTransform) * invBakedTransform;
+			bone.bindPose = FBXToNativeType(invLinkTransform);
+
+			// Apply global scale to bind pose (we only apply the scale to translation portion because we scale the
+			// translation animation curves)
+			const Matrix4& nodeTfrm = iterFind->second->worldTransform;
+
+			Matrix4 nodeTfrmScaledTranslation = nodeTfrm;
+			nodeTfrmScaledTranslation[0][3] = nodeTfrmScaledTranslation[0][3] / scene.scaleFactor;
+			nodeTfrmScaledTranslation[1][3] = nodeTfrmScaledTranslation[1][3] / scene.scaleFactor;
+			nodeTfrmScaledTranslation[2][3] = nodeTfrmScaledTranslation[2][3] / scene.scaleFactor;
+
+			Matrix4 nodeTfrmInv = nodeTfrm.inverseAffine();
+
+			Matrix4 scaledTranslation = nodeTfrmInv * scene.globalScale * nodeTfrmScaledTranslation;
+			bone.bindPose = scaledTranslation * bone.bindPose * invGlobalScale;
 
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;
@@ -1508,6 +1515,7 @@ namespace BansheeEngine
 				eulerAnimation = reduceKeyframes(eulerAnimation);
 			}
 
+			boneAnim.translation = AnimationUtility::scaleCurve(boneAnim.translation, importScene.scaleFactor);
 			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}
 

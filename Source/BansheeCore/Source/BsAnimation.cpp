@@ -1025,6 +1025,14 @@ namespace BansheeEngine
 			clipInfo.fadeTime = Math::clamp(fadeTime, 0.0f, clipInfo.fadeLength);
 		}
 
+		if (mDirty.isSet(AnimDirtyStateFlag::Culling))
+		{
+			mAnimProxy->mCullEnabled = mCull;
+			mAnimProxy->mBounds = mBounds;
+
+			mDirty.unset(AnimDirtyStateFlag::Culling);
+		}
+
 		if((UINT32)mDirty == 0) // Clean
 		{
 			mAnimProxy->updateTime(mClipInfos);
@@ -1058,12 +1066,6 @@ namespace BansheeEngine
 			}
 			else if (mDirty.isSet(AnimDirtyStateFlag::Value))
 				mAnimProxy->updateValues(mClipInfos);
-
-			if(mDirty.isSet(AnimDirtyStateFlag::Culling))
-			{
-				mAnimProxy->mCullEnabled = mCull;
-				mAnimProxy->mBounds = mBounds;
-			}
 
 			// Check if there are dirty transforms
 			if(!didFullRebuild)

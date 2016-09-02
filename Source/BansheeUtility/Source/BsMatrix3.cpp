@@ -846,7 +846,7 @@ namespace BansheeEngine
 			sz, cz, 0.0f,
 			0.0f, 0.0f, 1.0f);
 	
-		*this = mats[l.a]*(mats[l.b]*mats[l.c]);
+		*this = mats[l.c]*(mats[l.b]*mats[l.a]);
 	}
 
     void Matrix3::tridiagonal(float diag[3], float subDiag[3])

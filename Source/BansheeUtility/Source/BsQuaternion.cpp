@@ -111,7 +111,7 @@ namespace BansheeEngine
 		Quaternion quatY(cy, 0.0f, sy, 0.0f);
 		Quaternion quatZ(cz, 0.0f, 0.0f, sz);
 
-		*this = (quatY * quatX) * quatZ;
+		*this = (quatZ * quatX) * quatY;
 	}
 
 	void Quaternion::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
@@ -136,7 +136,7 @@ namespace BansheeEngine
 		quats[1] = Quaternion(cy, 0.0f, sy, 0.0f);
 		quats[2] = Quaternion(cz, 0.0f, 0.0f, sz);
 
-		*this = (quats[l.a] * quats[l.b]) * quats[l.c];
+		*this = (quats[l.c] * quats[l.b]) * quats[l.a];
 	}
 
 	void Quaternion::toRotationMatrix(Matrix3& mat) const

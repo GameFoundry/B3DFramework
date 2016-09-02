@@ -30,6 +30,10 @@ namespace BansheeEngine
 
 		/** Converts a curve in quaternions into a curve using euler angles (in degrees). */
 		static TAnimationCurve<Vector3> quaternionToEulerCurve(const TAnimationCurve<Quaternion>& quatCurve);
+
+		/** Scales all curve values and tangents by the specified scale factor. */
+		template<class T> 
+		static TAnimationCurve<T> scaleCurve(const TAnimationCurve<T>& curve, float factor);
 	};
 
 	/** @} */
