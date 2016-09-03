@@ -173,18 +173,19 @@ namespace BansheeEngine
 	void GizmoManager::drawCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale)
 	{
 		mSolidConeData.push_back(ConeData());
-		ConeData& sphereData = mSolidConeData.back();
+		ConeData& coneData = mSolidConeData.back();
 
-		sphereData.idx = mCurrentIdx++;
-		sphereData.base = base;
-		sphereData.radius = radius;
-		sphereData.color = mColor;
-		sphereData.transform = mTransform;
-		sphereData.sceneObject = mActiveSO;
-		sphereData.pickable = mPickable;
+		coneData.idx = mCurrentIdx++;
+		coneData.base = base;
+		coneData.radius = radius;
+		coneData.color = mColor;
+		coneData.transform = mTransform;
+		coneData.sceneObject = mActiveSO;
+		coneData.pickable = mPickable;
+		coneData.scale = scale;
 
 		mDrawHelper->cone(base, normal, height, radius, scale);
-		mIdxToSceneObjectMap[sphereData.idx] = mActiveSO;
+		mIdxToSceneObjectMap[coneData.idx] = mActiveSO;
 	}
 
 	void GizmoManager::drawWireCube(const Vector3& position, const Vector3& extents)
@@ -260,18 +261,19 @@ namespace BansheeEngine
 	void GizmoManager::drawWireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale)
 	{
 		mWireConeData.push_back(ConeData());
-		ConeData& sphereData = mWireConeData.back();
+		ConeData& coneData = mWireConeData.back();
 
-		sphereData.idx = mCurrentIdx++;
-		sphereData.base = base;
-		sphereData.radius = radius;
-		sphereData.color = mColor;
-		sphereData.transform = mTransform;
-		sphereData.sceneObject = mActiveSO;
-		sphereData.pickable = mPickable;
+		coneData.idx = mCurrentIdx++;
+		coneData.base = base;
+		coneData.radius = radius;
+		coneData.color = mColor;
+		coneData.transform = mTransform;
+		coneData.sceneObject = mActiveSO;
+		coneData.pickable = mPickable;
+		coneData.scale = scale;
 
 		mDrawHelper->wireCone(base, normal, height, radius, scale);
-		mIdxToSceneObjectMap[sphereData.idx] = mActiveSO;
+		mIdxToSceneObjectMap[coneData.idx] = mActiveSO;
 	}
 
 	void GizmoManager::drawLine(const Vector3& start, const Vector3& end)

@@ -117,7 +117,7 @@ namespace BansheeEngine
 		SPtr<GpuParamsSetCore> mMaterialParams;
 		float mSpacing = 1.0f;
 		bool mFadeGrid = true;
-		Vector3 mGridPlaneNormal;
+		Vector3 mGridPlaneNormal = Vector3::ZERO;
 
 		MaterialParamMat4Core mViewProjParam;
 		MaterialParamVec4Core mWorldCameraPosParam;

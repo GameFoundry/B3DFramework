@@ -22,7 +22,8 @@ namespace BansheeEngine
 	}
 
 	GUICanvas::GUICanvas(const String& styleName, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mNumRenderElements(0), mDepthRange(1), mForceTriangleBuild(false)
+		: GUIElement(styleName, dimensions), mNumRenderElements(0), mDepthRange(1), mLastOffset(BsZero)
+		, mForceTriangleBuild(false)
 	{
 
 	}
@@ -410,7 +411,7 @@ namespace BansheeEngine
 			UINT8* uvDst = uvs + startVert * vertexStride;
 			UINT32* indexDst = indices + startIndex;
 
-			Vector2 zeroUV;
+			Vector2 zeroUV(BsZero);
 			for(UINT32 i = 0; i < element.clippedNumVertices; i++)
 			{
 				memcpy(vertDst, &mClippedVertices[element.clippedVertexStart + i], sizeof(Vector2));

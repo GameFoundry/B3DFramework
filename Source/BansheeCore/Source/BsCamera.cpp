@@ -19,18 +19,14 @@ namespace BansheeEngine
 	const float CameraBase::INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
 	CameraBase::CameraBase()
-		: mLayers(0xFFFFFFFFFFFFFFFF), mCameraFlags(CameraFlag::HDR), mIsActive(true), mProjType(PT_PERSPECTIVE)
-		, mHorzFOV(Degree(90.0f)), mFarDist(1000.0f), mNearDist(0.05f), mAspect(1.33333333333333f), mOrthoHeight(5)
-		, mPriority(0), mCustomViewMatrix(false), mCustomProjMatrix(false), mMSAA(1), mFrustumExtentsManuallySet(false)
-		, mRecalcFrustum(true), mRecalcFrustumPlanes(true), mRecalcView(true)
+		: mLayers(0xFFFFFFFFFFFFFFFF), mCameraFlags(CameraFlag::HDR), mPosition(BsZero), mRotation(BsIdentity)
+		, mIsActive(true), mProjType(PT_PERSPECTIVE), mHorzFOV(Degree(90.0f)), mFarDist(1000.0f), mNearDist(0.05f)
+		, mAspect(1.33333333333333f), mOrthoHeight(5), mPriority(0), mCustomViewMatrix(false), mCustomProjMatrix(false)
+		, mMSAA(1), mFrustumExtentsManuallySet(false), mProjMatrixRS(BsZero), mProjMatrix(BsZero), mViewMatrix(BsZero)
+		, mProjMatrixRSInv(BsZero), mProjMatrixInv(BsZero), mViewMatrixInv(BsZero), mRecalcFrustum(true)
+		, mRecalcFrustumPlanes(true), mRecalcView(true)
 	{
 		mPPSettings = RendererManager::instance().getActive()->createPostProcessSettings();
-
-		mViewMatrix = Matrix4::ZERO;
-		mProjMatrixRS = Matrix4::ZERO;
-		mViewMatrixInv = Matrix4::ZERO;
-		mProjMatrixRSInv = Matrix4::ZERO;
-		mProjMatrixInv = Matrix4::ZERO;
 
 		invalidateFrustum();
 	}

@@ -15,15 +15,15 @@
 namespace BansheeEngine
 {
 	GUIWidget::GUIWidget(const SPtr<Camera>& camera)
-		: mCamera(camera), mPanel(nullptr), mDepth(0), mIsActive(true), mTransform(Matrix4::IDENTITY), mCachedRTId(0)
-		, mWidgetIsDirty(false)
+		: mCamera(camera), mPanel(nullptr), mDepth(0), mIsActive(true), mPosition(BsZero), mRotation(BsIdentity)
+		, mScale(Vector3::ONE), mTransform(BsIdentity), mCachedRTId(0), mWidgetIsDirty(false)
 	{
 		construct(camera);
 	}
 
 	GUIWidget::GUIWidget(const HCamera& camera)
-		: mCamera(camera->_getCamera()), mPanel(nullptr), mDepth(0), mIsActive(true), mTransform(Matrix4::IDENTITY)
-		, mCachedRTId(0), mWidgetIsDirty(false)
+		: mCamera(camera->_getCamera()), mPanel(nullptr), mDepth(0), mIsActive(true), mPosition(BsZero)
+		, mRotation(BsIdentity), mScale(Vector3::ONE), mTransform(BsIdentity), mCachedRTId(0), mWidgetIsDirty(false)
 	{
 		construct(mCamera);
 	}

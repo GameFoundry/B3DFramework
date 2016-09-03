@@ -24,6 +24,14 @@ namespace BansheeEngine
     public:
 		Matrix3() {}
 
+		Matrix3(ZERO zero)
+			:Matrix3(Matrix3::ZERO)
+		{ }
+
+		Matrix3(IDENTITY identity)
+			:Matrix3(Matrix3::IDENTITY)
+		{ }
+
         Matrix3(const Matrix3& mat)
 		{
 			memcpy(m, mat.m, 9*sizeof(float));

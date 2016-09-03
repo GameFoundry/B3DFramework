@@ -91,8 +91,8 @@ namespace BansheeEngine
 		struct BodyInfo
 		{
 			Rigidbody* body = nullptr;
-			Vector3 position;
-			Quaternion rotation;
+			Vector3 position = Vector3::ZERO;
+			Quaternion rotation = Quaternion::IDENTITY;
 		};
 
 		BodyInfo bodies[2];

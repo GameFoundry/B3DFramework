@@ -188,15 +188,17 @@ namespace BansheeEngine
 	/** Structure used for initializing a new D6Joint. */
 	struct D6_JOINT_DESC : JOINT_DESC
 	{
+		D6_JOINT_DESC() { }
+
 		D6Joint::Motion motion[(UINT32)D6Joint::Axis::Count];
 		D6Joint::Drive drive[(UINT32)D6Joint::DriveType::Count];
 		LimitLinear limitLinear;
 		LimitAngularRange limitTwist;
 		LimitConeRange limitSwing;
-		Vector3 drivePosition;
-		Quaternion driveRotation;
-		Vector3 driveLinearVelocity;
-		Vector3 driveAngularVelocity;
+		Vector3 drivePosition = Vector3::ZERO;
+		Quaternion driveRotation = Quaternion::IDENTITY;
+		Vector3 driveLinearVelocity = Vector3::ZERO;
+		Vector3 driveAngularVelocity = Vector3::ZERO;
 	};
 
 	/** @} */

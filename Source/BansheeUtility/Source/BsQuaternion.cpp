@@ -287,7 +287,6 @@ namespace BansheeEngine
 		Vector3 nrmForwardDir = Vector3::normalize(forwardDir);
 		Vector3 currentForwardDir = -zAxis();
 
-		Quaternion targetRotation;
 		if ((nrmForwardDir + currentForwardDir).squaredLength() < 0.00005f)
 		{
 			// Oops, a 180 degree turn (infinite possible rotation axes)

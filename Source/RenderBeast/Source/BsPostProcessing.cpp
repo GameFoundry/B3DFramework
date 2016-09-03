@@ -259,6 +259,9 @@ namespace BansheeEngine
 		eyeAdaptationParams[2].x = Math::pow(2.0f, settings.exposureScale);
 		eyeAdaptationParams[2].y = frameDelta;
 
+		eyeAdaptationParams[2].z = 0.0f; // Unused
+		eyeAdaptationParams[2].w = 0.0f; // Unused
+
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[0], 0);
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[1], 1);
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[2], 2);

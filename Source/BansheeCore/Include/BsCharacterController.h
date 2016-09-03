@@ -226,7 +226,7 @@ namespace BansheeEngine
 	struct CHAR_CONTROLLER_DESC
 	{
 		/** Center of the controller capsule */
-		Vector3 position;
+		Vector3 position = Vector3::ZERO;
 
 		/**
 		 * Contact offset specifies a skin around the object within which contacts will be generated. It should be a small

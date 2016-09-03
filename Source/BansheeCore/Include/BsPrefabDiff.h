@@ -31,7 +31,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabComponentDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Flags that mark which portion of a scene-object is modified. */
@@ -56,9 +56,9 @@ namespace BansheeEngine
 		UINT32 id = 0;
 
 		String name;
-		Vector3 position;
-		Quaternion rotation;
-		Vector3 scale;
+		Vector3 position = Vector3::ZERO;
+		Quaternion rotation = Quaternion::IDENTITY;
+		Vector3 scale = Vector3::ZERO;
 		bool isActive = false;
 		UINT32 soFlags = 0;
 
@@ -77,7 +77,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabObjectDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -155,7 +155,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

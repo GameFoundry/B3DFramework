@@ -7,7 +7,8 @@
 namespace BansheeEngine
 {
 	AudioSource::AudioSource()
-		: mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0), mMinDistance(1.0f), mAttenuation(1.0f)
+		: mPosition(BsZero), mVelocity(BsZero), mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0)
+		, mMinDistance(1.0f), mAttenuation(1.0f)
 	{
 
 	}

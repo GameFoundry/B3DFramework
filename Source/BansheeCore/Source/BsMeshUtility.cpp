@@ -86,8 +86,8 @@ namespace BansheeEngine
 		{
 			ClipVert() { }
 
-			Vector3 point;
-			Vector2 uv;
+			Vector3 point = Vector3::ZERO;
+			Vector2 uv = Vector2::ZERO;
 			float distance = 0.0f;
 			UINT32 occurs = 0;
 			bool visible = true;
@@ -110,7 +110,7 @@ namespace BansheeEngine
 
 			Vector<UINT32> edges;
 			bool visible = true;
-			Vector3 normal;
+			Vector3 normal = Vector3::ZERO;
 		};
 
 		/** Contains vertices, edges and faces of the clipped mesh. */
@@ -516,7 +516,7 @@ namespace BansheeEngine
 
 	Vector3 TriangleClipperBase::getNormal(UINT32* sortedVertices, UINT32 numVertices)
 	{
-		Vector3 normal;
+		Vector3 normal(BsZero);
 		for (UINT32 i = 0; i <= numVertices - 2; i++)
 			normal += Vector3::cross(mesh.verts[sortedVertices[i]].point, mesh.verts[sortedVertices[i + 1]].point);
 

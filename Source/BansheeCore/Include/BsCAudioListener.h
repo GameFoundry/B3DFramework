@@ -71,8 +71,8 @@ namespace BansheeEngine
 		void updateTransform();
 
 		SPtr<AudioListener> mInternal;
-		Vector3 mLastPosition;
-		Vector3 mVelocity;
+		Vector3 mLastPosition = Vector3::ZERO;
+		Vector3 mVelocity = Vector3::ZERO;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

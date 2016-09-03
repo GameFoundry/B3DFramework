@@ -239,9 +239,9 @@ namespace BansheeEngine
 		UINT32 mVelocitySolverCount = 1;
 		Rigidbody::Flag mFlags = (Rigidbody::Flag)((UINT32)Rigidbody::Flag::AutoTensors | (UINT32)Rigidbody::Flag::AutoMass);
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
-		Vector3 mCMassPosition;
-		Quaternion mCMassRotation;
-		Vector3 mInertiaTensor;
+		Vector3 mCMassPosition = Vector3::ZERO;
+		Quaternion mCMassRotation = Quaternion::IDENTITY;
+		Vector3 mInertiaTensor = Vector3::ZERO;
 		float mMass = 0.0f;
 		float mMaxAngularVelocity = 1.0f;
 		float mLinearDrag = 0.0f;

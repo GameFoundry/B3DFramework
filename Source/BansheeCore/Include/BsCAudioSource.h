@@ -137,8 +137,8 @@ namespace BansheeEngine
 		void updateTransform();
 
 		SPtr<AudioSource> mInternal;
-		Vector3 mLastPosition;
-		Vector3 mVelocity;
+		Vector3 mLastPosition = Vector3::ZERO;
+		Vector3 mVelocity = Vector3::ZERO;
 
 		HAudioClip mAudioClip;
 		float mVolume;

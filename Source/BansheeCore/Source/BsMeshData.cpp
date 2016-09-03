@@ -367,14 +367,10 @@ namespace BansheeEngine
 
 			if (getNumVertices() > 0)
 			{
-				Vector3 accum;
-				Vector3 min;
-				Vector3 max;
-
 				Vector3 curPosition = *(Vector3*)data;
-				accum = curPosition;
-				min = curPosition;
-				max = curPosition;
+				Vector3 accum = curPosition;
+				Vector3 min = curPosition;
+				Vector3 max = curPosition;
 
 				for (UINT32 i = 1; i < getNumVertices(); i++)
 				{

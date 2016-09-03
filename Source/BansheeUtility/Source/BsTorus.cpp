@@ -8,7 +8,7 @@
 namespace BansheeEngine
 {
 	Torus::Torus()
-		:outerRadius(0.0f), innerRadius(0.0f)
+		:normal(BsZero), outerRadius(0.0f), innerRadius(0.0f)
 	{ }
 
 	Torus::Torus(const Vector3& normal, float outerRadius, float innerRadius)

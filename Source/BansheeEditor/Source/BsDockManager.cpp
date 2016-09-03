@@ -454,6 +454,14 @@ namespace BansheeEngine
 		mLeftDropPolygon = bs_newN<Vector2>(4);
 		mRightDropPolygon = bs_newN<Vector2>(4);
 
+		for(UINT32 i = 0; i < 4; i++)
+		{
+			mTopDropPolygon[i] = Vector2::ZERO;
+			mBotDropPolygon[i] = Vector2::ZERO;
+			mLeftDropPolygon[i] = Vector2::ZERO;
+			mRightDropPolygon[i] = Vector2::ZERO;
+		}
+
 		HMaterial dropOverlayMat = BuiltinEditorResources::instance().createDockDropOverlayMaterial();
 
 		mCore.store(bs_new<DockOverlayRenderer>(), std::memory_order_release);

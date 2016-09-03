@@ -73,7 +73,7 @@ namespace BansheeEngine
 		case NEAR_RIGHT_TOP:
 			return mMaximum;
 		default:
-			return Vector3();
+			return Vector3(BsZero);
 		}
 	}
 
@@ -95,12 +95,11 @@ namespace BansheeEngine
 
 	void AABox::transform(const Matrix4& matrix)
 	{
-		Vector3 oldMin, oldMax, currentCorner;
-
 		// Getting the old values so that we can use the existing merge method.
-		oldMin = mMinimum;
-		oldMax = mMaximum;
+		Vector3 oldMin = mMinimum;
+		Vector3 oldMax = mMaximum;
 
+		Vector3 currentCorner;
 		// We sequentially compute the corners in the following order :
 		// 0, 6, 5, 1, 2, 4, 7, 3
 		// This sequence allows us to only change one member at a time to get at all corners.
@@ -215,7 +214,7 @@ namespace BansheeEngine
 		float lowt = 0.0f;
 		float t;
 		bool hit = false;
-		Vector3 hitpoint;
+		Vector3 hitpoint(BsZero);
 		const Vector3& min = getMin();
 		const Vector3& max = getMax();
 		const Vector3& rayorig = ray.getOrigin();

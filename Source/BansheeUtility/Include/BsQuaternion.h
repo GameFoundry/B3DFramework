@@ -22,7 +22,18 @@ namespace BansheeEngine
 		};
 
     public:
-        Quaternion(float w = 1.0f, float x = 0.0f, float y = 0.0f, float z = 0.0f)
+		Quaternion()
+		{ }
+
+		Quaternion(ZERO zero)
+			:x(0.0f), y(0.0f), z(0.0f), w(0.0f)
+		{ }
+
+		Quaternion(IDENTITY identity)
+			:x(0.0f), y(0.0f), z(0.0f), w(1.0f)
+		{ }
+
+        Quaternion(float w, float x, float y, float z)
 			:x(x), y(y), z(z), w(w)
 		{ }
 

@@ -101,7 +101,7 @@ namespace BansheeEngine
 		Vector<TKeyframe<Quaternion>> quatKeyframes(numKeys);
 
 		// Calculate key values
-		Quaternion lastQuat;
+		Quaternion lastQuat(BsZero);
 		for (INT32 i = 0; i < numKeys; i++)
 		{
 			float time = eulerCurve.getKeyFrame(i).time;

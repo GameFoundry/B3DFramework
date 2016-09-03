@@ -6,7 +6,7 @@
 namespace BansheeEngine
 {
 	AudioListener::AudioListener()
-		:mDirection(-Vector3::UNIT_Z), mUp(Vector3::UNIT_Y)
+		:mPosition(BsZero), mDirection(-Vector3::UNIT_Z), mUp(Vector3::UNIT_Y), mVelocity(BsZero)
 	{
 		
 	}

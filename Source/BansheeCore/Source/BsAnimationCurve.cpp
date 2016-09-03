@@ -140,6 +140,18 @@ namespace BansheeEngine
 	}
 
 	template <class T>
+	T getZero() { return 0.0f; }
+
+	template<>
+	float getZero<float>() { return 0.0f; }
+
+	template<>
+	Vector3 getZero<Vector3>() { return Vector3(BsZero); }
+
+	template<>
+	Quaternion getZero<Quaternion>() { return Quaternion(BsZero); }
+
+	template <class T>
 	const UINT32 TAnimationCurve<T>::CACHE_LOOKAHEAD = 3;
 
 	template <class T>
@@ -184,7 +196,7 @@ namespace BansheeEngine
 	T TAnimationCurve<T>::evaluate(float time, const TCurveCache<T>& cache, bool loop) const
 	{
 		if (mKeyframes.size() == 0)
-			return T();
+			return getZero<T>();
 
 		// Wrap time if looping
 		if(loop)
@@ -205,9 +217,9 @@ namespace BansheeEngine
 			cache.cachedCurveStart = -std::numeric_limits<float>::infinity();
 			cache.cachedCurveEnd = mStart;
 			cache.cachedKey = 0;
-			cache.cachedCubicCoefficients[0] = T();
-			cache.cachedCubicCoefficients[1] = T();
-			cache.cachedCubicCoefficients[2] = T();
+			cache.cachedCubicCoefficients[0] = getZero<T>();
+			cache.cachedCubicCoefficients[1] = getZero<T>();
+			cache.cachedCubicCoefficients[2] = getZero<T>();
 			cache.cachedCubicCoefficients[3] = mKeyframes[0].value;
 
 			return mKeyframes[0].value;
@@ -220,9 +232,9 @@ namespace BansheeEngine
 			cache.cachedCurveStart = mEnd;
 			cache.cachedCurveEnd = std::numeric_limits<float>::infinity();
 			cache.cachedKey = lastKey;
-			cache.cachedCubicCoefficients[0] = T();
-			cache.cachedCubicCoefficients[1] = T();
-			cache.cachedCubicCoefficients[2] = T();
+			cache.cachedCubicCoefficients[0] = getZero<T>();
+			cache.cachedCubicCoefficients[1] = getZero<T>();
+			cache.cachedCubicCoefficients[2] = getZero<T>();
 			cache.cachedCubicCoefficients[3] = mKeyframes[lastKey].value;
 
 			return mKeyframes[lastKey].value;
@@ -255,7 +267,7 @@ namespace BansheeEngine
 	T TAnimationCurve<T>::evaluate(float time, bool loop) const
 	{
 		if (mKeyframes.size() == 0)
-			return T();
+			return getZero<T>();
 
 		AnimationUtility::wrapTime(time, mStart, mEnd, loop);
 
@@ -271,13 +283,13 @@ namespace BansheeEngine
 		float length = rightKey.time - leftKey.time;
 		float t;
 		T leftTangent;
-		T rightTangent; // TODO - Remove zero init for vectors/quaternions by default
+		T rightTangent;
 
 		if (Math::approxEquals(length, 0.0f))
 		{
 			t = 0.0f;
-			leftTangent = T();
-			rightTangent = T();
+			leftTangent = getZero<T>();
+			rightTangent = getZero<T>();
 		}
 		else
 		{
@@ -419,13 +431,13 @@ namespace BansheeEngine
 		float t;
 
 		T leftTangent;
-		T rightTangent; // TODO - Remove zero init for vectors/quaternions by default
+		T rightTangent;
 
 		if (Math::approxEquals(length, 0.0f))
 		{
 			t = 0.0f;
-			leftTangent = T();
-			rightTangent = T();
+			leftTangent = getZero<T>();
+			rightTangent = getZero<T>();
 		}
 		else
 		{

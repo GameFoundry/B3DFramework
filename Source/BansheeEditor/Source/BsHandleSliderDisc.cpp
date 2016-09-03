@@ -13,7 +13,8 @@ namespace BansheeEngine
 	const float HandleSliderDisc::TORUS_RADIUS = 0.1f;
 
 	HandleSliderDisc::HandleSliderDisc(const Vector3& normal, float radius, bool fixedScale, UINT64 layer)
-		:HandleSlider(fixedScale, layer), mNormal(normal), mRadius(radius), mHasCutoffPlane(false), mDelta(0.0f)
+		: HandleSlider(fixedScale, layer), mNormal(normal), mRadius(radius), mHasCutoffPlane(false), mDirection(BsZero)
+		, mStartPosition(BsZero), mDelta(0.0f)
 	{
 		mCollider = Torus(normal, radius, TORUS_RADIUS);
 
@@ -139,6 +140,7 @@ namespace BansheeEngine
 
 		Vector3 clampedAnglePoint;
 		clampedAnglePoint.x = Math::cos(clampedAngle) * radius;
+		clampedAnglePoint.y = 0.0f;
 		clampedAnglePoint.z = Math::sin(clampedAngle) * radius;
 
 		return worldToPlane.inverseAffine().multiplyAffine(clampedAnglePoint);

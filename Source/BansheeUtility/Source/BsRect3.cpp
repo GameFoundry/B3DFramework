@@ -8,6 +8,7 @@
 namespace BansheeEngine
 {
 	Rect3::Rect3()
+		:mCenter(BsZero), mAxisHorz(BsZero), mAxisVert(BsZero), mExtentHorz(0.0f), mExtentVert(0.0f)
 	{ }
 
 	Rect3::Rect3(const Vector3& center, const std::array<Vector3, 2>& axes,
@@ -25,7 +26,7 @@ namespace BansheeEngine
 
 		bool foundNearest = false;
 		float t = 0.0f;
-		std::array<Vector3, 2> nearestPoints;
+		std::array<Vector3, 2> nearestPoints { Vector3::ZERO, Vector3::ZERO };
 		float distance = 0.0f;
 
 		// Check if Ray intersects the rectangle

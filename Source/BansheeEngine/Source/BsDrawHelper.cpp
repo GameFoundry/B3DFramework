@@ -140,7 +140,7 @@ namespace BansheeEngine
 		mLineListData.push_back(LineListData());
 		LineListData& lineListData = mLineListData.back();
 
-		Vector3 center;
+		Vector3 center(BsZero);
 		for (auto& point : lines)
 			center += point;
 
@@ -1154,7 +1154,7 @@ namespace BansheeEngine
 
 					Vector3 translation = text2DData.transform.getTranslation();
 					
-					Vector2 accum;
+					Vector2 accum(BsZero);
 					for (UINT32 j = 0; j < shapeData.numVertices; j++)
 						accum += tempVertices[j];
 

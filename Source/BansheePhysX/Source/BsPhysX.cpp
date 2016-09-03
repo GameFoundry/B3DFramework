@@ -371,6 +371,7 @@ namespace BansheeEngine
 	{
 		output.point = fromPxVector(input.position);
 		output.normal = fromPxVector(input.normal);
+		output.uv = Vector2::ZERO;
 		output.distance = input.distance;
 		output.triangleIdx = input.faceIndex;
 		output.colliderRaw = (Collider*)input.shape->userData;

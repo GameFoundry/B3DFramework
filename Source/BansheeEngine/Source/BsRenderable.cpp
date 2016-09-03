@@ -26,7 +26,7 @@ namespace BansheeEngine
 
 	template<bool Core>
 	TRenderable<Core>::TRenderable()
-		: mLayer(1), mUseOverrideBounds(false), mTransform(Matrix4::IDENTITY), mTransformNoScale(Matrix4::IDENTITY)
+		: mLayer(1), mUseOverrideBounds(false), mPosition(BsZero), mTransform(BsIdentity), mTransformNoScale(BsIdentity)
 		, mIsActive(true)
 	{
 		mMaterials.resize(1);

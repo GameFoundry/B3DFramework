@@ -10,32 +10,24 @@
 namespace BansheeEngine 
 {
 	Plane::Plane()
-	{
-		normal = Vector3::ZERO;
-		d = 0.0;
-	}
+		:normal(BsZero), d(0.0f)
+	{ }
 
 	Plane::Plane(const Plane& copy)
-	{
-		normal = copy.normal;
-		d = copy.d;
-	}
+		:normal(copy.normal), d(copy.d)
+	{ }
 
 	Plane::Plane(const Vector3& normal, float d)
-	{
-		this->normal = normal;
-		this->d = d;
-	}
+		:normal(normal), d(d)
+	{ }
 
 	Plane::Plane(float a, float b, float c, float _d)
-		: normal(a, b, c), d(_d)
+		:normal(a, b, c), d(_d)
 	{ }
 
 	Plane::Plane(const Vector3& normal, const Vector3& point)
-	{
-		this->normal = normal;
-		d = normal.dot(point);
-	}
+		:normal(normal), d(normal.dot(point))
+	{ }
 
 	Plane::Plane(const Vector3& point0, const Vector3& point1, const Vector3& point2)
 	{

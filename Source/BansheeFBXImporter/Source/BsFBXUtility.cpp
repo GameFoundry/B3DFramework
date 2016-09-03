@@ -10,7 +10,7 @@ namespace BansheeEngine
 	struct SmoothNormal
 	{
 		int group = 0;
-		Vector3 normal;
+		Vector3 normal = Vector3::ZERO;
 
 		void addNormal(int group, const Vector3& normal)
 		{
