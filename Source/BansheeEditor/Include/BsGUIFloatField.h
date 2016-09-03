@@ -28,7 +28,7 @@ namespace BansheeEngine
 			const String& style, const GUIDimensions& dimensions, bool withLabel);
 
 		/**	Returns the value of the input field. */
-		float getValue() const { return mValue; }
+		float getValue() const;
 
 		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
 		float setValue(float value);
@@ -72,7 +72,7 @@ namespace BansheeEngine
 		bool _hasCustomCursor(const Vector2I position, CursorType& type) const override;
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;
@@ -80,16 +80,20 @@ namespace BansheeEngine
 		/**	Triggered when the input box value changes. */
 		void valueChanging(const WString& newValue);
 
-		/**
-		 * Triggered when the input box value changes and is confirmed.
-		 */
-		void valueChanged(float newValue, bool confirmed = true);
+		/** Triggered when the input box value changes and is confirmed. */
+		void valueChanged(float newValue);
 
 		/**	Triggers when the input box receives or loses keyboard focus. */
 		void focusChanged(bool focus);
 
 		/**	Triggered when the users confirms input in the input box. */
 		void inputConfirmed();
+
+		/** Updates the underlying input box with the text representing the provided floating point value. */
+		void setText(float value);
+
+		/** Clamps the provided value to current valid range, and step interval. */
+		float applyRangeAndStep(float value) const;
 
 		/** Callback that checks can the provided string be converted to a floating point value. */
 		static bool floatFilter(const WString& str);

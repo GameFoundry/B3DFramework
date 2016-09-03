@@ -114,10 +114,7 @@ namespace BansheeEngine
 					mLastDragPos = event.getPosition().x + jumpAmount;
 
 					if (oldValue != newValue)
-					{
 						setValue(newValue);
-						valueChanged(newValue, true);
-					}
 				}
 			}
 
@@ -134,21 +131,22 @@ namespace BansheeEngine
 		return false;
 	}
 
+	float GUIFloatField::getValue() const
+	{
+		return applyRangeAndStep(mValue);
+	}
+
 	float GUIFloatField::setValue(float value)
 	{
-		if (mStep != 0.0f)
-			value = value - fmod(value, mStep);
+		if (mValue == value)
+			return value;
 
-		mValue = Math::clamp(value, mMinValue, mMaxValue);
+		mValue = value;
+		
+		value = applyRangeAndStep(value);
+		setText(value);
 
-		// Only update with new value if it actually changed, otherwise
-		// problems can occur when user types in "0." and the field
-		// updates back to "0" effectively making "." unusable
-		float curValue = parseFloat(mInputBox->getText());
-		if (mValue != curValue)
-			mInputBox->setText(toWString(mValue));
-
-		return mValue;
+		return value;
 	}
 
 	void GUIFloatField::setRange(float min, float max)
@@ -172,7 +170,8 @@ namespace BansheeEngine
 
 	void GUIFloatField::_setValue(float value, bool triggerEvent)
 	{
-		setValue(value);
+		mValue = value;
+		setText(value);
 
 		if(triggerEvent)
 			onValueChanged(mValue);
@@ -200,18 +199,12 @@ namespace BansheeEngine
 
 	void GUIFloatField::valueChanging(const WString& newValue)
 	{
-		valueChanged(parseFloat(newValue), false);
+		valueChanged(parseFloat(newValue));
 	}
 
-	void GUIFloatField::valueChanged(float newValue, bool confirmed)
+	void GUIFloatField::valueChanged(float newValue)
 	{
-		if (confirmed) {
-			CmdInputFieldValueChange<GUIFloatField, float>::execute(this, newValue);
-		}
-		else
-		{
-			onValueChanged(newValue);
-		}
+		CmdInputFieldValueChange<GUIFloatField, float>::execute(this, newValue);
 	}
 
 	void GUIFloatField::focusChanged(bool focus)
@@ -224,15 +217,35 @@ namespace BansheeEngine
 		else
 		{
 			UndoRedo::instance().popGroup("InputBox");
-			valueChanged(parseFloat(mInputBox->getText()));
+
+			setText(applyRangeAndStep(mValue));
 			mHasInputFocus = false;
 		}
 	}
 
 	void GUIFloatField::inputConfirmed()
 	{
-		valueChanged(parseFloat(mInputBox->getText()));
+		setText(applyRangeAndStep(mValue));
+
 		onConfirm();
+	}
+
+	void GUIFloatField::setText(float value)
+	{
+		// Only update with new value if it actually changed, otherwise
+		// problems can occur when user types in "0." and the field
+		// updates back to "0" effectively making "." unusable
+		float curValue = parseFloat(mInputBox->getText());
+		if (value != curValue)
+			mInputBox->setText(toWString(value));
+	}
+
+	float GUIFloatField::applyRangeAndStep(float value) const
+	{
+		if (mStep != 0.0f)
+			value = value - fmod(value, mStep);
+
+		return Math::clamp(value, mMinValue, mMaxValue);
 	}
 
 	bool GUIFloatField::floatFilter(const WString& str)

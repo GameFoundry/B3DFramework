@@ -132,10 +132,7 @@ namespace BansheeEngine
 					mLastDragPos += (newValue - oldValue) * DRAG_SPEED + jumpAmount;
 
 					if (oldValue != newValue)
-					{
-						setValue(newValue);
 						valueChanged(newValue);
-					}
 				}
 			}
 
@@ -160,21 +157,22 @@ namespace BansheeEngine
 		mInputBox->setStyle(getSubStyleName(getInputStyleType()));
 	}
 
+	INT32 GUIIntField::getValue() const
+	{
+		return applyRangeAndStep(mValue);
+	}
+
 	INT32 GUIIntField::setValue(INT32 value)
 	{
-		if (mStep != 0)
-			mValue = mValue - mValue % mStep;
+		if (mValue == value)
+			return value;
 
-		mValue = Math::clamp(value, mMinValue, mMaxValue);
+		mValue = value;
 
-		// Only update with new value if it actually changed, otherwise
-		// problems can occur when user types in "0." and the field
-		// updates back to "0" effectively making "." unusable
-		float curValue = parseFloat(mInputBox->getText());
-		if (mValue != curValue)
-			mInputBox->setText(toWString(mValue));
+		value = applyRangeAndStep(value);
+		setText(value);
 
-		return mValue;
+		return value;
 	}
 
 	void GUIIntField::setRange(INT32 min, INT32 max)
@@ -198,7 +196,8 @@ namespace BansheeEngine
 
 	void GUIIntField::_setValue(INT32 value, bool triggerEvent)
 	{
-		setValue(value);
+		mValue = value;
+		setText(value);
 
 		if (triggerEvent)
 			onValueChanged(mValue);
@@ -236,6 +235,8 @@ namespace BansheeEngine
 		else
 		{
 			UndoRedo::instance().popGroup("InputBox");
+
+			setText(applyRangeAndStep(mValue));
 			mHasInputFocus = false;
 		}
 	}
@@ -243,6 +244,24 @@ namespace BansheeEngine
 	void GUIIntField::inputConfirmed()
 	{
 		onConfirm();
+	}
+
+	void GUIIntField::setText(INT32 value)
+	{
+		// Only update with new value if it actually changed, otherwise
+		// problems can occur when user types in "0." and the field
+		// updates back to "0" effectively making "." unusable
+		float curValue = parseFloat(mInputBox->getText());
+		if (value != curValue)
+			mInputBox->setText(toWString(value));
+	}
+
+	INT32 GUIIntField::applyRangeAndStep(INT32 value) const
+	{
+		if (mStep != 0)
+			value = value - value % mStep;
+
+		return Math::clamp(value, mMinValue, mMaxValue);
 	}
 
 	bool GUIIntField::intFilter(const WString& str)

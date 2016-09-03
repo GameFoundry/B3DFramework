@@ -28,7 +28,7 @@ namespace BansheeEngine
 			const String& style, const GUIDimensions& dimensions, bool withLabel);
 
 		/**	Returns the value of the input field. */
-		INT32 getValue() const { return mValue; }
+		INT32 getValue() const;
 
 		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
 		INT32 setValue(INT32 value);
@@ -91,6 +91,12 @@ namespace BansheeEngine
 
 		/**	Triggered when the users confirms input in the input box. */
 		void inputConfirmed();
+
+		/** Updates the underlying input box with the text representing the provided integer value. */
+		void setText(INT32 value);
+
+		/** Clamps the provided value to current valid range, and step interval. */
+		INT32 applyRangeAndStep(INT32 value) const;
 
 		/**	Callback that checks can the provided string be converted to an integer value. */
 		static bool intFilter(const WString& str);
