@@ -114,7 +114,7 @@ namespace BansheeEngine
 					mLastDragPos = event.getPosition().x + jumpAmount;
 
 					if (oldValue != newValue)
-						setValue(newValue);
+						valueChanged(newValue);
 				}
 			}
 

@@ -135,7 +135,14 @@ namespace BansheeEngine
                     if (_native != null)
                     {
                         AABox bounds = serializableData.bounds;
-                        bounds.TransformAffine(SceneObject.WorldTransform);
+
+                        Matrix4 parentTfrm;
+                        if (SceneObject.Parent != null)
+                            parentTfrm = SceneObject.Parent.WorldTransform;
+                        else
+                            parentTfrm = Matrix4.Identity;
+
+                        bounds.TransformAffine(parentTfrm);
 
                         _native.Bounds = bounds;
                     }
@@ -790,7 +797,14 @@ namespace BansheeEngine
                 if (_native != null)
                 {
                     AABox bounds = serializableData.bounds;
-                    bounds.TransformAffine(SceneObject.WorldTransform);
+
+                    Matrix4 parentTfrm;
+                    if (SceneObject.Parent != null)
+                        parentTfrm = SceneObject.Parent.WorldTransform;
+                    else
+                        parentTfrm = Matrix4.Identity;
+
+                    bounds.TransformAffine(parentTfrm);
 
                     _native.Bounds = bounds;
                 }

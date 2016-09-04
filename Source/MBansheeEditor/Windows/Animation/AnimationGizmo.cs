@@ -23,11 +23,18 @@ namespace BansheeEditor
             SceneObject so = animation.SceneObject;
 
             Gizmos.Color = Color.Green;
-            Gizmos.Transform = Matrix4.TRS(so.Position, so.Rotation, Vector3.One);
+            Gizmos.Transform = Matrix4.Identity;
+
+            Matrix4 parentTfrm;
+            if (so.Parent != null)
+                parentTfrm = so.Parent.WorldTransform;
+            else
+                parentTfrm = Matrix4.Identity;
 
             AABox bounds = animation.Bounds;
-            Vector3 scaledSize = bounds.Size * so.Scale;
-            Gizmos.DrawWireCube(bounds.Center, scaledSize * 0.5f);
+            bounds.TransformAffine(parentTfrm);
+
+            Gizmos.DrawWireCube(bounds.Center, bounds.Size * 0.5f);
         }
     }
 
