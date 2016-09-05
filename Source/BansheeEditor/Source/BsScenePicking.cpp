@@ -54,21 +54,23 @@ namespace BansheeEngine
 		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
 	}
 
-	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data)
+	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject>& ignoreRenderables, SnapData* data)
 	{
 		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, ignoreRenderables, data);
 		if (selectedObjects.size() == 0)
 			return HSceneObject();
+			
 		if (data != nullptr)
 		{
 			Matrix3 rotation;
 			selectedObjects[0]->getWorldRotation().toRotationMatrix(rotation);
 			data->normal = rotation.inverse().transpose().transform(data->normal);
 		}
+		
 		return selectedObjects[0];
 	}
 
-	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data)
+	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject>& ignoreRenderables, SnapData* data)
 	{
 		auto comparePickElement = [&] (const ScenePicking::RenderablePickData& a, const ScenePicking::RenderablePickData& b)
 		{
@@ -111,6 +113,7 @@ namespace BansheeEngine
 					break;
 				}
 			}
+			
 			if (found)
 				continue;
 
@@ -302,10 +305,10 @@ namespace BansheeEngine
 		depthStencilDescription.texture = depthTexture;
 		multiTextureDescription.depthStencilSurface = depthStencilDescription;
 		
-		mNormalsTexture = MultiRenderTextureCore::create(multiTextureDescription);
+		mPickingTexture = MultiRenderTextureCore::create(multiTextureDescription);
 
 		rs.beginFrame();
-		rs.setRenderTarget(mNormalsTexture);
+		rs.setRenderTarget(mPickingTexture);
 		rs.setViewport(viewportArea);
 		rs.clearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White);
 		rs.setScissorRect(position.x, position.y, position.x + area.x, position.y + area.y);
@@ -370,9 +373,9 @@ namespace BansheeEngine
 			BS_EXCEPT(NotImplementedException, "Picking is not supported on render windows as framebuffer readback methods aren't implemented");
 		}
 
-		SPtr<TextureCore> outputTexture = mNormalsTexture->getBindableColorTexture(0)->getTexture();
-		SPtr<TextureCore> normalsTexture = mNormalsTexture->getBindableColorTexture(1)->getTexture();
-		SPtr<TextureCore> depthTexture = mNormalsTexture->getBindableDepthStencilTexture()->getTexture();
+		SPtr<TextureCore> outputTexture = mPickingTexture->getBindableColorTexture(0)->getTexture();
+		SPtr<TextureCore> normalsTexture = mPickingTexture->getBindableColorTexture(1)->getTexture();
+		SPtr<TextureCore> depthTexture = mPickingTexture->getBindableDepthStencilTexture()->getTexture();
 
 		if (position.x < 0 || position.x >= (INT32)outputTexture->getProperties().getWidth() ||
 			position.y < 0 || position.y >= (INT32)outputTexture->getProperties().getHeight())
@@ -396,7 +399,6 @@ namespace BansheeEngine
 		UINT32 maxWidth = std::min((UINT32)(position.x + area.x), outputPixelData->getWidth());
 		UINT32 maxHeight = std::min((UINT32)(position.y + area.y), outputPixelData->getHeight());
 
-		bool needs = rtProps.requiresTextureFlipping();
 		if (rtProps.requiresTextureFlipping())
 		{
 			UINT32 vertOffset = outputPixelData->getHeight() - 1;
@@ -480,11 +482,14 @@ namespace BansheeEngine
 
 			SnapData data;
 			const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
-			depth = depth * Math::abs(rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue()) + rapiInfo.getMinimumDepthInputValue();
+			float max = rapiInfo.getMaximumDepthInputValue();
+			float min = rapiInfo.getMinimumDepthInputValue();
+			depth = depth * Math::abs(max - min) + min;
 			data.pickPosition = Vector3(position.x, position.y, depth);
 			data.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
 			result.data = data;
 		}
+		
 		result.objects = objects;
 		asyncOp._completeOperation(result);
 		mNormalsTexture = nullptr;
