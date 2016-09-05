@@ -335,7 +335,7 @@ namespace BansheeEngine
 		/** 
 		 * Sets a depth value in range [0, 1] at the specified pixel coordinates.
 		 */
-		void setDepthAt(const float& depth, UINT32 x, UINT32 y, UINT32 z = 0);
+		void setDepthAt(const float depth, UINT32 x, UINT32 y, UINT32 z = 0);
 
 		/**
 		* Converts all the internal data into an array of float. Array is mapped as such:
