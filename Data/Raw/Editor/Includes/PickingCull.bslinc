@@ -89,8 +89,8 @@ Technique : base("PickingCull") =
 		{
 			uniform mat4 matWorldViewProj;
 			in vec3 bs_position;
-			in vec3 bs_normal;
-			out vec4 bs_outNorm
+			in vec3 normal;
+			out vec4 outNorm;
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
@@ -98,21 +98,21 @@ Technique : base("PickingCull") =
 			
 			void main()
 			{
-				bs_outNorm = vec4(bs_normal,0);
+				outNorm = vec4(normal,0);
 				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
 			}
 		};
 		
 		Fragment =
 		{
-			in vec4 bs_outNorm;
+			in vec4 outNorm;
 			uniform vec4 colorIndex;
 			out vec4 normalsColor;
 			out vec4 fragColor;
 
 			void main()
 			{
-				normalsColor = (bs_outNorm + vec4(1,1,1,0)) / 2;
+				normalsColor = (outNorm + vec4(1,1,1,0)) / 2;
 				fragColor = colorIndex;
 			}
 		};
