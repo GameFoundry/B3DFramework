@@ -1099,6 +1099,8 @@ namespace BansheeEngine
 
 	void Animation::updateFromProxy()
 	{
+		HSceneObject rootSO;
+
 		// Write TRS animation results to relevant SceneObjects
 		for(UINT32 i = 0; i < mAnimProxy->numSceneObjects; i++)
 		{
@@ -1109,14 +1111,83 @@ namespace BansheeEngine
 				continue;
 
 			HSceneObject so = iterFind->second.so;
+			if (iterFind->second.curveName.empty())
+				rootSO = so;
+
 			if (so.isDestroyed(true))
 				continue;
 
 			if(soInfo.boneIdx != -1)
 			{
-				so->setPosition(mAnimProxy->skeletonPose.positions[soInfo.boneIdx]);
-				so->setRotation(mAnimProxy->skeletonPose.rotations[soInfo.boneIdx]);
-				so->setScale(mAnimProxy->skeletonPose.scales[soInfo.boneIdx]);
+				Vector3 position = mAnimProxy->skeletonPose.positions[soInfo.boneIdx];
+				Quaternion rotation = mAnimProxy->skeletonPose.rotations[soInfo.boneIdx];
+				Vector3 scale = mAnimProxy->skeletonPose.scales[soInfo.boneIdx];
+
+				const SPtr<Skeleton>& skeleton = mAnimProxy->skeleton;
+
+				UINT32 parentBoneIdx = skeleton->getBoneInfo(soInfo.boneIdx).parent;
+				if (parentBoneIdx == -1)
+				{
+					so->setPosition(position);
+					so->setRotation(rotation);
+					so->setScale(scale);
+				}
+				else
+				{
+					while(parentBoneIdx != -1)
+					{
+						// Update rotation
+						const Quaternion& parentOrientation = mAnimProxy->skeletonPose.rotations[parentBoneIdx];
+						rotation = parentOrientation * rotation;
+
+						// Update scale
+						const Vector3& parentScale = mAnimProxy->skeletonPose.scales[parentBoneIdx];
+						scale = parentScale * scale;
+
+						// Update position
+						position = parentOrientation.rotate(parentScale * position);
+						position += mAnimProxy->skeletonPose.positions[parentBoneIdx];
+
+						parentBoneIdx = skeleton->getBoneInfo(parentBoneIdx).parent;
+					}
+
+					// Search for root if not already found
+					if(rootSO == nullptr)
+					{
+						for(auto& entry : mSceneObjects)
+						{
+							if (entry.second.curveName.empty())
+								rootSO = entry.second.so;
+						}
+					}
+
+					Vector3 rootParentPos = Vector3::ZERO;
+					Quaternion rootParentRot = Quaternion::IDENTITY;
+					Vector3 rootParentScale = Vector3::ONE;
+
+					if(rootSO.isDestroyed(true))
+					{
+						HSceneObject rootParent = rootSO->getParent();
+						if(!rootParent.isDestroyed(true))
+						{
+							rootParentPos = rootParent->getWorldPosition();
+							rootParentRot = rootParent->getWorldRotation();
+							rootParentScale = rootParent->getWorldScale();
+						}
+					}
+
+					// Transform from space relative to root's parent to world space
+					rotation = rootParentRot * rotation;
+
+					scale = rootParentScale * scale;
+
+					position = rootParentRot.rotate(rootParentScale * position);
+					position += rootParentPos;
+
+					so->setWorldPosition(position);
+					so->setWorldRotation(rotation);
+					so->setWorldScale(scale);
+				}
 			}
 			else
 			{

@@ -695,8 +695,8 @@ namespace BansheeEngine
             {
                 if (mappingInfo[i].bone == bone)
                 {
-                    mappingInfo.RemoveAt(i);
                     _native.UnmapSceneObject(mappingInfo[i].sceneObject);
+                    mappingInfo.RemoveAt(i);
                     i--;
                 }
             }
