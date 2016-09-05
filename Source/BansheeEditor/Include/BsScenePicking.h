@@ -58,7 +58,7 @@ namespace BansheeEngine
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					Nearest SceneObject under the provided area, or an empty handle if no object is found.
 		 */
-		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data = nullptr);
+		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject>& ignoreRenderables, SnapData* data = nullptr);
 
 		/**
 		 * Attempts to find all scene objects under the provided position and area. This does not mean objects occluded by
@@ -72,7 +72,7 @@ namespace BansheeEngine
 		 * @param[out]	data		Picking data regarding position and normal.
 		 * @return					A list of SceneObject%s under the provided area.
 		 */
-		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject> ignoreRenderables, SnapData* data = nullptr);
+		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, Vector<HSceneObject>& ignoreRenderables, SnapData* data = nullptr);
 
 	private:
 		friend class ScenePickingCore;
