@@ -183,7 +183,7 @@ namespace BansheeEngine
 		return PixelUtil::unpackDepth(mFormat, (unsigned char *)getData() + pixelOffset);;
 	}
 
-	void PixelData::setDepthAt(const float& depth, UINT32 x, UINT32 y, UINT32 z)
+	void PixelData::setDepthAt(const float depth, UINT32 x, UINT32 y, UINT32 z)
 	{
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
