@@ -246,7 +246,10 @@ namespace BansheeEngine
 		}
 		else
 		{
-			setContent(GUIContent(mElements[selectedIdx]));
+			if(!mElements.empty())
+				setContent(GUIContent(mElements[selectedIdx]));
+			else
+				setContent(GUIContent(HEString(L"None")));
 		}
 	}
 
