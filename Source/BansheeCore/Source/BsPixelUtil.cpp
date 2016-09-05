@@ -1365,7 +1365,7 @@ namespace BansheeEngine
 			LOGERR("Cannot convert depth to " + getFormatName(format) + ": it is not a depth format");
 			return;
 		}
-			
+		LOGERR("Method is not implemented");	
 		//TODO implement depth packing
 
 	}
