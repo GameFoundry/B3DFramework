@@ -151,7 +151,16 @@ namespace BansheeEditor
                             MoveHandle moveHandle = (MoveHandle) activeHandle;
 
                             foreach (var selectedObj in activeSelection)
-                                selectedObj.so.LocalPosition = selectedObj.initialPosition + moveHandle.Delta;
+                            {
+                                SceneObject parentSO = selectedObj.so.Parent;
+                                if (parentSO == null)
+                                    selectedObj.so.LocalPosition = selectedObj.initialPosition + moveHandle.Delta;
+                                else
+                                {
+                                    Vector3 parentRelativeDelta = parentSO.Rotation.Inverse.Rotate(moveHandle.Delta);
+                                    selectedObj.so.LocalPosition = selectedObj.initialPosition + parentRelativeDelta;
+                                }
+                            }
 
                             break;
                         case SceneViewTool.Rotate:
