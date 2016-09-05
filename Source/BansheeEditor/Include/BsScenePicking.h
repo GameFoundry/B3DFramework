@@ -151,7 +151,7 @@ namespace BansheeEngine
 	private:
 		friend class ScenePicking;
 
-		SPtr<MultiRenderTextureCore> mNormalsTexture;
+		SPtr<MultiRenderTextureCore> mPickingTexture;
 
 		static const float ALPHA_CUTOFF;
 
