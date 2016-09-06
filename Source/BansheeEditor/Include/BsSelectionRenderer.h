@@ -18,13 +18,6 @@ namespace BansheeEngine
 	/**	Handles rendering of the selected SceneObject%s overlay. */
 	class BS_ED_EXPORT SelectionRenderer
 	{
-		/**	Contains data about a selected mesh. */
-		struct ObjectData
-		{
-			SPtr<MeshCoreBase> mesh;
-			Matrix4 worldTfrm;
-		};
-
 	public:
 		SelectionRenderer();
 		~SelectionRenderer();
@@ -80,16 +73,20 @@ namespace BansheeEngine
 		 * @param[in]	camera		Camera to render the selection overlay in.
 		 * @param[in]	objects		A set of objects to render with the selection overlay.
 		 */
-		void updateData(const SPtr<CameraCore>& camera, const Vector<SelectionRenderer::ObjectData>& objects);
+		void updateData(const SPtr<CameraCore>& camera, const Vector<SPtr<RenderableCore>>& objects);
 
-		Vector<SelectionRenderer::ObjectData> mObjects;
+		Vector<SPtr<RenderableCore>> mObjects;
 		SPtr<CameraCore> mCamera;
 
 		// Immutable
 		SPtr<MaterialCore> mMaterial;
-		SPtr<GpuParamsSetCore> mParams;
-		GpuParamMat4Core mMatWorldViewProj;
-		GpuParamColorCore mColor;
+		SPtr<GpuParamsSetCore> mParams[2];
+		GpuParamMat4Core mMatWorldViewProj[2];
+		GpuParamColorCore mColor[2];
+		GpuParamBufferCore mBoneMatrices;
+
+		UINT32 mDefaultTechniqueIdx;
+		UINT32 mAnimatedTechniqueIdx;
 
 		static const Color SELECTION_COLOR;
 	};

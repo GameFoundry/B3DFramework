@@ -66,10 +66,17 @@ namespace BansheeEngine
 		void postUpdate();
 
 		/** 
-		 * Gets skeleton poses required by the renderer to display all the animations. This will block the animation thread
-		 * if it has not yet finished, and it will also advance the read buffer index, meaning this shouldn't be called more
-		 * than once per frame. The returned data can be referenced, and is guaranteed to be valid for a single core-thread
-		 * frame.
+		 * Blocks the animation thread until it has finished evaluating animation, and it advances the read buffer index, 
+		 * meaning this shouldn't be called more than once per frame. It must be called before calling getRendererData().
+		 *
+		 * @note	Core thread only.
+		 */
+		void AnimationManager::waitUntilComplete();
+
+		/** 
+		 * Gets skeleton poses required by the renderer to display all the animations. The returned data can be referenced, 
+		 * and is guaranteed to be valid for a single core-thread frame. Before invoking, caller must ensure data is
+		 * available by first calling waitUntilComplete().
 		 *
 		 * @note	Core thread only.
 		 */
@@ -109,6 +116,7 @@ namespace BansheeEngine
 		UINT32 mPoseReadBufferIdx;
 		UINT32 mPoseWriteBufferIdx;
 		std::atomic<INT32> mDataReadyCount;
+		bool mDataReady;
 	};
 
 	/** Provides easier access to AnimationManager. */

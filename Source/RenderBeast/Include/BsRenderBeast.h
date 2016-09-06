@@ -27,9 +27,6 @@ namespace BansheeEngine
 	static StringID RPS_GBufferDepth = "GBufferDepth";
 	static StringID RPS_BoneMatrices = "BoneMatrices";
 
-	/** Technique tags. */
-	static StringID RTag_Animated = "Animated";
-
 	/**
 	 * Default renderer for Banshee. Performs frustum culling, sorting and renders objects in custom ways determine by
 	 * renderable handlers.
@@ -216,6 +213,7 @@ namespace BansheeEngine
 		Vector<RendererObject> mRenderables;
 		Vector<RenderableShaderData> mRenderableShaderData;
 		Vector<Bounds> mWorldBounds;
+		Vector<bool> mVisibility; // Transient
 
 		Vector<RendererLight> mDirectionalLights;
 		Vector<RendererLight> mPointLights;

@@ -994,6 +994,8 @@ namespace BansheeEngine
 		if (techniqueNode == nullptr || techniqueNode->type != NT_Technique)
 			return;
 
+		PassData combinedCommonPassData;
+
 		UINT32 nextPassIdx = 0;
 		// Go in reverse because options are added in reverse order during parsing
 		for (int i = techniqueNode->options->count - 1; i >= 0; i--)
@@ -1038,27 +1040,53 @@ namespace BansheeEngine
 
 				nextPassIdx = std::max(nextPassIdx, passIdx) + 1;
 
-				passData->blendIsDefault &= !parseBlendState(passData->blendDesc, techniqueNode);
-				passData->rasterizerIsDefault &= !parseRasterizerState(passData->rasterizerDesc, techniqueNode);
-				passData->depthStencilIsDefault &= !parseDepthStencilState(passData->depthStencilDesc, techniqueNode);
-
-				passData->vertexCode = techniqueData.commonPassData.vertexCode + passData->vertexCode;
-				passData->fragmentCode = techniqueData.commonPassData.fragmentCode + passData->fragmentCode;
-				passData->geometryCode = techniqueData.commonPassData.geometryCode + passData->geometryCode;
-				passData->hullCode = techniqueData.commonPassData.hullCode + passData->hullCode;
-				passData->domainCode = techniqueData.commonPassData.domainCode + passData->domainCode;
-				passData->computeCode = techniqueData.commonPassData.computeCode + passData->computeCode;
-				passData->commonCode = techniqueData.commonPassData.commonCode + passData->commonCode;
+				passData->vertexCode = combinedCommonPassData.vertexCode + passData->vertexCode;
+				passData->fragmentCode = combinedCommonPassData.fragmentCode + passData->fragmentCode;
+				passData->geometryCode = combinedCommonPassData.geometryCode + passData->geometryCode;
+				passData->hullCode = combinedCommonPassData.hullCode + passData->hullCode;
+				passData->domainCode = combinedCommonPassData.domainCode + passData->domainCode;
+				passData->computeCode = combinedCommonPassData.computeCode + passData->computeCode;
+				passData->commonCode = combinedCommonPassData.commonCode + passData->commonCode;
 				
 				parsePass(passNode, codeBlocks, *passData);
 			}
 				break;
 			case OT_Code:
-				parseCodeBlock(option->value.nodePtr, codeBlocks, techniqueData.commonPassData);
+			{
+				PassData commonPassData;
+				parseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
+
+				for (auto& passData : techniqueData.passes)
+				{
+					passData.vertexCode += commonPassData.vertexCode;
+					passData.fragmentCode += commonPassData.fragmentCode;
+					passData.geometryCode += commonPassData.geometryCode;
+					passData.hullCode += commonPassData.hullCode;
+					passData.domainCode += commonPassData.domainCode;
+					passData.computeCode += commonPassData.computeCode;
+					passData.commonCode += commonPassData.commonCode;
+				}
+
+				combinedCommonPassData.vertexCode += commonPassData.vertexCode;
+				combinedCommonPassData.fragmentCode += commonPassData.fragmentCode;
+				combinedCommonPassData.geometryCode += commonPassData.geometryCode;
+				combinedCommonPassData.hullCode += commonPassData.hullCode;
+				combinedCommonPassData.domainCode += commonPassData.domainCode;
+				combinedCommonPassData.computeCode += commonPassData.computeCode;
+				combinedCommonPassData.commonCode += commonPassData.commonCode;
+			}
 				break;
 			default:
 				break;
 			}
+		}
+
+		// Parse common pass states
+		for (auto& passData : techniqueData.passes)
+		{
+			passData.blendIsDefault &= !parseBlendState(passData.blendDesc, techniqueNode);
+			passData.rasterizerIsDefault &= !parseRasterizerState(passData.rasterizerDesc, techniqueNode);
+			passData.depthStencilIsDefault &= !parseDepthStencilState(passData.depthStencilDesc, techniqueNode);
 		}
 	}
 

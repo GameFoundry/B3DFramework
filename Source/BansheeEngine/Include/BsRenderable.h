@@ -205,6 +205,9 @@ namespace BansheeEngine
 		/** Sets the animation that will be used for animating the attached mesh. */
 		void setAnimation(const SPtr<Animation>& animation);
 
+		/** Checks is the renderable animated or static. */
+		bool isAnimated() const { return mAnimation != nullptr; }
+
 		/**	Retrieves an implementation of a renderable handler usable only from the core thread. */
 		SPtr<RenderableCore> getCore() const;
 

@@ -38,6 +38,9 @@ namespace BansheeEngine
 	static StringID RPS_Diffuse = "Diffuse";
 	static StringID RPS_ViewDir = "ViewDir";
 
+	/** Technique tags. */
+	static StringID RTag_Animated = "Animated";
+
 	/**	Set of options that can be used for controlling the renderer. */	
 	struct BS_CORE_EXPORT CoreRendererOptions
 	{

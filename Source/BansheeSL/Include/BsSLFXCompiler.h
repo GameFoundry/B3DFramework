@@ -76,8 +76,6 @@ namespace BansheeEngine
 		struct TechniqueData
 		{
 			TechniqueMetaData metaData;
-
-			PassData commonPassData;
 			Vector<PassData> passes;
 		};
 

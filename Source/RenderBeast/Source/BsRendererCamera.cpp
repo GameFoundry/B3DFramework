@@ -78,7 +78,8 @@ namespace BansheeEngine
 		}
 	}
 
-	void RendererCamera::determineVisible(Vector<RendererObject>& renderables, const Vector<Bounds>& renderableBounds)
+	void RendererCamera::determineVisible(Vector<RendererObject>& renderables, const Vector<Bounds>& renderableBounds, 
+		Vector<bool>& visibility)
 	{
 		bool isOverlayCamera = mCamera->getFlags().isSet(CameraFlag::Overlay);
 		if (isOverlayCamera)
@@ -88,9 +89,9 @@ namespace BansheeEngine
 		ConvexVolume worldFrustum = mCamera->getWorldFrustum();
 
 		// Update per-object param buffers and queue render elements
-		for (auto& renderableData : renderables)
+		for(UINT32 i = 0; i < (UINT32)renderables.size(); i++)
 		{
-			RenderableCore* renderable = renderableData.renderable;
+			RenderableCore* renderable = renderables[i].renderable;
 			UINT32 rendererId = renderable->getRendererId();
 
 			if ((renderable->getLayer() & cameraLayers) == 0)
@@ -107,9 +108,11 @@ namespace BansheeEngine
 
 				if (worldFrustum.intersects(boundingBox))
 				{
+					visibility[i] = true;
+
 					float distanceToCamera = (mCamera->getPosition() - boundingBox.getCenter()).length();
 
-					for (auto& renderElem : renderableData.elements)
+					for (auto& renderElem : renderables[i].elements)
 					{
 						bool isTransparent = (renderElem.material->getShader()->getFlags() & (UINT32)ShaderFlags::Transparent) != 0;
 

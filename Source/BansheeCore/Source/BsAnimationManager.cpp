@@ -12,8 +12,8 @@ namespace BansheeEngine
 {
 	AnimationManager::AnimationManager()
 		: mNextId(1), mUpdateRate(1.0f / 60.0f), mAnimationTime(0.0f), mLastAnimationUpdateTime(0.0f)
-		, mNextAnimationUpdateTime(0.0f), mPaused(false), mWorkerRunning(false), mPoseReadBufferIdx(0)
-		, mPoseWriteBufferIdx(0), mDataReadyCount(0)
+		, mNextAnimationUpdateTime(0.0f), mPaused(false), mWorkerRunning(false), mPoseReadBufferIdx(1)
+		, mPoseWriteBufferIdx(0), mDataReadyCount(0), mDataReady(false)
 	{
 		mAnimationWorker = Task::create("Animation", std::bind(&AnimationManager::evaluateAnimation, this));
 	}
@@ -251,7 +251,7 @@ namespace BansheeEngine
 		std::atomic_thread_fence(std::memory_order_release);
 	}
 
-	const RendererAnimationData& AnimationManager::getRendererData()
+	void AnimationManager::waitUntilComplete()
 	{
 		mAnimationWorker->wait();
 
@@ -261,18 +261,23 @@ namespace BansheeEngine
 		INT32 dataReadyCount = mDataReadyCount.load(std::memory_order_relaxed);
 		assert(dataReadyCount <= CoreThread::NUM_SYNC_BUFFERS);
 
-		if (dataReadyCount <= 0)
+		mDataReady = dataReadyCount > 0;
+		if (!mDataReady)
+			return;
+
+		mDataReadyCount.fetch_add(-1, std::memory_order_relaxed);
+		mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
+	}
+
+	const RendererAnimationData& AnimationManager::getRendererData()
+	{
+		if (!mDataReady)
 		{
 			static RendererAnimationData dummy;
 			return dummy;
 		}
 
-		const RendererAnimationData& output = mAnimData[mPoseReadBufferIdx];
-
-		mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
-		mDataReadyCount.fetch_add(-1, std::memory_order_relaxed);
-
-		return output;
+		return mAnimData[mPoseReadBufferIdx];
 	}
 
 	UINT64 AnimationManager::registerAnimation(Animation* anim)

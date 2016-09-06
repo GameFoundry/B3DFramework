@@ -224,12 +224,12 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamBuffer<Core>::set(const BufferType& texture) const
+	void TGpuParamBuffer<Core>::set(const BufferType& buffer) const
 	{
 		if (mParent == nullptr)
 			return;
 
-		mParent->setBuffer(mParamDesc->slot, texture);
+		mParent->setBuffer(mParamDesc->slot, buffer);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();

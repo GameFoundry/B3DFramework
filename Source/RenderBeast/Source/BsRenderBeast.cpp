@@ -88,6 +88,7 @@ namespace BansheeEngine
 		mRenderTargets.clear();
 		mCameras.clear();
 		mRenderables.clear();
+		mVisibility.clear();
 
 		PostProcessing::shutDown();
 		RenderTexturePool::shutDown();
@@ -111,6 +112,7 @@ namespace BansheeEngine
 		mRenderables.push_back(RendererObject());
 		mRenderableShaderData.push_back(RenderableShaderData());
 		mWorldBounds.push_back(renderable->getBounds());
+		mVisibility.push_back(false);
 
 		RendererObject& rendererObject = mRenderables.back();
 		rendererObject.renderable = renderable;
@@ -281,6 +283,7 @@ namespace BansheeEngine
 		mRenderables.erase(mRenderables.end() - 1);
 		mWorldBounds.erase(mWorldBounds.end() - 1);
 		mRenderableShaderData.erase(mRenderableShaderData.end() - 1);
+		mVisibility.erase(mVisibility.end() - 1);
 	}
 
 	void RenderBeast::notifyRenderableUpdated(RenderableCore* renderable)
@@ -531,11 +534,55 @@ namespace BansheeEngine
 		mObjectRenderer->setParamFrameParams(time);
 
 		// Generate render queues per camera
-		for (auto& entry : mCameras)
-			entry.second.determineVisible(mRenderables, mWorldBounds);
+		mVisibility.assign(mVisibility.size(), false);
 
+		for (auto& entry : mCameras)
+			entry.second.determineVisible(mRenderables, mWorldBounds, mVisibility);
+
+		AnimationManager::instance().waitUntilComplete();
 		const RendererAnimationData& animData = AnimationManager::instance().getRendererData();
 		RendererFrame frameInfo(delta, animData);
+
+		// Update bone matrix buffers
+		UINT32 numRenderables = (UINT32)mRenderables.size();
+		for (UINT32 i = 0; i < numRenderables; i++)
+		{
+			if (!mVisibility[i])
+				continue;
+
+			for (auto& element : mRenderables[i].elements)
+			{
+				if (element.animationId == (UINT64)-1)
+					continue;
+
+				// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
+				// all such elements
+				SPtr<GpuBufferCore> boneMatrices = element.boneMatrixBuffer;
+
+				auto iterFind = animData.poseInfos.find(element.animationId);
+				if (iterFind != animData.poseInfos.end())
+				{
+					const RendererAnimationData::PoseInfo& poseInfo = iterFind->second;
+
+					UINT8* dest = (UINT8*)boneMatrices->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+					for (UINT32 j = 0; j < poseInfo.numBones; j++)
+					{
+						const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
+						memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
+
+						dest += 12 * sizeof(float);
+					}
+
+					boneMatrices->unlock();
+				}
+			}
+
+			// TODO - Also move per-object buffer updates here (will require worldViewProj matrix to be moved to a separate buffer (or a push constant))
+			// TODO - Before uploading bone matrices and per-object data, check if it has actually been changed since last frame (most objects will be static)
+			// TODO - Also move per-camera buffer updates in a separate loop
+		}
+
+		// TODO - When porting to Vulkan, start upload and issue barrier (but somehow avoid blocking too long here?)
 
 		// Render everything, target by target
 		for (auto& rtInfo : mRenderTargets)
@@ -778,32 +825,7 @@ namespace BansheeEngine
 
 		UINT32 rendererId = element.renderableId;
 		Matrix4 worldViewProjMatrix = viewProj * mRenderableShaderData[rendererId].worldTransform;
-
 		SPtr<GpuBufferCore> boneMatrices = element.boneMatrixBuffer;
-		if(element.animationId != (UINT64)-1)
-		{
-			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
-			// all such elements
-
-			const RendererAnimationData& animData = frameInfo.animData;
-
-			auto iterFind = animData.poseInfos.find(element.animationId);
-			if(iterFind != animData.poseInfos.end())
-			{
-				const RendererAnimationData::PoseInfo& poseInfo = iterFind->second;
-
-				UINT8* dest = (UINT8*)boneMatrices->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
-				for(UINT32 i = 0; i < poseInfo.numBones; i++)
-				{
-					const Matrix4& transform = animData.transforms[poseInfo.startIdx + i];
-					memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
-
-					dest += 12 * sizeof(float);
-				}
-
-				boneMatrices->unlock();
-			}
-		}
 
 		mObjectRenderer->setPerObjectParams(element, mRenderableShaderData[rendererId], worldViewProjMatrix, boneMatrices);
 		material->updateParamsSet(element.params, element.techniqueIdx);

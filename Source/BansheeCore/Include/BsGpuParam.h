@@ -252,7 +252,7 @@ namespace BansheeEngine
 		TGpuParamBuffer(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::set */
-		void set(const BufferType& texture) const;
+		void set(const BufferType& buffer) const;
 
 		/** @copydoc TGpuDataParam::get */
 		BufferType get() const;

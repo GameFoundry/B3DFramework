@@ -54,8 +54,19 @@ namespace BansheeEngine
 		 */
 		const SPtr<RenderQueue>& getTransparentQueue() const { return mTransparentQueue; }
 
-		/** Populates camera render queues by determining visible renderable objects. */
-		void determineVisible(Vector<RendererObject>& renderables, const Vector<Bounds>& renderableBounds);
+		/**
+		 * Populates camera render queues by determining visible renderable objects. 
+		 *
+		 * @param[in]	renderables			A set of renderable objects to iterate over and determine visibility for.
+		 * @param[in]	renderableBounds	A set of world bounds for the provided renderable objects. Must be the same size
+		 *									as the @p renderables array.
+		 * @param[in]	visibility			Output parameter that will have the true bit set for any visible renderable
+		 *									object. If the bit for an object is already set to true, the method will never
+		 *									change it to false which allows the same bitfield to be provided to multiple
+		 *									renderer cameras. Must be the same size as the @p renderables array.
+		 */
+		void determineVisible(Vector<RendererObject>& renderables, const Vector<Bounds>& renderableBounds, 
+			Vector<bool>& visibility);
 
 		/** 
 		 * Returns a structure containing information about post-processing effects. This structure will be modified and
