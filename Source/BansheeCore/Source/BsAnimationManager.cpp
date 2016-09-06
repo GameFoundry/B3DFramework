@@ -149,6 +149,7 @@ namespace BansheeEngine
 				info.startIdx = curBoneIdx;
 				info.numBones = numBones;
 
+				memset(anim->skeletonPose.hasOverride, 0, sizeof(bool) * anim->skeletonPose.numBones);
 				Matrix4* boneDst = renderData.transforms.data() + curBoneIdx;
 
 				// Copy transforms from mapped scene objects
@@ -161,6 +162,7 @@ namespace BansheeEngine
 						continue;
 
 					boneDst[soInfo.boneIdx] = anim->sceneObjectTransforms[boneTfrmIdx];
+					anim->skeletonPose.hasOverride[soInfo.boneIdx] = true;
 					boneTfrmIdx++;
 				}
 

@@ -91,6 +91,7 @@ namespace BansheeEngine
 		Vector3* positions; /**< Local bone positions at specific animation time. */
 		Quaternion* rotations; /**< Local bone rotations at specific animation time. */
 		Vector3* scales; /**< Local bone scales at specific animation time. */
+		bool* hasOverride; /**< True if the bone transform was overriden externally (local pose was ignored). */
 		UINT32 numBones; /**< Number of bones in the pose. */
 	};
 

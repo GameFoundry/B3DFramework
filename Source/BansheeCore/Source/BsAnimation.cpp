@@ -421,6 +421,19 @@ namespace BansheeEngine
 				assert(layer.numStates > 0);
 			}
 
+			Matrix4 invRootTransform(BsIdentity);
+			for (UINT32 i = 0; i < numSceneObjects; i++)
+			{
+				if(sceneObjects[i].curveName.empty())
+				{
+					HSceneObject so = sceneObjects[i].so;
+					if (!so.isDestroyed(true))
+						invRootTransform = so->getWorldTfrm().inverseAffine();
+
+					break;
+				}				
+			}
+
 			UINT32 boneIdx = 0;
 			for(UINT32 i = 0; i < numSceneObjects; i++)
 			{
@@ -466,7 +479,7 @@ namespace BansheeEngine
 				else
 				{
 					// No need to check if SO is valid, if it has a bone connection it must be
-					sceneObjectTransforms[boneIdx] = so->getWorldTfrm();
+					sceneObjectTransforms[boneIdx] = so->getWorldTfrm() * invRootTransform;
 					boneIdx++;
 				}
 			}
@@ -490,6 +503,19 @@ namespace BansheeEngine
 
 	void AnimationProxy::updateTransforms(const Vector<AnimatedSceneObject>& sceneObjects)
 	{
+		Matrix4 invRootTransform(BsIdentity);
+		for (UINT32 i = 0; i < numSceneObjects; i++)
+		{
+			if (sceneObjects[i].curveName.empty())
+			{
+				HSceneObject so = sceneObjects[i].so;
+				if (!so.isDestroyed(true))
+					invRootTransform = so->getWorldTfrm().inverseAffine();
+
+				break;
+			}
+		}
+
 		UINT32 boneIdx = 0;
 		for (UINT32 i = 0; i < numSceneObjects; i++)
 		{
@@ -505,7 +531,7 @@ namespace BansheeEngine
 			if (sceneObjectInfos[i].boneIdx == -1)
 				continue;
 
-			sceneObjectTransforms[boneIdx] = sceneObjects[i].so->getWorldTfrm();
+			sceneObjectTransforms[boneIdx] = sceneObjects[i].so->getWorldTfrm() * invRootTransform;
 			boneIdx++;
 		}
 	}
@@ -1036,23 +1062,23 @@ namespace BansheeEngine
 			mDirty.unset(AnimDirtyStateFlag::Culling);
 		}
 
+		auto getAnimatedSOList = [&]()
+		{
+			Vector<AnimatedSceneObject> animatedSO(mSceneObjects.size());
+			UINT32 idx = 0;
+			for (auto& entry : mSceneObjects)
+				animatedSO[idx++] = entry.second;
+
+			return animatedSO;
+		};
+
+		bool didFullRebuild = false;
 		if((UINT32)mDirty == 0) // Clean
 		{
 			mAnimProxy->updateTime(mClipInfos);
 		}
 		else
 		{
-			auto getAnimatedSOList = [&]()
-			{
-				Vector<AnimatedSceneObject> animatedSO(mSceneObjects.size());
-				UINT32 idx = 0;
-				for (auto& entry : mSceneObjects)
-					animatedSO[idx++] = entry.second;
-
-				return animatedSO;
-			};
-
-			bool didFullRebuild = false;
 			if (mDirty.isSet(AnimDirtyStateFlag::Skeleton))
 			{
 				Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
@@ -1069,27 +1095,35 @@ namespace BansheeEngine
 			}
 			else if (mDirty.isSet(AnimDirtyStateFlag::Value))
 				mAnimProxy->updateValues(mClipInfos);
+		}
 
-			// Check if there are dirty transforms
-			if(!didFullRebuild)
+		// Check if there are dirty transforms
+		if (!didFullRebuild)
+		{
+			for (UINT32 i = 0; i < mAnimProxy->numSceneObjects; i++)
 			{
-				UINT32 numSceneObjects = (UINT32)mSceneObjects.size();
-				for (UINT32 i = 0; i < numSceneObjects; i++)
+				AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
+
+				auto iterFind = mSceneObjects.find(soInfo.id);
+				if (iterFind == mSceneObjects.end())
 				{
-					UINT32 hash;
+					assert(false); // Should never happen
+					continue;
+				}
 
-					HSceneObject so = mSceneObjects[i].so;
-					if (so.isDestroyed(true))
-						hash = 0;
-					else
-						hash = so->getTransformHash();
+				UINT32 hash;
 
-					if(hash != mAnimProxy->sceneObjectInfos[i].hash)
-					{
-						Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
-						mAnimProxy->updateTransforms(animatedSOs);
-						break;
-					}
+				HSceneObject so = iterFind->second.so;
+				if (so.isDestroyed(true))
+					hash = 0;
+				else
+					hash = so->getTransformHash();
+
+				if (hash != mAnimProxy->sceneObjectInfos[i].hash)
+				{
+					Vector<AnimatedSceneObject> animatedSOs = getAnimatedSOList();
+					mAnimProxy->updateTransforms(animatedSOs);
+					break;
 				}
 			}
 		}
@@ -1119,6 +1153,9 @@ namespace BansheeEngine
 
 			if(soInfo.boneIdx != -1)
 			{
+				if (mAnimProxy->skeletonPose.hasOverride[soInfo.boneIdx])
+					continue;
+
 				Vector3 position = mAnimProxy->skeletonPose.positions[soInfo.boneIdx];
 				Quaternion rotation = mAnimProxy->skeletonPose.rotations[soInfo.boneIdx];
 				Vector3 scale = mAnimProxy->skeletonPose.scales[soInfo.boneIdx];

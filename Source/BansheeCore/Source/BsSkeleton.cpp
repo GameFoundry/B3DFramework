@@ -8,13 +8,13 @@
 namespace BansheeEngine
 {
 	LocalSkeletonPose::LocalSkeletonPose()
-		: positions(nullptr), rotations(nullptr), scales(nullptr), numBones(0)
+		: positions(nullptr), rotations(nullptr), scales(nullptr), hasOverride(nullptr), numBones(0)
 	{ }
 
 	LocalSkeletonPose::LocalSkeletonPose(UINT32 numBones)
 		: numBones(numBones)
 	{
-		UINT32 elementSize = sizeof(Vector3) * 2 + sizeof(Quaternion);
+		UINT32 elementSize = sizeof(Vector3) * 2 + sizeof(Quaternion) + sizeof(bool);
 		UINT8* buffer = (UINT8*)bs_alloc(elementSize * numBones);
 
 		positions = (Vector3*)buffer;
@@ -24,10 +24,13 @@ namespace BansheeEngine
 		buffer += sizeof(Quaternion) * numBones;
 
 		scales = (Vector3*)buffer;
+		buffer += sizeof(Vector3) * numBones;
+
+		hasOverride = (bool*)buffer;
 	}
 
 	LocalSkeletonPose::LocalSkeletonPose(UINT32 numPos, UINT32 numRot, UINT32 numScale)
-		: numBones(0)
+		: numBones(0), hasOverride(nullptr)
 	{
 		UINT32 bufferSize = sizeof(Vector3) * numPos + sizeof(Quaternion) * numRot + sizeof(Vector3) * numScale;
 		UINT8* buffer = (UINT8*)bs_alloc(bufferSize);
@@ -42,11 +45,13 @@ namespace BansheeEngine
 	}
 
 	LocalSkeletonPose::LocalSkeletonPose(LocalSkeletonPose&& other)
-		: positions(other.positions), rotations(other.rotations), scales(other.scales), numBones(other.numBones)
+		: positions(other.positions), rotations(other.rotations), scales(other.scales), hasOverride(other.hasOverride)
+		, numBones(other.numBones)
 	{
 		other.positions = nullptr;
 		other.rotations = nullptr;
 		other.scales = nullptr;
+		other.hasOverride = nullptr;
 		other.numBones = 0;
 	}
 
@@ -66,11 +71,13 @@ namespace BansheeEngine
 			positions = other.positions;
 			rotations = other.rotations;
 			scales = other.scales;
+			hasOverride = other.hasOverride;
 			numBones = other.numBones;
 
 			other.positions = nullptr;
 			other.rotations = nullptr;
 			other.scales = nullptr;
+			other.hasOverride = nullptr;
 			other.numBones = 0;
 		}
 
@@ -159,6 +166,9 @@ namespace BansheeEngine
 			localPose.scales[i] = Vector3::ONE;
 		}
 
+		// Note: For a possible performance improvement consider keeping an array of only active (non-disabled) bones and
+		// just iterate over them without mask checks. Possibly also a list of active curve mappings to avoid those checks
+		// as well.
 		for(UINT32 i = 0; i < numLayers; i++)
 		{
 			const AnimationStateLayer& layer = layers[i];
@@ -197,6 +207,8 @@ namespace BansheeEngine
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->position[mapping.position].curve;
 						localPose.positions[k] += curve.evaluate(state.time, state.positionCaches[k], state.loop) * normWeight;
+
+						localPose.hasOverride[k] = false;
 					}
 				}
 
@@ -210,6 +222,8 @@ namespace BansheeEngine
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[mapping.scale].curve;
 						localPose.scales[k] *= curve.evaluate(state.time, state.scaleCaches[k], state.loop) * normWeight;
+
+						localPose.hasOverride[k] = false;
 					}
 				}
 
@@ -233,6 +247,7 @@ namespace BansheeEngine
 							value = Quaternion::lerp(normWeight, Quaternion::IDENTITY, value);
 
 							localPose.rotations[k] *= value;
+							localPose.hasOverride[k] = false;
 						}
 					}
 				}
@@ -253,6 +268,7 @@ namespace BansheeEngine
 								value = -value;
 							
 							localPose.rotations[k] += value;
+							localPose.hasOverride[k] = false;
 						}
 					}
 				}
@@ -260,6 +276,10 @@ namespace BansheeEngine
 		}
 
 		// Calculate local pose matrices
+		UINT32 isGlobalBytes = sizeof(bool) * mNumBones;
+		bool* isGlobal = (bool*)bs_stack_alloc(isGlobalBytes);
+		memset(isGlobal, 0, isGlobalBytes);
+
 		for(UINT32 i = 0; i < mNumBones; i++)
 		{
 			bool isAssigned = localPose.rotations[i].w != 0.0f;
@@ -268,14 +288,18 @@ namespace BansheeEngine
 			else
 				localPose.rotations[i].normalize();
 
+			if (localPose.hasOverride[i])
+			{
+				isGlobal[i] = true;
+				continue;
+			}
+
 			pose[i] = Matrix4::TRS(localPose.positions[i], localPose.rotations[i], localPose.scales[i]);
 		}
 
 		// Calculate global poses
-		UINT32 isGlobalBytes = sizeof(bool) * mNumBones;
-		bool* isGlobal = (bool*)bs_stack_alloc(isGlobalBytes);
-		memset(isGlobal, 0, isGlobalBytes);
-
+		// Note: For a possible performance improvement consider sorting bones in such order so that parents (and overrides)
+		// always come before children, we no isGlobal check is needed.
 		std::function<void(UINT32)> calcGlobal = [&](UINT32 boneIdx)
 		{
 			UINT32 parentBoneIdx = mBoneInfo[boneIdx].parent;
