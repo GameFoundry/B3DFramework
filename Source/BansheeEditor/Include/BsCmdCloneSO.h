@@ -5,7 +5,6 @@
 #include "BsEditorPrerequisites.h"
 #include "BsEditorCommand.h"
 #include "BsUndoRedo.h"
-#include "BsCmdUtility.h"
 
 namespace BansheeEngine
 {

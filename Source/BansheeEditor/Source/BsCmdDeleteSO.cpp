@@ -70,7 +70,7 @@ namespace BansheeEngine
 		MemorySerializer serializer;
 		SPtr<SceneObject> restored = std::static_pointer_cast<SceneObject>(serializer.decode(mSerializedObject, mSerializedObjectSize));
 
-		CmdUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
+		EditorUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
 		restored->setParent(parent);
 	}
 
@@ -83,6 +83,6 @@ namespace BansheeEngine
 		if (parent != nullptr)
 			mSerializedObjectParentId = parent->getInstanceId();
 
-		mSceneObjectProxy = CmdUtility::createProxy(mSceneObject);
+		mSceneObjectProxy = EditorUtility::createProxy(mSceneObject);
 	}
 }

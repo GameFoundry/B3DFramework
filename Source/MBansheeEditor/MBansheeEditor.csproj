@@ -48,6 +48,7 @@
     <Compile Include="Inspectors\BoneInspector.cs" />
     <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
     <Compile Include="Utility\EdAnimationCurve.cs" />
+    <Compile Include="Utility\SerializedSceneObject.cs" />
     <Compile Include="Utility\SerializedDiff.cs" />
     <Compile Include="Utility\SerializedObject.cs" />
     <Compile Include="Windows\AboutBox.cs" />

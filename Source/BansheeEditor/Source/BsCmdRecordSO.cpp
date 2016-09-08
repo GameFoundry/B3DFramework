@@ -77,7 +77,7 @@ namespace BansheeEngine
 		MemorySerializer serializer;
 		SPtr<SceneObject> restored = std::static_pointer_cast<SceneObject>(serializer.decode(mSerializedObject, mSerializedObjectSize));
 
-		CmdUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
+		EditorUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
 		restored->setParent(parent);
 
 		if (!mRecordHierarchy)
@@ -109,7 +109,7 @@ namespace BansheeEngine
 		MemorySerializer serializer;
 		mSerializedObject = serializer.encode(mSceneObject.get(), mSerializedObjectSize);
 
-		mSceneObjectProxy = CmdUtility::createProxy(mSceneObject);
+		mSceneObjectProxy = EditorUtility::createProxy(mSceneObject);
 
 		if (!mRecordHierarchy)
 		{
