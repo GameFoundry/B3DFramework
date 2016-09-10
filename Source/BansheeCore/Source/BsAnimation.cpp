@@ -936,6 +936,15 @@ namespace BansheeEngine
 			if (clipInfo.clip == clip)
 			{
 				state = clipInfo.state;
+
+				// Internally we store unclamped time, so clamp/loop it
+				float clipLength = 0.0f;
+				if (clip.isLoaded())
+					clipLength = clip->getLength();
+
+				bool loop = clipInfo.state.wrapMode == AnimWrapMode::Loop;
+				AnimationUtility::wrapTime(clipInfo.state.time, 0.0f, clipLength, loop);
+
 				return true;
 			}
 		}
@@ -949,13 +958,6 @@ namespace BansheeEngine
 
 		if (clipInfo == nullptr)
 			return;
-
-		float clipLength = 0.0f;
-		if (clip.isLoaded())
-			clipLength = clip->getLength();
-
-		bool loop = state.wrapMode == AnimWrapMode::Loop;
-		AnimationUtility::wrapTime(state.time, 0.0f, clipLength, loop);
 
 		clipInfo->state = state;
 		mDirty |= AnimDirtyStateFlag::Value;
@@ -1062,9 +1064,6 @@ namespace BansheeEngine
 
 				clipLength = clip->getLength();
 			}
-
-			bool loop = clipInfo.state.wrapMode == AnimWrapMode::Loop;
-			AnimationUtility::wrapTime(clipInfo.state.time, 0.0f, clipLength, loop);
 
 			float fadeTime = clipInfo.fadeTime + scaledTimeDelta;
 			clipInfo.fadeTime = Math::clamp(fadeTime, 0.0f, clipInfo.fadeLength);

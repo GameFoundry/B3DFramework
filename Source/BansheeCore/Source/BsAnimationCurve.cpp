@@ -215,7 +215,7 @@ namespace BansheeEngine
 			return evaluateCache(time, cache);
 
 		// Clamp to start, cache constant of the first key and return
-		if(time < mStart || mKeyframes.size() == 1)
+		if(time < mStart)
 		{
 			cache.cachedCurveStart = -std::numeric_limits<float>::infinity();
 			cache.cachedCurveEnd = mStart;
@@ -228,7 +228,7 @@ namespace BansheeEngine
 			return mKeyframes[0].value;
 		}
 		
-		if(time > mEnd) // Clamp to end, cache constant of the final key and return
+		if(time >= mEnd) // Clamp to end, cache constant of the final key and return
 		{
 			UINT32 lastKey = (UINT32)mKeyframes.size() - 1;
 

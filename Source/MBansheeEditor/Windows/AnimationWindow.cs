@@ -256,8 +256,6 @@ namespace BansheeEditor
                     fieldSelection.OnFieldSelected += OnFieldAdded;
                 };
 
-                SwitchState(State.Normal);
-
                 if (clipInfo.clip == null)
                 {
                     LocEdString title = new LocEdString("Warning");
@@ -272,6 +270,7 @@ namespace BansheeEditor
                             string clipSavePath;
                             if (BrowseDialog.SaveFile(ProjectLibrary.ResourceFolder, "*.asset", out clipSavePath))
                             {
+                                SwitchState(State.Empty);
                                 clipSavePath = Path.ChangeExtension(clipSavePath, ".asset");
 
                                 AnimationClip newClip = new AnimationClip();
@@ -286,8 +285,7 @@ namespace BansheeEditor
                                 animation.DefaultClip = newClip;
                                 EditorApplication.SetSceneDirty();
 
-                                soState = new SerializedSceneObject(selectedSO, true);
-
+                                SwitchState(State.Normal);
                                 openPropertyWindow();
                             }
                         }
@@ -305,7 +303,10 @@ namespace BansheeEditor
                         DialogBox.Open(title, message, DialogBox.Type.OK);
                     }
                     else
+                    {
+                        SwitchState(State.Normal);
                         openPropertyWindow();
+                    }
                 }
             };
 

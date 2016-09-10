@@ -304,18 +304,6 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Converts pixel coordinates relative to the curve drawing area into coordinates in curve space.
-        /// </summary>
-        /// <param name="pixelCoords">Coordinates relative to this GUI element, in pixels.</param>
-        /// <param name="curveCoords">Curve coordinates within the range as specified by <see cref="Range"/>. Only
-        ///                           valid when function returns true.</param>
-        /// <returns>True if the coordinates are within the curve area, false otherwise.</returns>
-        public bool PixelToCurveSpace(Vector2I pixelCoords, out Vector2 curveCoords)
-        {
-            return guiCurveDrawing.PixelToCurveSpace(pixelCoords, out curveCoords);
-        }
-
-        /// <summary>
         /// Converts coordinate in curve space (time, value) into pixel coordinates relative to the curve drawing area
         /// origin.
         /// </summary>
@@ -373,7 +361,7 @@ namespace BansheeEditor
             if (ev.Button == PointerButton.Left)
             {
                 Vector2 curveCoord;
-                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord))
+                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord, true))
                 {
                     KeyframeRef keyframeRef;
                     if (!guiCurveDrawing.FindKeyFrame(drawingPos, out keyframeRef))
@@ -439,7 +427,7 @@ namespace BansheeEditor
             else if (ev.Button == PointerButton.Right)
             {
                 Vector2 curveCoord;
-                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord))
+                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out curveCoord, true))
                 {
                     contextClickPosition = drawingPos;
 
@@ -556,10 +544,10 @@ namespace BansheeEditor
                             Vector2 diff = Vector2.Zero;
 
                             Vector2 dragStartCurve;
-                            if (guiCurveDrawing.PixelToCurveSpace(dragStart, out dragStartCurve))
+                            if (guiCurveDrawing.PixelToCurveSpace(dragStart, out dragStartCurve, true))
                             {
                                 Vector2 currentPosCurve;
-                                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out currentPosCurve))
+                                if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out currentPosCurve, true))
                                     diff = currentPosCurve - dragStartCurve;
                             }
 
@@ -571,7 +559,7 @@ namespace BansheeEditor
                                 {
                                     DraggedKeyframe draggedKey = draggedEntry.keys[i];
 
-                                    float newTime = draggedKey.original.time + diff.x;
+                                    float newTime = Math.Max(0.0f, draggedKey.original.time + diff.x);
                                     float newValue = draggedKey.original.value + diff.y;
 
                                     int newIndex = curve.UpdateKeyframe(draggedKey.index, newTime, newValue);
@@ -606,7 +594,7 @@ namespace BansheeEditor
                             Vector2 keyframeCurveCoords = new Vector2(keyframe.time, keyframe.value);
 
                             Vector2 currentPosCurve;
-                            if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out currentPosCurve))
+                            if (guiCurveDrawing.PixelToCurveSpace(drawingPos, out currentPosCurve, true))
                             {
                                 Vector2 normal = currentPosCurve - keyframeCurveCoords;
                                 normal = normal.Normalized;

@@ -215,14 +215,20 @@ namespace BansheeEditor
         /// <param name="pixelCoords">Coordinates relative to this GUI element, in pixels.</param>
         /// <param name="curveCoords">Curve coordinates within the range as specified by <see cref="SetRange"/>. Only
         ///                           valid when function returns true.</param>
+        /// <param name="padding">Determines should coordinates over padding be registered.</param>
         /// <returns>True if the coordinates are within the curve area, false otherwise.</returns>
-        public bool PixelToCurveSpace(Vector2I pixelCoords, out Vector2 curveCoords)
+        public bool PixelToCurveSpace(Vector2I pixelCoords, out Vector2 curveCoords, bool padding = false)
         {
             Rect2I bounds = canvas.Bounds;
 
+            bool outsideHorizontal;
+            if (padding)
+                outsideHorizontal = pixelCoords.x < bounds.x || pixelCoords.x >= (bounds.x + bounds.width);
+            else
+                outsideHorizontal = pixelCoords.x < (bounds.x + PADDING) || pixelCoords.x >= (bounds.x + bounds.width - PADDING);
+
             // Check if outside of curve drawing bounds
-            if (pixelCoords.x < (bounds.x + PADDING) || pixelCoords.x >= (bounds.x + bounds.width - PADDING) ||
-                pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
+            if (outsideHorizontal || pixelCoords.y < bounds.y || pixelCoords.y >= (bounds.y + bounds.height))
             {
                 curveCoords = new Vector2();
                 return false;
