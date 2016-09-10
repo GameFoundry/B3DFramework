@@ -88,6 +88,8 @@ namespace BansheeEngine
 		:SpecificImporter(), mFBXManager(nullptr)
 	{
 		mExtensions.push_back(L"fbx");
+		mExtensions.push_back(L"obj");
+		mExtensions.push_back(L"dae");
 	}
 
 	FBXImporter::~FBXImporter() 

@@ -3,8 +3,12 @@
 #include "BsScriptSceneSelection.h"
 #include "BsScriptCamera.h"
 #include "BsSelectionRenderer.h"
+#include "BsScriptSceneObject.h"
+#include "BsScriptGameObjectManager.h"
 #include "BsScenePicking.h"
 #include "BsSelection.h"
+#include "BsMonoPrerequisites.h"
+#include <BsMonoArray.h>
 
 namespace BansheeEngine
 {
@@ -24,6 +28,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_Create", &ScriptSceneSelection::internal_Create);
 		metaData.scriptClass->addInternalCall("Internal_Draw", &ScriptSceneSelection::internal_Draw);
 		metaData.scriptClass->addInternalCall("Internal_PickObject", &ScriptSceneSelection::internal_PickObject);
+		metaData.scriptClass->addInternalCall("Internal_PickObjects", &ScriptSceneSelection::internal_PickObjects);
+		metaData.scriptClass->addInternalCall("Internal_Snap", &ScriptSceneSelection::internal_Snap);
 	}
 
 	void ScriptSceneSelection::internal_Create(MonoObject* managedInstance, ScriptCamera* camera)
@@ -36,11 +42,29 @@ namespace BansheeEngine
 		thisPtr->mSelectionRenderer->update(thisPtr->mCamera);
 	}
 
-	void ScriptSceneSelection::internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive)
+	void ScriptSceneSelection::internal_PickObject(ScriptSceneSelection* thisPtr, Vector2I* inputPos, bool additive, MonoArray* ignoreRenderables)
 	{
-		// TODO - Handle multi-selection (i.e. selection rectangle when dragging)
-		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1));
+		Vector<HSceneObject> ignoredSceneObjects;
 
+		if (ignoreRenderables != nullptr)
+		{
+			ScriptArray scriptArray(ignoreRenderables);
+
+			UINT32 arrayLen = scriptArray.size();
+			for (UINT32 i = 0; i < arrayLen; i++)
+			{
+				MonoObject* monoSO = scriptArray.get<MonoObject*>(i);
+				ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(monoSO);
+
+				if (scriptSO == nullptr)
+					continue;
+
+				HSceneObject so = static_object_cast<SceneObject>(scriptSO->getNativeHandle());
+				ignoredSceneObjects.push_back(so);
+			}
+		}
+
+		HSceneObject pickedObject = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects);
 		if (pickedObject)
 		{
 			if (additive) // Append to existing selection
@@ -59,11 +83,98 @@ namespace BansheeEngine
 			else
 			{
 				Vector<HSceneObject> selectedSOs = { pickedObject };
-
 				Selection::instance().setSceneObjects(selectedSOs);
 			}
 		}
-		else
+		else if (!additive)
+		{
 			Selection::instance().clearSceneSelection();
+		}
+			
 	}
+
+	void ScriptSceneSelection::internal_PickObjects(ScriptSceneSelection* thisPtr, Vector2I* inputPos, Vector2I* area, bool additive, MonoArray* ignoreRenderables)
+	{
+		Vector<HSceneObject> ignoredSceneObjects;
+
+		if (ignoreRenderables != nullptr)
+		{
+			ScriptArray scriptArray(ignoreRenderables);
+
+			UINT32 arrayLen = scriptArray.size();
+			for (UINT32 i = 0; i < arrayLen; i++)
+			{
+				MonoObject* monoSO = scriptArray.get<MonoObject*>(i);
+				ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(monoSO);
+
+				if (scriptSO == nullptr)
+					continue;
+
+				HSceneObject so = static_object_cast<SceneObject>(scriptSO->getNativeHandle());
+				ignoredSceneObjects.push_back(so);
+			}
+		}
+
+		Vector<HSceneObject> pickedObjects = ScenePicking::instance().pickObjects(thisPtr->mCamera, *inputPos, *area, ignoredSceneObjects);
+
+		if (pickedObjects.size() != 0)
+		{
+			if (additive) // Append to existing selection
+			{
+				Vector<HSceneObject> selectedSOs = Selection::instance().getSceneObjects();
+
+				for (int i = 0; i < pickedObjects.size(); i++) {
+					bool found = false;
+					for (int j = 0; j < selectedSOs.size(); j++)
+					{
+						if (selectedSOs[j] == pickedObjects[i])
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						selectedSOs.push_back(pickedObjects[i]);
+				}
+				Selection::instance().setSceneObjects(selectedSOs);
+			}
+			else
+				Selection::instance().setSceneObjects(pickedObjects);
+		}
+		else if (!additive)
+		{
+			Selection::instance().clearSceneSelection();
+		}
+	}
+
+	MonoObject* ScriptSceneSelection::internal_Snap(ScriptSceneSelection* thisPtr, Vector2I* inputPos, SnapData* data, MonoArray* ignoreRenderables)
+	{
+		Vector<HSceneObject> ignoredSceneObjects;
+
+		if (ignoreRenderables != nullptr)
+		{
+			ScriptArray scriptArray(ignoreRenderables);
+
+			UINT32 arrayLen = scriptArray.size();
+			for (UINT32 i = 0; i < arrayLen; i++)
+			{
+				MonoObject* monoSO = scriptArray.get<MonoObject*>(i);
+				ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(monoSO);
+
+				if (scriptSO == nullptr)
+					continue;
+
+				HSceneObject so = static_object_cast<SceneObject>(scriptSO->getNativeHandle());
+				ignoredSceneObjects.push_back(so);
+			}
+		}
+
+		HSceneObject instance = ScenePicking::instance().pickClosestObject(thisPtr->mCamera, *inputPos, Vector2I(1, 1), ignoredSceneObjects, data);
+		MonoObject* managedInstance = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(instance)->getManagedInstance();
+		if (instance == nullptr)
+			return nullptr;
+
+		return  managedInstance;
+	}
+
 }

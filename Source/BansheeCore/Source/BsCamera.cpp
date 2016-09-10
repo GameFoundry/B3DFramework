@@ -554,6 +554,24 @@ namespace BansheeEngine
 		return ndcToWorldPoint(ndcPoint, depth);
 	}
 
+	Vector3 CameraBase::screenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth) const
+	{
+		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
+		Vector4 worldPoint(ndcPoint.x, ndcPoint.y, deviceDepth, 1.0f);
+		worldPoint = getProjectionMatrixRS().inverse().multiply(worldPoint);
+		Vector3 worldPoint3D;
+
+		if (Math::abs(worldPoint.w) > 1e-7f)
+		{
+			float invW = 1.0f / worldPoint.w;
+
+			worldPoint3D.x = worldPoint.x * invW;
+			worldPoint3D.y = worldPoint.y * invW;
+			worldPoint3D.z = worldPoint.z * invW;
+		}
+		return viewToWorldPoint(worldPoint3D);
+	}
+
 	Vector3 CameraBase::screenToViewPoint(const Vector2I& screenPoint, float depth) const
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);

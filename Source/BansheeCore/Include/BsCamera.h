@@ -354,6 +354,16 @@ namespace BansheeEngine
 		Vector3 screenToWorldPoint(const Vector2I& screenPoint, float depth = 0.5f) const;
 
 		/**
+		* Converts a point in screen space (pixels corresponding to render target attached to the camera) to a point in
+		* world space.
+		*
+		* @param[in]	screenPoint	Point to transform.
+		* @param[in]	deviceDepth	Device depth to place the world point at. The depth is applied to the vector going from camera
+		*							origin to the point on the near plane.
+		*/
+		Vector3 screenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth = 0.5f) const;
+
+		/**
 		 * Converts a point in screen space (pixels corresponding to render target attached to the camera) to a point
 		 * relative to camera's coordinate system (view space).
 		 *

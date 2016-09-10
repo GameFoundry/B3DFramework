@@ -127,6 +127,11 @@ namespace BansheeEngine
 		return static_cast<const MultiRenderTextureProperties&>(getPropertiesInternal());
 	}
 
+	SPtr<MultiRenderTextureCore> MultiRenderTextureCore::create(const MULTI_RENDER_TEXTURE_CORE_DESC& desc)
+	{
+		return TextureCoreManager::instance().createMultiRenderTexture(desc);
+	}
+
 	void MultiRenderTextureCore::throwIfBuffersDontMatch() const
 	{
 		SPtr<TextureView> firstSurfaceDesc = nullptr;

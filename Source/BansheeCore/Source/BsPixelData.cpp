@@ -176,6 +176,54 @@ namespace BansheeEngine
 		setColorsInternal(colors, numElements);
 	}
 
+	float PixelData::getDepthAt(UINT32 x, UINT32 y, UINT32 z) const
+	{
+		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
+		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
+		return PixelUtil::unpackDepth(mFormat, (unsigned char *)getData() + pixelOffset);;
+	}
+
+	void PixelData::setDepthAt(const float depth, UINT32 x, UINT32 y, UINT32 z)
+	{
+		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
+		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
+		PixelUtil::packDepth(depth, mFormat, (unsigned char *)getData() + pixelOffset);
+	}
+
+	Vector<float> PixelData::getDepths() const
+	{
+		UINT32 depth = mExtents.getDepth();
+		UINT32 height = mExtents.getHeight();
+		UINT32 width = mExtents.getWidth();
+
+		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
+		UINT8* data = getData();
+
+		Vector<float> depths(width * height * depth);
+		for (UINT32 z = 0; z < depth; z++)
+		{
+			UINT32 zArrayIdx = z * width * height;
+			UINT32 zDataIdx = z * mSlicePitch * pixelSize;
+
+			for (UINT32 y = 0; y < height; y++)
+			{
+				UINT32 yArrayIdx = y * width;
+				UINT32 yDataIdx = y * mRowPitch * pixelSize;
+
+				for (UINT32 x = 0; x < width; x++)
+				{
+					UINT32 arrayIdx = x + yArrayIdx + zArrayIdx;
+					UINT32 dataIdx = x * pixelSize + yDataIdx + zDataIdx;
+
+					UINT8* dest = data + dataIdx;
+					depths[arrayIdx] = PixelUtil::unpackDepth(mFormat, dest);
+				}
+			}
+		}
+
+		return depths;
+	}
+
 	SPtr<PixelData> PixelData::create(const PixelVolume &extents, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(extents, pixelFormat);

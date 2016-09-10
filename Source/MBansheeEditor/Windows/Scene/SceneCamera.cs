@@ -271,7 +271,7 @@ namespace BansheeEditor
             }
 
             SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
-            if (sceneWindow.Active && sceneWindow.HasFocus)
+            if ((sceneWindow.Active && sceneWindow.HasFocus) || sceneWindow.IsPointerHovering)
             {
                 Rect2I bounds = sceneWindow.Bounds;
 
