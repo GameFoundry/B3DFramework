@@ -105,7 +105,6 @@ namespace BansheeEngine
 		sceneObjectTransforms = nullptr;
 
 		numLayers = 0;
-		numSceneObjects = 0;
 		numGenericCurves = 0;
 	}
 
