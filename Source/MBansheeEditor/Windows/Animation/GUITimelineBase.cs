@@ -94,11 +94,7 @@ namespace BansheeEditor
         /// <returns>Time of the frame with the provided index. </returns>
         public float GetTimeForFrame(int frameIdx)
         {
-            float range = GetRange();
-            int numFrames = (int)(range * fps);
-            float timePerFrame = range / numFrames;
-
-            return frameIdx * timePerFrame;
+            return frameIdx / (float)fps;
         }
 
         /// <summary>
@@ -154,20 +150,6 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Draws a vertical frame marker at the specified time.
-        /// </summary>
-        /// <param name="t">Time at which to draw the marker.</param>
-        private void DrawFrameMarker(float t)
-        {
-            int xPos = (int)(((t - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
-
-            Vector2I start = new Vector2I(xPos, 0);
-            Vector2I end = new Vector2I(xPos, height);
-
-            canvas.DrawLine(start, end, Color.BansheeOrange);
-        }
-
-        /// <summary>
         /// Returns the range of times displayed by the timeline rounded to the multiple of FPS.
         /// </summary>
         /// <param name="padding">If true, extra range will be included to cover the right-most padding.</param>
@@ -187,18 +169,26 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Draws a vertical frame marker at the specified time.
+        /// </summary>
+        /// <param name="t">Time at which to draw the marker.</param>
+        private void DrawFrameMarker(float t)
+        {
+            int xPos = (int)(((t - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
+
+            Vector2I start = new Vector2I(xPos, 0);
+            Vector2I end = new Vector2I(xPos, height);
+
+            canvas.DrawLine(start, end, Color.BansheeOrange);
+        }
+
+        /// <summary>
         /// Draws the frame marker at the currently selected frame.
         /// </summary>
         protected void DrawFrameMarker()
         {
             if (markedFrameIdx != -1)
-            {
-                float range = GetRange();
-                int numFrames = (int)(range * fps);
-                float timePerFrame = range / numFrames;
-
-                DrawFrameMarker(markedFrameIdx * timePerFrame);
-            }
+                DrawFrameMarker(markedFrameIdx / (float)fps);
         }
 
         /// <summary>
