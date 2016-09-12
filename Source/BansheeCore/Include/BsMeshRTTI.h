@@ -7,7 +7,7 @@
 #include "BsCoreApplication.h"
 #include "BsMesh.h"
 #include "BsSkeleton.h"
-#include "BsMeshManager.h"
+#include "BsMorphShapes.h"
 #include "BsCoreThread.h"
 
 namespace BansheeEngine
@@ -24,6 +24,7 @@ namespace BansheeEngine
 			BS_RTTI_MEMBER_PLAIN(mIndexType, 1)
 			BS_RTTI_MEMBER_PLAIN(mUsage, 2)
 			BS_RTTI_MEMBER_REFLPTR(mSkeleton, 4)
+			BS_RTTI_MEMBER_REFLPTR(mMorphShapes, 5)
 		BS_END_RTTI_MEMBERS
 
 		SPtr<MeshData> getMeshData(Mesh* obj) 
@@ -56,7 +57,7 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return MeshManager::instance().createEmpty();
+			return Mesh::createEmpty();
 		}
 
 		const String& getRTTIName() override

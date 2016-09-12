@@ -20,6 +20,7 @@
 #include "BsAnimationClip.h"
 #include "BsAnimationUtility.h"
 #include "BsSkeleton.h"
+#include "BsMorphShapes.h"
 #include "BsPhysics.h"
 
 namespace BansheeEngine
@@ -117,18 +118,19 @@ namespace BansheeEngine
 
 	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		Vector<SubMesh> subMeshes;
+		MESH_DESC desc;
+
 		Vector<FBXAnimationClipData> dummy;
-		SPtr<Skeleton> skeleton;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, dummy, skeleton);
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, dummy, 
+			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
-		INT32 usage = MU_STATIC;
+		desc.usage = MU_STATIC;
 		if (meshImportOptions->getCPUReadable())
-			usage |= MU_CPUCACHED;
+			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage, skeleton);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -138,18 +140,19 @@ namespace BansheeEngine
 
 	Vector<SubResourceRaw> FBXImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		Vector<SubMesh> subMeshes;
+		MESH_DESC desc;
+
 		Vector<FBXAnimationClipData> animationClips;
-		SPtr<Skeleton> skeleton;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes, animationClips, skeleton);
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, animationClips, 
+			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
-		INT32 usage = MU_STATIC;
+		desc.usage = MU_STATIC;
 		if (meshImportOptions->getCPUReadable())
-			usage |= MU_CPUCACHED;
+			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage, skeleton);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -199,7 +202,8 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-		Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, SPtr<Skeleton>& skeleton)
+		Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, SPtr<Skeleton>& skeleton, 
+		SPtr<MorphShapes>& morphShapes)
 	{
 		FbxScene* fbxScene = nullptr;
 
@@ -234,7 +238,10 @@ namespace BansheeEngine
 		splitMeshVertices(importedScene);
 		generateMissingTangentSpace(importedScene, fbxImportOptions);
 
-		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes, skeleton);
+		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
+
+		skeleton = importSkeleton(importedScene, subMeshes.size() > 1);
+		morphShapes = importMorphShapes(importedScene);		
 
 		// Import animation clips
 		if (!importedScene.clips.empty())
@@ -248,6 +255,143 @@ namespace BansheeEngine
 		shutDownSdk();
 
 		return rendererMeshData;
+	}
+
+	SPtr<Skeleton> FBXImporter::importSkeleton(const FBXImportScene& scene, bool sharedRoot)
+	{
+		Vector<BONE_DESC> allBones;
+		UnorderedMap<FBXImportNode*, UINT32> boneMap;
+
+		for (auto& mesh : scene.meshes)
+		{
+			// Create bones
+			UINT32 numBones = (UINT32)mesh->bones.size();
+			for (auto& fbxBone : mesh->bones)
+			{
+				UINT32 boneIdx = (UINT32)allBones.size();
+				boneMap[fbxBone.node] = boneIdx;
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = fbxBone.node->name;
+				bone.invBindPose = fbxBone.bindPose;
+			}
+		}
+
+		// Generate skeleton
+		if (allBones.size() > 0)
+		{
+			// Find bone parents
+			UINT32 numProcessedBones = 0;
+
+			// Generate common root bone for all meshes
+			UINT32 rootBoneIdx = (UINT32)-1;
+			if (sharedRoot)
+			{
+				rootBoneIdx = (UINT32)allBones.size();
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = "MultiMeshRoot";
+				bone.invBindPose = Matrix4::IDENTITY;
+				bone.parent = (UINT32)-1;
+
+				numProcessedBones++;
+			}
+
+			Stack<std::pair<FBXImportNode*, UINT32>> todo;
+			todo.push({ scene.rootNode, rootBoneIdx });
+
+			while (!todo.empty())
+			{
+				auto entry = todo.top();
+				todo.pop();
+
+				FBXImportNode* node = entry.first;
+				UINT32 parentBoneIdx = entry.second;
+
+				auto boneIter = boneMap.find(node);
+				if (boneIter != boneMap.end())
+				{
+					UINT32 boneIdx = boneIter->second;
+					allBones[boneIdx].parent = parentBoneIdx;
+					numProcessedBones++;
+
+					parentBoneIdx = boneIdx;
+				}
+
+				for (auto& child : node->children)
+					todo.push({ child, parentBoneIdx });
+			}
+
+			UINT32 numAllBones = (UINT32)allBones.size();
+			if (numProcessedBones == numAllBones)
+				return Skeleton::create(allBones.data(), numAllBones);
+
+			LOGERR("Not all bones were found in the node hierarchy. Skeleton invalid.");
+		}
+
+		return nullptr;
+	}
+
+	SPtr<MorphShapes> FBXImporter::importMorphShapes(const FBXImportScene& scene)
+	{
+		SPtr<MorphShapes> morphShapes;
+		for (auto& mesh : scene.meshes)
+		{
+			// Create bones
+			size_t numVertices = mesh->positions.size();
+			bool hasNormals = mesh->normals.size() == numVertices;
+
+			// Create morph targets
+			Vector<SPtr<MorphShape>> allMorphShapes;
+			for (auto& fbxBlendShape : mesh->blendShapes)
+			{
+				for (auto& frame : fbxBlendShape.frames)
+				{
+					assert(frame.positions.size() == numVertices);
+
+					if (hasNormals)
+						assert(frame.normals.size() == numVertices);
+
+					Vector<MorphVertex> morphVertices;
+					for (UINT32 i = 0; i < numVertices; i++)
+					{
+						Vector3 positionDelta = frame.positions[i] - mesh->positions[i];
+						Vector3 normalDelta;
+						if (hasNormals)
+							normalDelta = frame.normals[i] - mesh->normals[i];
+						else
+							normalDelta = Vector3::ZERO;
+
+						if (positionDelta.squaredLength() > 0.0001f || normalDelta.squaredLength() > 0.01f)
+							morphVertices.push_back(MorphVertex(positionDelta, normalDelta, i));
+					}
+
+					morphVertices.shrink_to_fit();
+
+					SPtr<MorphShape> shape = MorphShape::create(frame.name, morphVertices);
+					allMorphShapes.push_back(shape);
+				}
+			}
+
+			// Note: Morph shapes don't work if there are multiple meshes. In order to support them logic for combining
+			// morph shapes would need to be added below in, or similar to MeshData::combine.
+			if (!allMorphShapes.empty())
+			{
+				if (morphShapes == nullptr)
+					morphShapes = MorphShapes::create(allMorphShapes);
+				else
+				{
+					LOGERR("Failed importing morph shapes. Multiple sub-meshes are not supported with morph shapes.");
+					return nullptr;
+				}
+			}
+		}
+
+		return morphShapes;
 	}
 
 	bool FBXImporter::startUpSdk(FbxScene*& scene)
@@ -564,7 +708,7 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
-		Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton)
+		Vector<SubMesh>& outputSubMeshes)
 	{
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
@@ -757,81 +901,12 @@ namespace BansheeEngine
 					bs_stack_free(weights);
 				}
 
-				// TODO - Transform blend shapes?
-
 				allMeshData.push_back(meshData->getData());
 				allSubMeshes.push_back(subMeshes);
 			}
 
-			// Create bones
 			UINT32 numBones = (UINT32)mesh->bones.size();
-			for(auto& fbxBone : mesh->bones)
-			{
-				UINT32 boneIdx = (UINT32)allBones.size();
-				boneMap[fbxBone.node] = boneIdx;
-
-				allBones.push_back(BONE_DESC());
-				BONE_DESC& bone = allBones.back();
-
-				bone.name = fbxBone.node->name;
-				bone.invBindPose = fbxBone.bindPose;
-			}
-
 			boneIndexOffset += numBones;
-		}
-
-		// Generate skeleton
-		if (allBones.size() > 0)
-		{
-			// Find bone parents
-			UINT32 numProcessedBones = 0;
-
-			// Generate common root bone for all meshes
-			UINT32 rootBoneIdx = (UINT32)-1;
-			if(allMeshData.size() > 1)
-			{
-				rootBoneIdx = (UINT32)allBones.size();
-
-				allBones.push_back(BONE_DESC());
-				BONE_DESC& bone = allBones.back();
-
-				bone.name = "MultiMeshRoot";
-				bone.invBindPose = Matrix4::IDENTITY;
-				bone.parent = (UINT32)-1;
-
-				numProcessedBones++;
-			}
-
-			Stack<std::pair<FBXImportNode*, UINT32>> todo;
-			todo.push({ scene.rootNode, rootBoneIdx });
-
-			while(!todo.empty())
-			{
-				auto entry = todo.top();
-				todo.pop();
-
-				FBXImportNode* node = entry.first;
-				UINT32 parentBoneIdx = entry.second;
-
-				auto boneIter = boneMap.find(node);
-				if (boneIter != boneMap.end())
-				{
-					UINT32 boneIdx = boneIter->second;
-					allBones[boneIdx].parent = parentBoneIdx;
-					numProcessedBones++;
-
-					parentBoneIdx = boneIdx;
-				}
-
-				for (auto& child : node->children)
-					todo.push({ child, parentBoneIdx });
-			}
-
-			UINT32 numAllBones = (UINT32)allBones.size();
-			if (numProcessedBones == numAllBones)
-				outputSkeleton = Skeleton::create(allBones.data(), numAllBones);
-			else
-				LOGERR("Not all bones were found in the node hierarchy. Skeleton invalid.");
 		}
 
 		if (allMeshData.size() > 1)
@@ -1208,8 +1283,9 @@ namespace BansheeEngine
 						FbxShape* fbxShape = channel->GetTargetShape(k);
 
 						FBXBlendShapeFrame& frame = blendShape.frames[k];
+						frame.name = fbxShape->GetName();
 						frame.weight = (float)weights[k];
-
+						
 						importBlendShapeFrame(fbxShape, *mesh, options, frame);
 					}
 				}

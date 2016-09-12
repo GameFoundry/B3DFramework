@@ -51,14 +51,19 @@ namespace BansheeEngine
 	void ScriptMesh::internal_CreateInstance(MonoObject* instance, int numVertices, int numIndices, 
 		MonoArray* subMeshes, MeshUsage usage, VertexLayout vertex, ScriptIndexType index)
 	{
-		SPtr<VertexDataDesc> vertexDesc = RendererMeshData::vertexLayoutVertexDesc(vertex);
-
 		IndexType indexType = IT_16BIT;
 		if (index == ScriptIndexType::Index32)
 			indexType = IT_32BIT;
 
-		Vector<SubMesh> nativeSubMeshes = monoToNativeSubMeshes(subMeshes);
-		HMesh mesh = Mesh::create(numVertices, numIndices, vertexDesc, nativeSubMeshes, usage, indexType);
+		MESH_DESC desc;
+		desc.numVertices = numVertices;
+		desc.numIndices = numIndices;
+		desc.vertexDesc = RendererMeshData::vertexLayoutVertexDesc(vertex);
+		desc.subMeshes = monoToNativeSubMeshes(subMeshes);
+		desc.usage = usage;
+		desc.indexType = indexType;
+
+		HMesh mesh = Mesh::create(desc);
 
 		ScriptMesh* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);
@@ -71,8 +76,11 @@ namespace BansheeEngine
 		if (data != nullptr)
 			meshData = data->getInternalValue()->getData();
 
-		Vector<SubMesh> nativeSubMeshes = monoToNativeSubMeshes(subMeshes);
-		HMesh mesh = Mesh::create(meshData, nativeSubMeshes, usage);
+		MESH_DESC desc;
+		desc.subMeshes = monoToNativeSubMeshes(subMeshes);
+		desc.usage = usage;
+
+		HMesh mesh = Mesh::create(meshData, desc);
 
 		ScriptMesh* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);

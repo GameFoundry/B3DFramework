@@ -53,6 +53,7 @@ namespace BansheeEngine
 		Vector<Vector3> bitangents;
 
 		float weight;
+		String name;
 	};
 
 	/**	Contains all geometry for a single blend shape. */

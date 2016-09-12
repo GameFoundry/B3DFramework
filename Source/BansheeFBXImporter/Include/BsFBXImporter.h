@@ -16,6 +16,7 @@ namespace BansheeEngine
 	 */
 
 	struct AnimationSplitInfo;
+	class MorphShapes;
 
 	/** Importer implementation that handles FBX/OBJ/DAE/3DS file import by using the FBX SDK. */
 	class BS_FBX_EXPORT FBXImporter : public SpecificImporter
@@ -52,7 +53,8 @@ namespace BansheeEngine
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
 		SPtr<RendererMeshData> importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-			Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton);
+			Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton, 
+			SPtr<MorphShapes>& morphShapes);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -135,7 +137,20 @@ namespace BansheeEngine
 
 		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
 		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
-			Vector<SubMesh>& outputSubMeshes, SPtr<Skeleton>& outputSkeleton);
+			Vector<SubMesh>& outputSubMeshes);
+
+		/** 
+		 * Parses the scene and outputs a skeleton for the imported meshes using the imported raw data. 
+		 *
+		 * @param[in]	scene		Scene whose meshes to parse.
+		 * @param[in]	sharedRoot	Determines should a shared root bone be created. Set this to true if the scene contains
+		 *							multiple sub-meshes (as there can't be multiple roots).
+		 * @return					Skeleton containing a set of bones, or null if meshes don't contain a skeleton.
+		 */
+		SPtr<Skeleton> importSkeleton(const FBXImportScene& scene, bool sharedRoot);
+
+		/** Parses the scene and generates morph shapes for the imported meshes using the imported raw data. */
+		SPtr<MorphShapes> importMorphShapes(const FBXImportScene& scene);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

@@ -15,6 +15,11 @@ namespace BansheeEngine
 	/** A single vertex used for morph target animation. Contains a difference between base and target shape. */
 	struct BS_CORE_EXPORT MorphVertex
 	{
+		MorphVertex() { }
+		MorphVertex(const Vector3& deltaPosition, const Vector3& deltaNormal, UINT32 sourceIdx)
+			:deltaPosition(deltaPosition), deltaNormal(deltaNormal), sourceIdx(sourceIdx)
+		{ }
+
 		Vector3 deltaPosition;
 		Vector3 deltaNormal;
 		UINT32 sourceIdx;
@@ -36,7 +41,7 @@ namespace BansheeEngine
 		const Vector<MorphVertex>& getVertices() const { return mVertices; }
 
 		/** Creates a new morph shape from the provided set of vertices. */
-		SPtr<MorphShape> create(const String& name, const Vector<MorphVertex>& vertices);
+		static SPtr<MorphShape> create(const String& name, const Vector<MorphVertex>& vertices);
 
 	private:
 		String mName;
