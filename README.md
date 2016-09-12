@@ -8,17 +8,17 @@ The scripting system supports C# and comes with an extensive API ensuring you ca
 Aside from being a fully featured game engine and toolkit, Banshee can also be used as a **low level framework**, providing a powerful foundation to build new technologies with or to easily customize the engine for game specific needs. Layered and plugin based design allows developers to use only the functionality they need, and to fully remove or replace major engine systems. Banshee's code is modern, with clean interfaces that make it easy to learn and maintain. Platform specific functionality is kept at a minimum making porting as easy as possible. It is fully documented with an extensive API reference, as well as a set of manuals introducing you to most major systems.
 
 # Features
-* [Features](Documentation/GitHub/features.md) - A list of all currently available features.
-* [Roadmap](Documentation/GitHub/roadmap.md) - A list of features to be implemented in both near and far future.
+* [Features](master/Documentation/GitHub/features.md) - A list of all currently available features.
+* [Roadmap](master/Documentation/GitHub/roadmap.md) - A list of features to be implemented in both near and far future. 
 
 # Download
-* [Binaries](Documentation/GitHub/install.md) - Download pre-built binaries for the most recent version.
-* [Compiling](Documentation/GitHub/compiling.md) - Learn how to compile the engine yourself.
+* [Binaries](master/Documentation/GitHub/install.md) - Download pre-built binaries for the most recent version.
+* [Compiling](master/Documentation/GitHub/compiling.md) - Learn how to compile the engine yourself.
 
 # Documentation
 * [Managed](http://docs.banshee3d.com/Managed/index.html) - Documentation for the scripting (C#) API. This is what most users will be interested in.
 * [Native] (http://docs.banshee3d.com/Native/index.html) - Documentation for the native (C++) API. This is meant for advanced users meaning to extend/modify the engine.
-* [License](Documentation/GitHub/license.md) - Information about Banshee's license.
+* [License](master/Documentation/GitHub/license.md) - Information about Banshee's license.
 
 # Media
 **Banshee Editor**
