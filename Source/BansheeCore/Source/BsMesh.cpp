@@ -341,6 +341,24 @@ namespace BansheeEngine
 		return mesh;
 	}
 
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	{
+		MESH_DESC desc;
+		desc.numVertices = initialMeshData->getNumVertices();
+		desc.numIndices = initialMeshData->getNumIndices();
+		desc.vertexDesc = initialMeshData->getVertexDesc();
+		desc.indexType = initialMeshData->getIndexType();
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+		desc.usage = usage;
+
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, desc));
+
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
+
+		return mesh;
+	}
+
 	Mesh::Mesh(const MESH_DESC& desc)
 		:MeshBase(desc.numVertices, desc.numIndices, desc.subMeshes), mVertexDesc(desc.vertexDesc), mUsage(desc.usage),
 		mIndexType(desc.indexType), mSkeleton(desc.skeleton), mMorphShapes(desc.morphShapes)
@@ -567,6 +585,12 @@ namespace BansheeEngine
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
+	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	{
+		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp);
+		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+	}
+
 	SPtr<Mesh> Mesh::_createPtr(const MESH_DESC& desc)
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(desc));
@@ -578,6 +602,19 @@ namespace BansheeEngine
 
 	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 	{
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
+
+		return mesh;
+	}
+
+	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	{
+		MESH_DESC desc;
+		desc.usage = usage;
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();

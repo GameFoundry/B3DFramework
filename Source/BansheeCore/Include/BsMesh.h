@@ -216,7 +216,19 @@ namespace BansheeEngine
 		 *								vertex descriptor and index type properties are ignored and are read from provided
 		 *								mesh data instead.
 		 */
-		static HMesh create(const SPtr<MeshData>& initialData, const MESH_DESC& desc = MESH_DESC::DEFAULT);
+		static HMesh create(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+
+		/**
+		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
+		 * by the mesh data exactly. Mesh will have no sub-meshes.
+		 *
+		 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
+		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
+		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default 
+		 *								option is a triangle strip, where three indices represent a single triangle.
+		 */
+		static HMesh create(const SPtr<MeshData>& initialData, int usage = MU_STATIC, 
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 		/** @name Internal
 		 *  @{
@@ -230,11 +242,19 @@ namespace BansheeEngine
 		static SPtr<Mesh> _createPtr(const MESH_DESC& desc);
 
 		/**
-		 * @copydoc	create(const SPtr<MeshData>&, int, DrawOperationType, const SPtr<Skeleton>&)
+		 * @copydoc	create(const SPtr<MeshData>&, const MESH_DESC&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, const MESH_DESC& desc = MESH_DESC::DEFAULT);
+		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+
+		/**
+		 * @copydoc	create(const SPtr<MeshData>&, int, DrawOperationType)
+		 *
+		 * @note	Internal method. Use create() for normal use.
+		 */
+		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 		/**
 		 * Creates a new empty and uninitialized mesh. You will need to manually initialize the mesh before using it.
@@ -294,7 +314,7 @@ namespace BansheeEngine
 		virtual void writeSubresource(UINT32 subresourceIdx, const MeshData& data, bool discardEntireBuffer, bool updateBounds = true);
 
 		/**
-		 * Reads a part of the current resource into the provided @p data parameter.	Data buffer needs to be pre-allocated.
+		 * Reads a part of the current resource into the provided @p data parameter. Data buffer needs to be pre-allocated.
 		 *
 		 * @param[in]	subresourceIdx		Index of the subresource to update, if the mesh has more than one.
 		 * @param[out]	data				Buffer that will receive the data. Should be allocated with 
@@ -329,14 +349,26 @@ namespace BansheeEngine
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
-		 * by the mesh data exactly. Mesh will have no sub-meshes.
+		 * by the mesh data exactly. 
 		 *
 		 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
 		 * @param[in]	desc			Descriptor containing the properties of the mesh to create. Vertex and index count,
 		 *								vertex descriptor and index type properties are ignored and are read from provided
 		 *								mesh data instead.
 		 */
-		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const MESH_DESC& desc = MESH_DESC::DEFAULT);
+		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+
+		/**
+		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
+		 * by the mesh data exactly. Mesh will have no sub-meshes.
+		 *
+		 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
+		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
+		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default 
+		 *								option is a triangle strip, where three indices represent a single triangle.
+		 */
+		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 	protected:
 		friend class Mesh;
