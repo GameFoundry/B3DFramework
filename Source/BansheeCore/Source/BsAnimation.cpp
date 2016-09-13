@@ -9,11 +9,13 @@
 namespace BansheeEngine
 {
 	AnimationClipInfo::AnimationClipInfo()
-		: fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f), curveVersion(0), layerIdx((UINT32)-1), stateIdx((UINT32)-1)
+		: fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f), curveVersion(0), layerIdx((UINT32)-1)
+		, stateIdx((UINT32)-1), playbackType(AnimPlaybackType::Normal)
 	{ }
 
 	AnimationClipInfo::AnimationClipInfo(const HAnimationClip& clip)
-		: fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f), clip(clip), curveVersion(0), layerIdx((UINT32)-1), stateIdx((UINT32)-1)
+		: fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f), clip(clip), curveVersion(0), layerIdx((UINT32)-1)
+		, stateIdx((UINT32)-1), playbackType(AnimPlaybackType::Normal)
 	{ }
 
 	Blend1DInfo::Blend1DInfo(UINT32 numClips)
@@ -112,7 +114,7 @@ namespace BansheeEngine
 		Vector<AnimationClipInfo>& clipInfos, const Vector<AnimatedSceneObject>& sceneObjects)
 	{
 		this->skeleton = skeleton;
-		this->skeletonMask = skeletonMask;
+		this->skeletonMask = mask;
 
 		// Note: I could avoid having a separate allocation for LocalSkeletonPoses and use the same buffer as the rest
 		// of AnimationProxy
@@ -362,7 +364,7 @@ namespace BansheeEngine
 					if (isClipValid)
 					{
 						state.curves = clipInfo.clip->getCurves();
-						state.disabled = false;
+						state.disabled = clipInfo.playbackType == AnimPlaybackType::None;
 					}
 					else
 					{
@@ -497,6 +499,9 @@ namespace BansheeEngine
 			state.loop = clipInfo.state.wrapMode == AnimWrapMode::Loop;
 			state.weight = clipInfo.state.weight;
 			state.time = clipInfo.state.time;
+
+			bool isLoaded = clipInfo.clip.isLoaded();
+			state.disabled = !isLoaded || clipInfo.playbackType == AnimPlaybackType::None;
 		}
 	}
 
@@ -541,6 +546,9 @@ namespace BansheeEngine
 		{
 			AnimationState& state = layers[clipInfo.layerIdx].states[clipInfo.stateIdx];
 			state.time = clipInfo.state.time;
+
+			bool isLoaded = clipInfo.clip.isLoaded();
+			state.disabled = !isLoaded || clipInfo.playbackType == AnimPlaybackType::None;
 		}
 	}
 
@@ -616,6 +624,7 @@ namespace BansheeEngine
 			clipInfo->state.speed = mDefaultSpeed;
 			clipInfo->state.weight = 1.0f;
 			clipInfo->state.wrapMode = mDefaultWrapMode;
+			clipInfo->playbackType = AnimPlaybackType::Normal;
 		}
 
 		mDirty |= AnimDirtyStateFlag::Value;
@@ -649,6 +658,7 @@ namespace BansheeEngine
 				clipInfo->fadeLength = fadeLength;
 			}
 
+			clipInfo->playbackType = AnimPlaybackType::Normal;
 			mDirty |= AnimDirtyStateFlag::Value;
 		}
 	}
@@ -739,6 +749,8 @@ namespace BansheeEngine
 					clipInfo->state.weight = t;
 				else
 					clipInfo->state.weight = 0.0f;
+
+				clipInfo->playbackType = AnimPlaybackType::Normal;
 			}
 		}
 
@@ -755,6 +767,8 @@ namespace BansheeEngine
 			topLeftClipInfo->state.speed = 0.0f;
 			topLeftClipInfo->state.weight = (1.0f - t.x) * (1.0f - t.y);
 			topLeftClipInfo->state.wrapMode = AnimWrapMode::Clamp;
+
+			topLeftClipInfo->playbackType = AnimPlaybackType::Normal;
 		}
 
 		AnimationClipInfo* topRightClipInfo = addClip(info.topRightClip, (UINT32)-1, false);
@@ -765,6 +779,8 @@ namespace BansheeEngine
 			topLeftClipInfo->state.speed = 0.0f;
 			topRightClipInfo->state.weight = t.x * (1.0f - t.y);
 			topRightClipInfo->state.wrapMode = AnimWrapMode::Clamp;
+
+			topRightClipInfo->playbackType = AnimPlaybackType::Normal;
 		}
 
 		AnimationClipInfo* botLeftClipInfo = addClip(info.botLeftClip, (UINT32)-1, false);
@@ -775,6 +791,8 @@ namespace BansheeEngine
 			topLeftClipInfo->state.speed = 0.0f;
 			botLeftClipInfo->state.weight = (1.0f - t.x) * t.y;
 			botLeftClipInfo->state.wrapMode = AnimWrapMode::Clamp;
+
+			botLeftClipInfo->playbackType = AnimPlaybackType::Normal;
 		}
 
 		AnimationClipInfo* botRightClipInfo = addClip(info.botRightClip, (UINT32)-1, false);
@@ -785,6 +803,8 @@ namespace BansheeEngine
 			botRightClipInfo->state.speed = 0.0f;
 			botRightClipInfo->state.weight = t.x * t.y;
 			botRightClipInfo->state.wrapMode = AnimWrapMode::Clamp;
+
+			botRightClipInfo->playbackType = AnimPlaybackType::Normal;
 		}
 
 		mDirty |= AnimDirtyStateFlag::Value;
@@ -806,6 +826,7 @@ namespace BansheeEngine
 			clipInfo->state.speed = mDefaultSpeed;
 			clipInfo->state.weight = 1.0f;
 			clipInfo->state.wrapMode = mDefaultWrapMode;
+			clipInfo->playbackType = AnimPlaybackType::Normal;
 
 			// Set up fade lengths
 			clipInfo->fadeDirection = 1.0f;
@@ -832,6 +853,21 @@ namespace BansheeEngine
 					clipInfo->fadeLength = fadeLength;
 				}
 			}
+		}
+
+		mDirty |= AnimDirtyStateFlag::Value;
+	}
+
+	void Animation::sample(const HAnimationClip& clip, float time)
+	{
+		AnimationClipInfo* clipInfo = addClip(clip, (UINT32)-1);
+		if (clipInfo != nullptr)
+		{
+			clipInfo->state.time = time;
+			clipInfo->state.speed = 0.0f;
+			clipInfo->state.weight = 1.0f;
+			clipInfo->state.wrapMode = mDefaultWrapMode;
+			clipInfo->playbackType = AnimPlaybackType::Sampled;
 		}
 
 		mDirty |= AnimDirtyStateFlag::Value;
@@ -907,7 +943,7 @@ namespace BansheeEngine
 		{
 			AnimationClipInfo& newInfo = mClipInfos.back();
 			newInfo.clip = clip;
-			newInfo.layerIdx = layer;
+			newInfo.state.layer = layer;
 
 			output = &newInfo;
 		}
@@ -973,12 +1009,19 @@ namespace BansheeEngine
 
 	void Animation::setState(const HAnimationClip& clip, AnimationClipState state)
 	{
+		if (state.layer == 0)
+			state.layer = (UINT32)-1;
+		else
+			state.layer -= 1;
+
 		AnimationClipInfo* clipInfo = addClip(clip, state.layer, false);
 
 		if (clipInfo == nullptr)
 			return;
 
 		clipInfo->state = state;
+		clipInfo->playbackType = AnimPlaybackType::Normal;
+
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
@@ -1162,6 +1205,13 @@ namespace BansheeEngine
 			}
 		}
 
+		// Disable sampled animations
+		for (auto& clipInfo : mClipInfos)
+		{
+			if (clipInfo.playbackType == AnimPlaybackType::Sampled)
+				clipInfo.playbackType = AnimPlaybackType::None;
+		}
+
 		mDirty = AnimDirtyState();
 	}
 
@@ -1262,12 +1312,13 @@ namespace BansheeEngine
 			}
 			else
 			{
+				if (mAnimProxy->sceneObjectPose.hasOverride[i])
+					continue;
+
 				so->setPosition(mAnimProxy->sceneObjectPose.positions[i]);
 				so->setRotation(mAnimProxy->sceneObjectPose.rotations[i]);
 				so->setScale(mAnimProxy->sceneObjectPose.scales[i]);
 			}
-
-			soInfo.hash = so->getTransformHash();
 		}
 
 		// Must ensure that clip in the proxy and current primary clip are the same

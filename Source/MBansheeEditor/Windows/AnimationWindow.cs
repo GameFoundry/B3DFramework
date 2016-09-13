@@ -80,10 +80,18 @@ namespace BansheeEditor
             }
             else if (state == State.Recording)
             {
-                float time = guiCurveEditor.GetTimeForFrame(currentFrameIdx);
-                if(RecordState(time))
-                    guiCurveEditor.Redraw();
+                if (!delayRecord)
+                {
+                    float time = guiCurveEditor.GetTimeForFrame(currentFrameIdx);
+                    if (RecordState(time))
+                    {
+                        ApplyClipChanges();
+                        guiCurveEditor.Redraw();
+                    }
+                }
             }
+
+            delayRecord = false;
         }
 
         private void OnDestroy()
@@ -448,6 +456,8 @@ namespace BansheeEditor
                 SwitchState(State.Normal);
 
                 ApplyClipChanges();
+                PreviewFrame(currentFrameIdx);
+
                 EditorApplication.SetProjectDirty();
             };
             guiCurveEditor.OnClicked += () =>
@@ -824,6 +834,7 @@ namespace BansheeEditor
 
         private State state = State.Empty;
         private SerializedSceneObject soState;
+        private bool delayRecord = false;
 
         /// <summary>
         /// Transitions the window into a different state. Caller must validate state transitions.
@@ -963,8 +974,11 @@ namespace BansheeEditor
         private void StartRecord()
         {
             float time = guiCurveEditor.GetTimeForFrame(currentFrameIdx);
-            if(RecordState(time))
+            if (RecordState(time))
+            {
+                ApplyClipChanges();
                 guiCurveEditor.Redraw();
+            }
 
             recordButton.Value = true;
         }
@@ -1024,7 +1038,7 @@ namespace BansheeEditor
                             for (int i = 0; i < 2; i++)
                             {
                                 float curveVal = KVP.Value.curveInfos[i].curve.Evaluate(time);
-                                if (!MathEx.ApproxEquals(value[i], curveVal))
+                                if (!MathEx.ApproxEquals(value[i], curveVal, 0.001f))
                                 {
                                     addOrUpdateKeyframe(KVP.Value.curveInfos[i].curve, time, value[i]);
                                     changesMade = true;
@@ -1039,7 +1053,7 @@ namespace BansheeEditor
                             for (int i = 0; i < 3; i++)
                             {
                                 float curveVal = KVP.Value.curveInfos[i].curve.Evaluate(time);
-                                if (!MathEx.ApproxEquals(value[i], curveVal))
+                                if (!MathEx.ApproxEquals(value[i], curveVal, 0.001f))
                                 { 
                                     addOrUpdateKeyframe(KVP.Value.curveInfos[i].curve, time, value[i]);
                                     changesMade = true;
@@ -1056,7 +1070,7 @@ namespace BansheeEditor
                                 for (int i = 0; i < 4; i++)
                                 {
                                     float curveVal = KVP.Value.curveInfos[i].curve.Evaluate(time);
-                                    if (!MathEx.ApproxEquals(value[i], curveVal))
+                                    if (!MathEx.ApproxEquals(value[i], curveVal, 0.001f))
                                     { 
                                         addOrUpdateKeyframe(KVP.Value.curveInfos[i].curve, time, value[i]);
                                         changesMade = true;
@@ -1070,7 +1084,7 @@ namespace BansheeEditor
                                 for (int i = 0; i < 4; i++)
                                 {
                                     float curveVal = KVP.Value.curveInfos[i].curve.Evaluate(time);
-                                    if (!MathEx.ApproxEquals(value[i], curveVal))
+                                    if (!MathEx.ApproxEquals(value[i], curveVal, 0.001f))
                                     { 
                                         addOrUpdateKeyframe(KVP.Value.curveInfos[i].curve, time, value[i]);
                                         changesMade = true;
@@ -1086,7 +1100,7 @@ namespace BansheeEditor
                             for (int i = 0; i < 4; i++)
                             {
                                 float curveVal = KVP.Value.curveInfos[i].curve.Evaluate(time);
-                                if (!MathEx.ApproxEquals(value[i], curveVal))
+                                if (!MathEx.ApproxEquals(value[i], curveVal, 0.001f))
                                 { 
                                     addOrUpdateKeyframe(KVP.Value.curveInfos[i].curve, time, value[i]);
                                     changesMade = true;
@@ -1123,7 +1137,7 @@ namespace BansheeEditor
                             float value = property.GetValue<float>();
 
                             float curveVal = KVP.Value.curveInfos[0].curve.Evaluate(time);
-                            if (!MathEx.ApproxEquals(value, curveVal))
+                            if (!MathEx.ApproxEquals(value, curveVal, 0.001f))
                             { 
                                 addOrUpdateKeyframe(KVP.Value.curveInfos[0].curve, time, value);
                                 changesMade = true;
@@ -1766,6 +1780,11 @@ namespace BansheeEditor
         {
             SetCurrentFrame(frameIdx);
             PreviewFrame(currentFrameIdx);
+
+            // HACK: Skip checking for record changes this frame, to give the preview a chance to update, otherwise
+            // the changes would be detected any time a frame is delayed. A proper fix for this would be to force the
+            // animation to be evaluated synchronously when PreviewFrame is called.
+            delayRecord = true;
         }
 
         /// <summary>

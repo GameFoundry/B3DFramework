@@ -56,6 +56,17 @@ namespace BansheeEngine
 		bool stopped = false;
 	};
 
+	/** Type of playback for animation clips. */
+	enum class AnimPlaybackType
+	{
+		/** Play back the animation normally by advancing time. */
+		Normal,
+		/** Sample only a single frame from the animation. */
+		Sampled,
+		/** Do not play the animation. */
+		None
+	};
+
 	/** Internal information about a single playing animation clip within Animation. */
 	struct AnimationClipInfo
 	{
@@ -64,7 +75,8 @@ namespace BansheeEngine
 
 		HAnimationClip clip;
 		AnimationClipState state;
-		
+		AnimPlaybackType playbackType;
+
 		float fadeDirection;
 		float fadeTime;
 		float fadeLength;
@@ -306,6 +318,14 @@ namespace BansheeEngine
 		 * @param[in]	fadeLength	Determines the time period over which the fade occurs. In seconds.
 		 */
 		void crossFade(const HAnimationClip& clip, float fadeLength);
+
+		/**
+		 * Samples an animation clip at the specified time, displaying only that particular frame without further playback.
+		 *
+		 * @param[in] clip	Animation clip to sample.
+		 * @param[in] time	Time to sample the clip at.
+		 */
+		void sample(const HAnimationClip& clip, float time);
 
 		/** 
 		 * Stops playing all animations on the provided layer. Specify -1 to stop animation on the main layer 

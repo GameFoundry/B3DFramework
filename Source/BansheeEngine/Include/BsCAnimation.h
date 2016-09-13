@@ -59,6 +59,9 @@ namespace BansheeEngine
 		/** @copydoc Animation::crossFade */
 		void crossFade(const HAnimationClip& clip, float fadeLength);
 
+		/** @copydoc Animation::sample */
+		void sample(const HAnimationClip& clip, float time);
+
 		/** @copydoc Animation::stop */
 		void stop(UINT32 layer);
 

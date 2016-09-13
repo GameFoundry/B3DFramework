@@ -40,6 +40,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_Blend1D", &ScriptAnimation::internal_Blend1D);
 		metaData.scriptClass->addInternalCall("Internal_Blend2D", &ScriptAnimation::internal_Blend2D);
 		metaData.scriptClass->addInternalCall("Internal_CrossFade", &ScriptAnimation::internal_CrossFade);
+		metaData.scriptClass->addInternalCall("Internal_Sample", &ScriptAnimation::internal_Sample);
 
 		metaData.scriptClass->addInternalCall("Internal_Stop", &ScriptAnimation::internal_Stop);
 		metaData.scriptClass->addInternalCall("Internal_StopAll", &ScriptAnimation::internal_StopAll);
@@ -130,6 +131,15 @@ namespace BansheeEngine
 			nativeClip = clip->getHandle();
 
 		thisPtr->getInternal()->crossFade(nativeClip, fadeLength);
+	}
+
+	void ScriptAnimation::internal_Sample(ScriptAnimation* thisPtr, ScriptAnimationClip* clip, float time)
+	{
+		HAnimationClip nativeClip;
+		if (clip != nullptr)
+			nativeClip = clip->getHandle();
+
+		thisPtr->getInternal()->sample(nativeClip, time);
 	}
 
 	void ScriptAnimation::internal_Stop(ScriptAnimation* thisPtr, UINT32 layer)

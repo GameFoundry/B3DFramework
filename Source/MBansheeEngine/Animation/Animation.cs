@@ -297,6 +297,22 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Samples an animation clip at the specified time, displaying only that particular frame without further playback.
+        /// </summary>
+        /// <param name="clip">Animation clip to sample.</param>
+        /// <param name="time">Time to sample the clip at.</param>
+        public void Sample(AnimationClip clip, float time)
+        {
+            switch (state)
+            {
+                case State.Active:
+                case State.EditorActive:
+                    _native.Sample(clip, time);
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Stops playing all animations on the provided layer.
         /// </summary>
         /// <param name="layer">Layer on which to stop animations on.</param>
@@ -387,11 +403,16 @@ namespace BansheeEngine
             switch (state)
             {
                 case State.EditorActive:
-                    AnimationClipState clipState = AnimationClipState.Create();
-                    clipState.time = startTime;
-                    clipState.speed = freeze ? 0.0f : 1.0f;
+                    if (freeze)
+                        Sample(clip, startTime);
+                    else
+                    {
+                        AnimationClipState clipState = AnimationClipState.Create();
+                        clipState.time = startTime;
 
-                    SetState(clip, clipState);
+                        SetState(clip, clipState);
+                    }
+
                     RefreshClipMappings();
 
                     break;

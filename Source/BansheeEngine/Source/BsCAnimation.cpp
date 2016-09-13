@@ -78,6 +78,12 @@ namespace BansheeEngine
 			mInternal->crossFade(clip, fadeLength);
 	}
 
+	void CAnimation::sample(const HAnimationClip& clip, float time)
+	{
+		if (mInternal != nullptr)
+			mInternal->sample(clip, time);
+	}
+
 	void CAnimation::stop(UINT32 layer)
 	{
 		if (mInternal != nullptr)

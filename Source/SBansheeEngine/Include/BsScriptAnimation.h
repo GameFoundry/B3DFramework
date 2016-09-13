@@ -46,6 +46,7 @@ namespace BansheeEngine
 		static void internal_Blend1D(ScriptAnimation* thisPtr, MonoObject* info, float t);
 		static void internal_Blend2D(ScriptAnimation* thisPtr, MonoObject* info, Vector2* t);
 		static void internal_CrossFade(ScriptAnimation* thisPtr, ScriptAnimationClip* clip, float fadeLength);
+		static void internal_Sample(ScriptAnimation* thisPtr, ScriptAnimationClip* clip, float time);
 
 		static void internal_Stop(ScriptAnimation* thisPtr, UINT32 layer);
 		static void internal_StopAll(ScriptAnimation* thisPtr);

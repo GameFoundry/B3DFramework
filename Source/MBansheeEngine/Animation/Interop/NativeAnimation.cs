@@ -83,6 +83,15 @@ namespace BansheeEngine
             Internal_CrossFade(mCachedPtr, clipPtr, fadeLength);
         }
 
+        public void Sample(AnimationClip clip, float time)
+        {
+            IntPtr clipPtr = IntPtr.Zero;
+            if (clip != null)
+                clipPtr = clip.GetCachedPtr();
+
+            Internal_Sample(mCachedPtr, clipPtr, time);
+        }
+
         public void Stop(int layer)
         {
             Internal_Stop(mCachedPtr, layer);
@@ -184,6 +193,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CrossFade(IntPtr thisPtr, IntPtr clipPtr, float fadeLength);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_Sample(IntPtr thisPtr, IntPtr clipPtr, float time);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Stop(IntPtr thisPtr, int layer);
