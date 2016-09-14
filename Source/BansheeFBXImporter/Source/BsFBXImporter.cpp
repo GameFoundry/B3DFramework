@@ -240,8 +240,8 @@ namespace BansheeEngine
 
 		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
 
-		skeleton = importSkeleton(importedScene, subMeshes.size() > 1);
-		morphShapes = importMorphShapes(importedScene);		
+		skeleton = createSkeleton(importedScene, subMeshes.size() > 1);
+		morphShapes = createMorphShapes(importedScene);		
 
 		// Import animation clips
 		if (!importedScene.clips.empty())
@@ -257,7 +257,7 @@ namespace BansheeEngine
 		return rendererMeshData;
 	}
 
-	SPtr<Skeleton> FBXImporter::importSkeleton(const FBXImportScene& scene, bool sharedRoot)
+	SPtr<Skeleton> FBXImporter::createSkeleton(const FBXImportScene& scene, bool sharedRoot)
 	{
 		Vector<BONE_DESC> allBones;
 		UnorderedMap<FBXImportNode*, UINT32> boneMap;
@@ -336,60 +336,84 @@ namespace BansheeEngine
 		return nullptr;
 	}
 
-	SPtr<MorphShapes> FBXImporter::importMorphShapes(const FBXImportScene& scene)
+	SPtr<MorphShapes> FBXImporter::createMorphShapes(const FBXImportScene& scene)
 	{
-		SPtr<MorphShapes> morphShapes;
+		// Combine morph shapes from all sub-meshes, and transform them
+		struct RawMorphShape
+		{
+			String name;
+			Vector<MorphVertex> vertices;
+		};
+
+		UnorderedMap<String, RawMorphShape> allRawMorphShapes;
+		UINT32 totalNumVertices = 0;
+
+		// Note: Order in which we combine meshes must match the order in MeshData::combine
 		for (auto& mesh : scene.meshes)
 		{
-			// Create bones
-			size_t numVertices = mesh->positions.size();
-			bool hasNormals = mesh->normals.size() == numVertices;
+			UINT32 numVertices = (UINT32)mesh->positions.size();
+			UINT32 numNormals = (UINT32)mesh->normals.size();
+			bool hasNormals = numVertices == numNormals;
 
-			// Create morph targets
-			Vector<SPtr<MorphShape>> allMorphShapes;
-			for (auto& fbxBlendShape : mesh->blendShapes)
+			for (auto& node : mesh->referencedBy)
 			{
-				for (auto& frame : fbxBlendShape.frames)
+				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransformIT = worldTransform.inverse();
+				worldTransformIT = worldTransformIT.transpose();
+
+				// Copy & transform positions
+				for(auto& blendShape : mesh->blendShapes)
 				{
-					assert(frame.positions.size() == numVertices);
-
-					if (hasNormals)
-						assert(frame.normals.size() == numVertices);
-
-					Vector<MorphVertex> morphVertices;
-					for (UINT32 i = 0; i < numVertices; i++)
+					for(auto& blendFrame : blendShape.frames)
 					{
-						Vector3 positionDelta = frame.positions[i] - mesh->positions[i];
-						Vector3 normalDelta;
-						if (hasNormals)
-							normalDelta = frame.normals[i] - mesh->normals[i];
+						RawMorphShape& shape = allRawMorphShapes[blendFrame.name];
+						shape.name = blendFrame.name;
+
+						UINT32 frameNumVertices = (UINT32)blendFrame.positions.size();
+						if (frameNumVertices == numVertices)
+						{
+							for (UINT32 i = 0; i < numVertices; i++)
+							{
+								Vector3 blendPosition = worldTransform.multiplyAffine(blendFrame.positions[i]);
+
+								Vector3 positionDelta = blendPosition - mesh->positions[i];
+								Vector3 normalDelta;
+								if (hasNormals)
+								{
+									Vector3 blendNormal = worldTransformIT.multiplyAffine(blendFrame.normals[i]);
+									normalDelta = blendNormal - mesh->normals[i];
+								}
+								else
+									normalDelta = Vector3::ZERO;
+
+								if (positionDelta.squaredLength() > 0.0001f || normalDelta.squaredLength() > 0.01f)
+									shape.vertices.push_back(MorphVertex(positionDelta, normalDelta, totalNumVertices + i));
+							}
+						}
 						else
-							normalDelta = Vector3::ZERO;
-
-						if (positionDelta.squaredLength() > 0.0001f || normalDelta.squaredLength() > 0.01f)
-							morphVertices.push_back(MorphVertex(positionDelta, normalDelta, i));
+						{
+							LOGERR("Corrupt blend shape frame. Number of vertices doesn't match the number of mesh vertices.");
+						}
 					}
-
-					morphVertices.shrink_to_fit();
-
-					SPtr<MorphShape> shape = MorphShape::create(frame.name, morphVertices);
-					allMorphShapes.push_back(shape);
 				}
-			}
 
-			// Note: Morph shapes don't work if there are multiple meshes. In order to support them logic for combining
-			// morph shapes would need to be added below in, or similar to MeshData::combine.
-			if (!allMorphShapes.empty())
-			{
-				if (morphShapes == nullptr)
-					morphShapes = MorphShapes::create(allMorphShapes);
-				else
-				{
-					LOGERR("Failed importing morph shapes. Multiple sub-meshes are not supported with morph shapes.");
-					return nullptr;
-				}
+				totalNumVertices += numVertices;
 			}
 		}
+
+		// Create morph shape object from combined shape data
+		SPtr<MorphShapes> morphShapes;
+		Vector<SPtr<MorphShape>> allMorphShapes;
+		for (auto& entry : allRawMorphShapes)
+		{
+			entry.second.vertices.shrink_to_fit();
+
+			SPtr<MorphShape> shape = MorphShape::create(entry.second.name, entry.second.vertices);
+			allMorphShapes.push_back(shape);
+		}
+
+		if (!allMorphShapes.empty())
+			return MorphShapes::create(allMorphShapes);
 
 		return morphShapes;
 	}
@@ -1766,24 +1790,6 @@ namespace BansheeEngine
 		return TAnimationCurve<Vector3>(newKeyframes);
 	}
 
-	TAnimationCurve<Vector3> FBXImporter::scaleKeyframes(TAnimationCurve<Vector3>& curve, float scale)
-	{
-		UINT32 keyCount = curve.getNumKeyFrames();
-
-		Vector<TKeyframe<Vector3>> newKeyframes(keyCount);
-		for (UINT32 i = 0; i < keyCount; i++)
-		{
-			TKeyframe<Vector3> curKey = curve.getKeyFrame(i);
-			curKey.value *= scale;
-			curKey.inTangent *= scale;
-			curKey.outTangent *= scale;
-
-			newKeyframes[i] = curKey;
-		}
-
-		return TAnimationCurve<Vector3>(newKeyframes);
-	}
-	
 	template<class T>
 	void setKeyframeValues(TKeyframe<T>& keyFrame, int idx, float value, float inTangent, float outTangent)
 	{

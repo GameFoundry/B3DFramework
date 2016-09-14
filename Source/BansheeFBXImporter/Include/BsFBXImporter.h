@@ -116,9 +116,6 @@ namespace BansheeEngine
 		 */
 		TAnimationCurve<Vector3> reduceKeyframes(TAnimationCurve<Vector3>& curve);
 
-		/** Applies a scale to all keyframe values and tangents. */
-		TAnimationCurve<Vector3> scaleKeyframes(TAnimationCurve<Vector3>& curve, float scale);
-
 		/**
 		 * Converts all the meshes from per-index attributes to per-vertex attributes.
 		 *
@@ -147,10 +144,10 @@ namespace BansheeEngine
 		 *							multiple sub-meshes (as there can't be multiple roots).
 		 * @return					Skeleton containing a set of bones, or null if meshes don't contain a skeleton.
 		 */
-		SPtr<Skeleton> importSkeleton(const FBXImportScene& scene, bool sharedRoot);
+		SPtr<Skeleton> createSkeleton(const FBXImportScene& scene, bool sharedRoot);
 
 		/** Parses the scene and generates morph shapes for the imported meshes using the imported raw data. */
-		SPtr<MorphShapes> importMorphShapes(const FBXImportScene& scene);
+		SPtr<MorphShapes> createMorphShapes(const FBXImportScene& scene);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);
