@@ -22,6 +22,16 @@ namespace BansheeEngine
 		Everything = 0x02
 	};
 
+	/** Type of animation that can be applied to a renderable object. */
+	enum class RenderableAnimType
+	{
+		None,
+		Skinned,
+		Morph,
+		SkinnedMorph,
+		Count // Keep at end
+	};
+
 	/**
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
 	 * render any Renderable objects visible by a camera.
@@ -151,6 +161,7 @@ namespace BansheeEngine
 		Matrix4 mTransform;
 		Matrix4 mTransformNoScale;
 		bool mIsActive;
+		RenderableAnimType mAnimType;
 	};
 
 	/** @} */
@@ -174,8 +185,8 @@ namespace BansheeEngine
 		/**	Retrieves an ID that can be used for uniquely identifying this handler by the renderer. */
 		UINT32 getRendererId() const { return mRendererId; }
 
-		/** Checks is the mesh geometry rendered by this renderable animated using skeleton or blend shape animation. */
-		bool isAnimated() const { return mAnimationId != (UINT64)-1; }
+		/** Returns the type of animation influencing this renderable, if any. */
+		RenderableAnimType getAnimType() const { return mAnimType; }
 
 		/** Returns the identifier of the animation, if this object is animated using skeleton or blend shape animation. */
 		UINT64 getAnimationId() const { return mAnimationId; }
@@ -231,6 +242,9 @@ namespace BansheeEngine
 
 		/** @copydoc TRenderable::onMeshChanged */
 		void onMeshChanged() override;
+
+		/** Updates animation properties depending on the current mesh. */
+		void refreshAnimation();
 
 		/** @copydoc TRenderable::_markCoreDirty */
 		void _markCoreDirty(RenderableDirtyFlag flag = RenderableDirtyFlag::Everything) override;

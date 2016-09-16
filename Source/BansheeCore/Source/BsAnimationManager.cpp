@@ -276,7 +276,7 @@ namespace BansheeEngine
 				if (iterFind != renderData.infos.end())
 					animInfo.morphShapeInfo = iterFind->second.morphShapeInfo;
 				else
-					animInfo.morphShapeInfo.version = 0;
+					animInfo.morphShapeInfo.version = 1; // 0 is considered invalid version
 
 				if(anim->morphShapeWeightsDirty)
 				{
@@ -348,7 +348,7 @@ namespace BansheeEngine
 				hasAnimInfo = true;
 			}
 			else
-				animInfo.morphShapeInfo.version = 0;
+				animInfo.morphShapeInfo.version = 1;
 
 			if (hasAnimInfo)
 				newAnimInfos[anim->id] = animInfo;

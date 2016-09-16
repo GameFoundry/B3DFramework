@@ -1,6 +1,6 @@
 #include "$ENGINE$\DeferredBasePass.bslinc"
 
-Technique : base("DiffuseCommon") =
+Technique : base("Surface") =
 {
 	Language = "HLSL11";
 	
@@ -26,22 +26,7 @@ Technique : base("DiffuseCommon") =
 	};
 };
 
-Technique 
- : inherits("DeferredBasePass")
- : inherits("DiffuseCommon") =
-{
-	Language = "HLSL11";
-};
-
-Technique 
- : inherits("DeferredBasePassSkinned")
- : inherits("DiffuseCommon") =
-{
-	Language = "HLSL11";
-	Tags = { "Animated" };
-};
-
-Technique : base("DiffuseCommon") =
+Technique : base("Surface") =
 {
 	Language = "GLSL";
 	
@@ -66,17 +51,4 @@ Technique : base("DiffuseCommon") =
 	};
 };
 
-Technique 
- : inherits("DeferredBasePass")
- : inherits("DiffuseCommon") =
-{
-	Language = "GLSL";
-};
-
-Technique 
- : inherits("DeferredBasePassSkinned")
- : inherits("DiffuseCommon") =
-{
-	Language = "GLSL";
-	Tags = { "Animated" };
-};
+#include "$ENGINE$\Surface.bslinc"

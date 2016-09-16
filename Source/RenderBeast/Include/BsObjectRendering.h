@@ -12,6 +12,8 @@
 
 namespace BansheeEngine
 {
+	struct RendererAnimationData;
+
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
@@ -84,6 +86,12 @@ namespace BansheeEngine
 		 * camera.
 		 */
 		void setPerCameraParams(const CameraShaderData& cameraData);
+
+		/** 
+		 * Updates any bone or morph vertex buffers used by the element. Should be called once every frame before rendering,
+		 * or whenever animation changes. 
+		 */
+		void updateAnimationBuffers(const BeastRenderableElement& element, const RendererAnimationData& animData);
 
 		/**
 		 * Updates object specific parameter buffers with new values. To be called whenever object specific values change.

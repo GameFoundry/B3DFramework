@@ -27,7 +27,7 @@ namespace BansheeEngine
 	template<bool Core>
 	TRenderable<Core>::TRenderable()
 		: mLayer(1), mUseOverrideBounds(false), mPosition(BsZero), mTransform(BsIdentity), mTransformNoScale(BsIdentity)
-		, mIsActive(true)
+		, mIsActive(true), mAnimType(RenderableAnimType::None)
 	{
 		mMaterials.resize(1);
 	}
@@ -212,6 +212,7 @@ namespace BansheeEngine
 		dataPtr = rttiReadElem(mTransformNoScale, dataPtr);
 		dataPtr = rttiReadElem(mPosition, dataPtr);
 		dataPtr = rttiReadElem(mIsActive, dataPtr);
+		dataPtr = rttiReadElem(mAnimType, dataPtr);
 		dataPtr = rttiReadElem(mAnimationId, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 
@@ -259,12 +260,7 @@ namespace BansheeEngine
 	void Renderable::setAnimation(const SPtr<Animation>& animation)
 	{
 		mAnimation = animation;
-
-		if (mAnimation != nullptr && mMesh.isLoaded(false))
-		{
-			mAnimation->setSkeleton(mMesh->getSkeleton());
-			mAnimation->setMorphShapes(mMesh->getMorphShapes());
-		}
+		refreshAnimation();
 
 		_markCoreDirty();
 	}
@@ -315,18 +311,40 @@ namespace BansheeEngine
 
 	void Renderable::onMeshChanged()
 	{
-		if(mAnimation != nullptr)
+		refreshAnimation();
+	}
+
+	void Renderable::refreshAnimation()
+	{
+		if (mAnimation == nullptr)
 		{
-			if (mMesh.isLoaded(false))
-			{
-				mAnimation->setSkeleton(mMesh->getSkeleton());
-				mAnimation->setMorphShapes(mMesh->getMorphShapes());
-			}
+			mAnimType = RenderableAnimType::None;
+			return;
+		}
+
+		if (mMesh.isLoaded(false))
+		{
+			SPtr<Skeleton> skeleton = mMesh->getSkeleton();
+			SPtr<MorphShapes> morphShapes = mMesh->getMorphShapes();
+
+			if (skeleton != nullptr && morphShapes != nullptr)
+				mAnimType = RenderableAnimType::SkinnedMorph;
+			else if (skeleton != nullptr)
+				mAnimType = RenderableAnimType::Skinned;
+			else if (morphShapes != nullptr)
+				mAnimType = RenderableAnimType::Morph;
 			else
-			{
-				mAnimation->setSkeleton(nullptr);
-				mAnimation->setMorphShapes(nullptr);
-			}
+				mAnimType = RenderableAnimType::None;
+
+			mAnimation->setSkeleton(mMesh->getSkeleton());
+			mAnimation->setMorphShapes(mMesh->getMorphShapes());
+		}
+		else
+		{
+			mAnimType = RenderableAnimType::None;
+
+			mAnimation->setSkeleton(nullptr);
+			mAnimation->setMorphShapes(nullptr);
 		}
 	}
 
@@ -335,7 +353,8 @@ namespace BansheeEngine
 		UINT32 curHash = so->getTransformHash();
 		if (curHash != _getLastModifiedHash() || force)
 		{
-			if (mAnimation != nullptr)
+			// If skinned animation, don't include own transform since that will be handled by root bone animation
+			if (mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
 			{
 				// Note: Technically we're checking child's hash but using parent's transform. Ideally we check the parent's
 				// hash to reduce the number of required updates.
@@ -391,6 +410,7 @@ namespace BansheeEngine
 			rttiGetElemSize(mTransformNoScale) +
 			rttiGetElemSize(mPosition) +
 			rttiGetElemSize(mIsActive) +
+			rttiGetElemSize(mAnimType) + 
 			rttiGetElemSize(animationId) + 
 			rttiGetElemSize(getCoreDirtyFlags()) +
 			sizeof(SPtr<MeshCore>) + 
@@ -407,6 +427,7 @@ namespace BansheeEngine
 		dataPtr = rttiWriteElem(mPosition, dataPtr);
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
 		dataPtr = rttiWriteElem(animationId, dataPtr);
+		dataPtr = rttiWriteElem(mAnimType, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
 		SPtr<MeshCore>* mesh = new (dataPtr) SPtr<MeshCore>();

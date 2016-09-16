@@ -39,7 +39,9 @@ namespace BansheeEngine
 	static StringID RPS_ViewDir = "ViewDir";
 
 	/** Technique tags. */
-	static StringID RTag_Animated = "Animated";
+	static StringID RTag_Skinned = "Skinned";
+	static StringID RTag_Morph = "Morph";
+	static StringID RTag_SkinnedMorph = "SkinnedMorph";
 
 	/**	Set of options that can be used for controlling the renderer. */	
 	struct BS_CORE_EXPORT CoreRendererOptions

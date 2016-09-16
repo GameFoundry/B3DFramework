@@ -80,13 +80,12 @@ namespace BansheeEngine
 
 		// Immutable
 		SPtr<MaterialCore> mMaterial;
-		SPtr<GpuParamsSetCore> mParams[2];
-		GpuParamMat4Core mMatWorldViewProj[2];
-		GpuParamColorCore mColor[2];
-		GpuParamBufferCore mBoneMatrices;
+		SPtr<GpuParamsSetCore> mParams[4];
+		GpuParamMat4Core mMatWorldViewProj[4];
+		GpuParamColorCore mColor[4];
+		GpuParamBufferCore mBoneMatrices[4];
 
-		UINT32 mDefaultTechniqueIdx;
-		UINT32 mAnimatedTechniqueIdx;
+		UINT32 mTechniqueIndices[4];
 
 		static const Color SELECTION_COLOR;
 	};

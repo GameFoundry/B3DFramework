@@ -23,6 +23,12 @@ namespace BansheeEngine
 
 		/**	Material to render the mesh with. */
 		SPtr<MaterialCore> material;
+
+		/** GPU buffer containing element's bone matrices, if it requires any. */
+		SPtr<GpuBufferCore> boneMatrixBuffer;
+
+		/** Vertex buffer containing element's morph shape vertices, if it has any. */
+		SPtr<VertexBufferCore> morphShapeBuffer;
 	};
 
 	/** @} */

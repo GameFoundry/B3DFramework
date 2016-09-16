@@ -164,12 +164,6 @@ namespace BansheeEngine
         /// <param name="animation">Component that was added</param>
         internal void RegisterAnimation(Animation animation)
         {
-            bool isMeshAnimated = serializableData.mesh != null && 
-                (serializableData.mesh.Skeleton != null || serializableData.mesh.MorphShapes != null);
-
-            if (!isMeshAnimated)
-                return;
-
             this.animation = animation;
             if (_native != null)
             {

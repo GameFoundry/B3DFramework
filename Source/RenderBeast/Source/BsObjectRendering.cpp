@@ -9,6 +9,8 @@
 #include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
+#include "BsMorphShapes.h"
+#include "BsAnimationManager.h"
 
 namespace BansheeEngine
 {
@@ -72,6 +74,77 @@ namespace BansheeEngine
 				buffer->unlock();
 
 				element.boneMatrixBuffer = buffer;
+			}
+		}
+
+		if (element.animType == RenderableAnimType::Morph || element.animType == RenderableAnimType::SkinnedMorph)
+		{
+			// Note: Morph vertices should be shared between all sub-meshes, so maybe it's better to create this buffer
+			// on a per-Renderable basis, rather than per-element?
+
+			SPtr<MorphShapes> morphShapes = element.mesh->getMorphShapes();
+
+			UINT32 vertexSize = sizeof(Vector3) + sizeof(Vector4);
+			UINT32 numVertices = morphShapes->getNumVertices();
+
+			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(vertexSize, numVertices, GBU_DYNAMIC);
+
+			UINT32 totalSize = vertexSize * numVertices;
+			UINT8* dest = (UINT8*)vertexBuffer->lock(0, totalSize, GBL_WRITE_ONLY_DISCARD);
+			memset(dest, 0, totalSize);
+			vertexBuffer->unlock();
+
+			element.morphShapeBuffer = vertexBuffer;
+		}
+	}
+
+	void ObjectRenderer::updateAnimationBuffers(const BeastRenderableElement& element, const RendererAnimationData& animData)
+	{
+		if (element.animationId == (UINT64)-1)
+			return;
+
+		const RendererAnimationData::AnimInfo* animInfo = nullptr;
+
+		auto iterFind = animData.infos.find(element.animationId);
+		if (iterFind != animData.infos.end())
+			animInfo = &iterFind->second;
+
+		if (animInfo == nullptr)
+			return;
+
+		if (element.animType == RenderableAnimType::Skinned || element.animType == RenderableAnimType::SkinnedMorph)
+		{
+			const RendererAnimationData::PoseInfo& poseInfo = animInfo->poseInfo;
+
+			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
+			// all such elements
+			SPtr<GpuBufferCore> boneMatrices = element.boneMatrixBuffer;
+
+			UINT8* dest = (UINT8*)boneMatrices->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+			for (UINT32 j = 0; j < poseInfo.numBones; j++)
+			{
+				const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
+				memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
+
+				dest += 12 * sizeof(float);
+			}
+
+			boneMatrices->unlock();
+		}
+
+		if (element.animType == RenderableAnimType::Morph || element.animType == RenderableAnimType::SkinnedMorph)
+		{
+			if (element.morphShapeVersion < animInfo->morphShapeInfo.version)
+			{
+				SPtr<MeshData> meshData = animInfo->morphShapeInfo.meshData;
+				SPtr<VertexBufferCore> vertexBuffer = element.morphShapeBuffer;
+
+				UINT32 bufferSize = meshData->getSize();
+				UINT8* data = meshData->getData();
+
+				vertexBuffer->writeData(0, bufferSize, data, BufferWriteType::Discard);
+
+				element.morphShapeVersion = animInfo->morphShapeInfo.version;
 			}
 		}
 	}

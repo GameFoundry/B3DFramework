@@ -21,6 +21,8 @@
 #include "BsAnimationManager.h"
 #include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
+#include "BsRenderer.h"
+#include "BsRenderableElement.h"
 
 using namespace std::placeholders;
 
@@ -93,11 +95,29 @@ namespace BansheeEngine
 	void SelectionRendererCore::initialize(const SPtr<MaterialCore>& mat)
 	{
 		THROW_IF_NOT_CORE_THREAD;
+		
+		constexpr int numTechniques = sizeof(mTechniqueIndices) / sizeof(mTechniqueIndices[0]);
+		static_assert(numTechniques == (int)RenderableAnimType::Count, "Number of techniques doesn't match the number of possible animation types.");
 
-		mDefaultTechniqueIdx = mat->getDefaultTechnique();
-		mAnimatedTechniqueIdx = mat->findTechnique(RTag_Animated);
-
-		assert(mDefaultTechniqueIdx < 2 && mAnimatedTechniqueIdx < 2);
+		for(UINT32 i = 0; i < numTechniques; i++)
+		{
+			RenderableAnimType animType = (RenderableAnimType)i;
+			switch (animType)
+			{
+				case RenderableAnimType::Skinned:
+					mTechniqueIndices[i] = mat->findTechnique(RTag_Skinned);
+					break;
+				case RenderableAnimType::Morph:
+					mTechniqueIndices[i] = mat->findTechnique(RTag_Morph);
+					break;
+				case RenderableAnimType::SkinnedMorph:
+					mTechniqueIndices[i] = mat->findTechnique(RTag_SkinnedMorph);
+					break;
+				default:
+					mTechniqueIndices[i] = mat->getDefaultTechnique();
+					break;
+			}
+		}
 
 		mMaterial = mat;
 
@@ -107,13 +127,11 @@ namespace BansheeEngine
 
 			SPtr<GpuParamsCore> vertParams = mParams[i]->getGpuParams(GPT_VERTEX_PROGRAM);
 			vertParams->getParam("matWorldViewProj", mMatWorldViewProj[i]);
+			vertParams->getBufferParam("boneMatrices", mBoneMatrices[i]);
 
 			SPtr<GpuParamsCore> fragParams = mParams[i]->getGpuParams(GPT_FRAGMENT_PROGRAM);
 			fragParams->getParam("selColor", mColor[i]);
 		}
-
-		SPtr<GpuParamsCore> vertParams = mParams[mAnimatedTechniqueIdx]->getGpuParams(GPT_VERTEX_PROGRAM);
-		vertParams->getBufferParam("boneMatrices", mBoneMatrices);
 	}
 
 	void SelectionRendererCore::updateData(const SPtr<CameraCore>& camera, const Vector<SPtr<RenderableCore>>& objects)
@@ -142,6 +160,8 @@ namespace BansheeEngine
 		const RendererAnimationData& animData = AnimationManager::instance().getRendererData();
 		Matrix4 viewProjMat = mCamera->getProjectionMatrixRS() * mCamera->getViewMatrix();
 
+		SPtr<Renderer> renderer = gRenderer();
+
 		for (auto& renderable : mObjects)
 		{
 			SPtr<MeshCore> mesh = renderable->getMesh();
@@ -149,50 +169,27 @@ namespace BansheeEngine
 				continue;
 
 			Matrix4 worldViewProjMat = viewProjMat * renderable->getTransform();
-			UINT32 techniqueIdx = renderable->isAnimated() ? mAnimatedTechniqueIdx : mDefaultTechniqueIdx;
+			UINT32 techniqueIdx = mTechniqueIndices[(int)renderable->getAnimType()];
 
 			mMatWorldViewProj[techniqueIdx].set(worldViewProjMat);
 			mColor[techniqueIdx].set(SELECTION_COLOR);
-
-			if(renderable->isAnimated())
-			{
-				SPtr<Skeleton> skeleton = mesh->getSkeleton();
-				UINT32 numBones = skeleton != nullptr ? skeleton->getNumBones() : 0;
-
-				if (numBones > 0)
-				{
-					// Note: If I had access to them I could just use the buffers from the Renderer instead of creating a
-					// new one every frame
-					SPtr<GpuBufferCore> buffer = GpuBufferCore::create(numBones * 3, 0, GBT_STANDARD, BF_32X4F, GBU_DYNAMIC);
-
-					auto iterFind = animData.infos.find(renderable->getAnimationId());
-					if (iterFind != animData.infos.end())
-					{
-						const RendererAnimationData::PoseInfo& poseInfo = iterFind->second.poseInfo;
-
-						UINT8* dest = (UINT8*)buffer->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
-						for (UINT32 j = 0; j < poseInfo.numBones; j++)
-						{
-							const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
-							memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
-
-							dest += 12 * sizeof(float);
-						}
-
-						buffer->unlock();
-					}
-
-					mBoneMatrices.set(buffer);
-				}
-			}
-
+			
 			gRendererUtility().setPass(mMaterial, 0, techniqueIdx);
 			gRendererUtility().setPassParams(mParams[techniqueIdx], 0);
 
 			UINT32 numSubmeshes = mesh->getProperties().getNumSubMeshes();
+			UINT32 renderableId = renderable->getRendererId();
 
-			for (UINT32 i = 0; i < numSubmeshes; i++)
-				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(i));
+			for(UINT32 i = 0; i < numSubmeshes; i++)
+			{
+				const RenderableElement* renderableElem = renderer->getRenderableElem(renderableId, i);
+				if (renderableElem == nullptr)
+					continue;
+
+				mBoneMatrices[techniqueIdx].set(renderableElem->boneMatrixBuffer);
+
+				gRendererUtility().drawMorph(mesh, mesh->getProperties().getSubMesh(i), renderableElem->morphShapeBuffer);
+			}
 		}
 	}
 }

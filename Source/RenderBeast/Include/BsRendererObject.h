@@ -4,6 +4,7 @@
 
 #include "BsRenderBeastPrerequisites.h"
 #include "BsRenderableElement.h"
+#include "BsRenderable.h"
 
 namespace BansheeEngine
 {
@@ -36,6 +37,9 @@ namespace BansheeEngine
 		/** Identifier of the animation running on the renderable's mesh. -1 if no animation. */
 		UINT64 animationId;
 
+		/** Type of animation applied to this element, if any. */
+		RenderableAnimType animType;
+
 		/** Index of the technique in the material to render the element with. */
 		UINT32 techniqueIdx;
 
@@ -44,8 +48,8 @@ namespace BansheeEngine
 		 */
 		MaterialParamBufferCore boneMatricesParam;
 
-		/** GPU buffer containing element's bone matrices, if it requires any. */
-		SPtr<GpuBufferCore> boneMatrixBuffer;
+		/** Version of the morph shape vertices in the buffer. */
+		mutable UINT32 morphShapeVersion;
 	};
 
 	 /** Contains information about a Renderable, used by the Renderer. */

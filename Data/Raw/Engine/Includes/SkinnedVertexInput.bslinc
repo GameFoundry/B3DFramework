@@ -3,7 +3,12 @@ Parameters =
 	StructBuffer boneMatrices : auto("BoneMatrices");
 };
 
-Technique : base("SkinnedVertexInput") =
+Technique 
+#if USE_BLEND_SHAPES
+	: base("SkinnedMorphVertexInput") =
+#else
+	: base("SkinnedVertexInput") =
+#endif
 {
 	Language = "HLSL11";
 
@@ -75,7 +80,8 @@ Technique : base("SkinnedVertexInput") =
 				float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
 				
 				#if USE_BLEND_SHAPES
-					normal = normalize(normal + input.deltaNormal * input.deltaNormal.w);
+					float3 deltaNormal = input.deltaNormal.xyz * 2.0f - 1.0f;
+					normal = normalize(normal + deltaNormal * input.deltaNormal.w);
 					tangent = normalize(tangent - dot(tangent, normal) * normal);
 				#endif
 				
@@ -130,7 +136,11 @@ Technique : base("SkinnedVertexInput") =
 	};
 };
 
-Technique : base("SkinnedVertexInput") =
+#if USE_BLEND_SHAPES
+	: base("SkinnedMorphVertexInput") =
+#else
+	: base("SkinnedVertexInput") =
+#endif
 {
 	Language = "GLSL";
 	
@@ -209,7 +219,8 @@ Technique : base("SkinnedVertexInput") =
 				vec3 tangent = bs_tangent.xyz * 2.0f - 1.0f;
 				
 				#if USE_BLEND_SHAPES
-					normal = normalize(normal + bs_normal1 * bs_normal1.w);
+					vec3 deltaNormal = bs_normal1.xyz * 2.0f - 1.0f;
+					normal = normalize(normal + deltaNormal * bs_normal1.w);
 					tangent = normalize(tangent - dot(tangent, normal) * normal);
 				#endif
 				

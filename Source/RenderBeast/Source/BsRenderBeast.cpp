@@ -29,6 +29,7 @@
 #include "BsSkeleton.h"
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
+#include "BsMeshData.h"
 
 using namespace std::placeholders;
 
@@ -138,7 +139,9 @@ namespace BansheeEngine
 				renElement.mesh = mesh;
 				renElement.subMesh = meshProps.getSubMesh(i);
 				renElement.renderableId = renderableId;
+				renElement.animType = renderable->getAnimType();
 				renElement.animationId = renderable->getAnimationId();
+				renElement.morphShapeVersion = 0;
 
 				renElement.material = renderable->getMaterial(i);
 				if (renElement.material == nullptr)
@@ -147,44 +150,61 @@ namespace BansheeEngine
 				if (renElement.material != nullptr && renElement.material->getShader() == nullptr)
 					renElement.material = nullptr;
 
+				// If no material use the default material
+				if (renElement.material == nullptr)
+					renElement.material = mDefaultMaterial->getMaterial();
+
+				// Determine which technique to use
+				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };
+				static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
+				
+				UINT32 techniqueIdx = -1;
+				RenderableAnimType animType = renderable->getAnimType();
+				if(animType != RenderableAnimType::None)
+					techniqueIdx = renElement.material->findTechnique(techniqueIDLookup[(int)animType]);
+
+				if (techniqueIdx == (UINT32)-1)
+					techniqueIdx = renElement.material->getDefaultTechnique();
+
+				renElement.techniqueIdx = techniqueIdx;
+
 				// Validate mesh <-> shader vertex bindings
 				if (renElement.material != nullptr)
 				{
-					UINT32 numPasses = renElement.material->getNumPasses();
+					UINT32 numPasses = renElement.material->getNumPasses(techniqueIdx);
 					for (UINT32 j = 0; j < numPasses; j++)
 					{
-						SPtr<PassCore> pass = renElement.material->getPass(j);
+						SPtr<PassCore> pass = renElement.material->getPass(j, techniqueIdx);
 
 						SPtr<VertexDeclarationCore> shaderDecl = pass->getVertexProgram()->getInputDeclaration();
 						if (!vertexDecl->isCompatible(shaderDecl))
 						{
 							Vector<VertexElement> missingElements = vertexDecl->getMissingElements(shaderDecl);
 
-							StringStream wrnStream;
-							wrnStream << "Provided mesh is missing required vertex attributes to render with the provided shader. Missing elements: " << std::endl;
+							// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
+							if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
+							{
+								std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
+								{
+									return (x.getSemantic() == VES_POSITION && x.getSemanticIdx() == 1) ||
+										(x.getSemantic() == VES_NORMAL && x.getSemanticIdx() == 1);
+								});
+							}
 
-							for (auto& entry : missingElements)
-								wrnStream << "\t" << toString(entry.getSemantic()) << entry.getSemanticIdx() << std::endl;
+							if (!missingElements.empty())
+							{
+								StringStream wrnStream;
+								wrnStream << "Provided mesh is missing required vertex attributes to render with the provided shader. Missing elements: " << std::endl;
 
-							LOGWRN(wrnStream.str());
-							break;
+								for (auto& entry : missingElements)
+									wrnStream << "\t" << toString(entry.getSemantic()) << entry.getSemanticIdx() << std::endl;
+
+								LOGWRN(wrnStream.str());
+								break;
+							}
 						}
 					}
 				}
-
-				// If no material use the default material
-				if (renElement.material == nullptr)
-					renElement.material = mDefaultMaterial->getMaterial();
-
-				// Determine which technique to use
-				UINT32 techniqueIdx = -1;
-				if(renderable->isAnimated())
-					techniqueIdx = renElement.material->findTechnique(RTag_Animated);
-
-				if (techniqueIdx == (UINT32)-1)
-					techniqueIdx = renElement.material->getDefaultTechnique();
-
-				renElement.techniqueIdx = techniqueIdx;
 
 				// Generate or assigned renderer specific data for the material
 				Any materialInfo = renElement.material->getRendererData();
@@ -395,6 +415,17 @@ namespace BansheeEngine
 		updateCameraData(camera, true);
 	}
 
+	const RenderableElement* RenderBeast::getRenderableElem(UINT32 id, UINT32 subMeshIdx)
+	{
+		if (id >= (UINT32)mRenderables.size())
+			return nullptr;
+
+		if (subMeshIdx >= (UINT32)mRenderables[id].elements.size())
+			return nullptr;
+
+		return &mRenderables[id].elements[subMeshIdx];
+	}
+
 	SPtr<PostProcessSettings> RenderBeast::createPostProcessSettings() const
 	{
 		return bs_shared_ptr_new<StandardPostProcessSettings>();
@@ -551,31 +582,7 @@ namespace BansheeEngine
 				continue;
 
 			for (auto& element : mRenderables[i].elements)
-			{
-				if (element.animationId == (UINT64)-1)
-					continue;
-
-				// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
-				// all such elements
-				SPtr<GpuBufferCore> boneMatrices = element.boneMatrixBuffer;
-
-				auto iterFind = animData.infos.find(element.animationId);
-				if (iterFind != animData.infos.end())
-				{
-					const RendererAnimationData::PoseInfo& poseInfo = iterFind->second.poseInfo;
-
-					UINT8* dest = (UINT8*)boneMatrices->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
-					for (UINT32 j = 0; j < poseInfo.numBones; j++)
-					{
-						const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
-						memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
-
-						dest += 12 * sizeof(float);
-					}
-
-					boneMatrices->unlock();
-				}
-			}
+				mObjectRenderer->updateAnimationBuffers(element, animData);
 
 			// TODO - Also move per-object buffer updates here (will require worldViewProj matrix to be moved to a separate buffer (or a push constant))
 			// TODO - Before uploading bone matrices and per-object data, check if it has actually been changed since last frame (most objects will be static)
@@ -838,7 +845,7 @@ namespace BansheeEngine
 		else
 			setPassParams(element.params, nullptr, passIdx);
 
-		gRendererUtility().draw(element.mesh, element.subMesh);
+		gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer);
 	}
 
 	void RenderBeast::refreshSamplerOverrides(bool force)

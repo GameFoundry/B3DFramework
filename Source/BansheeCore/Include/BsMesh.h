@@ -302,6 +302,9 @@ namespace BansheeEngine
 		/** Returns a skeleton that can be used for animating the mesh. */
 		SPtr<Skeleton> getSkeleton() const { return mSkeleton; }
 
+		/** Returns an object containing all shapes used for morph animation, if any are available. */
+		SPtr<MorphShapes> getMorphShapes() const { return mMorphShapes; }
+
 		/**
 		 * Updates a part of the current mesh with the provided data.
 		 *

@@ -165,6 +165,9 @@ namespace BansheeEngine
 			rapi.setRasterizerState(pass->getRasterizerState());
 		else
 			rapi.setRasterizerState(RasterizerStateCore::getDefault());
+
+		SPtr<VertexDeclarationCore> shaderDecl = pass->getVertexProgram()->getInputDeclaration();
+		rapi.setVertexDeclaration(shaderDecl);
 	}
 
 	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
@@ -258,9 +261,7 @@ namespace BansheeEngine
 		RenderAPICore& rs = RenderAPICore::instance();
 		SPtr<VertexData> vertexData = mesh->getVertexData();
 
-		rs.setVertexDeclaration(vertexData->vertexDeclaration);
 		auto& vertexBuffers = vertexData->getBuffers();
-
 		if (vertexBuffers.size() > 0)
 		{
 			SPtr<VertexBufferCore> buffers[MAX_BOUND_VERTEX_BUFFERS];
@@ -284,15 +285,54 @@ namespace BansheeEngine
 			rs.setVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
 		}
 
+		SPtr<IndexBufferCore> indexBuffer = mesh->getIndexBuffer();
+		rs.setIndexBuffer(indexBuffer);
+
 		rs.setDrawOperation(subMesh.drawOp);
 
-		SPtr<IndexBufferCore> indexBuffer = mesh->getIndexBuffer();
-
 		UINT32 indexCount = subMesh.indexCount;
-
-		rs.setIndexBuffer(indexBuffer);
 		rs.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(), 
 			vertexData->vertexCount, numInstances);
+
+		mesh->_notifyUsedOnGPU();
+	}
+
+	void RendererUtility::drawMorph(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, 
+		const SPtr<VertexBufferCore>& morphVertices)
+	{
+		// Bind buffers and draw
+		RenderAPICore& rapi = RenderAPICore::instance();
+
+		SPtr<VertexData> vertexData = mesh->getVertexData();
+
+		auto& meshBuffers = vertexData->getBuffers();
+		SPtr<VertexBufferCore> allBuffers[MAX_BOUND_VERTEX_BUFFERS];
+
+		UINT32 endSlot = 0;
+		UINT32 startSlot = MAX_BOUND_VERTEX_BUFFERS;
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
+		{
+			if (iter->first >= MAX_BOUND_VERTEX_BUFFERS)
+				BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
+
+			startSlot = std::min(iter->first, startSlot);
+			endSlot = std::max(iter->first, endSlot);
+		}
+
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
+			allBuffers[iter->first - startSlot] = iter->second;
+
+		allBuffers[1] = morphVertices;
+		rapi.setVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
+
+		SPtr<IndexBufferCore> indexBuffer = mesh->getIndexBuffer();
+		rapi.setIndexBuffer(indexBuffer);
+
+		rapi.setDrawOperation(subMesh.drawOp);
+
+		UINT32 indexCount = subMesh.indexCount;
+		rapi.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(),
+			vertexData->vertexCount, 1);
 
 		mesh->_notifyUsedOnGPU();
 	}
