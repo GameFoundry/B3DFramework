@@ -225,11 +225,11 @@ namespace BansheeEditor
                                     string framePropertyPath = parent.path + "/MorphShapes/Frames/" + channelName;
                                     string weightPropertyPath = parent.path + "/MorphShapes/Weight/" + channelName;
 
-                                    elements.Add(AddFieldRow(toggleParent.childLayout, channelName + " (Frames)", 
+                                    childElements.Add(AddFieldRow(toggleParent.childLayout, channelName + " (Frames)", 
                                         toggleParent.so, toggleParent.comp, framePropertyPath, 
                                         SerializableProperty.FieldType.Float));
 
-                                    elements.Add(AddFieldRow(toggleParent.childLayout, channelName + " (Weight)",
+                                    childElements.Add(AddFieldRow(toggleParent.childLayout, channelName + " (Weight)",
                                         toggleParent.so, toggleParent.comp, weightPropertyPath,
                                         SerializableProperty.FieldType.Float));
                                 }
