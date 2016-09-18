@@ -373,6 +373,12 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Displays a floating point value in the value display.
+        /// </summary>
+        /// <param name="value">Value to display</param>
+        public virtual void SetValue(float value) { }
+
+        /// <summary>
         /// Changes the displayed value next to the element's name.
         /// </summary>
         /// <param name="value"></param>
@@ -576,12 +582,9 @@ namespace BansheeEditor
         }
 
         /// <inheritdoc/>
-        public override void SetValue(object value)
+        public override void SetValue(float value)
         {
-            if (value == null)
-                return;
-
-            string strValue = value.ToString();
+            string strValue = value.ToString("n2");
             valueDisplay.SetContent(strValue);
         }
     }
