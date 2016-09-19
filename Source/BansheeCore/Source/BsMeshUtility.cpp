@@ -750,6 +750,7 @@ namespace BansheeEngine
 		{
 			VertexFaces& faces = connectivity.vertexFaces[i];
 
+			normals[i] = Vector3::ZERO;
 			for (UINT32 j = 0; j < faces.numFaces; j++)
 			{
 				UINT32 faceIdx = faces.faces[j];
@@ -809,14 +810,16 @@ namespace BansheeEngine
 				faceBitangents[i].normalize();
 			}
 
-			// Note: Potentially don't normalize here in order to weigh the normals
-			// by triangle size
+			// Note: Potentially don't normalize here in order to weight the normals by triangle size
 		}
 
 		VertexConnectivity connectivity(indices, numVertices, numFaces, indexSize);
 		for (UINT32 i = 0; i < numVertices; i++)
 		{
 			VertexFaces& faces = connectivity.vertexFaces[i];
+
+			tangents[i] = Vector3::ZERO;
+			bitangents[i] = Vector3::ZERO;
 
 			for (UINT32 j = 0; j < faces.numFaces; j++)
 			{
