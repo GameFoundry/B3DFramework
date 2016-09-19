@@ -531,16 +531,22 @@ namespace BansheeEngine
         /// 
         ///                    Path element prefixed with ":" signify names of components. If a path doesn't have a
         ///                    component element, it is assumed the field is relative to the scene object itself (only 
-        ///                    "Translation", "Rotation" and "Scale fields are supported in such case). Only one component
+        ///                    "Translation", "Rotation" and "Scale" fields are supported in such case). Only one component
         ///                    path element per path is allowed.
         /// 
         ///                    Path entries with no prefix are considered regular script object fields. Each path must have
-        ///                    at least one such entry. Last field entry can optionally have a suffix separated from the
+        ///                    at least one such entry. 
+        /// 
+        ///                    A field path can be followed by an indexer [n] where n is a zero-based index. Such paths
+        ///                    are assumed to be referencing an index within an array or a list.
+        /// 
+        ///                    A field path can also be followed by a suffix (after the indexer, if any) separated from the
         ///                    path name with ".". This suffix is not parsed internally, but will be returned as 
         ///                    <paramref name="suffix"/>.
         /// 
         ///                    Path examples:
         ///                     :MyComponent/myInt (path to myInt variable on a component attached to this object)
+        ///                     :MyComponent/myArray[0] (path to first element of myArray on the same component)
         ///                     !childSO/:MyComponent/myInt (path to myInt variable on a child scene object)
         ///                     !childSO/Translation (path to the scene object translation)
         ///                     :MyComponent/myVector.z (path to the z component of myVector on this object)

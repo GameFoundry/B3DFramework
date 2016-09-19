@@ -119,23 +119,34 @@ namespace BansheeEngine
                     return null;
 
                 pathElements[i] = new PropertyPathElement();
+
+                int startIdx = 0;
+                int nameEndIdx = 0;
+                int endIdx = entry.Length - 1;
                 if (entry[entry.Length - 1] == ']')
                 {
                     bool foundKey = false;
-                    int j = entry.Length - 2;
-                    for (; j >= 0; j--)
+                    for (int j = 0; j < entry.Length - 1; j++)
                     {
                         if (entry[j] == '[')
                         {
+                            startIdx = j;
+                            nameEndIdx = j;
                             foundKey = true;
-                            break;
                         }
                     }
 
+                    // Trim string quotes, if they exist
+                    if (startIdx < (endIdx - 1) && entry[startIdx + 1] == '"')
+                        startIdx++;
+
+                    if (endIdx > (startIdx + 1) && entry[endIdx - 1] == '"')
+                        endIdx--;
+                    
                     if (foundKey)
                     {
-                        pathElements[i].name = entry.Substring(0, j);
-                        pathElements[i].key = entry.Substring(j + 1, (entry.Length - 1) - (j + 1));
+                        pathElements[i].name = entry.Substring(0, nameEndIdx);
+                        pathElements[i].key = entry.Substring(startIdx + 1, endIdx - (startIdx + 1));
                     }
                     else
                         pathElements[i].name = entry;

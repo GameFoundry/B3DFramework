@@ -158,6 +158,76 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Registers a new row in the layout for the provided property. The type of row is determined by the property type.
+        /// </summary>
+        /// <param name="parent">Parent foldout row to which to append the new elements.</param>
+        /// <param name="name">Name of the field the property belongs to.</param>
+        /// <param name="path">Slash separated path to the field from its parent object.</param>
+        /// <param name="property">Property to create the row for.</param>
+        /// <param name="element">Element containing data for the newly created row. Only valid if method returns true.
+        ///                       </param>
+        /// <returns>Returns true if the row was successfully added, false otherwise.</returns>
+        private bool AddPropertyRow(Element parent, string name, string path, SerializableProperty property, 
+            out Element element)
+        {
+            switch (property.Type)
+            {
+                case SerializableProperty.FieldType.Bool:
+                case SerializableProperty.FieldType.Float:
+                case SerializableProperty.FieldType.Int:
+                case SerializableProperty.FieldType.Color:
+                case SerializableProperty.FieldType.Vector2:
+                case SerializableProperty.FieldType.Vector3:
+                case SerializableProperty.FieldType.Vector4:
+                    element = AddFieldRow(parent.childLayout, name, parent.so, parent.comp, path, property.Type);
+                    return true;
+                case SerializableProperty.FieldType.Object:
+                    {
+                        Action<Element, bool> toggleCallback =
+                            (toggleParent, expand) =>
+                            {
+                                SerializableObject childObject = new SerializableObject(property.InternalType, null);
+                                ToggleObjectFoldout(toggleParent, childObject, expand);
+                            };
+
+                        element = AddFoldoutRow(parent.childLayout, null, name, parent.so, parent.comp, path, toggleCallback);
+                    }
+                    return true;
+                case SerializableProperty.FieldType.Array:
+                    {
+                        Action<Element, bool> toggleCallback =
+                            (toggleParent, expand) =>
+                            {
+                                SerializableArray childObject = property.GetArray();
+
+                                if (childObject != null)
+                                    ToggleArrayFoldout(toggleParent, childObject, expand);
+                            };
+
+                        element = AddFoldoutRow(parent.childLayout, null, name, parent.so, parent.comp, path, toggleCallback);
+                    }
+                    return true;
+                case SerializableProperty.FieldType.List:
+                    {
+                        Action<Element, bool> toggleCallback =
+                            (toggleParent, expand) =>
+                            {
+                                SerializableList childObject = property.GetList();
+
+                                if (childObject != null)
+                                    ToggleListFoldout(toggleParent, childObject, expand);
+                            };
+
+                        element = AddFoldoutRow(parent.childLayout, null, name, parent.so, parent.comp, path, toggleCallback);
+                    }
+                    return true;
+            }
+
+            element = new Element();
+            return false;
+        }
+
+        /// <summary>
         /// Registers a set of rows for all child fields of the provided object.
         /// </summary>
         /// <param name="parent">Parent foldout row to which to append the new elements.</param>
@@ -172,28 +242,9 @@ namespace BansheeEditor
 
                 string propertyPath = parent.path + "/" + field.Name;
 
-                switch (field.Type)
-                {
-                    case SerializableProperty.FieldType.Bool:
-                    case SerializableProperty.FieldType.Float:
-                    case SerializableProperty.FieldType.Int:
-                    case SerializableProperty.FieldType.Color:
-                    case SerializableProperty.FieldType.Vector2:
-                    case SerializableProperty.FieldType.Vector3:
-                    case SerializableProperty.FieldType.Vector4:
-                        elements.Add(AddFieldRow(parent.childLayout, field.Name, parent.so, parent.comp, propertyPath, field.Type));
-                        break;
-                    case SerializableProperty.FieldType.Object:
-                        Action<Element, bool> toggleCallback = 
-                            (toggleParent, expand) =>
-                        {
-                            SerializableObject childObject = new SerializableObject(field.InternalType, null);
-                            ToggleObjectFoldout(toggleParent, childObject, expand);
-                        };
-                        elements.Add(AddFoldoutRow(parent.childLayout, null, field.Name, parent.so, parent.comp, 
-                            propertyPath, toggleCallback));
-                        break;
-                }
+                Element element;
+                if(AddPropertyRow(parent, field.Name, propertyPath, field.GetProperty(), out element))
+                    elements.Add(element);
             }
 
             // Handle special fields
@@ -242,6 +293,52 @@ namespace BansheeEditor
                     elements.Add(AddFoldoutRow(parent.childLayout, null, "MorphShapes", parent.so, parent.comp,
                         propertyPath, toggleCallback));
                 }
+            }
+
+            parent.children = elements.ToArray();
+        }
+
+        /// <summary>
+        /// Registers a set of rows for all entries of the provided array.
+        /// </summary>
+        /// <param name="parent">Parent foldout row to which to append the new elements.</param>
+        /// <param name="serializableArray">Array whose fields to display.</param>
+        private void AddArrayRows(Element parent, SerializableArray serializableArray)
+        {
+            List<Element> elements = new List<Element>();
+
+            int length = serializableArray.GetLength();
+            for (int i = 0; i < length; i++)
+            {
+                string name = "[" + i + "]";
+                string propertyPath = parent.path + name;
+
+                Element element;
+                if (AddPropertyRow(parent, name, propertyPath, serializableArray.GetProperty(i), out element))
+                    elements.Add(element);
+            }
+
+            parent.children = elements.ToArray();
+        }
+
+        /// <summary>
+        /// Registers a set of rows for all entries of the provided list.
+        /// </summary>
+        /// <param name="parent">Parent foldout row to which to append the new elements.</param>
+        /// <param name="serializableList">List whose fields to display.</param>
+        private void AddListRows(Element parent, SerializableList serializableList)
+        {
+            List<Element> elements = new List<Element>();
+
+            int length = serializableList.GetLength();
+            for (int i = 0; i < length; i++)
+            {
+                string name = "[" + i + "]";
+                string propertyPath = parent.path + name;
+
+                Element element;
+                if (AddPropertyRow(parent, name, propertyPath, serializableList.GetProperty(i), out element))
+                    elements.Add(element);
             }
 
             parent.children = elements.ToArray();
@@ -395,9 +492,7 @@ namespace BansheeEditor
             parent.indentLayout.Active = expand;
 
             if (expand)
-            {
                 AddSceneObjectRows(parent);
-            }
         }
 
         /// <summary>
@@ -416,6 +511,42 @@ namespace BansheeEditor
 
             if (expand)
                 AddObjectRows(parent, obj);
+        }
+
+        /// <summary>
+        /// Expands or collapses the set of rows displaying all entries of a serializable array.
+        /// </summary>
+        /// <param name="parent">Parent row element whose children to expand/collapse.</param>
+        /// <param name="obj">Object describing the array whose entries to display.</param>
+        /// <param name="expand">True to expand, false to collapse.</param>
+        private void ToggleArrayFoldout(Element parent, SerializableArray obj,
+            bool expand)
+        {
+            parent.childLayout.Clear();
+            parent.children = null;
+
+            parent.indentLayout.Active = expand;
+
+            if (expand)
+                AddArrayRows(parent, obj);
+        }
+
+        /// <summary>
+        /// Expands or collapses the set of rows displaying all entries of a serializable list.
+        /// </summary>
+        /// <param name="parent">Parent row element whose children to expand/collapse.</param>
+        /// <param name="obj">Object describing the list whose entries to display.</param>
+        /// <param name="expand">True to expand, false to collapse.</param>
+        private void ToggleListFoldout(Element parent, SerializableList obj,
+            bool expand)
+        {
+            parent.childLayout.Clear();
+            parent.children = null;
+
+            parent.indentLayout.Active = expand;
+
+            if (expand)
+                AddListRows(parent, obj);
         }
 
         /// <summary>
