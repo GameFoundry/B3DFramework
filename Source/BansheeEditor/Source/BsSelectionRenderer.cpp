@@ -121,7 +121,7 @@ namespace BansheeEngine
 
 		mMaterial = mat;
 
-		for(UINT32 i = 0; i < 2 ; i++)
+		for(UINT32 i = 0; i < 4 ; i++)
 		{
 			mParams[i] = mat->createParamsSet(i);
 
