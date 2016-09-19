@@ -1343,7 +1343,7 @@ namespace BansheeEngine
 
 						FBXBlendShapeFrame& frame = blendShape.frames[k];
 						frame.name = fbxShape->GetName();
-						frame.weight = (float)weights[k];
+						frame.weight = (float)(weights[k] / 100.0);
 						
 						importBlendShapeFrame(fbxShape, *mesh, options, frame);
 					}
@@ -1575,8 +1575,8 @@ namespace BansheeEngine
 
 					if (options.importTangents && !mesh->UV[0].empty() && (frame.tangents.empty() || frame.bitangents.empty()))
 					{
-						mesh->tangents.resize(numVertices);
-						mesh->bitangents.resize(numVertices);
+						frame.tangents.resize(numVertices);
+						frame.bitangents.resize(numVertices);
 
 						MeshUtility::calculateTangents(mesh->positions.data(), frame.normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
 							numVertices, numIndices, frame.tangents.data(), frame.bitangents.data());
@@ -1849,8 +1849,14 @@ namespace BansheeEngine
 		float start, float end)
 	{
 		// If curve key-counts don't match, we need to force resampling 
-		bool forceResample = fbxCurve[0]->KeyGetCount() != fbxCurve[1]->KeyGetCount() ||
-			fbxCurve[0]->KeyGetCount() != fbxCurve[2]->KeyGetCount();
+		bool forceResample = false;
+		
+		for(int i = 1; i < C; i++)
+		{
+			forceResample |= fbxCurve[i - 1]->KeyGetCount() != fbxCurve[i]->KeyGetCount();
+			if (forceResample)
+				break;
+		}
 
 		// Read keys directly
 		if(!importOptions.animResample && !forceResample)
@@ -1864,17 +1870,20 @@ namespace BansheeEngine
 				float time = (float)fbxTime.GetSecondDouble();
 
 				// Ensure times from other curves match
-				fbxTime = fbxCurve[1]->KeyGetTime(i);
-				float time1 = (float)fbxTime.GetSecondDouble();
-
-				fbxTime = fbxCurve[2]->KeyGetTime(i);
-				float time2 = (float)fbxTime.GetSecondDouble();
-
-				if(!Math::approxEquals(time, time1) || !Math::approxEquals(time, time2))
+				for (int j = 1; j < C; j++)
 				{
-					foundMismatch = true;
-					break;
+					fbxTime = fbxCurve[j]->KeyGetTime(i);
+					float otherTime = (float)fbxTime.GetSecondDouble();
+
+					if (!Math::approxEquals(time, otherTime))
+					{
+						foundMismatch = true;
+						break;
+					}
 				}
+
+				if(foundMismatch)
+					break;
 
 				if (time < start || time > end)
 					continue;
