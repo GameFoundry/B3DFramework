@@ -301,53 +301,51 @@ namespace BansheeEngine
 					if(channelInfo.shapeCount == 1)
 					{
 						MorphShapeInfo& shapeInfo = anim->morphShapeInfos[channelInfo.shapeStart];
-						shapeInfo.finalWeight = 1.0f;
+
+						// Blend between base shape and the only available frame
+						float relative = frameWeight - shapeInfo.frameWeight;
+						if (relative <= 0.0f)
+						{
+							float diff = shapeInfo.frameWeight;
+							if (diff > 0.0f)
+							{
+								float t = -relative / diff;
+								shapeInfo.finalWeight = std::min(t, 1.0f);
+							}
+							else
+								shapeInfo.finalWeight = 1.0f;
+						}
+						else // If past the final frame we clamp
+							shapeInfo.finalWeight = 1.0f;
 					}
 					else if(channelInfo.shapeCount > 1)
 					{
-						// First frame
+						for(UINT32 j = 0; j < channelInfo.shapeCount - 1; j++)
 						{
-							MorphShapeInfo& shapeInfo = anim->morphShapeInfos[channelInfo.shapeStart];
-							MorphShapeInfo& nextShapeInfo = anim->morphShapeInfos[channelInfo.shapeStart + 1];
-
-							float relative = frameWeight - shapeInfo.frameWeight;
-							if (relative <= 0.0f)
-								shapeInfo.finalWeight = 1.0f;
+							float prevShapeWeight;
+							if (j > 0)
+								prevShapeWeight = anim->morphShapeInfos[j - 1].frameWeight;
 							else
-							{
-								float diff = nextShapeInfo.frameWeight - shapeInfo.frameWeight;
-								if(diff > 0.0f)
-								{
-									float t = relative / diff;
-									shapeInfo.finalWeight = 1.0f - std::min(t, 1.0f);
-								}
-								else
-									shapeInfo.finalWeight = 0.0f;
-							}
-						}
+								prevShapeWeight = 0.0f; // Base shape, blend between it and the first frame
 
-						// Middle frames
-						for(UINT32 j = 1; j < channelInfo.shapeCount - 1; j++)
-						{
-							MorphShapeInfo& prevShapeInfo = anim->morphShapeInfos[j - 1];
+							float nextShapeWeight = anim->morphShapeInfos[j + 1].frameWeight;
 							MorphShapeInfo& shapeInfo = anim->morphShapeInfos[j];
-							MorphShapeInfo& nextShapeInfo = anim->morphShapeInfos[j + 1];
 
 							float relative = frameWeight - shapeInfo.frameWeight;
 							if (relative <= 0.0f)
 							{
-								float diff = shapeInfo.frameWeight - prevShapeInfo.frameWeight;
+								float diff = shapeInfo.frameWeight - prevShapeWeight;
 								if (diff > 0.0f)
 								{
-									float t = relative / diff;
-									shapeInfo.finalWeight = 1.0f - std::min(t, 1.0f);
+									float t = -relative / diff;
+									shapeInfo.finalWeight = std::min(t, 1.0f);
 								}
 								else
-									shapeInfo.finalWeight = 0.0f;
+									shapeInfo.finalWeight = 1.0f;
 							}
 							else
 							{
-								float diff = nextShapeInfo.frameWeight - shapeInfo.frameWeight;
+								float diff = nextShapeWeight - shapeInfo.frameWeight;
 								if (diff > 0.0f)
 								{
 									float t = relative / diff;
@@ -370,13 +368,13 @@ namespace BansheeEngine
 								float diff = shapeInfo.frameWeight - prevShapeInfo.frameWeight;
 								if (diff > 0.0f)
 								{
-									float t = relative / diff;
-									shapeInfo.finalWeight = 1.0f - std::min(t, 1.0f);
+									float t = -relative / diff;
+									shapeInfo.finalWeight = std::min(t, 1.0f);
 								}
 								else
-									shapeInfo.finalWeight = 0.0f;
+									shapeInfo.finalWeight = 1.0f;
 							}
-							else
+							else // If past the final frame we clamp
 								shapeInfo.finalWeight = 1.0f;
 						}
 					}
