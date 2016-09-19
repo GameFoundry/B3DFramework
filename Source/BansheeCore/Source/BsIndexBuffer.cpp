@@ -28,7 +28,7 @@ namespace BansheeEngine
 
 	SPtr<IndexBufferCore> IndexBufferCore::create(IndexType itype, UINT32 numIndexes, GpuBufferUsage usage)
 	{
-		return HardwareBufferCoreManager::instance().createIndexBufferInternal(itype, numIndexes, usage);
+		return HardwareBufferCoreManager::instance().createIndexBuffer(itype, numIndexes, usage);
 	}
 
     IndexBuffer::IndexBuffer(IndexType idxType, UINT32 numIndexes, GpuBufferUsage usage) 

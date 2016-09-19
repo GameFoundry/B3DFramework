@@ -92,11 +92,8 @@ namespace BansheeEngine
 	SPtr<GpuBufferCore> GpuBufferCore::create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
 		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 	{
-		SPtr<GpuBufferCore> gpuBuffer = HardwareBufferCoreManager::instance().createGpuBufferInternal(elementCount, 
+		return HardwareBufferCoreManager::instance().createGpuBuffer(elementCount, 
 			elementSize, type, format, usage, randomGpuWrite, useCounter);
-
-		gpuBuffer->initialize();
-		return gpuBuffer;
 	}
 
 	GpuBuffer::GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
