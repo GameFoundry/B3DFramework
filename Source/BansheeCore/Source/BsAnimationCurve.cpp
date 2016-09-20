@@ -179,17 +179,12 @@ namespace BansheeEngine
 #endif
 
 		if (keyframes.size() > 0)
-		{
-			mStart = keyframes[0].time;
 			mEnd = keyframes.back().time;
-		}
 		else
-		{
-			mStart = 0.0f;
 			mEnd = 0.0f;
-		}
 
-		mLength = mEnd - mStart;
+		mStart = 0.0f;
+		mLength = mEnd;
 	}
 
 	template <class T>
@@ -202,7 +197,7 @@ namespace BansheeEngine
 			time = 0.0f;
 
 		// Wrap time if looping
-		if(loop)
+		if(loop && mLength > 0.0f)
 		{
 			if (time < mStart)
 				time = time + (std::floor(mEnd - time) / mLength) * mLength;
