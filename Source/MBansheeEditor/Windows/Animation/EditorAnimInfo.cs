@@ -19,6 +19,7 @@ namespace BansheeEditor
     {
         public SerializableProperty.FieldType type;
         public CurveDrawInfo[] curveInfos;
+        public bool isPropertyCurve;
     }
 
     /// <summary>
@@ -142,6 +143,7 @@ namespace BansheeEditor
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = SerializableProperty.FieldType.Vector3;
                         fieldCurves.curveInfos = new CurveDrawInfo[3];
+                        fieldCurves.isPropertyCurve = !clipInfo.isImported;
 
                         fieldCurves.curveInfos[0] = new CurveDrawInfo();
                         fieldCurves.curveInfos[0].curve = new EdAnimationCurve(curveEntry.X, tangentsX);
@@ -250,6 +252,7 @@ namespace BansheeEditor
                 }
 
                 fieldCurves.curveInfos = new CurveDrawInfo[numCurves];
+                fieldCurves.isPropertyCurve = !clipInfo.isImported && !IsMorphShapeCurve(KVP.Key);
 
                 for (int i = 0; i < numCurves; i++)
                 {
@@ -284,6 +287,28 @@ namespace BansheeEditor
         {
             string resourcePath = ProjectLibrary.GetPath(clip);
             return ProjectLibrary.IsSubresource(resourcePath);
+        }
+
+        /// <summary>
+        /// Checks does a curve with the specified path represent a curve affecting a morph shape.
+        /// </summary>
+        /// <param name="path">Path of the curve to check.</param>
+        /// <returns>True if morph shape frame or weight animation, false otherwise.</returns>
+        public static bool IsMorphShapeCurve(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            string trimmedPath = path.Trim('/');
+            string[] entries = trimmedPath.Split('/');
+
+            if (entries.Length < 3)
+                return true;
+
+            if (entries[entries.Length - 2] != "MorphShapes")
+                return false;
+
+            return entries[entries.Length - 1] == "Frames" || entries[entries.Length - 1] == "Weight";
         }
 
         /// <summary>

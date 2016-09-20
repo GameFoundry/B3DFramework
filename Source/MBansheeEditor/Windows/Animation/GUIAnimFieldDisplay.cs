@@ -195,7 +195,7 @@ namespace BansheeEditor
                     continue;
 
                 bool entryIsMissing;
-                if (fieldInfos[i].isUserCurve)
+                if (fieldInfos[i].curveGroup.isPropertyCurve)
                 {
                     string pathSuffix;
                     SerializableProperty property = Animation.FindProperty(root, fieldInfos[i].path, out pathSuffix);
@@ -299,7 +299,7 @@ namespace BansheeEditor
     /// </summary>
     internal abstract class GUIAnimFieldEntry
     {
-        private const int MAX_PATH_LENGTH = 30;
+        private const int MAX_PATH_LENGTH = 20;
         protected const int INDENT_AMOUNT = 10;
 
         protected string path;
@@ -781,7 +781,7 @@ namespace BansheeEditor
         public GUIAnimMissingEntry(GUIAnimFieldLayouts layouts, string path)
             : base(layouts, path, false, 15)
         {
-            missingLabel = new GUILabel("Missing property!", GUIOption.FixedHeight(GetEntryHeight()));
+            missingLabel = new GUILabel("Missing!", GUIOption.FixedHeight(GetEntryHeight()));
             underlayLayout = layouts.underlay.AddLayoutX();
             underlayLayout.AddFlexibleSpace();
             underlayLayout.AddElement(missingLabel);
@@ -806,16 +806,14 @@ namespace BansheeEditor
     /// </summary>
     internal struct AnimFieldInfo
     {
-        public AnimFieldInfo(string path, FieldAnimCurves curveGroup, bool isUserCurve)
+        public AnimFieldInfo(string path, FieldAnimCurves curveGroup)
         {
             this.path = path;
             this.curveGroup = curveGroup;
-            this.isUserCurve = isUserCurve;
         }
 
         public string path;
         public FieldAnimCurves curveGroup;
-        public bool isUserCurve;
     }
 
     /** @} */

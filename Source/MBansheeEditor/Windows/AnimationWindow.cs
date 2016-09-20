@@ -710,7 +710,7 @@ namespace BansheeEditor
             persistentData.dirtyAnimClips[clip.UUID] = clipInfo;
 
             foreach (var curve in clipInfo.curves)
-                guiFieldDisplay.AddField(new AnimFieldInfo(curve.Key, curve.Value, !clipInfo.isImported));
+                guiFieldDisplay.AddField(new AnimFieldInfo(curve.Key, curve.Value));
 
             guiCurveEditor.Events = clipInfo.events;
             guiCurveEditor.DisableCurveEdit = clipInfo.isImported;
@@ -1346,13 +1346,15 @@ namespace BansheeEditor
         private void AddNewField(string path, SerializableProperty.FieldType type)
         {
             bool noSelection = selectedFields.Count == 0;
-            
+            bool isPropertyCurve = !clipInfo.isImported && !EditorAnimClipInfo.IsMorphShapeCurve(path);
+
             switch (type)
             {
                 case SerializableProperty.FieldType.Vector4:
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
+                        fieldCurves.isPropertyCurve = isPropertyCurve;
                         fieldCurves.curveInfos = new CurveDrawInfo[4];
 
                         string[] subPaths = { ".x", ".y", ".z", ".w" };
@@ -1370,6 +1372,7 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
+                        fieldCurves.isPropertyCurve = isPropertyCurve;
                         fieldCurves.curveInfos = new CurveDrawInfo[3];
 
                         string[] subPaths = { ".x", ".y", ".z" };
@@ -1387,6 +1390,7 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
+                        fieldCurves.isPropertyCurve = isPropertyCurve;
                         fieldCurves.curveInfos = new CurveDrawInfo[2];
 
                         string[] subPaths = { ".x", ".y" };
@@ -1404,6 +1408,7 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
+                        fieldCurves.isPropertyCurve = isPropertyCurve;
                         fieldCurves.curveInfos = new CurveDrawInfo[4];
 
                         string[] subPaths = { ".r", ".g", ".b", ".a" };
@@ -1421,6 +1426,7 @@ namespace BansheeEditor
                     {
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = type;
+                        fieldCurves.isPropertyCurve = isPropertyCurve;
                         fieldCurves.curveInfos = new CurveDrawInfo[1];
 
                         fieldCurves.curveInfos[0].curve = new EdAnimationCurve();
@@ -1484,7 +1490,7 @@ namespace BansheeEditor
         {
             List<AnimFieldInfo> existingFields = new List<AnimFieldInfo>();
             foreach (var KVP in clipInfo.curves)
-                existingFields.Add(new AnimFieldInfo(KVP.Key, KVP.Value, !clipInfo.isImported));
+                existingFields.Add(new AnimFieldInfo(KVP.Key, KVP.Value));
 
             guiFieldDisplay.SetFields(existingFields.ToArray());
         }

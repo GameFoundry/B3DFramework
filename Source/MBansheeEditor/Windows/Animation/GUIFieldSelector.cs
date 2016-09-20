@@ -248,14 +248,11 @@ namespace BansheeEditor
             }
 
             // Handle special fields
-            Debug.Log("Type: " + serializableObject.Type);
             if (serializableObject.Type == typeof(Animation))
             {
                 Animation anim = serializableObject.Object as Animation;
-                Debug.Log("Anim: " + (anim != null));
                 MorphShapes morphShapes = anim?.SceneObject.GetComponent<Renderable>()?.Mesh?.MorphShapes;
 
-                Debug.Log("Shapes: " + (morphShapes != null));
                 if (morphShapes != null)
                 {
                     string propertyPath = parent.path + "/MorphShapes";
