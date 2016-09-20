@@ -319,6 +319,9 @@ namespace BansheeEngine
 			endSlot = std::max(iter->first, endSlot);
 		}
 
+		startSlot = std::min(1U, startSlot);
+		endSlot = std::max(1U, endSlot);
+
 		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 			allBuffers[iter->first - startSlot] = iter->second;
 
