@@ -36,6 +36,19 @@ All features listed here are the ones currently available (implemented). If you 
   * Supports texture atlases
   * Supports arbitrary 3D transformations
   * Localization support (string tables)
+* __Animation__
+  * Skeletal animation with skinning
+    * 1D and 2D animation blending
+    * Additive animation support
+    * Animation events
+    * Root bone animation
+    * Animation sockets for animating in-game objects
+    * Post-processing hooks for IK support
+  * Blend shape animation
+  * Generic property animation
+    * Animate any script property
+    * Built-in animation curve editor
+  * Multi-threaded and GPU accelerated
 * __Input__
   * Mouse/keyboard/gamepad support
   * Provides both raw and OS input
