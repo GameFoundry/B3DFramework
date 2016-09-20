@@ -378,19 +378,25 @@ namespace BansheeEngine
 						{
 							for (UINT32 i = 0; i < numVertices; i++)
 							{
+								Vector3 meshPosition = worldTransform.multiplyAffine(mesh->positions[i]);
 								Vector3 blendPosition = worldTransform.multiplyAffine(blendFrame.positions[i]);
 
-								Vector3 positionDelta = blendPosition - mesh->positions[i];
+								Vector3 positionDelta = blendPosition - meshPosition;
 								Vector3 normalDelta;
 								if (hasNormals)
 								{
-									Vector3 blendNormal = worldTransformIT.multiplyAffine(blendFrame.normals[i]);
-									normalDelta = blendNormal - mesh->normals[i];
+									Vector3 blendNormal = worldTransformIT.multiplyDirection(blendFrame.normals[i]);
+									blendNormal = Vector3::normalize(blendNormal);
+
+									Vector3 meshNormal = worldTransformIT.multiplyDirection(mesh->normals[i]);
+									meshNormal = Vector3::normalize(meshNormal);
+
+									normalDelta = blendNormal - meshNormal;
 								}
 								else
 									normalDelta = Vector3::ZERO;
 
-								if (positionDelta.squaredLength() > 0.0001f || normalDelta.squaredLength() > 0.01f)
+								if (positionDelta.squaredLength() > 0.000001f || normalDelta.squaredLength() > 0.0001f)
 									shape.vertices.push_back(MorphVertex(positionDelta, normalDelta, totalNumVertices + i));
 							}
 						}
@@ -509,9 +515,9 @@ namespace BansheeEngine
 			importScale = options.importScale;
 
 		FbxSystemUnit units = scene->GetGlobalSettings().GetSystemUnit();
-		FbxSystemUnit bsScaledUnits(100.0f, importScale);
+		FbxSystemUnit bsScaledUnits(100.0f);
 
-		outputScene.scaleFactor = (float)units.GetConversionFactorTo(bsScaledUnits);
+		outputScene.scaleFactor = (float)units.GetConversionFactorTo(bsScaledUnits) * importScale;
 		outputScene.globalScale = Matrix4::scaling(outputScene.scaleFactor);
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
