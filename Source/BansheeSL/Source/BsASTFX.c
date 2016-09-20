@@ -225,8 +225,9 @@ void beginCodeBlock(ParseState* parseState)
 		{
 			appendCodeBlock(parseState, " ", 1);
 			appendCodeBlock(parseState, parseState->defines[i].expr, (int)strlen(parseState->defines[i].expr));
-			appendCodeBlock(parseState, "\n", 1);
 		}
+
+		appendCodeBlock(parseState, "\n", 1);
 	}
 }
 
