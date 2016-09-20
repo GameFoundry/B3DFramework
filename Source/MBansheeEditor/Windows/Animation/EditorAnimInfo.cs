@@ -305,10 +305,10 @@ namespace BansheeEditor
             if (entries.Length < 3)
                 return true;
 
-            if (entries[entries.Length - 2] != "MorphShapes")
+            if (entries[entries.Length - 3] != "MorphShapes")
                 return false;
 
-            return entries[entries.Length - 1] == "Frames" || entries[entries.Length - 1] == "Weight";
+            return entries[entries.Length - 2] == "Frames" || entries[entries.Length - 2] == "Weight";
         }
 
         /// <summary>
