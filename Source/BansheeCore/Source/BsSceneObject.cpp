@@ -183,20 +183,20 @@ namespace BansheeEngine
 		return (mFlags & flag) != 0;
 	}
 
-	void SceneObject::setFlags(UINT32 flags)
+	void SceneObject::_setFlags(UINT32 flags)
 	{
 		mFlags |= flags;
 
 		for (auto& child : mChildren)
-			child->setFlags(flags);
+			child->_setFlags(flags);
 	}
 
-	void SceneObject::unsetFlags(UINT32 flags)
+	void SceneObject::_unsetFlags(UINT32 flags)
 	{
 		mFlags &= ~flags;
 
 		for (auto& child : mChildren)
-			child->unsetFlags(flags);
+			child->_unsetFlags(flags);
 	}
 
 	void SceneObject::_instantiate(bool prefabOnly)
@@ -585,7 +585,7 @@ namespace BansheeEngine
 	{
 		mChildren.push_back(object); 
 
-		object->setFlags(mFlags);
+		object->_setFlags(mFlags);
 	}
 
 	void SceneObject::removeChild(const HSceneObject& object)
@@ -694,9 +694,9 @@ namespace BansheeEngine
 		bool isInstantiated = !hasFlag(SOF_DontInstantiate);
 
 		if (!instantiate)
-			setFlags(SOF_DontInstantiate);
+			_setFlags(SOF_DontInstantiate);
 		else
-			unsetFlags(SOF_DontInstantiate);
+			_unsetFlags(SOF_DontInstantiate);
 
 		UINT32 bufferSize = 0;
 
@@ -708,9 +708,9 @@ namespace BansheeEngine
 		bs_free(buffer);
 
 		if(isInstantiated)
-			unsetFlags(SOF_DontInstantiate);
+			_unsetFlags(SOF_DontInstantiate);
 		else
-			setFlags(SOF_DontInstantiate);
+			_setFlags(SOF_DontInstantiate);
 
 		return cloneObj->mThisHandle;
 	}

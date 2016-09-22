@@ -72,12 +72,20 @@ namespace BansheeEngine
 
 		EditorUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
 		restored->setParent(parent);
+
+		restored->_instantiate();
 	}
 
 	void CmdDeleteSO::recordSO(const HSceneObject& sceneObject)
 	{
+		bool isInstantiated = !mSceneObject->hasFlag(SOF_DontInstantiate);
+		mSceneObject->_setFlags(SOF_DontInstantiate);
+
 		MemorySerializer serializer;
 		mSerializedObject = serializer.encode(mSceneObject.get(), mSerializedObjectSize);
+
+		if (isInstantiated)
+			mSceneObject->_unsetFlags(SOF_DontInstantiate);
 
 		HSceneObject parent = mSceneObject->getParent();
 		if (parent != nullptr)

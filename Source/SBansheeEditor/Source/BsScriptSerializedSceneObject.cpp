@@ -30,8 +30,14 @@ namespace BansheeEngine
 			}
 		}
 
+		bool isInstantiated = !mSO->hasFlag(SOF_DontInstantiate);
+		mSO->_setFlags(SOF_DontInstantiate);
+
 		MemorySerializer serializer;
 		mSerializedObject = serializer.encode(mSO.get(), mSerializedObjectSize);
+
+		if (isInstantiated)
+			mSO->_unsetFlags(SOF_DontInstantiate);
 
 		mSceneObjectProxy = EditorUtility::createProxy(mSO);
 
@@ -106,5 +112,7 @@ namespace BansheeEngine
 
 			bs_stack_delete(children, numChildren);
 		}
+
+		restored->_instantiate();
 	}
 }

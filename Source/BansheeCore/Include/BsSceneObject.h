@@ -134,6 +134,12 @@ namespace BansheeEngine
 		/** Assigns a new prefab diff object. Caller must ensure the prefab diff was generated for this object. */
 		void _setPrefabDiff(const SPtr<PrefabDiff>& diff) { mPrefabDiff = diff; }
 
+		/** Recursively enables the provided set of flags on this object and all children. */
+		void _setFlags(UINT32 flags);
+
+		/** Recursively disables the provided set of flags on this object and all children. */
+		void _unsetFlags(UINT32 flags);
+
 		/** @} */
 
 	private:
@@ -169,12 +175,6 @@ namespace BansheeEngine
 		 * @note	Unlike destroy(), does not remove the object from its parent.
 		 */
 		void destroyInternal(GameObjectHandleBase& handle, bool immediate = false) override;
-
-		/** Recursively enables the provided set of flags on this object and all children. */
-		void setFlags(UINT32 flags);
-
-		/** Recursively disables the provided set of flags on this object and all children. */
-		void unsetFlags(UINT32 flags);
 
 		/**	Checks is the scene object instantiated and visible in the scene. */
 		bool isInstantiated() const { return (mFlags & SOF_DontInstantiate) == 0; }
