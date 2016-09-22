@@ -338,22 +338,58 @@ namespace BansheeEngine
 				return false;
 		}
 
-		if (mDirectories.size() != other.mDirectories.size())
-			return false;
-
-		if (!comparePathElem(mFilename, other.mFilename))
-			return false;
-
 		if (!comparePathElem(mNode, other.mNode))
 			return false;
 
-		auto iterMe = mDirectories.begin();
-		auto iterOther = other.mDirectories.begin();
+		UINT32 myNumElements = (UINT32)mDirectories.size();
+		UINT32 otherNumElements = (UINT32)other.mDirectories.size();
 
-		for (; iterMe != mDirectories.end(); ++iterMe, ++iterOther)
+		if (!mFilename.empty())
+			myNumElements++;
+
+		if (!other.mFilename.empty())
+			otherNumElements++;
+
+		if (myNumElements != otherNumElements)
+			return false;
+
+		if(myNumElements > 0)
 		{
-			if (!comparePathElem(*iterMe, *iterOther))
-				return false;
+			auto iterMe = mDirectories.begin();
+			auto iterOther = other.mDirectories.begin();
+
+			for(UINT32 i = 0; i < (myNumElements - 1); i++, ++iterMe, ++iterOther)
+			{
+				if (!comparePathElem(*iterMe, *iterOther))
+					return false;
+			}
+
+			if (!mFilename.empty())
+			{
+				if (!other.mFilename.empty())
+				{
+					if (!comparePathElem(mFilename, other.mFilename))
+						return false;
+				}
+				else
+				{
+					if (!comparePathElem(mFilename, *iterOther))
+						return false;
+				}
+			}
+			else
+			{
+				if (!other.mFilename.empty())
+				{
+					if (!comparePathElem(*iterMe, other.mFilename))
+						return false;
+				}
+				else
+				{
+					if (!comparePathElem(*iterMe, *iterOther))
+						return false;
+				}
+			}
 		}
 
 		return true;

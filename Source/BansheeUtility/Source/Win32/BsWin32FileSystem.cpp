@@ -454,41 +454,45 @@ namespace BansheeEngine
 
 	void FileSystem::getChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
-		if (dirPath.isFile())
+		WString findPath = dirPath.toWString();
+
+		if (win32_isFile(findPath))
 			return;
 
-		WString findPath = dirPath.toWString();
-		findPath.append(L"*");
+		if(dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.append(L"\\*");
+		else
+			findPath.append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
+		if(fileHandle == INVALID_HANDLE_VALUE)
+		{
+			win32_handleError(GetLastError(), findPath);
+			return;
+		}
 
-		bool lastFailed = false;
 		WString tempName;
 		do
 		{
-			if (lastFailed || fileHandle == INVALID_HANDLE_VALUE)
+			tempName = findData.cFileName;
+
+			if (tempName != L"." && tempName != L"..")
 			{
-				if (GetLastError() == ERROR_NO_MORE_FILES)
-					break;
+				Path fullPath = dirPath;
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+					directories.push_back(fullPath.append(tempName + L"/"));
 				else
-					win32_handleError(GetLastError(), findPath);
+					files.push_back(fullPath.append(tempName));
 			}
-			else
+
+			if(FindNextFileW(fileHandle, &findData) == FALSE)
 			{
-				tempName = findData.cFileName;
+				if (GetLastError() != ERROR_NO_MORE_FILES)
+					win32_handleError(GetLastError(), findPath);
 
-				if (tempName != L"." && tempName != L"..")
-				{
-					Path fullPath = dirPath;
-					if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-						directories.push_back(fullPath.append(tempName + L"/"));
-					else
-						files.push_back(fullPath.append(tempName));
-				}
+				break;
 			}
-
-			lastFailed = FindNextFileW(fileHandle, &findData) == FALSE;
 		} while (true);
 
 		FindClose(fileHandle);
@@ -497,70 +501,74 @@ namespace BansheeEngine
 	bool FileSystem::iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
-		if (dirPath.isFile())
-			return true;
-
 		WString findPath = dirPath.toWString();
-		findPath.append(L"*");
+
+		if (win32_isFile(findPath))
+			return false;
+
+		if (dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.append(L"\\*");
+		else
+			findPath.append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
+		if (fileHandle == INVALID_HANDLE_VALUE)
+		{
+			win32_handleError(GetLastError(), findPath);
+			return false;
+		}
 
-		bool lastFailed = false;
 		WString tempName;
 		do
 		{
-			if (lastFailed || fileHandle == INVALID_HANDLE_VALUE)
+			tempName = findData.cFileName;
+
+			if (tempName != L"." && tempName != L"..")
+			{
+				Path fullPath = dirPath;
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				{
+					Path childDir = fullPath.append(tempName + L"/");
+					if (dirCallback != nullptr)
+					{
+						if (!dirCallback(childDir))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+
+					if (recursive)
+					{
+						if (!iterate(childDir, fileCallback, dirCallback, recursive))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+				}
+				else
+				{
+					Path filePath = fullPath.append(tempName);
+					if (fileCallback != nullptr)
+					{
+						if (!fileCallback(filePath))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+				}
+			}
+
+			if(FindNextFileW(fileHandle, &findData) == FALSE)
 			{
 				if (GetLastError() != ERROR_NO_MORE_FILES)
 					win32_handleError(GetLastError(), findPath);
 
 				break;
 			}
-			else
-			{
-				tempName = findData.cFileName;
-
-				if (tempName != L"." && tempName != L"..")
-				{
-					Path fullPath = dirPath;
-					if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-					{
-						Path childDir = fullPath.append(tempName + L"/");
-						if (dirCallback != nullptr)
-						{
-							if (!dirCallback(childDir))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-
-						if (recursive)
-						{
-							if (!iterate(childDir, fileCallback, dirCallback, recursive))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-					}
-					else
-					{
-						Path filePath = fullPath.append(tempName);
-						if (fileCallback != nullptr)
-						{
-							if (!fileCallback(filePath))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-					}
-				}
-			}
-
-			lastFailed = FindNextFileW(fileHandle, &findData) == FALSE;
 		} while (true);
 
 		FindClose(fileHandle);
