@@ -155,7 +155,21 @@ namespace BansheeEngine
 		{
 			if (boundUAV.second != nullptr)
 				boundUAV.first->releaseView(boundUAV.second);
+
+			boundUAV.second = nullptr;
+			boundUAV.first = nullptr;
 		}
+
+		// Ensure that all GPU commands finish executing before shutting down the device. If we don't do this a crash
+		// on shutdown may occurr as the driver is still executing the commands, and we unload this library.
+		mDevice->getImmediateContext()->Flush();
+		SPtr<EventQuery> query = EventQuery::create();
+		query->begin();
+		while(!query->isReady())
+		{
+			// Spin
+		}
+		query = nullptr;
 
 		QueryManager::shutDown();
 		D3D11RenderUtility::shutDown();
