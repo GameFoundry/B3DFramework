@@ -203,10 +203,11 @@ namespace BansheeEngine
 						continue;
 
 					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
-					if (mapping.position != (UINT32)-1)
+					UINT32 curveIdx = mapping.position;
+					if (curveIdx != (UINT32)-1)
 					{
-						const TAnimationCurve<Vector3>& curve = state.curves->position[mapping.position].curve;
-						localPose.positions[k] += curve.evaluate(state.time, state.positionCaches[k], state.loop) * normWeight;
+						const TAnimationCurve<Vector3>& curve = state.curves->position[curveIdx].curve;
+						localPose.positions[k] += curve.evaluate(state.time, state.positionCaches[curveIdx], state.loop) * normWeight;
 
 						localPose.hasOverride[k] = false;
 					}
@@ -218,10 +219,11 @@ namespace BansheeEngine
 						continue;
 
 					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
-					if (mapping.scale != (UINT32)-1)
+					UINT32 curveIdx = mapping.scale;
+					if (curveIdx != (UINT32)-1)
 					{
-						const TAnimationCurve<Vector3>& curve = state.curves->scale[mapping.scale].curve;
-						localPose.scales[k] *= curve.evaluate(state.time, state.scaleCaches[k], state.loop) * normWeight;
+						const TAnimationCurve<Vector3>& curve = state.curves->scale[curveIdx].curve;
+						localPose.scales[k] *= curve.evaluate(state.time, state.scaleCaches[curveIdx], state.loop) * normWeight;
 
 						localPose.hasOverride[k] = false;
 					}
@@ -235,15 +237,16 @@ namespace BansheeEngine
 							continue;
 
 						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
-						if (mapping.rotation != (UINT32)-1)
+						UINT32 curveIdx = mapping.rotation;
+						if (curveIdx != (UINT32)-1)
 						{
 							bool isAssigned = localPose.rotations[k].w != 0.0f;
 							if (!isAssigned)
 								localPose.rotations[k] = Quaternion::IDENTITY;
 
-							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
+							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
 
-							Quaternion value = curve.evaluate(state.time, state.rotationCaches[k], state.loop);
+							Quaternion value = curve.evaluate(state.time, state.rotationCaches[curveIdx], state.loop);
 							value = Quaternion::lerp(normWeight, Quaternion::IDENTITY, value);
 
 							localPose.rotations[k] *= value;
@@ -259,10 +262,11 @@ namespace BansheeEngine
 							continue;
 
 						const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
-						if (mapping.rotation != (UINT32)-1)
+						UINT32 curveIdx = mapping.rotation;
+						if (curveIdx != (UINT32)-1)
 						{
-							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[mapping.rotation].curve;
-							Quaternion value = curve.evaluate(state.time, state.rotationCaches[k], state.loop) * normWeight;
+							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
+							Quaternion value = curve.evaluate(state.time, state.rotationCaches[curveIdx], state.loop) * normWeight;
 
 							if (value.dot(localPose.rotations[k]) < 0.0f)
 								value = -value;
