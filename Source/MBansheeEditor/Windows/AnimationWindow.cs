@@ -788,7 +788,16 @@ namespace BansheeEditor
                 SwitchState(State.Normal);
 
                 if (selectedSO != null)
+                {
+                    // Select first curve by default
+                    foreach (var KVP in clipInfo.curves)
+                    {
+                        SelectField(KVP.Key, false);
+                        break;
+                    }
+
                     UpdateDisplayedCurves(true);
+                }
             }
         }
 
@@ -1253,25 +1262,14 @@ namespace BansheeEditor
         {
             List<CurveDrawInfo> curvesToDisplay = new List<CurveDrawInfo>();
 
-            if (selectedFields.Count == 0) // Display all if nothing is selected
-            {
-                if (clipInfo == null)
-                    return curvesToDisplay.ToArray();
+            if (clipInfo == null)
+                return curvesToDisplay.ToArray();
 
-                //foreach (var curve in clipInfo.curves)
-                //{
-                //    for (int i = 0; i < curve.Value.curveInfos.Length; i++)
-                //        curvesToDisplay.Add(curve.Value.curveInfos[i]);
-                //}
-            }
-            else
+            for (int i = 0; i < selectedFields.Count; i++)
             {
-                for (int i = 0; i < selectedFields.Count; i++)
-                {
-                    CurveDrawInfo[] curveInfos;
-                    if (TryGetCurve(selectedFields[i], out curveInfos))
-                        curvesToDisplay.AddRange(curveInfos);
-                }
+                CurveDrawInfo[] curveInfos;
+                if (TryGetCurve(selectedFields[i], out curveInfos))
+                    curvesToDisplay.AddRange(curveInfos);
             }
 
             return curvesToDisplay.ToArray();
