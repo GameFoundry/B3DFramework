@@ -471,14 +471,21 @@ namespace BansheeEngine
 		if (curHash != _getLastModifiedHash() || force)
 		{
 			// If skinned animation, don't include own transform since that will be handled by root bone animation
+			bool ignoreOwnTransform;
 			if (mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+				ignoreOwnTransform = mAnimation->_getAnimatesRoot();
+			else
+				ignoreOwnTransform = false;
+
+			if (ignoreOwnTransform)
 			{
 				// Note: Technically we're checking child's hash but using parent's transform. Ideally we check the parent's
 				// hash to reduce the number of required updates.
 				HSceneObject parentSO = so->getParent();
 				if (parentSO != nullptr)
 				{
-					Matrix4 transformNoScale = Matrix4::TRS(parentSO->getWorldPosition(), parentSO->getWorldRotation(), Vector3::ONE);
+					Matrix4 transformNoScale = Matrix4::TRS(parentSO->getWorldPosition(), parentSO->getWorldRotation(),
+						Vector3::ONE);
 					setTransform(parentSO->getWorldTfrm(), transformNoScale);
 				}
 				else

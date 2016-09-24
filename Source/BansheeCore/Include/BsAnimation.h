@@ -463,6 +463,9 @@ namespace BansheeEngine
 		/** Returns the unique ID for this animation object. */
 		UINT64 _getId() const { return mId; }
 
+		/** Checks if any currently set animation clips perform animation of the root bone. */
+		bool _getAnimatesRoot() const;
+
 		/** @} */
 	private:
 		friend class AnimationManager;

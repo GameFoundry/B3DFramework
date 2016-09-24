@@ -108,7 +108,7 @@ namespace BansheeEngine
 
 		/** Converts FBX animation clips into engine-ready animation curve format. */
 		void convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, 
-			Vector<FBXAnimationClipData>& output);
+			const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
 
 		/** 
 		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all

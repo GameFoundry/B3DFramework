@@ -13,6 +13,8 @@
 
 namespace BansheeEngine
 {
+	struct RootMotion;
+
 	/** @addtogroup FBX
 	 *  @{
 	 */
@@ -118,14 +120,16 @@ namespace BansheeEngine
 	/** All information required for creating an animation clip. */
 	struct FBXAnimationClipData
 	{
-		FBXAnimationClipData(const String& name, bool isAdditive, UINT32 sampleRate, const SPtr<AnimationCurves>& curves)
-			:name(name), isAdditive(isAdditive), sampleRate(sampleRate), curves(curves)
+		FBXAnimationClipData(const String& name, bool isAdditive, UINT32 sampleRate, const SPtr<AnimationCurves>& curves, 
+			const SPtr<RootMotion>& rootMotion)
+			:name(name), isAdditive(isAdditive), sampleRate(sampleRate), curves(curves), rootMotion(rootMotion)
 		{ }
 
 		String name;
 		bool isAdditive;
 		UINT32 sampleRate;
 		SPtr<AnimationCurves> curves;
+		SPtr<RootMotion> rootMotion;
 	};
 
 	/**	Imported mesh data. */

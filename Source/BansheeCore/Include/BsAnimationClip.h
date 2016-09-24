@@ -143,6 +143,9 @@ namespace BansheeEngine
 		 */
 		SPtr<RootMotion> getRootMotion() const { return mRootMotion; }
 
+		/** Checks if animation clip has root motion curves separate from the normal animation curves. */
+		bool hasRootMotion() const;
+
 		/**
 		 * Maps skeleton bone names to animation curve names, and returns a set of indices that can be easily used for
 		 * locating an animation curve based on the bone index.

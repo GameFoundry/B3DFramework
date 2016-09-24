@@ -183,7 +183,8 @@ namespace BansheeEngine
 			Vector<ImportedAnimationEvents> events = meshImportOptions->getAnimationEvents();
 			for(auto& entry : animationClips)
 			{
-				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate);
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate, 
+					entry.rootMotion);
 				
 				for(auto& eventsEntry : events)
 				{
@@ -247,7 +248,7 @@ namespace BansheeEngine
 		if (!importedScene.clips.empty())
 		{
 			Vector<AnimationSplitInfo> splits = meshImportOptions->getAnimationClipSplits();
-			convertAnimations(importedScene.clips, splits, animation);
+			convertAnimations(importedScene.clips, splits, skeleton, meshImportOptions->getImportRootMotion(), animation);
 		}
 
 		// TODO - Later: Optimize mesh: Remove bad and degenerate polygons, weld nearby vertices, optimize for vertex cache
@@ -634,20 +635,29 @@ namespace BansheeEngine
 	}
 
 	void FBXImporter::convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits,
-		Vector<FBXAnimationClipData>& output)
+		const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output)
 	{
 		UnorderedSet<String> names;
+
+		String rootBoneName;
+		if (skeleton == nullptr)
+			importRootMotion = false;
+		else
+		{
+			UINT32 rootBoneIdx = skeleton->getRootBoneIndex();
+			if (rootBoneIdx == (UINT32)-1)
+				importRootMotion = false;
+			else
+				rootBoneName = skeleton->getBoneInfo(rootBoneIdx).name;
+		}
 
 		bool isFirstClip = true;
 		for (auto& clip : clips)
 		{
 			SPtr<AnimationCurves> curves = bs_shared_ptr_new<AnimationCurves>();
+			SPtr<RootMotion> rootMotion;
 
-			/************************************************************************/
-			/* 							BONE ANIMATIONS                      		*/
-			/************************************************************************/
-
-			// Offset animations so they start at time 0
+			// Find offset so animations start at time 0
 			float animStart = std::numeric_limits<float>::infinity();
 
 			for (auto& bone : clip.boneAnimations)
@@ -677,9 +687,14 @@ namespace BansheeEngine
 					TAnimationCurve<Quaternion> rotation = AnimationUtility::offsetCurve(bone.rotation, -animStart);
 					TAnimationCurve<Vector3> scale = AnimationUtility::offsetCurve(bone.scale, -animStart);
 
-					curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, translation });
-					curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, rotation });
-					curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, scale });
+					if(importRootMotion && bone.node->name == rootBoneName)
+						rootMotion = bs_shared_ptr_new<RootMotion>(translation, rotation);
+					else
+					{
+						curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, translation });
+						curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, rotation });
+						curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, scale });
+					}
 				}
 
 				for (auto& anim : clip.blendShapeAnimations)
@@ -692,9 +707,14 @@ namespace BansheeEngine
 			{
 				for (auto& bone : clip.boneAnimations)
 				{
-					curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.translation });
-					curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.rotation });
-					curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.scale });
+					if (importRootMotion && bone.node->name == rootBoneName)
+						rootMotion = bs_shared_ptr_new<RootMotion>(bone.translation, bone.rotation);
+					else
+					{
+						curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.translation });
+						curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.rotation });
+						curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.scale });
+					}
 				}
 
 				for (auto& anim : clip.blendShapeAnimations)
@@ -710,6 +730,7 @@ namespace BansheeEngine
 				for(auto& split : splits)
 				{
 					SPtr<AnimationCurves> splitClipCurve = bs_shared_ptr_new<AnimationCurves>();
+					SPtr<RootMotion> splitRootMotion;
 
 					auto splitCurves = [&](auto& inCurves, auto& outCurves)
 					{
@@ -740,6 +761,28 @@ namespace BansheeEngine
 					splitCurves(curves->scale, splitClipCurve->scale);
 					splitCurves(curves->generic, splitClipCurve->generic);
 
+					if(rootMotion != nullptr)
+					{
+						auto splitCurve = [&](auto& inCurve, auto& outCurve)
+						{
+							UINT32 numFrames = inCurve.getNumKeyFrames();
+							if (numFrames > 0)
+							{
+								float startTime = split.startFrame * secondsPerFrame;
+								float endTime = split.endFrame * secondsPerFrame;
+
+								outCurve = inCurve.split(startTime, endTime);
+
+								if (split.isAdditive)
+									outCurve.makeAdditive();
+							}
+						};
+
+						splitRootMotion = bs_shared_ptr_new<RootMotion>();
+						splitCurve(rootMotion->position, splitRootMotion->position);
+						splitCurve(rootMotion->rotation, splitRootMotion->rotation);
+					}
+
 					// Search for a unique name
 					String name = split.name;
 					UINT32 attemptIdx = 0;
@@ -750,7 +793,8 @@ namespace BansheeEngine
 					}
 
 					names.insert(name);
-					output.push_back(FBXAnimationClipData(name, split.isAdditive, clip.sampleRate, splitClipCurve));
+					output.push_back(FBXAnimationClipData(name, split.isAdditive, clip.sampleRate, splitClipCurve,
+						splitRootMotion));
 				}
 			}
 			else
@@ -765,7 +809,7 @@ namespace BansheeEngine
 				}
 
 				names.insert(name);
-				output.push_back(FBXAnimationClipData(name, false, clip.sampleRate, curves));
+				output.push_back(FBXAnimationClipData(name, false, clip.sampleRate, curves, rootMotion));
 			}
 
 			isFirstClip = false;

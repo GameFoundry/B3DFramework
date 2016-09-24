@@ -1080,6 +1080,41 @@ namespace BansheeEngine
 		return output;
 	}
 
+	bool Animation::_getAnimatesRoot() const
+	{
+		if (mSkeleton == nullptr)
+			return false;
+
+		UINT32 rootBoneIdx = mSkeleton->getRootBoneIndex();
+		if (rootBoneIdx == (UINT32)-1)
+			return false;
+
+		String rootBoneName = mSkeleton->getBoneInfo(rootBoneIdx).name;
+		for (auto& entry : mClipInfos)
+		{
+			if (entry.clip.isLoaded())
+			{
+				HAnimationClip clip = entry.clip;
+				if(!clip->hasRootMotion())
+				{
+					AnimationCurveMapping mapping;
+					clip->getCurveMapping(rootBoneName, mapping);
+
+					if (mapping.position != (UINT32)-1)
+						return true;
+
+					if (mapping.rotation != (UINT32)-1)
+						return true;
+
+					if (mapping.scale != (UINT32)-1)
+						return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	void Animation::getListenerResources(Vector<HResource>& resources)
 	{
 		for (auto& entry : mClipInfos)

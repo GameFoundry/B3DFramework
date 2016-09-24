@@ -146,6 +146,12 @@ namespace BansheeEngine
 		mVersion++;
 	}
 
+	bool AnimationClip::hasRootMotion() const
+	{
+		return mRootMotion != nullptr && 
+			(mRootMotion->position.getNumKeyFrames() > 0 || mRootMotion->rotation.getNumKeyFrames() > 0);
+	}
+
 	void AnimationClip::calculateLength()
 	{
 		mLength = 0.0f;
