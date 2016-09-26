@@ -239,7 +239,18 @@ namespace BansheeEngine
                 totalHeight = newHeight;
                 int maxScrollOffset = MathEx.Max(0, totalHeight - height - 1);
 
-                int startPos = MathEx.FloorToInt(scrollPct * maxScrollOffset);
+                float newScrollPct;
+                if (!scrollToLatest)
+                {
+                    // Calculate the new scroll pct (which will be active after we change the top/bottom padding element
+                    // sizes). If we use the existing scroll pct instead then the elements will lag one frame behind, which
+                    // can be very noticeable on quickly updating lists.
+                    newScrollPct = (scrollPct*scrollArea.Layout.Bounds.height)/totalHeight;
+                }
+                else
+                    newScrollPct = 1.0f;
+
+                int startPos = MathEx.FloorToInt(newScrollPct * maxScrollOffset);
                 int startIndex = MathEx.FloorToInt(startPos / (float)entryHeight);
 
                 // Check if we're at the list bottom and the extra element is out of bounds
@@ -249,10 +260,7 @@ namespace BansheeEngine
                 topPadding.SetHeight(startIndex * entryHeight);
 
                 for (int i = 0; i < visibleEntries.Count; i++)
-                {
                     visibleEntries[i].UpdateContents(startIndex + i, entries[startIndex + i]);
-                    visibleEntries[i].panel.SetPosition(0, i * entryHeight);
-                }
 
                 int bottomPosition = MathEx.Min(totalHeight, (startIndex + visibleEntries.Count) * entryHeight);
                 bottomPadding.SetHeight(totalHeight - bottomPosition);

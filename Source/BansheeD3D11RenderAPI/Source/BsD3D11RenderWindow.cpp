@@ -605,7 +605,7 @@ namespace BansheeEngine
 		SAFE_RELEASE(pDXGIDevice);
 
 		if (FAILED(hr))
-			BS_EXCEPT(RenderingAPIException, "Unable to create swap chain");
+			BS_EXCEPT(RenderingAPIException, "Unable to create swap chain. Error code: " + toString(hr));
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_SwapChain);
 	}

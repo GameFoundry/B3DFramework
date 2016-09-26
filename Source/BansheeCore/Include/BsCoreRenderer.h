@@ -8,6 +8,8 @@
 
 namespace BansheeEngine
 {
+	struct PostProcessSettings;
+
 	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
@@ -35,6 +37,11 @@ namespace BansheeEngine
 	static StringID RPS_WorldDeterminantSign = "WorldDeterminantSign";
 	static StringID RPS_Diffuse = "Diffuse";
 	static StringID RPS_ViewDir = "ViewDir";
+
+	/** Technique tags. */
+	static StringID RTag_Skinned = "Skinned";
+	static StringID RTag_Morph = "Morph";
+	static StringID RTag_SkinnedMorph = "SkinnedMorph";
 
 	/**	Set of options that can be used for controlling the renderer. */	
 	struct BS_CORE_EXPORT CoreRendererOptions
@@ -134,6 +141,9 @@ namespace BansheeEngine
 
 		/**	Returns current set of options used for controlling the rendering. */
 		virtual SPtr<CoreRendererOptions> getOptions() const { return SPtr<CoreRendererOptions>(); }
+
+		/** Creates post process settings that can be attached to a camera and processed by the active renderer. */
+		virtual SPtr<PostProcessSettings> createPostProcessSettings() const = 0;
 
 	protected:
 		/**	Contains information about a render callback. */

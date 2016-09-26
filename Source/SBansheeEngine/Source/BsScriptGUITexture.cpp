@@ -32,7 +32,7 @@ namespace BansheeEngine
 	}
 
 	void ScriptGUITexture::internal_createInstance(MonoObject* instance, MonoObject* texture, 
-		GUIImageScaleMode scale, bool transparent, MonoString* style, MonoArray* guiOptions)
+		TextureScaleMode scale, bool transparent, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 

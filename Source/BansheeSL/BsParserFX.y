@@ -148,14 +148,14 @@ typedef struct YYLTYPE {
 %token TOKEN_PARAMSBLOCK
 
 	/* Qualifiers */
-%token TOKEN_AUTO TOKEN_ALIAS TOKEN_SHARED TOKEN_USAGE
+%token TOKEN_AUTO TOKEN_ALIAS TOKEN_SHARED TOKEN_USAGE TOKEN_BASE TOKEN_INHERITS
 
 	/* Shader keywords */
 %token TOKEN_SEPARABLE TOKEN_SORT TOKEN_PRIORITY TOKEN_TRANSPARENT
 %token TOKEN_PARAMETERS TOKEN_BLOCKS TOKEN_TECHNIQUE
 
 	/* Technique keywords */
-%token	TOKEN_RENDERER TOKEN_LANGUAGE TOKEN_PASS
+%token	TOKEN_RENDERER TOKEN_LANGUAGE TOKEN_PASS TOKEN_TAGS
 
 	/* Pass keywords */
 %token	TOKEN_VERTEX TOKEN_FRAGMENT TOKEN_GEOMETRY TOKEN_HULL TOKEN_DOMAIN TOKEN_COMPUTE TOKEN_COMMON
@@ -185,6 +185,8 @@ typedef struct YYLTYPE {
 %type <nodePtr>		technique_header;
 %type <nodeOption>	technique_statement;
 %type <nodeOption>	technique_option;
+%type <nodePtr>		tags;
+%type <nodePtr>		tags_header;
 
 %type <nodePtr>		pass;
 %type <nodePtr>		pass_header;
@@ -223,6 +225,7 @@ typedef struct YYLTYPE {
 %type <nodePtr> blocks
 
 %type <nodeOption> qualifier
+%type <nodeOption> technique_qualifier
 
 %type <matrixValue> float2;
 %type <matrixValue> float3;
@@ -301,11 +304,11 @@ shader_option
 	/* Technique */
 
 technique
-	: technique_header '{' technique_body '}' ';' { nodePop(parse_state); $$ = $1; }
+	: technique_header technique_qualifier_list '=' '{' technique_body '}' ';' { nodePop(parse_state); $$ = $1; }
 	;
 
 technique_header
-	: TOKEN_TECHNIQUE '=' 
+	: TOKEN_TECHNIQUE
 		{ 
 			$$ = nodeCreate(parse_state->memContext, NT_Technique); 
 			nodePush(parse_state, $$);
@@ -327,8 +330,47 @@ technique_statement
 technique_option
 	: TOKEN_RENDERER '=' TOKEN_STRING ';'	{ $$.type = OT_Renderer; $$.value.strValue = $3; }
 	| TOKEN_LANGUAGE '=' TOKEN_STRING ';'	{ $$.type = OT_Language; $$.value.strValue = $3; }
+	| tags									{ $$.type = OT_Tags; $$.value.nodePtr = $1; }
+	;
+	
+	/* Technique tags */
+tags
+	: tags_header '{' tags_body '}' ';'	{ nodePop(parse_state); $$ = $1; }
+	;
+	
+tags_header
+	: TOKEN_TAGS '='
+		{ 
+			$$ = nodeCreate(parse_state->memContext, NT_Tags); 
+			nodePush(parse_state, $$);
+		}
+	;
+	
+tags_body
+	: /* empty */
+	| TOKEN_STRING
+		{ 
+			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = $1;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+		}		
+	| TOKEN_STRING ',' tags_body		
+		{ 
+			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = $1;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+		}	
 	;
 
+	/* Technique qualifiers */
+technique_qualifier_list
+	: /* empty */
+	| technique_qualifier technique_qualifier_list		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	;
+
+technique_qualifier
+	: ':' TOKEN_BASE '(' TOKEN_STRING ')'		{ $$.type = OT_Base; $$.value.strValue = $4; }
+	| ':' TOKEN_INHERITS '(' TOKEN_STRING ')'	{ $$.type = OT_Inherits; $$.value.strValue = $4; }
+	;	
+	
 	/* Pass */
 
 pass

@@ -12,7 +12,7 @@ namespace BansheeEngine
     /// <summary>
     /// Type of scaling modes for GUI images.
     /// </summary>
-    public enum GUIImageScaleMode // Note: Must match C++ enum GUIImageScaleMode
+    public enum GUITextureScaleMode // Note: Must match C++ enum TextureScaleMode
 	{
         /// <summary>
         /// Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully.
@@ -49,7 +49,7 @@ namespace BansheeEngine
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUITexture(SpriteTexture texture, GUIImageScaleMode scale, bool transparent, string style, params GUIOption[] options)
+        public GUITexture(SpriteTexture texture, GUITextureScaleMode scale, bool transparent, string style, params GUIOption[] options)
         {
             Internal_CreateInstance(this, texture, scale, transparent, style, options);
         }
@@ -63,7 +63,7 @@ namespace BansheeEngine
         /// <param name="transparent">Determines should the texture be rendered with transparency active.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUITexture(SpriteTexture texture, GUIImageScaleMode scale, bool transparent, params GUIOption[] options)
+        public GUITexture(SpriteTexture texture, GUITextureScaleMode scale, bool transparent, params GUIOption[] options)
         {
             Internal_CreateInstance(this, texture, scale, transparent, "", options);
         }
@@ -81,7 +81,7 @@ namespace BansheeEngine
         ///                       override any similar options set by style.</param>
         public GUITexture(SpriteTexture texture, bool transparent, string style, params GUIOption[] options)
         {
-            Internal_CreateInstance(this, texture, GUIImageScaleMode.StretchToFit, transparent, style, options);
+            Internal_CreateInstance(this, texture, GUITextureScaleMode.StretchToFit, transparent, style, options);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace BansheeEngine
         ///                       override any similar options set by style.</param>
         public GUITexture(SpriteTexture texture, bool transparent, params GUIOption[] options)
         {
-            Internal_CreateInstance(this, texture, GUIImageScaleMode.StretchToFit, transparent, "", options);
+            Internal_CreateInstance(this, texture, GUITextureScaleMode.StretchToFit, transparent, "", options);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace BansheeEngine
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUITexture(SpriteTexture texture, GUIImageScaleMode scale, string style, params GUIOption[] options)
+        public GUITexture(SpriteTexture texture, GUITextureScaleMode scale, string style, params GUIOption[] options)
         {
             Internal_CreateInstance(this, texture, scale, true, style, options);
         }
@@ -121,7 +121,7 @@ namespace BansheeEngine
         /// <param name="scale">Scale mode to use when sizing the texture.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUITexture(SpriteTexture texture, GUIImageScaleMode scale, params GUIOption[] options)
+        public GUITexture(SpriteTexture texture, GUITextureScaleMode scale, params GUIOption[] options)
         {
             Internal_CreateInstance(this, texture, scale, true, "", options);
         }
@@ -138,7 +138,7 @@ namespace BansheeEngine
         ///                       override any similar options set by style.</param>
         public GUITexture(SpriteTexture texture, string style, params GUIOption[] options)
         {
-            Internal_CreateInstance(this, texture, GUIImageScaleMode.StretchToFit, true, style, options);
+            Internal_CreateInstance(this, texture, GUITextureScaleMode.StretchToFit, true, style, options);
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace BansheeEngine
         ///                       override any similar options set by style.</param>
         public GUITexture(SpriteTexture texture, params GUIOption[] options)
         {
-            Internal_CreateInstance(this, texture, GUIImageScaleMode.StretchToFit, true, "", options);
+            Internal_CreateInstance(this, texture, GUITextureScaleMode.StretchToFit, true, "", options);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CreateInstance(GUITexture instance, SpriteTexture texture,
-            GUIImageScaleMode scale, bool transparent, string style, GUIOption[] options);
+            GUITextureScaleMode scale, bool transparent, string style, GUIOption[] options);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTexture(IntPtr nativeInstance, SpriteTexture texture);

@@ -17,8 +17,10 @@ namespace BansheeEngine
 
 	/** Saves crash data and notifies the user when a crash occurs. */
 	// TODO - Crashes are reported in the same process as the main application. This can be a problem if the crash was caused
-	// by heap. Any further use of the heap by the reporting methods will cause a silent crash, failing to log it. A more appropriate
-	// way of doing it should be to resume another process to actually handle the crash.
+	// by heap. Any further use of the heap by the reporting methods will cause a silent crash, failing to log it. A more
+	// appropriate way of doing it should be to resume another process to actually handle the crash.
+	//  - Perhaps an even better option would be to use a private heap for all engine allocations. So when corruptions does
+	//    happen the crash handler can use the default heap with no issues.
 	class BS_UTILITY_EXPORT CrashHandler
 	{
 	public:

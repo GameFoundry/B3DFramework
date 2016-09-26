@@ -16,17 +16,17 @@
 namespace BansheeEngine
 {
 	ManagedComponent::ManagedComponent()
-		: mManagedInstance(nullptr), mRuntimeType(nullptr), mManagedHandle(0), mRunInEditor(false), mRequiresReset(true)
-		, mMissingType(false), mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr), mOnResetThunk(nullptr)
-		, mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr)
-		, mCalculateBoundsMethod(nullptr)
-	{ }
-
-	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
-		: Component(parent), mManagedInstance(nullptr), mRuntimeType(runtimeType), mManagedHandle(0), mRunInEditor(false)
+		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0), mRunInEditor(false)
 		, mRequiresReset(true), mMissingType(false), mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr)
 		, mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr)
 		, mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
+	{ }
+
+	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
+		: Component(parent), mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(runtimeType)
+		, mManagedHandle(0), mRunInEditor(false), mRequiresReset(true), mMissingType(false), mOnInitializedThunk(nullptr)
+		, mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr)
+		, mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
 	{
 		MonoUtil::getClassName(mRuntimeType, mNamespace, mTypeName);
 		setName(mTypeName);
@@ -84,6 +84,7 @@ namespace BansheeEngine
 				mManagedHandle = 0;
 			}
 
+			mManagedClass = nullptr;
 			mRuntimeType = nullptr;
 			mOnInitializedThunk = nullptr;
 			mOnUpdateThunk = nullptr;
@@ -132,7 +133,7 @@ namespace BansheeEngine
 		mFullTypeName = mNamespace + "." + mTypeName;
 		mManagedInstance = object;
 		
-		MonoClass* managedClass = nullptr;
+		mManagedClass = nullptr;
 		if (mManagedInstance != nullptr)
 		{
 			mManagedHandle = MonoUtil::newGCHandle(mManagedInstance);
@@ -140,7 +141,7 @@ namespace BansheeEngine
 			::MonoClass* monoClass = MonoUtil::getClass(object);
 			mRuntimeType = MonoUtil::getType(monoClass);
 
-			managedClass = MonoManager::instance().findClass(monoClass);
+			mManagedClass = MonoManager::instance().findClass(monoClass);
 		}
 
 		mOnInitializedThunk = nullptr;
@@ -152,69 +153,69 @@ namespace BansheeEngine
 		mOnTransformChangedThunk = nullptr;
 		mCalculateBoundsMethod = nullptr;
 
-		while(managedClass != nullptr)
+		while(mManagedClass != nullptr)
 		{
 			if (mOnInitializedThunk == nullptr)
 			{
-				MonoMethod* onInitializedMethod = managedClass->getMethod("OnInitialize", 0);
+				MonoMethod* onInitializedMethod = mManagedClass->getMethod("OnInitialize", 0);
 				if (onInitializedMethod != nullptr)
 					mOnInitializedThunk = (OnInitializedThunkDef)onInitializedMethod->getThunk();
 			}
 
 			if (mOnUpdateThunk == nullptr)
 			{
-				MonoMethod* onUpdateMethod = managedClass->getMethod("OnUpdate", 0);
+				MonoMethod* onUpdateMethod = mManagedClass->getMethod("OnUpdate", 0);
 				if (onUpdateMethod != nullptr)
 					mOnUpdateThunk = (OnUpdateThunkDef)onUpdateMethod->getThunk();
 			}
 
 			if (mOnResetThunk == nullptr)
 			{
-				MonoMethod* onResetMethod = managedClass->getMethod("OnReset", 0);
+				MonoMethod* onResetMethod = mManagedClass->getMethod("OnReset", 0);
 				if (onResetMethod != nullptr)
 					mOnResetThunk = (OnResetThunkDef)onResetMethod->getThunk();
 			}
 
 			if (mOnDestroyThunk == nullptr)
 			{
-				MonoMethod* onDestroyMethod = managedClass->getMethod("OnDestroy", 0);
+				MonoMethod* onDestroyMethod = mManagedClass->getMethod("OnDestroy", 0);
 				if (onDestroyMethod != nullptr)
 					mOnDestroyThunk = (OnDestroyedThunkDef)onDestroyMethod->getThunk();
 			}
 
 			if (mOnDisabledThunk == nullptr)
 			{
-				MonoMethod* onDisableMethod = managedClass->getMethod("OnDisable", 0);
+				MonoMethod* onDisableMethod = mManagedClass->getMethod("OnDisable", 0);
 				if (onDisableMethod != nullptr)
 					mOnDisabledThunk = (OnDisabledThunkDef)onDisableMethod->getThunk();
 			}
 
 			if (mOnEnabledThunk == nullptr)
 			{
-				MonoMethod* onEnableMethod = managedClass->getMethod("OnEnable", 0);
+				MonoMethod* onEnableMethod = mManagedClass->getMethod("OnEnable", 0);
 				if (onEnableMethod != nullptr)
 					mOnEnabledThunk = (OnInitializedThunkDef)onEnableMethod->getThunk();
 			}
 
 			if (mOnTransformChangedThunk == nullptr)
 			{
-				MonoMethod* onTransformChangedMethod = managedClass->getMethod("OnTransformChanged", 1);
+				MonoMethod* onTransformChangedMethod = mManagedClass->getMethod("OnTransformChanged", 1);
 				if (onTransformChangedMethod != nullptr)
 					mOnTransformChangedThunk = (OnTransformChangedThunkDef)onTransformChangedMethod->getThunk();
 			}
 
 			if(mCalculateBoundsMethod == nullptr)
-				mCalculateBoundsMethod = managedClass->getMethod("CalculateBounds", 2);
+				mCalculateBoundsMethod = mManagedClass->getMethod("CalculateBounds", 2);
 
 			// Search for methods on base class if there is one
-			MonoClass* baseClass = managedClass->getBaseClass();
+			MonoClass* baseClass = mManagedClass->getBaseClass();
 			if (baseClass != ScriptComponent::getMetaData()->scriptClass)
-				managedClass = baseClass;
+				mManagedClass = baseClass;
 			else
 				break;
 		}
 
-		if (managedClass != nullptr)
+		if (mManagedClass != nullptr)
 		{
 			MonoAssembly* bansheeEngineAssembly = MonoManager::instance().getAssembly(ENGINE_ASSEMBLY);
 			if (bansheeEngineAssembly == nullptr)
@@ -224,7 +225,7 @@ namespace BansheeEngine
 			if (runInEditorAttrib == nullptr)
 				BS_EXCEPT(InvalidStateException, "Cannot find RunInEditor managed class.");
 
-			mRunInEditor = managedClass->getAttribute(runInEditorAttrib) != nullptr;
+			mRunInEditor = mManagedClass->getAttribute(runInEditorAttrib) != nullptr;
 		}
 		else
 			mRunInEditor = false;
@@ -323,7 +324,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void ManagedComponent::instantiate()
+	void ManagedComponent::_instantiate()
 	{
 		mObjInfo = nullptr;
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mTypeName, mObjInfo))

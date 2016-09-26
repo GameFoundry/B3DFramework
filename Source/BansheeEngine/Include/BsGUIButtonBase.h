@@ -55,10 +55,10 @@ namespace BansheeEngine
 		void _setState(GUIElementState state);
 
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		virtual UINT32 _getRenderElementDepthRange() const override;
+		UINT32 _getRenderElementDepthRange() const override;
 
 		/** @} */
 	protected:
@@ -66,29 +66,29 @@ namespace BansheeEngine
 		virtual ~GUIButtonBase();
 
 		/** @copydoc GUIElement::_getNumRenderElements */
-		virtual UINT32 _getNumRenderElements() const override;
+		UINT32 _getNumRenderElements() const override;
 
 		/** @copydoc GUIElement::_getMaterial */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const override;
+		const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const override;
 
-		/** @copydoc GUIElement::_getNumQuads */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const override;
+		/** @copydoc GUIElement::_getMeshInfo() */
+		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
 		/** @copydoc GUIElement::_fillBuffer */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const override;
+		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		virtual void updateRenderElementsInternal() override;
+		void updateRenderElementsInternal() override;
 
 		/** @copydoc GUIElement::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElement::_getRenderElementDepth */
-		virtual UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
+		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::_getTooltip */
-		virtual WString _getTooltip() const override;
+		WString _getTooltip() const override;
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void refreshContentSprite();

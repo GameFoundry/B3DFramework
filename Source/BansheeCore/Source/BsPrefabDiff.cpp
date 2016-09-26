@@ -112,7 +112,7 @@ namespace BansheeEngine
 		for (auto& addedComponentData : diff->addedComponents)
 		{
 			BinarySerializer bs;
-			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeIntermediate(addedComponentData));
+			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeFromIntermediate(addedComponentData));
 
 			object->addComponentInternal(component);
 		}
@@ -120,9 +120,8 @@ namespace BansheeEngine
 		for (auto& addedChildData : diff->addedChildren)
 		{
 			BinarySerializer bs;
-			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeIntermediate(addedChildData));
+			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeFromIntermediate(addedChildData));
 			sceneObject->setParent(object);
-			sceneObject->_instantiate();
 		}
 
 		for (auto& componentDiff : diff->componentDiffs)
@@ -271,7 +270,7 @@ namespace BansheeEngine
 			if (!foundMatching)
 			{
 				BinarySerializer bs;
-				SPtr<SerializedObject> obj = bs._encodeIntermediate(instanceChild.get());
+				SPtr<SerializedObject> obj = bs._encodeToIntermediate(instanceChild.get());
 
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();
@@ -300,8 +299,8 @@ namespace BansheeEngine
 				if (prefabComponent->getLinkId() == instanceComponent->getLinkId())
 				{
 					BinarySerializer bs;
-					SPtr<SerializedObject> encodedPrefab = bs._encodeIntermediate(prefabComponent.get());
-					SPtr<SerializedObject> encodedInstance = bs._encodeIntermediate(instanceComponent.get());
+					SPtr<SerializedObject> encodedPrefab = bs._encodeToIntermediate(prefabComponent.get());
+					SPtr<SerializedObject> encodedInstance = bs._encodeToIntermediate(instanceComponent.get());
 
 					IDiff& diffHandler = prefabComponent->getRTTI()->getDiffHandler();
 					SPtr<SerializedObject> diff = diffHandler.generateDiff(encodedPrefab, encodedInstance);
@@ -360,7 +359,7 @@ namespace BansheeEngine
 			if (!foundMatching)
 			{
 				BinarySerializer bs;
-				SPtr<SerializedObject> obj = bs._encodeIntermediate(instanceComponent.get());
+				SPtr<SerializedObject> obj = bs._encodeToIntermediate(instanceComponent.get());
 
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();

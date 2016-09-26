@@ -18,16 +18,16 @@ namespace BansheeEngine
 		~D3D11GpuBufferCore();
 
 		/** @copydoc GpuBufferCore::lock */
-		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
 		/** @copydoc GpuBufferCore::unlock */
-		virtual void unlock() override;
+		void unlock() override;
 
 		/** @copydoc GpuBufferCore::readData */
-		virtual void readData(UINT32 offset, UINT32 length, void* pDest) override;
+		void readData(UINT32 offset, UINT32 length, void* pDest) override;
 
 		/** @copydoc GpuBufferCore::writeData */
-        virtual void writeData(UINT32 offset, UINT32 length, const void* pSource,
+        void writeData(UINT32 offset, UINT32 length, const void* pSource,
 			BufferWriteType writeFlags = BufferWriteType::Normal) override;
 
 		/** @copydoc GpuBufferCore::copyData */
@@ -37,23 +37,30 @@ namespace BansheeEngine
 		/**	Returns the internal DX11 GPU buffer object. */
 		ID3D11Buffer* getDX11Buffer() const;
 
+		/** Returns the DX11 shader resource view object for the buffer. */
+		ID3D11ShaderResourceView* getSRV() const;
+
+		/** Returns the DX11 unordered access view object for the buffer. */
+		ID3D11UnorderedAccessView* getUAV() const;
+
 	protected:
 		friend class D3D11HardwareBufferCoreManager;
 
-		D3D11GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage,
-			bool randomGpuWrite = false, bool useCounter = false);
+		D3D11GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
+			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
 
 		/** @copydoc GpuBufferCore::createView */
-		virtual GpuBufferView* createView() override;
+		GpuBufferView* createView() override;
 
 		/** @copydoc GpuBufferCore::destroyView */
-		virtual void destroyView(GpuBufferView* view) override;
+		void destroyView(GpuBufferView* view) override;
 
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;
 
 	private:
 		D3D11HardwareBuffer* mBuffer;
+		D3D11GpuBufferView* mBufferView;
     };
 
 	/** @} */

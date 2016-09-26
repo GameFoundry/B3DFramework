@@ -21,11 +21,14 @@ namespace BansheeEngine
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void internal_breakPrefab(ScriptSceneObject* nativeInstance);
-		static void internal_applyPrefab(ScriptSceneObject* nativeInstance);
-		static void internal_revertPrefab(ScriptSceneObject* nativeInstance);
-		static bool internal_hasPrefabLink(ScriptSceneObject* nativeInstance);
-		static MonoObject* internal_getPrefabParent(ScriptSceneObject* nativeInstance);
+		static void internal_breakPrefab(ScriptSceneObject* soPtr);
+		static void internal_applyPrefab(ScriptSceneObject* soPtr, ScriptPrefab* prefabPtr);
+		static void internal_revertPrefab(ScriptSceneObject* soPtr);
+		static bool internal_hasPrefabLink(ScriptSceneObject* soPtr);
+		static MonoObject* internal_getPrefabParent(ScriptSceneObject* soPtr);
+		static MonoString* internal_GetPrefabUUID(ScriptSceneObject* soPtr);
+		static void internal_UpdateFromPrefab(ScriptSceneObject* soPtr);
+		static void internal_RecordPrefabDiff(ScriptSceneObject* soPtr);
 
 		ScriptPrefabUtility(MonoObject* instance);
 	};

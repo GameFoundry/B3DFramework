@@ -17,6 +17,9 @@ namespace BansheeEngine
 	class BS_MONO_EXPORT MonoProperty
 	{
 	public:
+		/**	Returns the name of the property. */
+		const String& getName() const { return mName; }
+
 		/**
 		 * Returns a boxed value contained in the property in the specified instance.
 		 *
@@ -53,17 +56,45 @@ namespace BansheeEngine
 		 */
 		void setIndexed(MonoObject* instance, UINT32 index, void* value) const;
 
+		/** Checks does the property contains indexed data, or just a single value. */
+		bool isIndexed() const;
+
 		/**	Returns the data type the property holds. */
-		MonoClass* getReturnType();
+		MonoClass* getReturnType() const;
+
+		/**	Checks if property has an attribute of the specified type. */
+		bool hasAttribute(MonoClass* monoClass);
+
+		/**
+		 * Returns an instance of an attribute of the specified type. Returns null if the property doesn't have such an
+		 * attribute.
+		 */
+		MonoObject* getAttribute(MonoClass* monoClass);
+
+		/**	
+		 * Returns property visibility in the class. If getter/setter methods have different visibility, the more 
+		 * restrictive one is returned.
+		 */
+		MonoMemberVisibility getVisibility();
 	private:
 		friend class MonoClass;
 
 		MonoProperty(::MonoProperty* monoProp);
 
+		/** 
+		 * Some property data is not initialized by default on creation (with the assumption it will never be accessed). 
+		 * This method will initialize that data.
+		 */
+		void initializeDeferred() const;
+
+		String mName;
 		::MonoProperty* mProperty;
 		::MonoMethod* mGetMethod;
 		::MonoMethod* mSetMethod;
-		MonoClass* mGetReturnType;
+
+		mutable MonoClass* mReturnType;
+		mutable bool mIsIndexed;
+		mutable bool mIsFullyInitialized;
 	};
 
 	/** @} */

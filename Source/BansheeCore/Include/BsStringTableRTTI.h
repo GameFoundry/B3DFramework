@@ -36,7 +36,7 @@ namespace BansheeEngine
 			addPlainField("mIdentifiers", 2, &StringTableRTTI::getIdentifiers, &StringTableRTTI::setIdentifiers);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			StringTable* stringTable = static_cast<StringTable*>(obj);
 			stringTable->setActiveLanguage(stringTable->mActiveLanguage);

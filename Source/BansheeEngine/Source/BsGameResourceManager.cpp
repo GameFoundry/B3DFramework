@@ -29,11 +29,15 @@ namespace BansheeEngine
 
 	HResource StandaloneResourceLoader::load(const Path& path, bool keepLoaded) const
 	{
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies;
+		if (keepLoaded)
+			loadFlags |= ResourceLoadFlag::KeepInternalRef;
+
 		auto iterFind = mMapping.find(path);
 		if(iterFind != mMapping.end())
-			return gResources().load(iterFind->second, true, keepLoaded);
+			return gResources().load(iterFind->second, loadFlags);
 		
-		return gResources().load(path, true, keepLoaded);
+		return gResources().load(path, loadFlags);
 	}
 
 	void StandaloneResourceLoader::setMapping(const SPtr<ResourceMapping>& mapping)

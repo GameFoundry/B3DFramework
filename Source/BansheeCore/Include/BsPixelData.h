@@ -306,7 +306,7 @@ namespace BansheeEngine
 		Color getColorAt(UINT32 x, UINT32 y, UINT32 z = 0) const;
 
 		/**	Sets the pixel color at the specified coordinates. */
-        void setColorAt(Color const &cv, UINT32 x, UINT32 y, UINT32 z = 0);
+        void setColorAt(const Color& color, UINT32 x, UINT32 y, UINT32 z = 0);
 
 		/**
 		 * Converts all the internal data into an array of colors. Array is mapped as such: 
@@ -325,6 +325,21 @@ namespace BansheeEngine
 		 * width * height * depth size and mapped as such: arrayIdx = x + y * width + z * width * height.
 		 */
 		void setColors(Color* colors, UINT32 numElements);
+
+		/** 
+		 * Decodes data stored in a depth texture at the specified pixel coordinates, and outputs a floating point depth
+		 * value in range [0, 1]. 
+		 */
+		float getDepthAt(UINT32 x, UINT32 y, UINT32 z = 0) const;
+
+		/** Sets a depth value in range [0, 1] at the specified pixel coordinates. */
+		void setDepthAt(float depth, UINT32 x, UINT32 y, UINT32 z = 0);
+
+		/**
+		 * Converts all the internal data into an array of float. Array is mapped as such:
+		 * arrayIdx = x + y * width + z * width * height.
+		 */
+		Vector<float> getDepths() const;
 
 		/**
 		 * Constructs a new object with an internal buffer capable of holding "extents" volume of pixels, where each pixel
@@ -373,7 +388,7 @@ namespace BansheeEngine
 	public:
 		friend class PixelDataRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
     };
 
 	/** @} */

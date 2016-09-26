@@ -42,7 +42,7 @@ namespace BansheeEngine
 	public:
 		friend class ScriptSerializableFieldDataKeyRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -136,7 +136,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**	Contains type and value of a single field in an object. */
@@ -155,7 +155,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataEntryRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -189,7 +189,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataBoolRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -223,7 +223,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataCharRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -257,7 +257,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataI8RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -291,7 +291,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataU8RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -325,7 +325,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataI16RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -359,7 +359,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataU16RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -393,7 +393,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataI32RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -427,7 +427,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataU32RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -461,7 +461,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataI64RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -495,7 +495,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataU64RTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -529,7 +529,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataFloatRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -563,7 +563,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataDoubleRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -598,7 +598,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataStringRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -630,7 +630,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataResourceRefRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -662,7 +662,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataGameObjectRefRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -686,10 +686,10 @@ namespace BansheeEngine
 		size_t getHash() override;
 
 		/** @copydoc ManagedSerializableFieldData::serialize */
-		virtual void serialize() override;
+		void serialize() override;
 
 		/** @copydoc ManagedSerializableFieldData::deserialize */
-		virtual void deserialize() override;
+		void deserialize() override;
 
 		SPtr<ManagedSerializableObject> value;
 
@@ -700,7 +700,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataObjectRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -724,10 +724,10 @@ namespace BansheeEngine
 		size_t getHash() override;
 
 		/** @copydoc ManagedSerializableFieldData::serialize */
-		virtual void serialize() override;
+		void serialize() override;
 
 		/** @copydoc ManagedSerializableFieldData::deserialize */
-		virtual void deserialize() override;
+		void deserialize() override;
 
 		SPtr<ManagedSerializableArray> value;
 
@@ -738,7 +738,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataArrayRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -762,10 +762,10 @@ namespace BansheeEngine
 		size_t getHash() override;
 
 		/** @copydoc ManagedSerializableFieldData::serialize */
-		virtual void serialize() override;
+		void serialize() override;
 
 		/** @copydoc ManagedSerializableFieldData::deserialize */
-		virtual void deserialize() override;
+		void deserialize() override;
 
 		SPtr<ManagedSerializableList> value;
 
@@ -776,7 +776,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataListRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -800,10 +800,10 @@ namespace BansheeEngine
 		size_t getHash() override;
 
 		/** @copydoc ManagedSerializableFieldData::serialize */
-		virtual void serialize() override;
+		void serialize() override;
 
 		/** @copydoc ManagedSerializableFieldData::deserialize */
-		virtual void deserialize() override;
+		void deserialize() override;
 
 		SPtr<ManagedSerializableDictionary> value;
 
@@ -814,7 +814,7 @@ namespace BansheeEngine
 	public:
 		friend class ManagedSerializableFieldDataDictionaryRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

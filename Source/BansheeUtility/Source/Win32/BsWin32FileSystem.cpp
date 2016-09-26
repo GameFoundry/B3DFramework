@@ -274,66 +274,16 @@ namespace BansheeEngine
 			return nullptr;
 		}
 
-		UINT64 fileSize = getFileSize(fullPath);
-
-		// Always open in binary mode
-		// Also, always include reading
-		std::ios::openmode mode = std::ios::in | std::ios::binary;
-		SPtr<std::istream> baseStream = 0;
-		SPtr<std::ifstream> roStream = 0;
-		SPtr<std::fstream> rwStream = 0;
-
+		DataStream::AccessMode accessMode = DataStream::READ;
 		if (!readOnly)
-		{
-			mode |= std::ios::out;
-			rwStream = bs_shared_ptr_new<std::fstream>();
-			rwStream->open(pathString, mode);
-			baseStream = rwStream;
-		}
-		else
-		{
-			roStream = bs_shared_ptr_new<std::ifstream>();
-			roStream->open(pathString, mode);
-			baseStream = roStream;
-		}
+			accessMode = (DataStream::AccessMode)(accessMode | (UINT32)DataStream::WRITE);
 
-		// Should check ensure open succeeded, in case fail for some reason.
-		if (baseStream->fail())
-		{
-			LOGWRN("Cannot open file: " + fullPath.toString());
-			return nullptr;
-		}
-
-		/// Construct return stream, tell it to delete on destroy
-		FileDataStream* stream = 0;
-		if (rwStream)
-		{
-			// use the writeable stream 
-			stream = bs_new<FileDataStream>(rwStream, (size_t)fileSize, true);
-		}
-		else
-		{
-			// read-only stream
-			stream = bs_new<FileDataStream>(roStream, (size_t)fileSize, true);
-		}
-
-		return bs_shared_ptr<FileDataStream>(stream);
+		return bs_shared_ptr_new<FileDataStream>(fullPath, accessMode, true);
 	}
 
 	SPtr<DataStream> FileSystem::createAndOpenFile(const Path& fullPath)
 	{
-		// Always open in binary mode
-		// Also, always include reading
-		std::ios::openmode mode = std::ios::out | std::ios::binary;
-		SPtr<std::fstream> rwStream = bs_shared_ptr_new<std::fstream>();
-		rwStream->open(fullPath.toWString().c_str(), mode);
-
-		// Should check ensure open succeeded, in case fail for some reason.
-		if (rwStream->fail())
-			BS_EXCEPT(FileNotFoundException, "Cannot open file: " + fullPath.toString());
-
-		/// Construct return stream, tell it to delete on destroy
-		return bs_shared_ptr_new<FileDataStream>(rwStream, 0, true);
+		return bs_shared_ptr_new<FileDataStream>(fullPath, DataStream::AccessMode::WRITE, true);
 	}
 
 	UINT64 FileSystem::getFileSize(const Path& fullPath)
@@ -504,41 +454,45 @@ namespace BansheeEngine
 
 	void FileSystem::getChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
-		if (dirPath.isFile())
+		WString findPath = dirPath.toWString();
+
+		if (win32_isFile(findPath))
 			return;
 
-		WString findPath = dirPath.toWString();
-		findPath.append(L"*");
+		if(dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.append(L"\\*");
+		else
+			findPath.append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
+		if(fileHandle == INVALID_HANDLE_VALUE)
+		{
+			win32_handleError(GetLastError(), findPath);
+			return;
+		}
 
-		bool lastFailed = false;
 		WString tempName;
 		do
 		{
-			if (lastFailed || fileHandle == INVALID_HANDLE_VALUE)
+			tempName = findData.cFileName;
+
+			if (tempName != L"." && tempName != L"..")
 			{
-				if (GetLastError() == ERROR_NO_MORE_FILES)
-					break;
+				Path fullPath = dirPath;
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+					directories.push_back(fullPath.append(tempName + L"/"));
 				else
-					win32_handleError(GetLastError(), findPath);
+					files.push_back(fullPath.append(tempName));
 			}
-			else
+
+			if(FindNextFileW(fileHandle, &findData) == FALSE)
 			{
-				tempName = findData.cFileName;
+				if (GetLastError() != ERROR_NO_MORE_FILES)
+					win32_handleError(GetLastError(), findPath);
 
-				if (tempName != L"." && tempName != L"..")
-				{
-					Path fullPath = dirPath;
-					if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-						directories.push_back(fullPath.append(tempName + L"/"));
-					else
-						files.push_back(fullPath.append(tempName));
-				}
+				break;
 			}
-
-			lastFailed = FindNextFileW(fileHandle, &findData) == FALSE;
 		} while (true);
 
 		FindClose(fileHandle);
@@ -547,70 +501,74 @@ namespace BansheeEngine
 	bool FileSystem::iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
-		if (dirPath.isFile())
-			return true;
-
 		WString findPath = dirPath.toWString();
-		findPath.append(L"*");
+
+		if (win32_isFile(findPath))
+			return false;
+
+		if (dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.append(L"\\*");
+		else
+			findPath.append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
+		if (fileHandle == INVALID_HANDLE_VALUE)
+		{
+			win32_handleError(GetLastError(), findPath);
+			return false;
+		}
 
-		bool lastFailed = false;
 		WString tempName;
 		do
 		{
-			if (lastFailed || fileHandle == INVALID_HANDLE_VALUE)
+			tempName = findData.cFileName;
+
+			if (tempName != L"." && tempName != L"..")
+			{
+				Path fullPath = dirPath;
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				{
+					Path childDir = fullPath.append(tempName + L"/");
+					if (dirCallback != nullptr)
+					{
+						if (!dirCallback(childDir))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+
+					if (recursive)
+					{
+						if (!iterate(childDir, fileCallback, dirCallback, recursive))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+				}
+				else
+				{
+					Path filePath = fullPath.append(tempName);
+					if (fileCallback != nullptr)
+					{
+						if (!fileCallback(filePath))
+						{
+							FindClose(fileHandle);
+							return false;
+						}
+					}
+				}
+			}
+
+			if(FindNextFileW(fileHandle, &findData) == FALSE)
 			{
 				if (GetLastError() != ERROR_NO_MORE_FILES)
 					win32_handleError(GetLastError(), findPath);
 
 				break;
 			}
-			else
-			{
-				tempName = findData.cFileName;
-
-				if (tempName != L"." && tempName != L"..")
-				{
-					Path fullPath = dirPath;
-					if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-					{
-						Path childDir = fullPath.append(tempName + L"/");
-						if (dirCallback != nullptr)
-						{
-							if (!dirCallback(childDir))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-
-						if (recursive)
-						{
-							if (!iterate(childDir, fileCallback, dirCallback, recursive))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-					}
-					else
-					{
-						Path filePath = fullPath.append(tempName);
-						if (fileCallback != nullptr)
-						{
-							if (!fileCallback(filePath))
-							{
-								FindClose(fileHandle);
-								return false;
-							}
-						}
-					}
-				}
-			}
-
-			lastFailed = FindNextFileW(fileHandle, &findData) == FALSE;
 		} while (true);
 
 		FindClose(fileHandle);

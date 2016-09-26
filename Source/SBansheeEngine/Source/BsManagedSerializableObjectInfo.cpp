@@ -2,9 +2,12 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsManagedSerializableObjectInfo.h"
 #include "BsManagedSerializableObjectInfoRTTI.h"
+#include "BsScriptRange.h"
 #include "BsMonoUtil.h"
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
+#include "BsMonoField.h"
+#include "BsMonoProperty.h"
 #include "BsScriptTexture2D.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptAssemblyManager.h"
@@ -21,8 +24,11 @@
 #include "BsScriptGUISkin.h"
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
+#include "BsScriptAudioClip.h"
+#include "BsScriptAnimationClip.h"
 #include "BsScriptPrefab.h"
 #include "BsScriptManagedResource.h"
+#include <BsScriptStep.h>
 
 namespace BansheeEngine
 {
@@ -42,7 +48,7 @@ namespace BansheeEngine
 
 	}
 
-	SPtr<ManagedSerializableFieldInfo> ManagedSerializableObjectInfo::findMatchingField(const SPtr<ManagedSerializableFieldInfo>& fieldInfo,
+	SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::findMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo,
 		const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const
 	{
 		const ManagedSerializableObjectInfo* objInfo = this;
@@ -56,7 +62,7 @@ namespace BansheeEngine
 					auto iterFind2 = objInfo->mFields.find(iterFind->second);
 					if (iterFind2 != objInfo->mFields.end())
 					{
-						SPtr<ManagedSerializableFieldInfo> foundField = iterFind2->second;
+						SPtr<ManagedSerializableMemberInfo> foundField = iterFind2->second;
 						if (foundField->isSerializable())
 						{
 							if (fieldInfo->mTypeInfo->matches(foundField->mTypeInfo))
@@ -87,10 +93,97 @@ namespace BansheeEngine
 		return ManagedSerializableObjectInfo::getRTTIStatic();
 	}
 
-	ManagedSerializableFieldInfo::ManagedSerializableFieldInfo()
-		:mFieldId(0), mFlags((ScriptFieldFlags)0), mMonoField(nullptr)
+	ManagedSerializableMemberInfo::ManagedSerializableMemberInfo()
+		:mFieldId(0), mFlags(0)
 	{
 
+	}
+
+	RTTITypeBase* ManagedSerializableMemberInfo::getRTTIStatic()
+	{
+		return ManagedSerializableMemberInfoRTTI::instance();
+	}
+
+	RTTITypeBase* ManagedSerializableMemberInfo::getRTTI() const
+	{
+		return ManagedSerializableMemberInfo::getRTTIStatic();
+	}
+
+	ManagedSerializableFieldInfo::ManagedSerializableFieldInfo()
+		:mMonoField(nullptr)
+	{
+
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMinimum() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float min = 0;
+				ScriptRange::getMinRangeField()->getValue(mMonoField->getAttribute(range), &min);
+				return min;
+			}
+		}
+		return 0;
+	}
+
+	float ManagedSerializableFieldInfo::getRangeMaximum() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float max = 0;
+				ScriptRange::getMaxRangeField()->getValue(mMonoField->getAttribute(range), &max);
+				return max;
+			}
+		}
+		return 0;
+	}
+
+	bool ManagedSerializableFieldInfo::renderAsSlider() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				bool slider = false;
+				ScriptRange::getSliderField()->getValue(mMonoField->getAttribute(range), &slider);
+				return slider;
+			}
+		}
+		return false;
+	}
+
+
+	float ManagedSerializableFieldInfo::getStep() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Step))
+		{
+			MonoClass* step = ScriptAssemblyManager::instance().getStepAttribute();
+			if (step != nullptr)
+			{
+				float value = 0;
+				ScriptStep::getStepField()->getValue(mMonoField->getAttribute(step), &value);
+				return value;
+			}
+		}
+		return 0;
+	}
+
+	MonoObject* ManagedSerializableFieldInfo::getValue(MonoObject* instance) const
+	{
+		return mMonoField->getValueBoxed(instance);
+	}
+
+	void ManagedSerializableFieldInfo::setValue(MonoObject* instance, void* value) const
+	{
+		mMonoField->setValue(instance, value);
 	}
 
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTIStatic()
@@ -101,6 +194,97 @@ namespace BansheeEngine
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTI() const
 	{
 		return ManagedSerializableFieldInfo::getRTTIStatic();
+	}
+
+	ManagedSerializablePropertyInfo::ManagedSerializablePropertyInfo()
+		:mMonoProperty(nullptr)
+	{
+
+	}
+
+	float ManagedSerializablePropertyInfo::getRangeMinimum() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float min = 0;
+				ScriptRange::getMinRangeField()->getValue(mMonoProperty->getAttribute(range), &min);
+				return min;
+			}
+		}
+
+		return 0;
+	}
+
+	float ManagedSerializablePropertyInfo::getRangeMaximum() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				float max = 0;
+				ScriptRange::getMaxRangeField()->getValue(mMonoProperty->getAttribute(range), &max);
+				return max;
+			}
+		}
+
+		return 0;
+	}
+
+	bool ManagedSerializablePropertyInfo::renderAsSlider() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getRangeAttribute();
+			if (range != nullptr)
+			{
+				bool slider = false;
+				ScriptRange::getSliderField()->getValue(mMonoProperty->getAttribute(range), &slider);
+				return slider;
+			}
+		}
+
+		return false;
+	}
+
+
+	float ManagedSerializablePropertyInfo::getStep() const
+	{
+		if (mFlags.isSet(ScriptFieldFlag::Step))
+		{
+			MonoClass* step = ScriptAssemblyManager::instance().getStepAttribute();
+			if (step != nullptr)
+			{
+				float value = 0;
+				ScriptStep::getStepField()->getValue(mMonoProperty->getAttribute(step), &value);
+				return value;
+			}
+		}
+
+		return 0;
+	}
+
+	MonoObject* ManagedSerializablePropertyInfo::getValue(MonoObject* instance) const
+	{
+		return mMonoProperty->get(instance);
+	}
+
+	void ManagedSerializablePropertyInfo::setValue(MonoObject* instance, void* value) const
+	{
+		mMonoProperty->set(instance, value);
+	}
+
+	RTTITypeBase* ManagedSerializablePropertyInfo::getRTTIStatic()
+	{
+		return ManagedSerializablePropertyInfoRTTI::instance();
+	}
+
+	RTTITypeBase* ManagedSerializablePropertyInfo::getRTTI() const
+	{
+		return ManagedSerializablePropertyInfo::getRTTIStatic();
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfo::getRTTIStatic()
@@ -206,6 +390,8 @@ namespace BansheeEngine
 		case ScriptReferenceType::GUISkin:
 		case ScriptReferenceType::PhysicsMaterial:
 		case ScriptReferenceType::PhysicsMesh:
+		case ScriptReferenceType::AudioClip:
+		case ScriptReferenceType::AnimationClip:
 		case ScriptReferenceType::SceneObject:
 		case ScriptReferenceType::Component:
 			return true;
@@ -254,6 +440,10 @@ namespace BansheeEngine
 			return ScriptPhysicsMaterial::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::PhysicsMesh:
 			return ScriptPhysicsMesh::getMetaData()->scriptClass->_getInternalClass();
+		case ScriptReferenceType::AudioClip:
+			return ScriptAudioClip::getMetaData()->scriptClass->_getInternalClass();
+		case ScriptReferenceType::AnimationClip:
+			return ScriptAnimationClip::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::SceneObject:
 			return ScriptAssemblyManager::instance().getSceneObjectClass()->_getInternalClass();
 		case ScriptReferenceType::Component:

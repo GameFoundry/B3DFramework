@@ -5,8 +5,8 @@
 
 namespace BansheeEngine
 {
-	GUIScrollBarVert::GUIScrollBarVert(const String& styleName, const GUIDimensions& dimensions)
-		:GUIScrollBar(false, styleName, dimensions)
+	GUIScrollBarVert::GUIScrollBarVert(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
+		:GUIScrollBar(false, resizeable, styleName, dimensions)
 	{
 
 	}
@@ -18,17 +18,36 @@ namespace BansheeEngine
 
 	GUIScrollBarVert* GUIScrollBarVert::create(const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(getStyleName<GUIScrollBarVert>(styleName), GUIDimensions::create());
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, getStyleName<GUIScrollBarVert>(false, styleName), 
+			GUIDimensions::create());
+	}
+
+	GUIScrollBarVert* GUIScrollBarVert::create(bool resizeable, const String& styleName)
+	{
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, getStyleName<GUIScrollBarVert>(resizeable, styleName), 
+			GUIDimensions::create());
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(getStyleName<GUIScrollBarVert>(styleName), GUIDimensions::create(options));
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, getStyleName<GUIScrollBarVert>(false, styleName), 
+			GUIDimensions::create(options));
 	}
 
-	const String& GUIScrollBarVert::getGUITypeName()
+	GUIScrollBarVert* GUIScrollBarVert::create(bool resizeable, const GUIOptions& options, const String& styleName)
+	{
+		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, getStyleName<GUIScrollBarVert>(resizeable, styleName), 
+			GUIDimensions::create(options));
+	}
+
+	const String& GUIScrollBarVert::getGUITypeName(bool resizable)
 	{
 		static String typeName = "ScrollBarVert";
-		return typeName;
+		static String resizableTypeName = "ResizeableScrollBarVert";
+
+		if (resizable)
+			return resizableTypeName;
+		else
+			return typeName;
 	}
 }

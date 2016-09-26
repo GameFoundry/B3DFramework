@@ -4,11 +4,6 @@
 
 #include "BsPrerequisitesUtil.h"
 
-#if defined(_MSC_VER)
-#undef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ __FUNCSIG__
-#endif
-
 namespace BansheeEngine
 {
 	/** @addtogroup Error
@@ -88,7 +83,7 @@ namespace BansheeEngine
 		virtual const String& getDescription(void) const { return mDescription; }
 
 		/** Overriden std::exception::what. Returns the same value as getFullDescription(). */
-		const char* what() const override { return getFullDescription().c_str(); }
+		const char* what() const noexcept override { return getFullDescription().c_str(); }
 
 	protected:
 		long mLine;
@@ -173,8 +168,7 @@ namespace BansheeEngine
 	 * Macro for throwing exceptions that will automatically fill out function name, file name and line number of the 
 	 * exception.
 	 */
-	// The exception thrown at the end isn't actually ever getting executed, it is just to notify the compiler that execution
-	// won't continue past this point (for example if a function needs to return a value otherwise).
+	// Banshee doesn't actually use exceptions, so we just emulate the unhandled exception handler by crashing the application.
 #ifndef BS_EXCEPT
 #define BS_EXCEPT(type, desc)	\
 		{                           \

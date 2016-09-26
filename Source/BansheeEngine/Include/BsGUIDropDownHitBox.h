@@ -61,13 +61,13 @@ namespace BansheeEngine
 		void updateClippedBounds() override;
 
 		/** @copydoc GUIElementContainer::_commandEvent */
-		virtual bool _commandEvent(const GUICommandEvent& ev) override;
+		bool _commandEvent(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::_isInBounds */
-		virtual bool _isInBounds(const Vector2I position) const override;
+		bool _isInBounds(const Vector2I position) const override;
 
 		Vector<Rect2I> mBounds;
 		bool mCaptureMouseOver;

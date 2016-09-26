@@ -7,7 +7,7 @@
 namespace BansheeEngine
 {
 	Resource::Resource(bool initializeOnRenderThread)
-		:CoreObject(initializeOnRenderThread), mSize(0)
+		:CoreObject(initializeOnRenderThread), mSize(0), mKeepSourceData(true)
 	{ 
 		mMetaData = bs_shared_ptr_new<ResourceMetaData>();
 	}

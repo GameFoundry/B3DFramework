@@ -19,14 +19,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT PrefabComponentDiffRTTI : public RTTIType < PrefabComponentDiff, IReflectable, PrefabComponentDiffRTTI >
 	{
 	private:
-		BS_PLAIN_MEMBER(id)
-		BS_REFLPTR_MEMBER(data);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(id, 0)
+			BS_RTTI_MEMBER_REFLPTR(data, 1)
+		BS_END_RTTI_MEMBERS
 	public:
 		PrefabComponentDiffRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(id, 0);
-			BS_ADD_REFLPTR_FIELD(data, 1);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -48,42 +48,28 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT PrefabObjectDiffRTTI : public RTTIType < PrefabObjectDiff, IReflectable, PrefabObjectDiffRTTI >
 	{
 	private:
-		BS_PLAIN_MEMBER(id)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(id, 0)
+			BS_RTTI_MEMBER_PLAIN(name, 1)
 
-		BS_PLAIN_MEMBER(name)
-		BS_PLAIN_MEMBER(position);
-		BS_PLAIN_MEMBER(rotation);
-		BS_PLAIN_MEMBER(scale);
-		BS_PLAIN_MEMBER(isActive);
-		BS_PLAIN_MEMBER(soFlags);
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(componentDiffs, 2)
+			BS_RTTI_MEMBER_PLAIN_ARRAY(removedComponents, 3)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(addedComponents, 4)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(childDiffs, 5)
 
-		BS_REFLPTR_MEMBER_VEC(componentDiffs)
-		BS_PLAIN_MEMBER_VEC(removedComponents)
-		BS_REFLPTR_MEMBER_VEC(addedComponents)
+			BS_RTTI_MEMBER_PLAIN_ARRAY(removedChildren, 6)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(addedChildren, 7)
 
-		BS_REFLPTR_MEMBER_VEC(childDiffs)
-		BS_PLAIN_MEMBER_VEC(removedChildren)
-		BS_REFLPTR_MEMBER_VEC(addedChildren)
+			BS_RTTI_MEMBER_PLAIN(position, 8)
+			BS_RTTI_MEMBER_PLAIN(rotation, 9)
+			BS_RTTI_MEMBER_PLAIN(scale, 10)
+			BS_RTTI_MEMBER_PLAIN(isActive, 11)
+			BS_RTTI_MEMBER_PLAIN(soFlags, 12)
+		BS_END_RTTI_MEMBERS
 	public:
 		PrefabObjectDiffRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(id, 0);
-			BS_ADD_PLAIN_FIELD(name, 1);
-
-			BS_ADD_REFLPTR_FIELD_ARR(componentDiffs, 2);
-			BS_ADD_PLAIN_FIELD_ARR(removedComponents, 3);
-			BS_ADD_REFLPTR_FIELD_ARR(addedComponents, 4);
-			BS_ADD_REFLPTR_FIELD_ARR(childDiffs, 5);
-
-			BS_ADD_PLAIN_FIELD_ARR(removedChildren, 6);
-			BS_ADD_REFLPTR_FIELD_ARR(addedChildren, 7);
-
-			BS_ADD_PLAIN_FIELD(position, 8);
-			BS_ADD_PLAIN_FIELD(rotation, 9);
-			BS_ADD_PLAIN_FIELD(scale, 10);
-			BS_ADD_PLAIN_FIELD(isActive, 11);
-			BS_ADD_PLAIN_FIELD(soFlags, 12);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -112,14 +98,15 @@ namespace BansheeEngine
 		};
 
 	private:
-		BS_REFLPTR_MEMBER(mRoot);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mRoot, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		PrefabDiffRTTI()
-		{
-			BS_ADD_REFLPTR_FIELD(mRoot, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
-		void onDeserializationStarted(IReflectable* obj) override
+		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			PrefabDiff* prefabDiff = static_cast<PrefabDiff*>(obj);
 
@@ -127,7 +114,7 @@ namespace BansheeEngine
 				GameObjectManager::instance().registerOnDeserializationEndCallback(std::bind(&PrefabDiffRTTI::delayedOnDeserializationEnded, prefabDiff));
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			assert(GameObjectManager::instance().isGameObjectDeserializationActive());
 
@@ -170,7 +157,7 @@ namespace BansheeEngine
 				SerializedHandle& handle = handleData[idx];
 
 				handle.object = handleObject;
-				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(bs._decodeIntermediate(handleObject));
+				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(bs._decodeFromIntermediate(handleObject));
 
 				idx++;
 			}
@@ -191,7 +178,7 @@ namespace BansheeEngine
 			for (auto& serializedHandle : handleData)
 			{
 				if (serializedHandle.handle != nullptr)
-					*serializedHandle.object = *bs._encodeIntermediate(serializedHandle.handle.get());
+					*serializedHandle.object = *bs._encodeToIntermediate(serializedHandle.handle.get());
 			}
 
 			prefabDiff->mRTTIData = nullptr;

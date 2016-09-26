@@ -11,16 +11,10 @@ namespace BansheeEditor
     /// <summary>
     /// Drop down window that displays options used by the library window.
     /// </summary>
+    [DefaultSize(150, 30)]
     internal class LibraryDropDown : DropDownWindow
     {
         private LibraryWindow parent;
-
-        /// <summary>
-        /// Constructs the drop down window.
-        /// </summary>
-        public LibraryDropDown()
-            : base(150, 30)
-        { }
 
         /// <summary>
         /// Initializes the drop down window by creating the necessary GUI. Must be called after construction and before

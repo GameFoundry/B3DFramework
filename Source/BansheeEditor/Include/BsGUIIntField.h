@@ -28,16 +28,22 @@ namespace BansheeEngine
 			const String& style, const GUIDimensions& dimensions, bool withLabel);
 
 		/**	Returns the value of the input field. */
-		INT32 getValue() const { return mValue; }
+		INT32 getValue() const;
 
-		/**	Sets a new value in the input field. */
-		void setValue(INT32 value);
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
+		INT32 setValue(INT32 value);
 
 		/**
 		 * Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't
 		 * require clamping.
 		 */
 		void setRange(INT32 min, INT32 max);
+
+		/**	Sets the minimum change allowed for the input field. */
+		void setStep(INT32 step);
+
+		/** Returns the minimum change allowed for the input field. */
+		INT32 getStep() const { return mStep; }
 
 		/**	Checks is the input field currently active. */
 		bool hasInputFocus() const { return mHasInputFocus; }
@@ -86,6 +92,12 @@ namespace BansheeEngine
 		/**	Triggered when the users confirms input in the input box. */
 		void inputConfirmed();
 
+		/** Updates the underlying input box with the text representing the provided integer value. */
+		void setText(INT32 value);
+
+		/** Clamps the provided value to current valid range, and step interval. */
+		INT32 applyRangeAndStep(INT32 value) const;
+
 		/**	Callback that checks can the provided string be converted to an integer value. */
 		static bool intFilter(const WString& str);
 
@@ -96,6 +108,7 @@ namespace BansheeEngine
 		INT32 mLastDragPos;
 		INT32 mMinValue;
 		INT32 mMaxValue;
+		INT32 mStep;
 		bool mIsDragging;
 		bool mIsDragCursorSet;
 		bool mHasInputFocus;

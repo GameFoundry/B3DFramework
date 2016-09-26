@@ -25,7 +25,7 @@ namespace BansheeEngine
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void internal_createInstance(MonoObject* instance, MonoObject* texture, 
-			GUIImageScaleMode scale, bool transparent, MonoString* style, MonoArray* guiOptions);
+			TextureScaleMode scale, bool transparent, MonoString* style, MonoArray* guiOptions);
 		static void internal_setTexture(ScriptGUITexture* nativeInstance, MonoObject* texture);
 		static void internal_setTint(ScriptGUITexture* nativeInstance, Color* color);
 	};

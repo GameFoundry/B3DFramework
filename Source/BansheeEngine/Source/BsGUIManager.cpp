@@ -57,8 +57,11 @@ namespace BansheeEngine
 
 	struct GUIMaterialGroup
 	{
+		SpriteMaterial* material;
 		SpriteMaterialInfo matInfo;
-		UINT32 numQuads;
+		GUIMeshType meshType;
+		UINT32 numVertices;
+		UINT32 numIndices;
 		UINT32 depth;
 		UINT32 minDepth;
 		Rect2I bounds;
@@ -76,6 +79,9 @@ namespace BansheeEngine
 		, mCaretColor(1.0f, 0.6588f, 0.0f), mCaretBlinkInterval(0.5f), mCaretLastBlinkTime(0.0f), mIsCaretOn(false)
 		, mActiveCursor(CursorType::Arrow), mTextSelectionColor(0.0f, 114/255.0f, 188/255.0f)
 	{
+		// Note: Hidden dependency. GUI must receive input events before other systems, in order so it can mark them as used
+		// if required. e.g. clicking on a context menu should mark the event as used so that other non-GUI systems know
+		// that they probably should not process such event themselves.
 		mOnPointerMovedConn = gInput().onPointerMoved.connect(std::bind(&GUIManager::onPointerMoved, this, _1));
 		mOnPointerPressedConn = gInput().onPointerPressed.connect(std::bind(&GUIManager::onPointerPressed, this, _1));
 		mOnPointerReleasedConn = gInput().onPointerReleased.connect(std::bind(&GUIManager::onPointerReleased, this, _1));
@@ -97,11 +103,16 @@ namespace BansheeEngine
 		GUIDropDownBoxManager::startUp();
 		GUITooltipManager::startUp();
 
-		mVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
-		mVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
+		mTriangleVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
+		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 
-		mMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mVertexDesc);
+		mTriangleMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mTriangleVertexDesc);
+
+		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		mLineVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
+
+		mLineMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mLineVertexDesc);
 
 		// Need to defer this call because I want to make sure all managers are initialized first
 		deferredCall(std::bind(&GUIManager::updateCaretTexture, this));
@@ -110,12 +121,7 @@ namespace BansheeEngine
 		GUIManagerCore* core = bs_new<GUIManagerCore>();
 		mCore.store(core, std::memory_order_release);
 
-		HMaterial textMaterial = BuiltinResources::instance().createSpriteTextMaterial();
-		HMaterial imageMaterial = BuiltinResources::instance().createSpriteNonAlphaImageMaterial();
-		HMaterial imageAlphaMaterial = BuiltinResources::instance().createSpriteImageMaterial();
-
-		gCoreAccessor().queueCommand(std::bind(&GUIManagerCore::initialize, core,
-			textMaterial->getCore(), imageMaterial->getCore(), imageAlphaMaterial->getCore()));
+		gCoreAccessor().queueCommand(std::bind(&GUIManagerCore::initialize, core));
 	}
 
 	GUIManager::~GUIManager()
@@ -218,10 +224,15 @@ namespace BansheeEngine
 
 		if(renderData.widgets.size() == 0)
 		{
-			for (auto& mesh : renderData.cachedMeshes)
+			for (auto& entry : renderData.cachedMeshes)
 			{
-				if (mesh != nullptr)
-					mMeshHeap->dealloc(mesh);
+				if (entry.mesh == nullptr)
+					continue;
+
+				if(!entry.isLine)
+					mTriangleMeshHeap->dealloc(entry.mesh);
+				else
+					mLineMeshHeap->dealloc(entry.mesh);
 			}
 
 			mCachedGUIData.erase(renderTarget);
@@ -388,34 +399,26 @@ namespace BansheeEngine
 				auto insertedData = corePerCameraData.insert(std::make_pair(camera->getCore(), Vector<GUICoreRenderData>()));
 				Vector<GUICoreRenderData>& cameraData = insertedData.first->second;
 
-				UINT32 meshIdx = 0;
-				for (auto& mesh : renderData.cachedMeshes)
+				for (auto& entry : renderData.cachedMeshes)
 				{
-					SpriteMaterialInfo materialInfo = renderData.cachedMaterials[meshIdx];
-					GUIWidget* widget = renderData.cachedWidgetsPerMesh[meshIdx];
-
-					if (materialInfo.texture == nullptr || !materialInfo.texture.isLoaded())
-					{
-						meshIdx++;
+					if (entry.mesh == nullptr)
 						continue;
-					}
-
-					if (mesh == nullptr)
-					{
-						meshIdx++;
-						continue;
-					}
 
 					cameraData.push_back(GUICoreRenderData());
 					GUICoreRenderData& newEntry = cameraData.back();
 
-					newEntry.materialType = materialInfo.type;
-					newEntry.texture = materialInfo.texture->getCore();
-					newEntry.tint = materialInfo.tint;
-					newEntry.mesh = mesh->getCore();
-					newEntry.worldTransform = widget->getWorldTfrm();
+					SPtr<TextureCore> textureCore;
+					if (entry.matInfo.texture.isLoaded())
+						textureCore = entry.matInfo.texture->getCore();
+					else
+						textureCore = nullptr;
 
-					meshIdx++;
+					newEntry.material = entry.material;
+					newEntry.texture = textureCore;
+					newEntry.tint = entry.matInfo.tint;
+					newEntry.mesh = entry.mesh->getCore();
+					newEntry.worldTransform = entry.widget->getWorldTfrm();
+					newEntry.additionalData = entry.matInfo.additionalData;
 				}
 			}
 
@@ -485,7 +488,7 @@ namespace BansheeEngine
 
 				// Group the elements in such a way so that we end up with a smallest amount of
 				// meshes, without breaking back to front rendering order
-				FrameUnorderedMap<std::reference_wrapper<const SpriteMaterialInfo>, FrameVector<GUIMaterialGroup>> materialGroups;
+				FrameUnorderedMap<UINT64, FrameVector<GUIMaterialGroup>> materialGroups;
 				for (auto& elem : allElements)
 				{
 					GUIElement* guiElem = elem.element;
@@ -495,8 +498,12 @@ namespace BansheeEngine
 					Rect2I tfrmedBounds = guiElem->_getClippedBounds();
 					tfrmedBounds.transform(guiElem->_getParentWidget()->getWorldTfrm());
 
-					const SpriteMaterialInfo& matInfo = guiElem->_getMaterial(renderElemIdx);
-					FrameVector<GUIMaterialGroup>& groupsPerMaterial = materialGroups[std::cref(matInfo)];
+					SpriteMaterial* spriteMaterial = nullptr;
+					const SpriteMaterialInfo& matInfo = guiElem->_getMaterial(renderElemIdx, &spriteMaterial);
+					assert(spriteMaterial != nullptr);
+
+					UINT64 hash = spriteMaterial->getMergeHash(matInfo);
+					FrameVector<GUIMaterialGroup>& groupsPerMaterial = materialGroups[hash];
 					
 					// Try to find a group this material will fit in:
 					//  - Group that has a depth value same or one below elements depth will always be a match
@@ -569,15 +576,27 @@ namespace BansheeEngine
 						foundGroup->minDepth = elemDepth;
 						foundGroup->bounds = tfrmedBounds;
 						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
-						foundGroup->matInfo = matInfo;
-						foundGroup->numQuads = guiElem->_getNumQuads(renderElemIdx);
+						foundGroup->matInfo = matInfo.clone();
+						foundGroup->material = spriteMaterial;
+
+						guiElem->_getMeshInfo(renderElemIdx, foundGroup->numVertices, foundGroup->numIndices, foundGroup->meshType);
 					}
 					else
 					{
 						foundGroup->bounds.encapsulate(tfrmedBounds);
 						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
 						foundGroup->minDepth = std::min(foundGroup->minDepth, elemDepth);
-						foundGroup->numQuads += guiElem->_getNumQuads(renderElemIdx);
+						
+						UINT32 numVertices;
+						UINT32 numIndices;
+						GUIMeshType meshType;
+						guiElem->_getMeshInfo(renderElemIdx, numVertices, numIndices, meshType);
+						assert(meshType == foundGroup->meshType); // It's expected that GUI element doesn't use same material for different mesh types so this should always be true
+
+						foundGroup->numVertices += numVertices;
+						foundGroup->numIndices += numIndices;
+
+						spriteMaterial->merge(foundGroup->matInfo, matInfo);
 					}
 				}
 
@@ -589,83 +608,90 @@ namespace BansheeEngine
 					// requires all elements to be unique
 				};
 
+				UINT32 numMeshes = 0;
 				FrameSet<GUIMaterialGroup*, std::function<bool(GUIMaterialGroup*, GUIMaterialGroup*)>> sortedGroups(groupComp);
 				for(auto& material : materialGroups)
 				{
 					for(auto& group : material.second)
 					{
 						sortedGroups.insert(&group);
+						numMeshes++;
 					}
 				}
 
-				UINT32 numMeshes = (UINT32)sortedGroups.size();
 				UINT32 oldNumMeshes = (UINT32)renderData.cachedMeshes.size();
-
-				if(numMeshes < oldNumMeshes)
+				for (UINT32 i = 0; i < oldNumMeshes; i++)
 				{
-					for (UINT32 i = numMeshes; i < oldNumMeshes; i++)
-						mMeshHeap->dealloc(renderData.cachedMeshes[i]);
-
-					renderData.cachedMeshes.resize(numMeshes);
+					if(!renderData.cachedMeshes[i].isLine)
+						mTriangleMeshHeap->dealloc(renderData.cachedMeshes[i].mesh);
+					else
+						mLineMeshHeap->dealloc(renderData.cachedMeshes[i].mesh);
 				}
 
-				renderData.cachedMaterials.resize(numMeshes);
-
-				if(mSeparateMeshesByWidget)
-					renderData.cachedWidgetsPerMesh.resize(numMeshes);
-
+				renderData.cachedMeshes.resize(numMeshes);
+				
 				// Fill buffers for each group and update their meshes
-				UINT32 groupIdx = 0;
+				UINT32 meshIdx = 0;
 				for(auto& group : sortedGroups)
 				{
-					renderData.cachedMaterials[groupIdx] = group->matInfo;
+					SPtr<MeshData> meshData;
+					GUIWidget* widget;
 
-					if(mSeparateMeshesByWidget)
-					{
-						if(group->elements.size() == 0)
-							renderData.cachedWidgetsPerMesh[groupIdx] = nullptr;
-						else
-						{
-							GUIElement* elem = group->elements.begin()->element;
-							renderData.cachedWidgetsPerMesh[groupIdx] = elem->_getParentWidget();
-						}
-					}
-
-					SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(group->numQuads * 4, group->numQuads * 6, mVertexDesc);
-
-					UINT8* vertices = meshData->getElementData(VES_POSITION);
-					UINT8* uvs = meshData->getElementData(VES_TEXCOORD);
-					UINT32* indices = meshData->getIndices32();
-					UINT32 vertexStride = meshData->getVertexDesc()->getVertexStride();
-					UINT32 indexStride = meshData->getIndexElementSize();
-
-					UINT32 quadOffset = 0;
-					for(auto& matElement : group->elements)
-					{
-						matElement.element->_fillBuffer(vertices, uvs, indices, quadOffset, group->numQuads, vertexStride, indexStride, matElement.renderElement);
-
-						UINT32 numQuads = matElement.element->_getNumQuads(matElement.renderElement);
-						UINT32 indexStart = quadOffset * 6;
-						UINT32 indexEnd = indexStart + numQuads * 6;
-						UINT32 vertOffset = quadOffset * 4;
-
-						for(UINT32 i = indexStart; i < indexEnd; i++)
-							indices[i] += vertOffset;
-
-						quadOffset += numQuads;
-					}
-
-					if(groupIdx < (UINT32)renderData.cachedMeshes.size())
-					{
-						mMeshHeap->dealloc(renderData.cachedMeshes[groupIdx]);
-						renderData.cachedMeshes[groupIdx] = mMeshHeap->alloc(meshData);
-					}
+					if (group->elements.size() == 0)
+						widget = nullptr;
 					else
 					{
-						renderData.cachedMeshes.push_back(mMeshHeap->alloc(meshData));
+						GUIElement* elem = group->elements.begin()->element;
+						widget = elem->_getParentWidget();
 					}
 
-					groupIdx++;
+					GUIMeshData& guiMeshData = renderData.cachedMeshes[meshIdx];
+					guiMeshData.matInfo = group->matInfo;
+					guiMeshData.material = group->material;
+					guiMeshData.widget = widget;
+
+					if (group->meshType == GUIMeshType::Triangle)
+					{
+						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mTriangleVertexDesc);
+						guiMeshData.isLine = false;
+					}
+					else // Line
+					{
+						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mLineVertexDesc);
+						guiMeshData.isLine = true;
+					}
+
+					UINT8* vertices = meshData->getElementData(VES_POSITION);
+					UINT32* indices = meshData->getIndices32();
+
+					UINT32 indexOffset = 0;
+					UINT32 vertexOffset = 0;
+					for(auto& matElement : group->elements)
+					{
+						matElement.element->_fillBuffer(vertices, indices, vertexOffset, indexOffset, group->numVertices,
+							group->numIndices, matElement.renderElement);
+
+						UINT32 numVertices;
+						UINT32 numIndices;
+						GUIMeshType meshType;
+						matElement.element->_getMeshInfo(matElement.renderElement, numVertices, numIndices, meshType);
+
+						UINT32 indexStart = indexOffset;
+						UINT32 indexEnd = indexStart + numIndices;
+
+						for(UINT32 i = indexStart; i < indexEnd; i++)
+							indices[i] += vertexOffset;
+
+						indexOffset += numIndices;
+						vertexOffset += numVertices;
+					}
+
+					if (group->meshType == GUIMeshType::Triangle)
+						guiMeshData.mesh = mTriangleMeshHeap->alloc(meshData);
+					else // Line
+						guiMeshData.mesh = mLineMeshHeap->alloc(meshData, DOT_LINE_LIST);
+
+					meshIdx++;
 				}
 			}
 
@@ -990,8 +1016,55 @@ namespace BansheeEngine
 		if(findElementUnderPointer(event.screenPos, buttonStates, event.shift, event.control, event.alt))
 			event.markAsUsed();
 
-		mMouseEvent = GUIMouseEvent(buttonStates, event.shift, event.control, event.alt);
+		// Determine elements that gained focus
+		mNewElementsInFocus.clear();
 
+		mCommandEvent = GUICommandEvent();
+		mCommandEvent.setType(GUICommandEventType::FocusGained);
+
+		for (auto& elementInfo : mElementsUnderPointer)
+		{
+			auto iterFind = std::find_if(begin(mElementsInFocus), end(mElementsInFocus),
+				[=](const ElementFocusInfo& x) { return x.element == elementInfo.element; });
+
+			if (iterFind == mElementsInFocus.end())
+			{
+				bool processed = sendCommandEvent(elementInfo.element, mCommandEvent);
+				mNewElementsInFocus.push_back(ElementFocusInfo(elementInfo.element, elementInfo.widget, processed));
+
+				if (processed)
+					break;
+			}
+			else
+			{
+				mNewElementsInFocus.push_back(*iterFind);
+
+				if (iterFind->usesFocus)
+					break;
+			}
+		}
+
+		// Determine elements that lost focus
+		// Note: Focus loss must trigger before mouse press because things like input boxes often only confirm changes
+		// made to them when focus is lost. So if the user is confirming some input via a press of the button focus loss
+		// must trigger on the input box first to make sure its contents get saved.
+		mCommandEvent.setType(GUICommandEventType::FocusLost);
+
+		for (auto& elementInfo : mElementsInFocus)
+		{
+			auto iterFind = std::find_if(begin(mNewElementsInFocus), end(mNewElementsInFocus),
+				[=](const ElementFocusInfo& x) { return x.element == elementInfo.element; });
+
+			if (iterFind == mNewElementsInFocus.end())
+			{
+				sendCommandEvent(elementInfo.element, mCommandEvent);
+			}
+		}
+
+		mElementsInFocus.swap(mNewElementsInFocus);
+
+		// Send mouse press event
+		mMouseEvent = GUIMouseEvent(buttonStates, event.shift, event.control, event.alt);
 		GUIMouseButton guiButton = buttonToGUIButton(event.button);
 
 		// We only check for mouse down if mouse isn't already being held down, and we are hovering over an element
@@ -1023,53 +1096,6 @@ namespace BansheeEngine
 
 			mActiveElements.swap(mNewActiveElements);
 		}
-
-		mNewElementsInFocus.clear();
-		mCommandEvent = GUICommandEvent();
-		
-		// Determine elements that gained focus
-		mCommandEvent.setType(GUICommandEventType::FocusGained);
-
-		for(auto& elementInfo : mElementsUnderPointer)
-		{
-			auto iterFind = std::find_if(begin(mElementsInFocus), end(mElementsInFocus), 
-				[=] (const ElementFocusInfo& x) { return x.element == elementInfo.element; });
-
-			if(iterFind == mElementsInFocus.end())
-			{
-				bool processed = sendCommandEvent(elementInfo.element, mCommandEvent);
-				mNewElementsInFocus.push_back(ElementFocusInfo(elementInfo.element, elementInfo.widget, processed));
-
-				if (processed)
-					break;
-			}
-			else
-			{
-				mNewElementsInFocus.push_back(*iterFind);
-
-				if (iterFind->usesFocus)
-					break;
-			}
-		}
-
-		// Determine elements that lost focus
-		mCommandEvent.setType(GUICommandEventType::FocusLost);
-
-		for(auto& elementInfo : mElementsInFocus)
-		{
-			auto iterFind = std::find_if(begin(mNewElementsInFocus), end(mNewElementsInFocus), 
-				[=] (const ElementFocusInfo& x) { return x.element == elementInfo.element; });
-
-			if(iterFind == mNewElementsInFocus.end())
-			{
-				sendCommandEvent(elementInfo.element, mCommandEvent);
-			}
-		}
-
-		if(mElementsUnderPointer.size() > 0)
-			event.markAsUsed();
-
-		mElementsInFocus.swap(mNewElementsInFocus);
 
 		// If right click try to open context menu
 		if(buttonStates[2] == true) 
@@ -1718,13 +1744,8 @@ namespace BansheeEngine
 			activeRenderer->unregisterRenderCallback(cameraData.first.get(), 30);
 	}
 
-	void GUIManagerCore::initialize(const SPtr<MaterialCore>& textMat, const SPtr<MaterialCore>& imageMat,
-		const SPtr<MaterialCore>& imageAlphaMat)
+	void GUIManagerCore::initialize()
 	{
-		mTextMaterialInfo = MaterialInfo(textMat);
-		mImageMaterialInfo = MaterialInfo(imageMat);
-		mImageAlphaMaterialInfo = MaterialInfo(imageAlphaMat);
-
 		SAMPLER_STATE_DESC ssDesc;
 		ssDesc.magFilter = FO_POINT;
 		ssDesc.minFilter = FO_POINT;
@@ -1795,34 +1816,15 @@ namespace BansheeEngine
 
 		float invViewportWidth = 1.0f / (camera->getViewport()->getWidth() * 0.5f);
 		float invViewportHeight = 1.0f / (camera->getViewport()->getHeight() * 0.5f);
+
+		Vector2 invViewportSize(invViewportWidth, invViewportHeight);
 		for (auto& entry : renderData)
 		{
-			MaterialInfo& matInfo = entry.materialType == SpriteMaterial::Text ? mTextMaterialInfo :
-				(entry.materialType == SpriteMaterial::Image ? mImageMaterialInfo : mImageAlphaMaterialInfo);
-
-			matInfo.textureParam.set(entry.texture);
-			matInfo.samplerParam.set(mSamplerState);
-			matInfo.tintParam.set(entry.tint);
-			matInfo.invViewportWidthParam.set(invViewportWidth);
-			matInfo.invViewportHeightParam.set(invViewportHeight);
-			matInfo.worldTransformParam.set(entry.worldTransform);
-
 			// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
 			// changed, and apply only those + the modified constant buffers and/or texture.
 
-			gRendererUtility().setPass(matInfo.material, 0);
-			gRendererUtility().draw(entry.mesh, entry.mesh->getProperties().getSubMesh(0));
+			entry.material->render(entry.mesh, entry.texture, mSamplerState, entry.tint, entry.worldTransform, 
+				invViewportSize, entry.additionalData);
 		}
-	}
-
-	GUIManagerCore::MaterialInfo::MaterialInfo(const SPtr<MaterialCore>& material)
-		:material(material)
-	{
-		textureParam = material->getParamTexture("mainTexture");
-		samplerParam = material->getParamSamplerState("mainTexSamp");
-		tintParam = material->getParamColor("tint");
-		invViewportWidthParam = material->getParamFloat("invViewportWidth");
-		invViewportHeightParam = material->getParamFloat("invViewportHeight");
-		worldTransformParam = material->getParamMat4("worldTransform");
 	}
 }

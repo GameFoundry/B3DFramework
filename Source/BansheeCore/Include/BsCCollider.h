@@ -171,8 +171,8 @@ namespace BansheeEngine
 		HPhysicsMaterial mMaterial;
 		float mMass = 1.0f;
 		bool mIsTrigger = false;
-		Vector3 mLocalPosition;
-		Quaternion mLocalRotation;
+		Vector3 mLocalPosition = Vector3::ZERO;
+		Quaternion mLocalRotation = Quaternion::IDENTITY;
 
 		HRigidbody mParent;
 

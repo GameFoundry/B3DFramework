@@ -120,32 +120,17 @@ namespace BansheeEngine
 		 */
 
 		/**
-		 * Adds a new asset importer for the specified file extension. If an asset importer for that extension already 
-		 * exists, it is removed and replaced with the current one.
+		 * Registers a new asset importer for a specific set of extensions (as determined by the implementation). If an
+		 * asset importer for one or multiple extensions already exists, it is removed and replaced with this one.
 		 *
-		 *
-		 * @param[in]	importer	The importer that is able to handle files with the specified extension. nullptr if you
-		 * 							want to remove an asset importer for the extension.
+		 * @param[in]	importer	The importer that is able to handle import of certain type of files. 
 		 *
 		 * @note	This method should only be called by asset importers themselves on startup. Importer takes ownership
 		 *			of the provided pointer and will release it. Assumes it is allocated using the general allocator.
 		 */
 		void _registerAssetImporter(SpecificImporter* importer);
 
-		/**
-		 * Imports a resource at the specified location but doesn't create resource handles. This method returns all 
-		 * imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may
-		 * contain both a mesh and animations). 
-		 *
-		 * @param[in]	inputFilePath	Pathname of the input file.
-		 * @param[in]	importOptions	(optional) Options for controlling the import. Caller must ensure import options 
-		 *								actually match the type of the importer used for the file type.
-		 * @return						A list of all imported resources. The primary resource is always the first returned
-		 *								resource. Caller is responsible for creating resource handles for the returned 
-		 *								values.
-		 *
-		 * @see		createImportOptions
-		 */
+		/** Alternative to importAll() which doesn't create resource handles, but instead returns raw resource pointers. */
 		Vector<SubResourceRaw> _importAllRaw(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
 
 		/** @} */

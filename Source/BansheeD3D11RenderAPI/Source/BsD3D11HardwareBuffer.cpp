@@ -16,8 +16,8 @@ namespace BansheeEngine
 		 mBufferType(btype), mDevice(device), mElementCount(elementCount), mElementSize(elementSize), mRandomGpuWrite(randomGpuWrite),
 		 mUseCounter(useCounter)
 	{
-		assert((!streamOut || btype == BT_VERTEX) && "Stream out flag is only supported on vertex buffers");
-		assert(!randomGpuWrite || (btype & BT_GROUP_GENERIC) != 0 && "randomGpuWrite flag can only be enabled with append/consume, indirect argument, structured or raw buffers");
+		assert((!streamOut || btype == BT_VERTEX) && "Stream out flag is only supported on vertex buffers.");
+		assert(!randomGpuWrite || (btype & BT_GROUP_GENERIC) != 0 && "randomGpuWrite flag can only be enabled with standard, append/consume, indirect argument, structured or raw buffers.");
 		assert(btype != BT_APPENDCONSUME || randomGpuWrite && "Append/Consume buffer must be created with randomGpuWrite enabled.");
 		assert(!useCounter || btype == BT_STRUCTURED && "Counter can only be used with a structured buffer.");
 		assert(!useCounter || randomGpuWrite && "Counter can only be used with buffers that have randomGpuWrite enabled.");
@@ -76,7 +76,7 @@ namespace BansheeEngine
 			}
 		}
 
-		HRESULT hr = device.getD3D11Device()->CreateBuffer( &mDesc, nullptr, &mD3DBuffer );
+		HRESULT hr = device.getD3D11Device()->CreateBuffer(&mDesc, nullptr, &mD3DBuffer);
 		if (FAILED(hr) || mDevice.hasError())
 		{
 			String msg = device.getErrorDescription();

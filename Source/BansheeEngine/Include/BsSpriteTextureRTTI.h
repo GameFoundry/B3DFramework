@@ -16,22 +16,16 @@ namespace BansheeEngine
 	class BS_EXPORT SpriteTextureRTTI : public RTTIType<SpriteTexture, Resource, SpriteTextureRTTI>
 	{
 	private:
-		HTexture& getAtlasTexture(SpriteTexture* obj) { return obj->mAtlasTexture; }
-		void setAtlasTexture(SpriteTexture* obj, HTexture& val) { obj->mAtlasTexture = val; } 
-
-		Vector2& getUVOffset(SpriteTexture* obj) { return obj->mUVOffset; }
-		void setUVOffset(SpriteTexture* obj, Vector2& val) { obj->mUVOffset = val; } 
-
-		Vector2& getUVScale(SpriteTexture* obj) { return obj->mUVScale; }
-		void setUVScale(SpriteTexture* obj, Vector2& val) { obj->mUVScale = val; } 
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL(mAtlasTexture, 0)
+			BS_RTTI_MEMBER_PLAIN(mUVOffset, 1)
+			BS_RTTI_MEMBER_PLAIN(mUVScale, 2)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		SpriteTextureRTTI()
-		{
-			addReflectableField("mAtlasTexture", 0, &SpriteTextureRTTI::getAtlasTexture, &SpriteTextureRTTI::setAtlasTexture);
-			addPlainField("mUVOffset", 1, &SpriteTextureRTTI::getUVOffset, &SpriteTextureRTTI::setUVOffset);
-			addPlainField("mUVScale", 2, &SpriteTextureRTTI::getUVScale, &SpriteTextureRTTI::setUVScale);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

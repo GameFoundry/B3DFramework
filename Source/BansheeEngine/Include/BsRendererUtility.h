@@ -32,18 +32,19 @@ namespace BansheeEngine
 		/**
 		 * Activates the specified material pass for rendering. Any further draw calls will be executed using this pass.
 		 *
-		 * @param[in]	material	Material containing the pass.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	material		Material containing the pass.
+		 * @param[in]	passIdx			Index of the pass in the material.
+		 * @param[in]	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
 		 *
 		 * @note	Core thread.
 		 */
-		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPass(const SPtr<MaterialCore>& material, UINT32 passIdx = 0, UINT32 techniqueIdx = 0);
 
 		/**
 		 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
 		 *
-		 * @param[in]	material	Material containing the pass.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	material		Material containing the pass.
+		 * @param[in]	passIdx			Index of the pass in the material.
 		 *
 		 * @note	Core thread.
 		 */
@@ -52,12 +53,20 @@ namespace BansheeEngine
 		/**
 		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 		 *
-		 * @param[in]	material	Material whose pass' parameters to bind.
-		 * @param[in]	passIdx		Index of the pass in the material.
+		 * @param[in]	params		Object containing the parameters.
+		 * @param[in]	passIdx		Pass for which to set the parameters.
 		 *					
 		 * @note	Core thread.
 		 */
-		static void setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx = 0);
+		void setPassParams(const SPtr<GpuParamsSetCore>& params, UINT32 passIdx = 0);
+
+		/**
+		 * Sets parameters (textures, samplers, buffers) for the provided GPU program type.
+		 *
+		 * @param[in]	type		Type of the GPU program to assign the parameters to.
+		 * @param[in]	params		Parameters to assign.
+		 */
+		void setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params);
 
 		/**
 		 * Draws the specified mesh.
@@ -69,6 +78,22 @@ namespace BansheeEngine
 		 * @note	Core thread.
 		 */
 		void draw(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, UINT32 numInstances = 1);
+
+
+		/**
+		 * Draws the specified mesh with an additional vertex buffer containing morph shape vertices.
+		 *
+		 * @param[in]	mesh					Mesh to draw.
+		 * @param[in]	subMesh					Portion of the mesh to draw.
+		 * @param[in]	morphVertices			Buffer containing the morph shape vertices. Will be bound to stream 1. 
+		 *										Expected to contain the same number of vertices as the source mesh.
+		 * @param[in]	morphVertexDeclaration	Vertex declaration describing vertices of the provided mesh and the vertices
+		 *										provided in the morph vertex buffer.
+		 *
+		 * @note	Core thread.
+		 */
+		void drawMorph(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, const SPtr<VertexBufferCore>& morphVertices, 
+			const SPtr<VertexDeclarationCore>& morphVertexDeclaration);
 
 		/**
 		 * Blits contents of the provided texture into the currently bound render target. If the provided texture contains

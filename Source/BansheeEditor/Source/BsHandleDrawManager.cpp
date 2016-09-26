@@ -3,6 +3,7 @@
 #include "BsHandleDrawManager.h"
 #include "BsDrawHelper.h"
 #include "BsMaterial.h"
+#include "BsGpuParamsSet.h"
 #include "BsBuiltinEditorResources.h"
 #include "BsCoreThread.h"
 #include "BsRendererManager.h"
@@ -177,7 +178,7 @@ namespace BansheeEngine
 
 		HFont myFont = font;
 		if (myFont == nullptr)
-			myFont = BuiltinEditorResources::instance().getDefaultFont();
+			myFont = BuiltinEditorResources::instance().getDefaultAAFont();
 
 		mDrawHelper->text(position, text, myFont, fontSize);
 	}
@@ -251,24 +252,27 @@ namespace BansheeEngine
 	{
 		{
 			mLineMaterial.mat = lineMat;
-			SPtr<GpuParamsCore> vertParams = lineMat->getPassParameters(0)->mVertParams;
+			mLineMaterial.params = lineMat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mLineMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
 
 			vertParams->getParam("matViewProj", mLineMaterial.viewProj);
 		}
 
 		{
 			mSolidMaterial.mat = solidMat;
-			SPtr<GpuParamsCore> vertParams = solidMat->getPassParameters(0)->mVertParams;
-			SPtr<GpuParamsCore> fragParams = solidMat->getPassParameters(0)->mFragParams;
+			mSolidMaterial.params = solidMat->createParamsSet();
+			SPtr<GpuParamsCore> vertParams = mSolidMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mSolidMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
 			vertParams->getParam("matViewProj", mSolidMaterial.viewProj);
 			fragParams->getParam("viewDir", mSolidMaterial.viewDir);
 		}
 		{
 			mTextMaterial.mat = textMat;
+			mTextMaterial.params = textMat->createParamsSet();
 
-			SPtr<GpuParamsCore> vertParams = textMat->getPassParameters(0)->mVertParams;
-			SPtr<GpuParamsCore> fragParams = textMat->getPassParameters(0)->mFragParams;
+			SPtr<GpuParamsCore> vertParams = mTextMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
+			SPtr<GpuParamsCore> fragParams = mTextMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
 			vertParams->getParam("matViewProj", mTextMaterial.viewProj);
 			fragParams->getTextureParam("mainTexture", mTextMaterial.texture);
@@ -333,13 +337,20 @@ namespace BansheeEngine
 			currentType = meshes[0].type;
 
 			if (currentType == MeshType::Solid)
-				gRendererUtility().setPass(mSolidMaterial.mat, 0);
-			else if(currentType == MeshType::Line)
-				gRendererUtility().setPass(mLineMaterial.mat, 0);
+			{
+				gRendererUtility().setPass(mSolidMaterial.mat);
+				gRendererUtility().setPassParams(mSolidMaterial.params);
+			}
+			else if (currentType == MeshType::Line)
+			{
+				gRendererUtility().setPass(mLineMaterial.mat);
+				gRendererUtility().setPassParams(mLineMaterial.params);
+			}
 			else
 			{
 				mTextMaterial.texture.set(meshes[0].texture);
-				gRendererUtility().setPass(mTextMaterial.mat, 0);
+				gRendererUtility().setPass(mTextMaterial.mat);
+				gRendererUtility().setPassParams(mTextMaterial.params);
 			}
 		}
 
@@ -349,19 +360,19 @@ namespace BansheeEngine
 			{
 				if (meshData.type == MeshType::Solid)
 				{
-					gRendererUtility().setPass(mSolidMaterial.mat, 0);
-					gRendererUtility().setPassParams(mSolidMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mSolidMaterial.mat);
+					gRendererUtility().setPassParams(mSolidMaterial.params);
 				}
 				else if (meshData.type == MeshType::Line)
 				{
-					gRendererUtility().setPass(mLineMaterial.mat, 0);
-					gRendererUtility().setPassParams(mLineMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mLineMaterial.mat);
+					gRendererUtility().setPassParams(mLineMaterial.params);
 				}
 				else
 				{
 					mTextMaterial.texture.set(meshData.texture);
-					gRendererUtility().setPass(mTextMaterial.mat, 0);
-					gRendererUtility().setPassParams(mTextMaterial.mat); // TODO - This call shouldn't be necessary, calling set() on parameters should be enough
+					gRendererUtility().setPass(mTextMaterial.mat);
+					gRendererUtility().setPassParams(mTextMaterial.params);
 				}
 
 				currentType = meshData.type;

@@ -37,20 +37,22 @@ namespace BansheeEditor
 
         private void OnInitialize()
         {
-            GUILabel title = new GUILabel(new LocEdString("Banshee Engine v0.3"), EditorStyles.TitleLabel);
+            GUILabel title = new GUILabel(new LocEdString("Banshee Engine v0.4"), EditorStyles.TitleLabel);
             GUILabel subTitle = new GUILabel(new LocEdString("A modern open-source game development toolkit"), 
                 EditorStyles.LabelCentered);
             GUILabel license = new GUILabel(new LocEdString(
-                "This program is licensed under the GNU General Public License V3"), EditorStyles.LabelCentered);
+                "This program is licensed under the GNU Lesser General Public License V3"), EditorStyles.LabelCentered);
             GUILabel copyright = new GUILabel(new LocEdString("Copyright (C) 2015 Marko Pintera. All rights reserved."), 
                 EditorStyles.LabelCentered);
+
+            GUILabel authorLabel = new GUILabel(new LocEdString("Banshee was created, and is being actively developed by Marko Pintera."));
             GUILabel emailTitle = new GUILabel(new LocEdString("E-mail"), GUIOption.FixedWidth(150));
             emailLabel = new GUITextBox();
             GUILabel linkedInTitle = new GUILabel(new LocEdString("LinkedIn"), GUIOption.FixedWidth(150));
             GUIButton linkedInBtn = new GUIButton(new LocEdString("Profile"));
 
             GUIToggleGroup foldoutGroup = new GUIToggleGroup(true);
-            GUIToggle contactFoldout = new GUIToggle(new LocEdString("Author contact"), foldoutGroup, EditorStyles.Foldout);
+            GUIToggle contactFoldout = new GUIToggle(new LocEdString("Author"), foldoutGroup, EditorStyles.Foldout);
             GUIToggle thirdPartyFoldout = new GUIToggle(new LocEdString("Used third party libraries"), foldoutGroup, EditorStyles.Foldout);
             GUIToggle noticesFoldout = new GUIToggle(new LocEdString("Third party notices"), foldoutGroup, EditorStyles.Foldout);
             GUIToggle collaboratorsFoldout = new GUIToggle(new LocEdString("Collaborators"), foldoutGroup, EditorStyles.Foldout);
@@ -82,6 +84,12 @@ namespace BansheeEditor
             mainLayout.AddElement(contactFoldout);
 
             GUILayoutY contactLayout = mainLayout.AddLayoutY();
+            contactLayout.AddSpace(15);
+            GUILayout authorLayout = contactLayout.AddLayoutX();
+            authorLayout.AddFlexibleSpace();
+            authorLayout.AddElement(authorLabel);
+            authorLayout.AddFlexibleSpace();
+            contactLayout.AddSpace(15);
             GUILayout emailLayout = contactLayout.AddLayoutX();
             emailLayout.AddSpace(10);
             emailLayout.AddElement(emailTitle);
@@ -98,12 +106,16 @@ namespace BansheeEditor
             GUILayoutY thirdPartyLayout = mainLayout.AddLayoutY();
 
             CreateThirdPartyGUI(thirdPartyLayout, "Autodesk FBX SDK",
-                "http://usa.autodesk.com/adsk/servlet/pc/item?siteID=123112&id=10775847", "FBX_SDK_License.rtf");
-            CreateThirdPartyGUI(thirdPartyLayout, "FreeImage", "http://freeimage.sourceforge.net/", "freeimage-license.txt");
-            CreateThirdPartyGUI(thirdPartyLayout, "FreeType", "http://www.freetype.org/", "FTL.TXT");
-            CreateThirdPartyGUI(thirdPartyLayout, "Mono", "http://www.mono-project.com/", "Mono.txt");
+                "http://usa.autodesk.com/adsk/servlet/pc/item?siteID=123112&id=10775847");
+            CreateThirdPartyGUI(thirdPartyLayout, "FreeImage", "http://freeimage.sourceforge.net/");
+            CreateThirdPartyGUI(thirdPartyLayout, "FreeType", "http://www.freetype.org/");
+            CreateThirdPartyGUI(thirdPartyLayout, "Mono", "http://www.mono-project.com/");
             CreateThirdPartyGUI(thirdPartyLayout, "NVIDIA Texture Tools",
-                "https://github.com/castano/nvidia-texture-tools", "NVIDIATextureTools.txt");
+                "https://github.com/castano/nvidia-texture-tools");
+            CreateThirdPartyGUI(thirdPartyLayout, "libFLAC", "https://xiph.org/flac/");
+            CreateThirdPartyGUI(thirdPartyLayout, "libOgg", "https://www.xiph.org/ogg/");
+            CreateThirdPartyGUI(thirdPartyLayout, "libVorbis", "http://www.vorbis.com/");
+            CreateThirdPartyGUI(thirdPartyLayout, "OpenAL Soft", "http://kcat.strangesoft.net/openal.html");
 
             mainLayout.AddSpace(5);
             mainLayout.AddElement(noticesFoldout);
@@ -116,6 +128,7 @@ namespace BansheeEditor
             mainLayout.AddElement(collaboratorsFoldout);
             GUILayoutY collaboratorsLayout = mainLayout.AddLayoutY();
             CreateCollaboratorGUI(collaboratorsLayout, "Danijel Ribic", "Logo, UI icons, 3D models & textures");
+            CreateCollaboratorGUI(collaboratorsLayout, "Marco Bellan", "Bugfixes, editor enhancements");
 
             mainLayout.AddFlexibleSpace();
 
@@ -138,25 +151,20 @@ namespace BansheeEditor
             linkedInBtn.OnClick += () => { System.Diagnostics.Process.Start("http://hr.linkedin.com/in/markopintera"); };
         }
 
-        private void CreateThirdPartyGUI(GUILayoutY layout, string name, string webURL, string licenseFile)
+        private void CreateThirdPartyGUI(GUILayoutY layout, string name, string webURL)
         {
             GUILabel label = new GUILabel(new LocEdString(name), GUIOption.FixedWidth(150));
             GUIButton linkBtn = new GUIButton(new LocEdString("Website"), GUIOption.FixedWidth(50));
             GUIButton licenseBtn = new GUIButton(new LocEdString("License"), GUIOption.FixedWidth(50));
-
-            string licensePath = "..\\..\\..\\License\\Third Party\\" + licenseFile;
 
             GUILayoutX horzLayout = layout.AddLayoutX();
             horzLayout.AddSpace(10);
             horzLayout.AddElement(label);
             horzLayout.AddSpace(10);
             horzLayout.AddElement(linkBtn);
-            horzLayout.AddSpace(5);
-            horzLayout.AddElement(licenseBtn);
             horzLayout.AddSpace(10);
 
             linkBtn.OnClick += () => { System.Diagnostics.Process.Start(webURL); };
-            licenseBtn.OnClick += () => { System.Diagnostics.Process.Start(licensePath); };
         }
 
         private void CreateCollaboratorGUI(GUILayoutY layout, string name, string area)

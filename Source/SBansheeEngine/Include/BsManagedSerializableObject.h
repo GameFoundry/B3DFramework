@@ -64,7 +64,7 @@ namespace BansheeEngine
 		 *							type this object is initialized with.
 		 * @param[in]	val			Wrapper around the value to store in the field.
 		 */
-		void setFieldData(const SPtr<ManagedSerializableFieldInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val);
+		void setFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Returns the value of the specified field. Operates on managed object if in linked state, or on cached data
@@ -74,7 +74,7 @@ namespace BansheeEngine
 		 *							type this object is initialized with.
 		 * @return					A wrapper around the value of the field.
 		 */
-		SPtr<ManagedSerializableFieldData> getFieldData(const SPtr<ManagedSerializableFieldInfo>& fieldInfo) const;
+		SPtr<ManagedSerializableFieldData> getFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const;
 
 		/**
 		 * Serializes the internal managed object into a set of cached data that can be saved in memory/disk and can be

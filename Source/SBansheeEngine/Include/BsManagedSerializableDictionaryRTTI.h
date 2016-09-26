@@ -99,7 +99,7 @@ namespace BansheeEngine
 				&ManagedSerializableDictionaryRTTI::setEntry, &ManagedSerializableDictionaryRTTI::setNumEntries);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedSerializableDictionary* serializableObject = static_cast<ManagedSerializableDictionary*>(obj);
 
@@ -112,7 +112,7 @@ namespace BansheeEngine
 			serializableObject->mRTTIData = sequentialData;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedSerializableDictionary* serializableObject = static_cast<ManagedSerializableDictionary*>(obj);
 			serializableObject->mRTTIData = nullptr;

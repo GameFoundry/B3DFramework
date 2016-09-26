@@ -40,6 +40,8 @@ Guidelines
   - Always put a space after a semicolon (e.g. for(int i = 0; i < 5; i++)).
   - Always put a space between operators (e.g. 5 + 2).
   - Separate meaningful parts of the code in a method with empty lines
+  - Always but a blank line after a block {}
+  - No single line should be longer than column 124 (set up a guideline in your editor)
  - If method doesn't modify data, always mark it as const (getters especially)
  - Always pass non-primitive parameters by reference unless `null` is a valid value in which case use a pointer
  - Reference/pointer parameters that won't be modified by a function should always be `const`

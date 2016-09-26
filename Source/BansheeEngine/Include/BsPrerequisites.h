@@ -17,6 +17,10 @@
   *	Two dimensional geometry (sprites).
   */
 
+/** @defgroup Application-Engine Application
+ *  Entry point into the application.
+ */
+
 /** @defgroup Components Components
   *	Built-in components.
   */
@@ -29,30 +33,33 @@
  *	User input (mouse, keyboard, gamepad, etc.).
  */
 
+/** @defgroup Platform-Engine Platform
+ *  %Platform specific functionality.
+ */
+
+/** @defgroup Resources-Engine Resources
+  *	Builtin engine resource types and a manager for such resources.
+  */
+
 /** @cond RTTI */
 /** @defgroup RTTI-Impl-Engine RTTI types
  *  Types containing RTTI for specific classes.
  */
 /** @endcond */
 
-/** @defgroup Resources-Engine Resources
-  *	Builtin engine resource types and a manager for such resources.
-  */
-
 /** @defgroup Utility-Engine Utility
  *  Various utility methods and types used by the engine layer.
  */
 
-/** @defgroup Platform-Engine Platform
- *  %Platform specific functionality.
+/** @} */
+/** @} */
+
+/** @addtogroup Internals
+ *  @{
  */
 
-/** @defgroup Application-Engine Application
- *  Entry point into the application.
- */
-
-/** @defgroup Internal-Engine [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @defgroup Internal-Engine Engine
+ *	Layer that builds upon Core, providing specific implementations of its interfaces as well as other high level systems.
  *  @{
  */
 
@@ -79,8 +86,6 @@
 /** @defgroup Utility-Engine-Internal Utility
  *  Various utility methods and types used by the engine layer.
  */
-
-/** @} */
 
 /** @} */
 /** @} */
@@ -168,14 +173,13 @@ namespace BansheeEngine
 	class GUISliderVert;
 	class GUISliderHorz;
 	class GUIProgressBar;
+	class GUICanvas;
 
 	class RenderableHandler;
 	class ProfilerOverlay;
 	class ProfilerOverlayInternal;
 	class DrawHelper;
-	class Camera;
 	class Renderable;
-	class CameraCore;
 	class RenderableCore;
 	class PlainText;
 	class ScriptCode;
@@ -186,16 +190,19 @@ namespace BansheeEngine
 	class TextSprite;
 	class ImageSprite;
 	class SpriteTexture;
+	class SpriteMaterial;
 	struct SpriteMaterialInfo;
 
 	// Components
 	class CRenderable;
-	class CCamera;
 	class CLight;
+	class CAnimation;
+	class CBone;
 
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
-	typedef GameObjectHandle<CCamera> HCamera;
 	typedef GameObjectHandle<CRenderable> HRenderable;
+	typedef GameObjectHandle<CAnimation> HAnimation;
+	typedef GameObjectHandle<CBone> HBone;
 	typedef GameObjectHandle<ProfilerOverlay> HProfilerOverlay;
 
 	typedef ResourceHandle<SpriteTexture> HSpriteTexture;
@@ -206,10 +213,10 @@ namespace BansheeEngine
 	/**	RTTI types. */
 	enum TypeID_Banshee
 	{
-		TID_CCamera = 30000,
+		/* TID_CCamera = 30000, */
 		TID_CRenderable = 30001,
 		TID_SpriteTexture = 30002,
-		TID_Camera = 30003,
+		/* TID_Camera = 30003, */
 		TID_Renderable = 30004,
 		TID_PlainText = 30005,
 		TID_ScriptCode = 30006,
@@ -220,6 +227,11 @@ namespace BansheeEngine
 		TID_Light = 30011,
 		TID_CLight = 30012,
 		TID_GameSettings = 30013,
-		TID_ResourceMapping = 30014
+		TID_ResourceMapping = 30014,
+		TID_StandardPostProcessSettings = 30015,
+		TID_AutoExposureSettings = 30016,
+		TID_TonemappingSettings = 30017,
+		TID_WhiteBalanceSettings = 30018,
+		TID_ColorGradingSettings = 30019
 	};
 }

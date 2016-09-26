@@ -58,7 +58,7 @@ namespace BansheeEngine
 			addPlainField("restitutionCoefficient", 2, &PhysicsMaterialRTTI::getRestitutionCoefficient, &PhysicsMaterialRTTI::setRestitutionCoefficient);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
 
@@ -72,7 +72,7 @@ namespace BansheeEngine
 			material->mRTTIData = materialData;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
 			material->mRTTIData = nullptr;

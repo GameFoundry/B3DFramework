@@ -76,7 +76,7 @@ namespace BansheeEditor
             contentLayoutX.AddSpace(5);
 
             GUIPanel backgroundPanel = gui.AddPanel(START_BACKGROUND_DEPTH);
-            GUITexture inspectorContentBg = new GUITexture(null, EditorStyles.InspectorContentBg);
+            GUITexture inspectorContentBg = new GUITexture(null, EditorStylesInternal.InspectorContentBg);
             backgroundPanel.AddElement(inspectorContentBg);
 
             mainPanel = contentPanel;

@@ -30,6 +30,14 @@ namespace BansheeEngine
 			addReflectablePtrField("mMetaData", 1, &ResourceRTTI::getMetaData, &ResourceRTTI::setMetaData);
 		}
 
+		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<bool, UINT64>& params)
+		{
+			Resource* resource = static_cast<Resource*>(obj);
+
+			auto iterFind = params.find("keepSourceData");
+			resource->mKeepSourceData = iterFind != params.end() && iterFind->second > 0;
+		}
+
 		const String& getRTTIName() override
 		{
 			static String name = "Resource";

@@ -26,6 +26,8 @@ namespace BansheeEditor
         protected GUILayoutX guiTitleLayout;
         protected GUILayoutX guiInternalTitleLayout;
         protected GUILayoutY guiContentLayout;
+        protected GUIToggle guiFoldout;
+
         protected bool isExpanded;
         protected int depth;
         protected LocString title;
@@ -47,7 +49,7 @@ namespace BansheeEditor
             set
             {
                 if (isExpanded != value)
-                    ToggleFoldout(value);
+                    ToggleFoldout(value, true);
             }
         }
 
@@ -136,9 +138,9 @@ namespace BansheeEditor
             {
                 guiInternalTitleLayout = guiTitleLayout.InsertLayoutX(0);
 
-                GUIToggle guiFoldout = new GUIToggle(title, EditorStyles.Foldout);
+                guiFoldout = new GUIToggle(title, EditorStyles.Foldout);
                 guiFoldout.Value = isExpanded;
-                guiFoldout.OnToggled += ToggleFoldout;
+                guiFoldout.OnToggled += x => ToggleFoldout(x, false);
 
                 GUIContent clearIcon = new GUIContent(EditorBuiltin.GetInspectorWindowIcon(InspectorWindowIcon.Clear), 
                     new LocEdString("Clear"));
@@ -169,14 +171,14 @@ namespace BansheeEditor
 
                 short backgroundDepth = (short)(Inspector.START_BACKGROUND_DEPTH - depth - 1);
                 string bgPanelStyle = depth % 2 == 0
-                    ? EditorStyles.InspectorContentBgAlternate
-                    : EditorStyles.InspectorContentBg;
+                    ? EditorStylesInternal.InspectorContentBgAlternate
+                    : EditorStylesInternal.InspectorContentBg;
 
                 GUIPanel backgroundPanel = guiContentPanel.AddPanel(backgroundDepth);
                 GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);
                 backgroundPanel.AddElement(inspectorContentBg);
 
-                ToggleFoldout(isExpanded);
+                ToggleFoldout(isExpanded, false);
             };
 
             if (state == State.None)
@@ -457,12 +459,19 @@ namespace BansheeEditor
         /// Hides or shows the dictionary rows.
         /// </summary>
         /// <param name="expanded">True if the rows should be displayed, false otherwise.</param>
-        private void ToggleFoldout(bool expanded)
+        /// <param name="external">True if the foldout was expanded/collapsed from outside code.</param>
+        private void ToggleFoldout(bool expanded, bool external)
         {
             isExpanded = expanded;
 
             if (guiChildLayout != null)
                 guiChildLayout.Active = isExpanded && (rows.Count > 0 || IsEditInProgress());
+
+            if (external)
+            {
+                if (guiFoldout != null)
+                    guiFoldout.Value = isExpanded;
+            }
 
             if (OnExpand != null)
                 OnExpand(expanded);
@@ -513,7 +522,7 @@ namespace BansheeEditor
             else
             {
                 if (!isExpanded)
-                    ToggleFoldout(true);
+                    ToggleFoldout(true, true);
 
                 StartAdd();
             }
@@ -657,7 +666,7 @@ namespace BansheeEditor
             editRow.Enabled = true;
             editRow.EditMode = true;
 
-            ToggleFoldout(isExpanded);
+            ToggleFoldout(isExpanded, false);
         }
 
         /// <summary>
@@ -679,7 +688,7 @@ namespace BansheeEditor
             editRow.Enabled = true;
             editRow.EditMode = true;
 
-            ToggleFoldout(isExpanded);
+            ToggleFoldout(isExpanded, false);
         }
 
         /// <summary>
@@ -733,7 +742,7 @@ namespace BansheeEditor
                 editOriginalKey = null;
                 editRowIdx = -1;
 
-                ToggleFoldout(isExpanded);
+                ToggleFoldout(isExpanded, false);
                 isModified = true;
 
                 return true;
@@ -763,7 +772,7 @@ namespace BansheeEditor
                 editRow.Enabled = false;
                 editRowIdx = -1;
 
-                ToggleFoldout(isExpanded);
+                ToggleFoldout(isExpanded, false);
             }
         }
 

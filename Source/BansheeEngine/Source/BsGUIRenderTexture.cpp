@@ -15,7 +15,7 @@ namespace BansheeEngine
 
 	GUIRenderTexture::GUIRenderTexture(const String& styleName, const SPtr<RenderTexture>& texture, bool transparent, 
 		const GUIDimensions& dimensions)
-		:GUITexture(styleName, HSpriteTexture(), GUIImageScaleMode::StretchToFit, false, dimensions), mTransparent(transparent)
+		:GUITexture(styleName, HSpriteTexture(), TextureScaleMode::StretchToFit, false, dimensions), mTransparent(transparent)
 	{
 		setRenderTexture(texture);
 	}

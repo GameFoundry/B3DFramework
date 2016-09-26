@@ -37,6 +37,8 @@ namespace BansheeEngine
 
 	void BinaryCloner::gatherReferences(IReflectable* object, ObjectReferenceData& referenceData)
 	{
+		static const UnorderedMap<String, UINT64> dummyParams;
+
 		if (object == nullptr)
 			return;
 
@@ -44,7 +46,7 @@ namespace BansheeEngine
 		Stack<RTTITypeBase*> rttiTypes;
 		while (rtti != nullptr)
 		{
-			rtti->onSerializationStarted(object);
+			rtti->onSerializationStarted(object, dummyParams);
 			SubObjectReferenceData* subObjectData = nullptr;
 
 			UINT32 numFields = rtti->getNumFields();
@@ -155,17 +157,21 @@ namespace BansheeEngine
 			rtti = rttiTypes.top();
 			rttiTypes.pop();
 
-			rtti->onSerializationEnded(object);
+			rtti->onSerializationEnded(object, dummyParams);
 		}
 	}
 
 	void BinaryCloner::restoreReferences(IReflectable* object, const ObjectReferenceData& referenceData)
 	{
-		for (auto& subObject : referenceData.subObjectData)
+		static const UnorderedMap<String, UINT64> dummyParams;
+
+		for(auto iter = referenceData.subObjectData.rbegin(); iter != referenceData.subObjectData.rend(); ++iter)
 		{
+			const SubObjectReferenceData& subObject = *iter;
+
 			if (subObject.references.size() > 0)
 			{
-				subObject.rtti->onDeserializationStarted(object);
+				subObject.rtti->onDeserializationStarted(object, dummyParams);
 
 				for (auto& reference : subObject.references)
 				{
@@ -177,12 +183,15 @@ namespace BansheeEngine
 						curField->setValue(object, reference.object);
 				}
 
-				subObject.rtti->onDeserializationEnded(object);
+				subObject.rtti->onDeserializationEnded(object, dummyParams);
 			}
+		}
 
+		for (auto& subObject : referenceData.subObjectData)
+		{
 			if (subObject.children.size() > 0)
 			{
-				subObject.rtti->onSerializationStarted(object);
+				subObject.rtti->onSerializationStarted(object, dummyParams);
 
 				for (auto& childObjectData : subObject.children)
 				{
@@ -197,7 +206,7 @@ namespace BansheeEngine
 					restoreReferences(childObj, childObjectData);
 				}
 
-				subObject.rtti->onSerializationEnded(object);
+				subObject.rtti->onSerializationEnded(object, dummyParams);
 			}
 		}
 	}

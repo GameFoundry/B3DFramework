@@ -17,13 +17,13 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CBoxColliderRTTI : public RTTIType<CBoxCollider, CCollider, CBoxColliderRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mExtents)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mExtents, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		CBoxColliderRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mExtents, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

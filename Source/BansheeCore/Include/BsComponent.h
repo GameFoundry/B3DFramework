@@ -58,18 +58,23 @@ namespace BansheeEngine
 		 */
 		void destroy(bool immediate = false);
 
+		/** @name Internal 
+		 *  @{
+		 */
+
+		/**
+		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated. 
+		 * A non-instantiated component shouldn't be used for any other purpose than serialization.
+		 */
+		virtual void _instantiate() {}
+
+		/** @} */
 	protected:
 		friend class SceneObject;
 		friend class SceneObjectRTTI;
 
 		Component(const HSceneObject& parent);
 		virtual ~Component();
-
-		/**
-		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated. 
-		 * A non-instantiated component shouldn't be used for any other purpose than serialization.
-		 */
-		virtual void instantiate() {}
 
 		/**	Called when the component is ready to be initialized. */
 		virtual void onInitialized() {}

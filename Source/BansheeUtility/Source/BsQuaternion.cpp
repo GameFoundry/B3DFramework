@@ -111,7 +111,7 @@ namespace BansheeEngine
 		Quaternion quatY(cy, 0.0f, sy, 0.0f);
 		Quaternion quatZ(cz, 0.0f, 0.0f, sz);
 
-		*this = (quatY * quatX) * quatZ;
+		*this = (quatZ * quatX) * quatY;
 	}
 
 	void Quaternion::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
@@ -136,7 +136,7 @@ namespace BansheeEngine
 		quats[1] = Quaternion(cy, 0.0f, sy, 0.0f);
 		quats[2] = Quaternion(cz, 0.0f, 0.0f, sz);
 
-		*this = (quats[l.a] * quats[l.b]) * quats[l.c];
+		*this = (quats[l.c] * quats[l.b]) * quats[l.a];
 	}
 
 	void Quaternion::toRotationMatrix(Matrix3& mat) const
@@ -255,42 +255,6 @@ namespace BansheeEngine
         return Vector3(fTxz+fTwy, fTyz-fTwx, 1.0f-(fTxx+fTyy));
     }
 
-    Quaternion Quaternion::operator+ (const Quaternion& rhs) const
-    {
-        return Quaternion(w+rhs.w,x+rhs.x,y+rhs.y,z+rhs.z);
-    }
-
-    Quaternion Quaternion::operator- (const Quaternion& rhs) const
-    {
-        return Quaternion(w-rhs.w,x-rhs.x,y-rhs.y,z-rhs.z);
-    }
-
-    Quaternion Quaternion::operator* (const Quaternion& rhs) const
-    {
-        return Quaternion
-        (
-            w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z,
-            w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
-            w * rhs.y + y * rhs.w + z * rhs.x - x * rhs.z,
-            w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x
-        );
-    }
-
-    Quaternion Quaternion::operator* (float rhs) const
-    {
-        return Quaternion(rhs*w,rhs*x,rhs*y,rhs*z);
-    }
-
-    Quaternion Quaternion::operator- () const
-    {
-        return Quaternion(-w,-x,-y,-z);
-    }
-
-    float Quaternion::dot(const Quaternion& other) const
-    {
-        return w*other.w+x*other.x+y*other.y+z*other.z;
-    }
-
     Quaternion Quaternion::inverse() const
     {
         float fNorm = w*w+x*x+y*y+z*z;
@@ -323,7 +287,6 @@ namespace BansheeEngine
 		Vector3 nrmForwardDir = Vector3::normalize(forwardDir);
 		Vector3 currentForwardDir = -zAxis();
 
-		Quaternion targetRotation;
 		if ((nrmForwardDir + currentForwardDir).squaredLength() < 0.00005f)
 		{
 			// Oops, a 180 degree turn (infinite possible rotation axes)
@@ -399,14 +362,6 @@ namespace BansheeEngine
         }
     }
 
-    float Quaternion::normalize()
-    {
-        float len = w*w+x*x+y*y+z*z;
-        float factor = 1.0f / Math::sqrt(len);
-        *this = *this * factor;
-        return len;
-    }
-
 	Quaternion Quaternion::getRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
@@ -455,11 +410,5 @@ namespace BansheeEngine
 		}
 
 		return q;
-	}
-
-	Quaternion operator* (float lhs, const Quaternion& rhs)
-	{
-		return Quaternion(lhs*rhs.w,lhs*rhs.x,lhs*rhs.y,
-			lhs*rhs.z);
 	}
 }

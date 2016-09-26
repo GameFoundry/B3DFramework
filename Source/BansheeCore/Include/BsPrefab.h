@@ -25,8 +25,12 @@ namespace BansheeEngine
 		/**
 		 * Creates a new prefab from the provided scene object. If the scene object has an existing prefab link it will 
 		 * be broken. After the prefab is created the scene object will be automatically linked to it.
+		 *
+		 * @param[in]	sceneObject		Scene object to create the prefab from.
+		 * @param[in]	isScene			Determines if the prefab represents a scene or just a generic group of objects.
+		 *								@see isScene().
 		 */
-		static HPrefab create(const HSceneObject& sceneObject);
+		static HPrefab create(const HSceneObject& sceneObject, bool isScene = true);
 
 		/**
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy 
@@ -47,6 +51,14 @@ namespace BansheeEngine
 		 * hash.
 		 */
 		UINT32 getHash() const { return mHash; }
+
+		/** 
+		 * Determines if the prefab represents a scene or just a generic group of objects. The only difference between the
+		 * two is the way root object is handled: scenes are assumed to be saved with the scene root object (which is 
+		 * hidden), while object group root is a normal scene object (not hidden). This is relevant when when prefabs are
+		 * loaded, so the systems knows to append the root object to non-scene prefabs.
+		 */
+		bool isScene() const { return mIsScene; }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -84,6 +96,7 @@ namespace BansheeEngine
 		UINT32 mHash;
 		String mUUID;
 		UINT32 mNextLinkId;
+		bool mIsScene;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -92,7 +105,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

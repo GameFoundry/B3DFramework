@@ -66,14 +66,20 @@ void runApplication()
 		resolutionHeight = gameSettings->resolutionHeight;
 	}
 
-	RENDER_WINDOW_DESC renderWindowDesc;
-	renderWindowDesc.videoMode = VideoMode(resolutionWidth, resolutionHeight);
-	renderWindowDesc.title = toString(gameSettings->titleBarText);
-	renderWindowDesc.fullscreen = false;
-	renderWindowDesc.hidden = gameSettings->fullscreen;
-	renderWindowDesc.depthBuffer = false;
+	START_UP_DESC startUpDesc;
+	startUpDesc.renderAPI = BS_RENDER_API_MODULE;
+	startUpDesc.renderer = BS_RENDERER_MODULE;
+	startUpDesc.audio = BS_AUDIO_MODULE;
+	startUpDesc.physics = BS_PHYSICS_MODULE;
+	startUpDesc.input = BS_INPUT_MODULE;
 
-	Application::startUp(renderWindowDesc, RenderAPIPlugin::DX11);
+	startUpDesc.primaryWindowDesc.videoMode = VideoMode(resolutionWidth, resolutionHeight);
+	startUpDesc.primaryWindowDesc.title = toString(gameSettings->titleBarText);
+	startUpDesc.primaryWindowDesc.fullscreen = false;
+	startUpDesc.primaryWindowDesc.hidden = gameSettings->fullscreen;
+	startUpDesc.primaryWindowDesc.depthBuffer = false;
+
+	Application::startUp(startUpDesc);
 
 	// Note: What if script tries to load resources during startup? The manifest nor the mapping wont be set up yet.
 	Path resourcesPath = Paths::getGameResourcesPath();
@@ -125,8 +131,7 @@ void runApplication()
 	SPtr<ResourceManifest> manifest;
 	if (FileSystem::exists(resourceManifestPath))
 	{
-		Path resourceRoot = FileSystem::getWorkingDirectoryPath();
-		resourceRoot.append(resourcesPath);
+		Path resourceRoot = resourcesPath;
 		resourceRoot.makeParent(); // Remove /Resources entry, as we expect all resources to be relative to that path
 
 		manifest = ResourceManifest::load(resourceManifestPath, resourceRoot);
@@ -135,7 +140,8 @@ void runApplication()
 	}
 
 	{
-		HPrefab mainScene = static_resource_cast<Prefab>(gResources().loadFromUUID(gameSettings->mainSceneUUID, false, true, false));
+		HPrefab mainScene = static_resource_cast<Prefab>(gResources().loadFromUUID(gameSettings->mainSceneUUID, 
+			false, ResourceLoadFlag::LoadDependencies));
 		if (mainScene.isLoaded(false))
 		{
 			HSceneObject root = mainScene->instantiate();

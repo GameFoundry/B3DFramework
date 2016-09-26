@@ -43,7 +43,7 @@ namespace BansheeEngine
 		void initialize(GUIElementBase* element);
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		virtual void _onManagedInstanceDeleted() override;
+		void _onManagedInstanceDeleted() override;
 
 		/**	Triggered when the focus changes for the underlying GUIElementBase. */
 		static void onFocusChanged(MonoObject* instance, bool focus);
@@ -79,7 +79,7 @@ namespace BansheeEngine
 		virtual ~ScriptGUIElementTBase() {}
 
 		/** @copydoc ScriptGUIElementBaseTBase::destroy */
-		virtual void destroy() override;
+		void destroy() override;
 	};
 
 	/**

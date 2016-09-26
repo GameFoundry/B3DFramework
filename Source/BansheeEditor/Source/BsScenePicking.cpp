@@ -15,12 +15,12 @@
 #include "BsRenderAPI.h"
 #include "BsMaterial.h"
 #include "BsPass.h"
-#include "BsBlendState.h"
-#include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
 #include "BsRenderTarget.h"
+#include "BsMultiRenderTexture.h"
 #include "BsPixelData.h"
 #include "BsGpuParams.h"
+#include "BsGpuParamsSet.h"
 #include "BsBuiltinEditorResources.h"
 #include "BsShader.h"
 #include "BsCoreRenderer.h"
@@ -54,16 +54,25 @@ namespace BansheeEngine
 		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
 	}
 
-	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area)
+	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, 
+		Vector<HSceneObject>& ignoreRenderables, SnapData* data)
 	{
-		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area);
+		Vector<HSceneObject> selectedObjects = pickObjects(cam, position, area, ignoreRenderables, data);
 		if (selectedObjects.size() == 0)
 			return HSceneObject();
-
+			
+		if (data != nullptr)
+		{
+			Matrix3 rotation;
+			selectedObjects[0]->getWorldRotation().toRotationMatrix(rotation);
+			data->normal = rotation.inverse().transpose().transform(data->normal);
+		}
+		
 		return selectedObjects[0];
 	}
 
-	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area)
+	Vector<HSceneObject> ScenePicking::pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, 
+		Vector<HSceneObject>& ignoreRenderables, SnapData* data)
 	{
 		auto comparePickElement = [&] (const ScenePicking::RenderablePickData& a, const ScenePicking::RenderablePickData& b)
 		{
@@ -95,6 +104,19 @@ namespace BansheeEngine
 
 			HMesh mesh = renderable->getMesh();
 			if (!mesh.isLoaded())
+				continue;
+
+			bool found = false;
+			for (int i = 0; i < ignoreRenderables.size(); i++)
+			{
+				if (ignoreRenderables[i] == so)
+				{
+					found = true;
+					break;
+				}
+			}
+			
+			if (found)
 				continue;
 
 			Bounds worldBounds = mesh->getProperties().getBounds();
@@ -164,12 +186,19 @@ namespace BansheeEngine
 		GizmoManager::instance().renderForPicking(cam, [&](UINT32 inputIdx) { return encodeIndex(firstGizmoIdx + inputIdx); });
 
 		AsyncOp op = gCoreAccessor().queueReturnCommand(std::bind(&ScenePickingCore::corePickingEnd, mCore, target, 
-			cam->getViewport()->getNormArea(), position, area, _1));
+			cam->getViewport()->getNormArea(), position, area, data != nullptr, _1));
 		gCoreAccessor().submitToCoreThread(true);
 
 		assert(op.hasCompleted());
 
-		Vector<UINT32> selectedObjects = op.getReturnValue<Vector<UINT32>>();
+		PickResults pickResults = op.getReturnValue<PickResults>();
+		if (data != nullptr)
+		{
+			data->pickPosition = cam->screenToWorldPointDeviceDepth(position, pickResults.depth);
+			data->normal = pickResults.normal;
+		}
+
+		Vector<UINT32> selectedObjects = pickResults.objects;
 		Vector<HSceneObject> results;
 
 		for (auto& selectedObjectIdx : selectedObjects)
@@ -224,28 +253,25 @@ namespace BansheeEngine
 			MaterialData& md = mMaterialData[i];
 
 			{
-				SPtr<PassParametersCore> passParams = md.mMatPickingCore->getPassParameters(0);
+				md.mPickingParams = md.mMatPickingCore->createParamsSet();
+				SPtr<GpuParamsCore> vertParams = md.mPickingParams->getGpuParams(GPT_VERTEX_PROGRAM);
+				SPtr<GpuParamsCore> fragParams = md.mPickingParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				md.mParamPickingVertParams = passParams->mVertParams;
-				md.mParamPickingVertParams->getParam("matWorldViewProj", md.mParamPickingWVP);
-
-				md.mParamPickingFragParams = passParams->mFragParams;
-				md.mParamPickingFragParams->getParam("colorIndex", md.mParamPickingColor);
+				vertParams->getParam("matWorldViewProj", md.mParamPickingWVP);
+				fragParams->getParam("colorIndex", md.mParamPickingColor);
 			}
 
 			{
-				SPtr<PassParametersCore> passParams = md.mMatPickingAlphaCore->getPassParameters(0);
+				md.mPickingAlphaParams = md.mMatPickingAlphaCore->createParamsSet();
+				SPtr<GpuParamsCore> vertParams = md.mPickingAlphaParams->getGpuParams(GPT_VERTEX_PROGRAM);
+				SPtr<GpuParamsCore> fragParams = md.mPickingAlphaParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				md.mParamPickingAlphaVertParams = passParams->mVertParams;
-				md.mParamPickingAlphaVertParams->getParam("matWorldViewProj", md.mParamPickingAlphaWVP);
-
-				md.mParamPickingAlphaFragParams = passParams->mFragParams;
-
-				md.mParamPickingAlphaFragParams->getParam("colorIndex", md.mParamPickingAlphaColor);
-				md.mParamPickingAlphaFragParams->getTextureParam("mainTexture", md.mParamPickingAlphaTexture);
+				vertParams->getParam("matWorldViewProj", md.mParamPickingAlphaWVP);
+				fragParams->getParam("colorIndex", md.mParamPickingAlphaColor);
+				fragParams->getTextureParam("mainTexture", md.mParamPickingAlphaTexture);
 
 				GpuParamFloatCore alphaCutoffParam;
-				md.mParamPickingAlphaFragParams->getParam("alphaCutoff", alphaCutoffParam);
+				fragParams->getParam("alphaCutoff", alphaCutoffParam);
 				alphaCutoffParam.set(ALPHA_CUTOFF);
 			}
 		}
@@ -261,13 +287,36 @@ namespace BansheeEngine
 	{
 		RenderAPICore& rs = RenderAPICore::instance();
 
+		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
+
+		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
+		TextureProperties outputTextureProperties = outputTexture->getProperties();
+
+		SPtr<TextureCore> normalsTexture = TextureCore::create(TEX_TYPE_2D, outputTextureProperties.getWidth(),
+			outputTextureProperties.getHeight(), 0, PF_R8G8B8A8, TU_RENDERTARGET, false, 1);
+		SPtr<TextureCore> depthTexture = rtt->getBindableDepthStencilTexture();
+
+		MULTI_RENDER_TEXTURE_CORE_DESC pickingMRT;
+		pickingMRT.colorSurfaces.resize(2);
+		pickingMRT.colorSurfaces[0].face = 0;
+		pickingMRT.colorSurfaces[0].texture = outputTexture;
+		pickingMRT.colorSurfaces[1].face = 0;
+		pickingMRT.colorSurfaces[1].texture = normalsTexture;
+
+		pickingMRT.depthStencilSurface.face = 0;
+		pickingMRT.depthStencilSurface.texture = depthTexture;
+		
+		mPickingTexture = MultiRenderTextureCore::create(pickingMRT);
+
 		rs.beginFrame();
-		rs.setRenderTarget(target);
+		rs.setRenderTarget(mPickingTexture);
 		rs.setViewport(viewportArea);
 		rs.clearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White);
 		rs.setScissorRect(position.x, position.y, position.x + area.x, position.y + area.y);
 
 		gRendererUtility().setPass(mMaterialData[0].mMatPickingCore, 0);
+		gRendererUtility().setPassParams(mMaterialData[0].mPickingParams, 0);
+
 		bool activeMaterialIsAlpha = false;
 		CullingMode activeMaterialCull = (CullingMode)0;
 
@@ -293,16 +342,14 @@ namespace BansheeEngine
 				md.mParamPickingAlphaColor.set(color);
 				md.mParamPickingAlphaTexture.set(renderable.mainTexture->getCore());
 
-				rs.setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingAlphaVertParams);
-				rs.setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingAlphaFragParams);
+				gRendererUtility().setPassParams(md.mPickingAlphaParams);
 			}
 			else
 			{
 				md.mParamPickingWVP.set(renderable.wvpTransform);
 				md.mParamPickingColor.set(color);
 
-				rs.setGpuParams(GPT_VERTEX_PROGRAM, md.mParamPickingVertParams);
-				rs.setGpuParams(GPT_FRAGMENT_PROGRAM, md.mParamPickingFragParams);
+				gRendererUtility().setPassParams(md.mPickingParams);
 			}
 
 			UINT32 numSubmeshes = renderable.mesh->getProperties().getNumSubMeshes();
@@ -313,9 +360,13 @@ namespace BansheeEngine
 	}
 
 	void ScenePickingCore::corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, const Vector2I& position,
-		const Vector2I& area, AsyncOp& asyncOp)
+		const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp)
 	{
 		const RenderTargetProperties& rtProps = target->getProperties();
+		RenderAPICore& rs = RenderAPICore::instance();
+
+		rs.endFrame();
+		rs.setRenderTarget(nullptr);
 
 		if (rtProps.isWindow())
 		{
@@ -323,22 +374,28 @@ namespace BansheeEngine
 			BS_EXCEPT(NotImplementedException, "Picking is not supported on render windows as framebuffer readback methods aren't implemented");
 		}
 
-		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
-		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
+		SPtr<TextureCore> outputTexture = mPickingTexture->getBindableColorTexture(0)->getTexture();
+		SPtr<TextureCore> normalsTexture = mPickingTexture->getBindableColorTexture(1)->getTexture();
+		SPtr<TextureCore> depthTexture = mPickingTexture->getBindableDepthStencilTexture()->getTexture();
 
 		if (position.x < 0 || position.x >= (INT32)outputTexture->getProperties().getWidth() ||
 			position.y < 0 || position.y >= (INT32)outputTexture->getProperties().getHeight())
 		{
+			mPickingTexture = nullptr;
+
 			asyncOp._completeOperation(Vector<UINT32>());
 			return;
 		}
 
 		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocateSubresourceBuffer(0);
-		AsyncOp unused;
+		SPtr<PixelData> normalsPixelData;
+		SPtr<PixelData> depthPixelData;
+		if (gatherSnapData)
+		{
+			normalsPixelData = normalsTexture->getProperties().allocateSubresourceBuffer(0);
+			depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
+		}
 
-		RenderAPICore& rs = RenderAPICore::instance();
-
-		rs.endFrame();
 		outputTexture->readSubresource(0, *outputPixelData);
 
 		Map<UINT32, UINT32> selectionScores;
@@ -404,10 +461,35 @@ namespace BansheeEngine
 			return b.score < a.score;
 		});
 
-		Vector<UINT32> results;
+		Vector<UINT32> objects;
 		for (auto& selectedObject : selectedObjects)
-			results.push_back(selectedObject.index);
+			objects.push_back(selectedObject.index);
+		
+		PickResults result;
+		if (gatherSnapData)
+		{
+			depthTexture->readSubresource(0, *depthPixelData);
+			normalsTexture->readSubresource(0, *normalsPixelData);
 
-		asyncOp._completeOperation(results);
+			Vector2I samplePixel = position;
+			if (rtProps.requiresTextureFlipping())
+				samplePixel.y = depthPixelData->getHeight() - samplePixel.y;
+
+			float depth = depthPixelData->getDepthAt(samplePixel.x, samplePixel.y);
+			Color normal = normalsPixelData->getColorAt(samplePixel.x, samplePixel.y);
+
+			const RenderAPIInfo& rapiInfo = rs.getAPIInfo();
+			float max = rapiInfo.getMaximumDepthInputValue();
+			float min = rapiInfo.getMinimumDepthInputValue();
+			depth = depth * Math::abs(max - min) + min;
+
+			result.depth = depth;
+			result.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
+		}
+
+		mPickingTexture = nullptr;
+		
+		result.objects = objects;
+		asyncOp._completeOperation(result);
 	}
 }

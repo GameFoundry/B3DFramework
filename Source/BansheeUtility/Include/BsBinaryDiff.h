@@ -64,6 +64,7 @@ namespace BansheeEngine
 			UINT32 type;
 			SPtr<IReflectable> object;
 			UINT8* value;
+			SPtr<DataStream> streamValue;
 			UINT32 size;
 
 			union

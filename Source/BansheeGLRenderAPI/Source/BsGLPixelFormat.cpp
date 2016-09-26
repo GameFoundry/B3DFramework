@@ -379,4 +379,54 @@ namespace BansheeEngine
 			return PF_UNKNOWN;
 		}
 	}
+
+	GLenum GLPixelUtil::getBufferFormat(GpuBufferFormat format)
+	{
+		static bool lookupInitialized = false;
+
+		static GLenum lookup[BF_COUNT];
+		if (!lookupInitialized)
+		{
+			lookup[BF_16X1F] = GL_R16F;
+			lookup[BF_16X2F] = GL_RG16F;
+			lookup[BF_16X4F] = GL_RGBA16F;
+			lookup[BF_32X1F] = GL_R32F;
+			lookup[BF_32X2F] = GL_RG32F;
+			lookup[BF_32X3F] = GL_RGB32F;
+			lookup[BF_32X4F] = GL_RGBA32F;
+			lookup[BF_8X1] = GL_R8;
+			lookup[BF_8X2] = GL_RG8;
+			lookup[BF_8X4] = GL_RGBA8;
+			lookup[BF_16X1] = GL_R16;
+			lookup[BF_16X2] = GL_RG16;
+			lookup[BF_16X4] = GL_RGBA16;
+			lookup[BF_8X1S] = GL_R8I;
+			lookup[BF_8X2S] = GL_RG8I;
+			lookup[BF_8X4S] = GL_RGBA8I;
+			lookup[BF_16X1S] = GL_R16I;
+			lookup[BF_16X2S] = GL_RG16I;
+			lookup[BF_16X4S] = GL_RGBA16I;
+			lookup[BF_32X1S] = GL_R32I;
+			lookup[BF_32X2S] = GL_RG32I;
+			lookup[BF_32X3S] = GL_RGB32I;
+			lookup[BF_32X4S] = GL_RGBA32I;
+			lookup[BF_8X1U] = GL_R8UI;
+			lookup[BF_8X2U] = GL_RG8UI;
+			lookup[BF_8X4U] = GL_RGBA8UI;
+			lookup[BF_16X1U] = GL_R16UI;
+			lookup[BF_16X2U] = GL_RG16UI;
+			lookup[BF_16X4U] = GL_RGBA16UI;
+			lookup[BF_32X1U] = GL_R32UI;
+			lookup[BF_32X2U] = GL_RG32UI;
+			lookup[BF_32X3U] = GL_RGB32UI;
+			lookup[BF_32X4U] = GL_RGBA32UI;
+
+			lookupInitialized = true;
+		}
+
+		if (format >= BF_COUNT)
+			return GL_NONE;
+
+		return lookup[(UINT32)format];
+	}
 };

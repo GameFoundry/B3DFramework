@@ -10,62 +10,10 @@
 namespace BansheeEngine
 {
 	MeshManager::MeshManager()
-	{
-
-	}
+	{ }
 
 	MeshManager::~MeshManager()
-	{
-
-	}
-
-	SPtr<Mesh> MeshManager::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
-	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) 
-			Mesh(numVertices, numIndices, vertexDesc, usage, drawOp, indexType));
-		mesh->_setThisPtr(mesh);
-		mesh->initialize();
-
-		return mesh;
-	}
-
-	SPtr<Mesh> MeshManager::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
-	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>())
-			Mesh(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType));
-		mesh->_setThisPtr(mesh);
-		mesh->initialize();
-
-		return mesh;
-	}
-
-	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, int usage, DrawOperationType drawOp)
-	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, usage, drawOp));
-		mesh->_setThisPtr(mesh);
-		mesh->initialize();
-
-		return mesh;
-	}
-
-	SPtr<Mesh> MeshManager::create(const SPtr<MeshData>& initialData, const Vector<SubMesh>& subMeshes, int usage)
-	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialData, subMeshes, usage));
-		mesh->_setThisPtr(mesh);
-		mesh->initialize();
-
-		return mesh;
-	}
-
-	SPtr<Mesh> MeshManager::createEmpty()
-	{
-		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh());
-		mesh->_setThisPtr(mesh);
-
-		return mesh;
-	}
+	{ }
 
 	void MeshManager::onStartUp()
 	{

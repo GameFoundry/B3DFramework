@@ -169,7 +169,8 @@ namespace BansheeEngine
 
 	HTexture GUITextureField::getValue() const
 	{
-		return static_resource_cast<Texture>(Resources::instance().loadFromUUID(mUUID));
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::Default | ResourceLoadFlag::KeepSourceData;
+		return static_resource_cast<Texture>(Resources::instance().loadFromUUID(mUUID, false, loadFlags));
 	}
 
 	void GUITextureField::setValue(const HTexture& value)

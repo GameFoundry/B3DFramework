@@ -34,16 +34,25 @@ namespace BansheeEngine
         VET_FLOAT2 = 1, /**< 2D floating point value */
         VET_FLOAT3 = 2, /**< 3D floating point value */
         VET_FLOAT4 = 3, /**< 4D floating point value */
-		VET_COLOR = 4, /**< 4D floating point value */
+		VET_COLOR = 4, /**< Color encoded in 32-bits (8-bits per channel). */
 		VET_SHORT1 = 5, /**< 1D 16-bit signed integer value */
 		VET_SHORT2 = 6, /**< 2D 16-bit signed integer value */
-		VET_SHORT3 = 7, /**< 3D 16-bit signed integer value */
 		VET_SHORT4 = 8, /**< 4D 16-bit signed integer value */
         VET_UBYTE4 = 9, /**< 4D 8-bit unsigned integer value */
         VET_COLOR_ARGB = 10, /**< Color encoded in 32-bits (8-bits per channel) in ARGB order) */
         VET_COLOR_ABGR = 11, /**< Color encoded in 32-bits (8-bits per channel) in ABGR order) */
 		VET_UINT4 = 12, /**< 4D 32-bit unsigned integer value */
-		VET_SINT4 = 13  /**< 4D 32-bit signed integer value */
+		VET_INT4 = 13,  /**< 4D 32-bit signed integer value */
+		VET_USHORT1 = 14, /**< 1D 16-bit unsigned integer value */
+		VET_USHORT2 = 15, /**< 2D 16-bit unsigned integer value */
+		VET_USHORT4 = 17, /**< 4D 16-bit unsigned integer value */
+		VET_INT1 = 18,  /**< 1D 32-bit signed integer value */
+		VET_INT2 = 19,  /**< 2D 32-bit signed integer value */
+		VET_INT3 = 20,  /**< 3D 32-bit signed integer value */
+		VET_UINT1 = 21,  /**< 1D 32-bit signed integer value */
+		VET_UINT2 = 22,  /**< 2D 32-bit signed integer value */
+		VET_UINT3 = 23,  /**< 3D 32-bit signed integer value */
+		VET_UBYTE4_NORM = 24, /**< 4D 8-bit unsigned integer interpreted as a normalized value in [0, 1] range. */
     };
 
 	/**	Describes a single vertex element in a vertex declaration. */

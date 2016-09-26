@@ -20,7 +20,7 @@ namespace BansheeEngine
 		setSkin(skin);
 
 		GUIPanel* backgroundPanel = getPanel()->addNewElement<GUIPanel>(500);
-		backgroundPanel->addElement(GUITexture::create(GUIImageScaleMode::RepeatToFit,
+		backgroundPanel->addElement(GUITexture::create(TextureScaleMode::RepeatToFit,
 			GUIOptions(GUIOption::flexibleWidth(), GUIOption::flexibleHeight()), "WindowBackground"));
 
 		mWindowFramePanel = getPanel()->addNewElement<GUIPanel>(499);

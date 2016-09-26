@@ -40,8 +40,8 @@ namespace BansheeEngine
 	protected:
 		friend class D3D9HardwareBufferCoreManager;
 
-		D3D9GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferUsage usage,
-			bool randomGpuWrite = false, bool useCounter = false);
+		D3D9GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
+			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
 
 		/** @copydoc GpuBufferCore::createView */
 		GpuBufferView* createView() override;

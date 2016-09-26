@@ -43,7 +43,7 @@ namespace BansheeEngine
 		UINT32 contentWidth = style.margins.left + style.margins.right + style.contentOffset.left + style.contentOffset.right;
 		UINT32 contentHeight = style.margins.top + style.margins.bottom + style.contentOffset.top + style.contentOffset.bottom;
 
-		if(style.font != nullptr)
+		if(style.font != nullptr && !text.empty())
 		{
 			bs_frame_mark();
 
@@ -56,5 +56,23 @@ namespace BansheeEngine
 		}
 
 		return Vector2I(contentWidth, contentHeight);
+	}
+
+	Vector2I GUIHelper::calcTextSize(const WString& text, const HFont& font, UINT32 fontSize)
+	{
+		Vector2I size;
+		if (font != nullptr)
+		{
+			bs_frame_mark();
+
+			TextData<FrameAlloc> textData(text, font, fontSize, 0, 0, false);
+
+			size.x = textData.getWidth();
+			size.y = textData.getNumLines() * textData.getLineHeight();
+
+			bs_frame_clear();
+		}
+
+		return size;
 	}
 }

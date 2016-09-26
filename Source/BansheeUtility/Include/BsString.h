@@ -876,9 +876,11 @@ namespace BansheeEngine
 
 /** @cond STDLIB */
 
+namespace std
+{
 /** Hash value generator for String. */
 template<> 
-struct std::hash<BansheeEngine::String>
+struct hash<BansheeEngine::String>
 {
 	size_t operator()(const BansheeEngine::String& string) const
 	{
@@ -891,7 +893,7 @@ struct std::hash<BansheeEngine::String>
 
 /**	Hash value generator for WString. */
 template<> 
-struct std::hash<BansheeEngine::WString>
+struct hash<BansheeEngine::WString>
 {
 	size_t operator()(const BansheeEngine::WString& string) const
 	{
@@ -901,5 +903,6 @@ struct std::hash<BansheeEngine::WString>
 		return hash ^ (hash >> 16);
 	}
 };
+}
 
 /** @endcond */

@@ -55,7 +55,7 @@ namespace BansheeEditor
         private float currentSpeed;
         private Degree yaw;
         private Degree pitch;
-        private bool lastButtonState;
+        private bool lastHideCursorState;
         private Camera camera;
         private bool inputEnabled = true;
 
@@ -168,7 +168,7 @@ namespace BansheeEditor
                 bool isPanning = VirtualInput.IsButtonHeld(panBtn);
 
                 bool hideCursor = camActive || isPanning;
-                if (hideCursor != lastButtonState)
+                if (hideCursor != lastHideCursorState)
                 {
                     if (hideCursor)
                     {
@@ -188,7 +188,7 @@ namespace BansheeEditor
                         Cursor.ClipDisable();
                     }
 
-                    lastButtonState = hideCursor;
+                    lastHideCursorState = hideCursor;
                 }
 
                 float frameDelta = Time.FrameDelta;
@@ -261,12 +261,17 @@ namespace BansheeEditor
             }
             else
             {
-                Cursor.Show();
-                Cursor.ClipDisable();
+                if (lastHideCursorState)
+                {
+                    Cursor.Show();
+                    Cursor.ClipDisable();
+
+                    lastHideCursorState = false;
+                }
             }
 
             SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
-            if (sceneWindow.Active)
+            if ((sceneWindow.Active && sceneWindow.HasFocus) || sceneWindow.IsPointerHovering)
             {
                 Rect2I bounds = sceneWindow.Bounds;
 

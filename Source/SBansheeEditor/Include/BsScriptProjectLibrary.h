@@ -81,6 +81,7 @@ namespace BansheeEngine
 		static void internal_Copy(MonoString* source, MonoString* destination, bool overwrite);
 		static MonoString* internal_GetResourceFolder();
 		static void internal_SetIncludeInBuild(MonoString* path, bool include);
+		static void internal_SetEditorData(MonoString* path, MonoObject* userData);
 	};
 
 	/**	Base class for C++/CLR interop objects used for wrapping LibraryEntry implementations. */
@@ -172,6 +173,7 @@ namespace BansheeEngine
 		static MonoString* internal_GetSubresourceName(ScriptResourceMeta* thisPtr);
 		static MonoObject* internal_GetIcon(ScriptResourceMeta* thisPtr);
 		static ScriptResourceType internal_GetResourceType(ScriptResourceMeta* thisPtr);
+		static MonoObject* internal_GetEditorData(ScriptResourceMeta* thisPtr);
 	};
 
 	/** @} */

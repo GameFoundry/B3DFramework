@@ -17,15 +17,16 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT PhysicsMeshRTTI : public RTTIType<PhysicsMesh, Resource, PhysicsMeshRTTI>
 	{
 	private:
-		BS_REFLPTR_MEMBER(mInternal)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mInternal, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		PhysicsMeshRTTI()
-		{
-			BS_ADD_REFLPTR_FIELD(mInternal, 0)
-		}
+			:mInitMembers(this)
+		{ }
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			PhysicsMesh* mesh = static_cast<PhysicsMesh*>(obj);
 			mesh->initialize();
@@ -54,13 +55,13 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT FPhysicsMeshRTTI : public RTTIType<FPhysicsMesh, IReflectable, FPhysicsMeshRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mType)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mType, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		FPhysicsMeshRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mType, 0)
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

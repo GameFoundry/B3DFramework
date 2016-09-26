@@ -593,6 +593,106 @@ namespace BansheeEngine
 			return numRoots;
 		}
 
+		/**
+		 * Evaluates a cubic Hermite curve at a specific point.
+		 *
+		 * @param[in]	t			Parameter that at which to evaluate the curve, in range [0, 1].
+		 * @param[in]	pointA		Starting point (at t=0).
+		 * @param[in]	pointB		Ending point (at t=1).
+		 * @param[in]	tangentA	Starting tangent (at t=0).
+		 * @param[in]	tangentB	Ending tangent (at t = 1).
+		 * @return					Evaluated value at @p t.
+		 */
+		template<class T>
+		static T cubicHermite(float t, const T& pointA, const T& pointB, const T& tangentA, const T& tangentB)
+		{
+			float t2 = t * t;
+			float t3 = t2 * t;
+
+			float a = 2 * t3 - 3 * t2 + 1;
+			float b = t3 - 2 * t2 + t;
+			float c = -2 * t3 + 3 * t2;
+			float d = t3 - t2;
+
+			return a * pointA + b * tangentA + c * pointB + d * tangentB;
+		}
+
+		/**
+		 * Evaluates the first derivative of a cubic Hermite curve at a specific point.
+		 *
+		 * @param[in]	t			Parameter that at which to evaluate the curve, in range [0, 1].
+		 * @param[in]	pointA		Starting point (at t=0).
+		 * @param[in]	pointB		Ending point (at t=1).
+		 * @param[in]	tangentA	Starting tangent (at t=0).
+		 * @param[in]	tangentB	Ending tangent (at t = 1).
+		 * @return					Evaluated value at @p t.
+		 */
+		template<class T>
+		static T cubicHermiteD1(float t, const T& pointA, const T& pointB, const T& tangentA, const T& tangentB)
+		{
+			float t2 = t * t;
+
+			float a = 6 * t2 - 6 * t;
+			float b = 3 * t2 - 4 * t + 1;
+			float c = -6 * t2 + 6 * t;
+			float d = 3 * t2 - 2 * t;
+
+			return a * pointA + b * tangentA + c * pointB + d * tangentB;
+		}
+
+		/**
+		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form. Assumes @p t has been normalized is
+		 * in range [0, 1]. Tangents must be scaled by the length of the curve (length is the maximum value of @p t before
+		 * it was normalized).
+		 *
+		 * @param[in]	pointA			Starting point (at t=0).
+		 * @param[in]	pointB			Ending point (at t=1).
+		 * @param[in]	tangentA		Starting tangent (at t=0).
+		 * @param[in]	tangentB		Ending tangent (at t = 1).
+		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 */
+		template<class T>
+		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, 
+			T (&coefficients)[4])
+		{
+			T diff = pointA - pointB;
+
+			coefficients[0] = 2 * diff + tangentA + tangentB;
+			coefficients[1] = -3 * diff - 2 * tangentA - tangentB;
+			coefficients[2] = tangentA;
+			coefficients[3] = pointA;
+		}
+
+		/**
+		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form. Assumes @p t is in range 
+		 * [0, @p length]. Tangents must not be scaled by @p length.
+		 *
+		 * @param[in]	pointA			Starting point (at t=0).
+		 * @param[in]	pointB			Ending point (at t=length).
+		 * @param[in]	tangentA		Starting tangent (at t=0).
+		 * @param[in]	tangentB		Ending tangent (at t=length).
+		 * @param[in]	length			Maximum value the curve will be evaluated at.
+		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 */
+		template<class T>
+		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, 
+			float length, T (&coefficients)[4])
+		{
+			float length2 = length * length;
+			float invLength2 = 1.0f / length2;
+			float invLength3 = 1.0f / (length2 * length);
+
+			T scaledTangentA = tangentA * length;
+			T scaledTangentB = tangentB * length;
+
+			T diff = pointA - pointB;
+
+			coefficients[0] = (2 * diff + scaledTangentA + scaledTangentB) * invLength3;
+			coefficients[1] = (-3 * diff - 2 * scaledTangentA - scaledTangentB) * invLength2;
+			coefficients[2] = tangentA;
+			coefficients[3] = pointA;
+		}
+
         static const float POS_INFINITY;
         static const float NEG_INFINITY;
         static const float PI;

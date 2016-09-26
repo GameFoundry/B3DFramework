@@ -7,6 +7,8 @@
 #include "BsIReflectable.h"
 #include "BsCoreObject.h"
 
+#include <cfloat>
+
 namespace BansheeEngine 
 {
 	/** @addtogroup RenderAPI
@@ -194,15 +196,18 @@ namespace BansheeEngine
  *  @{
  */
 
+namespace std
+{
 /**	Hash value generator for SAMPLER_STATE_DESC. */
 template<>
-struct std::hash<BansheeEngine::SAMPLER_STATE_DESC>
+struct hash<BansheeEngine::SAMPLER_STATE_DESC>
 {
 	size_t operator()(const BansheeEngine::SAMPLER_STATE_DESC& value) const
 	{
 		return (size_t)BansheeEngine::SamplerState::generateHash(value);
 	}
 };
+}
 
 /** @} */
 /** @endcond */

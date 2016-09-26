@@ -122,7 +122,7 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc CoreObjectCore::syncToCore */
-		virtual void syncToCore(const CoreSyncData& data) override;
+		void syncToCore(const CoreSyncData& data) override;
 
 		MeshProperties mProperties;
 	};
@@ -167,7 +167,7 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc CoreObject::syncToCore */
-		virtual CoreSyncData syncToCore(FrameAlloc* allocator) override;
+		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
 		MeshProperties mProperties;
 
@@ -180,7 +180,7 @@ namespace BansheeEngine
 	public:
 		friend class MeshBaseRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

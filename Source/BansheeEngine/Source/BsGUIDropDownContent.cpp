@@ -121,7 +121,7 @@ namespace BansheeEngine
 
 			if (element.isSeparator())
 			{
-				visElem.separator = GUITexture::create(GUIImageScaleMode::StretchToFit, getSubStyleName(SEPARATOR_STYLE_TYPE));
+				visElem.separator = GUITexture::create(TextureScaleMode::StretchToFit, getSubStyleName(SEPARATOR_STYLE_TYPE));
 				_registerChildElement(visElem.separator);
 			}
 			else if (element.isSubMenu())

@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "BsCoreApplication.h"
+#include "BsEngineConfig.h"
 #include "BsEvent.h"
 
 namespace BansheeEngine
@@ -12,38 +13,15 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/**	Types of available render systems. */
-	enum class RenderAPIPlugin
-	{
-		DX11,
-		DX9,
-		OpenGL
-	};
-
-	/**	Types of available renderers. */
-	enum class RendererPlugin
-	{
-		Default
-	};
-
 	/**	Primary entry point for Banshee engine. Handles startup and shutdown. */
 	class BS_EXPORT Application : public CoreApplication
 	{
 	public:
-		Application(RENDER_WINDOW_DESC primaryWindowDesc, RenderAPIPlugin renderAPI, RendererPlugin renderer, 
-			const Vector<String>& importers);
+		Application(const START_UP_DESC& desc);
 		virtual ~Application();
 
-		/**
-		 * Starts the Banshee engine.
-		 * 
-		 * @param[in]	primaryWindowDesc	Description of the primary render window that will be created on startup.
-		 * @param[in]	renderAPI			Render API plugin to use.
-		 * @param[in]	renderer			Renderer plugin to use.
-		 * @param[in]	importers			A list of importer plugins to load on startup.
-		 */
-		static void startUp(RENDER_WINDOW_DESC& primaryWindowDesc, RenderAPIPlugin renderAPI, 
-			RendererPlugin renderer = RendererPlugin::Default, const Vector<String>& importers = Vector<String>());
+		/** Starts the Banshee engine. */
+		static void startUp(const START_UP_DESC& desc);
 
 		/**	Returns the absolute path to the builtin managed engine assembly file. */
 		Path getEngineAssemblyPath() const;
@@ -56,19 +34,19 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc Module::onStartUp */
-		virtual void onStartUp() override;
+		void onStartUp() override;
 
 		/** @copydoc Module::onShutDown */
-		virtual void onShutDown() override;
+		void onShutDown() override;
 
 		/** @copydoc CoreApplication::preUpdate */
-		virtual void preUpdate() override;
+		void preUpdate() override;
 
 		/** @copydoc CoreApplication::postUpdate */
-		virtual void postUpdate() override;
+		void postUpdate() override;
 
 		/** @copydoc CoreApplication::startUpRenderer */
-		virtual void startUpRenderer() override;
+		void startUpRenderer() override;
 
 		/** @copydoc CoreApplication::getShaderIncludeHandler */
 		SPtr<IShaderIncludeHandler> getShaderIncludeHandler() const override;
@@ -81,12 +59,6 @@ namespace BansheeEngine
 
 		/**	Returns the absolute path to the folder where built-in assemblies are located in. */
 		virtual Path getBuiltinAssemblyFolder() const;
-
-		/**	Translates render system type into library name. */
-		static String getLibNameForRenderAPI(RenderAPIPlugin plugin);
-
-		/**	Translates renderer type into library name. */
-		static String getLibNameForRenderer(RendererPlugin plugin);
 
 		DynLib* mMonoPlugin;
 		DynLib* mSBansheeEnginePlugin;

@@ -71,17 +71,17 @@ namespace BansheeEngine
 		mBgPanel->setWidth(1);
 		mBgPanel->setHeight(50);
 
-		mBgTexture = GUITexture::create(GUIImageScaleMode::StretchToFit,
+		mBgTexture = GUITexture::create(TextureScaleMode::StretchToFit,
 			GUIOptions(GUIOption::flexibleWidth(), GUIOption::flexibleHeight()), getBackgroundStyleType());
 		
 		GUILayoutX* bgLayout = mBgPanel->addNewElement<GUILayoutX>();
 		bgLayout->addElement(mBgTexture);
 
-		mLogoTexture = GUITexture::create(GUIImageScaleMode::StretchToFit, getLogoStyleType());
+		mLogoTexture = GUITexture::create(TextureScaleMode::StretchToFit, getLogoStyleType());
 		mMinBtn = GUIButton::create(HString(L""), "WinMinimizeBtn");
 		mMaxBtn = GUIButton::create(HString(L""), "WinMaximizeBtn");
 		mCloseBtn = GUIButton::create(HString(L""), "WinCloseBtn");
-		mSplitterLine = GUITexture::create(GUIImageScaleMode::StretchToFit, getLineStyleType());
+		mSplitterLine = GUITexture::create(TextureScaleMode::StretchToFit, getLineStyleType());
 
 		GUILayout* mainLayout = mMainPanel->addNewElement<GUILayoutX>();
 		mainLayout->addElement(mLogoTexture);

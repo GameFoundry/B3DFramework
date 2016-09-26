@@ -13,6 +13,21 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Contains the data of a scene picking action. */
+	struct SnapData
+	{
+		Vector3 normal;
+		Vector3 pickPosition;
+	};
+
+	/** Contains the results of a scene picking action. */
+	struct PickResults
+	{
+		Vector<UINT32> objects;
+		Vector3 normal;
+		float depth;
+	};
+
 	class ScenePickingCore;
 
 	/**	Handles picking of scene objects with a pointer in scene view. */
@@ -36,25 +51,32 @@ namespace BansheeEngine
 		/**
 		 * Attempts to find a single nearest scene object under the provided position and area.
 		 *
-		 * @param[in]	cam			Camera to perform the picking from.
-		 * @param[in]	position	Pointer position relative to the camera viewport, in pixels.
-		 * @param[in]	area		Width/height of the checked area in pixels. Use (1, 1) if you want the exact position
-		 *							under the pointer.
-		 * @return					Nearest SceneObject under the provided area, or an empty handle if no object is found.
+		 * @param[in]	cam					Camera to perform the picking from.
+		 * @param[in]	position			Pointer position relative to the camera viewport, in pixels.
+		 * @param[in]	area				Width/height of the checked area in pixels. Use (1, 1) if you want the exact
+		 *									position under the pointer.
+		 * @param[in]	ignoreRenderables	A list of objects that should be ignored during scene picking.
+		 * @param[out]	data				Picking data regarding position and normal.
+		 * @return							Nearest SceneObject under the provided area, or an empty handle if no object is
+		 *									found.
 		 */
-		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area);
+		HSceneObject pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, 
+			Vector<HSceneObject>& ignoreRenderables, SnapData* data = nullptr);
 
 		/**
 		 * Attempts to find all scene objects under the provided position and area. This does not mean objects occluded by
 		 * other objects.
 		 *
-		 * @param[in]	cam			Camera to perform the picking from.
-		 * @param[in]	position	Pointer position relative to the camera viewport, in pixels.
-		 * @param[in]	area		Width/height of the checked area in pixels. Use (1, 1) if you want the exact position
-		 *							under the pointer.
-		 * @return					A list of SceneObject%s under the provided area.
+		 * @param[in]	cam					Camera to perform the picking from.
+		 * @param[in]	position			Pointer position relative to the camera viewport, in pixels.
+		 * @param[in]	area				Width/height of the checked area in pixels. Use (1, 1) if you want the exact 
+		 *									position under the pointer.
+		 * @param[in]	ignoreRenderables	A list of objects that should be ignored during scene picking.
+		 * @param[out]	data				Picking data regarding position and normal.
+		 * @return							A list of SceneObject%s under the provided area.
 		 */
-		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area);
+		Vector<HSceneObject> pickObjects(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, 
+			Vector<HSceneObject>& ignoreRenderables, SnapData* data = nullptr);
 
 	private:
 		friend class ScenePickingCore;
@@ -84,10 +106,8 @@ namespace BansheeEngine
 			SPtr<MaterialCore> mMatPickingCore;
 			SPtr<MaterialCore> mMatPickingAlphaCore;
 
-			SPtr<GpuParamsCore> mParamPickingVertParams;
-			SPtr<GpuParamsCore> mParamPickingFragParams;
-			SPtr<GpuParamsCore> mParamPickingAlphaVertParams;
-			SPtr<GpuParamsCore> mParamPickingAlphaFragParams;
+			SPtr<GpuParamsSetCore> mPickingParams;
+			SPtr<GpuParamsSetCore> mPickingAlphaParams;
 
 			GpuParamMat4Core mParamPickingWVP;
 			GpuParamMat4Core mParamPickingAlphaWVP;
@@ -125,11 +145,12 @@ namespace BansheeEngine
 		 * @param[in]	viewportArea	Normalized area of the render target we're rendering in.
 		 * @param[in]	position		Position of the pointer where to pick objects, in pixels relative to viewport.
 		 * @param[in]	area			Width/height of the area to pick objects, in pixels.
+		 * @param[in]	gatherSnapData	Determines whather normal & depth information will be recorded.
 		 * @param[out]	asyncOp			Async operation handle that when complete will contain the results of the picking
 		 *								operation in the form of Vector<SelectedObject>.
 		 */
 		void corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, const Vector2I& position,
-			const Vector2I& area, AsyncOp& asyncOp);
+			const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp);
 
 	private:
 		friend class ScenePicking;
@@ -137,6 +158,7 @@ namespace BansheeEngine
 		static const float ALPHA_CUTOFF;
 
 		MaterialData mMaterialData[3];
+		SPtr<MultiRenderTextureCore> mPickingTexture;
 	};
 
 	/** @} */

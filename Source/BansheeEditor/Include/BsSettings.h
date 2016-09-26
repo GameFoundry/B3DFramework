@@ -57,10 +57,10 @@ namespace BansheeEngine
 		/**	Marks the object as dirty so that outside objects know when to update. */
 		void markAsDirty() const { mHash++; }
 
-		Map<String, float> mFloatProperties;
-		Map<String, INT32> mIntProperties;
-		Map<String, bool> mBoolProperties;
-		Map<String, WString> mStringProperties;
+		UnorderedMap<String, float> mFloatProperties;
+		UnorderedMap<String, INT32> mIntProperties;
+		UnorderedMap<String, bool> mBoolProperties;
+		UnorderedMap<String, WString> mStringProperties;
 
 		mutable UINT32 mHash;
 
@@ -70,7 +70,7 @@ namespace BansheeEngine
 	public:
 		friend class SettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

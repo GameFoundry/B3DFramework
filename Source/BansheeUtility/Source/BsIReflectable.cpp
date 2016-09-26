@@ -3,6 +3,7 @@
 #include "BsIReflectable.h"
 #include "BsRTTIType.h"
 #include "BsException.h"
+#include "BsIReflectableRTTI.h"
 
 namespace BansheeEngine
 {
@@ -119,5 +120,10 @@ namespace BansheeEngine
 	const String& IReflectable::getTypeName() const
 	{
 		return getRTTI()->getRTTIName();
+	}
+
+	RTTITypeBase* IReflectable::getRTTIStatic()
+	{
+		return IReflectableRTTI::instance();
 	}
 }

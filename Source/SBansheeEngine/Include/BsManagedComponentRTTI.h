@@ -70,7 +70,7 @@ namespace BansheeEngine
 			addPlainField("mMissingType", 3, &ManagedComponentRTTI::getMissingType, &ManagedComponentRTTI::setMissingType);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
 			MonoObject* managedInstance = mc->getManagedInstance();
@@ -81,7 +81,7 @@ namespace BansheeEngine
 				mc->mRTTIData = mc->mSerializedObjectData;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
 			mc->mRTTIData = nullptr;

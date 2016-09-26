@@ -44,6 +44,12 @@ namespace BansheeEngine
 		/**	Returns the RTTI type ID of the resource this object is referencing. */
 		UINT32 getTypeID() const { return mTypeId; }
 
+		/** 
+		 * Returns additional data attached to the resource meta by the user. This is non-specific data and can contain
+		 * anything the user requires. 
+		 */
+		SPtr<IReflectable> getUserData() const { return mUserData; }
+
 	private:
 		friend class ProjectLibrary;
 
@@ -51,6 +57,7 @@ namespace BansheeEngine
 		String mUUID;
 		SPtr<ResourceMetaData> mResourceMeta;
 		UINT32 mTypeId;
+		SPtr<IReflectable> mUserData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -62,7 +69,7 @@ namespace BansheeEngine
 	public:
 		friend class ProjectResourceMetaRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;	
+		RTTITypeBase* getRTTI() const override;	
 	};
 
 	/**	
@@ -88,13 +95,25 @@ namespace BansheeEngine
 		/** Registers a new resource in the file meta-data. */
 		void add(const SPtr<ProjectResourceMeta>& resourceMeta);
 
-		/** Removes a resource with the specified UUID from the file meta-data. */
-		void remove(const String& UUID);
+		/** 
+		 * Registers an inactive resource in the file meta-data. Inactive meta-data is stored for resources that used
+		 * to exist, but do not exist currently, in order to restore their handles if they get restored at a later date.
+		 */
+		void addInactive(const SPtr<ProjectResourceMeta>& resourceMeta);
 
-		/** Returns meta-data for all resources contained in the file represented by this meta-data object. */
+		/** Returns meta-data for all active resources contained in the file represented by this meta-data object.  */
 		const Vector<SPtr<ProjectResourceMeta>>& getResourceMetaData() const { return mResourceMetaData; }
 
-		/** Removes all resource meta-data stored by this object. */
+		/** 
+		 * Returns meta-data for all resources (both active and inactive) contained in the file represented by this
+		 * meta-data object.  
+		 */
+		Vector<SPtr<ProjectResourceMeta>> getAllResourceMetaData() const;
+
+		/** 
+		 * Removes all resource meta-data stored by this object. This includes meta-data for both active and inactive
+		 * resources. 
+		 */
 		void clearResourceMetaData() { mResourceMetaData.clear(); }
 
 		/**	Returns the import options used for importing the resource this object is referencing. */
@@ -116,6 +135,7 @@ namespace BansheeEngine
 		friend class ProjectLibrary;
 
 		Vector<SPtr<ProjectResourceMeta>> mResourceMetaData;
+		Vector<SPtr<ProjectResourceMeta>> mInactiveResourceMetaData;
 		SPtr<ImportOptions> mImportOptions;
 		bool mIncludeInBuild;
 
@@ -129,7 +149,7 @@ namespace BansheeEngine
 	public:
 		friend class ProjectFileMetaRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;	
+		RTTITypeBase* getRTTI() const override;	
 	};
 
 	/** @} */

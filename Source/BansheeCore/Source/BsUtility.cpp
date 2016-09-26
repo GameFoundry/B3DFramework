@@ -38,8 +38,10 @@ namespace BansheeEngine
 
 	void Utility::findResourceDependenciesInternal(IReflectable& obj, bool recursive, Map<String, ResourceDependency>& dependencies)
 	{
+		static const UnorderedMap<String, UINT64> dummyParams;
+
 		RTTITypeBase* rtti = obj.getRTTI();
-		rtti->onSerializationStarted(&obj);
+		rtti->onSerializationStarted(&obj, dummyParams);
 
 		UINT32 numFields = rtti->getNumFields();
 		for (UINT32 i = 0; i < numFields; i++)
@@ -132,7 +134,7 @@ namespace BansheeEngine
 			}
 		}
 
-		rtti->onSerializationEnded(&obj);
+		rtti->onSerializationEnded(&obj, dummyParams);
 	}
 
 	bool Utility::hasReflectableChildren(RTTITypeBase* type)

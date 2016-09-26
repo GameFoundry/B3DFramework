@@ -91,7 +91,7 @@ namespace BansheeEngine
 		SPtr<CoreObjectCore> createCore() const override;
 
 		/** @copydoc CoreObjectCore::syncToCore */
-		virtual CoreSyncData syncToCore(FrameAlloc* allocator) override;
+		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
 		MULTI_RENDER_TEXTURE_DESC mDesc;
 		Vector<HTexture> mBindableColorTex;
@@ -116,16 +116,33 @@ namespace BansheeEngine
 		virtual ~MultiRenderTextureCore();
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/** Returns properties that describe the render texture. */
 		const MultiRenderTextureProperties& getProperties() const;
+
+		/**
+		 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
+		 *
+		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
+		 */
+		const SPtr<TextureView> getBindableDepthStencilTexture() const { return mDepthStencilSurface; }
+
+		/**
+		 * Returns a color surface texture you may bind as an input to an GPU program.
+		 *
+		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
+		 */
+		const SPtr<TextureView>& getBindableColorTexture(UINT32 idx) const { return mColorSurfaces[idx]; }
+
+		/** @copydoc	TextureManager::createMultiRenderTexture(const MULTI_RENDER_TEXTURE_DESC&) */
+		static SPtr<MultiRenderTextureCore> create(const MULTI_RENDER_TEXTURE_CORE_DESC& desc);
 
 	protected:
 		MultiRenderTextureCore(const MULTI_RENDER_TEXTURE_CORE_DESC& desc);
 
 		/** @copydoc CoreObjectCore::syncToCore */
-		virtual void syncToCore(const CoreSyncData& data) override;
+		void syncToCore(const CoreSyncData& data) override;
 
 	private:
 		/** Checks that all render surfaces and depth/stencil surface match. If they do not match an exception is thrown. */

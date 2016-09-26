@@ -17,8 +17,8 @@ namespace BansheeEngine
 
 		// Need to call GameObjectManager because GameObject handles call it during deserialization, but we don't really need it
 		GameObjectManager::instance().startDeserialization();
-		SPtr<ManagedSerializableObject> orgObj = std::static_pointer_cast<ManagedSerializableObject>(bs._decodeIntermediate(orgSerzObj));
-		SPtr<ManagedSerializableObject> newObj = std::static_pointer_cast<ManagedSerializableObject>(bs._decodeIntermediate(newSerzObj));
+		SPtr<ManagedSerializableObject> orgObj = std::static_pointer_cast<ManagedSerializableObject>(bs._decodeFromIntermediate(orgSerzObj));
+		SPtr<ManagedSerializableObject> newObj = std::static_pointer_cast<ManagedSerializableObject>(bs._decodeFromIntermediate(newSerzObj));
 		GameObjectManager::instance().endDeserialization();
 
 		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::create(orgObj, newObj);
@@ -33,7 +33,7 @@ namespace BansheeEngine
 
 		SerializedEntry entry;
 		entry.fieldId = 0;
-		entry.serialized = bs._encodeIntermediate(diff.get());
+		entry.serialized = bs._encodeToIntermediate(diff.get());
 
 		subObject.entries[0] = entry;
 
@@ -46,7 +46,7 @@ namespace BansheeEngine
 		SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->subObjects[0].entries[0].serialized);
 
 		BinarySerializer bs;
-		SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(bs._decodeIntermediate(diffObj));
+		SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(bs._decodeFromIntermediate(diffObj));
 		
 		if (diff != nullptr)
 		{

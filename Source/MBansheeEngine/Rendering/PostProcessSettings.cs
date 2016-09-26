@@ -9,8 +9,8 @@ namespace BansheeEngine
     /// <summary>
     /// Settings that control automatic exposure (eye adaptation) post-process.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct AutoExposureSettings // Note: Must match C++ struct AutoExposureSettings
+    [SerializeObject]
+    public class AutoExposureSettings
     {
         /// <summary>
         /// Determines minimum luminance value in the eye adaptation histogram. The histogram is used for calculating the
@@ -74,8 +74,8 @@ namespace BansheeEngine
     /// <summary>
     /// Settings that control tonemap post-process.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct TonemappingSettings // Note: Must match C++ struct TonemappingSettings
+    [SerializeObject]
+    public class TonemappingSettings
     {
         /// <summary>
         /// Controls the shoulder (upper non-linear) section of the filmic curve used for tonemapping. Mostly affects bright
@@ -120,8 +120,8 @@ namespace BansheeEngine
     /// <summary>
     /// Settings that control white balance post-process.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct WhiteBalanceSettings // Note: Must match C++ struct WhiteBalanceSettings
+    [SerializeObject]
+    public class WhiteBalanceSettings
     {
         /// <summary>
         /// Temperature used for white balancing, in Kelvins.
@@ -143,8 +143,8 @@ namespace BansheeEngine
     /// <summary>
     /// Settings that control color grading post-process.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct ColorGradingSettings // Note: Must match C++ struct ColorGradingSettings
+    [SerializeObject]
+    public class ColorGradingSettings
     {
         /// <summary>
         /// Saturation to be applied during color grading. Larger values increase vibrancy of the image. 
@@ -174,8 +174,8 @@ namespace BansheeEngine
     /// <summary>
     /// Settings that control the post-process operations.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct PostProcessSettings
+    [SerializeObject]
+    public class PostProcessSettings
     {
         /// <summary>
         /// Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness
@@ -240,13 +240,10 @@ namespace BansheeEngine
         /// <returns>New instance of post process settings.</returns>
         public static PostProcessSettings CreateDefault()
         {
-            PostProcessSettings output;
-            Internal_CreateDefault(out output);
-
-            return output;
+            return Internal_CreateDefault();
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CreateDefault(out PostProcessSettings value);
+        private static extern PostProcessSettings Internal_CreateDefault();
     }
 }

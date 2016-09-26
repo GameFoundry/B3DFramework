@@ -16,6 +16,7 @@ namespace BansheeEngine
     public sealed class Renderable : Component
     {
         private NativeRenderable _native;
+        private Animation animation;
 
         [SerializeField]
         private SerializableData serializableData = new SerializableData();
@@ -47,6 +48,9 @@ namespace BansheeEngine
                 int numToCopy = MathEx.Min(newMaterials.Length, serializableData.materials.Length);
                 Array.Copy(serializableData.materials, newMaterials, numToCopy);
                 serializableData.materials = newMaterials;
+
+                if (animation != null)
+                    animation.UpdateBounds(false);
             }
         }
 
@@ -115,6 +119,16 @@ namespace BansheeEngine
             get { return _native.GetBounds(SceneObject); }
         }
 
+        private void OnInitialize()
+        {
+            animation = SceneObject.GetComponent<Animation>();
+            if (animation != null)
+            {
+                RegisterAnimation(animation);
+                animation.RegisterRenderable(this);
+            }
+        }
+
         private void OnReset()
         {
             if (_native != null)
@@ -133,12 +147,49 @@ namespace BansheeEngine
 
         private void OnUpdate()
         {
-            _native.UpdateTransform(SceneObject);
+            _native.UpdateTransform(SceneObject, false);
         }
 
         private void OnDestroy()
         {
+            if (animation != null)
+                animation.UnregisterRenderable();
+
             _native.OnDestroy();
+        }
+
+        /// <summary>
+        /// Registers an <see cref="Animation"/> component with the renderable. Rendering will be affected by the animation.
+        /// </summary>
+        /// <param name="animation">Component that was added</param>
+        internal void RegisterAnimation(Animation animation)
+        {
+            this.animation = animation;
+            if (_native != null)
+            {
+                _native.Animation = animation.Native;
+
+                // Need to update transform because animated renderables handle local transforms through bones, so it
+                // shouldn't be included in the renderable's transform.
+                _native.UpdateTransform(SceneObject, true);
+            }
+        }
+
+        /// <summary>
+        /// Removes animation from the renderable. Rendering will no longer be affected by animation.
+        /// </summary>
+        internal void UnregisterAnimation()
+        {
+            animation = null;
+
+            if (_native != null)
+            {
+                _native.Animation = null;
+
+                // Need to update transform because animated renderables handle local transforms through bones, so it
+                // shouldn't be included in the renderable's transform.
+                _native.UpdateTransform(SceneObject, true);
+            }
         }
 
         /// <inheritdoc/>

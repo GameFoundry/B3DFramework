@@ -44,13 +44,13 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetPointerPosition", &ScriptInput::internal_getPointerPosition);
 		metaData.scriptClass->addInternalCall("Internal_GetPointerDelta", &ScriptInput::internal_getPointerDelta);
 
-		OnButtonPressedThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonDown", "ButtonCode,int")->getThunk();
-		OnButtonReleasedThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonUp", "ButtonCode,int")->getThunk();
-		OnCharInputThunk = (OnCharInputEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerCharInput", "int")->getThunk();
-		OnPointerPressedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerPressed", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single")->getThunk();
-		OnPointerReleasedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerReleased", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single")->getThunk();
-		OnPointerMovedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerMove", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single")->getThunk();
-		OnPointerDoubleClickThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerDoubleClick", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single")->getThunk();
+		OnButtonPressedThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonDown", "ButtonCode,int,bool")->getThunk();
+		OnButtonReleasedThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonUp", "ButtonCode,int,bool")->getThunk();
+		OnCharInputThunk = (OnCharInputEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerCharInput", "int,bool")->getThunk();
+		OnPointerPressedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerPressed", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single,bool")->getThunk();
+		OnPointerReleasedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerReleased", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single,bool")->getThunk();
+		OnPointerMovedThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerMove", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single,bool")->getThunk();
+		OnPointerDoubleClickThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerDoubleClick", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single,bool")->getThunk();
 	}
 
 	void ScriptInput::startUp()
@@ -82,7 +82,7 @@ namespace BansheeEngine
 		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
 			return;
 
-		MonoUtil::invokeThunk(OnButtonPressedThunk, ev.buttonCode, ev.deviceIdx);
+		MonoUtil::invokeThunk(OnButtonPressedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
 	}
 
 	void ScriptInput::onButtonUp(const ButtonEvent& ev)
@@ -90,7 +90,7 @@ namespace BansheeEngine
 		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
 			return;
 
-		MonoUtil::invokeThunk(OnButtonReleasedThunk, ev.buttonCode, ev.deviceIdx);
+		MonoUtil::invokeThunk(OnButtonReleasedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
 	}
 
 	void ScriptInput::onCharInput(const TextInputEvent& ev)
@@ -98,7 +98,7 @@ namespace BansheeEngine
 		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
 			return;
 
-		MonoUtil::invokeThunk(OnCharInputThunk, ev.textChar);
+		MonoUtil::invokeThunk(OnCharInputThunk, ev.textChar, ev.isUsed());
 	}
 
 	void ScriptInput::onPointerMoved(const PointerEvent& ev)
@@ -110,7 +110,7 @@ namespace BansheeEngine
 		MonoObject* delta = ScriptVector2I::box(ev.delta);
 
 		MonoUtil::invokeThunk(OnPointerMovedThunk, screenPos, delta, 
-			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount);
+			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
 	void ScriptInput::onPointerPressed(const PointerEvent& ev)
@@ -122,7 +122,7 @@ namespace BansheeEngine
 		MonoObject* delta = ScriptVector2I::box(ev.delta);
 
 		MonoUtil::invokeThunk(OnPointerPressedThunk, screenPos, delta, 
-			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount);
+			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
 	void ScriptInput::onPointerReleased(const PointerEvent& ev)
@@ -134,7 +134,7 @@ namespace BansheeEngine
 		MonoObject* delta = ScriptVector2I::box(ev.delta);
 
 		MonoUtil::invokeThunk(OnPointerReleasedThunk, screenPos, delta, 
-			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount);
+			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
 	void ScriptInput::onPointerDoubleClick(const PointerEvent& ev)
@@ -146,7 +146,7 @@ namespace BansheeEngine
 		MonoObject* delta = ScriptVector2I::box(ev.delta);
 
 		MonoUtil::invokeThunk(OnPointerDoubleClickThunk, screenPos, delta, 
-			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount);
+			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
 	bool ScriptInput::internal_isButtonHeld(ButtonCode code, UINT32 deviceIdx)

@@ -5,10 +5,11 @@
 #include "BsCorePrerequisites.h"
 #include "BsGpuProgram.h"
 
-#define CAPS_CATEGORY_SIZE 8i64
-#define BS_CAPS_BITSHIFT (64i64 - CAPS_CATEGORY_SIZE)
-#define CAPS_CATEGORY_MASK (((1i64 << CAPS_CATEGORY_SIZE) - 1i64) << BS_CAPS_BITSHIFT)
-#define BS_CAPS_VALUE(cat, val) ((cat << BS_CAPS_BITSHIFT) | (1i64 << val))
+#include <cstdint>
+#define CAPS_CATEGORY_SIZE INT64_C(8)
+#define BS_CAPS_BITSHIFT (INT64_C(64) - CAPS_CATEGORY_SIZE)
+#define CAPS_CATEGORY_MASK (((INT64_C(1) << CAPS_CATEGORY_SIZE) - INT64_C(1)) << BS_CAPS_BITSHIFT)
+#define BS_CAPS_VALUE(cat, val) ((cat << BS_CAPS_BITSHIFT) | (INT64_C(1) << val))
 
 #define MAX_BOUND_VERTEX_BUFFERS 32
 

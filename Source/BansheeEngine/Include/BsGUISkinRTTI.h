@@ -82,7 +82,7 @@ namespace BansheeEngine
 				&GUISkinRTTI::setStyle, &GUISkinRTTI::setStyleArraySize);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GUISkin* skin = static_cast<GUISkin*>(obj);
 			Vector<GUISkinEntry> entries;
@@ -95,7 +95,7 @@ namespace BansheeEngine
 			skin->mRTTIData = entries;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GUISkin* skin = static_cast<GUISkin*>(obj);
 

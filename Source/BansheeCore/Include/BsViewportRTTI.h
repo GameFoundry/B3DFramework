@@ -50,7 +50,7 @@ namespace BansheeEngine
 			addPlainField("mStencilClearValue", 6, &ViewportRTTI::getStencilClearValue, &ViewportRTTI::setStencilClearValue);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Viewport* viewport = static_cast<Viewport*>(obj);
 			viewport->initialize();

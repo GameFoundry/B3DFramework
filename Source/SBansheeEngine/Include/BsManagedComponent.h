@@ -26,6 +26,9 @@ namespace BansheeEngine
 		/**	Returns managed component object instance. */
 		MonoObject* getManagedInstance() const { return mManagedInstance; }
 
+		/**	Returns managed class of the component. */
+		MonoClass* getClass() const { return mManagedClass; }
+
 		/**	Returns managed type of the component. */
 		MonoReflectionType* getRuntimeType() const { return mRuntimeType; }
 
@@ -90,6 +93,7 @@ namespace BansheeEngine
 		typedef void(__stdcall *OnTransformChangedThunkDef) (MonoObject*, TransformChangedFlags, MonoException**);
 
 		MonoObject* mManagedInstance;
+		MonoClass* mManagedClass;
 		MonoReflectionType* mRuntimeType;
 		uint32_t mManagedHandle;
 
@@ -122,8 +126,8 @@ namespace BansheeEngine
 
 		ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType);
 
-		/** @copydoc Component::instantiate */
-		void instantiate() override;
+		/** @copydoc Component::_instantiate */
+		void _instantiate() override;
 
 		/** @copydoc Component::onInitialized */
 		void onInitialized() override;

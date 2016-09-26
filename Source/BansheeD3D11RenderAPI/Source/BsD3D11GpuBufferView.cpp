@@ -29,14 +29,16 @@ namespace BansheeEngine
 
 		D3D11GpuBufferCore* d3d11GpuBuffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
 
+		if ((desc.usage & GVU_DEFAULT) != 0)
+			mSRV = createSRV(d3d11GpuBuffer, desc.firstElement, desc.elementWidth, desc.numElements);
+
 		if((desc.usage & GVU_RANDOMWRITE) != 0)
 			mUAV = createUAV(d3d11GpuBuffer, desc.firstElement, desc.numElements, desc.useCounter);
-		else if((desc.usage & GVU_RENDERTARGET) != 0)
+
+		if((desc.usage & GVU_RENDERTARGET) != 0 || (desc.usage & GVU_DEPTHSTENCIL) != 0)
 		{
-			BS_EXCEPT(NotImplementedException, "Cannot create a render target view for buffers yet.");
+			BS_EXCEPT(NotImplementedException, "Invalid usage flags for a GPU buffer view.");
 		}
-		else
-			mSRV = createSRV(d3d11GpuBuffer, desc.firstElement, desc.elementWidth, desc.numElements);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_ResourceView);
 	}
@@ -51,12 +53,12 @@ namespace BansheeEngine
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		if (props.getType() == GBT_STRUCTURED)
+		if (props.getType() == GBT_STRUCTURED || props.getType() == GBT_STANDARD)
 		{
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-			desc.Buffer.ElementOffset = firstElement * elementWidth;
-			desc.Buffer.ElementWidth = elementWidth;
+			desc.Buffer.FirstElement = firstElement;
+			desc.Buffer.NumElements = numElements;
 		}
 		else if (props.getType() == GBT_RAW)
 		{
@@ -97,7 +99,7 @@ namespace BansheeEngine
 
 		desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 
-		if (props.getType() == GBT_STRUCTURED)
+		if (props.getType() == GBT_STRUCTURED || props.getType() == GBT_STANDARD)
 		{
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.Buffer.FirstElement = firstElement;

@@ -14,6 +14,7 @@
 #include "BsGUIInputSelection.h"
 #include "BsGUIContextMenu.h"
 #include "BsGUIHelper.h"
+#include "BsTime.h"
 
 namespace BansheeEngine
 {
@@ -29,8 +30,8 @@ namespace BansheeEngine
 	}
 
 	GUIInputBox::GUIInputBox(const String& styleName, const GUIDimensions& dimensions, bool multiline)
-		: GUIElement(styleName, dimensions), mIsMultiline(multiline), mHasFocus(false), mIsMouseOver(false)
-		, mState(State::Normal), mCaretShown(false), mSelectionShown(false), mDragInProgress(false)
+		: GUIElement(styleName, dimensions), mIsMultiline(multiline), mHasFocus(false), mFocusGainedFrame((UINT64)-1)
+		, mIsMouseOver(false), mState(State::Normal), mCaretShown(false), mSelectionShown(false), mDragInProgress(false)
 	{
 		mImageSprite = bs_new<ImageSprite>();
 		mTextSprite = bs_new<TextSprite>();
@@ -121,20 +122,24 @@ namespace BansheeEngine
 		return numElements;
 	}
 
-	const SpriteMaterialInfo& GUIInputBox::_getMaterial(UINT32 renderElementIdx) const
+	const SpriteMaterialInfo& GUIInputBox::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
 	{
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
 
+		*material = sprite->getMaterial(localRenderElementIdx);
 		return sprite->getMaterialInfo(localRenderElementIdx);
 	}
 
-	UINT32 GUIInputBox::_getNumQuads(UINT32 renderElementIdx) const
+	void GUIInputBox::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
 
-		return sprite->getNumQuads(localRenderElementIdx);
+		UINT32 numQuads = sprite->getNumQuads(localRenderElementIdx);
+		numVertices = numQuads * 4;
+		numIndices = numQuads * 6;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIInputBox::updateRenderElementsInternal()
@@ -383,15 +388,20 @@ namespace BansheeEngine
 		return false;
 	}
 
-	void GUIInputBox::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-		UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIInputBox::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 vertexStride = sizeof(Vector2) * 2;
+		UINT32 indexStride = sizeof(UINT32);
+
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
 		Vector2I offset = renderElemToOffset(renderElementIdx);
 		Rect2I clipRect = renderElemToClipRect(renderElementIdx);
 
-		sprite->fillBuffer(vertices, uv, indices, startingQuad, maxNumQuads, vertexStride, indexStride, localRenderElementIdx, offset, clipRect);
+		sprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, 
+			indexStride, localRenderElementIdx, offset, clipRect);
 	}
 
 	bool GUIInputBox::_mouseEvent(const GUIMouseEvent& ev)
@@ -461,7 +471,12 @@ namespace BansheeEngine
 				}
 				else
 				{
-					clearSelection();
+					bool focusGainedThisFrame = mHasFocus && mFocusGainedFrame == gTime().getFrameIdx();
+
+					// We want to select all on focus gain, so don't override that
+					if(!focusGainedThisFrame)
+						clearSelection();
+
 					showCaret();
 				}
 
@@ -596,6 +611,7 @@ namespace BansheeEngine
 			gGUIManager().getInputSelectionTool()->selectAll();
 
 			mHasFocus = true;
+			mFocusGainedFrame = gTime().getFrameIdx();
 
 			Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 			if (origSize != newSize)

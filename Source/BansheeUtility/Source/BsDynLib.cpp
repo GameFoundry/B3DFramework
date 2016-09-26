@@ -12,12 +12,22 @@
 #endif
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
-#   include "macUtils.h"
 #   include <dlfcn.h>
 #endif
 
 namespace BansheeEngine 
 {
+
+#if BS_PLATFORM == BS_PLATFORM_LINUX
+	const char* DynLib::EXTENSION = "so";
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+	const char* DynLib::EXTENSION = "dylib";
+#elif BS_PLATFORM == BS_PLATFORM_WIN32
+	const char* DynLib::EXTENSION = "dll";
+#else
+#  error Unhandled platform
+#endif
+
     DynLib::DynLib(const String& name)
     {
         mName = name;
@@ -35,22 +45,7 @@ namespace BansheeEngine
 		if(m_hInst)
 			return;
 
-		String name = mName;
-#if BS_PLATFORM == BS_PLATFORM_LINUX
-        // dlopen() does not add .so to the filename, like windows does for .dll
-        if (name.substr(name.length() - 3, 3) != ".so")
-           name += ".so";
-#elif BS_PLATFORM == BS_PLATFORM_OSX
-        // dlopen() does not add .dylib to the filename, like windows does for .dll
-        if (name.substr(name.length() - 6, 6) != ".dylib")
-			name += ".dylib";
-#elif BS_PLATFORM == BS_PLATFORM_WIN32
-		// Although LoadLibraryEx will add .dll itself when you only specify the library name,
-		// if you include a relative path then it does not. So, add it to be sure.
-		if (name.substr(name.length() - 4, 4) != ".dll")
-			name += ".dll";
-#endif
-        m_hInst = (DYNLIB_HANDLE)DYNLIB_LOAD(name.c_str());
+        m_hInst = (DYNLIB_HANDLE)DYNLIB_LOAD(mName.c_str());
 
         if(!m_hInst)
 		{
@@ -100,7 +95,7 @@ namespace BansheeEngine
         // Free the buffer.
         LocalFree(lpMsgBuf);
         return ret;
-#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_APPLE
+#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
         return String(dlerror());
 #else
         return String("");

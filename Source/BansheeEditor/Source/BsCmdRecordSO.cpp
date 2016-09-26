@@ -77,7 +77,7 @@ namespace BansheeEngine
 		MemorySerializer serializer;
 		SPtr<SceneObject> restored = std::static_pointer_cast<SceneObject>(serializer.decode(mSerializedObject, mSerializedObjectSize));
 
-		CmdUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
+		EditorUtility::restoreIds(restored->getHandle(), mSceneObjectProxy);
 		restored->setParent(parent);
 
 		if (!mRecordHierarchy)
@@ -87,6 +87,8 @@ namespace BansheeEngine
 
 			bs_stack_delete(children, numChildren);
 		}
+
+		restored->_instantiate();
 	}
 
 	void CmdRecordSO::recordSO(const HSceneObject& sceneObject)
@@ -106,10 +108,16 @@ namespace BansheeEngine
 			}
 		}
 
+		bool isInstantiated = !mSceneObject->hasFlag(SOF_DontInstantiate);
+		mSceneObject->_setFlags(SOF_DontInstantiate);
+
 		MemorySerializer serializer;
 		mSerializedObject = serializer.encode(mSceneObject.get(), mSerializedObjectSize);
 
-		mSceneObjectProxy = CmdUtility::createProxy(mSceneObject);
+		if (isInstantiated)
+			mSceneObject->_unsetFlags(SOF_DontInstantiate);
+
+		mSceneObjectProxy = EditorUtility::createProxy(mSceneObject);
 
 		if (!mRecordHierarchy)
 		{

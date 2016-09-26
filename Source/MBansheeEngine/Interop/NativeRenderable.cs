@@ -42,10 +42,32 @@ namespace BansheeEngine
             return new Bounds(box, sphere);
         }
 
+        internal AABox OverrideBounds
+        {
+            set { Internal_SetOverrideBounds(mCachedPtr, ref value); }
+        }
+
+        internal bool UseOverrideBounds
+        {
+            set { Internal_SetUseOverrideBounds(mCachedPtr, value); }
+        }
+
         internal UInt64 Layers
         {
             get { return Internal_GetLayers(mCachedPtr); }
             set { Internal_SetLayers(mCachedPtr, value); }
+        }
+
+        internal NativeAnimation Animation
+        {
+            set
+            {
+                IntPtr animationPtr = IntPtr.Zero;
+                if (value != null)
+                    animationPtr = value.GetCachedPtr();
+
+                Internal_SetAnimation(mCachedPtr, animationPtr);
+            }
         }
 
         private Material[] materials = new Material[1];
@@ -97,9 +119,9 @@ namespace BansheeEngine
             Internal_SetMaterial(mCachedPtr, materialPtr, index);
         }
 
-        internal void UpdateTransform(SceneObject sceneObject)
+        internal void UpdateTransform(SceneObject sceneObject, bool force)
         {
-            Internal_UpdateTransform(mCachedPtr, sceneObject.mCachedPtr);
+            Internal_UpdateTransform(mCachedPtr, sceneObject.mCachedPtr, force);
         }
         
         internal void OnDestroy()
@@ -111,7 +133,10 @@ namespace BansheeEngine
         private static extern void Internal_Create(NativeRenderable instance, IntPtr parentSO);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_UpdateTransform(IntPtr thisPtr, IntPtr parentSO);
+        private static extern void Internal_SetAnimation(IntPtr thisPtr, IntPtr animation);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_UpdateTransform(IntPtr thisPtr, IntPtr parentSO, bool force);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetMesh(IntPtr thisPtr, IntPtr mesh);
@@ -130,6 +155,12 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetMaterials(IntPtr thisPtr, Material[] materials);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetOverrideBounds(IntPtr thisPtr, ref AABox box);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetUseOverrideBounds(IntPtr thisPtr, bool enable);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_OnDestroy(IntPtr thisPtr);

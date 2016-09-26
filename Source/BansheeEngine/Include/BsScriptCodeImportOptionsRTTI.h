@@ -16,13 +16,14 @@ namespace BansheeEngine
 	class BS_EXPORT ScriptCodeImportOptionsRTTI : public RTTIType <ScriptCodeImportOptions, ImportOptions, ScriptCodeImportOptionsRTTI>
 	{
 	private:
-		bool& getEditorScript(ScriptCodeImportOptions* obj) { return obj->mEditorScript; }
-		void setEditorScript(ScriptCodeImportOptions* obj, bool& val) { obj->mEditorScript = val; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mEditorScript, 0)
+		BS_END_RTTI_MEMBERS
+
 	public:
 		ScriptCodeImportOptionsRTTI()
-		{
-			addPlainField("mEditorScript", 0, &ScriptCodeImportOptionsRTTI::getEditorScript, &ScriptCodeImportOptionsRTTI::setEditorScript);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

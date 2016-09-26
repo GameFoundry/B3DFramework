@@ -1,4 +1,0 @@
-For convenience reasons Banshee is distributed with a unmodified binary executable of Bison. 
-Bison is not integrated into Banshee in any way and is used as a tool during the build process. 
-Bison is licensed under GPL which you must respect if you integrate it into your application or 
-modify its source. You may download the Bison source and view the license terms on "https://www.gnu.org/software/bison". 

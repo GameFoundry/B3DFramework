@@ -2,6 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
+#include <cmath>
+
 #include "BsPrerequisitesUtil.h"
 #include "BsRadian.h"
 
@@ -18,7 +20,10 @@ namespace BansheeEngine
 		float x, y, z;
 
     public:
-        Vector3()
+		Vector3()
+		{ }
+
+        Vector3(ZERO zero)
 			:x(0.0f), y(0.0f), z(0.0f)
         { }
 
@@ -240,7 +245,10 @@ namespace BansheeEngine
         }
 
         /** Returns the length (magnitude) of the vector. */
-		inline float length() const;
+		float length() const
+		{
+			return std::sqrt(x * x + y * y + z * z);
+		}
 
         /** Returns the square of the length(magnitude) of the vector. */
         float squaredLength() const
@@ -267,7 +275,21 @@ namespace BansheeEngine
         }
 
         /** Normalizes the vector. */
-		inline float normalize();
+		float normalize()
+		{
+			float len = length();
+
+			// Will also work for zero-sized vectors, but will change nothing
+			if (len > 1e-08)
+			{
+				float invLen = 1.0f / len;
+				x *= invLen;
+				y *= invLen;
+				z *= invLen;
+			}
+			return len;
+		}
+
 
         /** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
         Vector3 cross(const Vector3& other) const
@@ -369,6 +391,15 @@ namespace BansheeEngine
 				a.z * b.x - a.x * b.z,
 				a.x * b.y - a.y * b.x);
         }
+
+		/** 
+		 * Linearly interpolates between the two vectors using @p t. t should be in [0, 1] range, where t = 0 corresponds
+		 * to the left vector, while t = 1 corresponds to the right vector. 
+		 */
+		static Vector3 lerp(float t, const Vector3& a, const Vector3& b)
+		{
+			return (1.0f - t) * a + t * b;
+		}
 
 		/** Checks are any of the vector components not a number. */
 		inline bool isNaN() const;

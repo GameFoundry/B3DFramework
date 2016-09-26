@@ -1,0 +1,195 @@
+Technique
+#ifdef USE_BLEND_SHAPES
+	 : base("MorphVertexInput") =
+#else
+	 : base("NormalVertexInput") =
+#endif
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_Position;
+				float2 uv0 : TEXCOORD0;
+				
+				float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
+				float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
+			};
+		};
+
+		Vertex =
+		{
+			struct VertexInput
+			{
+				float3 position : POSITION;
+				float3 normal : NORMAL; // Note: Half-precision could be used
+				float4 tangent : TANGENT; // Note: Half-precision could be used
+				float2 uv0 : TEXCOORD0;
+				
+				#ifdef USE_BLEND_SHAPES
+					float3 deltaPosition : POSITION1;
+					float4 deltaNormal : NORMAL1;
+				#endif				
+			};
+			
+			struct VertexIntermediate
+			{
+				float3 worldNormal; // Note: Half-precision could be used
+				float4 worldTangent; // Note: Half-precision could be used
+				
+				float tangentSign;
+			};
+			
+			float3x3 getTangentToLocal(VertexInput input, out float tangentSign)
+			{
+				float3 normal = input.normal * 2.0f - 1.0f;
+				float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
+				
+				#ifdef USE_BLEND_SHAPES
+					float3 deltaNormal = (input.deltaNormal.xyz * 2.0f - 1.0f) * 2.0f;
+					normal = normalize(normal + deltaNormal * input.deltaNormal.w);
+					tangent = normalize(tangent - dot(tangent, normal) * normal);
+				#endif
+				
+				float3 bitangent = cross(normal, tangent) * input.tangent.w;
+				tangentSign = input.tangent.w * gWorldDeterminantSign;
+				
+				// Note: Maybe it's better to store everything in row vector format?
+				float3x3 result = float3x3(tangent, bitangent, normal);
+				result = transpose(result);
+												
+				return result;
+			}
+			
+			VertexIntermediate getVertexIntermediate(VertexInput input)
+			{
+				VertexIntermediate result;
+				
+				float tangentSign;
+				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
+				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
+				
+				result.worldNormal = float3(tangentToWorld._m02_m12_m22); // Normal basis vector
+				result.worldTangent = float4(tangentToWorld._m00_m10_m20, tangentSign); // Tangent basis vector
+				
+				return result;
+			}
+			
+			float4 getVertexWorldPosition(VertexInput input, VertexIntermediate intermediate)
+			{
+				#ifdef USE_BLEND_SHAPES
+					float4 position = float4(input.position + input.deltaPosition, 1.0f);
+				#else
+					float4 position = float4(input.position, 1.0f);
+				#endif			
+			
+				return mul(gMatWorld, position);
+			}
+			
+			void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)
+			{
+				result.uv0 = input.uv0;
+				
+				result.tangentToWorldZ = intermediate.worldNormal;
+				result.tangentToWorldX = intermediate.worldTangent;
+			}
+		};
+	};
+};
+
+Technique
+#ifdef USE_BLEND_SHAPES
+	 : base("MorphVertexInput") =
+#else
+	 : base("NormalVertexInput") =
+#endif
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Common = 
+		{
+			varying vec2 uv0;
+			varying vec3 tangentToWorldZ;
+			varying vec4 tangentToWorldX;	
+		};
+	
+		Vertex =
+		{			
+			in vec3 bs_position;
+			in vec3 bs_normal;
+			in vec4 bs_tangent;
+			in vec2 bs_texcoord0;
+		
+			#ifdef USE_BLEND_SHAPES
+				in vec3 bs_position1;
+				in vec4 bs_normal1;
+			#endif
+		
+			struct VertexIntermediate
+			{
+				vec3 worldNormal;
+				vec4 worldTangent;
+			};
+		
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+							
+			void getTangentToLocal(vec3 normal, vec3 tangent, float tangentSign, out mat3 tangentToLocal)
+			{
+				vec3 bitangent = cross(normal, tangent) * tangentSign;
+
+				tangentToLocal[0] = tangent;
+				tangentToLocal[1] = bitangent;
+				tangentToLocal[2] = normal;
+			}
+
+			void getVertexWorldPosition(VertexIntermediate intermediate, out vec4 result)
+			{
+				vec3 normal = bs_normal * 2.0f - 1.0f;
+				vec3 tangent = bs_tangent.xyz * 2.0f - 1.0f;
+			
+				#ifdef USE_BLEND_SHAPES
+					vec3 deltaNormal = (bs_normal1.xyz * 2.0f - 1.0f) * 2.0f;
+					normal = normalize(normal + deltaNormal * bs_normal1.w);
+					tangent = normalize(tangent - dot(tangent, normal) * normal);
+				#endif
+			
+				float tangentSign = bs_tangent.w;
+				mat3 tangentToLocal;
+				getTangentToLocal(normal, tangent, tangentSign, tangentToLocal);
+				tangentSign *= gWorldDeterminantSign;
+				
+				mat3 tangentToWorld = mat3(gMatWorldNoScale) * tangentToLocal;
+				result.worldNormal = tangentToWorld[2]; // Normal basis vector
+				result.worldTangent = vec4(tangentToWorld[0].xyz, tangentSign); // Tangent basis vector
+			}
+			
+			void getVertexWorldPosition(out vec4 result)
+			{
+				#ifdef USE_BLEND_SHAPES
+					vec4 position = vec4(bs_position + bs_position1, 1.0f);
+				#else
+					vec4 position = vec4(bs_position, 1.0f);
+				#endif
+			
+				result = gMatWorld * position;
+			}
+			
+			void populateVertexOutput(VertexIntermediate intermediate)
+			{
+				uv0 = bs_texcoord0;
+				
+				tangentToWorldZ = intermediate.worldNormal;
+				tangentToWorldX = intermediate.worldTangent;
+			}
+		};
+	};
+};

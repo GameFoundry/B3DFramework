@@ -10,6 +10,10 @@ namespace BansheeEditor
      *  @{
      */
 
+    /** @defgroup General General 
+     *  Various functionality that doesn't fit into any other category.
+     */
+
     /** @defgroup GUI-Editor GUI 
      *  Editor specific GUI elements.
      */
@@ -18,12 +22,12 @@ namespace BansheeEditor
      *  %Input handling for editor only (not affected by game pauses).
      */
 
-    /** @defgroup General General 
-     *  Various functionality that doesn't fit into any other category.
-     */
-
     /** @defgroup Inspectors Inspectors 
      *  Implementations of inspectors for various engine types.
+     */
+
+    /** @defgroup Settings Settings 
+     *  Editor and project settings, and related window.
      */
 
     /** @defgroup Script Script 
@@ -45,6 +49,10 @@ namespace BansheeEditor
     /** @defgroup Windows Windows 
      *  Implementations of various editor windows (for example Scene, Game, Library).
      *  @{
+     */
+
+    /** @defgroup AnimationEditor Animation Editor 
+     *  Animation editor window and related functionality.
      */
 
     /** @defgroup Build Build 
@@ -73,13 +81,7 @@ namespace BansheeEditor
      */
 
     /** @} */
-
-    /** @defgroup Settings Settings 
-     *  Editor and project settings, and related window.
-     */
-
     /** @} */
-
     /** @} */
 
     /** @cond Interop */
@@ -138,7 +140,7 @@ namespace BansheeEditor
         /// <summary>
         /// Attempts to save the current scene, and keeps retrying if failed or until user cancels.
         /// </summary>
-        static void TrySaveScene()
+        static void TrySaveSceneOnQuit()
         {
             Action success = () =>
             {
@@ -146,7 +148,7 @@ namespace BansheeEditor
                 EditorApplication.Quit();
             };
 
-            EditorApplication.SaveScene(success, TrySaveScene);
+            EditorApplication.SaveScene(success, TrySaveSceneOnQuit);
         }
 
         /// <summary>
@@ -159,7 +161,7 @@ namespace BansheeEditor
             (result) =>
             {
                 if (result == DialogBox.ResultType.Yes)
-                    TrySaveScene();
+                    TrySaveSceneOnQuit();
                 else if (result == DialogBox.ResultType.No)
                 {
                     EditorApplication.SaveProject();

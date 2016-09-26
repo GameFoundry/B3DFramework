@@ -17,13 +17,13 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CMeshColliderRTTI : public RTTIType<CMeshCollider, CCollider, CMeshColliderRTTI>
 	{
 	private:
-		BS_REFL_MEMBER(mMesh)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFL(mMesh, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		CMeshColliderRTTI()
-		{
-			BS_ADD_REFL_FIELD(mMesh, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

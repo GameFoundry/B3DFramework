@@ -5,12 +5,12 @@
 bin
 obj
 lib
-data
-Intermediate
 Dependencies
 Builds
+Data/Binaries
+Data/Settings.asset
 Documentation/html
+Build
 *.aps
 *.opendb
-/Build/VS2015/BansheeEngine.VC.db
-/Build/Generated
+BsEngineConfig.h

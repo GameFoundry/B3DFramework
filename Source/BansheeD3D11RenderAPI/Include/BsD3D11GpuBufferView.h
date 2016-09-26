@@ -24,6 +24,12 @@ namespace BansheeEngine
 		/** @copydoc GpuBufferView::initialize */
 		void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_DESC& desc) override;
 
+		/** Returns the DX11 shader resource view object for the buffer. */
+		ID3D11ShaderResourceView* getSRV() const { return mSRV; }
+
+		/** Returns the DX11 unordered access view object for the buffer. */
+		ID3D11UnorderedAccessView* getUAV() const { return mUAV; }
+
 	private:
 		/**
 		 * Creates a DX11 shader resource view that allows a buffer to be bound to a shader for reading (the most common

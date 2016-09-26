@@ -3,7 +3,10 @@
 #include "BsCoreSceneManager.h"
 #include "BsSceneObject.h"
 #include "BsComponent.h"
+#include "BsCamera.h"
+#include "BsViewport.h"
 #include "BsGameObjectManager.h"
+#include "BsRenderTarget.h"
 
 namespace BansheeEngine
 {
@@ -36,6 +39,9 @@ namespace BansheeEngine
 		}
 
 		GameObjectManager::instance().destroyQueuedObjects();
+
+		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
+		_setRootNode(newRoot);
 	}
 
 	void CoreSceneManager::_setRootNode(const HSceneObject& root)
@@ -70,6 +76,85 @@ namespace BansheeEngine
 		oldRoot->destroy();
 	}
 
+	void CoreSceneManager::_registerCamera(const SPtr<Camera>& camera, const HSceneObject& so)
+	{
+		mCameras[camera.get()] = SceneCameraData(camera, so);
+	}
+
+	void CoreSceneManager::_unregisterCamera(const SPtr<Camera>& camera)
+	{
+		mCameras.erase(camera.get());
+
+		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
+			[&](const SceneCameraData& x)
+		{
+			return x.camera == camera;
+		});
+
+		if (iterFind != mMainCameras.end())
+			mMainCameras.erase(iterFind);
+	}
+
+	void CoreSceneManager::_notifyMainCameraStateChanged(const SPtr<Camera>& camera)
+	{
+		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
+			[&](const SceneCameraData& entry)
+		{
+			return entry.camera == camera;
+		});
+
+		SPtr<Viewport> viewport = camera->getViewport();
+		if (camera->isMain())
+		{
+			if (iterFind == mMainCameras.end())
+				mMainCameras.push_back(mCameras[camera.get()]);
+
+			viewport->setTarget(mMainRT);
+		}
+		else
+		{
+			if (iterFind != mMainCameras.end())
+				mMainCameras.erase(iterFind);
+
+			if (viewport->getTarget() == mMainRT)
+				viewport->setTarget(nullptr);
+		}
+	}
+
+	SceneCameraData CoreSceneManager::getMainCamera() const
+	{
+		if (mMainCameras.size() > 0)
+			return mMainCameras[0];
+
+		return SceneCameraData();
+	}
+
+	void CoreSceneManager::setMainRenderTarget(const SPtr<RenderTarget>& rt)
+	{
+		if (mMainRT == rt)
+			return;
+
+		mMainRTResizedConn.disconnect();
+
+		if (rt != nullptr)
+			mMainRTResizedConn = rt->onResized.connect(std::bind(&CoreSceneManager::onMainRenderTargetResized, this));
+
+		mMainRT = rt;
+
+		float aspect = 1.0f;
+		if (rt != nullptr)
+		{
+			auto& rtProps = rt->getProperties();
+			aspect = rtProps.getWidth() / (float)rtProps.getHeight();
+		}
+
+		for (auto& entry : mMainCameras)
+		{
+			entry.camera->getViewport()->setTarget(rt);
+			entry.camera->setAspectRatio(aspect);
+		}
+	}
+
 	void CoreSceneManager::_update()
 	{
 		Stack<HSceneObject> todo;
@@ -101,6 +186,15 @@ namespace BansheeEngine
 	{ 
 		if(mRootNode)
 			node->setParent(mRootNode);
+	}
+
+	void CoreSceneManager::onMainRenderTargetResized()
+	{
+		auto& rtProps = mMainRT->getProperties();
+		float aspect = rtProps.getWidth() / (float)rtProps.getHeight();
+
+		for (auto& entry : mMainCameras)
+			entry.camera->setAspectRatio(aspect);
 	}
 
 	CoreSceneManager& gCoreSceneManager()

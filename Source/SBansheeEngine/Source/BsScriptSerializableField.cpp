@@ -11,7 +11,8 @@
 
 namespace BansheeEngine
 {
-	ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableFieldInfo>& fieldInfo)
+
+	ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
 		:ScriptObject(instance), mFieldInfo(fieldInfo)
 	{
 
@@ -22,9 +23,10 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_CreateProperty", &ScriptSerializableField::internal_createProperty);
 		metaData.scriptClass->addInternalCall("Internal_GetValue", &ScriptSerializableField::internal_getValue);
 		metaData.scriptClass->addInternalCall("Internal_SetValue", &ScriptSerializableField::internal_setValue);
+		metaData.scriptClass->addInternalCall("Internal_GetStyle", &ScriptSerializableField::internal_getStyle);
 	}
 
-	ScriptSerializableField* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableFieldInfo>& fieldInfo)
+	ScriptSerializableField* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
 	{
 		MonoString* monoStrName = MonoUtil::wstringToMono(toWString(fieldInfo->mName));
 		MonoReflectionType* internalType = MonoUtil::getType(fieldInfo->mTypeInfo->getMonoClass());
@@ -47,7 +49,7 @@ namespace BansheeEngine
 
 	MonoObject* ScriptSerializableField::internal_getValue(ScriptSerializableField* nativeInstance, MonoObject* instance)
 	{
-		return nativeInstance->mFieldInfo->mMonoField->getValueBoxed(instance);
+		return nativeInstance->mFieldInfo->getValue(instance);
 	}
 
 	void ScriptSerializableField::internal_setValue(ScriptSerializableField* nativeInstance, MonoObject* instance, MonoObject* value)
@@ -55,9 +57,22 @@ namespace BansheeEngine
 		if (value != nullptr && MonoUtil::isValueType((MonoUtil::getClass(value))))
 		{
 			void* rawValue = MonoUtil::unbox(value);
-			nativeInstance->mFieldInfo->mMonoField->setValue(instance, rawValue);
+			nativeInstance->mFieldInfo->setValue(instance, rawValue);
 		}
 		else
-			nativeInstance->mFieldInfo->mMonoField->setValue(instance, value);
+			nativeInstance->mFieldInfo->setValue(instance, value);
+	}
+	void ScriptSerializableField::internal_getStyle(ScriptSerializableField* nativeInstance, SerializableMemberStyle* style)
+	{
+		SPtr<ManagedSerializableMemberInfo> fieldInfo = nativeInstance->mFieldInfo;
+		*style = SerializableMemberStyle();
+
+		ScriptFieldFlags fieldFlags = fieldInfo->mFlags;
+		style->displayAsSlider = fieldInfo->renderAsSlider();
+		style->rangeMin = fieldInfo->getRangeMinimum();
+		style->rangeMax = fieldInfo->getRangeMaximum();
+		style->stepIncrement = fieldInfo->getStep();
+		style->hasStep = fieldFlags.isSet(ScriptFieldFlag::Step);
+		style->hasRange = fieldFlags.isSet(ScriptFieldFlag::Range);
 	}
 }

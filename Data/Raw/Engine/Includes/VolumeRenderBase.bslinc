@@ -1,0 +1,87 @@
+Technique : base("VolumeRenderBase") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		DepthWrite = false;
+		DepthRead = false;
+	
+		Common = 
+		{
+			struct VStoGS
+			{
+				float4 position : SV_POSITION;
+				float2 uv0 : TEXCOORD0;
+				uint layerIdx : TEXCOORD1;
+			};
+			
+			struct GStoFS
+			{
+				float4 position : SV_POSITION;
+				float2 uv0 : TEXCOORD0;
+				uint layerIdx : SV_RenderTargetArrayIndex;
+			};			
+		};
+
+		Vertex =
+		{
+			struct VertexInput
+			{
+				float2 screenPos : POSITION;
+				float2 uv0 : TEXCOORD0;
+				uint layerIdx : SV_InstanceID;
+			};
+			
+			VStoGS main(VertexInput input)
+			{
+				VStoGS output;
+			
+				output.position = float4(input.screenPos, 0, 1);
+				output.uv0 = input.uv0;
+				output.layerIdx = input.layerIdx;
+				
+				return output;
+			}
+		};
+		
+		Geometry = 
+		{		
+			[maxvertexcount(3)]
+			void main(triangle VStoGS input[3], inout TriangleStream<GStoFS> outStream)
+			{
+				GStoFS vert0;
+				vert0.position = input[0].position;
+				vert0.uv0 = input[0].uv0;
+				vert0.layerIdx = input[0].layerIdx;
+
+				GStoFS vert1;
+				vert1.position = input[1].position;
+				vert1.uv0 = input[1].uv0;
+				vert1.layerIdx = input[1].layerIdx;
+
+				GStoFS vert2;
+				vert2.position = input[2].position;
+				vert2.uv0 = input[2].uv0;
+				vert2.layerIdx = input[2].layerIdx;
+
+				outStream.Append(vert0);
+				outStream.Append(vert1);
+				outStream.Append(vert2);
+			}
+		};
+	};
+};
+
+Technique : base("VolumeRenderBase") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Vertex =
+		{
+			// TODO
+		};
+	};
+};

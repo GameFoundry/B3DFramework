@@ -48,7 +48,8 @@ namespace BansheeEngine
 
 		virtual bool isReadable() const { return (mAccess & READ) != 0; }
 		virtual bool isWriteable() const { return (mAccess & WRITE) != 0; }
-       
+		virtual bool isFile() const = 0;
+
         /** Reads data from the buffer and copies it to the specified value. */
         template<typename T> DataStream& operator>>(T& val);
 
@@ -129,6 +130,15 @@ namespace BansheeEngine
         /** Returns the total size of the data to be read from the stream, or 0 if this is indeterminate for this stream. */
         size_t size() const { return mSize; }
 
+		/** 
+		 * Creates a copy of this stream. 
+		 *
+		 * @param[in]	copyData	If true the internal stream data will be copied as well, otherwise it will just 
+		 *							reference the data from the original stream (in which case the caller must ensure the
+		 *							original stream outlives the clone). This is not relevant for file streams.
+		 */
+		virtual SPtr<DataStream> clone(bool copyData = true) const = 0;
+
         /** Close the stream. This makes further operations invalid. */
         virtual void close() = 0;
 		
@@ -149,8 +159,9 @@ namespace BansheeEngine
 		 *
 		 * @param[in] 	memory		Memory to wrap the data stream around.
 		 * @param[in]	size		Size of the memory chunk in bytes.
+		 * @param[in]	freeOnClose	Should the memory buffer be freed when the data stream goes out of scope.
 		 */
-		MemoryDataStream(void* memory, size_t size);
+		MemoryDataStream(void* memory, size_t size, bool freeOnClose = true);
 		
 		/**
 		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely 
@@ -169,6 +180,8 @@ namespace BansheeEngine
 		MemoryDataStream(const SPtr<DataStream>& sourceStream);
 
 		~MemoryDataStream();
+
+		bool isFile() const override { return false; }
 
 		/** Get a pointer to the start of the memory block this stream holds. */
 		UINT8* getPtr() const { return mData; }
@@ -194,6 +207,9 @@ namespace BansheeEngine
         /** @copydoc DataStream::eof */
 		bool eof() const override;
 
+		/** @copydoc DataStream::clone */
+		SPtr<DataStream> clone(bool copyData = true) const override;
+
         /** @copydoc DataStream::close */
 		void close() override;
 
@@ -210,40 +226,18 @@ namespace BansheeEngine
 	{
 	public:
 		/**
-		 * Construct read-only stream from an standard stream.
+		 * Construct a file stream.
 		 *
-		 * If @p freeOnClose is true, the STL stream will be freed once the data stream is closed.
+		 * @param[in]	filePath	Path of the file to open.
+		 * @param[in]	accessMode	Determines should the file be opened in read, write or read/write mode.
+		 * @param[in]	freeOnClose	Determines should the internal stream be freed once the data stream is closed or goes 
+		 *							out of scope.
 		 */
-		FileDataStream(SPtr<std::ifstream> s, bool freeOnClose = true);
-
-		/**
-		 * Construct read-write stream from an standard stream.
-		 * 			
-		 * If @p freeOnClose is true, the STL stream will be freed once the data stream is closed.
-		 */
-		FileDataStream(SPtr<std::fstream> s, bool freeOnClose = true);
-
-		/**
-		 * Construct read-only stream from an standard stream, and tell it the size.
-		 * 			
-		 * Size parameter allows you to specify the size without requiring us to seek to the end of the stream to find 
-		 * the size.
-		 *			
-		 * If @p freeOnClose is true, the STL stream will be freed once the data stream is closed.
-		 */
-		FileDataStream(SPtr<std::ifstream> s, size_t size, bool freeOnClose = true);
-
-		/**
-		 * Construct read-write stream from an standard stream, and tell it the size.
-		 * 			
-		 * Size parameter allows you to specify the size without requiring us to seek to the end of the stream to find 
-		 * the size.
-		 *			
-		 * If @p freeOnClose is true, the STL stream will be freed once the data stream is closed.
-		 */
-		FileDataStream(SPtr<std::fstream> s, size_t size, bool freeOnClose = true);
+		FileDataStream(const Path& filePath, AccessMode accessMode = READ, bool freeOnClose = true);
 
 		~FileDataStream();
+
+		bool isFile() const override { return true; }
 
         /** @copydoc DataStream::read */
 		size_t read(void* buf, size_t count) override;
@@ -263,16 +257,21 @@ namespace BansheeEngine
         /** @copydoc DataStream::eof */
 		bool eof() const override;
 
+		/** @copydoc DataStream::clone */
+		SPtr<DataStream> clone(bool copyData = true) const override;
+
         /** @copydoc DataStream::close */
 		void close() override;
 
-	protected:
-		SPtr<std::istream> mpInStream;
-		SPtr<std::ifstream> mpFStreamRO;
-		SPtr<std::fstream> mpFStream;
-		bool mFreeOnClose;	
+		/** Returns the path of the file opened by the stream. */
+		const Path& getPath() const { return mPath; }
 
-		void determineAccess();
+	protected:
+		Path mPath;
+		SPtr<std::istream> mInStream;
+		SPtr<std::ifstream> mFStreamRO;
+		SPtr<std::fstream> mFStream;
+		bool mFreeOnClose;	
 	};
 
 	/** @} */

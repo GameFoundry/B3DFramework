@@ -25,6 +25,9 @@ namespace BansheeEngine
 		/** @copydoc ScriptGameObjectBase::setNativeHandle */
 		void setNativeHandle(const HGameObject& gameObject) override;
 
+		/** Returns the managed component this object wraps. */
+		HManagedComponent getHandle() const { return mManagedComponent; }
+
 	private:
 		friend class ScriptGameObjectManager;
 
@@ -45,7 +48,7 @@ namespace BansheeEngine
 		/** Checks if the provided game object is destroyed and logs a warning if it is. */
 		static bool checkIfDestroyed(const GameObjectHandleBase& handle);
 
-		GameObjectHandle<ManagedComponent> mManagedComponent;
+		HManagedComponent mManagedComponent;
 		String mNamespace;
 		String mType;
 		bool mTypeMissing;
@@ -61,6 +64,7 @@ namespace BansheeEngine
 		static MonoObject* internal_getSceneObject(ScriptComponent* nativeInstance);
 		static TransformChangedFlags internal_getNotifyFlags(ScriptComponent* nativeInstance);
 		static void internal_setNotifyFlags(ScriptComponent* nativeInstance, TransformChangedFlags flags);
+		static void internal_invoke(ScriptComponent* nativeInstance, MonoString* name);
 		static void internal_destroy(ScriptComponent* nativeInstance, bool immediate);
 	};
 

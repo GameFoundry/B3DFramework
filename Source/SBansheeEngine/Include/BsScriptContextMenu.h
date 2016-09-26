@@ -39,6 +39,7 @@ namespace BansheeEngine
 		static OnEntryTriggeredThunkDef onEntryTriggered;
 
 		static void internal_CreateInstance(MonoObject* instance);
+		static void internal_Open(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr);
 		static void internal_AddItem(ScriptContextMenu* instance, MonoString* path, UINT32 callbackIdx, ShortcutKey* shortcut);
 		static void internal_AddSeparator(ScriptContextMenu* instance, MonoString* path);
 		static void internal_SetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptHString* name);

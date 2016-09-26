@@ -15,6 +15,9 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	struct AnimationSplitInfo;
+	class MorphShapes;
+
 	/** Importer implementation that handles FBX/OBJ/DAE/3DS file import by using the FBX SDK. */
 	class BS_FBX_EXPORT FBXImporter : public SpecificImporter
 	{
@@ -50,7 +53,8 @@ namespace BansheeEngine
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
 		SPtr<RendererMeshData> importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-			Vector<SubMesh>& subMeshes);
+			Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton, 
+			SPtr<MorphShapes>& morphShapes);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -80,10 +84,10 @@ namespace BansheeEngine
 		void importBlendShapeFrame(FbxShape* shape, const FBXImportMesh& mesh, const FBXImportOptions& options, FBXBlendShapeFrame& outFrame);
 
 		/**	Imports skinning information and bones for all meshes. */
-		void importSkin(FBXImportScene& scene);
+		void importSkin(FBXImportScene& scene, const FBXImportOptions& options);
 
 		/**	Imports skinning information and bones for the specified mesh. */
-		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh);
+		void importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options);
 
 		/**	Imports all bone and blend shape animations from the FBX. */
 		void importAnimations(FbxScene* scene, FBXImportOptions& importOptions, FBXImportScene& importScene);
@@ -95,11 +99,22 @@ namespace BansheeEngine
 		void importAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImportOptions& importOptions, 
 			FBXAnimationClip& clip, FBXImportScene& importScene);
 
-		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
-		void importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end);
+		/** Bakes all FBX node transforms into standard translation-rotation-scale transform components. */
+		void bakeTransforms(FbxScene* scene);
 
-		/**	Converts a set of curves containing rotation in euler angles into a set of curves using	quaternion rotation. */
-		void eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4]);
+		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
+		template<class T, int C>
+		TAnimationCurve<T> importCurve(FbxAnimCurve*(&fbxCurve)[C], FBXImportOptions& importOptions, float start, float end);
+
+		/** Converts FBX animation clips into engine-ready animation curve format. */
+		void convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, 
+			const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
+
+		/** 
+		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all
+		 * the curves in order for it to be removed.
+		 */
+		TAnimationCurve<Vector3> reduceKeyframes(TAnimationCurve<Vector3>& curve);
 
 		/**
 		 * Converts all the meshes from per-index attributes to per-vertex attributes.
@@ -117,8 +132,22 @@ namespace BansheeEngine
 		 */
 		void generateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options);
 
-		/**Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
-		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& subMeshes);
+		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
+		SPtr<RendererMeshData> generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
+			Vector<SubMesh>& outputSubMeshes);
+
+		/** 
+		 * Parses the scene and outputs a skeleton for the imported meshes using the imported raw data. 
+		 *
+		 * @param[in]	scene		Scene whose meshes to parse.
+		 * @param[in]	sharedRoot	Determines should a shared root bone be created. Set this to true if the scene contains
+		 *							multiple sub-meshes (as there can't be multiple roots).
+		 * @return					Skeleton containing a set of bones, or null if meshes don't contain a skeleton.
+		 */
+		SPtr<Skeleton> createSkeleton(const FBXImportScene& scene, bool sharedRoot);
+
+		/** Parses the scene and generates morph shapes for the imported meshes using the imported raw data. */
+		SPtr<MorphShapes> createMorphShapes(const FBXImportScene& scene);
 
 		/**	Creates an internal representation of an FBX node from an FbxNode object. */
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);

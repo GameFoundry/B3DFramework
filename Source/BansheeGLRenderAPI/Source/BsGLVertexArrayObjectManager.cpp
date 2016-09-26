@@ -167,6 +167,7 @@ namespace BansheeEngine
 			case VET_COLOR:
 			case VET_COLOR_ABGR:
 			case VET_COLOR_ARGB:
+			case VET_UBYTE4_NORM:
 				normalized = GL_TRUE;
 				break;
 			default:

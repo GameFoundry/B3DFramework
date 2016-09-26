@@ -13,6 +13,22 @@
  *  @{
  */
 
+/** @defgroup Animation Animation
+ *	%Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
+/** @defgroup Application-Core Application
+ *  Entry point into the application and other general functionality.
+ */
+
+/** @defgroup Audio Audio
+ *	%Audio clips, 3D sound and music reproduction.
+ */
+
+/** @defgroup Components-Core Components
+  *	Built-in components (elements that may be attached to scene objects).
+  */
+
 /** @defgroup CoreThread Core thread
  *	Core objects and interaction with the core (rendering) thread.
  */
@@ -31,6 +47,10 @@
 
 /** @defgroup Material Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Physics Physics
+ *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
  /** @defgroup Profiling Profiling
@@ -67,21 +87,24 @@
  *  Various utility methods and types used by the core layer.
  */
 
-/** @defgroup Application-Core Application
- *  Entry point into the application and other general functionality.
- */
+/** @} */
+/** @} */
 
-/** @defgroup Components-Core Components
-  *	Built-in components (elements that may be attached to scene objects).
-  */
-
-/** @defgroup Physics Physics
- *	%Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
-/** @defgroup Internal-Core [INTERNAL]
- *	Low-level classes and methods not meant for normal use, useful for those that are modifying the engine.
+/** @addtogroup Internals
  *  @{
+ */
+
+/** @defgroup Internal-Core Core
+ *	Second lowest layer that provides core engine functionality and abstract interfaces for various systems.
+ *  @{
+ */
+
+/** @defgroup Animation-Internal Animation
+ *	Animation clips, skeletal and blend shape animation, animation playback, blending and other features.
+ */
+
+/** @defgroup Audio-Internal Audio
+ *	Audio clips, 3D sound and music reproduction.
  */
 
 /** @defgroup CoreThread-Internal Core thread
@@ -102,6 +125,10 @@
 
 /** @defgroup Material-Internal Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Physics-Internal Physics
+ *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
  */
 
 /** @defgroup Platform-Internal Platform
@@ -135,12 +162,6 @@
 /** @defgroup Utility-Core-Internal Utility
  *  Various utility methods and types used by the core layer.
  */
-
-/** @defgroup Physics-Internal Physics
- *	Physics system: colliders, triggers, rigidbodies, joints, scene queries, etc.
- */
-
-/** @} */
 
 /** @} */
 /** @} */
@@ -290,7 +311,7 @@ namespace BansheeEngine
 	class ShaderCore;
 	class ViewportCore;
 	class PassCore;
-	class PassParametersCore;
+	class GpuParamsSetCore;
 	class TechniqueCore;
 	class MaterialCore;
 	class GpuProgramCore;
@@ -340,6 +361,23 @@ namespace BansheeEngine
 	class CCharacterController;
 	class ShaderDefines;
 	class ShaderImportOptions;
+	class AudioListener;
+	class AudioSource;
+	class AudioClipImportOptions;
+	class AnimationClip;
+	class CCamera;
+	template <class T> class TAnimationCurve;
+	struct AnimationCurves;
+	class Skeleton;
+	class Animation;
+	class GpuParamsSet;
+	class GpuParamsSetCore;
+	class MaterialParamsCore;
+	class Camera;
+	class CameraCore;
+	class MorphShapes;
+	class MorphShape;
+	class MorphChannel;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -358,6 +396,7 @@ namespace BansheeEngine
 	class StringTable;
 	class PhysicsMaterial;
 	class PhysicsMesh;
+	class AudioClip;
 	struct CollisionData;
 	// Scene
 	class SceneObject;
@@ -382,6 +421,7 @@ namespace BansheeEngine
 	struct SLIDER_JOINT_DESC;
 	struct SPHERICAL_JOINT_DESC;
 	struct D6_JOINT_DESC;
+	struct AUDIO_CLIP_DESC;
 
 	template<class T>
 	class CoreThreadAccessor;
@@ -485,6 +525,30 @@ namespace BansheeEngine
 		TID_CCharacterController = 1108,
 		TID_FPhysicsMesh = 1109,
 		TID_ShaderImportOptions = 1110,
+		TID_AudioClip = 1111,
+		TID_AudioClipImportOptions = 1112,
+		TID_CAudioListener = 1113,
+		TID_CAudioSource = 1114,
+		TID_AnimationClip = 1115,
+		TID_AnimationCurve = 1116,
+		TID_KeyFrame = 1117,
+		TID_NamedAnimationCurve = 1118,
+		TID_Skeleton = 1119,
+		TID_SkeletonBoneInfo = 1120,
+		TID_AnimationSplitInfo = 1121,
+		TID_CAnimation = 1122,
+		TID_AnimationEvent = 1123,
+		TID_ImportedAnimationEvents = 1124,
+		TID_CBone = 1125,
+		TID_MaterialParamData = 1126,
+		TID_PostProcessSettings = 1127,
+		TID_MorphShape = 1128,
+		TID_MorphShapes = 1129,
+		TID_MorphChannel = 1130,
+
+		// Moved from Engine layer
+		TID_CCamera = 30000,
+		TID_Camera = 30003,
 	};
 }
 
@@ -511,10 +575,11 @@ namespace BansheeEngine
 	typedef ResourceHandle<StringTable> HStringTable;
 	typedef ResourceHandle<PhysicsMaterial> HPhysicsMaterial;
 	typedef ResourceHandle<PhysicsMesh> HPhysicsMesh;
+	typedef ResourceHandle<AudioClip> HAudioClip;
+	typedef ResourceHandle<AnimationClip> HAnimationClip;
 
 	/** @} */
 }
-
 
 #include "BsGameObjectHandle.h"
 
@@ -528,6 +593,7 @@ namespace BansheeEngine
 	typedef GameObjectHandle<GameObject> HGameObject;
 	typedef GameObjectHandle<SceneObject> HSceneObject;
 	typedef GameObjectHandle<Component> HComponent;
+	typedef GameObjectHandle<CCamera> HCamera;
 	typedef GameObjectHandle<CRigidbody> HRigidbody;
 	typedef GameObjectHandle<CCollider> HCollider;
 	typedef GameObjectHandle<CBoxCollider> HBoxCollider;

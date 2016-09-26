@@ -23,15 +23,14 @@ namespace BansheeEngine
 
 		mGUI = mSceneObject->addComponent<CGUIWidget>(camera);
 
-		mGUI->setDepth(0); // Needs to be in front of everything
+		mGUI->setDepth(1); // Needs to be in front of everything (except other drop down and tooltip elements)
 		mGUI->setSkin(BuiltinEditorResources::instance().getSkin());
 
 		mRootPanel = mGUI->getPanel()->addNewElement<GUIPanel>();
 		
 		GUIPanel* frontHitBoxPanel = mRootPanel->addNewElement<GUIPanel>(std::numeric_limits<INT16>::min());
 		mFrontHitBox = GUIDropDownHitBox::create(false, false);
-		mFrontHitBox->onFocusLost.connect(std::bind(&DropDownWindow::dropDownFocusLost, this));
-		mFrontHitBox->setFocus(true);
+		mFrontHitBox->onFocusGained.connect(std::bind(&DropDownWindow::dropDownFocusGained, this));
 		frontHitBoxPanel->addElement(mFrontHitBox);
 
 		GUIPanel* backHitBoxPanel = mRootPanel->addNewElement<GUIPanel>(std::numeric_limits<INT16>::max());
@@ -47,7 +46,7 @@ namespace BansheeEngine
 		setSize(width, height);
 
 		GUIPanel* backgroundPanel = mRootPanel->addNewElement<GUIPanel>(500);
-		backgroundPanel->addElement(GUITexture::create(GUIImageScaleMode::RepeatToFit,
+		backgroundPanel->addElement(GUITexture::create(TextureScaleMode::RepeatToFit,
 			GUIOptions(GUIOption::flexibleWidth(), GUIOption::flexibleHeight()), "WindowBackground"));
 
 		GUIPanel* windowFramePanel = mRootPanel->addNewElement<GUIPanel>(499);
@@ -98,13 +97,18 @@ namespace BansheeEngine
 		DropDownAreaPlacement::HorzDir horzDir;
 		DropDownAreaPlacement::VertDir vertDir;
 		Rect2I placementBounds = dropDownPlacement.getOptimalBounds(width, height, availableBounds, horzDir, vertDir);
+		placementBounds.width = width;
+		placementBounds.height = height;
 
 		mRootPanel->setPosition(placementBounds.x, placementBounds.y);
 		mRootPanel->setWidth(width);
 		mRootPanel->setHeight(height);
 
-		mFrontHitBox->setBounds(Rect2I(placementBounds.x, placementBounds.y, width, height));
-		mBackHitBox->setBounds(Rect2I(placementBounds.x, placementBounds.y, width, height));
+		Vector<Rect2I> nonDropDownBounds;
+		availableBounds.cut(placementBounds, nonDropDownBounds);
+
+		mFrontHitBox->setBounds(nonDropDownBounds);
+		mBackHitBox->setBounds(placementBounds);
 
 		mWidth = width;
 		mHeight = height;
@@ -115,7 +119,7 @@ namespace BansheeEngine
 		DropDownWindowManager::instance().close();
 	}
 
-	void DropDownWindow::dropDownFocusLost()
+	void DropDownWindow::dropDownFocusGained()
 	{
 		close();
 	}

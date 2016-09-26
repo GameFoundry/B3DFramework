@@ -15,7 +15,7 @@ namespace BansheeEngine
 	}
 
 	GUITexture::GUITexture(const String& styleName, const HSpriteTexture& texture, 
-		GUIImageScaleMode scale, bool transparent, const GUIDimensions& dimensions)
+		TextureScaleMode scale, bool transparent, const GUIDimensions& dimensions)
 		:GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
 	{
 		mImageSprite = bs_new<ImageSprite>();
@@ -37,28 +37,28 @@ namespace BansheeEngine
 		bs_delete(mImageSprite);
 	}
 
-	GUITexture* GUITexture::create(const HSpriteTexture& texture, GUIImageScaleMode scale, bool transparent,
+	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale, bool transparent,
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
 			texture, scale, transparent, GUIDimensions::create(options));
 	}
 
-	GUITexture* GUITexture::create(const HSpriteTexture& texture, GUIImageScaleMode scale, bool transparent,
+	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale, bool transparent,
 		const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
 			texture, scale, transparent, GUIDimensions::create());
 	}
 
-	GUITexture* GUITexture::create(const HSpriteTexture& texture, GUIImageScaleMode scale, 
+	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale, 
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
 			texture, scale, true, GUIDimensions::create(options));
 	}
 
-	GUITexture* GUITexture::create(const HSpriteTexture& texture, GUIImageScaleMode scale, 
+	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale, 
 		const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
@@ -69,22 +69,22 @@ namespace BansheeEngine
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
-			texture, GUIImageScaleMode::StretchToFit, true, GUIDimensions::create(options));
+			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::create(options));
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, GUIImageScaleMode::StretchToFit, true, GUIDimensions::create());
+			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::create());
 	}
 
-	GUITexture* GUITexture::create(GUIImageScaleMode scale, const GUIOptions& options, const String& styleName)
+	GUITexture* GUITexture::create(TextureScaleMode scale, const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
 			HSpriteTexture(), scale, true, GUIDimensions::create(options));
 	}
 
-	GUITexture* GUITexture::create(GUIImageScaleMode scale, const String& styleName)
+	GUITexture* GUITexture::create(TextureScaleMode scale, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
 			HSpriteTexture(), scale, true, GUIDimensions::create());
@@ -93,13 +93,13 @@ namespace BansheeEngine
 	GUITexture* GUITexture::create(const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
-			HSpriteTexture(), GUIImageScaleMode::StretchToFit, true, GUIDimensions::create(options));
+			HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::create(options));
 	}
 
 	GUITexture* GUITexture::create(const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName), 
-			HSpriteTexture(), GUIImageScaleMode::StretchToFit, true, GUIDimensions::create());
+			HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::create());
 	}
 
 	void GUITexture::setTexture(const HSpriteTexture& texture)
@@ -121,14 +121,18 @@ namespace BansheeEngine
 		return mImageSprite->getNumRenderElements();
 	}
 
-	const SpriteMaterialInfo& GUITexture::_getMaterial(UINT32 renderElementIdx) const
+	const SpriteMaterialInfo& GUITexture::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
 	{
+		*material = mImageSprite->getMaterial(renderElementIdx);
 		return mImageSprite->getMaterialInfo(renderElementIdx);
 	}
 
-	UINT32 GUITexture::_getNumQuads(UINT32 renderElementIdx) const
+	void GUITexture::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
-		return mImageSprite->getNumQuads(renderElementIdx);
+		UINT32 numQuads = mImageSprite->getNumQuads(renderElementIdx);
+		numVertices = numQuads * 4;
+		numIndices = numQuads * 6;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUITexture::updateRenderElementsInternal()
@@ -143,60 +147,17 @@ namespace BansheeEngine
 		mDesc.transparent = mTransparent;
 		mDesc.color = getTint();
 
-		float optimalWidth = 0.0f;
-		float optimalHeight = 0.0f;
+		Vector2I textureSize;
 		if (SpriteTexture::checkIsLoaded(mActiveTexture))
 		{
 			mDesc.texture = mActiveTexture.getInternalPtr();
-			optimalWidth = (float)mDesc.texture->getWidth();
-			optimalHeight = (float)mDesc.texture->getHeight();
+			textureSize.x = mDesc.texture->getWidth();
+			textureSize.y = mDesc.texture->getHeight();
 		}
 
-		switch (mScaleMode)
-		{
-		case GUIImageScaleMode::StretchToFit:
-			mDesc.uvScale = Vector2(1.0f, 1.0f);
-			break;
-		case GUIImageScaleMode::ScaleToFit:
-			mDesc.uvScale.x = optimalWidth / mLayoutData.area.width;
-			mDesc.uvScale.y = optimalHeight / mLayoutData.area.height;
-
-			if(mDesc.uvScale.x < mDesc.uvScale.y)
-			{
-				mDesc.uvScale.x = 1.0f;
-				mDesc.uvScale.y = (mLayoutData.area.width * (optimalHeight / optimalWidth)) / mLayoutData.area.height;
-			}
-			else
-			{
-				mDesc.uvScale.x = (mLayoutData.area.height * (optimalWidth / optimalHeight)) / mLayoutData.area.width;
-				mDesc.uvScale.y = 1.0f;
-			}
-
-			break;
-		case GUIImageScaleMode::CropToFit:
-			mDesc.uvScale.x = optimalWidth / mLayoutData.area.width;
-			mDesc.uvScale.y = optimalHeight / mLayoutData.area.height;
-
-			if(mDesc.uvScale.x < mDesc.uvScale.y)
-			{
-				mDesc.uvScale.x = (mLayoutData.area.height * (optimalWidth / optimalHeight)) / mLayoutData.area.width;
-				mDesc.uvScale.y = 1.0f;
-			}
-			else
-			{
-				mDesc.uvScale.x = 1.0f;
-				mDesc.uvScale.y = (mLayoutData.area.width * (optimalHeight / optimalWidth)) / mLayoutData.area.height;
-			}
-
-			break;
-		case GUIImageScaleMode::RepeatToFit:
-			mDesc.uvScale.x = mLayoutData.area.width / optimalWidth;
-			mDesc.uvScale.y = mLayoutData.area.height / optimalHeight;
-			break;
-		default:
-			break;
-		}
-
+		Vector2I destSize(mLayoutData.area.width, mLayoutData.area.height);
+		mDesc.uvScale = ImageSprite::getTextureUVScale(textureSize, destSize, mScaleMode);
+		
 		mImageSprite->update(mDesc, (UINT64)_getParentWidget());
 		
 		GUIElement::updateRenderElementsInternal();
@@ -236,11 +197,15 @@ namespace BansheeEngine
 		return optimalSize;
 	}
 
-	void GUITexture::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-		UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUITexture::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
+		UINT8* uvs = vertices + sizeof(Vector2);
+		UINT32 vertexStride = sizeof(Vector2) * 2;
+		UINT32 indexStride = sizeof(UINT32);
+
 		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
-		mImageSprite->fillBuffer(vertices, uv, indices, startingQuad, maxNumQuads, 
+		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
 			vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
 	}
 }

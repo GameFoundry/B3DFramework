@@ -127,6 +127,11 @@ namespace BansheeEngine
 		return static_cast<const MultiRenderTextureProperties&>(getPropertiesInternal());
 	}
 
+	SPtr<MultiRenderTextureCore> MultiRenderTextureCore::create(const MULTI_RENDER_TEXTURE_CORE_DESC& desc)
+	{
+		return TextureCoreManager::instance().createMultiRenderTexture(desc);
+	}
+
 	void MultiRenderTextureCore::throwIfBuffersDontMatch() const
 	{
 		SPtr<TextureView> firstSurfaceDesc = nullptr;
@@ -144,15 +149,24 @@ namespace BansheeEngine
 			const TextureProperties& curTexProps = mColorSurfaces[i]->getTexture()->getProperties();
 			const TextureProperties& firstTexProps = firstSurfaceDesc->getTexture()->getProperties();
 
+			UINT32 curMsCount = curTexProps.getMultisampleCount();
+			UINT32 firstMsCount = firstTexProps.getMultisampleCount();
+
+			if (curMsCount == 0)
+				curMsCount = 1;
+
+			if (firstMsCount == 0)
+				firstMsCount = 1;
+
 			if (curTexProps.getWidth() != firstTexProps.getWidth() ||
 				curTexProps.getHeight() != firstTexProps.getHeight() ||
-				curTexProps.getMultisampleCount() != firstTexProps.getMultisampleCount())
+				curMsCount != firstMsCount)
 			{
 				String errorInfo = "\nWidth: " + toString(curTexProps.getWidth()) + "/" + toString(firstTexProps.getWidth());
 				errorInfo += "\nHeight: " + toString(curTexProps.getHeight()) + "/" + toString(firstTexProps.getHeight());
-				errorInfo += "\nMultisample Count: " + toString(curTexProps.getMultisampleCount()) + "/" + toString(firstTexProps.getMultisampleCount());
+				errorInfo += "\nMultisample Count: " + toString(curMsCount) + "/" + toString(firstMsCount);
 
-				BS_EXCEPT(InvalidParametersException, "Provided texture and depth stencil buffer don't match!" + errorInfo);
+				BS_EXCEPT(InvalidParametersException, "Provided color textures don't match!" + errorInfo);
 			}
 		}
 
@@ -185,13 +199,22 @@ namespace BansheeEngine
 				return;
 
 			const TextureProperties& depthTexProps = mDepthStencilSurface->getTexture()->getProperties();
+			UINT32 depthMsCount = depthTexProps.getMultisampleCount();
+			UINT32 colorMsCount = firstTexProps.getMultisampleCount();
+
+			if (depthMsCount == 0)
+				depthMsCount = 1;
+
+			if (colorMsCount == 0)
+				colorMsCount = 1;
+
 			if (depthTexProps.getWidth() != firstTexProps.getWidth() ||
 				depthTexProps.getHeight() != firstTexProps.getHeight() ||
-				depthTexProps.getMultisampleCount() != firstTexProps.getMultisampleCount())
+				depthMsCount != colorMsCount)
 			{
 				String errorInfo = "\nWidth: " + toString(depthTexProps.getWidth()) + "/" + toString(firstTexProps.getWidth());
 				errorInfo += "\nHeight: " + toString(depthTexProps.getHeight()) + "/" + toString(firstTexProps.getHeight());
-				errorInfo += "\nMultisample Count: " + toString(depthTexProps.getMultisampleCount()) + "/" + toString(firstTexProps.getMultisampleCount());
+				errorInfo += "\nMultisample Count: " + toString(depthMsCount) + "/" + toString(colorMsCount);
 
 				BS_EXCEPT(InvalidParametersException, "Provided texture and depth stencil buffer don't match!" + errorInfo);
 			}

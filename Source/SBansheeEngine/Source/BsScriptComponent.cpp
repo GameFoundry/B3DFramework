@@ -35,6 +35,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetSceneObject", &ScriptComponent::internal_getSceneObject);
 		metaData.scriptClass->addInternalCall("Internal_GetNotifyFlags", &ScriptComponent::internal_getNotifyFlags);
 		metaData.scriptClass->addInternalCall("Internal_SetNotifyFlags", &ScriptComponent::internal_setNotifyFlags);
+		metaData.scriptClass->addInternalCall("Internal_Invoke", &ScriptComponent::internal_invoke);
 		metaData.scriptClass->addInternalCall("Internal_Destroy", &ScriptComponent::internal_destroy);
 	}
 
@@ -197,6 +198,42 @@ namespace BansheeEngine
 	{
 		if (!checkIfDestroyed(nativeInstance->mManagedComponent))
 			nativeInstance->mManagedComponent->mNotifyFlags = flags;
+	}
+
+	void ScriptComponent::internal_invoke(ScriptComponent* nativeInstance, MonoString* name)
+	{
+		HManagedComponent comp = nativeInstance->mManagedComponent;
+		if (checkIfDestroyed(nativeInstance->mManagedComponent))
+			return;
+
+		MonoObject* compObj = comp->getManagedInstance();
+		MonoClass* compClass = comp->getClass();
+
+		bool found = false;
+		String methodName = MonoUtil::monoToString(name);
+		while (compClass != nullptr)
+		{
+			MonoMethod* method = compClass->getMethod(methodName);
+			if (method != nullptr)
+			{
+				method->invoke(compObj, nullptr);
+				found = true;
+				break;
+			}
+
+			// Search for methods on base class if there is one
+			MonoClass* baseClass = compClass->getBaseClass();
+			if (baseClass != metaData.scriptClass)
+				compClass = baseClass;
+			else
+				break;
+		}
+
+		if (!found)
+		{
+			LOGWRN("Method invoke failed. Cannot find method \"" + methodName + "\" on component of type \"" + 
+				compClass->getTypeName() + "\".");
+		}
 	}
 
 	void ScriptComponent::internal_destroy(ScriptComponent* nativeInstance, bool immediate)

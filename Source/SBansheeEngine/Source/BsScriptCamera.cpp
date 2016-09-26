@@ -15,6 +15,8 @@
 #include "BsRenderWindow.h"
 #include "BsRenderTexture.h"
 #include "BsGUIManager.h"
+#include "BsStandardPostProcessSettings.h"
+#include "BsScriptPostProcessSettings.h"
 
 namespace BansheeEngine
 {
@@ -299,14 +301,29 @@ namespace BansheeEngine
 		instance->mCamera->setFlag(CameraFlag::HDR, value);
 	}
 
-	void ScriptCamera::internal_GetPostProcessSettings(ScriptCamera* instance, PostProcessSettings* value)
+	MonoObject* ScriptCamera::internal_GetPostProcessSettings(ScriptCamera* instance)
 	{
-		*value = instance->mCamera->getPostProcessSettings();
+		SPtr<PostProcessSettings> ppSettings = instance->mCamera->getPostProcessSettings();
+		SPtr<StandardPostProcessSettings> standardPPSettings;
+		if(ppSettings != nullptr)
+		{
+			if (!rtti_is_of_type<StandardPostProcessSettings>(ppSettings))
+			{
+				assert(false && "Invalid post process settings type.");
+			}
+			else
+				standardPPSettings = std::static_pointer_cast<StandardPostProcessSettings>(ppSettings);
+		}
+
+		if (standardPPSettings == nullptr)
+			standardPPSettings = bs_shared_ptr_new<StandardPostProcessSettings>();
+
+		return ScriptPostProcessSettings::toManaged(standardPPSettings);
 	}
 
-	void ScriptCamera::internal_SetPostProcessSettings(ScriptCamera* instance, PostProcessSettings* value)
+	void ScriptCamera::internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value)
 	{
-		instance->mCamera->setPostProcessSettings(*value);
+		instance->mCamera->setPostProcessSettings(ScriptPostProcessSettings::toNative(value));
 	}
 
 	UINT64 ScriptCamera::internal_GetLayers(ScriptCamera* instance)

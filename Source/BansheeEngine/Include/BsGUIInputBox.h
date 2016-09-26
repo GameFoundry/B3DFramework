@@ -90,10 +90,10 @@ namespace BansheeEngine
 		 */
 
 		/** @copydoc GUIElement::_getElementType */
-		virtual ElementType _getElementType() const override { return ElementType::InputBox; }
+		ElementType _getElementType() const override { return ElementType::InputBox; }
 
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -101,35 +101,35 @@ namespace BansheeEngine
 		virtual ~GUIInputBox();
 
 		/** @copydoc GUIElement::_getNumRenderElements() */
-		virtual UINT32 _getNumRenderElements() const override;
+		UINT32 _getNumRenderElements() const override;
 
 		/** @copydoc GUIElement::_getMaterial() */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const override;
+		const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const override;
 
-		/** @copydoc GUIElement::_getNumQuads() */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const override;
+		/** @copydoc GUIElement::_getMeshInfo() */
+		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
 		/** @copydoc GUIElement::_fillBuffer() */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const override;
+		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		virtual void updateRenderElementsInternal() override;
+		void updateRenderElementsInternal() override;
 
 		/** @copydoc GUIElement::updateClippedBounds() */
-		virtual void updateClippedBounds() override;
+		void updateClippedBounds() override;
 
 		/** @copydoc GUIElement::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElement::_textInputEvent */
-		virtual bool _textInputEvent(const GUITextInputEvent& ev) override;
+		bool _textInputEvent(const GUITextInputEvent& ev) override;
 
 		/** @copydoc GUIElement::_commandEvent */
-		virtual bool _commandEvent(const GUICommandEvent& ev) override;
+		bool _commandEvent(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElement::_virtualButtonEvent */
-		virtual bool _virtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
+		bool _virtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
 
 		/**
 		 * Returns how much to offset text due to scrolling.
@@ -138,22 +138,22 @@ namespace BansheeEngine
 		 * This is used when text is larger than the input box itself. As the caret moves the text will scroll so that the
 		 * caret remains visible, and how much scroll is applied is determined by this value.
 		 */
-		virtual Vector2I _getTextInputOffset() const override;
+		Vector2I _getTextInputOffset() const override;
 
 		/** Returns rectangle in which the text can be displayed, in local coordinates (text will start at 0, 0). */
-		virtual Rect2I _getTextInputRect() const override;
+		Rect2I _getTextInputRect() const override;
 
 		/** @copydoc GUIElement::_getRenderElementDepth */
-		virtual UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
+		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		virtual UINT32 _getRenderElementDepthRange() const override;
+		UINT32 _getRenderElementDepthRange() const override;
 
 		/** @copydoc GUIElement::_hasCustomCursor */
-		virtual bool _hasCustomCursor(const Vector2I position, CursorType& type) const override;
+		bool _hasCustomCursor(const Vector2I position, CursorType& type) const override;
 
 		/** @copydoc GUIElement::_getContextMenu */
-		virtual SPtr<GUIContextMenu> _getContextMenu() const override;
+		SPtr<GUIContextMenu> _getContextMenu() const override;
 	private:
 		/**
 		 * Retrieves a sprite from a render element index, and a local render element index that represents render element
@@ -251,6 +251,7 @@ namespace BansheeEngine
 		bool mIsMultiline;
 		Vector2I mTextOffset;
 		bool mHasFocus;
+		UINT64 mFocusGainedFrame;
 		bool mIsMouseOver;
 		State mState;
 

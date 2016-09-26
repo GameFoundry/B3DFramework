@@ -38,9 +38,10 @@ namespace BansheeEngine
 	}
 
 	SPtr<GpuBufferCore> GLHardwareBufferCoreManager::createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
 	{
-		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(elementCount, elementSize, type, usage, randomGpuWrite, useCounter);
+		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(elementCount, elementSize, type, format,
+			usage, randomGpuWrite, useCounter);
 
 		SPtr<GpuBufferCore> bufferPtr = bs_shared_ptr<GLGpuBufferCore>(buffer);
 		bufferPtr->_setThisPtr(bufferPtr);
@@ -72,13 +73,27 @@ namespace BansheeEngine
                 return GL_FLOAT;
             case VET_SHORT1:
             case VET_SHORT2:
-            case VET_SHORT3:
             case VET_SHORT4:
                 return GL_SHORT;
+			case VET_USHORT1:
+			case VET_USHORT2:
+			case VET_USHORT4:
+				return GL_UNSIGNED_SHORT;
+			case VET_INT1:
+			case VET_INT2:
+			case VET_INT3:
+			case VET_INT4:
+				return GL_INT;
+			case VET_UINT1:
+			case VET_UINT2:
+			case VET_UINT3:
+			case VET_UINT4:
+				return GL_UNSIGNED_INT;
             case VET_COLOR:
 			case VET_COLOR_ABGR:
 			case VET_COLOR_ARGB:
             case VET_UBYTE4:
+			case VET_UBYTE4_NORM:
                 return GL_UNSIGNED_BYTE;
             default:
                 return 0;

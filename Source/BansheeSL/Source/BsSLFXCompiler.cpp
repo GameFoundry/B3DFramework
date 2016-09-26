@@ -121,15 +121,15 @@ namespace BansheeEngine
 			bool hasError = false;
 			if (output.shader != nullptr)
 			{
-				SPtr<Technique> bestTechnique = output.shader->getBestTechnique();
+				Vector<SPtr<Technique>> techniques = output.shader->getCompatibleTechniques();
 
-				if (bestTechnique != nullptr)
+				for (auto& technique : techniques)
 				{
-					UINT32 numPasses = bestTechnique->getNumPasses();
+					UINT32 numPasses = technique->getNumPasses();
 
 					for (UINT32 i = 0; i < numPasses; i++)
 					{
-						SPtr<Pass> pass = bestTechnique->getPass(i);
+						SPtr<Pass> pass = technique->getPass(i);
 
 						auto checkCompileStatus = [&](const String& prefix, const SPtr<GpuProgram>& prog)
 						{
@@ -140,7 +140,7 @@ namespace BansheeEngine
 								if (!prog->isCompiled())
 								{
 									hasError = true;
-									gpuProgError << prefix <<": " << prog->getCompileErrorMessage() << std::endl;
+									gpuProgError << prefix << ": " << prog->getCompileErrorMessage() << std::endl;
 								}
 							}
 						};
@@ -190,10 +190,12 @@ namespace BansheeEngine
 		yylex_destroy(scanner);
 	}
 
-	void BSLFXCompiler::getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language)
+	BSLFXCompiler::TechniqueMetaData BSLFXCompiler::parseTechniqueMetaData(ASTFXNode* technique)
 	{
-		renderer = RendererAny;
-		language = "Any";
+		TechniqueMetaData metaData;
+
+		metaData.renderer = RendererAny;
+		metaData.language = "Any";
 
 		for (int i = 0; i < technique->options->count; i++)
 		{
@@ -202,29 +204,35 @@ namespace BansheeEngine
 			switch (option->type)
 			{
 			case OT_Renderer:
-				renderer = parseRenderer(removeQuotes(option->value.strValue));
+				metaData.renderer = parseRenderer(removeQuotes(option->value.strValue));
 				break;
 			case OT_Language:
-				language = removeQuotes(option->value.strValue);
+				parseLanguage(removeQuotes(option->value.strValue), metaData.renderAPI, metaData.language);
+				break;
+			case OT_Tags:
+			{
+				ASTFXNode* tagsNode = option->value.nodePtr;
+				for (int j = 0; j < tagsNode->options->count; j++)
+				{
+					NodeOption* tagOption = &tagsNode->options->entries[j];
+
+					if (tagOption->type == OT_TagValue)
+						metaData.tags.push_back(removeQuotes(tagOption->value.strValue));
+				}
+			}
+				break;
+			case OT_Base:
+				metaData.baseName = removeQuotes(option->value.strValue);
+				break;
+			case OT_Inherits:
+				metaData.inherits.push_back(removeQuotes(option->value.strValue));
 				break;
 			default:
 				break;
 			}
 		}
-	}
 
-	bool BSLFXCompiler::doTechniquesMatch(ASTFXNode* into, ASTFXNode* from)
-	{
-		StringID intoRenderer = RendererAny;
-		String intoLanguage = "Any";
-
-		StringID fromRenderer = RendererAny;
-		String fromLanguage = "Any";
-
-		getTechniqueIdentifier(into, intoRenderer, intoLanguage);
-		getTechniqueIdentifier(from, fromRenderer, fromLanguage);
-
-		return (intoRenderer == fromRenderer || fromRenderer == RendererAny) && (intoLanguage == fromLanguage || fromLanguage == "Any");
+		return metaData;
 	}
 
 	StringID BSLFXCompiler::parseRenderer(const String& name)
@@ -421,6 +429,7 @@ namespace BansheeEngine
 			lookup[PT_Int2] = { GPDT_INT2, false };
 			lookup[PT_Int3] = { GPDT_INT3, false };
 			lookup[PT_Int4] = { GPDT_INT4, false };
+			lookup[PT_Color] = { GPDT_COLOR, false };
 
 			lookup[PT_Mat2x2] = { GPDT_MATRIX_2X2, false };
 			lookup[PT_Mat2x3] = { GPDT_MATRIX_2X3, false };
@@ -985,6 +994,8 @@ namespace BansheeEngine
 		if (techniqueNode == nullptr || techniqueNode->type != NT_Technique)
 			return;
 
+		PassData combinedCommonPassData;
+
 		UINT32 nextPassIdx = 0;
 		// Go in reverse because options are added in reverse order during parsing
 		for (int i = techniqueNode->options->count - 1; i >= 0; i--)
@@ -1029,33 +1040,53 @@ namespace BansheeEngine
 
 				nextPassIdx = std::max(nextPassIdx, passIdx) + 1;
 
-				passData->blendIsDefault &= !parseBlendState(passData->blendDesc, techniqueNode);
-				passData->rasterizerIsDefault &= !parseRasterizerState(passData->rasterizerDesc, techniqueNode);
-				passData->depthStencilIsDefault &= !parseDepthStencilState(passData->depthStencilDesc, techniqueNode);
-
-				passData->vertexCode = techniqueData.commonPassData.vertexCode + passData->vertexCode;
-				passData->fragmentCode = techniqueData.commonPassData.fragmentCode + passData->fragmentCode;
-				passData->geometryCode = techniqueData.commonPassData.geometryCode + passData->geometryCode;
-				passData->hullCode = techniqueData.commonPassData.hullCode + passData->hullCode;
-				passData->domainCode = techniqueData.commonPassData.domainCode + passData->domainCode;
-				passData->computeCode = techniqueData.commonPassData.computeCode + passData->computeCode;
-				passData->commonCode = techniqueData.commonPassData.commonCode + passData->commonCode;
+				passData->vertexCode = combinedCommonPassData.vertexCode + passData->vertexCode;
+				passData->fragmentCode = combinedCommonPassData.fragmentCode + passData->fragmentCode;
+				passData->geometryCode = combinedCommonPassData.geometryCode + passData->geometryCode;
+				passData->hullCode = combinedCommonPassData.hullCode + passData->hullCode;
+				passData->domainCode = combinedCommonPassData.domainCode + passData->domainCode;
+				passData->computeCode = combinedCommonPassData.computeCode + passData->computeCode;
+				passData->commonCode = combinedCommonPassData.commonCode + passData->commonCode;
 				
 				parsePass(passNode, codeBlocks, *passData);
 			}
 				break;
-			case OT_Renderer:
-				techniqueData.renderer = parseRenderer(removeQuotes(option->value.strValue));
-				break;
-			case OT_Language:
-				parseLanguage(removeQuotes(option->value.strValue), techniqueData.renderAPI, techniqueData.language);
-				break;
 			case OT_Code:
-				parseCodeBlock(option->value.nodePtr, codeBlocks, techniqueData.commonPassData);
+			{
+				PassData commonPassData;
+				parseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
+
+				for (auto& passData : techniqueData.passes)
+				{
+					passData.vertexCode += commonPassData.vertexCode;
+					passData.fragmentCode += commonPassData.fragmentCode;
+					passData.geometryCode += commonPassData.geometryCode;
+					passData.hullCode += commonPassData.hullCode;
+					passData.domainCode += commonPassData.domainCode;
+					passData.computeCode += commonPassData.computeCode;
+					passData.commonCode += commonPassData.commonCode;
+				}
+
+				combinedCommonPassData.vertexCode += commonPassData.vertexCode;
+				combinedCommonPassData.fragmentCode += commonPassData.fragmentCode;
+				combinedCommonPassData.geometryCode += commonPassData.geometryCode;
+				combinedCommonPassData.hullCode += commonPassData.hullCode;
+				combinedCommonPassData.domainCode += commonPassData.domainCode;
+				combinedCommonPassData.computeCode += commonPassData.computeCode;
+				combinedCommonPassData.commonCode += commonPassData.commonCode;
+			}
 				break;
 			default:
 				break;
 			}
+		}
+
+		// Parse common pass states
+		for (auto& passData : techniqueData.passes)
+		{
+			passData.blendIsDefault &= !parseBlendState(passData.blendDesc, techniqueNode);
+			passData.rasterizerIsDefault &= !parseRasterizerState(passData.rasterizerDesc, techniqueNode);
+			passData.depthStencilIsDefault &= !parseDepthStencilState(passData.depthStencilDesc, techniqueNode);
 		}
 	}
 
@@ -1210,13 +1241,15 @@ namespace BansheeEngine
 			desc.setParamBlockAttribs(name, shared, usage, semantic);
 		}
 	}
-
+	
 	BSLFXCompileResult BSLFXCompiler::parseShader(const String& name, ParseState* parseState, Vector<String>& codeBlocks)
 	{
 		BSLFXCompileResult output;
 
 		if (parseState->rootNode == nullptr || parseState->rootNode->type != NT_Shader)
 		{
+			parseStateDelete(parseState);
+
 			output.errorMessage = "Root not is null or not a shader.";
 			return output;
 		}
@@ -1245,22 +1278,58 @@ namespace BansheeEngine
 				break;
 			case OT_Technique:
 			{
-				auto iterFind = std::find_if(techniqueData.begin(), techniqueData.end(), 
-					[&] (auto x)
-				{
-					return doTechniquesMatch(x.first, option->value.nodePtr);
-				});
+				TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
 
-				TechniqueData* data = nullptr;
-				if (iterFind != techniqueData.end())
-					data = &iterFind->second;
-				else
+				techniqueData.push_back(std::make_pair(option->value.nodePtr, TechniqueData()));
+				TechniqueData& data = techniqueData.back().second;
+				data.metaData = metaData;
+
+				if (data.metaData.baseName.empty())
 				{
-					techniqueData.push_back(std::make_pair(option->value.nodePtr, TechniqueData()));
-					data = &techniqueData.back().second;
+					std::function<bool(TechniqueMetaData&)> parseInherited = [&](TechniqueMetaData& metaData)
+					{
+						for (auto riter = metaData.inherits.rbegin(); riter != metaData.inherits.rend(); ++riter)
+						{
+							const String& inherits = *riter;
+
+							bool foundBase = false;
+							for (auto& entry : techniqueData)
+							{
+								if (entry.second.metaData.baseName == inherits)
+								{
+									bool matches = entry.second.metaData.language == metaData.language || entry.second.metaData.language == "Any";
+									matches &= entry.second.metaData.renderer == metaData.renderer || entry.second.metaData.renderer == RendererAny;
+
+									if (matches)
+									{
+										if (!parseInherited(entry.second.metaData))
+											return false;
+
+										parseTechnique(entry.first, codeBlocks, data);
+										foundBase = true;
+										break;
+									}
+								}
+							}
+
+							if (!foundBase)
+							{
+								output.errorMessage = "Base technique \"" + inherits + "\" cannot be found.";
+								return false;
+							}
+						}
+
+						return true;
+					};
+
+					if (!parseInherited(metaData))
+					{
+						parseStateDelete(parseState);
+						return output;
+					}
+
+					parseTechnique(option->value.nodePtr, codeBlocks, data);
 				}
-
-				parseTechnique(option->value.nodePtr, codeBlocks, *data);
 				break;
 			}
 			case OT_Parameters:
@@ -1277,7 +1346,9 @@ namespace BansheeEngine
 		Vector<SPtr<Technique>> techniques;
 		for(auto& entry : techniqueData)
 		{
-			const TechniqueData& techniqueData = entry.second;
+			const TechniqueMetaData& metaData = entry.second.metaData;
+			if (!metaData.baseName.empty())
+				continue;
 
 			Map<UINT32, SPtr<Pass>, std::greater<UINT32>> passes;
 			for (auto& passData : entry.second.passes)
@@ -1296,37 +1367,37 @@ namespace BansheeEngine
 				if (!passData.vertexCode.empty())
 				{
 					passDesc.vertexProgram = GpuProgram::create(passData.commonCode + passData.vertexCode, "main", 
-						techniqueData.language, GPT_VERTEX_PROGRAM, getProfile(techniqueData.renderAPI, GPT_VERTEX_PROGRAM));
+						metaData.language, GPT_VERTEX_PROGRAM, getProfile(metaData.renderAPI, GPT_VERTEX_PROGRAM));
 				}
 
 				if (!passData.fragmentCode.empty())
 				{
 					passDesc.fragmentProgram = GpuProgram::create(passData.commonCode + passData.fragmentCode, "main", 
-						techniqueData.language, GPT_FRAGMENT_PROGRAM, getProfile(techniqueData.renderAPI, GPT_FRAGMENT_PROGRAM));
+						metaData.language, GPT_FRAGMENT_PROGRAM, getProfile(metaData.renderAPI, GPT_FRAGMENT_PROGRAM));
 				}
 
 				if (!passData.geometryCode.empty())
 				{
 					passDesc.geometryProgram = GpuProgram::create(passData.commonCode + passData.geometryCode, "main", 
-						techniqueData.language, GPT_GEOMETRY_PROGRAM, getProfile(techniqueData.renderAPI, GPT_GEOMETRY_PROGRAM));
+						metaData.language, GPT_GEOMETRY_PROGRAM, getProfile(metaData.renderAPI, GPT_GEOMETRY_PROGRAM));
 				}
 
 				if (!passData.hullCode.empty())
 				{
 					passDesc.hullProgram = GpuProgram::create(passData.commonCode + passData.hullCode, "main", 
-						techniqueData.language, GPT_HULL_PROGRAM, getProfile(techniqueData.renderAPI, GPT_HULL_PROGRAM));
+						metaData.language, GPT_HULL_PROGRAM, getProfile(metaData.renderAPI, GPT_HULL_PROGRAM));
 				}
 
 				if (!passData.domainCode.empty())
 				{
 					passDesc.domainProgram = GpuProgram::create(passData.commonCode + passData.domainCode, "main", 
-						techniqueData.language, GPT_DOMAIN_PROGRAM, getProfile(techniqueData.renderAPI, GPT_DOMAIN_PROGRAM));
+						metaData.language, GPT_DOMAIN_PROGRAM, getProfile(metaData.renderAPI, GPT_DOMAIN_PROGRAM));
 				}
 
 				if (!passData.computeCode.empty())
 				{
 					passDesc.computeProgram = GpuProgram::create(passData.commonCode + passData.computeCode, "main", 
-						techniqueData.language, GPT_COMPUTE_PROGRAM, getProfile(techniqueData.renderAPI, GPT_COMPUTE_PROGRAM));
+						metaData.language, GPT_COMPUTE_PROGRAM, getProfile(metaData.renderAPI, GPT_COMPUTE_PROGRAM));
 				}
 
 				passDesc.stencilRefValue = passData.stencilRefValue;
@@ -1342,7 +1413,8 @@ namespace BansheeEngine
 
 			if (orderedPasses.size() > 0)
 			{
-				SPtr<Technique> technique = Technique::create(techniqueData.renderAPI, techniqueData.renderer, orderedPasses);
+				SPtr<Technique> technique = Technique::create(metaData.renderAPI, metaData.renderer,
+					metaData.tags, orderedPasses);
 				techniques.push_back(technique);
 			}
 		}

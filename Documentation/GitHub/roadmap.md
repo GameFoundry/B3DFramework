@@ -1,20 +1,11 @@
 # Roadmap
 
-The focus right now is to implement the most critical missing features:
- - Animation (skeletal, blend shapes, generic script variables)
- - Audio (popular file format support, music, 3D audio)
-
-Planned for Q3 2016 release.
-
----------------------------------------------------
-
-Quickly to follow will be:
- - Ports for Linux & Mac
- - Vulkan (and possibly DX12) implementation
+We are currently focusing on finish up a final set of features before releasing 1.0 stable. These features are:
+ - Vulkan implementation
  - Physically based renderer
- - Website for the community
- 
-Planned for Q2 2017 release (Version 1.0 beta).
+ - Linux/Mac ports
+
+Planned for Q2 2017 release
 
 ---------------------------------------------------
 
@@ -35,6 +26,8 @@ There are many more features planned, but these are without a specific timeline 
  - Script debugging
  - Level of detail
  - XBONE/PS4 ports
+ - BSP brushes for level prototyping
+ - Offline lightmapper
  - And more to be decided later...
  
 Implementation times for each of those roughly ranges from 1-4 months.

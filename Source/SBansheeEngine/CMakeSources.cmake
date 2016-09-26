@@ -15,6 +15,8 @@ set(BS_SBANSHEEENGINE_INC_NOFILTER
 )
 
 set(BS_SBANSHEEENGINE_SRC_WRAPPERS_GUI
+	"Source/BsScriptRange.cpp"
+	"Source/BsScriptStep.cpp"
 	"Source/BsScriptGUIButton.cpp"
 	"Source/BsScriptGUIContent.cpp"
 	"Source/BsScriptGUIElementStateStyle.cpp"
@@ -30,13 +32,15 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS_GUI
 	"Source/BsScriptGUIToggle.cpp"
 	"Source/BsScriptGUIToggleGroup.cpp"
 	"Source/BsScriptGUIElement.cpp"
-	"Source/BsScriptGUILayoutUtility.cpp"
+	"Source/BsScriptGUIUtility.cpp"
 	"Source/BsScriptGUIRenderTexture.cpp"
 	"Source/BsScriptGUISlider.cpp"
 	"Source/BsScriptGUIProgressBar.cpp"
 	"Source/BsScriptGUISkin.cpp"
 	"Source/BsScriptGUIWidget.cpp"
 	"Source/BsScriptGUI.cpp"
+	"Source/BsScriptGUICanvas.cpp"
+	"Source/BsScriptGUIScrollBar.cpp"
 )
 
 set(BS_SBANSHEEENGINE_INC_SERIALIZATION_RTTI
@@ -132,9 +136,22 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Include/BsScriptScene.h"
 	"Include/BsScriptResources.h"
 	"Include/BsScriptResourceRef.h"
+	"Include/BsScriptPostProcessSettings.h"
+	"Include/BsScriptAudioClip.h"
+	"Include/BsScriptAudio.h"
+	"Include/BsScriptAudioSource.h"
+	"Include/BsScriptAudioListener.h"
+	"Include/BsScriptAnimationClip.h"
+	"Include/BsScriptAnimation.h"
+	"Include/BsScriptAnimationCurve.h"
+	"Include/BsScriptAnimationCurves.h"
+	"Include/BsScriptSkeleton.h"
+	"Include/BsScriptMorphShapes.h"
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
+	"Include/BsScriptRange.h"
+	"Include/BsScriptStep.h"
 	"Include/BsScriptGUIButton.h"
 	"Include/BsScriptGUIContent.h"
 	"Include/BsScriptGUIElementStateStyle.h"
@@ -150,13 +167,15 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
 	"Include/BsScriptGUIToggle.h"
 	"Include/BsScriptGUIToggleGroup.h"
 	"Include/BsScriptGUIElement.h"
-	"Include/BsScriptGUILayoutUtility.h"
+	"Include/BsScriptGUIUtility.h"
 	"Include/BsScriptGUIRenderTexture.h"
 	"Include/BsScriptGUISlider.h"
 	"Include/BsScriptGUIProgressBar.h"
 	"Include/BsScriptGUISkin.h"
 	"Include/BsScriptGUIWidget.h"
 	"Include/BsScriptGUI.h"
+	"Include/BsScriptGUICanvas.h"
+	"Include/BsScriptGUIScrollBar.h"
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_PHYSICS
@@ -254,6 +273,17 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Source/BsScriptRenderTexture.cpp"
 	"Source/BsScriptRenderTarget.cpp"
 	"Source/BsScriptRenderable.cpp"
+	"Source/BsScriptPostProcessSettings.cpp"
+	"Source/BsScriptAudioClip.cpp"
+	"Source/BsScriptAudio.cpp"
+	"Source/BsScriptAudioSource.cpp"
+	"Source/BsScriptAudioListener.cpp"
+	"Source/BsScriptAnimationClip.cpp"
+	"Source/BsScriptAnimation.cpp"
+	"Source/BsScriptAnimationCurve.cpp"
+	"Source/BsScriptAnimationCurves.cpp"
+	"Source/BsScriptSkeleton.cpp"
+	"Source/BsScriptMorphShapes.cpp"
 )
 
 set(BS_SBANSHEEENGINE_INC_SERIALIZATION

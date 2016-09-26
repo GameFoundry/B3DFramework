@@ -5,6 +5,7 @@
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
+#include "BsMonoAssembly.h"
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 #include "BsScriptGUILayout.h"
@@ -40,7 +41,9 @@ namespace BansheeEngine
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptDropDownWindow::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_Close", &ScriptDropDownWindow::internal_Close);
+		metaData.scriptClass->addInternalCall("Internal_GetWidth", &ScriptDropDownWindow::internal_GetWidth);
 		metaData.scriptClass->addInternalCall("Internal_SetWidth", &ScriptDropDownWindow::internal_SetWidth);
+		metaData.scriptClass->addInternalCall("Internal_GetHeight", &ScriptDropDownWindow::internal_GetHeight);
 		metaData.scriptClass->addInternalCall("Internal_SetHeight", &ScriptDropDownWindow::internal_SetHeight);
 		metaData.scriptClass->addInternalCall("Internal_ScreenToWindowPos", &ScriptDropDownWindow::internal_ScreenToWindowPos);
 		metaData.scriptClass->addInternalCall("Internal_WindowToScreenPos", &ScriptDropDownWindow::internal_WindowToScreenPos);
@@ -48,9 +51,38 @@ namespace BansheeEngine
 		guiPanelField = metaData.scriptClass->getField("GUI");
 	}
 
-	void ScriptDropDownWindow::internal_CreateInstance(MonoObject* instance, ScriptEditorWindow* parentWindow, 
-		Vector2I* position, int width, int height)
+	MonoObject* ScriptDropDownWindow::internal_CreateInstance(MonoString* ns, MonoString* typeName, 
+		ScriptEditorWindow* parentWindow, Vector2I* position)
 	{
+		String strTypeName = toString(MonoUtil::monoToWString(typeName));
+		String strNamespace = toString(MonoUtil::monoToWString(ns));
+		String fullName = strNamespace + "." + strTypeName;
+
+		MonoClass* windowClass = MonoManager::instance().findClass(strNamespace, strTypeName);
+		if (windowClass == nullptr)
+			return nullptr;
+
+		MonoAssembly* assembly = MonoManager::instance().getAssembly(EDITOR_ASSEMBLY);
+
+		MonoClass* defaultSizeAttrib = assembly->getClass("BansheeEditor", "DefaultSize");
+		if (defaultSizeAttrib == nullptr)
+			BS_EXCEPT(InternalErrorException, "Cannot find DefaultSize managed class.");
+
+		MonoField* defaultWidthField = defaultSizeAttrib->getField("width");
+		MonoField* defaultHeightField = defaultSizeAttrib->getField("height");
+
+		int width = 200;
+		int height = 200;
+
+		MonoObject* defaultSizeObj = windowClass->getAttribute(defaultSizeAttrib);
+		if (defaultSizeObj != nullptr)
+		{
+			defaultWidthField->getValue(defaultSizeObj, &width);
+			defaultHeightField->getValue(defaultSizeObj, &height);
+		}
+
+		MonoObject* instance = windowClass->createInstance(false);
+
 		ManagedDropDownWindow* dropDownWindow = nullptr;
 		if (parentWindow != nullptr && !parentWindow->isDestroyed())
 		{
@@ -73,6 +105,9 @@ namespace BansheeEngine
 
 		if (dropDownWindow != nullptr)
 			dropDownWindow->initialize(nativeInstance);
+
+		windowClass->construct(instance);
+		return instance;
 	}
 
 	void ScriptDropDownWindow::internal_Close(ScriptDropDownWindow* thisPtr)
@@ -92,10 +127,26 @@ namespace BansheeEngine
 		mDropDownWindow = nullptr;
 	}
 
+	UINT32 ScriptDropDownWindow::internal_GetWidth(ScriptDropDownWindow* thisPtr)
+	{
+		if (thisPtr->mDropDownWindow != nullptr)
+			return thisPtr->mDropDownWindow->getWidth();
+
+		return 0;
+	}
+
 	void ScriptDropDownWindow::internal_SetWidth(ScriptDropDownWindow* thisPtr, UINT32 value)
 	{
 		if (thisPtr->mDropDownWindow != nullptr)
 			thisPtr->mDropDownWindow->setSize(value, thisPtr->mDropDownWindow->getHeight());
+	}
+
+	UINT32 ScriptDropDownWindow::internal_GetHeight(ScriptDropDownWindow* thisPtr)
+	{
+		if (thisPtr->mDropDownWindow != nullptr)
+			return thisPtr->mDropDownWindow->getHeight();
+
+		return 0;
 	}
 
 	void ScriptDropDownWindow::internal_SetHeight(ScriptDropDownWindow* thisPtr, UINT32 value)

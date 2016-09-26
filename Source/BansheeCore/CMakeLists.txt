@@ -5,7 +5,7 @@ include(CMakeSources.cmake)
 set(BansheeCore_INC 
 	"Include" 
 	"../BansheeUtility/Include" 
-	"../../Dependencies/BansheeCore/Include")
+	"../../Dependencies/nvtt/include")
 
 if(WIN32)
 	set(BansheeCore_INC ${BansheeCore_INC} "Include/Win32")
@@ -21,7 +21,7 @@ target_compile_definitions(BansheeCore PRIVATE -DBS_CORE_EXPORTS)
 
 # Libraries
 ## External lib: NVTT
-add_library_per_config(BansheeCore nvtt)
+add_library_per_config(BansheeCore nvtt Release/nvtt Debug/nvtt)
 
 ## Local libs
 target_link_libraries(BansheeCore PUBLIC BansheeUtility)	

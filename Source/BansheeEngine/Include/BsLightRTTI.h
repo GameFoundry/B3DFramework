@@ -16,51 +16,24 @@ namespace BansheeEngine
 	class BS_EXPORT LightRTTI : public RTTIType <Light, IReflectable, LightRTTI>
 	{
 	private:
-		Vector3& getPosition(Light* obj) { return obj->mPosition; }
-		void setPosition(Light* obj, Vector3& position) { obj->mPosition = position; }
-
-		Quaternion& getRotation(Light* obj) { return obj->mRotation; }
-		void setRotation(Light* obj, Quaternion& rotation) { obj->mRotation = rotation; }
-
-		LightType& getType(Light* obj) { return obj->mType; }
-		void setType(Light* obj, LightType& type) { obj->mType = type; }
-
-		bool& getCastsShadow(Light* obj) { return obj->mCastsShadows; }
-		void setCastsShadow(Light* obj, bool& castsShadow) { obj->mCastsShadows = castsShadow; }
-
-		Color& getColor(Light* obj) { return obj->mColor; }
-		void setColor(Light* obj, Color& color) { obj->mColor = color; }
-
-		float& getRange(Light* obj) { return obj->mRange; }
-		void setRange(Light* obj, float& range) { obj->mRange = range; }
-
-		float& getIntensity(Light* obj) { return obj->mIntensity; }
-		void setIntensity(Light* obj, float& intensity) { obj->mIntensity = intensity; }
-
-		Degree& getSpotAngle(Light* obj) { return obj->mSpotAngle; }
-		void setSpotAngle(Light* obj, Degree& spotAngle) { obj->mSpotAngle = spotAngle; }
-
-		Degree& getSpotFalloffAngle(Light* obj) { return obj->mSpotFalloffAngle; }
-		void setSpotFalloffAngle(Light* obj, Degree& spotAngle) { obj->mSpotFalloffAngle = spotAngle; }
-
-		bool& getPhysCorrectAtten(Light* obj) { return obj->mPhysCorrectAtten; }
-		void setPhysCorrectAtten(Light* obj, bool& value) { obj->mPhysCorrectAtten = value; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mPosition, 0)
+			BS_RTTI_MEMBER_PLAIN(mRotation, 1)
+			BS_RTTI_MEMBER_PLAIN(mType, 2)
+			BS_RTTI_MEMBER_PLAIN(mCastsShadows, 3)
+			BS_RTTI_MEMBER_PLAIN(mColor, 4)
+			BS_RTTI_MEMBER_PLAIN(mRange, 5)
+			BS_RTTI_MEMBER_PLAIN(mIntensity, 6)
+			BS_RTTI_MEMBER_PLAIN(mSpotAngle, 7)
+			BS_RTTI_MEMBER_PLAIN(mSpotFalloffAngle, 8)
+			BS_RTTI_MEMBER_PLAIN(mPhysCorrectAtten, 9)
+		BS_END_RTTI_MEMBERS
 	public:
 		LightRTTI()
-		{
-			addPlainField("mPosition", 0, &LightRTTI::getPosition, &LightRTTI::setPosition);
-			addPlainField("mRotation", 1, &LightRTTI::getRotation, &LightRTTI::setRotation);
-			addPlainField("mType", 2, &LightRTTI::getType, &LightRTTI::setType);
-			addPlainField("mCastsShadow", 3, &LightRTTI::getCastsShadow, &LightRTTI::setCastsShadow);
-			addPlainField("mColor", 4, &LightRTTI::getColor, &LightRTTI::setColor);
-			addPlainField("mRange", 5, &LightRTTI::getRange, &LightRTTI::setRange);
-			addPlainField("mIntensity", 6, &LightRTTI::getIntensity, &LightRTTI::setIntensity);
-			addPlainField("mSpotAngle", 7, &LightRTTI::getSpotAngle, &LightRTTI::setSpotAngle);
-			addPlainField("mSpotFalloffAngle", 8, &LightRTTI::getSpotFalloffAngle, &LightRTTI::setSpotFalloffAngle);
-			addPlainField("mPhysCorrectAtten", 9, &LightRTTI::getPhysCorrectAtten, &LightRTTI::setPhysCorrectAtten);
-		}
+			:mInitMembers(this)
+		{ }
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			// Note: Since this is a CoreObject I should call initialize() right after deserialization,
 			// but since this specific type is used in Components we delay initialization until Component

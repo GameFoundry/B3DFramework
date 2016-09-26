@@ -12,6 +12,7 @@
 #include "BsRTTIReflectablePtrField.h"
 #include "BsRTTIManagedDataBlockField.h"
 #include "BsMemorySerializer.h"
+#include "BsDataStream.h"
 
 #include <unordered_set>
 
@@ -44,20 +45,22 @@ namespace BansheeEngine
 	{
 	}
 
-	void BinarySerializer::encode(IReflectable* object, UINT8* buffer, UINT32 bufferLength, 
-		UINT32* bytesWritten, std::function<UINT8*(UINT8*, UINT32, UINT32&)> flushBufferCallback, bool shallow)
+	void BinarySerializer::encode(IReflectable* object, UINT8* buffer, UINT32 bufferLength, UINT32* bytesWritten, 
+		std::function<UINT8*(UINT8*, UINT32, UINT32&)> flushBufferCallback, bool shallow, 
+		const UnorderedMap<String, UINT64>& params)
 	{
 		mObjectsToEncode.clear();
 		mObjectAddrToId.clear();
 		mLastUsedObjectId = 1;
 		*bytesWritten = 0;
 		mTotalBytesWritten = 0;
+		mParams = params;
 
 		Vector<SPtr<IReflectable>> encodedObjects;
 		UINT32 objectId = findOrCreatePersistentId(object);
 		
 		// Encode primary object and its value types
-		buffer = encodeInternal(object, objectId, buffer, bufferLength, bytesWritten, flushBufferCallback, shallow);
+		buffer = encodeEntry(object, objectId, buffer, bufferLength, bytesWritten, flushBufferCallback, shallow);
 		if(buffer == nullptr)
 		{
 			BS_EXCEPT(InternalErrorException, 
@@ -81,7 +84,7 @@ namespace BansheeEngine
 				serializedObjects.insert(curObjectid);
 				mObjectsToEncode.erase(iter);
 
-				buffer = encodeInternal(curObject.get(), curObjectid, buffer, 
+				buffer = encodeEntry(curObject.get(), curObjectid, buffer, 
 					bufferLength, bytesWritten, flushBufferCallback, shallow);
 				if(buffer == nullptr)
 				{
@@ -118,19 +121,22 @@ namespace BansheeEngine
 		mObjectAddrToId.clear();
 	}
 
-	SPtr<IReflectable> BinarySerializer::decode(UINT8* data, UINT32 dataLength)
+	SPtr<IReflectable> BinarySerializer::decode(const SPtr<DataStream>& data, UINT32 dataLength, 
+		const UnorderedMap<String, UINT64>& params)
 	{
+		mParams = params;
+
 		if (dataLength == 0)
 			return nullptr;
 
-		SPtr<SerializedObject> intermediateObject = _decodeIntermediate(data, dataLength);
+		SPtr<SerializedObject> intermediateObject = _decodeToIntermediate(data, dataLength);
 		if (intermediateObject == nullptr)
 			return nullptr;
 
-		return _decodeIntermediate(intermediateObject);
+		return _decodeFromIntermediate(intermediateObject);
 	}
 
-	SPtr<IReflectable> BinarySerializer::_decodeIntermediate(const SPtr<SerializedObject>& serializedObject)
+	SPtr<IReflectable> BinarySerializer::_decodeFromIntermediate(const SPtr<SerializedObject>& serializedObject)
 	{
 		mObjectMap.clear();
 
@@ -142,7 +148,7 @@ namespace BansheeEngine
 			auto iterNewObj = mObjectMap.insert(std::make_pair(serializedObject, ObjectToDecode(output, serializedObject)));
 
 			iterNewObj.first->second.decodeInProgress = true;
-			decodeInternal(output, serializedObject);
+			decodeEntry(output, serializedObject);
 			iterNewObj.first->second.decodeInProgress = false;
 			iterNewObj.first->second.isDecoded = true;
 		}
@@ -156,7 +162,7 @@ namespace BansheeEngine
 				continue;
 
 			objToDecode.decodeInProgress = true;
-			decodeInternal(objToDecode.object, objToDecode.serializedObject);
+			decodeEntry(objToDecode.object, objToDecode.serializedObject);
 			objToDecode.decodeInProgress = false;
 			objToDecode.isDecoded = true;
 		}
@@ -165,7 +171,51 @@ namespace BansheeEngine
 		return output;
 	}
 
-	UINT8* BinarySerializer::encodeInternal(IReflectable* object, UINT32 objectId, UINT8* buffer, UINT32& bufferLength, 
+	SPtr<SerializedObject> BinarySerializer::_encodeToIntermediate(IReflectable* object, bool shallow)
+	{
+		// TODO: This is a hacky way of generating an intermediate format to save development time and complexity.
+		// It is hacky because it requires a full on encode to binary and then decode into intermediate. It should 
+		// be better to modify encoding process so it outputs the intermediate format directly (similar to how decoding works). 
+		// This also means that once you have an intermediate format you cannot use it to encode to binary. 
+
+		std::function<void*(UINT32)> allocator = &MemoryAllocator<GenAlloc>::allocate;
+
+		MemorySerializer ms;
+		UINT32 dataLength = 0;
+		UINT8* data = ms.encode(object, dataLength, allocator, shallow);
+
+		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>(data, dataLength);
+
+		BinarySerializer bs;
+		SPtr<SerializedObject> obj = bs._decodeToIntermediate(stream, dataLength, true);
+
+		return obj;
+	}
+
+	SPtr<SerializedObject> BinarySerializer::_decodeToIntermediate(const SPtr<DataStream>& data, UINT32 dataLength, bool copyData)
+	{
+		bool streamDataBlock = false;
+		if (!copyData && data->isFile())
+		{
+			copyData = true;
+			streamDataBlock = true;
+		}
+
+		UINT32 bytesRead = 0;
+		mInterimObjectMap.clear();
+
+		SPtr<SerializedObject> rootObj;
+		bool hasMore = decodeEntry(data, dataLength, bytesRead, rootObj, copyData, streamDataBlock);
+		while (hasMore)
+		{
+			SPtr<SerializedObject> dummyObj;
+			hasMore = decodeEntry(data, dataLength, bytesRead, dummyObj, copyData, streamDataBlock);
+		}
+
+		return rootObj;
+	}
+
+	UINT8* BinarySerializer::encodeEntry(IReflectable* object, UINT32 objectId, UINT8* buffer, UINT32& bufferLength, 
 		UINT32* bytesWritten, std::function<UINT8*(UINT8*, UINT32, UINT32&)> flushBufferCallback, bool shallow)
 	{
 		RTTITypeBase* si = object->getRTTI();
@@ -174,7 +224,7 @@ namespace BansheeEngine
 		// If an object has base classes, we need to iterate through all of them
 		do
 		{
-			si->onSerializationStarted(object);
+			si->onSerializationStarted(object, mParams);
 
 			// Encode object ID & type
 			ObjectMetaData objectMetaData = encodeObjectMetaData(objectId, si->getRTTIId(), isBaseClass);
@@ -228,7 +278,7 @@ namespace BansheeEngine
 									bytesWritten, flushBufferCallback, shallow);
 								if(buffer == nullptr)
 								{
-									si->onSerializationEnded(object);
+									si->onSerializationEnded(object, mParams);
 									return nullptr;
 								}
 							}
@@ -253,14 +303,13 @@ namespace BansheeEngine
 									curField->arrayElemToBuffer(object, arrIdx, tempBuffer);
 
 									buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
+									bs_stack_free(tempBuffer);
+
 									if (buffer == nullptr || bufferLength == 0)
 									{
-										bs_stack_free(tempBuffer);
-										si->onSerializationEnded(object);
+										si->onSerializationEnded(object, mParams);
 										return nullptr;
 									}
-
-									bs_stack_free(tempBuffer);
 								}
 								else
 								{
@@ -304,7 +353,7 @@ namespace BansheeEngine
 								bytesWritten, flushBufferCallback, shallow);
 							if(buffer == nullptr)
 							{
-								si->onSerializationEnded(object);
+								si->onSerializationEnded(object, mParams);
 								return nullptr;
 							}
 
@@ -326,14 +375,13 @@ namespace BansheeEngine
 								curField->toBuffer(object, tempBuffer);
 								
 								buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
+								bs_stack_free(tempBuffer);
+
 								if (buffer == nullptr || bufferLength == 0)
 								{
-									bs_stack_free(tempBuffer);
-									si->onSerializationEnded(object);
+									si->onSerializationEnded(object, mParams);
 									return nullptr;
 								}
-
-								bs_stack_free(tempBuffer);
 							}
 							else
 							{
@@ -347,19 +395,23 @@ namespace BansheeEngine
 					case SerializableFT_DataBlock:
 						{
 							RTTIManagedDataBlockFieldBase* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
-							ManagedDataBlock value = curField->getValue(object);
+
+							UINT32 dataBlockSize = 0;
+							SPtr<DataStream> blockStream = curField->getValue(object, dataBlockSize);
 
 							// Data block size
-							UINT32 dataBlockSize = value.getSize();
 							COPY_TO_BUFFER(&dataBlockSize, sizeof(UINT32))
 
 							// Data block data
-							UINT8* dataToStore = value.getData();
+							UINT8* dataToStore = (UINT8*)bs_stack_alloc(dataBlockSize);
+							blockStream->read(dataToStore, dataBlockSize);
 
 							buffer = dataBlockToBuffer(dataToStore, dataBlockSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
+							bs_stack_free(dataToStore);
+
 							if (buffer == nullptr || bufferLength == 0)
 							{
-								si->onSerializationEnded(object);
+								si->onSerializationEnded(object, mParams);
 								return nullptr;
 							}
 
@@ -373,7 +425,7 @@ namespace BansheeEngine
 				}
 			}
 
-			si->onSerializationEnded(object);
+			si->onSerializationEnded(object, mParams);
 
 			si = si->getBaseClass();
 			isBaseClass = true;
@@ -383,57 +435,18 @@ namespace BansheeEngine
 		return buffer;
 	}
 
-	SPtr<SerializedObject> BinarySerializer::_encodeIntermediate(IReflectable* object, bool shallow)
+	bool BinarySerializer::decodeEntry(const SPtr<DataStream>& data, UINT32 dataLength, UINT32& bytesRead,
+		SPtr<SerializedObject>& output, bool copyData, bool streamDataBlock)
 	{
-		// TODO: This is a hacky way of generating an intermediate format to save development time and complexity.
-		// It is hacky because it requires a full on encode to binary and then decode into intermediate. It should 
-		// be better to modify encoding process so it outputs the intermediate format directly (similar to how decoding works). 
-		// This also means that once you have an intermediate format you cannot use it to encode to binary. 
-
-		std::function<void*(UINT32)> allocator = &MemoryAllocator<GenAlloc>::allocate;
-
-		MemorySerializer ms;
-		UINT32 dataLength = 0;
-		UINT8* data = ms.encode(object, dataLength, allocator, shallow);
-
-		BinarySerializer bs;
-		SPtr<SerializedObject> obj = bs._decodeIntermediate(data, dataLength, true);
-
-		bs_free(data);
-		return obj;
-	}
-
-	SPtr<SerializedObject> BinarySerializer::_decodeIntermediate(UINT8* data, UINT32 dataLength, bool copyData)
-	{
-		UINT32 bytesRead = 0;
-		mInterimObjectMap.clear();
-
-		SPtr<SerializedObject> rootObj;
-		bool hasMore = decodeIntermediateInternal(data, dataLength, bytesRead, rootObj, copyData);
-		while (hasMore)
-		{
-			UINT8* dataPtr = data + bytesRead;
-
-			SPtr<SerializedObject> dummyObj;
-			hasMore = decodeIntermediateInternal(dataPtr, dataLength, bytesRead, dummyObj, copyData);
-		}
-
-		return rootObj;
-	}
-
-	bool BinarySerializer::decodeIntermediateInternal(UINT8* data, UINT32 dataLength, UINT32& bytesRead, SPtr<SerializedObject>& output, bool copyData)
-	{
-		if ((bytesRead + sizeof(ObjectMetaData)) > dataLength)
-		{
-			BS_EXCEPT(InternalErrorException,
-				"Error decoding data.");
-		}
-
 		ObjectMetaData objectMetaData;
 		objectMetaData.objectMeta = 0;
 		objectMetaData.typeId = 0;
-		memcpy(&objectMetaData, data, sizeof(ObjectMetaData));
-		data += sizeof(ObjectMetaData);
+
+		if(data->read(&objectMetaData, sizeof(ObjectMetaData)) != sizeof(ObjectMetaData))
+		{
+			BS_EXCEPT(InternalErrorException, "Error decoding data.");
+		}
+
 		bytesRead += sizeof(ObjectMetaData);
 
 		UINT32 objectId = 0;
@@ -475,27 +488,22 @@ namespace BansheeEngine
 		while (bytesRead < dataLength)
 		{
 			int metaData = -1;
-
-			if ((bytesRead + META_SIZE) > dataLength)
+			if(data->read(&metaData, META_SIZE) != META_SIZE)
 			{
-				BS_EXCEPT(InternalErrorException,
-					"Error decoding data.");
+				BS_EXCEPT(InternalErrorException, "Error decoding data.");
 			}
-
-			memcpy((void*)&metaData, data, META_SIZE);
 
 			if (isObjectMetaData(metaData)) // We've reached a new object or a base class of the current one
 			{
-				if ((bytesRead + sizeof(ObjectMetaData)) > dataLength)
-				{
-					BS_EXCEPT(InternalErrorException,
-						"Error decoding data.");
-				}
-
 				ObjectMetaData objMetaData;
 				objMetaData.objectMeta = 0;
 				objMetaData.typeId = 0;
-				memcpy(&objMetaData, data, sizeof(ObjectMetaData));
+
+				data->seek(data->tell() - META_SIZE);
+				if (data->read(&objMetaData, sizeof(ObjectMetaData)) != sizeof(ObjectMetaData))
+				{
+					BS_EXCEPT(InternalErrorException, "Error decoding data.");
+				}
 
 				UINT32 objId = 0;
 				UINT32 objTypeId = 0;
@@ -522,18 +530,17 @@ namespace BansheeEngine
 						serializedSubObject->typeId = objTypeId;
 					}
 
-					data += sizeof(ObjectMetaData);
 					bytesRead += sizeof(ObjectMetaData);
 					continue;
 				}
 				else
 				{
 					// Found new object, we're done
+					data->seek(data->tell() - sizeof(ObjectMetaData));
 					return true;
 				}
 			}
 
-			data += META_SIZE;
 			bytesRead += META_SIZE;
 
 			bool isArray;
@@ -585,14 +592,11 @@ namespace BansheeEngine
 			int arrayNumElems = 1;
 			if (isArray)
 			{
-				if ((bytesRead + NUM_ELEM_FIELD_SIZE) > dataLength)
+				if(data->read(&arrayNumElems, NUM_ELEM_FIELD_SIZE) != NUM_ELEM_FIELD_SIZE)
 				{
-					BS_EXCEPT(InternalErrorException,
-						"Error decoding data.");
+					BS_EXCEPT(InternalErrorException, "Error decoding data.");
 				}
 
-				memcpy((void*)&arrayNumElems, data, NUM_ELEM_FIELD_SIZE);
-				data += NUM_ELEM_FIELD_SIZE;
 				bytesRead += NUM_ELEM_FIELD_SIZE;
 
 				SPtr<SerializedArray> serializedArray;
@@ -613,15 +617,12 @@ namespace BansheeEngine
 
 					for (int i = 0; i < arrayNumElems; i++)
 					{
-						if ((bytesRead + COMPLEX_TYPE_FIELD_SIZE) > dataLength)
+						int childObjectId = 0;
+						if(data->read(&childObjectId, COMPLEX_TYPE_FIELD_SIZE) != COMPLEX_TYPE_FIELD_SIZE)
 						{
-							BS_EXCEPT(InternalErrorException,
-								"Error decoding data.");
+							BS_EXCEPT(InternalErrorException, "Error decoding data.");
 						}
 
-						int childObjectId = 0;
-						memcpy(&childObjectId, data, COMPLEX_TYPE_FIELD_SIZE);
-						data += COMPLEX_TYPE_FIELD_SIZE;
 						bytesRead += COMPLEX_TYPE_FIELD_SIZE;
 
 						if (curField != nullptr)
@@ -656,20 +657,16 @@ namespace BansheeEngine
 
 					for (int i = 0; i < arrayNumElems; i++)
 					{
+						SPtr<SerializedObject> serializedArrayEntry;
+						decodeEntry(data, dataLength, bytesRead, serializedArrayEntry, copyData, streamDataBlock);
+
 						if (curField != nullptr)
 						{
-							UINT32 bytesReadStart = bytesRead;
-							SPtr<SerializedObject> serializedArrayEntry;
-							decodeIntermediateInternal(data, dataLength, bytesRead, serializedArrayEntry, copyData);
-
 							SerializedArrayEntry arrayEntry;
 							arrayEntry.serialized = serializedArrayEntry;
 							arrayEntry.index = i;
 
 							serializedArray->entries[i] = arrayEntry;
-
-							UINT32 complexTypeSize = bytesRead - bytesReadStart;
-							data += complexTypeSize;
 						}
 					}
 					break;
@@ -682,7 +679,10 @@ namespace BansheeEngine
 					{
 						UINT32 typeSize = fieldSize;
 						if (hasDynamicSize)
-							memcpy(&typeSize, data, sizeof(UINT32));
+						{
+							data->read(&typeSize, sizeof(UINT32));
+							data->seek(data->tell() - sizeof(UINT32));
+						}
 
 						if (curField != nullptr)
 						{
@@ -691,11 +691,17 @@ namespace BansheeEngine
 							if (copyData)
 							{
 								serializedField->value = (UINT8*)bs_alloc(typeSize);
-								memcpy(serializedField->value, data, typeSize);
+								data->read(serializedField->value, typeSize);
+
 								serializedField->ownsMemory = true;
 							}
-							else
-								serializedField->value = data;
+							else // Guaranteed not to be a file stream, as we check earlier
+							{
+								SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(data);
+								serializedField->value = memStream->getCurrentPtr();
+
+								data->skip(typeSize);
+							}
 
 							serializedField->size = typeSize;
 
@@ -705,8 +711,9 @@ namespace BansheeEngine
 
 							serializedArray->entries[i] = arrayEntry;
 						}
+						else
+							data->skip(typeSize);
 
-						data += typeSize;
 						bytesRead += typeSize;
 					}
 					break;
@@ -725,15 +732,12 @@ namespace BansheeEngine
 				{
 					RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
 
-					if ((bytesRead + COMPLEX_TYPE_FIELD_SIZE) > dataLength)
+					int childObjectId = 0;
+					if(data->read(&childObjectId, COMPLEX_TYPE_FIELD_SIZE) != COMPLEX_TYPE_FIELD_SIZE)
 					{
-						BS_EXCEPT(InternalErrorException,
-							"Error decoding data.");
+						BS_EXCEPT(InternalErrorException, "Error decoding data.");
 					}
 
-					int childObjectId = 0;
-					memcpy(&childObjectId, data, COMPLEX_TYPE_FIELD_SIZE);
-					data += COMPLEX_TYPE_FIELD_SIZE;
 					bytesRead += COMPLEX_TYPE_FIELD_SIZE;
 
 					if (curField != nullptr)
@@ -761,18 +765,13 @@ namespace BansheeEngine
 				case SerializableFT_Reflectable:
 				{
 					RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
+					SPtr<SerializedObject> serializedChildObj;
+					decodeEntry(data, dataLength, bytesRead, serializedChildObj, copyData, streamDataBlock);
 
 					if (curField != nullptr)
 					{
-						UINT32 bytesReadStart = bytesRead;
-						SPtr<SerializedObject> serializedChildObj;
-						decodeIntermediateInternal(data, dataLength, bytesRead, serializedChildObj, copyData);
-
 						serializedEntry = serializedChildObj;
 						hasModification = true;
-
-						UINT32 complexTypeSize = bytesRead - bytesReadStart;
-						data += complexTypeSize;
 					}
 
 					break;
@@ -783,28 +782,36 @@ namespace BansheeEngine
 
 					UINT32 typeSize = fieldSize;
 					if (hasDynamicSize)
-						memcpy(&typeSize, data, sizeof(UINT32));
+					{
+						data->read(&typeSize, sizeof(UINT32));
+						data->seek(data->tell() - sizeof(UINT32));
+					}
 
 					if (curField != nullptr)
 					{
 						SPtr<SerializedField> serializedField = bs_shared_ptr_new<SerializedField>();
-
 						if (copyData)
 						{
 							serializedField->value = (UINT8*)bs_alloc(typeSize);
-							memcpy(serializedField->value, data, typeSize);
+							data->read(serializedField->value, typeSize);
+
 							serializedField->ownsMemory = true;
 						}
-						else
-							serializedField->value = data;
+						else // Guaranteed not to be a file stream, as we check earlier
+						{
+							SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(data);
+							serializedField->value = memStream->getCurrentPtr();
+
+							data->skip(typeSize);
+						}
 
 						serializedField->size = typeSize;
-
 						serializedEntry = serializedField;
 						hasModification = true;
 					}
+					else
+						data->skip(typeSize);
 
-					data += typeSize;
 					bytesRead += typeSize;
 					break;
 				}
@@ -812,45 +819,44 @@ namespace BansheeEngine
 				{
 					RTTIManagedDataBlockFieldBase* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
 
-					if ((bytesRead + DATA_BLOCK_TYPE_FIELD_SIZE) > dataLength)
-					{
-						BS_EXCEPT(InternalErrorException,
-							"Error decoding data.");
-					}
-
 					// Data block size
 					UINT32 dataBlockSize = 0;
-					memcpy(&dataBlockSize, data, DATA_BLOCK_TYPE_FIELD_SIZE);
-					data += DATA_BLOCK_TYPE_FIELD_SIZE;
-					bytesRead += DATA_BLOCK_TYPE_FIELD_SIZE;
-
-					if ((bytesRead + dataBlockSize) > dataLength)
+					if(data->read(&dataBlockSize, DATA_BLOCK_TYPE_FIELD_SIZE) != DATA_BLOCK_TYPE_FIELD_SIZE)
 					{
-						BS_EXCEPT(InternalErrorException,
-							"Error decoding data.");
+						BS_EXCEPT(InternalErrorException, "Error decoding data.");
 					}
+
+					bytesRead += DATA_BLOCK_TYPE_FIELD_SIZE;
 
 					// Data block data
 					if (curField != nullptr)
 					{
-						SPtr<SerializedField> serializedField = bs_shared_ptr_new<SerializedField>();
+						SPtr<SerializedDataBlock> serializedDataBlock = bs_shared_ptr_new<SerializedDataBlock>();
 
-						if (copyData)
+						if (streamDataBlock || !copyData)
 						{
-							serializedField->value = (UINT8*)bs_alloc(dataBlockSize);
-							memcpy(serializedField->value, data, dataBlockSize);
-							serializedField->ownsMemory = true;
+							serializedDataBlock->stream = data;
+							serializedDataBlock->offset = (UINT32)data->tell();
+
+							data->skip(dataBlockSize);
 						}
 						else
-							serializedField->value = data;
+						{
+							UINT8* dataBlockBuffer = (UINT8*)bs_alloc(dataBlockSize);
+							data->read(dataBlockBuffer, dataBlockSize);
 
-						serializedField->size = dataBlockSize;
+							SPtr<DataStream> stream = bs_shared_ptr_new<MemoryDataStream>(dataBlockBuffer, dataBlockSize);
+							serializedDataBlock->stream = stream;
+							serializedDataBlock->offset = 0;
+						}
 
-						serializedEntry = serializedField;
+						serializedDataBlock->size = dataBlockSize;
+						serializedEntry = serializedDataBlock;
 						hasModification = true;
 					}
+					else
+						data->skip(dataBlockSize);
 
-					data += dataBlockSize;
 					bytesRead += dataBlockSize;
 
 					break;
@@ -875,12 +881,14 @@ namespace BansheeEngine
 		return false;
 	}
 
-	void BinarySerializer::decodeInternal(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serializableObject)
+	void BinarySerializer::decodeEntry(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serializableObject)
 	{
 		UINT32 numSubObjects = (UINT32)serializableObject->subObjects.size();
+		if (numSubObjects == 0)
+			return;
 
 		Vector<RTTITypeBase*> rttiTypes;
-		for (UINT32 subObjectIdx = 0; subObjectIdx < numSubObjects; subObjectIdx++)
+		for (INT32 subObjectIdx = numSubObjects - 1; subObjectIdx >= 0; subObjectIdx--)
 		{
 			const SerializedSubObject& subObject = serializableObject->subObjects[subObjectIdx];
 
@@ -888,7 +896,7 @@ namespace BansheeEngine
 			if (rtti == nullptr)
 				continue;
 
-			rtti->onDeserializationStarted(object.get());
+			rtti->onDeserializationStarted(object.get(), mParams);
 			rttiTypes.push_back(rtti);
 
 			UINT32 numFields = rtti->getNumFields();
@@ -947,7 +955,7 @@ namespace BansheeEngine
 									else
 									{
 										objToDecode.decodeInProgress = true;
-										decodeInternal(objToDecode.object, objToDecode.serializedObject);
+										decodeEntry(objToDecode.object, objToDecode.serializedObject);
 										objToDecode.decodeInProgress = false;
 										objToDecode.isDecoded = true;
 									}
@@ -977,7 +985,7 @@ namespace BansheeEngine
 							if (childRtti != nullptr)
 							{
 								SPtr<IReflectable> newObject = childRtti->newRTTIObject();
-								decodeInternal(newObject, arrayElemData);
+								decodeEntry(newObject, arrayElemData);
 								curField->setArrayValue(object.get(), arrayElem.first, *newObject);
 							}
 						}
@@ -1040,7 +1048,7 @@ namespace BansheeEngine
 								else
 								{
 									objToDecode.decodeInProgress = true;
-									decodeInternal(objToDecode.object, objToDecode.serializedObject);
+									decodeEntry(objToDecode.object, objToDecode.serializedObject);
 									objToDecode.decodeInProgress = false;
 									objToDecode.isDecoded = true;
 								}
@@ -1067,7 +1075,7 @@ namespace BansheeEngine
 						if (childRtti != nullptr)
 						{
 							SPtr<IReflectable> newObject = childRtti->newRTTIObject();
-							decodeInternal(newObject, fieldObjectData);
+							decodeEntry(newObject, fieldObjectData);
 							curField->setValue(object.get(), *newObject);
 						}
 						break;
@@ -1087,14 +1095,11 @@ namespace BansheeEngine
 					{
 						RTTIManagedDataBlockFieldBase* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
 
-						SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(entryData);
+						SPtr<SerializedDataBlock> fieldData = std::static_pointer_cast<SerializedDataBlock>(entryData);
 						if (fieldData != nullptr)
 						{
-							UINT8* dataCopy = curField->allocate(object.get(), fieldData->size); // TODO - Low priority. I need to read files better, so I
-							memcpy(dataCopy, fieldData->value, fieldData->size);		//    can just pass the buffer pointer directly without copying (possibly large amounts of data)
-
-							ManagedDataBlock value(dataCopy, fieldData->size); // Not managed because I assume the owner class will decide whether to delete the data or keep it
-							curField->setValue(object.get(), value);
+							fieldData->stream->seek(fieldData->offset);
+							curField->setValue(object.get(), fieldData->stream, fieldData->size);
 						}
 
 						break;
@@ -1104,9 +1109,9 @@ namespace BansheeEngine
 			}
 		}
 
-		for (auto iterFind = rttiTypes.rbegin(); iterFind != rttiTypes.rend(); ++iterFind)
+		for (auto iterFind = rttiTypes.begin(); iterFind != rttiTypes.end(); ++iterFind)
 		{
-			(*iterFind)->onDeserializationEnded(object.get());
+			(*iterFind)->onDeserializationEnded(object.get(), mParams);
 		}
 	}
 
@@ -1202,7 +1207,7 @@ namespace BansheeEngine
 	{
 		if (object != nullptr)
 		{
-			buffer = encodeInternal(object, 0, buffer, bufferLength, bytesWritten, flushBufferCallback, shallow);
+			buffer = encodeEntry(object, 0, buffer, bufferLength, bytesWritten, flushBufferCallback, shallow);
 
 			// Encode terminator field
 			// Complex types require terminator fields because they can be embedded within other complex types and we need

@@ -35,7 +35,7 @@ namespace BansheeEngine
 
 	MonoClass::MonoClass(const String& ns, const String& type, ::MonoClass* monoClass, const MonoAssembly* parentAssembly)
 		: mParentAssembly(parentAssembly), mClass(monoClass), mNamespace(ns), mTypeName(type), mHasCachedFields(false)
-		, mHasCachedMethods(false)
+		, mHasCachedProperties(false), mHasCachedMethods(false)
 	{
 		mFullName = ns + "." + type;
 	}
@@ -142,23 +142,20 @@ namespace BansheeEngine
 		return newField;
 	}
 
-	MonoProperty& MonoClass::getProperty(const String& name)
+	MonoProperty* MonoClass::getProperty(const String& name) const
 	{
 		auto iterFind = mProperties.find(name);
 		if(iterFind != mProperties.end())
-			return *iterFind->second;
+			return iterFind->second;
 
 		::MonoProperty* property = mono_class_get_property_from_name(mClass, name.c_str());
-		if(property == nullptr)
-		{
-			String fullPropertyName = mFullName + "." + name;
-			BS_EXCEPT(InvalidParametersException, "Cannot get Mono property: " + fullPropertyName);
-		}
+		if (property == nullptr)
+			return nullptr;
 
 		MonoProperty* newProperty = new (bs_alloc<MonoProperty>()) MonoProperty(property);
 		mProperties[name] = newProperty;
 
-		return *newProperty;
+		return newProperty;
 	}
 
 	const Vector<MonoField*>& MonoClass::getAllFields() const
@@ -182,6 +179,29 @@ namespace BansheeEngine
 
 		mHasCachedFields = true;
 		return mCachedFieldList;
+	}
+
+	const Vector<MonoProperty*>& MonoClass::getAllProperties() const
+	{
+		if (mHasCachedProperties)
+			return mCachedPropertyList;
+
+		mCachedPropertyList.clear();
+
+		void* iter = nullptr;
+		::MonoProperty* curClassProperty = mono_class_get_properties(mClass, &iter);
+		while (curClassProperty != nullptr)
+		{
+			const char* propertyName = mono_property_get_name(curClassProperty);
+			MonoProperty* curProperty = getProperty(propertyName);
+
+			mCachedPropertyList.push_back(curProperty);
+
+			curClassProperty = mono_class_get_properties(mClass, &iter);
+		}
+
+		mHasCachedProperties = true;
+		return mCachedPropertyList;
 	}
 
 	const Vector<MonoMethod*>& MonoClass::getAllMethods() const

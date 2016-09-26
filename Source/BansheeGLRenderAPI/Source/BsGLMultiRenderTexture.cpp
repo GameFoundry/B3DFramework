@@ -34,7 +34,7 @@ namespace BansheeEngine
 
 				if (mColorSurfaces[i]->getNumArraySlices() == 1) // Binding a single texture layer
 				{
-					surfaceDesc.allLayers = false;
+					surfaceDesc.allLayers = glColorSurface->getProperties().getNumFaces() == 1;
 
 					if (glColorSurface->getProperties().getTextureType() != TEX_TYPE_3D)
 					{

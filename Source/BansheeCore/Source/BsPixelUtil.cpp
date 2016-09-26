@@ -5,7 +5,7 @@
 #include "BsColor.h"
 #include "BsMath.h"
 #include "BsException.h"
-#include "nvtt/nvtt.h"
+#include <nvtt.h>
 
 namespace BansheeEngine 
 {
@@ -740,11 +740,11 @@ namespace BansheeEngine
 	//-----------------------------------------------------------------------
 		{"PF_D32_S8X24",
 		/* Bytes per element */
-		4,
+		8,
 		/* Flags */
 		PFF_DEPTH | PFF_FLOAT,
 		/* Component type and count */
-		PCT_FLOAT32, 1,
+		PCT_FLOAT32, 2,
 		/* rbits, gbits, bbits, abits */
 		0, 0, 0, 0,
 		/* Masks and shifts */
@@ -753,11 +753,11 @@ namespace BansheeEngine
 	//-----------------------------------------------------------------------
 		{"PF_D24_S8",
 		/* Bytes per element */
-		8,
+		4,
 		/* Flags */
 		PFF_DEPTH | PFF_FLOAT,
 		/* Component type and count */
-		PCT_FLOAT32, 2,
+		PCT_FLOAT32, 1,
 		/* rbits, gbits, bbits, abits */
 		0, 0, 0, 0,
 		/* Masks and shifts */
@@ -1227,7 +1227,7 @@ namespace BansheeEngine
 				((UINT8*)dest)[0] = (UINT8)Bitwise::floatToFixed(r, 8);
 				break;
             default:
-                BS_EXCEPT(NotImplementedException, "Pack to " + getFormatName(format) + " not implemented");
+                LOGERR("Pack to " + getFormatName(format) + " not implemented");
                 break;
             }
         }
@@ -1275,7 +1275,6 @@ namespace BansheeEngine
     void PixelUtil::unpackColor(float* r, float* g, float* b, float* a, PixelFormat format, const void* src)
     {
         const PixelFormatDescription &des = getDescriptionFor(format);
-
         if(des.flags & PFF_NATIVEENDIAN) 
 		{
             // Shortcut for integer formats unpacking
@@ -1353,11 +1352,55 @@ namespace BansheeEngine
 				*a = 1.0f;
 				break;
             default:
-                BS_EXCEPT(NotImplementedException, "Unpack from " + getFormatName(format) + " not implemented");
+                LOGERR("Unpack from " + getFormatName(format) + " not implemented");
                 break;
             }
         }
     }
+
+	void PixelUtil::packDepth(float depth, const PixelFormat format, void* dest)
+	{
+		if (!isDepth(format))
+		{
+			LOGERR("Cannot convert depth to " + getFormatName(format) + ": it is not a depth format");
+			return;
+		}
+		
+		LOGERR("Method is not implemented");	
+		//TODO implement depth packing
+
+	}
+
+	float PixelUtil::unpackDepth(PixelFormat format, void* src)
+	{
+		const PixelFormatDescription &des = getDescriptionFor(format);
+		if (!isDepth(format))
+		{
+			LOGERR("Cannot unpack from " + getFormatName(format) + ": it is not a depth format");
+			return 0;
+		}
+		
+		UINT32* color = (UINT32 *)src;
+		switch (format) 
+		{
+		case PF_D24S8:
+			return  static_cast<float>(*color & 0x00FFFFFF) / (float)16777216;
+			break;
+		case PF_D16:
+			return static_cast<float>(*color & 0xFFFF) / (float)65536;
+			break;
+		case PF_D32:
+			return static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			break;
+		case PF_D32_S8X24:
+			return static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			break;
+		default:
+			LOGERR("Cannot unpack from " + getFormatName(format));
+			return 0;
+			break;
+		}
+	}
 
     void PixelUtil::bulkPixelConversion(const PixelData &src, PixelData &dst)
     {
@@ -1375,7 +1418,8 @@ namespace BansheeEngine
 			}
 			else
 			{
-				BS_EXCEPT(NotImplementedException, "This method can not be used to compress or decompress images");
+				LOGERR("bulkPixelConversion() cannot be used to compress or decompress images");
+				return;
 			}
 		}
 
@@ -1649,17 +1693,29 @@ namespace BansheeEngine
 	void PixelUtil::compress(const PixelData& src, PixelData& dst, const CompressionOptions& options)
 	{
 		if (!isCompressed(options.format))
-			BS_EXCEPT(InvalidParametersException, "Wanted format is not a compressed format.");
+		{
+			LOGERR("Compression failed. Destination format is not a valid compressed format.")
+			return;
+		}
 
 		// Note: NVTT site has implementations for these two formats for when I decide to add them
 		if (options.format == PF_BC6H || options.format == PF_BC7)
-			BS_EXCEPT(InvalidParametersException, "Specified formats are not yet supported.");
+		{
+			LOGERR("Compression failed. BC6H and BC7 formats are currently not supported.")
+			return;
+		}
 
 		if (src.getDepth() != 1)
-			BS_EXCEPT(InvalidParametersException, "3D textures are not supported.");
+		{
+			LOGERR("Compression failed. 3D texture compression not supported.")
+			return;
+		}
 
 		if (isCompressed(src.getFormat()))
-			BS_EXCEPT(InvalidParametersException, "Source data cannot be compressed.");
+		{
+			LOGERR("Compression failed. Source data cannot be compressed.");
+			return;
+		}
 
 		PixelData bgraData(src.getWidth(), src.getHeight(), 1, PF_B8G8R8A8);
 		bgraData.allocateInternalBuffer();
@@ -1689,21 +1745,35 @@ namespace BansheeEngine
 		
 		nvtt::Compressor compressor;
 		if (!compressor.process(io, co, oo))
-			BS_EXCEPT(InternalErrorException, "Compressing failed.");
+		{
+			LOGERR("Compression failed. Internal error.");
+			return;
+		}	
 	}
 
 	Vector<SPtr<PixelData>> PixelUtil::genMipmaps(const PixelData& src, const MipMapGenOptions& options)
 	{
+		Vector<SPtr<PixelData>> outputMipBuffers;
+
 		if (src.getDepth() != 1)
-			BS_EXCEPT(InvalidParametersException, "3D textures are not supported.");
+		{
+			LOGERR("Mipmap generation failed. 3D texture formats not supported.")
+			return outputMipBuffers;
+		}
 
 		// Note: Add support for floating point mips, no reason they shouldn't be supported other than
 		// nvtt doesn't support them natively
 		if (isCompressed(src.getFormat()) || isFloatingPoint(src.getFormat()))
-			BS_EXCEPT(InvalidParametersException, "Source data cannot be compressed or in floating point format.");
+		{
+			LOGERR("Mipmap generation failed. Source data cannot be compressed or in floating point format.")
+			return outputMipBuffers;
+		}
 
 		if (!Math::isPow2(src.getWidth()) || !Math::isPow2(src.getHeight()))
-			BS_EXCEPT(InvalidParametersException, "Texture width & height must be powers of 2.");
+		{
+			LOGERR("Mipmap generation failed. Texture width & height must be powers of 2.");
+			return outputMipBuffers;
+		}
 
 		PixelData argbData(src.getWidth(), src.getHeight(), 1, PF_A8R8G8B8);
 		argbData.allocateInternalBuffer();
@@ -1752,11 +1822,13 @@ namespace BansheeEngine
 
 		nvtt::Compressor compressor;
 		if (!compressor.process(io, co, oo))
-			BS_EXCEPT(InternalErrorException, "Mipmap generation failed.");
+		{
+			LOGERR("Mipmap generation failed. Internal error.");
+			return outputMipBuffers;
+		}
 
 		argbData.freeInternalBuffer();
 
-		Vector<SPtr<PixelData>> outputMipBuffers;
 		for (UINT32 i = 0; i < (UINT32)argbMipBuffers.size(); i++)
 		{
 			SPtr<PixelData> argbBuffer = argbMipBuffers[i];

@@ -216,15 +216,18 @@ namespace BansheeEngine
  *  @{
  */
 
+namespace std
+{
 /**	Hash value generator for RASTERIZER_STATE_DESC. */
 template<>
-struct std::hash<BansheeEngine::RASTERIZER_STATE_DESC>
+struct hash<BansheeEngine::RASTERIZER_STATE_DESC>
 {
 	size_t operator()(const BansheeEngine::RASTERIZER_STATE_DESC& value) const
 	{
 		return (size_t)BansheeEngine::RasterizerState::generateHash(value);
 	}
 };
+}
 
 /** @} */
 /** @endcond */

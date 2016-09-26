@@ -133,7 +133,7 @@ namespace BansheeEngine
 		GameObjectHandleBase(std::nullptr_t ptr);
 
 		/**	Throws an exception if the referenced GameObject has been destroyed. */
-		inline void throwIfDestroyed() const;
+		void throwIfDestroyed() const;
 		
 		/**	Invalidates the handle signifying the referenced object was destroyed. */
 		void destroy()

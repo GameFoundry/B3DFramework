@@ -8,8 +8,8 @@
 namespace BansheeEngine
 {
 	HandleSlider::HandleSlider(bool fixedScale, UINT64 layer)
-		: mFixedScale(fixedScale), mLayer(layer), mScale(Vector3::ONE), mDistanceScale(1.0f), mState(State::Inactive)
-		, mEnabled(true), mTransformDirty(true)
+		: mFixedScale(fixedScale), mLayer(layer), mPosition(BsZero), mRotation(BsZero), mScale(Vector3::ONE)
+		, mDistanceScale(1.0f), mState(State::Inactive), mEnabled(true), mTransformDirty(true)
 	{
 
 	}

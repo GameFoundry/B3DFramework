@@ -206,6 +206,7 @@ namespace BansheeEngine
 		struct SolidMaterialData
 		{
 			SPtr<MaterialCore> mat;
+			SPtr<GpuParamsSetCore> params;
 			GpuParamMat4Core viewProj;
 			GpuParamVec4Core viewDir;
 		};
@@ -214,6 +215,7 @@ namespace BansheeEngine
 		struct LineMaterialData
 		{
 			SPtr<MaterialCore> mat;
+			SPtr<GpuParamsSetCore> params;
 			GpuParamMat4Core viewProj;
 		};
 
@@ -221,6 +223,7 @@ namespace BansheeEngine
 		struct TextMaterialData
 		{
 			SPtr<MaterialCore> mat;
+			SPtr<GpuParamsSetCore> params;
 			GpuParamMat4Core viewProj;
 			GpuParamTextureCore texture;
 		};

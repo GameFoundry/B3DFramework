@@ -30,7 +30,8 @@ namespace BansheeEngine
 
 	void Task::wait()
 	{
-		mParent->waitUntilComplete(this);
+		if(mParent != nullptr)
+			mParent->waitUntilComplete(this);
 	}
 
 	void Task::cancel()

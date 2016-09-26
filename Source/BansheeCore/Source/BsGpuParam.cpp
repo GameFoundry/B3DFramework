@@ -4,6 +4,7 @@
 #include "BsGpuParams.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsGpuParamDesc.h"
+#include "BsRenderAPI.h"
 #include "BsDebug.h"
 #include "BsException.h"
 #include "BsVectorNI.h"
@@ -22,7 +23,7 @@ namespace BansheeEngine
 	{ }
 
 	template<class T, bool Core>
-	void TGpuDataParam<T, Core>::set(const T& value, UINT32 arrayIdx)
+	void TGpuDataParam<T, Core>::set(const T& value, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -42,7 +43,8 @@ namespace BansheeEngine
 		UINT32 elementSizeBytes = mParamDesc->elementSize * sizeof(UINT32);
 		UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-		if (TransposePolicy<T>::transposeEnabled(mParent->getTransposeMatrices()))
+		bool transposeMatrices = RenderAPICore::instance().getAPIInfo().getGpuProgramHasColumnMajorMatrices();
+		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 		{
 			T transposed = TransposePolicy<T>::transpose(value);
 			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
@@ -61,7 +63,7 @@ namespace BansheeEngine
 	}
 
 	template<class T, bool Core>
-	T TGpuDataParam<T, Core>::get(UINT32 arrayIdx)
+	T TGpuDataParam<T, Core>::get(UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return T();
@@ -84,7 +86,8 @@ namespace BansheeEngine
 		T value;
 		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
-		if (TransposePolicy<T>::transposeEnabled(mParent->getTransposeMatrices()))
+		bool transposeMatrices = RenderAPICore::instance().getAPIInfo().getGpuProgramHasColumnMajorMatrices();
+		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 			return TransposePolicy<T>::transpose(value);
 		else
 			return value;
@@ -101,7 +104,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamStruct<Core>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TGpuParamStruct<Core>::set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -141,7 +144,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	void TGpuParamStruct<Core>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx)
+	void TGpuParamStruct<Core>::get(void* value, UINT32 sizeBytes, UINT32 arrayIdx) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -190,7 +193,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamTexture<Core>::set(const TextureType& texture)
+	void TGpuParamTexture<Core>::set(const TextureType& texture) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -202,12 +205,43 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamTexture<Core>::TextureType TGpuParamTexture<Core>::get()
+	typename TGpuParamTexture<Core>::TextureType TGpuParamTexture<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return TextureType();
 
 		return mParent->getTexture(mParamDesc->slot);
+	}
+
+	template<bool Core>
+	TGpuParamBuffer<Core>::TGpuParamBuffer()
+		:mParamDesc(nullptr)
+	{ }
+
+	template<bool Core>
+	TGpuParamBuffer<Core>::TGpuParamBuffer(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent)
+		: mParent(parent), mParamDesc(paramDesc)
+	{ }
+
+	template<bool Core>
+	void TGpuParamBuffer<Core>::set(const BufferType& buffer) const
+	{
+		if (mParent == nullptr)
+			return;
+
+		mParent->setBuffer(mParamDesc->slot, buffer);
+
+		mParent->_markResourcesDirty();
+		mParent->_markCoreDirty();
+	}
+
+	template<bool Core>
+	typename TGpuParamBuffer<Core>::BufferType TGpuParamBuffer<Core>::get() const
+	{
+		if (mParent == nullptr)
+			return BufferType();
+
+		return mParent->getBuffer(mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -221,7 +255,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamLoadStoreTexture<Core>::set(const TextureType& texture, const TextureSurface& surface)
+	void TGpuParamLoadStoreTexture<Core>::set(const TextureType& texture, const TextureSurface& surface) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -233,7 +267,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamLoadStoreTexture<Core>::TextureType TGpuParamLoadStoreTexture<Core>::get()
+	typename TGpuParamLoadStoreTexture<Core>::TextureType TGpuParamLoadStoreTexture<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return TextureType();
@@ -252,7 +286,7 @@ namespace BansheeEngine
 	{ }
 
 	template<bool Core>
-	void TGpuParamSampState<Core>::set(const SamplerStateType& samplerState)
+	void TGpuParamSampState<Core>::set(const SamplerStateType& samplerState) const
 	{
 		if (mParent == nullptr)
 			return;
@@ -264,7 +298,7 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamSampState<Core>::SamplerStateType TGpuParamSampState<Core>::get()
+	typename TGpuParamSampState<Core>::SamplerStateType TGpuParamSampState<Core>::get() const
 	{
 		if (mParent == nullptr)
 			return SamplerStateType();
@@ -315,6 +349,9 @@ namespace BansheeEngine
 
 	template class TGpuParamTexture < false > ;
 	template class TGpuParamTexture < true > ;
+
+	template class TGpuParamBuffer < false >;
+	template class TGpuParamBuffer < true >;
 
 	template class TGpuParamSampState < false > ;
 	template class TGpuParamSampState < true > ;

@@ -24,7 +24,9 @@
 #include "BsScriptGUISkin.h"
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
+#include "BsScriptAudioClip.h"
 #include "BsScriptPrefab.h"
+#include "BsScriptAnimationClip.h"
 
 namespace BansheeEngine
 {
@@ -33,6 +35,7 @@ namespace BansheeEngine
 		, mSystemGenericDictionaryClass(nullptr), mSystemTypeClass(nullptr), mComponentClass(nullptr)
 		, mSceneObjectClass(nullptr), mMissingComponentClass(nullptr), mSerializeObjectAttribute(nullptr)
 		, mDontSerializeFieldAttribute(nullptr), mSerializeFieldAttribute(nullptr), mHideInInspectorAttribute(nullptr)
+		, mShowInInspectorAttribute(nullptr), mRangeAttribute(nullptr), mStepAttribute(nullptr)
 	{
 
 	}
@@ -99,14 +102,14 @@ namespace BansheeEngine
 			}
 		}
 
-		// Populate field data
+		// Populate field & property data
 		for(auto& curClassInfo : assemblyInfo->mObjectInfos)
 		{
 			SPtr<ManagedSerializableObjectInfo> objInfo = curClassInfo.second;
 
 			UINT32 mUniqueFieldId = 1;
-			const Vector<MonoField*>& fields = objInfo->mMonoClass->getAllFields();
 
+			const Vector<MonoField*>& fields = objInfo->mMonoClass->getAllFields();
 			for(auto& field : fields)
 			{
 				if(field->isStatic())
@@ -123,23 +126,71 @@ namespace BansheeEngine
 				fieldInfo->mTypeInfo = typeInfo;
 				fieldInfo->mParentTypeId = objInfo->mTypeInfo->mTypeId;
 				
-				MonoFieldVisibility visibility = field->getVisibility();
-				if (visibility == MonoFieldVisibility::Public)
+				MonoMemberVisibility visibility = field->getVisibility();
+				if (visibility == MonoMemberVisibility::Public)
 				{
 					if (!field->hasAttribute(mDontSerializeFieldAttribute))
-						fieldInfo->mFlags = (ScriptFieldFlags)((UINT32)fieldInfo->mFlags | (UINT32)ScriptFieldFlags::Serializable);
+						fieldInfo->mFlags |= ScriptFieldFlag::Serializable;
 
 					if (!field->hasAttribute(mHideInInspectorAttribute))
-						fieldInfo->mFlags = (ScriptFieldFlags)((UINT32)fieldInfo->mFlags | (UINT32)ScriptFieldFlags::Inspectable);
+						fieldInfo->mFlags |= ScriptFieldFlag::Inspectable;
+
+					fieldInfo->mFlags |= ScriptFieldFlag::Animable;
 				}
 				else
 				{
 					if (field->hasAttribute(mSerializeFieldAttribute))
-						fieldInfo->mFlags = (ScriptFieldFlags)((UINT32)fieldInfo->mFlags | (UINT32)ScriptFieldFlags::Serializable);
+						fieldInfo->mFlags |= ScriptFieldFlag::Serializable;
+
+					if (field->hasAttribute(mShowInInspectorAttribute))
+						fieldInfo->mFlags |= ScriptFieldFlag::Inspectable;
 				}
+
+				if (field->hasAttribute(mRangeAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::Range;
+
+				if (field->hasAttribute(mStepAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::Step;
 
 				objInfo->mFieldNameToId[fieldInfo->mName] = fieldInfo->mFieldId;
 				objInfo->mFields[fieldInfo->mFieldId] = fieldInfo;
+			}
+
+			const Vector<MonoProperty*>& properties = objInfo->mMonoClass->getAllProperties();
+			for (auto& property : properties)
+			{
+				SPtr<ManagedSerializableTypeInfo> typeInfo = getTypeInfo(property->getReturnType());
+				if (typeInfo == nullptr)
+					continue;
+
+				SPtr<ManagedSerializablePropertyInfo> propertyInfo = bs_shared_ptr_new<ManagedSerializablePropertyInfo>();
+				propertyInfo->mFieldId = mUniqueFieldId++;
+				propertyInfo->mName = property->getName();
+				propertyInfo->mMonoProperty = property;
+				propertyInfo->mTypeInfo = typeInfo;
+				propertyInfo->mParentTypeId = objInfo->mTypeInfo->mTypeId;
+
+				if (!property->isIndexed())
+				{
+					MonoMemberVisibility visibility = property->getVisibility();
+					if (visibility == MonoMemberVisibility::Public)
+						propertyInfo->mFlags |= ScriptFieldFlag::Animable;
+
+					if (property->hasAttribute(mSerializeFieldAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::Serializable;
+
+					if (property->hasAttribute(mShowInInspectorAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::Inspectable;
+				}
+
+				if (property->hasAttribute(mRangeAttribute))
+					propertyInfo->mFlags |= ScriptFieldFlag::Range;
+
+				if (property->hasAttribute(mStepAttribute))
+					propertyInfo->mFlags |= ScriptFieldFlag::Step;
+
+				objInfo->mFieldNameToId[propertyInfo->mName] = propertyInfo->mFieldId;
+				objInfo->mFields[propertyInfo->mFieldId] = propertyInfo;
 			}
 		}
 
@@ -172,7 +223,7 @@ namespace BansheeEngine
 	SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::getTypeInfo(MonoClass* monoClass)
 	{
 		if(!mBaseTypesInitialized)
-			BS_EXCEPT(InvalidStateException, "Calling determineType without previously initializing base types.");
+			BS_EXCEPT(InvalidStateException, "Calling getTypeInfo without previously initializing base types.");
 
 		MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(monoClass->_getInternalClass());
 		
@@ -305,6 +356,10 @@ namespace BansheeEngine
 					typeInfo->mType = ScriptReferenceType::PhysicsMaterial;
 				else if (monoClass->isSubClassOf(ScriptPhysicsMesh::getMetaData()->scriptClass))
 					typeInfo->mType = ScriptReferenceType::PhysicsMesh;
+				else if (monoClass->isSubClassOf(ScriptAudioClip::getMetaData()->scriptClass))
+					typeInfo->mType = ScriptReferenceType::AudioClip;
+				else if (monoClass->isSubClassOf(ScriptAnimationClip::getMetaData()->scriptClass))
+					typeInfo->mType = ScriptReferenceType::AnimationClip;
 				else
 				{
 					assert(false && "Unrecognized resource type");
@@ -348,8 +403,8 @@ namespace BansheeEngine
 			{
 				SPtr<ManagedSerializableTypeInfoList> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoList>();
 
-				MonoProperty& itemProperty = monoClass->getProperty("Item");
-				MonoClass* itemClass = itemProperty.getReturnType();
+				MonoProperty* itemProperty = monoClass->getProperty("Item");
+				MonoClass* itemClass = itemProperty->getReturnType();
 
 				if (itemClass != nullptr)
 					typeInfo->mElementType = getTypeInfo(itemClass);
@@ -366,17 +421,17 @@ namespace BansheeEngine
 				MonoMethod* getEnumerator = monoClass->getMethod("GetEnumerator");
 				MonoClass* enumClass = getEnumerator->getReturnType();
 
-				MonoProperty& currentProp = enumClass->getProperty("Current");
-				MonoClass* keyValuePair = currentProp.getReturnType();
+				MonoProperty* currentProp = enumClass->getProperty("Current");
+				MonoClass* keyValuePair = currentProp->getReturnType();
 
-				MonoProperty& keyProperty = keyValuePair->getProperty("Key");
-				MonoProperty& valueProperty = keyValuePair->getProperty("Value");
+				MonoProperty* keyProperty = keyValuePair->getProperty("Key");
+				MonoProperty* valueProperty = keyValuePair->getProperty("Value");
 
-				MonoClass* keyClass = keyProperty.getReturnType();
+				MonoClass* keyClass = keyProperty->getReturnType();
 				if(keyClass != nullptr)
 					typeInfo->mKeyType = getTypeInfo(keyClass);
 
-				MonoClass* valueClass = valueProperty.getReturnType();
+				MonoClass* valueClass = valueProperty->getReturnType();
 				if(valueClass != nullptr)
 					typeInfo->mValueType = getTypeInfo(valueClass);
 
@@ -430,6 +485,9 @@ namespace BansheeEngine
 
 		mSerializeFieldAttribute = nullptr;
 		mHideInInspectorAttribute = nullptr;
+		mShowInInspectorAttribute = nullptr;
+		mRangeAttribute = nullptr;
+		mStepAttribute = nullptr;
 	}
 
 	void ScriptAssemblyManager::initializeBaseTypes()
@@ -467,6 +525,14 @@ namespace BansheeEngine
 		if(mDontSerializeFieldAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find DontSerializeField managed class.");
 
+		mRangeAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "Range");
+		if (mRangeAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Range managed class.");
+
+		mStepAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "Step");
+		if (mStepAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Step managed class.");
+
 		mComponentClass = bansheeEngineAssembly->getClass("BansheeEngine", "Component");
 		if(mComponentClass == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find Component managed class.");
@@ -486,6 +552,10 @@ namespace BansheeEngine
 		mHideInInspectorAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "HideInInspector");
 		if(mHideInInspectorAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find HideInInspector managed class.");
+
+		mShowInInspectorAttribute = bansheeEngineAssembly->getClass("BansheeEngine", "ShowInInspector");
+		if (mShowInInspectorAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find ShowInInspector managed class.");
 
 		mBaseTypesInitialized = true;
 	}

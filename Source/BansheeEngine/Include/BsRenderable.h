@@ -11,6 +11,8 @@
 
 namespace BansheeEngine
 {
+	struct RendererAnimationData;
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -22,13 +24,15 @@ namespace BansheeEngine
 		Everything = 0x02
 	};
 
-	template<bool Core> struct TMeshType {};
-	template<> struct TMeshType < false > { typedef HMesh Type; };
-	template<> struct TMeshType < true > { typedef SPtr<MeshCore> Type; };
-
-	template<bool Core> struct TMaterialType {};
-	template<> struct TMaterialType < false > { typedef HMaterial Type; };
-	template<> struct TMaterialType < true > { typedef SPtr<MaterialCore> Type; };
+	/** Type of animation that can be applied to a renderable object. */
+	enum class RenderableAnimType
+	{
+		None,
+		Skinned,
+		Morph,
+		SkinnedMorph,
+		Count // Keep at end
+	};
 
 	/**
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
@@ -38,7 +42,7 @@ namespace BansheeEngine
 	class BS_EXPORT TRenderable
 	{
 		typedef typename TMeshType<Core>::Type MeshType;
-		typedef typename TMaterialType<Core>::Type MaterialType;
+		typedef typename TMaterialPtrType<Core>::Type MaterialType;
 
 	public:
 		TRenderable();
@@ -89,6 +93,20 @@ namespace BansheeEngine
 		/**	Sets whether the object should be rendered or not. */
 		void setIsActive(bool active);
 
+		/** 
+		 * Sets bounds that will be used when determining if object is visible. Only relevant if setUseOverrideBounds() is
+		 * set to true.
+		 *
+		 * @param[in]	bounds	Bounds in local space.
+		 */
+		void setOverrideBounds(const AABox& bounds);
+
+		/**
+		 * Enables or disables override bounds. When enabled the bounds provided to setOverrideBounds() will be used for
+		 * determining object visibility, otherwise the bounds from the object's mesh will be used. Disabled by default.
+		 */
+		void setUseOverrideBounds(bool enable);
+
 		/**
 		 * Gets the layer bitfield that controls whether a renderable is considered visible in a specific camera. 
 		 * Renderable layer must match camera layer in order for the camera to render the component.
@@ -133,14 +151,19 @@ namespace BansheeEngine
 		/**	Marks the resource dependencies list as dirty and schedules it for rebuild. */
 		virtual void _markResourcesDirty() { }
 
+		/** Triggered whenever the renderable's mesh changes. */
+		virtual void onMeshChanged() { }
+
 		MeshType mMesh;
 		Vector<MaterialType> mMaterials;
 		UINT64 mLayer;
-		Vector<AABox> mWorldBounds;
+		AABox mOverrideBounds;
+		bool mUseOverrideBounds;
 		Vector3 mPosition;
 		Matrix4 mTransform;
 		Matrix4 mTransformNoScale;
 		bool mIsActive;
+		RenderableAnimType mAnimType;
 	};
 
 	/** @} */
@@ -158,14 +181,32 @@ namespace BansheeEngine
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
 
-		/**	Returns the type that controls how is this object rendered. */
-		RenderableType getRenderableType() const { return RenType_LitTextured; }
-
 		/**	Sets an ID that can be used for uniquely identifying this handler by the renderer. */
 		void setRendererId(UINT32 id) { mRendererId = id; }
 
 		/**	Retrieves an ID that can be used for uniquely identifying this handler by the renderer. */
 		UINT32 getRendererId() const { return mRendererId; }
+
+		/** Returns the type of animation influencing this renderable, if any. */
+		RenderableAnimType getAnimType() const { return mAnimType; }
+
+		/** Returns the identifier of the animation, if this object is animated using skeleton or blend shape animation. */
+		UINT64 getAnimationId() const { return mAnimationId; }
+
+		/** 
+		 * Updates internal animation buffers from the contents of the provided animation data object. Does nothing if
+		 * renderable is not affected by animation.
+		 */
+		void updateAnimationBuffers(const RendererAnimationData& animData);
+
+		/** Returns the GPU buffer containing element's bone matrices, if it has any. */
+		const SPtr<GpuBufferCore>& getBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
+
+		/** Returns the vertex buffer containing element's morph shape vertices, if it has any. */
+		const SPtr<VertexBufferCore>& getMorphShapeBuffer() const { return mMorphShapeBuffer; }
+
+		/** Returns vertex declaration used for rendering meshes containing morph shape information. */
+		const SPtr<VertexDeclarationCore>& getMorphVertexDeclaration() const { return mMorphVertexDeclaration; }
 
 	protected:
 		friend class Renderable;
@@ -178,7 +219,16 @@ namespace BansheeEngine
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 
+		/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
+		void createAnimationBuffers();
+
 		UINT32 mRendererId;
+		UINT64 mAnimationId;
+		UINT32 mMorphShapeVersion;
+
+		SPtr<GpuBufferCore> mBoneMatrixBuffer;
+		SPtr<VertexBufferCore> mMorphShapeBuffer;
+		SPtr<VertexDeclarationCore> mMorphVertexDeclaration;
 	};
 
 	/** @copydoc TRenderable */
@@ -187,6 +237,12 @@ namespace BansheeEngine
 	public:
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
+
+		/** Sets the animation that will be used for animating the attached mesh. */
+		void setAnimation(const SPtr<Animation>& animation);
+
+		/** Checks is the renderable animated or static. */
+		bool isAnimated() const { return mAnimation != nullptr; }
 
 		/**	Retrieves an implementation of a renderable handler usable only from the core thread. */
 		SPtr<RenderableCore> getCore() const;
@@ -197,6 +253,9 @@ namespace BansheeEngine
 		/**	Sets the hash value that can be used to identify if the internal data needs an update. */
 		void _setLastModifiedHash(UINT32 hash) { mLastUpdateHash = hash; }
 
+		/** Updates the transfrom from the provided scene object, if the scene object's data is detected to be dirty. */
+		void _updateTransform(const HSceneObject& so, bool force = false);
+
 		/**	Creates a new renderable handler instance. */
 		static SPtr<Renderable> create();
 
@@ -205,6 +264,12 @@ namespace BansheeEngine
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
+
+		/** @copydoc TRenderable::onMeshChanged */
+		void onMeshChanged() override;
+
+		/** Updates animation properties depending on the current mesh. */
+		void refreshAnimation();
 
 		/** @copydoc TRenderable::_markCoreDirty */
 		void _markCoreDirty(RenderableDirtyFlag flag = RenderableDirtyFlag::Everything) override;
@@ -234,6 +299,7 @@ namespace BansheeEngine
 		static SPtr<Renderable> createEmpty();
 
 		UINT32 mLastUpdateHash;
+		SPtr<Animation> mAnimation;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -241,7 +307,7 @@ namespace BansheeEngine
 	public:
 		friend class RenderableRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

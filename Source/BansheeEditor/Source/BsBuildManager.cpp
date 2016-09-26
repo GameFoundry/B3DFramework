@@ -97,7 +97,6 @@ namespace BansheeEngine
 	{
 		// Use Data folder as an anchor to find where the root is
 		Path sourceRoot = Paths::getRuntimeDataPath();
-		sourceRoot.makeAbsolute(FileSystem::getWorkingDirectoryPath());
 
 		UINT32 numDataDirs = Paths::RUNTIME_DATA_PATH.getNumDirectories();
 		if (Paths::RUNTIME_DATA_PATH.isFile())
@@ -124,7 +123,7 @@ namespace BansheeEngine
 		}
 		case BuildFolder::NativeBinaries:
 		{
-			Path binariesPath = FileSystem::getWorkingDirectoryPath();
+			Path binariesPath = Paths::getBinariesPath();
 
 			return binariesPath.makeRelative(sourceRoot);
 		}
@@ -146,8 +145,6 @@ namespace BansheeEngine
 		case PlatformType::Windows:
 		{
 			Path output = Paths::getRuntimeDataPath() + "Binaries\\Win64\\Game.exe";
-			output.makeAbsolute(FileSystem::getWorkingDirectoryPath());
-
 			return output;
 		}
 		default:

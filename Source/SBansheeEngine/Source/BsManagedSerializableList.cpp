@@ -194,8 +194,8 @@ namespace BansheeEngine
 
 	void ManagedSerializableList::initMonoObjects(MonoClass* listClass)
 	{
-		mItemProp = &listClass->getProperty("Item");
-		mCountProp = &listClass->getProperty("Count");
+		mItemProp = listClass->getProperty("Item");
+		mCountProp = listClass->getProperty("Count");
 		mAddMethod = listClass->getMethod("Add", 1);
 		mAddRangeMethod = listClass->getMethod("AddRange", 1);
 		mClearMethod = listClass->getMethod("Clear");

@@ -24,6 +24,8 @@
 #include "BsScriptGUISkin.h"
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
+#include "BsScriptAudioClip.h"
+#include "BsScriptAnimationClip.h"
 #include "BsScriptSceneObject.h"
 #include "BsScriptComponent.h"
 #include "BsManagedSerializableObject.h"
@@ -178,6 +180,12 @@ namespace BansheeEngine
 
 			lookup[(int)ScriptReferenceType::PhysicsMesh] =
 				{ &getScriptResource<PhysicsMesh, ScriptPhysicsMesh>, &setScriptResource<ScriptPhysicsMesh> };
+
+			lookup[(int)ScriptReferenceType::AudioClip] =
+				{ &getScriptResource<AudioClip, ScriptAudioClip>, &setScriptResource<ScriptAudioClip> };
+
+			lookup[(int)ScriptReferenceType::AnimationClip] =
+			{ &getScriptResource<AnimationClip, ScriptAnimationClip>, &setScriptResource<ScriptAnimationClip> };
 
 			lookup[(int)ScriptReferenceType::ManagedResource] =
 				{ &getScriptResource<ManagedResource, ScriptManagedResource>, &setScriptResource<ScriptManagedResource> };

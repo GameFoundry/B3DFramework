@@ -201,7 +201,7 @@ namespace BansheeEngine
 		//    - icon/cursor/etc data
 
 		std::fstream stream;
-		stream.open(path.toWString().c_str(), std::ios::in | std::ios::out | std::ios::binary);
+		stream.open(path.toPlatformString().c_str(), std::ios::in | std::ios::out | std::ios::binary);
 
 		// First check magic number to ensure file is even an executable
 		UINT16 magicNum;

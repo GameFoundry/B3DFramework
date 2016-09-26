@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsThreadPool.h"
+#include "BsDebug.h"
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 #include "windows.h"

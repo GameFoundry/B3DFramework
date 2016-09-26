@@ -9,7 +9,7 @@ set(BansheeGLRenderAPI_INC
 	"Source/GLSL/include")
 
 if(WIN32)
-	set(BansheeGLRenderAPI_INC ${BansheeGLRenderAPI_INC} "Source/win32")
+	set(BansheeGLRenderAPI_INC ${BansheeGLRenderAPI_INC} "Source/Win32")
 else()
 # TODO_OTHER_PLATFORMS_GO_HERE
 endif()

@@ -583,12 +583,14 @@ EndProject)";
 	Map<CodeEditorType, VSCodeEditorFactory::VSVersionInfo> VSCodeEditorFactory::getAvailableVersions() const
 	{
 #if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
-		bool is64bit = true;
+		BOOL is64bit = 1;
 #else
-		bool is64bit = false;
-		IsWow64Process(GetCurrentProcess(), (PBOOL)&is64bit);
+		BOOL is64bit = 0;
+		
+		HANDLE process = GetCurrentProcess();
+		IsWow64Process(process, (PBOOL)&is64bit);
 #endif
-
+		
 		WString registryKeyRoot;
 		if (is64bit)
 			registryKeyRoot = L"SOFTWARE\\Wow6432Node\\Microsoft"; 

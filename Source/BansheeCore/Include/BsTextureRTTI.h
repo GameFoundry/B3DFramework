@@ -5,9 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsTexture.h"
-#include "BsManagedDataBlock.h"
 #include "BsMath.h"
-#include "BsCoreApplication.h"
 #include "BsCoreThread.h"
 #include "BsRenderAPI.h"
 #include "BsTextureManager.h"
@@ -115,14 +113,14 @@ namespace BansheeEngine
 				&TextureRTTI::setPixelData, &TextureRTTI::setPixelDataArraySize, RTTI_Flag_SkipInReferenceSearch);
 		}
 
-		void onDeserializationStarted(IReflectable* obj) override
+		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Texture* texture = static_cast<Texture*>(obj);
 
 			texture->mRTTIData = bs_new<Vector<SPtr<PixelData>>>();
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Texture* texture = static_cast<Texture*>(obj);
 

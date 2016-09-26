@@ -10,16 +10,6 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/**	Returns the level of field visibility in the class. */
-	enum class MonoFieldVisibility
-	{
-		Private,
-		ProtectedInternal,
-		Internal,
-		Protected,
-		Public
-	};
-
 	/**
 	 * Encapsulates information about a single Mono (managed) field belonging to some managed class. This object also
 	 * allows you to set or retrieve values to/from specific instances containing the field.
@@ -68,7 +58,7 @@ namespace BansheeEngine
 		MonoObject* getAttribute(MonoClass* monoClass);
 
 		/**	Returns field visibility in the class. */
-		MonoFieldVisibility getVisibility();
+		MonoMemberVisibility getVisibility();
 
 		/**	Query if the field is static. */
 		bool isStatic();

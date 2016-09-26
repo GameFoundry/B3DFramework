@@ -41,7 +41,7 @@ Handles are used instead of pointers because:
  
 A little more elaboration for the last point. If you have read the [RTTI](@ref rtti) manual you know that objects can reference different field types. And resource handles can be referenced by "Reflectable" field types, allowing you to easily save/load references to resources within your objects with no additional code.
 
-Each handle internally stores a GUID that uniquely identifies the resource. You can access it by calling @ref BansheeEngine::ResourceHandleBase::getUUID() "HResource::getUUID".
+Each handle internally stores an UUID that uniquely identifies the resource. You can access it by calling @ref BansheeEngine::ResourceHandleBase::getUUID() "HResource::getUUID".
 
 ## Resource dependencies {#resource_a_b}
 We mentioned in the last section that objects (including resources) can reference resources. For example a @ref BansheeEngine::Font "Font" resource will reference @ref BansheeEngine::Texture "Texture" resources which store its pre-rendered font glyphs.
@@ -53,7 +53,7 @@ Once a resource is loaded it will stay loaded until all references (handles) to 
 
 If you wish to keep a handle to a resource that doesn't keep it loaded, you can use @ref BansheeEngine::TResourceHandle<T, true> "WeakResourceHandle<T>". You retrieve such a handle by calling @ref BansheeEngine::TResourceHandle<T, WeakHandle>::getWeak "HResource::getWeak" method on a normal handle. You can convert a weak handle into a normal handle by calling @ref BansheeEngine::TResourceHandle<T, WeakHandle>::lock "HResource::lock". Before doing so you should verify that the resource is still loaded.
 
-Weak handles can also be used for referencing resources for serialization/deserialization, same as normal handles can. However a weak handle will never force the referenced resource to load, even if `loadDependencies` parameter is set to true when loading. You must call @ref BansheeEngine::Resources::load(const WeakResourceHandle<T>&, bool, bool) "Resource::load" to manually load such a resource.
+Weak handles can also be used for referencing resources for serialization/deserialization, same as normal handles can. However a weak handle will never force the referenced resource to load, even if `loadDependencies` parameter is set to true when loading. You must call @ref BansheeEngine::Resources::load(const WeakResourceHandle<T>&, ResourceLoadFlags) "Resource::load" to manually load such a resource.
 
 You can also force a resource to stay loaded, even after all the handles go out of scope. You do it by setting `keepInternalReference` of @ref BansheeEngine::Resources::load "Resource::load" or @ref BansheeEngine::Resources::loadAsync "Resource::loadAsync" to true. In order to free such a resource you should call @ref BansheeEngine::Resources::release "Resources::release". Be aware that each call to @ref BansheeEngine::Resources::load "Resource::load" or @ref BansheeEngine::Resources::loadAsync "Resource::loadAsync" with this parameter enabled will require a separate @ref BansheeEngine::Resources::release "Resources::release" call. @ref BansheeEngine::Resources::release "Resources::release" will not release the resource immediately if there are still active handles to it, it will merely remove the internal reference so the resource can be freed when the handles go out of scope.
 

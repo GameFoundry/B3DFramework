@@ -38,8 +38,8 @@ namespace BansheeEngine
 
 		WINDOW_DESC windowDesc;
 		windowDesc.border = WindowBorder::None;
-		windowDesc.width = 600;
-		windowDesc.height = 662;
+		windowDesc.width = 543;
+		windowDesc.height = 680;
 		windowDesc.left = -1;
 		windowDesc.top = -1;
 		windowDesc.title = "Banshee Splash";
@@ -65,7 +65,7 @@ namespace BansheeEngine
 		if (m->window == nullptr)
 			return;
 
-		UINT32 currentTime = m->timer.getMilliseconds();
+		UINT64 currentTime = m->timer.getMilliseconds();
 		if (currentTime < SPLASH_SCREEN_DURATION_MS)
 			BS_THREAD_SLEEP(SPLASH_SCREEN_DURATION_MS - currentTime);
 

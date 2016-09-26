@@ -3,6 +3,7 @@
 #include "BsTextSprite.h"
 #include "BsTextData.h"
 #include "BsVector2.h"
+#include "BsSpriteManager.h"
 
 namespace BansheeEngine
 {
@@ -55,7 +56,8 @@ namespace BansheeEngine
 				matInfo.groupId = groupId;
 				matInfo.texture = tex;
 				matInfo.tint = desc.color;
-				matInfo.type = SpriteMaterial::Text;
+
+				cachedElem.material = SpriteManager::instance().getTextMaterial();
 
 				texPage++;
 			}

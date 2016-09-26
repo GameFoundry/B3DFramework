@@ -161,12 +161,12 @@ namespace BansheeEditor
             guiColorBoxBtn = new GUIButton(colorBoxMode.ToString());
             guiColorModeBtn = new GUIButton(sliderMode.ToString());
 
-            guiSliderVert = new GUISliderV(EditorStyles.ColorSliderVert);
-            guiSliderRHorz = new GUISliderH(EditorStyles.ColorSliderHorz);
-            guiSliderGHorz = new GUISliderH(EditorStyles.ColorSliderHorz);
-            guiSliderBHorz = new GUISliderH(EditorStyles.ColorSliderHorz);
-            guiSliderAHorz = new GUISliderH(EditorStyles.ColorSliderHorz);
-            guiSlider2DHandle = new GUITexture(null, EditorStyles.ColorSlider2DHandle);
+            guiSliderVert = new GUISliderV(EditorStylesInternal.ColorSliderVert);
+            guiSliderRHorz = new GUISliderH(EditorStylesInternal.ColorSliderHorz);
+            guiSliderGHorz = new GUISliderH(EditorStylesInternal.ColorSliderHorz);
+            guiSliderBHorz = new GUISliderH(EditorStylesInternal.ColorSliderHorz);
+            guiSliderAHorz = new GUISliderH(EditorStylesInternal.ColorSliderHorz);
+            guiSlider2DHandle = new GUITexture(null, EditorStylesInternal.ColorSlider2DHandle);
 
             guiLabelR = new GUILabel(new LocEdString("R"));
             guiLabelG = new GUILabel(new LocEdString("G"));

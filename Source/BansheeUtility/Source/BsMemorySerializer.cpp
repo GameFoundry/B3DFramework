@@ -5,6 +5,7 @@
 #include "BsException.h"
 #include "BsIReflectable.h"
 #include "BsBinarySerializer.h"
+#include "BsDataStream.h"
 
 using namespace std::placeholders;
 
@@ -17,7 +18,7 @@ namespace BansheeEngine
 	{ }
 
 	UINT8* MemorySerializer::encode(IReflectable* object, UINT32& bytesWritten, 
-		std::function<void*(UINT32)> allocator, bool shallow)
+		std::function<void*(UINT32)> allocator, bool shallow, const UnorderedMap<String, UINT64>& params)
 	{
 		using namespace std::placeholders;
 
@@ -30,7 +31,7 @@ namespace BansheeEngine
 		mBufferPieces.push_back(piece);
 
 		bs.encode(object, piece.buffer, WRITE_BUFFER_SIZE, &bytesWritten, 
-			std::bind(&MemorySerializer::flushBuffer, this, _1, _2, _3), shallow);
+			std::bind(&MemorySerializer::flushBuffer, this, _1, _2, _3), shallow, params);
 
 		UINT8* resultBuffer;
 		if(allocator != nullptr)
@@ -58,10 +59,12 @@ namespace BansheeEngine
 		return resultBuffer;
 	}
 
-	SPtr<IReflectable> MemorySerializer::decode(UINT8* buffer, UINT32 bufferSize)
+	SPtr<IReflectable> MemorySerializer::decode(UINT8* buffer, UINT32 bufferSize, const UnorderedMap<String, UINT64>& params)
 	{
+		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>(buffer, bufferSize, false);
+
 		BinarySerializer bs;
-		SPtr<IReflectable> object = bs.decode(buffer, (UINT32)bufferSize);
+		SPtr<IReflectable> object = bs.decode(stream, (UINT32)bufferSize, params);
 
 		return object;
 	}

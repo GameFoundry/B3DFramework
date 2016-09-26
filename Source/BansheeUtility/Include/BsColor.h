@@ -266,9 +266,11 @@ namespace BansheeEngine
 
 /** @cond SPECIALIZATIONS */
 
+namespace std
+{
 /** Hash value generator for Color. */
 template<> 
-struct std::hash<BansheeEngine::Color>
+struct hash<BansheeEngine::Color>
 {
 	size_t operator()(const BansheeEngine::Color& color) const
 	{
@@ -281,5 +283,6 @@ struct std::hash<BansheeEngine::Color>
 		return hash;
 	}
 };
+}
 
 /** @endcond */

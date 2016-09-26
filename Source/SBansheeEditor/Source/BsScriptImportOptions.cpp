@@ -14,6 +14,7 @@
 #include "BsRenderer.h"
 #include "BsScriptFont.h"
 #include "BsRTTIType.h"
+#include "BsScriptAnimationClip.h"
 
 using namespace std::placeholders;
 
@@ -28,7 +29,7 @@ namespace BansheeEngine
 		:ScriptObjectBase(instance)
 	{ }
 
-	void ScriptImportOptions::initRuntimeData() 
+	void ScriptImportOptions::initRuntimeData()
 	{ }
 
 	MonoObject* ScriptImportOptions::create(const SPtr<ImportOptions>& importOptions)
@@ -44,6 +45,8 @@ namespace BansheeEngine
 			return ScriptFontImportOptions::create(std::static_pointer_cast<FontImportOptions>(importOptions));
 		case TID_ScriptCodeImportOptions:
 			return ScriptScriptCodeImportOptions::create(std::static_pointer_cast<ScriptCodeImportOptions>(importOptions));
+		case TID_AudioClipImportOptions:
+			return ScriptAudioClipImportOptions::create(std::static_pointer_cast<AudioClipImportOptions>(importOptions));
 		}
 
 		MonoObject* managedInstance = metaData.scriptClass->createInstance();
@@ -55,12 +58,12 @@ namespace BansheeEngine
 
 	ScriptImportOptions::ScriptImportOptions(MonoObject* instance)
 		:ScriptObject(instance)
-	{ 
+	{
 		mImportOptions = bs_shared_ptr_new<ImportOptions>();
 	}
 
 	ScriptTextureImportOptions::ScriptTextureImportOptions(MonoObject* instance)
-		:ScriptObject(instance)
+		: ScriptObject(instance)
 	{
 		mImportOptions = bs_shared_ptr_new<TextureImportOptions>();
 	}
@@ -175,10 +178,18 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_SetImportAnimation", &ScriptMeshImportOptions::internal_SetImportAnimation);
 		metaData.scriptClass->addInternalCall("Internal_GetImportBlendShapes", &ScriptMeshImportOptions::internal_GetImportBlendShapes);
 		metaData.scriptClass->addInternalCall("Internal_SetImportBlendShapes", &ScriptMeshImportOptions::internal_SetImportBlendShapes);
+		metaData.scriptClass->addInternalCall("Internal_GetKeyFrameReduction", &ScriptMeshImportOptions::internal_GetKeyFrameReduction);
+		metaData.scriptClass->addInternalCall("Internal_SetKeyFrameReduction", &ScriptMeshImportOptions::internal_SetKeyFrameReduction);
+		metaData.scriptClass->addInternalCall("Internal_GetRootMotion", &ScriptMeshImportOptions::internal_GetRootMotion);
+		metaData.scriptClass->addInternalCall("Internal_SetRootMotion", &ScriptMeshImportOptions::internal_SetRootMotion);
 		metaData.scriptClass->addInternalCall("Internal_GetScale", &ScriptMeshImportOptions::internal_GetScale);
 		metaData.scriptClass->addInternalCall("Internal_SetScale", &ScriptMeshImportOptions::internal_SetScale);
 		metaData.scriptClass->addInternalCall("Internal_GetCollisionMeshType", &ScriptMeshImportOptions::internal_GetCollisionMeshType);
 		metaData.scriptClass->addInternalCall("Internal_SetCollisionMeshType", &ScriptMeshImportOptions::internal_SetCollisionMeshType);
+		metaData.scriptClass->addInternalCall("Internal_GetAnimationClipSplits", &ScriptMeshImportOptions::internal_GetAnimationClipSplits);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimationClipSplits", &ScriptMeshImportOptions::internal_SetAnimationClipSplits);
+		metaData.scriptClass->addInternalCall("Internal_GetAnimationEvents", &ScriptMeshImportOptions::internal_GetAnimationEvents);
+		metaData.scriptClass->addInternalCall("Internal_SetAnimationEvents", &ScriptMeshImportOptions::internal_SetAnimationEvents);
 	}
 
 	SPtr<MeshImportOptions> ScriptMeshImportOptions::getMeshImportOptions()
@@ -265,6 +276,26 @@ namespace BansheeEngine
 		thisPtr->getMeshImportOptions()->setImportBlendShapes(value);
 	}
 
+	bool ScriptMeshImportOptions::internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr)
+	{
+		return thisPtr->getMeshImportOptions()->getKeyFrameReduction();
+	}
+
+	void ScriptMeshImportOptions::internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value)
+	{
+		thisPtr->getMeshImportOptions()->setKeyFrameReduction(value);
+	}
+
+	bool ScriptMeshImportOptions::internal_GetRootMotion(ScriptMeshImportOptions* thisPtr)
+	{
+		return thisPtr->getMeshImportOptions()->getImportRootMotion();
+	}
+
+	void ScriptMeshImportOptions::internal_SetRootMotion(ScriptMeshImportOptions* thisPtr, bool value)
+	{
+		thisPtr->getMeshImportOptions()->setImportRootMotion(value);
+	}
+
 	float ScriptMeshImportOptions::internal_GetScale(ScriptMeshImportOptions* thisPtr)
 	{
 		return thisPtr->getMeshImportOptions()->getImportScale();
@@ -283,6 +314,71 @@ namespace BansheeEngine
 	void ScriptMeshImportOptions::internal_SetCollisionMeshType(ScriptMeshImportOptions* thisPtr, int value)
 	{
 		thisPtr->getMeshImportOptions()->setCollisionMeshType((CollisionMeshType)value);
+	}
+
+	MonoArray* ScriptMeshImportOptions::internal_GetAnimationClipSplits(ScriptMeshImportOptions* thisPtr)
+	{
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		Vector<AnimationSplitInfo> splitInfos = io->getAnimationClipSplits();
+		UINT32 numSplitInfos = (UINT32)splitInfos.size();
+		ScriptArray outputArray = ScriptArray::create<ScriptAnimationSplitInfo>(numSplitInfos);
+		for(UINT32 i = 0; i < numSplitInfos; i++)
+			outputArray.set(i, ScriptAnimationSplitInfo::toManaged(splitInfos[i]));
+
+		return outputArray.getInternal();
+	}
+
+	void ScriptMeshImportOptions::internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value)
+	{
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		if(value == nullptr)
+		{
+			io->setAnimationClipSplits({});
+			return;
+		}
+
+		ScriptArray inputArray(value);
+
+		UINT32 numSplits = inputArray.size();
+		Vector<AnimationSplitInfo> splitInfos(numSplits);
+		for (UINT32 i = 0; i < numSplits; i++)
+		{
+			MonoObject* monoSplitInfo = inputArray.get<MonoObject*>(i);
+
+			if(monoSplitInfo != nullptr)
+				splitInfos[i] = ScriptAnimationSplitInfo::fromManaged(monoSplitInfo);
+		}
+
+		io->setAnimationClipSplits(splitInfos);
+	}
+
+	MonoArray* ScriptMeshImportOptions::internal_GetAnimationEvents(ScriptMeshImportOptions* thisPtr)
+	{
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		Vector<ImportedAnimationEvents> animationEvents = io->getAnimationEvents();
+		UINT32 count = (UINT32)animationEvents.size();
+		ScriptArray outputArray = ScriptArray::create<ScriptImportedAnimationEvents>(count);
+		for (UINT32 i = 0; i < count; i++)
+			outputArray.set(i, ScriptImportedAnimationEvents::toManaged(animationEvents[i]));
+
+		return outputArray.getInternal();
+	}
+
+	void ScriptMeshImportOptions::internal_SetAnimationEvents(ScriptMeshImportOptions* thisPtr, MonoArray* value)
+	{
+		ScriptArray inputArray(value);
+
+		SPtr<MeshImportOptions> io = thisPtr->getMeshImportOptions();
+
+		UINT32 count = inputArray.size();
+		Vector<ImportedAnimationEvents> animationEvents(count);
+		for (UINT32 i = 0; i < count; i++)
+			animationEvents[i] = ScriptImportedAnimationEvents::fromManaged(inputArray.get<MonoObject*>(i));
+
+		io->setAnimationEvents(animationEvents);
 	}
 
 	ScriptFontImportOptions::ScriptFontImportOptions(MonoObject* instance)
@@ -467,5 +563,200 @@ namespace BansheeEngine
 	void ScriptScriptCodeImportOptions::internal_SetEditorScript(ScriptScriptCodeImportOptions* thisPtr, bool value)
 	{
 		thisPtr->getCodeImportOptions()->setEditorScript(value);
+	}
+
+	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(MonoObject* instance)
+		:ScriptObject(instance)
+	{
+		mImportOptions = bs_shared_ptr_new<AudioClipImportOptions>();
+	}
+
+	void ScriptAudioClipImportOptions::initRuntimeData()
+	{
+		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptAudioClipImportOptions::internal_CreateInstance);
+		metaData.scriptClass->addInternalCall("Internal_GetFormat", &ScriptAudioClipImportOptions::internal_GetFormat);
+		metaData.scriptClass->addInternalCall("Internal_SetFormat", &ScriptAudioClipImportOptions::internal_SetFormat);
+		metaData.scriptClass->addInternalCall("Internal_GetReadMode", &ScriptAudioClipImportOptions::internal_GetReadMode);
+		metaData.scriptClass->addInternalCall("Internal_SetReadMode", &ScriptAudioClipImportOptions::internal_SetReadMode);
+		metaData.scriptClass->addInternalCall("Internal_GetIs3D", &ScriptAudioClipImportOptions::internal_GetIs3D);
+		metaData.scriptClass->addInternalCall("Internal_SetIs3D", &ScriptAudioClipImportOptions::internal_SetIs3D);
+		metaData.scriptClass->addInternalCall("Internal_GetBitDepth", &ScriptAudioClipImportOptions::internal_GetBitDepth);
+		metaData.scriptClass->addInternalCall("Internal_SetBitDepth", &ScriptAudioClipImportOptions::internal_SetBitDepth);
+	}
+
+	SPtr<AudioClipImportOptions> ScriptAudioClipImportOptions::getClipImportOptions()
+	{
+		return std::static_pointer_cast<AudioClipImportOptions>(mImportOptions);
+	}
+
+	MonoObject* ScriptAudioClipImportOptions::create()
+	{
+		return metaData.scriptClass->createInstance();
+	}
+
+	MonoObject* ScriptAudioClipImportOptions::create(const SPtr<AudioClipImportOptions>& options)
+	{
+		MonoObject* managedInstance = metaData.scriptClass->createInstance();
+		ScriptAudioClipImportOptions* scriptObj = ScriptAudioClipImportOptions::toNative(managedInstance);
+		scriptObj->mImportOptions = options;
+
+		return managedInstance;
+	}
+
+	void ScriptAudioClipImportOptions::internal_CreateInstance(MonoObject* instance)
+	{
+		new (bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(instance);
+	}
+
+	AudioFormat ScriptAudioClipImportOptions::internal_GetFormat(ScriptAudioClipImportOptions* thisPtr)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		return io->getFormat();
+	}
+
+	void ScriptAudioClipImportOptions::internal_SetFormat(ScriptAudioClipImportOptions* thisPtr, AudioFormat format)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		io->setFormat(format);
+	}
+
+	AudioReadMode ScriptAudioClipImportOptions::internal_GetReadMode(ScriptAudioClipImportOptions* thisPtr)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		return io->getReadMode();
+	}
+
+	void ScriptAudioClipImportOptions::internal_SetReadMode(ScriptAudioClipImportOptions* thisPtr, AudioReadMode readMode)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		io->setReadMode(readMode);
+	}
+
+	bool ScriptAudioClipImportOptions::internal_GetIs3D(ScriptAudioClipImportOptions* thisPtr)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		return io->getIs3D();
+	}
+
+	void ScriptAudioClipImportOptions::internal_SetIs3D(ScriptAudioClipImportOptions* thisPtr, bool is3d)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		io->setIs3D(is3d);
+	}
+
+	UINT32 ScriptAudioClipImportOptions::internal_GetBitDepth(ScriptAudioClipImportOptions* thisPtr)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		return io->getBitDepth();
+	}
+
+	void ScriptAudioClipImportOptions::internal_SetBitDepth(ScriptAudioClipImportOptions* thisPtr, UINT32 bitDepth)
+	{
+		auto io = thisPtr->getClipImportOptions();
+		io->setBitDepth(bitDepth);
+	}
+
+	MonoField* ScriptAnimationSplitInfo::nameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::startFrameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::endFrameField = nullptr;
+	MonoField* ScriptAnimationSplitInfo::isAdditiveField = nullptr;
+
+	ScriptAnimationSplitInfo::ScriptAnimationSplitInfo(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
+	void ScriptAnimationSplitInfo::initRuntimeData()
+	{
+		nameField = metaData.scriptClass->getField("name");
+		startFrameField = metaData.scriptClass->getField("startFrame");
+		endFrameField = metaData.scriptClass->getField("endFrame");
+		isAdditiveField = metaData.scriptClass->getField("isAdditive");
+	}
+
+	AnimationSplitInfo ScriptAnimationSplitInfo::fromManaged(MonoObject* instance)
+	{
+		AnimationSplitInfo output;
+
+		MonoString* monoName = nullptr;
+		nameField->getValue(instance, &monoName);
+
+		output.name = MonoUtil::monoToString(monoName);
+
+		startFrameField->getValue(instance, &output.startFrame);
+		endFrameField->getValue(instance, &output.endFrame);
+		isAdditiveField->getValue(instance, &output.isAdditive);
+
+		return output;
+	}
+
+	MonoObject* ScriptAnimationSplitInfo::toManaged(const AnimationSplitInfo& splitInfo)
+	{
+		MonoString* monoString = MonoUtil::stringToMono(splitInfo.name);
+		UINT32 startFrame = splitInfo.startFrame;
+		UINT32 endFrame = splitInfo.endFrame;
+		bool isAdditive = splitInfo.isAdditive;
+
+		void* params[4] = { monoString, &startFrame, &endFrame, &isAdditive };
+		return metaData.scriptClass->createInstance("string,int,int,bool", params);
+	}
+
+	MonoField* ScriptImportedAnimationEvents::nameField = nullptr;
+	MonoField* ScriptImportedAnimationEvents::eventsField = nullptr;
+
+	ScriptImportedAnimationEvents::ScriptImportedAnimationEvents(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
+	void ScriptImportedAnimationEvents::initRuntimeData()
+	{
+		nameField = metaData.scriptClass->getField("name");
+		eventsField = metaData.scriptClass->getField("events");
+	}
+
+	ImportedAnimationEvents ScriptImportedAnimationEvents::fromManaged(MonoObject* instance)
+	{
+		ImportedAnimationEvents output;
+
+		MonoString* monoName = nullptr;
+		nameField->getValue(instance, &monoName);
+
+		output.name = MonoUtil::monoToString(monoName);
+
+		MonoArray* monoEvents;
+		eventsField->getValue(instance, &monoEvents);
+
+		if (monoEvents != nullptr)
+		{
+			ScriptArray scriptEvents(monoEvents);
+			for (UINT32 i = 0; i < scriptEvents.size(); i++)
+			{
+				MonoObject* monoEvent = scriptEvents.get<MonoObject*>(i);
+				AnimationEvent event = ScriptAnimationEvent::toNative(monoEvent);
+
+				output.events.push_back(event);
+			}
+		}
+
+		return output;
+	}
+
+	MonoObject* ScriptImportedAnimationEvents::toManaged(const ImportedAnimationEvents& events)
+	{
+		MonoString* monoString = MonoUtil::stringToMono(events.name);
+		
+		UINT32 numEvents = (UINT32)events.events.size();
+		ScriptArray scriptEvents = ScriptArray::create<ScriptAnimationEvent>(numEvents);
+
+		for (UINT32 i = 0; i < numEvents; i++)
+		{
+			MonoObject* monoEvent = ScriptAnimationEvent::toManaged(events.events[i]);
+			scriptEvents.set(i, monoEvent);
+		}
+
+		MonoObject* instance = metaData.scriptClass->createInstance();
+		nameField->setValue(instance, monoString);
+		eventsField->setValue(instance, scriptEvents.getInternal());
+
+		return instance;
 	}
 }

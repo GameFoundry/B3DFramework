@@ -12,7 +12,7 @@ namespace BansheeEngine
     public sealed class BoxCollider : Collider
     {
         [SerializeField]
-        private Vector3 extents = Vector3.One;
+        private Vector3 extents = new Vector3(0.5f, 0.5f, 0.5f);
 
         /// <summary>
         /// Extents (half size) of the geometry of the box.

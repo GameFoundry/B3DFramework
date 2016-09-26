@@ -16,8 +16,23 @@ namespace BansheeEngine
 	class BS_EXPORT GUIScrollBar : public GUIElement
 	{
 	public:
+		/** Style type name for the horizontal scroll handle. */
+		static const String& getHScrollHandleType();
+
+		/** Style type name for the vertical scroll handle. */
+		static const String& getVScrollHandleType();
+
 		/**	Returns the position of the scroll handle in percent (ranging [0, 1]). */
 		float getScrollPos() const;
+
+		/** Sets the position of the scroll handle in percent (ranging [0, 1]). */
+		void setScrollPos(float pct);
+
+		/** Gets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
+		float getHandleSize() const;
+
+		/** Sets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
+		void setHandleSize(float pct);
 
 		/**
 		 * Moves the handle by some amount. Amount is specified in the percentage of the entire scrollable area. Values out
@@ -25,20 +40,17 @@ namespace BansheeEngine
 		 */
 		void scroll(float amount);
 
-		/**	Returns the maximum size of the scroll handle, in pixels. */
-		UINT32 getMaxHandleSize() const;
-
 		/**	Returns the maximum scrollable size the handle can move within (for example scroll bar length). */
 		UINT32 getScrollableSize() const;
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		void setTint(const Color& color) override;
 
 		/**
-		 * Triggered whenever the scrollbar handle is moved. Value provided is the handle position in percent 
-		 * (ranging [0, 1]).
+		 * Triggered whenever the scrollbar handle is moved or resized. Values provided are the handle position and size 
+		 * in percent (ranging [0, 1]).
 		 */
-		Event<void(float newPosition)> onScrollPositionChanged;
+		Event<void(float posPct, float sizePct)> onScrollOrResize;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -46,11 +58,11 @@ namespace BansheeEngine
 		 */
 
 		/**
-		 * Sets the size of the handle in pixels.
+		 * Sets the size of the handle in percent (ranging [0, 1]) of the total scroll bar area.
 		 *
 		 * @note	Does not trigger layout update.
 		 */
-		void _setHandleSize(UINT32 size);
+		void _setHandleSize(float pct);
 
 		/**
 		 * Sets the position of the scroll handle in percent (ranging [0, 1]).
@@ -60,7 +72,7 @@ namespace BansheeEngine
 		void _setScrollPos(float pct);
 
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -69,43 +81,61 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	horizontal	If true the scroll bar will have a horizontal moving handle, otherwise it will be a
 		 *							vertical one.
+		 * @param[in]	resizable	If true the scrollbar will have additional handles that allow the scroll handle to be
+		 *							resized. This allows you to adjust the size of the visible scroll area.
 		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default style is used.
 		 * @param[in]	dimensions	Determines valid dimensions (size) of the element.
 		 */
-		GUIScrollBar(bool horizontal, const String& styleName, const GUIDimensions& dimensions);
+		GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions);
 		virtual ~GUIScrollBar();
 
 		/** @copydoc GUIElement::_getNumRenderElements */
-		virtual UINT32 _getNumRenderElements() const override;
+		UINT32 _getNumRenderElements() const override;
 
 		/** @copydoc GUIElement::_getMaterial */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const override;
+		const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const override;
 
-		/** @copydoc GUIElement::_getNumQuads */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const override;
+		/** @copydoc GUIElement::_getMeshInfo() */
+		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
 		/** @copydoc GUIElement::_fillBuffer */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const override;
+		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		virtual void updateRenderElementsInternal() override;
+		void updateRenderElementsInternal() override;
 
 		/** @copydoc GUIElement::updateClippedBounds */
-		virtual void updateClippedBounds() override;
+		void updateClippedBounds() override;
 
 		/** @copydoc GUIElement::_getRenderElementDepth */
-		virtual UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
+		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
 
 		/** @copydoc	GUIElement::_getRenderElementDepthRange */
-		virtual UINT32 _getRenderElementDepthRange() const override;
+		UINT32 _getRenderElementDepthRange() const override;
+
+		/** @copydoc GUIElement::styleUpdated */
+		void styleUpdated() override;
+
+		/**
+		 * Helper method that returns style name used by a specific scrollbar type. If override style is empty, default
+		 * style for that type is returned.
+		 */
+		template<class T>
+		static const String& getStyleName(bool resizeable, const String& overrideStyle)
+		{
+			if(overrideStyle == StringUtil::BLANK)
+				return T::getGUITypeName(resizeable);
+
+			return overrideStyle;
+		}
 	private:
 		/**
-		 * Triggered whenever the scroll handle moves. Provided value represents the new position of the handle in percent
-		 * (ranging [0, 1]).
+		 * Triggered whenever the scroll handle moves. Provided value represents the new position and size of the handle 
+		 * in percent (ranging [0, 1]).
 		 */
-		void handleMoved(float handlePct);
+		void handleMoved(float handlePct, float sizePct);
 
 		/**	Triggered when scroll up button is clicked. */
 		void upButtonClicked();

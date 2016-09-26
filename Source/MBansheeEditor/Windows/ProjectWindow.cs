@@ -98,7 +98,7 @@ namespace BansheeEditor
             recentProjectsLayout.AddFlexibleSpace();
 
             GUIPanel scrollAreaBgPanel = recentProjectsPanel.AddPanel(1);
-            GUITexture scrollAreaBgTex = new GUITexture(null, true, EditorStyles.ScrollAreaBg);
+            GUITexture scrollAreaBgTex = new GUITexture(null, true, EditorStylesInternal.ScrollAreaBg);
             scrollAreaBgPanel.AddElement(scrollAreaBgTex);
 
             autoLoadToggle = new GUIToggle("");
@@ -235,7 +235,7 @@ namespace BansheeEditor
             {
                 string projectPath = recentProjects[i].path;
 
-                GUIToggle entryBtn = new GUIToggle(projectPath, grp, EditorStyles.SelectableLabel);
+                GUIToggle entryBtn = new GUIToggle(projectPath, grp, EditorStylesInternal.SelectableLabel);
                 entryBtn.OnClick += () => OnEntryClicked(projectPath);
                 entryBtn.OnDoubleClick += () => OnEntryDoubleClicked(projectPath);
 

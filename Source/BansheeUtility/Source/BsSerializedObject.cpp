@@ -25,6 +25,31 @@ namespace BansheeEngine
 		return copy;
 	}
 
+	SPtr<SerializedInstance> SerializedDataBlock::clone(bool cloneData)
+	{
+		SPtr<SerializedDataBlock> copy = bs_shared_ptr_new<SerializedDataBlock>();
+		copy->size = size;
+
+		if (cloneData)
+		{
+			if(stream->isFile())
+				LOGWRN("Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
+
+			UINT8* data = (UINT8*)bs_alloc(size);
+			stream->read(data, size);
+
+			copy->stream = bs_shared_ptr_new<MemoryDataStream>(data, size);
+			copy->offset = 0;
+		}
+		else
+		{
+			copy->stream = stream;
+			copy->offset = offset;
+		}
+
+		return copy;
+	}
+
 	SPtr<SerializedInstance> SerializedObject::clone(bool cloneData)
 	{
 		SPtr<SerializedObject> copy = bs_shared_ptr_new<SerializedObject>();
@@ -75,6 +100,16 @@ namespace BansheeEngine
 	RTTITypeBase* SerializedInstance::getRTTI() const
 	{
 		return SerializedInstance::getRTTIStatic();
+	}
+
+	RTTITypeBase* SerializedDataBlock::getRTTIStatic()
+	{
+		return SerializedDataBlockRTTI::instance();
+	}
+
+	RTTITypeBase* SerializedDataBlock::getRTTI() const
+	{
+		return SerializedDataBlock::getRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedField::getRTTIStatic()

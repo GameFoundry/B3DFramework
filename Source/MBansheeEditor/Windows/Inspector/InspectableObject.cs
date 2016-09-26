@@ -147,8 +147,8 @@ namespace BansheeEditor
 
                        short backgroundDepth = (short) (Inspector.START_BACKGROUND_DEPTH - depth - 1);
                        string bgPanelStyle = depth%2 == 0
-                           ? EditorStyles.InspectorContentBgAlternate
-                           : EditorStyles.InspectorContentBg;
+                           ? EditorStylesInternal.InspectorContentBgAlternate
+                           : EditorStylesInternal.InspectorContentBg;
                        GUIPanel backgroundPanel = guiContentPanel.AddPanel(backgroundDepth);
                        GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);
                        backgroundPanel.AddElement(inspectorContentBg);
@@ -162,7 +162,7 @@ namespace BansheeEditor
                            string childPath = path + "/" + field.Name;
 
                            InspectableField inspectable = CreateInspectable(parent, field.Name, childPath,
-                               currentIndex, depth + 1, new InspectableFieldLayout(guiContentLayout), field.GetProperty());
+                               currentIndex, depth + 1, new InspectableFieldLayout(guiContentLayout), field.GetProperty(), InspectableFieldStyle.Create(field));
 
                            children.Add(inspectable);
                            currentIndex += inspectable.GetNumLayoutElements();

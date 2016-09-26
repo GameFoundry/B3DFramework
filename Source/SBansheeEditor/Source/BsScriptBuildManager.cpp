@@ -120,7 +120,6 @@ namespace BansheeEngine
 		if (folder == ScriptBuildFolder::FrameworkAssemblies)
 		{
 			Path assemblyFolder = MonoManager::instance().getFrameworkAssembliesFolder();
-			assemblyFolder.makeAbsolute(FileSystem::getWorkingDirectoryPath());
 
 			Path sourceFolder = BuildManager::instance().getBuildFolder(BuildFolder::SourceRoot, platform);
 			path = assemblyFolder.makeRelative(sourceFolder);
@@ -128,7 +127,6 @@ namespace BansheeEngine
 		else if (folder == ScriptBuildFolder::Mono)
 		{
 			Path monoEtcFolder = MonoManager::instance().getMonoEtcFolder();
-			monoEtcFolder.makeAbsolute(FileSystem::getWorkingDirectoryPath());
 
 			Path sourceFolder = BuildManager::instance().getBuildFolder(BuildFolder::SourceRoot, platform);
 			path = monoEtcFolder.makeRelative(sourceFolder);
@@ -370,8 +368,7 @@ namespace BansheeEngine
 		}
 
 		// Save icon
-		Path iconFolder = FileSystem::getWorkingDirectoryPath();
-		iconFolder.append(BuiltinResources::getIconFolder());
+		Path iconFolder = BuiltinResources::getIconFolder();
 
 		Path sourceRoot = BuildManager::instance().getBuildFolder(BuildFolder::SourceRoot, platformInfo->type);
 		iconFolder.makeRelative(sourceRoot);

@@ -106,7 +106,7 @@ namespace BansheeEngine
 		static Mutex mResourceCreatedMutex;
 
 	protected:
-		inline void throwIfNotLoaded() const;
+		void throwIfNotLoaded() const;
 	};
 
 	/**
@@ -290,7 +290,7 @@ namespace BansheeEngine
 		 * @note	Handle will take ownership of the provided resource pointer, so make sure you don't delete it elsewhere.
 		 */
 		explicit TResourceHandle(T* ptr, const String& uuid)
-			:TResourceHandleBase()
+			:TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
 			this->addRef();

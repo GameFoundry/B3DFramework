@@ -32,7 +32,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedInstanceRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** An intermediate serialized data for a single field in an object. */
@@ -51,7 +51,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedEntryRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** A serialized value representing a single entry in an array. */
@@ -70,7 +70,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedArrayEntryRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -92,7 +92,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedSubObjectRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** A serialized object consisting of multiple sub-objects, one for each inherited class. */
@@ -112,7 +112,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedObjectRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Contains data for a serialized value of a specific field or array entry. */
@@ -143,7 +143,32 @@ namespace BansheeEngine
 	public:
 		friend class SerializedFieldRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Contains data for a serialized value of a data block field. */
+	struct BS_UTILITY_EXPORT SerializedDataBlock : SerializedInstance
+	{
+		SerializedDataBlock()
+			:offset(0), size(0)
+		{
+
+		}
+
+		/** @copydoc SerializedInstance::clone */
+		SPtr<SerializedInstance> clone(bool cloneData = true) override;
+
+		SPtr<DataStream> stream;
+		UINT32 offset;
+		UINT32 size;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class SerializedDataBlockRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** A serialized array containing a list of all its entries. */
@@ -165,7 +190,7 @@ namespace BansheeEngine
 	public:
 		friend class SerializedArrayRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

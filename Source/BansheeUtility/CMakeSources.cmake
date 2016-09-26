@@ -22,7 +22,6 @@ set(BS_BANSHEEUTILITY_INC_PREREQUISITES
 set(BS_BANSHEEUTILITY_SRC_WIN32
 	"Source/Win32/BsWin32FileSystem.cpp"
 	"Source/Win32/BsWin32CrashHandler.cpp"
-	"Source/Win32/BsWin32Timer.cpp"
 	"Source/Win32/BsWin32PlatformUtility.cpp"
 	"Source/Win32/BsWin32Window.cpp"
 )
@@ -47,6 +46,7 @@ set(BS_BANSHEEUTILITY_SRC_GENERAL
 	"Source/BsDynLib.cpp"
 	"Source/BsDynLibManager.cpp"
 	"Source/BsMessageHandler.cpp"
+	"Source/BsTimer.cpp"
 	"Source/BsTime.cpp"
 	"Source/BsUtil.cpp"
 )
@@ -112,6 +112,7 @@ set(BS_BANSHEEUTILITY_SRC_DEBUG
 
 set(BS_BANSHEEUTILITY_INC_RTTI
 	"Include/BsSerializedObjectRTTI.h"
+	"Include/BsIReflectableRTTI.h"
 )
 
 set(BS_BANSHEEUTILITY_INC_ALLOCATORS
@@ -155,6 +156,7 @@ set(BS_BANSHEEUTILITY_SRC_MATH
 	"Source/BsRect2I.cpp"
 	"Source/BsLineSegment3.cpp"
 	"Source/BsCapsule.cpp"
+	"Source/BsLine2.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_TESTING
@@ -174,7 +176,6 @@ set(BS_BANSHEEUTILITY_SRC_SERIALIZATION
 	"Source/BsBinaryDiff.cpp"
 	"Source/BsSerializedObject.cpp"
 	"Source/BsBinaryCloner.cpp"
-	"Source/BsManagedDataBlock.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_MATH
@@ -202,6 +203,7 @@ set(BS_BANSHEEUTILITY_INC_MATH
 	"Include/BsCapsule.h"
 	"Include/BsMatrixNxM.h"
 	"Include/BsVectorNI.h"
+	"Include/BsLine2.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_ERROR
@@ -215,7 +217,6 @@ set(BS_BANSHEEUTILITY_INC_SERIALIZATION
 	"Include/BsBinaryDiff.h"
 	"Include/BsSerializedObject.h"
 	"Include/BsBinaryCloner.h"
-	"Include/BsManagedDataBlock.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_STRING
@@ -273,7 +274,6 @@ set(BS_BANSHEEUTILITY_SRC
 	${BS_BANSHEEUTILITY_INC_THREADING}
 	${BS_BANSHEEUTILITY_SRC_THIRDPARTY}
 	${BS_BANSHEEUTILITY_INC_PREREQUISITES}
-	${BS_BANSHEEUTILITY_SRC_WIN32}
 	${BS_BANSHEEUTILITY_INC_IMAGE}
 	${BS_BANSHEEUTILITY_INC_STRING}
 	${BS_BANSHEEUTILITY_SRC_IMAGE}
@@ -299,5 +299,9 @@ set(BS_BANSHEEUTILITY_SRC
 	${BS_BANSHEEUTILITY_INC_SERIALIZATION}
 	${BS_BANSHEEUTILITY_SRC_STRING}
 	${BS_BANSHEEUTILITY_INC_REFLECTION}
-	${BS_BANSHEEUTILITY_INC_WIN32}
 )
+
+if(WIN32)
+	list(APPEND BS_BANSHEEUTILITY_SRC ${BS_BANSHEEUTILITY_SRC_WIN32})
+	list(APPEND BS_BANSHEEUTILITY_SRC ${BS_BANSHEEUTILITY_INC_WIN32})
+endif()

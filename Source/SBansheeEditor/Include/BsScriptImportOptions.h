@@ -5,6 +5,8 @@
 #include "BsScriptEditorPrerequisites.h"
 #include "BsScriptObject.h"
 #include "BsPixelData.h"
+#include "BsAudioClipImportOptions.h"
+#include "BsMeshImportOptions.h"
 #include "BsGpuProgram.h"
 
 namespace BansheeEngine
@@ -110,10 +112,18 @@ namespace BansheeEngine
 		static void internal_SetImportAnimation(ScriptMeshImportOptions* thisPtr, bool value);
 		static bool internal_GetImportBlendShapes(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetImportBlendShapes(ScriptMeshImportOptions* thisPtr, bool value);
+		static bool internal_GetKeyFrameReduction(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetKeyFrameReduction(ScriptMeshImportOptions* thisPtr, bool value);
+		static bool internal_GetRootMotion(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetRootMotion(ScriptMeshImportOptions* thisPtr, bool value);
 		static float internal_GetScale(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetScale(ScriptMeshImportOptions* thisPtr, float value);
 		static int internal_GetCollisionMeshType(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetCollisionMeshType(ScriptMeshImportOptions* thisPtr, int value);
+		static MonoArray* internal_GetAnimationClipSplits(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetAnimationClipSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value);
+		static MonoArray* internal_GetAnimationEvents(ScriptMeshImportOptions* thisPtr);
+		static void internal_SetAnimationEvents(ScriptMeshImportOptions* thisPtr, MonoArray* value);
 	};
 
 	/**	Interop class between C++ & CLR for FontImportOptions. */
@@ -179,6 +189,84 @@ namespace BansheeEngine
 		static void internal_CreateInstance(MonoObject* instance);
 		static bool internal_IsEditorScript(ScriptScriptCodeImportOptions* thisPtr);
 		static void internal_SetEditorScript(ScriptScriptCodeImportOptions* thisPtr, bool value);
+	};
+
+	/**	Interop class between C++ & CLR for AudioClipImportOptions. */
+	class BS_SCR_BED_EXPORT ScriptAudioClipImportOptions : public ScriptObject <ScriptAudioClipImportOptions, ScriptImportOptionsBase>
+	{
+	public:
+		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "AudioClipImportOptions")
+
+		/** Creates a new managed AudioClipImportOptions instance containing the default import options for audio files. */
+		static MonoObject* create();
+
+		/** Creates a new managed AudioClipImportOptions instance containing the provided import options. */
+		static MonoObject* create(const SPtr<AudioClipImportOptions>& options);
+
+	private:
+		ScriptAudioClipImportOptions(MonoObject* instance);
+
+		/**	Returns the internal native import options. */
+		SPtr<AudioClipImportOptions> getClipImportOptions();
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static void internal_CreateInstance(MonoObject* instance);
+		static AudioFormat internal_GetFormat(ScriptAudioClipImportOptions* thisPtr);
+		static void internal_SetFormat(ScriptAudioClipImportOptions* thisPtr, AudioFormat format);
+		static AudioReadMode internal_GetReadMode(ScriptAudioClipImportOptions* thisPtr);
+		static void internal_SetReadMode(ScriptAudioClipImportOptions* thisPtr, AudioReadMode readMode);
+		static bool internal_GetIs3D(ScriptAudioClipImportOptions* thisPtr);
+		static void internal_SetIs3D(ScriptAudioClipImportOptions* thisPtr, bool is3d);
+		static UINT32 internal_GetBitDepth(ScriptAudioClipImportOptions* thisPtr);
+		static void internal_SetBitDepth(ScriptAudioClipImportOptions* thisPtr, UINT32 bitDepth);
+	};
+
+	/** Helper class for dealing with AnimationSplitInfo structure. */
+	class BS_SCR_BED_EXPORT ScriptAnimationSplitInfo : public ScriptObject<ScriptAnimationSplitInfo>
+	{
+	public:
+		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "AnimationSplitInfo")
+
+		/** Converts managed split info to its native counterpart. */
+		static AnimationSplitInfo fromManaged(MonoObject* object);
+
+		/** Converts native split info to its managed counterpart. */
+		static MonoObject* toManaged(const AnimationSplitInfo& splitInfo);
+
+	private:
+		ScriptAnimationSplitInfo(MonoObject* instance);
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static MonoField* nameField;
+		static MonoField* startFrameField;
+		static MonoField* endFrameField;
+		static MonoField* isAdditiveField;
+	};
+
+	/** Helper class for dealing with ImportedAnimationEvents structure. */
+	class BS_SCR_BED_EXPORT ScriptImportedAnimationEvents : public ScriptObject<ScriptImportedAnimationEvents>
+	{
+	public:
+		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "ImportedAnimationEvents")
+
+		/** Converts managed events info to its native counterpart. */
+		static ImportedAnimationEvents fromManaged(MonoObject* object);
+
+		/** Converts native events info to its managed counterpart. */
+		static MonoObject* toManaged(const ImportedAnimationEvents& events);
+
+	private:
+		ScriptImportedAnimationEvents(MonoObject* instance);
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static MonoField* nameField;
+		static MonoField* eventsField;
 	};
 
 	/** @} */

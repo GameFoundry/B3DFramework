@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsImportOptions.h"
+#include "BsAnimationClip.h"
 
 namespace BansheeEngine
 {
@@ -17,6 +18,42 @@ namespace BansheeEngine
 		None, /**< No collision mesh will be imported. */
 		Normal, /**< Normal triangle mesh will be imported. */
 		Convex /**< A convex hull will be generated from the source mesh. */
+	};
+
+	/** Information about how to split an AnimationClip into multiple separate clips. */
+	struct BS_CORE_EXPORT AnimationSplitInfo : IReflectable
+	{
+		AnimationSplitInfo() { }
+
+		String name;
+		UINT32 startFrame = 0;
+		UINT32 endFrame = 0;
+		bool isAdditive = false;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class AnimationSplitInfoRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** A set of animation events that will be added to an animation clip during animation import. */
+	struct BS_CORE_EXPORT ImportedAnimationEvents : IReflectable
+	{
+		ImportedAnimationEvents() { }
+
+		String name;
+		Vector<AnimationEvent> events;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class ImportedAnimationEventsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -81,13 +118,49 @@ namespace BansheeEngine
 		/**	Retrieves a value that controls what type (if any) of collision mesh should be imported. */
 		CollisionMeshType getCollisionMeshType() const { return mCollisionMeshType; }
 
-		/************************************************************************/
-		/* 								SERIALIZATION                      		*/
-		/************************************************************************/
-	public:
-		friend class MeshImportOptionsRTTI;
-		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		/** 
+		 * Registers animation split infos that determine how will the source animation clip be split. If no splits
+		 * are present the data will be imported as one clip, but if splits are present the data will be split according
+		 * to the split infos. Split infos only affect the primary animation clip, other clips will not be split.
+		 */
+		void setAnimationClipSplits(const Vector<AnimationSplitInfo>& splitInfos) { mAnimationSplits = splitInfos; }
+
+		/** Returns a copy of the animation splits array. @see setAnimationClipSplits. */
+		Vector<AnimationSplitInfo> getAnimationClipSplits() const { return mAnimationSplits; }
+
+		/** Assigns a set of events that will be added to the animation clip, if animation import is enabled. */
+		void setAnimationEvents(const Vector<ImportedAnimationEvents>& events) { mAnimationEvents = events; }
+
+		/** Returns a copy of the animation events array. @see setAnimationEvents. */
+		Vector<ImportedAnimationEvents> getAnimationEvents() const { return mAnimationEvents; }
+
+		/**	
+		 * Enables or disables keyframe reduction. Keyframe reduction will reduce the number of key-frames in an animation
+		 * clip by removing identical keyframes, and therefore reducing the size of the clip.
+		 */
+		void setKeyFrameReduction(bool enabled) { mReduceKeyFrames = enabled; }
+
+		/**	
+		 * Checks is keyframe reduction enabled.
+		 *
+		 * @see	setKeyFrameReduction
+		 */
+		bool getKeyFrameReduction() const { return mReduceKeyFrames; }
+
+		/**	
+		 * Enables or disables import of root motion curves. When enabled, any animation curves in imported animations 
+		 * affecting the root bone will be available through a set of separate curves in AnimationClip, and they won't be
+		 * evaluated through normal animation process. Instead it is expected that the user evaluates the curves manually
+		 * and applies them as required.
+		 */
+		void setImportRootMotion(bool enabled) { mImportRootMotion = enabled; }
+
+		/**	
+		 * Checks is root motion import enabled.
+		 *
+		 * @see	setImportRootMotion
+		 */
+		bool getImportRootMotion() const { return mImportRootMotion; }
 
 	private:
 		bool mCPUReadable;
@@ -96,8 +169,20 @@ namespace BansheeEngine
 		bool mImportBlendShapes;
 		bool mImportSkin;
 		bool mImportAnimation;
+		bool mReduceKeyFrames;
+		bool mImportRootMotion;
 		float mImportScale;
 		CollisionMeshType mCollisionMeshType;
+		Vector<AnimationSplitInfo> mAnimationSplits;
+		Vector<ImportedAnimationEvents> mAnimationEvents;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class MeshImportOptionsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

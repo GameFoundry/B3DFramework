@@ -10,7 +10,7 @@ namespace BansheeEngine
 	struct SmoothNormal
 	{
 		int group = 0;
-		Vector3 normal;
+		Vector3 normal = Vector3::ZERO;
 
 		void addNormal(int group, const Vector3& normal)
 		{
@@ -149,8 +149,8 @@ namespace BansheeEngine
 		dest.indices = source.indices;
 		dest.materials = source.materials;
 
-		dest.boneInfluences = source.boneInfluences;
 		dest.positions = source.positions;
+		dest.boneInfluences = source.boneInfluences;
 
 		// Make room for minimal set of vertices
 		UINT32 vertexCount = (UINT32)source.positions.size();
@@ -188,6 +188,7 @@ namespace BansheeEngine
 				const FBXBlendShapeFrame& sourceFrame = sourceShape.frames[j];
 				FBXBlendShapeFrame& destFrame = destShape.frames[j];
 
+				destFrame.name = sourceFrame.name;
 				destFrame.weight = sourceFrame.weight;
 				destFrame.positions = sourceFrame.positions;
 
@@ -303,6 +304,9 @@ namespace BansheeEngine
 	void FBXUtility::addVertex(const FBXImportMesh& srcMesh, int srcIdx, int srcVertex, FBXImportMesh& destMesh)
 	{
 		destMesh.positions.push_back(srcMesh.positions[srcVertex]);
+
+		if (!srcMesh.boneInfluences.empty())
+			destMesh.boneInfluences.push_back(srcMesh.boneInfluences[srcVertex]);
 
 		if (!srcMesh.normals.empty())
 			destMesh.normals.push_back(srcMesh.normals[srcIdx]);

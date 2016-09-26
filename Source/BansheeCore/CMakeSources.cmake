@@ -14,6 +14,9 @@ set(BS_BANSHEECORE_INC_COMPONENTS
 	"Include/BsCSphericalJoint.h"
 	"Include/BsCD6Joint.h"
 	"Include/BsCCharacterController.h"
+	"Include/BsCAudioSource.h"
+	"Include/BsCAudioListener.h"
+	"Include/BsCCamera.h"
 )
 
 set(BS_BANSHEECORE_INC_PHYSICS
@@ -95,6 +98,8 @@ set(BS_BANSHEECORE_INC_RENDERER
 	"Include/BsCoreRenderer.h"
 	"Include/BsRendererMeshData.h"
 	"Include/BsParamBlocks.h"
+	"Include/BsCamera.h"
+	"Include/BsPostProcessSettings.h"
 )
 
 set(BS_BANSHEECORE_SRC_LOCALIZATION
@@ -180,6 +185,7 @@ set(BS_BANSHEECORE_INC_MATERIAL
 	"Include/BsShaderManager.h"
 	"Include/BsMaterialParams.h"
 	"Include/BsShaderDefines.h"
+	"Include/BsGpuParamsSet.h"
 )
 
 set(BS_BANSHEECORE_INC_RESOURCES
@@ -244,6 +250,9 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCSphericalJoint.cpp"
 	"Source/BsCD6Joint.cpp"
 	"Source/BsCCharacterController.cpp"
+	"Source/BsCAudioSource.cpp"
+	"Source/BsCAudioListener.cpp"
+	"Source/BsCCamera.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM
@@ -330,12 +339,24 @@ set(BS_BANSHEECORE_INC_RTTI
 	"Include/BsCCharacterControllerRTTI.h"
 	"Include/BsShaderImportOptionsRTTI.h"
 	"Include/BsPhysicsMeshRTTI.h"
+	"Include/BsAudioClipRTTI.h"
+	"Include/BsCAudioSourceRTTI.h"
+	"Include/BsCAudioListenerRTTI.h"
+	"Include/BsAnimationClipRTTI.h"
+	"Include/BsAnimationCurveRTTI.h"
+	"Include/BsSkeletonRTTI.h"
+	"Include/BsCCameraRTTI.h"
+	"Include/BsCameraRTTI.h"
+	"Include/BsPostProcessSettingsRTTI.h"
+	"Include/BsMorphShapesRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER
 	"Source/BsRendererManager.cpp"
 	"Source/BsCoreRenderer.cpp"
 	"Source/BsRendererMeshData.cpp"
+	"Source/BsCamera.cpp"
+	"Source/BsPostProcessSettings.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_RESOURCES
@@ -370,6 +391,7 @@ set(BS_BANSHEECORE_SRC_MATERIAL
 	"Source/BsShaderManager.cpp"
 	"Source/BsMaterialParams.cpp"
 	"Source/BsShaderDefines.cpp"
+	"Source/BsGpuParamsSet.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_INPUT
@@ -467,6 +489,49 @@ set(BS_BANSHEECORE_SRC_SCENE
 	"Source/BsPrefabUtility.cpp"
 )
 
+set(BS_BANSHEECORE_INC_AUDIO
+	"Include/BsAudio.h"
+	"Include/BsAudioClip.h"
+	"Include/BsAudioListener.h"
+	"Include/BsAudioSource.h"
+	"Include/BsAudioClipImportOptions.h"
+	"Include/BsAudioUtility.h"
+	"Include/BsAudioManager.h"
+)
+
+set(BS_BANSHEECORE_SRC_AUDIO
+	"Source/BsAudio.cpp"
+	"Source/BsAudioClip.cpp"
+	"Source/BsAudioListener.cpp"
+	"Source/BsAudioSource.cpp"
+	"Source/BsAudioClipImportOptions.cpp"
+	"Source/BsAudioUtility.cpp"
+	"Source/BsAudioManager.cpp"
+)
+
+set(BS_BANSHEECORE_INC_ANIMATION
+	"Include/BsAnimationCurve.h"
+	"Include/BsAnimationClip.h"
+	"Include/BsSkeleton.h"
+	"Include/BsAnimation.h"
+	"Include/BsAnimationManager.h"
+	"Include/BsCurveCache.h"
+	"Include/BsAnimationUtility.h"
+	"Include/BsSkeletonMask.h"
+	"Include/BsMorphShapes.h"
+)
+
+set(BS_BANSHEECORE_SRC_ANIMATION
+	"Source/BsAnimationCurve.cpp"
+	"Source/BsAnimationClip.cpp"
+	"Source/BsSkeleton.cpp"
+	"Source/BsAnimation.cpp"
+	"Source/BsAnimationManager.cpp"
+	"Source/BsAnimationUtility.cpp"
+	"Source/BsSkeletonMask.cpp"
+	"Source/BsMorphShapes.cpp"
+)
+
 source_group("Header Files\\Components" FILES ${BS_BANSHEECORE_INC_COMPONENTS})
 source_group("Header Files\\Physics" FILES ${BS_BANSHEECORE_INC_PHYSICS})
 source_group("Header Files\\CoreThread" FILES ${BS_BANSHEECORE_INC_CORETHREAD})
@@ -501,6 +566,10 @@ source_group("Source Files\\RenderAPI" FILES ${BS_BANSHEECORE_SRC_RENDERAPI})
 source_group("Source Files" FILES ${BS_BANSHEECORE_SRC_NOFILTER})
 source_group("Source Files\\Physics" FILES ${BS_BANSHEECORE_SRC_PHYSICS})
 source_group("Source Files\\Scene" FILES ${BS_BANSHEECORE_SRC_SCENE})
+source_group("Header Files\\Audio" FILES ${BS_BANSHEECORE_INC_AUDIO})
+source_group("Source Files\\Audio" FILES ${BS_BANSHEECORE_SRC_AUDIO})
+source_group("Header Files\\Animation" FILES ${BS_BANSHEECORE_INC_ANIMATION})
+source_group("Source Files\\Animation" FILES ${BS_BANSHEECORE_SRC_ANIMATION})
 
 set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_INC_COMPONENTS}
@@ -537,4 +606,8 @@ set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_SRC_NOFILTER}
 	${BS_BANSHEECORE_SRC_PHYSICS}
 	${BS_BANSHEECORE_SRC_SCENE}
+	${BS_BANSHEECORE_INC_AUDIO}
+	${BS_BANSHEECORE_SRC_AUDIO}
+	${BS_BANSHEECORE_INC_ANIMATION}
+	${BS_BANSHEECORE_SRC_ANIMATION}
 )

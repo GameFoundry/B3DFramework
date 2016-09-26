@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsPixelData.h"
 #include "BsRTTIType.h"
-#include "BsManagedDataBlock.h"
+#include "BsDataStream.h"
 
 namespace BansheeEngine
 {
@@ -43,25 +43,19 @@ namespace BansheeEngine
 		PixelFormat& getFormat(PixelData* obj) { return obj->mFormat; }
 		void setFormat(PixelData* obj, PixelFormat& val) { obj->mFormat = val; }
 
-		ManagedDataBlock getData(PixelData* obj) 
-		{ 
-			ManagedDataBlock dataBlock((UINT8*)obj->getData(), obj->getConsecutiveSize());
-			return dataBlock; 
-		}
-
-		void setData(PixelData* obj, ManagedDataBlock val) 
-		{ 
-			// Nothing to do here, the pointer we provided already belongs to PixelData
-			// so the data is already written
-		}
-
-		static UINT8* allocateData(PixelData* obj, UINT32 numBytes)
+		SPtr<DataStream> getData(PixelData* obj, UINT32& size)
 		{
-			obj->allocateInternalBuffer(numBytes);
+			size = obj->getConsecutiveSize();
 
-			return obj->getData();
+			return bs_shared_ptr_new<MemoryDataStream>(obj->getData(), size, false);
 		}
 
+		void setData(PixelData* obj, const SPtr<DataStream>& value, UINT32 size)
+		{
+			obj->allocateInternalBuffer(size);
+			value->read(obj->getData(), size);
+		}
+		
 	public:
 		PixelDataRTTI()
 		{
@@ -74,8 +68,7 @@ namespace BansheeEngine
 			addPlainField("rowPitch", 6, &PixelDataRTTI::getRowPitch, &PixelDataRTTI::setRowPitch);
 			addPlainField("slicePitch", 7, &PixelDataRTTI::getSlicePitch, &PixelDataRTTI::setSlicePitch);
 			addPlainField("format", 8, &PixelDataRTTI::getFormat, &PixelDataRTTI::setFormat);
-
-			addDataBlockField("data", 9, &PixelDataRTTI::getData, &PixelDataRTTI::setData, 0, &PixelDataRTTI::allocateData);
+			addDataBlockField("data", 9, &PixelDataRTTI::getData, &PixelDataRTTI::setData, 0);
 		}
 
 		virtual const String& getRTTIName() override

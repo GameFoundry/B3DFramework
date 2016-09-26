@@ -60,14 +60,22 @@ namespace BansheeEngine
 			String computeCode;
 		};
 
-		/** Temporary data for describing a technique during parsing. */
-		struct TechniqueData
+		/** Information describing a technique, without the actual contents. */
+		struct TechniqueMetaData
 		{
 			StringID renderer = RendererAny;
 			StringID renderAPI = RenderAPIAny;
+			Vector<StringID> tags;
 			String language;
 
-			PassData commonPassData;
+			String baseName;
+			Vector<String> inherits;
+		};
+
+		/** Temporary data for describing a technique during parsing. */
+		struct TechniqueData
+		{
+			TechniqueMetaData metaData;
 			Vector<PassData> passes;
 		};
 
@@ -79,14 +87,8 @@ namespace BansheeEngine
 		/** Converts the provided source into an abstract syntax tree using the lexer & parser for BSL FX syntax. */
 		static void parseFX(ParseState* parseState, const char* source);
 
-		/**
-		 * Retrieves the renderer and language specified for the technique. These two values are considered a unique 
-		 * identifier for a technique.
-		 */
-		static void getTechniqueIdentifier(ASTFXNode* technique, StringID& renderer, String& language);
-
-		/** Checks if two techniques can be matched based on the options specified in their child nodes. */
-		static bool doTechniquesMatch(ASTFXNode* into, ASTFXNode* from);
+		/** Parses the technique node and outputs the relevant meta-data. */
+		static TechniqueMetaData parseTechniqueMetaData(ASTFXNode* technique);
 
 		/**	Converts FX renderer name into an in-engine renderer identifier. */
 		static StringID parseRenderer(const String& name);

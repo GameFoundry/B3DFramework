@@ -43,7 +43,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\Animation.cs" />
+    <Compile Include="Animation\AnimationClip.cs" />
+    <Compile Include="Animation\AnimationCurve.cs" />
+    <Compile Include="Animation\AnimationCurves.cs" />
+    <Compile Include="Animation\Bone.cs" />
+    <Compile Include="Animation\Interop\NativeAnimation.cs" />
+    <Compile Include="Animation\MorphShapes.cs" />
+    <Compile Include="Animation\Skeleton.cs" />
+    <Compile Include="Audio\Audio.cs" />
+    <Compile Include="Audio\AudioClip.cs" />
+    <Compile Include="Audio\AudioListener.cs" />
+    <Compile Include="Audio\AudioSource.cs" />
+    <Compile Include="Audio\Interop\NativeAudioListener.cs" />
+    <Compile Include="Audio\Interop\NativeAudioSource.cs" />
+    <Compile Include="GUI\GUICanvas.cs" />
+    <Compile Include="GUI\GUIScrollBar.cs" />
     <Compile Include="Rendering\PostProcessSettings.cs" />
+    <Compile Include="Serialization\ShowInInspector.cs" />
+    <Compile Include="Serialization\Step.cs" />
     <Compile Include="Utility\AsyncOp.cs" />
     <Compile Include="Math\Bounds.cs" />
     <Compile Include="Utility\Builtin.cs" />
@@ -65,7 +83,7 @@
     <Compile Include="Utility\FileEx.cs" />
     <Compile Include="GUI\Font.cs" />
     <Compile Include="Scene\GameObject.cs" />
-    <Compile Include="GUI\GUILayoutUtility.cs" />
+    <Compile Include="GUI\GUIUtility.cs" />
     <Compile Include="GUI\GUIButton.cs" />
     <Compile Include="GUI\GUIContent.cs" />
     <Compile Include="GUI\GUIElement.cs" />
@@ -198,7 +216,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\..\Dependencies\tools\pdb2mdb.bat "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
+    <PostBuildEvent>"$(ProjectDir)..\..\Scripts\pdb2mdb.bat" "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

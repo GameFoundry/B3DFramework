@@ -42,9 +42,11 @@ namespace BansheeEngine
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void internal_CreateInstance(MonoObject* instance, ScriptEditorWindow* parentWindow, Vector2I* position, int width, int height);
+		static MonoObject* internal_CreateInstance(MonoString* ns, MonoString* typeName, ScriptEditorWindow* parentWindow, Vector2I* position);
 		static void internal_Close(ScriptDropDownWindow* nativeInstance);
+		static UINT32 internal_GetWidth(ScriptDropDownWindow* nativeInstance);
 		static void internal_SetWidth(ScriptDropDownWindow* nativeInstance, UINT32 value);
+		static UINT32 internal_GetHeight(ScriptDropDownWindow* nativeInstance);
 		static void internal_SetHeight(ScriptDropDownWindow* nativeInstance, UINT32 value);
 		static void internal_ScreenToWindowPos(ScriptDropDownWindow* nativeInstance, Vector2I* position, Vector2I* windowPos);
 		static void internal_WindowToScreenPos(ScriptDropDownWindow* nativeInstance, Vector2I* position, Vector2I* screenPos);

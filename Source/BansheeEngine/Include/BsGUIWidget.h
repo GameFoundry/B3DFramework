@@ -171,8 +171,6 @@ namespace BansheeEngine
 		/**	Called when the parent window gained or lost focus. */
 		virtual void ownerWindowFocusChanged();
 	private:
-		GUIWidget(const GUIWidget& other) { }
-
 		/**	Calculates widget bounds using the bounds of all child elements. */
 		void updateBounds() const;
 

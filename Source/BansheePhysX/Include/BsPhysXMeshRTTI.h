@@ -5,6 +5,7 @@
 #include "BsPhysXPrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsPhysXMesh.h"
+#include "BsDataStream.h"
 
 namespace BansheeEngine
 {
@@ -16,34 +17,29 @@ namespace BansheeEngine
 	class BS_PHYSX_EXPORT FPhysXMeshRTTI : public RTTIType<FPhysXMesh, FPhysicsMesh, FPhysXMeshRTTI>
 	{
 	private:
-		ManagedDataBlock getCookedData(FPhysXMesh* obj)
+		SPtr<DataStream> getCookedData(FPhysXMesh* obj, UINT32& size)
 		{
-			ManagedDataBlock dataBlock((UINT8*)obj->mCookedData, obj->mCookedDataSize);
-			return dataBlock;
+			size = obj->mCookedDataSize;
+
+			return bs_shared_ptr_new<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize, false);
 		}
 
-		void setCookedData(FPhysXMesh* obj, ManagedDataBlock val)
+		void setCookedData(FPhysXMesh* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
-			// Nothing to do here, the pointer we provided in allocateCookedData() already belongs to PhysXMesh
-			// so the data is already written
+			obj->mCookedData = (UINT8*)bs_alloc(size);
+			obj->mCookedDataSize = size;
+
+			value->read(obj->mCookedData, size);
 		}
 
-		static UINT8* allocateCookedData(FPhysXMesh* obj, UINT32 numBytes)
-		{
-			obj->mCookedData = (UINT8*)bs_alloc(numBytes);
-			obj->mCookedDataSize = numBytes;
-
-			return obj->mCookedData;
-		}
 	public:
 		FPhysXMeshRTTI()
 		{
-			addDataBlockField("mCookedData", 0, 
-				&FPhysXMeshRTTI::getCookedData, &FPhysXMeshRTTI::setCookedData, 0, &FPhysXMeshRTTI::allocateCookedData);
+			addDataBlockField("mCookedData", 0, &FPhysXMeshRTTI::getCookedData, &FPhysXMeshRTTI::setCookedData, 0);
 		}
 
 		/** @copydoc IReflectable::onDeserializationEnded */
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			FPhysXMesh* mesh = static_cast<FPhysXMesh*>(obj);
 			mesh->initialize();

@@ -31,7 +31,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabComponentDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Flags that mark which portion of a scene-object is modified. */
@@ -56,9 +56,9 @@ namespace BansheeEngine
 		UINT32 id = 0;
 
 		String name;
-		Vector3 position;
-		Quaternion rotation;
-		Vector3 scale;
+		Vector3 position = Vector3::ZERO;
+		Quaternion rotation = Quaternion::IDENTITY;
+		Vector3 scale = Vector3::ZERO;
 		bool isActive = false;
 		UINT32 soFlags = 0;
 
@@ -77,7 +77,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabObjectDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -96,6 +96,10 @@ namespace BansheeEngine
 		/**
 		 * Applies the internal prefab diff to the provided object. The object should have similar hierarchy as the prefab
 		 * the diff was created for, otherwise the results are undefined.
+		 *
+		 * @note	Be aware that this method will not instantiate newly added components or scene objects. It's expected
+		 *			that this method will be called on a fresh copy of a scene object hierarchy, and everything to be
+		 *			instantiated at once after diff is applied.
 		 */
 		void apply(const HSceneObject& object);
 
@@ -151,7 +155,7 @@ namespace BansheeEngine
 	public:
 		friend class PrefabDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

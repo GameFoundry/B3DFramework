@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsApplication.h"
 #include "BsGUIManager.h"
+#include "BsSpriteManager.h"
 #include "BsBuiltinResources.h"
 #include "BsScriptManager.h"
 #include "BsProfilingManager.h"
@@ -22,25 +23,8 @@
 
 namespace BansheeEngine
 {
-	START_UP_DESC createStartUpDesc(RENDER_WINDOW_DESC& primaryWindowDesc, const String& renderAPI, const String& renderer, 
-		const Vector<String>& importers)
-	{
-		START_UP_DESC desc;
-		desc.renderAPI = renderAPI;
-		desc.renderer = renderer;
-		desc.physics = "BansheePhysX";
-		desc.input = "BansheeOISInput";
-
-		desc.primaryWindowDesc = primaryWindowDesc;
-		desc.importers = importers;
-
-		return desc;
-	}
-
-	Application::Application(RENDER_WINDOW_DESC primaryWindowDesc, RenderAPIPlugin renderAPI, RendererPlugin renderer, 
-		const Vector<String>& importers)
-		:CoreApplication(createStartUpDesc(primaryWindowDesc, getLibNameForRenderAPI(renderAPI), 
-		getLibNameForRenderer(renderer), importers)), mMonoPlugin(nullptr), mSBansheeEnginePlugin(nullptr)
+	Application::Application(const START_UP_DESC& desc)
+		: CoreApplication(desc), mMonoPlugin(nullptr), mSBansheeEnginePlugin(nullptr)
 	{
 
 	}
@@ -56,6 +40,7 @@ namespace BansheeEngine
 
 		ShortcutManager::shutDown();
 		GUIManager::shutDown();
+		SpriteManager::shutDown();
 		BuiltinResources::shutDown();
 		RendererMaterialManager::shutDown();
 		VirtualInput::shutDown();
@@ -72,6 +57,7 @@ namespace BansheeEngine
 		BuiltinResources::startUp();
 		RendererMaterialManager::startUp();
 		RendererManager::instance().initialize();
+		SpriteManager::startUp();
 		GUIManager::startUp();
 		ShortcutManager::startUp();
 
@@ -97,10 +83,9 @@ namespace BansheeEngine
 		CoreApplication::onShutDown();
 	}
 
-	void Application::startUp(RENDER_WINDOW_DESC& primaryWindowDesc, RenderAPIPlugin renderAPI, 
-		RendererPlugin renderer, const Vector<String>& importers)
+	void Application::startUp(const START_UP_DESC& desc)
 	{
-		CoreApplication::startUp<Application>(primaryWindowDesc, renderAPI, renderer, importers);
+		CoreApplication::startUp<Application>(desc);
 	}
 
 	void Application::preUpdate()
@@ -157,11 +142,8 @@ namespace BansheeEngine
 
 	Path Application::getBuiltinAssemblyFolder() const
 	{
-		Path releaseAssemblyFolder = FileSystem::getWorkingDirectoryPath();
-		releaseAssemblyFolder.append(Paths::getReleaseAssemblyPath());
-
-		Path debugAssemblyFolder = FileSystem::getWorkingDirectoryPath();
-		debugAssemblyFolder.append(Paths::getDebugAssemblyPath());
+		Path releaseAssemblyFolder = Paths::getReleaseAssemblyPath();
+		Path debugAssemblyFolder = Paths::getDebugAssemblyPath();
 
 #if BS_DEBUG_MODE == 0
 		if (FileSystem::exists(releaseAssemblyFolder))
@@ -184,38 +166,6 @@ namespace BansheeEngine
 	SPtr<IShaderIncludeHandler> Application::getShaderIncludeHandler() const
 	{
 		return bs_shared_ptr_new<EngineShaderIncludeHandler>();
-	}
-
-	String Application::getLibNameForRenderAPI(RenderAPIPlugin plugin)
-	{
-		static String DX11Name = "BansheeD3D11RenderAPI";
-		static String DX9Name = "BansheeD3D9RenderAPI";
-		static String OpenGLName = "BansheeGLRenderAPI";
-
-		switch (plugin)
-		{
-		case RenderAPIPlugin::DX11:
-			return DX11Name;
-		case RenderAPIPlugin::DX9:
-			return DX9Name;
-		case RenderAPIPlugin::OpenGL:
-			return OpenGLName;
-		}
-
-		return StringUtil::BLANK;
-	}
-
-	String Application::getLibNameForRenderer(RendererPlugin plugin)
-	{
-		static String DefaultName = "RenderBeast";
-
-		switch (plugin)
-		{
-		case RendererPlugin::Default:
-			return DefaultName;
-		}
-	
-		return StringUtil::BLANK;
 	}
 
 	Application& gApplication()

@@ -61,7 +61,7 @@ namespace BansheeEngine
 
 		ScriptSerializableObject* nativeInstance = new (bs_alloc<ScriptSerializableObject>()) ScriptSerializableObject(instance, typeInfo);
 
-		Vector<SPtr<ManagedSerializableFieldInfo>> sortedFields;
+		Vector<SPtr<ManagedSerializableMemberInfo>> sortedFields;
 		
 		if(objInfo != nullptr)
 		{
@@ -75,7 +75,7 @@ namespace BansheeEngine
 		}
 
 		std::sort(sortedFields.begin(), sortedFields.end(),
-			[&](const SPtr<ManagedSerializableFieldInfo>& x, const SPtr<ManagedSerializableFieldInfo>& y)
+			[&](const SPtr<ManagedSerializableMemberInfo>& x, const SPtr<ManagedSerializableMemberInfo>& y)
 		{
 			return x->mFieldId < y->mFieldId;
 		});

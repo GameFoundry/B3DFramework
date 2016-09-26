@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsImageSprite.h"
 #include "BsSpriteTexture.h"
+#include "BsSpriteManager.h"
 #include "BsTexture.h"
 
 namespace BansheeEngine
@@ -60,7 +61,11 @@ namespace BansheeEngine
 			matInfo.groupId = groupId;
 			matInfo.texture = tex;
 			matInfo.tint = desc.color;
-			matInfo.type = desc.transparent ? SpriteMaterial::ImageAlpha : SpriteMaterial::Image;
+
+			if (desc.transparent)
+				renderElem.material = SpriteManager::instance().getImageTransparentMaterial();
+			else
+				renderElem.material = SpriteManager::instance().getImageOpaqueMaterial();
 
 			texPage++;
 		}
@@ -264,5 +269,57 @@ namespace BansheeEngine
 
 		mCachedRenderElements.clear();
 		updateBounds();
+	}
+
+	Vector2 ImageSprite::getTextureUVScale(Vector2I sourceSize, Vector2I destSize, TextureScaleMode scaleMode)
+	{
+		Vector2 uvScale = Vector2(1.0f, 1.0f);
+
+		switch (scaleMode)
+		{
+		case TextureScaleMode::ScaleToFit:
+			uvScale.x = sourceSize.x / (float)destSize.x;
+			uvScale.y = sourceSize.y / (float)destSize.y;
+
+			if (uvScale.x < uvScale.y)
+			{
+				uvScale.x = 1.0f;
+				uvScale.y = (destSize.x * (sourceSize.y / (float)sourceSize.x)) / destSize.y;
+			}
+			else
+			{
+				uvScale.x = (destSize.y * (sourceSize.x / (float)sourceSize.y)) / destSize.x;
+				uvScale.y = 1.0f;
+			}
+
+			break;
+		case TextureScaleMode::CropToFit:
+			uvScale.x = sourceSize.x / (float)destSize.x;
+			uvScale.y = sourceSize.y / (float)destSize.y;
+
+			if (uvScale.x < uvScale.y)
+			{
+				uvScale.x = (destSize.y * (sourceSize.x / (float)sourceSize.y)) / destSize.x;
+				uvScale.y = 1.0f;
+			}
+			else
+			{
+				uvScale.x = 1.0f;
+				uvScale.y = (destSize.x * (sourceSize.y / (float)sourceSize.x)) / destSize.y;
+			}
+
+			break;
+		case TextureScaleMode::RepeatToFit:
+			uvScale.x = destSize.x / (float)sourceSize.x;
+			uvScale.y = destSize.y / (float)sourceSize.y;
+			break;
+		case TextureScaleMode::StretchToFit:
+			// Do nothing, (1.0f, 1.0f) is the default UV scale
+			break;
+		default:
+			break;
+		}
+
+		return uvScale;
 	}
 }

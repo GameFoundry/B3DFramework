@@ -10,6 +10,18 @@ namespace BansheeEngine
      */
 
     /// <summary>
+    /// Flags that are used to define properties of a single field in a managed object.
+    /// </summary>
+    internal enum SerializableFieldAttributes // Note: Must match C++ enum ScriptFieldFlags
+    {
+        Serializable = 0x01,
+        Inspectable = 0x02,
+        Ranged = 0x04,
+        Stepped = 0x08,
+        Animable = 0x10
+    }
+
+    /// <summary>
     /// Allows you to access meta-data about field in an object. Similar to Reflection but simpler and faster.
     /// </summary>
     public class SerializableField : ScriptObject
@@ -45,6 +57,14 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Returns the actual type of the object contained in the field.
+        /// </summary>
+        public Type InternalType
+        {
+            get { return internalType; }
+        }
+
+        /// <summary>
         /// Returns the name of the field.
         /// </summary>
         public string Name
@@ -57,7 +77,7 @@ namespace BansheeEngine
         /// </summary>
         public bool Inspectable
         {
-            get { return (flags & 0x02) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Inspectable) != 0; }
         }
 
         /// <summary>
@@ -65,7 +85,29 @@ namespace BansheeEngine
         /// </summary>
         public bool Serializable
         {
-            get { return (flags & 0x01) != 0; } // Flags as defined in native code in BsManagedSerializableObjectInfo.h
+            get { return (flags & (byte)SerializableFieldAttributes.Serializable) != 0; }
+        }
+
+        /// <summary>
+        /// Returns true if the field can be animated.
+        /// </summary>
+        public bool Animable
+        {
+            get { return (flags & (byte)SerializableFieldAttributes.Animable) != 0; }
+        }
+
+        /// <summary>
+        /// Returns the requested style of the field, that may be used for controlling how the field is displayed and how
+        /// is its input filtered.
+        /// </summary>
+        public SerializableFieldStyle Style
+        {
+            get
+            {
+                SerializableFieldStyle style;
+                Internal_GetStyle(mCachedPtr, out style);
+                return style;
+            }
         }
 
         /// <summary>
@@ -112,6 +154,40 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetValue(IntPtr nativeInstance, object instance, object value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_GetStyle(IntPtr nativeInstance, out SerializableFieldStyle style);
+    }
+
+    /// <summary>
+    /// Contains information about a style of a serializable field.
+    /// </summary>
+    public struct SerializableFieldStyle // Note: Must match C++ struct SerializableMemberStyle
+    {
+        /// <summary>
+        /// True if the range of the field is limited, false if unlimited.
+        /// </summary>
+        public bool HasRange;
+        /// <summary>
+        /// Returns the lower bound of the range. Only relevant if <see cref="HasRange"/> is true.
+        /// </summary>
+        public float RangeMin;
+        /// <summary>
+        /// Returns the upper bound of the range. Only relevant if <see cref="HasRange"/> is true.
+        /// </summary>
+        public float RangeMax;
+        /// <summary>
+        /// True if the field value can only be incremented in specific increments.
+        /// </summary>
+        public bool HasStep;
+        /// <summary>
+        /// Minimum increment the field value can be increment/decremented by. Only relevant if <see cref="HasStep"/> is true.
+        /// </summary>
+        public float StepIncrement;
+        /// <summary>
+        /// If true, number fields will be displayed as sliders instead of regular input boxes.
+        /// </summary>
+        public bool DisplayAsSlider;
     }
 
     /** @} */

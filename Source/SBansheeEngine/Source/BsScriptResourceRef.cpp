@@ -2,16 +2,13 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsScriptResourceRef.h"
 #include "BsScriptMeta.h"
-#include "BsMonoField.h"
 #include "BsMonoClass.h"
-#include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 #include "BsResources.h"
 #include "BsScriptResource.h"
 #include "BsScriptTexture2D.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
 #include "BsScriptResourceManager.h"
+#include "BsApplication.h"
 
 namespace BansheeEngine
 {
@@ -58,7 +55,12 @@ namespace BansheeEngine
 
 	MonoObject* ScriptResourceRef::internal_GetResource(ScriptResourceRef* nativeInstance)
 	{
-		HResource resource = gResources().load(nativeInstance->mResource);
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies | ResourceLoadFlag::KeepInternalRef;
+
+		if (gApplication().isEditor())
+			loadFlags |= ResourceLoadFlag::KeepSourceData;
+
+		HResource resource = gResources().load(nativeInstance->mResource, loadFlags);
 		ScriptResourceBase* scriptResource;
 
 		ScriptResourceManager::instance().getScriptResource(resource, &scriptResource, true);

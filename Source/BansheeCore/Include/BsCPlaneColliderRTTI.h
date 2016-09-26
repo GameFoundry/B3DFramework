@@ -17,14 +17,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CPlaneColliderRTTI : public RTTIType<CPlaneCollider, CCollider, CPlaneColliderRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mNormal)
-		BS_PLAIN_MEMBER(mDistance)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mNormal, 0)
+			BS_RTTI_MEMBER_PLAIN(mDistance, 1)
+		BS_END_RTTI_MEMBERS
 	public:
 		CPlaneColliderRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mNormal, 0);
-			BS_ADD_PLAIN_FIELD(mDistance, 1);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

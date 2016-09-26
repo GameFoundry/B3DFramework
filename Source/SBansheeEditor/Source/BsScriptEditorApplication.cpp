@@ -165,16 +165,14 @@ namespace BansheeEngine
 
 	MonoString* ScriptEditorApplication::internal_GetBuiltinReleaseAssemblyPath()
 	{
-		Path releaseAssemblyFolder = FileSystem::getWorkingDirectoryPath();
-		releaseAssemblyFolder.append(Paths::getReleaseAssemblyPath());
+		Path releaseAssemblyFolder = Paths::getReleaseAssemblyPath();
 
 		return MonoUtil::wstringToMono(releaseAssemblyFolder.toWString());
 	}
 
 	MonoString* ScriptEditorApplication::internal_GetBuiltinDebugAssemblyPath()
 	{
-		Path debugAssemblyFolder = FileSystem::getWorkingDirectoryPath();
-		debugAssemblyFolder.append(Paths::getDebugAssemblyPath());
+		Path debugAssemblyFolder = Paths::getDebugAssemblyPath();
 
 		return MonoUtil::wstringToMono(debugAssemblyFolder.toWString());
 	}
@@ -189,7 +187,6 @@ namespace BansheeEngine
 	MonoString* ScriptEditorApplication::internal_GetFrameworkAssemblyPath()
 	{
 		Path assemblyFolder = MonoManager::instance().getFrameworkAssembliesFolder();
-		assemblyFolder.makeAbsolute(FileSystem::getWorkingDirectoryPath());
 
 		return MonoUtil::wstringToMono(assemblyFolder.toWString());
 	}

@@ -36,6 +36,10 @@ namespace BansheeEngine
 					isn't flagged to be included in the build. It may not be available outside of the editor.");
 		}
 
-		return gResources().loadFromUUID(resUUID, false, true, keepLoaded);
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies | ResourceLoadFlag::KeepSourceData;
+		if (keepLoaded)
+			loadFlags |= ResourceLoadFlag::KeepInternalRef;
+
+		return gResources().loadFromUUID(resUUID, false, loadFlags);
 	}
 }

@@ -6,7 +6,7 @@ set(BansheeFreeImgImporter_INC
 	"Include" 
 	"../BansheeUtility/Include" 
 	"../BansheeCore/Include"
-	"../../Dependencies/BansheeFreeImgImporter/Include")
+	"../../Dependencies/freeimg/include")
 
 include_directories(${BansheeFreeImgImporter_INC})	
 	
@@ -18,7 +18,7 @@ target_compile_definitions(BansheeFreeImgImporter PRIVATE -DBS_FREEIMG_EXPORTS -
 
 # Libraries
 ## External lib: FreeImage
-add_library_per_config(BansheeFreeImgImporter FreeImage)
+add_library_per_config(BansheeFreeImgImporter freeimg Release/FreeImage Debug/FreeImage)
 
 ## Local libs
 target_link_libraries(BansheeFreeImgImporter PUBLIC BansheeUtility BansheeCore)

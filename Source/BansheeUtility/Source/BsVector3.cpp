@@ -12,27 +12,6 @@ namespace BansheeEngine
 
 	}
 
-	float Vector3::length() const
-	{
-		return Math::sqrt(x * x + y * y + z * z);
-	}
-
-	float Vector3::normalize()
-	{
-		float len = Math::sqrt(x * x + y * y + z * z);
-
-		// Will also work for zero-sized vectors, but will change nothing
-		if (len > 1e-08)
-		{
-			float invLen = 1.0f / len;
-			x *= invLen;
-			y *= invLen;
-			z *= invLen;
-		}
-
-		return len;
-	}
-
 	Radian Vector3::angleBetween(const Vector3& dest) const
 	{
 		float lenProduct = length() * dest.length();

@@ -26,6 +26,7 @@ namespace BansheeEngine
 
 	const Vector<HSceneObject>& Selection::getSceneObjects() const
 	{
+		pruneDestroyedSceneObjects();
 		return mSelectedSceneObjects;
 	}
 
@@ -36,6 +37,7 @@ namespace BansheeEngine
 
 		updateTreeViews();
 
+		pruneDestroyedSceneObjects();
 		onSelectionChanged(mSelectedSceneObjects, Vector<Path>());
 	}
 
@@ -135,6 +137,7 @@ namespace BansheeEngine
 			mSelectedSceneObjects = newSelection;
 			mSelectedResourcePaths.clear();
 
+			pruneDestroyedSceneObjects();
 			onSelectionChanged(mSelectedSceneObjects, Vector<Path>());
 		}
 	}
@@ -186,9 +189,35 @@ namespace BansheeEngine
 		if (sceneTreeView != nullptr)
 		{
 			// Copy in case setSelection modifies the original.
+			pruneDestroyedSceneObjects();
 			Vector<HSceneObject> copy = mSelectedSceneObjects;
 
 			sceneTreeView->setSelection(copy);
 		}
+	}
+
+	void Selection::pruneDestroyedSceneObjects() const
+	{
+		bool anyDestroyed = false;
+		for (auto& SO : mSelectedSceneObjects)
+		{
+			if (!SO.isDestroyed(true))
+			{
+				anyDestroyed = true;
+				break;
+			}
+		}
+
+		if (!anyDestroyed) // Test for quick exit for the most common case
+			return;
+
+		for(auto& SO : mSelectedSceneObjects)
+		{
+			if(!SO.isDestroyed(true))
+				mTempSO.push_back(SO);
+		}
+
+		mSelectedSceneObjects.swap(mTempSO);
+		mTempSO.clear();
 	}
 }

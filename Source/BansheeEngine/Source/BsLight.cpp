@@ -11,16 +11,17 @@
 namespace BansheeEngine
 {
 	LightBase::LightBase()
-		: mType(LightType::Point), mCastsShadows(false), mColor(Color::White), mRange(10.0f), mIntensity(5.0f)
-		, mSpotAngle(45), mSpotFalloffAngle(35.0f), mIsActive(true), mPhysCorrectAtten(true)
+		: mPosition(BsZero), mRotation(BsIdentity), mType(LightType::Point), mCastsShadows(false), mColor(Color::White)
+		, mRange(10.0f), mIntensity(5.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mIsActive(true), mPhysCorrectAtten(true)
 	{
 		updatePhysicallyCorrectRange();
 	}
 
 	LightBase::LightBase(LightType type, Color color,
 		float intensity, float range, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-		: mType(type), mCastsShadows(castsShadows), mColor(color), mRange(range), mIntensity(intensity)
-		, mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mIsActive(true), mPhysCorrectAtten(true)
+		: mPosition(BsZero), mRotation(BsIdentity), mType(type), mCastsShadows(castsShadows), mColor(color), mRange(range)
+		, mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mIsActive(true)
+		, mPhysCorrectAtten(true)
 	{
 		updatePhysicallyCorrectRange();
 	}
@@ -107,7 +108,10 @@ namespace BansheeEngine
 				offset = Vector3(0, 0, -(mRange - coneRadius));
 			}
 			else
+			{
 				radius = coneRadius;
+				offset = Vector3::ZERO;
+			}
 
 			Vector3 center = mPosition + mRotation.rotate(offset);
 			mBounds = Sphere(center, radius);

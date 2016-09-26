@@ -71,7 +71,11 @@ OptionInfo OPTION_LOOKUP[] =
 	{ OT_Block, ODT_Complex },
 	{ OT_SamplerState, ODT_Complex },
 	{ OT_Code, ODT_Complex },
-	{ OT_StencilRef, ODT_Int }
+	{ OT_StencilRef, ODT_Int },
+	{ OT_Tags, ODT_Complex },
+	{ OT_TagValue, ODT_String },
+	{ OT_Base, ODT_String },
+	{ OT_Inherits, ODT_String }
 };
 
 NodeOptions* nodeOptionsCreate(void* context)
@@ -221,8 +225,9 @@ void beginCodeBlock(ParseState* parseState)
 		{
 			appendCodeBlock(parseState, " ", 1);
 			appendCodeBlock(parseState, parseState->defines[i].expr, (int)strlen(parseState->defines[i].expr));
-			appendCodeBlock(parseState, "\n", 1);
 		}
+
+		appendCodeBlock(parseState, "\n", 1);
 	}
 }
 

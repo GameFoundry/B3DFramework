@@ -11,22 +11,15 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/**	Types of render APIs supported by the editor. */
-	enum class EditorRenderAPI
-	{
-		DX11,
-		OpenGL
-	};
-
 	/**	Primary editor class containing the editor entry point. */
 	class BS_ED_EXPORT EditorApplication : public Application
 	{
 	public:
-		EditorApplication(EditorRenderAPI renderAPI);
+		EditorApplication();
 		virtual ~EditorApplication();
 
-		/**	Starts the editor with the specified render system. */
-		static void startUp(EditorRenderAPI renderAPI);
+		/**	Starts the editor with the specified render and audio systems. */
+		static void startUp();
 
 		/**	Checks whether the editor currently has a project loaded. */
 		bool isProjectLoaded() const { return mIsProjectLoaded; }
@@ -90,19 +83,19 @@ namespace BansheeEngine
 		bool isEditor() const override { return true; }
 	private:
 		/** @copydoc Module::onStartUp */
-		virtual void onStartUp() override;
+		void onStartUp() override;
 
 		/** @copydoc Module::onShutDown */
-		virtual void onShutDown() override;
+		void onShutDown() override;
 
 		/** @copydoc CoreApplication::preUpdate */
-		virtual void preUpdate() override;
+		void preUpdate() override;
 
 		/** @copydoc CoreApplication::postUpdate */
-		virtual void postUpdate() override;
+		void postUpdate() override;
 
 		/** @copydoc CoreApplication::quitRequested */
-		virtual void quitRequested() override;
+		void quitRequested() override;
 
 		/** @copydoc Application::loadScriptSystem */
 		void loadScriptSystem() override;
@@ -129,17 +122,13 @@ namespace BansheeEngine
 		void loadProjectSettings();
 
 		/** @copydoc Application::getShaderIncludeHandler */
-		virtual SPtr<IShaderIncludeHandler> getShaderIncludeHandler() const override;
-
-		/** Converts a render API type supported by the editor into a type recognized by the lower layers of the engine. */
-		static RenderAPIPlugin toEngineRenderAPI(EditorRenderAPI renderAPI);
+		SPtr<IShaderIncludeHandler> getShaderIncludeHandler() const override;
 
 	private:
 		static const Path WIDGET_LAYOUT_PATH;
 		static const Path BUILD_DATA_PATH;
 		static const Path PROJECT_SETTINGS_PATH;
 
-		RenderAPIPlugin mActiveRAPIPlugin;
 		SPtr<EditorSettings> mEditorSettings;
 		SPtr<ProjectSettings> mProjectSettings;
 

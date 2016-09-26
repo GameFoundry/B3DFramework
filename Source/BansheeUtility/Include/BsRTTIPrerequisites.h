@@ -13,6 +13,55 @@ namespace BansheeEngine
 	 */
 
 	/**
+	 * Template that you may specialize with a class if you want to provide simple serialization for it.
+	 *
+	 * Any type that uses the "plain" field in the RTTI system must specialize this class.
+	 *
+	 * @note
+	 * Normally you will want to implement IReflectable interface if you want to provide serialization
+	 * as that interface properly handles versioning, nested objects, pointer handling and more.
+	 *
+	 * @note
+	 * This class is useful for types you can easily serialize using a memcpy (built-in types like int/float/etc), or
+	 * types you cannot modify so they implement IReflectable interface (like std::string or std::vector).
+	 *
+	 * @see		RTTITypeBase
+	 * @see		RTTIField
+	 */
+	template<class T>
+	struct RTTIPlainType
+	{
+		static_assert(std::is_pod<T>::value,
+			"Provided type isn't plain-old-data. You need to specialize RTTIPlainType template in order to serialize this type. "\
+			" (Or call BS_ALLOW_MEMCPY_SERIALIZATION(type) macro if you are sure the type can be properly serialized using just memcpy.)");
+
+		enum { id = 0 /**< Unique id for the serializable type. */ };
+		enum { hasDynamicSize = 0 /**< 0 (Object has static size less than 255 bytes, for example int) or 1 (Dynamic size with no size restriction, for example string) */ };
+
+		/** Serializes the provided object into the provided pre-allocated memory buffer. */
+		static void toMemory(const T& data, char* memory)
+		{
+			memcpy(memory, &data, sizeof(T));
+		}
+
+		/**
+		 *  Deserializes a previously allocated object from the provided memory buffer. Return the number of bytes read
+		 *  from the memory buffer.
+		 */
+		static UINT32 fromMemory(T& data, char* memory)
+		{
+			memcpy(&data, memory, sizeof(T));
+			return sizeof(T);
+		}
+
+		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
+		static UINT32 getDynamicSize(const T& data)
+		{
+			return sizeof(T);
+		}
+	};
+
+	/**
 	 * Helper method when serializing known data types that have valid
 	 * RTTIPlainType specialization.
 	 * 			
@@ -98,55 +147,6 @@ namespace BansheeEngine
 	}
 
 	/**
-	 * Template that you may specialize with a class if you want to provide simple serialization for it. 
-	 * 			
-	 * Any type that uses the "plain" field in the RTTI system must specialize this class.
-	 * 			
-	 * @note	
-	 * Normally you will want to implement IReflectable interface if you want to provide serialization
-	 * as that interface properly handles versioning, nested objects, pointer handling and more.
-	 *
-	 * @note			
-	 * This class is useful for types you can easily serialize using a memcpy (built-in types like int/float/etc), or
-	 * types you cannot modify so they implement IReflectable interface (like std::string or std::vector).
-	 *			
-	 * @see		RTTITypeBase
-	 * @see		RTTIField
-	 */
-	template<class T>
-	struct RTTIPlainType 
-	{ 
-		static_assert(std::is_pod<T>::value, 
-			"Provided type isn't plain-old-data. You need to specialize RTTIPlainType template in order to serialize this type. "\
-			" (Or call BS_ALLOW_MEMCPY_SERIALIZATION(type) macro if you are sure the type can be properly serialized using just memcpy.)");
-
-		enum { id = 0 /**< Unique id for the serializable type. */ }; 
-		enum { hasDynamicSize = 0 /**< 0 (Object has static size less than 255 bytes, for example int) or 1 (Dynamic size with no size restriction, for example string) */ };
-
-		/** Serializes the provided object into the provided pre-allocated memory buffer. */
-		static void toMemory(const T& data, char* memory)	
-		{ 
-			memcpy(memory, &data, sizeof(T)); 
-		}
-
-		/** 
-		 *  Deserializes a previously allocated object from the provided memory buffer. Return the number of bytes read 
-		 *  from the memory buffer.
-		 */
-		static UINT32 fromMemory(T& data, char* memory)
-		{
-			memcpy(&data, memory, sizeof(T)); 
-			return sizeof(T);
-		}
-
-		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
-		static UINT32 getDynamicSize(const T& data)
-		{ 
-			return sizeof(T);
-		}
-	};
-
-	/**
 	 * Notify the RTTI system that the specified type may be serialized just by using a memcpy.
 	 *
 	 * @note	Internally this creates a basic RTTIPlainType<T> specialization for the type.
@@ -189,7 +189,7 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 elementSize = RTTIPlainType<T>::getDynamicSize(*iter);
+				UINT32 elementSize = rttiGetElemSize(*iter);
 				RTTIPlainType<T>::toMemory(*iter, memory);
 
 				memory += elementSize;
@@ -227,8 +227,8 @@ namespace BansheeEngine
 		{ 
 			UINT64 dataSize = sizeof(UINT32) * 2;
 
-			for(auto iter = data.begin(); iter != data.end(); ++iter)
-				dataSize += RTTIPlainType<T>::getDynamicSize(*iter);		
+			for (auto iter = data.begin(); iter != data.end(); ++iter)
+				dataSize += rttiGetElemSize(*iter);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 
@@ -259,7 +259,7 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 elementSize = RTTIPlainType<T>::getDynamicSize(*iter);
+				UINT32 elementSize = rttiGetElemSize(*iter);
 				RTTIPlainType<T>::toMemory(*iter, memory);
 
 				memory += elementSize;
@@ -298,7 +298,7 @@ namespace BansheeEngine
 			UINT64 dataSize = sizeof(UINT32) * 2;
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
-				dataSize += RTTIPlainType<T>::getDynamicSize(*iter);		
+				dataSize += rttiGetElemSize(*iter);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 
@@ -329,13 +329,13 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(iter->first);
+				UINT32 keySize = rttiGetElemSize(iter->first);
 				RTTIPlainType<Key>::toMemory(iter->first, memory);
 
 				memory += keySize;
 				size += keySize;
 
-				UINT32 valueSize = RTTIPlainType<Value>::getDynamicSize(iter->second);
+				UINT32 valueSize = rttiGetElemSize(iter->second);
 				RTTIPlainType<Value>::toMemory(iter->second, memory);
 
 				memory += valueSize;
@@ -379,8 +379,8 @@ namespace BansheeEngine
 
 			for(auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				dataSize += RTTIPlainType<Key>::getDynamicSize(iter->first);		
-				dataSize += RTTIPlainType<Value>::getDynamicSize(iter->second);
+				dataSize += rttiGetElemSize(iter->first);
+				dataSize += rttiGetElemSize(iter->second);
 			}
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
@@ -415,13 +415,13 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(iter->first);
+				UINT32 keySize = rttiGetElemSize(iter->first);
 				RTTIPlainType<Key>::toMemory(iter->first, memory);
 
 				memory += keySize;
 				size += keySize;
 
-				UINT32 valueSize = RTTIPlainType<Value>::getDynamicSize(iter->second);
+				UINT32 valueSize = rttiGetElemSize(iter->second);
 				RTTIPlainType<Value>::toMemory(iter->second, memory);
 
 				memory += valueSize;
@@ -501,7 +501,7 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				UINT32 keySize = RTTIPlainType<Key>::getDynamicSize(*iter);
+				UINT32 keySize = rttiGetElemSize(*iter);
 				RTTIPlainType<Key>::toMemory(*iter, memory);
 
 				memory += keySize;
@@ -541,7 +541,7 @@ namespace BansheeEngine
 
 			for (auto iter = data.begin(); iter != data.end(); ++iter)
 			{
-				dataSize += RTTIPlainType<Key>::getDynamicSize(*iter);
+				dataSize += rttiGetElemSize(*iter);
 			}
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
@@ -566,13 +566,13 @@ namespace BansheeEngine
 			char* memoryStart = memory;
 			memory += sizeof(UINT32);
 
-			UINT32 firstSize = RTTIPlainType<A>::getDynamicSize(data.first);
+			UINT32 firstSize = rttiGetElemSize(data.first);
 			RTTIPlainType<A>::toMemory(data.first, memory);
 
 			memory += firstSize;
 			size += firstSize;
 
-			UINT32 secondSize = RTTIPlainType<B>::getDynamicSize(data.second);
+			UINT32 secondSize = rttiGetElemSize(data.second);
 			RTTIPlainType<B>::toMemory(data.second, memory);
 
 			memory += secondSize;
@@ -601,8 +601,8 @@ namespace BansheeEngine
 		static UINT32 getDynamicSize(const std::pair<A, B>& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32);
-			dataSize += RTTIPlainType<A>::getDynamicSize(data.first);		
-			dataSize += RTTIPlainType<B>::getDynamicSize(data.second);
+			dataSize += rttiGetElemSize(data.first);
+			dataSize += rttiGetElemSize(data.second);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());
 

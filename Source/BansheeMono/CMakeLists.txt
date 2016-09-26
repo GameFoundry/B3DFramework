@@ -7,7 +7,7 @@ set(BansheeMono_INC
 	"../BansheeUtility/Include" 
 	"../BansheeCore/Include"
 	"../BansheeEngine/Include"
-	"../../Dependencies/BansheeMono/Include")
+	"../../Dependencies/Mono/include")
 
 include_directories(${BansheeMono_INC})	
 	
@@ -19,7 +19,7 @@ target_compile_definitions(BansheeMono PRIVATE -DBS_MONO_EXPORTS)
 
 # Libraries
 ## External lib: Mono
-add_library_per_config(BansheeMono mono-2.0)
+add_library_per_config(BansheeMono mono Release/mono-2.0 Debug/mono-2.0)
 
 ## Local libs
 target_link_libraries(BansheeMono PUBLIC BansheeEngine BansheeUtility BansheeCore)

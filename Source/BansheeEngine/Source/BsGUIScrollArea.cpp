@@ -14,7 +14,6 @@ using namespace std::placeholders;
 namespace BansheeEngine
 {
 	const UINT32 GUIScrollArea::ScrollBarWidth = 16;
-	const UINT32 GUIScrollArea::MinHandleSize = 4;
 	const UINT32 GUIScrollArea::WheelScrollAmount = 50;
 
 	GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, 
@@ -32,8 +31,8 @@ namespace BansheeEngine
 		_registerChildElement(mHorzScroll);
 		_registerChildElement(mVertScroll);
 
-		mHorzScroll->onScrollPositionChanged.connect(std::bind(&GUIScrollArea::horzScrollUpdate, this, _1));
-		mVertScroll->onScrollPositionChanged.connect(std::bind(&GUIScrollArea::vertScrollUpdate, this, _1));
+		mHorzScroll->onScrollOrResize.connect(std::bind(&GUIScrollArea::horzScrollUpdate, this, _1));
+		mVertScroll->onScrollOrResize.connect(std::bind(&GUIScrollArea::vertScrollUpdate, this, _1));
 	}
 
 	GUIScrollArea::~GUIScrollArea()
@@ -321,16 +320,13 @@ namespace BansheeEngine
 			mVertScroll->_updateLayoutInternal(vertScrollData);
 
 			// Set new handle size and update position to match the new size
-			UINT32 newHandleSize = (UINT32)Math::floorToInt(mVertScroll->getMaxHandleSize() * (vertScrollBounds.height / (float)mContentSize.y));
-			newHandleSize = std::max(newHandleSize, MinHandleSize);
-
 			UINT32 scrollableHeight = (UINT32)std::max(0, INT32(mContentSize.y) - INT32(vertScrollBounds.height));
 			float newScrollPct = 0.0f;
 
 			if (scrollableHeight > 0)
 				newScrollPct = mVertOffset / scrollableHeight;	
 
-			mVertScroll->_setHandleSize(newHandleSize);
+			mVertScroll->_setHandleSize(vertScrollBounds.height / (float)mContentSize.y);
 			mVertScroll->_setScrollPos(newScrollPct);
 		}
 
@@ -346,16 +342,13 @@ namespace BansheeEngine
 			mHorzScroll->_updateLayoutInternal(horzScrollData);
 
 			// Set new handle size and update position to match the new size
-			UINT32 newHandleSize = (UINT32)Math::floorToInt(mHorzScroll->getMaxHandleSize() * (horzScrollBounds.width / (float)mContentSize.x));
-			newHandleSize = std::max(newHandleSize, MinHandleSize);
-
 			UINT32 scrollableWidth = (UINT32)std::max(0, INT32(mContentSize.x) - INT32(horzScrollBounds.width));
 			float newScrollPct = 0.0f;
 
 			if (scrollableWidth > 0)
 				newScrollPct = mHorzOffset / scrollableWidth;
 
-			mHorzScroll->_setHandleSize(newHandleSize);
+			mHorzScroll->_setHandleSize(horzScrollBounds.width / (float)mContentSize.x);
 			mHorzScroll->_setScrollPos(newScrollPct);
 		}
 

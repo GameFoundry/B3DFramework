@@ -23,8 +23,9 @@ All features listed here are the ones currently available (implemented). If you 
   * Extensible importer system
   * Available importer plugins for:
     * FBX, OBJ, DAE meshes
-    * PNG, PSD, BMP, JPG, ... images
+    * PNG, PSD, BMP, JPG, etc. images
     * OTF, TTF fonts
+	* OGG, FLAC, WAV, MP3 sounds
     * HLSL9, HLSL11, GLSL shaders
 * __GUI system__
   * Unicode text rendering and input
@@ -35,6 +36,19 @@ All features listed here are the ones currently available (implemented). If you 
   * Supports texture atlases
   * Supports arbitrary 3D transformations
   * Localization support (string tables)
+* __Animation__
+  * Skeletal animation with skinning
+    * 1D and 2D animation blending
+    * Additive animation support
+    * Animation events
+    * Root bone animation
+    * Animation sockets for animating in-game objects
+    * Post-processing hooks for IK support
+  * Blend shape animation
+  * Generic property animation
+    * Animate any script property
+    * Built-in animation curve editor
+  * Multi-threaded and GPU accelerated
 * __Input__
   * Mouse/keyboard/gamepad support
   * Provides both raw and OS input
@@ -64,6 +78,15 @@ All features listed here are the ones currently available (implemented). If you 
 	* Save/load data with no additional code
 	* Handles complex types (e.g. array, list, dictionary) and references
 	* Fast and small memory footprint
+* __Audio__
+  * 3D sounds (panning, attenuation, doppler effect) and 2D sounds (music, narration)
+  * On-the-fly streaming and decompression
+  * Multi-channel support up to 7.1 sound
+  * Multiple listener support for split-screen
+  * Multiple backends
+    * OpenAL
+	* FMOD
+	* Extensible to others
 * __Other__
   * CPU & GPU profiler
   * Advanced run-time type information for C++ code

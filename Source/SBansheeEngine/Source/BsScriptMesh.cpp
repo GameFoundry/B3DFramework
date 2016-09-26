@@ -8,6 +8,8 @@
 #include "BsMonoArray.h"
 #include "BsMonoManager.h"
 #include "BsCoreThread.h"
+#include "BsScriptSkeleton.h"
+#include "BsScriptMorphShapes.h"
 
 namespace BansheeEngine
 {
@@ -41,6 +43,8 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_CreateInstanceMeshData", &ScriptMesh::internal_CreateInstanceMeshData);
 		metaData.scriptClass->addInternalCall("Internal_GetSubMeshes", &ScriptMesh::internal_GetSubMeshes);
 		metaData.scriptClass->addInternalCall("Internal_GetSubMeshCount", &ScriptMesh::internal_GetSubMeshCount);
+		metaData.scriptClass->addInternalCall("Internal_GetSkeleton", &ScriptMesh::internal_GetSkeleton);
+		metaData.scriptClass->addInternalCall("Internal_GetMorphShapes", &ScriptMesh::internal_GetMorphShapes);
 		metaData.scriptClass->addInternalCall("Internal_GetBounds", &ScriptMesh::internal_GetBounds);
 		metaData.scriptClass->addInternalCall("Internal_GetMeshData", &ScriptMesh::internal_GetMeshData);
 		metaData.scriptClass->addInternalCall("Internal_SetMeshData", &ScriptMesh::internal_SetMeshData);
@@ -49,14 +53,19 @@ namespace BansheeEngine
 	void ScriptMesh::internal_CreateInstance(MonoObject* instance, int numVertices, int numIndices, 
 		MonoArray* subMeshes, MeshUsage usage, VertexLayout vertex, ScriptIndexType index)
 	{
-		SPtr<VertexDataDesc> vertexDesc = RendererMeshData::vertexLayoutVertexDesc(vertex);
-
 		IndexType indexType = IT_16BIT;
 		if (index == ScriptIndexType::Index32)
 			indexType = IT_32BIT;
 
-		Vector<SubMesh> nativeSubMeshes = monoToNativeSubMeshes(subMeshes);
-		HMesh mesh = Mesh::create(numVertices, numIndices, vertexDesc, nativeSubMeshes, usage, indexType);
+		MESH_DESC desc;
+		desc.numVertices = numVertices;
+		desc.numIndices = numIndices;
+		desc.vertexDesc = RendererMeshData::vertexLayoutVertexDesc(vertex);
+		desc.subMeshes = monoToNativeSubMeshes(subMeshes);
+		desc.usage = usage;
+		desc.indexType = indexType;
+
+		HMesh mesh = Mesh::create(desc);
 
 		ScriptMesh* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);
@@ -69,8 +78,11 @@ namespace BansheeEngine
 		if (data != nullptr)
 			meshData = data->getInternalValue()->getData();
 
-		Vector<SubMesh> nativeSubMeshes = monoToNativeSubMeshes(subMeshes);
-		HMesh mesh = Mesh::create(meshData, nativeSubMeshes, usage);
+		MESH_DESC desc;
+		desc.subMeshes = monoToNativeSubMeshes(subMeshes);
+		desc.usage = usage;
+
+		HMesh mesh = Mesh::create(meshData, desc);
 
 		ScriptMesh* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);
@@ -103,6 +115,28 @@ namespace BansheeEngine
 		HMesh mesh = thisPtr->getHandle();
 
 		return mesh->getProperties().getNumSubMeshes();
+	}
+
+	MonoObject* ScriptMesh::internal_GetSkeleton(ScriptMesh* thisPtr)
+	{
+		HMesh mesh = thisPtr->getHandle();
+
+		SPtr<Skeleton> skeleton = mesh->getSkeleton();
+		if (skeleton == nullptr)
+			return nullptr;
+
+		return ScriptSkeleton::create(skeleton);
+	}
+
+	MonoObject* ScriptMesh::internal_GetMorphShapes(ScriptMesh* thisPtr)
+	{
+		HMesh mesh = thisPtr->getHandle();
+
+		SPtr<MorphShapes> morphShapes = mesh->getMorphShapes();
+		if (morphShapes == nullptr)
+			return nullptr;
+
+		return ScriptMorphShapes::create(morphShapes);
 	}
 
 	void ScriptMesh::internal_GetBounds(ScriptMesh* thisPtr, AABox* box, Sphere* sphere)

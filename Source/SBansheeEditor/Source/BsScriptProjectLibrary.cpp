@@ -2,22 +2,18 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsScriptProjectLibrary.h"
 #include "BsScriptMeta.h"
-#include "BsMonoField.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
-#include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResource.h"
 #include "BsResources.h"
-#include "BsResource.h"
 #include "BsProjectResourceMeta.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptTexture2D.h"
-#include "BsScriptSpriteTexture.h"
-#include "BsScriptFont.h"
 #include "BsScriptImportOptions.h"
 #include "BsEditorApplication.h"
-#include "BsPath.h"
+#include "BsManagedSerializableObject.h"
+#include "BsRTTIType.h"
 
 using namespace std::placeholders;
 
@@ -56,6 +52,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_Copy", &ScriptProjectLibrary::internal_Copy);
 		metaData.scriptClass->addInternalCall("Internal_GetResourceFolder", &ScriptProjectLibrary::internal_GetResourceFolder);
 		metaData.scriptClass->addInternalCall("Internal_SetIncludeInBuild", &ScriptProjectLibrary::internal_SetIncludeInBuild);
+		metaData.scriptClass->addInternalCall("Internal_SetEditorData", &ScriptProjectLibrary::internal_SetEditorData);
 
 		OnEntryAddedThunk = (OnEntryChangedThunkDef)metaData.scriptClass->getMethod("Internal_DoOnEntryAdded", 1)->getThunk();
 		OnEntryRemovedThunk = (OnEntryChangedThunkDef)metaData.scriptClass->getMethod("Internal_DoOnEntryRemoved", 1)->getThunk();
@@ -266,6 +263,22 @@ namespace BansheeEngine
 		Path pathNative = MonoUtil::monoToWString(path);
 
 		gProjectLibrary().setIncludeInBuild(pathNative, include);
+	}
+
+	void ScriptProjectLibrary::internal_SetEditorData(MonoString* path, MonoObject* userData)
+	{
+		Path pathNative = MonoUtil::monoToWString(path);
+
+		if(userData == nullptr)
+		{
+			gProjectLibrary().setUserData(pathNative, nullptr);
+			return;
+		}
+
+		SPtr<ManagedSerializableObject> serializedUserData = ManagedSerializableObject::createFromExisting(userData);
+		serializedUserData->serialize();
+
+		gProjectLibrary().setUserData(pathNative, serializedUserData);
 	}
 
 	void ScriptProjectLibrary::startUp()
@@ -496,6 +509,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetSubresourceName", &ScriptResourceMeta::internal_GetSubresourceName);
 		metaData.scriptClass->addInternalCall("Internal_GetIcon", &ScriptResourceMeta::internal_GetIcon);
 		metaData.scriptClass->addInternalCall("Internal_GetResourceType", &ScriptResourceMeta::internal_GetResourceType);
+		metaData.scriptClass->addInternalCall("Internal_GetEditorData", &ScriptResourceMeta::internal_GetEditorData);
 	}
 
 	MonoString* ScriptResourceMeta::internal_GetUUID(ScriptResourceMeta* thisPtr)
@@ -517,5 +531,22 @@ namespace BansheeEngine
 	ScriptResourceType ScriptResourceMeta::internal_GetResourceType(ScriptResourceMeta* thisPtr)
 	{
 		return ScriptResource::getTypeFromTypeId(thisPtr->mMeta->getTypeID());
+	}
+
+	MonoObject* ScriptResourceMeta::internal_GetEditorData(ScriptResourceMeta* thisPtr)
+	{
+		SPtr<IReflectable> userData = thisPtr->mMeta->getUserData();
+		if (userData == nullptr)
+			return nullptr;
+
+		if (!rtti_is_of_type<ManagedSerializableObject>(userData.get()))
+			return nullptr;
+
+		SPtr<ManagedSerializableObject> userDataObj = std::static_pointer_cast<ManagedSerializableObject>(userData);
+		userDataObj->deserialize();
+		MonoObject* instance = userDataObj->getManagedInstance();
+		userDataObj->serialize();
+
+		return instance;
 	}
 }

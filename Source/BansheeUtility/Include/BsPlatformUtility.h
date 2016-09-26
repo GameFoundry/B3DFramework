@@ -32,14 +32,6 @@ namespace BansheeEngine
 		static void terminate(bool force = false);
 
 		/**
-		 * Queries the internal system performance counter you can use for very precise time measurements. Value is in 
-		 * milliseconds.
-		 *
-		 * @note	Thread safe.
-		 */
-		static double queryPerformanceTimerMs();
-
-		/**
 		 * Adds a string to the clipboard.
 		 *
 		 * @note	Thread safe.

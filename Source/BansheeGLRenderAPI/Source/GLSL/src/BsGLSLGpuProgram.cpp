@@ -121,6 +121,7 @@ namespace BansheeEngine
 		case GPT_DOMAIN_PROGRAM:
 			shaderType = GL_TESS_EVALUATION_SHADER;
 			mProgramID = ++mHullShaderCount;
+			break;
 		case GPT_COMPUTE_PROGRAM:
 			shaderType = GL_COMPUTE_SHADER;
 			mProgramID = ++mComputeShaderCount;

@@ -90,8 +90,8 @@ namespace BansheeEngine
 		static bool internal_GetHDR(ScriptCamera* instance);
 		static void internal_SetHDR(ScriptCamera* instance, bool value);
 
-		static void internal_GetPostProcessSettings(ScriptCamera* instance, PostProcessSettings* value);
-		static void internal_SetPostProcessSettings(ScriptCamera* instance, PostProcessSettings* value);
+		static MonoObject* internal_GetPostProcessSettings(ScriptCamera* instance);
+		static void internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value);
 
 		static UINT64 internal_GetLayers(ScriptCamera* instance);
 		static void internal_SetLayers(ScriptCamera* instance, UINT64 value);

@@ -33,10 +33,8 @@ Dynamic library loading							| No			| BansheeUtility				| No					| BsDynLib.h/B
 OpenGL initialization*							| No			| BansheeGLRenderAPI			| No					| BsGLUtil.h, BsGLSupport.h/BsWin32GLSupport.cpp, BsWin32Context.h/BsWin32Context.cpp, BsWin32VideoModeInfo.cpp | Initializing the OpenGL context (or other context if non-OpenGL API is used for the port)
 Window creation*								| No			| BansheeUtility, BansheeGLRenderAPI | No				| BsWin32Window.h/BsWin32Window.cpp, BsWin32Platform.h/BsWin32Platform.cpp, BsWin32RenderWindow.h/BsWin32RenderWindow.cpp | Creating and interacting with the window
 OS message loop*								| No			| BansheeCore					| No					| BsWin32Platform.h/BsWin32Platform.cpp 				 | Running the main message loop, responding to its events
-Timer											| No			| BansheeUtility				| No					| BsTimer.h/BsWin32Timer.cpp 							 | Measuring time
 Input*											| No			| BansheeCore					| Maybe					| BsPlatform.h/BsWin32Platform.cpp 						 | Receive input from OS (mouse, keyboard)
 UUID generation									| No			| BansheeUtility				| No					| BsPlatformUtility.h/BsWin32PlatformUtility.cpp 		 | Generate UUID/GUID
-Performance timers								| No			| BansheeUtility				| No					| BsPlatformUtility.h/BsWin32PlatformUtility.cpp 		 | Measure time precisely for profiling
 
 ## Non-critical features {#porting_b_b} 
 A list of non-critical features, and editor-only features, in the rough order they should be implemented. You should be able to get the engine running without these, or with just dummy implementations (that do nothing).

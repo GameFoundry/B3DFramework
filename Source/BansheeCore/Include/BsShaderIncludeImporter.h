@@ -22,13 +22,13 @@ namespace BansheeEngine
 		virtual ~ShaderIncludeImporter();
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		virtual bool isExtensionSupported(const WString& ext) const override;
+		bool isExtensionSupported(const WString& ext) const override;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		virtual bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
+		bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
 
 		/** @copydoc SpecificImporter::import */
-		virtual SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
 	};
 
 	/** @} */

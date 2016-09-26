@@ -167,7 +167,7 @@ namespace BansheeEngine
 	HResource GUIResourceField::getValue() const
 	{
 		if (!mUUID.empty())
-			return gResources().loadFromUUID(mUUID);
+			return gResources().loadFromUUID(mUUID, false, ResourceLoadFlag::Default | ResourceLoadFlag::KeepSourceData);
 
 		return HResource();
 	}

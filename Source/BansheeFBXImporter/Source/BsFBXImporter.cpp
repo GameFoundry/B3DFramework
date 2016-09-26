@@ -10,13 +10,17 @@
 #include "BsVector2.h"
 #include "BsVector3.h"
 #include "BsVector4.h"
-#include "BsQuaternion.h"
 #include "BsVertexDataDesc.h"
 #include "BsFBXUtility.h"
 #include "BsMeshUtility.h"
 #include "BsRendererMeshData.h"
 #include "BsMeshImportOptions.h"
 #include "BsPhysicsMesh.h"
+#include "BsAnimationCurve.h"
+#include "BsAnimationClip.h"
+#include "BsAnimationUtility.h"
+#include "BsSkeleton.h"
+#include "BsMorphShapes.h"
 #include "BsPhysics.h"
 
 namespace BansheeEngine
@@ -85,6 +89,8 @@ namespace BansheeEngine
 		:SpecificImporter(), mFBXManager(nullptr)
 	{
 		mExtensions.push_back(L"fbx");
+		mExtensions.push_back(L"obj");
+		mExtensions.push_back(L"dae");
 	}
 
 	FBXImporter::~FBXImporter() 
@@ -112,16 +118,19 @@ namespace BansheeEngine
 
 	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		Vector<SubMesh> subMeshes;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes);
+		MESH_DESC desc;
+
+		Vector<FBXAnimationClipData> dummy;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, dummy, 
+			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
-		INT32 usage = MU_STATIC;
+		desc.usage = MU_STATIC;
 		if (meshImportOptions->getCPUReadable())
-			usage |= MU_CPUCACHED;
+			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -131,16 +140,19 @@ namespace BansheeEngine
 
 	Vector<SubResourceRaw> FBXImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		Vector<SubMesh> subMeshes;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, subMeshes);
+		MESH_DESC desc;
+
+		Vector<FBXAnimationClipData> animationClips;
+		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, animationClips, 
+			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
 
-		INT32 usage = MU_STATIC;
+		desc.usage = MU_STATIC;
 		if (meshImportOptions->getCPUReadable())
-			usage |= MU_CPUCACHED;
+			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), subMeshes, usage);
+		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
 		WString fileName = filePath.getWFilename(false);
 		mesh->setName(fileName);
@@ -166,7 +178,24 @@ namespace BansheeEngine
 				{
 					LOGWRN("Cannot generate a collision mesh as the physics module was not started.");
 				}
+			}
 
+			Vector<ImportedAnimationEvents> events = meshImportOptions->getAnimationEvents();
+			for(auto& entry : animationClips)
+			{
+				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate, 
+					entry.rootMotion);
+				
+				for(auto& eventsEntry : events)
+				{
+					if(entry.name == eventsEntry.name)
+					{
+						clip->setEvents(eventsEntry.events);
+						break;
+					}
+				}
+
+				output.push_back({ toWString(entry.name), clip });
 			}
 		}
 
@@ -174,7 +203,8 @@ namespace BansheeEngine
 	}
 
 	SPtr<RendererMeshData> FBXImporter::importMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, 
-		Vector<SubMesh>& subMeshes)
+		Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animation, SPtr<Skeleton>& skeleton, 
+		SPtr<MorphShapes>& morphShapes)
 	{
 		FbxScene* fbxScene = nullptr;
 
@@ -194,13 +224,14 @@ namespace BansheeEngine
 		fbxImportOptions.importScale = meshImportOptions->getImportScale();
 
 		FBXImportScene importedScene;
+		bakeTransforms(fbxScene);
 		parseScene(fbxScene, fbxImportOptions, importedScene);
 
 		if (fbxImportOptions.importBlendShapes)
 			importBlendShapes(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importSkin)
-			importSkin(importedScene);
+			importSkin(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importAnimation)
 			importAnimations(fbxScene, fbxImportOptions, importedScene);
@@ -210,11 +241,203 @@ namespace BansheeEngine
 
 		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
 
+		skeleton = createSkeleton(importedScene, subMeshes.size() > 1);
+		morphShapes = createMorphShapes(importedScene);		
+
+		// Import animation clips
+		if (!importedScene.clips.empty())
+		{
+			Vector<AnimationSplitInfo> splits = meshImportOptions->getAnimationClipSplits();
+			convertAnimations(importedScene.clips, splits, skeleton, meshImportOptions->getImportRootMotion(), animation);
+		}
+
 		// TODO - Later: Optimize mesh: Remove bad and degenerate polygons, weld nearby vertices, optimize for vertex cache
 
 		shutDownSdk();
 
 		return rendererMeshData;
+	}
+
+	SPtr<Skeleton> FBXImporter::createSkeleton(const FBXImportScene& scene, bool sharedRoot)
+	{
+		Vector<BONE_DESC> allBones;
+		UnorderedMap<FBXImportNode*, UINT32> boneMap;
+
+		for (auto& mesh : scene.meshes)
+		{
+			// Create bones
+			UINT32 numBones = (UINT32)mesh->bones.size();
+			for (auto& fbxBone : mesh->bones)
+			{
+				UINT32 boneIdx = (UINT32)allBones.size();
+				boneMap[fbxBone.node] = boneIdx;
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = fbxBone.node->name;
+				bone.invBindPose = fbxBone.bindPose;
+			}
+		}
+
+		// Generate skeleton
+		if (allBones.size() > 0)
+		{
+			// Find bone parents
+			UINT32 numProcessedBones = 0;
+
+			// Generate common root bone for all meshes
+			UINT32 rootBoneIdx = (UINT32)-1;
+			if (sharedRoot)
+			{
+				rootBoneIdx = (UINT32)allBones.size();
+
+				allBones.push_back(BONE_DESC());
+				BONE_DESC& bone = allBones.back();
+
+				bone.name = "MultiMeshRoot";
+				bone.invBindPose = Matrix4::IDENTITY;
+				bone.parent = (UINT32)-1;
+
+				numProcessedBones++;
+			}
+
+			Stack<std::pair<FBXImportNode*, UINT32>> todo;
+			todo.push({ scene.rootNode, rootBoneIdx });
+
+			while (!todo.empty())
+			{
+				auto entry = todo.top();
+				todo.pop();
+
+				FBXImportNode* node = entry.first;
+				UINT32 parentBoneIdx = entry.second;
+
+				auto boneIter = boneMap.find(node);
+				if (boneIter != boneMap.end())
+				{
+					UINT32 boneIdx = boneIter->second;
+					allBones[boneIdx].parent = parentBoneIdx;
+					numProcessedBones++;
+
+					parentBoneIdx = boneIdx;
+				}
+
+				for (auto& child : node->children)
+					todo.push({ child, parentBoneIdx });
+			}
+
+			UINT32 numAllBones = (UINT32)allBones.size();
+			if (numProcessedBones == numAllBones)
+				return Skeleton::create(allBones.data(), numAllBones);
+
+			LOGERR("Not all bones were found in the node hierarchy. Skeleton invalid.");
+		}
+
+		return nullptr;
+	}
+
+	SPtr<MorphShapes> FBXImporter::createMorphShapes(const FBXImportScene& scene)
+	{
+		// Combine morph shapes from all sub-meshes, and transform them
+		struct RawMorphShape
+		{
+			String name;
+			float weight;
+			Vector<MorphVertex> vertices;
+		};
+
+		UnorderedMap<String, UnorderedMap<String, RawMorphShape>> allRawMorphShapes;
+		UINT32 totalNumVertices = 0;
+
+		// Note: Order in which we combine meshes must match the order in MeshData::combine
+		for (auto& mesh : scene.meshes)
+		{
+			UINT32 numVertices = (UINT32)mesh->positions.size();
+			UINT32 numNormals = (UINT32)mesh->normals.size();
+			bool hasNormals = numVertices == numNormals;
+
+			for (auto& node : mesh->referencedBy)
+			{
+				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransformIT = worldTransform.inverse();
+				worldTransformIT = worldTransformIT.transpose();
+
+				// Copy & transform positions
+				for(auto& blendShape : mesh->blendShapes)
+				{
+					UnorderedMap<String, RawMorphShape>& channelShapes = allRawMorphShapes[blendShape.name];
+
+					for(auto& blendFrame : blendShape.frames)
+					{
+						RawMorphShape& shape = channelShapes[blendFrame.name];
+						shape.name = blendFrame.name;
+						shape.weight = blendFrame.weight;
+
+						UINT32 frameNumVertices = (UINT32)blendFrame.positions.size();
+						if (frameNumVertices == numVertices)
+						{
+							for (UINT32 i = 0; i < numVertices; i++)
+							{
+								Vector3 meshPosition = worldTransform.multiplyAffine(mesh->positions[i]);
+								Vector3 blendPosition = worldTransform.multiplyAffine(blendFrame.positions[i]);
+
+								Vector3 positionDelta = blendPosition - meshPosition;
+								Vector3 normalDelta;
+								if (hasNormals)
+								{
+									Vector3 blendNormal = worldTransformIT.multiplyDirection(blendFrame.normals[i]);
+									blendNormal = Vector3::normalize(blendNormal);
+
+									Vector3 meshNormal = worldTransformIT.multiplyDirection(mesh->normals[i]);
+									meshNormal = Vector3::normalize(meshNormal);
+
+									normalDelta = blendNormal - meshNormal;
+								}
+								else
+									normalDelta = Vector3::ZERO;
+
+								if (positionDelta.squaredLength() > 0.000001f || normalDelta.squaredLength() > 0.0001f)
+									shape.vertices.push_back(MorphVertex(positionDelta, normalDelta, totalNumVertices + i));
+							}
+						}
+						else
+						{
+							LOGERR("Corrupt blend shape frame. Number of vertices doesn't match the number of mesh vertices.");
+						}
+					}
+				}
+
+				totalNumVertices += numVertices;
+			}
+		}
+
+		// Create morph shape object from combined shape data
+		SPtr<MorphShapes> morphShapes;
+		Vector<SPtr<MorphChannel>> allChannels;
+		for (auto& channel : allRawMorphShapes)
+		{
+			Vector<SPtr<MorphShape>> channelShapes;
+			for (auto& entry : channel.second)
+			{
+				RawMorphShape& shape = entry.second;
+				shape.vertices.shrink_to_fit();
+
+				SPtr<MorphShape> morphShape = MorphShape::create(shape.name, shape.weight, shape.vertices);
+				channelShapes.push_back(morphShape);
+			}
+
+			if(channelShapes.size() > 0)
+			{
+				SPtr<MorphChannel> morphChannel = MorphChannel::create(channel.first, channelShapes);
+				allChannels.push_back(morphChannel);
+			}
+		}
+
+		if (!allChannels.empty())
+			return MorphShapes::create(allChannels, totalNumVertices);
+
+		return morphShapes;
 	}
 
 	bool FBXImporter::startUpSdk(FbxScene*& scene)
@@ -288,6 +511,15 @@ namespace BansheeEngine
 
 	void FBXImporter::parseScene(FbxScene* scene, const FBXImportOptions& options, FBXImportScene& outputScene)
 	{
+		float importScale = 1.0f;
+		if (options.importScale > 0.0001f)
+			importScale = options.importScale;
+
+		FbxSystemUnit units = scene->GetGlobalSettings().GetSystemUnit();
+		FbxSystemUnit bsScaledUnits(100.0f);
+
+		outputScene.scaleFactor = (float)units.GetConversionFactorTo(bsScaledUnits) * importScale;
+		outputScene.globalScale = Matrix4::scaling(outputScene.scaleFactor);
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
@@ -364,6 +596,7 @@ namespace BansheeEngine
 		Quaternion rotation((Radian)rotationEuler.x, (Radian)rotationEuler.y, (Radian)rotationEuler.z);
 
 		node->localTransform.setTRS(translation, rotation, scale);
+		node->name = fbxNode->GetNameWithoutNameSpacePrefix().Buffer();
 		node->fbxNode = fbxNode;
 
 		if (parent != nullptr)
@@ -401,12 +634,196 @@ namespace BansheeEngine
 		scene.meshes = splitMeshes;
 	}
 
-	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes)
+	void FBXImporter::convertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits,
+		const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output)
 	{
-		Matrix4 importScale = Matrix4::scaling(options.importScale);
+		UnorderedSet<String> names;
 
+		String rootBoneName;
+		if (skeleton == nullptr)
+			importRootMotion = false;
+		else
+		{
+			UINT32 rootBoneIdx = skeleton->getRootBoneIndex();
+			if (rootBoneIdx == (UINT32)-1)
+				importRootMotion = false;
+			else
+				rootBoneName = skeleton->getBoneInfo(rootBoneIdx).name;
+		}
+
+		bool isFirstClip = true;
+		for (auto& clip : clips)
+		{
+			SPtr<AnimationCurves> curves = bs_shared_ptr_new<AnimationCurves>();
+			SPtr<RootMotion> rootMotion;
+
+			// Find offset so animations start at time 0
+			float animStart = std::numeric_limits<float>::infinity();
+
+			for (auto& bone : clip.boneAnimations)
+			{
+				if(bone.translation.getNumKeyFrames() > 0)
+					animStart = std::min(bone.translation.getKeyFrame(0).time, animStart);
+
+				if (bone.rotation.getNumKeyFrames() > 0)
+					animStart = std::min(bone.rotation.getKeyFrame(0).time, animStart);
+
+				if (bone.scale.getNumKeyFrames() > 0)
+					animStart = std::min(bone.scale.getKeyFrame(0).time, animStart);
+			}
+
+			for (auto& anim : clip.blendShapeAnimations)
+			{
+				if (anim.curve.getNumKeyFrames() > 0)
+					animStart = std::min(anim.curve.getKeyFrame(0).time, animStart);
+			}
+
+			AnimationCurveFlags blendShapeFlags = AnimationCurveFlag::ImportedCurve | AnimationCurveFlag::MorphFrame;
+			if (animStart != 0.0f && animStart != std::numeric_limits<float>::infinity())
+			{
+				for (auto& bone : clip.boneAnimations)
+				{
+					TAnimationCurve<Vector3> translation = AnimationUtility::offsetCurve(bone.translation, -animStart);
+					TAnimationCurve<Quaternion> rotation = AnimationUtility::offsetCurve(bone.rotation, -animStart);
+					TAnimationCurve<Vector3> scale = AnimationUtility::offsetCurve(bone.scale, -animStart);
+
+					if(importRootMotion && bone.node->name == rootBoneName)
+						rootMotion = bs_shared_ptr_new<RootMotion>(translation, rotation);
+					else
+					{
+						curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, translation });
+						curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, rotation });
+						curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, scale });
+					}
+				}
+
+				for (auto& anim : clip.blendShapeAnimations)
+				{
+					TAnimationCurve<float> curve = AnimationUtility::offsetCurve(anim.curve, -animStart);
+					curves->generic.push_back({ anim.blendShape, blendShapeFlags, curve });
+				}
+			}
+			else
+			{
+				for (auto& bone : clip.boneAnimations)
+				{
+					if (importRootMotion && bone.node->name == rootBoneName)
+						rootMotion = bs_shared_ptr_new<RootMotion>(bone.translation, bone.rotation);
+					else
+					{
+						curves->position.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.translation });
+						curves->rotation.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.rotation });
+						curves->scale.push_back({ bone.node->name, AnimationCurveFlag::ImportedCurve, bone.scale });
+					}
+				}
+
+				for (auto& anim : clip.blendShapeAnimations)
+					curves->generic.push_back({ anim.blendShape, blendShapeFlags, anim.curve });
+			}
+
+			// See if any splits are required. We only split the first clip as it is assumed if FBX has multiple clips the
+			// user has the ability to split them externally.
+			if(isFirstClip && !splits.empty())
+			{
+				float secondsPerFrame = 1.0f / clip.sampleRate;
+
+				for(auto& split : splits)
+				{
+					SPtr<AnimationCurves> splitClipCurve = bs_shared_ptr_new<AnimationCurves>();
+					SPtr<RootMotion> splitRootMotion;
+
+					auto splitCurves = [&](auto& inCurves, auto& outCurves)
+					{
+						UINT32 numCurves = (UINT32)inCurves.size();
+						outCurves.resize(numCurves);
+
+						for (UINT32 i = 0; i < numCurves; i++)
+						{
+							auto& animCurve = inCurves[i].curve;
+							outCurves[i].name = inCurves[i].name;
+
+							UINT32 numFrames = animCurve.getNumKeyFrames();
+							if (numFrames == 0)
+								continue;
+
+							float startTime = split.startFrame * secondsPerFrame;
+							float endTime = split.endFrame * secondsPerFrame;
+
+							outCurves[i].curve = inCurves[i].curve.split(startTime, endTime);
+
+							if (split.isAdditive)
+								outCurves[i].curve.makeAdditive();
+						}
+					};
+
+					splitCurves(curves->position, splitClipCurve->position);
+					splitCurves(curves->rotation, splitClipCurve->rotation);
+					splitCurves(curves->scale, splitClipCurve->scale);
+					splitCurves(curves->generic, splitClipCurve->generic);
+
+					if(rootMotion != nullptr)
+					{
+						auto splitCurve = [&](auto& inCurve, auto& outCurve)
+						{
+							UINT32 numFrames = inCurve.getNumKeyFrames();
+							if (numFrames > 0)
+							{
+								float startTime = split.startFrame * secondsPerFrame;
+								float endTime = split.endFrame * secondsPerFrame;
+
+								outCurve = inCurve.split(startTime, endTime);
+
+								if (split.isAdditive)
+									outCurve.makeAdditive();
+							}
+						};
+
+						splitRootMotion = bs_shared_ptr_new<RootMotion>();
+						splitCurve(rootMotion->position, splitRootMotion->position);
+						splitCurve(rootMotion->rotation, splitRootMotion->rotation);
+					}
+
+					// Search for a unique name
+					String name = split.name;
+					UINT32 attemptIdx = 0;
+					while (names.find(name) != names.end())
+					{
+						name = clip.name + "_" + toString(attemptIdx);
+						attemptIdx++;
+					}
+
+					names.insert(name);
+					output.push_back(FBXAnimationClipData(name, split.isAdditive, clip.sampleRate, splitClipCurve,
+						splitRootMotion));
+				}
+			}
+			else
+			{
+				// Search for a unique name
+				String name = clip.name;
+				UINT32 attemptIdx = 0;
+				while(names.find(name) != names.end())
+				{
+					name = clip.name + "_" + toString(attemptIdx);
+					attemptIdx++;
+				}
+
+				names.insert(name);
+				output.push_back(FBXAnimationClipData(name, false, clip.sampleRate, curves, rootMotion));
+			}
+
+			isFirstClip = false;
+		}
+	}
+
+	SPtr<RendererMeshData> FBXImporter::generateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, 
+		Vector<SubMesh>& outputSubMeshes)
+	{
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
+		Vector<BONE_DESC> allBones;
+		UnorderedMap<FBXImportNode*, UINT32> boneMap;
+		UINT32 boneIndexOffset = 0;
 
 		for (auto& mesh : scene.meshes)
 		{
@@ -439,6 +856,7 @@ namespace BansheeEngine
 			size_t numVertices = mesh->positions.size();
 			bool hasColors = mesh->colors.size() == numVertices;
 			bool hasNormals = mesh->normals.size() == numVertices;
+			bool hasBoneInfluences = mesh->boneInfluences.size() == numVertices;
 
 			if (hasColors)
 				vertexLayout |= (UINT32)VertexLayout::Color;
@@ -456,6 +874,9 @@ namespace BansheeEngine
 				}
 			}
 
+			if (hasBoneInfluences)
+				vertexLayout |= (UINT32)VertexLayout::BoneWeights;
+
 			for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 			{
 				if (mesh->UV[i].size() == numVertices)
@@ -470,9 +891,9 @@ namespace BansheeEngine
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform * importScale;
-				Matrix4 worldTransformIT = worldTransform.transpose();
-				worldTransformIT = worldTransformIT.inverse();
+				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransformIT = worldTransform.inverse();
+				worldTransformIT = worldTransformIT.transpose();
 
 				SPtr<RendererMeshData> meshData = RendererMeshData::create((UINT32)numVertices, numIndices, (VertexLayout)vertexLayout);
 
@@ -567,11 +988,34 @@ namespace BansheeEngine
 					}
 				}
 
-				// TODO - Transform blend shapes?
+				// Copy bone influences
+				if(hasBoneInfluences)
+				{
+					UINT32 bufferSize = sizeof(BoneWeight) * (UINT32)numVertices;
+					BoneWeight* weights = (BoneWeight*)bs_stack_alloc(bufferSize);
+					for(UINT32 i = 0; i < (UINT32)numVertices; i++)
+					{
+						weights[i].index0 = mesh->boneInfluences[i].indices[0] + boneIndexOffset;
+						weights[i].index1 = mesh->boneInfluences[i].indices[1] + boneIndexOffset;
+						weights[i].index2 = mesh->boneInfluences[i].indices[2] + boneIndexOffset;
+						weights[i].index3 = mesh->boneInfluences[i].indices[3] + boneIndexOffset;
+
+						weights[i].weight0 = mesh->boneInfluences[i].weights[0];
+						weights[i].weight1 = mesh->boneInfluences[i].weights[1];
+						weights[i].weight2 = mesh->boneInfluences[i].weights[2];
+						weights[i].weight3 = mesh->boneInfluences[i].weights[3];
+					}
+
+					meshData->setBoneWeights(weights, bufferSize);
+					bs_stack_free(weights);
+				}
 
 				allMeshData.push_back(meshData->getData());
 				allSubMeshes.push_back(subMeshes);
 			}
+
+			UINT32 numBones = (UINT32)mesh->bones.size();
+			boneIndexOffset += numBones;
 		}
 
 		if (allMeshData.size() > 1)
@@ -752,6 +1196,7 @@ namespace BansheeEngine
 
 			importMesh->referencedBy.push_back(parentNode);
 			importMesh->fbxMesh = mesh;
+
 			outputScene.meshMap[mesh] = (UINT32)outputScene.meshes.size() - 1;
 		}
 
@@ -909,6 +1354,10 @@ namespace BansheeEngine
 					importMesh->materials.push_back(materialIdx);
 				}
 			}
+			else
+			{
+				importMesh->materials.resize(importMesh->indices.size(), 0);
+			}
 		}
 	}
 
@@ -938,13 +1387,22 @@ namespace BansheeEngine
 					blendShape.name = channel->GetName();
 					blendShape.frames.resize(frameCount);
 
+					// Get name without invalid characters
+					blendShape.name = StringUtil::replaceAll(blendShape.name, ".", "_");
+					blendShape.name = StringUtil::replaceAll(blendShape.name, "/", "_");
+
 					for (UINT32 k = 0; k < frameCount; k++)
 					{
 						FbxShape* fbxShape = channel->GetTargetShape(k);
 
 						FBXBlendShapeFrame& frame = blendShape.frames[k];
-						frame.weight = (float)weights[k];
+						frame.name = fbxShape->GetName();
+						frame.weight = (float)(weights[k] / 100.0);
 
+						// Get name without invalid characters
+						frame.name = StringUtil::replaceAll(frame.name, ".", "_");
+						frame.name = StringUtil::replaceAll(frame.name, "/", "_");
+						
 						importBlendShapeFrame(fbxShape, *mesh, options, frame);
 					}
 				}
@@ -990,7 +1448,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene)
+	void FBXImporter::importSkin(FBXImportScene& scene, const FBXImportOptions& options)
 	{
 		for (auto& mesh : scene.meshes)
 		{
@@ -1014,15 +1472,17 @@ namespace BansheeEngine
 						continue;
 				}
 
-				importSkin(scene, deformer, *mesh);
+				importSkin(scene, deformer, *mesh, options);
 			}
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh)
+	void FBXImporter::importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options)
 	{
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
+
+		Matrix4 invGlobalScale = scene.globalScale.inverseAffine();
 
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
@@ -1041,16 +1501,40 @@ namespace BansheeEngine
 			FBXBone& bone = mesh.bones.back();
 			bone.node = iterFind->second;
 
+			if(mesh.referencedBy.size() > 1)
+			{
+				// Note: If this becomes a relevant issue (unlikely), then I will have to duplicate skeleton bones for
+				// each such mesh, since they will all require their own bind poses. Animation curves will also need to be
+				// handled specially (likely by allowing them to be applied to multiple bones at once). The other option is
+				// not to bake the node transform into mesh vertices and handle it on a Scene Object level.
+				LOGWRN("Skinned mesh has multiple different instances. This is not supported.");
+			}
+
+			// Calculate bind pose
 			FbxAMatrix clusterTransform;
 			cluster->GetTransformMatrix(clusterTransform);
 
 			FbxAMatrix linkTransform;
 			cluster->GetTransformLinkMatrix(linkTransform);
 
-			FbxAMatrix bindPose = linkTransform.Inverse() * clusterTransform;
-			bone.bindPose = FBXToNativeType(bindPose);
+			FbxAMatrix invLinkTransform = linkTransform.Inverse() * clusterTransform;
+			bone.bindPose = FBXToNativeType(invLinkTransform);
 
-			bool isDuplicate = existingBones.insert(link).second;
+			// Apply global scale to bind pose (we only apply the scale to translation portion because we scale the
+			// translation animation curves)
+			const Matrix4& nodeTfrm = iterFind->second->worldTransform;
+
+			Matrix4 nodeTfrmScaledTranslation = nodeTfrm;
+			nodeTfrmScaledTranslation[0][3] = nodeTfrmScaledTranslation[0][3] / scene.scaleFactor;
+			nodeTfrmScaledTranslation[1][3] = nodeTfrmScaledTranslation[1][3] / scene.scaleFactor;
+			nodeTfrmScaledTranslation[2][3] = nodeTfrmScaledTranslation[2][3] / scene.scaleFactor;
+
+			Matrix4 nodeTfrmInv = nodeTfrm.inverseAffine();
+
+			Matrix4 scaledTranslation = nodeTfrmInv * scene.globalScale * nodeTfrmScaledTranslation;
+			bone.bindPose = scaledTranslation * bone.bindPose * invGlobalScale;
+
+			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;
 
 			// We avoid importing weights twice for duplicate bones and we don't
@@ -1071,14 +1555,14 @@ namespace BansheeEngine
 				INT32 vertexIndex = indices[j];
 				float weight = (float)weights[j];
 
-				for (UINT32 k = 0; k < FBX_IMPORT_MAX_BONE_INFLUENCES; k++)
+				for (INT32 k = 0; k < FBX_IMPORT_MAX_BONE_INFLUENCES; k++)
 				{
 					if (vertexIndex < 0 || vertexIndex >= numVertices)
 						continue;
 
 					if (weight >= influences[vertexIndex].weights[k])
 					{
-						for (UINT32 l = FBX_IMPORT_MAX_BONE_INFLUENCES - 2; l >= k; l--)
+						for (INT32 l = FBX_IMPORT_MAX_BONE_INFLUENCES - 2; l >= k; l--)
 						{
 							influences[vertexIndex].weights[l + 1] = influences[vertexIndex].weights[l];
 							influences[vertexIndex].indices[l + 1] = influences[vertexIndex].indices[l];
@@ -1094,6 +1578,10 @@ namespace BansheeEngine
 
 		if (mesh.bones.empty())
 			mesh.boneInfluences.clear();
+
+		UINT32 numBones = (UINT32)mesh.bones.size();
+		if (numBones > 256)
+			LOGWRN("A maximum of 256 bones per skeleton are supported. Imported skeleton has " + toString(numBones) + " bones");
 
 		// Normalize weights
 		UINT32 numInfluences = (UINT32)mesh.boneInfluences.size();
@@ -1145,8 +1633,8 @@ namespace BansheeEngine
 
 					if (options.importTangents && !mesh->UV[0].empty() && (frame.tangents.empty() || frame.bitangents.empty()))
 					{
-						mesh->tangents.resize(numVertices);
-						mesh->bitangents.resize(numVertices);
+						frame.tangents.resize(numVertices);
+						frame.bitangents.resize(numVertices);
 
 						MeshUtility::calculateTangents(mesh->positions.data(), frame.normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
 							numVertices, numIndices, frame.tangents.data(), frame.bitangents.data());
@@ -1172,6 +1660,8 @@ namespace BansheeEngine
 			FbxTimeSpan timeSpan = animStack->GetLocalTimeSpan();
 			clip.start = (float)timeSpan.GetStart().GetSecondDouble();
 			clip.end = (float)timeSpan.GetStop().GetSecondDouble();
+
+			clip.sampleRate = (UINT32)FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
 
 			UINT32 layerCount = animStack->GetMemberCount<FbxAnimLayer>();
 			if (layerCount > 1)
@@ -1245,20 +1735,19 @@ namespace BansheeEngine
 			FBXBoneAnimation& boneAnim = clip.boneAnimations.back();
 			boneAnim.node = importScene.nodeMap[node];
 
-			importCurve(translation[0], importOptions, boneAnim.translation[0], clip.start, clip.end);
-			importCurve(translation[1], importOptions, boneAnim.translation[1], clip.start, clip.end);
-			importCurve(translation[2], importOptions, boneAnim.translation[2], clip.start, clip.end);
+			boneAnim.translation = importCurve<Vector3, 3>(translation, importOptions, clip.start, clip.end);
+			boneAnim.scale = importCurve<Vector3, 3>(scale, importOptions, clip.start, clip.end);
 
-			importCurve(scale[0], importOptions, boneAnim.scale[0], clip.start, clip.end);
-			importCurve(scale[1], importOptions, boneAnim.scale[1], clip.start, clip.end);
-			importCurve(scale[2], importOptions, boneAnim.scale[2], clip.start, clip.end);
+			TAnimationCurve<Vector3> eulerAnimation = importCurve<Vector3, 3>(rotation, importOptions, clip.start, clip.end);
+			if(importOptions.reduceKeyframes)
+			{
+				boneAnim.translation = reduceKeyframes(boneAnim.translation);
+				boneAnim.scale = reduceKeyframes(boneAnim.scale);
+				eulerAnimation = reduceKeyframes(eulerAnimation);
+			}
 
-			FBXAnimationCurve tempCurveRotation[3];
-			importCurve(rotation[0], importOptions, tempCurveRotation[0], clip.start, clip.end);
-			importCurve(rotation[1], importOptions, tempCurveRotation[1], clip.start, clip.end);
-			importCurve(rotation[2], importOptions, tempCurveRotation[2], clip.start, clip.end);
-
-			eulerToQuaternionCurves(tempCurveRotation, boneAnim.rotation);
+			boneAnim.translation = AnimationUtility::scaleCurve(boneAnim.translation, importScene.scaleFactor);
+			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}
 
 		if (importOptions.importBlendShapes)
@@ -1283,7 +1772,15 @@ namespace BansheeEngine
 							FBXBlendShapeAnimation& blendShapeAnim = clip.blendShapeAnimations.back();
 							blendShapeAnim.blendShape = channel->GetName();
 
-							importCurve(curve, importOptions, blendShapeAnim.curve, clip.start, clip.end);
+							// Get name without invalid characters
+							blendShapeAnim.blendShape = StringUtil::replaceAll(blendShapeAnim.blendShape, ".", "_");
+							blendShapeAnim.blendShape = StringUtil::replaceAll(blendShapeAnim.blendShape, "/", "_");
+
+							FbxAnimCurve* curves[1] = { curve };
+							blendShapeAnim.curve = importCurve<float, 1>(curves, importOptions, clip.start, clip.end);
+
+							// FBX contains data in [0, 100] range, but we need it in [0, 1] range
+							blendShapeAnim.curve = AnimationUtility::scaleCurve(blendShapeAnim.curve, 0.01f);
 						}
 					}
 				}
@@ -1298,211 +1795,235 @@ namespace BansheeEngine
 		}
 	}
 
-	void FBXImporter::eulerToQuaternionCurves(FBXAnimationCurve(&eulerCurves)[3], FBXAnimationCurve(&quatCurves)[4])
+	void FBXImporter::bakeTransforms(FbxScene* scene)
 	{
-		const float FIT_TIME = 0.33f;
+		// FBX stores transforms in a more complex way than just translation-rotation-scale as used by Banshee.
+		// Instead they also support rotations offsets and pivots, scaling pivots and more. We wish to bake all this data
+		// into a standard transform so we can access it using node's local TRS properties (e.g. FbxNode::LclTranslation).
 
-		INT32 numKeys = (INT32)eulerCurves[0].keyframes.size();
+		double frameRate = FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
 
-		if (numKeys != (INT32)eulerCurves[1].keyframes.size() || numKeys != (INT32)eulerCurves[2].keyframes.size())
-			return;
-
-		auto eulerToQuaternion = [&](INT32 keyIdx, float time, const Quaternion& lastQuat)
+		bs_frame_mark();
 		{
-			Degree x = (Degree)eulerCurves[0].evaluate(time);
-			Degree y = (Degree)eulerCurves[1].evaluate(time);
-			Degree z = (Degree)eulerCurves[2].evaluate(time);
+			FrameStack<FbxNode*> todo;
+			todo.push(scene->GetRootNode());
 
-			Quaternion quat(x, y, z);
-
-			// Flip quaternion in case rotation is over 180 degrees
-			if (keyIdx > 0)
+			while(todo.size() > 0)
 			{
-				float dot = quat.dot(lastQuat);
-				if (dot < 0.0f)
-					quat = Quaternion(-quat.x, -quat.y, -quat.z, -quat.w);
+				FbxNode* node = todo.top();
+				todo.pop();
+
+				FbxVector4 zero(0, 0, 0);
+				FbxVector4 one(1, 1, 1);
+
+				// Activate pivot converting
+				node->SetPivotState(FbxNode::eSourcePivot, FbxNode::ePivotActive);
+				node->SetPivotState(FbxNode::eDestinationPivot, FbxNode::ePivotActive);
+
+				// We want to set all these to 0 (1 for scale) and bake them into the transforms
+				node->SetPostRotation(FbxNode::eDestinationPivot, zero);
+				node->SetPreRotation(FbxNode::eDestinationPivot, zero);
+				node->SetRotationOffset(FbxNode::eDestinationPivot, zero);
+				node->SetScalingOffset(FbxNode::eDestinationPivot, zero);
+				node->SetRotationPivot(FbxNode::eDestinationPivot, zero);
+				node->SetScalingPivot(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricTranslation(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricRotation(FbxNode::eDestinationPivot, zero);
+				node->SetGeometricScaling(FbxNode::eDestinationPivot, one);
+
+				// Banshee assumes euler angles are in YXZ order
+				node->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderYXZ);
+
+				// Keep interpolation as is
+				node->SetQuaternionInterpolation(FbxNode::eDestinationPivot, node->GetQuaternionInterpolation(FbxNode::eSourcePivot));
+
+				for (int i = 0; i < node->GetChildCount(); i++)
+				{
+					FbxNode* childNode = node->GetChild(i);
+					todo.push(childNode);
+				}
 			}
 
-			return quat;
-		};
-
-		struct FitKeyframe
-		{
-			float time;
-			Quaternion value;
-		};
-
-		Vector<FitKeyframe> fitQuaternions(numKeys * 2);
-
-		Quaternion lastQuat;
-		for (INT32 i = 0; i < numKeys; i++)
-		{
-			float time = eulerCurves[0].keyframes[i].time;
-			Quaternion quat = eulerToQuaternion(i, time, lastQuat);
-
-			// Calculate extra values between keys so we can better approximate tangents
-			if ((i + 1) < numKeys)
-			{
-				float nextTime = eulerCurves[0].keyframes[i + 1].time;
-				float dt = nextTime - time;
-
-				FitKeyframe& fitStart = fitQuaternions[i * 2 + 0];
-				FitKeyframe& fitEnd = fitQuaternions[i * 2 + 1];
-
-				fitStart.time = time + dt * FIT_TIME;
-				fitEnd.time = time + dt * (1.0f - FIT_TIME);
-
-				fitStart.value = eulerToQuaternion(i, fitStart.time, quat);
-				fitEnd.value = eulerToQuaternion(i, fitEnd.time, fitStart.value);
-
-				lastQuat = fitStart.value;
-			}
-
-			// TODO - If animation is looping I should also compare last and first for continuity
-
-			for (INT32 j = 0; j < 4; j++)
-			{
-				quatCurves[j].keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = quatCurves[j].keyframes.back();
-				keyFrame.time = time;
-				keyFrame.value = quat[j];
-
-				keyFrame.inTangent = 0;
-				keyFrame.outTangent = 0;
-			}
+			scene->GetRootNode()->ConvertPivotAnimationRecursive(nullptr, FbxNode::eDestinationPivot, frameRate, false);
 		}
-
-		// Recalculate tangents for quaternion curves
-
-		// TODO - There must be an analytical way to convert euler angle tangents
-		//        to quaternion tangents, but I don't want to bother figuring it out
-		//        until I have a test-bed for animation.
-		if (numKeys > 1)
-		{
-			// TODO - I could check per-key curve interpolation originally assigned in FBX
-			//        and use that to generate linear/constant slopes. Currently I assume 
-			//        its all cubic.
-
-			// First key
-			{
-				const FitKeyframe& fitKeyFrame = fitQuaternions[0];
-
-				for (INT32 j = 0; j < 4; j++)
-				{
-					FBXKeyFrame& keyFrame = quatCurves[j].keyframes[0];
-
-					float dt = fitKeyFrame.time - keyFrame.time;
-
-					keyFrame.inTangent = (fitKeyFrame.value[j] - keyFrame.value) / dt;
-					keyFrame.outTangent = keyFrame.inTangent;
-				}
-			}
-
-			// In-between keys
-			{
-				for (INT32 i = 1; i < (numKeys - 1); i++)
-				{
-					const FitKeyframe& fitPointStart = fitQuaternions[i * 2 - 1];
-					const FitKeyframe& fitPointEnd = fitQuaternions[i * 2 + 0];
-
-					for (INT32 j = 0; j < 4; j++)
-					{
-						FBXKeyFrame& keyFrame = quatCurves[j].keyframes[i];
-
-						float dt0 = fitPointEnd.time - keyFrame.time;
-						float dt1 = keyFrame.time - fitPointStart.time;
-
-						float t0 = fitPointEnd.value[j] - keyFrame.value;
-						float t1 = keyFrame.value - fitPointStart.value[j];
-
-						keyFrame.inTangent = t0 / (0.5f * dt0) + t1 / (0.5f * dt1);
-						keyFrame.outTangent = keyFrame.inTangent;
-					}
-				}
-			}
-
-			// Last key
-			{
-				const FitKeyframe& fitKeyFrame = fitQuaternions[(numKeys - 2) * 2];
-
-				for (INT32 j = 0; j < 4; j++)
-				{
-					FBXKeyFrame& keyFrame = quatCurves[j].keyframes[numKeys - 2];
-
-					float dt = keyFrame.time - fitKeyFrame.time;
-
-					keyFrame.inTangent = (keyFrame.value - fitKeyFrame.value[j]) / dt;
-					keyFrame.outTangent = keyFrame.inTangent;
-				}
-			}
-		}
+		bs_frame_clear();
 	}
 
-	void FBXImporter::importCurve(FbxAnimCurve* fbxCurve, FBXImportOptions& importOptions, FBXAnimationCurve& curve, float start, float end)
+	TAnimationCurve<Vector3> FBXImporter::reduceKeyframes(TAnimationCurve<Vector3>& curve)
 	{
-		if (fbxCurve == nullptr)
-			return;
+		UINT32 keyCount = curve.getNumKeyFrames();
 
-		INT32 keyCount = fbxCurve->KeyGetCount();
-		if (importOptions.animResample)
+		Vector<TKeyframe<Vector3>> newKeyframes;
+
+		bool lastWasEqual = false;
+		for (UINT32 i = 0; i < keyCount; i++)
 		{
-			float curveStart = std::numeric_limits<float>::infinity();
-			float curveEnd = -std::numeric_limits<float>::infinity();
+			bool isEqual = true;
 
-			for (INT32 i = 0; i < keyCount; i++)
+			const TKeyframe<Vector3>& curKey = curve.getKeyFrame(i);
+			if (i > 0)
 			{
-				FbxTime fbxTime = fbxCurve->KeyGetTime(i);
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
+
+				isEqual = Math::approxEquals(prevKey.value, curKey.value) &&
+					Math::approxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
+			}
+			else
+				isEqual = false;
+
+			// More than two keys in a row are equal, remove previous key by replacing it with this one
+			if (lastWasEqual && isEqual)
+			{
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
+
+				// Other properties are guaranteed unchanged
+				prevKey.time = curKey.time;
+				prevKey.outTangent = curKey.outTangent;
+
+				continue;
+			}
+
+			newKeyframes.push_back(curKey);
+			lastWasEqual = isEqual;
+		}
+
+		return TAnimationCurve<Vector3>(newKeyframes);
+	}
+
+	template<class T>
+	void setKeyframeValues(TKeyframe<T>& keyFrame, int idx, float value, float inTangent, float outTangent)
+	{
+		keyFrame.value = value;
+		keyFrame.inTangent = inTangent;
+		keyFrame.outTangent = outTangent;
+	}
+
+	template<>
+	void setKeyframeValues<Vector3>(TKeyframe<Vector3>& keyFrame, int idx, float value, float inTangent, float outTangent)
+	{
+		keyFrame.value[idx] = value;
+		keyFrame.inTangent[idx] = inTangent;
+		keyFrame.outTangent[idx] = outTangent;
+	}
+
+	template<class T, int C>
+	TAnimationCurve<T> FBXImporter::importCurve(FbxAnimCurve*(&fbxCurve)[C], FBXImportOptions& importOptions,
+		float start, float end)
+	{
+		// If curve key-counts don't match, we need to force resampling 
+		bool forceResample = false;
+		
+		for(int i = 1; i < C; i++)
+		{
+			forceResample |= fbxCurve[i - 1]->KeyGetCount() != fbxCurve[i]->KeyGetCount();
+			if (forceResample)
+				break;
+		}
+
+		// Read keys directly
+		if(!importOptions.animResample && !forceResample)
+		{
+			bool foundMismatch = false;
+			int keyCount = fbxCurve[0]->KeyGetCount();
+			Vector<TKeyframe<T>> keyframes;
+			for (int i = 0; i < keyCount; i++)
+			{
+				FbxTime fbxTime = fbxCurve[0]->KeyGetTime(i);
+				float time = (float)fbxTime.GetSecondDouble();
+
+				// Ensure times from other curves match
+				for (int j = 1; j < C; j++)
+				{
+					fbxTime = fbxCurve[j]->KeyGetTime(i);
+					float otherTime = (float)fbxTime.GetSecondDouble();
+
+					if (!Math::approxEquals(time, otherTime))
+					{
+						foundMismatch = true;
+						break;
+					}
+				}
+
+				if(foundMismatch)
+					break;
+
+				if (time < start || time > end)
+					continue;
+
+				keyframes.push_back(TKeyframe<T>());
+				TKeyframe<T>& keyFrame = keyframes.back();
+
+				keyFrame.time = time;
+
+				for (int j = 0; j < C; j++)
+				{
+					setKeyframeValues(keyFrame, j,
+						fbxCurve[j]->KeyGetValue(i),
+						fbxCurve[j]->KeyGetLeftDerivative(i),
+						fbxCurve[j]->KeyGetRightDerivative(i));
+				}
+			}
+
+			if (!foundMismatch)
+				return TAnimationCurve<T>(keyframes);
+			else
+				forceResample = true;
+		}
+
+		if (!importOptions.animResample && forceResample)
+			LOGWRN("Animation has different keyframes for different curve components, forcing resampling.");
+
+		// Resample keys
+		float curveStart = std::numeric_limits<float>::infinity();
+		float curveEnd = -std::numeric_limits<float>::infinity();
+
+		for (INT32 i = 0; i < C; i++)
+		{
+			int keyCount = fbxCurve[i]->KeyGetCount();
+			for (INT32 j = 0; j < keyCount; j++)
+			{
+				FbxTime fbxTime = fbxCurve[i]->KeyGetTime(j);
 				float time = (float)fbxTime.GetSecondDouble();
 
 				curveStart = std::min(time, curveStart);
 				curveEnd = std::max(time, curveEnd);
 			}
-
-			curveStart = Math::clamp(curveStart, start, end);
-			curveEnd = Math::clamp(curveEnd, start, end);
-
-			float curveLength = curveEnd - curveStart;
-			INT32 numSamples = Math::ceilToInt(curveLength / importOptions.animSampleRate);
-
-			// We don't use the exact provided sample rate but instead modify it slightly so it
-			// completely covers the curve range including start/end points while maintaining
-			// constant time step between keyframes.
-			float dt = curveLength / (float)numSamples; 
-
-			INT32 lastKeyframe = 0;
-			INT32 lastLeftTangent = 0;
-			INT32 lastRightTangent = 0;
-			for (INT32 i = 0; i < numSamples; i++)
-			{
-				float sampleTime = std::min(curveStart + i * dt, curveEnd);
-				FbxTime fbxSampleTime;
-				fbxSampleTime.SetSecondDouble(sampleTime);
-
-				curve.keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = curve.keyframes.back();
-				keyFrame.time = sampleTime;
-				keyFrame.value = fbxCurve->Evaluate(fbxSampleTime, &lastKeyframe);
-				keyFrame.inTangent = fbxCurve->EvaluateLeftDerivative(fbxSampleTime, &lastLeftTangent);
-				keyFrame.outTangent = fbxCurve->EvaluateRightDerivative(fbxSampleTime, &lastRightTangent);
-			}
 		}
-		else
+
+		curveStart = Math::clamp(curveStart, start, end);
+		curveEnd = Math::clamp(curveEnd, start, end);
+
+		float curveLength = curveEnd - curveStart;
+		INT32 numSamples = Math::ceilToInt(curveLength / importOptions.animSampleRate);
+
+		// We don't use the exact provided sample rate but instead modify it slightly so it
+		// completely covers the curve range including start/end points while maintaining
+		// constant time step between keyframes.
+		float dt = curveLength / (float)numSamples; 
+
+		INT32 lastKeyframe[] = { 0, 0, 0 };
+		INT32 lastLeftTangent[] = { 0, 0, 0 };
+		INT32 lastRightTangent[] = { 0, 0, 0 };
+
+		Vector<TKeyframe<T>> keyframes(numSamples);
+		for (INT32 i = 0; i < numSamples; i++)
 		{
-			for (int i = 0; i < keyCount; i++)
+			float sampleTime = std::min(curveStart + i * dt, curveEnd);
+			FbxTime fbxSampleTime;
+			fbxSampleTime.SetSecondDouble(sampleTime);
+
+			TKeyframe<T>& keyFrame = keyframes[i];
+			keyFrame.time = sampleTime;
+
+			for (int j = 0; j < C; j++)
 			{
-				FbxTime fbxTime = fbxCurve->KeyGetTime(i);
-				float time = (float)fbxTime.GetSecondDouble();
-
-				if (time < start || time > end)
-					continue;
-
-				curve.keyframes.push_back(FBXKeyFrame());
-				FBXKeyFrame& keyFrame = curve.keyframes.back();
-				keyFrame.time = time;
-				keyFrame.value = fbxCurve->KeyGetValue(i);
-				keyFrame.inTangent = fbxCurve->KeyGetLeftDerivative(i);
-				keyFrame.outTangent = fbxCurve->KeyGetRightDerivative(i);
+				setKeyframeValues(keyFrame, j,
+					fbxCurve[j]->Evaluate(fbxSampleTime, &lastKeyframe[j]),
+					fbxCurve[j]->EvaluateLeftDerivative(fbxSampleTime, &lastLeftTangent[j]),
+					fbxCurve[j]->EvaluateRightDerivative(fbxSampleTime, &lastRightTangent[j]));
 			}
 		}
+
+		return TAnimationCurve<T>(keyframes);
 	}
 }

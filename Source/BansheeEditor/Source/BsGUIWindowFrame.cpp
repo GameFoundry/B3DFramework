@@ -13,7 +13,7 @@ namespace BansheeEngine
 	}
 
 	GUIWindowFrame::GUIWindowFrame(const String& styleName, const GUIDimensions& dimensions)
-		:GUITexture(styleName, HSpriteTexture(), GUIImageScaleMode::StretchToFit, true, dimensions)
+		:GUITexture(styleName, HSpriteTexture(), TextureScaleMode::StretchToFit, true, dimensions)
 	{
 
 	}

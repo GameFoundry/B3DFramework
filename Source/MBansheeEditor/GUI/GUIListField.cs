@@ -25,6 +25,7 @@ namespace BansheeEditor
         protected GUILayoutX guiTitleLayout;
         protected GUILayoutX guiInternalTitleLayout;
         protected GUILayoutY guiContentLayout;
+        protected GUIToggle guiFoldout;
 
         protected bool isExpanded;
         protected int depth;
@@ -42,7 +43,7 @@ namespace BansheeEditor
             set
             {
                 if (isExpanded != value)
-                    ToggleFoldout(value);
+                    ToggleFoldout(value, true);
             }
         }
 
@@ -131,9 +132,9 @@ namespace BansheeEditor
             {
                 guiInternalTitleLayout = guiTitleLayout.InsertLayoutX(0);
 
-                GUIToggle guiFoldout = new GUIToggle(title, EditorStyles.Foldout);
+                guiFoldout = new GUIToggle(title, EditorStyles.Foldout);
                 guiFoldout.Value = isExpanded;
-                guiFoldout.OnToggled += ToggleFoldout;
+                guiFoldout.OnToggled += x => ToggleFoldout(x, false);
                 guiSizeField = new GUIIntField("", GUIOption.FixedWidth(50));
                 guiSizeField.SetRange(0, int.MaxValue);
 
@@ -170,8 +171,8 @@ namespace BansheeEditor
 
                 short backgroundDepth = (short)(Inspector.START_BACKGROUND_DEPTH - depth - 1);
                 string bgPanelStyle = depth % 2 == 0
-                    ? EditorStyles.InspectorContentBgAlternate
-                    : EditorStyles.InspectorContentBg;
+                    ? EditorStylesInternal.InspectorContentBgAlternate
+                    : EditorStylesInternal.InspectorContentBg;
 
                 GUIPanel backgroundPanel = guiContentPanel.AddPanel(backgroundDepth);
                 GUITexture inspectorContentBg = new GUITexture(null, bgPanelStyle);
@@ -302,12 +303,19 @@ namespace BansheeEditor
         /// Triggered when the user clicks on the expand/collapse toggle in the title bar.
         /// </summary>
         /// <param name="expanded">Determines whether the contents were expanded or collapsed.</param>
-        private void ToggleFoldout(bool expanded)
+        /// <param name="external">True if the foldout was expanded/collapsed from outside code.</param>
+        private void ToggleFoldout(bool expanded, bool external)
         {
             isExpanded = expanded;
 
             if (guiChildLayout != null)
                 guiChildLayout.Active = isExpanded;
+
+            if (external)
+            {
+                if (guiFoldout != null)
+                    guiFoldout.Value = isExpanded;
+            }
 
             if (OnExpand != null)
                 OnExpand(expanded);
@@ -564,14 +572,14 @@ namespace BansheeEditor
 
             ElementType[] newArray = new ElementType[size];
 
-            int maxSize = MathEx.Min(size, array.GetLength(0));
-
+            int oldSize = array.GetLength(0);
+            int maxSize = MathEx.Min(size, oldSize);
             for (int i = 0; i < maxSize; i++)
                 newArray.SetValue(array.GetValue(i), i);
 
             array = newArray;
 
-            if(OnChanged != null)
+            if (OnChanged != null)
                 OnChanged(array);
         }
 
@@ -973,7 +981,7 @@ namespace BansheeEditor
         /// Refreshes the GUI for the list row and checks if anything was modified.
         /// </summary>
         /// <returns>State representing was anything modified between two last calls to <see cref="Refresh"/>.</returns>
-        internal protected virtual InspectableState Refresh()
+        protected internal virtual InspectableState Refresh()
         {
             InspectableState oldState = modifiedState;
             if (modifiedState.HasFlag(InspectableState.Modified))

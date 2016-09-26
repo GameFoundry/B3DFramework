@@ -19,7 +19,7 @@ namespace BansheeEngine
 		HShader& getShader(Material* obj) { return obj->mShader; }
 		void setShader(Material* obj, HShader& val) { obj->mShader = val; }
 
-		SPtr<MaterialParams> getMaterialParams(Material* obj) { return obj->mCachedParams; }
+		SPtr<MaterialParams> getMaterialParams(Material* obj) { return obj->mParams; }
 		void setMaterialParams(Material* obj, SPtr<MaterialParams> value) { obj->mRTTIData = value; }
 
 	public:
@@ -29,7 +29,7 @@ namespace BansheeEngine
 			addReflectablePtrField("mMaterialParams", 2, &MaterialRTTI::getMaterialParams, &MaterialRTTI::setMaterialParams);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override;
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override;
 
 		const String& getRTTIName() override
 		{

@@ -39,9 +39,10 @@ namespace BansheeEngine
 			double time;
 		private:
 			double startTime;
+			std::chrono::high_resolution_clock mHRClock;
 
 			/**	Returns time elapsed since CPU was started in millseconds. */
-			static inline double getCurrentTime();
+			inline double getCurrentTime() const;
 		};
 
 		/**	Timer class responsible for tracking number of elapsed CPU cycles. */

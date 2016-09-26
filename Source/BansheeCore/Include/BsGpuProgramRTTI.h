@@ -45,7 +45,7 @@ namespace BansheeEngine
 			addPlainField("mLanguage", 7, &GpuProgramRTTI::getLanguage, &GpuProgramRTTI::setLanguage);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GpuProgram* gpuProgram = static_cast<GpuProgram*>(obj);
 			gpuProgram->initialize();

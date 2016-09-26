@@ -200,7 +200,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getWorldPosition();
 		else
-			*value = Vector3();
+			*value = Vector3(BsZero);
 	}
 
 	void ScriptSceneObject::internal_getLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -208,7 +208,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getPosition();
 		else
-			*value = Vector3();
+			*value = Vector3(BsZero);
 	}
 
 	void ScriptSceneObject::internal_getRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
@@ -216,7 +216,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getWorldRotation();
 		else
-			*value = Quaternion();
+			*value = Quaternion(BsIdentity);
 	}
 
 	void ScriptSceneObject::internal_getLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
@@ -224,7 +224,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getRotation();
 		else
-			*value = Quaternion();
+			*value = Quaternion(BsIdentity);
 	}
 
 	void ScriptSceneObject::internal_getScale(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -232,7 +232,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getWorldScale();
 		else
-			*value = Vector3();
+			*value = Vector3(Vector3::ONE);
 	}
 
 	void ScriptSceneObject::internal_getLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -240,7 +240,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getScale();
 		else
-			*value = Vector3();
+			*value = Vector3(Vector3::ONE);
 	}
 
 	void ScriptSceneObject::internal_setPosition(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -342,7 +342,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getForward();
 		else
-			*value = Vector3();
+			*value = Vector3(-Vector3::UNIT_Z);
 	}
 
 	void ScriptSceneObject::internal_getUp(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -350,7 +350,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getUp();
 		else
-			*value = Vector3();
+			*value = Vector3(Vector3::UNIT_Y);
 	}
 
 	void ScriptSceneObject::internal_getRight(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -358,7 +358,7 @@ namespace BansheeEngine
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getRight();
 		else
-			*value = Vector3();
+			*value = Vector3(Vector3::UNIT_X);
 	}
 
 	void ScriptSceneObject::internal_destroy(ScriptSceneObject* nativeInstance, bool immediate)

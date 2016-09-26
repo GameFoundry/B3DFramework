@@ -21,6 +21,12 @@ namespace BansheeEngine
 		ZYX
 	};
 
+	/** Enum used for object construction specifying the object should be zero initializes. */
+	enum ZERO { BsZero };
+
+	/** Enum used for matrix/quaternion constructor specifying it should be initialized with an identity value. */
+	enum IDENTITY { BsIdentity };
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -111,5 +117,8 @@ namespace BansheeEngine
 		TID_SerializedArrayEntry = 64,
 		TID_SerializedSubObject = 65,
 		TID_UnorderedSet = 66,
+		TID_SerializedDataBlock = 67,
+		TID_Flags = 68,
+		TID_IReflectable = 69
 	};
 }

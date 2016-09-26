@@ -53,7 +53,7 @@ namespace BansheeEngine
 		SPtr<Collider> createInternal() override;
 
     protected:
-		Vector3 mExtents;
+		Vector3 mExtents = Vector3::ZERO;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

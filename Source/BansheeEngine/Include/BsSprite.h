@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "BsSpriteMaterial.h"
 #include "BsVector2I.h"
 #include "BsRect2I.h"
 #include "BsColor.h"
@@ -27,35 +28,11 @@ namespace BansheeEngine
 		SA_BottomRight
 	};
 
-	/** Types of materials available for rendering sprites. */
-	enum class SpriteMaterial
-	{
-		Text, Image, ImageAlpha
-	};
-
-	/** Contains information for initializing a sprite material. */
-	struct SpriteMaterialInfo
-	{
-		/** Generates a hash value that describes the contents of this object. */
-		UINT64 generateHash() const;
-
-		SpriteMaterial type;
-		UINT64 groupId;
-		HTexture texture;
-		Color tint;
-	};
-
-	/** Equals operator for SpriteMaterialInfo. */
-	bool operator==(const SpriteMaterialInfo& lhs, const SpriteMaterialInfo& rhs);
-
-	/** Not equals operator for SpriteMaterialInfo. */
-	bool operator!=(const SpriteMaterialInfo& lhs, const SpriteMaterialInfo& rhs);
-
 	/** Contains information about a single sprite render element, including its geometry and material. */
 	struct SpriteRenderElement
 	{
 		SpriteRenderElement()
-			:vertices(nullptr), uvs(nullptr), indexes(nullptr), numQuads(0)
+			:vertices(nullptr), uvs(nullptr), indexes(nullptr), numQuads(0), material(nullptr)
 		{ }
 
 		Vector2* vertices;
@@ -63,6 +40,7 @@ namespace BansheeEngine
 		UINT32* indexes;
 		UINT32 numQuads;
 		SpriteMaterialInfo matInfo;
+		SpriteMaterial* material;
 	};
 
 	/**	Generates geometry and contains information needed for rendering a two dimensional element. */
@@ -92,13 +70,18 @@ namespace BansheeEngine
 		UINT32 getNumRenderElements() const;
 
 		/**
-		 * Gets a material for the specified render element index.
-		 * 		
-		 * @return	Structure describing the material.
+		 * Gets material information required for rendering the element at the specified index.
 		 *
 		 * @see		getNumRenderElements()
 		 */
 		const SpriteMaterialInfo& getMaterialInfo(UINT32 renderElementIdx) const;
+
+		/**
+		 * Gets the material that will be used for rendering the element at the specified index.
+		 *
+		 * @see		getNumRenderElements()
+		 */
+		SpriteMaterial* getMaterial(UINT32 renderElementIdx) const;
 
 		/**
 		 * Returns the number of quads that the specified render element will use. You will need this value when creating
@@ -120,26 +103,28 @@ namespace BansheeEngine
 		 * @param[out]	vertices			Previously allocated buffer where to store the vertices.
 		 * @param[out]	uv					Previously allocated buffer where to store the uv coordinates.
 		 * @param[out]	indices				Previously allocated buffer where to store the indices.
-		 * @param[in]	startingQuad		At which quad should the method start filling the buffer.
-		 * @param[in]	maxNumQuads			Total number of quads the buffers were allocated for. Used only for memory 
+		 * @param[in]	vertexOffset		At which vertex should the method start filling the buffer.
+		 * @param[in]	indexOffset			At which index should the method start filling the buffer.
+		 * @param[in]	maxNumVerts			Total number of vertices the buffers were allocated for. Used only for memory 
+		 *									safety.
+		 * @param[in]	maxNumIndices		Total number of indices the buffers were allocated for. Used only for memory
 		 *									safety.
 		 * @param[in]	vertexStride		Number of bytes between of vertices in the provided vertex and uv data.
 		 * @param[in]	indexStride			Number of bytes between two indexes in the provided index data.
 		 * @param[in]	renderElementIdx	Zero-based index of the render element.
-		 * @param[in]	offset				Position offset to apply to all vertices.
+		 * @param[in]	offset				Position offset to apply to all vertices, after clipping.
 		 * @param[in]	clipRect			Rectangle to clip the vertices to. 
 		 * @param[in]	clip				Should the vertices be clipped to the provided @p clipRect.
 		 *
 		 * @see		getNumRenderElements()
 		 * @see		getNumQuads()
 		 */
-		UINT32 fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-			UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx, const Vector2I& offset, 
-			const Rect2I& clipRect, bool clip = true) const;
+		UINT32 fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx, 
+			const Vector2I& offset, const Rect2I& clipRect, bool clip = true) const;
 
-	protected:
 		/**
-		 * Clips the provided vertices to the provided clip rectangle.
+		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices must form axis aligned quads.
 		 *
 		 * @param[in, out]	vertices	Pointer to the start of the buffer containing vertex positions.
 		 * @param[in, out]	uv			Pointer to the start of the buffer containing UV coordinates.
@@ -149,8 +134,26 @@ namespace BansheeEngine
 		 *								buffer).
 		 * @param[in]		clipRect	Rectangle to clip the geometry to.
 		 */
-		static void clipToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect);
+		static void clipQuadsToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect);
 
+		/**
+		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices can be arbitrary triangles.
+		 *
+		 * @param[in]	vertices		Pointer to the start of the buffer containing vertex positions.
+		 * @param[in]	uv				Pointer to the start of the buffer containing UV coordinates. Can be null if UV is
+		 *								not needed.
+		 * @param[in]	numTris			Number of triangles in the provided buffer pointers.
+		 * @param[in]	vertStride		Number of bytes to skip when going to the next vertex. This assumes both position
+		 *								and uv coordinates have the same stride (as they are likely pointing to the same
+		 *								buffer).
+		 * @param[in]	clipRect		Rectangle to clip the geometry to.
+		 * @param[in]	writeCallback	Callback that will be triggered when clipped vertices and UV coordinates are
+		 *								generated and need to be stored. Vertices are always generate in tuples of three,
+		 *								forming a single triangle.
+		 */
+		static void clipTrianglesToRect(UINT8* vertices, UINT8* uv, UINT32 numTris, UINT32 vertStride, 
+			const Rect2I& clipRect, const std::function<void(Vector2*, Vector2*, UINT32)>& writeCallback);
+	protected:
 		/**	Returns the offset needed to move the sprite in order for it to respect the provided anchor. */
 		static Vector2I getAnchorOffset(SpriteAnchor anchor, UINT32 width, UINT32 height);
 
@@ -163,21 +166,3 @@ namespace BansheeEngine
 
 	/** @} */
 }
-
-/** @cond STDLIB */
-/** @addtogroup GUI
- *  @{
- */
-
-/**	Hash value generator for STL reference wrapper for SpriteMaterialInfo. */
-template<>
-struct std::hash<std::reference_wrapper<const BansheeEngine::SpriteMaterialInfo>>
-{
-	size_t operator()(const std::reference_wrapper<const BansheeEngine::SpriteMaterialInfo>& value) const
-	{
-		return (size_t)value.get().generateHash();
-	}
-};
-
-/** @} */
-/** @endcond */

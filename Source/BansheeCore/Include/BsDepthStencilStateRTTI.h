@@ -26,7 +26,7 @@ namespace BansheeEngine
 			addPlainField("mData", 0, &DepthStencilStateRTTI::getData, &DepthStencilStateRTTI::setData);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			DepthStencilState* depthStencilState = static_cast<DepthStencilState*>(obj);
 			depthStencilState->initialize();

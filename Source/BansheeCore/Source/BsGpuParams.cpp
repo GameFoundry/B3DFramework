@@ -5,6 +5,7 @@
 #include "BsGpuParamBlockBuffer.h"
 #include "BsVector2.h"
 #include "BsTexture.h"
+#include "BsGpuBuffer.h"
 #include "BsSamplerState.h"
 #include "BsFrameAlloc.h"
 #include "BsDebug.h"
@@ -14,9 +15,9 @@
 
 namespace BansheeEngine
 {
-	GpuParamsBase::GpuParamsBase(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
-		: mParamDesc(paramDesc), mNumParamBlocks(0), mNumTextures(0), mNumLoadStoreTextures(0), mNumSamplerStates(0)
-		, mLoadStoreSurfaces(nullptr), mTransposeMatrices(transposeMatrices)
+	GpuParamsBase::GpuParamsBase(const SPtr<GpuParamDesc>& paramDesc)
+		: mParamDesc(paramDesc), mNumParamBlocks(0), mNumTextures(0), mNumLoadStoreTextures(0), mNumBuffers(0)
+		, mNumSamplerStates(0), mLoadStoreSurfaces(nullptr)
 	{
 		for (auto& paramBlock : mParamDesc->paramBlocks)
 		{
@@ -34,6 +35,12 @@ namespace BansheeEngine
 		{
 			if ((texture.second.slot + 1) > mNumLoadStoreTextures)
 				mNumLoadStoreTextures = texture.second.slot + 1;
+		}
+
+		for (auto& buffer : mParamDesc->buffers)
+		{
+			if ((buffer.second.slot + 1) > mNumBuffers)
+				mNumBuffers = buffer.second.slot + 1;
 		}
 
 		for (auto& sampler : mParamDesc->samplers)
@@ -68,6 +75,15 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 	{
 		auto paramIter = mParamDesc->textures.find(name);
 		if(paramIter != mParamDesc->textures.end())
+			return true;
+
+		return false;
+	}
+
+	bool GpuParamsBase::hasBuffer(const String& name) const
+	{
+		auto paramIter = mParamDesc->buffers.find(name);
+		if (paramIter != mParamDesc->buffers.end())
 			return true;
 
 		return false;
@@ -109,6 +125,15 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		return nullptr;
 	}
 
+	GpuParamBlockDesc* GpuParamsBase::getParamBlockDesc(const String& name) const
+	{
+		auto paramBlockIter = mParamDesc->paramBlocks.find(name);
+		if (paramBlockIter != mParamDesc->paramBlocks.end())
+			return &paramBlockIter->second;
+
+		return nullptr;
+	}
+
 	const TextureSurface& GpuParamsBase::getLoadStoreSurface(UINT32 slot) const
 	{
 		if (slot >= mNumLoadStoreTextures)
@@ -132,9 +157,9 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 	}
 
 	template<bool Core>
-	TGpuParams<Core>::TGpuParams(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
-		: GpuParamsBase(paramDesc, transposeMatrices), mParamBlockBuffers(nullptr), mTextures(nullptr)
-		, mLoadStoreTextures(nullptr), mSamplerStates(nullptr)
+	TGpuParams<Core>::TGpuParams(const SPtr<GpuParamDesc>& paramDesc)
+		: GpuParamsBase(paramDesc), mParamBlockBuffers(nullptr), mTextures(nullptr)
+		, mLoadStoreTextures(nullptr), mBuffers(nullptr), mSamplerStates(nullptr)
 	{
 		if (mNumParamBlocks > 0)
 			mParamBlockBuffers = bs_newN<ParamsBufferType>(mNumParamBlocks);
@@ -144,6 +169,9 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 
 		if (mNumLoadStoreTextures > 0)
 			mLoadStoreTextures = bs_newN<TextureType>(mNumLoadStoreTextures);
+
+		if(mNumBuffers > 0)
+			mBuffers = bs_newN<BufferType>(mNumBuffers);
 
 		if (mNumSamplerStates > 0)
 			mSamplerStates = bs_newN<SamplerType>(mNumSamplerStates);
@@ -160,6 +188,9 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 
 		if (mLoadStoreTextures != nullptr)
 			bs_deleteN(mLoadStoreTextures, mNumLoadStoreTextures);
+
+		if (mBuffers != nullptr)
+			bs_deleteN(mBuffers, mNumBuffers);
 
 		if (mSamplerStates != nullptr)
 			bs_deleteN(mSamplerStates, mNumSamplerStates);
@@ -253,6 +284,20 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 	}
 
 	template<bool Core>
+	void TGpuParams<Core>::getBufferParam(const String& name, TGpuParamBuffer<Core>& output) const
+	{
+		auto iterFind = mParamDesc->buffers.find(name);
+
+		if (iterFind == mParamDesc->buffers.end())
+		{
+			output = TGpuParamBuffer<Core>(nullptr, nullptr);
+			LOGWRN("Cannot find buffer parameter with the name '" + name + "'");
+		}
+		else
+			output = TGpuParamBuffer<Core>(&iterFind->second, _getThisPtr());
+	}
+
+	template<bool Core>
 	void TGpuParams<Core>::getSamplerStateParam(const String& name, TGpuParamSampState<Core>& output) const
 	{
 		auto iterFind = mParamDesc->samplers.find(name);
@@ -303,6 +348,18 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 	}
 
 	template<bool Core>
+	typename TGpuParams<Core>::BufferType TGpuParams<Core>::getBuffer(UINT32 slot)
+	{
+		if (slot < 0 || slot >= mNumBuffers)
+		{
+			BS_EXCEPT(InvalidParametersException, "Index out of range: Valid range: 0 .. " +
+				toString(mNumBuffers - 1) + ". Requested: " + toString(slot));
+		}
+
+		return mBuffers[slot];
+	}
+
+	template<bool Core>
 	typename TGpuParams<Core>::SamplerType TGpuParams<Core>::getSamplerState(UINT32 slot)
 	{
 		if (slot < 0 || slot >= mNumSamplerStates)
@@ -339,6 +396,21 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		}
 
 		mLoadStoreTextures[slot] = texture;
+
+		_markResourcesDirty();
+		_markCoreDirty();
+	}
+
+	template<bool Core>
+	void TGpuParams<Core>::setBuffer(UINT32 slot, const BufferType& buffer)
+	{
+		if (slot < 0 || slot >= mNumBuffers)
+		{
+			BS_EXCEPT(InvalidParametersException, "Index out of range: Valid range: 0 .. " +
+				toString(mNumBuffers - 1) + ". Requested: " + toString(slot));
+		}
+
+		mBuffers[slot] = buffer;
 
 		_markResourcesDirty();
 		_markCoreDirty();
@@ -400,8 +472,8 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 	template BS_CORE_EXPORT void TGpuParams<true>::getParam<Matrix4x2>(const String&, TGpuDataParam<Matrix4x2, true>&) const;
 	template BS_CORE_EXPORT void TGpuParams<true>::getParam<Matrix4x3>(const String&, TGpuDataParam<Matrix4x3, true>&) const;
 
-	GpuParamsCore::GpuParamsCore(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
-		: TGpuParams(paramDesc, transposeMatrices)
+	GpuParamsCore::GpuParamsCore(const SPtr<GpuParamDesc>& paramDesc)
+		: TGpuParams(paramDesc)
 	{
 
 	}
@@ -411,33 +483,24 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		return std::static_pointer_cast<GpuParamsCore>(getThisPtr());
 	}
 
-	void GpuParamsCore::updateHardwareBuffers()
-	{
-		for (UINT32 i = 0; i < mNumParamBlocks; i++)
-		{
-			if (mParamBlockBuffers[i] != nullptr)
-			{
-				mParamBlockBuffers[i]->flushToGPU();
-			}
-		}
-	}
-
 	void GpuParamsCore::syncToCore(const CoreSyncData& data)
 	{
 		UINT32 loadStoreSurfacesSize = mNumLoadStoreTextures * sizeof(TextureSurface);
 		UINT32 paramBufferSize = mNumParamBlocks * sizeof(SPtr<GpuParamBlockBufferCore>);
 		UINT32 textureArraySize = mNumTextures * sizeof(SPtr<TextureCore>);
 		UINT32 loadStoreTextureArraySize = mNumLoadStoreTextures * sizeof(SPtr<TextureCore>);
+		UINT32 bufferArraySize = mNumBuffers * sizeof(SPtr<GpuBufferCore>);
 		UINT32 samplerArraySize = mNumSamplerStates * sizeof(SPtr<SamplerStateCore>);
 
 		UINT32 totalSize = loadStoreSurfacesSize + paramBufferSize + textureArraySize + loadStoreTextureArraySize
-			+ samplerArraySize;
+			+ bufferArraySize + samplerArraySize;
 
 		UINT32 textureInfoOffset = 0;
 		UINT32 paramBufferOffset = textureInfoOffset + loadStoreSurfacesSize;
 		UINT32 textureArrayOffset = paramBufferOffset + paramBufferSize;
 		UINT32 loadStoreTextureArrayOffset = textureArrayOffset + textureArraySize;
-		UINT32 samplerArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 samplerArrayOffset = bufferArrayOffset + bufferArraySize;
 
 		assert(data.getBufferSize() == totalSize);
 
@@ -447,6 +510,7 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		SPtr<GpuParamBlockBufferCore>* paramBuffers = (SPtr<GpuParamBlockBufferCore>*)(dataPtr + paramBufferOffset);
 		SPtr<TextureCore>* textures = (SPtr<TextureCore>*)(dataPtr + textureArrayOffset);
 		SPtr<TextureCore>* loadStoreTextures = (SPtr<TextureCore>*)(dataPtr + loadStoreTextureArrayOffset);
+		SPtr<GpuBufferCore>* buffers = (SPtr<GpuBufferCore>*)(dataPtr + bufferArrayOffset);
 		SPtr<SamplerStateCore>* samplers = (SPtr<SamplerStateCore>*)(dataPtr + samplerArrayOffset);
 
 		// Copy & destruct
@@ -471,6 +535,12 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 			loadStoreTextures[i].~SPtr<TextureCore>();
 		}
 
+		for (UINT32 i = 0; i < mNumBuffers; i++)
+		{
+			mBuffers[i] = buffers[i];
+			buffers[i].~SPtr<GpuBufferCore>();
+		}
+
 		for (UINT32 i = 0; i < mNumSamplerStates; i++)
 		{
 			mSamplerStates[i] = samplers[i];
@@ -478,9 +548,9 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		}
 	}
 
-	SPtr<GpuParamsCore> GpuParamsCore::create(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
+	SPtr<GpuParamsCore> GpuParamsCore::create(const SPtr<GpuParamDesc>& paramDesc)
 	{
-		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(paramDesc, transposeMatrices);
+		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(paramDesc);
 		SPtr<GpuParamsCore> paramsPtr = bs_shared_ptr<GpuParamsCore>(params);
 		paramsPtr->_setThisPtr(paramsPtr);
 
@@ -489,8 +559,8 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 
 	const GpuDataParamInfos GpuParams::PARAM_SIZES;
 
-	GpuParams::GpuParams(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
-		: TGpuParams(paramDesc, transposeMatrices)
+	GpuParams::GpuParams(const SPtr<GpuParamDesc>& paramDesc)
+		: TGpuParams(paramDesc)
 	{
 
 	}
@@ -507,7 +577,7 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 
 	SPtr<CoreObjectCore> GpuParams::createCore() const
 	{
-		GpuParamsCore* obj = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(mParamDesc, mTransposeMatrices);
+		GpuParamsCore* obj = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(mParamDesc);
 
 		SPtr<CoreObjectCore> coreObj = bs_shared_ptr<GpuParamsCore>(obj);
 		coreObj->_setThisPtr(coreObj);
@@ -525,9 +595,9 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		markListenerResourcesDirty();
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices)
+	SPtr<GpuParams> GpuParams::create(const SPtr<GpuParamDesc>& paramDesc)
 	{
-		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(paramDesc, transposeMatrices);
+		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(paramDesc);
 		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
 		paramsPtr->_setThisPtr(paramsPtr);
 		paramsPtr->initialize();
@@ -541,16 +611,18 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		UINT32 paramBufferSize = mNumParamBlocks * sizeof(SPtr<GpuParamBlockBufferCore>);
 		UINT32 textureArraySize = mNumTextures * sizeof(SPtr<TextureCore>);
 		UINT32 loadStoreTextureArraySize = mNumLoadStoreTextures * sizeof(SPtr<TextureCore>);
+		UINT32 bufferArraySize = mNumBuffers * sizeof(SPtr<GpuBufferCore>);
 		UINT32 samplerArraySize = mNumSamplerStates * sizeof(SPtr<SamplerStateCore>);
 
 		UINT32 totalSize = loadStoreSurfacesSize + paramBufferSize + textureArraySize + loadStoreTextureArraySize 
-			+ samplerArraySize;
+			+ bufferArraySize + samplerArraySize;
 
 		UINT32 textureInfoOffset = 0;
 		UINT32 paramBufferOffset = textureInfoOffset + loadStoreSurfacesSize;
 		UINT32 textureArrayOffset = paramBufferOffset + paramBufferSize;
 		UINT32 loadStoreTextureArrayOffset = textureArrayOffset + textureArraySize;
-		UINT32 samplerArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 bufferArrayOffset = loadStoreTextureArrayOffset + loadStoreTextureArraySize;
+		UINT32 samplerArrayOffset = bufferArrayOffset + bufferArraySize;
 
 		UINT8* data = allocator->alloc(totalSize);
 
@@ -558,6 +630,7 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 		SPtr<GpuParamBlockBufferCore>* paramBuffers = (SPtr<GpuParamBlockBufferCore>*)(data + paramBufferOffset);
 		SPtr<TextureCore>* textures = (SPtr<TextureCore>*)(data + textureArrayOffset);
 		SPtr<TextureCore>* loadStoreTextures = (SPtr<TextureCore>*)(data + loadStoreTextureArrayOffset);
+		SPtr<GpuBufferCore>* buffers = (SPtr<GpuBufferCore>*)(data + bufferArrayOffset);
 		SPtr<SamplerStateCore>* samplers = (SPtr<SamplerStateCore>*)(data + samplerArrayOffset);
 
 		// Construct & copy
@@ -590,6 +663,16 @@ UINT32 GpuParamsBase::getDataParamSize(const String& name) const
 				loadStoreTextures[i] = mLoadStoreTextures[i]->getCore();
 			else
 				loadStoreTextures[i] = nullptr;
+		}
+
+		for (UINT32 i = 0; i < mNumBuffers; i++)
+		{
+			new (&buffers[i]) SPtr<GpuBufferCore>();
+
+			if (mBuffers[i] != nullptr)
+				buffers[i] = mBuffers[i]->getCore();
+			else
+				buffers[i] = nullptr;
 		}
 
 		for (UINT32 i = 0; i < mNumSamplerStates; i++)

@@ -1,0 +1,327 @@
+#include "$ENGINE$\GBuffer.bslinc"
+#include "$ENGINE$\PerCameraData.bslinc"
+
+Parameters =
+{
+	Sampler2D 	gGBufferASamp : alias("gGBufferATex");
+	Sampler2D 	gGBufferBSamp : alias("gGBufferBTex");
+	Sampler2D 	gDepthBufferSamp : alias("gDepthBufferTex");
+	
+	Texture2D 	gGBufferATex : auto("GBufferA");
+	Texture2D	gGBufferBTex : auto("GBufferB");
+	Texture2D 	gDepthBufferTex : auto("GBufferDepth");
+};
+
+Blocks =
+{
+	Block PerCamera : auto("PerCamera");
+	Block PerLight : auto("PerLight");
+};
+
+Technique
+ : base("DeferredLightPass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Target = 
+		{
+			Blend = true;
+			Color = { ONE, ONE, ADD };
+			WriteMask = RGB;
+		};
+		
+		DepthWrite = false;
+
+		Common = 
+		{
+			#define PI 3.1415926
+			#define HALF_PI 1.5707963
+			
+			cbuffer PerLight
+			{
+				// x, y, z - World position of the lightData
+				// w - Type type - Directional = 0, Point = >0, Spot = >0.5
+				float4 gLightPositionAndType;
+				float4 gLightColorAndIntensity;
+				// x - outerAngle in radians, y - cos(outerAngle), z - 1.0f/(cos(innerAngle) - cos(outerAngle)), w - inverse point light radius
+				float4 gLightSpotAnglesAndSqrdInvRadius;
+				float3 gLightDirection;
+				
+				// x - Num sides (zero for point lights)
+				// y - Num slices (zero for point lights)
+				// z - Sphere radius for point lights
+				// w - Cone radius for spot lights
+				float4 gLightGeometry; 
+				float4x4 gMatConeTransform;
+			}
+			
+			struct LightData
+			{
+				float3 position;
+				float3 direction;
+				float intensity;
+				bool isSpot;
+				bool isPoint;
+				float3 spotAngles; 
+				float3 color;
+				float radiusSqrdInv;
+			};
+			
+			float convertFromDeviceZ(float deviceZ)
+			{
+				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;
+			}
+			
+			GBufferData decodeGBuffer(float4 GBufferAData, float4 GBufferBData, float deviceZ)
+			{
+				GBufferData output;
+				
+				output.albedo.xyz = GBufferAData.xyz;
+				output.albedo.w = 1.0f;
+				output.worldNormal = GBufferBData * float4(2, 2, 2, 1) - float4(1, 1, 1, 0);
+				output.worldNormal.xyz = normalize(output.worldNormal.xyz);
+				output.depth = convertFromDeviceZ(deviceZ);
+				
+				return output;
+			}
+			
+			LightData getLightData()
+			{
+				LightData output;
+				
+				output.position = gLightPositionAndType.xyz;
+				output.direction = gLightDirection;
+				output.color = gLightColorAndIntensity.rgb;
+				output.intensity = gLightColorAndIntensity.w;
+				output.isPoint = gLightPositionAndType.w > 0.0f;
+				output.isSpot = gLightPositionAndType.w > 0.5f;
+				output.spotAngles = gLightSpotAnglesAndSqrdInvRadius.xyz;
+				output.radiusSqrdInv = gLightSpotAnglesAndSqrdInvRadius.w;
+				
+				return output;
+			}
+			
+			float getSpotAttenuation(float3 worldPosToLight, float3 direction, float3 angles)
+			{
+				float output = saturate((dot(-worldPosToLight, direction) - angles.y) * angles.z);
+				return output * output;
+			}			
+			
+			float4 getLighting(float3 worldPosition, float2 uv, GBufferData gBuffer, LightData lightData)
+			{
+				float3 N = gBuffer.worldNormal.xyz;
+				float NoL = 1.0f;
+				
+				float distanceAttenuation = 1.0f;
+				float spotFalloff = 1.0f;
+				float radiusAttenuation = 1.0f;
+				if (lightData.isPoint)
+				{
+					float3 L = lightData.position - worldPosition;
+					
+					float distanceSqrd = dot(L, L);
+					distanceAttenuation = 1/(distanceSqrd + 1);
+					
+					L = normalize(L);
+					NoL = saturate(dot(N, L)); // TODO - Add bias here?
+
+					radiusAttenuation = distanceSqrd * lightData.radiusSqrdInv;
+					radiusAttenuation *= radiusAttenuation;
+					radiusAttenuation = saturate(1.0f - radiusAttenuation);
+					radiusAttenuation *= radiusAttenuation;
+					
+					if (lightData.isSpot)
+						spotFalloff = getSpotAttenuation(L, lightData.direction, lightData.spotAngles);
+				}
+				else
+				{
+					float3 L = -lightData.direction;
+					NoL = saturate(dot(N, L)); // TODO - Add bias here?
+				}
+
+				float attenuation = distanceAttenuation * spotFalloff * radiusAttenuation;
+
+				float3 diffuse = gBuffer.albedo.xyz / PI; // TODO - Add better lighting model later
+
+				float4 output = float4(lightData.color * lightData.intensity * ((NoL * attenuation) * diffuse), 1);
+				return output;
+			}
+		};
+		
+		Fragment = 
+		{
+			SamplerState 	gGBufferASamp : register(s0);
+			SamplerState 	gGBufferBSamp : register(s1);
+			SamplerState 	gDepthBufferSamp : register(s2);
+	
+			Texture2D 	gGBufferATex : register(t0);
+			Texture2D	gGBufferBTex : register(t1);
+			Texture2D 	gDepthBufferTex : register(t2);
+			
+			GBufferData getGBufferData(float2 uv)
+			{
+				float4 GBufferAData = gGBufferATex.SampleLevel(gGBufferASamp, uv, 0);
+				float4 GBufferBData = gGBufferBTex.SampleLevel(gGBufferBSamp, uv, 0);
+				float deviceZ = gDepthBufferTex.SampleLevel(gDepthBufferSamp, uv, 0).r;
+				
+				return decodeGBuffer(GBufferAData, GBufferBData, deviceZ);
+			}			
+		};	
+	};
+};
+
+Technique
+ : base("DeferredLightPass")
+ : inherits("GBuffer")
+ : inherits("PerCameraData") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Target = 
+		{
+			Blend = true;
+			Color = { ONE, ONE, ADD };
+			WriteMask = RGB;
+		};
+		
+		DepthWrite = false;
+
+		Common = 
+		{
+			#define PI 3.1415926
+			#define HALF_PI 1.5707963
+			
+			layout(std140) uniform PerLight
+			{
+				// x, y, z - World position of the lightData
+				// w - Type type - Directional = 0, Point = >0, Spot = >0.5
+				vec4 gLightPositionAndType;
+				vec4 gLightColorAndIntensity;
+				// x - outerAngle in radians, y - cos(outerAngle), z - 1.0f/(cos(innerAngle) - cos(outerAngle)), w - inverse point light radius
+				vec4 gLightSpotAnglesAndSqrdInvRadius;
+				vec3 gLightDirection;
+				
+				// x - Num sides (zero for point lights)
+				// y - Num slices (zero for point lights)
+				// z - Sphere radius for point lights
+				// w - Cone radius for spot lights
+				vec4 gLightGeometry; 
+				mat4 gMatConeTransform;
+			};
+			
+			struct LightData
+			{
+				vec3 position;
+				vec3 direction;
+				float intensity;
+				bool isSpot;
+				bool isPoint;
+				vec3 spotAngles; 
+				vec3 color;
+				float radiusSqrdInv;
+			};
+			
+			float convertFromDeviceZ(float deviceZ)
+			{
+				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;	
+			}
+			
+			GBufferData decodeGBuffer(vec4 GBufferAData, vec4 GBufferBData, float deviceZ)
+			{
+				GBufferData gBufferData;
+				
+				gBufferData.albedo.xyz = GBufferAData.xyz;
+				gBufferData.albedo.w = 1.0f;
+				gBufferData.worldNormal = GBufferBData * vec4(2, 2, 2, 1) - vec4(1, 1, 1, 0);
+				gBufferData.worldNormal.xyz = normalize(gBufferData.worldNormal.xyz);
+				gBufferData.depth = convertFromDeviceZ(deviceZ);
+				
+				return gBufferData;
+			}
+			
+			LightData getLightData()
+			{
+				LightData lightData;
+				
+				lightData.position = gLightPositionAndType.xyz;
+				lightData.direction = gLightDirection;
+				lightData.color = gLightColorAndIntensity.rgb;
+				lightData.intensity = gLightColorAndIntensity.w;
+				lightData.isPoint = gLightPositionAndType.w > 0.0f;
+				lightData.isSpot = gLightPositionAndType.w > 0.5f;
+				lightData.spotAngles = gLightSpotAnglesAndSqrdInvRadius.xyz;
+				lightData.radiusSqrdInv = gLightSpotAnglesAndSqrdInvRadius.w;
+				
+				return lightData;
+			}
+			
+			float getSpotAttenuation(vec3 worldPosToLight, vec3 direction, vec3 angles)
+			{
+				float atten = clamp((dot(-worldPosToLight, direction) - angles.y) * angles.z, 0.0, 1.0);
+				return atten * atten;
+			}			
+			
+			vec4 getLighting(vec3 worldPosition, vec2 uv, GBufferData gBuffer, LightData lightData)
+			{
+				vec3 N = gBuffer.worldNormal.xyz;
+				float NoL = 1.0f;
+				
+				float distanceAttenuation = 1.0f;
+				float spotFalloff = 1.0f;
+				float radiusAttenuation = 1.0f;
+				if (lightData.isPoint)
+				{
+					vec3 L = lightData.position - worldPosition;
+					
+					float distanceSqrd = dot(L, L);
+					distanceAttenuation = 1/(distanceSqrd + 1);
+					
+					L = normalize(L);
+					NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
+
+					radiusAttenuation = distanceSqrd * lightData.radiusSqrdInv;
+					radiusAttenuation *= radiusAttenuation;
+					radiusAttenuation = clamp(1.0f - radiusAttenuation, 0.0, 1.0);
+					radiusAttenuation *= radiusAttenuation;
+					
+					if (lightData.isSpot)
+						spotFalloff = getSpotAttenuation(L, lightData.direction, lightData.spotAngles);
+				}
+				else
+				{
+					vec3 L = -lightData.direction;
+					NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
+				}
+
+				float attenuation = distanceAttenuation * spotFalloff * radiusAttenuation;
+
+				vec3 diffuse = gBuffer.albedo.xyz / PI; // TODO - Add better lighting model later
+
+				vec4 lighting = vec4(lightData.color * lightData.intensity * ((NoL * attenuation) * diffuse), 1);
+				return lighting;
+			}
+		};
+		
+		Fragment = 
+		{
+			uniform sampler2D gGBufferATex;
+			uniform sampler2D gGBufferBTex;
+			uniform sampler2D gDepthBufferTex;
+			
+			GBufferData getGBufferData(vec2 uv)
+			{
+				vec4 GBufferAData = textureLod(gGBufferATex, uv, 0);
+				vec4 GBufferBData = textureLod(gGBufferBTex, uv, 0);
+				float deviceZ = textureLod(gDepthBufferTex, uv, 0).r;
+				
+				return decodeGBuffer(GBufferAData, GBufferBData, deviceZ);
+			}			
+		};	
+	};
+};

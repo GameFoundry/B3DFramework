@@ -505,7 +505,14 @@ namespace BansheeEditor
                 string method = "";
                 if (data.callstack != null && data.callstack.Length > 0)
                 {
-                    file = Path.GetFileName(data.callstack[0].file);
+                    string filePath = data.callstack[0].file;
+                    bool isFilePathValid = filePath.IndexOfAny(Path.GetInvalidPathChars()) == -1;
+
+                    if (isFilePathValid)
+                        file = Path.GetFileName(data.callstack[0].file);
+                    else
+                        file = "<unknown file>";
+
                     line = data.callstack[0].line;
 
                     if (string.IsNullOrEmpty(data.callstack[0].method))

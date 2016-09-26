@@ -28,7 +28,7 @@ namespace BansheeEngine
 		GLuint getGLHandle() const { return mGLHandle; }
 	protected:
 		/** @copydoc GpuParamBlockBufferCore::initialize */
-		virtual void initialize()override ;
+		void initialize() override ;
 
 	private:
 		GLuint mGLHandle;

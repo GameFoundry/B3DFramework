@@ -35,7 +35,7 @@ namespace BansheeEngine
 			addPlainField("mInstanceID", 0, &GameObjectHandleRTTI::getInstanceId, &GameObjectHandleRTTI::setInstanceId);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(obj);
 

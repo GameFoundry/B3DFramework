@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsDataStream.h"
+#include "BsDebug.h"
 #include <codecvt>
 
 namespace BansheeEngine 
@@ -245,8 +246,8 @@ namespace BansheeEngine
 		}
 	}
 
-    MemoryDataStream::MemoryDataStream(void* memory, size_t inSize)
-		: DataStream(READ | WRITE), mData(nullptr)
+    MemoryDataStream::MemoryDataStream(void* memory, size_t inSize, bool freeOnClose)
+		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(freeOnClose)
     {
         mData = mPos = static_cast<UINT8*>(memory);
         mSize = inSize;
@@ -264,6 +265,7 @@ namespace BansheeEngine
 		mData = (UINT8*)bs_alloc((UINT32)mSize);
 		mPos = mData;
 		mEnd = mData + sourceStream.read(mData, mSize);
+		mFreeOnClose = true;
 
         assert(mEnd >= mPos);
     }
@@ -277,6 +279,7 @@ namespace BansheeEngine
 		mData = (UINT8*)bs_alloc((UINT32)mSize);
 		mPos = mData;
 		mEnd = mData + sourceStream->read(mData, mSize);
+		mFreeOnClose = true;
 
         assert(mEnd >= mPos);
     }
@@ -346,61 +349,63 @@ namespace BansheeEngine
         return mPos >= mEnd;
     }
 
+	SPtr<DataStream> MemoryDataStream::clone(bool copyData) const
+	{
+		if (!copyData)
+			return bs_shared_ptr_new<MemoryDataStream>(mData, mSize, false);
+		
+		return bs_shared_ptr_new<MemoryDataStream>(*this);
+	}
+
     void MemoryDataStream::close()    
     {
         if (mData != nullptr)
         {
-            bs_free(mData);
+			if(mFreeOnClose)
+				bs_free(mData);
+
             mData = nullptr;
         }
     }
 
-    FileDataStream::FileDataStream(SPtr<std::ifstream> s, bool freeOnClose)
-        : DataStream(READ), mpInStream(s), mpFStreamRO(s), mpFStream(0), mFreeOnClose(freeOnClose)
+    FileDataStream::FileDataStream(const Path& path, AccessMode accessMode, bool freeOnClose)
+        : DataStream(accessMode), mPath(path), mFreeOnClose(freeOnClose)
     {
-        mpInStream->seekg(0, std::ios_base::end);
-        mSize = (size_t)mpInStream->tellg();
-        mpInStream->seekg(0, std::ios_base::beg);
+		WString pathWString = path.toWString();
+		const wchar_t* pathString = pathWString.c_str();
 
-		determineAccess();
+		// Always open in binary mode
+		// Also, always include reading
+		std::ios::openmode mode = std::ios::binary;
+
+		if ((accessMode & READ) != 0)
+			mode |= std::ios::in;
+
+		if (((accessMode & WRITE) != 0))
+		{
+			mode |= std::ios::out;
+			mFStream = bs_shared_ptr_new<std::fstream>();
+			mFStream->open(pathString, mode);
+			mInStream = mFStream;
+		}
+		else
+		{
+			mFStreamRO = bs_shared_ptr_new<std::ifstream>();
+			mFStreamRO->open(pathString, mode);
+			mInStream = mFStreamRO;
+		}
+
+		// Should check ensure open succeeded, in case fail for some reason.
+		if (mInStream->fail())
+		{
+			LOGWRN("Cannot open file: " + path.toString());
+			return;
+		}
+		
+        mInStream->seekg(0, std::ios_base::end);
+        mSize = (size_t)mInStream->tellg();
+        mInStream->seekg(0, std::ios_base::beg);
     }
-
-    FileDataStream::FileDataStream(SPtr<std::ifstream> s, size_t inSize, bool freeOnClose)
-        : DataStream(READ), mpInStream(s), mpFStreamRO(s), mpFStream(0), mFreeOnClose(freeOnClose)
-    {
-        mSize = inSize;
-
-		determineAccess();
-    }
-
-	FileDataStream::FileDataStream(SPtr<std::fstream> s, bool freeOnClose)
-		: DataStream(READ | WRITE), mpInStream(s), mpFStreamRO(0), mpFStream(s), mFreeOnClose(freeOnClose)
-	{
-		mpInStream->seekg(0, std::ios_base::end);
-		mSize = (size_t)mpInStream->tellg();
-		mpInStream->seekg(0, std::ios_base::beg);
-
-		determineAccess();
-	}
-
-	FileDataStream::FileDataStream(SPtr<std::fstream> s, size_t inSize, bool freeOnClose)
-		: DataStream(READ | WRITE), mpInStream(s), mpFStreamRO(0), mpFStream(s), mFreeOnClose(freeOnClose)
-	{
-		mSize = inSize;
-
-		determineAccess();
-	}
-
-	void FileDataStream::determineAccess()
-	{
-		mAccess = 0;
-
-		if (mpInStream)
-			mAccess |= READ;
-
-		if (mpFStream)
-			mAccess |= WRITE;
-	}
 
     FileDataStream::~FileDataStream()
     {
@@ -409,17 +414,17 @@ namespace BansheeEngine
 
     size_t FileDataStream::read(void* buf, size_t count)
     {
-		mpInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
+		mInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
 
-        return (size_t)mpInStream->gcount();
+        return (size_t)mInStream->gcount();
     }
 
 	size_t FileDataStream::write(const void* buf, size_t count)
 	{
 		size_t written = 0;
-		if (isWriteable() && mpFStream)
+		if (isWriteable() && mFStream)
 		{
-			mpFStream->write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
+			mFStream->write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
 			written = count;
 		}
 
@@ -427,46 +432,51 @@ namespace BansheeEngine
 	}
     void FileDataStream::skip(size_t count)
     {	
-		mpInStream->clear(); // Clear fail status in case eof was set
-		mpInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
+		mInStream->clear(); // Clear fail status in case eof was set
+		mInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
     }
 
     void FileDataStream::seek(size_t pos)
     {
-		mpInStream->clear(); // Clear fail status in case eof was set
-		mpInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
+		mInStream->clear(); // Clear fail status in case eof was set
+		mInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 	}
 
     size_t FileDataStream::tell() const
 	{
-		mpInStream->clear(); // Clear fail status in case eof was set
+		mInStream->clear(); // Clear fail status in case eof was set
 
-		return (size_t)mpInStream->tellg();
+		return (size_t)mInStream->tellg();
 	}
 
     bool FileDataStream::eof() const
     {
-        return mpInStream->eof();
+        return mInStream->eof();
     }
+
+	SPtr<DataStream> FileDataStream::clone(bool copyData) const
+	{
+		return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)getAccessMode(), true);
+	}
 
     void FileDataStream::close()
     {
-        if (mpInStream)
+        if (mInStream)
         {
-			if (mpFStreamRO)
-	            mpFStreamRO->close();
+			if (mFStreamRO)
+	            mFStreamRO->close();
 
-			if (mpFStream)
+			if (mFStream)
 			{
-				mpFStream->flush();
-				mpFStream->close();
+				mFStream->flush();
+				mFStream->close();
 			}
 
             if (mFreeOnClose)
             {
-				mpInStream = nullptr;
-				mpFStreamRO = nullptr; 
-				mpFStream = nullptr; 
+				mInStream = nullptr;
+				mFStreamRO = nullptr; 
+				mFStream = nullptr; 
             }
         }
     }

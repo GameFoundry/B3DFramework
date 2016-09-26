@@ -29,10 +29,10 @@ namespace BansheeEngine
 		/**
 		 * Triggered when selection has changed.
 		 *
-		 * @param[in]	sceneObject	Newly selected scene objects. This will be empty if no scene objects are selected or if
-		 *							selection hasn't changed.
-		 * @param[in]	resPaths	Paths to newly selected resources. This will be empty if no resources are selected or if
-		 *							selection hasn't changed.
+		 * @param[in]	sceneObjects	Newly selected scene objects. This will be empty if no scene objects are selected
+		 *								or if selection hasn't changed.
+		 * @param[in]	resPaths		Paths to newly selected resources. This will be empty if no resources are selected
+		 *								or if selection hasn't changed.
 		 */
 		static void onSelectionChanged(const Vector<HSceneObject>& sceneObjects, const Vector<Path>& resPaths);
 

@@ -96,7 +96,7 @@ namespace BansheeEngine
 			obj->mBaseClass = val;
 		}
 
-		SPtr<ManagedSerializableFieldInfo> getSerializableFieldInfo(ManagedSerializableObjectInfo* obj, UINT32 idx) 
+		SPtr<ManagedSerializableMemberInfo> getSerializableFieldInfo(ManagedSerializableObjectInfo* obj, UINT32 idx) 
 		{ 
 			auto iter = obj->mFields.begin();
 			for(UINT32 i = 0; i < idx; i++)
@@ -105,7 +105,7 @@ namespace BansheeEngine
 			return iter->second;
 		}
 
-		void setSerializableFieldInfo(ManagedSerializableObjectInfo* obj, UINT32 idx, SPtr<ManagedSerializableFieldInfo> val) 
+		void setSerializableFieldInfo(ManagedSerializableObjectInfo* obj, UINT32 idx, SPtr<ManagedSerializableMemberInfo> val) 
 		{ 
 			obj->mFieldNameToId[val->mName] = val->mFieldId;
 			obj->mFields[val->mFieldId] = val;
@@ -142,68 +142,48 @@ namespace BansheeEngine
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ManagedSerializableFieldInfoRTTI : public RTTIType<ManagedSerializableFieldInfo, IReflectable, ManagedSerializableFieldInfoRTTI>
+	class BS_SCR_BE_EXPORT ManagedSerializableMemberInfoRTTI : public RTTIType<ManagedSerializableMemberInfo, IReflectable, ManagedSerializableMemberInfoRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableTypeInfo> getTypeInfo(ManagedSerializableFieldInfo* obj)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mName, 0)
+			BS_RTTI_MEMBER_REFLPTR(mTypeInfo, 1)
+			BS_RTTI_MEMBER_PLAIN(mFieldId, 2)
+			BS_RTTI_MEMBER_PLAIN(mFlags, 3)
+			BS_RTTI_MEMBER_PLAIN(mParentTypeId, 4)
+		BS_END_RTTI_MEMBERS
+			
+	public:
+		ManagedSerializableMemberInfoRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
 		{
-			return obj->mTypeInfo;
+			static String name = "ScriptSerializableMemberInfo";
+			return name;
 		}
 
-		void setTypeInfo(ManagedSerializableFieldInfo* obj, SPtr<ManagedSerializableTypeInfo> val)
+		UINT32 getRTTIId() override
 		{
-			obj->mTypeInfo = val;
+			return TID_SerializableMemberInfo;
 		}
 
-		String& getName(ManagedSerializableFieldInfo* obj)
+		SPtr<IReflectable> newRTTIObject() override
 		{
-			return obj->mName;
+			// This is an abstract class, but it wasn't always. For compatibility sake we return an object instance so old
+			// data can still be properly read.
+			return bs_shared_ptr_new<ManagedSerializableFieldInfo>();
 		}
+	};
 
-		void setName(ManagedSerializableFieldInfo* obj, String& val)
-		{
-			obj->mName = val;
-		}
-
-		UINT32& getFieldId(ManagedSerializableFieldInfo* obj)
-		{
-			return obj->mFieldId;
-		}
-
-		void setFieldId(ManagedSerializableFieldInfo* obj, UINT32& val)
-		{
-			obj->mFieldId = val;
-		}
-
-		UINT32& getParentTypeId(ManagedSerializableFieldInfo* obj)
-		{
-			return obj->mParentTypeId;
-		}
-
-		void setParentTypeId(ManagedSerializableFieldInfo* obj, UINT32& val)
-		{
-			obj->mParentTypeId = val;
-		}
-
-		UINT32& getFlags(ManagedSerializableFieldInfo* obj)
-		{
-			return (UINT32&)obj->mFlags;
-		}
-
-		void setFlags(ManagedSerializableFieldInfo* obj, UINT32& val)
-		{
-			obj->mFlags = (ScriptFieldFlags)val;
-		}
+	class BS_SCR_BE_EXPORT ManagedSerializableFieldInfoRTTI : public RTTIType<ManagedSerializableFieldInfo, ManagedSerializableMemberInfo, ManagedSerializableFieldInfoRTTI>
+	{
+	private:
 
 	public:
 		ManagedSerializableFieldInfoRTTI()
-		{
-			addPlainField("mName", 0, &ManagedSerializableFieldInfoRTTI::getName, &ManagedSerializableFieldInfoRTTI::setName);
-			addReflectablePtrField("mTypeInfo", 1, &ManagedSerializableFieldInfoRTTI::getTypeInfo, &ManagedSerializableFieldInfoRTTI::setTypeInfo);
-			addPlainField("mFieldId", 2, &ManagedSerializableFieldInfoRTTI::getFieldId, &ManagedSerializableFieldInfoRTTI::setFieldId);
-			addPlainField("mFlags", 3, &ManagedSerializableFieldInfoRTTI::getFlags, &ManagedSerializableFieldInfoRTTI::setFlags);
-			addPlainField("mParentTypeId", 4, &ManagedSerializableFieldInfoRTTI::getParentTypeId, &ManagedSerializableFieldInfoRTTI::setParentTypeId);
-		}
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -222,15 +202,38 @@ namespace BansheeEngine
 		}
 	};
 
+	class BS_SCR_BE_EXPORT ManagedSerializablePropertyInfoRTTI : public RTTIType<ManagedSerializablePropertyInfo, ManagedSerializableMemberInfo, ManagedSerializablePropertyInfoRTTI>
+	{
+	private:
+
+	public:
+		ManagedSerializablePropertyInfoRTTI()
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "ScriptSerializablePropertyInfo";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_SerializablePropertyInfo;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ManagedSerializablePropertyInfo>();
+		}
+	};
+
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoRTTI : public RTTIType<ManagedSerializableTypeInfo, IReflectable, ManagedSerializableTypeInfoRTTI>
 	{
 	private:
 
 	public:
 		ManagedSerializableTypeInfoRTTI()
-		{
-
-		}
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -253,21 +256,14 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoPrimitiveRTTI : public RTTIType<ManagedSerializableTypeInfoPrimitive, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoPrimitiveRTTI>
 	{
 	private:
-		ScriptPrimitiveType& getType(ManagedSerializableTypeInfoPrimitive* obj)
-		{
-			return obj->mType;
-		}
-
-		void setType(ManagedSerializableTypeInfoPrimitive* obj, ScriptPrimitiveType& val)
-		{
-			obj->mType = val;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mType, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ManagedSerializableTypeInfoPrimitiveRTTI()
-		{
-			addPlainField("mType", 0, &ManagedSerializableTypeInfoPrimitiveRTTI::getType, &ManagedSerializableTypeInfoPrimitiveRTTI::setType);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -289,43 +285,16 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoRefRTTI : public RTTIType<ManagedSerializableTypeInfoRef, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoRefRTTI>
 	{
 	private:
-		ScriptReferenceType& getType(ManagedSerializableTypeInfoRef* obj)
-		{
-			return obj->mType;
-		}
-
-		void setType(ManagedSerializableTypeInfoRef* obj, ScriptReferenceType& val)
-		{
-			obj->mType = val;
-		}
-
-		String& getTypeNamespace(ManagedSerializableTypeInfoRef* obj)
-		{
-			return obj->mTypeNamespace;
-		}
-
-		void setTypeNamespace(ManagedSerializableTypeInfoRef* obj, String& val)
-		{
-			obj->mTypeNamespace = val;
-		}
-
-		String& getTypeName(ManagedSerializableTypeInfoRef* obj)
-		{
-			return obj->mTypeName;
-		}
-
-		void setTypeName(ManagedSerializableTypeInfoRef* obj, String& val)
-		{
-			obj->mTypeName = val;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mType, 0)
+			BS_RTTI_MEMBER_PLAIN(mTypeName, 1)
+			BS_RTTI_MEMBER_PLAIN(mTypeNamespace, 2)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ManagedSerializableTypeInfoRefRTTI()
-		{
-			addPlainField("mType", 0, &ManagedSerializableTypeInfoRefRTTI::getType, &ManagedSerializableTypeInfoRefRTTI::setType);
-			addPlainField("mTypeName", 1, &ManagedSerializableTypeInfoRefRTTI::getTypeName, &ManagedSerializableTypeInfoRefRTTI::setTypeName);
-			addPlainField("mTypeNamespace", 2, &ManagedSerializableTypeInfoRefRTTI::getTypeNamespace, &ManagedSerializableTypeInfoRefRTTI::setTypeNamespace);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -347,54 +316,17 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoObjectRTTI : public RTTIType<ManagedSerializableTypeInfoObject, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoObjectRTTI>
 	{
 	private:
-		String& getTypeNamespace(ManagedSerializableTypeInfoObject* obj)
-		{
-			return obj->mTypeNamespace;
-		}
-
-		void setTypeNamespace(ManagedSerializableTypeInfoObject* obj, String& val)
-		{
-			obj->mTypeNamespace = val;
-		}
-
-		String& getTypeName(ManagedSerializableTypeInfoObject* obj)
-		{
-			return obj->mTypeName;
-		}
-
-		void setTypeName(ManagedSerializableTypeInfoObject* obj, String& val)
-		{
-			obj->mTypeName = val;
-		}
-
-		bool& getIsValueType(ManagedSerializableTypeInfoObject* obj)
-		{
-			return obj->mValueType;
-		}
-
-		void setIsValueType(ManagedSerializableTypeInfoObject* obj, bool& val)
-		{
-			obj->mValueType = val;
-		}
-
-		UINT32& getTypeId(ManagedSerializableTypeInfoObject* obj)
-		{
-			return obj->mTypeId;
-		}
-
-		void setTypeId(ManagedSerializableTypeInfoObject* obj, UINT32& val)
-		{
-			obj->mTypeId = val;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mTypeName, 0)
+			BS_RTTI_MEMBER_PLAIN(mTypeNamespace, 1)
+			BS_RTTI_MEMBER_PLAIN(mValueType, 2)
+			BS_RTTI_MEMBER_PLAIN(mTypeId, 4)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ManagedSerializableTypeInfoObjectRTTI()
-		{
-			addPlainField("mTypeName", 0, &ManagedSerializableTypeInfoObjectRTTI::getTypeName, &ManagedSerializableTypeInfoObjectRTTI::setTypeName);
-			addPlainField("mTypeNamespace", 1, &ManagedSerializableTypeInfoObjectRTTI::getTypeNamespace, &ManagedSerializableTypeInfoObjectRTTI::setTypeNamespace);
-			addPlainField("mValueType", 2, &ManagedSerializableTypeInfoObjectRTTI::getIsValueType, &ManagedSerializableTypeInfoObjectRTTI::setIsValueType);
-			addPlainField("mTypeId", 3, &ManagedSerializableTypeInfoObjectRTTI::getIsValueType, &ManagedSerializableTypeInfoObjectRTTI::setIsValueType);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -416,32 +348,15 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoArrayRTTI : public RTTIType<ManagedSerializableTypeInfoArray, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoArrayRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableTypeInfo> getElementType(ManagedSerializableTypeInfoArray* obj)
-		{
-			return obj->mElementType;
-		}
-
-		void setElementType(ManagedSerializableTypeInfoArray* obj, SPtr<ManagedSerializableTypeInfo> val)
-		{
-			obj->mElementType = val;
-		}
-
-		UINT32& getRank(ManagedSerializableTypeInfoArray* obj)
-		{
-			return obj->mRank;
-		}
-
-		void setRank(ManagedSerializableTypeInfoArray* obj, UINT32& val)
-		{
-			obj->mRank = val;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mElementType, 0)
+			BS_RTTI_MEMBER_PLAIN(mRank, 1)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ManagedSerializableTypeInfoArrayRTTI()
-		{
-			addReflectablePtrField("mElementType", 0, &ManagedSerializableTypeInfoArrayRTTI::getElementType, &ManagedSerializableTypeInfoArrayRTTI::setElementType);
-			addPlainField("mRank", 1, &ManagedSerializableTypeInfoArrayRTTI::getRank, &ManagedSerializableTypeInfoArrayRTTI::setRank);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -463,21 +378,14 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoListRTTI : public RTTIType<ManagedSerializableTypeInfoList, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoListRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableTypeInfo> getElementType(ManagedSerializableTypeInfoList* obj)
-		{
-			return obj->mElementType;
-		}
-
-		void setElementType(ManagedSerializableTypeInfoList* obj, SPtr<ManagedSerializableTypeInfo> val)
-		{
-			obj->mElementType = val;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mElementType, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ManagedSerializableTypeInfoListRTTI()
-		{
-			addReflectablePtrField("mElementType", 0, &ManagedSerializableTypeInfoListRTTI::getElementType, &ManagedSerializableTypeInfoListRTTI::setElementType);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{
@@ -499,32 +407,16 @@ namespace BansheeEngine
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoDictionaryRTTI : public RTTIType<ManagedSerializableTypeInfoDictionary, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoDictionaryRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableTypeInfo> getKeyType(ManagedSerializableTypeInfoDictionary* obj)
-		{
-			return obj->mKeyType;
-		}
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mKeyType, 0)
+			BS_RTTI_MEMBER_REFLPTR(mValueType, 1)
+		BS_END_RTTI_MEMBERS
 
-		void setKeyType(ManagedSerializableTypeInfoDictionary* obj, SPtr<ManagedSerializableTypeInfo> val)
-		{
-			obj->mKeyType = val;
-		}
-
-		SPtr<ManagedSerializableTypeInfo> getValueType(ManagedSerializableTypeInfoDictionary* obj)
-		{
-			return obj->mValueType;
-		}
-
-		void setValueType(ManagedSerializableTypeInfoDictionary* obj, SPtr<ManagedSerializableTypeInfo> val)
-		{
-			obj->mValueType = val;
-		}
 
 	public:
 		ManagedSerializableTypeInfoDictionaryRTTI()
-		{
-			addReflectablePtrField("mKeyType", 0, &ManagedSerializableTypeInfoDictionaryRTTI::getKeyType, &ManagedSerializableTypeInfoDictionaryRTTI::setKeyType);
-			addReflectablePtrField("mValueType", 1, &ManagedSerializableTypeInfoDictionaryRTTI::getValueType, &ManagedSerializableTypeInfoDictionaryRTTI::setValueType);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

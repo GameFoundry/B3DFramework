@@ -5,6 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsRTTIType.h"
 #include "BsSerializedObject.h"
+#include "BsDataStream.h"
 
 namespace BansheeEngine
 {
@@ -19,18 +20,18 @@ namespace BansheeEngine
 		SerializedInstanceRTTI()
 		{ }
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "SerializedInstance";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_SerializedInstance;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return nullptr;
 		}
@@ -39,46 +40,86 @@ namespace BansheeEngine
 	class BS_UTILITY_EXPORT SerializedFieldRTTI : public RTTIType <SerializedField, SerializedInstance, SerializedFieldRTTI>
 	{
 	private:
-		ManagedDataBlock getData(SerializedField* obj)
+		SPtr<DataStream> getData(SerializedField* obj, UINT32& size)
 		{
-			ManagedDataBlock dataBlock((UINT8*)obj->value, obj->size);
-			return dataBlock;
+			size = obj->size;
+
+			return bs_shared_ptr_new<MemoryDataStream>(obj->value, obj->size, false);
 		}
 
-		void setData(SerializedField* obj, ManagedDataBlock val)
+		void setData(SerializedField* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
-			// Nothing to do here, the pointer we provided already belongs to SerializedField
-			// so the data is already written
-		}
-
-		static UINT8* allocateData(SerializedField* obj, UINT32 numBytes)
-		{
-			obj->value = (UINT8*)bs_alloc(numBytes);
-			obj->size = numBytes;
+			obj->value = (UINT8*)bs_alloc(size);
+			obj->size = size;
 			obj->ownsMemory = true;
 
-			return obj->value;
+			value->read(obj->value, size);
 		}
+
 	public:
 		SerializedFieldRTTI()
 		{
-			addDataBlockField("data", 0, &SerializedFieldRTTI::getData, &SerializedFieldRTTI::setData, 0, &SerializedFieldRTTI::allocateData);
+			addDataBlockField("data", 0, &SerializedFieldRTTI::getData, &SerializedFieldRTTI::setData, 0);
 		}
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "SerializedField";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_SerializedField;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<SerializedField>();
+		}
+	};
+
+	class BS_UTILITY_EXPORT SerializedDataBlockRTTI : public RTTIType <SerializedDataBlock, SerializedInstance, SerializedDataBlockRTTI>
+	{
+	private:
+		SPtr<DataStream> getData(SerializedDataBlock* obj, UINT32& size)
+		{
+			size = obj->size;
+			obj->stream->seek(obj->offset);
+
+			return obj->stream;
+		}
+
+		void setData(SerializedDataBlock* obj, const SPtr<DataStream>& value, UINT32 size)
+		{
+			UINT8* data = (UINT8*)bs_alloc(size);
+			SPtr<MemoryDataStream> memStream = bs_shared_ptr_new<MemoryDataStream>(data, size);
+			value->read(data, size);
+
+			obj->stream = memStream;
+			obj->size = size;
+			obj->offset = 0;
+		}
+	public:
+		SerializedDataBlockRTTI()
+		{
+			addDataBlockField("data", 0, &SerializedDataBlockRTTI::getData, &SerializedDataBlockRTTI::setData, 0);
+		}
+
+		const String& getRTTIName() override
+		{
+			static String name = "SerializedDataBlock";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_SerializedDataBlock;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<SerializedDataBlock>();
 		}
 	};
 
@@ -111,18 +152,18 @@ namespace BansheeEngine
 				&SerializedObjectRTTI::setEntry, &SerializedObjectRTTI::setNumEntries);
 		}
 
-		virtual const String& getRTTIName() override
+		const String& getRTTIName() override
 		{
 			static String name = "SerializedObject";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_SerializedObject;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<SerializedObject>();
 		}
@@ -170,7 +211,7 @@ namespace BansheeEngine
 				&SerializedArrayRTTI::setEntry, &SerializedArrayRTTI::setNumEntries);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SerializedArray* serializedArray = static_cast<SerializedArray*>(obj);
 
@@ -181,7 +222,7 @@ namespace BansheeEngine
 			serializedArray->mRTTIData = sequentialData;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SerializedArray* serializedArray = static_cast<SerializedArray*>(obj);
 			serializedArray->mRTTIData = nullptr;
@@ -246,7 +287,7 @@ namespace BansheeEngine
 				&SerializedSubObjectRTTI::setEntry, &SerializedSubObjectRTTI::setNumEntries);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SerializedSubObject* serializableObject = static_cast<SerializedSubObject*>(obj);
 
@@ -257,7 +298,7 @@ namespace BansheeEngine
 			serializableObject->mRTTIData = sequentialData;
 		}
 
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SerializedSubObject* serializableObject = static_cast<SerializedSubObject*>(obj);
 			serializableObject->mRTTIData = nullptr;

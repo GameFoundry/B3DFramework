@@ -18,7 +18,7 @@ namespace BansheeEngine
 	enum class ProjectIcon
 	{
 		Folder, Mesh, Font, Texture, PlainText, ScriptCode, SpriteTexture, Shader, ShaderInclude, Material, Prefab, GUISkin,
-		PhysicsMaterial, PhysicsMesh
+		PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip
 	};
 
 	/**	Types of icons that may be displayed on the tool bar. */
@@ -47,10 +47,16 @@ namespace BansheeEngine
 		Home, Up, Clear, Options
 	};
 
+	/**	Types of icons that may be displayed in the animation editor window. */
+	enum class AnimationWindowIcon
+	{
+		Play, Record, FrameForward, FrameBack, AddKeyframe, AddEvent, Keyframe, Event
+	};
+
 	/**	Types of icons used in various areas throughout the editor. */
 	enum class EditorIcon
 	{
-		XBtn
+		X, Component, SceneObject
 	};
 
 	/**	Types of icons to be used along with log messages depending on their severity. */
@@ -71,6 +77,9 @@ namespace BansheeEngine
 
 		/** Returns the default font used by the editor. */
 		const HFont& getDefaultFont() const { return mDefaultFont; }
+
+		/** Returns the default antialiased font used by the editor. */
+		const HFont& getDefaultAAFont() const { return mDefaultAAFont; }
 
 		/**	Creates a material used for docking drop overlay used by the editor. */
 		HMaterial createDockDropOverlayMaterial() const;
@@ -135,6 +144,9 @@ namespace BansheeEngine
 		/**	Retrieves an icon that may be displayed on the inspector window. */
 		HSpriteTexture getInspectorWindowIcon(InspectorWindowIcon icon) const;
 
+		/**	Retrieves an icon that may be displayed on the animation editor window. */
+		GUIContentImages getAnimationWindowIcon(AnimationWindowIcon icon) const;
+
 		/**	Retrieves an icon that represents a specific generic editor icon. */
 		HSpriteTexture getIcon(EditorIcon icon) const;
 
@@ -147,10 +159,10 @@ namespace BansheeEngine
 		/**	Returns text contained in the default "empty" C# script. */
 		WString getEmptyCSScriptCode() const;
 
-		/**	Returns path to the builtin shader include folder, relative to the working directory. */
+		/**	Returns absolute path to the builtin shader include folder. */
 		static Path getShaderIncludeFolder();
 
-		/**	Returns path to the default widget layout file, relative to the working directory. */
+		/**	Returns absolute path to the default widget layout file. */
 		static Path getDefaultWidgetLayoutPath();
 
 		static const String ObjectFieldStyleName;
@@ -207,6 +219,7 @@ namespace BansheeEngine
 		HShader mShaderSelection;
 
 		HFont mDefaultFont;
+		HFont mDefaultAAFont;
 		HGUISkin mSkin;
 
 		SPtr<ResourceManifest> mResourceManifest;
@@ -215,15 +228,19 @@ namespace BansheeEngine
 		static const char* SkinFolder;
 		static const char* IconFolder;
 		static const char* ShaderIncludeFolder;
+		static const char* SpriteSubFolder;
 
 		Path BuiltinDataFolder;
 		Path EditorSkinFolder;
+		Path EditorSkinSpritesFolder;
 		Path EditorIconFolder;
+		Path EditorIconSpritesFolder;
 		Path EditorShaderFolder;
 		Path EditorShaderIncludeFolder;
 
 		Path BuiltinRawDataFolder;
 		Path EditorRawSkinFolder;
+		Path EditorRawIconsFolder;
 		Path EditorRawShaderIncludeFolder;
 		Path EditorRawShaderFolder;
 
@@ -253,7 +270,8 @@ namespace BansheeEngine
 		static const WString GUISkinIconTex;
 		static const WString PhysicsMaterialIconTex;
 		static const WString PhysicsMeshIconTex;
-
+		static const WString AudioClipIconTex;
+		static const WString AnimationClipIconTex;
 
 		static const WString WindowBackgroundTex;
 
@@ -344,6 +362,14 @@ namespace BansheeEngine
 		static const WString ScrollBarHandleVertHoverTex;
 		static const WString ScrollBarHandleVertActiveTex;
 
+		static const WString ScrollBarResizeableHandleHorzNormalTex;
+		static const WString ScrollBarResizeableHandleHorzHoverTex;
+		static const WString ScrollBarResizeableHandleHorzActiveTex;
+
+		static const WString ScrollBarResizeableHandleVertNormalTex;
+		static const WString ScrollBarResizeableHandleVertHoverTex;
+		static const WString ScrollBarResizeableHandleVertActiveTex;
+
 		static const WString ScrollBarHBgTex;
 		static const WString ScrollBarVBgTex;
 
@@ -389,8 +415,6 @@ namespace BansheeEngine
 		static const WString ToolBarBtnActiveTex;
 
 		static const WString ToolBarSeparatorTex;
-
-		static const WString DockSliderNormalTex;
 
 		static const WString TreeViewExpandButtonOffNormal;
 		static const WString TreeViewExpandButtonOffHover;

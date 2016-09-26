@@ -40,8 +40,8 @@ namespace BansheeEngine
 	}
 
 	MonoAssembly::MonoAssembly(const WString& path, const String& name)
-		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mIsLoaded(false), mIsDependency(false)
-		, mHaveCachedClassList(false)
+		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mDebugData(nullptr), mIsLoaded(false)
+		, mIsDependency(false), mHaveCachedClassList(false)
 	{
 
 	}
@@ -81,6 +81,7 @@ namespace BansheeEngine
 		}
 
 		// Load MDB file
+#if BS_DEBUG_MODE
 		Path mdbPath = mPath + L".mdb";
 		if (FileSystem::exists(mdbPath))
 		{
@@ -89,13 +90,13 @@ namespace BansheeEngine
 			if (mdbStream != nullptr)
 			{
 				UINT32 mdbSize = (UINT32)mdbStream->size();
-				mono_byte* mdbData = (mono_byte*)bs_stack_alloc(mdbSize);
-				mdbStream->read(mdbData, mdbSize);
+				mDebugData = (UINT8*)bs_alloc(mdbSize);
+				mdbStream->read(mDebugData, mdbSize);
 
-				mono_debug_open_image_from_memory(image, mdbData, mdbSize);
-				bs_stack_free(mdbData);
+				mono_debug_open_image_from_memory(image, mDebugData, mdbSize);
 			}
 		}
+#endif
 
 		mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
 		if (status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
@@ -109,8 +110,6 @@ namespace BansheeEngine
 		{
 			BS_EXCEPT(InvalidParametersException, "Cannot get script assembly image.");
 		}
-
-		mono_jit_exec(domain, mMonoAssembly, 0, nullptr);
 
 		mIsLoaded = true;
 		mIsDependency = false;
@@ -135,6 +134,14 @@ namespace BansheeEngine
 	{
 		if(!mIsLoaded)
 			return;
+
+		if(mDebugData != nullptr)
+		{
+			mono_debug_close_image(mMonoImage);
+
+			bs_free(mDebugData);
+			mDebugData = nullptr;
+		}
 
 		for(auto& entry : mClassesByRaw)
 			bs_delete(entry.second);

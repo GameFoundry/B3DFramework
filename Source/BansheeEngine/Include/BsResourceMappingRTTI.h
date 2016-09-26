@@ -16,13 +16,14 @@ namespace BansheeEngine
 	class BS_EXPORT ResourceMappingRTTI : public RTTIType<ResourceMapping, IReflectable, ResourceMappingRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mMapping)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mMapping, 0)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		ResourceMappingRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mMapping, 0);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

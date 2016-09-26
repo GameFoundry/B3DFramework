@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "BsEditorCommand.h"
 #include "BsUndoRedo.h"
-#include "BsCmdUtility.h"
+#include "BsEditorUtility.h"
 
 namespace BansheeEngine
 {
@@ -54,7 +54,7 @@ namespace BansheeEngine
 		void clear();
 
 		HSceneObject mSceneObject;
-		CmdUtility::SceneObjProxy mSceneObjectProxy;
+		EditorUtility::SceneObjProxy mSceneObjectProxy;
 		bool mRecordHierarchy;
 
 		UINT8* mSerializedObject;

@@ -423,7 +423,7 @@ namespace BansheeEngine
 
 				// Don't load dependencies because we don't need them, but also because they might not be in the manifest
 				// which would screw up their UUIDs.
-				importedResources.push_back({ L"primary", gResources().load(fileEntry->path, false, false) });
+				importedResources.push_back({ L"primary", gResources().load(fileEntry->path, ResourceLoadFlag::KeepSourceData) });
 			}
 
 			if(fileEntry->meta == nullptr)
@@ -467,7 +467,7 @@ namespace BansheeEngine
 				if (!isNativeResource)
 				{
 					Vector<SubResourceRaw> importedResourcesRaw = gImporter()._importAllRaw(fileEntry->path, curImportOptions);
-					Vector<SPtr<ProjectResourceMeta>> existingResourceMetas = fileEntry->meta->getResourceMetaData();
+					Vector<SPtr<ProjectResourceMeta>> existingResourceMetas = fileEntry->meta->getAllResourceMetaData();
 					fileEntry->meta->clearResourceMetaData();
 
 					for(auto& resEntry : importedResourcesRaw)
@@ -510,7 +510,20 @@ namespace BansheeEngine
 					if(!pruneResourceMetas)
 					{
 						for (auto& entry : existingResourceMetas)
-							fileEntry->meta->add(entry);
+							fileEntry->meta->addInactive(entry);
+					}
+
+					// Update UUID to path mapping
+					auto& resourceMetas = fileEntry->meta->getResourceMetaData();
+					if (resourceMetas.size() > 0)
+					{
+						mUUIDToPath[resourceMetas[0]->getUUID()] = fileEntry->path;
+
+						for (UINT32 i = 1; i < (UINT32)resourceMetas.size(); i++)
+						{
+							SPtr<ProjectResourceMeta> entry = resourceMetas[i];
+							mUUIDToPath[entry->getUUID()] = fileEntry->path + entry->getUniqueName();
+						}
 					}
 				}
 
@@ -807,12 +820,7 @@ namespace BansheeEngine
 			assetPath = path.getRelative(getResourcesFolder());
 		}
 
-		LibraryEntry* existingEntry = findEntry(assetPath);
-		if (existingEntry != nullptr)
-		{
-			LOGWRN("Resource already exists at the specified path : " + assetPath.toString() + ". Unable to save.");
-			return;
-		}
+		deleteEntry(assetPath);
 
 		resource->setName(path.getWFilename(false));
 
@@ -827,6 +835,12 @@ namespace BansheeEngine
 			return;
 
 		Path filePath = uuidToPath(resource.getUUID());
+		if(filePath.isEmpty())
+		{
+			LOGWRN("Trying to save a resource that hasn't been registered with the project library. Call ProjectLibrary::create first.");
+			return;
+		}
+
 		filePath.makeAbsolute(getResourcesFolder());
 
 		Resources::instance().save(resource, filePath, true);
@@ -1141,6 +1155,28 @@ namespace BansheeEngine
 		fs.encode(resEntry->meta.get());
 	}
 
+	void ProjectLibrary::setUserData(const Path& path, const SPtr<IReflectable>& userData)
+	{
+		LibraryEntry* entry = findEntry(path);
+
+		if (entry == nullptr || entry->type == LibraryEntryType::Directory)
+			return;
+
+		FileEntry* fileEntry = static_cast<FileEntry*>(entry);
+		SPtr<ProjectResourceMeta> resMeta = findResourceMeta(path);
+		
+		if (resMeta == nullptr)
+			return;
+
+		resMeta->mUserData = userData;
+
+		Path metaPath = fileEntry->path;
+		metaPath.setFilename(metaPath.getWFilename() + L".meta");
+
+		FileEncoder fs(metaPath);
+		fs.encode(fileEntry->meta.get());
+	}
+
 	Vector<ProjectLibrary::FileEntry*> ProjectLibrary::getResourcesForBuild() const
 	{
 		Vector<FileEntry*> output;
@@ -1177,8 +1213,10 @@ namespace BansheeEngine
 		if (meta == nullptr)
 			return HResource();
 
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::Default | ResourceLoadFlag::KeepSourceData;
+
 		String resUUID = meta->getUUID();
-		return gResources().loadFromUUID(resUUID);
+		return gResources().loadFromUUID(resUUID, false, loadFlags);
 	}
 
 	void ProjectLibrary::createInternalParentHierarchy(const Path& fullPath, DirectoryEntry** newHierarchyRoot, DirectoryEntry** newHierarchyLeaf)

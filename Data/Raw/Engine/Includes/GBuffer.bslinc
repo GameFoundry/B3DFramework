@@ -1,0 +1,49 @@
+Technique : base("GBuffer") =
+{
+	Language = "HLSL11";
+
+	Pass =
+	{
+		Common = 
+		{
+			struct GBufferData
+			{
+				float4 albedo;
+				float4 worldNormal;
+				float depth;
+			};
+			
+			void encodeGBuffer(GBufferData data, out float4 GBufferAData, out float4 GBufferBData)
+			{
+				GBufferAData = data.albedo;
+				GBufferBData.xyz = float3(data.worldNormal.xyz * 0.5f + 0.5f);
+				GBufferBData.w = 1.0f; // Marks that some deferred data was written
+			}
+		};
+	};
+};
+
+Technique : base("GBuffer") =
+{
+	Language = "GLSL";
+
+	Pass =
+	{
+		Common = 
+		{
+			struct GBufferData
+			{
+				vec4 albedo;
+				vec4 worldNormal;
+				float depth;
+			};
+			
+			void encodeGBuffer(GBufferData data, out vec4 GBufferAData, out vec4 GBufferBData)
+			{
+				GBufferAData = data.albedo;
+				GBufferBData.xyz = vec3(data.worldNormal.xyz * 0.5f + 0.5f);
+				GBufferBData.w = 1.0f; // Marks that some deferred data was written
+			}
+		};
+	};
+};

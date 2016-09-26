@@ -2,6 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
+#include <cfloat>
+
 #include "BsCorePrerequisites.h"
 #include "BsPhysicsCommon.h"
 #include "BsVector3.h"

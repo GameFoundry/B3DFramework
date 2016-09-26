@@ -190,6 +190,7 @@ namespace BansheeEngine
 			return numQuads;
 
 		UINT32 penX = 0;
+		UINT32 penNegativeXOffset = 0;
 		for(UINT32 i = mWordsStart; i <= mWordsEnd; i++)
 		{
 			const TextWord& word = mTextData->getWord(i);
@@ -242,10 +243,6 @@ namespace BansheeEngine
 			}
 			else
 			{
-				const CHAR_DESC& firstChar = mTextData->getChar(word.getCharsStart());
-				if (firstChar.xOffset < 0)
-					penX += -firstChar.xOffset; // Offset characters so that they start at 0
-
 				UINT32 kerning = 0;
 				for(UINT32 j = word.getCharsStart(); j <= word.getCharsEnd(); j++)
 				{
@@ -254,6 +251,12 @@ namespace BansheeEngine
 					INT32 curX = penX + curChar.xOffset;
 					INT32 curY = ((INT32) mTextData->getBaselineOffset() - curChar.yOffset);
 
+					// If index is negative, offset it so the text always begins at X=0. This works under the assumption
+					// that only the first character on a line can have a negative offset.
+					if (curX < 0)
+						penNegativeXOffset = penX - curChar.xOffset;
+
+					curX += penNegativeXOffset;
 					penX += curChar.xAdvance + kerning;
 					
 					kerning = 0;

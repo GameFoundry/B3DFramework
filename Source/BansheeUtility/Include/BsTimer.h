@@ -20,33 +20,26 @@ namespace BansheeEngine
     public:
 		/** Construct the timer and start timing. */
 		Timer();
-		~Timer();
 
 		/** Reset the timer to zero. */
 		void reset();
 
 		/** Returns time in milliseconds since timer was initialized or last reset. */
-		unsigned long getMilliseconds();
+		UINT64 getMilliseconds() const;
 
 		/** Returns time in microseconds since timer was initialized or last reset. */
-		unsigned long getMicroseconds();
-
-		/** Returns time in milliseconds since timer was initialized or last reset. Only CPU timer measured. */
-		unsigned long getMillisecondsCPU();
-
-		/** Returns time in microseconds since timer was initialized or last reset. Only CPU timer measured. */
-		unsigned long getMicrosecondsCPU();
+		UINT64 getMicroseconds() const;
 
 		/**
 		 * Returns the time at which the timer was initialized, in milliseconds.
 		 *
 		 * @return	Time in milliseconds.
 		 */
-		unsigned long getStartMs() const;
+		UINT64 getStartMs() const;
 
 	private:
-		struct Data;
-		Data* m;
+		std::chrono::high_resolution_clock mHRClock;
+		std::chrono::steady_clock::time_point mStartTime;
     };
 
 	/** @} */

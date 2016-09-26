@@ -44,13 +44,20 @@ namespace BansheeEngine
 		UINT32 mSize;
 		SPtr<ResourceMetaData> mMetaData;
 
+		/** 
+		 * Signal to the resource implementation if original data should be kept in memory. This is sometimes needed if
+		 * the resource destroys original data during normal usage, but it might still be required for special purposes
+		 * (like saving in the editor).
+		 */
+		bool mKeepSourceData; 
+		
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/
 	/************************************************************************/
 	public:
 		friend class ResourceRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

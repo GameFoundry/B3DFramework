@@ -61,6 +61,16 @@ namespace BansheeEngine
 		Generic,
 		Unknown
 	};
+
+	/**	Returns the level of member visibility in the class. */
+	enum class MonoMemberVisibility // Note: Elements must be ordered from most to least hidden
+	{
+		Private,
+		Protected,
+		Internal,
+		ProtectedInternal,
+		Public
+	};
 }
 
 typedef struct _MonoClass MonoClass;

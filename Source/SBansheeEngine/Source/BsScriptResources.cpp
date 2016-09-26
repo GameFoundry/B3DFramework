@@ -10,6 +10,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptResource.h"
 #include "BsScriptResourceRef.h"
+#include "BsApplication.h"
 
 namespace BansheeEngine
 {
@@ -46,7 +47,14 @@ namespace BansheeEngine
 		if (scriptRef == nullptr)
 			return nullptr;
 
-		HResource resource = gResources().load(scriptRef->getHandle(), true, keepLoaded);
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies;
+		if (keepLoaded)
+			loadFlags |= ResourceLoadFlag::KeepInternalRef;
+
+		if (gApplication().isEditor())
+			loadFlags |= ResourceLoadFlag::KeepSourceData;
+
+		HResource resource = gResources().load(scriptRef->getHandle(), loadFlags);
 		if (resource == nullptr)
 			return nullptr;
 

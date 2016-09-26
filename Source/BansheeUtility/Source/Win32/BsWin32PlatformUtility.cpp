@@ -16,18 +16,6 @@ namespace BansheeEngine
 			TerminateProcess(GetCurrentProcess(), 0);
 	}
 
-	double PlatformUtility::queryPerformanceTimerMs()
-	{
-		LARGE_INTEGER counterValue;
-		QueryPerformanceCounter(&counterValue);
-
-		LARGE_INTEGER counterFreq;
-		QueryPerformanceFrequency(&counterFreq);
-
-		return (double)counterValue.QuadPart / (counterFreq.QuadPart * 0.001);
-	}
-
-
 	void PlatformUtility::copyToClipboard(const WString& string)
 	{
 		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (string.size() + 1) * sizeof(WString::value_type));

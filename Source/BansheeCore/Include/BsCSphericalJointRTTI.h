@@ -16,25 +16,19 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CSphericalJointRTTI : public RTTIType<CSphericalJoint, CJoint, CSphericalJointRTTI>
 	{
-		BS_PLAIN_MEMBER_NAMED(mFlag, mDesc.flag)
-		BS_PLAIN_MEMBER_NAMED(mYLimitAngle, mDesc.limit.yLimitAngle)
-		BS_PLAIN_MEMBER_NAMED(mZLimitAngle, mDesc.limit.zLimitAngle)
-		BS_PLAIN_MEMBER_NAMED(mLimitContactDist, mDesc.limit.contactDist)
-		BS_PLAIN_MEMBER_NAMED(mLimitRestitution, mDesc.limit.restitution)
-		BS_PLAIN_MEMBER_NAMED(mSpringDamping, mDesc.limit.spring.damping)
-		BS_PLAIN_MEMBER_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.flag, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mYLimitAngle, mDesc.limit.yLimitAngle, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mZLimitAngle, mDesc.limit.zLimitAngle, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitContactDist, mDesc.limit.contactDist, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitRestitution, mDesc.limit.restitution, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.limit.spring.damping, 5)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.limit.spring.stiffness, 6)
+		BS_END_RTTI_MEMBERS
 	public:
 		CSphericalJointRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mFlag, 0);
-			BS_ADD_PLAIN_FIELD(mYLimitAngle, 1);
-			BS_ADD_PLAIN_FIELD(mZLimitAngle, 2);
-			BS_ADD_PLAIN_FIELD(mLimitContactDist, 3);
-			BS_ADD_PLAIN_FIELD(mLimitRestitution, 4);
-			BS_ADD_PLAIN_FIELD(mSpringDamping, 5);
-			BS_ADD_PLAIN_FIELD(mSpringStiffness, 6);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

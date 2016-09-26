@@ -15,6 +15,8 @@ namespace BansheeEngine
     /// a path. Path must be formated in a certain way. All path elements must be separated by /, for example 
     /// "View/Toolbars/Find". "View" would be the top level path element, "Toolbars" a child in its menu that opens up its
     /// own submenu, and "Find" a child in the "Toolbars" sub-menu with an optional callback.
+    /// 
+    /// A context menu can either by provided to GUIElements, or opened manually by calling <see cref="Open"/>.
     /// </summary>
     public class ContextMenu : ScriptObject
     {
@@ -26,6 +28,21 @@ namespace BansheeEngine
         public ContextMenu()
         {
             Internal_CreateInstance(this);
+        }
+
+        /// <summary>
+        /// Opens the context menu at the specified position.
+        /// </summary>
+        /// <param name="position">Position relative to the <paramref name="parent"/>.</param>
+        /// <param name="parent">GUI layout over which to open the context menu. Context menu can be opened outside of the
+        ///                      area of the layout, as long as the area belongs to the same window.</param>
+        public void Open(Vector2I position, GUILayout parent)
+        {
+            if (parent == null)
+                return;
+
+            IntPtr parentPtr = parent.GetCachedPtr();
+            Internal_Open(mCachedPtr, ref position, parentPtr);
         }
 
         /// <summary>
@@ -121,6 +138,9 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CreateInstance(ContextMenu instance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_Open(IntPtr instance, ref Vector2I position, IntPtr layoutPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_AddItem(IntPtr instance, string path, int callbackIdx, ref ShortcutKey shortcut);

@@ -18,7 +18,7 @@ namespace BansheeEditor
         private const int MAX_SHOWN_CHARACTERS = 3000;
 
         private GUILabel textLabel = new GUILabel("", EditorStyles.MultiLineLabel, GUIOption.FixedHeight(500));
-        private GUITexture textBg = new GUITexture(null, EditorStyles.ScrollAreaBg);
+        private GUITexture textBg = new GUITexture(null, EditorStylesInternal.ScrollAreaBg);
 
         private string shownText = "";
 

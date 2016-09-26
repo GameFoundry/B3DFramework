@@ -84,6 +84,8 @@ namespace BansheeEngine
 			MeshUsage usage);
 		static MonoArray* internal_GetSubMeshes(ScriptMesh* thisPtr);
 		static UINT32 internal_GetSubMeshCount(ScriptMesh* thisPtr);
+		static MonoObject* internal_GetSkeleton(ScriptMesh* thisPtr);
+		static MonoObject* internal_GetMorphShapes(ScriptMesh* thisPtr);
 		static void internal_GetBounds(ScriptMesh* thisPtr, AABox* box, Sphere* sphere);
 		static MonoObject* internal_GetMeshData(ScriptMesh* thisPtr);
 		static void internal_SetMeshData(ScriptMesh* thisPtr, ScriptMeshData* value);

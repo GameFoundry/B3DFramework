@@ -27,7 +27,6 @@ namespace BansheeEngine
 			if (calculateMeshBounds(object, meshBounds))
 			{
 				bounds.merge(meshBounds);
-
 				gotOneMesh = true;
 			}
 		}
@@ -48,6 +47,46 @@ namespace BansheeEngine
 			return bounds;
 
 		return AABox(Vector3::ZERO, Vector3::ZERO);
+	}
+
+	Vector3 EditorUtility::calculateCenter(const Vector<HSceneObject>& objects)
+	{
+		if (objects.size() == 0)
+			return Vector3::ZERO;
+
+		Vector3 center = Vector3::ZERO;
+		UINT32 count = 0;
+
+		for (auto& object : objects)
+		{
+			AABox meshBounds;
+			if (calculateMeshBounds(object, meshBounds))
+			{
+				if (meshBounds.getSize() == Vector3::INF)
+					center += object->getWorldPosition();
+				else
+					center += meshBounds.getCenter();
+
+				count++;
+			}
+		}
+
+		if (count == 0)
+		{
+			for (auto& object : objects)
+			{
+				if (object.isDestroyed())
+					continue;
+
+				center += object->getWorldPosition();
+				count++;
+			}
+		}
+
+		if (count > 0)
+			return center / (float)count;
+
+		return Vector3::ZERO;
 	}
 
 	bool EditorUtility::calculateMeshBounds(const HSceneObject& object, AABox& bounds)
@@ -79,5 +118,97 @@ namespace BansheeEngine
 		}
 
 		return foundOne;
+	}
+
+	EditorUtility::SceneObjProxy EditorUtility::createProxy(const HSceneObject& sceneObject)
+	{
+		struct TempData
+		{
+			TempData(SceneObjProxy& proxy, const HSceneObject& so)
+				:proxy(proxy), obj(so)
+			{ }
+
+			SceneObjProxy& proxy;
+			HSceneObject obj;
+		};
+
+		SceneObjProxy rootProxy;
+
+		Stack<TempData> todo;
+		todo.push(TempData(rootProxy, sceneObject));
+
+		while (!todo.empty())
+		{
+			TempData data = todo.top();
+			todo.pop();
+
+			data.proxy.instanceData = data.obj->_getInstanceData();
+
+			const Vector<HComponent>& components = data.obj->getComponents();
+			for (auto& component : components)
+				data.proxy.componentInstanceData.push_back(component->_getInstanceData());
+
+			UINT32 numChildren = data.obj->getNumChildren();
+			data.proxy.children.resize(numChildren);
+			for (UINT32 i = 0; i < numChildren; i++)
+			{
+				todo.push(TempData(data.proxy.children[i], data.obj->getChild(i)));
+			}
+		}
+
+		return rootProxy;
+	}
+
+	void EditorUtility::restoreIds(const HSceneObject& restored, SceneObjProxy& proxy)
+	{
+		// Note: This method relies that all restored GameObject handles pointing to the
+		// same object also have the same shared handle data (Since I only update instance
+		// data on a single handle I know exists, and expect all others will be updated
+		// by that as well).
+
+		struct TempData
+		{
+			TempData(SceneObjProxy& proxy, const HSceneObject& restoredObj)
+				:proxy(proxy), restoredObj(restoredObj)
+			{ }
+
+			SceneObjProxy& proxy;
+			HSceneObject restoredObj;
+		};
+
+		Stack<TempData> todo;
+		todo.push(TempData(proxy, restored));
+
+		while (!todo.empty())
+		{
+			TempData data = todo.top();
+			todo.pop();
+
+			data.restoredObj->_setInstanceData(data.proxy.instanceData);
+
+			// Find components that are still active and swap the old ones with restored ones,
+			// keep any other as is.
+			const Vector<HComponent>& restoredComponents = data.restoredObj->getComponents();
+
+			UINT32 idx = 0;
+			for (auto& restoredComponent : restoredComponents)
+			{
+				restoredComponent->_setInstanceData(data.proxy.componentInstanceData[idx]);
+
+				SPtr<GameObject> restoredPtr = std::static_pointer_cast<GameObject>(restoredComponent.getInternalPtr());
+				HComponent restoredComponentCopy = restoredComponent; // To remove const
+				restoredComponentCopy._setHandleData(restoredPtr);
+
+				idx++;
+			}
+
+			// Find children that are still active and swap the old ones with restored ones,
+			// keep any other as is
+			UINT32 restoredNumChildren = data.restoredObj->getNumChildren();
+			for (UINT32 i = 0; i < restoredNumChildren; i++)
+			{
+				todo.push(TempData(data.proxy.children[i], data.restoredObj->getChild(i)));
+			}
+		}
 	}
 }

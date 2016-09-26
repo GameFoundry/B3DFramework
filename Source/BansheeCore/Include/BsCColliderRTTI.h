@@ -15,29 +15,21 @@ namespace BansheeEngine
 
 	class BS_CORE_EXPORT CColliderRTTI : public RTTIType<CCollider, Component, CColliderRTTI>
 	{
-		BS_PLAIN_MEMBER(mLayer)
-		BS_PLAIN_MEMBER(mRestOffset)
-		BS_PLAIN_MEMBER(mContactOffset)
-		BS_REFL_MEMBER(mMaterial)
-		BS_PLAIN_MEMBER(mMass)
-		BS_PLAIN_MEMBER(mIsTrigger)
-		BS_PLAIN_MEMBER(mLocalPosition)
-		BS_PLAIN_MEMBER(mLocalRotation)
-		BS_PLAIN_MEMBER(mCollisionReportMode)
-
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mLayer, 0)
+			BS_RTTI_MEMBER_PLAIN(mRestOffset, 1)
+			BS_RTTI_MEMBER_PLAIN(mContactOffset, 2)
+			BS_RTTI_MEMBER_REFL(mMaterial, 3)
+			BS_RTTI_MEMBER_PLAIN(mMass, 4)
+			BS_RTTI_MEMBER_PLAIN(mIsTrigger, 5)
+			BS_RTTI_MEMBER_PLAIN(mLocalPosition, 6)
+			BS_RTTI_MEMBER_PLAIN(mLocalRotation, 7)
+			BS_RTTI_MEMBER_PLAIN(mCollisionReportMode, 8)
+		BS_END_RTTI_MEMBERS
 	public:
 		CColliderRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mLayer, 0);
-			BS_ADD_PLAIN_FIELD(mRestOffset, 1);
-			BS_ADD_PLAIN_FIELD(mContactOffset, 2);
-			BS_ADD_REFL_FIELD(mMaterial, 3);
-			BS_ADD_PLAIN_FIELD(mMass, 4);
-			BS_ADD_PLAIN_FIELD(mIsTrigger, 5);
-			BS_ADD_PLAIN_FIELD(mLocalPosition, 6);
-			BS_ADD_PLAIN_FIELD(mLocalRotation, 7);
-			BS_ADD_PLAIN_FIELD(mCollisionReportMode, 8);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

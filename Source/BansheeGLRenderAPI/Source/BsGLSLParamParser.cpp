@@ -68,8 +68,24 @@ namespace BansheeEngine
 			return VET_FLOAT3;
 		case GL_FLOAT_VEC4:
 			return VET_FLOAT4;
+		case GL_INT:
+			return VET_INT1;
+		case GL_INT_VEC2:
+			return VET_INT2;
+		case GL_INT_VEC3:
+			return VET_INT3;
+		case GL_INT_VEC4:
+			return VET_INT4;
+		case GL_UNSIGNED_INT:
+			return VET_UINT1;
+		case GL_UNSIGNED_INT_VEC2:
+			return VET_UINT2;
+		case GL_UNSIGNED_INT_VEC3:
+			return VET_UINT3;
+		case GL_UNSIGNED_INT_VEC4:
+			return VET_UINT4;
 		default:
-			BS_EXCEPT(NotImplementedException, "OpenGL render system currently only supports float parameters.");
+			BS_EXCEPT(NotImplementedException, "Unsupported vertex attribute type.");
 		}
 
 		return VET_FLOAT4;
@@ -266,6 +282,7 @@ namespace BansheeEngine
 
 			bool isSampler = false;
 			bool isImage = false;
+			bool isBuffer = false;
 			switch (uniformType)
 			{
 			case GL_SAMPLER_1D:
@@ -281,6 +298,10 @@ namespace BansheeEngine
 			case GL_IMAGE_CUBE:
 			case GL_IMAGE_2D_MULTISAMPLE:
 				isImage = true;
+				break;
+			case GL_SAMPLER_BUFFER:
+			case GL_IMAGE_BUFFER:
+				isBuffer = true;
 				break;
 			}
 
@@ -344,6 +365,19 @@ namespace BansheeEngine
 				}
 
 				returnParamDesc.loadStoreTextures.insert(std::make_pair(paramName, textureParam));
+			}
+			else if (isBuffer)
+			{
+				GpuParamObjectDesc bufferParam;
+				bufferParam.name = paramName;
+				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
+
+				if (uniformType == GL_IMAGE_BUFFER)
+					bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
+				else // Sampler buffer
+					bufferParam.type = GPOT_STRUCTURED_BUFFER;
+
+				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
 			}
 			else
 			{

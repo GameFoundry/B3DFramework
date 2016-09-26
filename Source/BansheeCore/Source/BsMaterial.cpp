@@ -1,378 +1,29 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsMaterial.h"
-#include "BsException.h"
 #include "BsShader.h"
 #include "BsTechnique.h"
 #include "BsPass.h"
 #include "BsRenderAPI.h"
-#include "BsHardwareBufferManager.h"
-#include "BsGpuProgram.h"
-#include "BsGpuParamBlockBuffer.h"
-#include "BsGpuParamDesc.h"
 #include "BsMaterialRTTI.h"
 #include "BsMaterialManager.h"
-#include "BsDebug.h"
 #include "BsResources.h"
 #include "BsFrameAlloc.h"
 #include "BsMatrixNxM.h"
 #include "BsVectorNI.h"
 #include "BsMemorySerializer.h"
 #include "BsMaterialParams.h"
+#include "BsGpuParamsSet.h"
 
 namespace BansheeEngine
 {
-	struct ShaderBlockDesc
-	{
-		String name;
-		GpuParamBlockUsage usage;
-		int size;
-		bool create;
-	};
-
 	enum MaterialLoadFlags
 	{
 		Load_None	= 0,
 		Load_Shader	= 1,
 		Load_All	= 2
 	};
-
-	const UINT32 PassParameters::NUM_PARAMS = 6;
-	const UINT32 PassParametersCore::NUM_PARAMS = 6;
 	
-	SPtr<PassParametersCore> convertParamsToCore(const SPtr<PassParameters>& passParams)
-	{
-		SPtr<PassParametersCore> passParameters = bs_shared_ptr_new<PassParametersCore>();
-
-		if (passParams->mVertParams != nullptr)
-			passParameters->mVertParams = passParams->mVertParams->getCore();
-		else
-			passParameters->mVertParams = nullptr;
-
-		if (passParams->mFragParams != nullptr)
-			passParameters->mFragParams = passParams->mFragParams->getCore();
-		else
-			passParameters->mFragParams = nullptr;
-
-		if (passParams->mGeomParams != nullptr)
-			passParameters->mGeomParams = passParams->mGeomParams->getCore();
-		else
-			passParameters->mGeomParams = nullptr;
-
-		if (passParams->mHullParams != nullptr)
-			passParameters->mHullParams = passParams->mHullParams->getCore();
-		else
-			passParameters->mHullParams = nullptr;
-
-		if (passParams->mDomainParams != nullptr)
-			passParameters->mDomainParams = passParams->mDomainParams->getCore();
-		else
-			passParameters->mDomainParams = nullptr;
-
-		if (passParams->mComputeParams != nullptr)
-			passParameters->mComputeParams = passParams->mComputeParams->getCore();
-		else
-			passParameters->mComputeParams = nullptr;
-
-		return passParameters;
-	}
-
-	bool areParamsEqual(const GpuParamDataDesc& paramA, const GpuParamDataDesc& paramB, bool ignoreBufferOffsets)
-	{
-		bool equal = paramA.arraySize == paramB.arraySize && paramA.elementSize == paramB.elementSize
-			&& paramA.type == paramB.type && paramA.arrayElementStride == paramB.arrayElementStride;
-
-		if (!ignoreBufferOffsets)
-			equal &= paramA.cpuMemOffset == paramB.cpuMemOffset && paramA.gpuMemOffset == paramB.gpuMemOffset;
-
-		return equal;
-	}
-
-	Map<String, const GpuParamDataDesc*> determineValidDataParameters(const Vector<SPtr<GpuParamDesc>>& paramDescs)
-	{
-		Map<String, const GpuParamDataDesc*> foundDataParams;
-		Map<String, bool> validParams;
-
-		for (auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
-		{
-			const GpuParamDesc& curDesc = **iter;
-
-			// Check regular data params
-			for (auto iter2 = curDesc.params.begin(); iter2 != curDesc.params.end(); ++iter2)
-			{
-				const GpuParamDataDesc& curParam = iter2->second;
-
-				auto dataFindIter = validParams.find(iter2->first);
-				if (dataFindIter == validParams.end())
-				{
-					validParams[iter2->first] = true;
-					foundDataParams[iter2->first] = &curParam;
-				}
-				else
-				{
-					if (validParams[iter2->first])
-					{
-						auto dataFindIter2 = foundDataParams.find(iter2->first);
-
-						const GpuParamDataDesc* otherParam = dataFindIter2->second;
-						if (!areParamsEqual(curParam, *otherParam, true))
-						{
-							validParams[iter2->first] = false;
-							foundDataParams.erase(dataFindIter2);
-						}
-					}
-				}
-			}
-		}
-
-		return foundDataParams;
-	}
-
-	Vector<const GpuParamObjectDesc*> determineValidObjectParameters(const Vector<SPtr<GpuParamDesc>>& paramDescs)
-	{
-		Vector<const GpuParamObjectDesc*> validParams;
-
-		for (auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
-		{
-			const GpuParamDesc& curDesc = **iter;
-
-			// Check sampler params
-			for (auto iter2 = curDesc.samplers.begin(); iter2 != curDesc.samplers.end(); ++iter2)
-			{
-				validParams.push_back(&iter2->second);
-			}
-
-			// Check texture params
-			for (auto iter2 = curDesc.textures.begin(); iter2 != curDesc.textures.end(); ++iter2)
-			{
-				validParams.push_back(&iter2->second);
-			}
-
-			// Check load-store texture params
-			for (auto iter2 = curDesc.loadStoreTextures.begin(); iter2 != curDesc.loadStoreTextures.end(); ++iter2)
-			{
-				validParams.push_back(&iter2->second);
-			}
-
-			// Check buffer params
-			for (auto iter2 = curDesc.buffers.begin(); iter2 != curDesc.buffers.end(); ++iter2)
-			{
-				validParams.push_back(&iter2->second);
-			}
-		}
-
-		return validParams;
-	}
-
-	Set<String> determineValidShareableParamBlocks(const Vector<SPtr<GpuParamDesc>>& paramDescs)
-	{
-		// Make sure param blocks with the same name actually are the same
-		Map<String, std::pair<String, SPtr<GpuParamDesc>>> uniqueParamBlocks;
-		Map<String, bool> validParamBlocks;
-
-		for (auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
-		{
-			const GpuParamDesc& curDesc = **iter;
-			for (auto blockIter = curDesc.paramBlocks.begin(); blockIter != curDesc.paramBlocks.end(); ++blockIter)
-			{
-				bool isBlockValid = true;
-				const GpuParamBlockDesc& curBlock = blockIter->second;
-
-				if (!curBlock.isShareable) // Non-shareable buffers are handled differently, they're allowed same names
-					continue;
-
-				auto iterFind = uniqueParamBlocks.find(blockIter->first);
-				if (iterFind == uniqueParamBlocks.end())
-				{
-					uniqueParamBlocks[blockIter->first] = std::make_pair(blockIter->first, *iter);
-					validParamBlocks[blockIter->first] = true;
-					continue;
-				}
-
-				String otherBlockName = iterFind->second.first;
-				SPtr<GpuParamDesc> otherDesc = iterFind->second.second;
-
-				for (auto myParamIter = curDesc.params.begin(); myParamIter != curDesc.params.end(); ++myParamIter)
-				{
-					const GpuParamDataDesc& myParam = myParamIter->second;
-
-					if (myParam.paramBlockSlot != curBlock.slot)
-						continue; // Param is in another block, so we will check it when its time for that block
-
-					auto otherParamFind = otherDesc->params.find(myParamIter->first);
-
-					// Cannot find other param, blocks aren't equal
-					if (otherParamFind == otherDesc->params.end())
-					{
-						isBlockValid = false;
-						break;
-					}
-
-					const GpuParamDataDesc& otherParam = otherParamFind->second;
-
-					if (!areParamsEqual(myParam, otherParam, false) || curBlock.name != otherBlockName)
-					{
-						isBlockValid = false;
-						break;
-					}
-				}
-
-				if (!isBlockValid)
-				{
-					if (validParamBlocks[blockIter->first])
-					{
-						LOGWRN("Found two param blocks with the same name but different contents: " + blockIter->first);
-						validParamBlocks[blockIter->first] = false;
-					}
-				}
-			}
-		}
-
-		Set<String> validParamBlocksReturn;
-		for (auto iter = validParamBlocks.begin(); iter != validParamBlocks.end(); ++iter)
-		{
-			if (iter->second)
-				validParamBlocksReturn.insert(iter->first);
-		}
-
-		return validParamBlocksReturn;
-	}
-
-	Map<String, String> determineParameterToBlockMapping(const Vector<SPtr<GpuParamDesc>>& paramDescs)
-	{
-		Map<String, String> paramToParamBlock;
-
-		for (auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
-		{
-			const GpuParamDesc& curDesc = **iter;
-			for (auto iter2 = curDesc.params.begin(); iter2 != curDesc.params.end(); ++iter2)
-			{
-				const GpuParamDataDesc& curParam = iter2->second;
-
-				auto iterFind = paramToParamBlock.find(curParam.name);
-				if (iterFind != paramToParamBlock.end())
-					continue;
-
-				for (auto iterBlock = curDesc.paramBlocks.begin(); iterBlock != curDesc.paramBlocks.end(); ++iterBlock)
-				{
-					if (iterBlock->second.slot == curParam.paramBlockSlot)
-					{
-						paramToParamBlock[curParam.name] = iterBlock->second.name;
-						break;
-					}
-				}
-			}
-		}
-
-		return paramToParamBlock;
-	}
-
-	Map<String, String> determineParamMappings(const Vector<SPtr<GpuParamDesc>>& paramDescs, 
-		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams,
-		const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams,
-		const Map<String, SHADER_OBJECT_PARAM_DESC>& bufferParams,
-		const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams)
-	{
-		Map<String, String> validParams;
-
-		Map<String, const GpuParamDataDesc*> validDataParameters = determineValidDataParameters(paramDescs);
-		Vector<const GpuParamObjectDesc*> validObjectParameters = determineValidObjectParameters(paramDescs);
-		Map<String, String> paramToParamBlockMap = determineParameterToBlockMapping(paramDescs);
-
-		// Create data param mappings
-		for (auto iter = dataParams.begin(); iter != dataParams.end(); ++iter)
-		{
-			auto findIter = validDataParameters.find(iter->second.gpuVariableName);
-
-			// Not valid so we skip it
-			if (findIter == validDataParameters.end())
-				continue;
-
-			if (findIter->second->type != iter->second.type && !(iter->second.type == GPDT_COLOR && findIter->second->type == GPDT_FLOAT4))
-			{
-				LOGWRN("Ignoring shader parameter \"" + iter->first + "\". Type doesn't match the one defined in the gpu program. "
-					+ "Shader defined type: " + toString(iter->second.type) + " - Gpu program defined type: " + toString(findIter->second->type));
-				continue;
-			}
-
-			if (findIter->second->arraySize != iter->second.arraySize)
-			{
-				LOGWRN("Ignoring shader parameter \"" + iter->first + "\". Array size doesn't match the one defined in the gpu program."
-					+ "Shader defined array size: " + toString(iter->second.arraySize) + " - Gpu program defined array size: " + toString(findIter->second->arraySize));
-				continue;
-			}
-
-			auto findBlockIter = paramToParamBlockMap.find(iter->second.gpuVariableName);
-
-			if (findBlockIter == paramToParamBlockMap.end())
-				BS_EXCEPT(InternalErrorException, "Parameter doesn't exist in param to param block map but exists in valid param map.");
-
-			validParams[iter->first] = iter->second.gpuVariableName;
-		}
-
-		// Create object param mappings
-		auto determineObjectMappings = [&](const Map<String, SHADER_OBJECT_PARAM_DESC>& params)
-		{
-			for (auto iter = params.begin(); iter != params.end(); ++iter)
-			{
-				const Vector<String>& gpuVariableNames = iter->second.gpuVariableNames;
-				for (auto iter2 = gpuVariableNames.begin(); iter2 != gpuVariableNames.end(); ++iter2)
-				{
-					for (auto iter3 = validObjectParameters.begin(); iter3 != validObjectParameters.end(); ++iter3)
-					{
-						if ((*iter3)->name == (*iter2) && (*iter3)->type == iter->second.type)
-						{
-							validParams[iter->first] = *iter2;
-							break;
-						}
-					}
-				}
-			}
-		};
-
-		determineObjectMappings(textureParams);
-		determineObjectMappings(samplerParams);
-		determineObjectMappings(bufferParams);
-
-		return validParams;
-	}
-
-	Vector<ShaderBlockDesc> determineShaderBlockData(const Set<String>& paramBlocks, const Vector<SPtr<GpuParamDesc>>& paramDescs,
-		const Map<String, SHADER_PARAM_BLOCK_DESC>& shaderDesc)
-	{
-		Vector<ShaderBlockDesc> output;
-		for (auto iter = paramBlocks.begin(); iter != paramBlocks.end(); ++iter)
-		{
-			ShaderBlockDesc shaderBlockDesc;
-			shaderBlockDesc.create = true;
-			shaderBlockDesc.usage = GPBU_STATIC;
-			shaderBlockDesc.size = 0;
-			shaderBlockDesc.name = *iter;
-
-			auto iterFind = shaderDesc.find(*iter);
-			if (iterFind != shaderDesc.end())
-			{
-				shaderBlockDesc.create = !iterFind->second.shared && iterFind->second.rendererSemantic == StringID::NONE;
-				shaderBlockDesc.usage = iterFind->second.usage;
-			}
-
-			for (auto iter2 = paramDescs.begin(); iter2 != paramDescs.end(); ++iter2)
-			{
-				auto findParamBlockDesc = (*iter2)->paramBlocks.find(*iter);
-
-				if (findParamBlockDesc != (*iter2)->paramBlocks.end())
-				{
-					shaderBlockDesc.size = findParamBlockDesc->second.blockSize * sizeof(UINT32);
-					break;
-				}
-			}
-
-			output.push_back(shaderBlockDesc);
-		}
-
-		return output;
-	}
-
 	template<class T>
 	bool isShaderValid(const T& shader) { return false; }
 
@@ -382,114 +33,83 @@ namespace BansheeEngine
 	template<>
 	bool isShaderValid(const SPtr<ShaderCore>& shader) { return shader != nullptr; }
 
-	Vector<SPtr<GpuParamDesc>> MaterialBase::getAllParamDescs(const SPtr<Technique>& technique)
+	template<bool Core> struct TMatType { };
+	template<> struct TMatType<false> { typedef Material Type; };
+	template<> struct TMatType<true> { typedef MaterialCore Type; };
+
+	template<bool Core>
+	SPtr<typename TMatType<Core>::Type> getMaterialPtr(const TMaterial<Core>* material)
 	{
-		Vector<SPtr<GpuParamDesc>> allParamDescs;
-
-		// Make sure all gpu programs are fully loaded
-		for (UINT32 i = 0; i < technique->getNumPasses(); i++)
-		{
-			SPtr<Pass> curPass = technique->getPass(i);
-
-			SPtr<GpuProgram> vertProgram = curPass->getVertexProgram();
-			if (vertProgram)
-			{
-				vertProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(vertProgram->getParamDesc());
-			}
-
-			SPtr<GpuProgram> fragProgram = curPass->getFragmentProgram();
-			if (fragProgram)
-			{
-				fragProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(fragProgram->getParamDesc());
-			}
-
-			SPtr<GpuProgram> geomProgram = curPass->getGeometryProgram();
-			if (geomProgram)
-			{
-				geomProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(geomProgram->getParamDesc());
-			}
-
-			SPtr<GpuProgram> hullProgram = curPass->getHullProgram();
-			if (hullProgram)
-			{
-				hullProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(hullProgram->getParamDesc());
-			}
-
-			SPtr<GpuProgram> domainProgram = curPass->getDomainProgram();
-			if (domainProgram)
-			{
-				domainProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(domainProgram->getParamDesc());
-			}
-
-			SPtr<GpuProgram> computeProgram = curPass->getComputeProgram();
-			if (computeProgram)
-			{
-				computeProgram->blockUntilCoreInitialized();
-				allParamDescs.push_back(computeProgram->getParamDesc());
-			}
-		}
-
-		return allParamDescs;
-	}
-
-	Vector<SPtr<GpuParamDesc>> MaterialBase::getAllParamDescs(const SPtr<TechniqueCore>& technique)
-	{
-		Vector<SPtr<GpuParamDesc>> allParamDescs;
-
-		// Make sure all gpu programs are fully loaded
-		for (UINT32 i = 0; i < technique->getNumPasses(); i++)
-		{
-			SPtr<PassCore> curPass = technique->getPass(i);
-
-			SPtr<GpuProgramCore> vertProgram = curPass->getVertexProgram();
-			if (vertProgram)
-				allParamDescs.push_back(vertProgram->getParamDesc());
-
-			SPtr<GpuProgramCore> fragProgram = curPass->getFragmentProgram();
-			if (fragProgram)
-				allParamDescs.push_back(fragProgram->getParamDesc());
-
-			SPtr<GpuProgramCore> geomProgram = curPass->getGeometryProgram();
-			if (geomProgram)
-				allParamDescs.push_back(geomProgram->getParamDesc());
-
-			SPtr<GpuProgramCore> hullProgram = curPass->getHullProgram();
-			if (hullProgram)
-				allParamDescs.push_back(hullProgram->getParamDesc());
-
-			SPtr<GpuProgramCore> domainProgram = curPass->getDomainProgram();
-			if (domainProgram)
-				allParamDescs.push_back(domainProgram->getParamDesc());
-
-			SPtr<GpuProgramCore> computeProgram = curPass->getComputeProgram();
-			if (computeProgram)
-				allParamDescs.push_back(computeProgram->getParamDesc());
-		}
-
-		return allParamDescs;
+		return std::static_pointer_cast<typename TMatType<Core>::Type>(static_cast<const typename TMatType<Core>::Type*>(material)->getThisPtr());
 	}
 
 	template<bool Core>
-	UINT32 TMaterial<Core>::getNumPasses() const
+	SPtr<typename TMaterial<Core>::GpuParamsSetType> TMaterial<Core>::createParamsSet(UINT32 techniqueIdx)
+	{
+		if (techniqueIdx >= (UINT32)mTechniques.size())
+			return nullptr;
+
+		SPtr<TechniqueType> technique = mTechniques[techniqueIdx];
+		return bs_shared_ptr_new<GpuParamsSetType>(technique, mShader, mParams);
+	}
+
+	template<bool Core>
+	void TMaterial<Core>::updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, UINT32 dirtyBitIdx, bool forceRefresh)
+	{
+		paramsSet->update(mParams, dirtyBitIdx, forceRefresh);
+
+		mParams->clearDirtyFlags(dirtyBitIdx);
+	}
+
+	template<bool Core>
+	UINT32 TMaterial<Core>::findTechnique(const StringID& tag) const
+	{
+		for(UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
+		{
+			if (mTechniques[i]->hasTag(tag))
+				return i;
+		}
+
+		return (UINT32)-1;
+	}
+
+	template<bool Core>
+	UINT32 TMaterial<Core>::getDefaultTechnique() const
+	{
+		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
+		{
+			if (!mTechniques[i]->hasTags())
+				return i;
+		}
+
+		return 0;
+	}
+
+	template<bool Core>
+	UINT32 TMaterial<Core>::getNumPasses(UINT32 techniqueIdx) const
 	{
 		if (mShader == nullptr)
 			return 0;
 
-		return mShader->getBestTechnique()->getNumPasses();
+		if (techniqueIdx >= (UINT32)mTechniques.size())
+			return 0;
+
+		return mTechniques[techniqueIdx]->getNumPasses();
 	}
 
 	template<bool Core>
-	SPtr<typename TMaterial<Core>::PassType> TMaterial<Core>::getPass(UINT32 passIdx) const
+	SPtr<typename TMaterial<Core>::PassType> TMaterial<Core>::getPass(UINT32 passIdx, UINT32 techniqueIdx) const
 	{
-		if (passIdx < 0 || passIdx >= mShader->getBestTechnique()->getNumPasses())
-			BS_EXCEPT(InvalidParametersException, "Invalid pass index.");
+		if (mShader == nullptr)
+			return nullptr;
 
-		return mShader->getBestTechnique()->getPass(passIdx);
+		if (techniqueIdx >= (UINT32)mTechniques.size())
+			return nullptr;
+
+		if (passIdx < 0 || passIdx >= mTechniques[techniqueIdx]->getNumPasses())
+			return nullptr;
+
+		return mTechniques[techniqueIdx]->getPass(passIdx);
 	}
 
 	template<bool Core>
@@ -497,34 +117,7 @@ namespace BansheeEngine
 	{
 		throwIfNotInitialized();
 
-		SPtr<Vector<TGpuParamStruct<Core>>> gpuParams;
-
-		auto iterFind = mValidParams.find(name);
-		if (iterFind != mValidParams.end())
-		{
-			const String& gpuVarName = iterFind->second;
-			gpuParams = bs_shared_ptr_new<Vector<TGpuParamStruct<Core>>>();
-
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						if (paramPtr->hasParam(gpuVarName))
-						{
-							gpuParams->push_back(TGpuParamStruct<Core>());
-							paramPtr->getStructParam(gpuVarName, gpuParams->back());
-						}
-					}
-				}
-			}
-		}
-
-		return createStructParam(name, gpuParams);
+		return TMaterialParamStruct<Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>
@@ -532,34 +125,7 @@ namespace BansheeEngine
 	{
 		throwIfNotInitialized();
 
-		SPtr<Vector<TGpuParamTexture<Core>>> gpuParams;
-
-		auto iterFind = mValidParams.find(name);
-		if (iterFind != mValidParams.end())
-		{
-			const String& gpuVarName = iterFind->second;
-			gpuParams = bs_shared_ptr_new<Vector<TGpuParamTexture<Core>>>();
-
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						if (paramPtr->hasTexture(gpuVarName))
-						{
-							gpuParams->push_back(TGpuParamTexture<Core>());
-							paramPtr->getTextureParam(gpuVarName, gpuParams->back());
-						}
-					}
-				}
-			}
-		}
-
-		return createTextureParam(name, gpuParams);
+		return TMaterialParamTexture<Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>
@@ -567,34 +133,15 @@ namespace BansheeEngine
 	{
 		throwIfNotInitialized();
 
-		SPtr<Vector<TGpuParamLoadStoreTexture<Core>>> gpuParams;
+		return TMaterialParamLoadStoreTexture<Core>(name, getMaterialPtr(this));
+	}
 
-		auto iterFind = mValidParams.find(name);
-		if (iterFind != mValidParams.end())
-		{
-			const String& gpuVarName = iterFind->second;
-			gpuParams = bs_shared_ptr_new<Vector<TGpuParamLoadStoreTexture<Core>>>();
+	template<bool Core>
+	TMaterialParamBuffer<Core> TMaterial<Core>::getParamBuffer(const String& name) const
+	{
+		throwIfNotInitialized();
 
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						if (paramPtr->hasLoadStoreTexture(gpuVarName))
-						{
-							gpuParams->push_back(TGpuParamLoadStoreTexture<Core>());
-							paramPtr->getLoadStoreTextureParam(gpuVarName, gpuParams->back());
-						}
-					}
-				}
-			}
-		}
-
-		return createLoadStoreTextureParam(name, gpuParams);
+		return TMaterialParamBuffer<Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>
@@ -602,173 +149,26 @@ namespace BansheeEngine
 	{
 		throwIfNotInitialized();
 
-		SPtr<Vector<TGpuParamSampState<Core>>> gpuParams;
-
-		auto iterFind = mValidParams.find(name);
-		if (iterFind != mValidParams.end())
-		{
-			const String& gpuVarName = iterFind->second;
-			gpuParams = bs_shared_ptr_new<Vector<TGpuParamSampState<Core>>>();
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						if (paramPtr->hasSamplerState(gpuVarName))
-						{
-							gpuParams->push_back(TGpuParamSampState<Core>());
-							paramPtr->getSamplerStateParam(gpuVarName, gpuParams->back());
-						}
-					}
-				}
-			}
-		}
-
-		return createSamplerStateParam(name, gpuParams);
+		return TMaterialParamSampState<Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>
-	void TMaterial<Core>::setParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock)
+	void TMaterial<Core>::initializeTechniques()
 	{
-		auto iterFind = mValidShareableParamBlocks.find(name);
-		if (iterFind == mValidShareableParamBlocks.end())
-		{
-			LOGWRN_VERBOSE("Material doesn't have a parameter block named " + name);
-			return;
-		}
-
-		for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-		{
-			SPtr<PassParamsType> params = *iter;
-
-			for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-			{
-				GpuParamsType& paramPtr = params->getParamByIdx(i);
-				if (paramPtr)
-				{
-					if (paramPtr->hasParamBlock(name))
-						paramPtr->setParamBlockBuffer(name, paramBlock);
-				}
-			}
-		}
-	}
-
-	template<bool Core>
-	void TMaterial<Core>::initBestTechnique()
-	{
-		mBestTechnique = nullptr;
-		mParametersPerPass.clear();
+		mTechniques.clear();
 
 		if (isShaderValid(mShader))
 		{
-			createCachedParams(mShader);
+			mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
+			mTechniques = mShader->getCompatibleTechniques();
 
-			mBestTechnique = mShader->getBestTechnique();
-
-			if (mBestTechnique == nullptr)
+			if (mTechniques.size() == 0)
 				return;
 
-			mValidShareableParamBlocks.clear();
-			Vector<SPtr<GpuParamDesc>> allParamDescs = getAllParamDescs(mBestTechnique);
-
-			mValidParams = determineParamMappings(allParamDescs, mShader->getDataParams(), mShader->getTextureParams(),
-				mShader->getBufferParams(), mShader->getSamplerParams());
-
-			// Fill out various helper structures
-			Set<String> validShareableParamBlocks = determineValidShareableParamBlocks(allParamDescs);
-			Vector<ShaderBlockDesc> paramBlockData = determineShaderBlockData(validShareableParamBlocks, allParamDescs, mShader->getParamBlocks());
-
-			Map<String, ParamBlockPtrType> paramBlockBuffers;
-
-			// Create param blocks
-			for (auto& paramBlock : paramBlockData)
-			{
-				ParamBlockPtrType newParamBlockBuffer;
-				if (paramBlock.create)
-				{
-					newParamBlockBuffer = ParamBlockType::create(paramBlock.size, paramBlock.usage);
-				}
-
-				paramBlockBuffers[paramBlock.name] = newParamBlockBuffer;
-				mValidShareableParamBlocks.insert(paramBlock.name);
-			}
-
-			for (UINT32 i = 0; i < mBestTechnique->getNumPasses(); i++)
-			{
-				SPtr<PassType> curPass = mBestTechnique->getPass(i);
-				SPtr<PassParamsType> params = SPtr<PassParamsType>(new PassParamsType());
-
-				GpuProgramType vertProgram = curPass->getVertexProgram();
-				if (vertProgram)
-					params->mVertParams = vertProgram->createParameters();
-
-				GpuProgramType fragProgram = curPass->getFragmentProgram();
-				if (fragProgram)
-					params->mFragParams = fragProgram->createParameters();
-
-				GpuProgramType geomProgram = curPass->getGeometryProgram();
-				if (geomProgram)
-					params->mGeomParams = geomProgram->createParameters();
-
-				GpuProgramType hullProgram = curPass->getHullProgram();
-				if (hullProgram)
-					params->mHullParams = hullProgram->createParameters();
-
-				GpuProgramType domainProgram = curPass->getDomainProgram();
-				if (domainProgram)
-					params->mDomainParams = domainProgram->createParameters();
-
-				GpuProgramType computeProgram = curPass->getComputeProgram();
-				if (computeProgram)
-					params->mComputeParams = computeProgram->createParameters();
-
-				mParametersPerPass.push_back(params);
-			}
-
-			// Assign param block buffers
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						// Assign shareable buffers
-						for (auto iterBlock = mValidShareableParamBlocks.begin(); iterBlock != mValidShareableParamBlocks.end(); ++iterBlock)
-						{
-							const String& paramBlockName = *iterBlock;
-							if (paramPtr->hasParamBlock(paramBlockName))
-							{
-								ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
-
-								paramPtr->setParamBlockBuffer(paramBlockName, blockBuffer);
-							}
-						}
-
-						// Create non-shareable ones
-						const GpuParamDesc& desc = paramPtr->getParamDesc();
-						for (auto iterBlockDesc = desc.paramBlocks.begin(); iterBlockDesc != desc.paramBlocks.end(); ++iterBlockDesc)
-						{
-							if (!iterBlockDesc->second.isShareable)
-							{
-								ParamBlockPtrType newParamBlockBuffer = ParamBlockType::create(iterBlockDesc->second.blockSize * sizeof(UINT32));
-
-								paramPtr->setParamBlockBuffer(iterBlockDesc->first, newParamBlockBuffer);
-							}
-						}
-					}
-				}
-			}
-
-			// Assign default parameters
 			initDefaultParameters();
 		}
+		else
+			mParams = nullptr;
 
 		_markDependenciesDirty();
 	}
@@ -794,10 +194,6 @@ namespace BansheeEngine
 			if (paramData.second.defaultValueIdx == (UINT32)-1)
 				continue;
 
-			auto iterFind = mValidParams.find(paramData.first);
-			if (iterFind == mValidParams.end())
-				continue;
-			
 			UINT8* buffer = (UINT8*)mShader->getDefaultValue(paramData.second.defaultValueIdx);
 			if (buffer == nullptr)
 				continue;
@@ -805,61 +201,61 @@ namespace BansheeEngine
 			switch (paramData.second.type)
 			{
 			case GPDT_FLOAT1: 
-				setParamValue<float>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<float>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT2:
-				setParamValue<Vector2>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT3:
-				setParamValue<Vector3>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT4:
-				setParamValue<Vector4>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X2:
-				setParamValue<Matrix2>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X3:
-				setParamValue<Matrix2x3>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix2x3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X4:
-				setParamValue<Matrix2x4>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix2x4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X2:
-				setParamValue<Matrix3x2>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix3x2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X3:
-				setParamValue<Matrix3>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X4:
-				setParamValue<Matrix3x4>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix3x4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X2:
-				setParamValue<Matrix4x2>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix4x2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X3:
-				setParamValue<Matrix4x3>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix4x3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X4:
-				setParamValue<Matrix4>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Matrix4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT1:
-				setParamValue<int>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT2:
-				setParamValue<Vector2I>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector2I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT3:
-				setParamValue<Vector3I>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector3I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT4:
-				setParamValue<Vector4I>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Vector4I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_BOOL:
-				setParamValue<int>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_COLOR:
-				setParamValue<Color>(iterFind->first, buffer, paramData.second.arraySize);
+				setParamValue<Color>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_STRUCT:
 			{
@@ -885,10 +281,6 @@ namespace BansheeEngine
 			if (param.second.defaultValueIdx == (UINT32)-1)
 				continue;
 
-			auto iterFind = mValidParams.find(param.first);
-			if (iterFind == mValidParams.end())
-				continue;
-
 			TextureType defaultTex = mShader->getDefaultTexture(param.second.defaultValueIdx);
 			getParamTexture(param.first).set(defaultTex);
 		}
@@ -897,10 +289,6 @@ namespace BansheeEngine
 		for (auto& param : samplerParams)
 		{
 			if (param.second.defaultValueIdx == (UINT32)-1)
-				continue;
-
-			auto iterFind = mValidParams.find(param.first);
-			if (iterFind == mValidParams.end())
 				continue;
 
 			SamplerStateType defaultSampler = mShader->getDefaultSampler(param.second.defaultValueIdx);
@@ -914,34 +302,7 @@ namespace BansheeEngine
 	{
 		throwIfNotInitialized();
 
-		SPtr<Vector<TGpuDataParam<T, Core>>> gpuParams;
-
-		auto iterFind = mValidParams.find(name);
-		if (iterFind != mValidParams.end())
-		{
-			const String& gpuVarName = iterFind->second;
-			gpuParams = bs_shared_ptr_new<Vector<TGpuDataParam<T, Core>>>();
-
-			for (auto iter = mParametersPerPass.begin(); iter != mParametersPerPass.end(); ++iter)
-			{
-				SPtr<PassParamsType> params = *iter;
-
-				for (UINT32 i = 0; i < PassParamsType::NUM_PARAMS; i++)
-				{
-					GpuParamsType& paramPtr = params->getParamByIdx(i);
-					if (paramPtr)
-					{
-						if (paramPtr->hasParam(gpuVarName))
-						{
-							gpuParams->push_back(TGpuDataParam<T, Core>());
-							paramPtr->template getParam<T>(gpuVarName, gpuParams->back());
-						}
-					}
-				}
-			}
-		}
-
-		output = createDataParam(name, gpuParams);
+		output = TMaterialDataParam<T, Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>
@@ -952,7 +313,7 @@ namespace BansheeEngine
 			BS_EXCEPT(InternalErrorException, "Material does not have shader set.");
 		}
 
-		if (mBestTechnique == nullptr)
+		if (mTechniques.size() == 0)
 		{
 			BS_EXCEPT(InternalErrorException, "Shader does not contain a supported technique.");
 		}
@@ -1000,30 +361,25 @@ namespace BansheeEngine
 	template BS_CORE_EXPORT void TMaterial<true>::getParam(const String&, TMaterialDataParam<Matrix4x3, true>&) const;
 
 	MaterialCore::MaterialCore(const SPtr<ShaderCore>& shader)
+		: mVersion(1)
 	{
 		setShader(shader);
 	}
 
-	MaterialCore::MaterialCore(const SPtr<ShaderCore>& shader, const SPtr<TechniqueCore>& bestTechnique,
-		const Set<String>& validShareableParamBlocks, const Map<String, String>& validParams,
-		const Vector<SPtr<PassParametersCore>>& passParams)
+	MaterialCore::MaterialCore(const SPtr<ShaderCore>& shader, const Vector<SPtr<TechniqueCore>>& techniques,
+		const SPtr<MaterialParamsCore>& materialParams)
+		: mVersion(1)
 	{
 		mShader = shader;
-		mBestTechnique = bestTechnique;
-		mValidShareableParamBlocks = validShareableParamBlocks;
-		mValidParams = validParams;
-
-		UINT32 numPassParams = (UINT32)passParams.size();
-		mParametersPerPass.resize(numPassParams);
-		for (UINT32 i = 0; i < numPassParams; i++)
-			mParametersPerPass[i] = passParams[i];
+		mParams = materialParams;
+		mTechniques = techniques;
 	}
 
 	void MaterialCore::setShader(const SPtr<ShaderCore>& shader)
 	{
 		mShader = shader;
 
-		initBestTechnique();
+		initializeTechniques();
 
 		_markCoreDirty();
 	}
@@ -1032,35 +388,32 @@ namespace BansheeEngine
 	{
 		char* dataPtr = (char*)data.getBuffer();
 
-		mValidShareableParamBlocks.clear();
-		mValidParams.clear();
-		mParametersPerPass.clear();
-
-		UINT32 numPasses = 0;
-
-		dataPtr = rttiReadElem(mValidShareableParamBlocks, dataPtr);
-		dataPtr = rttiReadElem(mValidParams, dataPtr);
-		dataPtr = rttiReadElem(numPasses, dataPtr);
-
-		for (UINT32 i = 0; i < numPasses; i++)
-		{
-			SPtr<PassParametersCore>* passParameters = (SPtr<PassParametersCore>*)dataPtr;
-
-			mParametersPerPass.push_back(*passParameters);
-
-			passParameters->~SPtr<PassParametersCore>();
-			dataPtr += sizeof(SPtr<PassParametersCore>);
-		}
-
 		SPtr<ShaderCore>* shader = (SPtr<ShaderCore>*)dataPtr;
+		if (mShader != *shader)
+			mVersion++;
+
 		mShader = *shader;
 		shader->~SPtr<ShaderCore>();
 		dataPtr += sizeof(SPtr<ShaderCore>);
 
-		SPtr<TechniqueCore>* technique = (SPtr<TechniqueCore>*)dataPtr;
-		mBestTechnique = *technique;
-		technique->~SPtr<TechniqueCore>();
-		dataPtr += sizeof(SPtr<TechniqueCore>);
+		UINT32 numTechniques;
+		dataPtr = rttiReadElem(numTechniques, dataPtr);
+
+		mTechniques.resize(numTechniques);
+		for(UINT32 i = 0; i < numTechniques; i++)
+		{
+			SPtr<TechniqueCore>* technique = (SPtr<TechniqueCore>*)dataPtr;
+			mTechniques[i] = *technique;
+			technique->~SPtr<TechniqueCore>();
+			dataPtr += sizeof(SPtr<TechniqueCore>);
+		}
+
+		UINT32 paramsSize = 0;
+		dataPtr = rttiReadElem(paramsSize, dataPtr);
+		if (mParams != nullptr)
+			mParams->setSyncData((UINT8*)dataPtr, paramsSize);
+
+		dataPtr += paramsSize;
 	}
 
 	SPtr<MaterialCore> MaterialCore::create(const SPtr<ShaderCore>& shader)
@@ -1097,7 +450,7 @@ namespace BansheeEngine
 			return;
 
 		mShader = shader;
-		mBestTechnique = nullptr;
+		mTechniques.clear();
 		mLoadFlags = Load_None;
 		_markResourcesDirty();
 
@@ -1133,16 +486,13 @@ namespace BansheeEngine
 		{
 			shader = mShader->getCore();
 
-			if (mBestTechnique != nullptr)
-			{
-				SPtr<TechniqueCore> technique = mBestTechnique->getCore();
+			Vector<SPtr<TechniqueCore>> techniques(mTechniques.size());
+			for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
+				techniques[i] = mTechniques[i]->getCore();
+			
+			SPtr<MaterialParamsCore> materialParams = bs_shared_ptr_new<MaterialParamsCore>(shader, mParams);
 
-				Vector<SPtr<PassParametersCore>> passParams;
-				for (auto& passParam : mParametersPerPass)
-					passParams.push_back(convertParamsToCore(passParam));
-
-				material = new (bs_alloc<MaterialCore>()) MaterialCore(shader, technique, mValidShareableParamBlocks, mValidParams, passParams);
-			}
+			material = new (bs_alloc<MaterialCore>()) MaterialCore(shader, techniques, materialParams);
 		}
 		
 		if (material == nullptr)
@@ -1156,26 +506,17 @@ namespace BansheeEngine
 
 	CoreSyncData Material::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 numPasses = (UINT32)mParametersPerPass.size();
+		UINT32 paramsSize = 0;
+		if (mParams != nullptr)
+			mParams->getSyncData(nullptr, paramsSize);
 
-		UINT32 size = sizeof(UINT32) + numPasses * sizeof(SPtr<PassParametersCore>)
-			+ sizeof(SPtr<ShaderCore>) + sizeof(SPtr<TechniqueCore>) + rttiGetElemSize(mValidShareableParamBlocks)
-			+ rttiGetElemSize(mValidParams);
+		UINT32 numTechniques = (UINT32)mTechniques.size();
+		UINT32 size = sizeof(UINT32) * 2 + sizeof(SPtr<ShaderCore>) + 
+			sizeof(SPtr<TechniqueCore>) * numTechniques + paramsSize;
 
 		UINT8* buffer = allocator->alloc(size);
 		char* dataPtr = (char*)buffer;
-		dataPtr = rttiWriteElem(mValidShareableParamBlocks, dataPtr);
-		dataPtr = rttiWriteElem(mValidParams, dataPtr);
-		dataPtr = rttiWriteElem(numPasses, dataPtr);
-
-		for (UINT32 i = 0; i < numPasses; i++)
-		{
-			SPtr<PassParametersCore>* passParameters = new (dataPtr) SPtr<PassParametersCore>();
-			*passParameters = convertParamsToCore(mParametersPerPass[i]);
-
-			dataPtr += sizeof(SPtr<PassParametersCore>);
-		}
-
+		
 		SPtr<ShaderCore>* shader = new (dataPtr)SPtr<ShaderCore>();
 		if (mShader.isLoaded(false))
 			*shader = mShader->getCore();
@@ -1183,14 +524,21 @@ namespace BansheeEngine
 			*shader = nullptr;
 
 		dataPtr += sizeof(SPtr<ShaderCore>);
+		dataPtr = rttiWriteElem(numTechniques, dataPtr);
 
-		SPtr<TechniqueCore>* technique = new (dataPtr)SPtr<TechniqueCore>();
-		if (mBestTechnique != nullptr)
-			*technique = mBestTechnique->getCore();
-		else
-			*technique = nullptr;
+		for(UINT32 i = 0; i < numTechniques; i++)
+		{
+			SPtr<TechniqueCore>* technique = new (dataPtr)SPtr<TechniqueCore>();
+				*technique = mTechniques[i]->getCore();
 
-		dataPtr += sizeof(SPtr<TechniqueCore>);
+			dataPtr += sizeof(SPtr<TechniqueCore>);
+		}
+
+		dataPtr = rttiWriteElem(paramsSize, dataPtr);
+		if (mParams != nullptr)
+			mParams->getSyncData((UINT8*)dataPtr, paramsSize);
+
+		dataPtr += paramsSize;
 
 		return CoreSyncData(buffer, size);
 	}
@@ -1199,16 +547,6 @@ namespace BansheeEngine
 	{
 		if (mShader.isLoaded())
 			dependencies.push_back(mShader.get());
-
-		for (auto& params : mParametersPerPass)
-		{
-			for (UINT32 i = 0; i < PassParameters::NUM_PARAMS; i++)
-			{
-				SPtr<GpuParams> gpuParams = params->getParamByIdx(i);
-				if (gpuParams != nullptr)
-					dependencies.push_back(gpuParams.get());
-			}
-		}
 	}
 
 	void Material::getListenerResources(Vector<HResource>& resources)
@@ -1232,12 +570,12 @@ namespace BansheeEngine
 				mLoadFlags = Load_All;
 
 				// Shader about to change, so save parameters, rebuild material and restore parameters
-				SPtr<MaterialParams> oldParams = mCachedParams;
+				SPtr<MaterialParams> oldParams = mParams;
 
-				initBestTechnique();
+				initializeTechniques();
 				markCoreDirty();
 
-				if (mBestTechnique == nullptr) // Wasn't initialized
+				if (mTechniques.size() == 0) // Wasn't initialized
 					return;
 
 				setParams(oldParams);
@@ -1251,11 +589,6 @@ namespace BansheeEngine
 				markListenerResourcesDirty(); // Need to register resources dependent on shader now
 			}
 		}
-	}
-
-	void Material::createCachedParams(const HShader& shader)
-	{
-		mCachedParams = bs_shared_ptr_new<MaterialParams>(shader);
 	}
 
 	void Material::notifyResourceLoaded(const HResource& resource)
@@ -1393,6 +726,22 @@ namespace BansheeEngine
 				params->getLoadStoreTexture(paramData->index, texture, surface);
 				curParam.set(texture, surface);
 			}
+		}
+
+		auto& bufferParams = mShader->getBufferParams();
+		for (auto& param : bufferParams)
+		{
+			const MaterialParams::ParamData* paramData = nullptr;
+			auto result = params->getParamData(param.first, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, &paramData);
+
+			if (result != MaterialParams::GetParamResult::Success)
+				continue;
+
+			TMaterialParamBuffer<false> curParam = getParamBuffer(param.first);
+
+			SPtr<GpuBuffer> buffer;
+			params->getBuffer(paramData->index, buffer);
+			curParam.set(buffer);
 		}
 
 		auto& samplerParams = mShader->getSamplerParams();

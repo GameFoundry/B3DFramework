@@ -47,7 +47,7 @@ namespace BansheeEngine
 		virtual void setTint(const Color& color);
 
 		/** @copydoc GUIElementBase::resetDimensions */
-		virtual void resetDimensions() override;
+		void resetDimensions() override;
 
 		/**	Sets new style to be used by the element. */
 		void setStyle(const String& styleName);
@@ -105,41 +105,36 @@ namespace BansheeEngine
 		 *
 		 * @see		_getNumRenderElements()
 		 */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const = 0;
+		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const = 0;
 
 		/**
-		 * Returns the number of quads that the specified render element will use. You will need this value when creating
-		 * the buffers before calling _fillBuffer().
-		 * 			
-		 * @return	Number of quads for the specified render element. 
+		 * Returns the type of mesh and number of vertices and indices that the specified render element will use. You will
+		 * need this value when creating the buffers before calling _fillBuffer().
 		 *
 		 * @see		_getNumRenderElements()
 		 * @see		_fillBuffer()
-		 * 		
-		 * @note	
-		 * Number of vertices = Number of quads * 4
-		 * Number of indices = Number of quads * 6	
 		 */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const = 0;
+		virtual void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const = 0;
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
 		 * 			
-		 * @param[out]	vertices			Previously allocated buffer where to store the vertices.
-		 * @param[out]	uv					Previously allocated buffer where to store the uv coordinates.
+		 * @param[out]	vertices			Previously allocated buffer where to store the vertices. Output is expected
+		 *									to match the GUIMeshType as returned by _getMeshInfo.
 		 * @param[out]	indices				Previously allocated buffer where to store the indices.
-		 * @param[in]	startingQuad		At which quad should the method start filling the buffer.
-		 * @param[in]	maxNumQuads			Total number of quads the buffers were allocated for. Used only for memory 
+		 * @param[in]	vertexOffset		At which vertex should the method start filling the buffer.
+		 * @param[in]	indexOffset			At which index should the method start filling the buffer.
+		 * @param[in]	maxNumVerts			Total number of vertices the buffers were allocated for. Used only for memory
 		 *									safety.
-		 * @param[in]	vertexStride		Number of bytes between of vertices in the provided vertex and uv data.
-		 * @param[in]	indexStride			Number of bytes between two indexes in the provided index data.
+		 * @param[in]	maxNumIndices		Total number of indices the buffers were allocated for. Used only for memory
+		 *									safety.
 		 * @param[in]	renderElementIdx	Zero-based index of the render element.
 		 *
 		 * @see		_getNumRenderElements()
-		 * @see		_getNumQuads()
+		 * @see		_getMeshInfo()
 		 */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const = 0;
+		virtual void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const = 0;
 
 		/**
 		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element
@@ -181,10 +176,10 @@ namespace BansheeEngine
 		UINT8 _getElementDepth() const;
 
 		/** @copydoc GUIElementBase::_setLayoutData */
-		virtual void _setLayoutData(const GUILayoutData& data) override;
+		void _setLayoutData(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementBase::_changeParentWidget */
-		virtual void _changeParentWidget(GUIWidget* widget) override;
+		void _changeParentWidget(GUIWidget* widget) override;
 
 		/**
 		 * Returns depth for a specific render element. This contains a combination of widget depth (8 bit(, area depth

@@ -110,7 +110,7 @@ namespace BansheeEngine
 #if BS_DEBUG_MODE
 		mTotalAllocBytes += amount;
 
-		UINT32* storedSize = reinterpret_cast<UINT32*>(data);
+		UINT32* storedSize = reinterpret_cast<UINT32*>(data + alignOffset);
 		*storedSize = amount;
 
 		return data + sizeof(UINT32) + alignOffset;
@@ -264,9 +264,11 @@ namespace BansheeEngine
 
 		if (newBlock == nullptr)
 		{
-			UINT8* data = (UINT8*)reinterpret_cast<UINT8*>(bs_alloc_aligned16(blockSize + sizeof(MemBlock)));
+			UINT32 alignOffset = 16 - sizeof(MemBlock) & (16 - 1);
+
+			UINT8* data = (UINT8*)reinterpret_cast<UINT8*>(bs_alloc_aligned16(blockSize + sizeof(MemBlock) + alignOffset));
 			newBlock = new (data) MemBlock(blockSize);
-			data += sizeof(MemBlock);
+			data += sizeof(MemBlock) + alignOffset;
 			newBlock->mData = data;
 
 			mBlocks.push_back(newBlock);

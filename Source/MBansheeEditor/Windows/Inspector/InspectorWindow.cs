@@ -140,7 +140,7 @@ namespace BansheeEditor
 
             GUIPanel titleBgPanel = titlePanel.AddPanel(1);
 
-            GUITexture titleBg = new GUITexture(null, EditorStyles.InspectorTitleBg);
+            GUITexture titleBg = new GUITexture(null, EditorStylesInternal.InspectorTitleBg);
             titleBgPanel.AddElement(titleBg);
 
             inspectorLayout.AddSpace(COMPONENT_SPACING);
@@ -193,7 +193,9 @@ namespace BansheeEditor
                 data.instanceId = allComponents[i].InstanceId;
 
                 data.foldout = new GUIToggle(allComponents[i].GetType().Name, EditorStyles.Foldout);
-                data.removeBtn = new GUIButton(new GUIContent(EditorBuiltin.XBtnIcon), GUIOption.FixedWidth(30));
+
+                SpriteTexture xBtnIcon = EditorBuiltin.GetEditorIcon(EditorIcon.X);
+                data.removeBtn = new GUIButton(new GUIContent(xBtnIcon), GUIOption.FixedWidth(30));
 
                 data.title = inspectorLayout.AddLayoutX();
                 data.title.AddElement(data.foldout);
@@ -342,7 +344,7 @@ namespace BansheeEditor
 
             sceneObjectLayout.AddFlexibleSpace();
 
-            GUITexture titleBg = new GUITexture(null, EditorStyles.InspectorTitleBg);
+            GUITexture titleBg = new GUITexture(null, EditorStylesInternal.InspectorTitleBg);
             sceneObjectBgPanel.AddElement(titleBg);
         }
 
@@ -378,7 +380,10 @@ namespace BansheeEditor
                     GUIButton btnRevertPrefab = new GUIButton(new LocEdString("Revert"), GUIOption.FixedWidth(60));
                     GUIButton btnBreakPrefab = new GUIButton(new LocEdString("Break"), GUIOption.FixedWidth(60));
 
-                    btnApplyPrefab.OnClick += () => PrefabUtility.ApplyPrefab(activeSO);
+                    btnApplyPrefab.OnClick += () =>
+                    {
+                        PrefabUtility.ApplyPrefab(activeSO);
+                    };
                     btnRevertPrefab.OnClick += () =>
                     {
                         UndoRedo.RecordSO(activeSO, true, "Reverting \"" + activeSO.Name + "\" to prefab.");

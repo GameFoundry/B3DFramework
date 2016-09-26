@@ -6,15 +6,14 @@
 #include "BsRendererUtility.h"
 #include "BsTextureManager.h"
 #include "BsCamera.h"
+#include "BsGpuParamsSet.h"
 
 namespace BansheeEngine
 {
 	DownsampleMat::DownsampleMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
-
-		mInputTexture = mMaterial->getParamTexture("gInputTex");
-		mInvTexSize = mMaterial->getParamVec2("gInvTexSize");
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->getGpuParams(GPT_FRAGMENT_PROGRAM)->getTextureParam("gInputTex", mInputTexture);
 	}
 
 	void DownsampleMat::_initDefines(ShaderDefines& defines)
@@ -47,7 +46,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.downsampledSceneTex->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -63,10 +63,12 @@ namespace BansheeEngine
 
 	EyeAdaptHistogramMat::EyeAdaptHistogramMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
-		mSceneColor = mMaterial->getParamTexture("gSceneColorTex");
-		mOutputTex = mMaterial->getParamLoadStoreTexture("gOutputTex");
+		SPtr<GpuParamsCore> computeParams = mParamsSet->getGpuParams(GPT_COMPUTE_PROGRAM);
+
+		computeParams->getTextureParam("gSceneColorTex", mSceneColor);
+		computeParams->getLoadStoreTextureParam("gOutputTex", mOutputTex);
 	}
 
 	void EyeAdaptHistogramMat::_initDefines(ShaderDefines& defines)
@@ -105,6 +107,7 @@ namespace BansheeEngine
 
 		RenderAPICore& rapi = RenderAPICore::instance();
 		gRendererUtility().setComputePass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
 
 		// Note: This is ugly, add a better way to clear load/store textures?
@@ -136,7 +139,7 @@ namespace BansheeEngine
 
 	Vector2 EyeAdaptHistogramMat::getHistogramScaleOffset(const PostProcessInfo& ppInfo)
 	{
-		const PostProcessSettings& settings = ppInfo.settings;
+		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
 		float diff = settings.autoExposure.histogramLog2Max - settings.autoExposure.histogramLog2Min;
 		float scale = 1.0f / diff;
@@ -147,10 +150,12 @@ namespace BansheeEngine
 
 	EyeAdaptHistogramReduceMat::EyeAdaptHistogramReduceMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
-		mHistogramTex = mMaterial->getParamTexture("gHistogramTex");
-		mEyeAdaptationTex = mMaterial->getParamTexture("gEyeAdaptationTex");
+		SPtr<GpuParamsCore> fragmentParams = mParamsSet->getGpuParams(GPT_FRAGMENT_PROGRAM);
+
+		fragmentParams->getTextureParam("gHistogramTex", mHistogramTex);
+		fragmentParams->getTextureParam("gEyeAdaptationTex", mEyeAdaptationTex);
 	}
 
 	void EyeAdaptHistogramReduceMat::_initDefines(ShaderDefines& defines)
@@ -188,7 +193,9 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.histogramReduceTex->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+
 		Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
 		gRendererUtility().drawScreenQuad(drawUV);
 
@@ -205,9 +212,8 @@ namespace BansheeEngine
 
 	EyeAdaptationMat::EyeAdaptationMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
-
-		mReducedHistogramTex = mMaterial->getParamTexture("gHistogramTex");
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->getGpuParams(GPT_FRAGMENT_PROGRAM)->getTextureParam("gHistogramTex", mReducedHistogramTex);
 	}
 
 	void EyeAdaptationMat::_initDefines(ShaderDefines& defines)
@@ -233,7 +239,7 @@ namespace BansheeEngine
 
 		Vector2 histogramScaleAndOffset = EyeAdaptHistogramMat::getHistogramScaleOffset(ppInfo);
 
-		const PostProcessSettings& settings = ppInfo.settings;
+		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
 		Vector4 eyeAdaptationParams[3];
 		eyeAdaptationParams[0].x = histogramScaleAndOffset.x;
@@ -253,6 +259,9 @@ namespace BansheeEngine
 		eyeAdaptationParams[2].x = Math::pow(2.0f, settings.exposureScale);
 		eyeAdaptationParams[2].y = frameDelta;
 
+		eyeAdaptationParams[2].z = 0.0f; // Unused
+		eyeAdaptationParams[2].w = 0.0f; // Unused
+
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[0], 0);
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[1], 1);
 		mParams.gEyeAdaptationParams.set(eyeAdaptationParams[2], 2);
@@ -263,7 +272,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(eyeAdaptationRT->renderTexture, true);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -271,8 +281,8 @@ namespace BansheeEngine
 
 	CreateTonemapLUTMat::CreateTonemapLUTMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
-		mMaterial->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParams.getBuffer());
 	}
 
 	void CreateTonemapLUTMat::_initDefines(ShaderDefines& defines)
@@ -282,36 +292,38 @@ namespace BansheeEngine
 
 	void CreateTonemapLUTMat::execute(PostProcessInfo& ppInfo)
 	{
+		const StandardPostProcessSettings& settings = *ppInfo.settings;
+
 		// Set parameters
-		mParams.gGammaAdjustment.set(2.2f / ppInfo.settings.gamma);
+		mParams.gGammaAdjustment.set(2.2f / settings.gamma);
 
 		// Note: Assuming sRGB (PC monitor) for now, change to Rec.709 when running on console (value 1), or to raw 2.2
 		// gamma when running on Mac (value 2)
 		mParams.gGammaCorrectionType.set(0);
 
 		Vector4 tonemapParams[2];
-		tonemapParams[0].x = ppInfo.settings.tonemapping.filmicCurveShoulderStrength;
-		tonemapParams[0].y = ppInfo.settings.tonemapping.filmicCurveLinearStrength;
-		tonemapParams[0].z = ppInfo.settings.tonemapping.filmicCurveLinearAngle;
-		tonemapParams[0].w = ppInfo.settings.tonemapping.filmicCurveToeStrength;
+		tonemapParams[0].x = settings.tonemapping.filmicCurveShoulderStrength;
+		tonemapParams[0].y = settings.tonemapping.filmicCurveLinearStrength;
+		tonemapParams[0].z = settings.tonemapping.filmicCurveLinearAngle;
+		tonemapParams[0].w = settings.tonemapping.filmicCurveToeStrength;
 
-		tonemapParams[1].x = ppInfo.settings.tonemapping.filmicCurveToeNumerator;
-		tonemapParams[1].y = ppInfo.settings.tonemapping.filmicCurveToeDenominator;
-		tonemapParams[1].z = ppInfo.settings.tonemapping.filmicCurveLinearWhitePoint;
+		tonemapParams[1].x = settings.tonemapping.filmicCurveToeNumerator;
+		tonemapParams[1].y = settings.tonemapping.filmicCurveToeDenominator;
+		tonemapParams[1].z = settings.tonemapping.filmicCurveLinearWhitePoint;
 		tonemapParams[1].w = 0.0f; // Unused
 
 		mParams.gTonemapParams.set(tonemapParams[0], 0);
 		mParams.gTonemapParams.set(tonemapParams[1], 1);
 
 		// Set color grading params
-		mParams.gSaturation.set(ppInfo.settings.colorGrading.saturation);
-		mParams.gContrast.set(ppInfo.settings.colorGrading.contrast);
-		mParams.gGain.set(ppInfo.settings.colorGrading.gain);
-		mParams.gOffset.set(ppInfo.settings.colorGrading.offset);
+		mParams.gSaturation.set(settings.colorGrading.saturation);
+		mParams.gContrast.set(settings.colorGrading.contrast);
+		mParams.gGain.set(settings.colorGrading.gain);
+		mParams.gOffset.set(settings.colorGrading.offset);
 
 		// Set white balance params
-		mWhiteBalanceParams.gWhiteTemp.set(ppInfo.settings.whiteBalance.temperature);
-		mWhiteBalanceParams.gWhiteOffset.set(ppInfo.settings.whiteBalance.tint);
+		mWhiteBalanceParams.gWhiteTemp.set(settings.whiteBalance.temperature);
+		mWhiteBalanceParams.gWhiteOffset.set(settings.whiteBalance.tint);
 
 		// Set output
 		POOLED_RENDER_TEXTURE_DESC outputDesc = POOLED_RENDER_TEXTURE_DESC::create3D(PF_B8G8R8X8, 
@@ -323,7 +335,8 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 		rapi.setRenderTarget(ppInfo.colorLUT->renderTexture);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad(LUT_SIZE);
 	}
 
@@ -335,11 +348,15 @@ namespace BansheeEngine
 	template<bool GammaOnly, bool AutoExposure>
 	TonemappingMat<GammaOnly, AutoExposure>::TonemappingMat()
 	{
-		mMaterial->setParamBlockBuffer("Input", mParams.getBuffer());
+		mParamsSet->setParamBlockBuffer("Input", mParams.getBuffer());
 
-		mInputTex = mMaterial->getParamTexture("gInputTex");
-		mColorLUT = mMaterial->getParamTexture("gColorLUT");
-		mEyeAdaptationTex = mMaterial->getParamTexture("gEyeAdaptationTex");
+		mParamsSet->getGpuParams(GPT_VERTEX_PROGRAM)->getTextureParam("gEyeAdaptationTex", mEyeAdaptationTex);
+
+		SPtr<GpuParamsCore> fragmentParams = mParamsSet->getGpuParams(GPT_FRAGMENT_PROGRAM);
+		fragmentParams->getTextureParam("gInputTex", mInputTex);
+
+		if(!GammaOnly)
+			fragmentParams->getTextureParam("gColorLUT", mColorLUT);
 	}
 
 	template<bool GammaOnly, bool AutoExposure>
@@ -358,8 +375,8 @@ namespace BansheeEngine
 	void TonemappingMat<GammaOnly, AutoExposure>::execute(const SPtr<RenderTextureCore>& sceneColor, const SPtr<ViewportCore>& outputViewport,
 		PostProcessInfo& ppInfo)
 	{
-		mParams.gRawGamma.set(1.0f / ppInfo.settings.gamma);
-		mParams.gManualExposureScale.set(Math::pow(2.0f, ppInfo.settings.exposureScale));
+		mParams.gRawGamma.set(1.0f / ppInfo.settings->gamma);
+		mParams.gManualExposureScale.set(Math::pow(2.0f, ppInfo.settings->exposureScale));
 
 		// Set parameters
 		SPtr<TextureCore> colorTexture = sceneColor->getBindableColorTexture();
@@ -384,7 +401,8 @@ namespace BansheeEngine
 		rapi.setRenderTarget(target);
 		rapi.setViewport(outputViewport->getNormArea());
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
 	}
 
@@ -396,10 +414,12 @@ namespace BansheeEngine
 	void PostProcessing::postProcess(const SPtr<RenderTextureCore>& sceneColor, const CameraCore* camera, 
 		PostProcessInfo& ppInfo, float frameDelta)
 	{
+		const StandardPostProcessSettings& settings = *ppInfo.settings;
+
 		SPtr<ViewportCore> outputViewport = camera->getViewport();
 		bool hdr = camera->getFlags().isSet(CameraFlag::HDR);
 
-		if(hdr && ppInfo.settings.enableAutoExposure)
+		if(hdr && settings.enableAutoExposure)
 		{
 			mDownsample.execute(sceneColor, ppInfo);
 			mEyeAdaptHistogram.execute(ppInfo);
@@ -412,19 +432,19 @@ namespace BansheeEngine
 			mEyeAdaptHistogramReduce.release(ppInfo);
 		}
 
-		if (hdr && ppInfo.settings.enableTonemapping)
+		if (hdr && settings.enableTonemapping)
 		{
 			if (ppInfo.settingDirty) // Rebuild LUT if PP settings changed
 				mCreateLUT.execute(ppInfo);
 
-			if (ppInfo.settings.enableAutoExposure)
+			if (settings.enableAutoExposure)
 				mTonemapping_AE.execute(sceneColor, outputViewport, ppInfo);
 			else
 				mTonemapping.execute(sceneColor, outputViewport, ppInfo);
 		}
 		else
 		{
-			if (hdr && ppInfo.settings.enableAutoExposure)
+			if (hdr && settings.enableAutoExposure)
 				mTonemapping_AE_GO.execute(sceneColor, outputViewport, ppInfo);
 			else
 				mTonemapping_GO.execute(sceneColor, outputViewport, ppInfo);

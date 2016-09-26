@@ -162,7 +162,7 @@ namespace BansheeEngine
 
 		Flags<Enum, Storage>& operator^= (const Flags<Enum, Storage>& rhs)
 		{
-			mBits ^= f.mBits;
+			mBits ^= rhs.mBits;
 
 			return *this;
 		}
@@ -231,5 +231,42 @@ namespace BansheeEngine
 		inline Flags<Enum, Storage> operator&(Enum a, Enum b) { Flags<Enum, Storage> r(a); r &= b; return r; } \
 		inline Flags<Enum, Storage> operator~(Enum a) { return ~Flags<Enum, Storage>(a); }
 
-	 /** @} */
+	/** @cond SPECIALIZATIONS */
+
+	/**
+	 * RTTIPlainType for Flags.
+	 * 			
+	 * @see		RTTIPlainType
+	 */
+	template<class Enum, class Storage> struct RTTIPlainType<Flags<Enum, Storage>>
+	{	
+		enum { id = TID_Flags }; enum { hasDynamicSize = 0 };
+
+		/** @copydoc RTTIPlainType::toMemory */
+		static void toMemory(const Flags<Enum, Storage>& data, char* memory)
+		{ 
+			Storage storageData = (Storage)data;
+			RTTIPlainType<Storage>::toMemory(storageData, memory);
+		}
+
+		/** @copydoc RTTIPlainType::fromMemory */
+		static UINT32 fromMemory(Flags<Enum, Storage>& data, char* memory)
+		{ 
+			Storage storageData;
+			RTTIPlainType<Storage>::fromMemory(storageData, memory);
+
+			data = Flags<Enum, Storage>(storageData);
+			return sizeof(Flags<Enum, Storage>);
+		}
+
+		/** @copydoc RTTIPlainType::getDynamicSize */
+		static UINT32 getDynamicSize(const Flags<Enum, Storage>& data)
+		{ 
+			assert(false);
+			return sizeof(Flags<Enum, Storage>);
+		}	
+	}; 
+
+	/** @endcond */
+	/** @} */
 }

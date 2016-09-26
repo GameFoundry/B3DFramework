@@ -6,7 +6,7 @@ set(BansheeFontImporter_INC
 	"Include" 
 	"../BansheeUtility/Include" 
 	"../BansheeCore/Include"
-	"../../Dependencies/BansheeFontImporter/Include")
+	"../../Dependencies/freetype/include")
 
 include_directories(${BansheeFontImporter_INC})	
 	
@@ -18,7 +18,7 @@ target_compile_definitions(BansheeFontImporter PRIVATE -DBS_FONT_EXPORTS -DUSE_F
 
 # Libraries
 ## External lib: FreeType
-add_library_per_config(BansheeFontImporter freetype)
+add_library_per_config(BansheeFontImporter freetype Release/freetype Debug/freetype)
 
 ## Local libs
 target_link_libraries(BansheeFontImporter PUBLIC BansheeUtility BansheeCore)

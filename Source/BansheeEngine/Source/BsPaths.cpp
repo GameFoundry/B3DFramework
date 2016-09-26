@@ -1,12 +1,12 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsPrerequisites.h"
+#include "BsEngineConfig.h"
 #include "BsFileSystem.h"
+#include "BsDynLib.h"
 
 namespace BansheeEngine
 {
-	static const Path RAW_APP_ROOT = "..\\..\\..\\"; // Path to the application root when files haven't been packaged yet (e.g. running from debugger)
-
 	const Path Paths::RELEASE_ASSEMBLY_PATH = "bin\\Assemblies\\Release\\";
 	const Path Paths::DEBUG_ASSEMBLY_PATH = "bin\\Assemblies\\Debug\\";
 	const Path Paths::RUNTIME_DATA_PATH = "Data\\";
@@ -48,12 +48,41 @@ namespace BansheeEngine
 		return path;
 	}
 
+	const Path& Paths::getBinariesPath()
+	{
+		static bool initialized = false;
+		static Path path;
+		
+		if(!initialized)
+		{
+			path = FileSystem::getWorkingDirectoryPath();
+			
+			// Look for BansheeEngine library to find the right path
+			Path anchorFile = path;
+			anchorFile.setFilename("BansheeEngine" + String(DynLib::EXTENSION));
+
+			if (!FileSystem::exists(path))
+			{
+				path = BINARIES_PATH;
+				if (!FileSystem::exists(path))
+					path = ""; // No path found, keep the default
+			}
+
+			initialized = true;
+		}
+
+		return path;
+	}
+
 	Path Paths::findPath(const Path& path)
 	{
-		if (FileSystem::exists(path))
-			return path;
-
 		Path output = path;
+		if (FileSystem::exists(path))
+		{
+			output.makeAbsolute(FileSystem::getWorkingDirectoryPath());
+			return output;
+		}
+		
 		output.makeAbsolute(RAW_APP_ROOT);
 		if (FileSystem::exists(output))
 			return output;

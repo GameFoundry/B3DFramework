@@ -19,7 +19,7 @@ namespace BansheeEngine
 
 	SPtr<VertexBufferCore> VertexBufferCore::create(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
 	{
-		return HardwareBufferCoreManager::instance().createVertexBufferInternal(vertexSize, numVerts, usage, streamOut);
+		return HardwareBufferCoreManager::instance().createVertexBuffer(vertexSize, numVerts, usage, streamOut);
 	}
 
 	VertexBuffer::VertexBuffer(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut)

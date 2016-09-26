@@ -211,7 +211,7 @@ namespace BansheeEngine
 
 		if(constantBufferDesc.Type != D3D_CT_CBUFFER && constantBufferDesc.Type != D3D_CT_TBUFFER)
 		{
-			LOGWRN("D3D11 HLSL parsing: Unsupported constant buffer type, skipping. Type: " + toString(constantBufferDesc.Type));
+			// Not supported (most likely a constant buffer used internally by DX)
 			return;
 		}
 

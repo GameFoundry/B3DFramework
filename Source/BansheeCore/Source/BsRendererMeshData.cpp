@@ -9,6 +9,7 @@
 #include "BsPixelUtil.h"
 #include "BsRendererManager.h"
 #include "BsCoreRenderer.h"
+#include "BsMeshUtility.h"
 
 namespace BansheeEngine
 {
@@ -55,7 +56,10 @@ namespace BansheeEngine
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->getVertexData(VES_NORMAL, (UINT8*)buffer, size);
+		UINT8* normalSrc = mMeshData->getElementData(VES_NORMAL);
+		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+
+		MeshUtility::unpackNormals(normalSrc, buffer, numElements, stride);
 	}
 
 	void RendererMeshData::setNormals(Vector3* buffer, UINT32 size)
@@ -66,7 +70,10 @@ namespace BansheeEngine
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->setVertexData(VES_NORMAL, (UINT8*)buffer, size);
+		UINT8* normalDst = mMeshData->getElementData(VES_NORMAL);
+		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+
+		MeshUtility::packNormals(buffer, normalDst, numElements, stride);
 	}
 
 	void RendererMeshData::getTangents(Vector4* buffer, UINT32 size)
@@ -77,7 +84,10 @@ namespace BansheeEngine
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		mMeshData->getVertexData(VES_TANGENT, (UINT8*)buffer, size);
+		UINT8* tangentSrc = mMeshData->getElementData(VES_TANGENT);
+		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+
+		MeshUtility::unpackNormals(tangentSrc, buffer, numElements, stride);
 	}
 
 	void RendererMeshData::setTangents(Vector4* buffer, UINT32 size)
@@ -88,7 +98,10 @@ namespace BansheeEngine
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		mMeshData->setVertexData(VES_TANGENT, (UINT8*)buffer, size);
+		UINT8* tangentDst = mMeshData->getElementData(VES_TANGENT);
+		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+
+		MeshUtility::packNormals(buffer, tangentDst, numElements, stride);
 	}
 
 	void RendererMeshData::getColors(Color* buffer, UINT32 size)
@@ -208,7 +221,7 @@ namespace BansheeEngine
 		BoneWeight* weightDst = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			int* indices = (int*)indexPtr;
+			UINT8* indices = indexPtr;
 			float* weights = (float*)weightPtr;
 
 			weightDst->index0 = indices[0];
@@ -246,7 +259,7 @@ namespace BansheeEngine
 		BoneWeight* weightSrc = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			int* indices = (int*)indexPtr;
+			UINT8* indices = indexPtr;
 			float* weights = (float*)weightPtr;
 
 			indices[0] = weightSrc->index0;
@@ -340,10 +353,10 @@ namespace BansheeEngine
 			vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 
 		if ((intType & (INT32)VertexLayout::Normal) != 0)
-			vertexDesc->addVertElem(VET_FLOAT3, VES_NORMAL);
+			vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL);
 
 		if ((intType & (INT32)VertexLayout::Tangent) != 0)
-			vertexDesc->addVertElem(VET_FLOAT4, VES_TANGENT);
+			vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_TANGENT);
 
 		if ((intType & (INT32)VertexLayout::UV0) != 0)
 			vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 0);

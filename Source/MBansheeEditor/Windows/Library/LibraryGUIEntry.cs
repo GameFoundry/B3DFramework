@@ -85,7 +85,7 @@ namespace BansheeEditor
 
             SpriteTexture iconTexture = GetIcon(path, owner.TileSize);
 
-            icon = new GUITexture(iconTexture, GUIImageScaleMode.ScaleToFit,
+            icon = new GUITexture(iconTexture, GUITextureScaleMode.ScaleToFit,
                 true, GUIOption.FixedHeight(owner.TileSize), GUIOption.FixedWidth(owner.TileSize));
 
             label = null;
@@ -484,6 +484,10 @@ namespace BansheeEditor
                         return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.PhysicsMaterial, size);
                     case ResourceType.PhysicsMesh:
                         return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.PhysicsMesh, size);
+                    case ResourceType.AudioClip:
+                        return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.AudioClip, size);
+                    case ResourceType.AnimationClip:
+                        return EditorBuiltin.GetLibraryItemIcon(LibraryItemIcon.AnimationClip, size);
                 }
             }
 

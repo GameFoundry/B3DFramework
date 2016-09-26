@@ -42,7 +42,7 @@ namespace BansheeEngine
 		}
 
 		/** @copydoc ShaderImportOptionsRTTI::onSerializationStarted */
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
 
@@ -56,7 +56,7 @@ namespace BansheeEngine
 		}
 
 		/** @copydoc RTTIType::onSerializationEnded */
-		void onSerializationEnded(IReflectable* obj) override
+		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
 			importOptions->mRTTIData = nullptr;

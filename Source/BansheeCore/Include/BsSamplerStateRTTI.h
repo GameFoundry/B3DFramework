@@ -28,7 +28,7 @@ namespace BansheeEngine
 			addPlainField("mData", 0, &SamplerStateRTTI::getData, &SamplerStateRTTI::setData);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			SamplerState* samplerState = static_cast<SamplerState*>(obj);
 			samplerState->initialize();

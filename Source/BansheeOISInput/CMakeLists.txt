@@ -6,7 +6,7 @@ set(BansheeOISInput_INC
 	"Include"
 	"../BansheeUtility/Include" 
 	"../BansheeCore/Include"
-	"../../Dependencies/BansheeOISInput/Include")
+	"../../Dependencies/OIS/include")
 
 include_directories(${BansheeOISInput_INC})	
 	
@@ -18,7 +18,7 @@ target_compile_definitions(BansheeOISInput PRIVATE -DBS_OIS_EXPORTS -DOIS_DYNAMI
 
 # Libraries
 ## External lib: OIS
-add_library_per_config(BansheeOISInput BansheeOIS)
+add_library_per_config(BansheeOISInput OIS Release/BansheeOIS Debug/BansheeOIS)
 
 ## Local libs
 target_link_libraries(BansheeOISInput PUBLIC BansheeUtility BansheeCore)

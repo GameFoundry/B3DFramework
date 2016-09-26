@@ -45,12 +45,10 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	paramDesc			Reference to parameter descriptions that will be used for finding needed 
 		 *									parameters.
-		 * @param[in]	transposeMatrices	If true the stored matrices will be transposed before submitted to the GPU 
-		 *									(some APIs require different matrix layout).
 		 *
 		 * @note	You normally do not want to call this manually. Instead use GpuProgram::createParameters.
 		 */
-		GpuParamsBase(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		GpuParamsBase(const SPtr<GpuParamDesc>& paramDesc);
 		virtual ~GpuParamsBase();
 
 		// Note: Disallow copy/assign because it would require some care when copying (copy internal data shared_ptr and
@@ -75,20 +73,23 @@ namespace BansheeEngine
 		/**	Checks if load/store texture parameter with the specified name exists. */
 		bool hasLoadStoreTexture(const String& name) const;
 
+		/**	Checks if buffer parameter with the specified name exists. */
+		bool hasBuffer(const String& name) const;
+
 		/**	Checks if sampler state parameter with the specified name exists. */
 		bool hasSamplerState(const String& name) const;
 
 		/** Checks if a parameter block with the specified name exists. */
 		bool hasParamBlock(const String& name) const;
 
+		/**	Gets a descriptor for a parameter block buffer with the specified name. */
+		GpuParamBlockDesc* getParamBlockDesc(const String& name) const;
+
 		/** Returns information that determines which texture surfaces to bind as load/store parameters. */
 		const TextureSurface& getLoadStoreSurface(UINT32 slot) const;
 
 		/**	Sets information that determines which texture surfaces to bind	as load/store parameters. */
 		void setLoadStoreSurface(UINT32 slot, const TextureSurface& surface) const;
-
-		/**	Checks whether matrices should be transformed before being written to the parameter buffer. */
-		bool getTransposeMatrices() const { return mTransposeMatrices; }
 
 		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
 		virtual void _markCoreDirty() { }
@@ -105,11 +106,10 @@ namespace BansheeEngine
 		UINT32 mNumParamBlocks;
 		UINT32 mNumTextures;
 		UINT32 mNumLoadStoreTextures;
+		UINT32 mNumBuffers;
 		UINT32 mNumSamplerStates;
 
 		TextureSurface* mLoadStoreSurfaces;
-
-		bool mTransposeMatrices;
 	};
 
 	template<bool Core> struct TGpuParamsTypes { };
@@ -117,6 +117,7 @@ namespace BansheeEngine
 	{
 		typedef GpuParams GpuParamsType;
 		typedef HTexture TextureType;
+		typedef SPtr<GpuBuffer> BufferType;
 		typedef SPtr<SamplerState> SamplerType;
 		typedef SPtr<GpuParamBlockBuffer> ParamsBufferType;
 	};
@@ -125,6 +126,7 @@ namespace BansheeEngine
 	{
 		typedef GpuParamsCore GpuParamsType;
 		typedef SPtr<TextureCore> TextureType;
+		typedef SPtr<GpuBufferCore> BufferType;
 		typedef SPtr<SamplerStateCore> SamplerType;
 		typedef SPtr<GpuParamBlockBufferCore> ParamsBufferType;
 	};
@@ -136,10 +138,11 @@ namespace BansheeEngine
 	public:
 		typedef typename TGpuParamsTypes<Core>::GpuParamsType GpuParamsType;
 		typedef typename TGpuParamsTypes<Core>::TextureType TextureType;
+		typedef typename TGpuParamsTypes<Core>::BufferType BufferType;
 		typedef typename TGpuParamsTypes<Core>::SamplerType SamplerType;
 		typedef typename TGpuParamsTypes<Core>::ParamsBufferType ParamsBufferType;
 
-		TGpuParams(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		TGpuParams(const SPtr<GpuParamDesc>& paramDesc);
 
 		virtual ~TGpuParams();
 
@@ -187,6 +190,9 @@ namespace BansheeEngine
 		void getLoadStoreTextureParam(const String& name, TGpuParamLoadStoreTexture<Core>& output) const;
 
 		/** @copydoc getParam */
+		void getBufferParam(const String& name, TGpuParamBuffer<Core>& output) const;
+
+		/** @copydoc getParam */
 		void getSamplerStateParam(const String& name, TGpuParamSampState<Core>& output) const;
 
 		/**	Gets a parameter block buffer from the specified slot. */
@@ -198,6 +204,9 @@ namespace BansheeEngine
 		/**	Gets a load/store texture bound to the specified slot. */
 		TextureType getLoadStoreTexture(UINT32 slot);
 
+		/**	Gets a buffer bound to the specified slot. */
+		BufferType getBuffer(UINT32 slot);
+
 		/**	Gets a sampler state bound to the specified slot. */
 		SamplerType getSamplerState(UINT32 slot);
 
@@ -206,6 +215,9 @@ namespace BansheeEngine
 
 		/**	Sets a load/store texture at the specified slot. */
 		void setLoadStoreTexture(UINT32 slot, const TextureType& texture, const TextureSurface& surface);
+
+		/**	Sets a buffer at the specified slot. */
+		void setBuffer(UINT32 slot, const BufferType& buffer);
 
 		/**	Sets a sampler state at the specified slot. */
 		void setSamplerState(UINT32 slot, const SamplerType& sampler);
@@ -217,6 +229,7 @@ namespace BansheeEngine
 		ParamsBufferType* mParamBlockBuffers;
 		TextureType* mTextures;
 		TextureType* mLoadStoreTextures;
+		BufferType* mBuffers;
 		SamplerType* mSamplerStates;
 	};
 
@@ -236,17 +249,14 @@ namespace BansheeEngine
 	public:
 		~GpuParamsCore() { }
 
-		/** Uploads all CPU stored parameter buffer data to the GPU buffers. */
-		void updateHardwareBuffers();
-
 		/** @copydoc GpuParamsBase::GpuParamsBase */
-		static SPtr<GpuParamsCore> create(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		static SPtr<GpuParamsCore> create(const SPtr<GpuParamDesc>& paramDesc);
 
 	protected:
 		friend class GpuParams;
 
 		/** @copydoc GpuParamsBase::GpuParamsBase */
-		GpuParamsCore(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		GpuParamsCore(const SPtr<GpuParamDesc>& paramDesc);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParamsCore> _getThisPtr() const override;
@@ -276,7 +286,7 @@ namespace BansheeEngine
 		SPtr<GpuParamsCore> getCore() const;
 
 		/** @copydoc GpuParamsBase::GpuParamsBase */
-		static SPtr<GpuParams> create(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		static SPtr<GpuParams> create(const SPtr<GpuParamDesc>& paramDesc);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParamInfos PARAM_SIZES;
@@ -294,7 +304,7 @@ namespace BansheeEngine
 		/** @} */
 	protected:
 		/** @copydoc GpuParamsBase::GpuParamsBase */
-		GpuParams(const SPtr<GpuParamDesc>& paramDesc, bool transposeMatrices);
+		GpuParams(const SPtr<GpuParamDesc>& paramDesc);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParams> _getThisPtr() const override;

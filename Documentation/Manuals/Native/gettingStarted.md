@@ -5,19 +5,36 @@ Getting started								{#gettingStarted}
 This manual offers a quick overview of commonly used Banshee functionality, in order to give you a better idea of how Banshee works. For a fully working example check out the `ExampleProject` project available with the source code.
 
 # Starting an application
-Banshee is started through the @ref BansheeEngine::Application "Application" interface. To start the engine you need to provide it with a description of the primary render window, and the wanted @ref BansheeEngine::RenderAPIPlugin "render API" plugin.
+Banshee is started through the @ref BansheeEngine::Application "Application" interface. To start the engine you need to provide it with a description of the primary render window and choose which modules to load. Since Banshee is a plugin based engine you have a selection between multiple modules for each system like render API or physics, and a set of completely optional plugins (like importers for various file formats).
 
 After the application is started by calling @ref BansheeEngine::Application::startUp "Application::startUp", you can set up your custom code in the form of @ref BansheeEngine::Component "components" (see later). After that you can run the main loop with @ref BansheeEngine::Application::runMainLoop "Application::runMainLoop" which will execute your code and actually get everything in motion.
 
 Once the main loop terminates use @ref BansheeEngine::Application::shutDown "Application::shutDown" to clean everything up.
 
 ~~~~~~~~~~~~~{.cpp}
-RENDER_WINDOW_DESC renderWindowDesc;
-renderWindowDesc.videoMode = VideoMode(1280, 720);
-renderWindowDesc.title = "My App";
-renderWindowDesc.fullscreen = false;
+// Descriptor used for initializing the engine
+START_UP_DESC startUpDesc;
 
-Application::startUp(renderWindowDesc, RenderAPIPlugin::DX11);
+// Choose which plugins to load. In this case use the default values as specified by the build system.
+startUpDesc.renderAPI = BS_RENDER_API_MODULE;
+startUpDesc.renderer = BS_RENDERER_MODULE;
+startUpDesc.audio = BS_AUDIO_MODULE;
+startUpDesc.physics = BS_PHYSICS_MODULE;
+startUpDesc.input = BS_INPUT_MODULE;
+
+// List of optional importer plugins we plan on using for importing various resources.
+startUpDesc.importers.push_back("BansheeFreeImgImporter"); // For importing textures
+startUpDesc.importers.push_back("BansheeFBXImporter"); // For importing meshes
+startUpDesc.importers.push_back("BansheeFontImporter"); // For importing fonts
+startUpDesc.importers.push_back("BansheeSL"); // For importing shaders
+
+// Descriptor used for initializing the primary application window.
+startUpDesc.primaryWindowDesc.videoMode = VideoMode(windowResWidth, windowResHeight);
+startUpDesc.primaryWindowDesc.title = "Banshee Example App";
+startUpDesc.primaryWindowDesc.fullscreen = false;
+startUpDesc.primaryWindowDesc.depthBuffer = false;
+
+Application::startUp(startUpDesc);
 ... set up game code ...
 Application::instance().runMainLoop();
 Application::shutDown();

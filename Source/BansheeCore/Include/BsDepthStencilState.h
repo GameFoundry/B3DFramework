@@ -235,15 +235,18 @@ namespace BansheeEngine
  *  @{
  */
 
+namespace std
+{
 /**	Hash value generator for DEPTH_STENCIL_STATE_DESC. */
 template<>
-struct std::hash<BansheeEngine::DEPTH_STENCIL_STATE_DESC>
+struct hash<BansheeEngine::DEPTH_STENCIL_STATE_DESC>
 {
 	size_t operator()(const BansheeEngine::DEPTH_STENCIL_STATE_DESC& value) const
 	{
 		return (size_t)BansheeEngine::DepthStencilState::generateHash(value);
 	}
 };
+}
 
 /** @} */
 /** @endcond */

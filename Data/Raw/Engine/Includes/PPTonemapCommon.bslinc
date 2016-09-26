@@ -1,0 +1,129 @@
+Technique : base("PPTonemapCommon") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Fragment =
+		{
+			static const float3x3 sRGBToXYZMatrix =
+			{
+				0.4124564f, 0.3575761f, 0.1804375f,
+				0.2126729f, 0.7151522f, 0.0721750f,
+				0.0193339f, 0.1191920f, 0.9503041f,
+			};
+			
+			static const float3x3 XYZTosRGBMatrix =
+			{
+				 3.2409699419f, -1.5373831776f, -0.4986107603f,
+				-0.9692436363f,  1.8759675015f,  0.0415550574f,
+				 0.0556300797f, -0.2039769589f,  1.0569715142f,
+			};
+			
+			static const float3x3 D65ToD60Matrix =
+			{
+				 1.01303,    0.00610531, -0.014971,
+				 0.00769823, 0.998165,   -0.00503203,
+				-0.00284131, 0.00468516,  0.924507,
+			};
+
+			static const float3x3 D60ToD65Matrix =
+			{
+				 0.987224,   -0.00611327, 0.0159533,
+				-0.00759836,  1.00186,    0.00533002,
+				 0.00307257, -0.00509595, 1.08168,
+			};
+			
+			static const float3x3 XYZToACES2065Matrix =
+			{
+				 1.0498110175, 0.0000000000,-0.0000974845,
+				-0.4959030231, 1.3733130458, 0.0982400361,
+				 0.0000000000, 0.0000000000, 0.9912520182,
+			};
+
+			static const float3x3 XYZToACEScgMatrix =
+			{
+				 1.6410233797, -0.3248032942, -0.2364246952,
+				-0.6636628587,  1.6153315917,  0.0167563477,
+				 0.0117218943, -0.0082844420,  0.9883948585,
+			};
+
+			static const float3x3 ACEScgToXYZMatrix = 
+			{
+				 0.6624541811, 0.1340042065, 0.1561876870,
+				 0.2722287168, 0.6740817658, 0.0536895174,
+				-0.0055746495, 0.0040607335, 1.0103391003,
+			};
+
+			/**
+			 * Encodes a 10bit linear color into 8bits by converting it to log space.
+			 *
+			 * @param 	linearColor		Linear color.
+			 * @return					Encoded color in log space.
+			 */			
+			float3 LinearToLogColor(float3 linearColor)
+			{
+				float linearRange = 14.0f;
+				float linearGrey = 0.18f;
+				float exposureGrey = 444.0f;
+
+				float3 logColor = log2(linearColor) / linearRange - log2(linearGrey) / linearRange + exposureGrey / 1023.0f;
+				return saturate(logColor);
+			}
+
+			/**
+			 * Decodes a 8bit log encoded color back into linear space.
+			 *
+			 * @param 	logColor		Log space color.
+			 * @return					Color in linear space.
+			 */			
+			float3 LogToLinearColor(float3 logColor)
+			{
+				float linearRange = 14.0f;
+				float linearGrey = 0.18f;
+				float exposureGrey = 444.0f;
+
+				return exp2((logColor - exposureGrey / 1023.0f) * linearRange) * linearGrey;
+			}
+
+			/**
+			 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies Rec.709 transfer function). 
+			 * Rec.709 values are suitable for HDTVs and projectors.
+			 *
+			 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
+			 * @return					Gamma corrected color.
+			 */				
+			float3 LinearToGammaRec709(float3 linearColor) 
+			{
+				// TODO: Clamp lower end of linear color so it isn't denormalized?
+				return min(linearColor * 4.5f, pow(max(linearColor, 0.018f), 0.45f) * 1.099f - 0.099f);
+			}
+
+			/**
+			 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies sRGB transfer function). 
+			 * sRGB values are suitable for PC displays.
+			 *
+			 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
+			 * @return					Gamma corrected color.
+			 */		
+			float3 LinearToGammasRGB(float3 linearColor) 
+			{
+				// TODO: Clamp lower end of linear color so it isn't denormalized?
+				return min(linearColor * 12.92f, pow(max(linearColor, 0.00313067f), 1.0f/2.4f) * 1.055f - 0.055f);
+			}			
+		};
+	};
+};
+
+Technique : base("PPTonemapCommon") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Vertex =
+		{
+			// TODO
+		};
+	};
+};

@@ -1,11 +1,17 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
-
 #undef min
 #undef max
 
 #include <atomic>
+#include <limits>
+#include <new>                  /* For 'placement new' */
+#include <utility>
+
+#if BS_PLATFORM == BS_PLATFORM_LINUX
+#  include <malloc.h>
+#endif
 
 namespace BansheeEngine
 {
@@ -372,16 +378,24 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-    /** Allocator for the standard library that internally uses Banshee memory allocator. */
-    template <class T, class Alloc = GenAlloc>
+	/** Allocator for the standard library that internally uses Banshee memory allocator. */
+	template <class T, class Alloc = GenAlloc>
 	class StdAlloc 
 	{
 	public:
 		typedef T value_type;
+		typedef T* pointer;
+		typedef const T* const_pointer;
+		typedef T& reference;
+		typedef const T& const_reference;
+		typedef std::size_t size_type;
+		typedef std::ptrdiff_t difference_type;
+
 		StdAlloc() noexcept {}
-		template<class T, class Alloc> StdAlloc(const StdAlloc<T, Alloc>&) noexcept {}
-		template<class T, class Alloc> bool operator==(const StdAlloc<T, Alloc>&) const noexcept { return true; }
-		template<class T, class Alloc> bool operator!=(const StdAlloc<T, Alloc>&) const noexcept { return false; }
+		template<class U, class Alloc2> StdAlloc(const StdAlloc<U, Alloc2>&) noexcept {}
+		template<class U, class Alloc2> bool operator==(const StdAlloc<U, Alloc2>&) const noexcept { return true; }
+		template<class U, class Alloc2> bool operator!=(const StdAlloc<U, Alloc2>&) const noexcept { return false; }
+		template<class U> class rebind { public: typedef StdAlloc<U, Alloc> other; };
 
 		/** Allocate but don't initialize number elements of type T. */
 		T* allocate(const size_t num) const
@@ -404,6 +418,12 @@ namespace BansheeEngine
 		{
 			bs_free<Alloc>((void*)p);
 		}
+
+		size_t max_size() const { return std::numeric_limits<size_type>::max() / sizeof(T); }
+		void construct(pointer p, const_reference t) { new (p) T(t); }
+		void destroy(pointer p) { p->~T(); }
+		template<class U, class... Args>
+		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
 	};
 
 	/** @} */

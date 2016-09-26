@@ -94,6 +94,37 @@ namespace BansheeEngine
                 return 0;
         }
 
+        /// <summary>
+        /// Uses the provided path elements to find an list element at the specified index, and returns a property
+        /// to the element, or to a child property of that element.
+        /// </summary>
+        /// <param name="pathElements">Path elements representing field names and keys to look for.</param>
+        /// <param name="elementIdx">Index in the <paramref name="pathElements"/> array to start the search at.</param>
+        /// <returns>Property representing the final path element, or null if not found (list index is out of range, or 
+        ///          property with that path doesn't exist).</returns>
+        internal SerializableProperty FindProperty(PropertyPathElement[] pathElements, int elementIdx)
+        {
+            int arrayIdx;
+            if (string.IsNullOrEmpty(pathElements[elementIdx].key))
+                arrayIdx = 0;
+            else
+            {
+                if (!int.TryParse(pathElements[elementIdx].key, out arrayIdx))
+                    return null;
+                else
+                {
+                    if (arrayIdx < 0 || arrayIdx >= GetLength())
+                        return null;
+                }
+            }
+
+            SerializableProperty property = GetProperty(arrayIdx);
+            if (elementIdx == (pathElements.Length - 1))
+                return property;
+
+            return property.FindProperty(pathElements, elementIdx + 1);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SerializableProperty Internal_CreateProperty(IntPtr nativeInstance);
     }

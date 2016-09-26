@@ -17,33 +17,24 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CCharacterControllerRTTI : public RTTIType<CCharacterController, Component, CCharacterControllerRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER_NAMED(mPosition, mDesc.position)
-		BS_PLAIN_MEMBER_NAMED(mContactOffset, mDesc.contactOffset)
-		BS_PLAIN_MEMBER_NAMED(mStepOffset, mDesc.stepOffset)
-		BS_PLAIN_MEMBER_NAMED(mSlopeLimit, mDesc.slopeLimit)
-		BS_PLAIN_MEMBER_NAMED(mMinMoveDistance, mDesc.minMoveDistance)
-		BS_PLAIN_MEMBER_NAMED(mHeight, mDesc.height)
-		BS_PLAIN_MEMBER_NAMED(mRadius, mDesc.radius)
-		BS_PLAIN_MEMBER_NAMED(mUp, mDesc.up)
-		BS_PLAIN_MEMBER_NAMED(mClimbingMode, mDesc.climbingMode)
-		BS_PLAIN_MEMBER_NAMED(mNonWalkableMode, mDesc.nonWalkableMode)
-		BS_PLAIN_MEMBER(mLayer)
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(mPosition, mDesc.position, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mContactOffset, mDesc.contactOffset, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mStepOffset, mDesc.stepOffset, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSlopeLimit, mDesc.slopeLimit, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mMinMoveDistance, mDesc.minMoveDistance, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mHeight, mDesc.height, 5)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mRadius, mDesc.radius, 6)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mUp, mDesc.up, 7)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mClimbingMode, mDesc.climbingMode, 8)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mNonWalkableMode, mDesc.nonWalkableMode, 9)
+			BS_RTTI_MEMBER_PLAIN(mLayer, 10)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		CCharacterControllerRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mPosition, 0);
-			BS_ADD_PLAIN_FIELD(mContactOffset, 1);
-			BS_ADD_PLAIN_FIELD(mStepOffset, 2);
-			BS_ADD_PLAIN_FIELD(mSlopeLimit, 3);
-			BS_ADD_PLAIN_FIELD(mMinMoveDistance, 4);
-			BS_ADD_PLAIN_FIELD(mHeight, 5);
-			BS_ADD_PLAIN_FIELD(mRadius, 6);
-			BS_ADD_PLAIN_FIELD(mUp, 7);
-			BS_ADD_PLAIN_FIELD(mClimbingMode, 8);
-			BS_ADD_PLAIN_FIELD(mNonWalkableMode, 9);
-			BS_ADD_PLAIN_FIELD(mLayer, 10);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

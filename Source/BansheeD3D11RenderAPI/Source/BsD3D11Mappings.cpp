@@ -160,13 +160,10 @@ namespace BansheeEngine
 		{
 		case FT_MIN:
 			return D3D11_MIN_FILTER_SHIFT;
-			break;
 		case FT_MAG:
 			return D3D11_MAG_FILTER_SHIFT;
-			break;
 		case FT_MIP:
 			return D3D11_MIP_FILTER_SHIFT;
-			break;
 		}
 
 		// Unsupported type
@@ -281,35 +278,46 @@ namespace BansheeEngine
 		case VET_COLOR:
 		case VET_COLOR_ABGR:
 		case VET_COLOR_ARGB:
+		case VET_UBYTE4_NORM:
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
 		case VET_FLOAT1:
 			return DXGI_FORMAT_R32_FLOAT;
-			break;
 		case VET_FLOAT2:
 			return DXGI_FORMAT_R32G32_FLOAT;
-			break;
 		case VET_FLOAT3:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-			break;
 		case VET_FLOAT4:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-			break;
+		case VET_USHORT1:
+			return DXGI_FORMAT_R16_UINT;
+		case VET_USHORT2:
+			return DXGI_FORMAT_R16G16_UINT;
+		case VET_USHORT4:
+			return DXGI_FORMAT_R16G16B16A16_UINT;
+		case VET_SHORT1:
+			return DXGI_FORMAT_R16_SINT;
 		case VET_SHORT2:
 			return DXGI_FORMAT_R16G16_SINT;
-			break;
 		case VET_SHORT4:
 			return DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
-		case VET_UBYTE4:
-			return DXGI_FORMAT_R8G8B8A8_UINT;
-			break;
+		case VET_UINT1:
+			return DXGI_FORMAT_R32_UINT;
+		case VET_UINT2:
+			return DXGI_FORMAT_R32G32_UINT;
+		case VET_UINT3:
+			return DXGI_FORMAT_R32G32B32_UINT;
 		case VET_UINT4:
 			return DXGI_FORMAT_R32G32B32A32_UINT;
-			break;
-		case VET_SINT4:
+		case VET_INT1:
+			return DXGI_FORMAT_R32_SINT;
+		case VET_INT2:
+			return DXGI_FORMAT_R32G32_SINT;
+		case VET_INT3:
+			return DXGI_FORMAT_R32G32B32_SINT;
+		case VET_INT4:
 			return DXGI_FORMAT_R32G32B32A32_SINT;
-			break;
+		case VET_UBYTE4:
+			return DXGI_FORMAT_R8G8B8A8_UINT;
 		}
 
 		// Unsupported type
@@ -349,34 +357,24 @@ namespace BansheeEngine
 		{
 		case VES_BLEND_INDICES:
 			return "BLENDINDICES";
-			break;
 		case VES_BLEND_WEIGHTS:
 			return "BLENDWEIGHT";
-			break;
 		case VES_COLOR:
 			return "COLOR";
-			break;
 		case VES_NORMAL:
 			return "NORMAL";
-			break;
 		case VES_POSITION:
 			return "POSITION";
-			break;
 		case VES_TEXCOORD:
 			return "TEXCOORD";
-			break;
 		case VES_BITANGENT:
 			return "BINORMAL";
-			break;
 		case VES_TANGENT:
 			return "TANGENT";
-			break;
 		case VES_POSITIONT:
 			return "POSITIONT";
-			break;
 		case VES_PSIZE:
 			return "PSIZE";
-			break;
 		}
 
 		// Unsupported type
@@ -390,7 +388,7 @@ namespace BansheeEngine
 		case D3D_REGISTER_COMPONENT_FLOAT32:
 			return VET_FLOAT4;
 		case D3D_REGISTER_COMPONENT_SINT32:
-			return VET_SINT4;
+			return VET_INT4;
 		case D3D_REGISTER_COMPONENT_UINT32:
 			return VET_UINT4;
 		default:
@@ -688,6 +686,56 @@ namespace BansheeEngine
 		default:
 			return DXGI_FORMAT_UNKNOWN;
 		}
+	}
+
+	DXGI_FORMAT D3D11Mappings::getBF(GpuBufferFormat format)
+	{
+		static bool lookupInitialized = false;
+
+		static DXGI_FORMAT lookup[BF_COUNT];
+		if (!lookupInitialized)
+		{
+			lookup[BF_16X1F] = DXGI_FORMAT_R16_FLOAT;
+			lookup[BF_16X2F] = DXGI_FORMAT_R16G16_FLOAT;
+			lookup[BF_16X4F] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			lookup[BF_32X1F] = DXGI_FORMAT_R32_FLOAT;
+			lookup[BF_32X2F] = DXGI_FORMAT_R32G32_FLOAT;
+			lookup[BF_32X3F] = DXGI_FORMAT_R32G32B32_FLOAT;
+			lookup[BF_32X4F] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			lookup[BF_8X1] = DXGI_FORMAT_R8_UNORM;
+			lookup[BF_8X2] = DXGI_FORMAT_R8G8_UNORM;
+			lookup[BF_8X4] = DXGI_FORMAT_R8G8B8A8_UNORM;
+			lookup[BF_16X1] = DXGI_FORMAT_R16_UNORM;
+			lookup[BF_16X2] = DXGI_FORMAT_R16G16_UNORM;
+			lookup[BF_16X4] = DXGI_FORMAT_R16G16B16A16_UNORM;
+			lookup[BF_8X1S] = DXGI_FORMAT_R8_SINT;
+			lookup[BF_8X2S] = DXGI_FORMAT_R8G8_SINT;
+			lookup[BF_8X4S] = DXGI_FORMAT_R8G8B8A8_SINT;
+			lookup[BF_16X1S] = DXGI_FORMAT_R16_SINT;
+			lookup[BF_16X2S] = DXGI_FORMAT_R16G16_SINT;
+			lookup[BF_16X4S] = DXGI_FORMAT_R16G16B16A16_SINT;
+			lookup[BF_32X1S] = DXGI_FORMAT_R32_SINT;
+			lookup[BF_32X2S] = DXGI_FORMAT_R32G32_SINT;
+			lookup[BF_32X3S] = DXGI_FORMAT_R32G32B32_SINT;
+			lookup[BF_32X4S] = DXGI_FORMAT_R32G32B32A32_SINT;
+			lookup[BF_8X1U] = DXGI_FORMAT_R8_UINT;
+			lookup[BF_8X2U] = DXGI_FORMAT_R8G8_UINT;
+			lookup[BF_8X4U] = DXGI_FORMAT_R8G8B8A8_UINT;
+			lookup[BF_16X1U] = DXGI_FORMAT_R16_UINT;
+			lookup[BF_16X2U] = DXGI_FORMAT_R16G16_UINT;
+			lookup[BF_16X4U] = DXGI_FORMAT_R16G16B16A16_UINT;
+			lookup[BF_32X1U] = DXGI_FORMAT_R32_UINT;
+			lookup[BF_32X2U] = DXGI_FORMAT_R32G32_UINT;
+			lookup[BF_32X3U] = DXGI_FORMAT_R32G32B32_UINT;
+			lookup[BF_32X4U] = DXGI_FORMAT_R32G32B32A32_UINT;
+
+			lookupInitialized = true;
+		}
+		
+		if (format >= BF_COUNT)
+			return DXGI_FORMAT_UNKNOWN;
+
+		return lookup[(UINT32)format];
 	}
 
 	DXGI_FORMAT D3D11Mappings::getTypelessDepthStencilPF(PixelFormat format)

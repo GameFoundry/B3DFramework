@@ -62,13 +62,19 @@ namespace BansheeEngine
 		mResourceMetaData.push_back(resourceMeta);
 	}
 
-	void ProjectFileMeta::remove(const String& UUID)
+	void ProjectFileMeta::addInactive(const SPtr<ProjectResourceMeta>& resourceMeta)
 	{
-		auto iterFind = std::find_if(mResourceMetaData.begin(), mResourceMetaData.end(),
-			[&](auto& x) { return x->getUUID() == UUID; });
+		mInactiveResourceMetaData.push_back(resourceMeta);
+	}
 
-		if (iterFind != mResourceMetaData.end())
-			mResourceMetaData.erase(iterFind);
+	Vector<SPtr<ProjectResourceMeta>> ProjectFileMeta::getAllResourceMetaData() const
+	{
+		Vector<SPtr<ProjectResourceMeta>> output(mResourceMetaData);
+
+		for (auto& entry : mInactiveResourceMetaData)
+			output.push_back(entry);
+
+		return output;
 	}
 
 	bool ProjectFileMeta::hasTypeId(UINT32 typeId) const

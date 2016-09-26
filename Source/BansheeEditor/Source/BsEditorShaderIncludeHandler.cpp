@@ -16,10 +16,11 @@ namespace BansheeEngine
 		if (path.isEmpty())
 			return HShaderInclude();
 
+		ResourceLoadFlags loadFlags = ResourceLoadFlag::Default | ResourceLoadFlag::KeepSourceData;
 		if (name.size() >= 8)
 		{
 			if (name.substr(0, 8) == "$ENGINE$" || name.substr(0, 8) == "$EDITOR$")
-				return static_resource_cast<ShaderInclude>(Resources::instance().load(path));
+				return static_resource_cast<ShaderInclude>(Resources::instance().load(path, loadFlags));
 		}
 
 		ProjectLibrary::LibraryEntry* entry = gProjectLibrary().findEntry(path);
@@ -33,7 +34,7 @@ namespace BansheeEngine
 				for(auto& resMeta : resourceMetas)
 				{
 					if(resMeta->getTypeID() == TID_ShaderInclude)
-						return static_resource_cast<ShaderInclude>(Resources::instance().loadFromUUID(resMeta->getUUID()));
+						return static_resource_cast<ShaderInclude>(Resources::instance().loadFromUUID(resMeta->getUUID(), false, loadFlags));
 				}
 			}
 		}

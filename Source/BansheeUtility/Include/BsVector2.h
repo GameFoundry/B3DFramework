@@ -18,7 +18,10 @@ namespace BansheeEngine
         float x, y;
 
     public:
-        Vector2()
+		Vector2()
+		{ }
+
+        Vector2(ZERO zero)
 			:x(0.0f), y(0.0f)
         { }
 
@@ -331,7 +334,7 @@ namespace BansheeEngine
 			float len = Math::sqrt(val.x * val.x + val.y * val.y);
 
 			// Will also work for zero-sized vectors, but will change nothing
-			Vector2 normalizedVec;
+			Vector2 normalizedVec = val;
 			if (len > 1e-08)
 			{
 				float invLen = 1.0f / len;

@@ -14,16 +14,22 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/**	Types of builtin meshes that are always available in the engine. */
+	/**	Types of builtin meshes that are always available. */
 	enum class BuiltinMesh
 	{
 		Box, Sphere, Cone, Quad, Disc
 	};
 
-	/**	Types of builtin textures that are always available in the engine. */
+	/**	Types of builtin textures that are always available. */
 	enum class BuiltinTexture
 	{
 		White, Black, Normal
+	};
+
+	/** Types of builtin shaders that are always available. */
+	enum class BuiltinShader
+	{
+		Standard, Custom
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */
@@ -82,16 +88,19 @@ namespace BansheeEngine
 		const PixelData& getBansheeIcon();
 
 		/**	Returns a shader used for rendering only a diffuse texture. */
-		HShader getDiffuseShader() const { return mShaderDiffuse; }
+		HShader getBuiltinShader(BuiltinShader type) const;
 
-		/**	Creates material used for textual sprite rendering (for example text in GUI). */
+		/**	Creates a material used for textual sprite rendering (for example text in GUI). */
 		HMaterial createSpriteTextMaterial() const;
 
-		/**	Creates material used for image sprite rendering (for example images in GUI). */
+		/**	Creates a material used for image sprite rendering (for example images in GUI). */
 		HMaterial createSpriteImageMaterial() const;
 
-		/**	Creates material used for non-transparent image sprite rendering (for example images in GUI). */
+		/**	Creates a material used for non-transparent image sprite rendering (for example images in GUI). */
 		HMaterial createSpriteNonAlphaImageMaterial() const;
+
+		/** Creates a material used for antialiased line rendering (for example curve rendering in GUI). */
+		HMaterial createSpriteLineMaterial() const;
 
 		/**	Retrieves one of the builtin meshes. */
 		HMesh getMesh(BuiltinMesh mesh) const;
@@ -103,16 +112,19 @@ namespace BansheeEngine
 		 */
 		HShader getShader(const Path& path);
 
+		/** Returns the default font used by the engine. */
+		HFont getDefaultFont() const { return mFont; }
+
 		/**	Retrieves one of the builtin textures. */
 		static HTexture getTexture(BuiltinTexture type);
 
 		/**	Returns image data the Banshee Engine splash screen. */
 		static SPtr<PixelData> getSplashScreen();
 
-		/**	Returns path to the builtin shader include folder, relative to the working directory. */
+		/**	Returns absolute path to the builtin shader include folder. */
 		static Path getShaderIncludeFolder();
 
-		/**	Returns path to the builtin icons folder, relative to the working directory. */
+		/**	Returns absolute path to the builtin icons folder. */
 		static Path getIconFolder();
 
 		static const WString IconTextureName;
@@ -144,6 +156,7 @@ namespace BansheeEngine
 
 		HGUISkin mEmptySkin;
 		HGUISkin mSkin;
+		HFont mFont;
 
 		SPtr<PixelData> mCursorArrow;
 		SPtr<PixelData> mCursorArrowDrag;
@@ -165,6 +178,7 @@ namespace BansheeEngine
 		HShader mShaderSpriteText;
 		HShader mShaderSpriteImage;
 		HShader mShaderSpriteNonAlphaImage;
+		HShader mShaderSpriteLine;
 		HShader mShaderDiffuse;
 
 		SPtr<ResourceManifest> mResourceManifest;
@@ -178,6 +192,7 @@ namespace BansheeEngine
 
 		Path mBuiltinDataFolder;
 		Path mEngineSkinFolder;
+		Path mEngineSkinSpritesFolder;
 		Path mEngineCursorFolder;
 		Path mEngineIconFolder;
 		Path mEngineShaderFolder;
@@ -194,6 +209,7 @@ namespace BansheeEngine
 		static const char* SkinFolder;
 		static const char* MeshFolder;
 		static const char* TextureFolder;
+		static const char* SpriteSubFolder;
 
 		static const WString DefaultFontFilename;
 		static const UINT32 DefaultFontSize;
@@ -292,6 +308,7 @@ namespace BansheeEngine
 		static const WString ShaderSpriteTextFile;
 		static const WString ShaderSpriteImageAlphaFile;
 		static const WString ShaderSpriteImageNoAlphaFile;
+		static const WString ShaderSpriteLineFile;
 		static const WString ShaderDiffuseFile;
 
 		static const WString MeshSphereFile;
@@ -328,10 +345,10 @@ namespace BansheeEngine
 			const Vector<UINT32>& fontSizes, bool antialiasing, const SPtr<ResourceManifest>& manifest);
 
 		/**
-		 * Generates sprite textures for all texture assets in the specified folder. Results are written in the same folder
-		 * with a "sprite_" prefix. All saved resources are registered in the provided resource manifest.
+		 * Generates sprite textures for all texture assets in the @p input folder. Results are written in the @p output
+		 * folder with a "sprite_" prefix. All saved resources are registered in the provided resource manifest.
 		 */
-		static void generateSpriteTextures(const Path& folder, const SPtr<ResourceManifest>& manifest);
+		static void generateSpriteTextures(const Path& input, const Path& output, const SPtr<ResourceManifest>& manifest);
 
 		/** Writes a timestamp with the current date and time in the specified file. */
 		static void writeTimestamp(const Path& file);

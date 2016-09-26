@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisitesUtil.h"
+#include "BsVector2I.h"
 
 namespace BansheeEngine
 {
@@ -51,7 +52,7 @@ namespace BansheeEngine
 		{
 			for (UINT32 i = 0; i < N; i++)
 			{
-				if (v[i] != rhs.v[i])
+				if (v[i] != rhs[i])
 					return false;
 			}
 

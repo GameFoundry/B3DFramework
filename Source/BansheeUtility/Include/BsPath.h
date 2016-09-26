@@ -172,6 +172,17 @@ namespace BansheeEngine
 		 */
 		String toString(PathType type = PathType::Default) const;
 
+		/**
+		 * Converts the path to either a string or a wstring, doing The Right Thing for the current platform.
+         *
+         * This method is equivalent to toWString() on Windows, and to toString() elsewhere.
+		 */
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+		WString toPlatformString() const { return toWString(); }
+#else
+		String toPlatformString() const { return toString(); }
+#endif
+
 		/** Checks is the path a directory (contains no file-name). */
 		bool isDirectory() const { return mFilename.empty(); }
 
@@ -617,22 +628,25 @@ namespace BansheeEngine
 
 /** @cond STDLIB */
 
-/** Hash value generator for Path. */
-template<>
-struct std::hash<BansheeEngine::Path>
+namespace std
 {
-	size_t operator()(const BansheeEngine::Path& path) const
+	/** Hash value generator for Path. */
+	template<>
+	struct hash<BansheeEngine::Path>
 	{
-		size_t hash = 0;
-		BansheeEngine::hash_combine(hash, path.mFilename);
-		BansheeEngine::hash_combine(hash, path.mDevice);
-		BansheeEngine::hash_combine(hash, path.mNode);
+		size_t operator()(const BansheeEngine::Path& path) const
+		{
+			size_t hash = 0;
+			BansheeEngine::hash_combine(hash, path.mFilename);
+			BansheeEngine::hash_combine(hash, path.mDevice);
+			BansheeEngine::hash_combine(hash, path.mNode);
 
-		for (auto& dir : path.mDirectories)
-			BansheeEngine::hash_combine(hash, dir);
+			for (auto& dir : path.mDirectories)
+				BansheeEngine::hash_combine(hash, dir);
 
-		return hash;
-	}
-};
+			return hash;
+		}
+	};
+}
 
 /** @endcond */

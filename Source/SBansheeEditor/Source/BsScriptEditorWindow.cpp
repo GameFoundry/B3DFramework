@@ -207,9 +207,7 @@ namespace BansheeEngine
 			if(Platform::isPointOverWindow(*renderWindow, pointerPos))
 			{
 				Rect2I bounds = thisPtr->getEditorWidget()->getBounds();
-
-				Vector2I widgetPos(bounds.x, bounds.y);
-				Vector2I screenPos = widget->widgetToScreenPos(widgetPos);
+				Vector2I screenPos = widget->widgetToScreenPos(Vector2I(0, 0));
 
 				bounds.x = screenPos.x;
 				bounds.y = screenPos.y;

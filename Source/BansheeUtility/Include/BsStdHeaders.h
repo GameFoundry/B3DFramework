@@ -174,6 +174,16 @@ namespace BansheeEngine
 		return SPtr<Type>(data, &bs_delete<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
+	/**
+	* Create a new unique pointer from a previously constructed object.
+	* Pointer specific data will be allocated using the provided allocator category.
+	*/
+	template<class Type, class Alloc = GenAlloc>
+	UPtr<Type, Alloc> bs_unique_ptr(Type* data)
+	{
+		return std::unique_ptr<Type, decltype(&bs_delete<Type, Alloc>)>(data, bs_delete<Type, Alloc>);
+	}
+
 	/** Create a new unique pointer using a custom allocator category. */
 	template<class Type, class Alloc, class... Args>
 	UPtr<Type> bs_unique_ptr_new(Args &&... args)
@@ -190,16 +200,6 @@ namespace BansheeEngine
 		Type* rawPtr = bs_new<Type, GenAlloc>(std::forward<Args>(args)...);
 
 		return bs_unique_ptr<Type, GenAlloc>(rawPtr);
-	}
-
-	/**
-	* Create a new unique pointer from a previously constructed object.
-	* Pointer specific data will be allocated using the provided allocator category.
-	*/
-	template<class Type, class Alloc = GenAlloc>
-	UPtr<Type, Alloc> bs_unique_ptr(Type* data)
-	{
-		return std::unique_ptr<Type, decltype(&bs_delete<Type, Alloc>)>(data, bs_delete<Type, Alloc>);
 	}
 
 	/** @} */

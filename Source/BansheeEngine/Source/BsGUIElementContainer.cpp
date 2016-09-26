@@ -18,20 +18,22 @@ namespace BansheeEngine
 		return 0;
 	}
 
-	const SpriteMaterialInfo& GUIElementContainer::_getMaterial(UINT32 renderElementIdx) const
+	const SpriteMaterialInfo& GUIElementContainer::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
 	{
 		BS_EXCEPT(InvalidStateException, "Trying to retrieve a material from an element with no render elements.");
 		static SpriteMaterialInfo dummy;
 		return dummy;
 	}
 
-	UINT32 GUIElementContainer::_getNumQuads(UINT32 renderElementIdx) const
+	void GUIElementContainer::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
-		return 0;
+		numVertices = 0;
+		numIndices = 0;
+		type = GUIMeshType::Triangle;
 	}
 
-	void GUIElementContainer::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-		UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIElementContainer::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{ }
 
 	Vector2I GUIElementContainer::_getOptimalSize() const

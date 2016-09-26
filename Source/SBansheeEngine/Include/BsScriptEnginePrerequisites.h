@@ -91,7 +91,7 @@ namespace BansheeEngine
 	class ManagedSerializableDictionary;
 	class ManagedSerializableAssemblyInfo;
 	class ManagedSerializableObjectInfo;
-	class ManagedSerializableFieldInfo;
+	class ManagedSerializableMemberInfo;
 	class ManagedSerializableObjectData;
 	class ManagedSerializableDiff;
 	class ManagedResource;
@@ -106,6 +106,7 @@ namespace BansheeEngine
 	class ScriptPhysicsMesh;
 	class ScriptRigidbody;
 	class ScriptColliderBase;
+	class ScriptAudioClip;
 
 	typedef GameObjectHandle<ManagedComponent> HManagedComponent;
 	typedef ResourceHandle<ManagedResource> HManagedResource;
@@ -117,7 +118,7 @@ namespace BansheeEngine
 		TID_ScriptSerializableArray = 50002,
 		TID_SerializableAssemblyInfo = 50004,
 		TID_SerializableObjectInfo = 50005,
-		TID_SerializableFieldInfo = 50006,
+		TID_SerializableMemberInfo = 50006,
 		TID_SerializableTypeInfo = 50007,
 		TID_SerializableTypeInfoPrimitive = 50008,
 		TID_SerializableTypeInfoObject = 50009,
@@ -161,6 +162,8 @@ namespace BansheeEngine
 		TID_ScriptModifiedArrayEntry = 50047,
 		TID_ScriptModifiedDictionaryEntry = 50048,
 		TID_ScriptSerializableDictionaryKeyValue = 50049,
-		TID_SerializableTypeInfoRef = 50050
+		TID_SerializableTypeInfoRef = 50050,
+		TID_SerializableFieldInfo = 50051,
+		TID_SerializablePropertyInfo = 50052
 	};
 }

@@ -205,6 +205,15 @@ namespace BansheeEngine
 		 */
 		void setIncludeInBuild(const Path& path, bool force);
 
+		/** 
+		 * Assigns a non-specific user data object to the resource at the specified path. 
+		 * 
+		 * @param[in]	path		Path to the resource to modify, absolute or relative to resources folder.
+		 * @param[in]	userData	User data to assign to the resource, which can later be retrieved from the resource's
+		 *							meta-data as needed. 
+		 */
+		void setUserData(const Path& path, const SPtr<IReflectable>& userData);
+
 		/**
 		 * Finds all top-level resource entries that should be included in a build. Values returned by this method are
 		 * transient, they may be destroyed on any following ProjectLibrary call.

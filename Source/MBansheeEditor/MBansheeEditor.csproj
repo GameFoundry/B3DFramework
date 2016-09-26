@@ -40,14 +40,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Inspectors\AnimationClipInspector.cs" />
+    <Compile Include="Inspectors\AnimationInspector.cs" />
+    <Compile Include="Inspectors\AudioClipInspector.cs" />
+    <Compile Include="Inspectors\AudioListenerInspector.cs" />
+    <Compile Include="Inspectors\AudioSourceInspector.cs" />
+    <Compile Include="Inspectors\BoneInspector.cs" />
     <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
+    <Compile Include="Utility\EdAnimationCurve.cs" />
+    <Compile Include="Utility\SerializedSceneObject.cs" />
+    <Compile Include="Utility\SerializedDiff.cs" />
+    <Compile Include="Utility\SerializedObject.cs" />
     <Compile Include="Windows\AboutBox.cs" />
+    <Compile Include="Windows\AnimationWindow.cs" />
+    <Compile Include="Windows\Animation\AnimationGizmo.cs" />
+    <Compile Include="Windows\Animation\EditorAnimInfo.cs" />
+    <Compile Include="Windows\Animation\FieldSelectionWindow.cs" />
+    <Compile Include="Windows\Animation\GUIAnimEvents.cs" />
+    <Compile Include="Windows\Animation\GUIAnimFieldDisplay.cs" />
+    <Compile Include="Windows\Animation\GUICurveDrawing.cs" />
+    <Compile Include="Windows\Animation\GUICurveEditor.cs" />
+    <Compile Include="Windows\Animation\GUIFieldSelector.cs" />
+    <Compile Include="Windows\Animation\GUIGraphValues.cs" />
+    <Compile Include="Windows\Animation\GUIGraphTicks.cs" />
+    <Compile Include="Windows\Animation\GUIGraphTime.cs" />
+    <Compile Include="Windows\Animation\GUITimelineBase.cs" />
     <Compile Include="Windows\BrowseDialog.cs" />
     <Compile Include="Windows\Build\BuildManager.cs" />
     <Compile Include="Windows\Build\BuildWindow.cs" />
     <Compile Include="Script\CodeEditor.cs" />
     <Compile Include="Windows\ColorPicker.cs" />
-    <Compile Include="Windows\Inspector\EditorPersistentData.cs" />
+    <Compile Include="General\EditorPersistentData.cs" />
     <Compile Include="General\IGlobalShortcuts.cs" />
     <Compile Include="Inspectors\BoxColliderInspector.cs" />
     <Compile Include="Inspectors\CapsuleColliderInspector.cs" />
@@ -68,6 +91,13 @@
     <Compile Include="Inspectors\SliderJointInspector.cs" />
     <Compile Include="Inspectors\SphereColliderInspector.cs" />
     <Compile Include="Inspectors\SphericalJointInspector.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldRangeStyle.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStepStyle.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStyle.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedField.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedFloat.cs" />
+    <Compile Include="Windows\Inspector\InspectableRangedInt.cs" />
+    <Compile Include="Windows\Inspector\Style\InspectableFieldStyleInfo.cs" />
     <Compile Include="Windows\LogWindow.cs" />
     <Compile Include="Window\DefaultSize.cs" />
     <Compile Include="Windows\DialogBox.cs" />
@@ -202,7 +232,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)..\..\Dependencies\tools\pdb2mdb.bat "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
+    <PostBuildEvent>"$(ProjectDir)..\..\Scripts\pdb2mdb.bat" "$(TargetPath)" "$(ConfigurationName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -55,7 +55,7 @@ namespace BansheeEditor
         public static void RecordSO(SceneObject so, bool recordHierarchy = false, string description = "")
         {
             if (so != null)
-                Internal_RecordSO(so.GetCachedPtr(), description);
+                Internal_RecordSO(so.GetCachedPtr(), recordHierarchy, description);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace BansheeEditor
         internal static extern int Internal_GetTopCommandId();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_RecordSO(IntPtr soPtr, string description);
+        internal static extern void Internal_RecordSO(IntPtr soPtr, bool recordHierarchy, string description);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern SceneObject Internal_CloneSO(IntPtr soPtr, string description);

@@ -36,14 +36,14 @@ namespace BansheeEngine
 			addReflectablePtrField("mObjectData", 0, &ManagedResourceRTTI::getObjectData, &ManagedResourceRTTI::setObjectData);
 		}
 
-		void onSerializationStarted(IReflectable* obj) override
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedResource* mc = static_cast<ManagedResource*>(obj);
 
 			mc->mRTTIData = ManagedSerializableObject::createFromExisting(mc->getManagedInstance());
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 			SPtr<ManagedSerializableObject> serializableObject = any_cast<SPtr<ManagedSerializableObject>>(mr->mRTTIData);

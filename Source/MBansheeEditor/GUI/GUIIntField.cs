@@ -30,14 +30,19 @@ namespace BansheeEditor
         /// </summary>
         public int Value
         {
-            get
-            {
-                int value; 
-                Internal_GetValue(mCachedPtr, out value);
-                return value;
-            }
+            get { return Internal_GetValue(mCachedPtr); }
 
             set { Internal_SetValue(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// Minimum change of the field.
+        /// </summary>
+        public int Step
+        {
+            get { return Internal_GetStep(mCachedPtr); }
+
+            set { Internal_SetStep(mCachedPtr, value); }
         }
 
         /// <summary>
@@ -46,12 +51,7 @@ namespace BansheeEditor
         /// </summary>
         public bool HasInputFocus
         {
-            get
-            {
-                bool value;
-                Internal_HasInputFocus(mCachedPtr, out value);
-                return value;
-            }
+            get { return Internal_HasInputFocus(mCachedPtr); }
         }
 
         /// <summary>
@@ -126,19 +126,25 @@ namespace BansheeEditor
             string style, GUIOption[] options, bool withTitle);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_GetValue(IntPtr nativeInstance, out int value);
+        private static extern int Internal_GetValue(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetValue(IntPtr nativeInstance, int value);
+        private static extern int Internal_SetValue(IntPtr nativeInstance, int value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_HasInputFocus(IntPtr nativeInstance, out bool value);
+        private static extern bool Internal_HasInputFocus(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetRange(IntPtr nativeInstance, int min, int max);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color color);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetStep(IntPtr nativeInstance, int step);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetStep(IntPtr nativeInstance);
     }
 
     /** @} */

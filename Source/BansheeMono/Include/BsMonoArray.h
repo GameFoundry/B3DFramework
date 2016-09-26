@@ -104,8 +104,6 @@ namespace BansheeEngine
 	{
 		// A layer of indirection for all methods specialized by ScriptArray. */
 
-
-
 		template<class T>
 		T ScriptArray_get(MonoArray* array, UINT32 idx)
 		{

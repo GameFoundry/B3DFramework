@@ -9,6 +9,7 @@
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptShader.h"
 #include "BsScriptMesh.h"
+#include "BsScriptFont.h"
 #include "BsScriptResourceManager.h"
 
 namespace BansheeEngine
@@ -20,8 +21,9 @@ namespace BansheeEngine
 	void ScriptBuiltin::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetWhiteTexture", &ScriptBuiltin::internal_GetWhiteTexture);
-		metaData.scriptClass->addInternalCall("Internal_GetDiffuseShader", &ScriptBuiltin::internal_GetDiffuseShader);
+		metaData.scriptClass->addInternalCall("Internal_GetBuiltinShader", &ScriptBuiltin::internal_GetBuiltinShader);
 		metaData.scriptClass->addInternalCall("Internal_GetMesh", &ScriptBuiltin::internal_GetMesh);
+		metaData.scriptClass->addInternalCall("Internal_GetDefaultFont", &ScriptBuiltin::internal_GetDefaultFont);
 	}
 
 	MonoObject* ScriptBuiltin::internal_GetWhiteTexture()
@@ -34,9 +36,9 @@ namespace BansheeEngine
 		return scriptSpriteTex->getManagedInstance();
 	}
 
-	MonoObject* ScriptBuiltin::internal_GetDiffuseShader()
+	MonoObject* ScriptBuiltin::internal_GetBuiltinShader(BuiltinShader type)
 	{
-		HShader diffuseShader = BuiltinResources::instance().getDiffuseShader();
+		HShader diffuseShader = BuiltinResources::instance().getBuiltinShader(type);
 
 		ScriptShader* scriptShader;
 		ScriptResourceManager::instance().getScriptResource(diffuseShader, &scriptShader, true);
@@ -52,5 +54,15 @@ namespace BansheeEngine
 		ScriptResourceManager::instance().getScriptResource(mesh, &scriptMesh, true);
 
 		return scriptMesh->getManagedInstance();
+	}
+
+	MonoObject* ScriptBuiltin::internal_GetDefaultFont()
+	{
+		HFont font = BuiltinResources::instance().getDefaultFont();
+
+		ScriptFont* scriptFont;
+		ScriptResourceManager::instance().getScriptResource(font, &scriptFont, true);
+
+		return scriptFont->getManagedInstance();
 	}
 }

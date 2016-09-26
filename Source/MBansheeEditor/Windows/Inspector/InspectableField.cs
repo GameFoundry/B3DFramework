@@ -129,10 +129,11 @@ namespace BansheeEditor
         ///                     contain other fields, in which case you should increase this value by one.</param>
         /// <param name="layout">Parent layout that all the field elements will be added to.</param>
         /// <param name="property">Serializable property referencing the array whose contents to display.</param>
+        /// <param name="style">Information related the field style</param>
         /// <returns>Inspectable field implementation that can be used for displaying the GUI for a serializable property
         ///          of the provided type.</returns>
         public static InspectableField CreateInspectable(Inspector parent, string title, string path, int layoutIndex, 
-            int depth, InspectableFieldLayout layout, SerializableProperty property)
+            int depth, InspectableFieldLayout layout, SerializableProperty property, InspectableFieldStyleInfo style = null)
         {
             InspectableField field = null;
 
@@ -146,10 +147,24 @@ namespace BansheeEditor
                 switch (property.Type)
                 {
                     case SerializableProperty.FieldType.Int:
-                        field = new InspectableInt(parent, title, path, depth, layout, property);
+                        if (style?.RangeStyle == null || !style.RangeStyle.Slider)
+                        {
+                            field = new InspectableInt(parent, title, path, depth, layout, property, style);
+                        }
+                        else
+                        {
+                            field = new InspectableRangedInt(parent, title, path, depth, layout, property, style);
+                        }
                         break;
                     case SerializableProperty.FieldType.Float:
-                        field = new InspectableFloat(parent, title, path, depth, layout, property);
+                        if (style?.RangeStyle == null || !style.RangeStyle.Slider)
+                        {
+                            field = new InspectableFloat(parent, title, path, depth, layout, property, style);
+                        }
+                        else
+                        {
+                            field = new InspectableRangedFloat(parent, title, path, depth, layout, property, style);
+                        }
                         break;
                     case SerializableProperty.FieldType.Bool:
                         field = new InspectableBool(parent, title, path, depth, layout, property);

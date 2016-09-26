@@ -59,9 +59,10 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="code">Code of the pressed button.</param>
         /// <param name="deviceIdx">Device the event originated from.</param>
-        private static void Internal_TriggerButtonDown(ButtonCode code, int deviceIdx)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerButtonDown(ButtonCode code, int deviceIdx, bool isUsed)
         {
-            ButtonEvent ev = new ButtonEvent(code, deviceIdx);
+            ButtonEvent ev = new ButtonEvent(code, deviceIdx, isUsed);
 
             if (OnButtonDown != null)
                 OnButtonDown(ev);
@@ -72,9 +73,10 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="code">Code of the released button.</param>
         /// <param name="deviceIdx">Device the event originated from.</param>
-        private static void Internal_TriggerButtonUp(ButtonCode code, int deviceIdx)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerButtonUp(ButtonCode code, int deviceIdx, bool isUsed)
         {
-            ButtonEvent ev = new ButtonEvent(code, deviceIdx);
+            ButtonEvent ev = new ButtonEvent(code, deviceIdx, isUsed);
 
             if (OnButtonUp != null)
                 OnButtonUp(ev);
@@ -84,9 +86,10 @@ namespace BansheeEditor
         /// Triggered by runtime when character is input.
         /// </summary>
         /// <param name="textChar">Code of input character.</param>
-        private static void Internal_TriggerCharInput(int textChar)
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
+        private static void Internal_TriggerCharInput(int textChar, bool isUsed)
         {
-            TextInputEvent ev = new TextInputEvent(textChar);
+            TextInputEvent ev = new TextInputEvent(textChar, isUsed);
 
             if (OnCharInput != null)
                 OnCharInput(ev);
@@ -104,10 +107,11 @@ namespace BansheeEditor
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerMove(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerMoved != null)
                 OnPointerMoved(ev);
@@ -125,10 +129,11 @@ namespace BansheeEditor
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerPressed(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerPressed != null)
                 OnPointerPressed(ev);
@@ -146,10 +151,11 @@ namespace BansheeEditor
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerReleased(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerReleased != null)
                 OnPointerReleased(ev);
@@ -167,10 +173,11 @@ namespace BansheeEditor
         /// <param name="alt">Is alt button on the keyboard being held down.</param>
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for 
         ///                            move events.</param>
+        /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         private static void Internal_TriggerPointerDoubleClick(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
-            bool ctrl, bool alt, float scrollAmount)
+            bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
-            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount);
+            PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
 
             if (OnPointerDoubleClick != null)
                 OnPointerDoubleClick(ev);

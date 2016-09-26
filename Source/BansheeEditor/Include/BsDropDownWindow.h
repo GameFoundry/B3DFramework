@@ -55,7 +55,7 @@ namespace BansheeEngine
 		friend class DropDropWindowManager;
 
 		/**	Triggered when the user clicks outside of the drop down area. */
-		void dropDownFocusLost();
+		void dropDownFocusGained();
 
 		SPtr<RenderWindow> mRenderWindow;
 		HSceneObject mSceneObject;

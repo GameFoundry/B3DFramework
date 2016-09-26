@@ -23,8 +23,15 @@ namespace BansheeEngine
         /// </summary>
         internal static string ActiveSceneUUID { get { return activeSceneUUID; } }
 
+        /// <summary>
+        /// Checks is the loaded scene a generic scene object group, instead of an actual scene. 
+        /// <see cref="Prefab.IsScene"/>.
+        /// </summary>
+        internal static bool IsGenericPrefab { get { return isGenericPrefab; } }
+
         private static string activeSceneName = "Unnamed";
         private static string activeSceneUUID = "";
+        private static bool isGenericPrefab = false;
 
         /// <summary>
         /// Returns the root scene object for the current scene.
@@ -83,6 +90,7 @@ namespace BansheeEngine
             {
                 activeSceneUUID = scene.UUID;
                 activeSceneName = scene.Name;
+                isGenericPrefab = !scene.IsScene;
             }
         }
 
@@ -120,6 +128,25 @@ namespace BansheeEngine
         private static void SetSceneUUID(string uuid)
         {
             activeSceneUUID = uuid;
+        }
+
+        /// <summary>
+        /// Wrapper around the isGenericPrefab static field because Mono has problems accessing static fields directly.
+        /// </summary>
+        /// <returns>True if the loaded scene a generic scene object group, instead of an actual scene.</returns>
+        private static bool GetIsGenericPrefab()
+        {
+            return isGenericPrefab;
+        }
+
+        /// <summary>
+        /// Wrapper around scene UUID static field because Mono has problems accessing static fields directly.
+        /// </summary>
+        /// <param name="isGenericPrefab">Determines is the loaded scene a generic scene object group, instead of an actual scene.
+        ///                    </param>
+        private static void SetIsGenericPrefab(bool isGenericPrefab)
+        {
+            Scene.isGenericPrefab = isGenericPrefab;
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]

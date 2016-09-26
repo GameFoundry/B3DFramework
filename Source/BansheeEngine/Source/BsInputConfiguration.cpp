@@ -4,7 +4,7 @@
 
 namespace BansheeEngine
 {
-	Map<String, UINT32> VirtualButton::UniqueButtonIds;
+	
 	UINT32 VirtualButton::NextButtonId = 0;
 
 	Map<String, UINT32> VirtualAxis::UniqueAxisIds;
@@ -32,15 +32,23 @@ namespace BansheeEngine
 
 	VirtualButton::VirtualButton(const String& name)
 	{
-		auto findIter = UniqueButtonIds.find(name);
+		Map<String, UINT32>& uniqueButtonIds = getUniqueButtonIds();
 
-		if(findIter != UniqueButtonIds.end())
+		auto findIter = uniqueButtonIds.find(name);
+
+		if(findIter != uniqueButtonIds.end())
 			buttonIdentifier = findIter->second;
 		else
 		{
 			buttonIdentifier = NextButtonId;
-			UniqueButtonIds[name] = NextButtonId++;
+			uniqueButtonIds[name] = NextButtonId++;
 		}
+	}
+
+	Map<String, UINT32>& VirtualButton::getUniqueButtonIds()
+	{
+		static Map<String, UINT32> uniqueButtonIds;
+		return uniqueButtonIds;
 	}
 
 	VirtualAxis::VirtualAxis()

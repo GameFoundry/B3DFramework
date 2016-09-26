@@ -19,23 +19,26 @@ namespace BansheeEngine
 	class BS_EXPORT Paths
 	{
 	public:
-		/**	Returns a path where the managed release assemblies are located. Relative to working directory. */
+		/**	Returns the absolute path where the managed release assemblies are located. */
 		static const Path& getReleaseAssemblyPath();
 
-		/**	Returns a path where the managed debug assemblies are located. Relative to working directory. */
+		/**	Returns the absolute path where the managed debug assemblies are located. */
 		static const Path& getDebugAssemblyPath();
 
-		/**	Returns a path where the builtin assets are located. Relative to working directory. */
+		/**	Returns the absolute path where the builtin assets are located. */
 		static const Path& getRuntimeDataPath();
 
-		/**	Returns a path where the builtin engine-specific assets are located. Relative to working directory. */
+		/**	Returns the absolute path where the builtin engine-specific assets are located. */
 		static const Path& getEngineDataPath();
 
-		/**	Returns a path to the game settings file used by editor-built executables. Relative to working directory. */
+		/**	Returns the absolute path to the game settings file used by editor-built executables. */
 		static const Path& getGameSettingsPath();
 
-		/**	Returns a path to the game resources folder used by editor-built executables. Relative to working directory. */
+		/**	Returns the absolute path to the game resources folder used by editor-built executables. */
 		static const Path& getGameResourcesPath();
+
+		/** Returns the absolute path where the engine binaries are located in. */
+		static const Path& getBinariesPath();
 
 		/**
 		 * Searches common locations for a specified path by querying if the file/directory exists and returns the found 

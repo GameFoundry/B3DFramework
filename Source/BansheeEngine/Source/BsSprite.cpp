@@ -2,7 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsTextSprite.h"
 #include "BsVector2.h"
-#include "BsTexture.h"
+#include "BsPlane.h"
+#include "BsMeshUtility.h"
 
 namespace BansheeEngine
 {
@@ -35,27 +36,33 @@ namespace BansheeEngine
 		return mCachedRenderElements.at(renderElementIdx).matInfo;
 	}
 
+	SpriteMaterial* Sprite::getMaterial(UINT32 renderElementIdx) const
+	{
+		return mCachedRenderElements.at(renderElementIdx).material;
+	}
+
 	UINT32 Sprite::getNumQuads(UINT32 renderElementIdx) const
 	{
 		return mCachedRenderElements.at(renderElementIdx).numQuads;
 	}
 
-	UINT32 Sprite::fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-		UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip) const
+	UINT32 Sprite::fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx, 
+		const Vector2I& offset, const Rect2I& clipRect, bool clip) const
 	{
 		const auto& renderElem = mCachedRenderElements.at(renderElementIdx);
 
-		UINT32 startVert = startingQuad * 4;
-		UINT32 startIndex = startingQuad * 6;
+		UINT32 startVert = vertexOffset;
+		UINT32 startIndex = indexOffset;
 
-		UINT32 maxVertIdx = maxNumQuads * 4;
-		UINT32 maxIndexIdx = maxNumQuads * 6;
+		UINT32 maxVertIdx = maxNumVerts;
+		UINT32 maxIndexIdx = maxNumIndices;
 
-		UINT32 mNumVertices = renderElem.numQuads * 4;
-		UINT32 mNumIndices = renderElem.numQuads * 6;
+		UINT32 numVertices = renderElem.numQuads * 4;
+		UINT32 numIndices = renderElem.numQuads * 6;
 
-		assert((startVert + mNumVertices) <= maxVertIdx);
-		assert((startIndex + mNumIndices) <= maxIndexIdx);
+		assert((startVert + numVertices) <= maxVertIdx);
+		assert((startIndex + numIndices) <= maxIndexIdx);
 
 		UINT8* vertDst = vertices + startVert * vertexStride;
 		UINT8* uvDst = uv + startVert * vertexStride;
@@ -91,7 +98,7 @@ namespace BansheeEngine
 				memcpy(vertDst, &renderElem.vertices[vertIdx + 3], sizeof(Vector2));
 				memcpy(uvDst, &renderElem.uvs[vertIdx + 3], sizeof(Vector2));
 
-				clipToRect(vecStart, uvStart, 1, vertexStride, clipRect);
+				clipQuadsToRect(vecStart, uvStart, 1, vertexStride, clipRect);
 
 				vertDst = vecStart;
 				Vector2* curVec = (Vector2*)vertDst;
@@ -163,7 +170,7 @@ namespace BansheeEngine
 		}
 
 		if(indices != nullptr)
-			memcpy(&indices[startIndex], renderElem.indexes, mNumIndices * sizeof(UINT32));
+			memcpy(&indices[startIndex], renderElem.indexes, numIndices * sizeof(UINT32));
 
 		return renderElem.numQuads;
 	}
@@ -240,7 +247,7 @@ namespace BansheeEngine
 	// This will only properly clip an array of quads
 	// Vertices in the quad must be in a specific order: top left, top right, bottom left, bottom right
 	// (0, 0) represents top left of the screen
-	void Sprite::clipToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect)
+	void Sprite::clipQuadsToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect)
 	{
 		float left = (float)clipRect.x;
 		float right = (float)clipRect.x + clipRect.width;
@@ -316,28 +323,17 @@ namespace BansheeEngine
 		}
 	}
 
-	UINT64 SpriteMaterialInfo::generateHash() const
+	void Sprite::clipTrianglesToRect(UINT8* vertices, UINT8* uv, UINT32 numTris, UINT32 vertStride, const Rect2I& clipRect, 
+		const std::function<void(Vector2*, Vector2*, UINT32)>& writeCallback)
 	{
-		UINT64 textureId = 0;
-		if (texture.isLoaded())
-			textureId = texture->getInternalID();
+		Vector<Plane> clipPlanes =
+		{
+			Plane(Vector3(1.0f, 0.0f, 0.0f), (float)clipRect.x),
+			Plane(Vector3(-1.0f, 0.0f, 0.0f), (float)-(clipRect.x + clipRect.width)),
+			Plane(Vector3(0.0f, 1.0f, 0.0f), (float)clipRect.y),
+			Plane(Vector3(0.0f, -1.0f, 0.0f), (float)-(clipRect.y + clipRect.height))
+		};
 
-		size_t hash = 0;
-		hash_combine(hash, groupId);
-		hash_combine(hash, type);
-		hash_combine(hash, textureId);
-		hash_combine(hash, tint);
-
-		return (UINT64)hash;
-	}
-
-	bool operator==(const SpriteMaterialInfo& lhs, const SpriteMaterialInfo& rhs)
-	{
-		return lhs.groupId == rhs.groupId && lhs.texture == rhs.texture && lhs.type == rhs.type && lhs.tint == rhs.tint;
-	}
-
-	bool operator!=(const SpriteMaterialInfo& lhs, const SpriteMaterialInfo& rhs)
-	{
-		return !(lhs == rhs);
+		MeshUtility::clip2D(vertices, uv, numTris, vertStride, clipPlanes, writeCallback);
 	}
 }

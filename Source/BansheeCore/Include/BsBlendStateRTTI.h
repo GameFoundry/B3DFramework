@@ -67,7 +67,7 @@ namespace BansheeEngine
 			addPlainField("mData", 0, &BlendStateRTTI::getData, &BlendStateRTTI::setData);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			BlendState* blendState = static_cast<BlendState*>(obj);
 			blendState->initialize();

@@ -295,7 +295,7 @@ namespace BansheeEngine
 			addPlainField("mFlags", 13, &ShaderRTTI::getFlags, &ShaderRTTI::setFlags);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Shader* shader = static_cast<Shader*>(obj);
 			shader->initialize();

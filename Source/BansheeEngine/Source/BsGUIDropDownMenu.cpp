@@ -211,7 +211,7 @@ namespace BansheeEngine
 
 		GUILayout* backgroundLayout = mBackgroundPanel->addNewElement<GUILayoutX>();
 
-		mBackgroundFrame = GUITexture::create(GUIImageScaleMode::StretchToFit, mOwner->mBackgroundStyle);
+		mBackgroundFrame = GUITexture::create(TextureScaleMode::StretchToFit, mOwner->mBackgroundStyle);
 		backgroundLayout->addElement(mBackgroundFrame);
 
 		mContentLayout = mContentPanel->addNewElement<GUILayoutY>();

@@ -83,7 +83,9 @@ namespace BansheeEngine
 
 		UINT32 buttonIdentifier;
 	private:
-		static Map<String, UINT32> UniqueButtonIds;
+		/** Returns a static map of all virtual button identifiers and their buttons. */
+		static Map<String, UINT32>& getUniqueButtonIds();
+
 		static UINT32 NextButtonId;
 	};
 

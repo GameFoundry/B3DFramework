@@ -29,6 +29,14 @@ namespace BansheeEngine
         Matrix4()
         { }
 
+		Matrix4(ZERO zero)
+			:Matrix4(Matrix3::ZERO)
+		{ }
+
+		Matrix4(IDENTITY identity)
+			:Matrix4(Matrix3::IDENTITY)
+		{ }
+
         Matrix4(
             float m00, float m01, float m02, float m03,
             float m10, float m11, float m12, float m13,
@@ -401,7 +409,7 @@ namespace BansheeEngine
          */
         Vector3 multiply(const Vector3& v) const
         {
-            Vector3 r;
+            Vector3 r(BsZero);
 
             float fInvW = 1.0f / (m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3]);
 

@@ -250,7 +250,7 @@ namespace BansheeEngine
 			mSlider = nullptr;
 		}
 
-		mSlider = GUIDockSlider::create(horizontal, "DockSliderBtn");
+		mSlider = GUIDockSlider::create(horizontal, "Separator");
 		mManager->_getParentWidget()->getPanel()->addElement(mSlider);
 		mSlider->onDragged.connect(std::bind(&DockManager::DockContainer::sliderDragged, this, _1));
 
@@ -453,6 +453,14 @@ namespace BansheeEngine
 		mBotDropPolygon = bs_newN<Vector2>(4);
 		mLeftDropPolygon = bs_newN<Vector2>(4);
 		mRightDropPolygon = bs_newN<Vector2>(4);
+
+		for(UINT32 i = 0; i < 4; i++)
+		{
+			mTopDropPolygon[i] = Vector2::ZERO;
+			mBotDropPolygon[i] = Vector2::ZERO;
+			mLeftDropPolygon[i] = Vector2::ZERO;
+			mRightDropPolygon[i] = Vector2::ZERO;
+		}
 
 		HMaterial dropOverlayMat = BuiltinEditorResources::instance().createDockDropOverlayMaterial();
 
@@ -1145,6 +1153,7 @@ namespace BansheeEngine
 	void DockOverlayRenderer::initialize(const SPtr<MaterialCore>& material)
 	{
 		mMaterial = material;
+		mParams = material->createParamsSet();
 	}
 
 	void DockOverlayRenderer::updateData(const SPtr<CameraCore>& camera, const SPtr<MeshCore>& mesh, bool active, 
@@ -1205,8 +1214,10 @@ namespace BansheeEngine
 		}
 
 		mMaterial->setColor("highlightActive", highlightColor);
+		mMaterial->updateParamsSet(mParams);
 
-		gRendererUtility().setPass(mMaterial, 0);
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParams);
 		gRendererUtility().draw(mMesh, mMesh->getProperties().getSubMesh(0));
 	}
 }

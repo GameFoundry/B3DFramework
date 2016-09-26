@@ -41,11 +41,13 @@ namespace BansheeEngine
 		static void internal_createInstance(MonoObject* instance, MonoObject* title, UINT32 titleWidth,
 			MonoString* style, MonoArray* guiOptions, bool withTitle);
 
-		static void internal_getValue(ScriptGUIFloatField* nativeInstance, float* output);
-		static void internal_setValue(ScriptGUIFloatField* nativeInstance, float value);
-		static void internal_hasInputFocus(ScriptGUIFloatField* nativeInstance, bool* output);
+		static float internal_getValue(ScriptGUIFloatField* nativeInstance);
+		static float internal_setValue(ScriptGUIFloatField* nativeInstance, float value);
+		static bool internal_hasInputFocus(ScriptGUIFloatField* nativeInstance);
 		static void internal_setTint(ScriptGUIFloatField* nativeInstance, Color* color);
 		static void internal_setRange(ScriptGUIFloatField* nativeInstance, float min, float max);
+		static void internal_setStep(ScriptGUIFloatField* nativeInstance, float step);
+		static float internal_getStep(ScriptGUIFloatField* nativeInstance);
 
 		typedef void(__stdcall *OnChangedThunkDef) (MonoObject*, float, MonoException**);
 		typedef void(__stdcall *OnConfirmedThunkDef) (MonoObject*, MonoException**);

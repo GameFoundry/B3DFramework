@@ -6,7 +6,8 @@
 #include "BsRTTIType.h"
 #include "BsCoreApplication.h"
 #include "BsMesh.h"
-#include "BsMeshManager.h"
+#include "BsSkeleton.h"
+#include "BsMorphShapes.h"
 #include "BsCoreThread.h"
 
 namespace BansheeEngine
@@ -18,14 +19,13 @@ namespace BansheeEngine
 
 	class MeshRTTI : public RTTIType<Mesh, MeshBase, MeshRTTI>
 	{
-		SPtr<VertexDataDesc> getVertexDesc(Mesh* obj) { return obj->mVertexDesc; }
-		void setVertexDesc(Mesh* obj, SPtr<VertexDataDesc> value) { obj->mVertexDesc = value; }
-
-		IndexType& getIndexType(Mesh* obj) { return obj->mIndexType; }
-		void setIndexType(Mesh* obj, IndexType& value) { obj->mIndexType = value; }
-
-		int& getBufferType(Mesh* obj) { return (int&)obj->mUsage; }
-		void setBufferType(Mesh* obj, int& value) { obj->mUsage = value; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mVertexDesc, 0)
+			BS_RTTI_MEMBER_PLAIN(mIndexType, 1)
+			BS_RTTI_MEMBER_PLAIN(mUsage, 2)
+			BS_RTTI_MEMBER_REFLPTR(mSkeleton, 4)
+			BS_RTTI_MEMBER_REFLPTR(mMorphShapes, 5)
+		BS_END_RTTI_MEMBERS
 
 		SPtr<MeshData> getMeshData(Mesh* obj) 
 		{ 
@@ -44,16 +44,12 @@ namespace BansheeEngine
 
 	public:
 		MeshRTTI()
+			:mInitMembers(this)
 		{
-			addReflectablePtrField("mVertexDesc", 0, &MeshRTTI::getVertexDesc, &MeshRTTI::setVertexDesc);
-
-			addPlainField("mIndexType", 1, &MeshRTTI::getIndexType, &MeshRTTI::setIndexType);
-			addPlainField("mUsage", 2, &MeshRTTI::getBufferType, &MeshRTTI::setBufferType);
-
 			addReflectablePtrField("mMeshData", 3, &MeshRTTI::getMeshData, &MeshRTTI::setMeshData);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Mesh* mesh = static_cast<Mesh*>(obj);
 			mesh->initialize();
@@ -61,7 +57,7 @@ namespace BansheeEngine
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return MeshManager::instance().createEmpty();
+			return Mesh::createEmpty();
 		}
 
 		const String& getRTTIName() override

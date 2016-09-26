@@ -24,7 +24,7 @@
 #   include <GL/glew.h>
 #   include <GL/glu.h>
 #   define GL_GLEXT_PROTOTYPES
-#elif BS_PLATFORM == BS_PLATFORM_APPLE
+#elif BS_PLATFORM == BS_PLATFORM_OSX
 #   include <GL/glew.h>
 #   include <OpenGL/glu.h>
 #endif

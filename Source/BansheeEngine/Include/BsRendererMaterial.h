@@ -45,10 +45,14 @@ namespace BansheeEngine
 		/**	Returns the internal material. */
 		SPtr<MaterialCore> getMaterial() const { return mMaterial; }
 
+		/** Returns the internal parameter set containing GPU bindable parameters. */
+		SPtr<GpuParamsSetCore> getParamsSet() const { return mParamsSet; }
+
 	protected:
 		friend class RendererMaterialManager;
 
 		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParamsSet;
 	};
 
 	/**	Helper class to initialize all renderer materials as soon as the library is loaded. */
@@ -74,6 +78,7 @@ namespace BansheeEngine
 		{
 			mInitOnStart.instantiate();
 			mMaterial = MaterialCore::create(mMetaData.shader);
+			mParamsSet = mMaterial->createParamsSet();
 		}
 
 		virtual ~RendererMaterial() { }

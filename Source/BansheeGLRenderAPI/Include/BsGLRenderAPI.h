@@ -46,12 +46,15 @@ namespace BansheeEngine
 		void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom) override;
 
 		/** @copydoc RenderAPICore::setTexture() */
-		void setTexture(GpuProgramType gptype, UINT16 texUnit, bool enabled, const SPtr<TextureCore>& texPtr) override;
+		void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture) override;
 
 		/** @copydoc RenderAPICore::setLoadStoreTexture */
-		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, bool enabled, const SPtr<TextureCore>& texPtr,
+		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, bool enabled, const SPtr<TextureCore>& texture,
 			const TextureSurface& surface) override;
         
+		/** @copydoc RenderAPICore::setBuffer */
+		void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore = false) override;
+
 		/** @copydoc RenderAPICore::setSamplerState() */
 		void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState) override;
 
@@ -73,8 +76,9 @@ namespace BansheeEngine
 		/** @copydoc RenderAPICore::unbindGpuProgram() */
 		void unbindGpuProgram(GpuProgramType gptype) override;
 
-		/** @copydoc RenderAPICore::setConstantBuffers() */
-		void setConstantBuffers(GpuProgramType gptype, const SPtr<GpuParamsCore>& params) override;
+		/** @copydoc RenderAPICore::setParamBuffer */
+		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
+			const GpuParamDesc& paramDesc) override;
 
 		/** @copydoc RenderAPICore::beginFrame() */
 		void beginFrame() override;
@@ -144,21 +148,6 @@ namespace BansheeEngine
 
 		/**	Set up clip planes against which all geometry will get clipped. */
 		void setClipPlanesImpl(const PlaneList& clipPlanes) override;
-
-		/**
-		 * Set up a clip plane at a specific clip plane index. If enabled, geometry will be clipped against the positive
-		 * side of the plane.
-		 *
-		 * @note	Valid index range is [0, 5].
-		 */
-        void setClipPlane(UINT16 index, float A, float B, float C, float D);
-
-		/**
-		 * Enable or disable clipping against a clip plane at the specified index.
-		 *
-		 * @note	Valid index range is [0, 5].
-		 */
-        void enableClipPlane (UINT16 index, bool enable);
 
 		/** 
 		 * Changes the currently active texture unit. Any texture related operations will then be performed on this unit. 

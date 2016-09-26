@@ -78,6 +78,9 @@ namespace BansheeEngine
 		 */
 		static void _checkForCircularReferences();
 
+		/** Returns an interface you can use to access class' Run Time Type Information. */
+		static RTTITypeBase* getRTTIStatic();
+
 		/** @} */
 
 	protected:

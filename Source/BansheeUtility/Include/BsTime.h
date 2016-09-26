@@ -88,7 +88,7 @@ namespace BansheeEngine
 		UINT64 mTimeSinceStartMs;
 
 		UINT64 mAppStartTime; /**< Time the application started, in microseconds */
-		unsigned long mLastFrameTime; /**< Time since last runOneFrame call, In microseconds */
+		UINT64 mLastFrameTime; /**< Time since last runOneFrame call, In microseconds */
 		std::atomic<unsigned long> mCurrentFrame;
 
 		Timer* mTimer;

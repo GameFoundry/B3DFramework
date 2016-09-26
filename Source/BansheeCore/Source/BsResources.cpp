@@ -35,7 +35,7 @@ namespace BansheeEngine
 			destroy(loadedResourcePair.second.resource);
 	}
 
-	HResource Resources::load(const Path& filePath, bool loadDependencies, bool keepInternalReference)
+	HResource Resources::load(const Path& filePath, ResourceLoadFlags loadFlags)
 	{
 		if (!FileSystem::isFile(filePath))
 		{
@@ -50,19 +50,19 @@ namespace BansheeEngine
 		if (!foundUUID)
 			uuid = UUIDGenerator::generateRandom();
 
-		return loadInternal(uuid, filePath, true, loadDependencies, keepInternalReference);
+		return loadInternal(uuid, filePath, true, loadFlags);
 	}
 
-	HResource Resources::load(const WeakResourceHandle<Resource>& handle, bool loadDependencies, bool keepInternalReference)
+	HResource Resources::load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags)
 	{
 		if (handle.mData == nullptr)
 			return HResource();
 
 		String uuid = handle.getUUID();
-		return loadFromUUID(uuid, false, loadDependencies, keepInternalReference);
+		return loadFromUUID(uuid, false, loadFlags);
 	}
 
-	HResource Resources::loadAsync(const Path& filePath, bool loadDependencies, bool keepInternalReference)
+	HResource Resources::loadAsync(const Path& filePath, ResourceLoadFlags loadFlags)
 	{
 		if (!FileSystem::isFile(filePath))
 		{
@@ -77,10 +77,10 @@ namespace BansheeEngine
 		if (!foundUUID)
 			uuid = UUIDGenerator::generateRandom();
 
-		return loadInternal(uuid, filePath, false, loadDependencies, keepInternalReference);
+		return loadInternal(uuid, filePath, false, loadFlags);
 	}
 
-	HResource Resources::loadFromUUID(const String& uuid, bool async, bool loadDependencies, bool keepInternalReference)
+	HResource Resources::loadFromUUID(const String& uuid, bool async, ResourceLoadFlags loadFlags)
 	{
 		Path filePath;
 
@@ -92,10 +92,10 @@ namespace BansheeEngine
 				break;
 		}
 
-		return loadInternal(uuid, filePath, !async, loadDependencies, keepInternalReference);
+		return loadInternal(uuid, filePath, !async, loadFlags);
 	}
 
-	HResource Resources::loadInternal(const String& UUID, const Path& filePath, bool synchronous, bool loadDependencies, bool keepInternalReference)
+	HResource Resources::loadInternal(const String& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags)
 	{
 		HResource outputResource;
 
@@ -110,7 +110,7 @@ namespace BansheeEngine
 				LoadedResourceData& resData = iterFind2->second->resData;
 				outputResource = resData.resource.lock();
 
-				if (keepInternalReference)
+				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
 				{
 					resData.numInternalRefs++;
 					outputResource.addInternalRef();
@@ -133,7 +133,7 @@ namespace BansheeEngine
 					LoadedResourceData& resData = iterFind->second;
 					outputResource = resData.resource.lock();
 
-					if (keepInternalReference)
+					if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
 					{
 						resData.numInternalRefs++;
 						outputResource.addInternalRef();
@@ -204,7 +204,7 @@ namespace BansheeEngine
 				mInProgressResources[UUID] = loadData;
 				loadData->resData = outputResource.getWeak();
 
-				if (keepInternalReference)
+				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
 				{
 					loadData->resData.numInternalRefs++;
 					outputResource.addInternalRef();
@@ -214,7 +214,7 @@ namespace BansheeEngine
 				loadData->notifyImmediately = synchronous; // Make resource listener trigger before exit if loading synchronously
 
 				// Register dependencies and count them so we know when the resource is fully loaded
-				if (loadDependencies && savedResourceData != nullptr)
+				if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
 				{
 					for (auto& dependency : savedResourceData->getDependencies())
 					{
@@ -227,14 +227,18 @@ namespace BansheeEngine
 				}
 			}
 
-			if (loadDependencies && savedResourceData != nullptr)
+			if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
 			{
 				const Vector<String>& dependencyUUIDs = savedResourceData->getDependencies();
 				UINT32 numDependencies = (UINT32)dependencyUUIDs.size();
 				Vector<HResource> dependencies(numDependencies);
 
+				ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
+				if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
+					depLoadFlags |= ResourceLoadFlag::KeepSourceData;
+
 				for (UINT32 i = 0; i < numDependencies; i++)
-					dependencies[i] = loadFromUUID(dependencyUUIDs[i], !synchronous, true, false);
+					dependencies[i] = loadFromUUID(dependencyUUIDs[i], !synchronous, depLoadFlags);
 
 				// Keep dependencies alive until the parent is done loading
 				{
@@ -245,7 +249,7 @@ namespace BansheeEngine
 				}
 			}
 		}
-		else if (loadDependencies && savedResourceData != nullptr) // Queue dependencies in case they aren't already loaded
+		else if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr) // Queue dependencies in case they aren't already loaded
 		{
 			const Vector<String>& dependencies = savedResourceData->getDependencies();
 			if (!dependencies.empty())
@@ -300,8 +304,12 @@ namespace BansheeEngine
 					}
 				}
 
+				ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
+				if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
+					depLoadFlags |= ResourceLoadFlag::KeepSourceData;
+
 				for (auto& dependency : dependencies)
-					loadFromUUID(dependency, !synchronous, true, false);
+					loadFromUUID(dependency, !synchronous, depLoadFlags);
 			}
 		}
 
@@ -311,14 +319,16 @@ namespace BansheeEngine
 			// Synchronous or the resource doesn't support async, read the file immediately
 			if (synchronous || !savedResourceData->allowAsyncLoading())
 			{
-				loadCallback(filePath, outputResource);
+				loadCallback(filePath, outputResource, loadFlags.isSet(ResourceLoadFlag::KeepSourceData));
 			}
 			else // Asynchronous, read the file on a worker thread
 			{
 				String fileName = filePath.getFilename();
 				String taskName = "Resource load: " + fileName;
 
-				SPtr<Task> task = Task::create(taskName, std::bind(&Resources::loadCallback, this, filePath, outputResource));
+				bool keepSourceData = loadFlags.isSet(ResourceLoadFlag::KeepSourceData);
+				SPtr<Task> task = Task::create(taskName, 
+					std::bind(&Resources::loadCallback, this, filePath, outputResource, keepSourceData));
 				TaskScheduler::instance().addTask(task);
 			}
 		}
@@ -343,11 +353,16 @@ namespace BansheeEngine
 		return outputResource;
 	}
 
-	SPtr<Resource> Resources::loadFromDiskAndDeserialize(const Path& filePath)
+	SPtr<Resource> Resources::loadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData)
 	{
 		FileDecoder fs(filePath);
 		fs.skip(); // Skipped over saved resource data
-		SPtr<IReflectable> loadedData = fs.decode();
+
+		UnorderedMap<String, UINT64> loadParams;
+		if(loadWithSaveData)
+			loadParams["keepSourceData"] = 1;
+
+		SPtr<IReflectable> loadedData = fs.decode(loadParams);
 
 		if (loadedData == nullptr)
 		{
@@ -503,10 +518,15 @@ namespace BansheeEngine
 				BS_EXCEPT(InvalidParametersException, "Another file exists at the specified location.");
 		}
 
+		if (!resource->mKeepSourceData)
+		{
+			LOGWRN("Saving a resource that was created/loaded without ResourceLoadFlag::KeepSourceData. Some data might "
+				"not be available for saving. File path: " + filePath.toString());
+		}
+
 		mDefaultResourceManifest->registerResource(resource.getUUID(), filePath);
 
 		Vector<ResourceDependency> dependencyList = Utility::findResourceDependencies(*resource.get());
-
 		Vector<String> dependencyUUIDs(dependencyList.size());
 		for (UINT32 i = 0; i < (UINT32)dependencyList.size(); i++)
 			dependencyUUIDs[i] = dependencyList[i].resource.getUUID();
@@ -544,6 +564,7 @@ namespace BansheeEngine
 		}
 
 		onResourceModified(handle);
+		ResourceListenerManager::instance().notifyListeners(uuid);
 	}
 
 	Vector<String> Resources::getDependencies(const Path& filePath)
@@ -735,9 +756,9 @@ namespace BansheeEngine
 		}
 	}
 
-	void Resources::loadCallback(const Path& filePath, HResource& resource)
+	void Resources::loadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData)
 	{
-		SPtr<Resource> rawResource = loadFromDiskAndDeserialize(filePath);
+		SPtr<Resource> rawResource = loadFromDiskAndDeserialize(filePath, loadWithSaveData);
 
 		{
 			Lock lock(mInProgressResourcesMutex);

@@ -6,6 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsException.h"
 #include <mono/jit/jit.h>
+#include <mono/metadata/attrdefs.h>
 
 namespace BansheeEngine
 {
@@ -115,6 +116,25 @@ namespace BansheeEngine
 		mono_custom_attrs_free(attrInfo);
 
 		return foundAttr;
+	}
+
+	MonoMemberVisibility MonoMethod::getVisibility()
+	{
+		uint32_t flags = mono_method_get_flags(mMethod, nullptr) & MONO_METHOD_ATTR_ACCESS_MASK;
+
+		if (flags == MONO_METHOD_ATTR_PRIVATE)
+			return MonoMemberVisibility::Private;
+		else if (flags == MONO_METHOD_ATTR_FAM_AND_ASSEM)
+			return MonoMemberVisibility::ProtectedInternal;
+		else if (flags == MONO_METHOD_ATTR_ASSEM)
+			return MonoMemberVisibility::Internal;
+		else if (flags == MONO_METHOD_ATTR_FAMILY)
+			return MonoMemberVisibility::Protected;
+		else if (flags == MONO_METHOD_ATTR_PUBLIC)
+			return MonoMemberVisibility::Public;
+
+		assert(false);
+		return MonoMemberVisibility::Private;
 	}
 
 	void MonoMethod::cacheSignature() const

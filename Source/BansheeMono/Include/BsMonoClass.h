@@ -72,9 +72,9 @@ namespace BansheeEngine
 		 *
 		 * @note
 		 * Does not query base class properties.
-		 * Throws an exception if the property cannot be found.
+		 * Returns null if property cannot be found.
 		 */
-		MonoProperty& getProperty(const String& name);
+		MonoProperty* getProperty(const String& name) const;
 
 		/**
 		 * Returns an instance of an attribute of the specified @p monoClass that is part of this class. Returns null if
@@ -101,6 +101,13 @@ namespace BansheeEngine
 		 * @note	Be aware this will not include the fields of any base classes.
 		 */
 		const Vector<MonoField*>& getAllFields() const;
+
+		/**
+		 * Returns all properties belonging to this class.
+		 *
+		 * @note	Be aware this will not include the properties of any base classes.
+		 */
+		const Vector<MonoProperty*>& getAllProperties() const;
 
 		/**
 		 * Returns all methods belonging to this class.
@@ -203,10 +210,13 @@ namespace BansheeEngine
 
 		mutable UnorderedMap<MethodId, MonoMethod*, MethodId::Hash, MethodId::Equals> mMethods; 
 		mutable UnorderedMap<String, MonoField*> mFields; 
-		UnorderedMap<String, MonoProperty*> mProperties;
+		mutable UnorderedMap<String, MonoProperty*> mProperties;
 
 		mutable bool mHasCachedFields;
 		mutable Vector<MonoField*> mCachedFieldList;
+
+		mutable bool mHasCachedProperties;
+		mutable Vector<MonoProperty*> mCachedPropertyList;
 
 		mutable bool mHasCachedMethods;
 		mutable Vector<MonoMethod*> mCachedMethodList;

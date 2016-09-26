@@ -112,6 +112,36 @@ namespace BansheeEditor
     }
 
     /// <summary>
+    /// Information about how to split an AnimationClip into multiple separate clips.
+    /// </summary>
+    public class AnimationSplitInfo
+    {
+        public AnimationSplitInfo() { }
+
+        public AnimationSplitInfo(string name, int startFrame, int endFrame, bool isAdditive)
+        {
+            this.name = name;
+            this.startFrame = startFrame;
+            this.endFrame = endFrame;
+            this.isAdditive = isAdditive;
+        }
+
+        public string name;
+        public int startFrame = 0;
+        public int endFrame = 0;
+        public bool isAdditive = false;
+    }
+
+    /// <summary>
+    /// A set of animation events that will be added to an animation clip during animation import.
+    /// </summary>
+    public class ImportedAnimationEvents
+    {
+        public string name;
+        public AnimationEvent[] events;
+    }
+    
+    /// <summary>
     /// Provides options for controlling how is a mesh resource imported.
     /// </summary>
     public class MeshImportOptions : ImportOptions
@@ -188,12 +218,54 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Determines if keyframe reduction is enabled. Keyframe reduction will reduce the number of key-frames in an
+        /// animation clip by removing identical keyframes, and therefore reducing the size of the clip.
+        /// </summary>
+        public bool KeyframeReduction
+        {
+            get { return Internal_GetKeyFrameReduction(mCachedPtr); }
+            set { Internal_SetKeyFrameReduction(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// Determines if import of root motion curves is enabled. When enabled, any animation curves in imported animations 
+        /// affecting the root bone will be available through a set of separate curves in AnimationClip, and they won't be
+        /// evaluated through normal animation process. Instead it is expected that the user evaluates the curves manually
+        /// and applies them as required.
+        /// </summary>
+        public bool ImportRootMotion
+        {
+            get { return Internal_GetRootMotion(mCachedPtr); }
+            set { Internal_SetRootMotion(mCachedPtr, value); }
+        }
+
+        /// <summary>
         /// Controls what type (if any) of collision mesh should be imported.
         /// </summary>
         public CollisionMeshType CollisionMeshType
         {
             get { return (CollisionMeshType)Internal_GetCollisionMeshType(mCachedPtr); }
             set { Internal_SetCollisionMeshType(mCachedPtr, (int)value); }
+        }
+
+        /// <summary>
+        /// Split information that allows you to split the animation clip contained in the mesh file into multiple separate
+        /// clips. The split always applies to the first clip in the file (if the file contains multiple), other clips are
+        /// imported as is.
+        /// </summary>
+        public AnimationSplitInfo[] AnimationClipSplits
+        {
+            get { return Internal_GetAnimationClipSplits(mCachedPtr); }
+            set { Internal_SetAnimationClipSplits(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// A set of events that will be added to the animation clip, if animation import is enabled.
+        /// </summary>
+        public ImportedAnimationEvents[] AnimationEvents
+        {
+            get { return Internal_GetAnimationEvents(mCachedPtr); }
+            set { Internal_SetAnimationEvents(mCachedPtr, value); }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -234,6 +306,30 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetImportBlendShapes(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetKeyFrameReduction(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetKeyFrameReduction(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetRootMotion(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetRootMotion(IntPtr thisPtr, bool value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern AnimationSplitInfo[] Internal_GetAnimationClipSplits(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetAnimationClipSplits(IntPtr thisPtr, AnimationSplitInfo[] value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ImportedAnimationEvents[] Internal_GetAnimationEvents(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetAnimationEvents(IntPtr thisPtr, ImportedAnimationEvents[] value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetScale(IntPtr thisPtr);
@@ -420,7 +516,101 @@ namespace BansheeEditor
 		HintedSmooth,
         /// <summary>Render non-antialiased fonts with hinting.</summary>
 		HintedRaster
-	};
+	}
+
+    /// <summary>
+    /// Provides various options for controlling how is an audio clip file imported.
+    /// </summary>
+    public class AudioClipImportOptions : ImportOptions
+    {
+        /// <summary>
+        /// Creates new audio clip import options with default values.
+        /// </summary>
+        public AudioClipImportOptions()
+        {
+            Internal_CreateInstance(this);
+        }
+
+        /// <summary>
+        /// Format to import the audio clip as.
+        /// </summary>
+        public AudioFormat Format
+        {
+            get { return Internal_GetFormat(mCachedPtr); }
+            set { Internal_SetFormat(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// Determines how is audio data loaded into memory.
+        /// </summary>
+        public AudioReadMode ReadMode
+        {
+            get { return Internal_GetReadMode(mCachedPtr); }
+            set { Internal_SetReadMode(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// Determines will the clip be played as spatial (3D) audio or as normal audio.
+        /// </summary>
+        public bool Is3D
+        {
+            get { return Internal_GetIs3D(mCachedPtr); }
+            set { Internal_SetIs3D(mCachedPtr, value); }
+        }
+
+        /// <summary>
+        /// Size of a single sample in bits.
+        /// </summary>
+        public AudioBitDepth BitDepth
+        {
+            get
+            {
+                int bits = Internal_GetBitDepth(mCachedPtr);
+                switch (bits)
+                {
+                    case 8:
+                        return AudioBitDepth.Bits8;
+                    case 16:
+                        return AudioBitDepth.Bits16;
+                    case 24:
+                        return AudioBitDepth.Bits24;
+                    case 32:
+                        return AudioBitDepth.Bits32;
+                }
+
+                return AudioBitDepth.Bits16;
+            }
+
+            set { Internal_SetBitDepth(mCachedPtr, (int)value); }
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_CreateInstance(AudioClipImportOptions instance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern AudioFormat Internal_GetFormat(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetFormat(IntPtr thisPtr, AudioFormat format);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern AudioReadMode Internal_GetReadMode(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetReadMode(IntPtr thisPtr, AudioReadMode readMode);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern bool Internal_GetIs3D(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetIs3D(IntPtr thisPtr, bool is3d);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetBitDepth(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetBitDepth(IntPtr thisPtr, int bitDepth);
+    }
 
     /** @} */
 }

@@ -374,7 +374,7 @@ namespace BansheeEngine
 				elementAreas[childIdx].x = layoutArea.x + xOffset;
 				elementAreas[childIdx].y = layoutArea.y + yOffset;
 			}
-			else if (child->_getType() == GUIElementBase::Type::Layout || child->_getType() == GUIElementBase::Type::Panel)
+			else
 			{
 				elementAreas[childIdx].x = layoutArea.x + xOffset;
 				elementAreas[childIdx].y = layoutArea.y;

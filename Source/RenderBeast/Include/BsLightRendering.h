@@ -21,16 +21,28 @@ namespace BansheeEngine
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatConeTransform)
 	BS_PARAM_BLOCK_END
 
-	/** Manipulates PerLight parameter buffer used in various shaders. */
-	class PerLightParams
+	/** Manipulates parameters used in various light rendering shaders. */
+	class LightRenderingParams
 	{
 	public:
+		LightRenderingParams(const SPtr<MaterialCore>& lightMaterial, const SPtr<GpuParamsSetCore>& paramsSet);
+
+		/** Updates parameters that are common for all lights. */
+		void setStaticParameters(const SPtr<RenderTargets>& gbuffer,
+			const SPtr<GpuParamBlockBufferCore>& perCamera);
+
 		/** Updates data in the parameter buffer from the data in the provided light. */
 		void setParameters(const LightCore* light);
 
 		/** Returns the internal parameter buffer that can be bound to the pipeline. */
 		const SPtr<GpuParamBlockBufferCore>& getBuffer() const;
 	private:
+		SPtr<MaterialCore> mMaterial;
+		SPtr<GpuParamsSetCore> mParamsSet;
+
+		GpuParamTextureCore mGBufferA;
+		GpuParamTextureCore mGBufferB;
+		GpuParamTextureCore mGBufferDepth;
 		PerLightParamBuffer mBuffer;
 	};
 
@@ -42,16 +54,13 @@ namespace BansheeEngine
 	public:
 		DirectionalLightMat();
 
-		/** Updates parameters that are common for all lights. */
-		void setStaticParameters(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
+		/** Binds the material for rendering and sets up any global parameters. */
+		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
 
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const LightCore* light);
+		/** Updates the per-light buffers used by the material. */
+		void setPerLightParams(const LightCore* light);
 	private:
-		PerLightParams mParams; // Note: Should this buffer be shared between both point and directional lights?
-		MaterialParamTextureCore mGBufferA;
-		MaterialParamTextureCore mGBufferB;
-		MaterialParamTextureCore mGBufferDepth;
+		LightRenderingParams mParams;
 	};
 
 	/** 
@@ -65,16 +74,13 @@ namespace BansheeEngine
 	public:
 		PointLightInMat();
 
-		/** Updates parameters that are common for all lights.  */
-		void setStaticParameters(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
+		/** Binds the material for rendering and sets up any global parameters. */
+		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
 
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const LightCore* light);
+		/** Updates the per-light buffers used by the material. */
+		void setPerLightParams(const LightCore* light);
 	private:
-		PerLightParams mParams; // Note: Should this buffer be shared between both point and directional lights?
-		MaterialParamTextureCore mGBufferA;
-		MaterialParamTextureCore mGBufferB;
-		MaterialParamTextureCore mGBufferDepth;
+		LightRenderingParams mParams;
 	};
 
 	/** 
@@ -88,16 +94,13 @@ namespace BansheeEngine
 	public:
 		PointLightOutMat();
 
-		/** Updates parameters that are common for all lights.  */
-		void setStaticParameters(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
+		/** Binds the material for rendering and sets up any global parameters. */
+		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBufferCore>& perCamera);
 
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const LightCore* light);
+		/** Updates the per-light buffers used by the material. */
+		void setPerLightParams(const LightCore* light);
 	private:
-		PerLightParams mParams; // Note: Should this buffer be shared between both point and directional lights?
-		MaterialParamTextureCore mGBufferA;
-		MaterialParamTextureCore mGBufferB;
-		MaterialParamTextureCore mGBufferDepth;
+		LightRenderingParams mParams;
 	};
 
 	/** @} */

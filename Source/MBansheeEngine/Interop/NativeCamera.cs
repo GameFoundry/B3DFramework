@@ -133,13 +133,8 @@ namespace BansheeEngine
 
         internal PostProcessSettings PostProcess
         {
-            get
-            {
-                PostProcessSettings value;
-                Internal_GetPostProcessSettings(mCachedPtr, out value);
-                return value;
-            }
-            set { Internal_SetPostProcessSettings(mCachedPtr, ref value); }
+            get { return Internal_GetPostProcessSettings(mCachedPtr); }
+            set { Internal_SetPostProcessSettings(mCachedPtr, value); }
         }
 
         internal ulong layers
@@ -434,9 +429,9 @@ namespace BansheeEngine
         private static extern void Internal_SetHDR(IntPtr instance, bool value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_GetPostProcessSettings(IntPtr instance, out PostProcessSettings value);
+        private static extern PostProcessSettings Internal_GetPostProcessSettings(IntPtr instance);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetPostProcessSettings(IntPtr instance, ref PostProcessSettings value);
+        private static extern void Internal_SetPostProcessSettings(IntPtr instance, PostProcessSettings value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong Internal_GetLayers(IntPtr instance);

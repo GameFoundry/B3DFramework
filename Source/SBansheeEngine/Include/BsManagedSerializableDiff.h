@@ -25,7 +25,7 @@ namespace BansheeEngine
 	{
 	public:
 		/**	A base class for all modifications recorded in a diff. */
-		struct BS_SCR_BE_EXPORT Modification : public IReflectable
+		struct Modification : IReflectable
 		{
 			virtual ~Modification();
 
@@ -35,21 +35,21 @@ namespace BansheeEngine
 		public:
 			friend class ModificationRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**
 		 * Contains a modification of a specific field in an object along with information about the field and its parent
 		 * object.
 		 */
-		struct BS_SCR_BE_EXPORT ModifiedField : public IReflectable
+		struct ModifiedField : IReflectable
 		{
 			ModifiedField() { }
 			ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
-				const SPtr<ManagedSerializableFieldInfo>& fieldType, const SPtr<Modification>& modification);
+				const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification);
 
 			SPtr<ManagedSerializableTypeInfo> parentType; /**< Type of the parent object the field belongs to. */
-			SPtr<ManagedSerializableFieldInfo> fieldType; /**< Data type of the field. */
+			SPtr<ManagedSerializableMemberInfo> fieldType; /**< Data type of the field. */
 			SPtr<Modification> modification; /**< Recorded modification(s) on the field. */
 
 			/************************************************************************/
@@ -58,11 +58,11 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedFieldRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**	Represents a single modified array or list entry. */
-		struct BS_SCR_BE_EXPORT ModifiedArrayEntry : public IReflectable
+		struct ModifiedArrayEntry : IReflectable
 		{
 			ModifiedArrayEntry() { }
 			ModifiedArrayEntry(UINT32 idx, const SPtr<Modification>& modification);
@@ -76,11 +76,11 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedArrayEntryRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**	Represents a single modified dictionary entry. */
-		struct BS_SCR_BE_EXPORT ModifiedDictionaryEntry : public IReflectable
+		struct ModifiedDictionaryEntry : IReflectable
 		{
 			ModifiedDictionaryEntry() { }
 			ModifiedDictionaryEntry(const SPtr<ManagedSerializableFieldData>& key, const SPtr<Modification>& modification);
@@ -94,14 +94,14 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedArrayEntryRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**
 		 * Contains data about all modifications in a single complex object (aside from arrays, list, dictionaries which are
 		 * handled specially).
 		 */
-		struct BS_SCR_BE_EXPORT ModifiedObject : Modification
+		struct ModifiedObject : Modification
 		{
 			static SPtr<ModifiedObject> create();
 
@@ -113,11 +113,11 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedObjectRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**	Contains data about all modifications in an array or a list. */
-		struct BS_SCR_BE_EXPORT ModifiedArray : Modification
+		struct ModifiedArray : Modification
 		{
 			static SPtr<ModifiedArray> create();
 
@@ -131,11 +131,11 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedArrayRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/**	Contains data about all modifications in a dictionary. */
-		struct BS_SCR_BE_EXPORT ModifiedDictionary : Modification
+		struct ModifiedDictionary : Modification
 		{
 			static SPtr<ModifiedDictionary> create();
 
@@ -150,11 +150,11 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedDictionaryRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 		/** Contains data about modification of a primitive field (field's new value). */
-		struct BS_SCR_BE_EXPORT ModifiedEntry : Modification
+		struct ModifiedEntry : Modification
 		{
 			ModifiedEntry() { }
 			ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value);
@@ -169,7 +169,7 @@ namespace BansheeEngine
 		public:
 			friend class ModifiedEntryRTTI;
 			static RTTITypeBase* getRTTIStatic();
-			virtual RTTITypeBase* getRTTI() const override;
+			RTTITypeBase* getRTTI() const override;
 		};
 
 	public:

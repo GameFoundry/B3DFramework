@@ -28,16 +28,22 @@ namespace BansheeEngine
 			const String& style, const GUIDimensions& dimensions, bool withLabel);
 
 		/**	Returns the value of the input field. */
-		float getValue() const { return mValue; }
+		float getValue() const;
 
-		/**	Sets a new value in the input field. */
-		void setValue(float value);
+		/**	Sets a new value in the input field, it returns the clamped value according to range and step. */
+		float setValue(float value);
 
 		/**
-		 * Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don't
+		 * Sets a minimum and maximum allowed values in the input field. Set to large negative/positive values if you don't
 		 * require clamping.
 		 */
 		void setRange(float min, float max);
+
+		/**	Sets the minimum change allowed for the input field. */
+		void setStep(float step);
+
+		/** Returns the minimum change allowed for the input field. */
+		float getStep() const{ return mStep; }
 
 		/**	Checks is the input field currently active. */
 		bool hasInputFocus() const { return mHasInputFocus; }
@@ -66,18 +72,15 @@ namespace BansheeEngine
 		bool _hasCustomCursor(const Vector2I position, CursorType& type) const override;
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;
 
 		/**	Triggered when the input box value changes. */
-		void valueChanged(const WString& newValue);
+		void valueChanging(const WString& newValue);
 
-		/**
-		 * Triggered when the input box value changes, but unlike the previous overload the value is parsed into a floating
-		 * point value.
-		 */
+		/** Triggered when the input box value changes and is confirmed. */
 		void valueChanged(float newValue);
 
 		/**	Triggers when the input box receives or loses keyboard focus. */
@@ -85,6 +88,12 @@ namespace BansheeEngine
 
 		/**	Triggered when the users confirms input in the input box. */
 		void inputConfirmed();
+
+		/** Updates the underlying input box with the text representing the provided floating point value. */
+		void setText(float value);
+
+		/** Clamps the provided value to current valid range, and step interval. */
+		float applyRangeAndStep(float value) const;
 
 		/** Callback that checks can the provided string be converted to a floating point value. */
 		static bool floatFilter(const WString& str);
@@ -96,6 +105,7 @@ namespace BansheeEngine
 		INT32 mLastDragPos;
 		float mMinValue;
 		float mMaxValue;
+		float mStep;
 		bool mIsDragging;
 		bool mHasInputFocus;
 	};

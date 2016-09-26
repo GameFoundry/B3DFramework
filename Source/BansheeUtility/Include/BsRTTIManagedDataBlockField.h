@@ -4,7 +4,6 @@
 
 #include "BsPrerequisitesUtil.h"
 #include "BsRTTIField.h"
-#include "BsManagedDataBlock.h"
 
 namespace BansheeEngine
 {
@@ -25,19 +24,11 @@ namespace BansheeEngine
 	 */
 	struct RTTIManagedDataBlockFieldBase : public RTTIField
 	{
-		Any mCustomAllocator;
-
 		/** Retrieves a managed data block from the specified instance. */
-		virtual ManagedDataBlock getValue(void* object) = 0;
+		virtual SPtr<DataStream> getValue(void* object, UINT32& size) = 0;
 
 		/** Sets a managed data block on the specified instance. */
-		virtual void setValue(void* object, ManagedDataBlock value) = 0;
-
-		/**
-		 * Allocate memory for the managed data block. Used primarily to allocate memory before sending it to 
-		 * setValue() method.
-		 */
-		virtual UINT8* allocate(void* object, UINT32 bytes) = 0;
+		virtual void setValue(void* object, const SPtr<DataStream>& data, UINT32 size) = 0;
 	};
 
 	/** Class containing a managed data block field containing a specific type. */
@@ -54,28 +45,26 @@ namespace BansheeEngine
 		 * @param[in]	getter  		The getter method for the field. Must be a specific signature: SerializableDataBlock(ObjectType*)
 		 * @param[in]	setter  		The setter method for the field. Must be a specific signature: void(ObjectType*, SerializableDataBlock)	
 		 * @param[in]	flags			Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 * @param[in]	customAllocator (optional) Custom allocator that will be used when de-serializing DataBlock memory.
 		 */
-		void initSingle(const String& name, UINT16 uniqueId, Any getter, Any setter, UINT64 flags, Any customAllocator = Any())
+		void initSingle(const String& name, UINT16 uniqueId, Any getter, Any setter, UINT64 flags)
 		{
 			initAll(getter, setter, nullptr, nullptr, name, uniqueId, false, SerializableFT_DataBlock, flags);
-			mCustomAllocator = customAllocator;
 		}
 
 		/** @copydoc RTTIField::getTypeSize */
-		virtual UINT32 getTypeSize() override
+		UINT32 getTypeSize() override
 		{
 			return 0; // Data block types don't store size the conventional way
 		}
 
 		/** @copydoc RTTIField::hasDynamicSize */
-		virtual bool hasDynamicSize() override
+		bool hasDynamicSize() override
 		{
 			return true;
 		}
 
 		/** @copydoc RTTIField::getArraySize */
-		virtual UINT32 getArraySize(void* object) override
+		UINT32 getArraySize(void* object) override
 		{
 			BS_EXCEPT(InternalErrorException, 
 				"Data block types don't support arrays.");
@@ -84,39 +73,29 @@ namespace BansheeEngine
 		}
 
 		/** @copydoc RTTIField::setArraySize */
-		virtual void setArraySize(void* object, UINT32 size) override
+		void setArraySize(void* object, UINT32 size) override
 		{
 			BS_EXCEPT(InternalErrorException, 
 				"Data block types don't support arrays.");
 		}
 
 		/** @copydoc RTTIManagedDataBlockFieldBase::getValue */
-		virtual ManagedDataBlock getValue(void* object) override
+		SPtr<DataStream> getValue(void* object, UINT32& size) override
 		{
 			ObjectType* castObj = static_cast<ObjectType*>(object);
-			std::function<ManagedDataBlock(ObjectType*)> f = any_cast<std::function<ManagedDataBlock(ObjectType*)>>(valueGetter);
-			return f(castObj);
+			std::function<SPtr<DataStream>(ObjectType*, UINT32&)> f = any_cast<std::function<SPtr<DataStream>(ObjectType*, UINT32&)>>(valueGetter);
+
+			return f(castObj, size);
 		}
 
 		/** @copydoc RTTIManagedDataBlockFieldBase::setValue */
-		virtual void setValue(void* object, ManagedDataBlock value) override
+		void setValue(void* object, const SPtr<DataStream>& value, UINT32 size) override
 		{
 			ObjectType* castObj = static_cast<ObjectType*>(object);
-			std::function<void(ObjectType*, ManagedDataBlock)> f = any_cast<std::function<void(ObjectType*, ManagedDataBlock)>>(valueSetter);
-			f(castObj, value);
-		}
+			std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)> f = 
+				any_cast<std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)>>(valueSetter);
 
-		/** @copydoc RTTIManagedDataBlockFieldBase::allocate */
-		virtual UINT8* allocate(void* object, UINT32 bytes) override
-		{
-			if(mCustomAllocator.empty())
-				return (UINT8*)bs_alloc(bytes);
-			else
-			{
-				ObjectType* castObj = static_cast<ObjectType*>(object);
-				std::function<UINT8*(ObjectType*, UINT32)> f = any_cast<std::function<UINT8*(ObjectType*, UINT32)>>(mCustomAllocator);
-				return f(castObj, bytes);
-			}
+			f(castObj, value, size);
 		}
 	};
 

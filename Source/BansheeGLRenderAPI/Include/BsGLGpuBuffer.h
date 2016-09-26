@@ -4,6 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "BsGpuBuffer.h"
+#include "BsGLBuffer.h"
 
 namespace BansheeEngine
 {
@@ -12,7 +13,6 @@ namespace BansheeEngine
 	 */
 
 	/**	OpenGL implementation of a generic GPU buffer. */
-	// TODO - Not implemented, just a dummy class for now
 	class BS_RSGL_EXPORT GLGpuBufferCore : public GpuBufferCore
 	{
 	public:
@@ -35,20 +35,36 @@ namespace BansheeEngine
 		void copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,
 			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false) override;
 
+		/**	
+		 * Returns internal OpenGL buffer ID. If binding the buffer to the pipeline, bind the texture using
+		 * getGLTextureId() instead. 
+		 */
+		GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
+
+		/**	Returns internal OpenGL texture ID. */
+		GLuint getGLTextureId() const { return mTextureID; }
+
+		/** Returns the internal OpenGL format used by the elements of the buffer. */
+		GLuint getGLFormat() const { return mFormat; }
+
 	protected:
 		friend class GLHardwareBufferCoreManager;
 
-		GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
+		GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
 			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
 
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;
 
 		/** @copydoc GpuBufferCore::createView */
-		virtual GpuBufferView* createView() override;
+		GpuBufferView* createView() override;
 
 		/** @copydoc GpuBufferCore::destroyView */
-		virtual void destroyView(GpuBufferView* view) override;
+		void destroyView(GpuBufferView* view) override;
+
+		GLuint mTextureID;
+		GLBuffer mBuffer;
+		GLenum mFormat;
 	};
 
 	/** @} */

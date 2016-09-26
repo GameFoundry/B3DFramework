@@ -50,6 +50,7 @@ namespace BansheeEngine
 	const char* BuiltinResources::ShaderIncludeFolder = "Includes\\";
 	const char* BuiltinResources::MeshFolder = "Meshes\\";
 	const char* BuiltinResources::TextureFolder = "Textures\\";
+	const char* BuiltinResources::SpriteSubFolder = "Sprites\\";
 
 	/************************************************************************/
 	/* 								GUI TEXTURES                      		*/
@@ -159,6 +160,7 @@ namespace BansheeEngine
 	const WString BuiltinResources::ShaderSpriteTextFile = L"SpriteText.bsl";
 	const WString BuiltinResources::ShaderSpriteImageAlphaFile = L"SpriteImageAlpha.bsl";
 	const WString BuiltinResources::ShaderSpriteImageNoAlphaFile = L"SpriteImageNoAlpha.bsl";
+	const WString BuiltinResources::ShaderSpriteLineFile = L"SpriteLine.bsl";
 	const WString BuiltinResources::ShaderDiffuseFile = L"Diffuse.bsl";
 
 	/************************************************************************/
@@ -206,6 +208,7 @@ namespace BansheeEngine
 
 		mBuiltinDataFolder = Paths::getEngineDataPath();
 		mEngineSkinFolder = mBuiltinDataFolder + SkinFolder;
+		mEngineSkinSpritesFolder = mEngineSkinFolder + SpriteSubFolder;
 		mEngineCursorFolder = mBuiltinDataFolder + CursorFolder;
 		mEngineIconFolder = mBuiltinDataFolder + IconFolder;
 		mEngineShaderFolder = mBuiltinDataFolder + ShaderFolder;
@@ -215,39 +218,51 @@ namespace BansheeEngine
 
 		ResourceManifestPath = mBuiltinDataFolder + "ResourceManifest.asset";
 
-		// Load manifest
-		Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-		absoluteDataPath.append(mBuiltinDataFolder);
-
-		if (FileSystem::exists(ResourceManifestPath))
-			mResourceManifest = ResourceManifest::load(ResourceManifestPath, absoluteDataPath);
-
-		if (mResourceManifest == nullptr)
-			mResourceManifest = ResourceManifest::create("BuiltinResources");
-
-		gResources().registerResourceManifest(mResourceManifest);
-
 		// Update from raw assets if needed
 #if BS_DEBUG_MODE
 		if (FileSystem::exists(mBuiltinRawDataFolder))
 		{
 			if (BuiltinResourcesHelper::checkForModifications(mBuiltinRawDataFolder, mBuiltinDataFolder + L"Timestamp.asset"))
 			{
+				SPtr<ResourceManifest> oldResourceManifest;
+				if (FileSystem::exists(ResourceManifestPath))
+				{
+					oldResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
+					if (oldResourceManifest != nullptr)
+						gResources().registerResourceManifest(oldResourceManifest);
+				}
+
+				mResourceManifest = ResourceManifest::create("BuiltinResources");
+				gResources().registerResourceManifest(mResourceManifest);
+
 				preprocess();
 				BuiltinResourcesHelper::writeTimestamp(mBuiltinDataFolder + L"Timestamp.asset");
 
-				Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-				absoluteDataPath.append(mBuiltinDataFolder);
+				ResourceManifest::save(mResourceManifest, ResourceManifestPath, mBuiltinDataFolder);
 
-				ResourceManifest::save(mResourceManifest, ResourceManifestPath, absoluteDataPath);
+				if (oldResourceManifest != nullptr)
+					gResources().unregisterResourceManifest(oldResourceManifest);
 			}
 		}
 #endif
+
+		// Load manifest
+		if (mResourceManifest == nullptr)
+		{
+			if (FileSystem::exists(ResourceManifestPath))
+				mResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
+
+			if (mResourceManifest == nullptr)
+				mResourceManifest = ResourceManifest::create("BuiltinResources");
+
+			gResources().registerResourceManifest(mResourceManifest);
+		}
 		
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
 		mShaderSpriteImage = getShader(ShaderSpriteImageAlphaFile);
 		mShaderSpriteNonAlphaImage = getShader(ShaderSpriteImageNoAlphaFile);
+		mShaderSpriteLine = getShader(ShaderSpriteLineFile);
 		mShaderDiffuse = getShader(ShaderDiffuseFile);
 
 		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
@@ -262,6 +277,7 @@ namespace BansheeEngine
 		mWhiteSpriteTexture = getSkinTexture(WhiteTex);
 		mDummySpriteTexture = SpriteTexture::create(mDummyTexture);
 
+		mFont = gResources().load<Font>(mBuiltinDataFolder + (DefaultFontFilename + L".asset"));
 		mSkin = gResources().load<GUISkin>(mBuiltinDataFolder + (GUISkinFile + L".asset"));
 		mEmptySkin = GUISkin::create();
 
@@ -314,8 +330,7 @@ namespace BansheeEngine
 		/* 								ICON		                     		*/
 		/************************************************************************/
 
-		Path iconPath = FileSystem::getWorkingDirectoryPath();
-		iconPath.append(mEngineIconFolder);
+		Path iconPath = mEngineIconFolder;
 		iconPath.append(IconTextureName + L".asset");
 
 		HTexture iconTex = gResources().load<Texture>(iconPath);
@@ -359,12 +374,12 @@ namespace BansheeEngine
 		}
 
 		// Generate & save GUI sprite textures
-		BuiltinResourcesHelper::generateSpriteTextures(mEngineSkinFolder, mResourceManifest);
+		BuiltinResourcesHelper::generateSpriteTextures(mEngineSkinFolder, mEngineSkinSpritesFolder, mResourceManifest);
 
 		// Generate & save GUI skin
 		{
 			SPtr<GUISkin> skin = generateGUISkin();
-			Path outputPath = FileSystem::getWorkingDirectoryPath() + mBuiltinDataFolder + (GUISkinFile + L".asset");
+			Path outputPath = mBuiltinDataFolder + (GUISkinFile + L".asset");
 
 			HResource skinResource;
 			if (FileSystem::exists(outputPath))
@@ -387,8 +402,7 @@ namespace BansheeEngine
 
 	SPtr<GUISkin> BuiltinResources::generateGUISkin()
 	{
-		Path fontPath = FileSystem::getWorkingDirectoryPath();
-		fontPath.append(mBuiltinDataFolder);
+		Path fontPath = mBuiltinDataFolder;
 		fontPath.append(DefaultFontFilename + L".asset");
 
 		HFont font = gResources().load<Font>(fontPath);
@@ -843,7 +857,7 @@ namespace BansheeEngine
 		SPtr<Texture> normalTexture = Texture::_createPtr(normalPixelData);
 
 		// Save all textures
-		Path outputDir = FileSystem::getWorkingDirectoryPath() + mEngineTextureFolder;
+		Path outputDir = mEngineTextureFolder;
 
 		auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture)
 		{
@@ -922,7 +936,7 @@ namespace BansheeEngine
 		SPtr<Mesh> discMesh = Mesh::_createPtr(discMeshData);
 
 		// Save all meshes
-		Path outputDir = FileSystem::getWorkingDirectoryPath() + mEngineMeshFolder;
+		Path outputDir = mEngineMeshFolder;
 
 		auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh)
 		{
@@ -957,8 +971,7 @@ namespace BansheeEngine
 
 	HSpriteTexture BuiltinResources::getSkinTexture(const WString& name)
 	{
-		Path texturePath = FileSystem::getWorkingDirectoryPath();
-		texturePath.append(mEngineSkinFolder);
+		Path texturePath = mEngineSkinSpritesFolder;
 		texturePath.append(L"sprite_" + name + L".asset");
 
 		return gResources().load<SpriteTexture>(texturePath);
@@ -975,8 +988,7 @@ namespace BansheeEngine
 
 	HTexture BuiltinResources::getCursorTexture(const WString& name)
 	{
-		Path cursorPath = FileSystem::getWorkingDirectoryPath();
-		cursorPath.append(mEngineCursorFolder);
+		Path cursorPath = mEngineCursorFolder;
 		cursorPath.append(name + L".asset");
 
 		return gResources().load<Texture>(cursorPath);
@@ -1067,8 +1079,7 @@ namespace BansheeEngine
 
 	HMesh BuiltinResources::getMesh(BuiltinMesh mesh) const
 	{
-		Path meshPath = FileSystem::getWorkingDirectoryPath();
-		meshPath.append(mEngineMeshFolder);
+		Path meshPath = mEngineMeshFolder;
 
 		switch (mesh)
 		{
@@ -1092,10 +1103,20 @@ namespace BansheeEngine
 		return gResources().load<Mesh>(meshPath);
 	}
 
+	HShader BuiltinResources::getBuiltinShader(BuiltinShader type) const
+	{
+		switch(type)
+		{
+		case BuiltinShader::Standard:
+				return mShaderDiffuse;
+		}
+
+		return HShader();
+	}
+
 	HTexture BuiltinResources::getTexture(BuiltinTexture type)
 	{
-		Path texturePath = FileSystem::getWorkingDirectoryPath();
-		texturePath.append(Paths::getEngineDataPath());
+		Path texturePath = Paths::getEngineDataPath();
 		texturePath.append(TextureFolder);
 
 		switch (type)
@@ -1127,6 +1148,11 @@ namespace BansheeEngine
 	HMaterial BuiltinResources::createSpriteNonAlphaImageMaterial() const
 	{
 		return Material::create(mShaderSpriteNonAlphaImage);
+	}
+
+	HMaterial BuiltinResources::createSpriteLineMaterial() const
+	{
+		return Material::create(mShaderSpriteLine);
 	}
 
 	void BuiltinResourcesHelper::importAssets(const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest)
@@ -1195,8 +1221,7 @@ namespace BansheeEngine
 
 			for(auto& entry : resourcesToSave)
 			{
-				Path relativeOutputPath = outputFolder + entry.first;;
-				Path outputPath = FileSystem::getWorkingDirectoryPath() + relativeOutputPath;
+				Path outputPath = outputFolder + entry.first;;
 
 				HResource resource;
 				if (FileSystem::exists(outputPath))
@@ -1212,7 +1237,7 @@ namespace BansheeEngine
 					Resources::instance().save(resource, outputPath, true);
 					manifest->registerResource(resource.getUUID(), outputPath);
 
-					outputAssets.insert(relativeOutputPath);
+					outputAssets.insert(outputPath);
 				}
 			}
 			
@@ -1229,8 +1254,8 @@ namespace BansheeEngine
 			return true;
 		};
 
-		FileSystem::iterate(inputFolder, importResource);
-		FileSystem::iterate(outputFolder, gatherObsolete);
+		FileSystem::iterate(inputFolder, importResource, nullptr, false);
+		FileSystem::iterate(outputFolder, gatherObsolete, nullptr, false);
 
 		for (auto& obsoleteAssetPath : obsoleteAssets)
 			FileSystem::remove(obsoleteAssetPath);
@@ -1253,7 +1278,7 @@ namespace BansheeEngine
 		HFont font = Importer::instance().import<Font>(inputFile, fontImportOptions);
 
 		WString fontName = outputName;
-		Path outputPath = FileSystem::getWorkingDirectoryPath() + outputFolder + fontName;
+		Path outputPath = outputFolder + fontName;
 		outputPath.setFilename(outputPath.getWFilename() + L".asset");
 
 		Resources::instance().save(font, outputPath, true);
@@ -1264,7 +1289,7 @@ namespace BansheeEngine
 		{
 			SPtr<const FontBitmap> fontData = font->getBitmap(size);
 
-			Path texPageOutputPath = FileSystem::getWorkingDirectoryPath() + outputFolder;
+			Path texPageOutputPath = outputFolder;
 
 			UINT32 pageIdx = 0;
 			for (auto tex : fontData->texturePages)
@@ -1278,9 +1303,10 @@ namespace BansheeEngine
 		}
 	}
 
-	void BuiltinResourcesHelper::generateSpriteTextures(const Path& folder, const SPtr<ResourceManifest>& manifest)
+	void BuiltinResourcesHelper::generateSpriteTextures(const Path& input, const Path& output, 
+		const SPtr<ResourceManifest>& manifest)
 	{
-		if (!FileSystem::exists(folder))
+		if (!FileSystem::exists(input))
 			return;
 
 		Vector<Path> filesToProcess;
@@ -1291,22 +1317,55 @@ namespace BansheeEngine
 			return true;
 		};
 
-		FileSystem::iterate(folder, gather);
+		FileSystem::iterate(input, gather, nullptr, false);
 
+		UnorderedSet<Path> outputAssets;
 		for (auto& filePath : filesToProcess)
 		{
-			Path outputPath = FileSystem::getWorkingDirectoryPath() + filePath;
-			outputPath.setFilename(L"sprite_" + outputPath.getWFilename());
+			Path relativePath = filePath.getRelative(input);
+			Path outputPath = output + relativePath;
+
+			outputPath.setFilename(L"sprite_" + filePath.getWFilename());
 
 			HTexture source = gResources().load<Texture>(filePath);
 
 			if (source != nullptr)
 			{
-				HSpriteTexture spriteTex = SpriteTexture::create(source);
-				Resources::instance().save(spriteTex, outputPath, true);
-				manifest->registerResource(spriteTex.getUUID(), outputPath);
+				HResource resource;
+				if (FileSystem::exists(outputPath))
+				{
+					resource = gResources().load(outputPath);
+					SPtr<SpriteTexture> spriteTex = SpriteTexture::_createPtr(source);
+
+					gResources().update(resource, spriteTex);
+					Resources::instance().save(resource, outputPath, true);
+					manifest->registerResource(resource.getUUID(), outputPath);
+				}
+				else
+				{
+					HSpriteTexture spriteTex = SpriteTexture::create(source);
+					Resources::instance().save(spriteTex, outputPath, true);
+					manifest->registerResource(spriteTex.getUUID(), outputPath);
+				}
+
+				outputAssets.insert(outputPath);
 			}
 		}
+
+		Vector<Path> obsoleteAssets;
+		auto gatherObsolete = [&](const Path& filePath)
+		{
+			auto iterFind = outputAssets.find(filePath);
+			if (iterFind == outputAssets.end())
+				obsoleteAssets.push_back(filePath);
+
+			return true;
+		};
+
+		FileSystem::iterate(output, gatherObsolete, nullptr, false);
+
+		for (auto& obsoleteAssetPath : obsoleteAssets)
+			FileSystem::remove(obsoleteAssetPath);
 	}
 
 	void BuiltinResourcesHelper::writeTimestamp(const Path& file)

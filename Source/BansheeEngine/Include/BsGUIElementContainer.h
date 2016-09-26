@@ -19,20 +19,20 @@ namespace BansheeEngine
 		virtual ~GUIElementContainer();
 
 		/** @copydoc GUIElement::_getNumRenderElements */
-		virtual UINT32 _getNumRenderElements() const override;
+		UINT32 _getNumRenderElements() const override;
 
 		/** @copydoc GUIElement::_getMaterial */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const override;
+		const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const override;
 
-		/** @copydoc GUIElement::_getNumQuads */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const override;
+		/** @copydoc GUIElement::_getMeshInfo() */
+		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
 		/** @copydoc GUIElement::_fillBuffer */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const override;
+		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @copydoc GUIElement::_commandEvent */
 		bool _commandEvent(const GUICommandEvent& event) override;

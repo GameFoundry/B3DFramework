@@ -290,6 +290,17 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Assigns a non-specific editor data object to the resource at the specified path. 
+        /// </summary>
+        /// <param name="path">Path to the resource to modify, absolute or relative to resources folder.</param>
+        /// <param name="userData">Data to assign to the resource, which can later be retrieved from the resource's
+        /// meta-data as needed. </param>
+        public static void SetEditorData(string path, object userData)
+        {
+            Internal_SetEditorData(path, userData);
+        }
+
+        /// <summary>
         /// Triggers reimport for queued resource. Should be called once per frame.
         /// </summary>
         internal static void Update()
@@ -437,6 +448,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetIncludeInBuild(string path, bool force);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetEditorData(string path, object userData);
     }
 
     /// <summary>
@@ -453,7 +467,7 @@ namespace BansheeEditor
     public enum ResourceType // Note: Must match the C++ enum ScriptResourceType
     {
         Texture, SpriteTexture, Mesh, Font, Shader, ShaderInclude, Material, Prefab, PlainText, 
-        ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, Undefined
+        ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip, Undefined
     }
 
     /// <summary>
@@ -563,6 +577,11 @@ namespace BansheeEditor
         /// </summary>
         public ResourceType ResType { get { return Internal_GetResourceType(mCachedPtr); } }
 
+        /// <summary>
+        /// Non-specific data assigned to the resource, available in editor only.
+        /// </summary>
+        public object EditorData { get { return Internal_GetEditorData(mCachedPtr); } }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern string Internal_GetUUID(IntPtr thisPtr);
 
@@ -574,6 +593,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ResourceType Internal_GetResourceType(IntPtr thisPtr);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern object Internal_GetEditorData(IntPtr thisPtr);
     }
 
     /** @} */

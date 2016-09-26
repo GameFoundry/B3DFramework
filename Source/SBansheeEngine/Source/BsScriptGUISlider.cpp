@@ -37,7 +37,10 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetValue", &ScriptGUISliderH::internal_getValue);
 		metaData.scriptClass->addInternalCall("Internal_SetValue", &ScriptGUISliderH::internal_setValue);
 		metaData.scriptClass->addInternalCall("Internal_SetRange", &ScriptGUISliderH::internal_setRange);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMaximum", &ScriptGUISliderH::internal_getRangeMaximum);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMinimum", &ScriptGUISliderH::internal_getRangeMinimum);
 		metaData.scriptClass->addInternalCall("Internal_SetStep", &ScriptGUISliderH::internal_setStep);
+		metaData.scriptClass->addInternalCall("Internal_GetStep", &ScriptGUISliderH::internal_getStep);
 
 		onChangedThunk = (OnChangedThunkDef)metaData.scriptClass->getMethod("DoOnChanged", 1)->getThunk();
 	}
@@ -87,10 +90,28 @@ namespace BansheeEngine
 		return slider->setRange(min, max);
 	}
 
+	float ScriptGUISliderH::internal_getRangeMaximum(ScriptGUISliderH* nativeInstance)
+	{
+		GUISliderHorz* slider = (GUISliderHorz*)nativeInstance->getGUIElement();
+		return slider->getRangeMaximum();
+	}
+
+	float ScriptGUISliderH::internal_getRangeMinimum(ScriptGUISliderH* nativeInstance)
+	{
+		GUISliderHorz* slider = (GUISliderHorz*)nativeInstance->getGUIElement();
+		return slider->getRangeMinimum();
+	}
+
 	void ScriptGUISliderH::internal_setStep(ScriptGUISliderH* nativeInstance, float step)
 	{
 		GUISliderHorz* slider = (GUISliderHorz*)nativeInstance->getGUIElement();
 		return slider->setStep(step);
+	}
+
+	float ScriptGUISliderH::internal_getStep(ScriptGUISliderH* nativeInstance)
+	{
+		GUISliderHorz* slider = (GUISliderHorz*)nativeInstance->getGUIElement();
+		return slider->getStep();
 	}
 
 	void ScriptGUISliderH::internal_setTint(ScriptGUISliderH* nativeInstance, Color* color)
@@ -121,7 +142,10 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetValue", &ScriptGUISliderV::internal_getValue);
 		metaData.scriptClass->addInternalCall("Internal_SetValue", &ScriptGUISliderV::internal_setValue);
 		metaData.scriptClass->addInternalCall("Internal_SetRange", &ScriptGUISliderV::internal_setRange);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMaximum", &ScriptGUISliderV::internal_getRangeMaximum);
+		metaData.scriptClass->addInternalCall("Internal_GetRangeMinimum", &ScriptGUISliderV::internal_getRangeMinimum);
 		metaData.scriptClass->addInternalCall("Internal_SetStep", &ScriptGUISliderV::internal_setStep);
+		metaData.scriptClass->addInternalCall("Internal_GetStep", &ScriptGUISliderV::internal_getStep);
 
 		onChangedThunk = (OnChangedThunkDef)metaData.scriptClass->getMethod("DoOnChanged", 1)->getThunk();
 	}
@@ -171,10 +195,28 @@ namespace BansheeEngine
 		return slider->setRange(min, max);
 	}
 
+	float ScriptGUISliderV::internal_getRangeMaximum(ScriptGUISliderV* nativeInstance)
+	{
+		GUISliderVert* slider = (GUISliderVert*)nativeInstance->getGUIElement();
+		return slider->getRangeMaximum();
+	}
+
+	float ScriptGUISliderV::internal_getRangeMinimum(ScriptGUISliderV* nativeInstance)
+	{
+		GUISliderVert* slider = (GUISliderVert*)nativeInstance->getGUIElement();
+		return slider->getRangeMinimum();
+	}
+
 	void ScriptGUISliderV::internal_setStep(ScriptGUISliderV* nativeInstance, float step)
 	{
 		GUISliderVert* slider = (GUISliderVert*)nativeInstance->getGUIElement();
 		return slider->setStep(step);
+	}
+
+	float ScriptGUISliderV::internal_getStep(ScriptGUISliderV* nativeInstance)
+	{
+		GUISliderVert* slider = (GUISliderVert*)nativeInstance->getGUIElement();
+		return slider->getStep();
 	}
 
 	void ScriptGUISliderV::internal_setTint(ScriptGUISliderV* nativeInstance, Color* color)

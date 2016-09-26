@@ -153,7 +153,7 @@ namespace BansheeEngine
 
 					ManagedSerializableFieldKey key(typeID, fieldId);
 
-					SPtr<ManagedSerializableFieldInfo> matchingFieldInfo = objInfo->findMatchingField(field.second, curType->mTypeInfo);
+					SPtr<ManagedSerializableMemberInfo> matchingFieldInfo = objInfo->findMatchingField(field.second, curType->mTypeInfo);
 					if (matchingFieldInfo != nullptr)
 						setFieldData(matchingFieldInfo, mCachedData[key]);
 
@@ -168,10 +168,10 @@ namespace BansheeEngine
 		mCachedData.clear();
 	}
 
-	void ManagedSerializableObject::setFieldData(const SPtr<ManagedSerializableFieldInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
+	void ManagedSerializableObject::setFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		if (mManagedInstance != nullptr)
-			fieldInfo->mMonoField->setValue(mManagedInstance, val->getValue(fieldInfo->mTypeInfo));
+			fieldInfo->setValue(mManagedInstance, val->getValue(fieldInfo->mTypeInfo));
 		else
 		{
 			ManagedSerializableFieldKey key(fieldInfo->mParentTypeId, fieldInfo->mFieldId);
@@ -179,11 +179,11 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableObject::getFieldData(const SPtr<ManagedSerializableFieldInfo>& fieldInfo) const
+	SPtr<ManagedSerializableFieldData> ManagedSerializableObject::getFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const
 	{
 		if (mManagedInstance != nullptr)
 		{
-			MonoObject* fieldValue = fieldInfo->mMonoField->getValueBoxed(mManagedInstance);
+			MonoObject* fieldValue = fieldInfo->getValue(mManagedInstance);
 
 			return ManagedSerializableFieldData::create(fieldInfo->mTypeInfo, fieldValue);
 		}

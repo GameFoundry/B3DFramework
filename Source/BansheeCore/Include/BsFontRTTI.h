@@ -118,7 +118,7 @@ namespace BansheeEngine
 		}
 
 	protected:
-		void onDeserializationStarted(IReflectable* obj) override
+		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			FontInitData* initData = bs_new<FontInitData>();
 
@@ -126,7 +126,7 @@ namespace BansheeEngine
 			font->mRTTIData = initData;
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Font* font = static_cast<Font*>(obj);
 			FontInitData* initData = any_cast<FontInitData*>(font->mRTTIData);

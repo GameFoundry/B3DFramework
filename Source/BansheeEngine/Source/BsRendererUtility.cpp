@@ -5,12 +5,14 @@
 #include "BsMesh.h"
 #include "BsVertexDataDesc.h"
 #include "BsMaterial.h"
+#include "BsGpuParamsSet.h"
 #include "BsPass.h"
 #include "BsBlendState.h"
 #include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
 #include "BsGpuParams.h"
 #include "BsGpuParamDesc.h"
+#include "BsGpuParamBlockBuffer.h"
 #include "BsShapeMeshes3D.h"
 #include "BsLight.h"
 #include "BsShader.h"
@@ -115,44 +117,27 @@ namespace BansheeEngine
 
 	}
 
-	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPass(const SPtr<MaterialCore>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 
-		SPtr<PassCore> pass = material->getPass(passIdx);
-		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
+		SPtr<PassCore> pass = material->getPass(passIdx, techniqueIdx);
 
 		struct StageData
 		{
 			GpuProgramType type;
 			bool enable;
-			SPtr<GpuParamsCore> params;
 			SPtr<GpuProgramCore> program;
 		};
 
 		const UINT32 numStages = 5;
 		StageData stages[numStages] =
 		{
-			{
-				GPT_VERTEX_PROGRAM, pass->hasVertexProgram(),
-				passParams->mVertParams, pass->getVertexProgram()
-			},
-			{
-				GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(),
-				passParams->mFragParams, pass->getFragmentProgram()
-			},
-			{
-				GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(),
-				passParams->mGeomParams, pass->getGeometryProgram()
-			},
-			{
-				GPT_HULL_PROGRAM, pass->hasHullProgram(),
-				passParams->mHullParams, pass->getHullProgram()
-			},
-			{
-				GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(),
-				passParams->mDomainParams, pass->getDomainProgram()
-			}
+			{ GPT_VERTEX_PROGRAM, pass->hasVertexProgram(), pass->getVertexProgram() },
+			{ GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(), pass->getFragmentProgram() },
+			{ GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(), pass->getGeometryProgram() },
+			{ GPT_HULL_PROGRAM, pass->hasHullProgram(), pass->getHullProgram() },
+			{ GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(), pass->getDomainProgram() }
 		};
 
 		for (UINT32 i = 0; i < numStages; i++)
@@ -160,124 +145,122 @@ namespace BansheeEngine
 			const StageData& stage = stages[i];
 
 			if (stage.enable)
-			{
-				rs.bindGpuProgram(stage.program);
-				rs.setGpuParams(stage.type, stage.params);
-
-			}
+				rapi.bindGpuProgram(stage.program);
 			else
-				rs.unbindGpuProgram(stage.type);
+				rapi.unbindGpuProgram(stage.type);
 		}
 
 		// Set up non-texture related pass settings
 		if (pass->getBlendState() != nullptr)
-			rs.setBlendState(pass->getBlendState());
+			rapi.setBlendState(pass->getBlendState());
 		else
-			rs.setBlendState(BlendStateCore::getDefault());
+			rapi.setBlendState(BlendStateCore::getDefault());
 
 		if (pass->getDepthStencilState() != nullptr)
-			rs.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
 		else
-			rs.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
+			rapi.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
 
 		if (pass->getRasterizerState() != nullptr)
-			rs.setRasterizerState(pass->getRasterizerState());
+			rapi.setRasterizerState(pass->getRasterizerState());
 		else
-			rs.setRasterizerState(RasterizerStateCore::getDefault());
+			rapi.setRasterizerState(RasterizerStateCore::getDefault());
 	}
 
 	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
-
+		RenderAPICore& rapi = RenderAPICore::instance();
 		SPtr<PassCore> pass = material->getPass(passIdx);
-		SPtr<PassParametersCore> passParams = material->getPassParameters(passIdx);
 
 		if(pass->hasComputeProgram())
-		{
-			rs.bindGpuProgram(pass->getComputeProgram());
-			rs.setGpuParams(GPT_COMPUTE_PROGRAM, passParams->mComputeParams);
-		}
+			rapi.bindGpuProgram(pass->getComputeProgram());
 		else
-			rs.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
+			rapi.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
 	}
 
-	void RendererUtility::setPassParams(const SPtr<MaterialCore>& material, UINT32 passIdx)
+	void RendererUtility::setPassParams(const SPtr<GpuParamsSetCore>& params, UINT32 passIdx)
 	{
-		const SPtr<PassParametersCore>& passParams = material->getPassParameters(passIdx);
-
-		RenderAPICore& rs = RenderAPICore::instance();
-
-		struct StageData
-		{
-			GpuProgramType type;
-			SPtr<GpuParamsCore> params;
-		};
-
 		const UINT32 numStages = 6;
-		StageData stages[numStages] =
+		GpuProgramType stages[numStages] =
 		{
-			{ GPT_VERTEX_PROGRAM, passParams->mVertParams },
-			{ GPT_FRAGMENT_PROGRAM, passParams->mFragParams },
-			{ GPT_GEOMETRY_PROGRAM, passParams->mGeomParams },
-			{ GPT_HULL_PROGRAM, passParams->mHullParams },
-			{ GPT_DOMAIN_PROGRAM, passParams->mDomainParams },
-			{ GPT_COMPUTE_PROGRAM, passParams->mComputeParams }
+			{ GPT_VERTEX_PROGRAM },
+			{ GPT_FRAGMENT_PROGRAM },
+			{ GPT_GEOMETRY_PROGRAM },
+			{ GPT_HULL_PROGRAM },
+			{ GPT_DOMAIN_PROGRAM },
+			{ GPT_COMPUTE_PROGRAM }
 		};
 
 		for (UINT32 i = 0; i < numStages; i++)
 		{
-			const StageData& stage = stages[i];
-
-			SPtr<GpuParamsCore> params = stage.params;
-			if (params == nullptr)
+			SPtr<GpuParamsCore> gpuParams = params->getGpuParams(stages[i], passIdx);
+			if (gpuParams == nullptr)
 				continue;
 
-			const GpuParamDesc& paramDesc = params->getParamDesc();
+			setGpuParams(stages[i], gpuParams);
+		}
+	}
 
-			for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-			{
-				SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
+	void RendererUtility::setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params)
+	{
+		RenderAPICore& rapi = RenderAPICore::instance();
+		const GpuParamDesc& paramDesc = params->getParamDesc();
 
-				if (samplerState == nullptr)
-					rs.setSamplerState(stage.type, iter->second.slot, SamplerStateCore::getDefault());
-				else
-					rs.setSamplerState(stage.type, iter->second.slot, samplerState);
-			}
+		for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+		{
+			SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
 
-			for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
-			{
-				SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
+			if (samplerState == nullptr)
+				rapi.setSamplerState(type, iter->second.slot, SamplerStateCore::getDefault());
+			else
+				rapi.setSamplerState(type, iter->second.slot, samplerState);
+		}
 
-				if (texture == nullptr)
-					rs.setTexture(stage.type, iter->second.slot, false, nullptr);
-				else
-					rs.setTexture(stage.type, iter->second.slot, true, texture);
-			}
+		for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
+		{
+			SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
 
-			for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
-			{
-				SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
-				const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
+			rapi.setTexture(type, iter->second.slot, texture);
+		}
 
-				if (texture == nullptr)
-					rs.setLoadStoreTexture(stage.type, iter->second.slot, false, nullptr, surface);
-				else
-					rs.setLoadStoreTexture(stage.type, iter->second.slot, true, texture, surface);
-			}
+		for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
+		{
+			SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
+			const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
 
-			rs.setConstantBuffers(stage.type, params);
+			if (texture == nullptr)
+				rapi.setLoadStoreTexture(type, iter->second.slot, false, nullptr, surface);
+			else
+				rapi.setLoadStoreTexture(type, iter->second.slot, true, texture, surface);
+		}
+
+		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+		{
+			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
+
+			bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+				iter->second.type != GPOT_STRUCTURED_BUFFER;
+
+			rapi.setBuffer(type, iter->second.slot, buffer, isLoadStore);
+		}
+
+		for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
+		{
+			SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
+			blockBuffer->flushToGPU();
+
+			rapi.setParamBuffer(type, iter->second.slot, blockBuffer, paramDesc);
 		}
 	}
 
 	void RendererUtility::draw(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
 	{
-		RenderAPICore& rs = RenderAPICore::instance();
+		RenderAPICore& rapi = RenderAPICore::instance();
 		SPtr<VertexData> vertexData = mesh->getVertexData();
 
-		rs.setVertexDeclaration(vertexData->vertexDeclaration);
-		auto& vertexBuffers = vertexData->getBuffers();
+		rapi.setVertexDeclaration(mesh->getVertexData()->vertexDeclaration);
 
+		auto& vertexBuffers = vertexData->getBuffers();
 		if (vertexBuffers.size() > 0)
 		{
 			SPtr<VertexBufferCore> buffers[MAX_BOUND_VERTEX_BUFFERS];
@@ -298,18 +281,61 @@ namespace BansheeEngine
 				buffers[iter->first - startSlot] = iter->second;
 			}
 
-			rs.setVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
+			rapi.setVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
 		}
 
-		rs.setDrawOperation(subMesh.drawOp);
-
 		SPtr<IndexBufferCore> indexBuffer = mesh->getIndexBuffer();
+		rapi.setIndexBuffer(indexBuffer);
+
+		rapi.setDrawOperation(subMesh.drawOp);
 
 		UINT32 indexCount = subMesh.indexCount;
-
-		rs.setIndexBuffer(indexBuffer);
-		rs.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(), 
+		rapi.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(), 
 			vertexData->vertexCount, numInstances);
+
+		mesh->_notifyUsedOnGPU();
+	}
+
+	void RendererUtility::drawMorph(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, 
+		const SPtr<VertexBufferCore>& morphVertices, const SPtr<VertexDeclarationCore>& morphVertexDeclaration)
+	{
+		// Bind buffers and draw
+		RenderAPICore& rapi = RenderAPICore::instance();
+
+		SPtr<VertexData> vertexData = mesh->getVertexData();
+		rapi.setVertexDeclaration(morphVertexDeclaration);
+
+		auto& meshBuffers = vertexData->getBuffers();
+		SPtr<VertexBufferCore> allBuffers[MAX_BOUND_VERTEX_BUFFERS];
+
+		UINT32 endSlot = 0;
+		UINT32 startSlot = MAX_BOUND_VERTEX_BUFFERS;
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
+		{
+			if (iter->first >= MAX_BOUND_VERTEX_BUFFERS)
+				BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
+
+			startSlot = std::min(iter->first, startSlot);
+			endSlot = std::max(iter->first, endSlot);
+		}
+
+		startSlot = std::min(1U, startSlot);
+		endSlot = std::max(1U, endSlot);
+
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
+			allBuffers[iter->first - startSlot] = iter->second;
+
+		allBuffers[1] = morphVertices;
+		rapi.setVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
+
+		SPtr<IndexBufferCore> indexBuffer = mesh->getIndexBuffer();
+		rapi.setIndexBuffer(indexBuffer);
+
+		rapi.setDrawOperation(subMesh.drawOp);
+
+		UINT32 indexCount = subMesh.indexCount;
+		rapi.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(),
+			vertexData->vertexCount, 1);
 
 		mesh->_notifyUsedOnGPU();
 	}
@@ -318,19 +344,22 @@ namespace BansheeEngine
 	{
 		auto& texProps = texture->getProperties();
 		SPtr<MaterialCore> mat;
+		SPtr<GpuParamsSetCore> params;
 		if (texProps.getMultisampleCount() > 1)
 		{
 			mat = mResolveMat->getMaterial();
+			params = mResolveMat->getParamsSet();
 			mResolveMat->setParameters(texture);
 		}
 		else
 		{
 			mat = mBlitMat->getMaterial();
+			params = mBlitMat->getParamsSet();
 			mBlitMat->setParameters(texture);
 		}
 
-		setPass(mat, 0);
-		setPassParams(mat);
+		setPass(mat);
+		setPassParams(params);
 
 		Rect2 fArea((float)area.x, (float)area.y, (float)area.width, (float)area.height);
 		if(area.width == 0 || area.height == 0)
@@ -418,6 +447,7 @@ namespace BansheeEngine
 	void BlitMat::setParameters(const SPtr<TextureCore>& source)
 	{
 		mSource.set(source);
+		mMaterial->updateParamsSet(mParamsSet);
 	}
 
 	ResolveMat::ResolveMat()
@@ -437,5 +467,7 @@ namespace BansheeEngine
 
 		UINT32 sampleCount = source->getProperties().getMultisampleCount();
 		mNumSamples.set(sampleCount);
+
+		mMaterial->updateParamsSet(mParamsSet);
 	}
 }

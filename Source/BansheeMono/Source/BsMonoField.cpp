@@ -78,23 +78,23 @@ namespace BansheeEngine
 		return foundAttr;
 	}
 
-	MonoFieldVisibility MonoField::getVisibility()
+	MonoMemberVisibility MonoField::getVisibility()
 	{
 		uint32_t flags = mono_field_get_flags(mField) & MONO_FIELD_ATTR_FIELD_ACCESS_MASK;
 
 		if(flags == MONO_FIELD_ATTR_PRIVATE)
-			return MonoFieldVisibility::Private;
+			return MonoMemberVisibility::Private;
 		else if(flags == MONO_FIELD_ATTR_FAM_AND_ASSEM)
-			return MonoFieldVisibility::ProtectedInternal;
+			return MonoMemberVisibility::ProtectedInternal;
 		else if(flags == MONO_FIELD_ATTR_ASSEMBLY)
-			return MonoFieldVisibility::Internal;
+			return MonoMemberVisibility::Internal;
 		else if(flags == MONO_FIELD_ATTR_FAMILY)
-			return MonoFieldVisibility::Protected;
+			return MonoMemberVisibility::Protected;
 		else if(flags == MONO_FIELD_ATTR_PUBLIC)
-			return MonoFieldVisibility::Public;
+			return MonoMemberVisibility::Public;
 
 		assert(false);
-		return MonoFieldVisibility::Private;
+		return MonoMemberVisibility::Private;
 	}
 
 	bool MonoField::isStatic()

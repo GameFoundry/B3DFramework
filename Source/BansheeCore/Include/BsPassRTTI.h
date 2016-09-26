@@ -62,7 +62,7 @@ namespace BansheeEngine
 			addPlainField("mStencilRefValue", 9, &PassRTTI::getStencilRefValue, &PassRTTI::setStencilRefValue);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Pass* pass = static_cast<Pass*>(obj);
 			pass->initialize();

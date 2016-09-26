@@ -371,6 +371,77 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Adds an AudioListener component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Audio/Listener", 7031)]
+        private static void AddAudioListener()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+            {
+                so = UndoRedo.CreateSO("AudioListener", "New scene object");
+
+                Selection.SceneObject = so;
+                FocusOnHierarchyOrScene();
+            }
+
+            UndoRedo.RecordSO(so, false, "Added a AudioListener component");
+            so.AddComponent<AudioListener>();
+            EditorApplication.SetSceneDirty();
+        }
+
+        /// <summary>
+        /// Adds an AudioSource component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Audio/Source", 7030)]
+        private static void AddAudioSource()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+            {
+                so = UndoRedo.CreateSO("AudioSource", "New scene object");
+
+                Selection.SceneObject = so;
+                FocusOnHierarchyOrScene();
+            }
+
+            UndoRedo.RecordSO(so, false, "Added a AudioSource component");
+            so.AddComponent<AudioSource>();
+            EditorApplication.SetSceneDirty();
+        }
+
+        /// <summary>
+        /// Adds an Animation component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Animation", 7029)]
+        private static void AddAnimation()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+                return;
+
+            UndoRedo.RecordSO(so, false, "Added an Animation component");
+            so.AddComponent<Animation>();
+            EditorApplication.SetSceneDirty();
+        }
+
+
+        /// <summary>
+        /// Adds a Bone component to the currently selected scene object.
+        /// </summary>
+        [MenuItem("Components/Bone", 7028)]
+        private static void AddBone()
+        {
+            SceneObject so = Selection.SceneObject;
+            if (so == null)
+                return;
+
+            UndoRedo.RecordSO(so, false, "Added an Bone component");
+            so.AddComponent<Bone>();
+            EditorApplication.SetSceneDirty();
+        }
+
+        /// <summary>
         /// Creates a new empty scene object.
         /// </summary>
         [MenuItem("Scene Objects/Scene Object", 8051)]
@@ -649,16 +720,16 @@ namespace BansheeEditor
         /// </summary>
         private static void FocusOnHierarchyOrScene()
         {
-            HierarchyWindow hierarchyWindow = EditorWindow.GetWindow<HierarchyWindow>();
-            if (hierarchyWindow != null)
+            SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
+            if (sceneWindow != null)
             {
-                hierarchyWindow.HasFocus = true;
+                sceneWindow.HasFocus = true;
                 return;
             }
 
-            SceneWindow sceneWindow = EditorWindow.GetWindow<SceneWindow>();
-            if (sceneWindow != null)
-                sceneWindow.HasFocus = true;
+            HierarchyWindow hierarchyWindow = EditorWindow.GetWindow<HierarchyWindow>();
+            if (hierarchyWindow != null)
+                hierarchyWindow.HasFocus = true;
         }
     }
 

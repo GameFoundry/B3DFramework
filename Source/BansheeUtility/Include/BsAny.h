@@ -52,6 +52,10 @@ namespace BansheeEngine
 			:mData(bs_new<Data<ValueType>>(value))
 		{ }
 
+		Any(std::nullptr_t)
+			:mData(nullptr)
+		{ }
+
 		Any(const Any& other) 
 			:mData(other.mData != nullptr ? other.mData->clone() : nullptr)
 		{ }

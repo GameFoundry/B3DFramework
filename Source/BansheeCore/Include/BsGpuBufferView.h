@@ -22,6 +22,7 @@ namespace BansheeEngine
 		UINT32 numElements;
 		bool useCounter;
 		GpuViewUsage usage;
+		GpuBufferFormat format;
 	};
 
 	/**

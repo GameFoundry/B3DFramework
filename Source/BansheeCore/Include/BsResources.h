@@ -11,6 +11,34 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Flags that can be used to control resource loading. */
+	enum class ResourceLoadFlag
+	{
+		/** No flags. */
+		None = 0,
+		/** If enabled all resources referenced by the root resource will be loaded as well. */
+		LoadDependencies = 1 << 0, 
+		/**
+		 * If enabled the resource system will keep an internal reference to the resource so it doesn't get destroyed with
+		 * it goes out of scope. You can call Resources::release() to release the internal reference. Each call to load will
+		 * create a new internal reference and therefore must be followed by the same number of release calls. If
+		 * dependencies are being loaded, they will not have internal references created regardless of this parameter.
+		 */
+		KeepInternalRef = 1 << 1,
+		/**
+		 * Determines if the loaded resource keeps original data loaded. Sometime resources will process loaded data
+		 * and discard the original (e.g. uncompressing audio on load). This flag can prevent the resource from discarding
+		 * the original data. The original data might be required for saving the resource (via Resources::save), but will
+		 * use up extra memory. Normally you want to keep this enabled if you plan on saving the resource to disk.
+		 */
+		KeepSourceData = 1 << 2,
+		/** Default set of flags used for resource loading. */
+		Default = LoadDependencies | KeepInternalRef
+	};
+
+	typedef Flags<ResourceLoadFlag> ResourceLoadFlags;
+	BS_FLAGS_OPERATORS(ResourceLoadFlag);
+
 	/**
 	 * Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.
 	 *
@@ -18,6 +46,7 @@ namespace BansheeEngine
 	 */
 	class BS_CORE_EXPORT Resources : public Module<Resources>
 	{
+		/** Information about a loaded resource. */
 		struct LoadedResourceData
 		{
 			LoadedResourceData()
@@ -32,6 +61,7 @@ namespace BansheeEngine
 			UINT32 numInternalRefs;
 		};
 
+		/** Information about a resource that's currently being loaded. */
 		struct ResourceLoadData
 		{
 			ResourceLoadData(const WeakResourceHandle<Resource>& resource, UINT32 numDependencies)
@@ -56,40 +86,33 @@ namespace BansheeEngine
 		 * All loaded resources are reference counted and will be automatically unloaded when all of their references go out
 		 * of scope. 
 		 *			
-		 * @param[in]	filePath				File path to the resource to load. This can be absolute or relative to 
-		 *										the working folder.
-		 * @param[in]	loadDependencies		If true all resources referenced by the root resource will be loaded as well.
-		 * @param[in]	keepInternalReference	If true the resource system will keep an internal reference to the resource
-		 *										so it doesn't get destroyed with it goes out of scope. You can call 
-		 *										release() to release the internal reference. Each call to load will create
-		 *										a new internal reference and therefore must be followed by the same number
-		 *										of release calls. 
-		 *										If dependencies are being loaded, they will not have internal references 
-		 *										created regardless of this parameter.
+		 * @param[in]	filePath	File path to the resource to load. This can be absolute or relative to the working 
+		 *							folder.
+		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *			
 		 * @see		release(ResourceHandleBase&), unloadAllUnused()
 		 */
-		HResource load(const Path& filePath, bool loadDependencies = true, bool keepInternalReference = true);
+		HResource load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		/** @copydoc load(const Path&, bool, bool) */
+		/** @copydoc load(const Path&, ResourceLoadFlags) */
 		template <class T>
-		ResourceHandle<T> load(const Path& filePath, bool loadDependencies = true, bool keepInternalReference = true)
+		ResourceHandle<T> load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(load(filePath, loadDependencies, keepInternalReference));
+			return static_resource_cast<T>(load(filePath, loadFlags));
 		}
 
 		/**
 		 * Loads the resource for the provided weak resource handle, or returns a loaded resource if already loaded.
 		 * 			
-		 * @see		load(const Path&, bool, bool)
+		 * @see		load(const Path&, ResourceLoadFlags)
 		 */
-		HResource load(const WeakResourceHandle<Resource>& handle, bool loadDependencies = true, bool keepInternalReference = true);
+		HResource load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		/** @copydoc load(const WeakResourceHandle<Resource>&, bool, bool) */
+		/** @copydoc load(const WeakResourceHandle<Resource>&, ResourceLoadFlags) */
 		template <class T>
-		ResourceHandle<T> load(const WeakResourceHandle<T>& handle, bool loadDependencies = true, bool keepInternalReference = true)
+		ResourceHandle<T> load(const WeakResourceHandle<T>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(load((const WeakResourceHandle<Resource>&)handle, loadDependencies, keepInternalReference));
+			return static_resource_cast<T>(load((const WeakResourceHandle<Resource>&)handle, loadFlags));
 		}
 
 		/**
@@ -97,49 +120,34 @@ namespace BansheeEngine
 		 * done.
 		 *
 		 * @param[in]	filePath	Full pathname of the file.
-		 * @param[in]	loadDependencies		If true all resources referenced by the root resource will be loaded as well.
-		 * @param[in]	keepInternalReference	If true the resource system will keep an internal reference to the resource
-		 *										so it doesn't get destroyed with it goes out of scope. You can call
-		 *										release() to release the internal reference. Each call to load will create
-		 *										a new internal reference and therefore must be followed by the same number
-		 *										of release calls.
-		 *										If dependencies are being loaded, they will not have internal references
-		 *										created regardless of this parameter.
+		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *
 		 * @note	
 		 * You can use returned invalid handle in many engine systems as the engine will check for handle validity before 
 		 * using it.
 		 *			
-		 * @see		load(const Path&, bool)
+		 * @see		load(const Path&, ResourceLoadFlags)
 		 */
-		HResource loadAsync(const Path& filePath, bool loadDependencies = true, bool keepInternalReference = true);
+		HResource loadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
 		/** @copydoc loadAsync */
 		template <class T>
-		ResourceHandle<T> loadAsync(const Path& filePath, bool loadDependencies = true, bool keepInternalReference = true)
+		ResourceHandle<T> loadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(loadAsync(filePath, loadDependencies, keepInternalReference));
+			return static_resource_cast<T>(loadAsync(filePath, loadFlags));
 		}
 
 		/**
 		 * Loads the resource with the given UUID. Returns an empty handle if resource can't be loaded.
 		 *
-		 * @param[in]	uuid					UUID of the resource to load.
-		 * @param[in]	async					If true resource will be loaded asynchronously. Handle to non-loaded
-		 *										resource will be returned immediately while loading will continue in the 
-		 *										background.		
-		 * @param[in]	loadDependencies		If true all resources referenced by the root resource will be loaded as well.
-		 * @param[in]	keepInternalReference	If true the resource system will keep an internal reference to the resource 
-		 *										so it doesn't get destroyed with it goes out of scope. You can call 
-		 *										release() to release the internal reference. Each call to load will create 
-		 *										a new internal reference and therefore must be followed by the same number 
-		 *										of release calls. 
-		 *										If dependencies are being loaded, they will not have internal references 
-		 *										created regardless of this parameter.	
+		 * @param[in]	uuid		UUID of the resource to load.
+		 * @param[in]	async		If true resource will be loaded asynchronously. Handle to non-loaded resource will be
+		 *							returned immediately while loading will continue in the background.		
+		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *													
 		 * @see		load(const Path&, bool)
 		 */
-		HResource loadFromUUID(const String& uuid, bool async = false, bool loadDependencies = true, bool keepInternalReference = true);
+		HResource loadFromUUID(const String& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
 		/**
 		 * Releases an internal reference to the resource held by the resources system. This allows the resource to be 
@@ -292,19 +300,17 @@ namespace BansheeEngine
 		 * Starts resource loading or returns an already loaded resource. Both UUID and filePath must match the	same 
 		 * resource, although you may provide an empty path in which case the resource will be retrieved from memory if its
 		 * currently loaded.
-		 * 			
-		 * @param[in]	incrementRef	Determines should the internal reference count be incremented.
 		 */
-		HResource loadInternal(const String& UUID, const Path& filePath, bool synchronous, bool loadDependencies, bool incrementRef);
+		HResource loadInternal(const String& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags);
 
 		/** Performs actually reading and deserializing of the resource file. Called from various worker threads. */
-		SPtr<Resource> loadFromDiskAndDeserialize(const Path& filePath);
+		SPtr<Resource> loadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData);
 
 		/**	Triggered when individual resource has finished loading. */
 		void loadComplete(HResource& resource);
 
 		/**	Callback triggered when the task manager is ready to process the loading task. */
-		void loadCallback(const Path& filePath, HResource& resource);
+		void loadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData);
 
 		/**	Destroys a resource, freeing its memory. */
 		void destroy(ResourceHandleBase& resource);

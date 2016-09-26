@@ -12,7 +12,7 @@
 namespace BansheeEngine
 {
 	ManagedSerializableDiff::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
-		const SPtr<ManagedSerializableFieldInfo>& fieldType, const SPtr<Modification>& modification)
+		const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification)
 		:parentType(parentType), fieldType(fieldType), modification(modification)
 	{
 
@@ -184,6 +184,9 @@ namespace BansheeEngine
 		{
 			for (auto& field : curObjInfo->mFields)
 			{
+				if (!field.second->isSerializable())
+					continue;
+
 				UINT32 fieldTypeId = field.second->mTypeInfo->getTypeId();
 
 				SPtr<ManagedSerializableFieldData> oldData = oldObj->getFieldData(field.second);
@@ -209,7 +212,22 @@ namespace BansheeEngine
 		const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData,
 		UINT32 entryTypeId)
 	{
-		bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive;
+		bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive || entryTypeId == TID_SerializableTypeInfoRef;
+
+		// It's possible the field data is null if the class structure changed (i.e. new field was added that is not present
+		// in serialized data). Check for this case first to ensure field data is valid for the remainder of the method.
+		if(oldData == nullptr)
+		{
+			if (newData == nullptr)
+				return nullptr;
+			else
+				return ModifiedEntry::create(newData);
+		}
+		else
+		{
+			if (newData == nullptr)
+				return nullptr;
+		}
 
 		SPtr<Modification> newMod = nullptr;
 		if (isPrimitive)
@@ -431,6 +449,9 @@ namespace BansheeEngine
 				}
 			}
 				break;
+			default:
+				assert(false); // Invalid type
+				break;
 			}
 		}
 
@@ -447,10 +468,10 @@ namespace BansheeEngine
 		SPtr<ManagedSerializableObjectInfo> objInfo = obj->getObjectInfo();
 		for (auto& modEntry : mod->entries)
 		{
-			SPtr<ManagedSerializableFieldInfo> fieldType = modEntry.fieldType;
+			SPtr<ManagedSerializableMemberInfo> fieldType = modEntry.fieldType;
 			SPtr<ManagedSerializableTypeInfo> typeInfo = modEntry.parentType;
 
-			SPtr<ManagedSerializableFieldInfo> matchingFieldInfo = objInfo->findMatchingField(fieldType, typeInfo);
+			SPtr<ManagedSerializableMemberInfo> matchingFieldInfo = objInfo->findMatchingField(fieldType, typeInfo);
 			if (matchingFieldInfo == nullptr)
 				continue; // Field no longer exists in the type
 

@@ -11,7 +11,19 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	class Material;
+	class MaterialCore;
+
+	template<bool Core> struct TMaterialType { };
+	template<> struct TMaterialType<false> { typedef SPtr<Material> Type; };
+	template<> struct TMaterialType<true> { typedef SPtr<MaterialCore> Type; };
+
 	class MaterialParams;
+	class MaterialParamsCore;
+
+	template<bool Core> struct TMaterialParamsType { };
+	template<> struct TMaterialParamsType<false> { typedef MaterialParams Type; };
+	template<> struct TMaterialParamsType<true> { typedef MaterialParamsCore Type; };
 
 	/**
 	 * A handle that allows you to set a Material parameter. Internally keeps a reference to the material parameters so that
@@ -31,230 +43,178 @@ namespace BansheeEngine
 	 */
 	template<class T, bool Core>
 	class BS_CORE_EXPORT TMaterialDataParam
-	{ };
-
-	/** @copydoc TMaterialDataParam */
-	template<class T>
-	class TMaterialDataParam<T, false>
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+
 	public:
-		TMaterialDataParam(const String& name, const SPtr<MaterialParams>& params, 
-			const SPtr<Vector<TGpuDataParam<T, false>>>& gpuParams);
+		TMaterialDataParam(const String& name, const MaterialPtrType& material);
 		TMaterialDataParam() { }
 
 		/** @copydoc TGpuDataParam::set */
-		void set(const T& value, UINT32 arrayIdx = 0);
+		void set(const T& value, UINT32 arrayIdx = 0) const;
 
 		/** @copydoc TGpuDataParam::get */
-		T get(UINT32 arrayIdx = 0);
+		T get(UINT32 arrayIdx = 0) const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
-		SPtr<MaterialParams> mMaterialParams;
-		SPtr<Vector<TGpuDataParam<T, false>>> mGPUParams;
+		MaterialPtrType mMaterial;
 	};
-
-	/** @copydoc TMaterialDataParam */
-	template<class T>
-	class TMaterialDataParam<T, true>
-	{
-	public:
-		TMaterialDataParam(const SPtr<Vector<TGpuDataParam<T, true>>>& params);
-		TMaterialDataParam() { }
-
-		/** @copydoc TGpuDataParam::set */
-		void set(const T& value, UINT32 arrayIdx = 0);
-
-		/** @copydoc TGpuDataParam::get */
-		T get(UINT32 arrayIdx = 0);
-
-	protected:
-		SPtr<Vector<TGpuDataParam<T, true>>> mParams;
-	};
-
+	
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamStruct
-	{ };
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamStruct<false>
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+
 	public:
-		TMaterialParamStruct(const String& name, const SPtr<MaterialParams>& params,
-			const SPtr<Vector<TGpuParamStruct<false>>>& gpuParams);
+		TMaterialParamStruct(const String& name, const MaterialPtrType& material);
 		TMaterialParamStruct() { }
 
 		/** @copydoc TGpuParamStruct::set */
-		void set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0);
+		void set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0) const;
 
 		/** @copydoc TGpuParamStruct::get */
-		void get(void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0);
+		void get(void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0) const;
 
 		/** @copydoc TGpuParamStruct::getElementSize */
 		UINT32 getElementSize() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
 		UINT32 mParamIndex;
 		UINT32 mArraySize;
-		SPtr<MaterialParams> mMaterialParams;
-		SPtr<Vector<TGpuParamStruct<false>>> mGPUParams;
-	};
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamStruct<true>
-	{
-	public:
-		TMaterialParamStruct(const SPtr<Vector<TGpuParamStruct<true>>>& params);
-		TMaterialParamStruct() { }
-
-		/** @copydoc TGpuParamStruct::set */
-		void set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0);
-
-		/** @copydoc TGpuParamStruct::get */
-		void get(void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0);
-
-		/** @copydoc TGpuParamStruct::getElementSize */
-		UINT32 getElementSize() const;
-
-	protected:
-		SPtr<Vector<TGpuParamStruct<true>>> mParams;
+		MaterialPtrType mMaterial;
 	};
 
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamTexture
-	{ };
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamTexture<false>
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+
 	public:
-		TMaterialParamTexture(const String& name, const SPtr<MaterialParams>& params, 
-			const SPtr<Vector<TGpuParamTexture<false>>>& gpuParams);
+		TMaterialParamTexture(const String& name, const MaterialPtrType& material);
 		TMaterialParamTexture() { }
 
 		/** @copydoc GpuParamTexture::set */
-		void set(const HTexture& texture);
+		void set(const TextureType& texture) const;
 
 		/** @copydoc GpuParamTexture::get */
-		HTexture get();
+		TextureType get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
 		UINT32 mParamIndex;
-		SPtr<MaterialParams> mMaterialParams;
-		SPtr<Vector<TGpuParamTexture<false>>> mGPUParams;
-	};
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamTexture<true>
-	{
-	public:
-		TMaterialParamTexture(const SPtr<Vector<TGpuParamTexture<true>>>& params);
-		TMaterialParamTexture() { }
-
-		/** @copydoc GpuParamTexture::set */
-		void set(const SPtr<TextureCore>& texture);
-
-		/** @copydoc GpuParamTexture::get */
-		SPtr<TextureCore> get();
-
-	protected:
-		SPtr<Vector<TGpuParamTexture<true>>> mParams;
+		MaterialPtrType mMaterial;
 	};
 
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamLoadStoreTexture
-	{ };
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamLoadStoreTexture<false>
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+
 	public:
-		TMaterialParamLoadStoreTexture(const String& name, const SPtr<MaterialParams>& params,
-			const SPtr<Vector<TGpuParamLoadStoreTexture<false>>>& gpuParams);
+		TMaterialParamLoadStoreTexture(const String& name, const MaterialPtrType& material);
 		TMaterialParamLoadStoreTexture() { }
 
 		/** @copydoc GpuParamLoadStoreTexture::set */
-		void set(const HTexture& texture, const TextureSurface& surface);
+		void set(const TextureType& texture, const TextureSurface& surface = TextureSurface()) const;
 
 		/** @copydoc GpuParamLoadStoreTexture::get */
-		HTexture get();
+		TextureType get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
 		UINT32 mParamIndex;
-		SPtr<MaterialParams> mMaterialParams;
-		SPtr<Vector<TGpuParamLoadStoreTexture<false>>> mGPUParams;
+		MaterialPtrType mMaterial;
 	};
-
-
+	
 	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamLoadStoreTexture<true>
+	template<bool Core>
+	class BS_CORE_EXPORT TMaterialParamBuffer
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		typedef typename TGpuBufferType<Core>::Type BufferType;
+
 	public:
-		TMaterialParamLoadStoreTexture(const SPtr<Vector<TGpuParamLoadStoreTexture<true>>>& params);
-		TMaterialParamLoadStoreTexture() { }
+		TMaterialParamBuffer(const String& name, const MaterialPtrType& material);
+		TMaterialParamBuffer() { }
 
-		/** @copydoc GpuParamLoadStoreTexture::set */
-		void set(const SPtr<TextureCore>& texture, const TextureSurface& surface = TextureSurface());
+		/** @copydoc GpuParamBuffer::set */
+		void set(const BufferType& buffer) const;
 
-		/** @copydoc GpuParamLoadStoreTexture::get */
-		SPtr<TextureCore> get();
+		/** @copydoc GpuParamBuffer::get */
+		BufferType get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
-		SPtr<Vector<TGpuParamLoadStoreTexture<true>>> mParams;
+		UINT32 mParamIndex;
+		MaterialPtrType mMaterial;
 	};
 
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamSampState
-	{ };
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamSampState<false>
 	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
+
 	public:
-		TMaterialParamSampState(const String& name, const SPtr<MaterialParams>& params, 
-			const SPtr<Vector<TGpuParamSampState<false>>>& gpuParams);
+		TMaterialParamSampState(const String& name, const MaterialPtrType& material);
 		TMaterialParamSampState() { }
 
 		/** @copydoc GpuParamSampState::set */
-		void set(const SPtr<SamplerState>& sampState);
+		void set(const SamplerStateType& sampState) const;
 
 		/** @copydoc GpuParamSampState::get */
-		SPtr<SamplerState> get();
+		SamplerStateType get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
 
 	protected:
 		UINT32 mParamIndex;
-		SPtr<MaterialParams> mMaterialParams;
-		SPtr<Vector<TGpuParamSampState<false>>> mGPUParams;
-	};
-
-	/** @copydoc TMaterialDataParam */
-	template<>
-	class BS_CORE_EXPORT TMaterialParamSampState<true>
-	{
-	public:
-		TMaterialParamSampState(const SPtr<Vector<TGpuParamSampState<true>>>& params);
-		TMaterialParamSampState() { }
-
-		/** @copydoc GpuParamSampState::set */
-		void set(const SPtr<SamplerStateCore>& sampState);
-
-		/** @copydoc GpuParamSampState::get */
-		SPtr<SamplerStateCore> get();
-
-	protected:
-		SPtr<Vector<TGpuParamSampState<true>>> mParams;
+		MaterialPtrType mMaterial;
 	};
 
 	/** @} */
@@ -295,6 +255,9 @@ namespace BansheeEngine
 
 	typedef TMaterialParamLoadStoreTexture<false> MaterialParamLoadStoreTexture;
 	typedef TMaterialParamLoadStoreTexture<true> MaterialParamLoadStoreTextureCore;
+
+	typedef TMaterialParamBuffer<false> MaterialParamBuffer;
+	typedef TMaterialParamBuffer<true> MaterialParamBufferCore;
 
 	typedef TMaterialParamSampState<false> MaterialParamSampState;
 	typedef TMaterialParamSampState<true> MaterialParamSampStateCore;

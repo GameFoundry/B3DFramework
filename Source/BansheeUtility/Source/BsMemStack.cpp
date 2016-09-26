@@ -37,14 +37,4 @@ namespace BansheeEngine
 
 		ThreadMemStack->dealloc(data);
 	}
-
-	void* bs_stack_alloc(UINT32 numBytes)
-	{
-		return (void*)MemStack::alloc(numBytes);
-	}
-
-	void bs_stack_free(void* data)
-	{
-		return MemStack::deallocLast((UINT8*)data);
-	}
 }

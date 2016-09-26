@@ -141,6 +141,17 @@ namespace BansheeEngine
 		GBL_WRITE_ONLY	
 	};
 
+	/** Types of programs that may run on GPU. */
+	enum GpuProgramType
+	{
+		GPT_VERTEX_PROGRAM, /**< Vertex program. */
+		GPT_FRAGMENT_PROGRAM, /**< Fragment(pixel) program. */
+		GPT_GEOMETRY_PROGRAM, /**< Geometry program. */
+		GPT_DOMAIN_PROGRAM, /**< Domain (tesselation evaluation) program. */
+		GPT_HULL_PROGRAM, /**< Hull (tesselation control) program. */
+		GPT_COMPUTE_PROGRAM /**< Compute program. */
+	};
+
 	/**
 	 * Values that represent hardware buffer usage. These usually determine in what type of memory is buffer placed in,
 	 * however that depends on rendering API.
@@ -159,6 +170,8 @@ namespace BansheeEngine
 	/** Types of generic GPU buffers that may be attached to GPU programs. */
 	enum GpuBufferType
 	{
+		/** Buffer containing an array of primitives (e.g. float4's). */
+		GBT_STANDARD,
 		/** 
 		 * Buffer containing an array of structures. Structure parameters can usually be easily accessed from within the
 		 * GPU program.
@@ -173,6 +186,46 @@ namespace BansheeEngine
 		GBT_INDIRECTARGUMENT,
 		/** A stack-like buffer that allows you to add or remove elements to/from the buffer from within the GPU program. */
 		GBT_APPENDCONSUME
+	};
+
+	/** Types of valid formats used for standard GPU buffers. */
+	enum GpuBufferFormat
+	{
+		BF_16X1F, /**< 1D 16-bit floating-point format. */
+		BF_16X2F, /**< 2D 16-bit floating-point format. */
+		BF_16X4F, /**< 4D 16-bit floating-point format. */
+		BF_32X1F, /**< 1D 32-bit floating-point format. */
+		BF_32X2F, /**< 2D 32-bit floating-point format. */
+		BF_32X3F, /**< 3D 32-bit floating-point format. */
+		BF_32X4F, /**< 4D 32-bit floating-point format. */
+		BF_8X1,   /**< 1D 8-bit normalized format. */
+		BF_8X2,   /**< 2D 8-bit normalized format. */
+		BF_8X4,   /**< 4D 8-bit normalized format. */
+		BF_16X1,  /**< 1D 16-bit normalized format. */
+		BF_16X2,  /**< 2D 16-bit normalized format. */
+		BF_16X4,  /**< 4D 16-bit normalized format. */
+		BF_8X1S,  /**< 1D 8-bit signed integer format. */
+		BF_8X2S,  /**< 2D 8-bit signed integer format. */
+		BF_8X4S,  /**< 4D 8-bit signed integer format. */
+		BF_16X1S, /**< 1D 16-bit signed integer format. */
+		BF_16X2S, /**< 2D 16-bit signed integer format. */
+		BF_16X4S, /**< 4D 16-bit signed integer format. */
+		BF_32X1S, /**< 1D 32-bit signed integer format. */
+		BF_32X2S, /**< 2D 32-bit signed integer format. */
+		BF_32X3S, /**< 3D 32-bit signed integer format. */
+		BF_32X4S, /**< 4D 32-bit signed integer format. */
+		BF_8X1U,  /**< 1D 8-bit unsigned integer format. */
+		BF_8X2U,  /**< 2D 8-bit unsigned integer format. */
+		BF_8X4U,  /**< 4D 8-bit unsigned integer format. */
+		BF_16X1U, /**< 1D 16-bit unsigned integer format. */
+		BF_16X2U, /**< 2D 16-bit unsigned integer format. */
+		BF_16X4U, /**< 4D 16-bit unsigned integer format. */
+		BF_32X1U, /**< 1D 32-bit unsigned integer format. */
+		BF_32X2U, /**< 2D 32-bit unsigned integer format. */
+		BF_32X3U, /**< 3D 32-bit unsigned integer format. */
+		BF_32X4U, /**< 4D 32-bit unsigned integer format. */
+		BF_COUNT, /**< Not a valid format. Keep just before BS_UNKNOWN. */
+		BF_UNKNOWN = 0xffff /**< Unknown format (used for non-standard buffers, like structured or raw. */
 	};
 
 	/** Different types of GPU views that control how GPU sees a hardware buffer. */
@@ -252,6 +305,7 @@ namespace BansheeEngine
 			lookup[(UINT32)GPDT_FLOAT2] = { 4, 8, 8, 1, 2 };
 			lookup[(UINT32)GPDT_FLOAT3] = { 4, 16, 16, 1, 3 };
 			lookup[(UINT32)GPDT_FLOAT4] = { 4, 16, 16, 1, 4 };
+			lookup[(UINT32)GPDT_COLOR]  = { 4, 16, 16, 1, 4 };
 			lookup[(UINT32)GPDT_MATRIX_2X2] = { 4, 16, 8, 2, 2 };
 			lookup[(UINT32)GPDT_MATRIX_2X3] = { 4, 32, 16, 2, 3 };
 			lookup[(UINT32)GPDT_MATRIX_2X4] = { 4, 32, 16, 2, 4 };
@@ -392,6 +446,15 @@ namespace BansheeEngine
 		UINT32 numArraySlices;
 	};
 
+	/** Meta-data describing a chunk of audio. */
+	struct AudioDataInfo
+	{
+		UINT32 numSamples; /**< Total number of audio samples in the audio data (includes all channels). */
+		UINT32 sampleRate; /**< Number of audio samples per second, per channel. */
+		UINT32 numChannels; /**< Number of channels. Each channel has its own set of samples. */
+		UINT32 bitDepth; /**< Number of bits per sample. */
+	};
+
 	/** Helper class for syncing dirty data from sim CoreObject to core CoreObject and other way around. */
 	class CoreSyncData
 	{
@@ -425,6 +488,14 @@ namespace BansheeEngine
 	};
 
 	typedef Map<String, String> NameValuePairList;
+
+	template<bool Core> struct TMeshType {};
+	template<> struct TMeshType < false > { typedef HMesh Type; };
+	template<> struct TMeshType < true > { typedef SPtr<MeshCore> Type; };
+
+	template<bool Core> struct TMaterialPtrType {};
+	template<> struct TMaterialPtrType < false > { typedef HMaterial Type; };
+	template<> struct TMaterialPtrType < true > { typedef SPtr<MaterialCore> Type; };
 
 	/** @cond SPECIALIZATIONS */
 	BS_ALLOW_MEMCPY_SERIALIZATION(TextureSurface);

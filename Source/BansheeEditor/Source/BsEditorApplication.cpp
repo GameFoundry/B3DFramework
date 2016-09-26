@@ -36,29 +36,28 @@ namespace BansheeEngine
 	const Path EditorApplication::BUILD_DATA_PATH = PROJECT_INTERNAL_DIR + L"BuildData.asset";
 	const Path EditorApplication::PROJECT_SETTINGS_PATH = PROJECT_INTERNAL_DIR + L"Settings.asset";
 
-	RENDER_WINDOW_DESC createRenderWindowDesc()
+	START_UP_DESC createStartupDesc()
 	{
-		RENDER_WINDOW_DESC renderWindowDesc;
-		renderWindowDesc.videoMode = VideoMode(1920, 1080);
-		renderWindowDesc.title = "BansheeEditor";
-		renderWindowDesc.fullscreen = false;
-		renderWindowDesc.border = WindowBorder::None;
-		renderWindowDesc.hideUntilSwap = true;
-		renderWindowDesc.depthBuffer = false;
+		START_UP_DESC startUpDesc;
+		startUpDesc.renderAPI = BS_RENDER_API_MODULE;
+		startUpDesc.renderer = BS_RENDERER_MODULE;
+		startUpDesc.audio = BS_AUDIO_MODULE;
+		startUpDesc.physics = BS_PHYSICS_MODULE;
+		startUpDesc.input = BS_INPUT_MODULE;
 
-		return renderWindowDesc;
-	}
+		startUpDesc.primaryWindowDesc.videoMode = VideoMode(1920, 1080);
+		startUpDesc.primaryWindowDesc.title = "BansheeEditor";
+		startUpDesc.primaryWindowDesc.fullscreen = false;
+		startUpDesc.primaryWindowDesc.border = WindowBorder::None;
+		startUpDesc.primaryWindowDesc.hideUntilSwap = true;
+		startUpDesc.primaryWindowDesc.depthBuffer = false;
 
-	Vector<String> getImporters()
-	{
-		Vector<String> importers;
+		startUpDesc.importers.push_back("BansheeFreeImgImporter");
+		startUpDesc.importers.push_back("BansheeFBXImporter");
+		startUpDesc.importers.push_back("BansheeFontImporter");
+		startUpDesc.importers.push_back("BansheeSL");
 
-		importers.push_back("BansheeFreeImgImporter");
-		importers.push_back("BansheeFBXImporter");
-		importers.push_back("BansheeFontImporter");
-		importers.push_back("BansheeSL");
-
-		return importers;
+		return startUpDesc;
 	}
 
 	Path getEditorSettingsPath()
@@ -66,9 +65,8 @@ namespace BansheeEngine
 		return Paths::getRuntimeDataPath() + L"Settings.asset";
 	}
 
-	EditorApplication::EditorApplication(EditorRenderAPI renderAPIPlugin)
-		:Application(createRenderWindowDesc(), toEngineRenderAPI(renderAPIPlugin), RendererPlugin::Default, getImporters()),
-		mActiveRAPIPlugin(toEngineRenderAPI(renderAPIPlugin)), mIsProjectLoaded(false), mSBansheeEditorPlugin(nullptr)
+	EditorApplication::EditorApplication()
+		:Application(createStartupDesc()), mIsProjectLoaded(false), mSBansheeEditorPlugin(nullptr)
 	{
 
 	}
@@ -147,9 +145,9 @@ namespace BansheeEngine
 		loadPlugin("SBansheeEditor", &mSBansheeEditorPlugin);
 	}
 
-	void EditorApplication::startUp(EditorRenderAPI renderAPI)
+	void EditorApplication::startUp()
 	{
-		CoreApplication::startUp<EditorApplication>(renderAPI);
+		CoreApplication::startUp<EditorApplication>();
 	}
 
 	void EditorApplication::preUpdate()
@@ -332,8 +330,7 @@ namespace BansheeEngine
 		if (!FileSystem::exists(internalResourcesDir))
 			FileSystem::createDir(internalResourcesDir);
 
-		Path defaultLayoutPath = FileSystem::getWorkingDirectoryPath();
-		defaultLayoutPath.append(BuiltinEditorResources::getDefaultWidgetLayoutPath());
+		Path defaultLayoutPath = BuiltinEditorResources::getDefaultWidgetLayoutPath();
 
 		if (FileSystem::exists(defaultLayoutPath))
 		{
@@ -344,12 +341,11 @@ namespace BansheeEngine
 
 	void EditorApplication::loadEditorSettings()
 	{
-		Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-		absoluteDataPath.append(getEditorSettingsPath());
+		Path settingsPath = getEditorSettingsPath();
 
-		if (FileSystem::exists(absoluteDataPath))
+		if (FileSystem::exists(settingsPath))
 		{
-			FileDecoder fs(absoluteDataPath);
+			FileDecoder fs(settingsPath);
 			mEditorSettings = std::static_pointer_cast<EditorSettings>(fs.decode());
 		}
 		
@@ -362,10 +358,9 @@ namespace BansheeEngine
 		if (mEditorSettings == nullptr)
 			return;
 
-		Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-		absoluteDataPath.append(getEditorSettingsPath());
+		Path settingsPath = getEditorSettingsPath();
 
-		FileEncoder fs(absoluteDataPath);
+		FileEncoder fs(settingsPath);
 		fs.encode(mEditorSettings.get());
 	}
 
@@ -402,17 +397,6 @@ namespace BansheeEngine
 	SPtr<IShaderIncludeHandler> EditorApplication::getShaderIncludeHandler() const
 	{
 		return bs_shared_ptr_new<EditorShaderIncludeHandler>();
-	}
-
-	RenderAPIPlugin EditorApplication::toEngineRenderAPI(EditorRenderAPI renderAPI)
-	{
-		if (renderAPI == EditorRenderAPI::DX11)
-			return RenderAPIPlugin::DX11;
-		else if (renderAPI == EditorRenderAPI::OpenGL)
-			return RenderAPIPlugin::OpenGL;
-
-		BS_EXCEPT(InvalidStateException, "Unsupported render API.");
-		return RenderAPIPlugin::DX11;
 	}
 
 	EditorApplication& gEditorApplication()

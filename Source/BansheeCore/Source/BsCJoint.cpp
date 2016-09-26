@@ -12,12 +12,24 @@ namespace BansheeEngine
 {
 	CJoint::CJoint(JOINT_DESC& desc)
 		:mDesc(desc)
-	{ }
+	{
+		mPositions[0] = Vector3::ZERO;
+		mPositions[1] = Vector3::ZERO;
+
+		mRotations[0] = Quaternion::IDENTITY;
+		mRotations[1] = Quaternion::IDENTITY;
+	}
 
 	CJoint::CJoint(const HSceneObject& parent, JOINT_DESC& desc)
 		: Component(parent), mDesc(desc)
 	{
 		setName("Joint");
+
+		mPositions[0] = Vector3::ZERO;
+		mPositions[1] = Vector3::ZERO;
+
+		mRotations[0] = Quaternion::IDENTITY;
+		mRotations[1] = Quaternion::IDENTITY;
 
 		mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
 	}
@@ -241,7 +253,6 @@ namespace BansheeEngine
 	{
 		Vector3 localPos;
 		Quaternion localRot;
-
 		getLocalTransform(body, localPos, localRot);
 
 		mInternal->setTransform(body, localPos, localRot);

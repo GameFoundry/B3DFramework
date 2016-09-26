@@ -33,7 +33,7 @@ namespace BansheeEngine
 			addPlainField("mMaximizedWidgetNames", 2, &DockManagerLayoutRTTI::getMaximizedWidgetNames, &DockManagerLayoutRTTI::setMaximizedWidgetNames);
 		}
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			DockManagerLayout* layout = static_cast<DockManagerLayout*>(obj);
 

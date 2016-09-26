@@ -313,13 +313,13 @@ namespace BansheeEngine
 		assert(enumeratorClass != nullptr);
 
 		mEnumMoveNext = enumeratorClass->getMethod("MoveNext");
-		mEnumCurrentProp = &enumeratorClass->getProperty("Current");
+		mEnumCurrentProp = enumeratorClass->getProperty("Current");
 
 		MonoClass* keyValuePairClass = mEnumCurrentProp->getReturnType();
 		assert(keyValuePairClass != nullptr);
 
-		mKeyProp = &keyValuePairClass->getProperty("Key");
-		mValueProp = &keyValuePairClass->getProperty("Value");
+		mKeyProp = keyValuePairClass->getProperty("Key");
+		mValueProp = keyValuePairClass->getProperty("Value");
 	}
 
 	RTTITypeBase* ManagedSerializableDictionary::getRTTIStatic()

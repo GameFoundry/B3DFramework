@@ -12,6 +12,19 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/**	Contains information about a camera managed by the scene manager. */
+	struct SceneCameraData
+	{
+		SceneCameraData() { }
+
+		SceneCameraData(const SPtr<Camera>& camera, const HSceneObject& sceneObject)
+			:camera(camera), sceneObject(sceneObject)
+		{ }
+
+		SPtr<Camera> camera;
+		HSceneObject sceneObject;
+	};
+
 	/**
 	 * Manages all objects in the scene and provides various query methods for finding objects. This is just the base class
 	 * with basic query functionality. You should override it with your own version.
@@ -31,6 +44,30 @@ namespace BansheeEngine
 		 * @param[in]	forceAll	If true, then even the persistent objects will be unloaded.
 		 */
 		void clearScene(bool forceAll = false);
+
+		/** Returns all cameras in the scene. */
+		const Map<Camera*, SceneCameraData>& getAllCameras() const { return mCameras; }
+
+		/**
+		 * Returns the camera in the scene marked as main. Main camera controls the final render surface that is displayed
+		 * to the user. If there are multiple main cameras, the first one found returned.
+		 */
+		SceneCameraData getMainCamera() const;
+
+		/**
+		 * Sets the render target that the main camera in the scene (if any) will render its view to. This generally means
+		 * the main game window when running standalone, or the Game viewport when running in editor.
+		 */
+		void setMainRenderTarget(const SPtr<RenderTarget>& rt);
+
+		/**	Notifies the scene manager that a new camera was created. */
+		void _registerCamera(const SPtr<Camera>& camera, const HSceneObject& so);
+
+		/**	Notifies the scene manager that a camera was removed. */
+		void _unregisterCamera(const SPtr<Camera>& camera);
+
+		/**	Notifies the scene manager that a camera either became the main camera, or has stopped being main camera. */
+		void _notifyMainCameraStateChanged(const SPtr<Camera>& camera);
 
 		/** Changes the root scene object. Any persistent objects will remain in the scene, now parented to the new root. */
 		void _setRootNode(const HSceneObject& root);
@@ -57,8 +94,17 @@ namespace BansheeEngine
 		 */
 		void registerNewSO(const HSceneObject& node);
 
+		/**	Callback that is triggered when the main render target size is changed. */
+		void onMainRenderTargetResized();
+
 	protected:
 		HSceneObject mRootNode;
+
+		Map<Camera*, SceneCameraData> mCameras;
+		Vector<SceneCameraData> mMainCameras;
+
+		SPtr<RenderTarget> mMainRT;
+		HEvent mMainRTResizedConn;
 	};
 
 	/**

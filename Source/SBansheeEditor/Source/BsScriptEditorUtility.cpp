@@ -11,6 +11,7 @@
 #include "BsScriptResource.h"
 #include "BsScriptResourceManager.h"
 #include "BsUtility.h"
+#include "BsSceneObject.h"
 
 namespace BansheeEngine
 {
@@ -22,7 +23,9 @@ namespace BansheeEngine
 	{
 		metaData.scriptClass->addInternalCall("Internal_CalculateBounds", &ScriptEditorUtility::internal_CalculateBounds);
 		metaData.scriptClass->addInternalCall("Internal_CalculateBoundsArray", &ScriptEditorUtility::internal_CalculateBoundsArray);
+		metaData.scriptClass->addInternalCall("Internal_CalculateArrayCenter", &ScriptEditorUtility::internal_CalculateArrayCenter);
 		metaData.scriptClass->addInternalCall("Internal_FindDependencies", &ScriptEditorUtility::internal_FindDependencies);
+		metaData.scriptClass->addInternalCall("Internal_IsInternal", &ScriptEditorUtility::internal_IsInternal);
 	}
 
 	void ScriptEditorUtility::internal_CalculateBounds(MonoObject* so, AABox* bounds)
@@ -77,5 +80,33 @@ namespace BansheeEngine
 		}
 
 		return output.getInternal();
+	}
+
+	void ScriptEditorUtility::internal_CalculateArrayCenter(MonoArray* objects, Vector3* center)
+	{
+		Vector<HSceneObject> sceneObjects;
+
+		ScriptArray scriptArray(objects);
+		UINT32 arrayLen = scriptArray.size();
+		for (UINT32 i = 0; i < arrayLen; i++)
+		{
+			MonoObject* curObject = scriptArray.get<MonoObject*>(i);
+
+			ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(curObject);
+
+			if (scriptSO != nullptr)
+				sceneObjects.push_back(static_object_cast<SceneObject>(scriptSO->getNativeHandle()));
+		}
+
+		*center = EditorUtility::calculateCenter(sceneObjects);
+	}
+
+	bool ScriptEditorUtility::internal_IsInternal(ScriptSceneObject* soPtr)
+	{
+		if (ScriptSceneObject::checkIfDestroyed(soPtr))
+			return false;
+
+		HSceneObject so = soPtr->getNativeSceneObject();
+		return so->hasFlag(SOF_Internal);
 	}
 }

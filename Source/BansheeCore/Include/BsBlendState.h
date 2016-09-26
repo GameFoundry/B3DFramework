@@ -243,15 +243,18 @@ namespace BansheeEngine
  *  @{
  */
 
+namespace std
+{
 /**	Hash value generator for BLEND_STATE_DESC. */
 template<>
-struct std::hash<BansheeEngine::BLEND_STATE_DESC>
+struct hash<BansheeEngine::BLEND_STATE_DESC>
 {
 	size_t operator()(const BansheeEngine::BLEND_STATE_DESC& value) const
 	{
 		return (size_t)BansheeEngine::BlendState::generateHash(value);
 	}
 };
+}
 
 /** @} */
 /** @endcond */

@@ -32,11 +32,9 @@ namespace BansheeEngine
 	 * @par
 	 * This ensures that GUIElements don't recursively modify GUIManager while GUIManager is still using that data.
 	 * @par
-	 * for example setFocus() usually gets called from within GUIElements, however we don't want elements in focus be 
+	 * For example setFocus() usually gets called from within GUIElements, however we don't want elements in focus be 
 	 * modified immediately since that setFocus() call could have originated in sendCommandEvent and elements in focus array
 	 * would be modified while still being iterated upon.
-	 * @note
-	 * Internal class. Unless modifying internal engine systems you should have no need to access this class.
 	 */
 	class BS_EXPORT GUIManager : public Module<GUIManager>
 	{
@@ -48,6 +46,16 @@ namespace BansheeEngine
 			Dragging
 		};
 
+		/** Data required for rendering a single GUI mesh. */
+		struct GUIMeshData
+		{
+			SPtr<TransientMesh> mesh;
+			SpriteMaterial* material;
+			SpriteMaterialInfo matInfo;
+			GUIWidget* widget;
+			bool isLine;
+		};
+
 		/**	GUI render data for a single viewport. */
 		struct GUIRenderData
 		{
@@ -55,9 +63,7 @@ namespace BansheeEngine
 				:isDirty(true)
 			{ }
 
-			Vector<SPtr<TransientMesh>> cachedMeshes;
-			Vector<SpriteMaterialInfo> cachedMaterials;
-			Vector<GUIWidget*> cachedWidgetsPerMesh;
+			Vector<GUIMeshData> cachedMeshes;
 			Vector<GUIWidget*> widgets;
 			bool isDirty;
 		};
@@ -67,9 +73,10 @@ namespace BansheeEngine
 		{
 			SPtr<TransientMeshCore> mesh;
 			SPtr<TextureCore> texture;
-			SpriteMaterial materialType;
+			SpriteMaterial* material;
 			Color tint;
 			Matrix4 worldTransform;
+			SPtr<SpriteMaterialExtraInfo> additionalData;
 		};
 
 		/**	Container for a GUI widget. */
@@ -339,12 +346,14 @@ namespace BansheeEngine
 
 		Vector<WidgetInfo> mWidgets;
 		UnorderedMap<const Viewport*, GUIRenderData> mCachedGUIData;
-		SPtr<MeshHeap> mMeshHeap;
+		SPtr<MeshHeap> mTriangleMeshHeap;
+		SPtr<MeshHeap> mLineMeshHeap;
 
 		std::atomic<GUIManagerCore*> mCore;
 		bool mCoreDirty;
 
-		SPtr<VertexDataDesc> mVertexDesc;
+		SPtr<VertexDataDesc> mTriangleVertexDesc;
+		SPtr<VertexDataDesc> mLineVertexDesc;
 
 		Stack<GUIElement*> mScheduledForDestruction;
 
@@ -415,34 +424,11 @@ namespace BansheeEngine
 	{
 		friend class GUIManager;
 
-		/** Material reference and parameter handles for a specific material type. */
-		struct MaterialInfo
-		{
-			MaterialInfo() { }
-			MaterialInfo(const SPtr<MaterialCore>& material);
-
-			SPtr<MaterialCore> material;
-
-			MaterialParamMat4Core worldTransformParam;
-			MaterialParamFloatCore invViewportWidthParam;
-			MaterialParamFloatCore invViewportHeightParam;
-			MaterialParamColorCore tintParam;
-			MaterialParamTextureCore textureParam;
-			MaterialParamSampStateCore samplerParam;
-		};
-
 	public:
 		~GUIManagerCore();
 
-		/**
-		 * Initializes the object. Must be called right after construction.
-		 *
-		 * @param[in]	textMat			Material used for drawing text sprites.
-		 * @param[in]	imageMat		Material used for drawing non-transparent image sprites.
-		 * @param[in]	imageAlphaMat	Material used for drawing transparent image sprites.
-		 */
-		void initialize(const SPtr<MaterialCore>& textMat, const SPtr<MaterialCore>& imageMat,
-			const SPtr<MaterialCore>& imageAlphaMat);
+		/** Initializes the object. Must be called right after construction. */
+		void initialize();
 
 	private:
 		/**
@@ -456,12 +442,6 @@ namespace BansheeEngine
 		void render(const SPtr<CameraCore>& camera);
 
 		UnorderedMap<SPtr<CameraCore>, Vector<GUIManager::GUICoreRenderData>> mPerCameraData;
-
-		// Immutable
-		MaterialInfo mTextMaterialInfo;
-		MaterialInfo mImageMaterialInfo;
-		MaterialInfo mImageAlphaMaterialInfo;
-
 		SPtr<SamplerStateCore> mSamplerState;
 	};
 

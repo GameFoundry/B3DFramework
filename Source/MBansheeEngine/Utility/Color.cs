@@ -33,6 +33,7 @@ namespace BansheeEngine
         public static Color DarkGray { get { return new Color(63.0f / 255.0f, 63.0f / 255.0f, 63.0f / 255.0f, 1.0f); } }
         public static Color LightGray { get { return new Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.0f); } }
         public static Color BansheeOrange { get { return new Color(1.0f, (168.0f/255.0f), 0.0f, 1.0f); } }
+        public static Color Transparent { get { return new Color(0.0f, 0.0f, 0.0f, 0.0f); } }
 
         /// <summary>
         /// Accesses color components by an index.

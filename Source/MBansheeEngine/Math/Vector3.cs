@@ -308,6 +308,28 @@ namespace BansheeEngine
             z.Normalize();
         }
 
+        /// <summary>
+        /// Returns the maximum of all the vector components as a new vector.
+        /// </summary>
+        /// <param name="a">First vector.</param>
+        /// <param name="b">Second vector.</param>
+        /// <returns>Vector consisting of maximum components of the first and second vector.</returns>
+        public static Vector3 Max(Vector3 a, Vector3 b)
+        {
+            return new Vector3(MathEx.Max(a.x, b.x), MathEx.Max(a.y, b.y), MathEx.Max(a.z, b.z));
+        }
+
+        /// <summary>
+        /// Returns the minimum of all the vector components as a new vector.
+        /// </summary>
+        /// <param name="a">First vector.</param>
+        /// <param name="b">Second vector.</param>
+        /// <returns>Vector consisting of minimum components of the first and second vector.</returns>
+        public static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(MathEx.Min(a.x, b.x), MathEx.Min(a.y, b.y), MathEx.Min(a.z, b.z));
+        }
+
         /// <inheritdoc/>
         public override int GetHashCode()
         {

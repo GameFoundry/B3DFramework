@@ -27,12 +27,12 @@ namespace BansheeEngine
 			obj->parentType = val;
 		}
 
-		SPtr<ManagedSerializableFieldInfo> getFieldType(ManagedSerializableDiff::ModifiedField* obj)
+		SPtr<ManagedSerializableMemberInfo> getFieldType(ManagedSerializableDiff::ModifiedField* obj)
 		{
 			return obj->fieldType;
 		}
 
-		void setFieldType(ManagedSerializableDiff::ModifiedField* obj, SPtr<ManagedSerializableFieldInfo> val)
+		void setFieldType(ManagedSerializableDiff::ModifiedField* obj, SPtr<ManagedSerializableMemberInfo> val)
 		{
 			obj->fieldType = val;
 		}

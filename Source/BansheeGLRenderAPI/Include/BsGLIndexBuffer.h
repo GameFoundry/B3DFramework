@@ -4,6 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "BsIndexBuffer.h"
+#include "BsGLBuffer.h"
 
 namespace BansheeEngine 
 { 
@@ -26,7 +27,7 @@ namespace BansheeEngine
 			BufferWriteType writeFlags = BufferWriteType::Normal) override;
 
 		/**	Returns internal OpenGL index buffer handle. */
-        GLuint getGLBufferId() const { return mBufferId; }
+        GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
 
 	protected:
 		/** @copydoc IndexBufferCore::initialize */
@@ -39,8 +40,7 @@ namespace BansheeEngine
 		void unlockImpl() override;
 
 	private:
-		GLuint mBufferId;
-		bool mZeroLocked;
+		GLBuffer mBuffer;
     };
 
 	/** @} */

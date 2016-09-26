@@ -82,11 +82,16 @@ namespace BansheeEngine
 		/**	Updates scene and resource tree views with new selection. */
 		void updateTreeViews();
 
-		Vector<HSceneObject> mSelectedSceneObjects;
+		/** Removes any destroyed scene objects from the selected scene object list. */
+		void pruneDestroyedSceneObjects() const;
+
+		mutable Vector<HSceneObject> mSelectedSceneObjects;
 		Vector<Path> mSelectedResourcePaths;
 
 		HMessage mSceneSelectionChangedConn;
 		HMessage mResourceSelectionChangedConn;
+
+		mutable Vector<HSceneObject> mTempSO;
 	};
 
 	/** @} */

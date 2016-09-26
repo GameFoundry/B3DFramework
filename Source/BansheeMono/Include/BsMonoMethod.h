@@ -74,6 +74,9 @@ namespace BansheeEngine
 		 */
 		MonoObject* getAttribute(MonoClass* monoClass) const;
 
+		/**	Returns method visibility in the class. */
+		MonoMemberVisibility getVisibility();
+
 	private:
 		friend class MonoClass;
 		friend class MonoProperty;

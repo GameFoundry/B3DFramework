@@ -78,25 +78,30 @@ int CALLBACK WinMain(
 	_In_  int nCmdShow
 	)
 {
+	// Descriptor used for initializing the engine
+	START_UP_DESC startUpDesc;
+
+	// Use default values as specified by the build system
+	startUpDesc.renderAPI = BS_RENDER_API_MODULE;
+	startUpDesc.renderer = BS_RENDERER_MODULE;
+	startUpDesc.audio = BS_AUDIO_MODULE;
+	startUpDesc.physics = BS_PHYSICS_MODULE;
+	startUpDesc.input = BS_INPUT_MODULE;
+
 	// Descriptor used for initializing the primary application window.
-	RENDER_WINDOW_DESC renderWindowDesc;
-	renderWindowDesc.videoMode = VideoMode(windowResWidth, windowResHeight);
-	renderWindowDesc.title = "Banshee Example App";
-	renderWindowDesc.fullscreen = false;
-	renderWindowDesc.depthBuffer = false;
+	startUpDesc.primaryWindowDesc.videoMode = VideoMode(windowResWidth, windowResHeight);
+	startUpDesc.primaryWindowDesc.title = "Banshee Example App";
+	startUpDesc.primaryWindowDesc.fullscreen = false;
+	startUpDesc.primaryWindowDesc.depthBuffer = false;
 
 	// List of importer plugins we plan on using for importing various resources
-	Vector<String> importers;
-	importers.push_back("BansheeFreeImgImporter"); // For importing textures
-	importers.push_back("BansheeFBXImporter"); // For importing meshes
-	importers.push_back("BansheeFontImporter"); // For importing fonts
-	importers.push_back("BansheeSL"); // For importing shaders
+	startUpDesc.importers.push_back("BansheeFreeImgImporter"); // For importing textures
+	startUpDesc.importers.push_back("BansheeFBXImporter"); // For importing meshes
+	startUpDesc.importers.push_back("BansheeFontImporter"); // For importing fonts
+	startUpDesc.importers.push_back("BansheeSL"); // For importing shaders
 
-	// Initializes the application with primary window defined as above and DirectX 11 render system.
-	// You may use other render systems than DirectX 11, however this example for simplicity only uses DirectX 11.
-	// If you wanted other render systems you would need to create separate shaders for them and import them
-	// along with (or replace) the DX11 ones.
-	Application::startUp(renderWindowDesc, RenderAPIPlugin::DX11, RendererPlugin::Default, importers);
+	// Initializes the application with systems and primary window as defined above
+	Application::startUp(startUpDesc);
 
 	// Imports all of ours assets and prepares GameObjects that handle the example logic.
 	setUpExample();

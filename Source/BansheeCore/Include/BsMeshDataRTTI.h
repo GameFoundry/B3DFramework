@@ -5,8 +5,8 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsMeshData.h"
-#include "BsManagedDataBlock.h"
 #include "BsVertexDeclaration.h"
+#include "BsDataStream.h"
 
 namespace BansheeEngine
 {
@@ -32,23 +32,17 @@ namespace BansheeEngine
 		UINT32& getNumIndices(MeshData* obj) { return obj->mNumIndices; }
 		void setNumIndices(MeshData* obj, UINT32& value) { obj->mNumIndices = value; }
 
-		ManagedDataBlock getData(MeshData* obj) 
-		{ 
-			ManagedDataBlock dataBlock((UINT8*)obj->getData(), obj->getInternalBufferSize());
-			return dataBlock; 
-		}
-
-		void setData(MeshData* obj, ManagedDataBlock val) 
-		{ 
-			// Nothing to do here, the pointer we provided already belongs to PixelData
-			// so the data is already written
-		}
-
-		static UINT8* allocateData(MeshData* obj, UINT32 numBytes)
+		SPtr<DataStream> getData(MeshData* obj, UINT32& size)
 		{
-			obj->allocateInternalBuffer(numBytes);
+			size = obj->getInternalBufferSize();
 
-			return obj->getData();
+			return bs_shared_ptr_new<MemoryDataStream>(obj->getData(), size, false);
+		}
+
+		void setData(MeshData* obj, const SPtr<DataStream>& value, UINT32 size)
+		{
+			obj->allocateInternalBuffer(size);
+			value->read(obj->getData(), size);
 		}
 
 	public:
@@ -60,7 +54,7 @@ namespace BansheeEngine
 			addPlainField("mNumVertices", 2, &MeshDataRTTI::getNumVertices, &MeshDataRTTI::setNumVertices);
 			addPlainField("mNumIndices", 3, &MeshDataRTTI::getNumIndices, &MeshDataRTTI::setNumIndices);
 
-			addDataBlockField("data", 4, &MeshDataRTTI::getData, &MeshDataRTTI::setData, 0, &MeshDataRTTI::allocateData);
+			addDataBlockField("data", 4, &MeshDataRTTI::getData, &MeshDataRTTI::setData, 0);
 		}
 
 		SPtr<IReflectable> newRTTIObject() override

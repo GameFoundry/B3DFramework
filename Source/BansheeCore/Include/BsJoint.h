@@ -2,6 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
+#include <cfloat>
+
 #include "BsCorePrerequisites.h"
 #include "BsPhysicsCommon.h"
 #include "BsFJoint.h"
@@ -89,8 +91,8 @@ namespace BansheeEngine
 		struct BodyInfo
 		{
 			Rigidbody* body = nullptr;
-			Vector3 position;
-			Quaternion rotation;
+			Vector3 position = Vector3::ZERO;
+			Quaternion rotation = Quaternion::IDENTITY;
 		};
 
 		BodyInfo bodies[2];

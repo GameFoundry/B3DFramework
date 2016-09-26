@@ -16,53 +16,33 @@ namespace BansheeEngine
 	class EditorSettingsRTTI : public RTTIType <EditorSettings, Settings, EditorSettingsRTTI>
 	{
 	private:
-		BS_PLAIN_MEMBER(mMoveSnapActive);
-		BS_PLAIN_MEMBER(mRotateSnapActive);
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mMoveSnapActive, 0)
+			BS_RTTI_MEMBER_PLAIN(mRotateSnapActive, 1)
 
-		BS_PLAIN_MEMBER(mMoveSnap);
-		BS_PLAIN_MEMBER(mRotationSnap);
+			BS_RTTI_MEMBER_PLAIN(mMoveSnap, 2)
+			BS_RTTI_MEMBER_PLAIN(mRotationSnap, 3)
 
-		BS_PLAIN_MEMBER(mGridSize);
-		BS_PLAIN_MEMBER(mGridAxisSpacing);
+			BS_RTTI_MEMBER_PLAIN(mGridSize, 4)
+			BS_RTTI_MEMBER_PLAIN(mGridAxisSpacing, 5)
 
-		BS_PLAIN_MEMBER(mActiveSceneTool);
-		BS_PLAIN_MEMBER(mActiveCoordinateMode);
-		BS_PLAIN_MEMBER(mActivePivotMode);
+			BS_RTTI_MEMBER_PLAIN(mActiveSceneTool, 6)
+			BS_RTTI_MEMBER_PLAIN(mActiveCoordinateMode, 7)
+			BS_RTTI_MEMBER_PLAIN(mActivePivotMode, 8)
 
-		BS_PLAIN_MEMBER(mHandleSize);
+			BS_RTTI_MEMBER_PLAIN(mHandleSize, 9)
 
-		BS_PLAIN_MEMBER(mLastOpenProject);
-		BS_PLAIN_MEMBER(mAutoLoadLastProject);
-		BS_PLAIN_MEMBER(mRecentProjects);
+			BS_RTTI_MEMBER_PLAIN(mLastOpenProject, 10)
+			BS_RTTI_MEMBER_PLAIN(mAutoLoadLastProject, 11)
+			BS_RTTI_MEMBER_PLAIN(mRecentProjects, 12)
 
-		BS_PLAIN_MEMBER(mFPSLimit);
-		BS_PLAIN_MEMBER(mMouseSensitivity);
-
+			BS_RTTI_MEMBER_PLAIN(mFPSLimit, 13)
+			BS_RTTI_MEMBER_PLAIN(mMouseSensitivity, 14)
+		BS_END_RTTI_MEMBERS
 	public:
 		EditorSettingsRTTI()
-		{
-			BS_ADD_PLAIN_FIELD(mMoveSnapActive, 0);
-			BS_ADD_PLAIN_FIELD(mRotateSnapActive, 1);
-
-			BS_ADD_PLAIN_FIELD(mMoveSnap, 2);
-			BS_ADD_PLAIN_FIELD(mRotationSnap, 3);
-
-			BS_ADD_PLAIN_FIELD(mGridSize, 4);
-			BS_ADD_PLAIN_FIELD(mGridAxisSpacing, 5);
-
-			BS_ADD_PLAIN_FIELD(mActiveSceneTool, 6);
-			BS_ADD_PLAIN_FIELD(mActiveCoordinateMode, 7);
-			BS_ADD_PLAIN_FIELD(mActivePivotMode, 8);
-
-			BS_ADD_PLAIN_FIELD(mHandleSize, 9);
-
-			BS_ADD_PLAIN_FIELD(mLastOpenProject, 10);
-			BS_ADD_PLAIN_FIELD(mAutoLoadLastProject, 11);
-			BS_ADD_PLAIN_FIELD(mRecentProjects, 12);
-
-			BS_ADD_PLAIN_FIELD(mFPSLimit, 13);
-			BS_ADD_PLAIN_FIELD(mMouseSensitivity, 14);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

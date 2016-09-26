@@ -183,6 +183,14 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns an object that can be used for storing data that persists throughout the entire editor session.
+        /// </summary>
+        internal static EditorPersistentData PersistentData
+        {
+            get { return persistentData; }
+        }
+
+        /// <summary>
         /// Returns the path where the script compiler is located at.
         /// </summary>
         internal static string CompilerPath { get { return Internal_GetCompilerPath(); } }
@@ -412,10 +420,17 @@ namespace BansheeEditor
                 string scenePath = ProjectLibrary.GetPath(Scene.ActiveSceneUUID);
                 if (!string.IsNullOrEmpty(scenePath))
                 {
-                    SaveScene(scenePath);
+                    if (Scene.IsGenericPrefab)
+                    {
+                        SaveGenericPrefab(onSuccess, onFailure);
+                    }
+                    else
+                    {
+                        SaveScene(scenePath);
 
-                    if (onSuccess != null)
-                        onSuccess();
+                        if (onSuccess != null)
+                            onSuccess();
+                    }
                 }
                 else
                     SaveSceneAs(onSuccess, onFailure);
@@ -507,13 +522,64 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="path">Path relative to the resource folder. This can be the path to the existing scene
         ///                    prefab if it just needs updating. </param>
-        public static void SaveScene(string path)
+        internal static void SaveScene(string path)
         {
             Prefab scene = Internal_SaveScene(path);
             Scene.SetActive(scene);
 
             ProjectLibrary.Refresh(true);
             SetSceneDirty(false);
+        }
+
+        /// <summary>
+        /// Attempts to save the current scene by applying the changes to a prefab, instead of saving it as a brand new
+        /// scene. This is necessary for generic prefabs that have don't have a scene root included in the prefab. If the
+        /// object added any other objects to the root, or has moved or deleted the original generic prefab the user
+        /// will be asked to save the scene normally, creating a brand new prefab.
+        /// </summary>
+        private static void SaveGenericPrefab(Action onSuccess = null, Action onFailure = null)
+        {
+            // Find prefab root
+            SceneObject root = null;
+
+            int numChildren = Scene.Root.GetNumChildren();
+            int numNormalChildren = 0;
+
+            for (int i = 0; i < numChildren; i++)
+            {
+                SceneObject child = Scene.Root.GetChild(i);
+
+                if (EditorUtility.IsInternal(child))
+                    continue;
+
+                string prefabUUID = PrefabUtility.GetPrefabUUID(child);
+                if (prefabUUID == Scene.ActiveSceneUUID)
+                    root = child;
+
+                // If user added any other prefabs other than the initial one, the scene no longer represents a generic
+                // prefab (as we can now longer save it by applying changes only to that prefab)
+                numNormalChildren++;
+                if (numNormalChildren > 1)
+                {
+                    root = null;
+                    break;
+                }
+            }
+            
+            if (root != null)
+            {
+                PrefabUtility.ApplyPrefab(root, false);
+
+                ProjectLibrary.Refresh(true);
+                SetSceneDirty(false);
+
+                if (onSuccess != null)
+                    onSuccess();
+            }
+            else
+            {
+                SaveSceneAs(onSuccess, onFailure);
+            }
         }
 
         /// <summary>
@@ -572,12 +638,17 @@ namespace BansheeEditor
         [ToolbarItem("Save Project", ToolbarIcon.SaveProject, "Save project", 1999)]
         public static void SaveProject()
         {
+            // Apply changes to any animation clips edited using the animation editor
+            foreach (var KVP in persistentData.dirtyAnimClips)
+                KVP.Value.SaveToClip();
+
+            // Save all dirty resources to disk
             foreach (var KVP in persistentData.dirtyResources)
             {
                 string resourceUUID = KVP.Key;
                 string path = ProjectLibrary.GetPath(resourceUUID);
                 if (!IsNative(path))
-                    continue; // Native resources can't be changed
+                    continue; // Imported resources can't be changed
 
                 Resource resource = ProjectLibrary.Load<Resource>(path);
 
@@ -585,6 +656,7 @@ namespace BansheeEditor
                     ProjectLibrary.Save(resource);
             }
 
+            persistentData.dirtyAnimClips.Clear();
             persistentData.dirtyResources.Clear();
             SetStatusProject(false);
 
@@ -651,6 +723,14 @@ namespace BansheeEditor
 
             SetStatusProject(true);
             persistentData.dirtyResources[resource.UUID] = true;
+        }
+
+        /// <summary>
+        /// Marks the current project dirty (requires saving in order for changes not to be lost).
+        /// </summary>
+        public static void SetProjectDirty()
+        {
+            SetStatusProject(true);
         }
 
         /// <summary>

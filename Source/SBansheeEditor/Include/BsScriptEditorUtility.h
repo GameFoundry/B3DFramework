@@ -26,6 +26,8 @@ namespace BansheeEngine
 		static void internal_CalculateBounds(MonoObject* so, AABox* bounds);
 		static void internal_CalculateBoundsArray(MonoArray* objects, AABox* bounds);
 		static MonoArray* internal_FindDependencies(MonoObject* resource, bool recursive);
+		static bool internal_IsInternal(ScriptSceneObject* soPtr);
+		static void internal_CalculateArrayCenter(MonoArray* objects, Vector3* center);
 	};
 
 	/** @} */

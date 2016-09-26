@@ -20,9 +20,15 @@ namespace BansheeEngine
 		ComponentRTTI()
 		{ }
 
-		void onDeserializationEnded(IReflectable* obj) override
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Component* comp = static_cast<Component*>(obj);
+
+			// It's possible we're just accessing the game object fields, in which case the process below is not needed
+			// (it's only required for new components).
+			if (comp->mRTTIData.empty())
+				return;
+
 			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(comp->mRTTIData);
 
 			// This shouldn't be null during normal deserialization but could be during some other operations, like applying

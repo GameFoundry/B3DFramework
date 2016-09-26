@@ -18,7 +18,10 @@ namespace BansheeEngine
         float x, y, z, w;
 
     public:
-        Vector4()
+		Vector4()
+		{ }
+
+        Vector4(ZERO zero)
 			:x(0.0f), y(0.0f), z(0.0f), w(0.0f)
         { }
 

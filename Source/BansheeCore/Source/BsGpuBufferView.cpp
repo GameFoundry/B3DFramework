@@ -12,6 +12,7 @@ namespace BansheeEngine
 		hash_combine(seed, key.numElements);
 		hash_combine(seed, key.useCounter);
 		hash_combine(seed, key.usage);
+		hash_combine(seed, key.format);
 
 		return seed;
 	}
@@ -19,8 +20,8 @@ namespace BansheeEngine
 	bool GpuBufferView::EqualFunction::operator()
 		(const GPU_BUFFER_DESC& a, const GPU_BUFFER_DESC& b) const
 	{
-		return a.elementWidth == b.elementWidth && a.firstElement == b.firstElement 
-			&& a.numElements == b.numElements && a.useCounter == b.useCounter && a.usage == b.usage;
+		return a.elementWidth == b.elementWidth && a.firstElement == b.firstElement && a.numElements == b.numElements 
+			&& a.useCounter == b.useCounter && a.usage == b.usage && a.format == b.format;
 	}
 
 	GpuBufferView::GpuBufferView()

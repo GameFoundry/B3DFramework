@@ -70,7 +70,7 @@ Aside from initialization/destruction, core objects also support synchronization
 ## Creating your own core objects {#coreThread_b_a}
 To create a custom core object, you need to implement the @ref BansheeEngine::CoreObject "CoreObject" class, which by default requires no methods to be implemented. 
 
-When creating your core object its important to note they are only allowed to be referenced using specialized shared pointers, and require specific initialization steps. The shared pointer needs to be created using the @ref BansheeEngine::bs_core_ptr_new<T> "bs_core_ptr_new<T>" method, followed by calls to @ref BansheeEngine::CoreObject::_setThisPtr "CoreObject::_setThisPtr" and @ref BansheeEngine::CoreObject::initialize "CoreObject::initialized". Due to this complex initialization procedure it is highly suggested that you create a static `create` method for your core object, which does every step automatically. For example:
+When creating your core object its important to note they are only allowed to be referenced using specialized shared pointers, and require specific initialization steps. The shared pointer needs to be created using the @ref BansheeEngine::bs_core_ptr_new<T> "bs_core_ptr_new<T>" method, followed by calls to @ref BansheeEngine::CoreObject::_setThisPtr "CoreObject::_setThisPtr" and @ref BansheeEngine::CoreObject::initialize "CoreObject::initialize". Due to this complex initialization procedure it is highly suggested that you create a static `create` method for your core object, which does every step automatically. For example:
 ~~~~~~~~~~~~~{.cpp}
 SPtr<MyCoreObject> MyCoreObject::create()
 {
@@ -84,7 +84,7 @@ SPtr<MyCoreObject> MyCoreObject::create()
 
 You will also want to override @ref BansheeEngine::CoreObject::createCore "CoreObject::createCore", which creates the core thread counterpart of your object. It should return a normal shared pointer to your implementation of @ref BansheeEngine::CoreObjectCore "CoreObjectCore".
 
-Once a core thread object is created you can use it as a normal object, while you can retrieve its core thread counterpart by calling @ref BansheeEngine::CoreObject::getCore "CoreObject::getCore", which you can use on the core thread. Object creation/destruction will happen automatically on the valid thread, and you also get the ability to synchronize information between the two (see below).
+Once a core object is created you can use it as a normal object, while you can retrieve its core thread counterpart by calling @ref BansheeEngine::CoreObject::getCore "CoreObject::getCore", which you can use on the core thread. Object creation/destruction will happen automatically on the valid thread, and you also get the ability to synchronize information between the two (see below).
 
 ### CoreObjectCore {#coreThread_b_a_a}
 To create the core thread counterpart of a @ref BansheeEngine::CoreObject "CoreObject" you must implement the @ref BansheeEngine::CoreObjectCore "CoreObjectCore" class. 

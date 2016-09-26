@@ -124,7 +124,7 @@ namespace BansheeEngine
         float d13 = + (v5 * m00 - v2 * m02 + v1 * m03) * invDet;
         float d23 = - (v4 * m00 - v2 * m01 + v0 * m03) * invDet;
         float d33 = + (v3 * m00 - v1 * m01 + v0 * m02) * invDet;
-
+		
         return Matrix4(
             d00, d01, d02, d03,
             d10, d11, d12, d13,

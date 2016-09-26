@@ -11,7 +11,11 @@ set(Game_INC
 include_directories(${Game_INC})	
 	
 # Target
-add_library(Game SHARED ${BS_GAME_SRC})
+if(WIN32)
+	add_executable(Game WIN32 ${BS_GAME_SRC})
+else()
+	add_executable(Game ${BS_GAME_SRC})
+endif()
 
 # Post-build step
 if(WIN32)
@@ -36,11 +40,7 @@ target_link_libraries(Game BansheeEngine BansheeUtility BansheeCore)
 set_property(TARGET Game PROPERTY FOLDER Executable)
 
 # Plugin dependencies
-add_dependencies(Game BansheeGLRenderAPI BansheeMono BansheeOISInput BansheePhysX RenderBeast SBansheeEngine)
-
-if(WIN32)
-	add_dependencies(Game BansheeD3D11RenderAPI BansheeD3D9RenderAPI)
-endif()
+add_engine_dependencies(Game)
 
 # Compiler flags
-target_compile_options(BansheeEditorExec PUBLIC /wd4509)
+target_compile_options(Game PUBLIC /wd4509)

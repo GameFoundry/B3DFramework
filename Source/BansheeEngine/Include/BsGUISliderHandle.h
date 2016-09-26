@@ -13,6 +13,25 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Flags that control how does a slider handle behave. */
+	enum class GUISliderHandleFlag
+	{
+		/** Slider handle will move horizontally. Cannot be used with the Vertical option. */
+		Horizontal = 1 << 0,
+		/** Slider handle will move vertically. Cannot be used with the Horizontal option. */
+		Vertical = 1 << 1,
+		/** 
+		 * If enabled, clicking on a specific slider position will cause the handle to jump to that position. If false the
+		 * handle will only slightly move in that direction.
+		 */
+		JumpOnClick = 1 << 2,
+		/** Determines should the slider handle provide additional side-handles that allow it to be resized. */
+		Resizeable = 1 << 3
+	};
+
+	typedef Flags<GUISliderHandleFlag> GUISliderHandleFlags;
+	BS_FLAGS_OPERATORS(GUISliderHandleFlag);
+
 	/** A handle that can be dragged from its predefined minimum and maximum position, either horizontally or vertically. */
 	class BS_EXPORT GUISliderHandle : public GUIElement
 	{
@@ -22,6 +41,12 @@ namespace BansheeEngine
 			Normal, Hover, Active
 		};
 
+		/** State the handle can be in while user is dragging it. */
+		enum class DragState
+		{
+			Normal, LeftResize, RightResize
+		};
+
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& getGUITypeName();
@@ -29,32 +54,29 @@ namespace BansheeEngine
 		/**
 		 * Creates a new handle.
 		 *
-		 * @param[in]	horizontal		Should the handle be movable vertically or horizontally.
-		 * @param[in]	jumpOnClick		If true clicking on a specific position on the slider will cause the slider handle
-		 *								to jump to that position. Otherwise the slider will just slightly move towards that
-		 *								direction.
+		 * @param[in]	flags			Flags that control how does the handle behave.
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHandle* create(bool horizontal, bool jumpOnClick, const String& styleName = StringUtil::BLANK);
+		static GUISliderHandle* create(GUISliderHandleFlags flags, const String& styleName = StringUtil::BLANK);
 
 		/**
 		 * Creates a new handle.
 		 *
-		 * @param[in]	horizontal		Should the handle be movable vertically or horizontally.
-		 * @param[in]	jumpOnClick		If true clicking on a specific position on the slider will cause the slider handle
-		 *								to jump to that position. Otherwise the slider will just slightly move towards that
-		 *								direction.
+		 * @param[in]	flags			Flags that control how does the handle behave.
 		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
 		 *								This will override any similar options set by style.
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHandle* create(bool horizontal, bool jumpOnClick, const GUIOptions& options,
+		static GUISliderHandle* create(GUISliderHandleFlags flags, const GUIOptions& options,
 			const String& styleName = StringUtil::BLANK);
 
 		/**	Gets the current position of the handle, in percent ranging [0.0f, 1.0f]. */
 		float getHandlePos() const;
+
+		/** Gets the minimum percentual variation of the handle position */
+		float getStep() const;
 
 		/**	Returns the position of the slider handle, in pixels. Relative to this object. */
 		INT32 getHandlePosPx() const;
@@ -66,13 +88,13 @@ namespace BansheeEngine
 		UINT32 getMaxSize() const;
 
 		/**	
-		 * Sets a step that defines the minimal increment the value can be increased/decreased by. Set to zero	to have no
+		 * Sets a step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no
 		 * step.
 		 */
 		void setStep(float step);
 
 		/** Triggered when the user drags the handle. */
-		Event<void(float newPosition)> onHandleMoved;
+		Event<void(float pos, float size)> onHandleMovedOrResized;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -80,11 +102,11 @@ namespace BansheeEngine
 		 */
 
 		/**
-		 * Size of the handle in pixels, along the handle drag direction.
+		 * Size of the handle in percent of the total draggable area, along the handle drag direction.
 		 *
 		 * @note	 Does not trigger layout update.
 		 */
-		void _setHandleSize(UINT32 size);
+		void _setHandleSize(float pct);
 
 		/**
 		 * Moves the handle the the specified position in the handle area.
@@ -95,54 +117,66 @@ namespace BansheeEngine
 		 */
 		void _setHandlePos(float pct);
 
+		/** Returns the size of the slider handle, in percent of the total area. */
+		float _getHandleSizePct() const;
+
 		/** @copydoc GUIElement::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		Vector2I _getOptimalSize() const override;
 
 		/** @} */
 	protected:
 		~GUISliderHandle();
 
 		/** @copydoc GUIElement::_getNumRenderElements() */
-		virtual UINT32 _getNumRenderElements() const override;
+		UINT32 _getNumRenderElements() const override;
 
 		/** @copydoc GUIElement::_getMaterial() */
-		virtual const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx) const override;
+		const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const override;
 
-		/** @copydoc GUIElement::_getNumQuads() */
-		virtual UINT32 _getNumQuads(UINT32 renderElementIdx) const override;
+		/** @copydoc GUIElement::_getMeshInfo() */
+		void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override;
 
 		/** @copydoc GUIElement::_fillBuffer() */
-		virtual void _fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, 
-			UINT32 maxNumQuads, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const override;
+		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		virtual void updateRenderElementsInternal() override;
+		void updateRenderElementsInternal() override;
 
 		/** @copydoc GUIElement::updateClippedBounds() */
-		virtual void updateClippedBounds() override;
+		void updateClippedBounds() override;
 	private:
-		GUISliderHandle(bool horizontal, bool jumpOnClick, const String& styleName, const GUIDimensions& dimensions);
+		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElement::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */
 		bool isOnHandle(const Vector2I& pos) const;
 
-		/**	Sets the position of the slider handle, in pixels. Relative to this object. For internal use only. */
+		/**	Sets the position of the slider handle, in pixels. Relative to this object. */
 		void setHandlePosPx(INT32 pos);
+
+		/** Returns the size of the handle button, in pixels. */
+		UINT32 getHandleSize() const;
 
 		/**	Gets the currently active texture, depending on handle state. */
 		const HSpriteTexture& getActiveTexture() const;
 
-		ImageSprite* mImageSprite;
-		UINT32 mHandleSize;
+		/** @copydoc GUIElement::styleUpdated */
+		void styleUpdated() override;
 
-		bool mHorizontal; // Otherwise its vertical
-		bool mJumpOnClick;
+		static const UINT32 RESIZE_HANDLE_SIZE;
+
+		ImageSprite* mImageSprite;
+
+		GUISliderHandleFlags mFlags;
+		UINT32 mMinHandleSize;
 		float mPctHandlePos;
+		float mPctHandleSize;
 		float mStep;
 		INT32 mDragStartPos;
+		DragState mDragState;
 		bool mMouseOverHandle;
 		bool mHandleDragged;
 		State mState;

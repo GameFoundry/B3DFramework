@@ -7,6 +7,8 @@
 #include "BsSceneObject.h"
 #include "BsApplication.h"
 #include "BsPhysics.h"
+#include "BsAudio.h"
+#include "BsAnimationManager.h"
 
 namespace BansheeEngine
 {
@@ -16,6 +18,8 @@ namespace BansheeEngine
 	{
 		if (!gApplication().isEditor())
 			mState = PlayInEditorState::Playing;
+		else
+			setSystemsPauseState(true);
 	}
 
 	void PlayInEditorManager::setState(PlayInEditorState state)
@@ -44,7 +48,7 @@ namespace BansheeEngine
 			mFrameStepActive = false;
 			mPausableTime = 0.0f;
 
-			gPhysics().setPaused(true);
+			setSystemsPauseState(true);
 
 			mSavedScene->_instantiate();
 			gSceneManager()._setRootNode(mSavedScene);
@@ -59,13 +63,15 @@ namespace BansheeEngine
 				ScriptGameObjectManager::instance().wakeRuntimeComponents();
 			}
 
-			gPhysics().setPaused(false);
+			setSystemsPauseState(false);
+			gAnimation().setPaused(false);
 		}
 			break;
 		case PlayInEditorState::Paused:
 		{
 			mFrameStepActive = false;
-			gPhysics().setPaused(true);
+			setSystemsPauseState(true);
+			gAnimation().setPaused(true);
 
 			if (oldState == PlayInEditorState::Stopped)
 			{
@@ -137,5 +143,11 @@ namespace BansheeEngine
 					todo.push(current->getChild(i));
 			}
 		}
+	}
+
+	void PlayInEditorManager::setSystemsPauseState(bool paused)
+	{
+		gPhysics().setPaused(paused);
+		gAudio().setPaused(paused);
 	}
 }

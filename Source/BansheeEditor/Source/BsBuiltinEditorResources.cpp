@@ -28,6 +28,7 @@
 #include "BsGUIStatusBar.h"
 #include "BsGUIMenuBar.h"
 #include "BsGUIListBox.h"
+#include "BsGUIScrollBar.h"
 #include "BsCoreThread.h"
 #include "BsFont.h"
 #include "BsTexture.h"
@@ -65,8 +66,9 @@ namespace BansheeEngine
 
 	const char* BuiltinEditorResources::ShaderFolder = "Shaders\\";
 	const char* BuiltinEditorResources::SkinFolder = "Skin\\";
-	const char* BuiltinEditorResources::IconFolder = "Skin\\Icons";
+	const char* BuiltinEditorResources::IconFolder = "Icons\\";
 	const char* BuiltinEditorResources::ShaderIncludeFolder = "Includes\\";
+	const char* BuiltinEditorResources::SpriteSubFolder = "Sprites\\";
 
 	const WString BuiltinEditorResources::FolderIconTex = L"FolderIcon.psd";
 	const WString BuiltinEditorResources::MeshIconTex = L"MeshIcon.psd";
@@ -82,6 +84,8 @@ namespace BansheeEngine
 	const WString BuiltinEditorResources::GUISkinIconTex = L"GUISkinIcon.psd";
 	const WString BuiltinEditorResources::PhysicsMaterialIconTex = L"PhysicsMaterialIcon.psd";
 	const WString BuiltinEditorResources::PhysicsMeshIconTex = L"PhysicsMeshIcon.psd";
+	const WString BuiltinEditorResources::AudioClipIconTex = L"AudioClipIcon.psd";
+	const WString BuiltinEditorResources::AnimationClipIconTex = L"AnimationClipIcon.psd";
 
 	const WString BuiltinEditorResources::ButtonNormalTex = L"ButtonNormal.png";
 	const WString BuiltinEditorResources::ButtonHoverTex = L"ButtonHover.png";
@@ -176,6 +180,14 @@ namespace BansheeEngine
 	const WString BuiltinEditorResources::ScrollBarHandleVertHoverTex = L"ScrollBarVHandleHover.png";
 	const WString BuiltinEditorResources::ScrollBarHandleVertActiveTex = L"ScrollBarVHandleActive.png";
 
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzNormalTex = L"ScrollBarHHandleResizeableNormal.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzHoverTex = L"ScrollBarHHandleResizeableHover.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleHorzActiveTex = L"ScrollBarHHandleResizeableActive.png";
+
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertNormalTex = L"ScrollBarVHandleResizeableNormal.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertHoverTex = L"ScrollBarVHandleResizeableHover.png";
+	const WString BuiltinEditorResources::ScrollBarResizeableHandleVertActiveTex = L"ScrollBarVHandleResizeableActive.png";
+
 	const WString BuiltinEditorResources::ScrollBarHBgTex = L"ScrollBarHBackground.png";
 	const WString BuiltinEditorResources::ScrollBarVBgTex = L"ScrollBarVBackground.png";
 
@@ -217,8 +229,6 @@ namespace BansheeEngine
 	const WString BuiltinEditorResources::ToolBarBtnActiveTex = L"ToolBarButtonActive.png";
 
 	const WString BuiltinEditorResources::ToolBarSeparatorTex = L"ToolBarSeparator.png";
-
-	const WString BuiltinEditorResources::DockSliderNormalTex = L"DockSliderNormal.png";
 
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffNormal = L"ExpandArrowNormalOff.png";
 	const WString BuiltinEditorResources::TreeViewExpandButtonOffHover = L"ExpandArrowHoverOff.png";
@@ -297,34 +307,42 @@ namespace BansheeEngine
 		// Set up paths
 		BuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw\\Editor\\";
 		EditorRawSkinFolder = BuiltinRawDataFolder + SkinFolder;
+		EditorRawIconsFolder = BuiltinRawDataFolder + IconFolder;
 		EditorRawShaderFolder = BuiltinRawDataFolder + ShaderFolder;
 		EditorRawShaderIncludeFolder = BuiltinRawDataFolder + ShaderIncludeFolder;
 
 		BuiltinDataFolder = Paths::getRuntimeDataPath() + EDITOR_DATA_FOLDER;
 		EditorSkinFolder = BuiltinDataFolder + SkinFolder;
+		EditorSkinSpritesFolder = EditorSkinFolder + SpriteSubFolder;
 		EditorIconFolder = BuiltinDataFolder + IconFolder;
+		EditorIconSpritesFolder = EditorIconFolder + SpriteSubFolder;
 		EditorShaderFolder = BuiltinDataFolder + ShaderFolder;
 		EditorShaderIncludeFolder = BuiltinDataFolder + ShaderIncludeFolder;
 
 		ResourceManifestPath = BuiltinDataFolder + "ResourceManifest.asset";
 
-		Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-		absoluteDataPath.append(BuiltinDataFolder);
-
 		// Update from raw assets if needed
 #if BS_DEBUG_MODE
 		if (BuiltinResourcesHelper::checkForModifications(BuiltinRawDataFolder, BuiltinDataFolder + L"Timestamp.asset"))
 		{
+			SPtr<ResourceManifest> oldResourceManifest;
+			if (FileSystem::exists(ResourceManifestPath))
+			{
+				oldResourceManifest = ResourceManifest::load(ResourceManifestPath, BuiltinDataFolder);
+				if(oldResourceManifest != nullptr)
+					gResources().registerResourceManifest(oldResourceManifest);
+			}
+
 			mResourceManifest = ResourceManifest::create("BuiltinResources");
 			gResources().registerResourceManifest(mResourceManifest);
 
 			preprocess();
 			BuiltinResourcesHelper::writeTimestamp(BuiltinDataFolder + L"Timestamp.asset");
 
-			Path absoluteDataPath = FileSystem::getWorkingDirectoryPath();
-			absoluteDataPath.append(BuiltinDataFolder);
+			ResourceManifest::save(mResourceManifest, ResourceManifestPath, BuiltinDataFolder);
 
-			ResourceManifest::save(mResourceManifest, ResourceManifestPath, absoluteDataPath);
+			if (oldResourceManifest != nullptr)
+				gResources().unregisterResourceManifest(oldResourceManifest);
 		}
 #endif
 
@@ -332,7 +350,7 @@ namespace BansheeEngine
 		if (mResourceManifest == nullptr)
 		{
 			if (FileSystem::exists(ResourceManifestPath))
-				mResourceManifest = ResourceManifest::load(ResourceManifestPath, absoluteDataPath);
+				mResourceManifest = ResourceManifest::load(ResourceManifestPath, BuiltinDataFolder);
 
 			if (mResourceManifest == nullptr)
 				mResourceManifest = ResourceManifest::create("BuiltinResources");
@@ -361,7 +379,8 @@ namespace BansheeEngine
 		mShaderHandleLine = getShader(ShaderLineHandleFile);
 		mShaderSelection = getShader(ShaderSelectionFile);
 
-		mDefaultFont = gResources().load<Font>(BuiltinDataFolder + (DefaultAAFontFilename + L".asset"));
+		mDefaultFont = gResources().load<Font>(BuiltinDataFolder + (DefaultFontFilename + L".asset"));
+		mDefaultAAFont = gResources().load<Font>(BuiltinDataFolder + (DefaultAAFontFilename + L".asset"));
 		mSkin = gResources().load<GUISkin>(BuiltinDataFolder + (GUISkinFile + L".asset"));
 	}
 
@@ -370,9 +389,12 @@ namespace BansheeEngine
 
 	void BuiltinEditorResources::preprocess()
 	{
+		Resources::instance().unloadAllUnused();
+
 		BuiltinResourcesHelper::importAssets(EditorRawShaderIncludeFolder, EditorShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
 		BuiltinResourcesHelper::importAssets(EditorRawShaderFolder, EditorShaderFolder, mResourceManifest);
 		BuiltinResourcesHelper::importAssets(EditorRawSkinFolder, EditorSkinFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(EditorRawIconsFolder, EditorIconFolder, mResourceManifest);
 
 		// Generate different sizes of resource icons
 		generateResourceIcons(EditorIconFolder, mResourceManifest);
@@ -385,12 +407,13 @@ namespace BansheeEngine
 			BuiltinDataFolder, { TitleFontSize }, true, mResourceManifest);
 
 		// Generate & save GUI sprite textures
-		BuiltinResourcesHelper::generateSpriteTextures(EditorSkinFolder, mResourceManifest);
+		BuiltinResourcesHelper::generateSpriteTextures(EditorSkinFolder, EditorSkinSpritesFolder, mResourceManifest);
+		BuiltinResourcesHelper::generateSpriteTextures(EditorIconFolder, EditorIconSpritesFolder, mResourceManifest);
 
 		// Generate & save GUI skin
 		{
 			SPtr<GUISkin> skin = generateGUISkin();
-			Path outputPath = FileSystem::getWorkingDirectoryPath() + BuiltinDataFolder + (GUISkinFile + L".asset");
+			Path outputPath = BuiltinDataFolder + (GUISkinFile + L".asset");
 
 			HResource skinResource;
 			if (FileSystem::exists(outputPath))
@@ -415,7 +438,7 @@ namespace BansheeEngine
 
 		WString iconsToProcess[] = { FolderIconTex, FontIconTex, MeshIconTex, TextureIconTex, PlainTextIconTex, 
 			ScriptCodeIconTex, ShaderIconTex, ShaderIncludeIconTex, MaterialIconTex, SpriteTextureIconTex, PrefabIconTex,
-			GUISkinIconTex, PhysicsMaterialIconTex, PhysicsMeshIconTex };
+			GUISkinIconTex, PhysicsMaterialIconTex, PhysicsMeshIconTex, AudioClipIconTex, AnimationClipIconTex };
 
 		SPtr<PixelData> srcData[sizeof(iconsToProcess)/sizeof(iconsToProcess[0])];
 
@@ -436,6 +459,25 @@ namespace BansheeEngine
 
 		gCoreAccessor().submitToCoreThread(true);
 
+		auto saveTexture = [&](auto& pixelData, auto& path)
+		{
+			if (FileSystem::exists(path))
+			{
+				HResource resource = gResources().load(path);
+
+				SPtr<Texture> texture = Texture::_createPtr(pixelData);
+				gResources().update(resource, texture);
+				Resources::instance().save(resource, path, true);
+				manifest->registerResource(resource.getUUID(), path);
+			}
+			else
+			{
+				HTexture texture = Texture::create(pixelData);
+				Resources::instance().save(texture, path, true);
+				manifest->registerResource(texture.getUUID(), path);
+			}
+		};
+
 		idx = 0;
 		for (auto& iconName : iconsToProcess)
 		{
@@ -450,22 +492,14 @@ namespace BansheeEngine
 			SPtr<PixelData> scaled16 = PixelData::create(16, 16, 1, src->getFormat());
 			PixelUtil::scale(*scaled32, *scaled16);
 
-			HTexture tex48 = Texture::create(scaled48);
-			HTexture tex32 = Texture::create(scaled32);
-			HTexture tex16 = Texture::create(scaled16);
+			Path outputPath48 = inputFolder + (iconName + L"48.asset");
+			Path outputPath32 = inputFolder + (iconName + L"32.asset");
+			Path outputPath16 = inputFolder + (iconName + L"16.asset");
 
-			Path outputPath48 = FileSystem::getWorkingDirectoryPath() + inputFolder + (iconName + L"48.asset");
-			Resources::instance().save(tex48, outputPath48, true);
-			manifest->registerResource(tex48.getUUID(), outputPath48);
-
-			Path outputPath32 = FileSystem::getWorkingDirectoryPath() + inputFolder + (iconName + L"32.asset");
-			Resources::instance().save(tex32, outputPath32, true);
-			manifest->registerResource(tex32.getUUID(), outputPath32);
-
-			Path outputPath16 = FileSystem::getWorkingDirectoryPath() + inputFolder + (iconName + L"16.asset");
-			Resources::instance().save(tex16, outputPath16, true);
-			manifest->registerResource(tex16.getUUID(), outputPath16);
-
+			saveTexture(scaled48, outputPath48);
+			saveTexture(scaled32, outputPath32);
+			saveTexture(scaled16, outputPath16);
+					
 			idx++;
 		}
 	}
@@ -474,14 +508,12 @@ namespace BansheeEngine
 	{
 		SPtr<GUISkin> skin = GUISkin::_createPtr();
 
-		Path defaultFontPath = FileSystem::getWorkingDirectoryPath();
-		defaultFontPath.append(BuiltinDataFolder);
+		Path defaultFontPath = BuiltinDataFolder;
 		defaultFontPath.append(DefaultFontFilename + L".asset");
 
 		HFont defaultFont = gResources().load<Font>(defaultFontPath);
 
-		Path defaultAAFontPath = FileSystem::getWorkingDirectoryPath();
-		defaultAAFontPath.append(BuiltinDataFolder);
+		Path defaultAAFontPath = BuiltinDataFolder;
 		defaultAAFontPath.append(DefaultAAFontFilename + L".asset");
 
 		HFont defaultAAFont = gResources().load<Font>(defaultAAFontPath);
@@ -826,7 +858,7 @@ namespace BansheeEngine
 		scrollBarHorzBtnStyle.active.texture = getGUITexture(ScrollBarHandleHorzActiveTex);
 		scrollBarHorzBtnStyle.fixedHeight = true;
 		scrollBarHorzBtnStyle.fixedWidth = false;
-		scrollBarHorzBtnStyle.width = 10;
+		scrollBarHorzBtnStyle.minWidth = 10;
 		scrollBarHorzBtnStyle.height = 13;
 		scrollBarHorzBtnStyle.border.left = 4;
 		scrollBarHorzBtnStyle.border.right = 4;
@@ -841,7 +873,7 @@ namespace BansheeEngine
 		scrollBarVertBtnStyle.fixedHeight = false;
 		scrollBarVertBtnStyle.fixedWidth = true;
 		scrollBarVertBtnStyle.width = 13;
-		scrollBarVertBtnStyle.height = 10;
+		scrollBarVertBtnStyle.minHeight = 10;
 		scrollBarVertBtnStyle.border.top = 4;
 		scrollBarVertBtnStyle.border.bottom = 4;
 
@@ -857,6 +889,9 @@ namespace BansheeEngine
 		vertScrollBarStyle.minHeight = 8;
 		vertScrollBarStyle.width = 16;
 
+		vertScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		vertScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarVert", vertScrollBarStyle);
 
 		// Horizontal scroll bar
@@ -869,7 +904,68 @@ namespace BansheeEngine
 		horzScrollBarStyle.minWidth = 8;
 		horzScrollBarStyle.height = 16;
 
+		horzScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		horzScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarHorz", horzScrollBarStyle);
+
+		// Horizontal resizeable handle
+		GUIElementStyle scrollBarHorzResizeableBtnStyle;
+		scrollBarHorzResizeableBtnStyle.normal.texture = getGUITexture(ScrollBarResizeableHandleHorzNormalTex);
+		scrollBarHorzResizeableBtnStyle.hover.texture = getGUITexture(ScrollBarResizeableHandleHorzHoverTex);
+		scrollBarHorzResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleHorzActiveTex);
+		scrollBarHorzResizeableBtnStyle.fixedHeight = true;
+		scrollBarHorzResizeableBtnStyle.fixedWidth = false;
+		scrollBarHorzResizeableBtnStyle.minWidth = 15;
+		scrollBarHorzResizeableBtnStyle.height = 13;
+		scrollBarHorzResizeableBtnStyle.border.left = 7;
+		scrollBarHorzResizeableBtnStyle.border.right = 7;
+
+		skin->setStyle("ScrollBarResizeableHorzBtn", scrollBarHorzResizeableBtnStyle);
+
+		// Vertical resizeable handle
+		GUIElementStyle scrollBarVertResizeableBtnStyle;
+		scrollBarVertResizeableBtnStyle.normal.texture = getGUITexture(ScrollBarResizeableHandleVertNormalTex);
+		scrollBarVertResizeableBtnStyle.hover.texture = getGUITexture(ScrollBarResizeableHandleVertHoverTex);
+		scrollBarVertResizeableBtnStyle.active.texture = getGUITexture(ScrollBarResizeableHandleVertActiveTex);
+		scrollBarVertResizeableBtnStyle.fixedHeight = false;
+		scrollBarVertResizeableBtnStyle.fixedWidth = true;
+		scrollBarVertResizeableBtnStyle.width = 13;
+		scrollBarVertResizeableBtnStyle.minHeight = 15;
+		scrollBarVertResizeableBtnStyle.border.top = 7;
+		scrollBarVertResizeableBtnStyle.border.bottom = 7;
+
+		skin->setStyle("ScrollBarResizeableVertBtn", scrollBarVertResizeableBtnStyle);
+
+		// Vertical resizeable scroll bar
+		GUIElementStyle vertResizeableScrollBarStyle;
+		vertResizeableScrollBarStyle.normal.texture = getGUITexture(ScrollBarVBgTex);
+		vertResizeableScrollBarStyle.hover.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.active.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.fixedHeight = false;
+		vertResizeableScrollBarStyle.fixedWidth = true;
+		vertResizeableScrollBarStyle.minHeight = 15;
+		vertResizeableScrollBarStyle.width = 16;
+
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarVert", vertResizeableScrollBarStyle);
+
+		// Horizontal resizeable scroll bar
+		GUIElementStyle horzResizeableScrollBarStyle;
+		horzResizeableScrollBarStyle.normal.texture = getGUITexture(ScrollBarHBgTex);
+		horzResizeableScrollBarStyle.hover.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.active.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.fixedHeight = true;
+		horzResizeableScrollBarStyle.fixedWidth = false;
+		horzResizeableScrollBarStyle.minWidth = 15;
+		horzResizeableScrollBarStyle.height = 16;
+
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarHorz", horzResizeableScrollBarStyle);
 
 		/************************************************************************/
 		/* 								DROP DOWN BOX                      		*/
@@ -1198,38 +1294,74 @@ namespace BansheeEngine
 		skin->setStyle(GUIMenuBar::getToolBarButtonStyleType(), toolBarBtnStyle);
 
 		/************************************************************************/
-		/* 								DOCK SLIDER	                     		*/
+		/* 								SEPARATOR	                     		*/
 		/************************************************************************/
 
-		GUIElementStyle dockSliderBtnStyle;
-		dockSliderBtnStyle.normal.texture = getGUITexture(DockSliderNormalTex);
-		dockSliderBtnStyle.hover.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.active.texture = dockSliderBtnStyle.normal.texture;
-		dockSliderBtnStyle.fixedHeight = false;
-		dockSliderBtnStyle.fixedWidth = false;
-		dockSliderBtnStyle.height = 2;
-		dockSliderBtnStyle.width = 2;
+		GUIElementStyle separator;
+		separator.normal.texture = getGUITexture(L"Separator.png");
+		separator.hover.texture = separator.normal.texture;
+		separator.active.texture = separator.normal.texture;
+		separator.fixedHeight = false;
+		separator.fixedWidth = false;
+		separator.height = 2;
+		separator.width = 2;
 
-		skin->setStyle("DockSliderBtn", dockSliderBtnStyle);
+		skin->setStyle("Separator", separator);
+
+		/************************************************************************/
+		/* 								HEADER	                     			*/
+		/************************************************************************/
+
+		GUIElementStyle headerBackground;
+		headerBackground.normal.texture = getGUITexture(L"HeaderBg.png");
+
+		skin->setStyle("HeaderBackground", headerBackground);
+
+		GUIElementStyle header;
+		header.normal.texture = getGUITexture(L"Header.png");
+		header.normal.textColor = TextNormalColor;
+		header.border.bottom = 2;
+		header.fixedHeight = true;
+		header.height = 21;
+		header.minWidth = 4;
+		header.minHeight = 4;
+		header.font = defaultFont;
+		header.fontSize = DefaultFontSize;
+		header.textHorzAlign = THA_Center;
+		header.textVertAlign = TVA_Center;
+
+		skin->setStyle("Header", header);
 
 		/************************************************************************/
 		/* 								TREE VIEW	                     		*/
 		/************************************************************************/
 
 		// Expand button
-		GUIElementStyle treeViewExpandButtonStyle;
-		treeViewExpandButtonStyle.normal.texture = getGUITexture(TreeViewExpandButtonOffNormal);
-		treeViewExpandButtonStyle.hover.texture = getGUITexture(TreeViewExpandButtonOffHover);
-		treeViewExpandButtonStyle.active.texture = treeViewExpandButtonStyle.hover.texture;
-		treeViewExpandButtonStyle.normalOn.texture = getGUITexture(TreeViewExpandButtonOnNormal);
-		treeViewExpandButtonStyle.hoverOn.texture = getGUITexture(TreeViewExpandButtonOnHover);
-		treeViewExpandButtonStyle.activeOn.texture = treeViewExpandButtonStyle.hoverOn.texture;
-		treeViewExpandButtonStyle.fixedHeight = true;
-		treeViewExpandButtonStyle.fixedWidth = true;
-		treeViewExpandButtonStyle.height = 10;
-		treeViewExpandButtonStyle.width = 10;
+		GUIElementStyle expandButtonStyle;
+		expandButtonStyle.normal.texture = getGUITexture(TreeViewExpandButtonOffNormal);
+		expandButtonStyle.hover.texture = getGUITexture(TreeViewExpandButtonOffHover);
+		expandButtonStyle.active.texture = expandButtonStyle.hover.texture;
+		expandButtonStyle.normalOn.texture = getGUITexture(TreeViewExpandButtonOnNormal);
+		expandButtonStyle.hoverOn.texture = getGUITexture(TreeViewExpandButtonOnHover);
+		expandButtonStyle.activeOn.texture = expandButtonStyle.hoverOn.texture;
+		expandButtonStyle.fixedHeight = true;
+		expandButtonStyle.fixedWidth = true;
+		expandButtonStyle.height = 10;
+		expandButtonStyle.width = 11;
+		expandButtonStyle.normal.textColor = TextNormalColor;
+		expandButtonStyle.hover.textColor = TextNormalColor;
+		expandButtonStyle.active.textColor = TextNormalColor;
+		expandButtonStyle.normalOn.textColor = TextNormalColor;
+		expandButtonStyle.hoverOn.textColor = TextNormalColor;
+		expandButtonStyle.activeOn.textColor = TextNormalColor;
+		expandButtonStyle.font = defaultFont;
+		expandButtonStyle.fontSize = DefaultFontSize;
+		expandButtonStyle.textHorzAlign = THA_Left;
+		expandButtonStyle.textVertAlign = TVA_Center;
+		expandButtonStyle.contentOffset = RectOffset(16, 0, 0, 0);
+		expandButtonStyle.border.left = 10;
 
-		skin->setStyle("TreeViewFoldoutBtn", treeViewExpandButtonStyle);
+		skin->setStyle("Expand", expandButtonStyle);
 
 		// Entry
 		GUIElementStyle treeViewEntryStyle;
@@ -1951,13 +2083,15 @@ namespace BansheeEngine
 
 		skin->setStyle("LibraryEntryVertLastBg", libraryEntryVertLastBg);
 
+		GUIElementStyle canvas;
+		skin->setStyle("Canvas", canvas);
+
 		return skin;
 	}
 
 	HSpriteTexture BuiltinEditorResources::getGUITexture(const WString& name) const
 	{
-		Path texturePath = FileSystem::getWorkingDirectoryPath();
-		texturePath.append(EditorSkinFolder);
+		Path texturePath = EditorSkinSpritesFolder;
 		texturePath.append(L"sprite_" + name + L".asset");
 
 		return gResources().load<SpriteTexture>(texturePath);
@@ -1965,8 +2099,7 @@ namespace BansheeEngine
 
 	HSpriteTexture BuiltinEditorResources::getGUIIcon(const WString& name) const
 	{
-		Path texturePath = FileSystem::getWorkingDirectoryPath();
-		texturePath.append(EditorIconFolder);
+		Path texturePath = EditorIconSpritesFolder;
 		texturePath.append(L"sprite_" + name + L".asset");
 
 		return gResources().load<SpriteTexture>(texturePath);
@@ -2106,6 +2239,12 @@ namespace BansheeEngine
 			break;
 		case ProjectIcon::PhysicsMesh:
 			iconName = PhysicsMeshIconTex;
+			break;
+		case ProjectIcon::AudioClip:
+			iconName = AudioClipIconTex;
+			break;
+		case ProjectIcon::AnimationClip:
+			iconName = AnimationClipIconTex;
 			break;
 		}
 
@@ -2285,12 +2424,70 @@ namespace BansheeEngine
 		return HSpriteTexture();
 	}
 
+	GUIContentImages BuiltinEditorResources::getAnimationWindowIcon(AnimationWindowIcon icon) const
+	{
+		HSpriteTexture off;
+		HSpriteTexture on;
+
+		switch (icon)
+		{
+		case AnimationWindowIcon::Play:
+			off = getGUIIcon(L"AnimationPlayIcon.png");
+			on = getGUIIcon(L"AnimationPlayIconOn.png");
+			break;
+		case AnimationWindowIcon::Record:
+			off = getGUIIcon(L"AnimationRecordIcon.png");
+			on = getGUIIcon(L"AnimationRecordIconOn.png");
+			break;
+		case AnimationWindowIcon::FrameForward:
+			off = getGUIIcon(L"AnimationFrameForwardIcon.png");
+			on = getGUIIcon(L"AnimationFrameForwardIconOn.png");
+			break;
+		case AnimationWindowIcon::FrameBack:
+			off = getGUIIcon(L"AnimationFrameBackIcon.png");
+			on = getGUIIcon(L"AnimationFrameBackIconOn.png");
+			break;
+		case AnimationWindowIcon::AddEvent:
+			off = getGUIIcon(L"AnimationAddEventIcon.png");
+			on = getGUIIcon(L"AnimationAddEventIconOn.png");
+			break;
+		case AnimationWindowIcon::AddKeyframe:
+			off = getGUIIcon(L"AnimationAddKeyframeIcon.png");
+			on = getGUIIcon(L"AnimationAddKeyframeIconOn.png");
+			break;
+		case AnimationWindowIcon::Event:
+			off = getGUIIcon(L"AnimationEventIcon.png");
+			on = off;
+			break;
+		case AnimationWindowIcon::Keyframe:
+			off = getGUIIcon(L"AnimationKeyframeIcon.png");
+			on = off;
+			break;
+		}
+
+		GUIContentImages output;
+		output.normal = off;
+		output.hover = off;
+		output.active = on;
+		output.focused = off;
+		output.normalOn = on;
+		output.hoverOn = on;
+		output.activeOn = on;
+		output.focusedOn = on;
+
+		return output;
+	}
+
 	HSpriteTexture BuiltinEditorResources::getIcon(EditorIcon icon) const
 	{
 		switch (icon)
 		{
-		case EditorIcon::XBtn:
+		case EditorIcon::X:
 			return getGUIIcon(XButtonNormalTex);
+		case EditorIcon::Component:
+			return getGUIIcon(L"IconComponent.png");
+		case EditorIcon::SceneObject:
+			return getGUIIcon(L"IconSceneObject.png");
 		}
 
 		return HSpriteTexture();
@@ -2343,8 +2540,7 @@ namespace BansheeEngine
 
 	WString BuiltinEditorResources::getEmptyShaderCode() const
 	{
-		Path filePath = FileSystem::getWorkingDirectoryPath();
-		filePath.append(BuiltinDataFolder);
+		Path filePath = BuiltinDataFolder;
 		filePath.append(EmptyShaderCodeFile);
 
 		SPtr<DataStream> fileStream = FileSystem::openFile(filePath);
@@ -2356,8 +2552,7 @@ namespace BansheeEngine
 
 	WString BuiltinEditorResources::getEmptyCSScriptCode() const
 	{
-		Path filePath = FileSystem::getWorkingDirectoryPath();
-		filePath.append(BuiltinDataFolder);
+		Path filePath = BuiltinDataFolder;
 		filePath.append(EmptyCSScriptCodeFile);
 
 		SPtr<DataStream> fileStream = FileSystem::openFile(filePath);

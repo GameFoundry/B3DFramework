@@ -46,16 +46,18 @@ namespace BansheeEngine
 		return 0;
 	}
 
-	const SpriteMaterialInfo& GUIViewport::_getMaterial(UINT32 renderElementIdx) const
+	const SpriteMaterialInfo& GUIViewport::_getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
 	{
 		BS_EXCEPT(InternalErrorException, "This element has no render element so no material can be retrieved.");
 		static SpriteMaterialInfo dummy;
 		return dummy;
 	}
 
-	UINT32 GUIViewport::_getNumQuads(UINT32 renderElementIdx) const
+	void GUIViewport::_getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const
 	{
-		return 0;
+		numVertices = 0;
+		numIndices = 0;
+		type = GUIMeshType::Triangle;
 	}
 
 	void GUIViewport::updateClippedBounds()
@@ -69,8 +71,8 @@ namespace BansheeEngine
 		return Vector2I(0, 0);
 	}
 
-	void GUIViewport::_fillBuffer(UINT8* vertices, UINT8* uv, UINT32* indices, UINT32 startingQuad, UINT32 maxNumQuads, 
-		UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx) const
+	void GUIViewport::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
+		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
 
 	}

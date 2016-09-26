@@ -14,10 +14,13 @@
 
 namespace BansheeEngine
 {
-	MeshCore::MeshCore(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType, SPtr<MeshData> initialMeshData)
-		:MeshCoreBase(numVertices, numIndices, subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), 
-		mVertexDesc(vertexDesc), mUsage(usage), mIndexType(indexType), mTempInitialMeshData(initialMeshData)
+	MESH_DESC MESH_DESC::DEFAULT = MESH_DESC();
+
+	MeshCore::MeshCore(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+		: MeshCoreBase(desc.numVertices, desc.numIndices, desc.subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr)
+		, mVertexDesc(desc.vertexDesc), mUsage(desc.usage), mIndexType(desc.indexType)
+		, mTempInitialMeshData(initialMeshData), mSkeleton(desc.skeleton), mMorphShapes(desc.morphShapes)
+		
 	{ }
 
 	MeshCore::~MeshCore()
@@ -118,12 +121,17 @@ namespace BansheeEngine
 
 		if (meshData.getIndexElementSize() != ibProps.getIndexSize())
 		{
-			BS_EXCEPT(InvalidParametersException, "Provided index size doesn't match meshes index size. Needed: " +
+			LOGERR("Provided index size doesn't match meshes index size. Needed: " +
 				toString(ibProps.getIndexSize()) + ". Got: " + toString(meshData.getIndexElementSize()));
+
+			return;
 		}
 
 		if (indicesSize > mIndexBuffer->getSizeInBytes())
-			BS_EXCEPT(InvalidParametersException, "Index buffer values are being written out of valid range.");
+		{
+			indicesSize = mIndexBuffer->getSizeInBytes();
+			LOGERR("Index buffer values are being written out of valid range.");
+		}
 
 		mIndexBuffer->writeData(0, indicesSize, srcIdxData, discardEntireBuffer ? BufferWriteType::Discard : BufferWriteType::Normal);
 
@@ -141,8 +149,10 @@ namespace BansheeEngine
 			UINT32 otherVertSize = meshData.getVertexDesc()->getVertexStride(i);
 			if (myVertSize != otherVertSize)
 			{
-				BS_EXCEPT(InvalidParametersException, "Provided vertex size for stream " + toString(i) + " doesn't match meshes vertex size. Needed: " +
+				LOGERR("Provided vertex size for stream " + toString(i) + " doesn't match meshes vertex size. Needed: " +
 					toString(myVertSize) + ". Got: " + toString(otherVertSize));
+				
+				continue;
 			}
 
 			SPtr<VertexBufferCore> vertexBuffer = mVertexData->getBuffer(i);
@@ -151,7 +161,10 @@ namespace BansheeEngine
 			UINT8* srcVertBufferData = meshData.getStreamData(i);
 
 			if (bufferSize > vertexBuffer->getSizeInBytes())
-				BS_EXCEPT(InvalidParametersException, "Vertex buffer values for stream \"" + toString(i) + "\" are being written out of valid range.");
+			{
+				bufferSize = vertexBuffer->getSizeInBytes();
+				LOGERR("Vertex buffer values for stream \"" + toString(i) + "\" are being written out of valid range.");
+			}
 
 			if (RenderAPICore::instance().getAPIInfo().getVertexColorFlipRequired())
 			{
@@ -203,8 +216,9 @@ namespace BansheeEngine
 
 			if (meshData.getIndexElementSize() != ibProps.getIndexSize())
 			{
-				BS_EXCEPT(InvalidParametersException, "Provided index size doesn't match meshes index size. Needed: " +
+				LOGERR("Provided index size doesn't match meshes index size. Needed: " +
 					toString(ibProps.getIndexSize()) + ". Got: " + toString(meshData.getIndexElementSize()));
+				return;
 			}
 
 			UINT8* idxData = static_cast<UINT8*>(mIndexBuffer->lock(GBL_READ_ONLY));
@@ -221,7 +235,10 @@ namespace BansheeEngine
 
 			UINT32 indicesSize = numIndicesToCopy * idxElemSize;
 			if (indicesSize > meshData.getIndexBufferSize())
-				BS_EXCEPT(InvalidParametersException, "Provided buffer doesn't have enough space to store mesh indices.");
+			{
+				LOGERR("Provided buffer doesn't have enough space to store mesh indices.");
+				return;
+			}
 
 			memcpy(indices, idxData, numIndicesToCopy * idxElemSize);
 
@@ -246,15 +263,20 @@ namespace BansheeEngine
 				UINT32 otherVertSize = meshData.getVertexDesc()->getVertexStride(streamIdx);
 				if (myVertSize != otherVertSize)
 				{
-					BS_EXCEPT(InvalidParametersException, "Provided vertex size for stream " + toString(streamIdx) + " doesn't match meshes vertex size. Needed: " +
+					LOGERR("Provided vertex size for stream " + toString(streamIdx) + " doesn't match meshes vertex size. Needed: " +
 						toString(myVertSize) + ". Got: " + toString(otherVertSize));
+
+					continue;
 				}
 
 				UINT32 numVerticesToCopy = meshData.getNumVertices();
 				UINT32 bufferSize = vbProps.getVertexSize() * numVerticesToCopy;
 
 				if (bufferSize > vertexBuffer->getSizeInBytes())
-					BS_EXCEPT(InvalidParametersException, "Vertex buffer values for stream \"" + toString(streamIdx) + "\" are being read out of valid range.");
+				{
+					LOGERR("Vertex buffer values for stream \"" + toString(streamIdx) + "\" are being read out of valid range.");
+					continue;
+				}
 
 				UINT8* vertDataPtr = static_cast<UINT8*>(vertexBuffer->lock(GBL_READ_ONLY));
 
@@ -278,21 +300,40 @@ namespace BansheeEngine
 	SPtr<MeshCore> MeshCore::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
 		int usage, DrawOperationType drawOp, IndexType indexType)
 	{
-		SubMesh subMesh(0, numIndices, drawOp);
+		MESH_DESC desc;
+		desc.numVertices = numVertices;
+		desc.numIndices = numIndices;
+		desc.vertexDesc = vertexDesc;
+		desc.subMeshes.push_back(SubMesh(0, numIndices, drawOp));
+		desc.usage = usage;
+		desc.indexType = indexType;
 
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices, 
-			vertexDesc, { subMesh }, usage, indexType, nullptr));
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+	SPtr<MeshCore> MeshCore::create(const MESH_DESC& desc)
 	{
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, subMeshes, usage, indexType, nullptr));
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc));
+
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
+
+		return mesh;
+	}
+
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	{
+		MESH_DESC descCopy = desc;
+		descCopy.numVertices = initialMeshData->getNumVertices();
+		descCopy.numIndices = initialMeshData->getNumIndices();
+		descCopy.vertexDesc = initialMeshData->getVertexDesc();
+		descCopy.indexType = initialMeshData->getIndexType();
+
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, descCopy));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -302,14 +343,15 @@ namespace BansheeEngine
 
 	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
-		UINT32 numVertices = initialMeshData->getNumVertices();
-		UINT32 numIndices = initialMeshData->getNumIndices();
-		SPtr<VertexDataDesc> vertexDesc = initialMeshData->getVertexDesc();
-		SubMesh subMesh(0, numIndices, drawOp);
-		IndexType indexType = initialMeshData->getIndexType();
-		
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, { subMesh }, usage, indexType, initialMeshData));
+		MESH_DESC desc;
+		desc.numVertices = initialMeshData->getNumVertices();
+		desc.numIndices = initialMeshData->getNumIndices();
+		desc.vertexDesc = initialMeshData->getVertexDesc();
+		desc.indexType = initialMeshData->getIndexType();
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+		desc.usage = usage;
+
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, desc));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -317,50 +359,18 @@ namespace BansheeEngine
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
-	{
-		UINT32 numVertices = initialMeshData->getNumVertices();
-		UINT32 numIndices = initialMeshData->getNumIndices();
-		SPtr<VertexDataDesc> vertexDesc = initialMeshData->getVertexDesc();
-		IndexType indexType = initialMeshData->getIndexType();
-
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(numVertices, numIndices,
-			vertexDesc, subMeshes, usage, indexType, initialMeshData));
-
-		mesh->_setThisPtr(mesh);
-		mesh->initialize();
-
-		return mesh;
-	}
-
-	Mesh::Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
-		:MeshBase(numVertices, numIndices, drawOp), mVertexDesc(vertexDesc), mUsage(usage),
-		mIndexType(indexType)
+	Mesh::Mesh(const MESH_DESC& desc)
+		:MeshBase(desc.numVertices, desc.numIndices, desc.subMeshes), mVertexDesc(desc.vertexDesc), mUsage(desc.usage),
+		mIndexType(desc.indexType), mSkeleton(desc.skeleton), mMorphShapes(desc.morphShapes)
 	{
 
 	}
 
-	Mesh::Mesh(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
-		:MeshBase(numVertices, numIndices, subMeshes), mVertexDesc(vertexDesc), mUsage(usage), 
-		mIndexType(indexType)
-	{
-
-	}
-
-	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
-		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), drawOp), 
+	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), desc.subMeshes),
 		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()),
-		mUsage(usage), mIndexType(initialMeshData->getIndexType())
-	{
-
-	}
-
-	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
-		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), subMeshes),
-		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()), 
-		mUsage(usage), mIndexType(initialMeshData->getIndexType())
+		mUsage(desc.usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(desc.skeleton), 
+		mMorphShapes(desc.morphShapes)
 	{
 
 	}
@@ -444,8 +454,17 @@ namespace BansheeEngine
 
 	SPtr<CoreObjectCore> Mesh::createCore() const
 	{
-		MeshCore* obj = new (bs_alloc<MeshCore>()) MeshCore(mProperties.mNumVertices, mProperties.mNumIndices, 
-			mVertexDesc, mProperties.mSubMeshes, mUsage, mIndexType, mCPUData);
+		MESH_DESC desc;
+		desc.numVertices = mProperties.mNumVertices;
+		desc.numIndices = mProperties.mNumIndices;
+		desc.vertexDesc = mVertexDesc;
+		desc.subMeshes = mProperties.mSubMeshes;
+		desc.usage = mUsage;
+		desc.indexType = mIndexType;
+		desc.skeleton = mSkeleton;
+		desc.morphShapes = mMorphShapes;
+
+		MeshCore* obj = new (bs_alloc<MeshCore>()) MeshCore(mCPUData, desc);
 
 		SPtr<CoreObjectCore> meshCore = bs_shared_ptr<MeshCore>(obj);
 		meshCore->_setThisPtr(meshCore);
@@ -542,52 +561,72 @@ namespace BansheeEngine
 	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
 		int usage, DrawOperationType drawOp, IndexType indexType)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, usage, drawOp, indexType);
+		MESH_DESC desc;
+		desc.numVertices = numVertices;
+		desc.numIndices = numIndices;
+		desc.vertexDesc = vertexDesc;
+		desc.usage = usage;
+		desc.subMeshes.push_back(SubMesh(0, numIndices, drawOp));
+		desc.indexType = indexType;
 
+		SPtr<Mesh> meshPtr = _createPtr(desc);
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
+	HMesh Mesh::create(const MESH_DESC& desc)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType);
+		SPtr<Mesh> meshPtr = _createPtr(desc);
+		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+	}
 
+	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	{
+		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, desc);
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
 	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
 		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp);
-
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	SPtr<Mesh> Mesh::_createPtr(const MESH_DESC& desc)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, subMeshes, usage);
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(desc));
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
 
-		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-		int usage, DrawOperationType drawOp, IndexType indexType)
+	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 	{
-		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, usage, drawOp, indexType);
-	}
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
 
-	SPtr<Mesh> Mesh::_createPtr(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		const Vector<SubMesh>& subMeshes, int usage, IndexType indexType)
-	{
-		return MeshManager::instance().create(numVertices, numIndices, vertexDesc, subMeshes, usage, indexType);
+		return mesh;
 	}
 
 	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
-		return MeshManager::instance().create(initialMeshData, usage, drawOp);
+		MESH_DESC desc;
+		desc.usage = usage;
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
+		mesh->_setThisPtr(mesh);
+		mesh->initialize();
+
+		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const Vector<SubMesh>& subMeshes, int usage)
+	SPtr<Mesh> Mesh::createEmpty()
 	{
-		return MeshManager::instance().create(initialMeshData, subMeshes, usage);
+		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh());
+		mesh->_setThisPtr(mesh);
+
+		return mesh;
 	}
 }
