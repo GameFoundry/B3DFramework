@@ -566,7 +566,7 @@ namespace BansheeEditor
             underlayLayout.AddElement(colorSquare);
             underlayLayout.AddFlexibleSpace();
             underlayLayout.AddElement(valueDisplay);
-            underlayLayout.AddSpace(50);
+            underlayLayout.AddSpace(10);
 
             overlaySpacing = new GUILabel("", GUIOption.FixedHeight(GetEntryHeight()));
             layouts.overlay.AddElement(overlaySpacing);
