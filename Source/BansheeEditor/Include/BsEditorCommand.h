@@ -26,9 +26,6 @@ namespace BansheeEngine
 		/** Reverts the command, reverting the change previously done with commit(). */
 		virtual void revert() { }
 
-		/**	Deletes the command. */
-		static void destroy(EditorCommand* command);
-
 	private:
 		friend class UndoRedo;
 

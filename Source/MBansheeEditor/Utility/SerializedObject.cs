@@ -26,7 +26,7 @@ namespace BansheeEditor
         /// <summary>
         /// Serializes all data within the provided component.
         /// </summary>
-        /// <param name="obj">Component to deserialize.</param>
+        /// <param name="obj">Component to serialize.</param>
         /// <returns>Object containing serialized data.</returns>
         public static SerializedObject Create(Component obj)
         {
@@ -40,7 +40,7 @@ namespace BansheeEditor
         /// <summary>
         /// Serializes all data within the provided resources.
         /// </summary>
-        /// <param name="obj">Resource to deserialize.</param>
+        /// <param name="obj">Resource to serialize.</param>
         /// <returns>Object containing serialized data.</returns>
         public static SerializedObject Create(ManagedResource obj)
         {
@@ -54,7 +54,7 @@ namespace BansheeEditor
         /// <summary>
         /// Serializes all data within the provided object.
         /// </summary>
-        /// <param name="obj">Object to deserialize.</param>
+        /// <param name="obj">Object to serialize.</param>
         /// <returns>Object containing serialized data.</returns>
         public static SerializedObject Create(object obj)
         {

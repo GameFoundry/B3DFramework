@@ -20,11 +20,13 @@ namespace BansheeEngine
 	{
 		// Register command and commit it
 		CmdCloneSO* command = new (bs_alloc<CmdCloneSO>()) CmdCloneSO(description, { sceneObject });
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdCloneSO> commandPtr = bs_shared_ptr(command);
 
-		if (command->mClones.size() > 0)
-			return command->mClones[0];
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
+
+		if (commandPtr->mClones.size() > 0)
+			return commandPtr->mClones[0];
 
 		return HSceneObject();
 	}
@@ -33,10 +35,12 @@ namespace BansheeEngine
 	{
 		// Register command and commit it
 		CmdCloneSO* command = new (bs_alloc<CmdCloneSO>()) CmdCloneSO(description, sceneObjects);
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdCloneSO> commandPtr = bs_shared_ptr(command);
 
-		return command->mClones;
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
+
+		return commandPtr->mClones;
 	}
 
 	void CmdCloneSO::commit()

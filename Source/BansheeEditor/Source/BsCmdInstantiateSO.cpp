@@ -21,10 +21,12 @@ namespace BansheeEngine
 	{
 		// Register command and commit it
 		CmdInstantiateSO* command = new (bs_alloc<CmdInstantiateSO>()) CmdInstantiateSO(description, prefab);
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdInstantiateSO> commandPtr = bs_shared_ptr(command);
 
-		return command->mSceneObject;
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
+
+		return commandPtr->mSceneObject;
 	}
 
 	void CmdInstantiateSO::commit()

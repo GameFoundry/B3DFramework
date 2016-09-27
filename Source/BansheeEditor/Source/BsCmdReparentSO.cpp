@@ -19,16 +19,20 @@ namespace BansheeEngine
 	{
 		// Register command and commit it
 		CmdReparentSO* command = new (bs_alloc<CmdReparentSO>()) CmdReparentSO(description, sceneObjects, newParent);
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdReparentSO> commandPtr = bs_shared_ptr(command);
+
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
 	}
 
 	void CmdReparentSO::execute(HSceneObject& sceneObject, const HSceneObject& newParent, const WString& description)
 	{
 		// Register command and commit it
 		CmdReparentSO* command = new (bs_alloc<CmdReparentSO>()) CmdReparentSO(description, { sceneObject }, newParent);
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdReparentSO> commandPtr = bs_shared_ptr(command);
+
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
 	}
 
 	void CmdReparentSO::commit()

@@ -21,8 +21,10 @@ namespace BansheeEngine
 	{
 		// Register command and commit it
 		CmdBreakPrefab* command = new (bs_alloc<CmdBreakPrefab>()) CmdBreakPrefab(description, sceneObject);
-		UndoRedo::instance().registerCommand(command);
-		command->commit();
+		SPtr<CmdBreakPrefab> commandPtr = bs_shared_ptr(command);
+
+		UndoRedo::instance().registerCommand(commandPtr);
+		commandPtr->commit();
 	}
 
 	void CmdBreakPrefab::commit()

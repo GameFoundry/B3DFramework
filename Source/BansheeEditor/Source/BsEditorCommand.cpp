@@ -5,11 +5,6 @@
 namespace BansheeEngine
 {
 	EditorCommand::EditorCommand(const WString& description)
-		:mDescription(description)
+		:mDescription(description), mId(0)
 	{ }
-
-	void EditorCommand::destroy(EditorCommand* command)
-	{
-		bs_delete(command);
-	}
 }
