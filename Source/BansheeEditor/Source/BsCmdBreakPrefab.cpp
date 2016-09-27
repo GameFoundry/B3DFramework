@@ -23,7 +23,7 @@ namespace BansheeEngine
 		CmdBreakPrefab* command = new (bs_alloc<CmdBreakPrefab>()) CmdBreakPrefab(description, sceneObject);
 		SPtr<CmdBreakPrefab> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 	}
 

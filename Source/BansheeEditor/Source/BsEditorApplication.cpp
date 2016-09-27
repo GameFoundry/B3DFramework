@@ -103,7 +103,7 @@ namespace BansheeEngine
 
 		ProjectLibrary::startUp();
 
-		UndoRedo::startUp();
+		GlobalUndoRedo::startUp();
 		EditorWindowManager::startUp();
 		EditorWidgetManager::startUp();
 		DropDownWindowManager::startUp();
@@ -133,7 +133,7 @@ namespace BansheeEngine
 		DropDownWindowManager::shutDown();
 		EditorWidgetManager::shutDown();
 		EditorWindowManager::shutDown();
-		UndoRedo::shutDown();
+		GlobalUndoRedo::shutDown();
 
 		Application::onShutDown();
 	}
@@ -232,7 +232,7 @@ namespace BansheeEngine
 
 		mProjectSettings = bs_shared_ptr_new<ProjectSettings>();
 		BuildManager::instance().clear();
-		UndoRedo::instance().clear();
+		GlobalUndoRedo::instance().clear();
 
 		EditorWidgetManager::instance().closeAll();
 		gProjectLibrary().unloadLibrary();

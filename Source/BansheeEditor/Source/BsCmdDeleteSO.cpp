@@ -38,7 +38,7 @@ namespace BansheeEngine
 		CmdDeleteSO* command = new (bs_alloc<CmdDeleteSO>()) CmdDeleteSO(description, sceneObject);
 		SPtr<CmdDeleteSO> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 	}
 

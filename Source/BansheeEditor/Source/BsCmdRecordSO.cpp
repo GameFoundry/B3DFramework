@@ -37,7 +37,7 @@ namespace BansheeEngine
 		CmdRecordSO* command = new (bs_alloc<CmdRecordSO>()) CmdRecordSO(description, sceneObject, recordHierarchy);
 		SPtr<CmdRecordSO> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 	}
 

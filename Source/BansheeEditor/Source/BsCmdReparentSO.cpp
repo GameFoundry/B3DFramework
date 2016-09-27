@@ -21,7 +21,7 @@ namespace BansheeEngine
 		CmdReparentSO* command = new (bs_alloc<CmdReparentSO>()) CmdReparentSO(description, sceneObjects, newParent);
 		SPtr<CmdReparentSO> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 	}
 
@@ -31,7 +31,7 @@ namespace BansheeEngine
 		CmdReparentSO* command = new (bs_alloc<CmdReparentSO>()) CmdReparentSO(description, { sceneObject }, newParent);
 		SPtr<CmdReparentSO> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 	}
 

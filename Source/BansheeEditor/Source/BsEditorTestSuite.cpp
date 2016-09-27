@@ -441,7 +441,7 @@ namespace BansheeEngine
 		CmdRecordSO::execute(so0_0);
 		cmpB1_1->val1 = "ModifiedValue";
 		so0_0->setName("modified");
-		UndoRedo::instance().undo();
+		GlobalUndoRedo::instance().undo();
 
 		BS_TEST_ASSERT(!so0_0.isDestroyed());
 		BS_TEST_ASSERT(!so1_0.isDestroyed());
@@ -486,7 +486,7 @@ namespace BansheeEngine
 		cmpExternal->ref2 = cmpA1_1;
 
 		CmdDeleteSO::execute(so0_0);
-		UndoRedo::instance().undo();
+		GlobalUndoRedo::instance().undo();
 
 		BS_TEST_ASSERT(!so0_0.isDestroyed());
 		BS_TEST_ASSERT(!so1_0.isDestroyed());

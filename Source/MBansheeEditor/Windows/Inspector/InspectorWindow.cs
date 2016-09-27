@@ -608,7 +608,7 @@ namespace BansheeEditor
         private void OnSelectionChanged(SceneObject[] objects, string[] paths)
         {
             if (currentType == InspectorType.SceneObject && modifyState == InspectableState.NotModified)
-                UndoRedo.PopCommand(undoCommandIdx);
+                UndoRedo.Global.PopCommand(undoCommandIdx);
 
             Clear();
             modifyState = InspectableState.NotModified;
@@ -646,7 +646,7 @@ namespace BansheeEditor
                 if (objects[0] != null)
                 {
                     UndoRedo.RecordSO(objects[0]);
-                    undoCommandIdx = UndoRedo.TopCommandId;
+                    undoCommandIdx = UndoRedo.Global.TopCommandId;
 
                     SetObjectToInspect(objects[0]);
                 }

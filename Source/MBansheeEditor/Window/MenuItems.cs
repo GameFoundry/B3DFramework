@@ -716,6 +716,26 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Executes the last command on the undo stack, undoing its operations.
+        /// </summary>
+        [MenuItem("Edit/Undo", 9500, true)]
+        [ToolbarItem("Undo", ToolbarIcon.Undo, "Undo (Ctrl + Z)", 1900, true)]
+        public static void Undo()
+        {
+            UndoRedo.Global.Undo();
+        }
+
+        /// <summary>
+        /// Executes the last command on the redo stack (last command we called undo on), re-applying its operation.
+        /// </summary>
+        [MenuItem("Edit/Redo", 9499)]
+        [ToolbarItem("Redo", ToolbarIcon.Redo, "Redo (Ctrl + Y)", 1899)]
+        public static void Redo()
+        {
+            UndoRedo.Global.Redo();
+        }
+
+        /// <summary>
         /// Sets keyboard focus to the Hierarchy or Scene windows if open.
         /// </summary>
         private static void FocusOnHierarchyOrScene()

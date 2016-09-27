@@ -14,40 +14,90 @@ namespace BansheeEditor
     /// <summary>
     /// Provides functionality to undo or redo recently performed operations in the editor. All commands executed from this
     /// class are undoable/redoable.
+    /// 
+    /// The class provides static methods that access the global undo/redo stack, but can also be instantiated to provide
+    /// local undo/redo stacks.
     /// </summary>
-    public static class UndoRedo
+    public class UndoRedo : ScriptObject
     {
+        /// <summary>
+        /// Constructor for internal runtime use.
+        /// </summary>
+        /// <param name="dummy">Dummy parameter to distinguish from public constructor.</param>
+        private UndoRedo(bool dummy)
+        { }
+
+        /// <summary>
+        /// Creates a new undo/redo stack.
+        /// </summary>
+        public UndoRedo()
+        {
+            Internal_CreateInstance(this);
+        }
+
+        /// <summary>
+        /// Returns the global undo/redo stack.
+        /// </summary>
+        public static UndoRedo Global
+        {
+            get { return Internal_GetGlobal(); }
+        }
+
         /// <summary>
         /// Returns the unique identifier of the command currently at the top of the undo stack.
         /// </summary>
-        public static int TopCommandId
+        public int TopCommandId
         {
-            get { return Internal_GetTopCommandId(); }
+            get { return Internal_GetTopCommandId(mCachedPtr); }
         }
 
         /// <summary>
         /// Executes the last command on the undo stack, undoing its operations.
         /// </summary>
-        [MenuItem("Edit/Undo", 9500, true)]
-        [ToolbarItem("Undo", ToolbarIcon.Undo, "Undo (Ctrl + Z)", 1900, true)]
-        public static void Undo()
+        public void Undo()
         {
-            Internal_Undo();
+            Internal_Undo(mCachedPtr);
         }
 
         /// <summary>
         /// Executes the last command on the redo stack (last command we called undo on), re-applying its operation.
         /// </summary>
-        [MenuItem("Edit/Redo", 9499)]
-        [ToolbarItem("Redo", ToolbarIcon.Redo, "Redo (Ctrl + Y)", 1899)]
-        public static void Redo()
+        public void Redo()
         {
-            Internal_Redo();
+            Internal_Redo(mCachedPtr);
+        }
+
+        /// <summary>
+        /// Creates a new undo/redo group. All new commands will be registered to this group. You may remove the group and 
+        /// all of its commands by calling <see cref="PopGroup"/>.
+        /// </summary>
+        /// <param name="name">Unique name of the group.</param>
+        public void PushGroup(string name)
+        {
+            Internal_PushGroup(mCachedPtr, name);
+        }
+
+        /// <summary>
+        /// Removes all the command registered to the current undo/redo group.
+        /// </summary>
+        /// <param name="name">Unique name of the group.</param>
+        public void PopGroup(string name)
+        {
+            Internal_PopGroup(mCachedPtr, name);
+        }
+
+        /// <summary>
+        /// Removes a command with the specified identifier from undo/redo stack without executing it.
+        /// </summary>
+        /// <param name="id">Identifier of the command as returned by <see cref="GetTopCommandId"/></param>
+        public void PopCommand(int id)
+        {
+            Internal_PopCommand(mCachedPtr, id);
         }
 
         /// <summary>
         /// Records a state of the entire scene object at a specific point and allows you to restore it to its original 
-        /// values as needed.
+        /// values as needed. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene object to record.</param>
         /// <param name="recordHierarchy">If true all children of this object will also be recorded.</param>
@@ -59,7 +109,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Creates new scene object(s) by cloning existing objects.
+        /// Creates new scene object(s) by cloning existing objects. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene object(s) to clone.</param>
         /// <param name="description">Optional description of what exactly the command does.</param>
@@ -82,7 +132,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Creates new a scene object by cloning an existing object.
+        /// Creates new a scene object by cloning an existing object. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene object to clone.</param>
         /// <param name="description">Optional description of what exactly the command does.</param>
@@ -96,7 +146,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Instantiates scene object(s) from a prefab.
+        /// Instantiates scene object(s) from a prefab. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="prefab">Prefab to instantiate.</param>
         /// <param name="description">Optional description of what exactly the command does.</param>
@@ -110,7 +160,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Creates a new scene object.
+        /// Creates a new scene object. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="name">Name of the scene object.</param>
         /// <param name="description">Optional description of what exactly the command does.</param>
@@ -121,7 +171,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Deletes a scene object.
+        /// Deletes a scene object. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene object to delete.</param>
         /// <param name="description">Optional description of what exactly the command does.</param>
@@ -132,7 +182,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Changes the parent of the scene object.
+        /// Changes the parent of the scene object. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene object to change the parent of.</param>
         /// <param name="parent">New parent.</param>
@@ -150,7 +200,7 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Changes the parent of a set of scene objects.
+        /// Changes the parent of a set of scene objects. Undo operation recorded in global undo/redo stack.
         /// </summary>
         /// <param name="so">Scene objects to change the parent of.</param>
         /// <param name="parent">New parent.</param>
@@ -178,7 +228,8 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Breaks the prefab link on the provided scene object and makes the operation undo-able. 
+        /// Breaks the prefab link on the provided scene object and makes the operation undo-able. Undo operation recorded 
+        /// in global undo/redo stack.
         /// See <see cref="PrefabUtility.BreakPrefab"/>.
         /// </summary>
         /// <param name="so">Scene object whose prefab link to break.</param>
@@ -189,51 +240,29 @@ namespace BansheeEditor
                 Internal_BreakPrefab(so.GetCachedPtr(), description);
         }
 
-        /// <summary>
-        /// Creates a new undo/redo group. All new commands will be registered to this group. You may remove the group and 
-        /// all of its commands by calling <see cref="PopGroup"/>.
-        /// </summary>
-        /// <param name="name">Unique name of the group.</param>
-        public static void PushGroup(string name)
-        {
-            Internal_PushGroup(name);
-        }
-
-        /// <summary>
-        /// Removes all the command registered to the current undo/redo group.
-        /// </summary>
-        /// <param name="name">Unique name of the group.</param>
-        public static void PopGroup(string name)
-        {
-            Internal_PopGroup(name);
-        }
-
-        /// <summary>
-        /// Removes a command with the specified identifier from undo/redo stack without executing it.
-        /// </summary>
-        /// <param name="id">Identifier of the command as returned by <see cref="GetTopCommandId"/></param>
-        public static void PopCommand(int id)
-        {
-            Internal_PopCommand(id);
-        }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Internal_CreateInstance(UndoRedo instance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_Undo();
+        internal static extern UndoRedo Internal_GetGlobal();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_Redo();
+        internal static extern void Internal_Undo(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_PushGroup(string name);
+        internal static extern void Internal_Redo(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_PopGroup(string name);
+        internal static extern void Internal_PushGroup(IntPtr thisPtr, string name);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Internal_PopCommand(int id);
+        internal static extern void Internal_PopGroup(IntPtr thisPtr, string name);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern int Internal_GetTopCommandId();
+        internal static extern void Internal_PopCommand(IntPtr thisPtr, int id);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern int Internal_GetTopCommandId(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Internal_RecordSO(IntPtr soPtr, bool recordHierarchy, string description);

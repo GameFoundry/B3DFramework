@@ -7,6 +7,8 @@
 
 namespace BansheeEngine
 {
+	class UndoRedo;
+
 	/** @addtogroup ScriptInteropEditor
 	 *  @{
 	 */
@@ -18,17 +20,22 @@ namespace BansheeEngine
 		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "UndoRedo");
 
 	private:
-		ScriptUndoRedo(MonoObject* instance);
+		ScriptUndoRedo(MonoObject* instance, const SPtr<UndoRedo>& undoRedo);
+
+		SPtr<UndoRedo> mUndoRedo;
+		static ScriptUndoRedo* sGlobalUndoRedo;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void internal_Undo();
-		static void internal_Redo();
-		static void internal_PushGroup(MonoString* name);
-		static void internal_PopGroup(MonoString* name);
-		static UINT32 internal_GetTopCommandId();
-		static void internal_PopCommand(UINT32 id);
+		static void internal_CreateInstance(MonoObject* instance);
+		static MonoObject* internal_GetGlobal();
+		static void internal_Undo(ScriptUndoRedo* thisPtr);
+		static void internal_Redo(ScriptUndoRedo* thisPtr);
+		static void internal_PushGroup(ScriptUndoRedo* thisPtr, MonoString* name);
+		static void internal_PopGroup(ScriptUndoRedo* thisPtr, MonoString* name);
+		static UINT32 internal_GetTopCommandId(ScriptUndoRedo* thisPtr);
+		static void internal_PopCommand(ScriptUndoRedo* thisPtr, UINT32 id);
 		static void internal_RecordSO(ScriptSceneObject* soPtr, bool recordHierarchy, MonoString* description);
 		static MonoObject* internal_CloneSO(ScriptSceneObject* soPtr, MonoString* description);
 		static MonoArray* internal_CloneSOMulti(MonoArray* soPtrs, MonoString* description);

@@ -22,7 +22,7 @@ namespace BansheeEngine
 		CmdCreateSO* command = new (bs_alloc<CmdCreateSO>()) CmdCreateSO(description, name, flags);
 		SPtr<CmdCreateSO> commandPtr = bs_shared_ptr(command);
 
-		UndoRedo::instance().registerCommand(commandPtr);
+		GlobalUndoRedo::instance().registerCommand(commandPtr);
 		commandPtr->commit();
 
 		return commandPtr->mSceneObject;

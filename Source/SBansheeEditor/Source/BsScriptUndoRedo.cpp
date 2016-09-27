@@ -20,14 +20,16 @@
 
 namespace BansheeEngine
 {
-	ScriptUndoRedo::ScriptUndoRedo(MonoObject* instance)
-		:ScriptObject(instance)
-	{
+	ScriptUndoRedo* ScriptUndoRedo::sGlobalUndoRedo = nullptr;
 
-	}
+	ScriptUndoRedo::ScriptUndoRedo(MonoObject* instance, const SPtr<UndoRedo>& undoRedo)
+		:ScriptObject(instance), mUndoRedo(undoRedo)
+	{ }
 
 	void ScriptUndoRedo::initRuntimeData()
 	{
+		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptUndoRedo::internal_CreateInstance);
+		metaData.scriptClass->addInternalCall("Internal_GetGlobal", &ScriptUndoRedo::internal_GetGlobal);
 		metaData.scriptClass->addInternalCall("Internal_Undo", &ScriptUndoRedo::internal_Undo);
 		metaData.scriptClass->addInternalCall("Internal_Redo", &ScriptUndoRedo::internal_Redo);
 		metaData.scriptClass->addInternalCall("Internal_PushGroup", &ScriptUndoRedo::internal_PushGroup);
@@ -45,36 +47,64 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_BreakPrefab", &ScriptUndoRedo::internal_BreakPrefab);
 	}
 
-	void ScriptUndoRedo::internal_Undo()
+	void ScriptUndoRedo::internal_CreateInstance(MonoObject* instance)
 	{
-		UndoRedo::instance().undo();
+		SPtr<UndoRedo> undoRedo = bs_shared_ptr_new<UndoRedo>();
+		new (bs_alloc<ScriptUndoRedo>()) ScriptUndoRedo(instance, undoRedo);
 	}
 
-	void ScriptUndoRedo::internal_Redo()
+	MonoObject* ScriptUndoRedo::internal_GetGlobal()
 	{
-		UndoRedo::instance().redo();
+		if(sGlobalUndoRedo == nullptr)
+		{
+			bool dummy = false;
+			void* params[1] = { &dummy };
+
+			MonoObject* instance = metaData.scriptClass->createInstance("bool", params);
+			sGlobalUndoRedo = new (bs_alloc<ScriptUndoRedo>()) ScriptUndoRedo(instance, nullptr);
+		}
+
+		return sGlobalUndoRedo->getManagedInstance();
 	}
 
-	void ScriptUndoRedo::internal_PushGroup(MonoString* name)
+	void ScriptUndoRedo::internal_Undo(ScriptUndoRedo* thisPtr)
+	{
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		undoRedo->undo();
+	}
+
+	void ScriptUndoRedo::internal_Redo(ScriptUndoRedo* thisPtr)
+	{
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		undoRedo->redo();
+	}
+
+	void ScriptUndoRedo::internal_PushGroup(ScriptUndoRedo* thisPtr, MonoString* name)
 	{
 		String nativeName = MonoUtil::monoToString(name);
-		UndoRedo::instance().pushGroup(nativeName);
+
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		undoRedo->pushGroup(nativeName);
 	}
 
-	void ScriptUndoRedo::internal_PopGroup(MonoString* name)
+	void ScriptUndoRedo::internal_PopGroup(ScriptUndoRedo* thisPtr, MonoString* name)
 	{
 		String nativeName = MonoUtil::monoToString(name);
-		UndoRedo::instance().popGroup(nativeName);
+
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		undoRedo->popGroup(nativeName);
 	}
 
-	UINT32 ScriptUndoRedo::internal_GetTopCommandId()
+	UINT32 ScriptUndoRedo::internal_GetTopCommandId(ScriptUndoRedo* thisPtr)
 	{
-		return UndoRedo::instance().getTopCommandId();
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		return undoRedo->getTopCommandId();
 	}
 
-	void ScriptUndoRedo::internal_PopCommand(UINT32 id)
+	void ScriptUndoRedo::internal_PopCommand(ScriptUndoRedo* thisPtr, UINT32 id)
 	{
-		UndoRedo::instance().popCommand(id);
+		UndoRedo* undoRedo = thisPtr->mUndoRedo != nullptr ? thisPtr->mUndoRedo.get() : GlobalUndoRedo::instancePtr();
+		undoRedo->popCommand(id);
 	}
 
 	void ScriptUndoRedo::internal_RecordSO(ScriptSceneObject* soPtr, bool recordHierarchy, MonoString* description)

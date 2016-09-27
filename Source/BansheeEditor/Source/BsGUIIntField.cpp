@@ -229,14 +229,14 @@ namespace BansheeEngine
 	{
 		if (focus)
 		{
-			UndoRedo::instance().pushGroup("InputBox");
+			GlobalUndoRedo::instance().pushGroup("InputBox");
 
 			mHasInputFocus = true;
 			onFocusChanged(true);
 		}
 		else
 		{
-			UndoRedo::instance().popGroup("InputBox");
+			GlobalUndoRedo::instance().popGroup("InputBox");
 
 			setText(applyRangeAndStep(mValue));
 
