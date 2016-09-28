@@ -49,6 +49,19 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_BreakPrefab", &ScriptUndoRedo::internal_BreakPrefab);
 	}
 
+	MonoObject* ScriptUndoRedo::create()
+	{
+		bool dummy = false;
+		void* params[1] = { &dummy };
+
+		MonoObject* instance = metaData.scriptClass->createInstance("bool", params);
+
+		SPtr<UndoRedo> undoRedo = bs_shared_ptr_new<UndoRedo>();
+		new (bs_alloc<ScriptUndoRedo>()) ScriptUndoRedo(instance, undoRedo);
+
+		return instance;
+	}
+
 	void ScriptUndoRedo::internal_CreateInstance(MonoObject* instance)
 	{
 		SPtr<UndoRedo> undoRedo = bs_shared_ptr_new<UndoRedo>();

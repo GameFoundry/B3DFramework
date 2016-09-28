@@ -16,6 +16,10 @@ namespace BansheeEditor
     /// </summary>
     public class EditorWindow : ScriptObject
     {
+#pragma warning disable 649 // Value assigned by the runtime
+        private UndoRedo undoRedo;
+#pragma warning restore 649
+
         /// <summary>
         /// Width of the window in pixels.
         /// </summary>
@@ -56,6 +60,15 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Returns the local undo/redo stack specific to this editor window. Only windows marked with [UndoRedoLocal]
+        /// attribute will return a non-null value.
+        /// </summary>
+        public UndoRedo UndoRedo
+        {
+            get { return undoRedo; }
+        }
+
+        /// <summary>
         /// Determines is the mouse pointer currently hovering over the editor window.
         /// </summary>
         public bool IsPointerHovering { get { return Internal_IsPointerHovering(mCachedPtr); } }
@@ -66,7 +79,18 @@ namespace BansheeEditor
         /// </summary>
         public bool Active { get { return Internal_IsActive(mCachedPtr); } }
 
+        /// <summary>
+        /// GUI panel that you may use for adding GUI elements to the window.
+        /// </summary>
         public GUIPanel GUI;
+
+        /// <summary>
+        /// Returns a list of all currently open editor windows.
+        /// </summary>
+        public static EditorWindow[] AllWindows
+        {
+            get { return Internal_GetAllWindows(); }
+        }
 
         /// <summary>
         /// Opens an editor window. If window is already open it returns the existing instance.
@@ -145,6 +169,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern EditorWindow Internal_GetInstance(string ns, string typeName);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern EditorWindow[] Internal_GetAllWindows();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern int Internal_GetWidth(IntPtr nativeInstance);

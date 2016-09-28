@@ -20,6 +20,9 @@ namespace BansheeEngine
 	public:
 		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "UndoRedo");
 
+		/** Creates a new managed UndoRedo stack. */
+		static MonoObject* create();
+
 	private:
 		ScriptUndoRedo(MonoObject* instance, const SPtr<UndoRedo>& undoRedo);
 

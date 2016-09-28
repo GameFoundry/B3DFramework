@@ -83,6 +83,7 @@ namespace BansheeEngine
 		static MonoMethod* onResizedMethod;
 		static MonoMethod* onFocusChangedMethod;
 		static MonoField* guiPanelField;
+		static MonoField* undoRedoField;
 
 		// Global editor window management methods
 
@@ -100,7 +101,7 @@ namespace BansheeEngine
 
 		/**	Callback that is triggered when user requests a widget to be opened. */
 		static EditorWidgetBase* openEditorWidgetCallback(String ns, String type, UINT32 width, UINT32 height, 
-			EditorWidgetContainer& parentContainer);
+			bool localUndoRedo, EditorWidgetContainer& parentContainer);
 
 		static UnorderedMap<String, EditorWindowHandle> OpenScriptEditorWindows;
 		static Vector<String> AvailableWindowTypes;
@@ -110,6 +111,7 @@ namespace BansheeEngine
 		/************************************************************************/
 		static MonoObject* internal_createOrGetInstance(MonoString* ns, MonoString* typeName);
 		static MonoObject* internal_getInstance(MonoString* ns, MonoString* typeName);
+		static MonoArray* internal_getAllWindows();
 
 		static bool internal_hasFocus(ScriptEditorWindow* thisPtr);
 		static void internal_setFocus(ScriptEditorWindow* thisPtr, bool focus);
@@ -141,10 +143,11 @@ namespace BansheeEngine
 		 * @param[in]	type			Name of the widget type.
 		 * @param[in]	defaultWidth	Default width of the widget when initially created.
 		 * @param[in]	defaultHeight	Default height of the widget when initially created.
+		 * @param[in]	localUndoRedo	Determines should the window use a local undo/redo stack instead of the global one.
 		 * @param[in]	parentContainer	Container to initially dock the widget in.
 		 */
 		ScriptEditorWidget(const String& ns, const String& type, UINT32 defaultWidth, 
-			UINT32 defaultHeight, EditorWidgetContainer& parentContainer);
+			UINT32 defaultHeight, bool localUndoRedo, EditorWidgetContainer& parentContainer);
 		~ScriptEditorWidget();
 
 		/**
@@ -200,6 +203,7 @@ namespace BansheeEngine
 		ScriptEditorWindow* mScriptOwner;
 		ScriptGUILayout* mContentsPanel;
 		bool mIsInitialized;
+		bool mHasLocalUndoRedo;
 	};
 
 	/** @} */

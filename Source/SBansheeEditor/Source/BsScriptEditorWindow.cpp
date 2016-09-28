@@ -17,6 +17,7 @@
 #include "BsScriptHString.h"
 #include "BsPlatform.h"
 #include "BsInput.h"
+#include "BsScriptUndoRedo.h"
 
 using namespace std::placeholders;
 
@@ -27,6 +28,7 @@ namespace BansheeEngine
 	MonoMethod* ScriptEditorWindow::onResizedMethod = nullptr;
 	MonoMethod* ScriptEditorWindow::onFocusChangedMethod = nullptr;
 	MonoField* ScriptEditorWindow::guiPanelField = nullptr;
+	MonoField* ScriptEditorWindow::undoRedoField = nullptr;
 
 	ScriptEditorWindow::ScriptEditorWindow(ScriptEditorWidget* editorWidget)
 		:ScriptObject(editorWidget->getManagedInstance()), mName(editorWidget->getName()), mEditorWidget(editorWidget), 
@@ -51,6 +53,8 @@ namespace BansheeEngine
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateOrGetInstance", &ScriptEditorWindow::internal_createOrGetInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetInstance", &ScriptEditorWindow::internal_getInstance);
+		metaData.scriptClass->addInternalCall("Internal_GetAllWindows", &ScriptEditorWindow::internal_getAllWindows);
+
 		metaData.scriptClass->addInternalCall("Internal_GetWidth", &ScriptEditorWindow::internal_getWidth);
 		metaData.scriptClass->addInternalCall("Internal_GetHeight", &ScriptEditorWindow::internal_getHeight);
 		metaData.scriptClass->addInternalCall("Internal_GetBounds", &ScriptEditorWindow::internal_getBounds);
@@ -65,6 +69,7 @@ namespace BansheeEngine
 		onFocusChangedMethod = metaData.scriptClass->getMethod("FocusChanged", 1);
 
 		guiPanelField = metaData.scriptClass->getField("GUI");
+		undoRedoField = metaData.scriptClass->getField("undoRedo");
 	}
 
 	MonoObject* ScriptEditorWindow::internal_createOrGetInstance(MonoString* ns, MonoString* typeName)
@@ -97,6 +102,18 @@ namespace BansheeEngine
 			return findIter->second.nativeObj->mManagedInstance;
 
 		return nullptr;
+	}
+
+	MonoArray* ScriptEditorWindow::internal_getAllWindows()
+	{
+		UINT32 numWindows = (UINT32)OpenScriptEditorWindows.size();
+		ScriptArray output = ScriptArray::create<ScriptEditorWindow>(numWindows);
+
+		UINT32 idx = 0;
+		for (auto& entry : OpenScriptEditorWindows)
+			output.set(idx++, entry.second.nativeObj->getManagedInstance());
+
+		return output.getInternal();
 	}
 
 	EditorWidgetBase* ScriptEditorWindow::getEditorWidget() const 
@@ -294,10 +311,14 @@ namespace BansheeEngine
 		{
 			MonoClass* defaultSizeAttrib = assembly->getClass("BansheeEditor", "DefaultSize");
 			if (defaultSizeAttrib == nullptr)
-				BS_EXCEPT(InternalErrorException, "Cannot find DefaultSize managed class.");
+				BS_EXCEPT(InternalErrorException, "Cannot find DefaultSize managed attribute.");
 
 			MonoField* defaultWidthField = defaultSizeAttrib->getField("width");
 			MonoField* defaultHeightField = defaultSizeAttrib->getField("height");
+
+			MonoClass* undoRedoLocalAttrib = assembly->getClass("BansheeEditor", "UndoRedoLocal");
+			if (undoRedoLocalAttrib == nullptr)
+				BS_EXCEPT(InternalErrorException, "Cannot find UndoRedoLocal managed attribute.");
 
 			MonoClass* editorWindowClass = assembly->getClass("BansheeEditor", "EditorWindow");
 
@@ -316,10 +337,12 @@ namespace BansheeEngine
 						defaultHeightField->getValue(defaultSize, &height);
 					}
 
+					bool hasLocalUndoRedo = curClass->getAttribute(undoRedoLocalAttrib) != nullptr;
+
 					const String& className = curClass->getFullName();
 					EditorWidgetManager::instance().registerWidget(className, 
 						std::bind(&ScriptEditorWindow::openEditorWidgetCallback, curClass->getNamespace(), 
-						curClass->getTypeName(), width, height, _1));
+						curClass->getTypeName(), width, height, hasLocalUndoRedo, _1));
 					AvailableWindowTypes.push_back(className);
 				}
 			}
@@ -337,9 +360,9 @@ namespace BansheeEngine
 	}
 
 	EditorWidgetBase* ScriptEditorWindow::openEditorWidgetCallback(String ns, String type, UINT32 width, 
-		UINT32 height, EditorWidgetContainer& parentContainer)
+		UINT32 height, bool localUndoRedo, EditorWidgetContainer& parentContainer)
 	{
-		ScriptEditorWidget* editorWidget = bs_new<ScriptEditorWidget>(ns, type, width, height, parentContainer);
+		ScriptEditorWidget* editorWidget = bs_new<ScriptEditorWidget>(ns, type, width, height, localUndoRedo, parentContainer);
 		ScriptEditorWindow* nativeInstance = new (bs_alloc<ScriptEditorWindow>()) ScriptEditorWindow(editorWidget);
 
 		ScriptEditorWindow::registerScriptEditorWindow(nativeInstance);
@@ -379,11 +402,11 @@ namespace BansheeEngine
 	}
 
 	ScriptEditorWidget::ScriptEditorWidget(const String& ns, const String& type, UINT32 defaultWidth, 
-		UINT32 defaultHeight, EditorWidgetContainer& parentContainer)
+		UINT32 defaultHeight, bool localUndoRedo, EditorWidgetContainer& parentContainer)
 		: EditorWidgetBase(HString(toWString(type)), ns + "." + type, defaultWidth, defaultHeight, parentContainer)
 		, mNamespace(ns), mTypename(type), mOnInitializeThunk(nullptr), mOnDestroyThunk(nullptr), mUpdateThunk(nullptr)
 		, mManagedInstance(nullptr), mGetDisplayName(nullptr), mScriptOwner(nullptr), mContentsPanel(nullptr)
-		, mIsInitialized(false)
+		, mIsInitialized(false), mHasLocalUndoRedo(localUndoRedo)
 	{
 		if(createManagedInstance())
 		{
@@ -433,6 +456,12 @@ namespace BansheeEngine
 					MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mContent);
 					mContentsPanel = ScriptGUILayout::toNative(guiPanel);
 					ScriptEditorWindow::guiPanelField->setValue(mManagedInstance, guiPanel);
+
+					if(mHasLocalUndoRedo)
+					{
+						MonoObject* undoRedo = ScriptUndoRedo::create();
+						ScriptEditorWindow::undoRedoField->setValue(mManagedInstance, undoRedo);
+					}
 
 					reloadMonoTypes(editorWindowClass);
 					return true;

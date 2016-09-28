@@ -16,7 +16,7 @@ namespace BansheeEditor
     /// Displays animation curve editor window. Allows the user to manipulate keyframes of animation curves, add/remove
     /// curves from an animation clip, and manipulate animation events.
     /// </summary>
-    [DefaultSize(900, 500)]
+    [DefaultSize(900, 500), UndoRedoLocal]
     internal class AnimationWindow : EditorWindow
     {
         private const int FIELD_DISPLAY_WIDTH = 300;

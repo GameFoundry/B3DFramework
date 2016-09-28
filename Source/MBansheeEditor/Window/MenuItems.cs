@@ -722,6 +722,20 @@ namespace BansheeEditor
         [ToolbarItem("Undo", ToolbarIcon.Undo, "Undo (Ctrl + Z)", 1900, true)]
         public static void Undo()
         {
+            EditorWindow[] allWindows = EditorWindow.AllWindows;
+            foreach (var window in allWindows)
+            {
+                if (!window.HasFocus)
+                    continue;
+
+                UndoRedo localStack = window.UndoRedo;
+                if (localStack == null)
+                    continue;
+
+                localStack.Undo();
+                return;
+            }
+
             UndoRedo.Global.Undo();
         }
 
@@ -732,6 +746,20 @@ namespace BansheeEditor
         [ToolbarItem("Redo", ToolbarIcon.Redo, "Redo (Ctrl + Y)", 1899)]
         public static void Redo()
         {
+            EditorWindow[] allWindows = EditorWindow.AllWindows;
+            foreach (var window in allWindows)
+            {
+                if (!window.HasFocus)
+                    continue;
+
+                UndoRedo localStack = window.UndoRedo;
+                if (localStack == null)
+                    continue;
+
+                localStack.Redo();
+                return;
+            }
+
             UndoRedo.Global.Redo();
         }
 

@@ -223,6 +223,7 @@
     <Compile Include="Utility\UndoRedo.cs" />
     <Compile Include="Tests\UnitTests.cs" />
     <Compile Include="Tests\UnitTestTypes.cs" />
+    <Compile Include="Window\UndoRedoLocal.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MBansheeEngine\MBansheeEngine.csproj">
