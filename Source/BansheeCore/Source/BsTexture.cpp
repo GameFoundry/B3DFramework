@@ -407,7 +407,7 @@ namespace BansheeEngine
 
 		if (subresourceIdx >= (UINT32)mCPUSubresourceData.size())
 		{
-			LOGERR("Invalid subresource index: " + toString(subresourceIdx) + ". Supported range: 0 .. " + toString(mCPUSubresourceData.size()));
+			LOGERR("Invalid subresource index: " + toString(subresourceIdx) + ". Supported range: 0 .. " + toString((unsigned)mCPUSubresourceData.size()));
 			return;
 		}
 
@@ -457,7 +457,7 @@ namespace BansheeEngine
 		UINT32 subresourceIdx = mProperties.mapToSubresourceIdx(face, mipLevel);
 		if (subresourceIdx >= (UINT32)mCPUSubresourceData.size())
 		{
-			LOGERR("Invalid subresource index: " + toString(subresourceIdx) + ". Supported range: 0 .. " + toString(mCPUSubresourceData.size()));
+			LOGERR("Invalid subresource index: " + toString(subresourceIdx) + ". Supported range: 0 .. " + toString((unsigned)mCPUSubresourceData.size()));
 			return;
 		}
 
