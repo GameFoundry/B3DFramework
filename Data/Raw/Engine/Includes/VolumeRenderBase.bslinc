@@ -79,9 +79,77 @@ Technique : base("VolumeRenderBase") =
 	
 	Pass =
 	{
+		DepthWrite = false;
+		DepthRead = false;
+	
 		Vertex =
 		{
-			// TODO
+			in vec2 bs_position;
+			in vec2 bs_texcoord0;
+			
+			out VStoGS
+			{
+				vec2 uv0;
+				flat uint layerIdx;
+			} VSOutput;
+			
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+		
+			void main()
+			{
+				gl_Position = vec4(bs_position, 0, 1);
+				VSOutput.uv0 = bs_texcoord0;
+				VSOutput.layerIdx = gl_InstanceID;
+			}
+		};
+		
+		Geometry = 
+		{		
+			layout (triangles) in;
+			layout (triangle_strip, max_vertices=3) out;
+		
+			in VStoGS
+			{
+				vec2 uv0;
+				flat uint layerIdx;
+			} GSInput[3];
+		
+			out GStoFS
+			{
+				vec2 uv0;
+				flat uint layerIdx;
+			} GSOutput;
+		
+			in gl_PerVertex 
+			{
+				vec4 gl_Position;
+			} gl_in[];
+		
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+		
+			void main()
+			{
+				gl_Position = gl_in[0].gl_Position;
+				GSOutput.uv0 = GSInput[0].uv0;
+				GSOutput.layerIdx = GSInput[0].layerIdx;
+				EmitVertex();
+				
+				gl_Position = gl_in[1].gl_Position;
+				GSOutput.uv0 = GSInput[1].uv0;
+				GSOutput.layerIdx = GSInput[1].layerIdx;
+				EmitVertex();
+				
+				gl_Position = gl_in[2].gl_Position;
+				GSOutput.uv0 = GSInput[2].uv0;
+				GSOutput.layerIdx = GSInput[2].layerIdx;
+				EmitVertex();
+			}
 		};
 	};
 };

@@ -121,9 +121,106 @@ Technique : base("PPTonemapCommon") =
 	
 	Pass =
 	{
-		Vertex =
+		Fragment =
 		{
-			// TODO
+			const mat3x3 sRGBToXYZMatrix = mat3x3(
+				vec3(0.4124564f, 0.2126729f, 0.0193339f),
+				vec3(0.3575761f, 0.7151522f, 0.1191920f),
+				vec3(0.1804375f, 0.0721750f, 0.9503041f)
+			);
+			
+			const mat3x3 XYZTosRGBMatrix = mat3x3(
+				vec3(3.2409699419f, -0.9692436363f, 0.0556300797f),
+				vec3(-1.5373831776f, 1.8759675015f, -0.2039769589f),
+				vec3(-0.4986107603f, 0.0415550574f, 1.0569715142f)
+			);
+			
+			const mat3x3 D65ToD60Matrix = mat3x3(
+				vec3(1.01303f, 0.00769823f, -0.00284131f),
+				vec3(0.00610531f, 0.998165f, 0.00468516f),
+				vec3(-0.014971f, -0.00503203f, 0.924507f)
+			);
+
+			const mat3x3 D60ToD65Matrix = mat3x3(
+				vec3(0.987224f, -0.00759836f, 0.00307257f),
+				vec3(-0.00611327f, 1.00186f, -0.00509595f),
+				vec3(0.0159533f, 0.00533002f, 1.08168f)
+			);
+
+			const mat3x3 XYZToACES2065Matrix = mat3x3(
+				vec3(1.0498110175f, -0.4959030231f, 0.0000000000f),
+				vec3(0.0000000000f, 1.3733130458f, 0.0000000000f),
+				vec3(-0.0000974845f, 0.0982400361f, 0.9912520182f)
+			);
+
+			const mat3x3 XYZToACEScgMatrix = mat3x3(
+				vec3(1.6410233797f, -0.6636628587f, 0.0117218943f),
+				vec3(-0.3248032942f, 1.6153315917f, -0.0082844420f),
+				vec3(-0.2364246952f, 0.0167563477f, 0.9883948585f)
+			);
+
+			const mat3x3 ACEScgToXYZMatrix = mat3x3(
+				vec3(0.6624541811f, 0.2722287168f, -0.0055746495f),
+				vec3(0.1340042065f, 0.6740817658f, 0.0040607335f),
+				vec3(0.1561876870f, 0.0536895174f, 1.0103391003f)
+			);
+
+			/**
+			 * Encodes a 10bit linear color into 8bits by converting it to log space.
+			 *
+			 * @param 	linearColor		Linear color.
+			 * @return					Encoded color in log space.
+			 */			
+			void LinearToLogColor(vec3 linearColor, out vec3 result)
+			{
+				float linearRange = 14.0f;
+				float linearGrey = 0.18f;
+				float exposureGrey = 444.0f;
+
+				vec3 logColor = log2(linearColor) / linearRange - log2(linearGrey) / linearRange + exposureGrey / 1023.0f;
+				result = clamp(logColor, 0.0f, 1.0f);
+			}
+
+			/**
+			 * Decodes a 8bit log encoded color back into linear space.
+			 *
+			 * @param 	logColor		Log space color.
+			 * @return					Color in linear space.
+			 */			
+			void LogToLinearColor(vec3 logColor, out vec3 result)
+			{
+				float linearRange = 14.0f;
+				float linearGrey = 0.18f;
+				float exposureGrey = 444.0f;
+
+				result = exp2((logColor - exposureGrey / 1023.0f) * linearRange) * linearGrey;
+			}
+
+			/**
+			 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies Rec.709 transfer function). 
+			 * Rec.709 values are suitable for HDTVs and projectors.
+			 *
+			 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
+			 * @return					Gamma corrected color.
+			 */				
+			void LinearToGammaRec709(vec3 linearColor, out vec3 result) 
+			{
+				// TODO: Clamp lower end of linear color so it isn't denormalized?
+				result = min(linearColor * 4.5f, pow(max(linearColor, 0.018f), vec3(0.45f)) * 1.099f - 0.099f);
+			}
+
+			/**
+			 * Converts a linear color value in sRGB/Rec.709 color space into gamma space (applies sRGB transfer function). 
+			 * sRGB values are suitable for PC displays.
+			 *
+			 * @param 	linearColor		Linear color in sRGB/Rec.709 color space.
+			 * @return					Gamma corrected color.
+			 */		
+			void LinearToGammasRGB(vec3 linearColor, out vec3 result) 
+			{
+				// TODO: Clamp lower end of linear color so it isn't denormalized?
+				result = min(linearColor * 12.92f, pow(max(linearColor, 0.00313067f), vec3(1.0f/2.4f)) * 1.055f - 0.055f);
+			}			
 		};
 	};
 };

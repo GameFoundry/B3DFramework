@@ -59,7 +59,41 @@ Technique : inherits("PPBase") =
 	{
 		Fragment =
 		{
-			// TODO
+			in VStoFS
+			{
+				vec2 uv0;
+			} input;
+		
+			uniform Input
+			{
+				uint gThreadGroupCount;
+			};
+		
+			uniform sampler2D gHistogramTex;
+			uniform sampler2D gEyeAdaptationTex;
+
+			out vec4 fragColor;
+			
+			void main()
+			{
+				ivec2 iUV = ivec2(trunc(input.uv0));
+				vec4 outputValue = vec4(0.0f);
+
+				// Output texture only has two rows, store histogram on the first
+				if(input.uv0.y < 1.0f)
+				{
+					// TODO - Potentially optimize using bilinear filtering
+					for(uint i = 0; i < gThreadGroupCount; i++)
+						outputValue += texelFetch(gHistogramTex, ivec2(iUV.x, i), 0);
+
+					fragColor = outputValue / gThreadGroupCount;
+				}
+				else
+				{
+					// Store eye adaptation from last frame in the second row of the texture
+					fragColor = texelFetch(gEyeAdaptationTex, ivec2(0, 0), 0).xxxx;
+				}
+			}	
 		};
 	};
 };

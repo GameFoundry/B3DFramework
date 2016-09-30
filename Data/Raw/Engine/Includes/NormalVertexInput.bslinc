@@ -151,7 +151,7 @@ Technique
 				tangentToLocal[2] = normal;
 			}
 
-			void getVertexWorldPosition(VertexIntermediate intermediate, out vec4 result)
+			void getVertexIntermediate(out VertexIntermediate result)
 			{
 				vec3 normal = bs_normal * 2.0f - 1.0f;
 				vec3 tangent = bs_tangent.xyz * 2.0f - 1.0f;
@@ -172,7 +172,7 @@ Technique
 				result.worldTangent = vec4(tangentToWorld[0].xyz, tangentSign); // Tangent basis vector
 			}
 			
-			void getVertexWorldPosition(out vec4 result)
+			void getVertexWorldPosition(VertexIntermediate intermediate, out vec4 result)
 			{
 				#ifdef USE_BLEND_SHAPES
 					vec4 position = vec4(bs_position + bs_position1, 1.0f);

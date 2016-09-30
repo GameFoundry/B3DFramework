@@ -534,18 +534,22 @@ namespace BansheeEngine
 			desc.elementSize = 4;
 			break;
 		case GL_INT:
+		case GL_UNSIGNED_INT:
 			desc.type = GPDT_INT1;
 			desc.elementSize = 1;
 			break;
 		case GL_INT_VEC2:
+		case GL_UNSIGNED_INT_VEC2:
 			desc.type = GPDT_INT2;
 			desc.elementSize = 2;
 			break;
 		case GL_INT_VEC3:
+		case GL_UNSIGNED_INT_VEC3:
 			desc.type = GPDT_INT3;
 			desc.elementSize = 3;
 			break;
 		case GL_INT_VEC4:
+		case GL_UNSIGNED_INT_VEC4:
 			desc.type = GPDT_INT4;
 			desc.elementSize = 4;
 			break;

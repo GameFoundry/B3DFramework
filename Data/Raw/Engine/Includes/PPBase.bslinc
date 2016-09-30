@@ -43,9 +43,29 @@ Technique : base("PPBase") =
 	
 	Pass =
 	{
+		DepthWrite = false;
+		DepthRead = false;
+	
 		Vertex =
 		{
-			// TODO
+			in vec2 bs_position;
+			in vec2 bs_texcoord0;
+			
+			out VStoFS
+			{
+				vec2 uv0;
+			} VSOutput;
+			
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+		
+			void main()
+			{
+				gl_Position = vec4(bs_position, 0, 1);
+				VSOutput.uv0 = bs_texcoord0;
+			}			
 		};
 	};
 };

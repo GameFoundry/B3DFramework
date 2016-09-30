@@ -161,7 +161,7 @@ Technique
 			in vec4 bs_tangent;
 			in vec2 bs_texcoord0;
 		
-			in uvec4 bs_blendindices;
+			in ivec4 bs_blendindices;
 			in vec4 bs_blendweights;
 				
 			#ifdef USE_BLEND_SHAPES
@@ -184,7 +184,7 @@ Technique
 				vec4 gl_Position;
 			};
 			
-			void getBoneMatrix(uint idx, out mat4x3 result)
+			void getBoneMatrix(int idx, out mat4x3 result)
 			{
 				mat3x4 temp;
 			
@@ -199,16 +199,16 @@ Technique
 			{
 				mat4x3 boneMatrix;
 				
-				getBoneMatrix(bs_blendindices.x, out boneMatrix);
+				getBoneMatrix(bs_blendindices.x, boneMatrix);
 				result = bs_blendweights.x * boneMatrix;
 				
-				getBoneMatrix(bs_blendindices.y, out boneMatrix);
+				getBoneMatrix(bs_blendindices.y, boneMatrix);
 				result += bs_blendweights.y * boneMatrix;
 				
-				getBoneMatrix(bs_blendindices.z, out boneMatrix);
+				getBoneMatrix(bs_blendindices.z, boneMatrix);
 				result += bs_blendweights.z * boneMatrix;
 				
-				getBoneMatrix(bs_blendindices.w, out boneMatrix);
+				getBoneMatrix(bs_blendindices.w, boneMatrix);
 				result += bs_blendweights.w * boneMatrix;
 			}
 			
@@ -242,7 +242,7 @@ Technique
 				
 				float tangentSign;
 				mat3 tangentToLocal;
-				getSkinnedTangentToLocal(tangentSign, tangentToLocal);
+				getSkinnedTangentToLocal(result.blendMatrix, tangentSign, tangentToLocal);
 				
 				mat3 tangentToWorld = mat3(gMatWorldNoScale) * tangentToLocal;
 				result.worldNormal = tangentToWorld[2]; // Normal basis vector

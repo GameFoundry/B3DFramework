@@ -465,7 +465,7 @@ namespace BansheeEngine
 
 		// Increments counter and ensures all writes are recorded
 		mWorkerState.store(WorkerState::DataReady, std::memory_order_release);
-		mDataReadyCount.fetch_add(1, std::memory_order_release);
+		mDataReadyCount.fetch_add(1, std::memory_order_acq_rel);
 	}
 
 	void AnimationManager::waitUntilComplete()
@@ -474,13 +474,18 @@ namespace BansheeEngine
 
 		// Read counter, and ensure all reads are done after writes on anim thread complete
 		INT32 dataReadyCount = mDataReadyCount.load(std::memory_order_acquire);
-		assert(dataReadyCount <= CoreThread::NUM_SYNC_BUFFERS);
+
+		if (dataReadyCount > CoreThread::NUM_SYNC_BUFFERS)
+		{
+			LOGERR("Animation manager threading issue. Too many entries in queue: " + toString(dataReadyCount));
+			assert(dataReadyCount <= CoreThread::NUM_SYNC_BUFFERS);
+		}
 
 		mDataReady = dataReadyCount > 0;
 		if (!mDataReady)
 			return;
 
-		mDataReadyCount.fetch_add(-1, std::memory_order_relaxed);
+		mDataReadyCount.fetch_add(-1, std::memory_order_release);
 		mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
 	}
 

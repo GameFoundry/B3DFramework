@@ -60,7 +60,8 @@ Technique
 	};
 };
 
-Technique =
+Technique 
+	: inherits("DeferredLightPass") =
 {
 	Language = "GLSL";
 	
