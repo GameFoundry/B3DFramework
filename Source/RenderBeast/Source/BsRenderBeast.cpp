@@ -907,26 +907,6 @@ namespace BansheeEngine
 
 			const GpuParamDesc& paramDesc = params->getParamDesc();
 
-			for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-			{
-				SPtr<SamplerStateCore> samplerState;
-
-				if (samplerOverrides != nullptr)
-				{
-					UINT32 overrideIndex = samplerOverrides->passes[passIdx].stages[i].stateOverrides[iter->second.slot];
-					if(overrideIndex != (UINT32)-1)
-						samplerState = samplerOverrides->overrides[overrideIndex].state;
-				}
-				
-				if(samplerState == nullptr)
-					samplerState = params->getSamplerState(iter->second.slot);
-
-				if (samplerState == nullptr)
-					rapi.setSamplerState(stages[i], iter->second.slot, SamplerStateCore::getDefault());
-				else
-					rapi.setSamplerState(stages[i], iter->second.slot, samplerState);
-			}
-
 			for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
 			{
 				SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
@@ -960,6 +940,26 @@ namespace BansheeEngine
 				blockBuffer->flushToGPU();
 
 				rapi.setParamBuffer(stages[i], iter->second.slot, blockBuffer, paramDesc);
+			}
+
+			for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+			{
+				SPtr<SamplerStateCore> samplerState;
+
+				if (samplerOverrides != nullptr)
+				{
+					UINT32 overrideIndex = samplerOverrides->passes[passIdx].stages[i].stateOverrides[iter->second.slot];
+					if (overrideIndex != (UINT32)-1)
+						samplerState = samplerOverrides->overrides[overrideIndex].state;
+				}
+
+				if (samplerState == nullptr)
+					samplerState = params->getSamplerState(iter->second.slot);
+
+				if (samplerState == nullptr)
+					rapi.setSamplerState(stages[i], iter->second.slot, SamplerStateCore::getDefault());
+				else
+					rapi.setSamplerState(stages[i], iter->second.slot, samplerState);
 			}
 		}
 	}

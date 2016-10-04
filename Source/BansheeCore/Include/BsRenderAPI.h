@@ -326,7 +326,8 @@ namespace BansheeEngine
 		virtual const String& getShadingLanguageName() const = 0;
 
 		/**
-		 * Sets a sampler state for the specified texture unit.
+		 * Sets a sampler state for the specified texture unit. Make sure to assign the sampler state after the texture
+		 * has been assigned, as certain APIs will reset sampler state on texture bind.
 		 *
 		 * @param[in]	gptype			Determines to which GPU program slot to bind the sampler state.
 		 * @param[in]	texUnit			Texture unit index to bind the state to.
