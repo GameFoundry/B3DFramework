@@ -161,6 +161,11 @@ namespace BansheeEngine
 			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->getGLBufferId());
 			void* bufferData = VBO_BUFFER_OFFSET(elem.getOffset());
 
+			UINT16 typeCount = VertexElement::getTypeCount(elem.getType());
+			GLenum glType = GLHardwareBufferCoreManager::getGLType(elem.getType());
+			bool isInteger = glType == GL_SHORT || glType == GL_UNSIGNED_SHORT || glType == GL_INT 
+				|| glType == GL_UNSIGNED_INT || glType == GL_UNSIGNED_BYTE;
+
 			GLboolean normalized = GL_FALSE;
 			switch (elem.getType())
 			{
@@ -169,18 +174,24 @@ namespace BansheeEngine
 			case VET_COLOR_ARGB:
 			case VET_UBYTE4_NORM:
 				normalized = GL_TRUE;
+				isInteger = false;
 				break;
 			default:
 				break;
-			};
+			}
 
-			UINT16 typeCount = VertexElement::getTypeCount(elem.getType());
-			GLenum glType = GLHardwareBufferCoreManager::getGLType(elem.getType());
 			GLsizei vertexSize = static_cast<GLsizei>(vbProps.getVertexSize());
-			glVertexAttribPointer(attribLocation, typeCount, glType, normalized,
-				vertexSize, bufferData);
-			glVertexAttribDivisor(attribLocation, elem.getInstanceStepRate());
+			if(isInteger)
+			{
+				glVertexAttribIPointer(attribLocation, typeCount, glType, vertexSize, bufferData);
+			}
+			else
+			{
+				glVertexAttribPointer(attribLocation, typeCount, glType, normalized,
+					vertexSize, bufferData);
+			}
 
+			glVertexAttribDivisor(attribLocation, elem.getInstanceStepRate());
 			glEnableVertexAttribArray(attribLocation);
 		}
 
