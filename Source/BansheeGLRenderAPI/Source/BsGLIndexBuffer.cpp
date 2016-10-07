@@ -24,12 +24,12 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* GLIndexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* GLIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 		return mBuffer.lock(offset, length, options);
 	}
 
-	void GLIndexBufferCore::unlockImpl()
+	void GLIndexBufferCore::unmap()
 	{
 		mBuffer.unlock();
 	}

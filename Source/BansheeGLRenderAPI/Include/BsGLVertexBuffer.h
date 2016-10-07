@@ -41,10 +41,10 @@ namespace BansheeEngine
 		void initialize() override;
 
 		/** @copydoc VertexBufferCore::lockImpl */
-		void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
 		/** @copydoc VertexBufferCore::unlockImpl */
-		void unlockImpl() override;
+		void unmap() override;
 
 	private:
 		GLBuffer mBuffer;

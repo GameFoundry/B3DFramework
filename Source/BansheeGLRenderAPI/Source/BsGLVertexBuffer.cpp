@@ -43,12 +43,12 @@ namespace BansheeEngine
 			mVAObjects.erase(iterFind);
 	}
 
-	void* GLVertexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* GLVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
     {
 		return mBuffer.lock(offset, length, options);
     }
 
-	void GLVertexBufferCore::unlockImpl()
+	void GLVertexBufferCore::unmap()
     {
 		mBuffer.unlock();
     }

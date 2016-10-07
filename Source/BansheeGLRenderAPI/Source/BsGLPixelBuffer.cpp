@@ -11,12 +11,11 @@
 
 namespace BansheeEngine 
 {
-	GLPixelBuffer::GLPixelBuffer(UINT32 inWidth, UINT32 inHeight, UINT32 inDepth,
-					PixelFormat inFormat, GpuBufferUsage usage)
-					: PixelBuffer(inWidth, inHeight, inDepth, inFormat, usage, false),
-					  mBuffer(inWidth, inHeight, inDepth, inFormat),
-					  mGLInternalFormat(GL_NONE)
+	GLPixelBuffer::GLPixelBuffer(UINT32 inWidth, UINT32 inHeight, UINT32 inDepth, PixelFormat inFormat, GpuBufferUsage usage)
+		: mUsage(usage), mIsLocked(false), mWidth(inWidth), mHeight(inHeight), mDepth(inDepth), mFormat(inFormat)
+		, mBuffer(inWidth, inHeight, inDepth, inFormat), mGLInternalFormat(GL_NONE)
 	{
+		mSizeInBytes = mHeight*mWidth*PixelUtil::getNumElemBytes(mFormat);
 		mCurrentLockOptions = (GpuLockOptions)0;
 	}
 
@@ -42,11 +41,21 @@ namespace BansheeEngine
 		}
 	}
 
-	PixelData GLPixelBuffer::lockImpl(PixelVolume lockBox, GpuLockOptions options)
+	void* GLPixelBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options)
+	{
+		assert(!mIsLocked && "Cannot lock this buffer, it is already locked!");
+		assert(offset == 0 && length == mSizeInBytes && "Cannot lock memory region, most lock box or entire buffer");
+
+		PixelVolume volume(0, 0, 0, mWidth, mHeight, mDepth);
+		const PixelData& lockedData = lock(volume, options);
+		return lockedData.getData();
+	}
+
+	const PixelData& GLPixelBuffer::lock(const PixelVolume& lockBox, GpuLockOptions options)
 	{
 		allocateBuffer();
 
-		if(options != GBL_WRITE_ONLY_DISCARD) 
+		if (options != GBL_WRITE_ONLY_DISCARD)
 		{
 			// Download the old contents of the texture
 			download(mBuffer);
@@ -54,18 +63,25 @@ namespace BansheeEngine
 
 		mCurrentLockOptions = options;
 		mLockedBox = lockBox;
-		return mBuffer.getSubVolume(lockBox);
+
+		mCurrentLock = mBuffer.getSubVolume(lockBox);
+		mIsLocked = true;
+
+		return mCurrentLock;
 	}
 
-	void GLPixelBuffer::unlockImpl(void)
+	void GLPixelBuffer::unlock()
 	{
+		assert(mIsLocked && "Cannot unlock this buffer, it is not locked!");
+
 		if (mCurrentLockOptions != GBL_READ_ONLY)
 		{
 			// From buffer to card, only upload if was locked for writing
 			upload(mCurrentLock, mLockedBox);
 		}
-	
+
 		freeBuffer();
+		mIsLocked = false;
 	}
 
 	void GLPixelBuffer::upload(const PixelData& data, const PixelVolume& dest)
@@ -135,8 +151,6 @@ namespace BansheeEngine
 		mFormat = GLPixelUtil::getClosestEngineFormat(value);
 	
 		// Default
-		mRowPitch = mWidth;
-		mSlicePitch = mHeight*mWidth;
 		mSizeInBytes = PixelUtil::getMemorySize(mWidth, mHeight, mDepth, mFormat);
 	
 		// Set up pixel box

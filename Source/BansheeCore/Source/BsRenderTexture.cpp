@@ -2,7 +2,6 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsRenderTexture.h"
 #include "BsException.h"
-#include "BsPixelBuffer.h"
 #include "BsTexture.h"
 #include "BsTextureManager.h"
 #include "BsResources.h"

@@ -28,7 +28,7 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* D3D11IndexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -45,7 +45,7 @@ namespace BansheeEngine
 		return mBuffer->lock(offset, length, options);
 	}
 
-	void D3D11IndexBufferCore::unlockImpl()
+	void D3D11IndexBufferCore::unmap()
 	{
 		mBuffer->unlock();
 	}

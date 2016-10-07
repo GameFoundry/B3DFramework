@@ -57,10 +57,10 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc HardwareBuffer::lockImpl */
-		void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
 		/** @copydoc HardwareBuffer::unlockImpl */
-		void unlockImpl() override;
+		void unmap() override;
 
 		BufferType mBufferType;
 		bool mRandomGpuWrite;

@@ -18,7 +18,7 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
-	void* D3D11VertexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11VertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -35,7 +35,7 @@ namespace BansheeEngine
 		return mBuffer->lock(offset, length, options);
 	}
 
-	void D3D11VertexBufferCore::unlockImpl()
+	void D3D11VertexBufferCore::unmap()
 	{
 		mBuffer->unlock();
 	}

@@ -92,7 +92,7 @@ namespace BansheeEngine
 			bs_delete(mpTempStagingBuffer);
 	}
 
-	void* D3D11HardwareBuffer::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 		if (length > mSizeInBytes)
 			BS_EXCEPT(RenderingAPIException, "Provided length " + toString(length) + " larger than the buffer " + toString(mSizeInBytes) + ".");		
@@ -195,7 +195,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HardwareBuffer::unlockImpl(void)
+	void D3D11HardwareBuffer::unmap(void)
 	{
 		if (mUseTempStagingBuffer)
 		{

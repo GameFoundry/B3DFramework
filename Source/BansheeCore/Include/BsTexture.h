@@ -324,7 +324,7 @@ namespace BansheeEngine
 
 		friend class TextureRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
     };
 
 	/** @} */
@@ -348,7 +348,7 @@ namespace BansheeEngine
 
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/**
 		 * Updates a part of the texture with the provided data.
@@ -424,13 +424,6 @@ namespace BansheeEngine
 		 *									performance of the write operation.
 		 */
 		virtual void writeData(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, bool discardWholeBuffer = false) = 0;
-
-		/**
-		 * Returns true if the texture can be bound to a shader.
-		 *
-		 * @note	This is only false for some rare special cases (for example AA render texture in DX9). Internal method.
-		 */
-		virtual bool isBindableAsShaderResource() const { return true; }
 
 		/**	Returns properties that contain information about the texture. */
 		const TextureProperties& getProperties() const { return mProperties; }
