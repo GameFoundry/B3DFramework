@@ -57,7 +57,7 @@ namespace BansheeEngine
 		GpuParamsBase& operator=(const GpuParamsBase& rhs) = delete;
 
 		/** Returns a description of all stored parameters. */
-		const GpuParamDesc& getParamDesc() const { return *mParamDesc; }
+		SPtr<GpuParamDesc> getParamDesc() const { return mParamDesc; }
 
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.

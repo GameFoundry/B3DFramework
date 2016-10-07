@@ -52,7 +52,7 @@ namespace BansheeEngine
 		}
         
         // Check if this is a valid rendertarget format
-		if( usage & TU_RENDERTARGET )
+		if(usage & TU_RENDERTARGET)
         {
             /// Get closest supported alternative
             /// If mFormat is supported it's returned

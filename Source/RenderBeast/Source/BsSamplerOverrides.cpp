@@ -73,9 +73,9 @@ namespace BansheeEngine
 					if (paramsPtr == nullptr)
 						continue;
 
-					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
+					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc();
 
-					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 						maxSamplerSlot = std::max(maxSamplerSlot, slot + 1);
@@ -116,9 +116,9 @@ namespace BansheeEngine
 					if (paramsPtr == nullptr)
 						continue;
 
-					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
+					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc();
 
-					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 						while (slot > stageOverrides.numStates)

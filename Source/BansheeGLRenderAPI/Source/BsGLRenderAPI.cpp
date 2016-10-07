@@ -25,6 +25,8 @@
 #include "BsRenderStats.h"
 #include "BsGpuParamDesc.h"
 #include "BsGLGpuBuffer.h"
+#include "BsGLCommandBuffer.h"
+#include "BsGLCommandBufferManager.h"
 
 namespace BansheeEngine 
 {
@@ -64,8 +66,6 @@ namespace BansheeEngine
 		// Get our GLSupport
 		mGLSupport = BansheeEngine::getGLSupport();
 
-		mViewMatrix = Matrix4::IDENTITY;
-
 		mColorWrite[0] = mColorWrite[1] = mColorWrite[2] = mColorWrite[3] = true;
 
 		mCurrentContext = 0;
@@ -102,6 +102,9 @@ namespace BansheeEngine
 
 		mGLSupport->start();
 		mVideoModeInfo = mGLSupport->getVideoModeInfo();
+
+		CommandBufferManager::startUp<GLCommandBufferManager>();
+		gMainCommandBuffer = CommandBuffer::create(CBT_GRAPHICS);
 
 		RenderWindowManager::startUp<GLRenderWindowManager>(this);
 		RenderWindowCoreManager::startUp<GLRenderWindowCoreManager>(this);
@@ -173,7 +176,9 @@ namespace BansheeEngine
 		HardwareBufferManager::shutDown();
 		GLRTTManager::shutDown();
 
-		mBoundVertexBuffers.clear();
+		for (UINT32 i = 0; i < MAX_VB_COUNT; i++)
+			mBoundVertexBuffers[i] = nullptr;
+
 		mBoundVertexDeclaration = nullptr;
 		mBoundIndexBuffer = nullptr;
 
@@ -193,6 +198,7 @@ namespace BansheeEngine
 		RenderWindowManager::shutDown();
 		RenderStateCoreManager::shutDown();
 		GLVertexArrayObjectManager::shutDown(); // Note: Needs to be after QueryManager shutdown as some resources might be waiting for queries to complete
+		CommandBufferManager::shutDown();
 
 		mGLInitialised = false;
 
@@ -209,280 +215,183 @@ namespace BansheeEngine
 			bs_deleteN(mImageInfos, mNumImageUnits);
 	}
 
-	void GLRenderAPI::bindGpuProgram(const SPtr<GpuProgramCore>& prg)
+	void GLRenderAPI::bindGpuProgram(const SPtr<GpuProgramCore>& prg, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		GpuProgramType type = prg->getProperties().getType();
-		SPtr<GLSLGpuProgramCore> glprg = std::static_pointer_cast<GLSLGpuProgramCore>(prg);
+			GpuProgramType type = prg->getProperties().getType();
+			SPtr<GLSLGpuProgramCore> glprg = std::static_pointer_cast<GLSLGpuProgramCore>(prg);
 
-		setActiveProgram(type, glprg);
+			setActiveProgram(type, glprg);
+		};
 
-		RenderAPICore::bindGpuProgram(prg);
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::unbindGpuProgram(GpuProgramType gptype)
+	void GLRenderAPI::unbindGpuProgram(GpuProgramType gptype, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		setActiveProgram(gptype, nullptr);
+			setActiveProgram(gptype, nullptr);
+		};
 
-		RenderAPICore::unbindGpuProgram(gptype);
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
 	void GLRenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-		const GpuParamDesc& paramDesc)
+		const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if (buffer == nullptr)
-			return;
-
-		SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
-		GLuint glProgram = activeProgram->getGLHandle();
-
-		// 0 means uniforms are not in block, in which case we handle it specially
-		if (slot == 0)
+		auto execute = [=]()
 		{
-			UINT8* uniformBufferData = (UINT8*)bs_stack_alloc(buffer->getSize());
-			buffer->read(0, uniformBufferData, buffer->getSize());
+			THROW_IF_NOT_CORE_THREAD;
 
-			bool hasBoundAtLeastOne = false;
-			for (auto iter = paramDesc.params.begin(); iter != paramDesc.params.end(); ++iter)
+			if (buffer == nullptr)
+				return;
+
+			SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
+			GLuint glProgram = activeProgram->getGLHandle();
+
+			// 0 means uniforms are not in block, in which case we handle it specially
+			if (slot == 0)
 			{
-				const GpuParamDataDesc& param = iter->second;
+				UINT8* uniformBufferData = (UINT8*)bs_stack_alloc(buffer->getSize());
+				buffer->read(0, uniformBufferData, buffer->getSize());
 
-				if (param.paramBlockSlot != 0) // 0 means uniforms are not in a block
-					continue;
-
-				const UINT8* ptrData = uniformBufferData + param.cpuMemOffset * sizeof(UINT32);
-				hasBoundAtLeastOne = true;
-
-				// Note: We don't transpose matrices here even though we don't use column major format
-				// because they are assumed to be pre-transposed in the GpuParams buffer
-				switch (param.type)
+				for (auto iter = paramDesc->params.begin(); iter != paramDesc->params.end(); ++iter)
 				{
-				case GPDT_FLOAT1:
-					glProgramUniform1fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
-					break;
-				case GPDT_FLOAT2:
-					glProgramUniform2fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
-					break;
-				case GPDT_FLOAT3:
-					glProgramUniform3fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
-					break;
-				case GPDT_FLOAT4:
-					glProgramUniform4fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_2X2:
-					glProgramUniformMatrix2fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_2X3:
-					glProgramUniformMatrix3x2fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_2X4:
-					glProgramUniformMatrix4x2fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_3X2:
-					glProgramUniformMatrix2x3fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_3X3:
-					glProgramUniformMatrix3fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_3X4:
-					glProgramUniformMatrix4x3fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_4X2:
-					glProgramUniformMatrix2x4fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_4X3:
-					glProgramUniformMatrix3x4fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_MATRIX_4X4:
-					glProgramUniformMatrix4fv(glProgram, param.gpuMemOffset, param.arraySize,
-						GL_FALSE, (GLfloat*)ptrData);
-					break;
-				case GPDT_INT1:
-					glProgramUniform1iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
-					break;
-				case GPDT_INT2:
-					glProgramUniform2iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
-					break;
-				case GPDT_INT3:
-					glProgramUniform3iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
-					break;
-				case GPDT_INT4:
-					glProgramUniform4iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
-					break;
-				case GPDT_BOOL:
-					glProgramUniform1uiv(glProgram, param.gpuMemOffset, param.arraySize, (GLuint*)ptrData);
-					break;
-				default:
-				case GPDT_UNKNOWN:
-					break;
+					const GpuParamDataDesc& param = iter->second;
+
+					if (param.paramBlockSlot != 0) // 0 means uniforms are not in a block
+						continue;
+
+					const UINT8* ptrData = uniformBufferData + param.cpuMemOffset * sizeof(UINT32);
+
+					// Note: We don't transpose matrices here even though we don't use column major format
+					// because they are assumed to be pre-transposed in the GpuParams buffer
+					switch (param.type)
+					{
+					case GPDT_FLOAT1:
+						glProgramUniform1fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+						break;
+					case GPDT_FLOAT2:
+						glProgramUniform2fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+						break;
+					case GPDT_FLOAT3:
+						glProgramUniform3fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+						break;
+					case GPDT_FLOAT4:
+						glProgramUniform4fv(glProgram, param.gpuMemOffset, param.arraySize, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_2X2:
+						glProgramUniformMatrix2fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_2X3:
+						glProgramUniformMatrix3x2fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_2X4:
+						glProgramUniformMatrix4x2fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_3X2:
+						glProgramUniformMatrix2x3fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_3X3:
+						glProgramUniformMatrix3fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_3X4:
+						glProgramUniformMatrix4x3fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_4X2:
+						glProgramUniformMatrix2x4fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_4X3:
+						glProgramUniformMatrix3x4fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_MATRIX_4X4:
+						glProgramUniformMatrix4fv(glProgram, param.gpuMemOffset, param.arraySize,
+							GL_FALSE, (GLfloat*)ptrData);
+						break;
+					case GPDT_INT1:
+						glProgramUniform1iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+						break;
+					case GPDT_INT2:
+						glProgramUniform2iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+						break;
+					case GPDT_INT3:
+						glProgramUniform3iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+						break;
+					case GPDT_INT4:
+						glProgramUniform4iv(glProgram, param.gpuMemOffset, param.arraySize, (GLint*)ptrData);
+						break;
+					case GPDT_BOOL:
+						glProgramUniform1uiv(glProgram, param.gpuMemOffset, param.arraySize, (GLuint*)ptrData);
+						break;
+					default:
+					case GPDT_UNKNOWN:
+						break;
+					}
+				}
+
+				if (uniformBufferData != nullptr)
+				{
+					bs_stack_free(uniformBufferData);
 				}
 			}
-
-			if (hasBoundAtLeastOne)
-				BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
-
-			if (uniformBufferData != nullptr)
+			else
 			{
-				bs_stack_free(uniformBufferData);
+				const GLGpuParamBlockBufferCore* glParamBlockBuffer = static_cast<const GLGpuParamBlockBufferCore*>(buffer.get());
+
+				UINT32 globalBlockBinding = getGLUniformBlockBinding(gptype, slot - 1);
+				glUniformBlockBinding(glProgram, slot - 1, globalBlockBinding);
+				glBindBufferRange(GL_UNIFORM_BUFFER, globalBlockBinding, glParamBlockBuffer->getGLHandle(), 0,
+					glParamBlockBuffer->getSize());
 			}
-		}
-		else
-		{
-			const GLGpuParamBlockBufferCore* glParamBlockBuffer = static_cast<const GLGpuParamBlockBufferCore*>(buffer.get());
+		};
 
-			UINT32 globalBlockBinding = getGLUniformBlockBinding(gptype, slot - 1);
-			glUniformBlockBinding(glProgram, slot - 1, globalBlockBinding);
-			glBindBufferRange(GL_UNIFORM_BUFFER, globalBlockBinding, glParamBlockBuffer->getGLHandle(), 0, 
-				glParamBlockBuffer->getSize());
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
-			BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
-		}
+		BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
 	}
 
-	void GLRenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr)
+	void GLRenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		UINT32 texUnit = getGLTextureUnit(gptype, unit);
-		if (!activateGLTextureUnit(texUnit))
-			return;
-
-		SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
-		if (tex != nullptr)
+		auto execute = [=]()
 		{
-			GLenum newTextureType = tex->getGLTextureTarget();
+			THROW_IF_NOT_CORE_THREAD;
 
-			if(mTextureInfos[texUnit].type != newTextureType)
-				glBindTexture(mTextureInfos[texUnit].type, 0);
-
-			mTextureInfos[texUnit].type = newTextureType;
-			mTextureInfos[texUnit].samplerIdx = unit;
-
-			mMaxBoundTexUnits[gptype] = std::max(mMaxBoundTexUnits[gptype], texUnit + 1);
-
-			glBindTexture(newTextureType, tex->getGLID());
-
-			SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
-			if (activeProgram != nullptr)
-			{
-				GLuint glProgram = activeProgram->getGLHandle();
-
-				glProgramUniform1i(glProgram, unit, texUnit);
-			}
-		}
-		else
-		{
-			glBindTexture(mTextureInfos[texUnit].type, 0);
-			mTextureInfos[texUnit].samplerIdx = (UINT32)-1;
-		}
-
-		activateGLTextureUnit(0);
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	void GLRenderAPI::setSamplerState(GpuProgramType gptype, UINT16 unit, const SPtr<SamplerStateCore>& state)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		const SamplerProperties& stateProps = state->getProperties();
-
-		UINT16 texUnit = getGLTextureUnit(gptype, unit);
-
-		// Set texture layer filtering
-		setTextureFiltering(texUnit, FT_MIN, stateProps.getTextureFiltering(FT_MIN));
-		setTextureFiltering(texUnit, FT_MAG, stateProps.getTextureFiltering(FT_MAG));
-		setTextureFiltering(texUnit, FT_MIP, stateProps.getTextureFiltering(FT_MIP));
-
-		// Set texture anisotropy
-		setTextureAnisotropy(texUnit, stateProps.getTextureAnisotropy());
-
-		// Set mipmap biasing
-		setTextureMipmapBias(texUnit, stateProps.getTextureMipmapBias());
-
-		// Texture addressing mode
-		const UVWAddressingMode& uvw = stateProps.getTextureAddressingMode();
-		setTextureAddressingMode(texUnit, uvw);
-
-		// Set border color
-		setTextureBorderColor(texUnit, stateProps.getBorderColor());
-
-		mTextureInfos[texUnit].samplerIdx = unit;
-		mMaxBoundTexUnits[gptype] = std::max(mMaxBoundTexUnits[gptype], (UINT32)texUnit + 1);
-
-		BS_INC_RENDER_STAT(NumSamplerBinds);
-	}
-
-	void GLRenderAPI::setLoadStoreTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
-		const TextureSurface& surface)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// TODO - OpenGL can't bind a certain subset of faces like DX11, only zero, one or all, so I'm ignoring numSlices parameter
-
-		UINT32 imageUnit = getGLImageUnit(gptype, unit);
-		if (texPtr != nullptr)
-		{
-			SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
-			glBindImageTexture(imageUnit, tex->getGLID(), surface.mipLevel, surface.numArraySlices > 1, 
-				surface.arraySlice, GL_READ_WRITE, tex->getGLFormat());
-
-			mImageInfos[imageUnit].uniformIdx = unit;
-			mMaxBoundImageUnits[gptype] = std::max(mMaxBoundImageUnits[gptype], imageUnit + 1);
-
-			SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
-			if (activeProgram != nullptr)
-			{
-				GLuint glProgram = activeProgram->getGLHandle();
-
-				glProgramUniform1i(glProgram, unit, imageUnit);
-			}
-		}
-		else
-		{
-			mImageInfos[imageUnit].uniformIdx = (UINT32)-1;
-			glBindImageTexture(imageUnit, 0, 0, false, 0, GL_READ_WRITE, GL_R32F);
-		}
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	/** @copydoc RenderAPICore::setBuffer */
-	void GLRenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		SPtr<GLGpuBufferCore> glBuffer = std::static_pointer_cast<GLGpuBufferCore>(buffer);
-		if (!loadStore)
-		{
 			UINT32 texUnit = getGLTextureUnit(gptype, unit);
 			if (!activateGLTextureUnit(texUnit))
 				return;
 
-			if (glBuffer != nullptr)
+			SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
+			if (tex != nullptr)
 			{
-				if (mTextureInfos[texUnit].type != GL_TEXTURE_BUFFER)
+				GLenum newTextureType = tex->getGLTextureTarget();
+
+				if (mTextureInfos[texUnit].type != newTextureType)
 					glBindTexture(mTextureInfos[texUnit].type, 0);
 
-				mTextureInfos[texUnit].type = GL_TEXTURE_BUFFER;
+				mTextureInfos[texUnit].type = newTextureType;
 				mTextureInfos[texUnit].samplerIdx = unit;
 
 				mMaxBoundTexUnits[gptype] = std::max(mMaxBoundTexUnits[gptype], texUnit + 1);
 
-				glBindTexture(GL_TEXTURE_BUFFER, glBuffer->getGLTextureId());
+				glBindTexture(newTextureType, tex->getGLID());
 
 				SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
 				if (activeProgram != nullptr)
@@ -494,19 +403,73 @@ namespace BansheeEngine
 			}
 			else
 			{
-				mTextureInfos[texUnit].samplerIdx = (UINT32)-1;
 				glBindTexture(mTextureInfos[texUnit].type, 0);
+				mTextureInfos[texUnit].samplerIdx = (UINT32)-1;
 			}
 
 			activateGLTextureUnit(0);
-		}
-		else
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		BS_INC_RENDER_STAT(NumTextureBinds);
+	}
+
+	void GLRenderAPI::setSamplerState(GpuProgramType gptype, UINT16 unit, const SPtr<SamplerStateCore>& state,
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto execute = [=]()
 		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			const SamplerProperties& stateProps = state->getProperties();
+
+			UINT16 texUnit = getGLTextureUnit(gptype, unit);
+
+			// Set texture layer filtering
+			setTextureFiltering(texUnit, FT_MIN, stateProps.getTextureFiltering(FT_MIN));
+			setTextureFiltering(texUnit, FT_MAG, stateProps.getTextureFiltering(FT_MAG));
+			setTextureFiltering(texUnit, FT_MIP, stateProps.getTextureFiltering(FT_MIP));
+
+			// Set texture anisotropy
+			setTextureAnisotropy(texUnit, stateProps.getTextureAnisotropy());
+
+			// Set mipmap biasing
+			setTextureMipmapBias(texUnit, stateProps.getTextureMipmapBias());
+
+			// Texture addressing mode
+			const UVWAddressingMode& uvw = stateProps.getTextureAddressingMode();
+			setTextureAddressingMode(texUnit, uvw);
+
+			// Set border color
+			setTextureBorderColor(texUnit, stateProps.getBorderColor());
+
+			mTextureInfos[texUnit].samplerIdx = unit;
+			mMaxBoundTexUnits[gptype] = std::max(mMaxBoundTexUnits[gptype], (UINT32)texUnit + 1);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		BS_INC_RENDER_STAT(NumSamplerBinds);
+	}
+
+	void GLRenderAPI::setLoadStoreTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
+		const TextureSurface& surface, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			// TODO - OpenGL can't bind a certain subset of faces like DX11, only zero, one or all, so I'm ignoring numSlices parameter
+
 			UINT32 imageUnit = getGLImageUnit(gptype, unit);
-			if (glBuffer != nullptr)
+			if (texPtr != nullptr)
 			{
-				glBindImageTexture(imageUnit, glBuffer->getGLTextureId(), 0, false,
-					0, GL_READ_WRITE, glBuffer->getGLFormat());
+				SPtr<GLTextureCore> tex = std::static_pointer_cast<GLTextureCore>(texPtr);
+				glBindImageTexture(imageUnit, tex->getGLID(), surface.mipLevel, surface.numArraySlices > 1,
+					surface.arraySlice, GL_READ_WRITE, tex->getGLFormat());
 
 				mImageInfos[imageUnit].uniformIdx = unit;
 				mMaxBoundImageUnits[gptype] = std::max(mMaxBoundImageUnits[gptype], imageUnit + 1);
@@ -524,203 +487,368 @@ namespace BansheeEngine
 				mImageInfos[imageUnit].uniformIdx = (UINT32)-1;
 				glBindImageTexture(imageUnit, 0, 0, false, 0, GL_READ_WRITE, GL_R32F);
 			}
-		}
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumTextureBinds);
 	}
 
-	void GLRenderAPI::setBlendState(const SPtr<BlendStateCore>& blendState)
+	/** @copydoc RenderAPICore::setBuffer */
+	void GLRenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		const BlendProperties& stateProps = blendState->getProperties();
-
-		// Alpha to coverage
-		setAlphaToCoverage(stateProps.getAlphaToCoverageEnabled());
-
-		// Blend states
-		// OpenGL doesn't allow us to specify blend state per render target, so we just use the first one.
-		if (stateProps.getBlendEnabled(0))
+		auto execute = [=]()
 		{
-			setSceneBlending(stateProps.getSrcBlend(0), stateProps.getDstBlend(0), stateProps.getAlphaSrcBlend(0),
-				stateProps.getAlphaDstBlend(0), stateProps.getBlendOperation(0), stateProps.getAlphaBlendOperation(0));
-		}
-		else
-		{
-			setSceneBlending(BF_ONE, BF_ZERO, BO_ADD);
-		}
+			THROW_IF_NOT_CORE_THREAD;
 
-		// Color write mask
-		UINT8 writeMask = stateProps.getRenderTargetWriteMask(0);
-		setColorBufferWriteEnabled((writeMask & 0x1) != 0, (writeMask & 0x2) != 0, (writeMask & 0x4) != 0, (writeMask & 0x8) != 0);
+			SPtr<GLGpuBufferCore> glBuffer = std::static_pointer_cast<GLGpuBufferCore>(buffer);
+			if (!loadStore)
+			{
+				UINT32 texUnit = getGLTextureUnit(gptype, unit);
+				if (!activateGLTextureUnit(texUnit))
+					return;
+
+				if (glBuffer != nullptr)
+				{
+					if (mTextureInfos[texUnit].type != GL_TEXTURE_BUFFER)
+						glBindTexture(mTextureInfos[texUnit].type, 0);
+
+					mTextureInfos[texUnit].type = GL_TEXTURE_BUFFER;
+					mTextureInfos[texUnit].samplerIdx = unit;
+
+					mMaxBoundTexUnits[gptype] = std::max(mMaxBoundTexUnits[gptype], texUnit + 1);
+
+					glBindTexture(GL_TEXTURE_BUFFER, glBuffer->getGLTextureId());
+
+					SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
+					if (activeProgram != nullptr)
+					{
+						GLuint glProgram = activeProgram->getGLHandle();
+
+						glProgramUniform1i(glProgram, unit, texUnit);
+					}
+				}
+				else
+				{
+					mTextureInfos[texUnit].samplerIdx = (UINT32)-1;
+					glBindTexture(mTextureInfos[texUnit].type, 0);
+				}
+
+				activateGLTextureUnit(0);
+			}
+			else
+			{
+				UINT32 imageUnit = getGLImageUnit(gptype, unit);
+				if (glBuffer != nullptr)
+				{
+					glBindImageTexture(imageUnit, glBuffer->getGLTextureId(), 0, false,
+						0, GL_READ_WRITE, glBuffer->getGLFormat());
+
+					mImageInfos[imageUnit].uniformIdx = unit;
+					mMaxBoundImageUnits[gptype] = std::max(mMaxBoundImageUnits[gptype], imageUnit + 1);
+
+					SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(gptype);
+					if (activeProgram != nullptr)
+					{
+						GLuint glProgram = activeProgram->getGLHandle();
+
+						glProgramUniform1i(glProgram, unit, imageUnit);
+					}
+				}
+				else
+				{
+					mImageInfos[imageUnit].uniformIdx = (UINT32)-1;
+					glBindImageTexture(imageUnit, 0, 0, false, 0, GL_READ_WRITE, GL_R32F);
+				}
+			}
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		BS_INC_RENDER_STAT(NumTextureBinds);
+	}
+
+	void GLRenderAPI::setBlendState(const SPtr<BlendStateCore>& blendState,
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			const BlendProperties& stateProps = blendState->getProperties();
+
+			// Alpha to coverage
+			setAlphaToCoverage(stateProps.getAlphaToCoverageEnabled());
+
+			// Blend states
+			// OpenGL doesn't allow us to specify blend state per render target, so we just use the first one.
+			if (stateProps.getBlendEnabled(0))
+			{
+				setSceneBlending(stateProps.getSrcBlend(0), stateProps.getDstBlend(0), stateProps.getAlphaSrcBlend(0),
+					stateProps.getAlphaDstBlend(0), stateProps.getBlendOperation(0), stateProps.getAlphaBlendOperation(0));
+			}
+			else
+			{
+				setSceneBlending(BF_ONE, BF_ZERO, BO_ADD);
+			}
+
+			// Color write mask
+			UINT8 writeMask = stateProps.getRenderTargetWriteMask(0);
+			setColorBufferWriteEnabled((writeMask & 0x1) != 0, (writeMask & 0x2) != 0, (writeMask & 0x4) != 0, (writeMask & 0x8) != 0);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumBlendStateChanges);
 	}
 
-	void GLRenderAPI::setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState)
+	void GLRenderAPI::setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		const RasterizerProperties& stateProps = rasterizerState->getProperties();
+			const RasterizerProperties& stateProps = rasterizerState->getProperties();
 
-		setDepthBias(stateProps.getDepthBias(), stateProps.getSlopeScaledDepthBias());
+			setDepthBias(stateProps.getDepthBias(), stateProps.getSlopeScaledDepthBias());
+			setCullingMode(stateProps.getCullMode());
+			setPolygonMode(stateProps.getPolygonMode());
+			setScissorTestEnable(stateProps.getScissorEnable());
+			setMultisamplingEnable(stateProps.getMultisampleEnable());
+			setDepthClipEnable(stateProps.getDepthClipEnable());
+			setAntialiasedLineEnable(stateProps.getAntialiasedLineEnable());
+		};
 
-		setCullingMode(stateProps.getCullMode());
-
-		setPolygonMode(stateProps.getPolygonMode());
-
-		setScissorTestEnable(stateProps.getScissorEnable());
-
-		setMultisamplingEnable(stateProps.getMultisampleEnable());
-
-		setDepthClipEnable(stateProps.getDepthClipEnable());
-
-		setAntialiasedLineEnable(stateProps.getAntialiasedLineEnable());
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumRasterizerStateChanges);
 	}
 
-	void GLRenderAPI::setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue)
+	void GLRenderAPI::setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		const DepthStencilProperties& stateProps = depthStencilState->getProperties();
+			const DepthStencilProperties& stateProps = depthStencilState->getProperties();
 
-		// Set stencil buffer options
-		setStencilCheckEnabled(stateProps.getStencilEnable());
+			// Set stencil buffer options
+			setStencilCheckEnabled(stateProps.getStencilEnable());
 
-		setStencilBufferOperations(stateProps.getStencilFrontFailOp(), stateProps.getStencilFrontZFailOp(), stateProps.getStencilFrontPassOp(), true);
-		setStencilBufferFunc(stateProps.getStencilFrontCompFunc(), stateProps.getStencilReadMask(), true);
+			setStencilBufferOperations(stateProps.getStencilFrontFailOp(), stateProps.getStencilFrontZFailOp(), stateProps.getStencilFrontPassOp(), true);
+			setStencilBufferFunc(stateProps.getStencilFrontCompFunc(), stateProps.getStencilReadMask(), true);
 
-		setStencilBufferOperations(stateProps.getStencilBackFailOp(), stateProps.getStencilBackZFailOp(), stateProps.getStencilBackPassOp(), false);
-		setStencilBufferFunc(stateProps.getStencilBackCompFunc(), stateProps.getStencilReadMask(), false);
+			setStencilBufferOperations(stateProps.getStencilBackFailOp(), stateProps.getStencilBackZFailOp(), stateProps.getStencilBackPassOp(), false);
+			setStencilBufferFunc(stateProps.getStencilBackCompFunc(), stateProps.getStencilReadMask(), false);
 
-		setStencilBufferWriteMask(stateProps.getStencilWriteMask());
+			setStencilBufferWriteMask(stateProps.getStencilWriteMask());
 
-		// Set depth buffer options
-		setDepthBufferCheckEnabled(stateProps.getDepthReadEnable());
-		setDepthBufferWriteEnabled(stateProps.getDepthWriteEnable());
-		setDepthBufferFunction(stateProps.getDepthComparisonFunc());
+			// Set depth buffer options
+			setDepthBufferCheckEnabled(stateProps.getDepthReadEnable());
+			setDepthBufferWriteEnabled(stateProps.getDepthWriteEnable());
+			setDepthBufferFunction(stateProps.getDepthComparisonFunc());
 
-		// Set stencil ref value
-		setStencilRefValue(stencilRefValue);
+			// Set stencil ref value
+			setStencilRefValue(stencilRefValue);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumDepthStencilStateChanges);
 	}
 
-	void GLRenderAPI::setViewport(const Rect2& area)
+	void GLRenderAPI::setViewport(const Rect2& area,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mViewportNorm = area;
-		applyViewport();
+			mViewportNorm = area;
+			applyViewport();
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil)
+	void GLRenderAPI::setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil, 
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// Switch context if different from current one
-		if (target != nullptr)
+		auto execute = [=]()
 		{
-			SPtr<GLContext> newContext;
-			target->getCustomAttribute("GLCONTEXT", &newContext);
-			if (newContext && mCurrentContext != newContext)
+			THROW_IF_NOT_CORE_THREAD;
+
+			// Switch context if different from current one
+			if (target != nullptr)
 			{
-				switchContext(newContext);
+				SPtr<GLContext> newContext;
+				target->getCustomAttribute("GLCONTEXT", &newContext);
+				if (newContext && mCurrentContext != newContext)
+				{
+					switchContext(newContext);
+				}
 			}
-		}
 
-		// This must happen after context switch to ensure previous context is still alive
-		mActiveRenderTarget = target;
+			// This must happen after context switch to ensure previous context is still alive
+			mActiveRenderTarget = target;
 
-		GLFrameBufferObject* fbo = nullptr;
+			GLFrameBufferObject* fbo = nullptr;
 
-		if(target != nullptr)
-			target->getCustomAttribute("FBO", &fbo);
+			if (target != nullptr)
+				target->getCustomAttribute("FBO", &fbo);
 
-		if (fbo != nullptr)
-		{
-			fbo->bind();
+			if (fbo != nullptr)
+			{
+				fbo->bind();
 
-			// Enable / disable sRGB states
-			if (target->getProperties().isHwGammaEnabled())
-				glEnable(GL_FRAMEBUFFER_SRGB);
+				// Enable / disable sRGB states
+				if (target->getProperties().isHwGammaEnabled())
+					glEnable(GL_FRAMEBUFFER_SRGB);
+				else
+					glDisable(GL_FRAMEBUFFER_SRGB);
+			}
 			else
-				glDisable(GL_FRAMEBUFFER_SRGB);
-		}
-		else
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		applyViewport();
+			applyViewport();
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumRenderTargetChanges);
 	}
 
-	void GLRenderAPI::beginFrame()
+	void GLRenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// Activate the viewport clipping
-		glEnable(GL_SCISSOR_TEST);
-	}
-
-	void GLRenderAPI::endFrame()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// Deactivate the viewport clipping.
-		glDisable(GL_SCISSOR_TEST);
-	}
-
-	void GLRenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if ((index + numBuffers) > (UINT32)mBoundVertexBuffers.size())
-			mBoundVertexBuffers.resize(index + numBuffers);
-
-		for(UINT32 i = 0; i < numBuffers; i++)
+		auto execute = [=]()
 		{
-			mBoundVertexBuffers[index + i] = buffers[i];
+			THROW_IF_NOT_CORE_THREAD;
+
+			// Activate the viewport clipping
+			glEnable(GL_SCISSOR_TEST);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+	}
+
+	void GLRenderAPI::endFrame(const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			// Deactivate the viewport clipping.
+			glDisable(GL_SCISSOR_TEST);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+	}
+
+	void GLRenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+#if BS_DEBUG_MODE
+		UINT32 lastIdx = index + numBuffers;
+		if(lastIdx > MAX_VB_COUNT)
+		{
+			LOGERR("Provided vertex buffer slot range is invalid: " + toString(index) + " to " + 
+				toString(index + numBuffers) + ".");
+			return;
 		}
+#endif
+
+		std::array<SPtr<VertexBufferCore>, MAX_VB_COUNT> boundBuffers;
+		for(UINT32 i = 0; i < numBuffers; i++)
+			boundBuffers[index + i] = buffers[i];
+
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			for (UINT32 i = 0; i < numBuffers; i++)
+				mBoundVertexBuffers[index + i] = boundBuffers[index + i];
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration)
+	void GLRenderAPI::setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mBoundVertexDeclaration = vertexDeclaration;
+			mBoundVertexDeclaration = vertexDeclaration;
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::setDrawOperation(DrawOperationType op)
+	void GLRenderAPI::setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mCurrentDrawOperation = op;
+			mCurrentDrawOperation = op;
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+		cb->mCurrentDrawOperation = op;
 	}
 
-	void GLRenderAPI::setIndexBuffer(const SPtr<IndexBufferCore>& buffer)
+	void GLRenderAPI::setIndexBuffer(const SPtr<IndexBufferCore>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mBoundIndexBuffer = buffer;
+			mBoundIndexBuffer = buffer;
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
+	void GLRenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount, 
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// Find the correct type to render
-		GLint primType = getGLDrawMode();
-		beginDraw();
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		if (instanceCount <= 1)
-			glDrawArrays(primType, vertexOffset, vertexCount);
-		else
-			glDrawArraysInstanced(primType, vertexOffset, vertexCount, instanceCount);
+			// Find the correct type to render
+			GLint primType = getGLDrawMode();
+			beginDraw();
 
-		endDraw();
+			if (instanceCount <= 1)
+				glDrawArrays(primType, vertexOffset, vertexCount);
+			else
+				glDrawArraysInstanced(primType, vertexOffset, vertexCount, instanceCount);
 
-		UINT32 primCount = vertexCountToPrimCount(mCurrentDrawOperation, vertexCount);
+			endDraw();
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		UINT32 primCount = vertexCountToPrimCount(cb->mCurrentDrawOperation, vertexCount);
 
 		BS_INC_RENDER_STAT(NumDrawCalls);
 		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
@@ -728,38 +856,47 @@ namespace BansheeEngine
 	}
 
 	void GLRenderAPI::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount,
-		UINT32 instanceCount)
+		UINT32 instanceCount, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		if (mBoundIndexBuffer == nullptr)
+		auto execute = [=]()
 		{
-			LOGWRN("Cannot draw indexed because index buffer is not set.");
-			return;
-		}
+			THROW_IF_NOT_CORE_THREAD;
 
-		// Find the correct type to render
-		GLint primType = getGLDrawMode();
+			if (mBoundIndexBuffer == nullptr)
+			{
+				LOGWRN("Cannot draw indexed because index buffer is not set.");
+				return;
+			}
 
-		beginDraw();
+			// Find the correct type to render
+			GLint primType = getGLDrawMode();
 
-		SPtr<GLIndexBufferCore> indexBuffer = std::static_pointer_cast<GLIndexBufferCore>(mBoundIndexBuffer);
-		const IndexBufferProperties& ibProps = indexBuffer->getProperties();
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->getGLBufferId());
+			beginDraw();
 
-		GLenum indexType = (ibProps.getType() == IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			SPtr<GLIndexBufferCore> indexBuffer = std::static_pointer_cast<GLIndexBufferCore>(mBoundIndexBuffer);
+			const IndexBufferProperties& ibProps = indexBuffer->getProperties();
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->getGLBufferId());
 
-		if (instanceCount <= 1)
-		{
-			glDrawElementsBaseVertex(primType, indexCount, indexType,
-				(GLvoid*)(UINT64)(ibProps.getIndexSize() * startIndex), vertexOffset);
-		}
-		else
-		{
-			glDrawElementsInstancedBaseVertex(primType, indexCount, indexType,
-				(GLvoid*)(UINT64)(ibProps.getIndexSize() * startIndex), instanceCount, vertexOffset);
-		}
+			GLenum indexType = (ibProps.getType() == IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 
-		endDraw();
-		UINT32 primCount = vertexCountToPrimCount(mCurrentDrawOperation, vertexCount);
+			if (instanceCount <= 1)
+			{
+				glDrawElementsBaseVertex(primType, indexCount, indexType,
+					(GLvoid*)(UINT64)(ibProps.getIndexSize() * startIndex), vertexOffset);
+			}
+			else
+			{
+				glDrawElementsInstancedBaseVertex(primType, indexCount, indexType,
+					(GLvoid*)(UINT64)(ibProps.getIndexSize() * startIndex), instanceCount, vertexOffset);
+			}
+
+			endDraw();
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		UINT32 primCount = vertexCountToPrimCount(cb->mCurrentDrawOperation, vertexCount);
 
 		BS_INC_RENDER_STAT(NumDrawCalls);
 		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
@@ -768,47 +905,106 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT(NumIndexBufferBinds);
 	}
 
-	void GLRenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
+	void GLRenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ, 
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		if (mCurrentComputeProgram == nullptr)
+		auto execute = [=]()
 		{
-			LOGWRN("Cannot dispatch compute without a set compute program.");
-			return;
-		}
+			THROW_IF_NOT_CORE_THREAD;
 
-		glUseProgram(mCurrentComputeProgram->getGLHandle());
-		glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+			if (mCurrentComputeProgram == nullptr)
+			{
+				LOGWRN("Cannot dispatch compute without a set compute program.");
+				return;
+			}
+
+			glUseProgram(mCurrentComputeProgram->getGLHandle());
+			glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 
 		BS_INC_RENDER_STAT(NumGpuProgramBinds);
 		BS_INC_RENDER_STAT(NumComputeCalls);
 	}
 
-	void GLRenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
+	void GLRenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom, 
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mScissorTop = top;
-		mScissorBottom = bottom;
-		mScissorLeft = left;
-		mScissorRight = right;
+			mScissorTop = top;
+			mScissorBottom = bottom;
+			mScissorLeft = left;
+			mScissorRight = right;
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void GLRenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		if(mActiveRenderTarget == nullptr)
-			return;
+		auto execute = [=]()
+		{
+			if (mActiveRenderTarget == nullptr)
+				return;
 
-		const RenderTargetProperties& rtProps = mActiveRenderTarget->getProperties();
-		Rect2I clearRect(0, 0, rtProps.getWidth(), rtProps.getHeight());
+			const RenderTargetProperties& rtProps = mActiveRenderTarget->getProperties();
+			Rect2I clearRect(0, 0, rtProps.getWidth(), rtProps.getHeight());
 
-		clearArea(buffers, color, depth, stencil, clearRect, targetMask);
+			clearArea(buffers, color, depth, stencil, clearRect, targetMask);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void GLRenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		Rect2I clearRect(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
+		auto execute = [=]()
+		{
+			Rect2I clearRect(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
 
-		clearArea(buffers, color, depth, stencil, clearRect, targetMask);
+			clearArea(buffers, color, depth, stencil, clearRect, targetMask);
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+	}
+
+	void GLRenderAPI::swapBuffers(const SPtr<RenderTargetCore>& target, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto execute = [=]()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+			target->swapBuffers();
+		};
+
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->queueCommand(execute);
+
+		BS_INC_RENDER_STAT(NumPresents);
+	}
+
+	void GLRenderAPI::addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
+	{
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		SPtr<GLCommandBuffer> secondaryCb = std::static_pointer_cast<GLCommandBuffer>(secondary);
+
+		cb->appendSecondary(secondaryCb);
+	}
+
+	void GLRenderAPI::executeCommands(const SPtr<CommandBuffer>& commandBuffer)
+	{
+		SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+		cb->executeCommands();
+		cb->clear();
 	}
 
 	void GLRenderAPI::clearArea(UINT32 buffers, const Color& color, float depth, UINT16 stencil, const Rect2I& clearRect, 
@@ -1204,7 +1400,6 @@ namespace BansheeEngine
 
 	void GLRenderAPI::setCullingMode(CullingMode mode)
 	{
-		mCullingMode = mode;
 		GLenum cullMode;
 
 		switch( mode )
@@ -1415,39 +1610,6 @@ namespace BansheeEngine
 		activateGLTextureUnit(0);
 	}
 
-	void GLRenderAPI::setClipPlanesImpl(const PlaneList& clipPlanes)
-	{
-		size_t i = 0;
-		size_t numClipPlanes;
-		GLdouble clipPlane[4];
-
-		numClipPlanes = clipPlanes.size();
-		for (i = 0; i < numClipPlanes; ++i)
-		{
-			GLenum clipPlaneId = static_cast<GLenum>(GL_CLIP_PLANE0 + i);
-			const Plane& plane = clipPlanes[i];
-
-			if (i >= 6)
-			{
-				BS_EXCEPT(RenderingAPIException, "Unable to set clip plane");
-			}
-
-			clipPlane[0] = plane.normal.x;
-			clipPlane[1] = plane.normal.y;
-			clipPlane[2] = plane.normal.z;
-			clipPlane[3] = plane.d;
-
-			glClipPlane(clipPlaneId, clipPlane);
-			glEnable(clipPlaneId);
-		}
-
-		// Disable remaining clip planes
-		for (; i < 6; ++i)
-		{
-			glDisable(static_cast<GLenum>(GL_CLIP_PLANE0 + i));
-		}
-	}
-
 	bool GLRenderAPI::activateGLTextureUnit(UINT16 unit)
 	{
 		if (mActiveTextureUnit != unit)
@@ -1505,7 +1667,8 @@ namespace BansheeEngine
 			mActivePipeline = pipeline;
 		}
 
-		const GLVertexArrayObject& vao = GLVertexArrayObjectManager::instance().getVAO(mCurrentVertexProgram, mBoundVertexDeclaration, mBoundVertexBuffers);
+		const GLVertexArrayObject& vao = GLVertexArrayObjectManager::instance().getVAO(mCurrentVertexProgram, 
+			mBoundVertexDeclaration, mBoundVertexBuffers);
 		glBindVertexArray(vao.getGLHandle()); 
 
 		BS_INC_RENDER_STAT(NumVertexBufferBinds);
@@ -1676,7 +1839,7 @@ namespace BansheeEngine
 		GLint primType;
 
 		// Use adjacency if there is a geometry program and it requested adjacency info
-		bool useAdjacency = (mGeometryProgramBound && mCurrentGeometryProgram->isAdjacencyInfoRequired());
+		bool useAdjacency = (mCurrentGeometryProgram != nullptr && mCurrentGeometryProgram->isAdjacencyInfoRequired());
 		switch (mCurrentDrawOperation)
 		{
 		case DOT_POINT_LIST:

@@ -39,9 +39,7 @@ namespace BansheeEngine
 		, mHLSLFactory(nullptr), mIAManager(nullptr)
 		, mStencilRef(0), mActiveDrawOp(DOT_TRIANGLE_LIST)
 		, mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
-	{
-		mClipPlanesDirty = false; // DX11 handles clip planes through shaders
-	}
+	{ }
 
 	D3D11RenderAPI::~D3D11RenderAPI()
 	{
@@ -855,11 +853,6 @@ namespace BansheeEngine
 		applyViewport();
 
 		BS_INC_RENDER_STAT(NumRenderTargetChanges);
-	}
-
-	void D3D11RenderAPI::setClipPlanesImpl(const PlaneList& clipPlanes)
-	{
-		LOGWRN("This call will be ignored. DX11 uses shaders for setting clip planes.");
 	}
 
 	RenderAPICapabilities* D3D11RenderAPI::createRenderSystemCapabilities() const

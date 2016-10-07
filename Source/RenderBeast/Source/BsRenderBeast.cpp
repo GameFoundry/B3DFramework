@@ -603,6 +603,7 @@ namespace BansheeEngine
 			}
 
 			RenderAPICore::instance().endFrame();
+			RenderAPICore::instance().executeCommands(gMainCommandBuffer);
 			RenderAPICore::instance().swapBuffers(target);
 		}
 
@@ -905,15 +906,15 @@ namespace BansheeEngine
 			if (params == nullptr)
 				continue;
 
-			const GpuParamDesc& paramDesc = params->getParamDesc();
+			SPtr<GpuParamDesc> paramDesc = params->getParamDesc();
 
-			for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
+			for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
 			{
 				SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
 				rapi.setTexture(stages[i], iter->second.slot, texture);
 			}
 
-			for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
+			for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
 			{
 				SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
 				const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
@@ -924,7 +925,7 @@ namespace BansheeEngine
 					rapi.setLoadStoreTexture(stages[i], iter->second.slot, texture, surface);
 			}
 
-			for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+			for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
 			{
 				SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
 
@@ -934,7 +935,7 @@ namespace BansheeEngine
 				rapi.setBuffer(stages[i], iter->second.slot, buffer, isLoadStore);
 			}
 
-			for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
+			for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
 			{
 				SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
 				blockBuffer->flushToGPU();
@@ -942,7 +943,7 @@ namespace BansheeEngine
 				rapi.setParamBuffer(stages[i], iter->second.slot, blockBuffer, paramDesc);
 			}
 
-			for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+			for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 			{
 				SPtr<SamplerStateCore> samplerState;
 

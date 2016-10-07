@@ -204,16 +204,16 @@ namespace BansheeEngine
 	void RendererUtility::setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
-		const GpuParamDesc& paramDesc = params->getParamDesc();
+		SPtr<GpuParamDesc> paramDesc = params->getParamDesc();
 
-		for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
+		for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
 		{
 			SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
 
 			rapi.setTexture(type, iter->second.slot, texture);
 		}
 
-		for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
+		for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
 		{
 			SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
 			const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
@@ -224,7 +224,7 @@ namespace BansheeEngine
 				rapi.setLoadStoreTexture(type, iter->second.slot, texture, surface);
 		}
 
-		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
+		for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
 		{
 			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
 
@@ -234,7 +234,7 @@ namespace BansheeEngine
 			rapi.setBuffer(type, iter->second.slot, buffer, isLoadStore);
 		}
 
-		for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+		for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 		{
 			SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
 
@@ -244,7 +244,7 @@ namespace BansheeEngine
 				rapi.setSamplerState(type, iter->second.slot, samplerState);
 		}
 
-		for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
+		for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
 		{
 			SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
 			blockBuffer->flushToGPU();

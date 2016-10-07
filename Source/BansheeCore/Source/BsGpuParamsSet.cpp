@@ -550,8 +550,8 @@ namespace BansheeEngine
 					}
 
 					// Create non-shareable ones (these are buffers defined by default by the RHI usually)
-					const GpuParamDesc& desc = paramPtr->getParamDesc();
-					for (auto iterBlockDesc = desc.paramBlocks.begin(); iterBlockDesc != desc.paramBlocks.end(); ++iterBlockDesc)
+					SPtr<GpuParamDesc> desc = paramPtr->getParamDesc();
+					for (auto iterBlockDesc = desc->paramBlocks.begin(); iterBlockDesc != desc->paramBlocks.end(); ++iterBlockDesc)
 					{
 						const GpuParamBlockDesc& blockDesc = iterBlockDesc->second;
 
@@ -580,7 +580,7 @@ namespace BansheeEngine
 						if (globalBlockIdx == (UINT32)-1)
 							continue;
 
-						for(auto& dataParam : desc.params)
+						for(auto& dataParam : desc->params)
 						{
 							if (dataParam.second.paramBlockSlot != blockDesc.slot)
 								continue;
@@ -675,11 +675,11 @@ namespace BansheeEngine
 						}
 					};
 
-					const GpuParamDesc& desc = paramPtr->getParamDesc();
-					processObjectParams(desc.textures, 0, MaterialParams::ParamType::Texture);
-					processObjectParams(desc.loadStoreTextures, 1, MaterialParams::ParamType::Texture);
-					processObjectParams(desc.buffers, 2, MaterialParams::ParamType::Buffer);
-					processObjectParams(desc.samplers, 3, MaterialParams::ParamType::Sampler);
+					SPtr<GpuParamDesc> desc = paramPtr->getParamDesc();
+					processObjectParams(desc->textures, 0, MaterialParams::ParamType::Texture);
+					processObjectParams(desc->loadStoreTextures, 1, MaterialParams::ParamType::Texture);
+					processObjectParams(desc->buffers, 2, MaterialParams::ParamType::Buffer);
+					processObjectParams(desc->samplers, 3, MaterialParams::ParamType::Sampler);
 
 					stageOffsets += 4;
 				}

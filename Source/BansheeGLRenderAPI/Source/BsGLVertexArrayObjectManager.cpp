@@ -76,7 +76,7 @@ namespace BansheeEngine
 	}
 
 	const GLVertexArrayObject& GLVertexArrayObjectManager::getVAO(const SPtr<GLSLGpuProgramCore>& vertexProgram,
-		const SPtr<VertexDeclarationCore>& vertexDecl, const Vector<SPtr<VertexBufferCore>>& boundBuffers)
+		const SPtr<VertexDeclarationCore>& vertexDecl, const std::array<SPtr<VertexBufferCore>, 32>& boundBuffers)
 	{
 		UINT16 maxStreamIdx = 0;
 		const List<VertexElement>& decl = vertexDecl->getProperties().getElements();

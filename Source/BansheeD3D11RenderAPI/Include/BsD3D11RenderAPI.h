@@ -101,9 +101,6 @@ namespace BansheeEngine
 		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
 			const GpuParamDesc& paramDesc) override;
 
-		/** @copydoc RenderAPICore::setClipPlanesImpl */
-		void setClipPlanesImpl(const PlaneList& clipPlanes) override;
-
 		/** @copydoc RenderAPICore::convertProjectionMatrix */
 		void convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
 
