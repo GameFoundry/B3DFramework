@@ -49,15 +49,11 @@ namespace BansheeEngine
 		static void setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, 
 			const SPtr<SamplerState>& samplerState);
 
-		/** @see RenderAPICore::setBlendState() */
-		static void setBlendState(CoreAccessor& accessor, const SPtr<BlendState>& blendState);
+		/** @see RenderAPICore::setGraphicsPipeline() */
+		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState);
 
-		/** @see RenderAPICore::setRasterizerState() */
-		static void setRasterizerState(CoreAccessor& accessor, const SPtr<RasterizerState>& rasterizerState);
-
-		/** @see RenderAPICore::setDepthStencilState() */
-		static void setDepthStencilState(CoreAccessor& accessor, const SPtr<DepthStencilState>& depthStencilState, 
-			UINT32 stencilRefValue);
+		/** @see RenderAPICore::setComputePipeline() */
+		static void setComputePipeline(CoreAccessor& accessor, const SPtr<GpuProgram>& computeProgram);
 
 		/** @see RenderAPICore::setVertexBuffers() */
 		static void setVertexBuffers(CoreAccessor& accessor, UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers);
@@ -71,6 +67,9 @@ namespace BansheeEngine
 		/** @see RenderAPICore::setViewport() */
 		static void setViewport(CoreAccessor& accessor, const Rect2& area);
 
+		/** @see RenderAPICore::setViewport() */
+		static void setStencilRef(CoreAccessor& accessor, UINT32 value);
+
 		/** @see RenderAPICore::setDrawOperation()  */
 		static void setDrawOperation(CoreAccessor& accessor, DrawOperationType op);
 
@@ -79,12 +78,6 @@ namespace BansheeEngine
 
 		/** @see RenderAPICore::setRenderTarget() */
 		static void setRenderTarget(CoreAccessor& accessor, const SPtr<RenderTarget>& target, bool readOnlyDepthStencil = false);
-
-		/** @see RenderAPICore::bindGpuProgram() */
-		static void bindGpuProgram(CoreAccessor& accessor, const SPtr<GpuProgram>& prg);
-
-		/** @see RenderAPICore::unbindGpuProgram() */
-		static void unbindGpuProgram(CoreAccessor& accessor, GpuProgramType gptype);
 
 		/** @see RenderAPICore::beginFrame() */
 		static void beginRender(CoreAccessor& accessor);
@@ -238,43 +231,27 @@ namespace BansheeEngine
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
-		 * Sets a blend state used for all active render targets.
+		 * Sets a pipeline state that controls how will subsequent draw commands render primitives.
 		 *
-		 * @param[in]	blendState		Blend state to bind, or null to unbind.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics operations.
-		 *
-		 * @see		BlendState
-		 */
-		virtual void setBlendState(const SPtr<BlendStateCore>& blendState, 
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Sets a state that controls various rasterizer options. 
-		 *
-		 * @param[in]	rasterizerState		Rasterizer state to bind, or null to unbind.
+		 * @param[in]	pipelineState		Pipeline state to bind, or null to unbind.
 		 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
 		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
 		 *									called. Buffer must support graphics operations.
 		 *
-		 * @see		RasterizerState
+		 * @see		GpuPipelineState
 		 */
-		virtual void setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState, 
+		virtual void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
-		 * Sets a state that controls depth & stencil buffer options.
+		 * Sets a pipeline state that controls how will subsequent dispatch commands execute.
 		 *
-		 * @param[in]	depthStencilState	Depth-stencil state to bind, or null to unbind.
-		 * @param[in]	stencilRefValue		Stencil reference value to be used for stencil comparisons, if enabled.
+		 * @param[in]	computeProgram		Compute program to bind to the pipeline.
 		 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
 		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
 		 *									called. Buffer must support graphics operations.
-		 *
-		 * @see		DepthStencilState
 		 */
-		virtual void setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue,
+		virtual void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
@@ -363,6 +340,16 @@ namespace BansheeEngine
 		 */
 		virtual void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/**
+		 * Sets a reference value that will be used for stencil compare operations.
+		 *
+		 * @param[in]	value			Reference value to set.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the provided vertex buffers starting at the specified source index.	Set buffer to nullptr to clear the 
@@ -482,30 +469,6 @@ namespace BansheeEngine
 		 *								Buffer must support graphics operations.
 		 */
 		virtual void swapBuffers(const SPtr<RenderTargetCore>& target, 
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Binds the provided GPU program to the pipeline. Any following draw operations will use this program. 
-		 *
-		 * @param[in]	prg				GPU program to bind. Slot it is bound to is determined by the program type.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations (depending on program type).
-		 *
-		 * @note	You need to bind at least a vertex and a fragment program in order to draw something.
-		 */
-		virtual void bindGpuProgram(const SPtr<GpuProgramCore>& prg, 
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**	
-		 * Unbinds a program of a given type. 
-		 *
-		 * @param[in]	gptype			GPU program slot to unbind the program from.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations (depending on program type).
-		 */
-		virtual void unbindGpuProgram(GpuProgramType gptype,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**

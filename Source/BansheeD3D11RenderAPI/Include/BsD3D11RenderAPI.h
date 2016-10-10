@@ -24,16 +24,12 @@ namespace BansheeEngine
 		/** @copydoc RenderAPICore::getShadingLanguageName */
 		const String& getShadingLanguageName() const override;
 
-		/** @copydoc RenderAPICore::setBlendState */
-		void setBlendState(const SPtr<BlendStateCore>& blendState, 
+		/** @copydoc RenderAPICore::setGraphicsPipeline */
+		void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::setRasterizerState */
-		void setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState,
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setDepthStencilState */
-		void setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue,
+		/** @copydoc RenderAPICore::setComputePipeline */
+		void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::setSamplerState */
@@ -77,6 +73,9 @@ namespace BansheeEngine
 		void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
+		/** @copydoc RenderAPICore::setStencilRef */
+		void setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
 		/** @copydoc RenderAPICore::setVertexBuffers */
 		void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
@@ -108,12 +107,6 @@ namespace BansheeEngine
 		/** @copydoc RenderAPICore::swapBuffers() */
 		void swapBuffers(const SPtr<RenderTargetCore>& target,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::bindGpuProgram */
-		void bindGpuProgram(const SPtr<GpuProgramCore>& prg, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::unbindGpuProgram */
-		void unbindGpuProgram(GpuProgramType gptype, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::setParamBuffer */
 		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
@@ -205,6 +198,7 @@ namespace BansheeEngine
 
 		SPtr<VertexDeclarationCore> mActiveVertexDeclaration;
 		SPtr<D3D11GpuProgramCore> mActiveVertexShader;
+		SPtr<D3D11DepthStencilStateCore> mActiveDepthStencilState;
 
 		DrawOperationType mActiveDrawOp;
 	};

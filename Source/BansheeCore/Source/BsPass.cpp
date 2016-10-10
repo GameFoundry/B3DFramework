@@ -9,7 +9,7 @@
 #include "BsGpuParams.h"
 #include "BsFrameAlloc.h"
 #include "BsGpuProgram.h"
-#include "BsException.h"
+#include "BsGpuPipelineState.h"
 
 namespace BansheeEngine
 {
@@ -26,6 +26,32 @@ namespace BansheeEngine
 		output.hullProgram = input.hullProgram != nullptr ? input.hullProgram->getCore() : nullptr;
 		output.domainProgram = input.domainProgram != nullptr ? input.domainProgram->getCore() : nullptr;
 		output.computeProgram = input.computeProgram != nullptr ? input.computeProgram->getCore() : nullptr;
+	}
+
+	/** Converts a sim thread pass descriptor to a pipeline state descriptor. */
+	void convertPassDesc(const PASS_DESC& input, PIPELINE_STATE_DESC& output)
+	{
+		output.blendState = input.blendState ;
+		output.rasterizerState = input.rasterizerState;
+		output.depthStencilState = input.depthStencilState;
+		output.vertexProgram = input.vertexProgram;
+		output.fragmentProgram = input.fragmentProgram;
+		output.geometryProgram = input.geometryProgram;
+		output.hullProgram = input.hullProgram;
+		output.domainProgram = input.domainProgram;
+	}
+
+	/** Converts a sim thread pass descriptor to a core thread pipeline state descriptor. */
+	void convertPassDesc(const PASS_DESC_CORE& input, PIPELINE_STATE_CORE_DESC& output)
+	{
+		output.blendState = input.blendState;
+		output.rasterizerState = input.rasterizerState;
+		output.depthStencilState = input.depthStencilState;
+		output.vertexProgram = input.vertexProgram;
+		output.fragmentProgram = input.fragmentProgram;
+		output.geometryProgram = input.geometryProgram;
+		output.hullProgram = input.hullProgram;
+		output.domainProgram = input.domainProgram;
 	}
 
 	template<bool Core>
@@ -73,6 +99,26 @@ namespace BansheeEngine
 		:TPass(desc)
 	{ }
 
+	PassCore::PassCore(const PASS_DESC_CORE& desc, const SPtr<GpuPipelineStateCore>& pipelineState)
+		:TPass(desc)
+	{
+		mPipelineState = pipelineState;
+	}
+
+	void PassCore::initialize()
+	{
+		// Create pipeline state unless it's already provided, or unless it's a compute pass
+		if (mPipelineState == nullptr && !hasComputeProgram())
+		{
+			PIPELINE_STATE_CORE_DESC desc;
+			convertPassDesc(mData, desc);
+
+			mPipelineState = GpuPipelineStateCore::create(desc);
+		}
+
+		CoreObjectCore::initialize();
+	}
+
 	void PassCore::syncToCore(const CoreSyncData& data)
 	{
 		UINT8* dataPtr = data.getBuffer();
@@ -106,11 +152,29 @@ namespace BansheeEngine
 		PASS_DESC_CORE desc;
 		convertPassDesc(mData, desc);
 
-		PassCore* pass = new (bs_alloc<PassCore>()) PassCore(desc);
+		SPtr<GpuPipelineStateCore> corePipeline;
+		if (mPipelineState != nullptr)
+			corePipeline = mPipelineState->getCore();
+
+		PassCore* pass = new (bs_alloc<PassCore>()) PassCore(desc, corePipeline);
 		SPtr<PassCore> passPtr = bs_shared_ptr<PassCore>(pass);
 		passPtr->_setThisPtr(passPtr);
 
 		return passPtr;
+	}
+
+	void Pass::initialize()
+	{
+		// Create pipeline state unless it's a compute pass
+		if (!hasComputeProgram())
+		{
+			PIPELINE_STATE_DESC desc;
+			convertPassDesc(mData, desc);
+
+			mPipelineState = GpuPipelineState::create(desc);
+		}
+
+		CoreObject::initialize();
 	}
 
 	CoreSyncData Pass::syncToCore(FrameAlloc* allocator)

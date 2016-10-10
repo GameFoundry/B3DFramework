@@ -17,14 +17,12 @@ namespace BansheeEngine
 		SPtr<BlendState> blendState;
 		SPtr<RasterizerState> rasterizerState;
 		SPtr<DepthStencilState> depthStencilState;
-		UINT32 stencilRefValue;
 
 		SPtr<GpuProgram> vertexProgram;
 		SPtr<GpuProgram> fragmentProgram;
 		SPtr<GpuProgram> geometryProgram;
 		SPtr<GpuProgram> hullProgram;
 		SPtr<GpuProgram> domainProgram;
-		SPtr<GpuProgram> computeProgram;
 	};
 
 	/** @} */

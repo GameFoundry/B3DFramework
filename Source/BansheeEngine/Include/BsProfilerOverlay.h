@@ -225,9 +225,7 @@ namespace BansheeEngine
 		GUILabel* mGPUVerticesLbl;
 		GUILabel* mGPUPrimitivesLbl;
 		GUILabel* mGPUSamplesLbl;
-		GUILabel* mGPUBlendStateChangesLbl;
-		GUILabel* mGPURasterStateChangesLbl;
-		GUILabel* mGPUDepthStencilStateChangesLbl;
+		GUILabel* mGPUPipelineStateChangesLbl;
 
 		GUILabel* mGPUObjectsCreatedLbl;
 		GUILabel* mGPUObjectsDestroyedLbl;
@@ -238,7 +236,6 @@ namespace BansheeEngine
 		GUILabel* mGPUVertexBufferBindsLbl;
 		GUILabel* mGPUIndexBufferBindsLbl;
 		GUILabel* mGPUGPUProgramBufferBindsLbl;
-		GUILabel* mGPUGPUProgramBindsLbl;
 
 		HString mGPUFrameNumStr;
 		HString mGPUTimeStr;
@@ -249,9 +246,7 @@ namespace BansheeEngine
 		HString mGPUVerticesStr;
 		HString mGPUPrimitivesStr;
 		HString mGPUSamplesStr;
-		HString mGPUBlendStateChangesStr;
-		HString mGPURasterStateChangesStr;
-		HString mGPUDepthStencilStateChangesStr;
+		HString mGPUPipelineStateChangesStr;
 
 		HString mGPUObjectsCreatedStr;
 		HString mGPUObjectsDestroyedStr;
@@ -262,7 +257,6 @@ namespace BansheeEngine
 		HString mGPUVertexBufferBindsStr;
 		HString mGPUIndexBufferBindsStr;
 		HString mGPUGPUProgramBufferBindsStr;
-		HString mGPUGPUProgramBindsStr;
 
 		Vector<BasicRow> mBasicRows;
 		Vector<PreciseRow> mPreciseRows;

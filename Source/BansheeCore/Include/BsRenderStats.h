@@ -27,10 +27,9 @@ namespace BansheeEngine
 	struct BS_CORE_EXPORT RenderStatsData
 	{
 		RenderStatsData()
-		: numDrawCalls(0), numComputeCalls(0), numRenderTargetChanges(0), numPresents(0), numClears(0),
-		  numVertices(0), numPrimitives(0), numBlendStateChanges(0), numRasterizerStateChanges(0), 
-		  numDepthStencilStateChanges(0), numTextureBinds(0), numSamplerBinds(0), numVertexBufferBinds(0), 
-		  numIndexBufferBinds(0), numGpuParamBufferBinds(0), numGpuProgramBinds(0)
+		: numDrawCalls(0), numComputeCalls(0), numRenderTargetChanges(0), numPresents(0), numClears(0)
+		, numVertices(0), numPrimitives(0), numPipelineStateChanges(0), numTextureBinds(0), numSamplerBinds(0)
+		, numVertexBufferBinds(0), numIndexBufferBinds(0), numGpuParamBufferBinds(0)
 		{ }
 
 		UINT64 numDrawCalls;
@@ -42,16 +41,13 @@ namespace BansheeEngine
 		UINT64 numVertices;
 		UINT64 numPrimitives;
 
-		UINT64 numBlendStateChanges; 
-		UINT64 numRasterizerStateChanges; 
-		UINT64 numDepthStencilStateChanges;
+		UINT64 numPipelineStateChanges;
 
 		UINT64 numTextureBinds; 
 		UINT64 numSamplerBinds; 
 		UINT64 numVertexBufferBinds; 
 		UINT64 numIndexBufferBinds;
 		UINT64 numGpuParamBufferBinds;
-		UINT64 numGpuProgramBinds; 
 
 		UINT64 numResourceWrites;
 		UINT64 numResourceReads;
@@ -92,20 +88,8 @@ namespace BansheeEngine
 		/** Increments primitive draw counter indicating how many primitives were sent to the pipeline. */
 		void addNumPrimitives(UINT32 count) { mData.numPrimitives += count; }
 
-		/** Increments blend state change counter indicating how many times was a blend state bound to the pipeline. */
-		void incNumBlendStateChanges() { mData.numBlendStateChanges++; }
-
-		/** 
-		 * Increments rasterizer state change counter indicating how many times was a rasterizer state bound to the 
-		 * pipeline.
-		 */
-		void incNumRasterizerStateChanges() { mData.numRasterizerStateChanges++; }
-
-		/** 
-		 * Increments depth/stencil state change counter indicating how many times was a depth/stencil state bound to the 
-		 * pipeline. 
-		 */
-		void incNumDepthStencilStateChanges() { mData.numDepthStencilStateChanges++; }
+		/** Increments pipeline state change counter indicating how many times was a pipeline state bound. */
+		void incNumPipelineStateChanges() { mData.numPipelineStateChanges++; }
 
 		/** Increments texture change counter indicating how many times was a texture bound to the pipeline. */
 		void incNumTextureBinds() { mData.numTextureBinds++; }
@@ -124,9 +108,6 @@ namespace BansheeEngine
 		 * pipeline.
 		 */
 		void incNumGpuParamBufferBinds() { mData.numGpuParamBufferBinds++; }
-
-		/** Increments GPU program change counter indicating how many times was a GPU program bound to the pipeline. */
-		void incNumGpuProgramBinds() { mData.numGpuProgramBinds++; }
 
 		/**
 		 * Increments created GPU resource counter. 

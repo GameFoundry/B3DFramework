@@ -6,17 +6,12 @@
 #include "BsViewport.h"
 #include "BsRenderTarget.h"
 #include "BsRenderWindow.h"
-#include "BsResource.h"
 #include "BsMesh.h"
-#include "BsRenderStats.h"
 #include "BsGpuParams.h"
-#include "BsBlendState.h"
 #include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
-#include "BsGpuParamDesc.h"
 #include "BsGpuBuffer.h"
-#include "BsGpuParamBlockBuffer.h"
-#include "BsCommandBuffer.h"
+#include "BsGpuPipelineState.h"
 
 using namespace std::placeholders;
 
@@ -49,22 +44,16 @@ namespace BansheeEngine
 			samplerState->getCore(), nullptr));
 	}
 
-	void RenderAPI::setBlendState(CoreAccessor& accessor, const SPtr<BlendState>& blendState)
+	void RenderAPI::setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setBlendState, RenderAPICore::instancePtr(), blendState->getCore(), 
-			nullptr));
+		accessor.queueCommand(std::bind(&RenderAPICore::setGraphicsPipeline, RenderAPICore::instancePtr(),
+			pipelineState->getCore(), nullptr));
 	}
 
-	void RenderAPI::setRasterizerState(CoreAccessor& accessor, const SPtr<RasterizerState>& rasterizerState)
+	void RenderAPI::setComputePipeline(CoreAccessor& accessor, const SPtr<GpuProgram>& computeProgram)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setRasterizerState, RenderAPICore::instancePtr(), 
-			rasterizerState->getCore(), nullptr));
-	}
-
-	void RenderAPI::setDepthStencilState(CoreAccessor& accessor, const SPtr<DepthStencilState>& depthStencilState, UINT32 stencilRefValue)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setDepthStencilState, RenderAPICore::instancePtr(), 
-			depthStencilState->getCore(), stencilRefValue, nullptr));
+		accessor.queueCommand(std::bind(&RenderAPICore::setComputePipeline, RenderAPICore::instancePtr(),
+			computeProgram->getCore(), nullptr));
 	}
 
 	void RenderAPI::setVertexBuffers(CoreAccessor& accessor, UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers)
@@ -99,6 +88,11 @@ namespace BansheeEngine
 		accessor.queueCommand(std::bind(&RenderAPICore::setViewport, RenderAPICore::instancePtr(), vp, nullptr));
 	}
 
+	void RenderAPI::setStencilRef(CoreAccessor& accessor, UINT32 value)
+	{
+		accessor.queueCommand(std::bind(&RenderAPICore::setStencilRef, RenderAPICore::instancePtr(), value, nullptr));
+	}
+
 	void RenderAPI::setDrawOperation(CoreAccessor& accessor, DrawOperationType op)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::setDrawOperation, RenderAPICore::instancePtr(), op, 
@@ -115,19 +109,6 @@ namespace BansheeEngine
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::setRenderTarget, 
 			RenderAPICore::instancePtr(), target->getCore(), readOnlyDepthStencil, nullptr));
-	}
-
-	void RenderAPI::bindGpuProgram(CoreAccessor& accessor, const SPtr<GpuProgram>& prg)
-	{
-		prg->syncToCore(accessor);
-		accessor.queueCommand(std::bind(&RenderAPICore::bindGpuProgram, RenderAPICore::instancePtr(), prg->getCore(), 
-			nullptr));
-	}
-
-	void RenderAPI::unbindGpuProgram(CoreAccessor& accessor, GpuProgramType gptype)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::unbindGpuProgram, RenderAPICore::instancePtr(), gptype, 
-			nullptr));
 	}
 
 	void RenderAPI::beginRender(CoreAccessor& accessor)

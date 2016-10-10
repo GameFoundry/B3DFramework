@@ -53,10 +53,7 @@ namespace BansheeEngine
 	class D3D11GpuGeometryProgram;
 	class D3D11GpuHullProgram;
 	class D3D11GpuDomainProgram;
-	class D3D11BlendState;
-	class D3D11RasterizerState;
-	class D3D11SamplerState;
-	class D3D11DepthStencilState;
+	class D3D11DepthStencilStateCore;
 	class D3D11InputLayoutManager;
 	class D3D11GpuBufferCore;
 	class D3D11RenderUtility;

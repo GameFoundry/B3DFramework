@@ -457,9 +457,7 @@ namespace BansheeEngine
 		mGPUVerticesStr = HEString(L"__ProfOvVertices", L"Num. vertices: {0}");
 		mGPUPrimitivesStr = HEString(L"__ProfOvPrimitives", L"Num. primitives: {0}");
 		mGPUSamplesStr = HEString(L"__ProfOvSamples", L"Samples drawn: {0}");
-		mGPUBlendStateChangesStr = HEString(L"__ProfOvBSChanges", L"Blend state changes: {0}");
-		mGPURasterStateChangesStr = HEString(L"__ProfOvRSChanges", L"Rasterizer state changes: {0}");
-		mGPUDepthStencilStateChangesStr = HEString(L"__ProfOvDSSChanges", L"Depth/stencil state changes: {0}");
+		mGPUPipelineStateChangesStr = HEString(L"__ProfOvPSChanges", L"Pipeline state changes: {0}");
 
 		mGPUObjectsCreatedStr = HEString(L"__ProfOvObjsCreated", L"Objects created: {0}");
 		mGPUObjectsDestroyedStr = HEString(L"__ProfOvObjsDestroyed", L"Objects destroyed: {0}");
@@ -470,7 +468,6 @@ namespace BansheeEngine
 		mGPUVertexBufferBindsStr = HEString(L"__ProfOvVBBinds", L"VB binds: {0}");
 		mGPUIndexBufferBindsStr = HEString(L"__ProfOvIBBinds", L"IB binds: {0}");
 		mGPUGPUProgramBufferBindsStr = HEString(L"__ProfOvProgBuffBinds", L"GPU program buffer binds: {0}");
-		mGPUGPUProgramBindsStr = HEString(L"__ProfOvProgBinds", L"GPU program binds: {0}");
 
 		mGPUFrameNumLbl = GUILabel::create(mGPUFrameNumStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUTimeLbl = GUILabel::create(mGPUTimeStr, GUIOptions(GUIOption::fixedWidth(200)));
@@ -481,9 +478,7 @@ namespace BansheeEngine
 		mGPUVerticesLbl = GUILabel::create(mGPUVerticesStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUPrimitivesLbl = GUILabel::create(mGPUPrimitivesStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUSamplesLbl = GUILabel::create(mGPUSamplesStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUBlendStateChangesLbl = GUILabel::create(mGPUBlendStateChangesStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPURasterStateChangesLbl = GUILabel::create(mGPURasterStateChangesStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUDepthStencilStateChangesLbl = GUILabel::create(mGPUDepthStencilStateChangesStr, GUIOptions(GUIOption::fixedWidth(200)));
+		mGPUPipelineStateChangesLbl = GUILabel::create(mGPUPipelineStateChangesStr, GUIOptions(GUIOption::fixedWidth(200)));
 
 		mGPUObjectsCreatedLbl = GUILabel::create(mGPUObjectsCreatedStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUObjectsDestroyedLbl = GUILabel::create(mGPUObjectsDestroyedStr, GUIOptions(GUIOption::fixedWidth(200)));
@@ -494,7 +489,6 @@ namespace BansheeEngine
 		mGPUVertexBufferBindsLbl = GUILabel::create(mGPUVertexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUIndexBufferBindsLbl = GUILabel::create(mGPUIndexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUGPUProgramBufferBindsLbl = GUILabel::create(mGPUGPUProgramBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUGPUProgramBindsLbl = GUILabel::create(mGPUGPUProgramBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 
 		mGPULayoutFrameContentsLeft->addElement(mGPUFrameNumLbl);
 		mGPULayoutFrameContentsLeft->addElement(mGPUTimeLbl);
@@ -505,9 +499,7 @@ namespace BansheeEngine
 		mGPULayoutFrameContentsLeft->addElement(mGPUVerticesLbl);
 		mGPULayoutFrameContentsLeft->addElement(mGPUPrimitivesLbl);
 		mGPULayoutFrameContentsLeft->addElement(mGPUSamplesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUBlendStateChangesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPURasterStateChangesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUDepthStencilStateChangesLbl);
+		mGPULayoutFrameContentsLeft->addElement(mGPUPipelineStateChangesLbl);
 		mGPULayoutFrameContentsLeft->addNewElement<GUIFlexibleSpace>();
 
 		mGPULayoutFrameContentsRight->addElement(mGPUObjectsCreatedLbl);
@@ -519,7 +511,6 @@ namespace BansheeEngine
 		mGPULayoutFrameContentsRight->addElement(mGPUVertexBufferBindsLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUIndexBufferBindsLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUGPUProgramBufferBindsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUGPUProgramBindsLbl);
 		mGPULayoutFrameContentsRight->addNewElement<GUIFlexibleSpace>();
 
 		updateCPUSampleAreaSizes();
@@ -744,9 +735,7 @@ namespace BansheeEngine
 		mGPUVerticesStr.setParameter(0, toWString(gpuReport.frameSample.numVertices));
 		mGPUPrimitivesStr.setParameter(0, toWString(gpuReport.frameSample.numPrimitives));
 		mGPUSamplesStr.setParameter(0, toWString(gpuReport.frameSample.numDrawnSamples));
-		mGPUBlendStateChangesStr.setParameter(0, toWString(gpuReport.frameSample.numBlendStateChanges));
-		mGPURasterStateChangesStr.setParameter(0, toWString(gpuReport.frameSample.numRasterizerStateChanges));
-		mGPUDepthStencilStateChangesStr.setParameter(0, toWString(gpuReport.frameSample.numDepthStencilStateChanges));
+		mGPUPipelineStateChangesStr.setParameter(0, toWString(gpuReport.frameSample.numPipelineStateChanges));
 
 		mGPUObjectsCreatedStr.setParameter(0, toWString(gpuReport.frameSample.numObjectsCreated));
 		mGPUObjectsDestroyedStr.setParameter(0, toWString(gpuReport.frameSample.numObjectsDestroyed));
@@ -757,7 +746,6 @@ namespace BansheeEngine
 		mGPUVertexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numVertexBufferBinds));
 		mGPUIndexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numIndexBufferBinds));
 		mGPUGPUProgramBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numGpuParamBufferBinds));
-		mGPUGPUProgramBindsStr.setParameter(0, toWString(gpuReport.frameSample.numGpuProgramBinds));
 
 		mGPUFrameNumLbl->setContent(mGPUFrameNumStr);
 		mGPUTimeLbl->setContent(mGPUTimeStr);
@@ -768,9 +756,7 @@ namespace BansheeEngine
 		mGPUVerticesLbl->setContent(mGPUVerticesStr);
 		mGPUPrimitivesLbl->setContent(mGPUPrimitivesStr);
 		mGPUSamplesLbl->setContent(mGPUSamplesStr);
-		mGPUBlendStateChangesLbl->setContent(mGPUBlendStateChangesStr);
-		mGPURasterStateChangesLbl->setContent(mGPURasterStateChangesStr);
-		mGPUDepthStencilStateChangesLbl->setContent(mGPUDepthStencilStateChangesStr);
+		mGPUPipelineStateChangesLbl->setContent(mGPUPipelineStateChangesStr);
 
 		mGPUObjectsCreatedLbl->setContent(mGPUObjectsCreatedStr);
 		mGPUObjectsDestroyedLbl->setContent(mGPUObjectsDestroyedStr);
@@ -781,7 +767,6 @@ namespace BansheeEngine
 		mGPUVertexBufferBindsLbl->setContent(mGPUVertexBufferBindsStr);
 		mGPUIndexBufferBindsLbl->setContent(mGPUIndexBufferBindsStr);
 		mGPUGPUProgramBufferBindsLbl->setContent(mGPUGPUProgramBufferBindsStr);
-		mGPUGPUProgramBindsLbl->setContent(mGPUGPUProgramBindsStr);
 
 		GPUSampleRowFiller sampleRowFiller(mGPUSampleRows, *mGPULayoutSampleContents, *mWidget->_getInternal());
 		for (auto& sample : gpuReport.samples)

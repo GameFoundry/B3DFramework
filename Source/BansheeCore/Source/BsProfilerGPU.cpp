@@ -146,16 +146,13 @@ namespace BansheeEngine
 		reportSample.numVertices = (UINT32)(sample.endStats.numVertices - sample.startStats.numVertices);
 		reportSample.numPrimitives = (UINT32)(sample.endStats.numPrimitives - sample.startStats.numPrimitives);
 		
-		reportSample.numBlendStateChanges = (UINT32)(sample.endStats.numBlendStateChanges - sample.startStats.numBlendStateChanges);
-		reportSample.numRasterizerStateChanges = (UINT32)(sample.endStats.numRasterizerStateChanges - sample.startStats.numRasterizerStateChanges);
-		reportSample.numDepthStencilStateChanges = (UINT32)(sample.endStats.numDepthStencilStateChanges - sample.startStats.numDepthStencilStateChanges);
+		reportSample.numPipelineStateChanges = (UINT32)(sample.endStats.numPipelineStateChanges - sample.startStats.numPipelineStateChanges);
 
 		reportSample.numTextureBinds = (UINT32)(sample.endStats.numTextureBinds - sample.startStats.numTextureBinds);
 		reportSample.numSamplerBinds = (UINT32)(sample.endStats.numSamplerBinds - sample.startStats.numSamplerBinds);
 		reportSample.numVertexBufferBinds = (UINT32)(sample.endStats.numVertexBufferBinds - sample.startStats.numVertexBufferBinds);
 		reportSample.numIndexBufferBinds = (UINT32)(sample.endStats.numIndexBufferBinds - sample.startStats.numIndexBufferBinds);
 		reportSample.numGpuParamBufferBinds = (UINT32)(sample.endStats.numGpuParamBufferBinds - sample.startStats.numGpuParamBufferBinds);
-		reportSample.numGpuProgramBinds = (UINT32)(sample.endStats.numGpuProgramBinds - sample.startStats.numGpuProgramBinds);
 
 		reportSample.numResourceWrites = (UINT32)(sample.endStats.numResourceWrites - sample.startStats.numResourceWrites);
 		reportSample.numResourceReads = (UINT32)(sample.endStats.numResourceReads - sample.startStats.numResourceReads);

@@ -35,11 +35,9 @@
 namespace BansheeEngine
 {
 	D3D11RenderAPI::D3D11RenderAPI()
-		: mDXGIFactory(nullptr), mDevice(nullptr), mDriverList(nullptr)
-		, mActiveD3DDriver(nullptr), mFeatureLevel(D3D_FEATURE_LEVEL_11_0)
-		, mHLSLFactory(nullptr), mIAManager(nullptr)
-		, mStencilRef(0), mActiveDrawOp(DOT_TRIANGLE_LIST)
-		, mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
+		: mDXGIFactory(nullptr), mDevice(nullptr), mDriverList(nullptr), mActiveD3DDriver(nullptr)
+		, mFeatureLevel(D3D_FEATURE_LEVEL_11_0), mHLSLFactory(nullptr), mIAManager(nullptr), mStencilRef(0)
+		, mActiveDrawOp(DOT_TRIANGLE_LIST), mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
 	{ }
 
 	D3D11RenderAPI::~D3D11RenderAPI()
@@ -188,6 +186,7 @@ namespace BansheeEngine
 		mActiveVertexDeclaration = nullptr;
 		mActiveVertexShader = nullptr;
 		mActiveRenderTarget = nullptr;
+		mActiveDepthStencilState = nullptr;
 
 		RenderStateCoreManager::shutDown();
 		RenderWindowCoreManager::shutDown();
@@ -266,80 +265,130 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT(NumSamplerBinds);
 	}
 
-	void D3D11RenderAPI::setBlendState(const SPtr<BlendStateCore>& blendState, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](const SPtr<BlendStateCore>& blendState)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			D3D11BlendStateCore* d3d11BlendState = 
-				static_cast<D3D11BlendStateCore*>(const_cast<BlendStateCore*>(blendState.get()));
-			mDevice->getImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(blendState);
-		else
-		{
-			auto execute = [=]() { executeRef(blendState); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumBlendStateChanges);
-	}
-
-	void D3D11RenderAPI::setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState, 
+	void D3D11RenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [&](const SPtr<RasterizerStateCore>& rasterizerState)
+		auto executeRef = [&](const SPtr<GpuPipelineStateCore>& pipelineState)
 		{
 			THROW_IF_NOT_CORE_THREAD;
 
-			D3D11RasterizerStateCore* d3d11RasterizerState = 
-				static_cast<D3D11RasterizerStateCore*>(const_cast<RasterizerStateCore*>(rasterizerState.get()));
-			mDevice->getImmediateContext()->RSSetState(d3d11RasterizerState->getInternal());
+			D3D11BlendStateCore* d3d11BlendState;
+			D3D11RasterizerStateCore* d3d11RasterizerState;
 
+			D3D11GpuFragmentProgramCore* d3d11FragmentProgram;
+			D3D11GpuGeometryProgramCore* d3d11GeometryProgram;
+			D3D11GpuDomainProgramCore* d3d11DomainProgram;
+			D3D11GpuHullProgramCore* d3d11HullProgram;
 
+			if(pipelineState != nullptr)
+			{
+				d3d11BlendState = static_cast<D3D11BlendStateCore*>(pipelineState->getBlendState().get());
+				d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(pipelineState->getRasterizerState().get());
+				mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(pipelineState->getDepthStencilState());
+
+				mActiveVertexShader = std::static_pointer_cast<D3D11GpuVertexProgramCore>(pipelineState->getVertexProgram());
+				d3d11FragmentProgram = static_cast<D3D11GpuFragmentProgramCore*>(pipelineState->getFragmentProgram().get());
+				d3d11GeometryProgram = static_cast<D3D11GpuGeometryProgramCore*>(pipelineState->getGeometryProgram().get());
+				d3d11DomainProgram = static_cast<D3D11GpuDomainProgramCore*>(pipelineState->getDomainProgram().get());
+				d3d11HullProgram = static_cast<D3D11GpuHullProgramCore*>(pipelineState->getHullProgram().get());
+
+				if (d3d11BlendState == nullptr)
+					d3d11BlendState = static_cast<D3D11BlendStateCore*>(BlendStateCore::getDefault().get());
+
+				if (d3d11RasterizerState == nullptr)
+					d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(RasterizerStateCore::getDefault().get());
+
+				if (mActiveDepthStencilState == nullptr)
+					mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(DepthStencilStateCore::getDefault());
+			}
+			else
+			{
+				d3d11BlendState = static_cast<D3D11BlendStateCore*>(BlendStateCore::getDefault().get());
+				d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(RasterizerStateCore::getDefault().get());
+				mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(DepthStencilStateCore::getDefault());
+
+				mActiveVertexShader = nullptr;
+				d3d11FragmentProgram = nullptr;
+				d3d11GeometryProgram = nullptr;
+				d3d11DomainProgram = nullptr;
+				d3d11HullProgram = nullptr;
+			}
+
+			ID3D11DeviceContext* d3d11Context = mDevice->getImmediateContext();
+			d3d11Context->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
+			d3d11Context->RSSetState(d3d11RasterizerState->getInternal());
+			d3d11Context->OMSetDepthStencilState(mActiveDepthStencilState->getInternal(), mStencilRef);
+
+			if (mActiveVertexShader != nullptr)
+			{
+				D3D11GpuVertexProgramCore* vertexProgram = static_cast<D3D11GpuVertexProgramCore*>(mActiveVertexShader.get());
+				d3d11Context->VSSetShader(vertexProgram->getVertexShader(), nullptr, 0);
+			}
+			else
+				d3d11Context->VSSetShader(nullptr, nullptr, 0);
+
+			if(d3d11FragmentProgram != nullptr)
+				d3d11Context->PSSetShader(d3d11FragmentProgram->getPixelShader(), nullptr, 0);
+			else
+				d3d11Context->PSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11GeometryProgram != nullptr)
+				d3d11Context->GSSetShader(d3d11GeometryProgram->getGeometryShader(), nullptr, 0);
+			else
+				d3d11Context->GSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11DomainProgram != nullptr)
+				d3d11Context->DSSetShader(d3d11DomainProgram->getDomainShader(), nullptr, 0);
+			else
+				d3d11Context->DSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11HullProgram != nullptr)
+				d3d11Context->HSSetShader(d3d11HullProgram->getHullShader(), nullptr, 0);
+			else
+				d3d11Context->HSSetShader(nullptr, nullptr, 0);
+			
 		};
 
 		if (commandBuffer == nullptr)
-			executeRef(rasterizerState);
+			executeRef(pipelineState);
 		else
 		{
-			auto execute = [=]() { executeRef(rasterizerState); };
+			auto execute = [=]() { executeRef(pipelineState); };
 
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
 		}
 
-		BS_INC_RENDER_STAT(NumRasterizerStateChanges);
+		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
-	void D3D11RenderAPI::setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue, 
+	void D3D11RenderAPI::setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [&](const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue)
+		auto executeRef = [&](const SPtr<GpuProgramCore>& computeProgram)
 		{
 			THROW_IF_NOT_CORE_THREAD;
 
-			D3D11DepthStencilStateCore* d3d11RasterizerState = 
-				static_cast<D3D11DepthStencilStateCore*>(const_cast<DepthStencilStateCore*>(depthStencilState.get()));
-			mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11RasterizerState->getInternal(), stencilRefValue);
+			if (computeProgram != nullptr)
+			{
+				D3D11GpuComputeProgramCore *d3d11ComputeProgram = static_cast<D3D11GpuComputeProgramCore*>(computeProgram.get());
+				mDevice->getImmediateContext()->CSSetShader(d3d11ComputeProgram->getComputeShader(), nullptr, 0);
+			}
+			else
+				mDevice->getImmediateContext()->CSSetShader(nullptr, nullptr, 0);
 		};
 
 		if (commandBuffer == nullptr)
-			executeRef(depthStencilState, stencilRefValue);
+			executeRef(computeProgram);
 		else
 		{
-			auto execute = [=]() { executeRef(depthStencilState, stencilRefValue); };
+			auto execute = [=]() { executeRef(computeProgram); };
 
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
 		}
 
-		BS_INC_RENDER_STAT(NumDepthStencilStateChanges);
+		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
 	void D3D11RenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr, 
@@ -687,117 +736,6 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11RenderAPI::bindGpuProgram(const SPtr<GpuProgramCore>& prg, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](const SPtr<GpuProgramCore>& prg)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			switch (prg->getProperties().getType())
-			{
-			case GPT_VERTEX_PROGRAM:
-			{
-				D3D11GpuVertexProgramCore* d3d11GpuProgram = static_cast<D3D11GpuVertexProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->VSSetShader(d3d11GpuProgram->getVertexShader(), nullptr, 0);
-				mActiveVertexShader = std::static_pointer_cast<D3D11GpuProgramCore>(prg);
-				break;
-			}
-			case GPT_FRAGMENT_PROGRAM:
-			{
-				D3D11GpuFragmentProgramCore* d3d11GpuProgram = static_cast<D3D11GpuFragmentProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->PSSetShader(d3d11GpuProgram->getPixelShader(), nullptr, 0);
-				break;
-			}
-			case GPT_GEOMETRY_PROGRAM:
-			{
-				D3D11GpuGeometryProgramCore* d3d11GpuProgram = static_cast<D3D11GpuGeometryProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->GSSetShader(d3d11GpuProgram->getGeometryShader(), nullptr, 0);
-				break;
-			}
-			case GPT_DOMAIN_PROGRAM:
-			{
-				D3D11GpuDomainProgramCore* d3d11GpuProgram = static_cast<D3D11GpuDomainProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->DSSetShader(d3d11GpuProgram->getDomainShader(), nullptr, 0);
-				break;
-			}
-			case GPT_HULL_PROGRAM:
-			{
-				D3D11GpuHullProgramCore* d3d11GpuProgram = static_cast<D3D11GpuHullProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->HSSetShader(d3d11GpuProgram->getHullShader(), nullptr, 0);
-				break;
-			}
-			case GPT_COMPUTE_PROGRAM:
-			{
-				D3D11GpuComputeProgramCore* d3d11GpuProgram = static_cast<D3D11GpuComputeProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->CSSetShader(d3d11GpuProgram->getComputeShader(), nullptr, 0);
-				break;
-			}
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(prg->getProperties().getType()));
-			}
-
-			if (mDevice->hasError())
-				BS_EXCEPT(RenderingAPIException, "Failed to bindGpuProgram : " + mDevice->getErrorDescription());
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(prg);
-		else
-		{
-			auto execute = [=]() { executeRef(prg); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumGpuProgramBinds);
-	}
-
-	void D3D11RenderAPI::unbindGpuProgram(GpuProgramType gptype, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](GpuProgramType gptype)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			switch (gptype)
-			{
-			case GPT_VERTEX_PROGRAM:
-				mDevice->getImmediateContext()->VSSetShader(nullptr, nullptr, 0);
-				mActiveVertexShader = nullptr;
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				mDevice->getImmediateContext()->PSSetShader(nullptr, nullptr, 0);
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				mDevice->getImmediateContext()->GSSetShader(nullptr, nullptr, 0);
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				mDevice->getImmediateContext()->DSSetShader(nullptr, nullptr, 0);
-				break;
-			case GPT_HULL_PROGRAM:
-				mDevice->getImmediateContext()->HSSetShader(nullptr, nullptr, 0);
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				mDevice->getImmediateContext()->CSSetShader(nullptr, nullptr, 0);
-				break;
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-			}
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(gptype);
-		else
-		{
-			auto execute = [=]() { executeRef(gptype); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumGpuProgramBinds);
-	}
-
 	void D3D11RenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
 		const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer)
 	{
@@ -987,6 +925,31 @@ namespace BansheeEngine
 		else
 		{
 			auto execute = [=]() { executeRef(left, top, right, bottom); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 value)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mStencilRef = value;
+
+			if(mActiveDepthStencilState != nullptr)
+				mDevice->getImmediateContext()->OMSetDepthStencilState(mActiveDepthStencilState->getInternal(), mStencilRef);
+			else
+				mDevice->getImmediateContext()->OMSetDepthStencilState(nullptr, mStencilRef);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(value);
+		else
+		{
+			auto execute = [=]() { executeRef(value); };
 
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
