@@ -779,7 +779,6 @@ INPUT                  = ../../Source/BansheeUtility/Include \
                          ../../Source/BansheeCore/Include \
                          ../../Source/BansheeEngine/Include \
                          ../../Source/BansheeEditor/Include \
-                         ../../Source/BansheeD3D9RenderAPI/Include \
                          ../../Source/BansheeD3D11RenderAPI/Include \
                          ../../Source/BansheeGLRenderAPI/Include \
                          ../../Source/BansheeFBXImporter/Include \

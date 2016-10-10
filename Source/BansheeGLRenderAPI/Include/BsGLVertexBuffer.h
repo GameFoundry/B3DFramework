@@ -40,10 +40,10 @@ namespace BansheeEngine
 		/** @copydoc VertexBufferCore::initialize */
 		void initialize() override;
 
-		/** @copydoc VertexBufferCore::lockImpl */
+		/** @copydoc VertexBufferCore::map */
 		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc VertexBufferCore::unlockImpl */
+		/** @copydoc VertexBufferCore::unmap */
 		void unmap() override;
 
 	private:

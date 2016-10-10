@@ -55,7 +55,7 @@ myTextureParam.set(myTexture); // Assuming we created "myTexture" earlier.
 As you can see we must first retrieve a handle to the parameter, and then we can use that handle for reading/writing to the parameter. You can store those handles for easier access to the parameters, as looking them up by using the parameter name can be relatively slow.
 
 # Using GPU programs for rendering {#gpuPrograms_c}
-You can bind a GPU program to the pipeline by calling @ref BansheeEngine::RenderAPI::bindGpuProgram "RenderAPI::bindGpuProgram". Any draw calls following this bind will use the bound GPU program. You can unbind a program by calling @ref BansheeEngine::RenderAPI::unbindGpuProgram "RenderAPI::unbindGpuProgram".
+You can bind a GPU program to the pipeline by assigning it to a @ref BansheeEngine::GpuPipelineState "GpuPipelineState" and calling @ref BansheeEngine::RenderAPICore::setGraphicsPipeline "RenderAPICore::setGraphicsPipeline". Or alternatively if using compute programs you can bind by calling @ref BansheeEngine::RenderAPICore::setComputePipeline "RenderAPICore::setComputePipeline". Any subsequent draw/dispatch calls will then use the bound GPU programs. 
 
 You can bind parameters for use in the GPU program by calling @ref BansheeEngine::RenderAPICore::setParamBuffer "RenderAPICore::setParamBuffer" for primitive parameters (vector, float, etc.) organized as @ref BansheeEngine::GpuParamBlockBuffer "GpuParamBlockBuffer", and @ref BansheeEngine::RenderAPICore::setTexture "RenderAPICore::setTexture", @ref BansheeEngine::RenderAPICore::setLoadStoreTexture "RenderAPICore::setLoadStoreTexture", @ref BansheeEngine::RenderAPICore::setBuffer "RenderAPICore::setBuffer", @ref BansheeEngine::RenderAPICore::setSamplerState "RenderAPICore::setSamplerState" for textures, buffers and sampler states.
 
@@ -63,7 +63,7 @@ You can retrieve the primitive parameter buffer from a @ref BansheeEngine::Mater
 
 Alternatively you can use the helper method @ref BansheeEngine::RendererUtility::setGpuParams "RendererUtility::setGpuParams" which will bind both object and data parameters in the @ref BansheeEngine::GpuParams "BansheeEngine::GpuParams" object.
 
-To learn more about the render API read the [manual](@ref renderAPI).
+Much more detailed information about rendering is provided in the [render API manual](@ref renderAPI).
 
 # Core thread GPU programs {#gpuPrograms_e}
 So far we have only talked about the simulation thread @ref BansheeEngine::GpuProgram "GpuProgram" but have ignored the core thread @ref BansheeEngine::GpuProgramCore "GpuProgramCore". The functionality between the two is mostly the same, with the major difference being that operations performed on the core thread version are immediate. So calls to @ref BansheeEngine::GpuProgramCore::isCompiled() "GpuProgramCore::isCompiled" and @ref BansheeEngine::GpuProgramCore::getCompileErrorMessage() "GpuProgramCore::getCompileErrorMessage" don't require any waiting.

@@ -33,10 +33,10 @@ namespace BansheeEngine
 		/** @copydoc IndexBufferCore::initialize */
 		void initialize() override;	
 
-		/** @copydoc IndexBufferCore::lockImpl */
+		/** @copydoc IndexBufferCore::map */
 		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc IndexBufferCore::unlockImpl */
+		/** @copydoc IndexBufferCore::unmap */
 		void unmap() override;
 
 	private:

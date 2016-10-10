@@ -12,9 +12,9 @@ To render something using this API you need to:
  - Create and bind a render target
   - Set up a viewport (if rendering to a part of a render target)
   - Clear render target (if we're re-using a render target)
- - Create and bind depth stencil, blend and/or rasterizer states (optionally)
- - Create and bind GPU programs
-   - Create and bind vertex/fragment GPU program
+ - Create and bind a pipeline state
+   - Create and bind vertex/fragment GPU programs
+   - Create and bind depth stencil, blend and/or rasterizer states (optionally)
    - Create and bind geometry/hull/domain GPU program (optionally)
  - Bind GPU program parameters (if any)
   - Bind textures
@@ -53,41 +53,44 @@ rapi.clearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White, 1.0f, 0);
 rapi.swapBuffers();
 ~~~~~~~~~~~~~
  
-# Pipeline states {#renderAPI_b}
-Before executing the drawing operation you can optionally set up depth-stencil, rasterizer or blend states. If you do not set them, the default values will be used. The states allow you to customize the execution of the fixed (non-programmable) part of the GPU pipeline.
+# Pipeline state {#renderAPI_b}
+Before executing the drawing operation you must set up an @ref BansheeEngine::GpuPipelineStateCore "GpuPipelineStateCore" object, which contains a set of fixed and programmable states that control primitive rendering. This includes GPU programs (e.g. vertex/fragment) and fixed states (depth-stencil, blend, rasterizer).
+
+To create a pipeline state you must fill out @ref BansheeEngine::PIPELINE_STATE_CORE_DESC "PIPELINE_STATE_CORE_DESC" descriptor, and use it to construct the state, like so:
+~~~~~~~~~~~~~{.cpp}
+PIPELINE_STATE_CORE_DESC desc;
+// Fixed states (see below on how to create them)
+desc.blendState = ...;
+desc.rasterizerState = ...;
+desc.depthStencilState = ...;
+
+// GPU programs (see below on how to create them)
+desc.vertexProgram = ...
+desc.fragmentProgram = ...;
+desc.geometryProgram = ...;
+desc.hullProgram = ...;
+desc.domainProgram = ...;
+
+SPtr<GpuPipelineStateCore> state = GpuPipelineStateCore::create(desc);
+~~~~~~~~~~~~~
+
+Once created the pipeline can be bound for rendering by calling @ref BansheeEngine::RenderAPICore::setGraphicsPipeline "RenderAPICore::setGraphicsPipeline".
+
+We continue below with explanation on how to create fixed and programmable states required to initialize GpuPipelineStateCore.
+
+## Fixed pipeline states {#renderAPI_b_a}
+Fixed pipeline states allow you to control (to some extent) non-programmable parts of the pipeline. This includes anything from blend operations, rasterization mode to depth testing. Setting these states is optional and if not set, default values will be used.
 
 States can be created by:
  - @ref BansheeEngine::DepthStencilStateCore "DepthStencilStateCore" - Populate @ref BansheeEngine::DEPTH_STENCIL_STATE_DESC "DEPTH_STENCIL_STATE_DESC" and call @ref BansheeEngine::DepthStencilStateCore::create "DepthStencilStateCore::create" 
  - @ref BansheeEngine::BlendStateCore "BlendStateCore" - Populate @ref BansheeEngine::BLEND_STATE_DESC "BLEND_STATE_DESC" and call @ref BansheeEngine::BlendStateCore::create "BlendStateCore::create" 
  - @ref BansheeEngine::RasterizerStateCore "RasterizerStateCore" - Populate @ref BansheeEngine::RASTERIZER_STATE_DESC "RASTERIZER_STATE_DESC" and call @ref BansheeEngine::RasterizerStateCore::create "RasterizerStateCore::create" 
  
-They can then be bound to the pipeline by calling:
- - @ref BansheeEngine::RenderAPICore::setDepthStencilState "RenderAPICore::setDepthStencilState" for @ref BansheeEngine::DepthStencilStateCore "DepthStencilStateCore"
- - @ref BansheeEngine::RenderAPICore::setBlendState "RenderAPICore::setBlendState" for @ref BansheeEngine::BlendStateCore "BlendStateCore".
- - @ref BansheeEngine::RenderAPICore::setRasterizerState "RenderAPICore::setRasterizerState" for @ref BansheeEngine::RasterizerStateCore "RasterizerStateCore".
+We won't explain what each of the states does. For that you can check out the class documentation of the states themselves, or familiarize yourself with the modern GPU pipeline in general, as the states mirror it exactly.
 
-We won't explain what each of the state's does. For that you can check out the class documentation of the states themselves, or familiarize yourself with the modern GPU pipeline in general, as the states mirror it exactly.
+## GPU programs {#renderAPI_b_b}
+The pipeline state also requires you to bind at least one GPU program (programmable state). At minimum you will need to bind a vertex program, while in most cases you will also need a fragment program. Optionally you can also bind geometry, hull or domain programs for more advanced functionality. GPU programs are explained in their own [manual](@ref gpuPrograms).
 
-# GPU programs {#renderAPI_c}
-Before drawing you must bind at least a vertex and a fragment GPU program. Optionally you can also bind geometry, hull or domain programs. While pipeline states allow you to control the fixed portions of the pipeline, GPU programs are fully programmable. To learn how to create GPU programs read the [manual](@ref gpuPrograms).
-
-You can bind a GPU program by calling @ref BansheeEngine::RenderAPICore::bindGpuProgram() "RenderAPICore::bindGpuProgram". You can also use @ref BansheeEngine::RenderAPICore::unbindGpuProgram() "RenderAPICore::unbindGpuProgram" to remove the GPU program from the pipeline, or @ref BansheeEngine::RenderAPICore::isGpuProgramBound() "RenderAPICore::isGpuProgramBound" to check if one is currently bound to a specific slot.
-
-For example:
-~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgramCore> fragmentProgram = ...;
-SPtr<GpuProgramCore> vertexProgram = ...;
-
-RenderAPICore& rapi = RenderAPICore::instance();
-rapi.bindGpuProgram(vertexProgram);
-rapi.bindGpuProgram(fragmentProgram);
-... execute some draw calls ...
-
-~~~~~~~~~~~~~
-
-With most GPU programs you will also likely want to customize their execution by assigning them some parameters.
-
-## GPU program parameters {#renderAPI_c_a}
 Most GPU programs also accept a number of parameters, whether textures, buffers, sampler states or primitive values like floats or integers. Parameters can be split into two categories:
  - Object - Textures, sampler states
  - Data - Float, int, bool (and their vectors and arrays)
@@ -227,9 +230,9 @@ If using an index buffer you should issue a @ref BansheeEngine::RenderAPICore::d
 And this wraps up the rendering pipeline. After this step your object should be rendered to your render target and ready to display. 
  
 # Compute {#renderAPI_g}
-The compute pipeline is a very simple pipeline that can be used for general purpose calculations. It is separate from the render pipeline we have been describing so far, but uses the same functionality, just in a more limited way. You don't have to set states, render targets, vertex/index buffers and only one GPU program type is supported (compute GPU program).
+The compute pipeline is a very simple pipeline that can be used for general purpose calculations. It is separate from the graphics pipeline we have been describing so far, but uses the same functionality, just in a more limited way. You don't have to set fixed states, render targets, vertex/index buffers and only one GPU program type is supported (compute GPU program).
 
-When the pipeline is set up you can execute it by calling @ref BansheeEngine::RenderAPICore::dispatchCompute "RenderAPICore::dispatchCompute". You should provide it a three dimensional number that determines how many instances of the currently bound GPU program to execute. The total number of executions will be X * Y * Z.
+Use @ref BansheeEngine::RenderAPICore::setComputePipeline "RenderAPICore::setComputePipeline" to initialize the pipeline. When the pipeline is set up you can execute it by calling @ref BansheeEngine::RenderAPICore::dispatchCompute "RenderAPICore::dispatchCompute". You should provide it a three dimensional number that determines how many instances of the currently bound GPU program to execute. The total number of executions will be X * Y * Z.
 
 Since compute pipeline doesn't support render targets, you will want to use load-store textures for output. An example of a simple compute pipeline:
 ~~~~~~~~~~~~~{.cpp}
@@ -237,7 +240,7 @@ SPtr<GpuProgramCore> computeProgram = ...;
 SPtr<TextureCore> loadStoreTexture = ...;
 
 RenderAPICore& rapi = RenderAPICore::instance();
-rapi.bindGpuProgram(computeProgram);
+rapi.setComputePipeline(computeProgram);
 rapi.setLoadStoreTexture(GPT_COMPUTE_PROGRAM, 0, true, loadStoreTexture, TextureSurface(0, 0));
 rapi.dispatchCompute(512, 512);
 

@@ -34,10 +34,10 @@ namespace BansheeEngine
 		ID3D11Buffer* getD3DVertexBuffer() const { return mBuffer->getD3DBuffer(); }		
 
 	protected: 
-		/** @copydoc VertexBufferCore::lockImpl */
+		/** @copydoc VertexBufferCore::map */
 		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc VertexBufferCore::unlockImpl */
+		/** @copydoc VertexBufferCore::unmap */
 		void unmap(void) override;
 
 		/** @copydoc VertexBufferCore::initialize */

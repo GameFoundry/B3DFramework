@@ -223,15 +223,7 @@ namespace BansheeEngine
 		void addParameterInternal(const String& name, const String& gpuVariableName, GpuParamObjectType type, StringID rendererSemantic, UINT32 defaultValueIdx);
 	};
 
-	/**
-	 * Shader represents a collection of techniques. They are used in Material%s, which can be considered as instances of a 
-	 * Shader. Multiple materials may share the same shader but provide different parameters to it.
-	 *
-	 * Shader will always choose the first supported technique based on the current render system, render manager and other
-	 * properties. So make sure to add most important techniques first so you make sure they are used if they are supported.
-	 *
-	 * @note	Templated version of Shader used for implementing both sim and core thread variants.
-	 */
+	/**	Templated version of Shader used for implementing both sim and core thread variants. */
 	template<bool Core>
 	class BS_CORE_EXPORT TShader
 	{
@@ -369,7 +361,7 @@ namespace BansheeEngine
 
 	typedef TSHADER_DESC<true> SHADER_DESC_CORE;
 	
-	/** @copydoc TShader */
+	/** Core thread version of Shader. */
 	class BS_CORE_EXPORT ShaderCore : public CoreObjectCore, public TShader<true>
 	{
 	public:
@@ -391,7 +383,14 @@ namespace BansheeEngine
 
 	typedef TSHADER_DESC<false> SHADER_DESC;
 
-	/** @copydoc TShader */
+	/** 
+	 * Shader represents a collection of techniques that control object rendering. They are used in Material%s, which can be
+	 * considered as instances of a Shader. Multiple materials may share the same shader but provide different parameters to
+	 * it.
+	 *
+	 * Shader will always choose the first supported technique based on the current render system, render manager and other
+	 * properties. So make sure to add most important techniques first so you make sure they are used if they are supported. 
+	 */
 	class BS_CORE_EXPORT Shader : public Resource, public TShader<false>
 	{
 	public:
