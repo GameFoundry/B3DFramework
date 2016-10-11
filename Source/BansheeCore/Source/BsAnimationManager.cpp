@@ -20,7 +20,7 @@ namespace BansheeEngine
 	{
 		mAnimationWorker = Task::create("Animation", std::bind(&AnimationManager::evaluateAnimation, this));
 
-		mDataReadyCount.store(0, std::memory_order_release);
+		mDataReadyCount.store(0);
 		mWorkerState.store(WorkerState::Inactive, std::memory_order_release);
 
 		mBlendShapeVertexDesc = VertexDataDesc::create();
@@ -468,7 +468,7 @@ namespace BansheeEngine
 
 		// Increments counter and ensures all writes are recorded
 		mWorkerState.store(WorkerState::DataReady, std::memory_order_release);
-		mDataReadyCount.fetch_add(1, std::memory_order_acq_rel);
+		mDataReadyCount.fetch_add(1);
 	}
 
 	void AnimationManager::waitUntilComplete()
@@ -476,7 +476,7 @@ namespace BansheeEngine
 		mAnimationWorker->wait();
 
 		// Read counter, and ensure all reads are done after writes on anim thread complete
-		INT32 dataReadyCount = mDataReadyCount.load(std::memory_order_acquire);
+		INT32 dataReadyCount = mDataReadyCount.load();
 
 		if (dataReadyCount > CoreThread::NUM_SYNC_BUFFERS)
 		{
@@ -488,7 +488,7 @@ namespace BansheeEngine
 		if (!mDataReady)
 			return;
 
-		mDataReadyCount.fetch_add(-1, std::memory_order_release);
+		mDataReadyCount.fetch_sub(1);
 		mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
 	}
 

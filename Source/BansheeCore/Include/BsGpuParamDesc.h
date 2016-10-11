@@ -20,6 +20,7 @@ namespace BansheeEngine
 		GpuParamDataType type;
 
 		UINT32 paramBlockSlot;
+		UINT32 paramBlockSet;
 		UINT32 gpuMemOffset; /**< In multiples of 4 bytes, or index for parameters not in a buffer. */
 		UINT32 cpuMemOffset; /**< In multiples of 4 bytes. */
 	};
@@ -30,16 +31,18 @@ namespace BansheeEngine
 		String name;
 		GpuParamObjectType type;
 
-		UINT32 slot;
+		UINT32 slot; /** Slot within a set. Uniquely identifies bind location in the GPU pipeline, together with the set. */
+		UINT32 set; /** Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
 	};
 
 	/**	Describes a GPU program parameter block (collection of GPU program data parameters). */
 	struct GpuParamBlockDesc
 	{
 		String name;
-		UINT32 slot;
+		UINT32 slot; /** Slot within a set. Uniquely identifies bind location in the GPU pipeline, together with the set. */
+		UINT32 set; /** Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
 		UINT32 blockSize; /**< In multiples of 4 bytes. */
-		bool isShareable;
+		bool isShareable; /** True for blocks that can be shared between different GPU pipeline stages. */
 	};
 
 	/** Contains all parameter information for a GPU program, including data and object parameters, plus parameter blocks. */

@@ -20,11 +20,12 @@ namespace BansheeEngine
 		 * a set of input parameters.
 		 *
 		 * @param[in]	microcode	Compiled GPU program microcode to parse.
-		 * @param[in]	desc		Output object that will contain parameter descriptions.
-		 * @param[in]	inputParams	Output object that will contain a set of program input parameters. Can be null if not 
+		 * @param[in]	type		Type of the GPU program.
+		 * @param[out]	desc		Output object that will contain parameter descriptions.
+		 * @param[out]	inputParams	Output object that will contain a set of program input parameters. Can be null if not 
 		 *							required. Only relevant for vertex programs.
 		 */
-		void parse(ID3DBlob* microcode, GpuParamDesc& desc, List<VertexElement>* inputParams);
+		void parse(ID3DBlob* microcode, GpuProgramType type, GpuParamDesc& desc, List<VertexElement>* inputParams);
 
 	private:
 		/**
@@ -34,7 +35,7 @@ namespace BansheeEngine
 		void parseBuffer(ID3D11ShaderReflectionConstantBuffer* bufferReflection, GpuParamDesc& desc);
 
 		/**	Parses the resource description structure and stores it in the provided GPU params description object. */
-		void parseResource(D3D11_SHADER_INPUT_BIND_DESC& resourceDesc, GpuParamDesc& desc);
+		void parseResource(D3D11_SHADER_INPUT_BIND_DESC& resourceDesc, GpuProgramType type, GpuParamDesc& desc);
 
 		/**
 		 * Parses a variable with the specified type and variable description. Adds the variable in the provided GPU params

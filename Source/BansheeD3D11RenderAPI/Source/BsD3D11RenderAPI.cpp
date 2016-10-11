@@ -1451,6 +1451,7 @@ namespace BansheeEngine
 		block.isShareable = true;
 		block.name = name;
 		block.slot = 0;
+		block.set = 0;
 
 		for (auto& param : params)
 		{
@@ -1500,6 +1501,7 @@ namespace BansheeEngine
 			}
 
 			param.paramBlockSlot = 0;
+			param.paramBlockSet = 0;
 		}
 
 		// Constant buffer size must always be a multiple of 16
