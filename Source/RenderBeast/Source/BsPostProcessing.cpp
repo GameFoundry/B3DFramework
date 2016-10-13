@@ -109,10 +109,6 @@ namespace BansheeEngine
 		gRendererUtility().setPassParams(mParamsSet);
 		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
 
-		// Note: This is ugly, add a better way to clear load/store textures?
-		TextureSurface blankSurface;
-		rapi.setLoadStoreTexture(GPT_COMPUTE_PROGRAM, 0, nullptr, blankSurface);
-
 		mOutput = ppInfo.histogramTex->renderTexture;
 	}
 

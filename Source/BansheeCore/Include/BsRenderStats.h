@@ -28,8 +28,8 @@ namespace BansheeEngine
 	{
 		RenderStatsData()
 		: numDrawCalls(0), numComputeCalls(0), numRenderTargetChanges(0), numPresents(0), numClears(0)
-		, numVertices(0), numPrimitives(0), numPipelineStateChanges(0), numTextureBinds(0), numSamplerBinds(0)
-		, numVertexBufferBinds(0), numIndexBufferBinds(0), numGpuParamBufferBinds(0)
+		, numVertices(0), numPrimitives(0), numPipelineStateChanges(0), numGpuParamBinds(0), numVertexBufferBinds(0)
+		, numIndexBufferBinds(0)
 		{ }
 
 		UINT64 numDrawCalls;
@@ -43,11 +43,9 @@ namespace BansheeEngine
 
 		UINT64 numPipelineStateChanges;
 
-		UINT64 numTextureBinds; 
-		UINT64 numSamplerBinds; 
+		UINT64 numGpuParamBinds; 
 		UINT64 numVertexBufferBinds; 
 		UINT64 numIndexBufferBinds;
-		UINT64 numGpuParamBufferBinds;
 
 		UINT64 numResourceWrites;
 		UINT64 numResourceReads;
@@ -91,23 +89,14 @@ namespace BansheeEngine
 		/** Increments pipeline state change counter indicating how many times was a pipeline state bound. */
 		void incNumPipelineStateChanges() { mData.numPipelineStateChanges++; }
 
-		/** Increments texture change counter indicating how many times was a texture bound to the pipeline. */
-		void incNumTextureBinds() { mData.numTextureBinds++; }
-
-		/** Increments sampler state change counter indicating how many times was a sampler state bound to the pipeline. */
-		void incNumSamplerBinds() { mData.numSamplerBinds++; }
+		/** Increments GPU parameter change counter indicating how many times were GPU parameters bound to the pipeline. */
+		void incNumGpuParamBinds() { mData.numGpuParamBinds++; }
 
 		/** Increments vertex buffer change counter indicating how many times was a vertex buffer bound to the pipeline. */
 		void incNumVertexBufferBinds() { mData.numVertexBufferBinds++; }
 
 		/** Increments index buffer change counter indicating how many times was a index buffer bound to the pipeline. */
 		void incNumIndexBufferBinds() { mData.numIndexBufferBinds++; }
-
-		/** 
-		 * Increments GPU parameter buffer change counter indicating how many times was a GPU parameter buffer bound to the 
-		 * pipeline.
-		 */
-		void incNumGpuParamBufferBinds() { mData.numGpuParamBufferBinds++; }
 
 		/**
 		 * Increments created GPU resource counter. 

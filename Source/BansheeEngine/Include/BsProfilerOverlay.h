@@ -231,11 +231,9 @@ namespace BansheeEngine
 		GUILabel* mGPUObjectsDestroyedLbl;
 		GUILabel* mGPUResourceWritesLbl;
 		GUILabel* mGPUResourceReadsLbl;
-		GUILabel* mGPUTextureBindsLbl;
-		GUILabel* mGPUSamplerBindsLbl;
+		GUILabel* mGPUParamBindsLbl;
 		GUILabel* mGPUVertexBufferBindsLbl;
 		GUILabel* mGPUIndexBufferBindsLbl;
-		GUILabel* mGPUGPUProgramBufferBindsLbl;
 
 		HString mGPUFrameNumStr;
 		HString mGPUTimeStr;
@@ -252,11 +250,9 @@ namespace BansheeEngine
 		HString mGPUObjectsDestroyedStr;
 		HString mGPUResourceWritesStr;
 		HString mGPUResourceReadsStr;
-		HString mGPUTextureBindsStr;
-		HString mGPUSamplerBindsStr;
+		HString mGPUParamBindsStr;
 		HString mGPUVertexBufferBindsStr;
 		HString mGPUIndexBufferBindsStr;
-		HString mGPUGPUProgramBufferBindsStr;
 
 		Vector<BasicRow> mBasicRows;
 		Vector<PreciseRow> mPreciseRows;

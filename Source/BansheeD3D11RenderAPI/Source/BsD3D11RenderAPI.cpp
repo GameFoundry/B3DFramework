@@ -215,56 +215,6 @@ namespace BansheeEngine
 		RenderAPICore::destroyCore();
 	}
 
-	void D3D11RenderAPI::setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState,
-		const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			ID3D11SamplerState* samplerArray[1];
-			D3D11SamplerStateCore* d3d11SamplerState = static_cast<D3D11SamplerStateCore*>(const_cast<SamplerStateCore*>(samplerState.get()));
-			samplerArray[0] = d3d11SamplerState->getInternal();
-
-			switch (gptype)
-			{
-			case GPT_VERTEX_PROGRAM:
-				mDevice->getImmediateContext()->VSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				mDevice->getImmediateContext()->PSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				mDevice->getImmediateContext()->GSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				mDevice->getImmediateContext()->DSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			case GPT_HULL_PROGRAM:
-				mDevice->getImmediateContext()->HSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				mDevice->getImmediateContext()->CSSetSamplers(texUnit, 1, samplerArray);
-				break;
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-			}
-
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(gptype, texUnit, samplerState);
-		else
-		{
-			auto execute = [=]() { executeRef(gptype, texUnit, samplerState); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumSamplerBinds);
-	}
-
 	void D3D11RenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
@@ -391,197 +341,265 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
-	void D3D11RenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr, 
-		const SPtr<CommandBuffer>& commandBuffer)
+	void D3D11RenderAPI::setGpuParams(const SPtr<GpuParamsCore>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [&](GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr)
+		auto executeRef = [&](const SPtr<GpuParamsCore>& gpuParams)
 		{
 			THROW_IF_NOT_CORE_THREAD;
 
-			ID3D11ShaderResourceView* viewArray[1];
-			if (texPtr != nullptr)
+			bs_frame_mark();
 			{
-				D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texPtr.get());
-				viewArray[0] = d3d11Texture->getSRV();
-			}
-			else
-				viewArray[0] = nullptr;
+				FrameVector<ID3D11ShaderResourceView*> srvs(8);
+				FrameVector<ID3D11UnorderedAccessView*> uavs(8);
+				FrameVector<ID3D11Buffer*> constBuffers(8);
+				FrameVector<ID3D11SamplerState*> samplers(8);
 
-			switch (gptype)
-			{
-			case GPT_VERTEX_PROGRAM:
-				mDevice->getImmediateContext()->VSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				mDevice->getImmediateContext()->PSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				mDevice->getImmediateContext()->GSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				mDevice->getImmediateContext()->DSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_HULL_PROGRAM:
-				mDevice->getImmediateContext()->HSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				mDevice->getImmediateContext()->CSSetShaderResources(unit, 1, viewArray);
-				break;
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+				auto populateViews = [&](GpuProgramType type)
+				{
+					srvs.clear();
+					uavs.clear();
+					constBuffers.clear();
+					samplers.clear();
+
+					SPtr<GpuParamDesc> paramDesc = gpuParams->getParamDesc(type);
+					if (paramDesc == nullptr)
+						return;
+
+					for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<TextureCore> texture = gpuParams->getTexture(iter->second.set, slot);
+
+						while (slot >= (UINT32)srvs.size())
+							srvs.push_back(nullptr);
+
+						if (texture != nullptr)
+						{
+							D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texture.get());
+							srvs[slot] = d3d11Texture->getSRV();
+						}
+					}
+
+					for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<GpuBufferCore> buffer = gpuParams->getBuffer(iter->second.set, slot);
+
+						bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+							iter->second.type != GPOT_STRUCTURED_BUFFER;
+
+						if (!isLoadStore)
+						{
+							while (slot >= (UINT32)srvs.size())
+								srvs.push_back(nullptr);
+
+							if (buffer != nullptr)
+							{
+								D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+								srvs[slot] = d3d11buffer->getSRV();
+							}
+						}
+						else
+						{
+							while (slot >= (UINT32)uavs.size())
+								uavs.push_back(nullptr);
+
+							if (buffer != nullptr)
+							{
+								D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+								uavs[slot] = d3d11buffer->getUAV();
+							}
+						}
+					}
+
+					for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+
+						SPtr<TextureCore> texture = gpuParams->getLoadStoreTexture(iter->second.set, slot);
+						const TextureSurface& surface = gpuParams->getLoadStoreSurface(iter->second.set, slot);
+
+						while (slot >= (UINT32)uavs.size())
+							uavs.push_back(nullptr);
+
+						if (texture != nullptr)
+						{
+							SPtr<TextureView> texView = TextureCore::requestView(texture, surface.mipLevel, 1,
+								surface.arraySlice, surface.numArraySlices, GVU_RANDOMWRITE);
+
+							D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
+							uavs[slot] = d3d11texView->getUAV();
+
+							if (mBoundUAVs[slot].second != nullptr)
+								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
+
+							mBoundUAVs[slot] = std::make_pair(texture, texView);
+						}
+						else
+						{
+							uavs[slot] = nullptr;
+
+							if (mBoundUAVs[slot].second != nullptr)
+								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
+
+							mBoundUAVs[slot] = std::pair<SPtr<TextureCore>, SPtr<TextureView>>();
+						}
+					}
+
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<SamplerStateCore> samplerState = gpuParams->getSamplerState(iter->second.set, slot);
+
+						while (slot >= (UINT32)samplers.size())
+							samplers.push_back(nullptr);
+
+						if (samplerState == nullptr)
+							samplerState = SamplerStateCore::getDefault();
+
+						D3D11SamplerStateCore* d3d11SamplerState = 
+							static_cast<D3D11SamplerStateCore*>(const_cast<SamplerStateCore*>(samplerState.get()));
+						samplers[slot] = d3d11SamplerState->getInternal();
+					}
+
+					for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<GpuParamBlockBufferCore> buffer = gpuParams->getParamBlockBuffer(iter->second.set, slot);
+						buffer->flushToGPU();
+
+						while (slot >= (UINT32)constBuffers.size())
+							constBuffers.push_back(nullptr);
+
+						if (buffer != nullptr)
+						{
+							const D3D11GpuParamBlockBufferCore* d3d11paramBlockBuffer =
+								static_cast<const D3D11GpuParamBlockBufferCore*>(buffer.get());
+							constBuffers[slot] = d3d11paramBlockBuffer->getD3D11Buffer();
+						}
+					}
+				};
+
+				ID3D11DeviceContext* context = mDevice->getImmediateContext();
+
+				UINT32 numSRVs = 0;
+				UINT32 numUAVs = 0;
+				UINT32 numConstBuffers = 0;
+				UINT32 numSamplers = 0;
+
+				populateViews(GPT_VERTEX_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if(numSRVs > 0)
+					context->VSSetShaderResources(0, numSRVs, srvs.data());
+
+				if(numUAVs > 0)
+				{
+					context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr,
+						nullptr, 0, numUAVs, uavs.data(), nullptr);
+				}
+
+				if (numConstBuffers > 0)
+					context->VSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->VSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_FRAGMENT_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->PSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->PSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->PSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_GEOMETRY_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->GSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->GSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->GSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_HULL_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->HSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->HSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->HSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_DOMAIN_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->DSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->DSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->DSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_COMPUTE_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->CSSetShaderResources(0, numSRVs, srvs.data());
+
+				if(numUAVs > 0)
+					context->CSSetUnorderedAccessViews(0, numUAVs, uavs.data(), nullptr);
+
+				if (numConstBuffers > 0)
+					context->CSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->CSSetSamplers(0, numSamplers, samplers.data());
+
 			}
+			bs_frame_clear();
+
+			if (mDevice->hasError())
+				BS_EXCEPT(RenderingAPIException, "Failed to set GPU parameters: " + mDevice->getErrorDescription());
 		};
 
 		if (commandBuffer == nullptr)
-			executeRef(gptype, unit, texPtr);
+			executeRef(gpuParams);
 		else
 		{
-			auto execute = [=]() { executeRef(gptype, unit, texPtr); };
+			auto execute = [=]() { executeRef(gpuParams); };
 
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
 		}
 
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	void D3D11RenderAPI::setLoadStoreTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
-		const TextureSurface& surface, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
-			const TextureSurface& surface)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			ID3D11UnorderedAccessView* viewArray[1];
-			if (texPtr != nullptr)
-			{
-				D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texPtr.get());
-				SPtr<TextureView> texView = TextureCore::requestView(texPtr, surface.mipLevel, 1,
-					surface.arraySlice, surface.numArraySlices, GVU_RANDOMWRITE);
-
-				D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
-				viewArray[0] = d3d11texView->getUAV();
-
-				if (mBoundUAVs[unit].second != nullptr)
-					mBoundUAVs[unit].first->releaseView(mBoundUAVs[unit].second);
-
-				mBoundUAVs[unit] = std::make_pair(texPtr, texView);
-			}
-			else
-			{
-				viewArray[0] = nullptr;
-
-				if (mBoundUAVs[unit].second != nullptr)
-					mBoundUAVs[unit].first->releaseView(mBoundUAVs[unit].second);
-
-				mBoundUAVs[unit] = std::pair<SPtr<TextureCore>, SPtr<TextureView>>();
-			}
-
-			if (gptype == GPT_FRAGMENT_PROGRAM)
-			{
-				mDevice->getImmediateContext()->OMSetRenderTargetsAndUnorderedAccessViews(
-					D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, unit, 1, viewArray, nullptr);
-			}
-			else if (gptype == GPT_COMPUTE_PROGRAM)
-			{
-				mDevice->getImmediateContext()->CSSetUnorderedAccessViews(unit, 1, viewArray, nullptr);
-			}
-			else
-				LOGERR("Unsupported gpu program type: " + toString(gptype));
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(gptype, unit, texPtr, surface);
-		else
-		{
-			auto execute = [=]() { executeRef(gptype, unit, texPtr, surface); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	void D3D11RenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore, 
-		const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			if (!loadStore)
-			{
-				ID3D11ShaderResourceView* viewArray[1];
-				if (buffer != nullptr)
-				{
-					D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
-					viewArray[0] = d3d11buffer->getSRV();
-				}
-				else
-					viewArray[0] = nullptr;
-
-				switch (gptype)
-				{
-				case GPT_VERTEX_PROGRAM:
-					mDevice->getImmediateContext()->VSSetShaderResources(unit, 1, viewArray);
-					break;
-				case GPT_FRAGMENT_PROGRAM:
-					mDevice->getImmediateContext()->PSSetShaderResources(unit, 1, viewArray);
-					break;
-				case GPT_GEOMETRY_PROGRAM:
-					mDevice->getImmediateContext()->GSSetShaderResources(unit, 1, viewArray);
-					break;
-				case GPT_DOMAIN_PROGRAM:
-					mDevice->getImmediateContext()->DSSetShaderResources(unit, 1, viewArray);
-					break;
-				case GPT_HULL_PROGRAM:
-					mDevice->getImmediateContext()->HSSetShaderResources(unit, 1, viewArray);
-					break;
-				case GPT_COMPUTE_PROGRAM:
-					mDevice->getImmediateContext()->CSSetShaderResources(unit, 1, viewArray);
-					break;
-				default:
-					BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-				}
-			}
-			else
-			{
-				ID3D11UnorderedAccessView* viewArray[1];
-				if (buffer != nullptr)
-				{
-					D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
-					viewArray[0] = d3d11buffer->getUAV();
-				}
-				else
-					viewArray[0] = nullptr;
-
-				if (gptype == GPT_FRAGMENT_PROGRAM)
-				{
-					mDevice->getImmediateContext()->OMSetRenderTargetsAndUnorderedAccessViews(
-						D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, unit, 1, viewArray, nullptr);
-				}
-				else if (gptype == GPT_COMPUTE_PROGRAM)
-				{
-					mDevice->getImmediateContext()->CSSetUnorderedAccessViews(unit, 1, viewArray, nullptr);
-				}
-				else
-					BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-			}
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(gptype, unit, buffer, loadStore);
-		else
-		{
-			auto execute = [=]() { executeRef(gptype, unit, buffer, loadStore); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
+		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}
 
 	void D3D11RenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
@@ -734,64 +752,6 @@ namespace BansheeEngine
 
 			cb->mActiveDrawOp = op;
 		}
-	}
-
-	void D3D11RenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-		const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [&](GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer,
-			const SPtr<GpuParamDesc>& paramDesc)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			ID3D11Buffer* bufferArray[1];
-
-			if (buffer != nullptr)
-			{
-				const D3D11GpuParamBlockBufferCore* d3d11paramBlockBuffer =
-					static_cast<const D3D11GpuParamBlockBufferCore*>(buffer.get());
-				bufferArray[0] = d3d11paramBlockBuffer->getD3D11Buffer();
-			}
-			else
-				bufferArray[0] = nullptr;
-
-			switch (gptype)
-			{
-			case GPT_VERTEX_PROGRAM:
-				mDevice->getImmediateContext()->VSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				mDevice->getImmediateContext()->PSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				mDevice->getImmediateContext()->GSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			case GPT_HULL_PROGRAM:
-				mDevice->getImmediateContext()->HSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				mDevice->getImmediateContext()->DSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				mDevice->getImmediateContext()->CSSetConstantBuffers(slot, 1, bufferArray);
-				break;
-			}
-
-			if (mDevice->hasError())
-				BS_EXCEPT(RenderingAPIException, "Failed to setParamBuffer: " + mDevice->getErrorDescription());
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(gptype, slot,buffer, paramDesc);
-		else
-		{
-			auto execute = [=]() { executeRef(gptype, slot, buffer, paramDesc); };
-
-			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-
-		BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
 	}
 
 	void D3D11RenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount, 

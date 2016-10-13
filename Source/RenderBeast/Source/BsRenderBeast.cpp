@@ -831,12 +831,9 @@ namespace BansheeEngine
 		material->updateParamsSet(element.params, element.techniqueIdx);
 
 		if (bindPass)
-			RendererUtility::instance().setPass(material, passIdx, element.techniqueIdx);
+			gRendererUtility().setPass(material, passIdx, element.techniqueIdx);
 
-		if (element.samplerOverrides != nullptr)
-			setPassParams(element.params, element.samplerOverrides, passIdx);
-		else
-			setPassParams(element.params, nullptr, passIdx);
+		gRendererUtility().setPassParams(element.params, passIdx);
 
 		if(element.morphVertexDeclaration == nullptr)
 			gRendererUtility().draw(element.mesh, element.subMesh);
@@ -847,6 +844,7 @@ namespace BansheeEngine
 
 	void RenderBeast::refreshSamplerOverrides(bool force)
 	{
+		bool anyDirty = false;
 		for (auto& entry : mSamplerOverrides)
 		{
 			SPtr<MaterialParamsCore> materialParams = entry.first.material->_getInternalParams();
@@ -869,90 +867,62 @@ namespace BansheeEngine
 					if (samplerState != nullptr)
 						override.state = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
 					else
-						override.state = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);;
+						override.state = SamplerOverrideUtility::generateSamplerOverride(SamplerStateCore::getDefault(), mCoreOptions);
+
+					override.originalStateHash = override.state->getProperties().getHash();
+					materialOverrides->isDirty = true;
 				}
+
+				// Dirty flag can also be set externally, so check here even though we assign it above
+				if (materialOverrides->isDirty)
+					anyDirty = true;
 			}
 		}
-	}
 
-	void RenderBeast::setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides,
-		UINT32 passIdx)
-	{
-		THROW_IF_NOT_CORE_THREAD;
+		// Early exit if possible
+		if (!anyDirty)
+			return;
 
-		RenderAPICore& rapi = RenderAPICore::instance();
-
-		struct StageData
+		UINT32 numRenderables = (UINT32)mRenderables.size();
+		for (UINT32 i = 0; i < numRenderables; i++)
 		{
-			GpuProgramType type;
-			SPtr<GpuParamsCore> params;
-		};
-
-		const UINT32 numStages = 6;
-
-		SPtr<GpuParamsCore> params = paramsSet->getGpuParams(passIdx);
-		for (UINT32 i = 0; i < numStages; i++)
-		{
-			GpuProgramType type = (GpuProgramType)i;
-
-			SPtr<GpuParamDesc> paramDesc = params->getParamDesc(type);
-			if (paramDesc == nullptr)
-				continue;
-
-			for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
+			for(auto& element : mRenderables[i].elements)
 			{
-				SPtr<TextureCore> texture = params->getTexture(iter->second.set, iter->second.slot);
-				rapi.setTexture(type, iter->second.slot, texture);
-			}
-
-			for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
-			{
-				SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.set, iter->second.slot);
-				const TextureSurface& surface = params->getLoadStoreSurface(iter->second.set, iter->second.slot);
-
-				if (texture == nullptr)
-					rapi.setLoadStoreTexture(type, iter->second.slot, nullptr, surface);
-				else
-					rapi.setLoadStoreTexture(type, iter->second.slot, texture, surface);
-			}
-
-			for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
-			{
-				SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.set, iter->second.slot);
-
-				bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
-					iter->second.type != GPOT_STRUCTURED_BUFFER;
-
-				rapi.setBuffer(type, iter->second.slot, buffer, isLoadStore);
-			}
-
-			for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
-			{
-				SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.set, iter->second.slot);
-				blockBuffer->flushToGPU();
-
-				rapi.setParamBuffer(type, iter->second.slot, blockBuffer, paramDesc);
-			}
-
-			for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
-			{
-				SPtr<SamplerStateCore> samplerState;
-
-				if (samplerOverrides != nullptr)
+				MaterialSamplerOverrides* overrides = element.samplerOverrides;
+				if(overrides != nullptr && overrides->isDirty)
 				{
-					UINT32 overrideIndex = samplerOverrides->passes[passIdx].stateOverrides[iter->second.set][iter->second.slot];
-					if (overrideIndex != (UINT32)-1)
-						samplerState = samplerOverrides->overrides[overrideIndex].state;
+					UINT32 numPasses = element.material->getNumPasses();
+					for(UINT32 j = 0; j < numPasses; j++)
+					{
+						SPtr<GpuParamsCore> params = element.params->getGpuParams(j);
+
+						const UINT32 numStages = 6;
+						for (UINT32 k = 0; k < numStages; k++)
+						{
+							GpuProgramType type = (GpuProgramType)k;
+
+							SPtr<GpuParamDesc> paramDesc = params->getParamDesc(type);
+							if (paramDesc == nullptr)
+								continue;
+
+							for (auto& samplerDesc : paramDesc->samplers)
+							{
+								UINT32 set = samplerDesc.second.set;
+								UINT32 slot = samplerDesc.second.slot;
+
+								UINT32 overrideIndex = overrides->passes[j].stateOverrides[set][slot];
+								if (overrideIndex == (UINT32)-1)
+									continue;
+
+								params->setSamplerState(set, slot, overrides->overrides[overrideIndex].state);
+							}
+						}
+					}
 				}
-
-				if (samplerState == nullptr)
-					samplerState = params->getSamplerState(iter->second.set, iter->second.slot);
-
-				if (samplerState == nullptr)
-					rapi.setSamplerState(type, iter->second.slot, SamplerStateCore::getDefault());
-				else
-					rapi.setSamplerState(type, iter->second.slot, samplerState);
 			}
 		}
+
+		for (auto& entry : mSamplerOverrides)
+			entry.second->isDirty = false;
 	}
 }

@@ -29,11 +29,9 @@ namespace BansheeEngine
 
 		UINT32 numPipelineStateChanges; /**< How many times did the pipeline state change. */
 
-		UINT32 numTextureBinds; /**< How many times was a texture bound. */
-		UINT32 numSamplerBinds; /**< How many times was a sampler bound. */
+		UINT32 numGpuParamBinds; /**< How many times were GPU parameters bound. */
 		UINT32 numVertexBufferBinds; /**< How many times was a vertex buffer bound. */
 		UINT32 numIndexBufferBinds; /**< How many times was an index buffer bound. */
-		UINT32 numGpuParamBufferBinds; /**< How many times was an GPU parameter buffer bound. */
 
 		UINT32 numResourceWrites; /**< How many times were GPU resources written to. */
 		UINT32 numResourceReads; /**< How many times were GPU resources read from. */

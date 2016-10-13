@@ -17,31 +17,10 @@ using namespace std::placeholders;
 
 namespace BansheeEngine 
 {
-	void RenderAPI::setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<Texture> &texPtr)
+	void RenderAPI::setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setTexture, RenderAPICore::instancePtr(), gptype, unit, 
-			texPtr->getCore(), nullptr));
-	}
-
-	void RenderAPI::setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, 
-		const SPtr<Texture>& texPtr, const TextureSurface& surface)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setLoadStoreTexture, RenderAPICore::instancePtr(), gptype, unit, 
-			texPtr->getCore(), surface, nullptr));
-	}
-
-	void RenderAPI::setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
-		bool loadStore)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setBuffer, RenderAPICore::instancePtr(), gptype, unit, 
-			buffer->getCore(), loadStore, nullptr));
-	}
-
-	void RenderAPI::setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, 
-		const SPtr<SamplerState>& samplerState)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setSamplerState, RenderAPICore::instancePtr(), gptype, texUnit, 
-			samplerState->getCore(), nullptr));
+		accessor.queueCommand(std::bind(&RenderAPICore::setGpuParams, RenderAPICore::instancePtr(), gpuParams->getCore(), 
+			nullptr));
 	}
 
 	void RenderAPI::setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState)

@@ -49,12 +49,13 @@ namespace BansheeEngine
 					samplerState = SamplerStateCore::getDefault();
 
 				override.paramIdx = paramIdx;
-				override.originalStateHash = samplerState->getProperties().getHash();
-
+				
 				if (checkNeedsOverride(samplerState, options))
 					override.state = generateSamplerOverride(samplerState, options);
 				else
 					override.state = samplerState;
+
+				override.originalStateHash = override.state->getProperties().getHash();
 
 				overrideLookup[samplerParam.first] = overrideIdx;
 			}
@@ -131,6 +132,7 @@ namespace BansheeEngine
 			output->refCount = 0;
 			output->numPasses = numPasses;
 			output->passes = (PassSamplerOverrides*)outputData;
+			output->isDirty = true;
 			outputData += sizeof(PassSamplerOverrides) * numPasses;
 
 			slotsPerSetIter = slotsPerSet;

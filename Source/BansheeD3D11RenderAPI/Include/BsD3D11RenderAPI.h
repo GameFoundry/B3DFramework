@@ -32,20 +32,8 @@ namespace BansheeEngine
 		void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::setSamplerState */
-		void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState,
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setTexture */
-		void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setLoadStoreTexture */
-		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const TextureSurface& surface, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setBuffer */
-		void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore = false,
+		/** @copydoc RenderAPICore::setGpuParams */
+		void setGpuParams(const SPtr<GpuParamsCore>& gpuParams, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::beginFrame */
@@ -108,10 +96,6 @@ namespace BansheeEngine
 		void swapBuffers(const SPtr<RenderTargetCore>& target,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::setParamBuffer */
-		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-			const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
 		/** @copydoc RenderAPICore::addCommands() */
 		void addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) override;
 
@@ -160,6 +144,50 @@ namespace BansheeEngine
 
 		/** @copydoc RenderAPICore::destroyCore */
 		void destroyCore() override;
+
+		/**
+		 * Sets a sampler state for the specified texture unit. 
+		 *
+		 * @param[in]	gptype			Determines to which GPU program slot to bind the sampler state.
+		 * @param[in]	texUnit			Texture unit index to bind the state to.
+		 * @param[in]	samplerState	Sampler state to bind, or null to unbind.
+		 *
+		 * @see		SamplerState
+		 */
+		void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState);
+
+		/**
+		 * Binds a texture to the pipeline for the specified GPU program type at the specified slot. If the slot matches 
+		 * the one configured in the GPU program the program will be able to access this texture on the GPU.
+		 *
+		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
+		 * @param[in]	texUnit			Texture unit index to bind the texture to.
+		 * @param[in]	texture			Texture to bind.
+		 */
+		void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture);
+
+		/**	
+		 * Binds a texture that can be used for random load/store operations from a GPU program. 
+		 *
+		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
+		 * @param[in]	texUnit			Texture unit index to bind the texture to.
+		 * @param[in]	texture			Texture to bind.
+		 * @param[in]	surface			Determines which surface of the texture to bind.
+		 */
+		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture, 
+			const TextureSurface& surface);
+
+		/**
+		 * Binds a buffer that can be used for read or write operations on the GPU.
+		 *
+		 * @param[in]	gptype			Determines to which GPU program slot to bind the buffer.
+		 * @param[in]	unit			GPU program unit index to bind the buffer to.
+		 * @param[in]	buffer			Buffer to bind.
+		 * @param[in]	loadStore		If true the buffer will be bound with support for unordered reads and writes, 
+		 *								otherwise it will only be bound for reads.
+		 */
+		void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, 
+			bool loadStore = false);
 
 		/**
 		 * Creates or retrieves a proper input layout depending on the currently set vertex shader and vertex buffer.

@@ -34,20 +34,8 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT RenderAPI
 	{
 	public:
-		/** @see RenderAPICore::setTexture() */
-		static void setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, const SPtr<Texture>& texture);
-
-		/** @see RenderAPICore::setLoadStoreTexture() */
-		static void setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit,
-			const SPtr<Texture>& texture, const TextureSurface& surface);
-
-		/** @see RenderAPICore::setBuffer() */
-		static void setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
-			bool loadStore = false);
-
-		/** @see RenderAPICore::setSamplerState() */
-		static void setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, 
-			const SPtr<SamplerState>& samplerState);
+		/** @see RenderAPICore::setGpuParams() */
+		static void setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams);
 
 		/** @see RenderAPICore::setGraphicsPipeline() */
 		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState);
@@ -215,19 +203,11 @@ namespace BansheeEngine
 		virtual const String& getShadingLanguageName() const = 0;
 
 		/**
-		 * Sets a sampler state for the specified texture unit. Make sure to assign the sampler state after the texture
-		 * has been assigned, as certain APIs will reset sampler state on texture bind.
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the sampler state.
-		 * @param[in]	texUnit			Texture unit index to bind the state to.
-		 * @param[in]	samplerState	Sampler state to bind, or null to unbind.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations.
-		 *
-		 * @see		SamplerState
+		 * Applies a set of parameters that control execution of all currently bound GPU programs. These are the uniforms
+		 * like textures, samplers, or uniform buffers. Caller is expected to ensure the provided parameters actually
+		 * match the currently bound programs.
 		 */
-		virtual void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState, 
+		virtual void setGpuParams(const SPtr<GpuParamsCore>& gpuParams, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
@@ -253,49 +233,6 @@ namespace BansheeEngine
 		 */
 		virtual void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Binds a texture to the pipeline for the specified GPU program type at the specified slot. If the slot matches 
-		 * the one configured in the GPU program the program will be able to access this texture on the GPU.
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
-		 * @param[in]	texUnit			Texture unit index to bind the texture to.
-		 * @param[in]	texture			Texture to bind.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations.
-		 */
-		virtual void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**	
-		 * Binds a texture that can be used for random load/store operations from a GPU program. 
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
-		 * @param[in]	texUnit			Texture unit index to bind the texture to.
-		 * @param[in]	texture			Texture to bind.
-		 * @param[in]	surface			Determines which surface of the texture to bind.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations.
-		 */
-		virtual void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture, 
-			const TextureSurface& surface, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Binds a buffer that can be used for read or write operations on the GPU.
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the buffer.
-		 * @param[in]	unit			GPU program unit index to bind the buffer to.
-		 * @param[in]	buffer			Buffer to bind.
-		 * @param[in]	loadStore		If true the buffer will be bound with support for unordered reads and writes, 
-		 *								otherwise it will only be bound for reads.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations.
-		 */
-		virtual void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, 
-			bool loadStore = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Signals that rendering for a specific viewport has started. Any draw calls need to be called between beginFrame()
@@ -376,22 +313,6 @@ namespace BansheeEngine
 		 */
 		virtual void setIndexBuffer(const SPtr<IndexBufferCore>& buffer, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Assigns a parameter buffer containing constants (uniforms) for use in a GPU program.
-		 *
-		 * @param[in]	gptype			Type of GPU program to bind the buffer to.
-		 * @param[in]	slot			Slot to bind the buffer to. The slot is dependant on the GPU program the buffer will
-		 *								be used with.
-		 * @param[in]	buffer			Buffer containing constants (uniforms) for use by the shader.
-		 * @param[in]	paramDesc		Description of all parameters in the buffer. Required mostly for backwards 
-		 *								compatibility.
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics or compute operations.
-		 */
-		virtual void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-			const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the vertex declaration to use when drawing. Vertex declaration is used to decode contents of a single 

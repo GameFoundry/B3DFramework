@@ -463,11 +463,9 @@ namespace BansheeEngine
 		mGPUObjectsDestroyedStr = HEString(L"__ProfOvObjsDestroyed", L"Objects destroyed: {0}");
 		mGPUResourceWritesStr = HEString(L"__ProfOvResWrites", L"Resource writes: {0}");
 		mGPUResourceReadsStr = HEString(L"__ProfOvResReads", L"Resource reads: {0}");
-		mGPUTextureBindsStr = HEString(L"__ProfOvTexBinds", L"Texture binds: {0}");
-		mGPUSamplerBindsStr = HEString(L"__ProfOvSampBinds", L"Sampler binds: {0}");
+		mGPUParamBindsStr = HEString(L"__ProfOvGpuParamBinds", L"GPU parameter binds: {0}");
 		mGPUVertexBufferBindsStr = HEString(L"__ProfOvVBBinds", L"VB binds: {0}");
 		mGPUIndexBufferBindsStr = HEString(L"__ProfOvIBBinds", L"IB binds: {0}");
-		mGPUGPUProgramBufferBindsStr = HEString(L"__ProfOvProgBuffBinds", L"GPU program buffer binds: {0}");
 
 		mGPUFrameNumLbl = GUILabel::create(mGPUFrameNumStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUTimeLbl = GUILabel::create(mGPUTimeStr, GUIOptions(GUIOption::fixedWidth(200)));
@@ -484,11 +482,9 @@ namespace BansheeEngine
 		mGPUObjectsDestroyedLbl = GUILabel::create(mGPUObjectsDestroyedStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUResourceWritesLbl = GUILabel::create(mGPUResourceWritesStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUResourceReadsLbl = GUILabel::create(mGPUResourceReadsStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUTextureBindsLbl = GUILabel::create(mGPUTextureBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUSamplerBindsLbl = GUILabel::create(mGPUSamplerBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
+		mGPUParamBindsLbl = GUILabel::create(mGPUParamBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUVertexBufferBindsLbl = GUILabel::create(mGPUVertexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUIndexBufferBindsLbl = GUILabel::create(mGPUIndexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
-		mGPUGPUProgramBufferBindsLbl = GUILabel::create(mGPUGPUProgramBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 
 		mGPULayoutFrameContentsLeft->addElement(mGPUFrameNumLbl);
 		mGPULayoutFrameContentsLeft->addElement(mGPUTimeLbl);
@@ -506,11 +502,9 @@ namespace BansheeEngine
 		mGPULayoutFrameContentsRight->addElement(mGPUObjectsDestroyedLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUResourceWritesLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUResourceReadsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUTextureBindsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUSamplerBindsLbl);
+		mGPULayoutFrameContentsRight->addElement(mGPUParamBindsLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUVertexBufferBindsLbl);
 		mGPULayoutFrameContentsRight->addElement(mGPUIndexBufferBindsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUGPUProgramBufferBindsLbl);
 		mGPULayoutFrameContentsRight->addNewElement<GUIFlexibleSpace>();
 
 		updateCPUSampleAreaSizes();
@@ -741,11 +735,9 @@ namespace BansheeEngine
 		mGPUObjectsDestroyedStr.setParameter(0, toWString(gpuReport.frameSample.numObjectsDestroyed));
 		mGPUResourceWritesStr.setParameter(0, toWString(gpuReport.frameSample.numResourceWrites));
 		mGPUResourceReadsStr.setParameter(0, toWString(gpuReport.frameSample.numResourceReads));
-		mGPUTextureBindsStr.setParameter(0, toWString(gpuReport.frameSample.numTextureBinds));
-		mGPUSamplerBindsStr.setParameter(0, toWString(gpuReport.frameSample.numSamplerBinds));
+		mGPUParamBindsStr.setParameter(0, toWString(gpuReport.frameSample.numGpuParamBinds));
 		mGPUVertexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numVertexBufferBinds));
 		mGPUIndexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numIndexBufferBinds));
-		mGPUGPUProgramBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numGpuParamBufferBinds));
 
 		mGPUFrameNumLbl->setContent(mGPUFrameNumStr);
 		mGPUTimeLbl->setContent(mGPUTimeStr);
@@ -762,11 +754,9 @@ namespace BansheeEngine
 		mGPUObjectsDestroyedLbl->setContent(mGPUObjectsDestroyedStr);
 		mGPUResourceWritesLbl->setContent(mGPUResourceWritesStr);
 		mGPUResourceReadsLbl->setContent(mGPUResourceReadsStr);
-		mGPUTextureBindsLbl->setContent(mGPUTextureBindsStr);
-		mGPUSamplerBindsLbl->setContent(mGPUSamplerBindsStr);
+		mGPUParamBindsLbl->setContent(mGPUParamBindsStr);
 		mGPUVertexBufferBindsLbl->setContent(mGPUVertexBufferBindsStr);
 		mGPUIndexBufferBindsLbl->setContent(mGPUIndexBufferBindsStr);
-		mGPUGPUProgramBufferBindsLbl->setContent(mGPUGPUProgramBufferBindsStr);
 
 		GPUSampleRowFiller sampleRowFiller(mGPUSampleRows, *mGPULayoutSampleContents, *mWidget->_getInternal());
 		for (auto& sample : gpuReport.samples)

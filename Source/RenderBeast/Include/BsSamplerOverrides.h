@@ -33,6 +33,7 @@ namespace BansheeEngine
 		UINT32 numPasses;
 		UINT32 numOverrides;
 		UINT32 refCount;
+		bool isDirty;
 	};
 
 	/** Key used for uniquely identifying a sampler override entry. */

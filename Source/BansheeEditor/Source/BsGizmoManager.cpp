@@ -1181,7 +1181,7 @@ namespace BansheeEngine
 					mIconMaterial.texture[passIdx].set(curRenderData.texture);
 
 					SPtr<GpuParamsCore> params = mIconMaterial.params->getGpuParams(passIdx);
-					gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, params);
+					rapi.setGpuParams(params);
 
 					rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 					curIndexOffset += curRenderData.count * 6;
@@ -1201,7 +1201,7 @@ namespace BansheeEngine
 				mAlphaPickingMaterial.texture.set(curRenderData.texture);
 
 				SPtr<GpuParamsCore> params = mAlphaPickingMaterial.params->getGpuParams();
-				gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, params);
+				rapi.setGpuParams(params);
 
 				rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 				curIndexOffset += curRenderData.count * 6;
