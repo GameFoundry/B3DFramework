@@ -6,7 +6,7 @@ A material controls how is an object rendered. In Banshee it is represented with
 
 We'll focus on the simulation thread @ref BansheeEngine::Material "Material" throughout this manual, but aside from the `Core` suffix there are no major differences between the two interfaces.
 
-Internally material contains a set of GPU programs, render states and GPU program parameters. GPU programs and render states are immutable and are controlled by the @ref BansheeEngine::Shader "Shader" assigned to the material. The parameters can be modified by the interface provided by the material, and this parameter access actually constitutes the bulk of the material's interface. Essentially materials can be tought of as shader "instances".
+Internally material contains a set of GPU programs, render states and GPU program parameters. GPU programs and render states are immutable and are controlled by the @ref BansheeEngine::Shader "Shader" assigned to the material. The parameters can be modified by the interface provided by the material, and this parameter access actually constitutes the bulk of the material's interface. Essentially materials can be thought of as shader "instances".
 
 Since shaders are such intrical parts of materials, we'll explain how to create them before continuing with the discussion about materials.
 
@@ -46,7 +46,7 @@ Now that we know how to create a pass, we can use one or multiple passes to init
 
 To create a technique call @ref BansheeEngine::Technique::create "Technique::create" and provide it with:
  - One or multiple passes
- - Supported render API name: Use built-in `RenderAPIAny` to signal that the technique works on any API, or use the render API identifier to signal that it only works on a specific one. By default supported identifiers are: `"D3D11RenderAPI"`, `"D3D9RenderAPI"`, `"GLRenderAPI"`, but more can be added via plugins. In general those identifiers are returned from @ref BansheeEngine::RenderAPICore::getName "RenderAPICore::getName". Most users should be okay by providing `RenderAPIAny`.
+ - Supported render API name: Use built-in `RenderAPIAny` to signal that the technique works on any API, or use the render API identifier to signal that it only works on a specific one. By default supported identifiers are: `"VulkanRenderAPI"`, `"D3D11RenderAPI"`, `"GLRenderAPI"`, but more can be added via plugins. In general those identifiers are returned from @ref BansheeEngine::RenderAPICore::getName "RenderAPICore::getName". Most users should be okay by providing `RenderAPIAny`.
  - Supported renderer name: Use built-in `RendererAny` to signal that the technique works on any renderer, or use the renderer identifier to signal that it only works on a specific one. By default the only supported identifier is `"RenderBeast"`, but more can be added via plugins. In general those identifiers are returned from @ref BansheeEngine::Renderer::getName "Renderer::getName". Most users should be okay by providing `RendererAny`.
  - An optional list of tags that allows renderer to pick which technique to use when rendering objects. Can be left empty in most cases.
 

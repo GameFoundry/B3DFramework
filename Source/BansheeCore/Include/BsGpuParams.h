@@ -94,11 +94,6 @@ namespace BansheeEngine
 		virtual void _markResourcesDirty() { }
 
 	protected:
-		/**
-		 * Creates new GpuParams object using the specified parameter descriptions.
-		 *
-		 * @param[in]	desc	Object containing parameter descriptions for all relevant GPU program stages.
-		 */
 		GpuParamsBase(const GPU_PARAMS_DESC& desc);
 
 		/**	Gets a descriptor for a data parameter with the specified name. */
@@ -267,13 +262,13 @@ namespace BansheeEngine
 	public:
 		~GpuParamsCore() { }
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
+		/** @copydoc GpuParams::create */
 		static SPtr<GpuParamsCore> create(const GPU_PARAMS_DESC& desc);
 
 	protected:
 		friend class GpuParams;
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
+		/** @copydoc GpuParams::create */
 		GpuParamsCore(const GPU_PARAMS_DESC& desc);
 
 		/** @copydoc CoreObject::getThisPtr */
@@ -303,7 +298,11 @@ namespace BansheeEngine
 		/** Retrieves a core implementation of a mesh usable only from the core thread. */
 		SPtr<GpuParamsCore> getCore() const;
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
+		/**
+		 * Creates new GpuParams object using the specified parameter descriptions.
+		 *
+		 * @param[in]	desc	Object containing parameter descriptions for all relevant GPU program stages.
+		 */
 		static SPtr<GpuParams> create(const GPU_PARAMS_DESC& desc);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
@@ -321,7 +320,7 @@ namespace BansheeEngine
 
 		/** @} */
 	protected:
-		/** @copydoc GpuParamsBase::GpuParamsBase */
+		/** @copydoc GpuParams::create */
 		GpuParams(const GPU_PARAMS_DESC& desc);
 
 		/** @copydoc CoreObject::getThisPtr */

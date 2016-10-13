@@ -30,23 +30,27 @@ SPtr<GpuProgram> myProgram = GpuProgram::create(hlslSource, "main", "hlsl", GPT_
 Once the GPU program has been created it is not guaranteed to be usable. The compilation of the provided source code could have failed, which you can check by calling @ref BansheeEngine::GpuProgram::isCompiled() "GpuProgram::isCompiled", and retrieve the error message by calling @ref BansheeEngine::GpuProgram::getCompileErrorMessage() "GpuProgram::getCompileErrorMessage". Be aware that both of these methods are only valid after the core thread has initialized the object. You can ensure this by calling @ref BansheeEngine::CoreObject::blockUntilCoreInitialized "GpuProgram::blockUntilCoreInitialized" but be aware this will block the calling thread which can result in a significant performance impact.
 
 # GPU program parameters {#gpuPrograms_b}
-Once the GPU program has been compiled you can access information about its parameters (constant variables, or uniforms in DirectX/OpenGL lingo). Use @ref BansheeEngine::GpuProgram::getParamDesc "GpuProgram::getParamDesc" to retrieve a structure containing all GPU parameters, including primitive parameters, textures, samplers, buffers and parameter buffers (constant/uniform buffers in DirectX/OpenGL lingo). You can use this information to manually bind parameters to the GPU program, but normally you do not have to.
+Once the GPU program has been compiled you can access information about its parameters (constant variables, or uniforms in DirectX/OpenGL lingo). Use @ref BansheeEngine::GpuProgram::getParamDesc "GpuProgram::getParamDesc" to retrieve a structure containing all GPU parameters, including primitive parameters, textures, samplers, buffers and parameter buffers (constant/uniform buffers in DirectX/OpenGL lingo). 
 
-Instead @ref BansheeEngine::GpuProgram::createParameters "GpuProgram::createParameters()" will create a @ref BansheeEngine::GpuParams "GpuParams" object which allows you to query information about all parameters, but more importantly it also allows you to set values of those parameters easily.
+You generally don't need to use this information directly, but you provide it when creating a @ref BansheeEngine::GpuParams "GpuParams" object.
 
 ## GpuParams {#gpuPrograms_b_a}
-@ref BansheeEngine::GpuParams "GpuParams" is a container for all parameters required by a GPU program. It allows you to set primitive/texture/sampler/buffer parameters used by the GPU program, which it stores in an internal buffer. You can then bind it to the pipeline and it will be used by the program.
+@ref BansheeEngine::GpuParams "GpuParams" is a container for all parameters required by a set of GPU programs (one per stage). It allows you to set primitive/texture/sampler/buffer parameters used by the GPU programs, which it stores in an internal buffer. You can then bind it to the pipeline and it will be used by the bound GPU programs.
 
 For example to assign a texture and a 2D vector as input to the program we created earlier:
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParams> params = myProgram->createParameters();
+GPU_PARAMS_DESC desc;
+desc.fragmentParams = myProgram->getParamDesc();
+... usually you want to set other stages as well ...
 
-// Retrieve GPU params we can then read/write to
+SPtr<GpuParams> params = GpuParams::create(desc);
+
+// Retrieve GPU param handles we can then read/write to
 GpuParamVec2 myVectorParam;
 GpuParamTexture myTextureParam;
 
-params->getParam("myVector", myVectorParam); // Assuming "myVector" is the variable name in the program source code
-params->getTextureParam("myTexture", myTextureParam); // Assuming "myTexture" is the variable name in the program source code
+params->getParam(GPT_FRAGMENT_PROGRAM, "myVector", myVectorParam); // Assuming "myVector" is the variable name in the program source code
+params->getTextureParam(GPT_FRAGMENT_PROGRAM, "myTexture", myTextureParam); // Assuming "myTexture" is the variable name in the program source code
 
 myVectorParam.set(Vector2(1, 2));
 myTextureParam.set(myTexture); // Assuming we created "myTexture" earlier.
@@ -54,14 +58,12 @@ myTextureParam.set(myTexture); // Assuming we created "myTexture" earlier.
 
 As you can see we must first retrieve a handle to the parameter, and then we can use that handle for reading/writing to the parameter. You can store those handles for easier access to the parameters, as looking them up by using the parameter name can be relatively slow.
 
+See the [render API manual](@ref renderAPI) for more information about how to set and bind GPU program parameters.
+
 # Using GPU programs for rendering {#gpuPrograms_c}
-You can bind a GPU program to the pipeline by assigning it to a @ref BansheeEngine::GpuPipelineState "GpuPipelineState" and calling @ref BansheeEngine::RenderAPICore::setGraphicsPipeline "RenderAPICore::setGraphicsPipeline". Or alternatively if using compute programs you can bind by calling @ref BansheeEngine::RenderAPICore::setComputePipeline "RenderAPICore::setComputePipeline". Any subsequent draw/dispatch calls will then use the bound GPU programs. 
+You can bind a GPU program to the pipeline by assigning it to a @ref BansheeEngine::GpuPipelineState "GpuPipelineState" and calling @ref BansheeEngine::RenderAPI::setGraphicsPipeline "RenderAPI::setGraphicsPipeline". Or alternatively if using compute programs you can bind by calling @ref BansheeEngine::RenderAPI::setComputePipeline "RenderAPI::setComputePipeline". Any subsequent draw/dispatch calls will then use the bound GPU programs. 
 
-You can bind parameters for use in the GPU program by calling @ref BansheeEngine::RenderAPICore::setParamBuffer "RenderAPICore::setParamBuffer" for primitive parameters (vector, float, etc.) organized as @ref BansheeEngine::GpuParamBlockBuffer "GpuParamBlockBuffer", and @ref BansheeEngine::RenderAPICore::setTexture "RenderAPICore::setTexture", @ref BansheeEngine::RenderAPICore::setLoadStoreTexture "RenderAPICore::setLoadStoreTexture", @ref BansheeEngine::RenderAPICore::setBuffer "RenderAPICore::setBuffer", @ref BansheeEngine::RenderAPICore::setSamplerState "RenderAPICore::setSamplerState" for textures, buffers and sampler states.
-
-You can retrieve the primitive parameter buffer from a @ref BansheeEngine::Material "Material" by calling @ref BansheeEngine::Material::getParamBuffer "Material::getParamBuffer", or by manually creating and populating one.
-
-Alternatively you can use the helper method @ref BansheeEngine::RendererUtility::setGpuParams "RendererUtility::setGpuParams" which will bind both object and data parameters in the @ref BansheeEngine::GpuParams "BansheeEngine::GpuParams" object.
+You can bind parameters for use in the GPU program by calling @ref BansheeEngine::RenderAPICore::setGpuParams "RenderAPICore::setGpuParams" which accepts the @ref BansheeEngine::GpuParamsCore "GpuParamsCore" object we described above.
 
 Much more detailed information about rendering is provided in the [render API manual](@ref renderAPI).
 
