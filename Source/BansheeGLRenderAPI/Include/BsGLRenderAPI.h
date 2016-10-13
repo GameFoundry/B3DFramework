@@ -35,20 +35,8 @@ namespace BansheeEngine
 		void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::setSamplerState() */
-		void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState, 
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setTexture() */
-		void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setLoadStoreTexture */
-		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const TextureSurface& surface, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setBuffer */
-		void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore = false,
+		/** @copydoc RenderAPICore::setGpuParams() */
+		void setGpuParams(const SPtr<GpuParamsCore>& gpuParams,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::beginFrame() */
@@ -74,10 +62,6 @@ namespace BansheeEngine
 		/** @copydoc RenderAPICore::setIndexBuffer() */
 		void setIndexBuffer(const SPtr<IndexBufferCore>& buffer,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::setParamBuffer */
-		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer,
-			const SPtr<GpuParamDesc>& paramDesc, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::setVertexDeclaration() */
 		void setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration,
@@ -178,32 +162,6 @@ namespace BansheeEngine
 
 		/** Gets a combined min/mip filter value usable by OpenGL from the currently set min and mip filters. */
 		GLuint getCombinedMinMipFilter() const;
-
-		/**
-		 * Calculates a global texture unit slot for a sampler specific to a GPU program. 
-		 * 
-		 * @param[in]	gptype		Type of the GPU program the sampler is a part of.
-		 * @param[in]	samplerIdx	Index of the sampler uniform.
-		 * @return					Unique global texture unit index that can be used for binding a texture to the specified
-		 *							sampler.
-		 */
-		UINT32 getGLTextureUnit(GpuProgramType gptype, UINT32 samplerIdx);
-
-		/**
-		 * Calculates a global image unit slot based on a uniform index of the image in a GPU program. 
-		 * 
-		 * @param[in]	gptype		Type of the GPU program the uniform is a part of.
-		 * @param[in]	uniformIdx	Index of the image uniform.
-		 * @return					Unique global image unit index that can be used for binding a load-store texture to the
-		 *							specified uniform.
-		 */
-		UINT32 getGLImageUnit(GpuProgramType gptype, UINT32 uniformIdx);
-
-		/**
-		 * OpenGL shares all buffer bindings, but the engine prefers to keep buffers separate per-stage. This will convert
-		 * block buffer binding that is set per stage into a global block buffer binding usable by OpenGL.
-		 */
-		UINT32 getGLUniformBlockBinding(GpuProgramType gptype, UINT32 binding);
 
 		/** Returns the OpenGL specific mode used for drawing, depending on the currently set draw operation. */
 		GLint getGLDrawMode() const;
@@ -410,14 +368,7 @@ namespace BansheeEngine
 		/** Information about a currently bound texture. */
 		struct TextureInfo
 		{
-			UINT32 samplerIdx;
 			GLenum type;
-		};
-
-		/** Information about a currently bound load-store texture (image in OpenGL lingo). */
-		struct ImageInfo
-		{
-			UINT32 uniformIdx;
 		};
 
 		static const UINT32 MAX_VB_COUNT = 32;
@@ -439,9 +390,6 @@ namespace BansheeEngine
 		// Holds texture type settings for every stage
 		UINT32 mNumTextureUnits;
 		TextureInfo* mTextureInfos;
-		UINT32 mNumImageUnits;
-		ImageInfo* mImageInfos;
-
 		bool mDepthWrite;
 		bool mColorWrite[4];
 
@@ -459,11 +407,6 @@ namespace BansheeEngine
 		SPtr<GLSLGpuProgramCore> mCurrentComputeProgram;
 
 		const GLSLProgramPipeline* mActivePipeline;
-
-		UINT32 mTextureUnitOffsets[6];
-		UINT32 mMaxBoundTexUnits[6];
-		UINT32 mMaxBoundImageUnits[6];
-		UINT32 mUBOffsets[6];
 
 		std::array<SPtr<VertexBufferCore>, MAX_VB_COUNT> mBoundVertexBuffers;
 		SPtr<VertexDeclarationCore> mBoundVertexDeclaration;
