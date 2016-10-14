@@ -68,6 +68,16 @@ namespace BansheeEngine
 		return gbuf;
 	}
 
+	SPtr<GpuParams> HardwareBufferManager::createGpuParams(const GPU_PARAMS_DESC& desc)
+    {
+		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(desc);
+		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
+		paramsPtr->_setThisPtr(paramsPtr);
+		paramsPtr->initialize();
+
+		return paramsPtr;
+    }
+
 	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(IndexType itype, UINT32 numIndexes, GpuBufferUsage usage)
 	{
 		assert(numIndexes > 0);
@@ -94,6 +104,14 @@ namespace BansheeEngine
 
 		return declPtr;
 	}
+
+	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParams(const GPU_PARAMS_DESC& desc)
+    {
+		SPtr<GpuParamsCore> params = createGpuParamsInternal(desc);
+		params->initialize();
+
+		return params;
+    }
 
 	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const List<VertexElement>& elements)
 	{
@@ -130,4 +148,13 @@ namespace BansheeEngine
 
 		return ret;
 	}
+
+	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParamsInternal(const GPU_PARAMS_DESC& desc)
+    {
+		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(desc);
+		SPtr<GpuParamsCore> paramsPtr = bs_shared_ptr<GpuParamsCore>(params);
+		paramsPtr->_setThisPtr(paramsPtr);
+
+		return paramsPtr;
+    }
 }

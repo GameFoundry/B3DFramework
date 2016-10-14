@@ -267,6 +267,7 @@ namespace BansheeEngine
 
 	protected:
 		friend class GpuParams;
+		friend class HardwareBufferCoreManager;
 
 		/** @copydoc GpuParams::create */
 		GpuParamsCore(const GPU_PARAMS_DESC& desc);
@@ -320,6 +321,8 @@ namespace BansheeEngine
 
 		/** @} */
 	protected:
+		friend class HardwareBufferManager;
+
 		/** @copydoc GpuParams::create */
 		GpuParams(const GPU_PARAMS_DESC& desc);
 

@@ -12,6 +12,7 @@
 #include "BsException.h"
 #include "BsVectorNI.h"
 #include "BsMatrixNxM.h"
+#include "BsHardwareBufferManager.h"
 
 namespace BansheeEngine
 {
@@ -763,11 +764,7 @@ UINT32 GpuParamsBase::getDataParamSize(GpuProgramType type, const String& name) 
 
 	SPtr<GpuParamsCore> GpuParamsCore::create(const GPU_PARAMS_DESC& desc)
 	{
-		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(desc);
-		SPtr<GpuParamsCore> paramsPtr = bs_shared_ptr<GpuParamsCore>(params);
-		paramsPtr->_setThisPtr(paramsPtr);
-
-		return paramsPtr;
+		return HardwareBufferCoreManager::instance().createGpuParams(desc);
 	}
 
 	const GpuDataParamInfos GpuParams::PARAM_SIZES;
@@ -818,12 +815,7 @@ UINT32 GpuParamsBase::getDataParamSize(GpuProgramType type, const String& name) 
 
 	SPtr<GpuParams> GpuParams::create(const GPU_PARAMS_DESC& desc)
 	{
-		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(desc);
-		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
-		paramsPtr->_setThisPtr(paramsPtr);
-		paramsPtr->initialize();
-		
-		return paramsPtr;
+		return HardwareBufferManager::instance().createGpuParams(desc);
 	}
 
 	CoreSyncData GpuParams::syncToCore(FrameAlloc* allocator)
