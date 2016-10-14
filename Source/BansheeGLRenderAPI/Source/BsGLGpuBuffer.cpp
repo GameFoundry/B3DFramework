@@ -8,20 +8,21 @@
 
 namespace BansheeEngine
 {
-	GLGpuBufferCore::GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter), mTextureID(0), mFormat(0)
+	GLGpuBufferCore::GLGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		: GpuBufferCore(desc, deviceMask), mTextureID(0), mFormat(0)
 	{
-		if(type != GBT_STANDARD)
+		if(desc.type != GBT_STANDARD)
 			LOGERR("Only standard buffers are support on OpenGL.");
 
-		if (useCounter)
+		if (desc.useCounter)
 			LOGERR("Buffer counters not supported on OpenGL.");
+
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 
 		// Note: Implement OpenGL shader storage buffers, append/consume buffers, transform feedback buffers, 
 		// indirect argument buffers and counter buffers
 
-		mFormat = GLPixelUtil::getBufferFormat(format);
+		mFormat = GLPixelUtil::getBufferFormat(desc.format);
 	}
 
 	GLGpuBufferCore::~GLGpuBufferCore()

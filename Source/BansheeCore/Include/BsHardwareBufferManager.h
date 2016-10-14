@@ -7,10 +7,12 @@
 #include "BsVertexBuffer.h"
 #include "BsIndexBuffer.h"
 #include "BsVertexDeclaration.h"
-#include "BsGpuParams.h"
 
 namespace BansheeEngine 
 {
+	struct GPU_BUFFER_DESC;
+	struct GPU_PARAMS_DESC;
+
 	/** @addtogroup RenderAPI-Internal
 	 *  @{
 	 */
@@ -60,24 +62,11 @@ namespace BansheeEngine
 
 		/**
 		 * Creates a generic buffer that can be passed as a parameter to a GPU program. This type of buffer can hold various 
-		 * type of data and can be used for various purposes. See "GpuBufferType" for explanation of different buffer types.
+		 * type of data and can be used for various purposes. See GpuBufferType for explanation of different buffer types.
 		 *
-		 * @param[in]	elementCount  	Number of elements in the buffer. 
-		 * @param[in]	elementSize   	Size of each individual element in the buffer, in bytes. Only needed if using
-		 *								non-standard buffer. If using standard buffer element size is calculated from
-		 *								format.
-		 * @param[in]	type		  	Type of the buffer.
-		 * @param[in]	format			Format if the data in the buffer. Only relevant for standard buffers.
-		 * @param[in]	usage		  	Usage that tells the hardware how will be buffer be used. 
-		 * @param[in]	randomGpuWrite	(optional) Allows the GPU to write to the resource.
-		 * @param[in]	useCounter	  	(optional) Binds a counter that can be used from a GPU program on the buffer.
-		 *
-		 * @note	
-		 * Be aware that due to some render API restrictions some of these settings cannot be used together, and if so you 
-		 * will receive an assert in debug mode.
+		 * @param[in]	desc  	Description of the buffer to create.
 		 */
-		SPtr<GpuBuffer> createGpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		SPtr<GpuBuffer> createGpuBuffer(const GPU_BUFFER_DESC& desc);
 
 		/** Creates a new vertex declaration from a list of vertex elements. */
 		SPtr<VertexDeclaration> createVertexDeclaration(const SPtr<VertexDataDesc>& desc);
@@ -114,8 +103,7 @@ namespace BansheeEngine
 			GpuParamBlockUsage usage = GPBU_DYNAMIC);
 
 		/** @copydoc HardwareBufferManager::createGpuBuffer */
-		SPtr<GpuBufferCore> createGpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		SPtr<GpuBufferCore> createGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** @copydoc HardwareBufferManager::createGpuParams */
 		SPtr<GpuParamsCore> createGpuParams(const GPU_PARAMS_DESC& desc);
@@ -143,8 +131,8 @@ namespace BansheeEngine
 			GpuParamBlockUsage usage = GPBU_DYNAMIC) = 0;
 
 		/** @copydoc createGpuBuffer */
-		virtual SPtr<GpuBufferCore> createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false) = 0;
+		virtual SPtr<GpuBufferCore> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
 		/** @copydoc createVertexDeclaration */
 		virtual SPtr<VertexDeclarationCore> createVertexDeclarationInternal(const List<VertexElement>& elements);

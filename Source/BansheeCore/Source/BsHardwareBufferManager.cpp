@@ -6,6 +6,7 @@
 #include "BsVertexDeclaration.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsVertexDataDesc.h"
+#include "BsGpuParams.h"
 
 namespace BansheeEngine 
 {
@@ -57,11 +58,9 @@ namespace BansheeEngine
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize, 
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc)
 	{
-		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) 
-			GpuBuffer(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter));
+		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) GpuBuffer(desc));
 		gbuf->_setThisPtr(gbuf);
 		gbuf->initialize();
 
@@ -129,11 +128,10 @@ namespace BansheeEngine
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(const GPU_BUFFER_DESC& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(elementCount, elementSize, type, format, usage, randomGpuWrite, 
-			useCounter);
+		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(desc, deviceMask);
 		gbuf->initialize();
 
 		return gbuf;

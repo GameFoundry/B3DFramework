@@ -13,47 +13,79 @@ namespace BansheeEngine
 	 */
 
 	/** 
+	 * Descriptor structure used for initialization of GpuBuffer. 
+	 * 
+	 * @note	
+	 * Be aware that due to some render API restrictions some of these settings cannot be used together, and if so you 
+	 * will receive an assert in debug mode.
+	 */
+	struct GPU_BUFFER_DESC
+	{
+		/** Number of elements in the buffer. */
+		UINT32 elementCount; 
+
+		/** 
+		 * Size of each individual element in the buffer, in bytes. Only needed if using non-standard buffer. If using
+		 * standard buffers element size is calculated from format and this must be zero.
+		 */
+		UINT32 elementSize;
+
+		/** Type of the buffer. Determines how is buffer seen by the GPU program and in what ways can it be used. */
+		GpuBufferType type;
+
+		/** Format if the data in the buffer. Only relevant for standard buffers, must be BF_UNKNOWN otherwise. */
+		GpuBufferFormat format;
+
+		/** Usage that tells the hardware how will be buffer be used. */
+		GpuBufferUsage usage;
+
+		/** When true allows the GPU to write to the resource. Must be enabled if buffer type is GBT_APPENDCONSUME. */
+		bool randomGpuWrite = false;
+
+		/**
+		 * When true binds a counter that can be used from a GPU program on the buffer. Can only be used in combination
+		 * with GBT_STRUCTURED and randomGpuWrite must be enabled.
+		 */
+		bool useCounter = false;
+	};
+
+	/** 
 	 * Information about a GpuBuffer. Allows core and non-core versions of GpuBuffer to share the same structure for 
 	 * properties. 
 	 */
 	class BS_CORE_EXPORT GpuBufferProperties
 	{
 	public:
-		GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
-			GpuBufferUsage usage, bool randomGpuWrite, bool useCounter);
+		GpuBufferProperties(const GPU_BUFFER_DESC& desc);
 
 		/**
 		 * Returns the type of the GPU buffer. Type determines which kind of views (if any) can be created for the buffer, 
 		 * and how is data read or modified in it.
 		 */
-		GpuBufferType getType() const { return mType; }
+		GpuBufferType getType() const { return mDesc.type; }
 
 		/** Returns format used by the buffer. Only relevant for standard buffers. */
-		GpuBufferFormat getFormat() const { return mFormat; }
+		GpuBufferFormat getFormat() const { return mDesc.format; }
 
 		/** Returns buffer usage which determines how are planning on updating the buffer contents. */
-		GpuBufferUsage getUsage() const { return mUsage; }
+		GpuBufferUsage getUsage() const { return mDesc.usage; }
 
 		/** Return whether the buffer supports random reads and writes within the GPU programs. */
-		bool getRandomGpuWrite() const { return mRandomGpuWrite; }
+		bool getRandomGpuWrite() const { return mDesc.randomGpuWrite; }
 
 		/**	Returns whether the buffer supports counter use within GPU programs. */
-		bool getUseCounter() const { return mUseCounter; }
+		bool getUseCounter() const { return mDesc.useCounter; }
 
 		/**	Returns number of elements in the buffer. */
-		UINT32 getElementCount() const { return mElementCount; }
+		UINT32 getElementCount() const { return mDesc.elementCount; }
 
 		/**	Returns size of a single element in the buffer in bytes. */
-		UINT32 getElementSize() const { return mElementSize; }
+		UINT32 getElementSize() const { return mDesc.elementSize; }
 
 	protected:
-		GpuBufferType mType;
-		GpuBufferUsage mUsage;
-		GpuBufferFormat mFormat;
-		bool mRandomGpuWrite;
-		bool mUseCounter;
-		UINT32 mElementCount;
-		UINT32 mElementSize;
+		friend class GpuBuffer;
+
+		GPU_BUFFER_DESC mDesc;
 	};
 
 	/**
@@ -88,14 +120,12 @@ namespace BansheeEngine
 		static UINT32 getFormatSize(GpuBufferFormat format);
 
 		/** @copydoc HardwareBufferManager::createGpuBuffer */
-		static SPtr<GpuBuffer> create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		static SPtr<GpuBuffer> create(const GPU_BUFFER_DESC& desc);
 
 	protected:
 		friend class HardwareBufferManager;
 
-		GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage,
-			bool randomGpuWrite = false, bool useCounter = false);
+		GpuBuffer(const GPU_BUFFER_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
@@ -195,13 +225,11 @@ namespace BansheeEngine
 		 */
 		static void releaseView(GpuBufferView* view);
 
-		/** @copydoc HardwareBufferManager::createGpuBuffer */
-		static SPtr<GpuBufferCore> create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		/** @copydoc HardwareBufferCoreManager::createGpuBuffer */
+		static SPtr<GpuBufferCore> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
-		GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
-			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		GpuBufferCore(const GPU_BUFFER_DESC& desc, UINT32 deviceMask);
 
 		/** Creates an empty view for the current buffer. */
 		virtual GpuBufferView* createView() = 0;
@@ -223,7 +251,7 @@ namespace BansheeEngine
 			UINT32 refCount;
 		};
 
-		UnorderedMap<GPU_BUFFER_DESC, GpuBufferReference*, GpuBufferView::HashFunction, GpuBufferView::EqualFunction> mBufferViews;
+		UnorderedMap<GPU_BUFFER_VIEW_DESC, GpuBufferReference*, GpuBufferView::HashFunction, GpuBufferView::EqualFunction> mBufferViews;
 		GpuBufferProperties mProperties;
 	};
 

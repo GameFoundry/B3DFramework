@@ -7,18 +7,15 @@
 
 namespace BansheeEngine
 {
-	GpuBufferProperties::GpuBufferProperties(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: mType(type), mUsage(usage), mFormat(format), mRandomGpuWrite(randomGpuWrite), mUseCounter(useCounter)
-		, mElementCount(elementCount), mElementSize(elementSize)
+	GpuBufferProperties::GpuBufferProperties(const GPU_BUFFER_DESC& desc)
+		: mDesc(desc)
 	{
-		if(type == GBT_STANDARD)
-			mElementSize = GpuBuffer::getFormatSize(format);
+		if(mDesc.type == GBT_STANDARD)
+			mDesc.elementSize = GpuBuffer::getFormatSize(mDesc.format);
 	}
 
-	GpuBufferCore::GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: mProperties(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
+	GpuBufferCore::GpuBufferCore(const GPU_BUFFER_DESC& desc, UINT32 deviceMask)
+		: mProperties(desc)
 	{
 	}
 
@@ -44,7 +41,7 @@ namespace BansheeEngine
 	{
 		const auto& props = buffer->getProperties();
 
-		GPU_BUFFER_DESC key;
+		GPU_BUFFER_VIEW_DESC key;
 		key.firstElement = firstElement;
 		key.elementWidth = props.getElementSize();
 		key.numElements = numElements;
@@ -89,16 +86,13 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<GpuBufferCore> GpuBufferCore::create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
-		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBufferCore> GpuBufferCore::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuBuffer(elementCount, 
-			elementSize, type, format, usage, randomGpuWrite, useCounter);
+		return HardwareBufferCoreManager::instance().createGpuBuffer(desc, deviceMask);
 	}
 
-	GpuBuffer::GpuBuffer(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
-		GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		:mProperties(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter)
+	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc)
+		:mProperties(desc)
 	{  
 	}
 
@@ -109,9 +103,7 @@ namespace BansheeEngine
 
 	SPtr<CoreObjectCore> GpuBuffer::createCore() const
 	{
-		return HardwareBufferCoreManager::instance().createGpuBufferInternal(mProperties.getElementCount(), 
-			mProperties.getElementSize(), mProperties.getType(), mProperties.getFormat(), mProperties.getUsage(), 
-			mProperties.getRandomGpuWrite(), mProperties.getUseCounter());
+		return HardwareBufferCoreManager::instance().createGpuBufferInternal(mProperties.mDesc);
 	}
 
 	UINT32 GpuBuffer::getFormatSize(GpuBufferFormat format)
@@ -164,10 +156,8 @@ namespace BansheeEngine
 		return lookup[(UINT32)format];
 	}
 
-	SPtr<GpuBuffer> GpuBuffer::create(UINT32 elementCount, UINT32 elementSize, GpuBufferType type,
-		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc)
 	{
-		return HardwareBufferManager::instance().createGpuBuffer(elementCount, elementSize, type, format,
-			usage, randomGpuWrite, useCounter);
+		return HardwareBufferManager::instance().createGpuBuffer(desc);
 	}
 }

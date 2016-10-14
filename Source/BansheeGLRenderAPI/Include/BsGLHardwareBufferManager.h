@@ -30,11 +30,12 @@ namespace BansheeEngine
 		SPtr<IndexBufferCore> createIndexBufferInternal(IndexType itype, UINT32 numIndices, GpuBufferUsage usage) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBufferInternal */
-		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, GpuParamBlockUsage usage = GPBU_DYNAMIC) override;
+		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, 
+			GpuParamBlockUsage usage = GPBU_DYNAMIC) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuBufferInternal */
-		SPtr<GpuBufferCore> createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false) override;
+		SPtr<GpuBufferCore> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
     };
 
 	/** @} */

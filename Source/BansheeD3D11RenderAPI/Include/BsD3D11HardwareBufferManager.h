@@ -31,8 +31,8 @@ namespace BansheeEngine
 			GpuParamBlockUsage usage = GPBU_DYNAMIC) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuBufferInternal */
-		SPtr<GpuBufferCore> createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false) override;
+		SPtr<GpuBufferCore> createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		D3D11Device& mDevice;
 	};

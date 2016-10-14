@@ -15,7 +15,7 @@ namespace BansheeEngine
 	 *
 	 * @see		GpuBuffer
 	 */
-	struct BS_CORE_EXPORT GPU_BUFFER_DESC
+	struct BS_CORE_EXPORT GPU_BUFFER_VIEW_DESC
 	{
 		UINT32 firstElement;
 		UINT32 elementWidth;
@@ -40,13 +40,13 @@ namespace BansheeEngine
 		class HashFunction
 		{
 		public:
-			size_t operator()(const GPU_BUFFER_DESC& key) const;
+			size_t operator()(const GPU_BUFFER_VIEW_DESC& key) const;
 		};
 
 		class EqualFunction
 		{
 		public:
-			bool operator()(const GPU_BUFFER_DESC& a, const GPU_BUFFER_DESC& b) const;
+			bool operator()(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const;
 		};
 
 		GpuBufferView();
@@ -56,10 +56,10 @@ namespace BansheeEngine
 		 * Initializes the view with the specified buffer and a set of parameters describing the view to create. Must be 
 		 * called right after construction.
 		 */
-		virtual void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_DESC& desc);
+		virtual void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc);
 
 		/** Returns a descriptor structure used for creating the view. */
-		const GPU_BUFFER_DESC& getDesc() const { return mDesc; }
+		const GPU_BUFFER_VIEW_DESC& getDesc() const { return mDesc; }
 
 		/**	Returns the buffer this view was created for. */
 		SPtr<GpuBufferCore> getBuffer() const { return mBuffer; }
@@ -80,7 +80,7 @@ namespace BansheeEngine
 		GpuViewUsage getUsage() const { return mDesc.usage; }
 
 	protected:
-		GPU_BUFFER_DESC mDesc;
+		GPU_BUFFER_VIEW_DESC mDesc;
 		SPtr<GpuBufferCore> mBuffer;
 	};
 

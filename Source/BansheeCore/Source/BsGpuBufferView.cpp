@@ -4,7 +4,7 @@
 
 namespace BansheeEngine
 {
-	size_t GpuBufferView::HashFunction::operator()(const GPU_BUFFER_DESC& key) const
+	size_t GpuBufferView::HashFunction::operator()(const GPU_BUFFER_VIEW_DESC& key) const
 	{
 		size_t seed = 0;
 		hash_combine(seed, key.elementWidth);
@@ -18,7 +18,7 @@ namespace BansheeEngine
 	}
 
 	bool GpuBufferView::EqualFunction::operator()
-		(const GPU_BUFFER_DESC& a, const GPU_BUFFER_DESC& b) const
+		(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const
 	{
 		return a.elementWidth == b.elementWidth && a.firstElement == b.firstElement && a.numElements == b.numElements 
 			&& a.useCounter == b.useCounter && a.usage == b.usage && a.format == b.format;
@@ -34,7 +34,7 @@ namespace BansheeEngine
 
 	}
 
-	void GpuBufferView::initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_DESC& desc)
+	void GpuBufferView::initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc)
 	{
 		mBuffer = buffer;
 		mDesc = desc;

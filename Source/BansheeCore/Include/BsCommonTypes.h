@@ -159,11 +159,11 @@ namespace BansheeEngine
 	enum GpuBufferUsage 
 	{
 		/** 
-		 * Signifies that you don't plan on modifying the buffer often (or at all)	after creation. Modifying such buffer 
+		 * Signifies that you don't plan on modifying the buffer often (or at all) after creation. Modifying such buffer 
 		 * will involve a larger performance hit.
 		 */
         GBU_STATIC = 1,
-		/** Signifies that you will modify this buffer fairly often. */
+		/** Signifies that you will modify this buffer fairly often (e.g. every frame). */
 		GBU_DYNAMIC = 2
 	};
 
@@ -239,6 +239,26 @@ namespace BansheeEngine
 		GVU_DEPTHSTENCIL = 0x04,
 		/** Buffer that allows you to write to any part of it from within a GPU program. */
 		GVU_RANDOMWRITE = 0x08
+	};
+
+	/** Combineable set of bits that describe a set of physical GPU's. */
+	enum GpuDeviceFlags
+	{
+		/** 
+		 * Use the default set of devices. This may be the primary device or multiple devices. Cannot be used together with
+		 * other device flags. 
+		 */
+		GDF_DEFAULT = 0,
+		/** Use only the primary GPU. */
+		GDF_PRIMARY = 0x01,
+		/** Use the second GPU. */
+		GDF_GPU2 = 0x02,
+		/** Use the third GPU. */
+		GDF_GPU3 = 0x04,
+		/** Use the fourth GPU. */
+		GDF_GPU4 = 0x08,
+		/** Use the fifth GPU. */
+		GDF_GPU5 = 0x10
 	};
 
 	/** Type of parameter block usages. Signifies how often will parameter blocks be changed. */

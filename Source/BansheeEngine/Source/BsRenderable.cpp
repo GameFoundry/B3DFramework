@@ -205,7 +205,14 @@ namespace BansheeEngine
 
 			if (numBones > 0)
 			{
-				SPtr<GpuBufferCore> buffer = GpuBufferCore::create(numBones * 3, 0, GBT_STANDARD, BF_32X4F, GBU_DYNAMIC);
+				GPU_BUFFER_DESC desc;
+				desc.elementCount = numBones * 3;
+				desc.elementSize = 0;
+				desc.type = GBT_STANDARD;
+				desc.format = BF_32X4F;
+				desc.usage = GBU_DYNAMIC;
+
+				SPtr<GpuBufferCore> buffer = GpuBufferCore::create(desc);
 				UINT8* dest = (UINT8*)buffer->lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 
 				// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
