@@ -18,7 +18,10 @@ Aside from being a fully featured game engine and toolkit, Banshee can also be u
 # Documentation
 * [Managed](http://docs.banshee3d.com/Managed/index.html) - Documentation for the scripting (C#) API. This is what most users will be interested in.
 * [Native] (http://docs.banshee3d.com/Native/index.html) - Documentation for the native (C++) API. This is meant for advanced users meaning to extend/modify the engine.
+
+# About
 * [License](https://github.com/BearishSun/BansheeEngine/blob/master/Documentation/GitHub/license.md) - Information about Banshee's license.
+* [Contribute](http://www.banshee3d.com/contribute) - Help out with the development
 
 # Media
 **Banshee Editor**

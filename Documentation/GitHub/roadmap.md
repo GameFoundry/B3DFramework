@@ -1,5 +1,7 @@
 # Roadmap
 
+[Detailed task list] (https://trello.com/b/w6CyYY37/banshee-3d)
+
 We are currently focusing on finish up a final set of features before releasing 1.0 stable. These features are:
  - Vulkan implementation
  - Physically based renderer
