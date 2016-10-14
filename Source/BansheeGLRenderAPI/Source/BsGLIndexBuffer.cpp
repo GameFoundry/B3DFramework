@@ -7,9 +7,11 @@
 
 namespace BansheeEngine 
 {
-	GLIndexBufferCore::GLIndexBufferCore(IndexType idxType, UINT32 numIndices, GpuBufferUsage usage)
-		:IndexBufferCore(idxType, numIndices, usage)
-	{  }
+	GLIndexBufferCore::GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		:IndexBufferCore(desc, deviceMask)
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+	}
 
 	GLIndexBufferCore::~GLIndexBufferCore()
 	{

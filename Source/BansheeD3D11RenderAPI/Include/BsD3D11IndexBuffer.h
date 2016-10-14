@@ -16,7 +16,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11IndexBufferCore : public IndexBufferCore
 	{
 	public:
-		D3D11IndexBufferCore(D3D11Device& device, IndexType idxType, UINT32 numIndices, GpuBufferUsage usage);
+		D3D11IndexBufferCore(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		~D3D11IndexBufferCore();
 

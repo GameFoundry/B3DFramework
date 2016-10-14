@@ -39,8 +39,12 @@ namespace BansheeEngine
 
 		bool isDynamic = (mUsage & MU_DYNAMIC) != 0;
 
-		mIndexBuffer = HardwareBufferCoreManager::instance().createIndexBuffer(mIndexType,
-			mProperties.mNumIndices, isDynamic ? GBU_DYNAMIC : GBU_STATIC);
+		INDEX_BUFFER_DESC ibDesc;
+		ibDesc.indexType = mIndexType;
+		ibDesc.numIndices = mProperties.mNumIndices;
+		ibDesc.usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
+
+		mIndexBuffer = IndexBufferCore::create(ibDesc);
 
 		mVertexData = SPtr<VertexData>(bs_new<VertexData>());
 
@@ -52,12 +56,12 @@ namespace BansheeEngine
 			if (!mVertexDesc->hasStream(i))
 				continue;
 
-			VERTEX_BUFFER_DESC desc;
-			desc.vertexSize = mVertexData->vertexDeclaration->getProperties().getVertexSize(i);
-			desc.numVerts = mVertexData->vertexCount;
-			desc.usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
+			VERTEX_BUFFER_DESC vbDesc;
+			vbDesc.vertexSize = mVertexData->vertexDeclaration->getProperties().getVertexSize(i);
+			vbDesc.numVerts = mVertexData->vertexCount;
+			vbDesc.usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
 
-			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(desc);
+			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(vbDesc);
 			mVertexData->setBuffer(i, vertexBuffer);
 		}
 

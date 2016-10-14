@@ -37,9 +37,9 @@ namespace BansheeEngine
 		return vbuf;
 	}
 
-	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(IndexType itype, UINT32 numIndices, GpuBufferUsage usage)
+	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc)
 	{
-		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(itype, numIndices, usage));
+		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(desc));
 		ibuf->_setThisPtr(ibuf);
 		ibuf->initialize();
 		return ibuf;
@@ -73,9 +73,10 @@ namespace BansheeEngine
 		return paramsPtr;
     }
 
-	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(IndexType itype, UINT32 numIndexes, GpuBufferUsage usage)
+	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<IndexBufferCore> ibuf = createIndexBufferInternal(itype, numIndexes, usage);
+		SPtr<IndexBufferCore> ibuf = createIndexBufferInternal(desc, deviceMask);
 		ibuf->initialize();
 		return ibuf;
 

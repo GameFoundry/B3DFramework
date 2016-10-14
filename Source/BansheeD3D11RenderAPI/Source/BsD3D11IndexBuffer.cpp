@@ -6,10 +6,11 @@
 
 namespace BansheeEngine
 {
-	D3D11IndexBufferCore::D3D11IndexBufferCore(D3D11Device& device, IndexType idxType, UINT32 numIndices, GpuBufferUsage usage)
-		:IndexBufferCore(idxType, numIndices, usage), mDevice(device), mBuffer(nullptr)
+	D3D11IndexBufferCore::D3D11IndexBufferCore(D3D11Device& device, const INDEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+		:IndexBufferCore(desc, deviceMask), mDevice(device), mBuffer(nullptr)
 	{
-
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
 	}
 
 	D3D11IndexBufferCore::~D3D11IndexBufferCore()

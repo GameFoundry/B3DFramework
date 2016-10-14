@@ -20,19 +20,19 @@ namespace BansheeEngine
 		}
 	}
 
-	IndexBufferCore::IndexBufferCore(IndexType idxType, UINT32 numIndices, GpuBufferUsage usage)
-		:HardwareBuffer(usage, false), mProperties(idxType, numIndices)
+	IndexBufferCore::IndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		:HardwareBuffer(desc.usage, false), mProperties(desc.indexType, desc.numIndices)
 	{ 
 		mSizeInBytes = mProperties.mIndexSize * mProperties.mNumIndices;
 	}
 
-	SPtr<IndexBufferCore> IndexBufferCore::create(IndexType itype, UINT32 numIndexes, GpuBufferUsage usage)
+	SPtr<IndexBufferCore> IndexBufferCore::create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createIndexBuffer(itype, numIndexes, usage);
+		return HardwareBufferCoreManager::instance().createIndexBuffer(desc, deviceMask);
 	}
 
-    IndexBuffer::IndexBuffer(IndexType idxType, UINT32 numIndexes, GpuBufferUsage usage) 
-		:mProperties(idxType, numIndexes), mUsage(usage)
+    IndexBuffer::IndexBuffer(const INDEX_BUFFER_DESC& desc)
+		:mProperties(desc.indexType, desc.numIndices), mUsage(desc.usage)
     {
 
 	}
@@ -44,12 +44,16 @@ namespace BansheeEngine
 
 	SPtr<CoreObjectCore> IndexBuffer::createCore() const
 	{
-		return HardwareBufferCoreManager::instance().createIndexBufferInternal(mProperties.mIndexType, 
-			mProperties.mNumIndices, mUsage);
+		INDEX_BUFFER_DESC desc;
+		desc.indexType = mProperties.mIndexType;
+		desc.numIndices = mProperties.mNumIndices;
+		desc.usage = mUsage;
+
+		return HardwareBufferCoreManager::instance().createIndexBufferInternal(desc);
 	}
 
-	SPtr<IndexBuffer> IndexBuffer::create(IndexType itype, UINT32 numIndices, GpuBufferUsage usage)
+	SPtr<IndexBuffer> IndexBuffer::create(const INDEX_BUFFER_DESC& desc)
 	{
-		return HardwareBufferManager::instance().createIndexBuffer(itype, numIndices, usage);
+		return HardwareBufferManager::instance().createIndexBuffer(desc);
 	}
 }

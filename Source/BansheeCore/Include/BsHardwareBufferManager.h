@@ -40,11 +40,9 @@ namespace BansheeEngine
 		 * Creates a new index buffer that holds indices referencing vertices in a vertex buffer. Indices are interpreted 
 		 * by the pipeline and vertices are drawn in the order specified in the index buffer.
 		 *
-		 * @param[in]	itype		Index type, determines size of an index.
-		 * @param[in]	numIndices	Number of indexes can buffer can hold.
-		 * @param[in]	usage		Usage that tells the hardware how will be buffer be used. 
+		 * @param[in]	desc	Description of the buffer to create.
 		 */
-		SPtr<IndexBuffer> createIndexBuffer(IndexType itype, UINT32 numIndices, GpuBufferUsage usage);
+		SPtr<IndexBuffer> createIndexBuffer(const INDEX_BUFFER_DESC& desc);
 
 		/**
 		 * Creates an GPU parameter block that you can use for setting parameters for GPU programs. Parameter blocks may be
@@ -81,11 +79,17 @@ namespace BansheeEngine
     public:
 		virtual ~HardwareBufferCoreManager() { }
 
-		/** @copydoc HardwareBufferManager::createVertexBuffer */
+		/** 
+		 * @copydoc HardwareBufferManager::createVertexBuffer 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 */
 		SPtr<VertexBufferCore> createVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc HardwareBufferManager::createIndexBuffer */
-		SPtr<IndexBufferCore> createIndexBuffer(IndexType itype, UINT32 numIndices, GpuBufferUsage usage);
+		/** 
+		 * @copydoc HardwareBufferManager::createIndexBuffer 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 */
+		SPtr<IndexBufferCore> createIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** @copydoc HardwareBufferManager::createVertexDeclaration */
 		SPtr<VertexDeclarationCore> createVertexDeclaration(const SPtr<VertexDataDesc>& desc);
@@ -97,7 +101,10 @@ namespace BansheeEngine
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBuffer(UINT32 size, 
 			GpuParamBlockUsage usage = GPBU_DYNAMIC);
 
-		/** @copydoc HardwareBufferManager::createGpuBuffer */
+		/** 
+		 * @copydoc HardwareBufferManager::createGpuBuffer
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 */
 		SPtr<GpuBufferCore> createGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** @copydoc HardwareBufferManager::createGpuParams */
@@ -118,8 +125,8 @@ namespace BansheeEngine
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
 		/** @copydoc createIndexBuffer */
-		virtual SPtr<IndexBufferCore> createIndexBufferInternal(IndexType itype, UINT32 numIndices, 
-			GpuBufferUsage usage) = 0;
+		virtual SPtr<IndexBufferCore> createIndexBufferInternal(const INDEX_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
 		/** @copydoc createGpuParamBlockBuffer */
 		virtual SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, 

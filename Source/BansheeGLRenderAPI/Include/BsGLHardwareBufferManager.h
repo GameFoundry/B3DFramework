@@ -27,7 +27,8 @@ namespace BansheeEngine
         	GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferCoreManager::createIndexBufferInternal */
-		SPtr<IndexBufferCore> createIndexBufferInternal(IndexType itype, UINT32 numIndices, GpuBufferUsage usage) override;
+		SPtr<IndexBufferCore> createIndexBufferInternal(const INDEX_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBufferInternal */
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, 

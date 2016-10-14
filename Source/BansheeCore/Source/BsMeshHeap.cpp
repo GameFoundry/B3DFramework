@@ -380,7 +380,13 @@ namespace BansheeEngine
 	{
 		mNumIndices = numIndices;
 
-		mIndexBuffer = HardwareBufferCoreManager::instance().createIndexBuffer(mIndexType, mNumIndices, GBU_DYNAMIC);
+		INDEX_BUFFER_DESC ibDesc;
+		ibDesc.indexType = mIndexType;
+		ibDesc.numIndices = mNumIndices;
+		ibDesc.usage = GBU_DYNAMIC;
+
+		mIndexBuffer = IndexBufferCore::create(ibDesc);
+
 		const IndexBufferProperties& ibProps = mIndexBuffer->getProperties();
 
 		// Copy all data to the new buffer
