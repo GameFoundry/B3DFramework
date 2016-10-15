@@ -6,6 +6,10 @@
 
 namespace BansheeEngine
 {
+	Component::Component()
+		:mNotifyFlags(TCF_None)
+	{ }
+
 	Component::Component(const HSceneObject& parent)
 		:mNotifyFlags(TCF_None), mParent(parent)
 	{
