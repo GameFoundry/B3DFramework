@@ -88,6 +88,9 @@ namespace BansheeEngine
 		/** Tests prefab diff by modifiying a prefab, generating a diff and re-applying the modifications. */
 		void TestPrefabDiff();
 
+		/** Tests a complex set of operations on a prefab. */
+		void TestPrefabComplex();
+
 		/**	Tests the frame allocator. */
 		void TestFrameAlloc();
 	};
