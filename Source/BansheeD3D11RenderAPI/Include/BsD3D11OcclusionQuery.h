@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11OcclusionQuery : public OcclusionQuery
 	{
 	public:
-		D3D11OcclusionQuery(bool binary);
+		D3D11OcclusionQuery(bool binary, UINT32 deviceIdx);
 		~D3D11OcclusionQuery();
 
 		/** @copydoc OcclusionQuery::begin */

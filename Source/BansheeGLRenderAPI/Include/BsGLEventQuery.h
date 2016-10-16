@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_RSGL_EXPORT GLEventQuery : public EventQuery
 	{
 	public:
-		GLEventQuery();
+		GLEventQuery(UINT32 deviceIdx);
 		~GLEventQuery();
 
 		/** @copydoc EventQuery::begin */

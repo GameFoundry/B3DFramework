@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11EventQuery : public EventQuery
 	{
 	public:
-		D3D11EventQuery();
+		D3D11EventQuery(UINT32 deviceIdx);
 		~D3D11EventQuery();
 
 		/** @copydoc EventQuery::begin */

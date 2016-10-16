@@ -46,8 +46,12 @@ namespace BansheeEngine
 		/** Triggered when GPU processes the query. As a parameter it provides query duration in milliseconds. */
 		Event<void(float)> onTriggered;
 
-		/**	Creates a new query, but does not schedule it on GPU. */
-		static SPtr<TimerQuery> create();
+		/**	
+		 * Creates a new query, but does not schedule it on GPU. 
+		 * 
+		 * @param[in]	deviceIdx	Index of the GPU device to create the query on. 
+		 */
+		static SPtr<TimerQuery> create(UINT32 deviceIdx = 0);
 
 	protected:
 		friend class QueryManager;

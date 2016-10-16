@@ -53,12 +53,13 @@ namespace BansheeEngine
 		/**
 		 * Creates a new occlusion query. 
 		 *
-		 * @param[in] binary	If query is binary it will not give you an exact count of samples rendered, but will instead
-		 *						just return 0 (no samples were rendered) or 1 (one or more samples were rendered). Binary
-		 *						queries can return sooner as they potentially do not need to wait until all of the geometry
-		 *						is rendered.
+		 * @param[in] binary		If query is binary it will not give you an exact count of samples rendered, but will
+		 *							instead just return 0 (no samples were rendered) or 1 (one or more samples were 
+		 *							rendered). Binary queries can return sooner as they potentially do not need to wait
+		 *							until all of the geometry is rendered.
+		 * @param[in]	deviceIdx	Index of the GPU device to create the query on. 
 		 */
-		static SPtr<OcclusionQuery> create(bool binary);
+		static SPtr<OcclusionQuery> create(bool binary, UINT32 deviceIdx = 0);
 
 	protected:
 		friend class QueryManager;

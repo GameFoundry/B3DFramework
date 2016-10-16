@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11TimerQuery : public TimerQuery
 	{
 	public:
-		D3D11TimerQuery();
+		D3D11TimerQuery(UINT32 deviceIdx);
 		~D3D11TimerQuery();
 
 		/** @copydoc TimerQuery::begin */

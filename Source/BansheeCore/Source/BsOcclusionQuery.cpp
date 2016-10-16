@@ -9,8 +9,8 @@ namespace BansheeEngine
 		:mActive(false), mBinary(binary)
 	{ }
 
-	SPtr<OcclusionQuery> OcclusionQuery::create(bool binary)
+	SPtr<OcclusionQuery> OcclusionQuery::create(bool binary, UINT32 deviceIdx)
 	{
-		return QueryManager::instance().createOcclusionQuery(binary);
+		return QueryManager::instance().createOcclusionQuery(binary, deviceIdx);
 	}
 }

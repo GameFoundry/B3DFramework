@@ -41,8 +41,12 @@ namespace BansheeEngine
 		/**	Triggered when GPU starts processing the query. */
 		Event<void()> onTriggered;
 
-		/**	Creates a new query, but does not schedule it on GPU. */
-		static SPtr<EventQuery> create();
+		/**	
+		 * Creates a new query, but does not schedule it on GPU. 
+		 * 
+		 * @param[in]	deviceIdx	Index of the GPU device to create the query on. 
+		 */
+		static SPtr<EventQuery> create(UINT32 deviceIdx = 0);
 
 	protected:
 		friend class QueryManager;

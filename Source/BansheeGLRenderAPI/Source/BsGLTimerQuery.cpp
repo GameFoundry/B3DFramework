@@ -6,9 +6,11 @@
 
 namespace BansheeEngine
 {
-	GLTimerQuery::GLTimerQuery()
+	GLTimerQuery::GLTimerQuery(UINT32 deviceIdx)
 		:mQueryStartObj(0), mQueryEndObj(0), mFinalized(false), mEndIssued(false), mTimeDelta(0.0f)
 	{
+		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+
 		GLuint queries[2];
 		glGenQueries(2, queries);
 
