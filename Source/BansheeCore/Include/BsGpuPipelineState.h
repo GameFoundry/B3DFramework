@@ -160,11 +160,12 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT GpuPipelineStateCore : public CoreObjectCore, public TGpuPipelineState<true>
 	{
 	public:
-		GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc);
+		GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
 		virtual ~GpuPipelineStateCore() { }
 
 		/** @copydoc RenderStateManager::createPipelineState */
-		static SPtr<GpuPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc);
+		static SPtr<GpuPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 	};
 
 	/** @} */

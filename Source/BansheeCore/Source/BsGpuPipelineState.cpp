@@ -34,13 +34,13 @@ namespace BansheeEngine
 	template class TGpuPipelineState < false > ;
 	template class TGpuPipelineState < true >;
 
-	GpuPipelineStateCore::GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc)
+	GpuPipelineStateCore::GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
 		:TGpuPipelineState(desc)
 	{ }
 
-	SPtr<GpuPipelineStateCore> GpuPipelineStateCore::create(const PIPELINE_STATE_CORE_DESC& desc)
+	SPtr<GpuPipelineStateCore> GpuPipelineStateCore::create(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance().createPipelineState(desc);
+		return RenderStateCoreManager::instance().createPipelineState(desc, deviceMask);
 	}
 
 	GpuPipelineState::GpuPipelineState(const PIPELINE_STATE_DESC& desc)

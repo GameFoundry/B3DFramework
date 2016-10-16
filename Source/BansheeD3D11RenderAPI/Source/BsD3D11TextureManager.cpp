@@ -35,9 +35,10 @@ namespace BansheeEngine
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> D3D11TextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc)
+	SPtr<RenderTextureCore> D3D11TextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<D3D11RenderTextureCore> texPtr = bs_shared_ptr_new<D3D11RenderTextureCore>(desc);
+		SPtr<D3D11RenderTextureCore> texPtr = bs_shared_ptr_new<D3D11RenderTextureCore>(desc, deviceMask);
 		texPtr->_setThisPtr(texPtr);
 
 		return texPtr;

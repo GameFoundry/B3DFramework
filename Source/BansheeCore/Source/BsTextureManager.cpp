@@ -134,9 +134,10 @@ namespace BansheeEngine
 		return newRT;
 	}
 
-	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc)
+	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc);
+		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc, deviceMask);
 		newRT->initialize();
 
 		return newRT;

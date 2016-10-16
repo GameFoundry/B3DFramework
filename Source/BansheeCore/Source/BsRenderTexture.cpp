@@ -58,7 +58,7 @@ namespace BansheeEngine
 		mRequiresTextureFlipping = requiresFlipping;
 	}
 
-	RenderTextureCore::RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc)
+	RenderTextureCore::RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
 		:mDesc(desc)
 	{ }
 
@@ -106,9 +106,9 @@ namespace BansheeEngine
 		throwIfBuffersDontMatch();
 	}
 
-	SPtr<RenderTextureCore> RenderTextureCore::create(const RENDER_TEXTURE_DESC_CORE& desc)
+	SPtr<RenderTextureCore> RenderTextureCore::create(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
 	{
-		return TextureCoreManager::instance().createRenderTexture(desc);
+		return TextureCoreManager::instance().createRenderTexture(desc, deviceMask);
 	}
 
 	void RenderTextureCore::syncToCore(const CoreSyncData& data)

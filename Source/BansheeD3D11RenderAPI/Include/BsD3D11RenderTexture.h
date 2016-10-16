@@ -22,7 +22,7 @@ namespace BansheeEngine
 	class D3D11RenderTextureCore : public RenderTextureCore
 	{
 	public:
-		D3D11RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc);
+		D3D11RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask);
 		virtual ~D3D11RenderTextureCore() { }
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */

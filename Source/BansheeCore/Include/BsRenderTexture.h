@@ -133,14 +133,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT RenderTextureCore : public RenderTargetCore
 	{
 	public:
-		RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc);
+		RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask);
 		virtual ~RenderTextureCore();
 
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;
 
 		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE&) */
-		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC_CORE& desc);
+		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
 		 * Returns a color surface texture you may bind as an input to an GPU program.

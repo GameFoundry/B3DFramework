@@ -5,10 +5,10 @@
 
 namespace BansheeEngine
 {
-	D3D11RenderTextureCore::D3D11RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc)
-		:RenderTextureCore(desc), mProperties(desc, false)
+	D3D11RenderTextureCore::D3D11RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
+		:RenderTextureCore(desc, deviceMask), mProperties(desc, false)
 	{ 
-
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
 	void D3D11RenderTextureCore::getCustomAttribute(const String& name, void* data) const

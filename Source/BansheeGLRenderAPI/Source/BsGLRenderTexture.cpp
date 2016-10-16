@@ -20,9 +20,11 @@ namespace BansheeEngine
 
 #define DEPTHFORMAT_COUNT (sizeof(depthFormats)/sizeof(GLenum))
 
-	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc)
-		:RenderTextureCore(desc), mProperties(desc, true), mFB(nullptr)
-	{ }
+	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
+		:RenderTextureCore(desc, deviceMask), mProperties(desc, true), mFB(nullptr)
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+	}
 
 	GLRenderTextureCore::~GLRenderTextureCore()
 	{ 

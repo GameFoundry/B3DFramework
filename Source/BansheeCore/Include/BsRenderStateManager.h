@@ -139,7 +139,8 @@ namespace BansheeEngine
 		SPtr<BlendStateCore> createBlendState(const BLEND_STATE_DESC& desc) const;
 
 		/** @copydoc RenderStateManager::createPipelineState */
-		SPtr<GpuPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc) const;
+		SPtr<GpuPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
 		SPtr<SamplerStateCore> _createSamplerState(const SAMPLER_STATE_DESC& desc) const;
@@ -154,7 +155,8 @@ namespace BansheeEngine
 		SPtr<BlendStateCore> _createBlendState(const BLEND_STATE_DESC& desc) const;
 
 		/**	Creates an uninitialized GpuPipelineState. Requires manual initialization after creation. */
-		SPtr<GpuPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc) const;
+		SPtr<GpuPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Gets a sampler state initialized with default options. */
 		const SPtr<SamplerStateCore>& getDefaultSamplerState() const;

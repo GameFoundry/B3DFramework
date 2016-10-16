@@ -111,8 +111,12 @@ namespace BansheeEngine
 			int numMips, PixelFormat format, int usage = TU_DEFAULT, bool hwGammaCorrection = false, 
 			UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
 
-		/** @copydoc	TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) */
-		SPtr<RenderTextureCore> createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc);
+		/**
+		 * @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
+		SPtr<RenderTextureCore> createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class Texture;
@@ -127,8 +131,9 @@ namespace BansheeEngine
 			int numMips, PixelFormat format, int usage = TU_DEFAULT, bool hwGammaCorrection = false,
 			UINT32 multisampleCount = 0, UINT32 numArraySlices = 1, const SPtr<PixelData>& initialData = nullptr) = 0;
 
-		/** @copydoc TextureManager::createRenderTextureImpl */
-		virtual SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc) = 0;
+		/** @copydoc createRenderTexture */
+		virtual SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
     };
 
 	/** @} */

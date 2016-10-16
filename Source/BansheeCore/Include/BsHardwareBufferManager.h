@@ -81,46 +81,46 @@ namespace BansheeEngine
 
 		/** 
 		 * @copydoc HardwareBufferManager::createVertexBuffer 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<VertexBufferCore> createVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createIndexBuffer 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<IndexBufferCore> createIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createVertexDeclaration 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<VertexDeclarationCore> createVertexDeclaration(const SPtr<VertexDataDesc>& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createVertexDeclaration 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<VertexDeclarationCore> createVertexDeclaration(const List<VertexElement>& elements, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createGpuParamBlockBuffer 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBuffer(UINT32 size, 
 			GpuParamBlockUsage usage = GPBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createGpuBuffer
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GpuBufferCore> createGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
 		 * @copydoc HardwareBufferManager::createGpuParams 
-		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GpuParamsCore> createGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 

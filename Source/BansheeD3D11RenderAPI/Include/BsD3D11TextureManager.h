@@ -33,7 +33,8 @@ namespace BansheeEngine
 			UINT32 multisampleCount = 0, UINT32 numArraySlices = 1, const SPtr<PixelData>& initialData = nullptr) override;
 
 		/** @copydoc TextureCoreManager::createRenderTextureInternal */
-		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc) override;
+		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 	};
 
 	/** @} */

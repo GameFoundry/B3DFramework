@@ -16,9 +16,9 @@ namespace BansheeEngine
 {
 	MESH_DESC MESH_DESC::DEFAULT = MESH_DESC();
 
-	MeshCore::MeshCore(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	MeshCore::MeshCore(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 		: MeshCoreBase(desc.numVertices, desc.numIndices, desc.subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr)
-		, mVertexDesc(desc.vertexDesc), mUsage(desc.usage), mIndexType(desc.indexType)
+		, mVertexDesc(desc.vertexDesc), mUsage(desc.usage), mIndexType(desc.indexType), mDeviceMask(deviceMask)
 		, mTempInitialMeshData(initialMeshData), mSkeleton(desc.skeleton), mMorphShapes(desc.morphShapes)
 		
 	{ }
@@ -44,12 +44,12 @@ namespace BansheeEngine
 		ibDesc.numIndices = mProperties.mNumIndices;
 		ibDesc.usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
 
-		mIndexBuffer = IndexBufferCore::create(ibDesc);
+		mIndexBuffer = IndexBufferCore::create(ibDesc, mDeviceMask);
 
 		mVertexData = SPtr<VertexData>(bs_new<VertexData>());
 
 		mVertexData->vertexCount = mProperties.mNumVertices;
-		mVertexData->vertexDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(mVertexDesc);
+		mVertexData->vertexDeclaration = VertexDeclarationCore::create(mVertexDesc, mDeviceMask);
 
 		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
 		{
@@ -61,7 +61,7 @@ namespace BansheeEngine
 			vbDesc.numVerts = mVertexData->vertexCount;
 			vbDesc.usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
 
-			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(vbDesc);
+			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(vbDesc, mDeviceMask);
 			mVertexData->setBuffer(i, vertexBuffer);
 		}
 
@@ -303,7 +303,7 @@ namespace BansheeEngine
 	}
 
 	SPtr<MeshCore> MeshCore::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
-		int usage, DrawOperationType drawOp, IndexType indexType)
+		int usage, DrawOperationType drawOp, IndexType indexType, GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC desc;
 		desc.numVertices = numVertices;
@@ -313,16 +313,16 @@ namespace BansheeEngine
 		desc.usage = usage;
 		desc.indexType = indexType;
 
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc));
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc, deviceMask));
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const MESH_DESC& desc)
+	SPtr<MeshCore> MeshCore::create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc));
+		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(nullptr, desc, deviceMask));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -330,7 +330,7 @@ namespace BansheeEngine
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC descCopy = desc;
 		descCopy.numVertices = initialMeshData->getNumVertices();
@@ -338,7 +338,8 @@ namespace BansheeEngine
 		descCopy.vertexDesc = initialMeshData->getVertexDesc();
 		descCopy.indexType = initialMeshData->getIndexType();
 
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, descCopy));
+		SPtr<MeshCore> mesh = 
+			bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, descCopy, deviceMask));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -346,7 +347,8 @@ namespace BansheeEngine
 		return mesh;
 	}
 
-	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	SPtr<MeshCore> MeshCore::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, 
+		GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC desc;
 		desc.numVertices = initialMeshData->getNumVertices();
@@ -356,7 +358,8 @@ namespace BansheeEngine
 		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
 		desc.usage = usage;
 
-		SPtr<MeshCore> mesh = bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, desc));
+		SPtr<MeshCore> mesh = 
+			bs_shared_ptr<MeshCore>(new (bs_alloc<MeshCore>()) MeshCore(initialMeshData, desc, deviceMask));
 
 		mesh->_setThisPtr(mesh);
 		mesh->initialize();
@@ -469,7 +472,7 @@ namespace BansheeEngine
 		desc.skeleton = mSkeleton;
 		desc.morphShapes = mMorphShapes;
 
-		MeshCore* obj = new (bs_alloc<MeshCore>()) MeshCore(mCPUData, desc);
+		MeshCore* obj = new (bs_alloc<MeshCore>()) MeshCore(mCPUData, desc, GDF_DEFAULT);
 
 		SPtr<CoreObjectCore> meshCore = bs_shared_ptr<MeshCore>(obj);
 		meshCore->_setThisPtr(meshCore);

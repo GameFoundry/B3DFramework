@@ -195,9 +195,10 @@ namespace BansheeEngine
 		return state;
 	}
 
-	SPtr<GpuPipelineStateCore> RenderStateCoreManager::createPipelineState(const PIPELINE_STATE_CORE_DESC& desc) const
+	SPtr<GpuPipelineStateCore> RenderStateCoreManager::createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+		GpuDeviceFlags deviceMask) const
 	{
-		SPtr<GpuPipelineStateCore> state = _createPipelineState(desc);
+		SPtr<GpuPipelineStateCore> state = _createPipelineState(desc, deviceMask);
 		state->initialize();
 
 		return state;
@@ -267,10 +268,11 @@ namespace BansheeEngine
 		return state;
 	}
 
-	SPtr<GpuPipelineStateCore> RenderStateCoreManager::_createPipelineState(const PIPELINE_STATE_CORE_DESC& desc) const
+	SPtr<GpuPipelineStateCore> RenderStateCoreManager::_createPipelineState(const PIPELINE_STATE_CORE_DESC& desc,
+		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<GpuPipelineStateCore> pipelineState =
-			bs_shared_ptr<GpuPipelineStateCore>(new (bs_alloc<GpuPipelineStateCore>()) GpuPipelineStateCore(desc));
+			bs_shared_ptr<GpuPipelineStateCore>(new (bs_alloc<GpuPipelineStateCore>()) GpuPipelineStateCore(desc, deviceMask));
 		pipelineState->_setThisPtr(pipelineState);
 
 		return pipelineState;
