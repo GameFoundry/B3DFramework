@@ -13,13 +13,15 @@
 
 namespace BansheeEngine
 {
-	D3D11TextureCore::D3D11TextureCore(TextureType textureType, UINT32 width, UINT32 height, UINT32 depth, UINT32 numMipmaps,
-		PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices, const SPtr<PixelData>& initialData)
-		: TextureCore(textureType, width, height, depth, numMipmaps, format, usage, hwGamma, multisampleCount, numArraySlices, initialData),
+	D3D11TextureCore::D3D11TextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
+		GpuDeviceFlags deviceMask)
+		: TextureCore(desc, initialData, deviceMask),
 		m1DTex(nullptr), m2DTex(nullptr), m3DTex(nullptr), mDXGIFormat(DXGI_FORMAT_UNKNOWN), mDXGIColorFormat(DXGI_FORMAT_UNKNOWN),
 		mTex(nullptr), mStagingBuffer(nullptr), mDXGIDepthStencilFormat(DXGI_FORMAT_UNKNOWN),
 		mLockedSubresourceIdx(-1), mLockedForReading(false), mStaticBuffer(nullptr)
-	{ }
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
+	}
 
 	D3D11TextureCore::~D3D11TextureCore()
 	{ 
@@ -66,10 +68,10 @@ namespace BansheeEngine
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPICore::instancePtr());
 		D3D11Device& device = rs->getPrimaryDevice();
 
-		bool srcHasMultisample = mProperties.getMultisampleCount() > 1;
-		bool destHasMultisample = target->getProperties().getMultisampleCount() > 1;
+		bool srcHasMultisample = mProperties.getNumSamples() > 1;
+		bool destHasMultisample = target->getProperties().getNumSamples() > 1;
 
-		if (srcHasMultisample && destHasMultisample && mProperties.getMultisampleCount() != target->getProperties().getMultisampleCount()) // Resolving from MS to non-MS texture
+		if (srcHasMultisample && destHasMultisample && mProperties.getNumSamples() != target->getProperties().getNumSamples()) // Resolving from MS to non-MS texture
 		{
 			device.getImmediateContext()->ResolveSubresource(other->getDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
 		}
@@ -87,7 +89,7 @@ namespace BansheeEngine
 
 	PixelData D3D11TextureCore::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face)
 	{
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 #if BS_PROFILING_ENABLED
@@ -153,7 +155,7 @@ namespace BansheeEngine
 
 	void D3D11TextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face)
 	{
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		PixelData myData = lock(GBL_READ_ONLY, mipLevel, face);
@@ -175,7 +177,7 @@ namespace BansheeEngine
 	{
 		PixelFormat format = mProperties.getFormat();
 
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		mipLevel = Math::clamp(mipLevel, (UINT32)mipLevel, mProperties.getNumMipmaps());
@@ -338,7 +340,7 @@ namespace BansheeEngine
 		UINT32 numMips = mProperties.getNumMipmaps();
 		PixelFormat format = mProperties.getFormat();
 		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		UINT32 sampleCount = mProperties.getMultisampleCount();
+		UINT32 sampleCount = mProperties.getNumSamples();
 		TextureType texType = mProperties.getTextureType();
 		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, hwGamma);
 		UINT32 numFaces = mProperties.getNumFaces();

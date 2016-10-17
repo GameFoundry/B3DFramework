@@ -156,8 +156,16 @@ namespace BansheeEngine
 
 		bool sRGB = textureImportOptions->getSRGB();
 
-		SPtr<Texture> newTexture = Texture::_createPtr(TEX_TYPE_2D, 
-			imgData->getWidth(), imgData->getHeight(), numMips, textureImportOptions->getFormat(), usage, sRGB);
+		TEXTURE_DESC texDesc;
+		texDesc.type = TEX_TYPE_2D;
+		texDesc.width = imgData->getWidth();
+		texDesc.height = imgData->getHeight();
+		texDesc.numMips = numMips;
+		texDesc.format = textureImportOptions->getFormat();
+		texDesc.usage = usage;
+		texDesc.hwGamma = sRGB;
+
+		SPtr<Texture> newTexture = Texture::_createPtr(texDesc);
 
 		Vector<SPtr<PixelData>> mipLevels;
 		if (numMips > 0)

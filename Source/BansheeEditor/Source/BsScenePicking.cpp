@@ -289,8 +289,14 @@ namespace BansheeEngine
 		SPtr<TextureCore> outputTexture = rtt->getColorTexture(0);
 		TextureProperties outputTextureProperties = outputTexture->getProperties();
 
-		SPtr<TextureCore> normalsTexture = TextureCore::create(TEX_TYPE_2D, outputTextureProperties.getWidth(),
-			outputTextureProperties.getHeight(), 0, PF_R8G8B8A8, TU_RENDERTARGET, false, 1);
+		TEXTURE_DESC normalTexDesc;
+		normalTexDesc.type = TEX_TYPE_2D;
+		normalTexDesc.width = outputTextureProperties.getWidth();
+		normalTexDesc.height = outputTextureProperties.getHeight();
+		normalTexDesc.format = PF_R8G8B8A8;
+		normalTexDesc.usage = TU_RENDERTARGET;
+
+		SPtr<TextureCore> normalsTexture = TextureCore::create(normalTexDesc);
 		SPtr<TextureCore> depthTexture = rtt->getDepthStencilTexture();
 
 		RENDER_TEXTURE_DESC_CORE pickingMRT;

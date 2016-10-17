@@ -50,7 +50,7 @@ namespace BansheeEngine
 			mHeight = textureProps->getHeight();
 			mColorDepth = BansheeEngine::PixelUtil::getNumElemBits(textureProps->getFormat());
 			mHwGamma = textureProps->isHardwareGammaEnabled();
-			mMultisampleCount = textureProps->getMultisampleCount();
+			mMultisampleCount = textureProps->getNumSamples();
 		}
 
 		mActive = true;
@@ -139,8 +139,8 @@ namespace BansheeEngine
 			const TextureProperties& curTexProps = mColorSurfaces[i]->getTexture()->getProperties();
 			const TextureProperties& firstTexProps = firstSurfaceDesc->getTexture()->getProperties();
 
-			UINT32 curMsCount = curTexProps.getMultisampleCount();
-			UINT32 firstMsCount = firstTexProps.getMultisampleCount();
+			UINT32 curMsCount = curTexProps.getNumSamples();
+			UINT32 firstMsCount = firstTexProps.getNumSamples();
 
 			if (curMsCount == 0)
 				curMsCount = 1;
@@ -186,8 +186,8 @@ namespace BansheeEngine
 				return;
 
 			const TextureProperties& depthTexProps = mDepthStencilSurface->getTexture()->getProperties();
-			UINT32 depthMsCount = depthTexProps.getMultisampleCount();
-			UINT32 colorMsCount = firstTexProps.getMultisampleCount();
+			UINT32 depthMsCount = depthTexProps.getNumSamples();
+			UINT32 colorMsCount = firstTexProps.getNumSamples();
 
 			if (depthMsCount == 0)
 				depthMsCount = 1;
@@ -208,12 +208,10 @@ namespace BansheeEngine
 		}
 	}
 
-	SPtr<RenderTexture> RenderTexture::create(TextureType textureType, UINT32 width, UINT32 height, 
-		PixelFormat format, bool hwGamma, UINT32 multisampleCount, 
+	SPtr<RenderTexture> RenderTexture::create(const TEXTURE_DESC& desc, 
 		bool createDepth, PixelFormat depthStencilFormat)
 	{
-		return TextureManager::instance().createRenderTexture(textureType, width, height, format, hwGamma, 
-			multisampleCount, createDepth, depthStencilFormat);
+		return TextureManager::instance().createRenderTexture(desc, createDepth, depthStencilFormat);
 	}
 
 	SPtr<RenderTexture> RenderTexture::create(const RENDER_TEXTURE_DESC& desc)

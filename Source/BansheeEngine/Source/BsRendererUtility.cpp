@@ -236,7 +236,7 @@ namespace BansheeEngine
 		auto& texProps = texture->getProperties();
 		SPtr<MaterialCore> mat;
 		SPtr<GpuParamsSetCore> params;
-		if (texProps.getMultisampleCount() > 1)
+		if (texProps.getNumSamples() > 1)
 		{
 			mat = mResolveMat->getMaterial();
 			params = mResolveMat->getParamsSet();
@@ -356,7 +356,7 @@ namespace BansheeEngine
 	{
 		mSource.set(source);
 
-		UINT32 sampleCount = source->getProperties().getMultisampleCount();
+		UINT32 sampleCount = source->getProperties().getNumSamples();
 		mNumSamples.set(sampleCount);
 
 		mMaterial->updateParamsSet(mParamsSet);

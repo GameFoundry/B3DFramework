@@ -323,7 +323,12 @@ namespace BansheeEngine
 					}
 				}
 
-				HTexture newTex = Texture::create(TEX_TYPE_2D, pageIter->width, pageIter->height, 0, PF_R8G8);
+				TEXTURE_DESC texDesc;
+				texDesc.width = pageIter->width;
+				texDesc.height = pageIter->height;
+				texDesc.format = PF_R8G8;
+
+				HTexture newTex = Texture::create(texDesc);
 				UINT32 subresourceIdx = newTex->getProperties().mapToSubresourceIdx(0, 0);
 
 				// It's possible the formats no longer match

@@ -34,9 +34,15 @@ namespace BansheeEngine
 	void ScriptRenderTexture2D::internal_createDetailed(MonoObject* instance, PixelFormat format, UINT32 width, UINT32 height,
 		UINT32 numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 	{
-		SPtr<RenderTexture> tex = RenderTexture::create(TEX_TYPE_2D, width, height, format, gammaCorrection, numSamples, 
-			createDepth, depthStencilFormat);
+		TEXTURE_DESC texDesc;
+		texDesc.type = TEX_TYPE_2D;
+		texDesc.width = width;
+		texDesc.height = height;
+		texDesc.format = format;
+		texDesc.hwGamma = gammaCorrection;
+		texDesc.numSamples = numSamples;
 
+		SPtr<RenderTexture> tex = RenderTexture::create(texDesc, createDepth, depthStencilFormat);
 		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, instance);
 	}
 

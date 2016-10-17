@@ -47,20 +47,8 @@ namespace BansheeEngine
 	public:
 		virtual ~RenderTexture() { }
 
-		/**
-		 * Creates a new render texture with a single color and optionally depth/stencil surfaces.
-		 *
-		 * @param[in]	textureType			Type of texture to render to.
-		 * @param[in]	width				Width of the render texture, in pixels.
-		 * @param[in]	height				Height of the render texture, in pixels.
-		 * @param[in]	format				Pixel format used by the texture color surface.
-		 * @param[in]	hwGamma				Should the written pixels be gamma corrected.
-		 * @param[in]	multisampleCount	If higher than 1, texture containing multiple samples per pixel is created.
-		 * @param[in]	createDepth			Should a depth/stencil surface be created along with the color surface.
-		 * @param[in]	depthStencilFormat	Format used by the depth stencil surface, if one is created.
-		 */
-		static SPtr<RenderTexture> create(TextureType textureType, UINT32 width, UINT32 height, 
-			PixelFormat format = PF_R8G8B8A8, bool hwGamma = false, UINT32 multisampleCount = 0, 
+		/** @copydoc TextureManager::createRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
+		static SPtr<RenderTexture> create(const TEXTURE_DESC& desc, 
 			bool createDepth = true, PixelFormat depthStencilFormat = PF_D24S8);
 
 		/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) */

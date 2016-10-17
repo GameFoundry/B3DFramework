@@ -41,43 +41,79 @@ namespace BansheeEngine
 		MIP_UNLIMITED = 0x7FFFFFFF /**< Create all mip maps down to 1x1. */
 	};
 
+	/** Descriptor structure used for initialization of a Texture. */
+	struct TEXTURE_DESC
+	{
+		/** Type of the texture. */
+		TextureType type = TEX_TYPE_2D;
+
+		/** Format of pixels in the texture. */
+		PixelFormat format = PF_R8G8B8A8;
+
+		/** Width of the texture in pixels. */
+		UINT32 width = 1;
+
+		/** Height of the texture in pixels. */
+		UINT32 height = 1;
+
+		/** Depth of the texture in pixels (Must be 1 for 2D textures). */
+		UINT32 depth = 1;
+
+		/** Number of mip-maps the texture has. This number excludes the full resolution map. */
+		UINT32 numMips = 0;
+
+		/** Describes how the caller plans on using the texture in the pipeline. */
+		INT32 usage = TU_DEFAULT;
+
+		/** 
+		 * If true the texture data is assumed to have been gamma corrected and will be converted back to linear space when
+		 * sampled on GPU.
+		 */
+		bool hwGamma = false; 
+
+		/** Number of samples per pixel. Set to 1 or 0 to use the default of a single sample per pixel. */
+		UINT32 numSamples = 0;
+
+		/** Number of texture slices to create if creating a texture array. Ignored for 3D textures. */
+		UINT32 numArraySlices = 1;
+	};
+
 	/** Properties of a Texture. Shared between sim and core thread versions of a Texture. */
 	class BS_CORE_EXPORT TextureProperties
 	{
 	public:
 		TextureProperties();
-		TextureProperties(TextureType textureType, UINT32 width, UINT32 height, UINT32 depth, UINT32 numMipmaps,
-			PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices);
+		TextureProperties(const TEXTURE_DESC& desc);
 
 		/**	Gets the type of texture. */
-        TextureType getTextureType() const { return mTextureType; }
+        TextureType getTextureType() const { return mDesc.type; }
 
         /**
 		 * Gets the number of mipmaps to be used for this texture. This number excludes the top level map (which is always
 		 * assumed to be present).
          */
-        UINT32 getNumMipmaps() const {return mNumMipmaps;}
+        UINT32 getNumMipmaps() const {return mDesc.numMips;}
 
 		/** Gets whether this texture will be set up so that on sampling it, hardware gamma correction is applied. */
-		bool isHardwareGammaEnabled() const { return mHwGamma; }
+		bool isHardwareGammaEnabled() const { return mDesc.hwGamma; }
 
 		/**	Gets the number of samples used for multisampling (0 if multisampling is not used). */
-		UINT32 getMultisampleCount() const { return mMultisampleCount; }
+		UINT32 getNumSamples() const { return mDesc.numSamples; }
 
         /**	Returns the height of the texture.  */
-        UINT32 getHeight() const { return mHeight; }
+        UINT32 getHeight() const { return mDesc.height; }
 
         /**	Returns the width of the texture. */
-        UINT32 getWidth() const { return mWidth; }
+        UINT32 getWidth() const { return mDesc.width; }
 
         /**	Returns the depth of the texture (only applicable for 3D textures). */
-        UINT32 getDepth() const { return mDepth; }
+        UINT32 getDepth() const { return mDesc.depth; }
 
         /**	Returns texture usage (TextureUsage) of this texture. */
-        int getUsage() const { return mUsage; }
+        int getUsage() const { return mDesc.usage; }
 
 		/**	Returns the pixel format for the texture surface. */
-		PixelFormat getFormat() const { return mFormat; }
+		PixelFormat getFormat() const { return mDesc.format; }
 
         /**	Returns true if the texture has an alpha layer. */
         bool hasAlpha() const;
@@ -86,7 +122,7 @@ namespace BansheeEngine
         UINT32 getNumFaces() const;
 
 		/** Returns the number of array slices of the texture (if the texture is an array texture). */
-		UINT32 getNumArraySlices() const { return mNumArraySlices; }
+		UINT32 getNumArraySlices() const { return mDesc.numArraySlices; }
 
 		/**
 		 * Maps a sub-resource index to an exact face and mip level. Sub-resource indexes are used when reading or writing
@@ -120,19 +156,9 @@ namespace BansheeEngine
 
 	protected:
 		friend class TextureRTTI;
+		friend class Texture;
 
-		UINT32 mHeight;
-		UINT32 mWidth;
-		UINT32 mDepth;
-		UINT32 mNumArraySlices;
-
-		UINT32 mNumMipmaps;
-		bool mHwGamma;
-		UINT32 mMultisampleCount;
-
-		TextureType mTextureType;
-		PixelFormat mFormat;
-		int mUsage;
+		TEXTURE_DESC mDesc;
 	};
 
 	/**
@@ -206,42 +232,9 @@ namespace BansheeEngine
 		/**
 		 * Creates a new empty texture.
 		 *
-		 * @param[in]	texType				Type of the texture.
-		 * @param[in]	width				Width of the texture in pixels.
-		 * @param[in]	height				Height of the texture in pixels.
-		 * @param[in]	depth				Depth of the texture in pixels (Must be 1 for 2D textures).
-		 * @param[in]	numMips				Number of mip-maps the texture has. This number excludes the full resolution map.
-		 * @param[in]	format				Format of the pixels.
-		 * @param[in]	usage				Describes how we plan on using the texture in the pipeline.
-		 * @param[in]	hwGammaCorrection	If true the texture data is assumed to have been gamma corrected and will be
-		 *									converted back to linear space when sampled on GPU.
-		 * @param[in]	multisampleCount	If higher than 1, texture containing multiple samples per pixel is created.
-		 * @param[in]	numArraySlices		Number of texture slices to create if creating a texture array. Ignored for
-		 *									3D textures.
+		 * @param[in]	desc  	Description of the texture to create.
 		 */
-		static HTexture create(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-			int numMips, PixelFormat format, int usage = TU_DEFAULT,
-			bool hwGammaCorrection = false, UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
-
-
-		/**
-		 * Creates a new empty texture.
-		 *
-		 * @param[in]	texType				Type of the texture.
-		 * @param[in]	width				Width of the texture in pixels.
-		 * @param[in]	height				Height of the texture in pixels.
-		 * @param[in]	numMips				Number of mip-maps the texture has. This number excludes the full resolution map.
-		 * @param[in]	format				Format of the pixels.
-		 * @param[in]	usage				Describes planned texture use.
-		 * @param[in]	hwGammaCorrection	If true the texture data is assumed to have been gamma corrected and will be
-		 *									converted back to linear space when sampled on GPU.
-		 * @param[in]	multisampleCount	If higher than 1, texture containing multiple samples per pixel is created.
-		 * @param[in]	numArraySlices		Number of texture slices to create if creating a texture array. Ignored for
-		 *									3D textures.
-		 */
-		static HTexture create(TextureType texType, UINT32 width, UINT32 height, int numMips,
-			PixelFormat format, int usage = TU_DEFAULT,
-			bool hwGammaCorrection = false, UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
+		static HTexture create(const TEXTURE_DESC& desc);
 
 		/**
 		 * Creates a new 2D or 3D texture initialized using the provided pixel data. Texture will not have any mipmaps.
@@ -258,39 +251,27 @@ namespace BansheeEngine
 		 */
 
 		/**
-		 * @copydoc	create(TextureType, UINT32, UINT32, UINT32, int, PixelFormat, int, bool, UINT32, UINT32)
+		 * @copydoc	create(const TEXTURE_DESC&)
 		 *
 		 * @note	Internal method. Creates a texture pointer without a handle. Use create() for normal usage.
 		 */
-		static SPtr<Texture> _createPtr(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-			int numMips, PixelFormat format, int usage = TU_DEFAULT,
-			bool hwGammaCorrection = false, UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
-
-		/**
-		 * @copydoc	create(TextureType, UINT32, UINT32, int, PixelFormat, int, bool, UINT32, UINT32)
-		 *
-		 * @note	Internal method. Creates a texture pointer without a handle. Use create() for normal usage.
-		 */
-		static SPtr<Texture> _createPtr(TextureType texType, UINT32 width, UINT32 height, int numMips,
-			PixelFormat format, int usage = TU_DEFAULT, bool hwGammaCorrection = false, UINT32 multisampleCount = 0, 
-			UINT32 numArraySlices = 1);
+		static SPtr<Texture> _createPtr(const TEXTURE_DESC& desc);
 
 		/**
 		 * @copydoc	create(const SPtr<PixelData>&, int, bool)
 		 *
 		 * @note	Internal method. Creates a texture pointer without a handle. Use create() for normal usage.
 		 */
-		static SPtr<Texture> _createPtr(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
+		static SPtr<Texture> _createPtr(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, 
+			bool hwGammaCorrection = false);
 
 		/** @} */
 
     protected:
 		friend class TextureManager;
 
-		Texture(TextureType textureType, UINT32 width, UINT32 height, UINT32 depth, UINT32 numMipmaps,
-			PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices);
-
-		Texture(const SPtr<PixelData>& pixelData, int usage, bool hwGamma);
+		Texture(const TEXTURE_DESC& desc);
+		Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData);
 
 		/** @copydoc Resource::initialize */
 		void initialize() override;
@@ -341,9 +322,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT TextureCore : public CoreObjectCore
 	{
 	public:
-		TextureCore(TextureType textureType, UINT32 width, UINT32 height, UINT32 depth, UINT32 numMipmaps,
-			PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices, 
-			const SPtr<PixelData>& initData);
+		TextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask);
 		virtual ~TextureCore() {}
 
 
@@ -432,18 +411,18 @@ namespace BansheeEngine
 		/* 								STATICS		                     		*/
 		/************************************************************************/
 
-		/** @copydoc Texture::create(TextureType, UINT32, UINT32, UINT32, int, PixelFormat, int, bool, UINT32, UINT32) */
-		static SPtr<TextureCore> create(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-			int numMips, PixelFormat format, int usage = TU_DEFAULT,
-			bool hwGammaCorrection = false, UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
+		/** 
+		 * @copydoc Texture::create(const TEXTURE_DESC&) 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
+		static SPtr<TextureCore> create(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc Texture::create(TextureType, UINT32, UINT32, int, PixelFormat, int, bool, UINT32, UINT32) */
-		static SPtr<TextureCore> create(TextureType texType, UINT32 width, UINT32 height, int numMips,
-			PixelFormat format, int usage = TU_DEFAULT,
-			bool hwGammaCorrection = false, UINT32 multisampleCount = 0, UINT32 numArraySlices = 1);
-
-		/** @copydoc Texture::create(const SPtr<PixelData>&, int, bool) */
-		static SPtr<TextureCore> create(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
+		/** 
+		 * @copydoc Texture::create(const SPtr<PixelData>&, int, bool) 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
+		static SPtr<TextureCore> create(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, 
+			bool hwGammaCorrection = false, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/************************************************************************/
 		/* 								TEXTURE VIEW                      		*/

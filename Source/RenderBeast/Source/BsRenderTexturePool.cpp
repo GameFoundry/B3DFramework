@@ -45,8 +45,17 @@ namespace BansheeEngine
 		SPtr<PooledRenderTexture> newTextureData = bs_shared_ptr_new<PooledRenderTexture>(this);
 		_registerTexture(newTextureData);
 
-		newTextureData->texture = TextureCoreManager::instance().createTexture(desc.type, desc.width, desc.height, 
-			desc.depth, 0, desc.format, desc.flag, desc.hwGamma, desc.numSamples);
+		TEXTURE_DESC texDesc;
+		texDesc.type = desc.type;
+		texDesc.width = desc.width;
+		texDesc.height = desc.height;
+		texDesc.depth = desc.depth;
+		texDesc.format = desc.format;
+		texDesc.usage = desc.flag;
+		texDesc.hwGamma = desc.hwGamma;
+		texDesc.numSamples = desc.numSamples;
+
+		newTextureData->texture = TextureCoreManager::instance().createTexture(texDesc);
 		
 		if ((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 		{
@@ -92,7 +101,7 @@ namespace BansheeEngine
 			&& (
 				(desc.type == TEX_TYPE_2D 
 					&& texProps.isHardwareGammaEnabled() == desc.hwGamma 
-					&& texProps.getMultisampleCount() == desc.numSamples)
+					&& texProps.getNumSamples() == desc.numSamples)
 				|| (desc.type == TEX_TYPE_3D 
 					&& texProps.getDepth() == desc.depth)
 				|| (desc.type == TEX_TYPE_CUBE_MAP)
