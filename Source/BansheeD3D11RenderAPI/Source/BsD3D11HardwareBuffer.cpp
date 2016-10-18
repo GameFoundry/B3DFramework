@@ -6,8 +6,6 @@
 #include "BsException.h"
 #include "BsDebug.h"
 
-#include "BsProfilerCPU.h"
-
 namespace BansheeEngine
 {
 	D3D11HardwareBuffer::D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 
@@ -195,7 +193,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HardwareBuffer::unmap(void)
+	void D3D11HardwareBuffer::unmap()
 	{
 		if (mUseTempStagingBuffer)
 		{

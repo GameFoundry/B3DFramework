@@ -27,7 +27,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11TextureCoreManager : public TextureCoreManager
 	{
 	protected:
-		/** @copydoc	TextureCoreManager::createTextureInternal */
+		/** @copydoc TextureCoreManager::createTextureInternal */
 		SPtr<TextureCore> createTextureInternal(const TEXTURE_DESC& desc, 
 			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 

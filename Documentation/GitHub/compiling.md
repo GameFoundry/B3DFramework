@@ -14,7 +14,7 @@ To compile follow these steps:
  1. Download source code
  2. Set up [third party dependencies](#dependencies)
  3. Generate a build file (e.g. Visual Studio solution or a Makefile) using CMake
-  - You can customize your build by choosing options like render API (DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
+  - You can customize your build by choosing options like render API (Vulkan, DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
  4. Compile using your favorite tool
 
 # <a name="dependencies"></a>Third party dependencies
@@ -38,6 +38,11 @@ The following dependencies will need to be installed manually regardless if you 
 **DirectX Debug Layer** (Optional if not using DirectX)
  - Only needed if on Windows 10 and using DirectX 11 render API
  - Go to Settings panel (type "Settings" in Start)->System->Apps & features->Manage optional Features->Add a feature->Select "Graphics Tools"
+ 
+**Vulkan SDK** (Optional if not using Vulkan) 
+ - Only needed if you selected the Vulkan render API during build configuration (selected by default)
+ - https://lunarg.com/vulkan-sdk/
+ - If CMake complains it cannot find Vulkan, manually set the Vulkan_INSTALL_DIRS to your installation directory
  
 **Python 3.5** (Optional)
  - Only needed if you plan on running Python scripts in the /Scripts folder

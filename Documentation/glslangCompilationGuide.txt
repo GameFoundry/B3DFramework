@@ -1,0 +1,4 @@
+Certain Banshee specific modification is required before compiling glslang:
+ - Add getAttributeTType to TProgram's public interface:
+  - Method signature: const TType* getAttributeTType(int index) const;
+  - Method implementation: const TType* TProgram::getAttributeTType(int index) const	 { return reflection->getAttribute(index).getType(); }
