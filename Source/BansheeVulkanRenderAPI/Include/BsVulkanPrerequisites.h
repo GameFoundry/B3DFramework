@@ -42,6 +42,14 @@ namespace BansheeEngine
 	/**	Vulkan specific types to track resource statistics for. */
 	enum VulkanRenderStatResourceType
 	{
-		RenderStatObject_PipelineState = 100,
+		RenderStatObject_PipelineState = 100
 	};
 }
+
+// Macro to get a procedure address based on a Vulkan instance.
+#define GET_INSTANCE_PROC_ADDR(instance, name) \
+	vk##name = reinterpret_cast<PFN_vk##name>(vkGetInstanceProcAddr(instance, "vk"#name));
+
+// Macro to get a procedure address based on a Vulkan device.
+#define GET_DEVICE_PROC_ADDR(device, name) \
+	vk##name = reinterpret_cast<PFN_vk##name>(vkGetDeviceProcAddr(device, "vk"#name));

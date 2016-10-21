@@ -19,6 +19,16 @@ namespace BansheeEngine
 	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = nullptr;
 	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = nullptr;
 
+	PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR = nullptr;
+	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR = nullptr;
+	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR = nullptr;
+	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR = nullptr;
+	PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR = nullptr;
+	PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR = nullptr;
+	PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR = nullptr;
+	PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR = nullptr;
+	PFN_vkQueuePresentKHR vkQueuePresentKHR = nullptr;
+
 	VkBool32 debugMsgCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject,
 		size_t location, int32_t msgCode, const char* pLayerPrefix, const char* pMsg, void* pUserData)
 	{
@@ -140,10 +150,8 @@ namespace BansheeEngine
 		VkDebugReportFlagsEXT debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | 
 			VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
-		vkCreateDebugReportCallbackEXT = 
-			(PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(mInstance, "vkCreateDebugReportCallbackEXT");
-		vkDestroyDebugReportCallbackEXT = 
-			(PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(mInstance, "vkDestroyDebugReportCallbackEXT");
+		GET_INSTANCE_PROC_ADDR(mInstance, CreateDebugReportCallbackEXT);
+		GET_INSTANCE_PROC_ADDR(mInstance, DestroyDebugReportCallbackEXT);
 
 		VkDebugReportCallbackCreateInfoEXT debugInfo;
 		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
@@ -171,7 +179,7 @@ namespace BansheeEngine
 			mDevices[i] = bs_shared_ptr_new<VulkanDevice>(physicalDevices[i]);
 
 		// Find primary device
-		// TODO MULTIGPU - Detect multiple similar devices here if supporting multi-GPU
+		// Note: MULTIGPU - Detect multiple similar devices here if supporting multi-GPU
 		for (uint32_t i = 0; i < numDevices; i++)
 		{
 			if (mDevices[i]->getDeviceProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
@@ -184,6 +192,25 @@ namespace BansheeEngine
 		if (mPrimaryDevices.size() == 0)
 			mPrimaryDevices.push_back(mDevices[0]);
 
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+		mVideoModeInfo = bs_shared_ptr_new<Win32VideoModeInfo>();
+#else
+		static_assert(false, "mVideoModeInfo needs to be created.")
+#endif
+
+		// Get required extension functions
+		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceSupportKHR);
+		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceFormatsKHR);
+		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfacePresentModesKHR);
+
+		VkDevice presentDevice = _getPresentDevice()->getLogical();
+		GET_DEVICE_PROC_ADDR(presentDevice, CreateSwapchainKHR);
+		GET_DEVICE_PROC_ADDR(presentDevice, DestroySwapchainKHR);
+		GET_DEVICE_PROC_ADDR(presentDevice, GetSwapchainImagesKHR);
+		GET_DEVICE_PROC_ADDR(presentDevice, AcquireNextImageKHR);
+		GET_DEVICE_PROC_ADDR(presentDevice, QueuePresentKHR);
+
 		// Create the texture manager for use by others		
 		TextureManager::startUp<VulkanTextureManager>();
 		TextureCoreManager::startUp<VulkanTextureCoreManager>();
@@ -194,7 +221,7 @@ namespace BansheeEngine
 
 		// Create render window manager
 		RenderWindowManager::startUp<VulkanRenderWindowManager>();
-		RenderWindowCoreManager::startUp<VulkanRenderWindowCoreManager>();
+		RenderWindowCoreManager::startUp<VulkanRenderWindowCoreManager>(*this);
 
 		// Create query manager 
 		QueryManager::startUp<VulkanQueryManager>();
@@ -205,12 +232,6 @@ namespace BansheeEngine
 		// Create render state manager
 		RenderStateCoreManager::startUp<VulkanRenderStateCoreManager>();
 		GpuProgramCoreManager::instance().addFactory(mGLSLFactory);
-
-#if BS_PLATFORM == BS_PLATFORM_WIN32
-		mVideoModeInfo = bs_shared_ptr_new<Win32VideoModeInfo>();
-#else
-		static_assert(false, "mVideoModeInfo needs to be created.")
-#endif
 
 		// TODO - Create and populate capabilities, per device
 		mCurrentCapabilities->addShaderProfile("glsl");

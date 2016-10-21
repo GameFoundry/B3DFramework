@@ -26,11 +26,13 @@ namespace BansheeEngine
 	class VulkanRenderWindowCoreManager : public RenderWindowCoreManager
 	{
 	public:
-		VulkanRenderWindowCoreManager();
+		VulkanRenderWindowCoreManager(VulkanRenderAPI& renderAPI);
 
 	protected:
 		/** @copydoc RenderWindowCoreManager::createInternal */
 		SPtr<RenderWindowCore> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
+
+		VulkanRenderAPI& mRenderAPI;
 	};
 
 	/** @} */

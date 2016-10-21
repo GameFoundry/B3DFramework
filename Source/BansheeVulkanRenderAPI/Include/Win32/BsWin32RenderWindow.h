@@ -34,7 +34,7 @@ namespace BansheeEngine
 	class Win32RenderWindowCore : public RenderWindowCore
 	{
 	public:
-		Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
+		Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId, VulkanRenderAPI& renderAPI);
 		~Win32RenderWindowCore();
 
 		/** @copydoc RenderWindowCore::move */
@@ -103,6 +103,14 @@ namespace BansheeEngine
 
 	protected:
 		Win32Window* mWindow;
+		bool mIsChild;
+		bool mShowOnSwap;
+		INT32 mDisplayFrequency;
+
+		VulkanRenderAPI& mRenderAPI;
+		VkSurfaceKHR mSurface;
+		VkColorSpaceKHR mColorSpace;
+		VkFormat mColorFormat;
 
 		Win32RenderWindowProperties mProperties;
 		Win32RenderWindowProperties mSyncedProperties;

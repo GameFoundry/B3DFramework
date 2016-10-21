@@ -55,6 +55,9 @@ namespace BansheeEngine
 
 		/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()) */
 		VkQueue getQueue(VulkanQueueType type, UINT32 idx) const { return mQueueInfos[(int)type].queues[idx]; }
+
+		/** Returns index of the queue family for the specified queue type. */
+		UINT32 getQueueFamily(VulkanQueueType type) const { return mQueueInfos[(int)type].familyIdx; }
 	private:
 		VkPhysicalDevice mPhysicalDevice;
 		VkDevice mLogicalDevice;

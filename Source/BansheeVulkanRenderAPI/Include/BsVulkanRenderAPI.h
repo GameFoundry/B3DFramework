@@ -116,8 +116,14 @@ namespace BansheeEngine
 		 * @{
 		 */
 
+		/** Returns the internal Vulkan instance object. */
+		VkInstance _getInstance() const { return mInstance; }
+
 		/** Returns a Vulkan device at the specified index. Must be in range [0, _getNumDevices()) */
 		SPtr<VulkanDevice> _getDevice(UINT32 idx) const { return mDevices[idx]; }
+
+		/** Returns the primary device that supports swap chain present operations. */
+		SPtr<VulkanDevice> _getPresentDevice() const { return mPrimaryDevices[0]; }
 
 		/** Gets the total number of Vulkan compatible devices available on this system. */
 		UINT32 _getNumDevices() const { return (UINT32)mDevices.size(); }
@@ -150,6 +156,17 @@ namespace BansheeEngine
 		VkDebugReportCallbackEXT mDebugCallback;
 #endif
 	};
+
+	extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+	extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
+	extern PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+	extern PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
+
+	extern PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+	extern PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
+	extern PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+	extern PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+	extern PFN_vkQueuePresentKHR vkQueuePresentKHR;
 
 	/** @} */
 }
