@@ -12,6 +12,7 @@
 #include "BsGpuProgramManager.h"
 #include "BsVulkanQueryManager.h"
 #include "BsVulkanGLSLProgramFactory.h"
+#include "Win32/BsWin32VideoModeInfo.h"
 
 namespace BansheeEngine
 {
@@ -205,7 +206,12 @@ namespace BansheeEngine
 		RenderStateCoreManager::startUp<VulkanRenderStateCoreManager>();
 		GpuProgramCoreManager::instance().addFactory(mGLSLFactory);
 
-		// TODO - Create and populate VideoModeInfo
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+		mVideoModeInfo = bs_shared_ptr_new<Win32VideoModeInfo>();
+#else
+		static_assert(false, "mVideoModeInfo needs to be created.")
+#endif
+
 		// TODO - Create and populate capabilities, per device
 		mCurrentCapabilities->addShaderProfile("glsl");
 
