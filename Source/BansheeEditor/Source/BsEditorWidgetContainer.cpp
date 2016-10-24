@@ -152,7 +152,7 @@ namespace BansheeEngine
 		if (mActiveWidget >= 0)
 		{
 			auto iterFind = mWidgets.find(mActiveWidget);
-
+			
 			if (iterFind != mWidgets.end())
 				return iterFind->second;
 		}

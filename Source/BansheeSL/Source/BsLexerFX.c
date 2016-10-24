@@ -1070,8 +1070,8 @@ static yyconst flex_int32_t yy_rule_can_match_eol[236] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
-#line 2 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 1 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 2 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 #include "BsParserFX.h"
 
 #define YY_USER_ACTION yylloc->first_column = yycolumn + 1; yylloc->first_line = yylineno + 1; yycolumn += (int)yyleng; yylloc->filename = getCurrentFilename(yyextra);
@@ -1342,7 +1342,7 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 38 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 38 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 
 
 #line 1349 "BsLexerFX.c"
@@ -1443,894 +1443,894 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 40 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 40 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 41 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 41 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = atoi(yytext); return TOKEN_INTEGER; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 42 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 42 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = (int)strtol(yytext, 0, 0); return TOKEN_INTEGER; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 43 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 43 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->floatValue = (float)atof(yytext); return TOKEN_FLOAT; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 44 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 44 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_STRING; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 45 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 45 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 1; return TOKEN_BOOLEAN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 46 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 46 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0; return TOKEN_BOOLEAN; }
 	YY_BREAK
 /* Value types */
 case 8:
 YY_RULE_SETUP
-#line 50 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 50 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Int; return TOKEN_INTTYPE; } 
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 51 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 51 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Int2; return TOKEN_INT2TYPE; } 
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 52 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 52 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Int3; return TOKEN_INT3TYPE; } 
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 53 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 53 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Int4; return TOKEN_INT4TYPE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 55 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 55 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Float; return TOKEN_FLOATTYPE; } 
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 56 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 56 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Float2; return TOKEN_FLOAT2TYPE; } 
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 57 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 57 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Float3; return TOKEN_FLOAT3TYPE; } 
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 58 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 58 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Float4; return TOKEN_FLOAT4TYPE; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 59 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 59 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Color; return TOKEN_COLORTYPE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 61 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 61 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat2x2; return TOKEN_MAT2x2TYPE; } 
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 62 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 62 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat2x3; return TOKEN_MAT2x3TYPE; } 
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 63 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 63 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat2x4; return TOKEN_MAT2x4TYPE; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 65 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 65 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat3x2; return TOKEN_MAT3x2TYPE; } 
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 66 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 66 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat3x3; return TOKEN_MAT3x3TYPE; } 
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 67 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 67 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat3x4; return TOKEN_MAT3x4TYPE; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 69 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 69 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat4x2; return TOKEN_MAT4x2TYPE; } 
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 70 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 70 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat4x3; return TOKEN_MAT4x3TYPE; } 
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 71 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 71 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Mat4x4; return TOKEN_MAT4x4TYPE; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 73 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 73 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Sampler1D; return TOKEN_SAMPLER1D; } 
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 74 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 74 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Sampler2D; return TOKEN_SAMPLER2D; } 
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 75 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 75 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Sampler3D; return TOKEN_SAMPLER3D; } 
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 76 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 76 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_SamplerCUBE; return TOKEN_SAMPLERCUBE; } 
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 77 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 77 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Sampler2DMS; return TOKEN_SAMPLER2DMS; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 79 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 79 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Texture1D; return TOKEN_TEXTURE1D; } 
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 80 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 80 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Texture2D; return TOKEN_TEXTURE2D; } 
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 81 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 81 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Texture3D; return TOKEN_TEXTURE3D; } 
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 82 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 82 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_TextureCUBE; return TOKEN_TEXTURECUBE; } 
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 83 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 83 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_Texture2DMS; return TOKEN_TEXTURE2DMS; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 85 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 85 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_RWTexture1D; return TOKEN_RWTEXTURE1D; } 
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 86 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 86 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_RWTexture2D; return TOKEN_RWTEXTURE2D; } 
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 87 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 87 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_RWTexture3D; return TOKEN_RWTEXTURE3D; } 
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 88 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 88 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_RWTexture2DMS; return TOKEN_RWTEXTURE2DMS; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 90 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 90 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_ByteBuffer; return TOKEN_BYTEBUFFER; } 
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 91 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 91 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_StructBuffer; return TOKEN_STRUCTBUFFER; } 
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 93 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 93 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_TypedBufferRW; return TOKEN_RWTYPEDBUFFER; } 
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 94 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 94 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_ByteBufferRW; return TOKEN_RWBYTEBUFFER; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 95 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 95 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_StructBufferRW; return TOKEN_RWSTRUCTBUFFER; } 
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 96 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 96 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_AppendBuffer; return TOKEN_RWAPPENDBUFFER; } 
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 97 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 97 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = PT_ConsumeBuffer; return TOKEN_RWCONSUMEBUFFER; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 99 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 99 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_PARAMSBLOCK; }
 	YY_BREAK
 /* Shader keywords */
 case 48:
 YY_RULE_SETUP
-#line 102 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 102 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SEPARABLE; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 103 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 103 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SORT; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 104 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 104 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_PRIORITY; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 105 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 105 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_TRANSPARENT; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 106 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 106 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_TECHNIQUE; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 107 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 107 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_PARAMETERS; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 108 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 108 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_BLOCKS; }
 	YY_BREAK
 /* Technique keywords */
 case 55:
 YY_RULE_SETUP
-#line 111 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 111 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_RENDERER; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 112 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 112 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_LANGUAGE; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 113 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 113 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_TAGS; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 114 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 114 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_PASS; }
 	YY_BREAK
 /* Pass keywords */
 case 59:
 YY_RULE_SETUP
-#line 117 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 117 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCILREF; }
 	YY_BREAK
 /* Rasterizer state keywords */
 case 60:
 YY_RULE_SETUP
-#line 120 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 120 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_FILLMODE; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 121 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 121 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_CULLMODE; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 122 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 122 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_DEPTHBIAS; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 123 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 123 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SDEPTHBIAS; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 124 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 124 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_DEPTHCLIP; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 125 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 125 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SCISSOR; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 126 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 126 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MULTISAMPLE; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 127 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 127 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_AALINE; }
 	YY_BREAK
 /* Depth-stencil state keywords */
 case 68:
 YY_RULE_SETUP
-#line 130 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 130 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_DEPTHREAD; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 131 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 131 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_DEPTHWRITE; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 132 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 132 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_COMPAREFUNC; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 133 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 133 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCIL; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 134 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 134 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCILREADMASK; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 135 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 135 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCILWRITEMASK; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 136 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 136 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCILOPFRONT; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 137 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 137 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_STENCILOPBACK; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 138 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 138 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_FAIL; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 139 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 139 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_ZFAIL; }
 	YY_BREAK
 /* Blend state keywords */
 case 78:
 YY_RULE_SETUP
-#line 142 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 142 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_ALPHATOCOVERAGE; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 143 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 143 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_INDEPENDANTBLEND; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 144 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 144 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_TARGET; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 145 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 145 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_INDEX; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 146 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 146 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_BLEND; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 147 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 147 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_COLOR; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 148 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 148 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_ALPHA; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 149 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 149 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_WRITEMASK; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 150 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 150 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SOURCE; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 151 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 151 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_DEST; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 152 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 152 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_OP; }
 	YY_BREAK
 /* Sampler state keywords */
 case 89:
 YY_RULE_SETUP
-#line 155 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 155 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_ADDRMODE; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 156 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 156 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MINFILTER; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 157 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 157 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MAGFILTER; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 158 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 158 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MIPFILTER; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 159 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 159 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MAXANISO; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 160 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 160 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MIPBIAS; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 161 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 161 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MIPMIN; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 162 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 162 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_MIPMAX; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 163 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 163 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_BORDERCOLOR; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 164 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 164 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_U; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 165 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 165 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_V; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 166 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 166 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_W; }
 	YY_BREAK
 /* Qualifiers */
 case 101:
 YY_RULE_SETUP
-#line 169 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 169 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_AUTO; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 170 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 170 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_ALIAS; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 171 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 171 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_SHARED; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 172 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 172 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_USAGE; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 173 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 173 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_BASE; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 174 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 174 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return TOKEN_INHERITS; }
 	YY_BREAK
 /* State values */
 case 107:
 YY_RULE_SETUP
-#line 177 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 177 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 178 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 178 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FMV_Solid; return TOKEN_FILLMODEVALUE; }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 180 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 180 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CMV_None; return TOKEN_CULLMODEVALUE; }
 	YY_BREAK
 case 110:
 YY_RULE_SETUP
-#line 181 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 181 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CMV_CW; return TOKEN_CULLMODEVALUE; }
 	YY_BREAK
 case 111:
 YY_RULE_SETUP
-#line 182 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 182 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CMV_CCW; return TOKEN_CULLMODEVALUE; }
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 184 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 184 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_Fail; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 185 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 185 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_Pass; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 186 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 186 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_LT; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 115:
 YY_RULE_SETUP
-#line 187 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 187 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_LTE; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 116:
 YY_RULE_SETUP
-#line 188 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 188 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_EQ; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 117:
 YY_RULE_SETUP
-#line 189 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 189 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_NEQ; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 118:
 YY_RULE_SETUP
-#line 190 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 190 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_GTE; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 119:
 YY_RULE_SETUP
-#line 191 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 191 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = CFV_GT; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 120:
 YY_RULE_SETUP
-#line 193 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 193 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Keep; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 194 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 194 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Zero; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 122:
 YY_RULE_SETUP
-#line 195 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 195 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Replace; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 123:
 YY_RULE_SETUP
-#line 196 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 196 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Incr; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 124:
 YY_RULE_SETUP
-#line 197 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 197 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Decr; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 125:
 YY_RULE_SETUP
-#line 198 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 198 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_IncrWrap; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 126:
 YY_RULE_SETUP
-#line 199 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 199 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_DecrWrap; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 127:
 YY_RULE_SETUP
-#line 200 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 200 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_Invert; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 128:
 YY_RULE_SETUP
-#line 201 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 201 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_One; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 129:
 YY_RULE_SETUP
-#line 202 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 202 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_DestColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 130:
 YY_RULE_SETUP
-#line 203 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 203 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_SrcColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 131:
 YY_RULE_SETUP
-#line 204 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 204 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_InvDestColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 132:
 YY_RULE_SETUP
-#line 205 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 205 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_InvSrcColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 206 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 206 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_DestAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 207 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 207 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_SrcAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 208 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 208 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_InvDestAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 209 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 209 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = OV_InvSrcAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 211 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 211 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BOV_Add; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 212 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 212 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BOV_Subtract; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 213 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 213 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 214 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 214 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-#line 215 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 215 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 142:
 YY_RULE_SETUP
-#line 217 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 217 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x0; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-#line 218 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 218 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x1; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 144:
 YY_RULE_SETUP
-#line 219 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 219 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x2; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 145:
 YY_RULE_SETUP
-#line 220 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 220 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x4; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 146:
 YY_RULE_SETUP
-#line 221 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 221 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x8; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 147:
 YY_RULE_SETUP
-#line 222 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 222 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x3; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 148:
 YY_RULE_SETUP
-#line 223 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 223 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x5; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 149:
 YY_RULE_SETUP
-#line 224 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 224 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x9; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 150:
 YY_RULE_SETUP
-#line 225 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 225 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x6; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 151:
 YY_RULE_SETUP
-#line 226 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 226 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xA; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-#line 227 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 227 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xC; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 153:
 YY_RULE_SETUP
-#line 228 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 228 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0x7; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 154:
 YY_RULE_SETUP
-#line 229 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 229 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xB; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 155:
 YY_RULE_SETUP
-#line 230 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 230 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xD; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 156:
 YY_RULE_SETUP
-#line 231 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 231 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xE; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 157:
 YY_RULE_SETUP
-#line 232 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 232 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 158:
 YY_RULE_SETUP
-#line 234 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 234 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = AMV_Wrap; return TOKEN_ADDRMODEVALUE; }
 	YY_BREAK
 case 159:
 YY_RULE_SETUP
-#line 235 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 235 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = AMV_Mirror; return TOKEN_ADDRMODEVALUE; }
 	YY_BREAK
 case 160:
 YY_RULE_SETUP
-#line 236 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 236 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = AMV_Clamp; return TOKEN_ADDRMODEVALUE; }
 	YY_BREAK
 case 161:
 YY_RULE_SETUP
-#line 237 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 237 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = AMV_Border; return TOKEN_ADDRMODEVALUE; }
 	YY_BREAK
 case 162:
 YY_RULE_SETUP
-#line 239 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 239 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_None; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 163:
 YY_RULE_SETUP
-#line 240 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 240 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_Point; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 164:
 YY_RULE_SETUP
-#line 241 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 241 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_Linear; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 165:
 YY_RULE_SETUP
-#line 242 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 242 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_Anisotropic; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 166:
 YY_RULE_SETUP
-#line 243 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 243 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_PointCmp; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 167:
 YY_RULE_SETUP
-#line 244 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 244 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_LinearCmp; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 168:
 YY_RULE_SETUP
-#line 245 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 245 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = FV_AnisotropicCmp; return TOKEN_FILTERVALUE; }
 	YY_BREAK
 case 169:
 YY_RULE_SETUP
-#line 247 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 247 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BUV_Static; return TOKEN_BUFFERUSAGE; }
 	YY_BREAK
 case 170:
 YY_RULE_SETUP
-#line 248 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 248 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = BUV_Dynamic; return TOKEN_BUFFERUSAGE; }
 	YY_BREAK
 case 171:
 YY_RULE_SETUP
-#line 250 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 250 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = QST_FrontToBack; return TOKEN_QUEUETYPE; }
 	YY_BREAK
 case 172:
 YY_RULE_SETUP
-#line 251 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 251 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = QST_BackToFront; return TOKEN_QUEUETYPE; }
 	YY_BREAK
 case 173:
 YY_RULE_SETUP
-#line 252 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 252 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = QST_None; return TOKEN_QUEUETYPE; }
 	YY_BREAK
 /* Preprocessor */
 case 174:
 YY_RULE_SETUP
-#line 255 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 255 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(INCLUDE); }
 	YY_BREAK
 case 175:
 /* rule 175 can match eol */
 YY_RULE_SETUP
-#line 257 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 257 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 176:
 YY_RULE_SETUP
-#line 258 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 258 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 {
 	int size = 0;
 	char* includeBuffer = includePush(yyextra, yytext, yylineno, yycolumn, &size);
@@ -2351,7 +2351,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 177:
 YY_RULE_SETUP
-#line 275 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 275 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
@@ -2367,7 +2367,7 @@ case YY_STATE_EOF(CONDITIONAL_IF):
 case YY_STATE_EOF(CONDITIONAL_IFN):
 case YY_STATE_EOF(CONDITIONAL_ELIF):
 case YY_STATE_EOF(CONDITIONAL_IGNORE):
-#line 277 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 277 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 {
 	if(!yyextra->includeStack)
 		yyterminate();
@@ -2378,76 +2378,76 @@ case YY_STATE_EOF(CONDITIONAL_IGNORE):
 	YY_BREAK
 case 178:
 YY_RULE_SETUP
-#line 285 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 285 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(DEFINE_COND); }
 	YY_BREAK
 case 179:
 YY_RULE_SETUP
-#line 286 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 286 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 180:
 YY_RULE_SETUP
-#line 287 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 287 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { addDefine(yyextra, yytext); BEGIN(DEFINE_COND_EXPR); }
 	YY_BREAK
 case 181:
 /* rule 181 can match eol */
 YY_RULE_SETUP
-#line 288 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 288 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 182:
 YY_RULE_SETUP
-#line 289 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 289 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 183:
 YY_RULE_SETUP
-#line 291 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 291 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { addDefineExpr(yyextra, yytext); BEGIN(INITIAL); }
 	YY_BREAK
 case 184:
 /* rule 184 can match eol */
 YY_RULE_SETUP
-#line 292 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 292 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 185:
 YY_RULE_SETUP
-#line 294 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 294 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(UNDEF_COND); }
 	YY_BREAK
 case 186:
 /* rule 186 can match eol */
 YY_RULE_SETUP
-#line 295 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 295 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 187:
 YY_RULE_SETUP
-#line 296 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 296 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { removeDefine(yyextra, yytext); BEGIN(INITIAL); }
 	YY_BREAK
 case 188:
 YY_RULE_SETUP
-#line 297 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 297 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 189:
 YY_RULE_SETUP
-#line 299 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 299 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CONDITIONAL_IF); }
 	YY_BREAK
 case 190:
 /* rule 190 can match eol */
 YY_RULE_SETUP
-#line 300 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 300 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 191:
 YY_RULE_SETUP
-#line 301 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 301 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	int isEnabled = pushConditional(yyextra, hasDefine(yyextra, yytext));
 	if(!isEnabled)
@@ -2458,23 +2458,23 @@ YY_RULE_SETUP
 	YY_BREAK
 case 192:
 YY_RULE_SETUP
-#line 308 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 308 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 193:
 YY_RULE_SETUP
-#line 310 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 310 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CONDITIONAL_IFN); }
 	YY_BREAK
 case 194:
 /* rule 194 can match eol */
 YY_RULE_SETUP
-#line 311 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 311 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 195:
 YY_RULE_SETUP
-#line 312 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 312 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	int isEnabled = pushConditional(yyextra, !hasDefine(yyextra, yytext));
 	if(!isEnabled)
@@ -2485,43 +2485,43 @@ YY_RULE_SETUP
 	YY_BREAK
 case 196:
 YY_RULE_SETUP
-#line 319 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 319 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 197:
 YY_RULE_SETUP
-#line 321 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 321 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CONDITIONAL_IGNORE); }
 	YY_BREAK
 case 198:
 YY_RULE_SETUP
-#line 322 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 322 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CONDITIONAL_IGNORE); }
 	YY_BREAK
 case 199:
 YY_RULE_SETUP
-#line 324 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 324 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { popConditional(yyextra); }
 	YY_BREAK
 case 200:
 /* rule 200 can match eol */
 YY_RULE_SETUP
-#line 326 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 326 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip */ }
 	YY_BREAK
 case 201:
 YY_RULE_SETUP
-#line 327 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 327 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { pushConditional(yyextra, 0); }
 	YY_BREAK
 case 202:
 YY_RULE_SETUP
-#line 328 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 328 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { pushConditional(yyextra, 0); }
 	YY_BREAK
 case 203:
 YY_RULE_SETUP
-#line 329 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 329 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	if(switchConditional(yyextra))
 		BEGIN(INITIAL);
@@ -2529,12 +2529,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 204:
 YY_RULE_SETUP
-#line 333 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 333 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CONDITIONAL_ELIF); }
 	YY_BREAK
 case 205:
 YY_RULE_SETUP
-#line 334 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 334 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	if(popConditional(yyextra))
 		BEGIN(INITIAL);
@@ -2542,18 +2542,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 206:
 YY_RULE_SETUP
-#line 338 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 338 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip */ }
 	YY_BREAK
 case 207:
 /* rule 207 can match eol */
 YY_RULE_SETUP
-#line 340 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 340 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 208:
 YY_RULE_SETUP
-#line 341 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 341 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	int isEnabled = setConditional(yyextra, hasDefine(yyextra, yytext));
 	if(!isEnabled)
@@ -2564,43 +2564,43 @@ YY_RULE_SETUP
 	YY_BREAK
 case 209:
 YY_RULE_SETUP
-#line 348 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 348 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 /* Code blocks */
 case 210:
 YY_RULE_SETUP
-#line 351 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 351 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_VERTEX; }
 	YY_BREAK
 case 211:
 YY_RULE_SETUP
-#line 352 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 352 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_FRAGMENT; }
 	YY_BREAK
 case 212:
 YY_RULE_SETUP
-#line 353 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 353 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_GEOMETRY; }
 	YY_BREAK
 case 213:
 YY_RULE_SETUP
-#line 354 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 354 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_HULL; }
 	YY_BREAK
 case 214:
 YY_RULE_SETUP
-#line 355 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 355 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_DOMAIN; }
 	YY_BREAK
 case 215:
 YY_RULE_SETUP
-#line 356 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 356 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_COMPUTE; }
 	YY_BREAK
 case 216:
 YY_RULE_SETUP
-#line 357 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 357 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_HEADER); return TOKEN_COMMON; }
 	YY_BREAK
 /* Track when the code block begins, insert all code block characters into our own buffer, record a sequential index */
@@ -2608,44 +2608,44 @@ YY_RULE_SETUP
 /* And finally output a sequential code block index to the parser (it shouldn't be aware of anything else in the block). */
 case 217:
 YY_RULE_SETUP
-#line 362 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 362 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK_EQUALS); return yytext[0]; }
 	YY_BREAK
 case 218:
 /* rule 218 can match eol */
 YY_RULE_SETUP
-#line 363 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 363 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 219:
 YY_RULE_SETUP
-#line 364 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 364 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 220:
 YY_RULE_SETUP
-#line 366 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 366 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(CODEBLOCK); beginCodeBlock(yyextra); yyextra->numOpenBrackets = 1; return yytext[0]; }
 	YY_BREAK
 case 221:
 /* rule 221 can match eol */
 YY_RULE_SETUP
-#line 367 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 367 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Skip blank */ }
 	YY_BREAK
 case 222:
 YY_RULE_SETUP
-#line 368 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 368 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 223:
 YY_RULE_SETUP
-#line 370 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 370 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yyextra->numOpenBrackets++; appendCodeBlock(yyextra, yytext, 1); }
 	YY_BREAK
 case 224:
 YY_RULE_SETUP
-#line 371 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 371 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { 
 	yyextra->numOpenBrackets--; 
 
@@ -2661,7 +2661,7 @@ YY_RULE_SETUP
 case 225:
 /* rule 225 can match eol */
 YY_RULE_SETUP
-#line 382 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 382 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { appendCodeBlock(yyextra, yytext, 1); }
 	YY_BREAK
 /* Logic for manually inserting "Index = codeBlockIndex;". We insert arbitrary numbers which allows us to sequentially */
@@ -2669,54 +2669,54 @@ YY_RULE_SETUP
 /* (since the starting value was also a single character "{"). */
 case 226:
 YY_RULE_SETUP
-#line 387 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 387 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { unput('1'); return TOKEN_INDEX; }
 	YY_BREAK
 case 227:
 YY_RULE_SETUP
-#line 388 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 388 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { unput('2'); return '='; }
 	YY_BREAK
 case 228:
 YY_RULE_SETUP
-#line 389 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 389 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->intValue = getCodeBlockIndex(yyextra); unput('3'); return TOKEN_INTEGER; }
 	YY_BREAK
 case 229:
 YY_RULE_SETUP
-#line 390 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 390 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { unput('4'); return ';'; }
 	YY_BREAK
 case 230:
 YY_RULE_SETUP
-#line 391 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 391 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { BEGIN(INITIAL); return '}'; }
 	YY_BREAK
 case 231:
 /* rule 231 can match eol */
 YY_RULE_SETUP
-#line 392 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 392 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { /* Never reached */ }
 	YY_BREAK
 /* Catch all rules */
 case 232:
 YY_RULE_SETUP
-#line 395 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 395 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { }
 	YY_BREAK
 case 233:
 YY_RULE_SETUP
-#line 396 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 396 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_IDENTIFIER; }
 	YY_BREAK
 case 234:
 YY_RULE_SETUP
-#line 397 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 397 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 { return yytext[0]; }
 	YY_BREAK
 case 235:
 YY_RULE_SETUP
-#line 399 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 399 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 2723 "BsLexerFX.c"
@@ -3905,6 +3905,6 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 398 "C:/Projects/BansheeEngineDev/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
+#line 398 "D:/Banshee3d/BansheeEngine/Source/BansheeSL/BsLexerFX.l"
 
 

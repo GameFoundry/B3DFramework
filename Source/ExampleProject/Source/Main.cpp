@@ -28,6 +28,7 @@
 #include "BsSceneObject.h"
 #include "BsCoreThread.h"
 #include "BsProfilerOverlay.h"
+#include "BsSpriteTexture.h"
 
 // Example includes
 #include "CameraFlyer.h"
@@ -142,6 +143,7 @@ namespace BansheeEngine
 		HMesh exampleModel;
 		HTexture exampleTexture;
 		HShader exampleShader;
+		
 
 		loadAssets(exampleModel, exampleTexture, exampleShader);
 		HMaterial exampleMaterial = createMaterial(exampleTexture, exampleShader);
@@ -241,7 +243,7 @@ namespace BansheeEngine
 
 		// Create new scene object at (0, 0, 0)
 		HSceneObject dragonSO = SceneObject::create("Dragon");
-
+		
 		// Attach the Renderable component and hook up the mesh we imported earlier,
 		// and the material we created in the previous section.
 		HRenderable renderable = dragonSO->addComponent<CRenderable>();

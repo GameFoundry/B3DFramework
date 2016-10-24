@@ -201,6 +201,16 @@ namespace BansheeEngine
 			return false;
 	}
 
+	bool ScriptEditorWindow::internal_setActive(ScriptEditorWindow* thisPtr)
+	{
+		//check and see if the window is destroyed before setting it to active
+		if (!thisPtr->isDestroyed())
+			return thisPtr->getEditorWidget->setActive();
+
+		//return false if the given widget is destroyed
+		return false;
+	}
+
 	bool ScriptEditorWindow::internal_isActive(ScriptEditorWindow* thisPtr)
 	{
 		if (!thisPtr->isDestroyed())

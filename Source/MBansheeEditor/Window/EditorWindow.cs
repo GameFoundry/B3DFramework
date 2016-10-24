@@ -77,7 +77,10 @@ namespace BansheeEditor
         /// Checks if the window's tab is currently active. If the window is floating or not sharing space with any other
         /// windows (just a single tab), it is always considered active.
         /// </summary>
-        public bool Active { get { return Internal_IsActive(mCachedPtr); } }
+        public bool Active
+        {
+            get { return Internal_IsActive(mCachedPtr); }
+        }
 
         /// <summary>
         /// GUI panel that you may use for adding GUI elements to the window.
