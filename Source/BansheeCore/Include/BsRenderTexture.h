@@ -15,18 +15,18 @@ namespace BansheeEngine
 	/**	Structure that describes a render texture color and depth/stencil surfaces. */
 	struct BS_CORE_EXPORT RENDER_TEXTURE_DESC
 	{
-		RENDER_SURFACE_DESC colorSurface;
+		RENDER_SURFACE_DESC colorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		RENDER_SURFACE_DESC depthStencilSurface;
 	};
 
-	struct RENDER_TEXTURE_CORE_DESC;
+	struct RENDER_TEXTURE_DESC_CORE;
 
 	/**	Contains various properties that describe a render texture. */
 	class BS_CORE_EXPORT RenderTextureProperties : public RenderTargetProperties
 	{
 	public:
 		RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping);
-		RenderTextureProperties(const RENDER_TEXTURE_CORE_DESC& desc, bool requiresFlipping);
+		RenderTextureProperties(const RENDER_TEXTURE_DESC_CORE& desc, bool requiresFlipping);
 		virtual ~RenderTextureProperties() { }
 
 	private:
@@ -37,7 +37,8 @@ namespace BansheeEngine
 	};
 
 	/**
-	 * Render target specialization that allows you to render into a texture you may later bind in further render operations.
+	 * Render target specialization that allows you to render into one or multiple textures. Such textures can then be used
+	 * in other operations as GPU program input.
 	 *
 	 * @note	Sim thread only. Retrieve core implementation from getCore() for core thread only functionality.
 	 */
@@ -46,20 +47,8 @@ namespace BansheeEngine
 	public:
 		virtual ~RenderTexture() { }
 
-		/**
-		 * Creates a new render texture with color and optionally depth/stencil surfaces.
-		 *
-		 * @param[in]	textureType			Type of texture to render to.
-		 * @param[in]	width				Width of the render texture, in pixels.
-		 * @param[in]	height				Height of the render texture, in pixels.
-		 * @param[in]	format				Pixel format used by the texture color surface.
-		 * @param[in]	hwGamma				Should the written pixels be gamma corrected.
-		 * @param[in]	multisampleCount	If higher than 1, texture containing multiple samples per pixel is created.
-		 * @param[in]	createDepth			Should a depth/stencil surface be created along with the color surface.
-		 * @param[in]	depthStencilFormat	Format used by the depth stencil surface, if one is created.
-		 */
-		static SPtr<RenderTexture> create(TextureType textureType, UINT32 width, UINT32 height, 
-			PixelFormat format = PF_R8G8B8A8, bool hwGamma = false, UINT32 multisampleCount = 0, 
+		/** @copydoc TextureManager::createRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
+		static SPtr<RenderTexture> create(const TEXTURE_DESC& colorDesc, 
 			bool createDepth = true, PixelFormat depthStencilFormat = PF_D24S8);
 
 		/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) */
@@ -70,14 +59,14 @@ namespace BansheeEngine
 		 *
 		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 		 */
-		const HTexture& getBindableColorTexture() const { return mBindableColorTex; }
+		const HTexture& getColorTexture(UINT32 idx) const { return mBindableColorTex[idx]; }
 
 		/**
 		 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
 		 *
 		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 		 */
-		const HTexture& getBindableDepthStencilTexture() const { return mBindableDepthStencilTex; }
+		const HTexture& getDepthStencilTexture() const { return mBindableDepthStencilTex; }
 
 		/**
 		 * Retrieves a core implementation of a render texture usable only from the core thread.
@@ -101,7 +90,7 @@ namespace BansheeEngine
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
 	protected:
-		HTexture mBindableColorTex;
+		HTexture mBindableColorTex[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		HTexture mBindableDepthStencilTex;
 
 		RENDER_TEXTURE_DESC mDesc;
@@ -109,7 +98,7 @@ namespace BansheeEngine
 
 	/** @} */
 
-/** @addtogroup RenderAPI-Internal
+	/** @addtogroup RenderAPI-Internal
 	 *  @{
 	 */
 
@@ -118,10 +107,10 @@ namespace BansheeEngine
 	 *
 	 * @note	References core textures instead of texture handles.
 	 */
-	struct BS_CORE_EXPORT RENDER_TEXTURE_CORE_DESC
+	struct BS_CORE_EXPORT RENDER_TEXTURE_DESC_CORE
 	{
-		RENDER_SURFACE_CORE_DESC colorSurface;
-		RENDER_SURFACE_CORE_DESC depthStencilSurface;
+		RENDER_SURFACE_DESC_CORE colorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		RENDER_SURFACE_DESC_CORE depthStencilSurface;
 	};
 
 	/**
@@ -132,28 +121,28 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT RenderTextureCore : public RenderTargetCore
 	{
 	public:
-		RenderTextureCore(const RENDER_TEXTURE_CORE_DESC& desc);
+		RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask);
 		virtual ~RenderTextureCore();
 
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;
 
-		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_CORE_DESC&) */
-		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_CORE_DESC& desc);
+		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE&, GpuDeviceFlags) */
+		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
 		 * Returns a color surface texture you may bind as an input to an GPU program.
 		 *
 		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 		 */
-		SPtr<TextureCore> getBindableColorTexture() const { return mDesc.colorSurface.texture; }
+		SPtr<TextureCore> getColorTexture(UINT32 idx) const { return mDesc.colorSurfaces[idx].texture; }
 
 		/**
 		 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
 		 *
 		 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 		 */
-		SPtr<TextureCore> getBindableDepthStencilTexture() const { return mDesc.depthStencilSurface.texture; }
+		SPtr<TextureCore> getDepthStencilTexture() const { return mDesc.depthStencilSurface.texture; }
 
 		/**	Returns properties that describe the render texture. */
 		const RenderTextureProperties& getProperties() const;
@@ -169,10 +158,10 @@ namespace BansheeEngine
 	protected:
 		friend class RenderTexture;
 
-		SPtr<TextureView> mColorSurface;
+		SPtr<TextureView> mColorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		SPtr<TextureView> mDepthStencilSurface;
 
-		RENDER_TEXTURE_CORE_DESC mDesc;
+		RENDER_TEXTURE_DESC_CORE mDesc;
 	};
 
 	/** @} */

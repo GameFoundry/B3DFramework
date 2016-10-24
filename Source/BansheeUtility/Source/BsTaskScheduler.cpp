@@ -79,8 +79,11 @@ namespace BansheeEngine
 	{
 		Lock lock(mReadyMutex);
 
+		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
+
 		task->mParent = this;
 		task->mTaskId = mNextTaskId++;
+		task->mState.store(0); // Reset state in case the task is getting re-queued
 
 		mTaskQueue.insert(task);
 

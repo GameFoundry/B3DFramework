@@ -22,7 +22,7 @@ namespace BansheeEngine
 		virtual ~D3D11GpuBufferView();
 
 		/** @copydoc GpuBufferView::initialize */
-		void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_DESC& desc) override;
+		void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc) override;
 
 		/** Returns the DX11 shader resource view object for the buffer. */
 		ID3D11ShaderResourceView* getSRV() const { return mSRV; }

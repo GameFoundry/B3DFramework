@@ -148,8 +148,10 @@ namespace BansheeEngine
 		gResources().unloadAllUnused();
 	}
 
-	UINT32 PrefabUtility::generatePrefabIds(const HSceneObject& sceneObject, UINT32 startingId)
+	void PrefabUtility::generatePrefabIds(const HSceneObject& sceneObject)
 	{
+		UINT32 startingId = 0;
+
 		Stack<HSceneObject> todo;
 		todo.push(sceneObject);
 
@@ -160,8 +162,38 @@ namespace BansheeEngine
 
 			for (auto& component : currentSO->mComponents)
 			{
+				if (component->getLinkId() != (UINT32)-1)
+					startingId = std::max(component->mLinkId + 1, startingId);
+			}
+
+			UINT32 numChildren = (UINT32)currentSO->getNumChildren();
+			for (UINT32 i = 0; i < numChildren; i++)
+			{
+				HSceneObject child = currentSO->getChild(i);
+
+				if (!child->hasFlag(SOF_DontSave))
+				{
+					if (child->getLinkId() != (UINT32)-1)
+						startingId = std::max(child->mLinkId + 1, startingId);
+
+					if (child->mPrefabLinkUUID.empty())
+						todo.push(currentSO->getChild(i));
+				}
+			}
+		}
+
+		UINT32 currentId = startingId;
+		todo.push(sceneObject);
+
+		while (!todo.empty())
+		{
+			HSceneObject currentSO = todo.top();
+			todo.pop();
+
+			for (auto& component : currentSO->mComponents)
+			{
 				if (component->getLinkId() == (UINT32)-1)
-					component->mLinkId = startingId++;
+					component->mLinkId = currentId++;
 			}
 
 			UINT32 numChildren = (UINT32)currentSO->getNumChildren();
@@ -172,7 +204,7 @@ namespace BansheeEngine
 				if (!child->hasFlag(SOF_DontSave))
 				{
 					if (child->getLinkId() == (UINT32)-1)
-						child->mLinkId = startingId++;
+						child->mLinkId = currentId++;
 
 					if(child->mPrefabLinkUUID.empty())
 						todo.push(currentSO->getChild(i));
@@ -180,7 +212,11 @@ namespace BansheeEngine
 			}
 		}
 
-		return startingId;
+		if (currentId < startingId)
+		{
+			BS_EXCEPT(InternalErrorException, "Prefab ran out of IDs to assign. " \
+				"Consider increasing the size of the prefab ID data type.");
+		}
 	}
 
 	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive, bool clearRoot)

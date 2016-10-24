@@ -29,8 +29,7 @@ namespace BansheeEngine
 	private:
 		friend class GLSLProgramFactory;
 
-		GLSLGpuProgramCore(const String& source, const String& entryPoint, GpuProgramType gptype, 
-			GpuProgramProfile profile, bool isAdjacencyInfoRequired);
+		GLSLGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuProgramCore::initialize */
 		void initialize() override;

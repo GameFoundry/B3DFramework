@@ -50,8 +50,7 @@ namespace BansheeEngine
 	};
 
 	/**
-	 * Core thread accessor allows you to schedule core commands outside of the core thread. Provides a set of common 
-	 * methods you may want to execute on the core thread, as well as a general command queuing methods.
+	 * Core thread accessor allows you to schedule core commands outside of the core thread. 
 	 * 			
 	 * @note	Queued commands are only executed after the call to submitToCoreThread(), in the order they were submitted.
 	 */

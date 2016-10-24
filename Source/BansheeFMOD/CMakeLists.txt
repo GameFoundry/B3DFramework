@@ -26,13 +26,7 @@ target_compile_definitions(BansheeFMOD PRIVATE -DBS_FMOD_EXPORTS)
 
 # Libraries
 ## External libs: FMOD, Vorbis, Ogg
-add_library(FMOD STATIC IMPORTED)
-
-set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_DEBUG "${FMOD_LIBRARIES_DEBUG}")
-set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_OPTIMIZEDDEBUG "${FMOD_LIBRARIES_DEBUG}")
-set_target_properties(FMOD PROPERTIES IMPORTED_LOCATION_RELEASE "${FMOD_LIBRARIES_OPTIMIZED}")	
-
-target_link_libraries(BansheeFMOD PRIVATE FMOD)	
+add_package_library(BansheeFMOD FMOD)
 
 add_library_per_config_multi(BansheeFMOD libvorbis libvorbis libvorbis libvorbis)
 add_library_per_config_multi(BansheeFMOD libvorbisfile libvorbis libvorbisfile libvorbisfile)

@@ -6,59 +6,33 @@
 #include "BsViewport.h"
 #include "BsRenderTarget.h"
 #include "BsRenderWindow.h"
-#include "BsResource.h"
 #include "BsMesh.h"
-#include "BsRenderStats.h"
 #include "BsGpuParams.h"
-#include "BsBlendState.h"
 #include "BsDepthStencilState.h"
 #include "BsRasterizerState.h"
-#include "BsGpuParamDesc.h"
 #include "BsGpuBuffer.h"
-#include "BsGpuParamBlockBuffer.h"
-#include "BsShader.h"
+#include "BsGpuPipelineState.h"
 
 using namespace std::placeholders;
 
 namespace BansheeEngine 
 {
-	void RenderAPI::setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<Texture> &texPtr)
+	void RenderAPI::setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setTexture, RenderAPICore::instancePtr(), gptype, unit, texPtr->getCore()));
+		accessor.queueCommand(std::bind(&RenderAPICore::setGpuParams, RenderAPICore::instancePtr(), gpuParams->getCore(), 
+			nullptr));
 	}
 
-	void RenderAPI::setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, 
-		const SPtr<Texture>& texPtr, const TextureSurface& surface)
+	void RenderAPI::setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setLoadStoreTexture, RenderAPICore::instancePtr(), gptype, unit, 
-			texPtr->getCore(), surface));
+		accessor.queueCommand(std::bind(&RenderAPICore::setGraphicsPipeline, RenderAPICore::instancePtr(),
+			pipelineState->getCore(), nullptr));
 	}
 
-	void RenderAPI::setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
-		bool loadStore)
+	void RenderAPI::setComputePipeline(CoreAccessor& accessor, const SPtr<GpuProgram>& computeProgram)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setBuffer, RenderAPICore::instancePtr(), gptype, unit, 
-			buffer->getCore(), loadStore));
-	}
-
-	void RenderAPI::setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerState>& samplerState)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setSamplerState, RenderAPICore::instancePtr(), gptype, texUnit, samplerState->getCore()));
-	}
-
-	void RenderAPI::setBlendState(CoreAccessor& accessor, const SPtr<BlendState>& blendState)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setBlendState, RenderAPICore::instancePtr(), blendState->getCore()));
-	}
-
-	void RenderAPI::setRasterizerState(CoreAccessor& accessor, const SPtr<RasterizerState>& rasterizerState)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setRasterizerState, RenderAPICore::instancePtr(), rasterizerState->getCore()));
-	}
-
-	void RenderAPI::setDepthStencilState(CoreAccessor& accessor, const SPtr<DepthStencilState>& depthStencilState, UINT32 stencilRefValue)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setDepthStencilState, RenderAPICore::instancePtr(), depthStencilState->getCore(), stencilRefValue));
+		accessor.queueCommand(std::bind(&RenderAPICore::setComputePipeline, RenderAPICore::instancePtr(),
+			computeProgram->getCore(), nullptr));
 	}
 
 	void RenderAPI::setVertexBuffers(CoreAccessor& accessor, UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers)
@@ -78,105 +52,91 @@ namespace BansheeEngine
 
 	void RenderAPI::setIndexBuffer(CoreAccessor& accessor, const SPtr<IndexBuffer>& buffer)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setIndexBuffer, RenderAPICore::instancePtr(), buffer->getCore()));
+		accessor.queueCommand(std::bind(&RenderAPICore::setIndexBuffer, RenderAPICore::instancePtr(), buffer->getCore(), 
+			nullptr));
 	}
 
 	void RenderAPI::setVertexDeclaration(CoreAccessor& accessor, const SPtr<VertexDeclaration>& vertexDeclaration)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setVertexDeclaration, RenderAPICore::instancePtr(), vertexDeclaration->getCore()));
+		accessor.queueCommand(std::bind(&RenderAPICore::setVertexDeclaration, RenderAPICore::instancePtr(), 
+			vertexDeclaration->getCore(), nullptr));
 	}
 
 	void RenderAPI::setViewport(CoreAccessor& accessor, const Rect2& vp)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setViewport, RenderAPICore::instancePtr(), vp));
+		accessor.queueCommand(std::bind(&RenderAPICore::setViewport, RenderAPICore::instancePtr(), vp, nullptr));
+	}
+
+	void RenderAPI::setStencilRef(CoreAccessor& accessor, UINT32 value)
+	{
+		accessor.queueCommand(std::bind(&RenderAPICore::setStencilRef, RenderAPICore::instancePtr(), value, nullptr));
 	}
 
 	void RenderAPI::setDrawOperation(CoreAccessor& accessor, DrawOperationType op)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setDrawOperation, RenderAPICore::instancePtr(), op));
-	}
-
-	void RenderAPI::setClipPlanes(CoreAccessor& accessor, const PlaneList& clipPlanes)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setClipPlanes, RenderAPICore::instancePtr(), clipPlanes));
-	}
-
-	void RenderAPI::addClipPlane(CoreAccessor& accessor, const Plane& p)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::addClipPlane, RenderAPICore::instancePtr(), p));
-	}
-
-	void RenderAPI::resetClipPlanes(CoreAccessor& accessor)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::resetClipPlanes, RenderAPICore::instancePtr()));
+		accessor.queueCommand(std::bind(&RenderAPICore::setDrawOperation, RenderAPICore::instancePtr(), op, 
+			nullptr));
 	}
 
 	void RenderAPI::setScissorRect(CoreAccessor& accessor, UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::setScissorRect, RenderAPICore::instancePtr(), left, top, right, bottom));
+		accessor.queueCommand(std::bind(&RenderAPICore::setScissorRect, RenderAPICore::instancePtr(), left, top, right, bottom, 
+			nullptr));
 	}
 
 	void RenderAPI::setRenderTarget(CoreAccessor& accessor, const SPtr<RenderTarget>& target, bool readOnlyDepthStencil)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::setRenderTarget, 
-			RenderAPICore::instancePtr(), target->getCore(), readOnlyDepthStencil));
-	}
-
-	void RenderAPI::bindGpuProgram(CoreAccessor& accessor, const SPtr<GpuProgram>& prg)
-	{
-		prg->syncToCore(accessor);
-		accessor.queueCommand(std::bind(&RenderAPICore::bindGpuProgram, RenderAPICore::instancePtr(), prg->getCore()));
-	}
-
-	void RenderAPI::unbindGpuProgram(CoreAccessor& accessor, GpuProgramType gptype)
-	{
-		accessor.queueCommand(std::bind(&RenderAPICore::unbindGpuProgram, RenderAPICore::instancePtr(), gptype));
+			RenderAPICore::instancePtr(), target->getCore(), readOnlyDepthStencil, nullptr));
 	}
 
 	void RenderAPI::beginRender(CoreAccessor& accessor)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::beginFrame, RenderAPICore::instancePtr()));
+		accessor.queueCommand(std::bind(&RenderAPICore::beginFrame, RenderAPICore::instancePtr(), nullptr));
 	}
 
 	void RenderAPI::endRender(CoreAccessor& accessor)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::endFrame, RenderAPICore::instancePtr()));
+		accessor.queueCommand(std::bind(&RenderAPICore::endFrame, RenderAPICore::instancePtr(), nullptr));
 	}
 
-	void RenderAPI::clearRenderTarget(CoreAccessor& accessor, UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void RenderAPI::clearRenderTarget(CoreAccessor& accessor, UINT32 buffers, const Color& color, float depth, 
+		UINT16 stencil, UINT8 targetMask)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::clearRenderTarget, RenderAPICore::instancePtr(), buffers, color,
-			depth, stencil, targetMask));
+			depth, stencil, targetMask, nullptr));
 	}
 
-	void RenderAPI::clearViewport(CoreAccessor& accessor, UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void RenderAPI::clearViewport(CoreAccessor& accessor, UINT32 buffers, const Color& color, float depth, UINT16 stencil, 
+		UINT8 targetMask)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::clearViewport, RenderAPICore::instancePtr(), buffers, color, depth,
-			stencil, targetMask));
+			stencil, targetMask, nullptr));
 	}
 
 	void RenderAPI::swapBuffers(CoreAccessor& accessor, const SPtr<RenderTarget>& target)
 	{
-		accessor.queueCommand(std::bind(&RenderAPICore::swapBuffers, RenderAPICore::instancePtr(), target->getCore()));
+		accessor.queueCommand(std::bind(&RenderAPICore::swapBuffers, RenderAPICore::instancePtr(), target->getCore(), 
+			nullptr));
 	}
 
 	void RenderAPI::draw(CoreAccessor& accessor, UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::draw, RenderAPICore::instancePtr(), vertexOffset, 
-			vertexCount, instanceCount));
+			vertexCount, instanceCount, nullptr));
 	}
 
 	void RenderAPI::drawIndexed(CoreAccessor& accessor, UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, 
 		UINT32 vertexCount, UINT32 instanceCount)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::drawIndexed, RenderAPICore::instancePtr(), startIndex, indexCount, 
-			vertexOffset, vertexCount, instanceCount));
+			vertexOffset, vertexCount, instanceCount, nullptr));
 	}
 
 	void RenderAPI::dispatchCompute(CoreAccessor& accessor, UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::dispatchCompute, RenderAPICore::instancePtr(), numGroupsX, 
-			numGroupsY, numGroupsZ));
+			numGroupsY, numGroupsZ, nullptr));
 	}
 
 	const VideoModeInfo& RenderAPI::getVideoModeInfo()
@@ -195,16 +155,7 @@ namespace BansheeEngine
 	}
 
     RenderAPICore::RenderAPICore()
-        : mCullingMode(CULL_COUNTERCLOCKWISE)
-        , mDisabledTexUnitsFrom(0)
-        , mVertexProgramBound(false)
-		, mGeometryProgramBound(false)
-        , mFragmentProgramBound(false)
-		, mDomainProgramBound(false)
-		, mHullProgramBound(false)
-		, mComputeProgramBound(false)
-		, mClipPlanesDirty(true)
-		, mCurrentCapabilities(nullptr)
+        : mCurrentCapabilities(nullptr)
     {
     }
 
@@ -218,31 +169,24 @@ namespace BansheeEngine
 
 	SPtr<RenderWindow> RenderAPICore::initialize(const RENDER_WINDOW_DESC& primaryWindowDesc)
 	{
-		gCoreThread().queueCommand(std::bind(&RenderAPICore::initializePrepare, this), true);
+		gCoreThread().queueCommand(std::bind((void(RenderAPICore::*)())&RenderAPICore::initialize, this), true);
 
 		RENDER_WINDOW_DESC windowDesc = primaryWindowDesc;
 		SPtr<RenderWindow> renderWindow = RenderWindow::create(windowDesc, nullptr);
 
-		gCoreThread().queueCommand(std::bind(&RenderAPICore::initializeFinalize, this, renderWindow->getCore()), true);
+		gCoreThread().queueCommand(std::bind(&RenderAPICore::initializeWithWindow, this, renderWindow->getCore()), true);
 
 		return renderWindow;
 	}
 
-	void RenderAPICore::initializePrepare()
+	void RenderAPICore::initialize()
 	{
 		// Do nothing
 	}
 
-	void RenderAPICore::initializeFinalize(const SPtr<RenderWindowCore>& primaryWindow)
+	void RenderAPICore::initializeWithWindow(const SPtr<RenderWindowCore>& primaryWindow)
 	{
 		THROW_IF_NOT_CORE_THREAD;
-
-		mVertexProgramBound = false;
-		mGeometryProgramBound = false;
-		mFragmentProgramBound = false;
-		mDomainProgramBound = false;
-		mHullProgramBound = false;
-		mComputeProgramBound = false;
 	}
 
 	void RenderAPICore::destroy()
@@ -256,137 +200,43 @@ namespace BansheeEngine
 		mActiveRenderTarget = nullptr;
 	}
 
-	const RenderAPICapabilities* RenderAPICore::getCapabilities(void) const 
-	{ 
-		return mCurrentCapabilities; 
-	}
-
-	const DriverVersion& RenderAPICore::getDriverVersion(void) const 
+	const DriverVersion& RenderAPICore::getDriverVersion() const 
 	{ 
 		THROW_IF_NOT_CORE_THREAD;
 
 		return mDriverVersion; 
 	}
 
-	void RenderAPICore::addClipPlane(const Plane &p)
+	UINT32 RenderAPICore::vertexCountToPrimCount(DrawOperationType type, UINT32 elementCount)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mClipPlanes.push_back(p);
-		mClipPlanesDirty = true;
-	}
-
-	void RenderAPICore::setClipPlanes(const PlaneList& clipPlanes)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if (clipPlanes != mClipPlanes)
+		UINT32 primCount = 0;
+		switch (type)
 		{
-			mClipPlanes = clipPlanes;
-			mClipPlanesDirty = true;
-		}
-	}
-
-	void RenderAPICore::resetClipPlanes()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if (!mClipPlanes.empty())
-		{
-			mClipPlanes.clear();
-			mClipPlanesDirty = true;
-		}
-	}
-
-	void RenderAPICore::bindGpuProgram(const SPtr<GpuProgramCore>& prg)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		switch(prg->getProperties().getType())
-		{
-		case GPT_VERTEX_PROGRAM:
-			if (!mVertexProgramBound && !mClipPlanes.empty())
-				mClipPlanesDirty = true;
-
-			mVertexProgramBound = true;
+		case DOT_POINT_LIST:
+			primCount = elementCount;
 			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mGeometryProgramBound = true;
+
+		case DOT_LINE_LIST:
+			primCount = elementCount / 2;
 			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mFragmentProgramBound = true;
+
+		case DOT_LINE_STRIP:
+			primCount = elementCount - 1;
 			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDomainProgramBound = true;
+
+		case DOT_TRIANGLE_LIST:
+			primCount = elementCount / 3;
 			break;
-		case GPT_HULL_PROGRAM:
-			mHullProgramBound = true;
+
+		case DOT_TRIANGLE_STRIP:
+			primCount = elementCount - 2;
 			break;
-		case GPT_COMPUTE_PROGRAM:
-			mComputeProgramBound = true;
+
+		case DOT_TRIANGLE_FAN:
+			primCount = elementCount - 2;
 			break;
 		}
-	}
 
-	void RenderAPICore::unbindGpuProgram(GpuProgramType gptype)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		switch(gptype)
-		{
-		case GPT_VERTEX_PROGRAM:
-			if (mVertexProgramBound && !mClipPlanes.empty())
-				mClipPlanesDirty = true;
-
-			mVertexProgramBound = false;
-			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mGeometryProgramBound = false;
-			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mFragmentProgramBound = false;
-			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDomainProgramBound = false;
-			break;
-		case GPT_HULL_PROGRAM:
-			mHullProgramBound = false;
-			break;
-		case GPT_COMPUTE_PROGRAM:
-			mComputeProgramBound = false;
-			break;
-		}
-	}
-
-	bool RenderAPICore::isGpuProgramBound(GpuProgramType gptype)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-	    switch(gptype)
-	    {
-        case GPT_VERTEX_PROGRAM:
-            return mVertexProgramBound;
-        case GPT_GEOMETRY_PROGRAM:
-            return mGeometryProgramBound;
-        case GPT_FRAGMENT_PROGRAM:
-            return mFragmentProgramBound;
-		case GPT_DOMAIN_PROGRAM:
-			return mDomainProgramBound;
-		case GPT_HULL_PROGRAM:
-			return mHullProgramBound;
-		case GPT_COMPUTE_PROGRAM:
-			return mComputeProgramBound;
-	    }
-
-        return false;
-	}
-	
-	void RenderAPICore::swapBuffers(const SPtr<RenderTargetCore>& target)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		target->swapBuffers();
-
-		BS_INC_RENDER_STAT(NumPresents);
+		return primCount;
 	}
 }

@@ -66,7 +66,13 @@ If a resource already exists on the disk (i.e. it was created by @ref BansheeEng
 
 An example:
 ~~~~~~~~~~~~~{.cpp}
-HTexture texture = Texture::create(TEX_TYPE_2D, 1280, 720, 0, PF_R8G8B8A8);
+TEXTURE_DESC desc;
+desc.type = TEX_TYPE_2D;
+desc.width = 1280;
+desc.heigth = 720;
+desc.format = PF_R8G8B8A8;
+
+HTexture texture = Texture::create(desc);
 ... fill texture with some data ...
 
 gResources().save(texture, "myTexture.asset");

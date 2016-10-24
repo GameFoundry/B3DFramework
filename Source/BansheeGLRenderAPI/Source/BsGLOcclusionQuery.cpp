@@ -6,9 +6,11 @@
 
 namespace BansheeEngine
 {
-	GLOcclusionQuery::GLOcclusionQuery(bool binary)
+	GLOcclusionQuery::GLOcclusionQuery(bool binary, UINT32 deviceIdx)
 		:OcclusionQuery(binary), mQueryObj(0), mFinalized(false), mEndIssued(false), mNumSamples(0)
 	{
+		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+
 		glGenQueries(1, &mQueryObj);
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 	}

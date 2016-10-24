@@ -15,6 +15,7 @@
 #include "BsPrefabDiff.h"
 #include "BsFrameAlloc.h"
 #include "BsFileSystem.h"
+#include "BsSceneManager.h"
 
 namespace BansheeEngine
 {
@@ -410,8 +411,9 @@ namespace BansheeEngine
 		BS_ADD_TEST(EditorTestSuite::SceneObjectRecord_UndoRedo);
 		BS_ADD_TEST(EditorTestSuite::SceneObjectDelete_UndoRedo);
 		BS_ADD_TEST(EditorTestSuite::BinaryDiff);
+		BS_ADD_TEST(EditorTestSuite::TestPrefabComplex);
 		BS_ADD_TEST(EditorTestSuite::TestPrefabDiff);
-		BS_ADD_TEST(EditorTestSuite::TestFrameAlloc)
+		BS_ADD_TEST(EditorTestSuite::TestFrameAlloc);
 	}
 
 	void EditorTestSuite::SceneObjectRecord_UndoRedo()
@@ -568,6 +570,80 @@ namespace BansheeEngine
 		BS_TEST_ASSERT(orgObj->arrObjPtrB.size() == newObj->arrObjPtrB.size());
 		for (UINT32 i = 0; i < (UINT32)orgObj->arrObjPtrB.size(); i++)
 			BS_TEST_ASSERT(orgObj->arrObjPtrB[i]->intA == newObj->arrObjPtrB[i]->intA);
+	}
+
+	void EditorTestSuite::TestPrefabComplex()
+	{
+		HSceneObject aDeleteMe = SceneObject::create("A");
+
+		HSceneObject box = SceneObject::create("Box");
+		box->addComponent<TestComponentA>();
+
+		HSceneObject light = SceneObject::create("Directional light");
+		light->addComponent<TestComponentA>();
+
+		HSceneObject sceneRoot = gSceneManager().getRootNode();
+		HPrefab scenePrefab = Prefab::create(sceneRoot, true);
+
+		HSceneObject bDeleteMe = SceneObject::create("B");
+
+		HSceneObject _1 = SceneObject::create("1");
+
+		scenePrefab->update(sceneRoot);
+
+		aDeleteMe->destroy();
+		bDeleteMe->destroy();
+
+		HPrefab targetBoxPrefab = Prefab::create(_1, false);
+
+		HSceneObject camera = SceneObject::create("Camera");
+		camera->addComponent<TestComponentA>();
+
+		scenePrefab->update(sceneRoot);
+
+		HSceneObject target = SceneObject::create("Target");
+
+		_1->setParent(target);
+
+		HSceneObject _3 = targetBoxPrefab->instantiate();
+		_3->setName("3");
+		_3->setParent(target);
+
+		HSceneObject _10 = targetBoxPrefab->instantiate();
+		_10->setParent(target);
+		_10->setName("10");
+
+		// Ensure multiple instances of the same prefab don't have the same ID
+		BS_TEST_ASSERT(_1->getLinkId() != _3->getLinkId() && _1->getLinkId() != _10->getLinkId());
+
+		// Ensure new instances of a prefab have -1 root link ID
+		BS_TEST_ASSERT(_3->getLinkId() == -1 && _10->getLinkId() == -1);
+
+		scenePrefab->update(sceneRoot);
+
+		_1->addComponent<TestComponentA>();
+		_3->addComponent<TestComponentA>();
+		_10->addComponent<TestComponentA>();
+
+		_1->addComponent<TestComponentB>();
+		_3->addComponent<TestComponentB>();
+		_10->addComponent<TestComponentB>();
+
+		_1->breakPrefabLink();
+		_3->breakPrefabLink();
+		_10->breakPrefabLink();
+
+		HPrefab targetPrefab = Prefab::create(target, false);
+		
+		target->addComponent<TestComponentA>();
+		scenePrefab->update(sceneRoot);
+
+		targetPrefab->update(target);
+
+		box->destroy();
+		light->destroy();
+		camera->destroy();
+		target->destroy();
 	}
 
 	void EditorTestSuite::TestPrefabDiff()

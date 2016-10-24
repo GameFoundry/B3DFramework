@@ -2,7 +2,6 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Win32/BsWin32VideoModeInfo.h"
 #include "BsMath.h"
-#include "BsException.h"
 
 namespace BansheeEngine
 {

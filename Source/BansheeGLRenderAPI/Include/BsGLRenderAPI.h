@@ -27,82 +27,82 @@ namespace BansheeEngine
 		/** @copydoc RenderAPICore::getShadingLanguageName() */
 		const String& getShadingLanguageName() const override;
 
-		/** @copydoc RenderAPICore::setRenderTarget() */
-		void setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil = false) override;
+		/** @copydoc RenderAPICore::setGraphicsPipeline */
+		void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-        /** @copydoc RenderAPICore::setVertexBuffers() */
-		void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers) override;
+		/** @copydoc RenderAPICore::setComputePipeline */
+		void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::setIndexBuffer() */
-		void setIndexBuffer(const SPtr<IndexBufferCore>& buffer) override;
-
-		/** @copydoc RenderAPICore::setVertexDeclaration() */
-		void setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration) override;
-
-		/** @copydoc RenderAPICore::setDrawOperation() */
-		void setDrawOperation(DrawOperationType op) override;
-
-        /** @copydoc RenderAPICore::setScissorRect() */
-		void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom) override;
-
-		/** @copydoc RenderAPICore::setTexture() */
-		void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture) override;
-
-		/** @copydoc RenderAPICore::setLoadStoreTexture */
-		void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture,
-			const TextureSurface& surface) override;
-        
-		/** @copydoc RenderAPICore::setBuffer */
-		void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore = false) override;
-
-		/** @copydoc RenderAPICore::setSamplerState() */
-		void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState) override;
-
-		/** @copydoc RenderAPICore::setBlendState() */
-		void setBlendState(const SPtr<BlendStateCore>& blendState) override;
-
-		/** @copydoc RenderAPICore::setRasterizerState() */
-		void setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState) override;
-
-		/** @copydoc RenderAPICore::setDepthStencilState() */
-		void setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue) override;
-
-		/** @copydoc RenderAPICore::setViewport() */
-		void setViewport(const Rect2& area) override;
-
-		/** @copydoc RenderAPICore::bindGpuProgram() */
-		void bindGpuProgram(const SPtr<GpuProgramCore>& prg) override;
-
-		/** @copydoc RenderAPICore::unbindGpuProgram() */
-		void unbindGpuProgram(GpuProgramType gptype) override;
-
-		/** @copydoc RenderAPICore::setParamBuffer */
-		void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-			const GpuParamDesc& paramDesc) override;
+		/** @copydoc RenderAPICore::setGpuParams() */
+		void setGpuParams(const SPtr<GpuParamsCore>& gpuParams,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::beginFrame() */
-		void beginFrame() override;
+		void beginFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::endFrame() */
-		void endFrame() override;
+		void endFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setViewport() */
+		void setViewport(const Rect2& area, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setScissorRect() */
+		void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setStencilRef */
+		void setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setVertexBuffers() */
+		void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setIndexBuffer() */
+		void setIndexBuffer(const SPtr<IndexBufferCore>& buffer,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setVertexDeclaration() */
+		void setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setDrawOperation() */
+		void setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::draw() */
-		void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0) override;
+		void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::drawIndexed() */
 		void drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount
-			, UINT32 instanceCount = 0) override;
+			, UINT32 instanceCount = 0, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::dispatchCompute() */
-		void dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1) override;
+		void dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::swapBuffers() */
+		void swapBuffers(const SPtr<RenderTargetCore>& target,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::setRenderTarget() */
+		void setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil = false,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::clearRenderTarget() */
 		void clearRenderTarget(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, 
-			UINT8 targetMask = 0xFF) override;
+			UINT8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::clearViewport() */
 		void clearViewport(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, 
-			UINT8 targetMask = 0xFF) override;
+			UINT8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
+		/** @copydoc RenderAPICore::addCommands() */
+		void addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) override;
+
+		/** @copydoc RenderAPICore::executeCommands() */
+		void executeCommands(const SPtr<CommandBuffer>& commandBuffer) override;
 
 		/** @copydoc RenderAPICore::convertProjectionMatrix() */
 		void convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
@@ -128,10 +128,10 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc RenderAPICore::initializePrepare */
-		void initializePrepare() override;
+		void initialize() override;
 
 		/** @copydoc RenderAPICore::initializeFinalize */
-		void initializeFinalize(const SPtr<RenderWindowCore>& primaryWindow) override;
+		void initializeWithWindow(const SPtr<RenderWindowCore>& primaryWindow) override;
 
 		/** @copydoc RenderAPICore::destroyCore */
 		void destroyCore() override;
@@ -146,16 +146,10 @@ namespace BansheeEngine
 		void clearArea(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, 
 			const Rect2I& clearArea = Rect2I::EMPTY, UINT8 targetMask = 0xFF);
 
-		/**	Set up clip planes against which all geometry will get clipped. */
-		void setClipPlanesImpl(const PlaneList& clipPlanes) override;
-
 		/** 
 		 * Changes the currently active texture unit. Any texture related operations will then be performed on this unit. 
 		 */
 		bool activateGLTextureUnit(UINT16 unit);
-
-		/**	Changes the active GPU program. */
-		void setActiveProgram(GpuProgramType gptype, const SPtr<GLSLGpuProgramCore>& program);
 
 		/**	Retrieves the active GPU program of the specified type. */
 		SPtr<GLSLGpuProgramCore> getActiveProgram(GpuProgramType gptype) const;
@@ -168,32 +162,6 @@ namespace BansheeEngine
 
 		/** Gets a combined min/mip filter value usable by OpenGL from the currently set min and mip filters. */
 		GLuint getCombinedMinMipFilter() const;
-
-		/**
-		 * Calculates a global texture unit slot for a sampler specific to a GPU program. 
-		 * 
-		 * @param[in]	gptype		Type of the GPU program the sampler is a part of.
-		 * @param[in]	samplerIdx	Index of the sampler uniform.
-		 * @return					Unique global texture unit index that can be used for binding a texture to the specified
-		 *							sampler.
-		 */
-		UINT32 getGLTextureUnit(GpuProgramType gptype, UINT32 samplerIdx);
-
-		/**
-		 * Calculates a global image unit slot based on a uniform index of the image in a GPU program. 
-		 * 
-		 * @param[in]	gptype		Type of the GPU program the uniform is a part of.
-		 * @param[in]	uniformIdx	Index of the image uniform.
-		 * @return					Unique global image unit index that can be used for binding a load-store texture to the
-		 *							specified uniform.
-		 */
-		UINT32 getGLImageUnit(GpuProgramType gptype, UINT32 uniformIdx);
-
-		/**
-		 * OpenGL shares all buffer bindings, but the engine prefers to keep buffers separate per-stage. This will convert
-		 * block buffer binding that is set per stage into a global block buffer binding usable by OpenGL.
-		 */
-		UINT32 getGLUniformBlockBinding(GpuProgramType gptype, UINT32 binding);
 
 		/** Returns the OpenGL specific mode used for drawing, depending on the currently set draw operation. */
 		GLint getGLDrawMode() const;
@@ -400,15 +368,10 @@ namespace BansheeEngine
 		/** Information about a currently bound texture. */
 		struct TextureInfo
 		{
-			UINT32 samplerIdx;
 			GLenum type;
 		};
 
-		/** Information about a currently bound load-store texture (image in OpenGL lingo). */
-		struct ImageInfo
-		{
-			UINT32 uniformIdx;
-		};
+		static const UINT32 MAX_VB_COUNT = 32;
 
 		Rect2 mViewportNorm;
 		UINT32 mScissorTop, mScissorBottom, mScissorLeft, mScissorRight;
@@ -420,9 +383,6 @@ namespace BansheeEngine
 		CompareFunction mStencilCompareFront;
 		CompareFunction mStencilCompareBack;
 
-		// View matrix to set world against
-		Matrix4 mViewMatrix;
-
 		// Last min & mip filtering options, so we can combine them
 		FilterOptions mMinFilter;
 		FilterOptions mMipFilter;
@@ -430,9 +390,6 @@ namespace BansheeEngine
 		// Holds texture type settings for every stage
 		UINT32 mNumTextureUnits;
 		TextureInfo* mTextureInfos;
-		UINT32 mNumImageUnits;
-		ImageInfo* mImageInfos;
-
 		bool mDepthWrite;
 		bool mColorWrite[4];
 
@@ -451,12 +408,7 @@ namespace BansheeEngine
 
 		const GLSLProgramPipeline* mActivePipeline;
 
-		UINT32 mTextureUnitOffsets[6];
-		UINT32 mMaxBoundTexUnits[6];
-		UINT32 mMaxBoundImageUnits[6];
-		UINT32 mUBOffsets[6];
-
-		Vector<SPtr<VertexBufferCore>> mBoundVertexBuffers;
+		std::array<SPtr<VertexBufferCore>, MAX_VB_COUNT> mBoundVertexBuffers;
 		SPtr<VertexDeclarationCore> mBoundVertexDeclaration;
 		SPtr<IndexBufferCore> mBoundIndexBuffer;
 		DrawOperationType mCurrentDrawOperation;

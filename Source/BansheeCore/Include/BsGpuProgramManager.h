@@ -23,23 +23,11 @@ namespace BansheeEngine
 		/**	Returns GPU program language this factory is capable creating GPU programs from. */
 		virtual const String& getLanguage() const = 0;
 
-		/**
-		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
-		 * GpuProgram::isCompiled() method on the returned program will return false, and you will be able to retrieve 
-		 * the error message via GpuProgram::getCompileErrorMessage().
-		 *
-		 * @param[in]	source				Source code to compile the shader from.
-		 * @param[in]	entryPoint			Name of the entry point function, for example "main".
-		 * @param[in]	gptype				Type of the program, for example vertex or fragment.
-		 * @param[in]	profile				Program profile specifying supported feature-set. Must match the type.
-		 * @param[in]	requiresAdjacency	If true then adjacency information will be provided when rendering using this 
-		 *									program.
-		 */
-		virtual SPtr<GpuProgramCore> create(const String& source, const String& entryPoint, GpuProgramType gptype, 
-			GpuProgramProfile profile, bool requiresAdjacency) = 0;
+		/** @copydoc GpuProgramCore::create */
+		virtual SPtr<GpuProgramCore> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
 		/** @copydoc GpuProgramManager::createEmpty */
-		virtual SPtr<GpuProgramCore> create(GpuProgramType type) = 0;
+		virtual SPtr<GpuProgramCore> create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 	};
 
 	/**
@@ -51,21 +39,8 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT GpuProgramManager : public Module<GpuProgramManager>
 	{
 	public:
-		/**
-		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
-		 * GpuProgram::isCompiled() method on the returned program will return false, and you will be able to retrieve the 
-		 * error message via GpuProgram::getCompileErrorMessage().
-		 *
-		 * @param[in]	source				Source code to compile the shader from.
-		 * @param[in]	entryPoint			Name of the entry point function, for example "main".
-		 * @param[in]	language			Language the source is written in, for example "hlsl" or "glsl".
-		 * @param[in]	gptype				Type of the program, for example vertex or fragment.
-		 * @param[in]	profile				Program profile specifying supported feature-set. Must match the type.
-		 * @param[in]	requiresAdjacency	If true then adjacency information will be provided when rendering using this 
-		 *									program.
-		 */
-		SPtr<GpuProgram> create(const String& source, const String& entryPoint, const String& language, 
-			GpuProgramType gptype, GpuProgramProfile profile, bool requiresAdjacency = false);
+		/** @copydoc GpuProgram::create */
+		SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc);
 
 		/**
 		 * Creates a completely empty and uninitialized GpuProgram. Should only be used for specific purposes, like 
@@ -101,21 +76,8 @@ namespace BansheeEngine
 		/** Query if a GPU program language is supported (for example "hlsl", "glsl"). */
 		bool isLanguageSupported(const String& lang);
 
-		/**
-		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
-		 * GpuProgramCore::isCompiled() method on the returned program will return false, and you will be able to retrieve 
-		 * the error message via GpuProgramCore::getCompileErrorMessage().
-		 *
-		 * @param[in]	source				Source code to compile the shader from.
-		 * @param[in]	entryPoint			Name of the entry point function, for example "main".
-		 * @param[in]	language			Language the source is written in, for example "hlsl" or "glsl".
-		 * @param[in]	gptype				Type of the program, for example vertex or fragment.
-		 * @param[in]	profile				Program profile specifying supported feature-set. Must match the type.
-		 * @param[in]	requiresAdjacency	If true then adjacency information will be provided when rendering using this 
-		 *									program.
-		 */
-		SPtr<GpuProgramCore> create(const String& source, const String& entryPoint, const String& language, 
-			GpuProgramType gptype, GpuProgramProfile profile, bool requiresAdjacency = false);
+		/** @copydoc GpuProgramCore::create */
+		SPtr<GpuProgramCore> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class GpuProgram;
@@ -125,8 +87,7 @@ namespace BansheeEngine
 		 *
 		 * @see		create
 		 */
-		SPtr<GpuProgramCore> createInternal(const String& source, const String& entryPoint, const String& language,
-			GpuProgramType gptype, GpuProgramProfile profile, bool requiresAdjacency = false);
+		SPtr<GpuProgramCore> createInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** Attempts to find a factory for the specified language. Returns null if it cannot find one. */
 		GpuProgramFactory* getFactory(const String& language);

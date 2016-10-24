@@ -216,7 +216,7 @@ namespace BansheeEngine
 				{
 					const GpuParamDataDesc& myParam = myParamIter->second;
 
-					if (myParam.paramBlockSlot != curBlock.slot)
+					if (myParam.paramBlockSet != curBlock.set || myParam.paramBlockSlot != curBlock.slot)
 						continue; // Param is in another block, so we will check it when its time for that block
 
 					auto otherParamFind = otherDesc->params.find(myParamIter->first);
@@ -374,7 +374,7 @@ namespace BansheeEngine
 
 				for (auto iterBlock = curDesc.paramBlocks.begin(); iterBlock != curDesc.paramBlocks.end(); ++iterBlock)
 				{
-					if (iterBlock->second.slot == curParam.paramBlockSlot)
+					if (iterBlock->second.set == curParam.paramBlockSet && iterBlock->second.slot == curParam.paramBlockSlot)
 					{
 						paramToParamBlock[curParam.name] = iterBlock->second.name;
 						break;
@@ -474,29 +474,33 @@ namespace BansheeEngine
 		{
 			SPtr<PassType> curPass = technique->getPass(i);
 
+			GPU_PARAMS_DESC paramsDesc;
+			
 			GpuProgramPtrType vertProgram = curPass->getVertexProgram();
 			if (vertProgram)
-				mPassParams[i].vertex = vertProgram->createParameters();
+				paramsDesc.vertexParams = vertProgram->getParamDesc();
 
 			GpuProgramPtrType fragProgram = curPass->getFragmentProgram();
 			if (fragProgram)
-				mPassParams[i].fragment = fragProgram->createParameters();
+				paramsDesc.fragmentParams = fragProgram->getParamDesc();
 
 			GpuProgramPtrType geomProgram = curPass->getGeometryProgram();
 			if (geomProgram)
-				mPassParams[i].geometry = geomProgram->createParameters();
+				paramsDesc.geometryParams = geomProgram->getParamDesc();
 
 			GpuProgramPtrType hullProgram = curPass->getHullProgram();
 			if (hullProgram)
-				mPassParams[i].hull = hullProgram->createParameters();
+				paramsDesc.hullParams = hullProgram->getParamDesc();
 
 			GpuProgramPtrType domainProgram = curPass->getDomainProgram();
 			if (domainProgram)
-				mPassParams[i].domain = domainProgram->createParameters();
+				paramsDesc.domainParams = domainProgram->getParamDesc();
 
 			GpuProgramPtrType computeProgram = curPass->getComputeProgram();
 			if (computeProgram)
-				mPassParams[i].compute = computeProgram->createParameters();
+				paramsDesc.computeParams = computeProgram->getParamDesc();
+
+			mPassParams[i] = GpuParamsType::create(paramsDesc);
 		}
 
 		// Create and assign parameter block buffers
@@ -529,79 +533,78 @@ namespace BansheeEngine
 		//// Assign param block buffers and generate information about data parameters
 		for (UINT32 i = 0; i < numPasses; i++)
 		{
+			SPtr<GpuParamsType> paramPtr = mPassParams[i];
 			for (UINT32 j = 0; j < NUM_STAGES; j++)
 			{
-				GpuParamsType paramPtr = getParamByIdx(j, i);
-				if (paramPtr != nullptr)
+				GpuProgramType progType = (GpuProgramType)j;
+
+				// Assign shareable buffers
+				for (auto& block : paramBlockData)
 				{
-					// Assign shareable buffers
-					UINT32 paramBlockIdx = 0;
-					for (auto& block : paramBlockData)
+					const String& paramBlockName = block.name;
+					if (paramPtr->hasParamBlock(progType, paramBlockName))
 					{
-						const String& paramBlockName = block.name;
-						if (paramPtr->hasParamBlock(paramBlockName))
+						ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
+
+						paramPtr->setParamBlockBuffer(progType, paramBlockName, blockBuffer);
+					}
+				}
+
+				// Create non-shareable ones (these are buffers defined by default by the RHI usually)
+				SPtr<GpuParamDesc> desc = paramPtr->getParamDesc(progType);
+				if (desc == nullptr)
+					continue;
+
+				for (auto iterBlockDesc = desc->paramBlocks.begin(); iterBlockDesc != desc->paramBlocks.end(); ++iterBlockDesc)
+				{
+					const GpuParamBlockDesc& blockDesc = iterBlockDesc->second;
+
+					UINT32 globalBlockIdx = (UINT32)-1;
+					if (!blockDesc.isShareable)
+					{
+						ParamBlockPtrType newParamBlockBuffer = ParamBlockType::create(blockDesc.blockSize * sizeof(UINT32));
+
+						globalBlockIdx = (UINT32)mBlocks.size();
+
+						paramPtr->setParamBlockBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
+						mBlocks.push_back(BlockInfo(iterBlockDesc->first, newParamBlockBuffer, false));
+					}
+					else
+					{
+						auto iterFind = std::find_if(paramBlockData.begin(), paramBlockData.end(), [&](const auto& x)
 						{
-							ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
+							return x.name == iterBlockDesc->first;
+						});
 
-							paramPtr->setParamBlockBuffer(paramBlockName, blockBuffer);
-						}
-
-						paramBlockIdx++;
+						if(iterFind != paramBlockData.end())
+							globalBlockIdx = iterFind->sequentialIdx;
 					}
 
-					// Create non-shareable ones (these are buffers defined by default by the RHI usually)
-					const GpuParamDesc& desc = paramPtr->getParamDesc();
-					for (auto iterBlockDesc = desc.paramBlocks.begin(); iterBlockDesc != desc.paramBlocks.end(); ++iterBlockDesc)
+					// If this parameter block is valid, create data/struct mappings for it
+					if (globalBlockIdx == (UINT32)-1)
+						continue;
+
+					for(auto& dataParam : desc->params)
 					{
-						const GpuParamBlockDesc& blockDesc = iterBlockDesc->second;
-
-						UINT32 globalBlockIdx = (UINT32)-1;
-						if (!blockDesc.isShareable)
-						{
-							ParamBlockPtrType newParamBlockBuffer = ParamBlockType::create(blockDesc.blockSize * sizeof(UINT32));
-
-							globalBlockIdx = (UINT32)mBlocks.size();
-
-							paramPtr->setParamBlockBuffer(iterBlockDesc->first, newParamBlockBuffer);
-							mBlocks.push_back(BlockInfo(iterBlockDesc->first, newParamBlockBuffer, false));
-						}
-						else
-						{
-							auto iterFind = std::find_if(paramBlockData.begin(), paramBlockData.end(), [&](const auto& x)
-							{
-								return x.name == iterBlockDesc->first;
-							});
-
-							if(iterFind != paramBlockData.end())
-								globalBlockIdx = iterFind->sequentialIdx;
-						}
-
-						// If this parameter block is valid, create data/struct mappings for it
-						if (globalBlockIdx == (UINT32)-1)
+						if (dataParam.second.paramBlockSet != blockDesc.set || dataParam.second.paramBlockSlot != blockDesc.slot)
 							continue;
 
-						for(auto& dataParam : desc.params)
-						{
-							if (dataParam.second.paramBlockSlot != blockDesc.slot)
-								continue;
+						ValidParamKey key(dataParam.first, MaterialParams::ParamType::Data);
 
-							ValidParamKey key(dataParam.first, MaterialParams::ParamType::Data);
+						auto iterFind = validParams.find(key);
+						if (iterFind == validParams.end())
+							continue;
 
-							auto iterFind = validParams.find(key);
-							if (iterFind == validParams.end())
-								continue;
+						UINT32 paramIdx = params->getParamIndex(iterFind->second);
 
-							UINT32 paramIdx = params->getParamIndex(iterFind->second);
+						// Parameter shouldn't be in the valid parameter list if it cannot be found
+						assert(paramIdx != -1);
 
-							// Parameter shouldn't be in the valid parameter list if it cannot be found
-							assert(paramIdx != -1);
-
-							mDataParamInfos.push_back(DataParamInfo());
-							DataParamInfo& paramInfo = mDataParamInfos.back();
-							paramInfo.paramIdx = paramIdx;
-							paramInfo.blockIdx = globalBlockIdx;
-							paramInfo.offset = dataParam.second.cpuMemOffset;
-						}
+						mDataParamInfos.push_back(DataParamInfo());
+						DataParamInfo& paramInfo = mDataParamInfos.back();
+						paramInfo.paramIdx = paramIdx;
+						paramInfo.blockIdx = globalBlockIdx;
+						paramInfo.offset = dataParam.second.cpuMemOffset;
 					}
 				}
 			}
@@ -639,14 +642,10 @@ namespace BansheeEngine
 			UINT32* stageOffsets = offsets;
 			for (UINT32 i = 0; i < numPasses; i++)
 			{
+				SPtr<GpuParamsType> paramPtr = mPassParams[i];
 				for (UINT32 j = 0; j < NUM_STAGES; j++)
 				{
-					GpuParamsType paramPtr = getParamByIdx(j, i);
-					if (paramPtr == nullptr)
-					{
-						stageOffsets += 4;
-						continue;
-					}
+					GpuProgramType progType = (GpuProgramType)j;
 
 					auto processObjectParams = [&](const Map<String, GpuParamObjectDesc>& gpuParams, 
 						UINT32 stageIdx, MaterialParams::ParamType paramType)
@@ -669,17 +668,24 @@ namespace BansheeEngine
 							ObjectParamInfo& paramInfo = objParamInfos.back();
 							paramInfo.paramIdx = paramIdx;
 							paramInfo.slotIdx = param.second.slot;
+							paramInfo.setIdx = param.second.set;
 
 							stageOffsets[stageIdx]++;
 							totalNumObjects++;
 						}
 					};
 
-					const GpuParamDesc& desc = paramPtr->getParamDesc();
-					processObjectParams(desc.textures, 0, MaterialParams::ParamType::Texture);
-					processObjectParams(desc.loadStoreTextures, 1, MaterialParams::ParamType::Texture);
-					processObjectParams(desc.buffers, 2, MaterialParams::ParamType::Buffer);
-					processObjectParams(desc.samplers, 3, MaterialParams::ParamType::Sampler);
+					SPtr<GpuParamDesc> desc = paramPtr->getParamDesc(progType);
+					if(desc == nullptr)
+					{
+						stageOffsets += 4;
+						continue;
+					}
+
+					processObjectParams(desc->textures, 0, MaterialParams::ParamType::Texture);
+					processObjectParams(desc->loadStoreTextures, 1, MaterialParams::ParamType::Texture);
+					processObjectParams(desc->buffers, 2, MaterialParams::ParamType::Buffer);
+					processObjectParams(desc->samplers, 3, MaterialParams::ParamType::Sampler);
 
 					stageOffsets += 4;
 				}
@@ -761,28 +767,12 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	typename TGpuParamsSet<Core>::GpuParamsType TGpuParamsSet<Core>::getGpuParams(GpuProgramType type, UINT32 passIdx)
+	SPtr<typename TGpuParamsSet<Core>::GpuParamsType> TGpuParamsSet<Core>::getGpuParams(UINT32 passIdx)
 	{
 		if (passIdx >= mPassParams.size())
 			return nullptr;
 
-		switch (type)
-		{
-		case GPT_VERTEX_PROGRAM:
-			return mPassParams[passIdx].vertex;
-		case GPT_FRAGMENT_PROGRAM:
-			return mPassParams[passIdx].fragment;
-		case GPT_GEOMETRY_PROGRAM:
-			return mPassParams[passIdx].geometry;
-		case GPT_HULL_PROGRAM:
-			return mPassParams[passIdx].hull;
-		case GPT_DOMAIN_PROGRAM:
-			return mPassParams[passIdx].domain;
-		case GPT_COMPUTE_PROGRAM:
-			return mPassParams[passIdx].compute;
-		}
-
-		return nullptr;
+		return mPassParams[passIdx];
 	}
 
 	template<bool Core>
@@ -820,14 +810,13 @@ namespace BansheeEngine
 		UINT32 numPasses = (UINT32)mPassParams.size();
 		for (UINT32 j = 0; j < numPasses; j++)
 		{
+			SPtr<GpuParamsType> paramPtr = mPassParams[j];
 			for (UINT32 i = 0; i < NUM_STAGES; i++)
 			{
-				GpuParamsType paramPtr = getParamByIdx(i);
-				if (paramPtr != nullptr)
-				{
-					if (paramPtr->hasParamBlock(name))
-						paramPtr->setParamBlockBuffer(name, paramBlock);
-				}
+				GpuProgramType progType = (GpuProgramType)i;
+
+				if (paramPtr->hasParamBlock(progType, name))
+					paramPtr->setParamBlockBuffer(progType, name, paramBlock);
 			}
 		}
 	}
@@ -947,73 +936,72 @@ namespace BansheeEngine
 
 		for(UINT32 i = 0; i < numPasses; i++)
 		{
+			SPtr<GpuParamsType> paramPtr = mPassParams[i];
+
 			for(UINT32 j = 0; j < NUM_STAGES; j++)
 			{
-				GpuParamsType paramsPtr = getParamByIdx(j, i);
-				if(paramsPtr != nullptr)
+				GpuProgramType progType = (GpuProgramType)j;
+				const StageParamInfo& stageInfo = mPassParamInfos[i].stages[j];
+
+				for(UINT32 k = 0; k < stageInfo.numTextures; k++)
 				{
-					const StageParamInfo& stageInfo = mPassParamInfos[i].stages[j];
+					const ObjectParamInfo& paramInfo = stageInfo.textures[k];
 
-					for(UINT32 k = 0; k < stageInfo.numTextures; k++)
-					{
-						const ObjectParamInfo& paramInfo = stageInfo.textures[k];
+					const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
+					if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
+						continue;
 
-						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
-							continue;
+					TextureType texture;
+					params->getTexture(materialParamInfo->index, texture);
 
-						TextureType texture;
-						params->getTexture(materialParamInfo->index, texture);
+					paramPtr->setTexture(paramInfo.setIdx, paramInfo.slotIdx, texture);
+				}
 
-						paramsPtr->setTexture(paramInfo.slotIdx, texture);
-					}
+				for (UINT32 k = 0; k < stageInfo.numLoadStoreTextures; k++)
+				{
+					const ObjectParamInfo& paramInfo = stageInfo.loadStoreTextures[k];
 
-					for (UINT32 k = 0; k < stageInfo.numLoadStoreTextures; k++)
-					{
-						const ObjectParamInfo& paramInfo = stageInfo.loadStoreTextures[k];
+					const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
+					if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
+						continue;
 
-						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
-							continue;
+					TextureSurface surface;
+					TextureType texture;
+					params->getLoadStoreTexture(materialParamInfo->index, texture, surface);
 
-						TextureSurface surface;
-						TextureType texture;
-						params->getLoadStoreTexture(materialParamInfo->index, texture, surface);
+					paramPtr->setLoadStoreTexture(paramInfo.setIdx, paramInfo.slotIdx, texture, surface);
+				}
 
-						paramsPtr->setLoadStoreTexture(paramInfo.slotIdx, texture, surface);
-					}
+				for (UINT32 k = 0; k < stageInfo.numBuffers; k++)
+				{
+					const ObjectParamInfo& paramInfo = stageInfo.buffers[k];
 
-					for (UINT32 k = 0; k < stageInfo.numBuffers; k++)
-					{
-						const ObjectParamInfo& paramInfo = stageInfo.buffers[k];
+					const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
+					if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
+						continue;
 
-						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
-							continue;
+					BufferType buffer;
+					params->getBuffer(materialParamInfo->index, buffer);
 
-						BufferType buffer;
-						params->getBuffer(materialParamInfo->index, buffer);
+					paramPtr->setBuffer(paramInfo.setIdx, paramInfo.slotIdx, buffer);
+				}
 
-						paramsPtr->setBuffer(paramInfo.slotIdx, buffer);
-					}
+				for (UINT32 k = 0; k < stageInfo.numSamplerStates; k++)
+				{
+					const ObjectParamInfo& paramInfo = stageInfo.samplerStates[k];
 
-					for (UINT32 k = 0; k < stageInfo.numSamplerStates; k++)
-					{
-						const ObjectParamInfo& paramInfo = stageInfo.samplerStates[k];
+					const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
+					if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
+						continue;
 
-						const MaterialParams::ParamData* materialParamInfo = params->getParamData(paramInfo.paramIdx);
-						if ((materialParamInfo->dirtyFlags & dirtyFlagMask) == 0 && !updateAll)
-							continue;
+					SamplerStateType samplerState;
+					params->getSamplerState(materialParamInfo->index, samplerState);
 
-						SamplerStateType samplerState;
-						params->getSamplerState(materialParamInfo->index, samplerState);
-
-						paramsPtr->setSamplerState(paramInfo.slotIdx, samplerState);
-					}
-
-					paramsPtr->_markCoreDirty();
+					paramPtr->setSamplerState(paramInfo.setIdx, paramInfo.slotIdx, samplerState);
 				}
 			}
+
+			paramPtr->_markCoreDirty();
 		}
 	}
 

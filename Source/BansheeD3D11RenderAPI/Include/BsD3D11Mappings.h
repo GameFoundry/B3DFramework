@@ -8,7 +8,6 @@
 #include "BsIndexBuffer.h"
 #include "BsVertexData.h"
 #include "BsSamplerState.h"
-#include "BsDrawOps.h"
 
 namespace BansheeEngine
 {

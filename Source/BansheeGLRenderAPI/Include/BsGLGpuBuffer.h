@@ -50,8 +50,7 @@ namespace BansheeEngine
 	protected:
 		friend class GLHardwareBufferCoreManager;
 
-		GLGpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format,
-			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		GLGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;

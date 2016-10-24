@@ -37,7 +37,7 @@ namespace BansheeEngine
 				:destinationObj(destObj), syncData(syncData), internalId(internalId)
 			{ }
 
-			std::weak_ptr<CoreObjectCore> destinationObj;
+			SPtr<CoreObjectCore> destinationObj;
 			CoreSyncData syncData;
 			UINT64 internalId;
 		};
@@ -90,12 +90,6 @@ namespace BansheeEngine
 		 * @note	Sim thread only.
 		 */
 		void syncToCore(CoreObject* object, CoreAccessor& accessor);
-
-		/**
-		 * Clears any objects that are dirty and queued for sync on the core thread. Normally you only want to call this 
-		 * during shutdown when you no longer care about any of that data.
-		 */
-		void clearDirty();
 
 	private:
 		/**

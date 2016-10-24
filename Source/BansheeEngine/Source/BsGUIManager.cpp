@@ -703,7 +703,9 @@ namespace BansheeEngine
 	{
 		if(mCaretTexture == nullptr)
 		{
-			HTexture newTex = Texture::create(TEX_TYPE_2D, 1, 1, 0, PF_R8G8B8A8);
+			TEXTURE_DESC texDesc; // Default
+
+			HTexture newTex = Texture::create(texDesc);
 			mCaretTexture = SpriteTexture::create(newTex);
 		}
 
@@ -719,7 +721,9 @@ namespace BansheeEngine
 	{
 		if(mTextSelectionTexture == nullptr)
 		{
-			HTexture newTex = Texture::create(TEX_TYPE_2D, 1, 1, 0, PF_R8G8B8A8);
+			TEXTURE_DESC texDesc; // Default
+
+			HTexture newTex = Texture::create(texDesc);
 			mTextSelectionTexture = SpriteTexture::create(newTex);
 		}
 

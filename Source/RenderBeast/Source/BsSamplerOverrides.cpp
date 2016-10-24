@@ -49,12 +49,13 @@ namespace BansheeEngine
 					samplerState = SamplerStateCore::getDefault();
 
 				override.paramIdx = paramIdx;
-				override.originalStateHash = samplerState->getProperties().getHash();
-
+				
 				if (checkNeedsOverride(samplerState, options))
 					override.state = generateSamplerOverride(samplerState, options);
 				else
 					override.state = samplerState;
+
+				override.originalStateHash = override.state->getProperties().getHash();
 
 				overrideLookup[samplerParam.first] = overrideIdx;
 			}
@@ -62,31 +63,65 @@ namespace BansheeEngine
 			UINT32 numPasses = paramsSet->getNumPasses();
 
 			// First pass just determine if we even need to override and count the number of sampler states
-			UINT32 totalNumSamplerStates = 0;
+			UINT32* numSetsPerPass = (UINT32*)bs_stack_alloc<UINT32>(numPasses);
+			memset(numSetsPerPass, 0, sizeof(UINT32) * numPasses);
+
+			UINT32 totalNumSets = 0;
 			for (UINT32 i = 0; i < numPasses; i++)
 			{
-				UINT32 maxSamplerSlot = 0;
+				UINT32 maxSamplerSet = 0;
 
+				SPtr<GpuParamsCore> paramsPtr = paramsSet->getGpuParams(i);
 				for (UINT32 j = 0; j < GpuParamsSetCore::NUM_STAGES; j++)
 				{
-					SPtr<GpuParamsCore> paramsPtr = paramsSet->getParamByIdx(j, i);
-					if (paramsPtr == nullptr)
+					GpuProgramType progType = (GpuProgramType)j;
+					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc(progType);
+					if (paramDesc == nullptr)
 						continue;
 
-					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
-
-					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
-						UINT32 slot = iter->second.slot;
-						maxSamplerSlot = std::max(maxSamplerSlot, slot + 1);
+						UINT32 set = iter->second.set;
+						maxSamplerSet = std::max(maxSamplerSet, set + 1);
 					}
-
-					totalNumSamplerStates += maxSamplerSlot;
 				}
+
+				numSetsPerPass[i] = maxSamplerSet;
+				totalNumSets += maxSamplerSet;
+			}
+			
+			UINT32 totalNumSamplerStates = 0;
+			UINT32* slotsPerSet = (UINT32*)bs_stack_alloc<UINT32>(totalNumSets);
+			memset(slotsPerSet, 0, sizeof(UINT32) * totalNumSets);
+
+			UINT32* slotsPerSetIter = slotsPerSet;
+			for (UINT32 i = 0; i < numPasses; i++)
+			{
+				SPtr<GpuParamsCore> paramsPtr = paramsSet->getGpuParams(i);
+				for (UINT32 j = 0; j < GpuParamsSetCore::NUM_STAGES; j++)
+				{
+					GpuProgramType progType = (GpuProgramType)j;
+					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc(progType);
+					if (paramDesc == nullptr)
+						continue;
+
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
+					{
+						UINT32 set = iter->second.set;
+						UINT32 slot = iter->second.slot;
+						slotsPerSetIter[set] = std::max(slotsPerSetIter[set], slot + 1);
+					}
+				}
+
+				for(UINT32 j = 0; j < numSetsPerPass[i]; j++)
+					totalNumSamplerStates += slotsPerSetIter[j];
+
+				slotsPerSetIter += numSetsPerPass[i];
 			}
 
 			UINT32 outputSize = sizeof(MaterialSamplerOverrides) +
-				numPasses * (sizeof(PassSamplerOverrides) + GpuParamsSetCore::NUM_STAGES * sizeof(StageSamplerOverrides)) +
+				numPasses * sizeof(PassSamplerOverrides) +
+				totalNumSets * sizeof(UINT32*) +
 				totalNumSamplerStates * sizeof(UINT32) +
 				(UINT32)overrides.size() * sizeof(SamplerOverride);
 
@@ -97,47 +132,51 @@ namespace BansheeEngine
 			output->refCount = 0;
 			output->numPasses = numPasses;
 			output->passes = (PassSamplerOverrides*)outputData;
+			output->isDirty = true;
 			outputData += sizeof(PassSamplerOverrides) * numPasses;
 
+			slotsPerSetIter = slotsPerSet;
 			for (UINT32 i = 0; i < numPasses; i++)
 			{
+				SPtr<GpuParamsCore> paramsPtr = paramsSet->getGpuParams(i);
+
 				PassSamplerOverrides& passOverrides = output->passes[i];
-				passOverrides.numStages = GpuParamsSetCore::NUM_STAGES;
-				passOverrides.stages = (StageSamplerOverrides*)outputData;
-				outputData += sizeof(StageSamplerOverrides) * GpuParamsSetCore::NUM_STAGES;
+				passOverrides.numSets = numSetsPerPass[i];
+				passOverrides.stateOverrides = (UINT32**)outputData;
+				outputData += sizeof(UINT32*) * passOverrides.numSets;
 
-				for (UINT32 j = 0; j < passOverrides.numStages; j++)
+				for (UINT32 j = 0; j < passOverrides.numSets; j++)
 				{
-					StageSamplerOverrides& stageOverrides = passOverrides.stages[j];
-					stageOverrides.numStates = 0;
-					stageOverrides.stateOverrides = (UINT32*)outputData;
-
-					SPtr<GpuParamsCore> paramsPtr = paramsSet->getParamByIdx(j, i);
-					if (paramsPtr == nullptr)
+					GpuProgramType progType = (GpuProgramType)j;
+					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc(progType);
+					if (paramDesc == nullptr)
 						continue;
 
-					const GpuParamDesc& paramDesc = paramsPtr->getParamDesc();
+					passOverrides.stateOverrides[j] = (UINT32*)outputData;
 
-					for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
+					UINT32 numStates = 0;
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
-						while (slot > stageOverrides.numStates)
+						while (slot > numStates)
 						{
-							stageOverrides.stateOverrides[stageOverrides.numStates] = (UINT32)-1;
-							stageOverrides.numStates++;
+							passOverrides.stateOverrides[j][numStates] = (UINT32)-1;
+							numStates++;
 						}
 
-						stageOverrides.numStates = std::max(stageOverrides.numStates, slot + 1);
+						numStates = std::max(numStates, slot + 1);
 
 						auto iterFind = overrideLookup.find(iter->first);
 						if (iterFind != overrideLookup.end())
-							stageOverrides.stateOverrides[slot] = iterFind->second;
+							passOverrides.stateOverrides[j][slot] = iterFind->second;
 						else
-							stageOverrides.stateOverrides[slot] = (UINT32)-1;						
+							passOverrides.stateOverrides[j][slot] = (UINT32)-1;
 					}
 
-					outputData += sizeof(UINT32) * stageOverrides.numStates;
+					outputData += sizeof(UINT32) * slotsPerSetIter[j];
 				}
+
+				slotsPerSetIter += passOverrides.numSets;
 			}
 
 			output->numOverrides = (UINT32)overrides.size();
@@ -148,6 +187,9 @@ namespace BansheeEngine
 				new (&output->overrides[i].state) SPtr<SamplerStateCore>();
 				output->overrides[i] = overrides[i];
 			}
+
+			bs_stack_free(slotsPerSet);
+			bs_stack_free(numSetsPerPass);
 		}
 		bs_frame_clear();
 

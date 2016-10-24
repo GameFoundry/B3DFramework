@@ -169,7 +169,7 @@ If the library structure still isn't clear, download one of the pre-compiled dep
     - libvorbisfile.dll (All configurations)
    
 **libFLAC**
- - libflac commit:94a61241b02064c7d9fe508f72a742f2a90b8492
+ - libflac commit: 94a61241b02064c7d9fe508f72a742f2a90b8492
  - https://git.xiph.org/?p=flac.git
  - Compilation notes:
   - Requires libogg, as described in its readme file.
@@ -178,6 +178,23 @@ If the library structure still isn't clear, download one of the pre-compiled dep
   - Windows (Dynamic library):
     - libFLAC.lib (Compile using "release" configuration)
     - libFLAC_dynamic.dll (All configurations)
+   
+**glslang**
+ - glslang commit: 19bdf90eba71390f04bb85226337517df65d73e2
+ - https://github.com/KhronosGroup/glslang
+ - Compilation notes:
+  - Read the glslangCompilationGuide.txt before compiling
+ - Required by BansheeVulkanRenderAPI
+ - Outputs:
+  - Windows (Static library):
+    - glslang.lib (Compile using "release" configuration)
+	- glslangd.lib (Compile using "debug" configuration)
+	- HLSL.lib (Compile using "release" configuration)
+	- HLSLd.lib (Compile using "debug" configuration)
+	- OGLCompiler.lib (Compile using "release" configuration)
+	- OGLCompilerd.lib (Compile using "debug" configuration)
+	- OSDependent.lib (Compile using "release" configuration)
+	- OSDependentd.lib (Compile using "debug" configuration)
    
 **bison**
  - Bison 2.7

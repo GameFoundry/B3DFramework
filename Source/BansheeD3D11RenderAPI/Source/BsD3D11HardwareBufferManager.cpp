@@ -13,27 +13,29 @@ namespace BansheeEngine
 		: mDevice(device)
 	{ }
 
-	SPtr<VertexBufferCore> D3D11HardwareBufferCoreManager::createVertexBufferInternal(UINT32 vertexSize,
-		UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBufferCore> D3D11HardwareBufferCoreManager::createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<D3D11VertexBufferCore> ret = bs_shared_ptr_new<D3D11VertexBufferCore>(mDevice, vertexSize, numVerts, usage, streamOut);
+		SPtr<D3D11VertexBufferCore> ret = bs_shared_ptr_new<D3D11VertexBufferCore>(mDevice, desc, deviceMask);
 		ret->_setThisPtr(ret);
 
 		return ret;
 	}
 
-	SPtr<IndexBufferCore> D3D11HardwareBufferCoreManager::createIndexBufferInternal(IndexType itype,
-		UINT32 numIndices, GpuBufferUsage usage)
+	SPtr<IndexBufferCore> D3D11HardwareBufferCoreManager::createIndexBufferInternal(const INDEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<D3D11IndexBufferCore> ret = bs_shared_ptr_new<D3D11IndexBufferCore>(mDevice, itype, numIndices, usage);
+		SPtr<D3D11IndexBufferCore> ret = bs_shared_ptr_new<D3D11IndexBufferCore>(mDevice, desc, deviceMask);
 		ret->_setThisPtr(ret);
 
 		return ret;
 	}
 
-	SPtr<GpuParamBlockBufferCore> D3D11HardwareBufferCoreManager::createGpuParamBlockBufferInternal(UINT32 size, GpuParamBlockUsage usage)
+	SPtr<GpuParamBlockBufferCore> D3D11HardwareBufferCoreManager::createGpuParamBlockBufferInternal(UINT32 size, 
+		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 	{
-		D3D11GpuParamBlockBufferCore* paramBlockBuffer = new (bs_alloc<D3D11GpuParamBlockBufferCore>()) D3D11GpuParamBlockBufferCore(size, usage);
+		D3D11GpuParamBlockBufferCore* paramBlockBuffer = 
+			new (bs_alloc<D3D11GpuParamBlockBufferCore>()) D3D11GpuParamBlockBufferCore(size, usage, deviceMask);
 
 		SPtr<GpuParamBlockBufferCore> paramBlockBufferPtr = bs_shared_ptr<D3D11GpuParamBlockBufferCore>(paramBlockBuffer);
 		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
@@ -41,11 +43,11 @@ namespace BansheeEngine
 		return paramBlockBufferPtr;
 	}
 
-	SPtr<GpuBufferCore> D3D11HardwareBufferCoreManager::createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBufferCore> D3D11HardwareBufferCoreManager::createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
+		GpuDeviceFlags deviceMask)
 	{
 		D3D11GpuBufferCore* buffer = new (bs_alloc<D3D11GpuBufferCore>()) 
-			D3D11GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter);
+			D3D11GpuBufferCore(desc, deviceMask);
 
 		SPtr<D3D11GpuBufferCore> bufferPtr = bs_shared_ptr<D3D11GpuBufferCore>(buffer);
 		bufferPtr->_setThisPtr(bufferPtr);

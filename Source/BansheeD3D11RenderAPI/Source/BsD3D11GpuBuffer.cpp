@@ -11,14 +11,15 @@
 
 namespace BansheeEngine
 {
-	D3D11GpuBufferCore::D3D11GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-		GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
-		: GpuBufferCore(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter), mBuffer(nullptr)
+	D3D11GpuBufferCore::D3D11GpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		: GpuBufferCore(desc, deviceMask), mBuffer(nullptr)
 	{
-		if (type != GBT_STANDARD)
-			assert(format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
+		if (desc.type != GBT_STANDARD)
+			assert(desc.format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
 		else
-			assert(elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
+			assert(desc.elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
+
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
 	D3D11GpuBufferCore::~D3D11GpuBufferCore()

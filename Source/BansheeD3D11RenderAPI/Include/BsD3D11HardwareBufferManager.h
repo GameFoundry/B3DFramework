@@ -19,20 +19,20 @@ namespace BansheeEngine
 
 	protected:     
 		/** @copydoc HardwareBufferCoreManager::createVertexBufferInternal */
-		SPtr<VertexBufferCore> createVertexBufferInternal(UINT32 vertexSize, UINT32 numVerts, 
-			GpuBufferUsage usage, bool streamOut = false) override;
+		SPtr<VertexBufferCore> createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferCoreManager::createIndexBufferInternal */
-		SPtr<IndexBufferCore> createIndexBufferInternal(IndexType itype, UINT32 numIndices, 
-			GpuBufferUsage usage) override;
+		SPtr<IndexBufferCore> createIndexBufferInternal(const INDEX_BUFFER_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBufferInternal  */
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, 
-			GpuParamBlockUsage usage = GPBU_DYNAMIC) override;
+			GpuParamBlockUsage usage = GPBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferCoreManager::createGpuBufferInternal */
-		SPtr<GpuBufferCore> createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, 
-			GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false) override;
+		SPtr<GpuBufferCore> createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		D3D11Device& mDevice;
 	};

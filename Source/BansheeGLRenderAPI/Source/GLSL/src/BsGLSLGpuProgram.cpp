@@ -69,10 +69,8 @@ namespace BansheeEngine
 		return errorsFound || !linkCompileSuccess;
 	}
 	
-	GLSLGpuProgramCore::GLSLGpuProgramCore(const String& source, const String& entryPoint, GpuProgramType gptype,
-		GpuProgramProfile profile, bool isAdjacencyInfoRequired)
-		:GpuProgramCore(source, entryPoint, gptype, profile, isAdjacencyInfoRequired),
-		mProgramID(0), mGLHandle(0)
+	GLSLGpuProgramCore::GLSLGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		:GpuProgramCore(desc, deviceMask), mProgramID(0), mGLHandle(0)
     { }
 
 	GLSLGpuProgramCore::~GLSLGpuProgramCore()
@@ -191,7 +189,7 @@ namespace BansheeEngine
 		if (mIsCompiled)
 		{
 			GLSLParamParser paramParser;
-			paramParser.buildUniformDescriptions(mGLHandle, *mParametersDesc);
+			paramParser.buildUniformDescriptions(mGLHandle, mProperties.getType(), *mParametersDesc);
 
 			if (mProperties.getType() == GPT_VERTEX_PROGRAM)
 			{
@@ -209,8 +207,8 @@ namespace BansheeEngine
 		if (!isRequiredCapabilitiesSupported())
 			return false;
 
-		RenderAPICore* rs = BansheeEngine::RenderAPICore::instancePtr();
-		return rs->getCapabilities()->isShaderProfileSupported("glsl");
+		RenderAPICore* rapi = BansheeEngine::RenderAPICore::instancePtr();
+		return rapi->getCapabilities().isShaderProfileSupported("glsl");
 	}
 }
 

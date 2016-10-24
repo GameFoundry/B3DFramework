@@ -29,8 +29,7 @@ Technique : inherits("SolidGizmo") =
 		DepthWrite = false;
 		DepthRead = false;
 		Stencil = true;
-		StencilRef = 1;
-		StencilOpBack = { KEEP, KEEP, INC, PASS };
+		StencilOpFront = { KEEP, KEEP, INC, PASS };
 		
 		Target =
 		{

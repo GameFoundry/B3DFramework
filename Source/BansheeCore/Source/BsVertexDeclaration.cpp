@@ -238,7 +238,7 @@ namespace BansheeEngine
 
 	UINT32 VertexDeclarationCore::NextFreeId = 0;
 
-	VertexDeclarationCore::VertexDeclarationCore(const List<VertexElement>& elements)
+	VertexDeclarationCore::VertexDeclarationCore(const List<VertexElement>& elements, GpuDeviceFlags deviceMask)
 		:mProperties(elements)
 	{
 		
@@ -250,9 +250,9 @@ namespace BansheeEngine
 		CoreObjectCore::initialize();
 	}
 
-	SPtr<VertexDeclarationCore> VertexDeclarationCore::create(const SPtr<VertexDataDesc>& desc)
+	SPtr<VertexDeclarationCore> VertexDeclarationCore::create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createVertexDeclaration(desc);
+		return HardwareBufferCoreManager::instance().createVertexDeclaration(desc, deviceMask);
 	}
 
 	bool VertexDeclarationCore::isCompatible(const SPtr<VertexDeclarationCore>& shaderDecl)

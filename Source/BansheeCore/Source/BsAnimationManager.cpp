@@ -488,7 +488,7 @@ namespace BansheeEngine
 		if (!mDataReady)
 			return;
 
-		mDataReadyCount.fetch_add(-1, std::memory_order_release);
+		mDataReadyCount.fetch_sub(1, std::memory_order_release);
 		mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
 	}
 

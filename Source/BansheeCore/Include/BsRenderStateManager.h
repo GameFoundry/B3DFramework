@@ -8,6 +8,7 @@
 #include "BsRasterizerState.h"
 #include "BsDepthStencilState.h"
 #include "BsSamplerState.h"
+#include "BsGpuPipelineState.h"
 
 namespace BansheeEngine
 {
@@ -31,6 +32,9 @@ namespace BansheeEngine
 		/**	Creates and initializes a new BlendState. */
 		SPtr<BlendState> createBlendState(const BLEND_STATE_DESC& desc) const;
 
+		/**	Creates and initializes a new GpuPipelineState. */
+		SPtr<GpuPipelineState> createPipelineState(const PIPELINE_STATE_DESC& desc) const;
+
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
 		SPtr<SamplerState> _createSamplerStatePtr(const SAMPLER_STATE_DESC& desc) const;
 
@@ -40,8 +44,11 @@ namespace BansheeEngine
 		/** Creates an uninitialized rasterizer state. Requires manual initialization after creation. */
 		SPtr<RasterizerState> _createRasterizerStatePtr(const RASTERIZER_STATE_DESC& desc) const;
 
-		/** Creates an uninitialized blend state. Requires manual initialization	after creation. */
+		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
 		SPtr<BlendState> _createBlendStatePtr(const BLEND_STATE_DESC& desc) const;
+
+		/**	Creates an uninitialized GpuPipelineState. Requires manual initialization after creation. */
+		virtual SPtr<GpuPipelineState> _createPipelineState(const PIPELINE_STATE_DESC& desc) const;
 
 		/** Gets a sampler state initialized with default options. */
 		const SPtr<SamplerState>& getDefaultSamplerState() const;
@@ -131,6 +138,10 @@ namespace BansheeEngine
 		/** @copydoc RenderStateManager::createBlendState */
 		SPtr<BlendStateCore> createBlendState(const BLEND_STATE_DESC& desc) const;
 
+		/** @copydoc RenderStateManager::createPipelineState */
+		SPtr<GpuPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
+
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
 		SPtr<SamplerStateCore> _createSamplerState(const SAMPLER_STATE_DESC& desc) const;
 
@@ -142,6 +153,10 @@ namespace BansheeEngine
 
 		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
 		SPtr<BlendStateCore> _createBlendState(const BLEND_STATE_DESC& desc) const;
+
+		/**	Creates an uninitialized GpuPipelineState. Requires manual initialization after creation. */
+		virtual SPtr<GpuPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Gets a sampler state initialized with default options. */
 		const SPtr<SamplerStateCore>& getDefaultSamplerState() const;

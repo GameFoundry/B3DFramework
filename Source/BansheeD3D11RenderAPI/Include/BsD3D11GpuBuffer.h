@@ -46,8 +46,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HardwareBufferCoreManager;
 
-		D3D11GpuBufferCore(UINT32 elementCount, UINT32 elementSize, GpuBufferType type, GpuBufferFormat format, 
-			GpuBufferUsage usage, bool randomGpuWrite = false, bool useCounter = false);
+		D3D11GpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuBufferCore::createView */
 		GpuBufferView* createView() override;

@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsGLPrerequisites.h"
-#include "BsPixelBuffer.h"
+#include "BsHardwareBuffer.h"
+#include "BsPixelUtil.h"
 
 namespace BansheeEngine 
 {
@@ -13,8 +14,11 @@ namespace BansheeEngine
 
 	class GLTextureBuffer;
 
-	/** OpenGL implementation of a pixel buffer. Represents a hardware buffer containing a surface of pixels. */
-	class BS_RSGL_EXPORT GLPixelBuffer : public PixelBuffer
+	/**
+	 * Represents a hardware buffer that stores a single pixel surface. This may be a 1D, 2D or 3D surface, but unlike a 
+	 * texture it consists only of a single surface (no mip maps, cube map faces or similar).
+	 */
+	class GLPixelBuffer
 	{
 	public:
 		/**
@@ -27,8 +31,55 @@ namespace BansheeEngine
 		 * @param[in]	usage			Usage signaling the render system how we plan on using the buffer.
 		 */
 		GLPixelBuffer(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format, GpuBufferUsage usage);
+		virtual ~GLPixelBuffer();
 
-		~GLPixelBuffer();
+		/**	Returns width of the surface in pixels. */
+        UINT32 getWidth() const { return mWidth; }
+
+		/**	Returns height of the surface in pixels. */
+        UINT32 getHeight() const { return mHeight; }
+
+		/**	Returns depth of the surface in pixels. */
+        UINT32 getDepth() const { return mDepth; }
+
+		/**	Returns format of the pixels in the surface. */
+        PixelFormat getFormat() const { return mFormat; }
+
+		/**
+		 * Locks a certain region of the pixel buffer for reading and returns a pointer to the locked region.
+		 *
+		 * @param[in]	lockBox		Region of the surface to lock.
+		 * @param[in]	options		Lock options that hint the hardware on what you intend to do with the locked data.
+		 *
+		 * @note	Returned object is only valid while the lock is active.
+		 */
+		const PixelData& lock(const PixelVolume& lockBox, GpuLockOptions options);
+		
+		/**
+		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.
+		 *
+		 * @param[in]	offset	Offset in bytes from which to lock the buffer.
+		 * @param[in]	length	Length of the area you want to lock, in bytes.
+		 * @param[in]	options	Signifies what you want to do with the returned pointer. Caller must ensure not to do 
+		 *						anything he hasn't requested (for example don't try to read from the buffer unless you
+		 *						requested it here).
+		 */
+        void* lock(UINT32 offset, UINT32 length, GpuLockOptions options);
+
+		/**
+		 * Locks the entire buffer and returns pointer to the locked area. You must call unlock() when done.
+		 *
+		 * @param[in]	options	Signifies what you want to do with the returned pointer. Caller must ensure not to do 
+		 *						anything he hasn't requested (for example don't try to read from the buffer unless you
+		 *						requested it here).
+		 */
+        void* lock(GpuLockOptions options)
+        {
+            return lock(0, mSizeInBytes, options);
+        }
+
+		/**	Releases the lock on this buffer. */
+		void unlock();
 
 		/**
 		 * Upload some pixel data to the buffer.
@@ -69,12 +120,6 @@ namespace BansheeEngine
 		virtual void blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox);
 
 	protected:  
-		/** @copydoc PixelBuffer::lockImpl */
-		PixelData lockImpl(PixelVolume lockBox, GpuLockOptions options) override;
-
-		/** @copydoc PixelBuffer::unlockImpl */
-		void unlockImpl() override;
-
 		/**	Allocates an internal buffer on the CPU, the size of the hardware buffer. */
 		void allocateBuffer();
 
@@ -82,13 +127,23 @@ namespace BansheeEngine
 		void freeBuffer();
 
 	protected:
+		UINT32 mSizeInBytes;
+		GpuBufferUsage mUsage;
+		bool mIsLocked;
+
+		UINT32 mWidth, mHeight, mDepth;
+		PixelFormat mFormat;
+
+		PixelData mCurrentLock;
+		PixelVolume mLockedBox;
+
 		PixelData mBuffer;
 		GLenum mGLInternalFormat;
 		GpuLockOptions mCurrentLockOptions;
 	};
 
 	/**	Pixel buffer specialization that represents a single surface in a texture. */
-    class BS_RSGL_EXPORT GLTextureBuffer : public GLPixelBuffer
+    class GLTextureBuffer : public GLPixelBuffer
 	{
     public:
 		/**
@@ -135,7 +190,7 @@ namespace BansheeEngine
     };
 
 	/**	Pixel buffer specialization that represents a render buffer. */
-    class BS_RSGL_EXPORT GLRenderBuffer : public GLPixelBuffer
+    class GLRenderBuffer : public GLPixelBuffer
 	{
     public:
 		/**

@@ -115,6 +115,24 @@ namespace BansheeEngine
 		SOP_INVERT /**< Invert the bits of the stencil buffer. */
 	};
 
+	/** Describes operation that will be used for rendering a certain set of vertices. */
+	enum DrawOperationType
+	{
+		DOT_POINT_LIST = 1, /**< Each vertex represents a point. */
+		DOT_LINE_LIST = 2, /**< Each sequential pair of vertices represent a line. */
+		DOT_LINE_STRIP = 3, /**< Each vertex (except the first) forms a line with the previous vertex. */
+		DOT_TRIANGLE_LIST = 4, /**< Each sequential 3-tuple of vertices represent a triangle. */
+		DOT_TRIANGLE_STRIP = 5, /**< Each vertex (except the first two) form a triangle with the previous two vertices. */
+		DOT_TRIANGLE_FAN = 6 /**< Each vertex (except the first two) form a triangle with the first vertex and previous vertex. */
+	};
+
+	/**	Type of the indices used, used for determining size. */
+	enum IndexType
+	{
+		IT_16BIT, /**< 16-bit indices. */
+		IT_32BIT /**< 32-bit indices. */
+	};
+
 	/** These values represent a hint to the driver when locking a hardware buffer. */
 	enum GpuLockOptions
 	{
@@ -159,11 +177,11 @@ namespace BansheeEngine
 	enum GpuBufferUsage 
 	{
 		/** 
-		 * Signifies that you don't plan on modifying the buffer often (or at all)	after creation. Modifying such buffer 
+		 * Signifies that you don't plan on modifying the buffer often (or at all) after creation. Modifying such buffer 
 		 * will involve a larger performance hit.
 		 */
         GBU_STATIC = 1,
-		/** Signifies that you will modify this buffer fairly often. */
+		/** Signifies that you will modify this buffer fairly often (e.g. every frame). */
 		GBU_DYNAMIC = 2
 	};
 
@@ -239,6 +257,26 @@ namespace BansheeEngine
 		GVU_DEPTHSTENCIL = 0x04,
 		/** Buffer that allows you to write to any part of it from within a GPU program. */
 		GVU_RANDOMWRITE = 0x08
+	};
+
+	/** Combineable set of bits that describe a set of physical GPU's. */
+	enum GpuDeviceFlags
+	{
+		/** 
+		 * Use the default set of devices. This may be the primary device or multiple devices. Cannot be used together with
+		 * other device flags. 
+		 */
+		GDF_DEFAULT = 0,
+		/** Use only the primary GPU. */
+		GDF_PRIMARY = 0x01,
+		/** Use the second GPU. */
+		GDF_GPU2 = 0x02,
+		/** Use the third GPU. */
+		GDF_GPU3 = 0x04,
+		/** Use the fourth GPU. */
+		GDF_GPU4 = 0x08,
+		/** Use the fifth GPU. */
+		GDF_GPU5 = 0x10
 	};
 
 	/** Type of parameter block usages. Signifies how often will parameter blocks be changed. */
@@ -351,6 +389,20 @@ namespace BansheeEngine
 		GPOT_RWTEXTURE3D = 52, /**< 3D texture with unordered read/writes. */
 		GPOT_RWTEXTURE2DMS = 53, /**< 2D texture with multiple samples and unordered read/writes. */
 		GPOT_UNKNOWN = 0xffff
+	};
+
+	/** Types of command buffers. */
+	enum CommandBufferType
+	{
+		/** 
+		 * Command buffer used for rendering. Allows the use of draw commands, but also all commands supported by compute
+		 * or upload buffers. 
+		 */
+		CBT_GRAPHICS,
+		/** Command buffer used for compute operations. Allows the use of dispatch and upload commands. */
+		CBT_COMPUTE,
+		/** Command buffer used for memory transfer operations only. No rendering or compute dispatch allowed. */
+		CBT_UPLOAD
 	};
 
 	/** These values represent a hint to the driver when writing to a GPU buffer. */

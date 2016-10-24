@@ -1364,40 +1364,62 @@ namespace BansheeEngine
 				if (!passData.depthStencilIsDefault)
 					passDesc.depthStencilState = DepthStencilState::create(passData.depthStencilDesc);
 
+				GPU_PROGRAM_DESC desc;
+				desc.entryPoint = "main";
+				desc.language = metaData.language;
+
 				if (!passData.vertexCode.empty())
 				{
-					passDesc.vertexProgram = GpuProgram::create(passData.commonCode + passData.vertexCode, "main", 
-						metaData.language, GPT_VERTEX_PROGRAM, getProfile(metaData.renderAPI, GPT_VERTEX_PROGRAM));
+					desc.source = passData.commonCode + passData.vertexCode;
+					desc.type = GPT_VERTEX_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_VERTEX_PROGRAM);
+
+					passDesc.vertexProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.fragmentCode.empty())
 				{
-					passDesc.fragmentProgram = GpuProgram::create(passData.commonCode + passData.fragmentCode, "main", 
-						metaData.language, GPT_FRAGMENT_PROGRAM, getProfile(metaData.renderAPI, GPT_FRAGMENT_PROGRAM));
+					desc.source = passData.commonCode + passData.fragmentCode;
+					desc.type = GPT_FRAGMENT_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_FRAGMENT_PROGRAM);
+
+					passDesc.fragmentProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.geometryCode.empty())
 				{
-					passDesc.geometryProgram = GpuProgram::create(passData.commonCode + passData.geometryCode, "main", 
-						metaData.language, GPT_GEOMETRY_PROGRAM, getProfile(metaData.renderAPI, GPT_GEOMETRY_PROGRAM));
+					desc.source = passData.commonCode + passData.geometryCode;
+					desc.type = GPT_GEOMETRY_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_GEOMETRY_PROGRAM);
+
+					passDesc.geometryProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.hullCode.empty())
 				{
-					passDesc.hullProgram = GpuProgram::create(passData.commonCode + passData.hullCode, "main", 
-						metaData.language, GPT_HULL_PROGRAM, getProfile(metaData.renderAPI, GPT_HULL_PROGRAM));
+					desc.source = passData.commonCode + passData.hullCode;
+					desc.type = GPT_HULL_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_HULL_PROGRAM);
+
+					passDesc.hullProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.domainCode.empty())
 				{
-					passDesc.domainProgram = GpuProgram::create(passData.commonCode + passData.domainCode, "main", 
-						metaData.language, GPT_DOMAIN_PROGRAM, getProfile(metaData.renderAPI, GPT_DOMAIN_PROGRAM));
+					desc.source = passData.commonCode + passData.domainCode;
+					desc.type = GPT_DOMAIN_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_DOMAIN_PROGRAM);
+
+					passDesc.domainProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.computeCode.empty())
 				{
-					passDesc.computeProgram = GpuProgram::create(passData.commonCode + passData.computeCode, "main", 
-						metaData.language, GPT_COMPUTE_PROGRAM, getProfile(metaData.renderAPI, GPT_COMPUTE_PROGRAM));
+					desc.source = passData.commonCode + passData.computeCode;
+					desc.type = GPT_COMPUTE_PROGRAM;
+					desc.profile = getProfile(metaData.renderAPI, GPT_COMPUTE_PROGRAM);
+
+					passDesc.computeProgram = GpuProgram::create(desc);
 				}
 
 				passDesc.stencilRefValue = passData.stencilRefValue;

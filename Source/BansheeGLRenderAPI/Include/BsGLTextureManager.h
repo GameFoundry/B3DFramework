@@ -29,9 +29,6 @@ namespace BansheeEngine
 		/** @copydoc TextureManager::createRenderTextureImpl */
 		SPtr<RenderTexture> createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
 
-		/** @copydoc TextureManager::createMultiRenderTextureImpl */
-		SPtr<MultiRenderTexture> createMultiRenderTextureImpl(const MULTI_RENDER_TEXTURE_DESC& desc) override;
-
         GLSupport& mGLSupport;
     };
 
@@ -43,15 +40,12 @@ namespace BansheeEngine
 
 	protected:		
 		/** @copydoc TextureCoreManager::createTextureInternal */
-		SPtr<TextureCore> createTextureInternal(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-			int numMips, PixelFormat format, int usage = TU_DEFAULT, bool hwGammaCorrection = false,
-			UINT32 multisampleCount = 0, UINT32 numArraySlices = 1, const SPtr<PixelData>& initialData = nullptr) override;
+		SPtr<TextureCore> createTextureInternal(const TEXTURE_DESC& desc,
+			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc TextureCoreManager::createRenderTextureInternal */
-		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_CORE_DESC& desc) override;
-
-		/** @copydoc TextureCoreManager::createMultiRenderTextureInternal */
-		SPtr<MultiRenderTextureCore> createMultiRenderTextureInternal(const MULTI_RENDER_TEXTURE_CORE_DESC& desc) override;
+		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		GLSupport& mGLSupport;
 	};

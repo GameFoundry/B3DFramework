@@ -16,7 +16,7 @@ namespace BansheeEngine
     class BS_RSGL_EXPORT GLIndexBufferCore : public IndexBufferCore
     {
     public:
-		GLIndexBufferCore(IndexType idxType, UINT32 numIndices, GpuBufferUsage usage);
+		GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 		~GLIndexBufferCore();
 
 		/** @copydoc IndexBufferCore::readData */
@@ -33,11 +33,11 @@ namespace BansheeEngine
 		/** @copydoc IndexBufferCore::initialize */
 		void initialize() override;	
 
-		/** @copydoc IndexBufferCore::lockImpl */
-		void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		/** @copydoc IndexBufferCore::map */
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc IndexBufferCore::unlockImpl */
-		void unlockImpl() override;
+		/** @copydoc IndexBufferCore::unmap */
+		void unmap() override;
 
 	private:
 		GLBuffer mBuffer;

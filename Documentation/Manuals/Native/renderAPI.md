@@ -8,18 +8,15 @@ For the remainder of this manual we'll focus on the core thread portion of the A
 
 Render API lets you manipulate the GPU pipeline by setting various states (depth stencil, blend and rasterizer), binding GPU programs, textures and executing draw calls. In this manual we'll cover how to use this API to perform rendering manually. 
 
-To render something using this API you need to:
+To render using this API you need to:
  - Create and bind a render target
   - Set up a viewport (if rendering to a part of a render target)
   - Clear render target (if we're re-using a render target)
- - Create and bind depth stencil, blend and/or rasterizer states (optionally)
- - Create and bind GPU programs
-   - Create and bind vertex/fragment GPU program
+ - Create and bind a pipeline state
+   - Create and bind vertex/fragment GPU programs
+   - Create and bind depth stencil, blend and/or rasterizer states (optionally)
    - Create and bind geometry/hull/domain GPU program (optionally)
- - Bind GPU program parameters (if any)
-  - Bind textures
-  - Bind samplers
-  - Bind parameter buffers (better known constant/uniform buffers)
+ - Bind GPU program parameters (textures, samplers, etc., if any)
  - Create and bind vertices
   - Create and bind the vertex declaration
   - Create and bind the vertex buffer
@@ -53,57 +50,99 @@ rapi.clearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White, 1.0f, 0);
 rapi.swapBuffers();
 ~~~~~~~~~~~~~
  
-# Pipeline states {#renderAPI_b}
-Before executing the drawing operation you can optionally set up depth-stencil, rasterizer or blend states. If you do not set them, the default values will be used. The states allow you to customize the execution of the fixed (non-programmable) part of the GPU pipeline.
+# Pipeline state {#renderAPI_b}
+Before executing the drawing operation you must set up an @ref BansheeEngine::GpuPipelineStateCore "GpuPipelineStateCore" object, which contains a set of fixed and programmable states that control primitive rendering. This includes GPU programs (e.g. vertex/fragment) and fixed states (depth-stencil, blend, rasterizer).
+
+To create a pipeline state you must fill out @ref BansheeEngine::PIPELINE_STATE_CORE_DESC "PIPELINE_STATE_CORE_DESC" descriptor, and use it to construct the state, like so:
+~~~~~~~~~~~~~{.cpp}
+PIPELINE_STATE_CORE_DESC desc;
+// Fixed states (see below on how to create them)
+desc.blendState = ...;
+desc.rasterizerState = ...;
+desc.depthStencilState = ...;
+
+// GPU programs (see below on how to create them)
+desc.vertexProgram = ...
+desc.fragmentProgram = ...;
+desc.geometryProgram = ...;
+desc.hullProgram = ...;
+desc.domainProgram = ...;
+
+SPtr<GpuPipelineStateCore> state = GpuPipelineStateCore::create(desc);
+~~~~~~~~~~~~~
+
+Once created the pipeline can be bound for rendering by calling @ref BansheeEngine::RenderAPICore::setGraphicsPipeline "RenderAPICore::setGraphicsPipeline".
+
+~~~~~~~~~~~~~{.cpp}
+// Bind pipeline for use (continued from above)
+
+RenderAPICore& rapi = RenderAPICore::instance();
+rapi.setGraphicsPipeline(state);
+~~~~~~~~~~~~~
+
+We continue below with explanation on how to create fixed and programmable states required to initialize GpuPipelineStateCore.
+
+## Fixed pipeline states {#renderAPI_b_a}
+Fixed pipeline states allow you to control (to some extent) non-programmable parts of the pipeline. This includes anything from blend operations, rasterization mode to depth testing. Setting these states is optional and if not set, default values will be used.
 
 States can be created by:
  - @ref BansheeEngine::DepthStencilStateCore "DepthStencilStateCore" - Populate @ref BansheeEngine::DEPTH_STENCIL_STATE_DESC "DEPTH_STENCIL_STATE_DESC" and call @ref BansheeEngine::DepthStencilStateCore::create "DepthStencilStateCore::create" 
  - @ref BansheeEngine::BlendStateCore "BlendStateCore" - Populate @ref BansheeEngine::BLEND_STATE_DESC "BLEND_STATE_DESC" and call @ref BansheeEngine::BlendStateCore::create "BlendStateCore::create" 
  - @ref BansheeEngine::RasterizerStateCore "RasterizerStateCore" - Populate @ref BansheeEngine::RASTERIZER_STATE_DESC "RASTERIZER_STATE_DESC" and call @ref BansheeEngine::RasterizerStateCore::create "RasterizerStateCore::create" 
  
-They can then be bound to the pipeline by calling:
- - @ref BansheeEngine::RenderAPICore::setDepthStencilState "RenderAPICore::setDepthStencilState" for @ref BansheeEngine::DepthStencilStateCore "DepthStencilStateCore"
- - @ref BansheeEngine::RenderAPICore::setBlendState "RenderAPICore::setBlendState" for @ref BansheeEngine::BlendStateCore "BlendStateCore".
- - @ref BansheeEngine::RenderAPICore::setRasterizerState "RenderAPICore::setRasterizerState" for @ref BansheeEngine::RasterizerStateCore "RasterizerStateCore".
+We won't explain what each of the states does. For that you can check out the class documentation of the states themselves, or familiarize yourself with the modern GPU pipeline in general, as the states mirror it exactly.
 
-We won't explain what each of the state's does. For that you can check out the class documentation of the states themselves, or familiarize yourself with the modern GPU pipeline in general, as the states mirror it exactly.
+## GPU programs {#renderAPI_b_b}
+The pipeline state also requires you to bind at least one GPU program (programmable state). At minimum you will need to bind a vertex program, while in most cases you will also need a fragment program. Optionally you can also bind geometry, hull or domain programs for more advanced functionality. To learn how to create GPU programs see [GPU program manual](@ref gpuPrograms).
 
-# GPU programs {#renderAPI_c}
-Before drawing you must bind at least a vertex and a fragment GPU program. Optionally you can also bind geometry, hull or domain programs. While pipeline states allow you to control the fixed portions of the pipeline, GPU programs are fully programmable. To learn how to create GPU programs read the [manual](@ref gpuPrograms).
+Most GPU programs also accept a number of parameters, whether textures, buffers, sampler states or primitive values like floats or integers. These parameters are accessed through @ref BansheeEngine::GpuParamsCore "GpuParamsCore" object. You can use this object to assign individual parameters and then bind the object to the render API using @ref BansheeEngine::RenderAPICore::setGpuParams "RenderAPICore::setGpuParams". See below for an example.
 
-You can bind a GPU program by calling @ref BansheeEngine::RenderAPICore::bindGpuProgram() "RenderAPICore::bindGpuProgram". You can also use @ref BansheeEngine::RenderAPICore::unbindGpuProgram() "RenderAPICore::unbindGpuProgram" to remove the GPU program from the pipeline, or @ref BansheeEngine::RenderAPICore::isGpuProgramBound() "RenderAPICore::isGpuProgramBound" to check if one is currently bound to a specific slot.
-
-For example:
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgramCore> fragmentProgram = ...;
-SPtr<GpuProgramCore> vertexProgram = ...;
+... assuming vertex/fragment programs are created ...
 
+GPU_PARAMS_DESC desc;
+desc.vertexParams = vertProgram->getParamDesc();
+desc.fragmentParams = fragProgram->getParamDesc();
+
+SPtr<GpuParamsCore> params = GpuParamsCore::create(desc);
+
+// Retrieve GPU param handles we can then read/write to
+GpuParamVec2Core myVectorParam;
+GpuParamTextureCore myTextureParam;
+
+params->getParam(GPT_FRAGMENT_PROGRAM, "myVector", myVectorParam); // Assuming "myVector" is the variable name in the program source code
+params->getTextureParam(GPT_FRAGMENT_PROGRAM, "myTexture", myTextureParam); // Assuming "myTexture" is the variable name in the program source code
+
+myVectorParam.set(Vector2(1, 2));
+myTextureParam.set(myTexture); // Assuming we created "myTexture" earlier.
+
+// Bind parameters for use 
 RenderAPICore& rapi = RenderAPICore::instance();
-rapi.bindGpuProgram(vertexProgram);
-rapi.bindGpuProgram(fragmentProgram);
-... execute some draw calls ...
-
+rapi.setGpuParams(params);
 ~~~~~~~~~~~~~
-
-With most GPU programs you will also likely want to customize their execution by assigning them some parameters.
-
-## GPU program parameters {#renderAPI_c_a}
-Most GPU programs also accept a number of parameters, whether textures, buffers, sampler states or primitive values like floats or integers. Parameters can be split into two categories:
- - Object - Textures, sampler states
- - Data - Float, int, bool (and their vectors and arrays)
  
-In order to find out which parameters does a certain GPU program expect, as well as their type and other information, read the [GPU program](@ref gpuPrograms) manual. 
- 
-### Object parameters {#renderAPI_c_a_a} 
-To assign a texture to a GPU program call @ref BansheeEngine::RenderAPICore::setTexture "RenderAPICore::setTexture". You will need to provide a GPU program type to assign the texture to, and a slot to bind the texture in. Each GPU program will provide a list of slots onto which you can bind textures in its parameter descriptor. 
+All parameters are bound by first retrieving their handles, and then using those handles for parameter access. In the example above we show how to bind a texture and a 2D vector to a GPU program. Same approach follows for all available parameter types.
 
-By default the texture will be bound for sampling. You can customize how is the texture sampled by creating a @ref BansheeEngine::SamplerStateCore "SamplerStateCore", by populating the @ref BansheeEngine::SAMPLER_STATE_DESC "SAMPLER_STATE_DESC" and calling @ref BansheeEngine::SamplerStateCore::create "SamplerStateCore::create". The state can then be bound to the pipeline by calling @ref BansheeEngine::RenderAPICore::setSamplerState "RenderAPICore::setSamplerState" which accepts similar parameters to @ref BansheeEngine::RenderAPICore::setTexture "RenderAPICore::setTexture".
+After the parameters are set, we bind them to the pipeline by calling @ref BansheeEngine::RenderAPICore::setGpuParams "RenderAPICore::setGpuParams".
 
-You can also bind a texture for both reading and writing by calling @ref BansheeEngine::RenderAPICore::setLoadStoreTexture "RenderAPICore::setLoadStoreTexture". Such textures are known as unordered-access (UAV) in DirectX, and load-store in OpenGL and are often used for compute operations (explained later). Be aware that the texture must have been created with the @ref BansheeEngine::TU_LOADSTORE "TU_LOADSTORE" flag in order to be bindable as a load-store texture. Load-store textures also cannot have multiple surfaces (i.e. faces or mip-maps) so you must choose which one to bind when calling @ref BansheeEngine::RenderAPICore::setLoadStoreTexture "RenderAPICore::setLoadStoreTexture".
- 
-To learn more about textures read the [texture](@ref textures) manual.
+### Data parameters {#renderAPI_c_a_a} 
+Handles for data parameters like int, float, 2D vector, etc. can be retrieved by calling @ref BansheeEngine::GpuParamsCore::getParam "GpuParamsCore::getParam" which can then be assigned to as shown above.
 
-An example binding a texture and its sampler state:
+Alternatively you may also assign entire blocks of data parameters by calling @ref BansheeEngine::GpuParamsCore::setParamBlockBuffer(GpuProgramType,const String&,const ParamsBufferType&) "GpuParamsCore::setParamBlockBuffer". When assigning entire blocks you must create and populate the @ref BansheeEngine::GpuParamBlockBuffer "GpuParamBlockBuffer" object manually.
+
+When writing to buffers manually you must ensure to write to offsets the GPU program expects the data to be at. You can find thise information from @ref BansheeEngine::GpuParamDesc "GpuParamDesc" structure accessible from @ref BansheeEngine::GpuProgramCore::getParamDesc "GpuProgramCore::getParamDesc". 
+
+### Texture parameters {#renderAPI_c_a_b} 
+Handles for texture parameters can be retrieved by calling @ref BansheeEngine::GpuParamsCore::getTextureParam "GpuParamsCore::getTextureParam", or @ref BansheeEngine::GpuParamsCore::getLoadStoreTextureParam "GpuParamsCore::getLoadStoreTextureParam" if the texture should be bound for load-store operations.
+
+Learn more about textures and their different types in the [texture manual](@ref textures).
+
+### Sampler state parameters {#renderAPI_c_a_c}
+Sampler states can be used to customize how is the texture sampled. You can retrieve a handle for a sampler state parameter by calling @ref BansheeEngine::GpuParamsCore::getSamplerStateParam "GpuParamsCore::getSamplerStateParam".
+
+Sampler states are represented by the @ref BansheeEngine::SamplerStateCore "SamplerStateCore" object, which you can create by populating the @ref BansheeEngine::SAMPLER_STATE_DESC "SAMPLER_STATE_DESC" and calling @ref BansheeEngine::SamplerStateCore::create "SamplerStateCore::create". 
+
+An example to create and bind a sampler state:
 ~~~~~~~~~~~~~{.cpp}
 
 // Use nearest neighbor filtering when sampling
@@ -113,41 +152,13 @@ ssDesc.minFilter = FO_POINT;
 ssDesc.mipFilter = FO_POINT;
 
 SPtr<SamplerStateCore> mySamplerState = SamplerStateCore::create(ssDesc);
-SPtr<TextureCore> myTexture = ...;
 
-RenderAPICore& rapi = RenderAPICore::instance();
+SPtr<GpuParamsCore> params = ...;
 
-... bind GPU program ...
+GpuParamSampStateCore mySamplerParam;
+params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "mySamplerState", mySamplerParam); // Assuming "mySamplerState" is the variable name in the program source code
 
-// Bind the texture and sampler state to the 0th slot of the currently bound fragment program
-rapi.setTexture(GPT_FRAGMENT_PROGRAM, 0, myTexture);
-rapi.setSamplerState(GPT_FRAGMENT_PROGRAM, 0, mySamplerState);
-
-... execute some draw calls ...
-
-~~~~~~~~~~~~~
-
-### Data parameters {#renderAPI_c_a_b}
-Data parameters are bound to calling @ref BansheeEngine::RenderAPICore::setParamBuffer "RenderAPICore::setParamBuffer". You can manually populate the parameter buffer with required values, but generally you should use either @ref BansheeEngine::GpuParamsCore "GpuParamsCore" or @ref BansheeEngine::MaterialCore "MaterialCore" to set the parameters and then retrieve the existing parameter buffer.
-
-Each buffer need to be bound to a specific slot, and these slots can be read from the @ref BansheeEngine::GpuParamDesc "GpuParamDesc" structure accessible from @ref BansheeEngine::GpuProgramCore::getParamDesc "GpuProgramCore::getParamDesc". [GPU program](@ref gpuPrograms) manual has more information about GPU parameters.
-
-Alternatively you can call @ref BansheeEngine::RendererUtility::setGpuParams "RendererUtility::setGpuParams" helper method which will bind both object and data parameters in the @ref BansheeEngine::GpuParamsCore "BansheeEngine::GpuParamsCore" object.
-
-You can also call @ref BansheeEngine::RendererUtility::setPassParams "RendererUtility::setPassParams" to bind parameters for all GPU programs in a specific @ref BansheeEngine::MaterialCore "MaterialCore" pass.
-
-For example:
-~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgramCore> program = ...;
-SPtr<GpuParamsCore> params = program->createParameters();
-
-... set param values ...
-... bind GPU program ...
-
-// Set all parameters for the currently bound fragment program
-gRendererUtility().setGpuParams(GPT_FRAGMENT_PROGRAM, params);
-
-... execute some draw calls ...
+mySamplerParam.set(mySamplerState);
 
 ~~~~~~~~~~~~~
 
@@ -227,18 +238,18 @@ If using an index buffer you should issue a @ref BansheeEngine::RenderAPICore::d
 And this wraps up the rendering pipeline. After this step your object should be rendered to your render target and ready to display. 
  
 # Compute {#renderAPI_g}
-The compute pipeline is a very simple pipeline that can be used for general purpose calculations. It is separate from the render pipeline we have been describing so far, but uses the same functionality, just in a more limited way. You don't have to set states, render targets, vertex/index buffers and only one GPU program type is supported (compute GPU program).
+The compute pipeline is a very simple pipeline that can be used for general purpose calculations. It is separate from the graphics pipeline we have been describing so far, but uses the same functionality, just in a more limited way. You don't have to set fixed states, render targets, vertex/index buffers and only one GPU program type is supported (compute GPU program).
 
-When the pipeline is set up you can execute it by calling @ref BansheeEngine::RenderAPICore::dispatchCompute "RenderAPICore::dispatchCompute". You should provide it a three dimensional number that determines how many instances of the currently bound GPU program to execute. The total number of executions will be X * Y * Z.
+Use @ref BansheeEngine::RenderAPICore::setComputePipeline "RenderAPICore::setComputePipeline" to initialize the pipeline. When the pipeline is set up you can execute it by calling @ref BansheeEngine::RenderAPICore::dispatchCompute "RenderAPICore::dispatchCompute". You should provide it a three dimensional number that determines how many instances of the currently bound GPU program to execute. The total number of executions will be X * Y * Z.
 
 Since compute pipeline doesn't support render targets, you will want to use load-store textures for output. An example of a simple compute pipeline:
 ~~~~~~~~~~~~~{.cpp}
 SPtr<GpuProgramCore> computeProgram = ...;
-SPtr<TextureCore> loadStoreTexture = ...;
+SPtr<GpuParamsCore> computeGpuParams = ...;
 
 RenderAPICore& rapi = RenderAPICore::instance();
-rapi.bindGpuProgram(computeProgram);
-rapi.setLoadStoreTexture(GPT_COMPUTE_PROGRAM, 0, true, loadStoreTexture, TextureSurface(0, 0));
+rapi.setComputePipeline(computeProgram);
+rapi.setGpuParams(computeGpuParams);
 rapi.dispatchCompute(512, 512);
 
 ... read from our texture to get the result ...
@@ -252,3 +263,29 @@ We won't go any deeper about the details of the compute pipeline as this informa
 Use @ref BansheeEngine::RenderAPI::getAPIInfo "RenderAPI::getAPIInfo" to receive the @ref BansheeEngine::RenderAPIInfo "RenderAPIInfo" containing such information, so you may modify your rendering accordingly. 
 
 For convenience a specialized @ref BansheeEngine::RenderAPI::convertProjectionMatrix "RenderAPI::convertProjectionMatrix" method is also provided, which converts a generic engine projection matrix, into a render API specific one.
+
+# Command buffers {#renderAPI_i}
+Almost all @ref BansheeEngine::RenderAPICore "RenderAPICore" commands we talked about so far support @ref BansheeEngine::CommandBuffer "CommandBuffer"s. Command buffers are optional, but they allow the rendering commands to be generated from threads other than the core thread.
+
+To create a command buffer call @ref BansheeEngine::CommandBuffer::create "CommandBuffer::create" after which provide it to the relevant @ref BansheeEngine::RenderAPICore "RenderAPICore" calls. Those commands will get recorded in the command buffer, but not executed. To actually execute the commands call @ref BansheeEngine::RenderAPICore::executeCommands "RenderAPICore::executeCommands".
+
+This allows rendering to be faster since work can be distributed over multiple CPU cores. Note that only command queuing can happen on a separate thread, command buffer creation and execution must still happen on the core thread.
+
+Command buffer example:
+~~~~~~~~~~~~~{.cpp}
+// Core thread
+SPtr<CommandBuffer> cmdBuffer = CommandBuffer::create(CBT_COMPUTE);
+SPtr<GpuProgramCore> computeProgram = ...;
+SPtr<GpuParamsCore> computeGpuParams = ...;
+
+... queue up worker thread(s) ...
+
+// Worker thread
+RenderAPICore& rapi = RenderAPICore::instance();
+rapi.setComputePipeline(computeProgram, cmdBuffer);
+rapi.setGpuParams(computeGpuParams, cmdBuffer);
+rapi.dispatchCompute(512, 512, cmdBuffer);
+
+// Core thread
+rapi.executeCommands(cmdBuffer);
+~~~~~~~~~~~~~

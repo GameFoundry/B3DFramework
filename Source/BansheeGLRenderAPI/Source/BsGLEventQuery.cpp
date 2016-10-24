@@ -5,9 +5,11 @@
 
 namespace BansheeEngine
 {
-	GLEventQuery::GLEventQuery()
+	GLEventQuery::GLEventQuery(UINT32 deviceIdx)
 		:mQueryObj(0)
 	{
+		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+
 		glGenQueries(1, &mQueryObj);
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 	}

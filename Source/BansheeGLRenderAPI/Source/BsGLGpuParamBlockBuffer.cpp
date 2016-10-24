@@ -6,9 +6,10 @@
 
 namespace BansheeEngine
 {
-	GLGpuParamBlockBufferCore::GLGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage)
-		:GpuParamBlockBufferCore(size, usage), mGLHandle(0)
+	GLGpuParamBlockBufferCore::GLGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
+		:GpuParamBlockBufferCore(size, usage, deviceMask), mGLHandle(0)
 	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 	}
 
 	GLGpuParamBlockBufferCore::~GLGpuParamBlockBufferCore()

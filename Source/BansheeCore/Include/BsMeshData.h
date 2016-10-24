@@ -7,7 +7,6 @@
 #include "BsVertexBuffer.h"
 #include "BsIndexBuffer.h"
 #include "BsVertexDeclaration.h"
-#include "BsDrawOps.h"
 #include "BsSubMesh.h"
 #include "BsBounds.h"
 

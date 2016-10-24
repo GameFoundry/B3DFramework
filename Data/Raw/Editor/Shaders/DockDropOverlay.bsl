@@ -3,9 +3,9 @@ Parameters =
 	float	invViewportWidth;
 	float	invViewportHeight;
 	
-	float4		tintColor;
-	float4		highlightColor;
-	float4		highlightActive;
+	color		tintColor;
+	color		highlightColor;
+	color		highlightActive;
 };
 
 Technique =

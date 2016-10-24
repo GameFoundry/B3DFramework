@@ -125,15 +125,14 @@ namespace BansheeEngine
 		{
 			mParams[i] = mat->createParamsSet(i);
 
-			SPtr<GpuParamsCore> vertParams = mParams[i]->getGpuParams(GPT_VERTEX_PROGRAM);
-			vertParams->getParam("matWorldViewProj", mMatWorldViewProj[i]);
+			SPtr<GpuParamsCore> params = mParams[i]->getGpuParams();
+			params->getParam(GPT_VERTEX_PROGRAM, "matWorldViewProj", mMatWorldViewProj[i]);
 
 			RenderableAnimType animType = (RenderableAnimType)i;
 			if(animType == RenderableAnimType::Skinned || animType == RenderableAnimType::SkinnedMorph)
-				vertParams->getBufferParam("boneMatrices", mBoneMatrices[i]);
+				params->getBufferParam(GPT_VERTEX_PROGRAM, "boneMatrices", mBoneMatrices[i]);
 
-			SPtr<GpuParamsCore> fragParams = mParams[i]->getGpuParams(GPT_FRAGMENT_PROGRAM);
-			fragParams->getParam("selColor", mColor[i]);
+			params->getParam(GPT_FRAGMENT_PROGRAM, "selColor", mColor[i]);
 		}
 	}
 

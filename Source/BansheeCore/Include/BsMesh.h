@@ -6,7 +6,6 @@
 #include "BsMeshBase.h"
 #include "BsMeshData.h"
 #include "BsVertexData.h"
-#include "BsDrawOps.h"
 #include "BsSubMesh.h"
 #include "BsBounds.h"
 
@@ -283,7 +282,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT MeshCore : public MeshCoreBase
 	{
 	public:
-		MeshCore(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc);
+		MeshCore(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask);
 
 		~MeshCore();
 
@@ -342,16 +341,19 @@ namespace BansheeEngine
 		 *								option is a triangle list, where three indices represent a single triangle.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		static SPtr<MeshCore> create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
-			int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+			int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
 		 * Creates a new empty mesh. 
 		 *
-		 * @param[in]	desc	Descriptor containing the properties of the mesh to create.
+		 * @param[in]	desc			Descriptor containing the properties of the mesh to create.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		static SPtr<MeshCore> create(const MESH_DESC& desc);
+		static SPtr<MeshCore> create(const MESH_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -361,8 +363,10 @@ namespace BansheeEngine
 		 * @param[in]	desc			Descriptor containing the properties of the mesh to create. Vertex and index count,
 		 *								vertex descriptor and index type properties are ignored and are read from provided
 		 *								mesh data instead.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, const MESH_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -372,9 +376,10 @@ namespace BansheeEngine
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default 
 		 *								option is a triangle strip, where three indices represent a single triangle.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		static SPtr<MeshCore> create(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
-			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+			DrawOperationType drawOp = DOT_TRIANGLE_LIST, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class Mesh;
@@ -388,6 +393,7 @@ namespace BansheeEngine
 		SPtr<VertexDataDesc> mVertexDesc;
 		int mUsage;
 		IndexType mIndexType;
+		GpuDeviceFlags mDeviceMask;
 		SPtr<MeshData> mTempInitialMeshData;
 		SPtr<Skeleton> mSkeleton; // Immutable
 		SPtr<MorphShapes> mMorphShapes; // Immutable

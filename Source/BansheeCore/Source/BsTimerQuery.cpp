@@ -5,8 +5,8 @@
 
 namespace BansheeEngine
 {
-	SPtr<TimerQuery> TimerQuery::create()
+	SPtr<TimerQuery> TimerQuery::create(UINT32 deviceIdx)
 	{
-		return QueryManager::instance().createTimerQuery();
+		return QueryManager::instance().createTimerQuery(deviceIdx);
 	}
 }

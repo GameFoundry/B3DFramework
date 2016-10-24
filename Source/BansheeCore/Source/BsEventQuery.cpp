@@ -5,8 +5,8 @@
 
 namespace BansheeEngine
 {
-	SPtr<EventQuery> EventQuery::create()
+	SPtr<EventQuery> EventQuery::create(UINT32 deviceIdx)
 	{
-		return QueryManager::instance().createEventQuery();
+		return QueryManager::instance().createEventQuery(deviceIdx);
 	}
 }

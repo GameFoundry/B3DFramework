@@ -12,11 +12,15 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	template<bool Core> struct TGpuParamsType { };
+	template<> struct TGpuParamsType<false> { typedef GpuParams Type; };
+	template<> struct TGpuParamsType<true> { typedef GpuParamsCore Type; };
+
 	/** Contains a set of GpuParams used for a single technique within a Material. */
 	template<bool Core>
 	class BS_CORE_EXPORT TGpuParamsSet
 	{
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
+		typedef typename TGpuParamsType<Core>::Type GpuParamsType;
 		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
 		typedef typename TGpuParamBlockBufferPtrType<Core>::Type ParamBlockPtrType;
 		typedef typename TTechniqueType<Core>::Type TechniqueType;
@@ -27,17 +31,6 @@ namespace BansheeEngine
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
-
-		/** Contains all parameters for a single pass. */
-		struct PassParams
-		{
-			GpuParamsType vertex;
-			GpuParamsType fragment;
-			GpuParamsType geometry;
-			GpuParamsType hull;
-			GpuParamsType domain;
-			GpuParamsType compute;
-		};
 
 		/** Information about a parameter block buffer. */
 		struct BlockInfo
@@ -66,6 +59,7 @@ namespace BansheeEngine
 		{
 			UINT32 paramIdx;
 			UINT32 slotIdx;
+			UINT32 setIdx;
 		};
 
 		/** Information about all object parameters for a specific GPU programmable stage. */
@@ -93,53 +87,14 @@ namespace BansheeEngine
 			const SPtr<MaterialParamsType>& params);
 		~TGpuParamsSet();
 
-		/**
-		 * Returns a GPU parameters for a specific shader stage and pass.
-		 *
-		 * @param[in]	stageidx	Sequential index of the shader stage to retrieve the parameters for.
-		 * @param[in]	passIdx		Pass for which to retrieve the parameters for.
-		 * @return					GPU parameters object that can be used for setting parameters of a GPU program 
-		 *							individually.
-		 *
-		 * @note	Useful when needing to iterate over all sets of GPU parameters.
-		 */
-		GpuParamsType getParamByIdx(UINT32 stageidx, UINT32 passIdx = 0)
-		{
-			GpuParamsType* paramArray[] = { &mPassParams[passIdx].vertex, &mPassParams[passIdx].fragment,
-				&mPassParams[passIdx].geometry, &mPassParams[passIdx].hull, &mPassParams[passIdx].domain, 
-				&mPassParams[passIdx].compute };
-
-			return *paramArray[stageidx];
-		}
-
-		/**
-		 * Sets GPU parameters for a specific shader stage and pass.
-		 *
-		 * @param[in]	stageidx	Sequential index of the shader stage to set the parameters for.
-		 * @param[in]	params		GPU parameters object to assign.
-		 * @param[in]	passIdx		Pass for which to set the parameters for.
-		 *
-		 * @note	Useful when needing to iterate over all sets of GPU parameters.
-		 */
-		void setParamByIdx(UINT32 stageidx, const GpuParamsType& params, UINT32 passIdx = 0)
-		{
-			GpuParamsType* paramArray[] = { &mPassParams[passIdx].vertex, &mPassParams[passIdx].fragment,
-				&mPassParams[passIdx].geometry, &mPassParams[passIdx].hull, &mPassParams[passIdx].domain,
-				&mPassParams[passIdx].compute };
-
-			(*paramArray[stageidx]) = params;
-		}
-
 		/** 
-		 * Returns a set of GPU parameters for an individual GPU program of the specified pass. 
+		 * Returns a set of GPU parameters for the specified pass. 
 		 *
-		 * @param[in]	type		Type of the program to retrieve parameters for.
 		 * @param[in]	passIdx		Pass in which to look the GPU program for in.
-		 * @return					GPU parameters object that can be used for setting parameters of a GPU program 
-		 *							individually. Returns null if program or pass doesn't exist.
+		 * @return					GPU parameters object that can be used for setting parameters of all GPU programs 
+		 *							in a pass. Returns null if pass doesn't exist.
 		 */
-		GpuParamsType getGpuParams(GpuProgramType type, UINT32 passIdx = 0);
-
+		SPtr<GpuParamsType> getGpuParams(UINT32 passIdx = 0);
 
 		/**
 		 * Assign a parameter block buffer with the specified name to all the relevant child GpuParams.
@@ -177,7 +132,7 @@ namespace BansheeEngine
 	private:
 		template<bool Core2> friend class TMaterial;
 
-		Vector<PassParams> mPassParams;
+		Vector<SPtr<GpuParamsType>> mPassParams;
 		Vector<BlockInfo> mBlocks;
 		Vector<DataParamInfo> mDataParamInfos;
 		PassParamInfo* mPassParamInfos;

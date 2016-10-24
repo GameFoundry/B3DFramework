@@ -34,10 +34,10 @@ set_property(CACHE INPUT_MODULE PROPERTY STRINGS OIS)
 
 if(WIN32)
 set(RENDER_API_MODULE "DirectX 11" CACHE STRING "Render API to use.")
-set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "DirectX 11" "OpenGL")
+set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "DirectX 11" "OpenGL" "Vulkan")
 else()
 set(RENDER_API_MODULE "OpenGL" CACHE STRING "Render API to use.")
-set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "OpenGL")
+set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "OpenGL" "Vulkan")
 endif()
 
 set(RENDERER_MODULE "RenderBeast" CACHE STRING "Renderer backend to use.")
@@ -53,8 +53,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
 # Global compile & linker flags
 ## Compiler-agnostic settings
-### Target at least C++11
-set(CMAKE_CXX_STANDARD 11)
+### Target at least C++14
+set(CMAKE_CXX_STANDARD 14)
 ## Compiler-specific settings
 if(MSVC)
 	# Linker
@@ -101,12 +101,14 @@ if(MSVC)
 	
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	# Note: Optionally add -ffunction-sections, -fdata-sections, but with linker option --gc-sections
+	# TODO: Use link-time optimization -flto. Might require non-default linker.
 	set(BS_COMPILER_FLAGS_COMMON "-fpic -fno-exceptions -fno-strict-aliasing -fno-rtti -fno-ms-compatibility -fms-extensions")
 	
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} -g -O0")
 	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} -gline-tables-only -O2")
 	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} -g0 -O2")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# TODO: Use link-time optimization -flto. Might require non-default linker.
 	set(BS_COMPILER_FLAGS_COMMON "-fpic -fno-exceptions -fno-strict-aliasing -fno-rtti")
 	
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} -g -O0")
@@ -165,9 +167,21 @@ function(add_library_per_config_multi target_name lib_name file_name release_nam
 	target_link_libraries(${target_name} PRIVATE ${lib_name})	
 endfunction()
 
+function(add_package_library target_name lib_name)
+	add_library(${lib_name} STATIC IMPORTED)
+
+	set_target_properties(${lib_name} PROPERTIES IMPORTED_LOCATION_DEBUG "${${lib_name}_LIBRARIES_DEBUG}")
+	set_target_properties(${lib_name} PROPERTIES IMPORTED_LOCATION_OPTIMIZEDDEBUG "${${lib_name}_LIBRARIES_DEBUG}")
+	set_target_properties(${lib_name} PROPERTIES IMPORTED_LOCATION_RELEASE "${${lib_name}_LIBRARIES_OPTIMIZED}")	
+
+	target_link_libraries(${target_name} PRIVATE ${lib_name})	
+endfunction()
+
 function(add_engine_dependencies target_name)
 	if(RENDER_API_MODULE MATCHES "DirectX 11")
 		add_dependencies(${target_name} BansheeD3D11RenderAPI)
+	elseif(RENDER_API_MODULE MATCHES "Vulkan")
+		add_dependencies(${target_name} BansheeVulkanRenderAPI)
 	else()
 		add_dependencies(${target_name} BansheeGLRenderAPI)
 	endif()
@@ -198,11 +212,14 @@ endif()
 if(INCLUDE_ALL_IN_WORKFLOW AND MSVC)
 	add_subdirectory(BansheeD3D11RenderAPI)
 	add_subdirectory(BansheeGLRenderAPI)
+	add_subdirectory(BansheeVulkanRenderAPI)
 	add_subdirectory(BansheeFMOD)
 	add_subdirectory(BansheeOpenAudio)
 else() # Otherwise include only chosen ones
 	if(RENDER_API_MODULE MATCHES "DirectX 11")
 		add_subdirectory(BansheeD3D11RenderAPI)
+	elseif(RENDER_API_MODULE MATCHES "Vulkan")
+		add_subdirectory(BansheeVulkanRenderAPI)
 	else()
 		add_subdirectory(BansheeGLRenderAPI)
 	endif()
@@ -226,7 +243,7 @@ add_subdirectory(BansheeSL)
 ## Script interop
 add_subdirectory(SBansheeEngine)
 
-if(BUILD_EDITOR OR MSVC)
+if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 	add_subdirectory(SBansheeEditor)
 endif()
 
@@ -234,7 +251,7 @@ endif()
 add_subdirectory(Game)
 add_subdirectory(ExampleProject)
 
-if(BUILD_EDITOR OR MSVC)
+if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 	add_subdirectory(BansheeEditorExec)
 endif()
 
@@ -259,6 +276,8 @@ endif()
 ## Set names of libraries used in the config file
 if(RENDER_API_MODULE MATCHES "DirectX 11")
 	set(RENDER_API_MODULE_LIB BansheeD3D11RenderAPI)
+elseif(RENDER_API_MODULE MATCHES "Vulkan")
+	set(RENDER_API_MODULE_LIB BansheeVulkanRenderAPI)
 else()
 	set(RENDER_API_MODULE_LIB BansheeGLRenderAPI)
 endif()

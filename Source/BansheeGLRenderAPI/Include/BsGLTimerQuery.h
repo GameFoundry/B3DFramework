@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_RSGL_EXPORT GLTimerQuery : public TimerQuery
 	{
 	public:
-		GLTimerQuery();
+		GLTimerQuery(UINT32 deviceIdx);
 		~GLTimerQuery();
 
 		/** @copydoc TimerQuery::begin */

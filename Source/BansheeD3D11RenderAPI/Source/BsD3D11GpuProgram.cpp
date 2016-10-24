@@ -16,12 +16,11 @@ namespace BansheeEngine
 {
 	UINT32 D3D11GpuProgramCore::GlobalProgramId = 0;
 
-	D3D11GpuProgramCore::D3D11GpuProgramCore(const String& source, const String& entryPoint, GpuProgramType gptype,
-		GpuProgramProfile profile, bool isAdjacencyInfoRequired)
-		: GpuProgramCore(source, entryPoint, gptype, profile, isAdjacencyInfoRequired),
+	D3D11GpuProgramCore::D3D11GpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: GpuProgramCore(desc, deviceMask),
 		mEnableBackwardsCompatibility(false), mProgramId(0)
 	{
-
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
 	D3D11GpuProgramCore::~D3D11GpuProgramCore()
@@ -43,8 +42,8 @@ namespace BansheeEngine
 			return;
 		}
 
-		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPICore::instancePtr());
-		String hlslProfile = rs->getCapabilities()->gpuProgProfileToRSSpecificProfile(mProperties.getProfile());
+		D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(RenderAPICore::instancePtr());
+		String hlslProfile = rapi->getCapabilities().gpuProgProfileToRSSpecificProfile(mProperties.getProfile());
 
 		ID3DBlob* microcode = compileMicrocode(hlslProfile);
 
@@ -54,7 +53,7 @@ namespace BansheeEngine
 			memcpy(&mMicrocode[0], microcode->GetBufferPointer(), microcode->GetBufferSize());
 
 			populateParametersAndConstants(microcode);
-			loadFromMicrocode(rs->getPrimaryDevice(), microcode);
+			loadFromMicrocode(rapi->getPrimaryDevice(), microcode);
 
 			SAFE_RELEASE(microcode);
 		}
@@ -156,20 +155,18 @@ namespace BansheeEngine
 		if (mProperties.getType() == GPT_VERTEX_PROGRAM)
 		{
 			List<VertexElement> inputParams;
-			parser.parse(microcode, *mParametersDesc, &inputParams);
+			parser.parse(microcode, mProperties.getType(), *mParametersDesc, &inputParams);
 
 			mInputDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(inputParams);
 		}
 		else
 		{
-			parser.parse(microcode, *mParametersDesc, nullptr);
+			parser.parse(microcode, mProperties.getType(), *mParametersDesc, nullptr);
 		}
 	}
 
-	D3D11GpuVertexProgramCore::D3D11GpuVertexProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_VERTEX_PROGRAM, profile, false)
-		, mVertexShader(nullptr)
+	D3D11GpuVertexProgramCore::D3D11GpuVertexProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mVertexShader(nullptr)
 	{ }
 
 	D3D11GpuVertexProgramCore::~D3D11GpuVertexProgramCore()
@@ -197,10 +194,8 @@ namespace BansheeEngine
 		return mVertexShader;
 	}
 
-	D3D11GpuFragmentProgramCore::D3D11GpuFragmentProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_FRAGMENT_PROGRAM, profile, false)
-		, mPixelShader(nullptr)
+	D3D11GpuFragmentProgramCore::D3D11GpuFragmentProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mPixelShader(nullptr)
 	{ }
 
 	D3D11GpuFragmentProgramCore::~D3D11GpuFragmentProgramCore()
@@ -228,10 +223,8 @@ namespace BansheeEngine
 	}
 
 
-	D3D11GpuGeometryProgramCore::D3D11GpuGeometryProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile, bool isAdjacencyInfoRequired)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_GEOMETRY_PROGRAM, profile, isAdjacencyInfoRequired)
-		, mGeometryShader(nullptr)
+	D3D11GpuGeometryProgramCore::D3D11GpuGeometryProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mGeometryShader(nullptr)
 	{ }
 
 	D3D11GpuGeometryProgramCore::~D3D11GpuGeometryProgramCore()
@@ -258,10 +251,8 @@ namespace BansheeEngine
 		return mGeometryShader;
 	}
 
-	D3D11GpuDomainProgramCore::D3D11GpuDomainProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_DOMAIN_PROGRAM, profile, false)
-		, mDomainShader(nullptr)
+	D3D11GpuDomainProgramCore::D3D11GpuDomainProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mDomainShader(nullptr)
 	{ }
 
 	D3D11GpuDomainProgramCore::~D3D11GpuDomainProgramCore()
@@ -288,10 +279,8 @@ namespace BansheeEngine
 		return mDomainShader;
 	}
 
-	D3D11GpuHullProgramCore::D3D11GpuHullProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_HULL_PROGRAM, profile, false)
-		, mHullShader(nullptr)
+	D3D11GpuHullProgramCore::D3D11GpuHullProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mHullShader(nullptr)
 	{ }
 
 	D3D11GpuHullProgramCore::~D3D11GpuHullProgramCore()
@@ -320,10 +309,8 @@ namespace BansheeEngine
 	}
 
 
-	D3D11GpuComputeProgramCore::D3D11GpuComputeProgramCore(const String& source, const String& entryPoint,
-		GpuProgramProfile profile)
-		: D3D11GpuProgramCore(source, entryPoint, GPT_COMPUTE_PROGRAM, profile, false)
-		, mComputeShader(nullptr)
+	D3D11GpuComputeProgramCore::D3D11GpuComputeProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		: D3D11GpuProgramCore(desc, deviceMask), mComputeShader(nullptr)
 	{ }
 
 	D3D11GpuComputeProgramCore::~D3D11GpuComputeProgramCore()

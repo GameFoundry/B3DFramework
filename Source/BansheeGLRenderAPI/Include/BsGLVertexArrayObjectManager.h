@@ -64,7 +64,7 @@ namespace BansheeEngine
 		 * Lifetime of returned VAO is managed by the vertex buffers that it binds.
 		 */
 		const GLVertexArrayObject& getVAO(const SPtr<GLSLGpuProgramCore>& vertexProgram,
-			const SPtr<VertexDeclarationCore>& vertexDecl, const Vector<SPtr<VertexBufferCore>>& boundBuffers);
+			const SPtr<VertexDeclarationCore>& vertexDecl, const std::array<SPtr<VertexBufferCore>, 32>& boundBuffers);
 
 		/**	Called when a vertex buffer containing the provided VAO is destroyed. */
 		void notifyBufferDestroyed(GLVertexArrayObject vao);

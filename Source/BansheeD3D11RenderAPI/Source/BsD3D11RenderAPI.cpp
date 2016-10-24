@@ -30,18 +30,15 @@
 #include "BsRenderStats.h"
 #include "BsGpuParamDesc.h"
 #include "BsD3D11GpuBuffer.h"
+#include "BsD3D11CommandBuffer.h"
 
 namespace BansheeEngine
 {
 	D3D11RenderAPI::D3D11RenderAPI()
-		: mDXGIFactory(nullptr), mDevice(nullptr), mDriverList(nullptr)
-		, mActiveD3DDriver(nullptr), mFeatureLevel(D3D_FEATURE_LEVEL_11_0)
-		, mHLSLFactory(nullptr), mIAManager(nullptr)
-		, mStencilRef(0), mActiveDrawOp(DOT_TRIANGLE_LIST)
-		, mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
-	{
-		mClipPlanesDirty = false; // DX11 handles clip planes through shaders
-	}
+		: mDXGIFactory(nullptr), mDevice(nullptr), mDriverList(nullptr), mActiveD3DDriver(nullptr)
+		, mFeatureLevel(D3D_FEATURE_LEVEL_11_0), mHLSLFactory(nullptr), mIAManager(nullptr), mStencilRef(0)
+		, mActiveDrawOp(DOT_TRIANGLE_LIST), mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
+	{ }
 
 	D3D11RenderAPI::~D3D11RenderAPI()
 	{
@@ -60,7 +57,7 @@ namespace BansheeEngine
 		return strName;
 	}
 
-	void D3D11RenderAPI::initializePrepare()
+	void D3D11RenderAPI::initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -135,16 +132,16 @@ namespace BansheeEngine
 
 		mIAManager = bs_new<D3D11InputLayoutManager>();
 
-		RenderAPICore::initializePrepare();
+		RenderAPICore::initialize();
 	}
 
-	void D3D11RenderAPI::initializeFinalize(const SPtr<RenderWindowCore>& primaryWindow)
+	void D3D11RenderAPI::initializeWithWindow(const SPtr<RenderWindowCore>& primaryWindow)
 	{
 		D3D11RenderUtility::startUp(mDevice);
 
 		QueryManager::startUp<D3D11QueryManager>();
 
-		RenderAPICore::initializeFinalize(primaryWindow);
+		RenderAPICore::initializeWithWindow(primaryWindow);
 	}
 
     void D3D11RenderAPI::destroyCore()
@@ -189,6 +186,7 @@ namespace BansheeEngine
 		mActiveVertexDeclaration = nullptr;
 		mActiveVertexShader = nullptr;
 		mActiveRenderTarget = nullptr;
+		mActiveDepthStencilState = nullptr;
 
 		RenderStateCoreManager::shutDown();
 		RenderWindowCoreManager::shutDown();
@@ -217,244 +215,900 @@ namespace BansheeEngine
 		RenderAPICore::destroyCore();
 	}
 
-	void D3D11RenderAPI::setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState)
+	void D3D11RenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// TODO - I'm setting up views one by one, it might be more efficient to hold them in an array
-		//  and then set them all up at once before rendering? Needs testing
-
-		ID3D11SamplerState* samplerArray[1];
-		D3D11SamplerStateCore* d3d11SamplerState = static_cast<D3D11SamplerStateCore*>(const_cast<SamplerStateCore*>(samplerState.get()));
-		samplerArray[0] = d3d11SamplerState->getInternal();
-
-		switch(gptype)
+		auto executeRef = [&](const SPtr<GpuPipelineStateCore>& pipelineState)
 		{
-		case GPT_VERTEX_PROGRAM:
-			mDevice->getImmediateContext()->VSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mDevice->getImmediateContext()->PSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mDevice->getImmediateContext()->GSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDevice->getImmediateContext()->DSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		case GPT_HULL_PROGRAM:
-			mDevice->getImmediateContext()->HSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		case GPT_COMPUTE_PROGRAM:
-			mDevice->getImmediateContext()->CSSetSamplers(texUnit, 1, samplerArray);
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-		}
+			THROW_IF_NOT_CORE_THREAD;
 
-		BS_INC_RENDER_STAT(NumSamplerBinds);
-	}
+			D3D11BlendStateCore* d3d11BlendState;
+			D3D11RasterizerStateCore* d3d11RasterizerState;
 
-	void D3D11RenderAPI::setBlendState(const SPtr<BlendStateCore>& blendState)
-	{
-		THROW_IF_NOT_CORE_THREAD;
+			D3D11GpuFragmentProgramCore* d3d11FragmentProgram;
+			D3D11GpuGeometryProgramCore* d3d11GeometryProgram;
+			D3D11GpuDomainProgramCore* d3d11DomainProgram;
+			D3D11GpuHullProgramCore* d3d11HullProgram;
 
-		D3D11BlendStateCore* d3d11BlendState = static_cast<D3D11BlendStateCore*>(const_cast<BlendStateCore*>(blendState.get()));
-		mDevice->getImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
-
-		BS_INC_RENDER_STAT(NumBlendStateChanges);
-	}
-
-	void D3D11RenderAPI::setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		D3D11RasterizerStateCore* d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(const_cast<RasterizerStateCore*>(rasterizerState.get()));
-		mDevice->getImmediateContext()->RSSetState(d3d11RasterizerState->getInternal());
-
-		BS_INC_RENDER_STAT(NumRasterizerStateChanges);
-	}
-
-	void D3D11RenderAPI::setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		D3D11DepthStencilStateCore* d3d11RasterizerState = static_cast<D3D11DepthStencilStateCore*>(const_cast<DepthStencilStateCore*>(depthStencilState.get()));
-		mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11RasterizerState->getInternal(), stencilRefValue);
-
-		BS_INC_RENDER_STAT(NumDepthStencilStateChanges);
-	}
-
-	void D3D11RenderAPI::setTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		// TODO - I'm setting up views one by one, it might be more efficient to hold them in an array
-		//  and then set them all up at once before rendering? Needs testing
-
-		ID3D11ShaderResourceView* viewArray[1];
-		if(texPtr != nullptr)
-		{
-			D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texPtr.get());
-			viewArray[0] = d3d11Texture->getSRV();
-		}
-		else
-			viewArray[0] = nullptr;
-
-		switch(gptype)
-		{
-		case GPT_VERTEX_PROGRAM:
-			mDevice->getImmediateContext()->VSSetShaderResources(unit, 1, viewArray);
-			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mDevice->getImmediateContext()->PSSetShaderResources(unit, 1, viewArray);
-			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mDevice->getImmediateContext()->GSSetShaderResources(unit, 1, viewArray);
-			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDevice->getImmediateContext()->DSSetShaderResources(unit, 1, viewArray);
-			break;
-		case GPT_HULL_PROGRAM:
-			mDevice->getImmediateContext()->HSSetShaderResources(unit, 1, viewArray);
-			break;
-		case GPT_COMPUTE_PROGRAM:
-			mDevice->getImmediateContext()->CSSetShaderResources(unit, 1, viewArray);
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-		}
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	void D3D11RenderAPI::setLoadStoreTexture(GpuProgramType gptype, UINT16 unit, const SPtr<TextureCore>& texPtr,
-		const TextureSurface& surface)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		ID3D11UnorderedAccessView* viewArray[1];
-		if (texPtr != nullptr)
-		{
-			D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texPtr.get());
-			SPtr<TextureView> texView = TextureCore::requestView(texPtr, surface.mipLevel, 1, 
-				surface.arraySlice, surface.numArraySlices, GVU_RANDOMWRITE);
-
-			D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
-			viewArray[0] = d3d11texView->getUAV();
-
-			if (mBoundUAVs[unit].second != nullptr)
-				mBoundUAVs[unit].first->releaseView(mBoundUAVs[unit].second);
-
-			mBoundUAVs[unit] = std::make_pair(texPtr, texView);
-		}
-		else
-		{
-			viewArray[0] = nullptr;
-
-			if (mBoundUAVs[unit].second != nullptr)
-				mBoundUAVs[unit].first->releaseView(mBoundUAVs[unit].second);
-
-			mBoundUAVs[unit] = std::pair<SPtr<TextureCore>, SPtr<TextureView>>();
-		}
-
-		if (gptype == GPT_FRAGMENT_PROGRAM)
-		{
-			mDevice->getImmediateContext()->OMSetRenderTargetsAndUnorderedAccessViews(
-				D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, unit, 1, viewArray, nullptr);
-		}
-		else if (gptype == GPT_COMPUTE_PROGRAM)
-		{
-			mDevice->getImmediateContext()->CSSetUnorderedAccessViews(unit, 1, viewArray, nullptr);
-		}
-		else
-			LOGERR("Unsupported gpu program type: " + toString(gptype));
-
-		BS_INC_RENDER_STAT(NumTextureBinds);
-	}
-
-	void D3D11RenderAPI::setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, bool loadStore)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if(!loadStore)
-		{
-			ID3D11ShaderResourceView* viewArray[1];
-			if (buffer != nullptr)
+			if(pipelineState != nullptr)
 			{
-				D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
-				viewArray[0] = d3d11buffer->getSRV();
+				d3d11BlendState = static_cast<D3D11BlendStateCore*>(pipelineState->getBlendState().get());
+				d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(pipelineState->getRasterizerState().get());
+				mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(pipelineState->getDepthStencilState());
+
+				mActiveVertexShader = std::static_pointer_cast<D3D11GpuVertexProgramCore>(pipelineState->getVertexProgram());
+				d3d11FragmentProgram = static_cast<D3D11GpuFragmentProgramCore*>(pipelineState->getFragmentProgram().get());
+				d3d11GeometryProgram = static_cast<D3D11GpuGeometryProgramCore*>(pipelineState->getGeometryProgram().get());
+				d3d11DomainProgram = static_cast<D3D11GpuDomainProgramCore*>(pipelineState->getDomainProgram().get());
+				d3d11HullProgram = static_cast<D3D11GpuHullProgramCore*>(pipelineState->getHullProgram().get());
+
+				if (d3d11BlendState == nullptr)
+					d3d11BlendState = static_cast<D3D11BlendStateCore*>(BlendStateCore::getDefault().get());
+
+				if (d3d11RasterizerState == nullptr)
+					d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(RasterizerStateCore::getDefault().get());
+
+				if (mActiveDepthStencilState == nullptr)
+					mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(DepthStencilStateCore::getDefault());
 			}
 			else
-				viewArray[0] = nullptr;
-
-			switch (gptype)
 			{
-			case GPT_VERTEX_PROGRAM:
-				mDevice->getImmediateContext()->VSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_FRAGMENT_PROGRAM:
-				mDevice->getImmediateContext()->PSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_GEOMETRY_PROGRAM:
-				mDevice->getImmediateContext()->GSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_DOMAIN_PROGRAM:
-				mDevice->getImmediateContext()->DSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_HULL_PROGRAM:
-				mDevice->getImmediateContext()->HSSetShaderResources(unit, 1, viewArray);
-				break;
-			case GPT_COMPUTE_PROGRAM:
-				mDevice->getImmediateContext()->CSSetShaderResources(unit, 1, viewArray);
-				break;
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+				d3d11BlendState = static_cast<D3D11BlendStateCore*>(BlendStateCore::getDefault().get());
+				d3d11RasterizerState = static_cast<D3D11RasterizerStateCore*>(RasterizerStateCore::getDefault().get());
+				mActiveDepthStencilState = std::static_pointer_cast<D3D11DepthStencilStateCore>(DepthStencilStateCore::getDefault());
+
+				mActiveVertexShader = nullptr;
+				d3d11FragmentProgram = nullptr;
+				d3d11GeometryProgram = nullptr;
+				d3d11DomainProgram = nullptr;
+				d3d11HullProgram = nullptr;
 			}
-		}
+
+			ID3D11DeviceContext* d3d11Context = mDevice->getImmediateContext();
+			d3d11Context->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
+			d3d11Context->RSSetState(d3d11RasterizerState->getInternal());
+			d3d11Context->OMSetDepthStencilState(mActiveDepthStencilState->getInternal(), mStencilRef);
+
+			if (mActiveVertexShader != nullptr)
+			{
+				D3D11GpuVertexProgramCore* vertexProgram = static_cast<D3D11GpuVertexProgramCore*>(mActiveVertexShader.get());
+				d3d11Context->VSSetShader(vertexProgram->getVertexShader(), nullptr, 0);
+			}
+			else
+				d3d11Context->VSSetShader(nullptr, nullptr, 0);
+
+			if(d3d11FragmentProgram != nullptr)
+				d3d11Context->PSSetShader(d3d11FragmentProgram->getPixelShader(), nullptr, 0);
+			else
+				d3d11Context->PSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11GeometryProgram != nullptr)
+				d3d11Context->GSSetShader(d3d11GeometryProgram->getGeometryShader(), nullptr, 0);
+			else
+				d3d11Context->GSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11DomainProgram != nullptr)
+				d3d11Context->DSSetShader(d3d11DomainProgram->getDomainShader(), nullptr, 0);
+			else
+				d3d11Context->DSSetShader(nullptr, nullptr, 0);
+
+			if (d3d11HullProgram != nullptr)
+				d3d11Context->HSSetShader(d3d11HullProgram->getHullShader(), nullptr, 0);
+			else
+				d3d11Context->HSSetShader(nullptr, nullptr, 0);
+			
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(pipelineState);
 		else
 		{
-			ID3D11UnorderedAccessView* viewArray[1];
-			if (buffer != nullptr)
-			{
-				D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
-				viewArray[0] = d3d11buffer->getUAV();
-			}
-			else
-				viewArray[0] = nullptr;
+			auto execute = [=]() { executeRef(pipelineState); };
 
-			if (gptype == GPT_FRAGMENT_PROGRAM)
-			{
-				mDevice->getImmediateContext()->OMSetRenderTargetsAndUnorderedAccessViews(
-					D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, unit, 1, viewArray, nullptr);
-			}
-			else if (gptype == GPT_COMPUTE_PROGRAM)
-			{
-				mDevice->getImmediateContext()->CSSetUnorderedAccessViews(unit, 1, viewArray, nullptr);
-			}
-			else
-				BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
 		}
 
-		BS_INC_RENDER_STAT(NumTextureBinds);
+		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
-	void D3D11RenderAPI::beginFrame()
+	void D3D11RenderAPI::setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<GpuProgramCore>& computeProgram)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			if (computeProgram != nullptr && computeProgram->getProperties().getType() == GPT_COMPUTE_PROGRAM)
+			{
+				D3D11GpuComputeProgramCore *d3d11ComputeProgram = static_cast<D3D11GpuComputeProgramCore*>(computeProgram.get());
+				mDevice->getImmediateContext()->CSSetShader(d3d11ComputeProgram->getComputeShader(), nullptr, 0);
+			}
+			else
+				mDevice->getImmediateContext()->CSSetShader(nullptr, nullptr, 0);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(computeProgram);
+		else
+		{
+			auto execute = [=]() { executeRef(computeProgram); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	}
+
+	void D3D11RenderAPI::setGpuParams(const SPtr<GpuParamsCore>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<GpuParamsCore>& gpuParams)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			bs_frame_mark();
+			{
+				FrameVector<ID3D11ShaderResourceView*> srvs(8);
+				FrameVector<ID3D11UnorderedAccessView*> uavs(8);
+				FrameVector<ID3D11Buffer*> constBuffers(8);
+				FrameVector<ID3D11SamplerState*> samplers(8);
+
+				auto populateViews = [&](GpuProgramType type)
+				{
+					srvs.clear();
+					uavs.clear();
+					constBuffers.clear();
+					samplers.clear();
+
+					SPtr<GpuParamDesc> paramDesc = gpuParams->getParamDesc(type);
+					if (paramDesc == nullptr)
+						return;
+
+					for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<TextureCore> texture = gpuParams->getTexture(iter->second.set, slot);
+
+						while (slot >= (UINT32)srvs.size())
+							srvs.push_back(nullptr);
+
+						if (texture != nullptr)
+						{
+							D3D11TextureCore* d3d11Texture = static_cast<D3D11TextureCore*>(texture.get());
+							srvs[slot] = d3d11Texture->getSRV();
+						}
+					}
+
+					for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<GpuBufferCore> buffer = gpuParams->getBuffer(iter->second.set, slot);
+
+						bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
+							iter->second.type != GPOT_STRUCTURED_BUFFER;
+
+						if (!isLoadStore)
+						{
+							while (slot >= (UINT32)srvs.size())
+								srvs.push_back(nullptr);
+
+							if (buffer != nullptr)
+							{
+								D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+								srvs[slot] = d3d11buffer->getSRV();
+							}
+						}
+						else
+						{
+							while (slot >= (UINT32)uavs.size())
+								uavs.push_back(nullptr);
+
+							if (buffer != nullptr)
+							{
+								D3D11GpuBufferCore* d3d11buffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
+								uavs[slot] = d3d11buffer->getUAV();
+							}
+						}
+					}
+
+					for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+
+						SPtr<TextureCore> texture = gpuParams->getLoadStoreTexture(iter->second.set, slot);
+						const TextureSurface& surface = gpuParams->getLoadStoreSurface(iter->second.set, slot);
+
+						while (slot >= (UINT32)uavs.size())
+							uavs.push_back(nullptr);
+
+						if (texture != nullptr)
+						{
+							SPtr<TextureView> texView = TextureCore::requestView(texture, surface.mipLevel, 1,
+								surface.arraySlice, surface.numArraySlices, GVU_RANDOMWRITE);
+
+							D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
+							uavs[slot] = d3d11texView->getUAV();
+
+							if (mBoundUAVs[slot].second != nullptr)
+								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
+
+							mBoundUAVs[slot] = std::make_pair(texture, texView);
+						}
+						else
+						{
+							uavs[slot] = nullptr;
+
+							if (mBoundUAVs[slot].second != nullptr)
+								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
+
+							mBoundUAVs[slot] = std::pair<SPtr<TextureCore>, SPtr<TextureView>>();
+						}
+					}
+
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<SamplerStateCore> samplerState = gpuParams->getSamplerState(iter->second.set, slot);
+
+						while (slot >= (UINT32)samplers.size())
+							samplers.push_back(nullptr);
+
+						if (samplerState == nullptr)
+							samplerState = SamplerStateCore::getDefault();
+
+						D3D11SamplerStateCore* d3d11SamplerState = 
+							static_cast<D3D11SamplerStateCore*>(const_cast<SamplerStateCore*>(samplerState.get()));
+						samplers[slot] = d3d11SamplerState->getInternal();
+					}
+
+					for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
+					{
+						UINT32 slot = iter->second.slot;
+						SPtr<GpuParamBlockBufferCore> buffer = gpuParams->getParamBlockBuffer(iter->second.set, slot);
+						buffer->flushToGPU();
+
+						while (slot >= (UINT32)constBuffers.size())
+							constBuffers.push_back(nullptr);
+
+						if (buffer != nullptr)
+						{
+							const D3D11GpuParamBlockBufferCore* d3d11paramBlockBuffer =
+								static_cast<const D3D11GpuParamBlockBufferCore*>(buffer.get());
+							constBuffers[slot] = d3d11paramBlockBuffer->getD3D11Buffer();
+						}
+					}
+				};
+
+				ID3D11DeviceContext* context = mDevice->getImmediateContext();
+
+				UINT32 numSRVs = 0;
+				UINT32 numUAVs = 0;
+				UINT32 numConstBuffers = 0;
+				UINT32 numSamplers = 0;
+
+				populateViews(GPT_VERTEX_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if(numSRVs > 0)
+					context->VSSetShaderResources(0, numSRVs, srvs.data());
+
+				if(numUAVs > 0)
+				{
+					context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr,
+						nullptr, 0, numUAVs, uavs.data(), nullptr);
+				}
+
+				if (numConstBuffers > 0)
+					context->VSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->VSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_FRAGMENT_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->PSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->PSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->PSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_GEOMETRY_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->GSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->GSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->GSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_HULL_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->HSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->HSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->HSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_DOMAIN_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->DSSetShaderResources(0, numSRVs, srvs.data());
+
+				if (numConstBuffers > 0)
+					context->DSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->DSSetSamplers(0, numSamplers, samplers.data());
+
+				populateViews(GPT_COMPUTE_PROGRAM);
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
+
+				if (numSRVs > 0)
+					context->CSSetShaderResources(0, numSRVs, srvs.data());
+
+				if(numUAVs > 0)
+					context->CSSetUnorderedAccessViews(0, numUAVs, uavs.data(), nullptr);
+
+				if (numConstBuffers > 0)
+					context->CSSetConstantBuffers(0, numConstBuffers, constBuffers.data());
+
+				if (numSamplers > 0)
+					context->CSSetSamplers(0, numSamplers, samplers.data());
+
+			}
+			bs_frame_clear();
+
+			if (mDevice->hasError())
+				BS_EXCEPT(RenderingAPIException, "Failed to set GPU parameters: " + mDevice->getErrorDescription());
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(gpuParams);
+		else
+		{
+			auto execute = [=]() { executeRef(gpuParams); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumGpuParamBinds);
+	}
+
+	void D3D11RenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
 	{
 		// Not used
 	}
 
-	void D3D11RenderAPI::endFrame()
+	void D3D11RenderAPI::endFrame(const SPtr<CommandBuffer>& commandBuffer)
 	{
 		// Not used
 	}
 
-	void D3D11RenderAPI::setViewport(const Rect2& vp)
+	void D3D11RenderAPI::setViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		auto executeRef = [&](const Rect2& vp)
+		{
+			THROW_IF_NOT_CORE_THREAD;
 
-		mViewportNorm = vp;
-		applyViewport();
+			mViewportNorm = vp;
+			applyViewport();
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(vp);
+		else
+		{
+			auto execute = [=]() { executeRef(vp); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			UINT32 maxBoundVertexBuffers = mCurrentCapabilities->getMaxBoundVertexBuffers();
+			if (index < 0 || (index + numBuffers) >= maxBoundVertexBuffers)
+			{
+				BS_EXCEPT(InvalidParametersException, "Invalid vertex index: " + toString(index) +
+					". Valid range is 0 .. " + toString(maxBoundVertexBuffers - 1));
+			}
+
+			ID3D11Buffer* dx11buffers[MAX_BOUND_VERTEX_BUFFERS];
+			UINT32 strides[MAX_BOUND_VERTEX_BUFFERS];
+			UINT32 offsets[MAX_BOUND_VERTEX_BUFFERS];
+
+			for (UINT32 i = 0; i < numBuffers; i++)
+			{
+				SPtr<D3D11VertexBufferCore> vertexBuffer = std::static_pointer_cast<D3D11VertexBufferCore>(buffers[i]);
+				const VertexBufferProperties& vbProps = vertexBuffer->getProperties();
+
+				dx11buffers[i] = vertexBuffer->getD3DVertexBuffer();
+
+				strides[i] = vbProps.getVertexSize();
+				offsets[i] = 0;
+			}
+
+			mDevice->getImmediateContext()->IASetVertexBuffers(index, numBuffers, dx11buffers, strides, offsets);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(index, buffers, numBuffers);
+		else
+		{
+			auto execute = [=]() { executeRef(index, buffers, numBuffers); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumVertexBufferBinds);
+	}
+
+	void D3D11RenderAPI::setIndexBuffer(const SPtr<IndexBufferCore>& buffer, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<IndexBufferCore>& buffer)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			SPtr<D3D11IndexBufferCore> indexBuffer = std::static_pointer_cast<D3D11IndexBufferCore>(buffer);
+
+			DXGI_FORMAT indexFormat = DXGI_FORMAT_R16_UINT;
+			if (indexBuffer->getProperties().getType() == IT_16BIT)
+				indexFormat = DXGI_FORMAT_R16_UINT;
+			else if (indexBuffer->getProperties().getType() == IT_32BIT)
+				indexFormat = DXGI_FORMAT_R32_UINT;
+			else
+				BS_EXCEPT(InternalErrorException, "Unsupported index format: " + toString(indexBuffer->getProperties().getType()));
+
+			mDevice->getImmediateContext()->IASetIndexBuffer(indexBuffer->getD3DIndexBuffer(), indexFormat, 0);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(buffer);
+		else
+		{
+			auto execute = [=]() { executeRef(buffer); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumIndexBufferBinds);
+	}
+
+	void D3D11RenderAPI::setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<VertexDeclarationCore>& vertexDeclaration)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mActiveVertexDeclaration = vertexDeclaration;
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(vertexDeclaration);
+		else
+		{
+			auto execute = [=]() { executeRef(vertexDeclaration); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](DrawOperationType op)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mDevice->getImmediateContext()->IASetPrimitiveTopology(D3D11Mappings::getPrimitiveType(op));
+			mActiveDrawOp = op;
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(op);
+		else
+		{
+			auto execute = [=]() { executeRef(op); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+
+			cb->mActiveDrawOp = op;
+		}
+	}
+
+	void D3D11RenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			applyInputLayout();
+
+			if (instanceCount <= 1)
+				mDevice->getImmediateContext()->Draw(vertexCount, vertexOffset);
+			else
+				mDevice->getImmediateContext()->DrawInstanced(vertexCount, instanceCount, vertexOffset, 0);
+
+#if BS_DEBUG_MODE
+			if (mDevice->hasError())
+				LOGWRN(mDevice->getErrorDescription());
+#endif
+		};
+
+		UINT32 primCount;
+		if (commandBuffer == nullptr)
+		{
+			executeRef(vertexOffset, vertexCount, instanceCount);
+			primCount = vertexCountToPrimCount(mActiveDrawOp, vertexCount);
+		}
+		else
+		{
+			auto execute = [=]() { executeRef(vertexOffset, vertexCount, instanceCount); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+
+			primCount = vertexCountToPrimCount(cb->mActiveDrawOp, vertexCount);
+		}
+
+		BS_INC_RENDER_STAT(NumDrawCalls);
+		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
+		BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	}
+
+	void D3D11RenderAPI::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount, 
+		UINT32 instanceCount, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount,
+			UINT32 instanceCount)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			applyInputLayout();
+
+			if (instanceCount <= 1)
+				mDevice->getImmediateContext()->DrawIndexed(indexCount, startIndex, vertexOffset);
+			else
+				mDevice->getImmediateContext()->DrawIndexedInstanced(indexCount, instanceCount, startIndex, vertexOffset, 0);
+
+#if BS_DEBUG_MODE
+			if (mDevice->hasError())
+				LOGWRN(mDevice->getErrorDescription());
+#endif
+		};
+
+		UINT32 primCount;
+		if (commandBuffer == nullptr)
+		{
+			executeRef(startIndex, indexCount, vertexOffset, vertexCount, instanceCount);
+			primCount = vertexCountToPrimCount(mActiveDrawOp, vertexCount);
+		}
+		else
+		{
+			auto execute = [=]() { executeRef(startIndex, indexCount, vertexOffset, vertexCount, instanceCount); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+
+			primCount = vertexCountToPrimCount(cb->mActiveDrawOp, vertexCount);
+		}
+
+		BS_INC_RENDER_STAT(NumDrawCalls);
+		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
+		BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	}
+
+	void D3D11RenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mDevice->getImmediateContext()->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
+
+#if BS_DEBUG_MODE
+			if (mDevice->hasError())
+				LOGWRN(mDevice->getErrorDescription());
+#endif
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(numGroupsX, numGroupsY, numGroupsZ);
+		else
+		{
+			auto execute = [=]() { executeRef(numGroupsX, numGroupsY, numGroupsZ); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumComputeCalls);
+	}
+
+	void D3D11RenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mScissorRect.left = static_cast<LONG>(left);
+			mScissorRect.top = static_cast<LONG>(top);
+			mScissorRect.bottom = static_cast<LONG>(bottom);
+			mScissorRect.right = static_cast<LONG>(right);
+
+			mDevice->getImmediateContext()->RSSetScissorRects(1, &mScissorRect);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(left, top, right, bottom);
+		else
+		{
+			auto execute = [=]() { executeRef(left, top, right, bottom); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 value)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mStencilRef = value;
+
+			if(mActiveDepthStencilState != nullptr)
+				mDevice->getImmediateContext()->OMSetDepthStencilState(mActiveDepthStencilState->getInternal(), mStencilRef);
+			else
+				mDevice->getImmediateContext()->OMSetDepthStencilState(nullptr, mStencilRef);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(value);
+		else
+		{
+			auto execute = [=]() { executeRef(value); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			if (mActiveRenderTarget == nullptr)
+				return;
+
+			const RenderTargetProperties& rtProps = mActiveRenderTarget->getProperties();
+
+			Rect2I clearArea((int)mViewport.TopLeftX, (int)mViewport.TopLeftY, (int)mViewport.Width, (int)mViewport.Height);
+
+			bool clearEntireTarget = clearArea.width == 0 || clearArea.height == 0;
+			clearEntireTarget |= (clearArea.x == 0 && clearArea.y == 0 && clearArea.width == rtProps.getWidth() && 
+				clearArea.height == rtProps.getHeight());
+
+			if (!clearEntireTarget)
+			{
+				// TODO - Ignoring targetMask here
+				D3D11RenderUtility::instance().drawClearQuad(buffers, color, depth, stencil);
+				BS_INC_RENDER_STAT(NumClears);
+			}
+			else
+				clearRenderTarget(buffers, color, depth, stencil, targetMask);
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(buffers, color, depth, stencil, targetMask);
+		else
+		{
+			auto execute = [=]() { executeRef(buffers, color, depth, stencil, targetMask); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+	}
+
+	void D3D11RenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, 
+		UINT8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			if (mActiveRenderTarget == nullptr)
+				return;
+
+			// Clear render surfaces
+			if (buffers & FBT_COLOR)
+			{
+				UINT32 maxRenderTargets = mCurrentCapabilities->getNumMultiRenderTargets();
+
+				ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
+				memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
+
+				mActiveRenderTarget->getCustomAttribute("RTV", views);
+				if (!views[0])
+				{
+					bs_deleteN(views, maxRenderTargets);
+					return;
+				}
+
+				float clearColor[4];
+				clearColor[0] = color.r;
+				clearColor[1] = color.g;
+				clearColor[2] = color.b;
+				clearColor[3] = color.a;
+
+				for (UINT32 i = 0; i < maxRenderTargets; i++)
+				{
+					if (views[i] != nullptr && ((1 << i) & targetMask) != 0)
+						mDevice->getImmediateContext()->ClearRenderTargetView(views[i], clearColor);
+				}
+
+				bs_deleteN(views, maxRenderTargets);
+			}
+
+			// Clear depth stencil
+			if ((buffers & FBT_DEPTH) != 0 || (buffers & FBT_STENCIL) != 0)
+			{
+				ID3D11DepthStencilView* depthStencilView = nullptr;
+				mActiveRenderTarget->getCustomAttribute("DSV", &depthStencilView);
+
+				D3D11_CLEAR_FLAG clearFlag;
+
+				if ((buffers & FBT_DEPTH) != 0 && (buffers & FBT_STENCIL) != 0)
+					clearFlag = (D3D11_CLEAR_FLAG)(D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);
+				else if ((buffers & FBT_STENCIL) != 0)
+					clearFlag = D3D11_CLEAR_STENCIL;
+				else
+					clearFlag = D3D11_CLEAR_DEPTH;
+
+				if (depthStencilView != nullptr)
+					mDevice->getImmediateContext()->ClearDepthStencilView(depthStencilView, clearFlag, depth, (UINT8)stencil);
+			}
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(buffers, color, depth, stencil, targetMask);
+		else
+		{
+			auto execute = [=]() { executeRef(buffers, color, depth, stencil, targetMask); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumClears);
+	}
+
+	void D3D11RenderAPI::setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil, 
+		const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mActiveRenderTarget = target;
+
+			UINT32 maxRenderTargets = mCurrentCapabilities->getNumMultiRenderTargets();
+			ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
+			memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
+
+			ID3D11DepthStencilView* depthStencilView = nullptr;
+
+			if (target != nullptr)
+			{
+				target->getCustomAttribute("RTV", views);
+
+				if (readOnlyDepthStencil)
+					target->getCustomAttribute("RODSV", &depthStencilView);
+				else
+					target->getCustomAttribute("DSV", &depthStencilView);
+			}
+
+			// Bind render targets
+			mDevice->getImmediateContext()->OMSetRenderTargets(maxRenderTargets, views, depthStencilView);
+			if (mDevice->hasError())
+				BS_EXCEPT(RenderingAPIException, "Failed to setRenderTarget : " + mDevice->getErrorDescription());
+
+			bs_deleteN(views, maxRenderTargets);
+			applyViewport();
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(target, readOnlyDepthStencil);
+		else
+		{
+			auto execute = [=]() { executeRef(target, readOnlyDepthStencil); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumRenderTargetChanges);
+	}
+
+	void D3D11RenderAPI::swapBuffers(const SPtr<RenderTargetCore>& target, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto executeRef = [&](const SPtr<RenderTargetCore>& target)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+			target->swapBuffers();
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(target);
+		else
+		{
+			auto execute = [=]() { executeRef(target); };
+
+			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
+		BS_INC_RENDER_STAT(NumPresents);
+	}
+
+	void D3D11RenderAPI::addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
+	{
+		SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+		SPtr<D3D11CommandBuffer> secondaryCb = std::static_pointer_cast<D3D11CommandBuffer>(secondary);
+
+		cb->appendSecondary(secondaryCb);
+	}
+
+	void D3D11RenderAPI::executeCommands(const SPtr<CommandBuffer>& commandBuffer)
+	{
+		SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
+		cb->executeCommands();
+		cb->clear();
 	}
 
 	void D3D11RenderAPI::applyViewport()
@@ -480,386 +1134,6 @@ namespace BansheeEngine
 		mViewport.MaxDepth = 1.0f;
 
 		mDevice->getImmediateContext()->RSSetViewports(1, &mViewport);
-	}
-
-	void D3D11RenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		UINT32 maxBoundVertexBuffers = mCurrentCapabilities->getMaxBoundVertexBuffers();
-		if(index < 0 || (index + numBuffers) >= maxBoundVertexBuffers)
-			BS_EXCEPT(InvalidParametersException, "Invalid vertex index: " + toString(index) + ". Valid range is 0 .. " + toString(maxBoundVertexBuffers - 1));
-
-		ID3D11Buffer* dx11buffers[MAX_BOUND_VERTEX_BUFFERS];
-		UINT32 strides[MAX_BOUND_VERTEX_BUFFERS];
-		UINT32 offsets[MAX_BOUND_VERTEX_BUFFERS];
-
-		for(UINT32 i = 0; i < numBuffers; i++)
-		{
-			SPtr<D3D11VertexBufferCore> vertexBuffer = std::static_pointer_cast<D3D11VertexBufferCore>(buffers[i]);
-			const VertexBufferProperties& vbProps = vertexBuffer->getProperties();
-
-			dx11buffers[i] = vertexBuffer->getD3DVertexBuffer();
-
-			strides[i] = vbProps.getVertexSize();
-			offsets[i] = 0;
-		}
-
-		mDevice->getImmediateContext()->IASetVertexBuffers(index, numBuffers, dx11buffers, strides, offsets);
-
-		BS_INC_RENDER_STAT(NumVertexBufferBinds);
-	}
-
-	void D3D11RenderAPI::setIndexBuffer(const SPtr<IndexBufferCore>& buffer)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		SPtr<D3D11IndexBufferCore> indexBuffer = std::static_pointer_cast<D3D11IndexBufferCore>(buffer);
-
-		DXGI_FORMAT indexFormat = DXGI_FORMAT_R16_UINT;
-		if(indexBuffer->getProperties().getType() == IT_16BIT)
-			indexFormat = DXGI_FORMAT_R16_UINT;
-		else if (indexBuffer->getProperties().getType() == IT_32BIT)
-			indexFormat = DXGI_FORMAT_R32_UINT;
-		else
-			BS_EXCEPT(InternalErrorException, "Unsupported index format: " + toString(indexBuffer->getProperties().getType()));
-
-		mDevice->getImmediateContext()->IASetIndexBuffer(indexBuffer->getD3DIndexBuffer(), indexFormat, 0);
-
-		BS_INC_RENDER_STAT(NumIndexBufferBinds);
-	}
-
-	void D3D11RenderAPI::setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mActiveVertexDeclaration = vertexDeclaration;
-	}
-
-	void D3D11RenderAPI::setDrawOperation(DrawOperationType op)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mDevice->getImmediateContext()->IASetPrimitiveTopology(D3D11Mappings::getPrimitiveType(op));
-	}
-
-	void D3D11RenderAPI::bindGpuProgram(const SPtr<GpuProgramCore>& prg)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		switch(prg->getProperties().getType())
-		{
-		case GPT_VERTEX_PROGRAM:
-			{
-				D3D11GpuVertexProgramCore* d3d11GpuProgram = static_cast<D3D11GpuVertexProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->VSSetShader(d3d11GpuProgram->getVertexShader(), nullptr, 0);
-				mActiveVertexShader = std::static_pointer_cast<D3D11GpuProgramCore>(prg);
-				break;
-			}
-		case GPT_FRAGMENT_PROGRAM:
-			{
-				D3D11GpuFragmentProgramCore* d3d11GpuProgram = static_cast<D3D11GpuFragmentProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->PSSetShader(d3d11GpuProgram->getPixelShader(), nullptr, 0);
-				break;
-			}
-		case GPT_GEOMETRY_PROGRAM:
-			{
-				D3D11GpuGeometryProgramCore* d3d11GpuProgram = static_cast<D3D11GpuGeometryProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->GSSetShader(d3d11GpuProgram->getGeometryShader(), nullptr, 0);
-				break;
-			}
-		case GPT_DOMAIN_PROGRAM:
-			{
-				D3D11GpuDomainProgramCore* d3d11GpuProgram = static_cast<D3D11GpuDomainProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->DSSetShader(d3d11GpuProgram->getDomainShader(), nullptr, 0);
-				break;
-			}
-		case GPT_HULL_PROGRAM:
-			{
-				D3D11GpuHullProgramCore* d3d11GpuProgram = static_cast<D3D11GpuHullProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->HSSetShader(d3d11GpuProgram->getHullShader(), nullptr, 0);
-				break;
-			}
-		case GPT_COMPUTE_PROGRAM:
-			{
-				D3D11GpuComputeProgramCore* d3d11GpuProgram = static_cast<D3D11GpuComputeProgramCore*>(prg.get());
-				mDevice->getImmediateContext()->CSSetShader(d3d11GpuProgram->getComputeShader(), nullptr, 0);
-				break;
-			}
-		default:
-			BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(prg->getProperties().getType()));
-		}
-
-		if (mDevice->hasError())
-			BS_EXCEPT(RenderingAPIException, "Failed to bindGpuProgram : " + mDevice->getErrorDescription());
-
-		BS_INC_RENDER_STAT(NumGpuProgramBinds);
-	}
-
-	void D3D11RenderAPI::unbindGpuProgram(GpuProgramType gptype)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		switch(gptype)
-		{
-		case GPT_VERTEX_PROGRAM:
-			mDevice->getImmediateContext()->VSSetShader(nullptr, nullptr, 0);
-			mActiveVertexShader = nullptr;
-			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mDevice->getImmediateContext()->PSSetShader(nullptr, nullptr, 0);
-			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mDevice->getImmediateContext()->GSSetShader(nullptr, nullptr, 0);
-			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDevice->getImmediateContext()->DSSetShader(nullptr, nullptr, 0);
-			break;
-		case GPT_HULL_PROGRAM:
-			mDevice->getImmediateContext()->HSSetShader(nullptr, nullptr, 0);
-			break;
-		case GPT_COMPUTE_PROGRAM:
-			mDevice->getImmediateContext()->CSSetShader(nullptr, nullptr, 0);
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
-		}
-
-		BS_INC_RENDER_STAT(NumGpuProgramBinds);
-	}
-
-	void D3D11RenderAPI::setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-		const GpuParamDesc& paramDesc)
-	{
-		ID3D11Buffer* bufferArray[1];
-
-		if (buffer != nullptr)
-		{
-			const D3D11GpuParamBlockBufferCore* d3d11paramBlockBuffer =
-				static_cast<const D3D11GpuParamBlockBufferCore*>(buffer.get());
-			bufferArray[0] = d3d11paramBlockBuffer->getD3D11Buffer();
-		}
-		else
-			bufferArray[0] = nullptr;
-
-		switch (gptype)
-		{
-		case GPT_VERTEX_PROGRAM:
-			mDevice->getImmediateContext()->VSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		case GPT_FRAGMENT_PROGRAM:
-			mDevice->getImmediateContext()->PSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		case GPT_GEOMETRY_PROGRAM:
-			mDevice->getImmediateContext()->GSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		case GPT_HULL_PROGRAM:
-			mDevice->getImmediateContext()->HSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		case GPT_DOMAIN_PROGRAM:
-			mDevice->getImmediateContext()->DSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		case GPT_COMPUTE_PROGRAM:
-			mDevice->getImmediateContext()->CSSetConstantBuffers(slot, 1, bufferArray);
-			break;
-		};
-
-		BS_INC_RENDER_STAT(NumGpuParamBufferBinds);
-
-		if (mDevice->hasError())
-			BS_EXCEPT(RenderingAPIException, "Failed to setParamBuffer: " + mDevice->getErrorDescription());
-	}
-
-	void D3D11RenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		applyInputLayout();
-
-		if(instanceCount <= 1)
-			mDevice->getImmediateContext()->Draw(vertexCount, vertexOffset);
-		else
-			mDevice->getImmediateContext()->DrawInstanced(vertexCount, instanceCount, vertexOffset, 0);
-
-#if BS_DEBUG_MODE
-		if(mDevice->hasError())
-			LOGWRN(mDevice->getErrorDescription());
-#endif
-
-		UINT32 primCount = vertexCountToPrimCount(mActiveDrawOp, vertexCount);
-
-		BS_INC_RENDER_STAT(NumDrawCalls);
-		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-		BS_ADD_RENDER_STAT(NumPrimitives, primCount);
-	}
-
-	void D3D11RenderAPI::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount, 
-		UINT32 instanceCount)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		applyInputLayout();
-
-		if (instanceCount <= 1)
-			mDevice->getImmediateContext()->DrawIndexed(indexCount, startIndex, vertexOffset);
-		else
-			mDevice->getImmediateContext()->DrawIndexedInstanced(indexCount, instanceCount, startIndex, vertexOffset, 0);
-
-#if BS_DEBUG_MODE
-		if(mDevice->hasError())
-			LOGWRN(mDevice->getErrorDescription());
-#endif
-
-		UINT32 primCount = vertexCountToPrimCount(mActiveDrawOp, vertexCount);
-
-		BS_INC_RENDER_STAT(NumDrawCalls);
-		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-		BS_ADD_RENDER_STAT(NumPrimitives, primCount);
-	}
-
-	void D3D11RenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
-	{
-		mDevice->getImmediateContext()->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
-
-#if BS_DEBUG_MODE
-		if (mDevice->hasError())
-			LOGWRN(mDevice->getErrorDescription());
-#endif
-
-		BS_INC_RENDER_STAT(NumComputeCalls);
-	}
-
-	void D3D11RenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mScissorRect.left = static_cast<LONG>(left);
-		mScissorRect.top = static_cast<LONG>(top);
-		mScissorRect.bottom = static_cast<LONG>(bottom);
-		mScissorRect.right = static_cast<LONG>(right);
-
-		mDevice->getImmediateContext()->RSSetScissorRects(1, &mScissorRect);
-	}
-
-	void D3D11RenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if(mActiveRenderTarget == nullptr)
-			return;
-
-		const RenderTargetProperties& rtProps = mActiveRenderTarget->getProperties();
-
-		Rect2I clearArea((int)mViewport.TopLeftX, (int)mViewport.TopLeftY, (int)mViewport.Width, (int)mViewport.Height);
-
-		bool clearEntireTarget = clearArea.width == 0 || clearArea.height == 0;
-		clearEntireTarget |= (clearArea.x == 0 && clearArea.y == 0 && clearArea.width == rtProps.getWidth() && clearArea.height == rtProps.getHeight());
-
-		if (!clearEntireTarget)
-		{
-			// TODO - Ignoring targetMask here
-			D3D11RenderUtility::instance().drawClearQuad(buffers, color, depth, stencil);
-			BS_INC_RENDER_STAT(NumClears);
-		}
-		else
-			clearRenderTarget(buffers, color, depth, stencil, targetMask);
-	}
-
-	void D3D11RenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		if(mActiveRenderTarget == nullptr)
-			return;
-
-		// Clear render surfaces
-		if (buffers & FBT_COLOR)
-		{
-			UINT32 maxRenderTargets = mCurrentCapabilities->getNumMultiRenderTargets();
-
-			ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
-			memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
-
-			mActiveRenderTarget->getCustomAttribute("RTV", views);
-			if (!views[0])
-			{
-				bs_deleteN(views, maxRenderTargets);
-				return;
-			}
-
-			float clearColor[4];
-			clearColor[0] = color.r;
-			clearColor[1] = color.g;
-			clearColor[2] = color.b;
-			clearColor[3] = color.a;
-
-			for(UINT32 i = 0; i < maxRenderTargets; i++)
-			{
-				if(views[i] != nullptr && ((1 << i) & targetMask) != 0)
-					mDevice->getImmediateContext()->ClearRenderTargetView(views[i], clearColor);
-			}
-
-			bs_deleteN(views, maxRenderTargets);
-		}
-
-		// Clear depth stencil
-		if((buffers & FBT_DEPTH) != 0 || (buffers & FBT_STENCIL) != 0)
-		{
-			ID3D11DepthStencilView* depthStencilView = nullptr;
-			mActiveRenderTarget->getCustomAttribute("DSV", &depthStencilView);
-
-			D3D11_CLEAR_FLAG clearFlag;
-
-			if((buffers & FBT_DEPTH) != 0 && (buffers & FBT_STENCIL) != 0)
-				clearFlag = (D3D11_CLEAR_FLAG)(D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);
-			else if((buffers & FBT_STENCIL) != 0)
-				clearFlag = D3D11_CLEAR_STENCIL;
-			else
-				clearFlag = D3D11_CLEAR_DEPTH;
-
-			if(depthStencilView != nullptr)
-				mDevice->getImmediateContext()->ClearDepthStencilView(depthStencilView, clearFlag, depth, (UINT8)stencil);
-		}
-
-		BS_INC_RENDER_STAT(NumClears);
-	}
-
-	void D3D11RenderAPI::setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mActiveRenderTarget = target;
-
-		UINT32 maxRenderTargets = mCurrentCapabilities->getNumMultiRenderTargets();
-		ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
-		memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
-
-		ID3D11DepthStencilView* depthStencilView = nullptr;
-
-		if (target != nullptr)
-		{
-			target->getCustomAttribute("RTV", views);
-
-			if(readOnlyDepthStencil)
-				target->getCustomAttribute("RODSV", &depthStencilView);
-			else
-				target->getCustomAttribute("DSV", &depthStencilView);
-		}
-
-		// Bind render targets
-		mDevice->getImmediateContext()->OMSetRenderTargets(maxRenderTargets, views, depthStencilView);
-		if (mDevice->hasError())
-			BS_EXCEPT(RenderingAPIException, "Failed to setRenderTarget : " + mDevice->getErrorDescription());
-
-		bs_deleteN(views, maxRenderTargets);
-		applyViewport();
-
-		BS_INC_RENDER_STAT(NumRenderTargetChanges);
-	}
-
-	void D3D11RenderAPI::setClipPlanesImpl(const PlaneList& clipPlanes)
-	{
-		LOGWRN("This call will be ignored. DX11 uses shaders for setting clip planes.");
 	}
 
 	RenderAPICapabilities* D3D11RenderAPI::createRenderSystemCapabilities() const
@@ -1125,7 +1399,7 @@ namespace BansheeEngine
 
 	const RenderAPIInfo& D3D11RenderAPI::getAPIInfo() const
 	{
-		static RenderAPIInfo info(0.0f, 0.0f, 0.0f, 1.0f, VET_COLOR_ABGR, false, true, false);
+		static RenderAPIInfo info(0.0f, 0.0f, 0.0f, 1.0f, VET_COLOR_ABGR, false, true, false, false);
 
 		return info;
 	}
@@ -1137,6 +1411,7 @@ namespace BansheeEngine
 		block.isShareable = true;
 		block.name = name;
 		block.slot = 0;
+		block.set = 0;
 
 		for (auto& param : params)
 		{
@@ -1186,6 +1461,7 @@ namespace BansheeEngine
 			}
 
 			param.paramBlockSlot = 0;
+			param.paramBlockSet = 0;
 		}
 
 		// Constant buffer size must always be a multiple of 16

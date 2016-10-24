@@ -122,135 +122,26 @@ namespace BansheeEngine
 		RenderAPICore& rapi = RenderAPICore::instance();
 
 		SPtr<PassCore> pass = material->getPass(passIdx, techniqueIdx);
-
-		struct StageData
-		{
-			GpuProgramType type;
-			bool enable;
-			SPtr<GpuProgramCore> program;
-		};
-
-		const UINT32 numStages = 5;
-		StageData stages[numStages] =
-		{
-			{ GPT_VERTEX_PROGRAM, pass->hasVertexProgram(), pass->getVertexProgram() },
-			{ GPT_FRAGMENT_PROGRAM, pass->hasFragmentProgram(), pass->getFragmentProgram() },
-			{ GPT_GEOMETRY_PROGRAM, pass->hasGeometryProgram(), pass->getGeometryProgram() },
-			{ GPT_HULL_PROGRAM, pass->hasHullProgram(), pass->getHullProgram() },
-			{ GPT_DOMAIN_PROGRAM, pass->hasDomainProgram(), pass->getDomainProgram() }
-		};
-
-		for (UINT32 i = 0; i < numStages; i++)
-		{
-			const StageData& stage = stages[i];
-
-			if (stage.enable)
-				rapi.bindGpuProgram(stage.program);
-			else
-				rapi.unbindGpuProgram(stage.type);
-		}
-
-		// Set up non-texture related pass settings
-		if (pass->getBlendState() != nullptr)
-			rapi.setBlendState(pass->getBlendState());
-		else
-			rapi.setBlendState(BlendStateCore::getDefault());
-
-		if (pass->getDepthStencilState() != nullptr)
-			rapi.setDepthStencilState(pass->getDepthStencilState(), pass->getStencilRefValue());
-		else
-			rapi.setDepthStencilState(DepthStencilStateCore::getDefault(), pass->getStencilRefValue());
-
-		if (pass->getRasterizerState() != nullptr)
-			rapi.setRasterizerState(pass->getRasterizerState());
-		else
-			rapi.setRasterizerState(RasterizerStateCore::getDefault());
+		rapi.setGraphicsPipeline(pass->getPipelineState());
+		rapi.setStencilRef(pass->getStencilRefValue());
 	}
 
 	void RendererUtility::setComputePass(const SPtr<MaterialCore>& material, UINT32 passIdx)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
-		SPtr<PassCore> pass = material->getPass(passIdx);
 
-		if(pass->hasComputeProgram())
-			rapi.bindGpuProgram(pass->getComputeProgram());
-		else
-			rapi.unbindGpuProgram(GPT_COMPUTE_PROGRAM);
+		SPtr<PassCore> pass = material->getPass(passIdx);
+		rapi.setComputePipeline(pass->getComputeProgram());
 	}
 
 	void RendererUtility::setPassParams(const SPtr<GpuParamsSetCore>& params, UINT32 passIdx)
 	{
-		const UINT32 numStages = 6;
-		GpuProgramType stages[numStages] =
-		{
-			{ GPT_VERTEX_PROGRAM },
-			{ GPT_FRAGMENT_PROGRAM },
-			{ GPT_GEOMETRY_PROGRAM },
-			{ GPT_HULL_PROGRAM },
-			{ GPT_DOMAIN_PROGRAM },
-			{ GPT_COMPUTE_PROGRAM }
-		};
+		SPtr<GpuParamsCore> gpuParams = params->getGpuParams(passIdx);
+		if (gpuParams == nullptr)
+			return;
 
-		for (UINT32 i = 0; i < numStages; i++)
-		{
-			SPtr<GpuParamsCore> gpuParams = params->getGpuParams(stages[i], passIdx);
-			if (gpuParams == nullptr)
-				continue;
-
-			setGpuParams(stages[i], gpuParams);
-		}
-	}
-
-	void RendererUtility::setGpuParams(GpuProgramType type, const SPtr<GpuParamsCore>& params)
-	{
 		RenderAPICore& rapi = RenderAPICore::instance();
-		const GpuParamDesc& paramDesc = params->getParamDesc();
-
-		for (auto iter = paramDesc.textures.begin(); iter != paramDesc.textures.end(); ++iter)
-		{
-			SPtr<TextureCore> texture = params->getTexture(iter->second.slot);
-
-			rapi.setTexture(type, iter->second.slot, texture);
-		}
-
-		for (auto iter = paramDesc.loadStoreTextures.begin(); iter != paramDesc.loadStoreTextures.end(); ++iter)
-		{
-			SPtr<TextureCore> texture = params->getLoadStoreTexture(iter->second.slot);
-			const TextureSurface& surface = params->getLoadStoreSurface(iter->second.slot);
-
-			if (texture == nullptr)
-				rapi.setLoadStoreTexture(type, iter->second.slot, nullptr, surface);
-			else
-				rapi.setLoadStoreTexture(type, iter->second.slot, texture, surface);
-		}
-
-		for (auto iter = paramDesc.buffers.begin(); iter != paramDesc.buffers.end(); ++iter)
-		{
-			SPtr<GpuBufferCore> buffer = params->getBuffer(iter->second.slot);
-
-			bool isLoadStore = iter->second.type != GPOT_BYTE_BUFFER &&
-				iter->second.type != GPOT_STRUCTURED_BUFFER;
-
-			rapi.setBuffer(type, iter->second.slot, buffer, isLoadStore);
-		}
-
-		for (auto iter = paramDesc.samplers.begin(); iter != paramDesc.samplers.end(); ++iter)
-		{
-			SPtr<SamplerStateCore> samplerState = params->getSamplerState(iter->second.slot);
-
-			if (samplerState == nullptr)
-				rapi.setSamplerState(type, iter->second.slot, SamplerStateCore::getDefault());
-			else
-				rapi.setSamplerState(type, iter->second.slot, samplerState);
-		}
-
-		for (auto iter = paramDesc.paramBlocks.begin(); iter != paramDesc.paramBlocks.end(); ++iter)
-		{
-			SPtr<GpuParamBlockBufferCore> blockBuffer = params->getParamBlockBuffer(iter->second.slot);
-			blockBuffer->flushToGPU();
-
-			rapi.setParamBuffer(type, iter->second.slot, blockBuffer, paramDesc);
-		}
+		rapi.setGpuParams(gpuParams);
 	}
 
 	void RendererUtility::draw(const SPtr<MeshCoreBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
@@ -345,7 +236,7 @@ namespace BansheeEngine
 		auto& texProps = texture->getProperties();
 		SPtr<MaterialCore> mat;
 		SPtr<GpuParamsSetCore> params;
-		if (texProps.getMultisampleCount() > 1)
+		if (texProps.getNumSamples() > 1)
 		{
 			mat = mResolveMat->getMaterial();
 			params = mResolveMat->getParamsSet();
@@ -465,7 +356,7 @@ namespace BansheeEngine
 	{
 		mSource.set(source);
 
-		UINT32 sampleCount = source->getProperties().getMultisampleCount();
+		UINT32 sampleCount = source->getProperties().getNumSamples();
 		mNumSamples.set(sampleCount);
 
 		mMaterial->updateParamsSet(mParamsSet);

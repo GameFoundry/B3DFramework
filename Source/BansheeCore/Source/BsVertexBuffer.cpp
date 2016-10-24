@@ -11,27 +11,32 @@ namespace BansheeEngine
 
 	}
 
-	VertexBufferCore::VertexBufferCore(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut)
-		:HardwareBuffer(usage, false), mProperties(numVertices, vertexSize)
+	VertexBufferCore::VertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		:HardwareBuffer(desc.usage, false), mProperties(desc.numVerts, desc.vertexSize)
 	{
 		mSizeInBytes = mProperties.mVertexSize * mProperties.mNumVertices;
 	}
 
-	SPtr<VertexBufferCore> VertexBufferCore::create(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBufferCore> VertexBufferCore::create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createVertexBuffer(vertexSize, numVerts, usage, streamOut);
+		return HardwareBufferCoreManager::instance().createVertexBuffer(desc, deviceMask);
 	}
 
-	VertexBuffer::VertexBuffer(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut)
-		: mProperties(numVertices, vertexSize), mUsage(usage), mStreamOut(streamOut)
+	VertexBuffer::VertexBuffer(const VERTEX_BUFFER_DESC& desc)
+		: mProperties(desc.numVerts, desc.vertexSize), mUsage(desc.usage), mStreamOut(desc.streamOut)
     {
 
     }
 
 	SPtr<CoreObjectCore> VertexBuffer::createCore() const
 	{
-		return HardwareBufferCoreManager::instance().createVertexBufferInternal(mProperties.mVertexSize, 
-			mProperties.mNumVertices, mUsage, mStreamOut);
+		VERTEX_BUFFER_DESC desc;
+		desc.vertexSize = mProperties.mVertexSize;
+		desc.numVerts = mProperties.mNumVertices;
+		desc.usage = mUsage;
+		desc.streamOut = mStreamOut;
+
+		return HardwareBufferCoreManager::instance().createVertexBufferInternal(desc);
 	}
 
 	SPtr<VertexBufferCore> VertexBuffer::getCore() const
@@ -39,8 +44,8 @@ namespace BansheeEngine
 		return std::static_pointer_cast<VertexBufferCore>(mCoreSpecific);
 	}
 
-	SPtr<VertexBuffer> VertexBuffer::create(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBuffer> VertexBuffer::create(const VERTEX_BUFFER_DESC& desc)
 	{
-		return HardwareBufferManager::instance().createVertexBuffer(vertexSize, numVerts, usage, streamOut);
+		return HardwareBufferManager::instance().createVertexBuffer(desc);
 	}
 }

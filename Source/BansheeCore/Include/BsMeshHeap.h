@@ -4,7 +4,6 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsCoreObject.h"
-#include "BsDrawOps.h"
 #include "BsIndexBuffer.h"
 
 namespace BansheeEngine
@@ -62,15 +61,15 @@ namespace BansheeEngine
 		friend class TransientMeshCore;
 
 		MeshHeapCore(UINT32 numVertices, UINT32 numIndices, 
-			const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType = IT_32BIT);
+			const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObjectCore::initialize() */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/**
 		 * Allocates a new mesh in the heap, expanding the heap if needed. 
 		 *
-		 * @param[in]	meshId		Mesh for which we are allocating the data.
+		 * @param[in]	mesh		Mesh for which we are allocating the data.
 		 * @param[in]	meshData	Data to initialize the new mesh with.
 		 */
 		void alloc(SPtr<TransientMeshCore> mesh, const SPtr<MeshData>& meshData);
@@ -143,6 +142,7 @@ namespace BansheeEngine
 
 		SPtr<VertexDataDesc> mVertexDesc;
 		IndexType mIndexType;
+		GpuDeviceFlags mDeviceMask;
 
 		Vector<ChunkData> mVertChunks;
 		Vector<ChunkData> mIdxChunks;

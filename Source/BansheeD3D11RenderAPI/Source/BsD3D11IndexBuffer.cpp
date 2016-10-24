@@ -6,10 +6,11 @@
 
 namespace BansheeEngine
 {
-	D3D11IndexBufferCore::D3D11IndexBufferCore(D3D11Device& device, IndexType idxType, UINT32 numIndices, GpuBufferUsage usage)
-		:IndexBufferCore(idxType, numIndices, usage), mDevice(device), mBuffer(nullptr)
+	D3D11IndexBufferCore::D3D11IndexBufferCore(D3D11Device& device, const INDEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+		:IndexBufferCore(desc, deviceMask), mDevice(device), mBuffer(nullptr)
 	{
-
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
 	}
 
 	D3D11IndexBufferCore::~D3D11IndexBufferCore()
@@ -28,7 +29,7 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* D3D11IndexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -45,7 +46,7 @@ namespace BansheeEngine
 		return mBuffer->lock(offset, length, options);
 	}
 
-	void D3D11IndexBufferCore::unlockImpl()
+	void D3D11IndexBufferCore::unmap()
 	{
 		mBuffer->unlock();
 	}

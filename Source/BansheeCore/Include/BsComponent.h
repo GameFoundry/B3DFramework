@@ -126,7 +126,7 @@ namespace BansheeEngine
 		RTTITypeBase* getRTTI() const override;
 
 	protected:
-		Component() {} // Serialization only
+		Component(); // Serialization only
 	};
 
 	/** @} */

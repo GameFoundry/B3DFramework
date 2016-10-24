@@ -13,12 +13,13 @@
 
 namespace BansheeEngine 
 {
-	GLTextureCore::GLTextureCore(GLSupport& support, TextureType textureType, UINT32 width, UINT32 height, UINT32 depth, 
-		UINT32 numMipmaps, PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices, 
-		const SPtr<PixelData>& initialData)
-		: TextureCore(textureType, width, height, depth, numMipmaps, format, usage, hwGamma, multisampleCount, numArraySlices, initialData),
+	GLTextureCore::GLTextureCore(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
+		GpuDeviceFlags deviceMask)
+		: TextureCore(desc, initialData, deviceMask),
 		mTextureID(0), mGLFormat(0), mGLSupport(support)
-    { }
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+	}
 
 	GLTextureCore::~GLTextureCore()
     { 
@@ -76,7 +77,7 @@ namespace BansheeEngine
 				BS_EXCEPT(InvalidParametersException, "Cannot use a compressed format for a depth stencil target.");
 		}
 
-		UINT32 sampleCount = mProperties.getMultisampleCount();
+		UINT32 sampleCount = mProperties.getNumSamples();
 		if((usage & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0 && mProperties.getTextureType() == TEX_TYPE_2D && sampleCount > 1)
 		{
 			if (numFaces <= 1)
@@ -175,7 +176,7 @@ namespace BansheeEngine
 				else
 					return GL_TEXTURE_1D_ARRAY;
             case TEX_TYPE_2D:
-				if (mProperties.getMultisampleCount() > 1)
+				if (mProperties.getNumSamples() > 1)
 				{
 					if (mProperties.getNumFaces() <= 1)
 						return GL_TEXTURE_2D_MULTISAMPLE;
@@ -210,7 +211,7 @@ namespace BansheeEngine
 
 	PixelData GLTextureCore::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face)
 	{
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		if(mLockedBuffer != nullptr)
@@ -239,7 +240,7 @@ namespace BansheeEngine
 
 	void GLTextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face)
 	{
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		getBuffer(face, mipLevel)->download(dest);
@@ -247,7 +248,7 @@ namespace BansheeEngine
 
 	void GLTextureCore::writeData(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer)
 	{
-		if (mProperties.getMultisampleCount() > 1)
+		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		getBuffer(face, mipLevel)->upload(src, src.getExtents());
@@ -271,7 +272,7 @@ namespace BansheeEngine
 			{
                 GLPixelBuffer *buf = bs_new<GLTextureBuffer>(getGLTextureTarget(), mTextureID, face, mip,
 					static_cast<GpuBufferUsage>(mProperties.getUsage()), 
-					mProperties.isHardwareGammaEnabled(), mProperties.getMultisampleCount());
+					mProperties.isHardwareGammaEnabled(), mProperties.getNumSamples());
 
 				mSurfaceList.push_back(bs_shared_ptr<GLPixelBuffer>(buf));
                 if(buf->getWidth() == 0 || buf->getHeight() == 0 || buf->getDepth() == 0)

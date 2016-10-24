@@ -7,7 +7,7 @@ Mesh is an object represented by a set of points, their properties and a set of 
 We're going to focus on the simulation thread implementation in this manual, and then note the differences in the core thread version at the end.
 
 # Creating a mesh {#meshes_a}
-To create a mesh call @ref BansheeEngine::Mesh::create "Mesh::create" or one if its overloads. At minimum you need to provide a @ref BansheeEngine::VertexDataDesc "vertex description" that describes in what format are the vertices stored in the vertex buffer and the number of vertices and indices. 
+To create a mesh call @ref BansheeEngine::Mesh::create "Mesh::create" or one if its overloads. You'll need to populate the @ref BansheeEngine::MESH_DESC "MESH_DESC" structure and pass it as a parameter. At minimum you need to provide a @ref BansheeEngine::VertexDataDesc "vertex description" that describes in what format are the vertices stored in the vertex buffer and the number of vertices and indices. 
 
 Optionally you can also provide the type of indices, type of primitives, and a set of sub-meshes:
  - Indices can be 32- or 16-bit. This is controlled by the `indexType` parameter. Smaller indices can be used to save bandwidth if your mesh has a small enough number of primitives.
@@ -16,10 +16,15 @@ Optionally you can also provide the type of indices, type of primitives, and a s
  
 For example to create a simple mesh:
 ~~~~~~~~~~~~~{.cpp}
-SPtr<VertexDataDesc> vertexDesc = ...; // Vertex description creation is explained later
-
 // Creates an empty mesh with 36 indices and 8 vertices
-HMesh mesh = Mesh::create(8, 32, vertexDesc);
+MESH_DESC meshDesc;
+meshDesc.numVertices = 8;
+meshDesc.numIndices = 36;
+
+SPtr<VertexDataDesc> vertexDesc = ...; // Vertex description creation is explained later
+meshDesc.vertexDesc = vertexDesc;
+
+HMesh mesh = Mesh::create(meshDesc);
 ~~~~~~~~~~~~~ 
  
 You can also create a non-empty mesh by creating it with a populated @ref BansheeEngine::MeshData "MeshData" object. More about @ref BansheeEngine::MeshData "MeshData" later. 

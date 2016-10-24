@@ -128,21 +128,13 @@ set(BS_BANSHEECORE_INC_RENDERAPI
 	"Include/BsTextureView.h"
 	"Include/BsSubMesh.h"
 	"Include/BsSamplerState.h"
-	"Include/BsRenderWindowManager.h"
 	"Include/BsRenderWindow.h"
 	"Include/BsRenderTexture.h"
 	"Include/BsRenderTarget.h"
-	"Include/BsRenderStateManager.h"
 	"Include/BsRasterizerState.h"
-	"Include/BsQueryManager.h"
-	"Include/BsPixelBuffer.h"
 	"Include/BsOcclusionQuery.h"
-	"Include/BsMultiRenderTexture.h"
-	"Include/BsMeshManager.h"
 	"Include/BsIndexBuffer.h"
-	"Include/BsHardwareBufferManager.h"
 	"Include/BsHardwareBuffer.h"
-	"Include/BsGpuProgramManager.h"
 	"Include/BsGpuProgram.h"
 	"Include/BsGpuParams.h"
 	"Include/BsGpuParamDesc.h"
@@ -151,14 +143,25 @@ set(BS_BANSHEECORE_INC_RENDERAPI
 	"Include/BsGpuBufferView.h"
 	"Include/BsGpuBuffer.h"
 	"Include/BsEventQuery.h"
-	"Include/BsDrawOps.h"
 	"Include/BsDepthStencilState.h"
 	"Include/BsBlendState.h"
 	"Include/BsRenderAPI.h"
-	"Include/BsRenderAPIManager.h"
-	"Include/BsRenderAPIFactory.h"
 	"Include/BsRenderAPICapabilities.h"
 	"Include/BsViewport.h"
+	"Include/BsCommandBuffer.h"
+	"Include/BsGpuPipelineState.h"
+)
+
+set(BS_BANSHEECORE_INC_RENDERAPI_FACTORIES
+	"Include/BsRenderWindowManager.h"
+	"Include/BsRenderStateManager.h"
+	"Include/BsQueryManager.h"
+	"Include/BsMeshManager.h"
+	"Include/BsHardwareBufferManager.h"
+	"Include/BsGpuProgramManager.h"
+	"Include/BsRenderAPIManager.h"
+	"Include/BsRenderAPIFactory.h"
+	"Include/BsCommandBufferManager.h"
 )
 
 set(BS_BANSHEECORE_SRC_CORETHREAD
@@ -214,7 +217,6 @@ set(BS_BANSHEECORE_SRC_UTILITY
 	"Source/BsUtility.cpp"
 	"Source/BsMeshUtility.cpp"
 	"Source/BsDeferredCallManager.cpp"
-	"Source/BsDrawOps.cpp"
 	"Source/BsIconUtility.cpp"
 	"Source/BsUUID.cpp"
 	"Source/BsPixelUtil.cpp"
@@ -422,20 +424,12 @@ set(BS_BANSHEECORE_SRC_RENDERAPI
 	"Source/BsGpuParamBlockBuffer.cpp"
 	"Source/BsGpuParams.cpp"
 	"Source/BsGpuProgram.cpp"
-	"Source/BsGpuProgramManager.cpp"
-	"Source/BsHardwareBufferManager.cpp"
 	"Source/BsIndexBuffer.cpp"
-	"Source/BsMeshManager.cpp"
-	"Source/BsMultiRenderTexture.cpp"
 	"Source/BsOcclusionQuery.cpp"
-	"Source/BsPixelBuffer.cpp"
-	"Source/BsQueryManager.cpp"
 	"Source/BsRasterizerState.cpp"
-	"Source/BsRenderStateManager.cpp"
 	"Source/BsRenderTarget.cpp"
 	"Source/BsRenderTexture.cpp"
 	"Source/BsRenderWindow.cpp"
-	"Source/BsRenderWindowManager.cpp"
 	"Source/BsSamplerState.cpp"
 	"Source/BsTextureView.cpp"
 	"Source/BsTimerQuery.cpp"
@@ -444,9 +438,20 @@ set(BS_BANSHEECORE_SRC_RENDERAPI
 	"Source/BsVertexDeclaration.cpp"
 	"Source/BsVideoModeInfo.cpp"
 	"Source/BsRenderAPI.cpp"
-	"Source/BsRenderAPIManager.cpp"
 	"Source/BsRenderAPICapabilities.cpp"
 	"Source/BsViewport.cpp"
+	"Source/BsCommandBuffer.cpp"
+	"Source/BsGpuPipelineState.cpp"
+)
+
+set(BS_BANSHEECORE_SRC_RENDERAPI_FACTORIES
+	"Source/BsGpuProgramManager.cpp"
+	"Source/BsHardwareBufferManager.cpp"
+	"Source/BsMeshManager.cpp"
+	"Source/BsQueryManager.cpp"
+	"Source/BsRenderStateManager.cpp"
+	"Source/BsRenderWindowManager.cpp"
+	"Source/BsRenderAPIManager.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_NOFILTER
@@ -544,6 +549,7 @@ source_group("Source Files\\Localization" FILES ${BS_BANSHEECORE_SRC_LOCALIZATIO
 source_group("Source Files\\RTTI" FILES ${BS_BANSHEECORE_SRC_RTTI})
 source_group("Header Files\\Profiling" FILES ${BS_BANSHEECORE_INC_PROFILING})
 source_group("Header Files\\RenderAPI" FILES ${BS_BANSHEECORE_INC_RENDERAPI})
+source_group("Header Files\\RenderAPI\\Factories" FILES ${BS_BANSHEECORE_INC_RENDERAPI_FACTORIES})
 source_group("Source Files\\CoreThread" FILES ${BS_BANSHEECORE_SRC_CORETHREAD})
 source_group("Header Files" FILES ${BS_BANSHEECORE_INC_NOFILTER})
 source_group("Header Files\\Material" FILES ${BS_BANSHEECORE_INC_MATERIAL})
@@ -563,6 +569,7 @@ source_group("Source Files\\Input" FILES ${BS_BANSHEECORE_SRC_INPUT})
 source_group("Header Files\\Localization" FILES ${BS_BANSHEECORE_INC_LOCALIZATION})
 source_group("Source Files\\Text" FILES ${BS_BANSHEECORE_SRC_TEXT})
 source_group("Source Files\\RenderAPI" FILES ${BS_BANSHEECORE_SRC_RENDERAPI})
+source_group("Source Files\\RenderAPI\\Factories" FILES ${BS_BANSHEECORE_SRC_RENDERAPI_FACTORIES})
 source_group("Source Files" FILES ${BS_BANSHEECORE_SRC_NOFILTER})
 source_group("Source Files\\Physics" FILES ${BS_BANSHEECORE_SRC_PHYSICS})
 source_group("Source Files\\Scene" FILES ${BS_BANSHEECORE_SRC_SCENE})
@@ -610,4 +617,6 @@ set(BS_BANSHEECORE_SRC
 	${BS_BANSHEECORE_SRC_AUDIO}
 	${BS_BANSHEECORE_INC_ANIMATION}
 	${BS_BANSHEECORE_SRC_ANIMATION}
+	${BS_BANSHEECORE_INC_RENDERAPI_FACTORIES}
+	${BS_BANSHEECORE_SRC_RENDERAPI_FACTORIES}
 )

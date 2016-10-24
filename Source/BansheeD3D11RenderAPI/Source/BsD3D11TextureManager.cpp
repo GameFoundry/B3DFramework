@@ -5,7 +5,6 @@
 #include "BsD3D11RenderTexture.h"
 #include "BsD3D11Mappings.h"
 #include "BsD3D11RenderAPI.h"
-#include "BsD3D11MultiRenderTexture.h"
 
 namespace BansheeEngine
 {
@@ -16,13 +15,6 @@ namespace BansheeEngine
 		return bs_core_ptr<D3D11RenderTexture>(tex);
 	}
 
-	SPtr<MultiRenderTexture> D3D11TextureManager::createMultiRenderTextureImpl(const MULTI_RENDER_TEXTURE_DESC& desc)
-	{
-		D3D11MultiRenderTexture* tex = new (bs_alloc<D3D11MultiRenderTexture>()) D3D11MultiRenderTexture(desc);
-
-		return bs_core_ptr<D3D11MultiRenderTexture>(tex);
-	}
-
 	PixelFormat D3D11TextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
 		// Basic filtering
@@ -31,11 +23,10 @@ namespace BansheeEngine
 		return D3D11Mappings::getPF(d3dPF);
 	}
 
-	SPtr<TextureCore> D3D11TextureCoreManager::createTextureInternal(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-		int numMips, PixelFormat format, int usage, bool hwGammaCorrection, UINT32 multisampleCount, UINT32 numArraySlices, const SPtr<PixelData>& initialData)
+	SPtr<TextureCore> D3D11TextureCoreManager::createTextureInternal(const TEXTURE_DESC& desc,
+		const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	{
-		D3D11TextureCore* tex = new (bs_alloc<D3D11TextureCore>()) D3D11TextureCore(texType, 
-			width, height, depth, numMips, format, usage, hwGammaCorrection, multisampleCount, numArraySlices, initialData);
+		D3D11TextureCore* tex = new (bs_alloc<D3D11TextureCore>()) D3D11TextureCore(desc, initialData, deviceMask);
 
 		SPtr<D3D11TextureCore> texPtr = bs_shared_ptr<D3D11TextureCore>(tex);
 		texPtr->_setThisPtr(texPtr);
@@ -43,17 +34,10 @@ namespace BansheeEngine
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> D3D11TextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_CORE_DESC& desc)
+	SPtr<RenderTextureCore> D3D11TextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<D3D11RenderTextureCore> texPtr = bs_shared_ptr_new<D3D11RenderTextureCore>(desc);
-		texPtr->_setThisPtr(texPtr);
-
-		return texPtr;
-	}
-
-	SPtr<MultiRenderTextureCore> D3D11TextureCoreManager::createMultiRenderTextureInternal(const MULTI_RENDER_TEXTURE_CORE_DESC& desc)
-	{
-		SPtr<D3D11MultiRenderTextureCore> texPtr = bs_shared_ptr_new<D3D11MultiRenderTextureCore>(desc);
+		SPtr<D3D11RenderTextureCore> texPtr = bs_shared_ptr_new<D3D11RenderTextureCore>(desc, deviceMask);
 		texPtr->_setThisPtr(texPtr);
 
 		return texPtr;

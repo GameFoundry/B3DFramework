@@ -12,6 +12,15 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Descriptor structure used for initialization of a VertexBuffer. */
+	struct VERTEX_BUFFER_DESC
+	{
+		UINT32 vertexSize; /**< Size of a single vertex in the buffer, in bytes. */
+		UINT32 numVerts; /**< Number of vertices the buffer can hold. */
+		GpuBufferUsage usage = GBU_STATIC; /**< Usage that tells the hardware how will be buffer be used. */
+		bool streamOut = false; /**< If true the buffer will be usable for streaming out data from the GPU. */
+	};
+
 	/** Contains information about a vertex buffer buffer. */
 	class BS_CORE_EXPORT VertexBufferProperties
 	{
@@ -46,14 +55,13 @@ namespace BansheeEngine
 		SPtr<VertexBufferCore> getCore() const;
 
 		/** @copydoc HardwareBufferManager::createVertexBuffer */
-		static SPtr<VertexBuffer> create(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage = GBU_STATIC, 
-			bool streamOut = false);
+		static SPtr<VertexBuffer> create(const VERTEX_BUFFER_DESC& desc);
 
 		static const int MAX_SEMANTIC_IDX = 8;
 	protected:
 		friend class HardwareBufferManager;
 
-		VertexBuffer(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut = false);
+		VertexBuffer(const VERTEX_BUFFER_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
 		virtual SPtr<CoreObjectCore> createCore() const;
@@ -74,15 +82,14 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT VertexBufferCore : public CoreObjectCore, public HardwareBuffer
 	{
 	public:
-		VertexBufferCore(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut);
+		VertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 		virtual ~VertexBufferCore() { }
 
 		/**	Returns information about the vertex buffer. */
 		const VertexBufferProperties& getProperties() const { return mProperties; }
 
-		/** @copydoc HardwareBufferManager::createVertexBuffer */
-		static SPtr<VertexBufferCore> create(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage = GBU_STATIC,
-			bool streamOut = false);
+		/** @copydoc HardwareBufferCoreManager::createVertexBuffer */
+		static SPtr<VertexBufferCore> create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		VertexBufferProperties mProperties;

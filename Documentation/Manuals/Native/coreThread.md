@@ -45,7 +45,7 @@ Because of these two reasons core accessors are much faster than the primary com
 
 Accessor for the current thread can be retrieved with @ref BansheeEngine::CoreThread::getAccessor "CoreThread::getAccessor". You queue the commands in the accessor by calling @ref BansheeEngine::CoreThreadAccessorBase::queueCommand "CoreThreadAccessor::queueCommand" and @ref BansheeEngine::CoreThreadAccessorBase::queueReturnCommand "CoreThreadAccessor::queueReturnCommand". Once you are done queuing commands you can submit them to the core thread by calling @ref BansheeEngine::CoreThread::submitAccessors "CoreThread::submitAccessors".
 
-Internally @ref BansheeEngine::CoreThread::submitAccessors "CoreThread::submitAccessors" uses the primary queue to submit a command that reads all the commands from the accessor and executes them in order. So esentially they are just built on top of the primary command queue, and if fact most of the threading functionality is.
+Internally @ref BansheeEngine::CoreThread::submitAccessors "CoreThread::submitAccessors" uses the primary queue to submit a command that reads all the commands from the accessor and executes them in order. So esentially they are just built on top of the primary command queue, and in fact most of the threading functionality is.
 
 ### Core accessor APIs {#coreThread_a_c_a}
 Although you can queue your own commands to the core accessor, many systems provide methods that automatically queue commands on the core accessor. For example take a look at @ref BansheeEngine::RenderAPI "RenderAPI" which allows you to interact directly with the render API from the simulation thread (something that is normally reserved for the core thread). Most of the methods accept a @ref BansheeEngine::CoreThreadAccessor<CommandQueueSyncPolicy> "CoreThreadAccessor", and internally just queue commands on it. This allows you to perform low level rendering operations from the simulation thread.
@@ -133,7 +133,7 @@ Whenever you need to trigger synchronization you must call @ref BansheeEngine::C
 See implementation of @ref BansheeEngine::Light "Light" and @ref BansheeEngine::LightCore "LightCore" in "BsLight.cpp" for a simple example of synchronization.
 
 ### Dependencies {#coreThread_b_a_c}
-Core objects might be dependant on other core objects. For example a @ref BansheeEngine::Material "Material" is dependant on a @ref BansheeEngine::Shader "Shader". Whenever the shader's object is marked as dirty the material might want need to perform synchronization as well. In general whenever a dependancy core object is marked as dirty, its dependant will be synchronized as well.
+Core objects might be dependant on other core objects. For example a @ref BansheeEngine::Material "Material" is dependant on a @ref BansheeEngine::Shader "Shader". Whenever the shader's object is marked as dirty the material might need to perform synchronization as well. In general whenever a dependancy core object is marked as dirty, its dependant will be synchronized as well.
 
 To add dependencies implement the @ref BansheeEngine::CoreObject::getCoreDependencies "CoreObject::getCoreDependencies" method, which returns all currently valid dependencies. Whenever the dependencies change call @ref BansheeEngine::CoreObject::markDependenciesDirty "CoreObject::markDependenciesDirty" so the system can refresh its dependency list.
 

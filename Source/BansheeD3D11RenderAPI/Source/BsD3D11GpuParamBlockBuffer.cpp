@@ -8,10 +8,11 @@
 
 namespace BansheeEngine
 {
-	D3D11GpuParamBlockBufferCore::D3D11GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage)
-		:GpuParamBlockBufferCore(size, usage), mBuffer(nullptr)
+	D3D11GpuParamBlockBufferCore::D3D11GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, 
+		GpuDeviceFlags deviceMask)
+		:GpuParamBlockBufferCore(size, usage, deviceMask), mBuffer(nullptr)
 	{
-
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
 	D3D11GpuParamBlockBufferCore::~D3D11GpuParamBlockBufferCore()

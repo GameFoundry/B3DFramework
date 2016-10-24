@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_D3D11_EXPORT D3D11GpuParamBlockBufferCore : public GpuParamBlockBufferCore
 	{
 	public:
-		D3D11GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage);
+		D3D11GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
 		~D3D11GpuParamBlockBufferCore();
 
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
@@ -28,7 +28,7 @@ namespace BansheeEngine
 		ID3D11Buffer* getD3D11Buffer() const;
 	protected:
 		/** @copydoc GpuParamBlockBufferCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 	private:
 		D3D11HardwareBuffer* mBuffer;

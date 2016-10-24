@@ -55,7 +55,7 @@ namespace BansheeEngine
 		 *
 		 * @note	If any children of the provided object belong to another prefab they will not have IDs generated.
 		 */
-		static UINT32 generatePrefabIds(const HSceneObject& sceneObject, UINT32 startingId);
+		static void generatePrefabIds(const HSceneObject& sceneObject);
 
 		/**
 		 * Clears all prefab "link" IDs in the provided object and its children.

@@ -65,7 +65,7 @@ namespace BansheeEngine
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getMultisampleCount() > 1)
+			if (texProps.getNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{
@@ -163,7 +163,7 @@ namespace BansheeEngine
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getMultisampleCount() > 1)
+			if (texProps.getNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{
@@ -321,7 +321,7 @@ namespace BansheeEngine
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getMultisampleCount() > 1)
+			if (texProps.getNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{

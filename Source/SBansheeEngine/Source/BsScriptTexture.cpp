@@ -58,7 +58,7 @@ namespace BansheeEngine
 	void ScriptTexture::internal_getSampleCount(ScriptTexture* thisPtr, int* value)
 	{
 		HTexture texture = static_resource_cast<Texture>(thisPtr->getGenericHandle());
-		*value = (TextureUsage)texture->getProperties().getMultisampleCount();
+		*value = (TextureUsage)texture->getProperties().getNumSamples();
 	}
 
 	void ScriptTexture::internal_getMipmapCount(ScriptTexture* thisPtr, int* value)

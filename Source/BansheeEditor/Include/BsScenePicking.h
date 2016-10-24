@@ -158,7 +158,7 @@ namespace BansheeEngine
 		static const float ALPHA_CUTOFF;
 
 		MaterialData mMaterialData[3];
-		SPtr<MultiRenderTextureCore> mPickingTexture;
+		SPtr<RenderTextureCore> mPickingTexture;
 	};
 
 	/** @} */

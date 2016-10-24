@@ -6,6 +6,7 @@
 #include "BsVertexDeclaration.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsVertexDataDesc.h"
+#include "BsGpuParams.h"
 
 namespace BansheeEngine 
 {
@@ -28,21 +29,17 @@ namespace BansheeEngine
 		return declPtr;
     }
 
-	SPtr<VertexBuffer> HardwareBufferManager::createVertexBuffer(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBuffer> HardwareBufferManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc)
 	{
-		assert (numVerts > 0);
-
-		SPtr<VertexBuffer> vbuf = bs_core_ptr<VertexBuffer>(new (bs_alloc<VertexBuffer>()) VertexBuffer(vertexSize, numVerts, usage, streamOut));
+		SPtr<VertexBuffer> vbuf = bs_core_ptr<VertexBuffer>(new (bs_alloc<VertexBuffer>()) VertexBuffer(desc));
 		vbuf->_setThisPtr(vbuf);
 		vbuf->initialize();
 		return vbuf;
 	}
 
-	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(IndexType itype, UINT32 numIndices, GpuBufferUsage usage)
+	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc)
 	{
-		assert (numIndices > 0);
-
-		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(itype, numIndices, usage));
+		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(desc));
 		ibuf->_setThisPtr(ibuf);
 		ibuf->initialize();
 		return ibuf;
@@ -57,77 +54,105 @@ namespace BansheeEngine
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize, 
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc)
 	{
-		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) 
-			GpuBuffer(elementCount, elementSize, type, format, usage, randomGpuWrite, useCounter));
+		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) GpuBuffer(desc));
 		gbuf->_setThisPtr(gbuf);
 		gbuf->initialize();
 
 		return gbuf;
 	}
 
-	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(IndexType itype, UINT32 numIndexes, GpuBufferUsage usage)
-	{
-		assert(numIndexes > 0);
+	SPtr<GpuParams> HardwareBufferManager::createGpuParams(const GPU_PARAMS_DESC& desc)
+    {
+		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(desc);
+		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
+		paramsPtr->_setThisPtr(paramsPtr);
+		paramsPtr->initialize();
 
-		SPtr<IndexBufferCore> ibuf = createIndexBufferInternal(itype, numIndexes, usage);
+		return paramsPtr;
+    }
+
+	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+	{
+		SPtr<IndexBufferCore> ibuf = createIndexBufferInternal(desc, deviceMask);
 		ibuf->initialize();
 		return ibuf;
 
 	}
 
-	SPtr<VertexBufferCore> HardwareBufferCoreManager::createVertexBuffer(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBufferCore> HardwareBufferCoreManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		assert(numVerts > 0);
-
-		SPtr<VertexBufferCore> vbuf = createVertexBufferInternal(vertexSize, numVerts, usage, streamOut);
+		SPtr<VertexBufferCore> vbuf = createVertexBufferInternal(desc, deviceMask);
 		vbuf->initialize();
 		return vbuf;
 	}
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc)
+	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(desc->createElements());
+		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(desc->createElements(), deviceMask);
 		declPtr->initialize();
 
 		return declPtr;
 	}
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const List<VertexElement>& elements)
+	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParams(const GPU_PARAMS_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+    {
+		SPtr<GpuParamsCore> params = createGpuParamsInternal(desc, deviceMask);
+		params->initialize();
+
+		return params;
+    }
+
+	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const List<VertexElement>& elements,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(elements);
+		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(elements, deviceMask);
 		declPtr->initialize();
 
 		return declPtr;
 	}
 
-	SPtr<GpuParamBlockBufferCore> HardwareBufferCoreManager::createGpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage)
+	SPtr<GpuParamBlockBufferCore> HardwareBufferCoreManager::createGpuParamBlockBuffer(UINT32 size, 
+		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 	{
-		SPtr<GpuParamBlockBufferCore> paramBlockPtr = createGpuParamBlockBufferInternal(size, usage);
+		SPtr<GpuParamBlockBufferCore> paramBlockPtr = createGpuParamBlockBufferInternal(size, usage, deviceMask);
 		paramBlockPtr->initialize();
 
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(const GPU_BUFFER_DESC& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(elementCount, elementSize, type, format, usage, randomGpuWrite, 
-			useCounter);
+		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(desc, deviceMask);
 		gbuf->initialize();
 
 		return gbuf;
 	}
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclarationInternal(const List<VertexElement>& elements)
+	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclarationInternal(
+		const List<VertexElement>& elements, GpuDeviceFlags deviceMask)
 	{
-		VertexDeclarationCore* decl = new (bs_alloc<VertexDeclarationCore>()) VertexDeclarationCore(elements);
+		VertexDeclarationCore* decl = new (bs_alloc<VertexDeclarationCore>()) VertexDeclarationCore(elements, deviceMask);
 
 		SPtr<VertexDeclarationCore> ret = bs_shared_ptr<VertexDeclarationCore>(decl);
 		ret->_setThisPtr(ret);
 
 		return ret;
 	}
+
+	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParamsInternal(const GPU_PARAMS_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+    {
+		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(desc, deviceMask);
+		SPtr<GpuParamsCore> paramsPtr = bs_shared_ptr<GpuParamsCore>(params);
+		paramsPtr->_setThisPtr(paramsPtr);
+
+		return paramsPtr;
+    }
 }

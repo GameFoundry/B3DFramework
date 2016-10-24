@@ -23,7 +23,7 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_ResourceView);
 	}
 
-	void D3D11GpuBufferView::initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_DESC& desc)
+	void D3D11GpuBufferView::initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc)
 	{
 		GpuBufferView::initialize(buffer, desc);
 

@@ -387,7 +387,7 @@ namespace BansheeEngine
 
 		for (auto& objSyncData : syncData.entries)
 		{
-			SPtr<CoreObjectCore> destinationObj = objSyncData.destinationObj.lock();
+			SPtr<CoreObjectCore> destinationObj = objSyncData.destinationObj;
 			if (destinationObj != nullptr)
 				destinationObj->syncToCore(objSyncData.syncData);
 
@@ -399,27 +399,5 @@ namespace BansheeEngine
 
 		syncData.entries.clear();
 		mCoreSyncData.pop_front();
-	}
-
-	void CoreObjectManager::clearDirty()
-	{
-		Lock lock(mObjectsMutex);
-
-		FrameAlloc* allocator = gCoreThread().getFrameAlloc();
-		for (auto& objectData : mDirtyObjects)
-		{
-			if (objectData.second.syncDataId != -1)
-			{
-				CoreStoredSyncObjData& objSyncData = mDestroyedSyncData[objectData.second.syncDataId];
-
-				UINT8* data = objSyncData.syncData.getBuffer();
-
-				if (data != nullptr)
-					allocator->dealloc(data);
-			}
-		}
-
-		mDirtyObjects.clear();
-		mDestroyedSyncData.clear();
 	}
 }

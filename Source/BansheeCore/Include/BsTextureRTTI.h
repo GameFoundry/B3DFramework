@@ -21,42 +21,27 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT TextureRTTI : public RTTIType<Texture, Resource, TextureRTTI>
 	{
 	private:
-		UINT32& getSize(Texture* obj) { return obj->mSize; }
-		void setSize(Texture* obj, UINT32& val) { obj->mSize = val; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mSize, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(height, mProperties.mDesc.height, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(width, mProperties.mDesc.width, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(depth, mProperties.mDesc.depth, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(numMips, mProperties.mDesc.numMips, 5)
+			BS_RTTI_MEMBER_PLAIN_NAMED(hwGamma, mProperties.mDesc.hwGamma, 6)
+			BS_RTTI_MEMBER_PLAIN_NAMED(numSamples, mProperties.mDesc.numSamples, 7)
+			BS_RTTI_MEMBER_PLAIN_NAMED(type, mProperties.mDesc.type, 9)
+			BS_RTTI_MEMBER_PLAIN_NAMED(format, mProperties.mDesc.format, 10)
+		BS_END_RTTI_MEMBERS
 
-		UINT32& getWidth(Texture* obj) { return obj->mProperties.mWidth; }
-		void setWidth(Texture* obj, UINT32& val) { obj->mProperties.mWidth = val; }
-
-		UINT32& getHeight(Texture* obj) { return obj->mProperties.mHeight; }
-		void setHeight(Texture* obj, UINT32& val) { obj->mProperties.mHeight = val; }
-
-		UINT32& getDepth(Texture* obj) { return obj->mProperties.mDepth; }
-		void setDepth(Texture* obj, UINT32& val) { obj->mProperties.mDepth = val; }
-
-		UINT32& getNumMipmaps(Texture* obj) { return obj->mProperties.mNumMipmaps; }
-		void setNumMipmaps(Texture* obj, UINT32& val) { obj->mProperties.mNumMipmaps = val; }
-
-		bool& getHwGamma(Texture* obj) { return obj->mProperties.mHwGamma; }
-		void setHwGamma(Texture* obj, bool& val) { obj->mProperties.mHwGamma = val; }
-
-		UINT32& getMultisampleCount(Texture* obj) { return obj->mProperties.mMultisampleCount; }
-		void setMultisampleCount(Texture* obj, UINT32& val) { obj->mProperties.mMultisampleCount = val; }
-
-		TextureType& getTextureType(Texture* obj) { return obj->mProperties.mTextureType; }
-		void setTextureType(Texture* obj, TextureType& val) { obj->mProperties.mTextureType = val; }
-
-		PixelFormat& getFormat(Texture* obj) { return obj->mProperties.mFormat; }
-		void setFormat(Texture* obj, PixelFormat& val) { obj->mProperties.mFormat = val; }
-
-		INT32& getUsage(Texture* obj) { return obj->mProperties.mUsage; }
+		INT32& getUsage(Texture* obj) { return obj->mProperties.mDesc.usage; }
 		void setUsage(Texture* obj, INT32& val) 
 		{ 
 			// Render target and depth stencil texture formats are for in-memory use only
 			// and don't make sense when serialized
 			if (val == TU_DEPTHSTENCIL || val == TU_RENDERTARGET)
-				obj->mProperties.mUsage = TU_STATIC;
+				obj->mProperties.mDesc.usage = TU_STATIC;
 			else
-				obj->mProperties.mUsage = val;
+				obj->mProperties.mDesc.usage = val;
 		}
 
 #define BS_ADD_PLAINFIELD(name, id, parentType) \
@@ -97,16 +82,8 @@ namespace BansheeEngine
 
 	public:
 		TextureRTTI()
+			:mInitMembers(this)
 		{
-			addPlainField("mSize", 0, &TextureRTTI::getSize, &TextureRTTI::setSize);
-			addPlainField("mHeight", 2, &TextureRTTI::getHeight, &TextureRTTI::setHeight);
-			addPlainField("mWidth", 3, &TextureRTTI::getWidth, &TextureRTTI::setWidth);
-			addPlainField("mDepth", 4, &TextureRTTI::getDepth, &TextureRTTI::setDepth);
-			addPlainField("mNumMipmaps", 5, &TextureRTTI::getNumMipmaps, &TextureRTTI::setNumMipmaps);
-			addPlainField("mHwGamma", 6, &TextureRTTI::getHwGamma, &TextureRTTI::setHwGamma);
-			addPlainField("mMultisampleCount", 7, &TextureRTTI::getMultisampleCount, &TextureRTTI::setMultisampleCount);
-			addPlainField("mTextureType", 9, &TextureRTTI::getTextureType, &TextureRTTI::setTextureType);
-			addPlainField("mFormat", 10, &TextureRTTI::getFormat, &TextureRTTI::setFormat);
 			addPlainField("mUsage", 11, &TextureRTTI::getUsage, &TextureRTTI::setUsage);
 
 			addReflectablePtrArrayField("mPixelData", 12, &TextureRTTI::getPixelData, &TextureRTTI::getPixelDataArraySize, 
@@ -131,14 +108,14 @@ namespace BansheeEngine
 
 			// Update pixel format if needed as it's possible the original texture was saved using some other render API
 			// that has an unsupported format.
-			PixelFormat originalFormat = texProps.mFormat;
+			PixelFormat originalFormat = texProps.getFormat();
 			PixelFormat validFormat = TextureManager::instance().getNativeFormat(
-				texProps.mTextureType, texProps.mFormat, texProps.mUsage, texProps.mHwGamma);
+				texProps.getTextureType(), texProps.getFormat(), texProps.getUsage(), texProps.isHardwareGammaEnabled());
 
 			Vector<SPtr<PixelData>>* pixelData = any_cast<Vector<SPtr<PixelData>>*>(texture->mRTTIData);
 			if (originalFormat != validFormat)
 			{
-				texProps.mFormat = validFormat;
+				texProps.mDesc.format = validFormat;
 
 				for (size_t i = 0; i < pixelData->size(); i++)
 				{

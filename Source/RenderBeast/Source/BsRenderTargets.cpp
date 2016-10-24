@@ -52,9 +52,7 @@ namespace BansheeEngine
 
 		if (mGBufferRT == nullptr || mSceneColorRT == nullptr || rebuildTargets)
 		{
-			MULTI_RENDER_TEXTURE_CORE_DESC gbufferDesc;
-			gbufferDesc.colorSurfaces.resize(3);
-
+			RENDER_TEXTURE_DESC_CORE gbufferDesc;
 			gbufferDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
 			gbufferDesc.colorSurfaces[0].face = 0;
 			gbufferDesc.colorSurfaces[0].numFaces = 1;
@@ -74,13 +72,13 @@ namespace BansheeEngine
 			gbufferDesc.depthStencilSurface.face = 0;
 			gbufferDesc.depthStencilSurface.mipLevel = 0;
 
-			mGBufferRT = TextureCoreManager::instance().createMultiRenderTexture(gbufferDesc);
+			mGBufferRT = RenderTextureCore::create(gbufferDesc);
 
-			RENDER_TEXTURE_CORE_DESC sceneColorDesc;
-			sceneColorDesc.colorSurface.texture = mSceneColorTex->texture;
-			sceneColorDesc.colorSurface.face = 0;
-			sceneColorDesc.colorSurface.numFaces = 1;
-			sceneColorDesc.colorSurface.mipLevel = 0;
+			RENDER_TEXTURE_DESC_CORE sceneColorDesc;
+			sceneColorDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
+			sceneColorDesc.colorSurfaces[0].face = 0;
+			sceneColorDesc.colorSurfaces[0].numFaces = 1;
+			sceneColorDesc.colorSurfaces[0].mipLevel = 0;
 
 			sceneColorDesc.depthStencilSurface.texture = mDepthTex->texture;
 			sceneColorDesc.depthStencilSurface.face = 0;

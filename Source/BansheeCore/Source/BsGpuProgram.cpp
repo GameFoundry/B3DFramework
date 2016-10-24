@@ -15,9 +15,9 @@ namespace BansheeEngine
 		:mType(gptype), mEntryPoint(entryPoint), mProfile(profile), mSource(source)
 	{ }
 		
-	GpuProgramCore::GpuProgramCore(const String& source, const String& entryPoint,
-		GpuProgramType gptype, GpuProgramProfile profile, bool isAdjacencyInfoRequired)
-		:mNeedsAdjacencyInfo(isAdjacencyInfoRequired), mIsCompiled(false), mProperties(source, entryPoint, gptype, profile)
+	GpuProgramCore::GpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		:mNeedsAdjacencyInfo(desc.requiresAdjacency), mIsCompiled(false), mProperties(desc.source, desc.entryPoint, 
+			desc.type, desc.profile)
 	{
 		mParametersDesc = bs_shared_ptr_new<GpuParamDesc>();
 	}
@@ -27,10 +27,10 @@ namespace BansheeEngine
 		if (!isRequiredCapabilitiesSupported())
 			return false;
 
-		RenderAPICore* rs = BansheeEngine::RenderAPICore::instancePtr();
-		String profile = rs->getCapabilities()->gpuProgProfileToRSSpecificProfile(getProperties().getProfile());
+		RenderAPICore* rapi = RenderAPICore::instancePtr();
+		String profile = rapi->getCapabilities().gpuProgProfileToRSSpecificProfile(getProperties().getProfile());
 
-		return rs->getCapabilities()->isShaderProfileSupported(profile);
+		return rapi->getCapabilities().isShaderProfileSupported(profile);
     }
 
 	bool GpuProgramCore::isRequiredCapabilitiesSupported() const
@@ -38,21 +38,14 @@ namespace BansheeEngine
 		return true;
 	}
 
-	SPtr<GpuParamsCore> GpuProgramCore::createParameters()
+	SPtr<GpuProgramCore> GpuProgramCore::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return GpuParamsCore::create(mParametersDesc);
+		return GpuProgramCoreManager::instance().create(desc, deviceMask);
 	}
 
-	SPtr<GpuProgramCore> GpuProgramCore::create(const String& source, const String& entryPoint, const String& language, GpuProgramType gptype,
-		GpuProgramProfile profile, bool requiresAdjacency)
-	{
-		return GpuProgramCoreManager::instance().create(source, entryPoint, language, gptype, profile, requiresAdjacency);
-	}
-
-	GpuProgram::GpuProgram(const String& source, const String& entryPoint, const String& language,
-		GpuProgramType gptype, GpuProgramProfile profile, bool isAdjacencyInfoRequired) 
-		: mNeedsAdjacencyInfo(isAdjacencyInfoRequired), mLanguage(language)
-		, mProperties(source, entryPoint, gptype, profile)
+	GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc)
+		: mNeedsAdjacencyInfo(desc.requiresAdjacency), mLanguage(desc.language)
+		, mProperties(desc.source, desc.entryPoint, desc.type, desc.profile)
     {
 
     }
@@ -67,11 +60,6 @@ namespace BansheeEngine
 		return getCore()->getCompileErrorMessage();
 	}
 
-	SPtr<GpuParams> GpuProgram::createParameters()
-	{
-		return GpuParams::create(getCore()->getParamDesc());
-	}
-
 	SPtr<GpuParamDesc> GpuProgram::getParamDesc() const
 	{
 		return getCore()->getParamDesc();
@@ -84,14 +72,20 @@ namespace BansheeEngine
 
 	SPtr<CoreObjectCore> GpuProgram::createCore() const
 	{
-		return GpuProgramCoreManager::instance().createInternal(mProperties.getSource(), mProperties.getEntryPoint(),
-			mLanguage, mProperties.getType(), mProperties.getProfile(), mNeedsAdjacencyInfo);
+		GPU_PROGRAM_DESC desc;
+		desc.source = mProperties.getSource();
+		desc.entryPoint = mProperties.getEntryPoint();
+		desc.language = mLanguage;
+		desc.type = mProperties.getType();
+		desc.profile = mProperties.getProfile();
+		desc.requiresAdjacency = mNeedsAdjacencyInfo;
+
+		return GpuProgramCoreManager::instance().createInternal(desc);
 	}
 
-	SPtr<GpuProgram> GpuProgram::create(const String& source, const String& entryPoint, const String& language, GpuProgramType gptype,
-		GpuProgramProfile profile, bool requiresAdjacency)
+	SPtr<GpuProgram> GpuProgram::create(const GPU_PROGRAM_DESC& desc)
 	{
-		return GpuProgramManager::instance().create(source, entryPoint, language, gptype, profile, requiresAdjacency);
+		return GpuProgramManager::instance().create(desc);
 	}
 
 	/************************************************************************/

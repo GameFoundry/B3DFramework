@@ -20,9 +20,11 @@ namespace BansheeEngine
 
 #define DEPTHFORMAT_COUNT (sizeof(depthFormats)/sizeof(GLenum))
 
-	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_CORE_DESC& desc)
-		:RenderTextureCore(desc), mProperties(desc, true), mFB(nullptr)
-	{ }
+	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
+		:RenderTextureCore(desc, deviceMask), mProperties(desc, true), mFB(nullptr)
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+	}
 
 	GLRenderTextureCore::~GLRenderTextureCore()
 	{ 
@@ -39,51 +41,58 @@ namespace BansheeEngine
 
 		mFB = bs_new<GLFrameBufferObject>();
 
-		if (mColorSurface != nullptr && mColorSurface->getTexture() != nullptr)
+		for (size_t i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
-			GLTextureCore* glTexture = static_cast<GLTextureCore*>(mColorSurface->getTexture().get());
-
-			GLSurfaceDesc surfaceDesc;
-			surfaceDesc.numSamples = getProperties().getMultisampleCount();
-
-			if (mColorSurface->getNumArraySlices() == 1) // Binding a single texture layer
+			if (mColorSurfaces[i] != nullptr)
 			{
-				surfaceDesc.allLayers = glTexture->getProperties().getNumFaces() == 1;
+				GLTextureCore* glColorSurface = static_cast<GLTextureCore*>(mColorSurfaces[i]->getTexture().get());
+				GLSurfaceDesc surfaceDesc;
+				surfaceDesc.numSamples = getProperties().getMultisampleCount();
 
-				if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
+				if (mColorSurfaces[i]->getNumArraySlices() == 1) // Binding a single texture layer
 				{
-					surfaceDesc.zoffset = 0;
-					surfaceDesc.buffer = glTexture->getBuffer(mColorSurface->getFirstArraySlice(), mColorSurface->getMostDetailedMip());
+					surfaceDesc.allLayers = glColorSurface->getProperties().getNumFaces() == 1;
+
+					if (glColorSurface->getProperties().getTextureType() != TEX_TYPE_3D)
+					{
+						surfaceDesc.zoffset = 0;
+						surfaceDesc.buffer = glColorSurface->getBuffer(mColorSurfaces[i]->getFirstArraySlice(),
+							mColorSurfaces[i]->getMostDetailedMip());
+					}
+					else
+					{
+						surfaceDesc.zoffset = mColorSurfaces[i]->getFirstArraySlice();
+						surfaceDesc.buffer = glColorSurface->getBuffer(0, mColorSurfaces[i]->getMostDetailedMip());
+					}
 				}
-				else
+				else // Binding an array of textures or a range of 3D texture slices
 				{
-					surfaceDesc.zoffset = mColorSurface->getFirstArraySlice();
-					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
+					surfaceDesc.allLayers = true;
+
+					if (glColorSurface->getProperties().getTextureType() != TEX_TYPE_3D)
+					{
+						if (mColorSurfaces[i]->getNumArraySlices() != glColorSurface->getProperties().getNumFaces())
+							LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
+
+						surfaceDesc.zoffset = 0;
+						surfaceDesc.buffer = glColorSurface->getBuffer(0, mColorSurfaces[i]->getMostDetailedMip());
+					}
+					else
+					{
+						if (mColorSurfaces[i]->getNumArraySlices() != glColorSurface->getProperties().getDepth())
+							LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
+
+						surfaceDesc.zoffset = 0;
+						surfaceDesc.buffer = glColorSurface->getBuffer(0, mColorSurfaces[i]->getMostDetailedMip());
+					}
 				}
+
+				mFB->bindSurface((UINT32)i, surfaceDesc);
 			}
-			else // Binding an array of textures or a range of 3D texture slices
+			else
 			{
-				surfaceDesc.allLayers = true;
-
-				if (glTexture->getProperties().getTextureType() != TEX_TYPE_3D)
-				{
-					if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getNumFaces())
-						LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
-
-					surfaceDesc.zoffset = 0;
-					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
-				}
-				else
-				{
-					if (mColorSurface->getNumArraySlices() != glTexture->getProperties().getDepth())
-						LOGWRN("OpenGL doesn't support binding of arbitrary ranges for array textures. The entire range will be bound instead.");
-
-					surfaceDesc.zoffset = 0;
-					surfaceDesc.buffer = glTexture->getBuffer(0, mColorSurface->getMostDetailedMip());
-				}
+				mFB->unbindSurface((UINT32)i);
 			}
-
-			mFB->bindSurface(0, surfaceDesc);
 		}
 
 		if (mDepthStencilSurface != nullptr && mDepthStencilSurface->getTexture() != nullptr)

@@ -69,6 +69,7 @@ namespace BansheeEngine
 		typedef SPtr<RasterizerState> RasterizerStateType;
 		typedef SPtr<DepthStencilState> DepthStencilStateType;
 		typedef SPtr<GpuProgram> GpuProgramType;
+		typedef SPtr<GpuPipelineState> GpuPipelineStateType;
 		typedef PASS_DESC PassDescType;
 	};
 
@@ -79,6 +80,7 @@ namespace BansheeEngine
 		typedef SPtr<RasterizerStateCore> RasterizerStateType;
 		typedef SPtr<DepthStencilStateCore> DepthStencilStateType;
 		typedef SPtr<GpuProgramCore> GpuProgramType;
+		typedef SPtr<GpuPipelineStateCore> GpuPipelineStateType;
 		typedef PASS_DESC_CORE PassDescType;
 	};
 
@@ -99,6 +101,7 @@ namespace BansheeEngine
 		typedef typename TPassTypes<Core>::DepthStencilStateType DepthStencilStateType;
 		typedef typename TPassTypes<Core>::GpuProgramType GpuProgramType;
 		typedef typename TPassTypes<Core>::PassDescType PassDescType;
+		typedef typename TPassTypes<Core>::GpuPipelineStateType GpuPipelineStateType;
 
 		virtual ~TPass() { }
 
@@ -122,15 +125,18 @@ namespace BansheeEngine
 		const GpuProgramType& getVertexProgram() const { return mData.vertexProgram; }
 		const GpuProgramType& getFragmentProgram() const { return mData.fragmentProgram; }
 		const GpuProgramType& getGeometryProgram() const { return mData.geometryProgram; }
-		const GpuProgramType& getHullProgram(void) const { return mData.hullProgram; }
-		const GpuProgramType& getDomainProgram(void) const { return mData.domainProgram; }
-		const GpuProgramType& getComputeProgram(void) const { return mData.computeProgram; }
+		const GpuProgramType& getHullProgram() const { return mData.hullProgram; }
+		const GpuProgramType& getDomainProgram() const { return mData.domainProgram; }
+		const GpuProgramType& getComputeProgram() const { return mData.computeProgram; }
+
+		const GpuPipelineStateType& getPipelineState() const { return mPipelineState; }
 
 	protected:
 		TPass();
 		TPass(const PassDescType& desc);
 
 		PassDescType mData;
+		GpuPipelineStateType mPipelineState;
     };
 
 	/** @} */
@@ -156,8 +162,12 @@ namespace BansheeEngine
 		friend class Pass;
 		friend class TechniqueCore;
 
+		/** @copydoc CoreObjectCore::initialize */
+		void initialize() override;
+
 		PassCore() { }
 		PassCore(const PASS_DESC_CORE& desc);
+		PassCore(const PASS_DESC_CORE& desc, const SPtr<GpuPipelineStateCore>& pipelineState);
 
 		/** @copydoc CoreObjectCore::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
@@ -190,6 +200,9 @@ namespace BansheeEngine
 		Pass() { }
 		Pass(const PASS_DESC& desc);
 
+		/** @copydoc CoreObject::initialize */
+		void initialize() override;
+
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
@@ -208,7 +221,7 @@ namespace BansheeEngine
 	public:
 		friend class PassRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
     };
 
 	/** @} */

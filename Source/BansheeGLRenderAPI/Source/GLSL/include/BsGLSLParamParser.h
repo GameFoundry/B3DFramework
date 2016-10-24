@@ -46,9 +46,10 @@ namespace BansheeEngine
 		 * uniforms.
 		 *
 		 * @param[in]	glProgram		OpenGL handle to the GPU program.
-		 * @param[in]	returnParamDesc	Output structure containing the parsed data.
+		 * @param[in]	type			Type of the GPU program we're parsing.
+		 * @param[out]	returnParamDesc	Output structure containing the parsed data.
 		 */
-		void buildUniformDescriptions(GLuint glProgram, GpuParamDesc& returnParamDesc);
+		void buildUniformDescriptions(GLuint glProgram, GpuProgramType type, GpuParamDesc& returnParamDesc);
 
 		/**
 		 * Parses a compiled OpenGL program and outputs vertex element list that describes input attributes to the program.

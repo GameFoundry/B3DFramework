@@ -34,10 +34,12 @@ namespace BansheeEngine
 			for (auto& param : params)																						\
 				paramsDesc->params[param.name] = param;																		\
 																															\
-			mParams = GpuParamsCore::create(paramsDesc);																	\
+			GPU_PARAMS_DESC desc;																							\
+			desc.vertexParams = paramsDesc;																					\
+			mParams = GpuParamsCore::create(desc);																			\
 																															\
 			mBuffer = GpuParamBlockBufferCore::create(mBlockDesc.blockSize * sizeof(UINT32));								\
-			mParams->setParamBlockBuffer(#Name, mBuffer);																	\
+			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, #Name, mBuffer);												\
 			initEntries();																									\
 		}																													\
 																															\
@@ -73,7 +75,7 @@ namespace BansheeEngine
 		void META_InitPrevEntry(const SPtr<GpuParamsCore>& params, META_NextEntry_##Name id)								\
 		{																													\
 			META_InitPrevEntry(params, META_Entry_##Name());																\
-			params->getParam(#Name, Name);																					\
+			params->getParam(GPT_VERTEX_PROGRAM, #Name, Name);																\
 		}																													\
 																															\
 	public:																													\

@@ -45,6 +45,17 @@ namespace BansheeEngine
 		GPP_CS_5_0 /**< Compute program 5.0 profile. */
 	};
 
+	/** Descriptor structure used for initialization of a GpuProgram. */
+	struct GPU_PROGRAM_DESC
+	{
+		String source; /**< Source code to compile the program from. */
+		String entryPoint; /**< Name of the entry point function, for example "main". */
+		String language; /**< Language the source is written in, for example "hlsl" or "glsl". */
+		GpuProgramType type = GPT_VERTEX_PROGRAM; /**< Type of the program, for example vertex or fragment. */
+		GpuProgramProfile profile = GPP_NONE; /**< Program profile specifying supported feature-set. Must match the type. */
+		bool requiresAdjacency = false; /**< If true then adjacency information will be provided when rendering. */
+	};
+
 	/** Data describing a GpuProgram. */
 	class BS_CORE_EXPORT GpuProgramProperties
 	{
@@ -100,14 +111,6 @@ namespace BansheeEngine
 		String getCompileErrorMessage() const;
 
 		/**
-		 * Creates a new parameters object compatible with this program definition. You may populate the returned object 
-		 * with actual parameter values and bind it to the pipeline to render an object using those values and this program.
-		 *
-		 * @note	Only valid after core thread has initialized the program.
-		 */
-		SPtr<GpuParams> createParameters();
-
-		/**
 		 * Returns description of all parameters in this GPU program.
 		 *
 		 * @note	Only valid after core thread has initialized the program.
@@ -124,22 +127,14 @@ namespace BansheeEngine
 		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
 		 * isCompiled() with return false, and you will be able to retrieve the error message via getCompileErrorMessage().
 		 *
-		 * @param[in]	source				Source code to compile the program from.
-		 * @param[in]	entryPoint			Name of the entry point function, for example "main".
-		 * @param[in]	language			Language the source is written in, for example "hlsl" or "glsl".
-		 * @param[in]	gptype				Type of the program, for example vertex or fragment.
-		 * @param[in]	profile				Program profile specifying supported feature-set. Must match the type.
-		 * @param[in]	requiresAdjacency	If true then adjacency information will be provided when rendering using this 
-		 *									program.
+		 * @param[in]	desc				Description of the program to create.
 		 */
-		static SPtr<GpuProgram> create(const String& source, const String& entryPoint, const String& language, GpuProgramType gptype,
-			GpuProgramProfile profile, bool requiresAdjacency = false);
+		static SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc);
 
 	protected:
 		friend class GpuProgramManager;
 
-		GpuProgram(const String& source, const String& entryPoint, const String& language,
-			GpuProgramType gptype, GpuProgramProfile profile, bool isAdjacencyInfoRequired = false);
+		GpuProgram(const GPU_PROGRAM_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<CoreObjectCore> createCore() const override;
@@ -197,9 +192,6 @@ namespace BansheeEngine
 		 */
 		virtual bool isAdjacencyInfoRequired() const { return mNeedsAdjacencyInfo; }
 
-		/** @copydoc GpuProgram::createParameters */
-		virtual SPtr<GpuParamsCore> createParameters();
-
 		/** @copydoc GpuProgram::getParamDesc */
 		SPtr<GpuParamDesc> getParamDesc() const { return mParametersDesc; }
 
@@ -209,13 +201,14 @@ namespace BansheeEngine
 		/**	Returns properties that contain information about the GPU program. */
 		const GpuProgramProperties& getProperties() const { return mProperties; }
 
-		/** @copydoc GpuProgram::create */
-		static SPtr<GpuProgramCore> create(const String& source, const String& entryPoint, const String& language, GpuProgramType gptype,
-			GpuProgramProfile profile, bool requiresAdjacency = false);
+		/** 
+		 * @copydoc GpuProgram::create 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
+		static SPtr<GpuProgramCore> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
-		GpuProgramCore(const String& source, const String& entryPoint,
-			GpuProgramType gptype, GpuProgramProfile profile, bool isAdjacencyInfoRequired = false);
+		GpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** Returns whether required capabilities for this program is supported. */
 		bool isRequiredCapabilitiesSupported() const;

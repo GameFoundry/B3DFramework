@@ -39,9 +39,9 @@ namespace BansheeEngine
 	 *
 	 * @note	References core textures instead of texture handles.
 	 */
-	struct BS_CORE_EXPORT RENDER_SURFACE_CORE_DESC
+	struct BS_CORE_EXPORT RENDER_SURFACE_DESC_CORE
 	{
-		RENDER_SURFACE_CORE_DESC() { }
+		RENDER_SURFACE_DESC_CORE() { }
 
 		SPtr<TextureCore> texture;
 

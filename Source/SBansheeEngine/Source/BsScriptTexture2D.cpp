@@ -39,7 +39,17 @@ namespace BansheeEngine
 		if(hasMipmaps)
 			numMips = PixelUtil::getMaxMipmaps(width, height, 1, format);
 
-		HTexture texture = Texture::create(TEX_TYPE_2D, width, height, numMips, format, usage, gammaCorrection, numSamples);
+		TEXTURE_DESC texDesc;
+		texDesc.type = TEX_TYPE_2D;
+		texDesc.width = width;
+		texDesc.height = height;
+		texDesc.numMips = numMips;
+		texDesc.format = format;
+		texDesc.usage = usage;
+		texDesc.hwGamma = gammaCorrection;
+		texDesc.numSamples = numSamples;
+
+		HTexture texture = Texture::create(texDesc);
 
 		ScriptTexture2D* scriptInstance;
 		ScriptResourceManager::instance().createScriptResource(instance, texture, &scriptInstance);

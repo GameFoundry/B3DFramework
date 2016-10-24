@@ -16,13 +16,13 @@ namespace BansheeEngine
 	{
 	public:
 		/** @copydoc QueryManager::createEventQuery */
-		SPtr<EventQuery> createEventQuery() const override;
+		SPtr<EventQuery> createEventQuery(UINT32 deviceIdx = 0) const override;
 
 		/** @copydoc QueryManager::createTimerQuery */
-		SPtr<TimerQuery> createTimerQuery() const override;
+		SPtr<TimerQuery> createTimerQuery(UINT32 deviceIdx = 0) const override;
 
 		/** @copydoc QueryManager::createOcclusionQuery */
-		SPtr<OcclusionQuery> createOcclusionQuery(bool binary) const override;
+		SPtr<OcclusionQuery> createOcclusionQuery(bool binary, UINT32 deviceIdx = 0) const override;
 	};
 
 	/** @} */

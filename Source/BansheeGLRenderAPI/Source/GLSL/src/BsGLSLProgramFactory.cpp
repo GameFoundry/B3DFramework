@@ -12,10 +12,9 @@ namespace BansheeEngine
         return LANGUAGE_NAME;
     }
 
-	SPtr<GpuProgramCore> GLSLProgramFactory::create(const String& source, const String& entryPoint,
-		GpuProgramType gptype, GpuProgramProfile profile, bool requireAdjacency)
+	SPtr<GpuProgramCore> GLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
     {
-		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore(source, entryPoint, gptype, profile, requireAdjacency);
+		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore(desc, deviceMask);
 
 		SPtr<GLSLGpuProgramCore> gpuProg = bs_shared_ptr<GLSLGpuProgramCore>(prog);
 		gpuProg->_setThisPtr(gpuProg);
@@ -23,9 +22,12 @@ namespace BansheeEngine
 		return gpuProg;
     }
 
-	SPtr<GpuProgramCore> GLSLProgramFactory::create(GpuProgramType type)
+	SPtr<GpuProgramCore> GLSLProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
-		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore("", "", type, GPP_NONE, false);
+		GPU_PROGRAM_DESC desc;
+		desc.type = type;
+
+		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore(desc, deviceMask);
 
 		SPtr<GLSLGpuProgramCore> gpuProg = bs_shared_ptr<GLSLGpuProgramCore>(prog);
 		gpuProg->_setThisPtr(gpuProg);

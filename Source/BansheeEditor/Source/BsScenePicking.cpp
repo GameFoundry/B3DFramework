@@ -16,8 +16,7 @@
 #include "BsMaterial.h"
 #include "BsPass.h"
 #include "BsRasterizerState.h"
-#include "BsRenderTarget.h"
-#include "BsMultiRenderTexture.h"
+#include "BsRenderTexture.h"
 #include "BsPixelData.h"
 #include "BsGpuParams.h"
 #include "BsGpuParamsSet.h"
@@ -254,24 +253,22 @@ namespace BansheeEngine
 
 			{
 				md.mPickingParams = md.mMatPickingCore->createParamsSet();
-				SPtr<GpuParamsCore> vertParams = md.mPickingParams->getGpuParams(GPT_VERTEX_PROGRAM);
-				SPtr<GpuParamsCore> fragParams = md.mPickingParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				vertParams->getParam("matWorldViewProj", md.mParamPickingWVP);
-				fragParams->getParam("colorIndex", md.mParamPickingColor);
+				SPtr<GpuParamsCore> params = md.mPickingParams->getGpuParams();
+				params->getParam(GPT_VERTEX_PROGRAM, "matWorldViewProj", md.mParamPickingWVP);
+				params->getParam(GPT_FRAGMENT_PROGRAM, "colorIndex", md.mParamPickingColor);
 			}
 
 			{
 				md.mPickingAlphaParams = md.mMatPickingAlphaCore->createParamsSet();
-				SPtr<GpuParamsCore> vertParams = md.mPickingAlphaParams->getGpuParams(GPT_VERTEX_PROGRAM);
-				SPtr<GpuParamsCore> fragParams = md.mPickingAlphaParams->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-				vertParams->getParam("matWorldViewProj", md.mParamPickingAlphaWVP);
-				fragParams->getParam("colorIndex", md.mParamPickingAlphaColor);
-				fragParams->getTextureParam("mainTexture", md.mParamPickingAlphaTexture);
+				SPtr<GpuParamsCore> params = md.mPickingAlphaParams->getGpuParams();
+				params->getParam(GPT_VERTEX_PROGRAM, "matWorldViewProj", md.mParamPickingAlphaWVP);
+				params->getParam(GPT_FRAGMENT_PROGRAM, "colorIndex", md.mParamPickingAlphaColor);
+				params->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", md.mParamPickingAlphaTexture);
 
 				GpuParamFloatCore alphaCutoffParam;
-				fragParams->getParam("alphaCutoff", alphaCutoffParam);
+				params->getParam(GPT_FRAGMENT_PROGRAM, "alphaCutoff", alphaCutoffParam);
 				alphaCutoffParam.set(ALPHA_CUTOFF);
 			}
 		}
@@ -289,15 +286,20 @@ namespace BansheeEngine
 
 		SPtr<RenderTextureCore> rtt = std::static_pointer_cast<RenderTextureCore>(target);
 
-		SPtr<TextureCore> outputTexture = rtt->getBindableColorTexture();
+		SPtr<TextureCore> outputTexture = rtt->getColorTexture(0);
 		TextureProperties outputTextureProperties = outputTexture->getProperties();
 
-		SPtr<TextureCore> normalsTexture = TextureCore::create(TEX_TYPE_2D, outputTextureProperties.getWidth(),
-			outputTextureProperties.getHeight(), 0, PF_R8G8B8A8, TU_RENDERTARGET, false, 1);
-		SPtr<TextureCore> depthTexture = rtt->getBindableDepthStencilTexture();
+		TEXTURE_DESC normalTexDesc;
+		normalTexDesc.type = TEX_TYPE_2D;
+		normalTexDesc.width = outputTextureProperties.getWidth();
+		normalTexDesc.height = outputTextureProperties.getHeight();
+		normalTexDesc.format = PF_R8G8B8A8;
+		normalTexDesc.usage = TU_RENDERTARGET;
 
-		MULTI_RENDER_TEXTURE_CORE_DESC pickingMRT;
-		pickingMRT.colorSurfaces.resize(2);
+		SPtr<TextureCore> normalsTexture = TextureCore::create(normalTexDesc);
+		SPtr<TextureCore> depthTexture = rtt->getDepthStencilTexture();
+
+		RENDER_TEXTURE_DESC_CORE pickingMRT;
 		pickingMRT.colorSurfaces[0].face = 0;
 		pickingMRT.colorSurfaces[0].texture = outputTexture;
 		pickingMRT.colorSurfaces[1].face = 0;
@@ -306,7 +308,7 @@ namespace BansheeEngine
 		pickingMRT.depthStencilSurface.face = 0;
 		pickingMRT.depthStencilSurface.texture = depthTexture;
 		
-		mPickingTexture = MultiRenderTextureCore::create(pickingMRT);
+		mPickingTexture = RenderTextureCore::create(pickingMRT);
 
 		rs.beginFrame();
 		rs.setRenderTarget(mPickingTexture);
@@ -374,9 +376,9 @@ namespace BansheeEngine
 			BS_EXCEPT(NotImplementedException, "Picking is not supported on render windows as framebuffer readback methods aren't implemented");
 		}
 
-		SPtr<TextureCore> outputTexture = mPickingTexture->getBindableColorTexture(0)->getTexture();
-		SPtr<TextureCore> normalsTexture = mPickingTexture->getBindableColorTexture(1)->getTexture();
-		SPtr<TextureCore> depthTexture = mPickingTexture->getBindableDepthStencilTexture()->getTexture();
+		SPtr<TextureCore> outputTexture = mPickingTexture->getColorTexture(0);
+		SPtr<TextureCore> normalsTexture = mPickingTexture->getColorTexture(1);
+		SPtr<TextureCore> depthTexture = mPickingTexture->getDepthStencilTexture();
 
 		if (position.x < 0 || position.x >= (INT32)outputTexture->getProperties().getWidth() ||
 			position.y < 0 || position.y >= (INT32)outputTexture->getProperties().getHeight())

@@ -5,7 +5,6 @@
 #include "BsCorePrerequisites.h"
 #include "BsResource.h"
 #include "BsBounds.h"
-#include "BsDrawOps.h"
 #include "BsSubMesh.h"
 
 namespace BansheeEngine

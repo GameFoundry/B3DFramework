@@ -56,11 +56,11 @@ namespace BansheeEngine
 		ID3D11Buffer* getD3DBuffer() const { return mD3DBuffer; }
 
 	protected:
-		/** @copydoc HardwareBuffer::lockImpl */
-		void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		/** @copydoc HardwareBuffer::map */
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc HardwareBuffer::unlockImpl */
-		void unlockImpl() override;
+		/** @copydoc HardwareBuffer::unmap */
+		void unmap() override;
 
 		BufferType mBufferType;
 		bool mRandomGpuWrite;

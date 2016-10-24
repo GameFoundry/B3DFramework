@@ -17,7 +17,7 @@ namespace BansheeEngine
     class BS_RSGL_EXPORT GLVertexBufferCore : public VertexBufferCore
     {
     public:
-		GLVertexBufferCore(UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut);
+		GLVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 		~GLVertexBufferCore();
 
 		/** @copydoc VertexBufferCore::readData */
@@ -40,11 +40,11 @@ namespace BansheeEngine
 		/** @copydoc VertexBufferCore::initialize */
 		void initialize() override;
 
-		/** @copydoc VertexBufferCore::lockImpl */
-		void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		/** @copydoc VertexBufferCore::map */
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
 
-		/** @copydoc VertexBufferCore::unlockImpl */
-		void unlockImpl() override;
+		/** @copydoc VertexBufferCore::unmap */
+		void unmap() override;
 
 	private:
 		GLBuffer mBuffer;

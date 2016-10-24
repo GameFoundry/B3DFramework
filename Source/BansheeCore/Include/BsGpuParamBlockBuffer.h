@@ -19,7 +19,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT GpuParamBlockBufferCore : public CoreObjectCore
 	{
 	public:
-		GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage);
+		GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
 		virtual ~GpuParamBlockBufferCore();
 
 		/** Writes all of the specified data to the buffer. Data size must be the same size as the buffer. */
@@ -61,11 +61,12 @@ namespace BansheeEngine
 		UINT32 getSize() const { return mSize; }
 
 		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBuffer */
-		static SPtr<GpuParamBlockBufferCore> create(UINT32 size, GpuParamBlockUsage usage = GPBU_DYNAMIC);
+		static SPtr<GpuParamBlockBufferCore> create(UINT32 size, GpuParamBlockUsage usage = GPBU_DYNAMIC,
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		/** @copydoc CoreObjectCore::syncToCore */
-		virtual void syncToCore(const CoreSyncData& data)  override;
+		void syncToCore(const CoreSyncData& data)  override;
 
 		GpuParamBlockUsage mUsage;
 		UINT32 mSize;
@@ -81,7 +82,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT GenericGpuParamBlockBufferCore : public GpuParamBlockBufferCore
 	{
 	public:
-		GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage);
+		GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
 		~GenericGpuParamBlockBufferCore();
 
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
@@ -94,7 +95,7 @@ namespace BansheeEngine
 		UINT8* mData;
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 	};
 
 	/** @} */
@@ -154,7 +155,7 @@ namespace BansheeEngine
 		SPtr<CoreObjectCore> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
-		virtual CoreSyncData syncToCore(FrameAlloc* allocator) override;
+		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
 		GpuParamBlockUsage mUsage;
 		UINT32 mSize;

@@ -24,8 +24,7 @@ namespace BansheeEngine
 		UINT32 getProgramId() const { return mProgramId; }
 
 	protected:
-		D3D11GpuProgramCore(const String& source, const String& entryPoint, GpuProgramType gptype,
-			GpuProgramProfile profile, bool isAdjacencyInfoRequired);
+		D3D11GpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuProgramCore::initialize */
 		void initialize() override;
@@ -65,8 +64,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuVertexProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile);
+		D3D11GpuVertexProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;
@@ -87,8 +85,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuFragmentProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile);
+		D3D11GpuFragmentProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;
@@ -109,8 +106,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuDomainProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile);
+		D3D11GpuDomainProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;
@@ -131,8 +127,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuHullProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile);
+		D3D11GpuHullProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;
@@ -153,8 +148,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuGeometryProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile, bool isAdjacencyInfoRequired);
+		D3D11GpuGeometryProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;
@@ -175,8 +169,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11HLSLProgramFactory;
 
-		D3D11GpuComputeProgramCore(const String& source, const String& entryPoint,
-			GpuProgramProfile profile);
+		D3D11GpuComputeProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc D3D11GpuProgramCore::loadFromMicrocode */
 		void loadFromMicrocode(D3D11Device& device, ID3D10Blob* microcode) override;

@@ -192,19 +192,6 @@ namespace BansheeEngine
 		 */
 		void refreshSamplerOverrides(bool force = false);
 
-		/**
-		 * Sets parameters (textures, samplers, buffers) for the currently active pass.
-		 *
-		 * @param[in]	paramsSet			Structure containing parameters for a material.
-		 * @param[in]	samplerOverrides	Optional samplers to use instead of the those in the pass parameters. Number of
-		 *									samplers must match number in pass parameters.
-		 * @param[in]	passIdx				Index of the pass whose parameters to bind.
-		 *
-		 * @note	Core thread.
-		 */
-		static void setPassParams(const SPtr<GpuParamsSetCore>& paramsSet, const MaterialSamplerOverrides* samplerOverrides, 
-			UINT32 passIdx);
-
 		// Core thread only fields
 		Vector<RendererRenderTarget> mRenderTargets;
 		UnorderedMap<const CameraCore*, RendererCamera> mCameras;

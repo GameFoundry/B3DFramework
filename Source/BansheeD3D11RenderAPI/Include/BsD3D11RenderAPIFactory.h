@@ -2,7 +2,6 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include <string>
 #include "BsRenderAPIFactory.h"
 #include "BsRenderAPIManager.h"
 #include "BsD3D11RenderAPI.h"

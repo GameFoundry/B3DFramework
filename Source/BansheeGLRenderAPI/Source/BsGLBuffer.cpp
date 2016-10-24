@@ -69,7 +69,7 @@ namespace BansheeEngine
 
 			if (buffer == nullptr)
 			{
-				BS_EXCEPT(InternalErrorException, "Cannot map vertex buffer.");
+				BS_EXCEPT(InternalErrorException, "Cannot map OpenGL buffer.");
 			}
 
 			mZeroLocked = false;

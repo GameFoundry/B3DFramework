@@ -8,7 +8,8 @@
 
 namespace BansheeEngine
 {
-	void D3D11HLSLParamParser::parse(ID3DBlob* microcode, GpuParamDesc& desc, List<VertexElement>* inputParams)
+	void D3D11HLSLParamParser::parse(ID3DBlob* microcode, GpuProgramType type, GpuParamDesc& desc, 
+		List<VertexElement>* inputParams)
 	{
 		const char* commentString = nullptr;
 		ID3DBlob* pIDisassembly = nullptr;
@@ -62,7 +63,7 @@ namespace BansheeEngine
 			if (FAILED(hr))
 				BS_EXCEPT(RenderingAPIException, "Cannot get resource binding desc with index: " + toString(i));
 
-			parseResource(bindingDesc, desc);
+			parseResource(bindingDesc, type, desc);
 		}
 
 		for(UINT32 i = 0; i < shaderDesc.ConstantBuffers; i++)
@@ -73,14 +74,11 @@ namespace BansheeEngine
 			parseBuffer(shaderReflectionConstantBuffer, desc);
 		}
 
-		// TODO - Parse:
-		//  - Tex arrays, RW tex arrays and MS textures
-		//	- UINT8, UINT and double values
-
 		shaderReflection->Release();
 	}
 
-	void D3D11HLSLParamParser::parseResource(D3D11_SHADER_INPUT_BIND_DESC& resourceDesc, GpuParamDesc& desc)
+	void D3D11HLSLParamParser::parseResource(D3D11_SHADER_INPUT_BIND_DESC& resourceDesc, GpuProgramType type, 
+		GpuParamDesc& desc)
 	{
 		for(UINT32 i = 0; i < resourceDesc.BindCount; i++)
 		{
@@ -89,6 +87,7 @@ namespace BansheeEngine
 				GpuParamBlockDesc blockDesc;
 				blockDesc.name = resourceDesc.Name;
 				blockDesc.slot = resourceDesc.BindPoint + i;
+				blockDesc.set = (UINT32)type;
 				blockDesc.blockSize = 0; // Calculated manually as we add parameters
 
 				if(strcmp(resourceDesc.Name, "$Globals") == 0 || strcmp(resourceDesc.Name, "$Param") == 0) // Special buffers, as defined by DX11 docs
@@ -103,6 +102,7 @@ namespace BansheeEngine
 				GpuParamObjectDesc memberDesc;
 				memberDesc.name = resourceDesc.Name;
 				memberDesc.slot = resourceDesc.BindPoint + i;
+				memberDesc.set = (UINT32)type;
 				memberDesc.type = GPOT_UNKNOWN;
 
 				switch(resourceDesc.Type)
@@ -202,7 +202,8 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HLSLParamParser::parseBuffer(ID3D11ShaderReflectionConstantBuffer* bufferReflection, GpuParamDesc& desc)
+	void D3D11HLSLParamParser::parseBuffer(ID3D11ShaderReflectionConstantBuffer* bufferReflection, 
+		GpuParamDesc& desc)
 	{
 		D3D11_SHADER_BUFFER_DESC constantBufferDesc;
 		HRESULT hr = bufferReflection->GetDesc(&constantBufferDesc);
@@ -238,11 +239,13 @@ namespace BansheeEngine
 		blockDesc.blockSize = constantBufferDesc.Size / 4;
 	}
 
-	void D3D11HLSLParamParser::parseVariable(D3D11_SHADER_TYPE_DESC& varTypeDesc, D3D11_SHADER_VARIABLE_DESC& varDesc, GpuParamDesc& desc, GpuParamBlockDesc& paramBlock)
+	void D3D11HLSLParamParser::parseVariable(D3D11_SHADER_TYPE_DESC& varTypeDesc, D3D11_SHADER_VARIABLE_DESC& varDesc, 
+		GpuParamDesc& desc, GpuParamBlockDesc& paramBlock)
 	{
 		GpuParamDataDesc memberDesc;
 		memberDesc.name = varDesc.Name;
 		memberDesc.paramBlockSlot = paramBlock.slot;
+		memberDesc.paramBlockSet = paramBlock.set;
 		memberDesc.arraySize = varTypeDesc.Elements == 0 ? 1 : varTypeDesc.Elements;
 		memberDesc.gpuMemOffset = varDesc.StartOffset / 4;
 		memberDesc.cpuMemOffset = varDesc.StartOffset / 4;

@@ -11,25 +11,29 @@
 
 namespace BansheeEngine 
 {
-	SPtr<VertexBufferCore> GLHardwareBufferCoreManager::createVertexBufferInternal(UINT32 vertexSize, UINT32 numVerts, GpuBufferUsage usage, bool streamOut)
+	SPtr<VertexBufferCore> GLHardwareBufferCoreManager::createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<GLVertexBufferCore> ret = bs_shared_ptr_new<GLVertexBufferCore>(vertexSize, numVerts, usage, streamOut);
+		SPtr<GLVertexBufferCore> ret = bs_shared_ptr_new<GLVertexBufferCore>(desc, deviceMask);
 		ret->_setThisPtr(ret);
 
 		return ret;
 	}
 
-	SPtr<IndexBufferCore> GLHardwareBufferCoreManager::createIndexBufferInternal(IndexType itype, UINT32 numIndices, GpuBufferUsage usage)
+	SPtr<IndexBufferCore> GLHardwareBufferCoreManager::createIndexBufferInternal(const INDEX_BUFFER_DESC& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<GLIndexBufferCore> ret = bs_shared_ptr_new<GLIndexBufferCore>(itype, numIndices, usage);
+		SPtr<GLIndexBufferCore> ret = bs_shared_ptr_new<GLIndexBufferCore>(desc, deviceMask);
 		ret->_setThisPtr(ret);
 
 		return ret;
 	}
 
-	SPtr<GpuParamBlockBufferCore> GLHardwareBufferCoreManager::createGpuParamBlockBufferInternal(UINT32 size, GpuParamBlockUsage usage)
+	SPtr<GpuParamBlockBufferCore> GLHardwareBufferCoreManager::createGpuParamBlockBufferInternal(UINT32 size, 
+		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 	{
-		GLGpuParamBlockBufferCore* paramBlockBuffer = new (bs_alloc<GLGpuParamBlockBufferCore>()) GLGpuParamBlockBufferCore(size, usage);
+		GLGpuParamBlockBufferCore* paramBlockBuffer = 
+			new (bs_alloc<GLGpuParamBlockBufferCore>()) GLGpuParamBlockBufferCore(size, usage, deviceMask);
 
 		SPtr<GpuParamBlockBufferCore> paramBlockBufferPtr = bs_shared_ptr<GLGpuParamBlockBufferCore>(paramBlockBuffer);
 		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
@@ -37,11 +41,10 @@ namespace BansheeEngine
 		return paramBlockBufferPtr;
 	}
 
-	SPtr<GpuBufferCore> GLHardwareBufferCoreManager::createGpuBufferInternal(UINT32 elementCount, UINT32 elementSize,
-		GpuBufferType type, GpuBufferFormat format, GpuBufferUsage usage, bool randomGpuWrite, bool useCounter)
+	SPtr<GpuBufferCore> GLHardwareBufferCoreManager::createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
+		GpuDeviceFlags deviceMask)
 	{
-		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(elementCount, elementSize, type, format,
-			usage, randomGpuWrite, useCounter);
+		GLGpuBufferCore* buffer = new (bs_alloc<GLGpuBufferCore>()) GLGpuBufferCore(desc, deviceMask);
 
 		SPtr<GpuBufferCore> bufferPtr = bs_shared_ptr<GLGpuBufferCore>(buffer);
 		bufferPtr->_setThisPtr(bufferPtr);

@@ -20,36 +20,35 @@ namespace BansheeEngine
         return LANGUAGE_NAME;
     }
 
-	SPtr<GpuProgramCore> D3D11HLSLProgramFactory::create(const String& source, const String& entryPoint,
-		GpuProgramType gptype, GpuProgramProfile profile, bool requireAdjacencyInfo)
+	SPtr<GpuProgramCore> D3D11HLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
     {
 		SPtr<GpuProgramCore> gpuProg;
 
-		switch (gptype)
+		switch (desc.type)
 		{
 		case GPT_VERTEX_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuVertexProgramCore>(new (bs_alloc<D3D11GpuVertexProgramCore>())
-				D3D11GpuVertexProgramCore(source, entryPoint, profile));
+				D3D11GpuVertexProgramCore(desc, deviceMask));
 			break;
 		case GPT_FRAGMENT_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuFragmentProgramCore>(new (bs_alloc<D3D11GpuFragmentProgramCore>())
-				D3D11GpuFragmentProgramCore(source, entryPoint, profile));
+				D3D11GpuFragmentProgramCore(desc, deviceMask));
 			break;
 		case GPT_HULL_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuHullProgramCore>(new (bs_alloc<D3D11GpuHullProgramCore>())
-				D3D11GpuHullProgramCore(source, entryPoint, profile));
+				D3D11GpuHullProgramCore(desc, deviceMask));
 			break;
 		case GPT_DOMAIN_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuDomainProgramCore>(new (bs_alloc<D3D11GpuDomainProgramCore>())
-				D3D11GpuDomainProgramCore(source, entryPoint, profile));
+				D3D11GpuDomainProgramCore(desc, deviceMask));
 			break;
 		case GPT_GEOMETRY_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuGeometryProgramCore>(new (bs_alloc<D3D11GpuGeometryProgramCore>())
-				D3D11GpuGeometryProgramCore(source, entryPoint, profile, requireAdjacencyInfo));
+				D3D11GpuGeometryProgramCore(desc, deviceMask));
 			break;
 		case GPT_COMPUTE_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuComputeProgramCore>(new (bs_alloc<D3D11GpuComputeProgramCore>())
-				D3D11GpuComputeProgramCore(source, entryPoint, profile));
+				D3D11GpuComputeProgramCore(desc, deviceMask));
 			break;
 		}
 
@@ -59,35 +58,38 @@ namespace BansheeEngine
 		return gpuProg;
     }
 
-	SPtr<GpuProgramCore> D3D11HLSLProgramFactory::create(GpuProgramType type)
+	SPtr<GpuProgramCore> D3D11HLSLProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgramCore> gpuProg;
+
+		GPU_PROGRAM_DESC desc;
+		desc.type = type;
 
 		switch (type)
 		{
 		case GPT_VERTEX_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuVertexProgramCore>(new (bs_alloc<D3D11GpuVertexProgramCore>())
-				D3D11GpuVertexProgramCore("", "", GPP_NONE));
+				D3D11GpuVertexProgramCore(desc, deviceMask));
 			break;
 		case GPT_FRAGMENT_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuFragmentProgramCore>(new (bs_alloc<D3D11GpuFragmentProgramCore>())
-				D3D11GpuFragmentProgramCore("", "", GPP_NONE));
+				D3D11GpuFragmentProgramCore(desc, deviceMask));
 			break;
 		case GPT_HULL_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuHullProgramCore>(new (bs_alloc<D3D11GpuHullProgramCore>())
-				D3D11GpuHullProgramCore("", "", GPP_NONE));
+				D3D11GpuHullProgramCore(desc, deviceMask));
 			break;
 		case GPT_DOMAIN_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuDomainProgramCore>(new (bs_alloc<D3D11GpuDomainProgramCore>())
-				D3D11GpuDomainProgramCore("", "", GPP_NONE));
+				D3D11GpuDomainProgramCore(desc, deviceMask));
 			break;
 		case GPT_GEOMETRY_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuGeometryProgramCore>(new (bs_alloc<D3D11GpuGeometryProgramCore>())
-				D3D11GpuGeometryProgramCore("", "", GPP_NONE, false));
+				D3D11GpuGeometryProgramCore(desc, deviceMask));
 			break;
 		case GPT_COMPUTE_PROGRAM:
 			gpuProg = bs_shared_ptr<D3D11GpuComputeProgramCore>(new (bs_alloc<D3D11GpuComputeProgramCore>())
-				D3D11GpuComputeProgramCore("", "", GPP_NONE));
+				D3D11GpuComputeProgramCore(desc, deviceMask));
 			break;
 		}
 

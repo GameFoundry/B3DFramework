@@ -10,7 +10,7 @@
 namespace BansheeEngine
 {
 	Prefab::Prefab()
-		:Resource(false), mHash(0), mNextLinkId(0), mIsScene(true)
+		:Resource(false), mHash(0), mIsScene(true)
 	{
 		
 	}
@@ -25,6 +25,8 @@ namespace BansheeEngine
 	{
 		SPtr<Prefab> newPrefab = createEmpty();
 		newPrefab->mIsScene = isScene;
+
+		PrefabUtility::clearPrefabIds(sceneObject, true, false);
 		newPrefab->initialize(sceneObject);
 
 		HPrefab handle = static_resource_cast<Prefab>(gResources()._createResourceHandle(newPrefab));
@@ -46,15 +48,7 @@ namespace BansheeEngine
 	void Prefab::initialize(const HSceneObject& sceneObject)
 	{
 		sceneObject->mPrefabDiff = nullptr;
-		UINT32 newNextLinkId = PrefabUtility::generatePrefabIds(sceneObject, mNextLinkId);
-
-		if (newNextLinkId < mNextLinkId)
-		{
-			BS_EXCEPT(InternalErrorException, "Prefab ran out of IDs to assign. " \
-				"Consider increasing the size of the prefab ID data type.");
-		}
-
-		mNextLinkId = newNextLinkId;
+		PrefabUtility::generatePrefabIds(sceneObject);
 
 		// If there are any child prefab instances, make sure to update their diffs so they are saved with this prefab
 		Stack<HSceneObject> todo;
@@ -80,6 +74,7 @@ namespace BansheeEngine
 		// Clone the hierarchy for internal storage
 		mRoot = sceneObject->clone(false);
 		mRoot->mParent = nullptr;
+		mRoot->mLinkId = -1;
 
 		// Remove objects with "dont save" flag
 		todo.push(mRoot);
@@ -157,6 +152,8 @@ namespace BansheeEngine
 			return HSceneObject();
 
 		mRoot->mPrefabHash = mHash;
+		mRoot->mLinkId = -1;
+
 		return mRoot->clone(false);
 	}
 

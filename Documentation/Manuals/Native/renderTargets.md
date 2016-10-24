@@ -6,9 +6,7 @@ Render targets represent destination surfaces onto which objects are rendered. T
 
 In Banshee render targets are represented with:
  - Windows - @ref BansheeEngine::RenderWindow "RenderWindow" and @ref BansheeEngine::RenderWindowCore "RenderWindowCore"
- - Textures
-  - Single surface: @ref BansheeEngine::RenderTexture "RenderTexture" and @ref BansheeEngine::RenderTextureCore "RenderTextureCore"
-  - Multiple surfaces: @ref BansheeEngine::MultiRenderTexture "MultiRenderTexture" and @ref BansheeEngine::MultiRenderTextureCore "MultiRenderTextureCore"
+ - Textures - @ref BansheeEngine::RenderTexture "RenderTexture" and @ref BansheeEngine::RenderTextureCore "RenderTextureCore"
  
 Each type comes in two variants, both of which provide almost equivalent functionality, but the former is for use on the simulation thread, and the latter is for use on the core thread. If you are confused by the dual nature of the objects, read the [core thread](@ref coreThread) manual. 
 
@@ -66,20 +64,34 @@ Render textures are simpler than windows, but you are given more control over th
 
 Render texture must contain at least one texture (color surface), but may optionally also contain a depth-stencil surface. Depth-stencil surface is also a @ref BansheeEngine::Texture "Texture", but one created with the @ref BansheeEngine::TU_DEPTHSTENCIL "TU_DEPTHSTENCIL" flag. Depth stencil surfaces only accept specific pixel formats starting with "D" prefix in @ref BansheeEngine::PixelFormat "PixelFormat". Dimensions of the depth stencil surface must match the color surface.
 
-To create a render texture call @ref BansheeEngine::RenderTexture::create(const RENDER_TEXTURE_DESC&) "RenderTexture::create" with a populated @ref BansheeEngine::RENDER_TEXTURE_DESC "RENDER_TEXTURE_DESC" structure. This structure expects a reference to the color surface texture, and an optional depth-stencil surface texture. For each of those you must also specify the face and mip level onto which to render, in case your texture has multiple.
+To create a render texture call @ref BansheeEngine::RenderTexture::create(const RENDER_TEXTURE_DESC&) "RenderTexture::create" with a populated @ref BansheeEngine::RENDER_TEXTURE_DESC "RENDER_TEXTURE_DESC" structure. This structure expects a reference to one or more color surface textures, and an optional depth-stencil surface texture. For each of those you must also specify the face and mip level onto which to render, in case your texture has multiple.
 
 For example:
 ~~~~~~~~~~~~~{.cpp}
 // Create a 1280x720 texture with 32-bit RGBA format
-HTexture color = Texture::create(TEX_TYPE_2D, 1280, 720, 1, 0, PF_R8G8B8A8);
+TEXTURE_DESC colorDesc;
+colorDesc.type = TEX_TYPE_2D;
+colorDesc.width = 1280;
+colorDesc.heigth = 720;
+colorDesc.format = PF_R8G8B8A8;
+colorDesc.usage = TU_RENDERTARGET;
+
+HTexture color = Texture::create(colorDesc);
 
 // Create a 1280x720 texture with a 32-bit depth-stencil format
-HTexture depthStencil = Texture::create(TEX_TYPE_2D, 1280, 720, 1, 0, PF_D24S8);
+TEXTURE_DESC depthDesc;
+depthDesc.type = TEX_TYPE_2D;
+depthDesc.width = 1280;
+depthDesc.heigth = 720;
+depthDesc.format = PF_R8G8B8A8;
+depthDesc.usage = TU_DEPTHSTENCIL;
+
+HTexture depthStencil = Texture::create(depthDesc);
 
 RENDER_TEXTURE_DESC desc;
-desc.colorSurface.texture = color;
-desc.colorSurface.face = 0;
-desc.colorSurface.mipLevel = 0;
+desc.colorSurfaces[0].texture = color;
+desc.colorSurfaces[0].face = 0;
+desc.colorSurfaces[0].mipLevel = 0;
 
 desc.depthStencilSurface.texture = depthStencil;
 desc.depthStencilSurface.face = 0;
@@ -88,16 +100,22 @@ desc.depthStencilSurface.mipLevel = 0;
 SPtr<RenderTexture> renderTexture = RenderTexture::create(desc);
 ~~~~~~~~~~~~~
 
-Optionally you can also use the overloaded @ref BansheeEngine::RenderTexture::create(TextureType, UINT32, UINT32, PixelFormat, bool, UINT32, bool, PixelFormat) "RenderTexture::create" to create the texture surfaces and the render texture in one go:
+Optionally you can also use the overloaded @ref BansheeEngine::RenderTexture::create(const TEXTURE_DESC&, bool, PixelFormat) "RenderTexture::create" to create the texture surfaces and the render texture in one go:
 ~~~~~~~~~~~~~{.cpp}
 // Has the same result as above:
-SPtr<RenderTexture> renderTexture = RenderTexture::create(TEX_TYPE_2D, 1280, 720, PF_R8G8B8A8, false, 0, true, PF_D24S8);
+TEXTURE_DESC colorDesc;
+colorDesc.type = TEX_TYPE_2D;
+colorDesc.width = 1280;
+colorDesc.heigth = 720;
+colorDesc.format = PF_R8G8B8A8;
+
+SPtr<RenderTexture> renderTexture = RenderTexture::create(colorDesc, true, PF_D24S8);
 ~~~~~~~~~~~~~
 
 ## Multiple surfaces {#renderTargets_b_a}
-Render textures can also contain multiple color surfaces (up to 8). Such targets simply allow you to write more data at once, improving performance as you do not need to execute multiple draw calls. To create a texture with multiple color surfaces you must create a @ref BansheeEngine::MultiRenderTexture "MultiRenderTexture" by calling @ref BansheeEngine::MultiRenderTexture::create "MultiRenderTexture::create". 
+Render textures can also contain multiple color surfaces (up to 8). Such targets simply allow you to write more data at once, improving performance as you do not need to execute multiple draw calls. To create a texture with multiple color surfaces simply fill out other entries of @ref BansheeEngine::RENDER_TEXTURE_DESC "RENDER_TEXTURE_DESC::colorSurfaces" array and proceed the same as in the above example.
 
-Their creation is identical to normal render textures, only they accept more than one color surface. Use `BS_MAX_MULTIPLE_RENDER_TARGETS` to learn what is the maximum supported number of color surfaces per target (usually 8). All color surfaces (and the depth/stencil surface) must have the same dimensions.
+Use `BS_MAX_MULTIPLE_RENDER_TARGETS` to learn what is the maximum supported number of color surfaces per target (usually 8). All color surfaces (and the depth/stencil surface) must have the same dimensions and sample count.
 
 ## Multi-sampled surfaces {#renderTargets_b_c}
 Same as windows, render textures can be created with support for multiple samples per pixel. This allows affects such as multi-sampled antialiasing and similar. To create a multi-sampled render texture simply create a @ref BansheeEngine::Texture "Texture" with its `multisampleCount` parameter larger than one, which you then use to initialize a render texture. Make sure that all surfaces (including depth-stencil) in a render texture have the same number of samples.
@@ -119,11 +137,9 @@ Use @ref BansheeEngine::RenderAPI::setRenderTarget "RenderAPI::setRenderTarget" 
 Call @ref BansheeEngine::RenderAPI::clearRenderTarget "RenderAPI::clearRenderTarget" to clear all or portions of a render target to a specific color/value. Read the [render API](@ref renderAPI) manual for more information.
 
 ## Reading from targets {#renderTargets_d_c}
-If you wish to read render target pixels from the CPU, you can use the normal @ref BansheeEngine::Texture "Texture" read functionality as described in the [texture](@ref textures) manual. To retrieve a @ref BansheeEngine::Texture "Texture" from a @ref BansheeEngine::RenderTexture "RenderTexture" or @ref BansheeEngine::MultiRenderTexture "MultiRenderTexture" call the following methods:
- - @ref BansheeEngine::RenderTexture::getBindableColorTexture "RenderTexture::getBindableColorTexture"
- - @ref BansheeEngine::RenderTexture::getBindableDepthStencilTexture "RenderTexture::getBindableDepthStencilTexture"
- - @ref BansheeEngine::MultiRenderTexture::getBindableColorTexture "MultiRenderTexture::getBindableColorTexture"
- - @ref BansheeEngine::MultiRenderTexture::getBindableDepthStencilTexture "MultiRenderTexture::getBindableDepthStencilTexture"
+If you wish to read render target pixels from the CPU, you can use the normal @ref BansheeEngine::Texture "Texture" read functionality as described in the [texture](@ref textures) manual. To retrieve a @ref BansheeEngine::Texture "Texture" from a @ref BansheeEngine::RenderTexture "RenderTexture" call the following methods:
+ - @ref BansheeEngine::RenderTexture::getColorTexture "RenderTexture::getColorTexture"
+ - @ref BansheeEngine::RenderTexture::getDepthStencilTexture "RenderTexture::getDepthStencilTexture"
  
 Before reading you must make sure the render target is not currently bound for rendering otherwise this will fail. You cannot read from a @ref BansheeEngine::RenderWindow "RenderWindow".
 

@@ -16,9 +16,9 @@ namespace BansheeEngine
 	const float MeshHeapCore::GrowPercent = 1.5f;
 
 	MeshHeapCore::MeshHeapCore(UINT32 numVertices, UINT32 numIndices,
-		const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType)
+		const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType, GpuDeviceFlags deviceMask)
 		: mNumVertices(numVertices), mNumIndices(numIndices), mCPUIndexData(nullptr), mVertexDesc(vertexDesc)
-		, mIndexType(indexType), mNextQueryId(0)
+		, mIndexType(indexType), mNextQueryId(0), mDeviceMask(deviceMask)
 	{
 		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
 		{
@@ -295,7 +295,7 @@ namespace BansheeEngine
 		mVertexData = SPtr<VertexData>(bs_new<VertexData>());
 
 		mVertexData->vertexCount = mNumVertices;
-		mVertexData->vertexDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(mVertexDesc);
+		mVertexData->vertexDeclaration = VertexDeclarationCore::create(mVertexDesc, mDeviceMask);
 
 		// Create buffers and copy data
 		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
@@ -304,9 +304,13 @@ namespace BansheeEngine
 				continue;
 
 			UINT32 vertSize = mVertexData->vertexDeclaration->getProperties().getVertexSize(i);
-			SPtr<VertexBufferCore> vertexBuffer = HardwareBufferCoreManager::instance().createVertexBuffer(
-				vertSize, mVertexData->vertexCount, GBU_DYNAMIC);
 
+			VERTEX_BUFFER_DESC desc;
+			desc.vertexSize = vertSize;
+			desc.numVerts = mVertexData->vertexCount;
+			desc.usage = GBU_DYNAMIC;
+
+			SPtr<VertexBufferCore> vertexBuffer = VertexBufferCore::create(desc, mDeviceMask);
 			mVertexData->setBuffer(i, vertexBuffer);
 
 			// Copy all data to the new buffer
@@ -376,7 +380,13 @@ namespace BansheeEngine
 	{
 		mNumIndices = numIndices;
 
-		mIndexBuffer = HardwareBufferCoreManager::instance().createIndexBuffer(mIndexType, mNumIndices, GBU_DYNAMIC);
+		INDEX_BUFFER_DESC ibDesc;
+		ibDesc.indexType = mIndexType;
+		ibDesc.numIndices = mNumIndices;
+		ibDesc.usage = GBU_DYNAMIC;
+
+		mIndexBuffer = IndexBufferCore::create(ibDesc, mDeviceMask);
+
 		const IndexBufferProperties& ibProps = mIndexBuffer->getProperties();
 
 		// Copy all data to the new buffer
@@ -639,8 +649,8 @@ namespace BansheeEngine
 	{
 	}
 
-	SPtr<MeshHeap> MeshHeap::create(UINT32 numVertices, UINT32 numIndices, 
-		const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType)
+	SPtr<MeshHeap> MeshHeap::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
+		IndexType indexType)
 	{
 		MeshHeap* meshHeap = new (bs_alloc<MeshHeap>()) MeshHeap(numVertices, numIndices, vertexDesc, indexType); 
 		SPtr<MeshHeap> meshHeapPtr = bs_core_ptr<MeshHeap>(meshHeap);
@@ -656,7 +666,8 @@ namespace BansheeEngine
 		UINT32 meshIdx = mNextFreeId++;
 
 		SPtr<MeshHeap> thisPtr = std::static_pointer_cast<MeshHeap>(getThisPtr());
-		TransientMesh* transientMesh = new (bs_alloc<TransientMesh>()) TransientMesh(thisPtr, meshIdx, meshData->getNumVertices(), meshData->getNumIndices(), drawOp); 
+		TransientMesh* transientMesh = new (bs_alloc<TransientMesh>()) TransientMesh(thisPtr, meshIdx, 
+			meshData->getNumVertices(), meshData->getNumIndices(), drawOp); 
 		SPtr<TransientMesh> transientMeshPtr = bs_core_ptr<TransientMesh>(transientMesh);
 
 		transientMeshPtr->_setThisPtr(transientMeshPtr);
@@ -689,7 +700,7 @@ namespace BansheeEngine
 	SPtr<CoreObjectCore> MeshHeap::createCore() const
 	{
 		MeshHeapCore* obj = new (bs_alloc<MeshHeapCore>()) MeshHeapCore(mNumVertices, mNumIndices,
-			mVertexDesc, mIndexType);
+			mVertexDesc, mIndexType, GDF_DEFAULT);
 
 		SPtr<MeshHeapCore> corePtr = bs_shared_ptr<MeshHeapCore>(obj);
 		obj->_setThisPtr(corePtr);

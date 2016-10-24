@@ -21,12 +21,11 @@ namespace BansheeEngine
 		/** @copydoc GpuProgramFactory::getLanguage */
 		const String& getLanguage() const override;
 
-		/** @copydoc GpuProgramFactory::create(const String&, const String&, GpuProgramType, GpuProgramProfile, bool) */
-		SPtr<GpuProgramCore> create(const String& source, const String& entryPoint, GpuProgramType gptype, 
-			GpuProgramProfile profile, bool requiresAdjacency) override;
+		/** @copydoc GpuProgramFactory::create(const GPU_PROGRAM_DESC&, GpuDeviceFlags) */
+		SPtr<GpuProgramCore> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc GpuProgramFactory::create(GpuProgramType) */
-		SPtr<GpuProgramCore> create(GpuProgramType type) override;
+		/** @copydoc GpuProgramFactory::create(GpuProgramType, GpuDeviceFlags) */
+		SPtr<GpuProgramCore> create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 	protected:
 		static const String LANGUAGE_NAME;

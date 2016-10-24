@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_RSGL_EXPORT GLGpuParamBlockBufferCore : public GpuParamBlockBufferCore
 	{
 	public:
-		GLGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage);
+		GLGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
 		~GLGpuParamBlockBufferCore();
 
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */

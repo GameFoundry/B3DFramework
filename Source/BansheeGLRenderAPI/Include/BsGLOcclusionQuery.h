@@ -15,7 +15,7 @@ namespace BansheeEngine
 	class BS_RSGL_EXPORT GLOcclusionQuery : public OcclusionQuery
 	{
 	public:
-		GLOcclusionQuery(bool binary);
+		GLOcclusionQuery(bool binary, UINT32 deviceIdx);
 		~GLOcclusionQuery();
 
 		/** @copydoc OcclusionQuery::begin */

@@ -84,7 +84,7 @@ namespace BansheeEngine
 		SPtr<PooledRenderTexture> mNormalTex;
 		SPtr<PooledRenderTexture> mDepthTex;
 
-		SPtr<MultiRenderTextureCore> mGBufferRT;
+		SPtr<RenderTextureCore> mGBufferRT;
 		SPtr<RenderTextureCore> mSceneColorRT;
 
 		PixelFormat mSceneColorFormat;

@@ -32,7 +32,7 @@ namespace BansheeEngine
 	Application::~Application()
 	{
 		// Cleanup any new objects queued for destruction by unloaded scripts
-		CoreObjectManager::instance().clearDirty();
+		CoreObjectManager::instance().syncToCore(gCoreAccessor());
 		gCoreThread().update();
 		gCoreThread().submitAccessors(true);
 

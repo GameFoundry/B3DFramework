@@ -7,14 +7,13 @@
 #include "BsMonoManager.h"
 #include "BsRenderTexture.h"
 #include "BsScriptTexture2D.h"
-#include "BsMultiRenderTexture.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
 
 namespace BansheeEngine
 {
-	ScriptRenderTexture2D::ScriptRenderTexture2D(const SPtr<RenderTarget>& target, bool isMulti, MonoObject* instance)
-		:ScriptObject(instance), mRenderTarget(target), mIsMulti(isMulti)
+	ScriptRenderTexture2D::ScriptRenderTexture2D(const SPtr<RenderTarget>& target, MonoObject* instance)
+		:ScriptObject(instance), mRenderTarget(target)
 	{
 
 	}
@@ -29,26 +28,22 @@ namespace BansheeEngine
 
 	SPtr<RenderTexture> ScriptRenderTexture2D::getRenderTexture() const
 	{
-		if (!mIsMulti)
-			return std::static_pointer_cast<RenderTexture>(mRenderTarget);
-
-		return nullptr;
-	}
-
-	SPtr<MultiRenderTexture> ScriptRenderTexture2D::getMultiRenderTexture() const
-	{
-		if (mIsMulti)
-			return std::static_pointer_cast<MultiRenderTexture>(mRenderTarget);
-
-		return nullptr;
+		return std::static_pointer_cast<RenderTexture>(mRenderTarget);
 	}
 
 	void ScriptRenderTexture2D::internal_createDetailed(MonoObject* instance, PixelFormat format, UINT32 width, UINT32 height,
 		UINT32 numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 	{
-		SPtr<RenderTexture> tex = RenderTexture::create(TEX_TYPE_2D, width, height, format, gammaCorrection, numSamples, createDepth, depthStencilFormat);
+		TEXTURE_DESC texDesc;
+		texDesc.type = TEX_TYPE_2D;
+		texDesc.width = width;
+		texDesc.height = height;
+		texDesc.format = format;
+		texDesc.hwGamma = gammaCorrection;
+		texDesc.numSamples = numSamples;
 
-		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, false, instance);
+		SPtr<RenderTexture> tex = RenderTexture::create(texDesc, createDepth, depthStencilFormat);
+		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, instance);
 	}
 
 	void ScriptRenderTexture2D::internal_create(MonoObject* instance, MonoArray* colorSurfaces, MonoObject* depthStencilSurface)
@@ -72,126 +67,71 @@ namespace BansheeEngine
 				depthStencilSurfaceDesc.texture = textureHandle;
 		}
 
-		SPtr<RenderTarget> tex;
+		UINT32 numSurfaces = std::min(colorSurfacesList.size(), (UINT32)BS_MAX_MULTIPLE_RENDER_TARGETS);
 
-		UINT32 numSurfaces = colorSurfacesList.size();
-		bool isMulti = numSurfaces > 1;
-		if (isMulti)
-		{
-			MULTI_RENDER_TEXTURE_DESC desc;
-
-			for (UINT32 i = 0; i < numSurfaces; i++)
-			{
-				RENDER_SURFACE_DESC surfaceDesc;
-				surfaceDesc.face = 0;
-				surfaceDesc.mipLevel = 0;
-				surfaceDesc.numFaces = 1;
-
-				MonoObject* surfaceObj = colorSurfacesList.get<MonoObject*>(i);
-				ScriptTexture2D* scriptSurface = ScriptTexture2D::toNative(surfaceObj);
-
-				if (scriptSurface != nullptr)
-				{
-					HTexture textureHandle = scriptSurface->getHandle();
-					if (!textureHandle.isLoaded())
-					{
-						LOGERR("Render texture must be created using a fully loaded texture.");
-					}
-					else
-						surfaceDesc.texture = textureHandle;
-				}
-
-				desc.colorSurfaces.push_back(surfaceDesc);
-			}
-
-			desc.depthStencilSurface = depthStencilSurfaceDesc;
-
-			tex = MultiRenderTexture::create(desc);
-		}
-		else
+		RENDER_TEXTURE_DESC desc;
+		for (UINT32 i = 0; i < numSurfaces; i++)
 		{
 			RENDER_SURFACE_DESC surfaceDesc;
 			surfaceDesc.face = 0;
 			surfaceDesc.mipLevel = 0;
 			surfaceDesc.numFaces = 1;
 
-			if (colorSurfacesList.size() > 0)
-			{
-				MonoObject* surfaceObj = colorSurfacesList.get<MonoObject*>(0);
-				ScriptTexture2D* scriptSurface = ScriptTexture2D::toNative(surfaceObj);
+			MonoObject* surfaceObj = colorSurfacesList.get<MonoObject*>(i);
+			ScriptTexture2D* scriptSurface = ScriptTexture2D::toNative(surfaceObj);
 
-				if (scriptSurface != nullptr)
+			if (scriptSurface != nullptr)
+			{
+				HTexture textureHandle = scriptSurface->getHandle();
+				if (!textureHandle.isLoaded())
 				{
-					HTexture textureHandle = scriptSurface->getHandle();
-					if (!textureHandle.isLoaded())
-					{
-						LOGERR("Render texture must be created using a fully loaded texture.");
-					}
-					else
-						surfaceDesc.texture = textureHandle;
+					LOGERR("Render texture must be created using a fully loaded texture.");
 				}
+				else
+					surfaceDesc.texture = textureHandle;
 			}
 
-			RENDER_TEXTURE_DESC desc;
-			desc.colorSurface = surfaceDesc;
-			desc.depthStencilSurface = depthStencilSurfaceDesc;
-			tex = RenderTexture::create(desc);
+			desc.colorSurfaces[i] = surfaceDesc;
 		}
 
-		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, isMulti, instance);
+		desc.depthStencilSurface = depthStencilSurfaceDesc;
+
+		SPtr<RenderTarget> tex = RenderTexture::create(desc);
+		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, instance);
 	}
 
 	void ScriptRenderTexture2D::internal_getColorSurfaces(ScriptRenderTexture2D* thisPtr, MonoArray** value)
 	{
-		if (thisPtr->mIsMulti)
+		SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
+
+		UINT32 numColorSurfaces = BS_MAX_MULTIPLE_RENDER_TARGETS;
+		ScriptArray outArray = ScriptArray::create<ScriptTexture2D>(numColorSurfaces);
+
+		for (UINT32 i = 0; i < numColorSurfaces; i++)
 		{
-			SPtr<MultiRenderTexture> tex = thisPtr->getMultiRenderTexture();
+			HTexture colorTex = tex->getColorTexture(i);
 
-			UINT32 numColorSurfaces = tex->getColorSurfaceCount();
-			ScriptArray outArray = ScriptArray::create<ScriptTexture2D>(numColorSurfaces);
-
-			for (UINT32 i = 0; i < numColorSurfaces; i++)
+			if (colorTex != nullptr)
 			{
-				HTexture colorTex = tex->getBindableColorTexture(i);
-
 				ScriptTexture2D* scriptSurface;
 				ScriptResourceManager::instance().getScriptResource(colorTex, &scriptSurface, true);
 
-				outArray.set(i, scriptSurface->getManagedInstance());
-				*value = outArray.getInternal();
+				outArray.set<MonoObject*>(i, scriptSurface->getManagedInstance());
 			}
+			else
+				outArray.set<MonoObject*>(i, nullptr);
 		}
-		else
-		{
-			SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
-			ScriptArray outArray = ScriptArray::create<ScriptTexture2D>(1);
 
-			HTexture colorTex = tex->getBindableColorTexture();
-
-			ScriptTexture2D* scriptSurface;
-			ScriptResourceManager::instance().getScriptResource(colorTex, &scriptSurface, true);
-
-			outArray.set(0, scriptSurface->getManagedInstance());
-			*value = outArray.getInternal();
-		}
+		*value = outArray.getInternal();
 	}
 
 	void ScriptRenderTexture2D::internal_getDepthStencilSurface(ScriptRenderTexture2D* thisPtr, MonoObject** value)
 	{
-		HTexture colorTex;
-		if (thisPtr->mIsMulti)
-		{
-			SPtr<MultiRenderTexture> tex = thisPtr->getMultiRenderTexture();
-			colorTex = tex->getBindableDepthStencilTexture();
-		}
-		else
-		{
-			SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
-			colorTex = tex->getBindableDepthStencilTexture();
-		}
+		SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
+		HTexture depthTex = tex->getDepthStencilTexture();
 
 		ScriptTexture2D* scriptSurface;
-		ScriptResourceManager::instance().getScriptResource(colorTex, &scriptSurface, true);
+		ScriptResourceManager::instance().getScriptResource(depthTex, &scriptSurface, true);
 
 		*value = scriptSurface->getManagedInstance();
 	}

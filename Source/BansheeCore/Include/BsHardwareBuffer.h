@@ -34,7 +34,7 @@ namespace BansheeEngine
 		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options)
         {
             assert(!isLocked() && "Cannot lock this buffer, it is already locked!");
-            void* ret = lockImpl(offset, length, options);
+            void* ret = map(offset, length, options);
             mIsLocked = true;
 
 			mLockStart = offset;
@@ -59,7 +59,7 @@ namespace BansheeEngine
         {
             assert(isLocked() && "Cannot unlock this buffer, it is not locked!");
 
-            unlockImpl();
+            unmap();
             mIsLocked = false;
         }
 
@@ -142,10 +142,10 @@ namespace BansheeEngine
 		{  }
 
 		/** @copydoc lock */
-		virtual void* lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options) = 0;
+		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options) = 0;
 
 		/** @copydoc unlock */
-		virtual void unlockImpl() = 0;
+		virtual void unmap() = 0;
 
 	protected:
 		UINT32 mSizeInBytes;

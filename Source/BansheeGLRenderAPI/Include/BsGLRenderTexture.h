@@ -25,7 +25,7 @@ namespace BansheeEngine
     class BS_RSGL_EXPORT GLRenderTextureCore : public RenderTextureCore
     {
 	public:
-		GLRenderTextureCore(const RENDER_TEXTURE_CORE_DESC& desc);
+		GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask);
 		virtual ~GLRenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */

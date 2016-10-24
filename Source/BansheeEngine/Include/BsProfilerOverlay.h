@@ -225,20 +225,15 @@ namespace BansheeEngine
 		GUILabel* mGPUVerticesLbl;
 		GUILabel* mGPUPrimitivesLbl;
 		GUILabel* mGPUSamplesLbl;
-		GUILabel* mGPUBlendStateChangesLbl;
-		GUILabel* mGPURasterStateChangesLbl;
-		GUILabel* mGPUDepthStencilStateChangesLbl;
+		GUILabel* mGPUPipelineStateChangesLbl;
 
 		GUILabel* mGPUObjectsCreatedLbl;
 		GUILabel* mGPUObjectsDestroyedLbl;
 		GUILabel* mGPUResourceWritesLbl;
 		GUILabel* mGPUResourceReadsLbl;
-		GUILabel* mGPUTextureBindsLbl;
-		GUILabel* mGPUSamplerBindsLbl;
+		GUILabel* mGPUParamBindsLbl;
 		GUILabel* mGPUVertexBufferBindsLbl;
 		GUILabel* mGPUIndexBufferBindsLbl;
-		GUILabel* mGPUGPUProgramBufferBindsLbl;
-		GUILabel* mGPUGPUProgramBindsLbl;
 
 		HString mGPUFrameNumStr;
 		HString mGPUTimeStr;
@@ -249,20 +244,15 @@ namespace BansheeEngine
 		HString mGPUVerticesStr;
 		HString mGPUPrimitivesStr;
 		HString mGPUSamplesStr;
-		HString mGPUBlendStateChangesStr;
-		HString mGPURasterStateChangesStr;
-		HString mGPUDepthStencilStateChangesStr;
+		HString mGPUPipelineStateChangesStr;
 
 		HString mGPUObjectsCreatedStr;
 		HString mGPUObjectsDestroyedStr;
 		HString mGPUResourceWritesStr;
 		HString mGPUResourceReadsStr;
-		HString mGPUTextureBindsStr;
-		HString mGPUSamplerBindsStr;
+		HString mGPUParamBindsStr;
 		HString mGPUVertexBufferBindsStr;
 		HString mGPUIndexBufferBindsStr;
-		HString mGPUGPUProgramBufferBindsStr;
-		HString mGPUGPUProgramBindsStr;
 
 		Vector<BasicRow> mBasicRows;
 		Vector<PreciseRow> mPreciseRows;

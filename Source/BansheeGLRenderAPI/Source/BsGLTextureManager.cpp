@@ -3,7 +3,6 @@
 #include "BsGLTextureManager.h"
 #include "BsRenderAPI.h"
 #include "BsGLRenderTexture.h"
-#include "BsGLMultiRenderTexture.h"
 #include "BsGLPixelFormat.h"
 
 namespace BansheeEngine
@@ -26,33 +25,26 @@ namespace BansheeEngine
 		return bs_core_ptr<GLRenderTexture>(tex);
 	}
 
-	SPtr<MultiRenderTexture> GLTextureManager::createMultiRenderTextureImpl(const MULTI_RENDER_TEXTURE_DESC& desc)
-	{
-		GLMultiRenderTexture* tex = new (bs_alloc<GLMultiRenderTexture>()) GLMultiRenderTexture(desc);
-
-		return bs_core_ptr<GLMultiRenderTexture>(tex);
-	}
-
 	PixelFormat GLTextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
 		// Adjust requested parameters to capabilities
-        const RenderAPICapabilities *caps = RenderAPICore::instancePtr()->getCapabilities();
+        const RenderAPICapabilities& caps = RenderAPICore::instance().getCapabilities();
 
 		// Check compressed texture support
 		// If a compressed format not supported, revert to PF_A8R8G8B8
-		if(PixelUtil::isCompressed(format) && !caps->hasCapability(RSC_TEXTURE_COMPRESSION_DXT))
+		if(PixelUtil::isCompressed(format) && !caps.hasCapability(RSC_TEXTURE_COMPRESSION_DXT))
 		{
 			return PF_A8R8G8B8;
 		}
 
 		// If floating point textures not supported, revert to PF_A8R8G8B8
-		if(PixelUtil::isFloatingPoint(format) && !caps->hasCapability(RSC_TEXTURE_FLOAT))
+		if(PixelUtil::isFloatingPoint(format) && !caps.hasCapability(RSC_TEXTURE_FLOAT))
 		{
 			return PF_A8R8G8B8;
 		}
         
         // Check if this is a valid rendertarget format
-		if( usage & TU_RENDERTARGET )
+		if(usage & TU_RENDERTARGET)
         {
             /// Get closest supported alternative
             /// If mFormat is supported it's returned
@@ -66,11 +58,10 @@ namespace BansheeEngine
 		:mGLSupport(support)
 	{ }
 
-	SPtr<TextureCore> GLTextureCoreManager::createTextureInternal(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-		int numMips, PixelFormat format, int usage, bool hwGammaCorrection, UINT32 multisampleCount, UINT32 numArraySlices, const SPtr<PixelData>& initialData)
+	SPtr<TextureCore> GLTextureCoreManager::createTextureInternal(const TEXTURE_DESC& desc,
+		const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	{
-		GLTextureCore* tex = new (bs_alloc<GLTextureCore>()) GLTextureCore(mGLSupport, texType,
-			width, height, depth, numMips, format, usage, hwGammaCorrection, multisampleCount, numArraySlices, initialData);
+		GLTextureCore* tex = new (bs_alloc<GLTextureCore>()) GLTextureCore(mGLSupport, desc, initialData, deviceMask);
 
 		SPtr<GLTextureCore> texPtr = bs_shared_ptr<GLTextureCore>(tex);
 		texPtr->_setThisPtr(texPtr);
@@ -78,17 +69,10 @@ namespace BansheeEngine
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> GLTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_CORE_DESC& desc)
+	SPtr<RenderTextureCore> GLTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<GLRenderTextureCore> texPtr = bs_shared_ptr_new<GLRenderTextureCore>(desc);
-		texPtr->_setThisPtr(texPtr);
-
-		return texPtr;
-	}
-
-	SPtr<MultiRenderTextureCore> GLTextureCoreManager::createMultiRenderTextureInternal(const MULTI_RENDER_TEXTURE_CORE_DESC& desc)
-	{
-		SPtr<GLMultiRenderTextureCore> texPtr = bs_shared_ptr_new<GLMultiRenderTextureCore>(desc);
+		SPtr<GLRenderTextureCore> texPtr = bs_shared_ptr_new<GLRenderTextureCore>(desc, deviceMask);
 		texPtr->_setThisPtr(texPtr);
 
 		return texPtr;

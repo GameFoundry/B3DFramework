@@ -7,25 +7,28 @@
 
 namespace BansheeEngine
 {
-	SPtr<EventQuery> GLQueryManager::createEventQuery() const
+	SPtr<EventQuery> GLQueryManager::createEventQuery(UINT32 deviceIdx) const
 	{
-		SPtr<EventQuery> query = SPtr<GLEventQuery>(bs_new<GLEventQuery>(), &QueryManager::deleteEventQuery, StdAlloc<GLEventQuery>());
+		SPtr<EventQuery> query = SPtr<GLEventQuery>(bs_new<GLEventQuery>(deviceIdx), 
+			&QueryManager::deleteEventQuery, StdAlloc<GLEventQuery>());
 		mEventQueries.push_back(query.get());
 
 		return query;
 	}
 
-	SPtr<TimerQuery> GLQueryManager::createTimerQuery() const
+	SPtr<TimerQuery> GLQueryManager::createTimerQuery(UINT32 deviceIdx) const
 	{
-		SPtr<TimerQuery> query = SPtr<GLTimerQuery>(bs_new<GLTimerQuery>(), &QueryManager::deleteTimerQuery, StdAlloc<GLTimerQuery>());
+		SPtr<TimerQuery> query = SPtr<GLTimerQuery>(bs_new<GLTimerQuery>(deviceIdx), 
+			&QueryManager::deleteTimerQuery, StdAlloc<GLTimerQuery>());
 		mTimerQueries.push_back(query.get());
 
 		return query;
 	}
 
-	SPtr<OcclusionQuery> GLQueryManager::createOcclusionQuery(bool binary) const
+	SPtr<OcclusionQuery> GLQueryManager::createOcclusionQuery(bool binary, UINT32 deviceIdx) const
 	{
-		SPtr<OcclusionQuery> query = SPtr<GLOcclusionQuery>(bs_new<GLOcclusionQuery>(binary), &QueryManager::deleteOcclusionQuery, StdAlloc<GLOcclusionQuery>());
+		SPtr<OcclusionQuery> query = SPtr<GLOcclusionQuery>(bs_new<GLOcclusionQuery>(binary, deviceIdx), 
+			&QueryManager::deleteOcclusionQuery, StdAlloc<GLOcclusionQuery>());
 		mOcclusionQueries.push_back(query.get());
 
 		return query;

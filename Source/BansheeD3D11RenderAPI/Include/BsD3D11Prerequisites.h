@@ -35,16 +35,13 @@ namespace BansheeEngine
 	class D3D11RenderWindow;
 	class D3D11Texture;
 	class D3D11TextureManager;
-	class D3D11DepthBuffer;
 	class D3D11Driver;
 	class D3D11DriverList;
 	class D3D11VideoMode;
 	class D3D11VideoModeList;
 	class D3D11GpuProgramManager;
 	class D3D11IndexBuffer;
-	class D3D11HardwareConstantBuffer;
 	class D3D11HLSLProgramFactory;
-	class D3D11HLSLProgram;
 	class D3D11VertexDeclaration;
 	class D3D11Device;
 	class D3D11HardwareBuffer;
@@ -53,10 +50,7 @@ namespace BansheeEngine
 	class D3D11GpuGeometryProgram;
 	class D3D11GpuHullProgram;
 	class D3D11GpuDomainProgram;
-	class D3D11BlendState;
-	class D3D11RasterizerState;
-	class D3D11SamplerState;
-	class D3D11DepthStencilState;
+	class D3D11DepthStencilStateCore;
 	class D3D11InputLayoutManager;
 	class D3D11GpuBufferCore;
 	class D3D11RenderUtility;

@@ -3,15 +3,13 @@
 #include "BsTextureManager.h"
 #include "BsException.h"
 #include "BsPixelUtil.h"
-#include "BsMultiRenderTexture.h"
 #include "BsRenderAPI.h"
 
 namespace BansheeEngine 
 {
-    SPtr<Texture> TextureManager::createTexture(TextureType texType, UINT32 width, UINT32 height, UINT32 depth, int numMipmaps,
-        PixelFormat format, int usage, bool hwGamma, UINT32 multisampleCount, UINT32 numArraySlices)
+    SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc)
     {
-		Texture* tex = new (bs_alloc<Texture>()) Texture(texType, width, height, depth, numMipmaps, format, usage, hwGamma, multisampleCount, numArraySlices);
+		Texture* tex = new (bs_alloc<Texture>()) Texture(desc);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
 		ret->_setThisPtr(ret);
@@ -20,9 +18,9 @@ namespace BansheeEngine
 		return ret;
     }
 
-	SPtr<Texture> TextureManager::createTexture(const SPtr<PixelData>& pixelData, int usage , bool hwGammaCorrection)
+	SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData)
     {
-		Texture* tex = new (bs_alloc<Texture>()) Texture(pixelData, usage, hwGammaCorrection);
+		Texture* tex = new (bs_alloc<Texture>()) Texture(desc, pixelData);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
 		ret->_setThisPtr(ret);
@@ -40,23 +38,30 @@ namespace BansheeEngine
 		return texture;
 	}
 
-	SPtr<RenderTexture> TextureManager::createRenderTexture(TextureType textureType, UINT32 width, UINT32 height, 
-			PixelFormat format, bool hwGamma, UINT32 multisampleCount, 
-			bool createDepth, PixelFormat depthStencilFormat)
+	SPtr<RenderTexture> TextureManager::createRenderTexture(const TEXTURE_DESC& colorDesc, bool createDepth,
+		PixelFormat depthStencilFormat)
 	{
-		HTexture texture = Texture::create(textureType, width, height, 0, format, TU_RENDERTARGET, hwGamma, multisampleCount);
+		TEXTURE_DESC textureDesc = colorDesc;
+		textureDesc.usage = TU_RENDERTARGET;
+		textureDesc.numMips = 0;
+
+		HTexture texture = Texture::create(textureDesc);
 
 		HTexture depthStencil;
 		if(createDepth)
 		{
-			depthStencil = Texture::create(TEX_TYPE_2D, width, height, 0, depthStencilFormat, TU_DEPTHSTENCIL, false, multisampleCount);
+			textureDesc.format = depthStencilFormat;
+			textureDesc.hwGamma = false;
+			textureDesc.usage = TU_DEPTHSTENCIL;
+
+			depthStencil = Texture::create(textureDesc);
 		}
 
 		RENDER_TEXTURE_DESC desc;
-		desc.colorSurface.texture = texture;
-		desc.colorSurface.face = 0;
-		desc.colorSurface.numFaces = 1;
-		desc.colorSurface.mipLevel = 0;
+		desc.colorSurfaces[0].texture = texture;
+		desc.colorSurfaces[0].face = 0;
+		desc.colorSurfaces[0].numFaces = 1;
+		desc.colorSurfaces[0].mipLevel = 0;
 
 		desc.depthStencilSurface.texture = depthStencil;
 		desc.depthStencilSurface.face = 0;
@@ -77,19 +82,17 @@ namespace BansheeEngine
 		return newRT;
 	}
 
-	SPtr<MultiRenderTexture> TextureManager::createMultiRenderTexture(const MULTI_RENDER_TEXTURE_DESC& desc)
-	{
-		SPtr<MultiRenderTexture> newRT = createMultiRenderTextureImpl(desc);
-		newRT->_setThisPtr(newRT);
-		newRT->initialize();
-
-		return newRT;
-	}
-
 	void TextureCoreManager::onStartUp()
     {
+		TEXTURE_DESC desc;
+		desc.type = TEX_TYPE_2D;
+		desc.width = 2;
+		desc.height = 2;
+		desc.format = PF_R8G8B8A8;
+		desc.usage = TU_STATIC;
+
 		// White built-in texture
-		SPtr<TextureCore> whiteTexture = createTexture(TEX_TYPE_2D, 2, 2, 1, 0, PF_R8G8B8A8, TU_STATIC);
+		SPtr<TextureCore> whiteTexture = createTexture(desc);
 
 		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
 		whitePixelData->setColorAt(Color::White, 0, 0);
@@ -101,7 +104,7 @@ namespace BansheeEngine
 		TextureCore::WHITE = whiteTexture;
 
 		// Black built-in texture
-		SPtr<TextureCore> blackTexture = createTexture(TEX_TYPE_2D, 2, 2, 1, 0, PF_R8G8B8A8, TU_STATIC);
+		SPtr<TextureCore> blackTexture = createTexture(desc);
 
 		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
 		blackPixelData->setColorAt(Color::Black, 0, 0);
@@ -113,7 +116,7 @@ namespace BansheeEngine
 		TextureCore::BLACK = blackTexture;
 
 		// Normal (Y = Up) built-in texture
-		SPtr<TextureCore> normalTexture = createTexture(TEX_TYPE_2D, 2, 2, 1, 0, PF_R8G8B8A8, TU_STATIC);
+		SPtr<TextureCore> normalTexture = createTexture(desc);
 		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
 
 		Color encodedNormal(0.5f, 0.5f, 1.0f);
@@ -134,27 +137,18 @@ namespace BansheeEngine
 		TextureCore::NORMAL = nullptr;
     }
 
-	SPtr<TextureCore> TextureCoreManager::createTexture(TextureType texType, UINT32 width, UINT32 height, UINT32 depth,
-		int numMips, PixelFormat format, int usage, bool hwGammaCorrection, UINT32 multisampleCount, UINT32 numArraySlices)
+	SPtr<TextureCore> TextureCoreManager::createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		SPtr<TextureCore> newRT = createTextureInternal(texType, width, height, depth, numMips, format, 
-			usage, hwGammaCorrection, multisampleCount, numArraySlices);
+		SPtr<TextureCore> newRT = createTextureInternal(desc, nullptr, deviceMask);
 		newRT->initialize();
 
 		return newRT;
 	}
 
-	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_CORE_DESC& desc)
+	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, 
+		GpuDeviceFlags deviceMask)
 	{
-		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc);
-		newRT->initialize();
-
-		return newRT;
-	}
-
-	SPtr<MultiRenderTextureCore> TextureCoreManager::createMultiRenderTexture(const MULTI_RENDER_TEXTURE_CORE_DESC& desc)
-	{
-		SPtr<MultiRenderTextureCore> newRT = createMultiRenderTextureInternal(desc);
+		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc, deviceMask);
 		newRT->initialize();
 
 		return newRT;

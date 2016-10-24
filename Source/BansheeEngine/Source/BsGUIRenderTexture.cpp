@@ -62,7 +62,7 @@ namespace BansheeEngine
 				mDesc.uvScale = Vector2(1.0f, -1.0f);
 			}
 
-			setTexture(SpriteTexture::create(texture->getBindableColorTexture()));
+			setTexture(SpriteTexture::create(texture->getColorTexture(0)));
 
 			GUIManager::instance().setInputBridge(mSourceTexture.get(), this);
 		}

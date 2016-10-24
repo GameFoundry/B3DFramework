@@ -6,7 +6,7 @@
 
 namespace BansheeEngine
 {
-	GpuParamBlockBufferCore::GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage)
+	GpuParamBlockBufferCore::GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 		:mUsage(usage), mSize(size), mCachedData(nullptr), mGPUBufferDirty(false)
 	{
 		if (mSize > 0)
@@ -81,9 +81,43 @@ namespace BansheeEngine
 		write(0, data.getBuffer(), data.getBufferSize());
 	}
 
-	SPtr<GpuParamBlockBufferCore> GpuParamBlockBufferCore::create(UINT32 size, GpuParamBlockUsage usage)
+	SPtr<GpuParamBlockBufferCore> GpuParamBlockBufferCore::create(UINT32 size, GpuParamBlockUsage usage, 
+		GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuParamBlockBuffer(size, usage);
+		return HardwareBufferCoreManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);
+	}
+
+	GenericGpuParamBlockBufferCore::GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, 
+		GpuDeviceFlags deviceMask)
+		:GpuParamBlockBufferCore(size, usage, deviceMask), mData(nullptr)
+	{ }
+
+	GenericGpuParamBlockBufferCore::~GenericGpuParamBlockBufferCore()
+	{
+		if (mData != nullptr)
+			bs_free(mData);
+	}
+
+	void GenericGpuParamBlockBufferCore::writeToGPU(const UINT8* data)
+	{
+		memcpy(mData, data, mSize);
+	}
+
+	void GenericGpuParamBlockBufferCore::readFromGPU(UINT8* data) const
+	{
+		memcpy(data, mData, mSize);
+	}
+
+	void GenericGpuParamBlockBufferCore::initialize()
+	{
+		if (mSize > 0)
+			mData = (UINT8*)bs_alloc(mSize);
+		else
+			mData = nullptr;
+
+		memset(mData, 0, mSize);
+
+		GpuParamBlockBufferCore::initialize();
 	}
 
 	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage)
@@ -166,37 +200,5 @@ namespace BansheeEngine
 	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuParamBlockUsage usage)
 	{
 		return HardwareBufferManager::instance().createGpuParamBlockBuffer(size, usage);
-	}
-
-	GenericGpuParamBlockBufferCore::GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage)
-		:GpuParamBlockBufferCore(size, usage), mData(nullptr)
-	{ }
-
-	GenericGpuParamBlockBufferCore::~GenericGpuParamBlockBufferCore()
-	{
-		if (mData != nullptr)
-			bs_free(mData);
-	}
-
-	void GenericGpuParamBlockBufferCore::writeToGPU(const UINT8* data)
-	{
-		memcpy(mData, data, mSize);
-	}
-
-	void GenericGpuParamBlockBufferCore::readFromGPU(UINT8* data) const
-	{
-		memcpy(data, mData, mSize);
-	}
-
-	void GenericGpuParamBlockBufferCore::initialize()
-	{
-		if (mSize > 0)
-			mData = (UINT8*)bs_alloc(mSize);
-		else
-			mData = nullptr;
-
-		memset(mData, 0, mSize);
-
-		GpuParamBlockBufferCore::initialize();
 	}
 }

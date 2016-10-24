@@ -7,25 +7,26 @@
 
 namespace BansheeEngine
 {
-	SPtr<EventQuery> D3D11QueryManager::createEventQuery() const
+	SPtr<EventQuery> D3D11QueryManager::createEventQuery(UINT32 deviceIdx) const
 	{
-		SPtr<EventQuery> query = SPtr<D3D11EventQuery>(bs_new<D3D11EventQuery>(), &QueryManager::deleteEventQuery, StdAlloc<D3D11EventQuery>());
+		SPtr<EventQuery> query = SPtr<D3D11EventQuery>(bs_new<D3D11EventQuery>(deviceIdx), &QueryManager::deleteEventQuery, StdAlloc<D3D11EventQuery>());
 		mEventQueries.push_back(query.get());
 
 		return query;
 	}
 
-	SPtr<TimerQuery> D3D11QueryManager::createTimerQuery() const
+	SPtr<TimerQuery> D3D11QueryManager::createTimerQuery(UINT32 deviceIdx) const
 	{
-		SPtr<TimerQuery> query = SPtr<D3D11TimerQuery>(bs_new<D3D11TimerQuery>(), &QueryManager::deleteTimerQuery, StdAlloc<D3D11TimerQuery>());
+		SPtr<TimerQuery> query = SPtr<D3D11TimerQuery>(bs_new<D3D11TimerQuery>(deviceIdx), &QueryManager::deleteTimerQuery, StdAlloc<D3D11TimerQuery>());
 		mTimerQueries.push_back(query.get());
 
 		return query;
 	}
 
-	SPtr<OcclusionQuery> D3D11QueryManager::createOcclusionQuery(bool binary) const
+	SPtr<OcclusionQuery> D3D11QueryManager::createOcclusionQuery(bool binary, UINT32 deviceIdx) const
 	{
-		SPtr<OcclusionQuery> query = SPtr<D3D11OcclusionQuery>(bs_new<D3D11OcclusionQuery>(binary), &QueryManager::deleteOcclusionQuery, StdAlloc<D3D11OcclusionQuery>());
+		SPtr<OcclusionQuery> query = SPtr<D3D11OcclusionQuery>(bs_new<D3D11OcclusionQuery>(binary, deviceIdx), 
+			&QueryManager::deleteOcclusionQuery, StdAlloc<D3D11OcclusionQuery>());
 		mOcclusionQueries.push_back(query.get());
 
 		return query;

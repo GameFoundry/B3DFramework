@@ -645,10 +645,15 @@ namespace BansheeEngine
 
 		if (mDesc.depthBuffer)
 		{
-			mDepthStencilBuffer = TextureCoreManager::instance().createTexture(TEX_TYPE_2D,
-				BBDesc.Width, BBDesc.Height, 0, 0, PF_D24S8, TU_DEPTHSTENCIL, false,
-				getProperties().getMultisampleCount());
+			TEXTURE_DESC texDesc;
+			texDesc.type = TEX_TYPE_2D;
+			texDesc.width = BBDesc.Width;
+			texDesc.height = BBDesc.Height;
+			texDesc.format = PF_D24S8;
+			texDesc.usage = TU_DEPTHSTENCIL;
+			texDesc.numSamples = getProperties().getMultisampleCount();
 
+			mDepthStencilBuffer = TextureCore::create(texDesc);
 			mDepthStencilView = TextureCore::requestView(mDepthStencilBuffer, 0, 1, 0, 1, GVU_DEPTHSTENCIL);
 		}
 		else

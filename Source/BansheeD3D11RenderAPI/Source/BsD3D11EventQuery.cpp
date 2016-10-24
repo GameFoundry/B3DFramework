@@ -8,9 +8,11 @@
 
 namespace BansheeEngine
 {
-	D3D11EventQuery::D3D11EventQuery()
+	D3D11EventQuery::D3D11EventQuery(UINT32 deviceIdx)
 		:mQuery(nullptr)
 	{
+		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPICore::instancePtr());
 		D3D11Device& device = rs->getPrimaryDevice();
 

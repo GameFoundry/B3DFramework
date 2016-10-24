@@ -36,19 +36,21 @@ namespace BansheeEngine
 	template<> struct TGpuDataParamInfo < Matrix4x3 > { enum { TypeId = GPDT_MATRIX_4X3 }; };
 	template<> struct TGpuDataParamInfo < Color > { enum { TypeId = GPDT_COLOR }; };
 
+	/** Helper structure used for initializing GpuParams. */
+	struct GPU_PARAMS_DESC
+	{
+		SPtr<GpuParamDesc> fragmentParams;
+		SPtr<GpuParamDesc> vertexParams;
+		SPtr<GpuParamDesc> geometryParams;
+		SPtr<GpuParamDesc> hullParams;
+		SPtr<GpuParamDesc> domainParams;
+		SPtr<GpuParamDesc> computeParams;
+	};
+
 	/** Contains functionality common for both sim and core thread version of GpuParams. */
 	class BS_CORE_EXPORT GpuParamsBase
 	{
 	public:
-		/**
-		 * Creates new GpuParams object using the specified parameter descriptions.
-		 *
-		 * @param[in]	paramDesc			Reference to parameter descriptions that will be used for finding needed 
-		 *									parameters.
-		 *
-		 * @note	You normally do not want to call this manually. Instead use GpuProgram::createParameters.
-		 */
-		GpuParamsBase(const SPtr<GpuParamDesc>& paramDesc);
 		virtual ~GpuParamsBase();
 
 		// Note: Disallow copy/assign because it would require some care when copying (copy internal data shared_ptr and
@@ -57,39 +59,33 @@ namespace BansheeEngine
 		GpuParamsBase& operator=(const GpuParamsBase& rhs) = delete;
 
 		/** Returns a description of all stored parameters. */
-		const GpuParamDesc& getParamDesc() const { return *mParamDesc; }
+		SPtr<GpuParamDesc> getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }
 
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
 		 */
-		UINT32 getDataParamSize(const String& name) const;
+		UINT32 getDataParamSize(GpuProgramType type, const String& name) const;
 
 		/** Checks if parameter with the specified name exists. */
-		bool hasParam(const String& name) const;
+		bool hasParam(GpuProgramType type, const String& name) const;
 
 		/**	Checks if texture parameter with the specified name exists. */
-		bool hasTexture(const String& name) const;
+		bool hasTexture(GpuProgramType type, const String& name) const;
 
 		/**	Checks if load/store texture parameter with the specified name exists. */
-		bool hasLoadStoreTexture(const String& name) const;
+		bool hasLoadStoreTexture(GpuProgramType type, const String& name) const;
 
 		/**	Checks if buffer parameter with the specified name exists. */
-		bool hasBuffer(const String& name) const;
+		bool hasBuffer(GpuProgramType type, const String& name) const;
 
 		/**	Checks if sampler state parameter with the specified name exists. */
-		bool hasSamplerState(const String& name) const;
+		bool hasSamplerState(GpuProgramType type, const String& name) const;
 
 		/** Checks if a parameter block with the specified name exists. */
-		bool hasParamBlock(const String& name) const;
+		bool hasParamBlock(GpuProgramType type, const String& name) const;
 
 		/**	Gets a descriptor for a parameter block buffer with the specified name. */
-		GpuParamBlockDesc* getParamBlockDesc(const String& name) const;
-
-		/** Returns information that determines which texture surfaces to bind as load/store parameters. */
-		const TextureSurface& getLoadStoreSurface(UINT32 slot) const;
-
-		/**	Sets information that determines which texture surfaces to bind	as load/store parameters. */
-		void setLoadStoreSurface(UINT32 slot, const TextureSurface& surface) const;
+		GpuParamBlockDesc* getParamBlockDesc(GpuProgramType type, const String& name) const;
 
 		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
 		virtual void _markCoreDirty() { }
@@ -98,18 +94,12 @@ namespace BansheeEngine
 		virtual void _markResourcesDirty() { }
 
 	protected:
+		GpuParamsBase(const GPU_PARAMS_DESC& desc);
+
 		/**	Gets a descriptor for a data parameter with the specified name. */
-		GpuParamDataDesc* getParamDesc(const String& name) const;
+		GpuParamDataDesc* getParamDesc(GpuProgramType type, const String& name) const;
 
-		SPtr<GpuParamDesc> mParamDesc;
-
-		UINT32 mNumParamBlocks;
-		UINT32 mNumTextures;
-		UINT32 mNumLoadStoreTextures;
-		UINT32 mNumBuffers;
-		UINT32 mNumSamplerStates;
-
-		TextureSurface* mLoadStoreSurfaces;
+		SPtr<GpuParamDesc> mParamDescs[6];
 	};
 
 	template<bool Core> struct TGpuParamsTypes { };
@@ -142,8 +132,6 @@ namespace BansheeEngine
 		typedef typename TGpuParamsTypes<Core>::SamplerType SamplerType;
 		typedef typename TGpuParamsTypes<Core>::ParamsBufferType ParamsBufferType;
 
-		TGpuParams(const SPtr<GpuParamDesc>& paramDesc);
-
 		virtual ~TGpuParams();
 
 		/**
@@ -156,7 +144,7 @@ namespace BansheeEngine
 		 * @note
 		 * It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
 		 */
-		void setParamBlockBuffer(UINT32 slot, const ParamsBufferType& paramBlockBuffer);
+		void setParamBlockBuffer(UINT32 set, UINT32 slot, const ParamsBufferType& paramBlockBuffer);
 
 		/**
 		 * Replaces the parameter buffer with the specified name. Any following parameter reads or writes that are 
@@ -168,7 +156,7 @@ namespace BansheeEngine
 		 * @note
 		 * It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
 		 */
-		void setParamBlockBuffer(const String& name, const ParamsBufferType& paramBlockBuffer);
+		void setParamBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& paramBlockBuffer);
 
 		/**
 		 * Returns a handle for the parameter with the specified name. Handle may then be stored and used for quickly 
@@ -178,59 +166,84 @@ namespace BansheeEngine
 		 *
 		 * Parameter handles will be invalidated when their parent GpuParams object changes.
 		 */
-		template<class T> void getParam(const String& name, TGpuDataParam<T, Core>& output) const;
+		template<class T> void getParam(GpuProgramType type, const String& name, TGpuDataParam<T, Core>& output) const;
 
 		/** @copydoc getParam */
-		void getStructParam(const String& name, TGpuParamStruct<Core>& output) const;
+		void getStructParam(GpuProgramType type, const String& name, TGpuParamStruct<Core>& output) const;
 
 		/** @copydoc getParam */
-		void getTextureParam(const String& name, TGpuParamTexture<Core>& output) const;
+		void getTextureParam(GpuProgramType type, const String& name, TGpuParamTexture<Core>& output) const;
 
 		/** @copydoc getParam */
-		void getLoadStoreTextureParam(const String& name, TGpuParamLoadStoreTexture<Core>& output) const;
+		void getLoadStoreTextureParam(GpuProgramType type, const String& name, TGpuParamLoadStoreTexture<Core>& output) const;
 
 		/** @copydoc getParam */
-		void getBufferParam(const String& name, TGpuParamBuffer<Core>& output) const;
+		void getBufferParam(GpuProgramType type, const String& name, TGpuParamBuffer<Core>& output) const;
 
 		/** @copydoc getParam */
-		void getSamplerStateParam(const String& name, TGpuParamSampState<Core>& output) const;
+		void getSamplerStateParam(GpuProgramType type, const String& name, TGpuParamSampState<Core>& output) const;
 
-		/**	Gets a parameter block buffer from the specified slot. */
-		ParamsBufferType getParamBlockBuffer(UINT32 slot) const;
+		/**	Gets a parameter block buffer from the specified set/slot combination. */
+		ParamsBufferType getParamBlockBuffer(UINT32 set, UINT32 slot) const;
 
-		/**	Gets a texture bound to the specified slot. */
-		TextureType getTexture(UINT32 slot);
+		/**	Gets a texture bound to the specified set/slot combination. */
+		TextureType getTexture(UINT32 set, UINT32 slot) const;
 
-		/**	Gets a load/store texture bound to the specified slot. */
-		TextureType getLoadStoreTexture(UINT32 slot);
+		/**	Gets a load/store texture bound to the specified set/slot combination. */
+		TextureType getLoadStoreTexture(UINT32 set, UINT32 slot) const;
 
-		/**	Gets a buffer bound to the specified slot. */
-		BufferType getBuffer(UINT32 slot);
+		/**	Gets a buffer bound to the specified set/slot combination. */
+		BufferType getBuffer(UINT32 set, UINT32 slot) const;
 
-		/**	Gets a sampler state bound to the specified slot. */
-		SamplerType getSamplerState(UINT32 slot);
+		/**	Gets a sampler state bound to the specified set/slot combination. */
+		SamplerType getSamplerState(UINT32 set, UINT32 slot) const;
 
-		/**	Sets a texture at the specified slot. */
-		void setTexture(UINT32 slot, const TextureType& texture);
+		/** Gets information that determines which texture surfaces to bind as load/store parameters. */
+		const TextureSurface& getLoadStoreSurface(UINT32 set, UINT32 slot) const;
 
-		/**	Sets a load/store texture at the specified slot. */
-		void setLoadStoreTexture(UINT32 slot, const TextureType& texture, const TextureSurface& surface);
+		/**	Sets a texture at the specified set/slot combination. */
+		void setTexture(UINT32 set, UINT32 slot, const TextureType& texture);
 
-		/**	Sets a buffer at the specified slot. */
-		void setBuffer(UINT32 slot, const BufferType& buffer);
+		/**	Sets a load/store texture at the specified set/slot combination. */
+		void setLoadStoreTexture(UINT32 set, UINT32 slot, const TextureType& texture, const TextureSurface& surface);
 
-		/**	Sets a sampler state at the specified slot. */
-		void setSamplerState(UINT32 slot, const SamplerType& sampler);
+		/**	Sets a buffer at the specified set/slot combination. */
+		void setBuffer(UINT32 set, UINT32 slot, const BufferType& buffer);
+
+		/**	Sets a sampler state at the specified set/slot combination. */
+		void setSamplerState(UINT32 set, UINT32 slot, const SamplerType& sampler);
+
+		/**	Sets information that determines which texture surfaces to bind	as load/store parameters. */
+		void setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface);
 
 	protected:
+		/** Type of elements stored in this object. */
+		enum class ElementType
+		{
+			ParamBlock, Texture, LoadStoreTexture, Buffer, SamplerState, Count
+		};
+
+		TGpuParams(const GPU_PARAMS_DESC& desc);
+
 		/** @copydoc CoreObject::getThisPtr */
 		virtual SPtr<GpuParamsType> _getThisPtr() const = 0;
 
-		ParamsBufferType* mParamBlockBuffers;
-		TextureType* mTextures;
-		TextureType* mLoadStoreTextures;
-		BufferType* mBuffers;
-		SamplerType* mSamplerStates;
+		/** 
+		 * Converts a set/slot combination into a global slot. If the set or slot is out of valid range, the method logs
+		 * an error and returns -1. Only performs range checking in debug mode.
+		 */
+		UINT32 getGlobalSlot(ElementType type, UINT32 set, UINT32 slot) const;
+
+		UINT32 mNumSets[(int)ElementType::Count];
+		UINT32 mNumElements[(int)ElementType::Count];
+		UINT32* mOffsets[(int)ElementType::Count];
+
+		ParamsBufferType* mParamBlockBuffers = nullptr;
+		TextureType* mTextures = nullptr;
+		TextureType* mLoadStoreTextures = nullptr;
+		TextureSurface* mLoadStoreSurfaces = nullptr;
+		BufferType* mBuffers = nullptr;
+		SamplerType* mSamplerStates = nullptr;
 	};
 
 	/** @} */
@@ -249,14 +262,17 @@ namespace BansheeEngine
 	public:
 		~GpuParamsCore() { }
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
-		static SPtr<GpuParamsCore> create(const SPtr<GpuParamDesc>& paramDesc);
+		/** 
+		 * @copydoc GpuParams::create 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
+		 */
+		static SPtr<GpuParamsCore> create(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class GpuParams;
+		friend class HardwareBufferCoreManager;
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
-		GpuParamsCore(const SPtr<GpuParamDesc>& paramDesc);
+		GpuParamsCore(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParamsCore> _getThisPtr() const override;
@@ -271,9 +287,9 @@ namespace BansheeEngine
 	 */
 
 	/**
-	 * Contains descriptions for all parameters in a GPU program and also allows you to write and read those parameters. 
-	 * All parameter values are stored internally on the CPU, and are only submitted to the GPU once the parameters are 
-	 * bound to the pipeline.
+	 * Contains descriptions for all parameters in a set of programs (ones for each stage) and allows you to write and read
+	 * those parameters. All parameter values are stored internally on the CPU, and are only submitted to the GPU once the
+	 * parameters are bound to the pipeline.
 	 *
 	 * @note	Sim thread only.
 	 */
@@ -285,8 +301,12 @@ namespace BansheeEngine
 		/** Retrieves a core implementation of a mesh usable only from the core thread. */
 		SPtr<GpuParamsCore> getCore() const;
 
-		/** @copydoc GpuParamsBase::GpuParamsBase */
-		static SPtr<GpuParams> create(const SPtr<GpuParamDesc>& paramDesc);
+		/**
+		 * Creates new GpuParams object using the specified parameter descriptions.
+		 *
+		 * @param[in]	desc	Object containing parameter descriptions for all relevant GPU program stages.
+		 */
+		static SPtr<GpuParams> create(const GPU_PARAMS_DESC& desc);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParamInfos PARAM_SIZES;
@@ -303,8 +323,9 @@ namespace BansheeEngine
 
 		/** @} */
 	protected:
-		/** @copydoc GpuParamsBase::GpuParamsBase */
-		GpuParams(const SPtr<GpuParamDesc>& paramDesc);
+		friend class HardwareBufferManager;
+
+		GpuParams(const GPU_PARAMS_DESC& desc);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParams> _getThisPtr() const override;

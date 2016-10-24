@@ -1073,10 +1073,12 @@ namespace BansheeEngine
 
 			DockContainer* mouseOverContainer = mRootContainer.findAtPos(windowPos);
 
-			if(mouseOverContainer == nullptr)
+			if (mouseOverContainer == nullptr)
+				return false;
+			else if(mouseOverContainer == &mRootContainer && mRootContainer.mWidgets == nullptr)
 			{
 				Rect2I overlayBounds = mRootContainer.getContentBounds();
-				if(overlayBounds.contains(windowPos))
+				if (overlayBounds.contains(windowPos))
 				{
 					insert(nullptr, draggedWidget, DockLocation::None);
 					return true;

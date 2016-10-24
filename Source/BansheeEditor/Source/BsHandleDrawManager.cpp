@@ -253,29 +253,26 @@ namespace BansheeEngine
 		{
 			mLineMaterial.mat = lineMat;
 			mLineMaterial.params = lineMat->createParamsSet();
-			SPtr<GpuParamsCore> vertParams = mLineMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
 
-			vertParams->getParam("matViewProj", mLineMaterial.viewProj);
+			SPtr<GpuParamsCore> params = mLineMaterial.params->getGpuParams();
+			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mLineMaterial.viewProj);
 		}
 
 		{
 			mSolidMaterial.mat = solidMat;
 			mSolidMaterial.params = solidMat->createParamsSet();
-			SPtr<GpuParamsCore> vertParams = mSolidMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
-			SPtr<GpuParamsCore> fragParams = mSolidMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
 
-			vertParams->getParam("matViewProj", mSolidMaterial.viewProj);
-			fragParams->getParam("viewDir", mSolidMaterial.viewDir);
+			SPtr<GpuParamsCore> params = mSolidMaterial.params->getGpuParams();
+			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mSolidMaterial.viewProj);
+			params->getParam(GPT_FRAGMENT_PROGRAM, "viewDir", mSolidMaterial.viewDir);
 		}
 		{
 			mTextMaterial.mat = textMat;
 			mTextMaterial.params = textMat->createParamsSet();
 
-			SPtr<GpuParamsCore> vertParams = mTextMaterial.params->getGpuParams(GPT_VERTEX_PROGRAM);
-			SPtr<GpuParamsCore> fragParams = mTextMaterial.params->getGpuParams(GPT_FRAGMENT_PROGRAM);
-
-			vertParams->getParam("matViewProj", mTextMaterial.viewProj);
-			fragParams->getTextureParam("mainTexture", mTextMaterial.texture);
+			SPtr<GpuParamsCore> params = mTextMaterial.params->getGpuParams();
+			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mTextMaterial.viewProj);
+			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", mTextMaterial.texture);
 		}
 
 		{

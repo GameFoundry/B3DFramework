@@ -7,9 +7,11 @@
 
 namespace BansheeEngine 
 {
-	GLIndexBufferCore::GLIndexBufferCore(IndexType idxType, UINT32 numIndices, GpuBufferUsage usage)
-		:IndexBufferCore(idxType, numIndices, usage)
-	{  }
+	GLIndexBufferCore::GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		:IndexBufferCore(desc, deviceMask)
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+	}
 
 	GLIndexBufferCore::~GLIndexBufferCore()
 	{
@@ -24,12 +26,12 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* GLIndexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* GLIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 		return mBuffer.lock(offset, length, options);
 	}
 
-	void GLIndexBufferCore::unlockImpl()
+	void GLIndexBufferCore::unmap()
 	{
 		mBuffer.unlock();
 	}

@@ -28,7 +28,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -68,7 +68,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return T();
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return T();
 
@@ -109,7 +109,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -149,7 +149,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -198,7 +198,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		mParent->setTexture(mParamDesc->slot, texture);
+		mParent->setTexture(mParamDesc->set, mParamDesc->slot, texture);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -210,7 +210,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return TextureType();
 
-		return mParent->getTexture(mParamDesc->slot);
+		return mParent->getTexture(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -229,7 +229,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		mParent->setBuffer(mParamDesc->slot, buffer);
+		mParent->setBuffer(mParamDesc->set, mParamDesc->slot, buffer);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -241,7 +241,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return BufferType();
 
-		return mParent->getBuffer(mParamDesc->slot);
+		return mParent->getBuffer(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -260,7 +260,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		mParent->setLoadStoreTexture(mParamDesc->slot, texture, surface);
+		mParent->setLoadStoreTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -272,7 +272,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return TextureType();
 
-		return mParent->getTexture(mParamDesc->slot);
+		return mParent->getTexture(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -291,7 +291,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return;
 
-		mParent->setSamplerState(mParamDesc->slot, samplerState);
+		mParent->setSamplerState(mParamDesc->set, mParamDesc->slot, samplerState);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -303,7 +303,7 @@ namespace BansheeEngine
 		if (mParent == nullptr)
 			return SamplerStateType();
 
-		return mParent->getSamplerState(mParamDesc->slot);
+		return mParent->getSamplerState(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template class TGpuDataParam < float, false > ;

@@ -19,10 +19,10 @@ namespace BansheeEngine
         Win32GLSupport();
 
 		/** @copydoc GLSupport::newWindow */
-		virtual SPtr<RenderWindow> newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<RenderWindow> parentWindow) override;
+		SPtr<RenderWindow> newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<RenderWindow> parentWindow) override;
 
 		/** @copydoc GLSupport::newWindowCore */
-		virtual SPtr<RenderWindowCore> newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
+		SPtr<RenderWindowCore> newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
 
 		/** @copydoc GLSupport::start */
 		void start() override;

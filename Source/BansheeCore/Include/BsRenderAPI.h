@@ -4,7 +4,6 @@
 #include "BsCorePrerequisites.h"
 #include "BsSamplerState.h"
 #include "BsCommandQueue.h"
-#include "BsDrawOps.h"
 #include "BsRenderAPICapabilities.h"
 #include "BsRenderTarget.h"
 #include "BsRenderTexture.h"
@@ -24,8 +23,8 @@ namespace BansheeEngine
 	class RenderAPIInfo;
 
 	/**
-	 * Version of the render API interface usable from the sim thread. All the commands	get queued on the accessor provided
-	 * to each method and will be executed on the core thread later.
+	 * Provides access to RenderAPICore from the simulation thread. All the commands get queued on the accessor provided
+	 * to each method and get be executed on the core thread later.
 	 *
 	 * @see		RenderAPICore
 	 *
@@ -34,203 +33,64 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT RenderAPI
 	{
 	public:
-		/**  
-		 * @copydoc RenderAPICore::setTexture()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, const SPtr<Texture>& texture);
+		/** @see RenderAPICore::setGpuParams() */
+		static void setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams);
 
-		/**  
-		 * @copydoc RenderAPICore::setLoadStoreTexture()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setLoadStoreTexture(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit,
-			const SPtr<Texture>& texture, const TextureSurface& surface);
+		/** @see RenderAPICore::setGraphicsPipeline() */
+		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState);
 
-		/**  
-		 * @copydoc RenderAPICore::setBuffer()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setBuffer(CoreAccessor& accessor, GpuProgramType gptype, UINT16 unit, const SPtr<GpuBuffer>& buffer,
-			bool loadStore = false);
+		/** @see RenderAPICore::setComputePipeline() */
+		static void setComputePipeline(CoreAccessor& accessor, const SPtr<GpuProgram>& computeProgram);
 
-		/** 
-		 * @copydoc RenderAPICore::setSamplerState()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setSamplerState(CoreAccessor& accessor, GpuProgramType gptype, UINT16 texUnit, 
-			const SPtr<SamplerState>& samplerState);
-
-		/**  
-		 * @copydoc RenderAPICore::setBlendState()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setBlendState(CoreAccessor& accessor, const SPtr<BlendState>& blendState);
-
-		/** 
-		 * @copydoc RenderAPICore::setRasterizerState()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setRasterizerState(CoreAccessor& accessor, const SPtr<RasterizerState>& rasterizerState);
-
-		/** 
-		 * @copydoc RenderAPICore::setDepthStencilState()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setDepthStencilState(CoreAccessor& accessor, const SPtr<DepthStencilState>& depthStencilState, 
-			UINT32 stencilRefValue);
-
-		/** 
-		 * Sets the provided vertex buffers starting at the specified source index.	Set buffer to nullptr to clear the
-		 * buffer at the specified index.
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 * @param[in]	index		Index at which to start binding the vertex buffers.
-		 * @param[in]	buffers		A list of buffers to bind to the pipeline.
-		 */
+		/** @see RenderAPICore::setVertexBuffers() */
 		static void setVertexBuffers(CoreAccessor& accessor, UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers);
 
-		/** 
-		 * @copydoc RenderAPICore::setIndexBuffer()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setIndexBuffer() */
 		static void setIndexBuffer(CoreAccessor& accessor, const SPtr<IndexBuffer>& buffer);
 
-		/** 
-		 * @copydoc RenderAPICore::setVertexDeclaration()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setVertexDeclaration() */
 		static void setVertexDeclaration(CoreAccessor& accessor, const SPtr<VertexDeclaration>& vertexDeclaration);
 
-		/** 
-		 * @copydoc RenderAPICore::setViewport()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setViewport() */
 		static void setViewport(CoreAccessor& accessor, const Rect2& area);
 
-		/** 
-		 * @copydoc RenderAPICore::setDrawOperation() 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setViewport() */
+		static void setStencilRef(CoreAccessor& accessor, UINT32 value);
+
+		/** @see RenderAPICore::setDrawOperation()  */
 		static void setDrawOperation(CoreAccessor& accessor, DrawOperationType op);
 
-		/** 
-		 * @copydoc RenderAPICore::setClipPlanes() 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void setClipPlanes(CoreAccessor& accessor, const PlaneList& clipPlanes);
-
-		/** 
-		 * @copydoc RenderAPICore::addClipPlane(const Plane&) 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void addClipPlane(CoreAccessor& accessor, const Plane& p);
-
-		/** 
-		 * @copydoc RenderAPICore::resetClipPlanes() 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void resetClipPlanes(CoreAccessor& accessor);
-
-		/** 
-		 * @copydoc RenderAPICore::setScissorRect() 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setScissorRect()  */
 		static void setScissorRect(CoreAccessor& accessor, UINT32 left = 0, UINT32 top = 0, UINT32 right = 800, UINT32 bottom = 600);
 
-		/** 
-		 * @copydoc RenderAPICore::setRenderTarget()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::setRenderTarget() */
 		static void setRenderTarget(CoreAccessor& accessor, const SPtr<RenderTarget>& target, bool readOnlyDepthStencil = false);
 
-		/** 
-		 * @copydoc RenderAPICore::bindGpuProgram()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void bindGpuProgram(CoreAccessor& accessor, const SPtr<GpuProgram>& prg);
-
-		/** 
-		 * @copydoc RenderAPICore::unbindGpuProgram()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		static void unbindGpuProgram(CoreAccessor& accessor, GpuProgramType gptype);
-
-		/** 
-		 * @copydoc RenderAPICore::beginFrame()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::beginFrame() */
 		static void beginRender(CoreAccessor& accessor);
 
-		/** 
-		 * @copydoc RenderAPICore::endFrame()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::endFrame() */
 		static void endRender(CoreAccessor& accessor);
 
-		/** 
-		 * @copydoc RenderAPICore::clearRenderTarget() 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::clearRenderTarget()  */
 		static void clearRenderTarget(CoreAccessor& accessor, UINT32 buffers, 
 			const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, UINT8 targetMask = 0xFF);
 
-		/** 
-		 * @copydoc RenderAPICore::clearViewport()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::clearViewport() */
 		static void clearViewport(CoreAccessor& accessor, UINT32 buffers, const Color& color = Color::Black, 
 			float depth = 1.0f, UINT16 stencil = 0, UINT8 targetMask = 0xFF);
 
-		/** 
-		 * @copydoc RenderAPICore::swapBuffers()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::swapBuffers() */
 		static void swapBuffers(CoreAccessor& accessor, const SPtr<RenderTarget>& target);
 
-		/** 
-		 * @copydoc RenderAPICore::draw()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::draw() */
 		static void draw(CoreAccessor& accessor, UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0);
 
-		/** 
-		 * @copydoc RenderAPICore::drawIndexed()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::drawIndexed() */
 		static void drawIndexed(CoreAccessor& accessor, UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, 
 			UINT32 vertexCount, UINT32 instanceCount = 0);
 
-		/** 
-		 * @copydoc RenderAPICore::dispatchCompute()
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
+		/** @see RenderAPICore::dispatchCompute() */
 		static void dispatchCompute(CoreAccessor& accessor, UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1);
 
 		/** @copydoc RenderAPICore::getVideoModeInfo */
@@ -248,10 +108,12 @@ namespace BansheeEngine
 	{
 	public:
 		RenderAPIInfo(float horzTexelOffset, float vertTexelOffset, float minDepth, float maxDepth, 
-			VertexElementType vertexColorType, bool vertexColorFlip, bool ndcVerticalTopToBottom, bool columnMajorMatrices)
+			VertexElementType vertexColorType, bool vertexColorFlip, bool ndcVerticalTopToBottom, bool columnMajorMatrices, 
+				bool multiThreadedCB)
 			: mHorizontalTexelOffset(horzTexelOffset), mVerticalTexelOffset(vertTexelOffset), mMinDepth(minDepth)
 			, mMaxDepth(maxDepth), mVertexColorType(vertexColorType), mVertexColorFlip(vertexColorFlip)
 			, mNDCYAxisDown(ndcVerticalTopToBottom), mColumnMajorMatrices(columnMajorMatrices)
+			, mMultiThreadedCB(multiThreadedCB)
 		{
 			
 		}
@@ -283,6 +145,12 @@ namespace BansheeEngine
 		 */
 		bool getNDCYAxisDown() const { return mNDCYAxisDown; }
 
+		/**
+		 * Checks if the API supports native multi-threaded command buffer generation. On APIs that don't support it 
+		 * command buffers can still be used, but it will be more efficient to use the immediate rendering operations.
+		 */
+		bool getMultiThreadedCBGeneration() const { return mMultiThreadedCB; }
+
 	private:
 		float mHorizontalTexelOffset = 0.0f;
 		float mVerticalTexelOffset = 0.0f;
@@ -292,6 +160,7 @@ namespace BansheeEngine
 		bool mVertexColorFlip = false;
 		bool mNDCYAxisDown = true;
 		bool mColumnMajorMatrices = false;
+		bool mMultiThreadedCB = false;
 	};
 
 	/** @} */
@@ -300,10 +169,17 @@ namespace BansheeEngine
 	 */
 
 	/**
-	 * Render system provides base functionality for a rendering API like DirectX or OpenGL. Most of the class is abstract
-	 * and specific subclass for each rendering API needs to be implemented.
+	 * Provides low-level API access to rendering commands (internally wrapping DirectX/OpenGL/Vulkan or similar). 
+	 * 
+	 * Methods that accept a CommandBuffer parameter get queued in the provided command buffer, and don't get executed until
+	 * executeCommands() method is called. User is allowed to populate command buffers from non-core threads, but they all 
+	 * must get executed from the core thread. 
+	 * 
+	 * If a command buffer is not provivided to such methods, they execute immediately. Without a command buffer the methods
+	 * are only allowed to be called from the core thread.
 	 *
-	 * @note	Core thread only unless specifically noted otherwise on per-method basis.
+	 * @note	Accessible on any thread for methods accepting a CommandBuffer. Otherwise core thread unless specifically
+	 *			noted otherwise on per-method basis.
 	 */
 	class BS_CORE_EXPORT RenderAPICore : public Module<RenderAPICore>
 	{
@@ -326,126 +202,139 @@ namespace BansheeEngine
 		virtual const String& getShadingLanguageName() const = 0;
 
 		/**
-		 * Sets a sampler state for the specified texture unit. Make sure to assign the sampler state after the texture
-		 * has been assigned, as certain APIs will reset sampler state on texture bind.
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the sampler state.
-		 * @param[in]	texUnit			Texture unit index to bind the state to.
-		 * @param[in]	samplerState	Sampler state to bind, or null to unbind.
-		 *
-		 * @see		SamplerState
+		 * Applies a set of parameters that control execution of all currently bound GPU programs. These are the uniforms
+		 * like textures, samplers, or uniform buffers. Caller is expected to ensure the provided parameters actually
+		 * match the currently bound programs.
 		 */
-		virtual void setSamplerState(GpuProgramType gptype, UINT16 texUnit, const SPtr<SamplerStateCore>& samplerState) = 0;
+		virtual void setGpuParams(const SPtr<GpuParamsCore>& gpuParams, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
-		 * Sets a blend state used for all active render targets.
+		 * Sets a pipeline state that controls how will subsequent draw commands render primitives.
 		 *
-		 * @param[in]	blendState	Blend state to bind, or null to unbind.
+		 * @param[in]	pipelineState		Pipeline state to bind, or null to unbind.
+		 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
+		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
+		 *									called. Buffer must support graphics operations.
 		 *
-		 * @see		BlendState
+		 * @see		GpuPipelineState
 		 */
-		virtual void setBlendState(const SPtr<BlendStateCore>& blendState) = 0;
+		virtual void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
-		 * Sets a state that controls various rasterizer options. 
+		 * Sets a pipeline state that controls how will subsequent dispatch commands execute.
 		 *
-		 * @param[in]	rasterizerState		Rasterizer state to bind, or null to unbind.
-		 *
-		 * @see		RasterizerState
+		 * @param[in]	computeProgram		Compute program to bind to the pipeline.
+		 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
+		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
+		 *									called. Buffer must support graphics operations.
 		 */
-		virtual void setRasterizerState(const SPtr<RasterizerStateCore>& rasterizerState) = 0;
-
-		/**
-		 * Sets a state that controls depth & stencil buffer options.
-		 *
-		 * @param[in]	depthStencilState		Depth-stencil state to bind, or null to unbind.
-		 * @param[in]	stencilRefValue			Stencil reference value to be used for stencil comparisons, if enabled.
-		 *
-		 * @see		DepthStencilState
-		 */
-		virtual void setDepthStencilState(const SPtr<DepthStencilStateCore>& depthStencilState, UINT32 stencilRefValue) = 0;
-
-		/**
-		 * Binds a texture to the pipeline for the specified GPU program type at the specified slot. If the slot matches 
-		 * the one configured in the GPU program the program will be able to access this texture on the GPU.
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
-		 * @param[in]	texUnit			Texture unit index to bind the texture to.
-		 * @param[in]	texture			Texture to bind.
-		 */
-		virtual void setTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture) = 0;
-
-		/**	
-		 * Binds a texture that can be used for random load/store operations from a GPU program. 
-		 *
-		 * @param[in]	gptype			Determines to which GPU program slot to bind the texture.
-		 * @param[in]	texUnit			Texture unit index to bind the texture to.
-		 * @param[in]	texture			Texture to bind.
-		 * @param[in]	surface			Determines which surface of the texture to bind.
-		 */
-		virtual void setLoadStoreTexture(GpuProgramType gptype, UINT16 texUnit, const SPtr<TextureCore>& texture, 
-			const TextureSurface& surface) = 0;
-
-		/**
-		 * Binds a buffer that can be used for read or write operations on the GPU.
-		 *
-		 * @param[in]	gptype		Determines to which GPU program slot to bind the buffer.
-		 * @param[in]	unit		GPU program unit index to bind the buffer to.
-		 * @param[in]	buffer		Buffer to bind.
-		 * @param[in]	loadStore	If true the buffer will be bound with support for unordered reads and writes, otherwise
-		 *							it will only be bound for reads.
-		 */
-		virtual void setBuffer(GpuProgramType gptype, UINT16 unit, const SPtr<GpuBufferCore>& buffer, 
-			bool loadStore = false) = 0;
+		virtual void setComputePipeline(const SPtr<GpuProgramCore>& computeProgram,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Signals that rendering for a specific viewport has started. Any draw calls need to be called between beginFrame()
 		 * and endFrame(). 
+		 * 
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void beginFrame() = 0;
+		virtual void beginFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 		
-		/** Ends that rendering to a specific viewport has ended. */
-		virtual void endFrame() = 0;
+		/** 
+		 * Ends that rendering to a specific viewport has ended. 
+		 *
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void endFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the active viewport that will be used for all render operations.
 		 *
-		 * @param[in]	area	Area of the viewport, in normalized ([0,1] range) coordinates.
+		 * @param[in]	area			Area of the viewport, in normalized ([0,1] range) coordinates.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void setViewport(const Rect2& area) = 0;
+		virtual void setViewport(const Rect2& area, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/**
+		 * Allows you to set up a region in which rendering can take place. Coordinates are in pixels. No rendering will be
+		 * done to render target pixels outside of the provided region.
+		 *
+		 * @param[in]	left			Left border of the scissor rectangle, in pixels.
+		 * @param[in]	top				Top border of the scissor rectangle, in pixels.
+		 * @param[in]	right			Right border of the scissor rectangle, in pixels.
+		 * @param[in]	bottom			Bottom border of the scissor rectangle, in pixels.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/**
+		 * Sets a reference value that will be used for stencil compare operations.
+		 *
+		 * @param[in]	value			Reference value to set.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the provided vertex buffers starting at the specified source index.	Set buffer to nullptr to clear the 
 		 * buffer at the specified index.
 		 *
-		 * @param[in]	index		Index at which to start binding the vertex buffers.
-		 * @param[in]	buffers		A list of buffers to bind to the pipeline.
-		 * @param[in]	numBuffers	Number of buffers in the @p buffers list.
+		 * @param[in]	index			Index at which to start binding the vertex buffers.
+		 * @param[in]	buffers			A list of buffers to bind to the pipeline.
+		 * @param[in]	numBuffers		Number of buffers in the @p buffers list.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers) = 0;
+		virtual void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets an index buffer to use when drawing. Indices in an index buffer reference vertices in the vertex buffer, 
 		 * which increases cache coherency and reduces the size of vertex buffers by eliminating duplicate data.
 		 *
-		 * @param[in]	buffer	Index buffer to bind, null to unbine.
+		 * @param[in]	buffer			Index buffer to bind, null to unbind.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void setIndexBuffer(const SPtr<IndexBufferCore>& buffer) = 0;
+		virtual void setIndexBuffer(const SPtr<IndexBufferCore>& buffer, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the vertex declaration to use when drawing. Vertex declaration is used to decode contents of a single 
 		 * vertex in a vertex buffer.
 		 *
 		 * @param[in]	vertexDeclaration	Vertex declaration to bind.
+		 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
+		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
+		 *									called. Buffer must support graphics operations.
 		 */
-		virtual void setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration) = 0;
+		virtual void setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/** 
 		 * Sets the draw operation that determines how to interpret the elements of the index or vertex buffers. 
 		 *
-		 * @param[in]	op	Draw operation to enable.
+		 * @param[in]	op				Draw operation to enable.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void setDrawOperation(DrawOperationType op) = 0;
+		virtual void setDrawOperation(DrawOperationType op, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Draw an object based on currently bound GPU programs, vertex declaration and vertex buffers. Draws directly from
@@ -455,8 +344,12 @@ namespace BansheeEngine
 		 * @param[in]	vertexCount		Number of vertices to draw.
 		 * @param[in]	instanceCount	Number of times to draw the provided geometry, each time with an (optionally)
 		 *								separate per-instance data.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0) = 0;
+		virtual void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/** 
 		 * Draw an object based on currently bound GPU programs, vertex declaration, vertex and index buffers. 
@@ -467,123 +360,36 @@ namespace BansheeEngine
 		 * @param[in]	vertexCount		Number of vertices to draw.
 		 * @param[in]	instanceCount	Number of times to draw the provided geometry, each time with an (optionally)
 		 *								separate per-instance data.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
 		virtual void drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount, 
-			UINT32 instanceCount = 0) = 0;
+			UINT32 instanceCount = 0, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/** 
 		 * Executes the currently bound compute shader. 
 		 *
-		 * @param[in]	numGroupsX	Number of groups to start in the X direction. Must be in range [1, 65535].
-		 * @param[in]	numGroupsY	Number of groups to start in the Y direction. Must be in range [1, 65535].
-		 * @param[in]	numGroupsZ	Number of groups to start in the Z direction. Must be in range [1, 64].
+		 * @param[in]	numGroupsX		Number of groups to start in the X direction. Must be in range [1, 65535].
+		 * @param[in]	numGroupsY		Number of groups to start in the Y direction. Must be in range [1, 65535].
+		 * @param[in]	numGroupsZ		Number of groups to start in the Z direction. Must be in range [1, 64].
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support compute or graphics operations.
 		 */
-		virtual void dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1) = 0;
+		virtual void dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/** 
 		 * Swap the front and back buffer of the specified render target. 
 		 *
-		 * @param[in]	target	Render target to perform the buffer swap on.
+		 * @param[in]	target			Render target to perform the buffer swap on.
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
 		 */
-		virtual void swapBuffers(const SPtr<RenderTargetCore>& target);
-
-		/**
-		 * Gets the capabilities of the render system.
-		 *
-		 * @note	Thread safe.
-		 */
-		const RenderAPICapabilities* getCapabilities() const;
-
-		/** Returns information about the driver version. */
-		virtual const DriverVersion& getDriverVersion() const;
-
-		/**
-		 * Binds the provided GPU program to the pipeline. Any following draw operations will use this program. 
-		 *
-		 * @param[in]	prg		GPU program to bind. Slot it is bound to is determined by the program type.
-		 *
-		 * @note	You need to bind at least a vertex and a fragment program in order to draw something.
-		 */
-		virtual void bindGpuProgram(const SPtr<GpuProgramCore>& prg);
-
-		/**
-		 * Assigns a parameter buffer containing constants (uniforms) for use in a GPU program.
-		 *
-		 * @param[in]	gptype		Type of GPU program to bind the buffer to.
-		 * @param[in]	slot		Slot to bind the buffer to. The slot is dependant on the GPU program the buffer will be used
-		 *							with.
-		 * @param[in]	buffer		Buffer containing constants (uniforms) for use by the shader.
-		 * @param[in]	paramDesc	Description of all parameters in the buffer. Required mostly for backwards compatibility.
-		 */
-		virtual void setParamBuffer(GpuProgramType gptype, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& buffer, 
-			const GpuParamDesc& paramDesc) = 0;
-
-		/**	
-		 * Unbinds a program of a given type. 
-		 *
-		 * @param[in]	gptype	GPU program slot to unbind the program from.
-		 */
-		virtual void unbindGpuProgram(GpuProgramType gptype);
-
-		/**	Query if a GPU program of a given type is currently bound. */
-		virtual bool isGpuProgramBound(GpuProgramType gptype);
-
-		/**	
-		 * Sets up clip planes that will clip drawn geometry on the negative side of the planes. 
-		 *
-		 * @param[in]	clipPlanes	A list of planes to set, replacing the old ones.
-		 */
-		virtual void setClipPlanes(const PlaneList& clipPlanes);
-
-		/**	
-		 * Adds a new clip plane. All drawn geometry will be clipped to this plane. 
-		 *
-		 * @param[in]	p	Clip plane to add.
-		 */
-		virtual void addClipPlane(const Plane& p);
-
-		/**	Clears all clip planes. */
-		virtual void resetClipPlanes();
-
-		/**
-		 * Allows you to set up a region in which rendering can take place. Coordinates are in pixels. No rendering will be
-		 * done to render target pixels outside of the provided region.
-		 *
-		 * @param[in]	left	Left border of the scissor rectangle, in pixels.
-		 * @param[in]	top		Top border of the scissor rectangle, in pixels.
-		 * @param[in]	right	Right border of the scissor rectangle, in pixels.
-		 * @param[in]	bottom	Bottom border of the scissor rectangle, in pixels.
-		 */
-		virtual void setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom) = 0;
-
-		/**
-		 * Clears the currently active render target.
-		 *
-		 * @param[in]	buffers		Combination of one or more elements of FrameBufferType denoting which buffers are 
-		 *							to be cleared.
-		 * @param[in]	color		(optional) The color to clear the color buffer with, if enabled.
-		 * @param[in]	depth		(optional) The value to initialize the depth buffer with, if enabled.
-		 * @param[in]	stencil		(optional) The value to initialize the stencil buffer with, if enabled.
-		 * @param[in]	targetMask	(optional) In case multiple render targets are bound, this allows you to control
-		 *							which ones to clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
-		 */
-		virtual void clearRenderTarget(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, 
-			UINT16 stencil = 0, UINT8 targetMask = 0xFF) = 0;
-
-		/**
-		 * Clears the currently active viewport (meaning it clears just a sub-area of a render-target that is covered by the 
-		 * viewport, as opposed to clearRenderTarget() which always clears the entire render target).
-		 *
-		 * @param[in]	buffers		Combination of one or more elements of FrameBufferType denoting which buffers are to be
-		 *							cleared.
-		 * @param[in]	color		(optional) The color to clear the color buffer with, if enabled.
-		 * @param[in]	depth		(optional) The value to initialize the depth buffer with, if enabled.
-		 * @param[in]	stencil		(optional) The value to initialize the stencil buffer with, if enabled.
-		 * @param[in]	targetMask	(optional) In case multiple render targets are bound, this allows you to control
-		 *							which ones to clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
-		 */
-		virtual void clearViewport(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, 
-			UINT16 stencil = 0, UINT8 targetMask = 0xFF) = 0;
+		virtual void swapBuffers(const SPtr<RenderTargetCore>& target, 
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Change the render target into which we want to draw.
@@ -592,8 +398,67 @@ namespace BansheeEngine
 		 * @param[in]	readOnlyDepthStencil	If true the caller guarantees he won't write to the depth/stencil buffer 
 		 *										(if any was provided). This allows the depth buffer to be bound for depth 
 		 *										testing, as well as reading in a shader, at the same time.
+		 * @param[in]	commandBuffer			Optional command buffer to queue the operation on. If not provided operation
+		 *										is executed immediately. Otherwise it is executed when executeCommands() is
+		 *										called. Buffer must support graphics operations.
 		 */
-        virtual void setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil = false) = 0;
+        virtual void setRenderTarget(const SPtr<RenderTargetCore>& target, bool readOnlyDepthStencil = false,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/**
+		 * Clears the currently active render target.
+		 *
+		 * @param[in]	buffers			Combination of one or more elements of FrameBufferType denoting which buffers are 
+		 *								to be cleared.
+		 * @param[in]	color			The color to clear the color buffer with, if enabled.
+		 * @param[in]	depth			The value to initialize the depth buffer with, if enabled.
+		 * @param[in]	stencil			The value to initialize the stencil buffer with, if enabled.
+		 * @param[in]	targetMask		In case multiple render targets are bound, this allows you to control which ones to
+		 *									clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void clearRenderTarget(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, 
+			UINT16 stencil = 0, UINT8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/**
+		 * Clears the currently active viewport (meaning it clears just a sub-area of a render-target that is covered by the 
+		 * viewport, as opposed to clearRenderTarget() which always clears the entire render target).
+		 *
+		 * @param[in]	buffers			Combination of one or more elements of FrameBufferType denoting which buffers are to
+		 *								be cleared.
+		 * @param[in]	color			The color to clear the color buffer with, if enabled.
+		 * @param[in]	depth			The value to initialize the depth buffer with, if enabled.
+		 * @param[in]	stencil			The value to initialize the stencil buffer with, if enabled.
+		 * @param[in]	targetMask		In case multiple render targets are bound, this allows you to control which ones to
+		 *								clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
+		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
+		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
+		 *								Buffer must support graphics operations.
+		 */
+		virtual void clearViewport(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, 
+			UINT16 stencil = 0, UINT8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+		/** Appends all commands from the provided secondary command buffer into the primary command buffer. */
+		virtual void addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) = 0;
+
+		/** 
+		 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
+		 *
+		 * @note	Core thread only.
+		 */
+		virtual void executeCommands(const SPtr<CommandBuffer>& commandBuffer) = 0;
+
+		/** Returns information about the driver version. */
+		virtual const DriverVersion& getDriverVersion() const;
+
+		/**
+		 * Gets the capabilities of the render system.
+		 *
+		 * @note	Thread safe.
+		 */
+		const RenderAPICapabilities& getCapabilities() const { return *mCurrentCapabilities; }
 
 		/**
 		 * Returns information about available output devices and their video modes.
@@ -640,25 +505,18 @@ namespace BansheeEngine
 		/**
 		 * Initializes the render API system and creates a primary render window.
 		 *
-		 * @note	
-		 * Although I'd like otherwise, due to the nature of some render API implementations, you cannot initialize the 
-		 * render system without a window.
-		 * @note
-		 * Sim thread.
+		 * @note Sim thread only.
 		 */
 		SPtr<RenderWindow> initialize(const RENDER_WINDOW_DESC& primaryWindowDesc);
 
-		/**
-		 * Prepares the initialization of the render API system on the core thread. After the system is prepared a render 
-		 * window can be created and initialization finalized.
-		 */
-		virtual void initializePrepare();
+		/** Initializes the render API system. Called before the primary render window is created. */
+		virtual void initialize();
 
 		/**
-		 * Finalizes the initialization of the render API system on the core thread. Should be called after the primary 
-		 * render window is created.
+		 * Performs (optional) secondary initialization of the render API system. Called after the render window is 
+		 * created.
 		 */
-		virtual void initializeFinalize(const SPtr<RenderWindowCore>& primaryWindow);
+		virtual void initializeWithWindow(const SPtr<RenderWindowCore>& primaryWindow);
 
 		/**
 		 * Shuts down the render API system and cleans up all resources.
@@ -670,8 +528,8 @@ namespace BansheeEngine
 		/** Performs render API system shutdown on the core thread. */
 		virtual void destroyCore();
 
-		/** @copydoc setClipPlanes */
-		virtual void setClipPlanesImpl(const PlaneList& clipPlanes) = 0;
+		/** Converts the number of vertices to number of primitives based on the specified draw operation. */
+		UINT32 vertexCountToPrimCount(DrawOperationType type, UINT32 elementCount);
 
 		/************************************************************************/
 		/* 								INTERNAL DATA					       	*/
@@ -682,18 +540,6 @@ namespace BansheeEngine
 		SPtr<RenderTargetCore> mActiveRenderTarget;
 
 		DriverVersion mDriverVersion;
-		CullingMode mCullingMode;
-		UINT16 mDisabledTexUnitsFrom;
-
-		bool mVertexProgramBound;
-		bool mGeometryProgramBound;
-		bool mFragmentProgramBound;
-		bool mDomainProgramBound;
-		bool mHullProgramBound;
-		bool mComputeProgramBound;
-
-		PlaneList mClipPlanes;
-		bool mClipPlanesDirty;
 
 		RenderAPICapabilities* mCurrentCapabilities;
 		SPtr<VideoModeInfo> mVideoModeInfo;

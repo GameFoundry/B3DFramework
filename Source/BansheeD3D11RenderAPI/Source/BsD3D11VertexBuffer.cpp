@@ -6,9 +6,12 @@
 
 namespace BansheeEngine
 {
-	D3D11VertexBufferCore::D3D11VertexBufferCore(D3D11Device& device, UINT32 vertexSize, UINT32 numVertices, GpuBufferUsage usage, bool streamOut)
-		:VertexBufferCore(vertexSize, numVertices, usage, streamOut), mDevice(device), mStreamOut(streamOut), mBuffer(nullptr)
-	{ }
+	D3D11VertexBufferCore::D3D11VertexBufferCore(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, 
+		GpuDeviceFlags deviceMask)
+		:VertexBufferCore(desc, deviceMask), mDevice(device), mStreamOut(desc.streamOut), mBuffer(nullptr)
+	{
+		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
+	}
 
 	D3D11VertexBufferCore::~D3D11VertexBufferCore()
 	{
@@ -18,7 +21,7 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
-	void* D3D11VertexBufferCore::lockImpl(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11VertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -35,7 +38,7 @@ namespace BansheeEngine
 		return mBuffer->lock(offset, length, options);
 	}
 
-	void D3D11VertexBufferCore::unlockImpl()
+	void D3D11VertexBufferCore::unmap()
 	{
 		mBuffer->unlock();
 	}

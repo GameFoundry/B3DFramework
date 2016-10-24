@@ -237,8 +237,6 @@ namespace BansheeEngine
 	class RenderTargetCore;
     class RenderTexture;
 	class RenderTextureCore;
-	class MultiRenderTexture;
-	class MultiRenderTextureCore;
     class RenderWindow;
 	class RenderWindowCore;
 	class RenderTargetProperties;
@@ -378,6 +376,9 @@ namespace BansheeEngine
 	class MorphShapes;
 	class MorphShape;
 	class MorphChannel;
+	class CommandBuffer;
+	class GpuPipelineState;
+	class GpuPipelineStateCore;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

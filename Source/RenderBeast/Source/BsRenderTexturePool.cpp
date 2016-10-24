@@ -45,19 +45,28 @@ namespace BansheeEngine
 		SPtr<PooledRenderTexture> newTextureData = bs_shared_ptr_new<PooledRenderTexture>(this);
 		_registerTexture(newTextureData);
 
-		newTextureData->texture = TextureCoreManager::instance().createTexture(desc.type, desc.width, desc.height, 
-			desc.depth, 0, desc.format, desc.flag, desc.hwGamma, desc.numSamples);
+		TEXTURE_DESC texDesc;
+		texDesc.type = desc.type;
+		texDesc.width = desc.width;
+		texDesc.height = desc.height;
+		texDesc.depth = desc.depth;
+		texDesc.format = desc.format;
+		texDesc.usage = desc.flag;
+		texDesc.hwGamma = desc.hwGamma;
+		texDesc.numSamples = desc.numSamples;
+
+		newTextureData->texture = TextureCoreManager::instance().createTexture(texDesc);
 		
 		if ((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 		{
-			RENDER_TEXTURE_CORE_DESC rtDesc;
+			RENDER_TEXTURE_DESC_CORE rtDesc;
 
 			if ((desc.flag & TU_RENDERTARGET) != 0)
 			{
-				rtDesc.colorSurface.texture = newTextureData->texture;
-				rtDesc.colorSurface.face = 0;
-				rtDesc.colorSurface.numFaces = desc.depth;
-				rtDesc.colorSurface.mipLevel = 0;
+				rtDesc.colorSurfaces[0].texture = newTextureData->texture;
+				rtDesc.colorSurfaces[0].face = 0;
+				rtDesc.colorSurfaces[0].numFaces = desc.depth;
+				rtDesc.colorSurfaces[0].mipLevel = 0;
 			}
 
 			if ((desc.flag & TU_DEPTHSTENCIL) != 0)
@@ -92,7 +101,7 @@ namespace BansheeEngine
 			&& (
 				(desc.type == TEX_TYPE_2D 
 					&& texProps.isHardwareGammaEnabled() == desc.hwGamma 
-					&& texProps.getMultisampleCount() == desc.numSamples)
+					&& texProps.getNumSamples() == desc.numSamples)
 				|| (desc.type == TEX_TYPE_3D 
 					&& texProps.getDepth() == desc.depth)
 				|| (desc.type == TEX_TYPE_CUBE_MAP)

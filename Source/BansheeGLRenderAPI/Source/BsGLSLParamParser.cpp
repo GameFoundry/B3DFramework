@@ -40,8 +40,9 @@ namespace BansheeEngine
 			if (attribNameToElementSemantic(attributeName, semantic, index))
 			{
 				VertexElementType type = glTypeToAttributeType(attribType);
+				UINT32 slot = glGetAttribLocation(glProgram, attributeName);
 
-				elementList.push_back(VertexElement(0, i, type, semantic, index));
+				elementList.push_back(VertexElement(0, slot, type, semantic, index));
 			}
 			else
 			{
@@ -121,7 +122,7 @@ namespace BansheeEngine
 		return false;
 	}
 
-	void GLSLParamParser::buildUniformDescriptions(GLuint glProgram, GpuParamDesc& returnParamDesc)
+	void GLSLParamParser::buildUniformDescriptions(GLuint glProgram, GpuProgramType type, GpuParamDesc& returnParamDesc)
 	{
 		// scan through the active uniforms and add them to the reference list
 		GLint maxBufferSize = 0;
@@ -137,6 +138,7 @@ namespace BansheeEngine
 
 		GpuParamBlockDesc newGlobalBlockDesc;
 		newGlobalBlockDesc.slot = 0;
+		newGlobalBlockDesc.set = (UINT32)type;
 		newGlobalBlockDesc.name = "BS_INTERNAL_Globals";
 		newGlobalBlockDesc.blockSize = 0;
 		newGlobalBlockDesc.isShareable = false;
@@ -156,6 +158,7 @@ namespace BansheeEngine
 
 			GpuParamBlockDesc newBlockDesc;
 			newBlockDesc.slot = index + 1;
+			newBlockDesc.set = (UINT32)type;
 			newBlockDesc.name = uniformName;
 			newBlockDesc.blockSize = 0;
 			newBlockDesc.isShareable = true;
@@ -310,10 +313,12 @@ namespace BansheeEngine
 				GpuParamObjectDesc samplerParam;
 				samplerParam.name = paramName;
 				samplerParam.slot = glGetUniformLocation(glProgram, uniformName);
+				samplerParam.set = (UINT32)type;
 
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
 				textureParam.slot = samplerParam.slot;
+				textureParam.set = (UINT32)type;
 
 				switch (uniformType)
 				{
@@ -347,6 +352,7 @@ namespace BansheeEngine
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
 				textureParam.slot = glGetUniformLocation(glProgram, uniformName);
+				textureParam.set = (UINT32)type;
 
 				switch (uniformType)
 				{
@@ -371,6 +377,7 @@ namespace BansheeEngine
 				GpuParamObjectDesc bufferParam;
 				bufferParam.name = paramName;
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
+				bufferParam.set = (UINT32)type;
 
 				if (uniformType == GL_IMAGE_BUFFER)
 					bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
@@ -405,8 +412,8 @@ namespace BansheeEngine
 					blockOffset = blockOffset / 4;
 
 					gpuParam.gpuMemOffset = blockOffset;
-
 					gpuParam.paramBlockSlot = blockIndex + 1; // 0 is reserved for globals
+					gpuParam.paramBlockSet = (UINT32)type;
 
 					String& blockName = blockSlotToName[gpuParam.paramBlockSlot];
 					GpuParamBlockDesc& curBlockDesc = returnParamDesc.paramBlocks[blockName];
@@ -418,6 +425,7 @@ namespace BansheeEngine
 				{
 					gpuParam.gpuMemOffset = glGetUniformLocation(glProgram, uniformName);
 					gpuParam.paramBlockSlot = 0;
+					gpuParam.paramBlockSet = (UINT32)type;
 					gpuParam.cpuMemOffset = globalBlockDesc.blockSize;
 
 					globalBlockDesc.blockSize = std::max(globalBlockDesc.blockSize, gpuParam.cpuMemOffset + gpuParam.arrayElementStride * gpuParam.arraySize);
@@ -446,6 +454,7 @@ namespace BansheeEngine
 					structDesc.gpuMemOffset = gpuParam.gpuMemOffset;
 					structDesc.cpuMemOffset = gpuParam.cpuMemOffset;
 					structDesc.paramBlockSlot = gpuParam.paramBlockSlot;
+					structDesc.paramBlockSet = gpuParam.paramBlockSet;
 				}
 
 				// Update struct with size of the new parameter

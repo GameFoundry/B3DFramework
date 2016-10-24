@@ -238,3 +238,4 @@
 #include "BsEvent.h"
 #include "BsPlatformUtility.h"
 #include "BsCrashHandler.h"
+#include "BsNonCopyable.h"
