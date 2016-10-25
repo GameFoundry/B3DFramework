@@ -19,9 +19,15 @@ namespace BansheeEngine
 	class VulkanCommandBufferManager : public CommandBufferManager
 	{
 	public:
+		VulkanCommandBufferManager(const VulkanRenderAPI& rapi);
+		~VulkanCommandBufferManager();
+
 		/** @copydoc CommandBufferManager::create() */
 		SPtr<CommandBuffer> create(CommandBufferType type, UINT32 deviceIdx = 0, UINT32 syncMask = 0xFFFFFFFF, 
 			bool secondary = false) override;
+
+	private:
+		const VulkanRenderAPI& mRapi;
 	};
 
 	/** @} */

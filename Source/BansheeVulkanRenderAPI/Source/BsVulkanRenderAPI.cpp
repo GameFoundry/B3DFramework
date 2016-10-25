@@ -12,6 +12,7 @@
 #include "BsGpuProgramManager.h"
 #include "BsVulkanQueryManager.h"
 #include "BsVulkanGLSLProgramFactory.h"
+#include "BsVulkanCommandBufferManager.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 
 namespace BansheeEngine
@@ -211,6 +212,9 @@ namespace BansheeEngine
 		GET_DEVICE_PROC_ADDR(presentDevice, AcquireNextImageKHR);
 		GET_DEVICE_PROC_ADDR(presentDevice, QueuePresentKHR);
 
+		// Create command buffer manager
+		CommandBufferManager::startUp<VulkanCommandBufferManager>(*this);
+
 		// Create the texture manager for use by others		
 		TextureManager::startUp<VulkanTextureManager>();
 		TextureCoreManager::startUp<VulkanTextureCoreManager>();
@@ -257,6 +261,7 @@ namespace BansheeEngine
 		HardwareBufferManager::shutDown();
 		TextureCoreManager::shutDown();
 		TextureManager::shutDown();
+		CommandBufferManager::shutDown();
 
 		mPrimaryDevices.clear();
 		mDevices.clear();

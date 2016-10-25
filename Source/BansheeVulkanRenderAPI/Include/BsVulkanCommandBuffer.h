@@ -16,11 +16,19 @@ namespace BansheeEngine
 	class VulkanCommandBuffer : public CommandBuffer
 	{
 	public:
+		~VulkanCommandBuffer();
+
+		/** Returns the internal Vulkan command buffer wrapped by this object. */
+		VkCommandBuffer getInternal() const { return mBuffer; }
 
 	private:
 		friend class VulkanCommandBufferManager;
 
-		VulkanCommandBuffer(CommandBufferType type, UINT32 deviceIdx, UINT32 syncMask, bool secondary);
+		VulkanCommandBuffer(const SPtr<VulkanDevice>& device, CommandBufferType type, UINT32 syncMask, bool secondary);
+
+		VkCommandBuffer mBuffer;
+		VkCommandPool mPool;
+		VkDevice mDevice;
 	};
 
 	/** @} */

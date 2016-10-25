@@ -19,6 +19,8 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CommandBuffer
 	{
 	public:
+		virtual ~CommandBuffer() {}
+
 		/**
 		 * Creates a new CommandBuffer.
 		 * 

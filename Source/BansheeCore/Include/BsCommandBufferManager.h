@@ -19,6 +19,8 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CommandBufferManager : public Module<CommandBufferManager>
 	{
 	public:
+		virtual ~CommandBufferManager() {}
+
 		/** @copydoc CommandBuffer::create */
 		virtual SPtr<CommandBuffer> create(CommandBufferType type, UINT32 deviceIdx = 0, UINT32 syncMask = 0xFFFFFFFF, 
 			bool secondary = false) = 0;

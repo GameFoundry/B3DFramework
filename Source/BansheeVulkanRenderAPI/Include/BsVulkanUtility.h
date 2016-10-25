@@ -54,6 +54,9 @@ namespace BansheeEngine
 
 		/** Gets Vulkan flags representing the number of samples in an image. Sample count must be a power of 2. */
 		static VkSampleCountFlagBits getSampleFlags(UINT32 numSamples);
+
+		/** Converts between a command buffer type and a Vulkan queue type. */
+		static VulkanQueueType getQueueType(CommandBufferType type);
 	};
 
 	/** @} */

@@ -2,14 +2,35 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanCommandBufferManager.h"
 #include "BsVulkanCommandBuffer.h"
+#include "BsVulkanRenderAPI.h"
 
 namespace BansheeEngine
 {
+	VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
+		:mRapi(rapi)
+	{ }
+
+	VulkanCommandBufferManager::~VulkanCommandBufferManager()
+	{
+		
+	}
+
 	SPtr<CommandBuffer> VulkanCommandBufferManager::create(CommandBufferType type, UINT32 deviceIdx, UINT32 syncMask,
 		bool secondary)
 	{
+		UINT32 numDevices = mRapi._getNumDevices();
+		if(deviceIdx >= numDevices)
+		{
+			LOGERR("Cannot create command buffer, invalid device index: " + toString(deviceIdx) + 
+				". Valid range: [0, " + toString(numDevices) + ").");
+
+			return nullptr;
+		}
+
+		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
+
 		CommandBuffer* buffer = 
-			new (bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(type, deviceIdx, syncMask, secondary);
+			new (bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(device, type, syncMask, secondary);
 
 		return bs_shared_ptr(buffer);
 	}

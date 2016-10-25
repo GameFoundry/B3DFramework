@@ -7,6 +7,10 @@ namespace BansheeEngine
 	VulkanDevice::VulkanDevice(VkPhysicalDevice device)
 		:mPhysicalDevice(device), mLogicalDevice(nullptr), mQueueInfos{}
 	{
+		// Set to default
+		for (UINT32 i = 0; i < VQT_COUNT; i++)
+			mQueueInfos[i].familyIdx = (UINT32)-1;
+
 		vkGetPhysicalDeviceProperties(device, &mDeviceProperties);
 		vkGetPhysicalDeviceFeatures(device, &mDeviceFeatures);
 		vkGetPhysicalDeviceMemoryProperties(device, &mMemoryProperties);
@@ -95,11 +99,35 @@ namespace BansheeEngine
 			for(UINT32 j = 0; j < numQueues; j++)
 				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].familyIdx, j, &mQueueInfos[i].queues[j]);
 		}
+
+		// Create command buffer pools
+		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		{
+			if (mQueueInfos[i].familyIdx == (UINT32)-1)
+				continue;
+
+			VkCommandPoolCreateInfo poolInfo;
+			poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			poolInfo.pNext = nullptr;
+			poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+			poolInfo.queueFamilyIndex = mQueueInfos[i].familyIdx;
+
+			vkCreateCommandPool(mLogicalDevice, &poolInfo, gVulkanAllocator, &mQueueInfos[i].commandPool);
+		}
 	}
 
 	VulkanDevice::~VulkanDevice()
 	{
 		vkDeviceWaitIdle(mLogicalDevice);
+
+		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		{
+			if (mQueueInfos[i].commandPool == VK_NULL_HANDLE)
+				continue;
+
+			vkDestroyCommandPool(mLogicalDevice, mQueueInfos[i].commandPool, gVulkanAllocator);
+		}
+
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}
 

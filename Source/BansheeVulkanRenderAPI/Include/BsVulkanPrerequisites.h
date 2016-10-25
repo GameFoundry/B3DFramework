@@ -45,6 +45,21 @@ namespace BansheeEngine
 	{
 		RenderStatObject_PipelineState = 100
 	};
+
+	/** Types of GPU queues. */
+	enum VulkanQueueType
+	{
+		/**
+		 * Queue used for rendering. Allows the use of draw commands, but also all commands supported by compute
+		 * or upload buffers.
+		 */
+		VQT_GRAPHICS,
+		/** Discrete queue used for compute operations. Allows the use of dispatch and upload commands. */
+		VQT_COMPUTE,
+		/** Queue used for memory transfer operations only. No rendering or compute dispatch allowed. */
+		VQT_UPLOAD,
+		VQT_COUNT // Keep at end
+	};
 }
 
 // Macro to get a procedure address based on a Vulkan instance.

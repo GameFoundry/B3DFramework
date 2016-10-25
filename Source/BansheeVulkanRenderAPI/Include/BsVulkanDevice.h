@@ -13,21 +13,6 @@ namespace BansheeEngine
 
 #define BS_MAX_VULKAN_QUEUES_PER_TYPE 4
 
-	 /** Types of GPU queues. */
-	enum VulkanQueueType
-	{
-		/**
-		 * Queue used for rendering. Allows the use of draw commands, but also all commands supported by compute
-		 * or upload buffers.
-		 */
-		VQT_GRAPHICS,
-		/** Discrete queue used for compute operations. Allows the use of dispatch and upload commands. */
-		VQT_COMPUTE,
-		/** Queue used for memory transfer operations only. No rendering or compute dispatch allowed. */
-		VQT_UPLOAD,
-		VQT_COUNT // Keep at end
-	};
-
 	/** Represents a single GPU device usable by Vulkan. */
 	class VulkanDevice
 	{
@@ -53,11 +38,20 @@ namespace BansheeEngine
 		/** Returns the number of queue supported on the device, per type. */
 		UINT32 getNumQueues(VulkanQueueType type) const { return (UINT32)mQueueInfos[(int)type].queues.size(); }
 
-		/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()) */
+		/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()). */
 		VkQueue getQueue(VulkanQueueType type, UINT32 idx) const { return mQueueInfos[(int)type].queues[idx]; }
 
-		/** Returns index of the queue family for the specified queue type. */
+		/** 
+		 * Returns index of the queue family for the specified queue type. Returns -1 if no queues for the specified type 
+		 * exist. There will always be a queue family for the graphics type.
+		 */
 		UINT32 getQueueFamily(VulkanQueueType type) const { return mQueueInfos[(int)type].familyIdx; }
+
+		/** 
+		 * Returns a command pool that may be used for allocating command buffers for this queue family. Only the graphics 
+		 * command pool is guaranteed to exist, others may return null.
+		 */
+		VkCommandPool getCommandPool(VulkanQueueType type) const { return mQueueInfos[(int)type].commandPool; }
 
 		/** Allocates memory for the provided image, and binds it to the image. */
 		VkDeviceMemory allocateMemory(VkImage image, VkMemoryPropertyFlags flags);
@@ -87,6 +81,7 @@ namespace BansheeEngine
 		{
 			UINT32 familyIdx;
 			Vector<VkQueue> queues;
+			VkCommandPool commandPool;
 		};
 
 		QueueInfo mQueueInfos[VQT_COUNT];
