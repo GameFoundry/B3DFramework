@@ -10,14 +10,36 @@ It can be compiled using:
  
 Banshee currently only compiles on Windows, but Mac & Linux ports are coming soon.
 
-To compile follow these steps:
+## Compile steps (Simple)
+
+### Windows
+
+To create a Visual Studio 2015 solution with default settings, follow these steps:
+ 1. Download source code
+ 2. Install relevant DirectX dependencies as described [here](#otherDeps) 
+ 3. Run setup.bat in the source code root folder
+ 4. Access Visual Studio solution in /Build/VS2015/Banshee.sln
+
+Note: Visual Studio 2015 installation required
+
+## Compile steps (Advanced)
+
+### Windows
+
+For those that wish to customize their build, or compile using something other than Visual Studio, follow the steps below:
  1. Download source code
  2. Set up [third party dependencies](#dependencies)
- 3. Generate a build file (e.g. Visual Studio solution or a Makefile) using CMake
-  - You can customize your build by choosing options like render API (Vulkan, DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
- 4. Compile using your favorite tool
+ 3. Generate build files using CMake:
+  1. Install CMake 3.6.1 or higher for Windows
+  2. Run CMake GUI
+  3. Point CMake to the /Source sub-folder in Banshee's source code (Browse Source... button in GUI)
+  4. Choose an output folder (Browse Build... button in GUI)
+  5. Hit Configure and choose the toolset to generate the files for (e.g. Visual Studio 2015 64-bit)
+  6. (Optionally) Customize your build by setting any of the properties that have appeared. You can choose options like render API (Vulkan, DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
+  7. Hit the Generate button
+ 4. Once CMake is done generating you can use the toolset you chose (e.g. Visual Studio) to open the generated files (e.g. open the .sln file provided in the Build folder in the case of Visual Studio)
 
-# <a name="dependencies"></a>Third party dependencies
+## <a name="dependencies"></a>Third party dependencies
 Banshee relies on a variety of third party dependencies. We provide a set of pre-compiled dependencies needed for the latest version of Banshee using Visual Studio 2015, to save you the hassle of compiling them yourself. If you are not using VS2015 or want to compile the dependencies yourself for some other reason, a guide is provided below.
 
  * [Download dependencies (VS2015)] (http://bearishsun.thalassa.feralhosting.com/BansheeDependencies_VS2015_Master.zip)
@@ -25,7 +47,7 @@ Banshee relies on a variety of third party dependencies. We provide a set of pre
  
 For older versions of pre-compiled dependencies check the git release tag descriptions for links.
 
-## Other dependencies
+## <a name="otherDeps"></a>Other dependencies
 The following dependencies will need to be installed manually regardless if you used pre-compiled dependency package or have compiled them yourself.
 
 **DirectX SDK** (Optional if not using DirectX)
