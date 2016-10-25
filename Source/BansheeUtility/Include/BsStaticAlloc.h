@@ -13,16 +13,19 @@ namespace BansheeEngine
 	 */
 
 	/**
-	 * Static allocator that attempts to perform zero heap allocations by always keeping an active stack-allocated buffer. 
-	 * If the size of allocated data goes over the set limit dynamic allocations will occur however.
-	 *
+	 * Static allocator that attempts to perform zero heap (dynamic) allocations by always keeping an active preallocated 
+	 * buffer. The allocator provides a fixed amount of preallocated memory, and if the size of the allocated data goes over
+	 * that limit the allocator will fall back to dynamic heap allocations.
+	 * 
 	 * @note	This kind of allocator is only able to free all of its memory at once. Freeing individual elements
 	 *			will not free the memory until a call to clear().
 	 * 			
-	 * @tparam	BlockSize			Size of the initially allocated static block, and minimum size of any dynamically allocated memory.
-	 * @tparam	MaxDynamicMemory	Maximum amount of unused memory allowed in the buffer after a call to clear(). Keeping active dynamic 
-	 *								buffers can help prevent further memory allocations at the cost of memory. This is not relevant
-	 *								if you stay within the bounds of the statically allocated memory.
+	 * @tparam	BlockSize			Size of the initially allocated static block, and minimum size of any dynamically 
+	 *								allocated memory.
+	 * @tparam	MaxDynamicMemory	Maximum amount of unused memory allowed in the buffer after a call to clear(). Keeping 
+	 *								active dynamic buffers can help prevent further memory allocations at the cost of 
+	 *								memory. This is not relevant if you stay within the bounds of the statically allocated 
+	 *								memory.
 	 */
 	template<int BlockSize = 512, int MaxDynamicMemory = 512>
 	class StaticAlloc

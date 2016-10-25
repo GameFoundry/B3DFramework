@@ -42,7 +42,6 @@ namespace BansheeEngine
 	class D3D11GpuProgramManager;
 	class D3D11IndexBuffer;
 	class D3D11HLSLProgramFactory;
-	class D3D11VertexDeclaration;
 	class D3D11Device;
 	class D3D11HardwareBuffer;
 	class D3D11GpuVertexProgram;

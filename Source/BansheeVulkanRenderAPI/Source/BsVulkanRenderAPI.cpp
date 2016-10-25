@@ -13,6 +13,7 @@
 #include "BsVulkanQueryManager.h"
 #include "BsVulkanGLSLProgramFactory.h"
 #include "BsVulkanCommandBufferManager.h"
+#include "BsVulkanVertexInputManager.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 
 namespace BansheeEngine
@@ -230,6 +231,9 @@ namespace BansheeEngine
 		// Create query manager 
 		QueryManager::startUp<VulkanQueryManager>();
 
+		// Create vertex input manager
+		VulkanVertexInputManager::startUp();
+
 		// Create & register HLSL factory		
 		mGLSLFactory = bs_new<VulkanGLSLProgramFactory>();
 
@@ -253,6 +257,7 @@ namespace BansheeEngine
 			mGLSLFactory = nullptr;
 		}
 
+		VulkanVertexInputManager::shutDown();
 		QueryManager::shutDown();
 		RenderStateCoreManager::shutDown();
 		RenderWindowCoreManager::shutDown();

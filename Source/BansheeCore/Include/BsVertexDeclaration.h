@@ -194,7 +194,7 @@ namespace BansheeEngine
 	public:
 		friend class VertexDeclarationRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
     };
 
 	/**	Converts a vertex semantic enum to a readable name. */
