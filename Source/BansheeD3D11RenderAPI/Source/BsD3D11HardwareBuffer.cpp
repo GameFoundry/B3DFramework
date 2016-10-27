@@ -90,7 +90,7 @@ namespace BansheeEngine
 			bs_delete(mpTempStagingBuffer);
 	}
 
-	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
 	{
 		if (length > mSizeInBytes)
 			BS_EXCEPT(RenderingAPIException, "Provided length " + toString(length) + " larger than the buffer " + toString(mSizeInBytes) + ".");		
@@ -217,7 +217,7 @@ namespace BansheeEngine
 	}
 
 	void D3D11HardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, 
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
 	{
 		// If we're copying same-size buffers in their entirety
 		if (srcOffset == 0 && dstOffset == 0 &&
@@ -251,7 +251,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest)
+	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
 	{
 		// There is no functional interface in D3D, just do via manual lock, copy & unlock
 		void* pSrc = this->lock(offset, length, GBL_READ_ONLY);
@@ -259,14 +259,15 @@ namespace BansheeEngine
 		this->unlock();
 	}
 
-	void D3D11HardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags)
+	void D3D11HardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, 
+		UINT32 syncMask)
 	{
 		if(mDesc.Usage == D3D11_USAGE_DYNAMIC || mDesc.Usage == D3D11_USAGE_STAGING)
 		{
 			GpuLockOptions lockOption = GBL_WRITE_ONLY;
-			if(writeFlags == BufferWriteType::Discard)
+			if(writeFlags == BWT_DISCARD)
 				lockOption = GBL_WRITE_ONLY_DISCARD;
-			else if(writeFlags == BufferWriteType::NoOverwrite)
+			else if(writeFlags == BTW_NO_OVERWRITE)
 				lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
 			void* pDst = this->lock(offset, length, lockOption);

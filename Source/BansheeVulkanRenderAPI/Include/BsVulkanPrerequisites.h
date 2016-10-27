@@ -62,10 +62,13 @@ namespace BansheeEngine
 	};
 }
 
-// Macro to get a procedure address based on a Vulkan instance.
+/** Macro to get a procedure address based on a Vulkan instance. */
 #define GET_INSTANCE_PROC_ADDR(instance, name) \
 	vk##name = reinterpret_cast<PFN_vk##name>(vkGetInstanceProcAddr(instance, "vk"#name));
 
-// Macro to get a procedure address based on a Vulkan device.
+/** Macro to get a procedure address based on a Vulkan device. */
 #define GET_DEVICE_PROC_ADDR(device, name) \
 	vk##name = reinterpret_cast<PFN_vk##name>(vkGetDeviceProcAddr(device, "vk"#name));
+
+/** Maximum number of hardware devices usable at once. */
+#define BS_MAX_VULKAN_DEVICES 5

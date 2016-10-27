@@ -25,16 +25,25 @@ namespace BansheeEngine
 		/**
 		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.
 		 *
-		 * @param[in]	offset	Offset in bytes from which to lock the buffer.
-		 * @param[in]	length	Length of the area you want to lock, in bytes.
-		 * @param[in]	options	Signifies what you want to do with the returned pointer. Caller must ensure not to do 
-		 *						anything he hasn't requested (for example don't try to read from the buffer unless you
-		 *						requested it here).
+		 * @param[in]	offset		Offset in bytes from which to lock the buffer.
+		 * @param[in]	length		Length of the area you want to lock, in bytes.
+		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do
+		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
+		 *							requested it here).
+		 * @param[in]	syncMask	Mask that determines how are read or write operations synchronized with other operations
+		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
+		 *							If reading, the system will wait on all commands buffers with the shared mask bits
+		 *							before continuing.
+		 *							If writing, Setting a mask that's different from used command buffers allows the writes
+		 *							to be queued independantly from normal rendering commands, allowing for async execution.
+		 *
+		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
+		 *							currently being written to with a different sync mask). If not sure leave at default.
 		 */
-		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options)
+		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask = 0x00000001)
         {
             assert(!isLocked() && "Cannot lock this buffer, it is already locked!");
-            void* ret = map(offset, length, options);
+            void* ret = map(offset, length, options, syncMask);
             mIsLocked = true;
 
 			mLockStart = offset;
@@ -45,13 +54,22 @@ namespace BansheeEngine
 		/**
 		 * Locks the entire buffer and returns pointer to the locked area. You must call unlock() when done.
 		 *
-		 * @param[in]	options	Signifies what you want to do with the returned pointer. Caller must ensure not to do 
-		 *						anything he hasn't requested (for example don't try to read from the buffer unless you
-		 *						requested it here).
+		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do 
+		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
+		 *							requested it here).
+		 * @param[in]	syncMask	Mask that determines how are read or write operations synchronized with other operations
+		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
+		 *							If reading, the system will wait on all commands buffers with the shared mask bits
+		 *							before continuing. 
+		 *							If writing, Setting a mask that's different from used command buffers allows the writes
+		 *							to be queued independantly from normal rendering commands, allowing for async execution.
+		 *							
+		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
+		 *							currently being written to with a different sync mask). If not sure leave at default.
 		 */
-        void* lock(GpuLockOptions options)
+        void* lock(GpuLockOptions options, UINT32 syncMask = 0x00000001)
         {
-            return this->lock(0, mSizeInBytes, options);
+            return this->lock(0, mSizeInBytes, options, syncMask);
         }
 
 		/**	Releases the lock on this buffer. */
@@ -67,11 +85,18 @@ namespace BansheeEngine
 		 * Reads data from a portion of the buffer and copies it to the destination buffer. Caller must ensure destination 
 		 * buffer is large enough.
 		 *
-		 * @param[in]	offset	Offset in bytes from which to copy the data.
-		 * @param[in]	length	Length of the area you want to copy, in bytes.
-		 * @param[in]	dest	Destination buffer large enough to store the read data.
+		 * @param[in]	offset		Offset in bytes from which to copy the data.
+		 * @param[in]	length		Length of the area you want to copy, in bytes.
+		 * @param[in]	dest		Destination buffer large enough to store the read data.
+		 * @param[in]	syncMask	Mask that determines how is the read operation synchronized with other operations on 
+		 *							this resource. This corresponds to the sync mask property on a CommandBuffer object.
+		 *							The system will wait on all commands buffers with the shared mask bits before continuing
+		 *							with the read. 
+		 *							
+		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
+		 *							currently being written to with a different sync mask). If not sure leave at default.
 		 */
-        virtual void readData(UINT32 offset, UINT32 length, void* dest) = 0;
+        virtual void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) = 0;
 
 		/**
 		 * Writes data into a portion of the buffer from the source memory. 
@@ -80,9 +105,16 @@ namespace BansheeEngine
 		 * @param[in]	length		Length of the area you want to copy, in bytes.
 		 * @param[in]	source		Source buffer containing the data to write.
 		 * @param[in]	writeFlags	Optional write flags that may affect performance.
+		 * @param[in]	syncMask	Mask that determines how is the write operation synchronized with other operations
+		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
+		 *							Setting a mask that's different from used command buffers allows the writes to be queued
+		 *							independantly from normal rendering commands, allowing for async execution.
+		 *							
+		 *							It's up to the caller to ensure the usage is valid (e.g. not writing to something that
+		 *							is currently being used by the GPU). If not sure leave at default.
 		 */
         virtual void writeData(UINT32 offset, UINT32 length, const void* source,
-				BufferWriteType writeFlags = BufferWriteType::Normal) = 0;
+				BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) = 0;
 
 		/**
 		 * Copies data from a specific portion of the source buffer into a specific portion of this buffer.
@@ -93,27 +125,46 @@ namespace BansheeEngine
 		 * @param[in]	length				Size of the data to copy, in bytes.
 		 * @param[in]	discardWholeBuffer	Specify true if the data in the current buffer can be entirely discarded. This
 		 *									may improve performance.
+		 * @param[in]	syncMask			Mask that determines how is the copy operation synchronized with other 
+		 *									operations on this resource. This corresponds to the sync mask property on a 
+		 *									CommandBuffer object. Setting a mask that's different from used command buffers
+		 *									allows the copy to be queued independantly from normal rendering commands, 
+		 *									allowing for async execution.
+		 *									
+		 *									It's up to the caller to ensure the usage is valid (e.g. not reading from
+		 *									something that is currently being written to, or writing to something that is
+		 *									currently being read).		
 		 */
 		virtual void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, 
-			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false)
+			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false, UINT32 syncMask = 0x00000001)
 		{
 			const void *srcData = srcBuffer.lock(
-				srcOffset, length, GBL_READ_ONLY);
-			this->writeData(dstOffset, length, srcData, discardWholeBuffer ? BufferWriteType::Discard : BufferWriteType::Normal);
+				srcOffset, length, GBL_READ_ONLY, syncMask);
+			this->writeData(dstOffset, length, srcData, discardWholeBuffer ? BWT_DISCARD : BWT_NORMAL, syncMask);
 			srcBuffer.unlock();
 		}
 
 		/**
 		 * Copy data from the provided buffer into this buffer. If buffers are not the same size, smaller size will be used.
+		 * 
+		* @param[in]	syncMask			Mask that determines how is the copy operation synchronized with other 
+		 *									operations on this resource. This corresponds to the sync mask property on a 
+		 *									CommandBuffer object. Setting a mask that's different from used command buffers
+		 *									allows the copy to be queued independantly from normal rendering commands, 
+		 *									allowing for async execution.
+		 *									
+		 *									It's up to the caller to ensure the usage is valid (e.g. not reading from
+		 *									something that is currently being written to, or writing to something that is
+		 *									currently being read).		
 		 */
-		virtual void copyData(HardwareBuffer& srcBuffer)
+		virtual void copyData(HardwareBuffer& srcBuffer, UINT32 syncMask = 0x00000001)
 		{
 			UINT32 sz = std::min(getSizeInBytes(), srcBuffer.getSizeInBytes()); 
-			copyData(srcBuffer, 0, 0, sz, true);
+			copyData(srcBuffer, 0, 0, sz, true, syncMask);
 		}
 			
 		/** Returns the size of this buffer in bytes. */
-        UINT32 getSizeInBytes(void) const { return mSizeInBytes; }
+        UINT32 getSizeInBytes() const { return mSizeInBytes; }
 
 		/**	Returns the Usage flags with which this buffer was created. */
         GpuBufferUsage getUsage() const { return mUsage; }
@@ -142,7 +193,7 @@ namespace BansheeEngine
 		{  }
 
 		/** @copydoc lock */
-		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options) = 0;
+		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) = 0;
 
 		/** @copydoc unlock */
 		virtual void unmap() = 0;

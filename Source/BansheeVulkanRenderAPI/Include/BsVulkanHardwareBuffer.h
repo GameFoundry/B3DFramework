@@ -14,33 +14,37 @@ namespace BansheeEngine
 	/**	Class containing common functionality for all Vulkan hardware buffers. */
 	class VulkanHardwareBuffer : public HardwareBuffer
 	{
+		/** Information about allocated buffer memory for a single device. */
+		struct MemoryInfo
+		{
+			SPtr<VulkanDevice> device;
+			VkDeviceMemory memory;
+		};
+
 	public:
-		VulkanHardwareBuffer(GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, bool systemMemory = false, 
-			bool streamOut = false, bool randomGpuWrite = false, bool useCounter = false);
+		VulkanHardwareBuffer(GpuBufferUsage usage, const VkMemoryRequirements& reqs, bool useSystemMem = false,
+			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 		~VulkanHardwareBuffer();
 
 		/** @copydoc HardwareBuffer::readData */
-		void readData(UINT32 offset, UINT32 length, void* dest) override;
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) override;
 
 		/** @copydoc HardwareBuffer::writeData */
 		void writeData(UINT32 offset, UINT32 length, const void* source, 
-			BufferWriteType writeFlags = BufferWriteType::Normal) override;
+			BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) override;
 
 		/** @copydoc HardwareBuffer::copyData */
 		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, 
-			UINT32 length, bool discardWholeBuffer = false) override;
+			UINT32 length, bool discardWholeBuffer = false, UINT32 syncMask = 0x00000001) override;
 
 	protected:
 		/** @copydoc HardwareBuffer::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) override;
 
 		/** @copydoc HardwareBuffer::unmap */
 		void unmap() override;
 
-		bool mRandomGpuWrite;
-		bool mUseCounter;
-		UINT32 mElementCount;
-		UINT32 mElementSize;
+		MemoryInfo mAllocations[BS_MAX_VULKAN_DEVICES];
 	};
 
 	/** @} */

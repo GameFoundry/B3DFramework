@@ -29,7 +29,7 @@ namespace BansheeEngine
 
 		/** @copydoc GpuBufferCore::writeData */
         void writeData(UINT32 offset, UINT32 length, const void* pSource,
-				BufferWriteType writeFlags = BufferWriteType::Normal) override;
+				BufferWriteType writeFlags = BWT_NORMAL) override;
 
 		/** @copydoc GpuBufferCore::copyData */
 		void copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,

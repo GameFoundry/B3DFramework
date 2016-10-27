@@ -53,13 +53,22 @@ namespace BansheeEngine
 		 */
 		VkCommandPool getCommandPool(VulkanQueueType type) const { return mQueueInfos[(int)type].commandPool; }
 
-		/** Allocates memory for the provided image, and binds it to the image. */
+		/** 
+		 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
+		 * with the specified flags.
+		 */
 		VkDeviceMemory allocateMemory(VkImage image, VkMemoryPropertyFlags flags);
 
-		/** Allocates memory for the provided buffer, and binds it to the buffer. */
+		/** 
+		 * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
+		 * with the specified flags.
+		 */
 		VkDeviceMemory allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
 
-		/** Allocates a block of memory according to the provided memory requirements. */
+		/** 
+		 * Allocates a block of memory according to the provided memory requirements. Returns null if it cannot find memory
+		 * with the specified flags. 
+		 */
 		VkDeviceMemory allocateMemory(const VkMemoryRequirements& reqs, VkMemoryPropertyFlags flags);
 
 		/** Frees a previously allocated block of memory. */

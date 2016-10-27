@@ -104,9 +104,9 @@ namespace BansheeEngine
 		const void* pSource, BufferWriteType writeFlags)
 	{
 		GpuLockOptions lockOption = GBL_WRITE_ONLY;
-		if (writeFlags == BufferWriteType::Discard)
+		if (writeFlags == BWT_DISCARD)
 			lockOption = GBL_WRITE_ONLY_DISCARD;
-		else if (writeFlags == BufferWriteType::NoOverwrite)
+		else if (writeFlags == BTW_NO_OVERWRITE)
 			lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
 		void* bufferData = lock(offset, length, lockOption);

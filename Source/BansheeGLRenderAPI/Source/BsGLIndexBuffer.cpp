@@ -26,7 +26,7 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* GLIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* GLIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
 	{
 		return mBuffer.lock(offset, length, options);
 	}
@@ -36,13 +36,13 @@ namespace BansheeEngine
 		mBuffer.unlock();
 	}
 
-	void GLIndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest)
+	void GLIndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
 	{
 		mBuffer.readData(offset, length, pDest);
 	}
 
 	void GLIndexBufferCore::writeData(UINT32 offset, UINT32 length,
-		const void* pSource, BufferWriteType writeFlags)
+		const void* pSource, BufferWriteType writeFlags, UINT32 syncMask)
 	{
 		mBuffer.writeData(offset, length, pSource, writeFlags);
 	}

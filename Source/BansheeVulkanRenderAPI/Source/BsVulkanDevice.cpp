@@ -165,6 +165,9 @@ namespace BansheeEngine
 		allocateInfo.memoryTypeIndex = findMemoryType(reqs.memoryTypeBits, flags);
 		allocateInfo.allocationSize = reqs.size;
 
+		if (allocateInfo.memoryTypeIndex == -1)
+			return VK_NULL_HANDLE;
+
 		VkDeviceMemory memory;
 
 		VkResult result = vkAllocateMemory(mLogicalDevice, &allocateInfo, gVulkanAllocator, &memory);

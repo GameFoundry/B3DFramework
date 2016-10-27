@@ -177,7 +177,7 @@ namespace BansheeEngine
 		 * @param[in]	writeFlags  Flags that may be used to improve performance for specific use cases.
 		 */
         virtual void writeData(UINT32 offset, UINT32 length, const void* pSource, 
-			BufferWriteType writeFlags = BufferWriteType::Normal) = 0;
+			BufferWriteType writeFlags = BWT_NORMAL) = 0;
 
 		/**
 		 * Copies data from another buffer into this buffer.

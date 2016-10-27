@@ -29,7 +29,7 @@ namespace BansheeEngine
 		IndexBufferCore::initialize();
 	}
 
-	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -51,14 +51,14 @@ namespace BansheeEngine
 		mBuffer->unlock();
 	}
 
-	void D3D11IndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest)
+	void D3D11IndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
 	{
 		mBuffer->readData(offset, length, pDest);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
 	}
 
-	void D3D11IndexBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags)
+	void D3D11IndexBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, UINT32 syncMask)
 	{
 		mBuffer->writeData(offset, length, pSource, writeFlags);
 
@@ -66,7 +66,7 @@ namespace BansheeEngine
 	}
 
 	void D3D11IndexBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
 	{
 		mBuffer->copyData(srcBuffer, srcOffset, dstOffset, length, discardWholeBuffer);
 	}

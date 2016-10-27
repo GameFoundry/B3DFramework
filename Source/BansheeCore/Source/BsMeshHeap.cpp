@@ -248,7 +248,7 @@ namespace BansheeEngine
 				}
 			}
 
-			vertexBuffer->writeData(vertChunkStart * vertSize, meshData->getNumVertices() * vertSize, vertDest, BufferWriteType::NoOverwrite);
+			vertexBuffer->writeData(vertChunkStart * vertSize, meshData->getNumVertices() * vertSize, vertDest, BTW_NO_OVERWRITE);
 		}
 
 		const IndexBufferProperties& ibProps = mIndexBuffer->getProperties();
@@ -264,7 +264,7 @@ namespace BansheeEngine
 
 		UINT8* idxDest = mCPUIndexData + idxChunkStart * idxSize;
 		memcpy(idxDest, meshData->getIndexData(), meshData->getNumIndices() * idxSize);
-		mIndexBuffer->writeData(idxChunkStart * idxSize, meshData->getNumIndices() * idxSize, idxDest, BufferWriteType::NoOverwrite);
+		mIndexBuffer->writeData(idxChunkStart * idxSize, meshData->getNumIndices() * idxSize, idxDest, BTW_NO_OVERWRITE);
 	}
 
 	void MeshHeapCore::dealloc(SPtr<TransientMeshCore> mesh)
@@ -334,7 +334,7 @@ namespace BansheeEngine
 			}
 
 			if (destOffset > 0)
-				vertexBuffer->writeData(0, destOffset * vertSize, buffer, BufferWriteType::NoOverwrite);
+				vertexBuffer->writeData(0, destOffset * vertSize, buffer, BTW_NO_OVERWRITE);
 
 			mCPUVertexData[i] = buffer;
 		}
@@ -412,7 +412,7 @@ namespace BansheeEngine
 		}
 
 		if (destOffset > 0)
-			mIndexBuffer->writeData(0, destOffset * idxSize, buffer, BufferWriteType::NoOverwrite);
+			mIndexBuffer->writeData(0, destOffset * idxSize, buffer, BTW_NO_OVERWRITE);
 
 		mCPUIndexData = buffer;
 

@@ -48,7 +48,7 @@ namespace BansheeEngine
 
 	void D3D11GpuParamBlockBufferCore::writeToGPU(const UINT8* data)
 	{
-		mBuffer->writeData(0, mSize, data, BufferWriteType::Discard);
+		mBuffer->writeData(0, mSize, data, BWT_DISCARD);
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
 	}

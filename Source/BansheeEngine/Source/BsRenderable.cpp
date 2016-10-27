@@ -301,7 +301,7 @@ namespace BansheeEngine
 				UINT32 bufferSize = meshData->getSize();
 				UINT8* data = meshData->getData();
 
-				mMorphShapeBuffer->writeData(0, bufferSize, data, BufferWriteType::Discard);
+				mMorphShapeBuffer->writeData(0, bufferSize, data, BWT_DISCARD);
 				mMorphShapeVersion = animInfo->morphShapeInfo.version;
 			}
 		}

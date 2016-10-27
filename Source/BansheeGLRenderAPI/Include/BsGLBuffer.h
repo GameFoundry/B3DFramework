@@ -62,7 +62,7 @@ namespace BansheeEngine
 		 * @param[in]	writeFlags	Optional write flags that may affect performance.
 		 */
         void writeData(UINT32 offset, UINT32 length, const void* source, 
-			BufferWriteType writeFlags = BufferWriteType::Normal);
+			BufferWriteType writeFlags = BWT_NORMAL);
 
 		/**	Returns internal OpenGL buffer ID. */
         GLuint getGLBufferId() const { return mBufferId; }

@@ -138,7 +138,7 @@ namespace BansheeEngine
 			LOGERR("Index buffer values are being written out of valid range.");
 		}
 
-		mIndexBuffer->writeData(0, indicesSize, srcIdxData, discardEntireBuffer ? BufferWriteType::Discard : BufferWriteType::Normal);
+		mIndexBuffer->writeData(0, indicesSize, srcIdxData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL);
 
 		// Vertices
 		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
@@ -193,13 +193,13 @@ namespace BansheeEngine
 					}
 				}
 
-				vertexBuffer->writeData(0, bufferSize, bufferCopy, discardEntireBuffer ? BufferWriteType::Discard : BufferWriteType::Normal);
+				vertexBuffer->writeData(0, bufferSize, bufferCopy, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL);
 
 				bs_free(bufferCopy);
 			}
 			else
 			{
-				vertexBuffer->writeData(0, bufferSize, srcVertBufferData, discardEntireBuffer ? BufferWriteType::Discard : BufferWriteType::Normal);
+				vertexBuffer->writeData(0, bufferSize, srcVertBufferData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL);
 			}
 		}
 
