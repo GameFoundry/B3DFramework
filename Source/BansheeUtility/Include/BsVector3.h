@@ -23,7 +23,7 @@ namespace BansheeEngine
 		Vector3()
 		{ }
 
-        Vector3(ZERO zero)
+        Vector3(BS_ZERO zero)
 			:x(0.0f), y(0.0f), z(0.0f)
         { }
 

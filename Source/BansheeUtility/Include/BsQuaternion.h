@@ -25,11 +25,11 @@ namespace BansheeEngine
 		Quaternion()
 		{ }
 
-		Quaternion(ZERO zero)
+		Quaternion(BS_ZERO zero)
 			:x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{ }
 
-		Quaternion(IDENTITY identity)
+		Quaternion(BS_IDENTITY identity)
 			:x(0.0f), y(0.0f), z(0.0f), w(1.0f)
 		{ }
 

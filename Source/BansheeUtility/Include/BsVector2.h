@@ -21,7 +21,7 @@ namespace BansheeEngine
 		Vector2()
 		{ }
 
-        Vector2(ZERO zero)
+        Vector2(BS_ZERO zero)
 			:x(0.0f), y(0.0f)
         { }
 

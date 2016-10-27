@@ -24,11 +24,11 @@ namespace BansheeEngine
     public:
 		Matrix3() {}
 
-		Matrix3(ZERO zero)
+		Matrix3(BS_ZERO zero)
 			:Matrix3(Matrix3::ZERO)
 		{ }
 
-		Matrix3(IDENTITY identity)
+		Matrix3(BS_IDENTITY identity)
 			:Matrix3(Matrix3::IDENTITY)
 		{ }
 

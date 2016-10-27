@@ -29,11 +29,11 @@ namespace BansheeEngine
         Matrix4()
         { }
 
-		Matrix4(ZERO zero)
+		Matrix4(BS_ZERO zero)
 			:Matrix4(Matrix3::ZERO)
 		{ }
 
-		Matrix4(IDENTITY identity)
+		Matrix4(BS_IDENTITY identity)
 			:Matrix4(Matrix3::IDENTITY)
 		{ }
 

@@ -22,10 +22,10 @@ namespace BansheeEngine
 	};
 
 	/** Enum used for object construction specifying the object should be zero initializes. */
-	enum ZERO { BsZero };
+	enum BS_ZERO { BsZero };
 
 	/** Enum used for matrix/quaternion constructor specifying it should be initialized with an identity value. */
-	enum IDENTITY { BsIdentity };
+	enum BS_IDENTITY { BsIdentity };
 
 	/** @} */
 
