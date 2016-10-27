@@ -88,7 +88,7 @@ namespace BansheeEngine
 		 *
 		 * @note	Core thread only.
 		 */
-		void AnimationManager::waitUntilComplete();
+		void waitUntilComplete();
 
 		/** 
 		 * Gets skeleton poses required by the renderer to display all the animations. The returned data can be referenced, 
