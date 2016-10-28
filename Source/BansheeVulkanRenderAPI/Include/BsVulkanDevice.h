@@ -11,8 +11,6 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-#define BS_MAX_VULKAN_QUEUES_PER_TYPE 4
-
 	/** Represents a single GPU device usable by Vulkan. */
 	class VulkanDevice
 	{
@@ -47,11 +45,8 @@ namespace BansheeEngine
 		 */
 		UINT32 getQueueFamily(VulkanQueueType type) const { return mQueueInfos[(int)type].familyIdx; }
 
-		/** 
-		 * Returns a command pool that may be used for allocating command buffers for this queue family. Only the graphics 
-		 * command pool is guaranteed to exist, others may return null.
-		 */
-		VkCommandPool getCommandPool(VulkanQueueType type) const { return mQueueInfos[(int)type].commandPool; }
+		/** Returns a pool that can be used for allocating command buffers for all queues on this device. */
+		CommandBufferPool& getCmdBufferPool() const { return *mCommandBufferPool; }
 
 		/** 
 		 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
@@ -81,6 +76,8 @@ namespace BansheeEngine
 		VkPhysicalDevice mPhysicalDevice;
 		VkDevice mLogicalDevice;
 
+		CommandBufferPool* mCommandBufferPool;
+
 		VkPhysicalDeviceProperties mDeviceProperties;
 		VkPhysicalDeviceFeatures mDeviceFeatures;
 		VkPhysicalDeviceMemoryProperties mMemoryProperties;
@@ -90,10 +87,10 @@ namespace BansheeEngine
 		{
 			UINT32 familyIdx;
 			Vector<VkQueue> queues;
-			VkCommandPool commandPool;
 		};
 
 		QueueInfo mQueueInfos[VQT_COUNT];
+
 	};
 
 	/** @} */

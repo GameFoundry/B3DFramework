@@ -5,10 +5,10 @@
 
 namespace BansheeEngine
 {
-	SPtr<CommandBuffer> GLCommandBufferManager::create(CommandBufferType type, UINT32 deviceIdx, UINT32 syncMask,
-		bool secondary)
+	SPtr<CommandBuffer> GLCommandBufferManager::createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx, 
+		UINT32 queueIdx, bool secondary)
 	{
-		CommandBuffer* buffer = new (bs_alloc<GLCommandBuffer>()) GLCommandBuffer(type, deviceIdx, syncMask, secondary);
+		CommandBuffer* buffer = new (bs_alloc<GLCommandBuffer>()) GLCommandBuffer(id, type, deviceIdx, queueIdx, secondary);
 		return bs_shared_ptr(buffer);
 	}
 }

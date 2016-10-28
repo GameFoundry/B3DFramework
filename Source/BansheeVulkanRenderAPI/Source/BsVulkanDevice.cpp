@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanDevice.h"
+#include "BsVulkanCommandBuffer.h"
 
 namespace BansheeEngine
 {
@@ -22,7 +23,7 @@ namespace BansheeEngine
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.data());
 
 		// Create queues
-		const float defaultQueuePriorities[BS_MAX_VULKAN_QUEUES_PER_TYPE] = { 0.0f };
+		const float defaultQueuePriorities[BS_MAX_QUEUES_PER_TYPE] = { 0.0f };
 		Vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
 		auto populateQueueInfo = [&](VulkanQueueType type, uint32_t familyIdx)
@@ -34,7 +35,7 @@ namespace BansheeEngine
 			createInfo.pNext = nullptr;
 			createInfo.flags = 0;
 			createInfo.queueFamilyIndex = familyIdx;
-			createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)BS_MAX_VULKAN_QUEUES_PER_TYPE);
+			createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)BS_MAX_QUEUES_PER_TYPE);
 			createInfo.pQueuePriorities = defaultQueuePriorities;
 
 			mQueueInfos[type].familyIdx = familyIdx;
@@ -101,33 +102,14 @@ namespace BansheeEngine
 		}
 
 		// Create command buffer pools
-		for (UINT32 i = 0; i < VQT_COUNT; i++)
-		{
-			if (mQueueInfos[i].familyIdx == (UINT32)-1)
-				continue;
-
-			VkCommandPoolCreateInfo poolInfo;
-			poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-			poolInfo.pNext = nullptr;
-			poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-			poolInfo.queueFamilyIndex = mQueueInfos[i].familyIdx;
-
-			vkCreateCommandPool(mLogicalDevice, &poolInfo, gVulkanAllocator, &mQueueInfos[i].commandPool);
-		}
+		mCommandBufferPool = bs_new<CommandBufferPool>(*this);
 	}
 
 	VulkanDevice::~VulkanDevice()
 	{
 		vkDeviceWaitIdle(mLogicalDevice);
 
-		for (UINT32 i = 0; i < VQT_COUNT; i++)
-		{
-			if (mQueueInfos[i].commandPool == VK_NULL_HANDLE)
-				continue;
-
-			vkDestroyCommandPool(mLogicalDevice, mQueueInfos[i].commandPool, gVulkanAllocator);
-		}
-
+		bs_delete(mCommandBufferPool);
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}
 

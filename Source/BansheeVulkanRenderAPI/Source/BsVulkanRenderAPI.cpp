@@ -399,7 +399,7 @@ namespace BansheeEngine
 
 	}
 
-	void VulkanRenderAPI::executeCommands(const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::executeCommands(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
 	{
 
 	}

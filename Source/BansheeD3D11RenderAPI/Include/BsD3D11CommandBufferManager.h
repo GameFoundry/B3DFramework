@@ -19,8 +19,8 @@ namespace BansheeEngine
 	class D3D11CommandBufferManager : public CommandBufferManager
 	{
 	public:
-		/** @copydoc CommandBufferManager::create() */
-		SPtr<CommandBuffer> create(CommandBufferType type, UINT32 deviceIdx = 0, UINT32 syncMask = 0xFFFFFFFF, 
+		/** @copydoc CommandBufferManager::createInternal() */
+		SPtr<CommandBuffer> createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0, 
 			bool secondary = false) override;
 	};
 

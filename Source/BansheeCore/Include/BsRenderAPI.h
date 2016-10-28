@@ -446,9 +446,19 @@ namespace BansheeEngine
 		/** 
 		 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
 		 *
+		 * @param[in]	commandBuffer	Command buffer whose commands to execute.
+		 * @param[in]	syncMask		Optional synchronization mask that determines if the submitted command buffer
+		 *								depends on any other command buffers. Use the CommandSyncMask class to generate
+		 *								a mask using existing command buffers.
+		 *								
+		 *								This mask is only relevant if your command buffers are executing on different
+		 *								hardware queues, and are somehow dependant. If they are executing on the same queue
+		 *								(default) then they will execute sequentially in the order they are submitted.
+		 *								Otherwise, if there is a dependency, you must make state it explicitly here.
+		 *
 		 * @note	Core thread only.
 		 */
-		virtual void executeCommands(const SPtr<CommandBuffer>& commandBuffer) = 0;
+		virtual void executeCommands(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask = 0xFFFFFFFF) = 0;
 
 		/**
 		 * Gets the capabilities of a specific GPU.

@@ -122,7 +122,11 @@ namespace BansheeEngine
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
+		// TODO - Need to wait to ensure it isn't used on the GPU anymore
+
 		// TODO - CLean up mSets
+		// - Queue for destroy, remember fence counters for all available queues, only destroy after all queues execute?
+		// - Or ensure the object knows which queue it was used on?
 	}
 
 	void VulkanGpuParams::setParamBlockBuffer(UINT32 set, UINT32 slot, const ParamsBufferType& paramBlockBuffer)

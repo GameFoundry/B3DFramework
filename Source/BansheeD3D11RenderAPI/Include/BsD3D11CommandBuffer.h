@@ -35,7 +35,7 @@ namespace BansheeEngine
 		friend class D3D11CommandBufferManager;
 		friend class D3D11RenderAPI;
 
-		D3D11CommandBuffer(CommandBufferType type, UINT32 deviceIdx, UINT32 syncMask, bool secondary);
+		D3D11CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
 		UINT32 mDeviceIdx;
 		Vector<std::function<void()>> mCommands;

@@ -15,8 +15,8 @@ namespace BansheeEngine
 		
 	}
 
-	SPtr<CommandBuffer> VulkanCommandBufferManager::create(CommandBufferType type, UINT32 deviceIdx, UINT32 syncMask,
-		bool secondary)
+	SPtr<CommandBuffer> VulkanCommandBufferManager::createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx, 
+		UINT32 queueIdx, bool secondary)
 	{
 		UINT32 numDevices = mRapi._getNumDevices();
 		if(deviceIdx >= numDevices)
@@ -30,7 +30,7 @@ namespace BansheeEngine
 		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
 
 		CommandBuffer* buffer = 
-			new (bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(device, type, syncMask, secondary);
+			new (bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, id, type, queueIdx, secondary);
 
 		return bs_shared_ptr(buffer);
 	}
