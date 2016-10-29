@@ -90,7 +90,7 @@ namespace BansheeEngine
 
 		mWidgets.erase((UINT32)tabIdx);
 		mTitleBar->removeTab((UINT32)tabIdx);
-		widget._changeParent(nullptr);
+		widget._changeParent(nullptr, tabIdx);
 
 		if(tabIdx == mActiveWidget)
 		{
@@ -111,7 +111,7 @@ namespace BansheeEngine
 
 		UINT32 tabIdx = mTitleBar->insertTab(idx, widget.getDisplayName());
 		mWidgets[tabIdx] = &widget;
-		widget._changeParent(this);
+		widget._changeParent(this, idx);
 
 		if(mActiveWidget == -1)
 			setActiveWidget(mTitleBar->getTabIdx(mTitleBar->getNumTabs() - 1));

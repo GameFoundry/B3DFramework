@@ -35,6 +35,16 @@ namespace BansheeEngine
 			return nullptr;
 	}
 
+	void EditorWidgetBase::setIndex(UINT32 index)
+	{
+		mIndex = index;
+	}
+
+	UINT32 EditorWidgetBase::getIndex()
+	{
+		return mIndex;
+	}
+
 	void EditorWidgetBase::setHasFocus(bool focus)
 	{
 		EditorWidgetContainer* parentContainer = _getParent();
@@ -54,13 +64,13 @@ namespace BansheeEngine
 		_setHasFocus(focus);
 	}
 
-	void EditorWidgetBase::setActive(bool active)
+	void EditorWidgetBase::setActive(UINT32 widgetIndx)
 	{
 		EditorWidgetContainer* parentContainer = _getParent();
 		if (parentContainer == nullptr)
 			return;
 
-		parentContainer->setActiveWidget();
+		parentContainer->setActiveWidget(widgetIndx);
 	}
 
 	void EditorWidgetBase::close()
@@ -161,7 +171,7 @@ namespace BansheeEngine
 	}
 
 	// Note: Must not be virtual as parent container uses it in constructor
-	void EditorWidgetBase::_changeParent(EditorWidgetContainer* parent)
+	void EditorWidgetBase::_changeParent(EditorWidgetContainer* parent, UINT32 indx)
 	{
 		if(mParent != parent) 
 		{
@@ -179,6 +189,7 @@ namespace BansheeEngine
 			}
 
 			mParent = parent;
+			mIndex = indx;
 
 			doOnParentChanged();
 

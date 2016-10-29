@@ -60,6 +60,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetBounds", &ScriptEditorWindow::internal_getBounds);
 		metaData.scriptClass->addInternalCall("Internal_SetFocus", &ScriptEditorWindow::internal_setFocus);
 		metaData.scriptClass->addInternalCall("Internal_HasFocus", &ScriptEditorWindow::internal_hasFocus);
+		metaData.scriptClass->addInternalCall("Internal_SetActive", &ScriptEditorWindow::internal_setActive);
 		metaData.scriptClass->addInternalCall("Internal_IsActive", &ScriptEditorWindow::internal_isActive);
 		metaData.scriptClass->addInternalCall("Internal_IsPointerHovering", &ScriptEditorWindow::internal_isPointerHovering);
 		metaData.scriptClass->addInternalCall("Internal_ScreenToWindowPos", &ScriptEditorWindow::internal_screenToWindowPos);
@@ -205,7 +206,19 @@ namespace BansheeEngine
 	{
 		//check and see if the window is destroyed before setting it to active
 		if (!thisPtr->isDestroyed())
-			return thisPtr->getEditorWidget()->setActive(active);
+		{
+			if (active)
+			{
+				thisPtr->getEditorWidget()->setActive(thisPtr->getEditorWidget()->getIndex()); 
+				return;
+			}
+			else
+			{
+				return;
+			}
+				
+		}
+			
 
 		//return if the given widget is destroyed
 		return;

@@ -28,6 +28,7 @@ namespace BansheeEditor
         private GUIRenderTexture renderTextureGUI;
         private GUITexture renderTextureBg;
         private GUILabel noCameraLabel;
+        public static bool playBtnPressed = false;
 
         /// <summary>
         /// Opens the game window.
@@ -45,27 +46,32 @@ namespace BansheeEditor
         [ToolbarItem("Play", ToolbarIcon.Play, "Play", 1800, true)]
         private static void Play()
         {
+            if (!playBtnPressed)
+            {
+
+                GetWindow<GameWindow>().Active = true;
+                GetWindow<GameWindow>().HasFocus = true;
+
+                playBtnPressed = true;
+            }
+            else if(playBtnPressed)
+            {
+
+                GetWindow<GameWindow>().HasFocus = false;
+
+                GetWindow<SceneWindow>().Active = true;
+                GetWindow<SceneWindow>().HasFocus = true;
+                Debug.Log("Got into the scenewindow");
+                playBtnPressed = false;
+            }
+
             if (EditorApplication.IsPaused)
             {
-                if (!GetWindow<GameWindow>().HasFocus)
-                {
-                    GetWindow<GameWindow>().HasFocus = true;
-                    GetWindow<GameWindow>().Active = true;
-                }
+                
+                Debug.Log("rannin the game");
                 EditorApplication.IsPaused = false;
             }
             else
-                if(GetWindow<GameWindow>().HasFocus && GetWindow<GameWindow>().Active)
-                {
-                    
-                    GetWindow<GameWindow>().HasFocus = false;
-                    GetWindow<GameWindow>().Active = false;
-
-                
-                    GetWindow<SceneWindow>().HasFocus = true;
-                    GetWindow<SceneWindow>().Active = true;
-                    
-                }
                 EditorApplication.IsPlaying = !EditorApplication.IsPlaying;
         }
 

@@ -57,13 +57,17 @@ namespace BansheeEngine
 		bool hasFocus() const { return mHasFocus; }
 
 		// sets the widget active or non active
-		void setActive(bool active);
+		void setActive(UINT32 widgetIndx);
 
 		/** 
 		 * Checks is the widget the currently active widget in its container. This means the widget's tab is active or
 		 * the widget is the only one in its container. 
 		 */
 		bool isActive() const { return mIsActive; }
+
+		void setIndex(UINT32 index);
+
+		UINT32 getIndex();
 
 		/**
 		 * Gets the parent editor window this widget is docked in. Can be null (for example when widget is in the process of
@@ -108,7 +112,7 @@ namespace BansheeEngine
 		 * Changes the parent container of the widget (for example when re-docking or moving a widget to another window). 
 		 * Parent can be null (for example when widget is in the process of dragging and not visible).
 		 */
-		void _changeParent(EditorWidgetContainer* parent);
+		void _changeParent(EditorWidgetContainer* parent, UINT32 indx);
 
 		/**	Sets or removes focus for this widget. */
 		void _setHasFocus(bool focus);
@@ -151,6 +155,7 @@ namespace BansheeEngine
 		INT32 mX, mY;
 		UINT32 mWidth, mHeight;
 		UINT32 mDefaultWidth, mDefaultHeight;
+		UINT32 mIndex = 0;
 		GUIPanel* mContent;
 		bool mHasFocus;
 		bool mIsActive;
