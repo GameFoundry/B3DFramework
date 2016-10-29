@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanDevice.h"
 #include "BsVulkanCommandBuffer.h"
+#include "BsVulkanDescriptorManager.h"
 
 namespace BansheeEngine
 {
@@ -101,14 +102,16 @@ namespace BansheeEngine
 				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].familyIdx, j, &mQueueInfos[i].queues[j]);
 		}
 
-		// Create command buffer pools
-		mCommandBufferPool = bs_new<CommandBufferPool>(*this);
+		// Create pools/managers
+		mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
+		mDescriptorManager = bs_new<VulkanDescriptorManager>(*this);
 	}
 
 	VulkanDevice::~VulkanDevice()
 	{
 		vkDeviceWaitIdle(mLogicalDevice);
 
+		bs_delete(mDescriptorManager);
 		bs_delete(mCommandBufferPool);
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}

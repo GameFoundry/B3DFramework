@@ -6,7 +6,7 @@
 
 namespace BansheeEngine
 {
-	CommandBufferPool::CommandBufferPool(VulkanDevice& device)
+	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
 		:mDevice(device), mPools{}, mBuffers {}
 	{
 		for (UINT32 i = 0; i < VQT_COUNT; i++)
@@ -26,7 +26,7 @@ namespace BansheeEngine
 		}
 	}
 
-	CommandBufferPool::~CommandBufferPool()
+	VulkanCmdBufferPool::~VulkanCmdBufferPool()
 	{
 		for (UINT32 i = 0; i < VQT_COUNT; i++)
 		{
@@ -52,7 +52,7 @@ namespace BansheeEngine
 		}
 	}
 
-	LVulkanCommandBuffer* CommandBufferPool::getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary)
+	LVulkanCommandBuffer* VulkanCmdBufferPool::getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary)
 	{
 		assert(queueIdx < BS_MAX_QUEUES_PER_TYPE);
 
@@ -81,14 +81,14 @@ namespace BansheeEngine
 		return buffers[i];
 	}
 
-	LVulkanCommandBuffer* CommandBufferPool::createBuffer(VulkanQueueType type, bool secondary)
+	LVulkanCommandBuffer* VulkanCmdBufferPool::createBuffer(VulkanQueueType type, bool secondary)
 	{
 		VkCommandPool pool = getPool(type);
 
 		return bs_new<LVulkanCommandBuffer>(mDevice, pool, secondary);
 	}
 
-	VkCommandPool CommandBufferPool::getPool(VulkanQueueType type)
+	VkCommandPool VulkanCmdBufferPool::getPool(VulkanQueueType type)
 	{
 		VkCommandPool pool = mPools[type];
 		if (pool == VK_NULL_HANDLE)
@@ -226,7 +226,7 @@ namespace BansheeEngine
 
 	void VulkanCommandBuffer::acquireNewBuffer()
 	{
-		CommandBufferPool& pool = mDevice.getCmdBufferPool();
+		VulkanCmdBufferPool& pool = mDevice.getCmdBufferPool();
 
 		mBuffer = pool.getBuffer(mType, mQueueIdx, mIsSecondary);
 	}

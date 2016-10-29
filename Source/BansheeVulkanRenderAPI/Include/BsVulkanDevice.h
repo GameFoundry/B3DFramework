@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsRenderAPI.h"
+#include "BsVulkanDescriptorManager.h"
 
 namespace BansheeEngine
 {
@@ -46,7 +47,10 @@ namespace BansheeEngine
 		UINT32 getQueueFamily(VulkanQueueType type) const { return mQueueInfos[(int)type].familyIdx; }
 
 		/** Returns a pool that can be used for allocating command buffers for all queues on this device. */
-		CommandBufferPool& getCmdBufferPool() const { return *mCommandBufferPool; }
+		VulkanCmdBufferPool& getCmdBufferPool() const { return *mCommandBufferPool; }
+
+		/** Returns a manager that can be used for allocating descriptor layouts and sets. */
+		VulkanDescriptorManager& getDescriptorManager() const { return *mDescriptorManager; }
 
 		/** 
 		 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
@@ -76,7 +80,8 @@ namespace BansheeEngine
 		VkPhysicalDevice mPhysicalDevice;
 		VkDevice mLogicalDevice;
 
-		CommandBufferPool* mCommandBufferPool;
+		VulkanCmdBufferPool* mCommandBufferPool;
+		VulkanDescriptorManager* mDescriptorManager;
 
 		VkPhysicalDeviceProperties mDeviceProperties;
 		VkPhysicalDeviceFeatures mDeviceFeatures;

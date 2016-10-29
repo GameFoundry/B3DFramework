@@ -57,6 +57,11 @@ namespace BansheeEngine
 
 		/** Converts between a command buffer type and a Vulkan queue type. */
 		static VulkanQueueType getQueueType(CommandBufferType type);
+
+		/** 
+		 * Populates the provided array with Vulkan devices that correspond to provided flags. Sets null in unused slots. 
+		 */
+		static void getDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice* (&devices)[BS_MAX_LINKED_DEVICES]);
 	};
 
 	/** @} */

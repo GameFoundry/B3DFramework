@@ -1,16 +1,20 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanGpuParams.h"
+#include "BsVulkanUtility.h"
+#include "BsVulkanRenderAPI.h"
+#include "BsVulkanDevice.h"
 #include "BsGpuParamDesc.h"
 
 namespace BansheeEngine
 {
 	VulkanGpuParams::VulkanGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
-		:GpuParamsCore(desc, deviceMask)
+		:GpuParamsCore(desc, deviceMask), mPerDeviceData{}, mNumDevices(0)
 	{
+		// Generate all required bindings
 		UINT32 numBindings = 0;
 		UINT32 numSets = 0;
-		
+
 		UINT32 numElementTypes = (UINT32)ElementType::Count;
 		for (UINT32 i = 0; i < numElementTypes; i++)
 		{
@@ -26,10 +30,10 @@ namespace BansheeEngine
 		memset(bindings, 0, bindingsSize);
 
 		UINT32 globalBindingIdx = 0;
-		for(UINT32 i = 0; i < numSets; i++)
+		for (UINT32 i = 0; i < numSets; i++)
 		{
 			bindingsPerSet[i] = 0;
-			for(UINT32 j = 0; j < numElementTypes; j++)
+			for (UINT32 j = 0; j < numElementTypes; j++)
 			{
 				if (i >= mNumSets[j])
 					continue;
@@ -43,11 +47,11 @@ namespace BansheeEngine
 					end = mNumElements[j];
 
 				UINT32 elementsInSet = end - start;
-				for(UINT32 k = 0; k < elementsInSet; k++)
+				for (UINT32 k = 0; k < elementsInSet; k++)
 				{
 					VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx + k];
 					binding.binding = bindingsPerSet[i] + k;
-				};
+				}
 
 				globalBindingIdx += elementsInSet;
 				bindingsPerSet[i] += elementsInSet;
@@ -99,30 +103,54 @@ namespace BansheeEngine
 			setUpBindings(paramDesc->samplers, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 		}
 
+		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
+		VulkanDevice* devices[BS_MAX_LINKED_DEVICES];
+		VulkanUtility::getDevices(rapi, deviceMask, devices);
 
-		for (UINT32 i = 0; i < numSets; i++)
+		// Allocate layouts per-device
+		for (UINT32 i = 0; i < BS_MAX_LINKED_DEVICES; i++)
 		{
+			if (devices[i] == nullptr)
+				break;
+
+			mNumDevices++;
 		}
 
-		// TODO - Actually allocate and create layouts and sets
-		// TODO - Create sets per-device
-		// TODO - Prepare write descs and see what's the best way to update them
+		UINT32 perSetBytes = sizeof(PerSetData) * numSets;
+		UINT8* data = (UINT8*)bs_alloc(perSetBytes * mNumDevices);
+
+		for(UINT32 i = 0; i < mNumDevices; i++)
+		{
+			mPerDeviceData[i].numSets = numSets;
+			mPerDeviceData[i].perSetData = (PerSetData*)data;
+			data += sizeof(perSetBytes);
+
+			VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
+
+			UINT32 bindingOffset = 0;
+			for (UINT32 j = 0; j < numSets; j++)
+			{
+				mPerDeviceData[i].perSetData[j].layout = descManager.getLayout(&bindings[bindingOffset], bindingsPerSet[j]);
+
+				bindingOffset += bindingsPerSet[j];
+			}
+		}
+
 
 		bs_stack_free(bindingOffsets);
 		bs_stack_free(bindings);
 		bs_stack_free(bindingsPerSet);
 
-		
-
-
-		// Note: Set layout creation should be moved up to Shader, since one layout can be shared between multiple
-		// GPU params. Right now we take the easy route and just create a new layout every time (meaning there's a lot of
-		// duplicates).
+		// TODO - Create sets
+		// TODO - Prepare write descs
+		// TODO - Update write descs as params change
 	}
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
 		// TODO - Need to wait to ensure it isn't used on the GPU anymore
+
+		bs_free(mPerDeviceData); // Everything allocated under a single buffer to a single free is enough
 
 		// TODO - CLean up mSets
 		// - Queue for destroy, remember fence counters for all available queues, only destroy after all queues execute?

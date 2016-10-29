@@ -37,19 +37,25 @@ namespace BansheeEngine
 		void setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface) override;
 
 	protected:
-		friend class VulkanHardwareBufferCoreManager;
-
-		/** Information about a single descriptor set. */
-		struct SetInfo
+		/** All GPU param data related to a single descriptor set. */
+		struct PerSetData
 		{
-			VkDescriptorSetLayout layout;
-			VkDescriptorSet set;
+			VulkanDescriptorLayout* layout;
 		};
+
+		/** All GPU param data beloning to a single device. */
+		struct PerDeviceData
+		{
+			PerSetData* perSetData;
+			UINT32 numSets;
+		};
+
+		friend class VulkanHardwareBufferCoreManager;
 
 		VulkanGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
 
-		SetInfo* mSets;
-		UINT32 mNumSets;
+		PerDeviceData mPerDeviceData[BS_MAX_LINKED_DEVICES];
+		UINT32 mNumDevices;
 	};
 
 	/** @} */

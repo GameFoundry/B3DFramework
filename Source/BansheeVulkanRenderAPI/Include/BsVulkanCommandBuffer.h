@@ -17,11 +17,11 @@ namespace BansheeEngine
 #define BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE 32
 
 	/** Pool that allocates and distributes Vulkan command buffers. */
-	class CommandBufferPool
+	class VulkanCmdBufferPool
 	{
 	public:
-		CommandBufferPool(VulkanDevice& device);
-		~CommandBufferPool();
+		VulkanCmdBufferPool(VulkanDevice& device);
+		~VulkanCmdBufferPool();
 
 		/** Attempts to find a free command buffer, or creates a new one if not found. */
 		LVulkanCommandBuffer* getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary);
@@ -95,7 +95,7 @@ namespace BansheeEngine
 		void refreshFenceStatus();
 
 	private:
-		friend class CommandBufferPool;
+		friend class VulkanCmdBufferPool;
 
 		State mState;
 		VulkanDevice& mDevice;

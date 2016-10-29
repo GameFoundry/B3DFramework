@@ -37,7 +37,9 @@ namespace BansheeEngine
 	class VulkanDevice;
 	class VulkanGLSLProgramFactory;
 	class VulkanSwapChain;
-	class CommandBufferPool;
+	class VulkanDescriptorLayout;
+	class VulkanDescriptorManager;
+	class VulkanCmdBufferPool;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 
@@ -72,4 +74,7 @@ namespace BansheeEngine
 	vk##name = reinterpret_cast<PFN_vk##name>(vkGetDeviceProcAddr(device, "vk"#name));
 
 /** Maximum number of hardware devices usable at once. */
-#define BS_MAX_VULKAN_DEVICES 5
+#define BS_MAX_VULKAN_DEVICES 5U
+
+/** Maximum number of devices one resource can exist at the same time. */
+#define BS_MAX_LINKED_DEVICES 4U
