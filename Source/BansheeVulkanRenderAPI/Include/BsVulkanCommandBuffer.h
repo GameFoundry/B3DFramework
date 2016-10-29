@@ -12,7 +12,7 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	class LVulkanCommandBuffer;
+	class VulkanCmdBuffer;
 
 #define BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE 32
 
@@ -24,11 +24,11 @@ namespace BansheeEngine
 		~VulkanCmdBufferPool();
 
 		/** Attempts to find a free command buffer, or creates a new one if not found. */
-		LVulkanCommandBuffer* getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary);
+		VulkanCmdBuffer* getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary);
 
 	private:
 		/** Creates a new command buffer. */
-		LVulkanCommandBuffer* createBuffer(VulkanQueueType type, bool secondary);
+		VulkanCmdBuffer* createBuffer(VulkanQueueType type, bool secondary);
 
 		/** Returns a Vulkan command pool for the specified queue type. */
 		VkCommandPool getPool(VulkanQueueType type);
@@ -36,14 +36,14 @@ namespace BansheeEngine
 		VulkanDevice& mDevice;
 		VkCommandPool mPools[VQT_COUNT];
 
-		LVulkanCommandBuffer* mBuffers[VQT_COUNT][BS_MAX_QUEUES_PER_TYPE][BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE];
+		VulkanCmdBuffer* mBuffers[VQT_COUNT][BS_MAX_QUEUES_PER_TYPE][BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE];
 	};
 
 	/** 
 	 * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a
 	 * higher level class, and it allows for re-use by internally using multiple low-level command buffers.
 	 */
-	class LVulkanCommandBuffer
+	class VulkanCmdBuffer
 	{
 		/** Possible states a command buffer can be in. */
 		enum class State
@@ -61,8 +61,8 @@ namespace BansheeEngine
 		};
 
 	public:
-		LVulkanCommandBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary);
-		~LVulkanCommandBuffer();
+		VulkanCmdBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary);
+		~VulkanCmdBuffer();
 
 		/** Makes the command buffer ready to start recording commands. */
 		void begin();
@@ -88,6 +88,12 @@ namespace BansheeEngine
 		 */
 		VkSemaphore getSemaphore() const { return mSemaphore; }
 
+		/** Returns true if the command buffer is currently being processed by the device. */
+		bool isSubmitted() const { return mState == State::Submitted; }
+
+		/** Returns true if the command buffer is ready to be submitted to a queue. */
+		bool isReadyForSubmit() const { return mState == State::RecordingDone; }
+
 		/** Returns a counter that gets incremented whenever the command buffer is done executing. */
 		UINT32 getFenceCounter() const { return mFenceCounter; }
 
@@ -96,6 +102,7 @@ namespace BansheeEngine
 
 	private:
 		friend class VulkanCmdBufferPool;
+		friend class VulkanCommandBuffer;
 
 		State mState;
 		VulkanDevice& mDevice;
@@ -111,10 +118,21 @@ namespace BansheeEngine
 	{
 	public:
 		/** 
-		 * Returns the handle to the internal command buffer. This is a lower-level command buffer that more directly
-		 * maps to Vulkan's command buffers.
+		 * Submits the command buffer for execution. 
+		 * 
+		 * @param[in]	syncMask	Mask that controls which other command buffers does this command buffer depend upon
+		 *							(if any). See description of @p syncMask parameter in RenderAPICore::executeCommands().
 		 */
-		LVulkanCommandBuffer& getBuffer() const { return *mBuffer; }
+		void submit(UINT32 syncMask);
+
+		/** Checks if the submitted buffer finished executing, and updates state if it has. */
+		void refreshSubmitStatus();
+
+	private:
+		friend class VulkanCommandBufferManager;
+
+		VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, 
+			bool secondary);
 
 		/** 
 		 * Tasks the command buffer to find a new internal command buffer. Call this after the command buffer has been
@@ -122,14 +140,12 @@ namespace BansheeEngine
 		 */
 		void acquireNewBuffer();
 
-	private:
-		friend class VulkanCommandBufferManager;
-
-		VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, UINT32 queueIdx, 
-			bool secondary);
-
-		LVulkanCommandBuffer* mBuffer;
+		VulkanCmdBuffer* mBuffer;
+		VulkanCmdBuffer* mSubmittedBuffer;
 		VulkanDevice& mDevice;
+		VulkanQueue* mQueue;
+
+		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
 	};
 
 	/** @} */

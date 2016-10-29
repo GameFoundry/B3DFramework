@@ -26,6 +26,25 @@ namespace BansheeEngine
 		SPtr<CommandBuffer> createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
 			bool secondary = false) override;
 
+		/** 
+		 * Returns a set of command buffer semaphores depending on the provided sync mask. 
+		 *
+		 * @param[in]	deviceIdx	Index of the device to get the semaphores for.
+		 * @param[in]	syncMask	Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
+		 *							If the command buffer is not currently executing, semaphore won't be returned.
+		 * @param[out]	semaphores	List containing all the required semaphores. Semaphores are tightly packed at the
+		 *							beginning of the array.
+		 * @param[out]	count		Number of semaphores provided in the @p semaphores array.
+		 */
+		void getSyncSemaphores(UINT32 deviceIdx, UINT32 syncMask, VkSemaphore(&semaphores)[BS_MAX_COMMAND_BUFFERS], 
+			UINT32& count);
+
+		/** 
+		 * Checks if any of the active command buffers finished executing on the device and updates their states 
+		 * accordingly. 
+		 */
+		void refreshStates(UINT32 deviceIdx);
+
 	private:
 		const VulkanRenderAPI& mRapi;
 	};

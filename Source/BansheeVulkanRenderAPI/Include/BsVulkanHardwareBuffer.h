@@ -44,7 +44,7 @@ namespace BansheeEngine
 		/** @copydoc HardwareBuffer::unmap */
 		void unmap() override;
 
-		MemoryInfo mAllocations[BS_MAX_VULKAN_DEVICES];
+		MemoryInfo mAllocations[BS_MAX_DEVICES];
 	};
 
 	/** @} */

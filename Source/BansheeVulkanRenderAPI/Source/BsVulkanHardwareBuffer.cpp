@@ -22,7 +22,7 @@ namespace BansheeEngine
 		}
 		else
 		{
-			for(UINT32 i = 0; i < BS_MAX_VULKAN_DEVICES; i++)
+			for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 			{
 				if ((1 << i) & deviceMask)
 					mAllocations[deviceIdx++].device = rapi._getDevice(i);
@@ -33,7 +33,7 @@ namespace BansheeEngine
 			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : // Note: Try using cached uncoherent memory
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		for (UINT32 i = 0; i < BS_MAX_VULKAN_DEVICES; i++)
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			if (mAllocations[i].device == nullptr)
 				break;

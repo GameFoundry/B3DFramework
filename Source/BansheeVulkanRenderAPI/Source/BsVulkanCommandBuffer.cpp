@@ -1,8 +1,10 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanCommandBuffer.h"
+#include "BsVulkanCommandBufferManager.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanDevice.h"
+#include "BsVulkanQueue.h"
 
 namespace BansheeEngine
 {
@@ -32,7 +34,7 @@ namespace BansheeEngine
 		{
 			for(UINT32 j = 0; j < BS_MAX_QUEUES_PER_TYPE; j++)
 			{
-				LVulkanCommandBuffer** buffers = mBuffers[i][j];
+				VulkanCmdBuffer** buffers = mBuffers[i][j];
 				for(UINT32 k = 0; k < BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE; k++)
 				{
 					if (buffers[k] == nullptr)
@@ -52,12 +54,12 @@ namespace BansheeEngine
 		}
 	}
 
-	LVulkanCommandBuffer* VulkanCmdBufferPool::getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary)
+	VulkanCmdBuffer* VulkanCmdBufferPool::getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary)
 	{
 		assert(queueIdx < BS_MAX_QUEUES_PER_TYPE);
 
 		VulkanQueueType queueType = VulkanUtility::getQueueType(type);
-		LVulkanCommandBuffer** buffers = mBuffers[queueType][queueIdx];
+		VulkanCmdBuffer** buffers = mBuffers[queueType][queueIdx];
 
 		UINT32 i = 0;
 		for(; i < BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE; i++)
@@ -65,7 +67,7 @@ namespace BansheeEngine
 			if (buffers[i] == nullptr)
 				break;
 
-			if(buffers[i]->mState == LVulkanCommandBuffer::State::Ready)
+			if(buffers[i]->mState == VulkanCmdBuffer::State::Ready)
 			{
 				buffers[i]->begin();
 				return buffers[i];
@@ -81,11 +83,11 @@ namespace BansheeEngine
 		return buffers[i];
 	}
 
-	LVulkanCommandBuffer* VulkanCmdBufferPool::createBuffer(VulkanQueueType type, bool secondary)
+	VulkanCmdBuffer* VulkanCmdBufferPool::createBuffer(VulkanQueueType type, bool secondary)
 	{
 		VkCommandPool pool = getPool(type);
 
-		return bs_new<LVulkanCommandBuffer>(mDevice, pool, secondary);
+		return bs_new<VulkanCmdBuffer>(mDevice, pool, secondary);
 	}
 
 	VkCommandPool VulkanCmdBufferPool::getPool(VulkanQueueType type)
@@ -97,7 +99,7 @@ namespace BansheeEngine
 		return pool;
 	}
 
-	LVulkanCommandBuffer::LVulkanCommandBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary)
+	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary)
 		:mState(State::Ready), mDevice(device), mPool(pool)
 	{
 		VkCommandBufferAllocateInfo cmdBufferAllocInfo;
@@ -127,7 +129,7 @@ namespace BansheeEngine
 		assert(result == VK_SUCCESS);
 	}
 
-	LVulkanCommandBuffer::~LVulkanCommandBuffer()
+	VulkanCmdBuffer::~VulkanCmdBuffer()
 	{
 		VkDevice device = mDevice.getLogical();
 
@@ -147,7 +149,7 @@ namespace BansheeEngine
 		vkFreeCommandBuffers(device, mPool, 1, &mCmdBuffer);
 	}
 
-	void LVulkanCommandBuffer::begin()
+	void VulkanCmdBuffer::begin()
 	{
 		assert(mState == State::Ready);
 
@@ -163,7 +165,7 @@ namespace BansheeEngine
 		mState = State::Recording;
 	}
 
-	void LVulkanCommandBuffer::end()
+	void VulkanCmdBuffer::end()
 	{
 		assert(mState == State::Recording);
 
@@ -173,7 +175,7 @@ namespace BansheeEngine
 		mState = State::RecordingDone;
 	}
 
-	void LVulkanCommandBuffer::beginRenderPass()
+	void VulkanCmdBuffer::beginRenderPass()
 	{
 		assert(mState == State::Recording);
 
@@ -183,7 +185,7 @@ namespace BansheeEngine
 		mState = State::RecordingRenderPass;
 	}
 
-	void LVulkanCommandBuffer::endRenderPass()
+	void VulkanCmdBuffer::endRenderPass()
 	{
 		assert(mState == State::RecordingRenderPass);
 
@@ -192,7 +194,7 @@ namespace BansheeEngine
 		mState = State::Recording;
 	}
 
-	void LVulkanCommandBuffer::refreshFenceStatus()
+	void VulkanCmdBuffer::refreshFenceStatus()
 	{
 		VkResult result = vkGetFenceStatus(mDevice.getLogical(), mFence);
 		assert(result == VK_SUCCESS || result == VK_NOT_READY);
@@ -217,17 +219,85 @@ namespace BansheeEngine
 
 	}
 
-	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, 
+	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
-		: CommandBuffer(id, type, queueIdx, secondary), mBuffer(nullptr), mDevice(device)
+		: CommandBuffer(id, type, deviceIdx, queueIdx, secondary), mBuffer(nullptr), mSubmittedBuffer(nullptr)
+		, mDevice(device), mQueue(nullptr)
 	{
+		VulkanQueueType queueType =  VulkanUtility::getQueueType(mType);
+
+		UINT32 numQueues = device.getNumQueues(queueType);
+		if (numQueues > 0)
+			mQueue = device.getQueue(queueType, mQueueIdx % numQueues);
+		else // Fallback to graphics queue
+		{
+			numQueues = device.getNumQueues(VQT_GRAPHICS);
+			mQueue = device.getQueue(VQT_GRAPHICS, mQueueIdx % numQueues);
+		}
+
 		acquireNewBuffer();
+	}
+
+	void VulkanCommandBuffer::refreshSubmitStatus()
+	{
+		if (mSubmittedBuffer == nullptr) // Nothing was submitted
+			return;
+
+		mSubmittedBuffer->refreshFenceStatus();
+		if (!mSubmittedBuffer->isSubmitted())
+			mSubmittedBuffer = nullptr;
 	}
 
 	void VulkanCommandBuffer::acquireNewBuffer()
 	{
 		VulkanCmdBufferPool& pool = mDevice.getCmdBufferPool();
 
+		if (mBuffer != nullptr)
+			assert(mBuffer->isSubmitted());
+
+		mSubmittedBuffer = mBuffer;
 		mBuffer = pool.getBuffer(mType, mQueueIdx, mIsSecondary);
+	}
+
+	void VulkanCommandBuffer::submit(UINT32 syncMask)
+	{
+		assert(mBuffer != nullptr && mBuffer->isReadyForSubmit());
+
+		VkCommandBuffer cmdBuffer = mBuffer->getHandle();
+		VkSemaphore signalSemaphore = mBuffer->getSemaphore();
+
+		VkSubmitInfo submitInfo;
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pNext = nullptr;
+		submitInfo.pWaitDstStageMask = 0;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &cmdBuffer;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &signalSemaphore;
+
+		// Ignore myself
+		syncMask &= ~mId;
+
+		VulkanCommandBufferManager& cmdBufManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
+		cmdBufManager.getSyncSemaphores(mDeviceIdx, syncMask, mSemaphoresTemp, submitInfo.waitSemaphoreCount);
+
+		if (submitInfo.waitSemaphoreCount > 0)
+			submitInfo.pWaitSemaphores = mSemaphoresTemp;
+		else
+			submitInfo.pWaitSemaphores = nullptr;
+
+		VkQueue queue = mQueue->getHandle();
+		VkFence fence = mBuffer->getFence();
+		vkQueueSubmit(queue, 1, &submitInfo, fence);
+
+		cmdBufManager.refreshStates(mDeviceIdx);
+
+		mQueue->notifySubmit(*this, mBuffer->getFenceCounter());
+
+		// Note: Uncommented for debugging only, prevents any device concurrency issues.
+		// vkQueueWaitIdle(mQueue);
+
+		mBuffer->mState = VulkanCmdBuffer::State::Submitted;
+		acquireNewBuffer();
 	}
 }

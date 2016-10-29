@@ -13,15 +13,15 @@ namespace BansheeEngine
 		mMask |= 1 << buffer->_getId();
 	}
 
-	CommandBuffer::CommandBuffer(UINT32 id, CommandBufferType type, UINT32 queueIdx, bool secondary)
-		:mId(id), mType(type), mQueueIdx(queueIdx), mIsSecondary(secondary)
+	CommandBuffer::CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
+		:mId(id), mType(type), mDeviceIdx(deviceIdx), mQueueIdx(queueIdx), mIsSecondary(secondary)
 	{
 
 	}
 
 	CommandBuffer::~CommandBuffer()
 	{
-		CommandBufferManager::instance().notifyCommandBufferDestroyed(mId);
+		CommandBufferManager::instance().notifyCommandBufferDestroyed(mDeviceIdx, mId);
 	}
 
 	SPtr<CommandBuffer> CommandBuffer::create(CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx,

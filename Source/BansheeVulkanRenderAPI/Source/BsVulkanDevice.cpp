@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanDevice.h"
+#include "BsVulkanQueue.h"
 #include "BsVulkanCommandBuffer.h"
 #include "BsVulkanDescriptorManager.h"
 
@@ -40,7 +41,7 @@ namespace BansheeEngine
 			createInfo.pQueuePriorities = defaultQueuePriorities;
 
 			mQueueInfos[type].familyIdx = familyIdx;
-			mQueueInfos[type].queues.resize(createInfo.queueCount);
+			mQueueInfos[type].queues.resize(createInfo.queueCount, nullptr);
 		};
 
 		// Look for dedicated compute queues
@@ -98,8 +99,13 @@ namespace BansheeEngine
 		for(UINT32 i = 0; i < VQT_COUNT; i++)
 		{
 			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
-			for(UINT32 j = 0; j < numQueues; j++)
-				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].familyIdx, j, &mQueueInfos[i].queues[j]);
+			for (UINT32 j = 0; j < numQueues; j++)
+			{
+				VkQueue queue;
+				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].familyIdx, j, &queue);
+
+				mQueueInfos[i].queues[j] = bs_new<VulkanQueue>(queue);
+			}
 		}
 
 		// Create pools/managers
@@ -110,6 +116,13 @@ namespace BansheeEngine
 	VulkanDevice::~VulkanDevice()
 	{
 		vkDeviceWaitIdle(mLogicalDevice);
+
+		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		{
+			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
+			for (UINT32 j = 0; j < numQueues; j++)
+				bs_delete(mQueueInfos[i].queues[j]);
+		}
 
 		bs_delete(mDescriptorManager);
 		bs_delete(mCommandBufferPool);

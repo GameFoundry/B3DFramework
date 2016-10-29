@@ -25,6 +25,7 @@ set(BS_BANSHEEVULKANRENDERAPI_INC_NOFILTER
 	"Include/BsVulkanDescriptorPool.h"
 	"Include/BsVulkanDescriptorLayout.h"
 	"Include/BsVulkanResource.h"
+	"Include/BsVulkanQueue.h"
 )
 
 set(BS_BANSHEEVULKANRENDERAPI_INC_MANAGERS
@@ -67,6 +68,7 @@ set(BS_BANSHEEVULKANRENDERAPI_SRC_NOFILTER
 	"Source/BsVulkanDescriptorPool.cpp"
 	"Source/BsVulkanDescriptorLayout.cpp"
 	"Source/BsVulkanResource.cpp"
+	"Source/BsVulkanQueue.cpp"
 )
 
 set(BS_BANSHEEVULKANRENDERAPI_SRC_MANAGERS

@@ -68,10 +68,11 @@ namespace BansheeEngine
 
 		/** @} */
 	protected:
-		CommandBuffer(UINT32 id, CommandBufferType type, UINT32 queueIdx, bool secondary);
+		CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
 		UINT32 mId;
 		CommandBufferType mType;
+		UINT32 mDeviceIdx;
 		UINT32 mQueueIdx;
 		bool mIsSecondary;
 	};

@@ -7,10 +7,12 @@ namespace BansheeEngine
 	SPtr<CommandBuffer> CommandBufferManager::create(CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx,
 		bool secondary)
 	{
+		assert(deviceIdx < BS_MAX_DEVICES);
+
 		UINT32 id = -1;
 		for(UINT32 i = 0; i < BS_MAX_COMMAND_BUFFERS; i++)
 		{
-			if (!mActiveCommandBuffers[i])
+			if (!mActiveCommandBuffers[deviceIdx][i])
 			{
 				id = i;
 				break;
@@ -23,12 +25,14 @@ namespace BansheeEngine
 			return nullptr;
 		}
 
-		mActiveCommandBuffers[id] = true;
-		return createInternal(id, type, deviceIdx, queueIdx, secondary);
+		SPtr<CommandBuffer> cmdBuffer = createInternal(id, type, deviceIdx, queueIdx, secondary);;
+		mActiveCommandBuffers[deviceIdx][id] = cmdBuffer.get();
+
+		return cmdBuffer;
 	}
 
-	void CommandBufferManager::notifyCommandBufferDestroyed(UINT32 id)
+	void CommandBufferManager::notifyCommandBufferDestroyed(UINT32 deviceIdx, UINT32 id)
 	{
-		mActiveCommandBuffers[id] = false;
+		mActiveCommandBuffers[deviceIdx][id] = nullptr;
 	}
 }

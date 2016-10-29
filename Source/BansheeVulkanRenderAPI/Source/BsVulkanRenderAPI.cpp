@@ -13,6 +13,7 @@
 #include "BsVulkanQueryManager.h"
 #include "BsVulkanGLSLProgramFactory.h"
 #include "BsVulkanCommandBufferManager.h"
+#include "BsVulkanCommandBuffer.h"
 #include "BsVulkanVertexInputManager.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 
@@ -391,6 +392,13 @@ namespace BansheeEngine
 
 	void VulkanRenderAPI::swapBuffers(const SPtr<RenderTargetCore>& target, const SPtr<CommandBuffer>& commandBuffer)
 	{
+		THROW_IF_NOT_CORE_THREAD;
+
+		// TODO - Actually swap buffers
+
+		VulkanCommandBuffer& cmdBuffer = static_cast<VulkanCommandBuffer&>(*commandBuffer);
+		cmdBuffer.refreshSubmitStatus();
+
 		BS_INC_RENDER_STAT(NumPresents);
 	}
 
@@ -401,7 +409,13 @@ namespace BansheeEngine
 
 	void VulkanRenderAPI::executeCommands(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
 	{
+		THROW_IF_NOT_CORE_THREAD;
 
+		if (commandBuffer == nullptr)
+			return;
+
+		VulkanCommandBuffer& cmdBuffer = static_cast<VulkanCommandBuffer&>(*commandBuffer);
+		cmdBuffer.submit(syncMask);
 	}
 	
 	void VulkanRenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)

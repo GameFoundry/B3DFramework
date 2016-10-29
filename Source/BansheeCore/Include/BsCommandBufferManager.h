@@ -33,10 +33,9 @@ namespace BansheeEngine
 			UINT32 queueIdx = 0, bool secondary = false) = 0;
 
 		/** Called by a command buffer just before it is destroyed. */
-		void notifyCommandBufferDestroyed(UINT32 id);
+		void notifyCommandBufferDestroyed(UINT32 deviceIdx, UINT32 id);
 
-	private:
-		bool mActiveCommandBuffers[BS_MAX_COMMAND_BUFFERS];
+		CommandBuffer* mActiveCommandBuffers[BS_MAX_DEVICES][BS_MAX_COMMAND_BUFFERS];
 	};
 
 	/** @} */

@@ -38,7 +38,7 @@ namespace BansheeEngine
 		UINT32 getNumQueues(VulkanQueueType type) const { return (UINT32)mQueueInfos[(int)type].queues.size(); }
 
 		/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()). */
-		VkQueue getQueue(VulkanQueueType type, UINT32 idx) const { return mQueueInfos[(int)type].queues[idx]; }
+		VulkanQueue* getQueue(VulkanQueueType type, UINT32 idx) const { return mQueueInfos[(int)type].queues[idx]; }
 
 		/** 
 		 * Returns index of the queue family for the specified queue type. Returns -1 if no queues for the specified type 
@@ -91,7 +91,7 @@ namespace BansheeEngine
 		struct QueueInfo
 		{
 			UINT32 familyIdx;
-			Vector<VkQueue> queues;
+			Vector<VulkanQueue*> queues;
 		};
 
 		QueueInfo mQueueInfos[VQT_COUNT];

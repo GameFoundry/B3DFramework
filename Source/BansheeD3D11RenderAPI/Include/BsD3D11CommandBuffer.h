@@ -37,7 +37,6 @@ namespace BansheeEngine
 
 		D3D11CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
-		UINT32 mDeviceIdx;
 		Vector<std::function<void()>> mCommands;
 
 		DrawOperationType mActiveDrawOp;
