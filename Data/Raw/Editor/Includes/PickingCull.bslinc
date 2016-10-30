@@ -1,0 +1,122 @@
+Parameters =
+{
+	mat4x4		matWorldViewProj;
+	
+	float4		colorIndex;	
+};
+
+Technique : base("PickingCull") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				in float3 inNorm : NORMAL,
+				out float4 oPosition : SV_Position,
+				out float4 oNorm : NORMAL)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oNorm = float4(inNorm, 0);
+			}
+		};
+		
+		Fragment =
+		{
+			float4 colorIndex;
+
+			float4 main(
+				in float4 inPos : SV_Position,
+				in float4 inNorm : NORMAL,	
+				out float4 oNorm : SV_Target1
+			) : SV_Target0
+			{
+				oNorm = (inNorm + float4(1,1,1,0)) / 2;
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique : base("PickingCull") =
+{
+	Language = "HLSL9";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				out float4 oPosition : POSITION)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+			}
+		};
+		
+		Fragment =
+		{
+			float4 colorIndex;
+
+			float4 main(in float4 inPos : POSITION) : COLOR0
+			{
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique : base("PickingCull") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			uniform mat4 matWorldViewProj;
+			in vec3 bs_position;
+			in vec3 bs_normal;
+			out vec4 normal;
+			
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+			
+			void main()
+			{
+				normal = vec4(bs_normal,0);
+				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
+			}
+		};
+		
+		Fragment =
+		{
+			in vec4 normal;
+
+			uniform vec4 colorIndex;
+			
+			out vec4[2] outColor;
+
+			void main()
+			{
+				outColor[0] = colorIndex;
+				outColor[1] = (normal + vec4(1,1,1,0)) / 2;
+			}
+		};
+	};
+};

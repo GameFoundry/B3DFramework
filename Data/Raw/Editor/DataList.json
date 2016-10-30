@@ -1,0 +1,1467 @@
+{
+    "Skin": [
+        {
+            "Path": "ButtonActive.png",
+            "SpriteUUID": "a65f5ff7-e27a-4cd4-ba14-c86338f08be9",
+            "TextureUUID": "90106a1e-60a4-4ace-8b71-8f2d36944cad"
+        },
+        {
+            "Path": "ButtonHover.png",
+            "SpriteUUID": "5ae4f099-346b-403c-b34e-6f747bceaeb0",
+            "TextureUUID": "bbad9308-c656-4629-aadf-0850e15323e8"
+        },
+        {
+            "Path": "ButtonLeftActive.png",
+            "SpriteUUID": "79a2fce1-d9cc-4320-863b-b0a40d81aed0",
+            "TextureUUID": "cd052de1-0f23-4e6b-89c9-72948fdd1f8d"
+        },
+        {
+            "Path": "ButtonLeftHover.png",
+            "SpriteUUID": "74a4162d-7c30-4720-b599-9904f9c3029c",
+            "TextureUUID": "114a13cb-fd1d-4c1e-9ef1-206d42c7f131"
+        },
+        {
+            "Path": "ButtonLeftNormal.png",
+            "SpriteUUID": "36fbe99a-d4ce-44c8-93d9-271a3016cdeb",
+            "TextureUUID": "1228a6ad-49f6-42bc-91c8-ff5471f7adee"
+        },
+        {
+            "Path": "ButtonNormal.png",
+            "SpriteUUID": "18f1d59d-0c61-4a7a-bbc7-6c2cd54572a1",
+            "TextureUUID": "3773c82d-7c50-4f8b-bc83-49af4cd04daa"
+        },
+        {
+            "Path": "ButtonRightActive.png",
+            "SpriteUUID": "010b1f23-7a6d-45e3-9652-3c250103a48e",
+            "TextureUUID": "19ec1f4a-1934-4d8b-947b-b39b0412e1a1"
+        },
+        {
+            "Path": "ButtonRightHover.png",
+            "SpriteUUID": "93e69f71-690f-4f33-99df-f8641f092fe4",
+            "TextureUUID": "800a92f3-86ea-4538-8c14-53c0784fbb1b"
+        },
+        {
+            "Path": "ButtonRightNormal.png",
+            "SpriteUUID": "29f503a0-a065-49be-91c6-513de9141a04",
+            "TextureUUID": "d6ecce5b-9b7a-4da4-a9d0-3ec34f467575"
+        },
+        {
+            "Path": "CloseButtonActive.png",
+            "SpriteUUID": "33ebefb3-d5c9-472a-95f9-e0ec9f0f160a",
+            "TextureUUID": "d374c8c3-902d-40b9-8781-4eb5d7b521b0"
+        },
+        {
+            "Path": "CloseButtonHover.png",
+            "SpriteUUID": "700d08b4-6755-4fbd-a81c-793834d49f9e",
+            "TextureUUID": "8b3a31d0-e814-4848-8c68-edbb69aa619d"
+        },
+        {
+            "Path": "CloseButtonNormal.png",
+            "SpriteUUID": "d7de4b37-8b28-44fa-a7bf-331039d56775",
+            "TextureUUID": "c48b9a33-562f-482d-b965-f9a442a018c9"
+        },
+        {
+            "Path": "ColorPicker2DHandle.psd",
+            "SpriteUUID": "70e87300-bfd9-4434-b34d-2dd6bdfef935",
+            "TextureUUID": "6dbc47e4-68c6-4c5c-9b0d-71147c7d87ba"
+        },
+        {
+            "Path": "ColorPickerSliderHorzHandle.psd",
+            "SpriteUUID": "f40fd90e-97fe-4d54-b52e-f4aa1559bb8b",
+            "TextureUUID": "e34a4237-913d-4cc4-be5e-055169b930f1"
+        },
+        {
+            "Path": "ColorPickerSliderVertHandle.psd",
+            "SpriteUUID": "626c00c8-b9b4-495b-8f60-911f765f3c69",
+            "TextureUUID": "4a157722-bfad-43c8-a209-7795f83b505b"
+        },
+        {
+            "Path": "DropDownBoxArrowDownHover.png",
+            "SpriteUUID": "c682dca8-e365-44d2-b025-4c54dd02b217",
+            "TextureUUID": "03c30ad3-9f20-405c-baa2-856b46fc407a"
+        },
+        {
+            "Path": "DropDownBoxArrowDownNormal.png",
+            "SpriteUUID": "7f237d74-da21-4ea3-80a4-b0e4393c24bd",
+            "TextureUUID": "3564265d-e6d3-4da7-a23a-f64e40208285"
+        },
+        {
+            "Path": "DropDownBoxArrowUpHover.png",
+            "SpriteUUID": "9b47adf2-b1a2-429c-8921-1e90effc1fb8",
+            "TextureUUID": "159496dc-a715-4b95-9878-02ac2867ec52"
+        },
+        {
+            "Path": "DropDownBoxArrowUpNormal.png",
+            "SpriteUUID": "c266e730-ff16-4211-b8ce-c08fa8d4c95f",
+            "TextureUUID": "d5f867f5-1f94-427a-8220-c66de52a84fd"
+        },
+        {
+            "Path": "DropDownBoxBg.png",
+            "SpriteUUID": "d42bc68f-d411-4bea-b569-28ed067d3daf",
+            "TextureUUID": "7d964149-7d77-4bae-a199-f573afa958f2"
+        },
+        {
+            "Path": "DropDownBoxEntryHover.png",
+            "SpriteUUID": "c6b535fb-5633-4431-aa74-07e5eb3d2823",
+            "TextureUUID": "0020368d-b26c-4e3d-9318-761ff0354ea0"
+        },
+        {
+            "Path": "DropDownBoxEntryNormal.png",
+            "SpriteUUID": "3eaac4d0-dd79-4fca-af00-9ad35b4fdee9",
+            "TextureUUID": "2b592e4e-b631-4d96-986d-e556b5c884c4"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleHover.png",
+            "SpriteUUID": "db55cee4-e961-47bd-a838-5c3a7659ca54",
+            "TextureUUID": "d6d7031f-7fbc-43be-9710-7d6b0f40d6f6"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleHoverOn.png",
+            "SpriteUUID": "c89811e1-2c56-498d-bd36-df17f0c8e90b",
+            "TextureUUID": "27250b5c-929d-46e4-9052-8df5b34280e5"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleNormal.png",
+            "SpriteUUID": "8c75ff1c-018f-40b1-a200-bdab8433b4e3",
+            "TextureUUID": "4fb7e76b-0e5d-4158-9d81-ecdab15f00af"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleNormalOn.png",
+            "SpriteUUID": "28afcf2d-09d2-4658-9948-768989e33e91",
+            "TextureUUID": "604df945-1468-4ea9-a87c-4662b3421b6c"
+        },
+        {
+            "Path": "DropDownBoxExpandBtnHover.png",
+            "SpriteUUID": "361d9a7d-4716-425f-bbd5-8ea2fbeab592",
+            "TextureUUID": "07d5b268-4054-4579-954d-deca142a4558"
+        },
+        {
+            "Path": "DropDownBoxExpandBtnNormal.png",
+            "SpriteUUID": "b159723c-8881-4a1c-865c-981216b67ac9",
+            "TextureUUID": "ce0aa14e-096d-49f6-bc86-9e43c93b2d81"
+        },
+        {
+            "Path": "DropDownBoxScrollHandle.png",
+            "SpriteUUID": "b33a22a7-13d3-414f-bd5c-88dac6c7d81c",
+            "TextureUUID": "c2b806eb-0e9a-4d32-8447-0599222eceda"
+        },
+        {
+            "Path": "DropDownBoxSeparator.png",
+            "SpriteUUID": "7d234559-209b-4fb8-bffd-b1f166fbb0b4",
+            "TextureUUID": "a9291e60-dae2-45b5-9c94-ea9004e6fa67"
+        },
+        {
+            "Path": "DropDownBoxSideBg.png",
+            "SpriteUUID": "8b6cc134-3441-43f8-9eda-4a0931bb08c7",
+            "TextureUUID": "76222a31-055b-47a1-95e7-891613e3d8f9"
+        },
+        {
+            "Path": "DropDownButtonActive.png",
+            "SpriteUUID": "83e47910-fdde-4b9f-9f19-5cddf8d402ec",
+            "TextureUUID": "bd492798-ea5d-4d4f-ba29-a70e75207aee"
+        },
+        {
+            "Path": "DropDownButtonHover.png",
+            "SpriteUUID": "513f1534-1371-4ae5-a4cb-94bf5e81e7c3",
+            "TextureUUID": "445de69f-d021-4efc-8276-43785776cd5b"
+        },
+        {
+            "Path": "DropDownButtonNormal.png",
+            "SpriteUUID": "b00a6505-ef07-49af-b54b-fa7d67d21bf4",
+            "TextureUUID": "a52a4f9c-de8b-4c69-87cc-9db356cd1662"
+        },
+        {
+            "Path": "ExpandArrowHoverOff.png",
+            "SpriteUUID": "06d41b3d-5931-45e3-87a2-60e5c98271ab",
+            "TextureUUID": "dc7617a7-5d94-4d9e-8a9b-4596db753ae0"
+        },
+        {
+            "Path": "ExpandArrowHoverOn.png",
+            "SpriteUUID": "6df62604-2e83-427c-b975-064d801db337",
+            "TextureUUID": "d0278b1e-c31b-4559-a0a2-50cdeb5ff899"
+        },
+        {
+            "Path": "ExpandArrowNormalOff.png",
+            "SpriteUUID": "3fecdb23-6729-481f-b622-884934f2caf3",
+            "TextureUUID": "ed258179-8b24-41fc-96b0-16c21f00e898"
+        },
+        {
+            "Path": "ExpandArrowNormalOn.png",
+            "SpriteUUID": "fa12f72d-d9c5-429e-89df-3f49ded68129",
+            "TextureUUID": "396573f7-557a-4f15-bb7f-c9ca4c90761a"
+        },
+        {
+            "Path": "FoldoutHoverOff.png",
+            "SpriteUUID": "90aff0b1-1653-4fa0-b809-baafc41eb2cf",
+            "TextureUUID": "c02c8cbb-4c6f-4cae-a73a-0ba31edf0047"
+        },
+        {
+            "Path": "FoldoutHoverOn.png",
+            "SpriteUUID": "c173e36c-5fa0-4b87-837a-801505e8efdf",
+            "TextureUUID": "60191481-681d-4c77-8403-7b1ba0c7fb0a"
+        },
+        {
+            "Path": "FoldoutNormalOff.png",
+            "SpriteUUID": "dcc5d3d3-63c7-4f48-a346-caab35669bd7",
+            "TextureUUID": "40d59bb5-45d6-411c-b0b7-03a087757cec"
+        },
+        {
+            "Path": "FoldoutNormalOn.png",
+            "SpriteUUID": "3b162c5c-631c-486c-8fa6-24df8252be21",
+            "TextureUUID": "eff297ff-7971-40d7-a850-dd2e9f0c4754"
+        },
+        {
+            "Path": "Header.png",
+            "SpriteUUID": "52eedde5-20b7-43aa-a0d2-baa99d91cfa9",
+            "TextureUUID": "e1934b54-ee1d-4856-baeb-363def3c83b5"
+        },
+        {
+            "Path": "HeaderBg.png",
+            "SpriteUUID": "245486f1-970f-4188-a119-c80c388663a4",
+            "TextureUUID": "7cb91689-0466-4aa1-bd65-c2f893b8a751"
+        },
+        {
+            "Path": "InputBoxActive.png",
+            "SpriteUUID": "9473acdc-c603-4230-8c4d-3d24162d305b",
+            "TextureUUID": "45b13e07-8f6c-4823-b44b-a7be5635f84e"
+        },
+        {
+            "Path": "InputBoxHover.png",
+            "SpriteUUID": "747e898f-c7bc-43f7-9dae-4d827039ecdb",
+            "TextureUUID": "150ca7d0-49ea-4b1a-bf52-e9646a2de9f4"
+        },
+        {
+            "Path": "InputBoxNormal.png",
+            "SpriteUUID": "13bedcce-3235-452a-bb71-397e7c746294",
+            "TextureUUID": "4298e298-713b-452b-9a15-adc7814b0004"
+        },
+        {
+            "Path": "InspectorContentBg.png",
+            "SpriteUUID": "51756c75-3197-4ee7-a1ae-e55dec6b7a4d",
+            "TextureUUID": "36d14a8f-ebe7-4ad0-bb43-581050eca50b"
+        },
+        {
+            "Path": "InspectorContentBgAlternate.png",
+            "SpriteUUID": "b9d2e96e-b283-4d20-afd9-612bdd7799db",
+            "TextureUUID": "d47c6b5b-6b57-4a06-b24b-a35a7e908408"
+        },
+        {
+            "Path": "InspectorTitleBg.png",
+            "SpriteUUID": "319650b6-06ee-4a5a-9c98-2bdee67a7b30",
+            "TextureUUID": "f1f0d8db-260c-4d39-88db-716cf72a7687"
+        },
+        {
+            "Path": "LibraryEntryBg.png",
+            "SpriteUUID": "17020d36-5a3c-4045-9645-ce05a91a1ca7",
+            "TextureUUID": "7508b72c-4735-40f5-8ce7-7a7b3de7f2aa"
+        },
+        {
+            "Path": "LibraryEntryFirstBg.png",
+            "SpriteUUID": "8063885f-5ead-4c89-a69e-b4dd0887367a",
+            "TextureUUID": "16038e7c-83f6-45f3-a71e-e96896548f7f"
+        },
+        {
+            "Path": "LibraryEntryLastBg.png",
+            "SpriteUUID": "d2c9ebb4-80bd-4024-ae72-5d78ab585042",
+            "TextureUUID": "67810881-497f-44cc-9945-bc34f90340ab"
+        },
+        {
+            "Path": "LibraryEntryVertBg.png",
+            "SpriteUUID": "818f4a2f-c178-493a-abf6-1d69984c16d5",
+            "TextureUUID": "b3614398-117f-4b84-a533-4cd08f81228d"
+        },
+        {
+            "Path": "LibraryEntryVertFirstBg.png",
+            "SpriteUUID": "afe1d178-fbb2-4eb6-bfdb-a8325ac3c02d",
+            "TextureUUID": "967956c7-9fc1-4293-8792-e1de2d6d5cf0"
+        },
+        {
+            "Path": "LibraryEntryVertLastBg.png",
+            "SpriteUUID": "53131d3f-3302-4fae-a2bb-aa4de824fe98",
+            "TextureUUID": "24985118-9f69-4bbc-aead-47b82299e0bb"
+        },
+        {
+            "Path": "MaximizeButtonActive.png",
+            "SpriteUUID": "6ee63e60-e89f-496a-a64a-77b3d89da450",
+            "TextureUUID": "42e06d8a-5083-4957-9c0c-d22575a664ac"
+        },
+        {
+            "Path": "MaximizeButtonHover.png",
+            "SpriteUUID": "845d74c0-ad7f-4cc2-ad45-e7e05df3efef",
+            "TextureUUID": "2b473ab0-a9aa-4887-b372-41d0ba0f9cab"
+        },
+        {
+            "Path": "MaximizeButtonNormal.png",
+            "SpriteUUID": "c3f037f8-728c-4c2d-bce8-1e50fde82862",
+            "TextureUUID": "7e912912-326b-4e99-b408-9626d94cec47"
+        },
+        {
+            "Path": "MenuBarBackground.png",
+            "SpriteUUID": "36e7af77-131f-4407-b16d-f204af4d5df2",
+            "TextureUUID": "c73ad363-b619-4dfa-a5fc-b8fb0a1a98d6"
+        },
+        {
+            "Path": "MenuBarButtonActive.png",
+            "SpriteUUID": "a210bc3a-a29b-4a65-9ab8-ca260acdcc32",
+            "TextureUUID": "f2646252-3649-4147-b38e-cbcb67d2c9c0"
+        },
+        {
+            "Path": "MenuBarButtonHover.png",
+            "SpriteUUID": "8fbb2d2c-f1ed-4b69-90c4-7a217f863fa0",
+            "TextureUUID": "9b9177cb-804a-4f6f-bba2-0f29c7f95b26"
+        },
+        {
+            "Path": "MenuBarButtonNormal.png",
+            "SpriteUUID": "0fba3ddd-84da-4fba-abfa-9798bdb4830c",
+            "TextureUUID": "5f8592fd-d31b-48ff-b048-3a539f146b14"
+        },
+        {
+            "Path": "MenuBarLineActive.png",
+            "SpriteUUID": "113a401c-5368-480c-9e39-7b44439148aa",
+            "TextureUUID": "c691d7f8-6a18-42cb-b9fc-af879a57baa6"
+        },
+        {
+            "Path": "MenuBarLineNormal.png",
+            "SpriteUUID": "b692a417-81b3-45c1-b63c-64823c2b84a2",
+            "TextureUUID": "3213f830-e663-4c05-9963-ba483ebd21bf"
+        },
+        {
+            "Path": "MenuBarLog.png",
+            "SpriteUUID": "e4dcddc6-6042-4f3a-82e2-acdd32d9ad21",
+            "TextureUUID": "b351086c-f92c-4f4a-97c8-8ad7fdd83c3d"
+        },
+        {
+            "Path": "MinimizeButtonActive.png",
+            "SpriteUUID": "71a72dce-9959-45d1-abca-38dc31a77411",
+            "TextureUUID": "ed31687d-57d2-4bfe-bd0c-9651393bbbc5"
+        },
+        {
+            "Path": "MinimizeButtonHover.png",
+            "SpriteUUID": "7bf2c5dd-5740-418f-a13f-c4b49abdf40e",
+            "TextureUUID": "53399379-8aa5-4653-8a8f-56cd1ac3183e"
+        },
+        {
+            "Path": "MinimizeButtonNormal.png",
+            "SpriteUUID": "761d9ad7-f0ec-4094-85fa-556b5fc5c4dc",
+            "TextureUUID": "c6ccd261-054a-4d3c-8bc7-92c5a32e70b5"
+        },
+        {
+            "Path": "MultiResourceLeft.png",
+            "SpriteUUID": "23527c0f-0b88-4924-af0e-54a4b6baa1ea",
+            "TextureUUID": "ead34fd9-2189-4d78-9d5f-11c4edde0f11"
+        },
+        {
+            "Path": "ObjectDropClearActive.png",
+            "SpriteUUID": "8d105de3-4e38-4a70-807f-9f7008835b23",
+            "TextureUUID": "85bd83c8-32c0-4a23-8edc-ffc998477293"
+        },
+        {
+            "Path": "ObjectDropClearHover.png",
+            "SpriteUUID": "a802b37b-d021-498b-a353-e61ca2f638a5",
+            "TextureUUID": "efa29898-dfce-4141-a567-ae68207a6a88"
+        },
+        {
+            "Path": "ObjectDropClearNormal.png",
+            "SpriteUUID": "4ca6660d-072b-432b-a88a-96405d8007b4",
+            "TextureUUID": "8603296e-dbea-4086-94cd-a21ada717fe6"
+        },
+        {
+            "Path": "ObjectDropNormal.png",
+            "SpriteUUID": "b1d1ae81-34a2-4b20-a9ab-43ed43207b3b",
+            "TextureUUID": "40232174-f0c4-4f11-899a-b35df9a97634"
+        },
+        {
+            "Path": "ObjectDropNormalOn.png",
+            "SpriteUUID": "291d2b1a-f0cb-4384-8359-97c068be3709",
+            "TextureUUID": "c2980800-99f3-424e-b5d0-e40d73e70e9c"
+        },
+        {
+            "Path": "ProgressBarBg.png",
+            "SpriteUUID": "31d6df60-16b8-486f-8610-a4d7a6feec8e",
+            "TextureUUID": "80e959c3-732d-417a-b456-ed2f8d42816a"
+        },
+        {
+            "Path": "ProgressBarFill.png",
+            "SpriteUUID": "db53f881-2305-467e-8689-d2687a988b25",
+            "TextureUUID": "65dbfc7e-397d-465d-ab93-d5c01d373979"
+        },
+        {
+            "Path": "ScrollAreaBg.png",
+            "SpriteUUID": "68fd6f87-b709-46c9-a8e5-0418b610e72f",
+            "TextureUUID": "62f56b1c-8c9b-440f-9a7e-9aef96498944"
+        },
+        {
+            "Path": "ScrollArrowDownActive.png",
+            "SpriteUUID": "b34686b6-b122-4e01-be8b-6d2e464f48f6",
+            "TextureUUID": "dbc74e1a-9968-4f81-ad0c-e0369a5a935b"
+        },
+        {
+            "Path": "ScrollArrowDownHover.png",
+            "SpriteUUID": "c0822c0d-acc9-4106-88e3-651190170b7b",
+            "TextureUUID": "fb585657-50e5-45f6-b92e-b07f2d4a80f5"
+        },
+        {
+            "Path": "ScrollArrowDownNormal.png",
+            "SpriteUUID": "afaf87de-de5e-429b-8b24-a2aa6dd10c95",
+            "TextureUUID": "1abad280-32b8-41c8-9284-865e6c88b6e1"
+        },
+        {
+            "Path": "ScrollArrowLeftActive.png",
+            "SpriteUUID": "9cc3836f-b426-48e6-b05b-2e827c6ffad5",
+            "TextureUUID": "ac4753f6-d560-4423-9644-b935d870dafb"
+        },
+        {
+            "Path": "ScrollArrowLeftHover.png",
+            "SpriteUUID": "7ad98867-9ea4-428d-8a74-0ce07cf974ba",
+            "TextureUUID": "29a51afe-c79b-42b7-b5f2-cefea0ad06c1"
+        },
+        {
+            "Path": "ScrollArrowLeftNormal.png",
+            "SpriteUUID": "5c5fa0b6-bb8d-42ed-9dff-ba31fa156f65",
+            "TextureUUID": "5be1b908-c696-455c-aaff-a03bf32c7d5c"
+        },
+        {
+            "Path": "ScrollArrowRightActive.png",
+            "SpriteUUID": "324194d7-1088-4221-97aa-b8bca222042f",
+            "TextureUUID": "dc551dd3-aede-40e5-8b85-b49b4c418fff"
+        },
+        {
+            "Path": "ScrollArrowRightHover.png",
+            "SpriteUUID": "e71e407b-ec66-42d6-ae78-8793799d98cc",
+            "TextureUUID": "6163c39f-8a14-4cf9-9ce0-ac57ee932090"
+        },
+        {
+            "Path": "ScrollArrowRightNormal.png",
+            "SpriteUUID": "3dbc33d4-9230-4fd8-ac64-388cdc79975b",
+            "TextureUUID": "2d9e0d54-491a-4445-9260-0065cdd63442"
+        },
+        {
+            "Path": "ScrollArrowUpActive.png",
+            "SpriteUUID": "72b21458-d601-4968-b436-436cc0aab384",
+            "TextureUUID": "f3386c55-4c79-47a8-aa21-49711391cc1a"
+        },
+        {
+            "Path": "ScrollArrowUpHover.png",
+            "SpriteUUID": "0cb25e9c-bf06-42a6-a480-7fbf25994712",
+            "TextureUUID": "d8ff59ff-77ff-4b2b-bc54-30ee1d005db7"
+        },
+        {
+            "Path": "ScrollArrowUpNormal.png",
+            "SpriteUUID": "62171aad-7421-4b48-9aa2-c0f75034fdb7",
+            "TextureUUID": "a30d4319-6f66-4d1e-9138-3acce33d1740"
+        },
+        {
+            "Path": "ScrollBarHBackground.png",
+            "SpriteUUID": "c570017b-abd6-4751-bb33-4a8a7e915be6",
+            "TextureUUID": "dafdb7e9-80d7-4ffc-a399-2d8a41bfb474"
+        },
+        {
+            "Path": "ScrollBarHHandleActive.png",
+            "SpriteUUID": "340eb920-4b74-4259-bf91-d68e7f2dd756",
+            "TextureUUID": "cf5cedbc-b338-4f92-a48e-1da140dc9345"
+        },
+        {
+            "Path": "ScrollBarHHandleHover.png",
+            "SpriteUUID": "38f3343f-64ba-46eb-9fb0-042ea4d66c29",
+            "TextureUUID": "94bae46f-db59-4d31-8526-8b6dde63f78f"
+        },
+        {
+            "Path": "ScrollBarHHandleNormal.png",
+            "SpriteUUID": "ceaf2b7d-dc82-460b-b884-ba0cb1e88658",
+            "TextureUUID": "006fabae-d7e4-48e5-93c2-56b30d991d12"
+        },
+        {
+            "Path": "ScrollBarHHandleResizeableActive.png",
+            "SpriteUUID": "976629d1-cc1f-496e-b491-e6390345e97d",
+            "TextureUUID": "72ab8d47-0be9-4deb-8b4a-a00a33d46212"
+        },
+        {
+            "Path": "ScrollBarHHandleResizeableHover.png",
+            "SpriteUUID": "c6495a6e-048f-490e-8856-c0edd8c8466d",
+            "TextureUUID": "5f82fde6-2551-4b3c-b7f4-69636cc2249c"
+        },
+        {
+            "Path": "ScrollBarHHandleResizeableNormal.png",
+            "SpriteUUID": "163a1699-9946-4e5d-8046-a90cabad825d",
+            "TextureUUID": "0dc69657-f63c-4bd5-aeed-ca7e8ca7e6c4"
+        },
+        {
+            "Path": "ScrollBarVBackground.png",
+            "SpriteUUID": "d18b7148-e38a-4c9d-b392-a817a52e0387",
+            "TextureUUID": "ad2c32b6-ec62-42c6-b484-c34e00bdf618"
+        },
+        {
+            "Path": "ScrollBarVHandleActive.png",
+            "SpriteUUID": "ec231584-960a-40db-8e97-52333a08f9cf",
+            "TextureUUID": "7ef4ba0d-a97c-4fdf-9bb8-7f4fdef79652"
+        },
+        {
+            "Path": "ScrollBarVHandleHover.png",
+            "SpriteUUID": "ab851780-da64-4df3-a2de-354574a1f6f8",
+            "TextureUUID": "29548e8d-793f-4fc3-8b5f-e2961e049c92"
+        },
+        {
+            "Path": "ScrollBarVHandleNormal.png",
+            "SpriteUUID": "1586dcd9-5d69-40bb-a827-645763fcd751",
+            "TextureUUID": "f2b5f3f4-b0f4-4bb1-b9e8-a455296422ff"
+        },
+        {
+            "Path": "ScrollBarVHandleResizeableActive.png",
+            "SpriteUUID": "93aa34d8-5561-4003-838e-9fcf8ed26292",
+            "TextureUUID": "dfa685ab-766b-4067-b8f2-796e03353b1b"
+        },
+        {
+            "Path": "ScrollBarVHandleResizeableHover.png",
+            "SpriteUUID": "1241625e-a433-41e4-bcd7-794d7ff1b27f",
+            "TextureUUID": "a2901ed7-bf9d-47e7-a2b9-02a4ec9485ad"
+        },
+        {
+            "Path": "ScrollBarVHandleResizeableNormal.png",
+            "SpriteUUID": "e4c546b6-2c0e-43bd-996d-c97dbfacbfa2",
+            "TextureUUID": "c8fc9120-9564-404b-87c9-1eb0601836d4"
+        },
+        {
+            "Path": "SelectionBg.psd",
+            "SpriteUUID": "955f4198-7ac0-4742-bde4-09e413d12f06",
+            "TextureUUID": "3751b52e-467e-4f04-8655-5ca6aa5f0901"
+        },
+        {
+            "Path": "SelectionHighlight.png",
+            "SpriteUUID": "24facc63-cf8f-45ec-a621-1e0341538fbf",
+            "TextureUUID": "696c62af-6f32-4c72-b570-7e910337f547"
+        },
+        {
+            "Path": "Separator.png",
+            "SpriteUUID": "6acb9f76-f73e-4ab0-92f8-11f2801d369b",
+            "TextureUUID": "7cae308d-1978-4111-b763-96c863e6d365"
+        },
+        {
+            "Path": "SliderHandleActive.png",
+            "SpriteUUID": "347a78fe-5d94-4e22-80a7-f3f586cdfff5",
+            "TextureUUID": "0be29199-abbb-4032-8a6f-1512ce50cb43"
+        },
+        {
+            "Path": "SliderHandleHover.png",
+            "SpriteUUID": "ae322178-dc52-4ba1-b33d-85a41181532d",
+            "TextureUUID": "a616446e-4cb4-4550-a392-8df945f0d69a"
+        },
+        {
+            "Path": "SliderHandleNormal.png",
+            "SpriteUUID": "fa5e6463-bb23-45a8-afb4-66e4288bb9cc",
+            "TextureUUID": "d78a6713-5fc9-43bc-8be7-ec8568cfe5a7"
+        },
+        {
+            "Path": "SliderHBackground.png",
+            "SpriteUUID": "15225837-02a2-4963-beb2-bdcddaaf2ceb",
+            "TextureUUID": "09c743d5-0dca-43ed-b88a-38dd7096eab1"
+        },
+        {
+            "Path": "SliderHFill.png",
+            "SpriteUUID": "d45ef18b-fd98-4d92-b4bc-2d0620a4085b",
+            "TextureUUID": "1880d22f-1274-4984-afeb-a138b3f06f11"
+        },
+        {
+            "Path": "SliderVBackground.png",
+            "SpriteUUID": "5c510744-ae2b-4f74-9d78-c7fb5e1ec028",
+            "TextureUUID": "791b5f15-1667-4bb7-a616-880afe2bd785"
+        },
+        {
+            "Path": "SliderVFill.png",
+            "SpriteUUID": "cf317b83-a477-4474-9df6-3de529859db3",
+            "TextureUUID": "97282fda-0e8d-4ead-988a-7059a12fcbc6"
+        },
+        {
+            "Path": "StatusBarBackground.png",
+            "SpriteUUID": "09887d53-d880-4576-b87b-50899b8bbf6d",
+            "TextureUUID": "4739c121-fcc5-4a08-b7b4-8c030030243d"
+        },
+        {
+            "Path": "TabBarBackground.png",
+            "SpriteUUID": "dbebd6b9-808b-4912-86ae-4558b6091d78",
+            "TextureUUID": "a1ed098a-ed45-4865-ad65-fec94f9c7bf9"
+        },
+        {
+            "Path": "TabButtonFocused.png",
+            "SpriteUUID": "2a17e660-c25a-4ab5-b147-b25ed368a1e8",
+            "TextureUUID": "0912320b-e0ba-47c9-9c6d-948fc68c2f5f"
+        },
+        {
+            "Path": "TabButtonNormal.png",
+            "SpriteUUID": "c4b51a2d-699a-4d34-8046-1f758bf5f3d6",
+            "TextureUUID": "a460ccce-58e3-4d22-bb93-0dad10693e30"
+        },
+        {
+            "Path": "TextureDrop.png",
+            "SpriteUUID": "fccb8a78-e096-4738-a79b-9d93cce7299f",
+            "TextureUUID": "44ae345f-76f6-418e-aacd-61ecace33c13"
+        },
+        {
+            "Path": "TextureDropHover.png",
+            "SpriteUUID": "e646cb29-48f2-4ba9-9f0d-3fdaeea8f7fb",
+            "TextureUUID": "c59db882-1f5f-4d3a-ae62-d697ad8de7bd"
+        },
+        {
+            "Path": "TitleBarBackground.png",
+            "SpriteUUID": "f1ecb5a5-cfac-4909-8310-85aaafebaf1e",
+            "TextureUUID": "3f28e38d-ec19-4ee0-978a-a8f2bd71d6b9"
+        },
+        {
+            "Path": "ToggleHover.png",
+            "SpriteUUID": "6183089a-b1c9-451c-afde-7fbca0389f45",
+            "TextureUUID": "fc62d981-e9a3-4e06-9a70-2dc700194bb2"
+        },
+        {
+            "Path": "ToggleHoverOn.png",
+            "SpriteUUID": "9fe930db-03cf-4c59-a1e3-e1fc4de626f3",
+            "TextureUUID": "232e7135-4ee4-4e3c-b66b-e5906ad1f24f"
+        },
+        {
+            "Path": "ToggleNormal.png",
+            "SpriteUUID": "9d3eec19-024c-4fb5-a67d-987e7c1a1586",
+            "TextureUUID": "63fe0c58-e0bf-4d8d-8df5-5d90ad039f42"
+        },
+        {
+            "Path": "ToggleNormalOn.png",
+            "SpriteUUID": "d7788c31-634a-415d-a97a-6df1760a4acf",
+            "TextureUUID": "3607dffe-8d33-4166-b803-ff5aa7840a79"
+        },
+        {
+            "Path": "ToolBarButtonActive.png",
+            "SpriteUUID": "11e660d0-6a4c-4241-b840-892c287bb55f",
+            "TextureUUID": "878b0724-f73d-4dd1-9960-a4c63be2203d"
+        },
+        {
+            "Path": "ToolBarButtonHover.png",
+            "SpriteUUID": "d199e503-e11f-4a31-a8de-48e5b7c7c9cb",
+            "TextureUUID": "87983775-68f0-405b-b289-de08ad2b47b0"
+        },
+        {
+            "Path": "ToolBarButtonNormal.png",
+            "SpriteUUID": "61e76950-fb0a-4c33-aab5-fac38be0511e",
+            "TextureUUID": "64952bba-102b-4f0d-bcb7-ad14431f7258"
+        },
+        {
+            "Path": "ToolBarSeparator.png",
+            "SpriteUUID": "393cd850-f467-470b-8b46-d8beb9f6479f",
+            "TextureUUID": "68868743-f116-4a60-bb1a-d2123a745502"
+        },
+        {
+            "Path": "TreeViewEditBox.psd",
+            "SpriteUUID": "b62983b9-9420-4daf-800d-6307475a4f6e",
+            "TextureUUID": "e32b6a60-26b8-4df1-bf49-a26d2ff9b8b7"
+        },
+        {
+            "Path": "TreeViewElementHighlight.psd",
+            "SpriteUUID": "22e8f55a-37b4-4e69-a8bb-0df519f841c3",
+            "TextureUUID": "318fbb54-3eb8-41d5-baf3-e05ee0ec001a"
+        },
+        {
+            "Path": "TreeViewElementSepHighlight.psd",
+            "SpriteUUID": "187fb185-0e1a-4850-902a-47ef334161bb",
+            "TextureUUID": "66a70cf7-e394-4ef8-afb9-dc54c42b1030"
+        },
+        {
+            "Path": "TreeViewHighlightBackground.psd",
+            "SpriteUUID": "911257d6-4a2f-4d32-a5fb-393501251ba9",
+            "TextureUUID": "fb7ea2e7-56a8-4a97-855a-89ce2e7a2d97"
+        },
+        {
+            "Path": "WindowBackground.png",
+            "SpriteUUID": "02831d67-742a-481b-84c1-206989c9649d",
+            "TextureUUID": "43de1a90-1e35-4178-ae0e-8c22a7d4549b"
+        },
+        {
+            "Path": "WindowFrameFocused.png",
+            "SpriteUUID": "eb6d186d-1dff-4d17-9d35-b1ba4c78271a",
+            "TextureUUID": "d8c9279a-bfed-4e55-afa5-cec8d07e4f14"
+        },
+        {
+            "Path": "WindowFrameNormal.png",
+            "SpriteUUID": "8a79d0a4-4047-44e2-88a9-ae260c3dfd27",
+            "TextureUUID": "05d3f7d6-3a40-450e-b9c3-472c9efc90e4"
+        },
+        {
+            "Path": "XBtnActive.png",
+            "SpriteUUID": "43046eec-4659-47b1-bee5-633769c35189",
+            "TextureUUID": "9435a9f8-c51a-4705-94f8-d62b6a5446ca"
+        },
+        {
+            "Path": "XBtnHover.png",
+            "SpriteUUID": "9ea43929-3ad7-4b56-988a-a4687c03d87a",
+            "TextureUUID": "e0f5ebd7-7a0e-47fd-8d74-cf53ffc70a1c"
+        },
+        {
+            "Path": "XBtnNormal.png",
+            "SpriteUUID": "68e2c5ac-48c3-481a-8f67-dbd70e7acd27",
+            "TextureUUID": "290d352f-c99e-450e-9c7d-753e1495ad02"
+        }
+    ],
+    "Includes": [
+        {
+            "Path": "LineGizmo.bslinc",
+            "UUID": "1dbf1186-2fbf-4d87-8bbd-00c28b7989b9"
+        },
+        {
+            "Path": "PickingAlphaCull.bslinc",
+            "UUID": "7cf75217-8672-4fb4-aba1-863073ccc0e8"
+        },
+        {
+            "Path": "PickingCull.bslinc",
+            "UUID": "a38f307f-71ce-4b4b-8117-f41bac4250e8"
+        },
+        {
+            "Path": "SelectionBase.bslinc",
+            "UUID": "015a325f-cf54-4757-8dcb-6716230a9344"
+        },
+        {
+            "Path": "SolidGizmo.bslinc",
+            "UUID": "dea24fc4-7497-4d28-988b-88681582d7a5"
+        }
+    ],	
+    "Shaders": [
+        {
+            "Path": "ClearHandleAlpha.bsl",
+            "UUID": "fb71b35a-09e3-4c66-9d1f-e867da47e8eb"
+        },
+        {
+            "Path": "DockDropOverlay.bsl",
+            "UUID": "875c3512-b36f-46bd-b50b-834e9feaf0e0"
+        },
+        {
+            "Path": "GizmoPicking.bsl",
+            "UUID": "d6ed3d55-fc04-4030-b3ca-ef0d33bc091a"
+        },
+        {
+            "Path": "GizmoPickingAlpha.bsl",
+            "UUID": "c83abe94-ce51-447d-a664-55782bdbe8bd"
+        },
+        {
+            "Path": "IconGizmo.bsl",
+            "UUID": "7c24c31c-703e-479a-9271-07d36dfb7589"
+        },
+        {
+            "Path": "LineGizmo.bsl",
+            "UUID": "589c8fa9-0d33-4415-907e-08033db4bae0"
+        },
+        {
+            "Path": "LineHandle.bsl",
+            "UUID": "8fcadde0-922a-418b-99ca-6dad476a45fc"
+        },
+        {
+            "Path": "PickingAlphaCullCCW.bsl",
+            "UUID": "b9cec3e9-5215-477e-818c-d8644b65ebec"
+        },
+        {
+            "Path": "PickingAlphaCullCW.bsl",
+            "UUID": "2798712d-70cf-4a6c-862b-06c0978e7e58"
+        },
+        {
+            "Path": "PickingAlphaCullNone.bsl",
+            "UUID": "6f30003d-ebfc-4656-886a-37716d4ce26f"
+        },
+        {
+            "Path": "PickingCullCCW.bsl",
+            "UUID": "0186ae89-bd5c-43e0-bd61-662e6f9259c0"
+        },
+        {
+            "Path": "PickingCullCW.bsl",
+            "UUID": "f39a8890-5fdd-4eb1-a5a0-de29a9157419"
+        },
+        {
+            "Path": "PickingCullNone.bsl",
+            "UUID": "16541bd4-2bc9-4a56-a758-0d3c2f5b8339"
+        },
+        {
+            "Path": "SceneGrid.bsl",
+            "UUID": "be67ea3b-5ab9-4984-817f-a6694dd2b388"
+        },
+        {
+            "Path": "Selection.bsl",
+            "UUID": "82e589f9-8389-41ae-8724-c4730843f852"
+        },
+        {
+            "Path": "SolidGizmo.bsl",
+            "UUID": "6f6c9a27-ed39-4429-8408-9b809d230ece"
+        },
+        {
+            "Path": "SolidHandle.bsl",
+            "UUID": "3843ad6e-2b5a-401c-9838-4faf126d6f42"
+        },
+        {
+            "Path": "TextGizmo.bsl",
+            "UUID": "81ad1a79-0b54-4a5c-8360-1f18e49d0963"
+        },
+        {
+            "Path": "WireGizmo.bsl",
+            "UUID": "b6a27d2f-793a-4b02-906a-e0c987ec3b80"
+        }
+    ],
+	"Icons": [
+        {
+            "Path": "AnimationAddEventIcon.png",
+            "SpriteUUID": "7dc84c5f-9119-4402-9e6f-50b876f80c02",
+            "TextureUUID": "3fee6d98-e677-4502-b07a-a4abb96a3cdd"
+        },
+        {
+            "Path": "AnimationAddEventIconOn.png",
+            "SpriteUUID": "b395e56e-2420-46db-8ae7-6d3841298e99",
+            "TextureUUID": "94dec21d-d2d5-4645-9e7b-38e561a5bebb"
+        },
+        {
+            "Path": "AnimationAddKeyframeIcon.png",
+            "SpriteUUID": "126147e7-f298-455a-8ee0-8d2e36c535cd",
+            "TextureUUID": "65d0a57a-4dd4-44c0-a819-a0e95a03c9be"
+        },
+        {
+            "Path": "AnimationAddKeyframeIconOn.png",
+            "SpriteUUID": "3db54fba-3e68-4d60-aef0-39b095af5fb7",
+            "TextureUUID": "16418b26-093f-4303-95c1-1b7b31a6bd35"
+        },
+        {
+            "Path": "AnimationClipIcon.psd",
+            "TextureUUID16": "edaa0989-032a-4cfc-8586-14c9e8235520",
+            "TextureUUID32": "b3b38809-9941-4882-b20f-484f0813508a",
+            "TextureUUID48": "f9a6bb76-3c70-46eb-a0cc-47837e223fc9",
+            "TextureUUID": "58a3f618-a8d0-479f-a239-2c32aa9b478a",
+			"SpriteUUID16": "e7b54bca-ffeb-4647-b3d9-68825093d76b",
+			"SpriteUUID32": "d8067215-e8fe-447e-9c2d-378dcc8062b3",
+			"SpriteUUID48": "b4e8646f-8c18-4865-b638-bc8444ea3e62",
+			"SpriteUUID": "d802c230-fdb1-4cbc-ae3a-036638a7133a"
+        },	
+        {
+            "Path": "AnimationEventIcon.png",
+            "SpriteUUID": "0b4f1061-14cd-4b70-9d37-390810b39c14",
+            "TextureUUID": "0cd3807b-715d-4074-81b8-27f868bf5e37"
+        },
+        {
+            "Path": "AnimationFrameBackIcon.png",
+            "SpriteUUID": "10c9242b-1eae-44d5-868d-808d74b04216",
+            "TextureUUID": "bc23afed-a7fd-492c-a5dd-c84db0221536"
+        },
+        {
+            "Path": "AnimationFrameBackIconOn.png",
+            "SpriteUUID": "8f1b2b7b-02d7-4acd-a4cd-a390bde16265",
+            "TextureUUID": "ec52680c-8d67-45c2-a202-e2d1ea5834a0"
+        },
+        {
+            "Path": "AnimationFrameForwardIcon.png",
+            "SpriteUUID": "a43cd2cb-05af-4b50-a3b4-4f46537fdef0",
+            "TextureUUID": "d23ad729-a162-4d9c-aafd-fcb0ac34b4e8"
+        },
+        {
+            "Path": "AnimationFrameForwardIconOn.png",
+            "SpriteUUID": "80a8ffb7-71d9-45d2-ad16-7cb6cc25451b",
+            "TextureUUID": "c1be529c-2ecf-4800-bae8-e4ffbc33d3ae"
+        },
+        {
+            "Path": "AnimationKeyframeIcon.png",
+            "SpriteUUID": "046e5a43-1369-40c6-b288-924af1c29844",
+            "TextureUUID": "72fb27a9-680c-4cfe-b18d-9070599380db"
+        },
+        {
+            "Path": "AnimationPlayIcon.png",
+            "SpriteUUID": "f3f28bef-3839-4c0a-a97f-d1eba8404012",
+            "TextureUUID": "09c9b6a6-ff7f-4859-903c-70339316a0d7"
+        },
+        {
+            "Path": "AnimationPlayIconOn.png",
+            "SpriteUUID": "378ddf48-48e9-41bf-b306-5d6f30a3037b",
+            "TextureUUID": "5a4c89a4-24f0-4af5-a924-a188af017145"
+        },
+        {
+            "Path": "AnimationRecordIcon.png",
+            "SpriteUUID": "4c4152cb-515b-4197-a91e-bdf4b42021bc",
+            "TextureUUID": "260a5fa6-f84b-4064-9e33-5798938eb5e4"
+        },
+        {
+            "Path": "AnimationRecordIconOn.png",
+            "SpriteUUID": "a5f9c2e6-cafa-441e-8a61-5d45a381bed6",
+            "TextureUUID": "f6bf61b3-a81c-45f5-b86d-981b3a31acba"
+        },
+        {
+            "Path": "AudioClipIcon.psd",
+            "TextureUUID16": "47a8fc7e-9855-4c64-be95-0c3f4989c667",
+            "TextureUUID32": "a98a4739-eb65-4f6c-8a71-4393fcf6ab77",
+            "TextureUUID48": "2b7a600b-f52a-498e-bd1f-8bd530093366",
+            "TextureUUID": "6e2b4ccf-cf35-45bc-ac52-5dadb946c533",
+			"SpriteUUID16": "c8497f7a-ba94-4b71-8f04-1cc6c72f064a",
+			"SpriteUUID32": "a2b1c088-4e83-4c20-b198-c9395d9bb0e5",
+			"SpriteUUID48": "59a42e6d-56b2-4336-a382-50c583959f69",
+			"SpriteUUID": "ff361431-3fe0-4d0d-8d4b-4d6a551c550a"
+        },		
+        {
+            "Path": "CSharpIcon.psd",
+            "TextureUUID16": "0d4f3d6a-4066-4a53-85ab-534c53bc037d",
+            "TextureUUID32": "a6e903be-d01d-492e-a08e-0800d78dcb36",
+            "TextureUUID48": "e2d24339-3051-416f-af19-d7c09877b9ec",
+            "TextureUUID": "74248229-ff11-471c-9e0c-90531e4a2366",
+			"SpriteUUID16": "d8b08e4c-3bcb-4a0d-9e72-4d35d1680f17",
+			"SpriteUUID32": "30afc1ae-4963-4d86-a19f-2f3a04d9230d",
+			"SpriteUUID48": "58bd8ddc-c138-44c6-a123-9e605cdb4b52",
+			"SpriteUUID": "90f6cfe7-2b3b-4bb0-a3e7-39f64a452fdd"
+        },
+        {
+            "Path": "FolderIcon.psd",
+            "TextureUUID16": "0541c05e-cf44-47b3-8624-a1fb1cd8bbd1",
+            "TextureUUID32": "8a3ee915-e869-498f-960c-90cbc17900b6",
+            "TextureUUID48": "2a5904f3-a0c9-4f12-af70-a790fd21dfd3",
+            "TextureUUID": "795616d6-d88e-488b-9722-2cd7950203bc",
+			"SpriteUUID16": "f37db7dd-bccf-4889-afeb-379857d5df3e",
+			"SpriteUUID32": "d403fb0d-b187-4488-a9d7-8536b4ec86f9",
+			"SpriteUUID48": "2781b5e8-9a3d-45eb-a6bd-8d810e7edacc",
+			"SpriteUUID": "ab5d4425-d525-44be-bce9-6bfab97aeca6"
+        },		
+        {
+            "Path": "FontIcon.psd",
+            "TextureUUID16": "aeabefc3-5b59-4af2-92de-39e634b93241",
+            "TextureUUID32": "57d43fab-7d9f-4f66-8bdc-a9472076bcb3",
+            "TextureUUID48": "ccf41394-a8df-4868-aeac-694daeea43fe",
+            "TextureUUID": "e5412cf1-9b8b-45b8-aa7d-ef9bd4a158ed",
+			"SpriteUUID16": "f88bbc5f-f97f-4d76-8ee8-01a90f67f318",
+			"SpriteUUID32": "17128e93-8342-481e-8bbe-212a78d720cb",
+			"SpriteUUID48": "07d312bf-8fbe-44f5-81b6-6ded74acff02",
+			"SpriteUUID": "932f12bd-eba4-464d-a02d-d96d0c8e7a44"
+        },	
+        {
+            "Path": "GUISkinIcon.psd",
+            "TextureUUID16": "c120c3c0-d686-40d6-ae79-ebdda330bbb0",
+            "TextureUUID32": "5b5df11a-79d1-48db-be54-8f20ceda58e2",
+            "TextureUUID48": "489f03d7-5109-4f06-a2e0-fb9210e36a0f",
+            "TextureUUID": "9cc0916e-1953-4ff7-8f5d-8963061d1943",
+			"SpriteUUID16": "3269ff99-2444-49d7-9453-e9bb47c060b9",
+			"SpriteUUID32": "2e59123a-d8e1-4c3f-970d-8225938c3c96",
+			"SpriteUUID48": "50b1fa04-1d55-4323-852c-34680fbc0e22",
+			"SpriteUUID": "1c8312dd-d706-4fd9-a155-feaf11651663"
+        },		
+        {
+            "Path": "IconComponent.png",
+            "SpriteUUID": "bc0f1d5a-fe7f-4bfc-8caa-096db7d21f0d",
+            "TextureUUID": "a5e170c0-9a22-4cf4-89fe-caea0e2c35f3"
+        },
+        {
+            "Path": "IconError.png",
+            "SpriteUUID": "0e1efdbd-d8d9-4dd1-9521-cb604c343f4f",
+            "TextureUUID": "211e17e5-575f-4a4a-a62f-894a4d13861c"
+        },
+        {
+            "Path": "IconError32.png",
+            "SpriteUUID": "cbf04182-b219-459e-8419-61927e66c53b",
+            "TextureUUID": "cf4b4daf-612c-4ba3-b8e5-acafbf52a9fc"
+        },
+        {
+            "Path": "IconErrorDark.png",
+            "SpriteUUID": "ada27348-5c87-4f49-b790-ad33d085a8a9",
+            "TextureUUID": "3cea13ad-ddb0-4732-86df-4d24fa289b37"
+        },
+        {
+            "Path": "IconInfo.png",
+            "SpriteUUID": "e195ad8c-b231-43de-8ed6-19469b68d899",
+            "TextureUUID": "8d04bb11-f41c-49a5-b605-830c2c0f9050"
+        },
+        {
+            "Path": "IconInfo32.png",
+            "SpriteUUID": "7c784a6a-e283-41e4-97d9-bd97237b63a7",
+            "TextureUUID": "8535fa7b-11ba-4a14-b51d-b2c710bc5505"
+        },
+        {
+            "Path": "IconInfoDark.png",
+            "SpriteUUID": "912a938f-24bb-410c-b66f-337b0190cbcc",
+            "TextureUUID": "03308c27-3ffe-4c61-b7bf-664e43255e97"
+        },
+        {
+            "Path": "IconSceneObject.png",
+            "SpriteUUID": "f95dc894-75e7-4583-ad35-868a6e206819",
+            "TextureUUID": "091c7a58-c819-4c00-9e81-c16dd23f512f"
+        },
+        {
+            "Path": "IconWarning.png",
+            "SpriteUUID": "15e5788d-5915-4733-a1dc-6d52f3242722",
+            "TextureUUID": "1b1f57ad-5564-40b1-891d-956a36b46892"
+        },
+        {
+            "Path": "IconWarning32.png",
+            "SpriteUUID": "e5aaa4c2-168e-4398-b8d5-2df8dc3cb6d3",
+            "TextureUUID": "37b5d9ec-c961-43be-8f64-d0cf5a256049"
+        },
+        {
+            "Path": "IconWarningDark.png",
+            "SpriteUUID": "f22cf3c7-7685-4be8-ac45-31c3a4ac16bb",
+            "TextureUUID": "32885617-97e5-4af6-86a1-8ea580b92c6c"
+        },
+        {
+            "Path": "InspectorAddIcon.png",
+            "SpriteUUID": "1ba0acce-9a3a-48cb-83cf-daa9af98f4f9",
+            "TextureUUID": "97c301e0-cc5e-4a35-985b-4a6b735e306a"
+        },
+        {
+            "Path": "InspectorAddIconOn.png",
+            "SpriteUUID": "906d53ab-f84c-4945-8c2f-fdee724e8209",
+            "TextureUUID": "b26dc1f3-d277-41c1-b216-fc64a7337446"
+        },
+        {
+            "Path": "InspectorApplyIcon.png",
+            "SpriteUUID": "ed902e73-edbb-49cd-9cf9-9d5efcba0f90",
+            "TextureUUID": "08b23feb-8968-4935-8daa-947214271830"
+        },
+        {
+            "Path": "InspectorApplyIconOn.png",
+            "SpriteUUID": "963c3388-ccae-4b72-80e6-7fda43d7de80",
+            "TextureUUID": "1ecbefa7-52f5-47d5-b607-e47ff576b8e6"
+        },
+        {
+            "Path": "InspectorCancelIcon.png",
+            "SpriteUUID": "ac4c1df5-541e-430f-a0ce-d827f5adaade",
+            "TextureUUID": "a3b004e9-561e-4169-b7c3-c90216995f6f"
+        },
+        {
+            "Path": "InspectorCancelIconOn.png",
+            "SpriteUUID": "c81b0fdd-df81-4361-8409-1cf3c9e43e8c",
+            "TextureUUID": "d7d12a68-732f-4544-add6-9a955f8079a4"
+        },
+        {
+            "Path": "InspectorClearIcon.png",
+            "SpriteUUID": "c8c70345-742b-4ddc-a32f-86d9756f22fd",
+            "TextureUUID": "7e9d279b-6c1c-40d7-bd94-8d64dc14d7ce"
+        },
+        {
+            "Path": "InspectorClearIconOn.png",
+            "SpriteUUID": "06774810-11c7-46d1-9909-ead78c0c2410",
+            "TextureUUID": "8ee4a687-8179-4dcf-85c3-a49f9308328c"
+        },
+        {
+            "Path": "InspectorCloneIcon.png",
+            "SpriteUUID": "eee9fdd6-dee2-4178-a7e1-4e2d6db27eab",
+            "TextureUUID": "548d3202-8356-4557-bed2-bb045362b52d"
+        },
+        {
+            "Path": "InspectorCloneIconOn.png",
+            "SpriteUUID": "c10c878d-95c2-41b9-a1de-297b655b828c",
+            "TextureUUID": "9eaf9880-a054-42c1-9974-e0458c191a23"
+        },
+        {
+            "Path": "InspectorCreateIcon.png",
+            "SpriteUUID": "51d1e504-6887-422e-a319-3f92982725b8",
+            "TextureUUID": "1219bf01-370c-49ad-97b8-40bf61db4cb0"
+        },
+        {
+            "Path": "InspectorCreateIconOn.png",
+            "SpriteUUID": "92e45744-2215-4859-99ab-20823f281fc7",
+            "TextureUUID": "61004910-2663-4422-a7e0-b266d4415715"
+        },
+        {
+            "Path": "InspectorDeleteIcon.png",
+            "SpriteUUID": "80aa0975-3e7f-48e4-871a-7ca50ef6cfd8",
+            "TextureUUID": "220ce39b-f81e-4859-8f32-e4c7fc76af80"
+        },
+        {
+            "Path": "InspectorDeleteIconOn.png",
+            "SpriteUUID": "c71e9d03-746f-4db3-b128-922a13219849",
+            "TextureUUID": "566c1880-7289-4505-b311-0438451c48a3"
+        },
+        {
+            "Path": "InspectorEditIcon.png",
+            "SpriteUUID": "c500f2c5-f53a-4935-a7b4-e9ce1bb21478",
+            "TextureUUID": "f400f01c-68c9-4294-9aef-f3cd288ff840"
+        },
+        {
+            "Path": "InspectorEditIconOn.png",
+            "SpriteUUID": "13d71b48-0c62-45c6-b374-2c5de41f986e",
+            "TextureUUID": "65ae7851-ce5a-4550-acfd-8dc83fee8991"
+        },
+        {
+            "Path": "InspectorMoveDownIcon.png",
+            "SpriteUUID": "6922fcaf-2b62-4dd6-8982-b4faaf8e7c7a",
+            "TextureUUID": "f2ff9d14-9e27-42d8-b356-8b123b48bd14"
+        },
+        {
+            "Path": "InspectorMoveDownIconOn.png",
+            "SpriteUUID": "4b411c8f-b243-46b0-b74c-716513cc7933",
+            "TextureUUID": "9afe315b-09a5-4256-944f-fd507f20715e"
+        },
+        {
+            "Path": "InspectorMoveUpIcon.png",
+            "SpriteUUID": "e920aa3d-d564-41ab-8dd7-7d71d6e6ecf6",
+            "TextureUUID": "6a088d3c-aaf3-426a-b265-a031a589d237"
+        },
+        {
+            "Path": "InspectorMoveUpIconOn.png",
+            "SpriteUUID": "226ef2de-a3ce-4111-86db-693e2418ca08",
+            "TextureUUID": "11d3f38c-bb14-43bb-86c5-e1e9b315667b"
+        },
+        {
+            "Path": "InspectorResizeIcon.png",
+            "SpriteUUID": "ca6df8c1-aadf-4789-9b00-a2573e45a1e1",
+            "TextureUUID": "0049ec70-e53b-4c35-a79a-31d5fceeab99"
+        },
+        {
+            "Path": "InspectorResizeIconOn.png",
+            "SpriteUUID": "ce574aad-e772-409e-893a-10b6aefd6c34",
+            "TextureUUID": "c5369493-27a2-48fb-8df9-fafbf9067ea0"
+        },
+        {
+            "Path": "LibraryClearSearchIcon.png",
+            "SpriteUUID": "fdb40390-092f-4de6-b4a5-d8c38eb336f5",
+            "TextureUUID": "18e3026d-a58e-4a43-aa24-6f2004753c91"
+        },
+        {
+            "Path": "LibraryClearSearchIconOn.png",
+            "SpriteUUID": "5cf1293d-584a-48e1-b61a-f10bf2c3ace7",
+            "TextureUUID": "b0ea0540-b67f-4da9-9347-5fe0427ca4f9"
+        },
+        {
+            "Path": "LibraryHomeIcon.png",
+            "SpriteUUID": "7e4606fb-3328-4c61-8533-c3bbc4ba61fc",
+            "TextureUUID": "cfdb0507-e3a0-4970-b5f6-4785d89616d2"
+        },
+        {
+            "Path": "LibraryHomeIconOn.png",
+            "SpriteUUID": "0d8fce70-b6fd-4949-89e2-e958546b6787",
+            "TextureUUID": "dcfcb66d-3aa0-46d4-a0ab-4181f9dcd112"
+        },
+        {
+            "Path": "LibraryOptionsIcon.png",
+            "SpriteUUID": "62607824-6952-4e49-8b32-74b0c7e61934",
+            "TextureUUID": "f3eb4514-5ba9-498a-9533-09ca7368abc3"
+        },
+        {
+            "Path": "LibraryOptionsIconOn.png",
+            "SpriteUUID": "9a7f2ac5-56ea-47ff-a794-5a264f2d89fe",
+            "TextureUUID": "6710a7a2-6176-4c16-b442-848af94238c6"
+        },
+        {
+            "Path": "LibraryUpIcon.png",
+            "SpriteUUID": "785d0873-5199-4600-af6c-720e7a738cf5",
+            "TextureUUID": "ee95f3ff-096e-4c16-8937-33dcd70a1798"
+        },
+        {
+            "Path": "LibraryUpIconOn.png",
+            "SpriteUUID": "bd0866a7-7101-4782-98eb-495d3ba4e077",
+            "TextureUUID": "98c9d429-ff34-4924-9ff7-3bac08186b33"
+        },
+        {
+            "Path": "MaterialIcon.psd",
+            "TextureUUID16": "7467d1b2-9133-4db4-b131-3a9535309aef",
+            "TextureUUID32": "2a31ff0c-22f3-4b7c-90a7-d75af46a0f3e",
+            "TextureUUID48": "ea71e264-4c16-409c-a699-81ff6ed1bc6c",
+            "TextureUUID": "97348a6d-2199-4146-b660-bded0828ab22",
+			"SpriteUUID16": "fdcefc2a-979e-424a-9362-315c6b38f849",
+			"SpriteUUID32": "a4c008b1-5b0e-43e8-8c2b-c72cedd288b0",
+			"SpriteUUID48": "1cc8ab3d-aa50-49ba-a12c-4e00493baa0d",
+			"SpriteUUID": "cc329771-2b7b-4471-b613-7ad261693498"
+        },
+        {
+            "Path": "MeshIcon.psd",
+            "TextureUUID16": "e29da930-149a-4eeb-b557-e6f20d5c3310",
+            "TextureUUID32": "6b2eb675-45af-4b3b-a29d-96e0c876346e",
+            "TextureUUID48": "a196a561-e80c-4ef1-bff4-e8ab0c2ea1d2",
+            "TextureUUID": "f2b6ffec-a435-4174-90a1-bd5b1dba95d6",
+			"SpriteUUID16": "e777b491-f2dd-4fd8-beb3-2444ac7ef133",
+			"SpriteUUID32": "e93c3225-87ed-4c8e-8614-a3e063a8acb8",
+			"SpriteUUID48": "98218689-8e66-4fb2-8e83-bb466d2aabf7",
+			"SpriteUUID": "a8a195b5-7b83-466f-bdaf-d4ce439a52fa"
+        },
+        {
+            "Path": "PhysicsMaterialIcon.psd",
+            "TextureUUID16": "412fb580-583f-4d77-9b40-d9213f5fc72c",
+            "TextureUUID32": "80467895-3ce5-4e27-8d71-aed659b9c174",
+            "TextureUUID48": "19caf2da-2f3b-4f53-909e-1bedd66d6389",
+            "TextureUUID": "5e8cf03d-085b-4243-b337-cef1ffc508e9",
+			"SpriteUUID16": "e7d2b184-db8b-4c9f-9875-412a2a3ab9ad",
+			"SpriteUUID32": "a69f0acc-5253-4a9a-86aa-dc4cdfa201d5",
+			"SpriteUUID48": "0ec38c4c-59ad-41d8-b249-da14c81dd6c5",
+			"SpriteUUID": "90b29c3e-5cc5-4a61-90d4-df13b7dd1d06"
+        },		
+        {
+            "Path": "PhysicsMeshIcon.psd",
+            "TextureUUID16": "a33ed8d5-fcf1-4c89-80d7-814ed21d921d",
+            "TextureUUID32": "a837f1c0-5a72-4f4e-ac09-0f072fdaeb81",
+            "TextureUUID48": "49f49eff-21db-440c-86e1-eb03db442d9d",
+            "TextureUUID": "e60c8458-fa9e-4b75-bac3-e05c32d54537",
+			"SpriteUUID16": "c30fafe3-e981-4d43-8078-9c38435a874d",
+			"SpriteUUID32": "94f27683-0478-4991-b53e-5722083abff1",
+			"SpriteUUID48": "98133ad6-f0df-4ed4-b584-143125c015ef",
+			"SpriteUUID": "cd1f4dc7-f5a7-44e0-9fe3-7f3ff46a8b9c"
+        },	
+        {
+            "Path": "PrefabIcon.psd",
+            "TextureUUID16": "639dfdb6-0158-43d5-8c7a-26705cdad384",
+            "TextureUUID32": "1a83d326-93c5-4074-b992-5e67ca655d1b",
+            "TextureUUID48": "f260ec3d-0399-415c-982b-846ef719835a",
+            "TextureUUID": "735ee588-8fb6-4ee8-80ad-e3946a30a56e",
+			"SpriteUUID16": "4f06caaa-d422-40ae-8cc1-c3565edf9847",
+			"SpriteUUID32": "fd4240a5-968a-41ec-96c2-c095fbca439b",
+			"SpriteUUID48": "fa81799d-16d6-4b22-8651-4f08666d5ba8",
+			"SpriteUUID": "beceb6ac-69e1-46b6-8ef4-f781ab88141f"
+        },		
+        {
+            "Path": "SceneCenterIcon.png",
+            "SpriteUUID": "4127cc62-59e0-4349-a7f8-b619db9a83c0",
+            "TextureUUID": "f217a0c2-4b4a-4d5b-982d-d01495238203"
+        },
+        {
+            "Path": "SceneCenterIconOn.png",
+            "SpriteUUID": "c67945be-d8f1-4119-802e-38f6c0350b45",
+            "TextureUUID": "06ea8670-5cc6-46ae-a393-3146728f09d0"
+        },
+        {
+            "Path": "SceneLocalIcon.png",
+            "SpriteUUID": "eab53cd7-d8d9-44b1-a428-d84145c34256",
+            "TextureUUID": "a7fc2fe3-d82c-41bc-8758-f590f395fad9"
+        },
+        {
+            "Path": "SceneLocalIconOn.png",
+            "SpriteUUID": "da74e2ad-0ad0-40ec-9e6f-93df0c57b4ca",
+            "TextureUUID": "a996a72d-e8e5-4cc7-af7b-29af51c93067"
+        },
+        {
+            "Path": "SceneMoveIcon.png",
+            "SpriteUUID": "54aecfb4-ba2c-475b-a85d-182fb580a483",
+            "TextureUUID": "30011cac-be36-4e25-9b3f-1359866bf3e4"
+        },
+        {
+            "Path": "SceneMoveIconOn.png",
+            "SpriteUUID": "e31143c7-c86e-4e41-a010-09bd4e827619",
+            "TextureUUID": "d592686b-d355-46f9-bfae-723993c1efb8"
+        },
+        {
+            "Path": "SceneMoveSnapIcon.png",
+            "SpriteUUID": "4c07f62c-da26-4eba-a35c-13b38375c5b7",
+            "TextureUUID": "96fc7910-aad0-4d6f-882d-11eeadf80228"
+        },
+        {
+            "Path": "SceneMoveSnapIconOn.png",
+            "SpriteUUID": "5a036a7f-c0aa-45d7-bf46-a978411b9264",
+            "TextureUUID": "b9a9da4a-bcd8-478d-9ff6-264b8377c4a4"
+        },
+        {
+            "Path": "ScenePivotIcon.png",
+            "SpriteUUID": "145d53ca-ab73-44e4-b575-c6f0f9e95ee6",
+            "TextureUUID": "2e47d97b-91cb-447f-bdc3-498121342508"
+        },
+        {
+            "Path": "ScenePivotIconOn.png",
+            "SpriteUUID": "7e7ad218-c639-4734-a16f-8fe82cab5cfc",
+            "TextureUUID": "3e440af7-0f73-49cb-925c-80be51c1a46d"
+        },
+        {
+            "Path": "SceneRotateIcon.png",
+            "SpriteUUID": "1d713e8f-c64d-4d99-8109-c06802a69a30",
+            "TextureUUID": "87b1b8df-fccf-4521-8e20-9d281b630cf0"
+        },
+        {
+            "Path": "SceneRotateIconOn.png",
+            "SpriteUUID": "a07c22c2-d753-4192-af92-06903a8d15b4",
+            "TextureUUID": "784ccf4d-cb63-4535-b60f-776fdfc95730"
+        },
+        {
+            "Path": "SceneRotateSnapIcon.png",
+            "SpriteUUID": "1b3e216c-9738-4878-9c7a-2f9e5c6d689b",
+            "TextureUUID": "15627c12-66c3-44da-aad1-8b36fe3e8d77"
+        },
+        {
+            "Path": "SceneRotateSnapIconOn.png",
+            "SpriteUUID": "e50f565c-5437-470f-823a-f28a47d381e3",
+            "TextureUUID": "386c12d9-f11e-4f4b-aa1c-6c29b1262d54"
+        },
+        {
+            "Path": "SceneScaleIcon.png",
+            "SpriteUUID": "9351f8c6-fc10-4297-ab3d-fe4fc7fb1ab3",
+            "TextureUUID": "750108da-7bc0-4ccc-acac-b5f497f6e121"
+        },
+        {
+            "Path": "SceneScaleIconOn.png",
+            "SpriteUUID": "2b34a0b0-2121-4ec7-bffb-427551fd6cac",
+            "TextureUUID": "8ca5bd6d-d25f-42d2-984e-b86420274a07"
+        },
+        {
+            "Path": "SceneViewIcon.png",
+            "SpriteUUID": "cd863351-9286-4335-9188-49e7673d541c",
+            "TextureUUID": "b90c5e8d-1e07-4a58-adc4-227357fa9a96"
+        },
+        {
+            "Path": "SceneViewIconOn.png",
+            "SpriteUUID": "190bfa7b-e07d-4777-b6d4-795375fdafc3",
+            "TextureUUID": "6c68360f-1518-4664-ac3f-27c53987e9b2"
+        },
+        {
+            "Path": "SceneWorldIcon.png",
+            "SpriteUUID": "b60fdca3-84ad-4122-a83c-dae0b82d35f3",
+            "TextureUUID": "9c9b5f6f-2262-4356-a868-1c37299e8192"
+        },
+        {
+            "Path": "SceneWorldIconOn.png",
+            "SpriteUUID": "8f0e1b8e-e812-4a4f-b7e0-6e196d684118",
+            "TextureUUID": "ca37588d-bb29-4b54-ac0c-90451f60b29c"
+        },
+        {
+            "Path": "ShaderIcon.psd",
+            "TextureUUID16": "b2a6fce9-ce31-4937-aa93-d0787f3ebe96",
+            "TextureUUID32": "3b74f82a-0912-4bbe-b76e-4d54bf1d10a5",
+            "TextureUUID48": "50cb20b3-a12e-41b2-a4d8-a6f4882771c2",
+            "TextureUUID": "8b3a5e66-ef97-43e5-a741-7946be48ae36",
+			"SpriteUUID16": "01a29796-9c16-4a9e-bf70-6e531676a3ab",
+			"SpriteUUID32": "7a4a3d00-0e58-4364-bcaa-76106e1757b0",
+			"SpriteUUID48": "ca322b9c-4c6f-4e62-913f-4e863b19c67d",
+			"SpriteUUID": "bfc4908c-02b0-4b0a-9903-84cccc111be2"
+        },		
+        {
+            "Path": "ShaderIncludeIcon.psd",
+            "TextureUUID16": "85678abe-dd29-4902-b909-a97f4b8ed1cf",
+            "TextureUUID32": "4d2fc1f4-22a6-4574-86cc-072e3a95cf79",
+            "TextureUUID48": "c76cde6b-9cc6-4012-bb4f-ae9490574cd4",
+            "TextureUUID": "d3d5d82b-acea-414d-9164-93d4908a1335",
+			"SpriteUUID16": "2926aab8-9fff-4b25-a7aa-303373b1f67a",
+			"SpriteUUID32": "ee308d68-5382-4019-be2c-2c55a77db6e8",
+			"SpriteUUID48": "0c9195cc-1a86-46c9-a623-518a18e3e445",
+			"SpriteUUID": "561d2b26-e66b-483a-9644-be4929117f6b"
+        },
+		{
+            "Path": "SpriteIcon.psd",
+            "TextureUUID16": "c0cb69a4-ea76-4ed5-9c4d-950a2155710e",
+            "TextureUUID32": "9e33c29f-3c84-4d5c-a2c2-9ecca6dac5bf",
+            "TextureUUID48": "3e119aea-cbb2-4c67-bc3d-3c7a77fcc0c9",
+            "TextureUUID": "56a7fd79-fd46-47fc-b291-8ad3d6faa70d",
+			"SpriteUUID16": "17402ef0-028d-429a-be20-aed7ca9b1a30",
+			"SpriteUUID32": "3e4bb98f-970e-463f-bc79-35fd6f90d52e",
+			"SpriteUUID48": "a6439cb8-3045-46f8-aee1-0890ab81a03b",
+			"SpriteUUID": "3c75be8e-a880-491d-bfef-9c0b07959a44"
+        },
+        {
+            "Path": "TextIcon.psd",
+            "TextureUUID16": "31036eb4-8e0e-4cf9-94e5-ca80c615b60e",
+            "TextureUUID32": "baf44ef2-8e83-4e86-986e-5120d1936280",
+            "TextureUUID48": "7a525b03-d6d1-4dcc-a55f-3e30019aa544",
+            "TextureUUID": "36ca6e3f-e2b0-44ea-a9e9-7d1dc91336c1",
+			"SpriteUUID16": "d8a33087-d6c3-4a52-9456-e7aaa6852af1",
+			"SpriteUUID32": "a7afbd1e-ba85-4483-ae6f-74d2c1a62154",
+			"SpriteUUID48": "4651d402-c81d-451f-a13e-2c6f596e1baa",
+			"SpriteUUID": "2cc85890-3628-40bf-b513-930041eedfe6"
+        },
+        {
+            "Path": "TextureIcon.psd",
+            "TextureUUID16": "a74ff1aa-4e55-4d04-9679-e630ccdbbee5",
+            "TextureUUID32": "c437c3f2-9a81-43bd-9153-088970fc682b",
+            "TextureUUID48": "fc0d890e-7e40-45a8-9de8-18116fd0a628",
+            "TextureUUID": "b77bf4f2-311f-4e35-8aee-01b58a7a067a",
+			"SpriteUUID16": "52e61128-1261-46cc-9efc-5af822a18793",
+			"SpriteUUID32": "7cf5d7a9-0579-44bc-b846-bbf16f259c55",
+			"SpriteUUID48": "ca201c4b-fd53-4764-8a25-98f29e7a2175",
+			"SpriteUUID": "e1dd0f3f-d998-45da-a83d-c7d202142e67"
+        },		
+        {
+            "Path": "ToolbarNewCameraIcon.png",
+            "SpriteUUID": "beab335e-a2c8-4d75-acb9-9dc824b94283",
+            "TextureUUID": "ba7be98f-e373-444a-9ebe-dc3dbba03815"
+        },
+        {
+            "Path": "ToolbarNewConeIcon.png",
+            "SpriteUUID": "ac7a395e-9d35-4721-98f9-246bd12c880b",
+            "TextureUUID": "3bd109f6-416d-4fd2-b148-a96d09e2cad4"
+        },
+        {
+            "Path": "ToolbarNewCSScriptIcon.png",
+            "SpriteUUID": "ab5fefb8-ea2b-4018-8c06-0297fdd4361b",
+            "TextureUUID": "03236f86-bff2-4de1-9145-3f535553d520"
+        },
+        {
+            "Path": "ToolbarNewCubeIcon.png",
+            "SpriteUUID": "335e4ab9-2b98-4f1f-b776-58cfc74e0782",
+            "TextureUUID": "1ee3365e-6721-405c-99bd-4aeb402a4a9e"
+        },
+        {
+            "Path": "ToolbarNewDirectionalLightIcon.png",
+            "SpriteUUID": "b4b3e0b9-5e37-44dc-945c-153fadc72903",
+            "TextureUUID": "59011175-c729-4ff8-9fd3-20bcc6f8cc6c"
+        },
+        {
+            "Path": "ToolbarNewMaterialIcon.png",
+            "SpriteUUID": "2d1310d8-f3f4-49b9-b6e3-a917e27ef775",
+            "TextureUUID": "519eac72-cf1f-4c8c-810f-dc2fc092363f"
+        },
+        {
+            "Path": "ToolbarNewPointLightIcon.png",
+            "SpriteUUID": "65a026bb-4dd3-48bc-adc4-a2648270b656",
+            "TextureUUID": "224a5dd8-de6e-4d35-8d94-156250110dfe"
+        },
+        {
+            "Path": "ToolbarNewQuadIcon.png",
+            "SpriteUUID": "b017a5c2-f88b-4331-b81a-e62eaa1b8c73",
+            "TextureUUID": "132c5e62-407e-465e-a19b-50952c6dbd43"
+        },
+        {
+            "Path": "ToolbarNewRenderableIcon.png",
+            "SpriteUUID": "270c1692-d145-4575-989f-5f044125e268",
+            "TextureUUID": "dceb5b0d-a175-4143-a95e-3833292bc134"
+        },
+        {
+            "Path": "ToolbarNewSceneObjectIcon.png",
+            "SpriteUUID": "5014b14b-bd40-46e5-8897-7e526db0f5fd",
+            "TextureUUID": "9d93ed61-cf96-4eaf-8d6b-d3b67deac31b"
+        },
+        {
+            "Path": "ToolbarNewShaderIcon.png",
+            "SpriteUUID": "0d4cb336-4abc-4453-b803-cdb2bc99fc74",
+            "TextureUUID": "3b0feb1e-df82-42fc-bdc2-7d4a7241ff08"
+        },
+        {
+            "Path": "ToolbarNewSphereIcon.png",
+            "SpriteUUID": "327aefd8-1108-454c-8755-91069e3e25a7",
+            "TextureUUID": "0e4e7fb6-135a-488f-aabc-0ac6c069bc87"
+        },
+        {
+            "Path": "ToolbarNewSpotLightIcon.png",
+            "SpriteUUID": "0991428b-59a6-436d-8bf9-4a8f9acc7afa",
+            "TextureUUID": "e57afd4b-0117-4f2a-b09c-64642909befc"
+        },
+        {
+            "Path": "ToolbarNewSpriteTextureIcon.png",
+            "SpriteUUID": "58321af8-34f7-4132-b941-3de27961a591",
+            "TextureUUID": "c2471b3d-c701-49c7-b2ce-c225f239445a"
+        },
+        {
+            "Path": "ToolbarOpenProjectIcon.png",
+            "SpriteUUID": "c5050fc9-04cc-4173-8fc9-5324255ba0b0",
+            "TextureUUID": "df9dbde7-f7ab-4d4f-8d9c-093690f86be9"
+        },
+        {
+            "Path": "ToolbarPauseIcon.png",
+            "SpriteUUID": "dab9feef-e909-4ef1-adb5-5c9808654898",
+            "TextureUUID": "8f69c591-6831-4eb0-a555-b1fd0da9f5d5"
+        },
+        {
+            "Path": "ToolbarPlayIcon.png",
+            "SpriteUUID": "8087c8f9-d3c7-436b-9748-a9de7118a787",
+            "TextureUUID": "e3b3e172-53da-4253-a739-e688bd7aa943"
+        },
+        {
+            "Path": "ToolbarRedoIcon.png",
+            "SpriteUUID": "0b2b0c17-e4cb-48da-8861-ed837da5ba71",
+            "TextureUUID": "55115510-def4-4561-bb17-609bb21f77d3"
+        },
+        {
+            "Path": "ToolbarSaveProjectIcon.png",
+            "SpriteUUID": "9a1fc2de-436e-4a1f-977a-be48f6c2d542",
+            "TextureUUID": "867aeeb1-aeb3-4d91-9450-f8c380f39a76"
+        },
+        {
+            "Path": "ToolbarSaveSceneIcon.png",
+            "SpriteUUID": "25316a9c-e128-4f55-a9dc-f31254438215",
+            "TextureUUID": "dd7c1085-1099-4917-89c6-27d9173146d7"
+        },
+        {
+            "Path": "ToolbarStepIcon.png",
+            "SpriteUUID": "ea06e324-12b7-4e48-8f55-6c7260234038",
+            "TextureUUID": "c37371ee-f092-46cd-9901-c1a0e08e709a"
+        },
+        {
+            "Path": "ToolbarUndoIcon.png",
+            "SpriteUUID": "5b174926-e61a-4680-b0e4-008fd71a3e6a",
+            "TextureUUID": "dd3facf2-f9ef-4e96-a5a6-dd0fdeb1dfef"
+        },
+        {
+            "Path": "XBtnNormal.png",
+            "SpriteUUID": "55f42155-8714-4e8c-a575-4171db67185f",
+            "TextureUUID": "bace34a7-d92c-4a06-b1ae-637ea11a7ba7"
+        }
+    ]
+}

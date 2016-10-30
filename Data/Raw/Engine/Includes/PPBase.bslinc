@@ -1,0 +1,71 @@
+Technique : base("PPBase") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		DepthWrite = false;
+		DepthRead = false;
+	
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_POSITION;
+				float2 uv0 : TEXCOORD0;
+			};
+		};
+
+		Vertex =
+		{
+			struct VertexInput
+			{
+				float2 screenPos : POSITION;
+				float2 uv0 : TEXCOORD0;
+			};
+			
+			VStoFS main(VertexInput input)
+			{
+				VStoFS output;
+			
+				output.position = float4(input.screenPos, 0, 1);
+				output.uv0 = input.uv0;
+
+				return output;
+			}			
+		};
+	};
+};
+
+Technique : base("PPBase") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		DepthWrite = false;
+		DepthRead = false;
+	
+		Vertex =
+		{
+			in vec2 bs_position;
+			in vec2 bs_texcoord0;
+			
+			out VStoFS
+			{
+				vec2 uv0;
+			} VSOutput;
+			
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+		
+			void main()
+			{
+				gl_Position = vec4(bs_position, 0, 1);
+				VSOutput.uv0 = bs_texcoord0;
+			}			
+		};
+	};
+};

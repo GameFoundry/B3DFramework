@@ -1,0 +1,159 @@
+Parameters =
+{
+	mat4x4		matWorldViewProj;
+	
+	float		alphaCutoff;
+	float4		colorIndex;
+	
+	Sampler2D 	mainTexSamp : alias("mainTexture");
+	Texture2D 	mainTexture;	
+};
+
+Technique : base("PickingAlphaCull") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				in float3 inNorm : NORMAL,
+				in float2 uv : TEXCOORD0,
+				out float4 oPosition : SV_Position,
+				out float4 oNorm : NORMAL,
+				out float2 oUv : TEXCOORD0)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oNorm = float4(inNorm, 0);
+				oUv = uv;
+			}
+		};
+		
+		Fragment =
+		{
+			SamplerState mainTexSamp : register(s0);
+			Texture2D mainTexture : register(t0);
+
+			float4 colorIndex;
+			float alphaCutoff;
+
+			float4 main(
+				in float4 inPos : SV_Position,
+				in float4 inNorm : NORMAL,
+				in float2 uv : TEXCOORD0,
+				out float4 oNorm : SV_Target1) : SV_Target0
+			{
+				float4 color = mainTexture.Sample(mainTexSamp, uv);
+				oNorm = (inNorm + float4(1,1,1,0)) / 2;
+				if(color.a < alphaCutoff)
+					discard;
+				
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique : base("PickingAlphaCull") =
+{
+	Language = "HLSL9";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			float4x4 matWorldViewProj;
+
+			void main(
+				in float3 inPos : POSITION,
+				in float2 uv : TEXCOORD0,
+				out float4 oPosition : POSITION,
+				out float2 oUv : TEXCOORD0)
+			{
+				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oUv = uv;
+			}
+		};
+		
+		Fragment =
+		{
+			sampler2D mainTexture;
+
+			float4 colorIndex;
+			float alphaCutoff;
+
+			float4 main(
+				in float4 inPos : POSITION,
+				in float2 uv : TEXCOORD0) : COLOR0
+			{
+				float4 color = tex2D(mainTexture, uv);
+				if(color.a < alphaCutoff)
+					discard;
+				
+				return colorIndex;
+			}
+		};
+	};
+};
+
+Technique : base("PickingAlphaCull") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Scissor = true;
+
+		Vertex =
+		{
+			uniform mat4 matWorldViewProj;
+			in vec3 bs_position;
+			in vec2 bs_texcoord0;
+			in vec3 bs_normal;
+			out vec4 normal;
+			out vec2 texcoord0;
+
+			out gl_PerVertex
+			{
+				vec4 gl_Position;
+			};
+			
+			void main()
+			{
+				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
+				texcoord0 = bs_texcoord0;
+				normal = vec4(bs_normal, 0);
+			}
+		};
+		
+		Fragment =
+		{
+			in vec4 normal;
+			in vec2 texcoord0;		
+		
+			uniform sampler2D mainTexture;
+			uniform vec4 colorIndex;
+			uniform float alphaCutoff;
+
+			out vec4[2] outColor;
+
+			void main()
+			{
+				vec4 color = texture2D(mainTexture, texcoord0);
+				if(color.a < alphaCutoff)
+					discard;
+					
+				outColor[0] = colorIndex;
+				outColor[1] = (normal + vec4(1,1,1,0)) / 2;	
+			}
+		};
+	};
+};
