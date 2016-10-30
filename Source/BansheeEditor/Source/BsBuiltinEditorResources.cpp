@@ -39,6 +39,9 @@
 #include "BsResourceManifest.h"
 #include "BsDataStream.h"
 #include "BsGUITooltip.h"
+#include "BsBuiltinResourcesHelper.h"
+
+using json = nlohmann::json;
 
 namespace BansheeEngine
 {
@@ -64,6 +67,7 @@ namespace BansheeEngine
 
 	const WString BuiltinEditorResources::GUISkinFile = L"GUISkin";
 
+	const char* BuiltinEditorResources::DataListFile = "DataList.json";
 	const char* BuiltinEditorResources::ShaderFolder = "Shaders\\";
 	const char* BuiltinEditorResources::SkinFolder = "Skin\\";
 	const char* BuiltinEditorResources::IconFolder = "Icons\\";
@@ -391,117 +395,42 @@ namespace BansheeEngine
 	{
 		Resources::instance().unloadAllUnused();
 
-		BuiltinResourcesHelper::importAssets(EditorRawShaderIncludeFolder, EditorShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
-		BuiltinResourcesHelper::importAssets(EditorRawShaderFolder, EditorShaderFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(EditorRawSkinFolder, EditorSkinFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(EditorRawIconsFolder, EditorIconFolder, mResourceManifest);
+		// TODO - Update DataList.json if needed
 
-		// Generate different sizes of resource icons
-		generateResourceIcons(EditorIconFolder, mResourceManifest);
+		Path dataListsFilePath = BuiltinRawDataFolder + DataListFile;
+		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
+
+		json dataListJSON = json::parse(dataListStream->getAsString().c_str());
+
+		json skinJSON = dataListJSON["Skin"];
+		json iconsJSON = dataListJSON["Icons"];
+		json includesJSON = dataListJSON["Includes"];
+		json shadersJSON = dataListJSON["Shaders"];
+
+		BuiltinResourcesHelper::importAssets(iconsJSON, EditorRawIconsFolder, EditorIconFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
+		BuiltinResourcesHelper::importAssets(includesJSON, EditorRawShaderIncludeFolder, EditorShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
+		BuiltinResourcesHelper::importAssets(shadersJSON, EditorRawShaderFolder, EditorShaderFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(skinJSON, EditorRawSkinFolder, EditorSkinFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
 
 		// Import fonts
 		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
-			BuiltinDataFolder, { DefaultFontSize }, true, mResourceManifest);
+			BuiltinDataFolder, { DefaultFontSize }, true, "6ce69053-00d7-4c60-a229-249b8d8fd60e", mResourceManifest);
 
 		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultAAFontFilename, 
-			BuiltinDataFolder, { TitleFontSize }, true, mResourceManifest);
-
-		// Generate & save GUI sprite textures
-		BuiltinResourcesHelper::generateSpriteTextures(EditorSkinFolder, EditorSkinSpritesFolder, mResourceManifest);
-		BuiltinResourcesHelper::generateSpriteTextures(EditorIconFolder, EditorIconSpritesFolder, mResourceManifest);
+			BuiltinDataFolder, { TitleFontSize }, true, "10999b74-d976-4116-9f72-21e489a7a8e4", mResourceManifest);
 
 		// Generate & save GUI skin
 		{
 			SPtr<GUISkin> skin = generateGUISkin();
 			Path outputPath = BuiltinDataFolder + (GUISkinFile + L".asset");
 
-			HResource skinResource;
-			if (FileSystem::exists(outputPath))
-				skinResource = gResources().load(outputPath);
-
-			if (skinResource.isLoaded())
-				gResources().update(skinResource, skin);
-			else
-				skinResource = gResources()._createResourceHandle(skin);
+			HResource skinResource = gResources()._createResourceHandle(skin, "ec0ea68d-efa5-4a3b-a6fc-b15aaec9689f");
 
 			gResources().save(skinResource, outputPath, true);
 			mResourceManifest->registerResource(skinResource.getUUID(), outputPath);
 		}
 
 		Resources::instance().unloadAllUnused();
-	}
-
-	void BuiltinEditorResources::generateResourceIcons(const Path& inputFolder, const SPtr<ResourceManifest>& manifest)
-	{
-		if (!FileSystem::exists(inputFolder))
-			return;
-
-		WString iconsToProcess[] = { FolderIconTex, FontIconTex, MeshIconTex, TextureIconTex, PlainTextIconTex, 
-			ScriptCodeIconTex, ShaderIconTex, ShaderIncludeIconTex, MaterialIconTex, SpriteTextureIconTex, PrefabIconTex,
-			GUISkinIconTex, PhysicsMaterialIconTex, PhysicsMeshIconTex, AudioClipIconTex, AnimationClipIconTex };
-
-		SPtr<PixelData> srcData[sizeof(iconsToProcess)/sizeof(iconsToProcess[0])];
-
-		UINT32 idx = 0;
-		for (auto& iconName : iconsToProcess)
-		{
-			Path path = inputFolder + (iconName + L".asset");
-
-			HTexture source = gResources().load<Texture>(path);
-			if (source != nullptr)
-			{
-				srcData[idx] = source->getProperties().allocateSubresourceBuffer(0);
-				source->readSubresource(gCoreAccessor(), 0, srcData[idx]);
-			}
-
-			idx++;
-		}
-
-		gCoreAccessor().submitToCoreThread(true);
-
-		auto saveTexture = [&](auto& pixelData, auto& path)
-		{
-			if (FileSystem::exists(path))
-			{
-				HResource resource = gResources().load(path);
-
-				SPtr<Texture> texture = Texture::_createPtr(pixelData);
-				gResources().update(resource, texture);
-				Resources::instance().save(resource, path, true);
-				manifest->registerResource(resource.getUUID(), path);
-			}
-			else
-			{
-				HTexture texture = Texture::create(pixelData);
-				Resources::instance().save(texture, path, true);
-				manifest->registerResource(texture.getUUID(), path);
-			}
-		};
-
-		idx = 0;
-		for (auto& iconName : iconsToProcess)
-		{
-			SPtr<PixelData> src = srcData[idx];
-
-			SPtr<PixelData> scaled48 = PixelData::create(48, 48, 1, src->getFormat());
-			PixelUtil::scale(*src, *scaled48);
-
-			SPtr<PixelData> scaled32 = PixelData::create(32, 32, 1, src->getFormat());
-			PixelUtil::scale(*scaled48, *scaled32);
-
-			SPtr<PixelData> scaled16 = PixelData::create(16, 16, 1, src->getFormat());
-			PixelUtil::scale(*scaled32, *scaled16);
-
-			Path outputPath48 = inputFolder + (iconName + L"48.asset");
-			Path outputPath32 = inputFolder + (iconName + L"32.asset");
-			Path outputPath16 = inputFolder + (iconName + L"16.asset");
-
-			saveTexture(scaled48, outputPath48);
-			saveTexture(scaled32, outputPath32);
-			saveTexture(scaled16, outputPath16);
-					
-			idx++;
-		}
 	}
 
 	SPtr<GUISkin> BuiltinEditorResources::generateGUISkin()

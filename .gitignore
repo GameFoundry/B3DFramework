@@ -9,6 +9,11 @@ Dependencies
 Builds
 Data/Binaries
 Data/Settings.asset
+Data/Engine/*
+Data/Editor/*
+!Data/Editor/EmptyCSScriptText.txt
+!Data/Editor/EmptyShaderText.txt
+!Data/Editor/Layout.asset
 Documentation/html
 Build
 *.aps

@@ -126,6 +126,7 @@ set(BS_BANSHEEUTILITY_INC_ALLOCATORS
 
 set(BS_BANSHEEUTILITY_INC_THIRDPARTY
 	"Include/ThirdParty/md5.h"
+	"Include/ThirdParty/json.hpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_ERROR
