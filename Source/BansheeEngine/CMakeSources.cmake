@@ -14,6 +14,7 @@ set(BS_BANSHEEENGINE_SRC_RESOURCES
 	"Source/BsBuiltinResources.cpp"
 	"Source/BsEngineShaderIncludeHandler.cpp"
 	"Source/BsGameResourceManager.cpp"
+	"Source/BsBuiltinResourcesHelper.cpp"
 )
 
 set(BS_BANSHEEENGINE_SRC_SCRIPT
@@ -167,6 +168,7 @@ set(BS_BANSHEEENGINE_INC_RESOURCES
 	"Include/BsBuiltinResources.h"
 	"Include/BsEngineShaderIncludeHandler.h"
 	"Include/BsGameResourceManager.h"
+	"Include/BsBuiltinResourcesHelper.h"
 )
 
 set(BS_BANSHEEENGINE_SRC_COMPONENTS

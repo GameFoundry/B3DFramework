@@ -52,9 +52,7 @@ namespace BansheeEngine
 		return false;
 	}
 
-	
-
-	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const String& UUID)
 	{
 		if(!FileSystem::isFile(inputFilePath))
 		{
@@ -79,7 +77,11 @@ namespace BansheeEngine
 		}
 
 		SPtr<Resource> importedResource = importer->import(inputFilePath, importOptions);
-		return gResources()._createResourceHandle(importedResource);
+
+		if(UUID.empty())
+			return gResources()._createResourceHandle(importedResource);
+
+		return gResources()._createResourceHandle(importedResource, UUID);
 	}
 
 	Vector<SubResource> Importer::importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)

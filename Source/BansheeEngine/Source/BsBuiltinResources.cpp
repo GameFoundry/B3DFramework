@@ -10,7 +10,6 @@
 #include "BsTextSprite.h"
 #include "BsSpriteTexture.h"
 #include "BsFont.h"
-#include "BsFontImportOptions.h"
 #include "BsTexture.h"
 #include "BsImporter.h"
 #include "BsResources.h"
@@ -18,7 +17,6 @@
 #include "BsMaterial.h"
 #include "BsRTTIType.h"
 #include "BsFileSystem.h"
-#include "BsCoreApplication.h"
 #include "BsCoreThread.h"
 #include "BsDataStream.h"
 #include "BsResourceManifest.h"
@@ -28,8 +26,9 @@
 #include "BsGUITooltip.h"
 #include "BsFileSerializer.h"
 #include "BsTextureImportOptions.h"
-#include "BsShaderImportOptions.h"
-#include "BsRendererMaterialManager.h"
+#include "BsBuiltinResourcesHelper.h"
+
+using json = nlohmann::json;
 
 namespace BansheeEngine
 {
@@ -43,6 +42,7 @@ namespace BansheeEngine
 
 	const WString BuiltinResources::GUISkinFile = L"GUISkin";
 
+	const char* BuiltinResources::DataListFile = "DataList.json";
 	const char* BuiltinResources::CursorFolder = "Cursors\\";
 	const char* BuiltinResources::IconFolder = "Icons\\";
 	const char* BuiltinResources::ShaderFolder = "Shaders\\";
@@ -200,21 +200,12 @@ namespace BansheeEngine
 	{
 		// Set up paths
 		mBuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw\\Engine\\";
-		mEngineRawSkinFolder = mBuiltinRawDataFolder + SkinFolder;
-		mEngineRawCursorFolder = mBuiltinRawDataFolder + CursorFolder;
-		mEngineRawIconFolder = mBuiltinRawDataFolder + IconFolder;
-		mEngineRawShaderFolder = mBuiltinRawDataFolder + ShaderFolder;
-		mEngineRawShaderIncludeFolder = mBuiltinRawDataFolder + ShaderIncludeFolder;
 
 		mBuiltinDataFolder = Paths::getEngineDataPath();
-		mEngineSkinFolder = mBuiltinDataFolder + SkinFolder;
-		mEngineSkinSpritesFolder = mEngineSkinFolder + SpriteSubFolder;
-		mEngineCursorFolder = mBuiltinDataFolder + CursorFolder;
-		mEngineIconFolder = mBuiltinDataFolder + IconFolder;
+		mEngineSkinSpritesFolder = mBuiltinDataFolder + SkinFolder + SpriteSubFolder;
 		mEngineShaderFolder = mBuiltinDataFolder + ShaderFolder;
-		mEngineShaderIncludeFolder = mBuiltinDataFolder + ShaderIncludeFolder;
 		mEngineMeshFolder = mBuiltinDataFolder + MeshFolder;
-		mEngineTextureFolder = mBuiltinDataFolder + TextureFolder;
+		mEngineCursorFolder = mBuiltinDataFolder + CursorFolder;
 
 		ResourceManifestPath = mBuiltinDataFolder + "ResourceManifest.asset";
 
@@ -330,7 +321,7 @@ namespace BansheeEngine
 		/* 								ICON		                     		*/
 		/************************************************************************/
 
-		Path iconPath = mEngineIconFolder;
+		Path iconPath = mBuiltinDataFolder + IconFolder;
 		iconPath.append(IconTextureName + L".asset");
 
 		HTexture iconTex = gResources().load<Texture>(iconPath);
@@ -346,15 +337,38 @@ namespace BansheeEngine
 		// Hidden dependency: Textures need to be generated before shaders as they may use the default textures
 		generateTextures();
 
-		BuiltinResourcesHelper::importAssets(mEngineRawCursorFolder, mEngineCursorFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(mEngineRawIconFolder, mEngineIconFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(mEngineRawShaderIncludeFolder, mEngineShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
-		BuiltinResourcesHelper::importAssets(mEngineRawShaderFolder, mEngineShaderFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(mEngineRawSkinFolder, mEngineSkinFolder, mResourceManifest);
+		// TODO - Update DataList.json if needed
+
+		Path rawSkinFolder = mBuiltinRawDataFolder + SkinFolder;
+		Path rawCursorFolder = mBuiltinRawDataFolder + CursorFolder;
+		Path rawIconFolder = mBuiltinRawDataFolder + IconFolder;
+		Path rawShaderFolder = mBuiltinRawDataFolder + ShaderFolder;
+		Path rawShaderIncludeFolder = mBuiltinRawDataFolder + ShaderIncludeFolder;
+
+		Path skinFolder = mBuiltinDataFolder + SkinFolder;
+		Path iconFolder = mBuiltinDataFolder + IconFolder;
+		Path shaderIncludeFolder = mBuiltinDataFolder + ShaderIncludeFolder;
+
+		Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
+		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
+
+		json dataListJSON = json::parse(dataListStream->getAsString().c_str());
+
+		json skinJSON = dataListJSON["Skin"];
+		json cursorsJSON = dataListJSON["Cursors"];
+		json iconsJSON = dataListJSON["Icons"];
+		json includesJSON = dataListJSON["Includes"];
+		json shadersJSON = dataListJSON["Shaders"];
+
+		BuiltinResourcesHelper::importAssets(cursorsJSON, rawCursorFolder, mEngineCursorFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(iconsJSON, rawIconFolder, iconFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(includesJSON, rawShaderIncludeFolder, shaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
+		BuiltinResourcesHelper::importAssets(shadersJSON, rawShaderFolder, mEngineShaderFolder, mResourceManifest);
+		BuiltinResourcesHelper::importAssets(skinJSON, rawSkinFolder, skinFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
 
 		// Import font
-		BuiltinResourcesHelper::importFont(mBuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, mBuiltinDataFolder,
-			{ DefaultFontSize }, false, mResourceManifest);
+		BuiltinResourcesHelper::importFont(mBuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
+			mBuiltinDataFolder, { DefaultFontSize }, false, "c9f08cab-f9c9-47c4-96e0-1066a8d4455b", mResourceManifest);
 
 		// Import splash screen
 		{
@@ -373,22 +387,12 @@ namespace BansheeEngine
 			fe.encode(splashPixelData.get());
 		}
 
-		// Generate & save GUI sprite textures
-		BuiltinResourcesHelper::generateSpriteTextures(mEngineSkinFolder, mEngineSkinSpritesFolder, mResourceManifest);
-
 		// Generate & save GUI skin
 		{
 			SPtr<GUISkin> skin = generateGUISkin();
 			Path outputPath = mBuiltinDataFolder + (GUISkinFile + L".asset");
 
-			HResource skinResource;
-			if (FileSystem::exists(outputPath))
-				skinResource = gResources().load(outputPath);
-
-			if (skinResource.isLoaded())
-				gResources().update(skinResource, skin);
-			else
-				skinResource = gResources()._createResourceHandle(skin);
+			HResource skinResource = gResources()._createResourceHandle(skin, "c1bf9a9d-4355-4841-a538-25e67730ec4b");
 
 			gResources().save(skinResource, outputPath, true);
 			mResourceManifest->registerResource(skinResource.getUUID(), outputPath);
@@ -830,6 +834,8 @@ namespace BansheeEngine
 
 	void BuiltinResources::generateTextures()
 	{
+		StringStream ss;
+
 		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
 		blackPixelData->setColorAt(Color::Black, 0, 0);
 		blackPixelData->setColorAt(Color::Black, 0, 1);
@@ -857,31 +863,24 @@ namespace BansheeEngine
 		SPtr<Texture> normalTexture = Texture::_createPtr(normalPixelData);
 
 		// Save all textures
-		Path outputDir = mEngineTextureFolder;
+		Path outputDir = mBuiltinDataFolder + TextureFolder;
 
-		auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture)
+		auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& UUID)
 		{
-			HResource textureResource;
-			if (FileSystem::exists(path))
-				textureResource = gResources().load(path);
-
-			if (textureResource.isLoaded())
-				gResources().update(textureResource, texture);
-			else
-				textureResource = gResources()._createResourceHandle(texture);
+			HResource textureResource = gResources()._createResourceHandle(texture, UUID);
 
 			gResources().save(textureResource, path, true);
 			mResourceManifest->registerResource(textureResource.getUUID(), path);
 		};
 
 		Path whitePath = outputDir + TextureWhiteFile;
-		saveTexture(whitePath, whiteTexture);
+		saveTexture(whitePath, whiteTexture, "1f7d0e3f-d81b-42ee-9d31-cb6c6fc55824");
 
 		Path blackPath = outputDir + TextureBlackFile;
-		saveTexture(blackPath, blackTexture);
+		saveTexture(blackPath, blackTexture, "149a5c05-9570-4915-9dbd-69acf88b865b");
 
 		Path normalPath = outputDir + TextureNormalFile;
-		saveTexture(normalPath, normalTexture);
+		saveTexture(normalPath, normalTexture, "afb29163-1ef0-4440-9cfb-c1ebb3b3d452");
 	}
 
 	void BuiltinResources::generateMeshes()
@@ -938,35 +937,28 @@ namespace BansheeEngine
 		// Save all meshes
 		Path outputDir = mEngineMeshFolder;
 
-		auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh)
+		auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& UUID)
 		{
-			HResource meshResource;
-			if (FileSystem::exists(path))
-				meshResource = gResources().load(path);
-			
-			if (meshResource.isLoaded())
-				gResources().update(meshResource, mesh);
-			else
-				meshResource = gResources()._createResourceHandle(mesh);
+			HResource meshResource = gResources()._createResourceHandle(mesh, UUID);
 
 			gResources().save(meshResource, path, true);
 			mResourceManifest->registerResource(meshResource.getUUID(), path);
 		};
 
 		Path boxPath = outputDir + MeshBoxFile;
-		saveMesh(boxPath, boxMesh);
+		saveMesh(boxPath, boxMesh, "bc1d20ca-7fe6-489b-8b5c-dbf798badc95");
 
 		Path spherePath = outputDir + MeshSphereFile;
-		saveMesh(spherePath, sphereMesh);
+		saveMesh(spherePath, sphereMesh, "040642f3-04d6-419e-9dba-f7824161c205");
 
 		Path conePath = outputDir + MeshConeFile;
-		saveMesh(conePath, coneMesh);
+		saveMesh(conePath, coneMesh, "b8cf6db5-1736-47ac-852f-82ecd88b4d46");
 
 		Path quadPath = outputDir + MeshQuadFile;
-		saveMesh(quadPath, quadMesh);
+		saveMesh(quadPath, quadMesh, "06592bf3-f82a-472e-a034-26a98225fbe1");
 
 		Path discPath = outputDir + MeshDiscFile;
-		saveMesh(discPath, discMesh);
+		saveMesh(discPath, discMesh, "6f496313-344a-495c-83e8-152e3053c52d");
 	}
 
 	HSpriteTexture BuiltinResources::getSkinTexture(const WString& name)
@@ -1153,256 +1145,5 @@ namespace BansheeEngine
 	HMaterial BuiltinResources::createSpriteLineMaterial() const
 	{
 		return Material::create(mShaderSpriteLine);
-	}
-
-	void BuiltinResourcesHelper::importAssets(const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest)
-	{
-		if (!FileSystem::exists(inputFolder))
-			return;
-
-		UnorderedSet<Path> outputAssets;
-		auto importResource = [&](const Path& filePath)
-		{
-			Vector<std::pair<Path, SPtr<ImportOptions>>> resourcesToSave;
-
-			{
-				Path relativePath = filePath.getRelative(inputFolder);
-				Path relativeAssetPath = relativePath;
-				relativeAssetPath.setFilename(relativeAssetPath.getWFilename() + L".asset");
-
-				SPtr<ImportOptions> importOptions = gImporter().createImportOptions(filePath);
-				if (importOptions != nullptr)
-				{
-					if (rtti_is_of_type<TextureImportOptions>(importOptions))
-					{
-						SPtr<TextureImportOptions> texImportOptions = std::static_pointer_cast<TextureImportOptions>(importOptions);
-						texImportOptions->setGenerateMipmaps(false);
-
-						resourcesToSave.push_back(std::make_pair(relativeAssetPath, texImportOptions));
-					}
-					else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
-					{
-						// Check if the shader is used for a renderer material, in which case generate different variations
-						// according to #defines (if any are specified).
-						Vector<ShaderDefines> variations = RendererMaterialManager::_getVariations(relativePath);
-
-						if(variations.size() == 0) // Not a renderer material or no variations, save normally
-						{
-							resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
-						}
-						else // Renderer material, save a copy for each variation
-						{
-							// Note: Renderer materials are returned in an undefined order, meaning that renderer materials
-							// will not properly persist references. But this should be okay since they are used only in low
-							// level systems.
-
-							UINT32 variationIdx = 0;
-							for(auto& variation : variations)
-							{
-								SPtr<ShaderImportOptions> shaderImportOptions = 
-									std::static_pointer_cast<ShaderImportOptions>(gImporter().createImportOptions(filePath));
-
-								shaderImportOptions->getDefines() = variation.getAll();
-
-								Path uniquePath = RendererMaterialManager::_getVariationPath(relativePath, variationIdx);
-								uniquePath.setFilename(uniquePath.getWFilename() + L".asset");
-								
-								resourcesToSave.push_back(std::make_pair(uniquePath, shaderImportOptions));
-								variationIdx++;
-							}
-						}
-					}
-					else
-						resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
-				}
-				else
-					resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
-			}
-
-			for(auto& entry : resourcesToSave)
-			{
-				Path outputPath = outputFolder + entry.first;;
-
-				HResource resource;
-				if (FileSystem::exists(outputPath))
-					resource = gResources().load(outputPath);
-
-				if (resource != nullptr)
-					gImporter().reimport(resource, filePath, entry.second);
-				else
-					resource = Importer::instance().import(filePath, entry.second);
-
-				if (resource != nullptr)
-				{
-					Resources::instance().save(resource, outputPath, true);
-					manifest->registerResource(resource.getUUID(), outputPath);
-
-					outputAssets.insert(outputPath);
-				}
-			}
-			
-			return true;
-		};
-
-		Vector<Path> obsoleteAssets;
-		auto gatherObsolete = [&](const Path& filePath)
-		{
-			auto iterFind = outputAssets.find(filePath);
-			if (iterFind == outputAssets.end())
-				obsoleteAssets.push_back(filePath);
-
-			return true;
-		};
-
-		FileSystem::iterate(inputFolder, importResource, nullptr, false);
-		FileSystem::iterate(outputFolder, gatherObsolete, nullptr, false);
-
-		for (auto& obsoleteAssetPath : obsoleteAssets)
-			FileSystem::remove(obsoleteAssetPath);
-	}
-
-	void BuiltinResourcesHelper::importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder,
-		const Vector<UINT32>& fontSizes, bool antialiasing, const SPtr<ResourceManifest>& manifest)
-	{
-		SPtr<ImportOptions> fontImportOptions = Importer::instance().createImportOptions(inputFile);
-		if (rtti_is_of_type<FontImportOptions>(fontImportOptions))
-		{
-			FontImportOptions* importOptions = static_cast<FontImportOptions*>(fontImportOptions.get());
-
-			importOptions->setFontSizes(fontSizes);
-			importOptions->setRenderMode(antialiasing ? FontRenderMode::HintedSmooth : FontRenderMode::HintedRaster);
-		}
-		else
-			return;
-
-		HFont font = Importer::instance().import<Font>(inputFile, fontImportOptions);
-
-		WString fontName = outputName;
-		Path outputPath = outputFolder + fontName;
-		outputPath.setFilename(outputPath.getWFilename() + L".asset");
-
-		Resources::instance().save(font, outputPath, true);
-		manifest->registerResource(font.getUUID(), outputPath);
-
-		// Save font texture pages as well. TODO - Later maybe figure out a more automatic way to do this
-		for (auto& size : fontSizes)
-		{
-			SPtr<const FontBitmap> fontData = font->getBitmap(size);
-
-			Path texPageOutputPath = outputFolder;
-
-			UINT32 pageIdx = 0;
-			for (auto tex : fontData->texturePages)
-			{
-				texPageOutputPath.setFilename(fontName + L"_" + toWString(size) + L"_texpage_" + 
-					toWString(pageIdx) + L".asset");
-
-				Resources::instance().save(tex, texPageOutputPath, true);
-				manifest->registerResource(tex.getUUID(), texPageOutputPath);
-			}
-		}
-	}
-
-	void BuiltinResourcesHelper::generateSpriteTextures(const Path& input, const Path& output, 
-		const SPtr<ResourceManifest>& manifest)
-	{
-		if (!FileSystem::exists(input))
-			return;
-
-		Vector<Path> filesToProcess;
-		auto gather = [&](const Path& filePath)
-		{
-			filesToProcess.push_back(filePath);
-
-			return true;
-		};
-
-		FileSystem::iterate(input, gather, nullptr, false);
-
-		UnorderedSet<Path> outputAssets;
-		for (auto& filePath : filesToProcess)
-		{
-			Path relativePath = filePath.getRelative(input);
-			Path outputPath = output + relativePath;
-
-			outputPath.setFilename(L"sprite_" + filePath.getWFilename());
-
-			HTexture source = gResources().load<Texture>(filePath);
-
-			if (source != nullptr)
-			{
-				HResource resource;
-				if (FileSystem::exists(outputPath))
-				{
-					resource = gResources().load(outputPath);
-					SPtr<SpriteTexture> spriteTex = SpriteTexture::_createPtr(source);
-
-					gResources().update(resource, spriteTex);
-					Resources::instance().save(resource, outputPath, true);
-					manifest->registerResource(resource.getUUID(), outputPath);
-				}
-				else
-				{
-					HSpriteTexture spriteTex = SpriteTexture::create(source);
-					Resources::instance().save(spriteTex, outputPath, true);
-					manifest->registerResource(spriteTex.getUUID(), outputPath);
-				}
-
-				outputAssets.insert(outputPath);
-			}
-		}
-
-		Vector<Path> obsoleteAssets;
-		auto gatherObsolete = [&](const Path& filePath)
-		{
-			auto iterFind = outputAssets.find(filePath);
-			if (iterFind == outputAssets.end())
-				obsoleteAssets.push_back(filePath);
-
-			return true;
-		};
-
-		FileSystem::iterate(output, gatherObsolete, nullptr, false);
-
-		for (auto& obsoleteAssetPath : obsoleteAssets)
-			FileSystem::remove(obsoleteAssetPath);
-	}
-
-	void BuiltinResourcesHelper::writeTimestamp(const Path& file)
-	{
-		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(file);
-
-		time_t currentTime = std::time(nullptr);
-		fileStream->write(&currentTime, sizeof(currentTime));
-		fileStream->close();
-	}
-
-	bool BuiltinResourcesHelper::checkForModifications(const Path& folder, const Path& timeStampFile)
-	{
-		if (!FileSystem::exists(timeStampFile))
-			return true;
-
-		SPtr<DataStream> fileStream = FileSystem::openFile(timeStampFile);
-		time_t lastUpdateTime = 0;
-		fileStream->read(&lastUpdateTime, sizeof(lastUpdateTime));
-		fileStream->close();
-
-		bool upToDate = true;
-		auto checkUpToDate = [&](const Path& filePath)
-		{
-			time_t fileLastModified = FileSystem::getLastModifiedTime(filePath);
-
-			if (fileLastModified > lastUpdateTime)
-			{
-				upToDate = false;
-				return false;
-			}
-
-			return true;
-		};
-
-		FileSystem::iterate(folder, checkUpToDate, checkUpToDate);
-
-		return !upToDate;
 	}
 }

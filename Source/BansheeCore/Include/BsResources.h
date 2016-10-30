@@ -289,6 +289,13 @@ namespace BansheeEngine
 		 */
 		HResource _createResourceHandle(const SPtr<Resource>& obj);
 
+		/**
+		 * Creates a new resource handle from a resource pointer, with a user defined UUID. 
+		 *
+		 * @note	Internal method used primarily be resource factory methods.
+		 */
+		HResource _createResourceHandle(const SPtr<Resource>& obj, const String& UUID);
+
 		/** Returns an existing handle for the specified UUID if one exists, or creates a new one. */
 		HResource _getResourceHandle(const String& uuid);
 

@@ -37,17 +37,21 @@ namespace BansheeEngine
 		 * @param[in]	inputFilePath	Pathname of the input file.
 		 * @param[in]	importOptions	(optional) Options for controlling the import. Caller must ensure import options 
 		 *								actually match the type of the importer used for the file type.
+		 * @param[in]	UUID			Specific UUID to assign to the resource. If not specified a randomly generated
+		 *								UUID will be assigned.
 		 * @return						Imported resource.
 		 *
 		 * @see		createImportOptions
 		 */
-		HResource import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		HResource import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+			const String& UUID = StringUtil::BLANK);
 
 		/** @copydoc import */
 		template <class T>
-		ResourceHandle<T> import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr)
+		ResourceHandle<T> import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+			const String& UUID = StringUtil::BLANK)
 		{
-			return static_resource_cast<T>(import(inputFilePath, importOptions));
+			return static_resource_cast<T>(import(inputFilePath, importOptions, UUID));
 		}
 
 		/**

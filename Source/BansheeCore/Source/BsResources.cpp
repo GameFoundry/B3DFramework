@@ -639,16 +639,21 @@ namespace BansheeEngine
 	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj)
 	{
 		String uuid = UUIDGenerator::generateRandom();
-		HResource newHandle(obj, uuid);
+		return _createResourceHandle(obj, uuid);
+	}
+
+	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj, const String& UUID)
+	{
+		HResource newHandle(obj, UUID);
 
 		{
 			Lock lock(mLoadedResourceMutex);
 
-			LoadedResourceData& resData = mLoadedResources[uuid];
+			LoadedResourceData& resData = mLoadedResources[UUID];
 			resData.resource = newHandle.getWeak();
-			mHandles[uuid] = newHandle.getWeak();
+			mHandles[UUID] = newHandle.getWeak();
 		}
-	
+
 		return newHandle;
 	}
 

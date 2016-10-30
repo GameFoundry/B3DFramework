@@ -184,24 +184,15 @@ namespace BansheeEngine
 		SPtr<ResourceManifest> mResourceManifest;
 
 		Path mBuiltinRawDataFolder;
-		Path mEngineRawCursorFolder;
-		Path mEngineRawIconFolder;
-		Path mEngineRawShaderFolder;
-		Path mEngineRawShaderIncludeFolder;
-		Path mEngineRawSkinFolder;
-
 		Path mBuiltinDataFolder;
-		Path mEngineSkinFolder;
 		Path mEngineSkinSpritesFolder;
-		Path mEngineCursorFolder;
-		Path mEngineIconFolder;
 		Path mEngineShaderFolder;
-		Path mEngineShaderIncludeFolder;
 		Path mEngineMeshFolder;
-		Path mEngineTextureFolder;
+		Path mEngineCursorFolder;
 
 		Path ResourceManifestPath;
 
+		static const char* DataListFile;
 		static const char* CursorFolder;
 		static const char* IconFolder;
 		static const char* ShaderFolder;
@@ -320,44 +311,6 @@ namespace BansheeEngine
 		static const WString TextureWhiteFile;
 		static const WString TextureBlackFile;
 		static const WString TextureNormalFile;
-	};
-
-	/** @} */
-	/** @addtogroup Resources-Engine-Internal
-	 *  @{
-	 */
-
-	/**	Provides various methods commonly used for managing builtin resources. */
-	class BS_EXPORT BuiltinResourcesHelper
-	{
-	public:
-		/**
-		 * Imports all recognized assets in the specified folder and saves them to the specified output folder. All saved
-		 * resources are registered in the provided resource manifest.
-		 */
-		static void importAssets(const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest);
-
-		/**
-		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
-		 * are registered in the provided resource manifest.
-		 */
-		static void importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder, 
-			const Vector<UINT32>& fontSizes, bool antialiasing, const SPtr<ResourceManifest>& manifest);
-
-		/**
-		 * Generates sprite textures for all texture assets in the @p input folder. Results are written in the @p output
-		 * folder with a "sprite_" prefix. All saved resources are registered in the provided resource manifest.
-		 */
-		static void generateSpriteTextures(const Path& input, const Path& output, const SPtr<ResourceManifest>& manifest);
-
-		/** Writes a timestamp with the current date and time in the specified file. */
-		static void writeTimestamp(const Path& file);
-
-		/**
-		 * Checks all files in the specified folder for modifications compared to the time stored in the timestamp file. 
-		 * Timestamp file must have been saved using writeTimestamp().
-		 */
-		static bool checkForModifications(const Path& folder, const Path& timeStampFile);
 	};
 
 	/** @} */
