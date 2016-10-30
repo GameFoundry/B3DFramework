@@ -59,8 +59,6 @@ namespace BansheeEngine
 		 * not receive mouse events. Therefore we delay the window closing until the drag ends.
 		 */
 		void closeWindowDelayed();
-
-
 	};
 
 	/** @} */

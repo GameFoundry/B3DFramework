@@ -204,13 +204,10 @@ namespace BansheeEngine
 
 	void ScriptEditorWindow::internal_setActive(ScriptEditorWindow* thisPtr, bool active)
 	{
-		//check and see if the window is destroyed before setting it to active
 		if (!thisPtr->isDestroyed())
 		{
 			if (active)
-			{
 				thisPtr->getEditorWidget()->setActive(); 
-			}	
 		}
 	}
 

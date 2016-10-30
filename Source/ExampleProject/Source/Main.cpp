@@ -143,7 +143,6 @@ namespace BansheeEngine
 		HTexture exampleTexture;
 		HShader exampleShader;
 		
-
 		loadAssets(exampleModel, exampleTexture, exampleShader);
 		HMaterial exampleMaterial = createMaterial(exampleTexture, exampleShader);
 
