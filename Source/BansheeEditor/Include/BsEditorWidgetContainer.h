@@ -47,6 +47,14 @@ namespace BansheeEngine
 		 */
 		void setPosition(INT32 x, INT32 y);
 
+		/**
+		* Changes the currently active widget to the one at the specified index. Making the widget active means it will be
+		* visible in the container.
+		*
+		* @param[in]	idx		Unique widget index (not sequential).
+		*/
+		void setActiveWidget(UINT32 idx);
+
 		/**	Returns the number of widgets currently docked in this container. */
 		UINT32 getNumWidgets() const { return (UINT32)mWidgets.size(); }
 
@@ -101,14 +109,6 @@ namespace BansheeEngine
 	private:
 		/**	Removes a widget without triggering a widget closed event. */
 		void removeInternal(EditorWidgetBase& widget);
-
-		/**
-		 * Changes the currently active widget to the one at the specified index. Making the widget active means it will be
-		 * visible in the container.
-		 *
-		 * @param[in]	idx		Unique widget index (not sequential).
-		 */
-		void setActiveWidget(UINT32 idx);
 
 		/**
 		 * Triggered when a user clicks on a tab in the tabbed title bar.

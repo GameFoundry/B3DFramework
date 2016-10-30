@@ -45,6 +45,20 @@ namespace BansheeEditor
         [ToolbarItem("Play", ToolbarIcon.Play, "Play", 1800, true)]
         private static void Play()
         {
+            GameWindow gameWindow = GetWindow<GameWindow>();
+            SceneWindow sceneWindow = GetWindow<SceneWindow>();
+
+            if (!EditorApplication.IsPlaying)
+            {
+                gameWindow.Active = true;
+                gameWindow.HasFocus = true;
+            }
+            else
+            {
+                sceneWindow.Active = true;
+                sceneWindow.HasFocus = true;
+            }
+
             if (EditorApplication.IsPaused)
                 EditorApplication.IsPaused = false;
             else

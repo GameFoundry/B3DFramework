@@ -60,6 +60,7 @@ namespace BansheeEngine
 		metaData.scriptClass->addInternalCall("Internal_GetBounds", &ScriptEditorWindow::internal_getBounds);
 		metaData.scriptClass->addInternalCall("Internal_SetFocus", &ScriptEditorWindow::internal_setFocus);
 		metaData.scriptClass->addInternalCall("Internal_HasFocus", &ScriptEditorWindow::internal_hasFocus);
+		metaData.scriptClass->addInternalCall("Internal_SetActive", &ScriptEditorWindow::internal_setActive);
 		metaData.scriptClass->addInternalCall("Internal_IsActive", &ScriptEditorWindow::internal_isActive);
 		metaData.scriptClass->addInternalCall("Internal_IsPointerHovering", &ScriptEditorWindow::internal_isPointerHovering);
 		metaData.scriptClass->addInternalCall("Internal_ScreenToWindowPos", &ScriptEditorWindow::internal_screenToWindowPos);
@@ -199,6 +200,15 @@ namespace BansheeEngine
 			return thisPtr->getEditorWidget()->hasFocus();
 		else
 			return false;
+	}
+
+	void ScriptEditorWindow::internal_setActive(ScriptEditorWindow* thisPtr, bool active)
+	{
+		if (!thisPtr->isDestroyed())
+		{
+			if (active)
+				thisPtr->getEditorWidget()->setActive(); 
+		}
 	}
 
 	bool ScriptEditorWindow::internal_isActive(ScriptEditorWindow* thisPtr)

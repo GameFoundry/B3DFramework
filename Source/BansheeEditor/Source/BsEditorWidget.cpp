@@ -54,6 +54,15 @@ namespace BansheeEngine
 		_setHasFocus(focus);
 	}
 
+	void EditorWidgetBase::setActive()
+	{
+		EditorWidgetContainer* parentContainer = _getParent();
+		if (parentContainer == nullptr)
+			return;
+
+		parentContainer->setActiveWidget(mIndex);
+	}
+
 	void EditorWidgetBase::close()
 	{
 		EditorWidgetManager::instance().close(this);
@@ -152,7 +161,7 @@ namespace BansheeEngine
 	}
 
 	// Note: Must not be virtual as parent container uses it in constructor
-	void EditorWidgetBase::_changeParent(EditorWidgetContainer* parent)
+	void EditorWidgetBase::_changeParent(EditorWidgetContainer* parent, UINT32 indx)
 	{
 		if(mParent != parent) 
 		{
@@ -170,6 +179,7 @@ namespace BansheeEngine
 			}
 
 			mParent = parent;
+			mIndex = indx;
 
 			doOnParentChanged();
 

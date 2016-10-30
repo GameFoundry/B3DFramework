@@ -90,7 +90,7 @@ namespace BansheeEngine
 
 		mWidgets.erase((UINT32)tabIdx);
 		mTitleBar->removeTab((UINT32)tabIdx);
-		widget._changeParent(nullptr);
+		widget._changeParent(nullptr, 0);
 
 		if(tabIdx == mActiveWidget)
 		{
@@ -111,7 +111,7 @@ namespace BansheeEngine
 
 		UINT32 tabIdx = mTitleBar->insertTab(idx, widget.getDisplayName());
 		mWidgets[tabIdx] = &widget;
-		widget._changeParent(this);
+		widget._changeParent(this, tabIdx);
 
 		if(mActiveWidget == -1)
 			setActiveWidget(mTitleBar->getTabIdx(mTitleBar->getNumTabs() - 1));
@@ -152,7 +152,7 @@ namespace BansheeEngine
 		if (mActiveWidget >= 0)
 		{
 			auto iterFind = mWidgets.find(mActiveWidget);
-
+			
 			if (iterFind != mWidgets.end())
 				return iterFind->second;
 		}
