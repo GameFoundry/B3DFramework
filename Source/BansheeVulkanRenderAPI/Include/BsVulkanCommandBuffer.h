@@ -76,6 +76,9 @@ namespace BansheeEngine
 		/** Returns an unique identifier of this command buffer. */
 		UINT32 getId() const { return mId; }
 
+		/** Returns the index of the queue family this command buffer is executing on. */
+		UINT32 getQueueFamily() const { return mQueueFamily; }
+
 		/** Makes the command buffer ready to start recording commands. */
 		void begin();
 

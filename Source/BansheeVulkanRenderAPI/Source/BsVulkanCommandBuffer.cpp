@@ -214,7 +214,7 @@ namespace BansheeEngine
 				mFenceCounter++;
 
 				for (auto& entry : mResources)
-					entry.first->notifyDone();
+					entry.first->notifyDone(this);
 
 				mResources.clear();
 			}
@@ -233,7 +233,7 @@ namespace BansheeEngine
 		// TODO - Issue pipeline barrier for resources transitioning to a new queue family
 
 		for (auto& entry : mResources)
-			entry.first->notifyUsed(*this, entry.second.flags);
+			entry.first->notifyUsed(this, entry.second.flags);
 	}
 
 	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, GpuQueueType type, UINT32 deviceIdx,
