@@ -4,7 +4,7 @@
 
 namespace BansheeEngine
 {
-	SPtr<CommandBuffer> CommandBufferManager::create(CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx,
+	SPtr<CommandBuffer> CommandBufferManager::create(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
 		bool secondary)
 	{
 		assert(deviceIdx < BS_MAX_DEVICES);

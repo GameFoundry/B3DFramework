@@ -23,6 +23,9 @@ namespace BansheeEngine
 		/** Returns a combined mask that contains all the required dependencies. */
 		UINT32 getMask() const { return mMask; }
 
+		/** Uses the queue type and index to generate a global queue index. */
+		static UINT32 getGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx);
+
 	private:
 		UINT32 mMask = 0;
 	};
@@ -56,8 +59,14 @@ namespace BansheeEngine
 		 * @note The parallelism provided by @p queueIdx is parallelism on the GPU itself, it has nothing to do with CPU
 		 *		 parallelism or threads.
 		 */
-		static SPtr<CommandBuffer> create(CommandBufferType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0, 
+		static SPtr<CommandBuffer> create(GpuQueueType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
 			bool secondary = false);
+
+		/** Returns the type of queue the command buffer will execute on. */
+		GpuQueueType getType() const { return mType; }
+
+		/** Returns the index of the queue the command buffer will execute on. */
+		UINT32 getQueueIdx() const { return mQueueIdx; }
 
 		/** @name Internal
 		 *  @{
@@ -68,10 +77,10 @@ namespace BansheeEngine
 
 		/** @} */
 	protected:
-		CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
+		CommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
 		UINT32 mId;
-		CommandBufferType mType;
+		GpuQueueType mType;
 		UINT32 mDeviceIdx;
 		UINT32 mQueueIdx;
 		bool mIsSecondary;

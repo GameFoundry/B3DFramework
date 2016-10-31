@@ -4,7 +4,7 @@
 
 namespace BansheeEngine
 {
-	D3D11CommandBuffer::D3D11CommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
+	D3D11CommandBuffer::D3D11CommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
 		: CommandBuffer(id, type, deviceIdx, queueIdx, secondary), mActiveDrawOp(DOT_TRIANGLE_LIST)
 	{
 		if (deviceIdx != 0)

@@ -5,7 +5,7 @@
 
 namespace BansheeEngine
 {
-	SPtr<CommandBuffer> D3D11CommandBufferManager::createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx, 
+	SPtr<CommandBuffer> D3D11CommandBufferManager::createInternal(UINT32 id, GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
 	{
 		CommandBuffer* buffer = new (bs_alloc<D3D11CommandBuffer>()) D3D11CommandBuffer(id, type, deviceIdx, queueIdx, secondary);

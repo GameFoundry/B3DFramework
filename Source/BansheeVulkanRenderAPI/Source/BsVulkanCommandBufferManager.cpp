@@ -15,7 +15,7 @@ namespace BansheeEngine
 		
 	}
 
-	SPtr<CommandBuffer> VulkanCommandBufferManager::createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx, 
+	SPtr<CommandBuffer> VulkanCommandBufferManager::createInternal(UINT32 id, GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
 	{
 		UINT32 numDevices = mRapi._getNumDevices();
@@ -43,13 +43,15 @@ namespace BansheeEngine
 		UINT32 semaphoreIdx = 0;
 		for (UINT32 i = 0; i < BS_MAX_COMMAND_BUFFERS; i++)
 		{
-			if ((syncMask & (1 << i)) == 0) // We don't care about the command buffer
-				continue;
-
 			if (mActiveCommandBuffers[deviceIdx][i] == nullptr) // Command buffer doesn't exist
 				continue;
 
 			VulkanCommandBuffer* cmdBuffer = static_cast<VulkanCommandBuffer*>(mActiveCommandBuffers[deviceIdx][i]);
+			UINT32 globalQueueIdx = CommandSyncMask::getGlobalQueueIdx(cmdBuffer->getType(), cmdBuffer->getQueueIdx());
+
+			if ((syncMask & (1 << globalQueueIdx)) == 0) // We don't care about the command buffer
+				continue;
+			
 			VulkanCmdBuffer* lowLevelCmdBuffer = cmdBuffer->mSubmittedBuffer;
 
 			if (lowLevelCmdBuffer == nullptr || !lowLevelCmdBuffer->isSubmitted()) // If not submitted, no need to sync with it

@@ -23,7 +23,7 @@ namespace BansheeEngine
 		~VulkanCommandBufferManager();
 
 		/** @copydoc CommandBufferManager::createInternal() */
-		SPtr<CommandBuffer> createInternal(UINT32 id, CommandBufferType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
+		SPtr<CommandBuffer> createInternal(UINT32 id, GpuQueueType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
 			bool secondary = false) override;
 
 		/** 

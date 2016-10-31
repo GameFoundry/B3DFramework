@@ -35,7 +35,7 @@ namespace BansheeEngine
 		friend class GLCommandBufferManager;
 		friend class GLRenderAPI;
 
-		GLCommandBuffer(UINT32 id, CommandBufferType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
+		GLCommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
 		Vector<std::function<void()>> mCommands;
 

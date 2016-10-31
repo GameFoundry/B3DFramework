@@ -11,6 +11,9 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	//using Json = nlohmann::basic_json<Map, Vector, String, bool, INT64, UINT64, float, StdAlloc>;
+	//using WJson = nlohmann::basic_json<Map, Vector, WString, bool, INT64, UINT64, float, StdAlloc>;
+
 	/**	Provides various methods commonly used for managing builtin resources. */
 	class BS_EXPORT BuiltinResourcesHelper
 	{

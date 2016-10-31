@@ -403,22 +403,6 @@ namespace BansheeEngine
 		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	}
 
-	VulkanQueueType VulkanUtility::getQueueType(CommandBufferType type)
-	{
-		switch(type)
-		{
-		case CBT_GRAPHICS:
-			return VQT_GRAPHICS;
-		case CBT_COMPUTE:
-			return VQT_COMPUTE;
-		case CBT_UPLOAD:
-			return VQT_UPLOAD;
-		}
-
-		// Unsupported type
-		return VQT_GRAPHICS;
-	}
-
 	void VulkanUtility::getDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice*(&devices)[BS_MAX_LINKED_DEVICES])
 	{
 		if(flags == GDF_DEFAULT)

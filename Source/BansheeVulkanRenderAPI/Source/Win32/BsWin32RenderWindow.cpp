@@ -118,7 +118,7 @@ namespace BansheeEngine
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
 		VkPhysicalDevice physicalDevice = presentDevice->getPhysical();
 
-		UINT32 presentQueueIdx = presentDevice->getQueueFamily(VQT_GRAPHICS);
+		UINT32 presentQueueIdx = presentDevice->getQueueFamily(GQT_GRAPHICS);
 		
 		VkBool32 supportsPresent;
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, presentQueueIdx, mSurface, &supportsPresent);

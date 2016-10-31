@@ -11,9 +11,9 @@ namespace BansheeEngine
 	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
 		:mDevice(device), mPools{}, mBuffers {}, mNextId(1)
 	{
-		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			UINT32 familyIdx = device.getQueueFamily((VulkanQueueType)i);
+			UINT32 familyIdx = device.getQueueFamily((GpuQueueType)i);
 
 			if (familyIdx == (UINT32)-1)
 				continue;
@@ -24,13 +24,14 @@ namespace BansheeEngine
 			poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 			poolInfo.queueFamilyIndex = familyIdx;
 
-			vkCreateCommandPool(device.getLogical(), &poolInfo, gVulkanAllocator, &mPools[i]);
+			mPools[i].queueFamily = familyIdx;
+			vkCreateCommandPool(device.getLogical(), &poolInfo, gVulkanAllocator, &mPools[i].pool);
 		}
 	}
 
 	VulkanCmdBufferPool::~VulkanCmdBufferPool()
 	{
-		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
 			for(UINT32 j = 0; j < BS_MAX_QUEUES_PER_TYPE; j++)
 			{
@@ -45,21 +46,20 @@ namespace BansheeEngine
 			}
 		}
 
-		for (UINT32 i = 0; i < VQT_COUNT; i++)
+		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			if (mPools[i] == VK_NULL_HANDLE)
+			if (mPools[i].pool == VK_NULL_HANDLE)
 				continue;
 
-			vkDestroyCommandPool(mDevice.getLogical(), mPools[i], gVulkanAllocator);
+			vkDestroyCommandPool(mDevice.getLogical(), mPools[i].pool, gVulkanAllocator);
 		}
 	}
 
-	VulkanCmdBuffer* VulkanCmdBufferPool::getBuffer(CommandBufferType type, UINT32 queueIdx, bool secondary)
+	VulkanCmdBuffer* VulkanCmdBufferPool::getBuffer(GpuQueueType type, UINT32 queueIdx, bool secondary)
 	{
 		assert(queueIdx < BS_MAX_QUEUES_PER_TYPE);
 
-		VulkanQueueType queueType = VulkanUtility::getQueueType(type);
-		VulkanCmdBuffer** buffers = mBuffers[queueType][queueIdx];
+		VulkanCmdBuffer** buffers = mBuffers[type][queueIdx];
 
 		UINT32 i = 0;
 		for(; i < BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE; i++)
@@ -77,30 +77,30 @@ namespace BansheeEngine
 		assert(i < BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE && 
 			"Too many command buffers allocated. Increment BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE to a higher value. ");
 
-		buffers[i] = createBuffer(queueType, secondary);
+		buffers[i] = createBuffer(type, secondary);
 		buffers[i]->begin();
 
 		return buffers[i];
 	}
 
-	VulkanCmdBuffer* VulkanCmdBufferPool::createBuffer(VulkanQueueType type, bool secondary)
+	VulkanCmdBuffer* VulkanCmdBufferPool::createBuffer(GpuQueueType type, bool secondary)
 	{
-		VkCommandPool pool = getPool(type);
+		const PoolInfo& poolInfo = getPool(type);
 
-		return bs_new<VulkanCmdBuffer>(mDevice, mNextId++, pool, secondary);
+		return bs_new<VulkanCmdBuffer>(mDevice, mNextId++, poolInfo.pool, poolInfo.queueFamily, secondary);
 	}
 
-	VkCommandPool VulkanCmdBufferPool::getPool(VulkanQueueType type)
+	const VulkanCmdBufferPool::PoolInfo& VulkanCmdBufferPool::getPool(GpuQueueType type)
 	{
-		VkCommandPool pool = mPools[type];
-		if (pool == VK_NULL_HANDLE)
-			pool = mPools[VQT_GRAPHICS]; // Graphics queue is guaranteed to exist
+		const PoolInfo* poolInfo = &mPools[type];
+		if (poolInfo->pool == VK_NULL_HANDLE)
+			poolInfo = &mPools[GQT_GRAPHICS]; // Graphics queue is guaranteed to exist
 
-		return pool;
+		return *poolInfo;
 	}
 
-	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, bool secondary)
-		:mId(id), mState(State::Ready), mDevice(device), mPool(pool), mFenceCounter(0)
+	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
+		:mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool), mFenceCounter(0)
 	{
 		VkCommandBufferAllocateInfo cmdBufferAllocInfo;
 		cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -236,20 +236,28 @@ namespace BansheeEngine
 			entry.first->notifyUsed(*this, entry.second.flags);
 	}
 
-	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, UINT32 deviceIdx,
+	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
 		: CommandBuffer(id, type, deviceIdx, queueIdx, secondary), mBuffer(nullptr), mSubmittedBuffer(nullptr)
-		, mDevice(device), mQueue(nullptr)
+		, mDevice(device), mQueue(nullptr), mIdMask(0)
 	{
-		VulkanQueueType queueType =  VulkanUtility::getQueueType(mType);
+		GpuQueueType queueType = mType;
 
 		UINT32 numQueues = device.getNumQueues(queueType);
-		if (numQueues > 0)
-			mQueue = device.getQueue(queueType, mQueueIdx % numQueues);
-		else // Fallback to graphics queue
+		if (numQueues == 0) // Fallback to graphics queue
 		{
-			numQueues = device.getNumQueues(VQT_GRAPHICS);
-			mQueue = device.getQueue(VQT_GRAPHICS, mQueueIdx % numQueues);
+			queueType = GQT_GRAPHICS;
+			numQueues = device.getNumQueues(GQT_GRAPHICS);
+		}
+
+		mQueue = device.getQueue(queueType, mQueueIdx % numQueues);
+
+		// If multiple command buffer IDs map to the same queue, mark them in the mask
+		UINT32 curIdx = mQueueIdx;
+		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
+		{
+			mIdMask |= CommandSyncMask::getGlobalQueueIdx(queueType, curIdx);
+			curIdx += numQueues;
 		}
 
 		acquireNewBuffer();
@@ -293,7 +301,7 @@ namespace BansheeEngine
 		submitInfo.pSignalSemaphores = &signalSemaphore;
 
 		// Ignore myself
-		syncMask &= ~mId;
+		syncMask &= ~mIdMask;
 
 		VulkanCommandBufferManager& cmdBufManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
 		cmdBufManager.getSyncSemaphores(mDeviceIdx, syncMask, mSemaphoresTemp, submitInfo.waitSemaphoreCount);

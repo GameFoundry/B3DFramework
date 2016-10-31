@@ -391,18 +391,19 @@ namespace BansheeEngine
 		GPOT_UNKNOWN = 0xffff
 	};
 
-	/** Types of command buffers. */
-	enum CommandBufferType
+	/** Types of GPU queues. */
+	enum GpuQueueType
 	{
-		/** 
-		 * Command buffer used for rendering. Allows the use of draw commands, but also all commands supported by compute
-		 * or upload buffers. 
+		/**
+		 * Queue used for rendering. Allows the use of draw commands, but also all commands supported by compute
+		 * or upload buffers.
 		 */
-		CBT_GRAPHICS,
-		/** Command buffer used for compute operations. Allows the use of dispatch and upload commands. */
-		CBT_COMPUTE,
-		/** Command buffer used for memory transfer operations only. No rendering or compute dispatch allowed. */
-		CBT_UPLOAD
+		GQT_GRAPHICS,
+		/** Discrete queue used for compute operations. Allows the use of dispatch and upload commands. */
+		GQT_COMPUTE,
+		/** Queue used for memory transfer operations only. No rendering or compute dispatch allowed. */
+		GQT_UPLOAD,
+		GQT_COUNT // Keep at end
 	};
 
 	/** These values represent a hint to the driver when writing to a GPU buffer. */
