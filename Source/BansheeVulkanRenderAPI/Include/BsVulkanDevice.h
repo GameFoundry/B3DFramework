@@ -52,6 +52,9 @@ namespace BansheeEngine
 		/** Returns a manager that can be used for allocating descriptor layouts and sets. */
 		VulkanDescriptorManager& getDescriptorManager() const { return *mDescriptorManager; }
 
+		/** Returns a manager that can be used for allocating Vulkan objects wrapped as managed resources. */
+		VulkanResourceManager& getResourceManager() const { return *mResourceManager; }
+
 		/** 
 		 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
 		 * with the specified flags.
@@ -82,6 +85,7 @@ namespace BansheeEngine
 
 		VulkanCmdBufferPool* mCommandBufferPool;
 		VulkanDescriptorManager* mDescriptorManager;
+		VulkanResourceManager* mResourceManager;
 
 		VkPhysicalDeviceProperties mDeviceProperties;
 		VkPhysicalDeviceFeatures mDeviceFeatures;

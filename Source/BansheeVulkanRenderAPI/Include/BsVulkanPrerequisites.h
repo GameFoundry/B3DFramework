@@ -43,6 +43,7 @@ namespace BansheeEngine
 	class VulkanCmdBuffer;
 	class VulkanCommandBuffer;
 	class VulkanQueue;
+	class VulkanResourceManager;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 

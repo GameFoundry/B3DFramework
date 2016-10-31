@@ -41,7 +41,7 @@ namespace BansheeEngine
 			mAllocations[i].memory = mAllocations[i].device->allocateMemory(reqs, flags);
 		}
 
-		mSizeInBytes = reqs.size;
+		mSizeInBytes = (UINT32)reqs.size;
 	}
 
 	VulkanHardwareBuffer::~VulkanHardwareBuffer()

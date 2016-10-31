@@ -9,7 +9,7 @@
 namespace BansheeEngine
 {
 	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
-		:mDevice(device), mPools{}, mBuffers {}
+		:mDevice(device), mPools{}, mBuffers {}, mNextId(1)
 	{
 		for (UINT32 i = 0; i < VQT_COUNT; i++)
 		{
@@ -87,7 +87,7 @@ namespace BansheeEngine
 	{
 		VkCommandPool pool = getPool(type);
 
-		return bs_new<VulkanCmdBuffer>(mDevice, pool, secondary);
+		return bs_new<VulkanCmdBuffer>(mDevice, mNextId++, pool, secondary);
 	}
 
 	VkCommandPool VulkanCmdBufferPool::getPool(VulkanQueueType type)
@@ -99,8 +99,8 @@ namespace BansheeEngine
 		return pool;
 	}
 
-	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary)
-		:mState(State::Ready), mDevice(device), mPool(pool)
+	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, bool secondary)
+		:mId(id), mState(State::Ready), mDevice(device), mPool(pool), mFenceCounter(0)
 	{
 		VkCommandBufferAllocateInfo cmdBufferAllocInfo;
 		cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -212,11 +212,28 @@ namespace BansheeEngine
 				assert(result == VK_SUCCESS);
 
 				mFenceCounter++;
+
+				for (auto& entry : mResources)
+					entry.first->notifyDone();
+
+				mResources.clear();
 			}
 		}
 		else
 			assert(!signaled); // We reset the fence along with mState so this shouldn't be possible
+	}
 
+	void VulkanCmdBuffer::registerResource(VulkanResource* res, VulkanUseFlags flags)
+	{
+		mResources[res].flags |= flags;
+	}
+
+	void VulkanCmdBuffer::notifySubmit()
+	{
+		// TODO - Issue pipeline barrier for resources transitioning to a new queue family
+
+		for (auto& entry : mResources)
+			entry.first->notifyUsed(*this, entry.second.flags);
 	}
 
 	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, CommandBufferType type, UINT32 deviceIdx,
@@ -292,6 +309,7 @@ namespace BansheeEngine
 
 		cmdBufManager.refreshStates(mDeviceIdx);
 
+		mBuffer->notifySubmit();
 		mQueue->notifySubmit(*this, mBuffer->getFenceCounter());
 
 		// Note: Uncommented for debugging only, prevents any device concurrency issues.

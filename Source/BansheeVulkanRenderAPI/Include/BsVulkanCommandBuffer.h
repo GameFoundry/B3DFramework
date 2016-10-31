@@ -5,6 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsCommandBuffer.h"
 #include "BsVulkanRenderAPI.h"
+#include "BsVulkanResource.h"
 
 namespace BansheeEngine
 {
@@ -37,6 +38,7 @@ namespace BansheeEngine
 		VkCommandPool mPools[VQT_COUNT];
 
 		VulkanCmdBuffer* mBuffers[VQT_COUNT][BS_MAX_QUEUES_PER_TYPE][BS_MAX_VULKAN_COMMAND_BUFFERS_PER_QUEUE];
+		UINT32 mNextId;
 	};
 
 	/** 
@@ -61,8 +63,11 @@ namespace BansheeEngine
 		};
 
 	public:
-		VulkanCmdBuffer(VulkanDevice& device, VkCommandPool pool, bool secondary);
+		VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, bool secondary);
 		~VulkanCmdBuffer();
+
+		/** Returns an unique identifier of this command buffer. */
+		UINT32 getId() const { return mId; }
 
 		/** Makes the command buffer ready to start recording commands. */
 		void begin();
@@ -100,10 +105,26 @@ namespace BansheeEngine
 		/** Checks the internal fence and changes command buffer state if done executing. */
 		void refreshFenceStatus();
 
+		/** 
+		 * Lets the command buffer know that the provided resource has been queued on it, and will be used by the
+		 * device when the command buffer is submitted.
+		 */
+		void registerResource(VulkanResource* res, VulkanUseFlags flags);
+
 	private:
 		friend class VulkanCmdBufferPool;
 		friend class VulkanCommandBuffer;
 
+		/** Information about a resource currently queued for use on the command buffer. */
+		struct ResourceInfo
+		{
+			VulkanUseFlags flags;
+		};
+
+		/** Called after the buffer has been submitted to the queue. */
+		void notifySubmit();
+
+		UINT32 mId;
 		State mState;
 		VulkanDevice& mDevice;
 		VkCommandPool mPool;
@@ -111,6 +132,8 @@ namespace BansheeEngine
 		VkFence mFence;
 		VkSemaphore mSemaphore;
 		UINT32 mFenceCounter;
+
+		UnorderedMap<VulkanResource*, ResourceInfo> mResources;
 	};
 
 	/** CommandBuffer implementation for Vulkan. */
