@@ -38,6 +38,7 @@ namespace BansheeEngine
 	class VulkanGLSLProgramFactory;
 	class VulkanSwapChain;
 	class VulkanDescriptorLayout;
+	class VulkanDescriptorSet;
 	class VulkanDescriptorManager;
 	class VulkanCmdBufferPool;
 	class VulkanCmdBuffer;
@@ -46,6 +47,7 @@ namespace BansheeEngine
 	class VulkanResourceManager;
 	class VulkanGpuParamBlockBufferCore;
 	class VulkanBuffer;
+	class VulkanDescriptorPool;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 

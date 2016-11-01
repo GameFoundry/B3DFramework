@@ -98,6 +98,10 @@ namespace BansheeEngine
 			mOwner->destroy(this);
 	}
 
+	VulkanResourceManager::VulkanResourceManager(VulkanDevice& device)
+		:mDevice(device)
+	{ }
+
 	VulkanResourceManager::~VulkanResourceManager()
 	{
 #if BS_DEBUG_MODE

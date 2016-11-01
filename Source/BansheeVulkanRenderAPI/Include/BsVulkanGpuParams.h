@@ -48,6 +48,7 @@ namespace BansheeEngine
 		struct PerSetData
 		{
 			VulkanDescriptorLayout* layout;
+			VulkanDescriptorSet* set;
 
 			VkWriteDescriptorSet* writeSetInfos;
 			WriteInfo* writeInfos;

@@ -95,18 +95,17 @@ namespace BansheeEngine
 	class VulkanResourceManager
 	{
 	public:
+		VulkanResourceManager(VulkanDevice& device);
 		~VulkanResourceManager();
 
 		/** 
 		 * Creates a new Vulkan resource of the specified type. User must call VulkanResource::destroy() when done using
 		 * the resource. 
-		 * 
-		 * @param[in]	concurrency		If true, the resource is allowed to be used on multiple queue types at once.
 		 */
 		template<class Type, class... Args>
-		VulkanResource* create(bool concurrency, Args &&...args)
+		Type* create(Args &&...args)
 		{
-			VulkanResource* resource = new (bs_alloc(sizeof(Type))) Type(this, concurrency, std::forward<Args>(args)...);
+			Type* resource = new (bs_alloc(sizeof(Type))) Type(this, std::forward<Args>(args)...);
 
 #if BS_DEBUG_MODE
 			mResources.insert(resource);
@@ -114,6 +113,9 @@ namespace BansheeEngine
 
 			return resource;
 		}
+
+		/** Returns the device that owns this manager. */
+		VulkanDevice& getDevice() const { return mDevice; }
 
 	private:
 		friend VulkanResource;
@@ -123,6 +125,8 @@ namespace BansheeEngine
 		 * on the device.
 		 */
 		void destroy(VulkanResource* resource);
+
+		VulkanDevice& mDevice;
 
 #if BS_DEBUG_MODE
 		UnorderedSet<VulkanResource*> mResources;

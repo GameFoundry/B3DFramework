@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
+#include "BsVulkanDescriptorLayout.h"
 
 namespace BansheeEngine
 {
@@ -13,9 +14,6 @@ namespace BansheeEngine
 
 		/** Compares two descriptor layouts. */
 		bool operator==(const VulkanLayoutKey& rhs) const;
-
-		/** Calculates a hash value for a descriptor layout. */
-		size_t calculateHash() const;
 
 		UINT32 numBindings;
 		VkDescriptorSetLayoutBinding* bindings;
@@ -37,7 +35,10 @@ namespace std
 	{
 		size_t operator()(const BansheeEngine::VulkanLayoutKey& value) const
 		{
-			return (size_t)value.calculateHash();
+			if (value.layout != nullptr)
+				return value.layout->getHash();
+
+			return BansheeEngine::VulkanDescriptorLayout::calculateHash(value.bindings, value.numBindings);
 		}
 	};
 }
@@ -61,10 +62,14 @@ namespace BansheeEngine
 		/** Attempts to find an existing one, or allocates a new descriptor set layout from the provided set of bindings. */
 		VulkanDescriptorLayout* getLayout(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings);
 
+		/** Allocates a new empty descriptor set matching the provided layout. */
+		VulkanDescriptorSet* createSet(VulkanDescriptorLayout* layout);
+
 	protected:
 		VulkanDevice& mDevice;
 
-		UnorderedMap<VulkanLayoutKey, UINT32> mSets; // TODO - Just dummy value for now, keep a list of sets here normally
+		UnorderedSet<VulkanLayoutKey> mLayouts; 
+		Vector<VulkanDescriptorPool*> mPools;
 	};
 
 	/** @} */

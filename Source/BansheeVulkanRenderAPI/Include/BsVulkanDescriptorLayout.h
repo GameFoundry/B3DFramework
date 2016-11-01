@@ -20,9 +20,16 @@ namespace BansheeEngine
 		/** Returns a handle to the Vulkan set layout object. */
 		VkDescriptorSetLayout getHandle() const { return mLayout; }
 
+		/** Returns a hash value for the descriptor layout. */
+		size_t getHash() const { return mHash; }
+
+		/** Calculates a has value for the provided descriptor set layout bindings. */
+		static size_t calculateHash(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings);
+
 	protected:
 		VulkanDevice& mDevice;
 		VkDescriptorSetLayout mLayout;
+		size_t mHash;
 	};
 
 	/** @} */

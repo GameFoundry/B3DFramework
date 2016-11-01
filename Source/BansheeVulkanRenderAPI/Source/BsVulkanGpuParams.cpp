@@ -7,6 +7,7 @@
 #include "BsVulkanGpuParamBlockBuffer.h"
 #include "BsVulkanGpuBuffer.h"
 #include "BsVulkanTexture.h"
+#include "BsVulkanDescriptorSet.h"
 #include "BsVulkanSamplerState.h"
 #include "BsGpuParamDesc.h"
 
@@ -156,6 +157,7 @@ namespace BansheeEngine
 
 				VkDescriptorSetLayoutBinding* perSetBindings = &bindings[bindingOffset];
 				perSetData.layout = descManager.getLayout(perSetBindings, numBindingsPerSet);
+				perSetData.set = descManager.createSet(perSetData.layout);
 				perSetData.numElements = numBindingsPerSet;
 
 				for(UINT32 k = 0; k < numBindingsPerSet; k++)
@@ -207,21 +209,17 @@ namespace BansheeEngine
 		bs_stack_free(bindingOffsets);
 		bs_stack_free(bindings);
 		bs_stack_free(bindingsPerSet);
-
-		// TODO - Create sets
-		// TODO - Prepare write descs
-		// TODO - Update write descs as params change
 	}
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
-		// TODO - Need to wait to ensure it isn't used on the GPU anymore
+		for (UINT32 i = 0; i < mNumDevices; i++)
+		{
+			for (UINT32 j = 0; j < mPerDeviceData[i].numSets; j++)
+				mPerDeviceData[i].perSetData[j].set->destroy();
+		}
 
 		bs_free(mData); // Everything allocated under a single buffer to a single free is enough
-
-		// TODO - CLean up mSets
-		// - Queue for destroy, remember fence counters for all available queues, only destroy after all queues execute?
-		// - Or ensure the object knows which queue it was used on?
 	}
 
 	void VulkanGpuParams::setParamBlockBuffer(UINT32 set, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& paramBlockBuffer)

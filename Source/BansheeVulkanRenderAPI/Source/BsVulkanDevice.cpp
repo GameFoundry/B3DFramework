@@ -111,7 +111,7 @@ namespace BansheeEngine
 		// Create pools/managers
 		mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
 		mDescriptorManager = bs_new<VulkanDescriptorManager>(*this);
-		mResourceManager = bs_new<VulkanResourceManager>();
+		mResourceManager = bs_new<VulkanResourceManager>(*this);
 	}
 
 	VulkanDevice::~VulkanDevice()
