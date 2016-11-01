@@ -29,7 +29,7 @@ namespace BansheeEngine
 {
 	class VulkanRenderAPI;
 	class Win32RenderWindow;
-	class VulkanTexture;
+	class VulkanTextureCore;
 	class Win32VideoMode;
 	class VulkanIndexBuffer;
 	class VulkanVertexDeclaration;
@@ -44,6 +44,8 @@ namespace BansheeEngine
 	class VulkanCommandBuffer;
 	class VulkanQueue;
 	class VulkanResourceManager;
+	class VulkanGpuParamBlockBufferCore;
+	class VulkanBuffer;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 
