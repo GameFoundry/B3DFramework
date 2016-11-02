@@ -54,7 +54,7 @@ namespace BansheeEngine
 
 	SPtr<RasterizerStateCore> RasterizerStateCore::create(const RASTERIZER_STATE_DESC& desc)
 	{
-		return RenderStateCoreManager::instance()._createRasterizerState(desc);
+		return RenderStateCoreManager::instance().createRasterizerState(desc);
 	}
 
 	const SPtr<RasterizerStateCore>& RasterizerStateCore::getDefault()

@@ -44,7 +44,7 @@ namespace BansheeEngine
 		return mData.borderColor;
 	}
 
-	SamplerStateCore::SamplerStateCore(const SAMPLER_STATE_DESC& desc)
+	SamplerStateCore::SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 		:mProperties(desc)
 	{
 		
@@ -71,9 +71,9 @@ namespace BansheeEngine
 		return mProperties;
 	}
 
-	SPtr<SamplerStateCore> SamplerStateCore::create(const SAMPLER_STATE_DESC& desc)
+	SPtr<SamplerStateCore> SamplerStateCore::create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance()._createSamplerState(desc);
+		return RenderStateCoreManager::instance().createSamplerState(desc, deviceMask);
 	}
 
 	const SPtr<SamplerStateCore>& SamplerStateCore::getDefault()

@@ -8,8 +8,8 @@
 
 namespace BansheeEngine
 {
-	D3D11SamplerStateCore::D3D11SamplerStateCore(const SAMPLER_STATE_DESC& desc)
-		:SamplerStateCore(desc), mSamplerState(nullptr)
+	D3D11SamplerStateCore::D3D11SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+		:SamplerStateCore(desc, deviceMask), mSamplerState(nullptr)
 	{ }
 
 	D3D11SamplerStateCore::~D3D11SamplerStateCore()

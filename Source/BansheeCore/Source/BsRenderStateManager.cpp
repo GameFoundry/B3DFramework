@@ -127,12 +127,13 @@ namespace BansheeEngine
 		
 	}
 
-	SPtr<SamplerStateCore> RenderStateCoreManager::createSamplerState(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerStateCore> RenderStateCoreManager::createSamplerState(const SAMPLER_STATE_DESC& desc, 
+		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<SamplerStateCore> state = findCachedState(desc);
 		if (state == nullptr)
 		{
-			state = createSamplerStateInternal(desc);
+			state = createSamplerStateInternal(desc, deviceMask);
 			state->initialize();
 
 			notifySamplerStateCreated(desc, state);
@@ -204,12 +205,13 @@ namespace BansheeEngine
 		return state;
 	}
 
-	SPtr<SamplerStateCore> RenderStateCoreManager::_createSamplerState(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerStateCore> RenderStateCoreManager::_createSamplerState(const SAMPLER_STATE_DESC& desc, 
+		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<SamplerStateCore> state = findCachedState(desc);
 		if (state == nullptr)
 		{
-			state = createSamplerStateInternal(desc);
+			state = createSamplerStateInternal(desc, deviceMask);
 
 			notifySamplerStateCreated(desc, state);
 		}
@@ -427,9 +429,10 @@ namespace BansheeEngine
 		return nullptr;
 	}
 
-	SPtr<SamplerStateCore> RenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerStateCore> RenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
-		SPtr<SamplerStateCore> state = bs_shared_ptr<SamplerStateCore>(new (bs_alloc<SamplerStateCore>()) SamplerStateCore(desc));
+		SPtr<SamplerStateCore> state = 
+			bs_shared_ptr<SamplerStateCore>(new (bs_alloc<SamplerStateCore>()) SamplerStateCore(desc, deviceMask));
 		state->_setThisPtr(state);
 
 		return state;

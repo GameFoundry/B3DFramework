@@ -21,7 +21,7 @@ namespace BansheeEngine
 	protected:
 		friend class D3D11RenderStateCoreManager;
 
-		D3D11SamplerStateCore(const SAMPLER_STATE_DESC& desc);
+		D3D11SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc SamplerStateCore::createInternal */
 		void createInternal() override;

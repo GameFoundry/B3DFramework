@@ -185,7 +185,7 @@ namespace BansheeEngine
 		// Note: MULTIGPU - Detect multiple similar devices here if supporting multi-GPU
 		for (uint32_t i = 0; i < numDevices; i++)
 		{
-			if (mDevices[i]->getDeviceProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			if (mDevices[i]->isPrimary())
 			{
 				mPrimaryDevices.push_back(mDevices[i]);
 				break;

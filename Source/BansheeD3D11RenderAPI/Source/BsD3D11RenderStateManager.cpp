@@ -8,9 +8,9 @@
 
 namespace BansheeEngine
 {
-	SPtr<SamplerStateCore> D3D11RenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerStateCore> D3D11RenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
-		SPtr<SamplerStateCore> ret = bs_shared_ptr<D3D11SamplerStateCore>(new (bs_alloc<D3D11SamplerStateCore>()) D3D11SamplerStateCore(desc));
+		SPtr<SamplerStateCore> ret = bs_shared_ptr<D3D11SamplerStateCore>(new (bs_alloc<D3D11SamplerStateCore>()) D3D11SamplerStateCore(desc, deviceMask));
 		ret->_setThisPtr(ret);
 
 		return ret;

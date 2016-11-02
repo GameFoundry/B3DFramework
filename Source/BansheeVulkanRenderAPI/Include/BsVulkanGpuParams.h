@@ -66,8 +66,7 @@ namespace BansheeEngine
 
 		VulkanGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
 
-		PerDeviceData mPerDeviceData[BS_MAX_LINKED_DEVICES];
-		UINT32 mNumDevices;
+		PerDeviceData mPerDeviceData[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;
 		UINT8* mData;
 		bool* mSetsDirty;

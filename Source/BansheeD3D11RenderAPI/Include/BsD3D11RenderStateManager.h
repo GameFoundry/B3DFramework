@@ -16,7 +16,7 @@ namespace BansheeEngine
 	{
 	protected:
 		/** @copydoc RenderStateCoreManager::createSamplerStateInternal */
-		SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc) const override;
+		SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const override;
 
 		/** @copydoc RenderStateCoreManager::createBlendStateInternal */
 		SPtr<BlendStateCore> createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const override;

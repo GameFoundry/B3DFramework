@@ -125,7 +125,7 @@ namespace BansheeEngine
 
 	SPtr<BlendStateCore> BlendStateCore::create(const BLEND_STATE_DESC& desc)
 	{
-		return RenderStateCoreManager::instance()._createBlendState(desc);
+		return RenderStateCoreManager::instance().createBlendState(desc);
 	}
 
 	const SPtr<BlendStateCore>& BlendStateCore::getDefault()

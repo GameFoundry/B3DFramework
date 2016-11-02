@@ -62,7 +62,7 @@ namespace BansheeEngine
 
 	SPtr<DepthStencilStateCore> DepthStencilStateCore::create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateCoreManager::instance()._createDepthStencilState(desc);
+		return RenderStateCoreManager::instance().createDepthStencilState(desc);
 	}
 
 	const SPtr<DepthStencilStateCore>& DepthStencilStateCore::getDefault()

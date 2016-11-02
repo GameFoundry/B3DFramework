@@ -166,8 +166,8 @@ namespace BansheeEngine
 		/**	Returns information about the sampler state. */
 		const SamplerProperties& getProperties() const;
 
-		/**	Creates a new sampler state using the provided descriptor structure. */
-		static SPtr<SamplerStateCore> create(const SAMPLER_STATE_DESC& desc);
+		/**	@copydoc RenderStateCoreManager::createSamplerState */
+		static SPtr<SamplerStateCore> create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**	Returns the default sampler state. */
 		static const SPtr<SamplerStateCore>& getDefault();
@@ -175,7 +175,7 @@ namespace BansheeEngine
 	protected:
 		friend class RenderStateCoreManager;
 
-		SamplerStateCore(const SAMPLER_STATE_DESC& desc);
+		SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;

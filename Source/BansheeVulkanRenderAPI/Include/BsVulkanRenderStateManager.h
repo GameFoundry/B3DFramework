@@ -15,6 +15,10 @@ namespace BansheeEngine
 	class VulkanRenderStateCoreManager : public RenderStateCoreManager
 	{
 	protected:
+		/** @copydoc RenderStateCoreManager::createSamplerStateStateInternal */
+		SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
+			GpuDeviceFlags deviceMask) const override;
+
 		/** @copydoc RenderStateCoreManager::_createPipelineState */
 		SPtr<GpuPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;

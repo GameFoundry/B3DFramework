@@ -3,6 +3,7 @@
 #include "BsVulkanSamplerState.h"
 #include "BsVulkanDevice.h"
 #include "BsVulkanUtility.h"
+#include "BsVulkanRenderAPI.h"
 
 namespace BansheeEngine
 {
@@ -15,14 +16,19 @@ namespace BansheeEngine
 		vkDestroySampler(mOwner->getDevice().getLogical(), mSampler, gVulkanAllocator);
 	}
 
-	VulkanSamplerStateCore::VulkanSamplerStateCore(const SAMPLER_STATE_DESC& desc)
-		:SamplerStateCore(desc), mSampler(nullptr)
+	VulkanSamplerStateCore::VulkanSamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+		:SamplerStateCore(desc, deviceMask), mSamplers(), mDeviceMask(deviceMask)
 	{ }
 
 	VulkanSamplerStateCore::~VulkanSamplerStateCore()
 	{
-		if(mSampler != nullptr)
-			mSampler->destroy();
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mSamplers[i] == nullptr)
+				return;
+
+			mSamplers[i]->destroy();
+		}
 	}
 
 	void VulkanSamplerStateCore::createInternal()
@@ -56,10 +62,39 @@ namespace BansheeEngine
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		samplerInfo.unnormalizedCoordinates = false;
 
-		// TODO - Create state per device
+		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
+		VulkanDevice* devices[BS_MAX_DEVICES];
+		VulkanUtility::getDevices(rapi, mDeviceMask, devices);
 
-		VkSampler sampler;
-		VkResult result = vkCreateSampler(mOwner->getDevice().getLogical(), &samplerInfo, gVulkanAllocator, &sampler);
-		assert(result == VK_SUCCESS);
+		// Allocate samplers per-device
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (devices[i] == nullptr)
+				break;
+
+			VkSampler sampler;
+			VkResult result = vkCreateSampler(devices[i]->getLogical(), &samplerInfo, gVulkanAllocator, &sampler);
+			assert(result == VK_SUCCESS);
+
+			mSamplers[i] = devices[i]->getResourceManager().create<VulkanSampler>(sampler);
+		}
+	}
+
+	void VulkanSamplerStateCore::getHandles(GpuDeviceFlags mask, VkSampler(&handles)[BS_MAX_LINKED_DEVICES], 
+		UINT32& numHandles)
+	{
+		numHandles = 0;
+
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			UINT32 deviceMask = 1 << i;
+			if ((mask & deviceMask) == 0 || mSamplers[i] == nullptr)
+				continue;
+
+			handles[numHandles++] = mSamplers[i]->getHandle();
+
+			if (numHandles >= BS_MAX_LINKED_DEVICES)
+				break;
+		}
 	}
 }

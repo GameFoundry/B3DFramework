@@ -132,6 +132,11 @@ namespace BansheeEngine
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}
 
+	bool VulkanDevice::isPrimary() const
+	{
+		return getDeviceProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+	}
+
 	VkDeviceMemory VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags flags)
 	{
 		VkMemoryRequirements memReq;

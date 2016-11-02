@@ -14,8 +14,7 @@
 namespace BansheeEngine
 {
 	VulkanGpuParams::VulkanGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuParamsCore(desc, deviceMask), mPerDeviceData{}, mNumDevices(0), mDeviceMask(deviceMask), mData(nullptr)
-		, mSetsDirty(nullptr)
+		: GpuParamsCore(desc, deviceMask), mPerDeviceData(), mDeviceMask(deviceMask), mData(nullptr), mSetsDirty(nullptr)
 	{
 		// Generate all required bindings
 		UINT32 numBindings = 0;
@@ -110,16 +109,18 @@ namespace BansheeEngine
 		}
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
-		VulkanDevice* devices[BS_MAX_LINKED_DEVICES];
-		VulkanUtility::getDevices(rapi, deviceMask, devices);
+		VulkanDevice* devices[BS_MAX_DEVICES];
 
 		// Allocate layouts per-device
-		for (UINT32 i = 0; i < BS_MAX_LINKED_DEVICES; i++)
+		UINT32 numDevices = 0;
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			if (devices[i] == nullptr)
-				break;
+			if (VulkanUtility::isDeviceIdxSet(rapi, i, deviceMask))
+				devices[i] = rapi._getDevice(i).get();
+			else
+				devices[i] = nullptr;
 
-			mNumDevices++;
+			numDevices++;
 		}
 
 		// Note: I'm assuming a single WriteInfo per binding, but if arrays sizes larger than 1 are eventually supported
@@ -128,15 +129,23 @@ namespace BansheeEngine
 		UINT32 perSetBytes = sizeof(PerSetData) * numSets;
 		UINT32 writeSetInfosBytes = sizeof(VkWriteDescriptorSet) * numBindings;
 		UINT32 writeInfosBytes = sizeof(WriteInfo) * numBindings;
-		mData = (UINT8*)bs_alloc(setsDirtyBytes + (perSetBytes + writeSetInfosBytes + writeInfosBytes) * mNumDevices);
+		mData = (UINT8*)bs_alloc(setsDirtyBytes + (perSetBytes + writeSetInfosBytes + writeInfosBytes) * numDevices);
 		UINT8* dataIter = mData;
 
 		mSetsDirty = (bool*)dataIter;
 		memset(mSetsDirty, 1, setsDirtyBytes);
 		dataIter += setsDirtyBytes;
 
-		for(UINT32 i = 0; i < mNumDevices; i++)
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
+			if(devices[i] == nullptr)
+			{
+				mPerDeviceData[i].numSets = 0;
+				mPerDeviceData[i].perSetData = nullptr;
+
+				continue;
+			}
+
 			mPerDeviceData[i].numSets = numSets;
 			mPerDeviceData[i].perSetData = (PerSetData*)dataIter;
 			dataIter += sizeof(perSetBytes);
@@ -213,7 +222,7 @@ namespace BansheeEngine
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
-		for (UINT32 i = 0; i < mNumDevices; i++)
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			for (UINT32 j = 0; j < mPerDeviceData[i].numSets; j++)
 				mPerDeviceData[i].perSetData[j].set->destroy();
@@ -229,11 +238,17 @@ namespace BansheeEngine
 		VulkanGpuParamBlockBufferCore* vulkanParamBlockBuffer =
 			static_cast<VulkanGpuParamBlockBufferCore*>(paramBlockBuffer.get());
 
-		VkBuffer buffers[BS_MAX_LINKED_DEVICES];
-		vulkanParamBlockBuffer->getHandles(mDeviceMask, buffers);
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = buffers[i];
+			VulkanBuffer* bufferRes = vulkanParamBlockBuffer->getResource(i);
+			if (bufferRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = bufferRes->getHandle();
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}
@@ -243,12 +258,17 @@ namespace BansheeEngine
 		GpuParamsCore::setTexture(set, slot, texture);
 
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		VkImageView imageViews[BS_MAX_LINKED_DEVICES];
-		vulkanTexture->getViews(mDeviceMask, imageViews);
-
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageViews[i];
+			VulkanImage* imageRes = vulkanTexture->getResource(i);
+			if (imageRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageRes->getView();
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}
@@ -259,12 +279,17 @@ namespace BansheeEngine
 		GpuParamsCore::setLoadStoreTexture(set, slot, texture, surface);
 
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		VkImageView imageViews[BS_MAX_LINKED_DEVICES];
-		vulkanTexture->getViews(mDeviceMask, imageViews, surface);
-
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageViews[i];
+			VulkanImage* imageRes = vulkanTexture->getResource(i);
+			if (imageRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageRes->getView(surface);
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}
@@ -274,12 +299,17 @@ namespace BansheeEngine
 		GpuParamsCore::setBuffer(set, slot, buffer);
 
 		VulkanGpuBufferCore* vulkanBuffer = static_cast<VulkanGpuBufferCore*>(buffer.get());
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		VkBuffer buffers[BS_MAX_LINKED_DEVICES];
-		vulkanBuffer->getHandles(mDeviceMask, buffers);
-
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = buffers[i];
+			VulkanBuffer* bufferRes = vulkanBuffer->getResource(i);
+			if (bufferRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = bufferRes->getHandle();
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}
@@ -288,13 +318,18 @@ namespace BansheeEngine
 	{
 		GpuParamsCore::setSamplerState(set, slot, sampler);
 
-		VulkanSamplerState* vulkanSampler = static_cast<VulkanSamplerState*>(sampler.get());
+		VulkanSamplerStateCore* vulkanSampler = static_cast<VulkanSamplerStateCore*>(sampler.get());
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		VkSampler samplers[BS_MAX_LINKED_DEVICES];
-		vulkanSampler->getHandles(mDeviceMask, samplers);
-
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.sampler = samplers[i];
+			VulkanSampler* samplerRes = vulkanSampler->getResource(i);
+			if (samplerRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.sampler = samplerRes->getHandle();
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.sampler = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}
@@ -308,12 +343,17 @@ namespace BansheeEngine
 			return;
 
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-		VkImageView imageViews[BS_MAX_LINKED_DEVICES];
-		vulkanTexture->getViews(mDeviceMask, imageViews, surface);
-
-		for (UINT32 i = 0; i < mNumDevices; i++)
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageViews[i];
+			VulkanImage* imageRes = vulkanTexture->getResource(i);
+			if (imageRes != nullptr)
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = imageRes->getView(surface);
+			else
+				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = VK_NULL_HANDLE;
+		}
 
 		mSetsDirty[set] = true;
 	}

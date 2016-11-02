@@ -32,18 +32,33 @@ namespace BansheeEngine
 	public:
 		~VulkanSamplerStateCore();
 
-		/** Gets the resource wrapping the sampler object. */
-		VulkanSampler* getResource() const { return mSampler; }
+		/** 
+		 * Gets the resource wrapping the sampler object, on the specified device. If sampler state device mask doesn't 
+		 * include the provided device, null is returned. 
+		 */
+		VulkanSampler* getResource(UINT32 deviceIdx) const { return mSamplers[deviceIdx]; }
+
+		/* 
+		 * Returns a set sampler handles for the devices matching the provided mask. 
+		 * 
+		 * @param[in]	mask		Mask which determines for which devices we want the handles for. The device must exist 
+		 *							in both the provided mask and the mask of the sampler state was created with.
+		 * @param[out]	handles		Output array holding up to BS_MAX_LINKED_DEVICES handles. Only the first @p numHandles
+		 *							entries of the array are defined.
+		 * @param[out]	numHandles	Number of entries in the @p handles array. 
+		 */
+		void getHandles(GpuDeviceFlags mask, VkSampler(&handles)[BS_MAX_LINKED_DEVICES], UINT32& numHandles);
 
 	protected:
 		friend class D3D11RenderStateCoreManager;
 
-		VulkanSamplerStateCore(const SAMPLER_STATE_DESC& desc);
+		VulkanSamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc SamplerStateCore::createInternal */
 		void createInternal() override;
 
-		VulkanSampler* mSampler;
+		VulkanSampler* mSamplers[BS_MAX_DEVICES];
+		GpuDeviceFlags mDeviceMask;
 	};
 
 	/** @} */

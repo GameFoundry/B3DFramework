@@ -25,6 +25,9 @@ namespace BansheeEngine
 		/** Returns an object describing the logical properties of the device. */
 		VkDevice getLogical() const { return mLogicalDevice; }
 
+		/** Returns true if the device is one of the primary GPU's. */
+		bool isPrimary() const;
+
 		/** Returns a set of properties describing the physical device. */
 		const VkPhysicalDeviceProperties& getDeviceProperties() const { return mDeviceProperties; }
 

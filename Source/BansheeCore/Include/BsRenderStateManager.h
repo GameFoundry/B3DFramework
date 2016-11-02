@@ -126,8 +126,12 @@ namespace BansheeEngine
 	public:
 		RenderStateCoreManager();
 
-		/** @copydoc RenderStateManager::createSamplerState */
-		SPtr<SamplerStateCore> createSamplerState(const SAMPLER_STATE_DESC& desc) const;
+		/** 
+		 * @copydoc RenderStateManager::createSamplerState 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
+		SPtr<SamplerStateCore> createSamplerState(const SAMPLER_STATE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** @copydoc RenderStateManager::createDepthStencilState */
 		SPtr<DepthStencilStateCore> createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const;
@@ -138,12 +142,16 @@ namespace BansheeEngine
 		/** @copydoc RenderStateManager::createBlendState */
 		SPtr<BlendStateCore> createBlendState(const BLEND_STATE_DESC& desc) const;
 
-		/** @copydoc RenderStateManager::createPipelineState */
+		/** 
+		 * @copydoc RenderStateManager::createPipelineState 
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+		 */
 		SPtr<GpuPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
-		SPtr<SamplerStateCore> _createSamplerState(const SAMPLER_STATE_DESC& desc) const;
+		SPtr<SamplerStateCore> _createSamplerState(const SAMPLER_STATE_DESC& desc, 
+			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized depth-stencil state. Requires manual initialization after creation. */
 		SPtr<DepthStencilStateCore> _createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const;
@@ -184,7 +192,7 @@ namespace BansheeEngine
 		void onShutDown() override;
 
 		/** @copydoc createSamplerState */
-		virtual SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc) const;
+		virtual SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
 
 		/** @copydoc createBlendState */
 		virtual SPtr<BlendStateCore> createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const;
