@@ -2,10 +2,6 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsPath.h"
-#include "BsPlatformDefines.h"
-#include "BsString.h"
-
 #define BS_MAX_STACKTRACE_DEPTH 200
 #define BS_MAX_STACKTRACE_NAME_BYTES 1024
 
@@ -95,8 +91,9 @@ namespace BansheeEngine
 		static const String sCrashReportFolder;
 		/** The name of the HTML crash log file. */
 		static const String sCrashLogName;
-
+		/** Error message to display on program failure. */
 		static const String sFatalErrorMsg;
+
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		struct Data;
 		Data* m;
