@@ -55,12 +55,6 @@ namespace BansheeEngine
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;
 
-		/** @copydoc GpuBufferCore::createView */
-		GpuBufferView* createView() override;
-
-		/** @copydoc GpuBufferCore::destroyView */
-		void destroyView(GpuBufferView* view) override;
-
 		GLuint mTextureID;
 		GLBuffer mBuffer;
 		GLenum mFormat;

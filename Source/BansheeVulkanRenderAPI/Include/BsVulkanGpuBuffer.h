@@ -44,12 +44,6 @@ namespace BansheeEngine
 
 		VulkanGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-		/** @copydoc GpuBufferCore::createView */
-		GpuBufferView* createView() override;
-
-		/** @copydoc GpuBufferCore::destroyView */
-		void destroyView(GpuBufferView* view) override;
-
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;
 	private:

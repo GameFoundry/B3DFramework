@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "BsGpuBufferView.h"
 #include "BsCoreObject.h"
 
 namespace BansheeEngine 
@@ -195,57 +194,12 @@ namespace BansheeEngine
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }
 
-		/**
-		 * Creates a buffer view that may be used for binding a buffer to a slot in the pipeline. Views allow you to specify
-		 * how is data in the buffer organized to make it easier for the pipeline to interpret.
-		 *
-		 * @param[in]	buffer			Buffer to create the view for.
-		 * @param[in]	firstElement	Position of the first element visible by the view.
-		 * @param[in]	numElements		Number of elements to bind to the view.
-		 * @param[in]	usage			Determines type of the view we are creating, and which slots in the pipeline will
-		 *								the view be bindable to.
-		 *
-		 * @note If a view with this exact parameters already exists, it will be returned and new one will not be created.
-		 * @note Only Default and RandomWrite views are supported for this type of buffer. 
-		 */
-		// TODO Low Priority: Perhaps reflect usage flag limitation by having an enum with only the supported two options?
-		static GpuBufferView* requestView(const SPtr<GpuBufferCore>& buffer, UINT32 firstElement, 
-			UINT32 numElements, GpuViewUsage usage);
-
-		/**
-		 * Releases a view created with requestView. 
-		 *
-		 * @note	View will only truly get released once all references to it are released.
-		 */
-		static void releaseView(GpuBufferView* view);
-
 		/** @copydoc HardwareBufferCoreManager::createGpuBuffer */
 		static SPtr<GpuBufferCore> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		GpuBufferCore(const GPU_BUFFER_DESC& desc, UINT32 deviceMask);
 
-		/** Creates an empty view for the current buffer. */
-		virtual GpuBufferView* createView() = 0;
-
-		/**	Destroys a view previously created for this buffer. */
-		virtual void destroyView(GpuBufferView* view) = 0;
-
-		/**	Destroys all buffer views regardless if their reference count is zero or not. */
-		void clearBufferViews();
-
-		/**	Helper class to help with reference counting for GPU buffer views. */
-		struct GpuBufferReference
-		{
-			GpuBufferReference(GpuBufferView* _view)
-				:view(_view), refCount(0)
-			{ }
-
-			GpuBufferView* view;
-			UINT32 refCount;
-		};
-
-		UnorderedMap<GPU_BUFFER_VIEW_DESC, GpuBufferReference*, GpuBufferView::HashFunction, GpuBufferView::EqualFunction> mBufferViews;
 		GpuBufferProperties mProperties;
 	};
 

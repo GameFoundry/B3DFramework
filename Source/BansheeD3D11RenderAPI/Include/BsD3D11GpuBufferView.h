@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsD3D11Prerequisites.h"
-#include "BsGpuBufferView.h"
 
 namespace BansheeEngine
 {
@@ -12,17 +11,65 @@ namespace BansheeEngine
 	 */
 
 	/**
+	 * Descriptor structure used for initializing a GpuBufferView.
+	 *
+	 * @see		GpuBuffer
+	 */
+	struct BS_CORE_EXPORT GPU_BUFFER_VIEW_DESC
+	{
+		UINT32 firstElement;
+		UINT32 elementWidth;
+		UINT32 numElements;
+		bool useCounter;
+		GpuViewUsage usage;
+		GpuBufferFormat format;
+	};
+
+	/**
 	 * Represents a specific view of a GpuBuffer. Different views all of the same buffer be used in different situations
 	 * (for example for reading from a shader, or for a unordered read/write operation).
 	 */
-	class BS_D3D11_EXPORT D3D11GpuBufferView : public GpuBufferView
+	class GpuBufferView
 	{
 	public:
-		D3D11GpuBufferView();
-		virtual ~D3D11GpuBufferView();
+		class HashFunction
+		{
+		public:
+			size_t operator()(const GPU_BUFFER_VIEW_DESC& key) const;
+		};
+
+		class EqualFunction
+		{
+		public:
+			bool operator()(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const;
+		};
+
+		GpuBufferView();
+		virtual ~GpuBufferView();
 
 		/** @copydoc GpuBufferView::initialize */
-		void initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc) override;
+		void initialize(const SPtr<D3D11GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc);
+
+		/** Returns a descriptor structure used for creating the view. */
+		const GPU_BUFFER_VIEW_DESC& getDesc() const { return mDesc; }
+
+		/**	Returns the buffer this view was created for. */
+		SPtr<D3D11GpuBufferCore> getBuffer() const { return mBuffer; }
+
+		/** Returns index of first element in the buffer that this view provides access to. */
+		UINT32 getFirstElement() const { return mDesc.firstElement; }
+
+		/** Returns width of an element in the buffer, in bytes. */
+		UINT32 getElementWidth() const { return mDesc.elementWidth; }
+
+		/**	Returns the total number of elements this buffer provides access to. */
+		UINT32 getNumElements() const { return mDesc.numElements; }
+
+		/**	Returns true if this view allows a GPU program to use counters on the bound buffer. */
+		bool getUseCounter() const { return mDesc.useCounter; }
+
+		/** Returns view usage which determines where in the pipeline can the view be bound. */
+		GpuViewUsage getUsage() const { return mDesc.usage; }
 
 		/** Returns the DX11 shader resource view object for the buffer. */
 		ID3D11ShaderResourceView* getSRV() const { return mSRV; }
@@ -62,6 +109,9 @@ namespace BansheeEngine
 
 		ID3D11ShaderResourceView* mSRV;
 		ID3D11UnorderedAccessView* mUAV;
+
+		GPU_BUFFER_VIEW_DESC mDesc;
+		SPtr<D3D11GpuBufferCore> mBuffer;
 	};
 
 	/** @} */

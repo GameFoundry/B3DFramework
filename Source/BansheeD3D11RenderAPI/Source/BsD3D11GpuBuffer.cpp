@@ -64,7 +64,7 @@ namespace BansheeEngine
 			usage |= GVU_RANDOMWRITE;
 
 		// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
-		mBufferView = static_cast<D3D11GpuBufferView*>(requestView(thisPtr, 0, props.getElementCount(), (GpuViewUsage)usage));
+		mBufferView = requestView(thisPtr, 0, props.getElementCount(), (GpuViewUsage)usage);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
@@ -120,15 +120,69 @@ namespace BansheeEngine
 		return mBuffer->getD3DBuffer(); 
 	}
 
-	GpuBufferView* D3D11GpuBufferCore::createView()
+	GpuBufferView* D3D11GpuBufferCore::requestView(const SPtr<D3D11GpuBufferCore>& buffer, UINT32 firstElement,
+		UINT32 numElements, GpuViewUsage usage)
 	{
-		return bs_new<D3D11GpuBufferView>();
+		const auto& props = buffer->getProperties();
+
+		GPU_BUFFER_VIEW_DESC key;
+		key.firstElement = firstElement;
+		key.elementWidth = props.getElementSize();
+		key.numElements = numElements;
+		key.usage = usage;
+		key.format = props.getFormat();
+		key.useCounter = props.getUseCounter();
+
+		auto iterFind = buffer->mBufferViews.find(key);
+		if (iterFind == buffer->mBufferViews.end())
+		{
+			GpuBufferView* newView = bs_new<GpuBufferView>();
+			newView->initialize(buffer, key);
+			buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
+
+			iterFind = buffer->mBufferViews.find(key);
+		}
+
+		iterFind->second->refCount++;
+		return iterFind->second->view;
 	}
 
-	void D3D11GpuBufferCore::destroyView(GpuBufferView* view)
+	void D3D11GpuBufferCore::releaseView(GpuBufferView* view)
 	{
-		if(view != nullptr)
-			bs_delete(view);
+		SPtr<D3D11GpuBufferCore> buffer = view->getBuffer();
+
+		auto iterFind = buffer->mBufferViews.find(view->getDesc());
+		if (iterFind == buffer->mBufferViews.end())
+		{
+			BS_EXCEPT(InternalErrorException, "Trying to release a buffer view that doesn't exist!");
+		}
+
+		iterFind->second->refCount--;
+
+		if (iterFind->second->refCount == 0)
+		{
+			GpuBufferReference* toRemove = iterFind->second;
+
+			buffer->mBufferViews.erase(iterFind);
+
+			if (toRemove->view != nullptr)
+				bs_delete(toRemove->view);
+
+			bs_delete(toRemove);
+		}
+	}
+
+	void D3D11GpuBufferCore::clearBufferViews()
+	{
+		for (auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
+		{
+			if (iter->second->view != nullptr)
+				bs_delete(iter->second->view);
+
+			bs_delete(iter->second);
+		}
+
+		mBufferViews.clear();
 	}
 
 	ID3D11ShaderResourceView* D3D11GpuBufferCore::getSRV() const

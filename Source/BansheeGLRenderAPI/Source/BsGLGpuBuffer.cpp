@@ -30,7 +30,6 @@ namespace BansheeEngine
 		glDeleteTextures(1, &mTextureID);
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
-		clearBufferViews();
 	}
 
 	void GLGpuBufferCore::initialize()
@@ -92,16 +91,5 @@ namespace BansheeEngine
 
 		GLuint srcId = glSrcBuffer.getGLBufferId();
 		glCopyBufferSubData(srcId, getGLBufferId(), srcOffset, dstOffset, length);
-	}
-
-	GpuBufferView* GLGpuBufferCore::createView()
-	{
-		// Not used for OpenGL
-		return nullptr;
-	}
-
-	void GLGpuBufferCore::destroyView(GpuBufferView* view)
-	{
-		// Not used for OpenGL
 	}
 }

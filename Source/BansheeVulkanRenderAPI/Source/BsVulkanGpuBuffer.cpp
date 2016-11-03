@@ -21,7 +21,6 @@ namespace BansheeEngine
 		if (mBuffer != nullptr)
 			bs_delete(mBuffer);
 
-		clearBufferViews();
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 	}
 

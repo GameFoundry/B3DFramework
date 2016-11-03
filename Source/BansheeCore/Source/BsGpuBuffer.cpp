@@ -25,67 +25,6 @@ namespace BansheeEngine
 		// I can't call it here since it needs a virtual method call
 	}
 
-	void GpuBufferCore::clearBufferViews()
-	{
-		for (auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
-		{
-			destroyView(iter->second->view);
-			bs_delete(iter->second);
-		}
-
-		mBufferViews.clear();
-	}
-
-	GpuBufferView* GpuBufferCore::requestView(const SPtr<GpuBufferCore>& buffer, UINT32 firstElement,
-		UINT32 numElements, GpuViewUsage usage)
-	{
-		const auto& props = buffer->getProperties();
-
-		GPU_BUFFER_VIEW_DESC key;
-		key.firstElement = firstElement;
-		key.elementWidth = props.getElementSize();
-		key.numElements = numElements;
-		key.usage = usage;
-		key.format = props.getFormat();
-		key.useCounter = props.getUseCounter();
-
-		auto iterFind = buffer->mBufferViews.find(key);
-		if (iterFind == buffer->mBufferViews.end())
-		{
-			GpuBufferView* newView = buffer->createView();
-			newView->initialize(buffer, key);
-			buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
-
-			iterFind = buffer->mBufferViews.find(key);
-		}
-
-		iterFind->second->refCount++;
-		return iterFind->second->view;
-	}
-
-	void GpuBufferCore::releaseView(GpuBufferView* view)
-	{
-		SPtr<GpuBufferCore> buffer = view->getBuffer();
-
-		auto iterFind = buffer->mBufferViews.find(view->getDesc());
-		if (iterFind == buffer->mBufferViews.end())
-		{
-			BS_EXCEPT(InternalErrorException, "Trying to release a buffer view that doesn't exist!");
-		}
-
-		iterFind->second->refCount--;
-
-		if (iterFind->second->refCount == 0)
-		{
-			GpuBufferReference* toRemove = iterFind->second;
-
-			buffer->mBufferViews.erase(iterFind);
-
-			buffer->destroyView(toRemove->view);
-			bs_delete(toRemove);
-		}
-	}
-
 	SPtr<GpuBufferCore> GpuBufferCore::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		return HardwareBufferCoreManager::instance().createGpuBuffer(desc, deviceMask);

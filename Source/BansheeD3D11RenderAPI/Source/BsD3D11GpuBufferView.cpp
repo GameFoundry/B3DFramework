@@ -9,13 +9,33 @@
 
 namespace BansheeEngine
 {
-	D3D11GpuBufferView::D3D11GpuBufferView()
-		:GpuBufferView(), mSRV(nullptr), mUAV(nullptr)
+	size_t GpuBufferView::HashFunction::operator()(const GPU_BUFFER_VIEW_DESC& key) const
+	{
+		size_t seed = 0;
+		hash_combine(seed, key.elementWidth);
+		hash_combine(seed, key.firstElement);
+		hash_combine(seed, key.numElements);
+		hash_combine(seed, key.useCounter);
+		hash_combine(seed, key.usage);
+		hash_combine(seed, key.format);
+
+		return seed;
+	}
+
+	bool GpuBufferView::EqualFunction::operator()
+		(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const
+	{
+		return a.elementWidth == b.elementWidth && a.firstElement == b.firstElement && a.numElements == b.numElements
+			&& a.useCounter == b.useCounter && a.usage == b.usage && a.format == b.format;
+	}
+
+	GpuBufferView::GpuBufferView()
+		:mSRV(nullptr), mUAV(nullptr)
 	{
 
 	}
 
-	D3D11GpuBufferView::~D3D11GpuBufferView()
+	GpuBufferView::~GpuBufferView()
 	{
 		SAFE_RELEASE(mSRV);
 		SAFE_RELEASE(mUAV);
@@ -23,9 +43,10 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_ResourceView);
 	}
 
-	void D3D11GpuBufferView::initialize(const SPtr<GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc)
+	void GpuBufferView::initialize(const SPtr<D3D11GpuBufferCore>& buffer, GPU_BUFFER_VIEW_DESC& desc)
 	{
-		GpuBufferView::initialize(buffer, desc);
+		mBuffer = buffer;
+		mDesc = desc;
 
 		D3D11GpuBufferCore* d3d11GpuBuffer = static_cast<D3D11GpuBufferCore*>(buffer.get());
 
@@ -43,7 +64,7 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_ResourceView);
 	}
 
-	ID3D11ShaderResourceView* D3D11GpuBufferView::createSRV(D3D11GpuBufferCore* buffer, UINT32 firstElement, UINT32 elementWidth, UINT32 numElements)
+	ID3D11ShaderResourceView* GpuBufferView::createSRV(D3D11GpuBufferCore* buffer, UINT32 firstElement, UINT32 elementWidth, UINT32 numElements)
 	{
 		const GpuBufferProperties& props = buffer->getProperties();
 
@@ -90,7 +111,7 @@ namespace BansheeEngine
 		return srv;
 	}
 
-	ID3D11UnorderedAccessView* D3D11GpuBufferView::createUAV(D3D11GpuBufferCore* buffer, UINT32 firstElement, UINT32 numElements, bool useCounter)
+	ID3D11UnorderedAccessView* GpuBufferView::createUAV(D3D11GpuBufferCore* buffer, UINT32 firstElement, UINT32 numElements, bool useCounter)
 	{
 		const GpuBufferProperties& props = buffer->getProperties();
 
