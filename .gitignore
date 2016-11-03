@@ -11,6 +11,7 @@ Builds
 Data/Binaries
 Data/Settings.asset
 Data/Engine/*
+!Data/Engine/.gitkeep
 Data/Editor/*
 !Data/Editor/EmptyCSScriptText.txt
 !Data/Editor/EmptyShaderText.txt
