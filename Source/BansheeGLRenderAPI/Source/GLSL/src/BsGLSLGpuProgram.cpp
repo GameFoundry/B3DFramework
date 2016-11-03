@@ -207,8 +207,8 @@ namespace BansheeEngine
 		if (!isRequiredCapabilitiesSupported())
 			return false;
 
-		RenderAPICore* rapi = BansheeEngine::RenderAPICore::instancePtr();
-		return rapi->getCapabilities().isShaderProfileSupported("glsl");
+		RenderAPICore* rapi = RenderAPICore::instancePtr();
+		return rapi->getCapabilities(0).isShaderProfileSupported("glsl");
 	}
 }
 
