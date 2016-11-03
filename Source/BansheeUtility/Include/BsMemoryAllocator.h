@@ -427,7 +427,7 @@ namespace BansheeEngine
 		/* This version of construct() (with a varying number of parameters)
 		 * seems necessary in order to use some STL data structures from
 		 * libstdc++-4.8, but compilation fails on OS X, hence the #if. */
-#if BS_PLATFORM == BS_PLATFORM_LINUX
+#if BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_WIN32
 		template<class U, class... Args>
 		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
 #endif
