@@ -36,6 +36,18 @@ namespace BansheeEngine
 		/** @copydoc GpuParamsCore::setLoadStoreSurface */
 		void setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface) override;
 
+		/** 
+		 * Notifies the object that a command buffer containing the object is about to be submitted to a queue. 
+		 *
+		 * @param[in]	buffer			Command buffer on which we're about to submit the GPU params.
+		 * @param[out]	transitionInfo	Contains barriers that transition resources to appropriate queues families
+		 *								and/or transition image layouts.
+		 */
+		void prepareForSubmit(VulkanCmdBuffer* buffer, UnorderedMap<UINT32, TransitionInfo>& transitionInfo);
+
+		/** Binds the internal descriptor sets to the provided command buffer. */
+		void bind(VulkanCommandBuffer& buffer);
+
 	protected:
 		/** Contains data about writing to either buffer or a texture descriptor. */
 		union WriteInfo

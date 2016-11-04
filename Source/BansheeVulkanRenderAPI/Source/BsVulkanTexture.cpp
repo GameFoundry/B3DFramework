@@ -3,7 +3,6 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanDevice.h"
 #include "BsCoreThread.h"
-#include "BsException.h"
 #include "BsRenderStats.h"
 
 namespace BansheeEngine

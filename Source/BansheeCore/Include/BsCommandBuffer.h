@@ -68,6 +68,9 @@ namespace BansheeEngine
 		/** Returns the index of the queue the command buffer will execute on. */
 		UINT32 getQueueIdx() const { return mQueueIdx; }
 
+		/** Returns the device index this buffer will execute on. */
+		UINT32 getDeviceIdx() const { return mDeviceIdx; }
+
 		/** @name Internal
 		 *  @{
 		 */

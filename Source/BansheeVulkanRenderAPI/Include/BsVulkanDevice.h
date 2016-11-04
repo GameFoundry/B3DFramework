@@ -16,7 +16,7 @@ namespace BansheeEngine
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice(VkPhysicalDevice device);
+		VulkanDevice(VkPhysicalDevice device, UINT32 deviceIdx);
 		~VulkanDevice();
 
 		/** Returns an object describing the physical properties of the device. */
@@ -27,6 +27,9 @@ namespace BansheeEngine
 
 		/** Returns true if the device is one of the primary GPU's. */
 		bool isPrimary() const { return mIsPrimary; }
+
+		/** Returns the unique index of the device. */
+		UINT32 getIndex() const { return mDeviceIdx; }
 
 		/** Blocks the calling thread until all operations on the device finish. */
 		void waitIdle() const;
@@ -94,6 +97,7 @@ namespace BansheeEngine
 		VkPhysicalDevice mPhysicalDevice;
 		VkDevice mLogicalDevice;
 		bool mIsPrimary;
+		UINT32 mDeviceIdx;
 
 		VulkanCmdBufferPool* mCommandBufferPool;
 		VulkanDescriptorManager* mDescriptorManager;

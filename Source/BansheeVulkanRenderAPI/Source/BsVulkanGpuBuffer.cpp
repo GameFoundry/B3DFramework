@@ -84,15 +84,4 @@ namespace BansheeEngine
 	{
 		return mBuffer->getResource(deviceIdx);
 	}
-
-	GpuBufferView* VulkanGpuBufferCore::createView()
-	{
-		// Not used
-		return nullptr;
-	}
-
-	void VulkanGpuBufferCore::destroyView(GpuBufferView* view)
-	{
-		// Not used
-	}
 }

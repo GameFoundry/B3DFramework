@@ -134,6 +134,9 @@ namespace BansheeEngine
 		 */
 		const Vector<SPtr<VulkanDevice>> _getPrimaryDevices() const { return mPrimaryDevices; }
 
+		/** Returns the main command buffer, executing on the graphics queue. */
+		VulkanCommandBuffer* _getMainCommandBuffer() const { return mMainCommandBuffer.get(); }
+
 		/** @} */
 	protected:
 		friend class VulkanRenderAPIFactory;
@@ -147,11 +150,18 @@ namespace BansheeEngine
 		/** Creates and populates a set of render system capabilities describing which functionality is available. */
 		void initCapabilites();
 
+		/** 
+		 * Returns a valid command buffer. Uses the provided buffer if not null. Otherwise returns the default command 
+		 * buffer. 
+		 */
+		VulkanCommandBuffer* getCB(const SPtr<CommandBuffer>& buffer);
+
 	private:
 		VkInstance mInstance;
 
 		Vector<SPtr<VulkanDevice>> mDevices;
 		Vector<SPtr<VulkanDevice>> mPrimaryDevices;
+		SPtr<VulkanCommandBuffer> mMainCommandBuffer;
 
 		VulkanGLSLProgramFactory* mGLSLFactory;
 

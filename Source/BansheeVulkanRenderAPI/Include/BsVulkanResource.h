@@ -76,6 +76,9 @@ namespace BansheeEngine
 		 */
 		UINT32 getQueueFamily() const { return mQueueFamily; }
 
+		/** Returns true if the resource is only allowed to be used by a single queue family at once. */
+		bool isExclusive() const { return mState != State::Shared; }
+
 		/** 
 		 * Destroys the resource and frees its memory. If the resource is currently being used on a device, the
 		 * destruction is delayed until the device is done with it.

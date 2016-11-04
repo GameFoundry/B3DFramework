@@ -7,8 +7,8 @@
 
 namespace BansheeEngine
 {
-	VulkanDevice::VulkanDevice(VkPhysicalDevice device)
-		:mPhysicalDevice(device), mLogicalDevice(nullptr), mIsPrimary(false), mQueueInfos()
+	VulkanDevice::VulkanDevice(VkPhysicalDevice device, UINT32 deviceIdx)
+		:mPhysicalDevice(device), mLogicalDevice(nullptr), mIsPrimary(false), mDeviceIdx(deviceIdx), mQueueInfos()
 	{
 		// Set to default
 		for (UINT32 i = 0; i < GQT_COUNT; i++)

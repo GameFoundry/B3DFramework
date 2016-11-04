@@ -118,7 +118,10 @@ namespace BansheeEngine
         /**	Returns true if the texture has an alpha layer. */
         bool hasAlpha() const;
 
-        /**	Returns the number of faces this texture has. */
+        /**	
+         * Returns the number of faces this texture has. This includes array slices (if texture is an array texture),
+         * as well as cube-map faces.
+         */
         UINT32 getNumFaces() const;
 
 		/** Returns the number of array slices of the texture (if the texture is an array texture). */

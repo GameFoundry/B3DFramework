@@ -48,6 +48,7 @@ namespace BansheeEngine
 	class VulkanGpuParamBlockBufferCore;
 	class VulkanBuffer;
 	class VulkanDescriptorPool;
+	class VulkanGpuParams;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 
@@ -55,6 +56,13 @@ namespace BansheeEngine
 	enum VulkanRenderStatResourceType
 	{
 		RenderStatObject_PipelineState = 100
+	};
+
+	/** Contains lists of images and buffers that require pipeline barrier transitions. */
+	struct TransitionInfo
+	{
+		Vector<VkImageMemoryBarrier> imageBarriers;
+		Vector<VkBufferMemoryBarrier> bufferBarriers;
 	};
 }
 

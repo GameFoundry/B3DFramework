@@ -10,6 +10,8 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "BsVulkanDescriptorSet.h"
 #include "BsVulkanSamplerState.h"
+#include "BsVulkanGpuBuffer.h"
+#include "BsVulkanCommandBuffer.h"
 #include "BsGpuParamDesc.h"
 
 namespace BansheeEngine
@@ -367,5 +369,226 @@ namespace BansheeEngine
 		}
 
 		mSetsDirty[set] = true;
+	}
+
+	void VulkanGpuParams::prepareForSubmit(VulkanCmdBuffer* buffer, UnorderedMap<UINT32, TransitionInfo>& transitionInfo)
+	{
+		UINT32 deviceIdx = buffer->getDeviceIdx();
+		UINT32 queueFamily = buffer->getQueueFamily();
+
+		const PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
+		if (perDeviceData.perSetData == nullptr)
+			return;
+
+		for(UINT32 i = 0; i < perDeviceData.numSets; i++)
+		{
+			if (!mSetsDirty[i])
+				continue;
+
+			// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
+			// entries that were updated, and only write to them individually.
+			const PerSetData& perSetData = perDeviceData.perSetData[i];
+			perSetData.set->write(perSetData.writeSetInfos, perSetData.numElements);
+
+			mSetsDirty[i] = false;
+		}
+
+		auto registerBuffer = [&](VulkanBuffer* resource, VkAccessFlags accessFlags, VulkanUseFlags useFlags)
+		{
+			if (resource == nullptr)
+				return;
+
+			buffer->registerResource(resource, useFlags);
+
+			if (resource->isExclusive())
+			{
+				UINT32 currentQueueFamily = resource->getQueueFamily();
+				if (currentQueueFamily != queueFamily)
+				{
+					Vector<VkBufferMemoryBarrier>& barriers = transitionInfo[currentQueueFamily].bufferBarriers;
+
+					barriers.push_back(VkBufferMemoryBarrier());
+					VkBufferMemoryBarrier& barrier = barriers.back();
+					barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+					barrier.pNext = nullptr;
+					barrier.srcAccessMask = accessFlags;
+					barrier.dstAccessMask = accessFlags;
+					barrier.srcQueueFamilyIndex = currentQueueFamily;
+					barrier.dstQueueFamilyIndex = queueFamily;
+					barrier.buffer = resource->getHandle();
+					barrier.offset = 0;
+					barrier.size = VK_WHOLE_SIZE;
+				}
+			}
+		};
+
+		auto registerImage = [&](VulkanImage* resource, VkAccessFlags accessFlags, VkImageLayout layout, 
+			const VkImageSubresourceRange& range, VulkanUseFlags useFlags)
+		{
+			buffer->registerResource(resource, useFlags);
+
+			UINT32 currentQueueFamily = resource->getQueueFamily();
+			bool queueMismatch = resource->isExclusive() && currentQueueFamily != queueFamily;
+
+			if (queueMismatch || resource->getLayout() != layout)
+			{
+				Vector<VkImageMemoryBarrier>& barriers = transitionInfo[currentQueueFamily].imageBarriers;
+
+				barriers.push_back(VkImageMemoryBarrier());
+				VkImageMemoryBarrier& barrier = barriers.back();
+				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				barrier.pNext = nullptr;
+				barrier.srcAccessMask = accessFlags;
+				barrier.dstAccessMask = accessFlags;
+				barrier.srcQueueFamilyIndex = currentQueueFamily;
+				barrier.dstQueueFamilyIndex = queueFamily;
+				barrier.oldLayout = resource->getLayout();
+				barrier.newLayout = layout;
+				barrier.image = resource->getHandle();
+				barrier.subresourceRange = range;
+
+				resource->setLayout(layout);
+			}
+		};
+
+		for(UINT32 i = 0; i < mNumElements[(UINT32)ElementType::ParamBlock]; i++)
+		{
+			if (mParamBlockBuffers[i] == nullptr)
+				continue;
+
+			VulkanGpuParamBlockBufferCore* element = static_cast<VulkanGpuParamBlockBufferCore*>(mParamBlockBuffers[i].get());
+
+			VulkanBuffer* resource = element->getResource(deviceIdx);
+			registerBuffer(resource, VK_ACCESS_UNIFORM_READ_BIT, VulkanUseFlag::Read);
+		}
+
+		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::Buffer]; i++)
+		{
+			if (mBuffers[i] == nullptr)
+				continue;
+
+			VulkanGpuBufferCore* element = static_cast<VulkanGpuBufferCore*>(mBuffers[i].get());
+
+			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT;
+			VulkanUseFlags useFlags = VulkanUseFlag::Read;
+
+			if(element->getProperties().getRandomGpuWrite())
+			{
+				accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
+				useFlags |= VulkanUseFlag::Write;
+			}
+
+			VulkanBuffer* resource = element->getResource(deviceIdx);
+			registerBuffer(resource, accessFlags, useFlags);
+		}
+
+		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::SamplerState]; i++)
+		{
+			if (mSamplerStates[i] == nullptr)
+				continue;
+
+			VulkanSamplerStateCore* element = static_cast<VulkanSamplerStateCore*>(mSamplerStates[i].get());
+
+			VulkanSampler* resource = element->getResource(deviceIdx);
+			if (resource == nullptr)
+				continue;
+
+			buffer->registerResource(resource, VulkanUseFlag::Read);
+		}
+
+		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::LoadStoreTexture]; i++)
+		{
+			if (mLoadStoreTextures[i] == nullptr)
+				continue;
+
+			VulkanTextureCore* element = static_cast<VulkanTextureCore*>(mLoadStoreTextures[i].get());
+
+			VulkanImage* resource = element->getResource(deviceIdx);
+			if (resource == nullptr)
+				continue;
+
+			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
+
+			const TextureSurface& surface = mLoadStoreSurfaces[i];
+			VkImageSubresourceRange subresource;
+			subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresource.baseArrayLayer = surface.arraySlice;
+			subresource.layerCount = surface.numArraySlices;
+			subresource.baseMipLevel = surface.mipLevel;
+			subresource.levelCount = surface.numMipLevels;
+
+			registerImage(resource, accessFlags, VK_IMAGE_LAYOUT_GENERAL, subresource, useFlags);
+		}
+
+		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::Texture]; i++)
+		{
+			if (mTextures[i] == nullptr)
+				continue;
+
+			VulkanTextureCore* element = static_cast<VulkanTextureCore*>(mTextures[i].get());
+
+			VulkanImage* resource = element->getResource(deviceIdx);
+			if (resource == nullptr)
+				continue;
+
+			const TextureProperties& props = element->getProperties();
+
+			bool isDepthStencil = (props.getUsage() & TU_DEPTHSTENCIL) != 0;
+
+			VkImageSubresourceRange subresource;
+			subresource.aspectMask = isDepthStencil ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
+													: VK_IMAGE_ASPECT_COLOR_BIT;
+
+			subresource.baseArrayLayer = 0;
+			subresource.layerCount = props.getNumFaces();
+			subresource.baseMipLevel = 0;
+			subresource.levelCount = props.getNumMipmaps();
+
+			registerImage(resource, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, subresource, 
+				VulkanUseFlag::Read);
+		}
+	}
+
+	void VulkanGpuParams::bind(VulkanCommandBuffer& buffer)
+	{
+		UINT32 deviceIdx = buffer.getDeviceIdx();
+
+		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
+		if (perDeviceData.perSetData == nullptr)
+			return;
+
+		VulkanCmdBuffer* internalCB = buffer.getInternal();
+		VkCommandBuffer vkCB = internalCB->getHandle();
+
+		VkPipelineBindPoint bindPoint;
+		GpuQueueType queueType = buffer.getType();
+		switch(queueType)
+		{
+		case GQT_GRAPHICS:
+			bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			break;
+		case GQT_COMPUTE:
+			bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+			break;
+		case GQT_UPLOAD:
+		default:
+			LOGERR("Cannot bind GpuParams on the upload queue. Ignoring.");
+			return;
+		}
+
+		VkDescriptorSet* sets = bs_stack_alloc<VkDescriptorSet>(perDeviceData.numSets);
+		for (UINT32 i = 0; i < perDeviceData.numSets; i++)
+		{
+			VulkanDescriptorSet* set = perDeviceData.perSetData[i].set;
+
+			internalCB->registerResource(set, VulkanUseFlag::Read);
+			sets[i] = set->getHandle();
+		}
+
+		vkCmdBindDescriptorSets(vkCB, bindPoint, perDeviceData.pipelineLayout, 0, 
+			perDeviceData.numSets, sets, 0, nullptr);
+
+		bs_stack_free(sets);
 	}
 }
