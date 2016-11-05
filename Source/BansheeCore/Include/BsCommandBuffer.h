@@ -39,7 +39,7 @@ namespace BansheeEngine
 	class BS_CORE_EXPORT CommandBuffer
 	{
 	public:
-		virtual ~CommandBuffer();
+		virtual ~CommandBuffer() { }
 
 		/**
 		 * Creates a new CommandBuffer.
@@ -71,18 +71,9 @@ namespace BansheeEngine
 		/** Returns the device index this buffer will execute on. */
 		UINT32 getDeviceIdx() const { return mDeviceIdx; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/** Returns a unique ID of this command buffer. */
-		UINT32 _getId() const { return mId; }
-
-		/** @} */
 	protected:
-		CommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
+		CommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary);
 
-		UINT32 mId;
 		GpuQueueType mType;
 		UINT32 mDeviceIdx;
 		UINT32 mQueueIdx;

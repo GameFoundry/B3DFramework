@@ -422,7 +422,9 @@ namespace BansheeEngine
 
 		// TODO - Actually swap buffers
 
-		cb->refreshSubmitStatus();
+		// See if any command buffers finished executing
+		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
+		cbm.refreshStates(cb->getDeviceIdx());
 
 		BS_INC_RENDER_STAT(NumPresents);
 	}

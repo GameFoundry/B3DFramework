@@ -4,8 +4,8 @@
 
 namespace BansheeEngine
 {
-	GLCommandBuffer::GLCommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
-		: CommandBuffer(id, type, deviceIdx, queueIdx, secondary), mCurrentDrawOperation(DOT_TRIANGLE_LIST)
+	GLCommandBuffer::GLCommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
+		: CommandBuffer(type, deviceIdx, queueIdx, secondary), mCurrentDrawOperation(DOT_TRIANGLE_LIST)
 	{
 		if (deviceIdx != 0)
 			BS_EXCEPT(InvalidParametersException, "Only a single device supported on DX11.");

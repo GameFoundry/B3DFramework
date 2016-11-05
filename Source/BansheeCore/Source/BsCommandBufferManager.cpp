@@ -9,30 +9,6 @@ namespace BansheeEngine
 	{
 		assert(deviceIdx < BS_MAX_DEVICES);
 
-		UINT32 id = -1;
-		for(UINT32 i = 0; i < BS_MAX_COMMAND_BUFFERS; i++)
-		{
-			if (!mActiveCommandBuffers[deviceIdx][i])
-			{
-				id = i;
-				break;
-			}
-		}
-
-		if(id == -1)
-		{
-			LOGERR("Attempting to allocate more than 32 command buffers. This is not supported. ");
-			return nullptr;
-		}
-
-		SPtr<CommandBuffer> cmdBuffer = createInternal(id, type, deviceIdx, queueIdx, secondary);;
-		mActiveCommandBuffers[deviceIdx][id] = cmdBuffer.get();
-
-		return cmdBuffer;
-	}
-
-	void CommandBufferManager::notifyCommandBufferDestroyed(UINT32 deviceIdx, UINT32 id)
-	{
-		mActiveCommandBuffers[deviceIdx][id] = nullptr;
+		return createInternal(type, deviceIdx, queueIdx, secondary);
 	}
 }

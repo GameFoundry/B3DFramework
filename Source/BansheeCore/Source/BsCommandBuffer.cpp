@@ -33,15 +33,10 @@ namespace BansheeEngine
 		return (1 << queueIdx) << bitShift;
 	}
 
-	CommandBuffer::CommandBuffer(UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
-		:mId(id), mType(type), mDeviceIdx(deviceIdx), mQueueIdx(queueIdx), mIsSecondary(secondary)
+	CommandBuffer::CommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
+		:mType(type), mDeviceIdx(deviceIdx), mQueueIdx(queueIdx), mIsSecondary(secondary)
 	{
 
-	}
-
-	CommandBuffer::~CommandBuffer()
-	{
-		CommandBufferManager::instance().notifyCommandBufferDestroyed(mDeviceIdx, mId);
 	}
 
 	SPtr<CommandBuffer> CommandBuffer::create(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,

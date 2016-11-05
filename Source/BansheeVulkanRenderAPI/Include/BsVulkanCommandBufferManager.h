@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsCommandBufferManager.h"
+#include "BsVulkanCommandBuffer.h"
 
 namespace BansheeEngine
 {
@@ -23,8 +24,11 @@ namespace BansheeEngine
 		~VulkanCommandBufferManager();
 
 		/** @copydoc CommandBufferManager::createInternal() */
-		SPtr<CommandBuffer> createInternal(UINT32 id, GpuQueueType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
+		SPtr<CommandBuffer> createInternal(GpuQueueType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,
 			bool secondary = false) override;
+
+		/** Notifies the manager that this buffer was just submitted to the queue for execution. */
+		void setActiveBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, VulkanCmdBuffer* buffer);
 
 		/** 
 		 * Returns a set of command buffer semaphores depending on the provided sync mask. 
@@ -46,7 +50,16 @@ namespace BansheeEngine
 		void refreshStates(UINT32 deviceIdx);
 
 	private:
+		/** Contains command buffers specific to one device. */
+		struct PerDeviceData
+		{
+			VulkanCmdBuffer* buffers[BS_MAX_COMMAND_BUFFERS];
+		};
+
 		const VulkanRenderAPI& mRapi;
+
+		PerDeviceData* mDeviceData;
+		UINT32 mNumDevices;
 	};
 
 	/** @} */

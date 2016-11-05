@@ -93,6 +93,18 @@ namespace BansheeEngine
 		/** Ends render pass recording (as started with beginRenderPass(). */
 		void endRenderPass();
 
+		/** 
+		 * Submits the command buffer for execution. 
+		 * 
+		 * @param[in]	queue		Queue to submit the command buffer on.
+		 * @param[in]	queueIdx	Index of the queue the command buffer was submitted on. Note that this may be different
+		 *							from the actual VulkanQueue index since multiple command buffer queue indices can map
+		 *							to the same queue.
+		 * @param[in]	syncMask	Mask that controls which other command buffers does this command buffer depend upon
+		 *							(if any). See description of @p syncMask parameter in RenderAPICore::executeCommands().
+		 */
+		void submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask);
+
 		/** Returns the handle to the internal Vulkan command buffer wrapped by this object. */
 		VkCommandBuffer getHandle() const { return mCmdBuffer; }
 
@@ -139,18 +151,6 @@ namespace BansheeEngine
 			VulkanUseFlags flags;
 		};
 
-		/** 
-		 * Called just before the buffer has been submitted to the queue.
-		 * 
-		 *  @param[out]	transitionInfo	Contains barriers that transition resources to appropriate queues families
-		 *								and/or transition image layouts. Caller should issue relevant pipeline barriers
-		 *								according to this structure, before submitting the command buffer.
-		 */
-		void prepareForSubmit(UnorderedMap<UINT32, TransitionInfo>& transitionInfo);
-
-		/** Called after the buffer has been submitted to the queue. */
-		void notifySubmit();
-
 		UINT32 mId;
 		UINT32 mQueueFamily;
 		State mState;
@@ -163,6 +163,9 @@ namespace BansheeEngine
 
 		UnorderedMap<VulkanResource*, ResourceInfo> mResources;
 		UnorderedSet<SPtr<VulkanGpuParams>> mBoundParams;
+
+		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
+		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;
 	};
 
 	/** CommandBuffer implementation for Vulkan. */
@@ -177,9 +180,6 @@ namespace BansheeEngine
 		 */
 		void submit(UINT32 syncMask);
 
-		/** Checks if the submitted buffer finished executing, and updates state if it has. */
-		void refreshSubmitStatus();
-
 		/** 
 		 * Returns the internal command buffer. 
 		 * 
@@ -190,7 +190,7 @@ namespace BansheeEngine
 	private:
 		friend class VulkanCommandBufferManager;
 
-		VulkanCommandBuffer(VulkanDevice& device, UINT32 id, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
+		VulkanCommandBuffer(VulkanDevice& device, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
 			bool secondary);
 
 		/** 
@@ -200,7 +200,6 @@ namespace BansheeEngine
 		void acquireNewBuffer();
 
 		VulkanCmdBuffer* mBuffer;
-		VulkanCmdBuffer* mSubmittedBuffer;
 		VulkanDevice& mDevice;
 		VulkanQueue* mQueue;
 		UINT32 mIdMask;

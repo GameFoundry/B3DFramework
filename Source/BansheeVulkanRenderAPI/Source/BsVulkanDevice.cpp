@@ -104,7 +104,7 @@ namespace BansheeEngine
 				VkQueue queue;
 				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].familyIdx, j, &queue);
 
-				mQueueInfos[i].queues[j] = bs_new<VulkanQueue>(queue);
+				mQueueInfos[i].queues[j] = bs_new<VulkanQueue>(*this, queue, (GpuQueueType)i, j);
 			}
 		}
 

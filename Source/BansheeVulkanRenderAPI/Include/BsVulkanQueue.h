@@ -14,27 +14,37 @@ namespace BansheeEngine
 	class VulkanQueue
 	{
 	public:
-		VulkanQueue(VkQueue queue);
+		VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type, UINT32 index);
 
 		/** Returns the internal handle to the Vulkan queue object. */
 		VkQueue getHandle() const { return mQueue; }
 		
+		/** Returns the device that owns the queue. */
+		VulkanDevice& getDevice() const { return mDevice; }
+
+		/** Returns the type of the queue. */
+		GpuQueueType getType() const { return mType; }
+
+		/** Returns the unique index of the queue, for its type. */
+		UINT32 getIndex() const { return mIndex; }
+
 		/** 
-		 * Notifies the queue that a command buffer was submitted. 
+		 * Checks if anything is currently executing on this queue. 
 		 *
-		 * @param[in]	cmdBuffer		Command buffer that was submitted.
-		 * @param[in]	fenceCounter	Fence counter of the command buffer at time of submission. This counter gets
-		 *								incremented whenever a command buffer is done executing on the device. This allow
-		 *								us to know when the queue is done with a command buffer.
+		 * @note	This status is only updated after a VulkanCommandBufferManager::refreshStates() call.
 		 */
-		void notifySubmit(const VulkanCommandBuffer& cmdBuffer, UINT32 fenceCounter);
+		bool isExecuting() const;
+
+		/** Submits the provided command buffer on the queue. */
+		void submit(VulkanCmdBuffer* cmdBuffer, VkSemaphore* waitSemaphores, UINT32 semaphoresCount);
 
 	protected:
+		VulkanDevice& mDevice;
 		VkQueue mQueue;
-		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
+		GpuQueueType mType;
+		UINT32 mIndex;
 
-		UINT32 mFenceCounter;
-		UINT32 mLastCommandBufferId;
+		VulkanCmdBuffer* mLastCommandBuffer;
 	};
 
 	/** @} */

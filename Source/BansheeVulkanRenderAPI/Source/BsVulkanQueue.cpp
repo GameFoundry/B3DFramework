@@ -5,13 +5,39 @@
 
 namespace BansheeEngine
 {
-	VulkanQueue::VulkanQueue(VkQueue queue)
-		:mQueue(queue), mFenceCounter(0), mLastCommandBufferId(-1)
+	VulkanQueue::VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type, UINT32 index)
+		:mDevice(device), mQueue(queue), mType(type), mIndex(index), mLastCommandBuffer(nullptr)
 	{ }
 
-	void VulkanQueue::notifySubmit(const VulkanCommandBuffer& cmdBuffer, UINT32 fenceCounter)
+	bool VulkanQueue::isExecuting() const
 	{
-		mLastCommandBufferId = cmdBuffer._getId();
-		mFenceCounter = fenceCounter;
+		if (mLastCommandBuffer == nullptr)
+			return false;
+
+		return mLastCommandBuffer->isSubmitted();
+	}
+
+	void VulkanQueue::submit(VulkanCmdBuffer* cmdBuffer, VkSemaphore* waitSemaphores, UINT32 semaphoresCount)
+	{
+		VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
+		VkSemaphore semaphore = cmdBuffer->getSemaphore();
+
+		VkSubmitInfo submitInfo;
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pNext = nullptr;
+		submitInfo.pWaitDstStageMask = 0;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &vkCmdBuffer;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &semaphore;
+
+		if (semaphoresCount > 0)
+			submitInfo.pWaitSemaphores = waitSemaphores;
+		else
+			submitInfo.pWaitSemaphores = nullptr;
+
+		vkQueueSubmit(mQueue, 1, &submitInfo, cmdBuffer->getFence());
+
+		mLastCommandBuffer = cmdBuffer;
 	}
 }

@@ -35,6 +35,9 @@ namespace BansheeEngine
 
 	VulkanCmdBufferPool::~VulkanCmdBufferPool()
 	{
+		// Note: Shutdown should be the only place command buffers are destroyed at, as the system relies on the fact that
+		// they won't be destroyed during normal operation.
+
 		for(auto& entry : mPools)
 		{
 			PoolInfo& poolInfo = entry.second;
@@ -232,21 +235,9 @@ namespace BansheeEngine
 		mBoundParams.insert(params);
 	}
 
-	void VulkanCmdBuffer::prepareForSubmit(UnorderedMap<UINT32, TransitionInfo>& transitionInfo)
-	{
-		for (auto& entry : mBoundParams)
-			entry->prepareForSubmit(this, transitionInfo);
-	}
-
-	void VulkanCmdBuffer::notifySubmit()
-	{
-		for (auto& entry : mResources)
-			entry.first->notifyUsed(this, entry.second.flags);
-	}
-
-	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, UINT32 id, GpuQueueType type, UINT32 deviceIdx,
+	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
-		: CommandBuffer(id, type, deviceIdx, queueIdx, secondary), mBuffer(nullptr), mSubmittedBuffer(nullptr)
+		: CommandBuffer(type, deviceIdx, queueIdx, secondary), mBuffer(nullptr)
 		, mDevice(device), mQueue(nullptr), mIdMask(0)
 	{
 		UINT32 numQueues = device.getNumQueues(mType);
@@ -269,16 +260,6 @@ namespace BansheeEngine
 		acquireNewBuffer();
 	}
 
-	void VulkanCommandBuffer::refreshSubmitStatus()
-	{
-		if (mSubmittedBuffer == nullptr) // Nothing was submitted
-			return;
-
-		mSubmittedBuffer->refreshFenceStatus();
-		if (!mSubmittedBuffer->isSubmitted())
-			mSubmittedBuffer = nullptr;
-	}
-
 	void VulkanCommandBuffer::acquireNewBuffer()
 	{
 		VulkanCmdBufferPool& pool = mDevice.getCmdBufferPool();
@@ -286,40 +267,23 @@ namespace BansheeEngine
 		if (mBuffer != nullptr)
 			assert(mBuffer->isSubmitted());
 
-		mSubmittedBuffer = mBuffer;
 		UINT32 queueFamily = mDevice.getQueueFamily(mType);
 		mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
 	}
 
-	void VulkanCommandBuffer::submit(UINT32 syncMask)
+	void VulkanCmdBuffer::submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask)
 	{
-		assert(mBuffer != nullptr && mBuffer->isReadyForSubmit());
-
-		VkCommandBuffer cmdBuffer = mBuffer->getHandle();
-		VkSemaphore signalSemaphore = mBuffer->getSemaphore();
-
-		VkSubmitInfo submitInfo;
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.pNext = nullptr;
-		submitInfo.pWaitDstStageMask = 0;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &cmdBuffer;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &signalSemaphore;
-
-		// Ignore myself
-		syncMask &= ~mIdMask;
-
 		// Issue pipeline barriers for queue transitions (need to happen on original queue first, then on new queue)
-		mBuffer->prepareForSubmit(mTransitionInfoTemp);
+		for (auto& entry : mBoundParams)
+			entry->prepareForSubmit(this, mTransitionInfoTemp);
 
-		UINT32 queueFamily = mDevice.getQueueFamily(mType);
-		for(auto& entry : mTransitionInfoTemp)
+		VulkanDevice& device = queue->getDevice();
+		for (auto& entry : mTransitionInfoTemp)
 		{
 			UINT32 entryQueueFamily = entry.first;
 
 			// No queue transition needed for entries on this queue (this entry is most likely an in image layout transition)
-			if (entryQueueFamily == queueFamily)
+			if (entryQueueFamily == mQueueFamily)
 				continue;
 
 			VkCommandBuffer cmdBuffer; // TODO - Get the command buffer on entryQueueFamily
@@ -361,35 +325,42 @@ namespace BansheeEngine
 								 numImgBarriers, barriers.imageBarriers.data());
 		}
 
-		VulkanCommandBufferManager& cmdBufManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
-		cmdBufManager.getSyncSemaphores(mDeviceIdx, syncMask, mSemaphoresTemp, submitInfo.waitSemaphoreCount);
+		UINT32 deviceIdx = device.getIndex();
+		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
+		
+		UINT32 numSemaphores;
+		cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
 
-		if (submitInfo.waitSemaphoreCount > 0)
-			submitInfo.pWaitSemaphores = mSemaphoresTemp;
-		else
-			submitInfo.pWaitSemaphores = nullptr;
+		queue->submit(this, mSemaphoresTemp, numSemaphores);
 
-		VkQueue queue = mQueue->getHandle();
-		VkFence fence = mBuffer->getFence();
-		vkQueueSubmit(queue, 1, &submitInfo, fence);
+		for (auto& entry : mResources)
+			entry.first->notifyUsed(this, entry.second.flags);
 
-		cmdBufManager.refreshStates(mDeviceIdx);
-
-		mBuffer->notifySubmit();
-		mQueue->notifySubmit(*this, mBuffer->getFenceCounter());
+		cbm.refreshStates(deviceIdx);
 
 		// Note: Uncommented for debugging only, prevents any device concurrency issues.
-		// vkQueueWaitIdle(mQueue);
+		// vkQueueWaitIdle(queue->getHandle());
 
-		mBuffer->mState = VulkanCmdBuffer::State::Submitted;
-		acquireNewBuffer();
+		mState = State::Submitted;
+		cbm.setActiveBuffer(queue->getType(), deviceIdx, queueIdx, this);
 
 		// Clear vectors but don't clear the actual map, as we want to re-use the memory since we expect queue family
 		// indices to be the same
-		for(auto& entry : mTransitionInfoTemp)
+		for (auto& entry : mTransitionInfoTemp)
 		{
 			entry.second.imageBarriers.clear();
 			entry.second.bufferBarriers.clear();
 		}
+	}
+
+	void VulkanCommandBuffer::submit(UINT32 syncMask)
+	{
+		assert(mBuffer != nullptr && mBuffer->isReadyForSubmit());
+
+		// Ignore myself
+		syncMask &= ~mIdMask;
+
+		mBuffer->submit(mQueue, mQueueIdx, syncMask);
+		acquireNewBuffer();
 	}
 }
