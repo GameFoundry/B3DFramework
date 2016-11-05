@@ -25,7 +25,7 @@ namespace BansheeEngine
 		MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mGUIWidget->getPanel());
 		mPanel = ScriptGUILayout::toNative(guiPanel);
 
-		sGUIPanelField->setValue(nullptr, guiPanel);
+		sGUIPanelField->setValue(managedInstance, guiPanel);
 	}
 
 	ScriptGUIWidget::~ScriptGUIWidget()
