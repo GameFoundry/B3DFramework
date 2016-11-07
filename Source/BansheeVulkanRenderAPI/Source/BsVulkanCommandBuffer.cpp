@@ -6,6 +6,8 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanGpuParams.h"
 #include "BsVulkanQueue.h"
+#include "BsVulkanTexture.h"
+#include "BsVulkanHardwareBuffer.h"
 
 namespace BansheeEngine
 {
@@ -138,6 +140,36 @@ namespace BansheeEngine
 
 			if (result == VK_TIMEOUT)
 				LOGWRN("Freeing a command buffer before done executing because fence wait expired!");
+
+			// Resources have been marked as used, make sure to notify them we're done with them
+			refreshFenceStatus();
+		}
+		else if(mState != State::Ready) 
+		{
+			// Notify any resources that they are no longer bound
+			for (auto& entry : mResources)
+			{
+				ResourceUseHandle& useHandle = entry.second;
+				assert(useHandle.used);
+
+				entry.first->notifyUnbound();
+			}
+
+			for (auto& entry : mImages)
+			{
+				ResourceUseHandle& useHandle = entry.second.useHandle;
+				assert(useHandle.used);
+
+				entry.first->notifyUnbound();
+			}
+
+			for (auto& entry : mBuffers)
+			{
+				ResourceUseHandle& useHandle = entry.second.useHandle;
+				assert(useHandle.used);
+
+				entry.first->notifyUnbound();
+			}
 		}
 		
 		vkDestroyFence(device, mFence, gVulkanAllocator);
@@ -222,8 +254,25 @@ namespace BansheeEngine
 					entry.first->notifyDone();
 				}
 
+				for (auto& entry : mImages)
+				{
+					ResourceUseHandle& useHandle = entry.second.useHandle;
+					assert(useHandle.used);
+
+					entry.first->notifyDone();
+				}
+
+				for (auto& entry : mBuffers)
+				{
+					ResourceUseHandle& useHandle = entry.second.useHandle;
+					assert(useHandle.used);
+
+					entry.first->notifyDone();
+				}
+
 				mResources.clear();
-				mBoundParams.clear();
+				mImages.clear();
+				mBuffers.clear();
 			}
 		}
 		else
@@ -250,9 +299,56 @@ namespace BansheeEngine
 		}
 	}
 
-	void VulkanCmdBuffer::registerGpuParams(const SPtr<VulkanGpuParams>& params)
+	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout layout, 
+		const VkImageSubresourceRange& range, VulkanUseFlags flags)
 	{
-		mBoundParams.insert(params);
+		auto insertResult = mImages.insert(std::make_pair(res, ImageInfo()));
+		if (insertResult.second) // New element
+		{
+			ImageInfo& imageInfo = insertResult.first->second;
+			imageInfo.accessFlags = accessFlags;
+			imageInfo.layout = layout;
+			imageInfo.range = range;
+
+			imageInfo.useHandle.used = false;
+			imageInfo.useHandle.flags = flags;
+
+			res->notifyBound();
+		}
+		else // Existing element
+		{
+			ImageInfo& imageInfo = insertResult.first->second;
+
+			assert(!imageInfo.useHandle.used);
+			imageInfo.useHandle.flags |= flags;
+
+			assert(imageInfo.layout == layout && "Cannot bind the same image with two different layouts on the same command buffer.");
+			imageInfo.accessFlags |= accessFlags;
+			imageInfo.range = range;
+		}
+	}
+
+	void VulkanCmdBuffer::registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags)
+	{
+		auto insertResult = mBuffers.insert(std::make_pair(res, BufferInfo()));
+		if (insertResult.second) // New element
+		{
+			BufferInfo& bufferInfo = insertResult.first->second;
+			bufferInfo.accessFlags = accessFlags;
+
+			bufferInfo.useHandle.used = false;
+			bufferInfo.useHandle.flags = flags;
+
+			res->notifyBound();
+		}
+		else // Existing element
+		{
+			BufferInfo& bufferInfo = insertResult.first->second;
+
+			assert(!bufferInfo.useHandle.used);
+			bufferInfo.useHandle.flags |= flags;
+			bufferInfo.accessFlags |= accessFlags;
+		}
 	}
 
 	void VulkanCmdBuffer::submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask)
@@ -260,12 +356,67 @@ namespace BansheeEngine
 		assert(isReadyForSubmit());
 
 		// Issue pipeline barriers for queue transitions (need to happen on original queue first, then on new queue)
-		for (auto& entry : mBoundParams)
-			entry->prepareForSubmit(this, mTransitionInfoTemp);
+		for(auto& entry : mBuffers)
+		{
+			VulkanBuffer* resource = static_cast<VulkanBuffer*>(entry.first);
+
+			if (!resource->isExclusive())
+				continue;
+
+			UINT32 currentQueueFamily = resource->getQueueFamily();
+			if (currentQueueFamily != mQueueFamily)
+			{
+				Vector<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].bufferBarriers;
+
+				barriers.push_back(VkBufferMemoryBarrier());
+				VkBufferMemoryBarrier& barrier = barriers.back();
+				barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+				barrier.pNext = nullptr;
+				barrier.srcAccessMask = entry.second.accessFlags;
+				barrier.dstAccessMask = entry.second.accessFlags;
+				barrier.srcQueueFamilyIndex = currentQueueFamily;
+				barrier.dstQueueFamilyIndex = mQueueFamily;
+				barrier.buffer = resource->getHandle();
+				barrier.offset = 0;
+				barrier.size = VK_WHOLE_SIZE;
+			}
+		}
+
+		for(auto& entry : mImages)
+		{
+			VulkanImage* resource = static_cast<VulkanImage*>(entry.first);
+
+			UINT32 currentQueueFamily = resource->getQueueFamily();
+			bool queueMismatch = resource->isExclusive() && currentQueueFamily != mQueueFamily;
+
+			if (queueMismatch || resource->getLayout() != entry.second.layout)
+			{
+				Vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].imageBarriers;
+
+				barriers.push_back(VkImageMemoryBarrier());
+				VkImageMemoryBarrier& barrier = barriers.back();
+				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				barrier.pNext = nullptr;
+				barrier.srcAccessMask = entry.second.accessFlags;
+				barrier.dstAccessMask = entry.second.accessFlags;
+				barrier.srcQueueFamilyIndex = currentQueueFamily;
+				barrier.dstQueueFamilyIndex = mQueueFamily;
+				barrier.oldLayout = resource->getLayout();
+				barrier.newLayout = entry.second.layout;
+				barrier.image = resource->getHandle();
+				barrier.subresourceRange = entry.second.range;
+
+				resource->setLayout(entry.second.layout);
+			}
+		}
 
 		VulkanDevice& device = queue->getDevice();
 		for (auto& entry : mTransitionInfoTemp)
 		{
+			bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
+			if (empty)
+				continue;
+
 			UINT32 entryQueueFamily = entry.first;
 
 			// No queue transition needed for entries on this queue (this entry is most likely an in image layout transition)
@@ -338,6 +489,10 @@ namespace BansheeEngine
 		// Issue second part of transition pipeline barriers (on this queue)
 		for (auto& entry : mTransitionInfoTemp)
 		{
+			bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
+			if (empty)
+				continue;
+
 			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(mQueueFamily, false);
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
 
@@ -366,7 +521,25 @@ namespace BansheeEngine
 			assert(!useHandle.used);
 
 			useHandle.used = true;
-			entry.first->notifyUsed();
+			entry.first->notifyUsed(this, useHandle.flags);
+		}
+
+		for (auto& entry : mImages)
+		{
+			ResourceUseHandle& useHandle = entry.second.useHandle;
+			assert(!useHandle.used);
+
+			useHandle.used = true;
+			entry.first->notifyUsed(this, useHandle.flags);
+		}
+
+		for (auto& entry : mBuffers)
+		{
+			ResourceUseHandle& useHandle = entry.second.useHandle;
+			assert(!useHandle.used);
+
+			useHandle.used = true;
+			entry.first->notifyUsed(this, useHandle.flags);
 		}
 
 		cbm.refreshStates(deviceIdx);

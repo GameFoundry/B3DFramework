@@ -37,15 +37,12 @@ namespace BansheeEngine
 		void setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface) override;
 
 		/** 
-		 * Notifies the object that a command buffer containing the object is about to be submitted to a queue. 
-		 *
-		 * @param[in]	buffer			Command buffer on which we're about to submit the GPU params.
-		 * @param[out]	transitionInfo	Contains barriers that transition resources to appropriate queues families
-		 *								and/or transition image layouts.
+		 * Binds the internal descriptor sets to the provided command buffer. Caller must perform external locking if
+		 * some other thread could write to this object while it is being bound. The same applies to any resources
+		 * held by this object.
+		 * 
+		 * @note	Thread safe.
 		 */
-		void prepareForSubmit(VulkanCmdBuffer* buffer, UnorderedMap<UINT32, TransitionInfo>& transitionInfo);
-
-		/** Binds the internal descriptor sets to the provided command buffer. */
 		void bind(VulkanCommandBuffer& buffer);
 
 	protected:
@@ -61,7 +58,8 @@ namespace BansheeEngine
 		struct PerSetData
 		{
 			VulkanDescriptorLayout* layout;
-			VulkanDescriptorSet* set;
+			VulkanDescriptorSet* latestSet;
+			Vector<VulkanDescriptorSet*> sets;
 
 			VkWriteDescriptorSet* writeSetInfos;
 			WriteInfo* writeInfos;
@@ -84,6 +82,8 @@ namespace BansheeEngine
 		GpuDeviceFlags mDeviceMask;
 		UINT8* mData;
 		bool* mSetsDirty;
+
+		Mutex mMutex;
 	};
 
 	/** @} */

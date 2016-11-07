@@ -47,6 +47,7 @@ namespace BansheeEngine
 	class VulkanResourceManager;
 	class VulkanGpuParamBlockBufferCore;
 	class VulkanBuffer;
+	class VulkanImage;
 	class VulkanDescriptorPool;
 	class VulkanGpuParams;
 

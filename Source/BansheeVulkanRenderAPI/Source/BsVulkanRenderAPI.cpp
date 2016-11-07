@@ -317,7 +317,6 @@ namespace BansheeEngine
 		SPtr<VulkanGpuParams> vulkanGpuParams = std::static_pointer_cast<VulkanGpuParams>(gpuParams);
 
 		vulkanGpuParams->bind(*cb);
-		cb->getInternal()->registerGpuParams(vulkanGpuParams);
 
 		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}

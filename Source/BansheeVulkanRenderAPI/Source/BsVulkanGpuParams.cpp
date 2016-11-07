@@ -149,6 +149,8 @@ namespace BansheeEngine
 		mData = (UINT8*)bs_alloc(setsDirtyBytes + (perSetBytes + writeSetInfosBytes + writeInfosBytes) * numDevices);
 		UINT8* dataIter = mData;
 
+		Lock lock(mMutex); // Set write operations need to be thread safe
+
 		mSetsDirty = (bool*)dataIter;
 		memset(mSetsDirty, 1, setsDirtyBytes);
 		dataIter += setsDirtyBytes;
@@ -184,8 +186,9 @@ namespace BansheeEngine
 
 				VkDescriptorSetLayoutBinding* perSetBindings = &bindings[bindingOffset];
 				perSetData.layout = descManager.getLayout(perSetBindings, numBindingsPerSet);
-				perSetData.set = descManager.createSet(perSetData.layout);
 				perSetData.numElements = numBindingsPerSet;
+				perSetData.latestSet = descManager.createSet(perSetData.layout);
+				perSetData.sets.push_back(perSetData.latestSet);
 
 				layouts[j] = perSetData.layout;
 
@@ -255,10 +258,17 @@ namespace BansheeEngine
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
-		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			for (UINT32 j = 0; j < mPerDeviceData[i].numSets; j++)
-				mPerDeviceData[i].perSetData[j].set->destroy();
+			Lock lock(mMutex);
+
+			for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+			{
+				for (UINT32 j = 0; j < mPerDeviceData[i].numSets; j++)
+				{
+					for (auto& entry : mPerDeviceData[i].perSetData[j].sets)
+						entry->destroy();
+				}
+			}
 		}
 
 		bs_free(mData); // Everything allocated under a single buffer to a single free is enough
@@ -267,6 +277,8 @@ namespace BansheeEngine
 	void VulkanGpuParams::setParamBlockBuffer(UINT32 set, UINT32 slot, const SPtr<GpuParamBlockBufferCore>& paramBlockBuffer)
 	{
 		GpuParamsCore::setParamBlockBuffer(set, slot, paramBlockBuffer);
+
+		Lock(mMutex);
 
 		VulkanGpuParamBlockBufferCore* vulkanParamBlockBuffer =
 			static_cast<VulkanGpuParamBlockBufferCore*>(paramBlockBuffer.get());
@@ -290,6 +302,8 @@ namespace BansheeEngine
 	{
 		GpuParamsCore::setTexture(set, slot, texture);
 
+		Lock(mMutex);
+
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -307,6 +321,8 @@ namespace BansheeEngine
 	{
 		GpuParamsCore::setLoadStoreTexture(set, slot, texture, surface);
 
+		Lock(mMutex);
+
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -322,6 +338,8 @@ namespace BansheeEngine
 	void VulkanGpuParams::setBuffer(UINT32 set, UINT32 slot, const SPtr<GpuBufferCore>& buffer)
 	{
 		GpuParamsCore::setBuffer(set, slot, buffer);
+
+		Lock(mMutex);
 
 		VulkanGpuBufferCore* vulkanBuffer = static_cast<VulkanGpuBufferCore*>(buffer.get());
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -342,6 +360,8 @@ namespace BansheeEngine
 	void VulkanGpuParams::setSamplerState(UINT32 set, UINT32 slot, const SPtr<SamplerStateCore>& sampler)
 	{
 		GpuParamsCore::setSamplerState(set, slot, sampler);
+
+		Lock(mMutex);
 
 		VulkanSamplerStateCore* vulkanSampler = static_cast<VulkanSamplerStateCore*>(sampler.get());
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -367,6 +387,8 @@ namespace BansheeEngine
 		if (texture == nullptr)
 			return;
 
+		Lock(mMutex);
+
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -379,87 +401,19 @@ namespace BansheeEngine
 		mSetsDirty[set] = true;
 	}
 
-	void VulkanGpuParams::prepareForSubmit(VulkanCmdBuffer* buffer, UnorderedMap<UINT32, TransitionInfo>& transitionInfo)
+	void VulkanGpuParams::bind(VulkanCommandBuffer& buffer)
 	{
-		UINT32 deviceIdx = buffer->getDeviceIdx();
-		UINT32 queueFamily = buffer->getQueueFamily();
+		UINT32 deviceIdx = buffer.getDeviceIdx();
 
-		const PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
+		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
 		if (perDeviceData.perSetData == nullptr)
 			return;
 
-		for(UINT32 i = 0; i < perDeviceData.numSets; i++)
-		{
-			if (!mSetsDirty[i])
-				continue;
-
-			// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
-			// entries that were updated, and only write to them individually.
-			const PerSetData& perSetData = perDeviceData.perSetData[i];
-			perSetData.set->write(perSetData.writeSetInfos, perSetData.numElements);
-
-			mSetsDirty[i] = false;
-		}
-
-		auto registerBuffer = [&](VulkanBuffer* resource, VkAccessFlags accessFlags, VulkanUseFlags useFlags)
-		{
-			if (resource == nullptr)
-				return;
-
-			buffer->registerResource(resource, useFlags);
-
-			if (resource->isExclusive())
-			{
-				UINT32 currentQueueFamily = resource->getQueueFamily();
-				if (currentQueueFamily != queueFamily)
-				{
-					Vector<VkBufferMemoryBarrier>& barriers = transitionInfo[currentQueueFamily].bufferBarriers;
-
-					barriers.push_back(VkBufferMemoryBarrier());
-					VkBufferMemoryBarrier& barrier = barriers.back();
-					barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-					barrier.pNext = nullptr;
-					barrier.srcAccessMask = accessFlags;
-					barrier.dstAccessMask = accessFlags;
-					barrier.srcQueueFamilyIndex = currentQueueFamily;
-					barrier.dstQueueFamilyIndex = queueFamily;
-					barrier.buffer = resource->getHandle();
-					barrier.offset = 0;
-					barrier.size = VK_WHOLE_SIZE;
-				}
-			}
-		};
-
-		auto registerImage = [&](VulkanImage* resource, VkAccessFlags accessFlags, VkImageLayout layout, 
-			const VkImageSubresourceRange& range, VulkanUseFlags useFlags)
-		{
-			buffer->registerResource(resource, useFlags);
-
-			UINT32 currentQueueFamily = resource->getQueueFamily();
-			bool queueMismatch = resource->isExclusive() && currentQueueFamily != queueFamily;
-
-			if (queueMismatch || resource->getLayout() != layout)
-			{
-				Vector<VkImageMemoryBarrier>& barriers = transitionInfo[currentQueueFamily].imageBarriers;
-
-				barriers.push_back(VkImageMemoryBarrier());
-				VkImageMemoryBarrier& barrier = barriers.back();
-				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				barrier.pNext = nullptr;
-				barrier.srcAccessMask = accessFlags;
-				barrier.dstAccessMask = accessFlags;
-				barrier.srcQueueFamilyIndex = currentQueueFamily;
-				barrier.dstQueueFamilyIndex = queueFamily;
-				barrier.oldLayout = resource->getLayout();
-				barrier.newLayout = layout;
-				barrier.image = resource->getHandle();
-				barrier.subresourceRange = range;
-
-				resource->setLayout(layout);
-			}
-		};
-
-		for(UINT32 i = 0; i < mNumElements[(UINT32)ElementType::ParamBlock]; i++)
+		// Registers resources with the command buffer
+		// Note: Makes the assumption that this object (and all of the resources it holds) are externally locked, and will
+		// not be modified on another thread while being bound.
+		VulkanCmdBuffer* internalCB = buffer.getInternal();
+		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::ParamBlock]; i++)
 		{
 			if (mParamBlockBuffers[i] == nullptr)
 				continue;
@@ -467,7 +421,7 @@ namespace BansheeEngine
 			VulkanGpuParamBlockBufferCore* element = static_cast<VulkanGpuParamBlockBufferCore*>(mParamBlockBuffers[i].get());
 
 			VulkanBuffer* resource = element->getResource(deviceIdx);
-			registerBuffer(resource, VK_ACCESS_UNIFORM_READ_BIT, VulkanUseFlag::Read);
+			internalCB->registerResource(resource, VK_ACCESS_UNIFORM_READ_BIT, VulkanUseFlag::Read);
 		}
 
 		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::Buffer]; i++)
@@ -480,14 +434,14 @@ namespace BansheeEngine
 			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT;
 			VulkanUseFlags useFlags = VulkanUseFlag::Read;
 
-			if(element->getProperties().getRandomGpuWrite())
+			if (element->getProperties().getRandomGpuWrite())
 			{
 				accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
 				useFlags |= VulkanUseFlag::Write;
 			}
 
 			VulkanBuffer* resource = element->getResource(deviceIdx);
-			registerBuffer(resource, accessFlags, useFlags);
+			internalCB->registerResource(resource, accessFlags, useFlags);
 		}
 
 		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::SamplerState]; i++)
@@ -501,7 +455,7 @@ namespace BansheeEngine
 			if (resource == nullptr)
 				continue;
 
-			buffer->registerResource(resource, VulkanUseFlag::Read);
+			internalCB->registerResource(resource, VulkanUseFlag::Read);
 		}
 
 		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::LoadStoreTexture]; i++)
@@ -519,14 +473,14 @@ namespace BansheeEngine
 			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
 
 			const TextureSurface& surface = mLoadStoreSurfaces[i];
-			VkImageSubresourceRange subresource;
-			subresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			subresource.baseArrayLayer = surface.arraySlice;
-			subresource.layerCount = surface.numArraySlices;
-			subresource.baseMipLevel = surface.mipLevel;
-			subresource.levelCount = surface.numMipLevels;
+			VkImageSubresourceRange range;
+			range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			range.baseArrayLayer = surface.arraySlice;
+			range.layerCount = surface.numArraySlices;
+			range.baseMipLevel = surface.mipLevel;
+			range.levelCount = surface.numMipLevels;
 
-			registerImage(resource, accessFlags, VK_IMAGE_LAYOUT_GENERAL, subresource, useFlags);
+			internalCB->registerResource(resource, accessFlags, VK_IMAGE_LAYOUT_GENERAL, range, useFlags);
 		}
 
 		for (UINT32 i = 0; i < mNumElements[(UINT32)ElementType::Texture]; i++)
@@ -544,29 +498,60 @@ namespace BansheeEngine
 
 			bool isDepthStencil = (props.getUsage() & TU_DEPTHSTENCIL) != 0;
 
-			VkImageSubresourceRange subresource;
-			subresource.aspectMask = isDepthStencil ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
-													: VK_IMAGE_ASPECT_COLOR_BIT;
+			VkImageSubresourceRange range;
+			range.aspectMask = isDepthStencil ? VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT
+				: VK_IMAGE_ASPECT_COLOR_BIT;
 
-			subresource.baseArrayLayer = 0;
-			subresource.layerCount = props.getNumFaces();
-			subresource.baseMipLevel = 0;
-			subresource.levelCount = props.getNumMipmaps();
+			range.baseArrayLayer = 0;
+			range.layerCount = props.getNumFaces();
+			range.baseMipLevel = 0;
+			range.levelCount = props.getNumMipmaps();
 
-			registerImage(resource, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, subresource, 
-				VulkanUseFlag::Read);
+			internalCB->registerResource(resource, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
+				range, VulkanUseFlag::Read);
 		}
-	}
 
-	void VulkanGpuParams::bind(VulkanCommandBuffer& buffer)
-	{
-		UINT32 deviceIdx = buffer.getDeviceIdx();
+		// Acquire sets as needed, and updated their contents if dirty
+		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
+		VulkanDevice& device = *rapi._getDevice(deviceIdx);
+		VulkanDescriptorManager& descManager = device.getDescriptorManager();
 
-		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
-		if (perDeviceData.perSetData == nullptr)
-			return;
+		Lock(mMutex);
+		for (UINT32 i = 0; i < perDeviceData.numSets; i++)
+		{
+			PerSetData& perSetData = perDeviceData.perSetData[i];
 
-		VulkanCmdBuffer* internalCB = buffer.getInternal();
+			if (!mSetsDirty[i]) // Set not dirty, just use the last one we wrote (this is fine even across multiple command buffers)
+				continue;
+
+			// Set is dirty, we need to update
+			//// Use latest unless already used, otherwise try to find an unused one
+			if(perSetData.latestSet->isBound()) // Checking this is okay, because it's only modified below when we call registerResource, which is under the same lock as this
+			{
+				perSetData.latestSet = nullptr;
+
+				for(auto& entry : perSetData.sets)
+				{
+					if(!entry->isBound())
+					{
+						perSetData.latestSet = entry;
+						break;
+					}
+				}
+
+				// Cannot find an empty set, allocate a new one
+				perSetData.latestSet = descManager.createSet(perSetData.layout);
+				perSetData.sets.push_back(perSetData.latestSet);
+			}
+
+			// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
+			// entries that were updated, and only write to them individually.
+			perSetData.latestSet->write(perSetData.writeSetInfos, perSetData.numElements);
+
+			mSetsDirty[i] = false;
+		}
+
+		// Actually bind the sets to the command buffer
 		VkCommandBuffer vkCB = internalCB->getHandle();
 
 		VkPipelineBindPoint bindPoint;
@@ -588,7 +573,7 @@ namespace BansheeEngine
 		VkDescriptorSet* sets = bs_stack_alloc<VkDescriptorSet>(perDeviceData.numSets);
 		for (UINT32 i = 0; i < perDeviceData.numSets; i++)
 		{
-			VulkanDescriptorSet* set = perDeviceData.perSetData[i].set;
+			VulkanDescriptorSet* set = perDeviceData.perSetData[i].latestSet;
 
 			internalCB->registerResource(set, VulkanUseFlag::Read);
 			sets[i] = set->getHandle();

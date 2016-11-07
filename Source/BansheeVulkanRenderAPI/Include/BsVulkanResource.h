@@ -24,14 +24,6 @@ namespace BansheeEngine
 	typedef Flags<VulkanUseFlag> VulkanUseFlags;
 	BS_FLAGS_OPERATORS(VulkanUseFlag);
 
-	/** Types of VulkanResource. */
-	enum class VulkanResourceType
-	{
-		Generic,
-		Image,
-		Buffer
-	};
-
 	/** 
 	 * Wraps one or multiple native Vulkan objects. Allows the object usage to be tracked in command buffers, handles
 	 * ownership transitions between different queues, and handles delayed object destruction.
@@ -41,12 +33,14 @@ namespace BansheeEngine
 	class VulkanResource
 	{
 	public:
-		VulkanResource(VulkanResourceManager* owner, bool concurrency, VulkanResourceType type = VulkanResourceType::Generic);
+		VulkanResource(VulkanResourceManager* owner, bool concurrency);
 		virtual ~VulkanResource();
 
 		/** 
 		 * Notifies the resource that it is currently bound to a command buffer. Buffer hasn't yet been submitted so the
-		 * resource isn't being used on the GPU yet.
+		 * resource isn't being used on the GPU yet. 
+		 * 
+		 * Must eventually be followed by a notifyUsed() or notifyUnbound().
 		 */
 		void notifyBound();
 
@@ -55,14 +49,27 @@ namespace BansheeEngine
 		 * buffer has actually been submitted to the queue and the resource is used by the GPU.
 		 * 
 		 * A resource can only be used by a single command buffer at a time unless resource concurrency is enabled.
+		 * 
+		 * Must follow a notifyBound(). Must eventually be followed by a notifyDone().
 		 */
 		void notifyUsed(VulkanCmdBuffer* buffer, VulkanUseFlags useFlags);
 
 		/** 
 		 * Notifies the resource that it is no longer used by on the GPU. This makes the resource usable on other command
 		 * buffers again.
+		 * 
+		 * Must follow a notifyUsed().
 		 */
 		void notifyDone();
+
+		/** 
+		 * Notifies the resource that it is no longer queued on the command buffer. This is similar to notifyDone(), but
+		 * should only be called if resource never got submitted to the GPU (e.g. command buffer was destroyed before
+		 * being submitted).
+		 * 
+		 * Must follow a notifyBound() if notifyUsed() wasn't called.
+		 */
+		void notifyUnbound();
 
 		/** 
 		 * Checks is the resource currently used on a device. 
@@ -81,9 +88,6 @@ namespace BansheeEngine
 		 *			call VulkanCommandBufferManager::refreshStates() before checking for usage.
 		 */
 		bool isBound() const { Lock(mMutex); return mNumBoundHandles > 0; }
-
-		/** Returns the type of the object wrapped by the resource. */
-		VulkanResourceType getType() const { Lock(mMutex); return mType; }
 
 		/** 
 		 * Returns the queue family the resource is currently owned by. Returns -1 if owned by no queue.
@@ -114,7 +118,6 @@ namespace BansheeEngine
 		VulkanResourceManager* mOwner;
 		UINT32 mQueueFamily;
 		State mState;
-		VulkanResourceType mType;
 		VulkanUseFlags mUseFlags;
 		
 		UINT32 mNumUsedHandles;

@@ -9,6 +9,7 @@
 
 namespace BansheeEngine
 {
+	class VulkanImage;
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
@@ -131,15 +132,25 @@ namespace BansheeEngine
 
 		/** 
 		 * Lets the command buffer know that the provided resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted.
+		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
+		 * registerResource() overload.
 		 */
 		void registerResource(VulkanResource* res, VulkanUseFlags flags);
 
 		/** 
-		 * Lets the command buffer know that the provided GPU params object has been bound to it, and its resources
-		 * and descriptors will be used by the device when the command buffer is submitted.
+		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
+		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
+		 * registerResource() overload.
 		 */
-		void registerGpuParams(const SPtr<VulkanGpuParams>& params);
+		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout layout, 
+			const VkImageSubresourceRange& range, VulkanUseFlags flags);
+
+		/** 
+		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
+		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
+		 * registerResource() overload.
+		 */
+		void registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags);
 
 	private:
 		friend class VulkanCmdBufferPool;
@@ -150,6 +161,22 @@ namespace BansheeEngine
 		{
 			bool used;
 			VulkanUseFlags flags;
+		};
+
+		/** Contains information about a single Vulkan buffer resource bound/used on this command buffer. */
+		struct BufferInfo
+		{
+			VkAccessFlags accessFlags;
+			ResourceUseHandle useHandle;
+		};
+
+		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
+		struct ImageInfo
+		{
+			VkAccessFlags accessFlags;
+			VkImageLayout layout;
+			VkImageSubresourceRange range;
+			ResourceUseHandle useHandle;
 		};
 
 		UINT32 mId;
@@ -163,7 +190,8 @@ namespace BansheeEngine
 		UINT32 mFenceCounter;
 
 		UnorderedMap<VulkanResource*, ResourceUseHandle> mResources;
-		UnorderedSet<SPtr<VulkanGpuParams>> mBoundParams;
+		UnorderedMap<VulkanResource*, ImageInfo> mImages;
+		UnorderedMap<VulkanResource*, BufferInfo> mBuffers;
 
 		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
 		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;

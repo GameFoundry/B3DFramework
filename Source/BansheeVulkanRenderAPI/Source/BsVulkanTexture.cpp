@@ -8,7 +8,7 @@
 namespace BansheeEngine
 {
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout)
-		:VulkanResource(owner, false, VulkanResourceType::Image), mImage(image), mMemory(memory), mLayout(layout)
+		:VulkanResource(owner, false), mImage(image), mMemory(memory), mLayout(layout)
 	{
 		
 	}

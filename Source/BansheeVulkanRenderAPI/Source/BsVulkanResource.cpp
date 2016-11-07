@@ -6,14 +6,13 @@
 
 namespace BansheeEngine
 {
-	VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency, VulkanResourceType type)
+	VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 	{
 		Lock lock(mMutex);
 
 		mOwner = owner;
 		mQueueFamily = -1;
 		mState = concurrency ? State::Shared : State::Normal;
-		mType = type;
 		mNumUsedHandles = 0;
 		mNumBoundHandles = 0;
 	}
@@ -61,6 +60,15 @@ namespace BansheeEngine
 		// instead just clear all flags at once when all command buffers finish.
 		if (!isUsed())
 			mUseFlags = VulkanUseFlag::None;
+
+		if (!isBound() && mState == State::Destroyed) // Queued for destruction
+			mOwner->destroy(this);
+	}
+
+	void VulkanResource::notifyUnbound()
+	{
+		Lock lock(mMutex);
+		mNumBoundHandles--;
 
 		if (!isBound() && mState == State::Destroyed) // Queued for destruction
 			mOwner->destroy(this);

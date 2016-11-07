@@ -9,7 +9,7 @@
 namespace BansheeEngine
 {
 	VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VkDeviceMemory memory)
-		:VulkanResource(owner, false, VulkanResourceType::Buffer), mBuffer(buffer), mView(view), mMemory(memory)
+		:VulkanResource(owner, false), mBuffer(buffer), mView(view), mMemory(memory)
 	{
 
 	}
