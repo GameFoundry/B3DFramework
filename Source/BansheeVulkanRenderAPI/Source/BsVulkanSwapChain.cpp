@@ -8,23 +8,18 @@ namespace BansheeEngine
 {
 	VulkanSwapChain::~VulkanSwapChain()
 	{
-		if (mSwapChain != VK_NULL_HANDLE)
-		{
-			VkDevice logicalDevice = mDevice->getLogical();
-			for (auto& surface : mSurfaces)
-			{
-				vkDestroySemaphore(logicalDevice, surface.sync, gVulkanAllocator);
-				vkDestroyImageView(logicalDevice, surface.view, gVulkanAllocator);
-			}
-
-			vkDestroySwapchainKHR(logicalDevice, mSwapChain, gVulkanAllocator);
-		}
+		clear(mSwapChain);
 	}
 
-	void VulkanSwapChain::rebuild(const SPtr<VulkanDevice>& device, VkSurfaceKHR surface, UINT32 width, UINT32 height, bool vsync,
-		VkFormat colorFormat, VkColorSpaceKHR colorSpace)
+	void VulkanSwapChain::rebuild(const SPtr<VulkanDevice>& device, VkSurfaceKHR surface, UINT32 width, UINT32 height, 
+		bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat)
 	{
 		mDevice = device;
+
+		// Need to make sure nothing is using the swap buffer before we re-create it
+		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
+		// on those
+		mDevice->waitIdle();
 
 		VkResult result;
 		VkPhysicalDevice physicalDevice = device->getPhysical();
@@ -119,13 +114,7 @@ namespace BansheeEngine
 		result = vkCreateSwapchainKHR(logicalDevice, &swapChainCI, gVulkanAllocator, &mSwapChain);
 		assert(result == VK_SUCCESS);
 
-		if (oldSwapChain != VK_NULL_HANDLE)
-		{
-			for(auto& entry : mSurfaces)
-				vkDestroyImageView(logicalDevice, entry.view, gVulkanAllocator);
-
-			vkDestroySwapchainKHR(logicalDevice, oldSwapChain, gVulkanAllocator);
-		}
+		clear(oldSwapChain);
 
 		result = vkGetSwapchainImagesKHR(logicalDevice, mSwapChain, &numImages, nullptr);
 		assert(result == VK_SUCCESS);
@@ -142,6 +131,8 @@ namespace BansheeEngine
 			colorViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			colorViewCI.pNext = nullptr;
 			colorViewCI.flags = 0;
+			colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			colorViewCI.image = images[i];
 			colorViewCI.format = colorFormat;
 			colorViewCI.components = {
 				VK_COMPONENT_SWIZZLE_R,
@@ -154,9 +145,7 @@ namespace BansheeEngine
 			colorViewCI.subresourceRange.levelCount = 1;
 			colorViewCI.subresourceRange.baseArrayLayer = 0;
 			colorViewCI.subresourceRange.layerCount = 1;
-			colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			colorViewCI.image = images[i];
-
+			
 			mSurfaces[i].acquired = false;
 			mSurfaces[i].image = images[i];
 			result = vkCreateImageView(logicalDevice, &colorViewCI, gVulkanAllocator, &mSurfaces[i].view);
@@ -172,6 +161,54 @@ namespace BansheeEngine
 		}
 
 		bs_stack_free(images);
+
+		// Create depth stencil image
+		if (createDepth)
+		{
+			VkImageCreateInfo depthStencilImageCI;
+			depthStencilImageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			depthStencilImageCI.pNext = nullptr;
+			depthStencilImageCI.flags = 0;
+			depthStencilImageCI.imageType = VK_IMAGE_TYPE_2D;
+			depthStencilImageCI.format = depthFormat;
+			depthStencilImageCI.extent = { width, height, 1 };
+			depthStencilImageCI.mipLevels = 1;
+			depthStencilImageCI.arrayLayers = 1;
+			depthStencilImageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			depthStencilImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			depthStencilImageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+			depthStencilImageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+			depthStencilImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			depthStencilImageCI.pQueueFamilyIndices = nullptr;
+			depthStencilImageCI.queueFamilyIndexCount = 0;
+
+			result = vkCreateImage(logicalDevice, &depthStencilImageCI, gVulkanAllocator, &mDepthStencilImage);
+			assert(result == VK_SUCCESS);
+
+			mDepthStencilMemory = mDevice->allocateMemory(mDepthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			VkImageViewCreateInfo depthStencilViewCI;
+			depthStencilViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			depthStencilViewCI.pNext = nullptr;
+			depthStencilViewCI.flags = 0;
+			depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			depthStencilViewCI.image = mDepthStencilImage;
+			depthStencilViewCI.format = depthFormat;
+			depthStencilViewCI.components = {
+				VK_COMPONENT_SWIZZLE_R,
+				VK_COMPONENT_SWIZZLE_G,
+				VK_COMPONENT_SWIZZLE_B,
+				VK_COMPONENT_SWIZZLE_A
+			};
+			depthStencilViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			depthStencilViewCI.subresourceRange.baseMipLevel = 0;
+			depthStencilViewCI.subresourceRange.levelCount = 1;
+			depthStencilViewCI.subresourceRange.baseArrayLayer = 0;
+			depthStencilViewCI.subresourceRange.layerCount = 1;
+
+			result = vkCreateImageView(logicalDevice, &depthStencilViewCI, gVulkanAllocator, &mDepthStencilView);
+			assert(result == VK_SUCCESS);
+		}
 	}
 
 	void VulkanSwapChain::present(VkQueue queue, VkSemaphore semaphore)
@@ -223,5 +260,29 @@ namespace BansheeEngine
 
 		mCurrentBackBufferIdx = imageIndex;
 		return mSurfaces[imageIndex];
+	}
+
+	void VulkanSwapChain::clear(VkSwapchainKHR swapChain)
+	{
+		VkDevice logicalDevice = mDevice->getLogical();
+		if (swapChain != VK_NULL_HANDLE)
+		{
+			for (auto& surface : mSurfaces)
+			{
+				vkDestroySemaphore(logicalDevice, surface.sync, gVulkanAllocator);
+				vkDestroyImageView(logicalDevice, surface.view, gVulkanAllocator);
+			}
+
+			vkDestroySwapchainKHR(logicalDevice, swapChain, gVulkanAllocator);
+		}
+
+		if (mDepthStencilImage != VK_NULL_HANDLE)
+		{
+			vkDestroyImageView(logicalDevice, mDepthStencilView, gVulkanAllocator);
+			vkDestroyImage(logicalDevice, mDepthStencilImage, gVulkanAllocator);
+
+			mDevice->freeMemory(mDepthStencilMemory);
+			mDepthStencilImage = VK_NULL_HANDLE;
+		}
 	}
 }

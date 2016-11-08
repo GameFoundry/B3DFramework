@@ -29,7 +29,7 @@ namespace BansheeEngine
 
 		/** Rebuilds the swap chain with the provided properties. Destroys any previously existing swap chain. */
 		void rebuild(const SPtr<VulkanDevice>& device, VkSurfaceKHR surface, UINT32 width, UINT32 height, bool vsync, 
-			VkFormat colorFormat, VkColorSpaceKHR colorSpace);
+			VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat);
 
 		/**
 		 * Returns the actual width of the swap chain, in pixels. This might differ from the requested size in case it
@@ -57,13 +57,24 @@ namespace BansheeEngine
 		 * @note Must only be called once in-between present() calls, or before the first present() call.
 		 */
 		SwapChainSurface acquireBackBuffer();
+
+		/** Returns an image view representing the depth-stencil buffer, if any. */
+		VkImageView getDepthStencil() const { return mDepthStencilView; }
 	private:
+		/** Destroys current swap chain and depth stencil image (if any). */
+		void clear(VkSwapchainKHR swapChain);
+
 		SPtr<VulkanDevice> mDevice;
 		VkSwapchainKHR mSwapChain = VK_NULL_HANDLE;
 
 		UINT32 mWidth = 0;
 		UINT32 mHeight = 0;
 		Vector<SwapChainSurface> mSurfaces;
+
+		VkImage mDepthStencilImage = VK_NULL_HANDLE;
+		VkImageView mDepthStencilView = VK_NULL_HANDLE;
+		VkDeviceMemory mDepthStencilMemory = nullptr;
+
 		UINT32 mCurrentSemaphoreIdx = 0;
 		UINT32 mCurrentBackBufferIdx = 0;
 	};

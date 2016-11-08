@@ -15,10 +15,11 @@ namespace BansheeEngine
 
 	VulkanImage::~VulkanImage()
 	{
-		VkDevice device = mOwner->getDevice().getLogical();
+		VulkanDevice& device = mOwner->getDevice();
+		VkDevice vkDevice = device.getLogical();
 
-		vkDestroyImage(device, mImage, gVulkanAllocator);
-		vkFreeMemory(device, mMemory, gVulkanAllocator);
+		vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
+		device.freeMemory(mMemory);
 	}
 
 	VulkanTextureCore::VulkanTextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
