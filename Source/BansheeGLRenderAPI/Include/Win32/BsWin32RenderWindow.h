@@ -72,13 +72,13 @@ namespace BansheeEngine
 		void copyToMemory(PixelData& dst, FrameBuffer buffer);
 
 		/** @copydoc RenderWindowCore::swapBuffers */
-		void swapBuffers() override;
+		void swapBuffers(UINT32 syncMask) override;
 
 		/** @copydoc RenderWindowCore::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
 
 		/** @copydoc RenderWindowCore::setActive */
-		virtual void setActive(bool state) override;
+		void setActive(bool state) override;
 
 		/** @copydoc RenderWindowCore::_windowMovedOrResized */
 		void _windowMovedOrResized() override;
@@ -93,7 +93,7 @@ namespace BansheeEngine
 		friend class Win32GLSupport;
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/** @copydoc RenderWindowCore::getProperties */
 		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }

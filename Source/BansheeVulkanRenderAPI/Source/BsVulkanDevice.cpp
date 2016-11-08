@@ -138,6 +138,23 @@ namespace BansheeEngine
 		assert(result == VK_SUCCESS);
 	}
 
+	UINT32 VulkanDevice::getQueueMask(GpuQueueType type, UINT32 queueIdx) const
+	{
+		UINT32 numQueues = getNumQueues(type);
+		if (numQueues == 0)
+			return 0;
+
+		UINT32 idMask = 0;
+		UINT32 curIdx = queueIdx;
+		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
+		{
+			idMask |= CommandSyncMask::getGlobalQueueIdx(type, curIdx);
+			curIdx += numQueues;
+		}
+
+		return idMask;
+	}
+
 	VkDeviceMemory VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags flags)
 	{
 		VkMemoryRequirements memReq;

@@ -161,7 +161,7 @@ namespace BansheeEngine
 		RenderWindowCore::initialize();
 	}
 
-	void D3D11RenderWindowCore::swapBuffers()
+	void D3D11RenderWindowCore::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 

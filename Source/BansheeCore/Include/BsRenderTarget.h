@@ -218,8 +218,16 @@ namespace BansheeEngine
 		 */
 		void setPriority(INT32 priority);
 
-		/** Swaps the frame buffers to display the next frame. */
-		virtual void swapBuffers() {};
+		/** 
+		 * Swaps the frame buffers to display the next frame. 
+		 *
+		 * @param[in]	syncMask	Optional synchronization mask that determines for which queues should the system wait
+		 *							before performing the swap buffer operation. By default the system waits for all queues.
+		 *							Howvever if certain queues are performing non-rendering operations, or operations not 
+		 *							related to this render target, you can exclude them from the sync mask for potentially 
+		 *							better performance. You can use CommandSyncMask to generate a valid sync mask.
+		 */
+		virtual void swapBuffers(UINT32 syncMask = 0xFFFFFFFF) {}
 
 		/** Queries the render target for a custom attribute. This may be anything and is implementation specific. */
 		virtual void getCustomAttribute(const String& name, void* pData) const;

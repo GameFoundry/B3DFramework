@@ -47,10 +47,11 @@ namespace BansheeEngine
 		/** 
 		 * Presents the back buffer to the output device, swapping the buffers. 
 		 *
-		 * @param[in]	queue		Queue on which to queue the present operation. Must support present operations.
-		 * @param[in]	semaphore	Optional semaphore to wait on before presenting the queue.
+		 * @param[in]	queue			Queue on which to queue the present operation. Must support present operations.
+		 * @param[in]	semaphores		Optional semaphores to wait on before presenting the queue.
+		 * @param[in]	numSemaphores	Number of semaphores in the @p semaphores array.
 		 */
-		void present(VkQueue queue, VkSemaphore semaphore);
+		void present(VkQueue queue, VkSemaphore* semaphores, UINT32 numSemaphores);
 
 		/**
 		 * Returns the current back buffer image. 

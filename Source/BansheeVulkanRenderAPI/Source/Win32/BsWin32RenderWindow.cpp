@@ -10,6 +10,10 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 #include "BsVulkanSwapChain.h"
+#include "BsVulkanDevice.h"
+#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanCommandBufferManager.h"
+#include "BsVulkanQueue.h"
 #include "BsMath.h"
 
 namespace BansheeEngine
@@ -124,10 +128,10 @@ namespace BansheeEngine
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
 		VkPhysicalDevice physicalDevice = presentDevice->getPhysical();
 
-		UINT32 presentQueueIdx = presentDevice->getQueueFamily(GQT_GRAPHICS);
+		mPresentQueueFamily = presentDevice->getQueueFamily(GQT_GRAPHICS);
 		
 		VkBool32 supportsPresent;
-		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, presentQueueIdx, mSurface, &supportsPresent);
+		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, mSurface, &supportsPresent);
 
 		if(!supportsPresent)
 		{
@@ -266,14 +270,33 @@ namespace BansheeEngine
 		RenderWindowCore::initialize();
 	}
 
-	void Win32RenderWindowCore::swapBuffers()
+	void Win32RenderWindowCore::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		if (mShowOnSwap)
 			setHidden(false);
 
-		// TODO - Swap buffers
+		// Get a command buffer on which we'll submit
+		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+
+		// Assuming present queue is always graphics
+		assert(presentDevice->getQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
+
+		// Find an appropriate queue to execute on
+		VulkanQueue* queue = presentDevice->getQueue(GQT_GRAPHICS, 0);
+		UINT32 queueMask = presentDevice->getQueueMask(GQT_GRAPHICS, 0);
+
+		// Ignore myself
+		syncMask &= ~queueMask;
+
+		UINT32 deviceIdx = presentDevice->getIndex();
+		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
+
+		UINT32 numSemaphores;
+		cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
+
+		mSwapChain->present(queue->getHandle(), mSemaphoresTemp, numSemaphores);
 	}
 
 	void Win32RenderWindowCore::move(INT32 left, INT32 top)

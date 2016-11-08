@@ -77,7 +77,7 @@ namespace BansheeEngine
 		void copyToMemory(PixelData &dst, FrameBuffer buffer);
 
 		/** @copydoc RenderWindowCore::swapBuffers */
-		void swapBuffers() override;
+		void swapBuffers(UINT32 syncMask = 0xFFFFFFFF) override;
 
 		/** @copydoc RenderWindowCore::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -95,7 +95,7 @@ namespace BansheeEngine
 		friend class D3D11RenderWindow;
 
 		/** @copydoc CoreObjectCore::initialize */
-		virtual void initialize() override;
+		void initialize() override;
 
 		/**	Creates internal resources dependent on window size. */
 		void createSizeDependedD3DResources();

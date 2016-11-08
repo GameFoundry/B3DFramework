@@ -76,7 +76,7 @@ namespace BansheeEngine
 		void copyToMemory(PixelData &dst, FrameBuffer buffer);
 
 		/** @copydoc RenderWindowCore::swapBuffers */
-		void swapBuffers() override;
+		void swapBuffers(UINT32 syncMask = 0xFFFFFFFF) override;
 
 		/** @copydoc RenderWindowCore::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -119,8 +119,10 @@ namespace BansheeEngine
 		VkColorSpaceKHR mColorSpace;
 		VkFormat mColorFormat;
 		VkFormat mDepthFormat;
+		UINT32 mPresentQueueFamily;
 		SPtr<VulkanSwapChain> mSwapChain;
 		FrameBufferInfo mFramebufferInfos[BS_NUM_BACK_BUFFERS + 1];
+		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
 
 		Win32RenderWindowProperties mProperties;
 		Win32RenderWindowProperties mSyncedProperties;

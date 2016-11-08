@@ -383,7 +383,7 @@ namespace BansheeEngine
 		mWindow->restore();
 	}
 
-	void Win32RenderWindowCore::swapBuffers()
+	void Win32RenderWindowCore::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 

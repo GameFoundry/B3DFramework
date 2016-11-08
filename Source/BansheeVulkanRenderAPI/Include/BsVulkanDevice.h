@@ -55,6 +55,12 @@ namespace BansheeEngine
 		 */
 		UINT32 getQueueFamily(GpuQueueType type) const { return mQueueInfos[(int)type].familyIdx; }
 
+		/** 
+		 * Fills out a mask that has bits set for every queue index that maps to the same physical queue as the provided 
+		 * index. This is useful as different queue indices will sometimes map to the same physical queue.
+		 */
+		UINT32 getQueueMask(GpuQueueType type, UINT32 queueIdx) const;
+
 		/** Returns a pool that can be used for allocating command buffers for all queues on this device. */
 		VulkanCmdBufferPool& getCmdBufferPool() const { return *mCommandBufferPool; }
 

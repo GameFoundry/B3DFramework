@@ -206,7 +206,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void VulkanSwapChain::present(VkQueue queue, VkSemaphore semaphore)
+	void VulkanSwapChain::present(VkQueue queue, VkSemaphore* semaphores, UINT32 numSemaphores)
 	{
 		assert(mSurfaces[mCurrentBackBufferIdx].acquired && "Attempting to present an unacquired back buffer.");
 		mSurfaces[mCurrentBackBufferIdx].acquired = false;
@@ -220,10 +220,10 @@ namespace BansheeEngine
 		presentInfo.pResults = nullptr;
 
 		// Wait before presenting, if required
-		if (semaphore != VK_NULL_HANDLE)
+		if (numSemaphores > 0)
 		{
-			presentInfo.pWaitSemaphores = &semaphore;
-			presentInfo.waitSemaphoreCount = 1;
+			presentInfo.pWaitSemaphores = semaphores;
+			presentInfo.waitSemaphoreCount = numSemaphores;
 		}
 		else
 		{

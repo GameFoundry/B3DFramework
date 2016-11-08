@@ -443,7 +443,7 @@ namespace BansheeEngine
 			GpuQueueType otherQueueType = GQT_GRAPHICS;
 			for (UINT32 i = 0; i < GQT_COUNT; i++)
 			{
-				if (device.getQueueFamily(otherQueueType) != entryQueueFamily)
+				if (device.getQueueFamily((GpuQueueType)i) != entryQueueFamily)
 					continue;
 
 				UINT32 numQueues = device.getNumQueues(otherQueueType);
@@ -572,14 +572,7 @@ namespace BansheeEngine
 		}
 
 		mQueue = device.getQueue(mType, mQueueIdx % numQueues);
-
-		// If multiple command buffer IDs map to the same queue, mark them in the mask
-		UINT32 curIdx = mQueueIdx;
-		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
-		{
-			mIdMask |= CommandSyncMask::getGlobalQueueIdx(mType, curIdx);
-			curIdx += numQueues;
-		}
+		mIdMask = device.getQueueMask(mType, mQueueIdx);
 
 		acquireNewBuffer();
 	}
