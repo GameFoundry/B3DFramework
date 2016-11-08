@@ -13,6 +13,8 @@
 	#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
+#define BS_NUM_BACK_BUFFERS 1
+
 #include "vulkan/vulkan.h"
 
 /** @addtogroup Plugins
@@ -37,6 +39,7 @@ namespace BansheeEngine
 	class VulkanDevice;
 	class VulkanGLSLProgramFactory;
 	class VulkanSwapChain;
+	class VulkanFramebuffer;
 	class VulkanDescriptorLayout;
 	class VulkanDescriptorSet;
 	class VulkanDescriptorManager;

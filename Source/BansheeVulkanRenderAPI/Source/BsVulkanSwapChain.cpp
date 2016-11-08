@@ -16,11 +16,6 @@ namespace BansheeEngine
 	{
 		mDevice = device;
 
-		// Need to make sure nothing is using the swap buffer before we re-create it
-		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
-		// on those
-		mDevice->waitIdle();
-
 		VkResult result;
 		VkPhysicalDevice physicalDevice = device->getPhysical();
 

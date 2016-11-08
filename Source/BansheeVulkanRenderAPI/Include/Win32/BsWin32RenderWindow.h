@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsRenderWindow.h"
+#include "BsVulkanFramebuffer.h"
 
 namespace BansheeEngine
 {
@@ -101,6 +102,13 @@ namespace BansheeEngine
 		void syncProperties() override;
 
 	protected:
+		/** Contains an information regarding a framebuffer representing a single swap chain surface. */
+		struct FrameBufferInfo
+		{
+			UPtr<VulkanFramebuffer> framebuffer;
+			VULKAN_FRAMEBUFFER_DESC desc;
+		};
+
 		Win32Window* mWindow;
 		bool mIsChild;
 		bool mShowOnSwap;
@@ -110,7 +118,9 @@ namespace BansheeEngine
 		VkSurfaceKHR mSurface;
 		VkColorSpaceKHR mColorSpace;
 		VkFormat mColorFormat;
+		VkFormat mDepthFormat;
 		SPtr<VulkanSwapChain> mSwapChain;
+		FrameBufferInfo mFramebufferInfos[BS_NUM_BACK_BUFFERS + 1];
 
 		Win32RenderWindowProperties mProperties;
 		Win32RenderWindowProperties mSyncedProperties;

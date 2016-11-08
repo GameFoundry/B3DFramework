@@ -7,7 +7,7 @@
 namespace BansheeEngine
 {
 	VulkanFramebuffer::VulkanFramebuffer(const SPtr<VulkanDevice>& device, const VULKAN_FRAMEBUFFER_DESC& desc)
-		:mDevice(device)
+		:mDevice(device->getLogical())
 	{
 		// Create render state
 		VkAttachmentDescription attachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
@@ -121,7 +121,7 @@ namespace BansheeEngine
 		renderPassCI.dependencyCount = 2;
 		renderPassCI.pDependencies = dependencies;
 
-		VkResult result = vkCreateRenderPass(device->getLogical(), &renderPassCI, gVulkanAllocator, &mRenderPass);
+		VkResult result = vkCreateRenderPass(mDevice, &renderPassCI, gVulkanAllocator, &mRenderPass);
 		assert(result == VK_SUCCESS);
 
 		// Create frame buffer
@@ -136,13 +136,13 @@ namespace BansheeEngine
 		framebufferCI.height = desc.height;
 		framebufferCI.layers = desc.layers;
 
-		result = vkCreateFramebuffer(device->getLogical(), &framebufferCI, gVulkanAllocator, &mFramebuffer);
+		result = vkCreateFramebuffer(mDevice, &framebufferCI, gVulkanAllocator, &mFramebuffer);
 		assert(result == VK_SUCCESS);
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
-		vkDestroyFramebuffer(mDevice->getLogical(), mFramebuffer, gVulkanAllocator);
-		vkDestroyRenderPass(mDevice->getLogical(), mRenderPass, gVulkanAllocator);
+		vkDestroyFramebuffer(mDevice, mFramebuffer, gVulkanAllocator);
+		vkDestroyRenderPass(mDevice, mRenderPass, gVulkanAllocator);
 	}
 }

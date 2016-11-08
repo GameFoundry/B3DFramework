@@ -34,6 +34,10 @@ namespace BansheeEngine
 			mWindow = nullptr;
 		}
 
+		UINT32 numFramebuffers = sizeof(mFramebufferInfos) / sizeof(mFramebufferInfos[0]);
+		for (UINT32 i = 0; i < numFramebuffers; i++)
+			mFramebufferInfos[i].framebuffer = nullptr;
+
 		mSwapChain = nullptr;
 		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
 	}
@@ -96,6 +100,8 @@ namespace BansheeEngine
 		props.mHeight = mWindow->getHeight();
 		props.mTop = mWindow->getTop();
 		props.mLeft = mWindow->getLeft();
+		props.mHwGamma = mDesc.gamma;
+		props.mMultisampleCount = 1;
 
 		if (!windowDesc.external)
 		{
@@ -190,14 +196,34 @@ namespace BansheeEngine
 					LOGERR("Cannot find a valid sRGB format for a render window surface, falling back to a default format.");
 			}
 		}
+
+		mDepthFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 		
 		bs_stack_free(formats);
 
 		// Create swap chain
 		mSwapChain = bs_shared_ptr_new<VulkanSwapChain>();
-		mSwapChain->rebuild(presentDevice, mSurface, props.mWidth, props.mHeight, props.mVSync, mColorFormat, mColorSpace);
+		mSwapChain->rebuild(presentDevice, mSurface, props.mWidth, props.mHeight, props.mVSync, mColorFormat, mColorSpace, 
+			mDesc.depthBuffer, mDepthFormat);
 
-		// TODO - Create a framebuffer for each swap chain buffer
+		// Create a framebuffer for each swap chain buffer
+		UINT32 numFramebuffers = sizeof(mFramebufferInfos) / sizeof(mFramebufferInfos[0]);
+		assert(numFramebuffers == mSwapChain->getNumColorSurfaces());
+		for(UINT32 i = 0; i < numFramebuffers; i++)
+		{
+			FrameBufferInfo& framebufferInfo = mFramebufferInfos[i];
+			framebufferInfo.desc.width = mSwapChain->getWidth();
+			framebufferInfo.desc.height = mSwapChain->getHeight();
+			framebufferInfo.desc.layers = 1;
+			framebufferInfo.desc.numSamples = 1;
+			framebufferInfo.desc.offscreen = false;
+			framebufferInfo.desc.color[0].format = mColorFormat;
+			framebufferInfo.desc.color[0].view = mSwapChain->getColorView(i);
+			framebufferInfo.desc.depth.format = mDepthFormat;
+			framebufferInfo.desc.depth.view = mSwapChain->getDepthStencilView();
+
+			framebufferInfo.framebuffer = bs_unique_ptr_new<VulkanFramebuffer>(presentDevice, framebufferInfo.desc);
+		}
 
 		// Make the window full screen if required
 		if (!windowDesc.external)
@@ -230,8 +256,6 @@ namespace BansheeEngine
 				}
 			}
 		}
-
-		// TODO - Set hwGamma and multisample properties
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -485,10 +509,36 @@ namespace BansheeEngine
 			props.mHeight = mWindow->getHeight();
 		}
 
+		// Resize swap chain and update framebuffers
+		
+		//// Need to make sure nothing is using the swap buffer before we re-create it
+		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
+		// on those
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
-		mSwapChain->rebuild(presentDevice, mSurface, props.mWidth, props.mHeight, props.mVSync, mColorFormat, mColorSpace);
+		presentDevice->waitIdle();
 
-		// TODO - Update framebuffer?
+		UINT32 numFramebuffers = sizeof(mFramebufferInfos) / sizeof(mFramebufferInfos[0]);
+
+		//// First destroy existing frame buffers
+		for (UINT32 i = 0; i < numFramebuffers; i++)
+			mFramebufferInfos[i].framebuffer = nullptr;
+
+		//// Rebuild swap chain
+		mSwapChain->rebuild(presentDevice, mSurface, props.mWidth, props.mHeight, props.mVSync, mColorFormat, mColorSpace, 
+			mDesc.depthBuffer, mDepthFormat);
+
+		//// Rebuild framebuffers
+		assert(numFramebuffers == mSwapChain->getNumColorSurfaces());
+		for (UINT32 i = 0; i < numFramebuffers; i++)
+		{
+			FrameBufferInfo& framebufferInfo = mFramebufferInfos[i];
+			framebufferInfo.desc.width = mSwapChain->getWidth();
+			framebufferInfo.desc.height = mSwapChain->getHeight();
+			framebufferInfo.desc.color[0].view = mSwapChain->getColorView(i);
+			framebufferInfo.desc.depth.view = mSwapChain->getDepthStencilView();
+
+			framebufferInfo.framebuffer = bs_unique_ptr_new<VulkanFramebuffer>(presentDevice, framebufferInfo.desc);
+		}
 
 		RenderWindowCore::_windowMovedOrResized();
 	}

@@ -67,8 +67,7 @@ namespace BansheeEngine
 	private:
 		VkRenderPass mRenderPass;
 		VkFramebuffer mFramebuffer;
-
-		SPtr<VulkanDevice> mDevice;
+		VkDevice mDevice;
 	};
 
 	/** @} */

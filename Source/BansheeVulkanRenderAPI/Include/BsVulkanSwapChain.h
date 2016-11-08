@@ -10,8 +10,6 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-#define BS_NUM_BACK_BUFFERS 1
-
 	/** Description of a single swap chain surface. */
 	struct SwapChainSurface
 	{
@@ -27,7 +25,10 @@ namespace BansheeEngine
 	public:
 		~VulkanSwapChain();
 
-		/** Rebuilds the swap chain with the provided properties. Destroys any previously existing swap chain. */
+		/** 
+		 * Rebuilds the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
+		 * ensure the swap chain is not used at the device when this is called.
+		 */
 		void rebuild(const SPtr<VulkanDevice>& device, VkSurfaceKHR surface, UINT32 width, UINT32 height, bool vsync, 
 			VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat);
 
@@ -58,8 +59,14 @@ namespace BansheeEngine
 		 */
 		SwapChainSurface acquireBackBuffer();
 
+		/** Returns the number of available color surfaces. */
+		UINT32 getNumColorSurfaces() const { return (UINT32)mSurfaces.size(); }
+
+		/** Returns an image view representing the color surface at the specified index. */
+		VkImageView getColorView(UINT32 index) const { return mSurfaces[index].view; }
+
 		/** Returns an image view representing the depth-stencil buffer, if any. */
-		VkImageView getDepthStencil() const { return mDepthStencilView; }
+		VkImageView getDepthStencilView() const { return mDepthStencilView; }
 	private:
 		/** Destroys current swap chain and depth stencil image (if any). */
 		void clear(VkSwapchainKHR swapChain);
