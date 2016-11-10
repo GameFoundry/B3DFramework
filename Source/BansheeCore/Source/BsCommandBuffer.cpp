@@ -10,10 +10,10 @@ namespace BansheeEngine
 		if (buffer == nullptr)
 			return;
 
-		mMask |= getGlobalQueueIdx(buffer->getType(), buffer->getQueueIdx());
+		mMask |= getGlobalQueueMask(buffer->getType(), buffer->getQueueIdx());
 	}
 
-	UINT32 CommandSyncMask::getGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx)
+	UINT32 CommandSyncMask::getGlobalQueueMask(GpuQueueType type, UINT32 queueIdx)
 	{
 		UINT32 bitShift = 0;
 		switch (type)
@@ -31,6 +31,37 @@ namespace BansheeEngine
 		}
 
 		return (1 << queueIdx) << bitShift;
+	}
+
+	UINT32 CommandSyncMask::getGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx)
+	{
+		switch (type)
+		{
+		case GQT_COMPUTE:
+			return 8 + queueIdx;
+		case GQT_UPLOAD:
+			return 16 + queueIdx;
+		default:
+			return queueIdx;
+		}
+	}
+
+	UINT32 CommandSyncMask::getQueueIdxAndType(UINT32 globalQueueIdx, GpuQueueType& type)
+	{
+		if(globalQueueIdx >= 16)
+		{
+			type = GQT_UPLOAD;
+			return globalQueueIdx - 16;
+		}
+
+		if(globalQueueIdx >= 8)
+		{
+			type = GQT_COMPUTE;
+			return globalQueueIdx - 8;
+		}
+
+		type = GQT_GRAPHICS;
+		return globalQueueIdx;
 	}
 
 	CommandBuffer::CommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)

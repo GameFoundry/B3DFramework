@@ -148,7 +148,7 @@ namespace BansheeEngine
 		UINT32 curIdx = queueIdx;
 		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
 		{
-			idMask |= CommandSyncMask::getGlobalQueueIdx(type, curIdx);
+			idMask |= CommandSyncMask::getGlobalQueueMask(type, curIdx);
 			curIdx += numQueues;
 		}
 

@@ -12,6 +12,31 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
+	/** Wrapper around a command buffer used specifically for transfer operations. */
+	class VulkanTransferBufferInfo
+	{
+	public:
+		VulkanTransferBufferInfo(UINT32 queueIdx);
+
+		/** 
+		 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
+		 * the buffer wait on before executing. See CommandSyncMask.
+		 */
+		void appendMask(UINT32 syncMask) { mSyncMask |= syncMask; }
+
+		/** Resets the sync mask. */
+		void clearMask() { mSyncMask = 0; }
+
+		/** Returns the internal command buffer. */
+		VulkanCmdBuffer* getCB() const { return mCB; }
+	private:
+		friend class VulkanCommandBufferManager;
+
+		VulkanCmdBuffer* mCB;
+		UINT32 mSyncMask;
+		UINT32 mQueueIdx;
+	};
+
 	/** 
 	 * Handles creation of Vulkan command buffers. See CommandBuffer. 
 	 *
@@ -48,11 +73,22 @@ namespace BansheeEngine
 		 */
 		void refreshStates(UINT32 deviceIdx);
 
+		/** 
+		 * Returns an command buffer that can be used for executing transfer operations on the specified queue. 
+		 * Transfer buffers are automatically flushed (submitted) whenever a new (normal) command buffer is about to
+		 * execute.
+		 */
+		VulkanTransferBufferInfo* getTransferBuffer(UINT32 deviceIdx, GpuQueueType type, UINT32 queueIdx);
+
+		/** Submits all transfer command buffers, ensuring all queued transfer operations get executed. */
+		void flushTransferBuffers(UINT32 deviceIdx);
+
 	private:
 		/** Contains command buffers specific to one device. */
 		struct PerDeviceData
 		{
-			VulkanCmdBuffer* buffers[BS_MAX_COMMAND_BUFFERS];
+			VulkanCmdBuffer* activeBuffers[BS_MAX_UNIQUE_QUEUES];
+			VulkanTransferBufferInfo transferBuffers[BS_MAX_UNIQUE_QUEUES];
 		};
 
 		const VulkanRenderAPI& mRapi;

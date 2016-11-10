@@ -474,7 +474,12 @@ namespace BansheeEngine
 		if (commandBuffer == nullptr)
 			return;
 
+		// Submit all transfer buffers first
 		VulkanCommandBuffer& cmdBuffer = static_cast<VulkanCommandBuffer&>(*commandBuffer);
+
+		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
+		cbm.flushTransferBuffers(cmdBuffer.getDeviceIdx());
+
 		cmdBuffer.submit(syncMask);
 	}
 	

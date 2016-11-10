@@ -15,6 +15,9 @@
 
 #define BS_NUM_BACK_BUFFERS 1
 
+/** Maximum number of GPU queues that may exist at once. */
+#define BS_MAX_UNIQUE_QUEUES BS_MAX_QUEUES_PER_TYPE * BansheeEngine::GQT_COUNT // Must fit within 4 bytes
+
 #include "vulkan/vulkan.h"
 
 /** @addtogroup Plugins

@@ -368,8 +368,7 @@ namespace BansheeEngine
 				break;
 			}
 
-			UINT32 otherGlobalQueueIdx = CommandSyncMask::getGlobalQueueIdx(otherQueueType, otherQueueIdx);
-			syncMask |= otherGlobalQueueIdx;
+			syncMask |= CommandSyncMask::getGlobalQueueMask(otherQueueType, otherQueueIdx);
 
 			cmdBuffer->end();
 			cmdBuffer->submit(otherQueue, otherQueueIdx, 0);

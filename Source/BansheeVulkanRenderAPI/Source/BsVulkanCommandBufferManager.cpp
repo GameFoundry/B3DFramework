@@ -7,12 +7,19 @@
 
 namespace BansheeEngine
 {
+	VulkanTransferBufferInfo::VulkanTransferBufferInfo(UINT32 queueIdx)
+		:mCB(nullptr), mSyncMask(0), mQueueIdx(queueIdx)
+	{ }
+
 	VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
 		:mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.getNumDevices())
 	{
 		mDeviceData = bs_newN<PerDeviceData>(mNumDevices);
-		for(UINT32 i = 0; i < mNumDevices; i++)
-			memset(mDeviceData[i].buffers, 0, BS_MAX_COMMAND_BUFFERS * sizeof(VulkanCmdBuffer*));
+		for (UINT32 i = 0; i < mNumDevices; i++)
+		{
+			bs_zero_out(mDeviceData[i].activeBuffers);
+			bs_zero_out(mDeviceData[i].transferBuffers);
+		}
 	}
 
 	VulkanCommandBufferManager::~VulkanCommandBufferManager()
@@ -47,7 +54,7 @@ namespace BansheeEngine
 		assert(buffer->isSubmitted());
 
 		UINT32 idx = CommandSyncMask::getGlobalQueueIdx(type, queueIdx);
-		mDeviceData[deviceIdx].buffers[idx] = buffer;
+		mDeviceData[deviceIdx].activeBuffers[idx] = buffer;
 	}
 
 	void VulkanCommandBufferManager::getSyncSemaphores(UINT32 deviceIdx, UINT32 syncMask, VkSemaphore* semaphores, 
@@ -57,16 +64,16 @@ namespace BansheeEngine
 		const PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
 		UINT32 semaphoreIdx = 0;
-		for (UINT32 i = 0; i < BS_MAX_COMMAND_BUFFERS; i++)
+		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
 		{
-			if (deviceData.buffers[i] == nullptr)
+			if (deviceData.activeBuffers[i] == nullptr)
 				continue;
 
 			if ((syncMask & (1 << i)) == 0) // We don't care about the command buffer
 				continue;
 
-			assert(deviceData.buffers[i]->isSubmitted()); // It shouldn't be here if it wasn't submitted
-			semaphores[semaphoreIdx++] = deviceData.buffers[i]->getSemaphore();
+			assert(deviceData.activeBuffers[i]->isSubmitted()); // It shouldn't be here if it wasn't submitted
+			semaphores[semaphoreIdx++] = deviceData.activeBuffers[i]->getSemaphore();
 		}
 
 		count = semaphoreIdx;
@@ -78,15 +85,70 @@ namespace BansheeEngine
 		PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
 		UINT32 semaphoreIdx = 0;
-		for (UINT32 i = 0; i < BS_MAX_COMMAND_BUFFERS; i++)
+		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
 		{
-			if (deviceData.buffers[i] == nullptr)
+			if (deviceData.activeBuffers[i] == nullptr)
 				continue;
 
-			VulkanCmdBuffer* cmdBuffer = deviceData.buffers[i];
+			VulkanCmdBuffer* cmdBuffer = deviceData.activeBuffers[i];
 			cmdBuffer->refreshFenceStatus();
 			if (!cmdBuffer->isSubmitted())
-				deviceData.buffers[i] = nullptr;
+				deviceData.activeBuffers[i] = nullptr;
+		}
+	}
+
+	VulkanTransferBufferInfo* VulkanCommandBufferManager::getTransferBuffer(UINT32 deviceIdx, GpuQueueType type, 
+		UINT32 queueIdx)
+	{
+		assert(deviceIdx < mNumDevices);
+
+		UINT32 globalQueueIdx = CommandSyncMask::getGlobalQueueIdx(type, queueIdx);
+		assert(globalQueueIdx < BS_MAX_UNIQUE_QUEUES);
+
+		PerDeviceData& deviceData = mDeviceData[deviceIdx];
+		if (deviceData.transferBuffers[globalQueueIdx].mCB == nullptr)
+		{
+			SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
+
+			UINT32 queueFamily = device->getQueueFamily(type);
+			deviceData.transferBuffers[globalQueueIdx].mCB = device->getCmdBufferPool().getBuffer(queueFamily, false);
+		}
+
+		return &deviceData.transferBuffers[globalQueueIdx];
+	}
+
+	void VulkanCommandBufferManager::flushTransferBuffers(UINT32 deviceIdx)
+	{
+		assert(deviceIdx < mNumDevices);
+
+		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
+		PerDeviceData& deviceData = mDeviceData[deviceIdx];
+
+		UINT32 transferBufferIdx = 0;
+		for(UINT32 i = 0; i < GQT_COUNT; i++)
+		{
+			GpuQueueType queueType = (GpuQueueType)i;
+			UINT32 numQueues = device->getNumQueues(queueType);
+			if (numQueues == 0)
+			{
+				queueType = GQT_GRAPHICS;
+				numQueues = device->getNumQueues(GQT_GRAPHICS);
+			}
+
+			for(UINT32 j = 0; j < BS_MAX_QUEUES_PER_TYPE; j++)
+			{
+				VulkanTransferBufferInfo& bufferInfo = deviceData.transferBuffers[transferBufferIdx];
+				if (bufferInfo.mCB == nullptr)
+					continue;
+
+				UINT32 physicalQueueIdx = j % numQueues;
+				VulkanQueue* queue = device->getQueue(queueType, physicalQueueIdx);
+
+				bufferInfo.mCB->submit(queue, bufferInfo.mQueueIdx, bufferInfo.mSyncMask);
+				bufferInfo.mCB = nullptr;
+
+				transferBufferIdx++;
+			}
 		}
 	}
 }

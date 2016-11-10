@@ -209,7 +209,7 @@ namespace BansheeEngine
 		UnorderedMap<VulkanResource*, BufferInfo> mBuffers;
 		UINT32 mGlobalQueueIdx;
 
-		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS + 1]; // +1 for present semaphore
+		VkSemaphore mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES + 1]; // +1 for present semaphore
 		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;
 	};
 
@@ -249,7 +249,7 @@ namespace BansheeEngine
 		VulkanQueue* mQueue;
 		UINT32 mIdMask;
 
-		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
+		VkSemaphore mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES];
 		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;
 	};
 

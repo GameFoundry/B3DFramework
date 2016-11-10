@@ -116,7 +116,7 @@ namespace BansheeEngine
 		VkFormat mDepthFormat;
 		UINT32 mPresentQueueFamily;
 		SPtr<VulkanSwapChain> mSwapChain;
-		VkSemaphore mSemaphoresTemp[BS_MAX_COMMAND_BUFFERS];
+		VkSemaphore mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES];
 		bool mRequiresNewBackBuffer;
 
 		Win32RenderWindowProperties mProperties;

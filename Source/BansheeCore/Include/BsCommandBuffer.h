@@ -23,8 +23,14 @@ namespace BansheeEngine
 		/** Returns a combined mask that contains all the required dependencies. */
 		UINT32 getMask() const { return mMask; }
 
+		/** Uses the queue type and index to generate a mask with a bit set for that queue's global index. */
+		static UINT32 getGlobalQueueMask(GpuQueueType type, UINT32 queueIdx);
+
 		/** Uses the queue type and index to generate a global queue index. */
 		static UINT32 getGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx);
+
+		/** Uses the global queue index to retrieve local queue index and queue type. */
+		static UINT32 getQueueIdxAndType(UINT32 globalQueueIdx, GpuQueueType& type);
 
 	private:
 		UINT32 mMask = 0;

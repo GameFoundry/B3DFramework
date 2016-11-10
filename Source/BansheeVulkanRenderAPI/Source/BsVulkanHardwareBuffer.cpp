@@ -153,21 +153,18 @@ namespace BansheeEngine
 		bool needRead = options == GBL_READ_WRITE || options == GBL_READ_ONLY;
 		if(needRead)
 		{
-			// TODO - Get command buffer on wanted queue
-			//      - Generate sync mask depending on where the resource is used on
-			//      - Issue copy from source buffer to staging buffer, with sync mask semaphores
-			//      - Wait for queue to complete, refresh CB states
+			// TODO - Get command buffer on wanted queue (getTransferBuffer(deviceIdx, queueIdx))
+			//      - Generate sync mask depending on where the resource is used on (VulkanResource::getUseInfo())
+			//      - Register this buffer and staging buffer with the transfer buffer, updating the transfer buffer's sync mask
+			//      - Flush the transfer buffer, wait for it to complete, and refresh CB states
 			//      - Proceed below
 		}
 
 		// TODO - Return staging buffer->map()
 		//      - Set mRequiresUpload field to true
-
-
-		// TODO - Special
-		//      - Keep a list of upload command buffers per queue to avoid allocating them
-		//        - Submit and clear all upload command buffers whenever new command buffer is submitted
-		//      - Can I easily determine sync mask of which buffers a resource is used on from VulkanResource?
+		//      - Remember lock mode
+		//      - Remember staging buffer
+		//      - Remember lock queue and device
 
 		switch (options)
 		{
@@ -194,10 +191,16 @@ namespace BansheeEngine
 	void VulkanHardwareBuffer::unmap()
 	{
 		// TODO - If direct map (mRequiresUpload == false), simply unmap
-		// TODO - If mRequiresUpload is true, queue copyBuffer command
-		//      - If lock was discard, don't issue any write semaphores and instead create a brand new internal buffer (destroy old one)
-		//      - If lock was no overwrite, don't issue any write semaphores but write to the buffer
-		//      - Otherwise, wait until resource is not used before issuing write
+		// TODO - If mRequiresUpload is true
+		//      - Get command buffer on locked queue and device
+		//      - If lock was discard
+		//        - Create a brand new internal buffer
+		//        - Call destroy on the old one
+		//        - Issue copy on the CB without a sync mask (register both resources on CB)
+		//      - If lock was no overwrite
+		//        - Issue copy on the CB without a sync mask (register both resources on CB)
+		//      - Otherwise issue copy with a sync mask depending on current use flags
+		//      - Destroy staging buffer
 	}
 
 	void VulkanHardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
