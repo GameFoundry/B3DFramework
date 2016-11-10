@@ -87,39 +87,6 @@ namespace BansheeEngine
 		return HardwareBufferCoreManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);
 	}
 
-	GenericGpuParamBlockBufferCore::GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, 
-		GpuDeviceFlags deviceMask)
-		:GpuParamBlockBufferCore(size, usage, deviceMask), mData(nullptr)
-	{ }
-
-	GenericGpuParamBlockBufferCore::~GenericGpuParamBlockBufferCore()
-	{
-		if (mData != nullptr)
-			bs_free(mData);
-	}
-
-	void GenericGpuParamBlockBufferCore::writeToGPU(const UINT8* data)
-	{
-		memcpy(mData, data, mSize);
-	}
-
-	void GenericGpuParamBlockBufferCore::readFromGPU(UINT8* data) const
-	{
-		memcpy(data, mData, mSize);
-	}
-
-	void GenericGpuParamBlockBufferCore::initialize()
-	{
-		if (mSize > 0)
-			mData = (UINT8*)bs_alloc(mSize);
-		else
-			mData = nullptr;
-
-		memset(mData, 0, mSize);
-
-		GpuParamBlockBufferCore::initialize();
-	}
-
 	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage)
 		:mUsage(usage), mSize(size), mCachedData(nullptr)
 	{

@@ -8,7 +8,7 @@ namespace BansheeEngine
 {
 	D3D11IndexBufferCore::D3D11IndexBufferCore(D3D11Device& device, const INDEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)
-		:IndexBufferCore(desc, deviceMask), mDevice(device), mBuffer(nullptr)
+		:IndexBufferCore(desc, deviceMask), mBuffer(nullptr), mDevice(device), mUsage(desc.usage)
 	{
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
 	}
@@ -23,13 +23,13 @@ namespace BansheeEngine
 
 	void D3D11IndexBufferCore::initialize()
 	{
-		mBuffer = bs_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSizeInBytes, std::ref(mDevice), false);
+		mBuffer = bs_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, std::ref(mDevice), false);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_IndexBuffer);
 		IndexBufferCore::initialize();
 	}
 
-	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
+	void* D3D11IndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -51,14 +51,14 @@ namespace BansheeEngine
 		mBuffer->unlock();
 	}
 
-	void D3D11IndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
+	void D3D11IndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
 	{
 		mBuffer->readData(offset, length, pDest);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
 	}
 
-	void D3D11IndexBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, UINT32 syncMask)
+	void D3D11IndexBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		mBuffer->writeData(offset, length, pSource, writeFlags);
 
@@ -66,7 +66,7 @@ namespace BansheeEngine
 	}
 
 	void D3D11IndexBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		mBuffer->copyData(srcBuffer, srcOffset, dstOffset, length, discardWholeBuffer);
 	}

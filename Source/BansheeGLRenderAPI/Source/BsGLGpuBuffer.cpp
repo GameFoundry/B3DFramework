@@ -48,7 +48,7 @@ namespace BansheeEngine
 		GpuBufferCore::initialize();
 	}
 
-	void* GLGpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* GLGpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -56,7 +56,8 @@ namespace BansheeEngine
 			BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 		}
 
-		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
+		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD 
+			|| options == GBL_WRITE_ONLY_NO_OVERWRITE)
 		{
 			BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
 		}
@@ -70,22 +71,23 @@ namespace BansheeEngine
 		mBuffer.unlock();
 	}
 
-	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* pDest)
+	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx)
 	{
-		mBuffer.readData(offset, length, pDest);
+		mBuffer.readData(offset, length, dest);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 	}
 
-	void GLGpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags)
+	void GLGpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
+									UINT32 queueIdx)
 	{
-		mBuffer.writeData(offset, length, pSource, writeFlags);
+		mBuffer.writeData(offset, length, source, writeFlags);
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
 	}
 
-	void GLGpuBufferCore::copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer)
+	void GLGpuBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
+								   UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		GLGpuBufferCore& glSrcBuffer = static_cast<GLGpuBufferCore&>(srcBuffer);
 

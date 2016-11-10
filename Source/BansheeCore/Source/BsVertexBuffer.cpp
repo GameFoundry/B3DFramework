@@ -7,15 +7,11 @@ namespace BansheeEngine
 {
 	VertexBufferProperties::VertexBufferProperties(UINT32 numVertices, UINT32 vertexSize)
 		:mNumVertices(numVertices), mVertexSize(vertexSize)
-	{
-
-	}
+	{ }
 
 	VertexBufferCore::VertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:HardwareBuffer(desc.usage), mProperties(desc.numVerts, desc.vertexSize)
-	{
-		mSizeInBytes = mProperties.mVertexSize * mProperties.mNumVertices;
-	}
+		:HardwareBuffer(mProperties.mVertexSize * mProperties.mNumVertices), mProperties(desc.numVerts, desc.vertexSize)
+	{ }
 
 	SPtr<VertexBufferCore> VertexBufferCore::create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{

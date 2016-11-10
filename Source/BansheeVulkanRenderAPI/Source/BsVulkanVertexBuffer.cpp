@@ -14,7 +14,7 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
-	void* VulkanVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
+	void* VulkanVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -36,19 +36,19 @@ namespace BansheeEngine
 
 	}
 
-	void VulkanVertexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask)
+	void VulkanVertexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_VertexBuffer);
 	}
 
 	void VulkanVertexBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
-		UINT32 syncMask)
+		UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_VertexBuffer);
 	}
 
 	void VulkanVertexBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 
 	}

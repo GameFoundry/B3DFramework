@@ -57,15 +57,15 @@ namespace BansheeEngine
 		~VulkanHardwareBuffer();
 
 		/** @copydoc HardwareBuffer::readData */
-		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) override;
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 1) override;
 
 		/** @copydoc HardwareBuffer::writeData */
 		void writeData(UINT32 offset, UINT32 length, const void* source, 
-			BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) override;
+			BufferWriteType writeFlags = BWT_NORMAL, UINT32 queueIdx = 1) override;
 
 		/** @copydoc HardwareBuffer::copyData */
 		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, 
-			UINT32 length, bool discardWholeBuffer = false, UINT32 syncMask = 0x00000001) override;
+			UINT32 length, bool discardWholeBuffer = false, UINT32 queueIdx = 1) override;
 
 		/** 
 		 * Gets the resource wrapping the buffer object, on the specified device. If hardware buffer device mask doesn't 
@@ -75,7 +75,7 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc HardwareBuffer::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) override;
 
 		/** @copydoc HardwareBuffer::unmap */
 		void unmap() override;

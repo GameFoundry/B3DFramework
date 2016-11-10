@@ -71,7 +71,7 @@ namespace BansheeEngine
 		GpuBufferCore::initialize();
 	}
 
-	void* D3D11GpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options)
+	void* D3D11GpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -93,22 +93,23 @@ namespace BansheeEngine
 		mBuffer->unlock();
 	}
 
-	void D3D11GpuBufferCore::readData(UINT32 offset, UINT32 length, void* pDest)
+	void D3D11GpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 
-		mBuffer->readData(offset, length, pDest);
+		mBuffer->readData(offset, length, dest);
 	}
 
-	void D3D11GpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags)
+	void D3D11GpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
+		UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
 
-		mBuffer->writeData(offset, length, pSource, writeFlags);
+		mBuffer->writeData(offset, length, source, writeFlags);
 	}
 
-	void D3D11GpuBufferCore::copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer)
+	void D3D11GpuBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		D3D11GpuBufferCore* d3d11SrcBuffer = static_cast<D3D11GpuBufferCore*>(&srcBuffer);
 

@@ -25,14 +25,6 @@ namespace BansheeEngine
 		/** Writes all of the specified data to the buffer. Data size must be the same size as the buffer. */
 		virtual void writeToGPU(const UINT8* data) = 0;
 
-		/**
-		 * Copies data from the internal buffer to a pre-allocated array. Be aware this generally isn't a very fast 
-		 * operation as reading from the GPU will most definitely involve a CPU-GPU sync point.
-		 *
-		 * @param[in,out]	data	Array where the data will be written to. Must be of getSize() bytes.
-		 */
-		virtual void readFromGPU(UINT8* data) const = 0;
-
 		/** Flushes any cached data into the actual GPU buffer. */
 		void flushToGPU();
 
@@ -73,29 +65,6 @@ namespace BansheeEngine
 
 		UINT8* mCachedData;
 		bool mGPUBufferDirty;
-	};
-
-	/**
-	 * Implementation of a GpuParamBlock buffer that doesn't use a GPU buffer for storage. Used with APIs that do not 
-	 * support GPU parameter buffers.
-	 */
-	class BS_CORE_EXPORT GenericGpuParamBlockBufferCore : public GpuParamBlockBufferCore
-	{
-	public:
-		GenericGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
-		~GenericGpuParamBlockBufferCore();
-
-		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
-		void writeToGPU(const UINT8* data) override;
-
-		/** @copydoc GpuParamBlockBufferCore::readFromGPU */
-		void readFromGPU(UINT8* data) const override;
-
-	protected:
-		UINT8* mData;
-
-		/** @copydoc CoreObjectCore::initialize */
-		void initialize() override;
 	};
 
 	/** @} */

@@ -52,11 +52,4 @@ namespace BansheeEngine
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
 	}
-
-	void D3D11GpuParamBlockBufferCore::readFromGPU(UINT8* data) const
-	{
-		mBuffer->readData(0, mSize, data);
-
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuParamBuffer);
-	}
 }

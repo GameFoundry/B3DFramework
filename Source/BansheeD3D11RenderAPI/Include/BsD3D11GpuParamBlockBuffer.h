@@ -21,9 +21,6 @@ namespace BansheeEngine
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
 		void writeToGPU(const UINT8* data) override;
 
-		/** @copydoc GpuParamBlockBufferCore::readFromGPU */
-		void readFromGPU(UINT8* data) const override;
-
 		/**	Returns internal DX11 buffer object. */
 		ID3D11Buffer* getD3D11Buffer() const;
 	protected:

@@ -132,9 +132,9 @@ namespace BansheeEngine
 			return;
 		}
 
-		if (indicesSize > mIndexBuffer->getSizeInBytes())
+		if (indicesSize > mIndexBuffer->getSize())
 		{
-			indicesSize = mIndexBuffer->getSizeInBytes();
+			indicesSize = mIndexBuffer->getSize();
 			LOGERR("Index buffer values are being written out of valid range.");
 		}
 
@@ -165,9 +165,9 @@ namespace BansheeEngine
 			UINT32 bufferSize = meshData.getStreamSize(i);
 			UINT8* srcVertBufferData = meshData.getStreamData(i);
 
-			if (bufferSize > vertexBuffer->getSizeInBytes())
+			if (bufferSize > vertexBuffer->getSize())
 			{
-				bufferSize = vertexBuffer->getSizeInBytes();
+				bufferSize = vertexBuffer->getSize();
 				LOGERR("Vertex buffer values for stream \"" + toString(i) + "\" are being written out of valid range.");
 			}
 
@@ -277,7 +277,7 @@ namespace BansheeEngine
 				UINT32 numVerticesToCopy = meshData.getNumVertices();
 				UINT32 bufferSize = vbProps.getVertexSize() * numVerticesToCopy;
 
-				if (bufferSize > vertexBuffer->getSizeInBytes())
+				if (bufferSize > vertexBuffer->getSize())
 				{
 					LOGERR("Vertex buffer values for stream \"" + toString(streamIdx) + "\" are being read out of valid range.");
 					continue;

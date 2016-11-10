@@ -30,20 +30,21 @@ namespace BansheeEngine
 		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do
 		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
 		 *							requested it here).
-		 * @param[in]	syncMask	Mask that determines how are read or write operations synchronized with other operations
-		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
-		 *							If reading, the system will wait on all commands buffers with the shared mask bits
-		 *							before continuing.
-		 *							If writing, Setting a mask that's different from used command buffers allows the writes
-		 *							to be queued independantly from normal rendering commands, allowing for async execution.
-		 *
-		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
-		 *							currently being written to with a different sync mask). If not sure leave at default.
+		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
+		 *							allows the GPU to perform write or read operations while executing rendering or compute
+		 *							operations on the same time.
+		 * 
+		 *							Note that when writing to a buffer that is being used on a command buffer with a
+		 *							different queue you must ensure to provide the command buffer with a valid sync mask
+		 *							so it knows to wait before the write operation completes.
+		 *							
+		 *							This value is a global queue index which encodes both the queue type and queue index.
+		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask = 0x00000001)
+		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx = 1)
         {
             assert(!isLocked() && "Cannot lock this buffer, it is already locked!");
-            void* ret = map(offset, length, options, syncMask);
+            void* ret = map(offset, length, options, queueIdx);
             mIsLocked = true;
 
 			mLockStart = offset;
@@ -57,19 +58,20 @@ namespace BansheeEngine
 		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do 
 		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
 		 *							requested it here).
-		 * @param[in]	syncMask	Mask that determines how are read or write operations synchronized with other operations
-		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
-		 *							If reading, the system will wait on all commands buffers with the shared mask bits
-		 *							before continuing. 
-		 *							If writing, Setting a mask that's different from used command buffers allows the writes
-		 *							to be queued independantly from normal rendering commands, allowing for async execution.
-		 *							
-		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
-		 *							currently being written to with a different sync mask). If not sure leave at default.
+		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
+		 *							allows the GPU to perform write or read operations while executing rendering or compute
+		 *							operations on the same time.
+		 *
+		 *							Note that when writing to a buffer that is being used on a command buffer with a
+		 *							different queue you must ensure to provide the command buffer with a valid sync mask
+		 *							so it knows to wait before the write operation completes.
+		 *
+		 *							This value is a global queue index which encodes both the queue type and queue index.
+		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-        void* lock(GpuLockOptions options, UINT32 syncMask = 0x00000001)
+        void* lock(GpuLockOptions options, UINT32 queueIdx = 1)
         {
-            return this->lock(0, mSizeInBytes, options, syncMask);
+            return this->lock(0, mSize, options, queueIdx);
         }
 
 		/**	Releases the lock on this buffer. */
@@ -88,15 +90,18 @@ namespace BansheeEngine
 		 * @param[in]	offset		Offset in bytes from which to copy the data.
 		 * @param[in]	length		Length of the area you want to copy, in bytes.
 		 * @param[in]	dest		Destination buffer large enough to store the read data.
-		 * @param[in]	syncMask	Mask that determines how is the read operation synchronized with other operations on 
-		 *							this resource. This corresponds to the sync mask property on a CommandBuffer object.
-		 *							The system will wait on all commands buffers with the shared mask bits before continuing
-		 *							with the read. 
-		 *							
-		 *							It's up to the caller to ensure the usage is valid (e.g. not reading something that is
-		 *							currently being written to with a different sync mask). If not sure leave at default.
+		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
+		 *							allows the GPU to perform write or read operations while executing rendering or compute
+		 *							operations on the same time.
+		 *
+		 *							Note that when writing to a buffer that is being used on a command buffer with a
+		 *							different queue you must ensure to provide the command buffer with a valid sync mask
+		 *							so it knows to wait before the write operation completes.
+		 *
+		 *							This value is a global queue index which encodes both the queue type and queue index.
+		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-        virtual void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) = 0;
+        virtual void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 1) = 0;
 
 		/**
 		 * Writes data into a portion of the buffer from the source memory. 
@@ -105,16 +110,19 @@ namespace BansheeEngine
 		 * @param[in]	length		Length of the area you want to copy, in bytes.
 		 * @param[in]	source		Source buffer containing the data to write.
 		 * @param[in]	writeFlags	Optional write flags that may affect performance.
-		 * @param[in]	syncMask	Mask that determines how is the write operation synchronized with other operations
-		 *							on this resource. This corresponds to the sync mask property on a CommandBuffer object.
-		 *							Setting a mask that's different from used command buffers allows the writes to be queued
-		 *							independantly from normal rendering commands, allowing for async execution.
-		 *							
-		 *							It's up to the caller to ensure the usage is valid (e.g. not writing to something that
-		 *							is currently being used by the GPU). If not sure leave at default.
+		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
+		 *							allows the GPU to perform write or read operations while executing rendering or compute
+		 *							operations on the same time.
+		 *
+		 *							Note that when writing to a buffer that is being used on a command buffer with a
+		 *							different queue you must ensure to provide the command buffer with a valid sync mask
+		 *							so it knows to wait before the write operation completes.
+		 *
+		 *							This value is a global queue index which encodes both the queue type and queue index.
+		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
         virtual void writeData(UINT32 offset, UINT32 length, const void* source,
-				BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) = 0;
+				BufferWriteType writeFlags = BWT_NORMAL, UINT32 queueIdx = 1) = 0;
 
 		/**
 		 * Copies data from a specific portion of the source buffer into a specific portion of this buffer.
@@ -125,49 +133,48 @@ namespace BansheeEngine
 		 * @param[in]	length				Size of the data to copy, in bytes.
 		 * @param[in]	discardWholeBuffer	Specify true if the data in the current buffer can be entirely discarded. This
 		 *									may improve performance.
-		 * @param[in]	syncMask			Mask that determines how is the copy operation synchronized with other 
-		 *									operations on this resource. This corresponds to the sync mask property on a 
-		 *									CommandBuffer object. Setting a mask that's different from used command buffers
-		 *									allows the copy to be queued independantly from normal rendering commands, 
-		 *									allowing for async execution.
+		 * @param[in]	queueIdx			Device queue to perform any read/write operations on. Using a non-default queue
+		 *									index allows the GPU to perform write or read operations while executing 
+		 *									rendering or compute operations on the same time.
 		 *									
-		 *									It's up to the caller to ensure the usage is valid (e.g. not reading from
-		 *									something that is currently being written to, or writing to something that is
-		 *									currently being read).		
+		 *									Note that when writing to a buffer that is being used on a command buffer with a
+		 *									different queue you must ensure to provide the command buffer with a valid sync
+		 *									mask so it knows to wait before the write operation completes.
+		 *
+		 *									This value is a global queue index which encodes both the queue type and queue
+		 *									index. Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
 		virtual void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, 
-			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false, UINT32 syncMask = 0x00000001)
+			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false, UINT32 queueIdx = 1)
 		{
 			const void *srcData = srcBuffer.lock(
-				srcOffset, length, GBL_READ_ONLY, syncMask);
-			this->writeData(dstOffset, length, srcData, discardWholeBuffer ? BWT_DISCARD : BWT_NORMAL, syncMask);
+				srcOffset, length, GBL_READ_ONLY, queueIdx);
+			this->writeData(dstOffset, length, srcData, discardWholeBuffer ? BWT_DISCARD : BWT_NORMAL, queueIdx);
 			srcBuffer.unlock();
 		}
 
 		/**
 		 * Copy data from the provided buffer into this buffer. If buffers are not the same size, smaller size will be used.
 		 * 
-		* @param[in]	syncMask			Mask that determines how is the copy operation synchronized with other 
-		 *									operations on this resource. This corresponds to the sync mask property on a 
-		 *									CommandBuffer object. Setting a mask that's different from used command buffers
-		 *									allows the copy to be queued independantly from normal rendering commands, 
-		 *									allowing for async execution.
-		 *									
-		 *									It's up to the caller to ensure the usage is valid (e.g. not reading from
-		 *									something that is currently being written to, or writing to something that is
-		 *									currently being read).		
+		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
+		 *							allows the GPU to perform write or read operations while executing rendering or compute
+		 *							operations on the same time.
+		 *
+		 *							Note that when writing to a buffer that is being used on a command buffer with a
+		 *							different queue you must ensure to provide the command buffer with a valid sync mask
+		 *							so it knows to wait before the write operation completes.
+		 *
+		 *							This value is a global queue index which encodes both the queue type and queue index.
+		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-		virtual void copyData(HardwareBuffer& srcBuffer, UINT32 syncMask = 0x00000001)
+		virtual void copyData(HardwareBuffer& srcBuffer, UINT32 queueIdx = 1)
 		{
-			UINT32 sz = std::min(getSizeInBytes(), srcBuffer.getSizeInBytes()); 
-			copyData(srcBuffer, 0, 0, sz, true, syncMask);
+			UINT32 sz = std::min(getSize(), srcBuffer.getSize());
+			copyData(srcBuffer, 0, 0, sz, true, queueIdx);
 		}
 			
 		/** Returns the size of this buffer in bytes. */
-        UINT32 getSizeInBytes() const { return mSizeInBytes; }
-
-		/**	Returns the Usage flags with which this buffer was created. */
-        GpuBufferUsage getUsage() const { return mUsage; }
+        UINT32 getSize() const { return mSize; }
 
 		/**	Returns whether or not this buffer is currently locked. */
         bool isLocked() const { return mIsLocked; }	
@@ -178,23 +185,21 @@ namespace BansheeEngine
 		/**
 		 * Constructs a new buffer.
 		 *
-		 * @param[in]	usage			Determines most common usage of the buffer. Usually has effect on what type of 
-		 *								memory will be buffer allocated in but that depends on render API. Specify dynamic 
-		 *								if you plan on modifying it often, static otherwise.
+		 * @param[in]	size			Size of the buffer, in bytes.
 		 */
-		HardwareBuffer(GpuBufferUsage usage)
-			: mUsage(usage), mIsLocked(false)
+		HardwareBuffer(UINT32 size)
+			: mSize(size), mIsLocked(false)
 		{  }
 
 		/** @copydoc lock */
-		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) = 0;
+		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) { return nullptr; }
 
 		/** @copydoc unlock */
-		virtual void unmap() = 0;
+		virtual void unmap() { }
 
 	protected:
-		UINT32 mSizeInBytes;
-		GpuBufferUsage mUsage;
+		UINT32 mSize;
+
 		bool mIsLocked;
 		UINT32 mLockStart;
 		UINT32 mLockSize;

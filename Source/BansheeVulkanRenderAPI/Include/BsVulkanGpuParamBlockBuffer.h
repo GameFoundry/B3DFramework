@@ -21,9 +21,6 @@ namespace BansheeEngine
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
 		void writeToGPU(const UINT8* data) override;
 
-		/** @copydoc GpuParamBlockBufferCore::readFromGPU */
-		void readFromGPU(UINT8* data) const override;
-
 		/** 
 		 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
 		 * doesn't include the provided device, null is returned. 

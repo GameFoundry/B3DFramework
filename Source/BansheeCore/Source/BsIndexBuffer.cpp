@@ -6,25 +6,25 @@
 
 namespace BansheeEngine 
 {
-	IndexBufferProperties::IndexBufferProperties(IndexType idxType, UINT32 numIndices)
-		:mIndexType(idxType), mNumIndices(numIndices)
+	UINT32 calcIndexSize(IndexType type)
 	{
-		switch (mIndexType)
+		switch (type)
 		{
 		case IT_16BIT:
-			mIndexSize = sizeof(unsigned short);
-			break;
+			return sizeof(unsigned short);
+		default:
 		case IT_32BIT:
-			mIndexSize = sizeof(unsigned int);
-			break;
+			return sizeof(unsigned int);
 		}
 	}
 
+	IndexBufferProperties::IndexBufferProperties(IndexType idxType, UINT32 numIndices)
+		:mIndexType(idxType), mNumIndices(numIndices), mIndexSize(calcIndexSize(idxType))
+	{ }
+
 	IndexBufferCore::IndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:HardwareBuffer(desc.usage), mProperties(desc.indexType, desc.numIndices)
-	{ 
-		mSizeInBytes = mProperties.mIndexSize * mProperties.mNumIndices;
-	}
+		:HardwareBuffer(calcIndexSize(desc.indexType) * desc.numIndices), mProperties(desc.indexType, desc.numIndices)
+	{ }
 
 	SPtr<IndexBufferCore> IndexBufferCore::create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{

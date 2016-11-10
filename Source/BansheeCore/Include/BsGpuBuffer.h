@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsCoreObject.h"
+#include "BsHardwareBuffer.h"
 
 namespace BansheeEngine 
 {
@@ -137,59 +138,10 @@ namespace BansheeEngine
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuBufferCore : public CoreObjectCore
+	class BS_CORE_EXPORT GpuBufferCore : public CoreObjectCore, public HardwareBuffer
 	{
 	public:
 		virtual ~GpuBufferCore();
-
-		/**
-		 * Locks the buffer returning a pointer to the internal buffer data that you may then read or write to. 
-		 * Caller must ensure it will only perform actions promised in the provided GPU lock options parameter.
-		 *
-		 * @param[in]	offset	Number of bytes at which to lock the buffer. Returned pointer points to this location.
-		 * @param[in]	length	Number of bytes to lock.
-		 * @param[in]	options How to lock the buffer. Certain options offer better performance than others.
-		 */
-		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options) = 0;
-
-		/**
-		 * Unlocks a previously locked buffer. Any pointers to internal buffers returned when it was locked will become 
-		 * invalid.
-		 */
-		virtual void unlock() = 0;
-
-		/**
-		 * Reads buffer data into the previously allocated buffer.
-		 *
-		 * @param[in]	offset	Number of bytes at which to start reading the buffer.
-		 * @param[in]	length	Number of bytes to read.
-		 * @param[in]	pDest	Previously allocated buffer of @p length bytes size that the data will be written to.
-		 */
-        virtual void readData(UINT32 offset, UINT32 length, void* pDest) = 0;
-
-		/**
-		 * Writes data into the buffer.
-		 *
-		 * @param[in]	offset		Number of bytes at which to start writing to the buffer.
-		 * @param[in]	length		Number of bytes to write.
-		 * @param[in]	pSource		Buffer containg the data to write.
-		 * @param[in]	writeFlags  Flags that may be used to improve performance for specific use cases.
-		 */
-        virtual void writeData(UINT32 offset, UINT32 length, const void* pSource, 
-			BufferWriteType writeFlags = BWT_NORMAL) = 0;
-
-		/**
-		 * Copies data from another buffer into this buffer.
-		 *
-		 * @param[in]	srcBuffer			Buffer to copy the data from.
-		 * @param[in]	srcOffset			Offset in bytes into the source buffer - this is where reading starts from.
-		 * @param[in]	dstOffset			Offset in bytes into the destination buffer - this is where writing starts from.
-		 * @param[in]	length				Number of bytes to copy from source to destination.
-		 * @param[in]	discardWholeBuffer	If true, the contents of the current buffer will be entirely discarded. This can
-		 *									improve performance if you know you wont be needing that data any more.
-		 */
-		virtual void copyData(GpuBufferCore& srcBuffer, UINT32 srcOffset,
-			UINT32 dstOffset, UINT32 length, bool discardWholeBuffer = false) = 0;
 
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }

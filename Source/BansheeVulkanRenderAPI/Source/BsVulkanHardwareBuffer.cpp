@@ -129,7 +129,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void* VulkanHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
+	void* VulkanHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
 		if ((offset + length) > mSizeInBytes)
 			BS_EXCEPT(RenderingAPIException, "Provided offset(" + toString(offset) + ") + length(" + toString(length) + ") "
@@ -163,17 +163,18 @@ namespace BansheeEngine
 	}
 
 	void VulkanHardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 
 	}
 
-	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
+	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
 	{
 		
 	}
 
-	void VulkanHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, UINT32 syncMask)
+	void VulkanHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, 
+		UINT32 queueIdx)
 	{
 		
 	}

@@ -20,11 +20,11 @@ namespace BansheeEngine
 		~GLIndexBufferCore();
 
 		/** @copydoc IndexBufferCore::readData */
-        void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) override;
+        void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 1) override;
 
 		/** @copydoc IndexBufferCore::writeData */
         void writeData(UINT32 offset, UINT32 length, const void* source, 
-			BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) override;
+			BufferWriteType writeFlags = BWT_NORMAL, UINT32 queueIdx = 1) override;
 
 		/**	Returns internal OpenGL index buffer handle. */
         GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
@@ -34,7 +34,7 @@ namespace BansheeEngine
 		void initialize() override;	
 
 		/** @copydoc IndexBufferCore::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) override;
 
 		/** @copydoc IndexBufferCore::unmap */
 		void unmap() override;

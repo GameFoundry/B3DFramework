@@ -35,11 +35,6 @@ namespace BansheeEngine
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
 	}
 
-	void VulkanGpuParamBlockBufferCore::readFromGPU(UINT8* data) const
-	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuParamBuffer);
-	}
-
 	VulkanBuffer* VulkanGpuParamBlockBufferCore::getResource(UINT32 deviceIdx) const
 	{
 		return mBuffer->getResource(deviceIdx);

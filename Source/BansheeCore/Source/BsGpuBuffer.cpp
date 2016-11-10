@@ -7,6 +7,18 @@
 
 namespace BansheeEngine
 {
+	UINT32 getBufferSize(const GPU_BUFFER_DESC& desc)
+	{
+		UINT32 elementSize;
+
+		if (desc.type == GBT_STANDARD)
+			elementSize = GpuBuffer::getFormatSize(desc.format);
+		else
+			elementSize = desc.elementSize;
+
+		return elementSize * desc.elementCount;
+	}
+
 	GpuBufferProperties::GpuBufferProperties(const GPU_BUFFER_DESC& desc)
 		: mDesc(desc)
 	{
@@ -15,7 +27,7 @@ namespace BansheeEngine
 	}
 
 	GpuBufferCore::GpuBufferCore(const GPU_BUFFER_DESC& desc, UINT32 deviceMask)
-		: mProperties(desc)
+		:HardwareBuffer(getBufferSize(desc)), mProperties(desc)
 	{
 	}
 

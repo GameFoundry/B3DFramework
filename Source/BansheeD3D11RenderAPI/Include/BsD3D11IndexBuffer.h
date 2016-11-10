@@ -21,22 +21,22 @@ namespace BansheeEngine
 		~D3D11IndexBufferCore();
 
 		/** @copydoc IndexBufferCore::readData */
-		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 syncMask = 0x00000001) override;
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 1) override;
 
 		/** @copydoc IndexBufferCore::writeData */
 		void writeData(UINT32 offset, UINT32 length, const void* source, 
-			BufferWriteType writeFlags = BWT_NORMAL, UINT32 syncMask = 0x00000001) override;
+			BufferWriteType writeFlags = BWT_NORMAL, UINT32 queueIdx = 1) override;
 
 		/** @copydoc IndexBufferCore::copyData */
 		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
-			bool discardWholeBuffer = false, UINT32 syncMask = 0x00000001) override;
+			bool discardWholeBuffer = false, UINT32 queueIdx = 1) override;
 
 		/**	Gets the internal DX11 index buffer object. */
 		ID3D11Buffer* getD3DIndexBuffer() const { return mBuffer->getD3DBuffer(); }		
 
 	protected:
 		/** @copydoc IndexBufferCore::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) override;
 
 		/** @copydoc IndexBufferCore::unmap */
 		void unmap() override;
@@ -46,6 +46,8 @@ namespace BansheeEngine
 
 		D3D11HardwareBuffer* mBuffer;
 		D3D11Device& mDevice;
+		GpuBufferUsage mUsage;
+
 	};
 
 	/** @} */

@@ -44,13 +44,4 @@ namespace BansheeEngine
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
 	}
-
-	void GLGpuParamBlockBufferCore::readFromGPU(UINT8* data) const
-	{
-		glBindBuffer(GL_UNIFORM_BUFFER, mGLHandle);
-		glGetBufferSubData(GL_UNIFORM_BUFFER, 0 , mSize, (GLvoid*)data);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuParamBuffer);
-	}
 }

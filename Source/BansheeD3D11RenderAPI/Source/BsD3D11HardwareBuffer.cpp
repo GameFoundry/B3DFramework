@@ -10,9 +10,9 @@ namespace BansheeEngine
 {
 	D3D11HardwareBuffer::D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 
 		D3D11Device& device, bool useSystemMem, bool streamOut, bool randomGpuWrite, bool useCounter)
-		: HardwareBuffer(usage), mD3DBuffer(nullptr), mpTempStagingBuffer(nullptr), mUseTempStagingBuffer(false),
-		 mBufferType(btype), mDevice(device), mElementCount(elementCount), mElementSize(elementSize), mRandomGpuWrite(randomGpuWrite),
-		 mUseCounter(useCounter)
+		: HardwareBuffer(elementCount * elementSize), mD3DBuffer(nullptr), mpTempStagingBuffer(nullptr)
+		, mUseTempStagingBuffer(false), mBufferType(btype), mDevice(device), mElementCount(elementCount)
+		, mElementSize(elementSize), mUsage(usage), mRandomGpuWrite(randomGpuWrite), mUseCounter(useCounter)
 	{
 		assert((!streamOut || btype == BT_VERTEX) && "Stream out flag is only supported on vertex buffers.");
 		assert(!randomGpuWrite || (btype & BT_GROUP_GENERIC) != 0 && "randomGpuWrite flag can only be enabled with standard, append/consume, indirect argument, structured or raw buffers.");
@@ -22,8 +22,7 @@ namespace BansheeEngine
 		assert(!randomGpuWrite || !useSystemMem && "randomGpuWrite and useSystemMem cannot be used together.");
 		assert(!(useSystemMem && streamOut) && "useSystemMem and streamOut cannot be used together.");
 
-		mSizeInBytes = elementCount * elementSize;
-		mDesc.ByteWidth = mSizeInBytes;
+		mDesc.ByteWidth = getSize();
 		mDesc.MiscFlags = 0;
 		mDesc.StructureByteStride = 0;
 
@@ -41,8 +40,8 @@ namespace BansheeEngine
 		}
 		else
 		{
-			mDesc.Usage = D3D11Mappings::getUsage(mUsage);
-			mDesc.CPUAccessFlags = D3D11Mappings::getAccessFlags(mUsage); 
+			mDesc.Usage = D3D11Mappings::getUsage(usage);
+			mDesc.CPUAccessFlags = D3D11Mappings::getAccessFlags(usage); 
 
 			switch(btype)
 			{
@@ -90,10 +89,10 @@ namespace BansheeEngine
 			bs_delete(mpTempStagingBuffer);
 	}
 
-	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 syncMask)
+	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
 	{
-		if (length > mSizeInBytes)
-			BS_EXCEPT(RenderingAPIException, "Provided length " + toString(length) + " larger than the buffer " + toString(mSizeInBytes) + ".");		
+		if (length > mSize)
+			BS_EXCEPT(RenderingAPIException, "Provided length " + toString(length) + " larger than the buffer " + toString(mSize) + ".");		
 
 		// Use direct (and faster) Map/Unmap if dynamic write, or a staging read/write
 		if((mDesc.Usage == D3D11_USAGE_DYNAMIC && options != GBL_READ_ONLY) || mDesc.Usage == D3D11_USAGE_STAGING)
@@ -179,12 +178,12 @@ namespace BansheeEngine
 			if (!mpTempStagingBuffer)
 			{
 				// Create another buffer instance but use system memory
-				mpTempStagingBuffer = bs_new<D3D11HardwareBuffer>(mBufferType, mUsage, 1, mSizeInBytes, std::ref(mDevice), true);
+				mpTempStagingBuffer = bs_new<D3D11HardwareBuffer>(mBufferType, mUsage, 1, mSize, std::ref(mDevice), true);
 			}
 
 			// Schedule a copy to the staging
 			if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
-				mpTempStagingBuffer->copyData(*this, 0, 0, mSizeInBytes, true);
+				mpTempStagingBuffer->copyData(*this, 0, 0, mSize, true);
 
 			// Register whether we'll need to upload on unlock
 			mStagingUploadNeeded = (options != GBL_READ_ONLY);
@@ -202,7 +201,7 @@ namespace BansheeEngine
 			mpTempStagingBuffer->unlock();
 
 			if (mStagingUploadNeeded)
-				copyData(*mpTempStagingBuffer, 0, 0, mSizeInBytes, true);
+				copyData(*mpTempStagingBuffer, 0, 0, mSize, true);
 
 			if(mpTempStagingBuffer != nullptr)
 			{
@@ -217,11 +216,11 @@ namespace BansheeEngine
 	}
 
 	void D3D11HardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, 
-		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 syncMask)
+		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		// If we're copying same-size buffers in their entirety
 		if (srcOffset == 0 && dstOffset == 0 &&
-			length == mSizeInBytes && mSizeInBytes == srcBuffer.getSizeInBytes())
+			length == mSize && mSize == srcBuffer.getSize())
 		{
 			mDevice.getImmediateContext()->CopyResource(mD3DBuffer, static_cast<D3D11HardwareBuffer&>(srcBuffer).getD3DBuffer());
 			if (mDevice.hasError())
@@ -251,7 +250,7 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 syncMask)
+	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
 	{
 		// There is no functional interface in D3D, just do via manual lock, copy & unlock
 		void* pSrc = this->lock(offset, length, GBL_READ_ONLY);
@@ -260,7 +259,7 @@ namespace BansheeEngine
 	}
 
 	void D3D11HardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, 
-		UINT32 syncMask)
+		UINT32 queueIdx)
 	{
 		if(mDesc.Usage == D3D11_USAGE_DYNAMIC || mDesc.Usage == D3D11_USAGE_STAGING)
 		{

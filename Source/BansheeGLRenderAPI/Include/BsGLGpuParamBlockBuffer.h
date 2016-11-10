@@ -21,9 +21,6 @@ namespace BansheeEngine
 		/** @copydoc GpuParamBlockBufferCore::writeToGPU */
 		void writeToGPU(const UINT8* data) override;
 
-		/** @copydoc GpuParamBlockBufferCore::readFromGPU */
-		void readFromGPU(UINT8* data) const override;
-
 		/**	Returns internal OpenGL uniform buffer handle. */
 		GLuint getGLHandle() const { return mGLHandle; }
 	protected:
