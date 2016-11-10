@@ -30,6 +30,8 @@ namespace BansheeEngine
 		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do
 		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
 		 *							requested it here).
+		 * @param[in]	deviceIdx	Index of the device whose memory to map. If the buffer doesn't exist on this device,
+		 *							the method returns null.							
 		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
 		 *							allows the GPU to perform write or read operations while executing rendering or compute
 		 *							operations on the same time.
@@ -41,10 +43,10 @@ namespace BansheeEngine
 		 *							This value is a global queue index which encodes both the queue type and queue index.
 		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx = 1)
+		virtual void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 1)
         {
             assert(!isLocked() && "Cannot lock this buffer, it is already locked!");
-            void* ret = map(offset, length, options, queueIdx);
+            void* ret = map(offset, length, options, deviceIdx, queueIdx);
             mIsLocked = true;
 
 			mLockStart = offset;
@@ -58,6 +60,8 @@ namespace BansheeEngine
 		 * @param[in]	options		Signifies what you want to do with the returned pointer. Caller must ensure not to do 
 		 *							anything he hasn't requested (for example don't try to read from the buffer unless you
 		 *							requested it here).
+		 * @param[in]	deviceIdx	Index of the device whose memory to map. If the buffer doesn't exist on this device,
+		 *							the method returns null.
 		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
 		 *							allows the GPU to perform write or read operations while executing rendering or compute
 		 *							operations on the same time.
@@ -69,9 +73,9 @@ namespace BansheeEngine
 		 *							This value is a global queue index which encodes both the queue type and queue index.
 		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-        void* lock(GpuLockOptions options, UINT32 queueIdx = 1)
+        void* lock(GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 1)
         {
-            return this->lock(0, mSize, options, queueIdx);
+            return this->lock(0, mSize, options, deviceIdx, queueIdx);
         }
 
 		/**	Releases the lock on this buffer. */
@@ -192,7 +196,8 @@ namespace BansheeEngine
 		{  }
 
 		/** @copydoc lock */
-		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) { return nullptr; }
+		virtual void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, 
+			UINT32 queueIdx) { return nullptr; }
 
 		/** @copydoc unlock */
 		virtual void unmap() { }

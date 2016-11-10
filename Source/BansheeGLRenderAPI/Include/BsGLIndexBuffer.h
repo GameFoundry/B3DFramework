@@ -34,13 +34,14 @@ namespace BansheeEngine
 		void initialize() override;	
 
 		/** @copydoc IndexBufferCore::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx) override;
 
 		/** @copydoc IndexBufferCore::unmap */
 		void unmap() override;
 
 	private:
 		GLBuffer mBuffer;
+		GpuBufferUsage mUsage;
     };
 
 	/** @} */

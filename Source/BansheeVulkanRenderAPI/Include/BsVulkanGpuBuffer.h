@@ -18,7 +18,7 @@ namespace BansheeEngine
 		~VulkanGpuBufferCore();
 
 		/** @copydoc GpuBufferCore::lock */
-		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx = 1) override;
+		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 1) override;
 
 		/** @copydoc GpuBufferCore::unlock */
 		void unlock() override;

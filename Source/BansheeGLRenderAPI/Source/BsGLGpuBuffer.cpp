@@ -48,7 +48,7 @@ namespace BansheeEngine
 		GpuBufferCore::initialize();
 	}
 
-	void* GLGpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
+	void* GLGpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)

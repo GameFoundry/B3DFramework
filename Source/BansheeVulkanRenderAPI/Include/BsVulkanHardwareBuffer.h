@@ -75,12 +75,13 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc HardwareBuffer::map */
-		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx) override;
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx) override;
 
 		/** @copydoc HardwareBuffer::unmap */
 		void unmap() override;
 
 		VulkanBuffer* mBuffers[BS_MAX_DEVICES];
+		bool mStaging;
 	};
 
 	/** @} */

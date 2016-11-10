@@ -27,12 +27,11 @@ namespace BansheeEngine
 
 	VulkanHardwareBuffer::VulkanHardwareBuffer(BufferType type, GpuBufferFormat format, GpuBufferUsage usage, 
 		UINT32 size, GpuDeviceFlags deviceMask)
-		: HardwareBuffer(usage), mBuffers()
+		: HardwareBuffer(size), mBuffers(), mStaging(type == BT_STAGING)
 	{
-		bool staging = type == BT_STAGING;
 		bool needsView = false;
 
-		VkMemoryPropertyFlags flags = staging ?
+		VkMemoryPropertyFlags flags = mStaging ?
 			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : // Note: Try using cached uncoherent memory
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -69,7 +68,7 @@ namespace BansheeEngine
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			if (devices[i] == nullptr)
-				break;
+				continue;
 
 			VkBufferCreateInfo bufferCI;
 			bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -114,8 +113,6 @@ namespace BansheeEngine
 
 			mBuffers[i] = devices[i]->getResourceManager().create<VulkanBuffer>(buffer, view, memory);
 		}
-
-		mSizeInBytes = size;
 	}
 
 	VulkanHardwareBuffer::~VulkanHardwareBuffer()
@@ -123,17 +120,53 @@ namespace BansheeEngine
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			if (mBuffers[i] == nullptr)
-				return;
+				continue;
 
 			mBuffers[i]->destroy();
 		}
 	}
 
-	void* VulkanHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
+	void* VulkanHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		if ((offset + length) > mSizeInBytes)
-			BS_EXCEPT(RenderingAPIException, "Provided offset(" + toString(offset) + ") + length(" + toString(length) + ") "
-				"is larger than the buffer " + toString(mSizeInBytes) + ".");		
+		if ((offset + length) > mSize)
+		{
+			LOGERR("Provided offset(" + toString(offset) + ") + length(" + toString(length) + ") "
+				   "is larger than the buffer " + toString(mSize) + ".");
+
+			return nullptr;
+		}
+
+		VulkanBuffer* buffer = mBuffers[deviceIdx];
+
+		if (buffer == nullptr)
+			return;
+
+		bool directMap = mStaging && !buffer->isUsed();
+
+		// If memory is host visible and buffer isn't used on the GPU, map directly (no need for pipeline barriers
+		// with access modifiers since we're sure the buffer isn't used on the GPU)
+		if (directMap)
+			return buffer->map();
+
+		// TODO - Allocate staging buffer
+
+		bool needRead = options == GBL_READ_WRITE || options == GBL_READ_ONLY;
+		if(needRead)
+		{
+			// TODO - Get command buffer on wanted queue
+			//      - Generate sync mask depending on where the resource is used on
+			//      - Issue copy from source buffer to staging buffer, with sync mask semaphores
+			//      - Wait for queue to complete, refresh CB states
+			//      - Proceed below
+		}
+
+		// TODO - Return staging buffer->map()
+		//      - Set mRequiresUpload field to true
+
+
+		// TODO - Special
+		//      - Keep a list of upload command buffers per queue to avoid allocating them
+		//      - Can I easily determine sync mask of which buffers a resource is used on from VulkanResource?
 
 		switch (options)
 		{
@@ -159,23 +192,30 @@ namespace BansheeEngine
 
 	void VulkanHardwareBuffer::unmap()
 	{
-
+		// TODO - If direct map (mRequiresUpload == false), simply unmap
+		// TODO - If mRequiresUpload is true, queue copyBuffer command
+		//      - If lock was discard, don't issue any write semaphores and instead create a brand new internal buffer (destroy old one)
+		//      - If lock was no overwrite, don't issue any write semaphores but write to the buffer
+		//      - Otherwise, wait until resource is not used before issuing write
 	}
 
 	void VulkanHardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
 		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
-
+		// TODO - Queue copy command on the requested queue
+		//      - Issue semaphores if src buffer is currently used
+		//      - Otherwise just create a new buffer and write to it
+		//      - If current buffer is currently being written to by the GPU, issue a wait and log a performance warning
 	}
 
 	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
 	{
-		
+		// TODO - Just use lock/unlock
 	}
 
 	void VulkanHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, 
 		UINT32 queueIdx)
 	{
-		
+		// TODO - Just use lock/unlock
 	}
 }

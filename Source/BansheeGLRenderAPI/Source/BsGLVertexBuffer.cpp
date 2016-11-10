@@ -9,7 +9,7 @@
 namespace BansheeEngine 
 {
 	GLVertexBufferCore::GLVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:VertexBufferCore(desc, deviceMask)
+		:VertexBufferCore(desc, deviceMask), mUsage(desc.usage)
     {
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
     }
@@ -24,7 +24,7 @@ namespace BansheeEngine
 
 	void GLVertexBufferCore::initialize()
 	{
-		mBuffer.initialize(GL_ARRAY_BUFFER, mSizeInBytes, mUsage);
+		mBuffer.initialize(GL_ARRAY_BUFFER, mSize, mUsage);
 		
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexBuffer);
 		VertexBufferCore::initialize();
@@ -43,7 +43,7 @@ namespace BansheeEngine
 			mVAObjects.erase(iterFind);
 	}
 
-	void* GLVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 queueIdx)
+	void* GLVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
     {
 		return mBuffer.lock(offset, length, options);
     }
