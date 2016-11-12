@@ -53,9 +53,9 @@ namespace BansheeEngine
 		mBuffer.unlock();
     }
 
-	void GLVertexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
+	void GLVertexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
     {
-		mBuffer.readData(offset, length, pDest);
+		mBuffer.readData(offset, length, dest);
     }
 
 	void GLVertexBufferCore::writeData(UINT32 offset, UINT32 length,

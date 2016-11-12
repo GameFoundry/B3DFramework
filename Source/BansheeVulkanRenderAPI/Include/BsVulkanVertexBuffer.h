@@ -19,7 +19,7 @@ namespace BansheeEngine
 		~VulkanVertexBufferCore();
 
 		/** @copydoc VertexBufferCore::readData */
-		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 0) override;
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
 
 		/** @copydoc VertexBufferCore::writeData */
 		void writeData(UINT32 offset, UINT32 length, const void* source, 

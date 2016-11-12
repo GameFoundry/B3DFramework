@@ -45,7 +45,7 @@ namespace BansheeEngine
 
 	}
 
-	void VulkanIndexBufferCore::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
+	void VulkanIndexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
 	}

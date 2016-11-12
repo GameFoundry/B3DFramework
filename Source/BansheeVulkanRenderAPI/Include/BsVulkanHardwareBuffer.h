@@ -39,7 +39,8 @@ namespace BansheeEngine
 		 * the destination buffer. Caller must ensure the provided offsets and lengths are within valid bounds of
 		 * both buffers.
 		 */
-		void copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, VkDeviceSize offset, VkDeviceSize length);
+		void copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, VkDeviceSize srcOffset, VkDeviceSize dstOffset, 
+			VkDeviceSize length);
 
 	private:
 		VkBuffer mBuffer;
@@ -71,7 +72,7 @@ namespace BansheeEngine
 		~VulkanHardwareBuffer();
 
 		/** @copydoc HardwareBuffer::readData */
-		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 0) override;
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
 
 		/** @copydoc HardwareBuffer::writeData */
 		void writeData(UINT32 offset, UINT32 length, const void* source, 

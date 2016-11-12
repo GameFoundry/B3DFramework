@@ -43,12 +43,13 @@ namespace BansheeEngine
 		vkUnmapMemory(device.getLogical(), mMemory);
 	}
 
-	void VulkanBuffer::copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, VkDeviceSize offset, VkDeviceSize length)
+	void VulkanBuffer::copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, VkDeviceSize srcOffset, 
+		VkDeviceSize dstOffset, VkDeviceSize length)
 	{
 		VkBufferCopy region;
 		region.size = length;
-		region.srcOffset = offset;
-		region.dstOffset = offset;
+		region.srcOffset = srcOffset;
+		region.dstOffset = dstOffset;
 
 		vkCmdCopyBuffer(cb->getCB()->getHandle(), mBuffer, destination->getHandle(), 1, &region);
 	}
@@ -277,7 +278,7 @@ namespace BansheeEngine
 				}
 
 				// Queue copy command
-				buffer->copy(transferCB, mStagingBuffer, offset, length);
+				buffer->copy(transferCB, mStagingBuffer, offset, offset, length);
 
 				// Ensure data written to the staging buffer is visible
 				transferCB->memoryBarrier(buffer->getHandle(),
@@ -346,7 +347,10 @@ namespace BansheeEngine
 				}
 				
 				// Queue copy command
-				mStagingBuffer->copy(transferCB, buffer, mMappedOffset, mMappedSize);
+				mStagingBuffer->copy(transferCB, buffer, mMappedOffset, mMappedOffset, mMappedSize);
+
+				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
+				// done automatically before next "normal" command buffer submission.
 			}
 
 			mStagingBuffer->unmap();
@@ -361,20 +365,99 @@ namespace BansheeEngine
 	void VulkanHardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
 		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
-		// TODO - Queue copy command on the requested queue
-		//      - Issue semaphores if src buffer is currently used
-		//      - Otherwise just create a new buffer and write to it
-		//      - If current buffer is currently being written to by the GPU, issue a wait and log a performance warning
+		if ((dstOffset + length) > mSize)
+		{
+			LOGERR("Provided offset(" + toString(dstOffset) + ") + length(" + toString(length) + ") "
+				   "is larger than the destination buffer " + toString(mSize) + ". Copy operation aborted.");
+
+			return;
+		}
+
+		if ((srcOffset + length) > srcBuffer.getSize())
+		{
+			LOGERR("Provided offset(" + toString(srcOffset) + ") + length(" + toString(length) + ") "
+				   "is larger than the source buffer " + toString(srcBuffer.getSize()) + ". Copy operation aborted.");
+
+			return;
+		}
+
+		VulkanHardwareBuffer& vkSource = static_cast<VulkanHardwareBuffer&>(srcBuffer);
+
+		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
+		VulkanCommandBufferManager& cbManager = gVulkanCBManager();
+
+		GpuQueueType queueType;
+		UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(queueIdx, queueType);
+
+		// Perform copy on every device that has both buffers
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			VulkanBuffer* src = vkSource.mBuffers[i];
+			VulkanBuffer* dst = mBuffers[i];
+
+			if (src == nullptr || dst == nullptr)
+				continue;
+
+			VulkanDevice& device = *rapi._getDevice(i);
+			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(i, queueType, localQueueIdx);
+
+			// If either source or destination buffer is currently being written to do need to sync the copy operation so
+			// it executes after both are done
+
+			// If destination is being used on the GPU we need to wait until it finishes before writing to it
+			UINT32 dstUseMask = dst->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+
+			// If discard is enabled and destination is used, instead of waiting just discard the existing buffer and make a new one
+			if(dstUseMask != 0 && discardWholeBuffer)
+			{
+				dst->destroy();
+
+				dst = createBuffer(device, false, mReadable);
+				mBuffers[mMappedDeviceIdx] = dst;
+
+				dstUseMask = 0;
+			}
+
+			// If source buffer is being written to on the GPU we need to wait until it finishes, before executing copy
+			UINT32 srcUseMask = src->getUseInfo(VulkanUseFlag::Write);
+
+			// Wait if anything is using the buffers
+			if(dstUseMask != 0 || srcUseMask != 0)
+				transferCB->appendMask(dstUseMask | srcUseMask);
+
+			src->copy(transferCB, dst, srcOffset, dstOffset, length);
+
+			// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
+			// done automatically before next "normal" command buffer submission.
+		}
 	}
 
-	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
+	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		// TODO - Just use lock/unlock
+		void* lockedData = lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
+		memcpy(dest, lockedData, length);
+		unlock();
 	}
 
-	void VulkanHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags, 
+	void VulkanHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
 		UINT32 queueIdx)
 	{
-		// TODO - Just use lock/unlock
+		GpuLockOptions lockOptions = GBL_WRITE_ONLY;
+
+		if (writeFlags == BTW_NO_OVERWRITE)
+			lockOptions = GBL_WRITE_ONLY_NO_OVERWRITE;
+		else if (writeFlags == BWT_DISCARD)
+			lockOptions = GBL_WRITE_ONLY_DISCARD;
+
+		// Write to every device
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mBuffers[i] == nullptr)
+				continue;
+
+			void* lockedData = lock(offset, length, lockOptions, i, queueIdx);
+			memcpy(lockedData, source, length);
+			unlock();
+		}
 	}
 }

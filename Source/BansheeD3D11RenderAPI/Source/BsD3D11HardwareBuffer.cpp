@@ -250,11 +250,11 @@ namespace BansheeEngine
 		}
 	}
 
-	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* pDest, UINT32 queueIdx)
+	void D3D11HardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		// There is no functional interface in D3D, just do via manual lock, copy & unlock
 		void* pSrc = this->lock(offset, length, GBL_READ_ONLY);
-		memcpy(pDest, pSrc, length);
+		memcpy(dest, pSrc, length);
 		this->unlock();
 	}
 

@@ -93,7 +93,10 @@ namespace BansheeEngine
 		 *
 		 * @param[in]	offset		Offset in bytes from which to copy the data.
 		 * @param[in]	length		Length of the area you want to copy, in bytes.
-		 * @param[in]	dest		Destination buffer large enough to store the read data.
+		 * @param[in]	dest		Destination buffer large enough to store the read data. Data is written from the start
+		 *							of the buffer (@p offset is only applied to the source).
+		 * @param[in]	deviceIdx	Index of the device whose memory to read. If the buffer doesn't exist on this device,
+		 *							no data will be read.		
 		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
 		 *							allows the GPU to perform write or read operations while executing rendering or compute
 		 *							operations on the same time.
@@ -105,14 +108,15 @@ namespace BansheeEngine
 		 *							This value is a global queue index which encodes both the queue type and queue index.
 		 *							Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 		 */
-        virtual void readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx = 0) = 0;
+        virtual void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) = 0;
 
 		/**
 		 * Writes data into a portion of the buffer from the source memory. 
 		 *
 		 * @param[in]	offset		Offset in bytes from which to copy the data.
 		 * @param[in]	length		Length of the area you want to copy, in bytes.
-		 * @param[in]	source		Source buffer containing the data to write.
+		 * @param[in]	source		Source buffer containing the data to write. Data is read from the start of the buffer
+		 *							(@p offset is only applied to the destination).
 		 * @param[in]	writeFlags	Optional write flags that may affect performance.
 		 * @param[in]	queueIdx	Device queue to perform any read/write operations on. Using a non-default queue index
 		 *							allows the GPU to perform write or read operations while executing rendering or compute

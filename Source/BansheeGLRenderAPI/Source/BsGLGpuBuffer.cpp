@@ -71,7 +71,7 @@ namespace BansheeEngine
 		mBuffer.unlock();
 	}
 
-	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx)
+	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer.readData(offset, length, dest);
 

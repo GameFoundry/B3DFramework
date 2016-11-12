@@ -64,7 +64,7 @@ namespace BansheeEngine
 		
 	}
 
-	void VulkanGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 queueIdx)
+	void VulkanGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 	}
