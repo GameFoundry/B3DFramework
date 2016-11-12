@@ -21,3 +21,4 @@ Build
 *.aps
 *.opendb
 BsEngineConfig.h
+BsFrameworkConfig.h
