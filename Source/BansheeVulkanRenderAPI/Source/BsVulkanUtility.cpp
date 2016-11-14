@@ -200,6 +200,7 @@ namespace BansheeEngine
 	{
 		switch(numSamples)
 		{
+		case 0:
 		case 1:
 			return VK_SAMPLE_COUNT_1_BIT;
 		case 2:
@@ -216,7 +217,6 @@ namespace BansheeEngine
 			return VK_SAMPLE_COUNT_64_BIT;
 		}
 
-		BS_EXCEPT(RenderingAPIException, "Unsupported sample count: " + toString(numSamples));
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
