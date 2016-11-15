@@ -34,4 +34,10 @@ namespace BansheeEngine
 
 		GpuProgramCore::initialize();
 	}
+
+	VkShaderModule VulkanGpuProgramCore::getHandle() const
+	{
+		// TODO
+		return VK_NULL_HANDLE;
+	}
 }

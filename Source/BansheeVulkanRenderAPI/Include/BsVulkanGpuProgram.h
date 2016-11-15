@@ -17,6 +17,9 @@ namespace BansheeEngine
 	public:
 		virtual ~VulkanGpuProgramCore();
 
+		/** Returns a handle to the Vulkan shader module. */
+		VkShaderModule getHandle() const;
+
 	protected:
 		friend class VulkanGLSLProgramFactory;
 

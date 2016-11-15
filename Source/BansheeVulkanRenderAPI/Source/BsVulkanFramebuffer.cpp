@@ -7,7 +7,8 @@
 namespace BansheeEngine
 {
 	VulkanFramebuffer::VulkanFramebuffer(const SPtr<VulkanDevice>& device, const VULKAN_FRAMEBUFFER_DESC& desc)
-		:mDevice(device->getLogical())
+		: mDevice(device->getLogical()), mNumAttachments(0), mNumColorAttachments(0), mHasDepth(false)
+		, mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
 	{
 		// Create render state
 		VkAttachmentDescription attachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
@@ -15,7 +16,7 @@ namespace BansheeEngine
 		VkAttachmentReference colorReferences[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		VkAttachmentReference depthReference;
 
-		VkSampleCountFlagBits sampleFlags = VulkanUtility::getSampleFlags(desc.numSamples);
+		mSampleFlags = VulkanUtility::getSampleFlags(desc.numSamples);
 
 		UINT32 attachmentIdx = 0;
 		for(UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
@@ -26,7 +27,7 @@ namespace BansheeEngine
 			VkAttachmentDescription& attachmentDesc = attachments[attachmentIdx];
 			attachmentDesc.flags = 0;
 			attachmentDesc.format = desc.color[i].format;
-			attachmentDesc.samples = sampleFlags;
+			attachmentDesc.samples = mSampleFlags;
 			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -47,15 +48,15 @@ namespace BansheeEngine
 ;			attachmentIdx++;
 		}
 
-		UINT32 numColorAttachments = attachmentIdx;
-		bool hasDepthAttachment = desc.depth.view != VK_NULL_HANDLE;
+		mNumColorAttachments = attachmentIdx;
+		mHasDepth = desc.depth.view != VK_NULL_HANDLE;
 
-		if (hasDepthAttachment)
+		if (mHasDepth)
 		{
 			VkAttachmentDescription& attachmentDesc = attachments[attachmentIdx];
 			attachmentDesc.flags = 0;
 			attachmentDesc.format = desc.depth.format;
-			attachmentDesc.samples = sampleFlags;
+			attachmentDesc.samples = mSampleFlags;
 			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -71,22 +72,24 @@ namespace BansheeEngine
 			attachmentIdx++;
 		}
 
+		mNumAttachments = attachmentIdx;
+
 		VkSubpassDescription subpassDesc;
 		subpassDesc.flags = 0;
 		subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpassDesc.colorAttachmentCount = numColorAttachments;
+		subpassDesc.colorAttachmentCount = mNumColorAttachments;
 		subpassDesc.inputAttachmentCount = 0;
 		subpassDesc.pInputAttachments = nullptr;
 		subpassDesc.preserveAttachmentCount = 0;
 		subpassDesc.pPreserveAttachments = nullptr;
 		subpassDesc.pResolveAttachments = nullptr;
 
-		if (numColorAttachments > 0)
+		if (mNumColorAttachments > 0)
 			subpassDesc.pColorAttachments = colorReferences;
 		else
 			subpassDesc.pColorAttachments = nullptr;
 
-		if (hasDepthAttachment)
+		if (mHasDepth)
 			subpassDesc.pDepthStencilAttachment = &depthReference;
 		else
 			subpassDesc.pDepthStencilAttachment = nullptr;
@@ -114,7 +117,7 @@ namespace BansheeEngine
 		renderPassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassCI.pNext = nullptr;
 		renderPassCI.flags = 0;
-		renderPassCI.attachmentCount = attachmentIdx;
+		renderPassCI.attachmentCount = mNumAttachments;
 		renderPassCI.pAttachments = attachments;
 		renderPassCI.subpassCount = 1;
 		renderPassCI.pSubpasses = &subpassDesc;
@@ -130,7 +133,7 @@ namespace BansheeEngine
 		framebufferCI.pNext = nullptr;
 		framebufferCI.flags = 0;
 		framebufferCI.renderPass = mRenderPass;
-		framebufferCI.attachmentCount = attachmentIdx;
+		framebufferCI.attachmentCount = mNumAttachments;
 		framebufferCI.pAttachments = attachmentViews;
 		framebufferCI.width = desc.width;
 		framebufferCI.height = desc.height;

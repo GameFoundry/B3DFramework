@@ -64,10 +64,26 @@ namespace BansheeEngine
 		/** Gets internal Vulkan framebuffer object. */
 		VkFramebuffer getFramebuffer() const { return mFramebuffer; }
 
+		/** Gets the total number of frame-buffer attachments, including both color and depth. */
+		UINT32 getNumAttachments() const { return mNumAttachments; }
+
+		/** Gets the number of color frame-buffer attachments. */
+		UINT32 getNumColorAttachments() const { return mNumColorAttachments; }
+
+		/** Returns true if the framebuffer has a depth attachment. */
+		bool hasDepthAttachment() const { return mHasDepth; }
+
+		/** Returns sample flags that determine if the framebuffer supports multi-sampling, and for how many samples. */
+		VkSampleCountFlagBits getSampleFlags() const { return mSampleFlags; }
 	private:
 		VkRenderPass mRenderPass;
 		VkFramebuffer mFramebuffer;
 		VkDevice mDevice;
+
+		UINT32 mNumAttachments;
+		UINT32 mNumColorAttachments;
+		bool mHasDepth;
+		VkSampleCountFlagBits mSampleFlags;
 	};
 
 	/** @} */
