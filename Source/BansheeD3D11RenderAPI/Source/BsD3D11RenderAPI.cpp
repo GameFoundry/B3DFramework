@@ -206,10 +206,10 @@ namespace BansheeEngine
 		RenderAPICore::destroyCore();
 	}
 
-	void D3D11RenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+	void D3D11RenderAPI::setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [&](const SPtr<GpuPipelineStateCore>& pipelineState)
+		auto executeRef = [&](const SPtr<GraphicsPipelineStateCore>& pipelineState)
 		{
 			THROW_IF_NOT_CORE_THREAD;
 

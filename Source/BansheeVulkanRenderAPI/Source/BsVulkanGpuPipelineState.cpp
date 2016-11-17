@@ -21,18 +21,18 @@ namespace BansheeEngine
 		vkDestroyPipeline(mOwner->getDevice().getLogical(), mPipeline, gVulkanAllocator);
 	}
 
-	VulkanGpuPipelineStateCore::VulkanGpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
-		:GpuPipelineStateCore(desc, deviceMask)
+	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
+		:GraphicsPipelineStateCore(desc, deviceMask)
 	{
 		
 	}
 
-	VulkanGpuPipelineStateCore::~VulkanGpuPipelineStateCore()
+	VulkanGraphicsPipelineStateCore::~VulkanGraphicsPipelineStateCore()
 	{
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
 	}
 
-	void VulkanGpuPipelineStateCore::initialize()
+	void VulkanGraphicsPipelineStateCore::initialize()
 	{
 		std::pair<VkShaderStageFlagBits, GpuProgramCore*> stages[] =
 			{ 
@@ -206,10 +206,10 @@ namespace BansheeEngine
 		mPipelineInfo.basePipelineIndex = -1;
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
-		GpuPipelineStateCore::initialize();
+		GraphicsPipelineStateCore::initialize();
 	}
 
-	VkPipeline VulkanGpuPipelineStateCore::createPipeline(VkDevice device, VulkanFramebuffer* framebuffer,
+	VkPipeline VulkanGraphicsPipelineStateCore::createPipeline(VkDevice device, VulkanFramebuffer* framebuffer,
 														  bool readOnlyDepth, DrawOperationType drawOp,
 														  VkPipelineLayout pipelineLayout,
 														  VkPipelineVertexInputStateCreateInfo* vertexInputState)

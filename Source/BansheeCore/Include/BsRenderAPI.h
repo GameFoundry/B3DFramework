@@ -37,7 +37,7 @@ namespace BansheeEngine
 		static void setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams);
 
 		/** @see RenderAPICore::setGraphicsPipeline() */
-		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState);
+		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GraphicsPipelineState>& pipelineState);
 
 		/** @see RenderAPICore::setComputePipeline() */
 		static void setComputePipeline(CoreAccessor& accessor, const SPtr<GpuProgram>& computeProgram);
@@ -217,9 +217,9 @@ namespace BansheeEngine
 		 *									is executed immediately. Otherwise it is executed when executeCommands() is 
 		 *									called. Buffer must support graphics operations.
 		 *
-		 * @see		GpuPipelineState
+		 * @see		GraphicsPipelineState
 		 */
-		virtual void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+		virtual void setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**

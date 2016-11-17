@@ -27,17 +27,17 @@ namespace BansheeEngine
 	};
 
 	/**	Vulkan implementation of a GPU pipeline state. */
-	class VulkanGpuPipelineStateCore : public GpuPipelineStateCore
+	class VulkanGraphicsPipelineStateCore : public GraphicsPipelineStateCore
 	{
 	public:
-		~VulkanGpuPipelineStateCore();
+		~VulkanGraphicsPipelineStateCore();
 
 	protected:
 		friend class VulkanRenderStateCoreManager;
 
-		VulkanGpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
+		VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
 
-		/**	@copydoc GpuPipelineStateCore::initialize */
+		/**	@copydoc GraphicsPipelineStateCore::initialize */
 		void initialize() override;
 
 		/** 

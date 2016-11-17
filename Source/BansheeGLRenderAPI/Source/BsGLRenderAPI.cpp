@@ -195,10 +195,10 @@ namespace BansheeEngine
 			bs_deleteN(mTextureInfos, mNumTextureUnits);
 	}
 
-	void GLRenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+	void GLRenderAPI::setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [&](const SPtr<GpuPipelineStateCore>& pipelineState)
+		auto executeRef = [&](const SPtr<GraphicsPipelineStateCore>& pipelineState)
 		{
 			THROW_IF_NOT_CORE_THREAD;
 

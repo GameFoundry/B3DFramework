@@ -386,8 +386,8 @@ namespace BansheeEngine
 	class MorphShape;
 	class MorphChannel;
 	class CommandBuffer;
-	class GpuPipelineState;
-	class GpuPipelineStateCore;
+	class GraphicsPipelineState;
+	class GraphicsPipelineStateCore;
 	// Asset import
 	class SpecificImporter;
 	class Importer;

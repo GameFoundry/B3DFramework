@@ -32,7 +32,7 @@ namespace BansheeEngine
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
-		typedef typename TPassTypes<Core>::GpuPipelineStateType GpuPipelineStateType;
+		typedef typename TPassTypes<Core>::GraphicsPipelineStateType GraphicsPipelineStateType;
 
 		/** Information about a parameter block buffer. */
 		struct BlockInfo

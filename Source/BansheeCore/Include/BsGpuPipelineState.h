@@ -77,10 +77,11 @@ namespace BansheeEngine
 	};
 
 	/** 
-	 * Templated version of GpuPipelineState so it can be used for both core and non-core versions of the pipeline state. 
+	 * Templated version of GraphicsPipelineState so it can be used for both core and non-core versions of the pipeline
+	 * state. 
 	 */
 	template<bool Core>
-	class BS_CORE_EXPORT TGpuPipelineState
+	class BS_CORE_EXPORT TGraphicsPipelineState
     {
     public:
 		typedef typename TGpuPipelineStateTypes<Core>::BlendStateType BlendStateType;
@@ -89,7 +90,7 @@ namespace BansheeEngine
 		typedef typename TGpuPipelineStateTypes<Core>::GpuProgramType GpuProgramType;
 		typedef typename TGpuPipelineStateTypes<Core>::StateDescType StateDescType;
 
-		virtual ~TGpuPipelineState() { }
+		virtual ~TGraphicsPipelineState() { }
 
         bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
 		bool hasFragmentProgram() const { return mData.fragmentProgram != nullptr; }
@@ -111,8 +112,8 @@ namespace BansheeEngine
 		const SPtr<GpuPipelineParamInfo>& getParamInfo() const { return mParamInfo; }
 
 	protected:
-		TGpuPipelineState();
-		TGpuPipelineState(const StateDescType& desc);
+		TGraphicsPipelineState();
+		TGraphicsPipelineState(const StateDescType& desc);
 
 		StateDescType mData;
 		SPtr<GpuPipelineParamInfo> mParamInfo;
@@ -124,31 +125,31 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	class GpuPipelineStateCore;
+	class GraphicsPipelineStateCore;
 
 	/**
 	 * Describes the state of the GPU pipeline that determines how are primitives rendered. It consists of programmable
 	 * states (vertex, fragment, geometry, etc. GPU programs), as well as a set of fixed states (blend, rasterizer, 
 	 * depth-stencil). Once created the state is immutable, and can be bound to RenderAPI for rendering.
 	 */
-    class BS_CORE_EXPORT GpuPipelineState : public CoreObject, public TGpuPipelineState<false>
+    class BS_CORE_EXPORT GraphicsPipelineState : public CoreObject, public TGraphicsPipelineState<false>
     {
 	public:
-		virtual ~GpuPipelineState() { }
+		virtual ~GraphicsPipelineState() { }
 
 		/**
 		 * Retrieves a core implementation of the pipeline object usable only from the core thread.
 		 *
 		 * @note	Core thread only.
 		 */
-		SPtr<GpuPipelineStateCore> getCore() const;
+		SPtr<GraphicsPipelineStateCore> getCore() const;
 
 		/** @copydoc RenderStateManager::createPipelineState */
-		static SPtr<GpuPipelineState> create(const PIPELINE_STATE_DESC& desc);
+		static SPtr<GraphicsPipelineState> create(const PIPELINE_STATE_DESC& desc);
 	protected:
 		friend class RenderStateManager;
 
-		GpuPipelineState(const PIPELINE_STATE_DESC& desc);
+		GraphicsPipelineState(const PIPELINE_STATE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
 		virtual SPtr<CoreObjectCore> createCore() const;
@@ -160,15 +161,15 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-	/** Core thread version of a GpuPipelineState. */
-	class BS_CORE_EXPORT GpuPipelineStateCore : public CoreObjectCore, public TGpuPipelineState<true>
+	/** Core thread version of a GraphicsPipelineState. */
+	class BS_CORE_EXPORT GraphicsPipelineStateCore : public CoreObjectCore, public TGraphicsPipelineState<true>
 	{
 	public:
-		GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
-		virtual ~GpuPipelineStateCore() { }
+		GraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
+		virtual ~GraphicsPipelineStateCore() { }
 
 		/** @copydoc RenderStateManager::createPipelineState */
-		static SPtr<GpuPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc, 
+		static SPtr<GraphicsPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 	};
 

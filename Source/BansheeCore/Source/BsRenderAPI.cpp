@@ -23,7 +23,7 @@ namespace BansheeEngine
 			nullptr));
 	}
 
-	void RenderAPI::setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GpuPipelineState>& pipelineState)
+	void RenderAPI::setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GraphicsPipelineState>& pipelineState)
 	{
 		accessor.queueCommand(std::bind(&RenderAPICore::setGraphicsPipeline, RenderAPICore::instancePtr(),
 			pipelineState->getCore(), nullptr));

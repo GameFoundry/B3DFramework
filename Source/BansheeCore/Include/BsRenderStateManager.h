@@ -32,8 +32,8 @@ namespace BansheeEngine
 		/**	Creates and initializes a new BlendState. */
 		SPtr<BlendState> createBlendState(const BLEND_STATE_DESC& desc) const;
 
-		/**	Creates and initializes a new GpuPipelineState. */
-		SPtr<GpuPipelineState> createPipelineState(const PIPELINE_STATE_DESC& desc) const;
+		/**	Creates and initializes a new GraphicsPipelineState. */
+		SPtr<GraphicsPipelineState> createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
 		SPtr<SamplerState> _createSamplerStatePtr(const SAMPLER_STATE_DESC& desc) const;
@@ -47,8 +47,8 @@ namespace BansheeEngine
 		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
 		SPtr<BlendState> _createBlendStatePtr(const BLEND_STATE_DESC& desc) const;
 
-		/**	Creates an uninitialized GpuPipelineState. Requires manual initialization after creation. */
-		virtual SPtr<GpuPipelineState> _createPipelineState(const PIPELINE_STATE_DESC& desc) const;
+		/**	Creates an uninitialized GraphicsPipelineState. Requires manual initialization after creation. */
+		virtual SPtr<GraphicsPipelineState> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const;
 
 		/** Gets a sampler state initialized with default options. */
 		const SPtr<SamplerState>& getDefaultSamplerState() const;
@@ -146,7 +146,7 @@ namespace BansheeEngine
 		 * @copydoc RenderStateManager::createPipelineState 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		SPtr<GpuPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+		SPtr<GraphicsPipelineStateCore> createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
@@ -162,8 +162,8 @@ namespace BansheeEngine
 		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
 		SPtr<BlendStateCore> _createBlendState(const BLEND_STATE_DESC& desc) const;
 
-		/**	Creates an uninitialized GpuPipelineState. Requires manual initialization after creation. */
-		virtual SPtr<GpuPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+		/**	Creates an uninitialized GraphicsPipelineState. Requires manual initialization after creation. */
+		virtual SPtr<GraphicsPipelineStateCore> _createPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Gets a sampler state initialized with default options. */

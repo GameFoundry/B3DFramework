@@ -24,11 +24,11 @@ namespace BansheeEngine
 	}
 
 	template<bool Core>
-	TGpuPipelineState<Core>::TGpuPipelineState()
+	TGraphicsPipelineState<Core>::TGraphicsPipelineState()
 	{ }
 
 	template<bool Core>
-	TGpuPipelineState<Core>::TGpuPipelineState(const StateDescType& data)
+	TGraphicsPipelineState<Core>::TGraphicsPipelineState(const StateDescType& data)
 		:mData(data)
 	{
 		GPU_PIPELINE_PARAMS_DESC paramsDesc;
@@ -50,28 +50,28 @@ namespace BansheeEngine
 		mParamInfo = GpuPipelineParamInfo::create(paramsDesc);
 	}
 
-	template class TGpuPipelineState < false > ;
-	template class TGpuPipelineState < true >;
+	template class TGraphicsPipelineState < false > ;
+	template class TGraphicsPipelineState < true >;
 
-	GpuPipelineStateCore::GpuPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
-		:TGpuPipelineState(desc)
+	GraphicsPipelineStateCore::GraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
+		:TGraphicsPipelineState(desc)
 	{ }
 
-	SPtr<GpuPipelineStateCore> GpuPipelineStateCore::create(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GraphicsPipelineStateCore> GraphicsPipelineStateCore::create(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		return RenderStateCoreManager::instance().createPipelineState(desc, deviceMask);
 	}
 
-	GpuPipelineState::GpuPipelineState(const PIPELINE_STATE_DESC& desc)
-		:TGpuPipelineState(desc)
+	GraphicsPipelineState::GraphicsPipelineState(const PIPELINE_STATE_DESC& desc)
+		:TGraphicsPipelineState(desc)
 	{ }
 
-	SPtr<GpuPipelineStateCore> GpuPipelineState::getCore() const
+	SPtr<GraphicsPipelineStateCore> GraphicsPipelineState::getCore() const
 	{
-		return std::static_pointer_cast<GpuPipelineStateCore>(mCoreSpecific);
+		return std::static_pointer_cast<GraphicsPipelineStateCore>(mCoreSpecific);
 	}
 
-	SPtr<CoreObjectCore> GpuPipelineState::createCore() const
+	SPtr<CoreObjectCore> GraphicsPipelineState::createCore() const
 	{
 		PIPELINE_STATE_CORE_DESC desc;
 		convertPassDesc(mData, desc);
@@ -79,9 +79,9 @@ namespace BansheeEngine
 		return RenderStateCoreManager::instance()._createPipelineState(desc);
 	}
 
-	SPtr<GpuPipelineState> GpuPipelineState::create(const PIPELINE_STATE_DESC& desc)
+	SPtr<GraphicsPipelineState> GraphicsPipelineState::create(const PIPELINE_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createPipelineState(desc);
+		return RenderStateManager::instance().createGraphicsPipelineState(desc);
 	}
 
 	GpuPipelineParamInfo::GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc)

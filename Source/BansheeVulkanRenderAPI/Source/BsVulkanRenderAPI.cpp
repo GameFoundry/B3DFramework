@@ -304,7 +304,7 @@ namespace BansheeEngine
 		RenderAPICore::destroyCore();
 	}
 
-	void VulkanRenderAPI::setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+	void VulkanRenderAPI::setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
 		// TODO

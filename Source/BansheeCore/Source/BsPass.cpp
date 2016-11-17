@@ -99,7 +99,7 @@ namespace BansheeEngine
 		:TPass(desc)
 	{ }
 
-	PassCore::PassCore(const PASS_DESC_CORE& desc, const SPtr<GpuPipelineStateCore>& pipelineState)
+	PassCore::PassCore(const PASS_DESC_CORE& desc, const SPtr<GraphicsPipelineStateCore>& pipelineState)
 		:TPass(desc)
 	{
 		mPipelineState = pipelineState;
@@ -113,7 +113,7 @@ namespace BansheeEngine
 			PIPELINE_STATE_CORE_DESC desc;
 			convertPassDesc(mData, desc);
 
-			mPipelineState = GpuPipelineStateCore::create(desc);
+			mPipelineState = GraphicsPipelineStateCore::create(desc);
 		}
 
 		CoreObjectCore::initialize();
@@ -152,7 +152,7 @@ namespace BansheeEngine
 		PASS_DESC_CORE desc;
 		convertPassDesc(mData, desc);
 
-		SPtr<GpuPipelineStateCore> corePipeline;
+		SPtr<GraphicsPipelineStateCore> corePipeline;
 		if (mPipelineState != nullptr)
 			corePipeline = mPipelineState->getCore();
 
@@ -171,7 +171,7 @@ namespace BansheeEngine
 			PIPELINE_STATE_DESC desc;
 			convertPassDesc(mData, desc);
 
-			mPipelineState = GpuPipelineState::create(desc);
+			mPipelineState = GraphicsPipelineState::create(desc);
 		}
 
 		CoreObject::initialize();

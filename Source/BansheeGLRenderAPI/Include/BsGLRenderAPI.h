@@ -28,7 +28,7 @@ namespace BansheeEngine
 		const String& getShadingLanguageName() const override;
 
 		/** @copydoc RenderAPICore::setGraphicsPipeline */
-		void setGraphicsPipeline(const SPtr<GpuPipelineStateCore>& pipelineState,
+		void setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/** @copydoc RenderAPICore::setComputePipeline */
