@@ -54,10 +54,10 @@ namespace BansheeEngine
 		return bufferPtr;
 	}
 
-	SPtr<GpuParamsCore> VulkanHardwareBufferCoreManager::createGpuParamsInternal(const GPU_PARAMS_DESC& desc,
-		GpuDeviceFlags deviceMask)
+	SPtr<GpuParamsCore> VulkanHardwareBufferCoreManager::createGpuParamsInternal(
+		const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
 	{
-		VulkanGpuParams* params = new (bs_alloc<VulkanGpuParams>()) VulkanGpuParams(desc, deviceMask);
+		VulkanGpuParams* params = new (bs_alloc<VulkanGpuParams>()) VulkanGpuParams(paramInfo, deviceMask);
 		SPtr<GpuParamsCore> paramsPtr = bs_shared_ptr<GpuParamsCore>(params);
 		paramsPtr->_setThisPtr(paramsPtr);
 

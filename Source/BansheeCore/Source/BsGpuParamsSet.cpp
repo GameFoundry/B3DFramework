@@ -5,6 +5,7 @@
 #include "BsTechnique.h"
 #include "BsPass.h"
 #include "BsGpuProgram.h"
+#include "BsGpuPipelineState.h"
 #include "BsMaterialParams.h"
 #include "BsGpuParamDesc.h"
 #include "BsRenderAPI.h"
@@ -473,34 +474,9 @@ namespace BansheeEngine
 		for (UINT32 i = 0; i < numPasses; i++)
 		{
 			SPtr<PassType> curPass = technique->getPass(i);
+			GpuPipelineStateType pipeline = curPass->getPipelineState();
 
-			GPU_PARAMS_DESC paramsDesc;
-			
-			GpuProgramPtrType vertProgram = curPass->getVertexProgram();
-			if (vertProgram)
-				paramsDesc.vertexParams = vertProgram->getParamDesc();
-
-			GpuProgramPtrType fragProgram = curPass->getFragmentProgram();
-			if (fragProgram)
-				paramsDesc.fragmentParams = fragProgram->getParamDesc();
-
-			GpuProgramPtrType geomProgram = curPass->getGeometryProgram();
-			if (geomProgram)
-				paramsDesc.geometryParams = geomProgram->getParamDesc();
-
-			GpuProgramPtrType hullProgram = curPass->getHullProgram();
-			if (hullProgram)
-				paramsDesc.hullParams = hullProgram->getParamDesc();
-
-			GpuProgramPtrType domainProgram = curPass->getDomainProgram();
-			if (domainProgram)
-				paramsDesc.domainParams = domainProgram->getParamDesc();
-
-			GpuProgramPtrType computeProgram = curPass->getComputeProgram();
-			if (computeProgram)
-				paramsDesc.computeParams = computeProgram->getParamDesc();
-
-			mPassParams[i] = GpuParamsType::create(paramsDesc);
+			mPassParams[i] = GpuParamsType::create(pipeline->getParamInfo());
 		}
 
 		// Create and assign parameter block buffers

@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsMaterial.h"
 #include "BsShader.h"
+#include "BsPass.h"
 
 namespace BansheeEngine
 {
@@ -31,6 +32,7 @@ namespace BansheeEngine
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
+		typedef typename TPassTypes<Core>::GpuPipelineStateType GpuPipelineStateType;
 
 		/** Information about a parameter block buffer. */
 		struct BlockInfo

@@ -70,11 +70,11 @@ namespace BansheeEngine
 		SPtr<VertexDeclaration> createVertexDeclaration(const SPtr<VertexDataDesc>& desc);
 
 		/** 
-		 * Creates a new GpuParams object from the provided set of GPU parameter descriptors.
+		 * Creates a new GpuParams object.
 		 *  
-		 * @param[in]	desc	Description of the object to create.
+		 * @param[in]	paramInfo	Object containing parameter descriptions for all relevant GPU program stages.
 		 */
-		SPtr<GpuParams> createGpuParams(const GPU_PARAMS_DESC& desc);
+		SPtr<GpuParams> createGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 	};
 
 	/**
@@ -132,7 +132,8 @@ namespace BansheeEngine
 		 * @copydoc HardwareBufferManager::createGpuParams 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		SPtr<GpuParamsCore> createGpuParams(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+		SPtr<GpuParamsCore> createGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo,
+											GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class IndexBuffer;
@@ -165,7 +166,7 @@ namespace BansheeEngine
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** @copydoc createGpuParams */
-		virtual SPtr<GpuParamsCore> createGpuParamsInternal(const GPU_PARAMS_DESC& desc, 
+		virtual SPtr<GpuParamsCore> createGpuParamsInternal(const SPtr<GpuPipelineParamInfo>& paramInfo,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 	};
 

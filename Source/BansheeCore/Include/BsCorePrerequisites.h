@@ -372,6 +372,7 @@ namespace BansheeEngine
 	class AudioClipImportOptions;
 	class AnimationClip;
 	class CCamera;
+	class GpuPipelineParamInfo;
 	template <class T> class TAnimationCurve;
 	struct AnimationCurves;
 	class Skeleton;

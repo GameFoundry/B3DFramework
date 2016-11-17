@@ -36,17 +36,6 @@ namespace BansheeEngine
 	template<> struct TGpuDataParamInfo < Matrix4x3 > { enum { TypeId = GPDT_MATRIX_4X3 }; };
 	template<> struct TGpuDataParamInfo < Color > { enum { TypeId = GPDT_COLOR }; };
 
-	/** Helper structure used for initializing GpuParams. */
-	struct GPU_PARAMS_DESC
-	{
-		SPtr<GpuParamDesc> fragmentParams;
-		SPtr<GpuParamDesc> vertexParams;
-		SPtr<GpuParamDesc> geometryParams;
-		SPtr<GpuParamDesc> hullParams;
-		SPtr<GpuParamDesc> domainParams;
-		SPtr<GpuParamDesc> computeParams;
-	};
-
 	/** Contains functionality common for both sim and core thread version of GpuParams. */
 	class BS_CORE_EXPORT GpuParamsBase
 	{
@@ -59,7 +48,7 @@ namespace BansheeEngine
 		GpuParamsBase& operator=(const GpuParamsBase& rhs) = delete;
 
 		/** Returns a description of all stored parameters. */
-		SPtr<GpuParamDesc> getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }
+		SPtr<GpuParamDesc> getParamDesc(GpuProgramType type) const;
 
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
@@ -94,12 +83,12 @@ namespace BansheeEngine
 		virtual void _markResourcesDirty() { }
 
 	protected:
-		GpuParamsBase(const GPU_PARAMS_DESC& desc);
+		GpuParamsBase(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/**	Gets a descriptor for a data parameter with the specified name. */
 		GpuParamDataDesc* getParamDesc(GpuProgramType type, const String& name) const;
 
-		SPtr<GpuParamDesc> mParamDescs[6];
+		const SPtr<GpuPipelineParamInfo>& mParamInfo;
 	};
 
 	template<bool Core> struct TGpuParamsTypes { };
@@ -217,26 +206,10 @@ namespace BansheeEngine
 		virtual void setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface);
 
 	protected:
-		/** Type of elements stored in this object. */
-		enum class ElementType
-		{
-			ParamBlock, Texture, LoadStoreTexture, Buffer, SamplerState, Count
-		};
-
-		TGpuParams(const GPU_PARAMS_DESC& desc);
+		TGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/** @copydoc CoreObject::getThisPtr */
 		virtual SPtr<GpuParamsType> _getThisPtr() const = 0;
-
-		/** 
-		 * Converts a set/slot combination into a global slot. If the set or slot is out of valid range, the method logs
-		 * an error and returns -1. Only performs range checking in debug mode.
-		 */
-		UINT32 getGlobalSlot(ElementType type, UINT32 set, UINT32 slot) const;
-
-		UINT32 mNumSets[(int)ElementType::Count];
-		UINT32 mNumElements[(int)ElementType::Count];
-		UINT32* mOffsets[(int)ElementType::Count];
 
 		ParamsBufferType* mParamBlockBuffers = nullptr;
 		TextureType* mTextures = nullptr;
@@ -266,13 +239,14 @@ namespace BansheeEngine
 		 * @copydoc GpuParams::create 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
 		 */
-		static SPtr<GpuParamsCore> create(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+		static SPtr<GpuParamsCore> create(const SPtr<GpuPipelineParamInfo>& paramInfo,
+										  GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
 		friend class GpuParams;
 		friend class HardwareBufferCoreManager;
 
-		GpuParamsCore(const GPU_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
+		GpuParamsCore(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParamsCore> _getThisPtr() const override;
@@ -302,11 +276,11 @@ namespace BansheeEngine
 		SPtr<GpuParamsCore> getCore() const;
 
 		/**
-		 * Creates new GpuParams object using the specified parameter descriptions.
+		 * Creates new GpuParams object using the specified parameter description.
 		 *
-		 * @param[in]	desc	Object containing parameter descriptions for all relevant GPU program stages.
+		 * @param[in]	paramInfo	Object containing parameter descriptions for all relevant GPU program stages.
 		 */
-		static SPtr<GpuParams> create(const GPU_PARAMS_DESC& desc);
+		static SPtr<GpuParams> create(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParamInfos PARAM_SIZES;
@@ -325,7 +299,7 @@ namespace BansheeEngine
 	protected:
 		friend class HardwareBufferManager;
 
-		GpuParams(const GPU_PARAMS_DESC& desc);
+		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParams> _getThisPtr() const override;

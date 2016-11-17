@@ -107,11 +107,15 @@ namespace BansheeEngine
 		const GpuProgramType& getHullProgram() const { return mData.hullProgram; }
 		const GpuProgramType& getDomainProgram() const { return mData.domainProgram; }
 
+		/** Returns an object containing meta-data for parameters of all GPU programs used in this pipeline state. */
+		const SPtr<GpuPipelineParamInfo>& getParamInfo() const { return mParamInfo; }
+
 	protected:
 		TGpuPipelineState();
 		TGpuPipelineState(const StateDescType& desc);
 
 		StateDescType mData;
+		SPtr<GpuPipelineParamInfo> mParamInfo;
     };
 
 	/** @} */
@@ -166,6 +170,75 @@ namespace BansheeEngine
 		/** @copydoc RenderStateManager::createPipelineState */
 		static SPtr<GpuPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
+	};
+
+	/** Helper structure used for initializing GpuPipelineParamInfo. */
+	struct GPU_PIPELINE_PARAMS_DESC
+	{
+		SPtr<GpuParamDesc> fragmentParams;
+		SPtr<GpuParamDesc> vertexParams;
+		SPtr<GpuParamDesc> geometryParams;
+		SPtr<GpuParamDesc> hullParams;
+		SPtr<GpuParamDesc> domainParams;
+		SPtr<GpuParamDesc> computeParams;
+	};
+
+	/** Holds meta-data about a set of GPU parameters used by a single pipeline state. */
+	class BS_CORE_EXPORT GpuPipelineParamInfo
+	{
+	public:
+		/** Types of GPU parameters. */
+		enum class ParamType
+		{
+			ParamBlock, Texture, LoadStoreTexture, Buffer, SamplerState, Count
+		};
+
+		/** Constructs the object using the provided GPU parameter descriptors. */
+		GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc);
+		~GpuPipelineParamInfo();
+
+		/** Gets the total number of sets, across all parameter types. */
+		UINT32 getNumSets() const { return mTotalNumSets; }
+
+		/** Returns the number of sets for the specified parameter type. */
+		UINT32 getNumSets(ParamType type) { return mNumSets[(int)type]; }
+
+		/** Returns the number of elements in all sets for the specified parameter type. */
+		UINT32 getNumElements(ParamType type) { return mNumElements[(int)type]; }
+
+		/** 
+		 * Assuming all elements for a specific parameter type are laid out sequentially and grouped by their sets, 
+		 * returns the sequential index to the first parameter of the provided set.
+		 */
+		UINT32 getSetOffset(ParamType type, UINT32 set) { return mOffsets[(int)type][set]; }
+
+		/** 
+		 * Converts a set/slot combination into a sequential index that maps to the parameter in that parameter type's 
+		 * array. 
+		 * 
+		 * If the set or slot is out of valid range, the method logs an error and returns -1. Only performs range checking
+		 * in debug mode.
+		 */
+		UINT32 getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const;
+
+		/** Returns descriptions of individual parameters for the specified GPU program type. */
+		const SPtr<GpuParamDesc>& getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }
+
+		/** Constructs the object using the provided GPU parameter descriptors. */
+		static SPtr<GpuPipelineParamInfo> create(const GPU_PIPELINE_PARAMS_DESC& desc)
+		{
+			return bs_shared_ptr_new<GpuPipelineParamInfo>(desc);
+		}
+
+	private:
+		std::array<SPtr<GpuParamDesc>, 6> mParamDescs;
+
+		UINT32 mTotalNumSets;
+		UINT32 mNumSets[(int)ParamType::Count];
+		UINT32 mNumElements[(int)ParamType::Count];
+		UINT32* mOffsets[(int)ParamType::Count];
+
+		UINT8* mData;
 	};
 
 	/** @} */

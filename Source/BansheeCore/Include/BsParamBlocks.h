@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsGpuParamDesc.h"
 #include "BsGpuParams.h"
+#include "BsGpuPipelineState.h"
 #include "BsRenderAPI.h"
 #include "BsGpuParamBlockBuffer.h"
 
@@ -14,9 +15,9 @@ namespace BansheeEngine
 	 *  @{
 	 */
 
-/** 
+/**
  * Starts a new custom parameter block. Custom parameter blocks allow you to create C++ structures that map directly
- * to GPU program buffers (for example uniform buffer in OpenGL or constant buffer in DX). Must be followed by 
+ * to GPU program buffers (for example uniform buffer in OpenGL or constant buffer in DX). Must be followed by
  * BS_PARAM_BLOCK_END.
  */
 #define BS_PARAM_BLOCK_BEGIN(Name)																							\
@@ -34,9 +35,10 @@ namespace BansheeEngine
 			for (auto& param : params)																						\
 				paramsDesc->params[param.name] = param;																		\
 																															\
-			GPU_PARAMS_DESC desc;																							\
-			desc.vertexParams = paramsDesc;																					\
-			mParams = GpuParamsCore::create(desc);																			\
+			GPU_PIPELINE_PARAMS_DESC pipelineParamDesc;																		\
+			pipelineParamDesc.vertexParams = paramsDesc;																	\
+			SPtr<GpuPipelineParamInfo> paramInfo = GpuPipelineParamInfo::create(pipelineParamDesc);							\
+			mParams = GpuParamsCore::create(paramInfo);																		\
 																															\
 			mBuffer = GpuParamBlockBufferCore::create(mBlockDesc.blockSize * sizeof(UINT32));								\
 			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, #Name, mBuffer);												\
