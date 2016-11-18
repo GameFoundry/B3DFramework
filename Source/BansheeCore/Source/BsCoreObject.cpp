@@ -11,7 +11,7 @@ using namespace std::placeholders;
 namespace BansheeEngine
 {
 	CoreObject::CoreObject(bool initializeOnCoreThread)
-		:mFlags(0), mCoreDirtyFlags(0xFFFFFFFF), mInternalID(0)
+		:mFlags(0), mCoreDirtyFlags(0), mInternalID(0)
 	{
 		mInternalID = CoreObjectManager::instance().registerObject(this);
 		mFlags = initializeOnCoreThread ? mFlags | CGO_INIT_ON_CORE_THREAD : mFlags;
