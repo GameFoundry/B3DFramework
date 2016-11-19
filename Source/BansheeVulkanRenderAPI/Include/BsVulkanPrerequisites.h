@@ -59,6 +59,7 @@ namespace BansheeEngine
 	class VulkanEvent;
 	class VulkanQuery;
 	class VulkanQueryPool;
+	class VulkanVertexInput;
 
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
 

@@ -15,17 +15,15 @@ namespace BansheeEngine
 	class VulkanVertexInput
 	{
 	public:
+		VulkanVertexInput(UINT32 id, const VkPipelineVertexInputStateCreateInfo& createInfo);
+
 		/** Returns an object contining the necessary information to initialize the vertex input on a pipeline. */
-		const VkPipelineVertexInputStateCreateInfo& getCreateInfo() const { return mCreateInfo; }
+		const VkPipelineVertexInputStateCreateInfo* getCreateInfo() const { return &mCreateInfo; }
 
 		/** Returns an identifier which uniquely represents this vertex input configuration. */
 		UINT32 getId() const { return mId; }
 
 	private:
-		friend class VulkanVertexInputManager;
-
-		VulkanVertexInput(UINT32 id, const VkPipelineVertexInputStateCreateInfo& createInfo);
-
 		UINT32 mId;
 		VkPipelineVertexInputStateCreateInfo mCreateInfo;
 	};

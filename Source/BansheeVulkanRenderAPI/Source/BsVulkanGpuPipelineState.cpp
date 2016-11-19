@@ -7,6 +7,7 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuPipelineParamInfo.h"
+#include "BsVulkanVertexInputManager.h"
 #include "BsRasterizerState.h"
 #include "BsDepthStencilState.h"
 #include "BsBlendState.h"
@@ -23,6 +24,41 @@ namespace BansheeEngine
 		vkDestroyPipeline(mOwner->getDevice().getLogical(), mPipeline, gVulkanAllocator);
 	}
 
+	VulkanGraphicsPipelineStateCore::GpuPipelineKey::GpuPipelineKey(
+		UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, DrawOperationType drawOp)
+		:framebufferId(framebufferId), vertexInputId(vertexInputId), readOnlyDepth(readOnlyDepth), drawOp(drawOp)
+	{
+		
+	}
+
+	size_t VulkanGraphicsPipelineStateCore::HashFunc::operator()(const GpuPipelineKey& key) const
+	{
+		size_t hash = 0;
+		hash_combine(hash, key.framebufferId);
+		hash_combine(hash, key.vertexInputId);
+		hash_combine(hash, key.readOnlyDepth);
+		hash_combine(hash, key.drawOp);
+
+		return hash;
+	}
+
+	bool VulkanGraphicsPipelineStateCore::EqualFunc::operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const
+	{
+		if (a.framebufferId != b.framebufferId)
+			return false;
+
+		if (a.vertexInputId != b.vertexInputId)
+			return false;
+
+		if (a.readOnlyDepth != b.readOnlyDepth)
+			return false;
+
+		if (a.drawOp != b.drawOp)
+			return false;
+
+		return true;
+	}
+
 	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc,
 																	 GpuDeviceFlags deviceMask)
 		:GraphicsPipelineStateCore(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
@@ -32,9 +68,16 @@ namespace BansheeEngine
 
 	VulkanGraphicsPipelineStateCore::~VulkanGraphicsPipelineStateCore()
 	{
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			if (mPerDeviceData[i].device == nullptr)
+				continue;
 
-		// TODO - Destroy pipeline
+			for(auto& entry : mPerDeviceData[i].pipelines)
+				entry.second->destroy();
+		}
+
+		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
 	}
 
 	void VulkanGraphicsPipelineStateCore::initialize()
@@ -251,13 +294,26 @@ namespace BansheeEngine
 		GraphicsPipelineStateCore::initialize();
 	}
 
-	VulkanPipeline* VulkanGraphicsPipelineStateCore::getPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth,
-								DrawOperationType drawOp, VkPipelineVertexInputStateCreateInfo* vertexInputState)
+	VulkanPipeline* VulkanGraphicsPipelineStateCore::getPipeline(
+		UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, DrawOperationType drawOp, 
+		const SPtr<VulkanVertexInput>& vertexInput)
 	{
 		Lock(mMutex);
 
-		// TODO
-		return nullptr;
+		if (mPerDeviceData[deviceIdx].device == nullptr)
+			return nullptr;
+
+		GpuPipelineKey key(framebuffer->getId(), vertexInput->getId(), readOnlyDepth, drawOp);
+
+		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
+		auto iterFind = perDeviceData.pipelines.find(key);
+		if (iterFind != perDeviceData.pipelines.end())
+			return iterFind->second;
+
+		VulkanPipeline* newPipeline = createPipeline(deviceIdx, framebuffer, readOnlyDepth, drawOp, vertexInput);
+		perDeviceData.pipelines[key] = newPipeline;
+
+		return newPipeline;
 	}
 
 	VkPipelineLayout VulkanGraphicsPipelineStateCore::getPipelineLayout(UINT32 deviceIdx) const
@@ -266,8 +322,8 @@ namespace BansheeEngine
 	}
 
 	VulkanPipeline* VulkanGraphicsPipelineStateCore::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
-														  bool readOnlyDepth, DrawOperationType drawOp,
-														  VkPipelineVertexInputStateCreateInfo* vertexInputState)
+														  bool readOnlyDepth, DrawOperationType drawOp, 
+														  const SPtr<VulkanVertexInput>& vertexInput)
 	{
 		mInputAssemblyInfo.topology = VulkanUtility::getDrawOp(drawOp);
 		mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now
@@ -302,7 +358,7 @@ namespace BansheeEngine
 
 		mPipelineInfo.renderPass = framebuffer->getRenderPass();
 		mPipelineInfo.layout = mPerDeviceData[deviceIdx].pipelineLayout;
-		mPipelineInfo.pVertexInputState = vertexInputState;
+		mPipelineInfo.pVertexInputState = vertexInput->getCreateInfo();
 
 		if (framebuffer->hasDepthAttachment())
 			mPipelineInfo.pDepthStencilState = &mDepthStencilInfo;

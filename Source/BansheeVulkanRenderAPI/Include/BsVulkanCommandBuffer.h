@@ -133,6 +133,9 @@ namespace BansheeEngine
 		/** Returns true if the command buffer is currently being processed by the device. */
 		bool isSubmitted() const { return mState == State::Submitted; }
 
+		/** Returns true if the command buffer is currently recording (but not within a render pass). */
+		bool isRecording() const { return mState == State::Recording; }
+
 		/** Returns true if the command buffer is ready to be submitted to a queue. */
 		bool isReadyForSubmit() const { return mState == State::RecordingDone; }
 

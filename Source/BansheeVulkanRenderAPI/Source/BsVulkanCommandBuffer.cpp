@@ -11,6 +11,7 @@
 #include "BsVulkanVertexBuffer.h"
 #include "BsVulkanHardwareBuffer.h"
 #include "BsVulkanFramebuffer.h"
+#include "BsVulkanVertexInputManager.h"
 
 namespace BansheeEngine
 {
@@ -705,16 +706,22 @@ namespace BansheeEngine
 
 	bool VulkanCmdBuffer::bindGraphicsPipeline()
 	{
-		// TODO - Begin render pass as needed
-		// TODO - Retrieve and bind pipeline
+		SPtr<VertexDeclarationCore> inputDecl = mGraphicsPipeline->getInputDeclaration();
+		SPtr<VulkanVertexInput> vertexInput = VulkanVertexInputManager::instance().getVertexInfo(mVertexDecl, inputDecl);
+
+		VulkanPipeline* pipeline = mGraphicsPipeline->getPipeline(mDevice.getIndex(), mFramebuffer,
+																  mRenderTargetDepthReadOnly, mDrawOp, vertexInput);
+
+		if (pipeline == nullptr)
+			return false;
+
+		registerResource(pipeline, VulkanUseFlag::Read);
+
+		vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getHandle());
 		bindDynamicStates(true);
 
-		// TODO - Register pipeline resource
-		// TODO
-
-		// TODO - Make sure to return false without reseting the flag below, if binding fails
-
 		mGfxPipelineRequiresBind = false;
+		return true;
 	}
 
 	void VulkanCmdBuffer::bindDynamicStates(bool forceAll)
@@ -768,6 +775,9 @@ namespace BansheeEngine
 		if (!isReadyForRender())
 			return;
 
+		if (!isInRenderPass())
+			beginRenderPass();
+
 		if (mGfxPipelineRequiresBind)
 		{
 			if (!bindGraphicsPipeline())
@@ -794,6 +804,9 @@ namespace BansheeEngine
 	{
 		if (!isReadyForRender())
 			return;
+
+		if (!isInRenderPass())
+			beginRenderPass();
 
 		if (mGfxPipelineRequiresBind)
 		{
@@ -955,6 +968,12 @@ namespace BansheeEngine
 	{
 		// Ignore myself
 		syncMask &= ~mIdMask;
+
+		if (mBuffer->isInRenderPass())
+			mBuffer->endRenderPass();
+
+		if (mBuffer->isRecording())
+			mBuffer->end();
 
 		mBuffer->submit(mQueue, mQueueIdx, syncMask);
 

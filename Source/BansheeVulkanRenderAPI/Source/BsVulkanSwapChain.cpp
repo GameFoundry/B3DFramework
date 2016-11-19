@@ -229,7 +229,7 @@ namespace BansheeEngine
 			desc.depth.format = depthFormat;
 			desc.depth.view = mDepthStencilView;
 
-			mSurfaces[i].framebuffer = resManager.create<VulkanFramebuffer>(device, desc);
+			mSurfaces[i].framebuffer = resManager.create<VulkanFramebuffer>(desc);
 		}
 	}
 

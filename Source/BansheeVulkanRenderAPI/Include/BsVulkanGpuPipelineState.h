@@ -46,13 +46,13 @@ namespace BansheeEngine
 		 * @param[in]	framebuffer			Framebuffer object that defines the surfaces this pipeline will render to.
 		 * @param[in]	readOnlyDepth		True if the pipeline is only allowed to read the depth buffer, without writes.
 		 * @param[in]	drawOp				Type of geometry that will be drawn using the pipeline.
-		 * @param[in]	vertexInputState	State describing inputs to the vertex program.
+		 * @param[in]	vertexInput			State describing inputs to the vertex program.
 		 * @return							Vulkan graphics pipeline object.
 		 * 
 		 * @note	Thread safe.
 		 */
 		VulkanPipeline* getPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, 
-			DrawOperationType drawOp, VkPipelineVertexInputStateCreateInfo* vertexInputState);
+			DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
 
 		/** 
 		 * Returns a pipeline layout object for the specified device index. If the device index doesn't match a bit in the
@@ -75,19 +75,45 @@ namespace BansheeEngine
 		 * @param[in]	framebuffer			Framebuffer object that defines the surfaces this pipeline will render to.
 		 * @param[in]	readOnlyDepth		True if the pipeline is only allowed to read the depth buffer, without writes.
 		 * @param[in]	drawOp				Type of geometry that will be drawn using the pipeline.
-		 * @param[in]	vertexInputState	State describing inputs to the vertex program.
+		 * @param[in]	vertexInput			State describing inputs to the vertex program.
 		 * @return							Vulkan graphics pipeline object.
 		 * 
 		 * @note	Thread safe.
 		 */
 		VulkanPipeline* createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth,
-								  DrawOperationType drawOp, VkPipelineVertexInputStateCreateInfo* vertexInputState);
+								  DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
+
+		/**	Key uniquely identifying GPU pipelines. */
+		struct GpuPipelineKey
+		{
+			GpuPipelineKey(UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, DrawOperationType drawOp);
+
+			UINT32 framebufferId;
+			UINT32 vertexInputId;
+			bool readOnlyDepth;
+			DrawOperationType drawOp;
+		};
+
+		/**	Creates a hash from GPU pipeline key. */
+		class HashFunc
+		{
+		public:
+			::std::size_t operator()(const GpuPipelineKey& key) const;
+		};
+
+		/**	Compares two GPU pipeline keys. */
+		class EqualFunc
+		{
+		public:
+			bool operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const;
+		};
 
 		/** Contains pipeline data specific to a single Vulkan device. */
 		struct PerDeviceData
 		{
 			VulkanDevice* device;
 			VkPipelineLayout pipelineLayout;
+			UnorderedMap<GpuPipelineKey, VulkanPipeline*, HashFunc, EqualFunc> pipelines;
 		};
 
 		VkPipelineShaderStageCreateInfo mShaderStageInfos[5];
