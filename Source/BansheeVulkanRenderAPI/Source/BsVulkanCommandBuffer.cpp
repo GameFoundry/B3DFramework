@@ -7,7 +7,10 @@
 #include "BsVulkanGpuParams.h"
 #include "BsVulkanQueue.h"
 #include "BsVulkanTexture.h"
+#include "BsVulkanIndexBuffer.h"
+#include "BsVulkanVertexBuffer.h"
 #include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanFramebuffer.h"
 
 namespace BansheeEngine
 {
@@ -99,8 +102,11 @@ namespace BansheeEngine
 
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
 		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool), mFenceCounter(0)
-		, mFramebuffer(VK_NULL_HANDLE), mRenderPass(VK_NULL_HANDLE), mPresentSemaphore(VK_NULL_HANDLE)
-		, mRenderTargetWidth(0), mRenderTargetHeight(0), mGlobalQueueIdx(-1)
+		, mFramebuffer(nullptr), mPresentSemaphore(VK_NULL_HANDLE), mRenderTargetWidth(0), mRenderTargetHeight(0)
+		, mRenderTargetDepthReadOnly(false), mGlobalQueueIdx(-1), mViewport(0.0f, 0.0f, 1.0f, 1.0f), mScissor(0, 0, 0, 0)
+		, mStencilRef(0), mDrawOp(DOT_TRIANGLE_LIST), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true)
+		, mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mVertexBuffersTemp()
+		, mVertexBufferOffsetsTemp()
 	{
 		VkCommandBufferAllocateInfo cmdBufferAllocInfo;
 		cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -214,7 +220,7 @@ namespace BansheeEngine
 	{
 		assert(mState == State::Recording);
 
-		if (mFramebuffer == VK_NULL_HANDLE || mRenderPass == VK_NULL_HANDLE)
+		if (mFramebuffer == nullptr)
 		{
 			LOGWRN("Attempting to begin a render pass but no render target is bound to the command buffer.");
 			return;
@@ -223,8 +229,8 @@ namespace BansheeEngine
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.framebuffer = mFramebuffer;
-		renderPassBeginInfo.renderPass = mRenderPass;
+		renderPassBeginInfo.framebuffer = mFramebuffer->getFramebuffer();
+		renderPassBeginInfo.renderPass = mFramebuffer->getRenderPass();
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
 		renderPassBeginInfo.renderArea.extent.width = mRenderTargetWidth;
@@ -461,6 +467,11 @@ namespace BansheeEngine
 			entry.second.imageBarriers.clear();
 			entry.second.bufferBarriers.clear();
 		}
+
+		mGraphicsPipeline = nullptr;
+		mComputePipeline = nullptr;
+		mGfxPipelineRequiresBind = true;
+		mCmpPipelineRequiresBind = true;
 	}
 
 	void VulkanCmdBuffer::refreshFenceStatus()
@@ -515,22 +526,21 @@ namespace BansheeEngine
 			assert(!signaled); // We reset the fence along with mState so this shouldn't be possible
 	}
 
-	void VulkanCmdBuffer::setRenderTarget(const SPtr<RenderTargetCore>& rt)
+	void VulkanCmdBuffer::setRenderTarget(const SPtr<RenderTargetCore>& rt, bool readOnlyDepthStencil)
 	{
 		assert(mState != State::RecordingRenderPass && mState != State::Submitted);
 
 		if(rt == nullptr)
 		{
-			mFramebuffer = VK_NULL_HANDLE;
-			mRenderPass = VK_NULL_HANDLE;
+			mFramebuffer = nullptr;
 			mPresentSemaphore = VK_NULL_HANDLE;
 			mRenderTargetWidth = 0;
 			mRenderTargetHeight = 0;
+			mRenderTargetDepthReadOnly = false;
 		}
 		else
 		{
 			rt->getCustomAttribute("FB", &mFramebuffer);
-			rt->getCustomAttribute("RP", &mRenderPass);
 			
 			if (rt->getProperties().isWindow())
 				rt->getCustomAttribute("PS", &mPresentSemaphore);
@@ -539,11 +549,251 @@ namespace BansheeEngine
 
 			mRenderTargetWidth = rt->getProperties().getWidth();
 			mRenderTargetHeight = rt->getProperties().getHeight();
+			mRenderTargetDepthReadOnly = readOnlyDepthStencil;
+
+			registerResource(mFramebuffer, VulkanUseFlag::Write);
 		}
+
+		mGfxPipelineRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setPipelineState(const SPtr<GraphicsPipelineStateCore>& state)
+	{
+		if (mGraphicsPipeline == state)
+			return;
+
+		mGraphicsPipeline = std::static_pointer_cast<VulkanGraphicsPipelineStateCore>(state);
+		mGfxPipelineRequiresBind = true; 
+	}
+
+	void VulkanCmdBuffer::setPipelineState(const SPtr<ComputePipelineStateCore>& state)
+	{
+		if (mComputePipeline == state)
+			return;
+
+		mComputePipeline = std::static_pointer_cast<VulkanComputePipelineStateCore>(state);
+		mCmpPipelineRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setViewport(const Rect2& area)
+	{
+		if (mViewport == area)
+			return;
+
+		mViewport = area;
+		mViewportRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setScissorRect(const Rect2I& value)
+	{
+		if (mScissor == value)
+			return;
+
+		mScissor = value;
+		mScissorRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setStencilRef(UINT32 value)
+	{
+		if (mStencilRef == value)
+			return;
+
+		mStencilRef = value;
+		mStencilRefRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setDrawOp(DrawOperationType drawOp)
+	{
+		if (mDrawOp == drawOp)
+			return;
+
+		mDrawOp = drawOp;
+		mGfxPipelineRequiresBind = true;
+	}
+
+	void VulkanCmdBuffer::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers)
+	{
+		if (numBuffers == 0)
+			return;
+
+		for(UINT32 i = 0; i < numBuffers; i++)
+		{
+			VulkanVertexBufferCore* vertexBuffer = static_cast<VulkanVertexBufferCore*>(buffers[i].get());
+
+			if (vertexBuffer != nullptr)
+			{
+				VulkanBuffer* resource = vertexBuffer->getResource(mDevice.getIndex());
+				if (resource != nullptr)
+				{
+					mVertexBuffersTemp[i] = resource->getHandle();
+
+					registerResource(resource, VulkanUseFlag::Read);
+				}
+				else
+					mVertexBuffersTemp[i] = VK_NULL_HANDLE;
+			}
+			else
+				mVertexBuffersTemp[i] = VK_NULL_HANDLE;
+		}
+
+		vkCmdBindVertexBuffers(mCmdBuffer, index, numBuffers, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
+	}
+
+	void VulkanCmdBuffer::setIndexBuffer(const SPtr<IndexBufferCore>& buffer)
+	{
+		VulkanIndexBufferCore* indexBuffer = static_cast<VulkanIndexBufferCore*>(buffer.get());
+
+		VkBuffer vkBuffer = VK_NULL_HANDLE;
+		VkIndexType indexType = VK_INDEX_TYPE_UINT32;
+		if (indexBuffer != nullptr)
+		{
+			VulkanBuffer* resource = indexBuffer->getResource(mDevice.getIndex());
+			if (resource != nullptr)
+			{
+				vkBuffer = resource->getHandle();
+				indexType = VulkanUtility::getIndexType(buffer->getProperties().getType());
+
+				registerResource(resource, VulkanUseFlag::Read);
+			}
+		}
+
+		vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
+	}
+
+	void VulkanCmdBuffer::setVertexDeclaration(const SPtr<VertexDeclarationCore>& decl)
+	{
+		if (mVertexDecl == decl)
+			return;
+
+		mVertexDecl = decl;
+		mGfxPipelineRequiresBind = true;
+	}
+
+	bool VulkanCmdBuffer::isReadyForRender()
+	{
+		if (mGraphicsPipeline == nullptr)
+			return false;
+
+		SPtr<VertexDeclarationCore> inputDecl = mGraphicsPipeline->getInputDeclaration();
+		if (inputDecl == nullptr)
+			return false;
+
+		return mFramebuffer != nullptr && mVertexDecl != nullptr;
+	}
+
+	void VulkanCmdBuffer::bindGraphicsPipeline()
+	{
+
+		
+		// TODO - Begin render pass as needed
+		// TODO - Retrieve and bind pipeline
+		bindDynamicStates(true);
 
 
 
 		// TODO
+		// TODO - Bind GPU params
+
+		mGfxPipelineRequiresBind = false;
+	}
+
+	void VulkanCmdBuffer::bindDynamicStates(bool forceAll)
+	{
+		if (mViewportRequiresBind || forceAll)
+		{
+			VkViewport viewport;
+			viewport.x = mViewport.x * mRenderTargetWidth;
+			viewport.y = mViewport.y * mRenderTargetHeight;
+			viewport.width = mViewport.width * mRenderTargetWidth;
+			viewport.height = mViewport.height * mRenderTargetHeight;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+
+			vkCmdSetViewport(mCmdBuffer, 0, 1, &viewport);
+			mViewportRequiresBind = false;
+		}
+
+		if(mStencilRefRequiresBind || forceAll)
+		{
+			vkCmdSetStencilReference(mCmdBuffer, VK_STENCIL_FRONT_AND_BACK, mStencilRef);
+			mStencilRefRequiresBind = false;
+		}
+
+		if(mScissorRequiresBind || forceAll)
+		{
+			VkRect2D scissorRect;
+			if(mGraphicsPipeline->isScissorEnabled())
+			{
+				scissorRect.offset.x = mScissor.x;
+				scissorRect.offset.y = mScissor.y;
+				scissorRect.extent.width = mScissor.width;
+				scissorRect.extent.height = mScissor.height;
+			}
+			else
+			{
+				scissorRect.offset.x = 0;
+				scissorRect.offset.y = 0;
+				scissorRect.extent.width = mRenderTargetWidth;
+				scissorRect.extent.height = mRenderTargetHeight;
+			}
+
+			vkCmdSetScissor(mCmdBuffer, 0, 1, &scissorRect);
+
+			mScissorRequiresBind = false;
+		}
+	}
+
+	void VulkanCmdBuffer::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
+	{
+		if (!isReadyForRender())
+			return;
+
+		if (mGfxPipelineRequiresBind)
+			bindGraphicsPipeline();
+		else
+			bindDynamicStates(false);
+
+		vkCmdDraw(mCmdBuffer, vertexCount, instanceCount, vertexOffset, 0);
+	}
+
+	void VulkanCmdBuffer::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 instanceCount)
+	{
+		if (!isReadyForRender())
+			return;
+
+		if (mGfxPipelineRequiresBind)
+			bindGraphicsPipeline();
+		else
+			bindDynamicStates(false);
+
+		vkCmdDrawIndexed(mCmdBuffer, indexCount, instanceCount, startIndex, vertexOffset, 0);
+	}
+
+	void VulkanCmdBuffer::dispatch(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
+	{
+		if (mComputePipeline == nullptr)
+			return;
+
+		if (isInRenderPass())
+			endRenderPass();
+
+		if(mCmpPipelineRequiresBind)
+		{
+			UINT32 deviceIdx = mDevice.getIndex();
+
+			VulkanPipeline* pipeline = mComputePipeline->getPipeline(deviceIdx);
+			if (pipeline == nullptr)
+				return;
+
+			registerResource(pipeline, VulkanUseFlag::Read);
+
+			vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->getHandle());
+			mCmpPipelineRequiresBind = false;
+		}
+
+		// TODO - Bind GpuParams
+
+		vkCmdDispatch(mCmdBuffer, numGroupsX, numGroupsY, numGroupsZ);
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanResource* res, VulkanUseFlags flags)

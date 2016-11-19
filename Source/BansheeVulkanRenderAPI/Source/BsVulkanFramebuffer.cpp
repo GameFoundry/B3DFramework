@@ -6,10 +6,14 @@
 
 namespace BansheeEngine
 {
-	VulkanFramebuffer::VulkanFramebuffer(const SPtr<VulkanDevice>& device, const VULKAN_FRAMEBUFFER_DESC& desc)
-		: mDevice(device->getLogical()), mNumAttachments(0), mNumColorAttachments(0), mHasDepth(false)
+	UINT32 VulkanFramebuffer::sNextValidId = 1;
+
+	VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, const VULKAN_FRAMEBUFFER_DESC& desc)
+		: VulkanResource(owner, false), mNumAttachments(0), mNumColorAttachments(0), mHasDepth(false)
 		, mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
 	{
+		mId = sNextValidId++;
+
 		// Create render state
 		VkAttachmentDescription attachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
 		VkImageView attachmentViews[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
@@ -124,7 +128,9 @@ namespace BansheeEngine
 		renderPassCI.dependencyCount = 2;
 		renderPassCI.pDependencies = dependencies;
 
-		VkResult result = vkCreateRenderPass(mDevice, &renderPassCI, gVulkanAllocator, &mRenderPass);
+		VkDevice device = mOwner->getDevice().getLogical();
+
+		VkResult result = vkCreateRenderPass(device, &renderPassCI, gVulkanAllocator, &mRenderPass);
 		assert(result == VK_SUCCESS);
 
 		// Create frame buffer
@@ -139,13 +145,15 @@ namespace BansheeEngine
 		framebufferCI.height = desc.height;
 		framebufferCI.layers = desc.layers;
 
-		result = vkCreateFramebuffer(mDevice, &framebufferCI, gVulkanAllocator, &mFramebuffer);
+		result = vkCreateFramebuffer(device, &framebufferCI, gVulkanAllocator, &mFramebuffer);
 		assert(result == VK_SUCCESS);
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
-		vkDestroyFramebuffer(mDevice, mFramebuffer, gVulkanAllocator);
-		vkDestroyRenderPass(mDevice, mRenderPass, gVulkanAllocator);
+		VkDevice device = mOwner->getDevice().getLogical();
+
+		vkDestroyFramebuffer(device, mFramebuffer, gVulkanAllocator);
+		vkDestroyRenderPass(device, mRenderPass, gVulkanAllocator);
 	}
 }

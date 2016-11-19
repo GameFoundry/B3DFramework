@@ -6,6 +6,7 @@
 #include "BsCommandBuffer.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanResource.h"
+#include "BsVulkanGpuPipelineState.h"
 
 namespace BansheeEngine
 {
@@ -134,12 +135,6 @@ namespace BansheeEngine
 		void refreshFenceStatus();
 
 		/** 
-		 * Assigns a render target the the command buffer. This render target's framebuffer and render pass will be used
-		 * when beginRenderPass() is called. Command buffer must not be currently recording a render pass.
-		 */
-		void setRenderTarget(const SPtr<RenderTargetCore>& rt);
-
-		/** 
 		 * Lets the command buffer know that the provided resource has been queued on it, and will be used by the
 		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
 		 * registerResource() overload.
@@ -160,6 +155,55 @@ namespace BansheeEngine
 		 * registerResource() overload.
 		 */
 		void registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags);
+
+		/************************************************************************/
+		/* 								COMMANDS	                     		*/
+		/************************************************************************/
+
+		/** 
+		 * Assigns a render target the the command buffer. This render target's framebuffer and render pass will be used
+		 * when beginRenderPass() is called. Command buffer must not be currently recording a render pass.
+		 */
+		void setRenderTarget(const SPtr<RenderTargetCore>& rt, bool readOnlyDepthStencil);
+
+		/** Assigns a pipeline state to use for subsequent draw commands. */
+		void setPipelineState(const SPtr<GraphicsPipelineStateCore>& state);
+
+		/** Assigns a pipeline state to use for subsequent dispatch commands. */
+		void setPipelineState(const SPtr<ComputePipelineStateCore>& state);
+
+		/** Sets the current viewport which determine to which portion of the render target to render to. */
+		void setViewport(const Rect2& area);
+
+		/** 
+		 * Sets the scissor rectangle area which determines in which area if the viewport are the fragments allowed to be
+		 * generated. Only relevant if enabled on the pipeline state.
+		 */
+		void setScissorRect(const Rect2I& area);
+
+		/** Sets a stencil reference value that will be used for comparisons in stencil operations, if enabled. */
+		void setStencilRef(UINT32 value);
+
+		/** Changes how are primitives interpreted as during rendering. */
+		void setDrawOp(DrawOperationType drawOp);
+
+		/** Sets one or multiple vertex buffers that will be used for subsequent draw() or drawIndexed() calls. */
+		void setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers);
+
+		/** Sets an index buffer that will be used for subsequent drawIndexed() calls. */
+		void setIndexBuffer(const SPtr<IndexBufferCore>& buffer);
+
+		/** Sets a declaration that determines how are vertex buffer contents interpreted. */
+		void setVertexDeclaration(const SPtr<VertexDeclarationCore>& decl);
+
+		/** Executes a draw command using the currently bound graphics pipeline, vertex buffer and render target. */
+		void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount);
+
+		/** Executes a draw command using the currently bound graphics pipeline, index & vertex buffer and render target. */
+		void drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 instanceCount);
+
+		/** Executes a dispatch command using the currently bound compute pipeline. */
+		void dispatch(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ);
 
 	private:
 		friend class VulkanCmdBufferPool;
@@ -188,6 +232,18 @@ namespace BansheeEngine
 			ResourceUseHandle useHandle;
 		};
 
+		/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set. */
+		bool isReadyForRender();
+
+		/** Binds the current graphics pipeline to the command buffer. */
+		void bindGraphicsPipeline();
+
+		/** Binds any dynamic states to the pipeline, as required. 
+		 *
+		 * @param[in]	forceAll	If true all states will be bound. If false only states marked as dirty will be bound.
+		 */
+		void bindDynamicStates(bool forceAll);
+
 		UINT32 mId;
 		UINT32 mQueueFamily;
 		State mState;
@@ -198,18 +254,33 @@ namespace BansheeEngine
 		VkSemaphore mSemaphore;
 		UINT32 mFenceCounter;
 
-		VkFramebuffer mFramebuffer;
-		VkRenderPass mRenderPass;
+		VulkanFramebuffer* mFramebuffer;
 		VkSemaphore mPresentSemaphore;
 		UINT32 mRenderTargetWidth;
 		UINT32 mRenderTargetHeight;
+		bool mRenderTargetDepthReadOnly;
 
 		UnorderedMap<VulkanResource*, ResourceUseHandle> mResources;
 		UnorderedMap<VulkanResource*, ImageInfo> mImages;
 		UnorderedMap<VulkanResource*, BufferInfo> mBuffers;
 		UINT32 mGlobalQueueIdx;
 
+		SPtr<VulkanGraphicsPipelineStateCore> mGraphicsPipeline;
+		SPtr<VulkanComputePipelineStateCore> mComputePipeline;
+		SPtr<VertexDeclarationCore> mVertexDecl;
+		Rect2 mViewport;
+		Rect2I mScissor;
+		UINT32 mStencilRef;
+		DrawOperationType mDrawOp;
+		bool mGfxPipelineRequiresBind : 1;
+		bool mCmpPipelineRequiresBind : 1;
+		bool mViewportRequiresBind : 1;
+		bool mStencilRefRequiresBind : 1;
+		bool mScissorRequiresBind : 1;
+
 		VkSemaphore mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES + 1]; // +1 for present semaphore
+		VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS];
+		VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS];
 		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;
 	};
 

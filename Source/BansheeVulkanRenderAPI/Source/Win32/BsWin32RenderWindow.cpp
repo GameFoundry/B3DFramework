@@ -29,6 +29,9 @@ namespace BansheeEngine
 
 	Win32RenderWindowCore::~Win32RenderWindowCore()
 	{ 
+		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		presentDevice->waitIdle();
+
 		Win32RenderWindowProperties& props = mProperties;
 		props.mActive = false;
 
@@ -492,15 +495,8 @@ namespace BansheeEngine
 	{
 		if (name == "FB")
 		{
-			VkFramebuffer* fb = (VkFramebuffer*)data;
-			*fb = mSwapChain->getBackBuffer().framebuffer->getFramebuffer();
-			return;
-		}
-
-		if (name == "RP")
-		{
-			VkRenderPass* renderPass = (VkRenderPass*)data;
-			*renderPass = mSwapChain->getBackBuffer().framebuffer->getRenderPass();
+			VulkanFramebuffer** fb = (VulkanFramebuffer**)data;
+			*fb = mSwapChain->getBackBuffer().framebuffer;
 			return;
 		}
 

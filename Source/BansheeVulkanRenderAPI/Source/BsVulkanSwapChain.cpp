@@ -211,6 +211,8 @@ namespace BansheeEngine
 			mDepthStencilMemory = VK_NULL_HANDLE;
 		}
 
+		VulkanResourceManager& resManager = device->getResourceManager();
+
 		// Create a framebuffer for each swap chain buffer
 		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
 		for (UINT32 i = 0; i < numFramebuffers; i++)
@@ -227,7 +229,7 @@ namespace BansheeEngine
 			desc.depth.format = depthFormat;
 			desc.depth.view = mDepthStencilView;
 
-			mSurfaces[i].framebuffer = bs_new<VulkanFramebuffer>(device, desc);
+			mSurfaces[i].framebuffer = resManager.create<VulkanFramebuffer>(device, desc);
 		}
 	}
 
@@ -288,7 +290,8 @@ namespace BansheeEngine
 		{
 			for (auto& surface : mSurfaces)
 			{
-				bs_delete(surface.framebuffer);
+				surface.framebuffer->destroy();
+				surface.framebuffer = nullptr;
 
 				vkDestroySemaphore(logicalDevice, surface.sync, gVulkanAllocator);
 				vkDestroyImageView(logicalDevice, surface.view, gVulkanAllocator);

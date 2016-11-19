@@ -36,7 +36,6 @@ namespace BansheeEngine
 	class Win32RenderWindow;
 	class VulkanTextureCore;
 	class Win32VideoMode;
-	class VulkanIndexBuffer;
 	class VulkanVertexDeclaration;
 	class VulkanHardwareBuffer;
 	class VulkanDevice;

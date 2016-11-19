@@ -154,13 +154,13 @@ namespace BansheeEngine
 		auto& vertexBuffers = vertexData->getBuffers();
 		if (vertexBuffers.size() > 0)
 		{
-			SPtr<VertexBufferCore> buffers[MAX_BOUND_VERTEX_BUFFERS];
+			SPtr<VertexBufferCore> buffers[BS_MAX_BOUND_VERTEX_BUFFERS];
 
 			UINT32 endSlot = 0;
-			UINT32 startSlot = MAX_BOUND_VERTEX_BUFFERS;
+			UINT32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
 			for (auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 			{
-				if (iter->first >= MAX_BOUND_VERTEX_BUFFERS)
+				if (iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
 					BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
 
 				startSlot = std::min(iter->first, startSlot);
@@ -197,13 +197,13 @@ namespace BansheeEngine
 		rapi.setVertexDeclaration(morphVertexDeclaration);
 
 		auto& meshBuffers = vertexData->getBuffers();
-		SPtr<VertexBufferCore> allBuffers[MAX_BOUND_VERTEX_BUFFERS];
+		SPtr<VertexBufferCore> allBuffers[BS_MAX_BOUND_VERTEX_BUFFERS];
 
 		UINT32 endSlot = 0;
-		UINT32 startSlot = MAX_BOUND_VERTEX_BUFFERS;
+		UINT32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
 		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 		{
-			if (iter->first >= MAX_BOUND_VERTEX_BUFFERS)
+			if (iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
 				BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
 
 			startSlot = std::min(iter->first, startSlot);

@@ -642,9 +642,9 @@ namespace BansheeEngine
 					". Valid range is 0 .. " + toString(maxBoundVertexBuffers - 1));
 			}
 
-			ID3D11Buffer* dx11buffers[MAX_BOUND_VERTEX_BUFFERS];
-			UINT32 strides[MAX_BOUND_VERTEX_BUFFERS];
-			UINT32 offsets[MAX_BOUND_VERTEX_BUFFERS];
+			ID3D11Buffer* dx11buffers[BS_MAX_BOUND_VERTEX_BUFFERS];
+			UINT32 strides[BS_MAX_BOUND_VERTEX_BUFFERS];
+			UINT32 offsets[BS_MAX_BOUND_VERTEX_BUFFERS];
 
 			for (UINT32 i = 0; i < numBuffers; i++)
 			{

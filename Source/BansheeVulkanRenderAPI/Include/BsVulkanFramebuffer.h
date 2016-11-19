@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
+#include "BsVulkanResource.h"
 
 namespace BansheeEngine
 {
@@ -46,17 +47,19 @@ namespace BansheeEngine
 	};
 
 	/** Vulkan frame buffer containing one or multiple color surfaces, and an optional depth surface. */
-	class VulkanFramebuffer : INonCopyable
+	class VulkanFramebuffer : public VulkanResource
 	{
 	public:
 		/** Creates a new frame buffer with the specified image views attached. 
 		 *
-		 * @param[in]	device	Device to create the frame buffer on. All attachment images provided in the @p desc
-		 *						parameter must also belong to this device.
+		 * @param[in]	owner	Resource manager that allocated this resource.
 		 * @param[in]	desc	Description of the frame buffer.
 		 */
-		VulkanFramebuffer(const SPtr<VulkanDevice>& device, const VULKAN_FRAMEBUFFER_DESC& desc);
+		VulkanFramebuffer(VulkanResourceManager* owner, const VULKAN_FRAMEBUFFER_DESC& desc);
 		~VulkanFramebuffer();
+
+		/** Returns a unique ID of this framebuffer. */
+		UINT32 getId() const { return mId; }
 
 		/** Gets internal Vulkan render pass object. */
 		VkRenderPass getRenderPass() const { return mRenderPass; }
@@ -76,14 +79,16 @@ namespace BansheeEngine
 		/** Returns sample flags that determine if the framebuffer supports multi-sampling, and for how many samples. */
 		VkSampleCountFlagBits getSampleFlags() const { return mSampleFlags; }
 	private:
+		UINT32 mId;
 		VkRenderPass mRenderPass;
 		VkFramebuffer mFramebuffer;
-		VkDevice mDevice;
 
 		UINT32 mNumAttachments;
 		UINT32 mNumColorAttachments;
 		bool mHasDepth;
 		VkSampleCountFlagBits mSampleFlags;
+
+		static UINT32 sNextValidId;
 	};
 
 	/** @} */

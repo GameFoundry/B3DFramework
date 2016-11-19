@@ -11,7 +11,7 @@
 #define CAPS_CATEGORY_MASK (((INT64_C(1) << CAPS_CATEGORY_SIZE) - INT64_C(1)) << BS_CAPS_BITSHIFT)
 #define BS_CAPS_VALUE(cat, val) ((cat << BS_CAPS_BITSHIFT) | (INT64_C(1) << val))
 
-#define MAX_BOUND_VERTEX_BUFFERS 32
+#define BS_MAX_BOUND_VERTEX_BUFFERS 16
 
 namespace BansheeEngine 
 {

@@ -25,7 +25,7 @@ namespace BansheeEngine
 
 	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc,
 																	 GpuDeviceFlags deviceMask)
-		:GraphicsPipelineStateCore(desc, deviceMask), mDeviceMask(deviceMask)
+		:GraphicsPipelineStateCore(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
 	{
 		
 	}
@@ -39,6 +39,8 @@ namespace BansheeEngine
 
 	void VulkanGraphicsPipelineStateCore::initialize()
 	{
+		Lock(mMutex);
+
 		std::pair<VkShaderStageFlagBits, GpuProgramCore*> stages[] =
 			{ 
 				{ VK_SHADER_STAGE_VERTEX_BIT, mData.vertexProgram.get() },
@@ -210,6 +212,11 @@ namespace BansheeEngine
 		mPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		mPipelineInfo.basePipelineIndex = -1;
 
+		mScissorEnabled = rstProps.getScissorEnable();
+
+		if(mData.vertexProgram != nullptr)
+			mVertexDecl = mData.vertexProgram->getInputDeclaration();
+
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
 
 		VulkanDevice* devices[BS_MAX_DEVICES];
@@ -244,7 +251,16 @@ namespace BansheeEngine
 		GraphicsPipelineStateCore::initialize();
 	}
 
-	VkPipeline VulkanGraphicsPipelineStateCore::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
+	VulkanPipeline* VulkanGraphicsPipelineStateCore::getPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth,
+								DrawOperationType drawOp, VkPipelineVertexInputStateCreateInfo* vertexInputState)
+	{
+		Lock(mMutex);
+
+		// TODO
+		return nullptr;
+	}
+
+	VulkanPipeline* VulkanGraphicsPipelineStateCore::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
 														  bool readOnlyDepth, DrawOperationType drawOp,
 														  VkPipelineVertexInputStateCreateInfo* vertexInputState)
 	{
@@ -316,10 +332,11 @@ namespace BansheeEngine
 			stageOutputIdx++;
 		}
 
-		VkDevice device = mPerDeviceData[deviceIdx].device->getLogical();
+		VulkanDevice* device = mPerDeviceData[deviceIdx].device;
+		VkDevice vkDevice = mPerDeviceData[deviceIdx].device->getLogical();
 
 		VkPipeline pipeline;
-		VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &mPipelineInfo, gVulkanAllocator, &pipeline);
+		VkResult result = vkCreateGraphicsPipelines(vkDevice, VK_NULL_HANDLE, 1, &mPipelineInfo, gVulkanAllocator, &pipeline);
 		assert(result != VK_SUCCESS);
 
 		// Restore previous stencil op states
@@ -331,7 +348,7 @@ namespace BansheeEngine
 		mDepthStencilInfo.back.failOp = oldBackFailOp;
 		mDepthStencilInfo.back.depthFailOp = oldBackZFailOp;
 
-		return pipeline;
+		return device->getResourceManager().create<VulkanPipeline>(pipeline);
 	}
 
 	VulkanComputePipelineStateCore::VulkanComputePipelineStateCore(const SPtr<GpuProgramCore>& program, 
@@ -412,5 +429,10 @@ namespace BansheeEngine
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
 		ComputePipelineStateCore::initialize();
+	}
+
+	VulkanPipeline* VulkanComputePipelineStateCore::getPipeline(UINT32 deviceIdx) const
+	{
+		return mPerDeviceData[deviceIdx].pipeline;
 	}
 }

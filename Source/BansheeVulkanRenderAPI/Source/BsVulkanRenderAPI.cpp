@@ -307,7 +307,10 @@ namespace BansheeEngine
 	void VulkanRenderAPI::setGraphicsPipeline(const SPtr<GraphicsPipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setPipelineState(pipelineState);
 
 		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
@@ -315,7 +318,10 @@ namespace BansheeEngine
 	void VulkanRenderAPI::setComputePipeline(const SPtr<ComputePipelineStateCore>& pipelineState,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setPipelineState(pipelineState);
 
 		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
@@ -342,20 +348,29 @@ namespace BansheeEngine
 
 	void VulkanRenderAPI::setViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setViewport(vp);
 	}
 
 	void VulkanRenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setVertexBuffers(index, buffers, numBuffers);
 
 		BS_INC_RENDER_STAT(NumVertexBufferBinds);
 	}
 
 	void VulkanRenderAPI::setIndexBuffer(const SPtr<IndexBufferCore>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setIndexBuffer(buffer);
 
 		BS_INC_RENDER_STAT(NumIndexBufferBinds);
 	}
@@ -363,12 +378,18 @@ namespace BansheeEngine
 	void VulkanRenderAPI::setVertexDeclaration(const SPtr<VertexDeclarationCore>& vertexDeclaration,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setVertexDeclaration(vertexDeclaration);
 	}
 
 	void VulkanRenderAPI::setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setDrawOp(op);
 	}
 
 	void VulkanRenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount,
@@ -376,7 +397,10 @@ namespace BansheeEngine
 	{
 		UINT32 primCount = 0;
 
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->draw(vertexOffset, vertexCount, instanceCount);
 
 		BS_INC_RENDER_STAT(NumDrawCalls);
 		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
@@ -388,7 +412,10 @@ namespace BansheeEngine
 	{
 		UINT32 primCount = 0;
 
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->drawIndexed(startIndex, indexCount, vertexOffset, instanceCount);
 
 		BS_INC_RENDER_STAT(NumDrawCalls);
 		BS_ADD_RENDER_STAT(NumVertices, vertexCount);
@@ -398,7 +425,10 @@ namespace BansheeEngine
 	void VulkanRenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->dispatch(numGroupsX, numGroupsY, numGroupsZ);
 
 		BS_INC_RENDER_STAT(NumComputeCalls);
 	}
@@ -406,12 +436,19 @@ namespace BansheeEngine
 	void VulkanRenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		Rect2I area(left, top, right - left, bottom - top);
+		vkCB->setScissorRect(area);
 	}
 
 	void VulkanRenderAPI::setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->setStencilRef(value);
 	}
 
 	void VulkanRenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask,
@@ -438,11 +475,7 @@ namespace BansheeEngine
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
 
-		if(vkCB->isInRenderPass())
-			vkCB->endRenderPass();
-
-		// We don't actually begin a new render pass until the next render-pass specific command gets queued on the CB
-		vkCB->setRenderTarget(target);
+		vkCB->setRenderTarget(target, readOnlyDepthStencil);
 		
 		BS_INC_RENDER_STAT(NumRenderTargetChanges);
 	}
