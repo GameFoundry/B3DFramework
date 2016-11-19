@@ -9,8 +9,8 @@ namespace BansheeEngine
 	UINT32 VulkanFramebuffer::sNextValidId = 1;
 
 	VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, const VULKAN_FRAMEBUFFER_DESC& desc)
-		: VulkanResource(owner, false), mNumAttachments(0), mNumColorAttachments(0), mHasDepth(false)
-		, mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
+		: VulkanResource(owner, false), mNumAttachments(0), mNumColorAttachments(0), mNumLayers(desc.layers)
+		, mColorBaseLayers(), mDepthBaseLayer(0), mHasDepth(false), mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
 	{
 		mId = sNextValidId++;
 
@@ -32,7 +32,7 @@ namespace BansheeEngine
 			attachmentDesc.flags = 0;
 			attachmentDesc.format = desc.color[i].format;
 			attachmentDesc.samples = mSampleFlags;
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -43,6 +43,8 @@ namespace BansheeEngine
 				attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			else
 				attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			mColorBaseLayers[i] = desc.color[i].baseLayer;
 
 			VkAttachmentReference& ref = colorReferences[attachmentIdx];
 			ref.attachment = attachmentIdx;
@@ -61,12 +63,14 @@ namespace BansheeEngine
 			attachmentDesc.flags = 0;
 			attachmentDesc.format = desc.depth.format;
 			attachmentDesc.samples = mSampleFlags;
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			mDepthBaseLayer = desc.depth.baseLayer;
 
 			VkAttachmentReference& ref = depthReference;
 			ref.attachment = attachmentIdx;

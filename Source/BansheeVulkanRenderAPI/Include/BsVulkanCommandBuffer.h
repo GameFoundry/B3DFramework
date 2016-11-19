@@ -180,6 +180,12 @@ namespace BansheeEngine
 		 */
 		void setRenderTarget(const SPtr<RenderTargetCore>& rt, bool readOnlyDepthStencil);
 
+		/** Clears the entirety currently bound render target. */
+		void clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask);
+
+		/** Clears the viewport portion of the currently bound render target. */
+		void clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask);
+
 		/** Assigns a pipeline state to use for subsequent draw commands. */
 		void setPipelineState(const SPtr<GraphicsPipelineStateCore>& state);
 
@@ -260,6 +266,10 @@ namespace BansheeEngine
 		 * @param[in]	forceAll	If true all states will be bound. If false only states marked as dirty will be bound.
 		 */
 		void bindDynamicStates(bool forceAll);
+
+		/** Clears the specified area of the currently bound render target. */
+		void clearViewport(const Rect2I& area, UINT32 buffers, const Color& color, float depth, UINT16 stencil, 
+			UINT8 targetMask);
 
 		UINT32 mId;
 		UINT32 mQueueFamily;

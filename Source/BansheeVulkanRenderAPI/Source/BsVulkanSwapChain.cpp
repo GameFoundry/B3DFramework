@@ -226,8 +226,10 @@ namespace BansheeEngine
 			desc.offscreen = false;
 			desc.color[0].format = colorFormat;
 			desc.color[0].view = mSurfaces[i].view;
+			desc.color[0].baseLayer = 0;
 			desc.depth.format = depthFormat;
 			desc.depth.view = mDepthStencilView;
+			desc.depth.baseLayer = 0;
 
 			mSurfaces[i].framebuffer = resManager.create<VulkanFramebuffer>(desc);
 		}

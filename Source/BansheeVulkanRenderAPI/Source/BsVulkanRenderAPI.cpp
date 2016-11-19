@@ -454,8 +454,10 @@ namespace BansheeEngine
 	void VulkanRenderAPI::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask,
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO - If clearing the whole viewport, call clearRenderTarget, otherwise begin render pass (if needed), and
-		// execute vkCmdClearAttachments with a valid rect. If no RT is bound, this is a no-op (log warning)
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->clearViewport(buffers, color, depth, stencil, targetMask);
 
 		BS_INC_RENDER_STAT(NumClears);
 	}
@@ -463,8 +465,10 @@ namespace BansheeEngine
 	void VulkanRenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil,
 		UINT8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		// TODO - If currently within render pass, call vkCmdClearAttachments. Otherwise call cb->setClearValues
-		// which should then queue CB clear on render pass begin.
+		VulkanCommandBuffer* cb = getCB(commandBuffer);
+		VulkanCmdBuffer* vkCB = cb->getInternal();
+
+		vkCB->clearRenderTarget(buffers, color, depth, stencil, targetMask);
 
 		BS_INC_RENDER_STAT(NumClears);
 	}

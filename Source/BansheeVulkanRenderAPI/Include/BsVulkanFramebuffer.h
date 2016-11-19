@@ -19,6 +19,9 @@ namespace BansheeEngine
 
 		/** Format of the attached image. */
 		VkFormat format;
+
+		/** Initial layer of the surface as pointed to by the provided image view. */
+		UINT32 baseLayer;
 	};
 
 	/** Contains parameters used for initializing VulkanFrameBuffer object. */
@@ -36,7 +39,7 @@ namespace BansheeEngine
 		/** Height of the images, in pixels. All images must be the same size. */
 		UINT32 height;
 
-		/** Number of image layers to render to. */
+		/** Number of image layers to render to. This value is used for all provided surfaces. */
 		UINT32 layers;
 
 		/** Number of samples in the attached images. All attachments must have the same number of samples. */
@@ -67,6 +70,18 @@ namespace BansheeEngine
 		/** Gets internal Vulkan framebuffer object. */
 		VkFramebuffer getFramebuffer() const { return mFramebuffer; }
 
+		/** 
+		 * Gets the number of layers in each framebuffer surface. A layer is an element in a texture array, or a depth 
+		 * slice in a 3D texture).
+		 */
+		UINT32 getNumLayers() const { return mNumLayers; }
+
+		/** Returns the initial layer of the color texture surface in which to start rendering. */
+		UINT32 getColorBaseLayer(UINT32 colorIdx) const { return mColorBaseLayers[colorIdx]; }
+
+		/** Returns the initial layer of the depth-stencil texture surface in which to start rendering. */
+		UINT32 getDepthStencilBaseLayer() const { return mDepthBaseLayer; }
+
 		/** Gets the total number of frame-buffer attachments, including both color and depth. */
 		UINT32 getNumAttachments() const { return mNumAttachments; }
 
@@ -85,6 +100,9 @@ namespace BansheeEngine
 
 		UINT32 mNumAttachments;
 		UINT32 mNumColorAttachments;
+		UINT32 mNumLayers;
+		UINT32 mColorBaseLayers[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		UINT32 mDepthBaseLayer;
 		bool mHasDepth;
 		VkSampleCountFlagBits mSampleFlags;
 

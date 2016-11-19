@@ -563,6 +563,118 @@ namespace BansheeEngine
 		mGfxPipelineRequiresBind = true;
 	}
 
+	void VulkanCmdBuffer::clearViewport(const Rect2I& area, UINT32 buffers, const Color& color, float depth, UINT16 stencil,
+					   UINT8 targetMask)
+	{
+		if (buffers == 0 || mFramebuffer == nullptr)
+			return;
+
+		VkClearAttachment attachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
+		UINT32 baseLayer = 0;
+
+		UINT32 attachmentIdx = 0;
+		if ((buffers & FBT_COLOR) != 0)
+		{
+			UINT32 numColorAttachments = mFramebuffer->getNumColorAttachments();
+			for (UINT32 i = 0; i < numColorAttachments; i++)
+			{
+				if (((1 << i) & targetMask) == 0)
+					continue;
+
+				attachments[attachmentIdx].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				attachments[attachmentIdx].colorAttachment = i;
+
+				VkClearColorValue& colorValue = attachments[attachmentIdx].clearValue.color;
+				colorValue.float32[0] = color.r;
+				colorValue.float32[1] = color.g;
+				colorValue.float32[2] = color.b;
+				colorValue.float32[3] = color.a;
+
+				UINT32 curBaseLayer = mFramebuffer->getColorBaseLayer(i);
+				if (attachmentIdx == 0)
+					baseLayer = curBaseLayer;
+				else
+				{
+					
+					if(baseLayer != curBaseLayer)
+					{
+						// Note: This could be supported relatively easily: we would need to issue multiple separate
+						// clear commands for such framebuffers. 
+						LOGERR("Attempting to clear a texture that has multiple multi-layer surfaces with mismatching "
+								"starting layers. This is currently not supported.");
+					}
+				}
+
+				attachmentIdx++;
+			}
+		}
+
+		if ((buffers & FBT_DEPTH) != 0 || (buffers & FBT_STENCIL) != 0)
+		{
+			if (mFramebuffer->hasDepthAttachment())
+			{
+				if ((buffers & FBT_DEPTH) != 0)
+				{
+					attachments[attachmentIdx].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+					attachments[attachmentIdx].clearValue.depthStencil.depth = depth;
+				}
+
+				if ((buffers & FBT_STENCIL) != 0)
+				{
+					attachments[attachmentIdx].aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+					attachments[attachmentIdx].clearValue.depthStencil.stencil = stencil;
+				}
+
+				attachments[attachmentIdx].colorAttachment = 0;
+
+				UINT32 curBaseLayer = mFramebuffer->getDepthStencilBaseLayer();
+				if (attachmentIdx == 0)
+					baseLayer = curBaseLayer;
+				else
+				{
+
+					if (baseLayer != curBaseLayer)
+					{
+						// Note: This could be supported relatively easily: we would need to issue multiple separate
+						// clear commands for such framebuffers. 
+						LOGERR("Attempting to clear a texture that has multiple multi-layer surfaces with mismatching "
+							   "starting layers. This is currently not supported.");
+					}
+				}
+
+				attachmentIdx++;
+			}
+		}
+
+		VkClearRect clearRect;
+		clearRect.baseArrayLayer = baseLayer;
+		clearRect.layerCount = mFramebuffer->getNumLayers();
+		clearRect.rect.offset.x = area.x;
+		clearRect.rect.offset.y = area.y;
+		clearRect.rect.extent.width = area.width;
+		clearRect.rect.extent.height = area.height;
+
+		UINT32 numAttachments = attachmentIdx;
+		vkCmdClearAttachments(mCmdBuffer, numAttachments, attachments, 1, &clearRect);
+	}
+
+	void VulkanCmdBuffer::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	{
+		Rect2I area(0, 0, mRenderTargetWidth, mRenderTargetHeight);
+		clearViewport(area, buffers, color, depth, stencil, targetMask);
+	}
+
+	void VulkanCmdBuffer::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	{
+		Rect2I area;
+		area.x = (UINT32)(mViewport.x * mRenderTargetWidth);
+		area.y = (UINT32)(mViewport.y * mRenderTargetHeight);
+		area.width = (UINT32)(mViewport.width * mRenderTargetWidth);
+		area.height = (UINT32)(mViewport.height * mRenderTargetHeight);
+
+		clearViewport(area, buffers, color, depth, stencil, targetMask);
+	}
+
 	void VulkanCmdBuffer::setPipelineState(const SPtr<GraphicsPipelineStateCore>& state)
 	{
 		if (mGraphicsPipeline == state)
