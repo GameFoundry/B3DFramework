@@ -6,7 +6,7 @@
 #include "BsRTTIType.h"
 #include "BsShaderImportOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

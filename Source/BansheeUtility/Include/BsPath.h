@@ -6,7 +6,7 @@
 #include "BsString.h"
 #include "BsUtil.h"                // For hash_combine()
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Filesystem
 	 *  @{
@@ -261,7 +261,7 @@ namespace BansheeEngine
 		void setFilename(const WString& filename) { mFilename = filename; }
 
 		/** Change or set the filename in the path. */
-		void setFilename(const String& filename) { mFilename = BansheeEngine::toWString(filename); }
+		void setFilename(const String& filename) { mFilename = bs::toWString(filename); }
 
 		/**
 		 * Change or set the base name in the path. Base name changes the filename by changing its base to the provided 
@@ -322,13 +322,13 @@ namespace BansheeEngine
 		const WString& getWDevice() const { return mDevice; }
 
 		/** Returns path device (for example drive, volume, etc.) if one exists in the path. */
-		String getDevice() const { return BansheeEngine::toString(mDevice); }
+		String getDevice() const { return bs::toString(mDevice); }
 
 		/** Returns path node (for example network name) if one exists in the path. */
 		const WString& getWNode() const { return mNode; }
 
 		/** Returns path node (for example network name) if one exists in the path. */
-		String getNode() const { return BansheeEngine::toString(mNode); }
+		String getNode() const { return bs::toString(mNode); }
 
 		/**
 		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist 
@@ -436,7 +436,7 @@ namespace BansheeEngine
 							throwInvalidPathException(BasicString<T>(pathStr, numChars));
 
 						mIsAbsolute = true;
-						setDevice(BansheeEngine::toWString(drive));
+						setDevice(bs::toWString(drive));
 
 						idx++;
 
@@ -490,7 +490,7 @@ namespace BansheeEngine
 					idx++;
 					if (idx >= numChars || pathStr[idx] == '/')
 					{
-						pushDirectory(BansheeEngine::toWString('~'));
+						pushDirectory(bs::toWString('~'));
 						mIsAbsolute = true;
 					}
 					else
@@ -538,10 +538,10 @@ namespace BansheeEngine
 		}
 
 		void setNode(const WString& node) { mNode = node; }
-		void setNode(const String& node) { mNode = BansheeEngine::toWString(node); }
+		void setNode(const String& node) { mNode = bs::toWString(node); }
 
 		void setDevice(const WString& device) { mDevice = device; }
-		void setDevice(const String& device) { mDevice = BansheeEngine::toWString(device); }
+		void setDevice(const String& device) { mDevice = bs::toWString(device); }
 
 		/** Build a Windows path string from internal path data. */
 		WString buildWindows() const;
@@ -562,7 +562,7 @@ namespace BansheeEngine
 		void throwInvalidPathException(const String& path) const;
 	private:
 		friend struct RTTIPlainType<Path>; // For serialization
-		friend struct ::std::hash<BansheeEngine::Path>;
+		friend struct ::std::hash<bs::Path>;
 
 		Vector<WString> mDirectories;
 		WString mDevice;
@@ -636,17 +636,17 @@ namespace std
 {
 	/** Hash value generator for Path. */
 	template<>
-	struct hash<BansheeEngine::Path>
+	struct hash<bs::Path>
 	{
-		size_t operator()(const BansheeEngine::Path& path) const
+		size_t operator()(const bs::Path& path) const
 		{
 			size_t hash = 0;
-			BansheeEngine::hash_combine(hash, path.mFilename);
-			BansheeEngine::hash_combine(hash, path.mDevice);
-			BansheeEngine::hash_combine(hash, path.mNode);
+			bs::hash_combine(hash, path.mFilename);
+			bs::hash_combine(hash, path.mDevice);
+			bs::hash_combine(hash, path.mNode);
 
 			for (auto& dir : path.mDirectories)
-				BansheeEngine::hash_combine(hash, dir);
+				bs::hash_combine(hash, dir);
 
 			return hash;
 		}

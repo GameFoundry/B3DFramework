@@ -3,7 +3,7 @@
 #include "BsCmdCloneSO.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdCloneSO::CmdCloneSO(const WString& description, const Vector<HSceneObject>& originals)
 		:EditorCommand(description), mOriginals(originals)

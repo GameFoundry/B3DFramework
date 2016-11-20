@@ -9,7 +9,7 @@
 #include "BsGameObjectManager.h"
 #include "BsBinarySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

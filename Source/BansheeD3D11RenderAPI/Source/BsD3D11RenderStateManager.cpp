@@ -6,7 +6,7 @@
 #include "BsD3D11RasterizerState.h"
 #include "BsD3D11BlendState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SamplerStateCore> D3D11RenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{

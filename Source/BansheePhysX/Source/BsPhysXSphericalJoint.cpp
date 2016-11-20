@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxSphericalJointFlag::Enum toPxFlag(PhysXSphericalJoint::Flag flag)
 	{

@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "BsGUIScrollBar.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

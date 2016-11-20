@@ -9,7 +9,7 @@
 #include "BsVertexData.h"
 #include "BsSamplerState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup D3D11
 	 *  @{

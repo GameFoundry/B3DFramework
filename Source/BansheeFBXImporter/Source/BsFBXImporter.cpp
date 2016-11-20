@@ -23,7 +23,7 @@
 #include "BsMorphShapes.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Matrix4 FBXToNativeType(const FbxAMatrix& value)
 	{

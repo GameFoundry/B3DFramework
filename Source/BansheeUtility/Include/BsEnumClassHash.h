@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-namespace BansheeEngine
+namespace bs
 {
 	/**
 	 * Hash for enum types, to be used instead of std::hash<T> when T is an enum.
@@ -11,8 +11,8 @@ namespace BansheeEngine
 	 * http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-defects.html#2148).  But
 	 * even with C++14, as of october 2016, std::hash for enums is not widely
 	 * implemented by compilers, so here when T is a enum, we use EnumClassHash
-	 * instead of std::hash. (For instance, in BansheeEngine::hash_combine(), or
-	 * BansheeEngine::UnorderedMap.)
+	 * instead of std::hash. (For instance, in bs::hash_combine(), or
+	 * bs::UnorderedMap.)
 	 */
 	struct EnumClassHash
 	{

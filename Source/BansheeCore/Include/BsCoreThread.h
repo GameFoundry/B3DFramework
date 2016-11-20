@@ -8,7 +8,7 @@
 #include "BsCoreThreadAccessor.h"
 #include "BsThreadPool.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup CoreThread-Internal
 	 *  @{

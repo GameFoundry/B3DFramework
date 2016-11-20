@@ -5,7 +5,7 @@
 #include "BsComponent.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdDeleteSO::CmdDeleteSO(const WString& description, const HSceneObject& sceneObject)
 		: EditorCommand(description), mSceneObject(sceneObject), mSerializedObject(nullptr), mSerializedObjectSize(0)

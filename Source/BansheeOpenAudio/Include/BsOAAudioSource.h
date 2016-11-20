@@ -5,7 +5,7 @@
 #include "BsOAPrerequisites.h"
 #include "BsAudioSource.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

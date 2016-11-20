@@ -9,7 +9,7 @@
 #include "BsMonoUtil.h"
 #include "BsGUIToggle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIToggleGroup::ScriptGUIToggleGroup(MonoObject* instance, const SPtr<GUIToggleGroup>& toggleGroup)
 		:ScriptObject(instance), mToggleGroup(toggleGroup)

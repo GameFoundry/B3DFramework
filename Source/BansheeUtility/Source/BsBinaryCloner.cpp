@@ -10,7 +10,7 @@
 #include "BsRTTIManagedDataBlockField.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<IReflectable> BinaryCloner::clone(IReflectable* object, bool shallow)
 	{

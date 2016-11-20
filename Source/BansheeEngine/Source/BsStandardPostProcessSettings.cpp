@@ -4,7 +4,7 @@
 #include "BsBinarySerializer.h"
 #include "BsStandardPostProcessSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AutoExposureSettings::AutoExposureSettings()
 		: histogramLog2Min(-8.0f), histogramLog2Max(4.0f), histogramPctLow(0.8f), histogramPctHigh(0.985f)

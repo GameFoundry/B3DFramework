@@ -8,7 +8,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxExtendedVec3 toPxExtVector(const Vector3& input)
 	{

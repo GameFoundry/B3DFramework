@@ -6,7 +6,7 @@
 #include "BsD3D11Mappings.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11SamplerStateCore::D3D11SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 		:SamplerStateCore(desc, deviceMask), mSamplerState(nullptr)

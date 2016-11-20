@@ -5,7 +5,7 @@
 #include "BsRay.h"
 #include "BsCCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Physics::Physics(const PHYSICS_INIT_DESC& init)
 	{

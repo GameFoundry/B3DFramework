@@ -8,7 +8,7 @@
 #include "BsVirtualInput.h"
 #include "BsScriptVirtualButton.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptEditorVirtualInput::OnButtonEventThunkDef ScriptEditorVirtualInput::OnButtonUpThunk;
 	ScriptEditorVirtualInput::OnButtonEventThunkDef ScriptEditorVirtualInput::OnButtonDownThunk;

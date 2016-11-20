@@ -3,7 +3,7 @@
 #include "BsBoxCollider.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	BoxCollider::BoxCollider()
 	{ }

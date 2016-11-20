@@ -8,7 +8,7 @@
 #include "BsCCamera.h"
 #include "BsCursor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float CameraFlyer::START_SPEED = 40.0f;
 	const float CameraFlyer::TOP_SPEED = 130.0f;

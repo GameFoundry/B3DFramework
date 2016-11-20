@@ -14,7 +14,7 @@
 #include <mono/metadata/tokentype.h>
 #include <mono/metadata/mono-debug.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t MonoAssembly::ClassId::Hash::operator()(const MonoAssembly::ClassId& v) const
 	{

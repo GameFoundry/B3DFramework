@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	DragAndDropManager::DragAndDropManager()
 		: mDragTypeId(0), mData(nullptr), mIsDragInProgress(false), mNeedsValidDropTarget(false), mCaptureChanged(false)

@@ -9,7 +9,7 @@
 #include "BsBuiltinResources.h"
 #include "BsMonoMethod.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<GUIWidget> ScriptGUI::sGUIWidget;
 	ScriptGUILayout* ScriptGUI::sPanel = nullptr;

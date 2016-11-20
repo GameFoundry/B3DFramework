@@ -3,7 +3,7 @@
 #include "BsPlaneCollider.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PlaneCollider::PlaneCollider()
 	{ }

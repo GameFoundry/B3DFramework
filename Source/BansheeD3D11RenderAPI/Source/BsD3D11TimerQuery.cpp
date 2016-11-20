@@ -7,7 +7,7 @@
 #include "BsRenderStats.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11TimerQuery::D3D11TimerQuery(UINT32 deviceIdx)
 		:mFinalized(false), mContext(nullptr), mBeginQuery(nullptr), 

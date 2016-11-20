@@ -10,7 +10,7 @@
 #include "characterkinematic\PxControllerManager.h"
 #include "cooking/PxCooking.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

@@ -8,7 +8,7 @@
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoMethod* ScriptCmdManaged::sCommitMethod = nullptr;
 	MonoMethod* ScriptCmdManaged::sRevertMethod = nullptr;

@@ -8,7 +8,7 @@
 #include "BsGUIContent.h"
 #include "BsApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Utility-Editor
 	 *  @{
@@ -66,7 +66,7 @@ namespace BansheeEngine
 	};
 
 	/**	Contains a set of built-in resources used by the editor. */
-	class BS_ED_EXPORT BuiltinEditorResources : public BansheeEngine::Module<BuiltinEditorResources>
+	class BS_ED_EXPORT BuiltinEditorResources : public bs::Module<BuiltinEditorResources>
 	{
 	public:
 		BuiltinEditorResources();

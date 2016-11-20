@@ -15,7 +15,7 @@
 #include "BsGpuBuffer.h"
 #include "BsAnimationManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	template<class T>
 	bool isMeshValid(const T& mesh) { return false; }

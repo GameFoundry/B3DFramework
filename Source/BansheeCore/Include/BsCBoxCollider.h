@@ -6,7 +6,7 @@
 #include "BsBoxCollider.h"
 #include "BsCCollider.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Components-Core
 	 *  @{

@@ -6,7 +6,7 @@
 #include "BsOAImporter.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class OAFactory : public AudioFactory
 	{

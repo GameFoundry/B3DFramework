@@ -10,7 +10,7 @@
 #include "BsSphere.h"
 #include "BsCoreObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Renderer-Engine-Internal
 	 *  @{

@@ -3,7 +3,7 @@
 #include "Win32/BsWin32Window.h"
 #include "Win32/BsWin32PlatformUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector<Win32Window*> Win32Window::sAllWindows;
 	Vector<Win32Window*> Win32Window::sModalWindowStack;

@@ -6,7 +6,7 @@
 #include "BsCoreObject.h"
 #include "BsIndexBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Internal
 	 *  @{

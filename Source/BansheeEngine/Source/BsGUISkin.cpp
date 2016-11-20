@@ -6,7 +6,7 @@
 #include "BsResources.h"
 #include "BsGUISkinRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIElementStyle GUISkin::DefaultStyle;
 

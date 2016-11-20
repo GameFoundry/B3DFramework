@@ -4,7 +4,7 @@
 #include "BsScriptCamera.h"
 #include "BsGizmoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSceneGizmos::ScriptSceneGizmos(MonoObject* object, const SPtr<Camera>& camera)
 		:ScriptObject(object), mCamera(camera)

@@ -6,7 +6,7 @@
 #include "BsPlatform.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void ScriptBrowseDialog::initRuntimeData()
 	{

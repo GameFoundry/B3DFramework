@@ -6,7 +6,7 @@
 #include "BsFMODImporter.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class FMODFactory : public AudioFactory
 	{

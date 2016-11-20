@@ -10,7 +10,7 @@
 #include "BsRenderWindow.h"
 #include "BsPlatform.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 WindowFrameWidget::RESIZE_BORDER_WIDTH = 3;
 

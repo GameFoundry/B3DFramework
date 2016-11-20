@@ -6,7 +6,7 @@
 #include "BsGLPixelFormat.h"
 #include "BsGLHardwareBufferManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLGpuBufferCore::GLGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBufferCore(desc, deviceMask), mTextureID(0), mFormat(0)

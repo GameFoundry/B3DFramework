@@ -7,7 +7,7 @@
 #include "BsCharacterController.h"
 #include "BsScriptControllerCollision.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

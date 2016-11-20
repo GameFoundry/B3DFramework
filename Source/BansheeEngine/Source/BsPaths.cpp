@@ -5,7 +5,7 @@
 #include "BsFileSystem.h"
 #include "BsDynLib.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Path Paths::RELEASE_ASSEMBLY_PATH = "bin\\Assemblies\\Release\\";
 	const Path Paths::DEBUG_ASSEMBLY_PATH = "bin\\Assemblies\\Debug\\";

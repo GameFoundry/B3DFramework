@@ -3,9 +3,9 @@
 #include "BsRenderAPICapabilities.h"
 #include "BsException.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
-	Vector<BansheeEngine::String> RenderAPICapabilities::msGPUVendorStrings;
+	Vector<bs::String> RenderAPICapabilities::msGPUVendorStrings;
 
 	RenderAPICapabilities::RenderAPICapabilities()
 	{

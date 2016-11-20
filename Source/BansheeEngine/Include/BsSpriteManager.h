@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsSpriteMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup 2D-Internal
 	 *  @{

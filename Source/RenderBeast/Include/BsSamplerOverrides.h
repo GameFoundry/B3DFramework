@@ -4,7 +4,7 @@
 
 #include "BsRenderBeastPrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -97,13 +97,13 @@ namespace std
 {
 	/** Hash value generator for SamplerOverrideKey. */
 	template<>
-	struct hash<BansheeEngine::SamplerOverrideKey>
+	struct hash<bs::SamplerOverrideKey>
 	{
-		size_t operator()(const BansheeEngine::SamplerOverrideKey& key) const
+		size_t operator()(const bs::SamplerOverrideKey& key) const
 		{
 			size_t hash = 0;
-			BansheeEngine::hash_combine(hash, key.material);
-			BansheeEngine::hash_combine(hash, key.techniqueIdx);
+			bs::hash_combine(hash, key.material);
+			bs::hash_combine(hash, key.techniqueIdx);
 
 			return hash;
 		}

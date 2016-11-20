@@ -4,7 +4,7 @@
 #include "BsRenderBeastFactory.h"
 #include "BsRendererManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Returns a name of the plugin. */
 	extern "C" BS_BSRND_EXPORT const char* getPluginName()

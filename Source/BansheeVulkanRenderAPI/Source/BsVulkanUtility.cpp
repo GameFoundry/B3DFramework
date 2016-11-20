@@ -5,7 +5,7 @@
 #include "BsVulkanDevice.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VkFormat VulkanUtility::getPixelFormat(PixelFormat format, bool sRGB)
 	{

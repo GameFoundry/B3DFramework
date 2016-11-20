@@ -6,7 +6,7 @@
 #include "BsAudioDecoder.h"
 #include "FLAC\stream_decoder.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

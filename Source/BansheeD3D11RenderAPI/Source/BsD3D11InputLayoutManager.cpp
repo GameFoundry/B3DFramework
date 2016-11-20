@@ -9,7 +9,7 @@
 #include "BsRenderStats.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t D3D11InputLayoutManager::HashFunc::operator()
 		(const D3D11InputLayoutManager::VertexDeclarationKey &key) const

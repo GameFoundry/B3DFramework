@@ -16,7 +16,7 @@
 #include "BsScriptHString.h"
 #include "BsScriptGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUITexture::ScriptGUITexture(MonoObject* instance, GUITexture* texture)
 		:TScriptGUIElement(instance, texture)

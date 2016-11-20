@@ -6,7 +6,7 @@
 #include "BsAudio.h"
 #include "fmod.hpp"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup FMOD
 	 *  @{

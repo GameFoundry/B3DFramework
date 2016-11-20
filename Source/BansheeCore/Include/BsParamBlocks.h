@@ -9,7 +9,7 @@
 #include "BsRenderAPI.h"
 #include "BsGpuParamBlockBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Renderer-Internal
 	 *  @{

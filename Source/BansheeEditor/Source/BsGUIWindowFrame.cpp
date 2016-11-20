@@ -4,7 +4,7 @@
 #include "BsGUISkin.h"
 #include "BsGUIDimensions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIWindowFrame::getGUITypeName()
 	{

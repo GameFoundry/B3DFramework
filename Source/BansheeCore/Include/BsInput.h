@@ -8,7 +8,7 @@
 #include "BsRawInputHandler.h"
 #include "BsInputFwd.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Input
 	 *  @{

@@ -9,7 +9,7 @@
 #include "BsPixelUtil.h"
 #include "BsScriptColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPixelData::ScriptPixelData(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)

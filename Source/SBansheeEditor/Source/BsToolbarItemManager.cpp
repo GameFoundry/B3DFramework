@@ -18,7 +18,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ToolbarItemManager::ToolbarItemManager(ScriptAssemblyManager& scriptObjectManager)
 		:mScriptObjectManager(scriptObjectManager), mToolbarItemAttribute(nullptr), mNameField(nullptr)

@@ -8,7 +8,7 @@
 #include "BsBuiltinResources.h"
 #include "BsSpriteTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float GUIColor::ALPHA_SPLIT_POSITION = 0.75f;
 

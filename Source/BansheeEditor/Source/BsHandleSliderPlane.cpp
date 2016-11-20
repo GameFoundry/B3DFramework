@@ -8,7 +8,7 @@
 #include "BsPlane.h"
 #include "BsCamera.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HandleSliderPlane::HandleSliderPlane(const Vector3& dir1, const Vector3& dir2, float length, bool fixedScale, UINT64 layer)
 		: HandleSlider(fixedScale, layer), mDirection1(Vector3::normalize(dir1)), mLength(length)

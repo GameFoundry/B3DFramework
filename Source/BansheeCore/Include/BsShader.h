@@ -8,7 +8,7 @@
 #include "BsResourceMetaData.h"
 #include "BsTechnique.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Material
 	 *  @{

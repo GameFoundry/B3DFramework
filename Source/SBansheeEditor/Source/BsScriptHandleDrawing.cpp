@@ -8,7 +8,7 @@
 #include "BsScriptFont.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void ScriptHandleDrawing::initRuntimeData()
 	{

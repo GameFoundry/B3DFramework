@@ -3,7 +3,7 @@
 #include "BsRenderer.h"
 #include "BsRendererManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<Renderer> gRenderer()
 	{

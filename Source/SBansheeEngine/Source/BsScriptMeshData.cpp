@@ -12,7 +12,7 @@
 #include "BsVertexDataDesc.h"
 #include "BsPixelUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	template<int Semantic>
 	struct TVertexDataAccessor

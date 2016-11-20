@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CoreObject::CoreObject(bool initializeOnCoreThread)
 		:mFlags(0), mCoreDirtyFlags(0), mInternalID(0)

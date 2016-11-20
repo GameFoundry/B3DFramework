@@ -8,7 +8,7 @@
 #include "BsVector3.h"
 #include "BsQuaternion.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene-Internal
 	 *  @{

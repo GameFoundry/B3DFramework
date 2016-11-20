@@ -8,7 +8,7 @@
 #include "BsTime.h"
 #include "BsPlayInEditorManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptTime::ScriptTime(MonoObject* instance)
 		:ScriptObject(instance)

@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	void PlatformUtility::terminate(bool force)
 	{

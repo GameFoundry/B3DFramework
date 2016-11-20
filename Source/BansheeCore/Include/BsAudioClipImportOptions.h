@@ -6,7 +6,7 @@
 #include "BsImportOptions.h"
 #include "BsAudioClip.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Importer
 	 *  @{

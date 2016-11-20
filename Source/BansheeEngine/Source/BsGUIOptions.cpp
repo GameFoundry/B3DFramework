@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGUIOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIOption::GUIOption()
 		:min(0), max(0), type(Type::FixedWidth)

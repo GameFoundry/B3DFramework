@@ -9,7 +9,7 @@
 #include "BsBounds.h"
 #include "BsSceneManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CRenderable::CRenderable(const HSceneObject& parent)
 		:Component(parent)

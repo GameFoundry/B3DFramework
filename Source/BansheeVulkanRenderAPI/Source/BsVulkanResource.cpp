@@ -4,7 +4,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 	{

@@ -4,7 +4,7 @@
 
 #include "BsPrerequisitesUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Serialization
 	 *  @{

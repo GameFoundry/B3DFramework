@@ -7,7 +7,7 @@
 #include "BsException.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	VertexData::VertexData()
 	{

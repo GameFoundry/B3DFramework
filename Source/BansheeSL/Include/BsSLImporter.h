@@ -5,7 +5,7 @@
 #include "BsSLPrerequisites.h"
 #include "BsSpecificImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup BansheeSL
 	 *  @{

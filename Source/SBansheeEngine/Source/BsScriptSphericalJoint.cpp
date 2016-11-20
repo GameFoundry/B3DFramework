@@ -4,7 +4,7 @@
 #include "BsScriptJointCommon.h"
 #include "BsSphericalJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSphericalJoint::ScriptSphericalJoint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

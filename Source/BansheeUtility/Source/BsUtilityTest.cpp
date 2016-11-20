@@ -3,7 +3,7 @@
 #include "BsFileSystemTestSuite.h"
 #include "BsConsoleTestOutput.h"
 
-using namespace BansheeEngine;
+using namespace bs;
 
 int main()
 {

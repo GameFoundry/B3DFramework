@@ -6,7 +6,7 @@
 #include "BsRTTIType.h"
 #include "BsGameResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Engine

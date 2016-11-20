@@ -5,7 +5,7 @@
 #include "BsScriptEditorPrerequisites.h"
 #include "BsScriptGUIElement.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

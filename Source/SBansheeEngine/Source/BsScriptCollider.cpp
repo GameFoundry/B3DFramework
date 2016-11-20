@@ -14,7 +14,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCollider::OnCollisionThunkDef ScriptCollider::onCollisionBeginThunk = nullptr;
 	ScriptCollider::OnCollisionThunkDef ScriptCollider::onCollisionStayThunk = nullptr;

@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPhysicsMaterial::ScriptPhysicsMaterial(MonoObject* instance, const HPhysicsMaterial& material)
 		:TScriptResource(instance, material)

@@ -8,7 +8,7 @@
 #include "BsVector2I.h"
 #include "BsApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Engine
 	 *  @{
@@ -33,7 +33,7 @@ namespace BansheeEngine
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */
-	class BS_EXPORT BuiltinResources : public BansheeEngine::Module<BuiltinResources>
+	class BS_EXPORT BuiltinResources : public bs::Module<BuiltinResources>
 	{
 	public:
 		BuiltinResources();

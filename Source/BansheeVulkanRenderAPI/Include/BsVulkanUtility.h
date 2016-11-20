@@ -6,7 +6,7 @@
 #include "BsPixelUtil.h"
 #include "BsVertexDeclaration.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

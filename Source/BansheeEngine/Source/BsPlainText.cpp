@@ -4,7 +4,7 @@
 #include "BsResources.h"
 #include "BsPlainTextRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PlainText::PlainText(const WString& data)
 		:Resource(false), mString(data)

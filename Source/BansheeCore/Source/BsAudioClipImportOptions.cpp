@@ -3,7 +3,7 @@
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioClipImportOptionsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AudioClipImportOptions::AudioClipImportOptions()
 		:mFormat(AudioFormat::PCM), mReadMode(AudioReadMode::LoadDecompressed), mIs3D(true), mBitDepth(16)

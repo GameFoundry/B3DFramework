@@ -3,7 +3,7 @@
 #include "BsGLSLProgramFactory.h"
 #include "BsGLSLGpuProgram.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     const String GLSLProgramFactory::LANGUAGE_NAME = "glsl";
 

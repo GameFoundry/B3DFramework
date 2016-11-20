@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoField.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptMeta::ScriptMeta()
 		:scriptClass(nullptr), thisPtrField(nullptr)

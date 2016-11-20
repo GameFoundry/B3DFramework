@@ -7,7 +7,7 @@
 #include "BsOAAudio.h"
 #include "AL/al.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
 		:AudioClip(samples, streamSize, numSamples, desc), mNeedsDecompression(false), mBufferId((UINT32)-1), mSourceStreamSize(0)

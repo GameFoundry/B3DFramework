@@ -6,7 +6,7 @@
 #include "BsD3D11Device.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11GpuParamBlockBufferCore::D3D11GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, 
 		GpuDeviceFlags deviceMask)

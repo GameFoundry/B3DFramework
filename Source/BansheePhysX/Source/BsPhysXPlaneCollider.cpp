@@ -5,7 +5,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation)
 	{

@@ -6,7 +6,7 @@
 #include "BsImportOptions.h"
 #include "BsScriptCode.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Engine
 	 *  @{

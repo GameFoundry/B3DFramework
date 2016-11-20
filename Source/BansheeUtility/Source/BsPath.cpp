@@ -3,7 +3,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Path Path::BLANK = Path();
 
@@ -173,14 +173,14 @@ namespace BansheeEngine
 		switch (type)
 		{
 		case PathType::Windows:
-			return BansheeEngine::toString(buildWindows());
+			return bs::toString(buildWindows());
 		case PathType::Unix:
-			return BansheeEngine::toString(buildUnix());
+			return bs::toString(buildUnix());
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-			return BansheeEngine::toString(buildWindows());
+			return bs::toString(buildWindows());
 #elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
-			return BansheeEngine::toString(buildUnix());
+			return bs::toString(buildUnix());
 #else
 			static_assert(false, "Unsupported platform for path.");
 #endif
@@ -415,7 +415,7 @@ namespace BansheeEngine
 
 	void Path::setBasename(const String& basename)
 	{
-		mFilename = BansheeEngine::toWString(basename) + getWExtension();
+		mFilename = bs::toWString(basename) + getWExtension();
 	}
 
 	void Path::setExtension(const WString& extension)
@@ -429,7 +429,7 @@ namespace BansheeEngine
 
 	void Path::setExtension(const String& extension)
 	{
-		setExtension(BansheeEngine::toWString(extension));
+		setExtension(bs::toWString(extension));
 	}
 
 	WString Path::getWFilename(bool extension) const
@@ -448,7 +448,7 @@ namespace BansheeEngine
 
 	String Path::getFilename(bool extension) const
 	{
-		return BansheeEngine::toString(getWFilename(extension));
+		return bs::toString(getWFilename(extension));
 	}
 
 	WString Path::getWExtension() const
@@ -462,15 +462,15 @@ namespace BansheeEngine
 
 	String Path::getExtension() const
 	{
-		return BansheeEngine::toString(getWExtension());
+		return bs::toString(getWExtension());
 	}
 
 	const WString& Path::getWDirectory(UINT32 idx) const
 	{
 		if (idx >= (UINT32)mDirectories.size())
 		{
-			BS_EXCEPT(InvalidParametersException, "Index out of range: " + BansheeEngine::toString(idx) + 
-				". Valid range: [0, " + BansheeEngine::toString((UINT32)mDirectories.size() - 1) + "]");
+			BS_EXCEPT(InvalidParametersException, "Index out of range: " + bs::toString(idx) + 
+				". Valid range: [0, " + bs::toString((UINT32)mDirectories.size() - 1) + "]");
 		}
 
 		return mDirectories[idx];
@@ -478,7 +478,7 @@ namespace BansheeEngine
 
 	String Path::getDirectory(UINT32 idx) const
 	{
-		return BansheeEngine::toString(getWDirectory(idx));
+		return bs::toString(getWDirectory(idx));
 	}
 
 	WString Path::getWTail(PathType type) const
@@ -493,7 +493,7 @@ namespace BansheeEngine
 
 	String Path::getTail(PathType type) const
 	{
-		return BansheeEngine::toString(getWTail(type));
+		return bs::toString(getWTail(type));
 	}
 
 	void Path::clear()
@@ -507,7 +507,7 @@ namespace BansheeEngine
 
 	void Path::throwInvalidPathException(const WString& path) const
 	{
-		BS_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + BansheeEngine::toString(path));
+		BS_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + bs::toString(path));
 	}
 
 	void Path::throwInvalidPathException(const String& path) const
@@ -625,6 +625,6 @@ namespace BansheeEngine
 
 	void Path::pushDirectory(const String& dir)
 	{
-		pushDirectory(BansheeEngine::toWString(dir));
+		pushDirectory(bs::toWString(dir));
 	}
 }

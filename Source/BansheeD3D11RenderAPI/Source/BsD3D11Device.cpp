@@ -3,7 +3,7 @@
 #include "BsD3D11Device.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11Device::D3D11Device() 
 		:mD3D11Device(nullptr), mImmediateContext(nullptr), mClassLinkage(nullptr)

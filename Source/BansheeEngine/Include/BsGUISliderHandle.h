@@ -7,7 +7,7 @@
 #include "BsImageSprite.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

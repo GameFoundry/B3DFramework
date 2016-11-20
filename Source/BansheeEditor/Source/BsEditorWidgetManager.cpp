@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	Stack<std::pair<String, std::function<EditorWidgetBase*(EditorWidgetContainer&)>>> EditorWidgetManager::QueuedCreateCallbacks;
 

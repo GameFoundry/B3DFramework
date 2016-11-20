@@ -10,7 +10,7 @@
 #include "BsMonoManager.h"
 #include "BsMonoClass.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-SEngine

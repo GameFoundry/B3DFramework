@@ -11,7 +11,7 @@
 #include "BsRenderAPI.h"
 #include "BsGpuParamBlockBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** Uniquely identifies a GPU parameter. */
 	struct ValidParamKey
@@ -41,13 +41,13 @@ namespace std
 {
 	/** Hash value generator for ValidParamKey. */
 	template<>
-	struct hash<BansheeEngine::ValidParamKey>
+	struct hash<bs::ValidParamKey>
 	{
-		size_t operator()(const BansheeEngine::ValidParamKey& key) const
+		size_t operator()(const bs::ValidParamKey& key) const
 		{
 			size_t hash = 0;
-			BansheeEngine::hash_combine(hash, key.name);
-			BansheeEngine::hash_combine(hash, key.type);
+			bs::hash_combine(hash, key.name);
+			bs::hash_combine(hash, key.type);
 
 			return hash;
 		}
@@ -56,7 +56,7 @@ namespace std
 
 /** @endcond */
 
-namespace BansheeEngine
+namespace bs
 {
 	struct ShaderBlockDesc
 	{

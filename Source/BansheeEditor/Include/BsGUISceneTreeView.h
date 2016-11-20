@@ -7,7 +7,7 @@
 #include "BsEvent.h"
 #include "BsServiceLocator.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Editor-Internal
 	 *  @{

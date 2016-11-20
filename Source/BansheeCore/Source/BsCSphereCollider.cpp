@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCSphereColliderRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CSphereCollider::CSphereCollider(const HSceneObject& parent, float radius)
 		: CCollider(parent), mRadius(radius)

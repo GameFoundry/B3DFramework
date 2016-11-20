@@ -12,7 +12,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIScrollBar::ScriptGUIScrollBar(MonoObject* instance)
 		:TScriptGUIElement(instance, nullptr)

@@ -30,7 +30,7 @@
 #include "BsDynLib.h"
 #include "BsSceneManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Path EditorApplication::WIDGET_LAYOUT_PATH = PROJECT_INTERNAL_DIR + L"Layout.asset";
 	const Path EditorApplication::BUILD_DATA_PATH = PROJECT_INTERNAL_DIR + L"BuildData.asset";

@@ -7,7 +7,7 @@
 #include "BsStringTable.h"
 #include "BsStringTableManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

@@ -7,7 +7,7 @@
 #include "BsException.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool DEPTH_STENCIL_STATE_DESC::operator == (const DEPTH_STENCIL_STATE_DESC& rhs) const
 	{

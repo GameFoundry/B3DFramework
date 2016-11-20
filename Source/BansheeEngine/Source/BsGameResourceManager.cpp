@@ -5,7 +5,7 @@
 #include "BsResources.h"
 #include "BsFileSystem.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void ResourceMapping::add(const Path& from, const Path& to)
 	{

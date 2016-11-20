@@ -3,7 +3,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "ThirdParty/md5.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	String md5(const WString& source)
 	{

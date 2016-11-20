@@ -4,7 +4,7 @@
 
 #include "BsD3D11Prerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup D3D11
 	 *  @{

@@ -3,7 +3,7 @@
 #include "BsProjectResourceMeta.h"
 #include "BsProjectResourceMetaRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ProjectResourceMeta::ProjectResourceMeta(const ConstructPrivately& dummy)
 		:mTypeId(0)

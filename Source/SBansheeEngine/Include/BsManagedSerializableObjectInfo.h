@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsIReflectable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEngine
 	 *  @{

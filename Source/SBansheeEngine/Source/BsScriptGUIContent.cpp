@@ -11,7 +11,7 @@
 #include "BsSpriteTexture.h"
 #include "BsScriptGUIContentImages.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptGUIContent::mTextField;
 	MonoField* ScriptGUIContent::mTooltipField;

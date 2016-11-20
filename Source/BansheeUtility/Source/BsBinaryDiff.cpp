@@ -7,7 +7,7 @@
 #include "BsRTTIType.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SerializedObject> IDiff::generateDiff(const SPtr<SerializedObject>& orgObj,
 		const SPtr<SerializedObject>& newObj)

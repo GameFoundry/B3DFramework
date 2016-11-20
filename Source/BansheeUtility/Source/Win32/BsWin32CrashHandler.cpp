@@ -14,7 +14,7 @@
 
 static const char* sMiniDumpName = "minidump.dmp";
 
-namespace BansheeEngine
+namespace bs
 {
 	CrashHandler::CrashHandler()
 	{

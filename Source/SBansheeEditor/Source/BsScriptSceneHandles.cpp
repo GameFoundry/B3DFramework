@@ -10,7 +10,7 @@
 #include "BsHandleManager.h"
 #include "BsEditorApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSceneHandles::ScriptSceneHandles(MonoObject* object, EditorWidgetBase* parentWidget, const SPtr<Camera>& camera)
 		:ScriptObject(object), mParentWidget(parentWidget), mCamera(camera)

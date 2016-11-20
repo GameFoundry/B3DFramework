@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsCRenderable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AABox EditorUtility::calculateBounds(const HSceneObject& object)
 	{

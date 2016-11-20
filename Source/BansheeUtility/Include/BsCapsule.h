@@ -6,7 +6,7 @@
 #include "BsVector3.h"
 #include "BsLineSegment3.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Math
 	 *  @{

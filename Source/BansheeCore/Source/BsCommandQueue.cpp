@@ -5,14 +5,14 @@
 #include "BsCoreThread.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 #if BS_DEBUG_MODE
 	CommandQueueBase::CommandQueueBase(ThreadId threadId)
 		:mMyThreadId(threadId), mMaxDebugIdx(0)
 	{
 		mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
-		mCommands = bs_new<BansheeEngine::Queue<QueuedCommand>>();
+		mCommands = bs_new<bs::Queue<QueuedCommand>>();
 
 		{
 			Lock lock(CommandQueueBreakpointMutex);
@@ -25,7 +25,7 @@ namespace BansheeEngine
 		:mMyThreadId(threadId)
 	{
 		mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
-		mCommands = bs_new<BansheeEngine::Queue<QueuedCommand>>();
+		mCommands = bs_new<bs::Queue<QueuedCommand>>();
 	}
 #endif
 
@@ -79,9 +79,9 @@ namespace BansheeEngine
 #endif
 	}
 
-	BansheeEngine::Queue<QueuedCommand>* CommandQueueBase::flush()
+	bs::Queue<QueuedCommand>* CommandQueueBase::flush()
 	{
-		BansheeEngine::Queue<QueuedCommand>* oldCommands = mCommands;
+		bs::Queue<QueuedCommand>* oldCommands = mCommands;
 
 		if(!mEmptyCommandQueues.empty())
 		{
@@ -90,13 +90,13 @@ namespace BansheeEngine
 		}
 		else
 		{
-			mCommands = bs_new<BansheeEngine::Queue<QueuedCommand>>();
+			mCommands = bs_new<bs::Queue<QueuedCommand>>();
 		}
 
 		return oldCommands;
 	}
 
-	void CommandQueueBase::playbackWithNotify(BansheeEngine::Queue<QueuedCommand>* commands, std::function<void(UINT32)> notifyCallback)
+	void CommandQueueBase::playbackWithNotify(bs::Queue<QueuedCommand>* commands, std::function<void(UINT32)> notifyCallback)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -135,14 +135,14 @@ namespace BansheeEngine
 		mEmptyCommandQueues.push(commands);
 	}
 
-	void CommandQueueBase::playback(BansheeEngine::Queue<QueuedCommand>* commands)
+	void CommandQueueBase::playback(bs::Queue<QueuedCommand>* commands)
 	{
 		playbackWithNotify(commands, std::function<void(UINT32)>());
 	}
 
 	void CommandQueueBase::cancelAll()
 	{
-		BansheeEngine::Queue<QueuedCommand>* commands = flush();
+		bs::Queue<QueuedCommand>* commands = flush();
 
 		while(!commands->empty())
 			commands->pop();

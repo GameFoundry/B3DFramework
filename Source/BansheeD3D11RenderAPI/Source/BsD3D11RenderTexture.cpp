@@ -3,7 +3,7 @@
 #include "BsD3D11RenderTexture.h"
 #include "BsD3D11TextureView.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11RenderTextureCore::D3D11RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
 		:RenderTextureCore(desc, deviceMask), mProperties(desc, false)

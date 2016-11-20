@@ -11,7 +11,7 @@
 #include "BsVector2I.h"
 #include "BsException.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	const String StringUtil::BLANK;
 	const WString StringUtil::WBLANK;
@@ -369,10 +369,10 @@ namespace BansheeEngine
 		return stream.str();
 	}
 
-	WString toWString(const Vector<BansheeEngine::WString>& val)
+	WString toWString(const Vector<bs::WString>& val)
 	{
 		WStringStream stream;
-		Vector<BansheeEngine::WString>::const_iterator i, iend, ibegin;
+		Vector<bs::WString>::const_iterator i, iend, ibegin;
 		ibegin = val.begin();
 		iend = val.end();
 		for (i = ibegin; i != iend; ++i)
@@ -605,10 +605,10 @@ namespace BansheeEngine
 		return stream.str();
 	}
 
-	String toString(const Vector<BansheeEngine::String>& val)
+	String toString(const Vector<bs::String>& val)
 	{
 		StringStream stream;
-		Vector<BansheeEngine::String>::const_iterator i, iend, ibegin;
+		Vector<bs::String>::const_iterator i, iend, ibegin;
 		ibegin = val.begin();
 		iend = val.end();
 		for (i = ibegin; i != iend; ++i)

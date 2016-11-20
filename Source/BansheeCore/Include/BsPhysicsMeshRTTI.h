@@ -7,7 +7,7 @@
 #include "BsPhysicsMesh.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

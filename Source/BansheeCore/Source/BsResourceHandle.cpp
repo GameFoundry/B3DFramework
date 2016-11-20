@@ -7,7 +7,7 @@
 #include "BsResources.h"
 #include "BsResourceListenerManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Signal ResourceHandleBase::mResourceCreatedCondition;
 	Mutex ResourceHandleBase::mResourceCreatedMutex;

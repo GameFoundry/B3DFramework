@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCharacterController::OnHitThunkDef ScriptCharacterController::onColliderHitThunk = nullptr;
 	ScriptCharacterController::OnHitThunkDef ScriptCharacterController::onControllerHitThunk = nullptr;

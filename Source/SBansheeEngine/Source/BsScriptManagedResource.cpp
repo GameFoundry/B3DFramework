@@ -12,7 +12,7 @@
 #include "BsException.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptManagedResource::ScriptManagedResource(MonoObject* instance, const HManagedResource& resource)
 		:ScriptObject(instance), mResource(resource)

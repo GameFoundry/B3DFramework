@@ -7,7 +7,7 @@
 #include "BsScriptJoint.h"
 #include "BsHingeJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

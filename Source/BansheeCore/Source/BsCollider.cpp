@@ -6,7 +6,7 @@
 #include "BsRay.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector3 Collider::getPosition() const
 	{

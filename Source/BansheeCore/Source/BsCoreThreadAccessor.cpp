@@ -15,7 +15,7 @@
 #include "BsMaterial.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CoreThreadAccessorBase::CoreThreadAccessorBase(CommandQueueBase* commandQueue)
 		:mCommandQueue(commandQueue)

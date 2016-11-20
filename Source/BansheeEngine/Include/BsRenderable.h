@@ -9,7 +9,7 @@
 #include "BsBounds.h"
 #include "BsAABox.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct RendererAnimationData;
 

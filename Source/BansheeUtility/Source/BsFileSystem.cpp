@@ -4,7 +4,7 @@
 #include "BsFileSystem.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void FileSystem::copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)
 	{

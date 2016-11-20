@@ -8,7 +8,7 @@
 #include "foundation\PxQuat.h"
 #include "foundation\PxTransform.h"
 
-namespace BansheeEngine
+namespace bs
 {
 #if (BS_PLATFORM == BS_PLATFORM_WIN32) && !defined(BS_STATIC_LIB)
 #	ifdef BS_PHYSX_EXPORTS

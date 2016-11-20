@@ -4,7 +4,7 @@
 #include "Win32/BsWin32Defs.h"
 #include "Win32/BsWin32DropTarget.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Platform-Internal
 	 *  @{

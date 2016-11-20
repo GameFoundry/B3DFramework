@@ -3,7 +3,7 @@
 #include "BsProjectSettings.h"
 #include "BsProjectSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ProjectSettings::ProjectSettings()
 	{ }

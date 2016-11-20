@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	void HandleSliderManager::update(const SPtr<Camera>& camera, const Vector2I& inputPos, const Vector2I& inputDelta)
 	{

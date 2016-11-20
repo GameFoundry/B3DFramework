@@ -21,7 +21,7 @@
 #endif
 
 
-namespace BansheeEngine
+namespace bs
 {
 	class FMODAudioListener;
 	class FMODAudioSource;

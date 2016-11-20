@@ -8,7 +8,7 @@
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 #include <windows.h>
 
-using namespace BansheeEngine;
+using namespace bs;
 
 int CALLBACK WinMain(
 	_In_  HINSTANCE hInstance,

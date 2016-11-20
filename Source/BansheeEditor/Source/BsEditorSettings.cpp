@@ -3,7 +3,7 @@
 #include "BsEditorSettings.h"
 #include "BsEditorSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorSettings::EditorSettings()
 		: mMoveSnapActive(false), mRotateSnapActive(false), mMoveSnap(0.1f), mRotationSnap(20.0f), mGridSize(256)

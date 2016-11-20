@@ -3,7 +3,7 @@
 #include "BsRadian.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	inline Radian::Radian (const Degree& d) : mRad(d.valueRadians()) 
 	{ }

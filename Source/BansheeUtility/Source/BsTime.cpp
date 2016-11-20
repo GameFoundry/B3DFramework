@@ -3,7 +3,7 @@
 #include "BsTime.h"
 #include "BsTimer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const double Time::MICROSEC_TO_SEC = 1.0/1000000.0;
 

@@ -9,7 +9,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	void addFiltersToDialog(IFileDialog* fileDialog, const WString& filterList)
 	{

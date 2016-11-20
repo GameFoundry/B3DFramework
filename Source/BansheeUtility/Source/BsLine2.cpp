@@ -3,7 +3,7 @@
 #include "BsLine2.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	std::pair<bool, float> Line2::intersects(const Line2& rhs) const
 	{

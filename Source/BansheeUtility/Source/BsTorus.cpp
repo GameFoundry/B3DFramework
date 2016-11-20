@@ -5,7 +5,7 @@
 #include "BsMath.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Torus::Torus()
 		:normal(BsZero), outerRadius(0.0f), innerRadius(0.0f)

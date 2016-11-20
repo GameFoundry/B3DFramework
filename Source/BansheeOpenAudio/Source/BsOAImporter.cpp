@@ -10,7 +10,7 @@
 #include "BsAudioClipImportOptions.h"
 #include "BsAudioUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OAImporter::OAImporter()
 		:SpecificImporter()

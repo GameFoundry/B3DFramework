@@ -11,7 +11,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPlainText::ScriptPlainText(MonoObject* instance, const HPlainText& plainText)
 		:TScriptResource(instance, plainText)

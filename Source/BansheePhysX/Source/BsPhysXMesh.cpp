@@ -12,7 +12,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	/**
 	 * Attempts to cook a convex mesh from the provided mesh data. Assumes the mesh data is not null and contains vertex

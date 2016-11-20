@@ -4,7 +4,7 @@
 #include "BsFMODAudio.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FMOD_RESULT F_CALLBACK pcmReadCallback(FMOD_SOUND* sound, void *data, unsigned int dataLen)
 	{

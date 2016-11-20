@@ -14,7 +14,7 @@
 #include "BsColor.h"
 #include "BsPostProcessSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

@@ -3,7 +3,7 @@
 #include "BsMeshCollider.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MeshCollider::MeshCollider()
 	{ }

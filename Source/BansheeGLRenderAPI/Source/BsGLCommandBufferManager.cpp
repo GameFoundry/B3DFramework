@@ -3,7 +3,7 @@
 #include "BsGLCommandBufferManager.h"
 #include "BsGLCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<CommandBuffer> GLCommandBufferManager::createInternal(GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)

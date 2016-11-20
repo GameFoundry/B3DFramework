@@ -13,7 +13,7 @@
 #include "BsGUIPanel.h"
 #include "BsCGUIWidget.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ModalWindow::ModalWindow(const HString& title, bool hasCloseButton)
 		: EditorWindowBase(true), mTitleBarPanel(nullptr), mTitleBarBgPanel(nullptr), mTitle(nullptr), mCloseButton(nullptr)

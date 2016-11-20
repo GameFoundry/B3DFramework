@@ -12,7 +12,7 @@
 #include "BsVectorNI.h"
 #include "BsColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

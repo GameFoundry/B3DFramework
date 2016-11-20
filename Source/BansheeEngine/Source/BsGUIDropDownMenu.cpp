@@ -21,7 +21,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIDropDownMenu::DROP_DOWN_BOX_WIDTH = 250;
 

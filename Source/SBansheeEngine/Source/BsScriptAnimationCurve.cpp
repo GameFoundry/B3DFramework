@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptKeyFrame::ScriptKeyFrame(MonoObject* instance)
 		:ScriptObject(instance)

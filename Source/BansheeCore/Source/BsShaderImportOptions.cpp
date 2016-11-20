@@ -3,7 +3,7 @@
 #include "BsShaderImportOptions.h"
 #include "BsShaderImportOptionsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/

@@ -12,7 +12,7 @@
 #include "BsRenderWindow.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 MainEditorWindow::MENU_BAR_HEIGHT = 50;
 	const UINT32 MainEditorWindow::STATUS_BAR_HEIGHT = 21;

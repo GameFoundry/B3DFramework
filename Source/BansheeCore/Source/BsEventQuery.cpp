@@ -3,7 +3,7 @@
 #include "BsEventQuery.h"
 #include "BsQueryManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<EventQuery> EventQuery::create(UINT32 deviceIdx)
 	{

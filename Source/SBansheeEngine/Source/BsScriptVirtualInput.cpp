@@ -10,7 +10,7 @@
 #include "BsScriptInputConfiguration.h"
 #include "BsPlayInEditorManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptVirtualInput::OnButtonEventThunkDef ScriptVirtualInput::OnButtonUpThunk;
 	ScriptVirtualInput::OnButtonEventThunkDef ScriptVirtualInput::OnButtonDownThunk;

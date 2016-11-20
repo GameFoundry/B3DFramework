@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsMeshBase.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources
 	 *  @{

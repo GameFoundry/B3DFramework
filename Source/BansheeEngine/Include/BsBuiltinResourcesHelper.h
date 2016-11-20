@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "ThirdParty/json.hpp"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Engine-Internal
 	 *  @{

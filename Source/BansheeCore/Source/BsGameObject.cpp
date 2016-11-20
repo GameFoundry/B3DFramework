@@ -4,7 +4,7 @@
 #include "BsGameObjectRTTI.h"
 #include "BsGameObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GameObject::GameObject()
 		:mLinkId((UINT32)-1), mIsDestroyed(false)

@@ -13,7 +13,7 @@
 #include "BsGUIScrollArea.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUILayout::ScriptGUILayout(MonoObject* instance, GUILayout* layout, bool ownsNative)
 		:TScriptGUIElementBase(instance, layout), mLayout(layout), mOwnsNative(ownsNative)

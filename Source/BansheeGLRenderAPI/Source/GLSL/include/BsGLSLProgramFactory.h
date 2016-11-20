@@ -5,7 +5,7 @@
 #include "BsGLPrerequisites.h"
 #include "BsGpuProgramManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{

@@ -7,7 +7,7 @@
 #include "BsMatrix4.h"
 #include "BsGpuParam.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene-Editor-Internal
 	 *  @{

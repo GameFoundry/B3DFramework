@@ -9,7 +9,7 @@
 
 #define VBO_BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-namespace BansheeEngine
+namespace bs
 {
 	GLVertexArrayObject::GLVertexArrayObject()
 		:mHandle(0), mVertProgId(0), mAttachedBuffers(nullptr), mNumBuffers(0)

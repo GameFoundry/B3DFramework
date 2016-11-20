@@ -8,7 +8,7 @@
 #include "BsRenderTexturePool.h"
 #include "BsStandardPostProcessSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

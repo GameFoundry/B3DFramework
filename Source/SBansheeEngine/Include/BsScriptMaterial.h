@@ -12,7 +12,7 @@
 #include "BsMatrix4.h"
 #include "BsColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

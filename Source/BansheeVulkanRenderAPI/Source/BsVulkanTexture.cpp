@@ -8,7 +8,7 @@
 #include "BsRenderStats.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout,
 							 const TextureProperties& props)

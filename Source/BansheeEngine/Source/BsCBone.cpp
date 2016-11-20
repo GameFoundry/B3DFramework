@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CBone::CBone(const HSceneObject& parent)
 		: Component(parent)

@@ -8,7 +8,7 @@
 #include "BsD3D11Mappings.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11TextureView::D3D11TextureView(const SPtr<TextureCore>& texture, const TEXTURE_VIEW_DESC& desc)
 		:TextureView(texture, desc), mSRV(nullptr), mUAV(nullptr), mDSV(nullptr), mRTV(nullptr), mRODSV(nullptr)

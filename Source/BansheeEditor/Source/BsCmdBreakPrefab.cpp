@@ -3,7 +3,7 @@
 #include "BsCmdBreakPrefab.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdBreakPrefab::CmdBreakPrefab(const WString& description, const HSceneObject& sceneObject)
 		:EditorCommand(description), mSceneObject(sceneObject)

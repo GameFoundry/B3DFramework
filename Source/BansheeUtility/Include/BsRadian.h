@@ -5,7 +5,7 @@
 #include "BsPlatformDefines.h"
 #include "BsRTTIPrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class Degree;
 

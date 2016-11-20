@@ -2,7 +2,7 @@
 #include "BsDataStream.h"
 #include "BsAudioUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 // Writes to the internal cached buffer and flushes it if needed
 #define WRITE_TO_BUFFER(data, length)					\

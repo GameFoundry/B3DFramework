@@ -33,7 +33,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderBeast::RendererFrame::RendererFrame(float delta, const RendererAnimationData& animData)
 		:delta(delta), animData(animData)

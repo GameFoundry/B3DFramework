@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	FontImporter::FontImporter()
 		:SpecificImporter() 

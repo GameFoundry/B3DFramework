@@ -12,7 +12,7 @@
 #include "BsScriptPrefab.h"
 #include "BsScriptResourceRef.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPlatformInfoBase::ScriptPlatformInfoBase(MonoObject* instance)
 		:ScriptObjectBase(instance)

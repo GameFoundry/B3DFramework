@@ -8,7 +8,7 @@
 #include "BsVertexDataDesc.h"
 #include "BsGpuParams.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     HardwareBufferManager::HardwareBufferManager()
     {

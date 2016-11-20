@@ -4,7 +4,7 @@
 #include "BsResources.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HShaderInclude DefaultShaderIncludeHandler::findInclude(const String& name) const
 	{

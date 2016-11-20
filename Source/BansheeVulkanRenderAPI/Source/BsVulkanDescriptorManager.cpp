@@ -7,7 +7,7 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanResource.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanLayoutKey::VulkanLayoutKey(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings)
 		:bindings(bindings), numBindings(numBindings)

@@ -3,7 +3,7 @@
 #include "BsGameObjectManager.h"
 #include "BsGameObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GameObjectManager::GameObjectManager()
 		:mNextAvailableID(1), mIsDeserializationActive(false), mGODeserializationMode(GODM_UseNewIds | GODM_BreakExternal)

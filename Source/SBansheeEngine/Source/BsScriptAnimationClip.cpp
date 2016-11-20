@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAnimationClip::ScriptAnimationClip(MonoObject* instance, const HAnimationClip& animationClip)
 		:TScriptResource(instance, animationClip)

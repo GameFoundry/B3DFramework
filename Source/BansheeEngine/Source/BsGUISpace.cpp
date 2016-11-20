@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGUISpace.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIFixedSpace::~GUIFixedSpace()
 	{

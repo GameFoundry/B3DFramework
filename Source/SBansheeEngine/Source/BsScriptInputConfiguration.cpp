@@ -7,7 +7,7 @@
 #include "BsMonoUtil.h"
 #include "BsVirtualInput.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Map<UINT64, ScriptInputConfiguration*> ScriptInputConfiguration::ScriptInputConfigurations;
 

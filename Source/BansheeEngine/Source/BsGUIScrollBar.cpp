@@ -12,7 +12,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIScrollBar::ButtonScrollAmount = 10;
 

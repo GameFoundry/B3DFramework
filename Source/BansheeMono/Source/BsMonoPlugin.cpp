@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsMonoPrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" BS_MONO_EXPORT const char* getPluginName()
 	{

@@ -8,7 +8,7 @@
 #include "BsPass.h"
 #include "BsVertexDataDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 4;
 	const UINT32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 6;

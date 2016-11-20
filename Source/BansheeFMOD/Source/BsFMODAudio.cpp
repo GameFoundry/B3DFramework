@@ -6,7 +6,7 @@
 #include "BsFMODAudioListener.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void* F_CALLBACK FMODAlloc(unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr)
 	{

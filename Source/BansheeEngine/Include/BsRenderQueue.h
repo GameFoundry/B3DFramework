@@ -6,7 +6,7 @@
 #include "BsVector3.h"
 #include "BsSubMesh.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Renderer-Engine-Internal
 	 *  @{

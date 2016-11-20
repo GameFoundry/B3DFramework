@@ -8,7 +8,7 @@
 #include "BsVector3.h"
 #include "BsVector4.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

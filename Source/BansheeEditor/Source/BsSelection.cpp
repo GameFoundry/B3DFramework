@@ -7,7 +7,7 @@
 #include "BsProjectResourceMeta.h"
 #include "BsMessageHandler.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Selection::Selection()
 	{

@@ -19,7 +19,7 @@
 #include "BsManagedSerializableField.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializableProperty::ScriptSerializableProperty(MonoObject* instance, const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 		:ScriptObject(instance), mTypeInfo(typeInfo)

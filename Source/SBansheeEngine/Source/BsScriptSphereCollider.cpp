@@ -3,7 +3,7 @@
 #include "BsScriptSphereCollider.h"
 #include "BsSphereCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSphereCollider::ScriptSphereCollider(MonoObject* instance, const SPtr<Collider>& collider)
 		:TScriptCollider(instance, collider)

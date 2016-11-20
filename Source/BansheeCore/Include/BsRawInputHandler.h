@@ -6,7 +6,7 @@
 #include "BsInputFwd.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Input-Internal
 	 *  @{

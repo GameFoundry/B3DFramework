@@ -5,7 +5,7 @@
 #include "BsFontManager.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const CHAR_DESC& FontBitmap::getCharDesc(UINT32 charId) const
 	{

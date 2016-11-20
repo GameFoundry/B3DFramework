@@ -4,7 +4,7 @@
 #include "BsDebug.h"
 #include <codecvt>
 
-namespace BansheeEngine 
+namespace bs 
 {
 	const UINT32 DataStream::StreamTempSize = 128;
 

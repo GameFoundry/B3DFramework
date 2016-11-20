@@ -3,7 +3,7 @@
 #include "BsRTTIField.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void RTTIField::checkIsPlain(bool array)
 	{

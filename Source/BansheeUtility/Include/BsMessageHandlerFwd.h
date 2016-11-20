@@ -5,7 +5,7 @@
 #include "BsTypes.h"
 #include "BsString.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup General
 	 *  @{

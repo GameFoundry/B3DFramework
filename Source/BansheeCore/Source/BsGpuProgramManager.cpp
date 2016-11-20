@@ -3,7 +3,7 @@
 #include "BsGpuProgramManager.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	String sNullLang = "null";
 

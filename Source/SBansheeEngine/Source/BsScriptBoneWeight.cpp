@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptBoneWeight::ScriptBoneWeight(MonoObject* instance)
 		:ScriptObject(instance)

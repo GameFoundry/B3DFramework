@@ -26,7 +26,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	class PhysXAllocator : public PxAllocatorCallback
 	{

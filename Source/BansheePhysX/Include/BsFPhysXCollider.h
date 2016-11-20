@@ -7,7 +7,7 @@
 #include "BsFCollider.h"
 #include "PxRigidStatic.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

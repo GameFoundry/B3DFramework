@@ -7,7 +7,7 @@
 #include "PxPhysics.h"
 #include "extensions\PxDistanceJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

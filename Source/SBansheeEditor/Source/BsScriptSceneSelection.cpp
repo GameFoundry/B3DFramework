@@ -10,7 +10,7 @@
 #include "BsMonoPrerequisites.h"
 #include <BsMonoArray.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSceneSelection::ScriptSceneSelection(MonoObject* object, const SPtr<Camera>& camera)
 		:ScriptObject(object), mCamera(camera), mSelectionRenderer(nullptr)

@@ -8,7 +8,7 @@
 #include "BsGUIDimensions.h"
 #include "BsGUIMouseEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUISliderHandle::RESIZE_HANDLE_SIZE = 7;
 

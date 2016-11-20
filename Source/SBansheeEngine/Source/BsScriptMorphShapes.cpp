@@ -11,7 +11,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptMorphShapes::ScriptMorphShapes(MonoObject* managedInstance, const SPtr<MorphShapes>& morphShapes)
 		:ScriptObject(managedInstance), mMorphShapes(morphShapes)

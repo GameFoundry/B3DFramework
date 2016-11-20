@@ -14,7 +14,7 @@
 #include "BsCoreRenderer.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float CameraBase::INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
@@ -276,7 +276,7 @@ namespace BansheeEngine
 				}
 			}
 
-			RenderAPICore* renderAPI = BansheeEngine::RenderAPICore::instancePtr();
+			RenderAPICore* renderAPI = bs::RenderAPICore::instancePtr();
 			renderAPI->convertProjectionMatrix(mProjMatrix, mProjMatrixRS);
 			mProjMatrixInv = mProjMatrix.inverse();
 			mProjMatrixRSInv = mProjMatrixRS.inverse();

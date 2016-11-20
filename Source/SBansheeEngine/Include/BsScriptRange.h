@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Interop class between C++ & CLR for the Range attribute. */
 	class BS_SCR_BE_EXPORT ScriptRange : public ScriptObject <ScriptRange>

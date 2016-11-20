@@ -5,7 +5,7 @@
 #include "BsGLPixelBuffer.h"
 #include "BsTextureView.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 #define PROBE_SIZE 16
 

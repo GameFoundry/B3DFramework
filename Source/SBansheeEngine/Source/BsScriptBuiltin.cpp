@@ -12,7 +12,7 @@
 #include "BsScriptFont.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptBuiltin::ScriptBuiltin(MonoObject* instance)
 		:ScriptObject(instance)

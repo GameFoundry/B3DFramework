@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const float GUIFloatField::DRAG_SPEED = 0.05f;
 

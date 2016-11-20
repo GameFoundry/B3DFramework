@@ -17,7 +17,7 @@
 #include "BsScriptSceneObject.h"
 #include "BsScriptObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HEvent ScriptScene::OnRefreshDomainLoadedConn;
 	HEvent ScriptScene::OnRefreshStartedConn;

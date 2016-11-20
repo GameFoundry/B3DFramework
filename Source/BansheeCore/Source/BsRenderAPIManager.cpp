@@ -6,7 +6,7 @@
 #include "BsDynLib.h"
 #include "BsDynLibManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderAPIManager::RenderAPIManager()
 		:mRenderAPIInitialized(false)

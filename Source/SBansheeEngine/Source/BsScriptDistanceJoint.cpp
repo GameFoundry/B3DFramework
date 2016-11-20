@@ -3,7 +3,7 @@
 #include "BsScriptDistanceJoint.h"
 #include "BsDistanceJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptDistanceJoint::ScriptDistanceJoint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

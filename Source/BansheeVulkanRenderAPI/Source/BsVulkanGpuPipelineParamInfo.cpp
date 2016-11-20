@@ -6,7 +6,7 @@
 #include "BsVulkanDevice.h"
 #include "BsGpuParamDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanGpuPipelineParamInfo::VulkanGpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
 		:GpuPipelineParamInfoCore(desc, deviceMask), mDeviceMask(deviceMask), mLayouts(), mLayoutInfos(), mData(nullptr)

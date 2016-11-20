@@ -16,7 +16,7 @@
 #include "BsGUIHelper.h"
 #include "BsTime.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VirtualButton GUIInputBox::mCopyVB = VirtualButton("Copy");
 	VirtualButton GUIInputBox::mPasteVB = VirtualButton("Paste");

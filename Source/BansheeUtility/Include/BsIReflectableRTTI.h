@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Utility

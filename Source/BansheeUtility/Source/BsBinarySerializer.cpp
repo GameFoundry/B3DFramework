@@ -38,7 +38,7 @@ memcpy(buffer, dataIter, size);											\
 buffer += size;															\
 *bytesWritten += size;
 
-namespace BansheeEngine
+namespace bs
 {
 	BinarySerializer::BinarySerializer()
 		:mLastUsedObjectId(1)

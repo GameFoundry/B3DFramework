@@ -9,7 +9,7 @@
 #include "Win32/BsWin32Platform.h"
 #include "Win32/BsWin32Window.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct SplashScreen::Pimpl
 	{

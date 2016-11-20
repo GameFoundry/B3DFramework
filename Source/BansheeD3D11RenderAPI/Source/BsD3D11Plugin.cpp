@@ -3,7 +3,7 @@
 #include "BsD3D11Prerequisites.h"
 #include "BsD3D11RenderAPIFactory.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" BS_D3D11_EXPORT const char* getPluginName()
 	{

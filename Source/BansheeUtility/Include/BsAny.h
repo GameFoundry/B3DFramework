@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <typeinfo>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup General
 	 *  @{

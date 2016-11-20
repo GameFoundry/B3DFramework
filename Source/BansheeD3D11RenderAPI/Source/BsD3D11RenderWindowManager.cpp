@@ -5,7 +5,7 @@
 #include "BsD3D11RenderWindow.h"
 #include "BsAsyncOp.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11RenderWindowManager::D3D11RenderWindowManager(D3D11RenderAPI* renderSystem)
 		:mRenderSystem(renderSystem)

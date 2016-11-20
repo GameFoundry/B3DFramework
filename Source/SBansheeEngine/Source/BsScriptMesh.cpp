@@ -11,7 +11,7 @@
 #include "BsScriptSkeleton.h"
 #include "BsScriptMorphShapes.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSubMesh::ScriptSubMesh(MonoObject* instance)
 		:ScriptObject(instance)

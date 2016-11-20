@@ -9,7 +9,7 @@
 #include "BsMonoUtil.h"
 #include "BsScriptGameObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSelection::OnSelectionChangedThunkDef ScriptSelection::OnSelectionChangedThunk;
 	ScriptSelection::OnPingResourceThunkDef ScriptSelection::OnPingResourceThunk;

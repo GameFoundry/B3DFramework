@@ -7,7 +7,7 @@
 #include "BsGameObject.h"
 #include "BsGameObjectHandleRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObjectHandleData>& data)
 		:mData(data)

@@ -6,7 +6,7 @@
 #include "BsJoint.h"
 #include "BsComponent.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Components-Core
 	 *  @{

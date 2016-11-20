@@ -3,7 +3,7 @@
 #include "BsVulkanDescriptorPool.h"
 #include "BsVulkanDevice.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice& device)
 		:mDevice(device)

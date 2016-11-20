@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 HandleDrawManager::SPHERE_QUALITY = 1;
 	const UINT32 HandleDrawManager::WIRE_SPHERE_QUALITY = 10;

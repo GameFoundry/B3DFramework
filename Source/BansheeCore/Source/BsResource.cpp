@@ -4,7 +4,7 @@
 #include "BsResourceRTTI.h"
 #include "BsResourceMetaData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Resource::Resource(bool initializeOnRenderThread)
 		:CoreObject(initializeOnRenderThread), mSize(0), mKeepSourceData(true)

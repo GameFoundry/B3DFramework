@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsGpuParam.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

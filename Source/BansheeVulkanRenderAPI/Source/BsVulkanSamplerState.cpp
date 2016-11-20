@@ -5,7 +5,7 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanSampler::VulkanSampler(VulkanResourceManager* owner, VkSampler sampler)
 		:VulkanResource(owner, true), mSampler(sampler)

@@ -4,7 +4,7 @@
 #include "BsSamplerStateRTTI.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	bool SAMPLER_STATE_DESC::operator == (const SAMPLER_STATE_DESC& rhs) const
 	{

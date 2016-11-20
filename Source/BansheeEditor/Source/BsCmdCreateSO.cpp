@@ -3,7 +3,7 @@
 #include "BsCmdCreateSO.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdCreateSO::CmdCreateSO(const WString& description, const String& name, UINT32 flags)
 		:EditorCommand(description), mName(name), mFlags(flags)

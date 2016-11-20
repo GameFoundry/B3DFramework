@@ -11,7 +11,7 @@
 #include <windows.h>
 #include <iostream>
 
-void logToIDEConsole(const BansheeEngine::String& message)
+void logToIDEConsole(const bs::String& message)
 {
 	OutputDebugString(message.c_str());
 	OutputDebugString("\n");
@@ -20,13 +20,13 @@ void logToIDEConsole(const BansheeEngine::String& message)
 	std::cout << message << std::endl;
 }
 #else
-void logToIDEConsole(const BansheeEngine::String& message)
+void logToIDEConsole(const bs::String& message)
 {
 	std::cout << message << std::endl;
 }
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	void Debug::logDebug(const String& msg)
 	{

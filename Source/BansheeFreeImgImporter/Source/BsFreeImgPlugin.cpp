@@ -3,7 +3,7 @@
 #include "BsFreeImgPrerequisites.h"
 #include "BsFreeImgImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" BS_FREEIMG_EXPORT const char* getPluginName()
 	{

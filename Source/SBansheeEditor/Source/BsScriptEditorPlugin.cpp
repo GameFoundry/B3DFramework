@@ -5,7 +5,7 @@
 #include "BsEditorScriptLibrary.h"
 #include "BsScriptManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" BS_SCR_BED_EXPORT const char* getPluginName()
 	{

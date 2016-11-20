@@ -3,7 +3,7 @@
 #include "BsVulkanRenderWindowManager.h"
 #include "Win32/BsWin32RenderWindow.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanRenderWindowManager::VulkanRenderWindowManager()
 	{ }

@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHandleSliderPlane::ScriptHandleSliderPlane(MonoObject* instance, const Vector3& dir1, const Vector3& dir2, 
 		float length, bool fixedScale, UINT64 layer)

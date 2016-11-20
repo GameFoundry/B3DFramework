@@ -3,7 +3,7 @@
 #include "BsFrameAlloc.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FrameAlloc::MemBlock::MemBlock(UINT32 size)
 		:mData(nullptr), mFreePtr(0), mSize(size)

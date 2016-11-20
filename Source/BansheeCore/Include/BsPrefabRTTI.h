@@ -7,7 +7,7 @@
 #include "BsPrefab.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

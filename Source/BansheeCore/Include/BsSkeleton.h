@@ -9,7 +9,7 @@
 #include "BsQuaternion.h"
 #include "BsCurveCache.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class SkeletonMask;
 

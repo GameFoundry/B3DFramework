@@ -6,7 +6,7 @@
 #include "BsGpuProgramManager.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanGpuProgramCore::VulkanGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuProgramCore(desc, deviceMask)

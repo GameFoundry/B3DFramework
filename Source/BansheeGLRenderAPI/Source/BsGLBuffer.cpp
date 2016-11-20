@@ -4,7 +4,7 @@
 #include "BsGLHardwareBufferManager.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLBuffer::GLBuffer()
 		:mTarget(0), mBufferId(0), mZeroLocked(false)

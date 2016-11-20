@@ -85,7 +85,7 @@ On the top-most level the program consists out of three blocks:
  - Technique - Contains one or multiple passes that contain the pipeline state for rendering. This is the meat of the program.
 
 # Parameters {#bslfx_a}
-All parameters specified in this block will be exposed to the @ref BansheeEngine::Shader "Shader" object. These parameters will be accessible from the @ref BansheeEngine::Material "Material" object. You are still allowed to define uniforms/constants within shader code, without defining them in the parameter list, but they will not be visible to high level code. This can be useful if you are working on a lower level, like directly with the renderer.
+All parameters specified in this block will be exposed to the @ref bs::Shader "Shader" object. These parameters will be accessible from the @ref bs::Material "Material" object. You are still allowed to define uniforms/constants within shader code, without defining them in the parameter list, but they will not be visible to high level code. This can be useful if you are working on a lower level, like directly with the renderer.
 
 Types supported in this block are:
  - int - signed integer
@@ -155,7 +155,7 @@ Sampler2D gMySampler = { ... };
 Actual values in the sampler state will be explained later.
 
 Final element that parameters can have are modifiers. Modifiers are in the format of ": Modifier(Value)". Supported modifiers are:
- - auto - Accepts a string that contains a semantic name. For example: `mat4x4 gMatWorldViewProj : auto("WVP");`. If the semantic "WVP" is recognized by the active renderer this value will be automatically assigned by the renderer. Automatic values cannot be manually set through the @ref BansheeEngine::Material "Material" interface. The default renderer doesn't support any parameter semantics, it instead works using block semantics (see below).
+ - auto - Accepts a string that contains a semantic name. For example: `mat4x4 gMatWorldViewProj : auto("WVP");`. If the semantic "WVP" is recognized by the active renderer this value will be automatically assigned by the renderer. Automatic values cannot be manually set through the @ref bs::Material "Material" interface. The default renderer doesn't support any parameter semantics, it instead works using block semantics (see below).
  - alias - Accepts a string that contains an alternative name for the element. This can only be used for samplers, and is used for interfacing with render APIs that do not have separate objects for textures and samplers (e.g. OpenGL). You can use this to give your sampler the same name as the texture so such API will recognize it. For example:
 ~~~~~~~~~~~~~~
 Texture2D gMyTexture;
@@ -165,7 +165,7 @@ Sampler2D gMySampler : alias("gMyTexture"); // Ensures that render APIs that don
 # Blocks {#bslfx_b}
 Blocks are containers for parameters. In HLSL/GLSL they're usually called constant/uniform buffers. Actual layout of the blocks is therefore defined in their source language, and using the Block command we just make them available to the high level interface. The name of the block must be the same as the corresponding constant/uniform buffer.
 
-Parameters don't have to belong to a block but if they do you can share parameter blocks with multiple instances of @ref BansheeEngine::Material "Material", which is more efficient. Normally this is not something you need to worry about unless working low level with the renderer.
+Parameters don't have to belong to a block but if they do you can share parameter blocks with multiple instances of @ref bs::Material "Material", which is more efficient. Normally this is not something you need to worry about unless working low level with the renderer.
 
 Blocks all begin with the Block keyword, followed by a name. The name must match the name of the constant/uniform block in actual shader code:
 ~~~~~~~~~~~~~~
@@ -448,4 +448,4 @@ Where AddressModeBlock has the following properties:
 It can also be specified in short form, where parameters are in order as above. For example:
  - AddressMode = { WRAP, WRAP, WRAP };
  
-See @ref BansheeEngine::SamplerState "SamplerState" documentation about the meaning of these properties. 
+See @ref bs::SamplerState "SamplerState" documentation about the meaning of these properties. 

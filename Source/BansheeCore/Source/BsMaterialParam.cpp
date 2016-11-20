@@ -6,7 +6,7 @@
 #include "BsMaterialParams.h"
 #include "BsMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	template<class T, bool Core>
 	TMaterialDataParam<T, Core>::TMaterialDataParam(const String& name, const MaterialPtrType& material)

@@ -7,7 +7,7 @@
 #include "BsShader.h"
 #include "BsRenderTargets.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RendererCamera::RendererCamera()
 		:mCamera(nullptr), mUsingRenderTargets(false)

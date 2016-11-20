@@ -8,7 +8,7 @@
 #include "BsCGUIWidget.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorWindow::EditorWindow()
 		:EditorWindowBase(), mWidgets(bs_new<EditorWidgetContainer>(mGUI->_getInternal(), this))

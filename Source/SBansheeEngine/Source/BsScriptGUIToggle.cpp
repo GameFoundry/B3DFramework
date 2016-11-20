@@ -20,7 +20,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIToggle::OnClickThunkDef ScriptGUIToggle::onClickThunk;
 	ScriptGUIToggle::OnHoverThunkDef ScriptGUIToggle::onHoverThunk;

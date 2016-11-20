@@ -6,7 +6,7 @@
 #include "BsResource.h"
 #include "BsGUIElementStyle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

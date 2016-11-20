@@ -3,7 +3,7 @@
 #include "BsSphericalJoint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SphericalJoint> SphericalJoint::create(const SPHERICAL_JOINT_DESC& desc)
 	{

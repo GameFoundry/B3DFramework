@@ -4,7 +4,7 @@
 #include "BsScriptJointCommon.h"
 #include "BsSliderJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSliderJoint::ScriptSliderJoint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

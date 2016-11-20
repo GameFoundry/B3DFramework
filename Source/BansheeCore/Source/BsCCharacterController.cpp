@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CCharacterController::CCharacterController(const HSceneObject& parent)
 		: Component(parent)

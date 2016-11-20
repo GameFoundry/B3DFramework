@@ -8,7 +8,7 @@
 #include "BsGameObjectManager.h"
 #include "BsRenderTarget.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	std::function<void()> SceneManagerFactory::mFactoryMethod;
 

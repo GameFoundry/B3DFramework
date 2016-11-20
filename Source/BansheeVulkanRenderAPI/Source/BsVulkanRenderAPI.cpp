@@ -23,7 +23,7 @@
 	static_assert(false, "Other platform includes go here.");
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = nullptr;
 	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = nullptr;

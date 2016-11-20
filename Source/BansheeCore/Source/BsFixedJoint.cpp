@@ -3,7 +3,7 @@
 #include "BsFixedJoint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<FixedJoint> FixedJoint::create(const FIXED_JOINT_DESC& desc)
 	{

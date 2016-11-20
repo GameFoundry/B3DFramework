@@ -7,7 +7,7 @@
 
 using namespace std::chrono;
 
-namespace BansheeEngine
+namespace bs
 {
 	Timer::Timer()
 	{

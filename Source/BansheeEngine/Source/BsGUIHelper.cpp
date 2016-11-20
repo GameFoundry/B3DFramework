@@ -6,7 +6,7 @@
 #include "BsGUIDimensions.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector2I GUIHelper::calcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style, 
 		const GUIDimensions& dimensions)

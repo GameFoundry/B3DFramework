@@ -4,7 +4,7 @@
 #include "BsAudio.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AudioSource::AudioSource()
 		: mPosition(BsZero), mVelocity(BsZero), mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0)

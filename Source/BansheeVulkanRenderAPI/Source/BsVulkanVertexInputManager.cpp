@@ -5,7 +5,7 @@
 #include "BsVertexDeclaration.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanVertexInput::VulkanVertexInput(UINT32 id, const VkPipelineVertexInputStateCreateInfo& createInfo)
 		:mId(id), mCreateInfo(createInfo)

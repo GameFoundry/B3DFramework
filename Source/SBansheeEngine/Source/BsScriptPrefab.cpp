@@ -7,7 +7,7 @@
 #include "BsMonoClass.h"
 #include "BsScriptSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPrefab::ScriptPrefab(MonoObject* instance, const HPrefab& prefab)
 		:TScriptResource(instance, prefab)

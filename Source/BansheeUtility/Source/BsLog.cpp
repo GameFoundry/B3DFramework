@@ -3,7 +3,7 @@
 #include "BsLog.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	LogEntry::LogEntry(const String& msg, UINT32 channel)
 		:mMsg(msg), mChannel(channel)

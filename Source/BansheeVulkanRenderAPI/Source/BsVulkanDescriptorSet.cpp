@@ -3,7 +3,7 @@
 #include "BsVulkanDescriptorSet.h"
 #include "BsVulkanDevice.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool)
 		:VulkanResource(owner, true), mSet(set), mPool(pool)

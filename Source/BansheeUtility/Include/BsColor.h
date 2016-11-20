@@ -4,7 +4,7 @@
 
 #include "BsPrerequisitesUtil.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Image
 	 *  @{
@@ -270,15 +270,15 @@ namespace std
 {
 /** Hash value generator for Color. */
 template<> 
-struct hash<BansheeEngine::Color>
+struct hash<bs::Color>
 {
-	size_t operator()(const BansheeEngine::Color& color) const
+	size_t operator()(const bs::Color& color) const
 	{
 		size_t hash = 0;
-		BansheeEngine::hash_combine(hash, color.r);
-		BansheeEngine::hash_combine(hash, color.g);
-		BansheeEngine::hash_combine(hash, color.b);
-		BansheeEngine::hash_combine(hash, color.a);
+		bs::hash_combine(hash, color.r);
+		bs::hash_combine(hash, color.g);
+		bs::hash_combine(hash, color.b);
+		bs::hash_combine(hash, color.a);
 
 		return hash;
 	}

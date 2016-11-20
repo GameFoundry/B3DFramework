@@ -4,7 +4,7 @@
 #include "BsDebug.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11_TEXTURE_ADDRESS_MODE D3D11Mappings::get(TextureAddressingMode tam)
 	{

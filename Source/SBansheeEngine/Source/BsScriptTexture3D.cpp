@@ -15,7 +15,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptTexture3D::ScriptTexture3D(MonoObject* instance, const HTexture& texture)
 		:TScriptResource(instance, texture)

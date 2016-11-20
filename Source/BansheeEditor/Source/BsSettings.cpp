@@ -3,7 +3,7 @@
 #include "BsSettings.h"
 #include "BsSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Settings::Settings()
 		:mHash(0)

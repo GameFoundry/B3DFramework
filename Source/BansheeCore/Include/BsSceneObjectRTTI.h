@@ -11,7 +11,7 @@
 #include "BsGameObjectRTTI.h"
 #include "BsPrefabDiff.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

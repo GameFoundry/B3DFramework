@@ -10,7 +10,7 @@
 #include "BsAudio.h"
 #include "BsAnimationManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PlayInEditorManager::PlayInEditorManager()
 		:mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), 

@@ -3,7 +3,7 @@
 #include "BsTaskScheduler.h"
 #include "BsThreadPool.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Task::Task(const PrivatelyConstruct& dummy, const String& name, std::function<void()> taskWorker, 
 		TaskPriority priority, SPtr<Task> dependency)

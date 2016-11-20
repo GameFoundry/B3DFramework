@@ -29,7 +29,7 @@
 
 /** @} */
 
-namespace BansheeEngine
+namespace bs
 {
 	class D3D11RenderAPI;
 	class D3D11RenderWindow;

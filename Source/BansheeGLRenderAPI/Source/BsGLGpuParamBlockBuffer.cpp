@@ -4,7 +4,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLGpuParamBlockBufferCore::GLGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 		:GpuParamBlockBufferCore(size, usage, deviceMask), mGLHandle(0)

@@ -4,7 +4,7 @@
 #include "BsGUICommandEvent.h"
 #include "BsGUIMouseEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIDropDownHitBox::getGUITypeName()
 	{

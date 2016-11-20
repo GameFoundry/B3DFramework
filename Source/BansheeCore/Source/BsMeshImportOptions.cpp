@@ -3,7 +3,7 @@
 #include "BsMeshImportOptions.h"
 #include "BsMeshImportOptionsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* AnimationSplitInfo::getRTTIStatic()
 	{

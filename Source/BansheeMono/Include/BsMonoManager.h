@@ -6,7 +6,7 @@
 #include "BsScriptMeta.h"
 #include "BsModule.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Mono
 	 *  @{

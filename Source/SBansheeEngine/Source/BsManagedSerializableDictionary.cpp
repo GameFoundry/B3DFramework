@@ -10,7 +10,7 @@
 #include "BsMonoProperty.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedSerializableDictionaryKeyValue::ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key,
 		const SPtr<ManagedSerializableFieldData>& value)

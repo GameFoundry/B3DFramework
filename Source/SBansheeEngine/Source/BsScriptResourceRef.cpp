@@ -10,7 +10,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptResourceRef::ScriptResourceRef(MonoObject* instance, const WeakResourceHandle<Resource>& resource)
 		:ScriptObject(instance), mResource(resource)

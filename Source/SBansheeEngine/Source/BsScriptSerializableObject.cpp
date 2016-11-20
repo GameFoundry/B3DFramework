@@ -10,7 +10,7 @@
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptSerializableObject::FieldsField = nullptr;
 

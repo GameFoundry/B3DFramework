@@ -6,7 +6,7 @@
 #include "BsFrameAlloc.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MeshProperties::MeshProperties()
 		:mNumVertices(0), mNumIndices(0)

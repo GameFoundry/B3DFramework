@@ -4,7 +4,7 @@
 #include "BsD3D11VideoModeInfo.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11Driver::D3D11Driver(const D3D11Driver &ob) 
 	{

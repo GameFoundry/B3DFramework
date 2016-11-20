@@ -3,7 +3,7 @@
 #include "BsD6Joint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<D6Joint> D6Joint::create(const D6_JOINT_DESC& desc)
 	{

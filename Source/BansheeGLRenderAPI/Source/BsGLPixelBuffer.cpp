@@ -9,7 +9,7 @@
 #include "BsGLRenderTexture.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	GLPixelBuffer::GLPixelBuffer(UINT32 inWidth, UINT32 inHeight, UINT32 inDepth, PixelFormat inFormat, GpuBufferUsage usage)
 		: mUsage(usage), mIsLocked(false), mWidth(inWidth), mHeight(inHeight), mDepth(inDepth), mFormat(inFormat)

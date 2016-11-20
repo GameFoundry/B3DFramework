@@ -7,7 +7,7 @@
 #include "BsGLBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup GL
 	 *  @{

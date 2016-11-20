@@ -10,7 +10,7 @@
 #include "BsMorphShapes.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

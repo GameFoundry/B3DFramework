@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsProfilerOverlay.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

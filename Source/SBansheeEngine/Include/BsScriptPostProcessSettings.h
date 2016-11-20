@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct StandardPostProcessSettings;
 	struct AutoExposureSettings;

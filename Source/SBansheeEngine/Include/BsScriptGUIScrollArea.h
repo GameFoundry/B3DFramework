@@ -6,7 +6,7 @@
 #include "BsScriptGUIElement.h"
 #include "BsGUIScrollArea.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

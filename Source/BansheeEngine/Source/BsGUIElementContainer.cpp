@@ -4,7 +4,7 @@
 #include "BsGUISkin.h"
 #include "BsGUIManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const String& style)
 		:GUIElement(style, dimensions)

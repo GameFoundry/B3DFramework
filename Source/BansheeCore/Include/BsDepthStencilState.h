@@ -6,7 +6,7 @@
 #include "BsIReflectable.h"
 #include "BsCoreObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI
 	 *  @{
@@ -239,11 +239,11 @@ namespace std
 {
 /**	Hash value generator for DEPTH_STENCIL_STATE_DESC. */
 template<>
-struct hash<BansheeEngine::DEPTH_STENCIL_STATE_DESC>
+struct hash<bs::DEPTH_STENCIL_STATE_DESC>
 {
-	size_t operator()(const BansheeEngine::DEPTH_STENCIL_STATE_DESC& value) const
+	size_t operator()(const bs::DEPTH_STENCIL_STATE_DESC& value) const
 	{
-		return (size_t)BansheeEngine::DepthStencilState::generateHash(value);
+		return (size_t)bs::DepthStencilState::generateHash(value);
 	}
 };
 }

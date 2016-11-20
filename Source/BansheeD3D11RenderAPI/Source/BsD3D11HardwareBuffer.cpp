@@ -6,7 +6,7 @@
 #include "BsException.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11HardwareBuffer::D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 
 		D3D11Device& device, bool useSystemMem, bool streamOut, bool randomGpuWrite, bool useCounter)

@@ -5,7 +5,7 @@
 #include "BsSkeletonMask.h"
 #include "BsSkeletonRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	LocalSkeletonPose::LocalSkeletonPose()
 		: positions(nullptr), rotations(nullptr), scales(nullptr), hasOverride(nullptr), numBones(0)

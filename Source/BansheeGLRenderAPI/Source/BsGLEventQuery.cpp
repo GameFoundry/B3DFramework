@@ -4,7 +4,7 @@
 #include "BsGLCommandBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLEventQuery::GLEventQuery(UINT32 deviceIdx)
 		:mQueryObj(0)

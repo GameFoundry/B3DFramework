@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGizmoManager::ScriptGizmoManager(ScriptAssemblyManager& scriptObjectManager)
 		:mScriptObjectManager(scriptObjectManager), mDrawGizmoAttribute(nullptr), mFlagsField(nullptr)

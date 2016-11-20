@@ -6,7 +6,7 @@
 #include "BsGUIElementContainer.h"
 #include "BsGUIDropDownMenu.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

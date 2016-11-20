@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	enum class MonitorState
 	{
@@ -348,28 +348,28 @@ namespace BansheeEngine
 
 		DWORD filterFlags = 0;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::FileName) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::FileName) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_FILE_NAME;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::DirName) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::DirName) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_DIR_NAME;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::Attributes) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::Attributes) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_ATTRIBUTES;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::Size) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::Size) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_SIZE;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::LastWrite) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::LastWrite) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_LAST_WRITE;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::LastAccess) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::LastAccess) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_LAST_ACCESS;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::Creation) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::Creation) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_CREATION;
 
-		if((((UINT32)changeFilter) & (UINT32)BansheeEngine::FolderChange::Security) != 0)
+		if((((UINT32)changeFilter) & (UINT32)bs::FolderChange::Security) != 0)
 			filterFlags |= FILE_NOTIFY_CHANGE_SECURITY;
 
 		mPimpl->mFoldersToWatch.push_back(bs_new<FolderWatchInfo>(folderPath, dirHandle, subdirectories, filterFlags));

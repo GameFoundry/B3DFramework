@@ -7,7 +7,7 @@
 #include "BsIReflectable.h"
 #include "BsCoreObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Material
 	 *  @{

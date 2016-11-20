@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "BsSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Settings
 	 *  @{

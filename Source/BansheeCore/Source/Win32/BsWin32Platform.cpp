@@ -12,7 +12,7 @@
 #include "Win32/BsWin32PlatformUtility.h"
 #include "TimeAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorMoved;
 	Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonPressed;

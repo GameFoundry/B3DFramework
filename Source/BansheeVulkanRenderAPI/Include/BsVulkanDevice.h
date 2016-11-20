@@ -6,7 +6,7 @@
 #include "BsRenderAPI.h"
 #include "BsVulkanDescriptorManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

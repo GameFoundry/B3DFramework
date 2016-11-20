@@ -8,7 +8,7 @@
 #include "BsCoreThread.h"
 #include "BsStandardPostProcessSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptAutoExposureSettings::sHistogramLog2Min = nullptr;
 	MonoField* ScriptAutoExposureSettings::sHistogramLog2Max = nullptr;

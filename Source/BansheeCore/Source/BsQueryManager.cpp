@@ -6,7 +6,7 @@
 #include "BsOcclusionQuery.h"
 #include "BsProfilerCPU.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	QueryManager::QueryManager()
 	{

@@ -26,7 +26,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	SelectionRenderer::SelectionRenderer()
 		:mCore(nullptr)

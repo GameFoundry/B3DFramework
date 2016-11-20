@@ -6,7 +6,7 @@
 #include "BsGUIElement.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

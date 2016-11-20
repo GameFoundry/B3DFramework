@@ -12,7 +12,7 @@
 #include "BsException.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MeshData::MeshData(UINT32 numVertices, UINT32 numIndexes, const SPtr<VertexDataDesc>& vertexData, IndexType indexType)
 	   :mNumVertices(numVertices), mNumIndices(numIndexes), mIndexType(indexType), mVertexData(vertexData)

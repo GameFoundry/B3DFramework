@@ -5,7 +5,7 @@
 #include "BsSkeleton.h"
 #include "BsAnimationClipRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 
 	void AnimationCurves::addPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)

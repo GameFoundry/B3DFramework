@@ -8,7 +8,7 @@
 #include "BsMesh.h"
 #include "BsRendererUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	LightBase::LightBase()
 		: mPosition(BsZero), mRotation(BsIdentity), mType(LightType::Point), mCastsShadows(false), mColor(Color::White)

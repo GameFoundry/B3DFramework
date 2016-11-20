@@ -3,7 +3,7 @@
 #include "BsProfilingManager.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 ProfilingManager::NUM_SAVED_FRAMES = 200;
 

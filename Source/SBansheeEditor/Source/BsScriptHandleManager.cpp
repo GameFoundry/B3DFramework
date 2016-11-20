@@ -15,7 +15,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHandleManager::ScriptHandleManager(ScriptAssemblyManager& scriptObjectManager)
 		:mScriptObjectManager(scriptObjectManager)

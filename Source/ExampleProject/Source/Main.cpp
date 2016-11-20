@@ -33,7 +33,7 @@
 // Example includes
 #include "CameraFlyer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	UINT32 windowResWidth = 1280;
 	UINT32 windowResHeight = 720;
@@ -69,7 +69,7 @@ namespace BansheeEngine
 	void buttonUp(const VirtualButton& button, UINT32 deviceIdx);
 }
 
-using namespace BansheeEngine;
+using namespace bs;
 
 /** Main entry point into the application. */
 int CALLBACK WinMain(
@@ -116,7 +116,7 @@ int CALLBACK WinMain(
 	return 0;
 }
 
-namespace BansheeEngine
+namespace bs
 {
 	Path dataPath = Paths::getRuntimeDataPath();
 	Path exampleModelPath = dataPath + "Examples\\Dragon.fbx";

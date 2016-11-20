@@ -3,7 +3,7 @@
 #include "BsSliderJoint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SliderJoint> SliderJoint::create(const SLIDER_JOINT_DESC& desc)
 	{

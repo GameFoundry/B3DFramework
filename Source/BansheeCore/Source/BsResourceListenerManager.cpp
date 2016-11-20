@@ -6,7 +6,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ResourceListenerManager::ResourceListenerManager()
 	{

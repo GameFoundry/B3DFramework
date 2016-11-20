@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "BsCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPhysicsQueryHitHelper::ScriptPhysicsQueryHitHelper(MonoObject* instance)
 		:ScriptObject(instance)

@@ -3,7 +3,7 @@
 #include "BsMaterialManager.h"
 #include "BsMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<Material> MaterialManager::create() const
 	{

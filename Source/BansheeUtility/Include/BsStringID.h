@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsSpinLock.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup String
 	 *  @{

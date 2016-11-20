@@ -8,7 +8,7 @@
 #include "BsGameObjectManager.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SerializedObject> ManagedDiff::generateDiff(const SPtr<SerializedObject>& orgSerzObj,
 		const SPtr<SerializedObject>& newSerzObj, ObjectMap& objectMap)

@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	VirtualInput::VirtualInput()
 		:mActiveModifiers((UINT32)ButtonModifier::None)

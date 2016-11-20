@@ -10,7 +10,7 @@
 #include "BsD3D11DepthStencilState.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct ClearVertex
 	{

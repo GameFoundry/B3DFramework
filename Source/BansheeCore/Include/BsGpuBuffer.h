@@ -6,7 +6,7 @@
 #include "BsCoreObject.h"
 #include "BsHardwareBuffer.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup RenderAPI
 	 *  @{

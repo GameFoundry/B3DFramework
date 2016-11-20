@@ -7,7 +7,7 @@
 #include "BsGpuBuffer.h"
 #include "BsSamplerState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MaterialParamsBase::MaterialParamsBase(
 		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams,

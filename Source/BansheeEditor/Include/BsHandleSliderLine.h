@@ -7,7 +7,7 @@
 #include "BsCapsule.h"
 #include "BsSphere.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Handles
 	 *  @{

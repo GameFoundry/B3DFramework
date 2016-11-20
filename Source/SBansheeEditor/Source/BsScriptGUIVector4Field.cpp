@@ -14,7 +14,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIVector4Field::OnChangedThunkDef ScriptGUIVector4Field::onChangedThunk;
 	ScriptGUIVector4Field::OnConfirmedThunkDef ScriptGUIVector4Field::onConfirmedThunk;

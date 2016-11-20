@@ -6,7 +6,7 @@
 #include "BsMeshHeap.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	TransientMeshCore::TransientMeshCore(const SPtr<MeshHeapCore>& parentHeap, UINT32 id, 
 		UINT32 numVertices, UINT32 numIndices, const Vector<SubMesh>& subMeshes)

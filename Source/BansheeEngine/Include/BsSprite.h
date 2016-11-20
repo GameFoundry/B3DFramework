@@ -8,7 +8,7 @@
 #include "BsRect2I.h"
 #include "BsColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup 2D-Internal
 	 *  @{

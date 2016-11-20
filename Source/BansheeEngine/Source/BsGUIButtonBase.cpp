@@ -9,7 +9,7 @@
 #include "BsGUIMouseEvent.h"
 #include "BsGUIHelper.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
 		: GUIElement(styleName, dimensions), mContentImageSprite(nullptr), mActiveState(GUIElementState::Normal)

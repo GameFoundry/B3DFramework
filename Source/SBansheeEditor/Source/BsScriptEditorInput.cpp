@@ -9,7 +9,7 @@
 #include "BsInput.h"
 #include "BsScriptVector2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptEditorInput::OnButtonEventThunkDef ScriptEditorInput::OnButtonPressedThunk;
 	ScriptEditorInput::OnButtonEventThunkDef ScriptEditorInput::OnButtonReleasedThunk;

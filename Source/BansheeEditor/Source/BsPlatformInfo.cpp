@@ -3,7 +3,7 @@
 #include "BsPlatformInfo.h"
 #include "BsPlatformInfoRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PlatformInfo::PlatformInfo()
 		:type(PlatformType::Windows), fullscreen(true), windowedWidth(1280), windowedHeight(720)

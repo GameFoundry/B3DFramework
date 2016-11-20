@@ -11,7 +11,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIInputBox::OnChangedThunkDef ScriptGUIInputBox::onChangedThunk;
 	ScriptGUIInputBox::OnConfirmedThunkDef ScriptGUIInputBox::onConfirmedThunk;

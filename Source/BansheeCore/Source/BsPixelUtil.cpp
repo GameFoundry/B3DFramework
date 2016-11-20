@@ -7,7 +7,7 @@
 #include "BsException.h"
 #include <nvtt.h>
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/**
 	 * Performs pixel data resampling using the point filter (nearest neighbor). Does not perform format conversions.

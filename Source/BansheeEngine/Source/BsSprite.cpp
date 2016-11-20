@@ -5,7 +5,7 @@
 #include "BsPlane.h"
 #include "BsMeshUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Sprite::Sprite()
 	{ }

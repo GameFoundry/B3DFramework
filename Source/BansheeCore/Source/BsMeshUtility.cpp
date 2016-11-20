@@ -6,7 +6,7 @@
 #include "BsVector2.h"
 #include "BsPlane.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct VertexFaces
 	{

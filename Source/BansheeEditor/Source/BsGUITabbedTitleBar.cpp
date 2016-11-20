@@ -12,7 +12,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const INT32 GUITabbedTitleBar::TAB_SPACING = -7;
 	const INT32 GUITabbedTitleBar::FIRST_TAB_OFFSET = 7;

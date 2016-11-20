@@ -3,7 +3,7 @@
 #include "BsIResourceListener.h"
 #include "BsResourceListenerManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	IResourceListener::IResourceListener()
 	{

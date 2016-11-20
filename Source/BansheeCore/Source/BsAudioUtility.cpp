@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsAudioUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void convertToMono8(const INT8* input, UINT8* output, UINT32 numSamples, UINT32 numChannels)
 	{
@@ -166,7 +166,7 @@ namespace BansheeEngine
 			convert16To32Bits((INT16*)input, srcBuffer, numSamples);
 			break;
 		case 24:
-			BansheeEngine::convert24To32Bits(input, srcBuffer, numSamples);
+			bs::convert24To32Bits(input, srcBuffer, numSamples);
 			break;
 		case 32:
 			// Do nothing

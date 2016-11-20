@@ -11,7 +11,7 @@
 #include "BsEventQuery.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float MeshHeapCore::GrowPercent = 1.5f;
 

@@ -6,7 +6,7 @@
 #include "BsD3D11Mappings.h"
 #include "BsD3D11RenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<RenderTexture> D3D11TextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{

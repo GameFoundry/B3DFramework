@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 EditorWidgetContainer::TitleBarHeight = 16;
 

@@ -4,7 +4,7 @@
 #include "BsVector3.h"
 #include "BsQuaternion.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void setStepTangent(const TKeyframe<Vector3>& lhsIn, const TKeyframe<Vector3>& rhsIn, 
 		TKeyframe<Quaternion>& lhsOut, TKeyframe<Quaternion>& rhsOut)

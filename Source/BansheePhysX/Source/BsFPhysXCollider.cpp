@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	FPhysXCollider::FPhysXCollider(PxShape* shape)
 		:mShape(shape)

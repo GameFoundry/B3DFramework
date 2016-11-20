@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsCHingeJointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CHingeJoint::CHingeJoint()
 		: CJoint(mDesc)

@@ -6,7 +6,7 @@
 #include "BsPlane.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ConvexVolume::ConvexVolume(const Vector<Plane>& planes)
 		:mPlanes(planes)

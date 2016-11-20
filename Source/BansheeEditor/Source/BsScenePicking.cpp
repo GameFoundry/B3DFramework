@@ -28,7 +28,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const float ScenePickingCore::ALPHA_CUTOFF = 0.5f;
 

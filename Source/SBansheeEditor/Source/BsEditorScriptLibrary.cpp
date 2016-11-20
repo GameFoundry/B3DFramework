@@ -9,7 +9,7 @@
 #include "BsScriptAssemblyManager.h"
 #include "BsMonoAssembly.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorScriptLibrary::EditorScriptLibrary()
 		:mScriptAssembliesLoaded(false)

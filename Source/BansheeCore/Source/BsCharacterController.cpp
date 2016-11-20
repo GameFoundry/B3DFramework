@@ -3,7 +3,7 @@
 #include "BsCharacterController.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<CharacterController> CharacterController::create(const CHAR_CONTROLLER_DESC& desc)
 	{

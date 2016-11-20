@@ -7,7 +7,7 @@
 #include "BsPixelData.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

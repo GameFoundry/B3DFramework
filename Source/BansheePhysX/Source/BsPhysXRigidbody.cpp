@@ -10,7 +10,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxForceMode::Enum toPxForceMode(ForceMode mode)
 	{

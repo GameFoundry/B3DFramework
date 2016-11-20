@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxJointActorIndex::Enum toJointActor(JointBody body)
 	{

@@ -3,7 +3,7 @@
 #include "BsLineSegment3.h"
 #include "BsRay.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	LineSegment3::LineSegment3()
 		:mStart(BsZero), mEnd(BsZero)

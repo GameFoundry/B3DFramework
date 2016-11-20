@@ -7,7 +7,7 @@
 #include "BsGUIElement.h"
 #include "BsFont.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIInputCaret::GUIInputCaret()
 		:mCaretPos(0)

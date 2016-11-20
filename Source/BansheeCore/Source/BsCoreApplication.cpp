@@ -49,7 +49,7 @@
 #include "BsAudio.h"
 #include "BsAnimationManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CoreApplication::CoreApplication(START_UP_DESC desc)
 		: mPrimaryWindow(nullptr), mStartUpDesc(desc), mFrameStep(16666), mLastFrameTime(0), mRendererPlugin(nullptr)

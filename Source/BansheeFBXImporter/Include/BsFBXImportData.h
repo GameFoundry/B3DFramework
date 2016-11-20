@@ -11,7 +11,7 @@
 #include "BsAnimationCurve.h"
 #include "BsSubMesh.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct RootMotion;
 

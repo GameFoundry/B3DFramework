@@ -6,7 +6,7 @@
 #include "BsAudio.h"
 #include "AL/alc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

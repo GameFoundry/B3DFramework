@@ -12,7 +12,7 @@
 #include "BsSceneObject.h"
 #include "BsBuiltinResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIWidget::GUIWidget(const SPtr<Camera>& camera)
 		: mCamera(camera), mPanel(nullptr), mDepth(0), mIsActive(true), mPosition(BsZero), mRotation(BsIdentity)

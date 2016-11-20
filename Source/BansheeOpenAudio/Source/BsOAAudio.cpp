@@ -9,7 +9,7 @@
 #include "BsAudioUtility.h"
 #include "AL\al.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OAAudio::OAAudio()
 		:mVolume(1.0f), mIsPaused(false)

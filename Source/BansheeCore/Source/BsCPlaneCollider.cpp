@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCPlaneColliderRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
 		: CCollider(parent)

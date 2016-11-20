@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsImportOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Importer
 	 *  @{

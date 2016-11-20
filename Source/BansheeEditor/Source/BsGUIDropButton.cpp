@@ -5,7 +5,7 @@
 #include "BsGUIMouseEvent.h"
 #include "BsDragAndDropManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIDropButton::getGUITypeName()
 	{

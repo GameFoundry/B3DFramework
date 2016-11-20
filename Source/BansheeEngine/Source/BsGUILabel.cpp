@@ -7,7 +7,7 @@
 #include "BsGUIDimensions.h"
 #include "BsGUIHelper.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUILabel::GUILabel(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
 		:GUIElement(styleName, dimensions), mImageSprite(nullptr), mContent(content)

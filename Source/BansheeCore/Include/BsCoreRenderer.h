@@ -6,7 +6,7 @@
 #include "BsStringID.h"
 #include "BsRendererMeshData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct PostProcessSettings;
 

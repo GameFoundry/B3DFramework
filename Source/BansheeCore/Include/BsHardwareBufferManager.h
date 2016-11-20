@@ -8,7 +8,7 @@
 #include "BsIndexBuffer.h"
 #include "BsVertexDeclaration.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	struct GPU_BUFFER_DESC;
 	struct GPU_PARAMS_DESC;

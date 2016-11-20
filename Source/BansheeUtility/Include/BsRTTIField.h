@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsAny.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class RTTITypeBase;
 

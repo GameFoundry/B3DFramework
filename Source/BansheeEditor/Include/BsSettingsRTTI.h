@@ -6,7 +6,7 @@
 #include "BsSettings.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Editor

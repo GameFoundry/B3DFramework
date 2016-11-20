@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsDegree.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Handles-Internal
 	 *  @{

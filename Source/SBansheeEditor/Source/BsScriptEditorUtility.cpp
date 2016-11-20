@@ -13,7 +13,7 @@
 #include "BsUtility.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptEditorUtility::ScriptEditorUtility(MonoObject* instance)
 		:ScriptObject(instance)

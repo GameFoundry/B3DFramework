@@ -6,7 +6,7 @@
 #include "BsMatrix3.h"
 #include "BsVector3.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     const float Quaternion::EPSILON = 1e-03f;
     const Quaternion Quaternion::ZERO(0.0f, 0.0f, 0.0f, 0.0f);

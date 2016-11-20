@@ -5,7 +5,7 @@
 #include "BsPixelUtil.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc)
     {

@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "BsCodeEditor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup CodeEditor-Internal
 	 *  @{

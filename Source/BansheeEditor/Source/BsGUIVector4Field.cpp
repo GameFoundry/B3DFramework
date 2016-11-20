@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIVector4Field::ELEMENT_LABEL_WIDTH = 10;
 

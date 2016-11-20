@@ -3,7 +3,7 @@
 #include "BsProjectLibraryEntries.h"
 #include "BsProjectLibraryEntriesRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ProjectLibraryEntries::ProjectLibraryEntries(const ProjectLibrary::DirectoryEntry& rootEntry)
 		:mRootEntry(rootEntry)

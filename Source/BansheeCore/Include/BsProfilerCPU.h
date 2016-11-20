@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Profiling
 	 *  @{
@@ -416,9 +416,9 @@ namespace BansheeEngine
 
 	/** Shortcut for profiling a single function call. */
 #define PROFILE_CALL(call, name)							\
-	BansheeEngine::gProfilerCPU().beginSample(name);		\
+	bs::gProfilerCPU().beginSample(name);		\
 	call;													\
-	BansheeEngine::gProfilerCPU().endSample(name);
+	bs::gProfilerCPU().endSample(name);
 
 	/** @} */
 }

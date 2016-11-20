@@ -7,7 +7,7 @@
 #include "PxPhysics.h"
 #include "extensions\PxRevoluteJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

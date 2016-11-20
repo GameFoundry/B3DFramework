@@ -6,7 +6,7 @@
 #include "BsGLRenderTexture.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     GLFrameBufferObject::GLFrameBufferObject()
     {

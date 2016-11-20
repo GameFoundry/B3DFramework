@@ -7,7 +7,7 @@
 #include "BsVector2.h"
 #include "BsColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup 2D
 	 *  @{

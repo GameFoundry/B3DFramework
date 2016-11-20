@@ -10,7 +10,7 @@
 #include "BsSamplerState.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MaterialSamplerOverrides* SamplerOverrideUtility::generateSamplerOverrides(const SPtr<ShaderCore>& shader, 
 		const SPtr<MaterialParamsCore>& params, const SPtr<GpuParamsSetCore>& paramsSet, 

@@ -4,7 +4,7 @@
 #include "BsEditorWindow.h"
 #include "BsMainEditorWindow.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorWindowManager::EditorWindowManager()
 		:mMainWindow(nullptr)

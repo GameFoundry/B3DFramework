@@ -3,7 +3,7 @@
 #include "BsFMODAudioListener.h"
 #include "BsFMODAudio.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FMODAudioListener::FMODAudioListener()
 	{

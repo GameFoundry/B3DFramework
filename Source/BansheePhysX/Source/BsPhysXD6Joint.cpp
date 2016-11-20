@@ -8,7 +8,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxD6Axis::Enum toPxAxis(PhysXD6Joint::Axis axis)
 	{

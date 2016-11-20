@@ -13,7 +13,7 @@ extern "C" {
 #include "BsASTFX.h"
 }
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup BansheeSL
 	 *  @{

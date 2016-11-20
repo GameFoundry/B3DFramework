@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxDistanceJointFlag::Enum toPxFlag(PhysXDistanceJoint::Flag flag)
 	{

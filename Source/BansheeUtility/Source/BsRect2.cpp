@@ -5,7 +5,7 @@
 #include "BsMatrix4.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Rect2 Rect2::EMPTY = Rect2();
 

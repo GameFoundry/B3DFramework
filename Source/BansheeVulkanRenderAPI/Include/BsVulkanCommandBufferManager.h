@@ -6,7 +6,7 @@
 #include "BsCommandBufferManager.h"
 #include "BsVulkanCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

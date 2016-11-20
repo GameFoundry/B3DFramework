@@ -69,7 +69,7 @@
 
 /** @} */
 
-namespace BansheeEngine 
+namespace bs 
 {
 	extern const char* MODULE_NAME;
 

@@ -6,7 +6,7 @@
 #include "BsHandleSlider.h"
 #include "BsTorus.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Handles
 	 *  @{

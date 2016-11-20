@@ -3,7 +3,7 @@
 #include "Win32/BsWin32VideoModeInfo.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	BOOL CALLBACK monitorEnumCallback(HMONITOR hMonitor, HDC hdc, LPRECT rect, LPARAM lParam)
 	{

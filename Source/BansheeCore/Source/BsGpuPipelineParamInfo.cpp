@@ -4,7 +4,7 @@
 #include "BsGpuParamDesc.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc)
 		:mTotalNumSets(0), mTotalNumElements(0)

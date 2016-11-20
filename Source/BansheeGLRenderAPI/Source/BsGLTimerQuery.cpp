@@ -5,7 +5,7 @@
 #include "BsMath.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLTimerQuery::GLTimerQuery(UINT32 deviceIdx)
 		:mQueryStartObj(0), mQueryEndObj(0), mFinalized(false), mEndIssued(false), mTimeDelta(0.0f)

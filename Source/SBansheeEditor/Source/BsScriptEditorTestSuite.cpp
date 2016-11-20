@@ -3,7 +3,7 @@
 #include "BsScriptEditorTestSuite.h"
 #include "BsScriptUnitTests.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptEditorTestSuite::ScriptEditorTestSuite()
 	{

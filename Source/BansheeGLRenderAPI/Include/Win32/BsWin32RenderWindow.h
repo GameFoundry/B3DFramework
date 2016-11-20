@@ -5,7 +5,7 @@
 #include "BsWin32Prerequisites.h"
 #include "BsRenderWindow.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup GL
 	 *  @{

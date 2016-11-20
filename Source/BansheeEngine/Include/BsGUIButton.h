@@ -6,7 +6,7 @@
 #include "BsGUIButtonBase.h"
 #include "BsGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

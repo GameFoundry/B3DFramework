@@ -15,7 +15,7 @@
 #include "BsScriptAnimation.h"
 #include "BsScriptMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptRenderable::ScriptRenderable(MonoObject* managedInstance, const HSceneObject& parentSO)
 		:ScriptObject(managedInstance), mRenderable(nullptr)

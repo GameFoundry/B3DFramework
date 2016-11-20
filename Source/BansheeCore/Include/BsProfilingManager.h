@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsProfilerCPU.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Profiling-Internal
 	 *  @{

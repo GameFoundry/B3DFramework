@@ -7,7 +7,7 @@
 #include "BsResourceHandle.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

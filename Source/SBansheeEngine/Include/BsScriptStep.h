@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Interop class between C++ & CLR for Step attribute. */
 	class BS_SCR_BE_EXPORT ScriptStep : public ScriptObject <ScriptStep>

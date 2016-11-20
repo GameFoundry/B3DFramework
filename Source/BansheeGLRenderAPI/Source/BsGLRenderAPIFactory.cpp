@@ -3,7 +3,7 @@
 #include "BsGLRenderAPIFactory.h"
 #include "BsGLRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void GLRenderAPIFactory::create()
 	{

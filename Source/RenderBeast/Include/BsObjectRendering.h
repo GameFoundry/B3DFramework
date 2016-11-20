@@ -10,7 +10,7 @@
 #include "BsParamBlocks.h"
 #include "BsRendererObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct RendererAnimationData;
 

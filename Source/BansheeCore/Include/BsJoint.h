@@ -8,7 +8,7 @@
 #include "BsPhysicsCommon.h"
 #include "BsFJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Physics
 	 *  @{

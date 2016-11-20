@@ -10,7 +10,7 @@
 #include "BsVectorNI.h"
 #include "BsVector2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	template<class T, bool Core>
 	TGpuDataParam<T, Core>::TGpuDataParam()

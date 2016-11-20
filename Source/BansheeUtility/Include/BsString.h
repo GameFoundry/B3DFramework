@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup String
 	 *  @{
@@ -38,7 +38,7 @@ namespace BansheeEngine
 
 #include "BsStringFormat.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup String
 	 *  @{
@@ -547,7 +547,7 @@ namespace BansheeEngine
     BS_UTILITY_EXPORT WString toWString(const Color& val);
 
     /** Converts a vector of strings into a single string where the substrings are delimited by spaces. */
-    BS_UTILITY_EXPORT WString toWString(const Vector<BansheeEngine::WString>& val);
+    BS_UTILITY_EXPORT WString toWString(const Vector<bs::WString>& val);
 
 	/** Converts a wide string to a narrow string. */
 	BS_UTILITY_EXPORT String toString(const WString& source);
@@ -662,7 +662,7 @@ namespace BansheeEngine
     /**
      * Converts a vector of strings into a single string where the substrings are delimited by spaces.
      */
-    BS_UTILITY_EXPORT String toString(const Vector<BansheeEngine::String>& val);
+    BS_UTILITY_EXPORT String toString(const Vector<bs::String>& val);
 
     /**
      * Converts a String to a float.
@@ -883,9 +883,9 @@ namespace std
 {
 /** Hash value generator for String. */
 template<> 
-struct hash<BansheeEngine::String>
+struct hash<bs::String>
 {
-	size_t operator()(const BansheeEngine::String& string) const
+	size_t operator()(const bs::String& string) const
 	{
 		size_t hash = 0;
 		for(size_t i = 0; i < string.size(); i++) 
@@ -896,9 +896,9 @@ struct hash<BansheeEngine::String>
 
 /**	Hash value generator for WString. */
 template<> 
-struct hash<BansheeEngine::WString>
+struct hash<bs::WString>
 {
-	size_t operator()(const BansheeEngine::WString& string) const
+	size_t operator()(const bs::WString& string) const
 	{
 		size_t hash = 0;
 		for(size_t i = 0; i < string.size(); i++) 

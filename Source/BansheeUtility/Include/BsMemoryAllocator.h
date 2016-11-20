@@ -15,7 +15,7 @@
 #  include <malloc.h>
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	class MemoryAllocatorBase;
 

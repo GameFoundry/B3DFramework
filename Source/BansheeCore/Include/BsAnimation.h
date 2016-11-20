@@ -11,7 +11,7 @@
 #include "BsVector2.h"
 #include "BsAABox.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Animation-Internal
 	 *  @{

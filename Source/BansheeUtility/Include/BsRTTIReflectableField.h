@@ -6,7 +6,7 @@
 #include "BsRTTIField.h"
 #include "BsIReflectable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Internal-Utility
 	 *  @{

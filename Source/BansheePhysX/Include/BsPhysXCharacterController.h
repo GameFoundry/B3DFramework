@@ -7,7 +7,7 @@
 #include "PxPhysics.h"
 #include "characterkinematic\PxCapsuleController.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

@@ -37,7 +37,7 @@
 /** @} */
 /** @} */
 
-namespace BansheeEngine
+namespace bs
 {
 	class ScriptEditorWindow;
 	class GUIGameObjectField;

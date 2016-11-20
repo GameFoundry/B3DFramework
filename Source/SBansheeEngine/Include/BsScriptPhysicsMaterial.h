@@ -6,7 +6,7 @@
 #include "BsScriptResource.h"
 #include "BsPhysicsMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

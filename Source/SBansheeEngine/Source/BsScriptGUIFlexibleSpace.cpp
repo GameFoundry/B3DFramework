@@ -11,7 +11,7 @@
 #include "BsGUISpace.h"
 #include "BsScriptGUILayout.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIFlexibleSpace::ScriptGUIFlexibleSpace(MonoObject* instance, GUIFlexibleSpace* flexibleSpace)
 		:TScriptGUIElementBase(instance, flexibleSpace), mFlexibleSpace(flexibleSpace), mIsDestroyed(false)

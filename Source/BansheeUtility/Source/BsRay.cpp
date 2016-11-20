@@ -6,7 +6,7 @@
 #include "BsAABox.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void Ray::transform(const Matrix4& matrix)
 	{

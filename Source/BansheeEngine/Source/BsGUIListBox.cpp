@@ -7,7 +7,7 @@
 #include "BsGUIManager.h"
 #include "BsGUIDropDownBoxManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIListBox::getGUITypeName()
 	{

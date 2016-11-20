@@ -10,7 +10,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptFolderMonitor::OnModifiedThunkDef ScriptFolderMonitor::OnModifiedThunk;
 	ScriptFolderMonitor::OnModifiedThunkDef ScriptFolderMonitor::OnAddedThunk;

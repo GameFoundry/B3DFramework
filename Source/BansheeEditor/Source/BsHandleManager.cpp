@@ -8,7 +8,7 @@
 #include "BsEditorSettings.h"
 #include "BsTime.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HandleManager::HandleManager()
 		: mSliderManager(nullptr), mDrawManager(nullptr), mInputStarted(false), mSettingsHash(0xFFFFFFFF)

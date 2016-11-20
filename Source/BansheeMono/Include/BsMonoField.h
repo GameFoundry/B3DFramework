@@ -4,7 +4,7 @@
 
 #include "BsMonoPrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Mono
 	 *  @{

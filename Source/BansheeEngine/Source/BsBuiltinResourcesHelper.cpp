@@ -18,7 +18,7 @@
 
 using json = nlohmann::json;
 
-namespace BansheeEngine
+namespace bs
 {
 	void BuiltinResourcesHelper::importAssets(const nlohmann::json& entries, const Path& inputFolder, 
 		const Path& outputFolder, const SPtr<ResourceManifest>& manifest, ImportMode mode)

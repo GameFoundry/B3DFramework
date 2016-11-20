@@ -9,7 +9,7 @@
 #include "BsMonoClass.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

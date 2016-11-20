@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <iphlpapi.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	void PlatformUtility::terminate(bool force)
 	{

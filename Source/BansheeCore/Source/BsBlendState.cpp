@@ -6,7 +6,7 @@
 #include "BsBlendStateRTTI.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool RENDER_TARGET_BLEND_STATE_DESC::operator == (const RENDER_TARGET_BLEND_STATE_DESC& rhs) const
 	{

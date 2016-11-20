@@ -9,7 +9,7 @@
 #include "BsScriptTexture2D.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptFontBitmap::ScriptFontBitmap(MonoObject* instance, SPtr<const FontBitmap> bitmap)
 		:ScriptObject(instance), mBitmap(bitmap)

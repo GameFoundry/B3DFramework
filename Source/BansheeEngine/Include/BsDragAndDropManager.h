@@ -8,7 +8,7 @@
 #include "BsEvent.h"
 #include <atomic>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

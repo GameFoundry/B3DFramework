@@ -6,7 +6,7 @@
 #include "BsFJoint.h"
 #include "extensions\PxJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

@@ -6,7 +6,7 @@
 #include "BsAsyncOp.h"
 #include <functional>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup CoreThread-Internal
 	 *  @{
@@ -331,7 +331,7 @@ namespace BansheeEngine
 		}
 
 		/** @copydoc CommandQueueBase::flush */
-		BansheeEngine::Queue<QueuedCommand>* flush()
+		bs::Queue<QueuedCommand>* flush()
 		{
 #if BS_DEBUG_MODE
 #if BS_THREAD_SUPPORT != 0
@@ -341,7 +341,7 @@ namespace BansheeEngine
 #endif
 
 			this->lock();
-			BansheeEngine::Queue<QueuedCommand>* commands = CommandQueueBase::flush();
+			bs::Queue<QueuedCommand>* commands = CommandQueueBase::flush();
 			this->unlock();
 
 			return commands;

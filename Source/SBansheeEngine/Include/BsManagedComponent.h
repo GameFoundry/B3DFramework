@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsComponent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEngine
 	 *  @{

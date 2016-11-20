@@ -3,7 +3,7 @@
 #include "BsManagedResourceManager.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedResourceManager::ManagedResourceManager()
 	{

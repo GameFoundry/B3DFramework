@@ -18,9 +18,9 @@
 #include "Win32/BsWin32Window.h"
 #include "BsMath.h"
 
-GLenum GLEWAPIENTRY wglewContextInit(BansheeEngine::GLSupport *glSupport);
+GLenum GLEWAPIENTRY wglewContextInit(bs::GLSupport *glSupport);
 
-namespace BansheeEngine 
+namespace bs 
 {
 	#define _MAX_CLASS_NAME_ 128
 
@@ -409,8 +409,8 @@ namespace BansheeEngine
 			buffer = mProperties.isFullScreen() ? FB_FRONT : FB_BACK;
 		}
 
-		GLenum format = BansheeEngine::GLPixelUtil::getGLOriginFormat(dst.getFormat());
-		GLenum type = BansheeEngine::GLPixelUtil::getGLOriginDataType(dst.getFormat());
+		GLenum format = bs::GLPixelUtil::getGLOriginFormat(dst.getFormat());
+		GLenum type = bs::GLPixelUtil::getGLOriginDataType(dst.getFormat());
 
 		if ((format == GL_NONE) || (type == 0))
 		{

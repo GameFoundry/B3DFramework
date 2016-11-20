@@ -9,7 +9,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoArray.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy)
 		:mManagedInstance(nullptr), mElementMonoClass(nullptr), mCopyMethod(nullptr), mElemSize(0)

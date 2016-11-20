@@ -6,7 +6,7 @@
 #include "BsCoreObjectCore.h"
 #include "BsModule.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup CoreThread-Internal
 	 *  @{

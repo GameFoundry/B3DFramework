@@ -4,7 +4,7 @@
 #include "BsDynLibManager.h"
 #include "BsDynLib.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AudioManager::AudioManager(const String& pluginName)
 		:mPlugin(nullptr), mFactory(nullptr)

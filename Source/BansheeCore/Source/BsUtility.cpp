@@ -4,7 +4,7 @@
 #include "BsRTTIType.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector<ResourceDependency> Utility::findResourceDependencies(IReflectable& obj, bool recursive)
 	{

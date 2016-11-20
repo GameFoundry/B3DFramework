@@ -28,7 +28,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptResourceManager::ScriptResourceManager()
 	{

@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CAnimation::CAnimation()
 		:mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f), mEnableCull(true), mUseBounds(false)

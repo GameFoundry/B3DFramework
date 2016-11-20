@@ -6,7 +6,7 @@
 #include "BsRenderer.h"
 #include "BsRenderQueue.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

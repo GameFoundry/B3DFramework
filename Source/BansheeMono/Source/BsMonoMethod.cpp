@@ -8,7 +8,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoMethod::MonoMethod(::MonoMethod* method)
 		:mMethod(method), mCachedReturnType(nullptr), mCachedParameters(nullptr), 

@@ -4,9 +4,9 @@
 #include "BsGLTexture.h"
 #include "GL/glew.h"
 
-GLenum GLEWAPIENTRY glewContextInit(BansheeEngine::GLSupport *glSupport);
+GLenum GLEWAPIENTRY glewContextInit(bs::GLSupport *glSupport);
 
-namespace BansheeEngine
+namespace bs
 {
     void GLSupport::initializeExtensions()
     {

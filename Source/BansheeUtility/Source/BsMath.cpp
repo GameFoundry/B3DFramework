@@ -6,7 +6,7 @@
 #include "BsVector4.h"
 #include "BsQuaternion.h"
 
-namespace BansheeEngine
+namespace bs
 {
     const float Math::POS_INFINITY = std::numeric_limits<float>::infinity();
     const float Math::NEG_INFINITY = -std::numeric_limits<float>::infinity();

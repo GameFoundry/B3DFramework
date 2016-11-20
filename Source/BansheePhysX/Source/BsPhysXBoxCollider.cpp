@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation, 
 		const Vector3& extents)

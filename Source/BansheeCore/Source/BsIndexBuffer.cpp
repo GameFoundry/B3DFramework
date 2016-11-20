@@ -4,7 +4,7 @@
 #include "BsHardwareBufferManager.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	UINT32 calcIndexSize(IndexType type)
 	{

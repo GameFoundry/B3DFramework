@@ -5,7 +5,7 @@
 #include "BsLineSegment3.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Rect3::Rect3()
 		:mCenter(BsZero), mAxisHorz(BsZero), mAxisVert(BsZero), mExtentHorz(0.0f), mExtentVert(0.0f)

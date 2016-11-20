@@ -11,7 +11,7 @@
 #include "BsCoreRenderer.h"
 #include "BsMeshUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RendererMeshData::RendererMeshData(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
 	{

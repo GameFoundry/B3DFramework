@@ -4,7 +4,7 @@
 #include "BsImporter.h"
 #include "BsFontImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Returns a name of the plugin. */
 	extern "C" BS_FONT_EXPORT const char* getPluginName()

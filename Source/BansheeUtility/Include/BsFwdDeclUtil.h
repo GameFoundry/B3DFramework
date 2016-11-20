@@ -4,7 +4,7 @@
 
 // Contains forward declares used as a convenience
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Math
 	 *  @{

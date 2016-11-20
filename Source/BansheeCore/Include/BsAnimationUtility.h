@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsAnimationCurve.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Animation
 	 *  @{

@@ -11,7 +11,7 @@
 #include "BsGameObject.h"
 #include "BsComponent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene
 	 *  @{
@@ -503,7 +503,7 @@ namespace BansheeEngine
 		template<class T, class... Args>
 		GameObjectHandle<T> addComponent(Args &&... args)
 		{
-			static_assert((std::is_base_of<BansheeEngine::Component, T>::value),
+			static_assert((std::is_base_of<bs::Component, T>::value),
 				"Specified type is not a valid Component.");
 
 			SPtr<T> gameObject(new (bs_alloc<T>()) T(mThisHandle,
@@ -542,7 +542,7 @@ namespace BansheeEngine
 		template <typename T>
 		GameObjectHandle<T> getComponent()
 		{
-			static_assert((std::is_base_of<BansheeEngine::Component, T>::value), 
+			static_assert((std::is_base_of<bs::Component, T>::value), 
 				"Specified type is not a valid Component.");
 
 			return static_object_cast<T>(getComponent(T::getRTTIStatic()));
@@ -561,7 +561,7 @@ namespace BansheeEngine
 		template <typename T>
 		Vector<GameObjectHandle<T>> getComponents()
 		{
-			static_assert((std::is_base_of<BansheeEngine::Component, T>::value), 
+			static_assert((std::is_base_of<bs::Component, T>::value), 
 				"Specified type is not a valid Component.");
 
 			Vector<GameObjectHandle<T>> output;
@@ -586,7 +586,7 @@ namespace BansheeEngine
 		template <typename T>
 		bool hasComponent()
 		{
-			static_assert((std::is_base_of<BansheeEngine::Component, T>::value), 
+			static_assert((std::is_base_of<bs::Component, T>::value), 
 				"Specified type is not a valid Component.");
 
 			for (auto entry : mComponents)
@@ -637,7 +637,7 @@ namespace BansheeEngine
 		template <typename T>
 		static SPtr<T> createEmptyComponent()
 		{
-			static_assert((std::is_base_of<BansheeEngine::Component, T>::value), "Specified type is not a valid Component.");
+			static_assert((std::is_base_of<bs::Component, T>::value), "Specified type is not a valid Component.");
 
 			T* rawPtr = new (bs_alloc<T>()) T();
 			SPtr<T> gameObject(rawPtr, &bs_delete<T>, StdAlloc<T>());

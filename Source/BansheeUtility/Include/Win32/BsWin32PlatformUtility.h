@@ -4,7 +4,7 @@
 #include "BsPrerequisitesUtil.h"
 #include <windows.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Internal-Utility
 	 *  @{

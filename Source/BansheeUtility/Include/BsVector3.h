@@ -7,7 +7,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsRadian.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Math
 	 *  @{

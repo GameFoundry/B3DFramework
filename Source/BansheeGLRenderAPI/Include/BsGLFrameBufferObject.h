@@ -7,7 +7,7 @@
 #include "BsGLPixelBuffer.h"
 #include "BsPixelData.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup GL
 	 *  @{

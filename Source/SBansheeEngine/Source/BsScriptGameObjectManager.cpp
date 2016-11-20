@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGameObjectManager::ScriptGameObjectEntry::ScriptGameObjectEntry()
 		:instance(nullptr), isComponent(false)

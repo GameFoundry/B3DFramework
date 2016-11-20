@@ -7,7 +7,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxRevoluteJointFlag::Enum toPxFlag(PhysXHingeJoint::Flag flag)
 	{

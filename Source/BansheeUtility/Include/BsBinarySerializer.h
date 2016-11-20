@@ -8,7 +8,7 @@
 #include "BsSerializedObject.h"
 #include "BsRTTIField.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Serialization
 	 *  @{

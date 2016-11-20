@@ -4,7 +4,7 @@
 
 #include "BsEditorPrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Handles-Internal
 	 *  @{

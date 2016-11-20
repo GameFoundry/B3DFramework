@@ -6,7 +6,7 @@
 #include "BsImportOptions.h"
 #include "BsAnimationClip.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Importer
 	 *  @{

@@ -14,7 +14,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const String GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE = "DropDownEntryToggleBtn";
 	const String GUIDropDownContent::ENTRY_STYLE_TYPE = "DropDownEntryBtn";

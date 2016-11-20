@@ -9,7 +9,7 @@
 
 #define GL_DEPTH24_STENCIL8_EXT 0x88F0
 
-namespace BansheeEngine 
+namespace bs 
 {  
 	/** @addtogroup GL
 	 *  @{

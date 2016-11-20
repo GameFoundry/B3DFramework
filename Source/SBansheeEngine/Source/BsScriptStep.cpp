@@ -4,7 +4,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include <BsScriptStep.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptStep::stepField = nullptr;
 

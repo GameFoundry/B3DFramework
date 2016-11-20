@@ -9,7 +9,7 @@
 #include "BsVector2I.h"
 #include "BsRectOffset.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

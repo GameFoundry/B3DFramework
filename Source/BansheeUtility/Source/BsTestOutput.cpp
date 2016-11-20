@@ -3,7 +3,7 @@
 #include "BsTestOutput.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void ExceptionTestOutput::outputFail(const String& desc, const String& function, const String& file, long line)
 	{

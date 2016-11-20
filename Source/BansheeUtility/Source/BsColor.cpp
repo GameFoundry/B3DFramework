@@ -3,7 +3,7 @@
 #include "BsColor.h"
 #include "BsMath.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     const Color Color::ZERO = Color(0.0,0.0,0.0,0.0);
     const Color Color::Black = Color(0.0,0.0,0.0);

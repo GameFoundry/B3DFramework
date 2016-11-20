@@ -9,7 +9,7 @@
 #include "BsManagedSerializableDictionary.h"
 #include "BsManagedSerializableDiffRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedSerializableDiff::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
 		const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification)

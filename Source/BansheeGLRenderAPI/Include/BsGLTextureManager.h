@@ -7,7 +7,7 @@
 #include "BsGLSupport.h"
 #include "BsTextureManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup GL
 	 *  @{

@@ -5,7 +5,7 @@
 #include "BsOAAudioClip.h"
 #include "AL/al.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OAAudioSource::OAAudioSource()
 		: mSavedTime(0.0f), mState(AudioSourceState::Stopped), mSavedState(AudioSourceState::Stopped)

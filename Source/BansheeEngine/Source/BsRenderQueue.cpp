@@ -9,7 +9,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderQueue::RenderQueue(StateReduction mode)
 		:mStateReductionMode(mode)

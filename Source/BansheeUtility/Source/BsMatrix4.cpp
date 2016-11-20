@@ -6,7 +6,7 @@
 #include "BsMatrix3.h"
 #include "BsQuaternion.h"
 
-namespace BansheeEngine
+namespace bs
 {
     const Matrix4 Matrix4::ZERO(
         0.0f, 0.0f, 0.0f, 0.0f,

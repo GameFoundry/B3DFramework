@@ -7,7 +7,7 @@
 #include "BsDebug.h"
 #include "BsScriptPixelData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPixelUtility::ScriptPixelUtility(MonoObject* instance)
 		:ScriptObject(instance)

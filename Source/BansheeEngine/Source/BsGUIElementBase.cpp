@@ -8,7 +8,7 @@
 #include "BsException.h"
 #include "BsGUIWidget.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIElementBase::GUIElementBase()
 		: mParentWidget(nullptr), mAnchorParent(nullptr), mUpdateParent(nullptr), mParentElement(nullptr)

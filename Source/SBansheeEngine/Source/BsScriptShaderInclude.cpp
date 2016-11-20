@@ -3,7 +3,7 @@
 #include "BsScriptShaderInclude.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptShaderInclude::ScriptShaderInclude(MonoObject* instance, const HShaderInclude& shaderInclude)
 		:TScriptResource(instance, shaderInclude)

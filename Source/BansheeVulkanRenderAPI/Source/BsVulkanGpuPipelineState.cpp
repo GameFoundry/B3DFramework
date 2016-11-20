@@ -13,7 +13,7 @@
 #include "BsBlendState.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline)
 		:VulkanResource(owner, true), mPipeline(pipeline)

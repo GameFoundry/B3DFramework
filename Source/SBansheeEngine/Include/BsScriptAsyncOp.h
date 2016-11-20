@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsAsyncOp.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

@@ -10,7 +10,7 @@
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptRenderTexture2D::ScriptRenderTexture2D(const SPtr<RenderTarget>& target, MonoObject* instance)
 		:ScriptObject(instance), mRenderTarget(target)

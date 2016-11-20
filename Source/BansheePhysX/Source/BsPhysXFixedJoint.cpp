@@ -8,7 +8,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysXFixedJoint::PhysXFixedJoint(PxPhysics* physx, const FIXED_JOINT_DESC& desc)
 		:FixedJoint(desc)

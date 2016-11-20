@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CCollider::CCollider(const HSceneObject& parent)
 		: Component(parent)

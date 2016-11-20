@@ -30,7 +30,7 @@
 #include "BsScriptManagedResource.h"
 #include <BsScriptStep.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* ManagedSerializableAssemblyInfo::getRTTIStatic()
 	{

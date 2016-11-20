@@ -6,7 +6,7 @@
 
 using namespace std::chrono;
 
-namespace BansheeEngine
+namespace bs
 {
 	String UUIDGenerator::generateRandom()
 	{

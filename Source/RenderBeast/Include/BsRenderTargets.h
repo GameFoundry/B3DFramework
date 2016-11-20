@@ -5,7 +5,7 @@
 #include "BsRenderBeastPrerequisites.h"
 #include "BsPixelUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

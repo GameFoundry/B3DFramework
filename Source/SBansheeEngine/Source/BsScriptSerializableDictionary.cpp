@@ -10,7 +10,7 @@
 #include "BsManagedSerializableObjectInfo.h"
 #include "BsScriptSerializableProperty.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializableDictionary::ScriptSerializableDictionary(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
 		:ScriptObject(instance), mTypeInfo(typeInfo)

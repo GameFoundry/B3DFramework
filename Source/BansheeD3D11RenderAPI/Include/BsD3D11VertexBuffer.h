@@ -6,7 +6,7 @@
 #include "BsVertexBuffer.h"
 #include "BsD3D11HardwareBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup D3D11
 	 *  @{

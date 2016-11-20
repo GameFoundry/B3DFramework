@@ -6,7 +6,7 @@
 #include "BsMonoMethod.h"
 #include "BsScriptRigidbody.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptJoint::OnJointBreakThunkDef ScriptJoint::onJointBreakThunk = nullptr;
 

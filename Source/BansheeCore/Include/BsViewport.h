@@ -10,7 +10,7 @@
 #include "BsRect2.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Implementation
 	 *  @{

@@ -9,7 +9,7 @@
 #include "BsManagedSerializableObjectInfo.h"
 #include "BsScriptSerializableProperty.h"
 
-namespace BansheeEngine
+namespace bs
 {
 
 	ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)

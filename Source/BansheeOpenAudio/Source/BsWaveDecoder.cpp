@@ -3,7 +3,7 @@
 #include "BsWaveDecoder.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 #define WAVE_FORMAT_PCM			0x0001
 #define WAVE_FORMAT_EXTENDED	0xFFFE

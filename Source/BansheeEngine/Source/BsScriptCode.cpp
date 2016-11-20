@@ -4,7 +4,7 @@
 #include "BsResources.h"
 #include "BsScriptCodeRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCode::ScriptCode(const WString& data, bool editorScript)
 		:Resource(false), mString(data), mEditorScript(editorScript)

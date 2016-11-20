@@ -23,7 +23,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GizmoManager::VERTEX_BUFFER_GROWTH = 4096;
 	const UINT32 GizmoManager::INDEX_BUFFER_GROWTH = 4096 * 2;

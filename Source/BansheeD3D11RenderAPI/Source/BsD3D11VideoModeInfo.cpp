@@ -3,7 +3,7 @@
 #include "BsD3D11VideoModeInfo.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11VideoModeInfo::D3D11VideoModeInfo(IDXGIAdapter* dxgiAdapter)
 	{

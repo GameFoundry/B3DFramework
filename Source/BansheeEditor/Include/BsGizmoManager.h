@@ -10,7 +10,7 @@
 #include "BsGpuParam.h"
 #include "BsDrawHelper.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene-Editor
 	 *  @{

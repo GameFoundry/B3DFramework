@@ -7,7 +7,7 @@
 #include "BsMonoUtil.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Mono
 	 *  @{

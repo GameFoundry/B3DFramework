@@ -3,7 +3,7 @@
 #include "BsGUITreeViewEditBox.h"
 #include "BsGUICommandEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUITreeViewEditBox::getGUITypeName()
 	{

@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include <istream>
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Filesystem
 	 *  @{

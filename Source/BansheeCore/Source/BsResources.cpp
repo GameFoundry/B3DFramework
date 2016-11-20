@@ -13,7 +13,7 @@
 #include "BsSavedResourceData.h"
 #include "BsResourceListenerManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Resources::Resources()
 	{

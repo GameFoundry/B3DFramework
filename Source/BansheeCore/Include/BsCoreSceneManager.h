@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsGameObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene-Internal
 	 *  @{

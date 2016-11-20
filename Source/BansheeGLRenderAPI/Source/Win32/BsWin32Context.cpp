@@ -7,7 +7,7 @@
 #include "Win32/BsWin32Context.h"
 #include "BsException.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
     Win32Context::Win32Context(HDC hdc, HGLRC glrc, bool ownsContext):
 		mHDC(hdc), mGlrc(glrc), mOwnsContext(ownsContext)

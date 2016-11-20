@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	OSInputHandler::OSInputHandler()
 		:mLastCursorPosSet(false), mMouseScroll(0.0f)

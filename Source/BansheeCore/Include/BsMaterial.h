@@ -14,7 +14,7 @@
 #include "BsMatrix3.h"
 #include "BsMatrix4.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

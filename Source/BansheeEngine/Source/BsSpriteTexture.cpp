@@ -6,7 +6,7 @@
 #include "BsResources.h"
 #include "BsBuiltinResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SpriteTexture::SpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
 		:Resource(false), mAtlasTexture(texture), mUVOffset(uvOffset), mUVScale(uvScale)

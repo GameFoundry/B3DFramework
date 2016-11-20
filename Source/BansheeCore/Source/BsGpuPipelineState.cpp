@@ -9,7 +9,7 @@
 #include "BsGpuPipelineParamInfo.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** Converts a sim thread pipeline state descriptor to a core thread one. */
 	void convertPassDesc(const PIPELINE_STATE_DESC& input, PIPELINE_STATE_CORE_DESC& output)

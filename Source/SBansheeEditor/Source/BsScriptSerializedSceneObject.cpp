@@ -7,7 +7,7 @@
 #include "BsSceneObject.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializedSceneObject::ScriptSerializedSceneObject(MonoObject* instance, const HSceneObject& so, bool recordHierarchy)
 		: ScriptObject(instance), mSO(so), mRecordHierarchy(recordHierarchy), mSerializedObject(nullptr), mSerializedObjectSize(0)

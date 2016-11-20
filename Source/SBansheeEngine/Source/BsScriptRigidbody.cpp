@@ -12,7 +12,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptRigidbody::OnCollisionThunkDef ScriptRigidbody::onCollisionBeginThunk = nullptr;
 	ScriptRigidbody::OnCollisionThunkDef ScriptRigidbody::onCollisionStayThunk = nullptr;

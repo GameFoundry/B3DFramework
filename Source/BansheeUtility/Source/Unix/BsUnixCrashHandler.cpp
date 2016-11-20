@@ -11,7 +11,7 @@
 #include <ctime>
 #include <sstream>
 
-namespace BansheeEngine
+namespace bs
 {
 	CrashHandler::CrashHandler() {}
 	CrashHandler::~CrashHandler() {}

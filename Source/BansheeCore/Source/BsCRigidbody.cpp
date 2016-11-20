@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CRigidbody::CRigidbody(const HSceneObject& parent)
 		: Component(parent)

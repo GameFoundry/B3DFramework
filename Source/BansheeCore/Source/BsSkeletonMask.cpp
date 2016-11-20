@@ -3,7 +3,7 @@
 #include "BsSkeletonMask.h"
 #include "BsSkeleton.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SkeletonMask::SkeletonMask(UINT32 numBones)
 		:mIsDisabled(numBones)

@@ -9,7 +9,7 @@
 #include "BsMeshImportOptions.h"
 #include "BsGpuProgram.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

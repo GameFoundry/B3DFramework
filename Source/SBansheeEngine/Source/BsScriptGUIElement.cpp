@@ -14,7 +14,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIElementBaseTBase::ScriptGUIElementBaseTBase(MonoObject* instance)
 		:ScriptObjectBase(instance), mIsDestroyed(false), mElement(nullptr), mParent(nullptr)

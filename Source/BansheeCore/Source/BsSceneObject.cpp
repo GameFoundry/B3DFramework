@@ -12,7 +12,7 @@
 #include "BsMatrix3.h"
 #include "BsCoreApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SceneObject::SceneObject(const String& name, UINT32 flags)
 		: GameObject(), mPrefabHash(0), mFlags(flags), mPosition(Vector3::ZERO), mRotation(Quaternion::IDENTITY)

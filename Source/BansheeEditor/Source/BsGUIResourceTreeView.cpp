@@ -11,7 +11,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const MessageId GUIResourceTreeView::SELECTION_CHANGED_MSG = MessageId("ResourceTreeView_SelectionChanged");
 

@@ -5,7 +5,7 @@
 #include "BsGLSupport.h"
 #include "BsAsyncOp.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLRenderWindowManager::GLRenderWindowManager(GLRenderAPI* renderSystem)
 		:mRenderSystem(renderSystem)

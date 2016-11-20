@@ -5,7 +5,7 @@
 #include "BsException.h"
 #include "BsIReflectableRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void IReflectable::_registerDerivedClass(RTTITypeBase* derivedClass)
 	{

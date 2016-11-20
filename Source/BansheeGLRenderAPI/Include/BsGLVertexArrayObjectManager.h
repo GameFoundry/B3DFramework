@@ -5,7 +5,7 @@
 #include "BsGLPrerequisites.h"
 #include "BsModule.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{

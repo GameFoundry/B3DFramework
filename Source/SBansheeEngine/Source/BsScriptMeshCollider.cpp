@@ -5,7 +5,7 @@
 #include "BsScriptPhysicsMesh.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptMeshCollider::ScriptMeshCollider(MonoObject* instance, const SPtr<Collider>& collider)
 		:TScriptCollider(instance, collider)

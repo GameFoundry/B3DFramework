@@ -7,7 +7,7 @@
 #include "BsGameObjectHandle.h"
 #include "BsGameObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

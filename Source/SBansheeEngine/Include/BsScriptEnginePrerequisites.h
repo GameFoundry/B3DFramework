@@ -42,7 +42,7 @@
 /** @} */
 /** @} */
 
-namespace BansheeEngine
+namespace bs
 {
 	class ScriptObjectBase;
 	class ScriptResourceManager;

@@ -4,7 +4,7 @@
 #include "BsGUIDropDownBoxManager.h"
 #include "BsGUIManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIContextMenu::GUIContextMenu()
 		:GUIMenu(), mContextMenuOpen(false)

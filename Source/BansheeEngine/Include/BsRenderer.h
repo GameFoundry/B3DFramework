@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "BsCoreRenderer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Renderer-Engine-Internal
 	 *  @{

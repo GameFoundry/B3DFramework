@@ -3,7 +3,7 @@
 #include "BsSpriteManager.h"
 #include "BsSpriteMaterials.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SpriteManager::SpriteManager()
 	{

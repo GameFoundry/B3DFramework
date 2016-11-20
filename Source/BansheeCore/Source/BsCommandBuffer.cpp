@@ -3,7 +3,7 @@
 #include "BsCommandBuffer.h"
 #include "BsCommandBufferManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void CommandSyncMask::addDependency(const SPtr<CommandBuffer>& buffer)
 	{

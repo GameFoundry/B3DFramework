@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHandleSliderDisc::ScriptHandleSliderDisc(MonoObject* instance, const Vector3& normal, float radius, bool fixedScale, UINT64 layer)
 		:ScriptObject(instance), mSlider(nullptr)

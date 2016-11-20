@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsMessageHandler.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Map<String, UINT32> MessageId::UniqueMessageIds;
 	UINT32 MessageId::NextMessageId = 0;

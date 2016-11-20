@@ -7,7 +7,7 @@
 #include "Win32/BsWin32GLSupport.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup GL
 	 *  @{

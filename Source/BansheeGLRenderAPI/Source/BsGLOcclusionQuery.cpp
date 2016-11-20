@@ -5,7 +5,7 @@
 #include "BsMath.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLOcclusionQuery::GLOcclusionQuery(bool binary, UINT32 deviceIdx)
 		:OcclusionQuery(binary), mQueryObj(0), mFinalized(false), mEndIssued(false), mNumSamples(0)

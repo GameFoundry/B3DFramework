@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsGameObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene
 	 *  @{

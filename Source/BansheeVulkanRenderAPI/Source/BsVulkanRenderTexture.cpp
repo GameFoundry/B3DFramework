@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanRenderTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanRenderTextureCore::VulkanRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, GpuDeviceFlags deviceMask)
 		:RenderTextureCore(desc, deviceMask), mProperties(desc, false)

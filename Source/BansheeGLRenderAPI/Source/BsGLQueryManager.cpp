@@ -5,7 +5,7 @@
 #include "BsGLTimerQuery.h"
 #include "BsGLOcclusionQuery.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<EventQuery> GLQueryManager::createEventQuery(UINT32 deviceIdx) const
 	{

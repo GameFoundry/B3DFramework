@@ -3,7 +3,7 @@
 #include "BsDropDownAreaPlacement.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DropDownAreaPlacement DropDownAreaPlacement::aroundPosition(const Vector2I& position)
 	{

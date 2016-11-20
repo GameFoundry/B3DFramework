@@ -9,7 +9,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	inline size_t ManagedSerializableObject::Hash::operator()(const ManagedSerializableFieldKey& x) const
 	{

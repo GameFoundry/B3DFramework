@@ -6,7 +6,7 @@
 #include "BsVector2I.h"
 #include "BsRect2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

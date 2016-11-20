@@ -7,7 +7,7 @@
 #include "BsD3D11GpuParamBlockBuffer.h"
 #include "BsGpuParamDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11HardwareBufferCoreManager::D3D11HardwareBufferCoreManager(D3D11Device& device)
 		: mDevice(device)

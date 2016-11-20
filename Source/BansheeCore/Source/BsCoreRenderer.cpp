@@ -11,7 +11,7 @@
 #include "BsRasterizerState.h"
 #include "BsGpuParams.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CoreRenderer::CoreRenderer()
 	{ }

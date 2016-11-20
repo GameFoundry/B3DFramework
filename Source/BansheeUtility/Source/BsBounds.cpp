@@ -5,7 +5,7 @@
 #include "BsPlane.h"
 #include "BsSphere.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Bounds::Bounds()
 	{ }

@@ -10,7 +10,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptGUIElementStyle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUISkin::ScriptGUISkin(MonoObject* instance, const HGUISkin& skin)
 		:TScriptResource(instance, skin)

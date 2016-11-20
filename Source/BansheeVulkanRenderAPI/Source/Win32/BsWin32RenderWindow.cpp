@@ -16,7 +16,7 @@
 #include "BsVulkanQueue.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Win32RenderWindowProperties::Win32RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 		:RenderWindowProperties(desc)

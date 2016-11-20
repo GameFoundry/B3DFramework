@@ -6,7 +6,7 @@
 
 
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Testing
 	 *  @{
@@ -50,7 +50,7 @@ namespace BansheeEngine
 		template <class T>
 		static SPtr<TestSuite> create()
 		{
-			static_assert((std::is_base_of<TestSuite, T>::value), "Invalid test suite type. It needs to derive from BansheeEngine::TestSuite.");
+			static_assert((std::is_base_of<TestSuite, T>::value), "Invalid test suite type. It needs to derive from bs::TestSuite.");
 
 			return std::static_pointer_cast<TestSuite>(bs_shared_ptr_new<T>());
 		}

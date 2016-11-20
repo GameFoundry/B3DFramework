@@ -15,7 +15,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine 
+namespace bs 
 {
 	void RenderAPI::setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams)
 	{

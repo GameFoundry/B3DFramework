@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "BsGUIElement.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

@@ -6,7 +6,7 @@
 #include "BsScriptMeshData.h"
 #include "BsMonoClass.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAudioClip::ScriptAudioClip(MonoObject* instance, const HAudioClip& audioClip)
 		:TScriptResource(instance, audioClip)

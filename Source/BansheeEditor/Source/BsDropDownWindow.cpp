@@ -12,7 +12,7 @@
 #include "BsDropDownWindowManager.h"
 #include "BsCamera.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DropDownWindow::DropDownWindow(const SPtr<RenderWindow>& parent, const SPtr<Camera>& camera,
 		const Vector2I& position, UINT32 width, UINT32 height)

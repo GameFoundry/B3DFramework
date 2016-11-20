@@ -3,7 +3,7 @@
 #include "BsAudio.h"
 #include "BsAudioSource.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void Audio::play(const HAudioClip& clip, const Vector3& position, float volume)
 	{

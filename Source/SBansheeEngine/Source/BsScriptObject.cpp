@@ -6,7 +6,7 @@
 #include "BsCrashHandler.h"
 #include "BsMonoField.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptObjectBase::ScriptObjectBase(MonoObject* instance)
 		:mManagedInstance(instance)

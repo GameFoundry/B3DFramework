@@ -22,7 +22,7 @@
 #include "BsDebug.h"
 #include "BsGameResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptBuildManager::ScriptBuildManager(MonoObject* instance)
 		:ScriptObject(instance)

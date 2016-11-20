@@ -3,7 +3,7 @@
 #include "BsEditorWidgetLayout.h"
 #include "BsEditorWidgetLayoutRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorWidgetLayout::Entry::Entry()
 		:isDocked(true), x(0), y(0), width(0), height(0)

@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCBoxColliderRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CBoxCollider::CBoxCollider(const HSceneObject& parent, const Vector3& extents)
 		: CCollider(parent), mExtents(extents)

@@ -6,7 +6,7 @@
 #include "BsRasterizerState.h"
 #include "BsBlendState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SamplerState> RenderStateManager::createSamplerState(const SAMPLER_STATE_DESC& desc) const
 	{

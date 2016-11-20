@@ -3,7 +3,7 @@
 #include "BsGUIElementStyle.h"
 #include "BsGUIElementStyleRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* GUIElementStyle::getRTTIStatic()
 	{

@@ -5,7 +5,7 @@
 #include "BsException.h"
 #include "BsRendererFactory.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RendererManager::~RendererManager()
 	{

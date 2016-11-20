@@ -11,7 +11,7 @@
 #include "BsGpuPipelineState.h"
 #include "BsGpuPipelineParamInfo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI-Internal
 	 *  @{

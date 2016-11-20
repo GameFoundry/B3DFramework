@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsShortcutKey.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

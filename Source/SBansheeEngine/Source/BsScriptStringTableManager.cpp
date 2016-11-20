@@ -9,7 +9,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptStringTable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptStringTableManager::ScriptStringTableManager(MonoObject* instance)
 		:ScriptObject(instance)

@@ -4,7 +4,7 @@
 #include "BsResources.h"
 #include "BsShaderIncludeRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ShaderInclude::ShaderInclude(const String& includeString)
 		:Resource(false), mString(includeString)

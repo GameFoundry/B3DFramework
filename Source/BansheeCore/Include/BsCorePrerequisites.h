@@ -217,7 +217,7 @@
 
 #include "BsHString.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	static const StringID RenderAPIAny = "AnyRenderAPI";
 	static const StringID RendererAny = "AnyRenderer";
@@ -446,7 +446,7 @@ namespace BansheeEngine
 /* 						         Typedefs								*/
 /************************************************************************/
 
-namespace BansheeEngine
+namespace bs
 {
 	typedef CoreThreadAccessor<CommandQueueNoSync> CoreAccessor;
 	typedef CoreThreadAccessor<CommandQueueSync> SyncedCoreAccessor;
@@ -455,7 +455,7 @@ namespace BansheeEngine
 /************************************************************************/
 /* 									RTTI                      			*/
 /************************************************************************/
-namespace BansheeEngine
+namespace bs
 {
 	enum TypeID_Core
 	{
@@ -571,7 +571,7 @@ namespace BansheeEngine
 
 #include "BsResourceHandle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources
 	 *  @{
@@ -596,7 +596,7 @@ namespace BansheeEngine
 
 #include "BsGameObjectHandle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene
 	 *  @{
@@ -625,7 +625,7 @@ namespace BansheeEngine
 	/** @} */
 }
 
-namespace BansheeEngine
+namespace bs
 {
 	/**
 	 * Defers function execution until the next frame. If this function is called within another deferred call, then it will

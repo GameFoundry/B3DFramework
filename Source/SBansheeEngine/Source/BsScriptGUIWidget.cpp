@@ -10,7 +10,7 @@
 #include "BsSceneManager.h"
 #include "BsBuiltinResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptGUIWidget::sGUIPanelField = nullptr;
 

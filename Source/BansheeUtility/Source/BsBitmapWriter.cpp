@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsBitmapWriter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 #pragma pack(push, 2) // Align to 2byte boundary so we don't get extra 2 bytes for this struct
 

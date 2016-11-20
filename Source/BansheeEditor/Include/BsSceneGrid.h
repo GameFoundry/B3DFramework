@@ -7,7 +7,7 @@
 #include "BsColor.h"
 #include "BsMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Scene-Editor-Internal
 	 *  @{

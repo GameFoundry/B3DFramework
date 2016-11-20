@@ -3,7 +3,7 @@
 #include "BsTimerQuery.h"
 #include "BsQueryManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<TimerQuery> TimerQuery::create(UINT32 deviceIdx)
 	{

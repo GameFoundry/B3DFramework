@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "vorbis\vorbisenc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

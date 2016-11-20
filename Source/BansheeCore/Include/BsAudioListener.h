@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsVector3.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Audio
 	 *  @{

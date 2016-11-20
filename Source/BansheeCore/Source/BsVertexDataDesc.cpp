@@ -4,7 +4,7 @@
 #include "BsHardwareBufferManager.h"
 #include "BsVertexDataDescRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void VertexDataDesc::addVertElem(VertexElementType type, VertexElementSemantic semantic, UINT32 semanticIdx, 
 		UINT32 streamIdx, UINT32 instanceStepRate)

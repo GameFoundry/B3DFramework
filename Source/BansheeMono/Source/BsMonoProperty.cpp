@@ -7,7 +7,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/class.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoProperty::MonoProperty(::MonoProperty* monoProp)
 		:mProperty(monoProp), mReturnType(nullptr), mIsIndexed(false), mIsFullyInitialized(false)

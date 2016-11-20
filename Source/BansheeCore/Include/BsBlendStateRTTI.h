@@ -7,7 +7,7 @@
 #include "BsBlendState.h"
 #include "BsRenderStateManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

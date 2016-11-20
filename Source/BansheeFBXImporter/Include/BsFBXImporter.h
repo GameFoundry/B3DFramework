@@ -9,7 +9,7 @@
 
 #define FBX_IMPORT_MAX_UV_LAYERS 2
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup FBX
 	 *  @{

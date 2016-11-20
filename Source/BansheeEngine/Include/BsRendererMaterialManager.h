@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsRendererMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Renderer-Engine-Internal
 	 *  @{

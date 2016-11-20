@@ -7,7 +7,7 @@
 #include "BsMeshImportOptions.h"
 #include "BsAnimationClipRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAnimation::OnEventTriggeredThunkDef ScriptAnimation::sOnEventTriggeredThunk = nullptr;
 

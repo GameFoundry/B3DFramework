@@ -4,7 +4,7 @@
 #include "BsOAAudio.h"
 #include "AL/al.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OAAudioListener::OAAudioListener()
 	{

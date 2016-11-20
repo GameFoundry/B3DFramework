@@ -3,7 +3,7 @@
 #include "BsSavedResourceData.h"
 #include "BsSavedResourceDataRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SavedResourceData::SavedResourceData()
 		:mAllowAsync(true)

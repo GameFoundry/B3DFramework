@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Physics
 	 *  @{

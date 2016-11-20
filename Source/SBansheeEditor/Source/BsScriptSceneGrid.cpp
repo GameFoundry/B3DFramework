@@ -5,7 +5,7 @@
 #include "BsEditorApplication.h"
 #include "BsSceneGrid.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSceneGrid::ScriptSceneGrid(MonoObject* object, const SPtr<Camera>& camera)
 		:ScriptObject(object), mSceneGrid(nullptr)

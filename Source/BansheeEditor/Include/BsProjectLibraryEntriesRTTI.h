@@ -6,7 +6,7 @@
 #include "BsRTTIType.h"
 #include "BsProjectLibraryEntries.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Editor
@@ -42,11 +42,11 @@ namespace BansheeEngine
 		}
 	};
 
-	template<> struct RTTIPlainType<BansheeEngine::ProjectLibrary::FileEntry>
+	template<> struct RTTIPlainType<bs::ProjectLibrary::FileEntry>
 	{	
-		enum { id = BansheeEngine::TID_ProjectLibraryResEntry }; enum { hasDynamicSize = 1 };
+		enum { id = bs::TID_ProjectLibraryResEntry }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const BansheeEngine::ProjectLibrary::FileEntry& data, char* memory)
+		static void toMemory(const bs::ProjectLibrary::FileEntry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			char* memoryStart = memory;
@@ -62,7 +62,7 @@ namespace BansheeEngine
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		static UINT32 fromMemory(BansheeEngine::ProjectLibrary::FileEntry& data, char* memory)
+		static UINT32 fromMemory(bs::ProjectLibrary::FileEntry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			memcpy(&size, memory, sizeof(UINT32));
@@ -70,7 +70,7 @@ namespace BansheeEngine
 
 			UINT32 type;
 			memory = rttiReadElem(type, memory);
-			data.type = (BansheeEngine::ProjectLibrary::LibraryEntryType)type;
+			data.type = (bs::ProjectLibrary::LibraryEntryType)type;
 
 			memory = rttiReadElem(data.path, memory);
 			memory = rttiReadElem(data.elementName, memory);
@@ -79,7 +79,7 @@ namespace BansheeEngine
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const BansheeEngine::ProjectLibrary::FileEntry& data)	
+		static UINT32 getDynamicSize(const bs::ProjectLibrary::FileEntry& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32) + rttiGetElemSize(data.type) + rttiGetElemSize(data.path) + rttiGetElemSize(data.elementName) +
 				rttiGetElemSize(data.lastUpdateTime);
@@ -95,11 +95,11 @@ namespace BansheeEngine
 		}	
 	}; 
 
-	template<> struct RTTIPlainType<BansheeEngine::ProjectLibrary::DirectoryEntry>
+	template<> struct RTTIPlainType<bs::ProjectLibrary::DirectoryEntry>
 	{	
-		enum { id = BansheeEngine::TID_ProjectLibraryDirEntry }; enum { hasDynamicSize = 1 };
+		enum { id = bs::TID_ProjectLibraryDirEntry }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const BansheeEngine::ProjectLibrary::DirectoryEntry& data, char* memory)
+		static void toMemory(const bs::ProjectLibrary::DirectoryEntry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			char* memoryStart = memory;
@@ -115,14 +115,14 @@ namespace BansheeEngine
 
 			for(auto& child : data.mChildren)
 			{
-				if(child->type == BansheeEngine::ProjectLibrary::LibraryEntryType::File)
+				if(child->type == bs::ProjectLibrary::LibraryEntryType::File)
 				{
-					BansheeEngine::ProjectLibrary::FileEntry* childResEntry = static_cast<BansheeEngine::ProjectLibrary::FileEntry*>(child);
+					bs::ProjectLibrary::FileEntry* childResEntry = static_cast<bs::ProjectLibrary::FileEntry*>(child);
 					memory = rttiWriteElem(*childResEntry, memory, size);
 				}
-				else if(child->type == BansheeEngine::ProjectLibrary::LibraryEntryType::Directory)
+				else if(child->type == bs::ProjectLibrary::LibraryEntryType::Directory)
 				{
-					BansheeEngine::ProjectLibrary::DirectoryEntry* childDirEntry = static_cast<BansheeEngine::ProjectLibrary::DirectoryEntry*>(child);
+					bs::ProjectLibrary::DirectoryEntry* childDirEntry = static_cast<bs::ProjectLibrary::DirectoryEntry*>(child);
 					memory = rttiWriteElem(*childDirEntry, memory, size);
 				}
 			}
@@ -130,7 +130,7 @@ namespace BansheeEngine
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		static UINT32 fromMemory(BansheeEngine::ProjectLibrary::DirectoryEntry& data, char* memory)
+		static UINT32 fromMemory(bs::ProjectLibrary::DirectoryEntry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			memcpy(&size, memory, sizeof(UINT32));
@@ -145,20 +145,20 @@ namespace BansheeEngine
 
 			for(UINT32 i = 0; i < numChildren; i++)
 			{
-				BansheeEngine::ProjectLibrary::LibraryEntryType childType = BansheeEngine::ProjectLibrary::LibraryEntryType::File;
+				bs::ProjectLibrary::LibraryEntryType childType = bs::ProjectLibrary::LibraryEntryType::File;
 				rttiReadElem(childType, memory + sizeof(UINT32)); // Skip ahead to get type
 
-				if(childType == BansheeEngine::ProjectLibrary::LibraryEntryType::File)
+				if(childType == bs::ProjectLibrary::LibraryEntryType::File)
 				{
-					BansheeEngine::ProjectLibrary::FileEntry* childResEntry = bs_new<BansheeEngine::ProjectLibrary::FileEntry>(); // Note: Assumes that ProjectLibrary takes care of the cleanup
+					bs::ProjectLibrary::FileEntry* childResEntry = bs_new<bs::ProjectLibrary::FileEntry>(); // Note: Assumes that ProjectLibrary takes care of the cleanup
 					memory = rttiReadElem(*childResEntry, memory);
 
 					childResEntry->parent = &data;
 					data.mChildren.push_back(childResEntry);
 				}
-				else if(childType == BansheeEngine::ProjectLibrary::LibraryEntryType::Directory)
+				else if(childType == bs::ProjectLibrary::LibraryEntryType::Directory)
 				{
-					BansheeEngine::ProjectLibrary::DirectoryEntry* childDirEntry = bs_new<BansheeEngine::ProjectLibrary::DirectoryEntry>(); // Note: Assumes that ProjectLibrary takes care of the cleanup
+					bs::ProjectLibrary::DirectoryEntry* childDirEntry = bs_new<bs::ProjectLibrary::DirectoryEntry>(); // Note: Assumes that ProjectLibrary takes care of the cleanup
 					memory = rttiReadElem(*childDirEntry, memory);
 
 					childDirEntry->parent = &data;
@@ -169,7 +169,7 @@ namespace BansheeEngine
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const BansheeEngine::ProjectLibrary::DirectoryEntry& data)	
+		static UINT32 getDynamicSize(const bs::ProjectLibrary::DirectoryEntry& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32) + rttiGetElemSize(data.type) + rttiGetElemSize(data.path) + rttiGetElemSize(data.elementName);
 
@@ -177,14 +177,14 @@ namespace BansheeEngine
 
 			for(auto& child : data.mChildren)
 			{
-				if(child->type == BansheeEngine::ProjectLibrary::LibraryEntryType::File)
+				if(child->type == bs::ProjectLibrary::LibraryEntryType::File)
 				{
-					BansheeEngine::ProjectLibrary::FileEntry* childResEntry = static_cast<BansheeEngine::ProjectLibrary::FileEntry*>(child);
+					bs::ProjectLibrary::FileEntry* childResEntry = static_cast<bs::ProjectLibrary::FileEntry*>(child);
 					dataSize += rttiGetElemSize(*childResEntry);
 				}
-				else if(child->type == BansheeEngine::ProjectLibrary::LibraryEntryType::Directory)
+				else if(child->type == bs::ProjectLibrary::LibraryEntryType::Directory)
 				{
-					BansheeEngine::ProjectLibrary::DirectoryEntry* childDirEntry = static_cast<BansheeEngine::ProjectLibrary::DirectoryEntry*>(child);
+					bs::ProjectLibrary::DirectoryEntry* childDirEntry = static_cast<bs::ProjectLibrary::DirectoryEntry*>(child);
 					dataSize += rttiGetElemSize(*childDirEntry);
 				}
 			}

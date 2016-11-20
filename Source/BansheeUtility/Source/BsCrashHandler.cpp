@@ -5,7 +5,7 @@
 #include "BsFileSystem.h"
 #include "BsPath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String CrashHandler::sCrashReportFolder = "CrashReports";
 	const String CrashHandler::sCrashLogName = "log.html";

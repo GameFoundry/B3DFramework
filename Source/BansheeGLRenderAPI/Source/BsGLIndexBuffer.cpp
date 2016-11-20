@@ -5,7 +5,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	GLIndexBufferCore::GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:IndexBufferCore(desc, deviceMask), mUsage(desc.usage)

@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCSliderJointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CSliderJoint::CSliderJoint()
 		: CJoint(mDesc)

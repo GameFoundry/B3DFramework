@@ -4,7 +4,7 @@
 #include "BsCLightRTTI.h"
 #include "BsSceneManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CLight::CLight(const HSceneObject& parent, LightType type, Color color,
 		float intensity, float range, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)

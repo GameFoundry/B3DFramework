@@ -18,7 +18,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUITextureField::DEFAULT_LABEL_WIDTH = 100;
 

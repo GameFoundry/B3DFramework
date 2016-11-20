@@ -13,7 +13,7 @@
 #include "BsRendererCamera.h"
 #include "BsRendererObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

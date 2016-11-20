@@ -5,7 +5,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ShortcutManager::ShortcutManager()
 	{

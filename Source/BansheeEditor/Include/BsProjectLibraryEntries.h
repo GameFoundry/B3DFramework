@@ -6,7 +6,7 @@
 #include "BsProjectLibrary.h"
 #include "BsIReflectable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Library-Internal
 	 *  @{

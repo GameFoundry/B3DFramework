@@ -5,7 +5,7 @@
 #include "BsPlatformDefines.h"
 
 /**	Commonly used types. */
-namespace BansheeEngine
+namespace bs
 {
 	typedef char INT8;
 	typedef unsigned char UINT8;

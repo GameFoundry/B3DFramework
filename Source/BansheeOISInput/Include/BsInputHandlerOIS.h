@@ -11,7 +11,7 @@
 #include <OIS/OISMouse.h>
 #include <OIS/OISJoystick.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OISInput
 	 *  @{

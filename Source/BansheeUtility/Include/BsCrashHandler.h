@@ -5,7 +5,7 @@
 #define BS_MAX_STACKTRACE_DEPTH 200
 #define BS_MAX_STACKTRACE_NAME_BYTES 1024
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Internal-Utility
 	 *  @{

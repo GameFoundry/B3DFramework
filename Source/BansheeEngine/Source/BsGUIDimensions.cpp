@@ -4,7 +4,7 @@
 #include "BsGUIElementStyle.h"
 #include "BsGUIOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIDimensions GUIDimensions::create()
 	{

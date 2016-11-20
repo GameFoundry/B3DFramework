@@ -13,7 +13,7 @@
 #include "BsScriptTextureCube.h"
 #include <BsBuiltinResources.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptMaterial::ScriptMaterial(MonoObject* instance, const HMaterial& material)
 		:TScriptResource(instance, material)

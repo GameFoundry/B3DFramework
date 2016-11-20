@@ -8,7 +8,7 @@
 #include "BsRenderWindow.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Application-Core
 	 *  @{

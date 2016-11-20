@@ -7,7 +7,7 @@
 #include "BsRect2I.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Editor-Internal
 	 *  @{

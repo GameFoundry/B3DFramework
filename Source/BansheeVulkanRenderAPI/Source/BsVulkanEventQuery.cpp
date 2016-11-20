@@ -5,7 +5,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanEvent::VulkanEvent(VulkanResourceManager* owner)
 		:VulkanResource(owner, false)

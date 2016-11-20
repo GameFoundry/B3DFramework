@@ -14,7 +14,7 @@
 
 #endif // BS_PLATFORM == BS_PLATFORM_WIN32
 
-namespace BansheeEngine
+namespace bs
 {
 	HThread::HThread()
 		:mThreadId(0), mPool(nullptr)

@@ -8,7 +8,7 @@
 #include "BsGpuProgramManager.h"
 #include "BsGpuProgramRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GpuProgramProperties::GpuProgramProperties(const String& source, const String& entryPoint,
 		GpuProgramType gptype, GpuProgramProfile profile)

@@ -4,7 +4,7 @@
 #include "BsGLSLGpuProgram.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	::std::size_t GLSLProgramPipelineManager::ProgramPipelineKeyHashFunction::operator()
 		(const GLSLProgramPipelineManager::ProgramPipelineKey &key) const

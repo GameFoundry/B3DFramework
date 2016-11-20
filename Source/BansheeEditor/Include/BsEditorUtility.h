@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "BsAABox.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Utility-Editor
 	 *  @{

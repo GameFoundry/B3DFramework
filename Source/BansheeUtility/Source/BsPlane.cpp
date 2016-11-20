@@ -7,7 +7,7 @@
 #include "BsRay.h"
 #include "BsMath.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	Plane::Plane()
 		:normal(BsZero), d(0.0f)

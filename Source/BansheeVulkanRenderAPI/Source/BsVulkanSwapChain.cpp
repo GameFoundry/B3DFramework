@@ -4,7 +4,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanSwapChain::~VulkanSwapChain()
 	{

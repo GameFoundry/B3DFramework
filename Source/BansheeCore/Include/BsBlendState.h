@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsResource.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI
 	 *  @{
@@ -247,11 +247,11 @@ namespace std
 {
 /**	Hash value generator for BLEND_STATE_DESC. */
 template<>
-struct hash<BansheeEngine::BLEND_STATE_DESC>
+struct hash<bs::BLEND_STATE_DESC>
 {
-	size_t operator()(const BansheeEngine::BLEND_STATE_DESC& value) const
+	size_t operator()(const bs::BLEND_STATE_DESC& value) const
 	{
-		return (size_t)BansheeEngine::BlendState::generateHash(value);
+		return (size_t)bs::BlendState::generateHash(value);
 	}
 };
 }

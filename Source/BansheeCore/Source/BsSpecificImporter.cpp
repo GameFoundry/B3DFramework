@@ -4,7 +4,7 @@
 #include "BsImportOptions.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector<SubResourceRaw> SpecificImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{

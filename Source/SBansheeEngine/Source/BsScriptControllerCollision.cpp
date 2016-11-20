@@ -6,7 +6,7 @@
 #include "BsCollider.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptControllerCollisionHelper::ScriptControllerCollisionHelper(MonoObject* instance)
 		:ScriptObject(instance)

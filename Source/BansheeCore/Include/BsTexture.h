@@ -8,7 +8,7 @@
 #include "BsPixelUtil.h"
 #include "BsTextureView.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Resources
 	 *  @{

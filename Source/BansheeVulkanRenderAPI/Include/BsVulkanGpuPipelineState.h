@@ -6,7 +6,7 @@
 #include "BsVulkanResource.h"
 #include "BsGpuPipelineState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

@@ -10,7 +10,7 @@
 #include "BsGUIElementStyle.h"
 #include "BsScriptColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIElementStateStyle::ScriptGUIElementStateStyle(MonoObject* instance)
 		:ScriptObject(instance)

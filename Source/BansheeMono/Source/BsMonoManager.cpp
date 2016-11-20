@@ -17,7 +17,7 @@
 #include <mono/metadata/mono-debug.h>
 #include <mono/utils/mono-logger.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	const String MONO_LIB_DIR = "bin\\Mono\\lib\\";
 	const String MONO_ETC_DIR = "bin\\Mono\\etc\\";

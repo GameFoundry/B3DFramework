@@ -5,7 +5,7 @@
 #include "BsSceneObject.h"
 #include "BsSceneManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptLight::ScriptLight(MonoObject* managedInstance, const HSceneObject& parentSO)
 		:ScriptObject(managedInstance), mLight(nullptr), mLastUpdateHash(0)

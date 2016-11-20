@@ -8,7 +8,7 @@
 #include "BsRendererUtility.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material)
 		:mId(id), mMaterialStored(false)

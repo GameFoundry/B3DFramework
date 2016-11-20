@@ -8,7 +8,7 @@
 #include "BsMonoArray.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Shader parameter types that can be handled using managed code. */
 	enum class ShaderParameterType // Note: This must match C# ShaderParameterType enum

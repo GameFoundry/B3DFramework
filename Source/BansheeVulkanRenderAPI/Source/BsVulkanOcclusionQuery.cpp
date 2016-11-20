@@ -7,7 +7,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanDevice& device, bool binary)
 		: OcclusionQuery(binary), mDevice(device), mQuery(nullptr), mNumSamples(0), mQueryEndCalled(false)

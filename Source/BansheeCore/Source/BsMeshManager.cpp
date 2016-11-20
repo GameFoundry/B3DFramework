@@ -7,7 +7,7 @@
 #include "BsMesh.h"
 #include "BsVertexDataDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MeshManager::MeshManager()
 	{ }

@@ -7,7 +7,7 @@ extern "C" {
 #include "BsMMAlloc.h"
 }
 
-using namespace BansheeEngine;
+using namespace bs;
 
 char* includePush(ParseState* state, const char* filename, int line, int column, int* size)
 {

@@ -15,7 +15,7 @@
 #include "BsRenderer.h"
 #include "BsRendererUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Color SceneGridCore::GRID_LINE_COLOR = Color(0.5f, 0.5f, 0.5f);
 	const float SceneGridCore::LINE_WIDTH = 0.025f;

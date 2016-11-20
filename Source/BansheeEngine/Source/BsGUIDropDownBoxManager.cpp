@@ -3,7 +3,7 @@
 #include "BsGUIDropDownBoxManager.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIDropDownBoxManager::~GUIDropDownBoxManager()
 	{

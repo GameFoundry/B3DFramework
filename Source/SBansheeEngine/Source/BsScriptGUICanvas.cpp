@@ -9,7 +9,7 @@
 #include "BsGUIOptions.h"
 #include "BsScriptFont.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUICanvas::ScriptGUICanvas(MonoObject* instance, GUICanvas* canvas)
 		:TScriptGUIElement(instance, canvas)

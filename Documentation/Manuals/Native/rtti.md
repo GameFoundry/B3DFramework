@@ -13,8 +13,8 @@ This manual describes how is run-time type information (RTTI) used to provide me
 It is primarily used for saving/loading of objects (e.g. serialization/deserialization of a level), searching for objects (e.g. finding all resources used by a level) and generating "diffs" (Prefabs use diffs to persist/apply instance specific changes when the original changes).
 
 RTTI doesn't automatically work on all classes. You must manually specify the information required by the RTTI system. This involves two things:
- - Making sure your class derives from @ref BansheeEngine::IReflectable "IReflectable" and implements the required methods
- - Implement the @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" interface
+ - Making sure your class derives from @ref bs::IReflectable "IReflectable" and implements the required methods
+ - Implement the @ref bs::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" interface
  
 # Adding RTTI to your own objects {#rtti_a}
 Assume you have a simple object you want to serialize:
@@ -25,7 +25,7 @@ class Texture
 };
 ~~~~~~~~~~~~~
 
-First off ensure it implements @ref BansheeEngine::IReflectable "IReflectable" and `getRTTIStatic` and `getRTTI` methods:
+First off ensure it implements @ref bs::IReflectable "IReflectable" and `getRTTIStatic` and `getRTTI` methods:
 ~~~~~~~~~~~~~{.cpp}
 class Texture : public IReflectable
 {
@@ -39,9 +39,9 @@ class Texture : public IReflectable
 };
 ~~~~~~~~~~~~~
 	
-This interface and its methods only serve to return an instance of `TextureRTTI`, which derives from @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" and contains all the necessary RTTI information. You will also usually want to make the RTTI type a `friend` of the type so it can easily access its private and protected fields.
+This interface and its methods only serve to return an instance of `TextureRTTI`, which derives from @ref bs::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" and contains all the necessary RTTI information. You will also usually want to make the RTTI type a `friend` of the type so it can easily access its private and protected fields.
 
-A basic implementation of @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" must provide information about the type name, unique ID of the type, its base class (@ref BansheeEngine::IReflectable "IReflectable" if it doesn't derive from anything else), a way to create a new instance of the type and a list of fields with their getter/setter methods. A simple one for our example `Texture` class might look like so:
+A basic implementation of @ref bs::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" must provide information about the type name, unique ID of the type, its base class (@ref bs::IReflectable "IReflectable" if it doesn't derive from anything else), a way to create a new instance of the type and a list of fields with their getter/setter methods. A simple one for our example `Texture` class might look like so:
 ~~~~~~~~~~~~~{.cpp}
 class TextureRTTI : public RTTIType<Texture, IReflectable, TextureRTTI> // Specify type the RTTI is for, its base type, and RTTI type itself
 {
@@ -89,10 +89,10 @@ When registering fields with the RTTI type, the systems supports a several sets 
 ## Plain fields  {#rtti_b_a}
 In the example above we have shown how to provide getter/setter methods for fields of `int` type. These fields are considered "plain" fields by the engine, and fields for types like `float`, `bool` and any other built-in language type also falls into this category.
 
-You register plain fields by calling @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addPlainField "RTTIType::addPlainField". The getter/setter methods must return/accept a reference to the value of the field.
+You register plain fields by calling @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addPlainField "RTTIType::addPlainField". The getter/setter methods must return/accept a reference to the value of the field.
 
 ## Reflectable fields  {#rtti_b_b}
-Reflectable fields contain types deriving from @ref BansheeEngine::IReflectable "IReflectable", meaning they're complex objects that contain their own RTTI types. For example if we were to add a `Material` class to our example, it might contain a texture. In such case we would provide getter/setter methods like so:
+Reflectable fields contain types deriving from @ref bs::IReflectable "IReflectable", meaning they're complex objects that contain their own RTTI types. For example if we were to add a `Material` class to our example, it might contain a texture. In such case we would provide getter/setter methods like so:
 ~~~~~~~~~~~~~{.cpp}
 class Material : public IReflectable
 { 
@@ -115,14 +115,14 @@ class MaterialRTTI : public RTTIType<Material, IReflectable, MaterialRTTI>
 };
 ~~~~~~~~~~~~~
 
-As you can see the reflectable field is similar to a plain field, only the @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addReflectableField "RTTIType::addReflectableField" method is used instead. 
+As you can see the reflectable field is similar to a plain field, only the @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addReflectableField "RTTIType::addReflectableField" method is used instead. 
 
 The problem with this approach is that during serialization whenever a material references a texture, that entire texture will end up being serialized with it. This is something you normally want to avoid since multiple materials will usually be referencing the same texture. For that purpose "Reflectable pointer" fields exist.
 
 ## Reflectable pointer fields  {#rtti_b_c}
-This type of field is similar to the reflectable field, as it also contains types deriving from @ref BansheeEngine::IReflectable "IReflectable". However they only return a pointer to the owned object, instead of copying the object by value. This is relevant for serialization as the system will be smart enough to detect multiple fields pointing to the same instance of an @ref BansheeEngine::IReflectable "IReflectable" object, and only serialize it once (instead of every time it is encountered). When deserializing the system will also properly restore the pointers, so that all fields keep pointing to the same instance.
+This type of field is similar to the reflectable field, as it also contains types deriving from @ref bs::IReflectable "IReflectable". However they only return a pointer to the owned object, instead of copying the object by value. This is relevant for serialization as the system will be smart enough to detect multiple fields pointing to the same instance of an @ref bs::IReflectable "IReflectable" object, and only serialize it once (instead of every time it is encountered). When deserializing the system will also properly restore the pointers, so that all fields keep pointing to the same instance.
 
-Reflectable pointer getter/setter methods must return shared pointers to the instance, and they're registered with @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addReflectablePtrField "RTTIType::addReflectablePtrField". For example if we modified our `Material` class like so:
+Reflectable pointer getter/setter methods must return shared pointers to the instance, and they're registered with @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addReflectablePtrField "RTTIType::addReflectablePtrField". For example if we modified our `Material` class like so:
 ~~~~~~~~~~~~~{.cpp}
 class Material : public IReflectable
 { 
@@ -174,14 +174,14 @@ class MaterialRTTI : public RTTIType<Material, IReflectable, MaterialRTTI>
 ~~~~~~~~~~~~~
 
 Methods for registering array fields are:
- - @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addPlainArrayField "RTTIType::addPlainArrayField"
- - @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addReflectableArrayField "RTTIType::addReflectableArrayField"
- - @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::addReflectablePtrArrayField "RTTIType::addReflectablePtrArrayField"
+ - @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addPlainArrayField "RTTIType::addPlainArrayField"
+ - @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addReflectableArrayField "RTTIType::addReflectableArrayField"
+ - @ref bs::RTTIType<Type, BaseType, MyRTTIType>::addReflectablePtrArrayField "RTTIType::addReflectablePtrArrayField"
 
 They all follow the same syntax as in the example above.
  
 ## Advanced plain fields  {#rtti_b_e}
-Although plain fields are primarily intended for simple built-in types, sometimes they also needs to be used on complex types. For example a `std::string` is often used as a field type, but it is not a simple built-in type, nor can we make it derive from @ref BansheeEngine::IReflectable "IReflectable" so we can't use reflectable fields either. For these purposes you can use @ref BansheeEngine::RTTIPlainType<T> "RTTIPlainType". This is a templated class you can specialize for your specific type. 
+Although plain fields are primarily intended for simple built-in types, sometimes they also needs to be used on complex types. For example a `std::string` is often used as a field type, but it is not a simple built-in type, nor can we make it derive from @ref bs::IReflectable "IReflectable" so we can't use reflectable fields either. For these purposes you can use @ref bs::RTTIPlainType<T> "RTTIPlainType". This is a templated class you can specialize for your specific type. 
 
 It provides methods for serializing/deserializing and retrieving object size. It has no advanced functionality like versioning (so if the structure of the type changes, it will break any previously serialized data), or keeping references to other objects.
 
@@ -223,14 +223,14 @@ template<> struct RTTIPlainType<std::string>
 
 Each specialization must implement all three (`toMemory/fromMemory/getDynamicSize`) methods. It must also provide a flag `hasDynamicSize` which determines whether or not it has dynamic size. Any structure whose size varies with each instance must set this flag to true. You must also set it to true if the size is static but larger than 255 bytes.
 
-After you implement this class you will be able to use the type in getters/setters for plain fields as you would `int` or `float`. You can also use the @ref BS_ALLOW_MEMCPY_SERIALIZATION macro for simple structures. It will create a basic @ref BansheeEngine::RTTIPlainType<T> "RTTIPlainType" specialization which uses `memcpy()`/`sizeof()` to implement the necessary methods.
+After you implement this class you will be able to use the type in getters/setters for plain fields as you would `int` or `float`. You can also use the @ref BS_ALLOW_MEMCPY_SERIALIZATION macro for simple structures. It will create a basic @ref bs::RTTIPlainType<T> "RTTIPlainType" specialization which uses `memcpy()`/`sizeof()` to implement the necessary methods.
 
-If possible you should prefer implementing an @ref BansheeEngine::IReflectable "IReflectable" for complex objects instead of this approach. But it can be useful for types where no other option is available (like third party or standard library types) or types you are sure won't change or require other advanced functionality.
+If possible you should prefer implementing an @ref bs::IReflectable "IReflectable" for complex objects instead of this approach. But it can be useful for types where no other option is available (like third party or standard library types) or types you are sure won't change or require other advanced functionality.
 
-@ref BansheeEngine::RTTIPlainType<T> "RTTIPlainType" specializations can also be used as a more traditional form of serialization in case you find the RTTI system an overkill. For example if you needed to transfer data over a network. The system provides helper methods that allow you to easily work with plain types in such a case:
- - @ref BansheeEngine::rttiReadElem "rttiReadElem" - Deserializes an object from the provided buffer and returns offset into the buffer after the read data
- - @ref BansheeEngine::rttiWriteElem "rttiWriteElem" - Serializes an object into the provided buffer and returns offset into the buffer after the written data
- - @ref BansheeEngine::rttiGetElemSize "rttiGetElemSize" - Returns a size an object
+@ref bs::RTTIPlainType<T> "RTTIPlainType" specializations can also be used as a more traditional form of serialization in case you find the RTTI system an overkill. For example if you needed to transfer data over a network. The system provides helper methods that allow you to easily work with plain types in such a case:
+ - @ref bs::rttiReadElem "rttiReadElem" - Deserializes an object from the provided buffer and returns offset into the buffer after the read data
+ - @ref bs::rttiWriteElem "rttiWriteElem" - Serializes an object into the provided buffer and returns offset into the buffer after the written data
+ - @ref bs::rttiGetElemSize "rttiGetElemSize" - Returns a size an object
 
 ## RTTI field macros  {#rtti_b_f} 
 In order to make definitions for fields in an RTTI type simpler, Banshee provides a set of macros you can use. These macros will automatically create getter/setter methods, and register the field. The macros are:
@@ -244,7 +244,7 @@ In order to make definitions for fields in an RTTI type simpler, Banshee provide
  - BS_RTTI_MEMBER_REFLPTR_NAMED(name, field, id) - Same as BS_RTTI_MEMBER_PLAIN_NAMED but for reflectable pointer fields.
  - BS_RTTI_MEMBER_REFLPTR_ARRAY(name, id) - Same as BS_RTTI_MEMBER_PLAIN_ARRAY but for reflectable pointer fields.
  
-Before you use any of those macros you must first call @ref BS_BEGIN_RTTI_MEMBERS() "BS_BEGIN_RTTI_MEMBERS" macro, and follow it with @ref BS_END_RTTI_MEMBERS() "BS_END_RTTI_MEMBERS" macro. These macros will define a new field `mInitMembers` in the @ref BansheeEngine::RTTITypeBase "RTTIType", which you need to initialize in the constructor with the `this` pointer.
+Before you use any of those macros you must first call @ref BS_BEGIN_RTTI_MEMBERS() "BS_BEGIN_RTTI_MEMBERS" macro, and follow it with @ref BS_END_RTTI_MEMBERS() "BS_END_RTTI_MEMBERS" macro. These macros will define a new field `mInitMembers` in the @ref bs::RTTITypeBase "RTTIType", which you need to initialize in the constructor with the `this` pointer.
 
 If we refactor our `TextureRTTI` example from above to use macros, it would look like so:
 ~~~~~~~~~~~~~{.cpp}
@@ -278,9 +278,9 @@ class TextureRTTI : public RTTIType<Texture, IReflectable, TextureRTTI>
 ~~~~~~~~~~~~~
  
 # Advanced serialization  {#rtti_c}
-Implementations of @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" can optionally override @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onSerializationStarted "RTTIType::onSerializationStarted", @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onSerializationEnded "RTTIType::onSerializationEnded", @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationStarted "RTTIType::onDeserializationStarted" and @ref BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationEnded "RTTIType::onDeserializationEnded" methods. As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Most other systems (other than serialization) that access field data will also call these functions before reading, and after writing field data.
+Implementations of @ref bs::RTTIType<Type, BaseType, MyRTTIType> "RTTIType" can optionally override @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onSerializationStarted "RTTIType::onSerializationStarted", @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onSerializationEnded "RTTIType::onSerializationEnded", @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationStarted "RTTIType::onDeserializationStarted" and @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationEnded "RTTIType::onDeserializationEnded" methods. As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Most other systems (other than serialization) that access field data will also call these functions before reading, and after writing field data.
 
-Each of those methods accepts an @ref BansheeEngine::IReflectable "IReflectable" pointer to the object currently being processed. Each type that implements @ref BansheeEngine::IReflectable "IReflectable" also comes with a `mRTTIData` field which is of @ref BansheeEngine::Any "Any" type, and can be used for storing temporary data during serialization/deserialization (primarily when using the methods above).
+Each of those methods accepts an @ref bs::IReflectable "IReflectable" pointer to the object currently being processed. Each type that implements @ref bs::IReflectable "IReflectable" also comes with a `mRTTIData` field which is of @ref bs::Any "Any" type, and can be used for storing temporary data during serialization/deserialization (primarily when using the methods above).
 
 # Using RTTI  {#rtti_d}
 Once you have an object with a RTTI type fully implemented you can use it for various purposes.
@@ -315,9 +315,9 @@ rttiField->isArray(); // Does the field contain an array
 ~~~~~~~~~~~~~
 
 ## Serialization  {#rtti_d_b}
-Serialization uses all the features shown in the chapter above in order to serialize an @ref BansheeEngine::IReflectable "IReflectable" object into a stream of bytes, and vice versa. By default binary serialization is used, but user can implement textual serialization (like XML or JSON) using the RTTI system, if needed.
+Serialization uses all the features shown in the chapter above in order to serialize an @ref bs::IReflectable "IReflectable" object into a stream of bytes, and vice versa. By default binary serialization is used, but user can implement textual serialization (like XML or JSON) using the RTTI system, if needed.
 
-Binary serialized data can be output to memory, or to a file using: @ref BansheeEngine::MemorySerializer "MemorySerializer", @ref BansheeEngine::FileEncoder "FileEncoder", @ref BansheeEngine::FileDecoder "FileDecoder". Their usage is simple:
+Binary serialized data can be output to memory, or to a file using: @ref bs::MemorySerializer "MemorySerializer", @ref bs::FileEncoder "FileEncoder", @ref bs::FileDecoder "FileDecoder". Their usage is simple:
 ~~~~~~~~~~~~~{.cpp}
 IReflectable* myObject = ...;
 

@@ -11,7 +11,7 @@
 #include "BsRenderStats.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11TextureCore::D3D11TextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
 		GpuDeviceFlags deviceMask)

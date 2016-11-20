@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsStringTable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Localization
 	 *  @{

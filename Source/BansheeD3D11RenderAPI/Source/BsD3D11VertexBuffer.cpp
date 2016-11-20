@@ -4,7 +4,7 @@
 #include "BsD3D11Device.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11VertexBufferCore::D3D11VertexBufferCore(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)

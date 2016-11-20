@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsGUITooltip.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUITooltipManager::~GUITooltipManager()
 	{

@@ -11,7 +11,7 @@
 #include "BsGLRenderTexture.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	GLTextureCore::GLTextureCore(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
 		GpuDeviceFlags deviceMask)

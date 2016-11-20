@@ -8,7 +8,7 @@
 #include "BsMath.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GamepadEventListener::GamepadEventListener(InputHandlerOIS* parentHandler, UINT32 joystickIdx)
 		:mGamepadIdx(joystickIdx), mParentHandler(parentHandler)

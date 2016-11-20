@@ -3,7 +3,7 @@
 #include "BsFCollider.h"
 #include "BsRigidbody.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FCollider::~FCollider()
 	{ }

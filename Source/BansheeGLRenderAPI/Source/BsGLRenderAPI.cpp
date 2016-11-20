@@ -28,7 +28,7 @@
 #include "BsGLCommandBuffer.h"
 #include "BsGLCommandBufferManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	const char* MODULE_NAME = "BansheeGLRenderAPI.dll";
 
@@ -58,7 +58,7 @@ namespace BansheeEngine
 		, mActiveTextureUnit(0)
 	{
 		// Get our GLSupport
-		mGLSupport = BansheeEngine::getGLSupport();
+		mGLSupport = bs::getGLSupport();
 
 		mColorWrite[0] = mColorWrite[1] = mColorWrite[2] = mColorWrite[3] = true;
 

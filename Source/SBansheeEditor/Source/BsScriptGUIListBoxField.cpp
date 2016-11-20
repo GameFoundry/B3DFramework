@@ -14,7 +14,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIListBoxField::OnSelectionChangedThunkDef ScriptGUIListBoxField::onSelectionChangedThunk;
 

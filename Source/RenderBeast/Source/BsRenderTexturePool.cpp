@@ -5,7 +5,7 @@
 #include "BsTexture.h"
 #include "BsTextureManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PooledRenderTexture::PooledRenderTexture(RenderTexturePool* pool)
 		:mPool(pool), mIsFree(false)

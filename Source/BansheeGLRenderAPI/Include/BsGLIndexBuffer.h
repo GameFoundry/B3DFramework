@@ -6,7 +6,7 @@
 #include "BsIndexBuffer.h"
 #include "BsGLBuffer.h"
 
-namespace BansheeEngine 
+namespace bs 
 { 
 	/** @addtogroup GL
 	 *  @{

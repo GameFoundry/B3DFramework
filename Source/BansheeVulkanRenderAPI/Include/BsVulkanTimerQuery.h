@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsTimerQuery.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

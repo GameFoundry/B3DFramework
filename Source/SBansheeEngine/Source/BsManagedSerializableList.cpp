@@ -10,7 +10,7 @@
 #include "BsMonoProperty.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy)
 		: mManagedInstance(nullptr), mAddMethod(nullptr), mAddRangeMethod(nullptr), mClearMethod(nullptr)

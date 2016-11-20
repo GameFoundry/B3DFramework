@@ -8,7 +8,7 @@
 #include "BsRenderStats.h"
 #include "BsGpuParams.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	UINT32 GLSLGpuProgramCore::mVertexShaderCount = 0;
 	UINT32 GLSLGpuProgramCore::mFragmentShaderCount = 0;

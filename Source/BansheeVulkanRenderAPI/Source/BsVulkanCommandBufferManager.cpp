@@ -6,7 +6,7 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanQueue.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanTransferBuffer::VulkanTransferBuffer()
 		:mDevice(nullptr), mType(GQT_GRAPHICS), mQueueIdx(0), mQueue(nullptr), mCB(nullptr), mSyncMask(0), mQueueMask(0)

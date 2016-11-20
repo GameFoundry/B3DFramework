@@ -15,7 +15,7 @@
 #include "BsIReflectable.h"
 #include "BsBinaryDiff.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RTTI
 	 *  @{
@@ -423,8 +423,8 @@ namespace BansheeEngine
 		template <class ObjectType, class DataType>
 		void setReflectableValue(ObjectType* object, const String& name, DataType& value)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIField* genericField = findField(name);
 			genericField->checkIsComplex(false);
@@ -442,8 +442,8 @@ namespace BansheeEngine
 		template <class ObjectType, class DataType>
 		void setReflectableArrayValue(ObjectType* object, const String& name, UINT32 index, DataType& value)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIField* genericField = findField(name);
 			genericField->checkIsComplex(true);
@@ -475,8 +475,8 @@ namespace BansheeEngine
 		template <class ObjectType, class DataType>
 		void setReflectablePtrValue(ObjectType* object, const String& name, SPtr<DataType> value)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIField* genericField = findField(name);
 			genericField->checkIsComplexPtr(false);
@@ -494,8 +494,8 @@ namespace BansheeEngine
 		template <class ObjectType, class DataType>
 		void setReflectablePtrArrayValue(ObjectType* object, const String& name, UINT32 index, SPtr<DataType> value)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIField* genericField = findField(name);
 			genericField->checkIsComplexPtr(true);
@@ -1021,10 +1021,10 @@ namespace BansheeEngine
 		{
 			using namespace std::placeholders;
 
-			static_assert((std::is_base_of<BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
-				"Class with the get/set methods must derive from BansheeEngine::RTTIType.");
+			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
+				"Class with the get/set methods must derive from bs::RTTIType.");
 
-			static_assert(!(std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
+			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), 
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
 			addPlainField<ObjectType, DataType>(name, uniqueId, 
@@ -1065,10 +1065,10 @@ namespace BansheeEngine
 		{
 			using namespace std::placeholders;
 
-			static_assert((std::is_base_of<BansheeEngine::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
-				"Class with the get/set methods must derive from BansheeEngine::RTTIType.");
+			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
+				"Class with the get/set methods must derive from bs::RTTIType.");
 
-			static_assert(!(std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
+			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), 
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
 			addPlainArrayField<ObjectType, DataType>(name, uniqueId, 
@@ -1134,8 +1134,8 @@ namespace BansheeEngine
 		template<class ObjectType, class DataType>
 		void addReflectableField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIReflectableField<DataType, ObjectType>* newField = 
 				bs_new<RTTIReflectableField<DataType, ObjectType>>();
@@ -1146,8 +1146,8 @@ namespace BansheeEngine
 		template<class ObjectType, class DataType>
 		void addReflectablePtrField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIReflectablePtrField<DataType, ObjectType>* newField = 
 				bs_new<RTTIReflectablePtrField<DataType, ObjectType>>();
@@ -1169,8 +1169,8 @@ namespace BansheeEngine
 		void addReflectableArrayField(const String& name, UINT32 uniqueId, Any getter, Any getSize,
 			Any setter, Any setSize, UINT64 flags)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIReflectableField<DataType, ObjectType>* newField = 
 				bs_new<RTTIReflectableField<DataType, ObjectType>>();
@@ -1182,8 +1182,8 @@ namespace BansheeEngine
 		void addReflectablePtrArrayField(const String& name, UINT32 uniqueId, Any getter, Any getSize,
 			Any setter, Any setSize, UINT64 flags)
 		{
-			static_assert((std::is_base_of<BansheeEngine::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from BansheeEngine::IReflectable.");
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			RTTIReflectablePtrField<DataType, ObjectType>* newField = 
 				bs_new<RTTIReflectablePtrField<DataType, ObjectType>>();
@@ -1208,8 +1208,8 @@ namespace BansheeEngine
 	template<class T>
 	bool rtti_is_of_type(IReflectable* object)
 	{
-		static_assert((std::is_base_of<BansheeEngine::IReflectable, T>::value), 
-			"Invalid data type for type checking. It needs to derive from BansheeEngine::IReflectable.");
+		static_assert((std::is_base_of<bs::IReflectable, T>::value), 
+			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
 		return object->getTypeId() == T::getRTTIStatic()->getRTTIId();
 	}
@@ -1218,8 +1218,8 @@ namespace BansheeEngine
 	template<class T>
 	bool rtti_is_of_type(SPtr<IReflectable> object)
 	{
-		static_assert((std::is_base_of<BansheeEngine::IReflectable, T>::value), 
-			"Invalid data type for type checking. It needs to derive from BansheeEngine::IReflectable.");
+		static_assert((std::is_base_of<bs::IReflectable, T>::value), 
+			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
 		return object->getTypeId() == T::getRTTIStatic()->getRTTIId();
 	}
@@ -1231,8 +1231,8 @@ namespace BansheeEngine
 	template<class T>
 	bool rtti_is_subclass(IReflectable* object)
 	{
-		static_assert((std::is_base_of<BansheeEngine::IReflectable, T>::value),
-			"Invalid data type for type checking. It needs to derive from BansheeEngine::IReflectable.");
+		static_assert((std::is_base_of<bs::IReflectable, T>::value),
+			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
 		return object->isDerivedFrom(T::getRTTIStatic());
 	}

@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsTextureManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Vulkan
 	 *  @{

@@ -9,7 +9,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAudioSource::ScriptAudioSource(MonoObject* instance, const SPtr<AudioSource>& source)
 		:ScriptObject(instance), mSource(source)

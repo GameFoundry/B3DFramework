@@ -7,7 +7,7 @@
 #include "BsVector2I.h"
 #include "BsProfilerCPU.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIPanel::GUIPanel(INT16 depth, UINT16 depthRangeMin, UINT16 depthRangeMax, const GUIDimensions& dimensions)
 		: GUILayout(dimensions), mDepthOffset(depth), mDepthRangeMin(depthRangeMin), mDepthRangeMax(depthRangeMax)

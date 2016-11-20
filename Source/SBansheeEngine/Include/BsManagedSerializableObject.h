@@ -6,7 +6,7 @@
 #include "BsIReflectable.h"
 #include "BsManagedSerializableField.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEngine
 	 *  @{

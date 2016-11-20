@@ -16,7 +16,7 @@
 #include "BsScriptHString.h"
 #include "BsScriptGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIScrollArea::ScriptGUIScrollArea(MonoObject* instance, GUIScrollArea* scrollArea)
 		:TScriptGUIElement(instance, scrollArea), mLayout(nullptr)

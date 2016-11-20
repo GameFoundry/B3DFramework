@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptTexture::ScriptTexture(MonoObject* instance)
 		:ScriptObject(instance)

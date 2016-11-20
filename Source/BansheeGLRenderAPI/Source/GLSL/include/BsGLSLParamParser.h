@@ -8,7 +8,7 @@
 #include "BsException.h"
 #include "BsGpuParamDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{

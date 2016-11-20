@@ -4,7 +4,7 @@
 #include "BsScriptJointCommon.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptD6Joint::ScriptD6Joint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

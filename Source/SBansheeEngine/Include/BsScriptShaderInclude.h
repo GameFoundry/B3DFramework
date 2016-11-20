@@ -6,7 +6,7 @@
 #include "BsScriptResource.h"
 #include "BsShaderInclude.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

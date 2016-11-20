@@ -8,7 +8,7 @@
 #include "BsVulkanResource.h"
 #include "BsVulkanGpuPipelineState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class VulkanImage;
 	/** @addtogroup Vulkan

@@ -4,7 +4,7 @@
 #include "BsHingeJoint.h"
 #include "BsScriptJointCommon.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHingeJoint::ScriptHingeJoint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

@@ -8,7 +8,7 @@
 #include "BsQuaternion.h"
 #include "BsCCamera.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float HandleSliderDisc::TORUS_RADIUS = 0.1f;
 

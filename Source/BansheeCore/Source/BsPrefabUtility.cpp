@@ -6,7 +6,7 @@
 #include "BsSceneObject.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void PrefabUtility::revertToPrefab(const HSceneObject& so)
 	{

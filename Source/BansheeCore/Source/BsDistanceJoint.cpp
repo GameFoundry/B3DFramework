@@ -3,7 +3,7 @@
 #include "BsDistanceJoint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<DistanceJoint> DistanceJoint::create(const DISTANCE_JOINT_DESC& desc)
 	{

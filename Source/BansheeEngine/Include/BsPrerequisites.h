@@ -111,7 +111,7 @@
 #include "BsHEString.h"
 #include "BsPaths.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	static const StringID RenderAPIDX9 = "D3D9RenderAPI";
 	static const StringID RenderAPIDX11 = "D3D11RenderAPI";

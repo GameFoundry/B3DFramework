@@ -19,7 +19,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptDropDownWindow::guiPanelField = nullptr;
 

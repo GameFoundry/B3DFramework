@@ -13,7 +13,7 @@
 
 #define BS_MAX_BOUND_VERTEX_BUFFERS 16
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup RenderAPI-Internal
 	 *  @{
@@ -56,7 +56,7 @@ namespace BansheeEngine
 		/** Parses a string in the major.minor.release.build format and stores the version numbers. */
 		void fromString(const String& versionString)
 		{
-			Vector<BansheeEngine::String> tokens = StringUtil::split(versionString, ".");
+			Vector<bs::String> tokens = StringUtil::split(versionString, ".");
 			if(!tokens.empty())
 			{
 				major = parseINT32(tokens[0]);

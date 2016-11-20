@@ -15,7 +15,7 @@
 #include "BsScriptAssemblyManager.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedResource::ManagedResource()
 		:Resource(false), mManagedInstance(nullptr)

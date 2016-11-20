@@ -6,7 +6,7 @@
 #include "BsBoxCollider.h"
 #include "PxPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

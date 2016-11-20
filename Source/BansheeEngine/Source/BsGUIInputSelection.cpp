@@ -6,7 +6,7 @@
 #include "BsGUIElement.h"
 #include "BsGUIManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIInputSelection::GUIInputSelection()
 		:mSelectionStart(0), mSelectionEnd(0), mSelectionAnchor(0), mSelectionDragAnchor(0)

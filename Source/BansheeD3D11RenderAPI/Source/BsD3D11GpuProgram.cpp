@@ -12,7 +12,7 @@
 #include "BsRenderStats.h"
 #include <regex>
 
-namespace BansheeEngine
+namespace bs
 {
 	UINT32 D3D11GpuProgramCore::GlobalProgramId = 0;
 

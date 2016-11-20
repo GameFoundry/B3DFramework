@@ -40,7 +40,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	struct GUIGroupElement
 	{

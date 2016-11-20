@@ -7,7 +7,7 @@
 #include "BsGUISpace.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUILayout::GUILayout(const GUIDimensions& dimensions)
 		:GUIElementBase(dimensions)

@@ -10,7 +10,7 @@
 #include "BsSceneObject.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSceneObject::ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject)
 		:ScriptObject(instance), mSceneObject(sceneObject)

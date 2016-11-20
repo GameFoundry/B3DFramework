@@ -4,7 +4,7 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanVertexBufferCore::VulkanVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:VertexBufferCore(desc, deviceMask), mBuffer(nullptr), mUsage(desc.usage), mDeviceMask(deviceMask)

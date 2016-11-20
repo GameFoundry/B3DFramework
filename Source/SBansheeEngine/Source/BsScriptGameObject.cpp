@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsScriptGameObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGameObjectBase::ScriptGameObjectBase(MonoObject* instance)
 		:PersistentScriptObjectBase(instance), mRefreshInProgress(false)

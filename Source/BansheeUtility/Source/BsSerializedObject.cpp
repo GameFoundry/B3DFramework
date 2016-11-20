@@ -3,7 +3,7 @@
 #include "BsSerializedObject.h"
 #include "BsSerializedObjectRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SerializedInstance> SerializedField::clone(bool cloneData)
 	{

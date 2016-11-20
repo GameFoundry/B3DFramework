@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "BsScriptObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptObjectImpl::ScriptObjectImpl(MonoObject* instance)
 		:ScriptObject(instance)

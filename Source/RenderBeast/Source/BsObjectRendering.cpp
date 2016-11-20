@@ -12,7 +12,7 @@
 #include "BsMorphShapes.h"
 #include "BsAnimationManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ObjectRenderer::ObjectRenderer()
 	{ }

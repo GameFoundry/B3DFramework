@@ -3,7 +3,7 @@
 #include "BsDropDownWindowManager.h"
 #include "BsDropDownWindow.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DropDownWindowManager::DropDownWindowManager()
 		:mOpenWindow(nullptr)

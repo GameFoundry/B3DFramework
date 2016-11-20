@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIToggleField::OnChangedThunkDef ScriptGUIToggleField::onChangedThunk;
 

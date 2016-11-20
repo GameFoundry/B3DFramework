@@ -8,7 +8,7 @@
 #include "BsRenderTarget.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptRenderTarget::ScriptRenderTarget(MonoObject* instance)
 		:ScriptObject(instance)

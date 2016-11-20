@@ -12,7 +12,7 @@
 #include "BsScriptGameObjectManager.h"
 #include "BsScriptPrefab.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPrefabUtility::ScriptPrefabUtility(MonoObject* instance)
 		:ScriptObject(instance)

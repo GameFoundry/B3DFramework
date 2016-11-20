@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsAsyncOp.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup CoreThread
 	 *  @{

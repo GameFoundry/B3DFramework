@@ -4,7 +4,7 @@
 #include "BsD3D11Driver.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11DriverList::D3D11DriverList(IDXGIFactory* dxgiFactory) 
 	{

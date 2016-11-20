@@ -10,7 +10,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSkeleton::ScriptSkeleton(MonoObject* managedInstance, const SPtr<Skeleton>& skeleton)
 		:ScriptObject(managedInstance), mSkeleton(skeleton)

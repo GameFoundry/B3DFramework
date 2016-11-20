@@ -7,7 +7,7 @@
 #include "BsRect2I.h"
 #include "BsDropDownAreaPlacement.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

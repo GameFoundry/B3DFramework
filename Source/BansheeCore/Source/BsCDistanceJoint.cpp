@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsCDistanceJointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CDistanceJoint::CDistanceJoint()
 		: CJoint(mDesc)

@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Rigidbody* Joint::getBody(JointBody body) const
 	{

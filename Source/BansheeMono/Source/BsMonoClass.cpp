@@ -12,7 +12,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/debug-helpers.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t MonoClass::MethodId::Hash::operator()(const MonoClass::MethodId& v) const
 	{

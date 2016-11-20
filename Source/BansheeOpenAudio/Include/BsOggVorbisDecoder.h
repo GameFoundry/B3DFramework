@@ -6,7 +6,7 @@
 #include "BsAudioDecoder.h"
 #include "vorbis\vorbisfile.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

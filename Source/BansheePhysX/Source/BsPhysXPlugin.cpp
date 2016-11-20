@@ -2,7 +2,7 @@
 #include "BsPhysicsManager.h"
 #include "BsPhysX.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class BS_PHYSX_EXPORT PhysXFactory : public PhysicsFactory
 	{

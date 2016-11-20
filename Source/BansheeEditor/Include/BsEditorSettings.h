@@ -6,7 +6,7 @@
 #include "BsSettings.h"
 #include "BsDegree.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Settings
 	 *  @{

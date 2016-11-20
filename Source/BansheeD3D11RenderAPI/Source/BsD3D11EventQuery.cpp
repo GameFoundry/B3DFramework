@@ -7,7 +7,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11EventQuery::D3D11EventQuery(UINT32 deviceIdx)
 		:mQuery(nullptr)

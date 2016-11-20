@@ -4,7 +4,7 @@
 #include "BsDynLibManager.h"
 #include "BsDynLib.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysicsManager::PhysicsManager(const String& pluginName, bool cooking)
 		:mPlugin(nullptr), mFactory(nullptr)

@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsMeshData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** cond INTERNAL */
 	/** @addtogroup Renderer

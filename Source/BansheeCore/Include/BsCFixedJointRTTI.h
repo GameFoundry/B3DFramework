@@ -7,7 +7,7 @@
 #include "BsCFixedJoint.h"
 #include "BsGameObjectRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

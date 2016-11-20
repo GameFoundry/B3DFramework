@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCFixedJointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CFixedJoint::CFixedJoint() 
 		:CJoint(mDesc)

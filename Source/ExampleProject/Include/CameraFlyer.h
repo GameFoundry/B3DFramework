@@ -7,7 +7,7 @@
 #include "BsMath.h"
 #include "BsVirtualInput.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** 
 	 * Component that controls movement and rotation of a Camera component. The Camera component must be attached to the 

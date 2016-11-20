@@ -3,7 +3,7 @@
 #include "BsScriptCodeImportOptions.h"
 #include "BsScriptCodeImportOptionsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCodeImportOptions::ScriptCodeImportOptions()
 		:mEditorScript(false)

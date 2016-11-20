@@ -3,7 +3,7 @@
 #include "BsScriptHandleSliderManager.h"
 #include "BsScriptHandleSlider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHandleSliderManager::~ScriptHandleSliderManager()
 	{

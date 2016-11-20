@@ -8,7 +8,7 @@
 #include "BsEditorApplication.h"
 #include "BsProjectSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptProjectSettings::ScriptProjectSettings(MonoObject* instance)
 		:ScriptObject(instance)

@@ -3,7 +3,7 @@
 #include "BsVertexBuffer.h"
 #include "BsHardwareBufferManager.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	VertexBufferProperties::VertexBufferProperties(UINT32 numVertices, UINT32 vertexSize)
 		:mNumVertices(numVertices), mVertexSize(vertexSize)

@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "BsSpecificImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Engine-Internal
 	 *  @{

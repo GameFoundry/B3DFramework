@@ -6,7 +6,7 @@
 #include "BsSceneObject.h"
 #include "BsCCamera.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CGUIWidget::CGUIWidget(const HSceneObject& parent, const SPtr<Camera>& camera)
 		:Component(parent), mCamera(camera), mParentHash((UINT32)-1)

@@ -5,7 +5,7 @@
 #include "BsFBXPrerequisites.h"
 #include "BsFBXImportData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup FBX
 	 *  @{

@@ -12,7 +12,7 @@
 #include "BsUUID.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Importer::Importer()
 	{

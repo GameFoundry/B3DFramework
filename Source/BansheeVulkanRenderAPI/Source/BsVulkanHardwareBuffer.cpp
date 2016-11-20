@@ -7,7 +7,7 @@
 #include "BsVulkanCommandBufferManager.h"
 #include "BsVulkanCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VkDeviceMemory memory)
 		:VulkanResource(owner, false), mBuffer(buffer), mView(view), mMemory(memory)

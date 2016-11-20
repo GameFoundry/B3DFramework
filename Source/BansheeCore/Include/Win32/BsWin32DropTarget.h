@@ -6,7 +6,7 @@
 
 // This is just a helper include for BsPlatformImpl.cpp, it's not meant to be used on its own
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Platform-Internal
 	 *  @{

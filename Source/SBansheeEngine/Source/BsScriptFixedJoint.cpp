@@ -3,7 +3,7 @@
 #include "BsScriptFixedJoint.h"
 #include "BsFixedJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptFixedJoint::ScriptFixedJoint(MonoObject* instance, const SPtr<Joint>& joint)
 		:TScriptJoint(instance, joint)

@@ -6,7 +6,7 @@
 #include "BsRTTIField.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Internal-Utility
 	 *  @{

@@ -5,7 +5,7 @@
 #include "BsBuiltinResources.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HShaderInclude EngineShaderIncludeHandler::findInclude(const String& name) const
 	{

@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsStringID.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const StringID StringID::NONE = StringID();
 

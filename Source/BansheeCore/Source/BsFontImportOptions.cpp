@@ -3,7 +3,7 @@
 #include "BsFontImportOptions.h"
 #include "BsFontImportOptionsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FontImportOptions::FontImportOptions()
 		:mDPI(96), mRenderMode(FontRenderMode::HintedSmooth), mBold(false), mItalic(false)

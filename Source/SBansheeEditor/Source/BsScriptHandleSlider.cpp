@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsScriptHandleSliderManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHandleSliderBase::ScriptHandleSliderBase(MonoObject* managedInstance)
 		:ScriptObjectBase(managedInstance)

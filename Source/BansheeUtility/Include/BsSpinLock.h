@@ -4,7 +4,7 @@
 
 #include <atomic>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Threading
 	 *  @{

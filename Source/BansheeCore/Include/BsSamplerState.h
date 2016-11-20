@@ -9,7 +9,7 @@
 
 #include <cfloat>
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup RenderAPI
 	 *  @{
@@ -200,11 +200,11 @@ namespace std
 {
 /**	Hash value generator for SAMPLER_STATE_DESC. */
 template<>
-struct hash<BansheeEngine::SAMPLER_STATE_DESC>
+struct hash<bs::SAMPLER_STATE_DESC>
 {
-	size_t operator()(const BansheeEngine::SAMPLER_STATE_DESC& value) const
+	size_t operator()(const bs::SAMPLER_STATE_DESC& value) const
 	{
-		return (size_t)BansheeEngine::SamplerState::generateHash(value);
+		return (size_t)bs::SamplerState::generateHash(value);
 	}
 };
 }

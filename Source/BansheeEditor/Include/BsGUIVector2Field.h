@@ -6,7 +6,7 @@
 #include "BsGUIFieldBase.h"
 #include "BsVector2.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Editor
 	 *  @{

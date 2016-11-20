@@ -4,7 +4,7 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanDevice.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	UINT32 VulkanFramebuffer::sNextValidId = 1;
 

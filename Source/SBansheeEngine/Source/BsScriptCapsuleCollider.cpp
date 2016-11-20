@@ -3,7 +3,7 @@
 #include "BsScriptCapsuleCollider.h"
 #include "BsCapsuleCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCapsuleCollider::ScriptCapsuleCollider(MonoObject* instance, const SPtr<Collider>& collider)
 		:TScriptCollider(instance, collider)

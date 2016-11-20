@@ -6,7 +6,7 @@
 #include "BsIReflectable.h"
 #include "BsRect2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup EditorWindow-Internal
 	 *  @{

@@ -19,7 +19,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUITreeView::ELEMENT_EXTRA_SPACING = 3;
 	const UINT32 GUITreeView::INDENT_SIZE = 10;

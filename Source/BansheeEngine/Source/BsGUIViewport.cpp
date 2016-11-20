@@ -9,7 +9,7 @@
 #include "BsRenderTarget.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIViewport::getGUITypeName()
 	{

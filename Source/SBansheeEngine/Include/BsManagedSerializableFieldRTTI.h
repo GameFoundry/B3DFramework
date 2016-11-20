@@ -7,7 +7,7 @@
 #include "BsManagedSerializableField.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-SEngine

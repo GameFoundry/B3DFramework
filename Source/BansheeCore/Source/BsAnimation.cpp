@@ -7,7 +7,7 @@
 #include "BsSceneObject.h"
 #include "BsMorphShapes.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AnimationClipInfo::AnimationClipInfo()
 		: fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f), curveVersion(0), layerIdx((UINT32)-1)

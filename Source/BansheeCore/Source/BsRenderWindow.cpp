@@ -7,7 +7,7 @@
 #include "BsPlatform.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	RenderWindowProperties::RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 	{

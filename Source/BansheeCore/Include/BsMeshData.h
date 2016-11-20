@@ -10,7 +10,7 @@
 #include "BsSubMesh.h"
 #include "BsBounds.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources
 	 *  @{

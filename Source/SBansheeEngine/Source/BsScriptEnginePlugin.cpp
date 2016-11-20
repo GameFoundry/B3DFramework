@@ -7,7 +7,7 @@
 #include "BsScriptGUI.h"
 #include "BsPlayInEditorManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" BS_SCR_BE_EXPORT const char* getPluginName()
 	{

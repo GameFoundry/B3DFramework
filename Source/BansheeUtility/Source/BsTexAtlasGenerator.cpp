@@ -3,7 +3,7 @@
 #include "BsTexAtlasGenerator.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class TexAtlasNode
 	{

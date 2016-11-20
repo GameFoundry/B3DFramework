@@ -6,7 +6,7 @@
 #include "BsFileSystem.h"
 #include "BsScriptCodeImportOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCodeImporter::ScriptCodeImporter()
 		:SpecificImporter()

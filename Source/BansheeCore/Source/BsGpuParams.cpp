@@ -16,7 +16,7 @@
 #include "BsMatrixNxM.h"
 #include "BsHardwareBufferManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
 		:mParamInfo(paramInfo)

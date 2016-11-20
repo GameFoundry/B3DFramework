@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsInputConfiguration.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Input-Engine
 	 *  @{

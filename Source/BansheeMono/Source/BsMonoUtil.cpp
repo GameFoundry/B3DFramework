@@ -5,7 +5,7 @@
 #include <mono/jit/jit.h>
 #include <codecvt>
 
-namespace BansheeEngine
+namespace bs
 {
 	WString MonoUtil::monoToWString(MonoString* str)
 	{

@@ -3,7 +3,7 @@
 #include "BsCoreObjectCore.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Signal CoreObjectCore::mCoreGpuObjectLoadedCondition;
 	Mutex CoreObjectCore::mCoreGpuObjectLoadedMutex;

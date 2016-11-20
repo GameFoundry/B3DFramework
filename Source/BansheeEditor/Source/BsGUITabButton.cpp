@@ -7,7 +7,7 @@
 #include "BsGUIMouseEvent.h"
 #include "BsGUITabbedTitleBar.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUITabButton::DRAG_MIN_DISTANCE = 3;
 

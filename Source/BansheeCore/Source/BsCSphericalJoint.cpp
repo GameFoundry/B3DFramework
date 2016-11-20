@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsCSphericalJointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CSphericalJoint::CSphericalJoint()
 		: CJoint(mDesc)

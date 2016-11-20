@@ -6,7 +6,7 @@
 #include "BsPhysicsMaterial.h"
 #include "PxMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

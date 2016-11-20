@@ -7,7 +7,7 @@
 #include "BsPhysXMesh.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-PhysX

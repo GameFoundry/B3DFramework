@@ -3,7 +3,7 @@
 #include "BsAsyncOp.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool AsyncOp::hasCompleted() const 
 	{ 

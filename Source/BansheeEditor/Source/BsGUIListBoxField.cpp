@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIListBoxField::DEFAULT_LABEL_WIDTH = 100;
 

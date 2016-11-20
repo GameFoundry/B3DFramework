@@ -5,7 +5,7 @@
 #include "BsScriptEditorPrerequisites.h"
 #include "BsEngineScriptLibrary.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEditor
 	 *  @{

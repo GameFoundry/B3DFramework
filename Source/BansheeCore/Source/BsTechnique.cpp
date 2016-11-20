@@ -9,7 +9,7 @@
 #include "BsFrameAlloc.h"
 #include "BsTechniqueRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	TechniqueBase::TechniqueBase(const StringID& renderAPI, const StringID& renderer, const Vector<StringID>& tags)
 		:mRenderAPI(renderAPI), mRenderer(renderer), mTags(tags)

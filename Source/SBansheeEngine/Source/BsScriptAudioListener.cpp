@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAudioListener::ScriptAudioListener(MonoObject* instance, const SPtr<AudioListener>& listener)
 		:ScriptObject(instance), mListener(listener)

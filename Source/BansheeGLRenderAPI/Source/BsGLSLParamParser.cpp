@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGLSLParamParser.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	INT32 GLSLAttribute::matchesName(const String& name)
 	{

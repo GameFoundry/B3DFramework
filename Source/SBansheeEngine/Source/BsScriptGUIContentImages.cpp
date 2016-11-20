@@ -4,7 +4,7 @@
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField* ScriptGUIContentImages::mNormalField;
 	MonoField* ScriptGUIContentImages::mHoverField;

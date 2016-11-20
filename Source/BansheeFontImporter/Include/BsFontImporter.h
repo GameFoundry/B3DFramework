@@ -6,7 +6,7 @@
 #include "BsSpecificImporter.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Font
 	 *  @{

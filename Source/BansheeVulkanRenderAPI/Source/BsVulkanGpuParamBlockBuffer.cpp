@@ -4,7 +4,7 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanGpuParamBlockBufferCore::VulkanGpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage,
 		GpuDeviceFlags deviceMask)

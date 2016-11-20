@@ -4,7 +4,7 @@
 #include "BsDockManagerLayoutRTTI.h"
 #include "BsEditorWidgetManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DockManagerLayout::Entry::Entry()
 		:isLeaf(true), splitPosition(0), horizontalSplit(false),

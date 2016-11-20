@@ -11,7 +11,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCodeEditor::ScriptCodeEditor(MonoObject* instance)
 		:ScriptObject(instance)

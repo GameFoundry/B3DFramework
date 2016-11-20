@@ -4,7 +4,7 @@
 #include "BsDataStream.h"
 #include <vorbis\codec.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t oggRead(void* ptr, size_t size, size_t nmemb, void* data)
 	{

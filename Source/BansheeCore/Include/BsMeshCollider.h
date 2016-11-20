@@ -6,7 +6,7 @@
 #include "BsCollider.h"
 #include "BsIResourceListener.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Physics
 	 *  @{

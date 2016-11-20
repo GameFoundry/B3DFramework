@@ -6,7 +6,7 @@
 #include "BsSpriteTexture.h"
 #include "BsGUIDimensions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUITexture::getGUITypeName()
 	{

@@ -6,7 +6,7 @@
 #include "BsException.h"
 #include "BsAny.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Internal-Utility
 	 *  @{

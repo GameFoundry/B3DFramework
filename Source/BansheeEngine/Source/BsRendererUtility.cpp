@@ -17,7 +17,7 @@
 #include "BsLight.h"
 #include "BsShader.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RendererUtility::RendererUtility()
 	{

@@ -3,7 +3,7 @@
 #include "BsOcclusionQuery.h"
 #include "BsQueryManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OcclusionQuery::OcclusionQuery(bool binary)
 		:mActive(false), mBinary(binary)

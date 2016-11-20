@@ -5,7 +5,7 @@
 #include "BsScriptEditorPrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class UndoRedo;
 	class ScriptCmdManaged;

@@ -7,7 +7,7 @@
 #include "BsGameObjectManager.h"
 #include "BsMonoAssembly.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptObjectManager::ScriptObjectManager()
 		:mFinalizedQueueIdx(0)

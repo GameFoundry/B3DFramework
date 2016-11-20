@@ -10,7 +10,7 @@
 #include "BsCamera.h"
 #include "BsScriptCamera.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptProfilerOverlayInternal::ScriptProfilerOverlayInternal(MonoObject* managedInstance, const SPtr<Camera>& camera)
 		:ScriptObject(managedInstance), mProfilerOverlayInternal(nullptr)

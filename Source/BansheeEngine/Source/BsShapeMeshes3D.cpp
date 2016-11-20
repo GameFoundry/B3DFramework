@@ -19,7 +19,7 @@
 // DEBUG ONLY
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 ShapeMeshes3D::NUM_VERTICES_AA_LINE = 8;
 	const UINT32 ShapeMeshes3D::NUM_INDICES_AA_LINE = 30;

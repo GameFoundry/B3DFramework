@@ -20,7 +20,7 @@
 #include "BsPrefab.h"
 #include "BsScriptObjectManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptUndoRedo* ScriptUndoRedo::sGlobalUndoRedo = nullptr;
 	HEvent ScriptUndoRedo::sDomainLoadConn;

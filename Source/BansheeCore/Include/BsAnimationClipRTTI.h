@@ -7,7 +7,7 @@
 #include "BsAnimationClip.h"
 #include "BsAnimationCurveRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

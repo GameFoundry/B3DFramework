@@ -28,7 +28,7 @@
 #include "BsScriptPrefab.h"
 #include "BsScriptAnimationClip.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAssemblyManager::ScriptAssemblyManager()
 		: mBaseTypesInitialized(false), mSystemArrayClass(nullptr), mSystemGenericListClass(nullptr)

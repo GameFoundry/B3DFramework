@@ -5,7 +5,7 @@
 #include "BsComponent.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdRecordSO::CmdRecordSO(const WString& description, const HSceneObject& sceneObject, bool recordHierarchy)
 		: EditorCommand(description), mSceneObject(sceneObject), mRecordHierarchy(recordHierarchy)

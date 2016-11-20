@@ -6,7 +6,7 @@
 #include "BsRendererMaterial.h"
 #include "BsParamBlocks.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

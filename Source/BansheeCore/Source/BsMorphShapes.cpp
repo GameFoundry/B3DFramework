@@ -3,7 +3,7 @@
 #include "BsMorphShapes.h"
 #include "BsMorphShapesRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MorphShape::MorphShape()
 	{ }

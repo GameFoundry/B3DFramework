@@ -9,7 +9,7 @@
 #include "BsRenderAPI.h"
 #include "BsRenderAPICapabilities.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	SPtr<VertexBufferCore> GLHardwareBufferCoreManager::createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)

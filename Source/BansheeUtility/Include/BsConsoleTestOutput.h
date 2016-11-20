@@ -5,7 +5,7 @@
 #include "BsTestOutput.h"
 #include "BsPrerequisitesUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Testing
 	 *  @{

@@ -8,7 +8,7 @@
 #include "BsVector2.h"
 #include "BsGpuParams.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Material-Internal
 	 *  @{

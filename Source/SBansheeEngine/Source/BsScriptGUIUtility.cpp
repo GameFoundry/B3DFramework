@@ -14,7 +14,7 @@
 #include "BsGUIHelper.h"
 #include "BsScriptFont.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUILayoutUtility::ScriptGUILayoutUtility()
 		:ScriptObject(nullptr)

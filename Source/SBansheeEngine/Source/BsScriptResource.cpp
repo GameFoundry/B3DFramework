@@ -23,7 +23,7 @@
 #include "BsScriptPrefab.h"
 #include "BsScriptAnimationClip.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptResourceBase::ScriptResourceBase(MonoObject* instance)
 		:PersistentScriptObjectBase(instance), mRefreshInProgress(false)

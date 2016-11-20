@@ -7,7 +7,7 @@
 #include "BsCursor.h"
 #include "BsScriptPixelData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCursor::ScriptCursor(MonoObject* instance)
 		:ScriptObject(instance)

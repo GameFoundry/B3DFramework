@@ -5,7 +5,7 @@
 #include "BsHandleManager.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HandleSlider::HandleSlider(bool fixedScale, UINT64 layer)
 		: mFixedScale(fixedScale), mLayer(layer), mPosition(BsZero), mRotation(BsZero), mScale(Vector3::ONE)

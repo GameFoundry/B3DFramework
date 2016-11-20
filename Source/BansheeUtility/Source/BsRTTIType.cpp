@@ -3,7 +3,7 @@
 #include "BsRTTIType.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase::RTTITypeBase()
 	{ }

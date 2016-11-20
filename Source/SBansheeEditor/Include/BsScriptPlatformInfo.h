@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsPlatformInfo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

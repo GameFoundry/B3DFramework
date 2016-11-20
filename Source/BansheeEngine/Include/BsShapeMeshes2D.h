@@ -6,7 +6,7 @@
 #include "BsColor.h"
 #include "BsAABox.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Utility-Engine
 	 *  @{

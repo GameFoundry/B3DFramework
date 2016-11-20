@@ -7,7 +7,7 @@
 #include "BsFolderMonitor.h"
 #include "BsModule.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

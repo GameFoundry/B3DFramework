@@ -11,7 +11,7 @@
 #include "BsGUISpace.h"
 #include "BsScriptGUILayout.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIFixedSpace::ScriptGUIFixedSpace(MonoObject* instance, GUIFixedSpace* fixedSpace)
 		:TScriptGUIElementBase(instance, fixedSpace), mFixedSpace(fixedSpace), mIsDestroyed(false)

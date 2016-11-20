@@ -6,7 +6,7 @@
 #include "BsRasterizerStateRTTI.h"
 #include "BsResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool RASTERIZER_STATE_DESC::operator == (const RASTERIZER_STATE_DESC& rhs) const
 	{

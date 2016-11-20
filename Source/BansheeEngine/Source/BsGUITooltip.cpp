@@ -15,7 +15,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUITooltip::TOOLTIP_WIDTH = 200;
 	const UINT32 GUITooltip::CURSOR_SIZE = 16;

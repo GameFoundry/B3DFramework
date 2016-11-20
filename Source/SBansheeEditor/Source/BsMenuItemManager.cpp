@@ -17,7 +17,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	MenuItemManager::MenuItemManager(ScriptAssemblyManager& scriptObjectManager)
 		:mScriptObjectManager(scriptObjectManager), mMenuItemAttribute(nullptr), mPathField(nullptr), 

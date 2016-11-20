@@ -6,7 +6,7 @@
 #include "BsException.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void D3D11HLSLParamParser::parse(ID3DBlob* microcode, GpuProgramType type, GpuParamDesc& desc, 
 		List<VertexElement>* inputParams)

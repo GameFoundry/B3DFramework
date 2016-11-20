@@ -5,7 +5,7 @@
 #include "BsGUIMouseEvent.h"
 #include "BsGUIToggleGroup.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIToggle::getGUITypeName()
 	{

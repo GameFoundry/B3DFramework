@@ -5,7 +5,7 @@
 #include "BsCoreThread.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GpuResourceData::GpuResourceData()
 		:mData(nullptr), mOwnsData(false), mLocked(false)

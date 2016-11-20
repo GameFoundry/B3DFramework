@@ -11,7 +11,7 @@
 #include "BsScriptFont.h"
 #include "BsScriptGUISkin.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptEditorBuiltin::ScriptEditorBuiltin(MonoObject* instance)
 		:ScriptObject(instance)

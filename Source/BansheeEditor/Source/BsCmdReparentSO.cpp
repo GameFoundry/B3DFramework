@@ -3,7 +3,7 @@
 #include "BsCmdReparentSO.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdReparentSO::CmdReparentSO(const WString& description, const Vector<HSceneObject>& sceneObjects, const HSceneObject& newParent)
 		:EditorCommand(description), mSceneObjects(sceneObjects), mNewParent(newParent)

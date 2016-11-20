@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsPixelData.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Utility-Core
 	 *  @{

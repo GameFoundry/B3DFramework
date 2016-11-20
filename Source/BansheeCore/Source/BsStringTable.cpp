@@ -5,7 +5,7 @@
 #include "BsResources.h"
 #include "BsStringTableRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const Language StringTable::DEFAULT_LANGUAGE = Language::EnglishUS;
 

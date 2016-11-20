@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIProgressBar::GUIProgressBar(const String& styleName, const GUIDimensions& dimensions)
 		:GUIElementContainer(dimensions, styleName), mPercent(0)

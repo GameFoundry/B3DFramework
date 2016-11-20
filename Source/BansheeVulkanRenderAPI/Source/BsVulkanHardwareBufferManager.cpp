@@ -8,7 +8,7 @@
 #include "BsVulkanGpuParams.h"
 #include "BsGpuParamDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanHardwareBufferCoreManager::VulkanHardwareBufferCoreManager()
 	{ }

@@ -11,7 +11,7 @@
 #include "BsTextureManager.h"
 #include "BsPixelData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

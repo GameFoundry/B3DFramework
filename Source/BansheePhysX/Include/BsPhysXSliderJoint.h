@@ -7,7 +7,7 @@
 #include "PxPhysics.h"
 #include "extensions\PxPrismaticJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

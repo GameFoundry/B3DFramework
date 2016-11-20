@@ -6,7 +6,7 @@
 #include "BsImportOptions.h"
 #include "BsPixelUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Importer
 	 *  @{

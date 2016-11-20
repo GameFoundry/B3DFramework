@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsInputFwd.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

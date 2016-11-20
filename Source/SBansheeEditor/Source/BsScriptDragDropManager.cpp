@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptDragDrop::ScriptDragDrop(MonoObject* instance)
 		:ScriptObject(instance)

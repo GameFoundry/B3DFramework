@@ -1,7 +1,7 @@
 #include "BsPhysXMaterial.h"
 #include "PxPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysXMaterial::PhysXMaterial(physx::PxPhysics* physx, float staFric, float dynFriction, float restitution)
 		:mInternal(nullptr)

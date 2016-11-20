@@ -3,7 +3,7 @@
 #include "BsFLACDecoder.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	FLAC__StreamDecoderReadStatus streamRead(const FLAC__StreamDecoder*, FLAC__byte buffer[], size_t* bytes, void* clientData)
 	{

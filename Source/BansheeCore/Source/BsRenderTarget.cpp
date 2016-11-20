@@ -7,7 +7,7 @@
 #include "BsCoreThread.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderTargetCore::RenderTargetCore()
 	{

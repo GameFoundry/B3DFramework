@@ -6,7 +6,7 @@
 #include "BsDistanceJoint.h"
 #include "BsCJoint.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Components-Core
 	 *  @{

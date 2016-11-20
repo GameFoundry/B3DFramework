@@ -5,7 +5,7 @@
 #include "BsBitwise.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine  
+namespace bs  
 {
     GLenum GLPixelUtil::getGLOriginFormat(PixelFormat mFormat)
     {

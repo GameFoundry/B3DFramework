@@ -16,7 +16,7 @@
 #include "BsScriptGUIContent.h"
 #include "BsScriptRenderTexture2D.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIRenderTexture::ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture)
 		:TScriptGUIElement(instance, texture)

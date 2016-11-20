@@ -5,7 +5,7 @@
 #include "BsVulkanGpuPipelineParamInfo.h"
 #include "BsVulkanSamplerState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<SamplerStateCore> VulkanRenderStateCoreManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
 		GpuDeviceFlags deviceMask) const

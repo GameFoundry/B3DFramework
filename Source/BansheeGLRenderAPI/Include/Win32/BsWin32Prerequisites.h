@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <BsGLPrerequisites.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{

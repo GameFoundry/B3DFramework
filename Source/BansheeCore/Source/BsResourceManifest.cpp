@@ -5,7 +5,7 @@
 #include "BsFileSerializer.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ResourceManifest::ResourceManifest(const ConstructPrivately& dummy)
 	{

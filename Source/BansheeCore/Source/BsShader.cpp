@@ -11,7 +11,7 @@
 #include "BsPass.h"
 #include "BsSamplerState.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	std::atomic<UINT32> ShaderCore::mNextShaderId;
 

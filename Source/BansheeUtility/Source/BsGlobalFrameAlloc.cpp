@@ -4,7 +4,7 @@
 #include "BsGlobalFrameAlloc.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	BS_THREADLOCAL FrameAlloc* _GlobalFrameAlloc = nullptr;
 

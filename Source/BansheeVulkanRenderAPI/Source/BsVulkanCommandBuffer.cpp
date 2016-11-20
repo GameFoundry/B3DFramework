@@ -13,7 +13,7 @@
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanVertexInputManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
 		:mDevice(device), mNextId(1)

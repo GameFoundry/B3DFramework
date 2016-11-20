@@ -4,7 +4,7 @@
 #include "BsPhysics.h"
 #include "BsSceneObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Rigidbody::Rigidbody(const HSceneObject& linkedSO)
 		:mLinkedSO(linkedSO)

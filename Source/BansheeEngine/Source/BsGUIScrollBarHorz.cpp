@@ -3,7 +3,7 @@
 #include "BsGUIScrollBarHorz.h"
 #include "BsGUIDimensions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIScrollBarHorz::GUIScrollBarHorz(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
 		:GUIScrollBar(true, resizeable, styleName, dimensions)

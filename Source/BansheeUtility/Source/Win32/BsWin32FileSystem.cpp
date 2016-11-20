@@ -6,7 +6,7 @@
 #include "BsDebug.h"
 #include <windows.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	void win32_handleError(DWORD error, const WString& path)
 	{

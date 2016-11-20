@@ -5,7 +5,7 @@
 #include "BsGUILayoutX.h"
 #include "BsGUILayoutUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIFieldBase::DEFAULT_LABEL_WIDTH = 100;
 

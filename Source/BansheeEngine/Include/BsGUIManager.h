@@ -14,7 +14,7 @@
 #include "BsEvent.h"
 #include "BsMaterialParam.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

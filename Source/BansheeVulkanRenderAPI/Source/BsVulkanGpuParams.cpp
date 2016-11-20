@@ -15,7 +15,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "BsGpuParamDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanGpuParams::VulkanGpuParams(const SPtr<GpuPipelineParamInfoCore>& paramInfo, GpuDeviceFlags deviceMask)
 		: GpuParamsCore(paramInfo, deviceMask), mPerDeviceData(), mDeviceMask(deviceMask), mData(nullptr), mSetsDirty(nullptr)

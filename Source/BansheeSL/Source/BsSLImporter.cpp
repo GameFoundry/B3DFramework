@@ -6,7 +6,7 @@
 #include "BsSLFXCompiler.h"
 #include "BsShaderImportOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SLImporter::SLImporter()
 		:SpecificImporter()

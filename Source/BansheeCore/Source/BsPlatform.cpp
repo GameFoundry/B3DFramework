@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsPlatform.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	OSDropTarget::OSDropTarget(const RenderWindow* ownerWindow, INT32 x, INT32 y, UINT32 width, UINT32 height)
 		:mX(x), mY(y), mWidth(width), mHeight(height), mActive(false), mOwnerWindow(ownerWindow), 

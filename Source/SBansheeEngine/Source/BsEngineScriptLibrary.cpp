@@ -19,7 +19,7 @@
 #include "BsPlayInEditorManager.h"
 #include "BsScriptScene.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EngineScriptLibrary::EngineScriptLibrary()
 		:mScriptAssembliesLoaded(false)

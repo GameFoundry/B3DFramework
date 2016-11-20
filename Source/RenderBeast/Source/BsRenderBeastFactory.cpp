@@ -4,7 +4,7 @@
 #include "BsRenderer.h"
 #include "BsRenderBeast.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const char* SystemName = "RenderBeast";
 

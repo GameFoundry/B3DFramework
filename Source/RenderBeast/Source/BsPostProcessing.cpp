@@ -8,7 +8,7 @@
 #include "BsCamera.h"
 #include "BsGpuParamsSet.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DownsampleMat::DownsampleMat()
 	{

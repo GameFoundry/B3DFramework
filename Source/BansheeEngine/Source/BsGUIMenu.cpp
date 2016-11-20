@@ -3,7 +3,7 @@
 #include "BsGUIMenu.h"
 #include "BsGUIDropDownMenu.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b)
 	{

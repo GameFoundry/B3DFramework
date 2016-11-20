@@ -8,7 +8,7 @@
 #include "BsResourceMetaData.h"
 #include "BsImportOptions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Editor

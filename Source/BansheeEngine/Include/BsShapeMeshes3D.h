@@ -7,7 +7,7 @@
 #include "BsAABox.h"
 #include "BsRect3.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Utility-Engine
 	 *  @{

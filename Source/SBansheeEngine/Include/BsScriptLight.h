@@ -8,7 +8,7 @@
 #include "BsColor.h"
 #include "BsLight.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

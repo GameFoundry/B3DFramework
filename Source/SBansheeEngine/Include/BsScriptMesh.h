@@ -7,7 +7,7 @@
 #include "BsScriptMeshData.h"
 #include "BsMesh.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

@@ -12,7 +12,7 @@
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIElementStyle::ScriptGUIElementStyle(MonoObject* instance)
 		:ScriptObject(instance)

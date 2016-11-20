@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsIReflectable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources-Internal
 	 *  @{

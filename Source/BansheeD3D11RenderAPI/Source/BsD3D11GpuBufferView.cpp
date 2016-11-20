@@ -7,7 +7,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t GpuBufferView::HashFunction::operator()(const GPU_BUFFER_VIEW_DESC& key) const
 	{

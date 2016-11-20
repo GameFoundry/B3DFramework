@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "BsShaderManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Library-Internal
 	 *  @{

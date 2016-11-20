@@ -6,7 +6,7 @@
 #include "BsScriptCollider.h"
 #include "BsScriptJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

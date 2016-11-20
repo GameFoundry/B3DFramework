@@ -30,7 +30,7 @@
 
 /** @} */
 
-namespace BansheeEngine
+namespace bs
 {
 	class MonoManager;
 	class MonoAssembly;

@@ -4,7 +4,7 @@
 #include "BsFBXImporter.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Returns a name of the plugin. */
 	extern "C" BS_FBX_EXPORT const char* getPluginName()

@@ -6,7 +6,7 @@
 #include "BsGLSupport.h"
 #include "BsGLRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{

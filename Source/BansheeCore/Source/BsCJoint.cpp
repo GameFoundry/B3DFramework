@@ -8,7 +8,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CJoint::CJoint(JOINT_DESC& desc)
 		:mDesc(desc)

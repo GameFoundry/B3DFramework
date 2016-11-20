@@ -7,7 +7,7 @@
 #include "BsVideoModeInfo.h"
 #include "BsVector2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI
 	 *  @{

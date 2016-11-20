@@ -11,7 +11,7 @@
 #include "BsScriptResource.h"
 #include "BsScriptComponent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoClass* ScriptInspectorUtility::mCustomInspectorAtribute = nullptr;
 	MonoField* ScriptInspectorUtility::mTypeField = nullptr;

@@ -4,7 +4,7 @@
 #include "BsMaterialManager.h"
 #include "BsMaterialParams.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void MaterialRTTI::onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params)
 	{

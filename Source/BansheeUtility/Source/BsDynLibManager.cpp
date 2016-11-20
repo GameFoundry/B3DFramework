@@ -3,7 +3,7 @@
 #include "BsDynLibManager.h"
 #include "BsDynLib.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	DynLibManager::DynLibManager()
 	{

@@ -6,7 +6,7 @@
 #include "BsFileSystem.h"
 #include "BsEditorApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	BuildData::BuildData()
 		:activePlatform(PlatformType::Windows)

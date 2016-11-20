@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsCharacterController.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

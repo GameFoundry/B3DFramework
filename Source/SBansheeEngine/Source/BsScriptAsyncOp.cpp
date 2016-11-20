@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAsyncOp::ScriptAsyncOp(MonoObject* instance)
 		:ScriptObject(instance)

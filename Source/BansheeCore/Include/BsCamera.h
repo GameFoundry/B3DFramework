@@ -15,7 +15,7 @@
 #include "BsConvexVolume.h"
 #include "BsPostProcessSettings.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Renderer-Internal
 	 *  @{

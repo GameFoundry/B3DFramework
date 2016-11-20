@@ -7,7 +7,7 @@
 #include "BsGUIOptions.h"
 #include "BsGUIElementBase.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEngine
 	 *  @{

@@ -5,7 +5,7 @@
 #include "BsResources.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HPhysicsMaterial PhysicsMaterial::create(float staticFriction, float dynamicFriction, float restitution)
 	{

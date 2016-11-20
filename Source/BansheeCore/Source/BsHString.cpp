@@ -4,7 +4,7 @@
 #include "BsHString.h"
 #include "BsStringTableManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HString::HString(UINT32 stringTableId)
 		:mParameters(nullptr), mIsDirty(true), mStringPtr(nullptr)

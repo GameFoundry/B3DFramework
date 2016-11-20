@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include <mono/jit/jit.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	namespace Detail
 	{

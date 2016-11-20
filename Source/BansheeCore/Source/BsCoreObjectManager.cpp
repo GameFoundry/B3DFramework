@@ -8,7 +8,7 @@
 #include "BsFrameAlloc.h"
 #include "BsCoreThread.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CoreObjectManager::CoreObjectManager()
 		:mNextAvailableID(1)

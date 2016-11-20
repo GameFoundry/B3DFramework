@@ -9,7 +9,7 @@
 #include "BsScriptFont.h"
 #include "BsScriptMeshData.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	void ScriptGizmos::initRuntimeData()
 	{

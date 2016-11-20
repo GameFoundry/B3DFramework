@@ -7,7 +7,7 @@
 #include "BsMath.h"
 #include "BsAnimationUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** 
 	 * Checks if any components of the keyframes are constant (step) functions and updates the hermite curve coefficients

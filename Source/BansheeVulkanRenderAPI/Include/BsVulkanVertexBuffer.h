@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsVertexBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

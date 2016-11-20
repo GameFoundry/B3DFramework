@@ -6,7 +6,7 @@
 #include "BsGUITexture.h"
 #include "BsImageSprite.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Editor-Internal
 	 *  @{

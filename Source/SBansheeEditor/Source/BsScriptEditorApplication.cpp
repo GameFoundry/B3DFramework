@@ -23,7 +23,7 @@
 #include "BsFileSystem.h"
 #include "BsScriptPrefab.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	bool ScriptEditorApplication::mRequestProjectLoad = false;
 	bool ScriptEditorApplication::mRequestAssemblyReload = false;

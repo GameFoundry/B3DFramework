@@ -7,7 +7,7 @@
 #include "BsModule.h"
 #include "BsPlatformInfo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Build
 	 *  @{

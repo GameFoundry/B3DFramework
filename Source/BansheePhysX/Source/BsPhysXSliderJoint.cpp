@@ -8,7 +8,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PxPrismaticJointFlag::Enum toPxFlag(PhysXSliderJoint::Flag flag)
 	{

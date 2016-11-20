@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanDescriptorLayout.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** Used as a key in a hash map containing VulkanDescriptorLayout%s. */
 	struct VulkanLayoutKey
@@ -46,22 +46,22 @@ namespace std
 {
 	/**	Hash value generator for VulkanLayoutKey. */
 	template<>
-	struct hash<BansheeEngine::VulkanLayoutKey>
+	struct hash<bs::VulkanLayoutKey>
 	{
-		size_t operator()(const BansheeEngine::VulkanLayoutKey& value) const
+		size_t operator()(const bs::VulkanLayoutKey& value) const
 		{
 			if (value.layout != nullptr)
 				return value.layout->getHash();
 
-			return BansheeEngine::VulkanDescriptorLayout::calculateHash(value.bindings, value.numBindings);
+			return bs::VulkanDescriptorLayout::calculateHash(value.bindings, value.numBindings);
 		}
 	};
 
 	/**	Hash value generator for VulkanPipelineLayoutKey. */
 	template<>
-	struct hash<BansheeEngine::VulkanPipelineLayoutKey>
+	struct hash<bs::VulkanPipelineLayoutKey>
 	{
-		size_t operator()(const BansheeEngine::VulkanPipelineLayoutKey& value) const
+		size_t operator()(const bs::VulkanPipelineLayoutKey& value) const
 		{
 			return value.calculateHash();
 		}
@@ -71,7 +71,7 @@ namespace std
 /** @} */
 /** @endcond */
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{

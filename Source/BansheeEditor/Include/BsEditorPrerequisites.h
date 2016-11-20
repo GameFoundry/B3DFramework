@@ -122,7 +122,7 @@
 #    define BS_ED_EXPORT
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	class EditorWindowBase;
 	class EditorWindow;

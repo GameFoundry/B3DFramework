@@ -3,7 +3,7 @@
 #include "BsUndoRedo.h"
 #include "BsEditorCommand.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 UndoRedo::MAX_STACK_ELEMENTS = 1000;
 

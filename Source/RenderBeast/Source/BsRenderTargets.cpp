@@ -7,7 +7,7 @@
 #include "BsTextureManager.h"
 #include "BsRendererUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderTargets::RenderTargets(const SPtr<ViewportCore>& viewport, bool hdr, UINT32 numSamples)
 		:mViewport(viewport), mNumSamples(numSamples), mHDR(hdr)

@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsCD6JointRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CD6Joint::CD6Joint()
 		: CJoint(mDesc)

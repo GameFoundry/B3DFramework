@@ -6,7 +6,7 @@
 #include "BsCamera.h"
 #include "BsLight.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	volatile SceneManager::InitOnStart SceneManager::DoInitOnStart;
 

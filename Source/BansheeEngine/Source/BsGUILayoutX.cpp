@@ -7,7 +7,7 @@
 #include "BsVector2I.h"
 #include "BsProfilerCPU.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUILayoutX::GUILayoutX(const GUIDimensions& dimensions)
 		: GUILayout(dimensions)

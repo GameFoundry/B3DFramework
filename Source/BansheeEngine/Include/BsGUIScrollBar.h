@@ -6,7 +6,7 @@
 #include "BsGUIElement.h"
 #include "BsEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

@@ -5,7 +5,7 @@
 
 using namespace physx;
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysXCapsuleCollider::PhysXCapsuleCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation,
 		float radius, float halfHeight)

@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsAnimation.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class ScriptAnimationClip;
 

@@ -6,7 +6,7 @@
 #include "BsVector2.h"
 #include "BsFont.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIInputTool::GUIInputTool()
 		:mElement(nullptr), mQuads(nullptr), mNumQuads(0)

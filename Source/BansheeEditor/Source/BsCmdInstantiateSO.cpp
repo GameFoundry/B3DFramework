@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsPrefab.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CmdInstantiateSO::CmdInstantiateSO(const WString& description, const HPrefab& prefab)
 		:EditorCommand(description), mPrefab(prefab)

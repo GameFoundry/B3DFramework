@@ -5,7 +5,7 @@
 #include "BsVector2.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const int SPACE_CHAR = 32;
 	const int TAB_CHAR = 9;

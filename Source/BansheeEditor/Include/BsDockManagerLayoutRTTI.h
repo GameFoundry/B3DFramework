@@ -6,7 +6,7 @@
 #include "BsDockManagerLayout.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Editor
@@ -73,11 +73,11 @@ namespace BansheeEngine
 		}
 	};
 
-	template<> struct RTTIPlainType<BansheeEngine::DockManagerLayout::Entry>
+	template<> struct RTTIPlainType<bs::DockManagerLayout::Entry>
 	{	
-		enum { id = BansheeEngine::TID_DockManagerLayoutEntry }; enum { hasDynamicSize = 1 };
+		enum { id = bs::TID_DockManagerLayoutEntry }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const BansheeEngine::DockManagerLayout::Entry& data, char* memory)
+		static void toMemory(const bs::DockManagerLayout::Entry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			char* memoryStart = memory;
@@ -98,7 +98,7 @@ namespace BansheeEngine
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		static UINT32 fromMemory(BansheeEngine::DockManagerLayout::Entry& data, char* memory)
+		static UINT32 fromMemory(bs::DockManagerLayout::Entry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			memcpy(&size, memory, sizeof(UINT32));
@@ -111,8 +111,8 @@ namespace BansheeEngine
 
 			if(!data.isLeaf)
 			{
-				data.children[0] = bs_new<BansheeEngine::DockManagerLayout::Entry>();
-				data.children[1] = bs_new<BansheeEngine::DockManagerLayout::Entry>();
+				data.children[0] = bs_new<bs::DockManagerLayout::Entry>();
+				data.children[1] = bs_new<bs::DockManagerLayout::Entry>();
 
 				memory = rttiReadElem(*data.children[0], memory);
 				memory = rttiReadElem(*data.children[1], memory);
@@ -124,7 +124,7 @@ namespace BansheeEngine
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const BansheeEngine::DockManagerLayout::Entry& data)	
+		static UINT32 getDynamicSize(const bs::DockManagerLayout::Entry& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32) + rttiGetElemSize(data.isLeaf) + rttiGetElemSize(data.horizontalSplit) + 
 				rttiGetElemSize(data.splitPosition) + rttiGetElemSize(data.widgetNames);

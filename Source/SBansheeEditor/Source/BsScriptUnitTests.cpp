@@ -9,7 +9,7 @@
 #include "BsManagedSerializableObject.h"
 #include "BsManagedSerializableDiff.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoMethod* ScriptUnitTests::RunTestsMethod;
 	SPtr<ManagedSerializableDiff> ScriptUnitTests::tempDiff;

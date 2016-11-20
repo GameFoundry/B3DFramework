@@ -6,7 +6,7 @@
 #include "BsIReflectable.h"
 #include "BsCoreObject.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI
 	 *  @{
@@ -220,11 +220,11 @@ namespace std
 {
 /**	Hash value generator for RASTERIZER_STATE_DESC. */
 template<>
-struct hash<BansheeEngine::RASTERIZER_STATE_DESC>
+struct hash<bs::RASTERIZER_STATE_DESC>
 {
-	size_t operator()(const BansheeEngine::RASTERIZER_STATE_DESC& value) const
+	size_t operator()(const bs::RASTERIZER_STATE_DESC& value) const
 	{
-		return (size_t)BansheeEngine::RasterizerState::generateHash(value);
+		return (size_t)bs::RasterizerState::generateHash(value);
 	}
 };
 }

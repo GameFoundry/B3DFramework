@@ -5,7 +5,7 @@
 #include "BsGpuBuffer.h"
 #include "BsMaterial.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SpriteImageTransparentMaterial::SpriteImageTransparentMaterial()
 		:SpriteMaterial(0, BuiltinResources::instance().createSpriteImageMaterial())

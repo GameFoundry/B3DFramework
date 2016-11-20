@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsD3D11CommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11CommandBuffer::D3D11CommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
 		: CommandBuffer(type, deviceIdx, queueIdx, secondary), mActiveDrawOp(DOT_TRIANGLE_LIST)

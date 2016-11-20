@@ -5,7 +5,7 @@
 #include "BsD3D11TimerQuery.h"
 #include "BsD3D11OcclusionQuery.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<EventQuery> D3D11QueryManager::createEventQuery(UINT32 deviceIdx) const
 	{

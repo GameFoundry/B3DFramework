@@ -3,7 +3,7 @@
 #include "BsSphereCollider.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SphereCollider::SphereCollider()
 	{ }

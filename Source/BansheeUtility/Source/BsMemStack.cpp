@@ -3,7 +3,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsMemStack.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	BS_THREADLOCAL MemStackInternal<1024 * 1024>* MemStack::ThreadMemStack = nullptr;
 

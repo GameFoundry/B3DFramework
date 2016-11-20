@@ -15,7 +15,7 @@
 
 using namespace std::chrono;
 
-namespace BansheeEngine
+namespace bs
 {
 	ProfilerCPU::Timer::Timer()
 		:startTime(0.0f)

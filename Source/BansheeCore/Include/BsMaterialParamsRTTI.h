@@ -8,7 +8,7 @@
 #include "BsSamplerState.h"
 #include "BsDataStream.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

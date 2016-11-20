@@ -4,7 +4,7 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanRenderTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<RenderTexture> VulkanTextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{

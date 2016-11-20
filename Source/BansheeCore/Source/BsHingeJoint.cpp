@@ -3,7 +3,7 @@
 #include "BsHingeJoint.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<HingeJoint> HingeJoint::create(const HINGE_JOINT_DESC& desc)
 	{

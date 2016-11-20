@@ -10,7 +10,7 @@
 #include "BsLight.h"
 #include "BsRendererUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	LightRenderingParams::LightRenderingParams(const SPtr<MaterialCore>& material, const SPtr<GpuParamsSetCore>& paramsSet)
 		:mMaterial(material), mParamsSet(paramsSet)

@@ -13,7 +13,7 @@
 #include "BsMonoAssembly.h"
 #include "BsPlayInEditorManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ManagedComponent::ManagedComponent()
 		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0), mRunInEditor(false)

@@ -4,7 +4,7 @@
 
 #include "BsTestSuite.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class FileSystemTestSuite : public TestSuite
 	{

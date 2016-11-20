@@ -3,7 +3,7 @@
 #include "BsTextureView.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	size_t TextureView::HashFunction::operator()(const TEXTURE_VIEW_DESC &key) const
 	{

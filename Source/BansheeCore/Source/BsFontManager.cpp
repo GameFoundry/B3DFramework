@@ -3,7 +3,7 @@
 #include "BsFontManager.h"
 #include "BsFont.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<Font> FontManager::create(const Vector<SPtr<FontBitmap>>& fontData) const
 	{

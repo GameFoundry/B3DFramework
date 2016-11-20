@@ -9,7 +9,7 @@
 #include "BsRect3.h"
 #include "BsColor.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEditor
 	 *  @{

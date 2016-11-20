@@ -7,7 +7,7 @@
 #include "BsRect2I.h"
 #include "BsGUIWidget.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

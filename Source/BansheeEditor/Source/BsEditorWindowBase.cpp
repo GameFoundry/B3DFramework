@@ -11,7 +11,7 @@
 #include "BsGUIWindowFrameWidget.h"
 #include "BsBuiltinEditorResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorWindowBase::EditorWindowBase(bool isModal)
 		:mOwnsRenderWindow(true), mIsModal(isModal)

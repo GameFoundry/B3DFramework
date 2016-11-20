@@ -7,7 +7,7 @@
 #include "BsBuiltinResources.h"
 #include "BsBuiltinEditorResources.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HShaderInclude EditorShaderIncludeHandler::findInclude(const String& name) const
 	{

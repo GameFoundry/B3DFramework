@@ -30,7 +30,7 @@
 
 /** @} */
 
-namespace BansheeEngine
+namespace bs
 {
 	extern const char* SystemName;
 }

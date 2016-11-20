@@ -5,7 +5,7 @@
 #include "BsResources.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PhysicsMesh::PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 		:mInitMeshData(meshData), mType(type)

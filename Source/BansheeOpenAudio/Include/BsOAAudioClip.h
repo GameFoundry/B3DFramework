@@ -6,7 +6,7 @@
 #include "BsAudioClip.h"
 #include "BsOggVorbisDecoder.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup OpenAudio
 	 *  @{

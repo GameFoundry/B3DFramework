@@ -9,7 +9,7 @@
 	typedef struct HINSTANCE__* hInstance;
 #endif
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup General
 	 *  @{

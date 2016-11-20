@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptAudioDevice::ScriptAudioDevice(MonoObject* instance, const AudioDevice& device)
 		:ScriptObject(instance), mDevice(device)

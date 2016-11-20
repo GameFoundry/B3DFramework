@@ -8,7 +8,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptFontBitmap.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptFont::ScriptFont(MonoObject* instance, const HFont& font)
 		:TScriptResource(instance, font)

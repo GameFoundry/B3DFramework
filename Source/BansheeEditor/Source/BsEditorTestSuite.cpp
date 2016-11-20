@@ -17,7 +17,7 @@
 #include "BsFileSystem.h"
 #include "BsSceneManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class TestComponentARTTI : public RTTIType<TestComponentA, Component, TestComponentARTTI>
 	{

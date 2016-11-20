@@ -1,7 +1,7 @@
 #include "BsVulkanDescriptorLayout.h"
 #include "BsVulkanDevice.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanDevice& device, VkDescriptorSetLayoutBinding* bindings, 
 		UINT32 numBindings)

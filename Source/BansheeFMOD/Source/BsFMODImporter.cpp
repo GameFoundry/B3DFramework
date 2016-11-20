@@ -10,7 +10,7 @@
 
 #include <fmod.hpp>
 
-namespace BansheeEngine
+namespace bs
 {
 	FMODImporter::FMODImporter()
 		:SpecificImporter()

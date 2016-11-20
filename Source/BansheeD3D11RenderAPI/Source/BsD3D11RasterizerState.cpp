@@ -7,7 +7,7 @@
 #include "BsRenderStats.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11RasterizerStateCore::D3D11RasterizerStateCore(const RASTERIZER_STATE_DESC& desc, UINT32 id)
 		:RasterizerStateCore(desc, id), mRasterizerState(nullptr)

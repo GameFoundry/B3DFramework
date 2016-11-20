@@ -16,7 +16,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	void FreeImageLoadErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) 
 	{

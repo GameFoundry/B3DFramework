@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	GUISlider::GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions)
 		:GUIElementContainer(dimensions, styleName), mHorizontal(horizontal), mMinRange(0.0f), mMaxRange(1.0f)

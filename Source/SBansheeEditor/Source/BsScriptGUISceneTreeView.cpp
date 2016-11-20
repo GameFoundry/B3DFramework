@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUISceneTreeView::OnModifiedThunkDef ScriptGUISceneTreeView::onModifiedThunk;
 	ScriptGUISceneTreeView::OnResourceDroppedThunkDef ScriptGUISceneTreeView::onResourceDroppedThunk;

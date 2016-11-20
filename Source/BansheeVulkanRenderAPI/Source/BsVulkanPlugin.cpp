@@ -3,7 +3,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanRenderAPIFactory.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	extern "C" const char* getPluginName()
 	{

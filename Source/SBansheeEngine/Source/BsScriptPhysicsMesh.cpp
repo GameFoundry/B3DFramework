@@ -7,7 +7,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPhysicsMesh::ScriptPhysicsMesh(MonoObject* instance, const HPhysicsMesh& mesh)
 		:TScriptResource(instance, mesh)

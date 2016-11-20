@@ -18,7 +18,7 @@
 #include "BsStandardPostProcessSettings.h"
 #include "BsScriptPostProcessSettings.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptCamera::ScriptCamera(MonoObject* managedInstance, const HSceneObject& parentSO)
 		:ScriptObject(managedInstance), mCamera(nullptr), mLastUpdateHash(0)

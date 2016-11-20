@@ -11,7 +11,7 @@
 #include "BsEditorWindow.h"
 #include "BsRenderWindow.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	EditorWidgetBase::EditorWidgetBase(const HString& displayName, const String& name, UINT32 defaultWidth,
 		UINT32 defaultHeight, EditorWidgetContainer& parentContainer)

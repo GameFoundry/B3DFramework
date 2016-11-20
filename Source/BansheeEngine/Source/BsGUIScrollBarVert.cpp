@@ -3,7 +3,7 @@
 #include "BsGUIScrollBarVert.h"
 #include "BsGUIDimensions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIScrollBarVert::GUIScrollBarVert(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
 		:GUIScrollBar(false, resizeable, styleName, dimensions)

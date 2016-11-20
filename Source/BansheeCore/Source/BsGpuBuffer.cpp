@@ -5,7 +5,7 @@
 #include "BsRenderAPI.h"
 #include "BsHardwareBufferManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	UINT32 getBufferSize(const GPU_BUFFER_DESC& desc)
 	{

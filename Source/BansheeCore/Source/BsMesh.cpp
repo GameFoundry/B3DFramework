@@ -12,7 +12,7 @@
 #include "BsResources.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	MESH_DESC MESH_DESC::DEFAULT = MESH_DESC();
 

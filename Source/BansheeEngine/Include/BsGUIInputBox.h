@@ -8,7 +8,7 @@
 #include "BsTextSprite.h"
 #include "BsVirtualInput.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI
 	 *  @{

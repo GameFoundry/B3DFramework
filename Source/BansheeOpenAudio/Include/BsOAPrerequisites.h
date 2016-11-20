@@ -20,7 +20,7 @@
 #    define BS_OA_EXPORT
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	class OAAudioListener;
 	class OAAudioSource;

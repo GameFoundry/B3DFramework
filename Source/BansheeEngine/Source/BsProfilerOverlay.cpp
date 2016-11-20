@@ -21,7 +21,7 @@
 
 #define BS_SHOW_PRECISE_PROFILING 0
 
-namespace BansheeEngine
+namespace bs
 {
 	class BasicRowFiller
 	{

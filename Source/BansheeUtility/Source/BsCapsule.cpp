@@ -3,7 +3,7 @@
 #include "BsCapsule.h"
 #include "BsRay.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Capsule::Capsule()
 		:mRadius(0.0f)

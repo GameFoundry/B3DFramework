@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsIReflectable.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Serialization
 	 *  @{

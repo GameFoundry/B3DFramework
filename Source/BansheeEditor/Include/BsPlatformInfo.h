@@ -6,7 +6,7 @@
 #include "BsIReflectable.h"
 #include "BsVideoModeInfo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Build
 	 *  @{

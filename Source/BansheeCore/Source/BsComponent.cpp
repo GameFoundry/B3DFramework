@@ -4,7 +4,7 @@
 #include "BsSceneObject.h"
 #include "BsComponentRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Component::Component()
 		:mNotifyFlags(TCF_None)

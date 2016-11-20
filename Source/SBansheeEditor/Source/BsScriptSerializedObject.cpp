@@ -10,7 +10,7 @@
 #include "BsManagedSerializableObject.h"
 #include "BsScriptAssemblyManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializedObject::ScriptSerializedObject(MonoObject* instance, const SPtr<ManagedSerializableObject>& obj)
 		: ScriptObject(instance), mSerializedObject(obj)

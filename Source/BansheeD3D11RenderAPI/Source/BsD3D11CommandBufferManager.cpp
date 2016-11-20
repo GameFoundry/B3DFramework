@@ -3,7 +3,7 @@
 #include "BsD3D11CommandBufferManager.h"
 #include "BsD3D11CommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	SPtr<CommandBuffer> D3D11CommandBufferManager::createInternal(GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)

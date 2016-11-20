@@ -5,7 +5,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanGpuBufferCore::VulkanGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBufferCore(desc, deviceMask), mBuffer(nullptr), mDeviceMask(deviceMask)

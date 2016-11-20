@@ -5,7 +5,7 @@
 #include "BsGLRenderTexture.h"
 #include "BsGLPixelFormat.h"
 
-namespace BansheeEngine
+namespace bs
 {
     GLTextureManager::GLTextureManager(GLSupport& support)
         :TextureManager(), mGLSupport(support)

@@ -9,7 +9,7 @@
 #include "BsManagedSerializableField.h"
 #include "BsMemorySerializer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializableUtility::ScriptSerializableUtility(MonoObject* instance)
 		:ScriptObject(instance)

@@ -7,7 +7,7 @@
 #include "BsScriptSerializedObject.h"
 #include "BsManagedSerializableDiff.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSerializedDiff::ScriptSerializedDiff(MonoObject* instance, const SPtr<ManagedSerializableDiff>& obj)
 		: ScriptObject(instance), mSerializedDiff(obj)

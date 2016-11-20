@@ -4,7 +4,7 @@
 #include "BsSLImporter.h"
 #include "BsImporter.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const char* SystemName = "BansheeSL";
 

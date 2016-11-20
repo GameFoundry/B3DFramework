@@ -9,7 +9,7 @@
 #include "BsScriptCollider.h"
 #include "BsCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptPhysics::ScriptPhysics(MonoObject* instance)
 		:ScriptObject(instance)

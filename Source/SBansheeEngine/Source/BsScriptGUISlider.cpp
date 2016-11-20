@@ -18,7 +18,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUISliderH::OnChangedThunkDef ScriptGUISliderH::onChangedThunk;
 

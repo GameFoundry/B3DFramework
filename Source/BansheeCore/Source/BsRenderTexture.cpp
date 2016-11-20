@@ -8,7 +8,7 @@
 #include "BsCoreThread.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RenderTextureProperties::RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping)
 	{
@@ -48,7 +48,7 @@ namespace BansheeEngine
 		{
 			mWidth = textureProps->getWidth();
 			mHeight = textureProps->getHeight();
-			mColorDepth = BansheeEngine::PixelUtil::getNumElemBits(textureProps->getFormat());
+			mColorDepth = bs::PixelUtil::getNumElemBits(textureProps->getFormat());
 			mHwGamma = textureProps->isHardwareGammaEnabled();
 			mMultisampleCount = textureProps->getNumSamples();
 		}

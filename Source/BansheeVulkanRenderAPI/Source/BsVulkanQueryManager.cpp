@@ -8,7 +8,7 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanQueryPool::VulkanQueryPool(VulkanDevice& device)
 		:mDevice(device)

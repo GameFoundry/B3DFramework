@@ -5,7 +5,7 @@
 #include "BsSpriteManager.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ImageSprite::ImageSprite()
 	{

@@ -3,7 +3,7 @@
 #include "BsD3D11HLSLProgramFactory.h"
 #include "BsD3D11GpuProgram.h"
 
-namespace BansheeEngine
+namespace bs
 {
     const String D3D11HLSLProgramFactory::LANGUAGE_NAME = "hlsl";
 

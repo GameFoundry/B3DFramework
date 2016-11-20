@@ -7,7 +7,7 @@
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptHString::ScriptHString(MonoObject* instance, const HString& string)
 		:ScriptObject(instance), mString(string)

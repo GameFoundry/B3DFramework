@@ -3,7 +3,7 @@
 #include "BsGUIButton.h"
 #include "BsGUIDimensions.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIButton::getGUITypeName()
 	{

@@ -3,7 +3,7 @@
 #include "BsPrerequisites.h"
 #include "BsHEString.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 HEString::ENGINE_STRING_TABLE_ID = 30000; // Arbitrary
 

@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVector2.h"
 
-namespace BansheeEngine
+namespace bs
 {
     const Vector2 Vector2::ZERO(0, 0);
 	const Vector2 Vector2::ONE(1, 1);

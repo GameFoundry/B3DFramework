@@ -11,7 +11,7 @@
 #include "BsMeshData.h"
 #include "BsMeshUtility.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	AnimationManager::AnimationManager()
 		: mNextId(1), mUpdateRate(1.0f / 60.0f), mAnimationTime(0.0f), mLastAnimationUpdateTime(0.0f)

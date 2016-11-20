@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGUIMouseEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIMouseEvent::GUIMouseEvent()
 		: mWheelScrollAmount(0.0f), mType(GUIMouseEventType::MouseMove), mButton(GUIMouseButton::Left)

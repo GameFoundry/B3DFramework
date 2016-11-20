@@ -6,7 +6,7 @@
 #include "BsGpuBuffer.h"
 #include "BsD3D11GpuBufferView.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup D3D11
 	 *  @{

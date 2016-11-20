@@ -6,7 +6,7 @@
 #include "BsScriptObject.h"
 #include "BsEditorCommand.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	class CmdManaged;
 

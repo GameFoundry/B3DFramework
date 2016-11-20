@@ -33,7 +33,7 @@
 #include "BsManagedSerializableList.h"
 #include "BsManagedSerializableDictionary.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	template<class T>
 	bool compareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)

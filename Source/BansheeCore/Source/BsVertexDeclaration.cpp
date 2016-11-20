@@ -5,7 +5,7 @@
 #include "BsHardwareBufferManager.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VertexElement::VertexElement(UINT16 source, UINT32 offset,
 		VertexElementType theType, VertexElementSemantic semantic, UINT16 index, UINT32 instanceStepRate)

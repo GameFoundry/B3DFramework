@@ -6,7 +6,7 @@
 #include "BsColor.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PixelData::PixelData(const PixelData& copy)
 		:GpuResourceData(copy)

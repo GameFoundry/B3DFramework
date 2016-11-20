@@ -8,7 +8,7 @@
 #include "BsMeshBase.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

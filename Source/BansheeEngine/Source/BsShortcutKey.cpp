@@ -5,7 +5,7 @@
 #include "BsHEString.h"
 #include "BsHString.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const ShortcutKey ShortcutKey::NONE = ShortcutKey();
 

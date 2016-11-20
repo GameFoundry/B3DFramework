@@ -3,7 +3,7 @@
 #include "BsVulkanRenderAPIFactory.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const char* SystemName = "BansheeVulkanRenderAPI";
 

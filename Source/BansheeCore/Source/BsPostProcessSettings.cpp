@@ -3,7 +3,7 @@
 #include "BsPostProcessSettings.h"
 #include "BsPostProcessSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* PostProcessSettings::getRTTIStatic()
 	{

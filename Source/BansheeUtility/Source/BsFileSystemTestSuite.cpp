@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <fstream>
 
-namespace BansheeEngine
+namespace bs
 {
 	const String testDirectoryName = "FileSystemTestDirectory/";
 

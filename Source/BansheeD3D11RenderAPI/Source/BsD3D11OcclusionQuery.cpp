@@ -7,7 +7,7 @@
 #include "BsRenderStats.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11OcclusionQuery::D3D11OcclusionQuery(bool binary, UINT32 deviceIdx)
 		:OcclusionQuery(binary), mContext(nullptr), mQuery(nullptr), mNumSamples(0), mFinalized(false), mQueryEndCalled(false)

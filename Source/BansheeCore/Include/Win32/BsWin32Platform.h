@@ -5,7 +5,7 @@
 #include "BsPlatform.h"
 #include "BsWin32Defs.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Platform-Internal
 	 *  @{

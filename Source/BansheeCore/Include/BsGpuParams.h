@@ -9,7 +9,7 @@
 #include "BsVectorNI.h"
 #include "BsMatrixNxM.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

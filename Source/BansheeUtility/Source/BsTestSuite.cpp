@@ -3,7 +3,7 @@
 #include "BsTestSuite.h"
 #include "BsTestOutput.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	TestSuite::TestEntry::TestEntry(Func test, const String& name)
 		:test(test), name(name)

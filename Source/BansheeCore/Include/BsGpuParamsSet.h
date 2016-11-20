@@ -7,7 +7,7 @@
 #include "BsShader.h"
 #include "BsPass.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Implementation
 	 *  @{

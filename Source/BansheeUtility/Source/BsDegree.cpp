@@ -3,7 +3,7 @@
 #include "BsDegree.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Degree::Degree(const Radian& r) 
 		:mDeg(r.valueDegrees()) 

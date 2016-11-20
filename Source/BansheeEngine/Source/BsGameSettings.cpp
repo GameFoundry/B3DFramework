@@ -3,7 +3,7 @@
 #include "BsGameSettings.h"
 #include "BsGameSettingsRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* GameSettings::getRTTIStatic()
 	{

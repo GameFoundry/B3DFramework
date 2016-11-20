@@ -7,7 +7,7 @@
 #include "BsScriptObject.h"
 #include "BsScriptCode.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

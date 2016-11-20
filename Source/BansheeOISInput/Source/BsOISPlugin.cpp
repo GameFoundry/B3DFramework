@@ -5,7 +5,7 @@
 #include "BsRenderWindow.h"
 #include "BsInput.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/**	Returns a name of the plugin. */
 	extern "C" BS_OIS_EXPORT const char* getPluginName()

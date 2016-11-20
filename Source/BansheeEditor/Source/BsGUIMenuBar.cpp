@@ -18,7 +18,7 @@
 #include "BsShortcutManager.h"
 #include "BsGUIHoverHitBox.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIMenuBar::NUM_ELEMENTS_AFTER_CONTENT = 8;
 	const UINT32 GUIMenuBar::ELEMENT_SPACING = 10;

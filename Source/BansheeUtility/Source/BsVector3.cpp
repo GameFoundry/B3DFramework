@@ -4,7 +4,7 @@
 #include "BsVector4.h"
 #include "BsMath.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector3::Vector3(const Vector4& vec)
 		:x(vec.x), y(vec.y), z(vec.z)

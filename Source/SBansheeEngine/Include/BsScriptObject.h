@@ -9,7 +9,7 @@
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup SBansheeEngine
 	 *  @{

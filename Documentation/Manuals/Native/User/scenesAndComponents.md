@@ -31,9 +31,9 @@ Scene objects are always referenced using the **HSceneObject** handle, while com
 You may treat the handles as pointers, using "->" to access their members, comparing them for equality or with *nullptr* to check their validity. 
 
 # Scene object creation and destruction {#b}
-We have already shown how to use @ref BansheeEngine::SceneObject::create "SceneObject::create" to create a new scene object. 
+We have already shown how to use @ref bs::SceneObject::create "SceneObject::create" to create a new scene object. 
 
-If you wish to destroy a scene object call @ref BansheeEngine::SceneObject::destroy "SceneObject::destroy". Note that destroying a scene object will destroy all of the components attached to it, as well as any child scene objects.
+If you wish to destroy a scene object call @ref bs::SceneObject::destroy "SceneObject::destroy". Note that destroying a scene object will destroy all of the components attached to it, as well as any child scene objects.
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a scene object
@@ -44,7 +44,7 @@ so->destroy();
 ~~~~~~~~~~~~~
 
 # Transforming scene objects {#c}
-You can change scene object position, orientation and scale using @ref BansheeEngine::SceneObject::setPosition "SceneObject::setPosition", @ref BansheeEngine::SceneObject::setRotation "SceneObject::setRotation" and @ref BansheeEngine::SceneObject::setScale "SceneObject::setScale".
+You can change scene object position, orientation and scale using @ref bs::SceneObject::setPosition "SceneObject::setPosition", @ref bs::SceneObject::setRotation "SceneObject::setRotation" and @ref bs::SceneObject::setScale "SceneObject::setScale".
 
 Components attached to scene objects will reflect the scene object transform. For example, moving a scene object with a **Renderable** component will make the 3D meshes referenced by **Renderable** display in a different location in the scene.
 
@@ -61,12 +61,12 @@ so->setRotation(Quaternion(Degree(0), Degree(90), Degree(0)));
 so->setScale(Vector3(2.0f, 2.0f, 2.0f));
 ~~~~~~~~~~~~~
 
-> Extra: There also other useful methods when it comes to dealing with scene object positions and orientations, like @ref BansheeEngine::SceneObject::move "SceneObject::move", @ref BansheeEngine::SceneObject::lookAt "SceneObject::lookAt" or @ref BansheeEngine::SceneObject::getForward "SceneObject::getForward". See the @ref BansheeEngine::SceneObject "SceneObject" API reference for a full overview.
+> Extra: There also other useful methods when it comes to dealing with scene object positions and orientations, like @ref bs::SceneObject::move "SceneObject::move", @ref bs::SceneObject::lookAt "SceneObject::lookAt" or @ref bs::SceneObject::getForward "SceneObject::getForward". See the @ref bs::SceneObject "SceneObject" API reference for a full overview.
 
 # Scene object hierarchy {#d}
 As mentioned, scene objects can be arranged in a hierarchy. Hierarchies allow you to transform multiple scene objects at once, since any transforms applied to a parent will also be applied to a child.
 
-All newly created scene objects are parented to the scene root by default. Use @ref BansheeEngine::SceneObject::setParent "SceneObject::setParent" to change their parents.
+All newly created scene objects are parented to the scene root by default. Use @ref bs::SceneObject::setParent "SceneObject::setParent" to change their parents.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject parent = SceneObject::create("Parent");
@@ -94,14 +94,14 @@ childB->setParent(parent);
 parent->setPosition(Vector3(30, 0, 0));
 ~~~~~~~~~~~~~
 
-> Extra: You may query for parent and children of a scene object using methods like @ref BansheeEngine::SceneObject::getParent "SceneObject::getParent", @ref BansheeEngine::SceneObject::getNumChildren "SceneObject::getNumChildren", @ref BansheeEngine::SceneObject::getChild "SceneObject::getChild" or @ref BansheeEngine::SceneObject::findChild "SceneObject::findChild". See the @ref BansheeEngine::SceneObject "SceneObject" API reference for a full overview.
+> Extra: You may query for parent and children of a scene object using methods like @ref bs::SceneObject::getParent "SceneObject::getParent", @ref bs::SceneObject::getNumChildren "SceneObject::getNumChildren", @ref bs::SceneObject::getChild "SceneObject::getChild" or @ref bs::SceneObject::findChild "SceneObject::findChild". See the @ref bs::SceneObject "SceneObject" API reference for a full overview.
 
 # Components {#e}
-You may add components to a scene object using the @ref BansheeEngine::SceneObject::addComponent<T, Args...> "SceneObject::addComponent<T>" method. 
+You may add components to a scene object using the @ref bs::SceneObject::addComponent<T, Args...> "SceneObject::addComponent<T>" method. 
 
-You may retrieve existing components by calling @ref BansheeEngine::SceneObject::getComponent<T> "SceneObject::getComponent<T>".
+You may retrieve existing components by calling @ref bs::SceneObject::getComponent<T> "SceneObject::getComponent<T>".
 
-Components can be removed by calling the @ref BansheeEngine::Component::destroy "Component::destroy" method on the component.
+Components can be removed by calling the @ref bs::Component::destroy "Component::destroy" method on the component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject so = SceneObject::create("My object");

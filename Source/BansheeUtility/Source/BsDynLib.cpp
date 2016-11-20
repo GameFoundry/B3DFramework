@@ -15,7 +15,7 @@
 #   include <dlfcn.h>
 #endif
 
-namespace BansheeEngine 
+namespace bs 
 {
 
 #if BS_PLATFORM == BS_PLATFORM_LINUX

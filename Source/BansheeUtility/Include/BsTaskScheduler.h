@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsThreadPool.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Threading
 	 *  @{

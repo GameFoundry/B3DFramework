@@ -8,7 +8,7 @@
 #include "BsSphere.h"
 #include "BsRay.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float HandleSliderLine::CAPSULE_RADIUS = 0.05f;
 	const float HandleSliderLine::SPHERE_RADIUS = 0.2f;

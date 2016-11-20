@@ -6,7 +6,7 @@
 #include "BsModule.h"
 #include "BsMesh.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderAPI-Internal
 	 *  @{

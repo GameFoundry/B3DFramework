@@ -7,7 +7,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanTimerQuery::VulkanTimerQuery(VulkanDevice& device)
 		: mDevice(device), mBeginQuery(nullptr), mEndQuery(nullptr), mTimeDelta(0.0f), mQueryEndCalled(false)

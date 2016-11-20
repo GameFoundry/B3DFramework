@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Animation-Internal
 	 *  @{

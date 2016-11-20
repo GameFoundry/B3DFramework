@@ -43,7 +43,7 @@
 
 using json = nlohmann::json;
 
-namespace BansheeEngine
+namespace bs
 {
 	static const Path EDITOR_DATA_FOLDER = "Editor\\";
 

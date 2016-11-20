@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-namespace BansheeEngine
+namespace bs
 {
 	void ConsoleTestOutput::outputFail(const String& desc,
 	                                   const String& function,

@@ -3,7 +3,7 @@
 #include "BsVulkanGLSLProgramFactory.h"
 #include "BsVulkanGpuProgram.h"
 
-namespace BansheeEngine
+namespace bs
 {
     const String VulkanGLSLProgramFactory::LANGUAGE_NAME = "glsl";
 

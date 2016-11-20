@@ -6,7 +6,7 @@
 #include "BsGpuParams.h"
 #include "BsDrawHelper.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Handles
 	 *  @{

@@ -6,7 +6,7 @@
 #include "BsProjectResourceMeta.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HResource EditorResourceLoader::load(const Path& path, bool keepLoaded) const
 	{

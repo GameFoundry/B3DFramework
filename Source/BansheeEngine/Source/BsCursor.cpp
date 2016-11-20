@@ -6,7 +6,7 @@
 #include "BsBuiltinResources.h"
 #include "BsDebug.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Cursor::Cursor()
 		:mNextUniqueId((UINT32)CursorType::Count), mActiveCursorId(-1)

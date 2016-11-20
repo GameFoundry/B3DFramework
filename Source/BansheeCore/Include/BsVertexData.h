@@ -6,7 +6,7 @@
 #include "BsVertexDeclaration.h"
 #include "BsVertexBuffer.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup RenderAPI
 	 *  @{

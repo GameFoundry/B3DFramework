@@ -4,7 +4,7 @@
 #include "BsGUIDimensions.h"
 #include "BsGUIMouseEvent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const String& GUIDockSlider::getGUITypeName()
 	{

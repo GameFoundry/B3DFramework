@@ -6,7 +6,7 @@
 #include "BsCommandBuffer.h"
 #include "BsD3D11RenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup D3D11
 	 *  @{

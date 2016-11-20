@@ -6,7 +6,7 @@
 #include "BsPhysicsMesh.h"
 #include "BsCMeshColliderRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CMeshCollider::CMeshCollider(const HSceneObject& parent)
 		: CCollider(parent)

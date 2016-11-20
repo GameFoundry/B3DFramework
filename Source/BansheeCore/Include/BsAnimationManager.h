@@ -8,7 +8,7 @@
 #include "BsConvexVolume.h"
 #include "BsVertexDataDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	struct AnimationProxy;
 

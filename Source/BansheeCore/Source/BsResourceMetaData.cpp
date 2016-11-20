@@ -3,7 +3,7 @@
 #include "BsResourceMetaData.h"
 #include "BsResourceMetaDataRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* ResourceMetaData::getRTTIStatic()
 	{

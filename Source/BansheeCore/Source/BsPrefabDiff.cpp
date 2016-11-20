@@ -7,7 +7,7 @@
 #include "BsBinarySerializer.h"
 #include "BsBinaryDiff.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RTTITypeBase* PrefabComponentDiff::getRTTIStatic()
 	{

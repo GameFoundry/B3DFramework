@@ -5,7 +5,7 @@
 #include "BsPrerequisitesUtil.h"
 #include "BsPlane.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Math
 	 *  @{

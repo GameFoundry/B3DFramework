@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Utility-Core
 	 *  @{

@@ -16,7 +16,7 @@
 #include "BsScriptHString.h"
 #include "BsScriptGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUIButton::OnClickThunkDef ScriptGUIButton::onClickThunk;
 	ScriptGUIButton::OnHoverThunkDef ScriptGUIButton::onHoverThunk;

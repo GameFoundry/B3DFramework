@@ -3,7 +3,7 @@
 #include "BsD3D11RenderAPIFactory.h"
 #include "BsRenderAPI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const char* SystemName = "BansheeD3D11RenderSystem";
 

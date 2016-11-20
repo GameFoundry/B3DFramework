@@ -5,7 +5,7 @@
 #include "BsCoreThread.h"
 #include "BsShader.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	RendererMaterialManager::RendererMaterialManager()
 	{

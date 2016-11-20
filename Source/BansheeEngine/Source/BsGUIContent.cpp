@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const UINT32 GUIContent::IMAGE_TEXT_SPACING = 3;
 

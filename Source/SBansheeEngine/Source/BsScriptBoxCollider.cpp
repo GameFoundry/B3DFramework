@@ -3,7 +3,7 @@
 #include "BsScriptBoxCollider.h"
 #include "BsBoxCollider.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptBoxCollider::ScriptBoxCollider(MonoObject* instance, const SPtr<Collider>& collider)
 		:TScriptCollider(instance, collider)

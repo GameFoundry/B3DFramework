@@ -8,7 +8,7 @@
 #include "BsRenderAPI.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(83.0f / 255.0f, 83.0f / 255.0f, 83.0f / 255.0f);
 

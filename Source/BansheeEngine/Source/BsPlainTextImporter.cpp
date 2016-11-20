@@ -5,7 +5,7 @@
 #include "BsDataStream.h"
 #include "BsFileSystem.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	PlainTextImporter::PlainTextImporter()
 		:SpecificImporter()

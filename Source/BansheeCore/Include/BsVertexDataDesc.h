@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsVertexDeclaration.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Resources
 	 *  @{

@@ -12,7 +12,7 @@
 #include "BsScriptResourceRef.h"
 #include "BsApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptResources::ScriptResources(MonoObject* instance)
 		:ScriptObject(instance)

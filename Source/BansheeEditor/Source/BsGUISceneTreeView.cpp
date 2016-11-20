@@ -13,7 +13,7 @@
 #include "BsGUIResourceTreeView.h"
 #include "BsGUIContextMenu.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const MessageId GUISceneTreeView::SELECTION_CHANGED_MSG = MessageId("SceneTreeView_SelectionChanged");
 	const Color GUISceneTreeView::PREFAB_TINT = Color(1.0f, (168.0f / 255.0f), 0.0f, 1.0f);

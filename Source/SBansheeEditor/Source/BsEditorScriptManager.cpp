@@ -27,7 +27,7 @@
 #include "BsScriptEditorVirtualInput.h"
 #include "BsScriptUndoRedo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	const float EditorScriptManager::EDITOR_UPDATE_RATE = 1.0f/60.0f; // Seconds
 

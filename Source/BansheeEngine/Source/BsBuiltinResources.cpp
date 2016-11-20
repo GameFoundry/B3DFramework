@@ -30,7 +30,7 @@
 
 using json = nlohmann::json;
 
-namespace BansheeEngine
+namespace bs
 {
 	const WString BuiltinResources::DefaultFontFilename = L"arial.ttf";
 	const UINT32 BuiltinResources::DefaultFontSize = 11;

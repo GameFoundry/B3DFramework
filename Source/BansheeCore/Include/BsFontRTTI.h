@@ -8,7 +8,7 @@
 #include "BsFontManager.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Core

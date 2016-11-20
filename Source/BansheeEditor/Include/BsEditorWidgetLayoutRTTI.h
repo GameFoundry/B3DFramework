@@ -7,7 +7,7 @@
 #include "BsDockManagerLayout.h"
 #include "BsRTTIType.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Editor
@@ -55,11 +55,11 @@ namespace BansheeEngine
 		}
 	};
 
-	template<> struct RTTIPlainType<BansheeEngine::EditorWidgetLayout::Entry>
+	template<> struct RTTIPlainType<bs::EditorWidgetLayout::Entry>
 	{	
-		enum { id = BansheeEngine::TID_EditorWidgetLayoutEntry }; enum { hasDynamicSize = 1 };
+		enum { id = bs::TID_EditorWidgetLayoutEntry }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const BansheeEngine::EditorWidgetLayout::Entry& data, char* memory)
+		static void toMemory(const bs::EditorWidgetLayout::Entry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			char* memoryStart = memory;
@@ -76,7 +76,7 @@ namespace BansheeEngine
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		static UINT32 fromMemory(BansheeEngine::EditorWidgetLayout::Entry& data, char* memory)
+		static UINT32 fromMemory(bs::EditorWidgetLayout::Entry& data, char* memory)
 		{ 
 			UINT32 size = 0;
 			memcpy(&size, memory, sizeof(UINT32));
@@ -92,7 +92,7 @@ namespace BansheeEngine
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const BansheeEngine::EditorWidgetLayout::Entry& data)	
+		static UINT32 getDynamicSize(const bs::EditorWidgetLayout::Entry& data)	
 		{ 
 			UINT64 dataSize = sizeof(UINT32) + rttiGetElemSize(data.widgetNames) + rttiGetElemSize(data.isDocked) + 
 				rttiGetElemSize(data.x) + rttiGetElemSize(data.y) + rttiGetElemSize(data.width) + rttiGetElemSize(data.height);

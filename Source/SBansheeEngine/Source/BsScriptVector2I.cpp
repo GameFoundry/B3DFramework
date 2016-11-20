@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptVector2I::ScriptVector2I(MonoObject* instance)
 		:ScriptObject(instance)

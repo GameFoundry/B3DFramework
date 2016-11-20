@@ -8,7 +8,7 @@
 #include "BsDebug.h"
 #include "BsScriptLogEntry.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	HEvent ScriptDebug::mOnLogEntryAddedConn;
 	ScriptDebug::OnAddedThunkDef ScriptDebug::onAddedThunk = nullptr;

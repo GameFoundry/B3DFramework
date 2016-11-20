@@ -7,7 +7,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	CAudioListener::CAudioListener(const HSceneObject& parent)
 		: Component(parent)

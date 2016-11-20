@@ -13,7 +13,7 @@
 // Add implementations for code editors on other platforms.
 #endif
 
-namespace BansheeEngine
+namespace bs
 {
 	CodeEditorManager::CodeEditorManager()
 		:mActiveEditor(nullptr), mActiveEditorType(CodeEditorType::None)

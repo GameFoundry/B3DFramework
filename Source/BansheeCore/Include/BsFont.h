@@ -6,7 +6,7 @@
 #include "BsResource.h"
 #include "BsFontDesc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Text
 	 *  @{

@@ -3,7 +3,7 @@
 #include "BsVulkanQueue.h"
 #include "BsVulkanCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanQueue::VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type, UINT32 index)
 		:mDevice(device), mQueue(queue), mType(type), mIndex(index), mLastCommandBuffer(nullptr)

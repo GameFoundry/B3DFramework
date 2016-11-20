@@ -7,7 +7,7 @@
 #include "BsPixelUtil.h"
 #include "BsTexture.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

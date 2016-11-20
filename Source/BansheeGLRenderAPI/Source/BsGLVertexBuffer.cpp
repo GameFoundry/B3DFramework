@@ -6,7 +6,7 @@
 #include "BsRenderStats.h"
 #include "BsException.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	GLVertexBufferCore::GLVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:VertexBufferCore(desc, deviceMask), mUsage(desc.usage)

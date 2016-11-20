@@ -9,7 +9,7 @@
 #include "BsSpriteTexture.h"
 #include "BsScriptTexture2D.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptSpriteTexture::ScriptSpriteTexture(MonoObject* instance,const HSpriteTexture& texture)
 		:TScriptResource(instance, texture)

@@ -7,7 +7,7 @@
 #include "PxPhysics.h"
 #include "extensions\PxSphericalJoint.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup PhysX
 	 *  @{

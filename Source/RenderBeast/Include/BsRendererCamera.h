@@ -9,7 +9,7 @@
 #include "BsRendererObject.h"
 #include "BsBounds.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup RenderBeast
 	 *  @{

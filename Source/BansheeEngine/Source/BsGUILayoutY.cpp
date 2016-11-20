@@ -6,7 +6,7 @@
 #include "BsMath.h"
 #include "BsVector2I.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUILayoutY::GUILayoutY(const GUIDimensions& dimensions)
 		: GUILayout(dimensions)

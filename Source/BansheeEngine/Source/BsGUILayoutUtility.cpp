@@ -4,7 +4,7 @@
 #include "BsGUIElementBase.h"
 #include "BsGUILayout.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Vector2I GUILayoutUtility::calcOptimalSize(const GUIElementBase* elem)
 	{

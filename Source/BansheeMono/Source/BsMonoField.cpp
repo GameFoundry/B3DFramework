@@ -8,7 +8,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/class.h>
 
-namespace BansheeEngine
+namespace bs
 {
 	MonoField::MonoField(MonoClassField* field)
 		:mField(field), mFieldType(nullptr)

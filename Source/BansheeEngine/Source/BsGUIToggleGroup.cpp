@@ -3,7 +3,7 @@
 #include "BsGUIToggleGroup.h"
 #include "BsGUIToggle.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GUIToggleGroup::GUIToggleGroup(bool allowAllOff)
 		:mAllowAllOff(allowAllOff)

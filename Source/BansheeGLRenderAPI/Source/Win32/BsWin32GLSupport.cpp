@@ -10,9 +10,9 @@
 #include "GL/wglew.h"
 #include <algorithm>
 
-GLenum __stdcall wglewContextInit (BansheeEngine::GLSupport *glSupport);
+GLenum __stdcall wglewContextInit (bs::GLSupport *glSupport);
 
-namespace BansheeEngine 
+namespace bs 
 {
 	template<class C> void remove_duplicates(C& c)
 	{

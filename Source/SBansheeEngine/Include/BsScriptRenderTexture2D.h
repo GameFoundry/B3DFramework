@@ -6,7 +6,7 @@
 #include "BsScriptRenderTarget.h"
 #include "BsPixelUtil.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
 	 *  @{

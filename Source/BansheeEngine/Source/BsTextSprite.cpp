@@ -5,7 +5,7 @@
 #include "BsVector2.h"
 #include "BsSpriteManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	TextSprite::TextSprite()
 	{

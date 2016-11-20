@@ -7,7 +7,7 @@
 #include "BsRenderTexture.h"
 #include "BsModule.h"
 
-namespace BansheeEngine 
+namespace bs 
 {
 	/** @addtogroup Resources-Internal
 	 *  @{

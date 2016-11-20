@@ -9,7 +9,7 @@
 #include "BsVector2.h"
 #include "BsStaticAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup 2D
 	 *  @{

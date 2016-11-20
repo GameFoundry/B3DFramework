@@ -3,7 +3,7 @@
 #include "BsCapsuleCollider.h"
 #include "BsPhysics.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CapsuleCollider::CapsuleCollider()
 	{ }

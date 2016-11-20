@@ -6,7 +6,7 @@
 #include "BsGUIInputTool.h"
 #include "BsTextSprite.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup GUI-Internal
 	 *  @{

@@ -21,7 +21,7 @@
 #define HANDLE_PATH_ERROR(path__, errno__) \
 	LOGERR(String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__)));
 
-namespace BansheeEngine
+namespace bs
 {
 	bool unix_pathExists(const String& path)
 	{

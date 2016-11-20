@@ -6,7 +6,7 @@
 #include "BsOcclusionQuery.h"
 #include "BsException.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ProfilerGPU::ProfilerGPU()
 		:mIsFrameActive(false)

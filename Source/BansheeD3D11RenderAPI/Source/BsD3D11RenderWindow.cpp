@@ -18,7 +18,7 @@
 #include "BsMath.h"
 #include "Win32/BsWin32Window.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	D3D11RenderWindowProperties::D3D11RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 		:RenderWindowProperties(desc)

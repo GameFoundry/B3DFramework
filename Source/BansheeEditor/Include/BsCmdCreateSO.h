@@ -6,7 +6,7 @@
 #include "BsEditorCommand.h"
 #include "BsUndoRedo.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup UndoRedo
 	 *  @{

@@ -6,7 +6,7 @@
 #include "BsVulkanDescriptorManager.h"
 #include "BsVulkanQueryManager.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanDevice::VulkanDevice(VkPhysicalDevice device, UINT32 deviceIdx)
 		:mPhysicalDevice(device), mLogicalDevice(nullptr), mIsPrimary(false), mDeviceIdx(deviceIdx), mQueueInfos()

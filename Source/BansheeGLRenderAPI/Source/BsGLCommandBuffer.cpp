@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGLCommandBuffer.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GLCommandBuffer::GLCommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
 		: CommandBuffer(type, deviceIdx, queueIdx, secondary), mCurrentDrawOperation(DOT_TRIANGLE_LIST)

@@ -11,7 +11,7 @@
 #include <utility>              // For std::pair
 #include <vector>
 
-namespace BansheeEngine
+namespace bs
 {
 	/** @addtogroup Utility 
 	 *  @{

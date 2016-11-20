@@ -22,7 +22,7 @@ extern "C" {
 
 using namespace std;
 
-namespace BansheeEngine
+namespace bs
 {
 	// Print out the FX AST, only for debug purposes
 	void SLFXDebugPrint(ASTFXNode* node, String indent)

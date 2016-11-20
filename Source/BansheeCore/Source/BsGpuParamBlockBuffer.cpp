@@ -4,7 +4,7 @@
 #include "BsHardwareBufferManager.h"
 #include "BsFrameAlloc.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	GpuParamBlockBufferCore::GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 		:mUsage(usage), mSize(size), mCachedData(nullptr), mGPUBufferDirty(false)

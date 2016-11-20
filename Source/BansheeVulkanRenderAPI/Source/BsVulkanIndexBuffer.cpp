@@ -4,7 +4,7 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "BsRenderStats.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	VulkanIndexBufferCore::VulkanIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:IndexBufferCore(desc, deviceMask), mBuffer(nullptr),  mUsage(desc.usage), mDeviceMask(deviceMask)

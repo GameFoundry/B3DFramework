@@ -15,7 +15,7 @@
 #include "BsScriptHString.h"
 #include "BsScriptGUIContent.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	ScriptGUILabel::ScriptGUILabel(MonoObject* instance, GUILabel* label)
 		:TScriptGUIElement(instance, label)

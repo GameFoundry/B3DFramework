@@ -7,7 +7,7 @@
 #include "BsPrefabUtility.h"
 #include "BsCoreApplication.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	Prefab::Prefab()
 		:Resource(false), mHash(0), mIsScene(true)

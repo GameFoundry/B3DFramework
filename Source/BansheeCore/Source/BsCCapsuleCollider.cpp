@@ -5,7 +5,7 @@
 #include "BsCRigidbody.h"
 #include "BsCCapsuleColliderRTTI.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, float halfHeight)
 		: CCollider(parent), mRadius(radius), mHalfHeight(halfHeight)

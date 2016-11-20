@@ -15,7 +15,7 @@
 #include "BsMaterialParams.h"
 #include "BsGpuParamsSet.h"
 
-namespace BansheeEngine
+namespace bs
 {
 	enum MaterialLoadFlags
 	{

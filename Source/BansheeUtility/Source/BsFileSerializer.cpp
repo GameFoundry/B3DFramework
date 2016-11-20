@@ -12,7 +12,7 @@
 
 using namespace std::placeholders;
 
-namespace BansheeEngine
+namespace bs
 {
 	FileEncoder::FileEncoder(const Path& fileLocation)
 		:mWriteBuffer(nullptr)
