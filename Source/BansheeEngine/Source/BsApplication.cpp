@@ -29,6 +29,28 @@ namespace BansheeEngine
 
 	}
 
+	Application::Application(VideoMode videoMode, const String& title, bool fullscreen, std::function<void()> updateCallback)
+		: CoreApplication(START_UP_DESC()), mMonoPlugin(nullptr), mSBansheeEnginePlugin(nullptr)
+	{
+		// Set up default plugins
+		mStartUpDesc.renderAPI = BS_RENDER_API_MODULE;
+		mStartUpDesc.renderer = BS_RENDERER_MODULE;
+		mStartUpDesc.audio = BS_AUDIO_MODULE;
+		mStartUpDesc.physics = BS_PHYSICS_MODULE;
+		mStartUpDesc.input = BS_INPUT_MODULE;
+
+		mStartUpDesc.importers.push_back("BansheeFreeImgImporter");
+		mStartUpDesc.importers.push_back("BansheeFBXImporter");
+		mStartUpDesc.importers.push_back("BansheeFontImporter");
+		mStartUpDesc.importers.push_back("BansheeSL");
+
+		mStartUpDesc.primaryWindowDesc.videoMode = videoMode;
+		mStartUpDesc.primaryWindowDesc.fullscreen = fullscreen;
+		mStartUpDesc.primaryWindowDesc.title = title;
+
+		mStartUpDesc.updateCallback = updateCallback;
+	}
+
 	Application::~Application()
 	{
 		// Cleanup any new objects queued for destruction by unloaded scripts

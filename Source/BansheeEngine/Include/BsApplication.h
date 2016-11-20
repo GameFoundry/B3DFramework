@@ -18,6 +18,8 @@ namespace BansheeEngine
 	{
 	public:
 		Application(const START_UP_DESC& desc);
+		Application(VideoMode videoMode, const String& title, bool fullscreen, 
+			std::function<void()> updateCallback = nullptr);
 		virtual ~Application();
 
 		/** Starts the Banshee engine. */

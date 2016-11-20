@@ -26,6 +26,9 @@ namespace BansheeEngine
 		RENDER_WINDOW_DESC primaryWindowDesc; /**< Describes the window to create during start-up. */
 
 		Vector<String> importers; /**< A list of importer plugins to load. */
+
+		/** Optional callback function to be called every frame while the application is running. */
+		std::function<void()> updateCallback; 
 	};
 
 	/**
@@ -88,7 +91,7 @@ namespace BansheeEngine
 
 	protected:
 		/** @copydoc Module::onStartUp */
-		virtual void onStartUp() override;
+		void onStartUp() override;
 
 		/**	Called for each iteration of the main loop. Called before any game objects or plugins are updated. */
 		virtual void preUpdate();
@@ -112,7 +115,7 @@ namespace BansheeEngine
 		/**	Called by the core thread to end profiling. */
 		void endCoreProfiling();
 
-	private:
+	protected:
 		typedef void(*UpdatePluginFunc)();
 
 		SPtr<RenderWindow> mPrimaryWindow;
