@@ -89,11 +89,14 @@ Technique =
 		
 		Vertex =
 		{
-			uniform float invViewportWidth;
-			uniform float invViewportHeight;
-			uniform mat4 worldTransform;
-
-			in vec2 bs_position;
+			layout (binding = 0) uniform VertUBO
+			{
+				float invViewportWidth;
+				float invViewportHeight;
+				mat4 worldTransform;
+			};
+		
+			layout (location = 0) in vec2 bs_position;
 
 			out gl_PerVertex
 			{
@@ -113,7 +116,10 @@ Technique =
 		
 		Fragment =
 		{
-			uniform vec4 tint;
+			layout (binding = 1) uniform FragUBO
+			{
+				vec4 tint;
+			};
 			
 			out vec4 fragColor;
 

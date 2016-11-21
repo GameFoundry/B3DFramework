@@ -86,7 +86,7 @@ namespace bs
 
 	void GLSLGpuProgramCore::initialize()
 	{
-		static const char GLSL_VERSION_LINE[] = "#version 430\n";
+		static const char GLSL_VERSION_LINE[] = "#version 440\n";
 
 		if (!isSupported())
 		{

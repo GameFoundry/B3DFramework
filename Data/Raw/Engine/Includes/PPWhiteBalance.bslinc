@@ -382,7 +382,7 @@ Technique : base("PPWhiteBalance") =
 				result = invConeResponse * (adaptation * coneResponse);
 			}
 			
-			uniform WhiteBalanceInput
+			layout(binding = 0) uniform WhiteBalanceInput
 			{
 				float gWhiteTemp;
 				float gWhiteOffset;

@@ -47,38 +47,6 @@ Technique : base("PickingCull") =
 
 Technique : base("PickingCull") =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Scissor = true;
-
-		Vertex =
-		{
-			float4x4 matWorldViewProj;
-
-			void main(
-				in float3 inPos : POSITION,
-				out float4 oPosition : POSITION)
-			{
-				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
-			}
-		};
-		
-		Fragment =
-		{
-			float4 colorIndex;
-
-			float4 main(in float4 inPos : POSITION) : COLOR0
-			{
-				return colorIndex;
-			}
-		};
-	};
-};
-
-Technique : base("PickingCull") =
-{
 	Language = "GLSL";
 	
 	Pass =
@@ -87,15 +55,20 @@ Technique : base("PickingCull") =
 
 		Vertex =
 		{
-			uniform mat4 matWorldViewProj;
-			in vec3 bs_position;
-			in vec3 bs_normal;
-			out vec4 normal;
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec3 bs_normal;
+			
+			layout(location = 0) out vec4 normal;
 			
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
 			};
+			
+			layout(binding = 0) uniform VertUBO
+			{
+				mat4 matWorldViewProj;
+			};	
 			
 			void main()
 			{
@@ -106,11 +79,13 @@ Technique : base("PickingCull") =
 		
 		Fragment =
 		{
-			in vec4 normal;
-
-			uniform vec4 colorIndex;
+			layout(location = 0) in vec4 normal;
+			layout(location = 0) out vec4[2] outColor;
 			
-			out vec4[2] outColor;
+			layout(binding = 1) uniform FragUBO
+			{
+				vec4 colorIndex;
+			};	
 
 			void main()
 			{

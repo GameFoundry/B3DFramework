@@ -62,58 +62,6 @@ Technique =
 
 Technique =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Target = 
-		{
-			Blend = true;
-			Color = { SRCA, SRCIA, ADD };
-		};
-		
-		DepthRead = false;
-		DepthWrite = false;
-		
-		Vertex =
-		{
-			float invViewportWidth;
-			float invViewportHeight;
-
-			float4 tintColor;
-			float4 highlightColor;
-			float4 highlightActive;
-
-			void main(
-			in float2 inPos : POSITION,
-			in float4 inColor : COLOR0,
-			out float4 oPosition : POSITION,
-			out float4 oColor : COLOR0)
-			{
-				float tfrmdX = -1.0f + ((inPos.x - 0.5f) * invViewportWidth);
-				float tfrmdY = 1.0f - ((inPos.y - 0.5f) * invViewportHeight);
-
-				oPosition = float4(tfrmdX, tfrmdY, 0, 1);
-
-				float4 highlight = highlightActive * inColor;
-				float highlightSum = highlight.x + highlight.y + highlight.z + highlight.a;
-
-				oColor = (1.0f - highlightSum) * tintColor + highlightSum * highlightColor;
-			}
-		};
-		
-		Fragment =
-		{
-			float4 main(float4 color : COLOR0) : COLOR0
-			{
-				return color;
-			}
-		};
-	};
-};
-
-Technique =
-{
 	Language = "GLSL";
 	
 	Pass =
@@ -129,21 +77,25 @@ Technique =
 		
 		Vertex =
 		{
-			uniform float invViewportWidth;
-			uniform float invViewportHeight;
-
-			uniform vec4 tintColor;
-			uniform vec4 highlightColor;
-			uniform vec4 highlightActive;
-
-			in vec2 bs_position;
-			in vec4 bs_color0;
-			out vec4 color0;
+			layout(location = 0) in vec2 bs_position;
+			layout(location = 1) in vec4 bs_color0;
+			
+			layout(location = 0) out vec4 color0;
 			
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
 			};			
+			
+			layout(binding = 0) uniform VertUBO
+			{
+				float invViewportWidth;
+				float invViewportHeight;
+
+				vec4 tintColor;
+				vec4 highlightColor;
+				vec4 highlightActive;
+			};
 
 			void main()
 			{
@@ -161,8 +113,8 @@ Technique =
 		
 		Fragment =
 		{
-			in vec4 color0;
-			out vec4 fragColor;
+			layout(location = 0) in vec4 color0;
+			layout(location = 0) out vec4 fragColor;
 
 			void main()
 			{

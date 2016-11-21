@@ -42,7 +42,7 @@ Technique : base("PerObjectData") =
 	{
 		Common = 
 		{
-			layout(std140) uniform PerObject
+			layout(binding = 2, std140) uniform PerObject
 			{
 				mat4 gMatWorldViewProj;
 				mat4 gMatWorld;

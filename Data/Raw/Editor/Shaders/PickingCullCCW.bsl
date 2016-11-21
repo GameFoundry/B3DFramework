@@ -12,16 +12,6 @@ Technique : inherits("PickingCull") =
 
 Technique : inherits("PickingCull") =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Cull = CCW;
-	};
-};
-
-Technique : inherits("PickingCull") =
-{
 	Language = "GLSL";
 	
 	Pass =

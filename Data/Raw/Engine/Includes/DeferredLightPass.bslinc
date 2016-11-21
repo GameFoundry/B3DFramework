@@ -197,7 +197,7 @@ Technique
 			#define PI 3.1415926
 			#define HALF_PI 1.5707963
 			
-			layout(std140) uniform PerLight
+			layout(binding = 1, std140) uniform PerLight
 			{
 				// x, y, z - World position of the lightData
 				// w - Type type - Directional = 0, Point = >0, Spot = >0.5
@@ -310,9 +310,9 @@ Technique
 		
 		Fragment = 
 		{
-			uniform sampler2D gGBufferATex;
-			uniform sampler2D gGBufferBTex;
-			uniform sampler2D gDepthBufferTex;
+			layout(binding = 2) uniform sampler2D gGBufferATex;
+			layout(binding = 3) uniform sampler2D gGBufferBTex;
+			layout(binding = 4) uniform sampler2D gDepthBufferTex;
 			
 			GBufferData getGBufferData(vec2 uv)
 			{

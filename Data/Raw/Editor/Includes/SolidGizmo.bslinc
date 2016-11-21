@@ -51,17 +51,21 @@ Technique : base("SolidGizmo") =
 	{
 		Vertex =
 		{
-			uniform mat4 matViewProj;
-
-			in vec3 bs_position;
-			in vec3 bs_normal;
-			in vec4 bs_color0;
-			out vec3 normal;
-			out vec4 color0;
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec3 bs_normal;
+			layout(location = 2) in vec4 bs_color0;
+			
+			layout(location = 0) out vec3 normal;
+			layout(location = 1) out vec4 color0;
 
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
+			};		
+		
+			layout(binding = 0) uniform VertUBO
+			{
+				mat4 matViewProj;
 			};
 			
 			void main()
@@ -74,12 +78,16 @@ Technique : base("SolidGizmo") =
 		
 		Fragment =
 		{
-			uniform vec4 viewDir;
-		
-			in vec4 color0;
-			in vec3 normal;
-			out vec4 fragColor;
+			layout(location = 0) in vec3 normal;
+			layout(location = 1) in vec4 color0;
+			
+			layout(location = 0) out vec4 fragColor;
 
+			layout(binding = 1) uniform FragUBO
+			{
+				vec4 viewDir;
+			};
+			
 			void main()
 			{
 				fragColor = color0 * dot(normalize(normal), -viewDir.xyz);

@@ -54,7 +54,7 @@ Technique =
 	
 		Vertex =
 		{
-			in vec3 bs_position;
+			layout(location = 0) in vec3 bs_position;
 
 			out gl_PerVertex
 			{
@@ -69,7 +69,7 @@ Technique =
 		
 		Fragment =
 		{
-			out vec4 fragColor;
+			layout(location = 0) out vec4 fragColor;
 
 			void main()
 			{

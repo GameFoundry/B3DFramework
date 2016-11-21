@@ -56,51 +56,6 @@ Technique =
 
 Technique =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Scissor = true;
-
-		Vertex =
-		{
-			float4x4 matViewProj;
-
-			void main(
-				in float3 inPos : POSITION,
-				in float2 uv : TEXCOORD0,
-				in float4 color : COLOR0,
-				out float4 oPosition : POSITION,
-				out float2 oUv : TEXCOORD0,
-				out float4 oColor : COLOR0)
-			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
-				oUv = uv;
-				oColor = color;
-			}
-		};
-		
-		Fragment =
-		{
-			sampler2D mainTexture;
-			float alphaCutoff;
-
-			float4 main(in float4 inPos : POSITION, 
-					in float2 inUv : TEXCOORD0,
-					in float4 inColor : COLOR0) : COLOR0
-			{
-				float4 color = tex2D(mainTexture, inUv);
-				if(color.a < alphaCutoff)
-					discard;
-				
-				return inColor;
-			}
-		};
-	};
-};
-
-Technique =
-{
 	Language = "GLSL";
 	
 	Pass =
@@ -109,16 +64,21 @@ Technique =
 
 		Vertex =
 		{
-			uniform mat4 matViewProj;
-			in vec3 bs_position;
-			in vec4 bs_color0;
-			in vec2 bs_texcoord0;
-			out vec2 texcoord0;
-			out vec4 color0;
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec4 bs_color0;
+			layout(location = 2) in vec2 bs_texcoord0;
+			
+			layout(location = 0) out vec2 texcoord0;
+			layout(location = 1) out vec4 color0;
 
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
+			};
+			
+			layout(binding = 0) uniform VertUBO
+			{
+				mat4 matViewProj;
 			};
 			
 			void main()
@@ -131,12 +91,18 @@ Technique =
 		
 		Fragment =
 		{
-			uniform sampler2D mainTexture;
-			uniform float alphaCutoff;
-			in vec2 texcoord0;
-			in vec4 color0;
-			out vec4 fragColor;
+			layout(location = 0) in vec2 texcoord0;
+			layout(location = 1) in vec4 color0;
+			
+			layout(location = 0) out vec4 fragColor;
 
+			layout(binding = 1) uniform FragUBO
+			{
+				float alphaCutoff;
+			};
+			
+			layout(binding = 2) uniform sampler2D mainTexture;
+			
 			void main()
 			{
 				vec4 texColor = texture2D(mainTexture, texcoord0);

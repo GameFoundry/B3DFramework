@@ -52,9 +52,13 @@ Technique : base("Surface") =
 	{
 		Fragment =
 		{
-			uniform sampler2D gAlbedoTex;
-			uniform sampler2D gNormalTex;
-			
+			layout(location = 0) in vec2 uv0;
+			layout(location = 1) in vec3 tangentToWorldZ;
+			layout(location = 2) in vec4 tangentToWorldX;			
+		
+			layout(binding = 4) uniform sampler2D gAlbedoTex;
+			layout(binding = 5) uniform sampler2D gNormalTex;
+
 			void main()
 			{
 				vec3 normal = normalize(texture2D(gNormalTex, uv0).xyz * 2.0f - vec3(1, 1, 1));

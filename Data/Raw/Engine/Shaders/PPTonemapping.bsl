@@ -111,16 +111,16 @@ Technique : inherits("PPTonemapCommon") =
 	
 		Vertex =
 		{
-			in vec2 bs_position;
-			in vec2 bs_texcoord0;
+			layout(location = 0) in vec2 bs_position;
+			layout(location = 1) in vec2 bs_texcoord0;
 			
 			out VStoFS
 			{
-				vec2 uv0;
-				float exposureScale;
+				layout(location = 0) vec2 uv0;
+				layout(location = 1) float exposureScale;
 			} VSOutput;
 			
-			uniform sampler2D gEyeAdaptationTex;
+			layout(binding = 0) uniform sampler2D gEyeAdaptationTex;
 			
 			out gl_PerVertex
 			{
@@ -139,21 +139,21 @@ Technique : inherits("PPTonemapCommon") =
 		{
 			in VStoFS
 			{
-				vec2 uv0;
-				float exposureScale;
+				layout(location = 0) vec2 uv0;
+				layout(location = 1) float exposureScale;
 			} FSInput;
 		
-			uniform sampler2D gInputTex;
-			uniform sampler3D gColorLUT;
+			layout(location = 0) out vec4 fragColor;
+		
+			layout(binding = 1) uniform sampler2D gInputTex;
+			layout(binding = 2) uniform sampler3D gColorLUT;
 			
-			uniform Input
+			layout(binding = 3) uniform Input
 			{
 				float gRawGamma;
 				float gManualExposureScale;
 			};
 
-			out vec4 fragColor;
-			
 			void ColorLookupTable(vec3 linearColor, out vec3 result)
 			{
 				vec3 logColor;

@@ -69,17 +69,14 @@ Technique
 	{
 		DepthRead = false;
 	
-		Common = 
-		{
-			varying vec4 position;
-			varying vec2 uv0;
-			varying vec3 screenDir;
-		};
-	
 		Vertex =
 		{
-			in vec2 bs_position;
-			in vec2 bs_texcoord0;
+			layout(location = 0) in vec2 bs_position;
+			layout(location = 1) in vec2 bs_texcoord0;
+		
+			layout(location = 0) out vec4 position;
+			layout(location = 1) out vec2 uv0;
+			layout(location = 2) out vec3 screenDir;
 		
 			out gl_PerVertex
 			{
@@ -98,7 +95,11 @@ Technique
 		
 		Fragment = 
 		{
-			out vec4 fragColor;
+			layout(location = 0) in vec4 position;
+			layout(location = 1) in vec2 uv0;
+			layout(location = 2) in vec3 screenDir;
+		
+			layout(location = 0) out vec4 fragColor;
 		
 			void main()
 			{

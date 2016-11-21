@@ -127,9 +127,13 @@ Technique : base("SelectionBase") =
 		
 		Fragment =
 		{
-			uniform vec4 selColor;
-			out vec4 fragColor;
-
+			layout(location = 0) out vec4 fragColor;
+		
+			layout(binding = 0) uniform FragUBO
+			{
+				vec4 selColor;
+			};
+		
 			void main()
 			{
 				fragColor = selColor;
@@ -158,18 +162,16 @@ Technique
 	
 	Vertex =
 	{
-		uniform mat4 matWorldViewProj;
-
-		in vec3 bs_position;
+		layout(location = 0) in vec3 bs_position;
 	
 		#ifdef USE_SKELETON
-			in ivec4 bs_blendindices;
-			in vec4 bs_blendweights;
+			layout(location = 1) in ivec4 bs_blendindices;
+			layout(location = 2) in vec4 bs_blendweights;
 		#endif
 			
 		#ifdef USE_BLEND_SHAPES
-			in vec3 bs_position1;
-			in vec4 bs_normal1;
+			layout(location = 3) in vec3 bs_position1;
+			layout(location = 4) in vec4 bs_normal1;
 		#endif
 		
 		out gl_PerVertex
@@ -177,8 +179,13 @@ Technique
 			vec4 gl_Position;
 		};
 		
+		layout(binding = 0) uniform VertUBO
+		{
+			mat4 matWorldViewProj;
+		};	
+		
 #ifdef USE_SKELETON
-		uniform samplerBuffer boneMatrices;
+		layout(binding = 1) uniform samplerBuffer boneMatrices;
 		
 		void getBoneMatrix(int idx, out mat4x3 result)
 		{

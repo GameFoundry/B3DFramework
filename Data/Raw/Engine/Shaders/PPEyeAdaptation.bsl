@@ -182,7 +182,7 @@ Technique : inherits("PPBase") =
 		{
 			#define NUM_BUCKETS (THREADGROUP_SIZE_X * THREADGROUP_SIZE_Y)
 		
-			uniform Input
+			layout(binding = 0) uniform Input
 			{
 				// [0]: x - histogram scale, y - histogram offset, z - histogram percent low, w - histogram percent high
 				// [1]: x - min adaptation, y - max adaptation, z - adaptation speed up, w - adaptation speed down
@@ -190,7 +190,7 @@ Technique : inherits("PPBase") =
 				vec4 gEyeAdaptationParams[3];
 			};
 			
-			uniform sampler2D gHistogramTex;
+			layout(binding = 1) uniform sampler2D gHistogramTex;
 			
 			/** 
 			 * Returns luminance of the histogram bucket.
@@ -330,10 +330,10 @@ Technique : inherits("PPBase") =
 			
 			in VStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} VSInput;
 			
-			out vec4 fragColor;
+			layout(location = 0) out vec4 fragColor;
 			
 			void main()
 			{

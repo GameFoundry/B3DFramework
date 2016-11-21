@@ -61,17 +61,18 @@ Technique : inherits("PPBase") =
 		{
 			in VStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} input;		
 		
-			uniform Input
+			layout(location = 0) out vec4 fragColor;
+		
+			layout(binding = 0) uniform Input
 			{
 				vec2 gInvTexSize;
 			};
 			
-			uniform sampler2D gInputTex;
-			out vec4 fragColor;
-
+			layout(location = 1) uniform sampler2D gInputTex;
+			
 			void main()
 			{
 				vec2 UV[4];

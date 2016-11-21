@@ -48,12 +48,12 @@ Technique : base("PPBase") =
 	
 		Vertex =
 		{
-			in vec2 bs_position;
-			in vec2 bs_texcoord0;
+			layout(location = 0) in vec2 bs_position;
+			layout(location = 1) in vec2 bs_texcoord0;
 			
 			out VStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} VSOutput;
 			
 			out gl_PerVertex

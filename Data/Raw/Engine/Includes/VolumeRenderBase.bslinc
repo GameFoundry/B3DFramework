@@ -84,10 +84,10 @@ Technique : base("VolumeRenderBase") =
 	
 		Vertex =
 		{
-			in vec2 bs_position;
-			in vec2 bs_texcoord0;
+			layout(location = 0) in vec2 bs_position;
+			layout(location = 1) in vec2 bs_texcoord0;
 			
-			out VStoGS
+			layout(location = 0) out VStoGS
 			{
 				vec2 uv0;
 				flat int layerIdx;
@@ -111,7 +111,7 @@ Technique : base("VolumeRenderBase") =
 			layout (triangles) in;
 			layout (triangle_strip, max_vertices=3) out;
 		
-			in VStoGS
+			layout(location = 0) in VStoGS
 			{
 				vec2 uv0;
 				flat int layerIdx;
@@ -119,7 +119,7 @@ Technique : base("VolumeRenderBase") =
 		
 			out GStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} GSOutput;
 		
 			in gl_PerVertex 

@@ -38,39 +38,6 @@ Technique =
 
 Technique =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Fill = WIRE;
-	
-		Vertex =
-		{
-			float4x4 matViewProj;
-
-			void main(
-				in float3 inPos : POSITION,	
-				in float4 inColor : COLOR0,	
-				out float4 oPosition : POSITION,
-				out float4 oColor : COLOR0)
-			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
-				oColor = inColor;
-			}
-		};
-		
-		Fragment =
-		{
-			float4 main(float4 color : COLOR0) : COLOR0
-			{
-				return color;
-			}
-		};
-	};
-};
-
-Technique =
-{
 	Language = "GLSL";
 	
 	Pass =
@@ -79,15 +46,18 @@ Technique =
 	
 		Vertex =
 		{
-			uniform mat4 matViewProj;
-
-			in vec3 bs_position;
-			in vec4 bs_color0;
-			out vec4 color0;
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec4 bs_color0;
+			layout(location = 0) out vec4 color0;
 
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
+			};		
+		
+			layout(binding = 0) uniform VertUBO
+			{
+				mat4 matViewProj;
 			};
 			
 			void main()
@@ -99,8 +69,8 @@ Technique =
 		
 		Fragment =
 		{
-			in vec4 color0;
-			out vec4 fragColor;
+			layout(location = 0) in vec4 color0;
+			layout(location = 0) out vec4 fragColor;
 
 			void main()
 			{

@@ -139,7 +139,7 @@ Technique
 	
 		Fragment =
 		{
-			uniform Input
+			layout(binding = 1) uniform Input
 			{
 				// [0]: x - shoulder strength, y - linear strength, z - linear angle, w - toe strength
 				// [1]: x - toe numerator, y - toe denominator, z - linear white point, w - unused
@@ -210,11 +210,12 @@ Technique
 			
 			in GStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} input;
 			
-			out vec4 fragColor;
 			in int gl_Layer;
+			
+			layout(location = 0) out vec4 fragColor;
 			
 			void main()
 			{

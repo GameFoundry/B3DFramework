@@ -59,7 +59,7 @@ Technique : base("PerCameraData") =
 	{
 		Common = 
 		{
-			layout(std140) uniform PerCamera
+			layout(binding = 0, std140) uniform PerCamera
 			{
 				vec3 gViewDir;
 				vec3 gViewOrigin;

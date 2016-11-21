@@ -149,11 +149,11 @@ Technique
 	
 		Vertex =
 		{
-			varying vec4 position;
-			varying vec4 screenPos;
-			
-			in vec3 bs_position;
+			layout(location = 0) in vec3 bs_position;
 			in int gl_VertexID;
+		
+			layout(location = 0) out vec4 position;
+			layout(location = 1) out vec4 screenPos;
 			
 			out gl_PerVertex
 			{
@@ -220,10 +220,10 @@ Technique
 		
 		Fragment = 
 		{
-			in vec4 position;
-			in vec4 screenPos;
+			layout(location = 0) in vec4 position;
+			layout(location = 1) in vec4 screenPos;
 		
-			out vec4 fragColor;
+			layout(location = 0) out vec4 fragColor;
 		
 			void main()
 			{

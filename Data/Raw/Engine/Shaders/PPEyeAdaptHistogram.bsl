@@ -130,7 +130,7 @@ Technique =
 		{	
 			layout (local_size_x = THREADGROUP_SIZE_X, local_size_y = THREADGROUP_SIZE_Y) in;
 		
-			uniform Input
+			layout(binding = 0) uniform Input
 			{
 				// xy - offset, zw - size
 				uvec4 gPixelOffsetAndSize;
@@ -140,8 +140,8 @@ Technique =
 				uvec2 gThreadGroupCount;
 			};
 		
-			uniform sampler2D gSceneColorTex;
-			layout (rgba16f) uniform image2D gOutputTex;
+			layout(binding = 1) uniform sampler2D gSceneColorTex;
+			layout(binding = 2, rgba16f) uniform image2D gOutputTex;
 			
 			// Keep elements in this order as it ensures coalesced memory operations for non-random ops
 			shared float sharedData[NUM_BUCKETS][THREADGROUP_SIZE_X][THREADGROUP_SIZE_Y];

@@ -62,50 +62,6 @@ Technique : base("PickingAlphaCull") =
 
 Technique : base("PickingAlphaCull") =
 {
-	Language = "HLSL9";
-	
-	Pass =
-	{
-		Scissor = true;
-
-		Vertex =
-		{
-			float4x4 matWorldViewProj;
-
-			void main(
-				in float3 inPos : POSITION,
-				in float2 uv : TEXCOORD0,
-				out float4 oPosition : POSITION,
-				out float2 oUv : TEXCOORD0)
-			{
-				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
-				oUv = uv;
-			}
-		};
-		
-		Fragment =
-		{
-			sampler2D mainTexture;
-
-			float4 colorIndex;
-			float alphaCutoff;
-
-			float4 main(
-				in float4 inPos : POSITION,
-				in float2 uv : TEXCOORD0) : COLOR0
-			{
-				float4 color = tex2D(mainTexture, uv);
-				if(color.a < alphaCutoff)
-					discard;
-				
-				return colorIndex;
-			}
-		};
-	};
-};
-
-Technique : base("PickingAlphaCull") =
-{
 	Language = "GLSL";
 	
 	Pass =
@@ -113,18 +69,23 @@ Technique : base("PickingAlphaCull") =
 		Scissor = true;
 
 		Vertex =
-		{
-			uniform mat4 matWorldViewProj;
-			in vec3 bs_position;
-			in vec2 bs_texcoord0;
-			in vec3 bs_normal;
-			out vec4 normal;
-			out vec2 texcoord0;
+		{		
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec2 bs_texcoord0;
+			layout(location = 2) in vec3 bs_normal;
+			
+			layout(location = 0) out vec4 normal;
+			layout(location = 1) out vec2 texcoord0;
 
 			out gl_PerVertex
 			{
 				vec4 gl_Position;
 			};
+			
+			layout(binding = 0) uniform VertUBO
+			{
+				mat4 matWorldViewProj;
+			};			
 			
 			void main()
 			{
@@ -136,14 +97,18 @@ Technique : base("PickingAlphaCull") =
 		
 		Fragment =
 		{
-			in vec4 normal;
-			in vec2 texcoord0;		
+			layout(location = 0) in vec4 normal;
+			layout(location = 1) in vec2 texcoord0;		
 		
-			uniform sampler2D mainTexture;
-			uniform vec4 colorIndex;
-			uniform float alphaCutoff;
+			layout(location = 0) out vec4[2] outColor;
 
-			out vec4[2] outColor;
+			layout(binding = 1) uniform FragUBO
+			{
+				vec4 colorIndex;
+				float alphaCutoff;
+			};	
+			
+			layout(binding = 2) uniform sampler2D mainTexture;
 
 			void main()
 			{

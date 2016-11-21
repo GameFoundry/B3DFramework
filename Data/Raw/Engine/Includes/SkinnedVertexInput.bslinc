@@ -147,29 +147,26 @@ Technique
 	
 	Pass =
 	{
-		Common = 
-		{
-			varying vec2 uv0;
-			varying vec3 tangentToWorldZ;
-			varying vec4 tangentToWorldX;	
-		};
-	
 		Vertex =
 		{			
-			in vec3 bs_position;
-			in vec3 bs_normal;
-			in vec4 bs_tangent;
-			in vec2 bs_texcoord0;
+			layout(location = 0) in vec3 bs_position;
+			layout(location = 1) in vec3 bs_normal;
+			layout(location = 2) in vec4 bs_tangent;
+			layout(location = 3) in vec2 bs_texcoord0;
 		
-			in ivec4 bs_blendindices;
-			in vec4 bs_blendweights;
+			layout(location = 4) in ivec4 bs_blendindices;
+			layout(location = 5) in vec4 bs_blendweights;
 				
 			#ifdef USE_BLEND_SHAPES
-				in vec3 bs_position1;
-				in vec4 bs_normal1;
+				layout(location = 6) in vec3 bs_position1;
+				layout(location = 7) in vec4 bs_normal1;
 			#endif
 			
-			uniform samplerBuffer boneMatrices;
+			layout(location = 0) out vec2 uv0;
+			layout(location = 1) out vec3 tangentToWorldZ;
+			layout(location = 2) out vec4 tangentToWorldX;	
+			
+			layout(binding = 3) uniform samplerBuffer boneMatrices;
 		
 			struct VertexIntermediate
 			{

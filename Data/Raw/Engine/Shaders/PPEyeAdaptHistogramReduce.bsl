@@ -61,18 +61,18 @@ Technique : inherits("PPBase") =
 		{
 			in VStoFS
 			{
-				vec2 uv0;
+				layout(location = 0) vec2 uv0;
 			} input;
 		
-			uniform Input
+			layout(location = 0) out vec4 fragColor;
+			
+			layout(binding = 0) uniform Input
 			{
 				uint gThreadGroupCount;
 			};
 		
-			uniform sampler2D gHistogramTex;
-			uniform sampler2D gEyeAdaptationTex;
-
-			out vec4 fragColor;
+			layout(binding = 1) uniform sampler2D gHistogramTex;
+			layout(binding = 2) uniform sampler2D gEyeAdaptationTex;
 			
 			void main()
 			{

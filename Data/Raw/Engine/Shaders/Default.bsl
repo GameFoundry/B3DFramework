@@ -34,7 +34,11 @@ Technique : base("Surface") =
 	{
 		Fragment =
 		{
-			out vec4[3] fragColor;
+			layout(location = 0) in vec2 uv0;
+			layout(location = 1) in vec3 tangentToWorldZ;
+			layout(location = 2) in vec4 tangentToWorldX;	
+		
+			layout(location = 0) out vec4[3] fragColor;
 		
 			void main()
 			{
