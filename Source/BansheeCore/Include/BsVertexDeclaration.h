@@ -110,6 +110,8 @@ namespace bs
 		/**	Gets packed color vertex element type used by the active render system. */
 		static VertexElementType getBestColorVertexElementType();
 
+		/** Calculates a hash value for the provided vertex element. */
+		static size_t getHash(const VertexElement& element);
 	protected:
 		UINT16 mSource;
 		UINT32 mOffset;

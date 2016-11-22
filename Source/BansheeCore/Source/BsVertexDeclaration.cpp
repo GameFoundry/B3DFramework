@@ -145,6 +145,18 @@ namespace bs
 		return !(*this == rhs);
 	}
 
+	size_t VertexElement::getHash(const VertexElement& element)
+	{
+		size_t hash = 0;
+		hash_combine(hash, element.mType);
+		hash_combine(hash, element.mIndex);
+		hash_combine(hash, element.mOffset);
+		hash_combine(hash, element.mSemantic);
+		hash_combine(hash, element.mSource);
+
+		return hash;
+	}
+
 	VertexDeclarationProperties::VertexDeclarationProperties(const List<VertexElement>& elements)
 	{
 		for (auto& elem : elements)

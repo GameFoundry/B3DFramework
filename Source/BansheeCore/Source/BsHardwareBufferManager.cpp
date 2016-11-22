@@ -73,6 +73,41 @@ namespace bs
 		return paramsPtr;
     }
 
+	HardwareBufferCoreManager::VertexDeclarationKey::VertexDeclarationKey(const List<VertexElement>& elements)
+		:elements(elements)
+	{ }
+
+
+	size_t HardwareBufferCoreManager::VertexDeclarationKey::HashFunction::operator()(const VertexDeclarationKey& v) const
+	{
+		size_t hash = 0;
+		for(auto& entry : v.elements)
+			hash_combine(hash, VertexElement::getHash(entry));
+
+		return hash;
+	}
+
+	bool HardwareBufferCoreManager::VertexDeclarationKey::EqualFunction::operator()(const VertexDeclarationKey& lhs, 
+		const VertexDeclarationKey& rhs) const
+	{
+		if (lhs.elements.size() != rhs.elements.size())
+			return false;
+
+		size_t numElements = lhs.elements.size();
+		auto iterLeft = lhs.elements.begin();
+		auto iterRight = rhs.elements.begin();
+		for(size_t i = 0; i < numElements; i++)
+		{
+			if (*iterLeft != *iterRight)
+				return false;
+
+			++iterLeft;
+			++iterRight;
+		}
+
+		return true;
+	}
+
 	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)
 	{
@@ -93,10 +128,9 @@ namespace bs
 	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc, 
 		GpuDeviceFlags deviceMask)
 	{
-		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(desc->createElements(), deviceMask);
-		declPtr->initialize();
+		List<VertexElement> elements = desc->createElements();
 
-		return declPtr;
+		return createVertexDeclaration(elements, deviceMask);
 	}
 
 	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParams(const SPtr<GpuPipelineParamInfoCore>& paramInfo,
@@ -111,9 +145,16 @@ namespace bs
 	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const List<VertexElement>& elements,
 		GpuDeviceFlags deviceMask)
 	{
+		VertexDeclarationKey key(elements);
+
+		auto iterFind = mCachedDeclarations.find(key);
+		if (iterFind != mCachedDeclarations.end())
+			return iterFind->second;
+
 		SPtr<VertexDeclarationCore> declPtr = createVertexDeclarationInternal(elements, deviceMask);
 		declPtr->initialize();
 
+		mCachedDeclarations[key] = declPtr;
 		return declPtr;
 	}
 

@@ -137,6 +137,26 @@ namespace bs
 		friend class GpuBuffer;
 		friend class GpuBufferCore;
 
+		/** Key for use in the vertex declaration map. */
+		struct VertexDeclarationKey
+		{
+			VertexDeclarationKey(const List<VertexElement>& elements);
+
+			class HashFunction
+			{
+			public:
+				size_t operator()(const VertexDeclarationKey& key) const;
+			};
+
+			class EqualFunction
+			{
+			public:
+				bool operator()(const VertexDeclarationKey& lhs, const VertexDeclarationKey& rhs) const;
+			};
+
+			List<VertexElement> elements;
+		};
+
 		/** @copydoc createVertexBuffer */
 		virtual SPtr<VertexBufferCore> createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
@@ -160,8 +180,12 @@ namespace bs
 		/** @copydoc createGpuParams */
 		virtual SPtr<GpuParamsCore> createGpuParamsInternal(const SPtr<GpuPipelineParamInfoCore>& paramInfo,
 															GpuDeviceFlags deviceMask = GDF_DEFAULT);
+
+		typedef UnorderedMap<VertexDeclarationKey, SPtr<VertexDeclarationCore>, 
+			VertexDeclarationKey::HashFunction, VertexDeclarationKey::EqualFunction> DeclarationMap;
+
+		DeclarationMap mCachedDeclarations;
 	};
 
 	/** @} */
 }
-
