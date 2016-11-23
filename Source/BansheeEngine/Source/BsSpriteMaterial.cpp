@@ -16,12 +16,12 @@ namespace bs
 		mMaterial = material->getCore();
 		mMaterialStored.store(true, std::memory_order_release);
 
-		gCoreAccessor().queueCommand(std::bind(&SpriteMaterial::initialize, this));
+		gCoreThread().queueCommand(std::bind(&SpriteMaterial::initialize, this));
 	}
 
 	SpriteMaterial::~SpriteMaterial()
 	{
-		gCoreAccessor().queueCommand(std::bind(&SpriteMaterial::destroy, mMaterial, mParams));
+		gCoreThread().queueCommand(std::bind(&SpriteMaterial::destroy, mMaterial, mParams));
 	}
 
 	void SpriteMaterial::initialize()

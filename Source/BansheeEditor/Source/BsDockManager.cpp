@@ -465,7 +465,7 @@ namespace bs
 		HMaterial dropOverlayMat = BuiltinEditorResources::instance().createDockDropOverlayMaterial();
 
 		mCore.store(bs_new<DockOverlayRenderer>(), std::memory_order_release);
-		gCoreAccessor().queueCommand(std::bind(&DockManager::initializeOverlayRenderer, 
+		gCoreThread().queueCommand(std::bind(&DockManager::initializeOverlayRenderer, 
 			this, dropOverlayMat->getCore()));
 	}
 
@@ -476,7 +476,7 @@ namespace bs
 		bs_deleteN(mLeftDropPolygon, 4);
 		bs_deleteN(mRightDropPolygon, 4);
 
-		gCoreAccessor().queueCommand(std::bind(&DockManager::destroyOverlayRenderer,
+		gCoreThread().queueCommand(std::bind(&DockManager::destroyOverlayRenderer,
 			this, mCore.load(std::memory_order_relaxed)));
 	}
 
@@ -508,7 +508,7 @@ namespace bs
 		HCamera camera = mParentWindow->getGUICamera();
 
 		DockOverlayRenderer* core = mCore.load(std::memory_order_relaxed);
-		gCoreAccessor().queueCommand(std::bind(&DockOverlayRenderer::updateData, core, camera->_getCamera()->getCore(),
+		gCoreThread().queueCommand(std::bind(&DockOverlayRenderer::updateData, core, camera->_getCamera()->getCore(),
 			mDropOverlayMesh->getCore(), mShowOverlay, mHighlightedDropLoc));
 	}
 

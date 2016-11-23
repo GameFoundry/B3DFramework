@@ -121,7 +121,7 @@ namespace bs
 		GUIManagerCore* core = bs_new<GUIManagerCore>();
 		mCore.store(core, std::memory_order_release);
 
-		gCoreAccessor().queueCommand(std::bind(&GUIManagerCore::initialize, core));
+		gCoreThread().queueCommand(std::bind(&GUIManagerCore::initialize, core));
 	}
 
 	GUIManager::~GUIManager()
@@ -158,7 +158,7 @@ namespace bs
 		bs_delete(mInputCaret);
 		bs_delete(mInputSelection);
 
-		gCoreAccessor().queueCommand(std::bind(&GUIManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
+		gCoreThread().queueCommand(std::bind(&GUIManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
 
 		assert(mCachedGUIData.size() == 0);
 	}
@@ -423,7 +423,7 @@ namespace bs
 			}
 
 			GUIManagerCore* core = mCore.load(std::memory_order_relaxed);
-			gCoreAccessor().queueCommand(std::bind(&GUIManagerCore::updateData, core, corePerCameraData));
+			gCoreThread().queueCommand(std::bind(&GUIManagerCore::updateData, core, corePerCameraData));
 
 			mCoreDirty = false;
 		}
@@ -710,11 +710,10 @@ namespace bs
 		}
 
 		const HTexture& tex = mCaretTexture->getTexture();
-		UINT32 subresourceIdx = tex->getProperties().mapToSubresourceIdx(0, 0);
-		SPtr<PixelData> data = tex->getProperties().allocateSubresourceBuffer(subresourceIdx);
+		SPtr<PixelData> data = tex->getProperties().allocBuffer(0, 0);
 
 		data->setColorAt(mCaretColor, 0, 0);
-		tex->writeSubresource(gCoreAccessor(), subresourceIdx, data, false);
+		tex->writeData(data);
 	}
 
 	void GUIManager::updateTextSelectionTexture()
@@ -728,12 +727,10 @@ namespace bs
 		}
 
 		const HTexture& tex = mTextSelectionTexture->getTexture();
-		UINT32 subresourceIdx = tex->getProperties().mapToSubresourceIdx(0, 0);
-		SPtr<PixelData> data = tex->getProperties().allocateSubresourceBuffer(subresourceIdx);
+		SPtr<PixelData> data = tex->getProperties().allocBuffer(0, 0);
 
 		data->setColorAt(mTextSelectionColor, 0, 0);
-
-		tex->writeSubresource(gCoreAccessor(), subresourceIdx, data, false);
+		tex->writeData(data);
 	}
 
 	void GUIManager::onMouseDragEnded(const PointerEvent& event, DragCallbackInfo& dragInfo)

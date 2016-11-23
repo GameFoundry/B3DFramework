@@ -22,12 +22,12 @@ namespace bs
 				shaders.push_back(nullptr);
 		}
 
-		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::initOnCore, shaders));
+		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::initOnCore, shaders), CTQF_InternalQueue);
 	}
 
 	RendererMaterialManager::~RendererMaterialManager()
 	{
-		gCoreAccessor().queueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
+		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
 	}
 
 	void RendererMaterialManager::_registerMaterial(RendererMaterialMetaData* metaData, const Path& shaderPath)

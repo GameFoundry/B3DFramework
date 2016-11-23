@@ -57,11 +57,9 @@ namespace bs
 	MonoObject* ScriptTextureCube::internal_getPixels(ScriptTextureCube* thisPtr, UINT32 face, UINT32 mipLevel)
 	{
 		HTexture texture = thisPtr->getHandle();
-		UINT32 subresourceIdx = texture->getProperties().mapToSubresourceIdx(face, mipLevel);
 
-		SPtr<PixelData> pixelData = texture->getProperties().allocateSubresourceBuffer(subresourceIdx);
-
-		texture->readData(*pixelData, mipLevel, face);
+		SPtr<PixelData> pixelData = texture->getProperties().allocBuffer(face, mipLevel);
+		texture->readCachedData(*pixelData, face, mipLevel);
 
 		return ScriptPixelData::create(pixelData);
 	}
@@ -69,10 +67,9 @@ namespace bs
 	MonoObject* ScriptTextureCube::internal_getGPUPixels(ScriptTextureCube* thisPtr, UINT32 face, UINT32 mipLevel)
 	{
 		HTexture texture = thisPtr->getHandle();
-		UINT32 subresourceIdx = texture->getProperties().mapToSubresourceIdx(face, mipLevel);
+		SPtr<PixelData> readData = texture->getProperties().allocBuffer(face, mipLevel);
 
-		SPtr<PixelData> readData = texture->getProperties().allocateSubresourceBuffer(subresourceIdx);
-		AsyncOp asyncOp = texture->readSubresource(gCoreAccessor(), subresourceIdx, readData);
+		AsyncOp asyncOp = texture->readData(readData, face, mipLevel);
 
 		std::function<MonoObject*(const AsyncOp&, const SPtr<PixelData>&)> asyncOpToMono =
 			[&](const AsyncOp& op, const SPtr<PixelData>& returnValue)
@@ -90,9 +87,7 @@ namespace bs
 		if (scriptPixelData != nullptr)
 		{
 			HTexture texture = thisPtr->getHandle();
-			UINT32 subresourceIdx = texture->getProperties().mapToSubresourceIdx(face, mipLevel);
-
-			texture->writeSubresource(gCoreAccessor(), subresourceIdx, scriptPixelData->getInternalValue(), false);
+			texture->writeData(scriptPixelData->getInternalValue(), face, mipLevel, false);
 		}
 	}
 

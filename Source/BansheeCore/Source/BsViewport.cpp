@@ -10,7 +10,7 @@
 
 namespace bs 
 {
-	const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(83.0f / 255.0f, 83.0f / 255.0f, 83.0f / 255.0f);
+	const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(0.0f, 0.3685f, 0.7969f);
 
 	ViewportBase::ViewportBase(float x, float y, float width, float height)
 		: mNormArea(x, y, width, height), mRequiresColorClear(true), mRequiresDepthClear(true)

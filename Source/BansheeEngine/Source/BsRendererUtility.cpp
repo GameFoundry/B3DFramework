@@ -316,7 +316,7 @@ namespace bs
 		indices[4] = 3;
 		indices[5] = 2;
 
-		mFullScreenQuadMesh->writeSubresource(0, *meshData, true, false);
+		mFullScreenQuadMesh->writeData(*meshData, true, false);
 		draw(mFullScreenQuadMesh, mFullScreenQuadMesh->getProperties().getSubMesh(), numInstances);
 	}
 

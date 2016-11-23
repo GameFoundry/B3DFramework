@@ -99,11 +99,11 @@ namespace bs
 					  const SPtr<TextureCore>& target, UINT32 queueIdx = 0) override;
 
 		/** @copydoc TextureCore::readData */
-		void readData(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
+		void readDataImpl(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
 					  UINT32 queueIdx = 0) override;
 
 		/** @copydoc TextureCore::writeData */
-		void writeData(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, bool discardWholeBuffer = false,
+		void writeDataImpl(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, bool discardWholeBuffer = false,
 					   UINT32 queueIdx = 0) override;
 
 	private:

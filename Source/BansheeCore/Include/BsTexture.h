@@ -130,38 +130,28 @@ namespace bs
 		UINT32 getNumArraySlices() const { return mDesc.numArraySlices; }
 
 		/**
+		 * Allocates a buffer that exactly matches the format of the texture described by these properties, for the provided
+		 * face and mip level. This is a helper function, primarily meant for creating buffers when reading from, or writing
+		 * to a texture.
+		 * 			
+		 * @note	Thread safe.
+		 */
+		SPtr<PixelData> allocBuffer(UINT32 face, UINT32 mipLevel) const;
+
+	protected:
+		friend class TextureRTTI;
+		friend class Texture;
+
+		/**
 		 * Maps a sub-resource index to an exact face and mip level. Sub-resource indexes are used when reading or writing
 		 * to the resource.
-		 * 			
-		 * @note	
-		 * Sub-resource index is only valid for the instance it was created on. You cannot use a sub-resource index from a
-		 * different texture and expect to get valid result. Modifying the resource so the number of sub-resources changes
-		 * invalidates all sub-resource indexes.
 		 */
 		void mapFromSubresourceIdx(UINT32 subresourceIdx, UINT32& face, UINT32& mip) const;
 
 		/**
 		 * Map a face and a mip level to a sub-resource index you can use for updating or reading a specific sub-resource.
-		 * 			
-		 * @note	
-		 * Generated sub-resource index is only valid for the instance it was created on. Modifying the resource so the 
-		 * number of sub-resources changes, invalidates all sub-resource indexes.
 		 */
 		UINT32 mapToSubresourceIdx(UINT32 face, UINT32 mip) const;
-
-		/**
-		 * Allocates a buffer you may use for storage when reading or writing a sub-resource. You need to allocate such a 
-		 * buffer if you are calling readSubresource().
-		 *
-		 * You can retrieve a sub-resource index by calling mapToSubresourceIdx().
-		 * 			
-		 * @note	Thread safe.
-		 */
-		SPtr<PixelData> allocateSubresourceBuffer(UINT32 subresourceIdx) const;
-
-	protected:
-		friend class TextureRTTI;
-		friend class Texture;
 
 		TEXTURE_DESC mDesc;
 	};
@@ -176,53 +166,52 @@ namespace bs
     {
     public:
 		/**
-		 * Updates the texture with new data. The actual write will be queued for later execution on the core thread. 
-		 * Provided data buffer will be locked until the operation completes.
+		 * Updates the texture with new data. Provided data buffer will be locked until the operation completes.
 		 *
-		 * @param[in]	accessor			Accessor to queue the operation on.
-		 * @param[in]	subresourceIdx		Index of the subresource to write. Retrieved from 
-		 *									TextureProperties::mapToSubresourceIdx().
 		 * @param[in]	data				Pixel data to write. User must ensure it is in format and size compatible with 
 		 *									the texture.
+		 * @param[in]	face				Texture face to write to.	
+		 * @param[in]	mipLevel			Mipmap level to write to.				
 		 * @param[in]	discardEntireBuffer When true the existing contents of the resource you are updating will be 
 		 *									discarded. This can make the operation faster. Resources with certain buffer 
 		 *									types might require this flag to be in a specific state otherwise the operation 
 		 *									will fail.
 		 * @return							Async operation object you can use to track operation completion.
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp writeSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<PixelData>& data, 
-			bool discardEntireBuffer);
+		AsyncOp writeData(const SPtr<PixelData>& data, UINT32 face = 0, UINT32 mipLevel = 0,
+			bool discardEntireBuffer = false);
 
 		/**
-		 * Reads internal texture data to the provided previously allocated buffer. The read is queued for execution on the
-		 * core thread and not executed immediately. Provided data buffer will be locked until the operation completes.
+		 * Reads internal texture data to the provided previously allocated buffer. Provided data buffer will be locked 
+		 * until the operation completes.
 		 *
-		 * @param[in]	accessor			Accessor to queue the operation on.
-		 * @param[in]	subresourceIdx		Index of the subresource to read. Retrieved from
-		 *									TextureProperties::mapToSubresourceIdx().
-		 * @param[out]	data				Pre-allocated buffer of proper size and format where data will be read to. You 
-		 *									can use TextureProperties::allocateSubresourceBuffer() to allocate a valid 
-		 *									buffer.
-		 * @return							Async operation object you can use to track operation completion.
+		 * @param[out]	data		Pre-allocated buffer of proper size and format where data will be read to. You can use
+		 *							TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
+		 * @param[in]	face		Texture face to read from.
+		 * @param[in]	mipLevel	Mipmap level to read from.
+		 * @return					Async operation object you can use to track operation completion.
 		 *
-		 * @see		TextureCore::readSubresource
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp readSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<PixelData>& data);
+		AsyncOp readData(const SPtr<PixelData>& data, UINT32 face = 0, UINT32 mipLevel = 0);
 
 		/**
 		 * Reads data from the cached system memory texture buffer into the provided buffer. 
 		 * 		  
-		 * @param[out]	dest		Previously allocated buffer to read data into.
-		 * @param[in]	mipLevel	(optional) Mipmap level to read from.
-		 * @param[in]	face		(optional) Texture face to read from.
+		 * @param[out]	data		Pre-allocated buffer of proper size and format where data will be read to. You can use
+		 *							TextureProperties::allocBuffer() to allocate a buffer of a correct format and size.
+		 * @param[in]	face		Texture face to read from.
+		 * @param[in]	mipLevel	Mipmap level to read from.
 		 *
 		 * @note	
 		 * The data read is the cached texture data. Any data written to the texture from the GPU or core thread will not 
-		 * be reflected in this data. Use readSubresource() if you require those changes.
+		 * be reflected in this data. Use readData() if you require those changes.
 		 * @note
 		 * The texture must have been created with TU_CPUCACHED usage otherwise this method will not return any data.
 		 */
-		void readData(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0);
+		void readCachedData(PixelData& data, UINT32 face = 0, UINT32 mipLevel = 0);
 
 		/**	Returns properties that contain information about the texture. */
 		const TextureProperties& getProperties() const { return mProperties; }
@@ -335,32 +324,6 @@ namespace bs
 		void initialize() override;
 
 		/**
-		 * Updates a part of the texture with the provided data.
-		 *
-		 * @param[in]	subresourceIdx		Index of the subresource to update, if the texture has more than one.
-		 * @param[in]	data				Data to update the texture with.
-		 * @param[in]	discardEntireBuffer When true the existing contents of the resource you are updating will be 
-		 *									discarded. This can make the operation faster. Resources with certain buffer 
-		 *									types might require this flag to be in a specific state otherwise the operation 
-		 *									will fail.
-		 * @param[in]	queueIdx			Device queue to perform the write operation on. See @ref queuesDoc.								
-		 */
-		virtual void writeSubresource(UINT32 subresourceIdx, const PixelData& data, bool discardEntireBuffer,
-									  UINT32 queueIdx = 0);
-
-		/**
-		 * Reads a part of the current resource into the provided @p data parameter. Data buffer needs to be pre-allocated.
-		 *
-		 * @param[in]	subresourceIdx		Index of the subresource to update, if the texture has more than one.
-		 * @param[out]	data				Buffer that will receive the data. Should be allocated with 
-		 *									allocateSubresourceBuffer() to ensure it is of valid type and size.
-		 * @param[in]	deviceIdx			Index of the device whose memory to read. If the buffer doesn't exist on this
-		 *									device, no data will be read.
-		 * @param[in]	queueIdx			Device queue to perform the read operation on. See @ref queuesDoc.
-		 */
-		virtual void readSubresource(UINT32 subresourceIdx, PixelData& data, UINT32 deviceIdx = 0, UINT32 queueIdx = 0);
-
-		/**
 		 * Locks the buffer for reading or writing.
 		 *
 		 * @param[in]	options 	Options for controlling what you may do with the locked data.
@@ -391,12 +354,15 @@ namespace bs
 		 * You are allowed to copy from a multisampled to non-multisampled surface, which will resolve the multisampled
 		 * surface before copying.
 		 *
-		 * @param[in]	srcSubresourceIdx	Index of the subresource to copy from.
-		 * @param[in]	destSubresourceIdx	Index of the subresource to copy to.
 		 * @param[in]	target				Texture that contains the destination subresource.
+		 * @param[in]	srcFace				Face to copy from.
+		 * @param[in]	srcMipLevel			Mip level to copy from.
+		 * @param[in]	dstFace				Face to copy to.
+		 * @param[in]	dstMipLevel			Mip level to copy to.
 		 * @param[in]	queueIdx			Device queue to perform the copy operation on. See @ref queuesDoc.
 		 */
-		void copy(UINT32 srcSubresourceIdx, UINT32 destSubresourceIdx, const SPtr<TextureCore>& target, UINT32 queueIdx = 0);
+		void copy(const SPtr<TextureCore>& target, UINT32 srcFace = 0, UINT32 srcMipLevel = 0, UINT32 dstFace = 0,
+			UINT32 dstMipLevel = 0, UINT32 queueIdx = 0);
 
 		/**
 		 * Reads data from the texture buffer into the provided buffer.
@@ -408,8 +374,8 @@ namespace bs
 		 *							no data will be read.
 		 * @param[in]	queueIdx	Device queue to perform the read operation on. See @ref queuesDoc.
 		 */
-		virtual void readData(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
-							  UINT32 queueIdx = 0) = 0;
+		void readData(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
+							  UINT32 queueIdx = 0);
 
 		/**
 		 * Writes data from the provided buffer into the texture buffer.
@@ -421,8 +387,8 @@ namespace bs
 		 *									performance of the write operation.
 		 * @param[in]	queueIdx			Device queue to perform the write operation on. See @ref queuesDoc.
 		 */
-		virtual void writeData(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, bool discardWholeBuffer = false,
-							   UINT32 queueIdx = 0) = 0;
+		void writeData(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, bool discardWholeBuffer = false,
+							   UINT32 queueIdx = 0);
 
 		/**	Returns properties that contain information about the texture. */
 		const TextureProperties& getProperties() const { return mProperties; }
@@ -475,23 +441,22 @@ namespace bs
 	protected:
 		/** @copydoc lock */
 		virtual PixelData lockImpl(GpuLockOptions options, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
-								   UINT32 queueIdx = 0) = 0;
+			UINT32 queueIdx = 0) = 0;
 
 		/** @copydoc unlock */
 		virtual void unlockImpl() = 0;
 
-		/** 
-		 * API specific implementation of copy(). 
-		 *
-		 * @param[in]	srcFace			Face index to copy from.
-		 * @param[in]	srcMipLevel		Mip level to copy from.
-		 * @param[in]	destFace		Face index to copy to.
-		 * @param[in]	destMipLevel	Mip level to copy to.
-		 * @param[in]	target			Texture to copy to.
-		 * @param[in]	queueIdx		Global queue index to perform the copy on.
-		 */
+		/** @copydoc copy */
 		virtual void copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel, 
 			const SPtr<TextureCore>& target, UINT32 queueIdx = 0) = 0;
+
+		/** @copydoc readData */
+		virtual void readDataImpl(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,
+			UINT32 queueIdx = 0) = 0;
+
+		/** @copydoc writeData */
+		virtual void writeDataImpl(const PixelData& src, UINT32 mipLevel = 0, UINT32 face = 0, 
+			bool discardWholeBuffer = false, UINT32 queueIdx = 0) = 0;
 
 		/************************************************************************/
 		/* 								TEXTURE VIEW                      		*/

@@ -287,7 +287,7 @@ namespace bs
 		
 	}
 
-	void VulkanTextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanTextureCore::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
@@ -312,7 +312,7 @@ namespace bs
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
 	}
 
-	void VulkanTextureCore::writeData(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
+	void VulkanTextureCore::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 									  UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)

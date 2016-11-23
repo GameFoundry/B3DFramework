@@ -9,7 +9,6 @@
 #include "BsTexAtlasGenerator.h"
 #include "BsCoreApplication.h"
 #include "BsCoreThread.h"
-#include "BsCoreThreadAccessor.h"
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -329,19 +328,18 @@ namespace bs
 				texDesc.format = PF_R8G8;
 
 				HTexture newTex = Texture::create(texDesc);
-				UINT32 subresourceIdx = newTex->getProperties().mapToSubresourceIdx(0, 0);
 
 				// It's possible the formats no longer match
 				if (newTex->getProperties().getFormat() != pixelData->getFormat())
 				{
-					SPtr<PixelData> temp = newTex->getProperties().allocateSubresourceBuffer(subresourceIdx);
+					SPtr<PixelData> temp = newTex->getProperties().allocBuffer(0, 0);
 					PixelUtil::bulkPixelConversion(*pixelData, *temp);
 
-					newTex->writeSubresource(gCoreAccessor(), subresourceIdx, temp, false);
+					newTex->writeData(temp);
 				}
 				else
 				{
-					newTex->writeSubresource(gCoreAccessor(), subresourceIdx, pixelData, false);
+					newTex->writeData(pixelData);
 				}
 
 				newTex->setName(L"FontPage" + toWString((UINT32)fontData->texturePages.size()));

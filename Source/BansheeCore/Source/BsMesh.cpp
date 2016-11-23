@@ -73,7 +73,7 @@ namespace bs
 		// buffer data upon buffer construction, instead of setting it in a second step like I do here
 		if (mTempInitialMeshData != nullptr)
 		{
-			writeSubresource(0, *mTempInitialMeshData, isDynamic);
+			writeData(*mTempInitialMeshData, isDynamic);
 			mTempInitialMeshData = nullptr;
 		}
 
@@ -101,8 +101,7 @@ namespace bs
 		return mVertexDesc;
 	}
 
-	void MeshCore::writeSubresource(UINT32 subresourceIdx, const MeshData& meshData, bool discardEntireBuffer, 
-		bool performUpdateBounds, UINT32 queueIdx)
+	void MeshCore::writeData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -213,7 +212,7 @@ namespace bs
 			updateBounds(meshData);
 	}
 
-	void MeshCore::readSubresource(UINT32 subresourceIdx, MeshData& meshData, UINT32 deviceIdx, UINT32 queueIdx)
+	void MeshCore::readData(MeshData& meshData, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -406,46 +405,47 @@ namespace bs
 		
 	}
 
-	AsyncOp Mesh::writeSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<MeshData>& data, bool discardEntireBuffer)
+	AsyncOp Mesh::writeData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 	{
 		updateBounds(*data);
-		updateCPUBuffer(subresourceIdx, *data);
+		updateCPUBuffer(0, *data);
 
 		data->_lock();
 
-		std::function<void(const SPtr<MeshCore>&, UINT32, const SPtr<MeshData>&, bool, AsyncOp&)> func =
-			[&](const SPtr<MeshCore>& mesh, UINT32 _subresourceIdx, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, AsyncOp& asyncOp)
+		std::function<void(const SPtr<MeshCore>&, const SPtr<MeshData>&, bool, AsyncOp&)> func =
+			[&](const SPtr<MeshCore>& mesh, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, AsyncOp& asyncOp)
 		{
-			mesh->writeSubresource(_subresourceIdx, *_meshData, _discardEntireBuffer, false);
+			mesh->writeData(*_meshData, _discardEntireBuffer, false);
 			_meshData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return accessor.queueReturnCommand(std::bind(func, getCore(), subresourceIdx,
+		return gCoreThread().queueReturnCommand(std::bind(func, getCore(),
 			 data, discardEntireBuffer, std::placeholders::_1));
 	}
 
-	AsyncOp Mesh::readSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<MeshData>& data)
+	AsyncOp Mesh::readData(const SPtr<MeshData>& data)
 	{
 		data->_lock();
 
-		std::function<void(const SPtr<MeshCore>&, UINT32, const SPtr<MeshData>&, AsyncOp&)> func =
-			[&](const SPtr<MeshCore>& mesh, UINT32 _subresourceIdx, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
+		std::function<void(const SPtr<MeshCore>&, const SPtr<MeshData>&, AsyncOp&)> func =
+			[&](const SPtr<MeshCore>& mesh, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
 		{
-			mesh->readSubresource(_subresourceIdx, *_meshData);
+			mesh->readData(*_meshData);
 			_meshData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return accessor.queueReturnCommand(std::bind(func, getCore(), subresourceIdx,
+		return gCoreThread().queueReturnCommand(std::bind(func, getCore(),
 			data, std::placeholders::_1));
 	}
 
-	SPtr<MeshData> Mesh::allocateSubresourceBuffer(UINT32 subresourceIdx) const
+	SPtr<MeshData> Mesh::allocBuffer() const
 	{
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, mVertexDesc, mIndexType);
+		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, 
+			mVertexDesc, mIndexType);
 
 		return meshData;
 	}
@@ -524,7 +524,7 @@ namespace bs
 		memcpy(dest, src, pixelData.getSize());
 	}
 
-	void Mesh::readData(MeshData& dest)
+	void Mesh::readCachedData(MeshData& dest)
 	{
 		if ((mUsage & MU_CPUCACHED) == 0)
 		{
@@ -552,7 +552,7 @@ namespace bs
 
 	void Mesh::createCPUBuffer()
 	{
-		mCPUData = allocateSubresourceBuffer(0);
+		mCPUData = allocBuffer();
 	}
 
 	HMesh Mesh::dummy()

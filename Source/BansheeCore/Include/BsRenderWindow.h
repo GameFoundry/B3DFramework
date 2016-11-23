@@ -87,17 +87,13 @@ namespace bs
 	};
 
 	/**
-	 * Render target specialization that allows you to render into window frame buffer(s).
-	 *
-	 * @note	Sim thread only. Retrieve core implementation from getCore() for core thread only functionality.
+	 * Operating system window with a specific position, size and style. Each window serves as a surface that can be
+	 * rendered into by RenderAPI operations.
 	 */
     class BS_CORE_EXPORT RenderWindow : public RenderTarget
     {
     public:
 		virtual ~RenderWindow() { }
-
-		/** @copydoc RenderTarget::destroy */
-		virtual void destroy() override;	
 
 		/**	Converts screen position into window local position. */
 		virtual Vector2I screenToWindowPos(const Vector2I& screenPos) const = 0;
@@ -108,82 +104,85 @@ namespace bs
 		/**	
 		 * Resize the window to specified width and height in pixels. 
 		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
 		 * @param[in]	width		Width of the window in pixels.
 		 * @param[in]	height		Height of the window in pixels.
 		 */
-		void resize(CoreAccessor& accessor, UINT32 width, UINT32 height);
+		void resize(UINT32 width, UINT32 height);
 
 		/**	
 		 * Move the window to specified screen coordinates. 
 		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
 		 * @param[in]	left		Position of the left border of the window on the screen.
 		 * @param[in]	top			Position of the top border of the window on the screen.
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void move(CoreAccessor& accessor, INT32 left, INT32 top);
-
-		/**	
-		 * Hide the window. (Does not destroy it, just hides it). 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		void hide(CoreAccessor& accessor);
-
-		/**	
-		 * Shows a previously hidden window. 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
-		 */
-		void show(CoreAccessor& accessor);
+		void move(INT32 left, INT32 top);
 
 		/** 
-		 * @copydoc RenderWindowCore::minimize 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * Hides the window. 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void minimize(CoreAccessor& accessor);
+		void hide();
+
+		/** 
+		 * Shows a previously hidden window. 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		void show();
+
+		/** 
+		 * @copydoc RenderWindowCore::minimize  
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		void minimize();
 
 		/** 
 		 * @copydoc RenderWindowCore::maximize 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void maximize(CoreAccessor& accessor);
+		void maximize();
 
 		/** 
-		 * @copydoc RenderWindowCore::restore 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * @copydoc RenderWindowCore::restore  
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void restore(CoreAccessor& accessor);
+		void restore();
 
 		/** 
 		 * @copydoc RenderWindowCore::setFullscreen(UINT32, UINT32, float, UINT32) 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setFullscreen(CoreAccessor& accessor, UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0);
+		void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0);
 
 		/** 
 		 * @copydoc RenderWindowCore::setFullscreen(const VideoMode&) 
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setFullscreen(CoreAccessor& accessor, const VideoMode& videoMode);
+		void setFullscreen(const VideoMode& videoMode);
 
-		/**
-		 * @copydoc RenderWindowCore::setWindowed
-		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		/** 
+		 * @copydoc RenderWindowCore::setWindowed 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setWindowed(CoreAccessor& accessor, UINT32 width, UINT32 height);
+		void setWindowed(UINT32 width, UINT32 height);
 
 		/**	Retrieves a core implementation of a render window usable only from the core thread. */
 		SPtr<RenderWindowCore> getCore() const;
 
 		/**	Returns properties that describe the render window. */
 		const RenderWindowProperties& getProperties() const;
+
+		/** Closes and destroys the window. */
+		void destroy() override;
 
 		/**
 		 * Creates a new render window using the specified options. Optionally makes the created window a child of another 
@@ -216,11 +215,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Provides access to internal render window implementation usable only from the core thread.
-	 *
-	 * @note	Core thread only.
-	 */
+	/** Core thread counterpart of RenderWindow. */
 	class BS_CORE_EXPORT RenderWindowCore : public RenderTargetCore
 	{
 	public:

@@ -437,7 +437,7 @@ namespace bs
 	struct AUDIO_CLIP_DESC;
 
 	template<class T>
-	class CoreThreadAccessor;
+	class TCoreThreadQueue;
 	class CommandQueueNoSync;
 	class CommandQueueSync;
 }
@@ -448,8 +448,7 @@ namespace bs
 
 namespace bs
 {
-	typedef CoreThreadAccessor<CommandQueueNoSync> CoreAccessor;
-	typedef CoreThreadAccessor<CommandQueueSync> SyncedCoreAccessor;
+	typedef TCoreThreadQueue<CommandQueueNoSync> CoreThreadQueue;
 }
 
 /************************************************************************/

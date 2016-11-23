@@ -72,11 +72,8 @@ namespace bs
 		void initialize() override;
 
 		/**
-		 * Updates the mesh with new data. The actual write will be queued for later execution on the core thread. Provided 
-		 * data buffer will be locked until the operation completes.
+		 * Updates the mesh with new data. Provided data buffer will be locked until the operation completes.
 		 *
-		 * @param[in]	accessor			Accessor to queue the operation on.
-		 * @param[in]	subresourceIdx		Index of the subresource to write to. Ignored for now.
 		 * @param[in]	data				Data of valid size and format to write to the subresource.
 		 * @param[in]	discardEntireBuffer When true the existing contents of the resource you are updating will be
 		 *									discarded. This can make the operation faster. Resources with certain buffer
@@ -84,47 +81,43 @@ namespace bs
 		 *									will fail.
 		 * @return							Async operation object you can use to track operation completion.
 		 *
-		 * @see		MeshCore::writeSubresource
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp writeSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<MeshData>& data, 
-			bool discardEntireBuffer);
+		AsyncOp writeData(const SPtr<MeshData>& data, bool discardEntireBuffer);
 
 		/**
-		 * Reads internal mesh data to the provided previously allocated buffer. The read is queued for execution on the 
-		 * core thread and not executed immediately. Provided data buffer will be locked until the operation completes.
+		 * Reads internal mesh data to the provided previously allocated buffer. Provided data buffer will be locked until
+		 * the operation completes.
 		 *
-		 * @param[in]	accessor		Accessor to queue the operation on.
-		 * @param[in]	subresourceIdx	Index of the subresource to read from. Ignored for now.
-		 * @param[out]	data			Previously allocated buffer of valid size and format to read the data into. Can be
-		 *								allocated using allocateSubresourceBuffer().
+		 * @param[out]	data			Pre-allocated buffer of proper vertex/index format and size where data will be read
+		 *								to. You can use allocBuffer() to allocate a buffer of a correct format and size.
 		 * @return						Async operation object you can use to track operation completion.
 		 *
-		 * @see		MeshCore::readSubresource
+		 * @note	This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp readSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<MeshData>& data);
+		AsyncOp readData(const SPtr<MeshData>& data);
 
 		/**
-		 * Allocates a buffer you may use for storage when reading a subresource. You need to allocate such a buffer if you
-		 * are calling readSubresource().
+		 * Allocates a buffer that exactly matches the size of this mesh. This is a helper function, primarily meant for
+		 * creating buffers when reading from, or writing to a mesh.
 		 * 			
-		 * @param[in]	subresourceIdx	Only 0 is supported. You can only update entire mesh at once.
-		 *
 		 * @note	Thread safe.
 		 */
-		SPtr<MeshData> allocateSubresourceBuffer(UINT32 subresourceIdx) const;
+		SPtr<MeshData> allocBuffer() const;
 
 		/**
 		 * Reads data from the cached system memory mesh buffer into the provided buffer. 
 		 * 		  
-		 * @param[in]	dest		Previously allocated buffer to read data into.
+		 * @param[out]	data		Pre-allocated buffer of proper vertex/index format and size where data will be read to. 
+		 *							You can use allocBuffer() to allocate a buffer of a correct format and size.
 		 *
 		 * @note	
 		 * The data read is the cached mesh data. Any data written to the mesh from the GPU or core thread will not be 
-		 * reflected in this data. Use readSubresource() if you require those changes. 
+		 * reflected in this data. Use readData() if you require those changes. 
 		 * @note
 		 * The mesh must have been created with MU_CPUCACHED usage otherwise this method will not return any data.
 		 */
-		void readData(MeshData& dest);
+		void readCachedData(MeshData& data);
 
 		/** Gets the skeleton required for animation of this mesh, if any is available. */
 		SPtr<Skeleton> getSkeleton() const { return mSkeleton; }
@@ -305,9 +298,8 @@ namespace bs
 		SPtr<MorphShapes> getMorphShapes() const { return mMorphShapes; }
 
 		/**
-		 * Updates a part of the current mesh with the provided data.
+		 * Updates the current mesh with the provided data.
 		 *
-		 * @param[in]	subresourceIdx		Index of the subresource to update, if the mesh has more than one.
 		 * @param[in]	data				Data to update the mesh with.
 		 * @param[in]	discardEntireBuffer When true the existing contents of the resource you are updating will be 
 		 *									discarded. This can make the operation faster. Resources with certain buffer 
@@ -317,20 +309,20 @@ namespace bs
 		 *									provided data.
 		 * @param[in]	queueIdx			Device queue to perform the write operation on. See @ref queuesDoc.
 		 */
-		virtual void writeSubresource(UINT32 subresourceIdx, const MeshData& data, bool discardEntireBuffer, 
-			bool updateBounds = true, UINT32 queueIdx = 0);
+		virtual void writeData(const MeshData& data, bool discardEntireBuffer, bool updateBounds = true, 
+			UINT32 queueIdx = 0);
 
 		/**
-		 * Reads a part of the current resource into the provided @p data parameter. Data buffer needs to be pre-allocated.
+		 * Reads the current mesh data into the provided @p data parameter. Data buffer needs to be pre-allocated.
 		 *
-		 * @param[in]	subresourceIdx		Index of the subresource to update, if the mesh has more than one.
-		 * @param[out]	data				Buffer that will receive the data. Should be allocated with 
-		 *									allocateSubresourceBuffer() to ensure it is of valid type and size.
+		 * @param[out]	data				Pre-allocated buffer of proper vertex/index format and size where data will be
+		 *									read to. You can use Mesh::allocBuffer() to allocate a buffer of a correct
+		 *									format and size.
 		 * @param[in]	deviceIdx			Index of the device whose memory to read. If the buffer doesn't exist on this
 		 *									device, no data will be read.
 		 * @param[in]	queueIdx			Device queue to perform the read operation on. See @ref queuesDoc.
 		 */
-		virtual void readSubresource(UINT32 subresourceIdx, MeshData& data, UINT32 deviceIdx = 0, UINT32 queueIdx = 0);
+		virtual void readData(MeshData& data, UINT32 deviceIdx = 0, UINT32 queueIdx = 0);
 
 		/**
 		 * Creates a new empty mesh. Created mesh will have no sub-meshes.

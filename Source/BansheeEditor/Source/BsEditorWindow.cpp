@@ -77,9 +77,9 @@ namespace bs
 	void EditorWindow::maximizeClicked()
 	{
 		if (mRenderWindow->getProperties().isMaximized())
-			mRenderWindow->restore(gCoreAccessor());
+			mRenderWindow->restore();
 		else
-			mRenderWindow->maximize(gCoreAccessor());
+			mRenderWindow->maximize();
 	}
 
 	void EditorWindow::closeWindowDelayed()

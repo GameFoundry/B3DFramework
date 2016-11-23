@@ -212,11 +212,11 @@ namespace bs
 		{
 			IconData& data = iconsToGenerate[i];
 
-			data.srcData = data.source->getProperties().allocateSubresourceBuffer(0);
-			data.source->readSubresource(gCoreAccessor(), 0, data.srcData);
+			data.srcData = data.source->getProperties().allocBuffer(0, 0);
+			data.source->readData(data.srcData);
 		}
 
-		gCoreAccessor().submitToCoreThread(true);
+		gCoreThread().submit(true);
 
 		auto saveTexture = [&](auto& pixelData, auto& path, auto& UUID)
 		{

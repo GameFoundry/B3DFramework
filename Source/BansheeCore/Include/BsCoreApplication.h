@@ -4,7 +4,6 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsModule.h"
-#include "BsCoreThreadAccessor.h"
 #include "BsRenderWindow.h"
 #include "BsEvent.h"
 

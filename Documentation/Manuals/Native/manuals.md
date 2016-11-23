@@ -9,6 +9,8 @@ Manuals									{#manuals}
 - Resources
  - [Basics and import](@ref resourceBasicsAndImport)
  - [Saving and loading](@ref resourceSavingAndLoading)
+- Graphics 
+ - [Windows](@ref windows)
  
 # Developer guides
 

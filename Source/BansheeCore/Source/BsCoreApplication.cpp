@@ -87,9 +87,9 @@ namespace bs
 
 		// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 		// we need to wait for those objects to get destroyed before continuing.
-		CoreObjectManager::instance().syncToCore(gCoreAccessor());
+		CoreObjectManager::instance().syncToCore();
 		gCoreThread().update();
-		gCoreThread().submitAccessors(true);
+		gCoreThread().submitAll(true);
 
 		unloadPlugin(mRendererPlugin);
 
@@ -258,17 +258,17 @@ namespace bs
 				mIsFrameRenderingFinished = false;
 			}
 
-			gCoreThread().queueCommand(std::bind(&CoreApplication::beginCoreProfiling, this));
-			gCoreThread().queueCommand(&Platform::_coreUpdate);
+			gCoreThread().queueCommand(std::bind(&CoreApplication::beginCoreProfiling, this), CTQF_InternalQueue);
+			gCoreThread().queueCommand(&Platform::_coreUpdate, CTQF_InternalQueue);
 
 			gCoreThread().update(); 
-			gCoreThread().submitAccessors(); 
+			gCoreThread().submitAll(); 
 
-			gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this));
+			gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-			gCoreThread().queueCommand(std::bind(&RenderWindowCoreManager::_update, RenderWindowCoreManager::instancePtr()));
-			gCoreThread().queueCommand(std::bind(&QueryManager::_update, QueryManager::instancePtr()));
-			gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this));
+			gCoreThread().queueCommand(std::bind(&RenderWindowCoreManager::_update, RenderWindowCoreManager::instancePtr()), CTQF_InternalQueue);
+			gCoreThread().queueCommand(std::bind(&QueryManager::_update, QueryManager::instancePtr()), CTQF_InternalQueue);
+			gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
 
 			gProfilerCPU().endThread();
 			gProfiler()._update();

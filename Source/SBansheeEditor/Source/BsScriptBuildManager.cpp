@@ -202,9 +202,9 @@ namespace bs
 			{
 				auto& texProps = icon->getProperties();
 
-				SPtr<PixelData> pixels = texProps.allocateSubresourceBuffer(0);
-				icon->readSubresource(gCoreAccessor(), 0, pixels);
-				gCoreAccessor().submitToCoreThread(true);
+				SPtr<PixelData> pixels = texProps.allocBuffer(0, 0);
+				icon->readData(pixels);
+				gCoreThread().submit(true);
 
 				for (auto& entry : textures)
 				{

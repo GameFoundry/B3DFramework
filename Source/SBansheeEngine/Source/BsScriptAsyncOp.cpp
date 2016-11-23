@@ -62,9 +62,7 @@ namespace bs
 	{
 		if (!thisPtr->mAsyncOp.hasCompleted())
 		{
-			// Note: Assuming the AsyncOp was queued via accessor. This will deadlock
-			// if it wasn't.
-			gCoreThread().getAccessor()->submitToCoreThread();
+			gCoreThread().submit();
 			thisPtr->mAsyncOp.blockUntilComplete();
 		}
 	}

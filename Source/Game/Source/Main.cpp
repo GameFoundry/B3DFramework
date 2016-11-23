@@ -99,7 +99,7 @@ void runApplication()
 			const VideoMode& selectedVideoMode = primaryMonitorInfo.getDesktopVideoMode();
 
 			SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
-			window->setFullscreen(gCoreAccessor(), selectedVideoMode);
+			window->setFullscreen(selectedVideoMode);
 
 			resolutionWidth = selectedVideoMode.getWidth();
 			resolutionHeight = selectedVideoMode.getHeight();
@@ -112,8 +112,8 @@ void runApplication()
 			VideoMode videoMode(resolutionWidth, resolutionHeight);
 
 			SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
-			window->show(gCoreAccessor());
-			window->setFullscreen(gCoreAccessor(), videoMode);
+			window->show();
+			window->setFullscreen(videoMode);
 		}
 	}
 

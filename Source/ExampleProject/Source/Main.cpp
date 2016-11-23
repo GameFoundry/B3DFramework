@@ -463,24 +463,10 @@ namespace bs
 	{
 		SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
 
-		// In order to toggle between full-screen and windowed mode we need to use a CoreAccessor.
-		// Banshee is a multi-threaded engine and when you need to communicate between simulation and
-		// core thread you will use a CoreAccessor. Calling a core accessor method will essentially
-		// queue the method to be executed later. Since RenderWindow is a core object you need to use
-		// CoreAccessor to modify and access it from simulation thread, except where noted otherwise.
-
-		// Classes where it is not clear if they are to be used on the core or simulation thread have
-		// it noted in their documentation. e.g. RenderWindow::setWindowed method is marked as "Core only".
-		// Additional asserts are normally in place for debug builds which make it harder for you to accidentally
-		// call something from the wrong thread.
 		if (fullscreen)
-		{
-			window->setWindowed(gCoreAccessor(), windowResWidth, windowResHeight);
-		}
+			window->setWindowed(windowResWidth, windowResHeight);
 		else
-		{
-			window->setFullscreen(gCoreAccessor(), *selectedVideoMode);
-		}
+			window->setFullscreen(*selectedVideoMode);
 
 		fullscreen = !fullscreen;
 	}
@@ -511,7 +497,7 @@ namespace bs
 		if (fullscreen)
 		{
 			SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
-			window->setFullscreen(gCoreAccessor(), *selectedVideoMode);
+			window->setFullscreen(*selectedVideoMode);
 		}
 	}
 

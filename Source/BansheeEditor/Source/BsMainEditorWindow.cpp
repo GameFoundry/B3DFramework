@@ -40,7 +40,7 @@ namespace bs
 		ExceptionTestOutput testOutput;
 		testSuite->run(testOutput);
 
-		mRenderWindow->maximize(gCoreAccessor());
+		mRenderWindow->maximize();
 	}
 
 	MainEditorWindow::~MainEditorWindow()

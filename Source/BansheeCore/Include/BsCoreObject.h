@@ -83,8 +83,9 @@ namespace bs
 		 *
 		 * @note	Call this if you have modified the object and need to make sure core thread has an up to date version. 
 		 *			Normally this is done automatically at the end of a frame.
+		 * @note	This is an @ref asyncMethod "asynchronous method".
 		 */
-		void syncToCore(CoreAccessor& accessor);
+		void syncToCore();
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -158,10 +159,10 @@ namespace bs
 		static void queueInitializeGpuCommand(const SPtr<CoreObjectCore>& obj);
 
 		/**
-		 * Queues object destruction command on the core thread. The command is added to the core thread accessor of this 
-		 * thread and will be executed after accessor commands are submitted and any previously queued commands are executed.
+		 * Queues object destruction command on the core thread. The command is added to the core thread queue of this 
+		 * thread and will be executed after qzeze commands are submitted and any previously queued commands are executed.
 		 *
-		 * @note	It is up to the caller to ensure no other accessors attempt to use this object.
+		 * @note	It is up to the caller to ensure no other threads attempt to use this object.
 		 */
 		static void queueDestroyGpuCommand(const SPtr<CoreObjectCore>& obj);
 

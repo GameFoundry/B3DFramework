@@ -525,15 +525,15 @@ namespace bs
 
 	void GUIMenuBar::onMinimizeClicked()
 	{
-		mParentWindow->minimize(gCoreAccessor());
+		mParentWindow->minimize();
 	}
 
 	void GUIMenuBar::onMaximizeClicked()
 	{
 		if(mParentWindow->getProperties().isMaximized())
-			mParentWindow->restore(gCoreAccessor());
+			mParentWindow->restore();
 		else
-			mParentWindow->maximize(gCoreAccessor());
+			mParentWindow->maximize();
 	}
 
 	void GUIMenuBar::onCloseClicked()

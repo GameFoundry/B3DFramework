@@ -32,9 +32,9 @@ namespace bs
 	Application::~Application()
 	{
 		// Cleanup any new objects queued for destruction by unloaded scripts
-		CoreObjectManager::instance().syncToCore(gCoreAccessor());
+		CoreObjectManager::instance().syncToCore();
 		gCoreThread().update();
-		gCoreThread().submitAccessors(true);
+		gCoreThread().submitAll(true);
 
 		Cursor::shutDown();
 

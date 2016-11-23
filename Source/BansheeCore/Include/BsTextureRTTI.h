@@ -55,22 +55,21 @@ namespace bs
 			UINT32 face = (size_t)Math::floor(idx / (float)(obj->mProperties.getNumMipmaps() + 1));
 			UINT32 mipmap = idx % (obj->mProperties.getNumMipmaps() + 1);
 
-			UINT32 subresourceIdx = obj->mProperties.mapToSubresourceIdx(face, mipmap);
-			SPtr<PixelData> pixelData = obj->mProperties.allocateSubresourceBuffer(subresourceIdx);
+			SPtr<PixelData> pixelData = obj->mProperties.allocBuffer(face, mipmap);
 
 			int usage = obj->getProperties().getUsage();
 
 			if (usage & TU_CPUREADABLE || BS_EDITOR_BUILD)
 			{
-				obj->readSubresource(gCoreAccessor(), subresourceIdx, pixelData);
-				gCoreAccessor().submitToCoreThread(true);
+				obj->readData(pixelData, face, mipmap);
+				gCoreThread().submit(true);
 
 				return pixelData;
 			}
 
 			if(usage & TU_CPUCACHED)
 			{
-				obj->readData(*pixelData, mipmap, face);
+				obj->readCachedData(*pixelData, face, mipmap);
 				return pixelData;
 			}
 
@@ -153,9 +152,7 @@ namespace bs
 				UINT32 face = (size_t)Math::floor(i / (float)(texProps.getNumMipmaps() + 1));
 				UINT32 mipmap = i % (texProps.getNumMipmaps() + 1);
 
-				UINT32 subresourceIdx = texProps.mapToSubresourceIdx(face, mipmap);
-
-				texture->writeSubresource(gCoreAccessor(), subresourceIdx, pixelData->at(i), false);
+				texture->writeData(pixelData->at(i), face, mipmap, false);
 			}
 
 			bs_delete(pixelData);

@@ -46,19 +46,15 @@ namespace bs
 		return face * (getNumMipmaps() + 1) + mip;
 	}
 
-	SPtr<PixelData> TextureProperties::allocateSubresourceBuffer(UINT32 subresourceIdx) const
+	SPtr<PixelData> TextureProperties::allocBuffer(UINT32 face, UINT32 mipLevel) const
 	{
-		UINT32 face = 0;
-		UINT32 mip = 0;
-		mapFromSubresourceIdx(subresourceIdx, face, mip);
-
 		UINT32 width = getWidth();
 		UINT32 height = getHeight();
 		UINT32 depth = getDepth();
 
 		UINT32 totalSize = PixelUtil::getMemorySize(width, height, depth, getFormat());
 
-		for (UINT32 j = 0; j < mip; j++)
+		for (UINT32 j = 0; j < mipLevel; j++)
 		{
 			totalSize = PixelUtil::getMemorySize(width, height, depth, getFormat());
 
@@ -86,13 +82,13 @@ namespace bs
 	{
 		if (mInitData != nullptr)
 		{
-			writeSubresource(0, *mInitData, true);
+			writeData(*mInitData, 0, 0, true);
 			mInitData->_unlock();
 			mInitData = nullptr;
 		}
 	}
 
-	void TextureCore::writeSubresource(UINT32 subresourceIdx, const PixelData& pixelData, bool discardEntireBuffer, 
+	void TextureCore::writeData(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardEntireBuffer,
 		UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -106,14 +102,10 @@ namespace bs
 			}
 		}
 
-		UINT32 face = 0;
-		UINT32 mip = 0;
-		mProperties.mapFromSubresourceIdx(subresourceIdx, face, mip);
-
-		writeData(pixelData, mip, face, discardEntireBuffer, queueIdx);
+		writeDataImpl(src, face, mipLevel, discardEntireBuffer, queueIdx);
 	}
 
-	void TextureCore::readSubresource(UINT32 subresourceIdx, PixelData& data, UINT32 deviceIdx, UINT32 queueIdx)
+	void TextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -123,15 +115,11 @@ namespace bs
 			return;
 		}
 
-		UINT32 face = 0;
-		UINT32 mip = 0;
-		mProperties.mapFromSubresourceIdx(subresourceIdx, face, mip);
-
-		PixelData& pixelData = static_cast<PixelData&>(data);
+		PixelData& pixelData = static_cast<PixelData&>(dest);
 
 		UINT32 mipWidth, mipHeight, mipDepth;
 		PixelUtil::getSizeForMipLevel(mProperties.getWidth(), mProperties.getHeight(), mProperties.getDepth(),
-			mip, mipWidth, mipHeight, mipDepth);
+			mipLevel, mipWidth, mipHeight, mipDepth);
 
 		if (pixelData.getWidth() != mipWidth || pixelData.getHeight() != mipHeight ||
 			pixelData.getDepth() != mipDepth || pixelData.getFormat() != mProperties.getFormat())
@@ -140,7 +128,7 @@ namespace bs
 			return;
 		}
 
-		readData(pixelData, mip, face, deviceIdx, queueIdx);
+		readDataImpl(pixelData, face, mipLevel , deviceIdx, queueIdx);
 	}
 
 	PixelData TextureCore::lock(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
@@ -169,8 +157,8 @@ namespace bs
 		unlockImpl();
 	}
 
-	void TextureCore::copy(UINT32 srcSubresourceIdx, UINT32 destSubresourceIdx, const SPtr<TextureCore>& target,
-						   UINT32 queueIdx)
+	void TextureCore::copy(const SPtr<TextureCore>& target, UINT32 srcFace, UINT32 srcMipLevel, UINT32 dstFace,
+						   UINT32 dstMipLevel, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -192,16 +180,7 @@ namespace bs
 			return;
 		}
 
-		UINT32 srcFace = 0;
-		UINT32 srcMipLevel = 0;
-
-		UINT32 destFace = 0;
-		UINT32 destMipLevel = 0;
-
-		mProperties.mapFromSubresourceIdx(srcSubresourceIdx, srcFace, srcMipLevel);
-		target->mProperties.mapFromSubresourceIdx(destSubresourceIdx, destFace, destMipLevel);
-
-		if (destFace >= mProperties.getNumFaces())
+		if (dstFace >= mProperties.getNumFaces())
 		{
 			LOGERR("Invalid destination face index");
 			return;
@@ -219,7 +198,7 @@ namespace bs
 			return;
 		}
 
-		if (destMipLevel > target->mProperties.getNumMipmaps())
+		if (dstMipLevel > target->mProperties.getNumMipmaps())
 		{
 			LOGERR("Destination mip level out of range. Valid range is [0, " + toString(target->mProperties.getNumMipmaps()) + "]");
 			return;
@@ -229,9 +208,9 @@ namespace bs
 		UINT32 srcMipHeight = mProperties.getHeight() >> srcMipLevel;
 		UINT32 srcMipDepth = mProperties.getDepth() >> srcMipLevel;
 
-		UINT32 dstMipWidth = target->mProperties.getWidth() >> destMipLevel;
-		UINT32 dstMipHeight = target->mProperties.getHeight() >> destMipLevel;
-		UINT32 dstMipDepth = target->mProperties.getDepth() >> destMipLevel;
+		UINT32 dstMipWidth = target->mProperties.getWidth() >> dstMipLevel;
+		UINT32 dstMipHeight = target->mProperties.getHeight() >> dstMipLevel;
+		UINT32 dstMipDepth = target->mProperties.getDepth() >> dstMipLevel;
 
 		if (srcMipWidth != dstMipWidth || srcMipHeight != dstMipHeight || srcMipDepth != dstMipDepth)
 		{
@@ -239,7 +218,7 @@ namespace bs
 			return;
 		}
 
-		copyImpl(srcFace, srcMipLevel, destFace, destMipLevel, target, queueIdx);
+		copyImpl(srcFace, srcMipLevel, dstFace, dstMipLevel, target, queueIdx);
 	}
 
 	/************************************************************************/
@@ -390,39 +369,42 @@ namespace bs
 		return coreObj;
 	}
 
-	AsyncOp Texture::writeSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<PixelData>& data, bool discardEntireBuffer)
+	AsyncOp Texture::writeData(const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel, bool discardEntireBuffer)
 	{
+		UINT32 subresourceIdx = mProperties.mapToSubresourceIdx(face, mipLevel);
 		updateCPUBuffers(subresourceIdx, *data);
 
 		data->_lock();
 
-		std::function<void(const SPtr<TextureCore>&, UINT32, const SPtr<PixelData>&, bool, AsyncOp&)> func =
-			[&](const SPtr<TextureCore>& texture, UINT32 _subresourceIdx, const SPtr<PixelData>& _pixData, bool _discardEntireBuffer, AsyncOp& asyncOp)
+		std::function<void(const SPtr<TextureCore>&, UINT32, UINT32, const SPtr<PixelData>&, bool, AsyncOp&)> func =
+			[&](const SPtr<TextureCore>& texture, UINT32 _face, UINT32 _mipLevel, const SPtr<PixelData>& _pixData, 
+				bool _discardEntireBuffer, AsyncOp& asyncOp)
 		{
-			texture->writeSubresource(_subresourceIdx, *_pixData, _discardEntireBuffer);
+			texture->writeData(*_pixData, _face, _mipLevel, _discardEntireBuffer);
 			_pixData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return accessor.queueReturnCommand(std::bind(func, getCore(), subresourceIdx,
+		return gCoreThread().queueReturnCommand(std::bind(func, getCore(), face, mipLevel,
 			data, discardEntireBuffer, std::placeholders::_1));
 	}
 
-	AsyncOp Texture::readSubresource(CoreAccessor& accessor, UINT32 subresourceIdx, const SPtr<PixelData>& data)
+	AsyncOp Texture::readData(const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)
 	{
 		data->_lock();
 
-		std::function<void(const SPtr<TextureCore>&, UINT32, const SPtr<PixelData>&, AsyncOp&)> func =
-			[&](const SPtr<TextureCore>& texture, UINT32 _subresourceIdx, const SPtr<PixelData>& _pixData, AsyncOp& asyncOp)
+		std::function<void(const SPtr<TextureCore>&, UINT32, UINT32, const SPtr<PixelData>&, AsyncOp&)> func =
+			[&](const SPtr<TextureCore>& texture, UINT32 _face, UINT32 _mipLevel, const SPtr<PixelData>& _pixData, 
+				AsyncOp& asyncOp)
 		{
-			texture->readSubresource(_subresourceIdx, *_pixData);
+			texture->readData(*_pixData, _face, _mipLevel);
 			_pixData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return accessor.queueReturnCommand(std::bind(func, getCore(), subresourceIdx,
+		return gCoreThread().queueReturnCommand(std::bind(func, getCore(), face, mipLevel,
 			data, std::placeholders::_1));
 	}
 
@@ -467,7 +449,7 @@ namespace bs
 		memcpy(dest, src, pixelData.getSize());
 	}
 
-	void Texture::readData(PixelData& dest, UINT32 mipLevel, UINT32 face)
+	void Texture::readCachedData(PixelData& dest, UINT32 face, UINT32 mipLevel)
 	{
 		if ((mProperties.getUsage() & TU_CPUCACHED) == 0)
 		{

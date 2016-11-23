@@ -5,7 +5,6 @@
 #include "BsGUISkin.h"
 #include "BsGUILabel.h"
 #include "BsGUIPanel.h"
-#include "BsCoreThreadAccessor.h"
 #include "BsVector2I.h"
 #include "BsCCamera.h"
 #include "BsViewport.h"

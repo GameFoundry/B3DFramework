@@ -158,9 +158,9 @@ namespace bs
 		/** 
 		 * @copydoc RenderTargetCore::setPriority 
 		 *
-		 * @param[in]	accessor	Accessor on which will this command be queued for execution.
+		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setPriority(CoreAccessor& accessor, INT32 priority);
+		void setPriority(INT32 priority);
 
 		/**
 		 * Returns properties that describe the render target.

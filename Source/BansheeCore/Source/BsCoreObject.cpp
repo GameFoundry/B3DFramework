@@ -4,7 +4,6 @@
 #include "BsCoreObjectCore.h"
 #include "BsCoreThread.h"
 #include "BsCoreObjectManager.h"
-#include "BsCoreThreadAccessor.h"
 
 using namespace std::placeholders;
 
@@ -71,9 +70,9 @@ namespace bs
 
 				// Even though this object might not require initialization on the core thread, it will be used on it, therefore
 				// do a memory barrier to ensure any stores are finished before continuing (When it requires init on core thread
-				// we use the core accessor which uses a mutex, and therefore executes all stores as well, so we dont need to 
+				// we use the core queue which uses a mutex, and therefore executes all stores as well, so we dont need to 
 				// do this explicitly)
-				std::atomic_thread_fence(std::memory_order_release);
+				std::atomic_thread_fence(std::memory_order_release); // TODO - Need atomic variable, currently this does nothing
 			}
 		}
 
@@ -86,9 +85,9 @@ namespace bs
 			mCoreSpecific->synchronize();
 	}
 
-	void CoreObject::syncToCore(CoreAccessor& accessor)
+	void CoreObject::syncToCore()
 	{
-		CoreObjectManager::instance().syncToCore(this, accessor);
+		CoreObjectManager::instance().syncToCore(this);
 	}
 
 	void CoreObject::markCoreDirty(UINT32 flags)
@@ -117,27 +116,27 @@ namespace bs
 		// reference to the obj (saved in the bound function).
 		// We could have called the function directly using "this" pointer but then we couldn't have used a shared_ptr for the object,
 		// in which case there is a possibility that the object would be released and deleted while still being in the command queue.
-		gCoreAccessor().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
+		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
 	AsyncOp CoreObject::queueReturnGpuCommand(const SPtr<CoreObjectCore>& obj, std::function<void(AsyncOp&)> func)
 	{
 		// See queueGpuCommand
-		return gCoreAccessor().queueReturnCommand(std::bind(&CoreObject::executeReturnGpuCommand, obj, func, _1));
+		return gCoreThread().queueReturnCommand(std::bind(&CoreObject::executeReturnGpuCommand, obj, func, _1));
 	}
 
 	void CoreObject::queueInitializeGpuCommand(const SPtr<CoreObjectCore>& obj)
 	{
 		std::function<void()> func = std::bind(&CoreObjectCore::initialize, obj.get());
 
-		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
+		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func), CTQF_InternalQueue);
 	}
 
 	void CoreObject::queueDestroyGpuCommand(const SPtr<CoreObjectCore>& obj)
 	{
 		std::function<void()> func = [&](){}; // Do nothing function. We just need the shared pointer to stay alive until it reaches the core thread
 
-		gCoreAccessor().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
+		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
 	void CoreObject::executeGpuCommand(const SPtr<CoreObjectCore>& obj, std::function<void()> func)

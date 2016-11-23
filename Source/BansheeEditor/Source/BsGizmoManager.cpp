@@ -70,7 +70,7 @@ namespace bs
 
 		mCore.store(bs_new<GizmoManagerCore>(GizmoManagerCore::PrivatelyConstuct()), std::memory_order_release);
 
-		gCoreAccessor().queueCommand(std::bind(&GizmoManager::initializeCore, this, initData));
+		gCoreThread().queueCommand(std::bind(&GizmoManager::initializeCore, this, initData));
 	}
 
 	GizmoManager::~GizmoManager()
@@ -84,7 +84,7 @@ namespace bs
 		bs_delete(mDrawHelper);
 		bs_delete(mPickingDrawHelper);
 
-		gCoreAccessor().queueCommand(std::bind(&GizmoManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
+		gCoreThread().queueCommand(std::bind(&GizmoManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
 	}
 
 	void GizmoManager::initializeCore(const CoreInitData& initData)
@@ -471,7 +471,7 @@ namespace bs
 
 		GizmoManagerCore* core = mCore.load(std::memory_order_relaxed);
 
-		gCoreAccessor().queueCommand(std::bind(&GizmoManagerCore::updateData, core, camera->getCore(),
+		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::updateData, core, camera->getCore(),
 			proxyData, iconMesh, iconRenderData));
 	}
 
@@ -659,19 +659,19 @@ namespace bs
 
 			if(meshData.type == DrawHelper::MeshType::Text)
 			{
-				gCoreAccessor().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
+				gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
 					camera->getForward(), meshData.mesh->getCore(), tex, GizmoMaterial::PickingAlpha));
 			}
 			else
 			{
-				gCoreAccessor().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
+				gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
 					camera->getForward(), meshData.mesh->getCore(), tex, GizmoMaterial::Picking));
 			}
 		}
 
 		Rect2I screenArea = camera->getViewport()->getArea();
 
-		gCoreAccessor().queueCommand(std::bind(&GizmoManagerCore::renderIconGizmos,
+		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderIconGizmos,
 			core, screenArea, iconMesh->getCore(), iconRenderData, true));
 
 		mPickingDrawHelper->clearMeshes(meshes);
@@ -714,7 +714,7 @@ namespace bs
 		GizmoManagerCore* core = mCore.load(std::memory_order_relaxed);
 		IconRenderDataVecPtr iconRenderData = bs_shared_ptr_new<IconRenderDataVec>();
 		
-		gCoreAccessor().queueCommand(std::bind(&GizmoManagerCore::updateData, core, 
+		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::updateData, core,
 			nullptr, Vector<GizmoManagerCore::MeshData>(), nullptr, iconRenderData));
 	}
 

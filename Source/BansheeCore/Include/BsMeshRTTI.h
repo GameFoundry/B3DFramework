@@ -29,20 +29,20 @@ namespace bs
 
 		SPtr<MeshData> getMeshData(Mesh* obj) 
 		{ 
-			SPtr<MeshData> meshData = obj->allocateSubresourceBuffer(0);
+			SPtr<MeshData> meshData = obj->allocBuffer();
 			int usage = obj->mUsage;
 
 			if((usage & MU_CPUREADABLE) || BS_EDITOR_BUILD)
 			{
-				obj->readSubresource(gCoreAccessor(), 0, meshData);
-				gCoreAccessor().submitToCoreThread(true);
+				obj->readData(meshData);
+				gCoreThread().submit(true);
 
 				return meshData;
 			}
 
 			if(usage & MU_CPUCACHED)
 			{
-				obj->readData(*meshData);
+				obj->readCachedData(*meshData);
 				return meshData;
 			}
 

@@ -25,7 +25,7 @@ namespace BansheeEditor
 
         private const int HeaderHeight = 20;
         private const float DefaultPlacementDepth = 5.0f;
-        private static readonly Color ClearColor = new Color(83.0f/255.0f, 83.0f/255.0f, 83.0f/255.0f);
+        private static readonly Color ClearColor = new Color(0.0f, 0.3685f, 0.7969f);
         private const string ProfilerOverlayActiveKey = "_Internal_ProfilerOverlayActive";
         private const int HandleAxesGUISize = 50;
         private const int HandleAxesGUIPaddingX = 10;

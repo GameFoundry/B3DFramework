@@ -152,8 +152,8 @@ namespace bs
 	{
 		HMesh mesh = thisPtr->getHandle();
 
-		SPtr<MeshData> meshData = mesh->allocateSubresourceBuffer(0);
-		mesh->readData(*meshData);
+		SPtr<MeshData> meshData = mesh->allocBuffer();
+		mesh->readCachedData(*meshData);
 
 		return ScriptMeshData::create(meshData);
 	}
@@ -164,7 +164,7 @@ namespace bs
 		if (value != nullptr)
 		{
 			SPtr<MeshData> meshData = value->getInternalValue()->getData();
-			mesh->writeSubresource(gCoreAccessor(), 0, meshData, true);
+			mesh->writeData(meshData, true);
 		}
 	}
 

@@ -205,13 +205,13 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	void CoreObjectManager::syncToCore(CoreAccessor& accessor)
+	void CoreObjectManager::syncToCore()
 	{
 		syncDownload(gCoreThread().getFrameAlloc());
-		accessor.queueCommand(std::bind(&CoreObjectManager::syncUpload, this));
+		gCoreThread().queueCommand(std::bind(&CoreObjectManager::syncUpload, this));
 	}
 
-	void CoreObjectManager::syncToCore(CoreObject* object, CoreAccessor& accessor)
+	void CoreObjectManager::syncToCore(CoreObject* object)
 	{
 		struct IndividualCoreSyncData
 		{
@@ -281,7 +281,7 @@ namespace bs
 		};
 
 		if (syncData.size() > 0)
-			accessor.queueCommand(std::bind(callback, syncData));
+			gCoreThread().queueCommand(std::bind(callback, syncData));
 	}
 
 	void CoreObjectManager::syncDownload(FrameAlloc* allocator)

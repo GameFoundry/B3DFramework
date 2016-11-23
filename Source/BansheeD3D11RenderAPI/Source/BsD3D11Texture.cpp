@@ -155,7 +155,7 @@ namespace bs
 		}
 	}
 
-	void D3D11TextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void D3D11TextureCore::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
@@ -178,7 +178,7 @@ namespace bs
 		unlock();
 	}
 
-	void D3D11TextureCore::writeData(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
+	void D3D11TextureCore::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 									 UINT32 queueIdx)
 	{
 		PixelFormat format = mProperties.getFormat();

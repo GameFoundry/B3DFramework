@@ -179,7 +179,7 @@ namespace bs
 
 	}
 
-	void RenderWindow::resize(CoreAccessor& accessor, UINT32 width, UINT32 height)
+	void RenderWindow::resize(UINT32 width, UINT32 height)
 	{
 		std::function<void(SPtr<RenderWindowCore>, UINT32, UINT32)> resizeFunc =
 			[](SPtr<RenderWindowCore> renderWindow, UINT32 width, UINT32 height)
@@ -199,10 +199,10 @@ namespace bs
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
 		onResized();
 
-		accessor.queueCommand(std::bind(resizeFunc, getCore(), width, height));
+		gCoreThread().queueCommand(std::bind(resizeFunc, getCore(), width, height));
 	}
 
-	void RenderWindow::move(CoreAccessor& accessor, INT32 left, INT32 top)
+	void RenderWindow::move(INT32 left, INT32 top)
 	{
 		std::function<void(SPtr<RenderWindowCore>, INT32, INT32)> moveFunc =
 			[](SPtr<RenderWindowCore> renderWindow, INT32 left, INT32 top)
@@ -220,10 +220,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(moveFunc, getCore(), left, top));
+		gCoreThread().queueCommand(std::bind(moveFunc, getCore(), left, top));
 	}
 
-	void RenderWindow::hide(CoreAccessor& accessor)
+	void RenderWindow::hide()
 	{
 		std::function<void(SPtr<RenderWindowCore>)> hideFunc =
 			[](SPtr<RenderWindowCore> renderWindow)
@@ -238,10 +238,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(hideFunc, getCore()));
+		gCoreThread().queueCommand(std::bind(hideFunc, getCore()));
 	}
 
-	void RenderWindow::show(CoreAccessor& accessor)
+	void RenderWindow::show()
 	{
 		std::function<void(SPtr<RenderWindowCore>)> showFunc =
 			[](SPtr<RenderWindowCore> renderWindow)
@@ -256,10 +256,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(showFunc, getCore()));
+		gCoreThread().queueCommand(std::bind(showFunc, getCore()));
 	}
 
-	void RenderWindow::minimize(CoreAccessor& accessor)
+	void RenderWindow::minimize()
 	{
 		std::function<void(SPtr<RenderWindowCore>)> minimizeFunc =
 			[](SPtr<RenderWindowCore> renderWindow)
@@ -274,10 +274,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(minimizeFunc, getCore()));
+		gCoreThread().queueCommand(std::bind(minimizeFunc, getCore()));
 	}
 
-	void RenderWindow::maximize(CoreAccessor& accessor)
+	void RenderWindow::maximize()
 	{
 		std::function<void(SPtr<RenderWindowCore>)> maximizeFunc =
 			[](SPtr<RenderWindowCore> renderWindow)
@@ -292,10 +292,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(maximizeFunc, getCore()));
+		gCoreThread().queueCommand(std::bind(maximizeFunc, getCore()));
 	}
 
-	void RenderWindow::restore(CoreAccessor& accessor)
+	void RenderWindow::restore()
 	{
 		std::function<void(SPtr<RenderWindowCore>)> restoreFunc =
 			[](SPtr<RenderWindowCore> renderWindow)
@@ -310,11 +310,10 @@ namespace bs
 		}
 
 		RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
-		accessor.queueCommand(std::bind(restoreFunc, getCore()));
+		gCoreThread().queueCommand(std::bind(restoreFunc, getCore()));
 	}
 
-	void RenderWindow::setFullscreen(CoreAccessor& accessor, UINT32 width, UINT32 height,
-		float refreshRate, UINT32 monitorIdx)
+	void RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		std::function<void(SPtr<RenderWindowCore>, UINT32, UINT32, float, UINT32)> fullscreenFunc =
 			[](SPtr<RenderWindowCore> renderWindow, UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
@@ -322,10 +321,10 @@ namespace bs
 			renderWindow->setFullscreen(width, height, refreshRate, monitorIdx);
 		};
 
-		accessor.queueCommand(std::bind(fullscreenFunc, getCore(), width, height, refreshRate, monitorIdx));
+		gCoreThread().queueCommand(std::bind(fullscreenFunc, getCore(), width, height, refreshRate, monitorIdx));
 	}
 
-	void RenderWindow::setFullscreen(CoreAccessor& accessor, const VideoMode& mode)
+	void RenderWindow::setFullscreen(const VideoMode& mode)
 	{
 		std::function<void(SPtr<RenderWindowCore>, const VideoMode&)> fullscreenFunc =
 			[](SPtr<RenderWindowCore> renderWindow, const VideoMode& mode)
@@ -333,10 +332,10 @@ namespace bs
 			renderWindow->setFullscreen(mode);
 		};
 
-		accessor.queueCommand(std::bind(fullscreenFunc, getCore(), std::cref(mode)));
+		gCoreThread().queueCommand(std::bind(fullscreenFunc, getCore(), std::cref(mode)));
 	}
 
-	void RenderWindow::setWindowed(CoreAccessor& accessor, UINT32 width, UINT32 height)
+	void RenderWindow::setWindowed(UINT32 width, UINT32 height)
 	{
 		std::function<void(SPtr<RenderWindowCore>, UINT32, UINT32)> windowedFunc =
 			[](SPtr<RenderWindowCore> renderWindow, UINT32 width, UINT32 height)
@@ -344,7 +343,7 @@ namespace bs
 			renderWindow->setWindowed(width, height);
 		};
 
-		accessor.queueCommand(std::bind(windowedFunc, getCore(), width, height));
+		gCoreThread().queueCommand(std::bind(windowedFunc, getCore(), width, height));
 	}
 
 	SPtr<RenderWindowCore> RenderWindow::getCore() const

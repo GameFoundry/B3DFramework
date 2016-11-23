@@ -239,7 +239,7 @@ namespace bs
 		mLockedBuffer = nullptr;
 	}
 
-	void GLTextureCore::readData(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLTextureCore::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
@@ -247,7 +247,7 @@ namespace bs
 		getBuffer(face, mipLevel)->download(dest);
 	}
 
-	void GLTextureCore::writeData(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
+	void GLTextureCore::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 								  UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)

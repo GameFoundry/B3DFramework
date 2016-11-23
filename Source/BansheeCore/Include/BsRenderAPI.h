@@ -23,8 +23,8 @@ namespace bs
 	class RenderAPIInfo;
 
 	/**
-	 * Provides access to RenderAPICore from the simulation thread. All the commands get queued on the accessor provided
-	 * to each method and get be executed on the core thread later.
+	 * Provides access to RenderAPICore from the simulation thread. All the commands get queued on the core thread queue 
+	 * for the calling thread.
 	 *
 	 * @see		RenderAPICore
 	 *
@@ -33,66 +33,142 @@ namespace bs
 	class BS_CORE_EXPORT RenderAPI
 	{
 	public:
-		/** @see RenderAPICore::setGpuParams() */
-		static void setGpuParams(CoreAccessor& accessor, const SPtr<GpuParams>& gpuParams);
+		/** 
+		 * @see RenderAPICore::setGpuParams() 
+		 *
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setGpuParams(const SPtr<GpuParams>& gpuParams);
 
-		/** @see RenderAPICore::setGraphicsPipeline() */
-		static void setGraphicsPipeline(CoreAccessor& accessor, const SPtr<GraphicsPipelineState>& pipelineState);
+		/** 
+		 * @see RenderAPICore::setGraphicsPipeline() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState);
 
-		/** @see RenderAPICore::setComputePipeline() */
-		static void setComputePipeline(CoreAccessor& accessor, const SPtr<ComputePipelineState>& pipelineState);
+		/** 
+		 * @see RenderAPICore::setComputePipeline() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setComputePipeline(const SPtr<ComputePipelineState>& pipelineState);
 
-		/** @see RenderAPICore::setVertexBuffers() */
-		static void setVertexBuffers(CoreAccessor& accessor, UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers);
+		/** 
+		 * @see RenderAPICore::setVertexBuffers() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setVertexBuffers(UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers);
 
-		/** @see RenderAPICore::setIndexBuffer() */
-		static void setIndexBuffer(CoreAccessor& accessor, const SPtr<IndexBuffer>& buffer);
+		/** 
+		 * @see RenderAPICore::setIndexBuffer() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setIndexBuffer(const SPtr<IndexBuffer>& buffer);
 
-		/** @see RenderAPICore::setVertexDeclaration() */
-		static void setVertexDeclaration(CoreAccessor& accessor, const SPtr<VertexDeclaration>& vertexDeclaration);
+		/** 
+		 * @see RenderAPICore::setVertexDeclaration() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration);
 
-		/** @see RenderAPICore::setViewport() */
-		static void setViewport(CoreAccessor& accessor, const Rect2& area);
+		/** 
+		 * @see RenderAPICore::setViewport() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setViewport(const Rect2& area);
 
-		/** @see RenderAPICore::setViewport() */
-		static void setStencilRef(CoreAccessor& accessor, UINT32 value);
+		/** 
+		 * @see RenderAPICore::setViewport() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setStencilRef(UINT32 value);
 
-		/** @see RenderAPICore::setDrawOperation()  */
-		static void setDrawOperation(CoreAccessor& accessor, DrawOperationType op);
+		/** 
+		 * @see RenderAPICore::setDrawOperation()  
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setDrawOperation(DrawOperationType op);
 
-		/** @see RenderAPICore::setScissorRect()  */
-		static void setScissorRect(CoreAccessor& accessor, UINT32 left = 0, UINT32 top = 0, UINT32 right = 800, UINT32 bottom = 600);
+		/** 
+		 * @see RenderAPICore::setScissorRect() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setScissorRect(UINT32 left = 0, UINT32 top = 0, UINT32 right = 800, UINT32 bottom = 600);
 
-		/** @see RenderAPICore::setRenderTarget() */
-		static void setRenderTarget(CoreAccessor& accessor, const SPtr<RenderTarget>& target, 
-			bool readOnlyDepthStencil = false, bool preserveContents = false);
+		/** 
+		 * @see RenderAPICore::setRenderTarget() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void setRenderTarget(const SPtr<RenderTarget>& target, bool readOnlyDepthStencil = false, 
+			bool preserveContents = false);
 
-		/** @see RenderAPICore::beginFrame() */
-		static void beginRender(CoreAccessor& accessor);
+		/** 
+		 * @see RenderAPICore::beginFrame() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void beginRender();
 
-		/** @see RenderAPICore::endFrame() */
-		static void endRender(CoreAccessor& accessor);
+		/** 
+		 * @see RenderAPICore::endFrame() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void endRender();
 
-		/** @see RenderAPICore::clearRenderTarget()  */
-		static void clearRenderTarget(CoreAccessor& accessor, UINT32 buffers, 
-			const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, UINT8 targetMask = 0xFF);
+		/** 
+		 * @see RenderAPICore::clearRenderTarget() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void clearRenderTarget(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, 
+			UINT16 stencil = 0, UINT8 targetMask = 0xFF);
 
-		/** @see RenderAPICore::clearViewport() */
-		static void clearViewport(CoreAccessor& accessor, UINT32 buffers, const Color& color = Color::Black, 
-			float depth = 1.0f, UINT16 stencil = 0, UINT8 targetMask = 0xFF);
+		/** 
+		 * @see RenderAPICore::clearViewport() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void clearViewport(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0,
+			UINT8 targetMask = 0xFF);
 
-		/** @see RenderAPICore::swapBuffers() */
-		static void swapBuffers(CoreAccessor& accessor, const SPtr<RenderTarget>& target);
+		/** 
+		 * @see RenderAPICore::swapBuffers() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void swapBuffers(const SPtr<RenderTarget>& target);
 
-		/** @see RenderAPICore::draw() */
-		static void draw(CoreAccessor& accessor, UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0);
+		/** 
+		 * @see RenderAPICore::draw() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount = 0);
 
-		/** @see RenderAPICore::drawIndexed() */
-		static void drawIndexed(CoreAccessor& accessor, UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, 
-			UINT32 vertexCount, UINT32 instanceCount = 0);
+		/** 
+		 * @see RenderAPICore::drawIndexed() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 vertexCount, 
+			UINT32 instanceCount = 0);
 
-		/** @see RenderAPICore::dispatchCompute() */
-		static void dispatchCompute(CoreAccessor& accessor, UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1);
+		/** 
+		 * @see RenderAPICore::dispatchCompute() 
+		 * 
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		static void dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY = 1, UINT32 numGroupsZ = 1);
 
 		/** @copydoc RenderAPICore::getVideoModeInfo */
 		static const VideoModeInfo& getVideoModeInfo();

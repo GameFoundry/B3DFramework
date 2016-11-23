@@ -35,12 +35,12 @@ namespace bs
 			
 		mCore.store(bs_new<SelectionRendererCore>(SelectionRendererCore::PrivatelyConstuct()), std::memory_order_release);
 
-		gCoreAccessor().queueCommand(std::bind(&SelectionRenderer::initializeCore, this, selectionMat->getCore()));
+		gCoreThread().queueCommand(std::bind(&SelectionRenderer::initializeCore, this, selectionMat->getCore()));
 	}
 
 	SelectionRenderer::~SelectionRenderer()
 	{
-		gCoreAccessor().queueCommand(std::bind(&SelectionRenderer::destroyCore, this, mCore.load(std::memory_order_relaxed)));
+		gCoreThread().queueCommand(std::bind(&SelectionRenderer::destroyCore, this, mCore.load(std::memory_order_relaxed)));
 	}
 
 	void SelectionRenderer::initializeCore(const SPtr<MaterialCore>& initData)
@@ -76,7 +76,7 @@ namespace bs
 		}
 
 		SelectionRendererCore* core = mCore.load(std::memory_order_relaxed);
-		gCoreAccessor().queueCommand(std::bind(&SelectionRendererCore::updateData, core, camera->getCore(), objects));
+		gCoreThread().queueCommand(std::bind(&SelectionRendererCore::updateData, core, camera->getCore(), objects));
 	}
 
 	const Color SelectionRendererCore::SELECTION_COLOR = Color(1.0f, 1.0f, 1.0f, 0.3f);

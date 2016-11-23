@@ -45,7 +45,7 @@ set(BS_BANSHEECORE_INC_PHYSICS
 )
 
 set(BS_BANSHEECORE_INC_CORETHREAD
-	"Include/BsCoreThreadAccessor.h"
+	"Include/BsCoreThreadQueue.h"
 	"Include/BsCoreThread.h"
 	"Include/BsCoreObjectManager.h"
 	"Include/BsCoreObject.h"
@@ -159,7 +159,7 @@ set(BS_BANSHEECORE_SRC_CORETHREAD
 	"Source/BsCoreObject.cpp"
 	"Source/BsCoreObjectManager.cpp"
 	"Source/BsCoreThread.cpp"
-	"Source/BsCoreThreadAccessor.cpp"
+	"Source/BsCoreThreadQueue.cpp"
 	"Source/BsCoreObjectCore.cpp"
 )
 

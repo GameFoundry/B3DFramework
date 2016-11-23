@@ -59,6 +59,6 @@ namespace bs
 	void ScriptRenderTarget::internal_setPriority(ScriptRenderTarget* thisPtr, int value)
 	{
 		SPtr<RenderTarget> rt = thisPtr->getNativeValue();
-		rt->setPriority(gCoreAccessor(), value);
+		rt->setPriority(value);
 	}
 }

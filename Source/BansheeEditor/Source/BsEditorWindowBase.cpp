@@ -76,7 +76,7 @@ namespace bs
 
 	void EditorWindowBase::hide()
 	{
-		mRenderWindow->hide(gCoreAccessor());
+		mRenderWindow->hide();
 	}
 
 	void EditorWindowBase::construct(const SPtr<RenderWindow>& renderWindow)
@@ -103,12 +103,12 @@ namespace bs
 
 	void EditorWindowBase::setPosition(INT32 x, INT32 y)
 	{
-		mRenderWindow->move(gCoreAccessor(), x, y);
+		mRenderWindow->move(x, y);
 	}
 
 	void EditorWindowBase::setSize(UINT32 width, UINT32 height)
 	{
-		mRenderWindow->resize(gCoreAccessor(), width, height);
+		mRenderWindow->resize(width, height);
 	}
 
 	INT32 EditorWindowBase::getLeft() const

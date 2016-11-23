@@ -10,7 +10,6 @@
 #include "BsFileSystem.h"
 #include "BsCoreApplication.h"
 #include "BsCoreThread.h"
-#include "BsCoreThreadAccessor.h"
 
 #include "FreeImage.h"
 
@@ -178,12 +177,10 @@ namespace bs
 
 		for (UINT32 mip = 0; mip < (UINT32)mipLevels.size(); ++mip)
 		{
-			UINT32 subresourceIdx = newTexture->getProperties().mapToSubresourceIdx(0, mip);
-			SPtr<PixelData> dst = newTexture->getProperties().allocateSubresourceBuffer(subresourceIdx);
+			SPtr<PixelData> dst = newTexture->getProperties().allocBuffer(0, mip);
 
 			PixelUtil::bulkPixelConversion(*mipLevels[mip], *dst);
-
-			newTexture->writeSubresource(gCoreAccessor(), subresourceIdx, dst, false);
+			newTexture->writeData(dst, 0, mip);
 		}
 
 		fileData->close();

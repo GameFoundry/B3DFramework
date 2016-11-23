@@ -34,14 +34,14 @@ namespace bs
 
 		HMaterial gridMaterial = BuiltinEditorResources::instance().createSceneGridMaterial();
 		SPtr<MaterialCore> materialCore = gridMaterial->getCore();
-		gCoreAccessor().queueCommand(std::bind(&SceneGrid::initializeCore, this, camera->getCore(), materialCore));
+		gCoreThread().queueCommand(std::bind(&SceneGrid::initializeCore, this, camera->getCore(), materialCore));
 
 		updateGridMesh();
 	}
 
 	SceneGrid::~SceneGrid()
 	{
-		gCoreAccessor().queueCommand(std::bind(&SceneGrid::destroyCore, this, mCore.load(std::memory_order_relaxed)));
+		gCoreThread().queueCommand(std::bind(&SceneGrid::destroyCore, this, mCore.load(std::memory_order_relaxed)));
 	}
 
 	void SceneGrid::initializeCore(const SPtr<CameraCore>& camera, const SPtr<MaterialCore>& material)
@@ -115,7 +115,7 @@ namespace bs
 			}
 
 			SceneGridCore* core = mCore.load(std::memory_order_relaxed);
-			gCoreAccessor().queueCommand(
+			gCoreThread().queueCommand(
 				std::bind(&SceneGridCore::updateData, core, mGridMesh->getCore(), mSpacing, 
 				mMode == GridMode::Perspective, gridPlaneNormal));
 

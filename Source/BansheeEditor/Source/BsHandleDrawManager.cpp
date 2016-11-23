@@ -41,7 +41,7 @@ namespace bs
 
 		mCore.store(bs_new<HandleDrawManagerCore>(HandleDrawManagerCore::PrivatelyConstruct()), std::memory_order_release);
 
-		gCoreAccessor().queueCommand(std::bind(&HandleDrawManager::initializeCore, this, 
+		gCoreThread().queueCommand(std::bind(&HandleDrawManager::initializeCore, this,
 			lineMaterialProxy, solidMaterialProxy, textMaterialProxy, clearMaterialProxy));
 	}
 
@@ -50,7 +50,7 @@ namespace bs
 		clearMeshes();
 		bs_delete(mDrawHelper);
 
-		gCoreAccessor().queueCommand(std::bind(&HandleDrawManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
+		gCoreThread().queueCommand(std::bind(&HandleDrawManager::destroyCore, this, mCore.load(std::memory_order_relaxed)));
 	}
 
 	void HandleDrawManager::initializeCore(const SPtr<MaterialCore>& lineMat, const SPtr<MaterialCore>& solidMat, 
@@ -191,7 +191,7 @@ namespace bs
 		UINT64 frameIdx = gTime().getFrameIdx();
 		if(frameIdx != mLastFrameIdx)
 		{
-			gCoreAccessor().queueCommand(std::bind(&HandleDrawManagerCore::clearQueued, core));
+			gCoreThread().queueCommand(std::bind(&HandleDrawManagerCore::clearQueued, core));
 
 			clearMeshes();
 			mLastFrameIdx = frameIdx;
@@ -226,7 +226,7 @@ namespace bs
 			}
 		}
 
-		gCoreAccessor().queueCommand(std::bind(&HandleDrawManagerCore::queueForDraw, core, camera->getCore(), proxyData));
+		gCoreThread().queueCommand(std::bind(&HandleDrawManagerCore::queueForDraw, core, camera->getCore(), proxyData));
 	}
 
 	void HandleDrawManager::clear()

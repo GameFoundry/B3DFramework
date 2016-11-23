@@ -10,8 +10,8 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	CoreThread::AccessorData CoreThread::mAccessor;
-	BS_THREADLOCAL CoreThread::AccessorContainer* CoreThread::AccessorData::current = nullptr;
+	CoreThread::QueueData CoreThread::mPerThreadQueue;
+	BS_THREADLOCAL CoreThread::ThreadQueueContainer* CoreThread::QueueData::current = nullptr;
 
 	CoreThread::CoreThread()
 		: mActiveFrameAlloc(0)
@@ -19,7 +19,6 @@ namespace bs
 		, mCoreThreadStarted(false)
 		, mCommandQueue(nullptr)
 		, mMaxCommandNotifyId(0)
-		, mSyncedCoreAccessor(nullptr)
 	{
 		for (UINT32 i = 0; i < NUM_SYNC_BUFFERS; i++)
 		{
@@ -40,14 +39,12 @@ namespace bs
 		shutdownCoreThread();
 
 		{
-			Lock lock(mAccessorMutex);
+			Lock lock(mCoreQueueMutex);
 
-			for(auto& accessor : mAccessors)
-			{
-				bs_delete(accessor);
-			}
+			for(auto& queue : mAllQueues)
+				bs_delete(queue);
 
-			mAccessors.clear();
+			mAllQueues.clear();
 		}
 
 		if(mCommandQueue != nullptr)
@@ -90,7 +87,6 @@ namespace bs
 
 			mCoreThreadStarted = true;
 			mCoreThreadId = BS_THREAD_CURRENT_ID;
-			mSyncedCoreAccessor = bs_new<CoreThreadAccessor<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
 		}
 
 		mCoreThreadStartedCondition.notify_one();
@@ -106,7 +102,6 @@ namespace bs
 				{
 					if(mCoreThreadShutdown)
 					{
-						bs_delete(mSyncedCoreAccessor);
 						TaskScheduler::instance().addWorker();
 						return;
 					}
@@ -143,102 +138,113 @@ namespace bs
 #endif
 	}
 
-	SPtr<CoreThreadAccessor<CommandQueueNoSync>> CoreThread::getAccessor()
+	SPtr<TCoreThreadQueue<CommandQueueNoSync>> CoreThread::getQueue()
 	{
-		if(mAccessor.current == nullptr)
+		if(mPerThreadQueue.current == nullptr)
 		{
-			SPtr<CoreThreadAccessor<CommandQueueNoSync>> newAccessor = bs_shared_ptr_new<CoreThreadAccessor<CommandQueueNoSync>>(BS_THREAD_CURRENT_ID);
-			mAccessor.current = bs_new<AccessorContainer>();
-			mAccessor.current->accessor = newAccessor;
-			mAccessor.current->isMain = BS_THREAD_CURRENT_ID == mSimThreadId;
+			SPtr<TCoreThreadQueue<CommandQueueNoSync>> newQueue = bs_shared_ptr_new<TCoreThreadQueue<CommandQueueNoSync>>(BS_THREAD_CURRENT_ID);
+			mPerThreadQueue.current = bs_new<ThreadQueueContainer>();
+			mPerThreadQueue.current->queue = newQueue;
+			mPerThreadQueue.current->isMain = BS_THREAD_CURRENT_ID == mSimThreadId;
 
-			Lock lock(mAccessorMutex);
-			mAccessors.push_back(mAccessor.current);
+			Lock lock(mCoreQueueMutex);
+			mAllQueues.push_back(mPerThreadQueue.current);
 		}
 
-		return mAccessor.current->accessor;
+		return mPerThreadQueue.current->queue;
 	}
 
-	SyncedCoreAccessor& CoreThread::getSyncedAccessor()
+	void CoreThread::submitAll(bool blockUntilComplete)
 	{
-		return *mSyncedCoreAccessor;
-	}
-
-	void CoreThread::submitAccessors(bool blockUntilComplete)
-	{
-		Vector<AccessorContainer*> accessorCopies;
+		Vector<ThreadQueueContainer*> queueCopies;
 
 		{
-			Lock lock(mAccessorMutex);
+			Lock lock(mCoreQueueMutex);
 
-			accessorCopies = mAccessors;
+			queueCopies = mAllQueues;
 		}
 
 		// Submit workers first
-		AccessorContainer* mainAccessor = nullptr;
-		for (auto& accessor : accessorCopies)
+		ThreadQueueContainer* mainQueue = nullptr;
+		for (auto& queue : queueCopies)
 		{
-			if (!accessor->isMain)
-				accessor->accessor->submitToCoreThread(blockUntilComplete);
+			if (!queue->isMain)
+				queue->queue->submitToCoreThread(blockUntilComplete);
 			else
-				mainAccessor = accessor;
+				mainQueue = queue;
 		}
 
 		// Then main
-		if (mainAccessor != nullptr)
-			mainAccessor->accessor->submitToCoreThread(blockUntilComplete);
-
-		// Then synced
-		mSyncedCoreAccessor->submitToCoreThread(blockUntilComplete);
+		if (mainQueue != nullptr)
+			mainQueue->queue->submitToCoreThread(blockUntilComplete);
 	}
 
-	AsyncOp CoreThread::queueReturnCommand(std::function<void(AsyncOp&)> commandCallback, bool blockUntilComplete)
+	void CoreThread::submit(bool blockUntilComplete)
+	{
+		getQueue()->submitToCoreThread(blockUntilComplete);
+	}
+
+	AsyncOp CoreThread::queueReturnCommand(std::function<void(AsyncOp&)> commandCallback, CoreThreadQueueFlags flags)
 	{
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
 
-		AsyncOp op;
-		UINT32 commandId = -1;
+		if (!flags.isSet(CTQF_InternalQueue))
+			return getQueue()->queueReturnCommand(commandCallback);
+		else
 		{
-			Lock lock(mCommandQueueMutex);
+			bool blockUntilComplete = flags.isSet(CTQF_BlockUntilComplete);
 
-			if(blockUntilComplete)
+			AsyncOp op;
+			UINT32 commandId = -1;
 			{
-				commandId = mMaxCommandNotifyId++;
-				op = mCommandQueue->queueReturn(commandCallback, true, commandId);
+				Lock lock(mCommandQueueMutex);
+
+				if (blockUntilComplete)
+				{
+					commandId = mMaxCommandNotifyId++;
+					op = mCommandQueue->queueReturn(commandCallback, true, commandId);
+				}
+				else
+					op = mCommandQueue->queueReturn(commandCallback);
 			}
-			else
-				op = mCommandQueue->queueReturn(commandCallback);
+
+			mCommandReadyCondition.notify_all();
+
+			if (blockUntilComplete)
+				blockUntilCommandCompleted(commandId);
+
+			return op;
 		}
-
-		mCommandReadyCondition.notify_all();
-
-		if(blockUntilComplete)
-			blockUntilCommandCompleted(commandId);
-
-		return op;
 	}
 
-	void CoreThread::queueCommand(std::function<void()> commandCallback, bool blockUntilComplete)
+	void CoreThread::queueCommand(std::function<void()> commandCallback, CoreThreadQueueFlags flags)
 	{
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
 
-		UINT32 commandId = -1;
+		if (!flags.isSet(CTQF_InternalQueue))
+			getQueue()->queueCommand(commandCallback);
+		else
 		{
-			Lock lock(mCommandQueueMutex);
+			bool blockUntilComplete = flags.isSet(CTQF_BlockUntilComplete);
 
-			if(blockUntilComplete)
+			UINT32 commandId = -1;
 			{
-				commandId = mMaxCommandNotifyId++;
-				mCommandQueue->queue(commandCallback, true, commandId);
+				Lock lock(mCommandQueueMutex);
+
+				if (blockUntilComplete)
+				{
+					commandId = mMaxCommandNotifyId++;
+					mCommandQueue->queue(commandCallback, true, commandId);
+				}
+				else
+					mCommandQueue->queue(commandCallback);
 			}
-			else
-				mCommandQueue->queue(commandCallback);
+
+			mCommandReadyCondition.notify_all();
+
+			if (blockUntilComplete)
+				blockUntilCommandCompleted(commandId);
 		}
-
-		mCommandReadyCondition.notify_all();
-
-		if(blockUntilComplete)
-			blockUntilCommandCompleted(commandId);
 	}
 
 	void CoreThread::update()
@@ -298,11 +304,6 @@ namespace bs
 	CoreThread& gCoreThread()
 	{
 		return CoreThread::instance();
-	}
-
-	CoreThreadAccessor<CommandQueueNoSync>& gCoreAccessor()
-	{
-		return *CoreThread::instance().getAccessor();
 	}
 
 	void throwIfNotCoreThread()

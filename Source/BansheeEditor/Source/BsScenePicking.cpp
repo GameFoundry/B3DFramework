@@ -45,12 +45,12 @@ namespace bs
 			mCore->mMaterialData[i].mMatPickingAlphaCore = matPickingAlpha->getCore();
 		}
 
-		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::initialize, mCore));
+		gCoreThread().queueCommand(std::bind(&ScenePickingCore::initialize, mCore));
 	}
 
 	ScenePicking::~ScenePicking()
 	{
-		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
+		gCoreThread().queueCommand(std::bind(&ScenePickingCore::destroy, mCore));
 	}
 
 	HSceneObject ScenePicking::pickClosestObject(const SPtr<Camera>& cam, const Vector2I& position, const Vector2I& area, 
@@ -179,14 +179,14 @@ namespace bs
 		UINT32 firstGizmoIdx = (UINT32)pickData.size();
 
 		SPtr<RenderTargetCore> target = cam->getViewport()->getTarget()->getCore();
-		gCoreAccessor().queueCommand(std::bind(&ScenePickingCore::corePickingBegin, mCore, target,
+		gCoreThread().queueCommand(std::bind(&ScenePickingCore::corePickingBegin, mCore, target,
 			cam->getViewport()->getNormArea(), std::cref(pickData), position, area));
 
 		GizmoManager::instance().renderForPicking(cam, [&](UINT32 inputIdx) { return encodeIndex(firstGizmoIdx + inputIdx); });
 
-		AsyncOp op = gCoreAccessor().queueReturnCommand(std::bind(&ScenePickingCore::corePickingEnd, mCore, target, 
+		AsyncOp op = gCoreThread().queueReturnCommand(std::bind(&ScenePickingCore::corePickingEnd, mCore, target,
 			cam->getViewport()->getNormArea(), position, area, data != nullptr, _1));
-		gCoreAccessor().submitToCoreThread(true);
+		gCoreThread().submit(true);
 
 		assert(op.hasCompleted());
 
@@ -388,16 +388,16 @@ namespace bs
 			return;
 		}
 
-		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocateSubresourceBuffer(0);
+		SPtr<PixelData> outputPixelData = outputTexture->getProperties().allocBuffer(0, 0);
 		SPtr<PixelData> normalsPixelData;
 		SPtr<PixelData> depthPixelData;
 		if (gatherSnapData)
 		{
-			normalsPixelData = normalsTexture->getProperties().allocateSubresourceBuffer(0);
-			depthPixelData = depthTexture->getProperties().allocateSubresourceBuffer(0);
+			normalsPixelData = normalsTexture->getProperties().allocBuffer(0, 0);
+			depthPixelData = depthTexture->getProperties().allocBuffer(0, 0);
 		}
 
-		outputTexture->readSubresource(0, *outputPixelData);
+		outputTexture->readData(*outputPixelData);
 
 		Map<UINT32, UINT32> selectionScores;
 		UINT32 maxWidth = std::min((UINT32)(position.x + area.x), outputPixelData->getWidth());
@@ -469,8 +469,8 @@ namespace bs
 		PickResults result;
 		if (gatherSnapData)
 		{
-			depthTexture->readSubresource(0, *depthPixelData);
-			normalsTexture->readSubresource(0, *normalsPixelData);
+			depthTexture->readData(*depthPixelData);
+			normalsTexture->readData(*normalsPixelData);
 
 			Vector2I samplePixel = position;
 			if (rtProps.requiresTextureFlipping())

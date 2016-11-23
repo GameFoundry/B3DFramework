@@ -37,7 +37,7 @@ namespace bs
 		markCoreClean();
 	}
 
-	void RenderTarget::setPriority(CoreAccessor& accessor, INT32 priority)
+	void RenderTarget::setPriority(INT32 priority)
 	{
 		std::function<void(SPtr<RenderTargetCore>, INT32)> windowedFunc =
 			[](SPtr<RenderTargetCore> renderTarget, INT32 priority)
@@ -45,7 +45,7 @@ namespace bs
 			renderTarget->setPriority(priority);
 		};
 
-		accessor.queueCommand(std::bind(windowedFunc, getCore(), priority));
+		gCoreThread().queueCommand(std::bind(windowedFunc, getCore(), priority));
 	}
 
 	SPtr<RenderTargetCore> RenderTarget::getCore() const

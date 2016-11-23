@@ -287,35 +287,35 @@ namespace bs
 		HTexture cursorSizeNWSETex = getCursorTexture(CursorSizeNWSETex);
 		HTexture cursorSizeWETex = getCursorTexture(CursorSizeWETex);
 
-		mCursorArrow = cursorArrowTex->getProperties().allocateSubresourceBuffer(0);
-		cursorArrowTex->readSubresource(gCoreAccessor(), 0, mCursorArrow);
+		mCursorArrow = cursorArrowTex->getProperties().allocBuffer(0, 0);
+		cursorArrowTex->readData(mCursorArrow);
 
-		mCursorArrowDrag = cursorArrowDragTex->getProperties().allocateSubresourceBuffer(0);
-		cursorArrowDragTex->readSubresource(gCoreAccessor(), 0, mCursorArrowDrag);
+		mCursorArrowDrag = cursorArrowDragTex->getProperties().allocBuffer(0, 0);
+		cursorArrowDragTex->readData(mCursorArrowDrag);
 
-		mCursorArrowLeftRight = cursorArrowLeftRightTex->getProperties().allocateSubresourceBuffer(0);
-		cursorArrowLeftRightTex->readSubresource(gCoreAccessor(), 0, mCursorArrowLeftRight);
+		mCursorArrowLeftRight = cursorArrowLeftRightTex->getProperties().allocBuffer(0, 0);
+		cursorArrowLeftRightTex->readData(mCursorArrowLeftRight);
 
-		mCursorIBeam = cursorIBeamTex->getProperties().allocateSubresourceBuffer(0);
-		cursorIBeamTex->readSubresource(gCoreAccessor(), 0, mCursorIBeam);
+		mCursorIBeam = cursorIBeamTex->getProperties().allocBuffer(0, 0);
+		cursorIBeamTex->readData(mCursorIBeam);
 
-		mCursorDeny = cursorDenyTex->getProperties().allocateSubresourceBuffer(0);
-		cursorDenyTex->readSubresource(gCoreAccessor(), 0, mCursorDeny);
+		mCursorDeny = cursorDenyTex->getProperties().allocBuffer(0, 0);
+		cursorDenyTex->readData(mCursorDeny);
 
-		mCursorWait = cursorWaitTex->getProperties().allocateSubresourceBuffer(0);
-		cursorWaitTex->readSubresource(gCoreAccessor(), 0, mCursorWait);
+		mCursorWait = cursorWaitTex->getProperties().allocBuffer(0, 0);
+		cursorWaitTex->readData(mCursorWait);
 
-		mCursorSizeNESW = cursorSizeNESWTex->getProperties().allocateSubresourceBuffer(0);
-		cursorSizeNESWTex->readSubresource(gCoreAccessor(), 0, mCursorSizeNESW);
+		mCursorSizeNESW = cursorSizeNESWTex->getProperties().allocBuffer(0, 0);
+		cursorSizeNESWTex->readData(mCursorSizeNESW);
 
-		mCursorSizeNS = cursorSizeNSTex->getProperties().allocateSubresourceBuffer(0);
-		cursorSizeNSTex->readSubresource(gCoreAccessor(), 0, mCursorSizeNS);
+		mCursorSizeNS = cursorSizeNSTex->getProperties().allocBuffer(0, 0);
+		cursorSizeNSTex->readData(mCursorSizeNS);
 
-		mCursorSizeNWSE = cursorSizeNWSETex->getProperties().allocateSubresourceBuffer(0);
-		cursorSizeNWSETex->readSubresource(gCoreAccessor(), 0, mCursorSizeNWSE);
+		mCursorSizeNWSE = cursorSizeNWSETex->getProperties().allocBuffer(0, 0);
+		cursorSizeNWSETex->readData(mCursorSizeNWSE);
 
-		mCursorSizeWE = cursorSizeWETex->getProperties().allocateSubresourceBuffer(0);
-		cursorSizeWETex->readSubresource(gCoreAccessor(), 0, mCursorSizeWE);
+		mCursorSizeWE = cursorSizeWETex->getProperties().allocBuffer(0, 0);
+		cursorSizeWETex->readData(mCursorSizeWE);
 
 		/************************************************************************/
 		/* 								ICON		                     		*/
@@ -326,10 +326,10 @@ namespace bs
 
 		HTexture iconTex = gResources().load<Texture>(iconPath);
 
-		mBansheeIcon = iconTex->getProperties().allocateSubresourceBuffer(0);
-		iconTex->readSubresource(gCoreAccessor(), 0, mBansheeIcon);
+		mBansheeIcon = iconTex->getProperties().allocBuffer(0, 0);
+		iconTex->readData(mBansheeIcon);
 
-		gCoreAccessor().submitToCoreThread(true);
+		gCoreThread().submit(true);
 	}
 
 	void BuiltinResources::preprocess()
@@ -380,8 +380,8 @@ namespace bs
 			textureIO->setGenerateMipmaps(false);
 			HTexture splashTexture = gImporter().import<Texture>(inputPath, textureIO);
 
-			SPtr<PixelData> splashPixelData = splashTexture->getProperties().allocateSubresourceBuffer(0);
-			splashTexture->readData(*splashPixelData);
+			SPtr<PixelData> splashPixelData = splashTexture->getProperties().allocBuffer(0, 0);
+			splashTexture->readCachedData(*splashPixelData);
 
 			FileEncoder fe(outputPath);
 			fe.encode(splashPixelData.get());

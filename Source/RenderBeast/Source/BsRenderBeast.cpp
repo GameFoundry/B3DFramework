@@ -54,15 +54,15 @@ namespace bs
 	{
 		CoreRenderer::initialize();
 
-		CoreThread::instance().queueCommand(std::bind(&RenderBeast::initializeCore, this));
+		gCoreThread().queueCommand(std::bind(&RenderBeast::initializeCore, this), CTQF_InternalQueue);
 	}
 
 	void RenderBeast::destroy()
 	{
 		CoreRenderer::destroy();
 
-		gCoreAccessor().queueCommand(std::bind(&RenderBeast::destroyCore, this));
-		gCoreAccessor().submitToCoreThread(true);
+		gCoreThread().queueCommand(std::bind(&RenderBeast::destroyCore, this));
+		gCoreThread().submit(true);
 	}
 
 	void RenderBeast::initializeCore()
@@ -533,15 +533,15 @@ namespace bs
 	void RenderBeast::renderAll() 
 	{
 		// Sync all dirty sim thread CoreObject data to core thread
-		CoreObjectManager::instance().syncToCore(gCoreAccessor());
+		CoreObjectManager::instance().syncToCore();
 
 		if (mOptionsDirty)
 		{
-			gCoreAccessor().queueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
+			gCoreThread().queueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
 			mOptionsDirty = false;
 		}
 
-		gCoreAccessor().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
+		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
 	}
 
 	void RenderBeast::renderAllCore(float time, float delta)

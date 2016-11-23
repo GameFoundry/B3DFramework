@@ -12,16 +12,12 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Contains base functionality used for CoreThreadAccessor.
-	 * 			
-	 * @see		CoreThreadAccesor
-	 */
-	class BS_CORE_EXPORT CoreThreadAccessorBase
+	/** Contains base functionality used for CoreThreadQueue. */
+	class BS_CORE_EXPORT CoreThreadQueueBase
 	{
 	public:
-		CoreThreadAccessorBase(CommandQueueBase* commandQueue);
-		virtual ~CoreThreadAccessorBase();
+		CoreThreadQueueBase(CommandQueueBase* commandQueue);
+		virtual ~CoreThreadQueueBase();
 
 		/**
 		 * Queues a new generic command that will be added to the command queue. Returns an async operation object that you 
@@ -34,11 +30,11 @@ namespace bs
 
 		/**
 		 * Makes all the currently queued commands available to the core thread. They will be executed as soon as the core 
-		 * thread is ready. All queued commands are removed from the accessor.
+		 * thread is ready. All queued commands are removed from the queue.
 		 *
 		 * @param[in]	blockUntilComplete	If true, the calling thread will block until the core thread finished executing
 		 *									all currently queued commands. This is usually very expensive and should only be
-		 *									used in performance non-critical code.
+		 *									used in non-performance critical code.
 		 */
 		void submitToCoreThread(bool blockUntilComplete = false);
 
@@ -50,24 +46,23 @@ namespace bs
 	};
 
 	/**
-	 * Core thread accessor allows you to schedule core commands outside of the core thread. 
+	 * Queue that allows the calling thread to queue commands for execution on the core thread. Commands will only be
+	 * executed after they have been submitted to the core thread.
 	 * 			
 	 * @note	Queued commands are only executed after the call to submitToCoreThread(), in the order they were submitted.
 	 */
 	template <class CommandQueueSyncPolicy = CommandQueueNoSync>
-	class BS_CORE_EXPORT CoreThreadAccessor : public CoreThreadAccessorBase
+	class BS_CORE_EXPORT TCoreThreadQueue : public CoreThreadQueueBase
 	{
 	public:
 		/**
 		 * Constructor.
 		 *
-		 * @param[in]	threadId		Identifier for the thread that created the accessor.
+		 * @param[in]	threadId		Identifier for the thread that created the queue.
 		 */
-		CoreThreadAccessor(ThreadId threadId)
-			:CoreThreadAccessorBase(bs_new<CommandQueue<CommandQueueSyncPolicy>>(threadId))
-		{
-
-		}
+		TCoreThreadQueue(ThreadId threadId)
+			:CoreThreadQueueBase(bs_new<CommandQueue<CommandQueueSyncPolicy>>(threadId))
+		{ }
 	};
 
 	/** @} */

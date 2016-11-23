@@ -4,7 +4,7 @@ Render API									{#renderAPI}
 
 Render API is an interface that allows you to perform low-level rendering operations akin to DirectX or OpenGL. In Banshee this API is provided through the @ref bs::RenderAPI "RenderAPI" for the simulation thread, and @ref bs::RenderAPICore "RenderAPICore" for the core thread. If you are confused by the dual nature of  objects, read the [core thread](@ref coreThread) manual. 
 
-For the remainder of this manual we'll focus on the core thread portion of the API, but both provide essentially identical functionality, with the main difference that the simulation thread one expects a @ref bs::CoreThreadAccessor "CoreAccessor" as input, and the execution of the actual commands is delayed until they reach the core thread.
+For the remainder of this manual we'll focus on the core thread portion of the API, but both provide essentially identical functionality. The main difference that the execution of commands on the simulation thread isn't immediate, instead they are queued on an internal queue which is sent to the core thread at the end of the frame.
 
 Render API lets you manipulate the GPU pipeline by setting various states (depth stencil, blend and rasterizer), binding GPU programs, textures and executing draw calls. In this manual we'll cover how to use this API to perform rendering manually. 
 

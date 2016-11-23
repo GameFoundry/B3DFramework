@@ -290,7 +290,7 @@ namespace bs
 		}
 
 		if (layout->getIsMainWindowMaximized())
-			mainWindow->getRenderWindow()->maximize(gCoreAccessor());
+			mainWindow->getRenderWindow()->maximize();
 	}
 
 	void EditorWidgetManager::onFocusGained(const RenderWindow& window)

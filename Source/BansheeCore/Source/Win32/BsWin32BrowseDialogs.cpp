@@ -170,7 +170,8 @@ namespace bs
 		Vector<Path>& paths)
 	{
 		AsyncOp returnValue = gCoreThread().queueReturnCommand(std::bind(&openBrowseDialogCore, type, 
-			std::cref(defaultPath), std::cref(filterList), std::ref(paths), _1), true);
+			std::cref(defaultPath), std::cref(filterList), std::ref(paths), _1), 
+			CTQF_InternalQueue | CTQF_BlockUntilComplete);
 
 		return returnValue.getReturnValue<bool>();
 	}
