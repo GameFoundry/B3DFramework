@@ -394,7 +394,7 @@ namespace bs
 
 	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
 	{
-		if (src->mMultisampleCount > 0 && mMultisampleCount == 0) // Resolving MS texture
+		if (src->mMultisampleCount > 1 && mMultisampleCount <= 1) // Resolving MS texture
 		{
 			if (mTarget != GL_TEXTURE_2D || mTarget != GL_TEXTURE_2D_MULTISAMPLE)
 				BS_EXCEPT(InvalidParametersException, "Non-2D multisampled texture not supported.");

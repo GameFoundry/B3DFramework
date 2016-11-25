@@ -403,7 +403,144 @@ namespace bs
 	void VulkanTextureCore::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
 									 const SPtr<TextureCore>& target, UINT32 queueIdx)
 	{
-		// TODO - Handle resolve here as well
+		VulkanTextureCore* other = static_cast<VulkanTextureCore*>(target.get());
+
+		const TextureProperties& srcProps = mProperties;
+		const TextureProperties& dstProps = other->getProperties();
+
+		bool srcHasMultisample = srcProps.getNumSamples() > 1;
+		bool destHasMultisample = dstProps.getNumSamples() > 1;
+
+		if ((srcProps.getUsage() & TU_DEPTHSTENCIL) != 0 || (dstProps.getUsage() & TU_DEPTHSTENCIL) != 0)
+		{
+			LOGERR("Texture copy/resolve isn't supported for depth-stencil textures.");
+			return;
+		}
+
+		bool needsResolve = srcHasMultisample && !destHasMultisample;
+		bool isMSCopy = srcHasMultisample || destHasMultisample;
+		if (!needsResolve && isMSCopy)
+		{
+			if (srcProps.getNumSamples() != dstProps.getNumSamples())
+			{
+				LOGERR("When copying textures their multisample counts must match. Ignoring copy.");
+				return;
+			}
+		}
+
+		VulkanCommandBufferManager& cbManager = gVulkanCBManager();
+		GpuQueueType queueType;
+		UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(queueIdx, queueType);
+
+		VkImageLayout transferSrcLayout, transferDstLayout;
+		if (mDirectlyMappable)
+		{
+			transferSrcLayout = VK_IMAGE_LAYOUT_GENERAL;
+			transferDstLayout = VK_IMAGE_LAYOUT_GENERAL;
+		}
+		else
+		{
+			transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			transferDstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		}
+
+		UINT32 mipWidth, mipHeight, mipDepth;
+		PixelUtil::getSizeForMipLevel(srcProps.getWidth(), srcProps.getHeight(), srcProps.getDepth(), srcMipLevel,
+									  mipWidth, mipHeight, mipDepth);
+
+		VkImageResolve resolveRegion;
+		resolveRegion.srcOffset = { 0, 0, 0 };
+		resolveRegion.dstOffset = { 0, 0, 0 };
+		resolveRegion.extent = { mipWidth, mipHeight, mipDepth };
+		resolveRegion.srcSubresource.baseArrayLayer = srcFace;
+		resolveRegion.srcSubresource.layerCount = 1;
+		resolveRegion.srcSubresource.mipLevel = srcMipLevel;
+		resolveRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		resolveRegion.dstSubresource.baseArrayLayer = destFace;
+		resolveRegion.dstSubresource.layerCount = 1;
+		resolveRegion.dstSubresource.mipLevel = destMipLevel;
+		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		VkImageCopy imageRegion;
+		imageRegion.srcOffset = { 0, 0, 0 };
+		imageRegion.dstOffset = { 0, 0, 0 };
+		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
+		imageRegion.srcSubresource.baseArrayLayer = srcFace;
+		imageRegion.srcSubresource.layerCount = 1;
+		imageRegion.srcSubresource.mipLevel = srcMipLevel;
+		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageRegion.dstSubresource.baseArrayLayer = destFace;
+		imageRegion.dstSubresource.layerCount = 1;
+		imageRegion.dstSubresource.mipLevel = destMipLevel;
+		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		VkImageSubresourceRange srcRange;
+		srcRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		srcRange.baseArrayLayer = srcFace;
+		srcRange.layerCount = 1;
+		srcRange.baseMipLevel = srcMipLevel;
+		srcRange.levelCount = 1;
+
+		VkImageSubresourceRange dstRange;
+		dstRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		dstRange.baseArrayLayer = destFace;
+		dstRange.layerCount = 1;
+		dstRange.baseMipLevel = destMipLevel;
+		dstRange.levelCount = 1;
+
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			VulkanImage* srcImage = mImages[i];
+			VulkanImage* dstImage = other->getResource(i);
+
+			if (srcImage == nullptr || dstImage == nullptr)
+				continue;
+
+			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(i, queueType, localQueueIdx);
+			VkCommandBuffer vkCmdBuf = transferCB->getCB()->getHandle();
+
+			// Transfer textures to a valid layout
+			transferCB->setLayout(srcImage->getHandle(), mAccessFlags, VK_ACCESS_TRANSFER_READ_BIT, srcImage->getLayout(),
+									transferSrcLayout, srcRange);
+
+			transferCB->setLayout(dstImage->getHandle(), other->getAccessFlags(), VK_ACCESS_TRANSFER_WRITE_BIT,
+									dstImage->getLayout(), transferDstLayout, dstRange);
+
+			if (srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
+			{
+				vkCmdResolveImage(vkCmdBuf, srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+								  dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
+			}
+			else // Just a normal copy
+			{
+				vkCmdCopyImage(vkCmdBuf, srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+							   dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageRegion);
+			}
+
+			// Transfer back to original layouts
+			transferCB->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, mAccessFlags,
+									transferSrcLayout, srcImage->getLayout(), srcRange);
+
+			transferCB->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, other->getAccessFlags(),
+									transferDstLayout, dstImage->getLayout(), dstRange);
+
+			// Notify the command buffer that these resources are being used on it
+			transferCB->getCB()->registerResource(srcImage, mAccessFlags, srcImage->getLayout(), srcRange, 
+				VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(dstImage, other->getAccessFlags(), dstImage->getLayout(), dstRange,
+				VulkanUseFlag::Write);
+
+			// Need to wait if subresource we're reading from is being written, or if the subresource we're writing to is
+			// being accessed in any way
+
+			VulkanImageSubresource* srcSubresource = srcImage->getSubresource(srcFace, srcMipLevel);
+			VulkanImageSubresource* dstSubresource = dstImage->getSubresource(srcFace, srcMipLevel);
+
+			UINT32 srcUseFlags = srcSubresource->getUseInfo(VulkanUseFlag::Write);
+			UINT32 dstUseFlags = dstSubresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+
+			transferCB->appendMask(srcUseFlags | dstUseFlags);
+		}
 	}
 
 	PixelData VulkanTextureCore::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,

@@ -72,12 +72,18 @@ namespace bs
 		bool srcHasMultisample = mProperties.getNumSamples() > 1;
 		bool destHasMultisample = target->getProperties().getNumSamples() > 1;
 
-		if (srcHasMultisample && destHasMultisample && mProperties.getNumSamples() != target->getProperties().getNumSamples()) // Resolving from MS to non-MS texture
+		if (srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 		{
 			device.getImmediateContext()->ResolveSubresource(other->getDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
 		}
 		else
 		{
+			if(mProperties.getNumSamples() != target->getProperties().getNumSamples())
+			{
+				LOGERR("When copying textures their multisample counts must match. Ignoring copy.");
+				return;
+			}
+
 			device.getImmediateContext()->CopySubresourceRegion(other->getDX11Resource(), destResIdx, 0, 0, 0, mTex, srcResIdx, nullptr);
 
 			if (device.hasError())

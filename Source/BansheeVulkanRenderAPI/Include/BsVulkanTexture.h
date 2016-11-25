@@ -119,6 +119,9 @@ namespace bs
 		 */
 		VkImageView getView(UINT32 deviceIdx, const TextureSurface& surface) const;
 
+		/** Returns the default set of access flags for this texture type. */
+		VkAccessFlags getAccessFlags() const { return mAccessFlags; }
+
 	protected:
 		friend class VulkanTextureCoreManager;
 
