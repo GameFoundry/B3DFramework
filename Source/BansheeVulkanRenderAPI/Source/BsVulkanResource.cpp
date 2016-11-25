@@ -149,8 +149,10 @@ namespace bs
 	void VulkanResourceManager::destroy(VulkanResource* resource)
 	{
 #if BS_DEBUG_MODE
-		Lock lock(mMutex);
-		mResources.erase(resource);
+		{
+			Lock lock(mMutex);
+			mResources.erase(resource);
+		}
 #endif
 
 		bs_delete(resource);

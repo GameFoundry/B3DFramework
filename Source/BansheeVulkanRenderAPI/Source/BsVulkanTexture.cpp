@@ -52,12 +52,28 @@ namespace bs
 
 		TextureSurface completeSurface(0, props.getNumMipmaps() + 1, 0, props.getNumArraySlices());
 		mMainView = createView(completeSurface);
+
+		mNumFaces = props.getNumFaces();
+		mNumMipLevels = props.getNumMipmaps();
+
+		UINT32 numSubresources = mNumFaces * mNumMipLevels;
+		mSubresources = (VulkanImageSubresource**)bs_alloc<VulkanImageSubresource*>(numSubresources);
+		for (UINT32 i = 0; i < numSubresources; i++)
+			mSubresources[i] = owner->create<VulkanImageSubresource>();
 	}
 
 	VulkanImage::~VulkanImage()
 	{
 		VulkanDevice& device = mOwner->getDevice();
 		VkDevice vkDevice = device.getLogical();
+
+		UINT32 numSubresources = mNumFaces * mNumMipLevels;
+		for (UINT32 i = 0; i < numSubresources; i++)
+		{
+			assert(!mSubresources[i]->isBound()); // Image beeing freed but its subresources are still bound somewhere
+
+			mSubresources[i]->destroy();
+		}
 
 		vkDestroyImageView(vkDevice, mMainView, gVulkanAllocator);
 
@@ -125,6 +141,11 @@ namespace bs
 		return view;
 	}
 
+	VulkanImageSubresource* VulkanImage::getSubresource(UINT32 face, UINT32 mipLevel)
+	{
+		return mSubresources[face * mNumMipLevels + mipLevel];
+	}
+
 	void VulkanImage::map(UINT32 face, UINT32 mipLevel, PixelData& output) const
 	{
 		VulkanDevice& device = mOwner->getDevice();
@@ -174,6 +195,10 @@ namespace bs
 
 		vkCmdCopyImageToBuffer(cb->getCB()->getHandle(), mImage, layout, destination->getHandle(), 1, &region);
 	}
+
+	VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner)
+		:VulkanResource(owner, false)
+	{ }
 
 	VulkanTextureCore::VulkanTextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
 		GpuDeviceFlags deviceMask)
@@ -429,7 +454,7 @@ namespace bs
 		GpuQueueType queueType;
 		UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(queueIdx, queueType);
 
-		VulkanImage* subresource = image->getSubresource(face, mipLevel);
+		VulkanImageSubresource* subresource = image->getSubresource(face, mipLevel);
 
 		// If memory is host visible try mapping it directly
 		if (mDirectlyMappable)
@@ -471,14 +496,14 @@ namespace bs
 			// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
 			if (options == GBL_WRITE_ONLY_DISCARD)
 			{
-				// TODO - Since I'm only writing to a single subresource, how will discard work? Discard every subresource?
+				// We need to discard the entire image, even though we're only writing to a single sub-resource
+				image->destroy();
 
-				//buffer->destroy();
+				image = createImage(device);
+				mImages[deviceIdx] = image;
 
-				//buffer = createBuffer(device, false, mReadable);
-				//mBuffers[deviceIdx] = buffer;
-
-				//return buffer->map(offset, length);
+				image->map(face, mipLevel, lockedArea);
+				return lockedArea;
 			}
 
 			// We need to both read and write, meaning we need to wait until existing reads complete before we return
@@ -604,7 +629,7 @@ namespace bs
 				VulkanImage* image = mImages[mMappedDeviceIdx];
 				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
 
-				VulkanImage* subresource = image->getSubresource(mMappedFace, mMappedMip);
+				VulkanImageSubresource* subresource = image->getSubresource(mMappedFace, mMappedMip);
 
 				// If the subresource is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
@@ -618,15 +643,16 @@ namespace bs
 					{
 						// Fall through to copy()
 					}
-					// Caller doesn't care about buffer contents, so just discard the  existing buffer and create a new one
+					// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
 					else if (mMappedLockOptions == GBL_WRITE_ONLY_DISCARD) 
 					{
-						// TODO - Handle discard
+						// We need to discard the entire image, even though we're only writing to a single sub-resource
+						image->destroy();
 
-						//buffer->destroy();
+						image = createImage(device);
+						mImages[mMappedDeviceIdx] = image;
 
-						//buffer = createBuffer(device, false, mReadable);
-						//mBuffers[mMappedDeviceIdx] = buffer;
+						subresource = image->getSubresource(mMappedFace, mMappedMip);
 					}
 					else // Otherwise we have no choice but to issue a dependency between the queues
 						transferCB->appendMask(useMask);

@@ -12,6 +12,8 @@ namespace bs
 	 *  @{
 	 */
 
+	class VulkanImageSubresource;
+
 	/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
 	class VulkanImage : public VulkanResource
 	{
@@ -34,6 +36,12 @@ namespace bs
 
 		/** Returns an image view that covers the specified faces and mip maps of the texture. */
 		VkImageView getView(const TextureSurface& surface) const;
+
+		/** 
+		 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track subresource
+		 * usage individually, instead for the entire image. 
+		 */
+		VulkanImageSubresource* getSubresource(UINT32 face, UINT32 mipLevel);
 
 		/** 
 		 * Returns a pointer to internal image memory for the specified sub-resource. Must be followed by unmap(). Caller
@@ -72,8 +80,19 @@ namespace bs
 		VkImageLayout mLayout;
 		VkImageView mMainView;
 
+		UINT32 mNumFaces;
+		UINT32 mNumMipLevels;
+		VulkanImageSubresource** mSubresources;
+
 		mutable VkImageViewCreateInfo mImageViewCI;
 		mutable Vector<ImageViewInfo> mImageInfos;
+	};
+
+	/** Represents a single sub-resource (face & mip level) of a larger image object. */
+	class VulkanImageSubresource : public VulkanResource
+	{
+	public:
+		VulkanImageSubresource(VulkanResourceManager* owner);
 	};
 
 	/**	Vulkan implementation of a texture. */

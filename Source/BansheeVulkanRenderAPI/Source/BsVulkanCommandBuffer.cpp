@@ -1030,6 +1030,18 @@ namespace bs
 			imageInfo.accessFlags |= accessFlags;
 			imageInfo.range = range;
 		}
+
+		// Register any sub-resources
+		for(UINT32 i = 0; i < range.layerCount; i++)
+		{
+			for(UINT32 j = 0; j < range.levelCount; j++)
+			{
+				UINT32 layer = range.baseArrayLayer + i;
+				UINT32 mipLevel = range.baseMipLevel + j;
+
+				registerResource(res->getSubresource(layer, mipLevel), flags);
+			}
+		}
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags)
