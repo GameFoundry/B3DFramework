@@ -14,6 +14,9 @@ namespace bs
 	/** Represents a single attachment in a Vulkan frame-buffer. */
 	struct VULKAN_ATTACHMENT_DESC
 	{
+		/** Image to attach or null if none. */
+		VulkanImage* image;
+
 		/** View of the image to attach or VK_NULL_HANDLE if none. */
 		VkImageView view;
 
@@ -88,6 +91,12 @@ namespace bs
 		 */
 		UINT32 getNumLayers() const { return mNumLayers; }
 
+		/** Returns the image representing the color attachment at the provided index. */
+		VulkanImage* getColorImage(UINT32 colorIdx) const { return mColorImages[colorIdx]; }
+
+		/** Returns the image representing the depth/stencil attachment, if one exists. */
+		VulkanImage* getDepthStencilImage() const { return mDepthStencilImage; }
+
 		/** Returns the initial layer of the color texture surface in which to start rendering. */
 		UINT32 getColorBaseLayer(UINT32 colorIdx) const { return mColorBaseLayers[colorIdx]; }
 
@@ -116,6 +125,8 @@ namespace bs
 		UINT32 mNumAttachments;
 		UINT32 mNumColorAttachments;
 		UINT32 mNumLayers;
+		VulkanImage* mColorImages[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		VulkanImage* mDepthStencilImage;
 		UINT32 mColorBaseLayers[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		UINT32 mDepthBaseLayer;
 		bool mHasDepth;

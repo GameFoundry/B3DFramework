@@ -14,12 +14,42 @@ namespace bs
 
 	class VulkanImageSubresource;
 
+	/** Descriptor used for initializing a VulkanImage. */
+	struct VULKAN_IMAGE_DESC
+	{
+		VkImage image; /**< Internal Vulkan image object */
+		VkDeviceMemory memory; /**< Memory bound to the image. */
+		VkImageLayout layout; /**< Initial layout of the image. */
+		TextureType type; /**< Type of the image. */
+		VkFormat format; /**< Pixel format of the image. */
+		UINT32 numFaces; /**< Number of faces (array slices, or cube-map faces). */
+		UINT32 numMipLevels; /**< Number of mipmap levels per face. */
+		bool isDepthStencil; /**< True if the image represents a depth-stencil surface. */
+	};
+
 	/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
 	class VulkanImage : public VulkanResource
 	{
 	public:
+		/**
+		 * @param[in]	owner		Resource manager that keeps track of lifetime of this resource.
+		 * @param[in]	image		Internal image Vulkan object.
+		 * @param[in]	memory		Memory bound to the image.
+		 * @param[in]	layout		Initial layout of the image.
+		 * @param[in]	props		Properties describing the image.
+		 * @param[in]	ownsImage	If true, this object will take care of releasing the image and its memory, otherwise
+		 *							it is expected they will be released externally.
+		 */
 		VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout,
-					const TextureProperties& props);
+					const TextureProperties& props, bool ownsImage = true);
+
+		/**
+		 * @param[in]	owner		Resource manager that keeps track of lifetime of this resource.
+		 * @param[in]	desc		Describes the image to assign.
+		 * @param[in]	ownsImage	If true, this object will take care of releasing the image and its memory, otherwise
+		 *							it is expected they will be released externally.
+		 */
+		VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& desc, bool ownsImage = true);
 		~VulkanImage();
 
 		/** Returns the internal handle to the Vulkan object. */
@@ -79,6 +109,7 @@ namespace bs
 		VkDeviceMemory mMemory;
 		VkImageLayout mLayout;
 		VkImageView mMainView;
+		bool mOwnsImage;
 
 		UINT32 mNumFaces;
 		UINT32 mNumMipLevels;

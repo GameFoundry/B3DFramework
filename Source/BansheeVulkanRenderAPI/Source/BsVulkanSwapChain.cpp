@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanSwapChain.h"
+#include "BsVulkanTexture.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 
@@ -119,32 +120,25 @@ namespace bs
 		result = vkGetSwapchainImagesKHR(logicalDevice, mSwapChain, &numImages, images);
 		assert(result == VK_SUCCESS);
 
+		VulkanResourceManager& resManager = device->getResourceManager();
+
+		VULKAN_IMAGE_DESC imageDesc;
+		imageDesc.isDepthStencil = false;
+		imageDesc.format = colorFormat;
+		imageDesc.type = TEX_TYPE_2D;
+		imageDesc.layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageDesc.numFaces = 1;
+		imageDesc.numMipLevels = 1;
+		imageDesc.memory = VK_NULL_HANDLE;
+
 		mSurfaces.resize(numImages);
 		for (UINT32 i = 0; i < numImages; i++)
 		{
-			VkImageViewCreateInfo colorViewCI;
-			colorViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			colorViewCI.pNext = nullptr;
-			colorViewCI.flags = 0;
-			colorViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			colorViewCI.image = images[i];
-			colorViewCI.format = colorFormat;
-			colorViewCI.components = {
-				VK_COMPONENT_SWIZZLE_R,
-				VK_COMPONENT_SWIZZLE_G,
-				VK_COMPONENT_SWIZZLE_B,
-				VK_COMPONENT_SWIZZLE_A
-			};
-			colorViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			colorViewCI.subresourceRange.baseMipLevel = 0;
-			colorViewCI.subresourceRange.levelCount = 1;
-			colorViewCI.subresourceRange.baseArrayLayer = 0;
-			colorViewCI.subresourceRange.layerCount = 1;
-			
+			imageDesc.image = images[i];
+
 			mSurfaces[i].acquired = false;
-			mSurfaces[i].image = images[i];
-			result = vkCreateImageView(logicalDevice, &colorViewCI, gVulkanAllocator, &mSurfaces[i].view);
-			assert(result == VK_SUCCESS);
+			mSurfaces[i].image = resManager.create<VulkanImage>(imageDesc, false);
+			mSurfaces[i].view = mSurfaces[i].image->getView();
 
 			VkSemaphoreCreateInfo semaphoreCI;
 			semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -177,41 +171,23 @@ namespace bs
 			depthStencilImageCI.pQueueFamilyIndices = nullptr;
 			depthStencilImageCI.queueFamilyIndexCount = 0;
 
-			result = vkCreateImage(logicalDevice, &depthStencilImageCI, gVulkanAllocator, &mDepthStencilImage);
+			VkImage depthStencilImage;
+			result = vkCreateImage(logicalDevice, &depthStencilImageCI, gVulkanAllocator, &depthStencilImage);
 			assert(result == VK_SUCCESS);
 
-			mDepthStencilMemory = mDevice->allocateMemory(mDepthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			imageDesc.image = depthStencilImage;
+			imageDesc.isDepthStencil = true;
+			imageDesc.format = depthFormat;
+			imageDesc.memory = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-			VkImageViewCreateInfo depthStencilViewCI;
-			depthStencilViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			depthStencilViewCI.pNext = nullptr;
-			depthStencilViewCI.flags = 0;
-			depthStencilViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			depthStencilViewCI.image = mDepthStencilImage;
-			depthStencilViewCI.format = depthFormat;
-			depthStencilViewCI.components = {
-				VK_COMPONENT_SWIZZLE_R,
-				VK_COMPONENT_SWIZZLE_G,
-				VK_COMPONENT_SWIZZLE_B,
-				VK_COMPONENT_SWIZZLE_A
-			};
-			depthStencilViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			depthStencilViewCI.subresourceRange.baseMipLevel = 0;
-			depthStencilViewCI.subresourceRange.levelCount = 1;
-			depthStencilViewCI.subresourceRange.baseArrayLayer = 0;
-			depthStencilViewCI.subresourceRange.layerCount = 1;
-
-			result = vkCreateImageView(logicalDevice, &depthStencilViewCI, gVulkanAllocator, &mDepthStencilView);
-			assert(result == VK_SUCCESS);
+			mDepthStencilImage = resManager.create<VulkanImage>(imageDesc, true);
+			mDepthStencilView = mDepthStencilImage->getView();
 		}
 		else
 		{
-			mDepthStencilImage = VK_NULL_HANDLE;
+			mDepthStencilImage = nullptr;
 			mDepthStencilView = VK_NULL_HANDLE;
-			mDepthStencilMemory = VK_NULL_HANDLE;
 		}
-
-		VulkanResourceManager& resManager = device->getResourceManager();
 
 		// Create a framebuffer for each swap chain buffer
 		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
@@ -225,9 +201,11 @@ namespace bs
 			desc.numSamples = 1;
 			desc.offscreen = false;
 			desc.color[0].format = colorFormat;
+			desc.color[0].image = mSurfaces[i].image;
 			desc.color[0].view = mSurfaces[i].view;
 			desc.color[0].baseLayer = 0;
 			desc.depth.format = depthFormat;
+			desc.depth.image = mDepthStencilImage;
 			desc.depth.view = mDepthStencilView;
 			desc.depth.baseLayer = 0;
 
@@ -295,20 +273,19 @@ namespace bs
 				surface.framebuffer->destroy();
 				surface.framebuffer = nullptr;
 
+				surface.image->destroy();
+				surface.image = nullptr;
+
 				vkDestroySemaphore(logicalDevice, surface.sync, gVulkanAllocator);
-				vkDestroyImageView(logicalDevice, surface.view, gVulkanAllocator);
 			}
 
 			vkDestroySwapchainKHR(logicalDevice, swapChain, gVulkanAllocator);
 		}
 
-		if (mDepthStencilImage != VK_NULL_HANDLE)
+		if (mDepthStencilImage != nullptr)
 		{
-			vkDestroyImageView(logicalDevice, mDepthStencilView, gVulkanAllocator);
-			vkDestroyImage(logicalDevice, mDepthStencilImage, gVulkanAllocator);
-
-			mDevice->freeMemory(mDepthStencilMemory);
-			mDepthStencilImage = VK_NULL_HANDLE;
+			mDepthStencilImage->destroy();
+			mDepthStencilImage = nullptr;
 		}
 	}
 }

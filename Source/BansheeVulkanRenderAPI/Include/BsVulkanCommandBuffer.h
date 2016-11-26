@@ -157,18 +157,22 @@ namespace bs
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
-		 * registerResource() overload.
+		 * device when the command buffer is submitted.
 		 */
 		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout layout, 
 			const VkImageSubresourceRange& range, VulkanUseFlags flags);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
-		 * registerResource() overload.
+		 * device when the command buffer is submitted. 
 		 */
 		void registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags);
+
+		/** 
+		 * Lets the command buffer know that the provided framebuffer resource has been queued on it, and will be used by
+		 * the device when the command buffer is submitted.
+		 */
+		void registerResource(VulkanFramebuffer* res, VulkanUseFlags flags);
 
 		/************************************************************************/
 		/* 								COMMANDS	                     		*/

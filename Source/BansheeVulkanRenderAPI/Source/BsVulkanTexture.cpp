@@ -12,15 +12,35 @@
 
 namespace bs
 {
+	VULKAN_IMAGE_DESC createDesc(VkImage image, VkDeviceMemory memory, VkImageLayout layout, const TextureProperties& props)
+	{
+		VULKAN_IMAGE_DESC desc;
+		desc.image = image;
+		desc.memory = memory;
+		desc.type = props.getTextureType();
+		desc.format = VulkanUtility::getPixelFormat(props.getFormat());
+		desc.numFaces = props.getNumFaces();
+		desc.numMipLevels = props.getNumMipmaps() + 1;
+		desc.isDepthStencil = (props.getUsage() & TU_DEPTHSTENCIL) != 0;
+		desc.layout = layout;
+
+		return desc;
+	}
+
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout,
-							 const TextureProperties& props)
-		: VulkanResource(owner, false), mImage(image), mMemory(memory), mLayout(layout)
+							 const TextureProperties& props, bool ownsImage)
+		: VulkanImage(owner, createDesc(image, memory, layout, props), ownsImage)
+	{ }
+
+	VulkanImage::VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& desc, bool ownsImage)
+		: VulkanResource(owner, false), mImage(desc.image), mMemory(desc.memory), mLayout(desc.layout)
+		, mOwnsImage(ownsImage), mNumFaces(desc.numFaces), mNumMipLevels(desc.numMipLevels)
 	{
 		mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		mImageViewCI.pNext = nullptr;
 		mImageViewCI.flags = 0;
-		mImageViewCI.image = image;
-		mImageViewCI.format = VulkanUtility::getPixelFormat(props.getFormat());
+		mImageViewCI.image = desc.image;
+		mImageViewCI.format = desc.format;
 		mImageViewCI.components = {
 			VK_COMPONENT_SWIZZLE_R,
 			VK_COMPONENT_SWIZZLE_G,
@@ -28,7 +48,7 @@ namespace bs
 			VK_COMPONENT_SWIZZLE_A
 		};
 
-		switch (props.getTextureType())
+		switch (desc.type)
 		{
 		case TEX_TYPE_1D:
 			mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D;
@@ -45,16 +65,13 @@ namespace bs
 			break;
 		}
 
-		if ((props.getUsage() & TU_DEPTHSTENCIL) != 0)
+		if (desc.isDepthStencil)
 			mImageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 		else
 			mImageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		TextureSurface completeSurface(0, props.getNumMipmaps() + 1, 0, props.getNumArraySlices());
+		TextureSurface completeSurface(0, desc.numMipLevels, 0, desc.numFaces);
 		mMainView = createView(completeSurface);
-
-		mNumFaces = props.getNumFaces();
-		mNumMipLevels = props.getNumMipmaps();
 
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
 		mSubresources = (VulkanImageSubresource**)bs_alloc<VulkanImageSubresource*>(numSubresources);
@@ -80,8 +97,11 @@ namespace bs
 		for(auto& entry : mImageInfos)
 			vkDestroyImageView(vkDevice, entry.view, gVulkanAllocator);
 
-		vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
-		device.freeMemory(mMemory);
+		if (mOwnsImage)
+		{
+			vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
+			device.freeMemory(mMemory);
+		}
 	}
 
 	VkImageView VulkanImage::getView(const TextureSurface& surface) const

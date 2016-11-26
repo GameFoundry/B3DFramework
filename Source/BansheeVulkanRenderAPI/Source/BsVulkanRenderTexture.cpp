@@ -39,13 +39,18 @@ namespace bs
 			const SPtr<TextureView>& view = mColorSurfaces[i];
 			VulkanTextureCore* texture = static_cast<VulkanTextureCore*>(view->getTexture().get());
 
+			VulkanImage* image = texture->getResource(mDeviceIdx);
+			if (image == nullptr)
+				continue;
+
 			TextureSurface surface;
 			surface.arraySlice = view->getFirstArraySlice();
 			surface.numArraySlices = view->getNumArraySlices();
 			surface.mipLevel = view->getMostDetailedMip();
 			surface.numMipLevels = view->getNumMips();
 
-			fbDesc.color[i].view = texture->getView(mDeviceIdx, surface);
+			fbDesc.color[i].image = image;
+			fbDesc.color[i].view = image->getView(surface);
 			fbDesc.color[i].format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat());
 			fbDesc.color[i].baseLayer = view->getFirstArraySlice();
 		}
@@ -55,15 +60,20 @@ namespace bs
 			const SPtr<TextureView>& view = mDepthStencilSurface;
 			VulkanTextureCore* texture = static_cast<VulkanTextureCore*>(view->getTexture().get());
 
-			TextureSurface surface;
-			surface.arraySlice = view->getFirstArraySlice();
-			surface.numArraySlices = view->getNumArraySlices();
-			surface.mipLevel = view->getMostDetailedMip();
-			surface.numMipLevels = view->getNumMips();
+			VulkanImage* image = texture->getResource(mDeviceIdx);
+			if (image != nullptr)
+			{
+				TextureSurface surface;
+				surface.arraySlice = view->getFirstArraySlice();
+				surface.numArraySlices = view->getNumArraySlices();
+				surface.mipLevel = view->getMostDetailedMip();
+				surface.numMipLevels = view->getNumMips();
 
-			fbDesc.depth.view = texture->getView(mDeviceIdx, surface);
-			fbDesc.depth.format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat());
-			fbDesc.depth.baseLayer = view->getFirstArraySlice();
+				fbDesc.depth.image = image;
+				fbDesc.depth.view = image->getView(surface);
+				fbDesc.depth.format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat());
+				fbDesc.depth.baseLayer = view->getFirstArraySlice();
+			}
 		}
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());

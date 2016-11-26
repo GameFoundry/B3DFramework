@@ -242,12 +242,8 @@ namespace bs
 		renderPassBeginInfo.renderArea.offset.y = 0;
 		renderPassBeginInfo.renderArea.extent.width = mRenderTargetWidth;
 		renderPassBeginInfo.renderArea.extent.height = mRenderTargetHeight;
-
-		// TODO: Handle clears (if provided) here. See VulkanRenderAPI::clearRenderTarget.
-		//  - Potential problem is that we might need different framebuffers depending on whether we use load or clear
-		//    ops during render pass start.
-		renderPassBeginInfo.clearValueCount = 0; // TODO
-		renderPassBeginInfo.pClearValues = nullptr; // TODO
+		renderPassBeginInfo.clearValueCount = 0;
+		renderPassBeginInfo.pClearValues = nullptr;
 
 		vkCmdBeginRenderPass(mCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -331,7 +327,7 @@ namespace bs
 
 			UINT32 entryQueueFamily = entry.first;
 
-			// No queue transition needed for entries on this queue (this entry is most likely an in image layout transition)
+			// No queue transition needed for entries on this queue (this entry is most likely an image layout transition)
 			if (entryQueueFamily == mQueueFamily)
 				continue;
 
@@ -479,6 +475,7 @@ namespace bs
 		mComputePipeline = nullptr;
 		mGfxPipelineRequiresBind = true;
 		mCmpPipelineRequiresBind = true;
+		mFramebuffer = nullptr;
 		mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
 	}
 
@@ -539,6 +536,8 @@ namespace bs
 	{
 		assert(mState != State::RecordingRenderPass && mState != State::Submitted);
 
+		VulkanFramebuffer* oldFramebuffer = mFramebuffer;
+
 		if(rt == nullptr)
 		{
 			mFramebuffer = nullptr;
@@ -565,7 +564,14 @@ namespace bs
 			registerResource(mFramebuffer, VulkanUseFlag::Write);
 		}
 
-		mGfxPipelineRequiresBind = true;
+		// If anything changed
+		if(oldFramebuffer != mFramebuffer)
+		{
+			if (isInRenderPass())
+				endRenderPass();
+
+			mGfxPipelineRequiresBind = true;
+		}
 	}
 
 	void VulkanCmdBuffer::clearViewport(const Rect2I& area, UINT32 buffers, const Color& color, float depth, UINT16 stencil,
@@ -1064,6 +1070,41 @@ namespace bs
 			assert(!bufferInfo.useHandle.used);
 			bufferInfo.useHandle.flags |= flags;
 			bufferInfo.accessFlags |= accessFlags;
+		}
+	}
+
+	void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, VulkanUseFlags flags)
+	{
+		auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
+		if (insertResult.second) // New element
+		{
+			ResourceUseHandle& useHandle = insertResult.first->second;
+			useHandle.used = false;
+			useHandle.flags = flags;
+
+			res->notifyBound();
+		}
+		else // Existing element
+		{
+			ResourceUseHandle& useHandle = insertResult.first->second;
+
+			assert(!useHandle.used);
+			useHandle.flags |= flags;
+		}
+
+		// Register any sub-resources
+		// (Purposely don't register them as images, as we will handle any layout transitions manually)
+		UINT32 numColorAttachments = res->getNumColorAttachments();
+		for (UINT32 i = 0; i < numColorAttachments; i++)
+		{
+			VulkanImage* image = res->getColorImage(i);
+			registerResource(image, VulkanUseFlag::Write);
+		}
+
+		if(res->hasDepthAttachment())
+		{
+			VulkanImage* image = res->getDepthStencilImage();
+			registerResource(image, VulkanUseFlag::Write);
 		}
 	}
 

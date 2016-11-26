@@ -14,7 +14,7 @@ namespace bs
 	/** Description of a single swap chain surface. */
 	struct SwapChainSurface
 	{
-		VkImage image;
+		VulkanImage* image;
 		VkImageView view;
 		VkSemaphore sync;
 		bool acquired;
@@ -87,9 +87,8 @@ namespace bs
 		UINT32 mHeight = 0;
 		Vector<SwapChainSurface> mSurfaces;
 
-		VkImage mDepthStencilImage = VK_NULL_HANDLE;
+		VulkanImage* mDepthStencilImage = nullptr;
 		VkImageView mDepthStencilView = VK_NULL_HANDLE;
-		VkDeviceMemory mDepthStencilMemory = nullptr;
 
 		UINT32 mCurrentSemaphoreIdx = 0;
 		UINT32 mCurrentBackBufferIdx = 0;

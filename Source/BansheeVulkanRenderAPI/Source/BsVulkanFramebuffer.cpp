@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsVulkanFramebuffer.h"
+#include "BsVulkanTexture.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanDevice.h"
 
@@ -10,7 +11,8 @@ namespace bs
 
 	VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, const VULKAN_FRAMEBUFFER_DESC& desc)
 		: VulkanResource(owner, false), mNumAttachments(0), mNumColorAttachments(0), mNumLayers(desc.layers)
-		, mColorBaseLayers(), mDepthBaseLayer(0), mHasDepth(false), mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
+		, mColorImages(), mDepthStencilImage(nullptr), mColorBaseLayers(), mDepthBaseLayer(0), mHasDepth(false)
+		, mSampleFlags(VK_SAMPLE_COUNT_1_BIT)
 	{
 		mId = sNextValidId++;
 
@@ -25,7 +27,7 @@ namespace bs
 		UINT32 attachmentIdx = 0;
 		for(UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
-			if (desc.color[i].view == VK_NULL_HANDLE)
+			if (desc.color[i].image == nullptr)
 				continue;
 
 			VkAttachmentDescription& attachmentDesc = attachments[attachmentIdx];
@@ -44,7 +46,8 @@ namespace bs
 			else
 				attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-			mColorBaseLayers[i] = desc.color[i].baseLayer;
+			mColorBaseLayers[attachmentIdx] = desc.color[i].baseLayer;
+			mColorImages[attachmentIdx] = desc.color[i].image;
 
 			VkAttachmentReference& ref = colorReferences[attachmentIdx];
 			ref.attachment = attachmentIdx;
@@ -71,6 +74,7 @@ namespace bs
 			attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 			mDepthBaseLayer = desc.depth.baseLayer;
+			mDepthStencilImage = desc.depth.image;
 
 			VkAttachmentReference& ref = depthReference;
 			ref.attachment = attachmentIdx;
