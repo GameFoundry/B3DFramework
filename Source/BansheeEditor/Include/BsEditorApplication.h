@@ -109,8 +109,8 @@ namespace bs
 		/**	Saves the provided widget layout at the default layout location. */
 		void saveWidgetLayout(const SPtr<EditorWidgetLayout>& layout);
 
-		/** Saves the default widget layout in the current project folder. */
-		void saveDefaultWidgetLayout();
+		/** Saves the default widget layout in the provided folder. */
+		void saveDefaultWidgetLayout(const Path& folder);
 
 		/** Loads the previously saved editor settings from the default location. Overwrites any current settings. */
 		void loadEditorSettings();

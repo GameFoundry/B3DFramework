@@ -279,7 +279,7 @@ namespace bs
 		if (!FileSystem::exists(internalResourcesDir))
 			FileSystem::createDir(internalResourcesDir);
 
-		saveDefaultWidgetLayout();
+		saveDefaultWidgetLayout(path);
 	}
 
 	bool EditorApplication::isValidProjectPath(const Path& path)
@@ -303,7 +303,7 @@ namespace bs
 		layoutPath.append(WIDGET_LAYOUT_PATH);
 
 		if (!FileSystem::exists(layoutPath))
-			saveDefaultWidgetLayout();
+			saveDefaultWidgetLayout(getProjectPath());
 
 		if(FileSystem::exists(layoutPath))
 		{
@@ -323,9 +323,9 @@ namespace bs
 		fs.encode(layout.get());
 	}
 
-	void EditorApplication::saveDefaultWidgetLayout()
+	void EditorApplication::saveDefaultWidgetLayout(const Path& folder)
 	{
-		Path internalResourcesDir = Path::combine(mProjectPath, ProjectLibrary::INTERNAL_RESOURCES_DIR);
+		Path internalResourcesDir = Path::combine(folder, ProjectLibrary::INTERNAL_RESOURCES_DIR);
 
 		if (!FileSystem::exists(internalResourcesDir))
 			FileSystem::createDir(internalResourcesDir);
@@ -334,7 +334,7 @@ namespace bs
 
 		if (FileSystem::exists(defaultLayoutPath))
 		{
-			Path projectLayoutPath = Path::combine(mProjectPath, WIDGET_LAYOUT_PATH);
+			Path projectLayoutPath = Path::combine(folder, WIDGET_LAYOUT_PATH);
 			FileSystem::copy(defaultLayoutPath, projectLayoutPath, false);
 		}
 	}
