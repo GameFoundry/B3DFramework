@@ -6,11 +6,14 @@ Manuals									{#manuals}
 
 - [Startup and main loop](@ref startup)
 - [Scene objects and components](@ref scenesAndComponents)
-- Resources
+- **Resources**
  - [Basics and import](@ref resourceBasicsAndImport)
  - [Saving and loading](@ref resourceSavingAndLoading)
-- Graphics 
+- **Graphics**
  - [Windows](@ref windows)
+ - [Cameras](@ref cameras)
+ - [Importing textures](@ref importingTextures)
+ - [Importing meshes](@ref importingMeshes)
  
 # Developer guides
 
