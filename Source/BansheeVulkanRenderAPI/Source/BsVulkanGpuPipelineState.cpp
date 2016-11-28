@@ -16,8 +16,14 @@
 
 namespace bs
 {
+	VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, 
+		const std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS>& colorReadOnly, bool depthStencilReadOnly)
+		: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor(colorReadOnly)
+		, mReadOnlyDepthStencil(depthStencilReadOnly)
+	{ }
+
 	VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline)
-		:VulkanResource(owner, true), mPipeline(pipeline)
+		: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor(), mReadOnlyDepthStencil(false)
 	{ }
 
 	VulkanPipeline::~VulkanPipeline()
@@ -396,15 +402,40 @@ namespace bs
 		mPipelineInfo.layout = mPerDeviceData[deviceIdx].pipelineLayout;
 		mPipelineInfo.pVertexInputState = vertexInput->getCreateInfo();
 
+		bool depthStencilReadOnly;
 		if (framebuffer->hasDepthAttachment())
+		{
 			mPipelineInfo.pDepthStencilState = &mDepthStencilInfo;
-		else
-			mPipelineInfo.pDepthStencilState = nullptr;
 
-		if (framebuffer->getNumColorAttachments() > 0)
-			mPipelineInfo.pColorBlendState = &mColorBlendStateInfo;
+			depthStencilReadOnly = !enableDepthWrites;
+		}
 		else
+		{
+			mPipelineInfo.pDepthStencilState = nullptr;
+			depthStencilReadOnly = true;
+		}
+
+		std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS> colorReadOnly;
+		if (framebuffer->getNumColorAttachments() > 0)
+		{
+			mPipelineInfo.pColorBlendState = &mColorBlendStateInfo;
+
+			for (UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+			{
+				VkPipelineColorBlendAttachmentState& blendState = mAttachmentBlendStates[i];
+				colorReadOnly[i] = blendState.colorWriteMask == 0;
+			}
+		}
+		else
+		{
 			mPipelineInfo.pColorBlendState = nullptr;
+
+			for (UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+			{
+				VkPipelineColorBlendAttachmentState& blendState = mAttachmentBlendStates[i];
+				colorReadOnly[i] = true;
+			}
+		}
 
 		std::pair<VkShaderStageFlagBits, GpuProgramCore*> stages[] =
 		{
@@ -451,7 +482,7 @@ namespace bs
 		mDepthStencilInfo.back.failOp = oldBackFailOp;
 		mDepthStencilInfo.back.depthFailOp = oldBackZFailOp;
 
-		return device->getResourceManager().create<VulkanPipeline>(pipeline);
+		return device->getResourceManager().create<VulkanPipeline>(pipeline, colorReadOnly, depthStencilReadOnly);
 	}
 
 	VulkanComputePipelineStateCore::VulkanComputePipelineStateCore(const SPtr<GpuProgramCore>& program, 

@@ -16,14 +16,24 @@ namespace bs
 	class VulkanPipeline : public VulkanResource
 	{
 	public:
+		VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, 
+			const std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS>& colorReadOnly, bool depthStencilReadOnly);
 		VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline);
 		~VulkanPipeline();
 
 		/** Returns the internal handle to the Vulkan object. */
 		VkPipeline getHandle() const { return mPipeline; }
 
+		/** Checks is the specified color attachment read-only. Only relevant for graphics pipelines. */
+		bool isColorReadOnly(UINT32 colorIdx) const { return mReadOnlyColor[colorIdx]; }
+
+		/** Checks is the depth-stencil attachment read-only. Only relevant for graphics pipelines. */
+		bool isDepthStencilReadOnly() const { return mReadOnlyDepthStencil; }
 	private:
 		VkPipeline mPipeline;
+
+		std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS> mReadOnlyColor;
+		bool mReadOnlyDepthStencil;
 	};
 
 	/**	Vulkan implementation of a graphics pipeline state. */
