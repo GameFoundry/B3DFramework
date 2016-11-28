@@ -124,6 +124,7 @@ namespace bs
 
 		VULKAN_IMAGE_DESC imageDesc;
 		imageDesc.isDepthStencil = false;
+		imageDesc.isStorage = false;
 		imageDesc.format = colorFormat;
 		imageDesc.type = TEX_TYPE_2D;
 		imageDesc.layout = VK_IMAGE_LAYOUT_UNDEFINED;

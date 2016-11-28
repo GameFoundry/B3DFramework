@@ -239,29 +239,11 @@ namespace bs
 		// Perform any queued layout transitions
 		auto createLayoutTransitionBarrier = [&](VulkanImage* image, ImageInfo& imageInfo)
 		{
-			VkAccessFlags srcAccessFlags;
-			if (imageInfo.currentLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-				srcAccessFlags = VK_ACCESS_SHADER_READ_BIT;
-			else if (imageInfo.currentLayout == VK_IMAGE_LAYOUT_GENERAL)
-			{
-				srcAccessFlags = VK_ACCESS_SHADER_READ_BIT;
-				srcAccessFlags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-			}
-			else if(imageInfo.currentLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-				srcAccessFlags = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			else if (imageInfo.currentLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-				srcAccessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			else
-			{
-				srcAccessFlags = VK_ACCESS_SHADER_READ_BIT;
-				LOGWRN("Unsupported source layout for a framebuffer attachment.");
-			}
-
 			mLayoutTransitionBarriersTemp.push_back(VkImageMemoryBarrier());
 			VkImageMemoryBarrier& barrier = mLayoutTransitionBarriersTemp.back();
 			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 			barrier.pNext = nullptr;
-			barrier.srcAccessMask = srcAccessFlags;
+			barrier.srcAccessMask = image->getAccessFlags(imageInfo.currentLayout);
 			barrier.dstAccessMask = imageInfo.accessFlags;
 			barrier.srcQueueFamilyIndex = mQueueFamily;
 			barrier.dstQueueFamilyIndex = mQueueFamily;

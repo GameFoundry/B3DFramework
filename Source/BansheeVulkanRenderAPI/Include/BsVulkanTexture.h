@@ -25,6 +25,7 @@ namespace bs
 		UINT32 numFaces; /**< Number of faces (array slices, or cube-map faces). */
 		UINT32 numMipLevels; /**< Number of mipmap levels per face. */
 		bool isDepthStencil; /**< True if the image represents a depth-stencil surface. */
+		bool isStorage; /**< True if the texture supports shader random access reads and writes. */
 	};
 
 	/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
@@ -97,6 +98,12 @@ namespace bs
 		void copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, const VkExtent3D& extent, 
 			const VkImageSubresourceLayers& range, VkImageLayout layout);
 
+		/** 
+		 * Determines a set of access flags based on the current image and provided image layout. This method makes 
+		 * certain assumptions about image usage, so it might not be valid in all situations. 
+		 */
+		VkAccessFlags getAccessFlags(VkImageLayout layout);
+
 	private:
 		/** Creates a new view of the provided part (or entirety) of surface. */
 		VkImageView createView(const TextureSurface& surface) const;
@@ -113,6 +120,7 @@ namespace bs
 		VkImageLayout mLayout;
 		VkImageView mMainView;
 		bool mOwnsImage;
+		bool mIsStorage;
 
 		UINT32 mNumFaces;
 		UINT32 mNumMipLevels;
@@ -152,9 +160,6 @@ namespace bs
 		 * device. If texture device mask doesn't include the provided device, null is returned. 
 		 */
 		VkImageView getView(UINT32 deviceIdx, const TextureSurface& surface) const;
-
-		/** Returns the default set of access flags for this texture type. */
-		VkAccessFlags getAccessFlags() const { return mAccessFlags; }
 
 	protected:
 		friend class VulkanTextureCoreManager;
@@ -199,7 +204,6 @@ namespace bs
 
 		VulkanImage* mImages[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;
-		VkAccessFlags mAccessFlags;
 
 		VulkanBuffer* mStagingBuffer;
 		UINT32 mMappedDeviceIdx;
