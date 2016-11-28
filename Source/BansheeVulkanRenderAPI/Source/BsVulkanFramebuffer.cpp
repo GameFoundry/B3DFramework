@@ -61,6 +61,7 @@ namespace bs
 			mColorAttachments[attachmentIdx].baseLayer = desc.color[i].baseLayer;
 			mColorAttachments[attachmentIdx].image = desc.color[i].image;
 			mColorAttachments[attachmentIdx].finalLayout = attachmentDesc.finalLayout;
+			mColorAttachments[attachmentIdx].index = i;
 
 			VkAttachmentReference& ref = mColorReferences[attachmentIdx];
 			ref.attachment = attachmentIdx;
@@ -89,6 +90,7 @@ namespace bs
 			mDepthStencilAttachment.baseLayer = desc.depth.baseLayer;
 			mDepthStencilAttachment.image = desc.depth.image;
 			mDepthStencilAttachment.finalLayout = attachmentDesc.finalLayout;
+			mDepthStencilAttachment.index = 0;
 
 			VkAttachmentReference& ref = mDepthReference;
 			ref.attachment = attachmentIdx;
@@ -179,10 +181,11 @@ namespace bs
 	{
 		for (UINT32 i = 0; i < mNumColorAttachments; i++)
 		{
+			const VulkanFramebufferAttachment& attachment = mColorAttachments[i];
 			VkAttachmentDescription& attachmentDesc = mAttachments[i];
 			VkAttachmentReference& attachmentRef = mColorReferences[i];
 
-			if (loadMask.isSet((RenderSurfaceMaskBits)i))
+			if (loadMask.isSet((RenderSurfaceMaskBits)attachment.index))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -193,7 +196,7 @@ namespace bs
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 
-			if(readMask.isSet((RenderSurfaceMaskBits)i))
+			if(readMask.isSet((RenderSurfaceMaskBits)attachment.index))
 				attachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
 			else
 				attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;

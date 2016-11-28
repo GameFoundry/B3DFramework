@@ -58,6 +58,7 @@ namespace bs
 		VulkanImage* image = nullptr;
 		UINT32 baseLayer = 0;
 		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		UINT32 index = 0;
 	};
 
 	/** Vulkan frame buffer containing one or multiple color surfaces, and an optional depth surface. */

@@ -699,7 +699,9 @@ namespace bs
 			UINT32 numColorAttachments = mFramebuffer->getNumColorAttachments();
 			for (UINT32 i = 0; i < numColorAttachments; i++)
 			{
-				if (((1 << i) & targetMask) == 0)
+				const VulkanFramebufferAttachment& attachment = mFramebuffer->getColorAttachment(i);
+
+				if (((1 << attachment.index) & targetMask) == 0)
 					continue;
 
 				attachments[attachmentIdx].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -711,7 +713,7 @@ namespace bs
 				colorValue.float32[2] = color.b;
 				colorValue.float32[3] = color.a;
 
-				UINT32 curBaseLayer = mFramebuffer->getColorAttachment(i).baseLayer;
+				UINT32 curBaseLayer = attachment.baseLayer;
 				if (attachmentIdx == 0)
 					baseLayer = curBaseLayer;
 				else
