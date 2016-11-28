@@ -163,6 +163,7 @@ namespace bs
 		mutable VkImageView mAttachmentViews[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
 		mutable VkAttachmentReference mColorReferences[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		mutable VkAttachmentReference mDepthReference;
+		mutable VkSubpassDescription mSubpassDesc;
 		mutable VkSubpassDependency mDependencies[2];
 		mutable VkRenderPassCreateInfo mRenderPassCI;
 		mutable VkFramebufferCreateInfo mFramebufferCI;

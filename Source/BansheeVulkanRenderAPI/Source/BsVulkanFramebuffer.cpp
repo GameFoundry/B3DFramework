@@ -99,25 +99,24 @@ namespace bs
 
 		mNumAttachments = attachmentIdx;
 
-		VkSubpassDescription subpassDesc;
-		subpassDesc.flags = 0;
-		subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpassDesc.colorAttachmentCount = mNumColorAttachments;
-		subpassDesc.inputAttachmentCount = 0;
-		subpassDesc.pInputAttachments = nullptr;
-		subpassDesc.preserveAttachmentCount = 0;
-		subpassDesc.pPreserveAttachments = nullptr;
-		subpassDesc.pResolveAttachments = nullptr;
+		mSubpassDesc.flags = 0;
+		mSubpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		mSubpassDesc.colorAttachmentCount = mNumColorAttachments;
+		mSubpassDesc.inputAttachmentCount = 0;
+		mSubpassDesc.pInputAttachments = nullptr;
+		mSubpassDesc.preserveAttachmentCount = 0;
+		mSubpassDesc.pPreserveAttachments = nullptr;
+		mSubpassDesc.pResolveAttachments = nullptr;
 
 		if (mNumColorAttachments > 0)
-			subpassDesc.pColorAttachments = mColorReferences;
+			mSubpassDesc.pColorAttachments = mColorReferences;
 		else
-			subpassDesc.pColorAttachments = nullptr;
+			mSubpassDesc.pColorAttachments = nullptr;
 
 		if (mHasDepth)
-			subpassDesc.pDepthStencilAttachment = &mDepthReference;
+			mSubpassDesc.pDepthStencilAttachment = &mDepthReference;
 		else
-			subpassDesc.pDepthStencilAttachment = nullptr;
+			mSubpassDesc.pDepthStencilAttachment = nullptr;
 
 		// Subpass dependencies for layout transitions
 		mDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -125,7 +124,7 @@ namespace bs
 		mDependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 		mDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		mDependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		mDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT; // Note: Do we really need read access?
+		mDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		mDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; // Note: Is this really required?
 
 		mDependencies[1].srcSubpass = 0;
@@ -143,7 +142,7 @@ namespace bs
 		mRenderPassCI.attachmentCount = mNumAttachments;
 		mRenderPassCI.pAttachments = mAttachments;
 		mRenderPassCI.subpassCount = 1;
-		mRenderPassCI.pSubpasses = &subpassDesc;
+		mRenderPassCI.pSubpasses = &mSubpassDesc;
 		mRenderPassCI.dependencyCount = 2;
 		mRenderPassCI.pDependencies = mDependencies;
 
