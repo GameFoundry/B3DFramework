@@ -13,6 +13,7 @@
 #include "BsMatrix4.h"
 #include "BsEvent.h"
 #include "BsMaterialParam.h"
+#include "BsParamBlocks.h"
 
 namespace bs
 {
@@ -77,6 +78,7 @@ namespace bs
 			Color tint;
 			Matrix4 worldTransform;
 			SPtr<SpriteMaterialExtraInfo> additionalData;
+			UINT32 bufferIdx;
 		};
 
 		/**	Container for a GUI widget. */
@@ -419,6 +421,13 @@ namespace bs
 		HEvent mMouseLeftWindowConn;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(GUISpriteParamBuffer)
+		BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
+		BS_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
+		BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
+		BS_PARAM_BLOCK_ENTRY(Color, gTint)
+	BS_PARAM_BLOCK_END
+
 	/**	Handles GUI rendering on the core thread. */
 	class BS_EXPORT GUIManagerCore
 	{
@@ -434,7 +443,7 @@ namespace bs
 		/**
 		 * Updates the internal data that determines what will be rendered on the next render() call.
 		 *
-		 * @param[in]	data	GUI mesh/material per viewport.
+		 * @param[in]	perCameraData	GUI mesh/material per viewport.
 		 */
 		void updateData(const UnorderedMap<SPtr<CameraCore>, Vector<GUIManager::GUICoreRenderData>>& perCameraData);
 
@@ -442,6 +451,7 @@ namespace bs
 		void render(const SPtr<CameraCore>& camera);
 
 		UnorderedMap<SPtr<CameraCore>, Vector<GUIManager::GUICoreRenderData>> mPerCameraData;
+		Vector<GUISpriteParamBuffer*> mParamBlocks;
 		SPtr<SamplerStateCore> mSamplerState;
 	};
 

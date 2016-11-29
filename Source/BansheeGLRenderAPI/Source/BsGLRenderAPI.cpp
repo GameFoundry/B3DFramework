@@ -55,7 +55,7 @@ namespace bs
 		, mActivePipeline(nullptr)
 		, mCurrentDrawOperation(DOT_TRIANGLE_LIST)
 		, mDrawCallInProgress(false)
-		, mActiveTextureUnit(0)
+		, mActiveTextureUnit(-1)
 	{
 		// Get our GLSupport
 		mGLSupport = bs::getGLSupport();
@@ -356,16 +356,14 @@ namespace bs
 				FrameVector<UINT32> textureUnits(12);
 				auto getTexUnit = [&](UINT32 binding)
 				{
-					UINT32 unit;
-
-					auto iterFind = std::find(textureUnits.begin(), textureUnits.end(), binding);
-					if (iterFind != textureUnits.end())
-						unit = *iterFind;
-					else
+					for(UINT32 i = 0; i < (UINT32)textureUnits.size(); i++)
 					{
-						unit = textureUnitCount++;
-						textureUnits.push_back(binding);
+						if (textureUnits[i] == binding)
+							return i;
 					}
+
+					UINT32 unit = textureUnitCount++;
+					textureUnits.push_back(binding);
 
 					return unit;
 				};
@@ -374,16 +372,14 @@ namespace bs
 				FrameVector<UINT32> imageUnits(6);
 				auto getImageUnit = [&](UINT32 binding)
 				{
-					UINT32 unit;
-
-					auto iterFind = std::find(imageUnits.begin(), imageUnits.end(), binding);
-					if (iterFind != imageUnits.end())
-						unit = *iterFind;
-					else
+					for (UINT32 i = 0; i < (UINT32)imageUnits.size(); i++)
 					{
-						unit = imageUnitCount++;
-						imageUnits.push_back(binding);
+						if (imageUnits[i] == binding)
+							return i;
 					}
+
+					UINT32 unit = imageUnitCount++;
+					imageUnits.push_back(binding);
 
 					return unit;
 				};
@@ -392,16 +388,14 @@ namespace bs
 				FrameVector<UINT32> uniformUnits(6);
 				auto getUniformUnit = [&](UINT32 binding)
 				{
-					UINT32 unit;
-
-					auto iterFind = std::find(uniformUnits.begin(), uniformUnits.end(), binding);
-					if (iterFind != uniformUnits.end())
-						unit = *iterFind;
-					else
+					for (UINT32 i = 0; i < (UINT32)uniformUnits.size(); i++)
 					{
-						unit = uniformUnitCount++;
-						uniformUnits.push_back(binding);
+						if (uniformUnits[i] == binding)
+							return i;
 					}
+
+					UINT32 unit = uniformUnitCount++;
+					uniformUnits.push_back(binding);
 
 					return unit;
 				};

@@ -89,14 +89,12 @@ namespace bs
 		 * @param[in]	mesh			Mesh to render, containing vertices in screen space.
 		 * @param[in]	texture			Optional texture to render the mesh with.
 		 * @param[in]	sampler			Optional sampler to render the texture with.
-		 * @param[in]	tint			Color tint to apply to the rendered mesh.
-		 * @param[in]	worldTransform	World transform to apply to the rendered mesh.
-		 * @param[in]	invViewportSize	Inverse size of the viewport the mesh will be rendered to.
+		 * @param[in]	paramBuffer		Buffer containing data GPU parameters.
 		 * @param[in]	additionalData	Optional additional data that might be required by the renderer.
 		 */
 		virtual void render(const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture,
-			const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform, 
-			const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
+			const SPtr<SamplerStateCore>& sampler, const SPtr<GpuParamBlockBufferCore>& paramBuffer, 
+			const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
 	protected:
 		/** Perform initialization of core-thread specific objects. */
@@ -112,10 +110,7 @@ namespace bs
 		std::atomic<bool> mMaterialStored;
 
 		SPtr<GpuParamsSetCore> mParams;
-		mutable MaterialParamMat4Core mWorldTransformParam;
-		mutable MaterialParamFloatCore mInvViewportWidthParam;
-		mutable MaterialParamFloatCore mInvViewportHeightParam;
-		mutable MaterialParamColorCore mTintParam;
+		UINT32 mParamBufferIdx;
 		mutable MaterialParamTextureCore mTextureParam;
 		mutable MaterialParamSampStateCore mSamplerParam;
 	};

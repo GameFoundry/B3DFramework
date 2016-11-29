@@ -15,6 +15,9 @@ namespace bs
 	 *  @{
 	 */
 
+// Note: Every time one of these param blocks is instantiated we generate its descriptor. It would be better to generate
+// it once, and then just quickly instantiate for subsequent creations.
+
 /**
  * Starts a new custom parameter block. Custom parameter blocks allow you to create C++ structures that map directly
  * to GPU program buffers (for example uniform buffer in OpenGL or constant buffer in DX). Must be followed by
@@ -46,6 +49,11 @@ namespace bs
 		}																													\
 																															\
 		const SPtr<GpuParamBlockBufferCore>& getBuffer() const { return mBuffer; }											\
+		void setBuffer(const SPtr<GpuParamBlockBufferCore>& buffer)															\
+		{																													\
+				mBuffer = buffer;																							\
+				mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, #Name, mBuffer);											\
+		}																													\
 		const GpuParamBlockDesc& getDesc() const { return mBlockDesc; }														\
 		void flushToGPU(UINT32 queueIdx = 0) { mBuffer->flushToGPU(queueIdx); }												\
 																															\

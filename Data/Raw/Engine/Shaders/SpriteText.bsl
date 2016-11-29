@@ -1,13 +1,17 @@
 Parameters =
 {
-	mat4x4 	worldTransform;
-	float	invViewportWidth;
-	float	invViewportHeight;
+	mat4x4 	gWorldTransform;
+	float	gInvViewportWidth;
+	float	gInvViewportHeight;
+	color	gTint;
 	
-	Sampler2D	mainTexSamp : alias("mainTexture");
-	Texture2D	mainTexture;
-	
-	color		tint;
+	Sampler2D	gMainTexSamp : alias("gMainTexture");
+	Texture2D	gMainTexture;
+};
+
+Blocks = 
+{
+	Block GUIParams : auto("GUIParams");
 };
 
 Technique =
@@ -26,22 +30,29 @@ Technique =
 		DepthRead = false;
 		DepthWrite = false;
 		
+		Common =
+		{
+			cbuffer GUIParams
+			{
+				float4x4 gWorldTransform;
+				float gInvViewportWidth;
+				float gInvViewportHeight;
+				float4 gTint;
+			}	
+		};
+		
 		Vertex =
 		{
-			float invViewportWidth;
-			float invViewportHeight;
-			float4x4 worldTransform;
-
 			void main(
 				in float3 inPos : POSITION,
 				in float2 uv : TEXCOORD0,
 				out float4 oPosition : SV_Position,
 				out float2 oUv : TEXCOORD0)
 			{
-				float4 tfrmdPos = mul(worldTransform, float4(inPos.xy, 0, 1));
+				float4 tfrmdPos = mul(gWorldTransform, float4(inPos.xy, 0, 1));
 
-				float tfrmdX = -1.0f + (tfrmdPos.x * invViewportWidth);
-				float tfrmdY = 1.0f - (tfrmdPos.y * invViewportHeight);
+				float tfrmdX = -1.0f + (tfrmdPos.x * gInvViewportWidth);
+				float tfrmdY = 1.0f - (tfrmdPos.y * gInvViewportHeight);
 
 				oPosition = float4(tfrmdX, tfrmdY, 0, 1);
 				oUv = uv;
@@ -50,13 +61,12 @@ Technique =
 		
 		Fragment =
 		{
-			SamplerState mainTexSamp : register(s0);
-			Texture2D mainTexture : register(t0);
-			float4 tint;
+			SamplerState gMainTexSamp : register(s0);
+			Texture2D gMainTexture : register(t0);
 
 			float4 main(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 			{
-				float4 color = float4(tint.rgb, mainTexture.Sample(mainTexSamp, uv).r * tint.a);
+				float4 color = float4(gTint.rgb, gMainTexture.Sample(gMainTexSamp, uv).r * gTint.a);
 				return color;
 			}
 		};
@@ -79,15 +89,19 @@ Technique =
 		DepthRead = false;
 		DepthWrite = false;
 		
+		Common =
+		{
+			layout (binding = 0, std140) uniform GUIParams
+			{
+				mat4 gWorldTransform;
+				float gInvViewportWidth;
+				float gInvViewportHeight;
+				vec4 gTint;
+			};			
+		};			
+		
 		Vertex =
 		{
-			layout (binding = 0) uniform VertUBO
-			{
-				float invViewportWidth;
-				float invViewportHeight;
-				mat4 worldTransform;
-			};
-
 			layout (location = 0) in vec3 bs_position;
 			layout (location = 1) in vec2 bs_texcoord0;
 			
@@ -100,10 +114,10 @@ Technique =
 			
 			void main()
 			{
-				vec4 tfrmdPos = worldTransform * vec4(bs_position.xy, 0, 1);
+				vec4 tfrmdPos = gWorldTransform * vec4(bs_position.xy, 0, 1);
 
-				float tfrmdX = -1.0f + (tfrmdPos.x * invViewportWidth);
-				float tfrmdY = 1.0f - (tfrmdPos.y * invViewportHeight);
+				float tfrmdX = -1.0f + (tfrmdPos.x * gInvViewportWidth);
+				float tfrmdY = 1.0f - (tfrmdPos.y * gInvViewportHeight);
 
 				gl_Position = vec4(tfrmdX, tfrmdY, 0, 1);
 				texcoord0 = bs_texcoord0;
@@ -112,19 +126,14 @@ Technique =
 		
 		Fragment =
 		{
-			layout (binding = 1) uniform FragUBO
-			{
-				vec4 tint;
-			};		
-		
-			layout (binding = 2) uniform sampler2D mainTexture;
+			layout (binding = 1) uniform sampler2D gMainTexture;
 			
 			layout (location = 0) in vec2 texcoord0;
 			layout (location = 0) out vec4 fragColor;
 
 			void main()
 			{
-				vec4 color = vec4(tint.rgb, texture2D(mainTexture, texcoord0.st).r * tint.a);
+				vec4 color = vec4(gTint.rgb, texture2D(gMainTexture, texcoord0.st).r * gTint.a);
 				fragColor = color;
 			}
 		};

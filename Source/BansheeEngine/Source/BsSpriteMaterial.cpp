@@ -6,6 +6,7 @@
 #include "BsMesh.h"
 #include "BsShader.h"
 #include "BsRendererUtility.h"
+#include "BsGpuParamsSet.h"
 #include "BsCoreThread.h"
 
 namespace bs
@@ -31,18 +32,25 @@ namespace bs
 		assert(materialStored == true);
 
 		mParams = mMaterial->createParamsSet();
-		SPtr<ShaderCore> shader = mMaterial->getShader();
 
-		if(shader->hasTextureParam("mainTexture"))
+		SPtr<ShaderCore> shader = mMaterial->getShader();
+		if(shader->hasTextureParam("gMainTexture"))
 		{
-			mTextureParam = mMaterial->getParamTexture("mainTexture");
-			mSamplerParam = mMaterial->getParamSamplerState("mainTexSamp");
+			mTextureParam = mMaterial->getParamTexture("gMainTexture");
+			mSamplerParam = mMaterial->getParamSamplerState("gMainTexSamp");
 		}
 
-		mTintParam = mMaterial->getParamColor("tint");
-		mInvViewportWidthParam = mMaterial->getParamFloat("invViewportWidth");
-		mInvViewportHeightParam = mMaterial->getParamFloat("invViewportHeight");
-		mWorldTransformParam = mMaterial->getParamMat4("worldTransform");
+		static StringID GUIParamsSemantic = "GUIParams";
+		const Map<String, SHADER_PARAM_BLOCK_DESC>& paramBlockDescs = shader->getParamBlocks();
+
+		for (auto& paramBlockDesc : paramBlockDescs)
+		{
+			if (paramBlockDesc.second.rendererSemantic == GUIParamsSemantic)
+				mParamBufferIdx = mParams->getParamBlockBufferIndex(paramBlockDesc.second.name);
+		}
+
+		if(mParamBufferIdx == -1)
+			LOGERR("Sprite material shader missing \"GUIParams\" block.");
 	}
 
 	void SpriteMaterial::destroy(const SPtr<MaterialCore>& material, const SPtr<GpuParamsSetCore>& params)
@@ -66,8 +74,8 @@ namespace bs
 	}
 
 	void SpriteMaterial::render(const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture,
-		const SPtr<SamplerStateCore>& sampler, const Color& tint, const Matrix4& worldTransform,
-		const Vector2& invViewportSize, const SPtr<SpriteMaterialExtraInfo>& additionalData) const
+		const SPtr<SamplerStateCore>& sampler, const SPtr<GpuParamBlockBufferCore>& paramBuffer,
+		const SPtr<SpriteMaterialExtraInfo>& additionalData) const
 	{
 		SPtr<TextureCore> spriteTexture;
 		if (texture != nullptr)
@@ -77,10 +85,9 @@ namespace bs
 
 		mTextureParam.set(spriteTexture);
 		mSamplerParam.set(sampler);
-		mTintParam.set(tint);
-		mInvViewportWidthParam.set(invViewportSize.x);
-		mInvViewportHeightParam.set(invViewportSize.y);
-		mWorldTransformParam.set(worldTransform);
+
+		if(mParamBufferIdx != -1)
+			mParams->setParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
 
 		mMaterial->updateParamsSet(mParams);
 

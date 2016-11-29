@@ -1743,6 +1743,9 @@ namespace bs
 		SPtr<CoreRenderer> activeRenderer = RendererManager::instance().getActive();
 		for (auto& cameraData : mPerCameraData)
 			activeRenderer->unregisterRenderCallback(cameraData.first.get(), 30);
+
+		for(auto& entry : mParamBlocks)
+			bs_delete(entry);
 	}
 
 	void GUIManagerCore::initialize()
@@ -1760,6 +1763,7 @@ namespace bs
 		bs_frame_mark();
 
 		{
+			// Assign new per camera data, and find if any cameras were added or removed
 			FrameSet<SPtr<CameraCore>> validCameras;
 
 			SPtr<CoreRenderer> activeRenderer = RendererManager::instance().getActive();
@@ -1806,6 +1810,35 @@ namespace bs
 				activeRenderer->unregisterRenderCallback(camera.get(), 30);
 				mPerCameraData.erase(camera);
 			}
+
+			// Allocate GPU buffers containing the material parameters
+			UINT32 numBuffers = 0;
+			for (auto& cameraData : mPerCameraData)
+				numBuffers += (UINT32)cameraData.second.size();
+
+			UINT32 numAllocatedBuffers = (UINT32)mParamBlocks.size();
+			if (numBuffers > numAllocatedBuffers)
+			{
+				mParamBlocks.resize(numBuffers);
+
+				for (UINT32 i = numAllocatedBuffers; i < numBuffers; i++)
+					mParamBlocks[i] = bs_new<GUISpriteParamBuffer>();
+			}
+
+			UINT32 curBufferIdx = 0;
+			for (auto& cameraData : mPerCameraData)
+			{
+				for(auto& entry : cameraData.second)
+				{
+					GUISpriteParamBuffer* buffer = mParamBlocks[curBufferIdx];
+
+					buffer->gTint.set(entry.tint);
+					buffer->gWorldTransform.set(entry.worldTransform);
+
+					entry.bufferIdx = curBufferIdx;
+					curBufferIdx++;
+				}
+			}
 		}
 
 		bs_frame_clear();
@@ -1818,14 +1851,24 @@ namespace bs
 		float invViewportWidth = 1.0f / (camera->getViewport()->getWidth() * 0.5f);
 		float invViewportHeight = 1.0f / (camera->getViewport()->getHeight() * 0.5f);
 
-		Vector2 invViewportSize(invViewportWidth, invViewportHeight);
+		for (auto& entry : renderData)
+		{
+			GUISpriteParamBuffer* buffer = mParamBlocks[entry.bufferIdx];
+
+			buffer->gInvViewportWidth.set(invViewportWidth);
+			buffer->gInvViewportHeight.set(invViewportHeight);
+
+			buffer->getBuffer()->flushToGPU();
+		}
+
 		for (auto& entry : renderData)
 		{
 			// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
 			// changed, and apply only those + the modified constant buffers and/or texture.
 
-			entry.material->render(entry.mesh, entry.texture, mSamplerState, entry.tint, entry.worldTransform, 
-				invViewportSize, entry.additionalData);
+			GUISpriteParamBuffer* buffer = mParamBlocks[entry.bufferIdx];
+
+			entry.material->render(entry.mesh, entry.texture, mSamplerState, buffer->getBuffer(), entry.additionalData);
 		}
 	}
 }
