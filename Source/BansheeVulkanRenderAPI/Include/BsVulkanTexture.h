@@ -202,6 +202,13 @@ namespace bs
 		 */
 		VulkanBuffer* createStaging(VulkanDevice& device, const PixelData& pixelData, bool needsRead);
 
+		/** 
+		 * Copies all sub-resources from the source image to the destination image. Caller must ensure the images
+		 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the 
+		 * provided image matches the current texture properties (i.e. num faces, mips, size).
+		 */
+		void copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage);
+
 		VulkanImage* mImages[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;
 

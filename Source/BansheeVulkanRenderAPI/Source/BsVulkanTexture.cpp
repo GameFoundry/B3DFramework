@@ -344,8 +344,7 @@ namespace bs
 			mImageCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
 
-		if ((usage & TU_CPUREADABLE) != 0)
-			mImageCI.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		mImageCI.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 		VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -454,6 +453,80 @@ namespace bs
 			pixelData.getRowPitch(), pixelData.getSlicePitch());
 	}
 
+	void VulkanTextureCore::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage)
+	{
+		UINT32 numFaces = mProperties.getNumFaces();
+		UINT32 numMipmaps = mProperties.getNumMipmaps() + 1;
+
+		UINT32 mipWidth = mProperties.getWidth();
+		UINT32 mipHeight = mProperties.getHeight();
+		UINT32 mipDepth = mProperties.getDepth();
+
+		VkImageCopy* imageRegions = bs_stack_alloc<VkImageCopy>(numMipmaps);
+
+		for(UINT32 i = 0; i < numMipmaps; i++)
+		{
+			VkImageCopy& imageRegion = imageRegions[i];
+
+			imageRegion.srcOffset = { 0, 0, 0 };
+			imageRegion.dstOffset = { 0, 0, 0 };
+			imageRegion.extent = { mipWidth, mipHeight, mipDepth };
+			imageRegion.srcSubresource.baseArrayLayer = 0;
+			imageRegion.srcSubresource.layerCount = numFaces;
+			imageRegion.srcSubresource.mipLevel = i;
+			imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageRegion.dstSubresource.baseArrayLayer = 0;
+			imageRegion.dstSubresource.layerCount = numFaces;
+			imageRegion.dstSubresource.mipLevel = i;
+			imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+			if (mipWidth != 1) mipWidth /= 2;
+			if (mipHeight != 1) mipHeight /= 2;
+			if (mipDepth != 1) mipDepth /= 2;
+		}
+
+		VkImageSubresourceRange range;
+		range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		range.baseArrayLayer = 0;
+		range.layerCount = numFaces;
+		range.baseMipLevel = 0;
+		range.levelCount = numMipmaps;
+
+		VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcImage->getLayout());
+		VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstImage->getLayout());
+
+		VkImageLayout transferSrcLayout, transferDstLayout;
+		if (mDirectlyMappable)
+		{
+			transferSrcLayout = VK_IMAGE_LAYOUT_GENERAL;
+			transferDstLayout = VK_IMAGE_LAYOUT_GENERAL;
+		}
+		else
+		{
+			transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			transferDstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		}
+
+		// Transfer textures to a valid layout
+		cb->setLayout(srcImage->getHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcImage->getLayout(),
+							  transferSrcLayout, range);
+
+		cb->setLayout(dstImage->getHandle(), dstAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
+							  dstImage->getLayout(), transferDstLayout, range);
+
+		vkCmdCopyImage(cb->getCB()->getHandle(), srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+						dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numMipmaps, imageRegions);
+
+		// Transfer back to original layouts
+		cb->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask,
+							  transferSrcLayout, srcImage->getLayout(), range);
+
+		cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
+							  transferDstLayout, dstImage->getLayout(), range);
+
+		bs_stack_free(imageRegions);
+	}
+
 	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx) const
 	{
 		if (mImages[deviceIdx] == nullptr)
@@ -558,8 +631,11 @@ namespace bs
 		dstRange.baseMipLevel = destMipLevel;
 		dstRange.levelCount = 1;
 
+		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPICore::instance());
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
+			VulkanDevice& device = *rapi._getDevice(i);
+
 			VulkanImage* srcImage = mImages[i];
 			VulkanImage* dstImage = other->getResource(i);
 
@@ -569,9 +645,34 @@ namespace bs
 			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(i, queueType, localQueueIdx);
 			VkCommandBuffer vkCmdBuf = transferCB->getCB()->getHandle();
 
-			// Transfer textures to a valid layout
+			// If destination subresource is queued for some operation on a CB (ignoring the ones we're waiting for), then 
+			// we need to make a copy of the image to avoid modifying its use in the previous operation
+			UINT32 useCount = dstImage->getUseCount();
+			UINT32 boundCount = dstImage->getBoundCount();
+
+			bool isBoundWithoutUse = boundCount > useCount;
+			if (isBoundWithoutUse)
+			{
+				VulkanImage* newImage = createImage(device);
+
+				// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
+				if (dstProps.getNumMipmaps() > 0 || dstProps.getNumFaces() > 1)
+				{
+					copyImage(transferCB, dstImage, newImage);
+
+					VkAccessFlags accessMask = dstImage->getAccessFlags(dstImage->getLayout());
+					transferCB->getCB()->registerResource(dstImage, accessMask, dstImage->getLayout(), VulkanUseFlag::Read);
+				}
+
+				dstImage->destroy();
+				dstImage = newImage;
+				mImages[i] = dstImage;
+			}
+
 			VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcImage->getLayout());
 			VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstImage->getLayout());
+
+			// Transfer textures to a valid layout
 			transferCB->setLayout(srcImage->getHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcImage->getLayout(),
 									transferSrcLayout, srcRange);
 

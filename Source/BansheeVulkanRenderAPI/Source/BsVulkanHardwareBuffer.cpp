@@ -483,7 +483,7 @@ namespace bs
 						// Avoid copying original contents if the staging buffer completely covers it
 						if (mMappedOffset > 0 || mMappedSize != mSize)
 						{
-							buffer->copy(transferCB, newBuffer, mMappedOffset, mMappedOffset, mMappedSize);
+							buffer->copy(transferCB, newBuffer, 0, 0, mSize);
 
 							transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
 						}
@@ -573,14 +573,16 @@ namespace bs
 			UINT32 dstUseMask = dst->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
 
 			// If discard is enabled and destination is used, instead of waiting just discard the existing buffer and make a new one
+			bool isNormalWrite = true;
 			if(dstUseMask != 0 && discardWholeBuffer)
 			{
 				dst->destroy();
 
 				dst = createBuffer(device, mSize, false, true);
-				mBuffers[mMappedDeviceIdx] = dst;
+				mBuffers[i] = dst;
 
 				dstUseMask = 0;
+				isNormalWrite = false;
 			}
 
 			// If source buffer is being written to on the GPU we need to wait until it finishes, before executing copy
@@ -589,6 +591,34 @@ namespace bs
 			// Wait if anything is using the buffers
 			if(dstUseMask != 0 || srcUseMask != 0)
 				transferCB->appendMask(dstUseMask | srcUseMask);
+
+			// Check if the destination buffer will still be bound somewhere after the CBs using it finish
+			if (isNormalWrite)
+			{
+				UINT32 useCount = dst->getUseCount();
+				UINT32 boundCount = dst->getBoundCount();
+
+				bool isBoundWithoutUse = boundCount > useCount;
+
+				// If destination buffer is queued for some operation on a CB (ignoring the ones we're waiting for), then we
+				// need to make a copy of the buffer to avoid modifying its use in the previous operation
+				if (isBoundWithoutUse)
+				{
+					VulkanBuffer* newBuffer = createBuffer(device, mSize, false, true);
+
+					// Avoid copying original contents if the copy completely covers it
+					if (dstOffset > 0 || length != mSize)
+					{
+						dst->copy(transferCB, newBuffer, 0, 0, mSize);
+
+						transferCB->getCB()->registerResource(dst, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
+					}
+
+					dst->destroy();
+					dst = newBuffer;
+					mBuffers[i] = dst;
+				}
+			}
 
 			src->copy(transferCB, dst, srcOffset, dstOffset, length);
 
