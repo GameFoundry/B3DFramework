@@ -1,26 +1,34 @@
 # Compiling
 
 Banshee is available on two branches:
- - **preview** - This branch always contains latest "stable" pre-release version.
+ - **preview** - This branch always contains latest "stable" pre-release version. This might be a few months behind master.
  - **master** - This branch contains the latest changes, might be quite unstable and might not even compile. Use this if you absolutely need the bleeding edge changes.
  
-It can be compiled using:
- - MSVC++ 14.0 (Visual Studio 2015)
- - Clang
+Banshee can be compiled in two modes:
+ - **Runtime** (default) - This will compile the entire engine, scripting system and the editor. This is intended for those that plan on using the editor as a runtime to develop and build games.
+ - **Framework** - This will compile only the C++ engine framework without the editor or the scripting API. This is intended for those that prefer to create applications more directly with less high level abstractions.
  
-Banshee currently only compiles on Windows, but Mac & Linux ports are coming soon.
+Supported platforms:
+ - Windows
+ - (Mac & Linux coming soon)
 
+Supported compilers:
+ - MSVC++ 14.0 (Visual Studio 2015)
+ - (Clang/GCC coming soon)
+ 
 ## Compile steps (Simple)
+
+We provide two sets of compile intructions depending on what you need:
+ - Simple: Straightforward setup for those that don't need to perform any special configuration on Banshee's build and just want to compile with default settings
+ - Advanced: Slightly more complicated setup, but allows you to configure exactly how to build Banshee and with which tools
 
 ### Windows
 
-To create a Visual Studio 2015 solution with default settings, follow these steps:
+To create a Visual Studio 2015 solution with the complete runtime, follow these steps:
  1. Download source code
- 2. Install relevant DirectX dependencies as described [here](#otherDeps) 
- 3. Run setup.bat in the source code root folder
- 4. Access Visual Studio solution in /Build/VS2015/Banshee.sln
-
-Note: Visual Studio 2015 installation required
+ 2. Run setup.bat in the source code root folder
+ 3. Access Visual Studio solution in /Build/VS2015/Banshee.sln
+ 4. If compilation fails with errors related to DirectX, you need to install relevant DirectX dependencies as described [here](#otherDeps) 
 
 ## Compile steps (Advanced)
 
@@ -35,7 +43,7 @@ For those that wish to customize their build, or compile using something other t
   3. Point CMake to the /Source sub-folder in Banshee's source code (Browse Source... button in GUI)
   4. Choose an output folder (Browse Build... button in GUI)
   5. Hit Configure and choose the toolset to generate the files for (e.g. Visual Studio 2015 64-bit)
-  6. (Optionally) Customize your build by setting any of the properties that have appeared. You can choose options like render API (Vulkan, DirectX, OpenGL), audio module and whether to build the entire editor or just the engine.
+  6. (Optionally) Customize your build by setting any of the properties that have appeared. You can choose whether to build the complete runtime or just the framework (BUILD_EDITOR property), as well as choose render API (Vulkan, DirectX, OpenGL), audio module (FMOD, OpenAudio) among other options.
   7. Hit the Generate button
  4. Once CMake is done generating you can use the toolset you chose (e.g. Visual Studio) to open the generated files (e.g. open the .sln file provided in the Build folder in the case of Visual Studio)
 
