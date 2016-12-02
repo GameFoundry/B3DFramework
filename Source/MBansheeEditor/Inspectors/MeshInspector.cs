@@ -22,7 +22,6 @@ namespace BansheeEditor
         private GUIToggleField animationField;
         private GUIFloatField scaleField;
         private GUIToggleField cpuCachedField;
-        private GUIToggleField cpuReadableField;
         private GUIEnumField collisionMeshTypeField;
         private GUIToggleField keyFrameReductionField;
         private GUIToggleField rootMotionField;
@@ -56,7 +55,6 @@ namespace BansheeEditor
             animationField.Value = newImportOptions.ImportAnimation;
             scaleField.Value = newImportOptions.Scale;
             cpuCachedField.Value = newImportOptions.CPUCached;
-            cpuReadableField.Value = newImportOptions.CPUReadable;
             collisionMeshTypeField.Value = (ulong)newImportOptions.CollisionMeshType;
             keyFrameReductionField.Value = newImportOptions.KeyframeReduction;
             rootMotionField.Value = newImportOptions.ImportRootMotion;
@@ -80,7 +78,6 @@ namespace BansheeEditor
             animationField = new GUIToggleField(new LocEdString("Import Animation"));
             scaleField = new GUIFloatField(new LocEdString("Scale"));
             cpuCachedField = new GUIToggleField(new LocEdString("CPU cached"));
-            cpuReadableField = new GUIToggleField(new LocEdString("CPU readable"));
             collisionMeshTypeField = new GUIEnumField(typeof(CollisionMeshType), new LocEdString("Collision mesh"));
             keyFrameReductionField = new GUIToggleField(new LocEdString("Keyframe Reduction"));
             rootMotionField = new GUIToggleField(new LocEdString("Import root motion"));
@@ -93,7 +90,6 @@ namespace BansheeEditor
             animationField.OnChanged += x => importOptions.ImportAnimation = x;
             scaleField.OnChanged += x => importOptions.Scale = x;
             cpuCachedField.OnChanged += x => importOptions.CPUCached = x;
-            cpuReadableField.OnChanged += x => importOptions.CPUReadable = x;
             collisionMeshTypeField.OnSelectionChanged += x => importOptions.CollisionMeshType = (CollisionMeshType)x;
             keyFrameReductionField.OnChanged += x => importOptions.KeyframeReduction = x;
             rootMotionField.OnChanged += x => importOptions.ImportRootMotion = x;
@@ -107,7 +103,6 @@ namespace BansheeEditor
             Layout.AddElement(animationField);
             Layout.AddElement(scaleField);
             Layout.AddElement(cpuCachedField);
-            Layout.AddElement(cpuReadableField);
             Layout.AddElement(collisionMeshTypeField);
             Layout.AddElement(keyFrameReductionField);
             Layout.AddElement(rootMotionField);

@@ -68,15 +68,6 @@ namespace BansheeEditor
         }
 
         /// <summary>
-        /// Determines whether the texture data can be read directly from the GPU.
-        /// </summary>
-        public bool CPUReadable
-        {
-            get { return Internal_GetCPUReadable(mCachedPtr); }
-            set { Internal_SetCPUReadable(mCachedPtr, value); }
-        }
-
-        /// <summary>
         /// Determines should the texture data be treated as if its in sRGB (gamma) space. Such texture will be converted by
         /// hardware to linear space before use on the GPU.
         /// </summary>
@@ -112,12 +103,6 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetCPUCached(IntPtr thisPtr, bool value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_GetCPUReadable(IntPtr thisPtr);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetCPUReadable(IntPtr thisPtr, bool value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool Internal_GetIsSRGB(IntPtr thisPtr);
@@ -176,15 +161,6 @@ namespace BansheeEditor
         {
             get { return Internal_GetCPUCached(mCachedPtr); }
             set { Internal_SetCPUCached(mCachedPtr, value); }
-        }
-
-        /// <summary>
-        /// Determines whether the mesh data can be read directly from the GPU.
-        /// </summary>
-        public bool CPUReadable
-        {
-            get { return Internal_GetCPUReadable(mCachedPtr); }
-            set { Internal_SetCPUReadable(mCachedPtr, value); }
         }
 
         /// <summary>
@@ -300,12 +276,6 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetCPUCached(IntPtr thisPtr, bool value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_GetCPUReadable(IntPtr thisPtr);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetCPUReadable(IntPtr thisPtr, bool value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool Internal_GetImportNormals(IntPtr thisPtr);

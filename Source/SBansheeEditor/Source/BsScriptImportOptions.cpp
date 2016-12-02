@@ -77,8 +77,6 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_SetGenerateMipmaps", &ScriptTextureImportOptions::internal_SetGenerateMipmaps);
 		metaData.scriptClass->addInternalCall("Internal_GetMaxMipmapLevel", &ScriptTextureImportOptions::internal_GetMaxMipmapLevel);
 		metaData.scriptClass->addInternalCall("Internal_SetMaxMipmapLevel", &ScriptTextureImportOptions::internal_SetMaxMipmapLevel);
-		metaData.scriptClass->addInternalCall("Internal_GetCPUReadable", &ScriptTextureImportOptions::internal_GetCPUReadable);
-		metaData.scriptClass->addInternalCall("Internal_SetCPUReadable", &ScriptTextureImportOptions::internal_SetCPUReadable);
 		metaData.scriptClass->addInternalCall("Internal_GetCPUCached", &ScriptTextureImportOptions::internal_GetCPUCached);
 		metaData.scriptClass->addInternalCall("Internal_SetCPUCached", &ScriptTextureImportOptions::internal_SetCPUCached);
 		metaData.scriptClass->addInternalCall("Internal_GetIsSRGB", &ScriptTextureImportOptions::internal_GetIsSRGB);
@@ -139,16 +137,6 @@ namespace bs
 		thisPtr->getTexImportOptions()->setMaxMip(value);
 	}
 
-	bool ScriptTextureImportOptions::internal_GetCPUReadable(ScriptTextureImportOptions* thisPtr)
-	{
-		return thisPtr->getTexImportOptions()->getCPUReadable();
-	}
-
-	void ScriptTextureImportOptions::internal_SetCPUReadable(ScriptTextureImportOptions* thisPtr, bool value)
-	{
-		thisPtr->getTexImportOptions()->setCPUReadable(value);
-	}
-
 	bool ScriptTextureImportOptions::internal_GetCPUCached(ScriptTextureImportOptions* thisPtr)
 	{
 		return thisPtr->getTexImportOptions()->getCPUCached();
@@ -178,8 +166,6 @@ namespace bs
 	void ScriptMeshImportOptions::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", &ScriptMeshImportOptions::internal_CreateInstance);
-		metaData.scriptClass->addInternalCall("Internal_GetCPUReadable", &ScriptMeshImportOptions::internal_GetCPUReadable);
-		metaData.scriptClass->addInternalCall("Internal_SetCPUReadable", &ScriptMeshImportOptions::internal_SetCPUReadable);
 		metaData.scriptClass->addInternalCall("Internal_GetCPUCached", &ScriptMeshImportOptions::internal_GetCPUCached);
 		metaData.scriptClass->addInternalCall("Internal_SetCPUCached", &ScriptMeshImportOptions::internal_SetCPUCached);
 		metaData.scriptClass->addInternalCall("Internal_GetImportNormals", &ScriptMeshImportOptions::internal_GetImportNormals);
@@ -228,16 +214,6 @@ namespace bs
 	void ScriptMeshImportOptions::internal_CreateInstance(MonoObject* instance)
 	{
 		new (bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(instance);
-	}
-
-	bool ScriptMeshImportOptions::internal_GetCPUReadable(ScriptMeshImportOptions* thisPtr)
-	{
-		return thisPtr->getMeshImportOptions()->getCPUReadable();
-	}
-
-	void ScriptMeshImportOptions::internal_SetCPUReadable(ScriptMeshImportOptions* thisPtr, bool value)
-	{
-		thisPtr->getMeshImportOptions()->setCPUReadable(value);
 	}
 
 	bool ScriptMeshImportOptions::internal_GetCPUCached(ScriptMeshImportOptions* thisPtr)

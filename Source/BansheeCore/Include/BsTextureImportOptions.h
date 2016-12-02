@@ -33,9 +33,6 @@ namespace bs
 		/** Sets whether the texture data is also stored in main memory, available for fast CPU access. */
 		void setCPUCached(bool cached) { mCPUCached = cached; }
 
-		/** Sets whether the texture data can be read directly from the GPU. */
-		void setCPUReadable(bool readable) { mCPUReadable = readable; }
-
 		/** 
 		 * Sets whether the texture data should be treated as if its in sRGB (gamma) space. Such texture will be converted 
 		 * by hardware to linear space before use on the GPU.
@@ -56,9 +53,6 @@ namespace bs
 
 		/** Retrieves whether the texture data is also stored in main memory, available for fast CPU access. */
 		bool getCPUCached() const { return mCPUCached; }
-
-		/** Retrieves whether the texture data can be read directly from the GPU. */
-		bool getCPUReadable() const { return mCPUReadable; }
 
 		/**
 		 * Retrieves whether the texture data should be treated as if its in sRGB (gamma) space. Such texture will be 
@@ -81,7 +75,6 @@ namespace bs
 		PixelFormat mFormat;
 		bool mGenerateMips;
 		UINT32 mMaxMip;
-		bool mCPUReadable;
 		bool mCPUCached;
 		bool mSRGB;
 	};

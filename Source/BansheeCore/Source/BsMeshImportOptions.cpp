@@ -27,7 +27,7 @@ namespace bs
 
 	MeshImportOptions::MeshImportOptions()
 		: mCPUCached(false), mImportNormals(true), mImportTangents(true), mImportBlendShapes(false), mImportSkin(false)
-		, mImportAnimation(false), mReduceKeyFrames(true), mImportRootMotion(false), mImportScale(1.0f), mCPUReadable(false)
+		, mImportAnimation(false), mReduceKeyFrames(true), mImportRootMotion(false), mImportScale(1.0f)
 		, mCollisionMeshType(CollisionMeshType::None)
 	{ }
 

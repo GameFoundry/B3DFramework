@@ -38,10 +38,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		bool isDynamic = (mUsage & MU_DYNAMIC) != 0;
-		bool isGpuReadable = (mUsage & MU_CPUREADABLE) != 0 || BS_EDITOR_BUILD;
-
 		int usage = isDynamic ? GBU_DYNAMIC : GBU_STATIC;
-		usage |= isGpuReadable ? GBU_READABLE : 0;
 
 		INDEX_BUFFER_DESC ibDesc;
 		ibDesc.indexType = mIndexType;
@@ -215,12 +212,6 @@ namespace bs
 	void MeshCore::readData(MeshData& meshData, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
-
-		if ((mUsage & MU_CPUREADABLE) == 0 && !BS_EDITOR_BUILD)
-		{
-			LOGERR("Attempting to read GPU data from a mesh that is created without a CPU readable flag.");
-			return;
-		}
 
 		IndexType indexType = IT_32BIT;
 		if (mIndexBuffer)

@@ -57,23 +57,9 @@ namespace bs
 
 			SPtr<PixelData> pixelData = obj->mProperties.allocBuffer(face, mipmap);
 
-			int usage = obj->getProperties().getUsage();
+			obj->readData(pixelData, face, mipmap);
+			gCoreThread().submit(true);
 
-			if (usage & TU_CPUREADABLE || BS_EDITOR_BUILD)
-			{
-				obj->readData(pixelData, face, mipmap);
-				gCoreThread().submit(true);
-
-				return pixelData;
-			}
-
-			if(usage & TU_CPUCACHED)
-			{
-				obj->readCachedData(*pixelData, face, mipmap);
-				return pixelData;
-			}
-
-			LOGERR("Attempting to save a texture that isn't flagged with either TU_CPUCACHED OR TU_GPUREADABLE flags.");
 			return pixelData;
 		}
 

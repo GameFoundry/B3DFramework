@@ -6,7 +6,7 @@
 namespace bs
 {
 	TextureImportOptions::TextureImportOptions()
-		: mFormat(PF_R8G8B8A8), mGenerateMips(false), mMaxMip(0), mCPUReadable(false), mCPUCached(false), mSRGB(false)
+		: mFormat(PF_R8G8B8A8), mGenerateMips(false), mMaxMip(0), mCPUCached(false), mSRGB(false)
 	{ }
 
 	SPtr<TextureImportOptions> TextureImportOptions::create()

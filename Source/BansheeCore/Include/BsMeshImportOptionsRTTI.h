@@ -30,7 +30,6 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mReduceKeyFrames, 9)
 			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationEvents, 10)
 			BS_RTTI_MEMBER_PLAIN(mImportRootMotion, 11)
-			BS_RTTI_MEMBER_PLAIN(mCPUReadable, 12)
 		BS_END_RTTI_MEMBERS
 	public:
 		MeshImportOptionsRTTI()

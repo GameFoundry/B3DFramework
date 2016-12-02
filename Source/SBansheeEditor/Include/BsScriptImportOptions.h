@@ -72,8 +72,6 @@ namespace bs
 		static void internal_SetGenerateMipmaps(ScriptTextureImportOptions* thisPtr, bool value);
 		static UINT32 internal_GetMaxMipmapLevel(ScriptTextureImportOptions* thisPtr);
 		static void internal_SetMaxMipmapLevel(ScriptTextureImportOptions* thisPtr, UINT32 value);
-		static bool internal_GetCPUReadable(ScriptTextureImportOptions* thisPtr);
-		static void internal_SetCPUReadable(ScriptTextureImportOptions* thisPtr, bool value);
 		static bool internal_GetCPUCached(ScriptTextureImportOptions* thisPtr);
 		static void internal_SetCPUCached(ScriptTextureImportOptions* thisPtr, bool value);
 		static bool internal_GetIsSRGB(ScriptTextureImportOptions* thisPtr);
@@ -102,8 +100,6 @@ namespace bs
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void internal_CreateInstance(MonoObject* instance);
-		static bool internal_GetCPUReadable(ScriptMeshImportOptions* thisPtr);
-		static void internal_SetCPUReadable(ScriptMeshImportOptions* thisPtr, bool value);
 		static bool internal_GetCPUCached(ScriptMeshImportOptions* thisPtr);
 		static void internal_SetCPUCached(ScriptMeshImportOptions* thisPtr, bool value);
 		static bool internal_GetImportNormals(ScriptMeshImportOptions* thisPtr);

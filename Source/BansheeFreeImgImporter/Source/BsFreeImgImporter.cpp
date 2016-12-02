@@ -153,9 +153,6 @@ namespace bs
 		if (textureImportOptions->getCPUCached())
 			usage |= TU_CPUCACHED;
 
-		if (textureImportOptions->getCPUReadable())
-			usage |= TU_CPUREADABLE;
-
 		bool sRGB = textureImportOptions->getSRGB();
 
 		TEXTURE_DESC texDesc;

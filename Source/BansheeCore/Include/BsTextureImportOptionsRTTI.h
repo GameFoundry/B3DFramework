@@ -28,9 +28,6 @@ namespace bs
 		bool& getCPUCached(TextureImportOptions* obj) { return obj->mCPUCached; }
 		void setCPUCached(TextureImportOptions* obj, bool& value) { obj->mCPUCached = value; }
 
-		bool& getCPUReadable(TextureImportOptions* obj) { return obj->mCPUReadable; }
-		void setCPUReadable(TextureImportOptions* obj, bool& value) { obj->mCPUReadable = value; }
-
 		bool& getSRGB(TextureImportOptions* obj) { return obj->mSRGB; }
 		void setSRGB(TextureImportOptions* obj, bool& value) { obj->mSRGB = value; }
 
@@ -42,7 +39,6 @@ namespace bs
 			addPlainField("mMaxMip", 2, &TextureImportOptionsRTTI::getMaxMip, &TextureImportOptionsRTTI::setMaxMip);
 			addPlainField("mCPUCached", 3, &TextureImportOptionsRTTI::getCPUCached, &TextureImportOptionsRTTI::setCPUCached);
 			addPlainField("mSRGB", 4, &TextureImportOptionsRTTI::getSRGB, &TextureImportOptionsRTTI::setSRGB);
-			addPlainField("mCPUReadable", 5, &TextureImportOptionsRTTI::getCPUReadable, &TextureImportOptionsRTTI::setCPUReadable);
 		}
 
 		const String& getRTTIName() override

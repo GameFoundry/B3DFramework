@@ -130,9 +130,6 @@ namespace bs
 		if (meshImportOptions->getCPUCached())
 			desc.usage |= MU_CPUCACHED;
 
-		if (meshImportOptions->getCPUReadable())
-			desc.usage |= MU_CPUREADABLE;
-
 		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
 		WString fileName = filePath.getWFilename(false);
@@ -154,9 +151,6 @@ namespace bs
 		desc.usage = MU_STATIC;
 		if (meshImportOptions->getCPUCached())
 			desc.usage |= MU_CPUCACHED;
-
-		if (meshImportOptions->getCPUReadable())
-			desc.usage |= MU_CPUREADABLE;
 
 		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 

@@ -23,7 +23,6 @@ namespace bs
 		MU_DYNAMIC, /**< Specify for a mesh that is often updated from the CPU. */
 		/** All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. */
 		MU_CPUCACHED = 0x1000, 
-		MU_CPUREADABLE = 0x2000 /**< Allows the CPU to directly read the mesh data buffers from the GPU. */
 	};
 
 	/** Properties of a Mesh. Shared between sim and core thread versions of a Mesh. */

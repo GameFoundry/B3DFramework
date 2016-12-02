@@ -20,7 +20,6 @@ namespace BansheeEditor
         private GUIIntField maximumMipsField = new GUIIntField(new LocEdString("Maximum mipmap level"));
         private GUIToggleField srgbField = new GUIToggleField(new LocEdString("Gamma space"));
         private GUIToggleField cpuCachedField = new GUIToggleField(new LocEdString("CPU cached"));
-        private GUIToggleField cpuReadableField = new GUIToggleField(new LocEdString("CPU readable"));
         private GUIButton reimportButton = new GUIButton(new LocEdString("Reimport"));
 
         private TextureImportOptions importOptions;
@@ -37,7 +36,6 @@ namespace BansheeEditor
                 maximumMipsField.OnChanged += x => importOptions.MaxMipmapLevel = x;
                 srgbField.OnChanged += x => importOptions.IsSRGB = x;
                 cpuCachedField.OnChanged += x => importOptions.CPUCached = x;
-                cpuReadableField.OnChanged += x => importOptions.CPUReadable = x;
 
                 reimportButton.OnClick += TriggerReimport;
 
@@ -46,7 +44,6 @@ namespace BansheeEditor
                 Layout.AddElement(maximumMipsField);
                 Layout.AddElement(srgbField);
                 Layout.AddElement(cpuCachedField);
-                Layout.AddElement(cpuReadableField);
                 Layout.AddSpace(10);
 
                 GUILayout reimportButtonLayout = Layout.AddLayoutX();
@@ -65,7 +62,6 @@ namespace BansheeEditor
             maximumMipsField.Value = newImportOptions.MaxMipmapLevel;
             srgbField.Value = newImportOptions.IsSRGB;
             cpuCachedField.Value = newImportOptions.CPUCached;
-            cpuReadableField.Value = newImportOptions.CPUReadable;
 
             importOptions = newImportOptions;
 

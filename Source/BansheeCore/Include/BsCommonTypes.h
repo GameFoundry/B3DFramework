@@ -192,8 +192,6 @@ namespace bs
 		 * Signifies that you will modify this buffer fairly often (e.g. every frame). Mutually exclusive with GBU_STATIC. 
 		 */
 		GBU_DYNAMIC = 0x02,
-		/** Signifies that the buffer's data on the GPU can be read by the CPU. */
-		GBU_READABLE = 0x04
 	};
 
 	/** Types of generic GPU buffers that may be attached to GPU programs. */

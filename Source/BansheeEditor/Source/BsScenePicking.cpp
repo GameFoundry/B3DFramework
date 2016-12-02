@@ -273,7 +273,7 @@ namespace bs
 		normalTexDesc.width = outputTextureProperties.getWidth();
 		normalTexDesc.height = outputTextureProperties.getHeight();
 		normalTexDesc.format = PF_R8G8B8A8;
-		normalTexDesc.usage = TU_RENDERTARGET | TU_CPUREADABLE;
+		normalTexDesc.usage = TU_RENDERTARGET;
 
 		SPtr<TextureCore> normalsTexture = TextureCore::create(normalTexDesc);
 		SPtr<TextureCore> depthTexture = rtt->getDepthStencilTexture();
@@ -297,7 +297,7 @@ namespace bs
 
 		gRendererUtility().setPass(mMaterials[0]);
 
-		UINT32 numEntries = renderables.size();
+		UINT32 numEntries = (UINT32)renderables.size();
 		UINT32* renderableIndices = bs_stack_alloc<UINT32>(numEntries);
 
 		UINT32 typeCounters[6];
