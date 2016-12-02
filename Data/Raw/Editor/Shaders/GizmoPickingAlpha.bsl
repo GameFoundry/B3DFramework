@@ -1,10 +1,15 @@
 Parameters =
 {
-	mat4x4		matViewProj;
-	float		alphaCutoff;
+	mat4x4		gMatViewProj;
+	float		gAlphaCutoff;
 	
-	Sampler2D 	mainTexSamp : alias("mainTexture");
-	Texture2D 	mainTexture;	
+	Sampler2D 	gMainTexSamp : alias("gMainTexture");
+	Texture2D 	gMainTexture;	
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique =
@@ -15,9 +20,18 @@ Technique =
 	{
 		Scissor = true;
 
+		Common =
+		{
+			cbuffer Uniforms
+			{
+				float4x4 	gMatViewProj;
+				float		gAlphaCutoff;
+			}
+		};		
+		
 		Vertex =
 		{
-			float4x4 matViewProj;
+			float4x4 gMatViewProj;
 
 			void main(
 				in float3 inPos : POSITION,
@@ -27,7 +41,7 @@ Technique =
 				out float2 oUv : TEXCOORD0,
 				out float4 oColor : COLOR0)
 			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatViewProj, float4(inPos.xyz, 1));
 				oUv = uv;
 				oColor = color;
 			}
@@ -35,17 +49,15 @@ Technique =
 		
 		Fragment =
 		{
-			SamplerState mainTexSamp : register(s0);
-			Texture2D mainTexture : register(t0);
-
-			float alphaCutoff;
+			SamplerState gMainTexSamp : register(s0);
+			Texture2D gMainTexture : register(t0);
 
 			float4 main(in float4 inPos : SV_Position, 
 						   in float2 uv : TEXCOORD0,
 						   in float4 inColor : COLOR0) : SV_Target
 			{
-				float4 color = mainTexture.Sample(mainTexSamp, uv);
-				if(color.a < alphaCutoff)
+				float4 color = gMainTexture.Sample(gMainTexSamp, uv);
+				if(color.a < gAlphaCutoff)
 					discard;
 				
 				return inColor;
@@ -62,6 +74,15 @@ Technique =
 	{
 		Scissor = true;
 
+		Common =
+		{
+			layout(binding = 0, std140) uniform Uniforms
+			{
+				mat4 	gMatViewProj;
+				float	gAlphaCutoff;
+			};
+		};
+		
 		Vertex =
 		{
 			layout(location = 0) in vec3 bs_position;
@@ -76,14 +97,9 @@ Technique =
 				vec4 gl_Position;
 			};
 			
-			layout(binding = 0) uniform VertUBO
-			{
-				mat4 matViewProj;
-			};
-			
 			void main()
 			{
-				gl_Position = matViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
 				texcoord0 = bs_texcoord0;
 				color0 = bs_color0;
 			}
@@ -95,18 +111,13 @@ Technique =
 			layout(location = 1) in vec4 color0;
 			
 			layout(location = 0) out vec4 fragColor;
-
-			layout(binding = 1) uniform FragUBO
-			{
-				float alphaCutoff;
-			};
 			
-			layout(binding = 2) uniform sampler2D mainTexture;
+			layout(binding = 1) uniform sampler2D gMainTexture;
 			
 			void main()
 			{
-				vec4 texColor = texture2D(mainTexture, texcoord0);
-				if(texColor.a < alphaCutoff)
+				vec4 texColor = texture2D(gMainTexture, texcoord0);
+				if(texColor.a < gAlphaCutoff)
 					discard;
 				
 				fragColor = color0;

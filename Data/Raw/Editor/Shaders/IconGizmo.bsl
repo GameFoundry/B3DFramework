@@ -1,8 +1,15 @@
 Parameters =
 {
-	mat4x4		matViewProj;
-	Sampler2D 	mainTexSamp : alias("mainTexture");
-	Texture2D 	mainTexture;
+	mat4x4		gMatViewProj;
+	float4		gViewDir;
+	
+	Sampler2D 	gMainTexSamp : alias("gMainTexture");
+	Texture2D 	gMainTexture;
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique =
@@ -22,7 +29,11 @@ Technique =
 		
 		Vertex =
 		{
-			float4x4 matViewProj;
+			cbuffer Uniforms
+			{
+				float4x4 	gMatViewProj;
+				float4		gViewDir;
+			}
 
 			void main(
 				in float3 inPos : POSITION,
@@ -32,7 +43,7 @@ Technique =
 				out float2 oUv : TEXCOORD0,
 				out float4 oColor : COLOR0)
 			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatViewProj, float4(inPos.xyz, 1));
 				oUv = uv;
 				oColor = color;
 			}		
@@ -40,15 +51,15 @@ Technique =
 		
 		Fragment =
 		{
-			SamplerState mainTexSamp : register(s0);
-			Texture2D mainTexture : register(t0);
+			SamplerState gMainTexSamp : register(s0);
+			Texture2D gMainTexture : register(t0);
 
 			float4 main(
 				in float4 inPos : SV_Position, 
 				float2 uv : TEXCOORD0, 
 				float4 color : COLOR0) : SV_Target
 			{
-				return color * mainTexture.Sample(mainTexSamp, uv);
+				return color * gMainTexture.Sample(gMainTexSamp, uv);
 			}		
 		};
 	};
@@ -66,7 +77,11 @@ Technique =
 		
 		Vertex =
 		{
-			float4x4 matViewProj;
+			cbuffer Uniforms
+			{
+				float4x4 	gMatViewProj;
+				float4		gViewDir;
+			}
 
 			void main(
 				in float3 inPos : POSITION,
@@ -76,7 +91,7 @@ Technique =
 				out float2 oUv : TEXCOORD0,
 				out float4 oColor : COLOR0)
 			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatViewProj, float4(inPos.xyz, 1));
 				oUv = uv;
 				oColor = color;
 			}		
@@ -84,15 +99,15 @@ Technique =
 		
 		Fragment =
 		{
-			SamplerState mainTexSamp : register(s0);
-			Texture2D mainTexture : register(t0);
+			SamplerState gMainTexSamp : register(s0);
+			Texture2D gMainTexture : register(t0);
 
 			float4 main(
 				in float4 inPos : SV_Position, 
 				float2 uv : TEXCOORD0, 
 				float4 color : COLOR0) : SV_Target
 			{
-				return color * mainTexture.Sample(mainTexSamp, uv);
+				return color * gMainTexture.Sample(gMainTexSamp, uv);
 			}		
 		};
 	};	
@@ -127,14 +142,15 @@ Technique =
 				vec4 gl_Position;
 			};		
 		
-			layout(binding = 0) uniform VertUBO
+			layout(binding = 0, std140) uniform Uniforms
 			{
-				mat4 matViewProj;
+				mat4 	gMatViewProj;
+				vec4	gViewDir;
 			};
 			
 			void main()
 			{
-				gl_Position = matViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
 				texcoord0 = bs_texcoord0;
 				color0 = bs_color0;
 			}		
@@ -146,11 +162,11 @@ Technique =
 			layout(location = 1) in vec2 texcoord0;
 			layout(location = 0) out vec4 fragColor;
 
-			layout(binding = 1) uniform sampler2D mainTexture;
+			layout(binding = 1) uniform sampler2D gMainTexture;
 			
 			void main()
 			{
-				vec4 texColor = texture2D(mainTexture, texcoord0.st);
+				vec4 texColor = texture2D(gMainTexture, texcoord0.st);
 				fragColor = color0 * texColor;
 			}		
 		};
@@ -181,14 +197,15 @@ Technique =
 				vec4 gl_Position;
 			};
 
-			layout(binding = 0) uniform VertUBO
+			layout(binding = 0, std140) uniform Uniforms
 			{
-				mat4 matViewProj;
+				mat4 	gMatViewProj;
+				vec4	gViewDir;
 			};
 			
 			void main()
 			{
-				gl_Position = matViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
 				texcoord0 = bs_texcoord0;
 				color0 = bs_color1;
 			}		
@@ -200,11 +217,11 @@ Technique =
 			layout(location = 1) in vec2 texcoord0;
 			layout(location = 0) out vec4 fragColor;
 
-			layout(binding = 1) uniform sampler2D mainTexture;
+			layout(binding = 1) uniform sampler2D gMainTexture;
 			
 			void main()
 			{
-				vec4 texColor = texture2D(mainTexture, texcoord0.st);
+				vec4 texColor = texture2D(gMainTexture, texcoord0.st);
 				fragColor = color0 * texColor;
 			}		
 		};

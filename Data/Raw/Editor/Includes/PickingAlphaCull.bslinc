@@ -1,12 +1,16 @@
 Parameters =
 {
-	mat4x4		matWorldViewProj;
+	mat4x4		gMatWorldViewProj;
+	float4		gColorIndex;
+	float		gAlphaCutoff;
 	
-	float		alphaCutoff;
-	float4		colorIndex;
-	
-	Sampler2D 	mainTexSamp : alias("mainTexture");
-	Texture2D 	mainTexture;	
+	Sampler2D 	gMainTexSamp : alias("gMainTexture");
+	Texture2D 	gMainTexture;	
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique : base("PickingAlphaCull") =
@@ -17,10 +21,18 @@ Technique : base("PickingAlphaCull") =
 	{
 		Scissor = true;
 
+		Common =
+		{
+			cbuffer Uniforms
+			{
+				float4x4 	gMatWorldViewProj;
+				float4		gColorIndex;
+				float		gAlphaCutoff;
+			}
+		};			
+		
 		Vertex =
 		{
-			float4x4 matWorldViewProj;
-
 			void main(
 				in float3 inPos : POSITION,
 				in float3 inNorm : NORMAL,
@@ -29,7 +41,7 @@ Technique : base("PickingAlphaCull") =
 				out float4 oNorm : NORMAL,
 				out float2 oUv : TEXCOORD0)
 			{
-				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatWorldViewProj, float4(inPos.xyz, 1));
 				oNorm = float4(inNorm, 0);
 				oUv = uv;
 			}
@@ -37,11 +49,8 @@ Technique : base("PickingAlphaCull") =
 		
 		Fragment =
 		{
-			SamplerState mainTexSamp : register(s0);
-			Texture2D mainTexture : register(t0);
-
-			float4 colorIndex;
-			float alphaCutoff;
+			SamplerState gMainTexSamp : register(s0);
+			Texture2D gMainTexture : register(t0);
 
 			float4 main(
 				in float4 inPos : SV_Position,
@@ -49,12 +58,12 @@ Technique : base("PickingAlphaCull") =
 				in float2 uv : TEXCOORD0,
 				out float4 oNorm : SV_Target1) : SV_Target0
 			{
-				float4 color = mainTexture.Sample(mainTexSamp, uv);
+				float4 color = gMainTexture.Sample(gMainTexSamp, uv);
 				oNorm = (inNorm + float4(1,1,1,0)) / 2;
-				if(color.a < alphaCutoff)
+				if(color.a < gAlphaCutoff)
 					discard;
 				
-				return colorIndex;
+				return gColorIndex;
 			}
 		};
 	};
@@ -68,6 +77,16 @@ Technique : base("PickingAlphaCull") =
 	{
 		Scissor = true;
 
+		Common =
+		{
+			layout(binding = 0, std140) uniform Uniforms
+			{
+				mat4 	gMatWorldViewProj;
+				vec4	gColorIndex;
+				float	gAlphaCutoff;
+			};
+		};		
+		
 		Vertex =
 		{		
 			layout(location = 0) in vec3 bs_position;
@@ -81,15 +100,10 @@ Technique : base("PickingAlphaCull") =
 			{
 				vec4 gl_Position;
 			};
-			
-			layout(binding = 0) uniform VertUBO
-			{
-				mat4 matWorldViewProj;
-			};			
-			
+						
 			void main()
 			{
-				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatWorldViewProj * vec4(bs_position.xyz, 1);
 				texcoord0 = bs_texcoord0;
 				normal = vec4(bs_normal, 0);
 			}
@@ -102,21 +116,15 @@ Technique : base("PickingAlphaCull") =
 		
 			layout(location = 0) out vec4[2] outColor;
 
-			layout(binding = 1) uniform FragUBO
-			{
-				vec4 colorIndex;
-				float alphaCutoff;
-			};	
-			
-			layout(binding = 2) uniform sampler2D mainTexture;
+			layout(binding = 2) uniform sampler2D gMainTexture;
 
 			void main()
 			{
-				vec4 color = texture2D(mainTexture, texcoord0);
-				if(color.a < alphaCutoff)
+				vec4 color = texture2D(gMainTexture, texcoord0);
+				if(color.a < gAlphaCutoff)
 					discard;
 					
-				outColor[0] = colorIndex;
+				outColor[0] = gColorIndex;
 				outColor[1] = (normal + vec4(1,1,1,0)) / 2;	
 			}
 		};

@@ -1,6 +1,12 @@
 Parameters =
 {
-	mat4x4		matViewProj;
+	mat4x4		gMatViewProj;
+	float4		gViewDir;
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique =
@@ -13,15 +19,19 @@ Technique =
 	
 		Vertex =
 		{
-			float4x4 matViewProj;
-
+			cbuffer Uniforms
+			{
+				float4x4 	gMatViewProj;
+				float4		gViewDir;
+			}
+			
 			void main(
 				in float3 inPos : POSITION,
 				in float4 color : COLOR0,
 				out float4 oPosition : SV_Position,
 				out float4 oColor : COLOR0)
 			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatViewProj, float4(inPos.xyz, 1));
 				oColor = color;
 			}
 		};
@@ -55,14 +65,15 @@ Technique =
 				vec4 gl_Position;
 			};		
 		
-			layout(binding = 0) uniform VertUBO
+			layout(binding = 0, std140) uniform Uniforms
 			{
-				mat4 matViewProj;
+				mat4 	gMatViewProj;
+				vec4	gViewDir;
 			};
 			
 			void main()
 			{
-				gl_Position = matViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
 				color0 = bs_color0;
 			}
 		};

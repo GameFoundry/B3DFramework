@@ -1,8 +1,13 @@
 Parameters =
 {
-	mat4x4		matWorldViewProj;
-	
-	float4		colorIndex;	
+	mat4x4		gMatWorldViewProj;
+	float4		gColorIndex;
+	float		gAlphaCutoff;
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique : base("PickingCull") =
@@ -12,26 +17,32 @@ Technique : base("PickingCull") =
 	Pass =
 	{
 		Scissor = true;
+		
+		Common =
+		{
+			cbuffer Uniforms
+			{
+				float4x4 	gMatWorldViewProj;
+				float4		gColorIndex;
+				float		gAlphaCutoff;
+			}
+		};		
 
 		Vertex =
 		{
-			float4x4 matWorldViewProj;
-
 			void main(
 				in float3 inPos : POSITION,
 				in float3 inNorm : NORMAL,
 				out float4 oPosition : SV_Position,
 				out float4 oNorm : NORMAL)
 			{
-				oPosition = mul(matWorldViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatWorldViewProj, float4(inPos.xyz, 1));
 				oNorm = float4(inNorm, 0);
 			}
 		};
 		
 		Fragment =
 		{
-			float4 colorIndex;
-
 			float4 main(
 				in float4 inPos : SV_Position,
 				in float4 inNorm : NORMAL,	
@@ -39,7 +50,7 @@ Technique : base("PickingCull") =
 			) : SV_Target0
 			{
 				oNorm = (inNorm + float4(1,1,1,0)) / 2;
-				return colorIndex;
+				return gColorIndex;
 			}
 		};
 	};
@@ -52,6 +63,16 @@ Technique : base("PickingCull") =
 	Pass =
 	{
 		Scissor = true;
+		
+		Common =
+		{
+			layout(binding = 0, std140) uniform Uniforms
+			{
+				mat4 	gMatWorldViewProj;
+				vec4	gColorIndex;
+				float	gAlphaCutoff;
+			};
+		};
 
 		Vertex =
 		{
@@ -65,15 +86,10 @@ Technique : base("PickingCull") =
 				vec4 gl_Position;
 			};
 			
-			layout(binding = 0) uniform VertUBO
-			{
-				mat4 matWorldViewProj;
-			};	
-			
 			void main()
 			{
 				normal = vec4(bs_normal,0);
-				gl_Position = matWorldViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatWorldViewProj * vec4(bs_position.xyz, 1);
 			}
 		};
 		
@@ -81,15 +97,10 @@ Technique : base("PickingCull") =
 		{
 			layout(location = 0) in vec4 normal;
 			layout(location = 0) out vec4[2] outColor;
-			
-			layout(binding = 1) uniform FragUBO
-			{
-				vec4 colorIndex;
-			};	
 
 			void main()
 			{
-				outColor[0] = colorIndex;
+				outColor[0] = gColorIndex;
 				outColor[1] = (normal + vec4(1,1,1,0)) / 2;
 			}
 		};

@@ -424,6 +424,28 @@ namespace bs
 		mIdxToSceneObjectMap[textData.idx] = mActiveSO;
 	}
 
+	Vector<GizmoManager::MeshRenderData> GizmoManager::createMeshProxyData(const Vector<DrawHelper::ShapeMeshData>& meshData)
+	{
+		Vector<MeshRenderData> proxyData;
+		for (auto& entry : meshData)
+		{
+			SPtr<TextureCore> tex;
+			if (entry.texture.isLoaded())
+				tex = entry.texture->getCore();
+
+			if (entry.type == DrawHelper::MeshType::Solid)
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Solid));
+			else if (entry.type == DrawHelper::MeshType::Wire)
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Wire));
+			else if (entry.type == DrawHelper::MeshType::Line)
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Line));
+			else // Text
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Text));
+		}
+
+		return proxyData;
+	}
+
 	void GizmoManager::update(const SPtr<Camera>& camera)
 	{
 		mDrawHelper->clearMeshes(mActiveMeshes);
@@ -437,34 +459,7 @@ namespace bs
 		mDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, camera->getPosition());
 		mActiveMeshes = mDrawHelper->getMeshes();
 
-		Vector<GizmoManagerCore::MeshData> proxyData;
-		for (auto& meshData : mActiveMeshes)
-		{
-			SPtr<TextureCore> tex;
-			if (meshData.texture.isLoaded())
-				tex = meshData.texture->getCore();
-
-			if (meshData.type == DrawHelper::MeshType::Solid)
-			{
-				proxyData.push_back(GizmoManagerCore::MeshData(
-					meshData.mesh->getCore(), tex, GizmoManagerCore::MeshType::Solid));
-			}
-			else if(meshData.type == DrawHelper::MeshType::Wire)
-			{
-				proxyData.push_back(GizmoManagerCore::MeshData(
-					meshData.mesh->getCore(), tex, GizmoManagerCore::MeshType::Wire));
-			}
-			else if (meshData.type == DrawHelper::MeshType::Line)
-			{
-				proxyData.push_back(GizmoManagerCore::MeshData(
-					meshData.mesh->getCore(), tex, GizmoManagerCore::MeshType::Line));
-			}
-			else // Text
-			{
-				proxyData.push_back(GizmoManagerCore::MeshData(
-					meshData.mesh->getCore(), tex, GizmoManagerCore::MeshType::Text));
-			}
-		}
+		Vector<MeshRenderData> proxyData = createMeshProxyData(mActiveMeshes);
 
 		mIconMesh = buildIconMesh(camera, mIconData, false, iconRenderData);
 		SPtr<MeshCoreBase> iconMesh = mIconMesh->getCore();
@@ -645,34 +640,11 @@ namespace bs
 		SPtr<TransientMesh> iconMesh = buildIconMesh(camera, iconData, true, iconRenderData);
 
 		// Note: This must be rendered while Scene view is being rendered
-		Matrix4 viewMat = camera->getViewMatrix();
-		Matrix4 projMat = camera->getProjectionMatrixRS();
-		SPtr<Viewport> viewport = camera->getViewport();
-
 		GizmoManagerCore* core = mCore.load(std::memory_order_relaxed);
 
-		for (auto& meshData : meshes)
-		{
-			SPtr<TextureCore> tex;
-			if (meshData.texture.isLoaded())
-				tex = meshData.texture->getCore();
-
-			if(meshData.type == DrawHelper::MeshType::Text)
-			{
-				gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
-					camera->getForward(), meshData.mesh->getCore(), tex, GizmoMaterial::PickingAlpha));
-			}
-			else
-			{
-				gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderGizmos, core, viewMat, projMat,
-					camera->getForward(), meshData.mesh->getCore(), tex, GizmoMaterial::Picking));
-			}
-		}
-
-		Rect2I screenArea = camera->getViewport()->getArea();
-
-		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderIconGizmos,
-			core, screenArea, iconMesh->getCore(), iconRenderData, true));
+		Vector<MeshRenderData> proxyData = createMeshProxyData(meshes);
+		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::renderData, core, camera->getCore(),
+											 proxyData, iconMesh->getCore(), iconRenderData, true));
 
 		mPickingDrawHelper->clearMeshes(meshes);
 		mIconMeshHeap->dealloc(iconMesh);
@@ -715,7 +687,7 @@ namespace bs
 		IconRenderDataVecPtr iconRenderData = bs_shared_ptr_new<IconRenderDataVec>();
 		
 		gCoreThread().queueCommand(std::bind(&GizmoManagerCore::updateData, core,
-			nullptr, Vector<GizmoManagerCore::MeshData>(), nullptr, iconRenderData));
+			nullptr, Vector<MeshRenderData>(), nullptr, iconRenderData));
 	}
 
 	SPtr<TransientMesh> GizmoManager::buildIconMesh(const SPtr<Camera>& camera, const Vector<IconData>& iconData,
@@ -952,77 +924,16 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mSolidMaterial.mat = initData.solidMat;
-		mWireMaterial.mat = initData.wireMat;
-		mLineMaterial.mat = initData.lineMat;
-		mTextMaterial.mat = initData.textMat;
-		mIconMaterial.mat = initData.iconMat;
-		mPickingMaterial.mat = initData.pickingMat;
-		mAlphaPickingMaterial.mat = initData.alphaPickingMat;
-
-		{
-			mLineMaterial.params = mLineMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mLineMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mLineMaterial.viewProj);
-		}
-
-		{
-			mSolidMaterial.params = mSolidMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mSolidMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mSolidMaterial.viewProj);
-			params->getParam(GPT_FRAGMENT_PROGRAM, "viewDir", mSolidMaterial.viewDir);
-		}
-
-		{
-			mWireMaterial.params = mWireMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mWireMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mWireMaterial.viewProj);
-		}
-
-		{
-			mIconMaterial.params = mIconMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params0 = mIconMaterial.params->getGpuParams(0);
-			params0->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mIconMaterial.viewProj[0]);
-			params0->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", mIconMaterial.texture[0]);
-
-			SPtr<GpuParamsCore> params1 = mIconMaterial.params->getGpuParams(1);
-			params1->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mIconMaterial.viewProj[1]);
-			params1->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", mIconMaterial.texture[1]);
-		}
-
-		{
-			mPickingMaterial.params = mPickingMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mPickingMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mPickingMaterial.viewProj);
-		}
-
-		{
-			mAlphaPickingMaterial.params = mAlphaPickingMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mAlphaPickingMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mAlphaPickingMaterial.viewProj);
-			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", mAlphaPickingMaterial.texture);
-
-			GpuParamFloatCore alphaCutoffParam;
-			params->getParam(GPT_FRAGMENT_PROGRAM, "alphaCutoff", alphaCutoffParam);
-			alphaCutoffParam.set(PICKING_ALPHA_CUTOFF);
-		}
-
-		{
-			mTextMaterial.params = mTextMaterial.mat->createParamsSet();
-
-			SPtr<GpuParamsCore> params = mTextMaterial.params->getGpuParams();
-			params->getParam(GPT_VERTEX_PROGRAM, "matViewProj", mTextMaterial.viewProj);
-			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "mainTexture", mTextMaterial.texture);
-		}
+		mMeshMaterials[(UINT32)GizmoMeshType::Solid] = initData.solidMat;
+		mMeshMaterials[(UINT32)GizmoMeshType::Wire] = initData.wireMat;
+		mMeshMaterials[(UINT32)GizmoMeshType::Line] = initData.lineMat;
+		mMeshMaterials[(UINT32)GizmoMeshType::Text] = initData.textMat;
+		mIconMaterial = initData.iconMat;
+		mPickingMaterials[0] = initData.pickingMat;
+		mPickingMaterials[1] = initData.alphaPickingMat;
 	}
 
-	void GizmoManagerCore::updateData(const SPtr<CameraCore>& camera, const Vector<MeshData>& meshes, 
+	void GizmoManagerCore::updateData(const SPtr<CameraCore>& camera, const Vector<GizmoManager::MeshRenderData>& meshes,
 		const SPtr<MeshCoreBase>& iconMesh, const GizmoManager::IconRenderDataVecPtr& iconRenderData)
 	{
 		if (mCamera != camera)
@@ -1039,100 +950,156 @@ namespace bs
 		mMeshes = meshes;
 		mIconMesh = iconMesh;
 		mIconRenderData = iconRenderData;
+
+		// Allocate and assign GPU program parameter objects
+		UINT32 meshCounters[(UINT32)GizmoMeshType::Count];
+		bs_zero_out(meshCounters);
+
+		for (auto& meshData : mMeshes)
+		{
+			UINT32 typeIdx = (UINT32)meshData.type;
+			UINT32 paramsIdx = meshCounters[typeIdx];
+
+			meshData.paramsIdx = paramsIdx;
+
+			if (paramsIdx >= mMeshParamSets[typeIdx].size())
+			{
+				SPtr<GpuParamsSetCore> paramsSet = mMeshMaterials[typeIdx]->createParamsSet();
+				paramsSet->setParamBlockBuffer("Uniforms", mMeshGizmoBuffer.getBuffer(), true);
+
+				mMeshParamSets[typeIdx].push_back(paramsSet);
+			}
+
+			meshCounters[typeIdx]++;
+		}
+
+		UINT32 iconMeshIdx = 0;
+		for(auto& iconData : *mIconRenderData)
+		{
+			iconData.paramsIdx = iconMeshIdx;
+
+			SPtr<GpuParamsSetCore> paramsSet;
+			if (iconMeshIdx >= mIconParamSets.size())
+			{
+				mIconMaterial->createParamsSet();
+				paramsSet->setParamBlockBuffer("Uniforms", mIconGizmoBuffer.getBuffer(), true);
+
+				mIconParamSets.push_back(paramsSet);
+			}
+			else
+				paramsSet = mIconParamSets[iconMeshIdx];
+
+			SPtr<GpuParamsCore> params0 = paramsSet->getGpuParams(0);
+			SPtr<GpuParamsCore> params1 = paramsSet->getGpuParams(1);
+
+			GpuParamTextureCore textureParam0;
+			GpuParamTextureCore textureParam1;
+
+			params0->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam0);
+			params1->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam1);
+
+			textureParam0.set(iconData.texture);
+			textureParam1.set(iconData.texture);
+
+			iconMeshIdx++;
+		}
 	}
 
 	void GizmoManagerCore::render()
 	{
-		if (mCamera == nullptr)
+		renderData(mCamera, mMeshes, mIconMesh, mIconRenderData, false);
+	}
+
+	void GizmoManagerCore::renderData(const SPtr<CameraCore>& camera, Vector<GizmoManager::MeshRenderData>& meshes,
+		const SPtr<MeshCoreBase>& iconMesh, const GizmoManager::IconRenderDataVecPtr& iconRenderData, bool usePickingMaterial)
+	{
+		if (camera == nullptr)
 			return;
 
-		SPtr<RenderTargetCore> renderTarget = mCamera->getViewport()->getTarget();
+		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();
 
 		float width = (float)renderTarget->getProperties().getWidth();
 		float height = (float)renderTarget->getProperties().getHeight();
 
-		Rect2 normArea = mCamera->getViewport()->getNormArea();
-
-		Rect2I screenArea;
-		screenArea.x = (int)(normArea.x * width);
-		screenArea.y = (int)(normArea.y * height);
-		screenArea.width = (int)(normArea.width * width);
-		screenArea.height = (int)(normArea.height * height);
-
-		for (auto& meshData : mMeshes)
-		{
-			GizmoManager::GizmoMaterial material = GizmoManager::GizmoMaterial::Solid;
-			switch(meshData.type)
-			{
-			case MeshType::Solid:
-				material = GizmoManager::GizmoMaterial::Solid;
-				break;
-			case MeshType::Wire:
-				material = GizmoManager::GizmoMaterial::Wire;
-				break;
-			case MeshType::Line:
-				material = GizmoManager::GizmoMaterial::Line;
-				break;
-			case MeshType::Text:
-				material = GizmoManager::GizmoMaterial::Text;
-				break;
-			}
-
-			renderGizmos(mCamera->getViewMatrix(), mCamera->getProjectionMatrixRS(), mCamera->getForward(), 
-				meshData.mesh, meshData.texture, material);
-		}
-
-		if (mIconMesh != nullptr)
-			renderIconGizmos(screenArea, mIconMesh, mIconRenderData, false);
-	}
-
-	void GizmoManagerCore::renderGizmos(const Matrix4& viewMatrix, const Matrix4& projMatrix, const Vector3& viewDir, 
-		const SPtr<MeshCoreBase>& mesh, const SPtr<TextureCore>& texture, GizmoManager::GizmoMaterial material)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
+		Rect2I screenArea = camera->getViewport()->getArea();
+		Matrix4 viewMatrix = camera->getViewMatrix();
+		Matrix4 projMatrix = camera->getProjectionMatrixRS();
 		Matrix4 viewProjMat = projMatrix * viewMatrix;
 
-		switch (material)
+		if (!usePickingMaterial)
 		{
-		case GizmoManager::GizmoMaterial::Solid:
-			mSolidMaterial.viewProj.set(viewProjMat);
-			mSolidMaterial.viewDir.set((Vector4)viewDir);
-			gRendererUtility().setPass(mSolidMaterial.mat);
-			gRendererUtility().setPassParams(mSolidMaterial.params);
-			break;
-		case GizmoManager::GizmoMaterial::Wire:
-			mWireMaterial.viewProj.set(viewProjMat);
-			gRendererUtility().setPass(mWireMaterial.mat);
-			gRendererUtility().setPassParams(mWireMaterial.params);
-			break;
-		case GizmoManager::GizmoMaterial::Line:
-			mLineMaterial.viewProj.set(viewProjMat);
-			gRendererUtility().setPass(mLineMaterial.mat);
-			gRendererUtility().setPassParams(mLineMaterial.params);
-			break;
-		case GizmoManager::GizmoMaterial::Picking:
-			mPickingMaterial.viewProj.set(viewProjMat);
-			gRendererUtility().setPass(mPickingMaterial.mat);
-			gRendererUtility().setPassParams(mPickingMaterial.params);
-			break;
-		case GizmoManager::GizmoMaterial::PickingAlpha:
-			mAlphaPickingMaterial.viewProj.set(viewProjMat);
-			mAlphaPickingMaterial.texture.set(texture);
-			gRendererUtility().setPass(mAlphaPickingMaterial.mat);
-			gRendererUtility().setPassParams(mAlphaPickingMaterial.params);
-			break;
-		case GizmoManager::GizmoMaterial::Text:
-			mTextMaterial.viewProj.set(viewProjMat);
-			mTextMaterial.texture.set(texture);
-			gRendererUtility().setPass(mTextMaterial.mat);
-			gRendererUtility().setPassParams(mTextMaterial.params);
-			break;
+			mMeshGizmoBuffer.gMatViewProj.set(viewProjMat);
+			mMeshGizmoBuffer.gViewDir.set((Vector4)camera->getForward());
+
+			for (auto& entry : meshes)
+			{
+				UINT32 typeIdx = (UINT32)entry.type;
+
+				gRendererUtility().setPass(mMeshMaterials[typeIdx]);
+				gRendererUtility().setPassParams(mMeshParamSets[typeIdx][entry.paramsIdx]);
+
+				gRendererUtility().draw(entry.mesh, entry.mesh->getProperties().getSubMesh(0));
+			}
 		}
-		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+		else
+		{
+			// Allocate and assign GPU program parameter objects
+			UINT32 pickingCounters[2];
+			bs_zero_out(pickingCounters);
+
+			for (auto& entry : meshes)
+			{
+				UINT32 typeIdx = entry.type == GizmoMeshType::Text ? 1 : 0;
+				UINT32 paramsIdx = pickingCounters[typeIdx];
+
+				entry.paramsIdx = paramsIdx;
+
+				if (paramsIdx >= mPickingParamSets[typeIdx].size())
+				{
+					SPtr<GpuParamsSetCore> paramsSet = mPickingMaterials[typeIdx]->createParamsSet();
+					paramsSet->setParamBlockBuffer("Uniforms", mMeshPickingParamBuffer.getBuffer(), true);
+
+					mPickingParamSets[typeIdx].push_back(paramsSet);
+				}
+
+				pickingCounters[typeIdx]++;
+			}
+
+			for (auto& iconData : *iconRenderData)
+			{
+				iconData.paramsIdx = pickingCounters[1];
+
+				if (iconData.paramsIdx >= mPickingParamSets[1].size())
+				{
+					SPtr<GpuParamsSetCore> paramsSet = mPickingMaterials[1]->createParamsSet();
+					paramsSet->setParamBlockBuffer("Uniforms", mIconPickingParamBuffer.getBuffer(), true);
+
+					mPickingParamSets[1].push_back(paramsSet);
+				}
+
+				pickingCounters[1]++;
+			}
+
+			mMeshPickingParamBuffer.gMatViewProj.set(viewProjMat);
+			mMeshPickingParamBuffer.gAlphaCutoff.set(PICKING_ALPHA_CUTOFF);
+
+			for (auto& entry : meshes)
+			{
+				UINT32 typeIdx = entry.type == GizmoMeshType::Text ? 1 : 0;
+
+				gRendererUtility().setPass(mPickingMaterials[typeIdx]);
+				gRendererUtility().setPassParams(mPickingParamSets[typeIdx][entry.paramsIdx]);
+
+				gRendererUtility().draw(entry.mesh, entry.mesh->getProperties().getSubMesh(0));
+			}
+		}
+
+		if (iconMesh != nullptr)
+			renderIconGizmos(screenArea, iconMesh, iconRenderData, usePickingMaterial);
 	}
 
-	void GizmoManagerCore::renderIconGizmos(Rect2I screenArea, SPtr<MeshCoreBase> mesh, GizmoManager::IconRenderDataVecPtr renderData, bool usePickingMaterial)
+	void GizmoManagerCore::renderIconGizmos(Rect2I screenArea, SPtr<MeshCoreBase> mesh, 
+		GizmoManager::IconRenderDataVecPtr renderData, bool usePickingMaterial)
 	{
 		RenderAPICore& rapi = RenderAPICore::instance();
 		SPtr<VertexData> vertexData = mesh->getVertexData();
@@ -1167,21 +1134,17 @@ namespace bs
 
 		if (!usePickingMaterial)
 		{
-			mIconMaterial.viewProj[0].set(projMat);
-			mIconMaterial.viewProj[1].set(projMat);
+			mIconGizmoBuffer.gMatViewProj.set(projMat);
+			mIconGizmoBuffer.gViewDir.set(Vector4::ZERO);
 
 			for (UINT32 passIdx = 0; passIdx < 2; passIdx++)
 			{
-				gRendererUtility().setPass(mIconMaterial.mat, passIdx);
-				gRendererUtility().setPassParams(mIconMaterial.params, passIdx);
-
+				gRendererUtility().setPass(mIconMaterial, passIdx);
+				
 				UINT32 curIndexOffset = mesh->getIndexOffset();
 				for (auto curRenderData : *renderData)
 				{
-					mIconMaterial.texture[passIdx].set(curRenderData.texture);
-
-					SPtr<GpuParamsCore> params = mIconMaterial.params->getGpuParams(passIdx);
-					rapi.setGpuParams(params);
+					gRendererUtility().setPassParams(mIconParamSets[curRenderData.paramsIdx], passIdx);
 
 					rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 					curIndexOffset += curRenderData.count * 6;
@@ -1190,22 +1153,29 @@ namespace bs
 		}
 		else
 		{
-			mAlphaPickingMaterial.viewProj.set(projMat);
+			mMeshPickingParamBuffer.gMatViewProj.set(projMat);
+			mMeshPickingParamBuffer.gAlphaCutoff.set(PICKING_ALPHA_CUTOFF);
 
-			gRendererUtility().setPass(mAlphaPickingMaterial.mat);
-			gRendererUtility().setPassParams(mAlphaPickingMaterial.params);
+			for (auto& iconData : *renderData)
+			{
+				SPtr<GpuParamsSetCore> paramsSet = mPickingParamSets[1][iconData.paramsIdx];
+				SPtr<GpuParamsCore> params = paramsSet->getGpuParams();
 
-			UINT32 curIndexOffset = 0;
+				GpuParamTextureCore textureParam;
+				params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam);
+
+				textureParam.set(iconData.texture);
+			}
+
+			gRendererUtility().setPass(mPickingMaterials[1]);
+
+			UINT32 curIndexOffset = mesh->getIndexOffset();
 			for (auto curRenderData : *renderData)
 			{
-				mAlphaPickingMaterial.texture.set(curRenderData.texture);
-
-				SPtr<GpuParamsCore> params = mAlphaPickingMaterial.params->getGpuParams();
-				rapi.setGpuParams(params);
+				gRendererUtility().setPassParams(mPickingParamSets[1][curRenderData.paramsIdx]);
 
 				rapi.drawIndexed(curIndexOffset, curRenderData.count * 6, mesh->getVertexOffset(), curRenderData.count * 4);
 				curIndexOffset += curRenderData.count * 6;
-
 			}
 		}
 

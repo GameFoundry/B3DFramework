@@ -1,7 +1,12 @@
 Parameters =
 {
-	mat4x4		matViewProj;
-	float4		viewDir;
+	mat4x4		gMatViewProj;
+	float4		gViewDir;
+};
+
+Blocks =
+{
+	Block Uniforms : auto("GizmoUniforms");
 };
 
 Technique : base("SolidGizmo") =
@@ -10,10 +15,17 @@ Technique : base("SolidGizmo") =
 	
 	Pass =
 	{
+		Common =
+		{
+			cbuffer Uniforms
+			{
+				float4x4 	gMatViewProj;
+				float4		gViewDir;
+			}
+		};
+	
 		Vertex =
 		{
-			float4x4 matViewProj;
-
 			void main(
 				in float3 inPos : POSITION,
 				in float3 inNormal : NORMAL,
@@ -22,7 +34,7 @@ Technique : base("SolidGizmo") =
 				out float3 oNormal : NORMAL,
 				out float4 oColor : COLOR0)
 			{
-				oPosition = mul(matViewProj, float4(inPos.xyz, 1));
+				oPosition = mul(gMatViewProj, float4(inPos.xyz, 1));
 				oNormal = inNormal;
 				oColor = color;
 			}
@@ -30,11 +42,9 @@ Technique : base("SolidGizmo") =
 		
 		Fragment =
 		{
-			float4 viewDir;
-		
 			float4 main(in float4 inPos : SV_Position, in float3 normal : NORMAL, in float4 color : COLOR0) : SV_Target
 			{
-				float4 outColor = color * dot(normalize(normal), -viewDir);
+				float4 outColor = color * dot(normalize(normal), -gViewDir);
 				outColor.a = color.a;
 				
 				return outColor;
@@ -49,6 +59,15 @@ Technique : base("SolidGizmo") =
 	
 	Pass =
 	{
+		Common =
+		{
+			layout(binding = 0, std140) uniform Uniforms
+			{
+				mat4 	gMatViewProj;
+				vec4	gViewDir;
+			};
+		}
+	
 		Vertex =
 		{
 			layout(location = 0) in vec3 bs_position;
@@ -63,14 +82,9 @@ Technique : base("SolidGizmo") =
 				vec4 gl_Position;
 			};		
 		
-			layout(binding = 0) uniform VertUBO
-			{
-				mat4 matViewProj;
-			};
-			
 			void main()
 			{
-				gl_Position = matViewProj * vec4(bs_position.xyz, 1);
+				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
 				normal = bs_normal;
 				color0 = bs_color0;
 			}
@@ -83,14 +97,9 @@ Technique : base("SolidGizmo") =
 			
 			layout(location = 0) out vec4 fragColor;
 
-			layout(binding = 1) uniform FragUBO
-			{
-				vec4 viewDir;
-			};
-			
 			void main()
 			{
-				fragColor = color0 * dot(normalize(normal), -viewDir.xyz);
+				fragColor = color0 * dot(normalize(normal), -gViewDir.xyz);
 				fragColor.a = color0.a;
 			}
 		};
