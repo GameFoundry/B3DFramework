@@ -31,8 +31,6 @@ Technique =
 		
 		Vertex =
 		{
-			float4x4 gMatViewProj;
-
 			void main(
 				in float3 inPos : POSITION,
 				in float2 uv : TEXCOORD0,

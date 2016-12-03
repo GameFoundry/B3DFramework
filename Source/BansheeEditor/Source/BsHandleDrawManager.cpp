@@ -267,8 +267,6 @@ namespace bs
 		if (camera != nullptr)
 		{
 			UINT32 idx = (UINT32)mQueuedData.size();
-			mQueuedData.push_back({ camera, meshes });
-
 			activeRenderer->registerRenderCallback(camera.get(), 20, std::bind(&HandleDrawManagerCore::render, this, idx));
 
 			for(auto& entry : meshes)
@@ -299,6 +297,8 @@ namespace bs
 
 				mTypeCounters[typeIdx]++;
 			}
+
+			mQueuedData.push_back({ camera, meshes });
 		}
 	}
 

@@ -122,8 +122,6 @@ namespace bs
 			Matrix4 worldTransform = so->getWorldTfrm();
 			worldBounds.transformAffine(worldTransform);
 
-			// TODO - I could limit the frustum to the visible area we're rendering for a speed boost
-			// but this is unlikely to be a performance bottleneck
 			const ConvexVolume& frustum = cam->getWorldFrustum();
 			if (frustum.intersects(worldBounds.getSphere()))
 			{
@@ -307,7 +305,7 @@ namespace bs
 		for (auto& renderable : renderables)
 		{
 			UINT32 typeIdx;
-			if (renderable.alpha)
+			if (!renderable.alpha)
 				typeIdx = 0;
 			else
 				typeIdx = 3;
@@ -352,7 +350,7 @@ namespace bs
 		for (auto& renderable : renderables)
 		{
 			UINT32 typeIdx;
-			if (renderable.alpha)
+			if (!renderable.alpha)
 				typeIdx = 0;
 			else
 				typeIdx = 3;
