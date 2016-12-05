@@ -26,6 +26,8 @@
 
 namespace bs
 {
+	VkAllocationCallbacks* gVulkanAllocator = nullptr;
+
 	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = nullptr;
 	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = nullptr;
 
@@ -175,22 +177,20 @@ namespace bs
 #endif
 
 		// Enumerate all devices
-		uint32_t numDevices;
-
-		result = vkEnumeratePhysicalDevices(mInstance, &numDevices, nullptr);
+		result = vkEnumeratePhysicalDevices(mInstance, &mNumDevices, nullptr);
 		assert(result == VK_SUCCESS);
 
-		Vector<VkPhysicalDevice> physicalDevices(numDevices);
-		result = vkEnumeratePhysicalDevices(mInstance, &numDevices, physicalDevices.data());
+		Vector<VkPhysicalDevice> physicalDevices(mNumDevices);
+		result = vkEnumeratePhysicalDevices(mInstance, &mNumDevices, physicalDevices.data());
 		assert(result == VK_SUCCESS);
 
-		mDevices.resize(numDevices);
-		for(uint32_t i = 0; i < numDevices; i++)
+		mDevices.resize(mNumDevices);
+		for(uint32_t i = 0; i < mNumDevices; i++)
 			mDevices[i] = bs_shared_ptr_new<VulkanDevice>(physicalDevices[i], i);
 
 		// Find primary device
 		// Note: MULTIGPU - Detect multiple similar devices here if supporting multi-GPU
-		for (uint32_t i = 0; i < numDevices; i++)
+		for (uint32_t i = 0; i < mNumDevices; i++)
 		{
 			bool isPrimary = mDevices[i]->getDeviceProperties().deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 

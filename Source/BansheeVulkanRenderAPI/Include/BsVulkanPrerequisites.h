@@ -18,6 +18,22 @@
 /** Maximum number of GPU queues that may exist at once. */
 #define BS_MAX_UNIQUE_QUEUES BS_MAX_QUEUES_PER_TYPE * bs::GQT_COUNT // Must fit within 4 bytes
 
+#if (BS_PLATFORM == BS_PLATFORM_WIN32) && !defined(__MINGW32__) && !defined(BS_STATIC_LIB)
+#	ifdef BS_VULKAN_EXPORTS
+#		define BS_VULKAN_EXPORT __declspec(dllexport)
+#	else
+#       if defined( __MINGW32__ )
+#           define BS_VULKAN_EXPORT
+#       else
+#    		define BS_VULKAN_EXPORT __declspec(dllimport)
+#       endif
+#	endif
+#elif defined (BS_GCC_VISIBILITY)
+#    define BS_VULKAN_EXPORT  __attribute__ ((visibility("default")))
+#else
+#    define BS_VULKAN_EXPORT
+#endif
+
 #include "vulkan/vulkan.h"
 
 /** @addtogroup Plugins
@@ -61,7 +77,7 @@ namespace bs
 	class VulkanQueryPool;
 	class VulkanVertexInput;
 
-	VkAllocationCallbacks* gVulkanAllocator = nullptr;
+	extern VkAllocationCallbacks* gVulkanAllocator;
 
 	/**	Vulkan specific types to track resource statistics for. */
 	enum VulkanRenderStatResourceType

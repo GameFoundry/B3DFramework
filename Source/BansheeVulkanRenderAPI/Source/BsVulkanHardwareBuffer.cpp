@@ -465,6 +465,8 @@ namespace bs
 						isNormalWrite = true;
 					}
 				}
+				else
+					isNormalWrite = true;
 
 				// Check if the buffer will still be bound somewhere after the CBs using it finish
 				if (isNormalWrite)

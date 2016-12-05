@@ -256,11 +256,18 @@ namespace bs
 		{ }
 
 		/**
-		* Return true if attribute name matches the specified name and returns optional semantic index if it exists. Start
-		* of the two compared strings must match, and the remaining non-matching bit will be assumed to be the semantic
-		* index. Returns -1 if no match is made.
-		*/
-		INT32 matchesName(const String& name);
+		 * Return true if attribute name matches the specified name and returns optional semantic index if it exists. Start
+		 * of the two compared strings must match, and the remaining non-matching bit will be assumed to be the semantic
+		 * index. Returns -1 if no match is made.
+		 */
+		INT32 matchesName(const String& name) const
+		{
+			if (!StringUtil::startsWith(name, mName, false))
+				return -1;
+
+			UINT32 length = (UINT32)mName.size();
+			return parseINT32(name.substr(length));
+		}
 
 		/**	Returns the semantic of this attribute. */
 		VertexElementSemantic getSemantic() const { return mSemantic; }

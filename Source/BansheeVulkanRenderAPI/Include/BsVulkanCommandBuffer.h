@@ -159,8 +159,8 @@ namespace bs
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
 		 * device when the command buffer is submitted.
 		 */
-		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout layout, 
-			VulkanUseFlags flags, bool isFBAttachment = false);
+		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout currentLayout,
+			VkImageLayout newLayout, VulkanUseFlags flags, bool isFBAttachment = false);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the

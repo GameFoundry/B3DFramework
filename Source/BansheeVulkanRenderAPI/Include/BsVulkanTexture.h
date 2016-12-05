@@ -214,7 +214,11 @@ namespace bs
 		 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the 
 		 * provided image matches the current texture properties (i.e. num faces, mips, size).
 		 */
-		void copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage);
+		void copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, 
+			VkImageLayout srcFinalLayout, VkImageLayout dstFinalLayout);
+
+		/** Returns the optimal layout this image should normally be in. */
+		VkImageLayout getOptimalLayout() const;
 
 		VulkanImage* mImages[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;

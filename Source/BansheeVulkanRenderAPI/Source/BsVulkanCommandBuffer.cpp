@@ -63,7 +63,7 @@ namespace bs
 	VulkanCmdBuffer* VulkanCmdBufferPool::getBuffer(UINT32 queueFamily, bool secondary)
 	{
 		auto iterFind = mPools.find(queueFamily);
-		if (iterFind != mPools.end())
+		if (iterFind == mPools.end())
 			return nullptr;
 
 		VulkanCmdBuffer** buffers = iterFind->second.buffers;
@@ -93,7 +93,7 @@ namespace bs
 	VulkanCmdBuffer* VulkanCmdBufferPool::createBuffer(UINT32 queueFamily, bool secondary)
 	{
 		auto iterFind = mPools.find(queueFamily);
-		if (iterFind != mPools.end())
+		if (iterFind == mPools.end())
 			return nullptr;
 
 		const PoolInfo& poolInfo = iterFind->second;
@@ -387,8 +387,9 @@ namespace bs
 				barrier.subresourceRange = imageInfo.range;
 
 				imageInfo.currentLayout = imageInfo.requiredLayout;
-				resource->setLayout(imageInfo.finalLayout);
 			}
+
+			resource->setLayout(imageInfo.finalLayout);
 		}
 
 		VulkanDevice& device = queue->getDevice();
@@ -424,7 +425,8 @@ namespace bs
 			GpuQueueType otherQueueType = GQT_GRAPHICS;
 			for (UINT32 i = 0; i < GQT_COUNT; i++)
 			{
-				if (device.getQueueFamily((GpuQueueType)i) != entryQueueFamily)
+				otherQueueType = (GpuQueueType)i;
+				if (device.getQueueFamily(otherQueueType) != entryQueueFamily)
 					continue;
 
 				UINT32 numQueues = device.getNumQueues(otherQueueType);
@@ -446,7 +448,6 @@ namespace bs
 					otherQueueIdx = 0;
 				}
 
-				otherQueueType = (GpuQueueType)i;
 				break;
 			}
 
@@ -1133,8 +1134,8 @@ namespace bs
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout layout, 
-		VulkanUseFlags flags, bool isFBAttachment)
+	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout currentLayout,
+			VkImageLayout newLayout, VulkanUseFlags flags, bool isFBAttachment)
 	{
 		// Note: I currently always perform pipeline barriers (layout transitions and similar), over the entire image.
 		//       In the case of render and storage images, the case is often that only a specific subresource requires
@@ -1153,9 +1154,9 @@ namespace bs
 
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 			imageInfo.accessFlags = accessFlags;
-			imageInfo.currentLayout = res->getLayout();
-			imageInfo.requiredLayout = layout;
-			imageInfo.finalLayout = layout;
+			imageInfo.currentLayout = currentLayout;
+			imageInfo.requiredLayout = newLayout;
+			imageInfo.finalLayout = newLayout;
 			imageInfo.range = range;
 			imageInfo.isFBAttachment = isFBAttachment;
 			imageInfo.isShaderInput = !isFBAttachment;
@@ -1180,7 +1181,7 @@ namespace bs
 
 			// Check if the same image is used with different layouts, in which case we need to transfer to the general
 			// layout
-			if (imageInfo.requiredLayout != layout)
+			if (imageInfo.requiredLayout != newLayout)
 				imageInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 			// If attached to FB, then the final layout is set by the FB (provided as layout param here), otherwise its
@@ -1190,7 +1191,7 @@ namespace bs
 			else
 			{
 				if (isFBAttachment)
-					imageInfo.finalLayout = layout;
+					imageInfo.finalLayout = newLayout;
 			}
 
 			if (imageInfo.currentLayout != imageInfo.requiredLayout)
@@ -1282,7 +1283,7 @@ namespace bs
 		{
 			const VulkanFramebufferAttachment& attachment = res->getColorAttachment(i);
 			registerResource(attachment.image, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
-							 attachment.finalLayout, VulkanUseFlag::Write, true);
+							 attachment.image->getLayout(), attachment.finalLayout, VulkanUseFlag::Write, true);
 		}
 
 		if(res->hasDepthAttachment())
@@ -1290,7 +1291,7 @@ namespace bs
 			const VulkanFramebufferAttachment& attachment = res->getDepthStencilAttachment();
 			registerResource(attachment.image,
 							 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
-							 attachment.finalLayout, VulkanUseFlag::Write, true);
+							 attachment.image->getLayout(), attachment.finalLayout, VulkanUseFlag::Write, true);
 		}
 	}
 

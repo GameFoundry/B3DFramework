@@ -148,7 +148,7 @@ namespace bs
 			return 0;
 
 		UINT32 idMask = 0;
-		UINT32 curIdx = queueIdx;
+		UINT32 curIdx = queueIdx % numQueues;
 		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
 		{
 			idMask |= CommandSyncMask::getGlobalQueueMask(type, curIdx);
@@ -217,8 +217,6 @@ namespace bs
 				if ((mMemoryProperties.memoryTypes[i].propertyFlags & wantedFlags) == wantedFlags)
 					return i;
 			}
-
-			requirementBits >>= 1;
 		}
 
 		return -1;

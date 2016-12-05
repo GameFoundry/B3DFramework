@@ -7,7 +7,7 @@
 
 # TODO: Set default install paths for mac/unix
 # TODO: Don't hardcode the version (instead use regex or GLOB to match latest)
-set(Vulkan_INSTALL_DIRS "C:/VulkanSDK/1.0.30.0" CACHE PATH "")
+set(Vulkan_INSTALL_DIRS "C:/VulkanSDK/1.0.33.0" CACHE PATH "")
 set(Vulkan_INCLUDE_SEARCH_DIRS "${Vulkan_INSTALL_DIRS}/Include")
 
 if(BS_64BIT)
@@ -40,9 +40,13 @@ if(Vulkan_FOUND)
 	add_library(Vulkan STATIC IMPORTED)
 	set_target_properties(Vulkan PROPERTIES IMPORTED_LOCATION_DEBUG "${Vulkan_LIBRARY_DEBUG}")
 	set_target_properties(Vulkan PROPERTIES IMPORTED_LOCATION_OPTIMIZEDDEBUG "${Vulkan_LIBRARY_DEBUG}")
-	set_target_properties(Vulkan PROPERTIES IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY_OPTIMIZED}")	
+	set_target_properties(Vulkan PROPERTIES IMPORTED_LOCATION_RELEASE "${Vulkan_LIBRARY_OPTIMIZED}")
 endif()
 
-mark_as_advanced(Vulkan_INSTALL_DIRS Vulkan_INCLUDE_DIR Vulkan_LIBRARY_OPTIMIZED Vulkan_LIBRARY_DEBUG)
+mark_as_advanced(
+	Vulkan_INSTALL_DIRS 
+	Vulkan_INCLUDE_DIR 
+	Vulkan_LIBRARY_OPTIMIZED 
+	Vulkan_LIBRARY_DEBUG)
 set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIR})
 set(Vulkan_LIBRARIES Vulkan)

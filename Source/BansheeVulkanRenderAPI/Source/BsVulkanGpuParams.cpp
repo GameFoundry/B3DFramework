@@ -372,7 +372,7 @@ namespace bs
 			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
 
-			buffer.registerResource(resource, accessFlags, VK_IMAGE_LAYOUT_GENERAL, useFlags);
+			buffer.registerResource(resource, accessFlags, resource->getLayout(), VK_IMAGE_LAYOUT_GENERAL, useFlags);
 		}
 
 		for (UINT32 i = 0; i < numTextures; i++)
@@ -396,7 +396,7 @@ namespace bs
 			else
 				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			buffer.registerResource(resource, VK_ACCESS_SHADER_READ_BIT, layout, VulkanUseFlag::Read);
+			buffer.registerResource(resource, VK_ACCESS_SHADER_READ_BIT, resource->getLayout(), layout, VulkanUseFlag::Read);
 		}
 
 		// Acquire sets as needed, and updated their contents if dirty
