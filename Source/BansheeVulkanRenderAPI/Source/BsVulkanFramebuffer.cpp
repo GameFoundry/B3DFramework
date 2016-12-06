@@ -185,7 +185,7 @@ namespace bs
 			VkAttachmentDescription& attachmentDesc = mAttachments[i];
 			VkAttachmentReference& attachmentRef = mColorReferences[i];
 
-			if (loadMask.isSet((RenderSurfaceMaskBits)attachment.index))
+			if (loadMask.isSet((RenderSurfaceMaskBits)(1 << attachment.index)))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -196,7 +196,7 @@ namespace bs
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 
-			if(readMask.isSet((RenderSurfaceMaskBits)attachment.index))
+			if(readMask.isSet((RenderSurfaceMaskBits)(1 << attachment.index)))
 				attachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
 			else
 				attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;

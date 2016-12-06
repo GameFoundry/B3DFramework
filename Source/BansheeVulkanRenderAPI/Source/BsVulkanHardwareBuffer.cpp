@@ -13,9 +13,11 @@ namespace bs
 	VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VkDeviceMemory memory,
 							   UINT32 rowPitch, UINT32 slicePitch)
 		: VulkanResource(owner, false), mBuffer(buffer), mView(view), mMemory(memory), mRowPitch(rowPitch)
-		, mSliceHeight(slicePitch / rowPitch)
 	{
-
+		if (rowPitch != 0)
+			mSliceHeight = slicePitch / rowPitch;
+		else
+			mSliceHeight = 0;
 	}
 
 	VulkanBuffer::~VulkanBuffer()

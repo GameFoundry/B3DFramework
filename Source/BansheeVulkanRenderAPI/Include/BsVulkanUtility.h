@@ -61,6 +61,9 @@ namespace bs
 		/** Gets Vulkan flags representing the number of samples in an image. Sample count must be a power of 2. */
 		static VkSampleCountFlagBits getSampleFlags(UINT32 numSamples);
 
+		/** Gets Vulkan flags representing a certain shader stage. */
+		static VkShaderStageFlagBits getShaderStage(GpuProgramType type);
+
 		/** 
 		 * Populates the provided array with Vulkan devices that correspond to provided flags. Sets null in unused slots. 
 		 * Each device is placed at its own index in the output array.

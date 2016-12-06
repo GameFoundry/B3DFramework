@@ -355,16 +355,27 @@ namespace bs
 		{
 			const glslang::TType* ttype = program->getUniformBlockTType(i);
 
+			if (!ttype->getQualifier().hasBinding())
+			{
+				log = "Uniform parsing error: Found a uniform block without a binding qualifier. Each uniform block must "
+					" have an explicitly defined binding number.";
+
+				return false;
+			}
+
 			const char* name = program->getUniformBlockName(i);
 			int size = program->getUniformBlockSize(i); 
 			int index = program->getUniformBlockIndex(i);
 
 			GpuParamBlockDesc param;
 			param.name = name;
-			param.blockSize = size;
+			param.blockSize = size / 4;
 			param.isShareable = true;
 			param.slot = ttype->getQualifier().layoutBinding;
 			param.set = ttype->getQualifier().layoutSet;
+
+			if (param.set == glslang::TQualifier::layoutSetEnd)
+				param.set = 0;
 
 			desc.paramBlocks[name] = param;
 			uniformBlockMap[index] = name;
@@ -377,18 +388,18 @@ namespace bs
 			const glslang::TType* ttype = program->getUniformTType(i);
 			const char* name = program->getUniformName(i);
 
-			if(!ttype->getQualifier().hasBinding())
-			{
-				log = "Uniform parsing error: Found an uniform without a binding qualifier. Each uniform must have an "
-					  "explicitly defined binding number.";
-
-				return false;
-			}
-
 			if (ttype->getBasicType() == glslang::EbtSampler) // Object type
 			{
 				// Note: Even though the type is named EbtSampler, all object types are categorized under it (including non
 				// sampled images and buffers)
+
+				if (!ttype->getQualifier().hasBinding())
+				{
+					log = "Uniform parsing error: Found an uniform without a binding qualifier. Each uniform must have an "
+						"explicitly defined binding number.";
+
+					return false;
+				}
 
 				const glslang::TSampler& sampler = ttype->getSampler();
 
@@ -396,6 +407,9 @@ namespace bs
 				param.name = name;
 				param.slot = ttype->getQualifier().layoutBinding;
 				param.set = ttype->getQualifier().layoutSet;
+
+				if (param.set == glslang::TQualifier::layoutSetEnd)
+					param.set = 0;
 
 				if (sampler.isImage())
 				{
@@ -611,8 +625,8 @@ namespace bs
 		// Add special header so code is recognized as GLSL
 		UINT32* header = (UINT32*)codeBytes;
 		header[0] = ICD_SPV_MAGIC;
-		header[1] = ICD_SPV_VERSION;
-		header[2] = 0;
+		header[1] = 0;
+		header[2] = VulkanUtility::getShaderStage(mProperties.getType());
 
 		UINT32* glslBytes = codeBytes + 3;
 		memcpy(glslBytes, sourceBytes, source.size());

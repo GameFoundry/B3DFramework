@@ -151,9 +151,21 @@ namespace bs
 		mViewportInfo.pViewports = nullptr; // Dynamic
 		mViewportInfo.pScissors = nullptr; // Dynamic
 
-		const RasterizerProperties& rstProps = getRasterizerState()->getProperties();
-		const BlendProperties& blendProps = getBlendState()->getProperties();
-		const DepthStencilProperties dsProps = getDepthStencilState()->getProperties();
+		RasterizerStateCore* rasterizerState = getRasterizerState().get();
+		if (rasterizerState == nullptr)
+			rasterizerState = RasterizerStateCore::getDefault().get();
+
+		BlendStateCore* blendState = getBlendState().get();
+		if (blendState == nullptr)
+			blendState = BlendStateCore::getDefault().get();
+
+		DepthStencilStateCore* depthStencilState = getDepthStencilState().get();
+		if (depthStencilState == nullptr)
+			depthStencilState = DepthStencilStateCore::getDefault().get();
+
+		const RasterizerProperties& rstProps = rasterizerState->getProperties();
+		const BlendProperties& blendProps = blendState->getProperties();
+		const DepthStencilProperties dsProps = depthStencilState->getProperties();
 
 		mRasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		mRasterizationInfo.pNext = nullptr;

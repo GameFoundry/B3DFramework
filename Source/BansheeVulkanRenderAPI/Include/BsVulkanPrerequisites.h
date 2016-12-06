@@ -13,8 +13,6 @@
 	#define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-#define BS_NUM_BACK_BUFFERS 1
-
 /** Maximum number of GPU queues that may exist at once. */
 #define BS_MAX_UNIQUE_QUEUES BS_MAX_QUEUES_PER_TYPE * bs::GQT_COUNT // Must fit within 4 bytes
 

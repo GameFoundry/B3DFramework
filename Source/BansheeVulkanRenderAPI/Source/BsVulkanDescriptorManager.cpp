@@ -161,7 +161,7 @@ namespace bs
 
 		VkPipelineLayout pipelineLayout;
 		VkResult result = vkCreatePipelineLayout(mDevice.getLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
-		assert(result != VK_SUCCESS);
+		assert(result == VK_SUCCESS);
 
 		bs_stack_free(setLayouts);
 

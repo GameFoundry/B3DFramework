@@ -220,6 +220,25 @@ namespace bs
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
+	VkShaderStageFlagBits VulkanUtility::getShaderStage(GpuProgramType type)
+	{
+		switch(type)
+		{
+		case GPT_FRAGMENT_PROGRAM:
+			return VK_SHADER_STAGE_FRAGMENT_BIT;
+		case GPT_HULL_PROGRAM:
+			return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		case GPT_DOMAIN_PROGRAM:
+			return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		case GPT_GEOMETRY_PROGRAM:
+			return VK_SHADER_STAGE_GEOMETRY_BIT;
+		case GPT_VERTEX_PROGRAM:
+			return VK_SHADER_STAGE_VERTEX_BIT;
+		case GPT_COMPUTE_PROGRAM:
+			return VK_SHADER_STAGE_COMPUTE_BIT;
+		}
+	}
+
 	VkSamplerAddressMode VulkanUtility::getAddressingMode(TextureAddressingMode mode)
 	{
 		switch (mode)

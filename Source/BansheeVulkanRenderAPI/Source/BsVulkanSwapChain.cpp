@@ -59,25 +59,30 @@ namespace bs
 					break;
 				}
 
-				if (presentMode == VK_PRESENT_MODE_FIFO_RELAXED_KHR)
+				if (presentModes[i] == VK_PRESENT_MODE_FIFO_RELAXED_KHR)
 					presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
 			}
 		}
 		else
 		{
+			// Mailbox comes with lower input latency than FIFO, but can waste GPU power by rendering frames that are never
+			// displayed, especially if the app runs much faster than the refresh rate. This is a concern for mobiles.
+#if BS_PLATFORM != BS_PLATFORM_ANDROID && BS_PLATFORM != BS_PLATFORM_IOS
 			for (UINT32 i = 0; i < numPresentModes; i++)
 			{
+
 				if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
 				{
 					presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 					break;
 				}
 			}
+#endif
 		}
 
 		bs_stack_free(presentModes);
 
-		uint32_t numImages = std::min(surfaceCaps.minImageCount + BS_NUM_BACK_BUFFERS, surfaceCaps.maxImageCount);
+		uint32_t numImages = surfaceCaps.minImageCount;
 
 		VkSurfaceTransformFlagsKHR transform;
 		if (surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)

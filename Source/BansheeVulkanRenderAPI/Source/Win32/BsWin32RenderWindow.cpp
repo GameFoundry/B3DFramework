@@ -145,10 +145,8 @@ namespace bs
 		assert(result == VK_SUCCESS);
 		assert(numFormats > 0);
 
-		VkSurfaceFormatKHR* formats = bs_stack_alloc<VkSurfaceFormatKHR>(numFormats);
-
-		Vector<VkSurfaceFormatKHR> surfaceFormats(numFormats);
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, mSurface, &numFormats, surfaceFormats.data());
+		VkSurfaceFormatKHR* surfaceFormats = bs_stack_alloc<VkSurfaceFormatKHR>(numFormats);
+		result = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, mSurface, &numFormats, surfaceFormats);
 		assert(result == VK_SUCCESS);
 
 		// If there is no preferred format, use standard RGBA
@@ -165,14 +163,38 @@ namespace bs
 		{
 			bool foundFormat = false;
 
-			VkFormat wantedFormats[] = 
+			VkFormat wantedFormatsUNORM[] =
 			{
-				VK_FORMAT_R8G8B8A8_SRGB,
-				VK_FORMAT_A8B8G8R8_SRGB_PACK32,
-				VK_FORMAT_R8G8B8_SRGB,
+				VK_FORMAT_R8G8B8A8_UNORM,
+				VK_FORMAT_B8G8R8A8_UNORM,
+				VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+				VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+				VK_FORMAT_R8G8B8_UNORM,
+				VK_FORMAT_B8G8R8_UNORM
 			};
 
-			UINT32 numWantedFormats = sizeof(wantedFormats) / sizeof(wantedFormats[0]);
+			VkFormat wantedFormatsSRGB[] = 
+			{
+				VK_FORMAT_R8G8B8A8_SRGB,
+				VK_FORMAT_B8G8R8A8_SRGB,
+				VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+				VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+				VK_FORMAT_R8G8B8_SRGB,
+				VK_FORMAT_B8G8R8_SRGB
+			};
+
+			UINT32 numWantedFormats;
+			VkFormat* wantedFormats;
+			if (mDesc.gamma)
+			{
+				numWantedFormats = sizeof(wantedFormatsSRGB) / sizeof(wantedFormatsSRGB[0]);
+				wantedFormats = wantedFormatsSRGB;
+			}
+			else
+			{
+				numWantedFormats = sizeof(wantedFormatsUNORM) / sizeof(wantedFormatsUNORM[0]);
+				wantedFormats = wantedFormatsUNORM;
+			}
 
 			for(UINT32 i = 0; i < numWantedFormats; i++)
 			{
@@ -187,6 +209,9 @@ namespace bs
 						break;
 					}
 				}
+
+				if (foundFormat)
+					break;
 			}
 
 			// If we haven't found anything, fall back to first available
@@ -202,7 +227,7 @@ namespace bs
 
 		mDepthFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 		
-		bs_stack_free(formats);
+		bs_stack_free(surfaceFormats);
 
 		// Create swap chain
 		mSwapChain = bs_shared_ptr_new<VulkanSwapChain>();
