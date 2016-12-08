@@ -148,7 +148,7 @@ namespace bs
 		HMaterial exampleMaterial = createMaterial(exampleTexture, exampleShader);
 
 		setUp3DScene(exampleModel, exampleMaterial);
-		//setUpGUI();
+		setUpGUI();
 		setUpInput();
 	}
 
@@ -261,9 +261,9 @@ namespace bs
 		
 		// Attach the Renderable component and hook up the mesh we imported earlier,
 		// and the material we created in the previous section.
-		//HRenderable renderable = dragonSO->addComponent<CRenderable>();
-		//renderable->setMesh(mesh);
-		//renderable->setMaterial(material);
+		HRenderable renderable = dragonSO->addComponent<CRenderable>();
+		renderable->setMesh(mesh);
+		renderable->setMaterial(material);
 
 		/************************************************************************/
 		/* 									CAMERA	                     		*/
@@ -415,7 +415,7 @@ namespace bs
 		elemLayout->addElement(toggleFullscreenButton);
 
 		// Add a profiler overlay object that is responsible for displaying CPU and GPU profiling GUI
-		//profilerOverlay = guiSO->addComponent<ProfilerOverlay>(guiCamera->_getCamera());
+		profilerOverlay = guiSO->addComponent<ProfilerOverlay>(guiCamera->_getCamera());
 
 		// Set up video mode list box
 		// First get a list of output devices
