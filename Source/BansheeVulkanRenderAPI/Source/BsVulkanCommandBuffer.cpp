@@ -13,6 +13,12 @@
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanVertexInputManager.h"
 
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+#include "Win32/BsWin32RenderWindow.h"
+#else
+static_assert(false, "Other platforms go here");
+#endif
+
 namespace bs
 {
 	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
@@ -635,12 +641,19 @@ namespace bs
 		}
 		else
 		{
-			rt->getCustomAttribute("FB", &mFramebuffer);
-			
 			if (rt->getProperties().isWindow())
+			{
+				Win32RenderWindowCore* window = static_cast<Win32RenderWindowCore*>(rt.get());
+				window->acquireBackBuffer();
+
+				rt->getCustomAttribute("FB", &mFramebuffer);
 				rt->getCustomAttribute("PS", &mPresentSemaphore);
+			}
 			else
+			{
+				rt->getCustomAttribute("FB", &mFramebuffer);
 				mPresentSemaphore = VK_NULL_HANDLE;
+			}
 
 			mRenderTargetWidth = rt->getProperties().getWidth();
 			mRenderTargetHeight = rt->getProperties().getHeight();
