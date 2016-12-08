@@ -498,9 +498,11 @@ namespace bs
 			cmdBuffer->end();
 
 			queue->submit(cmdBuffer, mSemaphoresTemp, numSemaphores);
-			numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
 
-			// TODO - Cmd buffer not marked as submitted, and doesn't set active buffer in CBM (probably among other things)
+			cmdBuffer->mState = State::Submitted;
+			cbm.setActiveBuffer(queue->getType(), deviceIdx, queueIdx, cmdBuffer);
+
+			numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
 		}
 
 		queue->submit(this, mSemaphoresTemp, numSemaphores);
