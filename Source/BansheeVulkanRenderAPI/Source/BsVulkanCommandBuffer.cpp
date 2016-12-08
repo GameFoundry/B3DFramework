@@ -499,6 +499,8 @@ namespace bs
 
 			queue->submit(cmdBuffer, mSemaphoresTemp, numSemaphores);
 			numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
+
+			// TODO - Cmd buffer not marked as submitted, and doesn't set active buffer in CBM (probably among other things)
 		}
 
 		queue->submit(this, mSemaphoresTemp, numSemaphores);

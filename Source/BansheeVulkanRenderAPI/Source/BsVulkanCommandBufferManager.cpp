@@ -111,7 +111,7 @@ namespace bs
 		{
 			SPtr<VulkanDevice> device = rapi._getDevice(i);
 
-			bs_zero_out(mDeviceData[i].activeBuffers);
+			bs_zero_out(mDeviceData[i].lastActiveBuffer);
 
 			for (UINT32 j = 0; j < GQT_COUNT; j++)
 			{
@@ -155,7 +155,8 @@ namespace bs
 		assert(buffer->isSubmitted());
 
 		UINT32 idx = CommandSyncMask::getGlobalQueueIdx(type, queueIdx);
-		mDeviceData[deviceIdx].activeBuffers[idx] = buffer;
+		mDeviceData[deviceIdx].lastActiveBuffer[idx] = buffer;
+		mDeviceData[deviceIdx].activeBuffers.push_back(buffer);
 	}
 
 	void VulkanCommandBufferManager::getSyncSemaphores(UINT32 deviceIdx, UINT32 syncMask, VkSemaphore* semaphores, 
@@ -167,14 +168,14 @@ namespace bs
 		UINT32 semaphoreIdx = 0;
 		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
 		{
-			if (deviceData.activeBuffers[i] == nullptr)
+			if (deviceData.lastActiveBuffer[i] == nullptr)
 				continue;
 
 			if ((syncMask & (1 << i)) == 0) // We don't care about the command buffer
 				continue;
 
-			assert(deviceData.activeBuffers[i]->isSubmitted()); // It shouldn't be here if it wasn't submitted
-			semaphores[semaphoreIdx++] = deviceData.activeBuffers[i]->getSemaphore();
+			assert(deviceData.lastActiveBuffer[i]->isSubmitted()); // It shouldn't be here if it wasn't submitted
+			semaphores[semaphoreIdx++] = deviceData.lastActiveBuffer[i]->getSemaphore();
 		}
 
 		count = semaphoreIdx;
@@ -185,16 +186,26 @@ namespace bs
 		assert(deviceIdx < mNumDevices);
 		PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
-		UINT32 semaphoreIdx = 0;
-		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
+		auto iter = deviceData.activeBuffers.begin();
+		while(iter != deviceData.activeBuffers.end())
 		{
-			if (deviceData.activeBuffers[i] == nullptr)
-				continue;
+			VulkanCmdBuffer* cmdBuffer = *iter;
 
-			VulkanCmdBuffer* cmdBuffer = deviceData.activeBuffers[i];
 			cmdBuffer->refreshFenceStatus();
 			if (!cmdBuffer->isSubmitted())
-				deviceData.activeBuffers[i] = nullptr;
+				iter = deviceData.activeBuffers.erase(iter);
+			else
+				++iter;
+		}
+
+		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
+		{
+			if (deviceData.lastActiveBuffer[i] == nullptr)
+				continue;
+
+			VulkanCmdBuffer* cmdBuffer = deviceData.lastActiveBuffer[i];
+			if (!cmdBuffer->isSubmitted())
+				deviceData.lastActiveBuffer[i] = nullptr;
 		}
 	}
 

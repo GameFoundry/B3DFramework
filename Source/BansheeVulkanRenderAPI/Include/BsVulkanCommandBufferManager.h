@@ -120,7 +120,8 @@ namespace bs
 		/** Contains command buffers specific to one device. */
 		struct PerDeviceData
 		{
-			VulkanCmdBuffer* activeBuffers[BS_MAX_UNIQUE_QUEUES];
+			List<VulkanCmdBuffer*> activeBuffers;
+			VulkanCmdBuffer* lastActiveBuffer[BS_MAX_UNIQUE_QUEUES];
 			VulkanTransferBuffer transferBuffers[GQT_COUNT][BS_MAX_QUEUES_PER_TYPE];
 		};
 
