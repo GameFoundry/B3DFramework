@@ -233,7 +233,7 @@ namespace bs
 		static const float WEIGHT_MODIFIER;
 	};
 
-	/** Provides easier access to Input. */
+	/** Provides global access to Input. */
 	BS_CORE_EXPORT Input& gInput();
 
 	/** @} */

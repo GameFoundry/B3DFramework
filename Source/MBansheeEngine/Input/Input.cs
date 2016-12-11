@@ -671,8 +671,8 @@ namespace BansheeEngine
     /// <summary>
     /// Available types of input axes.
     /// </summary>
-	public enum InputAxis // Note: Must match C++ enum InputBox
-	{
+	public enum InputAxis // Note: Must match C++ enum InputAxis
+    {
 		MouseX,
 		MouseY,
 		MouseZ,

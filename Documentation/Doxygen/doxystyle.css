@@ -15,6 +15,7 @@ h2 {
 	margin-bottom: 0.07em;
 	padding: 10px 0px 5px 0px;
 	border-bottom: 1px solid rgba(89, 160, 195, 0.86);
+	font-size: 1.314rem !important;
 }
 
 h2.groupheader {
@@ -26,6 +27,7 @@ h3 {
 	margin-bottom: 0.07em;
 	padding: 10px 0px 5px 0px;
 	border-bottom: 1px dashed rgba(89, 160, 195, 0.86);
+	font-size: 1.0rem !important;
 }
 
 a:visited {

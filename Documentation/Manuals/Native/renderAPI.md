@@ -269,7 +269,7 @@ For convenience a specialized @ref bs::RenderAPI::convertProjectionMatrix "Rende
 # Command buffers {#renderAPI_i}
 Almost all @ref bs::RenderAPICore "RenderAPICore" commands we talked about so far support @ref bs::CommandBuffer "CommandBuffer"s. Command buffers are optional, but they allow the rendering commands to be generated from threads other than the core thread.
 
-To create a command buffer call @ref bs::CommandBuffer::create "CommandBuffer::create" after which provide it to the relevant @ref bs::RenderAPICore "RenderAPICore" calls. Those commands will get recorded in the command buffer, but not executed. To actually execute the commands call @ref bs::RenderAPICore::executeCommands "RenderAPICore::executeCommands".
+To create a command buffer call @ref bs::CommandBuffer::create "CommandBuffer::create" after which provide it to the relevant @ref bs::RenderAPICore "RenderAPICore" calls. Those commands will get recorded in the command buffer, but not executed. To actually execute the commands call @ref bs::RenderAPICore::submitCommandBuffer "RenderAPICore::submitCommandBuffer".
 
 This allows rendering to be faster since work can be distributed over multiple CPU cores. Note that only command queuing can happen on a separate thread, command buffer creation and execution must still happen on the core thread.
 
@@ -290,5 +290,5 @@ rapi.setGpuParams(computeGpuParams, cmdBuffer);
 rapi.dispatchCompute(512, 512, cmdBuffer);
 
 // Core thread
-rapi.executeCommands(cmdBuffer);
+rapi.submitCommandBuffer(cmdBuffer);
 ~~~~~~~~~~~~~

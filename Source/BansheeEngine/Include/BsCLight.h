@@ -62,6 +62,12 @@ namespace bs
 	    /** @copydoc Light::setSpotAngle */
 		void setSpotAngle(const Degree& spotAngle) { mInternal->setSpotAngle(spotAngle); }
 
+		/** @copydoc Light::getSpotFalloffAngle */
+		Degree getSpotFalloffAngle() const { return mInternal->getSpotFalloffAngle(); }
+
+		/** @copydoc Light::setSpotFalloffAngle */
+		void setSpotFalloffAngle(const Degree& spotAngle) { mInternal->setSpotFalloffAngle(spotAngle); }
+
 		/** @copydoc Light::getPhysicallyBasedAttenuation  */
 		bool getPhysicallyBasedAttenuation() const { return mInternal->getPhysicallyBasedAttenuation(); }
 

@@ -17,6 +17,9 @@ Manuals									{#manuals}
  - [Materials](@ref simpleMaterial)
  - [Rendering objects](@ref renderingObjects)
  - [Lighting](@ref lights)
+- **Input**
+ - [Input polling](@ref inputPolling) 
+ - [Input events](@ref inputEvents)  
 - **Utilities**
  - [Containers](@ref containers)
  - [Strings](@ref strings)
