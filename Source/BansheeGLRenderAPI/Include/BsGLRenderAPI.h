@@ -100,7 +100,7 @@ namespace bs
 		/** @copydoc RenderAPICore::addCommands() */
 		void addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) override;
 
-		/** @copydoc RenderAPICore::executeCommands() */
+		/** @copydoc RenderAPICore::submitCommandBuffer() */
 		void submitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask = 0xFFFFFFFF) override;
 
 		/** @copydoc RenderAPICore::convertProjectionMatrix() */

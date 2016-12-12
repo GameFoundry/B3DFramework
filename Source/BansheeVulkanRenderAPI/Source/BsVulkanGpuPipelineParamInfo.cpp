@@ -31,10 +31,9 @@ namespace bs
 				numDevices++;
 		}
 
-		UINT32 numElementTypes = (UINT32)ParamType::Count;
-		UINT32 bindingsSize = sizeof(VkDescriptorSetLayoutBinding) * mTotalNumElements;
-		UINT32 layoutInfoSize = sizeof(LayoutInfo) * mTotalNumSets;
-		UINT32 layoutsSize = sizeof(VulkanDescriptorLayout*) * mTotalNumSets;
+		UINT32 bindingsSize = sizeof(VkDescriptorSetLayoutBinding) * mNumElements;
+		UINT32 layoutInfoSize = sizeof(LayoutInfo) * mNumSets;
+		UINT32 layoutsSize = sizeof(VulkanDescriptorLayout*) * mNumSets;
 
 		mData = (UINT8*)bs_alloc(bindingsSize + layoutInfoSize + layoutsSize * numDevices);
 		UINT8* dataPtr = mData;
@@ -60,39 +59,23 @@ namespace bs
 		memset(bindings, 0, bindingsSize);
 
 		UINT32 globalBindingIdx = 0;
-		for (UINT32 i = 0; i < mTotalNumSets; i++)
+		for (UINT32 i = 0; i < mNumSets; i++)
 		{
 			mLayoutInfos[i].numBindings = 0;
 			mLayoutInfos[i].bindings = nullptr;
 
-			for (UINT32 j = 0; j < numElementTypes; j++)
+			for (UINT32 j = 0; j < mSetInfos[i].numSlots; j++)
 			{
-				if (i >= mNumSets[j])
-					continue;
-				
-				UINT32 start = mOffsets[j][i];
-
-				UINT32 end;
-				if (i < (mNumSets[j] - 1))
-					end = mOffsets[j][i + 1];
-				else
-					end = mNumElements[j];
-
-				UINT32 elementsInSet = end - start;
-				for (UINT32 k = 0; k < elementsInSet; k++)
-				{
-					VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx + k];
-					binding.binding = mLayoutInfos[i].numBindings + k;
-				}
-
-				globalBindingIdx += elementsInSet;
-
-				mLayoutInfos[i].numBindings += elementsInSet;
+				VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx + j];
+				binding.binding = mLayoutInfos[i].numBindings + j;
 			}
+
+			globalBindingIdx += mSetInfos[i].numSlots;
+			mLayoutInfos[i].numBindings += mSetInfos[i].numSlots;
 		}
 
 		UINT32 offset = 0;
-		for (UINT32 i = 0; i < mTotalNumSets; i++)
+		for (UINT32 i = 0; i < mNumSets; i++)
 		{
 			mLayoutInfos[i].bindings = &bindings[offset];
 			offset += mLayoutInfos[i].numBindings;
@@ -150,7 +133,7 @@ namespace bs
 				continue;
 
 			VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
-			for (UINT32 j = 0; j < mTotalNumSets; j++)
+			for (UINT32 j = 0; j < mNumSets; j++)
 				mLayouts[i][j] = descManager.getLayout(mLayoutInfos[j].bindings, mLayoutInfos[j].numBindings);
 		}
 	}

@@ -147,20 +147,25 @@ namespace bs
 
 				for (UINT32 j = 0; j < passOverrides.numSets; j++)
 				{
+					passOverrides.stateOverrides[j] = (UINT32*)outputData;
+					outputData += sizeof(UINT32) * slotsPerSetIter[j];
+				}
+
+				for (UINT32 j = 0; j < GpuParamsSetCore::NUM_STAGES; j++)
+				{
 					GpuProgramType progType = (GpuProgramType)j;
 					SPtr<GpuParamDesc> paramDesc = paramsPtr->getParamDesc(progType);
 					if (paramDesc == nullptr)
 						continue;
 
-					passOverrides.stateOverrides[j] = (UINT32*)outputData;
-
 					UINT32 numStates = 0;
 					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
+						UINT32 set = iter->second.set;
 						UINT32 slot = iter->second.slot;
 						while (slot > numStates)
 						{
-							passOverrides.stateOverrides[j][numStates] = (UINT32)-1;
+							passOverrides.stateOverrides[set][numStates] = (UINT32)-1;
 							numStates++;
 						}
 
@@ -168,12 +173,10 @@ namespace bs
 
 						auto iterFind = overrideLookup.find(iter->first);
 						if (iterFind != overrideLookup.end())
-							passOverrides.stateOverrides[j][slot] = iterFind->second;
+							passOverrides.stateOverrides[set][slot] = iterFind->second;
 						else
-							passOverrides.stateOverrides[j][slot] = (UINT32)-1;
+							passOverrides.stateOverrides[set][slot] = (UINT32)-1;
 					}
-
-					outputData += sizeof(UINT32) * slotsPerSetIter[j];
 				}
 
 				slotsPerSetIter += passOverrides.numSets;

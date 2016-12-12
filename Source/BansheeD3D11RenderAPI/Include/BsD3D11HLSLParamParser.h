@@ -28,6 +28,16 @@ namespace bs
 		void parse(ID3DBlob* microcode, GpuProgramType type, GpuParamDesc& desc, List<VertexElement>* inputParams);
 
 	private:
+		/** Types of HLSL parameters. */
+		enum class ParamType
+		{
+			ConstantBuffer,
+			Texture,
+			Sampler,
+			UAV,
+			Count // Keep at end
+		};
+
 		/**
 		 * Parses the provided constant buffer retrieving information about all of its members and storing them in the
 		 * provided GPU params description object.
@@ -43,6 +53,9 @@ namespace bs
 		 */
 		void parseVariable(D3D11_SHADER_TYPE_DESC& varTypeDesc, D3D11_SHADER_VARIABLE_DESC& varDesc, GpuParamDesc& desc,
 			GpuParamBlockDesc& paramBlock);
+
+		/** Maps a parameter in a specific shader stage, of a specific type to a unique set index. */
+		static UINT32 mapParameterToSet(GpuProgramType progType, ParamType paramType);
 	};
 
 	/** @} */

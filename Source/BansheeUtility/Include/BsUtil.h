@@ -45,7 +45,6 @@ namespace bs
 	void bs_zero_out(T * arr, size_t count)
 	{
 		assert(arr != nullptr);
-		assert(count != 0);
 		std::memset(arr, 0, sizeof(T) * count);
 	}
 

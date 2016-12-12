@@ -36,44 +36,42 @@ namespace bs
 		GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc);
 		virtual ~GpuPipelineParamInfoBase();
 
-		/** Gets the total number of sets, across all parameter types. */
-		UINT32 getNumSets() const { return mTotalNumSets; }
-
-		/** Returns the number of sets for the specified parameter type. */
-		UINT32 getNumSets(ParamType type) { return mNumSets[(int)type]; }
+		/** Gets the total number of sets. */
+		UINT32 getNumSets() const { return mNumSets; }
 
 		/** Returns the total number of elements across all sets. */
-		UINT32 getNumElements() const { return mTotalNumElements; }
+		UINT32 getNumElements() const { return mNumElements; }
 
 		/** Returns the number of elements in all sets for the specified parameter type. */
-		UINT32 getNumElements(ParamType type) { return mNumElements[(int)type]; }
+		UINT32 getNumElements(ParamType type) { return mNumElementsPerType[(int)type]; }
 
 		/**
-		* Assuming all elements for a specific parameter type are laid out sequentially and grouped by their sets,
-		* returns the sequential index to the first parameter of the provided set.
-		*/
-		UINT32 getSetOffset(ParamType type, UINT32 set) { return mOffsets[(int)type][set]; }
-
-		/**
-		* Converts a set/slot combination into a sequential index that maps to the parameter in that parameter type's
-		* array.
-		*
-		* If the set or slot is out of valid range, the method logs an error and returns -1. Only performs range checking
-		* in debug mode.
-		*/
+		 * Converts a set/slot combination into a sequential index that maps to the parameter in that parameter type's
+		 * array.
+		 *
+		 * If the set or slot is out of valid range, the method logs an error and returns -1. Only performs range checking
+		 * in debug mode.
+		 */
 		UINT32 getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const;
 
 		/** Returns descriptions of individual parameters for the specified GPU program type. */
 		const SPtr<GpuParamDesc>& getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }
 
 	protected:
+		/** Information about a single set in the param info object. */
+		struct SetInfo
+		{
+			UINT32* slotIndices;
+			ParamType* slotTypes;
+			UINT32 numSlots;
+		};
+		
 		std::array<SPtr<GpuParamDesc>, 6> mParamDescs;
 
-		UINT32 mTotalNumSets;
-		UINT32 mTotalNumElements;
-		UINT32 mNumSets[(int)ParamType::Count];
-		UINT32 mNumElements[(int)ParamType::Count];
-		UINT32* mOffsets[(int)ParamType::Count];
+		UINT32 mNumSets;
+		UINT32 mNumElements;
+		SetInfo* mSetInfos;
+		UINT32 mNumElementsPerType[(int)ParamType::Count];
 
 		UINT8* mData;
 	};

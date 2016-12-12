@@ -87,7 +87,7 @@ namespace bs
 				GpuParamBlockDesc blockDesc;
 				blockDesc.name = resourceDesc.Name;
 				blockDesc.slot = resourceDesc.BindPoint + i;
-				blockDesc.set = (UINT32)type;
+				blockDesc.set = mapParameterToSet(type, ParamType::ConstantBuffer);
 				blockDesc.blockSize = 0; // Calculated manually as we add parameters
 
 				if(strcmp(resourceDesc.Name, "$Globals") == 0 || strcmp(resourceDesc.Name, "$Param") == 0) // Special buffers, as defined by DX11 docs
@@ -102,13 +102,14 @@ namespace bs
 				GpuParamObjectDesc memberDesc;
 				memberDesc.name = resourceDesc.Name;
 				memberDesc.slot = resourceDesc.BindPoint + i;
-				memberDesc.set = (UINT32)type;
 				memberDesc.type = GPOT_UNKNOWN;
 
 				switch(resourceDesc.Type)
 				{
 				case D3D_SIT_SAMPLER:
 					memberDesc.type = GPOT_SAMPLER2D; // Actual dimension of the sampler doesn't matter
+					memberDesc.set = mapParameterToSet(type, ParamType::Sampler);
+
 					desc.samplers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_TEXTURE:
@@ -133,20 +134,28 @@ namespace bs
 						LOGWRN("Skipping texture because it has unsupported dimension: " + toString(resourceDesc.Dimension));
 					}
 
-					if(memberDesc.type != GPOT_UNKNOWN)
+					if (memberDesc.type != GPOT_UNKNOWN)
+					{
+						memberDesc.set = mapParameterToSet(type, ParamType::Texture);
 						desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
-
+					}
 					break;
 				case D3D_SIT_STRUCTURED:
 					memberDesc.type = GPOT_STRUCTURED_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::Texture);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_BYTEADDRESS:
 					memberDesc.type = GPOT_BYTE_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::Texture);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D11_SIT_UAV_RWTYPED:
 				{
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					switch (resourceDesc.Dimension)
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
@@ -177,22 +186,32 @@ namespace bs
 				}
 				case D3D11_SIT_UAV_RWSTRUCTURED:
 					memberDesc.type = GPOT_RWSTRUCTURED_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D11_SIT_UAV_RWBYTEADDRESS:
 					memberDesc.type = GPOT_RWBYTE_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_APPEND_STRUCTURED:
 					memberDesc.type = GPOT_RWAPPEND_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_CONSUME_STRUCTURED:
 					memberDesc.type = GPOT_RWCONSUME_BUFFER;
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
 					memberDesc.type = GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER;
+					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
+
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				default:
@@ -220,16 +239,14 @@ namespace bs
 
 		for(UINT32 j = 0; j < constantBufferDesc.Variables; j++)
 		{
-			ID3D11ShaderReflectionVariable* varRef;
-			varRef = bufferReflection->GetVariableByIndex(j);
+			ID3D11ShaderReflectionVariable* varRef = bufferReflection->GetVariableByIndex(j);
 			D3D11_SHADER_VARIABLE_DESC varDesc;
-			HRESULT hr = varRef->GetDesc(&varDesc);
+			hr = varRef->GetDesc(&varDesc);
 
 			if (FAILED(hr))
 				BS_EXCEPT(RenderingAPIException, "Failed to retrieve HLSL constant buffer variable description.");
 
-			ID3D11ShaderReflectionType* varRefType;
-			varRefType = varRef->GetType();
+			ID3D11ShaderReflectionType* varRefType = varRef->GetType();
 			D3D11_SHADER_TYPE_DESC varTypeDesc;
 			varRefType->GetDesc(&varTypeDesc);
 
@@ -392,5 +409,13 @@ namespace bs
 		}
 
 		desc.params.insert(std::make_pair(memberDesc.name, memberDesc));
+	}
+
+	UINT32 D3D11HLSLParamParser::mapParameterToSet(GpuProgramType progType, ParamType paramType)
+	{
+		UINT32 progTypeIdx = (UINT32)progType;
+		UINT32 paramTypeIdx = (UINT32)paramType;
+		
+		return progTypeIdx * (UINT32)ParamType::Count + paramTypeIdx;
 	}
 }

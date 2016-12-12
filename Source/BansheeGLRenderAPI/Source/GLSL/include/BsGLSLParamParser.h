@@ -60,6 +60,16 @@ namespace bs
 		List<VertexElement> buildVertexDeclaration(GLuint glProgram);
 
 	private:
+		/** Types of HLSL parameters. */
+		enum class ParamType
+		{
+			UniformBlock,
+			Texture,
+			Sampler,
+			Image,
+			Count // Keep at end
+		};
+
 		/**
 		 * Populates information for uniform with the specified index into the provided structure.
 		 *
@@ -92,6 +102,9 @@ namespace bs
 
 		/**	Converts an OpenGL type to vertex element type. */
 		VertexElementType glTypeToAttributeType(GLenum glType);
+
+		/** Maps a parameter in a specific shader stage, of a specific type to a unique set index. */
+		static UINT32 mapParameterToSet(GpuProgramType progType, ParamType paramType);
 	};
 
 	/** @} */

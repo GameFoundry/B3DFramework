@@ -23,6 +23,8 @@ namespace bs
 		UINT32 paramIdx;
 		UINT64 originalStateHash;
 		SPtr<SamplerStateCore> state;
+		UINT32 set;
+		UINT32 slot;
 	};
 
 	/**	Contains data about an overridden sampler states in the entire material. */

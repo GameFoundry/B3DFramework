@@ -138,7 +138,7 @@ namespace bs
 
 		GpuParamBlockDesc newGlobalBlockDesc;
 		newGlobalBlockDesc.slot = 0;
-		newGlobalBlockDesc.set = (UINT32)type;
+		newGlobalBlockDesc.set = mapParameterToSet(type, ParamType::UniformBlock);
 		newGlobalBlockDesc.name = "BS_INTERNAL_Globals";
 		newGlobalBlockDesc.blockSize = 0;
 		newGlobalBlockDesc.isShareable = false;
@@ -158,7 +158,7 @@ namespace bs
 
 			GpuParamBlockDesc newBlockDesc;
 			newBlockDesc.slot = index + 1;
-			newBlockDesc.set = (UINT32)type;
+			newBlockDesc.set = mapParameterToSet(type, ParamType::UniformBlock);
 			newBlockDesc.name = uniformName;
 			newBlockDesc.blockSize = 0;
 			newBlockDesc.isShareable = true;
@@ -313,12 +313,12 @@ namespace bs
 				GpuParamObjectDesc samplerParam;
 				samplerParam.name = paramName;
 				samplerParam.slot = glGetUniformLocation(glProgram, uniformName);
-				samplerParam.set = (UINT32)type;
+				samplerParam.set = mapParameterToSet(type, ParamType::Sampler);
 
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
 				textureParam.slot = samplerParam.slot;
-				textureParam.set = (UINT32)type;
+				textureParam.set = mapParameterToSet(type, ParamType::Texture);
 
 				switch (uniformType)
 				{
@@ -352,7 +352,7 @@ namespace bs
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
 				textureParam.slot = glGetUniformLocation(glProgram, uniformName);
-				textureParam.set = (UINT32)type;
+				textureParam.set = mapParameterToSet(type, ParamType::Image);
 
 				switch (uniformType)
 				{
@@ -377,12 +377,17 @@ namespace bs
 				GpuParamObjectDesc bufferParam;
 				bufferParam.name = paramName;
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
-				bufferParam.set = (UINT32)type;
 
 				if (uniformType == GL_IMAGE_BUFFER)
+				{
 					bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
+					bufferParam.set = mapParameterToSet(type, ParamType::Image);
+				}
 				else // Sampler buffer
+				{
 					bufferParam.type = GPOT_STRUCTURED_BUFFER;
+					bufferParam.set = mapParameterToSet(type, ParamType::Texture);
+				}
 
 				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
 			}
@@ -413,7 +418,7 @@ namespace bs
 
 					gpuParam.gpuMemOffset = blockOffset;
 					gpuParam.paramBlockSlot = blockIndex + 1; // 0 is reserved for globals
-					gpuParam.paramBlockSet = (UINT32)type;
+					gpuParam.paramBlockSet = mapParameterToSet(type, ParamType::UniformBlock);
 
 					String& blockName = blockSlotToName[gpuParam.paramBlockSlot];
 					GpuParamBlockDesc& curBlockDesc = returnParamDesc.paramBlocks[blockName];
@@ -425,7 +430,7 @@ namespace bs
 				{
 					gpuParam.gpuMemOffset = glGetUniformLocation(glProgram, uniformName);
 					gpuParam.paramBlockSlot = 0;
-					gpuParam.paramBlockSet = (UINT32)type;
+					gpuParam.paramBlockSet = mapParameterToSet(type, ParamType::UniformBlock);
 					gpuParam.cpuMemOffset = globalBlockDesc.blockSize;
 
 					globalBlockDesc.blockSize = std::max(globalBlockDesc.blockSize, gpuParam.cpuMemOffset + gpuParam.arrayElementStride * gpuParam.arraySize);
@@ -618,5 +623,13 @@ namespace bs
 		}
 		else
 			desc.arrayElementStride = desc.elementSize;
+	}
+
+	UINT32 GLSLParamParser::mapParameterToSet(GpuProgramType progType, ParamType paramType)
+	{
+		UINT32 progTypeIdx = (UINT32)progType;
+		UINT32 paramTypeIdx = (UINT32)paramType;
+
+		return progTypeIdx * (UINT32)ParamType::Count + paramTypeIdx;
 	}
 }

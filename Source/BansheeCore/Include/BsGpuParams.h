@@ -52,6 +52,9 @@ namespace bs
 		/** Returns a description of all stored parameters. */
 		SPtr<GpuParamDesc> getParamDesc(GpuProgramType type) const;
 
+		/** Gets the object that contains the processed information about all parameters. */
+		SPtr<GpuPipelineParamInfoBase> getParamInfo() const { return mParamInfo; }
+
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
 		 */

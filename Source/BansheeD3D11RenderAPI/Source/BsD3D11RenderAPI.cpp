@@ -461,13 +461,14 @@ namespace bs
 					{
 						UINT32 slot = iter->second.slot;
 						SPtr<GpuParamBlockBufferCore> buffer = gpuParams->getParamBlockBuffer(iter->second.set, slot);
-						buffer->flushToGPU();
 
 						while (slot >= (UINT32)constBuffers.size())
 							constBuffers.push_back(nullptr);
 
 						if (buffer != nullptr)
 						{
+							buffer->flushToGPU();
+
 							const D3D11GpuParamBlockBufferCore* d3d11paramBlockBuffer =
 								static_cast<const D3D11GpuParamBlockBufferCore*>(buffer.get());
 							constBuffers[slot] = d3d11paramBlockBuffer->getD3D11Buffer();
