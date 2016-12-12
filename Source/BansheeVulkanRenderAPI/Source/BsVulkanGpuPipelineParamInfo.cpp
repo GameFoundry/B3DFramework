@@ -66,12 +66,15 @@ namespace bs
 
 			for (UINT32 j = 0; j < mSetInfos[i].numSlots; j++)
 			{
-				VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx + j];
-				binding.binding = mLayoutInfos[i].numBindings + j;
-			}
+				if (mSetInfos[i].slotIndices[j] == -1)
+					continue;
 
-			globalBindingIdx += mSetInfos[i].numSlots;
-			mLayoutInfos[i].numBindings += mSetInfos[i].numSlots;
+				VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx];
+				binding.binding = j;
+
+				mLayoutInfos[i].numBindings++;
+				globalBindingIdx++;
+			}
 		}
 
 		UINT32 offset = 0;
@@ -100,6 +103,8 @@ namespace bs
 			{
 				for (auto& entry : params)
 				{
+					assert(false); // Accesing the slot below is wrong
+
 					VkDescriptorSetLayoutBinding& binding = mLayoutInfos[entry.second.set].bindings[entry.second.slot];
 					binding.descriptorCount = 1;
 					binding.stageFlags |= stageFlagsLookup[i];

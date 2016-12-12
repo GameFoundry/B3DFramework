@@ -244,13 +244,15 @@ namespace bs
 					}
 				}
 
-				if (!isBlockValid)
-				{
-					LOGWRN("Found two param blocks with the same name but different contents: " + blockIter->first);
-					uniqueParamBlocks[blockIter->first] = BlockInfo(&curBlock, nullptr, false);
+				// Note: Ignoring mismatched blocks for now, because glslang parser doesn't report dead uniform entries,
+				// meaning identical blocks can have different sets of uniforms reported depending on which are unused.
+				//if (!isBlockValid)
+				//{
+				//	LOGWRN("Found two param blocks with the same name but different contents: " + blockIter->first);
+				//	uniqueParamBlocks[blockIter->first] = BlockInfo(&curBlock, nullptr, false);
 
-					continue;
-				}
+				//	continue;
+				//}
 			}
 		}
 

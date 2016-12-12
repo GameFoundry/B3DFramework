@@ -75,7 +75,7 @@ namespace bs
 		mMainView = createView(completeSurface);
 
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
-		mSubresources = (VulkanImageSubresource**)bs_alloc<VulkanImageSubresource*>(numSubresources);
+		mSubresources = (VulkanImageSubresource**)bs_alloc(sizeof(VulkanImageSubresource*) * numSubresources);
 		for (UINT32 i = 0; i < numSubresources; i++)
 			mSubresources[i] = owner->create<VulkanImageSubresource>();
 	}

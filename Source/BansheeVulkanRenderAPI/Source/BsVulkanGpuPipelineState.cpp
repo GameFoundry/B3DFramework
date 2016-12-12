@@ -575,7 +575,7 @@ namespace bs
 				VkPipeline pipeline;
 				VkResult result = vkCreateComputePipelines(devices[i]->getLogical(), VK_NULL_HANDLE, 1, &pipelineCI,
 														   gVulkanAllocator, &pipeline);
-				assert(result != VK_SUCCESS);
+				assert(result == VK_SUCCESS);
 
 
 				mPerDeviceData[i].pipeline = rescManager.create<VulkanPipeline>(pipeline);

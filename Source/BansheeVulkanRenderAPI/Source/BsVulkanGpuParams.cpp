@@ -35,6 +35,8 @@ namespace bs
 				{
 					for (auto& entry : mPerDeviceData[i].perSetData[j].sets)
 						entry->destroy();
+
+					mPerDeviceData[i].perSetData[j].sets.~Vector<VulkanDescriptorSet*>();
 				}
 			}
 		}
@@ -86,7 +88,7 @@ namespace bs
 			}
 
 			mPerDeviceData[i].perSetData = (PerSetData*)dataIter;
-			dataIter += sizeof(perSetBytes);
+			dataIter += perSetBytes;
 
 			VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
 			for (UINT32 j = 0; j < numSets; j++)
@@ -94,6 +96,8 @@ namespace bs
 				UINT32 numBindingsPerSet = vkParamInfo.getNumBindings(j);
 
 				PerSetData& perSetData = mPerDeviceData[i].perSetData[j];
+				new (&perSetData.sets) Vector<VulkanDescriptorSet*>();
+
 				perSetData.writeSetInfos = (VkWriteDescriptorSet*)dataIter;
 				dataIter += sizeof(VkWriteDescriptorSet) * numBindingsPerSet;
 
@@ -176,7 +180,12 @@ namespace bs
 			if (mPerDeviceData[i].perSetData == nullptr)
 				continue;
 
-			VulkanBuffer* bufferRes = vulkanParamBlockBuffer->getResource(i);
+			VulkanBuffer* bufferRes;
+			if (vulkanParamBlockBuffer != nullptr)
+				bufferRes = vulkanParamBlockBuffer->getResource(i);
+			else
+				bufferRes = nullptr;
+
 			if (bufferRes != nullptr)
 				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = bufferRes->getHandle();
 			else

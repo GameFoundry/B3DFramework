@@ -117,6 +117,7 @@ namespace bs
 		for(UINT32 i = 0; i < mNumSets; i++)
 		{
 			mSetInfos[i].slotIndices = (UINT32*)dataPtr;
+			memset(mSetInfos[i].slotIndices, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
 			dataPtr += sizeof(UINT32) * mSetInfos[i].numSlots;
 
 			mSetInfos[i].slotTypes = (ParamType*)dataPtr;
