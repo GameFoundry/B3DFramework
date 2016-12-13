@@ -47,10 +47,6 @@ namespace bs
 		while (mVertexInputMap.begin() != mVertexInputMap.end())
 		{
 			auto firstElem = mVertexInputMap.begin();
-
-			firstElem->second->vertexInput.~SPtr<VulkanVertexInput>();
-			bs_free(firstElem->second);
-
 			mVertexInputMap.erase(firstElem);
 		}
 	}
@@ -75,8 +71,8 @@ namespace bs
 			iterFind = mVertexInputMap.find(pair);
 		}
 
-		iterFind->second->lastUsedIdx = ++mLastUsedCounter;
-		return iterFind->second->vertexInput;
+		iterFind->second.lastUsedIdx = ++mLastUsedCounter;
+		return iterFind->second.vertexInput;
 	}
 
 	void VulkanVertexInputManager::addNew(const SPtr<VertexDeclarationCore>& vbDecl, 
@@ -107,24 +103,19 @@ namespace bs
 			numBindings = std::max(numBindings, (UINT32)vbElem.getStreamIdx() + 1);
 		}
 
-		UINT32 attributesBytes = sizeof(VkVertexInputAttributeDescription) * numAttributes;
-		UINT32 bindingBytes = sizeof(VkVertexInputBindingDescription) * numBindings;
-		UINT32 totalBytes = sizeof(VertexInputEntry) + attributesBytes + bindingBytes;
+		VertexInputEntry newEntry;
+		GroupAlloc& alloc = newEntry.allocator;
 
-		UINT8* data = (UINT8*)bs_alloc(totalBytes);
-		VertexInputEntry* newEntry = (VertexInputEntry*)data;
-		new (&newEntry->vertexInput) SPtr<VulkanVertexInput>();
-		data += sizeof(VertexInputEntry);
+		alloc.reserve<VkVertexInputAttributeDescription>(numAttributes)
+			 .reserve<VkVertexInputBindingDescription>(numBindings)
+			 .init();
 
-		newEntry->attributes = (VkVertexInputAttributeDescription*)data;
-		data += attributesBytes;
-
-		newEntry->bindings = (VkVertexInputBindingDescription*)data;
-		data += bindingBytes;
+		newEntry.attributes = alloc.alloc<VkVertexInputAttributeDescription>(numAttributes);
+		newEntry.bindings = alloc.alloc<VkVertexInputBindingDescription>(numBindings);
 
 		for (UINT32 i = 0; i < numBindings; i++)
 		{
-			VkVertexInputBindingDescription& binding = newEntry->bindings[i];
+			VkVertexInputBindingDescription& binding = newEntry.bindings[i];
 			binding.binding = i;
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 			binding.stride = 0;
@@ -133,7 +124,7 @@ namespace bs
 		UINT32 attribIdx = 0;
 		for (auto& vbElem : vbElements)
 		{
-			VkVertexInputAttributeDescription& attribute = newEntry->attributes[attribIdx];
+			VkVertexInputAttributeDescription& attribute = newEntry.attributes[attribIdx];
 
 			bool foundSemantic = false;
 			for (auto& inputElem : inputElements)
@@ -153,7 +144,7 @@ namespace bs
 			attribute.format = VulkanUtility::getVertexType(vbElem.getType());
 			attribute.offset = vbElem.getOffset();
 
-			VkVertexInputBindingDescription& binding = newEntry->bindings[attribute.binding];
+			VkVertexInputBindingDescription& binding = newEntry.bindings[attribute.binding];
 
 			bool isPerVertex = vbElem.getInstanceStepRate() == 0;
 			bool isFirstInBinding = binding.stride == 0;
@@ -180,9 +171,9 @@ namespace bs
 		vertexInputCI.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputCI.pNext = nullptr;
 		vertexInputCI.flags = 0;
-		vertexInputCI.pVertexBindingDescriptions = newEntry->bindings;
+		vertexInputCI.pVertexBindingDescriptions = newEntry.bindings;
 		vertexInputCI.vertexBindingDescriptionCount = numBindings;
-		vertexInputCI.pVertexAttributeDescriptions = newEntry->attributes;
+		vertexInputCI.pVertexAttributeDescriptions = newEntry.attributes;
 		vertexInputCI.vertexAttributeDescriptionCount = numAttributes;
 
 		// Create key and add to the layout map
@@ -191,10 +182,10 @@ namespace bs
 		pair.shaderDeclId = shaderInputDecl->getId();
 
 		Lock(mMutex);
-		newEntry->vertexInput = bs_shared_ptr_new<VulkanVertexInput>(mNextId++, vertexInputCI);
-		newEntry->lastUsedIdx = ++mLastUsedCounter;
+		newEntry.vertexInput = bs_shared_ptr_new<VulkanVertexInput>(mNextId++, vertexInputCI);
+		newEntry.lastUsedIdx = ++mLastUsedCounter;
 
-		mVertexInputMap[pair] = newEntry;
+		mVertexInputMap[pair] = std::move(newEntry);
 	}
 
 	void VulkanVertexInputManager::removeLeastUsed()
@@ -213,14 +204,12 @@ namespace bs
 		Map<UINT32, VertexDeclarationKey> leastFrequentlyUsedMap;
 
 		for (auto iter = mVertexInputMap.begin(); iter != mVertexInputMap.end(); ++iter)
-			leastFrequentlyUsedMap[iter->second->lastUsedIdx] = iter->first;
+			leastFrequentlyUsedMap[iter->second.lastUsedIdx] = iter->first;
 
 		UINT32 elemsRemoved = 0;
 		for (auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
 		{
 			auto inputLayoutIter = mVertexInputMap.find(iter->second);
-
-			bs_free(inputLayoutIter->second);
 			mVertexInputMap.erase(inputLayoutIter);
 
 			elemsRemoved++;

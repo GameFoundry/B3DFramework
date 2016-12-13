@@ -129,6 +129,7 @@ set(BS_BANSHEEUTILITY_INC_ALLOCATORS
 	"Include/BsMemoryAllocator.h"
 	"Include/BsMemStack.h"
 	"Include/BsStaticAlloc.h"
+	"Include/BsGroupAlloc.h"
 )
 
 set(BS_BANSHEEUTILITY_INC_THIRDPARTY

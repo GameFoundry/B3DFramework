@@ -469,7 +469,7 @@ namespace bs
 
 			VkPipelineShaderStageCreateInfo& stageCI = mShaderStageInfos[stageOutputIdx];
 
-			VulkanShaderModule* module = program->getShaderModule(i);
+			VulkanShaderModule* module = program->getShaderModule(deviceIdx);
 
 			if (module != nullptr)
 				stageCI.module = module->getHandle();

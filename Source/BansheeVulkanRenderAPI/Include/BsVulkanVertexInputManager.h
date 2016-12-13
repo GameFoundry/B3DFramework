@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
+#include "BsGroupAlloc.h"
 #include "BsModule.h"
 
 namespace bs
@@ -58,12 +59,12 @@ namespace bs
 		/**	Contains data about a single instance of vertex input object. */
 		struct VertexInputEntry
 		{
-			VertexInputEntry() {}
-
 			VkVertexInputAttributeDescription* attributes;
 			VkVertexInputBindingDescription* bindings;
 			SPtr<VulkanVertexInput> vertexInput;
 			UINT32 lastUsedIdx;
+
+			GroupAlloc allocator;
 		};
 
 	public:
@@ -91,7 +92,7 @@ namespace bs
 		static const int DECLARATION_BUFFER_SIZE = 1024;
 		static const int NUM_ELEMENTS_TO_PRUNE = 64;
 
-		UnorderedMap<VertexDeclarationKey, VertexInputEntry*, HashFunc, EqualFunc> mVertexInputMap;
+		UnorderedMap<VertexDeclarationKey, VertexInputEntry, HashFunc, EqualFunc> mVertexInputMap;
 
 		UINT32 mNextId;
 		bool mWarningShown;
