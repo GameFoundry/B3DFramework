@@ -359,7 +359,7 @@ namespace bs
 
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransform = scene.globalScale * node->worldTransform;
 				Matrix4 worldTransformIT = worldTransform.inverse();
 				worldTransformIT = worldTransformIT.transpose();
 
@@ -891,7 +891,7 @@ namespace bs
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = node->worldTransform * scene.globalScale;
+				Matrix4 worldTransform = scene.globalScale * node->worldTransform;
 				Matrix4 worldTransformIT = worldTransform.inverse();
 				worldTransformIT = worldTransformIT.transpose();
 
