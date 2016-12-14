@@ -1735,10 +1735,16 @@ namespace bs
 			FBXBoneAnimation& boneAnim = clip.boneAnimations.back();
 			boneAnim.node = importScene.nodeMap[node];
 
-			boneAnim.translation = importCurve<Vector3, 3>(translation, importOptions, clip.start, clip.end);
-			boneAnim.scale = importCurve<Vector3, 3>(scale, importOptions, clip.start, clip.end);
+			if(hasCurveValues(translation))
+				boneAnim.translation = importCurve<Vector3, 3>(translation, importOptions, clip.start, clip.end);
 
-			TAnimationCurve<Vector3> eulerAnimation = importCurve<Vector3, 3>(rotation, importOptions, clip.start, clip.end);
+			if(hasCurveValues(scale))
+				boneAnim.scale = importCurve<Vector3, 3>(scale, importOptions, clip.start, clip.end);
+
+			TAnimationCurve<Vector3> eulerAnimation;
+			if(hasCurveValues(rotation))
+				eulerAnimation = importCurve<Vector3, 3>(rotation, importOptions, clip.start, clip.end);
+
 			if(importOptions.reduceKeyframes)
 			{
 				boneAnim.translation = reduceKeyframes(boneAnim.translation);
