@@ -154,11 +154,13 @@ namespace bs
 
 			if (curTexProps.getWidth() != firstTexProps.getWidth() ||
 				curTexProps.getHeight() != firstTexProps.getHeight() ||
+				curTexProps.getDepth() != firstTexProps.getDepth() ||
 				curMsCount != firstMsCount ||
 				curNumSlices != firstNumSlices)
 			{
 				String errorInfo = "\nWidth: " + toString(curTexProps.getWidth()) + "/" + toString(firstTexProps.getWidth());
 				errorInfo += "\nHeight: " + toString(curTexProps.getHeight()) + "/" + toString(firstTexProps.getHeight());
+				errorInfo += "\nDepth: " + toString(curTexProps.getDepth()) + "/" + toString(firstTexProps.getDepth());
 				errorInfo += "\nNum. slices: " + toString(curNumSlices) + "/" + toString(firstNumSlices);
 				errorInfo += "\nMultisample Count: " + toString(curMsCount) + "/" + toString(firstMsCount);
 
