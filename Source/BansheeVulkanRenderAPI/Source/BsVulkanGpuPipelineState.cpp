@@ -484,7 +484,7 @@ namespace bs
 
 		VkPipeline pipeline;
 		VkResult result = vkCreateGraphicsPipelines(vkDevice, VK_NULL_HANDLE, 1, &mPipelineInfo, gVulkanAllocator, &pipeline);
-		assert(result != VK_SUCCESS);
+		assert(result == VK_SUCCESS);
 
 		// Restore previous stencil op states
 		mDepthStencilInfo.front.passOp = oldFrontPassOp;

@@ -69,7 +69,8 @@ namespace bs
 		UINT32 perSetBytes = sizeof(PerSetData) * numSets;
 		UINT32 writeSetInfosBytes = sizeof(VkWriteDescriptorSet) * numBindings;
 		UINT32 writeInfosBytes = sizeof(WriteInfo) * numBindings;
-		mData = (UINT8*)bs_alloc(setsDirtyBytes + (perSetBytes + writeSetInfosBytes + writeInfosBytes) * numDevices);
+		UINT32 totalNumBytes = setsDirtyBytes + (perSetBytes + writeSetInfosBytes + writeInfosBytes) * numDevices;
+		mData = (UINT8*)bs_alloc(totalNumBytes);
 		UINT8* dataIter = mData;
 
 		Lock lock(mMutex); // Set write operations need to be thread safe
@@ -170,11 +171,19 @@ namespace bs
 	{
 		GpuParamsCore::setParamBlockBuffer(set, slot, paramBlockBuffer);
 
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if(bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," + 
+				toString(slot) + ".");
+			return;
+		}
+
 		Lock(mMutex);
 
 		VulkanGpuParamBlockBufferCore* vulkanParamBlockBuffer =
 			static_cast<VulkanGpuParamBlockBufferCore*>(paramBlockBuffer.get());
-
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			if (mPerDeviceData[i].perSetData == nullptr)
@@ -187,9 +196,9 @@ namespace bs
 				bufferRes = nullptr;
 
 			if (bufferRes != nullptr)
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = bufferRes->getHandle();
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].buffer.buffer = bufferRes->getHandle();
 			else
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].buffer.buffer = VK_NULL_HANDLE;
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].buffer.buffer = VK_NULL_HANDLE;
 		}
 
 		mSetsDirty[set] = true;
@@ -199,6 +208,15 @@ namespace bs
 	{
 		GpuParamsCore::setTexture(set, slot, texture);
 
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if (bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
+				   toString(slot) + ".");
+			return;
+		}
+
 		Lock(mMutex);
 
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
@@ -207,7 +225,7 @@ namespace bs
 			if (mPerDeviceData[i].perSetData == nullptr)
 				continue;
 
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = vulkanTexture->getView(i);
+			mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].image.imageView = vulkanTexture->getView(i);
 		}
 
 		mSetsDirty[set] = true;
@@ -218,6 +236,15 @@ namespace bs
 	{
 		GpuParamsCore::setLoadStoreTexture(set, slot, texture, surface);
 
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if (bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
+				   toString(slot) + ".");
+			return;
+		}
+
 		Lock(mMutex);
 
 		VulkanTextureCore* vulkanTexture = static_cast<VulkanTextureCore*>(texture.get());
@@ -226,7 +253,7 @@ namespace bs
 			if (mPerDeviceData[i].perSetData == nullptr)
 				continue;
 
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = vulkanTexture->getView(i, surface);
+			mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].image.imageView = vulkanTexture->getView(i, surface);
 		}
 
 		mSetsDirty[set] = true;
@@ -235,6 +262,15 @@ namespace bs
 	void VulkanGpuParams::setBuffer(UINT32 set, UINT32 slot, const SPtr<GpuBufferCore>& buffer)
 	{
 		GpuParamsCore::setBuffer(set, slot, buffer);
+
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if (bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
+				   toString(slot) + ".");
+			return;
+		}
 
 		Lock(mMutex);
 
@@ -246,9 +282,9 @@ namespace bs
 
 			VulkanBuffer* bufferRes = vulkanBuffer->getResource(i);
 			if (bufferRes != nullptr)
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].bufferView = bufferRes->getView();
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].bufferView = bufferRes->getView();
 			else
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].bufferView = VK_NULL_HANDLE;
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].bufferView = VK_NULL_HANDLE;
 		}
 
 		mSetsDirty[set] = true;
@@ -257,6 +293,15 @@ namespace bs
 	void VulkanGpuParams::setSamplerState(UINT32 set, UINT32 slot, const SPtr<SamplerStateCore>& sampler)
 	{
 		GpuParamsCore::setSamplerState(set, slot, sampler);
+
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if (bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
+				   toString(slot) + ".");
+			return;
+		}
 
 		Lock(mMutex);
 
@@ -268,9 +313,9 @@ namespace bs
 
 			VulkanSampler* samplerRes = vulkanSampler->getResource(i);
 			if (samplerRes != nullptr)
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.sampler = samplerRes->getHandle();
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].image.sampler = samplerRes->getHandle();
 			else
-				mPerDeviceData[i].perSetData[set].writeInfos[slot].image.sampler = VK_NULL_HANDLE;
+				mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].image.sampler = VK_NULL_HANDLE;
 		}
 
 		mSetsDirty[set] = true;
@@ -279,6 +324,15 @@ namespace bs
 	void VulkanGpuParams::setLoadStoreSurface(UINT32 set, UINT32 slot, const TextureSurface& surface)
 	{
 		GpuParamsCore::setLoadStoreSurface(set, slot, surface);
+
+		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		if (bindingIdx == -1)
+		{
+			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
+				   toString(slot) + ".");
+			return;
+		}
 
 		SPtr<TextureCore> texture = getLoadStoreTexture(set, slot);
 		if (texture == nullptr)
@@ -292,7 +346,7 @@ namespace bs
 			if (mPerDeviceData[i].perSetData == nullptr)
 				continue;
 
-			mPerDeviceData[i].perSetData[set].writeInfos[slot].image.imageView = vulkanTexture->getView(i, surface);
+			mPerDeviceData[i].perSetData[set].writeInfos[bindingIdx].image.imageView = vulkanTexture->getView(i, surface);
 		}
 
 		mSetsDirty[set] = true;

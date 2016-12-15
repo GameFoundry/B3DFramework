@@ -9,12 +9,13 @@
 namespace bs
 {
 	VulkanGpuPipelineParamInfo::VulkanGpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
-		:GpuPipelineParamInfoCore(desc, deviceMask), mDeviceMask(deviceMask), mLayouts(), mLayoutInfos(), mData(nullptr)
+		: GpuPipelineParamInfoCore(desc, deviceMask), mDeviceMask(deviceMask), mSetExtraInfos(nullptr), mLayouts()
+		, mLayoutInfos()
 	{ }
 
 	VulkanGpuPipelineParamInfo::~VulkanGpuPipelineParamInfo()
 	{
-		bs_free(mData);
+
 	}
 
 	void VulkanGpuPipelineParamInfo::initialize()
@@ -31,18 +32,19 @@ namespace bs
 				numDevices++;
 		}
 
-		UINT32 bindingsSize = sizeof(VkDescriptorSetLayoutBinding) * mNumElements;
-		UINT32 layoutInfoSize = sizeof(LayoutInfo) * mNumSets;
-		UINT32 layoutsSize = sizeof(VulkanDescriptorLayout*) * mNumSets;
+		UINT32 totalNumSlots = 0;
+		for (UINT32 i = 0; i < mNumSets; i++)
+			totalNumSlots += mSetInfos[i].numSlots;
 
-		mData = (UINT8*)bs_alloc(bindingsSize + layoutInfoSize + layoutsSize * numDevices);
-		UINT8* dataPtr = mData;
+		mAlloc.reserve<VkDescriptorSetLayoutBinding>(mNumElements)
+			.reserve<LayoutInfo>(mNumSets)
+			.reserve<VulkanDescriptorLayout*>(mNumSets * numDevices)
+			.reserve<SetExtraInfo>(mNumSets)
+			.reserve<UINT32>(totalNumSlots)
+			.init();
 
-		mLayoutInfos = (LayoutInfo*)dataPtr;
-		dataPtr += layoutInfoSize;
-
-		VkDescriptorSetLayoutBinding* bindings = (VkDescriptorSetLayoutBinding*)dataPtr;
-		dataPtr += bindingsSize;
+		mLayoutInfos = mAlloc.alloc<LayoutInfo>(mNumSets);
+		VkDescriptorSetLayoutBinding* bindings = mAlloc.alloc<VkDescriptorSetLayoutBinding>(mNumElements);
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -52,26 +54,34 @@ namespace bs
 				continue;
 			}
 
-			mLayouts[i] = (VulkanDescriptorLayout**)dataPtr;
-			dataPtr += layoutsSize;
+			mLayouts[i] = mAlloc.alloc<VulkanDescriptorLayout*>(mNumSets);
 		}
 
-		memset(bindings, 0, bindingsSize);
+		mSetExtraInfos = mAlloc.alloc<SetExtraInfo>(mNumSets);
+
+		if(bindings != nullptr)
+			bs_zero_out(bindings, mNumElements);
 
 		UINT32 globalBindingIdx = 0;
 		for (UINT32 i = 0; i < mNumSets; i++)
 		{
+			mSetExtraInfos[i].slotIndices = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
+
 			mLayoutInfos[i].numBindings = 0;
 			mLayoutInfos[i].bindings = nullptr;
 
 			for (UINT32 j = 0; j < mSetInfos[i].numSlots; j++)
 			{
 				if (mSetInfos[i].slotIndices[j] == -1)
+				{
+					mSetExtraInfos[i].slotIndices[j] = -1;
 					continue;
+				}
 
 				VkDescriptorSetLayoutBinding& binding = bindings[globalBindingIdx];
 				binding.binding = j;
 
+				mSetExtraInfos[i].slotIndices[j] = globalBindingIdx;
 				mLayoutInfos[i].numBindings++;
 				globalBindingIdx++;
 			}
@@ -103,19 +113,14 @@ namespace bs
 			{
 				for (auto& entry : params)
 				{
-					LayoutInfo& layoutInfo = mLayoutInfos[entry.second.set];
-					for(UINT32 j = 0; j < layoutInfo.numBindings; j++)
-					{
-						if(layoutInfo.bindings[j].binding == entry.second.slot)
-						{
-							VkDescriptorSetLayoutBinding& binding = layoutInfo.bindings[j];
-							binding.descriptorCount = 1;
-							binding.stageFlags |= stageFlagsLookup[i];
-							binding.descriptorType = descType;
+					UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+					assert(bindingIdx != -1);
 
-							break;
-						}
-					}
+					LayoutInfo& layoutInfo = mLayoutInfos[entry.second.set];
+					VkDescriptorSetLayoutBinding& binding = layoutInfo.bindings[bindingIdx];
+					binding.descriptorCount = 1;
+					binding.stageFlags |= stageFlagsLookup[i];
+					binding.descriptorType = descType;
 				}
 			};
 
@@ -131,19 +136,15 @@ namespace bs
 				bool isLoadStore = entry.second.type != GPOT_BYTE_BUFFER &&
 					entry.second.type != GPOT_STRUCTURED_BUFFER;
 
-				LayoutInfo& layoutInfo = mLayoutInfos[entry.second.set];
-				for (UINT32 j = 0; j < layoutInfo.numBindings; j++)
-				{
-					if (layoutInfo.bindings[j].binding == entry.second.slot)
-					{
-						VkDescriptorSetLayoutBinding& binding = layoutInfo.bindings[j];
-						binding.descriptorCount = 1;
-						binding.stageFlags |= stageFlagsLookup[i];
-						binding.descriptorType = isLoadStore ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+				UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+				assert(bindingIdx != -1);
 
-						break;
-					}
-				}
+				LayoutInfo& layoutInfo = mLayoutInfos[entry.second.set];
+				VkDescriptorSetLayoutBinding& binding = layoutInfo.bindings[bindingIdx];
+				binding.descriptorCount = 1;
+				binding.stageFlags |= stageFlagsLookup[i];
+				binding.descriptorType = 
+					isLoadStore ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
 			}
 		}
 

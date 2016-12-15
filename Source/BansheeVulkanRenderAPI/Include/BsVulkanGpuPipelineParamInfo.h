@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsGpuPipelineParamInfo.h"
+#include "BsGroupAlloc.h"
 
 namespace bs
 {
@@ -24,6 +25,9 @@ namespace bs
 		/** Returns a pointer to an array of bindings for the layout at the specified index. */
 		VkDescriptorSetLayoutBinding* getBindings(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].bindings; }
 
+		/** Returns the sequential index of the binding at the specificn set/slot. Returns -1 if slot is not used. */
+		UINT32 getBindingIdx(UINT32 set, UINT32 slot) const { return mSetExtraInfos[set].slotIndices[slot]; }
+
 		/** 
 		 * Returns a layout for the specified device, at the specified index. Returns null if no layout for the specified 
 		 * device index. 
@@ -41,12 +45,19 @@ namespace bs
 			UINT32 numBindings;
 		};
 
+		/** Information about a single set in the param info object. Complements SetInfo. */
+		struct SetExtraInfo
+		{
+			UINT32* slotIndices;
+		};
+
 		GpuDeviceFlags mDeviceMask;
 
+		SetExtraInfo* mSetExtraInfos;
 		VulkanDescriptorLayout** mLayouts[BS_MAX_DEVICES];
 		LayoutInfo* mLayoutInfos;
 
-		UINT8* mData;
+		GroupAlloc mAlloc;
 	};
 
 	/** @} */
