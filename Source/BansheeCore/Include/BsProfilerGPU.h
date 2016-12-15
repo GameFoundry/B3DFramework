@@ -173,5 +173,8 @@ namespace bs
 		Mutex mMutex;
 	};
 
+	/** Provides global access to ProfilerGPU instance. */
+	BS_CORE_EXPORT ProfilerGPU& gProfilerGPU();
+
 	/** @} */
 }

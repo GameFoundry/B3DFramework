@@ -204,4 +204,9 @@ namespace bs
 
 		return OcclusionQuery::create(false);
 	}
+
+	ProfilerGPU& gProfilerGPU()
+	{
+		return ProfilerGPU::instance();
+	}
 }

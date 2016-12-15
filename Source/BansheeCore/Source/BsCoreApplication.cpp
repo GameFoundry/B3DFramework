@@ -332,12 +332,10 @@ namespace bs
 	void CoreApplication::beginCoreProfiling()
 	{
 		gProfilerCPU().beginThread("Core");
-		ProfilerGPU::instance().beginFrame();
 	}
 
 	void CoreApplication::endCoreProfiling()
 	{
-		ProfilerGPU::instance().endFrame();
 		ProfilerGPU::instance()._update();
 
 		gProfilerCPU().endThread();

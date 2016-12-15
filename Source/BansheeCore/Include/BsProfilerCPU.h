@@ -411,7 +411,7 @@ namespace bs
 		CPUProfilerPreciseSamplingEntry mPreciseSamplingRootEntry;
 	};
 
-	/** Easier way to access ProfilerCPU. */
+	/** Provides global access to ProfilerCPU instance. */
 	BS_CORE_EXPORT ProfilerCPU& gProfilerCPU();
 
 	/** Shortcut for profiling a single function call. */

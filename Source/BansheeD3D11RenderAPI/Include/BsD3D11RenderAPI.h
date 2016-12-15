@@ -36,12 +36,6 @@ namespace bs
 		void setGpuParams(const SPtr<GpuParamsCore>& gpuParams, 
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::beginFrame */
-		void beginFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::endFrame */
-		void endFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
 		/** @copydoc RenderAPICore::clearRenderTarget */
 		void clearRenderTarget(UINT32 buffers, const Color& color = Color::Black, float depth = 1.0f, UINT16 stencil = 0, 
 			UINT8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;

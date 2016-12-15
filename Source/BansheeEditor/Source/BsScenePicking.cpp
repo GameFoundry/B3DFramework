@@ -286,7 +286,6 @@ namespace bs
 		
 		mPickingTexture = RenderTextureCore::create(pickingMRT);
 
-		rs.beginFrame();
 		rs.setRenderTarget(mPickingTexture);
 		rs.setViewport(viewportArea);
 		rs.clearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::White);
@@ -382,7 +381,6 @@ namespace bs
 		const RenderTargetProperties& rtProps = target->getProperties();
 		RenderAPICore& rs = RenderAPICore::instance();
 
-		rs.endFrame();
 		rs.setRenderTarget(nullptr);
 
 		if (rtProps.isWindow())

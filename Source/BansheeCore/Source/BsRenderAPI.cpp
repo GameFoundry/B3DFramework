@@ -91,16 +91,6 @@ namespace bs
 			RenderAPICore::instancePtr(), target->getCore(), readOnlyDepthStencil, loadMask, nullptr));
 	}
 
-	void RenderAPI::beginRender()
-	{
-		gCoreThread().queueCommand(std::bind(&RenderAPICore::beginFrame, RenderAPICore::instancePtr(), nullptr));
-	}
-
-	void RenderAPI::endRender()
-	{
-		gCoreThread().queueCommand(std::bind(&RenderAPICore::endFrame, RenderAPICore::instancePtr(), nullptr));
-	}
-
 	void RenderAPI::clearRenderTarget(UINT32 buffers, const Color& color, float depth, 
 		UINT16 stencil, UINT8 targetMask)
 	{

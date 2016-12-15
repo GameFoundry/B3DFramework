@@ -14,6 +14,7 @@
 #include "BsCoreThread.h"
 #include "BsGpuParams.h"
 #include "BsProfilerCPU.h"
+#include "BsProfilerGPU.h"
 #include "BsShader.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsTime.h"
@@ -560,6 +561,7 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		gProfilerGPU().beginFrame();
 		gProfilerCPU().beginSample("renderAllCore");
 
 		// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
@@ -605,8 +607,6 @@ namespace bs
 			SPtr<RenderTargetCore> target = rtInfo.target;
 			Vector<const CameraCore*>& cameras = rtInfo.cameras;
 
-			RenderAPICore::instance().beginFrame();
-
 			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
@@ -616,10 +616,13 @@ namespace bs
 				else
 					renderOverlay(frameInfo, rtInfo, i);
 			}
-
-			RenderAPICore::instance().endFrame();
-			RenderAPICore::instance().swapBuffers(target);
 		}
+
+		gProfilerGPU().endFrame();
+
+		// Present render targets with back buffers
+		for (auto& rtInfo : mRenderTargets)
+			RenderAPICore::instance().swapBuffers(rtInfo.target);
 
 		gProfilerCPU().endSample("renderAllCore");
 	}

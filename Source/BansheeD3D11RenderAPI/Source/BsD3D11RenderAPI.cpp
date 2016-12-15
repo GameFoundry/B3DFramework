@@ -598,16 +598,6 @@ namespace bs
 		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}
 
-	void D3D11RenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		// Not used
-	}
-
-	void D3D11RenderAPI::endFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		// Not used
-	}
-
 	void D3D11RenderAPI::setViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto executeRef = [&](const Rect2& vp)

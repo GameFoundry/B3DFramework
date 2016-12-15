@@ -39,12 +39,6 @@ namespace bs
 		void setGpuParams(const SPtr<GpuParamsCore>& gpuParams,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
-		/** @copydoc RenderAPICore::beginFrame() */
-		void beginFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
-		/** @copydoc RenderAPICore::endFrame() */
-		void endFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-
 		/** @copydoc RenderAPICore::setViewport() */
 		void setViewport(const Rect2& area, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
@@ -375,6 +369,7 @@ namespace bs
 		Rect2 mViewportNorm;
 		UINT32 mScissorTop, mScissorBottom, mScissorLeft, mScissorRight;
 		UINT32 mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight;
+		bool mScissorEnabled;
 
 		UINT32 mStencilReadMask;
 		UINT32 mStencilWriteMask;

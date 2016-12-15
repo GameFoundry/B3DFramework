@@ -355,16 +355,6 @@ namespace bs
 		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}
 
-	void VulkanRenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		// Do nothing
-	}
-
-	void VulkanRenderAPI::endFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		// Do nothing
-	}
-
 	void VulkanRenderAPI::setViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);

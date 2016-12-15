@@ -42,6 +42,7 @@ namespace bs
 		: mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
 		, mScissorTop(0), mScissorBottom(720), mScissorLeft(0), mScissorRight(1280)
 		, mViewportLeft(0), mViewportTop(0), mViewportWidth(0), mViewportHeight(0)
+		, mScissorEnabled(false)
 		, mStencilReadMask(0xFFFFFFFF)
 		, mStencilWriteMask(0xFFFFFFFF)
 		, mStencilRefValue(0)
@@ -788,44 +789,6 @@ namespace bs
 		BS_INC_RENDER_STAT(NumRenderTargetChanges);
 	}
 
-	void GLRenderAPI::beginFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto execute = [=]()
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			// Activate the viewport clipping
-			glEnable(GL_SCISSOR_TEST);
-		};
-
-		if (commandBuffer == nullptr)
-			execute();
-		else
-		{
-			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-	}
-
-	void GLRenderAPI::endFrame(const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto execute = [=]()
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			// Deactivate the viewport clipping.
-			glDisable(GL_SCISSOR_TEST);
-		};
-
-		if (commandBuffer == nullptr)
-			execute();
-		else
-		{
-			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
-	}
-
 	void GLRenderAPI::setVertexBuffers(UINT32 index, SPtr<VertexBufferCore>* buffers, UINT32 numBuffers, 
 		const SPtr<CommandBuffer>& commandBuffer)
 	{
@@ -1500,6 +1463,8 @@ namespace bs
 
 			glScissor(x, y, w, h);
 		}
+
+		mScissorEnabled = enable;
 	}
 
 	void GLRenderAPI::setMultisamplingEnable(bool enable)
@@ -2251,7 +2216,11 @@ namespace bs
 		glViewport(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
 
 		// Configure the viewport clipping
-		glScissor(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
+		if (!mScissorEnabled)
+		{
+			glEnable(GL_SCISSOR_TEST);
+			glScissor(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
+		}
 	}
 
 	/************************************************************************/

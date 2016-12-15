@@ -112,20 +112,6 @@ namespace bs
 			RenderSurfaceMask loadMask = RT_NONE);
 
 		/** 
-		 * @see RenderAPICore::beginFrame() 
-		 * 
-		 * @note This is an @ref asyncMethod "asynchronous method".
-		 */
-		static void beginRender();
-
-		/** 
-		 * @see RenderAPICore::endFrame() 
-		 * 
-		 * @note This is an @ref asyncMethod "asynchronous method".
-		 */
-		static void endRender();
-
-		/** 
 		 * @see RenderAPICore::clearRenderTarget() 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
@@ -309,25 +295,6 @@ namespace bs
 		 */
 		virtual void setComputePipeline(const SPtr<ComputePipelineStateCore>& pipelineState,
 			const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-
-		/**
-		 * Signals that rendering for a specific viewport has started. Any draw calls need to be called between beginFrame()
-		 * and endFrame(). 
-		 * 
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics operations.
-		 */
-		virtual void beginFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
-		
-		/** 
-		 * Ends that rendering to a specific viewport has ended. 
-		 *
-		 * @param[in]	commandBuffer	Optional command buffer to queue the operation on. If not provided operation
-		 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
-		 *								Buffer must support graphics operations.
-		 */
-		virtual void endFrame(const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Sets the active viewport that will be used for all render operations.

@@ -89,6 +89,9 @@ namespace bs
 
 	void VulkanTransferBuffer::flush(bool wait)
 	{
+		if (mCB == nullptr)
+			return;
+
 		UINT32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
 
 		mCB->end();
