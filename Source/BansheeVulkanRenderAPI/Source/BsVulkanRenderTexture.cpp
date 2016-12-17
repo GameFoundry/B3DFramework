@@ -71,7 +71,7 @@ namespace bs
 			}
 
 			fbDesc.color[i].image = image;
-			fbDesc.color[i].view = image->getView(surface);
+			fbDesc.color[i].view = image->getView(surface, true);
 			fbDesc.color[i].format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat());
 		}
 
@@ -111,7 +111,7 @@ namespace bs
 				}
 
 				fbDesc.depth.image = image;
-				fbDesc.depth.view = image->getView(surface);
+				fbDesc.depth.view = image->getView(surface, true);
 				fbDesc.depth.format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat());
 				fbDesc.depth.baseLayer = view->getFirstArraySlice();
 			}

@@ -43,17 +43,16 @@ namespace bs
 		desc.usage = TU_LOADSTORE;
 
 		mDummyStorageTexture = std::static_pointer_cast<VulkanTextureCore>(createTexture(desc));
-		mDummyStorageTexture->writeData(*whitePixelData);
 	}
 
 	VkImageView VulkanTextureCoreManager::getDummyReadImageView(UINT32 deviceIdx) const
 	{
-		return mDummyReadTexture->getResource(deviceIdx)->getView();
+		return mDummyReadTexture->getResource(deviceIdx)->getView(false);
 	}
 
 	VkImageView VulkanTextureCoreManager::getDummyStorageImageView(UINT32 deviceIdx) const
 	{
-		return mDummyStorageTexture->getResource(deviceIdx)->getView();
+		return mDummyStorageTexture->getResource(deviceIdx)->getView(false);
 	}
 
 	SPtr<TextureCore> VulkanTextureCoreManager::createTextureInternal(const TEXTURE_DESC& desc,

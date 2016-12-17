@@ -145,7 +145,7 @@ namespace bs
 
 			mSurfaces[i].acquired = false;
 			mSurfaces[i].image = resManager.create<VulkanImage>(imageDesc, false);
-			mSurfaces[i].view = mSurfaces[i].image->getView();
+			mSurfaces[i].view = mSurfaces[i].image->getView(true);
 			mSurfaces[i].sync = resManager.create<VulkanSemaphore>();
 		}
 
@@ -181,7 +181,7 @@ namespace bs
 			imageDesc.memory = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 			mDepthStencilImage = resManager.create<VulkanImage>(imageDesc, true);
-			mDepthStencilView = mDepthStencilImage->getView();
+			mDepthStencilView = mDepthStencilImage->getView(true);
 		}
 		else
 		{

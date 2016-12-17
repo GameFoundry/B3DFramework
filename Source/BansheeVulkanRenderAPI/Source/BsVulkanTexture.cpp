@@ -35,7 +35,8 @@ namespace bs
 
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& desc, bool ownsImage)
 		: VulkanResource(owner, false), mImage(desc.image), mMemory(desc.memory), mLayout(desc.layout)
-		, mOwnsImage(ownsImage), mNumFaces(desc.numFaces), mNumMipLevels(desc.numMipLevels), mIsStorage(desc.isStorage)
+		, mFramebufferMainView(VK_NULL_HANDLE), mOwnsImage(ownsImage), mNumFaces(desc.numFaces)
+		, mNumMipLevels(desc.numMipLevels), mIsStorage(desc.isStorage)
 	{
 		mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		mImageViewCI.pNext = nullptr;
@@ -66,13 +67,16 @@ namespace bs
 			break;
 		}
 
-		if (desc.isDepthStencil)
-			mImageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		else
-			mImageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		mIsDepthStencil = desc.isDepthStencil;
 
 		TextureSurface completeSurface(0, desc.numMipLevels, 0, desc.numFaces);
-		mMainView = createView(completeSurface);
+		if (mIsDepthStencil)
+		{
+			mFramebufferMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+		else
+			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
 		mSubresources = (VulkanImageSubresource**)bs_alloc(sizeof(VulkanImageSubresource*) * numSubresources);
@@ -95,6 +99,9 @@ namespace bs
 
 		vkDestroyImageView(vkDevice, mMainView, gVulkanAllocator);
 
+		if(mFramebufferMainView != VK_NULL_HANDLE)
+			vkDestroyImageView(vkDevice, mFramebufferMainView, gVulkanAllocator);
+
 		for(auto& entry : mImageInfos)
 			vkDestroyImageView(vkDevice, entry.view, gVulkanAllocator);
 
@@ -105,7 +112,15 @@ namespace bs
 		}
 	}
 
-	VkImageView VulkanImage::getView(const TextureSurface& surface) const
+	VkImageView VulkanImage::getView(bool framebuffer) const
+	{
+		if (!mIsDepthStencil || !framebuffer)
+			return mMainView;
+
+		return mFramebufferMainView;
+	}
+
+	VkImageView VulkanImage::getView(const TextureSurface& surface, bool framebuffer) const
 	{
 		for(auto& entry : mImageInfos)
 		{
@@ -114,20 +129,36 @@ namespace bs
 				surface.arraySlice == entry.surface.arraySlice &&
 				surface.numArraySlices == entry.surface.numArraySlices)
 			{
-				return entry.view;
+				if(!mIsDepthStencil)
+					return entry.view;
+				else
+				{
+					if (framebuffer == entry.framebuffer)
+						return entry.view;
+				}
 			}
 		}
 
 		ImageViewInfo info;
 		info.surface = surface;
-		info.view = createView(surface);
+		info.framebuffer = framebuffer;
+
+		if (mIsDepthStencil)
+		{
+			if(framebuffer)
+				info.view = createView(surface, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+			else
+				info.view = createView(surface, VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+		else
+			info.view = createView(surface, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		mImageInfos.push_back(info);
 
 		return info.view;
 	}
 
-	VkImageView VulkanImage::createView(const TextureSurface& surface) const
+	VkImageView VulkanImage::createView(const TextureSurface& surface, VkImageAspectFlags aspectMask) const
 	{
 		VkImageViewType oldViewType = mImageViewCI.viewType;
 
@@ -149,6 +180,7 @@ namespace bs
 			}
 		}
 
+		mImageViewCI.subresourceRange.aspectMask = aspectMask;
 		mImageViewCI.subresourceRange.baseMipLevel = surface.mipLevel;
 		mImageViewCI.subresourceRange.levelCount = surface.numMipLevels;
 		mImageViewCI.subresourceRange.baseArrayLayer = surface.arraySlice;
@@ -556,20 +588,20 @@ namespace bs
 			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 
-	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx) const
+	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx, bool framebuffer) const
 	{
 		if (mImages[deviceIdx] == nullptr)
 			return VK_NULL_HANDLE;
 
-		return mImages[deviceIdx]->getView();
+		return mImages[deviceIdx]->getView(framebuffer);
 	}
 
-	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx, const TextureSurface& surface) const
+	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx, const TextureSurface& surface, bool framebuffer) const
 	{
 		if (mImages[deviceIdx] == nullptr)
 			return VK_NULL_HANDLE;
 
-		return mImages[deviceIdx]->getView(surface);
+		return mImages[deviceIdx]->getView(surface, framebuffer);
 	}
 
 	void VulkanTextureCore::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,

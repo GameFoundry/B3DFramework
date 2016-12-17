@@ -62,11 +62,22 @@ namespace bs
 		/** Notifies the resource that the current image layout has changed. */
 		void setLayout(VkImageLayout layout) { mLayout = layout; }
 
-		/** Returns an image view that covers all faces and mip maps of the texture. */
-		VkImageView getView() const { return mMainView; };
+		/** 
+		 * Returns an image view that covers all faces and mip maps of the texture. 
+		 * 
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
+		 */
+		VkImageView getView(bool framebuffer) const;
 
-		/** Returns an image view that covers the specified faces and mip maps of the texture. */
-		VkImageView getView(const TextureSurface& surface) const;
+		/** 
+		 * Returns an image view that covers the specified faces and mip maps of the texture. 
+		 *
+		 * @param[in]	surface		Surface that describes which faces and mip levels to retrieve the view for.
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
+		 */
+		VkImageView getView(const TextureSurface& surface, bool framebuffer) const;
 		
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		VkImageSubresourceRange getRange() const;
@@ -113,12 +124,13 @@ namespace bs
 
 	private:
 		/** Creates a new view of the provided part (or entirety) of surface. */
-		VkImageView createView(const TextureSurface& surface) const;
+		VkImageView createView(const TextureSurface& surface, VkImageAspectFlags aspectMask) const;
 
 		/** Contains information about view for a specific surface(s) of this image. */
 		struct ImageViewInfo
 		{
 			TextureSurface surface;
+			bool framebuffer;
 			VkImageView view;
 		};
 
@@ -126,8 +138,10 @@ namespace bs
 		VkDeviceMemory mMemory;
 		VkImageLayout mLayout;
 		VkImageView mMainView;
+		VkImageView mFramebufferMainView;
 		bool mOwnsImage;
 		bool mIsStorage;
+		bool mIsDepthStencil;
 
 		UINT32 mNumFaces;
 		UINT32 mNumMipLevels;
@@ -157,16 +171,25 @@ namespace bs
 		VulkanImage* getResource(UINT32 deviceIdx) const { return mImages[deviceIdx]; }
 
 		/** 
-		 * Returns an image view that covers all faces and mip maps of the texture. Usable only on the specified device. 
-		 * If texture device mask doesn't include the provided device, null is returned. 
+		 * Returns an image view that covers all faces and mip maps of the texture. 
+		 * 
+		 * @param[in]	deviceIdx	Index of the device to retrieve the view for. If texture device mask doesn't include the
+		 *							provided device, null is returned. 
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
 		 */
-		VkImageView getView(UINT32 deviceIdx) const;
+		VkImageView getView(UINT32 deviceIdx, bool framebuffer = false) const;
 
 		/** 
-		 * Returns an image view that covers the specified faces and mip maps of the texture. Usable only on the specified 
-		 * device. If texture device mask doesn't include the provided device, null is returned. 
+		 * Returns an image view that covers the specified faces and mip maps of the texture. 
+		 * 
+		 * @param[in]	deviceIdx	Index of the device to retrieve the view for. If texture device mask doesn't include the
+		 *							provided device, null is returned. 
+		 * @param[in]	surface		Surface that describes which faces and mip levels to retrieve the view for.							
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
 		 */
-		VkImageView getView(UINT32 deviceIdx, const TextureSurface& surface) const;
+		VkImageView getView(UINT32 deviceIdx, const TextureSurface& surface, bool framebuffer = false) const;
 
 	protected:
 		friend class VulkanTextureCoreManager;
