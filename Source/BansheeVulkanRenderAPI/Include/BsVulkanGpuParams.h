@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsGpuParams.h"
+#include "BsGroupAlloc.h"
 
 namespace bs
 {
@@ -70,6 +71,7 @@ namespace bs
 
 			VkWriteDescriptorSet* writeSetInfos;
 			WriteInfo* writeInfos;
+
 			UINT32 numElements;
 		};
 
@@ -77,6 +79,12 @@ namespace bs
 		struct PerDeviceData
 		{
 			PerSetData* perSetData;
+
+			VkImage* sampledImages;
+			VkImage* storageImages;
+			VkBuffer* uniformBuffers;
+			VkBuffer* buffers;
+			VkSampler* samplers;
 		};
 
 		friend class VulkanHardwareBufferCoreManager;
@@ -88,9 +96,9 @@ namespace bs
 
 		PerDeviceData mPerDeviceData[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;
-		UINT8* mData;
 		bool* mSetsDirty;
 
+		GroupAlloc mAlloc;
 		Mutex mMutex;
 	};
 

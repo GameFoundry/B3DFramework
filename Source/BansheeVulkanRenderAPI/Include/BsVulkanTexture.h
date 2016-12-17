@@ -170,27 +170,6 @@ namespace bs
 		 */
 		VulkanImage* getResource(UINT32 deviceIdx) const { return mImages[deviceIdx]; }
 
-		/** 
-		 * Returns an image view that covers all faces and mip maps of the texture. 
-		 * 
-		 * @param[in]	deviceIdx	Index of the device to retrieve the view for. If texture device mask doesn't include the
-		 *							provided device, null is returned. 
-		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
-		 *							attachment flags are set on the view.
-		 */
-		VkImageView getView(UINT32 deviceIdx, bool framebuffer = false) const;
-
-		/** 
-		 * Returns an image view that covers the specified faces and mip maps of the texture. 
-		 * 
-		 * @param[in]	deviceIdx	Index of the device to retrieve the view for. If texture device mask doesn't include the
-		 *							provided device, null is returned. 
-		 * @param[in]	surface		Surface that describes which faces and mip levels to retrieve the view for.							
-		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
-		 *							attachment flags are set on the view.
-		 */
-		VkImageView getView(UINT32 deviceIdx, const TextureSurface& surface, bool framebuffer = false) const;
-
 	protected:
 		friend class VulkanTextureCoreManager;
 

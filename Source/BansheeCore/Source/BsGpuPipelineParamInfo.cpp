@@ -7,7 +7,7 @@
 namespace bs
 {
 	GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc)
-		:mNumSets(0), mNumElements(0), mSetInfos(nullptr)
+		:mNumSets(0), mNumElements(0), mSetInfos(nullptr), mResourceInfos()
 	{
 		bs_zero_out(mNumElementsPerType);
 
@@ -18,6 +18,17 @@ namespace bs
 		mParamDescs[GPT_DOMAIN_PROGRAM] = desc.domainParams;
 		mParamDescs[GPT_COMPUTE_PROGRAM] = desc.computeParams;
 
+		auto countElements = [&](auto& entry, ParamType type)
+		{
+			int typeIdx = (int)type;
+
+			if ((entry.set + 1) > mNumSets)
+				mNumSets = entry.set + 1;
+
+			mNumElementsPerType[typeIdx]++;
+			mNumElements++;
+		};
+
 		UINT32 numParamDescs = sizeof(mParamDescs) / sizeof(mParamDescs[0]);
 		for (UINT32 i = 0; i < numParamDescs; i++)
 		{
@@ -26,44 +37,19 @@ namespace bs
 				continue;
 
 			for (auto& paramBlock : paramDesc->paramBlocks)
-			{
-				if ((paramBlock.second.set + 1) > mNumSets)
-					mNumSets = paramBlock.second.set + 1;
-
-				mNumElements++;
-			}
+				countElements(paramBlock.second, ParamType::ParamBlock);
 
 			for (auto& texture : paramDesc->textures)
-			{
-				if ((texture.second.set + 1) > mNumSets)
-					mNumSets = texture.second.set + 1;
-
-				mNumElements++;
-			}
+				countElements(texture.second, ParamType::Texture);
 
 			for (auto& texture : paramDesc->loadStoreTextures)
-			{
-				if ((texture.second.set + 1) > mNumSets)
-					mNumSets = texture.second.set + 1;
-
-				mNumElements++;
-			}
+				countElements(texture.second, ParamType::LoadStoreTexture);
 
 			for (auto& buffer : paramDesc->buffers)
-			{
-				if ((buffer.second.set + 1) > mNumSets)
-					mNumSets = buffer.second.set + 1;
-
-				mNumElements++;
-			}
+				countElements(buffer.second, ParamType::Buffer);
 
 			for (auto& sampler : paramDesc->samplers)
-			{
-				if ((sampler.second.set + 1) > mNumSets)
-					mNumSets = sampler.second.set + 1;
-
-				mNumElements++;
-			}
+				countElements(sampler.second, ParamType::SamplerState);
 		}
 
 		UINT32* numSlotsPerSet = (UINT32*)bs_stack_alloc(mNumSets * sizeof(UINT32));
@@ -100,14 +86,19 @@ namespace bs
 		for (UINT32 i = 0; i < mNumSets; i++)
 			totalNumSlots += numSlotsPerSet[i];
 
-		UINT32 allocSize = mNumSets * sizeof(SetInfo) + totalNumSlots * (sizeof(UINT32) * sizeof(ParamType));
-		mData = (UINT8*)bs_alloc(allocSize);
-		UINT8* dataPtr = mData;
+		mAlloc.reserve<SetInfo>(mNumSets)
+			.reserve<UINT32>(totalNumSlots)
+			.reserve<ParamType>(totalNumSlots);
 
-		mSetInfos = (SetInfo*)dataPtr;
-		bs_zero_out(mSetInfos, mNumSets);
+		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
+			mAlloc.reserve<ResourceInfo>(mNumElementsPerType[i]);
 
-		dataPtr += mNumSets * sizeof(SetInfo);
+		mAlloc.init();
+
+		mSetInfos = mAlloc.alloc<SetInfo>(mNumSets);
+
+		if(mSetInfos != nullptr)
+			bs_zero_out(mSetInfos, mNumSets);
 
 		for (UINT32 i = 0; i < mNumSets; i++)
 			mSetInfos[i].numSlots = numSlotsPerSet[i];
@@ -116,13 +107,30 @@ namespace bs
 
 		for(UINT32 i = 0; i < mNumSets; i++)
 		{
-			mSetInfos[i].slotIndices = (UINT32*)dataPtr;
+			mSetInfos[i].slotIndices = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
 			memset(mSetInfos[i].slotIndices, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
-			dataPtr += sizeof(UINT32) * mSetInfos[i].numSlots;
 
-			mSetInfos[i].slotTypes = (ParamType*)dataPtr;
-			dataPtr += sizeof(ParamType) * mSetInfos[i].numSlots;
+			mSetInfos[i].slotTypes = mAlloc.alloc<ParamType>(mSetInfos[i].numSlots);
 		}
+
+		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
+		{
+			mResourceInfos[i] = mAlloc.alloc<ResourceInfo>(mNumElementsPerType[i]);
+			mNumElementsPerType[i] = 0;
+		}
+
+		auto populateSetInfo = [&](auto& entry, ParamType type)
+		{
+			int typeIdx = (int)type;
+
+			SetInfo& setInfo = mSetInfos[entry.set];
+			setInfo.slotIndices[entry.slot] = mNumElementsPerType[typeIdx];
+			setInfo.slotTypes[entry.slot] = type;
+
+			mNumElementsPerType[typeIdx]++;
+			mResourceInfos[typeIdx]->set = entry.set;
+			mResourceInfos[typeIdx]->slot = entry.slot;
+		};
 
 		for (UINT32 i = 0; i < numParamDescs; i++)
 		{
@@ -131,71 +139,39 @@ namespace bs
 				continue;
 
 			for (auto& paramBlock : paramDesc->paramBlocks)
-			{
-				SetInfo& setInfo = mSetInfos[paramBlock.second.set];
-				setInfo.slotIndices[paramBlock.second.slot] = mNumElementsPerType[(int)ParamType::ParamBlock];
-				setInfo.slotTypes[paramBlock.second.slot] = ParamType::ParamBlock;
-
-				mNumElementsPerType[(int)ParamType::ParamBlock]++;
-			}
+				populateSetInfo(paramBlock.second, ParamType::ParamBlock);
 
 			for (auto& texture : paramDesc->textures)
-			{
-				SetInfo& setInfo = mSetInfos[texture.second.set];
-				setInfo.slotIndices[texture.second.slot] = mNumElementsPerType[(int)ParamType::Texture];
-				setInfo.slotTypes[texture.second.slot] = ParamType::Texture;
-
-				mNumElementsPerType[(int)ParamType::Texture]++;
-			}
+				populateSetInfo(texture.second, ParamType::Texture);
 
 			for (auto& texture : paramDesc->loadStoreTextures)
-			{
-				SetInfo& setInfo = mSetInfos[texture.second.set];
-				setInfo.slotIndices[texture.second.slot] = mNumElementsPerType[(int)ParamType::LoadStoreTexture];
-				setInfo.slotTypes[texture.second.slot] = ParamType::LoadStoreTexture;
-
-				mNumElementsPerType[(int)ParamType::LoadStoreTexture]++;
-			}
+				populateSetInfo(texture.second, ParamType::LoadStoreTexture);
 
 			for (auto& buffer : paramDesc->buffers)
-			{
-				SetInfo& setInfo = mSetInfos[buffer.second.set];
-				setInfo.slotIndices[buffer.second.slot] = mNumElementsPerType[(int)ParamType::Buffer];
-				setInfo.slotTypes[buffer.second.slot] = ParamType::Buffer;
-
-				mNumElementsPerType[(int)ParamType::Buffer]++;
-			}
+				populateSetInfo(buffer.second, ParamType::Buffer);
 
 			for (auto& sampler : paramDesc->samplers)
-			{
-				SetInfo& setInfo = mSetInfos[sampler.second.set];
-				setInfo.slotIndices[sampler.second.slot] = mNumElementsPerType[(int)ParamType::SamplerState];
-				setInfo.slotTypes[sampler.second.slot] = ParamType::SamplerState;
-
-				mNumElementsPerType[(int)ParamType::SamplerState]++;
-			}
+				populateSetInfo(sampler.second, ParamType::SamplerState);
 		}
 	}
 
 	GpuPipelineParamInfoBase::~GpuPipelineParamInfoBase()
-	{
-		bs_free(mData);
-	}
+	{ }
 
 	UINT32 GpuPipelineParamInfoBase::getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const
 	{
 #if BS_DEBUG_MODE
 		if (set >= mNumSets)
 		{
-			LOGERR("Set index out of range: Valid range: 0 .. " +
-				   toString(mNumSets - 1) + ". Requested: " + toString(set));
+			LOGERR("Set index out of range: Valid range: [0, " +
+				   toString(mNumSets) + "). Requested: " + toString(set) + ".");
 			return -1;
 		}
 
 		if (slot >= mSetInfos[set].numSlots)
 		{
-			LOGERR("Slot index out of range: Valid range: 0 .. " +
-				   toString(mSetInfos[set].numSlots - 1) + ". Requested: " + toString(slot));
+			LOGERR("Slot index out of range: Valid range: [0, " +
+				   toString(mSetInfos[set].numSlots) + "). Requested: " + toString(slot) + ".");
 			return -1;
 		}
 
@@ -217,6 +193,24 @@ namespace bs
 #endif
 
 		return mSetInfos[set].slotIndices[slot];
+	}
+
+	void GpuPipelineParamInfoBase::getSetSlot(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const
+	{
+#if BS_DEBUG_MODE
+		if(sequentialSlot >= mNumElementsPerType[(int)type])
+		{
+			LOGERR("Sequential slot index out of range: Valid range: [0, " + toString(mNumElementsPerType[(int)type]) + 
+				"). Requested: " + toString(sequentialSlot) + ".");
+
+			set = 0;
+			slot = 0;
+			return;
+		}
+#endif
+
+		set = mResourceInfos[(int)type][sequentialSlot].set;
+		slot = mResourceInfos[(int)type][sequentialSlot].slot;
 	}
 
 	GpuPipelineParamInfoCore::GpuPipelineParamInfoCore(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)

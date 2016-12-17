@@ -588,22 +588,6 @@ namespace bs
 			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	}
 
-	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx, bool framebuffer) const
-	{
-		if (mImages[deviceIdx] == nullptr)
-			return VK_NULL_HANDLE;
-
-		return mImages[deviceIdx]->getView(framebuffer);
-	}
-
-	VkImageView VulkanTextureCore::getView(UINT32 deviceIdx, const TextureSurface& surface, bool framebuffer) const
-	{
-		if (mImages[deviceIdx] == nullptr)
-			return VK_NULL_HANDLE;
-
-		return mImages[deviceIdx]->getView(surface, framebuffer);
-	}
-
 	void VulkanTextureCore::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
 									 const SPtr<TextureCore>& target, UINT32 queueIdx)
 	{

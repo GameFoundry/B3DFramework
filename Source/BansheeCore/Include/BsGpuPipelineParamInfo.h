@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsCoreObject.h"
+#include "BsGroupAlloc.h"
 
 namespace bs
 {
@@ -54,6 +55,9 @@ namespace bs
 		 */
 		UINT32 getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const;
 
+		/** Converts a sequential slot index into a set/slot combination. */
+		void getSetSlot(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const;
+
 		/** Returns descriptions of individual parameters for the specified GPU program type. */
 		const SPtr<GpuParamDesc>& getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }
 
@@ -65,6 +69,13 @@ namespace bs
 			ParamType* slotTypes;
 			UINT32 numSlots;
 		};
+
+		/** Information how a resource maps to a certain set/slot. */
+		struct ResourceInfo
+		{
+			UINT32 set;
+			UINT32 slot;
+		};
 		
 		std::array<SPtr<GpuParamDesc>, 6> mParamDescs;
 
@@ -72,8 +83,9 @@ namespace bs
 		UINT32 mNumElements;
 		SetInfo* mSetInfos;
 		UINT32 mNumElementsPerType[(int)ParamType::Count];
+		ResourceInfo* mResourceInfos[(int)ParamType::Count];
 
-		UINT8* mData;
+		GroupAlloc mAlloc;
 	};
 
 	/** Core thread version of a GpuPipelineParamInfo. */
