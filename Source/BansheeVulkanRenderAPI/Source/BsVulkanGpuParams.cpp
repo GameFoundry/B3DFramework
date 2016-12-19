@@ -27,19 +27,20 @@ namespace bs
 
 	VulkanGpuParams::~VulkanGpuParams()
 	{
+		Lock lock(mMutex);
+
+		UINT32 numSets = mParamInfo->getNumSets();
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			Lock lock(mMutex);
+			if (mPerDeviceData[i].perSetData == nullptr)
+				continue;
 
-			UINT32 numSets = mParamInfo->getNumSets();
-			for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+			for (UINT32 j = 0; j < numSets; j++)
 			{
-				for (UINT32 j = 0; j < numSets; j++)
-				{
-					for (auto& entry : mPerDeviceData[i].perSetData[j].sets)
-						entry->destroy();
+				for (auto& entry : mPerDeviceData[i].perSetData[j].sets)
+					entry->destroy();
 
-					mPerDeviceData[i].perSetData[j].sets.~Vector<VulkanDescriptorSet*>();
-				}
+				mPerDeviceData[i].perSetData[j].sets.~Vector<VulkanDescriptorSet*>();
 			}
 		}
 	}

@@ -80,7 +80,11 @@ namespace bs
 																	 GpuDeviceFlags deviceMask)
 		:GraphicsPipelineStateCore(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
 	{
-		
+		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			mPerDeviceData[i].device = nullptr;
+			mPerDeviceData[i].pipelineLayout = VK_NULL_HANDLE;
+		}
 	}
 
 	VulkanGraphicsPipelineStateCore::~VulkanGraphicsPipelineStateCore()
@@ -298,27 +302,23 @@ namespace bs
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
+			if (devices[i] == nullptr)
+				continue;
+
 			mPerDeviceData[i].device = devices[i];
 
-			if (devices[i] != nullptr)
-			{
-				VulkanDescriptorManager& descManager = mPerDeviceData[i].device->getDescriptorManager();
-				VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+			VulkanDescriptorManager& descManager = mPerDeviceData[i].device->getDescriptorManager();
+			VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
-				UINT32 numLayouts = vkParamInfo.getNumSets();
-				VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+			UINT32 numLayouts = vkParamInfo.getNumSets();
+			VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
-				for (UINT32 j = 0; j < numLayouts; j++)
-					layouts[j] = vkParamInfo.getLayout(i, j);
+			for (UINT32 j = 0; j < numLayouts; j++)
+				layouts[j] = vkParamInfo.getLayout(i, j);
 
-				mPerDeviceData[i].pipelineLayout = descManager.getPipelineLayout(layouts, numLayouts);
+			mPerDeviceData[i].pipelineLayout = descManager.getPipelineLayout(layouts, numLayouts);
 
-				bs_stack_free(layouts);
-			}
-			else
-			{
-				mPerDeviceData[i].pipelineLayout = VK_NULL_HANDLE;
-			}
+			bs_stack_free(layouts);
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
@@ -501,7 +501,9 @@ namespace bs
 	VulkanComputePipelineStateCore::VulkanComputePipelineStateCore(const SPtr<GpuProgramCore>& program, 
 		GpuDeviceFlags deviceMask)
 		:ComputePipelineStateCore(program, deviceMask), mDeviceMask(deviceMask)
-	{ }
+	{
+		bs_zero_out(mPerDeviceData);
+	}
 
 	VulkanComputePipelineStateCore::~VulkanComputePipelineStateCore()
 	{
@@ -549,44 +551,39 @@ namespace bs
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
+			if (devices[i] == nullptr)
+				continue;
+
 			mPerDeviceData[i].device = devices[i];
 
-			if (devices[i] != nullptr)
-			{
-				VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
-				VulkanResourceManager& rescManager = devices[i]->getResourceManager();
-				VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+			VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
+			VulkanResourceManager& rescManager = devices[i]->getResourceManager();
+			VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
-				UINT32 numLayouts = vkParamInfo.getNumSets();
-				VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+			UINT32 numLayouts = vkParamInfo.getNumSets();
+			VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
-				for (UINT32 j = 0; j < numLayouts; j++)
-					layouts[j] = vkParamInfo.getLayout(i, j);
+			for (UINT32 j = 0; j < numLayouts; j++)
+				layouts[j] = vkParamInfo.getLayout(i, j);
 
-				VulkanShaderModule* module = vkProgram->getShaderModule(i);
+			VulkanShaderModule* module = vkProgram->getShaderModule(i);
 
-				if (module != nullptr)
-					pipelineCI.stage.module = module->getHandle();
-				else
-					pipelineCI.stage.module = VK_NULL_HANDLE;
-
-				pipelineCI.layout = descManager.getPipelineLayout(layouts, numLayouts);
-
-				VkPipeline pipeline;
-				VkResult result = vkCreateComputePipelines(devices[i]->getLogical(), VK_NULL_HANDLE, 1, &pipelineCI,
-														   gVulkanAllocator, &pipeline);
-				assert(result == VK_SUCCESS);
-
-
-				mPerDeviceData[i].pipeline = rescManager.create<VulkanPipeline>(pipeline);
-				mPerDeviceData[i].pipelineLayout = pipelineCI.layout;
-				bs_stack_free(layouts);
-			}
+			if (module != nullptr)
+				pipelineCI.stage.module = module->getHandle();
 			else
-			{
-				mPerDeviceData[i].pipeline = nullptr;
-				mPerDeviceData[i].pipelineLayout = VK_NULL_HANDLE;
-			}
+				pipelineCI.stage.module = VK_NULL_HANDLE;
+
+			pipelineCI.layout = descManager.getPipelineLayout(layouts, numLayouts);
+
+			VkPipeline pipeline;
+			VkResult result = vkCreateComputePipelines(devices[i]->getLogical(), VK_NULL_HANDLE, 1, &pipelineCI,
+														gVulkanAllocator, &pipeline);
+			assert(result == VK_SUCCESS);
+
+
+			mPerDeviceData[i].pipeline = rescManager.create<VulkanPipeline>(pipeline);
+			mPerDeviceData[i].pipelineLayout = pipelineCI.layout;
+			bs_stack_free(layouts);
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);

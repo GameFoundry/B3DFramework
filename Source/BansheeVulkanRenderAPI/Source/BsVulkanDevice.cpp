@@ -124,13 +124,18 @@ namespace bs
 		{
 			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
 			for (UINT32 j = 0; j < numQueues; j++)
+			{
+				mQueueInfos[i].queues[j]->refreshStates(true);
 				bs_delete(mQueueInfos[i].queues[j]);
+			}
 		}
 
-		bs_delete(mResourceManager);
 		bs_delete(mDescriptorManager);
 		bs_delete(mQueryPool);
 		bs_delete(mCommandBufferPool);
+
+		// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
+		bs_delete(mResourceManager);
 		
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}

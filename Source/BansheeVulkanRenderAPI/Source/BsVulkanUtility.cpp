@@ -342,9 +342,9 @@ namespace bs
 		case CULL_NONE:
 			return VK_CULL_MODE_NONE;
 		case CULL_CLOCKWISE:
-			return VK_CULL_MODE_BACK_BIT;
-		case CULL_COUNTERCLOCKWISE:
 			return VK_CULL_MODE_FRONT_BIT;
+		case CULL_COUNTERCLOCKWISE:
+			return VK_CULL_MODE_BACK_BIT;
 		}
 
 		// Unsupported type

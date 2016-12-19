@@ -24,10 +24,16 @@ namespace bs
 		Lock(mMutex);
 
 		for (auto& entry : mTimerQueries)
-			entry->destroy();
+		{
+			if(entry != nullptr)
+				entry->destroy();
+		}
 
 		for (auto& entry : mOcclusionQueries)
-			entry->destroy();
+		{
+			if(entry != nullptr)
+				entry->destroy();
+		}
 
 		for (auto& entry : mTimerPools)
 			vkDestroyQueryPool(mDevice.getLogical(), entry.pool, gVulkanAllocator);

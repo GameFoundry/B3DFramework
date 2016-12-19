@@ -53,8 +53,11 @@ namespace bs
 		/** 
 		 * Checks if any of the active command buffers finished executing on the queue and updates their states 
 		 * accordingly. 
+		 * 
+		 * @param[in]	queueEmpty	Set to true if the caller guarantees the queue will be empty (e.g. on shutdown). This
+		 *							allows the system to free all needed resources.
 		 */
-		void refreshStates();
+		void refreshStates(bool queueEmpty = false);
 
 		/** Returns the last command buffer that was submitted on this queue. */
 		VulkanCmdBuffer* getLastCommandBuffer() const { return mLastCommandBuffer; }

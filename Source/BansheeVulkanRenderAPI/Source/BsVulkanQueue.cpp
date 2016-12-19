@@ -116,7 +116,7 @@ namespace bs
 		assert(result == VK_SUCCESS);
 	}
 
-	void VulkanQueue::refreshStates()
+	void VulkanQueue::refreshStates(bool queueEmpty)
 	{
 		UINT32 lastFinishedSubmission = 0;
 
@@ -137,6 +137,12 @@ namespace bs
 			lastFinishedSubmission = iter->submitIdx;
 			++iter;
 		}
+
+		// If last submission was a present() call, it won't be freed until a command buffer after it is done. However on
+		// shutdown there might not be a CB following it. So we instead check this special flag and free everything when its
+		// true.
+		if (queueEmpty)
+			lastFinishedSubmission = mNextSubmitIdx - 1;
 
 		iter = mActiveBuffers.begin();
 		while (iter != mActiveBuffers.end())
