@@ -379,7 +379,7 @@ namespace bs
 		}
 		else if ((usage & TU_LOADSTORE) != 0)
 		{
-			mImageCI.usage = VK_IMAGE_USAGE_STORAGE_BIT;
+			mImageCI.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 			mSupportsGPUWrites = true;
 		}
 		else
