@@ -29,19 +29,19 @@ namespace bs
 			else if (entry.second.rendererSemantic == RPS_GBufferDepth)
 				params->getTextureParam(GPT_FRAGMENT_PROGRAM, entry.second.name, mGBufferDepth);
 		}
+
+		mParamBuffer = gPerLightParamDef.createBuffer();
+		mParamsSet->setParamBlockBuffer("PerLight", mParamBuffer, true);
 	}
 
 	void LightRenderingParams::setStaticParameters(const SPtr<RenderTargets>& gbuffer, 
 		const SPtr<GpuParamBlockBufferCore>& perCamera)
 	{
-		mParamBuffer = gPerLightParamDef.createBuffer();
-
 		mGBufferA.set(gbuffer->getTextureA());
 		mGBufferB.set(gbuffer->getTextureB());
 		mGBufferDepth.set(gbuffer->getTextureDepth());
 
-		mParamsSet->setParamBlockBuffer("PerLight", getBuffer());
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
+		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 
 		gRendererUtility().setPassParams(mParamsSet);
 	}
