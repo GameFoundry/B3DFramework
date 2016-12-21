@@ -19,6 +19,12 @@ HSceneObject guiSO = SceneObject::create("GUI");
 HGUIWidget gui = guiSO->addComponent<CGUIWidget>(camera);
 ~~~~~~~~~~~~~
 
+Before a widget is usable we must first assign it a **GUISkin**. A skin defines how is every element on this particular widget rendered (its texture(s), fonts, size, etc.). We'll talk about skins and styles in detail later, but for now it's enough to assign the built-in skin available from **BuiltinResources**.
+
+~~~~~~~~~~~~~{.cpp}
+gui->setSkin(BuiltinResources::instance().getGUISkin());
+~~~~~~~~~~~~~
+
 You can now use the GUI widget to add GUI elements to it
 ~~~~~~~~~~~~~{.cpp}
 // Shows the text "Hello!" on the screen

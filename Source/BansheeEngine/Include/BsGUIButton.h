@@ -67,7 +67,7 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElement::_getElementType */
-		virtual ElementType _getElementType() const override { return ElementType::Button; }
+		ElementType _getElementType() const override { return ElementType::Button; }
 
 		/** @} */
 	private:

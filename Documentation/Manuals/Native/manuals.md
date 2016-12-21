@@ -31,6 +31,7 @@ Manuals									{#manuals}
  - [Input polling](@ref inputPolling) 
  - [Input events](@ref inputEvents)  
 - **GUI**
+ - [Sprite textures](@ref spriteTextures)
  - [Basic setup](@ref guiSetup)
  - [Elements](@ref guiElements)
  - [Layouts](@ref guiLayouts)

@@ -312,6 +312,10 @@ div.fragment {
 	margin: 4px 8px 14px 2px;
 }
 
+blockquote {
+	margin-bottom: 1em;
+}
+
 #menuSegment {
     padding: 0;
     border-bottom: 5px solid #ffb028;

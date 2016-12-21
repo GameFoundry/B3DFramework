@@ -62,6 +62,22 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
+	void GUIElementBase::setSize(UINT32 width, UINT32 height)
+	{
+		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
+
+		mDimensions.flags |= GUIDF_FixedWidth | GUIDF_OverWidth | GUIDF_FixedHeight | GUIDF_OverHeight;
+		mDimensions.minWidth = mDimensions.maxWidth = width;
+		mDimensions.minHeight = mDimensions.maxHeight = height;
+
+		bool isFixedAfter = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
+
+		if (isFixedBefore != isFixedAfter)
+			refreshChildUpdateParents();
+
+		_markLayoutAsDirty();
+	}
+
 	void GUIElementBase::setWidth(UINT32 width)
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;

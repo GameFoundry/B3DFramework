@@ -140,7 +140,7 @@ namespace bs
 		 */
 
 		/** @copydoc GUIButtonBase::_getElementType */
-		virtual ElementType _getElementType() const override { return ElementType::Toggle; }
+		ElementType _getElementType() const override { return ElementType::Toggle; }
 
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
 		void _setToggleGroup(SPtr<GUIToggleGroup> toggleGroup);
@@ -154,7 +154,7 @@ namespace bs
 			SPtr<GUIToggleGroup> toggleGroup, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::_mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 	protected:
 		SPtr<GUIToggleGroup> mToggleGroup;

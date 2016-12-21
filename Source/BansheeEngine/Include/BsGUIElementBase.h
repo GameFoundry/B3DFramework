@@ -69,6 +69,9 @@ namespace bs
 		/**	Sets element height in pixels. */
 		void setHeight(UINT32 height);
 
+		/** Sets width and height of a GUI element in pixels. */
+		void setSize(UINT32 width, UINT32 height);
+
 		/**
 		 * Sets element height in pixels. Element will be resized according to its contents and parent layout but will 
 		 * always stay within the provided range. If maximum height is zero, the element is allowed to expand as much as
