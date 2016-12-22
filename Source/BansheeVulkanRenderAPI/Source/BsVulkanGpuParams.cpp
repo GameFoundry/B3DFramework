@@ -737,9 +737,12 @@ namespace bs
 				}
 
 				// Cannot find an empty set, allocate a new one
-				VulkanDescriptorLayout* layout = vkParamInfo.getLayout(deviceIdx, i);
-				perSetData.latestSet = descManager.createSet(layout);
-				perSetData.sets.push_back(perSetData.latestSet);
+				if (perSetData.latestSet == nullptr)
+				{
+					VulkanDescriptorLayout* layout = vkParamInfo.getLayout(deviceIdx, i);
+					perSetData.latestSet = descManager.createSet(layout);
+					perSetData.sets.push_back(perSetData.latestSet);
+				}
 			}
 
 			// Note: Currently I write to the entire set at once, but it might be beneficial to remember only the exact
