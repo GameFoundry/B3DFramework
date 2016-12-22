@@ -703,7 +703,7 @@ namespace bs
 				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
-				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(false);;
+				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(false);
 
 				mSetsDirty[set] = true;
 			}

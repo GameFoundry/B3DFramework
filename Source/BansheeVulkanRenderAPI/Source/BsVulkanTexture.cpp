@@ -78,6 +78,23 @@ namespace bs
 		else
 			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_COLOR_BIT);
 
+		ImageViewInfo mainViewInfo;
+		mainViewInfo.surface = completeSurface;
+		mainViewInfo.framebuffer = false;
+		mainViewInfo.view = mMainView;
+
+		mImageInfos.push_back(mainViewInfo);
+
+		if (mFramebufferMainView != VK_NULL_HANDLE)
+		{
+			ImageViewInfo fbMainViewInfo;
+			fbMainViewInfo.surface = completeSurface;
+			fbMainViewInfo.framebuffer = true;
+			fbMainViewInfo.view = mFramebufferMainView;
+
+			mImageInfos.push_back(fbMainViewInfo);
+		}
+
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
 		mSubresources = (VulkanImageSubresource**)bs_alloc(sizeof(VulkanImageSubresource*) * numSubresources);
 		for (UINT32 i = 0; i < numSubresources; i++)
@@ -97,11 +114,6 @@ namespace bs
 			mSubresources[i]->destroy();
 		}
 
-		vkDestroyImageView(vkDevice, mMainView, gVulkanAllocator);
-
-		if(mFramebufferMainView != VK_NULL_HANDLE)
-			vkDestroyImageView(vkDevice, mFramebufferMainView, gVulkanAllocator);
-
 		for(auto& entry : mImageInfos)
 			vkDestroyImageView(vkDevice, entry.view, gVulkanAllocator);
 
@@ -114,10 +126,10 @@ namespace bs
 
 	VkImageView VulkanImage::getView(bool framebuffer) const
 	{
-		if (!mIsDepthStencil || !framebuffer)
-			return mMainView;
+		if(framebuffer && mIsDepthStencil)
+			return mFramebufferMainView;
 
-		return mFramebufferMainView;
+		return mMainView;
 	}
 
 	VkImageView VulkanImage::getView(const TextureSurface& surface, bool framebuffer) const
@@ -170,6 +182,7 @@ namespace bs
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 				break;
 			case VK_IMAGE_VIEW_TYPE_2D:
+			case VK_IMAGE_VIEW_TYPE_3D:
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 				break;
 			case VK_IMAGE_VIEW_TYPE_CUBE:

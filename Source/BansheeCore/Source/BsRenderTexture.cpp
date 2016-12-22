@@ -48,7 +48,7 @@ namespace bs
 		{
 			mWidth = textureProps->getWidth();
 			mHeight = textureProps->getHeight();
-			mNumSlices = numSlices;
+			mNumSlices = textureProps->getDepth() * numSlices;
 			mColorDepth = bs::PixelUtil::getNumElemBits(textureProps->getFormat());
 			mHwGamma = textureProps->isHardwareGammaEnabled();
 			mMultisampleCount = textureProps->getNumSamples();
