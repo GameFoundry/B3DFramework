@@ -81,16 +81,22 @@ namespace bs
 		 * 
 		 * @param[in]	loadMask	Mask that control which render target surface contents should be preserved on load.
 		 * @param[in]	readMask	Mask that controls which render targets can be read by shaders while they're bound.
+		 * @param[in]	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
+		 *							cannot have both load and clear bits set. If load bit is set, clear will be ignored.
 		 */
-		VkRenderPass getRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask) const;
+		VkRenderPass getRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, 
+								   ClearMask clearMask) const;
 
 		/**
 		 * Gets internal Vulkan framebuffer object.
 		 *
 		 * @param[in]	loadMask	Mask that control which render target surface contents should be preserved on load.
 		 * @param[in]	readMask	Mask that controls which render targets can be read by shaders while they're bound.
+		 * @param[in]	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
+		 *							cannot have both load and clear bits set. If load bit is set, clear will be ignored.
 		 */
-		VkFramebuffer getFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask) const;
+		VkFramebuffer getFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, 
+									 ClearMask clearMask) const;
 
 		/** 
 		 * Gets the number of layers in each framebuffer surface. A layer is an element in a texture array, or a depth 
@@ -126,7 +132,7 @@ namespace bs
 		/** Key used for identifying different types of frame-buffer variants. */
 		struct VariantKey
 		{
-			VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask);
+			VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask);
 
 			class HashFunction
 			{
@@ -142,10 +148,11 @@ namespace bs
 
 			RenderSurfaceMask loadMask;
 			RenderSurfaceMask readMask;
+			ClearMask clearMask;
 		};
 
 		/** Creates a new variant of the framebuffer. */
-		Variant createVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask) const;
+		Variant createVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const;
 
 		UINT32 mId;
 

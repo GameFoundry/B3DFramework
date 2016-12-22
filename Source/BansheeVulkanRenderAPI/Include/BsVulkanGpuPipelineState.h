@@ -55,10 +55,6 @@ namespace bs
 		 * @param[in]	deviceIdx			Index of the device to retrieve the pipeline for.
 		 * @param[in]	framebuffer			Framebuffer object that defines the surfaces this pipeline will render to.
 		 * @param[in]	readOnlyDepth		True if the pipeline is only allowed to read the depth buffer, without writes.
-		 * @param[in]	loadMask			Mask that controls for which framebuffer surfaces should the existing contents
-		 *									be preserved for.
-		 * @param[in]	readMask			Mask that controls which framebuffer surfaces can be read from the shader while
-		 *									they're bound for rendering.
 		 * @param[in]	drawOp				Type of geometry that will be drawn using the pipeline.
 		 * @param[in]	vertexInput			State describing inputs to the vertex program.
 		 * @return							Vulkan graphics pipeline object.
@@ -66,8 +62,7 @@ namespace bs
 		 * @note	Thread safe.
 		 */
 		VulkanPipeline* getPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, 
-			RenderSurfaceMask loadMask, RenderSurfaceMask readMask, DrawOperationType drawOp, 
-			const SPtr<VulkanVertexInput>& vertexInput);
+			DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
 
 		/** 
 		 * Returns a pipeline layout object for the specified device index. If the device index doesn't match a bit in the
@@ -95,10 +90,6 @@ namespace bs
 		 * @param[in]	deviceIdx			Index of the device to create the pipeline for.
 		 * @param[in]	framebuffer			Framebuffer object that defines the surfaces this pipeline will render to.
 		 * @param[in]	readOnlyDepth		True if the pipeline is only allowed to read the depth buffer, without writes.
-		 * @param[in]	loadMask			Mask that controls for which framebuffer surfaces should the existing contents 
-		 *									be preserved for.
-		 * @param[in]	readMask			Mask that controls which framebuffer surfaces can be read from the shader while
-		 *									they're bound for rendering.
 		 * @param[in]	drawOp				Type of geometry that will be drawn using the pipeline.
 		 * @param[in]	vertexInput			State describing inputs to the vertex program.
 		 * @return							Vulkan graphics pipeline object.
@@ -106,20 +97,16 @@ namespace bs
 		 * @note	Thread safe.
 		 */
 		VulkanPipeline* createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, 
-			RenderSurfaceMask loadMask, RenderSurfaceMask readMask, DrawOperationType drawOp, 
-			const SPtr<VulkanVertexInput>& vertexInput);
+			DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
 
 		/**	Key uniquely identifying GPU pipelines. */
 		struct GpuPipelineKey
 		{
-			GpuPipelineKey(UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, RenderSurfaceMask loadMask,
-						   RenderSurfaceMask readMask, DrawOperationType drawOp);
+			GpuPipelineKey(UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, DrawOperationType drawOp);
 
 			UINT32 framebufferId;
 			UINT32 vertexInputId;
 			bool readOnlyDepth;
-			RenderSurfaceMask loadMask;
-			RenderSurfaceMask readMask;
 			DrawOperationType drawOp;
 		};
 

@@ -32,10 +32,9 @@ namespace bs
 	}
 
 	VulkanGraphicsPipelineStateCore::GpuPipelineKey::GpuPipelineKey(
-		UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, RenderSurfaceMask loadMask, 
-		RenderSurfaceMask readMask, DrawOperationType drawOp)
+		UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, DrawOperationType drawOp)
 		: framebufferId(framebufferId), vertexInputId(vertexInputId), readOnlyDepth(readOnlyDepth)
-		, loadMask(loadMask), readMask(readMask), drawOp(drawOp)
+		, drawOp(drawOp)
 	{
 		
 	}
@@ -46,8 +45,6 @@ namespace bs
 		hash_combine(hash, key.framebufferId);
 		hash_combine(hash, key.vertexInputId);
 		hash_combine(hash, key.readOnlyDepth);
-		hash_combine(hash, key.loadMask);
-		hash_combine(hash, key.readMask);
 		hash_combine(hash, key.drawOp);
 
 		return hash;
@@ -62,12 +59,6 @@ namespace bs
 			return false;
 
 		if (a.readOnlyDepth != b.readOnlyDepth)
-			return false;
-
-		if (a.loadMask != b.loadMask)
-			return false;
-
-		if (a.readMask != b.readMask)
 			return false;
 
 		if (a.drawOp != b.drawOp)
@@ -325,23 +316,22 @@ namespace bs
 	}
 
 	VulkanPipeline* VulkanGraphicsPipelineStateCore::getPipeline(
-		UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, RenderSurfaceMask loadMask, 
-		RenderSurfaceMask readMask, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput)
+		UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, DrawOperationType drawOp, 
+			const SPtr<VulkanVertexInput>& vertexInput)
 	{
 		Lock(mMutex);
 
 		if (mPerDeviceData[deviceIdx].device == nullptr)
 			return nullptr;
 
-		GpuPipelineKey key(framebuffer->getId(), vertexInput->getId(), readOnlyDepth, loadMask, readMask, drawOp);
+		GpuPipelineKey key(framebuffer->getId(), vertexInput->getId(), readOnlyDepth, drawOp);
 
 		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
 		auto iterFind = perDeviceData.pipelines.find(key);
 		if (iterFind != perDeviceData.pipelines.end())
 			return iterFind->second;
 
-		VulkanPipeline* newPipeline = createPipeline(deviceIdx, framebuffer, readOnlyDepth, loadMask, readMask,
-			drawOp, vertexInput);
+		VulkanPipeline* newPipeline = createPipeline(deviceIdx, framebuffer, readOnlyDepth, drawOp, vertexInput);
 		perDeviceData.pipelines[key] = newPipeline;
 
 		return newPipeline;
@@ -377,8 +367,7 @@ namespace bs
 	}
 
 	VulkanPipeline* VulkanGraphicsPipelineStateCore::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
-		bool readOnlyDepth, RenderSurfaceMask loadMask, RenderSurfaceMask readMask, DrawOperationType drawOp, 
-		const SPtr<VulkanVertexInput>& vertexInput)
+		bool readOnlyDepth, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput)
 	{
 		mInputAssemblyInfo.topology = VulkanUtility::getDrawOp(drawOp);
 		mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now
@@ -411,7 +400,10 @@ namespace bs
 			mDepthStencilInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
 		}
 
-		mPipelineInfo.renderPass = framebuffer->getRenderPass(loadMask, readMask);
+		// Note: We can use the default render pass here (default clear/load/read flags), even though that might not be the
+		// exact one currently bound. This is because load/store operations and layout transitions are allowed to differ
+		// (as per spec 7.2., such render passes are considered compatible).
+		mPipelineInfo.renderPass = framebuffer->getRenderPass(RT_NONE, RT_NONE, CLEAR_NONE);
 		mPipelineInfo.layout = mPerDeviceData[deviceIdx].pipelineLayout;
 		mPipelineInfo.pVertexInputState = vertexInput->getCreateInfo();
 

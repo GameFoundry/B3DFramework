@@ -307,6 +307,12 @@ namespace bs
 		void clearViewport(const Rect2I& area, UINT32 buffers, const Color& color, float depth, UINT16 stencil, 
 			UINT8 targetMask);
 
+		/** Starts and ends a render pass, intended only for a clear operation. */
+		void executeClearPass();
+
+		/** Executes any queued layout transitions by issuing a pipeline barrier. */
+		void executeLayoutTransitions();
+
 		UINT32 mId;
 		UINT32 mQueueFamily;
 		State mState;
@@ -343,6 +349,10 @@ namespace bs
 		bool mStencilRefRequiresBind : 1;
 		bool mScissorRequiresBind : 1;
 		DescriptorSetBindFlags mDescriptorSetsBindState;
+
+		std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> mClearValues;
+		ClearMask mClearMask;
+		Rect2I mClearArea;
 
 		VulkanSemaphore* mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES];
 		VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS];

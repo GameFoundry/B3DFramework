@@ -7,8 +7,9 @@
 
 namespace bs
 {
-	VulkanFramebuffer::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask)
-		:loadMask(loadMask), readMask(readMask)
+	VulkanFramebuffer::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, 
+		ClearMask clearMask)
+		:loadMask(loadMask), readMask(readMask), clearMask(clearMask)
 	{ }
 
 	size_t VulkanFramebuffer::VariantKey::HashFunction::operator()(const VariantKey& v) const
@@ -16,6 +17,7 @@ namespace bs
 		size_t hash = 0;
 		hash_combine(hash, v.readMask);
 		hash_combine(hash, v.loadMask);
+		hash_combine(hash, v.clearMask);
 
 		return hash;
 	}
@@ -23,7 +25,7 @@ namespace bs
 	bool VulkanFramebuffer::VariantKey::EqualFunction::operator()(const VariantKey& lhs,
 																			 const VariantKey& rhs) const
 	{
-		return lhs.loadMask == rhs.loadMask && lhs.readMask == rhs.readMask;
+		return lhs.loadMask == rhs.loadMask && lhs.readMask == rhs.readMask && lhs.clearMask == rhs.clearMask;
 	}
 
 	UINT32 VulkanFramebuffer::sNextValidId = 1;
@@ -159,7 +161,7 @@ namespace bs
 		mFramebufferCI.height = desc.height;
 		mFramebufferCI.layers = desc.layers;
 
-		mDefault = createVariant(RT_NONE, RT_NONE);		
+		mDefault = createVariant(RT_NONE, RT_NONE, CLEAR_NONE);		
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -177,7 +179,7 @@ namespace bs
 	}
 
 	VulkanFramebuffer::Variant VulkanFramebuffer::createVariant(RenderSurfaceMask loadMask, 
-		RenderSurfaceMask readMask) const
+		RenderSurfaceMask readMask, ClearMask clearMask) const
 	{
 		for (UINT32 i = 0; i < mNumColorAttachments; i++)
 		{
@@ -189,6 +191,11 @@ namespace bs
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			}
+			else if (clearMask.isSet((ClearMaskBits)(i << attachment.index)))
+			{
+				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 			else
 			{
@@ -215,8 +222,16 @@ namespace bs
 			}
 			else
 			{
-				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				if(clearMask.isSet(CLEAR_DEPTH))
+					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				else
+					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
+				if(clearMask.isSet(CLEAR_STENCIL))
+					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				else
+					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 
@@ -240,33 +255,35 @@ namespace bs
 		return variant;
 	}
 
-	VkRenderPass VulkanFramebuffer::getRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask) const
+	VkRenderPass VulkanFramebuffer::getRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask,
+												  ClearMask clearMask) const
 	{
-		if (loadMask == RT_NONE && readMask == RT_NONE)
+		if (loadMask == RT_NONE && readMask == RT_NONE && clearMask == CLEAR_NONE)
 			return mDefault.renderPass;
 
-		VariantKey key(loadMask, readMask);
+		VariantKey key(loadMask, readMask, clearMask);
 		auto iterFind = mVariants.find(key);
 		if (iterFind != mVariants.end())
 			return iterFind->second.renderPass;
 
-		Variant newVariant = createVariant(loadMask, readMask);
+		Variant newVariant = createVariant(loadMask, readMask, clearMask);
 		mVariants[key] = newVariant;
 
 		return newVariant.renderPass;
 	}
 
-	VkFramebuffer VulkanFramebuffer::getFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask) const
+	VkFramebuffer VulkanFramebuffer::getFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask,
+													ClearMask clearMask) const
 	{
-		if (loadMask == RT_NONE && readMask == RT_NONE)
+		if (loadMask == RT_NONE && readMask == RT_NONE && clearMask == CLEAR_NONE)
 			return mDefault.framebuffer;
 
-		VariantKey key(loadMask, readMask);
+		VariantKey key(loadMask, readMask, clearMask);
 		auto iterFind = mVariants.find(key);
 		if (iterFind != mVariants.end())
 			return iterFind->second.framebuffer;
 
-		Variant newVariant = createVariant(loadMask, readMask);
+		Variant newVariant = createVariant(loadMask, readMask, clearMask);
 		mVariants[key] = newVariant;
 
 		return newVariant.framebuffer;
