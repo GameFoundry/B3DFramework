@@ -612,9 +612,33 @@ namespace bs
 	{
 		assert(mState != State::Submitted);
 
-		VulkanFramebuffer* oldFramebuffer = mFramebuffer;
+		VulkanFramebuffer* newFB;
+		if(rt != nullptr)
+		{
+			if (rt->getProperties().isWindow())
+			{
+				Win32RenderWindowCore* window = static_cast<Win32RenderWindowCore*>(rt.get());
+				window->acquireBackBuffer();
+			}
 
-		if(rt == nullptr)
+			rt->getCustomAttribute("FB", &newFB);
+		}
+		else
+			newFB = nullptr;
+
+		if (mFramebuffer == newFB && mRenderTargetDepthReadOnly == readOnlyDepthStencil && mRenderTargetLoadMask == loadMask)
+			return;
+
+		if (isInRenderPass())
+			endRenderPass();
+		else
+		{
+			// If a clear is queued for previous FB, execute the render pass with no additional instructions
+			if (mClearMask)
+				executeClearPass();
+		}
+
+		if(newFB == nullptr)
 		{
 			mFramebuffer = nullptr;
 			mRenderTargetWidth = 0;
@@ -624,49 +648,29 @@ namespace bs
 		}
 		else
 		{
-			if (rt->getProperties().isWindow())
-			{
-				Win32RenderWindowCore* window = static_cast<Win32RenderWindowCore*>(rt.get());
-				window->acquireBackBuffer();
-			}
-
-			rt->getCustomAttribute("FB", &mFramebuffer);
-
+			mFramebuffer = newFB;
 			mRenderTargetWidth = rt->getProperties().getWidth();
 			mRenderTargetHeight = rt->getProperties().getHeight();
 			mRenderTargetDepthReadOnly = readOnlyDepthStencil;
 			mRenderTargetLoadMask = loadMask;
 		}
 
-		// If anything changed
-		if(oldFramebuffer != mFramebuffer)
+		// Reset flags that signal image usage
+		for (auto& entry : mImages)
 		{
-			if (isInRenderPass())
-				endRenderPass();
-			else
-			{
-				// If a clear is queued for previous FB, execute the render pass with no additional instructions
-				if (mClearMask)
-					executeClearPass();
-			}
+			UINT32 imageInfoIdx = entry.second;
+			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-			// Reset flags that signal image usage
-			for (auto& entry : mImages)
-			{
-				UINT32 imageInfoIdx = entry.second;
-				ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-
-				imageInfo.isFBAttachment = false;
-				imageInfo.isShaderInput = false;
-			}
-
-			setGpuParams(nullptr);
-
-			if(mFramebuffer != nullptr)
-				registerResource(mFramebuffer, VulkanUseFlag::Write);
-
-			mGfxPipelineRequiresBind = true;
+			imageInfo.isFBAttachment = false;
+			imageInfo.isShaderInput = false;
 		}
+
+		setGpuParams(nullptr);
+
+		if(mFramebuffer != nullptr)
+			registerResource(mFramebuffer, VulkanUseFlag::Write);
+
+		mGfxPipelineRequiresBind = true;
 	}
 
 	void VulkanCmdBuffer::clearViewport(const Rect2I& area, UINT32 buffers, const Color& color, float depth, UINT16 stencil,
@@ -774,13 +778,12 @@ namespace bs
 		// Otherwise we use a render pass that performs a clear on begin
 		else
 		{
-			UINT32 attachmentIdx = 0;
 			ClearMask clearMask;
-			std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> clearValues;
+			std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> clearValues = mClearValues;
 
+			UINT32 numColorAttachments = mFramebuffer->getNumColorAttachments();
 			if ((buffers & FBT_COLOR) != 0)
 			{
-				UINT32 numColorAttachments = mFramebuffer->getNumColorAttachments();
 				for (UINT32 i = 0; i < numColorAttachments; i++)
 				{
 					const VulkanFramebufferAttachment& attachment = mFramebuffer->getColorAttachment(i);
@@ -790,13 +793,11 @@ namespace bs
 
 					clearMask |= (ClearMaskBits)(1 << attachment.index);
 
-					VkClearColorValue& colorValue = clearValues[attachmentIdx].color;
+					VkClearColorValue& colorValue = clearValues[i].color;
 					colorValue.float32[0] = color.r;
 					colorValue.float32[1] = color.g;
 					colorValue.float32[2] = color.b;
 					colorValue.float32[3] = color.a;
-
-					attachmentIdx++;
 				}
 			}
 
@@ -804,24 +805,23 @@ namespace bs
 			{
 				if (mFramebuffer->hasDepthAttachment())
 				{
+					UINT32 depthAttachmentIdx = numColorAttachments;
+
 					if ((buffers & FBT_DEPTH) != 0)
 					{
-						clearValues[attachmentIdx].depthStencil.depth = depth;
+						clearValues[depthAttachmentIdx].depthStencil.depth = depth;
 						clearMask |= CLEAR_DEPTH;
 					}
 
 					if ((buffers & FBT_STENCIL) != 0)
 					{
-						clearValues[attachmentIdx].depthStencil.stencil = stencil;
+						clearValues[depthAttachmentIdx].depthStencil.stencil = stencil;
 						clearMask |= CLEAR_STENCIL;
 					}
-
-					attachmentIdx++;
 				}
 			}
 
-			UINT32 numAttachments = attachmentIdx;
-			if (numAttachments == 0)
+			if (!clearMask)
 				return;
 
 			// Some previous clear operation is already queued, execute it first
@@ -830,7 +830,7 @@ namespace bs
 			if(previousClearNeedsToFinish)
 				executeClearPass();
 
-			mClearMask = clearMask;
+			mClearMask |= clearMask;
 			mClearValues = clearValues;
 			mClearArea = area;
 		}
