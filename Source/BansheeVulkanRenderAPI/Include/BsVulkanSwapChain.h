@@ -57,10 +57,12 @@ namespace bs
 		void acquireBackBuffer();
 
 		/** 
-		 * Prepares the swap chain for the present operation. Returns the index of the image representing the current
-		 * back buffer.
+		 * Prepares the swap chain for the present operation. 
+		 * 
+		 * @param[out] backBufferIdx	Index of the image representing the current back buffer.
+		 * @return						True if there is anything to present, false otherwise.
 		 */
-		UINT32 prepareForPresent();
+		bool prepareForPresent(UINT32& backBufferIdx);
 
 		/** Returns information describing the current back buffer. */
 		const SwapChainSurface& getBackBuffer() { return mSurfaces[mCurrentBackBufferIdx]; }

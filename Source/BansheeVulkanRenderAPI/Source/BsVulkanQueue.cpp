@@ -70,7 +70,10 @@ namespace bs
 
 	void VulkanQueue::present(VulkanSwapChain* swapChain, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
 	{
-		UINT32 backBufferIdx = swapChain->prepareForPresent();
+		UINT32 backBufferIdx;
+		if (!swapChain->prepareForPresent(backBufferIdx))
+			return; // Nothing to present (back buffer wasn't even acquired)
+
 		VkSwapchainKHR vkSwapChain = swapChain->getHandle();
 
 		VkPresentInfoKHR presentInfo;

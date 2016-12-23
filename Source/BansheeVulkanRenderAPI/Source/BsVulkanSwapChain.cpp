@@ -233,12 +233,16 @@ namespace bs
 		mCurrentBackBufferIdx = imageIndex;
 	}
 
-	UINT32 VulkanSwapChain::prepareForPresent()
+	bool VulkanSwapChain::prepareForPresent(UINT32& backBufferIdx)
 	{
+		if (!mSurfaces[mCurrentBackBufferIdx].acquired)
+			return false;
+
 		assert(mSurfaces[mCurrentBackBufferIdx].acquired && "Attempting to present an unacquired back buffer.");
 		mSurfaces[mCurrentBackBufferIdx].acquired = false;
 
-		return mCurrentBackBufferIdx;
+		backBufferIdx = mCurrentBackBufferIdx;
+		return true;
 	}
 
 	void VulkanSwapChain::clear(VkSwapchainKHR swapChain)
