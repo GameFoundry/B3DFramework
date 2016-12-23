@@ -210,11 +210,15 @@ namespace bs
 	VkImageSubresourceRange VulkanImage::getRange() const
 	{
 		VkImageSubresourceRange range;
-		range.aspectMask = mImageViewCI.subresourceRange.aspectMask;
 		range.baseArrayLayer = 0;
 		range.layerCount = mNumFaces;
 		range.baseMipLevel = 0;
 		range.levelCount = mNumMipLevels;
+
+		if (mIsDepthStencil)
+			range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		else
+			range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
 		return range;
 	}
