@@ -18,7 +18,7 @@ namespace bs
 		desc.image = image;
 		desc.memory = memory;
 		desc.type = props.getTextureType();
-		desc.format = VulkanUtility::getPixelFormat(props.getFormat());
+		desc.format = VulkanUtility::getPixelFormat(props.getFormat(), props.isHardwareGammaEnabled());
 		desc.numFaces = props.getNumFaces();
 		desc.numMipLevels = props.getNumMipmaps() + 1;
 		desc.isDepthStencil = (props.getUsage() & TU_DEPTHSTENCIL) != 0;
@@ -426,7 +426,7 @@ namespace bs
 			}
 		}
 
-		mImageCI.format = VulkanUtility::getPixelFormat(props.getFormat());
+		mImageCI.format = VulkanUtility::getPixelFormat(props.getFormat(), props.isHardwareGammaEnabled());
 		mImageCI.extent = { props.getWidth(), props.getHeight(), props.getDepth() };
 		mImageCI.mipLevels = props.getNumMipmaps() + 1;
 		mImageCI.arrayLayers = props.getNumFaces();
