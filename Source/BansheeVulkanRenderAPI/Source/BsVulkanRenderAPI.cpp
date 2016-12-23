@@ -24,6 +24,8 @@
 	static_assert(false, "Other platform includes go here.");
 #endif
 
+#define USE_VALIDATION_LAYERS 1
+
 namespace bs
 {
 	VkAllocationCallbacks* gVulkanAllocator = nullptr;
@@ -110,7 +112,7 @@ namespace bs
 		appInfo.engineVersion = (0 << 24) | (4 << 16) | 0;
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
-#if BS_DEBUG_MODE
+#if BS_DEBUG_MODE && USE_VALIDATION_LAYERS
 		const char* layers[] =
 		{
 			"VK_LAYER_LUNARG_standard_validation"
@@ -122,6 +124,8 @@ namespace bs
 			nullptr, /** OS specific surface extension */
 			VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 		};
+
+		uint32_t numLayers = sizeof(layers) / sizeof(layers[0]);
 #else
 		const char** layers = nullptr;
 		const char* extensions[] =
@@ -129,6 +133,8 @@ namespace bs
 			nullptr, /** Surface extension */
 			nullptr, /** OS specific surface extension */
 		};
+
+		uint32_t numLayers = 0;
 #endif
 
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
@@ -141,7 +147,6 @@ namespace bs
 		extensions[1] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
 #endif
 
-		uint32_t numLayers = sizeof(layers) / sizeof(layers[0]);
 		uint32_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
 
 		VkInstanceCreateInfo instanceInfo;
@@ -158,7 +163,7 @@ namespace bs
 		assert(result == VK_SUCCESS);
 
 		// Set up debugging
-#if BS_DEBUG_MODE
+#if BS_DEBUG_MODE && USE_VALIDATION_LAYERS
 		VkDebugReportFlagsEXT debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | 
 			VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
