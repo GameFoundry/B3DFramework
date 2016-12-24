@@ -93,13 +93,15 @@ namespace bs
 		/** Information about a single submitted command buffer. */
 		struct SubmitInfo
 		{
-			SubmitInfo(VulkanCmdBuffer* cmdBuffer, UINT32 submitIdx, UINT32 numSemaphores)
-				:cmdBuffer(cmdBuffer), submitIdx(submitIdx), numSemaphores(numSemaphores)
+			SubmitInfo(VulkanCmdBuffer* cmdBuffer, UINT32 submitIdx, UINT32 numSemaphores, UINT32 numCommandBuffers)
+				: cmdBuffer(cmdBuffer), submitIdx(submitIdx), numSemaphores(numSemaphores)
+				, numCommandBuffers(numCommandBuffers)
 			{ }
 
 			VulkanCmdBuffer* cmdBuffer;
 			UINT32 submitIdx;
 			UINT32 numSemaphores;
+			UINT32 numCommandBuffers;
 		};
 
 		VulkanDevice& mDevice;
@@ -111,7 +113,8 @@ namespace bs
 		Vector<SubmitInfo> mQueuedBuffers;
 		Vector<VulkanSemaphore*> mQueuedSemaphores;
 
-		List<SubmitInfo> mActiveBuffers;
+		List<SubmitInfo> mActiveSubmissions;
+		Queue<VulkanCmdBuffer*> mActiveBuffers;
 		Queue<VulkanSemaphore*> mActiveSemaphores;
 		VulkanCmdBuffer* mLastCommandBuffer;
 		bool mLastCBSemaphoreUsed;

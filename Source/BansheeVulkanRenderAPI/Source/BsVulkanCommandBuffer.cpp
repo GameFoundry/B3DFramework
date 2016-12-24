@@ -129,7 +129,7 @@ namespace bs
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
 		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool)
 		, mIntraQueueSemaphore(nullptr), mInterQueueSemaphores(), mNumUsedInterQueueSemaphores(0)
-		, mFenceCounter(0), mFramebuffer(nullptr), mRenderTargetWidth(0)
+		, mFramebuffer(nullptr), mRenderTargetWidth(0)
 		, mRenderTargetHeight(0), mRenderTargetDepthReadOnly(false), mRenderTargetLoadMask(RT_NONE), mGlobalQueueIdx(-1)
 		, mViewport(0.0f, 0.0f, 1.0f, 1.0f), mScissor(0, 0, 0, 0), mStencilRef(0), mDrawOp(DOT_TRIANGLE_LIST)
 		, mNumBoundDescriptorSets(0), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true)
@@ -173,7 +173,7 @@ namespace bs
 				LOGWRN("Freeing a command buffer before done executing because fence wait expired!");
 
 			// Resources have been marked as used, make sure to notify them we're done with them
-			refreshFenceStatus();
+			reset();
 		}
 		else if(mState != State::Ready) 
 		{
@@ -613,57 +613,53 @@ namespace bs
 		mQueuedLayoutTransitions.clear();
 	}
 
-	void VulkanCmdBuffer::refreshFenceStatus()
+	bool VulkanCmdBuffer::checkFenceStatus() const
 	{
 		VkResult result = vkGetFenceStatus(mDevice.getLogical(), mFence);
 		assert(result == VK_SUCCESS || result == VK_NOT_READY);
 
-		bool signaled = result == VK_SUCCESS;
+		return result == VK_SUCCESS;
+	}
 
-		if (mState == State::Submitted)
+	void VulkanCmdBuffer::reset()
+	{
+		if (mState != State::Submitted)
+			return;
+
+		mState = State::Ready;
+		vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
+
+		for (auto& entry : mResources)
 		{
-			if(signaled)
-			{
-				mState = State::Ready;
-				vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
+			ResourceUseHandle& useHandle = entry.second;
+			assert(useHandle.used);
 
-				mFenceCounter++;
-
-				for (auto& entry : mResources)
-				{
-					ResourceUseHandle& useHandle = entry.second;
-					assert(useHandle.used);
-
-					entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
-				}
-
-				for (auto& entry : mImages)
-				{
-					UINT32 imageInfoIdx = entry.second;
-					ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-
-					ResourceUseHandle& useHandle = imageInfo.useHandle;
-					assert(useHandle.used);
-
-					entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
-				}
-
-				for (auto& entry : mBuffers)
-				{
-					ResourceUseHandle& useHandle = entry.second.useHandle;
-					assert(useHandle.used);
-
-					entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
-				}
-
-				mResources.clear();
-				mImages.clear();
-				mBuffers.clear();
-				mImageInfos.clear();
-			}
+			entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
 		}
-		else
-			assert(!signaled); // We reset the fence along with mState so this shouldn't be possible
+
+		for (auto& entry : mImages)
+		{
+			UINT32 imageInfoIdx = entry.second;
+			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
+
+			ResourceUseHandle& useHandle = imageInfo.useHandle;
+			assert(useHandle.used);
+
+			entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
+		}
+
+		for (auto& entry : mBuffers)
+		{
+			ResourceUseHandle& useHandle = entry.second.useHandle;
+			assert(useHandle.used);
+
+			entry.first->notifyDone(mGlobalQueueIdx, useHandle.flags);
+		}
+
+		mResources.clear();
+		mImages.clear();
+		mBuffers.clear();
+		mImageInfos.clear();
 	}
 
 	void VulkanCmdBuffer::setRenderTarget(const SPtr<RenderTargetCore>& rt, bool readOnlyDepthStencil, 

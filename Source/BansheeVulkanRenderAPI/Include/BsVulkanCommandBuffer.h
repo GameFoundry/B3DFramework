@@ -174,11 +174,14 @@ namespace bs
 		/** Returns true if the command buffer is currently recording a render pass. */
 		bool isInRenderPass() const { return mState == State::RecordingRenderPass; }
 
-		/** Returns a counter that gets incremented whenever the command buffer is done executing. */
-		UINT32 getFenceCounter() const { return mFenceCounter; }
+		/** Checks the internal fence if done executing. */
+		bool checkFenceStatus() const;
 
-		/** Checks the internal fence and changes command buffer state if done executing. */
-		void refreshFenceStatus();
+		/** 
+		 * Resets the command buffer back in Ready state. Should be called when command buffer is done executing on a 
+		 * queue. 
+		 */
+		void reset();
 
 		/** 
 		 * Lets the command buffer know that the provided resource has been queued on it, and will be used by the
@@ -343,7 +346,6 @@ namespace bs
 		VkCommandPool mPool;
 		VkCommandBuffer mCmdBuffer;
 		VkFence mFence;
-		UINT32 mFenceCounter;
 
 		VulkanSemaphore* mIntraQueueSemaphore;
 		VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES];
