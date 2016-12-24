@@ -24,7 +24,8 @@ namespace bs
 
 	void VulkanQueue::submit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
 	{
-		VulkanSemaphore* signalSemaphore = cmdBuffer->allocateSemaphore();
+		cmdBuffer->allocateSemaphores();
+		VulkanSemaphore* signalSemaphore = cmdBuffer->getIntraQueueSemaphore();
 
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->getHandle();
 		VkSemaphore vkSemaphore = signalSemaphore->getHandle();
@@ -81,7 +82,9 @@ namespace bs
 		{
 			const SubmitInfo& entry = mQueuedBuffers[i];
 
-			VulkanSemaphore* signalSemaphore = entry.cmdBuffer->allocateSemaphore();
+			entry.cmdBuffer->allocateSemaphores();
+			VulkanSemaphore* signalSemaphore = entry.cmdBuffer->getIntraQueueSemaphore();
+
 			commandBuffers[i] = entry.cmdBuffer->getHandle();
 			signalSemaphores[i] = signalSemaphore->getHandle();
 
@@ -235,7 +238,7 @@ namespace bs
 		// Wait on previous CB, as we want execution to proceed in order
 		if (mLastCommandBuffer != nullptr && mLastCommandBuffer->isSubmitted() && !mLastCBSemaphoreUsed)
 		{
-			VulkanSemaphore* prevSemaphore = mLastCommandBuffer->getSemaphore();
+			VulkanSemaphore* prevSemaphore = mLastCommandBuffer->getIntraQueueSemaphore();
 
 			prevSemaphore->notifyBound();
 			prevSemaphore->notifyUsed(0, 0, VulkanUseFlag::Read | VulkanUseFlag::Write);

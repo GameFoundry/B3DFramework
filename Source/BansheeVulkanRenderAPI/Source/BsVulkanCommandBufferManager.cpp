@@ -150,17 +150,18 @@ namespace bs
 	}
 
 	void VulkanCommandBufferManager::getSyncSemaphores(UINT32 deviceIdx, UINT32 syncMask, VulkanSemaphore** semaphores,
-		UINT32& count)
+													   UINT32& count)
 	{
+		bool semaphoreRequestFailed = false;
 		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
 
 		UINT32 semaphoreIdx = 0;
-		for(UINT32 i = 0; i < GQT_COUNT; i++)
+		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
 			GpuQueueType queueType = (GpuQueueType)i;
 
 			UINT32 numQueues = device->getNumQueues(queueType);
-			for(UINT32 j = 0; j < numQueues; j++)
+			for (UINT32 j = 0; j < numQueues; j++)
 			{
 				VulkanQueue* queue = device->getQueue(queueType, j);
 				VulkanCmdBuffer* lastCB = queue->getLastCommandBuffer();
@@ -174,11 +175,26 @@ namespace bs
 				if ((syncMask & queueMask) == 0)
 					continue;
 
-				semaphores[semaphoreIdx++] = lastCB->getSemaphore();
+				VulkanSemaphore* semaphore = lastCB->requestInterQueueSemaphore();
+				if (semaphore == nullptr)
+				{
+					semaphoreRequestFailed = true;
+					continue;
+				}
+
+				semaphores[semaphoreIdx++] = semaphore;
 			}
 		}
 
 		count = semaphoreIdx;
+
+		if (semaphoreRequestFailed)
+		{
+			LOGERR("Failed to allocate semaphores for a command buffer sync. This means some of the dependency requests "
+				"will not be fulfilled. This happened because a command buffer has too many dependant command "
+				"buffers. The maximum allowed number is " + toString(BS_MAX_VULKAN_CB_DEPENDENCIES) + " but can be "
+				"increased by incrementing the value of BS_MAX_VULKAN_CB_DEPENDENCIES.");
+		}
 	}
 
 	void VulkanCommandBufferManager::refreshStates(UINT32 deviceIdx)

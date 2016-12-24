@@ -17,6 +17,9 @@ namespace bs
 
 #define BS_MAX_VULKAN_CB_PER_QUEUE_FAMILY BS_MAX_QUEUES_PER_TYPE * 32
 
+// Maximum number of command buffers that another command buffer can be dependant on (via a sync mask)
+#define BS_MAX_VULKAN_CB_DEPENDENCIES 2
+
 	/** Wrapper around a Vulkan semaphore object that manages its usage and lifetime. */
 	class VulkanSemaphore : public VulkanResource
 	{
@@ -139,17 +142,25 @@ namespace bs
 		VkFence getFence() const { return mFence; }
 
 		/** 
-		 * Returns a semaphore that may be used for synchronizing execution between command buffers executing on different 
-		 * queues. 
+		 * Returns a semaphore that may be used for synchronizing execution between command buffers executing on the same
+		 * queue.
 		 */
-		VulkanSemaphore* getSemaphore() const { return mSemaphore; }
+		VulkanSemaphore* getIntraQueueSemaphore() const { return mIntraQueueSemaphore; }
 
 		/** 
-		 * Allocates a new semaphore that may be used for synchronizing execution between command buffers executing on different 
-		 * queues. Releases the previously allocated semaphore, if one exist. Use getSemaphore() to retrieve latest
-		 * allocated semaphore.
+		 * Returns a semaphore that may be used for synchronizing execution between command buffers executing on different
+		 * queues. Note that these semaphores get used each time they are requested, and there is only a fixed number
+		 * available. If all are used up, null will be returned. New semaphores are generated when allocateSemaphores()
+		 * is called.
 		 */
-		VulkanSemaphore* allocateSemaphore();
+		VulkanSemaphore* requestInterQueueSemaphore() const;
+
+		/** 
+		 * Allocates a new set of semaphores that may be used for synchronizing execution between different command buffers.
+		 * Releases the previously allocated semaphores, if they exist. Use getIntraQueueSemaphore() & 
+		 * requestInterQueueSemaphore() to retrieve latest allocated semaphores.
+		 */
+		void allocateSemaphores();
 
 		/** Returns true if the command buffer is currently being processed by the device. */
 		bool isSubmitted() const { return mState == State::Submitted; }
@@ -332,8 +343,11 @@ namespace bs
 		VkCommandPool mPool;
 		VkCommandBuffer mCmdBuffer;
 		VkFence mFence;
-		VulkanSemaphore* mSemaphore;
 		UINT32 mFenceCounter;
+
+		VulkanSemaphore* mIntraQueueSemaphore;
+		VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES];
+		mutable UINT32 mNumUsedInterQueueSemaphores;
 
 		VulkanFramebuffer* mFramebuffer;
 		UINT32 mRenderTargetWidth;

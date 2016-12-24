@@ -127,7 +127,8 @@ namespace bs
 	}
 
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
-		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool), mSemaphore(nullptr)
+		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool)
+		, mIntraQueueSemaphore(nullptr), mInterQueueSemaphores(), mNumUsedInterQueueSemaphores(0)
 		, mFenceCounter(0), mFramebuffer(nullptr), mRenderTargetWidth(0)
 		, mRenderTargetHeight(0), mRenderTargetDepthReadOnly(false), mRenderTargetLoadMask(RT_NONE), mGlobalQueueIdx(-1)
 		, mViewport(0.0f, 0.0f, 1.0f, 1.0f), mScissor(0, 0, 0, 0), mStencilRef(0), mDrawOp(DOT_TRIANGLE_LIST)
@@ -205,9 +206,15 @@ namespace bs
 			}
 		}
 
-		if (mSemaphore != nullptr)
-			mSemaphore->destroy();
+		if (mIntraQueueSemaphore != nullptr)
+			mIntraQueueSemaphore->destroy();
 		
+		for(UINT32 i = 0; i < BS_MAX_VULKAN_CB_DEPENDENCIES; i++)
+		{
+			if (mInterQueueSemaphores[i] != nullptr)
+				mInterQueueSemaphores[i]->destroy();
+		}
+
 		vkDestroyFence(device, mFence, gVulkanAllocator);
 		vkFreeCommandBuffers(device, mPool, 1, &mCmdBuffer);
 
@@ -333,13 +340,30 @@ namespace bs
 		mState = State::Recording;
 	}
 
-	VulkanSemaphore* VulkanCmdBuffer::allocateSemaphore()
+	void VulkanCmdBuffer::allocateSemaphores()
 	{
-		if (mSemaphore != nullptr)
-			mSemaphore->destroy();
+		if (mIntraQueueSemaphore != nullptr)
+			mIntraQueueSemaphore->destroy();
 
-		mSemaphore = mDevice.getResourceManager().create<VulkanSemaphore>();
-		return mSemaphore;
+		mIntraQueueSemaphore = mDevice.getResourceManager().create<VulkanSemaphore>();
+		
+		for (UINT32 i = 0; i < BS_MAX_VULKAN_CB_DEPENDENCIES; i++)
+		{
+			if (mInterQueueSemaphores[i] != nullptr)
+				mInterQueueSemaphores[i]->destroy();
+
+			mInterQueueSemaphores[i] = mDevice.getResourceManager().create<VulkanSemaphore>();
+		}
+
+		mNumUsedInterQueueSemaphores = 0;
+	}
+
+	VulkanSemaphore* VulkanCmdBuffer::requestInterQueueSemaphore() const
+	{
+		if (mNumUsedInterQueueSemaphores >= BS_MAX_VULKAN_CB_DEPENDENCIES)
+			return nullptr;
+
+		return mInterQueueSemaphores[mNumUsedInterQueueSemaphores++];
 	}
 
 	void VulkanCmdBuffer::submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask)
