@@ -81,12 +81,12 @@ namespace bs
 		{
 			const SubmitInfo& entry = mQueuedBuffers[i];
 
-			VulkanSemaphore* signalSemaphore = entry.cmdBuffer->getSemaphore();
+			VulkanSemaphore* signalSemaphore = entry.cmdBuffer->allocateSemaphore();
 			commandBuffers[i] = entry.cmdBuffer->getHandle();
 			signalSemaphores[i] = signalSemaphore->getHandle();
 
 			UINT32 semaphoresCount = entry.numSemaphores;
-			prepareSemaphores(&mQueuedSemaphores[semaphoreIdx], &waitSemaphores[semaphoreIdx], semaphoresCount);
+			prepareSemaphores(mQueuedSemaphores.data() + semaphoreIdx, &waitSemaphores[semaphoreIdx], semaphoresCount);
 
 			getSubmitInfo(&commandBuffers[i], &signalSemaphores[i], &waitSemaphores[semaphoreIdx], semaphoresCount, 
 				submitInfos[i]);

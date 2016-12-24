@@ -346,6 +346,10 @@ namespace bs
 	{
 		assert(isReadyForSubmit());
 
+		// Make sure to reset the CB fence before we submit it
+		VkResult result = vkResetFences(mDevice.getLogical(), 1, &mFence);
+		assert(result == VK_SUCCESS);
+
 		// If there are any query resets needed, execute those first
 		VulkanDevice& device = queue->getDevice();
 		if(!mQueuedQueryResets.empty())
@@ -357,7 +361,7 @@ namespace bs
 				entry->reset(vkCmdBuffer);
 
 			cmdBuffer->end();
-			queue->submit(cmdBuffer, nullptr, 0);
+			queue->queueSubmit(cmdBuffer, nullptr, 0);
 
 			mQueuedQueryResets.clear();
 		}
@@ -526,12 +530,13 @@ namespace bs
 								 numImgBarriers, barriers.imageBarriers.data());
 
 			cmdBuffer->end();
-			queue->submit(cmdBuffer, mSemaphoresTemp, numSemaphores);
+			queue->queueSubmit(cmdBuffer, mSemaphoresTemp, numSemaphores);
 
 			numSemaphores = 0; // Semaphores are only needed the first time, since we're adding the buffers on the same queue
 		}
 
-		queue->submit(this, mSemaphoresTemp, numSemaphores);
+		queue->queueSubmit(this, mSemaphoresTemp, numSemaphores);
+		queue->submitQueued();
 
 		mGlobalQueueIdx = CommandSyncMask::getGlobalQueueIdx(queue->getType(), queueIdx);
 		for (auto& entry : mResources)
@@ -564,7 +569,7 @@ namespace bs
 			entry.first->notifyUsed(mGlobalQueueIdx, mQueueFamily, useHandle.flags);
 		}
 
-		// Note: Uncommented for debugging only, prevents any device concurrency issues.
+		// Note: Uncomment for debugging only, prevents any device concurrency issues.
 		// vkQueueWaitIdle(queue->getHandle());
 
 		// Clear vectors but don't clear the actual map, as we want to re-use the memory since we expect queue family
@@ -597,9 +602,6 @@ namespace bs
 			{
 				mState = State::Ready;
 				vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
-
-				result = vkResetFences(mDevice.getLogical(), 1, &mFence);
-				assert(result == VK_SUCCESS);
 
 				mFenceCounter++;
 
