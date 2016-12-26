@@ -171,11 +171,11 @@ namespace bs
 	{
 	public:
 		RenderAPIInfo(float horzTexelOffset, float vertTexelOffset, float minDepth, float maxDepth, 
-			VertexElementType vertexColorType, bool vertexColorFlip, bool ndcVerticalTopToBottom, bool columnMajorMatrices, 
-				bool multiThreadedCB)
+			VertexElementType vertexColorType, bool vertexColorFlip, bool uvYAxisUp, bool ndcYAxisDown, 
+				bool columnMajorMatrices, bool multiThreadedCB)
 			: mHorizontalTexelOffset(horzTexelOffset), mVerticalTexelOffset(vertTexelOffset), mMinDepth(minDepth)
 			, mMaxDepth(maxDepth), mVertexColorType(vertexColorType), mVertexColorFlip(vertexColorFlip)
-			, mNDCYAxisDown(ndcVerticalTopToBottom), mColumnMajorMatrices(columnMajorMatrices)
+			, mUVYAxisUp(uvYAxisUp), mNDCYAxisDown(ndcYAxisDown), mColumnMajorMatrices(columnMajorMatrices)
 			, mMultiThreadedCB(multiThreadedCB)
 		{
 			
@@ -203,8 +203,14 @@ namespace bs
 		bool getGpuProgramHasColumnMajorMatrices() const { return mColumnMajorMatrices; }
 		
 		/** 
-		 * Returns true if Y axis in normalized device coordinates points down, false if up. If axis is pointing down the
-		 * NDC at the top is -1, and at the bottom is 1, otherwise reverse.
+		 * Returns true if Y axis in texture (UV) coordinates is pointing up, false if down. If axis is pointing up the axis
+		 * value at the top if 1 and at the bottom 0, otherwise reverse. 
+		 */
+		bool getUVYAxisUp() const { return mUVYAxisUp; }
+
+		/**
+		 * Returns true if the Y axis in NDC coordinates is pointing down, false if up. If axis is pointing down the value
+		 * at the top will -1 and at the bottom 1, otherwise reverse.
 		 */
 		bool getNDCYAxisDown() const { return mNDCYAxisDown; }
 
@@ -221,7 +227,8 @@ namespace bs
 		float mMaxDepth = 1.0f;
 		VertexElementType mVertexColorType = VET_COLOR_ABGR;
 		bool mVertexColorFlip = false;
-		bool mNDCYAxisDown = true;
+		bool mUVYAxisUp = true;
+		bool mNDCYAxisDown = false;
 		bool mColumnMajorMatrices = false;
 		bool mMultiThreadedCB = false;
 	};

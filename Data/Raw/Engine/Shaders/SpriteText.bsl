@@ -3,6 +3,7 @@ Parameters =
 	mat4x4 	gWorldTransform;
 	float	gInvViewportWidth;
 	float	gInvViewportHeight;
+	float	gViewportYFlip;
 	color	gTint;
 	
 	Sampler2D	gMainTexSamp : alias("gMainTexture");
@@ -37,6 +38,7 @@ Technique =
 				float4x4 gWorldTransform;
 				float gInvViewportWidth;
 				float gInvViewportHeight;
+				float gViewportYFlip;
 				float4 gTint;
 			}	
 		};
@@ -52,7 +54,7 @@ Technique =
 				float4 tfrmdPos = mul(gWorldTransform, float4(inPos.xy, 0, 1));
 
 				float tfrmdX = -1.0f + (tfrmdPos.x * gInvViewportWidth);
-				float tfrmdY = 1.0f - (tfrmdPos.y * gInvViewportHeight);
+				float tfrmdY = (1.0f - (tfrmdPos.y * gInvViewportHeight)) * gViewportYFlip;
 
 				oPosition = float4(tfrmdX, tfrmdY, 0, 1);
 				oUv = uv;
@@ -96,6 +98,7 @@ Technique =
 				mat4 gWorldTransform;
 				float gInvViewportWidth;
 				float gInvViewportHeight;
+				float gViewportYFlip;
 				vec4 gTint;
 			};			
 		};			
@@ -117,7 +120,7 @@ Technique =
 				vec4 tfrmdPos = gWorldTransform * vec4(bs_position.xy, 0, 1);
 
 				float tfrmdX = -1.0f + (tfrmdPos.x * gInvViewportWidth);
-				float tfrmdY = 1.0f - (tfrmdPos.y * gInvViewportHeight);
+				float tfrmdY = (1.0f - (tfrmdPos.y * gInvViewportHeight)) * gViewportYFlip;
 
 				gl_Position = vec4(tfrmdX, tfrmdY, 0, 1);
 				texcoord0 = bs_texcoord0;

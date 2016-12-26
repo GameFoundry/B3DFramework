@@ -268,27 +268,39 @@ namespace bs
 	{
 		// Note: Consider drawing the quad using a single large triangle for possibly better performance
 
+		const RenderAPIInfo& rapiInfo = RenderAPICore::instance().getAPIInfo();
+
 		Vector3 vertices[4];
-		vertices[0] = Vector3(-1.0f, 1.0f, 0.0f);
-		vertices[1] = Vector3(1.0f, 1.0f, 0.0f);
-		vertices[2] = Vector3(-1.0f, -1.0f, 0.0f);
-		vertices[3] = Vector3(1.0f, -1.0f, 0.0f);
 
-		Vector2 uvs[4];
-
-		if (RenderAPICore::instance().getAPIInfo().getNDCYAxisDown())
+		if(rapiInfo.getNDCYAxisDown())
 		{
-			uvs[0] = Vector2(uv.x, uv.y);
-			uvs[1] = Vector2(uv.x + uv.width, uv.y);
-			uvs[2] = Vector2(uv.x, uv.y + uv.height);
-			uvs[3] = Vector2(uv.x + uv.width, uv.y + uv.height);
+			vertices[0] = Vector3(-1.0f, -1.0f, 0.0f);
+			vertices[1] = Vector3(1.0f, -1.0f, 0.0f);
+			vertices[2] = Vector3(-1.0f, 1.0f, 0.0f);
+			vertices[3] = Vector3(1.0f, 1.0f, 0.0f);
 		}
 		else
+		{
+			vertices[0] = Vector3(-1.0f, 1.0f, 0.0f);
+			vertices[1] = Vector3(1.0f, 1.0f, 0.0f);
+			vertices[2] = Vector3(-1.0f, -1.0f, 0.0f);
+			vertices[3] = Vector3(1.0f, -1.0f, 0.0f);
+		}
+
+		Vector2 uvs[4];
+		if (rapiInfo.getUVYAxisUp())
 		{
 			uvs[0] = Vector2(uv.x, uv.y + uv.height);
 			uvs[1] = Vector2(uv.x + uv.width, uv.y + uv.height);
 			uvs[2] = Vector2(uv.x, uv.y);
 			uvs[3] = Vector2(uv.x + uv.width, uv.y);
+		}
+		else
+		{
+			uvs[0] = Vector2(uv.x, uv.y);
+			uvs[1] = Vector2(uv.x + uv.width, uv.y);
+			uvs[2] = Vector2(uv.x, uv.y + uv.height);
+			uvs[3] = Vector2(uv.x + uv.width, uv.y + uv.height);
 		}
 
 		for (int i = 0; i < 4; i++)

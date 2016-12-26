@@ -235,7 +235,7 @@ namespace bs
 		clipToUVScaleOffset.z = viewport->getX() / rtWidth + (halfWidth + rapiInfo.getHorizontalTexelOffset()) / rtWidth;
 		clipToUVScaleOffset.w = viewport->getY() / rtHeight + (halfHeight + rapiInfo.getVerticalTexelOffset()) / rtHeight;
 
-		if (!rapiInfo.getNDCYAxisDown())
+		if (rapiInfo.getUVYAxisUp())
 			clipToUVScaleOffset.y = -clipToUVScaleOffset.y;
 
 		gPerCameraParamDef.gClipToUVScaleOffset.set(mParamBuffer, clipToUVScaleOffset);

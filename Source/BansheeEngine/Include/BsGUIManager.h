@@ -423,6 +423,7 @@ namespace bs
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
 		BS_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
 		BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
+		BS_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
 		BS_PARAM_BLOCK_ENTRY(Color, gTint)
 	BS_PARAM_BLOCK_END
 

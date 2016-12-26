@@ -171,7 +171,7 @@ namespace bs
 		mRasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
 		mRasterizationInfo.polygonMode = VulkanUtility::getPolygonMode(rstProps.getPolygonMode());
 		mRasterizationInfo.cullMode = VulkanUtility::getCullMode(rstProps.getCullMode());
-		mRasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		mRasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 		mRasterizationInfo.depthBiasEnable = rstProps.getDepthBias() != 0.0f;
 		mRasterizationInfo.depthBiasConstantFactor = rstProps.getDepthBias();
 		mRasterizationInfo.depthBiasSlopeFactor = rstProps.getSlopeScaledDepthBias();

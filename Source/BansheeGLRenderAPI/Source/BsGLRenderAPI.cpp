@@ -2234,7 +2234,7 @@ namespace bs
 
 	const RenderAPIInfo& GLRenderAPI::getAPIInfo() const
 	{
-		static RenderAPIInfo info(0.0f, 0.0f, -1.0f, 1.0f, VET_COLOR_ABGR, false, false, true, false);
+		static RenderAPIInfo info(0.0f, 0.0f, -1.0f, 1.0f, VET_COLOR_ABGR, false, true, false, true, false);
 
 		return info;
 	}
