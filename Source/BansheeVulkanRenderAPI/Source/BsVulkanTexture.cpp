@@ -731,7 +731,7 @@ namespace bs
 					copyImage(transferCB, dstImage, newImage, oldDstLayout, dstLayout);
 
 					VkAccessFlags accessMask = dstImage->getAccessFlags(oldDstLayout);
-					transferCB->getCB()->registerResource(dstImage, accessMask, oldDstLayout, oldDstLayout,
+					transferCB->getCB()->registerResource(dstImage, accessMask, oldDstLayout, oldDstLayout, oldDstLayout,
 						VulkanUseFlag::Read);
 				}
 
@@ -777,8 +777,10 @@ namespace bs
 									transferDstLayout, dstLayout, dstRange);
 
 			// Notify the command buffer that these resources are being used on it
-			transferCB->getCB()->registerResource(srcImage, srcAccessMask, srcLayout, srcLayout, VulkanUseFlag::Read);
-			transferCB->getCB()->registerResource(dstImage, dstAccessMask, dstLayout, dstLayout, VulkanUseFlag::Write);
+			transferCB->getCB()->registerResource(srcImage, srcAccessMask, srcLayout, srcLayout, srcLayout, 
+				VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(dstImage, dstAccessMask, dstLayout, dstLayout, dstLayout, 
+				VulkanUseFlag::Write);
 
 			// Need to wait if subresource we're reading from is being written, or if the subresource we're writing to is
 			// being accessed in any way
@@ -1029,7 +1031,8 @@ namespace bs
 
 			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, dstLayout, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, dstLayout, dstLayout,
+				VulkanUseFlag::Read);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1147,8 +1150,8 @@ namespace bs
 							copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
 
 							VkAccessFlags accessMask = image->getAccessFlags(oldImgLayout);
-							transferCB->getCB()->registerResource(image, accessMask, oldImgLayout, oldImgLayout,
-								VulkanUseFlag::Read);
+							transferCB->getCB()->registerResource(image, accessMask, oldImgLayout, oldImgLayout, 
+								oldImgLayout, VulkanUseFlag::Read);
 						}
 
 						image->destroy();
@@ -1203,7 +1206,8 @@ namespace bs
 
 				// Notify the command buffer that these resources are being used on it
 				transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-				transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, dstLayout, VulkanUseFlag::Write);
+				transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, dstLayout, dstLayout,
+					VulkanUseFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.

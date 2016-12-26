@@ -195,7 +195,7 @@ namespace bs
 		 * device when the command buffer is submitted.
 		 */
 		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout currentLayout,
-			VkImageLayout newLayout, VulkanUseFlags flags, bool isFBAttachment = false);
+			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment = false);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
@@ -207,7 +207,7 @@ namespace bs
 		 * Lets the command buffer know that the provided framebuffer resource has been queued on it, and will be used by
 		 * the device when the command buffer is submitted.
 		 */
-		void registerResource(VulkanFramebuffer* res, VulkanUseFlags flags);
+		void registerResource(VulkanFramebuffer* res, RenderSurfaceMask loadMask, VulkanUseFlags flags);
 
 		/************************************************************************/
 		/* 								COMMANDS	                     		*/

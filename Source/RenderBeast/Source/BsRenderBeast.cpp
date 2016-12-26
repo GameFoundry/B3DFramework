@@ -803,12 +803,11 @@ namespace bs
 
 		SPtr<RenderTargetCore> target = rtData.target;
 
-		RenderAPICore::instance().setRenderTarget(target);
-		RenderAPICore::instance().setViewport(viewport->getNormArea());
-
 		// If first camera in render target, prepare the render target
 		if (camIdx == 0)
 		{
+			RenderAPICore::instance().setRenderTarget(target);
+
 			UINT32 clearBuffers = 0;
 			if (viewport->getRequiresColorClear())
 				clearBuffers |= FBT_COLOR;
@@ -825,6 +824,10 @@ namespace bs
 					viewport->getClearDepthValue(), viewport->getClearStencilValue());
 			}
 		}
+		else
+			RenderAPICore::instance().setRenderTarget(target, false, RT_COLOR0);
+
+		RenderAPICore::instance().setViewport(viewport->getNormArea());
 
 		// Trigger overlay callbacks
 		auto iterRenderCallback = mCallbacks.begin();

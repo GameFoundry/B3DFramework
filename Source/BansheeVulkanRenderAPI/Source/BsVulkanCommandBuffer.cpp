@@ -723,7 +723,7 @@ namespace bs
 		setGpuParams(nullptr);
 
 		if(mFramebuffer != nullptr)
-			registerResource(mFramebuffer, VulkanUseFlag::Write);
+			registerResource(mFramebuffer, loadMask, VulkanUseFlag::Write);
 
 		mGfxPipelineRequiresBind = true;
 	}
@@ -1353,7 +1353,7 @@ namespace bs
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout currentLayout,
-			VkImageLayout newLayout, VulkanUseFlags flags, bool isFBAttachment)
+			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment)
 	{
 		// Note: I currently always perform pipeline barriers (layout transitions and similar), over the entire image.
 		//       In the case of render and storage images, the case is often that only a specific subresource requires
@@ -1374,7 +1374,7 @@ namespace bs
 			imageInfo.accessFlags = accessFlags;
 			imageInfo.currentLayout = currentLayout;
 			imageInfo.requiredLayout = newLayout;
-			imageInfo.finalLayout = newLayout;
+			imageInfo.finalLayout = finalLayout;
 			imageInfo.range = range;
 			imageInfo.isFBAttachment = isFBAttachment;
 			imageInfo.isShaderInput = !isFBAttachment;
@@ -1397,10 +1397,26 @@ namespace bs
 
 			imageInfo.accessFlags |= accessFlags;
 
-			// Check if the same image is used with different layouts, in which case we need to transfer to the general
-			// layout
-			if (imageInfo.requiredLayout != newLayout)
-				imageInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
+			// We allow undefied layout to be passed as a convience. Essentially it means that no layout transition should
+			// happen.
+			if(newLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+			{
+				bool firstUseInRenderPass = !imageInfo.isShaderInput && !imageInfo.isFBAttachment;
+
+				// If image was previously used this render pass, check if it is used with different layouts, in which case
+				// we need to transfer to the general layout
+				if (!firstUseInRenderPass && imageInfo.requiredLayout != newLayout)
+				{
+					// If required layout is set to undefined it only means didn't want to issue a layout transition,
+					// therefore no need to switch to GENERAL layout, instead just override the undefined layout.
+					if (imageInfo.requiredLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+						imageInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
+					else
+						imageInfo.requiredLayout = newLayout;
+				}
+				else
+					imageInfo.requiredLayout = newLayout;
+			}
 
 			// If attached to FB, then the final layout is set by the FB (provided as layout param here), otherwise its
 			// the same as required layout
@@ -1409,7 +1425,7 @@ namespace bs
 			else
 			{
 				if (isFBAttachment)
-					imageInfo.finalLayout = newLayout;
+					imageInfo.finalLayout = finalLayout;
 			}
 
 			if (imageInfo.currentLayout != imageInfo.requiredLayout)
@@ -1476,7 +1492,7 @@ namespace bs
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, VulkanUseFlags flags)
+	void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask loadMask, VulkanUseFlags flags)
 	{
 		auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
 		if (insertResult.second) // New element
@@ -1510,7 +1526,15 @@ namespace bs
 				accessMask = VK_ACCESS_MEMORY_READ_BIT;
 			}
 
-			registerResource(attachment.image, accessMask, attachment.image->getLayout(), attachment.finalLayout, 
+			VkImageLayout layout;
+
+			// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter
+			if (loadMask.isSet((RenderSurfaceMaskBits)(1 << i)))
+				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			else
+				layout = attachment.image->getLayout();
+
+			registerResource(attachment.image, accessMask, attachment.image->getLayout(), layout, attachment.finalLayout, 
 				VulkanUseFlag::Write, true);
 		}
 
@@ -1519,7 +1543,16 @@ namespace bs
 			const VulkanFramebufferAttachment& attachment = res->getDepthStencilAttachment();
 
 			VkAccessFlags accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-			registerResource(attachment.image, accessMask, attachment.image->getLayout(), attachment.finalLayout, 
+
+			VkImageLayout layout;
+
+			// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter
+			if (loadMask.isSet(RT_DEPTH))
+				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			else
+				layout = attachment.image->getLayout();
+
+			registerResource(attachment.image, accessMask, attachment.image->getLayout(), layout, attachment.finalLayout, 
 				VulkanUseFlag::Write, true);
 		}
 	}
