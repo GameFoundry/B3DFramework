@@ -90,12 +90,19 @@ namespace bs
 			windowDesc.monitor = outputInfo.getMonitorHandle();
 		}
 
-		// Update local properties
+		// Must be set before creating a window, since wndProc will call ShowWindow if needed after creation
+		if (!windowDesc.external)
+		{
+			mShowOnSwap = mDesc.hideUntilSwap;
+			props.mHidden = mDesc.hideUntilSwap || mDesc.hidden;
+		}
+
 		mWindow = bs_new<Win32Window>(windowDesc);
 
 		mIsChild = windowDesc.parent != nullptr;
 		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.getRefreshRate());
 
+		// Update local properties
 		props.mIsFullScreen = mDesc.fullscreen && !mIsChild;
 		props.mColorDepth = 32;
 		props.mActive = true;
@@ -105,12 +112,6 @@ namespace bs
 		props.mLeft = mWindow->getLeft();
 		props.mHwGamma = mDesc.gamma;
 		props.mMultisampleCount = 1;
-
-		if (!windowDesc.external)
-		{
-			mShowOnSwap = mDesc.hideUntilSwap;
-			props.mHidden = mDesc.hideUntilSwap || mDesc.hidden;
-		}
 
 		// Create Vulkan surface
 		VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
