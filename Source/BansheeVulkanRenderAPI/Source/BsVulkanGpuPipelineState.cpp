@@ -394,7 +394,7 @@ namespace bs
 		VkStencilOp oldBackFailOp = mDepthStencilInfo.back.failOp;
 		VkStencilOp oldBackZFailOp = mDepthStencilInfo.back.depthFailOp;
 
-		if(!enableDepthWrites)
+		if(readOnlyDepth)
 		{
 			// Disable any stencil writes
 			mDepthStencilInfo.front.passOp = VK_STENCIL_OP_KEEP;
@@ -417,8 +417,7 @@ namespace bs
 		if (framebuffer->hasDepthAttachment())
 		{
 			mPipelineInfo.pDepthStencilState = &mDepthStencilInfo;
-
-			depthStencilReadOnly = !enableDepthWrites;
+			depthStencilReadOnly = readOnlyDepth;
 		}
 		else
 		{
