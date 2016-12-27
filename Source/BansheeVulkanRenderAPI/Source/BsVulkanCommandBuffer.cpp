@@ -337,6 +337,16 @@ namespace bs
 
 		mQueuedEvents.clear();
 
+		// Update any layout transitions that were performed by subpass dependencies
+		for (auto& entry : mImages)
+		{
+			UINT32 imageInfoIdx = entry.second;
+			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
+
+			imageInfo.currentLayout = imageInfo.finalLayout;
+			imageInfo.requiredLayout = imageInfo.finalLayout;
+		}
+
 		mState = State::Recording;
 	}
 
