@@ -288,6 +288,7 @@ namespace bs
 	void HandleRenderer::clearQueued()
 	{
 		mQueuedData.clear();
+		bs_zero_out(mTypeCounters);
 	}
 
 	bool HandleRenderer::check(const CameraCore& camera)
