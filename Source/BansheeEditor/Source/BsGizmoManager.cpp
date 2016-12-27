@@ -627,13 +627,17 @@ namespace bs
 		const Vector<DrawHelper::ShapeMeshData>& meshes = mPickingDrawHelper->getMeshes();
 
 		SPtr<TransientMesh> iconMesh = buildIconMesh(camera, iconData, true, iconRenderData);
+		
+		SPtr<TransientMeshCore> iconMeshCore;
+		if (iconMesh != nullptr)
+			iconMeshCore = iconMesh->getCore();
 
 		// Note: This must be rendered while Scene view is being rendered
 		GizmoRenderer* renderer = mGizmoRenderer.get();
 
 		Vector<MeshRenderData> proxyData = createMeshProxyData(meshes);
 		gCoreThread().queueCommand(std::bind(&GizmoRenderer::renderData, renderer, camera->getCore(),
-											 proxyData, iconMesh->getCore(), iconRenderData, true));
+											 proxyData, iconMeshCore, iconRenderData, true));
 
 		mPickingDrawHelper->clearMeshes(meshes);
 		mIconMeshHeap->dealloc(iconMesh);
