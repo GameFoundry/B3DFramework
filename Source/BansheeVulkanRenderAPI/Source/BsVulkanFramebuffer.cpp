@@ -235,8 +235,10 @@ namespace bs
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 
+			// When depth-stencil is readable it's up to the caller to ensure he doesn't try to write to it as well, so we
+			// just assume a read-only layout.
 			if (readMask.isSet(RT_DEPTH))
-				attachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
+				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 			else
 				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}

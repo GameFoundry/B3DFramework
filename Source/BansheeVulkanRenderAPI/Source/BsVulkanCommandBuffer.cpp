@@ -1407,26 +1407,11 @@ namespace bs
 
 			imageInfo.accessFlags |= accessFlags;
 
-			// We allow undefied layout to be passed as a convience. Essentially it means that no layout transition should
-			// happen.
-			if(newLayout != VK_IMAGE_LAYOUT_UNDEFINED)
-			{
-				bool firstUseInRenderPass = !imageInfo.isShaderInput && !imageInfo.isFBAttachment;
-
-				// If image was previously used this render pass, check if it is used with different layouts, in which case
-				// we need to transfer to the general layout
-				if (!firstUseInRenderPass && imageInfo.requiredLayout != newLayout)
-				{
-					// If required layout is set to undefined it only means didn't want to issue a layout transition,
-					// therefore no need to switch to GENERAL layout, instead just override the undefined layout.
-					if (imageInfo.requiredLayout != VK_IMAGE_LAYOUT_UNDEFINED)
-						imageInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
-					else
-						imageInfo.requiredLayout = newLayout;
-				}
-				else
-					imageInfo.requiredLayout = newLayout;
-			}
+			// Note: We purposely ignore the "newLayout" param here. Almost all textures can only be in one layout (after
+			// the initial transition), so we keep the layout that they were originally registered with. The only exception
+			// are framebuffer attachments (that can be bound as attachments, or as normal textures, or both). However, we 
+			// handle FB attachment layouts through automatic layout transitions controlled by render-pass so no need
+			// to set them here.
 
 			// If attached to FB, then the final layout is set by the FB (provided as layout param here), otherwise its
 			// the same as required layout
