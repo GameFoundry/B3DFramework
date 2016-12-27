@@ -210,6 +210,9 @@ namespace bs
 			return nullptr;
 		}
 
+		if (length == 0)
+			return nullptr;
+
 		VulkanBuffer* buffer = mBuffers[deviceIdx];
 
 		if (buffer == nullptr)
