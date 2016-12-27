@@ -179,13 +179,13 @@ Technique
 			vec4 gl_Position;
 		};
 		
-		layout(binding = 0) uniform VertUBO
+		layout(binding = 1) uniform VertUBO
 		{
 			mat4 matWorldViewProj;
 		};	
 		
 #ifdef USE_SKELETON
-		layout(binding = 1) uniform samplerBuffer boneMatrices;
+		layout(binding = 2) uniform samplerBuffer boneMatrices;
 		
 		void getBoneMatrix(int idx, out mat4x3 result)
 		{
