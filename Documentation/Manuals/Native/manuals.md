@@ -29,7 +29,8 @@ Manuals									{#manuals}
  - [Lighting](@ref lights)
 - **Input**
  - [Input polling](@ref inputPolling) 
- - [Input events](@ref inputEvents)  
+ - [Input events](@ref inputEvents) 
+ - [Virtual input](@ref virtualInput)
 - **GUI**
  - [Sprite textures](@ref spriteTextures)
  - [Basic setup](@ref guiSetup)
