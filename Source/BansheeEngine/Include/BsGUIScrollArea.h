@@ -139,17 +139,17 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementContainer::_getElementType */
-		virtual ElementType _getElementType() const override { return ElementType::ScrollArea; }
+		ElementType _getElementType() const override { return ElementType::ScrollArea; }
 
 		/** @} */
 	protected:
 		~GUIScrollArea();
 
 		/** @copydoc GUIElementContainer::_getLayoutSizeRange */
-		virtual LayoutSizeRange _getLayoutSizeRange() const override;
+		LayoutSizeRange _getLayoutSizeRange() const override;
 
 		/** @copydoc GUIElementContainer::updateClippedBounds */
-		virtual void updateClippedBounds() override;
+		void updateClippedBounds() override;
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange _calculateLayoutSizeRange() const override;
@@ -164,7 +164,7 @@ namespace bs
 			const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElementContainer::mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/**
 		 * Called when the vertical scrollbar moves. 

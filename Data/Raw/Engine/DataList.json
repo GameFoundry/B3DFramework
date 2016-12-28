@@ -50,6 +50,26 @@
             "SpriteUUID": "8aad937c-499d-4935-bd7d-d9389aed4f33",
             "TextureUUID": "1070d714-83a2-4d15-860b-c3607ff5a3e0"
         },
+		{
+            "Path": "DropDownBoxEntryToggleHover.png",
+            "SpriteUUID": "4f0bfa04-ccfb-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "4f0bfd7e-ccfb-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleHoverOn.png",
+            "SpriteUUID": "4f0c0292-ccfb-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "4f0c04fe-ccfb-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleNormal.png",
+            "SpriteUUID": "4f0c06b6-ccfb-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "4f0c0864-ccfb-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "DropDownBoxEntryToggleNormalOn.png",
+            "SpriteUUID": "4f0c0a12-ccfb-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "4f0c0bca-ccfb-11e6-9d9d-cec0c932ce01"
+        },		
         {
             "Path": "DropDownBoxExpandBtnHover.png",
             "SpriteUUID": "94748c7b-dc27-44dd-8798-22f76ea69b36",
@@ -186,6 +206,21 @@
             "TextureUUID": "7b0c9474-d0ea-4370-894c-bc4386f6fa8b"
         },
         {
+            "Path": "ScrollBarHHandleResizeableActive.png",
+            "SpriteUUID": "1828219c-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "18282476-cd06-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "ScrollBarHHandleResizeableHover.png",
+            "SpriteUUID": "1828278c-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "18282b24-cd06-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "ScrollBarHHandleResizeableNormal.png",
+            "SpriteUUID": "18282c00-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "18282cd2-cd06-11e6-9d9d-cec0c932ce01"
+        },		
+        {
             "Path": "ScrollBarVBackground.png",
             "SpriteUUID": "b37d3e5b-891a-4950-a4f9-3f8fa820d40a",
             "TextureUUID": "18bd26ea-dc4e-4277-bef7-83a6ba57a137"
@@ -205,6 +240,61 @@
             "SpriteUUID": "3d44c9c9-9bdd-48ab-97b1-4a7e929edb46",
             "TextureUUID": "98f70a3b-8da7-44b0-85d1-6aae294df9dc"
         },
+        {
+            "Path": "ScrollBarVHandleResizeableActive.png",
+            "SpriteUUID": "3ae0a6a0-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "3ae0aa60-cd06-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "ScrollBarVHandleResizeableHover.png",
+            "SpriteUUID": "3ae0ae0c-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "3ae0afd8-cd06-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "ScrollBarVHandleResizeableNormal.png",
+            "SpriteUUID": "3ae0b230-cd06-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "3ae0b3f2-cd06-11e6-9d9d-cec0c932ce01"
+        },		
+        {
+            "Path": "SliderHandleActive.png",
+            "SpriteUUID": "1ede5e0e-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede6138-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderHandleHover.png",
+            "SpriteUUID": "1ede62aa-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede6430-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderHandleNormal.png",
+            "SpriteUUID": "1ede650c-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede6958-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderHBackground.png",
+            "SpriteUUID": "1ede6b24-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede6cb4-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderHFill.png",
+            "SpriteUUID": "1ede6d90-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede6ef8-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderVBackground.png",
+            "SpriteUUID": "1ede70ce-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede71b4-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "SliderVFill.png",
+            "SpriteUUID": "1ede736c-ccff-11e6-9d9d-cec0c932ce01",
+            "TextureUUID": "1ede7448-ccff-11e6-9d9d-cec0c932ce01"
+        },
+        {
+            "Path": "StatusBarBackground.png",
+            "SpriteUUID": "09887d53-d880-4576-b87b-50899b8bbf6d",
+            "TextureUUID": "4739c121-fcc5-4a08-b7b4-8c030030243d"
+        },		
         {
             "Path": "ToggleHover.png",
             "SpriteUUID": "daa9fd29-4228-47ca-8b9e-39636f0b566c",

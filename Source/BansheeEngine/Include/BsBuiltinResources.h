@@ -249,8 +249,24 @@ namespace bs
 		static const WString ScrollBarHandleVertHoverTex;
 		static const WString ScrollBarHandleVertActiveTex;
 
+		static const WString ScrollBarResizeableHandleHorzNormalTex;
+		static const WString ScrollBarResizeableHandleHorzHoverTex;
+		static const WString ScrollBarResizeableHandleHorzActiveTex;
+
+		static const WString ScrollBarResizeableHandleVertNormalTex;
+		static const WString ScrollBarResizeableHandleVertHoverTex;
+		static const WString ScrollBarResizeableHandleVertActiveTex;
+
 		static const WString ScrollBarHBgTex;
 		static const WString ScrollBarVBgTex;
+
+		static const WString SliderHBackgroundTex;
+		static const WString SliderHFillTex;
+		static const WString SliderVBackgroundTex;
+		static const WString SliderVFillTex;
+		static const WString SliderHandleNormalTex;
+		static const WString SliderHandleHoverTex;
+		static const WString SliderHandleActiveTex;
 
 		static const WString DropDownBtnNormalTex;
 		static const WString DropDownBtnHoverTex;
@@ -271,6 +287,11 @@ namespace bs
 
 		static const WString DropDownBoxEntryExpNormalTex;
 		static const WString DropDownBoxEntryExpHoverTex;
+
+		static const WString DropDownBoxEntryToggleNormalTex;
+		static const WString DropDownBoxEntryToggleHoverTex;
+		static const WString DropDownBoxEntryToggleNormalOnTex;
+		static const WString DropDownBoxEntryToggleHoverOnTex;
 
 		static const WString DropDownSeparatorTex;
 

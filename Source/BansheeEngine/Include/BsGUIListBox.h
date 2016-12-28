@@ -90,7 +90,7 @@ namespace bs
 		 */
 
 		/** @copydoc GUIButtonBase::_getElementType */
-		virtual ElementType _getElementType() const override { return ElementType::ListBox; }
+		ElementType _getElementType() const override { return ElementType::ListBox; }
 
 		/** @} */
 	protected:
@@ -101,7 +101,7 @@ namespace bs
 			const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::mouseEvent */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/**	Triggered when user clicks on an element. */
 		void elementSelected(UINT32 idx);

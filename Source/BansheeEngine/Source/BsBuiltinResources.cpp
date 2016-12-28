@@ -27,6 +27,8 @@
 #include "BsFileSerializer.h"
 #include "BsTextureImportOptions.h"
 #include "BsBuiltinResourcesHelper.h"
+#include "BsGUISlider.h"
+#include "BsGUIScrollBar.h"
 
 using json = nlohmann::json;
 
@@ -96,8 +98,24 @@ namespace bs
 	const WString BuiltinResources::ScrollBarHandleVertHoverTex = L"ScrollBarVHandleHover.png";
 	const WString BuiltinResources::ScrollBarHandleVertActiveTex = L"ScrollBarVHandleActive.png";
 
+	const WString BuiltinResources::ScrollBarResizeableHandleHorzNormalTex = L"ScrollBarHHandleResizeableNormal.png";
+	const WString BuiltinResources::ScrollBarResizeableHandleHorzHoverTex = L"ScrollBarHHandleResizeableHover.png";
+	const WString BuiltinResources::ScrollBarResizeableHandleHorzActiveTex = L"ScrollBarHHandleResizeableActive.png";
+
+	const WString BuiltinResources::ScrollBarResizeableHandleVertNormalTex = L"ScrollBarVHandleResizeableNormal.png";
+	const WString BuiltinResources::ScrollBarResizeableHandleVertHoverTex = L"ScrollBarVHandleResizeableHover.png";
+	const WString BuiltinResources::ScrollBarResizeableHandleVertActiveTex = L"ScrollBarVHandleResizeableActive.png";
+
 	const WString BuiltinResources::ScrollBarHBgTex = L"ScrollBarHBackground.png";
 	const WString BuiltinResources::ScrollBarVBgTex = L"ScrollBarVBackground.png";
+
+	const WString BuiltinResources::SliderHBackgroundTex = L"SliderHBackground.png";
+	const WString BuiltinResources::SliderHFillTex = L"SliderHFill.png";
+	const WString BuiltinResources::SliderVBackgroundTex = L"SliderVBackground.png";
+	const WString BuiltinResources::SliderVFillTex = L"SliderVFill.png";
+	const WString BuiltinResources::SliderHandleNormalTex = L"SliderHandleNormal.png";
+	const WString BuiltinResources::SliderHandleHoverTex = L"SliderHandleHover.png";
+	const WString BuiltinResources::SliderHandleActiveTex = L"SliderHandleActive.png";
 
 	const WString BuiltinResources::DropDownBtnNormalTex = L"DropDownButtonNormal.png";
 	const WString BuiltinResources::DropDownBtnHoverTex = L"DropDownButtonHover.png";
@@ -118,6 +136,11 @@ namespace bs
 
 	const WString BuiltinResources::DropDownBoxEntryExpNormalTex = L"DropDownBoxExpandBtnNormal.png";
 	const WString BuiltinResources::DropDownBoxEntryExpHoverTex = L"DropDownBoxExpandBtnHover.png";
+
+	const WString BuiltinResources::DropDownBoxEntryToggleNormalTex = L"DropDownBoxEntryToggleNormal.png";
+	const WString BuiltinResources::DropDownBoxEntryToggleHoverTex = L"DropDownBoxEntryToggleHover.png";
+	const WString BuiltinResources::DropDownBoxEntryToggleNormalOnTex = L"DropDownBoxEntryToggleNormalOn.png";
+	const WString BuiltinResources::DropDownBoxEntryToggleHoverOnTex = L"DropDownBoxEntryToggleHoverOn.png";
 
 	const WString BuiltinResources::DropDownSeparatorTex = L"DropDownBoxSeparator.png";
 
@@ -591,6 +614,9 @@ namespace bs
 		vertScrollBarStyle.minHeight = 8;
 		vertScrollBarStyle.width = 16;
 
+		vertScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		vertScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarVert", vertScrollBarStyle);
 
 		// Horizontal scroll bar
@@ -603,7 +629,68 @@ namespace bs
 		horzScrollBarStyle.minWidth = 8;
 		horzScrollBarStyle.height = 16;
 
+		horzScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
+		horzScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
+
 		skin->setStyle("ScrollBarHorz", horzScrollBarStyle);
+
+		// Horizontal resizeable handle
+		GUIElementStyle scrollBarHorzResizeableBtnStyle;
+		scrollBarHorzResizeableBtnStyle.normal.texture = getSkinTexture(ScrollBarResizeableHandleHorzNormalTex);
+		scrollBarHorzResizeableBtnStyle.hover.texture = getSkinTexture(ScrollBarResizeableHandleHorzHoverTex);
+		scrollBarHorzResizeableBtnStyle.active.texture = getSkinTexture(ScrollBarResizeableHandleHorzActiveTex);
+		scrollBarHorzResizeableBtnStyle.fixedHeight = true;
+		scrollBarHorzResizeableBtnStyle.fixedWidth = false;
+		scrollBarHorzResizeableBtnStyle.minWidth = 15;
+		scrollBarHorzResizeableBtnStyle.height = 13;
+		scrollBarHorzResizeableBtnStyle.border.left = 7;
+		scrollBarHorzResizeableBtnStyle.border.right = 7;
+
+		skin->setStyle("ScrollBarResizeableHorzBtn", scrollBarHorzResizeableBtnStyle);
+
+		// Vertical resizeable handle
+		GUIElementStyle scrollBarVertResizeableBtnStyle;
+		scrollBarVertResizeableBtnStyle.normal.texture = getSkinTexture(ScrollBarResizeableHandleVertNormalTex);
+		scrollBarVertResizeableBtnStyle.hover.texture = getSkinTexture(ScrollBarResizeableHandleVertHoverTex);
+		scrollBarVertResizeableBtnStyle.active.texture = getSkinTexture(ScrollBarResizeableHandleVertActiveTex);
+		scrollBarVertResizeableBtnStyle.fixedHeight = false;
+		scrollBarVertResizeableBtnStyle.fixedWidth = true;
+		scrollBarVertResizeableBtnStyle.width = 13;
+		scrollBarVertResizeableBtnStyle.minHeight = 15;
+		scrollBarVertResizeableBtnStyle.border.top = 7;
+		scrollBarVertResizeableBtnStyle.border.bottom = 7;
+
+		skin->setStyle("ScrollBarResizeableVertBtn", scrollBarVertResizeableBtnStyle);
+
+		// Vertical resizeable scroll bar
+		GUIElementStyle vertResizeableScrollBarStyle;
+		vertResizeableScrollBarStyle.normal.texture = getSkinTexture(ScrollBarVBgTex);
+		vertResizeableScrollBarStyle.hover.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.active.texture = vertResizeableScrollBarStyle.normal.texture;
+		vertResizeableScrollBarStyle.fixedHeight = false;
+		vertResizeableScrollBarStyle.fixedWidth = true;
+		vertResizeableScrollBarStyle.minHeight = 15;
+		vertResizeableScrollBarStyle.width = 16;
+
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarVert", vertResizeableScrollBarStyle);
+
+		// Horizontal resizeable scroll bar
+		GUIElementStyle horzResizeableScrollBarStyle;
+		horzResizeableScrollBarStyle.normal.texture = getSkinTexture(ScrollBarHBgTex);
+		horzResizeableScrollBarStyle.hover.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.active.texture = horzResizeableScrollBarStyle.normal.texture;
+		horzResizeableScrollBarStyle.fixedHeight = true;
+		horzResizeableScrollBarStyle.fixedWidth = false;
+		horzResizeableScrollBarStyle.minWidth = 15;
+		horzResizeableScrollBarStyle.height = 16;
+
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
+		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
+
+		skin->setStyle("ResizeableScrollBarHorz", horzResizeableScrollBarStyle);
 
 		/************************************************************************/
 		/* 								DROP DOWN BOX                      		*/
@@ -723,6 +810,33 @@ namespace bs
 
 		skin->setStyle(GUIDropDownContent::ENTRY_STYLE_TYPE, dropDownEntryBtnStyle);
 
+		// DropDown toggle entry button
+		GUIElementStyle dropDownToggleEntryBtnStyle;
+		dropDownToggleEntryBtnStyle.normal.texture = getSkinTexture(DropDownBoxEntryToggleNormalTex);
+		dropDownToggleEntryBtnStyle.hover.texture = getSkinTexture(DropDownBoxEntryToggleHoverTex);
+		dropDownToggleEntryBtnStyle.active.texture = dropDownToggleEntryBtnStyle.hover.texture;
+		dropDownToggleEntryBtnStyle.normalOn.texture = getSkinTexture(DropDownBoxEntryToggleNormalOnTex);
+		dropDownToggleEntryBtnStyle.hoverOn.texture = getSkinTexture(DropDownBoxEntryToggleHoverOnTex);
+		dropDownToggleEntryBtnStyle.activeOn.texture = dropDownToggleEntryBtnStyle.hoverOn.texture;
+		dropDownToggleEntryBtnStyle.normal.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.hover.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.active.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.normalOn.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.hoverOn.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.activeOn.textColor = TextNormalColor;
+		dropDownToggleEntryBtnStyle.fixedHeight = true;
+		dropDownToggleEntryBtnStyle.fixedWidth = false;
+		dropDownToggleEntryBtnStyle.height = 18;
+		dropDownToggleEntryBtnStyle.width = 30;
+		dropDownToggleEntryBtnStyle.border.left = 17;
+		dropDownToggleEntryBtnStyle.contentOffset.left = 17;
+		dropDownToggleEntryBtnStyle.font = font;
+		dropDownToggleEntryBtnStyle.fontSize = DefaultFontSize;
+		dropDownToggleEntryBtnStyle.textHorzAlign = THA_Left;
+		dropDownToggleEntryBtnStyle.textVertAlign = TVA_Center;
+
+		skin->setStyle(GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE, dropDownToggleEntryBtnStyle);
+
 		// DropDown entry button with expand
 		GUIElementStyle dropDownEntryExpBtnStyle;
 		dropDownEntryExpBtnStyle.normal.texture = getSkinTexture(DropDownBoxEntryExpNormalTex);
@@ -763,6 +877,7 @@ namespace bs
 		GUIElementStyle dropDownContentStyle;
 		dropDownContentStyle.minWidth = 50;
 		dropDownContentStyle.minHeight = 20;
+		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE] = GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE;
 		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_STYLE_TYPE] = GUIDropDownContent::ENTRY_STYLE_TYPE;
 		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_EXP_STYLE_TYPE] = GUIDropDownContent::ENTRY_EXP_STYLE_TYPE;
 		dropDownContentStyle.subStyles[GUIDropDownContent::SEPARATOR_STYLE_TYPE] = GUIDropDownContent::SEPARATOR_STYLE_TYPE;
@@ -811,6 +926,79 @@ namespace bs
 		tooltipFrameStyle.margins.bottom = 6;
 
 		skin->setStyle(GUITooltip::getFrameStyleName(), tooltipFrameStyle);
+
+		/************************************************************************/
+		/* 								SLIDER                      			*/
+		/************************************************************************/
+
+		GUIElementStyle sliderHandleStyle;
+		sliderHandleStyle.fixedHeight = true;
+		sliderHandleStyle.fixedWidth = true;
+		sliderHandleStyle.width = 12;
+		sliderHandleStyle.height = 13;
+		sliderHandleStyle.normal.texture = getSkinTexture(SliderHandleNormalTex);
+		sliderHandleStyle.hover.texture = getSkinTexture(SliderHandleHoverTex);
+		sliderHandleStyle.active.texture = getSkinTexture(SliderHandleActiveTex);
+
+		skin->setStyle(GUISlider::getHandleStyleType(), sliderHandleStyle);
+
+		GUIElementStyle sliderHorizontalBgStyle;
+		sliderHorizontalBgStyle.fixedHeight = true;
+		sliderHorizontalBgStyle.height = 10;
+		sliderHorizontalBgStyle.normal.texture = getSkinTexture(SliderHBackgroundTex);
+		sliderHorizontalBgStyle.border.left = 4;
+		sliderHorizontalBgStyle.border.right = 4;
+
+		skin->setStyle("SliderHorzBg", sliderHorizontalBgStyle);
+
+		GUIElementStyle sliderHorizontalFillStyle;
+		sliderHorizontalFillStyle.fixedHeight = true;
+		sliderHorizontalFillStyle.height = 10;
+		sliderHorizontalFillStyle.normal.texture = getSkinTexture(SliderHFillTex);
+		sliderHorizontalFillStyle.border.left = 6;
+		sliderHorizontalFillStyle.border.right = 4;
+
+		skin->setStyle("SliderHorzFill", sliderHorizontalFillStyle);
+
+		GUIElementStyle sliderHorizontalStyle;
+		sliderHorizontalStyle.fixedHeight = true;
+		sliderHorizontalStyle.height = 13;
+		sliderHorizontalStyle.width = 150;
+		sliderHorizontalStyle.minWidth = 10;
+		sliderHorizontalStyle.subStyles[GUISlider::getHandleStyleType()] = GUISlider::getHandleStyleType();
+		sliderHorizontalStyle.subStyles[GUISlider::getBackgroundStyleType()] = "SliderHorzBg";
+		sliderHorizontalStyle.subStyles[GUISlider::getFillStyleType()] = "SliderHorzFill";
+
+		skin->setStyle(GUISliderHorz::getGUITypeName(), sliderHorizontalStyle);
+
+		GUIElementStyle sliderVerticalBgStyle;
+		sliderVerticalBgStyle.fixedWidth = true;
+		sliderVerticalBgStyle.width = 10;
+		sliderVerticalBgStyle.normal.texture = getSkinTexture(SliderVBackgroundTex);
+		sliderVerticalBgStyle.border.top = 4;
+		sliderVerticalBgStyle.border.bottom = 4;
+
+		skin->setStyle("SliderVertBg", sliderVerticalBgStyle);
+
+		GUIElementStyle sliderVerticalFillStyle;
+		sliderVerticalFillStyle.fixedWidth = true;
+		sliderVerticalFillStyle.width = 10;
+		sliderVerticalFillStyle.normal.texture = getSkinTexture(SliderVFillTex);
+		sliderVerticalFillStyle.border.top = 6;
+		sliderVerticalFillStyle.border.bottom = 4;
+
+		skin->setStyle("SliderVertFill", sliderVerticalFillStyle);
+
+		GUIElementStyle sliderVerticalStyle;
+		sliderVerticalStyle.fixedWidth = true;
+		sliderVerticalStyle.width = 13;
+		sliderVerticalStyle.height = 150;
+		sliderVerticalStyle.minHeight = 10;
+		sliderVerticalStyle.subStyles[GUISlider::getHandleStyleType()] = GUISlider::getHandleStyleType();
+		sliderVerticalStyle.subStyles[GUISlider::getBackgroundStyleType()] = "SliderVertBg";
+		sliderVerticalStyle.subStyles[GUISlider::getFillStyleType()] = "SliderVertFill";
+
+		skin->setStyle(GUISliderVert::getGUITypeName(), sliderVerticalStyle);
 
 		/************************************************************************/
 		/* 									OTHER                      			*/
