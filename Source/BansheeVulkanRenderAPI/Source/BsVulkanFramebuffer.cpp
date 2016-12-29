@@ -192,7 +192,7 @@ namespace bs
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			}
-			else if (clearMask.isSet((ClearMaskBits)(i << attachment.index)))
+			else if (clearMask.isSet((ClearMaskBits)(1 << attachment.index)))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
