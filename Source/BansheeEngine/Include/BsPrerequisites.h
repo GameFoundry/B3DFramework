@@ -201,6 +201,7 @@ namespace bs
 
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
 	typedef GameObjectHandle<CRenderable> HRenderable;
+	typedef GameObjectHandle<CLight> HLight;
 	typedef GameObjectHandle<CAnimation> HAnimation;
 	typedef GameObjectHandle<CBone> HBone;
 	typedef GameObjectHandle<ProfilerOverlay> HProfilerOverlay;
