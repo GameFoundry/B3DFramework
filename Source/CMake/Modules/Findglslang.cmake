@@ -15,7 +15,7 @@ else()
 endif()
 
 message(STATUS "Looking for glslang installation...")
-find_path(glslang_INCLUDE_DIR Public/ShaderLang.h PATHS ${glslang_INCLUDE_SEARCH_DIRS})
+find_path(glslang_INCLUDE_DIR glslang/Public/ShaderLang.h PATHS ${glslang_INCLUDE_SEARCH_DIRS})
 
 find_library(glslang_LIBRARY_OPTIMIZED NAMES glslang PATHS ${glslang_LIBRARY_SEARCH_DIRS})
 find_library(glslangHLSL_LIBRARY_OPTIMIZED NAMES HLSL PATHS ${glslang_LIBRARY_SEARCH_DIRS})
