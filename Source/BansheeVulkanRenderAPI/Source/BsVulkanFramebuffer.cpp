@@ -126,19 +126,21 @@ namespace bs
 		// Subpass dependencies for layout transitions
 		mDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		mDependencies[0].dstSubpass = 0;
-		mDependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		mDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		mDependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		mDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		mDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT; // Note: Is this really required?
+		mDependencies[0].srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		mDependencies[0].dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		mDependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
+		mDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | 
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+		mDependencies[0].dependencyFlags = 0;
 
 		mDependencies[1].srcSubpass = 0;
 		mDependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-		mDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		mDependencies[1].srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		mDependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		mDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		mDependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-		mDependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;// Note: Is this really required?
+		mDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | 
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+		mDependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
+		mDependencies[1].dependencyFlags = 0;
 
 		// Create render pass and frame buffer create infos
 		mRenderPassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
