@@ -451,7 +451,7 @@ namespace bs
 			UINT32 currentQueueFamily = resource->getQueueFamily();
 			bool queueMismatch = resource->isExclusive() && currentQueueFamily != -1 && currentQueueFamily != mQueueFamily;
 
-			if (queueMismatch || imageInfo.currentLayout != imageInfo.requiredLayout)
+			if (queueMismatch)
 			{
 				Vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].imageBarriers;
 
@@ -462,26 +462,12 @@ namespace bs
 				barrier.srcAccessMask = resource->getAccessFlags(imageInfo.currentLayout);
 				barrier.dstAccessMask = imageInfo.accessFlags;
 				barrier.oldLayout = imageInfo.currentLayout;
-				barrier.newLayout = imageInfo.requiredLayout;
+				barrier.newLayout = imageInfo.currentLayout;
 				barrier.image = resource->getHandle();
 				barrier.subresourceRange = imageInfo.range;
-
-				// Check if queue transition needed
-				if (queueMismatch)
-				{
-					barrier.srcQueueFamilyIndex = currentQueueFamily;
-					barrier.dstQueueFamilyIndex = mQueueFamily;
-				}
-				else
-				{
-					barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-					barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				}
-
-				imageInfo.currentLayout = imageInfo.requiredLayout;
+				barrier.srcQueueFamilyIndex = currentQueueFamily;
+				barrier.dstQueueFamilyIndex = mQueueFamily;
 			}
-
-			resource->setLayout(imageInfo.finalLayout);
 		}
 
 		for (auto& entry : mTransitionInfoTemp)
@@ -492,7 +478,7 @@ namespace bs
 
 			UINT32 entryQueueFamily = entry.first;
 
-			// No queue transition needed for entries on this queue (this entry is most likely an image layout transition)
+			// No queue transition needed for entries on this queue 
 			if (entryQueueFamily == -1 || entryQueueFamily == mQueueFamily)
 				continue;
 
@@ -546,10 +532,6 @@ namespace bs
 
 			cmdBuffer->end();
 			otherQueue->submit(cmdBuffer, nullptr, 0);
-
-			// If there are any layout transitions, reset them as we don't need them for the second pipeline barrier
-			for (auto& barrierEntry : barriers.imageBarriers)
-				barrierEntry.oldLayout = barrierEntry.newLayout;
 		}
 
 		UINT32 deviceIdx = device.getIndex();

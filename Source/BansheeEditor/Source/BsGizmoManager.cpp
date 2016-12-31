@@ -1012,6 +1012,8 @@ namespace bs
 			return;
 
 		SPtr<RenderTargetCore> renderTarget = camera->getViewport()->getTarget();
+		if (renderTarget == nullptr)
+			return;
 
 		float width = (float)renderTarget->getProperties().getWidth();
 		float height = (float)renderTarget->getProperties().getHeight();
