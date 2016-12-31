@@ -738,15 +738,12 @@ namespace bs
 				// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 				if (dstProps.getNumMipmaps() > 0 || dstProps.getNumFaces() > 1)
 				{
-					VkImageLayout oldDstLayout = dstLayout;
-					if (oldDstLayout == VK_IMAGE_LAYOUT_UNDEFINED || oldDstLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-						oldDstLayout = dstImage->getOptimalLayout();
+					VkImageLayout oldDstLayout = dstImage->getOptimalLayout();
 
 					dstLayout = newImage->getOptimalLayout();
 					copyImage(transferCB, dstImage, newImage, oldDstLayout, dstLayout);
 
-					VkAccessFlags accessMask = dstImage->getAccessFlags(oldDstLayout);
-					transferCB->getCB()->registerResource(dstImage, accessMask, oldDstLayout, VulkanUseFlag::Read);
+					transferCB->getCB()->registerResource(dstImage, VulkanUseFlag::Read);
 				}
 
 				dstImage->destroy();
@@ -775,24 +772,22 @@ namespace bs
 							   dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageRegion);
 			}
 
-			// Transfer back to original layouts
-			if (srcLayout == VK_IMAGE_LAYOUT_UNDEFINED || srcLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-				srcLayout = srcImage->getOptimalLayout();
+			// Transfer back to optimal layouts
+			srcLayout = srcImage->getOptimalLayout();
 
 			srcAccessMask = srcImage->getAccessFlags(srcLayout);
 			transferCB->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask,
 									transferSrcLayout, srcLayout, srcRange);
 
-			if (dstLayout == VK_IMAGE_LAYOUT_UNDEFINED || dstLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-				dstLayout = dstImage->getOptimalLayout();
+			dstLayout = dstImage->getOptimalLayout();
 
 			dstAccessMask = dstImage->getAccessFlags(dstLayout);
 			transferCB->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
 									transferDstLayout, dstLayout, dstRange);
 
 			// Notify the command buffer that these resources are being used on it
-			transferCB->getCB()->registerResource(srcImage, srcAccessMask, srcLayout, VulkanUseFlag::Read);
-			transferCB->getCB()->registerResource(dstImage, dstAccessMask, dstLayout, VulkanUseFlag::Write);
+			transferCB->getCB()->registerResource(srcImage, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(dstImage, VulkanUseFlag::Write);
 
 			// Need to wait if subresource we're reading from is being written, or if the subresource we're writing to is
 			// being accessed in any way
@@ -1034,16 +1029,12 @@ namespace bs
 			image->copy(transferCB, mStagingBuffer, extent, rangeLayers, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 			// Transfer back to original layout
-			VkImageLayout dstLayout = image->getLayout();
-			if (dstLayout == VK_IMAGE_LAYOUT_UNDEFINED || dstLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-			{
-				dstLayout = image->getOptimalLayout();
-				currentAccessMask = image->getAccessFlags(dstLayout);
-			}
+			VkImageLayout dstLayout = image->getOptimalLayout();
+			currentAccessMask = image->getAccessFlags(dstLayout);
 
 			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(image, VulkanUseFlag::Read);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1153,15 +1144,12 @@ namespace bs
 						// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 						if (props.getNumMipmaps() > 0 || props.getNumFaces() > 1)
 						{
-							VkImageLayout oldImgLayout = image->getLayout();
-							if (oldImgLayout == VK_IMAGE_LAYOUT_UNDEFINED || oldImgLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-								oldImgLayout = image->getOptimalLayout();
+							VkImageLayout oldImgLayout = image->getOptimalLayout();
 
 							curLayout = newImage->getOptimalLayout();
 							copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
 
-							VkAccessFlags accessMask = image->getAccessFlags(oldImgLayout);
-							transferCB->getCB()->registerResource(image, accessMask, oldImgLayout, VulkanUseFlag::Read);
+							transferCB->getCB()->registerResource(image, VulkanUseFlag::Read);
 						}
 
 						image->destroy();
@@ -1206,9 +1194,7 @@ namespace bs
 				mStagingBuffer->copy(transferCB, image, extent, rangeLayers, transferLayout);
 
 				// Transfer back to original  (or optimal if initial layout was undefined/preinitialized)
-				VkImageLayout dstLayout = curLayout;
-				if(dstLayout == VK_IMAGE_LAYOUT_UNDEFINED || dstLayout == VK_IMAGE_LAYOUT_PREINITIALIZED)
-					dstLayout = image->getOptimalLayout();
+				VkImageLayout dstLayout = image->getOptimalLayout();
 
 				currentAccessMask = image->getAccessFlags(dstLayout);
 				transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask,
@@ -1216,7 +1202,7 @@ namespace bs
 
 				// Notify the command buffer that these resources are being used on it
 				transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-				transferCB->getCB()->registerResource(image, currentAccessMask, dstLayout, VulkanUseFlag::Write);
+				transferCB->getCB()->registerResource(image, VulkanUseFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.

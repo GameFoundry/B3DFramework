@@ -200,10 +200,9 @@ namespace bs
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. Updates the externally visible image layout field to @p finalLayout
-		 * (once submitted), but doesn't actually execute a layout transition (expects you did it manually).
+		 * device when the command buffer is submitted. 
 		 */
-		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout finalLayout, VulkanUseFlags flags);
+		void registerResource(VulkanImage* res, VulkanUseFlags flags);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the

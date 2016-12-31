@@ -1420,12 +1420,12 @@ namespace bs
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout finalLayout, 
-		VulkanUseFlags flags)
+	void VulkanCmdBuffer::registerResource(VulkanImage* res, VulkanUseFlags flags)
 	{
 		VkImageLayout layout = res->getOptimalLayout();
+		VkAccessFlags accessFlags = res->getAccessFlags(layout);
 
-		registerResource(res, accessFlags, layout, finalLayout, flags, false);
+		registerResource(res, accessFlags, layout, layout, flags, false);
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout newLayout, 
