@@ -246,24 +246,25 @@ if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 endif()
 
 ## Executables
-add_subdirectory(Game)
 add_subdirectory(ExampleProject)
 
 if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 	add_subdirectory(BansheeEditorExec)
+	add_subdirectory(Game)
 endif()
 
 ## Managed projects
 if(MSVC)
-	include_external_msproject(MBansheeEngine ${PROJECT_SOURCE_DIR}/MBansheeEngine/MBansheeEngine.csproj)
-	add_dependencies(Game MBansheeEngine)
-	
-	set_property(TARGET MBansheeEngine PROPERTY FOLDER Script)
-
 	if(BUILD_EDITOR)
+		include_external_msproject(MBansheeEngine ${PROJECT_SOURCE_DIR}/MBansheeEngine/MBansheeEngine.csproj)
 		include_external_msproject(MBansheeEditor ${PROJECT_SOURCE_DIR}/MBansheeEditor/MBansheeEditor.csproj)
-		add_dependencies(BansheeEditorExec MBansheeEngine MBansheeEditor)
+		
+		set_property(TARGET MBansheeEngine PROPERTY FOLDER Script)
 		set_property(TARGET MBansheeEditor PROPERTY FOLDER Script)
+		
+		add_dependencies(BansheeEditorExec MBansheeEngine MBansheeEditor)
+		add_dependencies(Game MBansheeEngine)
+		
 		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BansheeEditorExec)
 	endif()
 else()

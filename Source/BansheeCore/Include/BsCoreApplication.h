@@ -21,6 +21,7 @@ namespace bs
 		String physics; /**< Name of physics plugin to use. */
 		String audio; /**< Name of the audio plugin to use. */
 		String input; /**< Name of the input plugin to use. */
+		bool scripting = false; /**< True to load the scripting system. */
 
 		RENDER_WINDOW_DESC primaryWindowDesc; /**< Describes the window to create during start-up. */
 

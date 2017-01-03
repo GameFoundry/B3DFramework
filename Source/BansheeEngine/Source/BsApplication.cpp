@@ -68,7 +68,9 @@ namespace bs
 		SceneManager::instance().setMainRenderTarget(getPrimaryWindow());
 
 		ScriptManager::startUp();
-		loadScriptSystem();
+
+		if(mStartUpDesc.scripting)
+			loadScriptSystem();
 	}
 
 	void Application::onShutDown()
@@ -78,7 +80,9 @@ namespace bs
 		SceneManager::instance().clearScene(true);
 
 		ScriptManager::shutDown();
-		unloadScriptSystem();
+
+		if (mStartUpDesc.scripting)
+			unloadScriptSystem();
 
 		CoreApplication::onShutDown();
 	}
@@ -94,6 +98,7 @@ namespace bs
 		desc.audio = BS_AUDIO_MODULE;
 		desc.physics = BS_PHYSICS_MODULE;
 		desc.input = BS_INPUT_MODULE;
+		desc.scripting = false;
 
 		desc.importers.push_back("BansheeFreeImgImporter");
 		desc.importers.push_back("BansheeFBXImporter");
@@ -141,8 +146,11 @@ namespace bs
 		// These plugins must be unloaded before any other script plugins, because
 		// they will cause finalizers to trigger and various modules those finalizers
 		// might reference must still be active
-		unloadPlugin(mSBansheeEnginePlugin);
-		unloadPlugin(mMonoPlugin);
+		if(mSBansheeEnginePlugin != nullptr)
+			unloadPlugin(mSBansheeEnginePlugin);
+
+		if(mMonoPlugin != nullptr)
+			unloadPlugin(mMonoPlugin);
 	}
 
 	void Application::startUpRenderer()
