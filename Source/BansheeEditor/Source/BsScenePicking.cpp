@@ -375,13 +375,14 @@ namespace bs
 		bs_stack_free(renderableIndices);
 	}
 
-	void ScenePickingCore::corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, const Vector2I& position,
-		const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp)
+	void ScenePickingCore::corePickingEnd(const SPtr<RenderTargetCore>& target, const Rect2& viewportArea, 
+		const Vector2I& position, const Vector2I& area, bool gatherSnapData, AsyncOp& asyncOp)
 	{
 		const RenderTargetProperties& rtProps = target->getProperties();
 		RenderAPICore& rs = RenderAPICore::instance();
 
 		rs.setRenderTarget(nullptr);
+		rs.submitCommandBuffer(nullptr);
 
 		if (rtProps.isWindow())
 		{

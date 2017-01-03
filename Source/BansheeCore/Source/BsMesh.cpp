@@ -423,6 +423,9 @@ namespace bs
 		std::function<void(const SPtr<MeshCore>&, const SPtr<MeshData>&, AsyncOp&)> func =
 			[&](const SPtr<MeshCore>& mesh, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
 		{
+			// Make sure any queued command start executing before reading
+			RenderAPICore::instance().submitCommandBuffer(nullptr);
+
 			mesh->readData(*_meshData);
 			_meshData->_unlock();
 			asyncOp._completeOperation();

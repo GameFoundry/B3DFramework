@@ -385,6 +385,9 @@ namespace bs
 			[&](const SPtr<TextureCore>& texture, UINT32 _face, UINT32 _mipLevel, const SPtr<PixelData>& _pixData, 
 				AsyncOp& asyncOp)
 		{
+			// Make sure any queued command start executing before reading
+			RenderAPICore::instance().submitCommandBuffer(nullptr);
+
 			texture->readData(*_pixData, _face, _mipLevel);
 			_pixData->_unlock();
 			asyncOp._completeOperation();

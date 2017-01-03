@@ -523,16 +523,13 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if (commandBuffer == nullptr)
-			return;
+		VulkanCommandBuffer* cmdBuffer = getCB(commandBuffer);
 
 		// Submit all transfer buffers first
-		VulkanCommandBuffer& cmdBuffer = static_cast<VulkanCommandBuffer&>(*commandBuffer);
-
 		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
-		cbm.flushTransferBuffers(cmdBuffer.getDeviceIdx());
+		cbm.flushTransferBuffers(cmdBuffer->getDeviceIdx());
 
-		cmdBuffer.submit(syncMask);
+		cmdBuffer->submit(syncMask);
 	}
 	
 	void VulkanRenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)

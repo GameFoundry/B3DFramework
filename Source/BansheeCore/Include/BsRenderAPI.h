@@ -505,7 +505,8 @@ namespace bs
 		/** 
 		 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
 		 *
-		 * @param[in]	commandBuffer	Command buffer whose commands to execute.
+		 * @param[in]	commandBuffer	Command buffer whose commands to execute. Set to null to submit the main command
+		 *								buffer.
 		 * @param[in]	syncMask		Optional synchronization mask that determines if the submitted command buffer
 		 *								depends on any other command buffers. Use the CommandSyncMask class to generate
 		 *								a mask using existing command buffers.
