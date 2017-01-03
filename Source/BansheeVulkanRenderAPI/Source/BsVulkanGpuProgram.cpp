@@ -589,7 +589,8 @@ namespace bs
 		shader->setStrings(&sourceBytes, 1);
 		shader->setEntryPoint("main");
 
-		if (!shader->parse(&resources, 450, false, EShMsgDefault))
+		EShMessages messages = (EShMessages)((int)EShMsgSpvRules | (int)EShMsgVulkanRules);
+		if (!shader->parse(&resources, 450, false, messages))
 		{
 			mIsCompiled = false;
 			mCompileError = "Compile error: " + String(shader->getInfoLog());
@@ -599,7 +600,7 @@ namespace bs
 
 		program->addShader(shader);
 
-		if (!program->link(EShMsgDefault))
+		if (!program->link(messages))
 		{
 			mIsCompiled = false;
 			mCompileError = "Link error: " + String(program->getInfoLog());
