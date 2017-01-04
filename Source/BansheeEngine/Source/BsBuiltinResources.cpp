@@ -35,7 +35,7 @@ using json = nlohmann::json;
 namespace bs
 {
 	const WString BuiltinResources::DefaultFontFilename = L"arial.ttf";
-	const UINT32 BuiltinResources::DefaultFontSize = 11;
+	const UINT32 BuiltinResources::DefaultFontSize = 8;
 
 	const Color BuiltinResources::TextNormalColor = Color(0.7f, 0.7f, 0.7f);
 	const Color BuiltinResources::TextActiveColor = Color(0.0f, 0.0f, 0.0f);

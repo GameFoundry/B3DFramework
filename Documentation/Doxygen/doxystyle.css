@@ -340,3 +340,7 @@ blockquote {
 	margin: 0px;
 	padding: 2px 0px;
 }
+
+.caption {
+	padding-bottom: 0.75rem;
+}

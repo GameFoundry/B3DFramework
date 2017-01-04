@@ -31,6 +31,7 @@ Manuals									{#manuals}
  - [Input polling](@ref inputPolling) 
  - [Input events](@ref inputEvents) 
  - [Virtual input](@ref virtualInput)
+- [Creating custom components](@ref customComponents)
 - **GUI**
  - [Sprite textures](@ref spriteTextures)
  - [Basic setup](@ref guiSetup)
