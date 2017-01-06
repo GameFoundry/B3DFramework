@@ -609,7 +609,10 @@ namespace bs
 
 		// Present render targets with back buffers
 		for (auto& rtInfo : mRenderTargets)
-			RenderAPICore::instance().swapBuffers(rtInfo.target);
+		{
+			if(rtInfo.target->getProperties().isWindow())
+				RenderAPICore::instance().swapBuffers(rtInfo.target);
+		}
 
 		gProfilerCPU().endSample("renderAllCore");
 	}

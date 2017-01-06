@@ -22,17 +22,17 @@ namespace bs
 	UINT64 Timer::getMilliseconds() const
 	{
 		auto newTime = mHRClock.now();
-		nanoseconds newTimeNs = newTime.time_since_epoch();
+		duration<double> dur = newTime - mStartTime;
 
-		return duration_cast<milliseconds>(newTimeNs).count();
+		return duration_cast<milliseconds>(dur).count();
 	}
 
 	UINT64 Timer::getMicroseconds() const
 	{
 		auto newTime = mHRClock.now();
-		nanoseconds newTimeNs = newTime.time_since_epoch();
+		duration<double> dur = newTime - mStartTime;
 
-		return duration_cast<microseconds>(newTimeNs).count();
+		return duration_cast<microseconds>(dur).count();
 	}
 
 	UINT64 Timer::getStartMs() const

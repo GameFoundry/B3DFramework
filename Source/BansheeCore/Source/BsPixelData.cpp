@@ -114,7 +114,7 @@ namespace bs
 			INT32 x1 = Math::clamp(x + 1, 0U, (UINT32)maxExtentX);
 			INT32 y1 = Math::clamp(y + 1, 0U, (UINT32)maxExtentY);
 
-			Color color;
+			Color color = Color::ZERO;
 			color += (1.0f - fracX) * (1.0f - fracY) * getColorAt(x, y);
 			color += fracX * (1.0f - fracY) * getColorAt(x1, y);
 			color += (1.0f - fracX) * fracY * getColorAt(x, y1);
