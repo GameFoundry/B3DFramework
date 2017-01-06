@@ -348,7 +348,9 @@ namespace bs
 		mQueuedEvents.clear();
 
 		// Update any layout transitions that were performed by subpass dependencies, reset flags that signal image usage
-		// and reset access flags
+		// and reset read-only state.
+		// Note: It's okay reset these even those they might still be bound on the GPU, because these values only matter
+		// for state transitions.
 		for (auto& entry : mImages)
 		{
 			UINT32 imageInfoIdx = entry.second;
@@ -356,8 +358,7 @@ namespace bs
 
 			imageInfo.isFBAttachment = false;
 			imageInfo.isShaderInput = false;
-
-			imageInfo.accessFlags = 0;
+			imageInfo.isReadOnly = true;
 		}
 
 		updateFinalLayouts();
@@ -465,7 +466,7 @@ namespace bs
 				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				barrier.pNext = nullptr;
 				barrier.srcAccessMask = resource->getAccessFlags(currentLayout);
-				barrier.dstAccessMask = imageInfo.accessFlags;
+				barrier.dstAccessMask = resource->getAccessFlags(initialLayout, imageInfo.isInitialReadOnly);
 				barrier.oldLayout = currentLayout;
 				barrier.newLayout = initialLayout;
 				barrier.image = resource->getHandle();
@@ -1209,7 +1210,7 @@ namespace bs
 			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 			barrier.pNext = nullptr;
 			barrier.srcAccessMask = image->getAccessFlags(imageInfo.currentLayout);
-			barrier.dstAccessMask = imageInfo.accessFlags;
+			barrier.dstAccessMask = image->getAccessFlags(imageInfo.requiredLayout, imageInfo.isReadOnly);
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.oldLayout = imageInfo.currentLayout;
@@ -1218,7 +1219,7 @@ namespace bs
 			barrier.subresourceRange = imageInfo.range;
 
 			imageInfo.currentLayout = imageInfo.requiredLayout;
-			imageInfo.accessFlags = 0;
+			imageInfo.isReadOnly = true;
 			imageInfo.hasTransitioned = true;
 		};
 
@@ -1449,13 +1450,12 @@ namespace bs
 	void VulkanCmdBuffer::registerResource(VulkanImage* res, VulkanUseFlags flags)
 	{
 		VkImageLayout layout = res->getOptimalLayout();
-		VkAccessFlags accessFlags = res->getAccessFlags(layout);
 
-		registerResource(res, accessFlags, VK_IMAGE_LAYOUT_UNDEFINED, layout, flags, false);
+		registerResource(res, VK_IMAGE_LAYOUT_UNDEFINED, layout, flags, false);
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout newLayout, 
-		VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment)
+	void VulkanCmdBuffer::registerResource(VulkanImage* res, VkImageLayout newLayout, VkImageLayout finalLayout, 
+		VulkanUseFlags flags, bool isFBAttachment)
 	{
 		// Note: I currently always perform pipeline barriers (layout transitions and similar), over the entire image.
 		//       In the case of render and storage images, the case is often that only a specific subresource requires
@@ -1473,7 +1473,6 @@ namespace bs
 			mImageInfos.push_back(ImageInfo());
 
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-			imageInfo.accessFlags = accessFlags;
 			imageInfo.currentLayout = newLayout;
 			imageInfo.initialLayout = newLayout;
 			imageInfo.requiredLayout = newLayout;
@@ -1482,6 +1481,8 @@ namespace bs
 			imageInfo.isFBAttachment = isFBAttachment;
 			imageInfo.isShaderInput = !isFBAttachment;
 			imageInfo.hasTransitioned = false;
+			imageInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
+			imageInfo.isInitialReadOnly = imageInfo.isReadOnly;
 
 			imageInfo.useHandle.used = false;
 			imageInfo.useHandle.flags = flags;
@@ -1496,7 +1497,7 @@ namespace bs
 			assert(!imageInfo.useHandle.used);
 			imageInfo.useHandle.flags |= flags;
 
-			imageInfo.accessFlags |= accessFlags;
+			imageInfo.isReadOnly &= !flags.isSet(VulkanUseFlag::Write);
 
 			// New layout is valid, check for transitions (UNDEFINED signifies the caller doesn't want a layout transition)
 			if (newLayout != VK_IMAGE_LAYOUT_UNDEFINED)
@@ -1540,6 +1541,7 @@ namespace bs
 			{
 				imageInfo.initialLayout = imageInfo.requiredLayout;
 				imageInfo.currentLayout = imageInfo.requiredLayout;
+				imageInfo.isInitialReadOnly = imageInfo.isReadOnly;
 			}
 			else
 			{
@@ -1633,44 +1635,28 @@ namespace bs
 		{
 			const VulkanFramebufferAttachment& attachment = res->getColorAttachment(i);
 
-			VkImageLayout layout;
-			VkAccessFlags accessMask;
-
 			// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter
+			VkImageLayout layout;
 			if (loadMask.isSet((RenderSurfaceMaskBits)(1 << i)))
-			{
 				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-				accessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			}
 			else
-			{
 				layout = VK_IMAGE_LAYOUT_UNDEFINED;
-				accessMask = 0;
-			}
 
-			registerResource(attachment.image, accessMask, layout, attachment.finalLayout, VulkanUseFlag::Write, true);
+			registerResource(attachment.image, layout, attachment.finalLayout, VulkanUseFlag::Write, true);
 		}
 
 		if(res->hasDepthAttachment())
 		{
 			const VulkanFramebufferAttachment& attachment = res->getDepthStencilAttachment();
 
-			VkImageLayout layout;
-			VkAccessFlags accessMask;
-
 			// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter
+			VkImageLayout layout;
 			if (loadMask.isSet(RT_DEPTH))
-			{
 				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-			}
 			else
-			{
 				layout = VK_IMAGE_LAYOUT_UNDEFINED;
-				accessMask = 0;
-			}
 
-			registerResource(attachment.image, accessMask, layout, attachment.finalLayout, VulkanUseFlag::Write, true);
+			registerResource(attachment.image, layout, attachment.finalLayout, VulkanUseFlag::Write, true);
 		}
 	}
 

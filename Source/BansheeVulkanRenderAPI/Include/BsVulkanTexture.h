@@ -135,8 +135,12 @@ namespace bs
 		/** 
 		 * Determines a set of access flags based on the current image and provided image layout. This method makes 
 		 * certain assumptions about image usage, so it might not be valid in all situations. 
+		 * 
+		 * @param[in]	layout		Layout the image is currently in.
+		 * @param[in]	readOnly	True if the image is only going to be read without writing, allows the system to
+		 *							set less general access flags. If unsure, set to false.
 		 */
-		VkAccessFlags getAccessFlags(VkImageLayout layout);
+		VkAccessFlags getAccessFlags(VkImageLayout layout, bool readOnly = false);
 
 	private:
 		/** Creates a new view of the provided part (or entirety) of surface. */

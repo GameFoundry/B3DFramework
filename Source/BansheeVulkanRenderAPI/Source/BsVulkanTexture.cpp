@@ -321,17 +321,34 @@ namespace bs
 		vkCmdCopyImageToBuffer(cb->getCB()->getHandle(), mImage, layout, destination->getHandle(), 1, &region);
 	}
 
-	VkAccessFlags VulkanImage::getAccessFlags(VkImageLayout layout)
+	VkAccessFlags VulkanImage::getAccessFlags(VkImageLayout layout, bool readOnly)
 	{
 		VkAccessFlags accessFlags;
 
 		switch (layout)
 		{
-		case VK_IMAGE_LAYOUT_GENERAL: // Only used for render targets that are also read by shaders, or for storage textures
-			if (mUsage == VulkanImageUsage::Storage)
-				accessFlags = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-			else
-				accessFlags = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
+		case VK_IMAGE_LAYOUT_GENERAL:
+			{
+				switch(mUsage)
+				{
+				case VulkanImageUsage::Storage:
+					accessFlags = VK_ACCESS_SHADER_READ_BIT;
+					
+					if(!readOnly)
+						accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
+					break;
+				case VulkanImageUsage::ColorAttachment:
+					accessFlags = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
+					break;
+				case VulkanImageUsage::DepthAttachment:
+					accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
+					break;
+				default:
+					accessFlags = VK_ACCESS_SHADER_READ_BIT;
+					break;
+				}
+			}
+
 			break;
 		case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
 			accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;

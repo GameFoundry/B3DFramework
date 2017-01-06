@@ -196,7 +196,6 @@ namespace bs
 		 * updates the externally visible image layout field to @p finalLayout (once submitted).
 		 * 
 		 * @param[in]	res						Image to register with the command buffer.
-		 * @param[in]	accessFlags				Destination access flags used for the provided layout transition.
 		 * @param[in]	newLayout				Layout the image needs to be transitioned in before use. Set to undefined
 		 *										layout if no transition is required.
 		 * @param[in]	finalLayout				Determines what value the externally visible image layout will be set after
@@ -206,8 +205,8 @@ namespace bs
 		 * @param[in]	isFBAttachment			Determines if the image is being used as a framebuffer attachment (if true),
 		 *										or just as regular shader input (if false).
 		 */
-		void registerResource(VulkanImage* res, VkAccessFlags accessFlags, VkImageLayout newLayout, 
-			VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment = false);
+		void registerResource(VulkanImage* res, VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, 
+			bool isFBAttachment = false);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
@@ -320,7 +319,6 @@ namespace bs
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
 		struct ImageInfo
 		{
-			VkAccessFlags accessFlags;
 			VkImageSubresourceRange range;
 			ResourceUseHandle useHandle;
 
@@ -333,6 +331,8 @@ namespace bs
 			bool isFBAttachment : 1;
 			bool isShaderInput : 1;
 			bool hasTransitioned : 1;
+			bool isReadOnly : 1;
+			bool isInitialReadOnly : 1;
 		};
 
 		/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set. */
