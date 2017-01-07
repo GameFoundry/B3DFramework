@@ -134,6 +134,7 @@ namespace bs
 
 		SPtr<D3D11TextureView> mShaderResourceView;
 		
+		PixelFormat mInternalFormat;
 		DXGI_FORMAT mDXGIFormat;
 		DXGI_FORMAT mDXGIColorFormat;
 		DXGI_FORMAT mDXGIDepthStencilFormat;

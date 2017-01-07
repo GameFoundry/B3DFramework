@@ -597,11 +597,8 @@ namespace bs
 		}
 	}
 
-	DXGI_FORMAT D3D11Mappings::getPF(PixelFormat pf, bool gamma, int usage)
+	DXGI_FORMAT D3D11Mappings::getPF(PixelFormat pf, bool gamma)
 	{
-		int isSampledTexture = ((usage & TU_RENDERTARGET) != 0) && ((usage & TU_DEPTHSTENCIL) != 0) &&
-			((usage & TU_LOADSTORE) != 0);
-
 		switch(pf)
 		{
 		case PF_R8:
@@ -609,15 +606,13 @@ namespace bs
 		case PF_R8G8:
 			return DXGI_FORMAT_R8G8_UNORM; 
 		case PF_R8G8B8:
+		case PF_B8G8R8:
 			return DXGI_FORMAT_UNKNOWN;
 		case PF_R8G8B8A8:
 			if (gamma)
 				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
 		case PF_B8G8R8A8:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			if (gamma)
 				return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -634,76 +629,39 @@ namespace bs
 		case PF_FLOAT32_RG:
 			return DXGI_FORMAT_R32G32_FLOAT;
 		case PF_FLOAT32_RGB:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_R32G32B32_FLOAT;
 		case PF_FLOAT32_RGBA:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
 		case PF_BC1:
 		case PF_BC1a:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			if(gamma)
 				return DXGI_FORMAT_BC1_UNORM_SRGB;
 			return DXGI_FORMAT_BC1_UNORM;
 		case PF_BC2:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			if (gamma)
 				return DXGI_FORMAT_BC2_UNORM_SRGB;
 			return DXGI_FORMAT_BC2_UNORM;
 		case PF_BC3:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			if (gamma)
 				return DXGI_FORMAT_BC3_UNORM_SRGB;
 			return DXGI_FORMAT_BC3_UNORM;
 		case PF_BC4:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_BC4_UNORM;
 		case PF_BC5:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_BC5_UNORM;
 		case PF_BC6H:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_BC6H_UF16;
 		case PF_BC7:
-			if (!isSampledTexture)
-				return DXGI_FORMAT_UNKNOWN;
-
 			if (gamma)
 				return DXGI_FORMAT_BC7_UNORM_SRGB;
-			else
-				return DXGI_FORMAT_BC7_UNORM;
+			return DXGI_FORMAT_BC7_UNORM;
 		case PF_D32_S8X24:
-			if ((usage & TU_DEPTHSTENCIL) == 0)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 		case PF_D24S8:
-			if ((usage & TU_DEPTHSTENCIL) == 0)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_D24_UNORM_S8_UINT;
 		case PF_D32:
-			if ((usage & TU_DEPTHSTENCIL) == 0)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_D32_FLOAT;
 		case PF_D16:
-			if ((usage & TU_DEPTHSTENCIL) == 0)
-				return DXGI_FORMAT_UNKNOWN;
-
 			return DXGI_FORMAT_D16_UNORM;
 		case PF_FLOAT_R11G11B10:
 			return DXGI_FORMAT_R11G11B10_FLOAT;
@@ -799,42 +757,41 @@ namespace bs
 		}
 	}
 
-	PixelFormat D3D11Mappings::getClosestSupportedPF(PixelFormat pf, bool hwGamma, int usage)
+	PixelFormat D3D11Mappings::getClosestSupportedPF(PixelFormat pf, TextureType texType, int usage)
 	{
-		if (getPF(pf, hwGamma, usage) != DXGI_FORMAT_UNKNOWN)
-		{
-			return pf;
-		}
+		// Check for any obvious issues first
+		PixelUtil::checkFormat(pf, texType, usage);
 
+		// Check for formats that are not supported at all by DX11
 		switch(pf)
 		{
-		case PF_BC4:
-			return PF_R8;
-		case PF_BC5:
-			return PF_R8G8;
-		case PF_FLOAT16_RGB:
-		case PF_BC6H:
-			return PF_FLOAT16_RGBA;
-		case PF_FLOAT32_RGB:
-			return PF_FLOAT32_RGBA;
 		case PF_R8G8B8:
+			pf = PF_R8G8B8A8;
+			break;
 		case PF_B8G8R8:
-		case PF_BC1:
-		case PF_BC1a:
-		case PF_BC2:
-		case PF_BC3:
-		case PF_UNKNOWN:
-			return PF_R8G8B8A8;
-		case PF_D32_S8X24:
-			return PF_FLOAT32_RG;
-		case PF_D24S8:
-		case PF_D32:
-			return PF_FLOAT32_R;
-		case PF_D16:
-			return PF_FLOAT16_R;
+			pf = PF_B8G8R8A8;
+			break;
+		case PF_FLOAT16_RGB:
+			pf = PF_FLOAT16_RGBA;
+			break;
 		default:
-			return PF_R8G8B8A8;
+			break;
 		}
+
+		// Check for usage specific format restrictions
+		if((usage & TU_LOADSTORE) != 0)
+		{
+			switch (pf)
+			{
+			case PF_B8G8R8A8:
+				pf = PF_R8G8B8A8;
+				break;
+			default:
+				break;
+			}
+		}
+
+		return pf;
 	}
 
 	D3D11_USAGE D3D11Mappings::getUsage(GpuBufferUsage usage)

@@ -331,6 +331,15 @@ namespace bs
 		GPDT_UNKNOWN = 0xffff
 	};
 
+	/**	Available texture types. */
+	enum TextureType
+	{
+		TEX_TYPE_1D = 1, /**< One dimensional texture. Just a row of pixels. */
+		TEX_TYPE_2D = 2, /**< Two dimensional texture. */
+		TEX_TYPE_3D = 3, /**< Three dimensional texture. */
+		TEX_TYPE_CUBE_MAP = 4 /**< Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling. */
+	};
+
 	/**	Contains data about a type used for GPU data parameters. */
 	struct GpuParamDataTypeInfo
 	{

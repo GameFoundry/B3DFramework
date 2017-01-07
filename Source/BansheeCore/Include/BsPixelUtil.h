@@ -128,6 +128,25 @@ namespace bs
 		/**	Checks is the provided format in native endian format. */
         static bool isNativeEndian(PixelFormat format);
 		
+		/** 
+		 * Checks is the provided format valid for the texture type and usage. 
+		 * 
+		 * @param[in, out]	format	Format to check. If format is not valid the method will update this with the closest
+		 *							relevant format.
+		 * @param[in]		texType	Type of the texture the format will be used for.
+		 * @param[in]		usage	A set of TextureUsage flags that define how will a texture be used.
+		 * @return					True if the format is valid, false if not.
+		 * 
+		 * @note	This method checks only for obvious format mismatches:
+		 *			- Using depth format for anything but a depth-stencil buffer
+		 *			- Using anything but a depth format for a depth-stencil-buffer
+		 *			- Using compressed format for anything but normal textures
+		 *			- Using compressed format for 1D textures
+		 *			
+		 *			Caller should still check for platform-specific unsupported formats.
+		 */
+		static bool checkFormat(PixelFormat& format, TextureType texType, int usage);
+
 		/**
 		 * Checks are the provided dimensions valid for the specified pixel format. Some formats (like BC) require 
 		 * width/height to be multiples of four and some formats dont allow depth larger than 1.

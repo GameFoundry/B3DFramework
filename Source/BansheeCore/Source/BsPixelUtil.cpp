@@ -5,6 +5,7 @@
 #include "BsColor.h"
 #include "BsMath.h"
 #include "BsException.h"
+#include "BsTexture.h"
 #include <nvtt.h>
 
 namespace bs 
@@ -997,6 +998,73 @@ namespace bs
     {
         return (PixelUtil::getFlags(format) & PFF_NATIVEENDIAN) > 0;
     }
+
+	bool PixelUtil::checkFormat(PixelFormat& format, TextureType texType, int usage)
+	{
+		// First check just the usage since it's the most limiting factor
+
+		//// Depth-stencil only supports depth formats
+		if ((usage & TU_DEPTHSTENCIL) != 0)
+		{
+			if (isDepth(format))
+				return true;
+
+			format = PF_D32_S8X24;
+			return false;
+		}
+
+		//// Render targets support everything but compressed & depth-stencil formats
+		if ((usage & TU_RENDERTARGET) != 0)
+		{
+			if (!isDepth(format) && !isCompressed(format))
+				return true;
+
+			format = PF_R8G8B8A8;
+			return false;
+		}
+
+		//// Load-store textures support everything but compressed & depth-stencil formats
+		if ((usage & TU_LOADSTORE) != 0)
+		{
+			if (!isDepth(format) && !isCompressed(format))
+				return true;
+
+			format = PF_R8G8B8A8;
+			return false;
+		}
+
+		//// Sampled texture support depends on texture type
+		switch (texType)
+		{
+		case TEX_TYPE_1D:
+		{
+			// 1D textures support anything but depth & compressed formats
+			if (!isDepth(format) && !isCompressed(format))
+				return true;
+
+			format = PF_R8G8B8A8;
+			return false;
+		}
+		case TEX_TYPE_3D:
+		{
+			// 3D textures support anything but depth & compressed formats
+			if (!isDepth(format))
+				return true;
+
+			format = PF_R8G8B8A8;
+			return false;
+		}
+		default: // 2D & cube
+		{
+			// 2D/cube textures support anything but depth formats
+			if (!isDepth(format))
+				return true;
+
+			format = PF_R8G8B8A8;
+			return false;
+		}
+		}
+	}
 
 	bool PixelUtil::isValidExtent(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format)
 	{

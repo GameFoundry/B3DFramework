@@ -17,7 +17,7 @@ namespace bs
 		GpuDeviceFlags deviceMask)
 		: TextureCore(desc, initialData, deviceMask),
 		m1DTex(nullptr), m2DTex(nullptr), m3DTex(nullptr), mDXGIFormat(DXGI_FORMAT_UNKNOWN), mDXGIColorFormat(DXGI_FORMAT_UNKNOWN),
-		mTex(nullptr), mStagingBuffer(nullptr), mDXGIDepthStencilFormat(DXGI_FORMAT_UNKNOWN),
+		mTex(nullptr), mInternalFormat(PF_UNKNOWN), mStagingBuffer(nullptr), mDXGIDepthStencilFormat(DXGI_FORMAT_UNKNOWN),
 		mLockedSubresourceIdx(-1), mLockedForReading(false), mStaticBuffer(nullptr)
 	{
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
@@ -116,12 +116,10 @@ namespace bs
 		UINT32 mipHeight = std::max(1u, mProperties.getHeight() >> mipLevel);
 		UINT32 mipDepth = std::max(1u, mProperties.getDepth() >> mipLevel);
 
-		PixelData lockedArea(mipWidth, mipHeight, mipDepth, mProperties.getFormat());
+		PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
 		D3D11_MAP flags = D3D11Mappings::getLockOptions(options);
-
 		UINT32 rowPitch, slicePitch;
-
 		if(flags == D3D11_MAP_READ || flags == D3D11_MAP_READ_WRITE)
 		{
 			UINT8* data = (UINT8*)mapstagingbuffer(flags, face, mipLevel, rowPitch, slicePitch);
@@ -170,17 +168,7 @@ namespace bs
 		}
 
 		PixelData myData = lock(GBL_READ_ONLY, mipLevel, face, deviceIdx, queueIdx);
-
-#if BS_DEBUG_MODE
-		if(dest.getConsecutiveSize() != myData.getConsecutiveSize())
-		{
-			unlock();
-			BS_EXCEPT(InternalErrorException, "Buffer sizes don't match");
-		}
-#endif
-
 		PixelUtil::bulkPixelConversion(myData, dest);
-
 		unlock();
 	}
 
@@ -242,7 +230,7 @@ namespace bs
 		UINT32 numMips = mProperties.getNumMipmaps();
 		PixelFormat format = mProperties.getFormat();
 		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, hwGamma, usage);
+		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, TEX_TYPE_1D, usage);
 		UINT32 numFaces = mProperties.getNumFaces();
 
 		// We must have those defined here
@@ -250,13 +238,15 @@ namespace bs
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma, usage);
+		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
 
 		if (format != D3D11Mappings::getPF(d3dPF))
 		{
-			BS_EXCEPT(RenderingAPIException, "Provided pixel format is not supported by the driver: " + toString(format));
+			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
+									  format, closestFormat));
 		}
 
+		mInternalFormat = closestFormat;
 		mDXGIColorFormat = d3dPF;
 		mDXGIDepthStencilFormat = d3dPF;
 
@@ -360,7 +350,7 @@ namespace bs
 		bool hwGamma = mProperties.isHardwareGammaEnabled();
 		UINT32 sampleCount = mProperties.getNumSamples();
 		TextureType texType = mProperties.getTextureType();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, hwGamma, usage);
+		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, texType, usage);
 		UINT32 numFaces = mProperties.getNumFaces();
 
 		// TODO - Consider making this a parameter eventually
@@ -371,14 +361,15 @@ namespace bs
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma, usage);
+		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
 
 		if (format != D3D11Mappings::getPF(d3dPF))
 		{
-			LOGWRN("Provided pixel format is not supported by the driver: " + toString(format) + ". Using " +
-				toString(closestFormat) + " instead.");
+			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
+									  format, closestFormat));
 		}
 
+		mInternalFormat = closestFormat;
 		mDXGIColorFormat = d3dPF;
 		mDXGIDepthStencilFormat = d3dPF;
 
@@ -506,7 +497,7 @@ namespace bs
 		UINT32 numMips = mProperties.getNumMipmaps();
 		PixelFormat format = mProperties.getFormat();
 		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, hwGamma, usage);
+		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, TEX_TYPE_3D, usage);
 
 		// TODO - Consider making this a parameter eventually
 		bool readableDepth = true;
@@ -516,13 +507,15 @@ namespace bs
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma, usage);
+		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
 		
 		if (format != D3D11Mappings::getPF(d3dPF))
 		{
-			BS_EXCEPT(RenderingAPIException, "Provided pixel format is not supported by the driver: " + toString(format));
+			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
+									  format, closestFormat));
 		}
 
+		mInternalFormat = closestFormat;
 		mDXGIColorFormat = d3dPF;
 		mDXGIDepthStencilFormat = d3dPF;
 
