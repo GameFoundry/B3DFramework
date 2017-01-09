@@ -237,23 +237,23 @@ namespace bs
 
 	namespace ct
 	{
-		typedef TMaterialDataParam<float, true> MaterialParamFloatCore;
-		typedef TMaterialDataParam<Vector2, true> MaterialParamVec2Core;
-		typedef TMaterialDataParam<Vector3, true> MaterialParamVec3Core;
-		typedef TMaterialDataParam<Vector4, true> MaterialParamVec4Core;
-		typedef TMaterialDataParam<int, true> MaterialParamIntCore;
-		typedef TMaterialDataParam<Vector2I, true> MaterialParamVec2ICore;
-		typedef TMaterialDataParam<Vector3I, true> MaterialParamVec3ICore;
-		typedef TMaterialDataParam<Vector4I, true> MaterialParamVec4ICore;
-		typedef TMaterialDataParam<Matrix3, true> MaterialParamMat3Core;
-		typedef TMaterialDataParam<Matrix4, true> MaterialParamMat4Core;
-		typedef TMaterialDataParam<Color, true> MaterialParamColorCore;
+		typedef TMaterialDataParam<float, true> MaterialParamFloat;
+		typedef TMaterialDataParam<Vector2, true> MaterialParamVec2;
+		typedef TMaterialDataParam<Vector3, true> MaterialParamVec3;
+		typedef TMaterialDataParam<Vector4, true> MaterialParamVec4;
+		typedef TMaterialDataParam<int, true> MaterialParamInt;
+		typedef TMaterialDataParam<Vector2I, true> MaterialParamVec2I;
+		typedef TMaterialDataParam<Vector3I, true> MaterialParamVec3I;
+		typedef TMaterialDataParam<Vector4I, true> MaterialParamVec4I;
+		typedef TMaterialDataParam<Matrix3, true> MaterialParamMat3;
+		typedef TMaterialDataParam<Matrix4, true> MaterialParamMat4;
+		typedef TMaterialDataParam<Color, true> MaterialParamColor;
 
-		typedef TMaterialParamStruct<true> MaterialParamStructCore;
-		typedef TMaterialParamTexture<true> MaterialParamTextureCore;
-		typedef TMaterialParamLoadStoreTexture<true> MaterialParamLoadStoreTextureCore;
-		typedef TMaterialParamBuffer<true> MaterialParamBufferCore;
-		typedef TMaterialParamSampState<true> MaterialParamSampStateCore;
+		typedef TMaterialParamStruct<true> MaterialParamStruct;
+		typedef TMaterialParamTexture<true> MaterialParamTexture;
+		typedef TMaterialParamLoadStoreTexture<true> MaterialParamLoadStoreTexture;
+		typedef TMaterialParamBuffer<true> MaterialParamBuffer;
+		typedef TMaterialParamSampState<true> MaterialParamSampState;
 	}
 
 	/** @} */

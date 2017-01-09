@@ -52,7 +52,7 @@ namespace bs { namespace ct
 
 		if (mGBufferRT == nullptr || mSceneColorRT == nullptr || rebuildTargets)
 		{
-			RENDER_TEXTURE_DESC_CORE gbufferDesc;
+			RENDER_TEXTURE_DESC gbufferDesc;
 			gbufferDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
 			gbufferDesc.colorSurfaces[0].face = 0;
 			gbufferDesc.colorSurfaces[0].numFaces = 1;
@@ -74,7 +74,7 @@ namespace bs { namespace ct
 
 			mGBufferRT = RenderTextureCore::create(gbufferDesc);
 
-			RENDER_TEXTURE_DESC_CORE sceneColorDesc;
+			RENDER_TEXTURE_DESC sceneColorDesc;
 			sceneColorDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
 			sceneColorDesc.colorSurfaces[0].face = 0;
 			sceneColorDesc.colorSurfaces[0].numFaces = 1;

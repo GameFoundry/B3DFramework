@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		/** Updates the skybox texture used by the material. */
 		void setParams(const SPtr<TextureCore>& texture);
 	private:
-		GpuParamTextureCore mSkyTextureParam;
+		GpuParamTexture mSkyTextureParam;
 	};
 
 	/** Contains information about a Camera, used by the Renderer. */

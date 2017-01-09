@@ -147,7 +147,7 @@ namespace bs
 		return newRT;
 	}
 
-	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, 
+	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC& desc, 
 																	UINT32 deviceIdx)
 	{
 		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc, deviceIdx);

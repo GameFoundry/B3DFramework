@@ -115,14 +115,14 @@ namespace bs
 		bool mFadeGrid = true;
 		Vector3 mGridPlaneNormal = Vector3::ZERO;
 
-		MaterialParamMat4Core mViewProjParam;
-		MaterialParamVec4Core mWorldCameraPosParam;
-		MaterialParamColorCore mGridColorParam;
-		MaterialParamFloatCore mGridSpacingParam;
-		MaterialParamFloatCore mGridBorderWidthParam;
-		MaterialParamFloatCore mGridFadeOutStartParam;
-		MaterialParamFloatCore mGridFadeOutEndParam;
-		MaterialParamVec3Core mGridPlaneNormalParam;
+		MaterialParamMat4 mViewProjParam;
+		MaterialParamVec4 mWorldCameraPosParam;
+		MaterialParamColor mGridColorParam;
+		MaterialParamFloat mGridSpacingParam;
+		MaterialParamFloat mGridBorderWidthParam;
+		MaterialParamFloat mGridFadeOutStartParam;
+		MaterialParamFloat mGridFadeOutEndParam;
+		MaterialParamVec3 mGridPlaneNormalParam;
 
 		static const Color GRID_LINE_COLOR;
 		static const float LINE_WIDTH;

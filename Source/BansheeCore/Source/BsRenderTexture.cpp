@@ -26,7 +26,7 @@ namespace bs
 		}
 	}
 
-	RenderTextureProperties::RenderTextureProperties(const ct::RENDER_TEXTURE_DESC_CORE& desc, bool requiresFlipping)
+	RenderTextureProperties::RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& desc, bool requiresFlipping)
 	{
 		for (UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
@@ -90,11 +90,11 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> RenderTexture::createCore() const
 	{
-		ct::RENDER_TEXTURE_DESC_CORE coreDesc;
+		ct::RENDER_TEXTURE_DESC coreDesc;
 
 		for (UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
-			ct::RENDER_SURFACE_DESC_CORE surfaceDesc;
+			ct::RENDER_SURFACE_DESC surfaceDesc;
 			if (mDesc.colorSurfaces[i].texture.isLoaded())
 				surfaceDesc.texture = mDesc.colorSurfaces[i].texture->getCore();
 
@@ -133,7 +133,7 @@ namespace bs
 
 	namespace ct
 	{
-	RenderTextureCore::RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx)
+	RenderTextureCore::RenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:mDesc(desc)
 	{ }
 
@@ -181,7 +181,7 @@ namespace bs
 		throwIfBuffersDontMatch();
 	}
 
-	SPtr<RenderTextureCore> RenderTextureCore::create(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx)
+	SPtr<RenderTextureCore> RenderTextureCore::create(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 	{
 		return TextureCoreManager::instance().createRenderTexture(desc, deviceIdx);
 	}

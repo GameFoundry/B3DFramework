@@ -12,7 +12,7 @@
 namespace bs
 {
 	/** Converts a sim thread pipeline state descriptor to a core thread one. */
-	void convertPassDesc(const PIPELINE_STATE_DESC& input, ct::PIPELINE_STATE_CORE_DESC& output)
+	void convertPassDesc(const PIPELINE_STATE_DESC& input, ct::PIPELINE_STATE_DESC& output)
 	{
 		output.blendState = input.blendState != nullptr ? input.blendState->getCore() : nullptr;
 		output.rasterizerState = input.rasterizerState != nullptr ? input.rasterizerState->getCore() : nullptr;
@@ -80,7 +80,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> GraphicsPipelineState::createCore() const
 	{
-		ct::PIPELINE_STATE_CORE_DESC desc;
+		ct::PIPELINE_STATE_DESC desc;
 		convertPassDesc(mData, desc);
 
 		return ct::RenderStateCoreManager::instance()._createGraphicsPipelineState(desc);
@@ -130,7 +130,7 @@ namespace bs
 
 	namespace ct
 	{
-	GraphicsPipelineStateCore::GraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
+	GraphicsPipelineStateCore::GraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 		:TGraphicsPipelineState(desc), mDeviceMask(deviceMask)
 	{ }
 
@@ -157,7 +157,7 @@ namespace bs
 		CoreObjectCore::initialize();
 	}
 
-	SPtr<GraphicsPipelineStateCore> GraphicsPipelineStateCore::create(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GraphicsPipelineStateCore> GraphicsPipelineStateCore::create(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		return RenderStateCoreManager::instance().createGraphicsPipelineState(desc, deviceMask);
 	}

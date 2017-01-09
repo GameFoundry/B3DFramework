@@ -37,13 +37,13 @@ namespace bs
 	namespace ct
 	{
 	/**
-	 * @see		RENDER_SURFACE_DESC
+	 * @see		bs::RENDER_SURFACE_DESC
 	 *
 	 * @note	References core textures instead of texture handles.
 	 */
-	struct BS_CORE_EXPORT RENDER_SURFACE_DESC_CORE
+	struct BS_CORE_EXPORT RENDER_SURFACE_DESC
 	{
-		RENDER_SURFACE_DESC_CORE() { }
+		RENDER_SURFACE_DESC() { }
 
 		SPtr<TextureCore> texture;
 

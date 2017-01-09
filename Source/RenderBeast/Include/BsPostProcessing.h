@@ -52,7 +52,7 @@ namespace bs { namespace ct
 		SPtr<RenderTextureCore> getOutput() const { return mOutput; }
 	private:
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
-		GpuParamTextureCore mInputTexture;
+		GpuParamTexture mInputTexture;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -98,8 +98,8 @@ namespace bs { namespace ct
 		static const UINT32 HISTOGRAM_NUM_TEXELS = (THREAD_GROUP_SIZE_X * THREAD_GROUP_SIZE_Y) / 4;
 	private:
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
-		GpuParamTextureCore mSceneColor;
-		GpuParamLoadStoreTextureCore mOutputTex;
+		GpuParamTexture mSceneColor;
+		GpuParamLoadStoreTexture mOutputTex;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -133,8 +133,8 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
 
-		GpuParamTextureCore mHistogramTex;
-		GpuParamTextureCore mEyeAdaptationTex;
+		GpuParamTexture mHistogramTex;
+		GpuParamTexture mEyeAdaptationTex;
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTextureCore> mOutput;
@@ -158,7 +158,7 @@ namespace bs { namespace ct
 		void execute(PostProcessInfo& ppInfo, float frameDelta);
 	private:
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
-		GpuParamTextureCore mReducedHistogramTex;
+		GpuParamTexture mReducedHistogramTex;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(CreateTonemapLUTParamDef)
@@ -203,7 +203,7 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
 		SPtr<GpuParamBlockBufferCore> mWhiteBalanceParamBuffer;
 
-		GpuParamLoadStoreTextureCore mOutputTex;
+		GpuParamLoadStoreTexture mOutputTex;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TonemappingParamDef)
@@ -229,9 +229,9 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
 
-		GpuParamTextureCore mInputTex;
-		GpuParamTextureCore mColorLUT;
-		GpuParamTextureCore mEyeAdaptationTex;
+		GpuParamTexture mInputTex;
+		GpuParamTexture mColorLUT;
+		GpuParamTexture mEyeAdaptationTex;
 	};
 
 	/**

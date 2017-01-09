@@ -42,9 +42,9 @@ namespace bs { namespace ct
 		SPtr<MaterialCore> mMaterial;
 		SPtr<GpuParamsSetCore> mParamsSet;
 
-		GpuParamTextureCore mGBufferA;
-		GpuParamTextureCore mGBufferB;
-		GpuParamTextureCore mGBufferDepth;
+		GpuParamTexture mGBufferA;
+		GpuParamTexture mGBufferB;
+		GpuParamTexture mGBufferDepth;
 		SPtr<GpuParamBlockBufferCore> mParamBuffer;
 	};
 

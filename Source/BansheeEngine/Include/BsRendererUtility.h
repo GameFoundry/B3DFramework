@@ -165,8 +165,8 @@ namespace bs { namespace ct
 		/** Updates the parameter buffers used by the material. */
 		void setParameters(const SPtr<TextureCore>& source);
 	private:
-		MaterialParamIntCore mNumSamples;
-		MaterialParamTextureCore mSource;
+		MaterialParamInt mNumSamples;
+		MaterialParamTexture mSource;
 	};
 
 	/** Shader that copies a source texture into a render target. */
@@ -180,7 +180,7 @@ namespace bs { namespace ct
 		/** Updates the parameter buffers used by the material. */
 		void setParameters(const SPtr<TextureCore>& source);
 	private:
-		MaterialParamTextureCore mSource;
+		MaterialParamTexture mSource;
 	};
 
 	/** @} */

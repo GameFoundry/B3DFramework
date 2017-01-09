@@ -38,7 +38,7 @@ namespace bs
 	 */
 
 	/** Descriptor structure used for initializing a core thread variant of a shader pass. */
-	struct PASS_DESC_CORE
+	struct PASS_DESC
 	{
 		SPtr<BlendStateCore> blendState;
 		SPtr<RasterizerStateCore> rasterizerState;
@@ -86,7 +86,7 @@ namespace bs
 		typedef SPtr<ct::GpuProgramCore> GpuProgramType;
 		typedef SPtr<ct::GraphicsPipelineStateCore> GraphicsPipelineStateType;
 		typedef SPtr<ct::ComputePipelineStateCore> ComputePipelineStateType;
-		typedef ct::PASS_DESC_CORE PassDescType;
+		typedef ct::PASS_DESC PassDescType;
 	};
 
 	/**
@@ -217,7 +217,7 @@ namespace bs
 		virtual ~PassCore() { }
 
 		/**	Creates a new empty pass. */
-		static SPtr<PassCore> create(const PASS_DESC_CORE& desc);
+		static SPtr<PassCore> create(const PASS_DESC& desc);
 
 	protected:
 		friend class Pass;
@@ -227,9 +227,9 @@ namespace bs
 		void initialize() override;
 
 		PassCore() { }
-		PassCore(const PASS_DESC_CORE& desc);
-		PassCore(const PASS_DESC_CORE& desc, const SPtr<GraphicsPipelineStateCore>& pipelineState);
-		PassCore(const PASS_DESC_CORE& desc, const SPtr<ComputePipelineStateCore>& pipelineState);
+		PassCore(const PASS_DESC& desc);
+		PassCore(const PASS_DESC& desc, const SPtr<GraphicsPipelineStateCore>& pipelineState);
+		PassCore(const PASS_DESC& desc, const SPtr<ComputePipelineStateCore>& pipelineState);
 
 		/** @copydoc CoreObjectCore::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;

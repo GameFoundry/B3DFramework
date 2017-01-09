@@ -349,9 +349,9 @@ namespace bs
 		return shaderCorePtr;
 	}
 
-	ct::SHADER_DESC_CORE Shader::convertDesc(const SHADER_DESC& desc) const
+	ct::SHADER_DESC Shader::convertDesc(const SHADER_DESC& desc) const
 	{
-		ct::SHADER_DESC_CORE output;
+		ct::SHADER_DESC output;
 		output.dataParams = desc.dataParams;
 		output.textureParams = desc.textureParams;
 		output.samplerParams = desc.samplerParams;
@@ -497,14 +497,14 @@ namespace bs
 	{
 	std::atomic<UINT32> ShaderCore::mNextShaderId;
 
-	ShaderCore::ShaderCore(const String& name, const SHADER_DESC_CORE& desc, const Vector<SPtr<TechniqueCore>>& techniques, 
+	ShaderCore::ShaderCore(const String& name, const SHADER_DESC& desc, const Vector<SPtr<TechniqueCore>>& techniques, 
 		UINT32 id)
 		:TShader(name, desc, techniques, id)
 	{
 
 	}
 
-	SPtr<ShaderCore> ShaderCore::create(const String& name, const SHADER_DESC_CORE& desc, 
+	SPtr<ShaderCore> ShaderCore::create(const String& name, const SHADER_DESC& desc, 
 		const Vector<SPtr<TechniqueCore>>& techniques)
 	{
 		UINT32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);

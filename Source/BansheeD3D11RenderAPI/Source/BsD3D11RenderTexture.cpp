@@ -13,7 +13,7 @@ namespace bs
 
 	namespace ct
 	{
-	D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx)
+	D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:RenderTextureCore(desc, deviceIdx), mProperties(desc, false)
 	{ 
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");

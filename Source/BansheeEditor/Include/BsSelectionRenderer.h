@@ -66,9 +66,9 @@ namespace bs
 		// Immutable
 		SPtr<MaterialCore> mMaterial;
 		SPtr<GpuParamsSetCore> mParams[4];
-		GpuParamMat4Core mMatWorldViewProj[4];
-		GpuParamColorCore mColor[4];
-		GpuParamBufferCore mBoneMatrices[4];
+		GpuParamMat4 mMatWorldViewProj[4];
+		GpuParamColor mColor[4];
+		GpuParamBuffer mBoneMatrices[4];
 
 		UINT32 mTechniqueIndices[4];
 

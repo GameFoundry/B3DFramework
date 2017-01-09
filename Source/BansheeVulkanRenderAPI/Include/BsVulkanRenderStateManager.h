@@ -20,7 +20,7 @@ namespace bs { namespace ct
 			GpuDeviceFlags deviceMask) const override;
 
 		/** @copydoc RenderStateCoreManager::_createGraphicsPipelineState */
-		SPtr<GraphicsPipelineStateCore> _createGraphicsPipelineState(const PIPELINE_STATE_CORE_DESC& desc,
+		SPtr<GraphicsPipelineStateCore> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 
 		/** @copydoc RenderStateCoreManager::_createComputePipelineState */

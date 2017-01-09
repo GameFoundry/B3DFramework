@@ -49,7 +49,7 @@ namespace bs { namespace ct
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> GLTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+	SPtr<RenderTextureCore> GLTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 																			  UINT32 deviceIdx)
 	{
 		SPtr<GLRenderTextureCore> texPtr = bs_shared_ptr_new<GLRenderTextureCore>(desc, deviceIdx);

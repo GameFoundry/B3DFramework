@@ -44,7 +44,7 @@ namespace bs { namespace ct
 			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc TextureCoreManager::createRenderTextureInternal */
-		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc, 
+		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 
 		GLSupport& mGLSupport;

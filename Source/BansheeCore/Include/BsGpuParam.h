@@ -332,23 +332,23 @@ namespace bs
 
 	namespace ct
 	{
-		typedef TGpuDataParam<float, true> GpuParamFloatCore;
-		typedef TGpuDataParam<Vector2, true> GpuParamVec2Core;
-		typedef TGpuDataParam<Vector3, true> GpuParamVec3Core;
-		typedef TGpuDataParam<Vector4, true> GpuParamVec4Core;
-		typedef TGpuDataParam<int, true> GpuParamIntCore;
-		typedef TGpuDataParam<Vector2I, true> GpuParamVec2ICore;
-		typedef TGpuDataParam<Vector3I, true> GpuParamVec3ICore;
-		typedef TGpuDataParam<Vector4I, true> GpuParamVec4ICore;
-		typedef TGpuDataParam<Matrix3, true> GpuParamMat3Core;
-		typedef TGpuDataParam<Matrix4, true> GpuParamMat4Core;
-		typedef TGpuDataParam<Color, true> GpuParamColorCore;
+		typedef TGpuDataParam<float, true> GpuParamFloat;
+		typedef TGpuDataParam<Vector2, true> GpuParamVec2;
+		typedef TGpuDataParam<Vector3, true> GpuParamVec3;
+		typedef TGpuDataParam<Vector4, true> GpuParamVec4;
+		typedef TGpuDataParam<int, true> GpuParamInt;
+		typedef TGpuDataParam<Vector2I, true> GpuParamVec2I;
+		typedef TGpuDataParam<Vector3I, true> GpuParamVec3I;
+		typedef TGpuDataParam<Vector4I, true> GpuParamVec4I;
+		typedef TGpuDataParam<Matrix3, true> GpuParamMat3;
+		typedef TGpuDataParam<Matrix4, true> GpuParamMat4;
+		typedef TGpuDataParam<Color, true> GpuParamColor;
 
-		typedef TGpuParamStruct<true> GpuParamStructCore;
-		typedef TGpuParamTexture<true> GpuParamTextureCore;
-		typedef TGpuParamBuffer<true> GpuParamBufferCore;
-		typedef TGpuParamSampState<true> GpuParamSampStateCore;
-		typedef TGpuParamLoadStoreTexture<true> GpuParamLoadStoreTextureCore;
+		typedef TGpuParamStruct<true> GpuParamStruct;
+		typedef TGpuParamTexture<true> GpuParamTexture;
+		typedef TGpuParamBuffer<true> GpuParamBuffer;
+		typedef TGpuParamSampState<true> GpuParamSampState;
+		typedef TGpuParamLoadStoreTexture<true> GpuParamLoadStoreTexture;
 	}
 
 	/** @} */

@@ -43,7 +43,7 @@ namespace bs
 	class D3D11RenderTexture : public RenderTextureCore
 	{
 	public:
-		D3D11RenderTexture(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx);
+		D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
 		virtual ~D3D11RenderTexture() { }
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */

@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc,
+	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc,
 																	 GpuDeviceFlags deviceMask)
 		:GraphicsPipelineStateCore(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
 	{

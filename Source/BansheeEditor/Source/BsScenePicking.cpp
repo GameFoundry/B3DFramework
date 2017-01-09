@@ -277,7 +277,7 @@ namespace bs
 		SPtr<TextureCore> normalsTexture = TextureCore::create(normalTexDesc);
 		SPtr<TextureCore> depthTexture = rtt->getDepthStencilTexture();
 
-		RENDER_TEXTURE_DESC_CORE pickingMRT;
+		RENDER_TEXTURE_DESC pickingMRT;
 		pickingMRT.colorSurfaces[0].face = 0;
 		pickingMRT.colorSurfaces[0].texture = outputTexture;
 		pickingMRT.colorSurfaces[1].face = 0;

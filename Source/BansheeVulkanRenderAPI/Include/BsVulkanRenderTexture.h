@@ -22,7 +22,7 @@ namespace bs { namespace ct
 	class VulkanRenderTextureCore : public RenderTextureCore
 	{
 	public:
-		VulkanRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx);
+		VulkanRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
 		virtual ~VulkanRenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */

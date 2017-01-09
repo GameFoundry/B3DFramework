@@ -59,7 +59,7 @@ namespace bs { namespace ct
 		
 		if ((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 		{
-			RENDER_TEXTURE_DESC_CORE rtDesc;
+			RENDER_TEXTURE_DESC rtDesc;
 
 			if ((desc.flag & TU_RENDERTARGET) != 0)
 			{

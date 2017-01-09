@@ -111,8 +111,8 @@ namespace bs
 
 		SPtr<ct::GpuParamsSetCore> mParams;
 		UINT32 mParamBufferIdx;
-		mutable ct::MaterialParamTextureCore mTextureParam;
-		mutable ct::MaterialParamSampStateCore mSamplerParam;
+		mutable ct::MaterialParamTexture mTextureParam;
+		mutable ct::MaterialParamSampState mSamplerParam;
 	};
 
 	/** @} */

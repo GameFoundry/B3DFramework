@@ -167,7 +167,7 @@ namespace bs
 		 * @copydoc RenderStateManager::createGraphicsPipelineState 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		SPtr<GraphicsPipelineStateCore> createGraphicsPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+		SPtr<GraphicsPipelineStateCore> createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** 
@@ -195,7 +195,7 @@ namespace bs
 		SPtr<BlendStateCore> _createBlendState(const BLEND_STATE_DESC& desc) const;
 
 		/**	Creates an uninitialized GraphicsPipelineState. Requires manual initialization after creation. */
-		virtual SPtr<GraphicsPipelineStateCore> _createGraphicsPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+		virtual SPtr<GraphicsPipelineStateCore> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/**	Creates an uninitialized ComputePipelineState. Requires manual initialization after creation. */

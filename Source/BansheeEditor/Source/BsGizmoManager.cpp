@@ -984,8 +984,8 @@ namespace bs
 			SPtr<GpuParamsCore> params0 = paramsSet->getGpuParams(0);
 			SPtr<GpuParamsCore> params1 = paramsSet->getGpuParams(1);
 
-			GpuParamTextureCore textureParam0;
-			GpuParamTextureCore textureParam1;
+			GpuParamTexture textureParam0;
+			GpuParamTexture textureParam1;
 
 			params0->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam0);
 			params1->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam1);
@@ -1160,7 +1160,7 @@ namespace bs
 				SPtr<GpuParamsSetCore> paramsSet = mPickingParamSets[1][iconData.paramsIdx];
 				SPtr<GpuParamsCore> params = paramsSet->getGpuParams();
 
-				GpuParamTextureCore textureParam;
+				GpuParamTexture textureParam;
 				params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", textureParam);
 
 				textureParam.set(iconData.texture);

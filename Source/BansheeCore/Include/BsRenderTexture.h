@@ -19,14 +19,14 @@ namespace bs
 		RENDER_SURFACE_DESC depthStencilSurface;
 	};
 
-	namespace ct { struct RENDER_TEXTURE_DESC_CORE; }
+	namespace ct { struct RENDER_TEXTURE_DESC; }
 
 	/**	Contains various properties that describe a render texture. */
 	class BS_CORE_EXPORT RenderTextureProperties : public RenderTargetProperties
 	{
 	public:
 		RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping);
-		RenderTextureProperties(const ct::RENDER_TEXTURE_DESC_CORE& desc, bool requiresFlipping);
+		RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& desc, bool requiresFlipping);
 		virtual ~RenderTextureProperties() { }
 
 	private:
@@ -105,14 +105,14 @@ namespace bs
 	 */
 
 	/**
-	 * @see		RENDER_TEXTURE_DESC
+	 * @see		bs::RENDER_TEXTURE_DESC
 	 *
 	 * @note	References core textures instead of texture handles.
 	 */
-	struct BS_CORE_EXPORT RENDER_TEXTURE_DESC_CORE
+	struct BS_CORE_EXPORT RENDER_TEXTURE_DESC
 	{
-		RENDER_SURFACE_DESC_CORE colorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
-		RENDER_SURFACE_DESC_CORE depthStencilSurface;
+		RENDER_SURFACE_DESC colorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		RENDER_SURFACE_DESC depthStencilSurface;
 	};
 
 	/**
@@ -123,14 +123,14 @@ namespace bs
 	class BS_CORE_EXPORT RenderTextureCore : public RenderTargetCore
 	{
 	public:
-		RenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx);
+		RenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
 		virtual ~RenderTextureCore();
 
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;
 
-		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC_CORE&, UINT32) */
-		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx = 0);
+		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC&, UINT32) */
+		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx = 0);
 
 		/**
 		 * Returns a color surface texture you may bind as an input to an GPU program.
@@ -163,7 +163,7 @@ namespace bs
 		SPtr<TextureView> mColorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		SPtr<TextureView> mDepthStencilSurface;
 
-		RENDER_TEXTURE_DESC_CORE mDesc;
+		RENDER_TEXTURE_DESC mDesc;
 	};
 
 	/** @} */

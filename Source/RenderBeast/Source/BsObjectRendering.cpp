@@ -63,7 +63,7 @@ namespace bs { namespace ct
 		
 		if (!boneMatricesParamName.empty())
 		{
-			MaterialParamBufferCore boneMatricesParam = element.material->getParamBuffer(boneMatricesParamName);
+			MaterialParamBuffer boneMatricesParam = element.material->getParamBuffer(boneMatricesParamName);
 			boneMatricesParam.set(element.boneMatrixBuffer);
 		}
 	}

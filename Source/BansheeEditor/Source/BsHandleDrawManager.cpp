@@ -274,7 +274,7 @@ namespace bs
 
 				if(entry.type == MeshType::Text)
 				{
-					GpuParamTextureCore texture;
+					GpuParamTexture texture;
 
 					paramsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMainTexture", texture);
 					texture.set(entry.texture);

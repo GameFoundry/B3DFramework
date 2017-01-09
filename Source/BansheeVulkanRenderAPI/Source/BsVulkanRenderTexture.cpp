@@ -9,7 +9,7 @@
 
 namespace bs { namespace ct
 {
-	VulkanRenderTextureCore::VulkanRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx)
+	VulkanRenderTextureCore::VulkanRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:RenderTextureCore(desc, deviceIdx), mProperties(desc, false), mDeviceIdx(deviceIdx), mFramebuffer(nullptr)
 	{
 		

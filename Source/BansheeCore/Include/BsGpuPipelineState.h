@@ -34,7 +34,7 @@ namespace bs
 	 */
 
 	/** Descriptor structure used for initializing a GPU pipeline state. */
-	struct PIPELINE_STATE_CORE_DESC
+	struct PIPELINE_STATE_DESC
 	{
 		SPtr<BlendStateCore> blendState;
 		SPtr<RasterizerStateCore> rasterizerState;
@@ -78,7 +78,7 @@ namespace bs
 		typedef SPtr<ct::DepthStencilStateCore> DepthStencilStateType;
 		typedef SPtr<ct::GpuProgramCore> GpuProgramType;
 		typedef ct::GpuPipelineParamInfoCore GpuPipelineParamInfoType;
-		typedef ct::PIPELINE_STATE_CORE_DESC StateDescType;
+		typedef ct::PIPELINE_STATE_DESC StateDescType;
 	};
 
 	/** 
@@ -225,14 +225,14 @@ namespace bs
 	class BS_CORE_EXPORT GraphicsPipelineStateCore : public CoreObjectCore, public TGraphicsPipelineState<true>
 	{
 	public:
-		GraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
+		GraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 		virtual ~GraphicsPipelineStateCore() { }
 
 		/** @copydoc CoreObjectCore::initialize() */
 		void initialize() override;
 
 		/** @copydoc RenderStateCoreManager::createGraphicsPipelineState */
-		static SPtr<GraphicsPipelineStateCore> create(const PIPELINE_STATE_CORE_DESC& desc, 
+		static SPtr<GraphicsPipelineStateCore> create(const PIPELINE_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:

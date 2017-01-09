@@ -66,7 +66,7 @@ namespace bs { namespace ct
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> VulkanTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC_CORE& desc,
+	SPtr<RenderTextureCore> VulkanTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
 																				  UINT32 deviceIdx)
 	{
 		SPtr<VulkanRenderTextureCore> texPtr = bs_shared_ptr_new<VulkanRenderTextureCore>(desc, deviceIdx);

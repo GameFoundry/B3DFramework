@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	}
 
 	SPtr<GraphicsPipelineStateCore> VulkanRenderStateCoreManager::_createGraphicsPipelineState(
-		const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask) const
+		const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
 		SPtr<VulkanGraphicsPipelineStateCore> pipelineState =
 			bs_shared_ptr<VulkanGraphicsPipelineStateCore>(new (bs_alloc<VulkanGraphicsPipelineStateCore>()) 

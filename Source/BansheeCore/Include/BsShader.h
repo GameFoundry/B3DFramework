@@ -357,7 +357,7 @@ namespace bs
 	 *  @{
 	 */
 
-	typedef TSHADER_DESC<true> SHADER_DESC_CORE;
+	typedef TSHADER_DESC<true> SHADER_DESC;
 
 	/** @} */
 	}
@@ -440,7 +440,7 @@ namespace bs
 		SPtr<ct::CoreObjectCore> createCore() const override;
 
 		/** Converts a sim thread version of the shader descriptor to a core thread version. */
-		ct::SHADER_DESC_CORE convertDesc(const SHADER_DESC& desc) const;
+		ct::SHADER_DESC convertDesc(const SHADER_DESC& desc) const;
 
 	private:
 		/************************************************************************/
@@ -487,12 +487,12 @@ namespace bs
 	{
 	public:
 		/** @copydoc Shader::create */
-		static SPtr<ShaderCore> create(const String& name, const SHADER_DESC_CORE& desc, const Vector<SPtr<TechniqueCore>>& techniques);
+		static SPtr<ShaderCore> create(const String& name, const SHADER_DESC& desc, const Vector<SPtr<TechniqueCore>>& techniques);
 
 	protected:
 		friend class Shader;
 
-		ShaderCore(const String& name, const SHADER_DESC_CORE& desc, const Vector<SPtr<TechniqueCore>>& techniques, UINT32 id);
+		ShaderCore(const String& name, const SHADER_DESC& desc, const Vector<SPtr<TechniqueCore>>& techniques, UINT32 id);
 
 		static std::atomic<UINT32> mNextShaderId;
 	};

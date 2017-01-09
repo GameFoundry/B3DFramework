@@ -20,7 +20,7 @@ namespace bs { namespace ct
 
 #define DEPTHFORMAT_COUNT (sizeof(depthFormats)/sizeof(GLenum))
 
-	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx)
+	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:RenderTextureCore(desc, deviceIdx), mProperties(desc, true), mFB(nullptr)
 	{
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");

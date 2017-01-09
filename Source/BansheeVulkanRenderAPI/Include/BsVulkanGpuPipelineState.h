@@ -79,7 +79,7 @@ namespace bs { namespace ct
 	protected:
 		friend class VulkanRenderStateCoreManager;
 
-		VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_CORE_DESC& desc, GpuDeviceFlags deviceMask);
+		VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	@copydoc GraphicsPipelineStateCore::initialize */
 		void initialize() override;

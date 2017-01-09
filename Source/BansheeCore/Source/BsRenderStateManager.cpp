@@ -215,7 +215,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<GraphicsPipelineStateCore> RenderStateCoreManager::createGraphicsPipelineState(const PIPELINE_STATE_CORE_DESC& desc, 
+	SPtr<GraphicsPipelineStateCore> RenderStateCoreManager::createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, 
 		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<GraphicsPipelineStateCore> state = _createGraphicsPipelineState(desc, deviceMask);
@@ -307,7 +307,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<GraphicsPipelineStateCore> RenderStateCoreManager::_createGraphicsPipelineState(const PIPELINE_STATE_CORE_DESC& desc,
+	SPtr<GraphicsPipelineStateCore> RenderStateCoreManager::_createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc,
 		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<GraphicsPipelineStateCore> pipelineState =

@@ -25,7 +25,7 @@ namespace bs { namespace ct
     class BS_RSGL_EXPORT GLRenderTextureCore : public RenderTextureCore
     {
 	public:
-		GLRenderTextureCore(const RENDER_TEXTURE_DESC_CORE& desc, UINT32 deviceIdx);
+		GLRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
 		virtual ~GLRenderTextureCore();
 
 		/** @copydoc RenderTextureCore::getCustomAttribute */
