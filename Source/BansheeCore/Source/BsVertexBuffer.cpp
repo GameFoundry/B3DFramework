@@ -23,7 +23,7 @@ namespace bs
 		desc.usage = mUsage;
 		desc.streamOut = mStreamOut;
 
-		return ct::HardwareBufferCoreManager::instance().createVertexBufferInternal(desc);
+		return ct::HardwareBufferManager::instance().createVertexBufferInternal(desc);
 	}
 
 	SPtr<ct::VertexBufferCore> VertexBuffer::getCore() const
@@ -44,7 +44,7 @@ namespace bs
 
 	SPtr<VertexBufferCore> VertexBufferCore::create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createVertexBuffer(desc, deviceMask);
+		return HardwareBufferManager::instance().createVertexBuffer(desc, deviceMask);
 	}
 	}
 }

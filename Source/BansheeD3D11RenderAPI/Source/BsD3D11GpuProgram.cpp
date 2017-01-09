@@ -178,7 +178,7 @@ namespace bs { namespace ct
 			List<VertexElement> inputParams;
 			parser.parse(microcode, mProperties.getType(), *mParametersDesc, &inputParams);
 
-			mInputDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(inputParams);
+			mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(inputParams);
 		}
 		else
 		{

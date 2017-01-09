@@ -12,19 +12,19 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of DirectX 11 pipeline states. */
-	class BS_D3D11_EXPORT D3D11RenderStateManager : public RenderStateCoreManager
+	class BS_D3D11_EXPORT D3D11RenderStateManager : public RenderStateManager
 	{
 	protected:
-		/** @copydoc RenderStateCoreManager::createSamplerStateInternal */
+		/** @copydoc RenderStateManager::createSamplerStateInternal */
 		SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const override;
 
-		/** @copydoc RenderStateCoreManager::createBlendStateInternal */
+		/** @copydoc RenderStateManager::createBlendStateInternal */
 		SPtr<BlendStateCore> createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const override;
 
-		/** @copydoc RenderStateCoreManager::createRasterizerStateInternal */
+		/** @copydoc RenderStateManager::createRasterizerStateInternal */
 		SPtr<RasterizerStateCore> createRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const override;
 
-		/** @copydoc RenderStateCoreManager::createDepthStencilStateInternal */
+		/** @copydoc RenderStateManager::createDepthStencilStateInternal */
 		SPtr<DepthStencilStateCore> createDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const override;
 	};
 

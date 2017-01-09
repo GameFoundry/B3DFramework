@@ -93,10 +93,10 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT RenderWindowCoreManager : public Module<RenderWindowCoreManager>
+	class BS_CORE_EXPORT RenderWindowManager : public Module<RenderWindowManager>
 	{
 	public:
-		RenderWindowCoreManager();
+		RenderWindowManager();
 
 		/** Creates a new render window using the specified options. */
 		SPtr<RenderWindowCore> create(RENDER_WINDOW_DESC& desc);
@@ -111,9 +111,9 @@ namespace bs
 		Vector<RenderWindowCore*> getRenderWindows() const;
 
 	protected:
-		friend class ct::RenderWindowCore;
-		friend class RenderWindow;
-		friend class RenderWindowManager;
+		friend class RenderWindowCore;
+		friend class bs::RenderWindow;
+		friend class bs::RenderWindowManager;
 
 		/** @copydoc create */
 		virtual SPtr<RenderWindowCore> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) = 0;

@@ -566,7 +566,7 @@ namespace bs
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo = std::static_pointer_cast<GpuPipelineParamInfo>(mParamInfo);
 
-		return ct::HardwareBufferCoreManager::instance().createGpuParams(paramInfo->getCore());
+		return ct::HardwareBufferManager::instance().createGpuParams(paramInfo->getCore());
 	}
 
 	void GpuParams::_markCoreDirty()
@@ -787,17 +787,17 @@ namespace bs
 
 	SPtr<GpuParamsCore> GpuParamsCore::create(const SPtr<GraphicsPipelineStateCore>& pipelineState, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
+		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
 	}
 
 	SPtr<GpuParamsCore> GpuParamsCore::create(const SPtr<ComputePipelineStateCore>& pipelineState, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
+		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
 	}
 
 	SPtr<GpuParamsCore> GpuParamsCore::create(const SPtr<GpuPipelineParamInfoCore>& paramInfo, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuParams(paramInfo, deviceMask);
+		return HardwareBufferManager::instance().createGpuParams(paramInfo, deviceMask);
 	}
 	}
 }

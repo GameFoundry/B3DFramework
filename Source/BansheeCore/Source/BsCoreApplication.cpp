@@ -96,7 +96,7 @@ namespace bs
 		unloadPlugin(mRendererPlugin);
 
 		RenderAPIManager::shutDown();
-		ct::GpuProgramCoreManager::shutDown();
+		ct::GpuProgramManager::shutDown();
 		GpuProgramManager::shutDown();
 
 		CoreObjectManager::shutDown(); // Must shut down before DynLibManager to ensure all objects are destroyed before unloading their libraries
@@ -143,7 +143,7 @@ namespace bs
 		ResourceListenerManager::startUp();
 		GpuProgramManager::startUp();
 		RenderStateManager::startUp();
-		ct::GpuProgramCoreManager::startUp();
+		ct::GpuProgramManager::startUp();
 		RenderAPIManager::startUp();
 
 		mPrimaryWindow = RenderAPIManager::instance().initialize(mStartUpDesc.renderAPI, mStartUpDesc.primaryWindowDesc);
@@ -269,7 +269,7 @@ namespace bs
 
 			gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-			gCoreThread().queueCommand(std::bind(&ct::RenderWindowCoreManager::_update, ct::RenderWindowCoreManager::instancePtr()), CTQF_InternalQueue);
+			gCoreThread().queueCommand(std::bind(&ct::RenderWindowManager::_update, ct::RenderWindowManager::instancePtr()), CTQF_InternalQueue);
 			gCoreThread().queueCommand(std::bind(&ct::QueryManager::_update, ct::QueryManager::instancePtr()), CTQF_InternalQueue);
 			gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
 

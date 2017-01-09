@@ -55,7 +55,7 @@ namespace bs { namespace ct
 		texDesc.hwGamma = desc.hwGamma;
 		texDesc.numSamples = desc.numSamples;
 
-		newTextureData->texture = TextureCoreManager::instance().createTexture(texDesc);
+		newTextureData->texture = TextureManager::instance().createTexture(texDesc);
 		
 		if ((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 		{
@@ -77,7 +77,7 @@ namespace bs { namespace ct
 				rtDesc.depthStencilSurface.mipLevel = 0;
 			}
 
-			newTextureData->renderTexture = TextureCoreManager::instance().createRenderTexture(rtDesc);
+			newTextureData->renderTexture = TextureManager::instance().createRenderTexture(rtDesc);
 		}
 
 		return newTextureData;

@@ -85,7 +85,7 @@ namespace bs { namespace ct
 			sceneColorDesc.depthStencilSurface.numFaces = 1;
 			sceneColorDesc.depthStencilSurface.mipLevel = 0;
 
-			mSceneColorRT = TextureCoreManager::instance().createRenderTexture(sceneColorDesc);
+			mSceneColorRT = TextureManager::instance().createRenderTexture(sceneColorDesc);
 		}
 	}
 

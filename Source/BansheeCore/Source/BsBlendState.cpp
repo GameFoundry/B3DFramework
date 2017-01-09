@@ -112,7 +112,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> BlendState::createCore() const
 	{
-		SPtr<ct::BlendStateCore> core = ct::RenderStateCoreManager::instance()._createBlendState(mProperties.mData);
+		SPtr<ct::BlendStateCore> core = ct::RenderStateManager::instance()._createBlendState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
 
 		return core;
@@ -199,12 +199,12 @@ namespace bs
 
 	SPtr<BlendStateCore> BlendStateCore::create(const BLEND_STATE_DESC& desc)
 	{
-		return RenderStateCoreManager::instance().createBlendState(desc);
+		return RenderStateManager::instance().createBlendState(desc);
 	}
 
 	const SPtr<BlendStateCore>& BlendStateCore::getDefault()
 	{
-		return RenderStateCoreManager::instance().getDefaultBlendState();
+		return RenderStateManager::instance().getDefaultBlendState();
 	}
 	}
 }

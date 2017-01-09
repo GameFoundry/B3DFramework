@@ -231,7 +231,7 @@ namespace bs
 		/** @copydoc CoreObjectCore::initialize() */
 		void initialize() override;
 
-		/** @copydoc RenderStateCoreManager::createGraphicsPipelineState */
+		/** @copydoc RenderStateManager::createGraphicsPipelineState */
 		static SPtr<GraphicsPipelineStateCore> create(const PIPELINE_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
@@ -249,7 +249,7 @@ namespace bs
 		/** @copydoc CoreObjectCore::initialize() */
 		void initialize() override;
 
-		/** @copydoc RenderStateCoreManager::createComputePipelineState */
+		/** @copydoc RenderStateManager::createComputePipelineState */
 		static SPtr<ComputePipelineStateCore> create(const SPtr<GpuProgramCore>& program,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 

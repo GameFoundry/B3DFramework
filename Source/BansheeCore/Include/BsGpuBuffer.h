@@ -148,7 +148,7 @@ namespace bs
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }
 
-		/** @copydoc HardwareBufferCoreManager::createGpuBuffer */
+		/** @copydoc HardwareBufferManager::createGpuBuffer */
 		static SPtr<GpuBufferCore> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:

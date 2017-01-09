@@ -193,14 +193,14 @@ namespace bs
 		/**	Returns information about the sampler state. */
 		const SamplerProperties& getProperties() const;
 
-		/**	@copydoc RenderStateCoreManager::createSamplerState */
+		/**	@copydoc RenderStateManager::createSamplerState */
 		static SPtr<SamplerStateCore> create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**	Returns the default sampler state. */
 		static const SPtr<SamplerStateCore>& getDefault();
 
 	protected:
-		friend class RenderStateCoreManager;
+		friend class RenderStateManager;
 
 		SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 

@@ -224,7 +224,7 @@ namespace bs
 		static const SPtr<BlendStateCore>& getDefault();
 
 	protected:
-		friend class RenderStateCoreManager;
+		friend class RenderStateManager;
 
 		BlendStateCore(const BLEND_STATE_DESC& desc, UINT32 id);
 

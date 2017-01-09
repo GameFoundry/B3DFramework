@@ -38,7 +38,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> GpuBuffer::createCore() const
 	{
-		return ct::HardwareBufferCoreManager::instance().createGpuBufferInternal(mProperties.mDesc);
+		return ct::HardwareBufferManager::instance().createGpuBufferInternal(mProperties.mDesc);
 	}
 
 	UINT32 GpuBuffer::getFormatSize(GpuBufferFormat format)
@@ -111,7 +111,7 @@ namespace bs
 
 	SPtr<GpuBufferCore> GpuBufferCore::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuBuffer(desc, deviceMask);
+		return HardwareBufferManager::instance().createGpuBuffer(desc, deviceMask);
 	}
 	}
 }

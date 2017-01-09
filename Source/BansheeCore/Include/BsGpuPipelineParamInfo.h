@@ -131,7 +131,7 @@ namespace bs
 													 GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
-		friend class RenderStateCoreManager;
+		friend class RenderStateManager;
 
 		GpuPipelineParamInfoCore(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
 	};

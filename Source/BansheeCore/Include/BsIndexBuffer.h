@@ -93,7 +93,7 @@ namespace bs
 		/**	Returns information about the index buffer. */
 		const IndexBufferProperties& getProperties() const { return mProperties; }
 
-		/** @copydoc HardwareBufferCoreManager::createIndexBuffer */
+		/** @copydoc HardwareBufferManager::createIndexBuffer */
 		static SPtr<IndexBufferCore> create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:

@@ -50,7 +50,7 @@ namespace bs
 		desc.type = mProperties.getType();
 		desc.requiresAdjacency = mNeedsAdjacencyInfo;
 
-		return ct::GpuProgramCoreManager::instance().createInternal(desc);
+		return ct::GpuProgramManager::instance().createInternal(desc);
 	}
 
 	SPtr<GpuProgram> GpuProgram::create(const GPU_PROGRAM_DESC& desc)
@@ -95,7 +95,7 @@ namespace bs
 
 	SPtr<GpuProgramCore> GpuProgramCore::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return GpuProgramCoreManager::instance().create(desc, deviceMask);
+		return GpuProgramManager::instance().create(desc, deviceMask);
 	}
 	}
 }

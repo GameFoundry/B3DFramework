@@ -215,7 +215,7 @@ namespace bs
 		static const SPtr<DepthStencilStateCore>& getDefault();
 
 	protected:
-		friend class RenderStateCoreManager;
+		friend class RenderStateManager;
 
 		DepthStencilStateCore(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id);
 

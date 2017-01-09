@@ -342,7 +342,7 @@ namespace bs
 
 	protected:
 		friend class GpuParams;
-		friend class HardwareBufferCoreManager;
+		friend class HardwareBufferManager;
 
 		GpuParamsCore(const SPtr<GpuPipelineParamInfoCore>& paramInfo, GpuDeviceFlags deviceMask);
 

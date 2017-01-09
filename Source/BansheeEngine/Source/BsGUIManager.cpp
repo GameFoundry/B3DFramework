@@ -1747,7 +1747,7 @@ namespace bs
 		ssDesc.minFilter = FO_POINT;
 		ssDesc.mipFilter = FO_POINT;
 
-		mSamplerState = RenderStateCoreManager::instance().createSamplerState(ssDesc);
+		mSamplerState = RenderStateManager::instance().createSamplerState(ssDesc);
 	}
 
 	bool GUIRenderer::check(const CameraCore& camera)

@@ -129,7 +129,7 @@ namespace bs
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;
 
-		/** @copydoc TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC&, UINT32) */
+		/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&, UINT32) */
 		static SPtr<RenderTextureCore> create(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx = 0);
 
 		/**

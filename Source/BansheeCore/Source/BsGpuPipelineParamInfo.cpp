@@ -245,7 +245,7 @@ namespace bs
 		desc.domainParams = mParamDescs[GPT_DOMAIN_PROGRAM];
 		desc.computeParams = mParamDescs[GPT_COMPUTE_PROGRAM];
 
-		return ct::RenderStateCoreManager::instance()._createPipelineParamInfo(desc);
+		return ct::RenderStateManager::instance()._createPipelineParamInfo(desc);
 	}
 
 	namespace ct
@@ -257,7 +257,7 @@ namespace bs
 	SPtr<GpuPipelineParamInfoCore> GpuPipelineParamInfoCore::create(const GPU_PIPELINE_PARAMS_DESC& desc, 
 		GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance().createPipelineParamInfo(desc, deviceMask);
+		return RenderStateManager::instance().createPipelineParamInfo(desc, deviceMask);
 	}
 	}
 }

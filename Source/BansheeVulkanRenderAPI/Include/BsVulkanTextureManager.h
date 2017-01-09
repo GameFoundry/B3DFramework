@@ -26,10 +26,10 @@ namespace bs
 	namespace ct
 	{
 	/**	Handles creation of Vulkan textures. */
-	class VulkanTextureManager : public TextureCoreManager
+	class VulkanTextureManager : public TextureManager
 	{
 	public:
-		/** @copydoc TextureCoreManager::onStartUp */
+		/** @copydoc TextureManager::onStartUp */
 		void onStartUp() override;
 
 		/** Returns a image view that can be used for shader read operations when no other image is bound. */
@@ -39,11 +39,11 @@ namespace bs
 		VkImageView getDummyStorageImageView(UINT32 deviceIdx) const;
 
 	protected:
-		/** @copydoc TextureCoreManager::createTextureInternal */
+		/** @copydoc TextureManager::createTextureInternal */
 		SPtr<TextureCore> createTextureInternal(const TEXTURE_DESC& desc, 
 			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc TextureCoreManager::createRenderTextureInternal */
+		/** @copydoc TextureManager::createRenderTextureInternal */
 		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 

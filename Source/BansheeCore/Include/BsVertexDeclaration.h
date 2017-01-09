@@ -245,11 +245,11 @@ namespace bs
 		 */
 		Vector<VertexElement> getMissingElements(const SPtr<VertexDeclarationCore>& shaderDecl);
 
-		/** @copydoc HardwareBufferCoreManager::createVertexDeclaration */
+		/** @copydoc HardwareBufferManager::createVertexDeclaration */
 		static SPtr<VertexDeclarationCore> create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
     protected:
-		friend class HardwareBufferCoreManager;
+		friend class HardwareBufferManager;
 
 		VertexDeclarationCore(const List<VertexElement>& elements, GpuDeviceFlags deviceMask);
 

@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of OpenGL specific hardware buffers. */
-    class BS_RSGL_EXPORT GLHardwareBufferManager : public HardwareBufferCoreManager
+    class BS_RSGL_EXPORT GLHardwareBufferManager : public HardwareBufferManager
     {
     public:
 		/**	Converts engine buffer usage flags into OpenGL specific flags. */
@@ -22,19 +22,19 @@ namespace bs { namespace ct
         static GLenum getGLType(VertexElementType type);
 
 	protected:
-		/** @copydoc HardwareBufferCoreManager::createVertexBufferInternal */
+		/** @copydoc HardwareBufferManager::createVertexBufferInternal */
         SPtr<VertexBufferCore> createVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, 
         	GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc HardwareBufferCoreManager::createIndexBufferInternal */
+		/** @copydoc HardwareBufferManager::createIndexBufferInternal */
 		SPtr<IndexBufferCore> createIndexBufferInternal(const INDEX_BUFFER_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBufferInternal */
+		/** @copydoc HardwareBufferManager::createGpuParamBlockBufferInternal */
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBufferInternal(UINT32 size, 
 			GpuParamBlockUsage usage = GPBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc HardwareBufferCoreManager::createGpuBufferInternal */
+		/** @copydoc HardwareBufferManager::createGpuBufferInternal */
 		SPtr<GpuBufferCore> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
     };

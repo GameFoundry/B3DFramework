@@ -261,7 +261,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> VertexDeclaration::createCore() const
 	{
-		return ct::HardwareBufferCoreManager::instance().createVertexDeclarationInternal(mProperties.mElementList);
+		return ct::HardwareBufferManager::instance().createVertexDeclarationInternal(mProperties.mElementList);
 	}
 
 	SPtr<VertexDeclaration> VertexDeclaration::create(const SPtr<VertexDataDesc>& desc)
@@ -334,7 +334,7 @@ namespace bs
 
 	SPtr<VertexDeclarationCore> VertexDeclarationCore::create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createVertexDeclaration(desc, deviceMask);
+		return HardwareBufferManager::instance().createVertexDeclaration(desc, deviceMask);
 	}
 
 	bool VertexDeclarationCore::isCompatible(const SPtr<VertexDeclarationCore>& shaderDecl)

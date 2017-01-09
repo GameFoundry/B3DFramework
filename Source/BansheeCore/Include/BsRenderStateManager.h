@@ -96,7 +96,7 @@ namespace bs
 	namespace ct
 	{
 	/**	Handles creation of various render states. */
-	class BS_CORE_EXPORT RenderStateCoreManager : public Module<RenderStateCoreManager>
+	class BS_CORE_EXPORT RenderStateManager : public Module<RenderStateManager>
 	{
 	private:
 		/**	Contains data about a cached blend state. */
@@ -145,33 +145,33 @@ namespace bs
 		};
 
 	public:
-		RenderStateCoreManager();
+		RenderStateManager();
 
 		/** 
-		 * @copydoc RenderStateManager::createSamplerState 
+		 * @copydoc bs::RenderStateManager::createSamplerState 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<SamplerStateCore> createSamplerState(const SAMPLER_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
-		/** @copydoc RenderStateManager::createDepthStencilState */
+		/** @copydoc bs::RenderStateManager::createDepthStencilState */
 		SPtr<DepthStencilStateCore> createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const;
 
-		/** @copydoc RenderStateManager::createRasterizerState */
+		/** @copydoc bs::RenderStateManager::createRasterizerState */
 		SPtr<RasterizerStateCore> createRasterizerState(const RASTERIZER_STATE_DESC& desc) const;
 
-		/** @copydoc RenderStateManager::createBlendState */
+		/** @copydoc bs::RenderStateManager::createBlendState */
 		SPtr<BlendStateCore> createBlendState(const BLEND_STATE_DESC& desc) const;
 
 		/** 
-		 * @copydoc RenderStateManager::createGraphicsPipelineState 
+		 * @copydoc bs::RenderStateManager::createGraphicsPipelineState 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GraphicsPipelineStateCore> createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** 
-		 * @copydoc RenderStateManager::createComputePipelineState 
+		 * @copydoc bs::RenderStateManager::createComputePipelineState 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<ComputePipelineStateCore> createComputePipelineState(const SPtr<GpuProgramCore>& program,

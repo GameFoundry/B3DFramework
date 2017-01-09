@@ -86,10 +86,10 @@ namespace bs
 	 *
 	 * @note	Core thread only.
      */
-    class BS_CORE_EXPORT TextureCoreManager : public Module<TextureCoreManager>
+    class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
     {
     public:
-		virtual ~TextureCoreManager() { }
+		virtual ~TextureManager() { }
 
 		/** @copydoc Module::onStartUp */
 		void onStartUp() override;
@@ -98,13 +98,13 @@ namespace bs
 		void onShutDown() override;
 
 		/**
-		 * @copydoc	TextureManager::createTexture(const TEXTURE_DESC&)
+		 * @copydoc	bs::TextureManager::createTexture(const TEXTURE_DESC&)
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<TextureCore> createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/**
-		 * @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) 
+		 * @copydoc bs::TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) 
 		 * @param[in]	deviceIdx		Index of the GPU device to create the object on.
 		 */
 		SPtr<RenderTextureCore> createRenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx = 0);

@@ -51,7 +51,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> DepthStencilState::createCore() const
 	{
-		SPtr<ct::DepthStencilStateCore> core = ct::RenderStateCoreManager::instance()._createDepthStencilState(mProperties.mData);
+		SPtr<ct::DepthStencilStateCore> core = ct::RenderStateManager::instance()._createDepthStencilState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
 
 		return core;
@@ -138,12 +138,12 @@ namespace bs
 
 	SPtr<DepthStencilStateCore> DepthStencilStateCore::create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateCoreManager::instance().createDepthStencilState(desc);
+		return RenderStateManager::instance().createDepthStencilState(desc);
 	}
 
 	const SPtr<DepthStencilStateCore>& DepthStencilStateCore::getDefault()
 	{
-		return RenderStateCoreManager::instance().getDefaultDepthStencilState();
+		return RenderStateManager::instance().getDefaultDepthStencilState();
 	}
 	}
 }

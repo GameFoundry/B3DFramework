@@ -90,7 +90,7 @@ namespace bs
 		/**	Returns information about the vertex buffer. */
 		const VertexBufferProperties& getProperties() const { return mProperties; }
 
-		/** @copydoc HardwareBufferCoreManager::createVertexBuffer */
+		/** @copydoc HardwareBufferManager::createVertexBuffer */
 		static SPtr<VertexBufferCore> create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:

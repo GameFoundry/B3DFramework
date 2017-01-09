@@ -321,9 +321,9 @@ namespace bs
 		virtual void _notifyRestored();
 
 	protected:
-		friend class RenderWindow;
+		friend class bs::RenderWindow;
+		friend class bs::RenderWindowManager;
 		friend class RenderWindowManager;
-		friend class RenderWindowCoreManager;
 
 		/**
 		 * Returns window properties that are always kept in sync between core and sim threads.

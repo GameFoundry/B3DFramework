@@ -23,7 +23,7 @@ namespace bs
 	{
 	void VulkanTextureManager::onStartUp()
 	{
-		TextureCoreManager::onStartUp();
+		TextureManager::onStartUp();
 
 		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
 		whitePixelData->setColorAt(Color::White, 0, 0);

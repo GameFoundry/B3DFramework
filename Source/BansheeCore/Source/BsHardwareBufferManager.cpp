@@ -76,12 +76,12 @@ namespace bs
 	namespace ct
 	{
 
-	HardwareBufferCoreManager::VertexDeclarationKey::VertexDeclarationKey(const List<VertexElement>& elements)
+	HardwareBufferManager::VertexDeclarationKey::VertexDeclarationKey(const List<VertexElement>& elements)
 		:elements(elements)
 	{ }
 
 
-	size_t HardwareBufferCoreManager::VertexDeclarationKey::HashFunction::operator()(const VertexDeclarationKey& v) const
+	size_t HardwareBufferManager::VertexDeclarationKey::HashFunction::operator()(const VertexDeclarationKey& v) const
 	{
 		size_t hash = 0;
 		for(auto& entry : v.elements)
@@ -90,7 +90,7 @@ namespace bs
 		return hash;
 	}
 
-	bool HardwareBufferCoreManager::VertexDeclarationKey::EqualFunction::operator()(const VertexDeclarationKey& lhs, 
+	bool HardwareBufferManager::VertexDeclarationKey::EqualFunction::operator()(const VertexDeclarationKey& lhs, 
 		const VertexDeclarationKey& rhs) const
 	{
 		if (lhs.elements.size() != rhs.elements.size())
@@ -111,7 +111,7 @@ namespace bs
 		return true;
 	}
 
-	SPtr<IndexBufferCore> HardwareBufferCoreManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc, 
+	SPtr<IndexBufferCore> HardwareBufferManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<IndexBufferCore> ibuf = createIndexBufferInternal(desc, deviceMask);
@@ -120,7 +120,7 @@ namespace bs
 
 	}
 
-	SPtr<VertexBufferCore> HardwareBufferCoreManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc, 
+	SPtr<VertexBufferCore> HardwareBufferManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc, 
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<VertexBufferCore> vbuf = createVertexBufferInternal(desc, deviceMask);
@@ -128,7 +128,7 @@ namespace bs
 		return vbuf;
 	}
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc, 
+	SPtr<VertexDeclarationCore> HardwareBufferManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc, 
 		GpuDeviceFlags deviceMask)
 	{
 		List<VertexElement> elements = desc->createElements();
@@ -136,7 +136,7 @@ namespace bs
 		return createVertexDeclaration(elements, deviceMask);
 	}
 
-	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParams(const SPtr<GpuPipelineParamInfoCore>& paramInfo,
+	SPtr<GpuParamsCore> HardwareBufferManager::createGpuParams(const SPtr<GpuPipelineParamInfoCore>& paramInfo,
 																   GpuDeviceFlags deviceMask)
     {
 		SPtr<GpuParamsCore> params = createGpuParamsInternal(paramInfo, deviceMask);
@@ -145,7 +145,7 @@ namespace bs
 		return params;
     }
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclaration(const List<VertexElement>& elements,
+	SPtr<VertexDeclarationCore> HardwareBufferManager::createVertexDeclaration(const List<VertexElement>& elements,
 		GpuDeviceFlags deviceMask)
 	{
 		VertexDeclarationKey key(elements);
@@ -161,7 +161,7 @@ namespace bs
 		return declPtr;
 	}
 
-	SPtr<GpuParamBlockBufferCore> HardwareBufferCoreManager::createGpuParamBlockBuffer(UINT32 size, 
+	SPtr<GpuParamBlockBufferCore> HardwareBufferManager::createGpuParamBlockBuffer(UINT32 size, 
 		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuParamBlockBufferCore> paramBlockPtr = createGpuParamBlockBufferInternal(size, usage, deviceMask);
@@ -170,7 +170,7 @@ namespace bs
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBufferCore> HardwareBufferCoreManager::createGpuBuffer(const GPU_BUFFER_DESC& desc,
+	SPtr<GpuBufferCore> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc,
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuBufferCore> gbuf = createGpuBufferInternal(desc, deviceMask);
@@ -179,7 +179,7 @@ namespace bs
 		return gbuf;
 	}
 
-	SPtr<VertexDeclarationCore> HardwareBufferCoreManager::createVertexDeclarationInternal(
+	SPtr<VertexDeclarationCore> HardwareBufferManager::createVertexDeclarationInternal(
 		const List<VertexElement>& elements, GpuDeviceFlags deviceMask)
 	{
 		VertexDeclarationCore* decl = new (bs_alloc<VertexDeclarationCore>()) VertexDeclarationCore(elements, deviceMask);
@@ -190,7 +190,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuParamsCore> HardwareBufferCoreManager::createGpuParamsInternal(
+	SPtr<GpuParamsCore> HardwareBufferManager::createGpuParamsInternal(
 		const SPtr<GpuPipelineParamInfoCore>& paramInfo, GpuDeviceFlags deviceMask)
     {
 		GpuParamsCore* params = new (bs_alloc<GpuParamsCore>()) GpuParamsCore(paramInfo, deviceMask);

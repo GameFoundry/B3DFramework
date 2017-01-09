@@ -20,7 +20,7 @@ namespace bs
 
 	SPtr<RenderWindow> RenderWindowManager::create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
 	{
-		UINT32 id = ct::RenderWindowCoreManager::instance().mNextWindowId.fetch_add(1, std::memory_order_relaxed);
+		UINT32 id = ct::RenderWindowManager::instance().mNextWindowId.fetch_add(1, std::memory_order_relaxed);
 
 		SPtr<RenderWindow> renderWindow = createImpl(desc, id, parentWindow);
 		renderWindow->_setThisPtr(renderWindow);
@@ -207,12 +207,12 @@ namespace bs
 	namespace ct
 	{
 
-	RenderWindowCoreManager::RenderWindowCoreManager()
+	RenderWindowManager::RenderWindowManager()
 	{
 		mNextWindowId = 0;
 	}
 
-	SPtr<RenderWindowCore> RenderWindowCoreManager::create(RENDER_WINDOW_DESC& desc)
+	SPtr<RenderWindowCore> RenderWindowManager::create(RENDER_WINDOW_DESC& desc)
 	{
 		UINT32 id = mNextWindowId.fetch_add(1, std::memory_order_relaxed);
 
@@ -222,7 +222,7 @@ namespace bs
 		return renderWindow;
 	}
 
-	void RenderWindowCoreManager::_update()
+	void RenderWindowManager::_update()
 	{
 		Lock lock(mWindowMutex);
 
@@ -232,14 +232,14 @@ namespace bs
 		mDirtyProperties.clear();
 	}
 
-	void RenderWindowCoreManager::windowCreated(RenderWindowCore* window)
+	void RenderWindowManager::windowCreated(RenderWindowCore* window)
 	{
 		Lock lock(mWindowMutex);
 
 		mCreatedWindows.push_back(window);
 	}
 
-	void RenderWindowCoreManager::windowDestroyed(RenderWindowCore* window)
+	void RenderWindowManager::windowDestroyed(RenderWindowCore* window)
 	{
 		{
 			Lock lock(mWindowMutex);
@@ -254,14 +254,14 @@ namespace bs
 		}
 	}
 
-	Vector<RenderWindowCore*> RenderWindowCoreManager::getRenderWindows() const
+	Vector<RenderWindowCore*> RenderWindowManager::getRenderWindows() const
 	{
 		Lock lock(mWindowMutex);
 
 		return mCreatedWindows;
 	}
 
-	void RenderWindowCoreManager::notifySyncDataDirty(RenderWindowCore* window)
+	void RenderWindowManager::notifySyncDataDirty(RenderWindowCore* window)
 	{
 		Lock lock(mWindowMutex);
 

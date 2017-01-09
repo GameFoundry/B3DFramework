@@ -24,14 +24,14 @@ namespace bs
 
 	namespace ct
 	{
-	/** @copydoc RenderWindowCoreManager */
-	class VulkanRenderWindowManager : public RenderWindowCoreManager
+	/** @copydoc RenderWindowManager */
+	class VulkanRenderWindowManager : public RenderWindowManager
 	{
 	public:
 		VulkanRenderWindowManager(VulkanRenderAPI& renderAPI);
 
 	protected:
-		/** @copydoc RenderWindowCoreManager::createInternal */
+		/** @copydoc RenderWindowManager::createInternal */
 		SPtr<RenderWindowCore> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
 
 		VulkanRenderAPI& mRenderAPI;

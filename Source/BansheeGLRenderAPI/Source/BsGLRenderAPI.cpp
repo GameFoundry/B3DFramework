@@ -100,9 +100,9 @@ namespace bs { namespace ct
 
 		CommandBufferManager::startUp<GLCommandBufferManager>();
 		bs::RenderWindowManager::startUp<bs::GLRenderWindowManager>(this);
-		RenderWindowCoreManager::startUp<GLRenderWindowManager>(this);
+		RenderWindowManager::startUp<GLRenderWindowManager>(this);
 
-		RenderStateCoreManager::startUp();
+		RenderStateManager::startUp();
 
 		QueryManager::startUp<GLQueryManager>();
 
@@ -153,14 +153,14 @@ namespace bs { namespace ct
 		if (mGLSLProgramFactory)
 		{
 			// Remove from manager safely
-			GpuProgramCoreManager::instance().removeFactory(mGLSLProgramFactory);
+			GpuProgramManager::instance().removeFactory(mGLSLProgramFactory);
 			bs_delete(mGLSLProgramFactory);
 			mGLSLProgramFactory = nullptr;
 		}
 
 		// Deleting the hardware buffer manager.  Has to be done before the mGLSupport->stop().
-		HardwareBufferCoreManager::shutDown();
 		HardwareBufferManager::shutDown();
+		bs::HardwareBufferManager::shutDown();
 		GLRTTManager::shutDown();
 
 		for (UINT32 i = 0; i < MAX_VB_COUNT; i++)
@@ -178,12 +178,12 @@ namespace bs { namespace ct
 
 		mGLSupport->stop();
 
-		TextureCoreManager::shutDown();
 		TextureManager::shutDown();
+		bs::TextureManager::shutDown();
 		QueryManager::shutDown();
-		RenderWindowCoreManager::shutDown();
 		RenderWindowManager::shutDown();
-		RenderStateCoreManager::shutDown();
+		bs::RenderWindowManager::shutDown();
+		RenderStateManager::shutDown();
 		GLVertexArrayObjectManager::shutDown(); // Note: Needs to be after QueryManager shutdown as some resources might be waiting for queries to complete
 		CommandBufferManager::shutDown();
 
@@ -1992,13 +1992,13 @@ namespace bs { namespace ct
 #endif
 
 		HardwareBufferManager::startUp();
-		HardwareBufferCoreManager::startUp<GLHardwareBufferManager>();
+		HardwareBufferManager::startUp<GLHardwareBufferManager>();
 
 		// GPU Program Manager setup
 		if(caps->isShaderProfileSupported("glsl"))
 		{
 			mGLSLProgramFactory = bs_new<GLSLProgramFactory>();
-			GpuProgramCoreManager::instance().addFactory(mGLSLProgramFactory);
+			GpuProgramManager::instance().addFactory(mGLSLProgramFactory);
 		}
 
 		GLRTTManager::startUp<GLRTTManager>();
@@ -2019,7 +2019,7 @@ namespace bs { namespace ct
 			mTextureInfos[i].type = GL_TEXTURE_2D;
 		
 		bs::TextureManager::startUp<bs::GLTextureManager>(std::ref(*mGLSupport));
-		TextureCoreManager::startUp<GLTextureManager>(std::ref(*mGLSupport));
+		TextureManager::startUp<GLTextureManager>(std::ref(*mGLSupport));
 	}
 
 	void GLRenderAPI::switchContext(const SPtr<GLContext>& context)

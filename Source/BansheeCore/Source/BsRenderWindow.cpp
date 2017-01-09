@@ -56,7 +56,7 @@ namespace bs
 			getCore()->getSyncedProperties().mHeight = height;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		onResized();
 
 		gCoreThread().queueCommand(std::bind(resizeFunc, getCore(), width, height));
@@ -79,7 +79,7 @@ namespace bs
 			getCore()->getSyncedProperties().mTop = top;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(moveFunc, getCore(), left, top));
 	}
 
@@ -97,7 +97,7 @@ namespace bs
 			getCore()->getSyncedProperties().mHidden = true;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(hideFunc, getCore()));
 	}
 
@@ -115,7 +115,7 @@ namespace bs
 			getCore()->getSyncedProperties().mHidden = false;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(showFunc, getCore()));
 	}
 
@@ -133,7 +133,7 @@ namespace bs
 			getCore()->getSyncedProperties().mIsMaximized = false;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(minimizeFunc, getCore()));
 	}
 
@@ -151,7 +151,7 @@ namespace bs
 			getCore()->getSyncedProperties().mIsMaximized = true;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(maximizeFunc, getCore()));
 	}
 
@@ -169,7 +169,7 @@ namespace bs
 			getCore()->getSyncedProperties().mIsMaximized = false;
 		}
 
-		ct::RenderWindowCoreManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(restoreFunc, getCore()));
 	}
 
@@ -214,7 +214,7 @@ namespace bs
 	SPtr<ct::CoreObjectCore> RenderWindow::createCore() const
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
-		return ct::RenderWindowCoreManager::instance().createInternal(desc, mWindowId);
+		return ct::RenderWindowManager::instance().createInternal(desc, mWindowId);
 	}
 
 	SPtr<RenderWindow> RenderWindow::create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
@@ -244,7 +244,7 @@ namespace bs
 	{
 		Platform::resetNonClientAreas(*this);
 
-		RenderWindowCoreManager::instance().windowDestroyed(this);
+		RenderWindowManager::instance().windowDestroyed(this);
 	}
 
 	void RenderWindowCore::setHidden(bool hidden)
@@ -259,7 +259,7 @@ namespace bs
 			getSyncedProperties().mHidden = hidden;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	void RenderWindowCore::setActive(bool state)
@@ -274,7 +274,7 @@ namespace bs
 			getSyncedProperties().mActive = state;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	void RenderWindowCore::_windowMovedOrResized()
@@ -290,8 +290,8 @@ namespace bs
 			getSyncedProperties().mHeight = props.mHeight;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
-		RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
 	void RenderWindowCore::_windowFocusReceived()
@@ -305,8 +305,8 @@ namespace bs
 			getSyncedProperties().mHasFocus = true;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
-		RenderWindowManager::instance().notifyFocusReceived(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifyFocusReceived(this);
 	}
 
 	void RenderWindowCore::_windowFocusLost()
@@ -320,8 +320,8 @@ namespace bs
 			getSyncedProperties().mHasFocus = false;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
-		RenderWindowManager::instance().notifyFocusLost(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifyFocusLost(this);
 	}
 
 	void RenderWindowCore::_notifyMaximized()
@@ -336,7 +336,7 @@ namespace bs
 			getSyncedProperties().mIsMaximized = true;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	void RenderWindowCore::_notifyMinimized()
@@ -351,7 +351,7 @@ namespace bs
 			getSyncedProperties().mIsMaximized = false;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	void RenderWindowCore::_notifyRestored()
@@ -366,7 +366,7 @@ namespace bs
 			getSyncedProperties().mIsMaximized = false;
 		}
 
-		RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	const RenderWindowProperties& RenderWindowCore::getProperties() const

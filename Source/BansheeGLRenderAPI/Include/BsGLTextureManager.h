@@ -35,17 +35,17 @@ namespace bs
 	namespace ct
 	{
 	/** Handles creation of OpenGL textures. */
-	class BS_RSGL_EXPORT GLTextureManager : public TextureCoreManager
+	class BS_RSGL_EXPORT GLTextureManager : public TextureManager
 	{
 	public:
 		GLTextureManager(GLSupport& support);
 
 	protected:		
-		/** @copydoc TextureCoreManager::createTextureInternal */
+		/** @copydoc TextureManager::createTextureInternal */
 		SPtr<TextureCore> createTextureInternal(const TEXTURE_DESC& desc,
 			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc TextureCoreManager::createRenderTextureInternal */
+		/** @copydoc TextureManager::createRenderTextureInternal */
 		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 

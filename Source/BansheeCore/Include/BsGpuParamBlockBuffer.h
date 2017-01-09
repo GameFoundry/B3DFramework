@@ -130,7 +130,7 @@ namespace bs
 		/**	Returns the size of the buffer in bytes. */
 		UINT32 getSize() const { return mSize; }
 
-		/** @copydoc HardwareBufferCoreManager::createGpuParamBlockBuffer */
+		/** @copydoc HardwareBufferManager::createGpuParamBlockBuffer */
 		static SPtr<GpuParamBlockBufferCore> create(UINT32 size, GpuParamBlockUsage usage = GPBU_DYNAMIC,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 

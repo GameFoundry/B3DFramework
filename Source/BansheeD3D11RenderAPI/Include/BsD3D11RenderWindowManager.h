@@ -28,14 +28,14 @@ namespace bs
 
 	namespace ct
 	{
-	/** @copydoc RenderWindowCoreManager */
-	class BS_D3D11_EXPORT D3D11RenderWindowManager : public RenderWindowCoreManager
+	/** @copydoc RenderWindowManager */
+	class BS_D3D11_EXPORT D3D11RenderWindowManager : public RenderWindowManager
 	{
 	public:
 		D3D11RenderWindowManager(D3D11RenderAPI* renderSystem);
 
 	protected:
-		/** @copydoc RenderWindowCoreManager::createInternal */
+		/** @copydoc RenderWindowManager::createInternal */
 		SPtr<RenderWindowCore> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
 
 	private:

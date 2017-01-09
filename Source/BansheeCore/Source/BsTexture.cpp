@@ -108,7 +108,7 @@ namespace bs
 	{
 		const TextureProperties& props = getProperties();
 
-		SPtr<ct::CoreObjectCore> coreObj = ct::TextureCoreManager::instance().createTextureInternal(props.mDesc, mInitData);
+		SPtr<ct::CoreObjectCore> coreObj = ct::TextureManager::instance().createTextureInternal(props.mDesc, mInitData);
 
 		if ((mProperties.getUsage() & TU_CPUCACHED) == 0)
 			mInitData = nullptr;
@@ -546,7 +546,7 @@ namespace bs
 	/************************************************************************/
 	SPtr<TextureCore> TextureCore::create(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return TextureCoreManager::instance().createTexture(desc, deviceMask);
+		return TextureManager::instance().createTexture(desc, deviceMask);
 	}
 
 	SPtr<TextureCore> TextureCore::create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection, 
@@ -561,7 +561,7 @@ namespace bs
 		desc.usage = usage;
 		desc.hwGamma = hwGammaCorrection;
 
-		return TextureCoreManager::instance().createTextureInternal(desc, pixelData, deviceMask);
+		return TextureManager::instance().createTextureInternal(desc, pixelData, deviceMask);
 	}
 	}
 }

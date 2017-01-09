@@ -47,7 +47,7 @@ namespace bs
 		/** @copydoc GpuProgramCore::create */
 		virtual SPtr<GpuProgramCore> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-		/** @copydoc GpuProgramManager::createEmpty */
+		/** @copydoc bs::GpuProgramManager::createEmpty */
 		virtual SPtr<GpuProgramCore> create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 	};
 
@@ -57,11 +57,11 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuProgramCoreManager : public Module<GpuProgramCoreManager>
+	class BS_CORE_EXPORT GpuProgramManager : public Module<GpuProgramManager>
 	{
 	public:
-		GpuProgramCoreManager();
-		virtual ~GpuProgramCoreManager();
+		GpuProgramManager();
+		virtual ~GpuProgramManager();
 
 		/**
 		 * Registers a new factory that is able to create GPU programs for a certain language. If any other factory for the

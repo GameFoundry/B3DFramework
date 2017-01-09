@@ -83,7 +83,7 @@ namespace bs
 		ct::PIPELINE_STATE_DESC desc;
 		convertPassDesc(mData, desc);
 
-		return ct::RenderStateCoreManager::instance()._createGraphicsPipelineState(desc);
+		return ct::RenderStateManager::instance()._createGraphicsPipelineState(desc);
 	}
 
 	SPtr<GraphicsPipelineState> GraphicsPipelineState::create(const PIPELINE_STATE_DESC& desc)
@@ -120,7 +120,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> ComputePipelineState::createCore() const
 	{
-		return ct::RenderStateCoreManager::instance()._createComputePipelineState(mProgram->getCore());
+		return ct::RenderStateManager::instance()._createComputePipelineState(mProgram->getCore());
 	}
 
 	SPtr<ComputePipelineState> ComputePipelineState::create(const SPtr<GpuProgram>& program)
@@ -159,7 +159,7 @@ namespace bs
 
 	SPtr<GraphicsPipelineStateCore> GraphicsPipelineStateCore::create(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance().createGraphicsPipelineState(desc, deviceMask);
+		return RenderStateManager::instance().createGraphicsPipelineState(desc, deviceMask);
 	}
 
 	ComputePipelineStateCore::ComputePipelineStateCore(const SPtr<GpuProgramCore>& program, GpuDeviceFlags deviceMask)
@@ -179,7 +179,7 @@ namespace bs
 	SPtr<ComputePipelineStateCore> ComputePipelineStateCore::create(const SPtr<GpuProgramCore>& program, 
 		GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance().createComputePipelineState(program, deviceMask);
+		return RenderStateManager::instance().createComputePipelineState(program, deviceMask);
 	}
 	}
 }

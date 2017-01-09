@@ -26,14 +26,14 @@ namespace bs
 	namespace ct
 	{
 	/**	Handles creation of DirectX 11 textures. */
-	class BS_D3D11_EXPORT D3D11TextureManager : public TextureCoreManager
+	class BS_D3D11_EXPORT D3D11TextureManager : public TextureManager
 	{
 	protected:
-		/** @copydoc TextureCoreManager::createTextureInternal */
+		/** @copydoc TextureManager::createTextureInternal */
 		SPtr<TextureCore> createTextureInternal(const TEXTURE_DESC& desc, 
 			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc TextureCoreManager::createRenderTextureInternal */
+		/** @copydoc TextureManager::createRenderTextureInternal */
 		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 	};

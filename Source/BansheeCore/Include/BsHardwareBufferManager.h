@@ -81,25 +81,25 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT HardwareBufferCoreManager : public Module<HardwareBufferCoreManager>
+	class BS_CORE_EXPORT HardwareBufferManager : public Module<HardwareBufferManager>
 	{
     public:
-		virtual ~HardwareBufferCoreManager() { }
+		virtual ~HardwareBufferManager() { }
 
 		/** 
-		 * @copydoc HardwareBufferManager::createVertexBuffer 
+		 * @copydoc bs::HardwareBufferManager::createVertexBuffer 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<VertexBufferCore> createVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
-		 * @copydoc HardwareBufferManager::createIndexBuffer 
+		 * @copydoc bs::HardwareBufferManager::createIndexBuffer 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<IndexBufferCore> createIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
-		 * @copydoc HardwareBufferManager::createVertexDeclaration 
+		 * @copydoc bs::HardwareBufferManager::createVertexDeclaration 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<VertexDeclarationCore> createVertexDeclaration(const SPtr<VertexDataDesc>& desc,
@@ -115,14 +115,14 @@ namespace bs
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
-		 * @copydoc HardwareBufferManager::createGpuParamBlockBuffer 
+		 * @copydoc bs::HardwareBufferManager::createGpuParamBlockBuffer 
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GpuParamBlockBufferCore> createGpuParamBlockBuffer(UINT32 size, 
 			GpuParamBlockUsage usage = GPBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		/** 
-		 * @copydoc HardwareBufferManager::createGpuBuffer
+		 * @copydoc bs::HardwareBufferManager::createGpuBuffer
 		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
 		SPtr<GpuBufferCore> createGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);

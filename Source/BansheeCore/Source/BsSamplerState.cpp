@@ -62,7 +62,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> SamplerState::createCore() const
 	{
-		return ct::RenderStateCoreManager::instance()._createSamplerState(mProperties.mData);
+		return ct::RenderStateManager::instance()._createSamplerState(mProperties.mData);
 	}
 
 	SPtr<SamplerState> SamplerState::create(const SAMPLER_STATE_DESC& desc)
@@ -124,7 +124,7 @@ namespace bs
 
 	SamplerStateCore::~SamplerStateCore()
 	{
-		RenderStateCoreManager::instance().notifySamplerStateDestroyed(mProperties.mData);
+		RenderStateManager::instance().notifySamplerStateDestroyed(mProperties.mData);
 	}
 
 	void SamplerStateCore::initialize()
@@ -145,12 +145,12 @@ namespace bs
 
 	SPtr<SamplerStateCore> SamplerStateCore::create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateCoreManager::instance().createSamplerState(desc, deviceMask);
+		return RenderStateManager::instance().createSamplerState(desc, deviceMask);
 	}
 
 	const SPtr<SamplerStateCore>& SamplerStateCore::getDefault()
 	{
-		return RenderStateCoreManager::instance().getDefaultSamplerState();
+		return RenderStateManager::instance().getDefaultSamplerState();
 	}
 
 	}

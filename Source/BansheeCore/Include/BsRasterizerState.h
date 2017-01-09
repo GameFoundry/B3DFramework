@@ -196,7 +196,7 @@ namespace bs
 		static const SPtr<RasterizerStateCore>& getDefault();
 
 	protected:
-		friend class RenderStateCoreManager;
+		friend class RenderStateManager;
 
 		RasterizerStateCore(const RASTERIZER_STATE_DESC& desc, UINT32 id);
 

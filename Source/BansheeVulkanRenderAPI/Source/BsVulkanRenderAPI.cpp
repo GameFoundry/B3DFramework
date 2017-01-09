@@ -237,15 +237,15 @@ namespace bs { namespace ct
 
 		// Create the texture manager for use by others		
 		bs::TextureManager::startUp<bs::VulkanTextureManager>();
-		TextureCoreManager::startUp<VulkanTextureManager>();
+		TextureManager::startUp<VulkanTextureManager>();
 
 		// Create hardware buffer manager		
-		HardwareBufferManager::startUp();
-		HardwareBufferCoreManager::startUp<VulkanHardwareBufferManager>();
+		bs::HardwareBufferManager::startUp();
+		HardwareBufferManager::startUp<VulkanHardwareBufferManager>();
 
 		// Create render window manager
 		bs::RenderWindowManager::startUp<bs::VulkanRenderWindowManager>();
-		RenderWindowCoreManager::startUp<VulkanRenderWindowManager>(*this);
+		RenderWindowManager::startUp<VulkanRenderWindowManager>(*this);
 
 		// Create query manager 
 		QueryManager::startUp<VulkanQueryManager>(*this);
@@ -257,8 +257,8 @@ namespace bs { namespace ct
 		mGLSLFactory = bs_new<VulkanGLSLProgramFactory>();
 
 		// Create render state manager
-		RenderStateCoreManager::startUp<VulkanRenderStateManager>();
-		GpuProgramCoreManager::instance().addFactory(mGLSLFactory);
+		RenderStateManager::startUp<VulkanRenderStateManager>();
+		GpuProgramManager::instance().addFactory(mGLSLFactory);
 
 		initCapabilites();
 		
@@ -277,13 +277,13 @@ namespace bs { namespace ct
 
 		VulkanVertexInputManager::shutDown();
 		QueryManager::shutDown();
-		RenderStateCoreManager::shutDown();
-		RenderWindowCoreManager::shutDown();
+		RenderStateManager::shutDown();
 		RenderWindowManager::shutDown();
-		HardwareBufferCoreManager::shutDown();
+		bs::RenderWindowManager::shutDown();
 		HardwareBufferManager::shutDown();
-		TextureCoreManager::shutDown();
+		bs::HardwareBufferManager::shutDown();
 		TextureManager::shutDown();
+		bs::TextureManager::shutDown();
 
 		mMainCommandBuffer = nullptr;
 

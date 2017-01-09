@@ -441,6 +441,9 @@ namespace bs
 		class OcclusionQuery;
 		class TextureView;
 		class RenderableElement;
+		class RenderWindowManager;
+		class RenderStateManager;
+		class HardwareBufferManager;
 	}
 }
 

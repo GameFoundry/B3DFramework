@@ -98,28 +98,28 @@ namespace bs { namespace ct
 		mDevice = bs_new<D3D11Device>(device);
 		
 		// Create the texture manager for use by others		
-		TextureManager::startUp<bs::D3D11TextureManager>();
-		TextureCoreManager::startUp<D3D11TextureManager>();
+		bs::TextureManager::startUp<bs::D3D11TextureManager>();
+		TextureManager::startUp<D3D11TextureManager>();
 
 		// Create hardware buffer manager		
-		HardwareBufferManager::startUp();
-		HardwareBufferCoreManager::startUp<D3D11HardwareBufferManager>(std::ref(*mDevice));
+		bs::HardwareBufferManager::startUp();
+		HardwareBufferManager::startUp<D3D11HardwareBufferManager>(std::ref(*mDevice));
 
 		// Create render window manager
-		RenderWindowManager::startUp<bs::D3D11RenderWindowManager>(this);
-		RenderWindowCoreManager::startUp<D3D11RenderWindowManager>(this);
+		bs::RenderWindowManager::startUp<bs::D3D11RenderWindowManager>(this);
+		RenderWindowManager::startUp<D3D11RenderWindowManager>(this);
 
 		// Create & register HLSL factory		
 		mHLSLFactory = bs_new<D3D11HLSLProgramFactory>();
 
 		// Create render state manager
-		RenderStateCoreManager::startUp<D3D11RenderStateManager>();
+		RenderStateManager::startUp<D3D11RenderStateManager>();
 
 		mNumDevices = 1;
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
 		initCapabilites(selectedAdapter, mCurrentCapabilities[0]);
 				
-		GpuProgramCoreManager::instance().addFactory(mHLSLFactory);
+		GpuProgramManager::instance().addFactory(mHLSLFactory);
 
 		mIAManager = bs_new<D3D11InputLayoutManager>();
 
@@ -179,13 +179,13 @@ namespace bs { namespace ct
 		mActiveRenderTarget = nullptr;
 		mActiveDepthStencilState = nullptr;
 
-		RenderStateCoreManager::shutDown();
-		RenderWindowCoreManager::shutDown();
+		RenderStateManager::shutDown();
 		RenderWindowManager::shutDown();
-		HardwareBufferCoreManager::shutDown();
+		bs::RenderWindowManager::shutDown();
 		HardwareBufferManager::shutDown();
-		TextureCoreManager::shutDown();
+		bs::HardwareBufferManager::shutDown();
 		TextureManager::shutDown();
+		bs::TextureManager::shutDown();
 
 		SAFE_RELEASE(mDXGIFactory);
 

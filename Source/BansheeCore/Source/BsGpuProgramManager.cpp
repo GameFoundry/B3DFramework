@@ -80,23 +80,23 @@ namespace bs
 		}
 	};
 
-	GpuProgramCoreManager::GpuProgramCoreManager()
+	GpuProgramManager::GpuProgramManager()
 	{
 		mNullFactory = bs_new<NullProgramFactory>();
 		addFactory(mNullFactory);
 	}
 
-	GpuProgramCoreManager::~GpuProgramCoreManager()
+	GpuProgramManager::~GpuProgramManager()
 	{
 		bs_delete((NullProgramFactory*)mNullFactory);
 	}
 
-	void GpuProgramCoreManager::addFactory(GpuProgramFactory* factory)
+	void GpuProgramManager::addFactory(GpuProgramFactory* factory)
 	{
 		mFactories[factory->getLanguage()] = factory;
 	}
 
-	void GpuProgramCoreManager::removeFactory(GpuProgramFactory* factory)
+	void GpuProgramManager::removeFactory(GpuProgramFactory* factory)
     {
         FactoryMap::iterator it = mFactories.find(factory->getLanguage());
         if (it != mFactories.end() && it->second == factory)
@@ -105,7 +105,7 @@ namespace bs
         }
     }
 
-	GpuProgramFactory* GpuProgramCoreManager::getFactory(const String& language)
+	GpuProgramFactory* GpuProgramManager::getFactory(const String& language)
 	{
 		FactoryMap::iterator i = mFactories.find(language);
 
@@ -115,14 +115,14 @@ namespace bs
 		return i->second;
 	}
 
-	bool GpuProgramCoreManager::isLanguageSupported(const String& lang)
+	bool GpuProgramManager::isLanguageSupported(const String& lang)
 	{
 		FactoryMap::iterator i = mFactories.find(lang);
 
 		return i != mFactories.end();
 	}
 
-	SPtr<GpuProgramCore> GpuProgramCoreManager::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgramCore> GpuProgramManager::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
     {
 		SPtr<GpuProgramCore> ret = createInternal(desc, deviceMask);
 		ret->initialize();
@@ -130,7 +130,7 @@ namespace bs
         return ret;
     }
 
-	SPtr<GpuProgramCore> GpuProgramCoreManager::createInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgramCore> GpuProgramManager::createInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
 		SPtr<GpuProgramCore> ret = factory->create(desc, deviceMask);

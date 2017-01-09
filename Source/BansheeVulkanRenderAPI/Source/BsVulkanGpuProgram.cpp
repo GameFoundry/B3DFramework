@@ -627,7 +627,7 @@ namespace bs { namespace ct
 			List<VertexElement> elementList;
 					
 			if (parseVertexAttributes(program, elementList, mCompileError))
-				mInputDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(elementList, mDeviceMask);
+				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(elementList, mDeviceMask);
 			else
 			{
 				mIsCompiled = false;

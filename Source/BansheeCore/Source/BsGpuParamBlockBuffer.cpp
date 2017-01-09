@@ -72,7 +72,7 @@ namespace bs
 
 	SPtr<ct::CoreObjectCore> GpuParamBlockBuffer::createCore() const
 	{
-		return ct::HardwareBufferCoreManager::instance().createGpuParamBlockBufferInternal(mSize, mUsage);
+		return ct::HardwareBufferManager::instance().createGpuParamBlockBufferInternal(mSize, mUsage);
 	}
 
 	CoreSyncData GpuParamBlockBuffer::syncToCore(FrameAlloc* allocator)
@@ -168,7 +168,7 @@ namespace bs
 	SPtr<GpuParamBlockBufferCore> GpuParamBlockBufferCore::create(UINT32 size, GpuParamBlockUsage usage, 
 		GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);
+		return HardwareBufferManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);
 	}
 	}
 }

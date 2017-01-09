@@ -194,7 +194,7 @@ namespace bs { namespace ct
 			if (mProperties.getType() == GPT_VERTEX_PROGRAM)
 			{
 				List<VertexElement> elementList = paramParser.buildVertexDeclaration(mGLHandle);
-				mInputDeclaration = HardwareBufferCoreManager::instance().createVertexDeclaration(elementList);
+				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(elementList);
 			}
 		}
 

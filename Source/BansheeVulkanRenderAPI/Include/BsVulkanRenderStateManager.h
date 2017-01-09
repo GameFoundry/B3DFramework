@@ -12,22 +12,22 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of Vulkan pipeline states. */
-	class VulkanRenderStateManager : public RenderStateCoreManager
+	class VulkanRenderStateManager : public RenderStateManager
 	{
 	protected:
-		/** @copydoc RenderStateCoreManager::createSamplerStateStateInternal */
+		/** @copydoc RenderStateManager::createSamplerStateStateInternal */
 		SPtr<SamplerStateCore> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask) const override;
 
-		/** @copydoc RenderStateCoreManager::_createGraphicsPipelineState */
+		/** @copydoc RenderStateManager::_createGraphicsPipelineState */
 		SPtr<GraphicsPipelineStateCore> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 
-		/** @copydoc RenderStateCoreManager::_createComputePipelineState */
+		/** @copydoc RenderStateManager::_createComputePipelineState */
 		SPtr<ComputePipelineStateCore> _createComputePipelineState(const SPtr<GpuProgramCore>& program,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 
-		/** @copydoc RenderStateCoreManager::_createPipelineParamInfo */
+		/** @copydoc RenderStateManager::_createPipelineParamInfo */
 		SPtr<GpuPipelineParamInfoCore> _createPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc,
 			 GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 	};

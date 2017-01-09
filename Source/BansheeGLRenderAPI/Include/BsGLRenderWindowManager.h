@@ -28,13 +28,13 @@ namespace bs
 	namespace ct
 	{
 	/**	Manager that handles window creation for OpenGL. */
-	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowCoreManager
+	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowManager
 	{
 	public:
 		GLRenderWindowManager(GLRenderAPI* renderSystem);
 
 	protected:
-		/** @copydoc RenderWindowCoreManager::createInternal */
+		/** @copydoc RenderWindowManager::createInternal */
 		SPtr<RenderWindowCore> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
 
 	private:

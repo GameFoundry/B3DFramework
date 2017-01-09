@@ -287,6 +287,6 @@ namespace bs { namespace ct
 
 		desc.maxAniso = options->anisotropyMax;
 
-		return RenderStateCoreManager::instance().createSamplerState(desc);
+		return RenderStateManager::instance().createSamplerState(desc);
 	}
 }}

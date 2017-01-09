@@ -84,7 +84,7 @@ namespace bs
 
 	namespace ct
 	{
-	void TextureCoreManager::onStartUp()
+	void TextureManager::onStartUp()
     {
 		TEXTURE_DESC desc;
 		desc.type = TEX_TYPE_2D;
@@ -131,7 +131,7 @@ namespace bs
 		TextureCore::NORMAL = normalTexture;
     }
 
-	void TextureCoreManager::onShutDown()
+	void TextureManager::onShutDown()
     {
 		// Need to make sure these are freed while still on the core thread
 		TextureCore::WHITE = nullptr;
@@ -139,7 +139,7 @@ namespace bs
 		TextureCore::NORMAL = nullptr;
     }
 
-	SPtr<TextureCore> TextureCoreManager::createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<TextureCore> TextureManager::createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<TextureCore> newRT = createTextureInternal(desc, nullptr, deviceMask);
 		newRT->initialize();
@@ -147,7 +147,7 @@ namespace bs
 		return newRT;
 	}
 
-	SPtr<RenderTextureCore> TextureCoreManager::createRenderTexture(const RENDER_TEXTURE_DESC& desc, 
+	SPtr<RenderTextureCore> TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC& desc, 
 																	UINT32 deviceIdx)
 	{
 		SPtr<RenderTextureCore> newRT = createRenderTextureInternal(desc, deviceIdx);

@@ -88,9 +88,9 @@ namespace bs { namespace ct
 		bs_zero_out(mSetsDirty, numSets);
 
 		VulkanSamplerState* defaultSampler = static_cast<VulkanSamplerState*>(SamplerStateCore::getDefault().get());
-		VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(TextureCoreManager::instance());
+		VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::instance());
 		VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
-			HardwareBufferCoreManager::instance());
+			HardwareBufferManager::instance());
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -250,7 +250,7 @@ namespace bs { namespace ct
 			else
 			{
 				VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
-					HardwareBufferCoreManager::instance());
+					HardwareBufferManager::instance());
 
 				perSetData.writeInfos[bindingIdx].buffer.buffer = vkBufManager.getDummyUniformBuffer(i);
 				mPerDeviceData[i].uniformBuffers[sequentialIdx] = VK_NULL_HANDLE;
@@ -298,7 +298,7 @@ namespace bs { namespace ct
 			else
 			{
 				VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(
-					TextureCoreManager::instance());
+					TextureManager::instance());
 
 				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyReadImageView(i);
 				mPerDeviceData[i].sampledImages[sequentialIdx] = VK_NULL_HANDLE;
@@ -347,7 +347,7 @@ namespace bs { namespace ct
 			else
 			{
 				VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(
-					TextureCoreManager::instance());
+					TextureManager::instance());
 
 				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyStorageImageView(i);
 				mPerDeviceData[i].storageImages[sequentialIdx] = VK_NULL_HANDLE;
@@ -399,7 +399,7 @@ namespace bs { namespace ct
 			else
 			{
 				VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
-					HardwareBufferCoreManager::instance());
+					HardwareBufferManager::instance());
 
 				bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 				if(isLoadStore)

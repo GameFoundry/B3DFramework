@@ -40,7 +40,7 @@ namespace bs
 		desc.numIndices = mProperties.mNumIndices;
 		desc.usage = mUsage;
 
-		return ct::HardwareBufferCoreManager::instance().createIndexBufferInternal(desc);
+		return ct::HardwareBufferManager::instance().createIndexBufferInternal(desc);
 	}
 
 	SPtr<IndexBuffer> IndexBuffer::create(const INDEX_BUFFER_DESC& desc)
@@ -56,7 +56,7 @@ namespace bs
 
 	SPtr<IndexBufferCore> IndexBufferCore::create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferCoreManager::instance().createIndexBuffer(desc, deviceMask);
+		return HardwareBufferManager::instance().createIndexBuffer(desc, deviceMask);
 	}
 	}
 }
