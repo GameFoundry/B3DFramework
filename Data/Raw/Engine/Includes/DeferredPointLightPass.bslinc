@@ -175,12 +175,18 @@ Technique
 					float angleTan = tan(angle);
 					float height = radius / angleTan;
 		
+					#ifdef VULKAN
+						uint vertexIdx = gl_VertexIndex;
+					#else
+						uint vertexIdx = gl_VertexID;
+					#endif
+		
 					uint sphereStartIdx = numSides * numSlices;
 					// Cone vertices
-					if (gl_VertexIndex < sphereStartIdx)
+					if (vertexIdx < sphereStartIdx)
 					{
-						uint sliceIdx = gl_VertexIndex / numSides;
-						uint sideIdx = gl_VertexIndex % numSides;
+						uint sliceIdx = vertexIdx / numSides;
+						uint sideIdx = vertexIdx % numSides;
 
 						float curAngle = float(sideIdx) * 2 * PI / float(numSides);
 						float sliceOffset = height * sliceIdx / float(numSlices - 1);
@@ -192,7 +198,7 @@ Technique
 					}
 					else // Sphere cap vertices
 					{
-						uint sphereVertexIdx = gl_VertexIndex - sphereStartIdx;
+						uint sphereVertexIdx = vertexIdx - sphereStartIdx;
 						uint sliceIdx = sphereVertexIdx / numSides;
 						uint sideIdx = sphereVertexIdx % numSides;
 
