@@ -13,10 +13,10 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a texture. */
-    class BS_RSGL_EXPORT GLTextureCore : public TextureCore
+    class BS_RSGL_EXPORT GLTexture : public TextureCore
     {
     public:
-		virtual ~GLTextureCore();
+		virtual ~GLTexture();
 
 		/**	Returns OpenGL texture target type. */
         GLenum getGLTextureTarget() const;
@@ -39,9 +39,9 @@ namespace bs { namespace ct
 		SPtr<GLPixelBuffer> getBuffer(UINT32 face, UINT32 mipmap);
 
     protected:
-		friend class GLTextureCoreManager;
+		friend class GLTextureManager;
 
-		GLTextureCore(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
+		GLTexture(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
 			GpuDeviceFlags deviceMask);
 
 		/** @copydoc TextureCore::initialize */

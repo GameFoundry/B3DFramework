@@ -38,7 +38,7 @@ namespace bs { namespace ct
 		}
 
 		glBindBuffer(target, mBufferId);
-		glBufferData(target, size, nullptr, GLHardwareBufferCoreManager::getGLUsage(usage));
+		glBufferData(target, size, nullptr, GLHardwareBufferManager::getGLUsage(usage));
 	}
 
 	void* GLBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options)

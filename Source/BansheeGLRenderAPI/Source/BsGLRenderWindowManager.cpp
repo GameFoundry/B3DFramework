@@ -5,29 +5,32 @@
 #include "BsGLSupport.h"
 #include "BsAsyncOp.h"
 
-namespace bs { namespace ct
+namespace bs
 {
+	GLRenderWindowManager::GLRenderWindowManager(ct::GLRenderAPI* renderSystem)
+		:mRenderSystem(renderSystem)
+	{
+		assert(mRenderSystem != nullptr);
+	}
+
+	SPtr<RenderWindow> GLRenderWindowManager::createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, 
+		const SPtr<RenderWindow>& parentWindow)
+	{
+		ct::GLSupport* glSupport = mRenderSystem->getGLSupport();
+
+		// Create the window
+		return glSupport->newWindow(desc, windowId, parentWindow);
+	}
+
+	namespace ct
+	{
 	GLRenderWindowManager::GLRenderWindowManager(GLRenderAPI* renderSystem)
 		:mRenderSystem(renderSystem)
 	{
 		assert(mRenderSystem != nullptr);
 	}
 
-	SPtr<RenderWindow> GLRenderWindowManager::createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, const SPtr<RenderWindow>& parentWindow)
-	{
-		GLSupport* glSupport = mRenderSystem->getGLSupport();
-
-		// Create the window
-		return glSupport->newWindow(desc, windowId, parentWindow);
-	}
-
-	GLRenderWindowCoreManager::GLRenderWindowCoreManager(GLRenderAPI* renderSystem)
-		:mRenderSystem(renderSystem)
-	{
-		assert(mRenderSystem != nullptr);
-	}
-
-	SPtr<RenderWindowCore> GLRenderWindowCoreManager::createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId)
+	SPtr<RenderWindowCore> GLRenderWindowManager::createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId)
 	{
 		GLSupport* glSupport = mRenderSystem->getGLSupport();
 
@@ -39,4 +42,5 @@ namespace bs { namespace ct
 
 		return window;
 	}
-}}
+	}
+}

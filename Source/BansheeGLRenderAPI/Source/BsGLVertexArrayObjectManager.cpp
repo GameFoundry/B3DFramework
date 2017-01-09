@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	{ }
 
 	GLVertexArrayObject::GLVertexArrayObject(GLuint handle, UINT64 vertexProgramId, 
-		GLVertexBufferCore** attachedBuffers, UINT32 numBuffers)
+		GLVertexBuffer** attachedBuffers, UINT32 numBuffers)
 		:mHandle(handle), mVertProgId(vertexProgramId), mAttachedBuffers(attachedBuffers), mNumBuffers(numBuffers)
 	{ }
 
@@ -75,7 +75,7 @@ namespace bs { namespace ct
 		assert(mVAObjects.size() == 0 && "VertexArrayObjectManager getting shut down but not all VA objects were released.");
 	}
 
-	const GLVertexArrayObject& GLVertexArrayObjectManager::getVAO(const SPtr<GLSLGpuProgramCore>& vertexProgram,
+	const GLVertexArrayObject& GLVertexArrayObjectManager::getVAO(const SPtr<GLSLGpuProgram>& vertexProgram,
 		const SPtr<VertexDeclarationCore>& vertexDecl, const std::array<SPtr<VertexBufferCore>, 32>& boundBuffers)
 	{
 		UINT16 maxStreamIdx = 0;
@@ -86,7 +86,7 @@ namespace bs { namespace ct
 		UINT32 numStreams = maxStreamIdx + 1;
 		UINT32 numUsedBuffers = 0;
 		INT32* streamToSeqIdx = bs_stack_alloc<INT32>(numStreams);
-		GLVertexBufferCore** usedBuffers = bs_stack_alloc<GLVertexBufferCore*>((UINT32)boundBuffers.size());
+		GLVertexBuffer** usedBuffers = bs_stack_alloc<GLVertexBuffer*>((UINT32)boundBuffers.size());
 		
 		memset(usedBuffers, 0, (UINT32)boundBuffers.size() * sizeof(GLVertexBuffer*));
 
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 			streamToSeqIdx[streamIdx] = (INT32)numUsedBuffers;
 
 			if (vertexBuffer != nullptr)
-				usedBuffers[numUsedBuffers] = static_cast<GLVertexBufferCore*>(vertexBuffer.get()); 
+				usedBuffers[numUsedBuffers] = static_cast<GLVertexBuffer*>(vertexBuffer.get()); 
 			else
 				usedBuffers[numUsedBuffers] = nullptr;
 
@@ -155,14 +155,14 @@ namespace bs { namespace ct
 
 			// TODO - We might also want to check the size of input and buffer, and make sure they match? Or does OpenGL handle that internally?
 
-			GLVertexBufferCore* vertexBuffer = usedBuffers[seqIdx];
+			GLVertexBuffer* vertexBuffer = usedBuffers[seqIdx];
 			const VertexBufferProperties& vbProps = vertexBuffer->getProperties();
 
 			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->getGLBufferId());
 			void* bufferData = VBO_BUFFER_OFFSET(elem.getOffset());
 
 			UINT16 typeCount = VertexElement::getTypeCount(elem.getType());
-			GLenum glType = GLHardwareBufferCoreManager::getGLType(elem.getType());
+			GLenum glType = GLHardwareBufferManager::getGLType(elem.getType());
 			bool isInteger = glType == GL_SHORT || glType == GL_UNSIGNED_SHORT || glType == GL_INT 
 				|| glType == GL_UNSIGNED_INT || glType == GL_UNSIGNED_BYTE;
 
@@ -195,7 +195,7 @@ namespace bs { namespace ct
 			glEnableVertexAttribArray(attribLocation);
 		}
 
-		wantedVAO.mAttachedBuffers = (GLVertexBufferCore**)bs_alloc(numUsedBuffers * sizeof(GLVertexBufferCore*));
+		wantedVAO.mAttachedBuffers = (GLVertexBuffer**)bs_alloc(numUsedBuffers * sizeof(GLVertexBuffer*));
 		for (UINT32 i = 0; i < numUsedBuffers; i++)
 		{
 			wantedVAO.mAttachedBuffers[i] = usedBuffers[i];

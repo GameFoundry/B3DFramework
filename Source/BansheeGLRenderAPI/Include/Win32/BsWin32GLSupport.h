@@ -69,7 +69,7 @@ namespace bs { namespace ct
 		static LRESULT CALLBACK dummyWndProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp);
 
 		Vector<DEVMODE> mDevModes;
-		Win32RenderWindowCore *mInitialWindow;
+		Win32RenderWindow *mInitialWindow;
 		Vector<int> mMultisampleLevels;
 		bool mHasPixelFormatARB;
         bool mHasMultisample;

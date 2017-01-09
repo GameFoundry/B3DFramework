@@ -10,12 +10,12 @@
 
 namespace bs { namespace ct
 {
-	UINT32 GLSLGpuProgramCore::mVertexShaderCount = 0;
-	UINT32 GLSLGpuProgramCore::mFragmentShaderCount = 0;
-	UINT32 GLSLGpuProgramCore::mGeometryShaderCount = 0;
-	UINT32 GLSLGpuProgramCore::mDomainShaderCount = 0;
-	UINT32 GLSLGpuProgramCore::mHullShaderCount = 0;
-	UINT32 GLSLGpuProgramCore::mComputeShaderCount = 0;
+	UINT32 GLSLGpuProgram::mVertexShaderCount = 0;
+	UINT32 GLSLGpuProgram::mFragmentShaderCount = 0;
+	UINT32 GLSLGpuProgram::mGeometryShaderCount = 0;
+	UINT32 GLSLGpuProgram::mDomainShaderCount = 0;
+	UINT32 GLSLGpuProgram::mHullShaderCount = 0;
+	UINT32 GLSLGpuProgram::mComputeShaderCount = 0;
 
 	bool checkForGLSLError(const GLuint programObj, String& outErrorMsg)
 	{
@@ -69,11 +69,11 @@ namespace bs { namespace ct
 		return errorsFound || !linkCompileSuccess;
 	}
 	
-	GLSLGpuProgramCore::GLSLGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	GLSLGpuProgram::GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 		:GpuProgramCore(desc, deviceMask), mProgramID(0), mGLHandle(0)
     { }
 
-	GLSLGpuProgramCore::~GLSLGpuProgramCore()
+	GLSLGpuProgram::~GLSLGpuProgram()
     { 
 		if (mIsCompiled && mGLHandle != 0)
 		{
@@ -84,7 +84,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
 	}
 
-	void GLSLGpuProgramCore::initialize()
+	void GLSLGpuProgram::initialize()
 	{
 		static const char GLSL_VERSION_LINE[] = "#version 440\n";
 
@@ -202,7 +202,7 @@ namespace bs { namespace ct
 		GpuProgramCore::initialize();
 	}
 
-	bool GLSLGpuProgramCore::isSupported() const
+	bool GLSLGpuProgram::isSupported() const
 	{
 		if (!isRequiredCapabilitiesSupported())
 			return false;

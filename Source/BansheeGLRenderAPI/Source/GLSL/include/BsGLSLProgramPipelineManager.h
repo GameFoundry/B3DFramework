@@ -33,8 +33,8 @@ namespace bs { namespace ct
 		 * Creates or returns an existing pipeline that uses the provided combination of GPU programs. Provide null for
 		 * unused programs.
 		 */
-		const GLSLProgramPipeline* getPipeline(GLSLGpuProgramCore* vertexProgram, GLSLGpuProgramCore* fragmentProgram,
-			GLSLGpuProgramCore* geometryProgram, GLSLGpuProgramCore* hullProgram, GLSLGpuProgramCore* domainProgram);
+		const GLSLProgramPipeline* getPipeline(GLSLGpuProgram* vertexProgram, GLSLGpuProgram* fragmentProgram,
+			GLSLGpuProgram* geometryProgram, GLSLGpuProgram* hullProgram, GLSLGpuProgram* domainProgram);
 
 	private:
 		/**	Key that uniquely identifies a pipeline object. */

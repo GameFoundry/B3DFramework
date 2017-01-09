@@ -13,10 +13,10 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a generic GPU buffer. */
-	class BS_RSGL_EXPORT GLGpuBufferCore : public GpuBufferCore
+	class BS_RSGL_EXPORT GLGpuBuffer : public GpuBufferCore
 	{
 	public:
-		~GLGpuBufferCore();
+		~GLGpuBuffer();
 
 		/** @copydoc GpuBufferCore::lock */
 		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
@@ -48,9 +48,9 @@ namespace bs { namespace ct
 		GLuint getGLFormat() const { return mFormat; }
 
 	protected:
-		friend class GLHardwareBufferCoreManager;
+		friend class GLHardwareBufferManager;
 
-		GLGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;

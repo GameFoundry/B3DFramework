@@ -7,18 +7,18 @@
 
 namespace bs { namespace ct
 {
-	GLIndexBufferCore::GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	GLIndexBuffer::GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:IndexBufferCore(desc, deviceMask), mUsage(desc.usage)
 	{
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 	}
 
-	GLIndexBufferCore::~GLIndexBufferCore()
+	GLIndexBuffer::~GLIndexBuffer()
 	{
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_IndexBuffer);
 	}
 
-	void GLIndexBufferCore::initialize()
+	void GLIndexBuffer::initialize()
 	{
 		mBuffer.initialize(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
 
@@ -26,22 +26,22 @@ namespace bs { namespace ct
 		IndexBufferCore::initialize();
 	}
 
-	void* GLIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* GLIndexBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		return mBuffer.lock(offset, length, options);
 	}
 
-	void GLIndexBufferCore::unmap()
+	void GLIndexBuffer::unmap()
 	{
 		mBuffer.unlock();
 	}
 
-	void GLIndexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLIndexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer.readData(offset, length, dest);
 	}
 
-	void GLIndexBufferCore::writeData(UINT32 offset, UINT32 length,
+	void GLIndexBuffer::writeData(UINT32 offset, UINT32 length,
 		const void* pSource, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		mBuffer.writeData(offset, length, pSource, writeFlags);

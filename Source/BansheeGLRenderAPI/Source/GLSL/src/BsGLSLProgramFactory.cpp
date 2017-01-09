@@ -14,9 +14,9 @@ namespace bs { namespace ct
 
 	SPtr<GpuProgramCore> GLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
     {
-		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore(desc, deviceMask);
+		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-		SPtr<GLSLGpuProgramCore> gpuProg = bs_shared_ptr<GLSLGpuProgramCore>(prog);
+		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
 		gpuProg->_setThisPtr(gpuProg);
 
 		return gpuProg;
@@ -27,9 +27,9 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC desc;
 		desc.type = type;
 
-		GLSLGpuProgramCore* prog = new (bs_alloc<GLSLGpuProgramCore>()) GLSLGpuProgramCore(desc, deviceMask);
+		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-		SPtr<GLSLGpuProgramCore> gpuProg = bs_shared_ptr<GLSLGpuProgramCore>(prog);
+		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
 		gpuProg->_setThisPtr(gpuProg);
 
 		return gpuProg;

@@ -13,11 +13,11 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of an index buffer. */
-    class BS_RSGL_EXPORT GLIndexBufferCore : public IndexBufferCore
+    class BS_RSGL_EXPORT GLIndexBuffer : public IndexBufferCore
     {
     public:
-		GLIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-		~GLIndexBufferCore();
+		GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		~GLIndexBuffer();
 
 		/** @copydoc IndexBufferCore::readData */
         void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;

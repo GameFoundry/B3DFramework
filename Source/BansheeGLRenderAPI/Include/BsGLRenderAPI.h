@@ -145,7 +145,7 @@ namespace bs { namespace ct
 		bool activateGLTextureUnit(UINT16 unit);
 
 		/**	Retrieves the active GPU program of the specified type. */
-		SPtr<GLSLGpuProgramCore> getActiveProgram(GpuProgramType gptype) const;
+		SPtr<GLSLGpuProgram> getActiveProgram(GpuProgramType gptype) const;
 
 		/**	Converts Banshee blend mode to OpenGL blend mode. */
 		GLint getBlendMode(BlendFactor blendMode) const;
@@ -393,12 +393,12 @@ namespace bs { namespace ct
 		GLSLProgramFactory* mGLSLProgramFactory;
 		GLSLProgramPipelineManager* mProgramPipelineManager;
 
-		SPtr<GLSLGpuProgramCore> mCurrentVertexProgram;
-		SPtr<GLSLGpuProgramCore> mCurrentFragmentProgram;
-		SPtr<GLSLGpuProgramCore> mCurrentGeometryProgram;
-		SPtr<GLSLGpuProgramCore> mCurrentHullProgram;
-		SPtr<GLSLGpuProgramCore> mCurrentDomainProgram;
-		SPtr<GLSLGpuProgramCore> mCurrentComputeProgram;
+		SPtr<GLSLGpuProgram> mCurrentVertexProgram;
+		SPtr<GLSLGpuProgram> mCurrentFragmentProgram;
+		SPtr<GLSLGpuProgram> mCurrentGeometryProgram;
+		SPtr<GLSLGpuProgram> mCurrentHullProgram;
+		SPtr<GLSLGpuProgram> mCurrentDomainProgram;
+		SPtr<GLSLGpuProgram> mCurrentComputeProgram;
 
 		const GLSLProgramPipeline* mActivePipeline;
 

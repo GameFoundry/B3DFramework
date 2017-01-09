@@ -5,7 +5,7 @@
 #include "BsGLPixelBuffer.h"
 #include "BsTextureView.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 #define PROBE_SIZE 16
 
@@ -20,19 +20,27 @@ namespace bs { namespace ct
 
 #define DEPTHFORMAT_COUNT (sizeof(depthFormats)/sizeof(GLenum))
 
-	GLRenderTextureCore::GLRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
+	GLRenderTexture::GLRenderTexture(const RENDER_TEXTURE_DESC& desc)
+		:RenderTexture(desc), mProperties(desc, true)
+	{
+
+	}
+
+	namespace ct
+	{
+	GLRenderTexture::GLRenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:RenderTextureCore(desc, deviceIdx), mProperties(desc, true), mFB(nullptr)
 	{
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 	}
 
-	GLRenderTextureCore::~GLRenderTextureCore()
+	GLRenderTexture::~GLRenderTexture()
 	{ 
 		if (mFB != nullptr)
 			bs_delete(mFB);
 	}
 
-	void GLRenderTextureCore::initialize()
+	void GLRenderTexture::initialize()
 	{
 		RenderTextureCore::initialize();
 
@@ -45,7 +53,7 @@ namespace bs { namespace ct
 		{
 			if (mColorSurfaces[i] != nullptr)
 			{
-				GLTextureCore* glColorSurface = static_cast<GLTextureCore*>(mColorSurfaces[i]->getTexture().get());
+				GLTexture* glColorSurface = static_cast<GLTexture*>(mColorSurfaces[i]->getTexture().get());
 				GLSurfaceDesc surfaceDesc;
 				surfaceDesc.numSamples = getProperties().getMultisampleCount();
 
@@ -94,7 +102,7 @@ namespace bs { namespace ct
 
 		if (mDepthStencilSurface != nullptr && mDepthStencilSurface->getTexture() != nullptr)
 		{
-			GLTextureCore* glDepthStencilTexture = static_cast<GLTextureCore*>(mDepthStencilSurface->getTexture().get());
+			GLTexture* glDepthStencilTexture = static_cast<GLTexture*>(mDepthStencilSurface->getTexture().get());
 			SPtr<GLPixelBuffer> depthStencilBuffer = nullptr;
 
 			if (glDepthStencilTexture->getProperties().getTextureType() != TEX_TYPE_3D)
@@ -107,7 +115,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderTextureCore::getCustomAttribute(const String& name, void* data) const
+	void GLRenderTexture::getCustomAttribute(const String& name, void* data) const
 	{
 		if(name=="FBO")
 		{
@@ -358,10 +366,5 @@ namespace bs { namespace ct
         // If none at all, return to default
         return PF_R8G8B8A8;
     }
-
-	GLRenderTexture::GLRenderTexture(const RENDER_TEXTURE_DESC& desc)
-		:RenderTexture(desc), mProperties(desc, true)
-	{
-
 	}
-}}
+}

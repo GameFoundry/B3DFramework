@@ -59,7 +59,7 @@ namespace bs { namespace ct
 		, mActiveTextureUnit(-1)
 	{
 		// Get our GLSupport
-		mGLSupport = getGLSupport();
+		mGLSupport = ct::getGLSupport();
 
 		mColorWrite[0] = mColorWrite[1] = mColorWrite[2] = mColorWrite[3] = true;
 
@@ -99,8 +99,8 @@ namespace bs { namespace ct
 		mVideoModeInfo = mGLSupport->getVideoModeInfo();
 
 		CommandBufferManager::startUp<GLCommandBufferManager>();
-		RenderWindowManager::startUp<GLRenderWindowManager>(this);
-		RenderWindowCoreManager::startUp<GLRenderWindowCoreManager>(this);
+		bs::RenderWindowManager::startUp<bs::GLRenderWindowManager>(this);
+		RenderWindowCoreManager::startUp<GLRenderWindowManager>(this);
 
 		RenderStateCoreManager::startUp();
 
@@ -211,11 +211,11 @@ namespace bs { namespace ct
 			DepthStencilStateCore* depthStencilState;
 			if (pipelineState != nullptr)
 			{
-				mCurrentVertexProgram = std::static_pointer_cast<GLSLGpuProgramCore>(pipelineState->getVertexProgram());
-				mCurrentFragmentProgram = std::static_pointer_cast<GLSLGpuProgramCore>(pipelineState->getFragmentProgram());
-				mCurrentGeometryProgram = std::static_pointer_cast<GLSLGpuProgramCore>(pipelineState->getGeometryProgram());
-				mCurrentDomainProgram = std::static_pointer_cast<GLSLGpuProgramCore>(pipelineState->getDomainProgram());
-				mCurrentHullProgram = std::static_pointer_cast<GLSLGpuProgramCore>(pipelineState->getHullProgram());
+				mCurrentVertexProgram = std::static_pointer_cast<GLSLGpuProgram>(pipelineState->getVertexProgram());
+				mCurrentFragmentProgram = std::static_pointer_cast<GLSLGpuProgram>(pipelineState->getFragmentProgram());
+				mCurrentGeometryProgram = std::static_pointer_cast<GLSLGpuProgram>(pipelineState->getGeometryProgram());
+				mCurrentDomainProgram = std::static_pointer_cast<GLSLGpuProgram>(pipelineState->getDomainProgram());
+				mCurrentHullProgram = std::static_pointer_cast<GLSLGpuProgram>(pipelineState->getHullProgram());
 
 				blendState = pipelineState->getBlendState().get();
 				rasterizerState = pipelineState->getRasterizerState().get();
@@ -327,7 +327,7 @@ namespace bs { namespace ct
 				program = pipelineState->getProgram();
 
 			if (program != nullptr && program->getProperties().getType() == GPT_COMPUTE_PROGRAM)
-				mCurrentComputeProgram = std::static_pointer_cast<GLSLGpuProgramCore>(program);
+				mCurrentComputeProgram = std::static_pointer_cast<GLSLGpuProgram>(program);
 			else
 				mCurrentComputeProgram = nullptr;
 		};
@@ -426,7 +426,7 @@ namespace bs { namespace ct
 						if (!activateGLTextureUnit(unit))
 							continue;
 
-						GLTextureCore* glTex = static_cast<GLTextureCore*>(texture.get());
+						GLTexture* glTex = static_cast<GLTexture*>(texture.get());
 
 						if (glTex != nullptr)
 						{
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 							glBindTexture(newTextureType, glTex->getGLID());
 							mTextureInfos[unit].type = newTextureType;
 
-							SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(type);
+							SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);
 							if (activeProgram != nullptr)
 							{
 								GLuint glProgram = activeProgram->getGLHandle();
@@ -485,7 +485,7 @@ namespace bs { namespace ct
 						bool isLoadStore = entry.second.type != GPOT_BYTE_BUFFER &&
 							entry.second.type != GPOT_STRUCTURED_BUFFER;
 
-						GLGpuBufferCore* glBuffer = static_cast<GLGpuBufferCore*>(buffer.get());
+						GLGpuBuffer* glBuffer = static_cast<GLGpuBuffer*>(buffer.get());
 						if (!isLoadStore)
 						{
 							UINT32 unit = getTexUnit(binding);
@@ -501,7 +501,7 @@ namespace bs { namespace ct
 
 								glBindTexture(GL_TEXTURE_BUFFER, glBuffer->getGLTextureId());
 
-								SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(type);
+								SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);
 								if (activeProgram != nullptr)
 								{
 									GLuint glProgram = activeProgram->getGLHandle();
@@ -520,7 +520,7 @@ namespace bs { namespace ct
 								glBindImageTexture(unit, glBuffer->getGLTextureId(), 0, false,
 									0, GL_READ_WRITE, glBuffer->getGLFormat());
 
-								SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(type);
+								SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);
 								if (activeProgram != nullptr)
 								{
 									GLuint glProgram = activeProgram->getGLHandle();
@@ -543,11 +543,11 @@ namespace bs { namespace ct
 						UINT32 unit = getImageUnit(binding);
 						if (texture != nullptr)
 						{
-							GLTextureCore* tex = static_cast<GLTextureCore*>(texture.get());
+							GLTexture* tex = static_cast<GLTexture*>(texture.get());
 							glBindImageTexture(unit, tex->getGLID(), surface.mipLevel, surface.numArraySlices > 1,
 								surface.arraySlice, GL_READ_WRITE, tex->getGLFormat());
 
-							SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(type);
+							SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);
 							if (activeProgram != nullptr)
 							{
 								GLuint glProgram = activeProgram->getGLHandle();
@@ -569,7 +569,7 @@ namespace bs { namespace ct
 
 						buffer->flushToGPU();
 
-						SPtr<GLSLGpuProgramCore> activeProgram = getActiveProgram(type);
+						SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);
 						GLuint glProgram = activeProgram->getGLHandle();
 
 						// 0 means uniforms are not in block, in which case we handle it specially
@@ -667,7 +667,7 @@ namespace bs { namespace ct
 						}
 						else
 						{
-							const GLGpuParamBlockBufferCore* glParamBlockBuffer = static_cast<const GLGpuParamBlockBufferCore*>(buffer.get());
+							const GLGpuParamBlockBuffer* glParamBlockBuffer = static_cast<const GLGpuParamBlockBuffer*>(buffer.get());
 
 							UINT32 unit = getUniformUnit(binding - 1);
 							glUniformBlockBinding(glProgram, binding - 1, unit);
@@ -951,7 +951,7 @@ namespace bs { namespace ct
 
 			beginDraw();
 
-			SPtr<GLIndexBufferCore> indexBuffer = std::static_pointer_cast<GLIndexBufferCore>(mBoundIndexBuffer);
+			SPtr<GLIndexBuffer> indexBuffer = std::static_pointer_cast<GLIndexBuffer>(mBoundIndexBuffer);
 			const IndexBufferProperties& ibProps = indexBuffer->getProperties();
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->getGLBufferId());
 
@@ -1952,7 +1952,7 @@ namespace bs { namespace ct
 		return primType;
 	}
 
-	SPtr<GLSLGpuProgramCore> GLRenderAPI::getActiveProgram(GpuProgramType gptype) const
+	SPtr<GLSLGpuProgram> GLRenderAPI::getActiveProgram(GpuProgramType gptype) const
 	{
 		switch (gptype)
 		{
@@ -1992,7 +1992,7 @@ namespace bs { namespace ct
 #endif
 
 		HardwareBufferManager::startUp();
-		HardwareBufferCoreManager::startUp<GLHardwareBufferCoreManager>();
+		HardwareBufferCoreManager::startUp<GLHardwareBufferManager>();
 
 		// GPU Program Manager setup
 		if(caps->isShaderProfileSupported("glsl"))
@@ -2018,8 +2018,8 @@ namespace bs { namespace ct
 		for (UINT16 i = 0; i < mNumTextureUnits; i++)
 			mTextureInfos[i].type = GL_TEXTURE_2D;
 		
-		TextureManager::startUp<GLTextureManager>(std::ref(*mGLSupport));
-		TextureCoreManager::startUp<GLTextureCoreManager>(std::ref(*mGLSupport));
+		bs::TextureManager::startUp<bs::GLTextureManager>(std::ref(*mGLSupport));
+		TextureCoreManager::startUp<GLTextureManager>(std::ref(*mGLSupport));
 	}
 
 	void GLRenderAPI::switchContext(const SPtr<GLContext>& context)

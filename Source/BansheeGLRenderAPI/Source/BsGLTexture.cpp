@@ -13,7 +13,7 @@
 
 namespace bs { namespace ct
 {
-	GLTextureCore::GLTextureCore(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
+	GLTexture::GLTexture(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, 
 		GpuDeviceFlags deviceMask)
 		: TextureCore(desc, initialData, deviceMask),
 		mTextureID(0), mGLFormat(0), mInternalFormat(PF_UNKNOWN), mGLSupport(support)
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 	}
 
-	GLTextureCore::~GLTextureCore()
+	GLTexture::~GLTexture()
     { 
 		mSurfaceList.clear();
 		glDeleteTextures(1, &mTextureID);
@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
 	}
 
-	void GLTextureCore::initialize()
+	void GLTexture::initialize()
 	{
 		UINT32 width = mProperties.getWidth();
 		UINT32 height = mProperties.getHeight();
@@ -168,7 +168,7 @@ namespace bs { namespace ct
 		TextureCore::initialize();
 	}
 
-    GLenum GLTextureCore::getGLTextureTarget() const
+    GLenum GLTexture::getGLTextureTarget() const
     {
 		switch (mProperties.getTextureType())
         {
@@ -204,14 +204,14 @@ namespace bs { namespace ct
         };
     }
 
-	GLuint GLTextureCore::getGLID() const
+	GLuint GLTexture::getGLID() const
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		return mTextureID;
 	}
 
-	PixelData GLTextureCore::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
+	PixelData GLTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
 									  UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 		return lockedArea;
 	}
 
-	void GLTextureCore::unlockImpl()
+	void GLTexture::unlockImpl()
 	{
 		if (mLockedBuffer == nullptr)
 		{
@@ -244,7 +244,7 @@ namespace bs { namespace ct
 		mLockedBuffer = nullptr;
 	}
 
-	void GLTextureCore::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLTexture::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
@@ -264,7 +264,7 @@ namespace bs { namespace ct
 			getBuffer(face, mipLevel)->download(dest);
 	}
 
-	void GLTextureCore::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
+	void GLTexture::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 								  UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
@@ -285,16 +285,16 @@ namespace bs { namespace ct
 			getBuffer(face, mipLevel)->upload(src, src.getExtents());
 	}
 
-	void GLTextureCore::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
+	void GLTexture::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
 								 const SPtr<TextureCore>& target, UINT32 queueIdx)
 	{
-		GLTextureCore* destTex = static_cast<GLTextureCore*>(target.get());
+		GLTexture* destTex = static_cast<GLTexture*>(target.get());
 		GLTextureBuffer *src = static_cast<GLTextureBuffer*>(getBuffer(srcFace, srcMipLevel).get());
 
 		destTex->getBuffer(destFace, destMipLevel)->blitFromTexture(src);
 	}
 
-	void GLTextureCore::createSurfaceList()
+	void GLTexture::createSurfaceList()
 	{
 		mSurfaceList.clear();
 		
@@ -318,7 +318,7 @@ namespace bs { namespace ct
 		}
 	}
 	
-	SPtr<GLPixelBuffer> GLTextureCore::getBuffer(UINT32 face, UINT32 mipmap)
+	SPtr<GLPixelBuffer> GLTexture::getBuffer(UINT32 face, UINT32 mipmap)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 

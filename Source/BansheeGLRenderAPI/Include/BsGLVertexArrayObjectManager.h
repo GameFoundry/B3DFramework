@@ -43,11 +43,11 @@ namespace bs { namespace ct
 		friend class GLVertexArrayObjectManager;
 
 		GLVertexArrayObject();
-		GLVertexArrayObject(GLuint handle, UINT64 vertexProgramId, GLVertexBufferCore** attachedBuffers, UINT32 numBuffers);
+		GLVertexArrayObject(GLuint handle, UINT64 vertexProgramId, GLVertexBuffer** attachedBuffers, UINT32 numBuffers);
 
 		GLuint mHandle;
 		UINT64 mVertProgId;
-		GLVertexBufferCore** mAttachedBuffers;
+		GLVertexBuffer** mAttachedBuffers;
 		UINT32 mNumBuffers;
 	};
 
@@ -63,7 +63,7 @@ namespace bs { namespace ct
 		 *
 		 * Lifetime of returned VAO is managed by the vertex buffers that it binds.
 		 */
-		const GLVertexArrayObject& getVAO(const SPtr<GLSLGpuProgramCore>& vertexProgram,
+		const GLVertexArrayObject& getVAO(const SPtr<GLSLGpuProgram>& vertexProgram,
 			const SPtr<VertexDeclarationCore>& vertexDecl, const std::array<SPtr<VertexBufferCore>, 32>& boundBuffers);
 
 		/**	Called when a vertex buffer containing the provided VAO is destroyed. */

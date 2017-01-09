@@ -12,10 +12,10 @@ namespace bs { namespace ct
 	 */
 
 	/**	GPU program compiled from GLSL and usable by OpenGL. */
-    class BS_RSGL_EXPORT GLSLGpuProgramCore : public GpuProgramCore
+    class BS_RSGL_EXPORT GLSLGpuProgram : public GpuProgramCore
     {
 	public:
-		~GLSLGpuProgramCore();
+		~GLSLGpuProgram();
 
 		/** @copydoc GpuProgramCore::isSupported */
 		bool isSupported() const override;
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 	private:
 		friend class GLSLProgramFactory;
 
-		GLSLGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuProgramCore::initialize */
 		void initialize() override;

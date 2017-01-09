@@ -8,7 +8,7 @@
 
 namespace bs { namespace ct
 {
-	GLGpuBufferCore::GLGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBufferCore(desc, deviceMask), mTextureID(0), mFormat(0)
 	{
 		if(desc.type != GBT_STANDARD)
@@ -25,14 +25,14 @@ namespace bs { namespace ct
 		mFormat = GLPixelUtil::getBufferFormat(desc.format);
 	}
 
-	GLGpuBufferCore::~GLGpuBufferCore()
+	GLGpuBuffer::~GLGpuBuffer()
 	{
 		glDeleteTextures(1, &mTextureID);
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 	}
 
-	void GLGpuBufferCore::initialize()
+	void GLGpuBuffer::initialize()
 	{
 		// Create buffer
 		const auto& props = getProperties();
@@ -48,7 +48,7 @@ namespace bs { namespace ct
 		GpuBufferCore::initialize();
 	}
 
-	void* GLGpuBufferCore::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* GLGpuBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -66,19 +66,19 @@ namespace bs { namespace ct
 		return mBuffer.lock(offset, length, options);
 	}
 
-	void GLGpuBufferCore::unlock()
+	void GLGpuBuffer::unlock()
 	{
 		mBuffer.unlock();
 	}
 
-	void GLGpuBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLGpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer.readData(offset, length, dest);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 	}
 
-	void GLGpuBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
+	void GLGpuBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
 									UINT32 queueIdx)
 	{
 		mBuffer.writeData(offset, length, source, writeFlags);
@@ -86,10 +86,10 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
 	}
 
-	void GLGpuBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
+	void GLGpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
 								   UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
-		GLGpuBufferCore& glSrcBuffer = static_cast<GLGpuBufferCore&>(srcBuffer);
+		GLGpuBuffer& glSrcBuffer = static_cast<GLGpuBuffer&>(srcBuffer);
 
 		GLuint srcId = glSrcBuffer.getGLBufferId();
 		glCopyBufferSubData(srcId, getGLBufferId(), srcOffset, dstOffset, length);

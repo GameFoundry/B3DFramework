@@ -5,9 +5,9 @@
 #include "BsGLRenderTexture.h"
 #include "BsGLPixelFormat.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-    GLTextureManager::GLTextureManager(GLSupport& support)
+    GLTextureManager::GLTextureManager(ct::GLSupport& support)
         :TextureManager(), mGLSupport(support)
     {
 
@@ -29,32 +29,35 @@ namespace bs { namespace ct
 	{
         // Check if this is a valid rendertarget format
 		if(usage & TU_RENDERTARGET)
-            return GLRTTManager::instance().getSupportedAlternative(format);
+            return ct::GLRTTManager::instance().getSupportedAlternative(format);
 
-		return GLPixelUtil::getClosestSupportedPF(format, ttype, usage);
+		return ct::GLPixelUtil::getClosestSupportedPF(format, ttype, usage);
 	}
 
-	GLTextureCoreManager::GLTextureCoreManager(GLSupport& support)
+	namespace ct
+	{
+	GLTextureManager::GLTextureManager(GLSupport& support)
 		:mGLSupport(support)
 	{ }
 
-	SPtr<TextureCore> GLTextureCoreManager::createTextureInternal(const TEXTURE_DESC& desc,
+	SPtr<TextureCore> GLTextureManager::createTextureInternal(const TEXTURE_DESC& desc,
 		const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	{
-		GLTextureCore* tex = new (bs_alloc<GLTextureCore>()) GLTextureCore(mGLSupport, desc, initialData, deviceMask);
+		GLTexture* tex = new (bs_alloc<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
 
-		SPtr<GLTextureCore> texPtr = bs_shared_ptr<GLTextureCore>(tex);
+		SPtr<GLTexture> texPtr = bs_shared_ptr<GLTexture>(tex);
 		texPtr->_setThisPtr(texPtr);
 
 		return texPtr;
 	}
 
-	SPtr<RenderTextureCore> GLTextureCoreManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
+	SPtr<RenderTextureCore> GLTextureManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 																			  UINT32 deviceIdx)
 	{
-		SPtr<GLRenderTextureCore> texPtr = bs_shared_ptr_new<GLRenderTextureCore>(desc, deviceIdx);
+		SPtr<GLRenderTexture> texPtr = bs_shared_ptr_new<GLRenderTexture>(desc, deviceIdx);
 		texPtr->_setThisPtr(texPtr);
 
 		return texPtr;
 	}
-}}
+		}
+}

@@ -5,13 +5,11 @@
 #include "BsWin32Prerequisites.h"
 #include "BsRenderWindow.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{
 	 */
-
-	class Win32RenderWindow;
 
 	/**	Contains various properties that describe a render window. */
 	class BS_RSGL_EXPORT Win32RenderWindowProperties : public RenderWindowProperties
@@ -21,20 +19,65 @@ namespace bs { namespace ct
 		virtual ~Win32RenderWindowProperties() { }
 
 	private:
-		friend class Win32RenderWindowCore;
+		friend class ct::Win32RenderWindow;
 		friend class Win32RenderWindow;
 	};
 
 	/**
 	 * Render window implementation for Windows.
 	 *
+	 * @note	Sim thread only.
+	 */
+	class BS_RSGL_EXPORT Win32RenderWindow : public RenderWindow
+	{
+	public:
+		~Win32RenderWindow() { }
+
+		/** @copydoc RenderWindow::screenToWindowPos */
+		void getCustomAttribute(const String& name, void* pData) const override;
+
+		/** @copydoc RenderWindow::screenToWindowPos */
+		Vector2I screenToWindowPos(const Vector2I& screenPos) const override;
+
+		/** @copydoc RenderWindow::windowToScreenPos */
+		Vector2I windowToScreenPos(const Vector2I& windowPos) const override;
+
+		/** @copydoc RenderWindow::getCore */
+		SPtr<ct::Win32RenderWindow> getCore() const;
+
+	protected:
+		friend class GLRenderWindowManager;
+		friend class ct::Win32GLSupport;
+		friend class ct::Win32RenderWindow;
+
+		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, ct::Win32GLSupport& glsupport);
+
+		/** @copydoc RenderWindow::getProperties */
+		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
+
+		/** @copydoc RenderWindow::syncProperties */
+		void syncProperties() override;
+
+		/**	Retrieves internal window handle. */
+		HWND getHWnd() const;
+
+	private:
+		ct::Win32GLSupport& mGLSupport;
+		Win32RenderWindowProperties mProperties;
+	};
+
+	namespace ct
+	{
+	/**
+	 * Render window implementation for Windows.
+	 *
 	 * @note	Core thread only.
 	 */
-    class BS_RSGL_EXPORT Win32RenderWindowCore : public RenderWindowCore
+    class BS_RSGL_EXPORT Win32RenderWindow : public RenderWindowCore
     {
     public:
-		Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport &glsupport);
-		~Win32RenderWindowCore();
+		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport &glsupport);
+		~Win32RenderWindow();
 
 		/** @copydoc RenderWindowCore::setFullscreen(UINT32, UINT32, float, UINT32) */
 		void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0) override;
@@ -105,7 +148,7 @@ namespace bs { namespace ct
 		void syncProperties() override;
 
 	protected:
-		friend class Win32RenderWindow;
+		friend class bs::Win32RenderWindow;
 
 		Win32Window* mWindow;
 		Win32GLSupport& mGLSupport;
@@ -117,50 +160,8 @@ namespace bs { namespace ct
 		SPtr<Win32Context> mContext;
 		Win32RenderWindowProperties mProperties;
 		Win32RenderWindowProperties mSyncedProperties;
-    };
-
-	/**
-	 * Render window implementation for Windows.
-	 *
-	 * @note	Sim thread only.
-	 */
-	class BS_RSGL_EXPORT Win32RenderWindow : public RenderWindow
-	{
-	public:
-		~Win32RenderWindow() { }
-
-		/** @copydoc RenderWindow::screenToWindowPos */
-		void getCustomAttribute(const String& name, void* pData) const override;
-
-		/** @copydoc RenderWindow::screenToWindowPos */
-		Vector2I screenToWindowPos(const Vector2I& screenPos) const override;
-
-		/** @copydoc RenderWindow::windowToScreenPos */
-		Vector2I windowToScreenPos(const Vector2I& windowPos) const override;
-
-		/** @copydoc RenderWindow::getCore */
-		SPtr<Win32RenderWindowCore> getCore() const;
-
-	protected:
-		friend class GLRenderWindowManager;
-		friend class Win32GLSupport;
-		friend class Win32RenderWindowCore;
-
-		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport& glsupport);
-
-		/** @copydoc RenderWindow::getProperties */
-		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
-
-		/** @copydoc RenderWindow::syncProperties */
-		void syncProperties() override;
-
-		/**	Retrieves internal window handle. */
-		HWND getHWnd() const;
-
-	private:
-		Win32GLSupport& mGLSupport;
-		Win32RenderWindowProperties mProperties;
-	};
+    };		
+	}
 
 	/** @} */
-}}
+}

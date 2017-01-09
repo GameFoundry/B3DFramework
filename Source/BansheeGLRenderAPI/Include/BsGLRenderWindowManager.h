@@ -5,7 +5,7 @@
 #include "BsGLPrerequisites.h"
 #include "BsRenderWindowManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{
@@ -15,21 +15,23 @@ namespace bs { namespace ct
 	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowManager
 	{
 	public:
-		GLRenderWindowManager(GLRenderAPI* renderSystem);
+		GLRenderWindowManager(ct::GLRenderAPI* renderSystem);
 
 	protected:
 		/** @copydoc RenderWindowManager::createImpl() */
 		SPtr<RenderWindow> createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, const SPtr<RenderWindow>& parentWindow) override;
 
 	private:
-		GLRenderAPI* mRenderSystem;
+		ct::GLRenderAPI* mRenderSystem;
 	};
 
+	namespace ct
+	{
 	/**	Manager that handles window creation for OpenGL. */
-	class BS_RSGL_EXPORT GLRenderWindowCoreManager : public RenderWindowCoreManager
+	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowCoreManager
 	{
 	public:
-		GLRenderWindowCoreManager(GLRenderAPI* renderSystem);
+		GLRenderWindowManager(GLRenderAPI* renderSystem);
 
 	protected:
 		/** @copydoc RenderWindowCoreManager::createInternal */
@@ -38,6 +40,7 @@ namespace bs { namespace ct
 	private:
 		GLRenderAPI* mRenderSystem;
 	};
+	}
 
 	/** @} */
-}}
+}

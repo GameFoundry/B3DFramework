@@ -37,18 +37,18 @@ namespace bs { namespace ct
 			desc.platformSpecific["parentWindowHandle"] = toString(hWnd);
 		}
 
-		Win32RenderWindow* window = new (bs_alloc<Win32RenderWindow>()) Win32RenderWindow(desc, windowId, *this);
-		return SPtr<RenderWindow>(window, &CoreObject::_delete<Win32RenderWindow, GenAlloc>);
+		bs::Win32RenderWindow* window = new (bs_alloc<bs::Win32RenderWindow>()) bs::Win32RenderWindow(desc, windowId, *this);
+		return SPtr<RenderWindow>(window, &CoreObject::_delete<bs::Win32RenderWindow, GenAlloc>);
 	}
 
 	SPtr<RenderWindowCore> Win32GLSupport::newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId)
 	{
-		Win32RenderWindowCore* window = new (bs_alloc<Win32RenderWindowCore>()) Win32RenderWindowCore(desc, windowId, *this);
+		Win32RenderWindow* window = new (bs_alloc<Win32RenderWindow>()) Win32RenderWindow(desc, windowId, *this);
 
 		if (!mInitialWindow)
 			mInitialWindow = window;
 
-		return bs_shared_ptr<Win32RenderWindowCore>(window);
+		return bs_shared_ptr<Win32RenderWindow>(window);
 	}
 
 	void Win32GLSupport::start()

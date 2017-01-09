@@ -12,9 +12,8 @@ namespace bs { namespace ct
 	 */
 
     class Win32GLSupport;
-    class Win32RenderWindow;
     class Win32Context;
-	class Win32RenderWindowCore;
+	class Win32RenderWindow;
 
 	/**	Retrieves last Windows API error and returns a description of it. */
 	String translateWGLError();

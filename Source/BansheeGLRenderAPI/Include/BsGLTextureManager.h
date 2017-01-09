@@ -7,7 +7,7 @@
 #include "BsGLSupport.h"
 #include "BsTextureManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup GL
 	 *  @{
@@ -17,7 +17,7 @@ namespace bs { namespace ct
     class BS_RSGL_EXPORT GLTextureManager : public TextureManager
     {
     public:
-        GLTextureManager(GLSupport& support);
+        GLTextureManager(ct::GLSupport& support);
         virtual ~GLTextureManager();
 
 		/**
@@ -29,14 +29,16 @@ namespace bs { namespace ct
 		/** @copydoc TextureManager::createRenderTextureImpl */
 		SPtr<RenderTexture> createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
 
-        GLSupport& mGLSupport;
+		ct::GLSupport& mGLSupport;
     };
 
+	namespace ct
+	{
 	/** Handles creation of OpenGL textures. */
-	class BS_RSGL_EXPORT GLTextureCoreManager : public TextureCoreManager
+	class BS_RSGL_EXPORT GLTextureManager : public TextureCoreManager
 	{
 	public:
-		GLTextureCoreManager(GLSupport& support);
+		GLTextureManager(GLSupport& support);
 
 	protected:		
 		/** @copydoc TextureCoreManager::createTextureInternal */
@@ -49,6 +51,7 @@ namespace bs { namespace ct
 
 		GLSupport& mGLSupport;
 	};
+	}
 
 	/** @} */
-}}
+}

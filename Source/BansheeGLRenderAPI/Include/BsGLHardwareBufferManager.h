@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of OpenGL specific hardware buffers. */
-    class BS_RSGL_EXPORT GLHardwareBufferCoreManager : public HardwareBufferCoreManager
+    class BS_RSGL_EXPORT GLHardwareBufferManager : public HardwareBufferCoreManager
     {
     public:
 		/**	Converts engine buffer usage flags into OpenGL specific flags. */

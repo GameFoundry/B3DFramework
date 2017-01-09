@@ -20,7 +20,7 @@
 
 GLenum GLEWAPIENTRY wglewContextInit(bs::ct::GLSupport* glSupport);
 
-namespace bs { namespace ct
+namespace bs
 {
 	#define _MAX_CLASS_NAME_ 128
 
@@ -28,13 +28,68 @@ namespace bs { namespace ct
 		:RenderWindowProperties(desc)
 	{ }
 
-	Win32RenderWindowCore::Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport& glsupport)
+	Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, ct::Win32GLSupport &glsupport)
+		:RenderWindow(desc, windowId), mGLSupport(glsupport), mProperties(desc)
+	{
+
+	}
+
+	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
+	{
+		if (name == "WINDOW")
+		{
+			UINT64 *pHwnd = (UINT64*)pData;
+			*pHwnd = (UINT64)getHWnd();
+			return;
+		}
+	}
+
+	Vector2I Win32RenderWindow::screenToWindowPos(const Vector2I& screenPos) const
+	{
+		POINT pos;
+		pos.x = screenPos.x;
+		pos.y = screenPos.y;
+
+		ScreenToClient(getHWnd(), &pos);
+		return Vector2I(pos.x, pos.y);
+	}
+
+	Vector2I Win32RenderWindow::windowToScreenPos(const Vector2I& windowPos) const
+	{
+		POINT pos;
+		pos.x = windowPos.x;
+		pos.y = windowPos.y;
+
+		ClientToScreen(getHWnd(), &pos);
+		return Vector2I(pos.x, pos.y);
+	}
+
+	SPtr<ct::Win32RenderWindow> Win32RenderWindow::getCore() const
+	{
+		return std::static_pointer_cast<ct::Win32RenderWindow>(mCoreSpecific);
+	}
+
+	void Win32RenderWindow::syncProperties()
+	{
+		ScopedSpinLock lock(getCore()->mLock);
+		mProperties = getCore()->mSyncedProperties;
+	}
+
+	HWND Win32RenderWindow::getHWnd() const
+	{
+		blockUntilCoreInitialized();
+		return getCore()->_getHWnd();
+	}
+
+	namespace ct
+	{
+		Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport& glsupport)
 		: RenderWindowCore(desc, windowId), mWindow(nullptr), mGLSupport(glsupport), mHDC(nullptr), mIsChild(false)
 		, mDeviceName(nullptr), mDisplayFrequency(0), mShowOnSwap(false), mContext(nullptr), mProperties(desc)
 		, mSyncedProperties(desc)
 	{ }
 
-	Win32RenderWindowCore::~Win32RenderWindowCore()
+		Win32RenderWindow::~Win32RenderWindow()
 	{ 
 		Win32RenderWindowProperties& props = mProperties;
 
@@ -56,7 +111,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::initialize()
+	void Win32RenderWindow::initialize()
 	{
 		Win32RenderWindowProperties& props = mProperties;
 
@@ -205,7 +260,7 @@ namespace bs { namespace ct
 		RenderWindowCore::initialize();
 	}
 
-	void Win32RenderWindowCore::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
+	void Win32RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -260,14 +315,14 @@ namespace bs { namespace ct
 		_windowMovedOrResized();
 	}
 
-	void Win32RenderWindowCore::setFullscreen(const VideoMode& mode)
+	void Win32RenderWindow::setFullscreen(const VideoMode& mode)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		setFullscreen(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getOutputIdx());
 	}
 
-	void Win32RenderWindowCore::setWindowed(UINT32 width, UINT32 height)
+	void Win32RenderWindow::setWindowed(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -321,7 +376,7 @@ namespace bs { namespace ct
 		_windowMovedOrResized();
 	}
 
-	void Win32RenderWindowCore::move(INT32 left, INT32 top)
+	void Win32RenderWindow::move(INT32 left, INT32 top)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -343,7 +398,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::resize(UINT32 width, UINT32 height)
+	void Win32RenderWindow::resize(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -365,28 +420,28 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::minimize()
+	void Win32RenderWindow::minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->minimize();
 	}
 
-	void Win32RenderWindowCore::maximize()
+	void Win32RenderWindow::maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->maximize();
 	}
 
-	void Win32RenderWindowCore::restore()
+	void Win32RenderWindow::restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->restore();
 	}
 
-	void Win32RenderWindowCore::swapBuffers(UINT32 syncMask)
+	void Win32RenderWindow::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -396,7 +451,7 @@ namespace bs { namespace ct
 		SwapBuffers(mHDC);
 	}
 
-	void Win32RenderWindowCore::copyToMemory(PixelData &dst, FrameBuffer buffer)
+	void Win32RenderWindow::copyToMemory(PixelData &dst, FrameBuffer buffer)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -450,7 +505,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::getCustomAttribute(const String& name, void* pData) const
+	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
 	{
 		if(name == "GLCONTEXT") 
 		{
@@ -466,7 +521,7 @@ namespace bs { namespace ct
 		} 
 	}
 
-	void Win32RenderWindowCore::setActive(bool state)
+	void Win32RenderWindow::setActive(bool state)
 	{	
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -475,7 +530,7 @@ namespace bs { namespace ct
 		RenderWindowCore::setActive(state);
 	}
 
-	void Win32RenderWindowCore::setHidden(bool hidden)
+	void Win32RenderWindow::setHidden(bool hidden)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -485,7 +540,7 @@ namespace bs { namespace ct
 		RenderWindowCore::setHidden(hidden);
 	}
 
-	void Win32RenderWindowCore::_windowMovedOrResized()
+	void Win32RenderWindow::_windowMovedOrResized()
 	{
 		if (!mWindow)
 			return;
@@ -504,67 +559,15 @@ namespace bs { namespace ct
 		RenderWindowCore::_windowMovedOrResized();
 	}
 
-	HWND Win32RenderWindowCore::_getHWnd() const
+	HWND Win32RenderWindow::_getHWnd() const
 	{
 		return mWindow->getHWnd();
 	}
 
-	void Win32RenderWindowCore::syncProperties()
+	void Win32RenderWindow::syncProperties()
 	{
 		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
+	}		
 	}
-
-	Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport &glsupport)
-		:RenderWindow(desc, windowId), mGLSupport(glsupport), mProperties(desc)
-	{
-
-	}
-
-	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
-	{
-		if (name == "WINDOW")
-		{
-			UINT64 *pHwnd = (UINT64*)pData;
-			*pHwnd = (UINT64)getHWnd();
-			return;
-		}
-	}
-
-	Vector2I Win32RenderWindow::screenToWindowPos(const Vector2I& screenPos) const
-	{
-		POINT pos;
-		pos.x = screenPos.x;
-		pos.y = screenPos.y;
-
-		ScreenToClient(getHWnd(), &pos);
-		return Vector2I(pos.x, pos.y);
-	}
-
-	Vector2I Win32RenderWindow::windowToScreenPos(const Vector2I& windowPos) const
-	{
-		POINT pos;
-		pos.x = windowPos.x;
-		pos.y = windowPos.y;
-
-		ClientToScreen(getHWnd(), &pos);
-		return Vector2I(pos.x, pos.y);
-	}
-
-	SPtr<Win32RenderWindowCore> Win32RenderWindow::getCore() const
-	{
-		return std::static_pointer_cast<Win32RenderWindowCore>(mCoreSpecific);
-	}
-
-	void Win32RenderWindow::syncProperties()
-	{
-		ScopedSpinLock lock(getCore()->mLock);
-		mProperties = getCore()->mSyncedProperties;
-	}
-
-	HWND Win32RenderWindow::getHWnd() const
-	{
-		blockUntilCoreInitialized();
-		return getCore()->_getHWnd();
-	}
-}}
+}
