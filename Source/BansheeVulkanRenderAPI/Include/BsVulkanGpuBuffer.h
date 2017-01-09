@@ -12,10 +12,10 @@ namespace bs { namespace ct
 	 */
 
 	/**	DirectX 11 implementation of a generic GPU buffer. */
-	class VulkanGpuBufferCore : public GpuBufferCore
+	class VulkanGpuBuffer : public GpuBufferCore
     {
     public:
-		~VulkanGpuBufferCore();
+		~VulkanGpuBuffer();
 
 		/** @copydoc GpuBufferCore::lock */
 		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
@@ -40,9 +40,9 @@ namespace bs { namespace ct
 		 */
 		VulkanBuffer* getResource(UINT32 deviceIdx) const;
 	protected:
-		friend class VulkanHardwareBufferCoreManager;
+		friend class VulkanHardwareBufferManager;
 
-		VulkanGpuBufferCore(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuBufferCore::initialize */
 		void initialize() override;

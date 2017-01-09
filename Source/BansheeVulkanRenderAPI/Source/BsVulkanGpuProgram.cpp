@@ -524,13 +524,13 @@ namespace bs { namespace ct
 		vkDestroyShaderModule(mOwner->getDevice().getLogical(), mModule, gVulkanAllocator);
 	}
 
-	VulkanGpuProgramCore::VulkanGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	VulkanGpuProgram::VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuProgramCore(desc, deviceMask), mDeviceMask(deviceMask), mModules()
 	{
 
 	}
 
-	VulkanGpuProgramCore::~VulkanGpuProgramCore()
+	VulkanGpuProgram::~VulkanGpuProgram()
 	{
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -541,7 +541,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
 	}
 
-	void VulkanGpuProgramCore::initialize()
+	void VulkanGpuProgram::initialize()
 	{
 		if (!isSupported())
 		{

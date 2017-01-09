@@ -37,10 +37,10 @@ namespace bs { namespace ct
 	};
 
 	/**	Vulkan implementation of a graphics pipeline state. */
-	class VulkanGraphicsPipelineStateCore : public GraphicsPipelineStateCore
+	class VulkanGraphicsPipelineState : public GraphicsPipelineStateCore
 	{
 	public:
-		~VulkanGraphicsPipelineStateCore();
+		~VulkanGraphicsPipelineState();
 
 		/** Checks does the pipeline enable scissor tests. */
 		bool isScissorEnabled() const { return mScissorEnabled; }
@@ -77,9 +77,9 @@ namespace bs { namespace ct
 		void registerPipelineResources(VulkanCmdBuffer* cmdBuffer);
 
 	protected:
-		friend class VulkanRenderStateCoreManager;
+		friend class VulkanRenderStateManager;
 
-		VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
+		VulkanGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	@copydoc GraphicsPipelineStateCore::initialize */
 		void initialize() override;
@@ -154,10 +154,10 @@ namespace bs { namespace ct
 	};
 
 	/**	Vulkan implementation of a compute pipeline state. */
-	class VulkanComputePipelineStateCore : public ComputePipelineStateCore
+	class VulkanComputePipelineState : public ComputePipelineStateCore
 	{
 	public:
-		~VulkanComputePipelineStateCore();
+		~VulkanComputePipelineState();
 
 		/** 
 		 * Returns a pipeline object for the specified device index. If the device index doesn't match a bit in the
@@ -178,9 +178,9 @@ namespace bs { namespace ct
 		void registerPipelineResources(VulkanCmdBuffer* cmdBuffer);
 
 	protected:
-		friend class VulkanRenderStateCoreManager;
+		friend class VulkanRenderStateManager;
 
-		VulkanComputePipelineStateCore(const SPtr<GpuProgramCore>& program, GpuDeviceFlags deviceMask);
+		VulkanComputePipelineState(const SPtr<GpuProgramCore>& program, GpuDeviceFlags deviceMask);
 
 		/**	@copydoc ComputePipelineStateCore::initialize */
 		void initialize() override;

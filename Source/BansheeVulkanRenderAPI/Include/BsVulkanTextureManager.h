@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsTextureManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{
@@ -23,8 +23,10 @@ namespace bs { namespace ct
 		SPtr<RenderTexture> createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
 	};
 
+	namespace ct
+	{
 	/**	Handles creation of Vulkan textures. */
-	class VulkanTextureCoreManager : public TextureCoreManager
+	class VulkanTextureManager : public TextureCoreManager
 	{
 	public:
 		/** @copydoc TextureCoreManager::onStartUp */
@@ -45,9 +47,9 @@ namespace bs { namespace ct
 		SPtr<RenderTextureCore> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 
-		SPtr<VulkanTextureCore> mDummyReadTexture;
-		SPtr<VulkanTextureCore> mDummyStorageTexture;
+		SPtr<VulkanTexture> mDummyReadTexture;
+		SPtr<VulkanTexture> mDummyStorageTexture;
 	};
-
+	}
 	/** @} */
-}}
+}

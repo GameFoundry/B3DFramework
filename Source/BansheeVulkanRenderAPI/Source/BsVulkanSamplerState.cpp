@@ -16,11 +16,11 @@ namespace bs { namespace ct
 		vkDestroySampler(mOwner->getDevice().getLogical(), mSampler, gVulkanAllocator);
 	}
 
-	VulkanSamplerStateCore::VulkanSamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+	VulkanSamplerState::VulkanSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 		:SamplerStateCore(desc, deviceMask), mSamplers(), mDeviceMask(deviceMask)
 	{ }
 
-	VulkanSamplerStateCore::~VulkanSamplerStateCore()
+	VulkanSamplerState::~VulkanSamplerState()
 	{
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanSamplerStateCore::createInternal()
+	void VulkanSamplerState::createInternal()
 	{
 		FilterOptions minFilter = getProperties().getTextureFiltering(FT_MIN);
 		FilterOptions magFilter = getProperties().getTextureFiltering(FT_MAG);

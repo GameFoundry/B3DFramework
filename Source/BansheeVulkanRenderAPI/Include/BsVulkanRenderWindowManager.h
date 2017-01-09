@@ -5,7 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsRenderWindowManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{
@@ -22,11 +22,13 @@ namespace bs { namespace ct
 		SPtr<RenderWindow> createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, const SPtr<RenderWindow>& parentWindow) override;
 	};
 
+	namespace ct
+	{
 	/** @copydoc RenderWindowCoreManager */
-	class VulkanRenderWindowCoreManager : public RenderWindowCoreManager
+	class VulkanRenderWindowManager : public RenderWindowCoreManager
 	{
 	public:
-		VulkanRenderWindowCoreManager(VulkanRenderAPI& renderAPI);
+		VulkanRenderWindowManager(VulkanRenderAPI& renderAPI);
 
 	protected:
 		/** @copydoc RenderWindowCoreManager::createInternal */
@@ -34,6 +36,6 @@ namespace bs { namespace ct
 
 		VulkanRenderAPI& mRenderAPI;
 	};
-
+	}
 	/** @} */
-}}
+}

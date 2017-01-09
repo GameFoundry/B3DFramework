@@ -178,10 +178,10 @@ namespace bs { namespace ct
 	};
 
 	/**	Vulkan implementation of a texture. */
-	class VulkanTextureCore : public TextureCore
+	class VulkanTexture : public TextureCore
 	{
 	public:
-		~VulkanTextureCore();
+		~VulkanTexture();
 
 		/** 
 		 * Gets the resource wrapping the Vulkan image object, on the specified device. If texture device mask doesn't 
@@ -190,9 +190,9 @@ namespace bs { namespace ct
 		VulkanImage* getResource(UINT32 deviceIdx) const { return mImages[deviceIdx]; }
 
 	protected:
-		friend class VulkanTextureCoreManager;
+		friend class VulkanTextureManager;
 
-		VulkanTextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
+		VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObjectCore::initialize() */
 		void initialize() override;

@@ -48,7 +48,7 @@ namespace bs { namespace ct
 {
 	class VulkanRenderAPI;
 	class Win32RenderWindow;
-	class VulkanTextureCore;
+	class VulkanTexture;
 	class Win32VideoMode;
 	class VulkanVertexDeclaration;
 	class VulkanHardwareBuffer;
@@ -64,7 +64,7 @@ namespace bs { namespace ct
 	class VulkanCommandBuffer;
 	class VulkanQueue;
 	class VulkanResourceManager;
-	class VulkanGpuParamBlockBufferCore;
+	class VulkanGpuParamBlockBuffer;
 	class VulkanBuffer;
 	class VulkanImage;
 	class VulkanDescriptorPool;

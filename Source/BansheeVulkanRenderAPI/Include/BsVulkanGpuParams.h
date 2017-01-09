@@ -87,7 +87,7 @@ namespace bs { namespace ct
 			VkSampler* samplers;
 		};
 
-		friend class VulkanHardwareBufferCoreManager;
+		friend class VulkanHardwareBufferManager;
 
 		VulkanGpuParams(const SPtr<GpuPipelineParamInfoCore>& paramInfo, GpuDeviceFlags deviceMask);
 

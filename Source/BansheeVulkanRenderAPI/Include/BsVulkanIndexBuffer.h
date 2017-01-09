@@ -12,11 +12,11 @@ namespace bs { namespace ct
 	 */
 
 	/**	Vulkan implementation of an index buffer. */
-	class VulkanIndexBufferCore : public IndexBufferCore
+	class VulkanIndexBuffer : public IndexBufferCore
 	{
 	public:
-		VulkanIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-		~VulkanIndexBufferCore();
+		VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		~VulkanIndexBuffer();
 
 		/** @copydoc IndexBufferCore::readData */
 		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;

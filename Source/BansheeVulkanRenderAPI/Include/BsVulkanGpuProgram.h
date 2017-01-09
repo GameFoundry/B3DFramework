@@ -27,10 +27,10 @@ namespace bs { namespace ct
 	};
 
 	/**	Abstraction of a Vulkan shader object. */
-	class VulkanGpuProgramCore : public GpuProgramCore
+	class VulkanGpuProgram : public GpuProgramCore
 	{
 	public:
-		virtual ~VulkanGpuProgramCore();
+		virtual ~VulkanGpuProgram();
 
 		/** 
 		 * Returns the shader module for the specified device. If program device mask doesn't include the provided device, 
@@ -41,7 +41,7 @@ namespace bs { namespace ct
 	protected:
 		friend class VulkanGLSLProgramFactory;
 
-		VulkanGpuProgramCore(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** @copydoc GpuProgramCore::initialize */
 		void initialize() override;

@@ -27,8 +27,8 @@ namespace bs { namespace ct
 
 	SPtr<GpuProgramCore> VulkanGLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
     {
-		SPtr<GpuProgramCore> gpuProg = bs_shared_ptr<VulkanGpuProgramCore>(new (bs_alloc<VulkanGpuProgramCore>())
-			VulkanGpuProgramCore(desc, deviceMask));
+		SPtr<GpuProgramCore> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new (bs_alloc<VulkanGpuProgram>())
+			VulkanGpuProgram(desc, deviceMask));
 		gpuProg->_setThisPtr(gpuProg);
 
 		return gpuProg;
@@ -39,8 +39,8 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC desc;
 		desc.type = type;
 
-		SPtr<GpuProgramCore> gpuProg = bs_shared_ptr<VulkanGpuProgramCore>(new (bs_alloc<VulkanGpuProgramCore>())
-			VulkanGpuProgramCore(desc, deviceMask));
+		SPtr<GpuProgramCore> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new (bs_alloc<VulkanGpuProgram>())
+			VulkanGpuProgram(desc, deviceMask));
 		gpuProg->_setThisPtr(gpuProg);
 
 		return gpuProg;

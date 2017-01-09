@@ -12,11 +12,11 @@ namespace bs { namespace ct
 	 */
 
 	/**	Vulkan implementation of a vertex buffer. */
-	class VulkanVertexBufferCore : public VertexBufferCore
+	class VulkanVertexBuffer : public VertexBufferCore
 	{
 	public:
-		VulkanVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-		~VulkanVertexBufferCore();
+		VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		~VulkanVertexBuffer();
 
 		/** @copydoc VertexBufferCore::readData */
 		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;

@@ -236,16 +236,16 @@ namespace bs { namespace ct
 		mMainCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(CommandBuffer::create(GQT_GRAPHICS));
 
 		// Create the texture manager for use by others		
-		TextureManager::startUp<VulkanTextureManager>();
-		TextureCoreManager::startUp<VulkanTextureCoreManager>();
+		bs::TextureManager::startUp<bs::VulkanTextureManager>();
+		TextureCoreManager::startUp<VulkanTextureManager>();
 
 		// Create hardware buffer manager		
 		HardwareBufferManager::startUp();
-		HardwareBufferCoreManager::startUp<VulkanHardwareBufferCoreManager>();
+		HardwareBufferCoreManager::startUp<VulkanHardwareBufferManager>();
 
 		// Create render window manager
-		RenderWindowManager::startUp<VulkanRenderWindowManager>();
-		RenderWindowCoreManager::startUp<VulkanRenderWindowCoreManager>(*this);
+		bs::RenderWindowManager::startUp<bs::VulkanRenderWindowManager>();
+		RenderWindowCoreManager::startUp<VulkanRenderWindowManager>(*this);
 
 		// Create query manager 
 		QueryManager::startUp<VulkanQueryManager>(*this);
@@ -257,7 +257,7 @@ namespace bs { namespace ct
 		mGLSLFactory = bs_new<VulkanGLSLProgramFactory>();
 
 		// Create render state manager
-		RenderStateCoreManager::startUp<VulkanRenderStateCoreManager>();
+		RenderStateCoreManager::startUp<VulkanRenderStateManager>();
 		GpuProgramCoreManager::instance().addFactory(mGLSLFactory);
 
 		initCapabilites();

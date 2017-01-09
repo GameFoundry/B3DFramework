@@ -5,13 +5,11 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsRenderWindow.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
-
-	class Win32RenderWindow;
 
 	/**	Contains various properties that describe a render window. */
 	class Win32RenderWindowProperties : public RenderWindowProperties
@@ -21,20 +19,63 @@ namespace bs { namespace ct
 		virtual ~Win32RenderWindowProperties() { }
 
 	private:
-		friend class Win32RenderWindowCore;
+		friend class ct::Win32RenderWindow;
 		friend class Win32RenderWindow;
 	};
 
 	/**
 	 * Render window implementation for Windows and Vulkan.
 	 *
-	 * @note	Core thread only.
+	 * @note	Sim thread only.
 	 */
-	class Win32RenderWindowCore : public RenderWindowCore
+	class Win32RenderWindow : public RenderWindow
 	{
 	public:
-		Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId, VulkanRenderAPI& renderAPI);
-		~Win32RenderWindowCore();
+		~Win32RenderWindow() { }
+
+		/** @copydoc RenderWindow::screenToWindowPos */
+		void getCustomAttribute(const String& name, void* pData) const override;
+
+		/** @copydoc RenderWindow::screenToWindowPos */
+		Vector2I screenToWindowPos(const Vector2I& screenPos) const override;
+
+		/** @copydoc RenderWindow::windowToScreenPos */
+		Vector2I windowToScreenPos(const Vector2I& windowPos) const override;
+
+		/** @copydoc RenderWindow::getCore */
+		SPtr<ct::Win32RenderWindow> getCore() const;
+
+		/**	Retrieves internal window handle. */
+		HWND getHWnd() const;
+
+	protected:
+		friend class VulkanRenderWindowManager;
+		friend class Win32RenderWindowCore;
+
+		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
+
+		/** @copydoc RenderWindowCore::getProperties */
+		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
+
+		/** @copydoc RenderWindow::syncProperties */
+		void syncProperties() override;
+
+	private:
+		Win32RenderWindowProperties mProperties;
+	};
+
+	namespace ct
+	{
+	/**
+	 * Render window implementation for Windows and Vulkan.
+	 *
+	 * @note	Core thread only.
+	 */
+	class Win32RenderWindow : public RenderWindowCore
+	{
+	public:
+		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, VulkanRenderAPI& renderAPI);
+		~Win32RenderWindow();
 
 		/** @copydoc RenderWindowCore::move */
 		void move(INT32 left, INT32 top) override;
@@ -89,7 +130,7 @@ namespace bs { namespace ct
 		/**	Returns internal window handle. */
 		HWND _getWindowHandle() const;
 	protected:
-		friend class Win32RenderWindow;
+		friend class bs::Win32RenderWindow;
 
 		/** @copydoc CoreObjectCore::initialize */
 		void initialize() override;
@@ -121,48 +162,8 @@ namespace bs { namespace ct
 
 		Win32RenderWindowProperties mProperties;
 		Win32RenderWindowProperties mSyncedProperties;
-	};
-
-	/**
-	 * Render window implementation for Windows and Vulkan.
-	 *
-	 * @note	Sim thread only.
-	 */
-	class Win32RenderWindow : public RenderWindow
-	{
-	public:
-		~Win32RenderWindow() { }
-
-		/** @copydoc RenderWindow::screenToWindowPos */
-		void getCustomAttribute(const String& name, void* pData) const override;
-
-		/** @copydoc RenderWindow::screenToWindowPos */
-		Vector2I screenToWindowPos(const Vector2I& screenPos) const override;
-
-		/** @copydoc RenderWindow::windowToScreenPos */
-		Vector2I windowToScreenPos(const Vector2I& windowPos) const override;
-
-		/** @copydoc RenderWindow::getCore */
-		SPtr<Win32RenderWindowCore> getCore() const;
-
-		/**	Retrieves internal window handle. */
-		HWND getHWnd() const;
-
-	protected:
-		friend class VulkanRenderWindowManager;
-		friend class Win32RenderWindowCore;
-
-		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
-
-		/** @copydoc RenderWindowCore::getProperties */
-		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
-
-		/** @copydoc RenderWindow::syncProperties */
-		void syncProperties() override;
-
-	private:
-		Win32RenderWindowProperties mProperties;
-	};
+	};	
+	}
 	
 	/** @} */
-}}
+}

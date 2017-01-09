@@ -7,20 +7,28 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	VulkanRenderTextureCore::VulkanRenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
+	VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc)
+		:RenderTexture(desc), mProperties(desc, false)
+	{ 
+
+	}
+
+	namespace ct
+	{
+	VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		:RenderTextureCore(desc, deviceIdx), mProperties(desc, false), mDeviceIdx(deviceIdx), mFramebuffer(nullptr)
 	{
 		
 	}
 
-	VulkanRenderTextureCore::~VulkanRenderTextureCore()
+	VulkanRenderTexture::~VulkanRenderTexture()
 	{
 		mFramebuffer->destroy();
 	}
 
-	void VulkanRenderTextureCore::initialize()
+	void VulkanRenderTexture::initialize()
 	{
 		RenderTextureCore::initialize();
 
@@ -37,7 +45,7 @@ namespace bs { namespace ct
 				continue;
 
 			const SPtr<TextureView>& view = mColorSurfaces[i];
-			VulkanTextureCore* texture = static_cast<VulkanTextureCore*>(view->getTexture().get());
+			VulkanTexture* texture = static_cast<VulkanTexture*>(view->getTexture().get());
 
 			VulkanImage* image = texture->getResource(mDeviceIdx);
 			if (image == nullptr)
@@ -78,7 +86,7 @@ namespace bs { namespace ct
 		if(mDepthStencilSurface != nullptr)
 		{
 			const SPtr<TextureView>& view = mDepthStencilSurface;
-			VulkanTextureCore* texture = static_cast<VulkanTextureCore*>(view->getTexture().get());
+			VulkanTexture* texture = static_cast<VulkanTexture*>(view->getTexture().get());
 
 			VulkanImage* image = texture->getResource(mDeviceIdx);
 			if (image != nullptr)
@@ -123,7 +131,7 @@ namespace bs { namespace ct
 		mFramebuffer = device->getResourceManager().create<VulkanFramebuffer>(fbDesc);
 	}
 
-	void VulkanRenderTextureCore::getCustomAttribute(const String& name, void* data) const
+	void VulkanRenderTexture::getCustomAttribute(const String& name, void* data) const
 	{
 		if (name == "FB")
 		{
@@ -131,11 +139,6 @@ namespace bs { namespace ct
 			*fb = mFramebuffer;
 			return;
 		}
+	}		
 	}
-
-	VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc)
-		:RenderTexture(desc), mProperties(desc, false)
-	{ 
-
-	}
-}}
+}

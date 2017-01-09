@@ -706,7 +706,7 @@ namespace bs { namespace ct
 		{
 			if (rt->getProperties().isWindow())
 			{
-				Win32RenderWindowCore* window = static_cast<Win32RenderWindowCore*>(rt.get());
+				Win32RenderWindow* window = static_cast<Win32RenderWindow*>(rt.get());
 				window->acquireBackBuffer();
 			}
 
@@ -946,7 +946,7 @@ namespace bs { namespace ct
 		if (mGraphicsPipeline == state)
 			return;
 
-		mGraphicsPipeline = std::static_pointer_cast<VulkanGraphicsPipelineStateCore>(state);
+		mGraphicsPipeline = std::static_pointer_cast<VulkanGraphicsPipelineState>(state);
 		mGfxPipelineRequiresBind = true; 
 	}
 
@@ -955,7 +955,7 @@ namespace bs { namespace ct
 		if (mComputePipeline == state)
 			return;
 
-		mComputePipeline = std::static_pointer_cast<VulkanComputePipelineStateCore>(state);
+		mComputePipeline = std::static_pointer_cast<VulkanComputePipelineState>(state);
 		mCmpPipelineRequiresBind = true;
 	}
 
@@ -1021,7 +1021,7 @@ namespace bs { namespace ct
 
 		for(UINT32 i = 0; i < numBuffers; i++)
 		{
-			VulkanVertexBufferCore* vertexBuffer = static_cast<VulkanVertexBufferCore*>(buffers[i].get());
+			VulkanVertexBuffer* vertexBuffer = static_cast<VulkanVertexBuffer*>(buffers[i].get());
 
 			if (vertexBuffer != nullptr)
 			{
@@ -1044,7 +1044,7 @@ namespace bs { namespace ct
 
 	void VulkanCmdBuffer::setIndexBuffer(const SPtr<IndexBufferCore>& buffer)
 	{
-		VulkanIndexBufferCore* indexBuffer = static_cast<VulkanIndexBufferCore*>(buffer.get());
+		VulkanIndexBuffer* indexBuffer = static_cast<VulkanIndexBuffer*>(buffer.get());
 
 		VkBuffer vkBuffer = VK_NULL_HANDLE;
 		VkIndexType indexType = VK_INDEX_TYPE_UINT32;

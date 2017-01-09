@@ -16,18 +16,73 @@
 #include "BsVulkanQueue.h"
 #include "BsMath.h"
 
-namespace bs { namespace ct
+namespace bs
 {
 	Win32RenderWindowProperties::Win32RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 		:RenderWindowProperties(desc)
 	{ }
 
-	Win32RenderWindowCore::Win32RenderWindowCore(const RENDER_WINDOW_DESC& desc, UINT32 windowId, VulkanRenderAPI& renderAPI)
+	Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId)
+		: RenderWindow(desc, windowId), mProperties(desc)
+	{
+
+	}
+
+	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
+	{
+		if (name == "WINDOW")
+		{
+			UINT64 *pHwnd = (UINT64*)pData;
+			*pHwnd = (UINT64)getHWnd();
+			return;
+		}
+	}
+
+	Vector2I Win32RenderWindow::screenToWindowPos(const Vector2I& screenPos) const
+	{
+		POINT pos;
+		pos.x = screenPos.x;
+		pos.y = screenPos.y;
+
+		ScreenToClient(getHWnd(), &pos);
+		return Vector2I(pos.x, pos.y);
+	}
+
+	Vector2I Win32RenderWindow::windowToScreenPos(const Vector2I& windowPos) const
+	{
+		POINT pos;
+		pos.x = windowPos.x;
+		pos.y = windowPos.y;
+
+		ClientToScreen(getHWnd(), &pos);
+		return Vector2I(pos.x, pos.y);
+	}
+
+	SPtr<ct::Win32RenderWindow> Win32RenderWindow::getCore() const
+	{
+		return std::static_pointer_cast<ct::Win32RenderWindow>(mCoreSpecific);
+	}
+
+	HWND Win32RenderWindow::getHWnd() const
+	{
+		blockUntilCoreInitialized();
+		return getCore()->_getWindowHandle();
+	}
+
+	void Win32RenderWindow::syncProperties()
+	{
+		ScopedSpinLock lock(getCore()->mLock);
+		mProperties = getCore()->mSyncedProperties;
+	}
+
+	namespace ct
+	{
+		Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, VulkanRenderAPI& renderAPI)
 		: RenderWindowCore(desc, windowId), mProperties(desc), mSyncedProperties(desc), mWindow(nullptr), mIsChild(false)
 		, mShowOnSwap(false), mDisplayFrequency(0), mRenderAPI(renderAPI), mRequiresNewBackBuffer(true)
 	{ }
 
-	Win32RenderWindowCore::~Win32RenderWindowCore()
+		Win32RenderWindow::~Win32RenderWindow()
 	{ 
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
 		presentDevice->waitIdle();
@@ -45,7 +100,7 @@ namespace bs { namespace ct
 		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
 	}
 
-	void Win32RenderWindowCore::initialize()
+	void Win32RenderWindow::initialize()
 	{
 		Win32RenderWindowProperties& props = mProperties;
 
@@ -276,7 +331,7 @@ namespace bs { namespace ct
 		RenderWindowCore::initialize();
 	}
 
-	void Win32RenderWindowCore::acquireBackBuffer()
+	void Win32RenderWindow::acquireBackBuffer()
 	{
 		// We haven't presented the current back buffer yet, so just use that one
 		if (!mRequiresNewBackBuffer)
@@ -286,7 +341,7 @@ namespace bs { namespace ct
 		mRequiresNewBackBuffer = false;
 	}
 
-	void Win32RenderWindowCore::swapBuffers(UINT32 syncMask)
+	void Win32RenderWindow::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -320,7 +375,7 @@ namespace bs { namespace ct
 		mRequiresNewBackBuffer = true;
 	}
 
-	void Win32RenderWindowCore::move(INT32 left, INT32 top)
+	void Win32RenderWindow::move(INT32 left, INT32 top)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -343,7 +398,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::resize(UINT32 width, UINT32 height)
+	void Win32RenderWindow::resize(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -366,7 +421,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void Win32RenderWindowCore::setActive(bool state)
+	void Win32RenderWindow::setActive(bool state)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -375,7 +430,7 @@ namespace bs { namespace ct
 		RenderWindowCore::setActive(state);
 	}
 
-	void Win32RenderWindowCore::setHidden(bool hidden)
+	void Win32RenderWindow::setHidden(bool hidden)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -385,28 +440,28 @@ namespace bs { namespace ct
 		RenderWindowCore::setHidden(hidden);
 	}
 
-	void Win32RenderWindowCore::minimize()
+	void Win32RenderWindow::minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->minimize();
 	}
 
-	void Win32RenderWindowCore::maximize()
+	void Win32RenderWindow::maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->maximize();
 	}
 
-	void Win32RenderWindowCore::restore()
+	void Win32RenderWindow::restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->restore();
 	}
 
-	void Win32RenderWindowCore::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
+	void Win32RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -459,14 +514,14 @@ namespace bs { namespace ct
 		SetWindowPos(mWindow->getHWnd(), HWND_TOP, props.mLeft, props.mTop, width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	}
 
-	void Win32RenderWindowCore::setFullscreen(const VideoMode& mode)
+	void Win32RenderWindow::setFullscreen(const VideoMode& mode)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		setFullscreen(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getOutputIdx());
 	}
 
-	void Win32RenderWindowCore::setWindowed(UINT32 width, UINT32 height)
+	void Win32RenderWindow::setWindowed(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -520,12 +575,12 @@ namespace bs { namespace ct
 		RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
-	HWND Win32RenderWindowCore::_getWindowHandle() const
+	HWND Win32RenderWindow::_getWindowHandle() const
 	{
 		return mWindow->getHWnd();
 	}
 
-	void Win32RenderWindowCore::getCustomAttribute(const String& name, void* data) const
+	void Win32RenderWindow::getCustomAttribute(const String& name, void* data) const
 	{
 		if (name == "FB")
 		{
@@ -544,7 +599,7 @@ namespace bs { namespace ct
 		RenderWindowCore::getCustomAttribute(name, data);
 	}
 
-	void Win32RenderWindowCore::_windowMovedOrResized()
+	void Win32RenderWindow::_windowMovedOrResized()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -576,62 +631,10 @@ namespace bs { namespace ct
 		RenderWindowCore::_windowMovedOrResized();
 	}
 
-	void Win32RenderWindowCore::syncProperties()
+	void Win32RenderWindow::syncProperties()
 	{
 		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}
-
-	Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId)
-		:RenderWindow(desc, windowId), mProperties(desc)
-	{
-
 	}
-
-	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
-	{
-		if (name == "WINDOW")
-		{
-			UINT64 *pHwnd = (UINT64*)pData;
-			*pHwnd = (UINT64)getHWnd();
-			return;
-		}
-	}
-
-	Vector2I Win32RenderWindow::screenToWindowPos(const Vector2I& screenPos) const
-	{
-		POINT pos;
-		pos.x = screenPos.x;
-		pos.y = screenPos.y;
-
-		ScreenToClient(getHWnd(), &pos);
-		return Vector2I(pos.x, pos.y);
-	}
-
-	Vector2I Win32RenderWindow::windowToScreenPos(const Vector2I& windowPos) const
-	{
-		POINT pos;
-		pos.x = windowPos.x;
-		pos.y = windowPos.y;
-
-		ClientToScreen(getHWnd(), &pos);
-		return Vector2I(pos.x, pos.y);
-	}
-
-	SPtr<Win32RenderWindowCore> Win32RenderWindow::getCore() const
-	{
-		return std::static_pointer_cast<Win32RenderWindowCore>(mCoreSpecific);
-	}
-
-	HWND Win32RenderWindow::getHWnd() const
-	{
-		blockUntilCoreInitialized();
-		return getCore()->_getWindowHandle();
-	}
-
-	void Win32RenderWindow::syncProperties()
-	{
-		ScopedSpinLock lock(getCore()->mLock);
-		mProperties = getCore()->mSyncedProperties;
-	}
-}}
+}

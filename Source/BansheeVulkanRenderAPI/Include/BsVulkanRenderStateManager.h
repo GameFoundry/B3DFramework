@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of Vulkan pipeline states. */
-	class VulkanRenderStateCoreManager : public RenderStateCoreManager
+	class VulkanRenderStateManager : public RenderStateCoreManager
 	{
 	protected:
 		/** @copydoc RenderStateCoreManager::createSamplerStateStateInternal */

@@ -3,7 +3,7 @@
 #include "BsVulkanRenderWindowManager.h"
 #include "Win32/BsWin32RenderWindow.h"
 
-namespace bs { namespace ct
+namespace bs 
 {
 	VulkanRenderWindowManager::VulkanRenderWindowManager()
 	{ }
@@ -22,21 +22,24 @@ namespace bs { namespace ct
 		return bs_core_ptr<Win32RenderWindow>(renderWindow);
 	}
 
-	VulkanRenderWindowCoreManager::VulkanRenderWindowCoreManager(VulkanRenderAPI& renderAPI)
+	namespace ct
+	{
+		VulkanRenderWindowManager::VulkanRenderWindowManager(VulkanRenderAPI& renderAPI)
 		:mRenderAPI(renderAPI)
 	{ }
 
-	SPtr<RenderWindowCore> VulkanRenderWindowCoreManager::createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId)
+	SPtr<RenderWindowCore> VulkanRenderWindowManager::createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId)
 	{
 		// Create the window
-		Win32RenderWindowCore* renderWindow =
-			new (bs_alloc<Win32RenderWindowCore>()) Win32RenderWindowCore(desc, windowId, mRenderAPI);
+		Win32RenderWindow* renderWindow =
+			new (bs_alloc<Win32RenderWindow>()) Win32RenderWindow(desc, windowId, mRenderAPI);
 
-		SPtr<Win32RenderWindowCore> renderWindowPtr = bs_shared_ptr<Win32RenderWindowCore>(renderWindow);
+		SPtr<Win32RenderWindow> renderWindowPtr = bs_shared_ptr<Win32RenderWindow>(renderWindow);
 		renderWindowPtr->_setThisPtr(renderWindowPtr);
 
 		windowCreated(renderWindow);
 
 		return renderWindowPtr;
 	}
-}}
+	}
+}

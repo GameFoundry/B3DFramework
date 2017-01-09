@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		vkDestroyPipeline(mOwner->getDevice().getLogical(), mPipeline, gVulkanAllocator);
 	}
 
-	VulkanGraphicsPipelineStateCore::GpuPipelineKey::GpuPipelineKey(
+	VulkanGraphicsPipelineState::GpuPipelineKey::GpuPipelineKey(
 		UINT32 framebufferId, UINT32 vertexInputId, bool readOnlyDepth, DrawOperationType drawOp)
 		: framebufferId(framebufferId), vertexInputId(vertexInputId), readOnlyDepth(readOnlyDepth)
 		, drawOp(drawOp)
@@ -39,7 +39,7 @@ namespace bs { namespace ct
 		
 	}
 
-	size_t VulkanGraphicsPipelineStateCore::HashFunc::operator()(const GpuPipelineKey& key) const
+	size_t VulkanGraphicsPipelineState::HashFunc::operator()(const GpuPipelineKey& key) const
 	{
 		size_t hash = 0;
 		hash_combine(hash, key.framebufferId);
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		return hash;
 	}
 
-	bool VulkanGraphicsPipelineStateCore::EqualFunc::operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const
+	bool VulkanGraphicsPipelineState::EqualFunc::operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const
 	{
 		if (a.framebufferId != b.framebufferId)
 			return false;
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	VulkanGraphicsPipelineStateCore::VulkanGraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc,
+	VulkanGraphicsPipelineState::VulkanGraphicsPipelineState(const PIPELINE_STATE_DESC& desc,
 																	 GpuDeviceFlags deviceMask)
 		:GraphicsPipelineStateCore(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
 	{
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VulkanGraphicsPipelineStateCore::~VulkanGraphicsPipelineStateCore()
+	VulkanGraphicsPipelineState::~VulkanGraphicsPipelineState()
 	{
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
 	}
 
-	void VulkanGraphicsPipelineStateCore::initialize()
+	void VulkanGraphicsPipelineState::initialize()
 	{
 		Lock(mMutex);
 
@@ -111,7 +111,7 @@ namespace bs { namespace ct
 		UINT32 numStages = sizeof(stages) / sizeof(stages[0]);
 		for(UINT32 i = 0; i < numStages; i++)
 		{
-			VulkanGpuProgramCore* program = static_cast<VulkanGpuProgramCore*>(stages[i].second);
+			VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(stages[i].second);
 			if (program == nullptr)
 				continue;
 
@@ -317,7 +317,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
 	}
 
-	VulkanPipeline* VulkanGraphicsPipelineStateCore::getPipeline(
+	VulkanPipeline* VulkanGraphicsPipelineState::getPipeline(
 		UINT32 deviceIdx, VulkanFramebuffer* framebuffer, bool readOnlyDepth, DrawOperationType drawOp, 
 			const SPtr<VulkanVertexInput>& vertexInput)
 	{
@@ -339,21 +339,21 @@ namespace bs { namespace ct
 		return newPipeline;
 	}
 
-	VkPipelineLayout VulkanGraphicsPipelineStateCore::getPipelineLayout(UINT32 deviceIdx) const
+	VkPipelineLayout VulkanGraphicsPipelineState::getPipelineLayout(UINT32 deviceIdx) const
 	{
 		return mPerDeviceData[deviceIdx].pipelineLayout;
 	}
 
-	void VulkanGraphicsPipelineStateCore::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
+	void VulkanGraphicsPipelineState::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
 	{
 		UINT32 deviceIdx = cmdBuffer->getDeviceIdx();
 
-		std::array<VulkanGpuProgramCore*, 5> programs = {
-			static_cast<VulkanGpuProgramCore*>(mData.vertexProgram.get()),
-			static_cast<VulkanGpuProgramCore*>(mData.hullProgram.get()),
-			static_cast<VulkanGpuProgramCore*>(mData.domainProgram.get()),
-			static_cast<VulkanGpuProgramCore*>(mData.geometryProgram.get()),
-			static_cast<VulkanGpuProgramCore*>(mData.fragmentProgram.get()),
+		std::array<VulkanGpuProgram*, 5> programs = {
+			static_cast<VulkanGpuProgram*>(mData.vertexProgram.get()),
+			static_cast<VulkanGpuProgram*>(mData.hullProgram.get()),
+			static_cast<VulkanGpuProgram*>(mData.domainProgram.get()),
+			static_cast<VulkanGpuProgram*>(mData.geometryProgram.get()),
+			static_cast<VulkanGpuProgram*>(mData.fragmentProgram.get()),
 		};
 
 		for(auto& entry : programs)
@@ -368,7 +368,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VulkanPipeline* VulkanGraphicsPipelineStateCore::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
+	VulkanPipeline* VulkanGraphicsPipelineState::createPipeline(UINT32 deviceIdx, VulkanFramebuffer* framebuffer,
 		bool readOnlyDepth, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput)
 	{
 		mInputAssemblyInfo.topology = VulkanUtility::getDrawOp(drawOp);
@@ -460,7 +460,7 @@ namespace bs { namespace ct
 		UINT32 numStages = sizeof(stages) / sizeof(stages[0]);
 		for (UINT32 i = 0; i < numStages; i++)
 		{
-			VulkanGpuProgramCore* program = static_cast<VulkanGpuProgramCore*>(stages[i].second);
+			VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(stages[i].second);
 			if (program == nullptr)
 				continue;
 
@@ -495,14 +495,14 @@ namespace bs { namespace ct
 		return device->getResourceManager().create<VulkanPipeline>(pipeline, colorReadOnly, depthStencilReadOnly);
 	}
 
-	VulkanComputePipelineStateCore::VulkanComputePipelineStateCore(const SPtr<GpuProgramCore>& program, 
+	VulkanComputePipelineState::VulkanComputePipelineState(const SPtr<GpuProgramCore>& program, 
 		GpuDeviceFlags deviceMask)
 		:ComputePipelineStateCore(program, deviceMask), mDeviceMask(deviceMask)
 	{
 		bs_zero_out(mPerDeviceData);
 	}
 
-	VulkanComputePipelineStateCore::~VulkanComputePipelineStateCore()
+	VulkanComputePipelineState::~VulkanComputePipelineState()
 	{
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -513,7 +513,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanComputePipelineStateCore::initialize()
+	void VulkanComputePipelineState::initialize()
 	{
 		ComputePipelineStateCore::initialize();
 
@@ -522,7 +522,7 @@ namespace bs { namespace ct
 		if (!mProgram->isCompiled())
 			return;
 
-		VulkanGpuProgramCore* vkProgram = static_cast<VulkanGpuProgramCore*>(mProgram.get());
+		VulkanGpuProgram* vkProgram = static_cast<VulkanGpuProgram*>(mProgram.get());
 
 		VkPipelineShaderStageCreateInfo stageCI;
 		stageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -586,21 +586,21 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
 	}
 
-	VulkanPipeline* VulkanComputePipelineStateCore::getPipeline(UINT32 deviceIdx) const
+	VulkanPipeline* VulkanComputePipelineState::getPipeline(UINT32 deviceIdx) const
 	{
 		return mPerDeviceData[deviceIdx].pipeline;
 	}
 
-	VkPipelineLayout VulkanComputePipelineStateCore::getPipelineLayout(UINT32 deviceIdx) const
+	VkPipelineLayout VulkanComputePipelineState::getPipelineLayout(UINT32 deviceIdx) const
 	{
 		return mPerDeviceData[deviceIdx].pipelineLayout;
 	}
 
-	void VulkanComputePipelineStateCore::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
+	void VulkanComputePipelineState::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
 	{
 		UINT32 deviceIdx = cmdBuffer->getDeviceIdx();
 
-		VulkanGpuProgramCore* program = static_cast<VulkanGpuProgramCore*>(mProgram.get());
+		VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(mProgram.get());
 		if(program != nullptr)
 		{
 			VulkanShaderModule* module = program->getShaderModule(deviceIdx);

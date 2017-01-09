@@ -12,11 +12,11 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of Vulkan hardware buffers. */
-	class VulkanHardwareBufferCoreManager : public HardwareBufferCoreManager
+	class VulkanHardwareBufferManager : public HardwareBufferCoreManager
 	{
 	public:
-		VulkanHardwareBufferCoreManager();
-		~VulkanHardwareBufferCoreManager();
+		VulkanHardwareBufferManager();
+		~VulkanHardwareBufferManager();
 
 		/** Returns a buffer view that can be used for buffer read operations when no other buffer is bound. */
 		VkBufferView getDummyReadBufferView(UINT32 deviceIdx) const;

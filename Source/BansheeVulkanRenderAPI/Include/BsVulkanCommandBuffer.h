@@ -394,8 +394,8 @@ namespace bs { namespace ct
 		Vector<ImageInfo> mImageInfos;
 		UINT32 mGlobalQueueIdx;
 
-		SPtr<VulkanGraphicsPipelineStateCore> mGraphicsPipeline;
-		SPtr<VulkanComputePipelineStateCore> mComputePipeline;
+		SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
+		SPtr<VulkanComputePipelineState> mComputePipeline;
 		SPtr<VertexDeclarationCore> mVertexDecl;
 		Rect2 mViewport;
 		Rect2I mScissor;

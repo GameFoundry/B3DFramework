@@ -382,7 +382,7 @@ namespace bs { namespace ct
 		:VulkanResource(owner, false)
 	{ }
 
-	VulkanTextureCore::VulkanTextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
+	VulkanTexture::VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
 										 GpuDeviceFlags deviceMask)
 		: TextureCore(desc, initialData, deviceMask), mImages(), mDeviceMask(deviceMask), mStagingBuffer(nullptr)
 		, mMappedDeviceIdx(-1), mMappedGlobalQueueIdx(-1), mMappedMip(0), mMappedFace(0), mMappedRowPitch(false)
@@ -392,7 +392,7 @@ namespace bs { namespace ct
 		
 	}
 
-	VulkanTextureCore::~VulkanTextureCore()
+	VulkanTexture::~VulkanTexture()
 	{ 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -407,7 +407,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
 	}
 
-	void VulkanTextureCore::initialize()
+	void VulkanTexture::initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -515,7 +515,7 @@ namespace bs { namespace ct
 		TextureCore::initialize();
 	}
 
-	VulkanImage* VulkanTextureCore::createImage(VulkanDevice& device, PixelFormat format)
+	VulkanImage* VulkanTexture::createImage(VulkanDevice& device, PixelFormat format)
 	{
 		bool directlyMappable = mImageCI.tiling == VK_IMAGE_TILING_LINEAR;
 		VkMemoryPropertyFlags flags = directlyMappable ?
@@ -540,7 +540,7 @@ namespace bs { namespace ct
 		return device.getResourceManager().create<VulkanImage>(image, memory, mImageCI.initialLayout, getProperties());
 	}
 
-	VulkanBuffer* VulkanTextureCore::createStaging(VulkanDevice& device, const PixelData& pixelData, bool readable)
+	VulkanBuffer* VulkanTexture::createStaging(VulkanDevice& device, const PixelData& pixelData, bool readable)
 	{
 		VkBufferCreateInfo bufferCI;
 		bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -576,7 +576,7 @@ namespace bs { namespace ct
 			pixelData.getRowPitch(), pixelData.getSlicePitch());
 	}
 
-	void VulkanTextureCore::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, 
+	void VulkanTexture::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, 
 									  VkImageLayout srcFinalLayout, VkImageLayout dstFinalLayout)
 	{
 		UINT32 numFaces = mProperties.getNumFaces();
@@ -653,10 +653,10 @@ namespace bs { namespace ct
 		bs_stack_free(imageRegions);
 	}
 
-	void VulkanTextureCore::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
+	void VulkanTexture::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
 									 const SPtr<TextureCore>& target, UINT32 queueIdx)
 	{
-		VulkanTextureCore* other = static_cast<VulkanTextureCore*>(target.get());
+		VulkanTexture* other = static_cast<VulkanTexture*>(target.get());
 
 		const TextureProperties& srcProps = mProperties;
 		const TextureProperties& dstProps = other->getProperties();
@@ -835,7 +835,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	PixelData VulkanTextureCore::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
+	PixelData VulkanTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
 										  UINT32 queueIdx)
 	{
 		const TextureProperties& props = getProperties();
@@ -1092,7 +1092,7 @@ namespace bs { namespace ct
 		return lockedArea;
 	}
 
-	void VulkanTextureCore::unlockImpl()
+	void VulkanTexture::unlockImpl()
 	{
 		// Possibly map() failed with some error
 		if (!mIsMapped)
@@ -1248,7 +1248,7 @@ namespace bs { namespace ct
 		mIsMapped = false;
 	}
 
-	void VulkanTextureCore::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanTexture::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
@@ -1263,7 +1263,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
 	}
 
-	void VulkanTextureCore::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
+	void VulkanTexture::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 									  UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)

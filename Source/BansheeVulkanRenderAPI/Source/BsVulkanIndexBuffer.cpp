@@ -6,11 +6,11 @@
 
 namespace bs { namespace ct
 {
-	VulkanIndexBufferCore::VulkanIndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	VulkanIndexBuffer::VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:IndexBufferCore(desc, deviceMask), mBuffer(nullptr),  mUsage(desc.usage), mDeviceMask(deviceMask)
 	{ }
 
-	VulkanIndexBufferCore::~VulkanIndexBufferCore()
+	VulkanIndexBuffer::~VulkanIndexBuffer()
 	{
 		if (mBuffer != nullptr)
 			bs_delete(mBuffer);
@@ -18,7 +18,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_IndexBuffer);
 	}
 
-	void VulkanIndexBufferCore::initialize()
+	void VulkanIndexBuffer::initialize()
 	{
 		mBuffer = bs_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 
@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		IndexBufferCore::initialize();
 	}
 
-	void* VulkanIndexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* VulkanIndexBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -43,32 +43,32 @@ namespace bs { namespace ct
 		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
-	void VulkanIndexBufferCore::unmap()
+	void VulkanIndexBuffer::unmap()
 	{
 		mBuffer->unlock();
 	}
 
-	void VulkanIndexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanIndexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
 	}
 
-	void VulkanIndexBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
+	void VulkanIndexBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		mBuffer->writeData(offset, length, source, writeFlags, queueIdx);
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_IndexBuffer);
 	}
 
-	void VulkanIndexBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
+	void VulkanIndexBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
 										UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		mBuffer->copyData(srcBuffer, srcOffset, dstOffset, length, discardWholeBuffer, queueIdx);
 	}
 
-	VulkanBuffer* VulkanIndexBufferCore::getResource(UINT32 deviceIdx) const
+	VulkanBuffer* VulkanIndexBuffer::getResource(UINT32 deviceIdx) const
 	{
 		return mBuffer->getResource(deviceIdx);
 	}

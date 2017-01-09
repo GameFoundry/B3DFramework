@@ -6,11 +6,11 @@
 
 namespace bs { namespace ct
 {
-	VulkanVertexBufferCore::VulkanVertexBufferCore(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		:VertexBufferCore(desc, deviceMask), mBuffer(nullptr), mUsage(desc.usage), mDeviceMask(deviceMask)
 	{ }
 
-	VulkanVertexBufferCore::~VulkanVertexBufferCore()
+	VulkanVertexBuffer::~VulkanVertexBuffer()
 	{
 		if (mBuffer != nullptr)
 			bs_delete(mBuffer);
@@ -18,7 +18,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
-	void VulkanVertexBufferCore::initialize()
+	void VulkanVertexBuffer::initialize()
 	{
 		mBuffer = bs_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 
@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		VertexBufferCore::initialize();
 	}
 
-	void* VulkanVertexBufferCore::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* VulkanVertexBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 #if BS_PROFILING_ENABLED
 		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
@@ -43,19 +43,19 @@ namespace bs { namespace ct
 		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
-	void VulkanVertexBufferCore::unmap()
+	void VulkanVertexBuffer::unmap()
 	{
 		mBuffer->unlock();
 	}
 
-	void VulkanVertexBufferCore::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanVertexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
 
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_VertexBuffer);
 	}
 
-	void VulkanVertexBufferCore::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
+	void VulkanVertexBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
 		UINT32 queueIdx)
 	{
 		mBuffer->writeData(offset, length, source, writeFlags, queueIdx);
@@ -63,13 +63,13 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_VertexBuffer);
 	}
 
-	void VulkanVertexBufferCore::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
+	void VulkanVertexBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
 		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, UINT32 queueIdx)
 	{
 		mBuffer->copyData(srcBuffer, srcOffset, dstOffset, length, discardWholeBuffer, queueIdx);
 	}
 
-	VulkanBuffer* VulkanVertexBufferCore::getResource(UINT32 deviceIdx) const
+	VulkanBuffer* VulkanVertexBuffer::getResource(UINT32 deviceIdx) const
 	{
 		return mBuffer->getResource(deviceIdx);
 	}
