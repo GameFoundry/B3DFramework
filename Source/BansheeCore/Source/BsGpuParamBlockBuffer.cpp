@@ -70,7 +70,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GpuParamBlockBufferCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GpuParamBlockBuffer::createCore() const
+	SPtr<ct::CoreObject> GpuParamBlockBuffer::createCore() const
 	{
 		return ct::HardwareBufferManager::instance().createGpuParamBlockBufferInternal(mSize, mUsage);
 	}

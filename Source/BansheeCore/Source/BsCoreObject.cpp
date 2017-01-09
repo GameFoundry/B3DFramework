@@ -43,7 +43,7 @@ namespace bs
 		{
 			assert(BS_THREAD_CURRENT_ID != CoreThread::instance().getCoreThreadId() && "Cannot destroy sim thead object from core thread.");
 
-			// This will only destroy the CoreObjectCore if this was the last reference
+			// This will only destroy the ct::CoreObject if this was the last reference
 			queueDestroyGpuCommand(mCoreSpecific);
 		}
 
@@ -110,7 +110,7 @@ namespace bs
 		mThis = ptrThis;
 	}
 
-	void CoreObject::queueGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void()> func)
+	void CoreObject::queueGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
 	{
 		// We call another internal method and go through an additional layer of abstraction in order to keep an active
 		// reference to the obj (saved in the bound function).
@@ -119,37 +119,37 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
-	AsyncOp CoreObject::queueReturnGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void(AsyncOp&)> func)
+	AsyncOp CoreObject::queueReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func)
 	{
 		// See queueGpuCommand
 		return gCoreThread().queueReturnCommand(std::bind(&CoreObject::executeReturnGpuCommand, obj, func, _1));
 	}
 
-	void CoreObject::queueInitializeGpuCommand(const SPtr<ct::CoreObjectCore>& obj)
+	void CoreObject::queueInitializeGpuCommand(const SPtr<ct::CoreObject>& obj)
 	{
-		std::function<void()> func = std::bind(&ct::CoreObjectCore::initialize, obj.get());
+		std::function<void()> func = std::bind(&ct::CoreObject::initialize, obj.get());
 
 		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func), CTQF_InternalQueue);
 	}
 
-	void CoreObject::queueDestroyGpuCommand(const SPtr<ct::CoreObjectCore>& obj)
+	void CoreObject::queueDestroyGpuCommand(const SPtr<ct::CoreObject>& obj)
 	{
 		std::function<void()> func = [&](){}; // Do nothing function. We just need the shared pointer to stay alive until it reaches the core thread
 
 		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
-	void CoreObject::executeGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void()> func)
+	void CoreObject::executeGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
 	{
-		volatile SPtr<ct::CoreObjectCore> objParam = obj; // Makes sure obj isn't optimized out?
+		volatile SPtr<ct::CoreObject> objParam = obj; // Makes sure obj isn't optimized out?
 
 		func();
 	}
 
-	void CoreObject::executeReturnGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void(AsyncOp&)> func, 
+	void CoreObject::executeReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func, 
 		AsyncOp& op)
 	{
-		volatile SPtr<ct::CoreObjectCore> objParam = obj; // Makes sure obj isn't optimized out?
+		volatile SPtr<ct::CoreObject> objParam = obj; // Makes sure obj isn't optimized out?
 
 		func(op);
 	}

@@ -161,7 +161,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<ct::CoreObjectCore> Light::createCore() const
+	SPtr<ct::CoreObject> Light::createCore() const
 	{
 		ct::LightCore* handler = new (bs_alloc<ct::LightCore>())
 			ct::LightCore(mType, mColor, mIntensity, mRange, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
@@ -256,7 +256,7 @@ namespace bs
 		updateBounds();
 		gRenderer()->notifyLightAdded(this);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	void LightCore::syncToCore(const CoreSyncData& data)

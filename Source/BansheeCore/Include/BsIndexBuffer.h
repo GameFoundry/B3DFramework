@@ -69,7 +69,7 @@ namespace bs
 		IndexBuffer(const INDEX_BUFFER_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObjectCore> createCore() const;
+		virtual SPtr<ct::CoreObject> createCore() const;
 
 		IndexBufferProperties mProperties;
 		GpuBufferUsage mUsage;
@@ -84,7 +84,7 @@ namespace bs
 	 */
 
 	/** Core thread specific implementation of an IndexBuffer. */
-	class BS_CORE_EXPORT IndexBufferCore : public CoreObjectCore, public HardwareBuffer
+	class BS_CORE_EXPORT IndexBufferCore : public CoreObject, public HardwareBuffer
 	{
 	public:
 		IndexBufferCore(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);

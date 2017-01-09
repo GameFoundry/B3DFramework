@@ -234,7 +234,7 @@ namespace bs
 			bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc LightBase::_markCoreDirty */
 		void _markCoreDirty(LightDirtyFlag flag = LightDirtyFlag::Everything) override;
@@ -266,7 +266,7 @@ namespace bs
 	 *
 	 * @see		LightBase
 	 */
-	class BS_EXPORT LightCore : public CoreObjectCore, public LightBase
+	class BS_EXPORT LightCore : public CoreObject, public LightBase
 	{
 	public:
 		~LightCore();
@@ -288,7 +288,7 @@ namespace bs
 		LightCore(LightType type, Color color, float intensity, 
 			float range, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc CoreObject::syncToCore */

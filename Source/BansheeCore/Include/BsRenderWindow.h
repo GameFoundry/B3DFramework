@@ -199,7 +199,7 @@ namespace bs
 		RenderWindowProperties& getMutableProperties();
 
 		/** @copydoc RenderTarget::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/**	Updates window properties from the synced property data. */
 		virtual void syncProperties() = 0;

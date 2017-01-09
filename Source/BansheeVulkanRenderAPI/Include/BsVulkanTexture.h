@@ -194,7 +194,7 @@ namespace bs { namespace ct
 
 		VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
 
-		/** @copydoc CoreObjectCore::initialize() */
+		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
 
 		/** @copydoc TextureCore::lockImpl */

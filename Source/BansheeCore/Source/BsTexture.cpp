@@ -104,11 +104,11 @@ namespace bs
 		Resource::initialize();
 	}
 
-	SPtr<ct::CoreObjectCore> Texture::createCore() const
+	SPtr<ct::CoreObject> Texture::createCore() const
 	{
 		const TextureProperties& props = getProperties();
 
-		SPtr<ct::CoreObjectCore> coreObj = ct::TextureManager::instance().createTextureInternal(props.mDesc, mInitData);
+		SPtr<ct::CoreObject> coreObj = ct::TextureManager::instance().createTextureInternal(props.mDesc, mInitData);
 
 		if ((mProperties.getUsage() & TU_CPUCACHED) == 0)
 			mInitData = nullptr;

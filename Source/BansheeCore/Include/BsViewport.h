@@ -167,7 +167,7 @@ namespace bs
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
         SPtr<RenderTarget> mTarget;
 
@@ -193,7 +193,7 @@ namespace bs
 	 */
 
 	/** @copydoc ViewportBase */
-	class BS_CORE_EXPORT ViewportCore : public CoreObjectCore, public ViewportBase
+	class BS_CORE_EXPORT ViewportCore : public CoreObject, public ViewportBase
     {
     public:       
         /**	Returns the render target the viewport is associated with. */

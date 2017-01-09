@@ -104,7 +104,7 @@ namespace bs
 		return std::static_pointer_cast<ct::PassCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> Pass::createCore() const
+	SPtr<ct::CoreObject> Pass::createCore() const
 	{
 		ct::PASS_DESC desc;
 		convertPassDesc(mData, desc);
@@ -255,7 +255,7 @@ namespace bs
 			}
 		}
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	void PassCore::syncToCore(const CoreSyncData& data)

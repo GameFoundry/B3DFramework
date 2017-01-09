@@ -19,7 +19,7 @@ namespace bs
 	 * It also provides a standardized way to initialize/destroy objects, and a way to specify dependant CoreObject%s. For
 	 * those purposes it might also be used for objects that only exist on the core thread.
 	 *
-	 * @note	CoreObjectCore is a counterpart to CoreObject that is used exclusively on the core thread. CoreObject on the
+	 * @note	ct::CoreObject is a counterpart to CoreObject that is used exclusively on the core thread. CoreObject on the
 	 *			other hand should be used exclusively on the simulation thread. Types that exist on both threads need to
 	 *			implement both of these.
 	 */
@@ -76,7 +76,7 @@ namespace bs
 		 *
 		 * @note	Thread safe to retrieve, but its data is only valid on the core thread.
 		 */
-		SPtr<ct::CoreObjectCore> getCore() const { return mCoreSpecific; }
+		SPtr<ct::CoreObject> getCore() const { return mCoreSpecific; }
 
 		/**
 		 * Ensures all dirty syncable data is send to the core thread counterpart of this object (if any).
@@ -115,7 +115,7 @@ namespace bs
 		/**
 		 * Constructs a new core object.
 		 *
-		 * @param[in]	requiresCoreInit	(optional) Determines if the CoreObjectCore counterpart of this object 
+		 * @param[in]	requiresCoreInit	(optional) Determines if the ct::CoreObject counterpart of this object 
 		 *									(if it has any, see createCore()) requires initialization and destruction on the
 		 *									core thread.
 		 */
@@ -129,7 +129,7 @@ namespace bs
 		 * Requires a shared pointer to the object this function will be executed on, in order to make sure the object is 
 		 * not deleted before the command executes. Can be null if the function is static or global.
 		 */
-		static void queueGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void()> func);
+		static void queueGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func);
 
 		/**
 		 * Queues a command to be executed on the core thread, with a return value in the form of AsyncOp.
@@ -140,7 +140,7 @@ namespace bs
 		 * Requires a shared pointer to the object this function will be executed on, in order to make sure the object is 
 		 * not deleted before the command executes. Can be null if the function is static or global.
 		 */
-		static AsyncOp queueReturnGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void(AsyncOp&)> func);
+		static AsyncOp queueReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func);
 
 		bool requiresInitOnCoreThread() const { return (mFlags & CGO_INIT_ON_CORE_THREAD) != 0; }
 		void setIsDestroyed(bool destroyed) { mFlags = destroyed ? mFlags | CGO_DESTROYED : mFlags & ~CGO_DESTROYED; }
@@ -156,7 +156,7 @@ namespace bs
 		 * Queues object initialization command on the core thread. The command is added to the primary core thread queue 
 		 * and will be executed as soon as the core thread is ready.
 		 */
-		static void queueInitializeGpuCommand(const SPtr<ct::CoreObjectCore>& obj);
+		static void queueInitializeGpuCommand(const SPtr<ct::CoreObject>& obj);
 
 		/**
 		 * Queues object destruction command on the core thread. The command is added to the core thread queue of this 
@@ -164,13 +164,13 @@ namespace bs
 		 *
 		 * @note	It is up to the caller to ensure no other threads attempt to use this object.
 		 */
-		static void queueDestroyGpuCommand(const SPtr<ct::CoreObjectCore>& obj);
+		static void queueDestroyGpuCommand(const SPtr<ct::CoreObject>& obj);
 
 		/** Helper wrapper method used for queuing commands with no return value on the core thread. */
-		static void executeGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void()> func);
+		static void executeGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func);
 
 		/**	Helper wrapper method used for queuing commands with a return value on the core thread. */
-		static void executeReturnGpuCommand(const SPtr<ct::CoreObjectCore>& obj, std::function<void(AsyncOp&)> func, 
+		static void executeReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func, 
 			AsyncOp& op);
 
 	protected:
@@ -182,7 +182,7 @@ namespace bs
 		 * Creates an object that contains core thread specific data and methods for this CoreObject. Can be null if such 
 		 * object is not required.
 		 */
-		virtual SPtr<ct::CoreObjectCore> createCore() const { return nullptr; }
+		virtual SPtr<ct::CoreObject> createCore() const { return nullptr; }
 
 		/**
 		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced 
@@ -233,7 +233,7 @@ namespace bs
 		virtual void getCoreDependencies(Vector<CoreObject*>& dependencies) { }
 
 	protected:
-		SPtr<ct::CoreObjectCore> mCoreSpecific;
+		SPtr<ct::CoreObject> mCoreSpecific;
 	};
 
 	/**

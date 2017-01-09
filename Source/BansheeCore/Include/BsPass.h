@@ -181,7 +181,7 @@ namespace bs
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
@@ -211,7 +211,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT PassCore : public CoreObjectCore, public TPass<true>
+	class BS_CORE_EXPORT PassCore : public CoreObject, public TPass<true>
     {
     public:
 		virtual ~PassCore() { }
@@ -223,7 +223,7 @@ namespace bs
 		friend class Pass;
 		friend class TechniqueCore;
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		PassCore() { }
@@ -231,7 +231,7 @@ namespace bs
 		PassCore(const PASS_DESC& desc, const SPtr<GraphicsPipelineStateCore>& pipelineState);
 		PassCore(const PASS_DESC& desc, const SPtr<ComputePipelineStateCore>& pipelineState);
 
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
     };
 

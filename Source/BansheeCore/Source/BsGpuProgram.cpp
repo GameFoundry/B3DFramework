@@ -41,7 +41,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GpuProgramCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GpuProgram::createCore() const
+	SPtr<ct::CoreObject> GpuProgram::createCore() const
 	{
 		GPU_PROGRAM_DESC desc;
 		desc.source = mProperties.getSource();

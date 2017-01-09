@@ -262,7 +262,7 @@ namespace bs
 		void initialize() override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** Calculates the size of the texture, in bytes. */
 		UINT32 calculateSize() const;
@@ -306,14 +306,14 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT TextureCore : public CoreObjectCore
+	class BS_CORE_EXPORT TextureCore : public CoreObject
 	{
 	public:
 		TextureCore(const TEXTURE_DESC& desc, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask);
 		virtual ~TextureCore() {}
 
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**

@@ -67,7 +67,7 @@ namespace bs
 		return std::static_pointer_cast<ct::MeshHeapCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> MeshHeap::createCore() const
+	SPtr<ct::CoreObject> MeshHeap::createCore() const
 	{
 		ct::MeshHeapCore* obj = new (bs_alloc<ct::MeshHeapCore>()) ct::MeshHeapCore(mNumVertices, mNumIndices,
 			mVertexDesc, mIndexType, GDF_DEFAULT);
@@ -115,7 +115,7 @@ namespace bs
 		growVertexBuffer(mNumVertices);
 		growIndexBuffer(mNumIndices);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	void MeshHeapCore::alloc(SPtr<TransientMeshCore> mesh, const SPtr<MeshData>& meshData)

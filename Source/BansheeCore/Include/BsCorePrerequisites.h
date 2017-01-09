@@ -410,7 +410,7 @@ namespace bs
 		class DepthStencilStateCore;
 		class RasterizerStateCore;
 		class BlendStateCore;
-		class CoreObjectCore;
+		class CoreObject;
 		class CameraCore;
 		class MeshCoreBase;
 		class MeshCore;

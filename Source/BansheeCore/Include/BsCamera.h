@@ -578,7 +578,7 @@ namespace bs
 		Rect2I getViewportRect() const override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CameraBase::_markCoreDirty */
 		void _markCoreDirty(CameraDirtyFlag flag = CameraDirtyFlag::Everything) override;
@@ -608,7 +608,7 @@ namespace bs
 	namespace ct
 	{
 	/** @copydoc CameraBase */
-	class BS_CORE_EXPORT CameraCore : public CoreObjectCore, public TCamera<true>
+	class BS_CORE_EXPORT CameraCore : public CoreObject, public TCamera<true>
 	{
 	public:
 		~CameraCore();
@@ -624,7 +624,7 @@ namespace bs
 
 		CameraCore(const SPtr<ViewportCore>& viewport);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc CameraBase */

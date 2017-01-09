@@ -113,7 +113,7 @@ namespace bs
 		return std::static_pointer_cast<ct::MeshCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> Mesh::createCore() const
+	SPtr<ct::CoreObject> Mesh::createCore() const
 	{
 		MESH_DESC desc;
 		desc.numVertices = mProperties.mNumVertices;
@@ -127,7 +127,7 @@ namespace bs
 
 		ct::MeshCore* obj = new (bs_alloc<ct::MeshCore>()) ct::MeshCore(mCPUData, desc, GDF_DEFAULT);
 
-		SPtr<ct::CoreObjectCore> meshCore = bs_shared_ptr<ct::MeshCore>(obj);
+		SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::MeshCore>(obj);
 		meshCore->_setThisPtr(meshCore);
 
 		if ((mUsage & MU_CPUCACHED) == 0)

@@ -36,7 +36,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GpuBufferCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GpuBuffer::createCore() const
+	SPtr<ct::CoreObject> GpuBuffer::createCore() const
 	{
 		return ct::HardwareBufferManager::instance().createGpuBufferInternal(mProperties.mDesc);
 	}

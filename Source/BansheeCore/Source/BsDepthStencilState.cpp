@@ -49,7 +49,7 @@ namespace bs
 		return std::static_pointer_cast<ct::DepthStencilStateCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> DepthStencilState::createCore() const
+	SPtr<ct::CoreObject> DepthStencilState::createCore() const
 	{
 		SPtr<ct::DepthStencilStateCore> core = ct::RenderStateManager::instance()._createDepthStencilState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
@@ -128,7 +128,7 @@ namespace bs
 			return;
 
 		createInternal();
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	const DepthStencilProperties& DepthStencilStateCore::getProperties() const

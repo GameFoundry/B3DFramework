@@ -336,7 +336,7 @@ namespace bs
 		meta->includes = includes;
 	}
 
-	SPtr<ct::CoreObjectCore> Shader::createCore() const
+	SPtr<ct::CoreObject> Shader::createCore() const
 	{
 		Vector<SPtr<ct::TechniqueCore>> techniques;
 		for (auto& technique : mTechniques)

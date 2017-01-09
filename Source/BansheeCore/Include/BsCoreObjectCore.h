@@ -19,7 +19,7 @@ namespace bs
 	 * @note	Core thread only.
 	 * @note	Different CoreObject implementations should implement this class for their own needs.
 	 */
-	class BS_CORE_EXPORT CoreObjectCore
+	class BS_CORE_EXPORT CoreObject
 	{
 	protected:
 		/** Values that represent current state of the object */
@@ -30,14 +30,14 @@ namespace bs
 		};
 
 	public:
-		CoreObjectCore();
-		virtual ~CoreObjectCore();
+		CoreObject();
+		virtual ~CoreObject();
 
 		/**	Called on the core thread when the object is first created. */
 		virtual void initialize();
 
 		/** Returns a shared_ptr version of "this" pointer. */
-		SPtr<CoreObjectCore> getThisPtr() const { return mThis.lock(); }
+		SPtr<CoreObject> getThisPtr() const { return mThis.lock(); }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -49,13 +49,13 @@ namespace bs
 		 *
 		 * @note	Called automatically by the factory creation methods so user should not call this manually.
 		 */
-		void _setThisPtr(SPtr<CoreObjectCore> ptrThis);
+		void _setThisPtr(SPtr<CoreObject> ptrThis);
 
 		/** @} */
 
 	protected:
 		friend class CoreObjectManager;
-		friend class CoreObject;
+		friend class bs::CoreObject;
 
 		/**
 		 * Update internal data from provided memory buffer that was populated with data from the sim thread.
@@ -85,7 +85,7 @@ namespace bs
 		void setScheduledToBeInitialized(bool scheduled) { mFlags = scheduled ? mFlags | CGCO_SCHEDULED_FOR_INIT : mFlags & ~CGCO_SCHEDULED_FOR_INIT; }
 
 		volatile UINT8 mFlags;
-		std::weak_ptr<CoreObjectCore> mThis;
+		std::weak_ptr<CoreObject> mThis;
 
 		static Signal mCoreGpuObjectLoadedCondition;
 		static Mutex mCoreGpuObjectLoadedMutex;

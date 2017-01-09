@@ -7,19 +7,19 @@ namespace bs
 {
 	namespace ct 
 	{
-	Signal CoreObjectCore::mCoreGpuObjectLoadedCondition;
-	Mutex CoreObjectCore::mCoreGpuObjectLoadedMutex;
+	Signal CoreObject::mCoreGpuObjectLoadedCondition;
+	Mutex CoreObject::mCoreGpuObjectLoadedMutex;
 
-	CoreObjectCore::CoreObjectCore()
+	CoreObject::CoreObject()
 		:mFlags(0)
 	{ }
 
-	CoreObjectCore::~CoreObjectCore()
+	CoreObject::~CoreObject()
 	{ 
 		THROW_IF_NOT_CORE_THREAD;
 	}
 
-	void CoreObjectCore::initialize()
+	void CoreObject::initialize()
 	{
 		{
 			Lock lock(mCoreGpuObjectLoadedMutex);
@@ -31,7 +31,7 @@ namespace bs
 		mCoreGpuObjectLoadedCondition.notify_all();
 	}
 
-	void CoreObjectCore::synchronize()
+	void CoreObject::synchronize()
 	{
 		if (!isInitialized())
 		{
@@ -51,7 +51,7 @@ namespace bs
 		}
 	}
 
-	void CoreObjectCore::_setThisPtr(SPtr<CoreObjectCore> ptrThis)
+	void CoreObject::_setThisPtr(SPtr<CoreObject> ptrThis)
 	{
 		mThis = ptrThis;
 	}

@@ -186,7 +186,7 @@ namespace bs
 		VertexDeclaration(const List<VertexElement>& elements);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 	protected:
 		VertexDeclarationProperties mProperties;
@@ -219,12 +219,12 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT VertexDeclarationCore : public CoreObjectCore
+	class BS_CORE_EXPORT VertexDeclarationCore : public CoreObject
     {
 	public:
 		virtual ~VertexDeclarationCore() { }
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Returns properties describing the vertex declaration. */

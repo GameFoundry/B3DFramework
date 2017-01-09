@@ -286,7 +286,7 @@ namespace bs
 		SPtr<GpuParams> _getThisPtr() const override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
@@ -314,7 +314,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuParamsCore : public CoreObjectCore, public TGpuParams<true>
+	class BS_CORE_EXPORT GpuParamsCore : public CoreObject, public TGpuParams<true>
 	{
 	public:
 		virtual ~GpuParamsCore() { }
@@ -349,7 +349,7 @@ namespace bs
 		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParamsCore> _getThisPtr() const override;
 
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 	};
 

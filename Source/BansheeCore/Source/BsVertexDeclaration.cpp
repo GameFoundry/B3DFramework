@@ -259,7 +259,7 @@ namespace bs
 		return std::static_pointer_cast<ct::VertexDeclarationCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> VertexDeclaration::createCore() const
+	SPtr<ct::CoreObject> VertexDeclaration::createCore() const
 	{
 		return ct::HardwareBufferManager::instance().createVertexDeclarationInternal(mProperties.mElementList);
 	}
@@ -329,7 +329,7 @@ namespace bs
 	void VertexDeclarationCore::initialize()
 	{
 		mId = NextFreeId++;
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	SPtr<VertexDeclarationCore> VertexDeclarationCore::create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)

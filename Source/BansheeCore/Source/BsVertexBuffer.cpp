@@ -15,7 +15,7 @@ namespace bs
 
     }
 
-	SPtr<ct::CoreObjectCore> VertexBuffer::createCore() const
+	SPtr<ct::CoreObject> VertexBuffer::createCore() const
 	{
 		VERTEX_BUFFER_DESC desc;
 		desc.vertexSize = mProperties.mVertexSize;

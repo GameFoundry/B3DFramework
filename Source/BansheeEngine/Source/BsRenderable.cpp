@@ -197,7 +197,7 @@ namespace bs
 		return std::static_pointer_cast<ct::RenderableCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> Renderable::createCore() const
+	SPtr<ct::CoreObject> Renderable::createCore() const
 	{
 		ct::RenderableCore* handler = new (bs_alloc<ct::RenderableCore>()) ct::RenderableCore();
 		SPtr<ct::RenderableCore> handlerPtr = bs_shared_ptr<ct::RenderableCore>(handler);
@@ -438,7 +438,7 @@ namespace bs
 	{
 		gRenderer()->notifyRenderableAdded(this);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	Bounds RenderableCore::getBounds() const

@@ -201,7 +201,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT RenderTargetCore : public CoreObjectCore
+	class BS_CORE_EXPORT RenderTargetCore : public CoreObject
 	{
 	public:
 		/** Frame buffer type when double-buffering is used. */

@@ -169,7 +169,7 @@ namespace bs
 		DepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		DepthStencilProperties mProperties;
 		mutable UINT32 mId;
@@ -197,7 +197,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT DepthStencilStateCore : public CoreObjectCore
+	class BS_CORE_EXPORT DepthStencilStateCore : public CoreObject
 	{
 	public:
 		virtual ~DepthStencilStateCore();
@@ -219,7 +219,7 @@ namespace bs
 
 		DepthStencilStateCore(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Creates any API-specific state objects. */

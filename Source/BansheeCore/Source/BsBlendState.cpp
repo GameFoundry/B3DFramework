@@ -110,7 +110,7 @@ namespace bs
 		return std::static_pointer_cast<ct::BlendStateCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> BlendState::createCore() const
+	SPtr<ct::CoreObject> BlendState::createCore() const
 	{
 		SPtr<ct::BlendStateCore> core = ct::RenderStateManager::instance()._createBlendState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
@@ -189,7 +189,7 @@ namespace bs
 			return;
 
 		createInternal();
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	const BlendProperties& BlendStateCore::getProperties() const

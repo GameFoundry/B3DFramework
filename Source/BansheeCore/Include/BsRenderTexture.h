@@ -84,7 +84,7 @@ namespace bs
 		RenderTexture(const RENDER_TEXTURE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
@@ -126,7 +126,7 @@ namespace bs
 		RenderTextureCore(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
 		virtual ~RenderTextureCore();
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&, UINT32) */
@@ -150,7 +150,7 @@ namespace bs
 		const RenderTextureProperties& getProperties() const;
 
 	protected:
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 
 	private:

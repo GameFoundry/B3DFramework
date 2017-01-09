@@ -78,7 +78,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GraphicsPipelineStateCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GraphicsPipelineState::createCore() const
+	SPtr<ct::CoreObject> GraphicsPipelineState::createCore() const
 	{
 		ct::PIPELINE_STATE_DESC desc;
 		convertPassDesc(mData, desc);
@@ -118,7 +118,7 @@ namespace bs
 		return std::static_pointer_cast<ct::ComputePipelineStateCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> ComputePipelineState::createCore() const
+	SPtr<ct::CoreObject> ComputePipelineState::createCore() const
 	{
 		return ct::RenderStateManager::instance()._createComputePipelineState(mProgram->getCore());
 	}
@@ -154,7 +154,7 @@ namespace bs
 
 		mParamInfo = GpuPipelineParamInfoCore::create(paramsDesc, mDeviceMask);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	SPtr<GraphicsPipelineStateCore> GraphicsPipelineStateCore::create(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
@@ -173,7 +173,7 @@ namespace bs
 
 		mParamInfo = GpuPipelineParamInfoCore::create(paramsDesc, mDeviceMask);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	SPtr<ComputePipelineStateCore> ComputePipelineStateCore::create(const SPtr<GpuProgramCore>& program, 

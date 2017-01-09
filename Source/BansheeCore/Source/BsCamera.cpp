@@ -754,7 +754,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<ct::CoreObjectCore> Camera::createCore() const
+	SPtr<ct::CoreObject> Camera::createCore() const
 	{
 		ct::CameraCore* handler = new (bs_alloc<ct::CameraCore>()) ct::CameraCore(mViewport->getCore());
 		SPtr<ct::CameraCore> handlerPtr = bs_shared_ptr<ct::CameraCore>(handler);
@@ -888,7 +888,7 @@ namespace bs
 	{
 		RendererManager::instance().getActive()->notifyCameraAdded(this);
 
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	Rect2I CameraCore::getViewportRect() const

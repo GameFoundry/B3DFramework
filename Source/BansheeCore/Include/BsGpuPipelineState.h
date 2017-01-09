@@ -182,7 +182,7 @@ namespace bs
 		GraphicsPipelineState(const PIPELINE_STATE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObjectCore> createCore() const;
+		virtual SPtr<ct::CoreObject> createCore() const;
     };
 
 	/**
@@ -210,7 +210,7 @@ namespace bs
 		ComputePipelineState(const SPtr<GpuProgram>& program);
 
 		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObjectCore> createCore() const;
+		virtual SPtr<ct::CoreObject> createCore() const;
     };
 
 	/** @} */
@@ -222,13 +222,13 @@ namespace bs
 	 */
 
 	/** Core thread version of a GraphicsPipelineState. */
-	class BS_CORE_EXPORT GraphicsPipelineStateCore : public CoreObjectCore, public TGraphicsPipelineState<true>
+	class BS_CORE_EXPORT GraphicsPipelineStateCore : public CoreObject, public TGraphicsPipelineState<true>
 	{
 	public:
 		GraphicsPipelineStateCore(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 		virtual ~GraphicsPipelineStateCore() { }
 
-		/** @copydoc CoreObjectCore::initialize() */
+		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
 
 		/** @copydoc RenderStateManager::createGraphicsPipelineState */
@@ -240,13 +240,13 @@ namespace bs
 	};
 
 	/** Core thread version of a ComputePipelineState. */
-	class BS_CORE_EXPORT ComputePipelineStateCore : public CoreObjectCore, public TComputePipelineState<true>
+	class BS_CORE_EXPORT ComputePipelineStateCore : public CoreObject, public TComputePipelineState<true>
 	{
 	public:
 		ComputePipelineStateCore(const SPtr<GpuProgramCore>& program, GpuDeviceFlags deviceMask);
 		virtual ~ComputePipelineStateCore() { }
 
-		/** @copydoc CoreObjectCore::initialize() */
+		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
 
 		/** @copydoc RenderStateManager::createComputePipelineState */

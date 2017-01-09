@@ -125,7 +125,7 @@ namespace bs
 		return 0;
 	}
 
-	SPtr<ct::CoreObjectCore> Viewport::createCore() const
+	SPtr<ct::CoreObject> Viewport::createCore() const
 	{
 		SPtr<ct::RenderTargetCore> targetCore;
 		if (mTarget != nullptr)

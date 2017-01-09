@@ -141,7 +141,7 @@ namespace bs
 		void updateBounds(const MeshData& meshData);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/**
 		 * Creates buffers used for caching of CPU mesh data.
@@ -281,7 +281,7 @@ namespace bs
 
 		~MeshCore();
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc MeshCoreBase::getVertexData */

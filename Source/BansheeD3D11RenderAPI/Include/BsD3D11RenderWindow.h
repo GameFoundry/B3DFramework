@@ -137,7 +137,7 @@ namespace bs {
 	protected:
 		friend class bs::D3D11RenderWindow;
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Creates internal resources dependent on window size. */

@@ -235,7 +235,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GpuPipelineParamInfoCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GpuPipelineParamInfo::createCore() const
+	SPtr<ct::CoreObject> GpuPipelineParamInfo::createCore() const
 	{
 		GPU_PIPELINE_PARAMS_DESC desc;
 		desc.fragmentParams = mParamDescs[GPT_FRAGMENT_PROGRAM];

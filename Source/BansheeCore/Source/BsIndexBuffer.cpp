@@ -33,7 +33,7 @@ namespace bs
 		return std::static_pointer_cast<ct::IndexBufferCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> IndexBuffer::createCore() const
+	SPtr<ct::CoreObject> IndexBuffer::createCore() const
 	{
 		INDEX_BUFFER_DESC desc;
 		desc.indexType = mProperties.mIndexType;

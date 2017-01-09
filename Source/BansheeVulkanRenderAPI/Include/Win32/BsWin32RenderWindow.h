@@ -132,7 +132,7 @@ namespace bs
 	protected:
 		friend class bs::Win32RenderWindow;
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc RenderWindowCore::getProperties */

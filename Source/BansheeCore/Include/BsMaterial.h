@@ -600,7 +600,7 @@ namespace bs
 		Material(const HShader& shader);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
@@ -656,7 +656,7 @@ namespace bs
 	 */
 
 	/** @copydoc MaterialBase */
-	class BS_CORE_EXPORT MaterialCore : public CoreObjectCore, public TMaterial<true>
+	class BS_CORE_EXPORT MaterialCore : public CoreObject, public TMaterial<true>
 	{
 	public:
 		~MaterialCore() { }
@@ -675,7 +675,7 @@ namespace bs
 		MaterialCore(const SPtr<ShaderCore>& shader, const Vector<SPtr<TechniqueCore>>& techniques,
 			const SPtr<MaterialParamsCore>& materialParams);
 
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 	};
 

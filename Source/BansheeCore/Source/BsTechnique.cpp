@@ -77,7 +77,7 @@ namespace bs
 		return std::static_pointer_cast<ct::TechniqueCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> Technique::createCore() const
+	SPtr<ct::CoreObject> Technique::createCore() const
 	{
 		Vector<SPtr<ct::PassCore>> passes;
 		for (auto& pass : mPasses)

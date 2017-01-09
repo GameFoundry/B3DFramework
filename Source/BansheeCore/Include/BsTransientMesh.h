@@ -42,7 +42,7 @@ namespace bs
 		void markAsDestroyed() { mIsDestroyed = true; }
 
 		/** @copydoc RenderTarget::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 	protected:
 		bool mIsDestroyed;

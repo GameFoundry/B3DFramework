@@ -156,7 +156,7 @@ namespace bs
 		SamplerState(const SAMPLER_STATE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		SamplerProperties mProperties;
 
@@ -185,7 +185,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT SamplerStateCore : public CoreObjectCore
+	class BS_CORE_EXPORT SamplerStateCore : public CoreObject
 	{
 	public:
 		virtual ~SamplerStateCore();
@@ -204,7 +204,7 @@ namespace bs
 
 		SamplerStateCore(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Creates any API-specific state objects. */

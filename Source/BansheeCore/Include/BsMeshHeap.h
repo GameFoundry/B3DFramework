@@ -63,7 +63,7 @@ namespace bs
 			const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType = IT_32BIT);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 	private:
 		UINT32 mNumVertices;
@@ -89,7 +89,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT MeshHeapCore : public CoreObjectCore
+	class BS_CORE_EXPORT MeshHeapCore : public CoreObject
 	{
 		/**	Signifies how is a data chunk used. */
 		enum class UseFlags
@@ -135,7 +135,7 @@ namespace bs
 		MeshHeapCore(UINT32 numVertices, UINT32 numIndices, 
 			const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType, GpuDeviceFlags deviceMask);
 
-		/** @copydoc CoreObjectCore::initialize() */
+		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
 
 		/**

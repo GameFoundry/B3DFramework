@@ -178,7 +178,7 @@ namespace bs
 		BlendState(const BLEND_STATE_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		BlendProperties mProperties;
 		mutable UINT32 mId;
@@ -206,7 +206,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT BlendStateCore : public CoreObjectCore
+	class BS_CORE_EXPORT BlendStateCore : public CoreObject
 	{
 	public:
 		virtual ~BlendStateCore();
@@ -228,7 +228,7 @@ namespace bs
 
 		BlendStateCore(const BLEND_STATE_DESC& desc, UINT32 id);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Creates any API-specific state objects. */

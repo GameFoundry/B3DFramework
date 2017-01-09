@@ -137,7 +137,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT MeshCoreBase : public CoreObjectCore
+	class BS_CORE_EXPORT MeshCoreBase : public CoreObject
 	{
 	public:
 		MeshCoreBase(UINT32 numVertices, UINT32 numIndices, const Vector<SubMesh>& subMeshes);
@@ -179,7 +179,7 @@ namespace bs
 		const MeshProperties& getProperties() const { return mProperties; }
 
 	protected:
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 
 		MeshProperties mProperties;

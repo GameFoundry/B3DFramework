@@ -118,7 +118,7 @@ namespace bs
 
 	protected:
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
@@ -149,7 +149,7 @@ namespace bs
 	 */
 
 	/** Core thread version of Technique. */
-	class BS_CORE_EXPORT TechniqueCore : public CoreObjectCore, public TTechnique<true>
+	class BS_CORE_EXPORT TechniqueCore : public CoreObject, public TTechnique<true>
 	{
 	public:
 		TechniqueCore(const String& language, const StringID& renderer, const Vector<StringID>& tags,

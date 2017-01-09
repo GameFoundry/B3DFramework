@@ -204,7 +204,7 @@ namespace bs
 		Renderable();
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc TRenderable::onMeshChanged */
 		void onMeshChanged() override;
@@ -254,7 +254,7 @@ namespace bs
 	namespace ct
 	{
 	/** @copydoc TRenderable */
-	class BS_EXPORT RenderableCore : public CoreObjectCore, public TRenderable<true>
+	class BS_EXPORT RenderableCore : public CoreObject, public TRenderable<true>
 	{
 	public:
 		~RenderableCore();

@@ -211,7 +211,7 @@ namespace bs
 		return std::static_pointer_cast<ct::RenderWindowCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> RenderWindow::createCore() const
+	SPtr<ct::CoreObject> RenderWindow::createCore() const
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
 		return ct::RenderWindowManager::instance().createInternal(desc, mWindowId);

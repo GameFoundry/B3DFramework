@@ -28,12 +28,12 @@ namespace bs
 		return std::static_pointer_cast<ct::TransientMeshCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> TransientMesh::createCore() const
+	SPtr<ct::CoreObject> TransientMesh::createCore() const
 	{
 		ct::TransientMeshCore* core = new (bs_alloc<ct::TransientMeshCore>()) ct::TransientMeshCore(
 			mParentHeap->getCore(), mId, mProperties.mNumVertices, mProperties.mNumIndices, mProperties.mSubMeshes);
 
-		SPtr<ct::CoreObjectCore> meshCore = bs_shared_ptr<ct::TransientMeshCore>(core);
+		SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::TransientMeshCore>(core);
 		meshCore->_setThisPtr(meshCore);
 
 		return meshCore;

@@ -50,7 +50,7 @@ namespace bs
 		void getCustomAttribute(const String& name, void* data) const override;
 
 	protected:
-		/** @copydoc CoreObjectCore::initialize() */
+		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
 
 		/** @copydoc RenderTextureCore::getProperties */

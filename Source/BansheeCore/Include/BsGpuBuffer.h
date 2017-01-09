@@ -122,7 +122,7 @@ namespace bs
 		GpuBuffer(const GPU_BUFFER_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		GpuBufferProperties mProperties;
     };
@@ -140,7 +140,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuBufferCore : public CoreObjectCore, public HardwareBuffer
+	class BS_CORE_EXPORT GpuBufferCore : public CoreObject, public HardwareBuffer
 	{
 	public:
 		virtual ~GpuBufferCore();

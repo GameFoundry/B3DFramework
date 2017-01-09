@@ -88,7 +88,7 @@ namespace bs
 			mBindableDepthStencilTex = desc.depthStencilSurface.texture;
 	}
 
-	SPtr<ct::CoreObjectCore> RenderTexture::createCore() const
+	SPtr<ct::CoreObject> RenderTexture::createCore() const
 	{
 		ct::RENDER_TEXTURE_DESC coreDesc;
 

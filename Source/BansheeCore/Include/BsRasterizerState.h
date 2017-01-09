@@ -150,7 +150,7 @@ namespace bs
 		RasterizerState(const RASTERIZER_STATE_DESC& desc);
 		
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		RasterizerProperties mProperties;
 		mutable UINT32 mId;
@@ -178,7 +178,7 @@ namespace bs
 	 *
 	 * @note	Core thread.
 	 */
-	class BS_CORE_EXPORT RasterizerStateCore : public CoreObjectCore
+	class BS_CORE_EXPORT RasterizerStateCore : public CoreObject
 	{
 	public:
 		virtual ~RasterizerStateCore();
@@ -200,7 +200,7 @@ namespace bs
 
 		RasterizerStateCore(const RASTERIZER_STATE_DESC& desc, UINT32 id);
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/**	Creates any API-specific state objects. */

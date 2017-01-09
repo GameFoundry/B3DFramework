@@ -135,7 +135,7 @@ namespace bs
 	protected:
 		friend class Win32GLSupport;
 
-		/** @copydoc CoreObjectCore::initialize */
+		/** @copydoc CoreObject::initialize */
 		void initialize() override;
 
 		/** @copydoc RenderWindowCore::getProperties */

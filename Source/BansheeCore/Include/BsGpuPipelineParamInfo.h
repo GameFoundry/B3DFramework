@@ -112,13 +112,13 @@ namespace bs
 		GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 	};
 
 	namespace ct
 	{
 	/** Core thread version of a GpuPipelineParamInfo. */
-	class BS_CORE_EXPORT GpuPipelineParamInfoCore : public CoreObjectCore, public GpuPipelineParamInfoBase
+	class BS_CORE_EXPORT GpuPipelineParamInfoCore : public CoreObject, public GpuPipelineParamInfoBase
 	{
 	public:
 		virtual ~GpuPipelineParamInfoCore() { }

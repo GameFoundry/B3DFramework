@@ -562,7 +562,7 @@ namespace bs
 		return std::static_pointer_cast<ct::GpuParamsCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> GpuParams::createCore() const
+	SPtr<ct::CoreObject> GpuParams::createCore() const
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo = std::static_pointer_cast<GpuPipelineParamInfo>(mParamInfo);
 

@@ -437,7 +437,7 @@ namespace bs
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** Converts a sim thread version of the shader descriptor to a core thread version. */
 		ct::SHADER_DESC convertDesc(const SHADER_DESC& desc) const;
@@ -483,7 +483,7 @@ namespace bs
 	 */
 
 	/** Core thread version of Shader. */
-	class BS_CORE_EXPORT ShaderCore : public CoreObjectCore, public TShader<true>
+	class BS_CORE_EXPORT ShaderCore : public CoreObject, public TShader<true>
 	{
 	public:
 		/** @copydoc Shader::create */

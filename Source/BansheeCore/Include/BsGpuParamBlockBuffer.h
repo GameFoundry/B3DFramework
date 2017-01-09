@@ -60,7 +60,7 @@ namespace bs
 
 	protected:
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
@@ -83,7 +83,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuParamBlockBufferCore : public CoreObjectCore
+	class BS_CORE_EXPORT GpuParamBlockBufferCore : public CoreObject
 	{
 	public:
 		GpuParamBlockBufferCore(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
@@ -135,7 +135,7 @@ namespace bs
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
-		/** @copydoc CoreObjectCore::syncToCore */
+		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data)  override;
 
 		GpuParamBlockUsage mUsage;

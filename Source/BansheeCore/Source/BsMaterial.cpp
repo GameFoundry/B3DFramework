@@ -409,7 +409,7 @@ namespace bs
 		return std::static_pointer_cast<ct::MaterialCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> Material::createCore() const
+	SPtr<ct::CoreObject> Material::createCore() const
 	{
 		ct::MaterialCore* material = nullptr;
 

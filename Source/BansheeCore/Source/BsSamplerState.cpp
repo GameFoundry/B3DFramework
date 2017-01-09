@@ -60,7 +60,7 @@ namespace bs
 		return std::static_pointer_cast<ct::SamplerStateCore>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObjectCore> SamplerState::createCore() const
+	SPtr<ct::CoreObject> SamplerState::createCore() const
 	{
 		return ct::RenderStateManager::instance()._createSamplerState(mProperties.mData);
 	}
@@ -135,7 +135,7 @@ namespace bs
 			return;
 
 		createInternal();
-		CoreObjectCore::initialize();
+		CoreObject::initialize();
 	}
 
 	const SamplerProperties& SamplerStateCore::getProperties() const

@@ -131,7 +131,7 @@ namespace bs
 		GpuProgram(const GPU_PROGRAM_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObjectCore> createCore() const override;
+		SPtr<ct::CoreObject> createCore() const override;
 
 	protected:
 		bool mNeedsAdjacencyInfo;
@@ -160,7 +160,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_CORE_EXPORT GpuProgramCore : public CoreObjectCore
+	class BS_CORE_EXPORT GpuProgramCore : public CoreObject
 	{
 	public:
 		virtual ~GpuProgramCore() { }
