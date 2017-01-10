@@ -453,6 +453,12 @@ namespace bs
 		/** Creates a 4x4 transformation matrix that performs rotation. */
 		static Matrix4 rotation(const Quaternion& rotation);
 
+		/** Creates a 4x4 perspective projection matrix. */
+		static Matrix4 projectionPerspective(const Degree& horzFOV, float aspect, float near, float far);
+
+		/** Creates a view matrix and applies optional reflection. */
+		static Matrix4 view(const Vector3& position, const Quaternion& orientation, const Matrix4* reflectMatrix = nullptr);
+
         /**
          * Creates a matrix from translation, rotation and scale. 
          * 			
