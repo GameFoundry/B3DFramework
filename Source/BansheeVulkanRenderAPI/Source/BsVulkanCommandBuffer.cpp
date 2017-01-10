@@ -657,9 +657,6 @@ namespace bs { namespace ct
 
 	void VulkanCmdBuffer::reset()
 	{
-		if (mState != State::Submitted)
-			return;
-
 		mState = State::Ready;
 		vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
 
@@ -1676,6 +1673,11 @@ namespace bs { namespace ct
 		mIdMask = device.getQueueMask(mType, mQueueIdx);
 
 		acquireNewBuffer();
+	}
+
+	VulkanCommandBuffer::~VulkanCommandBuffer()
+	{
+		mBuffer->reset();
 	}
 
 	void VulkanCommandBuffer::acquireNewBuffer()

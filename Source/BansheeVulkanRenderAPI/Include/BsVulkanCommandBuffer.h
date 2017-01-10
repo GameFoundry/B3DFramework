@@ -451,6 +451,8 @@ namespace bs { namespace ct
 		VulkanCommandBuffer(VulkanDevice& device, GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
 			bool secondary);
 
+		~VulkanCommandBuffer();
+
 		/** 
 		 * Tasks the command buffer to find a new internal command buffer. Call this after the command buffer has been
 		 * submitted to a queue (it's not allowed to be used until the queue is done with it).
