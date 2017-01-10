@@ -95,6 +95,9 @@ namespace bs { namespace ct
 		 */
 		VkImageView getView(const TextureSurface& surface, bool framebuffer) const;
 		
+		/** Get aspect flags that represent the contents of this image. */
+		VkImageAspectFlags getAspectFlags() const;
+
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		VkImageSubresourceRange getRange() const;
 

@@ -80,7 +80,7 @@ namespace bs { namespace ct
 		TextureSurface completeSurface(0, desc.numMipLevels, 0, desc.numFaces);
 		if (mUsage == VulkanImageUsage::DepthAttachment)
 		{
-			mFramebufferMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+			mFramebufferMainView = createView(completeSurface, getAspectFlags());
 			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
 		else
@@ -166,7 +166,7 @@ namespace bs { namespace ct
 		if (mUsage == VulkanImageUsage::DepthAttachment)
 		{
 			if(framebuffer)
-				info.view = createView(surface, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+				info.view = createView(surface, getAspectFlags());
 			else
 				info.view = createView(surface, VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
@@ -239,6 +239,23 @@ namespace bs { namespace ct
 		}
 	}
 
+	VkImageAspectFlags VulkanImage::getAspectFlags() const
+	{
+		if (mUsage == VulkanImageUsage::DepthAttachment)
+		{
+			bool hasStencil = mImageViewCI.format == VK_FORMAT_D16_UNORM_S8_UINT ||
+				mImageViewCI.format == VK_FORMAT_D24_UNORM_S8_UINT ||
+				mImageViewCI.format == VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+			if (hasStencil)
+				return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			
+			return VK_IMAGE_ASPECT_DEPTH_BIT;
+		}
+		
+		return VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+
 	VkImageSubresourceRange VulkanImage::getRange() const
 	{
 		VkImageSubresourceRange range;
@@ -246,11 +263,7 @@ namespace bs { namespace ct
 		range.layerCount = mNumFaces;
 		range.baseMipLevel = 0;
 		range.levelCount = mNumMipLevels;
-
-		if (mUsage == VulkanImageUsage::DepthAttachment)
-			range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-		else
-			range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		range.aspectMask = getAspectFlags();
 
 		return range;
 	}
@@ -1029,11 +1042,7 @@ namespace bs { namespace ct
 			}
 
 			VkImageSubresourceRange range;
-			if ((props.getUsage() & TU_DEPTHSTENCIL) != 0)
-				range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-			else
-				range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
+			range.aspectMask = image->getAspectFlags();
 			range.baseArrayLayer = face;
 			range.layerCount = 1;
 			range.baseMipLevel = mipLevel;
@@ -1192,11 +1201,7 @@ namespace bs { namespace ct
 				}
 
 				VkImageSubresourceRange range;
-				if ((props.getUsage() & TU_DEPTHSTENCIL) != 0)
-					range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-				else
-					range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
+				range.aspectMask = image->getAspectFlags();
 				range.baseArrayLayer = mMappedFace;
 				range.layerCount = 1;
 				range.baseMipLevel = mMappedMip;
