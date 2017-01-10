@@ -561,7 +561,10 @@ namespace bs
 		desc.usage = usage;
 		desc.hwGamma = hwGammaCorrection;
 
-		return TextureManager::instance().createTextureInternal(desc, pixelData, deviceMask);
+		SPtr<Texture> newTex = TextureManager::instance().createTextureInternal(desc, pixelData, deviceMask);
+		newTex->initialize();
+
+		return newTex;
 	}
 	}
 }

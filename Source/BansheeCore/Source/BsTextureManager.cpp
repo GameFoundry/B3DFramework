@@ -141,10 +141,10 @@ namespace bs
 
 	SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		SPtr<Texture> newRT = createTextureInternal(desc, nullptr, deviceMask);
-		newRT->initialize();
+		SPtr<Texture> newTex = createTextureInternal(desc, nullptr, deviceMask);
+		newTex->initialize();
 
-		return newRT;
+		return newTex;
 	}
 
 	SPtr<RenderTexture> TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC& desc, 
