@@ -28,7 +28,7 @@ namespace bs
 	public:
 		friend class FontBitmapRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	// TODO - When saved on disk font currently stores a copy of the texture pages. This should be acceptable
@@ -95,7 +95,7 @@ namespace bs
 	public:
 		friend class FontRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

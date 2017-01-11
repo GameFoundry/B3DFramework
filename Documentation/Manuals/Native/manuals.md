@@ -37,6 +37,8 @@ Manuals									{#manuals}
  - [Basic setup](@ref guiSetup)
  - [Elements](@ref guiElements)
  - [Layouts](@ref guiLayouts)
+ - [Styles](@ref guiStyles)
+ - [Importing fonts](@ref importingFonts)
  
 # Developer guides
 

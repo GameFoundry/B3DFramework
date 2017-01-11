@@ -65,10 +65,12 @@ namespace bs
 		RectOffset contentOffset; /**< Additional offset to the content, that doesn't effect the bounds. Applied on top of the margins offsets. */
 		RectOffset padding; /**< Determines extra distance between this and other elements in a layout. */
 
-		UINT32 width; /** Wanted width of the GUI element in pixels. Only used if fixedWidth is enabled. */
-		UINT32 height; /** Wanted height of the GUI element in pixels. Only used if fixedHeight is enabled. */
-		UINT32 minWidth, maxWidth; /**< Minimum and maximum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
-		UINT32 minHeight, maxHeight; /**< Minimum and maximum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
+		UINT32 width; /**< Wanted width of the GUI element in pixels. Only used if fixedWidth is enabled. */
+		UINT32 height; /**< Wanted height of the GUI element in pixels. Only used if fixedHeight is enabled. */
+		UINT32 minWidth; /**< Minimum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
+		UINT32 maxWidth; /**< Maximum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
+		UINT32 minHeight; /**< Minimum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
+		UINT32 maxHeight; /**< Maximum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
 		bool fixedWidth; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
 		bool fixedHeight; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
 

@@ -115,7 +115,7 @@ for(int i = 0; i < 5; i++)
 }
 ~~~~~~~~~~~~~
 
-The layout will attempt to choose optimal size to fill out the available space. If elements don't fit, they will be clipped instead.
+The layout will attempt to choose optimal size to fill out the available space. If elements don't fit, they will be clipped instead. If you set the maximum size value to zero, this will imply that the element is free to stretch over the entire size of the layout.
 
 By default different GUI element types might have either a fixed or a flexible size. This is controlled by their *style*, which we'll talk about later.
 
