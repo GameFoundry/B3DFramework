@@ -179,7 +179,7 @@ namespace bs { namespace ct
         }
     }
 
-	GLenum GLPixelUtil::getDepthStencilTypeFromFormat(PixelFormat mFormat)
+	GLenum GLPixelUtil::getDepthStencilTypeFromPF(PixelFormat mFormat)
 	{
 		switch(mFormat)
 		{
@@ -199,6 +199,26 @@ namespace bs { namespace ct
 		return PF_D32_S8X24;
 	}
 		
+	GLenum GLPixelUtil::getDepthStencilFormatFromPF(PixelFormat mFormat)
+	{
+		switch (mFormat)
+		{
+		case PF_D32_S8X24:
+			return GL_DEPTH_STENCIL;
+		case PF_D24S8:
+			return GL_DEPTH_STENCIL;
+		case PF_D32:
+			return GL_DEPTH_COMPONENT;
+		case PF_D16:
+			return GL_DEPTH_COMPONENT;
+		default:
+			break;
+		}
+
+		LOGERR("Invalid depth stencil format");
+		return GL_DEPTH_STENCIL;
+	}
+
 	GLenum GLPixelUtil::getBufferFormat(GpuBufferFormat format)
 	{
 		static bool lookupInitialized = false;

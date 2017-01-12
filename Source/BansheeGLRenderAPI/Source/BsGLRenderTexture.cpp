@@ -113,6 +113,8 @@ namespace bs
 
 			mFB->bindDepthStencil(depthStencilBuffer);
 		}
+
+		mFB->rebuild();
 	}
 
 	void GLRenderTexture::getCustomAttribute(const String& name, void* data) const

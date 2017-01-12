@@ -31,7 +31,10 @@ namespace bs { namespace ct
 		static GLenum getGLInternalFormat(PixelFormat mFormat, bool hwGamma = false);
 	
 		/** Returns an OpenGL type that should be used for creating a buffer for the specified depth/stencil format. */
-		static GLenum getDepthStencilTypeFromFormat(PixelFormat mFormat);
+		static GLenum getDepthStencilTypeFromPF(PixelFormat mFormat);
+
+		/** Returns an OpenGL format that should be used for creating a buffer for the specified depth/stencil format. */
+		static GLenum getDepthStencilFormatFromPF(PixelFormat mFormat);
 
 		/** Converts engine GPU buffer format to OpenGL GPU buffer format. */
 		static GLenum getBufferFormat(GpuBufferFormat format);

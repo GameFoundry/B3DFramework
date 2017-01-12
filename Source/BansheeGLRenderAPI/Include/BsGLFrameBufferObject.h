@@ -38,7 +38,7 @@ namespace bs { namespace ct
         ~GLFrameBufferObject();
 
 		/**
-		 * Binds a color surface to the specific attachment point.
+		 * Binds a color surface to the specific attachment point. Call rebuild() to apply changes.
 		 *
 		 * @param[in]	attachment	Attachment point index in the range [0, BS_MAX_MULTIPLE_RENDER_TARGETS).
 		 * @param[in]	target		Description of the color surface to attach.
@@ -50,14 +50,14 @@ namespace bs { namespace ct
         void bindSurface(UINT32 attachment, const GLSurfaceDesc& target);
 
 		/**
-		 * Unbinds the attachment at the specified attachment index.
+		 * Unbinds the attachment at the specified attachment index. Call rebuild() to apply changes.
 		 *
 		 * @param[in]	attachment	Attachment point index in the range [0, BS_MAX_MULTIPLE_RENDER_TARGETS).
 		 */
         void unbindSurface(UINT32 attachment);
 
 		/**
-		 * Binds a depth/stencil buffer.
+		 * Binds a depth/stencil buffer. Call rebuild() to apply changes.
 		 *
 		 * @note	
 		 * Multisample counts of depth/stencil and color surfaces must match.
@@ -65,9 +65,12 @@ namespace bs { namespace ct
 		 */
 		void bindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer);
 
-		/**	Unbinds a depth stencil buffer. */
+		/**	Unbinds a depth stencil buffer. Call rebuild() to apply changes. */
 		void unbindDepthStencil();
         
+		/**	Rebuilds internal frame buffer object. Should be called whenever surfaces changes or is bound/unbound. */
+		void rebuild();
+
 		/** Binds the frame buffer object to the OpenGL pipeline, making it used for any further rendering operations. */
         void bind();
 
@@ -76,10 +79,6 @@ namespace bs { namespace ct
 
 		/**	Returns internal OpenGL frame buffer id. */
 		GLuint getGLFBOID() const { return mFB; }
-
-    private:
-		/**	Rebuilds internal frame buffer object. Should be called whenever surfaces change. */
-        void rebuild();
 
 	private:
         GLuint mFB;

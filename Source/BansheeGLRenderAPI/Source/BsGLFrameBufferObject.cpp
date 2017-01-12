@@ -28,26 +28,17 @@ namespace bs { namespace ct
     {
         assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
         mColor[attachment] = target;
-
-		if(mColor[0].buffer)
-			rebuild();
     }
 
     void GLFrameBufferObject::unbindSurface(UINT32 attachment)
     {
         assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
         mColor[attachment].buffer = nullptr;
-
-		if(mColor[0].buffer)
-			rebuild();
     }
 
 	void GLFrameBufferObject::bindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer)
 	{
 		mDepthStencilBuffer = depthStencilBuffer;
-
-		if (mColor[0].buffer)
-			rebuild();
 	}
 
 	void GLFrameBufferObject::unbindDepthStencil()
@@ -100,8 +91,18 @@ namespace bs { namespace ct
             }
         }
 
-		if(mDepthStencilBuffer != nullptr)
-			mDepthStencilBuffer->bindToFramebuffer(GL_DEPTH_STENCIL_ATTACHMENT, 0, bindAllLayers);
+		if (mDepthStencilBuffer != nullptr)
+		{
+			GLenum depthStencilFormat = GLPixelUtil::getDepthStencilFormatFromPF(mDepthStencilBuffer->getFormat());
+
+			GLenum attachmentPoint;
+			if (depthStencilFormat == GL_DEPTH_STENCIL)
+				attachmentPoint = GL_DEPTH_STENCIL_ATTACHMENT;
+			else // Depth only
+				attachmentPoint = GL_DEPTH_ATTACHMENT;
+
+			mDepthStencilBuffer->bindToFramebuffer(attachmentPoint, 0, true);
+		}
 
 		// Do glDrawBuffer calls
 		GLenum bufs[BS_MAX_MULTIPLE_RENDER_TARGETS];

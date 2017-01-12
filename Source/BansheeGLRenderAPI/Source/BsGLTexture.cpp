@@ -89,17 +89,18 @@ namespace bs { namespace ct
 		}
 		else if((usage & TU_DEPTHSTENCIL) != 0 && mProperties.getTextureType() == TEX_TYPE_2D)
 		{
-			GLenum depthStencilFormat = GLPixelUtil::getDepthStencilTypeFromFormat(mInternalFormat);
+			GLenum depthStencilType = GLPixelUtil::getDepthStencilTypeFromPF(mInternalFormat);
+			GLenum depthStencilFormat = GLPixelUtil::getDepthStencilFormatFromPF(mInternalFormat);
 
 			if (numFaces <= 1)
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, mGLFormat, width, height, 0,
-					GL_DEPTH_STENCIL, depthStencilFormat, nullptr);
+							 depthStencilFormat, depthStencilType, nullptr);
 			}
 			else
 			{
 				glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, mGLFormat, width, height, numFaces, 0,
-					GL_DEPTH_STENCIL, depthStencilFormat, nullptr);
+							 depthStencilFormat, depthStencilType, nullptr);
 			}
 		}
 		else
