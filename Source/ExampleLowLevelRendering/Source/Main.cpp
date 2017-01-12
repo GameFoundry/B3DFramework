@@ -321,17 +321,20 @@ namespace bs { namespace ct
 		// Bind the pipeline state
 		rapi.setGraphicsPipeline(gPipelineState, cmds);
 
-		// Bind the GPU program parameters (i.e. resource descriptors)
-		rapi.setGpuParams(gGpuParams, cmds);
-
 		// Set the vertex & index buffers, as well as vertex declaration and draw type
 		rapi.setVertexBuffers(0, &gVertexBuffer, 1, cmds);
 		rapi.setIndexBuffer(gIndexBuffer, cmds);
 		rapi.setVertexDeclaration(gVertexDecl, cmds);
 		rapi.setDrawOperation(DOT_TRIANGLE_LIST, cmds);
 
+		// Bind the GPU program parameters (i.e. resource descriptors)
+		rapi.setGpuParams(gGpuParams, cmds);
+
 		// Draw
 		rapi.drawIndexed(0, NUM_INDICES, 0, NUM_VERTICES, 1, cmds);
+
+		// Submit the command buffer
+		rapi.submitCommandBuffer(cmds);
 
 		// Blit the image from the render texture, to the render window
 		rapi.setRenderTarget(gRenderWindow);
@@ -342,9 +345,6 @@ namespace bs { namespace ct
 		// Use the helper RendererUtility to draw a full-screen quad of the provided texture and output it to the currently
 		// bound render target. Internally this uses the same calls we used above, just with a different pipeline and mesh.
 		gRendererUtility().blit(colorTexture);
-
-		// Submit the command buffer
-		rapi.submitCommandBuffer(cmds);
 
 		// Present the rendered image to the user
 		rapi.swapBuffers(gRenderWindow);
@@ -426,7 +426,7 @@ namespace bs { namespace ct
 
 	const char* getVertexProgSource()
 	{
-		if(BS_RENDER_API_MODULE == "BansheeD3D11RenderAPI")
+		if(USE_HLSL)
 		{
 			static char* src = R"(
 cbuffer Params
@@ -480,7 +480,7 @@ void main()
 
 	const char* getFragmentProgSource()
 	{
-		if (BS_RENDER_API_MODULE == "BansheeD3D11RenderAPI")
+		if (USE_HLSL)
 		{
 			static char* src = R"(
 cbuffer Params

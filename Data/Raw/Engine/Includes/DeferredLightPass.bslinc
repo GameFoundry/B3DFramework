@@ -43,8 +43,8 @@ Technique
 			
 			cbuffer PerLight
 			{
-				// x, y, z - World position of the lightData
-				// w - Type type - Directional = 0, Point = >0, Spot = >0.5
+				// x, y, z - World position of the light
+				// w - Light type - Directional = 0, Point = >0, Spot = >0.5
 				float4 gLightPositionAndType;
 				float4 gLightColorAndIntensity;
 				// x - outerAngle in radians, y - cos(outerAngle), z - 1.0f/(cos(innerAngle) - cos(outerAngle)), w - inverse point light radius

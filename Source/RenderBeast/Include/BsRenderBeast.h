@@ -30,8 +30,8 @@ namespace bs
 	static StringID RPS_BoneMatrices = "BoneMatrices";
 
 	/**
-	 * Default renderer for Banshee. Performs frustum culling, sorting and renders objects in custom ways determine by
-	 * renderable handlers.
+	 * Default renderer for Banshee. Performs frustum culling, sorting and renders all scene objects while applying
+	 * lighting, shadowing, special effects and post-processing.
 	 *
 	 * @note	Sim thread unless otherwise noted.
 	 */

@@ -108,13 +108,10 @@ namespace bs { namespace ct
 				}
 				else
 				{
-					// Map cannot be called with MAP_WRITE_DISCARD access, 
-					// because the Resource was not created as D3D11_USAGE_DYNAMIC. 
-					// D3D11_USAGE_DYNAMIC Resources must use either MAP_WRITE_DISCARD 
+					// Map cannot be called with MAP_WRITE_DISCARD access, because the Resource was not created as 
+					// D3D11_USAGE_DYNAMIC. D3D11_USAGE_DYNAMIC Resources must use either MAP_WRITE_DISCARD 
 					// or MAP_WRITE_NO_OVERWRITE with Map.
 					mapType = D3D11_MAP_WRITE;
-
-					LOGWRN("DISCARD lock is only available on dynamic buffers. Falling back to normal write.");
 				}
 				break;
 			case GBL_WRITE_ONLY_NO_OVERWRITE:
@@ -122,9 +119,8 @@ namespace bs { namespace ct
 					mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 				else
 				{
+					// Note supported on anything but index/vertex buffers in DX11 (this restriction was dropped in 11.1)
 					mapType = D3D11_MAP_WRITE;
-
-					LOGWRN("NO_OVERWRITE lock is not available on this (" + toString(mBufferType) + ") buffer type. Falling back to normal write.");
 				}
 				break;
 			case GBL_WRITE_ONLY:
@@ -151,10 +147,10 @@ namespace bs { namespace ct
 			}
 
 			if(D3D11Mappings::isMappingRead(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) == 0)
-				BS_EXCEPT(RenderingAPIException, "Trying to read a buffer, but buffer wasn't created with a read access flag.");
+				LOGERR("Trying to read a buffer, but buffer wasn't created with a read access flag.");
 
 			if(D3D11Mappings::isMappingWrite(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == 0)
-				BS_EXCEPT(RenderingAPIException, "Trying to write to a buffer, but buffer wasn't created with a write access flag.");
+				LOGERR("Trying to write to a buffer, but buffer wasn't created with a write access flag.");
 
 			void * pRet = NULL;
 			D3D11_MAPPED_SUBRESOURCE mappedSubResource;
@@ -297,7 +293,7 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			BS_EXCEPT(RenderingAPIException, "Trying to write into a buffer with unsupported usage: " + toString(mDesc.Usage));
+			LOGERR("Trying to write into a buffer with unsupported usage: " + toString(mDesc.Usage));
 		}
 	}
 }}
