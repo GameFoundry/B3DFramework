@@ -116,18 +116,22 @@ namespace bs { namespace ct
 					switch(resourceDesc.Dimension)
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
+					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
 						memberDesc.type = GPOT_TEXTURE1D;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2D:
+					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
 						memberDesc.type = GPOT_TEXTURE2D;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE3D:
 						memberDesc.type = GPOT_TEXTURE3D;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURECUBE:
+					case D3D_SRV_DIMENSION_TEXTURECUBEARRAY:
 						memberDesc.type = GPOT_TEXTURECUBE;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMS:
+					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
 						memberDesc.type = GPOT_TEXTURE2DMS;
 						break;
 					default:
@@ -159,10 +163,12 @@ namespace bs { namespace ct
 					switch (resourceDesc.Dimension)
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
+					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE1D;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2D:
+					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2D;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
@@ -171,6 +177,7 @@ namespace bs { namespace ct
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMS:
+					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2DMS;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;

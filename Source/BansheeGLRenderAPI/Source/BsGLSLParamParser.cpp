@@ -283,23 +283,66 @@ namespace bs { namespace ct
 			GLint uniformType;
 			glGetActiveUniformsiv(glProgram, 1, &index, GL_UNIFORM_TYPE, &uniformType);
 
+			GpuParamObjectType samplerType = GPOT_UNKNOWN;
+			GpuParamObjectType textureType = GPOT_UNKNOWN;
+
 			bool isSampler = false;
 			bool isImage = false;
 			bool isBuffer = false;
 			switch (uniformType)
 			{
 			case GL_SAMPLER_1D:
+			case GL_SAMPLER_1D_SHADOW:
+			case GL_SAMPLER_1D_ARRAY:
+			case GL_SAMPLER_1D_ARRAY_SHADOW:
+				samplerType = GPOT_SAMPLER1D;
+				textureType = GPOT_TEXTURE1D;
+				isSampler = true;
+				break;
 			case GL_SAMPLER_2D:
-			case GL_SAMPLER_3D:
+			case GL_SAMPLER_2D_SHADOW:
+			case GL_SAMPLER_2D_ARRAY:
+			case GL_SAMPLER_2D_ARRAY_SHADOW:
+				samplerType = GPOT_SAMPLER2D;
+				textureType = GPOT_TEXTURE2D;
+				isSampler = true;
+				break;
 			case GL_SAMPLER_2D_MULTISAMPLE:
+			case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+				samplerType = GPOT_SAMPLER2DMS;
+				textureType = GPOT_TEXTURE2DMS;
+				isSampler = true;
+				break;
+			case GL_SAMPLER_3D:
+				samplerType = GPOT_SAMPLER3D;
+				textureType = GPOT_TEXTURE3D;
+				isSampler = true;
+				break;
 			case GL_SAMPLER_CUBE:
+			case GL_SAMPLER_CUBE_MAP_ARRAY:
+			case GL_SAMPLER_CUBE_SHADOW:
+			case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+				samplerType = GPOT_SAMPLERCUBE;
+				textureType = GPOT_TEXTURECUBE;
 				isSampler = true;
 				break;
 			case GL_IMAGE_1D:
+			case GL_IMAGE_1D_ARRAY:
+				textureType = GPOT_RWTEXTURE1D;
+				isImage = true;
+				break;
 			case GL_IMAGE_2D:
-			case GL_IMAGE_3D:
-			case GL_IMAGE_CUBE:
+			case GL_IMAGE_2D_ARRAY:
+				textureType = GPOT_RWTEXTURE2D;
+				isImage = true;
+				break;
 			case GL_IMAGE_2D_MULTISAMPLE:
+			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+				textureType = GPOT_RWTEXTURE2DMS;
+				isImage = true;
+				break;
+			case GL_IMAGE_3D:
+				textureType = GPOT_RWTEXTURE3D;
 				isImage = true;
 				break;
 			case GL_SAMPLER_BUFFER:
@@ -312,37 +355,15 @@ namespace bs { namespace ct
 			{
 				GpuParamObjectDesc samplerParam;
 				samplerParam.name = paramName;
+				samplerParam.type = samplerType;
 				samplerParam.slot = glGetUniformLocation(glProgram, uniformName);
 				samplerParam.set = mapParameterToSet(type, ParamType::Sampler);
 
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
+				textureParam.type = textureType;
 				textureParam.slot = samplerParam.slot;
 				textureParam.set = mapParameterToSet(type, ParamType::Texture);
-
-				switch (uniformType)
-				{
-				case GL_SAMPLER_1D:
-					samplerParam.type = GPOT_SAMPLER1D;
-					textureParam.type = GPOT_TEXTURE1D;
-					break;
-				case GL_SAMPLER_2D:
-					samplerParam.type = GPOT_SAMPLER2D;
-					textureParam.type = GPOT_TEXTURE2D;
-					break;
-				case GL_SAMPLER_3D:
-					samplerParam.type = GPOT_SAMPLER3D;
-					textureParam.type = GPOT_TEXTURE3D;
-					break;
-				case GL_SAMPLER_CUBE:
-					samplerParam.type = GPOT_SAMPLERCUBE;
-					textureParam.type = GPOT_TEXTURECUBE;
-					break;
-				case GL_SAMPLER_2D_MULTISAMPLE:
-					samplerParam.type = GPOT_SAMPLER2DMS;
-					textureParam.type = GPOT_TEXTURE2DMS;
-					break;
-				}
 
 				returnParamDesc.samplers.insert(std::make_pair(paramName, samplerParam));
 				returnParamDesc.textures.insert(std::make_pair(paramName, textureParam));
@@ -351,24 +372,9 @@ namespace bs { namespace ct
 			{
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
+				textureParam.type = textureType;
 				textureParam.slot = glGetUniformLocation(glProgram, uniformName);
 				textureParam.set = mapParameterToSet(type, ParamType::Image);
-
-				switch (uniformType)
-				{
-				case GL_IMAGE_1D:
-					textureParam.type = GPOT_RWTEXTURE1D;
-					break;
-				case GL_IMAGE_2D:
-					textureParam.type = GPOT_RWTEXTURE2D;
-					break;
-				case GL_IMAGE_3D:
-					textureParam.type = GPOT_RWTEXTURE3D;
-					break;
-				case GL_IMAGE_2D_MULTISAMPLE:
-					textureParam.type = GPOT_RWTEXTURE2DMS;
-					break;
-				}
 
 				returnParamDesc.loadStoreTextures.insert(std::make_pair(paramName, textureParam));
 			}
