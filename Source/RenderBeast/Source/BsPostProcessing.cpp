@@ -7,6 +7,7 @@
 #include "BsTextureManager.h"
 #include "BsCamera.h"
 #include "BsGpuParamsSet.h"
+#include "BsRendererCamera.h"
 
 namespace bs { namespace ct
 {
@@ -391,8 +392,8 @@ namespace bs { namespace ct
 	}
 
 	template<bool GammaOnly, bool AutoExposure>
-	void TonemappingMat<GammaOnly, AutoExposure>::execute(const SPtr<RenderTexture>& sceneColor, const SPtr<Viewport>& outputViewport,
-		PostProcessInfo& ppInfo)
+	void TonemappingMat<GammaOnly, AutoExposure>::execute(const SPtr<RenderTexture>& sceneColor, 
+		const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo)
 	{
 		gTonemappingParamDef.gRawGamma.set(mParamBuffer, 1.0f / ppInfo.settings->gamma);
 		gTonemappingParamDef.gManualExposureScale.set(mParamBuffer, Math::pow(2.0f, ppInfo.settings->exposureScale));
@@ -415,10 +416,9 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();
-		SPtr<RenderTarget> target = outputViewport->getTarget();
 
-		rapi.setRenderTarget(target);
-		rapi.setViewport(outputViewport->getNormArea());
+		rapi.setRenderTarget(outputRT);
+		rapi.setViewport(outputRect);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
@@ -430,13 +430,15 @@ namespace bs { namespace ct
 	template class TonemappingMat<true, false>;
 	template class TonemappingMat<false, false>;
 
-	void PostProcessing::postProcess(const SPtr<RenderTexture>& sceneColor, const Camera* camera, 
-		PostProcessInfo& ppInfo, float frameDelta)
+	void PostProcessing::postProcess(RendererCamera* viewInfo, const SPtr<RenderTexture>& sceneColor, float frameDelta)
 	{
+		PostProcessInfo& ppInfo = viewInfo->getPPInfo();
 		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
-		SPtr<Viewport> outputViewport = camera->getViewport();
-		bool hdr = camera->getFlags().isSet(CameraFlag::HDR);
+		SPtr<RenderTarget> finalRT = viewInfo->getFinalTarget();
+		Rect2 viewportRect = viewInfo->getViewportRect();
+
+		bool hdr = viewInfo->isHDR();
 
 		if(hdr && settings.enableAutoExposure)
 		{
@@ -457,21 +459,19 @@ namespace bs { namespace ct
 				mCreateLUT.execute(ppInfo);
 
 			if (settings.enableAutoExposure)
-				mTonemapping_AE.execute(sceneColor, outputViewport, ppInfo);
+				mTonemapping_AE.execute(sceneColor, finalRT, viewportRect, ppInfo);
 			else
-				mTonemapping.execute(sceneColor, outputViewport, ppInfo);
+				mTonemapping.execute(sceneColor, finalRT, viewportRect, ppInfo);
 		}
 		else
 		{
 			if (hdr && settings.enableAutoExposure)
-				mTonemapping_AE_GO.execute(sceneColor, outputViewport, ppInfo);
+				mTonemapping_AE_GO.execute(sceneColor, finalRT, viewportRect, ppInfo);
 			else
-				mTonemapping_GO.execute(sceneColor, outputViewport, ppInfo);
+				mTonemapping_GO.execute(sceneColor, finalRT, viewportRect, ppInfo);
 		}
 
 		if (ppInfo.settingDirty)
 			ppInfo.settingDirty = false;
-
-		// TODO - External code depends on the main RT being bound when this exits, make this clearer
 	}
 }}

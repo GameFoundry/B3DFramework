@@ -223,7 +223,7 @@ namespace bs { namespace ct
 		TonemappingMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<RenderTexture>& sceneColor, const SPtr<Viewport>& outputViewport,
+		void execute(const SPtr<RenderTexture>& sceneColor, const SPtr<RenderTarget>& outputRT, const Rect2& outputRect,
 			PostProcessInfo& ppInfo);
 
 	private:
@@ -242,9 +242,12 @@ namespace bs { namespace ct
 	class BS_BSRND_EXPORT PostProcessing : public Module<PostProcessing>
 	{
 	public:
-		/** Renders post-processing effects for the provided render target. */
-		void postProcess(const SPtr<RenderTexture>& sceneColor, const Camera* camera,
-			PostProcessInfo& ppInfo, float frameDelta);
+		/** 
+		 * Renders post-processing effects for the provided render target. Resolves provided scene color texture into the
+		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
+		 * bound for rendering. 
+		 */
+		void postProcess(RendererCamera* viewInfo, const SPtr<RenderTexture>& sceneColor, float frameDelta);
 		
 	private:
 		DownsampleMat mDownsample;

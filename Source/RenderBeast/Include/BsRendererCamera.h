@@ -51,7 +51,10 @@ namespace bs { namespace ct
 	/** Set of properties describing the output render target used by a renderer view. */
 	struct RENDERER_VIEW_TARGET_DESC
 	{
+		SPtr<RenderTarget> target;
+
 		Rect2I viewRect;
+		Rect2 nrmViewRect;
 		UINT32 targetWidth;
 		UINT32 targetHeight;
 		UINT32 numSamples;
@@ -75,12 +78,15 @@ namespace bs { namespace ct
 
 		bool isOverlay : 1;
 		bool isHDR : 1;
+		bool triggerCallbacks : 1;
+		bool runPostProcessing : 1;
 
 		UINT64 visibleLayers;
 		ConvexVolume cullFrustum;
 
 		StateReduction stateReduction;
 
+		const Camera* sceneCamera;
 		SPtr<Texture> skyboxTexture;
 	};
 
@@ -103,6 +109,36 @@ namespace bs { namespace ct
 
 		/** Updates all internal information with new view information. */
 		void setView(const RENDERER_VIEW_DESC& desc);
+
+		/** Returns the world position of the view. */
+		Vector3 getViewOrigin() const { return mViewDesc.viewOrigin; }
+
+		/** Returns a matrix that contains combined projection and view transforms. */
+		Matrix4 getViewProjMatrix() const { return mViewDesc.projTransform * mViewDesc.viewTransform; }
+
+		/** Returns the distance to the near clipping plane. */
+		float getNearPlane() const { return mViewDesc.nearPlane; }
+
+		/** Returns true if the view requires high dynamic range rendering. */
+		bool isHDR() const { return mViewDesc.isHDR; }
+
+		/** Returns the texture to use for the skybox (if any). */
+		SPtr<Texture> getSkybox() const { return mViewDesc.skyboxTexture; }
+
+		/** Returns the final render target the rendered contents should be output to. */
+		SPtr<RenderTarget> getFinalTarget() const { return mViewDesc.target.target; }
+
+		/** Returns normalized coordinates of the viewport area this view renders to. */
+		Rect2 getViewportRect() const { return mViewDesc.target.nrmViewRect; }
+
+		/** Returns the scene camera this object is based of. This can be null for manually constructed renderer cameras. */
+		const Camera* getSceneCamera() const { return mViewDesc.sceneCamera; }
+
+		/** Returns true if external render callbacks should trigger for this view. */
+		bool checkTriggerCallbacks() const { return mViewDesc.triggerCallbacks; }
+
+		/** Returns true if post-processing effects should be triggered for this view. */
+		bool checkRunPostProcessing() const { return mViewDesc.runPostProcessing; }
 
 		/** 
 		 * Prepares render targets for rendering. When done call endRendering().

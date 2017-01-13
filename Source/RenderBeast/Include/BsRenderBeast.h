@@ -37,15 +37,6 @@ namespace bs
 	 */
 	class RenderBeast : public Renderer
 	{
-		/** Renderer information specific to a single frame. */
-		struct RendererFrame
-		{
-			RendererFrame(float delta, const RendererAnimationData& animData);
-
-			float delta;
-			const RendererAnimationData& animData;
-		};
-
 		/**	Renderer information specific to a single render target. */
 		struct RendererRenderTarget
 		{
@@ -147,26 +138,18 @@ namespace bs
 		void renderAllCore(float time, float delta);
 
 		/**
-		 * Renders all objects visible by the provided camera.
-		 *
-		 * @param[in]	frameInfo	Renderer information specific to this frame.
-		 * @param[in]	rtInfo		Render target information containing the camera to render.
-		 * @param[in]	camIdx		Index of the camera to render.
-		 * 					
+		 * Renders all objects visible by the provided view.
+		 *			
 		 * @note	Core thread only.
 		 */
-		void render(const RendererFrame& frameInfo, RendererRenderTarget& rtInfo, UINT32 camIdx);
+		void render(RendererCamera* viewInfo, float frameDelta);
 
 		/**
 		 * Renders all overlay callbacks attached to the provided camera.
-		 *
-		 * @param[in]	frameInfo	Renderer information specific to this frame.
-		 * @param[in]	rtInfo		Render target information containing the camera to render.
-		 * @param[in]	camIdx		Index of the camera to render.
 		 * 					
 		 * @note	Core thread only.
 		 */
-		void renderOverlay(const RendererFrame& frameInfo, RendererRenderTarget& rtInfo, UINT32 camIdx);
+		void renderOverlay(const Camera* camera, bool clear);
 
 		/** 
 		 * Renders a single element of a renderable object. 
@@ -175,11 +158,9 @@ namespace bs
 		 * @param[in]	passIdx		Index of the material pass to render the element with.
 		 * @param[in]	bindPass	If true the material pass will be bound for rendering, if false it is assumed it is
 		 *							already bound.
-		 * @param[in]	frameInfo	Renderer information specific to this frame.
 		 * @param[in]	viewProj	View projection matrix of the camera the element is being rendered with.
 		 */
-		void renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass, 
-			const RendererFrame& frameInfo, const Matrix4& viewProj);
+		void renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass, const Matrix4& viewProj);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore();

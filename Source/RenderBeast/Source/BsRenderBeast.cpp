@@ -37,10 +37,6 @@ using namespace std::placeholders;
 
 namespace bs { namespace ct
 {
-	RenderBeast::RendererFrame::RendererFrame(float delta, const RendererAnimationData& animData)
-		:delta(delta), animData(animData)
-	{ }
-
 	RenderBeast::RenderBeast()
 		: mDefaultMaterial(nullptr), mPointLightInMat(nullptr), mPointLightOutMat(nullptr), mDirLightMat(nullptr)
 		, mSkyboxMat(nullptr), mObjectRenderer(nullptr), mOptions(bs_shared_ptr_new<RenderBeastOptions>())
@@ -450,17 +446,18 @@ namespace bs { namespace ct
 			viewDesc.target.clearDepthValue = viewport->getClearDepthValue();
 			viewDesc.target.clearStencilValue = viewport->getClearStencilValue();
 
+			viewDesc.target.target = viewport->getTarget();
+			viewDesc.target.nrmViewRect = viewport->getNormArea();
 			viewDesc.target.viewRect = Rect2I(
 				viewport->getX(),
 				viewport->getY(),
 				(UINT32)viewport->getWidth(),
 				(UINT32)viewport->getHeight());
 
-			SPtr<RenderTarget> rt = viewport->getTarget();
-			if (rt != nullptr)
+			if (viewDesc.target.target != nullptr)
 			{
-				viewDesc.target.targetWidth = rt->getProperties().getWidth();
-				viewDesc.target.targetHeight = rt->getProperties().getHeight();
+				viewDesc.target.targetWidth = viewDesc.target.target->getProperties().getWidth();
+				viewDesc.target.targetHeight = viewDesc.target.target->getProperties().getHeight();
 			}
 			else
 			{
@@ -472,6 +469,8 @@ namespace bs { namespace ct
 
 			viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
 			viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
+			viewDesc.triggerCallbacks = true;
+			viewDesc.runPostProcessing = true;
 
 			viewDesc.cullFrustum = camera->getWorldFrustum();
 			viewDesc.visibleLayers = camera->getLayers();
@@ -484,6 +483,7 @@ namespace bs { namespace ct
 
 			viewDesc.stateReduction = mCoreOptions->stateReductionMode;
 			viewDesc.skyboxTexture = camera->getSkybox();
+			viewDesc.sceneCamera = camera;
 
 			if (iterFind != mCameras.end())
 			{
@@ -631,7 +631,6 @@ namespace bs { namespace ct
 		// Retrieve animation data
 		AnimationManager::instance().waitUntilComplete();
 		const RendererAnimationData& animData = AnimationManager::instance().getRendererData();
-		RendererFrame frameInfo(delta, animData);
 
 		// Update per-object, bone matrix and morph shape GPU buffers
 		UINT32 numRenderables = (UINT32)mRenderables.size();
@@ -662,9 +661,17 @@ namespace bs { namespace ct
 			{
 				bool isOverlayCamera = cameras[i]->getFlags().isSet(CameraFlag::Overlay);
 				if (!isOverlayCamera)
-					render(frameInfo, rtInfo, i);
+				{
+					RendererCamera* viewInfo = mCameras[cameras[i]];
+
+					render(viewInfo, delta);
+				}
 				else
-					renderOverlay(frameInfo, rtInfo, i);
+				{
+					bool clear = i == 0;
+
+					renderOverlay(cameras[i], clear);
+				}
 			}
 		}
 
@@ -680,23 +687,19 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("renderAllCore");
 	}
 
-	void RenderBeast::render(const RendererFrame& frameInfo, RendererRenderTarget& rtInfo, UINT32 camIdx)
+	void RenderBeast::render(RendererCamera* viewInfo, float frameDelta)
 	{
 		gProfilerCPU().beginSample("Render");
 
-		const Camera* camera = rtInfo.cameras[camIdx];
-		RendererCamera* rendererCam = mCameras[camera];
-		SPtr<GpuParamBlockBuffer> perCameraBuffer = rendererCam->getPerViewBuffer();
+		const Camera* sceneCamera = viewInfo->getSceneCamera();
+
+		SPtr<GpuParamBlockBuffer> perCameraBuffer = viewInfo->getPerViewBuffer();
 		perCameraBuffer->flushToGPU();
 
-		assert(!camera->getFlags().isSet(CameraFlag::Overlay));
-
-		Matrix4 proj = camera->getProjectionMatrixRS();
-		Matrix4 view = camera->getViewMatrix();
-		Matrix4 viewProj = proj * view;
+		Matrix4 viewProj = viewInfo->getViewProjMatrix();
 
 		// Assign camera and per-call data to all relevant renderables
-		const Vector<bool>& visibility = rendererCam->getVisibilityMask();
+		const Vector<bool>& visibility = viewInfo->getVisibilityMask();
 		UINT32 numRenderables = (UINT32)mRenderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
@@ -713,49 +716,56 @@ namespace bs { namespace ct
 			}
 		}
 
-		rendererCam->beginRendering(true);
+		viewInfo->beginRendering(true);
 
-		SPtr<RenderTargets> renderTargets = rendererCam->getRenderTargets();
+		SPtr<RenderTargets> renderTargets = viewInfo->getRenderTargets();
 		renderTargets->bindGBuffer();
 
-		//// Trigger pre-base-pass callbacks
+		// Trigger pre-base-pass callbacks
 		auto iterRenderCallback = mCallbacks.begin();
-		while(iterRenderCallback != mCallbacks.end())
-		{
-			RendererExtension* extension = *iterRenderCallback;
-			if (extension->getLocation() != RenderLocation::PreBasePass)
-				break;
-			
-			if (extension->check(*camera))
-				extension->render(*camera);
 
-			++iterRenderCallback;
+		if (viewInfo->checkTriggerCallbacks())
+		{
+			while (iterRenderCallback != mCallbacks.end())
+			{
+				RendererExtension* extension = *iterRenderCallback;
+				if (extension->getLocation() != RenderLocation::PreBasePass)
+					break;
+
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+
+				++iterRenderCallback;
+			}
 		}
 
-		//// Render base pass
-		const Vector<RenderQueueElement>& opaqueElements = rendererCam->getOpaqueQueue()->getSortedElements();
+		// Render base pass
+		const Vector<RenderQueueElement>& opaqueElements = viewInfo->getOpaqueQueue()->getSortedElements();
 		for (auto iter = opaqueElements.begin(); iter != opaqueElements.end(); ++iter)
 		{
 			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
-			renderElement(*renderElem, iter->passIdx, iter->applyPass, frameInfo, viewProj);
+			renderElement(*renderElem, iter->passIdx, iter->applyPass, viewProj);
 		}
 
-		//// Trigger post-base-pass callbacks
-		while (iterRenderCallback != mCallbacks.end())
+		// Trigger post-base-pass callbacks
+		if (viewInfo->checkTriggerCallbacks())
 		{
-			RendererExtension* extension = *iterRenderCallback;
-			if (extension->getLocation() != RenderLocation::PostBasePass)
-				break;
+			while (iterRenderCallback != mCallbacks.end())
+			{
+				RendererExtension* extension = *iterRenderCallback;
+				if (extension->getLocation() != RenderLocation::PostBasePass)
+					break;
 
-			if (extension->check(*camera))
-				extension->render(*camera);
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
 
-			++iterRenderCallback;
+				++iterRenderCallback;
+			}
 		}
 
 		renderTargets->bindSceneColor(true);
 
-		//// Render light pass
+		// Render light pass
 		{
 			mDirLightMat->bind(renderTargets, perCameraBuffer);
 			for (auto& light : mDirectionalLights)
@@ -777,8 +787,8 @@ namespace bs { namespace ct
 				if (!light.internal->getIsActive())
 					continue;
 
-				float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
+				float distToLight = (light.internal->getBounds().getCenter() - viewInfo->getViewOrigin()).squaredLength();
+				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + viewInfo->getNearPlane() * 2.0f;
 
 				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
 				if (!cameraInLightGeometry)
@@ -798,8 +808,8 @@ namespace bs { namespace ct
 				if (!light.internal->getIsActive())
 					continue;
 
-				float distToLight = (light.internal->getBounds().getCenter() - camera->getPosition()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + camera->getNearClipDistance() * 2.0f;
+				float distToLight = (light.internal->getBounds().getCenter() - viewInfo->getViewOrigin()).squaredLength();
+				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + viewInfo->getNearPlane() * 2.0f;
 
 				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
 				if (cameraInLightGeometry)
@@ -813,7 +823,7 @@ namespace bs { namespace ct
 		}
 
 		// Render skybox (if any)
-		SPtr<Texture> skyTexture = camera->getSkybox();
+		SPtr<Texture> skyTexture = viewInfo->getSkybox();
 		if (skyTexture != nullptr && skyTexture->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
 		{
 			mSkyboxMat->bind(perCameraBuffer);
@@ -826,54 +836,73 @@ namespace bs { namespace ct
 		renderTargets->bindSceneColor(false);
 
 		// Render transparent objects (TODO - No lighting yet)
-		const Vector<RenderQueueElement>& transparentElements = rendererCam->getTransparentQueue()->getSortedElements();
+		const Vector<RenderQueueElement>& transparentElements = viewInfo->getTransparentQueue()->getSortedElements();
 		for (auto iter = transparentElements.begin(); iter != transparentElements.end(); ++iter)
 		{
 			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
-			renderElement(*renderElem, iter->passIdx, iter->applyPass, frameInfo, viewProj);
+			renderElement(*renderElem, iter->passIdx, iter->applyPass, viewProj);
 		}
 
-		//// Trigger post-light-pass callbacks
-		while (iterRenderCallback != mCallbacks.end())
+		// Trigger post-light-pass callbacks
+		if (viewInfo->checkTriggerCallbacks())
 		{
-			RendererExtension* extension = *iterRenderCallback;
-			if (extension->getLocation() != RenderLocation::PostLightPass)
-				break;
+			while (iterRenderCallback != mCallbacks.end())
+			{
+				RendererExtension* extension = *iterRenderCallback;
+				if (extension->getLocation() != RenderLocation::PostLightPass)
+					break;
 
-			if (extension->check(*camera))
-				extension->render(*camera);
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
 
-			++iterRenderCallback;
+				++iterRenderCallback;
+			}
 		}
 
-		// TODO - If GBuffer has multiple samples, I should resolve them before post-processing
-		PostProcessing::instance().postProcess(renderTargets->getSceneColorRT(),
-			camera, rendererCam->getPPInfo(), frameInfo.delta);
-
-		//// Trigger overlay callbacks
-		while (iterRenderCallback != mCallbacks.end())
+		// Post-processing and final resolve
+		if (viewInfo->checkRunPostProcessing())
 		{
-			RendererExtension* extension = *iterRenderCallback;
-			if (extension->getLocation() != RenderLocation::Overlay)
-				break;
+			// TODO - If GBuffer has multiple samples, I should resolve them before post-processing
+			PostProcessing::instance().postProcess(viewInfo, renderTargets->getSceneColorRT(), frameDelta);
+		}
+		else
+		{
+			// Just copy from scene color to output if no post-processing
+			RenderAPI& rapi = RenderAPI::instance();
+			SPtr<RenderTarget> target = viewInfo->getFinalTarget();
+			Rect2 viewportArea = viewInfo->getViewportRect();
 
-			if (extension->check(*camera))
-				extension->render(*camera);
+			rapi.setRenderTarget(target);
+			rapi.setViewport(viewportArea);
 
-			++iterRenderCallback;
+			SPtr<Texture> sceneColor = renderTargets->getSceneColorRT()->getColorTexture(0);
+			gRendererUtility().blit(sceneColor);
 		}
 
-		rendererCam->endRendering();
+		// Trigger overlay callbacks
+		if (viewInfo->checkTriggerCallbacks())
+		{
+			while (iterRenderCallback != mCallbacks.end())
+			{
+				RendererExtension* extension = *iterRenderCallback;
+				if (extension->getLocation() != RenderLocation::Overlay)
+					break;
+
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+
+				++iterRenderCallback;
+			}
+		}
+
+		viewInfo->endRendering();
 
 		gProfilerCPU().endSample("Render");
 	}
 
-	void RenderBeast::renderOverlay(const RendererFrame& frameInfo, RendererRenderTarget& rtData, UINT32 camIdx)
+	void RenderBeast::renderOverlay(const Camera* camera, bool clear)
 	{
 		gProfilerCPU().beginSample("RenderOverlay");
-
-		const Camera* camera = rtData.cameras[camIdx];
-		assert(camera->getFlags().isSet(CameraFlag::Overlay));
 
 		SPtr<Viewport> viewport = camera->getViewport();
 		RendererCamera* rendererCam = mCameras[camera];
@@ -881,10 +910,10 @@ namespace bs { namespace ct
 
 		rendererCam->beginRendering(false);
 
-		SPtr<RenderTarget> target = rtData.target;
+		SPtr<RenderTarget> target = camera->getViewport()->getTarget();
 
 		// If first camera in render target, prepare the render target
-		if (camIdx == 0)
+		if (clear)
 		{
 			RenderAPI::instance().setRenderTarget(target);
 
@@ -931,8 +960,8 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("RenderOverlay");
 	}
 	
-	void RenderBeast::renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass,
-		const RendererFrame& frameInfo, const Matrix4& viewProj)
+	void RenderBeast::renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass, 
+									const Matrix4& viewProj)
 	{
 		SPtr<Material> material = element.material;
 

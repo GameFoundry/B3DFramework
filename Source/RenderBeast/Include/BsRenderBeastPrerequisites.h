@@ -36,4 +36,5 @@ namespace bs { namespace ct
 	struct RenderBeastOptions;
 	struct PooledRenderTexture;
 	class RenderTargets;
+	class RendererCamera;
 }}
