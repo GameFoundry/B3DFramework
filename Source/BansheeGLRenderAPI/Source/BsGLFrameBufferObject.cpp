@@ -48,13 +48,7 @@ namespace bs { namespace ct
 
     void GLFrameBufferObject::rebuild()
     {
-        // First buffer must be bound
-        if(!mColor[0].buffer)
-			BS_EXCEPT(InvalidParametersException, "Attachment 0 must have surface attached");
-
         // Store basic stats
-        UINT32 width = mColor[0].buffer->getWidth();
-        UINT32 height = mColor[0].buffer->getHeight();
         UINT16 maxSupportedMRTs = RenderAPI::instancePtr()->getCapabilities(0).getNumMultiRenderTargets();
 
 		// Bind simple buffer to add color attachments
@@ -67,17 +61,6 @@ namespace bs { namespace ct
         {
             if(mColor[x].buffer)
             {
-                if(mColor[x].buffer->getWidth() != width || mColor[x].buffer->getHeight() != height)
-                {
-                    StringStream ss;
-                    ss << "Attachment " << x << " has incompatible size ";
-                    ss << mColor[x].buffer->getWidth() << "x" << mColor[x].buffer->getHeight();
-                    ss << ". It must be of the same as the size of surface 0, ";
-                    ss << width << "x" << height;
-                    ss << ".";
-                    BS_EXCEPT(InvalidParametersException, ss.str());
-                }
-
 				// Note: I'm attaching textures to FBO while renderbuffers might yield better performance if I
 				// don't need to read from them
 
@@ -139,9 +122,9 @@ namespace bs { namespace ct
         case GL_FRAMEBUFFER_COMPLETE:
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
-            BS_EXCEPT(InvalidParametersException, "All framebuffer formats with this texture internal format unsupported");
+            LOGERR("All framebuffer formats with this texture internal format unsupported");
         default:
-            BS_EXCEPT(InvalidParametersException, "Framebuffer incomplete or other FBO status error");
+            LOGERR("Framebuffer incomplete or other FBO status error");
         }
     }
 
