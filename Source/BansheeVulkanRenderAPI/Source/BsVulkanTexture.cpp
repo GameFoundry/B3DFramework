@@ -182,31 +182,30 @@ namespace bs { namespace ct
 	{
 		VkImageViewType oldViewType = mImageViewCI.viewType;
 
-		if(surface.numArraySlices > 1)
+		switch (oldViewType)
 		{
-			switch (oldViewType)
+		case VK_IMAGE_VIEW_TYPE_CUBE:
+			if(surface.numArraySlices == 1)
+				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			else if(surface.numArraySlices % 6 == 0)
 			{
-			case VK_IMAGE_VIEW_TYPE_1D:
-				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
-				break;
-			case VK_IMAGE_VIEW_TYPE_2D:
-			case VK_IMAGE_VIEW_TYPE_3D:
+				if(surface.numArraySlices > 6)
+					mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+			}
+			else
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-				break;
-			default:
-				break;
-			}
-		} 
-		else if(surface.numArraySlices > 6)
-		{
-			switch (oldViewType)
-			{
-			case VK_IMAGE_VIEW_TYPE_CUBE:
-				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
-				break;
-			default:
-				break;
-			}
+			break;
+		case VK_IMAGE_VIEW_TYPE_1D:
+			if(surface.numArraySlices > 1)
+				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+			break;
+		case VK_IMAGE_VIEW_TYPE_2D:
+		case VK_IMAGE_VIEW_TYPE_3D:
+			if (surface.numArraySlices > 1)
+				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+			break;
+		default:
+			break;
 		}
 
 		mImageViewCI.subresourceRange.aspectMask = aspectMask;
