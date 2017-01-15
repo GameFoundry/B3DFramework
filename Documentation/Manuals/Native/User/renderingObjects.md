@@ -12,7 +12,7 @@ HRenderable renderable = renderableSO->addComponent<CRenderable>();
 ~~~~~~~~~~~~~
 
 # Rendering a mesh
-Once created you must assign it a **Mesh** to render, and a **Material** to render it with, both of which we have discussed in the previous chapters. Use @ref bs::Renderable::setMesh "Renderable::setMesh" and @ref bs::Renderable::setMaterial "Renderable::setMaterial".
+Once created you must assign it a **Mesh** to render, and a **Material** to render it with, both of which we have discussed in the previous chapters. Use @ref bs::CRenderable::setMesh "CRenderable::setMesh" and @ref bs::CRenderable::setMaterial "CRenderable::setMaterial".
 
 ~~~~~~~~~~~~~{.cpp}
 ... set up a camera ...

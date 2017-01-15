@@ -6,7 +6,7 @@ Fonts control how text characters look and are used primarily throughout the GUI
 Fonts can be imported from .TTF or .OTF formats using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
-// Import a font named "lato.ttf" from the disk
+// Import a font named "lato.ttf" from disk
 HFont font = gImporter().import<Font>("lato.ttf");
 ~~~~~~~~~~~~~
 

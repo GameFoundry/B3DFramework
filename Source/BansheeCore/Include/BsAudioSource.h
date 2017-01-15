@@ -56,10 +56,10 @@ namespace bs
 		/** Retrieves the volume of the audio source, in [0, 1] range. */
 		float getVolume() const { return mVolume; }
 
-		/** Sets the pitch of the audio source. */
+		/** Sets the pitch multiplier of the audio source. */
 		virtual void setPitch(float pitch);
 
-		/** Gets the pitch of the audio source. */
+		/** Gets the pitch multiplier of the audio source. */
 		float getPitch() const { return mPitch; }
 
 		/** Sets whether the audio clip should loop when it finishes playing. */

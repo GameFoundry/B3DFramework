@@ -39,6 +39,9 @@ Manuals									{#manuals}
  - [Layouts](@ref guiLayouts)
  - [Styles](@ref guiStyles)
  - [Importing fonts](@ref importingFonts)
+- **Audio**
+ - [Importing audio files](@ref importingAudio)
+ - [Playing audio](@ref playingAudio)
  
 # Developer guides
 
