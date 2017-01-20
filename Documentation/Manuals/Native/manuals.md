@@ -42,6 +42,9 @@ Manuals									{#manuals}
 - **Audio**
  - [Importing audio files](@ref importingAudio)
  - [Playing audio](@ref playingAudio)
+- **Physics**
+ - [Colliders](@ref colliders)
+ - [Physics mesh import](@ref physicsMesh)
  
 # Developer guides
 

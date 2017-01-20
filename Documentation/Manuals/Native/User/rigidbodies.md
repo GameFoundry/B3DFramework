@@ -1,0 +1,1 @@
+Colliders represent static pieces of geometry. If you move the scene objects they're attached to, the colliders will move as well, but will not react correctly with other physical objects.
