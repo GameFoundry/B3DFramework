@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	class FileSystemTestSuite : public TestSuite
+	class BS_UTILITY_EXPORT FileSystemTestSuite : public TestSuite
 	{
 	public:
 		FileSystemTestSuite();

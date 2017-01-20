@@ -13,6 +13,7 @@
 #include "BsSceneManager.h"
 #include "BsRenderAPI.h"
 #include "BsGameResourceManager.h"
+#include "BsEngineConfig.h"
 
 void runApplication();
 
