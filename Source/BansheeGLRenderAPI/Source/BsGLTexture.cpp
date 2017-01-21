@@ -9,6 +9,7 @@
 #include "BsCoreThread.h"
 #include "BsTextureManager.h"
 #include "BsGLRenderTexture.h"
+#include "BsGLTextureView.h"
 #include "BsRenderStats.h"
 
 namespace bs { namespace ct
@@ -67,6 +68,9 @@ namespace bs { namespace ct
 			}
 		}
 
+		// Include the base mip level
+		numMips += 1;
+
 		// Generate texture handle
 		glGenTextures(1, &mTextureID);
 
@@ -74,7 +78,7 @@ namespace bs { namespace ct
 		glBindTexture(getGLTextureTarget(), mTextureID);
 
 		// This needs to be set otherwise the texture doesn't get rendered
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips);
+		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips - 1);
 
 		// Allocate internal buffer so that glTexSubImageXD can be used
 		mGLFormat = GLPixelUtil::getGLInternalFormat(mInternalFormat, mProperties.isHardwareGammaEnabled());
@@ -83,83 +87,48 @@ namespace bs { namespace ct
 		if((usage & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0 && mProperties.getTextureType() == TEX_TYPE_2D && sampleCount > 1)
 		{
 			if (numFaces <= 1)
-				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleCount, mGLFormat, width, height, GL_FALSE);
+				glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleCount, mGLFormat, width, height, GL_FALSE);
 			else
-				glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, sampleCount, mGLFormat, width, height, numFaces, GL_FALSE);
+				glTexStorage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, sampleCount, mGLFormat, width, height, numFaces, GL_FALSE);
 		}
 		else if((usage & TU_DEPTHSTENCIL) != 0 && mProperties.getTextureType() == TEX_TYPE_2D)
 		{
-			GLenum depthStencilType = GLPixelUtil::getDepthStencilTypeFromPF(mInternalFormat);
-			GLenum depthStencilFormat = GLPixelUtil::getDepthStencilFormatFromPF(mInternalFormat);
-
 			if (numFaces <= 1)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, mGLFormat, width, height, 0,
-							 depthStencilFormat, depthStencilType, nullptr);
-			}
+				glTexStorage2D(GL_TEXTURE_2D, numMips, mGLFormat, width, height);
 			else
-			{
-				glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, mGLFormat, width, height, numFaces, 0,
-							 depthStencilFormat, depthStencilType, nullptr);
-			}
+				glTexStorage3D(GL_TEXTURE_2D_ARRAY, numMips, mGLFormat, width, height, numFaces);
 		}
 		else
 		{
-			GLenum baseFormat = GLPixelUtil::getGLOriginFormat(mInternalFormat);
-			GLenum baseDataType = GLPixelUtil::getGLOriginDataType(mInternalFormat);
-
-			// Run through this process to pre-generate mipmap pyramid
-			for (UINT32 mip = 0; mip <= numMips; mip++)
+			switch (texType)
 			{
-				switch (texType)
-				{
-				case TEX_TYPE_1D:
-				{
-					if (numFaces <= 1)
-						glTexImage1D(GL_TEXTURE_1D, mip, mGLFormat, width, 0, baseFormat, baseDataType, nullptr);
-					else
-						glTexImage2D(GL_TEXTURE_1D_ARRAY, mip, mGLFormat, width, numFaces, 0, baseFormat, baseDataType, nullptr);
-				}
-					break;
-				case TEX_TYPE_2D:
-				{
-					if (numFaces <= 1)
-						glTexImage2D(GL_TEXTURE_2D, mip, mGLFormat, width, height, 0, baseFormat, baseDataType, nullptr);
-					else
-						glTexImage3D(GL_TEXTURE_2D_ARRAY, mip, mGLFormat, width, height, numFaces, 0, baseFormat, baseDataType, nullptr);
-				}
-					break;
-				case TEX_TYPE_3D:
-					glTexImage3D(GL_TEXTURE_3D, mip, mGLFormat, width, height,
-						depth, 0, baseFormat, baseDataType, nullptr);
-					break;
-				case TEX_TYPE_CUBE_MAP:
-				{
-					if (numFaces <= 6)
-					{
-						for (UINT32 face = 0; face < 6; face++)
-						{
-							glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, mGLFormat,
-								width, height, 0, baseFormat, baseDataType, nullptr);
-						}
-					}
-					else
-					{
-						glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mip, mGLFormat,
-							width, height, numFaces, 0, baseFormat, baseDataType, nullptr);
-					}
-				}
-					break;
-				}
-
-				if(width > 1)
-					width = width/2;
-
-				if(height > 1)
-					height = height/2;
-
-				if(depth > 1)	
-					depth = depth/2;
+			case TEX_TYPE_1D:
+			{
+				if (numFaces <= 1)
+					glTexStorage1D(GL_TEXTURE_1D, numMips, mGLFormat, width);
+				else
+					glTexStorage2D(GL_TEXTURE_1D_ARRAY, numMips, mGLFormat, width, numFaces);
+			}
+				break;
+			case TEX_TYPE_2D:
+			{
+				if (numFaces <= 1)
+					glTexStorage2D(GL_TEXTURE_2D, numMips, mGLFormat, width, height);
+				else
+					glTexStorage3D(GL_TEXTURE_2D_ARRAY, numMips, mGLFormat, width, height, numFaces);
+			}
+				break;
+			case TEX_TYPE_3D:
+				glTexStorage3D(GL_TEXTURE_3D, numMips, mGLFormat, width, height, depth);
+				break;
+			case TEX_TYPE_CUBE_MAP:
+			{
+				if (numFaces <= 6)
+					glTexStorage2D(GL_TEXTURE_CUBE_MAP, numMips, mGLFormat, width, height);
+				else
+					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, numMips, mGLFormat, width, height, numFaces);
+			}
+				break;
 			}
 		}
 
@@ -332,5 +301,10 @@ namespace bs { namespace ct
 		unsigned int idx = face * (mProperties.getNumMipmaps() + 1) + mipmap;
 		assert(idx < mSurfaceList.size());
 		return mSurfaceList[idx];
+	}
+
+	SPtr<TextureView> GLTexture::createView(const TEXTURE_VIEW_DESC& desc)
+	{
+		return bs_shared_ptr<GLTextureView>(new (bs_alloc<GLTextureView>()) GLTextureView(this, desc));
 	}
 }}

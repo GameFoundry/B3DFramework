@@ -85,6 +85,7 @@ namespace bs { namespace ct
 	class GLVertexArrayObject;
 	struct GLSLProgramPipeline;
 	class GLSLProgramPipelineManager;
+	class GLTextureView;
 
 	/** @addtogroup GL
 	 *  @{

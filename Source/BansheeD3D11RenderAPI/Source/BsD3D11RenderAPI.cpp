@@ -142,15 +142,6 @@ namespace bs { namespace ct
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		for (auto& boundUAV : mBoundUAVs)
-		{
-			if (boundUAV.second != nullptr)
-				boundUAV.first->releaseView(boundUAV.second);
-
-			boundUAV.second = nullptr;
-			boundUAV.first = nullptr;
-		}
-
 		// Ensure that all GPU commands finish executing before shutting down the device. If we don't do this a crash
 		// on shutdown may occurr as the driver is still executing the commands, and we unload this library.
 		mDevice->getImmediateContext()->Flush();
@@ -348,7 +339,7 @@ namespace bs { namespace ct
 
 			ID3D11DeviceContext* context = mDevice->getImmediateContext();
 
-			// Clear any previously bound UAVs (otherwise shaders attempting to read resources viewed by those view will
+			// Clear any previously bound UAVs (otherwise shaders attempting to read resources viewed by those views will
 			// be unable to)
 			if (mPSUAVsBound || mCSUAVsBound)
 			{
@@ -393,15 +384,19 @@ namespace bs { namespace ct
 					for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
+
 						SPtr<Texture> texture = gpuParams->getTexture(iter->second.set, slot);
+						const TextureSurface& surface = gpuParams->getTextureSurface(iter->second.set, slot);
 
 						while (slot >= (UINT32)srvs.size())
 							srvs.push_back(nullptr);
 
 						if (texture != nullptr)
 						{
-							D3D11Texture* d3d11Texture = static_cast<D3D11Texture*>(texture.get());
-							srvs[slot] = d3d11Texture->getSRV();
+							SPtr<TextureView> texView = texture->requestView(surface.mipLevel, 1, surface.arraySlice, surface.numArraySlices, GVU_DEFAULT);
+
+							D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
+							srvs[slot] = d3d11texView->getSRV();
 						}
 					}
 
@@ -454,20 +449,10 @@ namespace bs { namespace ct
 
 							D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
 							uavs[slot] = d3d11texView->getUAV();
-
-							if (mBoundUAVs[slot].second != nullptr)
-								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
-
-							mBoundUAVs[slot] = std::make_pair(texture, texView);
 						}
 						else
 						{
 							uavs[slot] = nullptr;
-
-							if (mBoundUAVs[slot].second != nullptr)
-								mBoundUAVs[slot].first->releaseView(mBoundUAVs[slot].second);
-
-							mBoundUAVs[slot] = std::pair<SPtr<Texture>, SPtr<TextureView>>();
 						}
 					}
 

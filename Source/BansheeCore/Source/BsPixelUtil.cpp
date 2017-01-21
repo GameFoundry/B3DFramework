@@ -1149,13 +1149,14 @@ namespace bs
 		UINT32 count = 0;
         if((width > 0) && (height > 0))
         {
-            do {
+			while (!(width == 1 && height == 1 && depth == 1))
+            { 
                 if(width>1)		width = width/2;
                 if(height>1)	height = height/2;
                 if(depth>1)		depth = depth/2;
                     
                 count ++;
-            } while(!(width == 1 && height == 1 && depth == 1));
+            } 
         }
 
 		return count;

@@ -100,20 +100,32 @@ namespace bs { namespace ct
 			desc.Texture3D.MostDetailedMip = mostDetailMip;
 			break;
 		case TEX_TYPE_CUBE_MAP:
-			if (numFaces <= 6)
+			if(numFaces % 6 == 0)
 			{
-				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-				desc.TextureCube.MipLevels = numMips;
-				desc.TextureCube.MostDetailedMip = mostDetailMip;
+				if (numFaces == 6)
+				{
+					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+					desc.TextureCube.MipLevels = numMips;
+					desc.TextureCube.MostDetailedMip = mostDetailMip;
+				}
+				else
+				{
+					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+					desc.TextureCubeArray.MipLevels = numMips;
+					desc.TextureCubeArray.MostDetailedMip = mostDetailMip;
+					desc.TextureCubeArray.First2DArrayFace = firstArraySlice;
+					desc.TextureCubeArray.NumCubes = numArraySlices / 6;
+				}
 			}
 			else
 			{
-				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-				desc.TextureCubeArray.MipLevels = numMips;
-				desc.TextureCubeArray.MostDetailedMip = mostDetailMip;
-				desc.TextureCubeArray.First2DArrayFace = firstArraySlice;
-				desc.TextureCubeArray.NumCubes = numArraySlices / 6;
+				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+				desc.Texture2DArray.MipLevels = numMips;
+				desc.Texture2DArray.MostDetailedMip = mostDetailMip;
+				desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+				desc.Texture2DArray.ArraySize = numArraySlices;
 			}
+
 			break;
 		default:
 			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");

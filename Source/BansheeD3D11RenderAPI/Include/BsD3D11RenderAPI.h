@@ -210,7 +210,6 @@ namespace bs { namespace ct
 		D3D11HLSLProgramFactory* mHLSLFactory;
 		D3D11InputLayoutManager* mIAManager;
 
-		std::pair<SPtr<Texture>, SPtr<TextureView>> mBoundUAVs[D3D11_PS_CS_UAV_REGISTER_COUNT];
 		bool mPSUAVsBound;
 		bool mCSUAVsBound;
 

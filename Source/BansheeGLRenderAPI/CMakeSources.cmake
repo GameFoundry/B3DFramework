@@ -32,6 +32,7 @@ set(BS_BANSHEEGLRENDERAPI_INC_NOFILTER
 	"Include/BsGLBuffer.h"
 	"Include/BsGLCommandBuffer.h"
 	"Include/BsGLCommandBufferManager.h"
+	"Include/BsGLTextureView.h"
 )
 
 set(BS_BANSHEEGLRENDERAPI_SRC_WIN32
@@ -68,6 +69,7 @@ set(BS_BANSHEEGLRENDERAPI_SRC_NOFILTER
 	"Source/BsGLBuffer.cpp"
 	"Source/BsGLCommandBuffer.cpp"
 	"Source/BsGLCommandBufferManager.cpp"
+	"Source/BsGLTextureView.cpp"
 )
 
 set(BS_BANSHEEGLRENDERAPI_INC_GLSL

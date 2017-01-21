@@ -69,6 +69,9 @@ namespace bs { namespace ct
 		/** Creates pixel buffers for each face and mip level. Texture must have been created previously. */
 		void createSurfaceList();
 
+		/**	Creates an empty and uninitialized texture view object. */
+		SPtr<TextureView> createView(const TEXTURE_VIEW_DESC& desc) override;
+
     private:
         GLuint mTextureID;
 		GLenum mGLFormat;

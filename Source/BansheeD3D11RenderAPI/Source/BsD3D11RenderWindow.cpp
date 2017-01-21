@@ -104,9 +104,6 @@ namespace bs
 			mWindow = nullptr;
 		}
 
-		if (mDepthStencilView != nullptr)
-			mDepthStencilBuffer->releaseView(mDepthStencilView);
-
 		destroySizeDependedD3DResources();
 	}
 
@@ -693,11 +690,7 @@ namespace bs
 			BS_EXCEPT(RenderingAPIException, "Unable to create rendertagert view\nError Description:" + errorDescription);
 		}
 
-		if (mDepthStencilView != nullptr)
-		{
-			mDepthStencilBuffer->releaseView(mDepthStencilView);
-			mDepthStencilView = nullptr;
-		}
+		mDepthStencilView = nullptr;
 
 		if (mDesc.depthBuffer)
 		{

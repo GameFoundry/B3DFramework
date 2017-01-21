@@ -490,53 +490,25 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		const TextureProperties& texProps = getProperties();
+
 		TEXTURE_VIEW_DESC key;
 		key.mostDetailMip = mostDetailMip;
-		key.numMips = numMips;
+		key.numMips = numMips == 0 ? (texProps.getNumMipmaps() + 1) : numMips;
 		key.firstArraySlice = firstArraySlice;
+		key.numArraySlices = numArraySlices == 0 ? texProps.getNumFaces() : numArraySlices;
 		key.usage = usage;
-
-		const TextureProperties& texProps = getProperties();
-		if(numArraySlices == 0) // Automatically determine slice count
-			key.numArraySlices = texProps.getNumFaces();
-		else
-			key.numArraySlices = numArraySlices;
 
 		auto iterFind = mTextureViews.find(key);
 		if (iterFind == mTextureViews.end())
 		{
-			SPtr<TextureView> newView = createView(key);
-			mTextureViews[key] = new (bs_alloc<TextureViewReference>()) TextureViewReference(newView);
+			SPtr<TextureView> newView = 
+			mTextureViews[key] = createView(key);
 
 			iterFind = mTextureViews.find(key);
 		}
 
-		iterFind->second->refCount++;
-		return iterFind->second->view;
-	}
-
-	void Texture::releaseView(const SPtr<TextureView>& view)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		assert(view != nullptr);
-
-		auto iterFind = mTextureViews.find(view->getDesc());
-		if (iterFind == mTextureViews.end())
-		{
-			LOGERR("Trying to release a texture view that doesn't exist!");
-			return;
-		}
-
-		iterFind->second->refCount--;
-
-		if (iterFind->second->refCount == 0)
-		{
-			TextureViewReference* toRemove = iterFind->second;
-
-			mTextureViews.erase(iterFind);
-			bs_delete(toRemove);
-		}
+		return iterFind->second;
 	}
 
 	/************************************************************************/

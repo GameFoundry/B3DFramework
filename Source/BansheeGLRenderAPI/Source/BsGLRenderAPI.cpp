@@ -27,6 +27,7 @@
 #include "BsGLGpuBuffer.h"
 #include "BsGLCommandBuffer.h"
 #include "BsGLCommandBufferManager.h"
+#include "BsGLTextureView.h"
 
 namespace bs { namespace ct
 {
@@ -421,6 +422,7 @@ namespace bs { namespace ct
 					{
 						UINT32 binding = entry.second.slot;
 						SPtr<Texture> texture = gpuParams->getTexture(entry.second.set, binding);
+						const TextureSurface& surface = gpuParams->getTextureSurface(entry.second.set, binding);
 
 						UINT32 unit = getTexUnit(binding);
 						if (!activateGLTextureUnit(unit))
@@ -435,7 +437,11 @@ namespace bs { namespace ct
 							if (mTextureInfos[unit].type != newTextureType)
 								glBindTexture(mTextureInfos[unit].type, 0);
 
-							glBindTexture(newTextureType, glTex->getGLID());
+							SPtr<TextureView> texView = glTex->requestView(surface.mipLevel, surface.numMipLevels, 
+																surface.arraySlice, surface.numArraySlices, GVU_DEFAULT);
+
+							GLTextureView* glTexView = static_cast<GLTextureView*>(texView.get());
+							glBindTexture(newTextureType, glTexView->getGLID());
 							mTextureInfos[unit].type = newTextureType;
 
 							SPtr<GLSLGpuProgram> activeProgram = getActiveProgram(type);

@@ -416,13 +416,6 @@ namespace bs
 		SPtr<TextureView> requestView(UINT32 mostDetailMip, UINT32 numMips, UINT32 firstArraySlice, UINT32 numArraySlices, 
 									  GpuViewUsage usage);
 
-		/**
-		 * Releases the view. View won't actually get destroyed until all references to it are released.
-		 *
-		 * @note	Core thread only.
-		 */
-		void releaseView(const SPtr<TextureView>& view);
-
 		/** Returns a plain white texture. */
 		static SPtr<Texture> WHITE;
 
@@ -458,24 +451,10 @@ namespace bs
 		/**	Creates a view of a specific subresource in a texture. */
 		virtual SPtr<TextureView> createView(const TEXTURE_VIEW_DESC& desc);
 
-		/**
-		 * Releases all internal texture view references. Views won't get destroyed if there are external references still 
-		 * held.
-		 */
+		/** Releases all internal texture view references. */
 		void clearBufferViews();
 
-		/** Holds a single texture view with a usage reference count. */
-		struct TextureViewReference
-		{
-			TextureViewReference(SPtr<TextureView> _view)
-				:view(_view), refCount(0)
-			{ }
-
-			SPtr<TextureView> view;
-			UINT32 refCount;
-		};
-
-		UnorderedMap<TEXTURE_VIEW_DESC, TextureViewReference*, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
+		UnorderedMap<TEXTURE_VIEW_DESC, SPtr<TextureView>, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
 		TextureProperties mProperties;
 		SPtr<PixelData> mInitData;
 	};

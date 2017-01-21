@@ -25,6 +25,8 @@ namespace bs { namespace ct
 
 	D3D11Texture::~D3D11Texture()
 	{ 
+		clearBufferViews();
+
 		SAFE_RELEASE(mTex);
 		SAFE_RELEASE(m1DTex);
 		SAFE_RELEASE(m2DTex);
