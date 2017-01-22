@@ -45,6 +45,9 @@ Manuals									{#manuals}
 - **Physics**
  - [Colliders](@ref colliders)
  - [Physics mesh import](@ref physicsMesh)
+ - [Triggers](@ref triggers)
+ - [Dynamic objects](@ref rigidbodies)
+ - [Physical materials](@ref physicalMaterial)
  
 # Developer guides
 

@@ -1,0 +1,1 @@
+Mention collider contact offset/rest offset
