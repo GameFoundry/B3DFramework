@@ -386,7 +386,6 @@ namespace bs { namespace ct
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.BindFlags		= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // TODO - Add flags to allow RT be created without shader resource flags (might be more optimal)
 			desc.CPUAccessFlags = 0;
-			desc.MipLevels		= 1;
 
 			DXGI_SAMPLE_DESC sampleDesc;
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
@@ -397,7 +396,6 @@ namespace bs { namespace ct
 		{
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
-			desc.MipLevels		= 1;
 			desc.Format			= D3D11Mappings::getTypelessDepthStencilPF(closestFormat);
 
 			if(readableDepth)
@@ -419,17 +417,17 @@ namespace bs { namespace ct
 			desc.BindFlags		= D3D11_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = D3D11Mappings::getAccessFlags((GpuBufferUsage)usage);
 
-			// Determine total number of mipmaps including main one (d3d11 convention)
-			desc.MipLevels		= (numMips == MIP_UNLIMITED || (1U << numMips) > width) ? 0 : numMips + 1;
-
 			DXGI_SAMPLE_DESC sampleDesc;
 			sampleDesc.Count	= 1;
 			sampleDesc.Quality	= 0;
 			desc.SampleDesc		= sampleDesc;
 		}
 
+		// Determine total number of mipmaps including main one (d3d11 convention)
+		desc.MipLevels = (numMips == MIP_UNLIMITED || (1U << numMips) > width) ? 0 : numMips + 1;
+
 		if (texType == TEX_TYPE_CUBE_MAP)
-            desc.MiscFlags      |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+            desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 		if ((usage & TU_LOADSTORE) != 0)
 			desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
