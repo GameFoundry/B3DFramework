@@ -34,7 +34,7 @@ namespace bs { namespace ct
 
 	void SkyboxMat::setParams(const SPtr<Texture>& texture)
 	{
-		mSkyTextureParam.set(texture);
+		mSkyTextureParam.set(texture, TextureSurface(1, 1, 0, 0));
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 

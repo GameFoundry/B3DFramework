@@ -411,6 +411,10 @@
             "UUID": "b46d1cee-75f7-4387-8b32-7eb646f099f4"
         },
         {
+            "Path": "ReflectionCubemapCommon.bslinc",
+            "UUID": "eef92578-b8ed-45d6-8eed-d85697ade3c5"
+        },		
+        {
             "Path": "ResolveCommon.bslinc",
             "UUID": "1cde4f3c-534e-4128-8ee1-63e3bb620734"
         },
@@ -492,6 +496,10 @@
             "Path": "PPTonemapping.bsl",
             "UUID": "a8aa01e7-7e72-4f84-89f8-a0097250b0d3"
         },
+        {
+            "Path": "ReflectionCubemapFilter.bsl",
+            "UUID": "31b4b9ae-2afa-4cd8-b532-fe82a7f42baa"
+        },		
         {
             "Path": "Resolve.bsl",
             "UUID": "9d5f5101-2d7e-432c-b8ad-1998de9ca5c7"

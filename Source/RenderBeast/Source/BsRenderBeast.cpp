@@ -31,6 +31,7 @@
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererExtension.h"
+#include "BsReflectionCubemap.h"
 #include "BsMeshData.h"
 
 using namespace std::placeholders;
@@ -608,8 +609,6 @@ namespace bs { namespace ct
 		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
 	}
 
-	static SPtr<Texture> dbgSkyTex;
-
 	void RenderBeast::renderAllCore(float time, float delta)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -652,9 +651,6 @@ namespace bs { namespace ct
 
 			mRenderables[i]->perObjectParamBuffer->flushToGPU();
 		}
-
-		//if (dbgSkyTex == nullptr)
-		//	dbgSkyTex = captureSceneCubeMap(Vector3(0, 2, 0), true, 1024);
 
 		// Render everything, target by target
 		for (auto& rtInfo : mRenderTargets)
@@ -990,6 +986,7 @@ namespace bs { namespace ct
 		cubeMapDesc.format = hdr ? PF_FLOAT16_RGBA : PF_R8G8B8A8;
 		cubeMapDesc.width = size;
 		cubeMapDesc.height = size;
+		cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(size, size, 1, cubeMapDesc.format);
 		cubeMapDesc.usage = TU_RENDERTARGET;
 
 		SPtr<Texture> cubemap = Texture::create(cubeMapDesc);
@@ -1108,6 +1105,8 @@ namespace bs { namespace ct
 
 			render(&view, 0.0f);
 		}
+
+		ReflectionCubemap::filterCubemapForSpecular(cubemap);
 
 		return cubemap;
 	}
