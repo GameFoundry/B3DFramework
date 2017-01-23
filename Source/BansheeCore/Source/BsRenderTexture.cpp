@@ -19,7 +19,7 @@ namespace bs
 			if (texture.isLoaded())
 			{
 				const TextureProperties& texProps = texture->getProperties();
-				construct(&texProps, desc.colorSurfaces[i].numFaces, requiresFlipping);
+				construct(&texProps, desc.colorSurfaces[i].numFaces, desc.colorSurfaces[i].mipLevel, requiresFlipping);
 
 				break;
 			}
@@ -35,20 +35,22 @@ namespace bs
 			if (texture != nullptr)
 			{
 				const TextureProperties& texProps = texture->getProperties();
-				construct(&texProps, desc.colorSurfaces[i].numFaces, requiresFlipping);
+				construct(&texProps, desc.colorSurfaces[i].numFaces, desc.colorSurfaces[i].mipLevel, requiresFlipping);
 
 				break;
 			}
 		}
 	}
 
-	void RenderTextureProperties::construct(const TextureProperties* textureProps, UINT32 numSlices, bool requiresFlipping)
+	void RenderTextureProperties::construct(const TextureProperties* textureProps, UINT32 numSlices, 
+											UINT32 mipLevel, bool requiresFlipping)
 	{
 		if (textureProps != nullptr)
 		{
-			mWidth = textureProps->getWidth();
-			mHeight = textureProps->getHeight();
-			mNumSlices = textureProps->getDepth() * numSlices;
+			PixelUtil::getSizeForMipLevel(textureProps->getWidth(), textureProps->getHeight(), textureProps->getDepth(), 
+										  mipLevel, mWidth, mHeight, mNumSlices);
+
+			mNumSlices *= numSlices;
 			mColorDepth = bs::PixelUtil::getNumElemBits(textureProps->getFormat());
 			mHwGamma = textureProps->isHardwareGammaEnabled();
 			mMultisampleCount = textureProps->getNumSamples();
