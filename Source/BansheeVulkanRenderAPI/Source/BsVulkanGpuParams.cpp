@@ -643,9 +643,12 @@ namespace bs { namespace ct
 			if (resource == nullptr)
 				continue;
 
+			const TextureSurface& surface = mLoadStoreTextureData[i].surface;
+			VkImageSubresourceRange range = resource->getRange(surface);
+
 			// Register with command buffer
 			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
-			buffer.registerResource(resource, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags);
+			buffer.registerResource(resource, range, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.storageImages[i] != VK_NULL_HANDLE);
@@ -659,8 +662,6 @@ namespace bs { namespace ct
 				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
-
-				const TextureSurface& surface = mLoadStoreTextureData[i].surface;
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(surface, false);;
 
 				mSetsDirty[set] = true;
@@ -688,7 +689,10 @@ namespace bs { namespace ct
 			else
 				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			buffer.registerResource(resource, layout, layout, VulkanUseFlag::Read);
+			const TextureSurface& surface = mSampledTextureData[i].surface;
+			VkImageSubresourceRange range = resource->getRange(surface);
+
+			buffer.registerResource(resource, range, layout, layout, VulkanUseFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.sampledImages[i] != VK_NULL_HANDLE);
@@ -702,8 +706,6 @@ namespace bs { namespace ct
 				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
-
-				const TextureSurface& surface = mSampledTextureData[i].surface;
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(surface, false);
 
 				mSetsDirty[set] = true;

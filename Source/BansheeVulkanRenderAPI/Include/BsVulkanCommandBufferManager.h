@@ -44,6 +44,14 @@ namespace bs { namespace ct
 		void setLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, 
 			VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range);
 
+		/**
+		 * Issues one or multiple pipeline barrier on the provided image, changing the layout of its subresources. 
+		 * Automatically determines original layout for individual sub-resources, groups the pipeline barriers and issues
+		 * them.
+		 */
+		void setLayout(VulkanImage* image, const VkImageSubresourceRange& range, VkAccessFlags newAccessMask, 
+					   VkImageLayout newLayout);
+
 		/** 
 		 * Submits the command buffer on the queue. 
 		 * 
@@ -68,6 +76,8 @@ namespace bs { namespace ct
 
 		VulkanCmdBuffer* mCB;
 		UINT32 mSyncMask;
+
+		Vector<VkImageMemoryBarrier> mBarriersTemp;
 	};
 
 	/** 

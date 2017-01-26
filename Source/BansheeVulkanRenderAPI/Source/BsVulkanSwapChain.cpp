@@ -145,7 +145,6 @@ namespace bs { namespace ct
 			mSurfaces[i].acquired = false;
 			mSurfaces[i].needsWait = false;
 			mSurfaces[i].image = resManager.create<VulkanImage>(imageDesc, false);
-			mSurfaces[i].view = mSurfaces[i].image->getView(true);
 			mSurfaces[i].sync = resManager.create<VulkanSemaphore>();
 		}
 
@@ -181,13 +180,9 @@ namespace bs { namespace ct
 			imageDesc.memory = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 			mDepthStencilImage = resManager.create<VulkanImage>(imageDesc, true);
-			mDepthStencilView = mDepthStencilImage->getView(true);
 		}
 		else
-		{
 			mDepthStencilImage = nullptr;
-			mDepthStencilView = VK_NULL_HANDLE;
-		}
 
 		// Create a framebuffer for each swap chain buffer
 		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
@@ -201,11 +196,11 @@ namespace bs { namespace ct
 			desc.offscreen = false;
 			desc.color[0].format = colorFormat;
 			desc.color[0].image = mSurfaces[i].image;
-			desc.color[0].view = mSurfaces[i].view;
+			desc.color[0].surface = TextureSurface::COMPLETE;
 			desc.color[0].baseLayer = 0;
 			desc.depth.format = depthFormat;
 			desc.depth.image = mDepthStencilImage;
-			desc.depth.view = mDepthStencilView;
+			desc.depth.surface = TextureSurface::COMPLETE;
 			desc.depth.baseLayer = 0;
 
 			mSurfaces[i].framebuffer = resManager.create<VulkanFramebuffer>(desc);

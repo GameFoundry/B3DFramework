@@ -544,4 +544,152 @@ namespace bs { namespace ct
 
 		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->isPrimary()));
 	}
+
+	void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,
+					   VkImageSubresourceRange* output, UINT32& numAreas)
+	{
+		numAreas = 0;
+
+		INT32 leftCut = cutWith.baseArrayLayer - toCut.baseArrayLayer;
+		INT32 rightCut = (cutWith.baseArrayLayer + cutWith.layerCount) - toCut.baseArrayLayer;
+
+		if (leftCut > 0 && leftCut < (INT32)(toCut.baseArrayLayer + toCut.layerCount))
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseArrayLayer = toCut.baseArrayLayer;
+			range.layerCount = leftCut;
+
+			numAreas++;
+		}
+
+		if (rightCut > 0 && rightCut < (INT32)toCut.layerCount)
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseArrayLayer = toCut.baseArrayLayer + rightCut;
+			range.layerCount = toCut.layerCount - rightCut;
+
+			numAreas++;
+		}
+
+		// If we made both left and right cuts, this means we need a middle one as well
+		if (numAreas == 2)
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseArrayLayer = toCut.baseArrayLayer + leftCut;
+			range.layerCount = toCut.layerCount - (toCut.layerCount - rightCut) - leftCut;
+
+			numAreas++;
+		}
+
+		// Nothing to cut
+		if (numAreas == 0)
+		{
+			output[numAreas] = toCut;
+			numAreas++;
+		}
+	}
+
+	void cutVertical(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,
+					 VkImageSubresourceRange* output, UINT32& numAreas)
+	{
+		numAreas = 0;
+
+		INT32 topCut = cutWith.baseMipLevel - toCut.baseMipLevel;
+		INT32 bottomCut = (cutWith.baseMipLevel + cutWith.levelCount) - toCut.baseMipLevel;
+
+		if (topCut > 0 && topCut < (INT32)(toCut.baseMipLevel + toCut.levelCount))
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseMipLevel = toCut.baseMipLevel;
+			range.levelCount = topCut;
+
+			numAreas++;
+		}
+
+		if (bottomCut > 0 && bottomCut < (INT32)toCut.levelCount)
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseMipLevel = toCut.baseMipLevel + bottomCut;
+			range.levelCount = toCut.levelCount - bottomCut;
+
+			numAreas++;
+		}
+
+		// If we made both top and bottom cuts, this means we need a middle one as well
+		if (numAreas == 2)
+		{
+			output[numAreas] = toCut;
+			VkImageSubresourceRange& range = output[numAreas];
+
+			range.baseMipLevel = toCut.baseMipLevel + topCut;
+			range.levelCount = toCut.levelCount - (toCut.levelCount - bottomCut) - topCut;
+
+			numAreas++;
+		}
+
+		// Nothing to cut
+		if (numAreas == 0)
+		{
+			output[numAreas] = toCut;
+			numAreas++;
+		}
+	}
+
+	void VulkanUtility::cutRange(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,
+				  std::array<VkImageSubresourceRange, 5>& output, UINT32& numAreas)
+	{
+		numAreas = 0;
+
+		// Cut horizontally
+		UINT32 numHorzCuts = 0;
+		std::array<VkImageSubresourceRange, 3> horzCuts;
+		cutHorizontal(toCut, cutWith, horzCuts.data(), numHorzCuts);
+
+		// Cut vertically
+		for (UINT32 i = 0; i < numHorzCuts; i++)
+		{
+			VkImageSubresourceRange& range = horzCuts[i];
+
+			if (range.baseArrayLayer >= cutWith.baseArrayLayer &&
+				(range.baseArrayLayer + range.layerCount) <= (cutWith.baseArrayLayer + cutWith.layerCount))
+			{
+				UINT32 numVertCuts = 0;
+				cutVertical(range, cutWith, output.data() + numAreas, numVertCuts);
+
+				numAreas += numVertCuts;
+			}
+			else
+			{
+				output[numAreas] = range;
+				numAreas++;
+			}
+		}
+
+		assert(numAreas <= 5);
+	}
+
+	bool VulkanUtility::rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b)
+	{
+		INT32 aRight = a.baseArrayLayer + (INT32)a.layerCount;
+		INT32 bRight = b.baseArrayLayer + (INT32)b.layerCount;
+
+		INT32 aBottom = a.baseMipLevel + (INT32)a.levelCount;
+		INT32 bBottom = b.baseMipLevel + (INT32)b.levelCount;
+
+		if ((INT32)a.baseArrayLayer < bRight && aRight >(INT32)b.baseArrayLayer &&
+			(INT32)a.baseMipLevel < bBottom && aBottom >(INT32)b.baseMipLevel)
+			return true;
+
+		return false;
+	}
 }}

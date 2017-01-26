@@ -5,6 +5,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 #include "BsVulkanQueue.h"
+#include "BsVulkanTexture.h"
 
 namespace bs { namespace ct
 {
@@ -85,6 +86,47 @@ namespace bs { namespace ct
 							 0, 0, nullptr,
 							 0, nullptr,
 							 1, &barrier);
+	}
+
+	void VulkanTransferBuffer::setLayout(VulkanImage* image, const VkImageSubresourceRange& range, 
+										 VkAccessFlags newAccessMask, VkImageLayout newLayout)
+	{
+		image->getBarriers(range, mBarriersTemp);
+
+		if (mBarriersTemp.size() == 0)
+			return;
+
+		INT32 count = (INT32)mBarriersTemp.size();
+		for(INT32 i = 0; i < count; i++)
+		{
+			VkImageMemoryBarrier& barrier = mBarriersTemp[i];
+
+			// Remove barriers that don't signify a layout change
+			if(barrier.oldLayout == newLayout)
+			{
+				if(i < (count - 1))
+					std::swap(mBarriersTemp[i], mBarriersTemp[count - 1]);
+
+				mBarriersTemp.erase(mBarriersTemp.begin() + count - 1);
+				count--;
+				i--;
+			}
+		}
+
+		for(auto& entry : mBarriersTemp)
+		{
+			entry.dstAccessMask = newAccessMask;
+			entry.newLayout = newLayout;
+		}
+
+		vkCmdPipelineBarrier(mCB->getHandle(),
+							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 0, 0, nullptr,
+							 0, nullptr,
+							 (UINT32)mBarriersTemp.size(), mBarriersTemp.data());
+
+		mBarriersTemp.clear();		
 	}
 
 	void VulkanTransferBuffer::flush(bool wait)

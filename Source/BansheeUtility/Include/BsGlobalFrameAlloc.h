@@ -143,6 +143,10 @@ namespace bs
 	template <typename T, typename A = StdAlloc<T, FrameAlloc>>
 	using FrameStack = std::stack < T, std::deque<T, A> > ;
 
+	/** Queue allocated with a frame allocator. */
+	template <typename T, typename A = StdAlloc<T, FrameAlloc>>
+	using FrameQueue = std::queue<T, std::deque<T, A>>;
+
 	/** Set allocated with a frame allocator. */
 	template <typename T, typename P = std::less<T>, typename A = StdAlloc<T, FrameAlloc>>
 	using FrameSet = std::set < T, P, A > ;

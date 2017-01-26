@@ -69,16 +69,6 @@ namespace bs { namespace ct
 		VkImageLayout getOptimalLayout() const;
 
 		/** 
-		 * Returns the layout the image is currently in. Note that this is only used to communicate layouts between 
-		 * different command buffers, and will only be updated only after command buffer submit() call. In short this means
-		 * you should only care about this value on the core thread.
-		 */
-		VkImageLayout getLayout() const { return mLayout; }
-
-		/** Notifies the resource that the current image layout has changed. */
-		void setLayout(VkImageLayout layout) { mLayout = layout; }
-
-		/** 
 		 * Returns an image view that covers all faces and mip maps of the texture. 
 		 * 
 		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
@@ -100,6 +90,9 @@ namespace bs { namespace ct
 
 		/** Retrieves a subresource range covering all the sub-resources of the image. */
 		VkImageSubresourceRange getRange() const;
+
+		/** Retrieves a subresource range covering all the specified sub-resource range of the image. */
+		VkImageSubresourceRange getRange(const TextureSurface& surface) const;
 
 		/** 
 		 * Retrieves a separate resource for a specific image face & mip level. This allows the caller to track subresource
@@ -145,6 +138,13 @@ namespace bs { namespace ct
 		 */
 		VkAccessFlags getAccessFlags(VkImageLayout layout, bool readOnly = false);
 
+		/** 
+		 * Generates a set of image barriers that are grouped depending on the current layout of individual sub-resources
+		 * in the specified range. The method will try to reduce the number of generated barriers by grouping as many
+		 * sub-resources as possibly.
+		 */
+		void getBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers);
+
 	private:
 		/** Creates a new view of the provided part (or entirety) of surface. */
 		VkImageView createView(const TextureSurface& surface, VkImageAspectFlags aspectMask) const;
@@ -159,7 +159,6 @@ namespace bs { namespace ct
 
 		VkImage mImage;
 		VkDeviceMemory mMemory;
-		VkImageLayout mLayout;
 		VkImageView mMainView;
 		VkImageView mFramebufferMainView;
 		VulkanImageUsage mUsage;
@@ -177,7 +176,20 @@ namespace bs { namespace ct
 	class VulkanImageSubresource : public VulkanResource
 	{
 	public:
-		VulkanImageSubresource(VulkanResourceManager* owner);
+		VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout);
+
+		/** 
+		 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between 
+		 * different command buffers, and will only be updated only after command buffer submit() call. In short this means
+		 * you should only care about this value on the core thread.
+		 */
+		VkImageLayout getLayout() const { return mLayout; }
+
+		/** Notifies the resource that the current subresource layout has changed. */
+		void setLayout(VkImageLayout layout) { mLayout = layout; }
+
+	private:
+		VkImageLayout mLayout;
 	};
 
 	/**	Vulkan implementation of a texture. */

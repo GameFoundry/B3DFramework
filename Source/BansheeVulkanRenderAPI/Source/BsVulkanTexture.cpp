@@ -44,9 +44,8 @@ namespace bs { namespace ct
 	{ }
 
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& desc, bool ownsImage)
-		: VulkanResource(owner, false), mImage(desc.image), mMemory(desc.memory), mLayout(desc.layout)
-		, mFramebufferMainView(VK_NULL_HANDLE), mOwnsImage(ownsImage), mNumFaces(desc.numFaces)
-		, mNumMipLevels(desc.numMipLevels), mUsage(desc.usage)
+		: VulkanResource(owner, false), mImage(desc.image), mMemory(desc.memory), mFramebufferMainView(VK_NULL_HANDLE)
+		, mOwnsImage(ownsImage), mNumFaces(desc.numFaces), mNumMipLevels(desc.numMipLevels), mUsage(desc.usage)
 	{
 		mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		mImageViewCI.pNext = nullptr;
@@ -106,7 +105,7 @@ namespace bs { namespace ct
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
 		mSubresources = (VulkanImageSubresource**)bs_alloc(sizeof(VulkanImageSubresource*) * numSubresources);
 		for (UINT32 i = 0; i < numSubresources; i++)
-			mSubresources[i] = owner->create<VulkanImageSubresource>();
+			mSubresources[i] = owner->create<VulkanImageSubresource>(desc.layout);
 	}
 
 	VulkanImage::~VulkanImage()
@@ -267,9 +266,21 @@ namespace bs { namespace ct
 		return range;
 	}
 
+	VkImageSubresourceRange VulkanImage::getRange(const TextureSurface& surface) const
+	{
+		VkImageSubresourceRange range;
+		range.baseArrayLayer = surface.arraySlice;
+		range.layerCount = surface.numArraySlices == 0 ? mNumFaces : surface.numArraySlices;
+		range.baseMipLevel = surface.mipLevel;
+		range.levelCount = surface.numMipLevels == 0 ? mNumMipLevels : surface.numMipLevels;
+		range.aspectMask = getAspectFlags();
+
+		return range;
+	}
+
 	VulkanImageSubresource* VulkanImage::getSubresource(UINT32 face, UINT32 mipLevel)
 	{
-		return mSubresources[face * mNumMipLevels + mipLevel];
+		return mSubresources[mipLevel * mNumFaces + face];
 	}
 
 	void VulkanImage::map(UINT32 face, UINT32 mipLevel, PixelData& output) const
@@ -390,8 +401,160 @@ namespace bs { namespace ct
 		return accessFlags;
 	}
 
-	VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner)
-		:VulkanResource(owner, false)
+	void VulkanImage::getBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers)
+	{
+		UINT32 numSubresources = range.levelCount * range.layerCount;
+
+		// Nothing to do
+		if (numSubresources == 0)
+			return;
+
+		UINT32 mip = range.baseMipLevel;
+		UINT32 face = range.baseArrayLayer;
+		UINT32 lastMip = range.baseMipLevel + range.levelCount - 1;
+		UINT32 lastFace = range.baseArrayLayer + range.layerCount - 1;
+
+		VkImageMemoryBarrier defaultBarrier;
+		defaultBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		defaultBarrier.pNext = nullptr;
+		defaultBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		defaultBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		defaultBarrier.image = getHandle();
+		defaultBarrier.subresourceRange.aspectMask = range.aspectMask;
+		defaultBarrier.subresourceRange.layerCount = 1;
+		defaultBarrier.subresourceRange.levelCount = 1;
+		defaultBarrier.subresourceRange.baseArrayLayer = 0;
+		defaultBarrier.subresourceRange.baseMipLevel = 0;
+
+		auto addNewBarrier = [&](VulkanImageSubresource* subresource, UINT32 face, UINT32 mip)
+		{
+			barriers.push_back(defaultBarrier);
+			VkImageMemoryBarrier* barrier = &barriers.back();
+
+			barrier->subresourceRange.baseArrayLayer = face;
+			barrier->subresourceRange.baseMipLevel = mip;
+			barrier->srcAccessMask = getAccessFlags(subresource->getLayout());
+			barrier->oldLayout = subresource->getLayout();
+
+			return barrier;
+		};
+
+		bs_frame_mark();
+		{
+			FrameVector<bool> processed(numSubresources, false);
+
+			// Add first subresource
+			VulkanImageSubresource* subresource = getSubresource(face, mip);
+			addNewBarrier(subresource, face, mip);
+			numSubresources--;
+			processed[0] = true;
+
+			while (numSubresources > 0)
+			{
+				// Try to expand the barrier as much as possible
+				VkImageMemoryBarrier* barrier = &barriers.back();
+
+				while (true)
+				{
+					// Expand by one in the X direction
+					bool expandedFace = true;
+					if (face < lastFace)
+					{
+						for (UINT32 i = 0; i < barrier->subresourceRange.levelCount; i++)
+						{
+							UINT32 curMip = barrier->subresourceRange.baseMipLevel + i;
+							VulkanImageSubresource* subresource = getSubresource(face + 1, curMip);
+							if (barrier->oldLayout != subresource->getLayout())
+							{
+								expandedFace = false;
+								break;
+							}
+						}
+
+						if (expandedFace)
+						{
+							barrier->subresourceRange.layerCount++;
+							numSubresources -= barrier->subresourceRange.levelCount;
+							face++;
+
+							for (UINT32 i = 0; i < barrier->subresourceRange.levelCount; i++)
+							{
+								UINT32 idx = i * range.layerCount + (face - range.baseArrayLayer);
+								processed[idx] = true;
+							}
+						}
+					}
+					else
+						expandedFace = false;
+
+					// Expand by one in the Y direction
+					bool expandedMip = true;
+					if (mip < lastMip)
+					{
+						for (UINT32 i = 0; i < barrier->subresourceRange.layerCount; i++)
+						{
+							UINT32 curFace = barrier->subresourceRange.baseArrayLayer + i;
+							VulkanImageSubresource* subresource = getSubresource(curFace, mip + 1);
+							if (barrier->oldLayout != subresource->getLayout())
+							{
+								expandedMip = false;
+								break;
+							}
+						}
+
+						if (expandedMip)
+						{
+							barrier->subresourceRange.levelCount++;
+							numSubresources -= barrier->subresourceRange.layerCount;
+							mip++;
+
+							for (UINT32 i = 0; i < barrier->subresourceRange.layerCount; i++)
+							{
+								UINT32 idx = (mip - range.baseMipLevel) * range.layerCount + i;
+								processed[idx] = true;
+							}
+						}
+					}
+					else
+						expandedMip = false;
+
+					// If we can't grow no more, we're done with this square
+					if (!expandedMip && !expandedFace)
+						break;
+				}
+
+				// Look for a new starting point (sub-resource we haven't processed yet)
+				for (UINT32 i = 0; i < range.levelCount; i++)
+				{
+					bool found = false;
+					for (UINT32 j = 0; j < range.layerCount; j++)
+					{
+						UINT32 idx = i * range.layerCount + j;
+						if (!processed[idx])
+						{
+							mip = range.baseMipLevel + i;
+							face = range.baseArrayLayer + j;
+
+							found = true;
+							break;
+						}
+					}
+
+					if (found)
+					{
+						VulkanImageSubresource* subresource = getSubresource(face, mip);
+						addNewBarrier(subresource, face, mip);
+						numSubresources--;
+						break;
+					}
+				}
+			}
+		}
+		bs_frame_clear();
+	}
+
+	VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout)
+		:VulkanResource(owner, false), mLayout(layout)
 	{ }
 
 	VulkanTexture::VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
@@ -628,9 +791,6 @@ namespace bs { namespace ct
 		range.baseMipLevel = 0;
 		range.levelCount = numMipmaps;
 
-		VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcImage->getLayout());
-		VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstImage->getLayout());
-
 		VkImageLayout transferSrcLayout, transferDstLayout;
 		if (mDirectlyMappable)
 		{
@@ -644,23 +804,23 @@ namespace bs { namespace ct
 		}
 
 		// Transfer textures to a valid layout
-		cb->setLayout(srcImage->getHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcImage->getLayout(),
-							  transferSrcLayout, range);
-
-		cb->setLayout(dstImage->getHandle(), dstAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
-							  dstImage->getLayout(), transferDstLayout, range);
+		cb->setLayout(srcImage, range, VK_ACCESS_TRANSFER_READ_BIT, transferSrcLayout);
+		cb->setLayout(dstImage, range, VK_ACCESS_TRANSFER_WRITE_BIT, transferDstLayout);
 
 		vkCmdCopyImage(cb->getCB()->getHandle(), srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 						dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numMipmaps, imageRegions);
 
 		// Transfer back to final layouts
-		srcAccessMask = srcImage->getAccessFlags(srcFinalLayout);
+		VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcFinalLayout);
 		cb->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask,
 							  transferSrcLayout, srcFinalLayout, range);
 
-		dstAccessMask = dstImage->getAccessFlags(dstFinalLayout);
+		VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstFinalLayout);
 		cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
 							  transferDstLayout, dstFinalLayout, range);
+
+		cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::Read);
+		cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::Write);
 
 		bs_stack_free(imageRegions);
 	}
@@ -764,8 +924,11 @@ namespace bs { namespace ct
 			if (srcImage == nullptr || dstImage == nullptr)
 				continue;
 
-			VkImageLayout srcLayout = srcImage->getLayout();
-			VkImageLayout dstLayout = dstImage->getLayout();
+			VulkanImageSubresource* srcSubresource = srcImage->getSubresource(srcFace, srcMipLevel);
+			VulkanImageSubresource* dstSubresource = dstImage->getSubresource(destFace, destMipLevel);
+
+			VkImageLayout srcLayout = srcSubresource->getLayout();
+			VkImageLayout dstLayout = dstSubresource->getLayout();
 
 			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(i, queueType, localQueueIdx);
 			VkCommandBuffer vkCmdBuf = transferCB->getCB()->getHandle();
@@ -787,8 +950,6 @@ namespace bs { namespace ct
 
 					dstLayout = newImage->getOptimalLayout();
 					copyImage(transferCB, dstImage, newImage, oldDstLayout, dstLayout);
-
-					transferCB->getCB()->registerResource(dstImage, VulkanUseFlag::Read);
 				}
 
 				dstImage->destroy();
@@ -831,15 +992,11 @@ namespace bs { namespace ct
 									transferDstLayout, dstLayout, dstRange);
 
 			// Notify the command buffer that these resources are being used on it
-			transferCB->getCB()->registerResource(srcImage, VulkanUseFlag::Read);
-			transferCB->getCB()->registerResource(dstImage, VulkanUseFlag::Write);
+			transferCB->getCB()->registerResource(srcImage, srcRange, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(dstImage, dstRange, VulkanUseFlag::Write);
 
 			// Need to wait if subresource we're reading from is being written, or if the subresource we're writing to is
 			// being accessed in any way
-
-			VulkanImageSubresource* srcSubresource = srcImage->getSubresource(srcFace, srcMipLevel);
-			VulkanImageSubresource* dstSubresource = dstImage->getSubresource(srcFace, srcMipLevel);
-
 			UINT32 srcUseFlags = srcSubresource->getUseInfo(VulkanUseFlag::Write);
 			UINT32 dstUseFlags = dstSubresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
 
@@ -902,7 +1059,8 @@ namespace bs { namespace ct
 		{
 			// Initially the texture will be in preinitialized layout, and it will transition to general layout on first
 			// use in shader. No further transitions are allowed for directly mappable textures.
-			assert(image->getLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED || image->getLayout() == VK_IMAGE_LAYOUT_GENERAL);
+			assert(subresource->getLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED || 
+				   subresource->getLayout() == VK_IMAGE_LAYOUT_GENERAL);
 
 			// GPU should never be allowed to write to a directly mappable texture, since only linear tiling is supported
 			// for direct mapping, and we don't support using it with either storage textures or render targets.
@@ -1062,8 +1220,8 @@ namespace bs { namespace ct
 										  extent.width, extent.height, extent.depth);
 
 			// Transfer texture to a valid layout
-			VkAccessFlags currentAccessMask = image->getAccessFlags(image->getLayout());
-			transferCB->setLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_READ_BIT, image->getLayout(),
+			VkAccessFlags currentAccessMask = image->getAccessFlags(subresource->getLayout());
+			transferCB->setLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_READ_BIT, subresource->getLayout(),
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, range);
 
 			// Queue copy command
@@ -1075,7 +1233,7 @@ namespace bs { namespace ct
 
 			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerResource(image, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Read);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1128,10 +1286,10 @@ namespace bs { namespace ct
 				UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
 				VulkanImage* image = mImages[mMappedDeviceIdx];
-				VkImageLayout curLayout = image->getLayout();
 				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
 
 				VulkanImageSubresource* subresource = image->getSubresource(mMappedFace, mMappedMip);
+				VkImageLayout curLayout = subresource->getLayout();
 
 				// If the subresource is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
@@ -1189,8 +1347,6 @@ namespace bs { namespace ct
 
 							curLayout = newImage->getOptimalLayout();
 							copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
-
-							transferCB->getCB()->registerResource(image, VulkanUseFlag::Read);
 						}
 
 						image->destroy();
@@ -1239,7 +1395,7 @@ namespace bs { namespace ct
 
 				// Notify the command buffer that these resources are being used on it
 				transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-				transferCB->getCB()->registerResource(image, VulkanUseFlag::Write);
+				transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.

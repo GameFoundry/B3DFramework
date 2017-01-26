@@ -15,7 +15,6 @@ namespace bs { namespace ct
 	struct SwapChainSurface
 	{
 		VulkanImage* image;
-		VkImageView view;
 		VulkanSemaphore* sync;
 		bool acquired;
 		bool needsWait;
@@ -74,12 +73,6 @@ namespace bs { namespace ct
 		/** Returns the number of available color surfaces. */
 		UINT32 getNumColorSurfaces() const { return (UINT32)mSurfaces.size(); }
 
-		/** Returns an image view representing the color surface at the specified index. */
-		VkImageView getColorView(UINT32 index) const { return mSurfaces[index].view; }
-
-		/** Returns an image view representing the depth-stencil buffer, if any. */
-		VkImageView getDepthStencilView() const { return mDepthStencilView; }
-
 		/** Returns the internal swap chain handle. */
 		VkSwapchainKHR getHandle() const { return mSwapChain; }
 	private:
@@ -94,7 +87,6 @@ namespace bs { namespace ct
 		Vector<SwapChainSurface> mSurfaces;
 
 		VulkanImage* mDepthStencilImage = nullptr;
-		VkImageView mDepthStencilView = VK_NULL_HANDLE;
 
 		UINT32 mCurrentSemaphoreIdx = 0;
 		UINT32 mCurrentBackBufferIdx = 0;

@@ -64,17 +64,22 @@ namespace bs { namespace ct
 			mColorAttachments[attachmentIdx].image = desc.color[i].image;
 			mColorAttachments[attachmentIdx].finalLayout = attachmentDesc.finalLayout;
 			mColorAttachments[attachmentIdx].index = i;
+			mColorAttachments[attachmentIdx].surface = desc.color[i].surface;
 
 			VkAttachmentReference& ref = mColorReferences[attachmentIdx];
 			ref.attachment = attachmentIdx;
 			ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-			mAttachmentViews[attachmentIdx] = desc.color[i].view;
+			if (desc.color[i].surface.numMipLevels == 0)
+				mAttachmentViews[attachmentIdx] = desc.color[i].image->getView(true);
+			else
+				mAttachmentViews[attachmentIdx] = desc.color[i].image->getView(desc.color[i].surface, true);
+
 			attachmentIdx++;
 		}
 
 		mNumColorAttachments = attachmentIdx;
-		mHasDepth = desc.depth.view != VK_NULL_HANDLE;
+		mHasDepth = desc.depth.image != nullptr;
 
 		if (mHasDepth)
 		{
@@ -93,12 +98,17 @@ namespace bs { namespace ct
 			mDepthStencilAttachment.image = desc.depth.image;
 			mDepthStencilAttachment.finalLayout = attachmentDesc.finalLayout;
 			mDepthStencilAttachment.index = 0;
+			mDepthStencilAttachment.surface = desc.depth.surface;
 
 			VkAttachmentReference& ref = mDepthReference;
 			ref.attachment = attachmentIdx;
 			ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-			mAttachmentViews[attachmentIdx] = desc.depth.view;
+			if (desc.depth.surface.numMipLevels == 0)
+				mAttachmentViews[attachmentIdx] = desc.depth.image->getView(true);
+			else
+				mAttachmentViews[attachmentIdx] = desc.depth.image->getView(desc.depth.surface, true);
+
 			attachmentIdx++;
 		}
 
@@ -291,5 +301,27 @@ namespace bs { namespace ct
 		mVariants[key] = newVariant;
 
 		return newVariant.framebuffer;
+	}
+
+	UINT32 VulkanFramebuffer::getNumClearEntries(ClearMask clearMask) const
+	{
+		if (clearMask == CLEAR_NONE)
+			return 0;
+		else if (clearMask == CLEAR_ALL)
+			return getNumAttachments();
+		else if (((UINT32)clearMask & (UINT32)(CLEAR_DEPTH | CLEAR_STENCIL)) != 0 && hasDepthAttachment())
+			return getNumAttachments();
+
+		UINT32 numAttachments = 0;
+		for(INT32 i = BS_MAX_MULTIPLE_RENDER_TARGETS - 1; i >= 0; i--)
+		{
+			if(((1 << i) & (UINT32)clearMask) != 0)
+			{
+				numAttachments = i + 1;
+				break;
+			}
+		}
+
+		return std::min(numAttachments, getNumColorAttachments());
 	}
 }}

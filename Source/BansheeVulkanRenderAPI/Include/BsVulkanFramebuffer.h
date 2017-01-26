@@ -17,8 +17,8 @@ namespace bs { namespace ct
 		/** Image to attach or null if none. */
 		VulkanImage* image = nullptr;
 
-		/** View of the image to attach or VK_NULL_HANDLE if none. */
-		VkImageView view = VK_NULL_HANDLE;
+		/** Surface representing the sub-resource of the image to use as an attachment. */
+		TextureSurface surface;
 
 		/** Format of the attached image. */
 		VkFormat format = VK_FORMAT_UNDEFINED;
@@ -56,6 +56,7 @@ namespace bs { namespace ct
 	struct VulkanFramebufferAttachment
 	{
 		VulkanImage* image = nullptr;
+		TextureSurface surface;
 		UINT32 baseLayer = 0;
 		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		UINT32 index = 0;
@@ -121,6 +122,12 @@ namespace bs { namespace ct
 
 		/** Returns sample flags that determine if the framebuffer supports multi-sampling, and for how many samples. */
 		VkSampleCountFlagBits getSampleFlags() const { return mSampleFlags; }
+
+		/** 
+		 * Returns the maximum required number of clear entries to provide in a render pass start structure. This depends on
+		 * the clear mask and the attachments on the framebuffer. 
+		 */
+		UINT32 getNumClearEntries(ClearMask clearMask) const;
 	private:
 		/** Information about a single frame-buffer variant. */
 		struct Variant

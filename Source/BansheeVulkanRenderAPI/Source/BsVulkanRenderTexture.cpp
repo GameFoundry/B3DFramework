@@ -78,7 +78,7 @@ namespace bs
 			}
 
 			fbDesc.color[i].image = image;
-			fbDesc.color[i].view = image->getView(surface, true);
+			fbDesc.color[i].surface = surface;
 			fbDesc.color[i].format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat(),
 																   texture->getProperties().isHardwareGammaEnabled());
 		}
@@ -118,7 +118,7 @@ namespace bs
 				}
 
 				fbDesc.depth.image = image;
-				fbDesc.depth.view = image->getView(surface, true);
+				fbDesc.depth.surface = surface;
 				fbDesc.depth.format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat(),
 																	texture->getProperties().isHardwareGammaEnabled());
 				fbDesc.depth.baseLayer = view->getFirstArraySlice();

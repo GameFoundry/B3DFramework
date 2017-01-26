@@ -97,7 +97,7 @@ namespace bs
 			break;
 		case LightType::Spot:
 		{
-			Degree angle = Math::clamp(mSpotAngle, Degree(-90), Degree(90));
+			Degree angle = Math::clamp(mSpotAngle, Degree(-89), Degree(89));
 			float coneRadius = Math::tan(angle) * mRange;
 
 			float radius;

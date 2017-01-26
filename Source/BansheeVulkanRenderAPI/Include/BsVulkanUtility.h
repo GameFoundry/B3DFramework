@@ -76,6 +76,21 @@ namespace bs { namespace ct
 
 		/** Checks is a flag for a particular device enabled. */
 		static bool isDeviceIdxSet(const VulkanRenderAPI& rapi, UINT32 idx, GpuDeviceFlags flags);
+
+		/** 
+		 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
+		 * @p cutWith range completely overs the @p toCut range, the original @p toCut range is output. 
+		 * 
+		 * @param[in]	toCut		Range to cut.
+		 * @param[in]	cutWith		Range to cut with.
+		 * @param[out]	output		Pieces of the range that was cut.
+		 * @param[out]	numAreas	Number of pieces in the @p output array.
+		 */
+		static void cutRange(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,
+							 std::array<VkImageSubresourceRange, 5>& output, UINT32& numAreas);
+
+		/** Checks if the two image subresource ranges have any overlapping subresources. */
+		static bool rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b);
 	};
 
 	/** @} */

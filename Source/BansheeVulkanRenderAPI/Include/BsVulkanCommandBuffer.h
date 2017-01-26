@@ -199,6 +199,7 @@ namespace bs { namespace ct
 		 * updates the externally visible image layout field to @p finalLayout (once submitted).
 		 * 
 		 * @param[in]	res						Image to register with the command buffer.
+		 * @param[in]	range					Range of sub-resources to register.
 		 * @param[in]	newLayout				Layout the image needs to be transitioned in before use. Set to undefined
 		 *										layout if no transition is required.
 		 * @param[in]	finalLayout				Determines what value the externally visible image layout will be set after
@@ -208,15 +209,15 @@ namespace bs { namespace ct
 		 * @param[in]	isFBAttachment			Determines if the image is being used as a framebuffer attachment (if true),
 		 *										or just as regular shader input (if false).
 		 */
-		void registerResource(VulkanImage* res, VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, 
-			bool isFBAttachment = false);
+		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VkImageLayout newLayout, 
+							  VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment = false);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
 		 * device when the command buffer is submitted. Performs no layout transitions on the image, they must be performed
 		 * by the caller, or not required at all.
 		 */
-		void registerResource(VulkanImage* res, VulkanUseFlags flags);
+		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
@@ -322,8 +323,16 @@ namespace bs { namespace ct
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
 		struct ImageInfo
 		{
-			VkImageSubresourceRange range;
 			ResourceUseHandle useHandle;
+
+			UINT32 subresourceInfoIdx;
+			UINT32 numSubresourceInfos;
+		};
+
+		/** Contains information about a range of Vulkan image sub-resources bound/used on this command buffer. */
+		struct ImageSubresourceInfo
+		{
+			VkImageSubresourceRange range;
 
 			// Only relevant for layout transitions
 			VkImageLayout initialLayout;
@@ -373,6 +382,16 @@ namespace bs { namespace ct
 		 */
 		void updateFinalLayouts();
 
+		/** 
+		 * Updates an existing sub-resource info range with new layout, use flags and framebuffer flag. Returns true if
+		 * the bound sub-resource is a read-only framebuffer attachment.
+		 */
+		bool updateSubresourceInfo(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
+			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment);
+
+		/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
+		ImageSubresourceInfo& findSubresourceInfo(VulkanImage* image, UINT32 face, UINT32 mip);
+
 		UINT32 mId;
 		UINT32 mQueueFamily;
 		State mState;
@@ -395,6 +414,7 @@ namespace bs { namespace ct
 		UnorderedMap<VulkanResource*, UINT32> mImages;
 		UnorderedMap<VulkanResource*, BufferInfo> mBuffers;
 		Vector<ImageInfo> mImageInfos;
+		Vector<ImageSubresourceInfo> mSubresourceInfos;
 		UINT32 mGlobalQueueIdx;
 
 		SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
