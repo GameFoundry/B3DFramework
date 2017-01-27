@@ -91,6 +91,24 @@ namespace bs { namespace ct
 		SPtr<Texture> skyboxTexture;
 	};
 
+	/** Information whether certain scene objects are visible in a view, per object type. */
+	struct VisibilityInfo
+	{
+		Vector<bool> renderables;
+		Vector<bool> lights;
+	};
+
+	/** Information used for culling an object against a view. */
+	struct CullInfo
+	{
+		CullInfo(const Bounds& bounds, UINT64 layer = -1)
+			:bounds(bounds), layer(layer)
+		{ }
+
+		Bounds bounds;
+		UINT64 layer;
+	};
+
 	/** Contains information about a Camera, used by the Renderer. */
 	class RendererCamera
 	{
@@ -106,7 +124,7 @@ namespace bs { namespace ct
 
 		/** Updates the internal information with a new view transform. */
 		void setTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view,
-						  const Matrix4& proj);
+						  const Matrix4& proj, const ConvexVolume& worldFrustum);
 
 		/** Updates all internal information with new view information. */
 		void setView(const RENDERER_VIEW_DESC& desc);
@@ -174,8 +192,8 @@ namespace bs { namespace ct
 		 * Populates view render queues by determining visible renderable objects. 
 		 *
 		 * @param[in]	renderables			A set of renderable objects to iterate over and determine visibility for.
-		 * @param[in]	renderableBounds	A set of world bounds for the provided renderable objects. Must be the same size
-		 *									as the @p renderables array.
+		 * @param[in]	cullInfos			A set of world bounds & other information relevant for culling the provided
+		 *									renderable objects. Must be the same size as the @p renderables array.
 		 * @param[out]	visibility			Output parameter that will have the true bit set for any visible renderable
 		 *									object. If the bit for an object is already set to true, the method will never
 		 *									change it to false which allows the same bitfield to be provided to multiple
@@ -184,11 +202,17 @@ namespace bs { namespace ct
 		 *									As a side-effect, per-view visibility data is also calculated and can be
 		 *									retrieved by calling getVisibilityMask().
 		 */
-		void determineVisible(const Vector<RendererObject*>& renderables, const Vector<Bounds>& renderableBounds, 
+		void determineVisible(const Vector<RendererObject*>& renderables, const Vector<CullInfo>& cullInfos,
 			Vector<bool>* visibility = nullptr);
 
+		/**
+		 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
+		 * which entry is or ins't visible by this view. Both inputs must be arrays of the same size.
+		 */
+		void calculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const;
+
 		/** Returns the visibility mask calculated with the last call to determineVisible(). */
-		const Vector<bool>& getVisibilityMask() const { return mVisibility; }
+		const VisibilityInfo& getVisibilityMasks() const { return mVisibility; }
 
 		/** 
 		 * Returns a structure containing information about post-processing effects. This structure will be modified and
@@ -223,7 +247,7 @@ namespace bs { namespace ct
 		bool mUsingRenderTargets;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		Vector<bool> mVisibility;
+		VisibilityInfo mVisibility;
 	};
 
 	/** @} */

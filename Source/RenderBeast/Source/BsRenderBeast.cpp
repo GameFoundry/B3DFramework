@@ -96,7 +96,7 @@ namespace bs { namespace ct
 		mRenderTargets.clear();
 		mCameras.clear();
 		mRenderables.clear();
-		mVisibility.clear();
+		mRenderableVisibility.clear();
 
 		PostProcessing::shutDown();
 		RenderTexturePool::shutDown();
@@ -119,8 +119,8 @@ namespace bs { namespace ct
 		renderable->setRendererId(renderableId);
 
 		mRenderables.push_back(bs_new<RendererObject>());
-		mWorldBounds.push_back(renderable->getBounds());
-		mVisibility.push_back(false);
+		mRenderableCullInfos.push_back(CullInfo(renderable->getBounds(), renderable->getLayer()));
+		mRenderableVisibility.push_back(false);
 
 		RendererObject* rendererObject = mRenderables.back();
 		rendererObject->renderable = renderable;
@@ -271,7 +271,7 @@ namespace bs { namespace ct
 		{
 			// Swap current last element with the one we want to erase
 			std::swap(mRenderables[renderableId], mRenderables[lastRenderableId]);
-			std::swap(mWorldBounds[renderableId], mWorldBounds[lastRenderableId]);
+			std::swap(mRenderableCullInfos[renderableId], mRenderableCullInfos[lastRenderableId]);
 
 			lastRenerable->setRendererId(renderableId);
 
@@ -281,8 +281,8 @@ namespace bs { namespace ct
 
 		// Last element is the one we want to erase
 		mRenderables.erase(mRenderables.end() - 1);
-		mWorldBounds.erase(mWorldBounds.end() - 1);
-		mVisibility.erase(mVisibility.end() - 1);
+		mRenderableCullInfos.erase(mRenderableCullInfos.end() - 1);
+		mRenderableVisibility.erase(mRenderableVisibility.end() - 1);
 
 		bs_delete(rendererObject);
 	}
@@ -292,7 +292,7 @@ namespace bs { namespace ct
 		UINT32 renderableId = renderable->getRendererId();
 
 		mRenderables[renderableId]->updatePerObjectBuffer();
-		mWorldBounds[renderableId] = renderable->getBounds();
+		mRenderableCullInfos[renderableId].bounds = renderable->getBounds();
 	}
 
 	void RenderBeast::notifyLightAdded(Light* light)
@@ -394,7 +394,8 @@ namespace bs { namespace ct
 				camera->getPosition(),
 				camera->getForward(),
 				camera->getViewMatrix(),
-				camera->getProjectionMatrixRS());
+				camera->getProjectionMatrixRS(),
+				camera->getWorldFrustum());
 		}
 
 		rendererCam->updatePerViewBuffer();
@@ -609,6 +610,8 @@ namespace bs { namespace ct
 		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
 	}
 
+	static SPtr<Texture> dbgSkyTex;
+
 	void RenderBeast::renderAllCore(float time, float delta)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -625,10 +628,10 @@ namespace bs { namespace ct
 		mObjectRenderer->setParamFrameParams(time);
 
 		// Generate render queues per camera
-		mVisibility.assign(mVisibility.size(), false);
+		mRenderableVisibility.assign(mRenderableVisibility.size(), false);
 
 		for (auto& entry : mCameras)
-			entry.second->determineVisible(mRenderables, mWorldBounds, &mVisibility);
+			entry.second->determineVisible(mRenderables, mRenderableCullInfos, &mRenderableVisibility);
 
 		// Retrieve animation data
 		AnimationManager::instance().waitUntilComplete();
@@ -638,7 +641,7 @@ namespace bs { namespace ct
 		UINT32 numRenderables = (UINT32)mRenderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
-			if (!mVisibility[i])
+			if (!mRenderableVisibility[i])
 				continue;
 
 			// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
@@ -651,6 +654,9 @@ namespace bs { namespace ct
 
 			mRenderables[i]->perObjectParamBuffer->flushToGPU();
 		}
+		
+		//if (dbgSkyTex == nullptr)
+		//	dbgSkyTex = captureSceneCubeMap(Vector3(0, 2, 0), true, 1024);
 
 		// Render everything, target by target
 		for (auto& rtInfo : mRenderTargets)
@@ -701,11 +707,11 @@ namespace bs { namespace ct
 		Matrix4 viewProj = viewInfo->getViewProjMatrix();
 
 		// Assign camera and per-call data to all relevant renderables
-		const Vector<bool>& visibility = viewInfo->getVisibilityMask();
+		const VisibilityInfo& visibility = viewInfo->getVisibilityMasks();
 		UINT32 numRenderables = (UINT32)mRenderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
-			if (!visibility[i])
+			if (!visibility.renderables[i])
 				continue;
 
 			RendererObject* rendererObject = mRenderables[i];
@@ -827,6 +833,7 @@ namespace bs { namespace ct
 		// Render skybox (if any)
 		SPtr<Texture> skyTexture = viewInfo->getSkybox();
 		if (skyTexture != nullptr && skyTexture->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
+		//if (dbgSkyTex != nullptr)
 		{
 			mSkyboxMat->bind(perCameraBuffer);
 			mSkyboxMat->setParams(skyTexture);
@@ -1101,7 +1108,7 @@ namespace bs { namespace ct
 
 			view.setView(viewDesc);
 			view.updatePerViewBuffer();
-			view.determineVisible(mRenderables, mWorldBounds);
+			view.determineVisible(mRenderables, mRenderableCullInfos);
 
 			render(&view, 0.0f);
 		}

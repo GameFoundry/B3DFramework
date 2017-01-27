@@ -191,8 +191,8 @@ namespace bs
 		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
 
 		Vector<RendererObject*> mRenderables;
-		Vector<Bounds> mWorldBounds;
-		Vector<bool> mVisibility; // Transient
+		Vector<CullInfo> mRenderableCullInfos;
+		Vector<bool> mRenderableVisibility; // Transient
 
 		Vector<RendererLight> mDirectionalLights;
 		Vector<RendererLight> mPointLights;
