@@ -57,6 +57,17 @@ namespace bs
 			UINT32 matVersion;
 		};
 
+		/** Contains information global to an entire frame. */
+		struct FrameInfo
+		{
+			FrameInfo(float timeDelta, const RendererAnimationData& animData)
+				:timeDelta(timeDelta), animData(animData)
+			{ }
+
+			float timeDelta;
+			const RendererAnimationData& animData;
+		};
+
 	public:
 		RenderBeast();
 		~RenderBeast() { }
@@ -138,18 +149,25 @@ namespace bs
 		void renderAllCore(float time, float delta);
 
 		/**
+		 * Renders all provided views.
+		 * 
+		 * @note	Core thread only. 
+		 */
+		void renderViews(RendererCamera** views, UINT32 numViews, const FrameInfo& frameInfo);
+
+		/**
 		 * Renders all objects visible by the provided view.
 		 *			
 		 * @note	Core thread only.
 		 */
-		void render(RendererCamera* viewInfo, float frameDelta);
+		void renderView(RendererCamera* viewInfo, float frameDelta);
 
 		/**
-		 * Renders all overlay callbacks attached to the provided camera.
+		 * Renders all overlay callbacks of the provided view.
 		 * 					
 		 * @note	Core thread only.
 		 */
-		void renderOverlay(const Camera* camera, bool clear);
+		void renderOverlay(RendererCamera* viewInfo);
 
 		/** 
 		 * Renders a single element of a renderable object. 
@@ -168,8 +186,9 @@ namespace bs
 		 * @param[in]	position	Position to capture the scene at.
 		 * @param[in]	hdr			If true scene will be captured in a format that supports high dynamic range.
 		 * @param[in]	size		Cubemap face width/height in pixels.
+		 * @param[in]	frameInfo	Global information about the the frame currently being rendered.
 		 */
-		SPtr<Texture> captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size);
+		SPtr<Texture> captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size, const FrameInfo& frameInfo);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore();

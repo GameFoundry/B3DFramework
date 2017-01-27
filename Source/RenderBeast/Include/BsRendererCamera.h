@@ -95,7 +95,6 @@ namespace bs { namespace ct
 	struct VisibilityInfo
 	{
 		Vector<bool> renderables;
-		Vector<bool> lights;
 	};
 
 	/** Information used for culling an object against a view. */
@@ -141,6 +140,9 @@ namespace bs { namespace ct
 		/** Returns true if the view requires high dynamic range rendering. */
 		bool isHDR() const { return mViewDesc.isHDR; }
 
+		/** Returns true if this view only renders overlay, and not scene objects. */
+		bool isOverlay() const { return mViewDesc.isOverlay; }
+
 		/** Returns the texture to use for the skybox (if any). */
 		SPtr<Texture> getSkybox() const { return mViewDesc.skyboxTexture; }
 
@@ -165,10 +167,10 @@ namespace bs { namespace ct
 		/** 
 		 * Prepares render targets for rendering. When done call endRendering().
 		 *
-		 * @param[in]	useRenderTargets	If using the internal render targets containing the GBuffer (retrieved via
-		 *									getRenderTargets()) while rendering you must set this to true.
+		 * @param[in]	useGBuffer			Set to true if you will be rendering to internal render targets containing the
+		 *									GBuffer (retrieved via getRenderTargets()).
 		 */
-		void beginRendering(bool useRenderTargets);
+		void beginRendering(bool useGBuffer);
 
 		/** Ends rendering and frees any acquired resources. */
 		void endRendering();
@@ -244,7 +246,7 @@ namespace bs { namespace ct
 
 		SPtr<RenderTargets> mRenderTargets;
 		PostProcessInfo mPostProcessInfo;
-		bool mUsingRenderTargets;
+		bool mUsingGBuffer;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		VisibilityInfo mVisibility;

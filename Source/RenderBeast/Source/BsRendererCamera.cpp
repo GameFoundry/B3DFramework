@@ -39,13 +39,13 @@ namespace bs { namespace ct
 	}
 
 	RendererCamera::RendererCamera()
-		: mUsingRenderTargets(false)
+		: mUsingGBuffer(false)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 	}
 
 	RendererCamera::RendererCamera(const RENDERER_VIEW_DESC& desc)
-		: mViewDesc(desc), mUsingRenderTargets(false)
+		: mViewDesc(desc), mUsingGBuffer(false)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 
@@ -90,6 +90,8 @@ namespace bs { namespace ct
 	void RendererCamera::setView(const RENDERER_VIEW_DESC& desc)
 	{
 		mViewDesc = desc;
+
+		setStateReductionMode(desc.stateReduction);
 	}
 
 	void RendererCamera::beginRendering(bool useGBuffer)
@@ -105,7 +107,7 @@ namespace bs { namespace ct
 				mRenderTargets = RenderTargets::create(mViewDesc.target, mViewDesc.isHDR);
 
 			mRenderTargets->allocate();
-			mUsingRenderTargets = true;
+			mUsingGBuffer = true;
 		}
 	}
 
@@ -114,10 +116,10 @@ namespace bs { namespace ct
 		mOpaqueQueue->clear();
 		mTransparentQueue->clear();
 
-		if(mUsingRenderTargets)
+		if(mUsingGBuffer)
 		{
 			mRenderTargets->release();
-			mUsingRenderTargets = false;
+			mUsingGBuffer = false;
 		}
 	}
 

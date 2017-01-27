@@ -627,38 +627,17 @@ namespace bs { namespace ct
 		// Update global per-frame hardware buffers
 		mObjectRenderer->setParamFrameParams(time);
 
-		// Generate render queues per camera
-		mRenderableVisibility.assign(mRenderableVisibility.size(), false);
-
-		for (auto& entry : mCameras)
-			entry.second->determineVisible(mRenderables, mRenderableCullInfos, &mRenderableVisibility);
-
 		// Retrieve animation data
 		AnimationManager::instance().waitUntilComplete();
 		const RendererAnimationData& animData = AnimationManager::instance().getRendererData();
-
-		// Update per-object, bone matrix and morph shape GPU buffers
-		UINT32 numRenderables = (UINT32)mRenderables.size();
-		for (UINT32 i = 0; i < numRenderables; i++)
-		{
-			if (!mRenderableVisibility[i])
-				continue;
-
-			// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-			mRenderables[i]->renderable->updateAnimationBuffers(animData);
-
-			// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
-			// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
-			for (auto& element : mRenderables[i]->elements)
-				element.material->updateParamsSet(element.params);
-
-			mRenderables[i]->perObjectParamBuffer->flushToGPU();
-		}
 		
-		//if (dbgSkyTex == nullptr)
-		//	dbgSkyTex = captureSceneCubeMap(Vector3(0, 2, 0), true, 1024);
+		FrameInfo frameInfo(delta, animData);
 
-		// Render everything, target by target
+		//if (dbgSkyTex == nullptr)
+		//	dbgSkyTex = captureSceneCubeMap(Vector3(0, 2, 0), true, 1024, frameInfo);
+
+		// Gather all views
+		Vector<RendererCamera*> views;
 		for (auto& rtInfo : mRenderTargets)
 		{
 			SPtr<RenderTarget> target = rtInfo.target;
@@ -667,21 +646,13 @@ namespace bs { namespace ct
 			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
-				bool isOverlayCamera = cameras[i]->getFlags().isSet(CameraFlag::Overlay);
-				if (!isOverlayCamera)
-				{
-					RendererCamera* viewInfo = mCameras[cameras[i]];
-
-					render(viewInfo, delta);
-				}
-				else
-				{
-					bool clear = i == 0;
-
-					renderOverlay(cameras[i], clear);
-				}
+				RendererCamera* viewInfo = mCameras[cameras[i]];
+				views.push_back(viewInfo);
 			}
 		}
+
+		// Render everything
+		renderViews(views.data(), (UINT32)views.size(), frameInfo);
 
 		gProfilerGPU().endFrame();
 
@@ -695,7 +666,42 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("renderAllCore");
 	}
 
-	void RenderBeast::render(RendererCamera* viewInfo, float frameDelta)
+	void RenderBeast::renderViews(RendererCamera** views, UINT32 numViews, const FrameInfo& frameInfo)
+	{
+		// Generate render queues per camera
+		mRenderableVisibility.assign(mRenderableVisibility.size(), false);
+
+		for(UINT32 i = 0; i < numViews; i++)
+			views[i]->determineVisible(mRenderables, mRenderableCullInfos, &mRenderableVisibility);
+
+		// Update per-object, bone matrix and morph shape GPU buffers
+		UINT32 numRenderables = (UINT32)mRenderables.size();
+		for (UINT32 i = 0; i < numRenderables; i++)
+		{
+			if (!mRenderableVisibility[i])
+				continue;
+
+			// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
+			mRenderables[i]->renderable->updateAnimationBuffers(frameInfo.animData);
+
+			// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
+			// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
+			for (auto& element : mRenderables[i]->elements)
+				element.material->updateParamsSet(element.params);
+
+			mRenderables[i]->perObjectParamBuffer->flushToGPU();
+		}
+
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			if (views[i]->isOverlay())
+				renderOverlay(views[i]);
+			else
+				renderView(views[i], frameInfo.timeDelta);
+		}
+	}
+
+	void RenderBeast::renderView(RendererCamera* viewInfo, float frameDelta)
 	{
 		gProfilerCPU().beginSample("Render");
 
@@ -909,38 +915,32 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render");
 	}
 
-	void RenderBeast::renderOverlay(const Camera* camera, bool clear)
+	void RenderBeast::renderOverlay(RendererCamera* viewInfo)
 	{
 		gProfilerCPU().beginSample("RenderOverlay");
 
+		viewInfo->getPerViewBuffer()->flushToGPU();
+		viewInfo->beginRendering(false);
+
+		const Camera* camera = viewInfo->getSceneCamera();
+		SPtr<RenderTarget> target = viewInfo->getFinalTarget();
 		SPtr<Viewport> viewport = camera->getViewport();
-		RendererCamera* rendererCam = mCameras[camera];
-		rendererCam->getPerViewBuffer()->flushToGPU();
 
-		rendererCam->beginRendering(false);
+		UINT32 clearBuffers = 0;
+		if (viewport->getRequiresColorClear())
+			clearBuffers |= FBT_COLOR;
 
-		SPtr<RenderTarget> target = camera->getViewport()->getTarget();
+		if (viewport->getRequiresDepthClear())
+			clearBuffers |= FBT_DEPTH;
 
-		// If first camera in render target, prepare the render target
-		if (clear)
+		if (viewport->getRequiresStencilClear())
+			clearBuffers |= FBT_STENCIL;
+
+		if (clearBuffers != 0)
 		{
 			RenderAPI::instance().setRenderTarget(target);
-
-			UINT32 clearBuffers = 0;
-			if (viewport->getRequiresColorClear())
-				clearBuffers |= FBT_COLOR;
-
-			if (viewport->getRequiresDepthClear())
-				clearBuffers |= FBT_DEPTH;
-
-			if (viewport->getRequiresStencilClear())
-				clearBuffers |= FBT_STENCIL;
-
-			if (clearBuffers != 0)
-			{
-				RenderAPI::instance().clearViewport(clearBuffers, viewport->getClearColor(),
-					viewport->getClearDepthValue(), viewport->getClearStencilValue());
-			}
+			RenderAPI::instance().clearViewport(clearBuffers, viewport->getClearColor(),
+				viewport->getClearDepthValue(), viewport->getClearStencilValue());
 		}
 		else
 			RenderAPI::instance().setRenderTarget(target, false, RT_COLOR0);
@@ -964,7 +964,7 @@ namespace bs { namespace ct
 			++iterRenderCallback;
 		}
 
-		rendererCam->endRendering();
+		viewInfo->endRendering();
 
 		gProfilerCPU().endSample("RenderOverlay");
 	}
@@ -986,7 +986,8 @@ namespace bs { namespace ct
 				element.morphVertexDeclaration);
 	}
 
-	SPtr<Texture> RenderBeast::captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size)
+	SPtr<Texture> RenderBeast::captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size, 
+												   const FrameInfo& frameInfo)
 	{
 		TEXTURE_DESC cubeMapDesc;
 		cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
@@ -1045,7 +1046,7 @@ namespace bs { namespace ct
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 
-		RendererCamera view(viewDesc);
+		RendererCamera views[6];
 		for(UINT32 i = 0; i < 6; i++)
 		{
 			// Calculate view matrix
@@ -1106,12 +1107,13 @@ namespace bs { namespace ct
 			
 			viewDesc.target.target = RenderTexture::create(cubeFaceRTDesc);
 
-			view.setView(viewDesc);
-			view.updatePerViewBuffer();
-			view.determineVisible(mRenderables, mRenderableCullInfos);
-
-			render(&view, 0.0f);
+			views[i].setView(viewDesc);
+			views[i].updatePerViewBuffer();
+			views[i].determineVisible(mRenderables, mRenderableCullInfos);
 		}
+
+		RendererCamera* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
+		renderViews(viewPtrs, 6, frameInfo);
 
 		ReflectionCubemap::filterCubemapForSpecular(cubemap);
 
