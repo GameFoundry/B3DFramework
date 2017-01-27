@@ -15,13 +15,14 @@
 #include "BsResourceManifest.h"
 #include "BsFileSystem.h"
 #include "BsCoreThread.h"
+#include "BsUUID.h"
 
 using json = nlohmann::json;
 
 namespace bs
 {
 	void BuiltinResourcesHelper::importAssets(const nlohmann::json& entries, const Path& inputFolder, 
-		const Path& outputFolder, const SPtr<ResourceManifest>& manifest, ImportMode mode)
+		const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode)
 	{
 		if (!FileSystem::exists(inputFolder))
 			return;
@@ -32,7 +33,7 @@ namespace bs
 		FileSystem::createDir(outputFolder);
 
 		Path spriteOutputFolder = outputFolder + "/Sprites/";
-		if(mode == ImportMode::Sprite)
+		if(mode == AssetType::Sprite)
 			FileSystem::createDir(spriteOutputFolder);
 
 		auto importResource = [&](const String& fileName, const String& UUID)
@@ -158,12 +159,12 @@ namespace bs
 			std::string uuid;
 
 			bool isIcon = false;
-			if (mode == ImportMode::None)
+			if (mode == AssetType::Normal)
 			{
 				uuid = entry["UUID"];
 				isIcon = entry.find("UUID16") != entry.end();
 			}
-			else if (mode == ImportMode::Sprite)
+			else if (mode == AssetType::Sprite)
 			{
 				uuid = entry["TextureUUID"];
 				isIcon = entry.find("TextureUUID16") != entry.end();
@@ -173,7 +174,7 @@ namespace bs
 			if (outputRes == nullptr)
 				continue;
 
-			if (mode == ImportMode::Sprite)
+			if (mode == AssetType::Sprite)
 			{
 				std::string spriteUUID = entry["SpriteUUID"];
 
@@ -187,13 +188,13 @@ namespace bs
 				iconData.source = static_resource_cast<Texture>(outputRes);
 				iconData.name = name.c_str();
 
-				if (mode == ImportMode::None)
+				if (mode == AssetType::Normal)
 				{
 					iconData.TextureUUIDs[0] = entry["UUID48"];
 					iconData.TextureUUIDs[1] = entry["UUID32"];
 					iconData.TextureUUIDs[2] = entry["UUID16"];
 				}
-				else if (mode == ImportMode::Sprite)
+				else if (mode == AssetType::Sprite)
 				{
 					iconData.TextureUUIDs[0] = entry["TextureUUID48"];
 					iconData.TextureUUIDs[1] = entry["TextureUUID32"];
@@ -250,7 +251,7 @@ namespace bs
 			HTexture tex32 = saveTexture(scaled32, outputPath32, iconsToGenerate[i].TextureUUIDs[1]);
 			HTexture tex16 = saveTexture(scaled16, outputPath16, iconsToGenerate[i].TextureUUIDs[2]);
 
-			if (mode == ImportMode::Sprite)
+			if (mode == AssetType::Sprite)
 			{
 				generateSprite(tex48, iconsToGenerate[i].name + "48", iconsToGenerate[i].SpriteUUIDs[0].c_str());
 				generateSprite(tex32, iconsToGenerate[i].name + "32", iconsToGenerate[i].SpriteUUIDs[1].c_str());
@@ -299,6 +300,78 @@ namespace bs
 				manifest->registerResource(tex.getUUID(), texPageOutputPath);
 			}
 		}
+	}
+
+	bool BuiltinResourcesHelper::updateJSON(const Path& folder, AssetType type, nlohmann::json& entries)
+	{
+		UnorderedSet<Path> existingEntries;
+		for(auto& entry : entries)
+		{
+			std::string strPath = entry["Path"];
+			Path path = strPath.c_str();
+
+			existingEntries.insert(path);
+		}
+
+		bool foundChanges = false;
+		auto checkForChanges = [&](const Path& filePath)
+		{
+			Path relativePath = filePath.getRelative(folder);
+
+			auto iterFind = existingEntries.find(relativePath);
+			if(iterFind == existingEntries.end())
+			{
+				if(type == AssetType::Normal)
+				{
+					String uuid = UUIDGenerator::generateRandom();
+					nlohmann::json newEntry =
+					{ 
+						{ "Path", relativePath.toString().c_str() },
+						{ "UUID", uuid.c_str() } 
+					};
+
+					entries.push_back(newEntry);
+				}
+				else // Sprite
+				{
+					String texUuid = UUIDGenerator::generateRandom();
+					String spriteUuid = UUIDGenerator::generateRandom();
+					nlohmann::json newEntry = 
+					{ 
+						{ "Path", relativePath.toString().c_str() },
+						{ "SpriteUUID", spriteUuid.c_str() },
+						{ "TextureUUID", texUuid.c_str() }
+					};
+
+					entries.push_back(newEntry);
+				}
+
+				foundChanges = true;
+			}
+
+			return true;
+		};
+
+		FileSystem::iterate(folder, checkForChanges, nullptr);
+
+		// Prune deleted entries
+		auto iter = entries.begin();
+		while(iter != entries.end())
+		{
+			std::string strPath = (*iter)["Path"];
+			Path path = strPath.c_str();
+			path = path.getAbsolute(folder);
+
+			if (!FileSystem::exists(path))
+			{
+				iter = entries.erase(iter);
+				foundChanges = true;
+			}
+			else
+				++iter;
+		}
+
+		return foundChanges;
 	}
 
 	void BuiltinResourcesHelper::writeTimestamp(const Path& file)

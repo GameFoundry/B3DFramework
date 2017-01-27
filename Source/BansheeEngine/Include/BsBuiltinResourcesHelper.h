@@ -11,21 +11,18 @@ namespace bs
 	 *  @{
 	 */
 
-	//using Json = nlohmann::basic_json<Map, Vector, String, bool, INT64, UINT64, float, StdAlloc>;
-	//using WJson = nlohmann::basic_json<Map, Vector, WString, bool, INT64, UINT64, float, StdAlloc>;
-
 	/**	Provides various methods commonly used for managing builtin resources. */
 	class BS_EXPORT BuiltinResourcesHelper
 	{
 	public:
 		/** Flags that can control asset import. */
-		enum class ImportMode
+		enum class AssetType
 		{
 			/** No flags, just import asset as normal. Each entry is expected to have an "UUID" and a "Path" field. */
-			None,
+			Normal,
 			/** 
 			 * Assumes imported assets are textures. Will generate sprite assets for each imported texture. Expects 
-			 * "UUID", "Path" and "SpriteUUID" fields present in per-entry JSON.
+			 * "TextureUUID", "Path" and "SpriteUUID" fields present in per-entry JSON.
 			 */
 			Sprite,
 		};
@@ -42,7 +39,7 @@ namespace bs
 		 * @param[in]	mode			Mode that controls how are files imported.
 		 */
 		static void importAssets(const nlohmann::json& entries, const Path& inputFolder, const Path& outputFolder, 
-			const SPtr<ResourceManifest>& manifest, ImportMode mode = ImportMode::None);
+			const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal);
 
 		/**
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
@@ -50,6 +47,16 @@ namespace bs
 		 */
 		static void importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder, 
 			const Vector<UINT32>& fontSizes, bool antialiasing, const String& UUID, const SPtr<ResourceManifest>& manifest);
+
+		/** 
+		 * Scans the provided folder for any files that are currently not part of the provided JSON entries. If some are
+		 * found they are appended to the JSON entry array. Returns true if any new files were found, false otherwise.
+		 * 
+		 * @param[in]		folder		Folder to check for new entries.
+		 * @param[in]		type		Type of entries in the folder. Determines the type of JSON data generated.
+		 * @param[in, out]	entries		Current data file entries.
+		 */
+		static bool updateJSON(const Path& folder, AssetType type, nlohmann::json& entries);
 
 		/** Writes a timestamp with the current date and time in the specified file. */
 		static void writeTimestamp(const Path& file);

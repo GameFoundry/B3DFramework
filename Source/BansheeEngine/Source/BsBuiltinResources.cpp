@@ -360,21 +360,8 @@ namespace bs
 		// Hidden dependency: Textures need to be generated before shaders as they may use the default textures
 		generateTextures();
 
-		// TODO - Update DataList.json if needed
-
-		Path rawSkinFolder = mBuiltinRawDataFolder + SkinFolder;
-		Path rawCursorFolder = mBuiltinRawDataFolder + CursorFolder;
-		Path rawIconFolder = mBuiltinRawDataFolder + IconFolder;
-		Path rawShaderFolder = mBuiltinRawDataFolder + ShaderFolder;
-		Path rawShaderIncludeFolder = mBuiltinRawDataFolder + ShaderIncludeFolder;
-
-		Path skinFolder = mBuiltinDataFolder + SkinFolder;
-		Path iconFolder = mBuiltinDataFolder + IconFolder;
-		Path shaderIncludeFolder = mBuiltinDataFolder + ShaderIncludeFolder;
-
 		Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
 		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
-
 		json dataListJSON = json::parse(dataListStream->getAsString().c_str());
 
 		json skinJSON = dataListJSON["Skin"];
@@ -383,11 +370,47 @@ namespace bs
 		json includesJSON = dataListJSON["Includes"];
 		json shadersJSON = dataListJSON["Shaders"];
 
+		Path rawSkinFolder = mBuiltinRawDataFolder + SkinFolder;
+		Path rawCursorFolder = mBuiltinRawDataFolder + CursorFolder;
+		Path rawIconFolder = mBuiltinRawDataFolder + IconFolder;
+		Path rawShaderFolder = mBuiltinRawDataFolder + ShaderFolder;
+		Path rawShaderIncludeFolder = mBuiltinRawDataFolder + ShaderIncludeFolder;
+
+		// Update DataList.json if needed
+		bool updatedDataLists = false;
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawCursorFolder, BuiltinResourcesHelper::AssetType::Normal, cursorsJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawIconFolder, BuiltinResourcesHelper::AssetType::Normal, iconsJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawShaderIncludeFolder, BuiltinResourcesHelper::AssetType::Normal, includesJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawShaderFolder, BuiltinResourcesHelper::AssetType::Normal, shadersJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawSkinFolder, BuiltinResourcesHelper::AssetType::Sprite, skinJSON);
+
+		dataListStream->close();
+
+		if(updatedDataLists)
+		{
+			FileSystem::remove(dataListsFilePath);
+
+			dataListJSON["Skin"] = skinJSON;
+			dataListJSON["Cursors"] = cursorsJSON;
+			dataListJSON["Icons"] = iconsJSON;
+			dataListJSON["Includes"] = includesJSON;
+			dataListJSON["Shaders"] = shadersJSON;
+
+			String jsonString = dataListJSON.dump(4).c_str();
+			dataListStream = FileSystem::createAndOpenFile(dataListsFilePath);
+			dataListStream->writeString(jsonString);
+			dataListStream->close();
+		}
+		
+		Path skinFolder = mBuiltinDataFolder + SkinFolder;
+		Path iconFolder = mBuiltinDataFolder + IconFolder;
+		Path shaderIncludeFolder = mBuiltinDataFolder + ShaderIncludeFolder;
+
 		BuiltinResourcesHelper::importAssets(cursorsJSON, rawCursorFolder, mEngineCursorFolder, mResourceManifest);
 		BuiltinResourcesHelper::importAssets(iconsJSON, rawIconFolder, iconFolder, mResourceManifest);
 		BuiltinResourcesHelper::importAssets(includesJSON, rawShaderIncludeFolder, shaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
 		BuiltinResourcesHelper::importAssets(shadersJSON, rawShaderFolder, mEngineShaderFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(skinJSON, rawSkinFolder, skinFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
+		BuiltinResourcesHelper::importAssets(skinJSON, rawSkinFolder, skinFolder, mResourceManifest, BuiltinResourcesHelper::AssetType::Sprite);
 
 		// Import font
 		BuiltinResourcesHelper::importFont(mBuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 

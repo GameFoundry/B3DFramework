@@ -395,8 +395,6 @@ namespace bs
 	{
 		Resources::instance().unloadAllUnused();
 
-		// TODO - Update DataList.json if needed
-
 		Path dataListsFilePath = BuiltinRawDataFolder + DataListFile;
 		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
 
@@ -407,10 +405,34 @@ namespace bs
 		json includesJSON = dataListJSON["Includes"];
 		json shadersJSON = dataListJSON["Shaders"];
 
-		BuiltinResourcesHelper::importAssets(iconsJSON, EditorRawIconsFolder, EditorIconFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
+		// Update DataList.json if needed
+		bool updatedDataLists = false;
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawIconsFolder, BuiltinResourcesHelper::AssetType::Sprite, iconsJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawShaderIncludeFolder, BuiltinResourcesHelper::AssetType::Normal, includesJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawShaderFolder, BuiltinResourcesHelper::AssetType::Normal, shadersJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawSkinFolder, BuiltinResourcesHelper::AssetType::Sprite, skinJSON);
+
+		dataListStream->close();
+
+		if (updatedDataLists)
+		{
+			FileSystem::remove(dataListsFilePath);
+
+			dataListJSON["Skin"] = skinJSON;
+			dataListJSON["Icons"] = iconsJSON;
+			dataListJSON["Includes"] = includesJSON;
+			dataListJSON["Shaders"] = shadersJSON;
+
+			String jsonString = dataListJSON.dump(4).c_str();
+			dataListStream = FileSystem::createAndOpenFile(dataListsFilePath);
+			dataListStream->writeString(jsonString);
+			dataListStream->close();
+		}
+
+		BuiltinResourcesHelper::importAssets(iconsJSON, EditorRawIconsFolder, EditorIconFolder, mResourceManifest, BuiltinResourcesHelper::AssetType::Sprite);
 		BuiltinResourcesHelper::importAssets(includesJSON, EditorRawShaderIncludeFolder, EditorShaderIncludeFolder, mResourceManifest); // Hidden dependency: Includes must be imported before shaders
 		BuiltinResourcesHelper::importAssets(shadersJSON, EditorRawShaderFolder, EditorShaderFolder, mResourceManifest);
-		BuiltinResourcesHelper::importAssets(skinJSON, EditorRawSkinFolder, EditorSkinFolder, mResourceManifest, BuiltinResourcesHelper::ImportMode::Sprite);
+		BuiltinResourcesHelper::importAssets(skinJSON, EditorRawSkinFolder, EditorSkinFolder, mResourceManifest, BuiltinResourcesHelper::AssetType::Sprite);
 
 		// Import fonts
 		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
