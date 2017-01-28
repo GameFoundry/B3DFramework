@@ -22,18 +22,7 @@ namespace bs { namespace ct
 		desc.numFaces = props.getNumFaces();
 		desc.numMipLevels = props.getNumMipmaps() + 1;
 		desc.layout = layout;
-
-		int usage = props.getUsage();
-		if ((usage & TU_RENDERTARGET) != 0)
-			desc.usage = VulkanImageUsage::ColorAttachment;
-		else if ((usage & TU_DEPTHSTENCIL) != 0)
-			desc.usage = VulkanImageUsage::DepthAttachment;
-		else if ((usage & TU_LOADSTORE) != 0)
-			desc.usage = VulkanImageUsage::Storage;
-		else if ((usage & TU_DYNAMIC) != 0)
-			desc.usage = VulkanImageUsage::SampledDynamic;
-		else
-			desc.usage = VulkanImageUsage::Sampled;
+		desc.usage = (UINT32)props.getUsage();
 
 		return desc;
 	}
@@ -77,7 +66,7 @@ namespace bs { namespace ct
 		}
 
 		TextureSurface completeSurface(0, desc.numMipLevels, 0, desc.numFaces);
-		if (mUsage == VulkanImageUsage::DepthAttachment)
+		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
 			mFramebufferMainView = createView(completeSurface, getAspectFlags());
 			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -133,7 +122,7 @@ namespace bs { namespace ct
 
 	VkImageView VulkanImage::getView(bool framebuffer) const
 	{
-		if(framebuffer && mUsage == VulkanImageUsage::DepthAttachment)
+		if(framebuffer && (mUsage & TU_DEPTHSTENCIL) != 0)
 			return mFramebufferMainView;
 
 		return mMainView;
@@ -148,7 +137,7 @@ namespace bs { namespace ct
 				surface.arraySlice == entry.surface.arraySlice &&
 				surface.numArraySlices == entry.surface.numArraySlices)
 			{
-				if(mUsage != VulkanImageUsage::DepthAttachment)
+				if((mUsage & TU_DEPTHSTENCIL) == 0)
 					return entry.view;
 				else
 				{
@@ -162,7 +151,7 @@ namespace bs { namespace ct
 		info.surface = surface;
 		info.framebuffer = framebuffer;
 
-		if (mUsage == VulkanImageUsage::DepthAttachment)
+		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
 			if(framebuffer)
 				info.view = createView(surface, getAspectFlags());
@@ -223,23 +212,26 @@ namespace bs { namespace ct
 
 	VkImageLayout VulkanImage::getOptimalLayout() const
 	{
-		switch (mUsage)
-		{
-		case VulkanImageUsage::ColorAttachment:
-			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		case VulkanImageUsage::DepthAttachment:
-			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		case VulkanImageUsage::Storage:
-		case VulkanImageUsage::SampledDynamic:
+		// If it's load-store, no other flags matter, it must be in general layout
+		if ((mUsage & TU_LOADSTORE) != 0)
 			return VK_IMAGE_LAYOUT_GENERAL;
-		default:
+		
+		if ((mUsage & TU_RENDERTARGET) != 0)
+			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		else if ((mUsage & TU_DEPTHSTENCIL) != 0)
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		else
+		{
+			if ((mUsage & TU_DYNAMIC) != 0)
+				return VK_IMAGE_LAYOUT_GENERAL;
+
 			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 	}
 
 	VkImageAspectFlags VulkanImage::getAspectFlags() const
 	{
-		if (mUsage == VulkanImageUsage::DepthAttachment)
+		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
 			bool hasStencil = mImageViewCI.format == VK_FORMAT_D16_UNORM_S8_UINT ||
 				mImageViewCI.format == VK_FORMAT_D24_UNORM_S8_UINT ||
@@ -352,23 +344,26 @@ namespace bs { namespace ct
 		{
 		case VK_IMAGE_LAYOUT_GENERAL:
 			{
-				switch(mUsage)
+				accessFlags = VK_ACCESS_SHADER_READ_BIT;
+				if ((mUsage & TU_LOADSTORE) != 0)
 				{
-				case VulkanImageUsage::Storage:
-					accessFlags = VK_ACCESS_SHADER_READ_BIT;
-					
-					if(!readOnly)
+					if (!readOnly)
 						accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
-					break;
-				case VulkanImageUsage::ColorAttachment:
-					accessFlags = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
-					break;
-				case VulkanImageUsage::DepthAttachment:
-					accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_SHADER_READ_BIT;
-					break;
-				default:
-					accessFlags = VK_ACCESS_SHADER_READ_BIT;
-					break;
+				}
+
+				if ((mUsage & TU_RENDERTARGET) != 0)
+				{
+					accessFlags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+					if(!readOnly)
+						accessFlags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				}
+				else if ((mUsage & TU_DEPTHSTENCIL) != 0)
+				{
+					accessFlags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+					if (!readOnly)
+						accessFlags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 				}
 			}
 
@@ -613,28 +608,27 @@ namespace bs { namespace ct
 		// Note: I force rendertarget and depthstencil types to be readable in shader. Depending on performance impact
 		// it might be beneficial to allow the user to enable this explicitly only when needed.
 		
+		mImageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
 		int usage = props.getUsage();
 		if ((usage & TU_RENDERTARGET) != 0)
 		{
-			mImageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			mImageCI.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			mSupportsGPUWrites = true;
 		}
 		else if ((usage & TU_DEPTHSTENCIL) != 0)
 		{
-			mImageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-			mSupportsGPUWrites = true;
-		}
-		else if ((usage & TU_LOADSTORE) != 0)
-		{
-			mImageCI.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			mImageCI.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			mSupportsGPUWrites = true;
 		}
 		else
+			mImageCI.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		
+		if ((usage & TU_LOADSTORE) != 0)
 		{
-			mImageCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			mImageCI.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+			mSupportsGPUWrites = true;
 		}
-
-		mImageCI.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 		VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
 		VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;

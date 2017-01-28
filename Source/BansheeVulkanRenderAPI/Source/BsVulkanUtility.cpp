@@ -14,15 +14,15 @@ namespace bs { namespace ct
 		PixelUtil::checkFormat(format, texType, usage);
 
 		// Check actual device for format support
-		VkFormatFeatureFlagBits featureFlagBit;
+		VkFormatFeatureFlags wantedFeatureFlags = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
 		if ((usage & TU_RENDERTARGET) != 0)
-			featureFlagBit = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
-		else if ((usage & TU_DEPTHSTENCIL) != 0)
-			featureFlagBit = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		else if ((usage & TU_LOADSTORE) != 0)
-			featureFlagBit = VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
-		else
-			featureFlagBit = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+			wantedFeatureFlags |= VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
+
+		if ((usage & TU_DEPTHSTENCIL) != 0)
+			wantedFeatureFlags |= VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+		if ((usage & TU_LOADSTORE) != 0)
+			wantedFeatureFlags |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
 
 		VkFormatProperties props;
 		auto isSupported = [&](VkFormat vkFmt)
@@ -30,7 +30,7 @@ namespace bs { namespace ct
 			vkGetPhysicalDeviceFormatProperties(device.getPhysical(), vkFmt, &props);
 			VkFormatFeatureFlags featureFlags = optimalTiling ? props.optimalTilingFeatures : props.linearTilingFeatures;
 
-			return (featureFlags & featureFlagBit) != 0;
+			return (featureFlags & wantedFeatureFlags) != 0;
 		};
 
 		VkFormat vkFormat = getPixelFormat(format, hwGamma);

@@ -1,0 +1,35 @@
+Technique : base("SurfaceData") =
+{
+	Language = "HLSL11";
+
+	Pass =
+	{
+		Common = 
+		{
+			struct SurfaceData
+			{
+				float4 albedo;
+				float4 worldNormal;
+				float depth;
+			};
+		};
+	};
+};
+
+Technique : base("SurfaceData") =
+{
+	Language = "GLSL";
+
+	Pass =
+	{
+		Common = 
+		{
+			struct SurfaceData
+			{
+				vec4 albedo;
+				vec4 worldNormal;
+				float depth;
+			};
+		};
+	};
+};

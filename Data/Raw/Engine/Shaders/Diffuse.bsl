@@ -31,14 +31,14 @@ Technique : base("Surface") =
 				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, input.uv0) * 2.0f - float3(1, 1, 1));
 				float3 worldNormal = calcWorldNormal(input, normal);
 			
-				GBufferData gbufferData;
-				gbufferData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
-				gbufferData.worldNormal.xyz = worldNormal;
+				SurfaceData surfaceData;
+				surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
+				surfaceData.worldNormal.xyz = worldNormal;
 				
-				encodeGBuffer(gbufferData, OutGBufferA, OutGBufferB);
+				encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB);
 				
 				// TODO - Just returning a simple ambient term, use better environment lighting later
-				return float4(gbufferData.albedo.rgb, 1.0f) * 0.01f; 
+				return float4(surfaceData.albedo.rgb, 1.0f) * 0.01f; 
 			}	
 		};
 	};
@@ -66,14 +66,14 @@ Technique : base("Surface") =
 				vec3 normal = normalize(texture(gNormalTex, uv0).xyz * 2.0f - vec3(1, 1, 1));
 				vec3 worldNormal = calcWorldNormal(tangentToWorldZ, tangentToWorldX, normal);
 			
-				GBufferData gbufferData;
-				gbufferData.albedo = texture(gAlbedoTex, uv0);
-				gbufferData.worldNormal.xyz = worldNormal;
+				SurfaceData surfaceData;
+				surfaceData.albedo = texture(gAlbedoTex, uv0);
+				surfaceData.worldNormal.xyz = worldNormal;
 				
-				encodeGBuffer(gbufferData, fragColor[1], fragColor[2]);
+				encodeGBuffer(surfaceData, fragColor[1], fragColor[2]);
 				
 				// TODO - Just returning a simple ambient term, use better environment lighting later
-				fragColor[0] = vec4(gbufferData.albedo.rgb, 1.0f) * 0.01f; 
+				fragColor[0] = vec4(surfaceData.albedo.rgb, 1.0f) * 0.01f; 
 			}	
 		};
 	};

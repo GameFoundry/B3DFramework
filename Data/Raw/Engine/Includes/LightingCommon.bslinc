@@ -1,0 +1,169 @@
+#include "$ENGINE$\PerCameraData.bslinc"
+
+Blocks =
+{
+	Block PerCamera : auto("PerCamera");
+};
+
+Technique
+ : base("LightingCommon")
+ : inherits("PerCameraData") =
+{
+	Language = "HLSL11";
+	
+	Pass =
+	{
+		Compute = 
+		{
+			#define PI 3.1415926
+			#define HALF_PI 1.5707963
+			
+			struct LightData
+			{
+				float3 position;
+				float radius;
+				float3 direction;
+				float intensity;
+				float3 spotAngles;
+				float radiusSqrdInv;
+				float3 color;
+			};
+			
+			float convertFromDeviceZ(float deviceZ)
+			{
+				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;
+			}
+			
+			float getSpotAttenuation(float3 worldPosToLight, float3 direction, float3 angles)
+			{
+				float output = saturate((dot(-worldPosToLight, direction) - angles.y) * angles.z);
+				return output * output;
+			}			
+			
+			float3 getDirLightContibution(SurfaceData surfaceData, LightData lightData)
+			{
+				float3 N = surfaceData.worldNormal.xyz;
+				float3 L = -lightData.direction;
+				
+				float NoL = saturate(dot(N, L)); // TODO - Add bias here?
+				return lightData.color * lightData.intensity * NoL;
+			}
+			
+			float3 getPointLightContribution(float3 L, float3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				float3 N = surfaceData.worldNormal.xyz;
+				
+				float distanceSqrd = dot(L, L);
+				float distanceAttenuation = 1/(distanceSqrd + 1);
+				
+				L = normalize(L);
+				float NoL = saturate(dot(N, L)); // TODO - Add bias here?
+
+				float radiusAttenuation = distanceSqrd * lightData.radiusSqrdInv;
+				radiusAttenuation *= radiusAttenuation;
+				radiusAttenuation = saturate(1.0f - radiusAttenuation);
+				radiusAttenuation *= radiusAttenuation;
+
+				float attenuation = distanceAttenuation * radiusAttenuation;
+				return lightData.color * lightData.intensity * (NoL * attenuation);
+			}
+			
+			float3 getPointLightContribution(float3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				float3 L = lightData.position - worldPosition;
+				
+				return getPointLightContribution(L, worldPosition, surfaceData, lightData);
+			}
+			
+			float3 getSpotLightContribution(float3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				float3 L = lightData.position - worldPosition;
+				float3 pointLightContribution = getPointLightContribution(L, worldPosition, surfaceData, lightData);
+				float spotFalloff = getSpotAttenuation(L, lightData.direction, lightData.spotAngles);
+				
+				return pointLightContribution * spotFalloff;
+			}
+		};
+	};
+};
+
+Technique
+ : base("LightingCommon")
+ : inherits("PerCameraData") =
+{
+	Language = "GLSL";
+	
+	Pass =
+	{
+		Compute = 
+		{
+			#define PI 3.1415926
+			#define HALF_PI 1.5707963
+			
+			struct LightData
+			{
+				vec3 position;
+				float radius;
+				vec3 direction;
+				float intensity;
+				vec3 spotAngles;
+				float radiusSqrdInv;
+				vec3 color;
+			};
+			
+			float convertFromDeviceZ(float deviceZ)
+			{
+				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;	
+			}
+						
+			float getSpotAttenuation(vec3 worldPosToLight, vec3 direction, vec3 angles)
+			{
+				float atten = clamp((dot(-worldPosToLight, direction) - angles.y) * angles.z, 0.0, 1.0);
+				return atten * atten;
+			}
+			
+			vec3 getDirLightContibution(SurfaceData surfaceData, LightData lightData)
+			{
+				vec3 N = surfaceData.worldNormal.xyz;
+				vec3 L = -lightData.direction;
+				
+				float NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
+				return lightData.color * lightData.intensity * NoL;
+			}
+			
+			vec3 getPointLightContribution(vec3 L, vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				vec3 N = surfaceData.worldNormal.xyz;
+
+				float distanceSqrd = dot(L, L);
+				float distanceAttenuation = 1/(distanceSqrd + 1);
+				
+				L = normalize(L);
+				float NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
+
+				float radiusAttenuation = distanceSqrd * lightData.radiusSqrdInv;
+				radiusAttenuation *= radiusAttenuation;
+				radiusAttenuation = clamp(1.0f - radiusAttenuation, 0.0, 1.0);
+				radiusAttenuation *= radiusAttenuation;
+				
+				float attenuation = distanceAttenuation * radiusAttenuation;
+				return lightData.color * lightData.intensity * ((NoL * attenuation));
+			}
+			
+			vec3 getPointLightContribution(vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				vec3 L = lightData.position - worldPosition;
+				return getPointLightContribution(L, worldPosition, surfaceData, lightData);
+			}
+			
+			vec3 getSpotLightContribution(vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
+			{
+				vec3 L = lightData.position - worldPosition;
+				vec3 pointLightContribution = getPointLightContribution(L, worldPosition, surfaceData, lightData);
+				float spotFalloff = getSpotAttenuation(L, lightData.direction, lightData.spotAngles);
+				
+				return pointLightContribution * spotFalloff;
+			}
+		};
+	};
+};

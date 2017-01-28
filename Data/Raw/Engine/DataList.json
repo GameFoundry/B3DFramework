@@ -1,4 +1,204 @@
 {
+    "Cursors": [
+        {
+            "Path": "Arrow.psd",
+            "UUID": "4c1c6cf4-7d37-46f1-9263-a8f0d498b7e0"
+        },
+        {
+            "Path": "ArrowDrag.psd",
+            "UUID": "2eebb0e7-4d21-43d5-9349-d2b0c71aabbe"
+        },
+        {
+            "Path": "ArrowLeftRight.psd",
+            "UUID": "23830d8f-f81f-4141-9b61-e0414b5e3f58"
+        },
+        {
+            "Path": "Deny.psd",
+            "UUID": "caba0f11-d080-4876-b832-9d664adac056"
+        },
+        {
+            "Path": "IBeam.psd",
+            "UUID": "38e6a064-8225-4126-8198-7892af7fedd0"
+        },
+        {
+            "Path": "SizeNESW.psd",
+            "UUID": "a7ac5600-acc8-4692-b149-a52cd4116af7"
+        },
+        {
+            "Path": "SizeNS.psd",
+            "UUID": "1f8930d0-953c-4575-b453-5a3bd62b4873"
+        },
+        {
+            "Path": "SizeNWSE.psd",
+            "UUID": "7ff92ce5-cba0-4846-a1b2-1249e67c371a"
+        },
+        {
+            "Path": "SizeWE.psd",
+            "UUID": "dfcb4a8a-f213-4697-9b61-4cc4368f530f"
+        },
+        {
+            "Path": "Wait.psd",
+            "UUID": "7ad1fc24-5e08-489c-8cd4-02b4e452a412"
+        }
+    ],
+    "Icons": [
+        {
+            "Path": "BansheeIcon.png",
+            "UUID": "a5f7a27c-e2ec-4a9d-8a13-b35f070f94be"
+        }
+    ],
+    "Includes": [
+        {
+            "Path": "DeferredBasePass.bslinc",
+            "UUID": "d4078f9c-d7e9-4d63-b506-4d270c08b01e"
+        },
+        {
+            "Path": "GBuffer.bslinc",
+            "UUID": "ef1a179a-4bf9-4dbd-b62a-e18524d959b6"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc",
+            "UUID": "967325e7-262b-49bf-8c90-032a8bbc8ce2"
+        },
+        {
+            "Path": "PerCameraData.bslinc",
+            "UUID": "c1e4d309-8c20-4fd4-bf14-eb129af39d4e"
+        },
+        {
+            "Path": "PerObjectData.bslinc",
+            "UUID": "ed07f3ce-3abd-4379-b8f0-4c884af524a7"
+        },
+        {
+            "Path": "PPBase.bslinc",
+            "UUID": "44dc42de-410a-4949-a2e8-cb451a416481"
+        },
+        {
+            "Path": "PPTonemapCommon.bslinc",
+            "UUID": "a5d1c354-a05d-45b4-bccf-2f88db9aecb0"
+        },
+        {
+            "Path": "PPWhiteBalance.bslinc",
+            "UUID": "b46d1cee-75f7-4387-8b32-7eb646f099f4"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc",
+            "UUID": "eef92578-b8ed-45d6-8eed-d85697ade3c5"
+        },
+        {
+            "Path": "ResolveCommon.bslinc",
+            "UUID": "1cde4f3c-534e-4128-8ee1-63e3bb620734"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc",
+            "UUID": "d6a2ea27-5f4c-41ad-88bc-cad7dd7adc8d"
+        },
+        {
+            "Path": "SpriteImage.bslinc",
+            "UUID": "0114b1da-9899-45ca-8486-a9791482d3c5"
+        },
+        {
+            "Path": "Surface.bslinc",
+            "UUID": "468be285-026c-49d8-99ea-5f1709ea605a"
+        },
+        {
+            "Path": "VolumeRenderBase.bslinc",
+            "UUID": "6d0dfe4e-45ef-4fe1-9344-33b8b9e69048"
+        },
+        {
+            "Path": "LightingCommon.bslinc",
+            "UUID": "00fdff24-2c52-40ef-921b-0444286886d6"
+        },
+        {
+            "Path": "SurfaceData.bslinc",
+            "UUID": "3364cb35-9140-4571-8fae-d5648ae7386f"
+        }
+    ],
+    "Shaders": [
+        {
+            "Path": "Blit.bsl",
+            "UUID": "7953ba8a-6fc6-43ad-a472-cce558105cde"
+        },
+        {
+            "Path": "Default.bsl",
+            "UUID": "a8e36d37-d6f7-4117-bbba-31dca716c8a3"
+        },
+        {
+            "Path": "Diffuse.bsl",
+            "UUID": "4e2b2437-0a02-456c-8d98-71df27ccf697"
+        },
+        {
+            "Path": "PPCreateTonemapLUT.bsl",
+            "UUID": "766adb8c-1302-4f2d-a26f-6a0f8ff6b147"
+        },
+        {
+            "Path": "PPDownsample.bsl",
+            "UUID": "c1a11fc5-f7b4-422d-a359-70be6dac05ef"
+        },
+        {
+            "Path": "PPEyeAdaptation.bsl",
+            "UUID": "6baa01c8-fe61-4613-9fa9-a9ae045dfc64"
+        },
+        {
+            "Path": "PPEyeAdaptHistogram.bsl",
+            "UUID": "5414fffc-a96c-4a8a-86e3-c24050d14363"
+        },
+        {
+            "Path": "PPEyeAdaptHistogramReduce.bsl",
+            "UUID": "4c98431b-bd58-4160-8ff0-7d12add946fa"
+        },
+        {
+            "Path": "PPTonemapping.bsl",
+            "UUID": "cbe752ea-301a-47aa-b8ae-2f35d103595c"
+        },
+        {
+            "Path": "PPTonemapping.bsl",
+            "UUID": "36366f4c-3584-4dbf-9c2b-bb2638438b33"
+        },
+        {
+            "Path": "PPTonemapping.bsl",
+            "UUID": "520d9228-c7b5-492e-bd08-1fdc7e033ea8"
+        },
+        {
+            "Path": "PPTonemapping.bsl",
+            "UUID": "a8aa01e7-7e72-4f84-89f8-a0097250b0d3"
+        },
+        {
+            "Path": "ReflectionCubemapFilter.bsl",
+            "UUID": "31b4b9ae-2afa-4cd8-b532-fe82a7f42baa"
+        },
+        {
+            "Path": "Resolve.bsl",
+            "UUID": "9d5f5101-2d7e-432c-b8ad-1998de9ca5c7"
+        },
+        {
+            "Path": "Skybox.bsl",
+            "UUID": "b1c191fa-0c24-4987-8d3b-72b17511621d"
+        },
+        {
+            "Path": "SpriteImageAlpha.bsl",
+            "UUID": "4c00537f-9d3e-4cb7-8a30-b4ee9f278006"
+        },
+        {
+            "Path": "SpriteImageNoAlpha.bsl",
+            "UUID": "2db979ff-386a-492e-8f6d-675ed5133e31"
+        },
+        {
+            "Path": "SpriteLine.bsl",
+            "UUID": "3a9e31a8-cbef-49ac-af2a-2dc200372d36"
+        },
+        {
+            "Path": "SpriteText.bsl",
+            "UUID": "25df2c87-c206-4c2f-ab2b-3aad9e7f90f1"
+        },
+        {
+            "Path": "TestFX.bsl",
+            "UUID": "9e783e45-bf1f-41cc-bb48-eb2e1200cfb6"
+        },
+        {
+            "Path": "TiledDeferredLighting.bsl",
+            "UUID": "787d7293-f335-4eda-a897-c706e6b5c818"
+        }
+    ],
     "Skin": [
         {
             "Path": "ButtonActive.png",
@@ -50,7 +250,7 @@
             "SpriteUUID": "8aad937c-499d-4935-bd7d-d9389aed4f33",
             "TextureUUID": "1070d714-83a2-4d15-860b-c3607ff5a3e0"
         },
-		{
+        {
             "Path": "DropDownBoxEntryToggleHover.png",
             "SpriteUUID": "4f0bfa04-ccfb-11e6-9d9d-cec0c932ce01",
             "TextureUUID": "4f0bfd7e-ccfb-11e6-9d9d-cec0c932ce01"
@@ -69,7 +269,7 @@
             "Path": "DropDownBoxEntryToggleNormalOn.png",
             "SpriteUUID": "4f0c0a12-ccfb-11e6-9d9d-cec0c932ce01",
             "TextureUUID": "4f0c0bca-ccfb-11e6-9d9d-cec0c932ce01"
-        },		
+        },
         {
             "Path": "DropDownBoxExpandBtnHover.png",
             "SpriteUUID": "94748c7b-dc27-44dd-8798-22f76ea69b36",
@@ -219,7 +419,7 @@
             "Path": "ScrollBarHHandleResizeableNormal.png",
             "SpriteUUID": "18282c00-cd06-11e6-9d9d-cec0c932ce01",
             "TextureUUID": "18282cd2-cd06-11e6-9d9d-cec0c932ce01"
-        },		
+        },
         {
             "Path": "ScrollBarVBackground.png",
             "SpriteUUID": "b37d3e5b-891a-4950-a4f9-3f8fa820d40a",
@@ -254,7 +454,7 @@
             "Path": "ScrollBarVHandleResizeableNormal.png",
             "SpriteUUID": "3ae0b230-cd06-11e6-9d9d-cec0c932ce01",
             "TextureUUID": "3ae0b3f2-cd06-11e6-9d9d-cec0c932ce01"
-        },		
+        },
         {
             "Path": "SliderHandleActive.png",
             "SpriteUUID": "1ede5e0e-ccff-11e6-9d9d-cec0c932ce01",
@@ -291,11 +491,6 @@
             "TextureUUID": "1ede7448-ccff-11e6-9d9d-cec0c932ce01"
         },
         {
-            "Path": "StatusBarBackground.png",
-            "SpriteUUID": "09887d53-d880-4576-b87b-50899b8bbf6d",
-            "TextureUUID": "4739c121-fcc5-4a08-b7b4-8c030030243d"
-        },		
-        {
             "Path": "ToggleHover.png",
             "SpriteUUID": "daa9fd29-4228-47ca-8b9e-39636f0b566c",
             "TextureUUID": "df341eda-d4b5-4940-9871-d39e4f90fbfc"
@@ -320,213 +515,5 @@
             "SpriteUUID": "46bc0d6b-5cf0-4edc-bc5f-e0a06b8b04c2",
             "TextureUUID": "723670c8-f634-435f-8887-001a6791226a"
         }
-    ],
-    "Cursors": [
-        {
-            "Path": "Arrow.psd",
-            "UUID": "4c1c6cf4-7d37-46f1-9263-a8f0d498b7e0"
-        },
-        {
-            "Path": "ArrowDrag.psd",
-            "UUID": "2eebb0e7-4d21-43d5-9349-d2b0c71aabbe"
-        },
-        {
-            "Path": "ArrowLeftRight.psd",
-            "UUID": "23830d8f-f81f-4141-9b61-e0414b5e3f58"
-        },
-        {
-            "Path": "Deny.psd",
-            "UUID": "caba0f11-d080-4876-b832-9d664adac056"
-        },
-        {
-            "Path": "IBeam.psd",
-            "UUID": "38e6a064-8225-4126-8198-7892af7fedd0"
-        },
-        {
-            "Path": "SizeNESW.psd",
-            "UUID": "a7ac5600-acc8-4692-b149-a52cd4116af7"
-        },
-        {
-            "Path": "SizeNS.psd",
-            "UUID": "1f8930d0-953c-4575-b453-5a3bd62b4873"
-        },
-        {
-            "Path": "SizeNWSE.psd",
-            "UUID": "7ff92ce5-cba0-4846-a1b2-1249e67c371a"
-        },
-        {
-            "Path": "SizeWE.psd",
-            "UUID": "dfcb4a8a-f213-4697-9b61-4cc4368f530f"
-        },
-        {
-            "Path": "Wait.psd",
-            "UUID": "7ad1fc24-5e08-489c-8cd4-02b4e452a412"
-        }
-    ],
-    "Icons": [
-        {
-            "Path": "BansheeIcon.png",
-            "UUID": "a5f7a27c-e2ec-4a9d-8a13-b35f070f94be"
-        }
-    ],
-	"Includes": [
-        {
-            "Path": "DeferredBasePass.bslinc",
-            "UUID": "d4078f9c-d7e9-4d63-b506-4d270c08b01e"
-        },
-        {
-            "Path": "DeferredLightPass.bslinc",
-            "UUID": "6f58d7c8-11b5-4840-9787-50a7d2255a76"
-        },
-        {
-            "Path": "DeferredPointLightPass.bslinc",
-            "UUID": "f069380d-13e0-4a96-82e1-cffba4c4a631"
-        },
-        {
-            "Path": "GBuffer.bslinc",
-            "UUID": "ef1a179a-4bf9-4dbd-b62a-e18524d959b6"
-        },
-        {
-            "Path": "NormalVertexInput.bslinc",
-            "UUID": "967325e7-262b-49bf-8c90-032a8bbc8ce2"
-        },
-        {
-            "Path": "PerCameraData.bslinc",
-            "UUID": "c1e4d309-8c20-4fd4-bf14-eb129af39d4e"
-        },
-        {
-            "Path": "PerObjectData.bslinc",
-            "UUID": "ed07f3ce-3abd-4379-b8f0-4c884af524a7"
-        },
-        {
-            "Path": "PPBase.bslinc",
-            "UUID": "44dc42de-410a-4949-a2e8-cb451a416481"
-        },
-        {
-            "Path": "PPTonemapCommon.bslinc",
-            "UUID": "a5d1c354-a05d-45b4-bccf-2f88db9aecb0"
-        },
-        {
-            "Path": "PPWhiteBalance.bslinc",
-            "UUID": "b46d1cee-75f7-4387-8b32-7eb646f099f4"
-        },
-        {
-            "Path": "ReflectionCubemapCommon.bslinc",
-            "UUID": "eef92578-b8ed-45d6-8eed-d85697ade3c5"
-        },		
-        {
-            "Path": "ResolveCommon.bslinc",
-            "UUID": "1cde4f3c-534e-4128-8ee1-63e3bb620734"
-        },
-        {
-            "Path": "SkinnedVertexInput.bslinc",
-            "UUID": "d6a2ea27-5f4c-41ad-88bc-cad7dd7adc8d"
-        },
-        {
-            "Path": "SpriteImage.bslinc",
-            "UUID": "0114b1da-9899-45ca-8486-a9791482d3c5"
-        },
-        {
-            "Path": "Surface.bslinc",
-            "UUID": "468be285-026c-49d8-99ea-5f1709ea605a"
-        },
-        {
-            "Path": "VolumeRenderBase.bslinc",
-            "UUID": "6d0dfe4e-45ef-4fe1-9344-33b8b9e69048"
-        }
-    ],
-    "Shaders": [
-        {
-            "Path": "Blit.bsl",
-            "UUID": "7953ba8a-6fc6-43ad-a472-cce558105cde"
-        },
-        {
-            "Path": "Default.bsl",
-            "UUID": "a8e36d37-d6f7-4117-bbba-31dca716c8a3"
-        },
-        {
-            "Path": "DeferredDirectionalLightPass.bsl",
-            "UUID": "57de2ae2-96a1-4067-88c3-8a3967b90657"
-        },
-        {
-            "Path": "DeferredPointLightPassIn.bsl",
-            "UUID": "7757c740-5657-45aa-a2ce-cf86da65c047"
-        },
-        {
-            "Path": "DeferredPointLightPassOut.bsl",
-            "UUID": "a5f2cc18-855e-4d33-a040-0926dc753a2d"
-        },
-        {
-            "Path": "Diffuse.bsl",
-            "UUID": "4e2b2437-0a02-456c-8d98-71df27ccf697"
-        },
-        {
-            "Path": "PPCreateTonemapLUT.bsl",
-            "UUID": "766adb8c-1302-4f2d-a26f-6a0f8ff6b147"
-        },
-        {
-            "Path": "PPDownsample.bsl",
-            "UUID": "c1a11fc5-f7b4-422d-a359-70be6dac05ef"
-        },
-        {
-            "Path": "PPEyeAdaptation.bsl",
-            "UUID": "6baa01c8-fe61-4613-9fa9-a9ae045dfc64"
-        },
-        {
-            "Path": "PPEyeAdaptHistogram.bsl",
-            "UUID": "5414fffc-a96c-4a8a-86e3-c24050d14363"
-        },
-        {
-            "Path": "PPEyeAdaptHistogramReduce.bsl",
-            "UUID": "4c98431b-bd58-4160-8ff0-7d12add946fa"
-        },
-        {
-            "Path": "PPTonemapping.bsl",
-            "UUID": "cbe752ea-301a-47aa-b8ae-2f35d103595c"
-        },
-        {
-            "Path": "PPTonemapping.bsl",
-            "UUID": "36366f4c-3584-4dbf-9c2b-bb2638438b33"
-        },
-        {
-            "Path": "PPTonemapping.bsl",
-            "UUID": "520d9228-c7b5-492e-bd08-1fdc7e033ea8"
-        },
-        {
-            "Path": "PPTonemapping.bsl",
-            "UUID": "a8aa01e7-7e72-4f84-89f8-a0097250b0d3"
-        },
-        {
-            "Path": "ReflectionCubemapFilter.bsl",
-            "UUID": "31b4b9ae-2afa-4cd8-b532-fe82a7f42baa"
-        },		
-        {
-            "Path": "Resolve.bsl",
-            "UUID": "9d5f5101-2d7e-432c-b8ad-1998de9ca5c7"
-        },
-        {
-            "Path": "Skybox.bsl",
-            "UUID": "b1c191fa-0c24-4987-8d3b-72b17511621d"
-        },		
-        {
-            "Path": "SpriteImageAlpha.bsl",
-            "UUID": "4c00537f-9d3e-4cb7-8a30-b4ee9f278006"
-        },
-        {
-            "Path": "SpriteImageNoAlpha.bsl",
-            "UUID": "2db979ff-386a-492e-8f6d-675ed5133e31"
-        },
-        {
-            "Path": "SpriteLine.bsl",
-            "UUID": "3a9e31a8-cbef-49ac-af2a-2dc200372d36"
-        },
-        {
-            "Path": "SpriteText.bsl",
-            "UUID": "25df2c87-c206-4c2f-ab2b-3aad9e7f90f1"
-        },
-        {
-            "Path": "TestFX.bsl",
-            "UUID": "9e783e45-bf1f-41cc-bb48-eb2e1200cfb6"
-        }
-    ]	
+    ]
 }

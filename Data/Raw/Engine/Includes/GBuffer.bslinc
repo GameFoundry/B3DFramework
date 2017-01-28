@@ -1,4 +1,8 @@
-Technique : base("GBuffer") =
+#include "$ENGINE$\SurfaceData.bslinc"
+
+Technique 
+ : inherits("SurfaceData")
+ : base("GBuffer") =
 {
 	Language = "HLSL11";
 
@@ -6,14 +10,7 @@ Technique : base("GBuffer") =
 	{
 		Common = 
 		{
-			struct GBufferData
-			{
-				float4 albedo;
-				float4 worldNormal;
-				float depth;
-			};
-			
-			void encodeGBuffer(GBufferData data, out float4 GBufferAData, out float4 GBufferBData)
+			void encodeGBuffer(SurfaceData data, out float4 GBufferAData, out float4 GBufferBData)
 			{
 				GBufferAData = data.albedo;
 				GBufferBData.xyz = float3(data.worldNormal.xyz * 0.5f + 0.5f);
@@ -23,7 +20,9 @@ Technique : base("GBuffer") =
 	};
 };
 
-Technique : base("GBuffer") =
+Technique 
+ : inherits("SurfaceData")
+ : base("GBuffer") =
 {
 	Language = "GLSL";
 
@@ -31,14 +30,7 @@ Technique : base("GBuffer") =
 	{
 		Common = 
 		{
-			struct GBufferData
-			{
-				vec4 albedo;
-				vec4 worldNormal;
-				float depth;
-			};
-			
-			void encodeGBuffer(GBufferData data, out vec4 GBufferAData, out vec4 GBufferBData)
+			void encodeGBuffer(SurfaceData data, out vec4 GBufferAData, out vec4 GBufferBData)
 			{
 				GBufferAData = data.albedo;
 				GBufferBData.xyz = vec3(data.worldNormal.xyz * 0.5f + 0.5f);

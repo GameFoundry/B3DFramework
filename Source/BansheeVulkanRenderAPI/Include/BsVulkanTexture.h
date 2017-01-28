@@ -14,16 +14,6 @@ namespace bs { namespace ct
 
 	class VulkanImageSubresource;
 
-	/** Type of a Vulkan image, determining its usage. */
-	enum class VulkanImageUsage
-	{
-		Sampled,
-		SampledDynamic,
-		Storage,
-		ColorAttachment,
-		DepthAttachment
-	};
-
 	/** Descriptor used for initializing a VulkanImage. */
 	struct VULKAN_IMAGE_DESC
 	{
@@ -34,7 +24,7 @@ namespace bs { namespace ct
 		VkFormat format; /**< Pixel format of the image. */
 		UINT32 numFaces; /**< Number of faces (array slices, or cube-map faces). */
 		UINT32 numMipLevels; /**< Number of mipmap levels per face. */
-		VulkanImageUsage usage; /** Determines how will the image be used. */
+		UINT32 usage; /** Determines how will the image be used. */
 	};
 
 	/** Wrapper around a Vulkan image object that manages its usage and lifetime. */
@@ -161,7 +151,7 @@ namespace bs { namespace ct
 		VkDeviceMemory mMemory;
 		VkImageView mMainView;
 		VkImageView mFramebufferMainView;
-		VulkanImageUsage mUsage;
+		INT32 mUsage;
 		bool mOwnsImage;
 
 		UINT32 mNumFaces;

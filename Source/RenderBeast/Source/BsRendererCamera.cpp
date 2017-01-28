@@ -195,6 +195,17 @@ namespace bs { namespace ct
 		}
 	}
 
+	void RendererCamera::calculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
+	{
+		const ConvexVolume& worldFrustum = mViewDesc.cullFrustum;
+
+		for (UINT32 i = 0; i < (UINT32)bounds.size(); i++)
+		{
+			if (worldFrustum.intersects(bounds[i]))
+				visibility[i] = true;
+		}
+	}
+
 	Vector2 RendererCamera::getDeviceZTransform(const Matrix4& projMatrix) const
 	{
 		// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
@@ -254,13 +265,21 @@ namespace bs { namespace ct
 		projZ[2][3] = mViewDesc.projTransform[2][3];
 		projZ[3][2] = mViewDesc.projTransform[3][2];
 		projZ[3][3] = 0.0f;
-
+		
 		gPerCameraParamDef.gMatScreenToWorld.set(mParamBuffer, invViewProj * projZ);
 		gPerCameraParamDef.gViewDir.set(mParamBuffer, mViewDesc.viewDirection);
 		gPerCameraParamDef.gViewOrigin.set(mParamBuffer, mViewDesc.viewOrigin);
 		gPerCameraParamDef.gDeviceZToWorldZ.set(mParamBuffer, getDeviceZTransform(mViewDesc.projTransform));
 
 		const Rect2I& viewRect = mViewDesc.target.viewRect;
+
+		Vector4I viewportRect;
+		viewportRect[0] = viewRect.x;
+		viewportRect[1] = viewRect.y;
+		viewportRect[2] = viewRect.width;
+		viewportRect[3] = viewRect.height;
+
+		gPerCameraParamDef.gViewportRectangle.set(mParamBuffer, viewportRect);
 
 		float halfWidth = viewRect.width * 0.5f;
 		float halfHeight = viewRect.height * 0.5f;

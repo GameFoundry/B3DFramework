@@ -44,12 +44,6 @@ namespace bs
 			Vector<const Camera*> cameras;
 		};
 
-		/**	Renderer information specific to a single light. */
-		struct RendererLight
-		{
-			Light* internal;
-		};
-
 		/** Renderer information for a single material. */
 		struct RendererMaterial
 		{
@@ -215,14 +209,14 @@ namespace bs
 
 		Vector<RendererLight> mDirectionalLights;
 		Vector<RendererLight> mPointLights;
-		Vector<Sphere> mLightWorldBounds;
+		Vector<RendererLight> mSpotLights;
+		Vector<Sphere> mPointLightWorldBounds;
+		Vector<Sphere> mSpotLightWorldBounds;
 
 		SPtr<RenderBeastOptions> mCoreOptions;
 
 		DefaultMaterial* mDefaultMaterial;
-		PointLightInMat* mPointLightInMat;
-		PointLightOutMat* mPointLightOutMat;
-		DirectionalLightMat* mDirLightMat;
+		TiledDeferredLightingMat* mTiledDeferredLightingMat;
 		SkyboxMat* mSkyboxMat;
 
 		ObjectRenderer* mObjectRenderer;
@@ -230,6 +224,10 @@ namespace bs
 		// Sim thread only fields
 		SPtr<RenderBeastOptions> mOptions;
 		bool mOptionsDirty;
+
+		// Helpers to avoid memory allocations
+		Vector<LightData> mLightDataTemp[3];
+		Vector<bool> mLightVisibilityTemp;
 	};
 
 	/** @} */

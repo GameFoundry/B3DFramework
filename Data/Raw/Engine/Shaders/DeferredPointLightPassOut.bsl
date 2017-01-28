@@ -1,1 +1,0 @@
-#include "$ENGINE$\DeferredPointLightPass.bslinc"

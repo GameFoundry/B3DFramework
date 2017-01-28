@@ -39,7 +39,7 @@ using namespace std::placeholders;
 namespace bs { namespace ct
 {
 	RenderBeast::RenderBeast()
-		: mDefaultMaterial(nullptr), mPointLightInMat(nullptr), mPointLightOutMat(nullptr), mDirLightMat(nullptr)
+		: mDefaultMaterial(nullptr), mTiledDeferredLightingMat(nullptr)
 		, mSkyboxMat(nullptr), mObjectRenderer(nullptr), mOptions(bs_shared_ptr_new<RenderBeastOptions>())
 		, mOptionsDirty(true)
 	{ }
@@ -73,9 +73,7 @@ namespace bs { namespace ct
 		mObjectRenderer = bs_new<ObjectRenderer>();
 
 		mDefaultMaterial = bs_new<DefaultMaterial>();
-		mPointLightInMat = bs_new<PointLightInMat>();
-		mPointLightOutMat = bs_new<PointLightOutMat>();
-		mDirLightMat = bs_new<DirectionalLightMat>();
+		mTiledDeferredLightingMat = bs_new<TiledDeferredLightingMat>();
 		mSkyboxMat = bs_new<SkyboxMat>();
 
 		RenderTexturePool::startUp();
@@ -102,9 +100,7 @@ namespace bs { namespace ct
 		RenderTexturePool::shutDown();
 
 		bs_delete(mDefaultMaterial);
-		bs_delete(mPointLightInMat);
-		bs_delete(mPointLightOutMat);
-		bs_delete(mDirLightMat);
+		bs_delete(mTiledDeferredLightingMat);
 		bs_delete(mSkyboxMat);
 
 		RendererUtility::shutDown();
@@ -302,22 +298,26 @@ namespace bs { namespace ct
 			UINT32 lightId = (UINT32)mDirectionalLights.size();
 			light->setRendererId(lightId);
 
-			mDirectionalLights.push_back(RendererLight());
-
-			RendererLight& lightData = mDirectionalLights.back();
-			lightData.internal = light;
+			mDirectionalLights.push_back(RendererLight(light));
 		}
 		else
 		{
-			UINT32 lightId = (UINT32)mPointLights.size();
+			if (light->getType() == LightType::Point)
+			{
+				UINT32 lightId = (UINT32)mPointLights.size();
+				light->setRendererId(lightId);
 
-			light->setRendererId(lightId);
+				mPointLights.push_back(RendererLight(light));
+				mPointLightWorldBounds.push_back(light->getBounds());
+			}
+			else // Spot
+			{
+				UINT32 lightId = (UINT32)mSpotLights.size();
+				light->setRendererId(lightId);
 
-			mPointLights.push_back(RendererLight());
-			mLightWorldBounds.push_back(light->getBounds());
-
-			RendererLight& lightData = mPointLights.back();
-			lightData.internal = light;
+				mSpotLights.push_back(RendererLight(light));
+				mSpotLightWorldBounds.push_back(light->getBounds());
+			}
 		}
 	}
 
@@ -325,8 +325,10 @@ namespace bs { namespace ct
 	{
 		UINT32 lightId = light->getRendererId();
 
-		if (light->getType() != LightType::Directional)
-			mLightWorldBounds[lightId] = light->getBounds();
+		if (light->getType() == LightType::Point)
+			mPointLightWorldBounds[lightId] = light->getBounds();
+		else if(light->getType() == LightType::Spot)
+			mSpotLightWorldBounds[lightId] = light->getBounds();
 	}
 
 	void RenderBeast::notifyLightRemoved(Light* light)
@@ -334,7 +336,7 @@ namespace bs { namespace ct
 		UINT32 lightId = light->getRendererId();
 		if (light->getType() == LightType::Directional)
 		{
-			Light* lastLight = mDirectionalLights.back().internal;
+			Light* lastLight = mDirectionalLights.back().getInternal();
 			UINT32 lastLightId = lastLight->getRendererId();
 
 			if (lightId != lastLightId)
@@ -349,21 +351,42 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			Light* lastLight = mPointLights.back().internal;
-			UINT32 lastLightId = lastLight->getRendererId();
-
-			if (lightId != lastLightId)
+			if (light->getType() == LightType::Point)
 			{
-				// Swap current last element with the one we want to erase
-				std::swap(mPointLights[lightId], mPointLights[lastLightId]);
-				std::swap(mLightWorldBounds[lightId], mLightWorldBounds[lastLightId]);
+				Light* lastLight = mPointLights.back().getInternal();
+				UINT32 lastLightId = lastLight->getRendererId();
 
-				lastLight->setRendererId(lightId);
+				if (lightId != lastLightId)
+				{
+					// Swap current last element with the one we want to erase
+					std::swap(mPointLights[lightId], mPointLights[lastLightId]);
+					std::swap(mPointLightWorldBounds[lightId], mPointLightWorldBounds[lastLightId]);
+
+					lastLight->setRendererId(lightId);
+				}
+
+				// Last element is the one we want to erase
+				mPointLights.erase(mPointLights.end() - 1);
+				mPointLightWorldBounds.erase(mPointLightWorldBounds.end() - 1);
 			}
+			else // Spot
+			{
+				Light* lastLight = mSpotLights.back().getInternal();
+				UINT32 lastLightId = lastLight->getRendererId();
 
-			// Last element is the one we want to erase
-			mPointLights.erase(mPointLights.end() - 1);
-			mLightWorldBounds.erase(mLightWorldBounds.end() - 1);
+				if (lightId != lastLightId)
+				{
+					// Swap current last element with the one we want to erase
+					std::swap(mSpotLights[lightId], mSpotLights[lastLightId]);
+					std::swap(mSpotLightWorldBounds[lightId], mSpotLightWorldBounds[lastLightId]);
+
+					lastLight->setRendererId(lightId);
+				}
+
+				// Last element is the one we want to erase
+				mSpotLights.erase(mSpotLights.end() - 1);
+				mSpotLightWorldBounds.erase(mSpotLightWorldBounds.end() - 1);
+			}
 		}
 	}
 
@@ -692,6 +715,47 @@ namespace bs { namespace ct
 			mRenderables[i]->perObjectParamBuffer->flushToGPU();
 		}
 
+		// Generate a list of lights and their GPU buffers
+		UINT32 numDirLights = (UINT32)mDirectionalLights.size();
+		mLightDataTemp[0].resize(numDirLights);
+		for(UINT32 i = 0; i < numDirLights; i++)
+			mDirectionalLights[i].getParameters(mLightDataTemp[0][i]);
+
+		UINT32 numPointLights = (UINT32)mPointLights.size();
+		mLightVisibilityTemp.resize(numPointLights, false);
+		for (UINT32 i = 0; i < numViews; i++)
+			views[i]->calculateVisibility(mPointLightWorldBounds, mLightVisibilityTemp);
+
+		for(UINT32 i = 0; i < numPointLights; i++)
+		{
+			if (!mLightVisibilityTemp[i])
+				continue;
+
+			mLightDataTemp[1].push_back(LightData());
+			mPointLights[i].getParameters(mLightDataTemp[1].back());
+		}
+
+		UINT32 numSpotLights = (UINT32)mSpotLights.size();
+		mLightVisibilityTemp.resize(numSpotLights, false);
+		for (UINT32 i = 0; i < numViews; i++)
+			views[i]->calculateVisibility(mSpotLightWorldBounds, mLightVisibilityTemp);
+
+		for (UINT32 i = 0; i < numSpotLights; i++)
+		{
+			if (!mLightVisibilityTemp[i])
+				continue;
+
+			mLightDataTemp[2].push_back(LightData());
+			mSpotLights[i].getParameters(mLightDataTemp[2].back());
+		}
+
+		mTiledDeferredLightingMat->setLights(mLightDataTemp);
+
+		mLightDataTemp[0].clear();
+		mLightDataTemp[1].clear();
+		mLightDataTemp[2].clear();
+		mLightVisibilityTemp.clear();
+
 		for (UINT32 i = 0; i < numViews; i++)
 		{
 			if (views[i]->isOverlay())
@@ -780,61 +844,7 @@ namespace bs { namespace ct
 		renderTargets->bindSceneColor(true);
 
 		// Render light pass
-		{
-			mDirLightMat->bind(renderTargets, perCameraBuffer);
-			for (auto& light : mDirectionalLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				mDirLightMat->setPerLightParams(light.internal);
-				gRendererUtility().drawScreenQuad();
-			}
-
-			// Draw point lights which our camera is within
-			// TODO - Possibly use instanced drawing here as only two meshes are drawn with various properties
-			mPointLightInMat->bind(renderTargets, perCameraBuffer);
-
-			// TODO - Cull lights based on visibility, right now I just iterate over all of them. 
-			for (auto& light : mPointLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				float distToLight = (light.internal->getBounds().getCenter() - viewInfo->getViewOrigin()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + viewInfo->getNearPlane() * 2.0f;
-
-				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
-				if (!cameraInLightGeometry)
-					continue;
-
-				mPointLightInMat->setPerLightParams(light.internal);
-
-				SPtr<Mesh> mesh = light.internal->getMesh();
-				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
-			}
-
-			// Draw other point lights
-			mPointLightOutMat->bind(renderTargets, perCameraBuffer);
-
-			for (auto& light : mPointLights)
-			{
-				if (!light.internal->getIsActive())
-					continue;
-
-				float distToLight = (light.internal->getBounds().getCenter() - viewInfo->getViewOrigin()).squaredLength();
-				float boundRadius = light.internal->getBounds().getRadius() * 1.05f + viewInfo->getNearPlane() * 2.0f;
-
-				bool cameraInLightGeometry = distToLight < boundRadius * boundRadius;
-				if (cameraInLightGeometry)
-					continue;
-
-				mPointLightOutMat->setPerLightParams(light.internal);
-
-				SPtr<Mesh> mesh = light.internal->getMesh();
-				gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
-			}
-		}
+		mTiledDeferredLightingMat->execute(renderTargets, perCameraBuffer);
 
 		// Render skybox (if any)
 		SPtr<Texture> skyTexture = viewInfo->getSkybox();

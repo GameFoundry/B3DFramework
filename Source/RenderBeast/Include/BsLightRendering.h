@@ -12,97 +12,68 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	BS_PARAM_BLOCK_BEGIN(PerLightParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gLightPositionAndType)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gLightColorAndIntensity)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gLightSpotAnglesAndSqrdInvRadius)
-		BS_PARAM_BLOCK_ENTRY(Vector3, gLightDirection)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gLightGeometry)
-		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatConeTransform)
-	BS_PARAM_BLOCK_END
+	/** Information about a single light, as seen by the lighting shader. */
+	struct LightData
+	{
+		Vector3 position;
+		float radius;
+		Vector3 direction;
+		float intensity;
+		Vector3 spotAngles;
+		float radiusSqrdInv;
+		Vector3 color;
+	};
 
-	extern PerLightParamDef gPerLightParamDef;
-
-	/** Manipulates parameters used in various light rendering shaders. */
-	class LightRenderingParams
+	/**	Renderer information specific to a single light. */
+	class RendererLight
 	{
 	public:
-		LightRenderingParams(const SPtr<Material>& lightMaterial, const SPtr<GpuParamsSet>& paramsSet);
+		RendererLight(Light* light);
 
-		/** Updates parameters that are common for all lights. */
-		void setStaticParameters(const SPtr<RenderTargets>& gbuffer,
-			const SPtr<GpuParamBlockBuffer>& perCamera);
+		/** Populates the structure with light parameters. */
+		void getParameters(LightData& output) const;
 
-		/** Updates data in the parameter buffer from the data in the provided light. */
-		void setParameters(const Light* light);
+		/** Gets the internal light representation. */
+		Light* getInternal() const { return mInternal; }
 
-		/** Returns the internal parameter buffer that can be bound to the pipeline. */
-		const SPtr<GpuParamBlockBuffer>& getBuffer() const;
 	private:
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
+		Light* mInternal;
+	};
 
+	BS_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector3I, gNumLightsPerType)
+	BS_PARAM_BLOCK_END
+
+	extern TiledLightingParamDef gTiledLightingParamDef;
+
+	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+	class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
+	{
+		RMAT_DEF("TiledDeferredLighting.bsl");
+
+	public:
+		TiledDeferredLightingMat();
+
+		/** Binds the material for rendering, sets up parameters and executes it. */
+		void execute(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBuffer>& perCamera);
+
+		/** Binds all the active lights. */
+		void setLights(const Vector<LightData> (&lightData)[3]);
+	private:
 		GpuParamTexture mGBufferA;
 		GpuParamTexture mGBufferB;
 		GpuParamTexture mGBufferDepth;
+
+		GpuParamBuffer mDirLightBufferParam;
+		GpuParamBuffer mPointLightBufferParam;
+		GpuParamBuffer mSpotLightBufferParam;
+
+		GpuParamLoadStoreTexture mOutputParam;
+
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-	};
+		SPtr<GpuBuffer> mLightBuffers[3];
 
-	/** Shader that renders directional light sources during deferred rendering light pass. */
-	class DirectionalLightMat : public RendererMaterial<DirectionalLightMat>
-	{
-		RMAT_DEF("DeferredDirectionalLightPass.bsl");
-
-	public:
-		DirectionalLightMat();
-
-		/** Binds the material for rendering and sets up any global parameters. */
-		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBuffer>& perCamera);
-
-		/** Updates the per-light buffers used by the material. */
-		void setPerLightParams(const Light* light);
-	private:
-		LightRenderingParams mParams;
-	};
-
-	/** 
-	 * Shader that renders point (radial & spot) light sources during deferred rendering light pass. Used when the camera
-	 * is inside the point light geometry.
-	 */
-	class PointLightInMat : public RendererMaterial<PointLightInMat>
-	{
-		RMAT_DEF("DeferredPointLightPassIn.bsl");
-
-	public:
-		PointLightInMat();
-
-		/** Binds the material for rendering and sets up any global parameters. */
-		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBuffer>& perCamera);
-
-		/** Updates the per-light buffers used by the material. */
-		void setPerLightParams(const Light* light);
-	private:
-		LightRenderingParams mParams;
-	};
-
-	/** 
-	 * Shader that renders point (radial & spot) light sources during deferred rendering light pass. Used when the camera
-	 * is outside the point light geometry.
-	 */
-	class PointLightOutMat : public RendererMaterial<PointLightOutMat>
-	{
-		RMAT_DEF("DeferredPointLightPassOut.bsl");
-
-	public:
-		PointLightOutMat();
-
-		/** Binds the material for rendering and sets up any global parameters. */
-		void bind(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBuffer>& perCamera);
-
-		/** Updates the per-light buffers used by the material. */
-		void setPerLightParams(const Light* light);
-	private:
-		LightRenderingParams mParams;
+		static const UINT32 TILE_SIZE;
 	};
 
 	/** @} */

@@ -131,7 +131,7 @@ namespace bs { namespace ct
 		VULKAN_IMAGE_DESC imageDesc;
 		imageDesc.format = colorFormat;
 		imageDesc.type = TEX_TYPE_2D;
-		imageDesc.usage = VulkanImageUsage::ColorAttachment;
+		imageDesc.usage = TU_RENDERTARGET;
 		imageDesc.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageDesc.numFaces = 1;
 		imageDesc.numMipLevels = 1;
@@ -175,7 +175,7 @@ namespace bs { namespace ct
 			assert(result == VK_SUCCESS);
 
 			imageDesc.image = depthStencilImage;
-			imageDesc.usage = VulkanImageUsage::DepthAttachment;
+			imageDesc.usage = TU_DEPTHSTENCIL;
 			imageDesc.format = depthFormat;
 			imageDesc.memory = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 

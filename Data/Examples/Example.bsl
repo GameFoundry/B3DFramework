@@ -22,14 +22,14 @@ Technique : base("Surface") =
 				out float4 OutGBufferA : SV_Target1,
 				out float4 OutGBufferB : SV_Target2) : SV_Target0
 			{
-				GBufferData gbufferData;
-				gbufferData.albedo = float4(tex.Sample(samp, input.uv0).xyz, 1.0f);
-				gbufferData.worldNormal.xyz = input.tangentToWorldZ;
+				SurfaceData surfaceData;
+				surfaceData.albedo = float4(tex.Sample(samp, input.uv0).xyz, 1.0f);
+				surfaceData.worldNormal.xyz = input.tangentToWorldZ;
 				
-				encodeGBuffer(gbufferData, OutGBufferA, OutGBufferB);
+				encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB);
 				
 				// TODO - Just returning a simple ambient term, use better environment lighting later
-				return float4(gbufferData.albedo.rgb, 1.0f) * 0.2f; 
+				return float4(surfaceData.albedo.rgb, 1.0f) * 0.2f; 
 			}	
 		};
 	};
@@ -53,14 +53,14 @@ Technique : base("Surface") =
 			
 			void main()
 			{
-				GBufferData gbufferData;
-				gbufferData.albedo = texture(tex, uv0);
-				gbufferData.worldNormal.xyz = tangentToWorldZ;
+				SurfaceData surfaceData;
+				surfaceData.albedo = texture(tex, uv0);
+				surfaceData.worldNormal.xyz = tangentToWorldZ;
 				
-				encodeGBuffer(gbufferData, fragColor[1], fragColor[2]);
+				encodeGBuffer(surfaceData, fragColor[1], fragColor[2]);
 				
 				// TODO - Just returning a simple ambient term, use better environment lighting later
-				fragColor[0] = vec4(gbufferData.albedo.rgb, 1.0f) * 0.2f; 
+				fragColor[0] = vec4(surfaceData.albedo.rgb, 1.0f) * 0.2f; 
 			}	
 		};
 	};

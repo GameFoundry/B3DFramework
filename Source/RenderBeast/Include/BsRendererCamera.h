@@ -26,6 +26,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatScreenToWorld)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gDeviceZToWorldZ)
+		BS_PARAM_BLOCK_ENTRY(Vector4I, gViewportRectangle)
 		BS_PARAM_BLOCK_ENTRY(Vector4, gClipToUVScaleOffset)
 	BS_PARAM_BLOCK_END
 
@@ -212,6 +213,12 @@ namespace bs { namespace ct
 		 * which entry is or ins't visible by this view. Both inputs must be arrays of the same size.
 		 */
 		void calculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const;
+
+		/**
+		* Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
+		* which entry is or ins't visible by this view. Both inputs must be arrays of the same size.
+		*/
+		void calculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const;
 
 		/** Returns the visibility mask calculated with the last call to determineVisible(). */
 		const VisibilityInfo& getVisibilityMasks() const { return mVisibility; }

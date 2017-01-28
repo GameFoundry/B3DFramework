@@ -52,6 +52,9 @@ namespace bs { namespace ct
 		/** Returns the scene color render target. */
 		SPtr<RenderTexture> getSceneColorRT() const { return mSceneColorRT; }
 
+		/** Returns the gbuffer texture that scene color is stored in. */
+		SPtr<Texture> getSceneColor() const;
+
 		/**	Returns the first color texture of the gbuffer as a bindable texture. */
 		SPtr<Texture> getTextureA() const;
 
