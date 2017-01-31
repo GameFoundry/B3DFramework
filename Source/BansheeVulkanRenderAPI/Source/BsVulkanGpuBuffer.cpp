@@ -34,7 +34,12 @@ namespace bs { namespace ct
 		if (props.getRandomGpuWrite())
 			bufferType = VulkanHardwareBuffer::BT_STORAGE;
 		else
-			bufferType = VulkanHardwareBuffer::BT_GENERIC;;
+		{
+			if(props.getType() == GBT_STRUCTURED)
+				bufferType = VulkanHardwareBuffer::BT_STRUCTURED;
+			else
+				bufferType = VulkanHardwareBuffer::BT_GENERIC;
+		}
 
 		UINT32 size = props.getElementCount() * props.getElementSize();;
 		mBuffer = bs_new<VulkanHardwareBuffer>(bufferType, props.getFormat(), props.getUsage(), size, mDeviceMask);

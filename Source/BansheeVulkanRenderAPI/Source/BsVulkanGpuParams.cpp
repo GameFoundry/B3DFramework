@@ -431,7 +431,7 @@ namespace bs { namespace ct
 					VkBuffer vkBuffer = bufferRes->getHandle();
 
 					perSetData.writeInfos[bindingIdx].buffer.buffer = vkBuffer;
-					mPerDeviceData[i].uniformBuffers[sequentialIdx] = vkBuffer;
+					mPerDeviceData[i].buffers[sequentialIdx] = vkBuffer;
 				}
 				else
 				{

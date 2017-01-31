@@ -146,25 +146,8 @@ Technique
 				// the offset in the projection matrix).
 				float2 tileBias = tileScale - 1 - groupId.xy * 2;
 
-				// This will yield a bias ranging from [-(tileScale - 1), tileScale - 1], with only odd
-				// numbers (except for tile scale of 1). e.g.
-				// tileScale = 1
-				//  - bias[0] = 0
-				
-				// tileScale = 2
-				//  - bias[0] = 1
-				//  - bias[1] = -1
-				
-				// tileScale = 4
-				// - bias[0] = 3
-				// - bias[1] = 1
-				// - bias[2] = -1
-				// - bias[3] = -3
-
-				// etc.
-				
-				// We use only odd numbers as that ensures we get only the frustums centered on tiles,
-				// and not those overlapping two tiles (centered on their boundary).
+				// This will yield a bias ranging from [-(tileScale - 1), tileScale - 1]. Every second bias is skipped as
+				// corresponds to a point in-between two tiles, overlapping existing frustums.
 				
 				float At = gMatProj[0][0] * tileScale.x;
 				float Ctt = gMatProj[0][2] * tileScale.x - tileBias.x;
@@ -337,9 +320,9 @@ Technique
 		{
 			layout (local_size_x = TILE_SIZE, local_size_y = TILE_SIZE) in;
 		
-			layout(binding = 0) uniform sampler2D gGBufferATex;
-			layout(binding = 1) uniform sampler2D gGBufferBTex;
-			layout(binding = 2) uniform sampler2D gDepthBufferTex;
+			layout(binding = 1) uniform sampler2D gGBufferATex;
+			layout(binding = 2) uniform sampler2D gGBufferBTex;
+			layout(binding = 3) uniform sampler2D gDepthBufferTex;
 			
 			SurfaceData decodeGBuffer(vec4 GBufferAData, vec4 GBufferBData, float deviceZ)
 			{
@@ -372,24 +355,24 @@ Technique
 				return decodeGBuffer(GBufferAData, GBufferBData, deviceZ);
 			}	
 			
-			layout(std430, binding = 3) buffer gDirLights
+			layout(std430, binding = 4) buffer gDirLights
 			{
 				LightData[] gDirLightsData;
 			};
 			
-			layout(std430, binding = 4) buffer gPointLights
+			layout(std430, binding = 5) buffer gPointLights
 			{
 				LightData[] gPointLightsData;
 			};
 			
-			layout(std430, binding = 5) buffer gSpotLights
+			layout(std430, binding = 6) buffer gSpotLights
 			{
 				LightData[] gSpotLightsData;
 			};	
 			
-			layout(binding = 6, rgba16f) uniform image2D gOutput;
+			layout(binding = 7, rgba16f) uniform image2D gOutput;
 			
-			layout(binding = 7, std140) uniform Params
+			layout(binding = 8, std140) uniform Params
 			{
 				// x - directional, y - point, z - spot
 				uvec3 gNumLightsPerType;
@@ -416,14 +399,23 @@ Technique
 					vec3 worldPosition = worldPosition4D.xyz / worldPosition4D.w;
 					
 					for(uint i = 0; i < gNumLightsPerType.x; i++)
-						lightAccumulator += getDirLightContibution(surfaceData, gDirLightsData[i]);
+					{
+						LightData data = gDirLightsData[i];
+						lightAccumulator += getDirLightContibution(surfaceData, data);
+					}
 					
 					for(uint i = 0; i < gNumLightsPerType.y; i++)
-						lightAccumulator += getPointLightContribution(worldPosition, surfaceData, gPointLightsData[i]);
+					{
+						LightData data = gPointLightsData[i];
+						lightAccumulator += getPointLightContribution(worldPosition, surfaceData, data);
+					}
 					
 					for(uint i = 0; i < gNumLightsPerType.z; i++)
-						lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, gSpotLightsData[i]);
-						
+					{
+						LightData data = gSpotLightsData[i];
+						lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, data);
+					}
+					
 					alpha = 1.0f;
 				}
 				
