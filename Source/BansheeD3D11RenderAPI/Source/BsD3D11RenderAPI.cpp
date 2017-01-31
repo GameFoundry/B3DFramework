@@ -393,7 +393,8 @@ namespace bs { namespace ct
 
 						if (texture != nullptr)
 						{
-							SPtr<TextureView> texView = texture->requestView(surface.mipLevel, 1, surface.arraySlice, surface.numArraySlices, GVU_DEFAULT);
+							SPtr<TextureView> texView = texture->requestView(surface.mipLevel, surface.numMipLevels, 
+															surface.arraySlice, surface.numArraySlices, GVU_DEFAULT);
 
 							D3D11TextureView* d3d11texView = static_cast<D3D11TextureView*>(texView.get());
 							srvs[slot] = d3d11texView->getSRV();
