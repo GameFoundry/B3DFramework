@@ -208,7 +208,7 @@ namespace bs
 		Vector<bool> mRenderableVisibility; // Transient
 
 		Vector<RendererLight> mDirectionalLights;
-		Vector<RendererLight> mPointLights;
+		Vector<RendererLight> mRadialLights;
 		Vector<RendererLight> mSpotLights;
 		Vector<Sphere> mPointLightWorldBounds;
 		Vector<Sphere> mSpotLightWorldBounds;
@@ -226,7 +226,7 @@ namespace bs
 		bool mOptionsDirty;
 
 		// Helpers to avoid memory allocations
-		Vector<LightData> mLightDataTemp[3];
+		Vector<LightData> mLightDataTemp;
 		Vector<bool> mLightVisibilityTemp;
 	};
 

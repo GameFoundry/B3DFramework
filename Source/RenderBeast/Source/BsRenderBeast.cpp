@@ -304,10 +304,10 @@ namespace bs { namespace ct
 		{
 			if (light->getType() == LightType::Point)
 			{
-				UINT32 lightId = (UINT32)mPointLights.size();
+				UINT32 lightId = (UINT32)mRadialLights.size();
 				light->setRendererId(lightId);
 
-				mPointLights.push_back(RendererLight(light));
+				mRadialLights.push_back(RendererLight(light));
 				mPointLightWorldBounds.push_back(light->getBounds());
 			}
 			else // Spot
@@ -353,20 +353,20 @@ namespace bs { namespace ct
 		{
 			if (light->getType() == LightType::Point)
 			{
-				Light* lastLight = mPointLights.back().getInternal();
+				Light* lastLight = mRadialLights.back().getInternal();
 				UINT32 lastLightId = lastLight->getRendererId();
 
 				if (lightId != lastLightId)
 				{
 					// Swap current last element with the one we want to erase
-					std::swap(mPointLights[lightId], mPointLights[lastLightId]);
+					std::swap(mRadialLights[lightId], mRadialLights[lastLightId]);
 					std::swap(mPointLightWorldBounds[lightId], mPointLightWorldBounds[lastLightId]);
 
 					lastLight->setRendererId(lightId);
 				}
 
 				// Last element is the one we want to erase
-				mPointLights.erase(mPointLights.end() - 1);
+				mRadialLights.erase(mRadialLights.end() - 1);
 				mPointLightWorldBounds.erase(mPointLightWorldBounds.end() - 1);
 			}
 			else // Spot
@@ -717,22 +717,24 @@ namespace bs { namespace ct
 
 		// Generate a list of lights and their GPU buffers
 		UINT32 numDirLights = (UINT32)mDirectionalLights.size();
-		mLightDataTemp[0].resize(numDirLights);
-		for(UINT32 i = 0; i < numDirLights; i++)
-			mDirectionalLights[i].getParameters(mLightDataTemp[0][i]);
+		for (UINT32 i = 0; i < numDirLights; i++)
+		{
+			mLightDataTemp.push_back(LightData());
+			mDirectionalLights[i].getParameters(mLightDataTemp.back());
+		}
 
-		UINT32 numPointLights = (UINT32)mPointLights.size();
-		mLightVisibilityTemp.resize(numPointLights, false);
+		UINT32 numRadialLights = (UINT32)mRadialLights.size();
+		mLightVisibilityTemp.resize(numRadialLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
 			views[i]->calculateVisibility(mPointLightWorldBounds, mLightVisibilityTemp);
 
-		for(UINT32 i = 0; i < numPointLights; i++)
+		for(UINT32 i = 0; i < numRadialLights; i++)
 		{
 			if (!mLightVisibilityTemp[i])
 				continue;
 
-			mLightDataTemp[1].push_back(LightData());
-			mPointLights[i].getParameters(mLightDataTemp[1].back());
+			mLightDataTemp.push_back(LightData());
+			mRadialLights[i].getParameters(mLightDataTemp.back());
 		}
 
 		UINT32 numSpotLights = (UINT32)mSpotLights.size();
@@ -745,15 +747,13 @@ namespace bs { namespace ct
 			if (!mLightVisibilityTemp[i])
 				continue;
 
-			mLightDataTemp[2].push_back(LightData());
-			mSpotLights[i].getParameters(mLightDataTemp[2].back());
+			mLightDataTemp.push_back(LightData());
+			mSpotLights[i].getParameters(mLightDataTemp.back());
 		}
 
-		mTiledDeferredLightingMat->setLights(mLightDataTemp);
+		mTiledDeferredLightingMat->setLights(mLightDataTemp, numDirLights, numRadialLights, numSpotLights);
 
-		mLightDataTemp[0].clear();
-		mLightDataTemp[1].clear();
-		mLightDataTemp[2].clear();
+		mLightDataTemp.clear();
 		mLightVisibilityTemp.clear();
 
 		for (UINT32 i = 0; i < numViews; i++)

@@ -55,10 +55,7 @@ namespace bs { namespace ct
 				params->getTextureParam(GPT_COMPUTE_PROGRAM, entry.second.name, mGBufferDepth);
 		}
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gDirLights", mDirLightBufferParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gPointLights", mPointLightBufferParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gSpotLights", mSpotLightBufferParam);
-
+		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
 		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
 
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
@@ -93,45 +90,44 @@ namespace bs { namespace ct
 		RenderAPI::instance().dispatchCompute(numTilesX, numTilesY);
 	}
 
-	void TiledDeferredLightingMat::setLights(const Vector<LightData>(&lightData)[3])
+	void TiledDeferredLightingMat::setLights(const Vector<LightData>& lightData, UINT32 numDirLights, 
+											 UINT32 numRadialLights, UINT32 numSpotLights)
 	{
-		Vector3I numLightsPerType;
-		for (UINT32 i = 0; i < 3; i++)
+		Vector3I lightOffsets;
+		lightOffsets[0] = numDirLights;
+		lightOffsets[1] = lightOffsets[0] + numRadialLights;
+		lightOffsets[2] = lightOffsets[1] + numSpotLights;
+
+		UINT32 totalNumLights = (UINT32)lightOffsets[2];
+
+		UINT32 size = totalNumLights * sizeof(LightData);
+		UINT32 curBufferSize;
+
+		if (mLightBuffer != nullptr)
+			curBufferSize = mLightBuffer->getSize();
+		else
+			curBufferSize = 0;
+
+		if (size > curBufferSize || curBufferSize == 0)
 		{
-			UINT32 numLights = (UINT32)lightData[i].size();
-			numLightsPerType[i] = numLights;
+			// Allocate at least one block even if no lights, to avoid issues with null buffers
+			UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float)BUFFER_INCREMENT)) * BUFFER_INCREMENT;
 
-			UINT32 size = numLights * sizeof(LightData);
-			UINT32 curBufferSize;
+			GPU_BUFFER_DESC bufferDesc;
+			bufferDesc.type = GBT_STRUCTURED;
+			bufferDesc.elementCount = bufferSize / sizeof(LightData);
+			bufferDesc.elementSize = sizeof(LightData);
+			bufferDesc.format = BF_UNKNOWN;
 
-			if (mLightBuffers[i] != nullptr)
-				curBufferSize = mLightBuffers[i]->getSize();
-			else
-				curBufferSize = 0;
-
-			if(size > curBufferSize || curBufferSize == 0)
-			{
-				// Allocate at least one block even if no lights, to avoid issues with null buffers
-				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float)BUFFER_INCREMENT)) * BUFFER_INCREMENT;
-
-				GPU_BUFFER_DESC bufferDesc;
-				bufferDesc.type = GBT_STRUCTURED;
-				bufferDesc.elementCount = bufferSize / sizeof(LightData);
-				bufferDesc.elementSize = sizeof(LightData);
-				bufferDesc.format = BF_UNKNOWN;
-
-				mLightBuffers[i] = GpuBuffer::create(bufferDesc);
-			}
-
-			if(size > 0)
-				mLightBuffers[i]->writeData(0, size, lightData[i].data(), BWT_DISCARD);
+			mLightBuffer = GpuBuffer::create(bufferDesc);
 		}
 
-		mDirLightBufferParam.set(mLightBuffers[0]);
-		mPointLightBufferParam.set(mLightBuffers[1]);
-		mSpotLightBufferParam.set(mLightBuffers[2]);
+		if (size > 0)
+			mLightBuffer->writeData(0, size, lightData.data(), BWT_DISCARD);
 
-		gTiledLightingParamDef.gNumLightsPerType.set(mParamBuffer, numLightsPerType);
+		mLightBufferParam.set(mLightBuffer);
+
+		gTiledLightingParamDef.gLightOffsets.set(mParamBuffer, lightOffsets);
 
 		mParamBuffer->flushToGPU();
 	}

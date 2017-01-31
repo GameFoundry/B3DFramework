@@ -41,7 +41,7 @@ namespace bs { namespace ct
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector3I, gNumLightsPerType)
+		BS_PARAM_BLOCK_ENTRY(Vector3I, gLightOffsets)
 	BS_PARAM_BLOCK_END
 
 	extern TiledLightingParamDef gTiledLightingParamDef;
@@ -58,20 +58,18 @@ namespace bs { namespace ct
 		void execute(const SPtr<RenderTargets>& gbuffer, const SPtr<GpuParamBlockBuffer>& perCamera);
 
 		/** Binds all the active lights. */
-		void setLights(const Vector<LightData> (&lightData)[3]);
+		void setLights(const Vector<LightData>& lightData, UINT32 numDirLights, UINT32 numRadialLights, 
+					   UINT32 numSpotLights);
 	private:
 		GpuParamTexture mGBufferA;
 		GpuParamTexture mGBufferB;
 		GpuParamTexture mGBufferDepth;
 
-		GpuParamBuffer mDirLightBufferParam;
-		GpuParamBuffer mPointLightBufferParam;
-		GpuParamBuffer mSpotLightBufferParam;
-
+		GpuParamBuffer mLightBufferParam;
 		GpuParamLoadStoreTexture mOutputParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		SPtr<GpuBuffer> mLightBuffers[3];
+		SPtr<GpuBuffer> mLightBuffer;
 
 		static const UINT32 TILE_SIZE;
 	};

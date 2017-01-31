@@ -23,8 +23,7 @@ Technique
 		Compute = 
 		{
 			// Arbitrary limit, increase if needed
-            #define MAX_SPOT_LIGHTS 512
-            #define MAX_RADIAL_LIGHTS 512		
+            #define MAX_LIGHTS 512
 
 			SamplerState 	gGBufferASamp : register(s0);
 			SamplerState 	gGBufferBSamp : register(s1);
@@ -65,26 +64,24 @@ Technique
 				return decodeGBuffer(GBufferAData, GBufferBData, deviceZ);
 			}	
 			
-			StructuredBuffer<LightData> gDirLights : register(t3);
-			StructuredBuffer<LightData> gPointLights : register(t4);
-			StructuredBuffer<LightData> gSpotLights  : register(t5);				
+			StructuredBuffer<LightData> gLights : register(t3);		
 		
 			RWTexture2D<float4>	gOutput : register(u0);
 		
 			cbuffer Params : register(b0)
 			{
-				// x - directional, y - point, z - spot
-				uint3 gNumLightsPerType;
+				// Offsets at which specific light types begin in gLights buffer
+				// Assumed directional lights start at 0
+				// x - offset to point lights, y - offset to spot lights, z - total number of lights
+				uint3 gLightOffsets;
 			}
 			
 			groupshared uint sTileMinZ;
 			groupshared uint sTileMaxZ;
 
-            groupshared uint sNumRadialLights;
-            groupshared uint sNumSpotLights;
-
-            groupshared uint sRadialLightIndices[MAX_RADIAL_LIGHTS];
-            groupshared uint sSpotLightIndices[MAX_SPOT_LIGHTS];
+            groupshared uint sNumLightsPerType[2];
+			groupshared uint sTotalNumLights;
+            groupshared uint sLightIndices[MAX_LIGHTS];
 
 			[numthreads(TILE_SIZE, TILE_SIZE, 1)]
 			void main(
@@ -103,8 +100,9 @@ Technique
 				{
 					sTileMinZ = 0x7F7FFFFF;
 					sTileMaxZ = 0;
-					sNumRadialLights = 0;
-					sNumSpotLights = 0;
+					sNumLightsPerType[0] = 0;
+					sNumLightsPerType[0] = 0;
+					sTotalNumLights = 0;
 				}
 				
 				GroupMemoryBarrierWithGroupSync();
@@ -185,90 +183,55 @@ Technique
 				float4 worldPosition4D = mul(gMatScreenToWorld, mixedSpacePos);
 				float3 worldPosition = worldPosition4D.xyz / worldPosition4D.w;
 				
-                // Find lights overlapping the tile
-                for (uint i = threadIndex; i < gNumLightsPerType.y && i < MAX_RADIAL_LIGHTS; i += TILE_SIZE)
-                {
-                    float4 lightPosition = mul(gMatView, float4(gPointLights[i].position, 1.0f));
-                    float lightRadius = gPointLights[i].radius;
-                    
-		            // Note: The cull method can have false positives. In case of large light bounds and small tiles, it
-                    // can end up being quite a lot. Consider adding an extra heuristic to check a separating plane.
-                    bool lightInTile = true;
-				
-                    // First check side planes as this will cull majority of the lights
-                    [unroll]
-                    for (uint j = 0; j < 4; ++j)
-                    {
-                        float dist = dot(frustumPlanes[j], lightPosition);
-                        lightInTile = lightInTile && (dist >= -lightRadius);
-                    }
+                // Find radial & spot lights overlapping the tile
+				for(uint type = 0; type < 2; type++)
+				{
+					uint lightOffset = threadIndex + gLightOffsets[type];
+					uint lightsEnd = gLightOffsets[type + 1];
+					for (uint i = lightOffset; i < lightsEnd && i < MAX_LIGHTS; i += TILE_SIZE)
+					{
+						float4 lightPosition = mul(gMatView, float4(gLights[i].position, 1.0f));
+						float lightRadius = gLights[i].radius;
+						
+						// Note: The cull method can have false positives. In case of large light bounds and small tiles, it
+						// can end up being quite a lot. Consider adding an extra heuristic to check a separating plane.
+						bool lightInTile = true;
+					
+						// First check side planes as this will cull majority of the lights
+						[unroll]
+						for (uint j = 0; j < 4; ++j)
+						{
+							float dist = dot(frustumPlanes[j], lightPosition);
+							lightInTile = lightInTile && (dist >= -lightRadius);
+						}
 
-                    // Make sure to do an actual branch, since it's quite likely an entire warp will have the same value
-                    [branch]
-                    if (lightInTile)
-                    {
-                        bool inDepthRange = true;
-				
-			            // Check near/far planes
-                        [unroll]
-                        for (uint j = 4; j < 6; ++j)
-                        {
-                            float dist = dot(frustumPlanes[j], lightPosition);
-                            inDepthRange = inDepthRange && (dist >= -lightRadius);
-                        }
-                        
-                        // In tile, add to branch
-                        [branch]
-                        if (inDepthRange)
-                        {
-                            uint idx;
-                            InterlockedAdd(sNumRadialLights, 1U, idx);
-                            sRadialLightIndices[idx] = i;
-                        }
-                    }
-                }
-
-                for (uint i = threadIndex; i < gNumLightsPerType.z && i < MAX_SPOT_LIGHTS; i += TILE_SIZE)
-                {
-                    float4 lightPosition = mul(gMatView, float4(gSpotLights[i].position, 1.0f));
-                    float lightRadius = gSpotLights[i].radius;
-                    
-		            // Note: The cull method can have false positives. In case of large light bounds and small tiles, it
-                    // can end up being quite a lot. Consider adding an extra heuristic to check a separating plane.
-                    bool lightInTile = true;
-				
-                    // First check side planes as this will cull majority of the lights
-                    [unroll]
-                    for (uint j = 0; j < 4; ++j)
-                    {
-                        float dist = dot(frustumPlanes[j], lightPosition);
-                        lightInTile = lightInTile && (dist >= -lightRadius);
-                    }
-
-                    // Make sure to do an actual branch, since it's quite likely an entire warp will have the same value
-                    [branch]
-                    if (lightInTile)
-                    {
-                        bool inDepthRange = true;
-				
-			            // Check near/far planes
-                        [unroll]
-                        for (uint j = 4; j < 6; ++j)
-                        {
-                            float dist = dot(frustumPlanes[j], lightPosition);
-                            inDepthRange = inDepthRange && (dist >= -lightRadius);
-                        }
-                        
-                        // In tile, add to branch
-                        [branch]
-                        if (inDepthRange)
-                        {
-                            uint idx;
-                            InterlockedAdd(sNumSpotLights, 1U, idx);
-                            sSpotLightIndices[idx] = i;
-                        }
-                    }
-                }
+						// Make sure to do an actual branch, since it's quite likely an entire warp will have the same value
+						[branch]
+						if (lightInTile)
+						{
+							bool inDepthRange = true;
+					
+							// Check near/far planes
+							[unroll]
+							for (uint j = 4; j < 6; ++j)
+							{
+								float dist = dot(frustumPlanes[j], lightPosition);
+								inDepthRange = inDepthRange && (dist >= -lightRadius);
+							}
+							
+							// In tile, add to branch
+							[branch]
+							if (inDepthRange)
+							{
+								InterlockedAdd(sNumLightsPerType[type], 1U);
+								
+								uint idx;
+								InterlockedAdd(sTotalNumLights, 1U, idx);
+								sLightIndices[idx] = i;
+							}
+						}
+					}
+				}
 
                 GroupMemoryBarrierWithGroupSync();
 
@@ -279,19 +242,19 @@ Technique
 				float alpha = 0.0f;
 				if(surfaceData.worldNormal.w > 0.0f)
 				{
-					for(uint i = 0; i < gNumLightsPerType.x; ++i)
-						lightAccumulator += getDirLightContibution(surfaceData, gDirLights[i]);
+					for(uint i = 0; i < gLightOffsets[0]; ++i)
+						lightAccumulator += getDirLightContibution(surfaceData, gLights[i]);
 					
-                    for (uint i = 0; i < sNumRadialLights; ++i)
+                    for (uint i = 0; i < sNumLightsPerType[0]; ++i)
                     {
-                        uint lightIdx = sRadialLightIndices[i];
-                        lightAccumulator += getPointLightContribution(worldPosition, surfaceData, gPointLights[lightIdx]);
+                        uint lightIdx = sLightIndices[i];
+                        lightAccumulator += getPointLightContribution(worldPosition, surfaceData, gLights[lightIdx]);
                     }
 
-					for(uint i = 0; i < sNumSpotLights; ++i)
+					for(uint i = sNumLightsPerType[0]; i < sTotalNumLights; ++i)
                     {
-                        uint lightIdx = sSpotLightIndices[i];
-                        lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, gSpotLights[lightIdx]);
+                        uint lightIdx = sLightIndices[i];
+                        lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, gLights[lightIdx]);
                     }
 
 					alpha = 1.0f;
@@ -355,27 +318,19 @@ Technique
 				return decodeGBuffer(GBufferAData, GBufferBData, deviceZ);
 			}	
 			
-			layout(std430, binding = 4) buffer gDirLights
+			layout(std430, binding = 4) buffer gLights
 			{
-				LightData[] gDirLightsData;
+				LightData[] gLightsData;
 			};
+						
+			layout(binding = 5, rgba16f) uniform image2D gOutput;
 			
-			layout(std430, binding = 5) buffer gPointLights
+			layout(binding = 6, std140) uniform Params
 			{
-				LightData[] gPointLightsData;
-			};
-			
-			layout(std430, binding = 6) buffer gSpotLights
-			{
-				LightData[] gSpotLightsData;
-			};	
-			
-			layout(binding = 7, rgba16f) uniform image2D gOutput;
-			
-			layout(binding = 8, std140) uniform Params
-			{
-				// x - directional, y - point, z - spot
-				uvec3 gNumLightsPerType;
+				// Offsets at which specific light types begin in gLights buffer
+				// Assumed directional lights start at 0
+				// x - offset to point lights, y - offset to spot lights, z - total number of lights
+				uvec3 gLightOffsets;
 			};
 			
 			void main()
@@ -398,21 +353,21 @@ Technique
 					vec4 worldPosition4D = gMatScreenToWorld * mixedSpacePos;
 					vec3 worldPosition = worldPosition4D.xyz / worldPosition4D.w;
 					
-					for(uint i = 0; i < gNumLightsPerType.x; i++)
+					for(uint i = 0; i < gLightOffsets.x; i++)
 					{
-						LightData data = gDirLightsData[i];
+						LightData data = gLightsData[i];
 						lightAccumulator += getDirLightContibution(surfaceData, data);
 					}
 					
-					for(uint i = 0; i < gNumLightsPerType.y; i++)
+					for(uint i = gLightOffsets.x; i < gLightOffsets.y; i++)
 					{
-						LightData data = gPointLightsData[i];
+						LightData data = gLightsData[i];
 						lightAccumulator += getPointLightContribution(worldPosition, surfaceData, data);
 					}
 					
-					for(uint i = 0; i < gNumLightsPerType.z; i++)
+					for(uint i = gLightOffsets.y; i < gLightOffsets.z; i++)
 					{
-						LightData data = gSpotLightsData[i];
+						LightData data = gLightsData[i];
 						lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, data);
 					}
 					
