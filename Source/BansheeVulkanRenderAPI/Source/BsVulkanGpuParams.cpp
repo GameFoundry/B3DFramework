@@ -205,8 +205,9 @@ namespace bs { namespace ct
 							else
 								bufferView = vkBufManager.getDummyReadBufferView(i);
 
+							perSetData.writeInfos[k].bufferView = bufferView;
 							writeSetInfo.pBufferInfo = nullptr;
-							writeSetInfo.pTexelBufferView = &bufferView;
+							writeSetInfo.pTexelBufferView = &perSetData.writeInfos[k].bufferView;
 						}
 
 						writeSetInfo.pImageInfo = nullptr;
@@ -419,10 +420,11 @@ namespace bs { namespace ct
 					else
 						bufferView = vkBufManager.getDummyReadBufferView(i);
 
-					mPerDeviceData[i].buffers[sequentialIdx] = 0;
+					mPerDeviceData[i].buffers[sequentialIdx] = nullptr;
 				}
 
-				writeSetInfo.pTexelBufferView = &bufferView;
+				perSetData.writeInfos[bindingIdx].bufferView = bufferView;
+				writeSetInfo.pTexelBufferView = &perSetData.writeInfos[bindingIdx].bufferView;
 			}
 			else // Structured storage buffer
 			{
@@ -441,6 +443,8 @@ namespace bs { namespace ct
 					perSetData.writeInfos[bindingIdx].buffer.buffer = vkBufManager.getDummyStructuredBuffer(i);
 					mPerDeviceData[i].buffers[sequentialIdx] = nullptr;
 				}
+
+				writeSetInfo.pTexelBufferView = nullptr;
 			}
 		}
 
@@ -595,8 +599,20 @@ namespace bs { namespace ct
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 
-				VkBufferView bufferView = resource->getView();
-				perDeviceData.perSetData[set].writeSetInfos[bindingIdx].pTexelBufferView = &bufferView;
+				PerSetData& perSetData = perDeviceData.perSetData[set];
+				VkWriteDescriptorSet& writeSetInfo = perSetData.writeSetInfos[bindingIdx];
+
+				bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				if (useView)
+				{
+					perSetData.writeInfos[bindingIdx].bufferView = resource->getView();
+					perSetData.writeSetInfos[bindingIdx].pTexelBufferView = &perSetData.writeInfos[bindingIdx].bufferView;
+				}
+				else // Structured storage buffer
+				{
+					perSetData.writeInfos[bindingIdx].buffer.buffer = vkBuffer;
+					perSetData.writeSetInfos[bindingIdx].pTexelBufferView = nullptr;
+				}
 
 				mSetsDirty[set] = true;
 			}

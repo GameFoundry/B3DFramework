@@ -88,7 +88,8 @@ namespace bs
 
 		mAlloc.reserve<SetInfo>(mNumSets)
 			.reserve<UINT32>(totalNumSlots)
-			.reserve<ParamType>(totalNumSlots);
+			.reserve<ParamType>(totalNumSlots)
+			.reserve<UINT32>(totalNumSlots);
 
 		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
 			mAlloc.reserve<ResourceInfo>(mNumElementsPerType[i]);
@@ -111,6 +112,9 @@ namespace bs
 			memset(mSetInfos[i].slotIndices, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
 
 			mSetInfos[i].slotTypes = mAlloc.alloc<ParamType>(mSetInfos[i].numSlots);
+
+			mSetInfos[i].slotSamplers = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
+			memset(mSetInfos[i].slotSamplers, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
 		}
 
 		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
@@ -153,8 +157,32 @@ namespace bs
 			for (auto& buffer : paramDesc->buffers)
 				populateSetInfo(buffer.second, ParamType::Buffer);
 
-			for (auto& sampler : paramDesc->samplers)
-				populateSetInfo(sampler.second, ParamType::SamplerState);
+			// Samplers need to be handled specially because certain slots could be texture/buffer + sampler combinations
+			{
+				int typeIdx = (int)ParamType::SamplerState;
+				UINT32 sequentialIdx = mNumElementsPerType[typeIdx];
+
+				for (auto& entry : paramDesc->samplers)
+				{
+					const GpuParamObjectDesc& samplerDesc = entry.second;
+
+					SetInfo& setInfo = mSetInfos[samplerDesc.set];
+					if (setInfo.slotIndices[samplerDesc.slot] == -1) // Slot is sampler only
+					{
+						setInfo.slotIndices[samplerDesc.slot] = sequentialIdx;
+						setInfo.slotTypes[samplerDesc.slot] = ParamType::SamplerState;
+					}
+					else // Slot is a combination
+					{
+						setInfo.slotSamplers[samplerDesc.slot] = sequentialIdx;
+					}
+
+					mResourceInfos[typeIdx][sequentialIdx].set = samplerDesc.set;
+					mResourceInfos[typeIdx][sequentialIdx].slot = samplerDesc.slot;
+
+					mNumElementsPerType[typeIdx]++;
+				}
+			}
 		}
 	}
 
@@ -181,16 +209,16 @@ namespace bs
 		ParamType slotType = mSetInfos[set].slotTypes[slot];
 		if(slotType != type)
 		{
-			// Allow sampler states & textures to share the same slot, as some APIs combine them
-			bool potentialCombinedSampler = (slotType == ParamType::SamplerState && type == ParamType::Texture) ||
-				(slotType == ParamType::Texture && type == ParamType::SamplerState);
-
-			if (!potentialCombinedSampler)
+			// Allow sampler states & textures/buffers to share the same slot, as some APIs combine them
+			if(type == ParamType::SamplerState)
 			{
-				LOGERR("Requested parameter is not of the valid type. Requested: " + toString((UINT32)type) + ". Actual: " +
-					   toString((UINT32)mSetInfos[set].slotTypes[slot]) + ".");
-				return -1;
+				if (mSetInfos[set].slotSamplers[slot] != -1)
+					return mSetInfos[set].slotSamplers[slot];
 			}
+
+			LOGERR("Requested parameter is not of the valid type. Requested: " + toString((UINT32)type) + ". Actual: " +
+					toString((UINT32)mSetInfos[set].slotTypes[slot]) + ".");
+			return -1;
 		}
 
 #endif

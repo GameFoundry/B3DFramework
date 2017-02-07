@@ -105,7 +105,8 @@ namespace bs { namespace ct
 			mRequiresView = true;
 			break;
 		case BT_STORAGE:
-			usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+			usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | 
+				VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 			mRequiresView = true;
 			break;
 		case BT_STRUCTURED:

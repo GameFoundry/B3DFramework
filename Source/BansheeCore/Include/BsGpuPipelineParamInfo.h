@@ -67,6 +67,7 @@ namespace bs
 		{
 			UINT32* slotIndices;
 			ParamType* slotTypes;
+			UINT32* slotSamplers;
 			UINT32 numSlots;
 		};
 
