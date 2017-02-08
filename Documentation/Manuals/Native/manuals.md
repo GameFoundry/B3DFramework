@@ -51,6 +51,7 @@ Manuals									{#manuals}
  - [Physics material](@ref physicsMaterial)
  - [Character controller](@ref characterController)
  - [Scene queries](@ref sceneQueries)
+ - [Joints](@ref joints)
  
 # Developer guides
 

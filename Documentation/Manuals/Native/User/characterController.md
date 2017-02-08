@@ -6,8 +6,8 @@ Character controller is a special type of a dynamic physics objects that is inte
 It is represented using the @ref bs::CCharacterController "CharacterController" component.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject rigidbodySO = SceneObject::create("Rigidbody");
-HCharacterController charController = rigidbodySO->addComponent<CCharacterController>();
+HSceneObject controllerSO = SceneObject::create("Rigidbody");
+HCharacterController charController = controllerSO->addComponent<CCharacterController>();
 ~~~~~~~~~~~~~
 
 # Shape

@@ -24,7 +24,7 @@ namespace bs
 		/** Flags that control options for the spherical joint */
 		enum class Flag
 		{
-			Limit = 0x1
+			Limit = 0x1 /**< Enables the cone range limit. */
 		};
 
 	public:

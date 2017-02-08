@@ -120,7 +120,7 @@ namespace bs
 		return mDesc.breakTorque;
 	}
 
-	void CJoint::setBreakToque(float torque)
+	void CJoint::setBreakTorque(float torque)
 	{
 		if (mDesc.breakTorque == torque)
 			return;

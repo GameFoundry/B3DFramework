@@ -20,9 +20,9 @@ namespace bs
 		/** Controls distance joint options. */
 		enum class Flag
 		{
-			MinDistance = 0x1, /** Enables minimum distance limit. */
-			MaxDistance = 0x2, /** Enables maximum distance limit. */
-			Spring = 0x4 /** Enables spring when maintaining limits. */
+			MinDistance = 0x1, /**< Enables minimum distance limit. */
+			MaxDistance = 0x2, /**< Enables maximum distance limit. */
+			Spring = 0x4 /**< Enables spring when maintaining limits. */
 		};
 
 	public:

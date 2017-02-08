@@ -23,8 +23,8 @@ namespace bs
 		/** Flags that control hinge joint options. */
 		enum class Flag
 		{
-			Limit = 0x1, /** Joint limit is enabled. */
-			Drive = 0x2 /** Joint drive is enabled. */
+			Limit = 0x1, /**< Joint limit is enabled. */
+			Drive = 0x2 /**< Joint drive is enabled. */
 		};
 
 		/** Properties of a drive that drives the joint's angular velocity towards a paricular value. */

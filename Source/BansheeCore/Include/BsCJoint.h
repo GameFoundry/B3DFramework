@@ -48,7 +48,7 @@ namespace bs
 		inline float getBreakTorque() const;
 
 		/** @copydoc Joint::setBreakTorque */
-		inline void setBreakToque(float torque);
+		inline void setBreakTorque(float torque);
 
 		/** @copydoc Joint::getEnableCollision */
 		inline bool getEnableCollision() const;

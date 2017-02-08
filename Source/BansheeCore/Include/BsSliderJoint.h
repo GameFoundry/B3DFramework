@@ -22,7 +22,7 @@ namespace bs
 		/** Flag that controls slider joint's behaviour. */
 		enum class Flag
 		{
-			Limit = 0x1,
+			Limit = 0x1 /**< Enables the linear range limit. */
 		};
 
 	public:
