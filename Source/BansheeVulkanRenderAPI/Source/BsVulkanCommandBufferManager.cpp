@@ -46,46 +46,13 @@ namespace bs { namespace ct
 	void VulkanTransferBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
 					   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 	{
-		VkBufferMemoryBarrier barrier;
-		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barrier.pNext = nullptr;
-		barrier.srcAccessMask = srcAccessFlags;
-		barrier.dstAccessMask = dstAccessFlags;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.buffer = buffer;
-		barrier.offset = 0;
-		barrier.size = VK_WHOLE_SIZE;
-
-		vkCmdPipelineBarrier(mCB->getHandle(),
-							 srcStage,
-							 dstStage,
-							 0, 0, nullptr,
-							 1, &barrier,
-							 0, nullptr);
+		mCB->memoryBarrier(buffer, srcAccessFlags, dstAccessFlags, srcStage, dstStage);
 	}
 
 	void VulkanTransferBuffer::setLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, 
 		VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range)
 	{
-		VkImageMemoryBarrier barrier;
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.pNext = nullptr;
-		barrier.srcAccessMask = srcAccessFlags;
-		barrier.dstAccessMask = dstAccessFlags;
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.oldLayout = oldLayout;
-		barrier.newLayout = newLayout;
-		barrier.image = image;
-		barrier.subresourceRange = range;
-
-		vkCmdPipelineBarrier(mCB->getHandle(),
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-							 0, 0, nullptr,
-							 0, nullptr,
-							 1, &barrier);
+		mCB->setLayout(image, srcAccessFlags, dstAccessFlags, oldLayout, newLayout, range);
 	}
 
 	void VulkanTransferBuffer::setLayout(VulkanImage* image, const VkImageSubresourceRange& range, 

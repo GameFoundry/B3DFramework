@@ -305,6 +305,29 @@ namespace bs { namespace ct
 		 */
 		void resetQuery(VulkanQuery* query);
 
+		/** 
+		 * Issues a pipeline barrier on the provided buffer. See vkCmdPipelineBarrier in Vulkan spec. for usage
+		 * information.
+		 */
+		void memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
+						   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
+
+		/** 
+		 * Issues a pipeline barrier on the provided image. See vkCmdPipelineBarrier in Vulkan spec. for usage
+		 * information.
+		 */
+		void memoryBarrier(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
+						   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage, VkImageLayout layout, 
+						   const VkImageSubresourceRange& range);
+
+		/** 
+		 * Issues a pipeline barrier on the provided image, changing its layout. See vkCmdPipelineBarrier in Vulkan spec. 
+		 * for usage information.
+		 */
+		void setLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, 
+			VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range);
+
+
 	private:
 		friend class VulkanCmdBufferPool;
 		friend class VulkanCommandBuffer;
@@ -322,6 +345,12 @@ namespace bs { namespace ct
 		{
 			VkAccessFlags accessFlags;
 			ResourceUseHandle useHandle;
+
+			/** 
+			 * True if the buffer was at some point written to by the shader during the current render pass, and barrier
+			 * wasn't issued yet. 
+			 */
+			bool needsBarrier;
 		};
 
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
@@ -349,6 +378,12 @@ namespace bs { namespace ct
 			bool hasTransitioned : 1;
 			bool isReadOnly : 1;
 			bool isInitialReadOnly : 1;
+
+			/** 
+			 * True if the buffer was at some point written to by the shader during the current render pass, and barrier
+			 * wasn't issued yet. 
+			 */
+			bool needsBarrier : 1;
 		};
 
 		/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set. */

@@ -307,12 +307,17 @@ namespace bs { namespace ct
 				readMask.set(RT_DEPTH);
 		}
 
-		// Reset flags that signal image usage (since those only matter for the render-pass' purposes)
+		// Reset flags that signal image usage (since those only matter for the render-pass' purposes), as well as barrier
+		// requirements
 		for (auto& entry : mSubresourceInfos)
 		{
 			entry.isFBAttachment = false;
 			entry.isShaderInput = false;
+			entry.needsBarrier = false;
 		}
+
+		for (auto& entry : mBuffers)
+			entry.second.needsBarrier = false;
 
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1383,10 +1388,12 @@ namespace bs { namespace ct
 		if (!isReadyForRender())
 			return;
 
-		bindGpuParams();
-
+		// Note: Must begin render pass before binding GPU params as some GPU param related data gets cleared on begin, and
+		// we don't want to clear the currently used one
 		if (!isInRenderPass())
 			beginRenderPass();
+
+		bindGpuParams();
 
 		if (mGfxPipelineRequiresBind)
 		{
@@ -1418,10 +1425,12 @@ namespace bs { namespace ct
 		if (!isReadyForRender())
 			return;
 
-		bindGpuParams();
-
+		// Note: Must begin render pass before binding GPU params as some GPU param related data gets cleared on begin, and
+		// we don't want to clear the currently used one
 		if (!isInRenderPass())
 			beginRenderPass();
+
+		bindGpuParams();
 
 		if (mGfxPipelineRequiresBind)
 		{
@@ -1503,6 +1512,75 @@ namespace bs { namespace ct
 			query->reset(mCmdBuffer);
 	}
 
+	void VulkanCmdBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
+											 VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+	{
+		VkBufferMemoryBarrier barrier;
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.pNext = nullptr;
+		barrier.srcAccessMask = srcAccessFlags;
+		barrier.dstAccessMask = dstAccessFlags;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.buffer = buffer;
+		barrier.offset = 0;
+		barrier.size = VK_WHOLE_SIZE;
+
+		vkCmdPipelineBarrier(getHandle(),
+							 srcStage,
+							 dstStage,
+							 0, 0, nullptr,
+							 1, &barrier,
+							 0, nullptr);
+	}
+
+	void VulkanCmdBuffer::memoryBarrier(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
+										VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage, VkImageLayout layout,
+										const VkImageSubresourceRange& range)
+	{
+		VkImageMemoryBarrier barrier;
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext = nullptr;
+		barrier.srcAccessMask = srcAccessFlags;
+		barrier.dstAccessMask = dstAccessFlags;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = image;
+		barrier.subresourceRange = range;
+		barrier.oldLayout = layout;
+		barrier.newLayout = layout;
+
+		vkCmdPipelineBarrier(getHandle(),
+							 srcStage,
+							 dstStage,
+							 0, 0, nullptr,
+							 0, nullptr,
+							 1, &barrier);
+	}
+
+	void VulkanCmdBuffer::setLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
+										 VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range)
+	{
+		VkImageMemoryBarrier barrier;
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext = nullptr;
+		barrier.srcAccessMask = srcAccessFlags;
+		barrier.dstAccessMask = dstAccessFlags;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout = oldLayout;
+		barrier.newLayout = newLayout;
+		barrier.image = image;
+		barrier.subresourceRange = range;
+
+		vkCmdPipelineBarrier(getHandle(),
+							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 0, 0, nullptr,
+							 0, nullptr,
+							 1, &barrier);
+	}
+
 	void VulkanCmdBuffer::registerResource(VulkanResource* res, VulkanUseFlags flags)
 	{
 		auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
@@ -1533,8 +1611,14 @@ namespace bs { namespace ct
 	void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VkImageLayout newLayout, 
 										   VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment)
 	{
-		UINT32 nextImageInfoIdx = (UINT32)mImageInfos.size();
+		// Check if we're binding for shader use, or as a color attachment, or just for transfer purposes
+		bool isShaderBind = !isFBAttachment && newLayout != VK_IMAGE_LAYOUT_UNDEFINED;
 
+		// If binding it for write in a shader (not as color attachment or transfer op), we will need to issue a memory
+		// barrier if the image gets used again during this render pass, so remember this information.
+		bool needsBarrier = isShaderBind && flags.isSet(VulkanUseFlag::Write);
+
+		UINT32 nextImageInfoIdx = (UINT32)mImageInfos.size();
 		auto registerSubresourceInfo = [&](const VkImageSubresourceRange& subresourceRange)
 		{
 			mSubresourceInfos.push_back(ImageSubresourceInfo());
@@ -1549,6 +1633,7 @@ namespace bs { namespace ct
 			subresourceInfo.hasTransitioned = false;
 			subresourceInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
 			subresourceInfo.isInitialReadOnly = subresourceInfo.isReadOnly;
+			subresourceInfo.needsBarrier = needsBarrier;
 		};
 
 		auto insertResult = mImages.insert(std::make_pair(res, nextImageInfoIdx));
@@ -1582,7 +1667,6 @@ namespace bs { namespace ct
 			ImageSubresourceInfo* subresources = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
 			
 			bool foundRange = false;
-			bool foundOverlap = false;
 			for(UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
 			{
 				if(VulkanUtility::rangeOverlaps(subresources[i].range, range))
@@ -1593,7 +1677,7 @@ namespace bs { namespace ct
 						subresources[i].range.baseMipLevel == range.baseMipLevel)
 					{
 						// Just update existing range
-						bool requiresReadOnlyFB = updateSubresourceInfo(res, imageInfoIdx, subresources[0], newLayout,
+						bool requiresReadOnlyFB = updateSubresourceInfo(res, imageInfoIdx, subresources[i], newLayout,
 																		finalLayout, flags, isFBAttachment);
 
 						// If we need to switch frame-buffers, end current render pass
@@ -1604,7 +1688,6 @@ namespace bs { namespace ct
 						break;
 					}
 
-					foundOverlap = true;
 					break;
 				}
 			}
@@ -1719,6 +1802,8 @@ namespace bs { namespace ct
 
 	void VulkanCmdBuffer::registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags)
 	{
+		bool isShaderWrite = (accessFlags & VK_ACCESS_SHADER_WRITE_BIT) != 0;
+
 		auto insertResult = mBuffers.insert(std::make_pair(res, BufferInfo()));
 		if (insertResult.second) // New element
 		{
@@ -1727,6 +1812,10 @@ namespace bs { namespace ct
 
 			bufferInfo.useHandle.used = false;
 			bufferInfo.useHandle.flags = flags;
+
+			// Any writes done on storage buffers will need explicit memory barriers (if read during the same pass) so
+			// we remember this, in case this buffers gets used later in this pass.
+			bufferInfo.needsBarrier = isShaderWrite;
 
 			res->notifyBound();
 		}
@@ -1737,6 +1826,25 @@ namespace bs { namespace ct
 			assert(!bufferInfo.useHandle.used);
 			bufferInfo.useHandle.flags |= flags;
 			bufferInfo.accessFlags |= accessFlags;
+
+			// If the buffer was written to previously in this pass, and is now being used by a shader we need to issue
+			// a barrier to make those writes visible.
+			bool isShaderRead = (accessFlags & VK_ACCESS_SHADER_READ_BIT) != 0;
+			if(bufferInfo.needsBarrier && (isShaderRead || isShaderWrite))
+			{
+				VkPipelineStageFlags stages =
+					VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+					VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+					VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+					VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+				VkBuffer buffer = res->getHandle();
+				memoryBarrier(buffer, VK_ACCESS_SHADER_WRITE_BIT, accessFlags, stages, stages);
+
+				bufferInfo.needsBarrier = isShaderWrite;
+			}
 		}
 	}
 
@@ -1871,6 +1979,33 @@ namespace bs { namespace ct
 		// If we need to switch frame-buffers, end current render pass
 		if (requiresReadOnlyFB && isInRenderPass())
 			endRenderPass();
+		else 
+		{
+			// Since we won't be ending the render pass, check if this same sub-resource was written earlier in the pass,
+			// in which case we need to issue a memory barrier so those writes are visible.
+
+			// Memory barrier only matters if image is bound for shader use (no need for color attachments or transfers)
+			bool isShaderBind = !isFBAttachment && newLayout != VK_IMAGE_LAYOUT_UNDEFINED;
+
+			if(subresourceInfo.needsBarrier && isShaderBind)
+			{
+				bool isWrite = flags.isSet(VulkanUseFlag::Write);
+
+				VkPipelineStageFlags stages =
+					VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+					VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+					VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+					VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+				memoryBarrier(image->getHandle(), VK_ACCESS_SHADER_WRITE_BIT, 
+							  image->getAccessFlags(subresourceInfo.requiredLayout, !isWrite),
+							  stages, stages, subresourceInfo.requiredLayout, subresourceInfo.range);
+
+				subresourceInfo.needsBarrier = isWrite;
+			}
+		}
 
 		return requiresReadOnlyFB;
 	}
