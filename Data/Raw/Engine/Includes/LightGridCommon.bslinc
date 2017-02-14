@@ -25,18 +25,28 @@ Technique : base("LightGridCommon") =
 			
 			float calcViewZFromCellZ(uint cellZ)
 			{
-				// TODO - Need better Z distribution. Currently I uniformly distribute in view space, but this
-				// results in very elongated cells along Z
-				float viewZ = gNearFar.x + (gNearFar.y - gNearFar.x) * cellZ / (float)gGridSize.z;
+				// We don't want to subdivide depth uniformly because XY sizes will be much
+				// smaller closer to the near plane, and larger towards far plane. We want 
+				// our cells to be as close to cube shape as possible, so that width/height/depth
+				// are all similar. Ideally we would use either width or height as calculated for
+				// purposes of the projection matrix, for the depth. But since we'll be splitting
+				// the depth range into multiple slices, in practice this ends up with many tiny
+				// cells close to the near plane. Instead we use a square function, which is
+				// somewhere between the two extremes:
+				//  view = slice^2
 				
+				// We need it in range [near, far] so we normalize and scale
+				//  view = slice^2 / maxSlices^2 * (far - near) + near
+				
+				// Note: Some of these calculations could be moved to CPU
+				float viewZ = (pow(cellZ, 2) / pow(gGridSize.z, 2)) * (gNearFar.y - gNearFar.x) + gNearFar.x; 
 				return -viewZ;
 			}
 			
 			uint calcCellZFromViewZ(float viewZ)
 			{
-				// TODO - Need better Z distribution. Currently I uniformly distribute in view space, but this
-				// results in very elongated cells along Z
-				uint cellZ = min((gGridSize.z * (-viewZ - gNearFar.x))/(gNearFar.y - gNearFar.x), gGridSize.z);
+				// Inverse of calculation in calcViewZFromCellZ
+				uint cellZ = min((uint)floor(sqrt(((-viewZ - gNearFar.x)*pow(gGridSize.z, 2))/(gNearFar.y - gNearFar.x))), gGridSize.z);
 				
 				return cellZ;
 			}
@@ -81,18 +91,17 @@ Technique : base("LightGridCommon") =
 			
 			float calcViewZFromCellZ(uint cellZ)
 			{
-				// TODO - Need better Z distribution. Currently I uniformly distribute in view space, but this
-				// results in very elongated cells along Z
-				float viewZ = gNearFar.x + (gNearFar.y - gNearFar.x) * cellZ / float(gGridSize.z);
-				
+				// See HLSL version for reasons behind this formulation
+			
+				// Note: Some of these calculations could be moved to CPU
+				float viewZ = (pow(cellZ, 2) / pow(gGridSize.z, 2)) * (gNearFar.y - gNearFar.x) + gNearFar.x; 
 				return -viewZ;
 			}
-						
+			
 			uint calcCellZFromViewZ(float viewZ)
 			{
-				// TODO - Need better Z distribution. Currently I uniformly distribute in view space, but this
-				// results in very elongated cells along Z
-				uint cellZ = min(uint((gGridSize.z * (-viewZ - gNearFar.x))/(gNearFar.y - gNearFar.x)), gGridSize.z);
+				// Inverse of calculation in calcViewZFromCellZ
+				uint cellZ = min(uint(floor(sqrt(((-viewZ - gNearFar.x)*pow(gGridSize.z, 2))/(gNearFar.y - gNearFar.x)))), gGridSize.z);
 				
 				return cellZ;
 			}
