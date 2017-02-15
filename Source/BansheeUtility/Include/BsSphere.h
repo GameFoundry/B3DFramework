@@ -24,13 +24,13 @@ namespace bs
 		{ }
 
         /** Returns the radius of the sphere. */
-        float getRadius(void) const { return mRadius; }
+        float getRadius() const { return mRadius; }
 
         /** Sets the radius of the sphere. */
         void setRadius(float radius) { mRadius = radius; }
 
         /** Returns the center point of the sphere. */
-        const Vector3& getCenter(void) const { return mCenter; }
+        const Vector3& getCenter() const { return mCenter; }
 
         /** Sets the center point of the sphere. */
         void setCenter(const Vector3& center) { mCenter = center; }

@@ -54,6 +54,9 @@ Manuals									{#manuals}
  - [Joints](@ref joints)
 - **Animation**
  - [Loading animation clips](@ref animationClip)
+ - [Playing animation](@ref animation)
+ - [Bones](@ref bones)
+ - [Advanced animation](@ref advancedAnimation)
  
 # Developer guides
 
