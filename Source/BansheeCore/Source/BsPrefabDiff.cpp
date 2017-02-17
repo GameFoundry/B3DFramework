@@ -6,6 +6,7 @@
 #include "BsMemorySerializer.h"
 #include "BsBinarySerializer.h"
 #include "BsBinaryDiff.h"
+#include "BsSceneManager.h"
 
 namespace bs
 {
@@ -114,7 +115,7 @@ namespace bs
 			BinarySerializer bs;
 			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeFromIntermediate(addedComponentData));
 
-			object->addComponentInternal(component);
+			object->addAndInitializeComponent(component);
 		}
 
 		for (auto& addedChildData : diff->addedChildren)
@@ -122,6 +123,9 @@ namespace bs
 			BinarySerializer bs;
 			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeFromIntermediate(addedChildData));
 			sceneObject->setParent(object);
+
+			if(object->isInstantiated())
+				sceneObject->_instantiate();
 		}
 
 		for (auto& componentDiff : diff->componentDiffs)

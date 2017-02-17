@@ -513,18 +513,7 @@ namespace bs
 			GameObjectHandle<T> newComponent =
 				GameObjectManager::instance().registerObject(gameObject);
 
-			newComponent->mThisHandle = newComponent;
-			mComponents.push_back(newComponent);
-
-			if (isInstantiated())
-			{
-				newComponent->_instantiate();
-				newComponent->onInitialized();
-
-				if (getActive())
-					newComponent->onEnabled();
-			}
-
+			addAndInitializeComponent(newComponent);
 			return newComponent;
 		}
 
@@ -653,6 +642,12 @@ namespace bs
 
 		/**	Adds the component to the internal component array. */
 		void addComponentInternal(const SPtr<Component> component);
+
+		/**	Adds the component to the internal component array, and initializes it. */
+		void addAndInitializeComponent(const HComponent& component);
+
+		/**	Adds the component to the internal component array, and initializes it. */
+		void addAndInitializeComponent(const SPtr<Component> component);
 
 		Vector<HComponent> mComponents;
 

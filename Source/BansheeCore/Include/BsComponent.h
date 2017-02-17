@@ -12,7 +12,34 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Components represent primary logic elements in the scene. They are attached to scene objects. */
+	/** Flags that control behavior of a Component. */
+	enum class ComponentFlag
+	{
+		AlwaysRun = 1 /**< Ensures that scene manager cannot pause or stop component callbacks from executing. Off by default. */
+	};
+
+	typedef Flags<ComponentFlag> ComponentFlags;
+	BS_FLAGS_OPERATORS(ComponentFlag)
+
+	/** 
+	 * Components represent primary logic elements in the scene. They are attached to scene objects. 
+	 *
+	 * You should implement some or all of update/onCreated/onInitialized/onEnabled/onDisabled/onTransformChanged/
+	 * onDestroyed methods to implement the relevant component logic. Avoid putting logic in constructors or destructors.
+	 *
+	 * Components can be in different states. These states control which of the events listed above trigger:
+	 *  - Running - Scene manager is sending out events.  
+	 *  - Paused - Scene manager is sending out all events except per-frame update(). 
+	 *	- Stopped - Scene manager is not sending out events except for onCreated/onDestroyed.
+	 *	
+	 * These states can be changed globally though SceneManager and affect all components. Individual components can
+	 * override these states in two ways:
+	 *  - Set the ComponentFlag::AlwaysRun to true and the component will always stay in Running state, regardless of
+	 *    state set in SceneManager. This flag should be set in constructor and not change during component lifetime.
+	 *  - If the component's parent SceneObject is inactive (SceneObject::setActive(false)), or any of his parents are
+	 *    inactive, then the component is considered to be in Stopped state, regardless whether the ComponentFlag::AlwaysRun
+	 *    flag is set or not.
+	 **/
 	class BS_CORE_EXPORT Component : public GameObject
 	{
 	public:
@@ -25,11 +52,7 @@ namespace bs
 		/**	Returns a handle to this object. */
 		HComponent getHandle() const { return mThisHandle; }
 
-		/**
-		 * Called once per frame on all components.
-		 * 			
-		 * @note	Internal method.
-		 */
+		/** Called once per frame. Only called if the component is in Running state. */
 		virtual void update() { }
 
 		/**
@@ -76,29 +99,58 @@ namespace bs
 
 		/** @} */
 	protected:
+		friend class SceneManager;
 		friend class SceneObject;
 		friend class SceneObjectRTTI;
 
 		Component(const HSceneObject& parent);
 		virtual ~Component();
 
-		/**	Called when the component is ready to be initialized. */
+		/** Called once when the component has been created. Called regardless of the state the component is in. */
+		virtual void onCreated() {}
+
+		/**	
+		 * Called once when the component first leaves the Stopped state. This includes component creation if requirements
+		 * for leaving Stopped state are met, in which case it is called after onCreated. 
+		 */
 		virtual void onInitialized() {}
 
-		/**	Called just before the component is destroyed. */
+		/**	Called once just before the component is destroyed. Called regardless of the state the component is in. */
 		virtual void onDestroyed() {}
 
-		/**	Called just before the component is deactivated or destroyed. */
+		/**	
+		 * Called every time a component is placed into the Stopped state. This includes component destruction if component
+		 * wasn't already in Stopped state during destruction. When called during destruction it is called before
+		 * onDestroyed. 
+		 */
 		virtual void onDisabled() {}
 
-		/**	Called when the component is activated or created. */
+		/**	
+		 * Called every time a component leaves the Stopped state. This includes component creation if requirements
+		 * for leaving the Stopped state are met. When called during creation it is called after onInitialized. 
+		 */
 		virtual void onEnabled() {}
 
-		/** Called when the component's parent scene object has changed. */
+		/** 
+		 * Called when the component's parent scene object has changed. Not called if the component is in Stopped state. 
+		 * Also only called if necessary notify flags are set via _setNotifyFlags().
+		 */
 		virtual void onTransformChanged(TransformChangedFlags flags) { }
 
 		/** Checks whether the component wants to received the specified transform changed message. */
 		bool supportsNotify(TransformChangedFlags flags) const { return (mNotifyFlags & flags) != 0; }
+
+		/** Enables or disabled a flag controlling component's behaviour. */
+		void setFlag(ComponentFlag flag, bool enabled) { enabled ? mFlags.set(flag) : mFlags.unset(flag); }
+
+		/** Checks if the component has a certain flag enabled. */
+		bool hasFlag(ComponentFlag flag) const { return mFlags.isSet(flag); }
+
+		/** Sets an index that uniquely identifies a component with the SceneManager. */
+		void setSceneManagerIdx(UINT32 idx) { mSceneManagerIdx = idx; }
+
+		/** Returns an index that unique identifies a component with the SceneManager. */
+		UINT32 getSceneManagerIdx() const { return mSceneManagerIdx; }
 
 		/**
 		 * Destroys this component.
@@ -116,6 +168,8 @@ namespace bs
 	protected:
 		HComponent mThisHandle;
 		TransformChangedFlags mNotifyFlags;
+		ComponentFlags mFlags;
+		UINT32 mSceneManagerIdx;
 
 	private:
 		HSceneObject mParent;

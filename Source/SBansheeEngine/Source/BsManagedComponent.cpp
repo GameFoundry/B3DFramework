@@ -18,16 +18,17 @@ namespace bs
 {
 	ManagedComponent::ManagedComponent()
 		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0), mRunInEditor(false)
-		, mRequiresReset(true), mMissingType(false), mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr)
-		, mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr)
-		, mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
+		, mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr), mOnInitializedThunk(nullptr)
+		, mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr)
+		, mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
 	{ }
 
 	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
 		: Component(parent), mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(runtimeType)
-		, mManagedHandle(0), mRunInEditor(false), mRequiresReset(true), mMissingType(false), mOnInitializedThunk(nullptr)
-		, mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr)
-		, mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
+		, mManagedHandle(0), mRunInEditor(false), mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr)
+		, mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr)
+		, mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr)
+		, mCalculateBoundsMethod(nullptr)
 	{
 		MonoUtil::getClassName(mRuntimeType, mNamespace, mTypeName);
 		setName(mTypeName);
@@ -87,6 +88,7 @@ namespace bs
 
 			mManagedClass = nullptr;
 			mRuntimeType = nullptr;
+			mOnCreatedThunk = nullptr;
 			mOnInitializedThunk = nullptr;
 			mOnUpdateThunk = nullptr;
 			mOnDestroyThunk = nullptr;
@@ -145,6 +147,7 @@ namespace bs
 			mManagedClass = MonoManager::instance().findClass(monoClass);
 		}
 
+		mOnCreatedThunk = nullptr;
 		mOnInitializedThunk = nullptr;
 		mOnUpdateThunk = nullptr;
 		mOnResetThunk = nullptr;
@@ -156,6 +159,13 @@ namespace bs
 
 		while(mManagedClass != nullptr)
 		{
+			if (mOnCreatedThunk == nullptr)
+			{
+				MonoMethod* onCreatedMethod = mManagedClass->getMethod("OnCreate", 0);
+				if (onCreatedMethod != nullptr)
+					mOnCreatedThunk = (OnInitializedThunkDef)onCreatedMethod->getThunk();
+			}
+
 			if (mOnInitializedThunk == nullptr)
 			{
 				MonoMethod* onInitializedMethod = mManagedClass->getMethod("OnInitialize", 0);
@@ -362,7 +372,7 @@ namespace bs
 		ScriptGameObjectManager::instance().createManagedScriptComponent(mManagedInstance, componentHandle);
 	}
 
-	void ManagedComponent::onInitialized()
+	void ManagedComponent::onCreated()
 	{
 		assert(mManagedInstance != nullptr);
 
@@ -371,6 +381,20 @@ namespace bs
 			mSerializedObjectData->deserialize(mManagedInstance, mObjInfo);
 			mSerializedObjectData = nullptr;
 		}
+
+		if (mOnCreatedThunk != nullptr)
+		{
+			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
+			// for some extra speed.
+			MonoUtil::invokeThunk(mOnCreatedThunk, mManagedInstance);
+		}
+
+		triggerOnReset();
+	}
+
+	void ManagedComponent::onInitialized()
+	{
+		assert(mManagedInstance != nullptr);
 
 		triggerOnInitialize();
 		triggerOnReset();

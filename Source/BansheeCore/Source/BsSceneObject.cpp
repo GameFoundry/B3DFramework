@@ -93,12 +93,7 @@ namespace bs
 				component->_setIsDestroyed();
 
 				if (isInstantiated())
-				{
-					if (getActive())
-						component->onDisabled();
-
-					component->onDestroyed();
-				}
+					gSceneManager()._notifyComponentDestroyed(component);
 
 				component->destroyInternal(component, true);
 				mComponents.erase(mComponents.end() - 1);
@@ -221,12 +216,7 @@ namespace bs
 		std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
 		{
 			for (auto& component : obj->mComponents)
-			{
-				component->onInitialized();
-
-				if (obj->getActive())
-					component->onEnabled();
-			}
+				gSceneManager()._notifyComponentCreated(component, obj->getActive());
 
 			for (auto& child : obj->mChildren)
 			{
@@ -449,7 +439,11 @@ namespace bs
 		for(auto& entry : mComponents)
 		{
 			if (entry->supportsNotify(flags))
-				entry->onTransformChanged(flags);
+			{
+				bool alwaysRun = entry->hasFlag(ComponentFlag::AlwaysRun);
+				if(alwaysRun || gSceneManager().isRunning())
+					entry->onTransformChanged(flags);
+			}
 		}
 
 		for (auto& entry : mChildren)
@@ -665,12 +659,12 @@ namespace bs
 				if (activeHierarchy)
 				{
 					for (auto& component : mComponents)
-						component->onEnabled();
+						gSceneManager()._notifyComponentActivated(component, triggerEvents);
 				}
 				else
 				{
 					for (auto& component : mComponents)
-						component->onDisabled();
+						gSceneManager()._notifyComponentDeactivated(component, triggerEvents);
 				}
 			}
 		}
@@ -741,12 +735,7 @@ namespace bs
 			(*iter)->_setIsDestroyed();
 
 			if (isInstantiated())
-			{
-				if (getActive())
-					component->onDisabled();
-
-				(*iter)->onDestroyed();
-			}
+				gSceneManager()._notifyComponentDestroyed(*iter);
 			
 			(*iter)->destroyInternal(*iter, immediate);
 			mComponents.erase(iter);
@@ -784,20 +773,9 @@ namespace bs
 
 		SPtr<Component> componentPtr = std::static_pointer_cast<Component>(newObj);
 		HComponent newComponent = GameObjectManager::instance().registerObject(componentPtr);
-
 		newComponent->mParent = mThisHandle;
-		newComponent->mThisHandle = newComponent;
-		mComponents.push_back(newComponent);
 
-		if (isInstantiated())
-		{
-			newComponent->_instantiate();
-			newComponent->onInitialized();
-
-			if (getActive())
-				newComponent->onEnabled();
-		}
-
+		addAndInitializeComponent(newComponent);
 		return newComponent;
 	}
 
@@ -808,6 +786,27 @@ namespace bs
 		newComponent->mThisHandle = newComponent;
 
 		mComponents.push_back(newComponent);
+	}
+
+	void SceneObject::addAndInitializeComponent(const HComponent& component)
+	{
+		component->mThisHandle = component;
+		mComponents.push_back(component);
+
+		if (isInstantiated())
+		{
+			component->_instantiate();
+
+			gSceneManager()._notifyComponentCreated(component, getActive());
+		}
+	}
+
+	void SceneObject::addAndInitializeComponent(const SPtr<Component> component)
+	{
+		GameObjectHandle<Component> newComponent = GameObjectManager::instance().getObject(component->getInstanceId());
+		newComponent->mParent = mThisHandle;
+
+		addAndInitializeComponent(newComponent);
 	}
 
 	RTTITypeBase* SceneObject::getRTTIStatic()

@@ -229,29 +229,234 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_update()
+	void SceneManager::setComponentState(ComponentState state)
 	{
-		Stack<HSceneObject> todo;
-		todo.push(mRootNode);
+		if (mComponentState == state)
+			return;
 
-		while(!todo.empty())
+		// Wake up all components with onInitialize/onEnable events if moving to running or paused state
+		if(state == ComponentState::Running || state == ComponentState::Paused)
 		{
-			HSceneObject currentGO = todo.top();
-			todo.pop();
-
-			if (!currentGO->getActive(true))
-				continue;
-			                  
-			const Vector<HComponent>& components = currentGO->getComponents();
-
-			for(auto iter = components.begin(); iter != components.end(); ++iter)
+			if(mComponentState == ComponentState::Stopped)
 			{
-				(*iter)->update();
+				// Trigger enable on all components that don't have AlwaysRun flag (at this point those will be all
+				// inactive components that have active scene object parents)
+				for(auto& entry : mInactiveComponents)
+				{
+					if (entry->sceneObject()->getActive())
+						entry->onEnabled();
+				}
+
+				// Initialize and enable uninitialized components
+				for(auto& entry : mUnintializedComponents)
+				{
+					entry->onInitialized();
+
+					if (entry->sceneObject()->getActive())
+					{
+						entry->onEnabled();
+
+						UINT32 idx = (UINT32)mActiveComponents.size();
+						mActiveComponents.push_back(entry);
+
+						entry->setSceneManagerIdx(idx);
+					}
+					else
+					{
+						UINT32 idx = (UINT32)mInactiveComponents.size();
+						mInactiveComponents.push_back(entry);
+
+						entry->setSceneManagerIdx(idx);
+					}
+				}
+
+				mUnintializedComponents.clear();
+			}
+		}
+
+		// Start updates on all active components
+		if (state == ComponentState::Running)
+		{
+			// Move from inactive to active list
+			for(INT32 i = 0; i < (INT32)mInactiveComponents.size(); i++)
+			{
+				HComponent component = mInactiveComponents[i];
+				if (!component->sceneObject()->getActive())
+					continue;
+				
+				removeFromInactiveList(component);
+				i--; // Keep the same index next iteration to process the component we just swapped
+
+				UINT32 activeIdx = (UINT32)mActiveComponents.size();
+				mActiveComponents.push_back(component);
+
+				component->setSceneManagerIdx(activeIdx);
+			}
+		}
+		// Stop updates on all active components
+		else if(state == ComponentState::Paused || state == ComponentState::Stopped)
+		{
+			// Trigger onDisable events if stopping
+			if (state == ComponentState::Stopped)
+			{
+				for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
+				{
+					HComponent component = mActiveComponents[i];
+
+					bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+					if (alwaysRun)
+						continue;
+
+					component->onDisabled();
+				}
 			}
 
-			for(UINT32 i = 0; i < currentGO->getNumChildren(); i++)
-				todo.push(currentGO->getChild(i));
+			// Move from active to inactive list
+			for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
+			{
+				HComponent component = mActiveComponents[i];
+
+				bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+				if (alwaysRun)
+					continue;
+
+				removeFromActiveList(component);
+				i--; // Keep the same index next iteration to process the component we just swapped
+
+				UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
+				mInactiveComponents.push_back(component);
+
+				component->setSceneManagerIdx(inactiveIdx);
+			}
 		}
+
+		mComponentState = state;
+	}
+
+	void SceneManager::_notifyComponentCreated(const HComponent& component, bool parentActive)
+	{
+		component->onCreated();
+		
+		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		if(alwaysRun || mComponentState != ComponentState::Stopped)
+		{
+			component->onInitialized();
+
+			if (parentActive)
+			{
+				component->onEnabled();
+
+				UINT32 idx = (UINT32)mActiveComponents.size();
+				mActiveComponents.push_back(component);
+
+				component->setSceneManagerIdx(idx);
+			}
+			else
+			{
+				UINT32 idx = (UINT32)mInactiveComponents.size();
+				mInactiveComponents.push_back(component);
+
+				component->setSceneManagerIdx(idx);
+			}
+		}
+		else // Stopped
+		{
+			mUnintializedComponents.push_back(component);
+		}
+	}
+
+	void SceneManager::_notifyComponentActivated(const HComponent& component, bool triggerEvent)
+	{
+		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+
+		if (alwaysRun || mComponentState == ComponentState::Running || mComponentState == ComponentState::Paused)
+		{
+			if (triggerEvent)
+				component->onEnabled();
+
+			removeFromInactiveList(component);
+
+			UINT32 activeIdx = (UINT32)mActiveComponents.size();
+			mActiveComponents.push_back(component);
+
+			component->setSceneManagerIdx(activeIdx);
+		}
+	}
+
+	void SceneManager::_notifyComponentDeactivated(const HComponent& component, bool triggerEvent)
+	{
+		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+
+		if (alwaysRun || mComponentState == ComponentState::Running || mComponentState == ComponentState::Paused)
+		{
+			if (triggerEvent)
+				component->onDisabled();
+
+			removeFromActiveList(component);
+
+			UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
+			mInactiveComponents.push_back(component);
+
+			component->setSceneManagerIdx(inactiveIdx);
+		}
+	}
+
+	void SceneManager::_notifyComponentDestroyed(const HComponent& component)
+	{
+		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		bool isActive = component->sceneObject()->getActive() && (alwaysRun || mComponentState == ComponentState::Running);
+		bool isEnabled = component->sceneObject()->getActive() && (alwaysRun || mComponentState != ComponentState::Stopped);
+
+		if (isActive)
+			removeFromActiveList(component);
+		else
+			removeFromInactiveList(component);
+
+		if (isEnabled)
+			component->onDisabled();
+		
+		component->onDestroyed();
+	}
+
+	void SceneManager::removeFromActiveList(const HComponent& component)
+	{
+		UINT32 activeIdx = component->getSceneManagerIdx();
+		UINT32 lastActiveIdx = mActiveComponents.back()->getSceneManagerIdx();
+
+		assert(mActiveComponents[activeIdx] == component);
+
+		if (activeIdx != lastActiveIdx)
+		{
+			std::swap(mActiveComponents[activeIdx], mActiveComponents[lastActiveIdx]);
+			mActiveComponents[activeIdx]->setSceneManagerIdx(activeIdx);
+		}
+
+		mActiveComponents.erase(mActiveComponents.end() - 1);
+	}
+
+	void SceneManager::removeFromInactiveList(const HComponent& component)
+	{
+		UINT32 inactiveIdx = component->getSceneManagerIdx();
+		UINT32 lastInactiveIdx = mInactiveComponents.back()->getSceneManagerIdx();
+
+		assert(mInactiveComponents[inactiveIdx] == component);
+
+		if (inactiveIdx != lastInactiveIdx)
+		{
+			std::swap(mInactiveComponents[inactiveIdx], mInactiveComponents[lastInactiveIdx]);
+			mInactiveComponents[inactiveIdx]->setSceneManagerIdx(inactiveIdx);
+		}
+
+		mInactiveComponents.erase(mInactiveComponents.end() - 1);
+	}
+
+	void SceneManager::_update()
+	{
+		// Note: Eventually perform updates based on component types and/or on component priority. Right now we just
+		// iterate in an undefined order, but it wouldn't be hard to change it.
+
+		for (auto& entry : mActiveComponents)
+			entry->update();
 
 		GameObjectManager::instance().destroyQueuedObjects();
 	}

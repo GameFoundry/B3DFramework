@@ -84,6 +84,7 @@ namespace bs
 		 */
 		void initialize(MonoObject* object);
 
+		typedef void(__stdcall *OnCreatedThunkDef) (MonoObject*, MonoException**);
 		typedef void(__stdcall *OnInitializedThunkDef) (MonoObject*, MonoException**);
 		typedef void(__stdcall *OnUpdateThunkDef) (MonoObject*, MonoException**);
 		typedef void(__stdcall *OnDestroyedThunkDef) (MonoObject*, MonoException**);
@@ -107,6 +108,7 @@ namespace bs
 		SPtr<ManagedSerializableObject> mSerializedObjectData;
 		SPtr<ManagedSerializableObjectInfo> mObjInfo; // Transient
 
+		OnCreatedThunkDef mOnCreatedThunk;
 		OnInitializedThunkDef mOnInitializedThunk;
 		OnUpdateThunkDef mOnUpdateThunk;
 		OnResetThunkDef mOnResetThunk;
@@ -128,6 +130,9 @@ namespace bs
 
 		/** @copydoc Component::_instantiate */
 		void _instantiate() override;
+
+		/** @copydoc Component::onCreated */
+		void onCreated() override;
 
 		/** @copydoc Component::onInitialized */
 		void onInitialized() override;
@@ -160,7 +165,7 @@ namespace bs
 	public:
 		friend class ManagedComponentRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 
 	protected:
 		ManagedComponent(); // Serialization only

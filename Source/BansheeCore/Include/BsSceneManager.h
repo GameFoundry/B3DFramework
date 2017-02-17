@@ -51,6 +51,14 @@ namespace bs
 		HSceneObject sceneObject;
 	};
 
+	/** Possible states components can be in. Controls which component callbacks are triggered. */
+	enum class ComponentState
+	{
+		Running, /**< All components callbacks are being triggered normally. */
+		Paused, /**< All component callbacks except update are being triggered normally. */
+		Stopped /**< No component callbacks are being triggered. */
+	};
+
 	/** Manages active SceneObjects and provides ways for querying and updating them or their components. */
 	class BS_CORE_EXPORT SceneManager : public Module<SceneManager>
 	{
@@ -67,6 +75,15 @@ namespace bs
 		 * @param[in]	forceAll	If true, then even the persistent objects will be unloaded.
 		 */
 		void clearScene(bool forceAll = false);
+
+		/** 
+		 * Changes the component state that globally determines which component callbacks are activated. Only affects
+		 * components that don't have the ComponentFlag::AlwaysRun flag set. 
+		 */
+		void setComponentState(ComponentState state);
+
+		/** Checks are the components currently in the Running state. */
+		bool isRunning() const { return mComponentState == ComponentState::Running; }
 
 		/** Returns all cameras in the scene. */
 		const Map<Camera*, SceneCameraData>& getAllCameras() const { return mCameras; }
@@ -116,6 +133,24 @@ namespace bs
 		/** Updates dirty transforms on any core objects that may be tied with scene objects. */
 		void _updateCoreObjectTransforms();
 
+		/** Notifies the manager that a new component has just been created. The manager triggers necessary callbacks. */
+		void _notifyComponentCreated(const HComponent& component, bool parentActive);
+
+		/** 
+		 * Notifies the manager that a scene object the component belongs to was activated. The manager triggers necessary
+		 * callbacks. 
+		 */
+		void _notifyComponentActivated(const HComponent& component, bool triggerEvent);
+
+		/** 
+		 * Notifies the manager that a scene object the component belongs to was deactivated. The manager triggers necessary
+		 * callbacks. 
+		 */
+		void _notifyComponentDeactivated(const HComponent& component, bool triggerEvent);
+
+		/** Notifies the manager that a component is about to be destroyed. The manager triggers necessary callbacks. */
+		void _notifyComponentDestroyed(const HComponent& component);
+
 	protected:
 		friend class SceneObject;
 
@@ -135,6 +170,12 @@ namespace bs
 		/**	Callback that is triggered when the main render target size is changed. */
 		void onMainRenderTargetResized();
 
+		/** Removes a component from the active component list. */
+		void removeFromActiveList(const HComponent& component);
+
+		/** Removes a component from the inactive component list. */
+		void removeFromInactiveList(const HComponent& component);
+
 	protected:
 		HSceneObject mRootNode;
 
@@ -144,8 +185,14 @@ namespace bs
 		Map<Renderable*, SceneRenderableData> mRenderables;
 		Map<Light*, SceneLightData> mLights;
 
+		Vector<HComponent> mActiveComponents;
+		Vector<HComponent> mInactiveComponents;
+		Vector<HComponent> mUnintializedComponents;
+
 		SPtr<RenderTarget> mMainRT;
 		HEvent mMainRTResizedConn;
+
+		ComponentState mComponentState = ComponentState::Running;
 	};
 
 	/**	Provides easy access to the SceneManager. */

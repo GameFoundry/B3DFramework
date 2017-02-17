@@ -15,6 +15,7 @@ namespace bs
 		:Component(parent)
 	{
 		setName("Renderable");
+		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
 	void CRenderable::setMesh(HMesh mesh)

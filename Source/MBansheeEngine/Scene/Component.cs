@@ -103,7 +103,9 @@ namespace BansheeEngine
     ///
     /// Implementations of <see cref="ManagedComponent"/> can implement a set of callbacks that will be called by the
     /// runtime at specified occassions:
-    /// void OnInitialize() - Called once when the component is instantiated. Only called when the game is playing.
+    /// void OnCreate() - Called once when the component is instantiated. 
+    /// void OnInitialize() - Called once when the component is first enabled. In case this is during instantiation, it is
+    ///                       called after OnCreate. Only called when the game is playing.
     /// void OnUpdate() - Called every frame while the game is running and the component is enabled.
     /// void OnEnable() - Called whenever a component is enabled, or instantiated as enabled in which case it is called 
     ///                   after OnInitialize. Only called when the game is playing.
@@ -115,7 +117,8 @@ namespace BansheeEngine
     ///                  initialization it is called after OnInitialize but before OnEnable. Only relevant in editor.
     /// void OnTransformChanged(TransformChangedFlags) - Called when the transform of the owning scene object changes.
     ///                                                  When and if this gets triggered depends on 
-    ///                                                  <see cref="Component.NotifyFlags"/>.
+    ///                                                  <see cref="Component.NotifyFlags"/>. Only called while game is
+    ///                                                  playing.
     ///
     /// You can also make these callbacks trigger when the game is stopped/paused by using the <see cref="RunInEditor"/>
     /// attribute on the component.
