@@ -141,9 +141,12 @@ namespace bs
 			entry.newInstance->mLinkId = entry.originalLinkId;
 		}
 
-		// Finally, instantiate everything
-		for (auto& entry : newPrefabInstanceData)
-			entry.newInstance->_instantiate(true);
+		// Finally, instantiate everything if the top scene object is live (instantiated)
+		if (topLevelObject->isInstantiated())
+		{
+			for (auto& entry : newPrefabInstanceData)
+				entry.newInstance->_instantiate(true);
+		}
 
 		gResources().unloadAllUnused();
 	}
