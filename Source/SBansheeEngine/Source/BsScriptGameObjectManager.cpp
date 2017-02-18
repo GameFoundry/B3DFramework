@@ -193,28 +193,6 @@ namespace bs
 		}
 	}
 
-	void ScriptGameObjectManager::wakeRuntimeComponents()
-	{
-		for (auto& scriptObjectEntry : mScriptComponents)
-		{
-			ScriptComponentBase* scriptComponent = scriptObjectEntry.second;
-			HComponent component = scriptComponent->getNativeHandle();
-
-			if (component->getRTTI()->getRTTIId() == TID_ManagedComponent)
-			{
-				HManagedComponent managedComponent = static_object_cast<ManagedComponent>(component);
-
-				if (managedComponent.isDestroyed() || managedComponent->runInEditor())
-					continue;
-
-				managedComponent->triggerOnInitialize();
-
-				if (component->SO()->getActive())
-					managedComponent->triggerOnEnable();
-			}
-		}
-	}
-
 	void ScriptGameObjectManager::onGameObjectDestroyed(const HGameObject& go)
 	{
 		UINT64 instanceId = go.getInstanceId();

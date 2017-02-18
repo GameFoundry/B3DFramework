@@ -176,6 +176,18 @@ namespace bs
 		/** Removes a component from the inactive component list. */
 		void removeFromInactiveList(const HComponent& component);
 
+		/** Removes a component from the uninitialized component list. */
+		void removeFromUninitializedList(const HComponent& component);
+
+		/** 
+		 * Encodes an index and a type into a single 32-bit integer. Top 2 bits represent the type, while the rest represent
+		 * the index.
+		 */
+		UINT32 encodeComponentId(UINT32 idx, UINT32 type);
+
+		/** Decodes an id encoded with encodeComponentId(). */
+		void decodeComponentId(UINT32 id, UINT32& idx, UINT32& type);
+
 	protected:
 		HSceneObject mRootNode;
 

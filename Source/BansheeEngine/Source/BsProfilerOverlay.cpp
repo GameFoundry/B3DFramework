@@ -294,6 +294,7 @@ namespace bs
 	ProfilerOverlay::ProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target)
 		:Component(parent), mInternal(nullptr)
 	{
+		setFlag(ComponentFlag::AlwaysRun, true);
 		mInternal = bs_new<ProfilerOverlayInternal>(target);
 	}
 

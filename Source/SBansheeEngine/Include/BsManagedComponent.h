@@ -41,9 +41,6 @@ namespace bs
 		/**	Returns namespace and type name of the component in format "namespace.typename". */
 		const String& getManagedFullTypeName() const { return mFullTypeName; }
 
-		/** Returns true if the component is allowed to run when the game is not playing .*/
-		bool runInEditor() const { return mRunInEditor; }
-
 		/**
 		 * Serializes the internal managed component.
 		 *
@@ -67,14 +64,8 @@ namespace bs
 		 */
 		void restore(MonoObject* instance, const ComponentBackupData& data, bool missingType);
 
-		/**	Triggers the managed OnInitialize callback. */
-		void triggerOnInitialize();
-
 		/**	Triggers the managed OnReset callback. */
 		void triggerOnReset();
-
-		/**	Triggers the managed OnEnable callback. */
-		void triggerOnEnable();
 
 	private:
 		/**
@@ -101,7 +92,6 @@ namespace bs
 		String mNamespace;
 		String mTypeName;
 		String mFullTypeName;
-		bool mRunInEditor;
 		bool mRequiresReset;
 
 		bool mMissingType;

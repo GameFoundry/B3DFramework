@@ -17,7 +17,7 @@
 namespace bs
 {
 	ManagedComponent::ManagedComponent()
-		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0), mRunInEditor(false)
+		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0)
 		, mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr), mOnInitializedThunk(nullptr)
 		, mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr)
 		, mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
@@ -25,7 +25,7 @@ namespace bs
 
 	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
 		: Component(parent), mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(runtimeType)
-		, mManagedHandle(0), mRunInEditor(false), mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr)
+		, mManagedHandle(0), mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr)
 		, mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr)
 		, mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr)
 		, mCalculateBoundsMethod(nullptr)
@@ -236,10 +236,10 @@ namespace bs
 			if (runInEditorAttrib == nullptr)
 				BS_EXCEPT(InvalidStateException, "Cannot find RunInEditor managed class.");
 
-			mRunInEditor = mManagedClass->getAttribute(runInEditorAttrib) != nullptr;
+			bool runInEditor = mManagedClass->getAttribute(runInEditorAttrib) != nullptr;
+			if (runInEditor)
+				setFlag(ComponentFlag::AlwaysRun, true);
 		}
-		else
-			mRunInEditor = false;
 	}
 
 	bool ManagedComponent::typeEquals(const Component& other)
@@ -280,9 +280,6 @@ namespace bs
 
 	void ManagedComponent::update()
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing && !mRunInEditor)
-			return;
-
 		assert(mManagedInstance != nullptr);
 
 		if (mOnUpdateThunk != nullptr)
@@ -290,19 +287,6 @@ namespace bs
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
 			MonoUtil::invokeThunk(mOnUpdateThunk, mManagedInstance);
-		}
-	}
-
-	void ManagedComponent::triggerOnInitialize()
-	{
-		if (PlayInEditorManager::instance().getState() == PlayInEditorState::Stopped && !mRunInEditor)
-			return;
-
-		if (mOnInitializedThunk != nullptr)
-		{
-			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
-			// for some extra speed.
-			MonoUtil::invokeThunk(mOnInitializedThunk, mManagedInstance);
 		}
 	}
 
@@ -318,21 +302,6 @@ namespace bs
 		}
 
 		mRequiresReset = false;
-	}
-
-	void ManagedComponent::triggerOnEnable()
-	{
-		if (PlayInEditorManager::instance().getState() == PlayInEditorState::Stopped && !mRunInEditor)
-			return;
-
-		assert(mManagedInstance != nullptr);
-
-		if (mOnEnabledThunk != nullptr)
-		{
-			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
-			// for some extra speed.
-			MonoUtil::invokeThunk(mOnEnabledThunk, mManagedInstance);
-		}
 	}
 
 	void ManagedComponent::_instantiate()
@@ -396,7 +365,13 @@ namespace bs
 	{
 		assert(mManagedInstance != nullptr);
 
-		triggerOnInitialize();
+		if (mOnInitializedThunk != nullptr)
+		{
+			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
+			// for some extra speed.
+			MonoUtil::invokeThunk(mOnInitializedThunk, mManagedInstance);
+		}
+
 		triggerOnReset();
 	}
 
@@ -417,14 +392,18 @@ namespace bs
 
 	void ManagedComponent::onEnabled()
 	{
-		triggerOnEnable();
+		assert(mManagedInstance != nullptr);
+
+		if (mOnEnabledThunk != nullptr)
+		{
+			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
+			// for some extra speed.
+			MonoUtil::invokeThunk(mOnEnabledThunk, mManagedInstance);
+		}
 	}
 
 	void ManagedComponent::onDisabled()
 	{
-		if (PlayInEditorManager::instance().getState() == PlayInEditorState::Stopped && !mRunInEditor)
-			return;
-
 		assert(mManagedInstance != nullptr);
 
 		if (mOnDisabledThunk != nullptr)
@@ -437,9 +416,6 @@ namespace bs
 
 	void ManagedComponent::onTransformChanged(TransformChangedFlags flags)
 	{
-		if (PlayInEditorManager::instance().getState() == PlayInEditorState::Stopped && !mRunInEditor)
-			return;
-
 		if(mOnTransformChangedThunk != nullptr)
 		{
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this

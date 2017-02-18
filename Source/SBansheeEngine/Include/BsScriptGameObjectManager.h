@@ -97,12 +97,6 @@ namespace bs
 		/**	Destroys and unregisters the specified ManagedComponent interop object. */
 		void destroyScriptComponent(ScriptComponentBase* component);
 
-		/** 
-		 * Sends OnInitialize/OnEnable events to all components that run only while the game is playing (ones without 
-		 * RunInEditor attribute). 
-		 */
-		void wakeRuntimeComponents();
-
 	private:
 		/**
 		 * Triggers OnReset methods on all registered managed components.

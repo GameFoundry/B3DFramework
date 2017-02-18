@@ -19,7 +19,10 @@ namespace bs
 		if (!gApplication().isEditor())
 			mState = PlayInEditorState::Playing;
 		else
+		{
 			setSystemsPauseState(true);
+			gSceneManager().setComponentState(ComponentState::Stopped);
+		}
 	}
 
 	void PlayInEditorManager::setState(PlayInEditorState state)
@@ -50,19 +53,19 @@ namespace bs
 
 			setSystemsPauseState(true);
 
+			gSceneManager().setComponentState(ComponentState::Stopped);
 			mSavedScene->_instantiate();
 			gSceneManager()._setRootNode(mSavedScene);
+
 			mSavedScene = nullptr;
 		}
 			break;
 		case PlayInEditorState::Playing:
 		{
 			if (oldState == PlayInEditorState::Stopped)
-			{
 				saveSceneInMemory();
-				ScriptGameObjectManager::instance().wakeRuntimeComponents();
-			}
 
+			gSceneManager().setComponentState(ComponentState::Running);
 			setSystemsPauseState(false);
 			gAnimation().setPaused(false);
 		}
@@ -74,10 +77,9 @@ namespace bs
 			gAnimation().setPaused(true);
 
 			if (oldState == PlayInEditorState::Stopped)
-			{
 				saveSceneInMemory();
-				ScriptGameObjectManager::instance().wakeRuntimeComponents();
-			}
+
+			gSceneManager().setComponentState(ComponentState::Paused);
 		}
 			break;
 		default:

@@ -11,6 +11,7 @@ namespace bs
 		: Component(parent), mType(type), mColor(color), mIntensity(intensity), mRange(range),
 		mCastsShadows(castsShadows), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle)
 	{
+		setFlag(ComponentFlag::AlwaysRun, true);
 		setName("Light");
 	}
 

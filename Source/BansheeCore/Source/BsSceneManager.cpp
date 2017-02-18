@@ -12,6 +12,13 @@
 
 namespace bs
 {
+	enum ListType
+	{
+		ActiveList = 0,
+		InactiveList = 1,
+		UninitializedList = 2
+	};
+
 	SceneManager::SceneManager()
 	{
 		mRootNode = SceneObject::createInternal("SceneRoot");
@@ -259,14 +266,14 @@ namespace bs
 						UINT32 idx = (UINT32)mActiveComponents.size();
 						mActiveComponents.push_back(entry);
 
-						entry->setSceneManagerIdx(idx);
+						entry->setSceneManagerId(encodeComponentId(idx, ActiveList));
 					}
 					else
 					{
 						UINT32 idx = (UINT32)mInactiveComponents.size();
 						mInactiveComponents.push_back(entry);
 
-						entry->setSceneManagerIdx(idx);
+						entry->setSceneManagerId(encodeComponentId(idx, InactiveList));
 					}
 				}
 
@@ -290,7 +297,7 @@ namespace bs
 				UINT32 activeIdx = (UINT32)mActiveComponents.size();
 				mActiveComponents.push_back(component);
 
-				component->setSceneManagerIdx(activeIdx);
+				component->setSceneManagerId(encodeComponentId(activeIdx, ActiveList));
 			}
 		}
 		// Stop updates on all active components
@@ -326,7 +333,7 @@ namespace bs
 				UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
 				mInactiveComponents.push_back(component);
 
-				component->setSceneManagerIdx(inactiveIdx);
+				component->setSceneManagerId(encodeComponentId(inactiveIdx, InactiveList));
 			}
 		}
 
@@ -349,19 +356,22 @@ namespace bs
 				UINT32 idx = (UINT32)mActiveComponents.size();
 				mActiveComponents.push_back(component);
 
-				component->setSceneManagerIdx(idx);
+				component->setSceneManagerId(encodeComponentId(idx, ActiveList));
 			}
 			else
 			{
 				UINT32 idx = (UINT32)mInactiveComponents.size();
 				mInactiveComponents.push_back(component);
 
-				component->setSceneManagerIdx(idx);
+				component->setSceneManagerId(encodeComponentId(idx, InactiveList));
 			}
 		}
 		else // Stopped
 		{
+			UINT32 idx = (UINT32)mUnintializedComponents.size();
 			mUnintializedComponents.push_back(component);
+
+			component->setSceneManagerId(encodeComponentId(idx, UninitializedList));
 		}
 	}
 
@@ -379,7 +389,7 @@ namespace bs
 			UINT32 activeIdx = (UINT32)mActiveComponents.size();
 			mActiveComponents.push_back(component);
 
-			component->setSceneManagerIdx(activeIdx);
+			component->setSceneManagerId(encodeComponentId(activeIdx, ActiveList));
 		}
 	}
 
@@ -397,20 +407,34 @@ namespace bs
 			UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
 			mInactiveComponents.push_back(component);
 
-			component->setSceneManagerIdx(inactiveIdx);
+			component->setSceneManagerId(encodeComponentId(inactiveIdx, InactiveList));
 		}
 	}
 
 	void SceneManager::_notifyComponentDestroyed(const HComponent& component)
 	{
-		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
-		bool isActive = component->sceneObject()->getActive() && (alwaysRun || mComponentState == ComponentState::Running);
-		bool isEnabled = component->sceneObject()->getActive() && (alwaysRun || mComponentState != ComponentState::Stopped);
+		UINT32 listType;
+		UINT32 idx;
+		decodeComponentId(component->getSceneManagerId(), idx, listType);
 
-		if (isActive)
+		switch(listType)
+		{
+		case ActiveList:
 			removeFromActiveList(component);
-		else
+			break;
+		case InactiveList:
 			removeFromInactiveList(component);
+			break;
+		case UninitializedList:
+			removeFromUninitializedList(component);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+
+		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		bool isEnabled = component->sceneObject()->getActive() && (alwaysRun || mComponentState != ComponentState::Stopped);
 
 		if (isEnabled)
 			component->onDisabled();
@@ -420,15 +444,19 @@ namespace bs
 
 	void SceneManager::removeFromActiveList(const HComponent& component)
 	{
-		UINT32 activeIdx = component->getSceneManagerIdx();
-		UINT32 lastActiveIdx = mActiveComponents.back()->getSceneManagerIdx();
+		UINT32 listType;
+		UINT32 idx;
+		decodeComponentId(component->getSceneManagerId(), idx, listType);
 
-		assert(mActiveComponents[activeIdx] == component);
+		UINT32 lastIdx;
+		decodeComponentId(mActiveComponents.back()->getSceneManagerId(), lastIdx, listType);
 
-		if (activeIdx != lastActiveIdx)
+		assert(mActiveComponents[idx] == component);
+
+		if (idx != lastIdx)
 		{
-			std::swap(mActiveComponents[activeIdx], mActiveComponents[lastActiveIdx]);
-			mActiveComponents[activeIdx]->setSceneManagerIdx(activeIdx);
+			std::swap(mActiveComponents[idx], mActiveComponents[lastIdx]);
+			mActiveComponents[idx]->setSceneManagerId(encodeComponentId(idx, ActiveList));
 		}
 
 		mActiveComponents.erase(mActiveComponents.end() - 1);
@@ -436,18 +464,55 @@ namespace bs
 
 	void SceneManager::removeFromInactiveList(const HComponent& component)
 	{
-		UINT32 inactiveIdx = component->getSceneManagerIdx();
-		UINT32 lastInactiveIdx = mInactiveComponents.back()->getSceneManagerIdx();
+		UINT32 listType;
+		UINT32 idx;
+		decodeComponentId(component->getSceneManagerId(), idx, listType);
 
-		assert(mInactiveComponents[inactiveIdx] == component);
+		UINT32 lastIdx;
+		decodeComponentId(mInactiveComponents.back()->getSceneManagerId(), lastIdx, listType);
 
-		if (inactiveIdx != lastInactiveIdx)
+		assert(mInactiveComponents[idx] == component);
+
+		if (idx != lastIdx)
 		{
-			std::swap(mInactiveComponents[inactiveIdx], mInactiveComponents[lastInactiveIdx]);
-			mInactiveComponents[inactiveIdx]->setSceneManagerIdx(inactiveIdx);
+			std::swap(mInactiveComponents[idx], mInactiveComponents[lastIdx]);
+			mInactiveComponents[idx]->setSceneManagerId(encodeComponentId(idx, InactiveList));
 		}
 
 		mInactiveComponents.erase(mInactiveComponents.end() - 1);
+	}
+
+	void SceneManager::removeFromUninitializedList(const HComponent& component)
+	{
+		UINT32 listType;
+		UINT32 idx;
+		decodeComponentId(component->getSceneManagerId(), idx, listType);
+
+		UINT32 lastIdx;
+		decodeComponentId(mUnintializedComponents.back()->getSceneManagerId(), lastIdx, listType);
+
+		assert(mUnintializedComponents[idx] == component);
+
+		if (idx != lastIdx)
+		{
+			std::swap(mUnintializedComponents[idx], mUnintializedComponents[lastIdx]);
+			mUnintializedComponents[idx]->setSceneManagerId(encodeComponentId(idx, UninitializedList));
+		}
+
+		mUnintializedComponents.erase(mUnintializedComponents.end() - 1);
+	}
+
+	UINT32 SceneManager::encodeComponentId(UINT32 idx, UINT32 type)
+	{
+		assert(idx <= (0x3FFFFFFF));
+
+		return (type << 30) | idx;
+	}
+
+	void SceneManager::decodeComponentId(UINT32 id, UINT32& idx, UINT32& type)
+	{
+		idx = id & 0x3FFFFFFF;
+		type = id >> 30;
 	}
 
 	void SceneManager::_update()
