@@ -358,8 +358,8 @@ namespace bs
 		 *
 		 * @param[in]	info	Information about the clips to blend.
 		 * @param[in]	t		Parameter that controls the blending, in range [(0, 0), (1, 1)]. t = (0, 0) means top left
-		 *						animation has full influence, t = (0, 1) means top right animation has full influence,
-		 *						t = (1, 0) means bottom left animation has full influence, t = (1, 1) means bottom right
+		 *						animation has full influence, t = (1, 0) means top right animation has full influence,
+		 *						t = (0, 1) means bottom left animation has full influence, t = (1, 1) means bottom right
 		 *						animation has full influence.
 		 */
 		void blend2D(const Blend2DInfo& info, const Vector2& t);
@@ -415,8 +415,8 @@ namespace bs
 		bool getState(const HAnimationClip& clip, AnimationClipState& state);
 
 		/**
-		 * Changes the state of a playing animation clip. If animation clip is not currently playing the state change is
-		 * ignored.
+		 * Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started
+		 * for the clip.
 		 *
 		 * @param[in]	clip	Clip to change the state for.
 		 * @param[in]	state	New state of the animation (e.g. changing the time for seeking).

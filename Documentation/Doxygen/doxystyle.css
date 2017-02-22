@@ -1,6 +1,10 @@
 /* Global */
 body, table, div, p, dl {
-	font: 14px/22px Lato,Roboto,sans-serif;
+	font: 14px/22px Segoe UI,Roboto,sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Segoe UI', 'Helvetica Neue', Arial, Helvetica, sans-serif;
 }
 
 h1 {
@@ -161,11 +165,11 @@ div.headertitle {
 /* TOC */
 
 div.toc li {
-	font: 10px/1.2 Lato,Verdana,DejaVu Sans,Geneva,sans-serif;
+	font: 10px/1.2 Segoe UI,Verdana,DejaVu Sans,Geneva,sans-serif;
 }
 
 div.toc h3 {
-	font: bold 12px/1.2 Lato,Arial,FreeSans,sans-serif;
+	font: bold 12px/1.2 Segoe UI,Arial,FreeSans,sans-serif;
 }
 
 div.toc {
@@ -179,7 +183,7 @@ div.toc {
 	border-top: 1px solid black;
 	border-bottom: 1px solid black;
 	top: -1px;
-    font: 9pt Lato, Arial, Verdana, sans-serif;
+    font: 9pt Segoe UI, Arial, Verdana, sans-serif;
 }
 
 #MSearchBox {
@@ -229,7 +233,7 @@ blockquote {
 }
 
 .title {
-	font: bold 24px/28px Lato,Roboto,sans-serif;
+	font: bold 24px/28px Segoe UI,Roboto,sans-serif;
 }
 
 .icon {
@@ -238,7 +242,7 @@ blockquote {
 }
 
 table.directory {
-    font: 400 14px Lato,Roboto,sans-serif;
+    font: 400 14px Segoe UI,Roboto,sans-serif;
 }
 
 table.doxtable {
@@ -336,7 +340,7 @@ blockquote {
 
 #projectname
 {
-	font: 300% Lato, Tahoma, Arial,sans-serif;
+	font: 300% Segoe UI, Tahoma, Arial,sans-serif;
 	margin: 0px;
 	padding: 2px 0px;
 }

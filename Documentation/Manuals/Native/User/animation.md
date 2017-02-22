@@ -31,7 +31,7 @@ if(animation->isPlaying())
 	gDebug().logDebug("Animation is playing!");
 ~~~~~~~~~~~~~
 
-You can control the speed of the playback through @ref bs::CAnimation::setSpeed "CAnimation::setSpeed()". The default value is 1, which represents normal speed, while lower values slow down playback accordingly (e.g. 0.5 is half speed) and higher values speed it up (2 is double speed). You can change animation speed during or before you start playing a clip.
+You can control the speed of the playback through @ref bs::CAnimation::setSpeed "CAnimation::setSpeed()". The default value is 1, which represents normal speed, while lower values slow down playback accordingly (e.g. 0.5 is half speed) and higher values speed it up (2 is double speed). Use negative values to play animation in reverse. You can change animation speed during or before you start playing a clip. 
 
 ~~~~~~~~~~~~~{.cpp}
 animation->setSpeed(2.0f);

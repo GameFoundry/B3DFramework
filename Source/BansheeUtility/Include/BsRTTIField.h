@@ -82,7 +82,7 @@ namespace bs
 	 * It is up to the caller to ensure that pointer is of proper type.
 	 */
 	struct BS_UTILITY_EXPORT RTTIField
-	{
+	{	
 		Any valueGetter;
 		Any valueSetter;
 
