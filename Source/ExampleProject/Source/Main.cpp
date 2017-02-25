@@ -13,6 +13,7 @@
 #include "BsVirtualInput.h"
 #include "BsCCamera.h"
 #include "BsCRenderable.h"
+#include "BsCLight.h"
 #include "BsCGUIWidget.h"
 #include "BsGUILayoutX.h"
 #include "BsGUILayoutY.h"
@@ -265,6 +266,31 @@ namespace bs
 		HRenderable renderable = dragonSO->addComponent<CRenderable>();
 		renderable->setMesh(mesh);
 		renderable->setMaterial(material);
+
+		/************************************************************************/
+		/* 									LIGHTS                      		*/
+		/************************************************************************/
+
+		// Add a couple of lights so that our object isn't completely in the dark.
+
+		HSceneObject lightASO = SceneObject::create("Light A");
+		HSceneObject lightBSO = SceneObject::create("Light B");
+
+		lightASO->setPosition(Vector3(0, 50, 0));
+		lightBSO->setPosition(Vector3(-130, 140, 450));
+
+		HLight lightA = lightASO->addComponent<CLight>();
+		HLight lightB = lightBSO->addComponent<CLight>();
+
+		// Disable physically based attentuation because we want to set our own range
+		lightA->setPhysicallyBasedAttenuation(false);
+		lightB->setPhysicallyBasedAttenuation(false);
+
+		lightA->setRange(500.0f);
+		lightB->setRange(300.0f);
+
+		lightA->setIntensity(10000.0f);
+		lightB->setIntensity(10000.0f);
 
 		/************************************************************************/
 		/* 									CAMERA	                     		*/
