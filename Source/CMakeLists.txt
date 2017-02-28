@@ -195,6 +195,9 @@ endfunction()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 
+set(BS_SCRIPT_PARSER_INCLUDE_DIRS "")
+set(BS_SCRIPT_PARSER_SOURCE_FILES "")
+
 # Sub-directories
 ## Layers
 add_subdirectory(BansheeUtility)
@@ -271,6 +274,9 @@ if(MSVC)
 else()
 # TODO - Use Mono compiler to build the managed code as a pre-build step
 endif()
+
+list(REMOVE_DUPLICATES BS_SCRIPT_PARSER_INCLUDE_DIRS)
+list(REMOVE_DUPLICATES BS_SCRIPT_PARSER_SOURCE_FILES)
 
 # Config file
 ## Set names of libraries used in the config file

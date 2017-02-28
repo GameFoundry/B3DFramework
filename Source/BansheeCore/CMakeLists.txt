@@ -12,9 +12,11 @@ if(WIN32)
 endif()
 
 include_directories(${BansheeCore_INC})	
-	
+set(BS_SCRIPT_PARSER_INCLUDE_DIRS ${BS_SCRIPT_PARSER_INCLUDE_DIRS} "BansheeCore/Include" PARENT_SCOPE)
+
 # Target
 add_library(BansheeCore SHARED ${BS_BANSHEECORE_SRC})
+set(BS_SCRIPT_PARSER_SOURCE_FILES ${BS_SCRIPT_PARSER_SOURCE_FILES} ${BS_BANSHEECORE_SRC} PARENT_SCOPE)
 
 # Defines
 target_compile_definitions(BansheeCore PRIVATE -DBS_CORE_EXPORTS)

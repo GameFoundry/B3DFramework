@@ -10,7 +10,8 @@ set(BansheeMono_INC
 	"../../Dependencies/Mono/include")
 
 include_directories(${BansheeMono_INC})	
-	
+set(BS_SCRIPT_PARSER_INCLUDE_DIRS ${BS_SCRIPT_PARSER_INCLUDE_DIRS} "BansheeMono/Include" PARENT_SCOPE)
+
 # Target
 add_library(BansheeMono SHARED ${BS_BANSHEEMONO_SRC})
 
