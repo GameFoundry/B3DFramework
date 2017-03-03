@@ -21,6 +21,7 @@
 #include "BsPlatform.h"
 #include "BsEngineShaderIncludeHandler.h"
 #include "BsEngineConfig.h"
+#include "BsReflectionCubemapCache.h"
 
 namespace bs
 {
@@ -42,6 +43,7 @@ namespace bs
 		ShortcutManager::shutDown();
 		GUIManager::shutDown();
 		SpriteManager::shutDown();
+		ct::ReflectionCubemapCache::shutDown();
 		BuiltinResources::shutDown();
 		RendererMaterialManager::shutDown();
 		VirtualInput::shutDown();
@@ -56,6 +58,7 @@ namespace bs
 
 		VirtualInput::startUp();
 		BuiltinResources::startUp();
+		ct::ReflectionCubemapCache::startUp();
 		RendererMaterialManager::startUp();
 		RendererManager::instance().initialize();
 		SpriteManager::startUp();

@@ -90,13 +90,13 @@ namespace bs
 	BS_UTILITY_EXPORT Debug& gDebug();
 
 /** Shortcut for logging a message in the debug channel. */
-#define LOGDBG(x) bs::gDebug().logDebug((x) + String("\n\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]");
+#define LOGDBG(x) bs::gDebug().logDebug((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
 
 /** Shortcut for logging a message in the warning channel. */
-#define LOGWRN(x) bs::gDebug().logWarning((x) + String("\n\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]");
+#define LOGWRN(x) bs::gDebug().logWarning((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
 
 /** Shortcut for logging a message in the error channel. */
-#define LOGERR(x) bs::gDebug().logError((x) + String("\n\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]");
+#define LOGERR(x) bs::gDebug().logError((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
 
 /** Shortcut for logging a verbose message in the debug channel. Verbose messages can be ignored unlike other log messages. */
 #define LOGDBG_VERBOSE(x)

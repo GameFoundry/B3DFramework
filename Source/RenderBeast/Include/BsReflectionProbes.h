@@ -35,8 +35,8 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTexture;
 	};
 
-	/** Helper class that handles reflection cubemap generation. */
-	class ReflectionCubemap
+	/** Helper class that handles generation and processing of textures used for reflection probes. */
+	class ReflectionProbes
 	{
 	public:
 		/**
@@ -44,6 +44,8 @@ namespace bs { namespace ct
 		 * evaluating specular reflections.
 		 */
 		static void filterCubemapForSpecular(const SPtr<Texture>& cubemap);
+
+		static const UINT32 REFLECTION_CUBEMAP_SIZE;
 	};
 
 	/** @} */

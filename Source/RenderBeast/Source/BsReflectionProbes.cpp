@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsReflectionCubemap.h"
+#include "BsReflectionProbes.h"
 #include "BsTexture.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererCamera.h"
@@ -37,7 +37,9 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	void ReflectionCubemap::filterCubemapForSpecular(const SPtr<Texture>& cubemap)
+	const UINT32 ReflectionProbes::REFLECTION_CUBEMAP_SIZE = 256;
+
+	void ReflectionProbes::filterCubemapForSpecular(const SPtr<Texture>& cubemap)
 	{
 		static ReflectionCubemapFilterMat filterMaterial;
 

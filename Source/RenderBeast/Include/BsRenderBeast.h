@@ -65,6 +65,18 @@ namespace bs
 			const RendererAnimationData& animData;
 		};
 
+		/** Information about an active reflection probe. */
+		struct ReflProbeInfo
+		{
+			ReflectionProbe* probe;
+			UINT32 arrayIdx;
+			SPtr<Texture> texture;
+			bool customTexture : 1;
+			bool textureDirty : 1;
+			bool arrayDirty : 1;
+			bool errorFlagged : 1;
+		};
+
 	public:
 		RenderBeast();
 		~RenderBeast() { }
@@ -117,6 +129,15 @@ namespace bs
 
 		/** @copydoc Renderer::notifyRenderableRemoved */
 		void notifyRenderableRemoved(Renderable* renderable) override;
+
+		/** @copydoc Renderer::notifyReflectionProbeAdded */
+		void notifyReflectionProbeAdded(ReflectionProbe* probe) override;
+
+		/** @copydoc Renderer::notifyReflectionProbeUpdated */
+		void notifyReflectionProbeUpdated(ReflectionProbe* probe) override;
+
+		/** @copydoc Renderer::notifyReflectionProbeRemoved */
+		void notifyReflectionProbeRemoved(ReflectionProbe* probe) override;
 
 		/** 
 		 * Updates (or adds) renderer specific data for the specified camera. Should be called whenever camera properties
@@ -180,18 +201,21 @@ namespace bs
 		/** 
 		 * Captures the scene at the specified location into a cubemap. 
 		 * 
+		 * @param[in]	cubemap		Cubemap to store the results in.
 		 * @param[in]	position	Position to capture the scene at.
 		 * @param[in]	hdr			If true scene will be captured in a format that supports high dynamic range.
-		 * @param[in]	size		Cubemap face width/height in pixels.
 		 * @param[in]	frameInfo	Global information about the the frame currently being rendered.
 		 */
-		SPtr<Texture> captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size, const FrameInfo& frameInfo);
+		void captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr, const FrameInfo& frameInfo);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore();
 
 		/**	Destroys data used by the renderer on the core thread. */
 		void destroyCore();
+
+		/** Updates reflection probes, rendering ones that are dirty and updating the global probe cubemap array. */
+		void updateReflectionProbes(const FrameInfo& frameInfo);
 
 		/**
 		 * Checks all sampler overrides in case material sampler states changed, and updates them.
@@ -215,6 +239,11 @@ namespace bs
 		Vector<RendererLight> mSpotLights;
 		Vector<Sphere> mPointLightWorldBounds;
 		Vector<Sphere> mSpotLightWorldBounds;
+
+		Vector<ReflProbeInfo> mReflProbes;
+		Vector<Sphere> mReflProbeWorldBounds;
+		Vector<bool> mCubemapArrayUsedSlots;
+		SPtr<Texture> mCubemapArrayTex;
 
 		SPtr<RenderBeastOptions> mCoreOptions;
 

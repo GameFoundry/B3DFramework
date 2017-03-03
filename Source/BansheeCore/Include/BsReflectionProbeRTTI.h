@@ -23,6 +23,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mRadius, 3)
 			BS_RTTI_MEMBER_PLAIN(mExtents, 4)
 			BS_RTTI_MEMBER_REFL(mCustomTexture, 5)
+			BS_RTTI_MEMBER_PLAIN(mUUID, 6)
 		BS_END_RTTI_MEMBERS
 	public:
 		ReflectionProbeRTTI()

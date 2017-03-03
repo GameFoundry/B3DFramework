@@ -6,6 +6,7 @@
 #include "BsFrameAlloc.h"
 #include "BsTexture.h"
 #include "BsRenderer.h"
+#include "BsUUID.h"
 
 namespace bs
 {
@@ -43,6 +44,13 @@ namespace bs
 		: ReflectionProbeBase(type, radius, extents)
 	{ }
 
+	template <bool Core>
+	void TReflectionProbe<Core>::generate()
+	{
+		if (mCustomTexture != nullptr)
+			_markCoreDirty();
+	}
+
 	template class TReflectionProbe<true>;
 	template class TReflectionProbe<false>;
 
@@ -69,6 +77,7 @@ namespace bs
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::ZERO);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
+		probePtr->mUUID = UUIDGenerator::generateRandom();
 		probePtr->initialize();
 
 		return probePtr;
@@ -79,6 +88,7 @@ namespace bs
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 0.0f, extents);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
+		probePtr->mUUID = UUIDGenerator::generateRandom();
 		probePtr->initialize();
 
 		return probePtr;
@@ -89,6 +99,7 @@ namespace bs
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Plane, 0.0f, extents);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
+		probePtr->mUUID = UUIDGenerator::generateRandom();
 		probePtr->initialize();
 
 		return probePtr;
@@ -107,6 +118,7 @@ namespace bs
 	{
 		ct::ReflectionProbe* probe = new (bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents);
 		SPtr<ct::ReflectionProbe> probePtr = bs_shared_ptr<ct::ReflectionProbe>(probe);
+		probePtr->mUUID = mUUID;
 		probePtr->_setThisPtr(probePtr);
 
 		return probePtr;
@@ -124,6 +136,7 @@ namespace bs
 		size += rttiGetElemSize(getCoreDirtyFlags());
 		size += rttiGetElemSize(mBounds);
 		size += rttiGetElemSize(sizeof(SPtr<ct::Texture>));
+		size += rttiGetElemSize(mUUID);
 
 		UINT8* buffer = allocator->alloc(size);
 
@@ -136,6 +149,7 @@ namespace bs
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 		dataPtr = rttiWriteElem(mBounds, dataPtr);
+		dataPtr = rttiWriteElem(mUUID, dataPtr);
 
 		SPtr<ct::Texture>* customTexture = new (dataPtr)SPtr<ct::Texture>();
 		if (mCustomTexture.isLoaded(false))
@@ -211,6 +225,7 @@ namespace bs
 		dataPtr = rttiReadElem(mIsActive, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 		dataPtr = rttiReadElem(mBounds, dataPtr);
+		dataPtr = rttiReadElem(mUUID, dataPtr);
 
 		SPtr<Texture>* texture = (SPtr<Texture>*)dataPtr;
 

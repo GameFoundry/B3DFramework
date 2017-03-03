@@ -97,6 +97,9 @@ namespace bs
 		/**	Sets whether the probe should be used or not. */
 		void setIsActive(bool active) { mIsActive = active; _markCoreDirty(); }
 
+		/** Returns an identifier that uniquely identifies the probe. */
+		const String& getUUID() const { return mUUID; }
+
 		/** 
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core 
 		 * thread counterpart. 
@@ -113,6 +116,7 @@ namespace bs
 		ReflectionProbeType mType; /**< Type of probe that determines how are the rest of the parameters interpreted. */
 		float mRadius; /**< Radius used for sphere reflection probes. */
 		Vector3 mExtents; /**< Extents used by box & plane reflection probes. */
+		String mUUID; /**< Identifier that uniquely identifies the probe. */
 
 		bool mIsActive; /**< Whether the light should be rendered or not. */
 		Sphere mBounds; /**< Sphere that bounds the light area of influence. */
@@ -137,6 +141,9 @@ namespace bs
 
 		/** Gets the custom texture assigned through setCustomTexture(). */
 		TextureType getCustomTexture() const { return mCustomTexture; }
+
+		/** Forces the reflection probe to regenerate its texture. Call is ignored if the probe uses a custom texture. */
+		void generate();
 
 	protected:
 		TextureType mCustomTexture;

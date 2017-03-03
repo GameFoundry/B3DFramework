@@ -515,7 +515,10 @@ namespace bs
 			if(overwrite)
 				FileSystem::remove(filePath);
 			else
-				BS_EXCEPT(InvalidParametersException, "Another file exists at the specified location.");
+			{
+				LOGERR("Another file exists at the specified location. Not saving.");
+				return;
+			}
 		}
 
 		if (!resource->mKeepSourceData)

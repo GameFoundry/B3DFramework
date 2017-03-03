@@ -451,6 +451,7 @@ namespace bs
 		class RenderWindowManager;
 		class RenderStateManager;
 		class HardwareBufferManager;
+		class ReflectionProbe;
 	}
 }
 
@@ -571,6 +572,7 @@ namespace bs
 		TID_MorphChannel = 1130,
 		TID_ReflectionProbe = 1131,
 		TID_CReflectionProbe = 1132,
+		TID_CachedTextureData = 1133,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

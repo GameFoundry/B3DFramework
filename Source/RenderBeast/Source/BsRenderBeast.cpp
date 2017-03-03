@@ -31,7 +31,9 @@
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererExtension.h"
-#include "BsReflectionCubemap.h"
+#include "BsReflectionCubemapCache.h"
+#include "BsReflectionProbe.h"
+#include "BsReflectionProbes.h"
 #include "BsMeshData.h"
 #include "BsLightGrid.h"
 
@@ -446,6 +448,89 @@ namespace bs { namespace ct
 		updateCameraData(camera, true);
 	}
 
+	void RenderBeast::notifyReflectionProbeAdded(ReflectionProbe* probe)
+	{
+		UINT32 probeId = (UINT32)mReflProbes.size();
+		probe->setRendererId(probeId);
+
+		mReflProbes.push_back(ReflProbeInfo());
+		ReflProbeInfo& probeInfo = mReflProbes.back();
+		probeInfo.probe = probe;
+		probeInfo.arrayIdx = -1;
+		probeInfo.texture = probe->getCustomTexture();
+		probeInfo.customTexture = probeInfo.texture != nullptr;
+		probeInfo.textureDirty = ReflectionCubemapCache::instance().isDirty(probe->getUUID());
+		probeInfo.arrayDirty = true;
+		probeInfo.errorFlagged = false;
+
+		mReflProbeWorldBounds.push_back(probe->getBounds());
+
+		// Find a spot in cubemap array
+		if(probe->getType() != ReflectionProbeType::Plane)
+		{
+			UINT32 numArrayEntries = (UINT32)mCubemapArrayUsedSlots.size();
+			for(UINT32 i = 0; i < numArrayEntries; i++)
+			{
+				if(!mCubemapArrayUsedSlots[i])
+				{
+					probeInfo.arrayIdx = i;
+					mCubemapArrayUsedSlots[i] = true;
+					break;
+				}
+			}
+
+			// No empty slot was found
+			if (probeInfo.arrayIdx == -1)
+			{
+				probeInfo.arrayIdx = numArrayEntries;
+				mCubemapArrayUsedSlots.push_back(true);
+			}
+		}
+	}
+
+	void RenderBeast::notifyReflectionProbeUpdated(ReflectionProbe* probe)
+	{
+		// Should only get called if transform changes, any other major changes and ReflProbeInfo entry gets rebuild
+		UINT32 probeId = probe->getRendererId();
+		mReflProbeWorldBounds[probeId] = probe->getBounds();
+
+		ReflProbeInfo& probeInfo = mReflProbes[probeId];
+		probeInfo.arrayDirty = true;
+
+		if (!probeInfo.customTexture)
+		{
+			ReflectionCubemapCache::instance().notifyDirty(probe->getUUID());
+			probeInfo.textureDirty = true;
+		}
+	}
+
+	void RenderBeast::notifyReflectionProbeRemoved(ReflectionProbe* probe)
+	{
+		UINT32 probeId = probe->getRendererId();
+		UINT32 arrayIdx = mReflProbes[probeId].arrayIdx;
+
+		ReflectionProbe* lastProbe = mReflProbes.back().probe;
+		UINT32 lastProbeId = lastProbe->getRendererId();
+
+		if (probeId != lastProbeId)
+		{
+			// Swap current last element with the one we want to erase
+			std::swap(mReflProbes[probeId], mReflProbes[lastProbeId]);
+			std::swap(mReflProbeWorldBounds[probeId], mReflProbeWorldBounds[lastProbeId]);
+
+			probe->setRendererId(probeId);
+		}
+
+		// Last element is the one we want to erase
+		mRadialLights.erase(mRadialLights.end() - 1);
+		mPointLightWorldBounds.erase(mPointLightWorldBounds.end() - 1);
+
+		if (arrayIdx != -1)
+			mCubemapArrayUsedSlots[arrayIdx] = false;
+
+		ReflectionCubemapCache::instance().unloadCachedTexture(probe->getUUID());
+	}
+
 	SPtr<PostProcessSettings> RenderBeast::createPostProcessSettings() const
 	{
 		return bs_shared_ptr_new<StandardPostProcessSettings>();
@@ -675,8 +760,8 @@ namespace bs { namespace ct
 		
 		FrameInfo frameInfo(delta, animData);
 
-		//if (dbgSkyTex == nullptr)
-		//	dbgSkyTex = captureSceneCubeMap(Vector3(0, 2, 0), true, 1024, frameInfo);
+		// Update reflection probes
+		updateReflectionProbes(frameInfo);
 
 		// Gather all views
 		Vector<RendererCamera*> views;
@@ -1080,18 +1165,101 @@ namespace bs { namespace ct
 				element.morphVertexDeclaration);
 	}
 
-	SPtr<Texture> RenderBeast::captureSceneCubeMap(const Vector3& position, bool hdr, UINT32 size, 
-												   const FrameInfo& frameInfo)
+	void RenderBeast::updateReflectionProbes(const FrameInfo& frameInfo)
 	{
-		TEXTURE_DESC cubeMapDesc;
-		cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
-		cubeMapDesc.format = hdr ? PF_FLOAT16_RGBA : PF_R8G8B8A8;
-		cubeMapDesc.width = size;
-		cubeMapDesc.height = size;
-		cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(size, size, 1, cubeMapDesc.format);
-		cubeMapDesc.usage = TU_RENDERTARGET;
+		UINT32 numProbes = (UINT32)mReflProbes.size();
 
-		SPtr<Texture> cubemap = Texture::create(cubeMapDesc);
+		bs_frame_mark();
+		{		
+			bool forceArrayUpdate = false;
+			if(mCubemapArrayTex == nullptr || mCubemapArrayTex->getProperties().getNumArraySlices() < numProbes)
+			{
+				TEXTURE_DESC cubeMapDesc;
+				cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
+				cubeMapDesc.format = PF_FLOAT16_RGBA;
+				cubeMapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+				cubeMapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+				cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(cubeMapDesc.width, cubeMapDesc.height, 1, cubeMapDesc.format);
+				cubeMapDesc.numArraySlices = numProbes + 4; // Keep a few empty entries
+
+				mCubemapArrayTex = Texture::create(cubeMapDesc);
+
+				forceArrayUpdate = true;
+			}
+
+			auto& cubemapArrayProps = mCubemapArrayTex->getProperties();
+
+			FrameQueue<UINT32> emptySlots;
+			for (UINT32 i = 0; i < numProbes; i++)
+			{
+				ReflProbeInfo& probeInfo = mReflProbes[i];
+				if (!probeInfo.customTexture)
+				{
+					if (probeInfo.probe->getType() != ReflectionProbeType::Plane)
+					{
+						if (probeInfo.texture == nullptr)
+							probeInfo.texture = ReflectionCubemapCache::instance().getCachedTexture(probeInfo.probe->getUUID());
+
+						if (probeInfo.texture == nullptr || probeInfo.textureDirty)
+						{
+							TEXTURE_DESC cubemapDesc;
+							cubemapDesc.type = TEX_TYPE_CUBE_MAP;
+							cubemapDesc.format = PF_FLOAT16_RGBA;
+							cubemapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+							cubemapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+							cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+
+							probeInfo.texture = Texture::create(cubemapDesc);
+
+							captureSceneCubeMap(probeInfo.texture, probeInfo.probe->getPosition(), true, frameInfo);
+							ReflectionProbes::filterCubemapForSpecular(probeInfo.texture);
+
+							ReflectionCubemapCache::instance().setCachedTexture(probeInfo.probe->getUUID(), probeInfo.texture);
+						}
+					}
+				}
+
+				probeInfo.textureDirty = false;
+
+				if(probeInfo.probe->getType() != ReflectionProbeType::Plane && (probeInfo.arrayDirty || forceArrayUpdate))
+				{
+					auto& srcProps = probeInfo.texture->getProperties();
+					bool isValid = srcProps.getWidth() == ReflectionProbes::REFLECTION_CUBEMAP_SIZE && 
+						srcProps.getHeight() == ReflectionProbes::REFLECTION_CUBEMAP_SIZE &&
+						srcProps.getNumMipmaps() == cubemapArrayProps.getNumMipmaps() &&
+						srcProps.getTextureType() == TEX_TYPE_CUBE_MAP;
+
+					if(!isValid)
+					{
+						if (!probeInfo.errorFlagged)
+						{
+							String errMsg = StringUtil::format("Cubemap texture invalid to use as a reflection cubemap. " 
+								"Check texture size (must be {0}x{0}) and mip-map count", 
+								ReflectionProbes::REFLECTION_CUBEMAP_SIZE);
+
+							LOGERR(errMsg);
+							probeInfo.errorFlagged = true;
+						}
+					}
+					else
+					{
+						for(UINT32 face = 0; face < 6; face++)
+							for(UINT32 mip = 0; mip <= srcProps.getNumMipmaps(); mip++)
+								probeInfo.texture->copy(mCubemapArrayTex, face, mip, probeInfo.arrayIdx * 6 + face, mip);
+					}
+
+					probeInfo.arrayDirty = false;
+				}
+
+				// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
+			}
+		}
+		bs_frame_clear();
+	}
+
+	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr, const FrameInfo& frameInfo)
+	{
+		auto& texProps = cubemap->getProperties();
 
 		Matrix4 projTransform = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
 		ConvexVolume localFrustum(projTransform);
@@ -1104,9 +1272,9 @@ namespace bs { namespace ct
 		viewDesc.target.clearStencilValue = 0;
 
 		viewDesc.target.nrmViewRect = Rect2(0, 0, 1.0f, 1.0f);
-		viewDesc.target.viewRect = Rect2I(0, 0, size, size);
-		viewDesc.target.targetWidth = size;
-		viewDesc.target.targetHeight = size;
+		viewDesc.target.viewRect = Rect2I(0, 0, texProps.getWidth(), texProps.getHeight());
+		viewDesc.target.targetWidth = texProps.getWidth();
+		viewDesc.target.targetHeight = texProps.getHeight();
 		viewDesc.target.numSamples = 1;
 
 		viewDesc.isOverlay = false;
@@ -1210,10 +1378,6 @@ namespace bs { namespace ct
 
 		RendererCamera* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
 		renderViews(viewPtrs, 6, frameInfo);
-
-		ReflectionCubemap::filterCubemapForSpecular(cubemap);
-
-		return cubemap;
 	}
 
 	void RenderBeast::refreshSamplerOverrides(bool force)
