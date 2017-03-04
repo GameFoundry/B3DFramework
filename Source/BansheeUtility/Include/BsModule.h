@@ -25,7 +25,7 @@ namespace bs
 		 */
 		static T& instance()
 		{
-			if(isShutDown())
+			if (!isStartedUp())
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Trying to access a module but it hasn't been started up yet.");
@@ -46,7 +46,7 @@ namespace bs
 		 */
 		static T* instancePtr()
 		{
-			if (isShutDown())
+			if (!isStartedUp())
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Trying to access a module but it hasn't been started up yet.");
@@ -65,11 +65,11 @@ namespace bs
 		template<class ...Args>
 		static void startUp(Args &&...args)
 		{
-			if (!isShutDown())
+			if (isStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
 			_instance() = bs_new<T>(std::forward<Args>(args)...);
-			isShutDown() = false;
+			isStartedUp() = true;
 
 			((Module*)_instance())->onStartUp();
 		}
@@ -83,11 +83,11 @@ namespace bs
 		{
 			static_assert(std::is_base_of<T, SubType>::value, "Provided type is not derived from type the Module is initialized with.");
 
-			if (!isShutDown())
+			if (isStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
 			_instance() = bs_new<SubType>(std::forward<Args>(args)...);
-			isShutDown() = false;
+			isStartedUp() = true;
 
 			((Module*)_instance())->onStartUp();
 		}
@@ -95,22 +95,28 @@ namespace bs
 		/** Shuts down this module and frees any resources it is using. */
 		static void shutDown()
 		{
-			if (isShutDown() || isDestroyed())
+			if (isDestroyed())
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Trying to shut down an already shut down module.");
+			}
+			
+			if (!isStartedUp()) 
+			{
+				BS_EXCEPT(InternalErrorException, 
+					"Trying to shut down a module which was never started.");
 			}
 
 			((Module*)_instance())->onShutDown();
 
 			bs_delete(_instance());
-			isShutDown() = true;
+			isDestroyed() = true;
 		}
 
 		/** Query if the module has been started. */
 		static bool isStarted()
 		{
-			return !isShutDown() && !isDestroyed();
+			return isStartedUp() && !isDestroyed();
 		}
 
 	protected:
@@ -162,9 +168,9 @@ namespace bs
 		}
 
 		/** Checks has the Module been started up. */
-		static bool& isShutDown()
+		static bool& isStartedUp()
 		{
-			static bool inst = true;
+			static bool inst = false;
 			return inst;
 		}
 	};
