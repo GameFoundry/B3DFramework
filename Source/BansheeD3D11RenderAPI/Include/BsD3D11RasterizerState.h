@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** DirectX 11 implementation of a rasterizer state. Wraps a DX11 rasterizer state object. */
-	class BS_D3D11_EXPORT D3D11RasterizerState : public RasterizerState
+	class D3D11RasterizerState : public RasterizerState
 	{
 	public:
 		~D3D11RasterizerState();

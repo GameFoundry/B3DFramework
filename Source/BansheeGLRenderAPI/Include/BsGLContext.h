@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	/**
 	 * Abstract class that encapsulated an OpenGL context. Each platform should provide its own GLContext specialization.
 	 */
-    class BS_RSGL_EXPORT GLContext
+    class GLContext
     {
     public:
         GLContext();

@@ -17,7 +17,7 @@ namespace bs { namespace ct
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_BSRND_EXPORT RenderTargets
+	class RenderTargets
 	{
 	public:
 		/**

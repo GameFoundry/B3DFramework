@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a SliderJoint. */
-	class BS_PHYSX_EXPORT PhysXSliderJoint : public SliderJoint
+	class PhysXSliderJoint : public SliderJoint
 	{
 	public:
 		PhysXSliderJoint(physx::PxPhysics* physx, const SLIDER_JOINT_DESC& desc);

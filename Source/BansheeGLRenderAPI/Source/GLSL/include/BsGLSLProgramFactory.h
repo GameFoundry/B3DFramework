@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Factory class that deals with creating GLSL GPU programs. */
-    class BS_RSGL_EXPORT GLSLProgramFactory : public GpuProgramFactory
+    class GLSLProgramFactory : public GpuProgramFactory
     {
     public:
 		/** @copydoc GpuProgramFactory::getLanguage */

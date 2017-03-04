@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** @copydoc VideoMode */
-	class BS_RSGL_EXPORT Win32VideoMode : public VideoMode
+	class Win32VideoMode : public VideoMode
 	{
 	public:
 		Win32VideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx);
@@ -22,7 +22,7 @@ namespace bs { namespace ct
 	};
 
 	/** @copydoc VideoOutputInfo */
-	class BS_RSGL_EXPORT Win32VideoOutputInfo : public VideoOutputInfo
+	class Win32VideoOutputInfo : public VideoOutputInfo
 	{
 	public:
 		Win32VideoOutputInfo(HMONITOR monitorHandle, UINT32 outputIdx);
@@ -35,7 +35,7 @@ namespace bs { namespace ct
 	};
 
 	/** @copydoc VideoModeInfo */
-	class BS_RSGL_EXPORT Win32VideoModeInfo : public VideoModeInfo
+	class Win32VideoModeInfo : public VideoModeInfo
 	{
 	public:
 		Win32VideoModeInfo();

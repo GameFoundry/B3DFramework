@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of an FJoint. */
-	class BS_PHYSX_EXPORT FPhysXJoint : public FJoint
+	class FPhysXJoint : public FJoint
 	{
 	public:
 		FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc);

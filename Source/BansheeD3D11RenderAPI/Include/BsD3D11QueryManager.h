@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of DirectX 11 queries. */
-	class BS_D3D11_EXPORT D3D11QueryManager : public QueryManager
+	class D3D11QueryManager : public QueryManager
 	{
 	public:
 		/** @copydoc QueryManager::createEventQuery */

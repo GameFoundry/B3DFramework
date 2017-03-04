@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a FixedJoint. */
-	class BS_PHYSX_EXPORT PhysXFixedJoint : public FixedJoint
+	class PhysXFixedJoint : public FixedJoint
 	{
 	public:
 		PhysXFixedJoint(physx::PxPhysics* physx, const FIXED_JOINT_DESC& desc);

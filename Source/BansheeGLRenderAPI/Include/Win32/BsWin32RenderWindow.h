@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Contains various properties that describe a render window. */
-	class BS_RSGL_EXPORT Win32RenderWindowProperties : public RenderWindowProperties
+	class Win32RenderWindowProperties : public RenderWindowProperties
 	{
 	public:
 		Win32RenderWindowProperties(const RENDER_WINDOW_DESC& desc);
@@ -28,7 +28,7 @@ namespace bs
 	 *
 	 * @note	Sim thread only.
 	 */
-	class BS_RSGL_EXPORT Win32RenderWindow : public RenderWindow
+	class Win32RenderWindow : public RenderWindow
 	{
 	public:
 		~Win32RenderWindow() { }
@@ -73,7 +73,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-    class BS_RSGL_EXPORT Win32RenderWindow : public RenderWindow
+    class Win32RenderWindow : public RenderWindow
     {
     public:
 		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, Win32GLSupport &glsupport);

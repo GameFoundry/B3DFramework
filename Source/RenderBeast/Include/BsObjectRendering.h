@@ -27,7 +27,7 @@ namespace bs
 	extern PerFrameParamDef gPerFrameParamDef;
 
 	/** Manages initialization and rendering of individual renderable object, represented as RenderableElement%s. */
-	class BS_BSRND_EXPORT ObjectRenderer
+	class ObjectRenderer
 	{
 	public:
 		ObjectRenderer();

@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	DirectX 11 implementation of a generic GPU buffer. */
-	class BS_D3D11_EXPORT D3D11GpuBuffer : public GpuBuffer
+	class D3D11GpuBuffer : public GpuBuffer
     {
     public:
 		~D3D11GpuBuffer();

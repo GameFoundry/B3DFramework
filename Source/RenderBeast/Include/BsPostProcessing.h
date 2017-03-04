@@ -239,7 +239,7 @@ namespace bs { namespace ct
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_BSRND_EXPORT PostProcessing : public Module<PostProcessing>
+	class PostProcessing : public Module<PostProcessing>
 	{
 	public:
 		/** 

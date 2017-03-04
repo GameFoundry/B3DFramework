@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of DirectX 11 hardware buffers. */
-	class BS_D3D11_EXPORT D3D11HardwareBufferManager : public HardwareBufferManager
+	class D3D11HardwareBufferManager : public HardwareBufferManager
 	{
 	public:
 		D3D11HardwareBufferManager(D3D11Device& device);

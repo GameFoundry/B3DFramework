@@ -4,7 +4,7 @@
 
 namespace bs
 {
-	class BS_PHYSX_EXPORT PhysXFactory : public PhysicsFactory
+	class BS_PLUGIN_EXPORT PhysXFactory : public PhysicsFactory
 	{
 	public:
 		void startUp(bool cooking) override
@@ -21,12 +21,12 @@ namespace bs
 		}
 	};
 
-	extern "C" BS_PHYSX_EXPORT PhysXFactory* loadPlugin()
+	extern "C" BS_PLUGIN_EXPORT PhysXFactory* loadPlugin()
 	{
 		return bs_new<PhysXFactory>();
 	}
 
-	extern "C" BS_PHYSX_EXPORT void unloadPlugin(PhysXFactory* instance)
+	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(PhysXFactory* instance)
 	{
 		bs_delete(instance);
 	}

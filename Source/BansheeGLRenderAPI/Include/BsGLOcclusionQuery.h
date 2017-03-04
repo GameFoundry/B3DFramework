@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of an occlusion query. */
-	class BS_RSGL_EXPORT GLOcclusionQuery : public OcclusionQuery
+	class GLOcclusionQuery : public OcclusionQuery
 	{
 	public:
 		GLOcclusionQuery(bool binary, UINT32 deviceIdx);

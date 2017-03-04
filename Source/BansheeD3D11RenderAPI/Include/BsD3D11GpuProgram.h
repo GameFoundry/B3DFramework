@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Abstraction of a DirectX 11 shader object. */
-	class BS_D3D11_EXPORT D3D11GpuProgram : public GpuProgram
+	class D3D11GpuProgram : public GpuProgram
 	{
 	public:
 		virtual ~D3D11GpuProgram();
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 vertex shader. */
-	class BS_D3D11_EXPORT D3D11GpuVertexProgram : public D3D11GpuProgram
+	class D3D11GpuVertexProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuVertexProgram();
@@ -74,7 +74,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 pixel shader. */
-	class BS_D3D11_EXPORT D3D11GpuFragmentProgram : public D3D11GpuProgram
+	class D3D11GpuFragmentProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuFragmentProgram();
@@ -95,7 +95,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 domain shader. */
-	class BS_D3D11_EXPORT D3D11GpuDomainProgram : public D3D11GpuProgram
+	class D3D11GpuDomainProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuDomainProgram();
@@ -116,7 +116,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 hull shader. */
-	class BS_D3D11_EXPORT D3D11GpuHullProgram : public D3D11GpuProgram
+	class D3D11GpuHullProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuHullProgram();
@@ -137,7 +137,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 geometry shader. */
-	class BS_D3D11_EXPORT D3D11GpuGeometryProgram : public D3D11GpuProgram
+	class D3D11GpuGeometryProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuGeometryProgram();
@@ -158,7 +158,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Implementation of a DX11 compute shader. */
-	class BS_D3D11_EXPORT D3D11GpuComputeProgram : public D3D11GpuProgram
+	class D3D11GpuComputeProgram : public D3D11GpuProgram
 	{
 	public:
 		~D3D11GpuComputeProgram();

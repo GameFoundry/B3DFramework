@@ -11,7 +11,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Contains a list of all available drivers. */
-	class BS_D3D11_EXPORT D3D11DriverList
+	class D3D11DriverList
 	{
 	public:
 		/**	Constructs a new driver list from an existing DXGI factory object. */

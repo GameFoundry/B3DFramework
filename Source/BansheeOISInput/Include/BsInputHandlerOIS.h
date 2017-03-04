@@ -20,19 +20,19 @@ namespace bs
 	class InputHandlerOIS;
 
 	/**	Listens for events from a specific OIS joystick device. */
-	class BS_OIS_EXPORT GamepadEventListener : public OIS::JoyStickListener
+	class GamepadEventListener : public OIS::JoyStickListener
 	{
 	public:
 		GamepadEventListener(InputHandlerOIS* parentHandler, UINT32 joystickIdx);
 
 		/**	Called by OIS whenever a gamepad/joystick button is pressed. */
-		virtual bool buttonPressed(const OIS::JoyStickEvent& arg, int button) override;
+		bool buttonPressed(const OIS::JoyStickEvent& arg, int button) override;
 
 		/**	Called by OIS whenever a gamepad/joystick button is released. */
-		virtual bool buttonReleased(const OIS::JoyStickEvent& arg, int button) override;
+		bool buttonReleased(const OIS::JoyStickEvent& arg, int button) override;
 
 		/**	Called by OIS whenever a gamepad/joystick axis is moved. */
-		virtual bool axisMoved(const OIS::JoyStickEvent& arg, int axis) override;
+		bool axisMoved(const OIS::JoyStickEvent& arg, int axis) override;
 
 	private:
 		UINT32 mGamepadIdx;
@@ -40,7 +40,7 @@ namespace bs
 	};
 
 	/**	Raw input handler using OIS library for acquiring input. */
-	class BS_OIS_EXPORT InputHandlerOIS : public RawInputHandler, public OIS::KeyListener, 
+	class InputHandlerOIS : public RawInputHandler, public OIS::KeyListener, 
 		public OIS::MouseListener
 	{
 		/**	Holding data about an active gamepad object. */
@@ -56,19 +56,19 @@ namespace bs
 
 	private:
 		/**	Called by OIS whenever a keyboard button is pressed. */
-		virtual bool keyPressed(const OIS::KeyEvent& arg) override;
+		bool keyPressed(const OIS::KeyEvent& arg) override;
 
 		/**	Called by OIS whenever a keyboard button is released. */
-		virtual bool keyReleased(const OIS::KeyEvent& arg) override;
+		bool keyReleased(const OIS::KeyEvent& arg) override;
 
 		/**	Called by OIS whenever mouse is moved. */
-		virtual bool mouseMoved(const OIS::MouseEvent& arg) override;
+		bool mouseMoved(const OIS::MouseEvent& arg) override;
 
 		/**	Called by OIS whenever is a mouse button pressed. */
-		virtual bool mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
+		bool mousePressed(const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
 
 		/**	Called by OIS whenever is a mouse button released. */
-		virtual bool mouseReleased(const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
+		bool mouseReleased(const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
 
 		/**	Converts an OIS key code into engine button code. */
 		static ButtonCode keyCodeToButtonCode(OIS::KeyCode keyCode);
@@ -84,10 +84,10 @@ namespace bs
 		 */
 
 		/** Called once per frame. */
-		virtual void _update() override;
+		void _update() override;
 
 		/** Called whenever the currently focused window changes. */
-		virtual void _inputWindowChanged(const RenderWindow& win) override;
+		void _inputWindowChanged(const RenderWindow& win) override;
 
 		/** @} */
 

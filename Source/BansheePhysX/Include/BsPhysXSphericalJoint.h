@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a SphericalJoint. */
-	class BS_PHYSX_EXPORT PhysXSphericalJoint : public SphericalJoint
+	class PhysXSphericalJoint : public SphericalJoint
 	{
 	public:
 		PhysXSphericalJoint(physx::PxPhysics* physx, const SPHERICAL_JOINT_DESC& desc);

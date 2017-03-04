@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/** Wrapper around a generic OpenGL buffer. */
-    class BS_RSGL_EXPORT GLBuffer
+    class GLBuffer
     {
     public:
 		/** Creates an uninitialized buffer object. You must call initialize() before using it. */

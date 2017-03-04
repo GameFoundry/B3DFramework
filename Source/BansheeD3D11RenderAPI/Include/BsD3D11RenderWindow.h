@@ -11,7 +11,7 @@ namespace bs {
 	 */
 
 	/**	Contains various properties that describe a render window. */
-	class BS_D3D11_EXPORT D3D11RenderWindowProperties : public RenderWindowProperties
+	class D3D11RenderWindowProperties : public RenderWindowProperties
 	{
 	public:
 		D3D11RenderWindowProperties(const RENDER_WINDOW_DESC& desc);
@@ -27,7 +27,7 @@ namespace bs {
 	 *
 	 * @note	Sim thread only.
 	 */
-	class BS_D3D11_EXPORT D3D11RenderWindow : public RenderWindow
+	class D3D11RenderWindow : public RenderWindow
 	{
 	public:
 		~D3D11RenderWindow() { }
@@ -73,7 +73,7 @@ namespace bs {
 	 *
 	 * @note	Core thread only.
 	 */
-	class BS_D3D11_EXPORT D3D11RenderWindow : public RenderWindow
+	class D3D11RenderWindow : public RenderWindow
 	{
 	public:
 		D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId,

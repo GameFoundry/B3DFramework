@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	DirectX 11 implementation of a vertex buffer. */
-	class BS_D3D11_EXPORT D3D11VertexBuffer : public VertexBuffer
+	class D3D11VertexBuffer : public VertexBuffer
 	{
 	public:
 		D3D11VertexBuffer(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);

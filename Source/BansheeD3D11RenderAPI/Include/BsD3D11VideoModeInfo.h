@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** @copydoc VideoMode */
-	class BS_D3D11_EXPORT D3D11VideoMode : public VideoMode
+	class D3D11VideoMode : public VideoMode
 	{
 	public:
 		D3D11VideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx, UINT32 refreshRateNumerator,
@@ -36,7 +36,7 @@ namespace bs { namespace ct
 	};
 
 	/** @copydoc VideoOutputInfo */
-	class BS_D3D11_EXPORT D3D11VideoOutputInfo : public VideoOutputInfo
+	class D3D11VideoOutputInfo : public VideoOutputInfo
 	{
 	public:
 		D3D11VideoOutputInfo(IDXGIOutput* output, UINT32 outputIdx);
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 	};
 
 	/** @copydoc VideoModeInfo */
-	class BS_D3D11_EXPORT D3D11VideoModeInfo : public VideoModeInfo
+	class D3D11VideoModeInfo : public VideoModeInfo
 	{
 	public:
 		D3D11VideoModeInfo(IDXGIAdapter* dxgiAdapter);

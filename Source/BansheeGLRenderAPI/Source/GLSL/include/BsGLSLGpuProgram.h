@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	GPU program compiled from GLSL and usable by OpenGL. */
-    class BS_RSGL_EXPORT GLSLGpuProgram : public GpuProgram
+    class GLSLGpuProgram : public GpuProgram
     {
 	public:
 		~GLSLGpuProgram();

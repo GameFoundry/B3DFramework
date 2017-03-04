@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a generic GPU buffer. */
-	class BS_RSGL_EXPORT GLGpuBuffer : public GpuBuffer
+	class GLGpuBuffer : public GpuBuffer
 	{
 	public:
 		~GLGpuBuffer();

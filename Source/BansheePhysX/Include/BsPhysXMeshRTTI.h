@@ -14,7 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_PHYSX_EXPORT FPhysXMeshRTTI : public RTTIType<FPhysXMesh, FPhysicsMesh, FPhysXMeshRTTI>
+	class FPhysXMeshRTTI : public RTTIType<FPhysXMesh, FPhysicsMesh, FPhysXMeshRTTI>
 	{
 	private:
 		SPtr<DataStream> getCookedData(FPhysXMesh* obj, UINT32& size)

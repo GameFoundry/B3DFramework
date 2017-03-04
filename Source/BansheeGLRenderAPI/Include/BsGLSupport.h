@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	 * Helper class dealing mostly with platform specific OpenGL functionality, initialization, extensions and window
 	 * creation.
 	 */
-	class BS_RSGL_EXPORT GLSupport
+	class GLSupport
 	{
 	public:
 		GLSupport() { }

@@ -19,7 +19,7 @@ namespace bs
 	class MorphShapes;
 
 	/** Importer implementation that handles FBX/OBJ/DAE/3DS file import by using the FBX SDK. */
-	class BS_FBX_EXPORT FBXImporter : public SpecificImporter
+	class FBXImporter : public SpecificImporter
 	{
 	public:
 		FBXImporter();

@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation and life of OpenGL queries. */
-	class BS_RSGL_EXPORT GLQueryManager : public QueryManager
+	class GLQueryManager : public QueryManager
 	{
 	public:
 		/** @copydoc QueryManager::createEventQuery */

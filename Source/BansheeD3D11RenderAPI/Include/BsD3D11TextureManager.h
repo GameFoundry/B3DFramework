@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Handles creation of DirectX 11 textures. */
-	class BS_D3D11_EXPORT D3D11TextureManager : public TextureManager
+	class D3D11TextureManager : public TextureManager
 	{
 	public:
 		/** @copydoc TextureManager::getNativeFormat */
@@ -26,7 +26,7 @@ namespace bs
 	namespace ct
 	{
 	/**	Handles creation of DirectX 11 textures. */
-	class BS_D3D11_EXPORT D3D11TextureManager : public TextureManager
+	class D3D11TextureManager : public TextureManager
 	{
 	protected:
 		/** @copydoc TextureManager::createTextureInternal */

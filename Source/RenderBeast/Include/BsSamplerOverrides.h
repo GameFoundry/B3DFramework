@@ -60,7 +60,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Helper class for generating sampler overrides. */
-	class BS_BSRND_EXPORT SamplerOverrideUtility
+	class SamplerOverrideUtility
 	{
 	public:
 		/**

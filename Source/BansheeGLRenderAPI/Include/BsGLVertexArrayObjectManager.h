@@ -15,7 +15,7 @@ namespace bs { namespace ct
 	 * Vertex array object that contains vertex buffer object bindings and vertex attribute pointers for a specific set of
 	 * vertex buffers and a vertex declaration.
 	 */
-	class BS_RSGL_EXPORT GLVertexArrayObject
+	class GLVertexArrayObject
 	{
 	private:
 		/**	Generates hash value for the VAO object. */
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Manager that handles creation and destruction of vertex array objects. */
-	class BS_RSGL_EXPORT GLVertexArrayObjectManager : public Module<GLVertexArrayObjectManager>
+	class GLVertexArrayObjectManager : public Module<GLVertexArrayObjectManager>
 	{
 	public:
 		~GLVertexArrayObjectManager();

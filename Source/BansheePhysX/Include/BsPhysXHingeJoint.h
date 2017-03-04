@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a HingeJoint. */
-	class BS_PHYSX_EXPORT PhysXHingeJoint : public HingeJoint
+	class PhysXHingeJoint : public HingeJoint
 	{
 	public:
 		PhysXHingeJoint(physx::PxPhysics* physx, const HINGE_JOINT_DESC& desc);

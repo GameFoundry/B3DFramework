@@ -9,13 +9,13 @@ namespace bs
 	const char* SystemName = "BansheeSL";
 
 	/**	Returns a name of the plugin. */
-	extern "C" BS_SL_EXPORT const char* getPluginName()
+	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 	{
 		return SystemName;
 	}
 
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_SL_EXPORT void* loadPlugin()
+	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		SLImporter* importer = bs_new<SLImporter>();
 		Importer::instance()._registerAssetImporter(importer);

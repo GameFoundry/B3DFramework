@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a texture. */
-    class BS_RSGL_EXPORT GLTexture : public Texture
+    class GLTexture : public Texture
     {
     public:
 		virtual ~GLTexture();

@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a D6 joint. */
-	class BS_PHYSX_EXPORT PhysXD6Joint : public D6Joint
+	class PhysXD6Joint : public D6Joint
 	{
 	public:
 		PhysXD6Joint(physx::PxPhysics* physx, const D6_JOINT_DESC& desc);

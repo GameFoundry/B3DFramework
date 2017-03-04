@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a timer query. */
-	class BS_RSGL_EXPORT GLTimerQuery : public TimerQuery
+	class GLTimerQuery : public TimerQuery
 	{
 	public:
 		GLTimerQuery(UINT32 deviceIdx);

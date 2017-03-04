@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** Implementation of a render system using DirectX 11. Provides abstracted access to various low level DX11 methods. */
-	class BS_D3D11_EXPORT D3D11RenderAPI : public RenderAPI
+	class D3D11RenderAPI : public RenderAPI
 	{
 	public:
 		D3D11RenderAPI();

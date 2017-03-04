@@ -7,14 +7,14 @@
 namespace bs
 {
 	/**	Returns a name of the plugin. */
-	extern "C" BS_FONT_EXPORT const char* getPluginName()
+	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 	{
 		static const char* pluginName = "FontImporter";
 		return pluginName;
 	}
 
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_FONT_EXPORT void* loadPlugin()
+	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		FontImporter* importer = bs_new<FontImporter>();
 		Importer::instance()._registerAssetImporter(importer);

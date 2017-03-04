@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Manager that handles window creation for OpenGL. */
-	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowManager
+	class GLRenderWindowManager : public RenderWindowManager
 	{
 	public:
 		GLRenderWindowManager(ct::GLRenderAPI* renderSystem);
@@ -28,7 +28,7 @@ namespace bs
 	namespace ct
 	{
 	/**	Manager that handles window creation for OpenGL. */
-	class BS_RSGL_EXPORT GLRenderWindowManager : public RenderWindowManager
+	class GLRenderWindowManager : public RenderWindowManager
 	{
 	public:
 		GLRenderWindowManager(GLRenderAPI* renderSystem);

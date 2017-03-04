@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Class containing common functionality for all DirectX 11 hardware buffers. */
-	class BS_D3D11_EXPORT D3D11HardwareBuffer : public HardwareBuffer
+	class D3D11HardwareBuffer : public HardwareBuffer
 	{
 	public:
 		/**	Available types of DX11 buffers. */

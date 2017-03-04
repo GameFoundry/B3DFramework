@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	DirectX implementation of a texture resource view. */
-	class BS_D3D11_EXPORT D3D11TextureView : public TextureView
+	class D3D11TextureView : public TextureView
 	{
 	public:
 		~D3D11TextureView();

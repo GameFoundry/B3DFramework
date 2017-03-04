@@ -91,6 +91,18 @@
 #  define BS_UTILITY_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
+// DLL export for plugins
+#if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
+#  if BS_COMPILER == BS_COMPILER_MSVC
+#    define BS_PLUGIN_EXPORT __declspec(dllexport)
+#  else
+#    define BS_PLUGIN_EXPORT __attribute__ ((dllexport))
+#  endif
+#  define BS_UTILITY_HIDDEN
+#else // Linux/Mac settings
+#  define BS_PLUGIN_EXPORT __attribute__ ((visibility ("default")))
+#endif
+
 // Windows Settings
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 // Win32 compilers use _DEBUG for specifying debug builds.

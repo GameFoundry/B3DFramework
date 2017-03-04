@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX implementation of a DistanceJoint */
-	class BS_PHYSX_EXPORT PhysXDistanceJoint : public DistanceJoint
+	class PhysXDistanceJoint : public DistanceJoint
 	{
 	public:
 		PhysXDistanceJoint(physx::PxPhysics* physx, const DISTANCE_JOINT_DESC& desc);

@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	DirectX 11 implementation of an index buffer. */
-	class BS_D3D11_EXPORT D3D11IndexBuffer : public IndexBuffer
+	class D3D11IndexBuffer : public IndexBuffer
 	{
 	public:
 		D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);

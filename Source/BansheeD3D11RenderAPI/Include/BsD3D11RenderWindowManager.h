@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** @copydoc RenderWindowManager */
-	class BS_D3D11_EXPORT D3D11RenderWindowManager : public RenderWindowManager
+	class D3D11RenderWindowManager : public RenderWindowManager
 	{
 	public:
 		D3D11RenderWindowManager(ct::D3D11RenderAPI* renderSystem);
@@ -29,7 +29,7 @@ namespace bs
 	namespace ct
 	{
 	/** @copydoc RenderWindowManager */
-	class BS_D3D11_EXPORT D3D11RenderWindowManager : public RenderWindowManager
+	class D3D11RenderWindowManager : public RenderWindowManager
 	{
 	public:
 		D3D11RenderWindowManager(D3D11RenderAPI* renderSystem);

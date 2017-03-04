@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a GPU parameter buffer (Uniform buffer). */
-	class BS_RSGL_EXPORT GLGpuParamBlockBuffer : public GpuParamBlockBuffer
+	class GLGpuParamBlockBuffer : public GpuParamBlockBuffer
 	{
 	public:
 		GLGpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);

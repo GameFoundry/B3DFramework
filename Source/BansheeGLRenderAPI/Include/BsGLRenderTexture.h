@@ -43,7 +43,7 @@ namespace bs
 	 *
 	 * @note	Core thread only.
 	 */
-    class BS_RSGL_EXPORT GLRenderTexture : public RenderTexture
+    class GLRenderTexture : public RenderTexture
     {
 	public:
 		GLRenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
@@ -70,7 +70,7 @@ namespace bs
      * 			
 	 * @note	Must be initialized when RenderSystem is first started.
      */
-    class BS_RSGL_EXPORT GLRTTManager : public Module<GLRTTManager>
+    class GLRTTManager : public Module<GLRTTManager>
     {
     public:
         GLRTTManager();

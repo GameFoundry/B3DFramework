@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of an index buffer. */
-    class BS_RSGL_EXPORT GLIndexBuffer : public IndexBuffer
+    class GLIndexBuffer : public IndexBuffer
     {
     public:
 		GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);

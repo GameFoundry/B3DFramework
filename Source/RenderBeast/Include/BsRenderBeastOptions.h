@@ -21,7 +21,7 @@ namespace bs { namespace ct
 	};
 
 	/** A set of options used for controlling the rendering of the RenderBeast renderer. */
-	struct BS_BSRND_EXPORT RenderBeastOptions : public RendererOptions
+	struct RenderBeastOptions : public RendererOptions
 	{
 		RenderBeastOptions() { }
 

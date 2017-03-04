@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** @copydoc EventQuery */
-	class BS_RSGL_EXPORT GLEventQuery : public EventQuery
+	class GLEventQuery : public EventQuery
 	{
 	public:
 		GLEventQuery(UINT32 deviceIdx);

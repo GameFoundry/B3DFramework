@@ -43,22 +43,6 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 
-#if (BS_PLATFORM == BS_PLATFORM_WIN32) && !defined(__MINGW32__) && !defined(BS_STATIC_LIB)
-#	ifdef BS_RSGL_EXPORTS
-#		define BS_RSGL_EXPORT __declspec(dllexport)
-#	else
-#       if defined( __MINGW32__ )
-#           define BS_RSGL_EXPORT
-#       else
-#    		define BS_RSGL_EXPORT __declspec(dllimport)
-#       endif
-#	endif
-#elif defined ( BS_GCC_VISIBILITY )
-#    define BS_RSGL_EXPORT  __attribute__ ((visibility("default")))
-#else
-#    define BS_RSGL_EXPORT
-#endif
-
 /** @addtogroup Plugins
  *  @{
  */

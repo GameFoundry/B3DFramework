@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** @copydoc EventQuery */
-	class BS_D3D11_EXPORT D3D11EventQuery : public EventQuery
+	class D3D11EventQuery : public EventQuery
 	{
 	public:
 		D3D11EventQuery(UINT32 deviceIdx);

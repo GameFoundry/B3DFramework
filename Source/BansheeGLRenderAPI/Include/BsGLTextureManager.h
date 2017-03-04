@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Handles creation of OpenGL textures. */
-    class BS_RSGL_EXPORT GLTextureManager : public TextureManager
+    class GLTextureManager : public TextureManager
     {
     public:
         GLTextureManager(ct::GLSupport& support);
@@ -35,7 +35,7 @@ namespace bs
 	namespace ct
 	{
 	/** Handles creation of OpenGL textures. */
-	class BS_RSGL_EXPORT GLTextureManager : public TextureManager
+	class GLTextureManager : public TextureManager
 	{
 	public:
 		GLTextureManager(GLSupport& support);

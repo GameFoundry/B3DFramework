@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of DirectX 11 HLSL GPU programs. */
-	class BS_D3D11_EXPORT D3D11HLSLProgramFactory : public GpuProgramFactory
+	class D3D11HLSLProgramFactory : public GpuProgramFactory
 	{
 	public:
 		D3D11HLSLProgramFactory();

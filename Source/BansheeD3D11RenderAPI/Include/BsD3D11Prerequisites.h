@@ -62,18 +62,4 @@ namespace bs { namespace ct
 	};
 
 	typedef Vector<char*> HLSLMicroCode;
-
-#if (BS_PLATFORM == BS_PLATFORM_WIN32) && !defined(BS_STATIC_LIB)
-#	ifdef BS_RSD3D11_EXPORTS
-#		define BS_D3D11_EXPORT __declspec(dllexport)
-#	else
-#       if defined( __MINGW32__ )
-#           define BS_D3D11_EXPORT
-#       else
-#    		define BS_D3D11_EXPORT __declspec(dllimport)
-#       endif
-#	endif
-#else
-#	define BS_D3D11_EXPORT
-#endif
 }}

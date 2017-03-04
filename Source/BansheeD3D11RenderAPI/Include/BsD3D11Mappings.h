@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Helper class that maps engine types to DirectX 11 types. */
-	class BS_D3D11_EXPORT D3D11Mappings
+	class D3D11Mappings
 	{
 	public:
 		/**	Converts engine to DX11 specific texture addressing mode. */

@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Windows specific implementation of an OpenGL context. */
-    class BS_RSGL_EXPORT Win32Context : public GLContext
+    class Win32Context : public GLContext
     {
     public:
 		/**

@@ -14,7 +14,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	OpenGL implementation of a vertex buffer. */
-    class BS_RSGL_EXPORT GLVertexBuffer : public VertexBuffer
+    class GLVertexBuffer : public VertexBuffer
     {
     public:
 		GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);

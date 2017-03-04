@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles OpenGL initialization, window creation and extensions on Windows. */
-	class BS_RSGL_EXPORT Win32GLSupport : public GLSupport
+	class Win32GLSupport : public GLSupport
 	{
 	public:
         Win32GLSupport();

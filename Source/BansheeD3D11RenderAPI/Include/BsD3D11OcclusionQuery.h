@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/** @copydoc OcclusionQuery */
-	class BS_D3D11_EXPORT D3D11OcclusionQuery : public OcclusionQuery
+	class D3D11OcclusionQuery : public OcclusionQuery
 	{
 	public:
 		D3D11OcclusionQuery(bool binary, UINT32 deviceIdx);

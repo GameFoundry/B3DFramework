@@ -14,7 +14,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Describes OpenGL frame buffer surface. */
-    struct BS_RSGL_EXPORT GLSurfaceDesc
+    struct GLSurfaceDesc
     {
     public:
 		GLSurfaceDesc() 
@@ -31,7 +31,7 @@ namespace bs { namespace ct
 	 * Manages an OpenGL frame-buffer object. Frame buffer object is used as a rendering destination in the render system
 	 * pipeline, and it may consist out of one or multiple color surfaces and an optional depth/stencil surface.
 	 */
-    class BS_RSGL_EXPORT GLFrameBufferObject
+    class GLFrameBufferObject
     {
     public:
         GLFrameBufferObject();

@@ -17,7 +17,7 @@ namespace bs
 	 * Renderer factory implementation that creates and initializes the default Banshee renderer. Used by the 
 	 * RendererManager.
 	 */
-	class BS_BSRND_EXPORT RenderBeastFactory : public RendererFactory
+	class RenderBeastFactory : public RendererFactory
 	{
 	public:
 		/** @copydoc RendererFactory::create */

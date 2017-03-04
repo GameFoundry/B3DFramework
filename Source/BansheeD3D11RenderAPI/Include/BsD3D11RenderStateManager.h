@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of DirectX 11 pipeline states. */
-	class BS_D3D11_EXPORT D3D11RenderStateManager : public RenderStateManager
+	class D3D11RenderStateManager : public RenderStateManager
 	{
 	protected:
 		/** @copydoc RenderStateManager::createSamplerStateInternal */

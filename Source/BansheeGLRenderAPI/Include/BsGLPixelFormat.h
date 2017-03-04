@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Converts pixel formats to OpenGL formats */
-	class BS_RSGL_EXPORT GLPixelUtil
+	class GLPixelUtil
 	{
 	public:
 		/**	Finds the closest pixel format that OpenGL supports. */

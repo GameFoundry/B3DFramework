@@ -15,7 +15,7 @@ namespace bs
 	 * Importer using for importing a shader written using the BSL syntax. Shader files are plain text files ending with
 	 * ".bsl" extension.
 	 */
-	class BS_SL_EXPORT SLImporter : public SpecificImporter
+	class SLImporter : public SpecificImporter
 	{
 	public:
 		SLImporter();

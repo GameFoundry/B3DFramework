@@ -21,7 +21,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Wrapper around DirectX 11 device object. */
-	class BS_D3D11_EXPORT D3D11Device
+	class D3D11Device
 	{
 	public:
 		/**	Constructs the object with a previously created DX11 device. */

@@ -23,14 +23,14 @@ namespace bs
 	};
 
 	/**	Returns a name of the plugin. */
-	extern "C" BS_FMOD_EXPORT const char* getPluginName()
+	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 	{
 		static const char* pluginName = "BansheeFMOD";
 		return pluginName;
 	}
 
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_FMOD_EXPORT void* loadPlugin()
+	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		FMODImporter* importer = bs_new<FMODImporter>();
 		Importer::instance()._registerAssetImporter(importer);
@@ -39,7 +39,7 @@ namespace bs
 	}
 
 	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" BS_FMOD_EXPORT void unloadPlugin(FMODFactory* instance)
+	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(FMODFactory* instance)
 	{
 		bs_delete(instance);
 	}
