@@ -106,20 +106,33 @@
 /** @} */
 /** @} */
 
-#if (BS_PLATFORM == BS_PLATFORM_WIN32) && !defined(__MINGW32__)
-#	ifdef BS_ED_EXPORTS
-#		define BS_ED_EXPORT __declspec(dllexport)
-#	else
-#       if defined( __MINGW32__ )
-#           define BS_ED_EXPORT
-#       else
-#    		define BS_ED_EXPORT __declspec(dllimport)
-#       endif
-#	endif
-#elif defined ( BS_GCC_VISIBILITY )
-#    define BS_ED_EXPORT  __attribute__ ((visibility("default")))
-#else
-#    define BS_ED_EXPORT
+// DLL export
+#if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
+#  if BS_COMPILER == BS_COMPILER_MSVC
+#    if defined(BS_STATIC_LIB)
+#      define BS_ED_EXPORT
+#    else
+#      if defined(BS_ED_EXPORTS)
+#        define BS_ED_EXPORT __declspec(dllexport)
+#      else
+#        define BS_ED_EXPORT __declspec(dllimport)
+#      endif
+#	 endif
+#  else
+#    if defined(BS_STATIC_LIB)
+#      define BS_ED_EXPORT
+#    else
+#      if defined(BS_ED_EXPORTS)
+#        define BS_ED_EXPORT __attribute__ ((dllexport))
+#      else
+#        define BS_ED_EXPORT __attribute__ ((dllimport))
+#      endif
+#	 endif
+#  endif
+#  define BS_ED_HIDDEN
+#else // Linux/Mac settings
+#  define BS_ED_EXPORT __attribute__ ((visibility ("default")))
+#  define BS_ED_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
 namespace bs

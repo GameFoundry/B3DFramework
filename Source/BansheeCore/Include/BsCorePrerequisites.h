@@ -179,40 +179,33 @@
 /** Maximum number of devices one resource can exist at the same time. */
 #define BS_MAX_LINKED_DEVICES 4U
 
-// Windows Settings
-#if BS_PLATFORM == BS_PLATFORM_WIN32
-
-// If we're not including this from a client build, specify that the stuff
-// should get exported. Otherwise, import it.
-#	if defined(BS_STATIC_LIB)
-// Linux compilers don't have symbol import/export directives.
-#   	define BS_CORE_EXPORT
-#   else
-#   	if defined(BS_CORE_EXPORTS)
-#       	define BS_CORE_EXPORT __declspec( dllexport )
-#   	else
-#           if defined( __MINGW32__ )
-#               define BS_CORE_EXPORT
-#           else
-#       	    define BS_CORE_EXPORT __declspec( dllimport )
-#           endif
-#   	endif
-#	endif
-
-#endif
-
-// Linux/Apple Settings
-#if BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
-
-// Enable GCC symbol visibility
-#   if defined( BS_GCC_VISIBILITY )
-#       define BS_CORE_EXPORT  __attribute__ ((visibility("default")))
-#       define BS_HIDDEN __attribute__ ((visibility("hidden")))
-#   else
-#       define BS_CORE_EXPORT
-#       define BS_HIDDEN
-#   endif
-
+// DLL export
+#if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
+#  if BS_COMPILER == BS_COMPILER_MSVC
+#    if defined(BS_STATIC_LIB)
+#      define BS_CORE_EXPORT
+#    else
+#      if defined(BS_CORE_EXPORTS)
+#        define BS_CORE_EXPORT __declspec(dllexport)
+#      else
+#        define BS_CORE_EXPORT __declspec(dllimport)
+#      endif
+#	 endif
+#  else
+#    if defined(BS_STATIC_LIB)
+#      define BS_CORE_EXPORT
+#    else
+#      if defined(BS_CORE_EXPORTS)
+#        define BS_CORE_EXPORT __attribute__ ((dllexport))
+#      else
+#        define BS_CORE_EXPORT __attribute__ ((dllimport))
+#      endif
+#	 endif
+#  endif
+#  define BS_CORE_HIDDEN
+#else // Linux/Mac settings
+#  define BS_CORE_EXPORT __attribute__ ((visibility ("default")))
+#  define BS_CORE_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
 #include "BsHString.h"
