@@ -1,9 +1,11 @@
 Manuals									{#manuals}
 ===============
-[TOC]
 
-# User guides
+# Quick start
+[Getting started](@ref gettingStarted) - This is a short guide on how to create a fully functional Banshee application, aimed to get you up and running quickly, without going into too much detail.
 
+# User manuals
+A complete set of manuals covering all major functionality provided by Banshee, starting with basics and slowly guiding you through more advanced concepts. This should be the primary entry point for new users.
 - [Startup and main loop](@ref startup)
 - [Scene objects and components](@ref scenesAndComponents)
 - **Resources**
@@ -62,16 +64,16 @@ Manuals									{#manuals}
  - [Manipulating textures](@ref advancedTextures)
  - [Offscreen rendering](@ref offscreenRendering)
  - [Creating meshes](@ref creatingMeshes)
- - [Advanced RTTI](@ref advancedRtti) 
+ - [Advanced startup](@ref advancedStartup)
+ - [Advanced RTTI](@ref advancedRtti)
+ - [Cursors](@ref cursors)
  
-# Developer guides
-
-Here you will find a list of all manuals relating to Banshee's native code, primarily focusing on explaining the engine internals instead of the user-facing code. The manuals are roughly ordered in the way they should be read, although if you are interested in a specific topic feel free to skip ahead as manuals often contain cross references to prerequisite manuals.
+# Developer manuals
+A set of manuals covering advanced functionality intented for those wanting to extend the engine or tinker with the internals, rather than for normal users. You are expected to have read the user manuals first.
 
 ## General guides
 Name                                      | Description
 ------------------------------------------|-------------
-[Getting started](@ref gettingStarted)    | Shows how to perform some basic operations using Banshee's user-facing interface. Allows you to get a general idea of how Banshee works.
 [Architecture](@ref architecture)         | Gives you an overview of the entire architecture of Banshee. Useful starting point for those modifying engine internals as it provides a way to identify major systems.
 [Utilities](@ref utilities)               | Provides an overview of a variety of utility systems used throughout Banshee.
 [Core thread](@ref coreThread)            | Explains how core (rendering) thread works, how it interacts with simulation thread, what are core objects and how to create your own.

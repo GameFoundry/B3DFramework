@@ -116,5 +116,8 @@ namespace bs
 		INT32 mActiveCursorId;
 	};
 
+	/** Easy way to access Cursor. */
+	BS_EXPORT Cursor& gCursor();
+
 	/** @} */
 }

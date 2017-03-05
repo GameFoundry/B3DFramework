@@ -177,4 +177,9 @@ namespace bs
 		CustomIcon& customIcon = mCustomIcons[mActiveCursorId];
 		Platform::setCursor(customIcon.pixelData, customIcon.hotSpot);
 	}
+
+	Cursor& gCursor()
+	{
+		return static_cast<Cursor&>(Cursor::instance());
+	}
 }
