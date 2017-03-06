@@ -108,6 +108,8 @@ namespace bs { namespace ct
 		mRenderables.clear();
 		mRenderableVisibility.clear();
 
+		mCubemapArrayTex = nullptr;
+
 		PostProcessing::shutDown();
 		GpuResourcePool::shutDown();
 
@@ -1176,7 +1178,7 @@ namespace bs { namespace ct
 			{
 				TEXTURE_DESC cubeMapDesc;
 				cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
-				cubeMapDesc.format = PF_FLOAT16_RGBA;
+				cubeMapDesc.format = PF_FLOAT_R11G11B10;
 				cubeMapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(cubeMapDesc.width, cubeMapDesc.height, 1, cubeMapDesc.format);
@@ -1188,6 +1190,17 @@ namespace bs { namespace ct
 			}
 
 			auto& cubemapArrayProps = mCubemapArrayTex->getProperties();
+
+			TEXTURE_DESC cubemapDesc;
+			cubemapDesc.type = TEX_TYPE_CUBE_MAP;
+			cubemapDesc.format = PF_FLOAT_R11G11B10;
+			cubemapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+			cubemapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
+			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+
+			SPtr<Texture> scratchCubemap;
+			if (numProbes > 0)
+				scratchCubemap = Texture::create(cubemapDesc);
 
 			FrameQueue<UINT32> emptySlots;
 			for (UINT32 i = 0; i < numProbes; i++)
@@ -1202,17 +1215,10 @@ namespace bs { namespace ct
 
 						if (probeInfo.texture == nullptr || probeInfo.textureDirty)
 						{
-							TEXTURE_DESC cubemapDesc;
-							cubemapDesc.type = TEX_TYPE_CUBE_MAP;
-							cubemapDesc.format = PF_FLOAT16_RGBA;
-							cubemapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
-							cubemapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
-							cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
-
 							probeInfo.texture = Texture::create(cubemapDesc);
 
 							captureSceneCubeMap(probeInfo.texture, probeInfo.probe->getPosition(), true, frameInfo);
-							ReflectionProbes::filterCubemapForSpecular(probeInfo.texture);
+							ReflectionProbes::filterCubemapForSpecular(probeInfo.texture, scratchCubemap);
 
 							ReflectionCubemapCache::instance().setCachedTexture(probeInfo.probe->getUUID(), probeInfo.texture);
 						}

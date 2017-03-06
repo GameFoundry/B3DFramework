@@ -167,10 +167,6 @@
             "UUID": "a8aa01e7-7e72-4f84-89f8-a0097250b0d3"
         },
         {
-            "Path": "ReflectionCubemapFilter.bsl",
-            "UUID": "31b4b9ae-2afa-4cd8-b532-fe82a7f42baa"
-        },
-        {
             "Path": "Resolve.bsl",
             "UUID": "9d5f5101-2d7e-432c-b8ad-1998de9ca5c7"
         },
@@ -217,6 +213,14 @@
         {
             "Path": "FlatFramebufferToTexture.bsl",
             "UUID": "c469c67d-6a43-4961-8e8c-d769f88546b7"
+        },
+        {
+            "Path": "ReflectionCubeDownsample.bsl",
+            "UUID": "0efe7fe5-f7da-4ac8-a634-522bf6791dad"
+        },
+        {
+            "Path": "ReflectionCubeImportanceSample.bsl",
+            "UUID": "ed16fdd9-7982-4f5c-ae63-8303c786e9ad"
         }
     ],
     "Skin": [

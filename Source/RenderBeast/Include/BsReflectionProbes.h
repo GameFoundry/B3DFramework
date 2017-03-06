@@ -12,19 +12,19 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	BS_PARAM_BLOCK_BEGIN(ReflectionCubemapFilterParamDef)
+	BS_PARAM_BLOCK_BEGIN(ReflectionCubeDownsampleParamDef)
 		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
 	BS_PARAM_BLOCK_END
 
-	extern ReflectionCubemapFilterParamDef gReflectionCubemapFilterDef;
+	extern ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
-	/** Performs filtering on cubemap faces in order for make them suitable for specular evaluation. */
-	class ReflectionCubemapFilterMat : public RendererMaterial<ReflectionCubemapFilterMat>
+	/** Performs filtering on cubemap faces in order to prepare them for importance sampling. */
+	class ReflectionCubeDownsampleMat : public RendererMaterial<ReflectionCubeDownsampleMat>
 	{
-		RMAT_DEF("ReflectionCubemapFilter.bsl")
+		RMAT_DEF("ReflectionCubeDownsample.bsl")
 
 	public:
-		ReflectionCubemapFilterMat();
+		ReflectionCubeDownsampleMat();
 
 		/** Downsamples the provided texture face and outputs it to the provided target. */
 		void execute(const SPtr<Texture>& source, UINT32 face, const TextureSurface& surface, 
@@ -35,6 +35,33 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTexture;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
+		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+		BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
+		BS_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
+	BS_PARAM_BLOCK_END
+
+	extern ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
+
+	/** Performs importance sampling on cubemap faces in order for make them suitable for specular evaluation. */
+	class ReflectionCubeImportanceSampleMat : public RendererMaterial<ReflectionCubeImportanceSampleMat>
+	{
+		RMAT_DEF("ReflectionCubeImportanceSample.bsl")
+
+	public:
+		ReflectionCubeImportanceSampleMat();
+
+		/** Importance samples the provided texture face and outputs it to the provided target. */
+		void execute(const SPtr<Texture>& source, UINT32 face, UINT32 mip, const SPtr<RenderTarget>& target);
+
+	private:
+		static const UINT32 NUM_SAMPLES;
+
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mInputTexture;
+	};
+
+
 	/** Helper class that handles generation and processing of textures used for reflection probes. */
 	class ReflectionProbes
 	{
@@ -42,8 +69,13 @@ namespace bs { namespace ct
 		/**
 		 * Performs filtering on the cubemap, populating its mip-maps with filtered values that can be used for
 		 * evaluating specular reflections.
+		 * 
+		 * @param[in, out]	cubemap		Cubemap to filter. Its mip level 0 will be read, filtered and written into
+		 *								other mip levels.
+		 * @param[in]		scratch		Temporary cubemap texture to use for the filtering process. Must match the size of
+		 *								the source cubemap.
 		 */
-		static void filterCubemapForSpecular(const SPtr<Texture>& cubemap);
+		static void filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch);
 
 		static const UINT32 REFLECTION_CUBEMAP_SIZE;
 	};

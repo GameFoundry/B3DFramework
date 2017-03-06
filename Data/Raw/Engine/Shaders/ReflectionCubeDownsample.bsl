@@ -30,12 +30,6 @@ Technique : inherits("PPBase") =
 
 			float4 main(VStoFS input) : SV_Target0
 			{
-				// Note: This is a rough approximation rather than something physically correct.
-				// For a more correct version we should sample along the specular lobe and weight
-				// the contributions. But even that wouldn't be fully correct as specular lobe
-				// shape changes according to view/normal due to occlusion. So instead we just 
-				// approximate everything.
-			
 				float2 scaledUV = input.uv0 * 2.0f - 1.0f;
 				
 				float3 dir;
@@ -82,12 +76,6 @@ Technique : inherits("PPBase") =
 			
 			void main()
 			{
-				// Note: This is a rough approximation rather than something physically correct.
-				// For a more correct version we should sample along the specular lobe and weight
-				// the contributions. But even that wouldn't be fully correct as specular lobe
-				// shape changes according to view/normal due to occlusion. So instead we just 
-				// approximate everything.
-			
 				vec2 scaledUV = FSInput.uv0 * 2.0f - 1.0f;
 				
 				vec3 dir;

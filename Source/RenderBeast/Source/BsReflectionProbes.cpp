@@ -8,26 +8,65 @@
 
 namespace bs { namespace ct
 {
-	ReflectionCubemapFilterParamDef gReflectionCubemapFilterDef;
+	ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
-	ReflectionCubemapFilterMat::ReflectionCubemapFilterMat()
+	ReflectionCubeDownsampleMat::ReflectionCubeDownsampleMat()
 	{
-		mParamBuffer = gReflectionCubemapFilterDef.createBuffer();
+		mParamBuffer = gReflectionCubeDownsampleParamDef.createBuffer();
 
 		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void ReflectionCubemapFilterMat::_initDefines(ShaderDefines& defines)
+	void ReflectionCubeDownsampleMat::_initDefines(ShaderDefines& defines)
 	{
 		// Do nothing
 	}
 
-	void ReflectionCubemapFilterMat::execute(const SPtr<Texture>& source, UINT32 face, const TextureSurface& surface, 
+	void ReflectionCubeDownsampleMat::execute(const SPtr<Texture>& source, UINT32 face, const TextureSurface& surface, 
 											 const SPtr<RenderTarget>& target)
 	{
 		mInputTexture.set(source, surface);
-		gReflectionCubemapFilterDef.gCubeFace.set(mParamBuffer, face);
+		gReflectionCubeDownsampleParamDef.gCubeFace.set(mParamBuffer, face);
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(target);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+	}
+
+	const UINT32 ReflectionCubeImportanceSampleMat::NUM_SAMPLES = 1024;
+	ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
+
+	ReflectionCubeImportanceSampleMat::ReflectionCubeImportanceSampleMat()
+	{
+		mParamBuffer = gReflectionCubeImportanceSampleParamDef.createBuffer();
+
+		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	}
+
+	void ReflectionCubeImportanceSampleMat::_initDefines(ShaderDefines& defines)
+	{
+		defines.set("NUM_SAMPLES", NUM_SAMPLES); 
+	}
+
+	void ReflectionCubeImportanceSampleMat::execute(const SPtr<Texture>& source, UINT32 face, UINT32 mip, 
+													const SPtr<RenderTarget>& target)
+	{
+		mInputTexture.set(source);
+		gReflectionCubeImportanceSampleParamDef.gCubeFace.set(mParamBuffer, face);
+		gReflectionCubeImportanceSampleParamDef.gMipLevel.set(mParamBuffer, mip);
+
+		float width = (float)source->getProperties().getWidth();
+		float height = (float)source->getProperties().getHeight();
+
+		// First part of the equation for determining mip level for sample from.
+		// See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
+		float mipFactor = 0.5f * std::log2(width * height / NUM_SAMPLES); // TODO
+		gReflectionCubeImportanceSampleParamDef.gPrecomputedMipFactor.set(mParamBuffer, mipFactor);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(target);
@@ -39,12 +78,46 @@ namespace bs { namespace ct
 
 	const UINT32 ReflectionProbes::REFLECTION_CUBEMAP_SIZE = 256;
 
-	void ReflectionProbes::filterCubemapForSpecular(const SPtr<Texture>& cubemap)
+	void ReflectionProbes::filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch)
 	{
-		static ReflectionCubemapFilterMat filterMaterial;
+		static ReflectionCubeDownsampleMat downsampleMat;
+		static ReflectionCubeImportanceSampleMat importanceSampleMat;
 
+		// We sample the cubemaps using importance sampling to generate roughness
 		UINT32 numMips = cubemap->getProperties().getNumMipmaps();
 
+		// Before importance sampling the cubemaps we first create box filtered versions for each mip level. This helps fix
+		// the aliasing artifacts that would otherwise be noticeable on importance sampled cubemaps. The aliasing happens
+		// because: 
+		//  1. We use the same random samples for all pixels, which appears to duplicate reflections instead of creating
+		//     noise, which is usually more acceptable 
+		//  2. Even if we were to use fully random samples we would need a lot to avoid noticeable noise, which isn't
+		//     practical
+
+		// Copy base mip level to scratch cubemap
+		for (UINT32 face = 0; face < 6; face++)
+			cubemap->copy(scratch, face, 0, face, 0);
+
+		// Fill out remaining scratch mip levels by downsampling
+		for (UINT32 mip = 1; mip < numMips; mip++)
+		{
+			for (UINT32 face = 0; face < 6; face++)
+			{
+				RENDER_TEXTURE_DESC cubeFaceRTDesc;
+				cubeFaceRTDesc.colorSurfaces[0].texture = scratch;
+				cubeFaceRTDesc.colorSurfaces[0].face = face;
+				cubeFaceRTDesc.colorSurfaces[0].numFaces = 1;
+				cubeFaceRTDesc.colorSurfaces[0].mipLevel = mip;
+
+				SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
+
+				UINT32 sourceMip = mip - 1;
+				TextureSurface sourceSurface(sourceMip, 1, 0, 6);
+				downsampleMat.execute(scratch, face, sourceSurface, target);
+			}
+		}
+
+		// Importance sample
 		for (UINT32 mip = 1; mip < numMips; mip++)
 		{
 			for (UINT32 face = 0; face < 6; face++)
@@ -57,9 +130,7 @@ namespace bs { namespace ct
 
 				SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
 
-				UINT32 sourceMip = mip - 1;
-				TextureSurface sourceSurface(sourceMip, 1, 0, 6);
-				filterMaterial.execute(cubemap, face, sourceSurface, target);
+				importanceSampleMat.execute(scratch, face, mip, target);
 			}
 		}
 	}
