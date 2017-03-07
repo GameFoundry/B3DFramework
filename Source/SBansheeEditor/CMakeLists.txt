@@ -9,14 +9,16 @@ set(SBansheeEditor_INC
 	"../BansheeEngine/Include"
 	"../BansheeEditor/Include"
 	"../BansheeMono/Include"
-	"../SBansheeEngine/Include")
+	"../SBansheeEngine/Include"
+	"${PROJECT_BINARY_DIR}/Generated/Cpp/Editor/Include")
 
 include_directories(${SBansheeEditor_INC})	
-set(BS_SCRIPT_PARSER_INCLUDE_DIRS ${BS_SCRIPT_PARSER_INCLUDE_DIRS} "SBansheeEditor/Include" PARENT_SCOPE)
 
 # Target
-add_library(SBansheeEditor SHARED ${BS_SBANSHEEEDITOR_SRC})
-set(BS_SCRIPT_PARSER_SOURCE_FILES ${BS_SCRIPT_PARSER_SOURCE_FILES} ${BS_SBANSHEEEDITOR_SRC} PARENT_SCOPE)
+add_library(SBansheeEditor SHARED 
+	${BS_SBANSHEEEDITOR_SRC} 
+	${BS_GENERATED_EDITOR_H_FILES} 
+	${BS_GENERATED_EDITOR_CPP_FILES})
 
 # Defines
 target_compile_definitions(SBansheeEditor PRIVATE -DBS_SCR_BED_EXPORTS)

@@ -209,6 +209,46 @@
 #define BS_ASSERT(x)
 #endif
 
+// Script binding defines
+
+/** 
+ * @page scriptBindingMacro Script binding exports
+ * 
+ * Marks the specific type or a method to be exported to the scripting API. Supports a variety of options which can
+ * be specified in the "option:value" format, where multiple options are separated by commas, with no whitespace.
+ *
+ * Supported options:
+ *  - n - Specify a different name for the type in the scripting API (e.g. "n:MyName"). Usable on types and methods.
+ *  - v - Specify a different visibility (default is public). Supported values are "public" and "internal". Usable on types
+ *		  and methods.
+ *  - f - Specify the name of the output file(s) for the script object and its potential wrappers. If not specified
+ *		  the name of the type will be used for the file. Usable on types only.
+ *	- pl - Specify whether the type is plain or not (default is false). Supported values are "true" or "false". Plain 
+ *		  types don't have script interop objects generated, instead their are generated in script code as plain data
+ *		  types. No methods are exposed, but all data members and constructors are copied. Usable on types only.
+ *	- e - Specify that a method is external and is to be appended to some script class. Such methods must be static
+ *		  and as the first parameter accept the instance of the class they operate on. Value of this option should be
+ *		  the name of the class to attach this method to. Methods with this parameter must also be part of a class
+ *		  with this option. Usable on types and methods.
+ *	- ec - Similar to "e", but specifies an external constructor. Such method must have a return value that returns
+ *		   an instance of the class its registered for. Value of this option should be the name of the class to attach
+ *		   this method to. Methods with this parameter must also be part of a class with the "e" option. Usable on methods
+ *		   only.
+ *	- pr - Specify the method should be exported as a property in script code. Supported values are "getter" or "setter".
+ *		  Getter methods must return a single value and accept no parameters, while setter methods must accept one
+ *		  parameter and return no values. Usable on methods only.
+ *	- ed - Specify that a type should be exported for use in the editor only. Supported values are "true" or "false".
+ *		   Usable on types only.
+ */
+
+#if BS_COMPILER == BS_COMPILER_CLANG
+	/** @copydoc scriptBindingMacro */
+	#define BS_SCRIPT_EXPORT(...) __attribute__((annotate("se," #__VA_ARGS__)))
+#else
+	/** @copydoc scriptBindingMacro */
+	#define BS_SCRIPT_EXPORT(...) 
+#endif
+
 // Short-hand names for various built-in types
 #include "BsTypes.h"
 

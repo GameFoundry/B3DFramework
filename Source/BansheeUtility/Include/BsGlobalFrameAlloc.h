@@ -18,34 +18,34 @@ namespace bs
 	 *
 	 * @note	Thread safe.
 	 */
-	inline BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc();
+	BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc();
 
 	/**
 	 * Allocates some memory using the global frame allocator.
 	 *
 	 * @param[in]	numBytes	Number of bytes to allocate.
 	 */
-	inline BS_UTILITY_EXPORT UINT8* bs_frame_alloc(UINT32 numBytes);
+	BS_UTILITY_EXPORT UINT8* bs_frame_alloc(UINT32 numBytes);
 
 	/** 
 	 * Allocates the specified number of bytes aligned to the provided boundary, using the global frame allocator. Boundary
 	 * is in bytes and must be a power of two.
 	 */
-	inline BS_UTILITY_EXPORT UINT8* bs_frame_alloc_aligned(UINT32 count, UINT32 align);
+	BS_UTILITY_EXPORT UINT8* bs_frame_alloc_aligned(UINT32 count, UINT32 align);
 
 	/**
 	 * Deallocates memory allocated with the global frame allocator.
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	inline BS_UTILITY_EXPORT void bs_frame_free(void* data);
+	BS_UTILITY_EXPORT void bs_frame_free(void* data);
 
 	/** 
 	 * Frees memory previously allocated with bs_frame_alloc_aligned(). 
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	inline BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data);
+	BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data);
 
 	/**
 	 * Allocates enough memory to hold the object of specified type using the global frame allocator, but does not 

@@ -8,11 +8,9 @@ set(BansheeEngine_INC
 	"../BansheeCore/Include")
 
 include_directories(${BansheeEngine_INC})	
-set(BS_SCRIPT_PARSER_INCLUDE_DIRS ${BS_SCRIPT_PARSER_INCLUDE_DIRS} "BansheeEngine/Include" PARENT_SCOPE)
 
 # Target
 add_library(BansheeEngine SHARED ${BS_BANSHEEENGINE_SRC})
-set(BS_SCRIPT_PARSER_SOURCE_FILES ${BS_SCRIPT_PARSER_SOURCE_FILES} ${BS_BANSHEEENGINE_SRC} PARENT_SCOPE)
 
 # Defines
 target_compile_definitions(BansheeEngine PRIVATE 
