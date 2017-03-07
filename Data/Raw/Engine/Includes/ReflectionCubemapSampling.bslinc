@@ -1,0 +1,121 @@
+Technique : base("ReflectionCubemapSampling") =
+{
+	Language = "HLSL11";
+
+	Pass =
+	{
+		Common = 
+		{
+			TextureCube gSkyCubemapTex;
+			SamplerState gSkyCubemapSamp;
+
+			cbuffer ReflectionParams
+			{
+				int gSkyNumMips;
+			}	
+			
+			float3 getSkyReflection(float3 dir, float roughness)
+			{
+				float mipLevel = mapRoughnessToMipLevel(roughness, gSkyNumMips);
+				float3 reflection = gSkyCubemapTex.SampleLevel(gSkyCubemapSamp, dir, mipLevel);
+
+				return reflection;
+			}
+			
+			float3 getSphereReflectionContribution(float normalizedDistance)
+			{			
+				// If closer than 60% to the probe radius, then full contribution is used.
+				// For the other 40% we smoothstep and return contribution lower than 1 so other
+				// reflection probes can be blended.			
+			
+				// smoothstep from 1 to 0.6:
+				//   float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+				//   return t * t * (3.0 - 2.0 * t);
+				float t = saturate(2.5 - 2.5 * normalizedDistance);
+				return t * t * (3.0 - 2.0 * t);
+			}
+			
+			float3 getLookupForSphereProxy(float3 originWS, float3 dirWS, float3 centerWS, float radius)
+			{
+				float radius2 = radius * radius;
+				float3 originLS = originWS - centerWS;
+				
+				float a = dot(originLS, dirWS);
+				float dist2 = a * a - dot(originLS, originLS) + radius2;
+
+				float3 lookupDir = dirWS;
+				
+				[flatten]
+				if(dist2 >= 0)
+				{
+					float farDist = sqrt(dist2) - a;
+					lookupDir = originLS + farDist * dirWS;
+				}
+				
+				return lookupDir;
+			}
+			
+			float3 getDistBoxToPoint(float3 point, float3 extents)
+			{
+				float3 d = max(max(-extents - point, 0), point - extents);
+				return length(d);
+			}
+			
+			float3 getLookupForBoxProxy(float3 originWS, float3 dirWS, float3 centerWS, float3 extents, float4x4 invBoxTransform, float transitionDistance, out float contribution)
+			{
+				// Transform origin and direction into box local space, where it is united sized and axis aligned
+				float3 originLS = mul(invBoxTransform, float4(originWS, 1)).xyz;
+				float3 dirLS = mul(invBoxTransform, float4(dirWS, 0)).xyz;
+				
+				// Get distance from 3 min planes and 3 max planes of the unit AABB
+				//  float3 unitVec = float3(1.0f, 1.0f, 1.0f);
+				//  float3 intersectsMax = (unitVec - originLS) / dirLS;
+				//  float3 intersectsMin = (-unitVec - originLS) / dirLS;
+				
+				float3 invDirLS = rcp(dirLS);
+				float3 intersectsMax = invDirLS - originLS * invDirLS;
+				float3 intersectsMin = -invDirLS - originLS * invDirLS;
+				
+				// Find nearest positive (along ray direction) intersection
+				float3 positiveIntersections = max(intersectsMax, intersectsMin);
+				float intersectDist = min(positiveIntersections.x, min(positiveIntersections.y, positiveIntersections.z));
+				
+				float3 intersectPositionWS = originWS + intersectDist * dirWS;
+				float3 lookupDir = intersectPositionWS - centerWS;
+				
+				// Calculate contribution
+				//// Shrink the box so fade out happens within box extents
+				float3 reducedExtents = extents - float3(transitionDistance, transitionDistance, transitionDistance);
+				float distToBox = getDistBoxToPoint(originLS * reducedExtents, reducedExtents);
+				
+				float normalizedDistance = distToBox / transitionDistance;
+				
+				// If closer than 70% to the probe radius, then full contribution is used.
+				// For the other 30% we smoothstep and return contribution lower than 1 so other
+				// reflection probes can be blended.			
+			
+				// smoothstep from 1 to 0.7:
+				//   float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+				//   return t * t * (3.0 - 2.0 * t);
+				
+				float t = saturate(3.3333 - 3.3333 * normalizedDistance);
+				return t * t * (3.0 - 2.0 * t);
+				
+				return lookupDir;
+			}
+		};
+	};
+};
+
+Technique : base("ReflectionCubemapSampling") =
+{
+	Language = "GLSL";
+
+	Pass =
+	{
+		Common = 
+		{
+		
+		};
+	};
+};

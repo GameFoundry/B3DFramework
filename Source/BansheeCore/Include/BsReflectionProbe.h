@@ -70,6 +70,13 @@ namespace bs
 		void setRotation(const Quaternion& rotation) 
 			{ mRotation = rotation; _markCoreDirty(ReflectionProbeDirtyFlag::Transform); updateBounds(); }
 
+		/**	Returns the scale of the probe. */
+		Vector3 getScale() const { return mScale; }
+
+		/**	Sets the scale of the probe. */
+		void setScale(const Vector3& scale)
+			{ mScale = scale; _markCoreDirty(ReflectionProbeDirtyFlag::Transform); updateBounds(); }
+
 		/**	Returns the type of the probe. */
 		ReflectionProbeType getType() const { return mType; }
 
@@ -77,13 +84,13 @@ namespace bs
 		void setType(ReflectionProbeType type) { mType = type; _markCoreDirty(); updateBounds(); }
 
 		/** Returns the radius of a sphere reflection probe. Determines range of influence. */
-		float getRadius() const { return mRadius; }
+		float getRadius() const { return mRadius * std::max(std::max(mScale.x, mScale.y), mScale.z); }
 
 		/** Sets the radius of a sphere reflection probe. */
 		void setRadius(float radius) { mRadius = radius; _markCoreDirty(); updateBounds(); }
 
 		/** Returns the extents of a box or plane reflection probe. */
-		Vector3 getExtents() const { return mExtents; }
+		Vector3 getExtents() const { return mExtents * mScale; }
 
 		/** Sets the extents of a box or a plane reflection probe. Determines range of influence. */
 		void setExtents(const Vector3& extents) { mExtents = extents; _markCoreDirty(); updateBounds(); }
@@ -91,6 +98,15 @@ namespace bs
 		/**	Returns world space bounds that completely encompass the probe's area of influence. */
 		Sphere getBounds() const { return mBounds; }
 		
+		/** 
+		 * Sets a distance that will be used for fading out the box reflection probe with distance. By default it
+		 * is equal to one, and can never be less than one. Only relevant for box probes.
+		 */
+		void setTransitionDistance(float distance) { mTransitionDistance = std::max(1.0f, distance); }
+
+		/** Retrieves transition distance set by setTransitionDistance(). */
+		float getTransitionDistance() const { return mTransitionDistance; }
+
 		/**	Checks whether the probe should be used or not. */
 		bool getIsActive() const { return mIsActive; }
 
@@ -112,10 +128,12 @@ namespace bs
 
 		Vector3 mPosition; /**< World space position. */
 		Quaternion mRotation; /**< World space rotation. */
+		Vector3 mScale; /** Scale applied to radius/extents. */
 
 		ReflectionProbeType mType; /**< Type of probe that determines how are the rest of the parameters interpreted. */
 		float mRadius; /**< Radius used for sphere reflection probes. */
 		Vector3 mExtents; /**< Extents used by box & plane reflection probes. */
+		float mTransitionDistance; /**< Extra distance to used for fading out box probes. */
 		String mUUID; /**< Identifier that uniquely identifies the probe. */
 
 		bool mIsActive; /**< Whether the light should be rendered or not. */

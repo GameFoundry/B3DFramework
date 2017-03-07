@@ -1,4 +1,4 @@
-Technique : base("ReflectionCubemap") =
+Technique : base("ReflectionCubemapCommon") =
 {
 	Language = "HLSL11";
 
@@ -6,28 +6,54 @@ Technique : base("ReflectionCubemap") =
 	{
 		Common = 
 		{
-			#define REFLECTION_MIP_OFFSET 2
-		
+			float3 getDirFromCubeFace(uint cubeFace, float2 uv)
+			{
+				float3 dir;
+				if(cubeFace == 0)
+					dir = float3(1.0f, -uv.y, -uv.x);
+				else if(cubeFace == 1)
+					dir = float3(-1.0f, -uv.y, uv.x);
+				else if(cubeFace == 2)
+					dir = float3(uv.x, 1.0f, uv.y);
+				else if(cubeFace == 3)
+					dir = float3(uv.x, -1.0f, -uv.y);
+				else if(cubeFace == 4)
+					dir = float3(uv.x, -uv.y, 1.0f);
+				else
+					dir = float3(-uv.x, -uv.y, -1.0f);
+					
+				return dir;
+			}
+			
 			/**
 			 * Calculates a mip level to sample from based on roughness value.
 			 *
 			 * @param 	roughness	Roughness in range [0, 1]. Higher values yield more roughness.
 			 * @param	numMips		Total number of mip-map levels in the texture we'll be sampling from.
 			 * @return				Index of the mipmap level to sample.
-			 */		
-			float getMipFromRoughness(float roughness, float numMips)
+			 */					
+			float mapRoughnessToMipLevel(float roughness, uint numMips)
 			{
-				// Note: This is just a heuristic as we don't calculate the exact size of the specular lobe,
-				// and neither do our filtered maps
-			
-				// We add an offset because we want to ignore the highest few mip levels
-				return numMips - 1 - REFLECTION_MIP_OFFSET - log2(roughness);
+				// We use the following equation:
+				//    mipLevel = log10(roughness) / log10(dropPercent)
+				//
+				// Where dropPercent represent by what % to drop the roughness with each mip level.
+				// We convert to log2 and a assume a drop percent value of 0.6. This gives us:
+				//    mipLevel = -1.35692 * log2(roughness);
+				
+				return max(0, numMips - 1 - (-1.35692 * log2(roughness)));
 			}
+			
+			float mapMipLevelToRoughness(uint mipLevel)
+			{
+				// mapRoughnessToMipLevel() solved for roughness
+				return 1.0f - exp2(-0.7369655941662063 * mipLevel);
+			}	
 		};
 	};
 };
 
-Technique : base("ReflectionCubemap") =
+Technique : base("ReflectionCubemapCommon") =
 {
 	Language = "GLSL";
 
@@ -35,23 +61,24 @@ Technique : base("ReflectionCubemap") =
 	{
 		Common = 
 		{
-			#define REFLECTION_MIP_OFFSET 2
-		
-			/**
-			 * Calculates a mip level to sample from based on roughness value.
-			 *
-			 * @param 	roughness	Roughness in range [0, 1]. Higher values yield more roughness.
-			 * @param	numMips		Total number of mip-map levels in the texture we'll be sampling from.
-			 * @return				Index of the mipmap level to sample.
-			 */		
-			void getMipFromRoughness(float roughness, float numMips, out float mipLevel)
+			vec3 getDirFromCubeFace(uint cubeFace, vec2 uv)
 			{
-				// Note: This is just a heuristic as we don't calculate the exact size of the specular lobe,
-				// and neither do our filtered maps
-			
-				// We add an offset because we want to ignore the highest few mip levels
-				mipLevel = numMips - 1 - REFLECTION_MIP_OFFSET - log2(roughness);
-			}
+				vec3 dir;
+				if(cubeFace == 0)
+					dir = vec3(1.0f, -uv.y, -uv.x);
+				else if(cubeFace == 1)
+					dir = vec3(-1.0f, -uv.y, uv.x);
+				else if(cubeFace == 2)
+					dir = vec3(uv.x, 1.0f, uv.y);
+				else if(cubeFace == 3)
+					dir = vec3(uv.x, -1.0f, -uv.y);
+				else if(cubeFace == 4)
+					dir = vec3(uv.x, -uv.y, 1.0f);
+				else
+					dir = vec3(-uv.x, -uv.y, -1.0f);
+					
+				return dir;
+			}			
 		};
 	};
 };

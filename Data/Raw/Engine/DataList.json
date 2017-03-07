@@ -115,6 +115,10 @@
         {
             "Path": "LightGridCommon.bslinc",
             "UUID": "26caf86e-433c-4ade-9bc5-55c136d82912"
+        },
+        {
+            "Path": "ReflectionCubemapSampling.bslinc",
+            "UUID": "b65d98df-45db-4b03-a97c-bca6b07f1d22"
         }
     ],
     "Shaders": [

@@ -11,13 +11,13 @@
 namespace bs
 {
 	ReflectionProbeBase::ReflectionProbeBase()
-		: mPosition(BsZero), mRotation(BsIdentity), mType(ReflectionProbeType::Box), mRadius(1.0f)
-		, mExtents(1.0f, 1.0f, 1.0f), mIsActive(true), mBounds(Vector3::ZERO, 1.0f)
+		: mPosition(BsZero), mRotation(BsIdentity), mScale(1.0f, 1.0f, 1.0f), mType(ReflectionProbeType::Box), mRadius(1.0f)
+		, mExtents(1.0f, 1.0f, 1.0f), mTransitionDistance(1.0f), mIsActive(true), mBounds(Vector3::ZERO, 1.0f)
 	{ }
 
 	ReflectionProbeBase::ReflectionProbeBase(ReflectionProbeType type, float radius, const Vector3& extents)
-		: mPosition(BsZero), mRotation(BsIdentity), mType(type), mRadius(radius)
-		, mExtents(extents), mIsActive(true), mBounds(Vector3::ZERO, 1.0f)
+		: mPosition(BsZero), mRotation(BsIdentity), mScale(1.0f, 1.0f, 1.0f), mType(type), mRadius(radius)
+		, mExtents(extents), mTransitionDistance(1.0f), mIsActive(true), mBounds(Vector3::ZERO, 1.0f)
 	{ }
 
 	void ReflectionProbeBase::updateBounds()
@@ -25,11 +25,11 @@ namespace bs
 		switch (mType)
 		{
 		case ReflectionProbeType::Sphere:
-			mBounds = Sphere(mPosition, mRadius);
+			mBounds = Sphere(mPosition, mRadius * std::max(std::max(mScale.x, mScale.y), mScale.z));
 			break;
 		case ReflectionProbeType::Box:
 		case ReflectionProbeType::Plane:
-			mBounds = Sphere(mPosition, mExtents.length());
+			mBounds = Sphere(mPosition, (mExtents * mScale).length());
 			break;
 		}
 	}
@@ -129,9 +129,11 @@ namespace bs
 		UINT32 size = 0;
 		size += rttiGetElemSize(mPosition);
 		size += rttiGetElemSize(mRotation);
+		size += rttiGetElemSize(mScale);
 		size += rttiGetElemSize(mType);
 		size += rttiGetElemSize(mRadius);
 		size += rttiGetElemSize(mExtents);
+		size += rttiGetElemSize(mTransitionDistance);
 		size += rttiGetElemSize(mIsActive);
 		size += rttiGetElemSize(getCoreDirtyFlags());
 		size += rttiGetElemSize(mBounds);
@@ -143,9 +145,11 @@ namespace bs
 		char* dataPtr = (char*)buffer;
 		dataPtr = rttiWriteElem(mPosition, dataPtr);
 		dataPtr = rttiWriteElem(mRotation, dataPtr);
+		dataPtr = rttiWriteElem(mScale, dataPtr);
 		dataPtr = rttiWriteElem(mType, dataPtr);
 		dataPtr = rttiWriteElem(mRadius, dataPtr);
 		dataPtr = rttiWriteElem(mExtents, dataPtr);
+		dataPtr = rttiWriteElem(mTransitionDistance, dataPtr);
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 		dataPtr = rttiWriteElem(mBounds, dataPtr);
@@ -169,6 +173,8 @@ namespace bs
 		{
 			setPosition(parent->getWorldPosition());
 			setRotation(parent->getWorldRotation());
+			setScale(parent->getWorldScale());
+
 			_setLastModifiedHash(curHash);
 		}
 	}
@@ -219,9 +225,11 @@ namespace bs
 
 		dataPtr = rttiReadElem(mPosition, dataPtr);
 		dataPtr = rttiReadElem(mRotation, dataPtr);
+		dataPtr = rttiReadElem(mScale, dataPtr);
 		dataPtr = rttiReadElem(mType, dataPtr);
 		dataPtr = rttiReadElem(mRadius, dataPtr);
 		dataPtr = rttiReadElem(mExtents, dataPtr);
+		dataPtr = rttiReadElem(mTransitionDistance, dataPtr);
 		dataPtr = rttiReadElem(mIsActive, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 		dataPtr = rttiReadElem(mBounds, dataPtr);

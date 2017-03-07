@@ -1,4 +1,5 @@
 #include "$ENGINE$\PPBase.bslinc"
+#include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 
 Parameters =
 {
@@ -12,7 +13,9 @@ Blocks =
 	Block Input;
 };
 
-Technique : inherits("PPBase") =
+Technique
+ : inherits("PPBase")
+ : inherits("ReflectionCubemapCommon") =
 {
 	Language = "HLSL11";
 	
@@ -71,24 +74,6 @@ Technique : inherits("PPBase") =
 				return roughness4 * cosTheta * sinTheta / (d*d*PI);
 			}
 			
-			float mapRoughnessToMipLevel(float roughness, uint maxMipLevel)
-			{
-				// We use the following equation:
-				//    mipLevel = log10(roughness) / log10(dropPercent)
-				//
-				// Where dropPercent represent by what % to drop the roughness with each mip level.
-				// We convert to log2 and a assume a drop percent value of 0.6. This gives us:
-				//    mipLevel = -1.35692 * log2(roughness);
-				
-				return max(0, maxMipLevel - (-1.35692 * log2(roughness)));
-			}
-			
-			float mapMipLevelToRoughness(uint mipLevel)
-			{
-				// Inverse of mapRoughnessToMipLevel()
-				return 1.0f - exp2(-0.7369655941662063 * mipLevel);
-			}
-			
 			cbuffer Input
 			{
 				int gCubeFace;
@@ -102,21 +87,8 @@ Technique : inherits("PPBase") =
 			float4 main(VStoFS input) : SV_Target0
 			{
 				float2 scaledUV = input.uv0 * 2.0f - 1.0f;
-														
-				float3 N;
-				if(gCubeFace == 0)
-					N = float3(1.0f, -scaledUV.y, -scaledUV.x);
-				else if(gCubeFace == 1)
-					N = float3(-1.0f, -scaledUV.y, scaledUV.x);
-				else if(gCubeFace == 2)
-					N = float3(scaledUV.x, 1.0f, scaledUV.y);
-				else if(gCubeFace == 3)
-					N = float3(scaledUV.x, -1.0f, -scaledUV.y);
-				else if(gCubeFace == 4)
-					N = float3(scaledUV.x, -scaledUV.y, 1.0f);
-				else
-					N = float3(-scaledUV.x, -scaledUV.y, -1.0f);
-				
+										
+				float3 N = getDirFromCubeFace(gCubeFace, scaledUV);
 				N = normalize(N);
 				
 				// Determine which mip level to sample from depending on PDF and cube -> sphere mapping distortion
@@ -163,7 +135,9 @@ Technique : inherits("PPBase") =
 	};
 };
 
-Technique : inherits("PPBase") =
+Technique
+ : inherits("PPBase")
+ : inherits("ReflectionCubemapCommon") =
 {
 	Language = "GLSL";
 	
@@ -188,20 +162,7 @@ Technique : inherits("PPBase") =
 			void main()
 			{
 				vec2 scaledUV = FSInput.uv0 * 2.0f - 1.0f;
-				
-				vec3 dir;
-				if(gCubeFace == 0)
-					dir = vec3(1.0f, -scaledUV.y, -scaledUV.x);
-				else if(gCubeFace == 1)
-					dir = vec3(-1.0f, -scaledUV.y, scaledUV.x);
-				else if(gCubeFace == 2)
-					dir = vec3(scaledUV.x, 1.0f, scaledUV.y);
-				else if(gCubeFace == 3)
-					dir = vec3(scaledUV.x, -1.0f, -scaledUV.y);
-				else if(gCubeFace == 4)
-					dir = vec3(scaledUV.x, -scaledUV.y, 1.0f);
-				else
-					dir = vec3(-scaledUV.x, -scaledUV.y, -1.0f);
+				vec3 N = getDirFromCubeFace(gCubeFace, scaledUV);
 				
 				fragColor = texture(gInputTex, dir);
 			}	

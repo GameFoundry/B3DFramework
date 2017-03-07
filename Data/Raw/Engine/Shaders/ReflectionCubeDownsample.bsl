@@ -1,4 +1,5 @@
 #include "$ENGINE$\PPBase.bslinc"
+#include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 
 Parameters =
 {
@@ -12,7 +13,9 @@ Blocks =
 	Block Input;
 };
 
-Technique : inherits("PPBase") =
+Technique 
+ : inherits("PPBase")
+ : inherits("ReflectionCubemapCommon") =
 {
 	Language = "HLSL11";
 	
@@ -31,20 +34,7 @@ Technique : inherits("PPBase") =
 			float4 main(VStoFS input) : SV_Target0
 			{
 				float2 scaledUV = input.uv0 * 2.0f - 1.0f;
-				
-				float3 dir;
-				if(gCubeFace == 0)
-					dir = float3(1.0f, -scaledUV.y, -scaledUV.x);
-				else if(gCubeFace == 1)
-					dir = float3(-1.0f, -scaledUV.y, scaledUV.x);
-				else if(gCubeFace == 2)
-					dir = float3(scaledUV.x, 1.0f, scaledUV.y);
-				else if(gCubeFace == 3)
-					dir = float3(scaledUV.x, -1.0f, -scaledUV.y);
-				else if(gCubeFace == 4)
-					dir = float3(scaledUV.x, -scaledUV.y, 1.0f);
-				else
-					dir = float3(-scaledUV.x, -scaledUV.y, -1.0f);
+				float3 dir = getDirFromCubeFace(gCubeFace, scaledUV);
 				
 				return gInputTex.Sample(gInputSamp, dir);
 			}	
@@ -52,7 +42,9 @@ Technique : inherits("PPBase") =
 	};
 };
 
-Technique : inherits("PPBase") =
+Technique
+ : inherits("PPBase")
+ : inherits("ReflectionCubemapCommon") =
 {
 	Language = "GLSL";
 	
@@ -77,21 +69,8 @@ Technique : inherits("PPBase") =
 			void main()
 			{
 				vec2 scaledUV = FSInput.uv0 * 2.0f - 1.0f;
-				
-				vec3 dir;
-				if(gCubeFace == 0)
-					dir = vec3(1.0f, -scaledUV.y, -scaledUV.x);
-				else if(gCubeFace == 1)
-					dir = vec3(-1.0f, -scaledUV.y, scaledUV.x);
-				else if(gCubeFace == 2)
-					dir = vec3(scaledUV.x, 1.0f, scaledUV.y);
-				else if(gCubeFace == 3)
-					dir = vec3(scaledUV.x, -1.0f, -scaledUV.y);
-				else if(gCubeFace == 4)
-					dir = vec3(scaledUV.x, -scaledUV.y, 1.0f);
-				else
-					dir = vec3(-scaledUV.x, -scaledUV.y, -1.0f);
-				
+				vec3 dir = getDirFromCubeFace(gCubeFace, scaledUV);
+
 				fragColor = texture(gInputTex, dir);
 			}	
 		};
