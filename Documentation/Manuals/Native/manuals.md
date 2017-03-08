@@ -66,7 +66,9 @@ A complete set of manuals covering all major functionality provided by Banshee, 
  - [Creating meshes](@ref creatingMeshes)
  - [Advanced startup](@ref advancedStartup)
  - [Advanced RTTI](@ref advancedRtti)
+ - [Prefabs](@ref prefabs)
  - [Cursors](@ref cursors)
+ - [Profiling](@ref cpuProfiling)
  
 # Developer manuals
 A set of manuals covering advanced functionality intented for those wanting to extend the engine or tinker with the internals, rather than for normal users. You are expected to have read the user manuals first.

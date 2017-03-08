@@ -442,7 +442,7 @@ namespace bs
 		elemLayout->addElement(toggleFullscreenButton);
 
 		// Add a profiler overlay object that is responsible for displaying CPU and GPU profiling GUI
-		profilerOverlay = guiSO->addComponent<ProfilerOverlay>(guiCamera->_getCamera());
+		profilerOverlay = guiSO->addComponent<CProfilerOverlay>(guiCamera->_getCamera());
 
 		// Set up video mode list box
 		// First get a list of output devices

@@ -28,12 +28,12 @@ namespace bs
 	 *			
 	 * @note	Component wrapper of ProfilerOverlayInternal.
 	 */
-	class BS_EXPORT ProfilerOverlay : public Component
+	class BS_EXPORT CProfilerOverlay : public Component
 	{
 	public:
 		/**	Constructs a new overlay attached to the specified parent and displayed on the provided viewport. */
-		ProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target);
-		~ProfilerOverlay();
+		CProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target);
+		~CProfilerOverlay();
 
 		/**	Changes the camera to display the overlay on. */
 		void setTarget(const SPtr<Camera>& target);
@@ -58,7 +58,7 @@ namespace bs
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 
-		ProfilerOverlay(); // Serialization only
+		CProfilerOverlay(); // Serialization only
 	};
 
 	/**	Handles rendering of Profiler information as an overlay in a viewport. */

@@ -186,7 +186,7 @@ namespace bs
 	class GUICanvas;
 
 	class RenderableHandler;
-	class ProfilerOverlay;
+	class CProfilerOverlay;
 	class ProfilerOverlayInternal;
 	class DrawHelper;
 	class PlainText;
@@ -202,7 +202,7 @@ namespace bs
 	struct SpriteMaterialInfo;
 
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
-	typedef GameObjectHandle<ProfilerOverlay> HProfilerOverlay;
+	typedef GameObjectHandle<CProfilerOverlay> HProfilerOverlay;
 
 	typedef ResourceHandle<SpriteTexture> HSpriteTexture;
 	typedef ResourceHandle<PlainText> HPlainText;

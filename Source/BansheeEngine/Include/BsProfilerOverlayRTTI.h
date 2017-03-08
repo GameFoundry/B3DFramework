@@ -14,7 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT ProfilerOverlayRTTI : public RTTIType <ProfilerOverlay, Component, ProfilerOverlayRTTI>
+	class BS_EXPORT ProfilerOverlayRTTI : public RTTIType <CProfilerOverlay, Component, ProfilerOverlayRTTI>
 	{
 	private:
 
@@ -35,7 +35,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return GameObjectRTTI::createGameObject<ProfilerOverlay>();
+			return GameObjectRTTI::createGameObject<CProfilerOverlay>();
 		}
 	};
 

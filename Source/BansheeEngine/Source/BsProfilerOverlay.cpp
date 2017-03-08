@@ -291,51 +291,51 @@ namespace bs
 
 	const UINT32 ProfilerOverlayInternal::MAX_DEPTH = 4;
 
-	ProfilerOverlay::ProfilerOverlay()
+	CProfilerOverlay::CProfilerOverlay()
 	{
 		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
-	ProfilerOverlay::ProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target)
+	CProfilerOverlay::CProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target)
 		:Component(parent), mInternal(nullptr)
 	{
 		setFlag(ComponentFlag::AlwaysRun, true);
 		mInternal = bs_new<ProfilerOverlayInternal>(target);
 	}
 
-	ProfilerOverlay::~ProfilerOverlay()
+	CProfilerOverlay::~CProfilerOverlay()
 	{
 		bs_delete(mInternal);
 	}
 
-	void ProfilerOverlay::setTarget(const SPtr<Camera>& target)
+	void CProfilerOverlay::setTarget(const SPtr<Camera>& target)
 	{
 		mInternal->setTarget(target);
 	}
 
-	void ProfilerOverlay::show(ProfilerOverlayType type)
+	void CProfilerOverlay::show(ProfilerOverlayType type)
 	{
 		mInternal->show(type);
 	}
 
-	void ProfilerOverlay::hide()
+	void CProfilerOverlay::hide()
 	{
 		mInternal->hide();
 	}
 
-	void ProfilerOverlay::update()
+	void CProfilerOverlay::update()
 	{
 		mInternal->update();
 	}
 
-	RTTITypeBase* ProfilerOverlay::getRTTIStatic()
+	RTTITypeBase* CProfilerOverlay::getRTTIStatic()
 	{
 		return ProfilerOverlayRTTI::instance();
 	}
 
-	RTTITypeBase* ProfilerOverlay::getRTTI() const
+	RTTITypeBase* CProfilerOverlay::getRTTI() const
 	{
-		return ProfilerOverlay::getRTTIStatic();
+		return CProfilerOverlay::getRTTIStatic();
 	}
 
 	ProfilerOverlayInternal::ProfilerOverlayInternal(const SPtr<Camera>& camera)
