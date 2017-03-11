@@ -101,7 +101,7 @@ Technique
 				float4 sum = 0;
 				for(uint i = 0; i < NUM_SAMPLES; i++)
 				{
-					float random = hammersleySequence(i, NUM_SAMPLES);
+					float2 random = hammersleySequence(i, NUM_SAMPLES);
 					float2 sphericalH = importanceSampleGGX(random, roughness4);
 					
 					float cosTheta = sphericalH.x;
