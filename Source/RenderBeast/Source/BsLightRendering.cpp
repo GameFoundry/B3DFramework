@@ -187,7 +187,7 @@ namespace bs { namespace ct
 		bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 		bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 
-		return float(bits) * 2.3283064365386963e-10; // 0x100000000
+		return float(bits) * 2.3283064365386963e-10f; // 0x100000000
 	}
 
 	void hammersleySequence(UINT32 i, UINT32 count, float& e0, float& e1)

@@ -16,7 +16,7 @@ namespace bs
 		: Component(parent)
 	{
 		setFlag(ComponentFlag::AlwaysRun, true);
-		setName("Light");
+		setName("ReflectionProbe");
 	}
 
 	CReflectionProbe::~CReflectionProbe()

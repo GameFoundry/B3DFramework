@@ -445,6 +445,7 @@ namespace bs
 		class RenderStateManager;
 		class HardwareBufferManager;
 		class ReflectionProbe;
+        class Skybox;
 	}
 }
 
@@ -566,6 +567,8 @@ namespace bs
 		TID_ReflectionProbe = 1131,
 		TID_CReflectionProbe = 1132,
 		TID_CachedTextureData = 1133,
+        TID_Skybox = 1134,
+        TID_CSkybox = 1135,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

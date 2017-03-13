@@ -41,8 +41,23 @@ namespace bs
 	    /** @copydoc ReflectionProbe::setExtents */
 		void setExtents(const Vector3& extents) { mInternal->setExtents(extents); }
 
-	    /** @copydoc ReflectionProbe::getBounds  */
+        /** Retrieves transition distance set by setTransitionDistance(). */
+        float getTransitionDistance() const { return mInternal->getTransitionDistance(); }
+
+        /** @copydoc ReflectionProbe::setTransitionDistance */
+        void setTransitionDistance(float distance) { mInternal->setTransitionDistance(distance); }
+
+        /** @copydoc ReflectionProbe::getCustomTexture */
+        HTexture getCustomTexture() const { return mInternal->getCustomTexture(); }
+
+        /** @copydoc ReflectionProbe::setCustomTexture */
+        void setCustomTexture(const HTexture& texture) { mInternal->setCustomTexture(texture); }
+
+	    /** @copydoc ReflectionProbe::getBounds */
 		Sphere getBounds() const;
+
+        /** @copydoc ReflectionProbe::generate */
+        void generate() { mInternal->generate(); }
 
 		/** @name Internal 
 		 *  @{

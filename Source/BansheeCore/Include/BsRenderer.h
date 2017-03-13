@@ -167,6 +167,20 @@ namespace bs
 		virtual void notifyReflectionProbeRemoved(ReflectionProbe* probe) { }
 
 		/**
+		 * Called whenever a skybox is created.
+		 *
+		 * @note	Core thread.
+		 */
+		virtual void notifySkyboxAdded(Skybox* skybox) { }
+
+		/**
+		 * Called whenever a skybox is destroyed.
+		 *
+		 * @note	Core thread.
+		 */
+		virtual void notifySkyboxRemoved(Skybox* skybox) { }
+
+		/**
 		 * Creates a new empty renderer mesh data.
 		 *
 		 * @note	Sim thread.

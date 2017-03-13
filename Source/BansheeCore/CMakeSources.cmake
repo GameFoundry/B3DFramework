@@ -22,6 +22,7 @@ set(BS_BANSHEECORE_INC_COMPONENTS
 	"Include/BsCAnimation.h"
 	"Include/BsCBone.h"	
 	"Include/BsCReflectionProbe.h"
+	"Include/BsCSkybox.h"
 )
 
 set(BS_BANSHEECORE_INC_PHYSICS
@@ -99,6 +100,7 @@ set(BS_BANSHEECORE_INC_RENDERER
 	"Include/BsPostProcessSettings.h"
 	"Include/BsRendererExtension.h"
 	"Include/BsReflectionProbe.h"
+	"Include/BsSkybox.h"
 )
 
 set(BS_BANSHEECORE_SRC_LOCALIZATION
@@ -259,6 +261,7 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCAnimation.cpp"
 	"Source/BsCBone.cpp"	
 	"Source/BsCReflectionProbe.cpp"
+	"Source/BsCSkybox.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_IMPORTER
@@ -357,6 +360,7 @@ set(BS_BANSHEECORE_INC_RTTI
 	"Include/BsLightRTTI.h"	
 	"Include/BsReflectionProbeRTTI.h"
 	"Include/BsCReflectionProbeRTTI.h"
+	"Include/BsSkyboxRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER
@@ -370,6 +374,7 @@ set(BS_BANSHEECORE_SRC_RENDERER
 	"Source/BsPostProcessSettings.cpp"
 	"Source/BsRendererExtension.cpp"
 	"Source/BsReflectionProbe.cpp"
+	"Source/BsSkybox.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_RESOURCES
