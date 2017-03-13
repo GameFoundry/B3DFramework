@@ -178,16 +178,6 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Texture that will be used for rendering areas of the camera's render target not covered by any geometry. 
-        /// If not set a clear color will be used instead.
-        /// </summary>
-        public TextureCube Skybox
-        {
-            get { return serializableData.skybox; }
-            set { Native.skybox = value; serializableData.skybox = value; }
-        }
-
-        /// <summary>
         /// Allows you to customize various post process operations that will be executed on the image produced by this 
         /// camera.
         /// </summary>
@@ -489,7 +479,6 @@ namespace BansheeEngine
             public PostProcessSettings postProcessSettings;
             public ulong layers = 0xFFFFFFFFFFFFFFFF;
             public bool main;
-            public TextureCube skybox;
         }
     }
 

@@ -57,12 +57,14 @@ namespace bs
         size += rttiGetElemSize(mIsActive);
         size += rttiGetElemSize(sizeof(SPtr<ct::Texture>));
         size += rttiGetElemSize(mUUID);
+        size += rttiGetElemSize(getCoreDirtyFlags());
 
         UINT8* buffer = allocator->alloc(size);
 
         char* dataPtr = (char*)buffer;
         dataPtr = rttiWriteElem(mIsActive, dataPtr);
         dataPtr = rttiWriteElem(mUUID, dataPtr);
+        dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
         SPtr<ct::Texture>* texture = new (dataPtr) SPtr<ct::Texture>();
         if (mTexture.isLoaded(false))
@@ -75,9 +77,9 @@ namespace bs
         return CoreSyncData(buffer, size);
     }
 
-    void Skybox::_markCoreDirty()
+    void Skybox::_markCoreDirty(SkyboxDirtyFlag flags)
     {
-        markCoreDirty();
+        markCoreDirty((UINT32)flags);
     }
 
     RTTITypeBase* Skybox::getRTTIStatic()
@@ -111,10 +113,12 @@ namespace bs
         {
             char* dataPtr = (char*)data.getBuffer();
 
+            SkyboxDirtyFlag dirtyFlags;
             bool oldIsActive = mIsActive;
 
             dataPtr = rttiReadElem(mIsActive, dataPtr);
             dataPtr = rttiReadElem(mUUID, dataPtr);
+            dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 
             SPtr<Texture>* texture = (SPtr<Texture>*)dataPtr;
 
@@ -131,8 +135,13 @@ namespace bs
             }
             else
             {
-                gRenderer()->notifySkyboxRemoved(this);
-                gRenderer()->notifySkyboxAdded(this);
+                if (dirtyFlags == SkyboxDirtyFlag::Texture)
+                    gRenderer()->notifySkyboxTextureChanged(this);
+                else
+                {
+                    gRenderer()->notifySkyboxRemoved(this);
+                    gRenderer()->notifySkyboxAdded(this);
+                }
             }
         }
     }

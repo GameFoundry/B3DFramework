@@ -93,9 +93,6 @@ namespace bs
 		static bool internal_GetNoLighting(ScriptCamera* instance);
 		static void internal_SetNoLighting(ScriptCamera* instance, bool value);
 
-		static MonoObject* internal_GetSkybox(ScriptCamera* instance);
-		static void internal_SetSkybox(ScriptCamera* instance, ScriptTextureCube* value);
-
 		static MonoObject* internal_GetPostProcessSettings(ScriptCamera* instance);
 		static void internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value);
 

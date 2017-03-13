@@ -36,6 +36,7 @@
 #include "BsReflectionProbes.h"
 #include "BsMeshData.h"
 #include "BsLightGrid.h"
+#include "BsSkybox.h"
 
 using namespace std::placeholders;
 
@@ -121,6 +122,8 @@ namespace bs { namespace ct
 		mRenderableVisibility.clear();
 
 		mCubemapArrayTex = nullptr;
+        mSkyboxTexture = nullptr;
+        mSkyboxFilteredReflections = nullptr;
 
 		PostProcessing::shutDown();
 		GpuResourcePool::shutDown();
@@ -542,6 +545,33 @@ namespace bs { namespace ct
 		ReflectionCubemapCache::instance().unloadCachedTexture(probe->getUUID());
 	}
 
+    void RenderBeast::notifySkyboxAdded(Skybox* skybox)
+	{
+        mSkybox = skybox;
+
+        SPtr<Texture> skyTex = skybox->getTexture();
+        if (skyTex != nullptr && skyTex->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
+            mSkyboxTexture = skyTex;
+
+        mSkyboxFilteredReflections = nullptr;
+	}
+
+    void RenderBeast::notifySkyboxTextureChanged(Skybox* skybox)
+	{
+        ReflectionCubemapCache::instance().notifyDirty(skybox->getUUID());
+
+        if (mSkybox == skybox)
+            mSkyboxFilteredReflections = nullptr;
+	}
+
+    void RenderBeast::notifySkyboxRemoved(Skybox* skybox)
+	{
+        ReflectionCubemapCache::instance().unloadCachedTexture(skybox->getUUID());
+
+        if (mSkybox == skybox)
+            mSkyboxTexture = nullptr;
+	}
+
 	SPtr<PostProcessSettings> RenderBeast::createPostProcessSettings() const
 	{
 		return bs_shared_ptr_new<StandardPostProcessSettings>();
@@ -623,7 +653,6 @@ namespace bs { namespace ct
 			viewDesc.viewTransform = camera->getViewMatrix();
 
 			viewDesc.stateReduction = mCoreOptions->stateReductionMode;
-			viewDesc.skyboxTexture = camera->getSkybox();
 			viewDesc.sceneCamera = camera;
 
 			if (iterFind != mCameras.end())
@@ -1041,11 +1070,10 @@ namespace bs { namespace ct
 		}
 
 		// Render skybox (if any)
-		SPtr<Texture> skyTexture = viewInfo->getSkybox();
-		if (skyTexture != nullptr && skyTexture->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
+		if (mSkyboxTexture != nullptr)
 		{
 			mSkyboxMat->bind(perCameraBuffer);
-			mSkyboxMat->setParams(skyTexture, Color::White);
+			mSkyboxMat->setParams(mSkyboxTexture, Color::White);
 		}
 		else
 		{
@@ -1325,6 +1353,43 @@ namespace bs { namespace ct
 
 				// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
 			}
+
+            // Get reflections for skybox if needed/available
+            if (mSkybox != nullptr && mSkyboxTexture != nullptr)
+            {
+                // If haven't assigned them already, do it now
+                if(mSkyboxFilteredReflections == nullptr)
+                {
+                    if (!ReflectionCubemapCache::instance().isDirty(mSkybox->getUUID()))
+                        mSkyboxFilteredReflections = ReflectionCubemapCache::instance().getCachedTexture(mSkybox->getUUID());
+                    else
+                    {
+                        mSkyboxFilteredReflections = Texture::create(cubemapDesc);
+
+                        // Note: If the Texture class supported scale on copy we could avoid using CPU reads & buffers
+                        auto& texProps = mSkyboxFilteredReflections->getProperties();
+                        SPtr<PixelData> scaledFaceData = texProps.allocBuffer(0, 0);
+
+                        auto& skyboxTex = mSkyboxTexture->getProperties();
+                        SPtr<PixelData> originalFaceData = skyboxTex.allocBuffer(0, 0);
+                        for (UINT32 j = 0; j < 6; j++)
+                        {
+                            if (j < skyboxTex.getNumFaces())
+                                mSkyboxTexture->readData(*originalFaceData, 0, j);
+
+                            PixelUtil::scale(*originalFaceData, *scaledFaceData);
+
+                            mSkyboxFilteredReflections->writeData(*scaledFaceData, 0, j);
+                        }
+
+                        ReflectionProbes::filterCubemapForSpecular(mSkyboxFilteredReflections, scratchCubemap);
+                        ReflectionCubemapCache::instance().setCachedTexture(mSkybox->getUUID(), mSkyboxFilteredReflections);
+                    }
+                }
+            }
+            else
+                mSkyboxFilteredReflections = nullptr;
+
 		}
 		bs_frame_clear();
 	}
@@ -1365,20 +1430,6 @@ namespace bs { namespace ct
 
 		viewDesc.stateReduction = mCoreOptions->stateReductionMode;
 		viewDesc.sceneCamera = nullptr;
-
-		// Note: Find a camera to receive skybox from. Skybox should probably be a global property instead of a per-camera
-		// one.
-		for(auto& entry : mRenderTargets)
-		{
-			for(auto& camera : entry.cameras)
-			{
-				if (camera->getSkybox() != nullptr)
-				{
-					viewDesc.skyboxTexture = camera->getSkybox();
-					break;
-				}
-			}
-		}
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 

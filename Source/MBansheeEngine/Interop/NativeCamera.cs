@@ -137,19 +137,6 @@ namespace BansheeEngine
             set { Internal_SetNoLighting(mCachedPtr, value); }
         }
 
-        public TextureCube skybox
-        {
-            get { return Internal_GetSkybox(mCachedPtr); }
-            set
-            {
-                IntPtr texturePtr = IntPtr.Zero;
-                if (value != null)
-                    texturePtr = value.GetCachedPtr();
-
-                Internal_SetSkybox(mCachedPtr, texturePtr);
-            }
-        }
-
         internal PostProcessSettings PostProcess
         {
             get { return Internal_GetPostProcessSettings(mCachedPtr); }
@@ -451,11 +438,6 @@ namespace BansheeEngine
         private static extern bool Internal_GetNoLighting(IntPtr instance);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetNoLighting(IntPtr instance, bool value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern TextureCube Internal_GetSkybox(IntPtr instance);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetSkybox(IntPtr instance, IntPtr value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern PostProcessSettings Internal_GetPostProcessSettings(IntPtr instance);

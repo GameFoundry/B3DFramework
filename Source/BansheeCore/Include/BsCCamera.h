@@ -142,12 +142,6 @@ namespace bs
 		/** @copydoc Camera::setMSAACount */
 		void setMSAACount(UINT32 count) { mInternal->setMSAACount(count); }
 
-		/** @copydoc Camera::setSkybox */
-		void setSkybox(const HTexture& texture) { mInternal->setSkybox(texture); }
-
-		/** @copydoc Camera::getSkybox */
-		HTexture getSkybox() const { return mInternal->getSkybox(); }
-
 		/** Returns settings that are used for controling post-process operations like tonemapping. */
 		const SPtr<PostProcessSettings>& getPostProcessSettings() const { return mInternal->getPostProcessSettings(); }
 

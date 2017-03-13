@@ -102,7 +102,6 @@ namespace bs { namespace ct
 		StateReduction stateReduction;
 
 		const Camera* sceneCamera;
-		SPtr<Texture> skyboxTexture;
 	};
 
 	/** Information whether certain scene objects are visible in a view, per object type. */
@@ -162,9 +161,6 @@ namespace bs { namespace ct
 
 		/** Returns true if the view should be rendered with no lighting. */
 		bool renderWithNoLighting() const { return mViewDesc.noLighting; }
-
-		/** Returns the texture to use for the skybox (if any). */
-		SPtr<Texture> getSkybox() const { return mViewDesc.skyboxTexture; }
 
 		/** Returns the final render target the rendered contents should be output to. */
 		SPtr<RenderTarget> getFinalTarget() const { return mViewDesc.target.target; }

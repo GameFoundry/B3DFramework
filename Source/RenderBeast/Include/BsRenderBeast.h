@@ -128,6 +128,15 @@ namespace bs
 		/** @copydoc Renderer::notifyReflectionProbeRemoved */
 		void notifyReflectionProbeRemoved(ReflectionProbe* probe) override;
 
+        /** @copydoc Renderer::notifySkyboxAdded */
+        void notifySkyboxAdded(Skybox* skybox) override;
+
+        /** @copydoc Renderer::notifySkyboxTextureChanged */
+        void notifySkyboxTextureChanged(Skybox* skybox) override;
+
+        /** @copydoc Renderer::notifySkyboxRemoved */
+        void notifySkyboxRemoved(Skybox* skybox) override;
+
 		/** 
 		 * Updates (or adds) renderer specific data for the specified camera. Should be called whenever camera properties
 		 * change. 
@@ -241,6 +250,10 @@ namespace bs
 		FlatFramebufferToTextureMat* mFlatFramebufferToTextureMat;
 		SkyboxMat<false>* mSkyboxMat;
 		SkyboxMat<true>* mSkyboxSolidColorMat;
+
+        Skybox* mSkybox;
+        SPtr<Texture> mSkyboxTexture;
+        SPtr<Texture> mSkyboxFilteredReflections;
 
 		GPULightData* mGPULightData;
 		GPUReflProbeData* mGPUReflProbeData;
