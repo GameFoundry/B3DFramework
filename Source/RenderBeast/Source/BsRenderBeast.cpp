@@ -41,6 +41,9 @@ using namespace std::placeholders;
 
 namespace bs { namespace ct
 {
+    // Limited by max number of array elements in texture for DX11 hardware
+    constexpr UINT32 MaxReflectionCubemaps = 2048 / 6;
+
 	RenderBeast::RenderBeast()
 		: mDefaultMaterial(nullptr)
 		, mTiledDeferredLightingMats()
@@ -490,6 +493,12 @@ namespace bs { namespace ct
 				probeInfo.arrayIdx = numArrayEntries;
 				mCubemapArrayUsedSlots.push_back(true);
 			}
+
+            if(probeInfo.arrayIdx > MaxReflectionCubemaps)
+            {
+                LOGERR("Reached the maximum number of allowed reflection probe cubemaps at once. "
+                       "Ignoring reflection probe data.");
+            }
 		}
 	}
 
@@ -860,6 +869,15 @@ namespace bs { namespace ct
 			mReflProbes[i].getParameters(mReflProbeDataTemp.back());
 		}
 
+        // Sort probes so bigger ones get accessed first, this way we overlay smaller ones on top of biggers ones when
+	    // rendering
+        auto sorter = [](const ReflProbeData& lhs, const ReflProbeData& rhs)
+        {
+            return rhs.radius < lhs.radius;
+        };
+
+        std::sort(mReflProbeDataTemp.begin(), mReflProbeDataTemp.end(), sorter);
+
 		mGPUReflProbeData->setProbes(mReflProbeDataTemp, numProbes);
 
 		mReflProbeDataTemp.clear();
@@ -1194,8 +1212,10 @@ namespace bs { namespace ct
 
 		bs_frame_mark();
 		{		
+            UINT32 currentCubeArraySize = mCubemapArrayTex->getProperties().getNumArraySlices();
+
 			bool forceArrayUpdate = false;
-			if(mCubemapArrayTex == nullptr || mCubemapArrayTex->getProperties().getNumArraySlices() < numProbes)
+			if(mCubemapArrayTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != MaxReflectionCubemaps))
 			{
 				TEXTURE_DESC cubeMapDesc;
 				cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
@@ -1203,7 +1223,7 @@ namespace bs { namespace ct
 				cubeMapDesc.width = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.height = ReflectionProbes::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(cubeMapDesc.width, cubeMapDesc.height, 1, cubeMapDesc.format);
-				cubeMapDesc.numArraySlices = numProbes + 4; // Keep a few empty entries
+				cubeMapDesc.numArraySlices = std::min(MaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
 
 				mCubemapArrayTex = Texture::create(cubeMapDesc);
 
@@ -1227,6 +1247,10 @@ namespace bs { namespace ct
 			for (UINT32 i = 0; i < numProbes; i++)
 			{
 				RendererReflectionProbe& probeInfo = mReflProbes[i];
+
+                if (probeInfo.arrayIdx > MaxReflectionCubemaps)
+                    continue;
+
 				if (probeInfo.probe->getType() != ReflectionProbeType::Plane)
 				{
 					if (probeInfo.texture == nullptr)

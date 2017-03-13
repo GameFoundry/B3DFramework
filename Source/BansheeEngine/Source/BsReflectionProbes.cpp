@@ -64,7 +64,7 @@ namespace bs { namespace ct
 
 		// First part of the equation for determining mip level for sample from.
 		// See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
-		float mipFactor = 0.5f * std::log2(width * height / NUM_SAMPLES); // TODO
+		float mipFactor = 0.5f * std::log2(width * height / NUM_SAMPLES);
 		gReflectionCubeImportanceSampleParamDef.gPrecomputedMipFactor.set(mParamBuffer, mipFactor);
 
 		RenderAPI& rapi = RenderAPI::instance();

@@ -236,7 +236,7 @@ namespace bs { namespace ct
 		PixelData pixelData = texture->lock(GBL_WRITE_ONLY_DISCARD);
 
 		UINT16* rawPixels = (UINT16*)pixelData.getData();
-		UINT32 rowPitch = pixelData.getRowPitch() * PixelUtil::getNumElemBytes(desc.format);
+		UINT32 rowPitch = pixelData.getRowPitch();
 
 		for (UINT32 y = 0; y < desc.height; y++)
 		{
