@@ -77,7 +77,29 @@ namespace bs { namespace ct
 		 */
 		static void filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch);
 
+		/**
+		 * Scales a cubemap and outputs it in the destination texture, using hardware acceleration. If both textures are the
+		 * same size, performs a copy instead.
+		 *
+		 * @param[in]   src				Source cubemap to scale.
+		 * @param[in]   srcMip			Determines which mip level of the source texture to scale.
+		 * @param[in]   dst				Desination texture to output the scaled data to. Must be usable as a render target.
+		 * @param[in]   dstMip			Determines which mip level of the destination texture to scale.
+		 */
+		static void scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip);
+
 		static const UINT32 REFLECTION_CUBEMAP_SIZE;
+
+	private:
+		/** 
+		 * Downsamples a cubemap using hardware bilinear filtering. 
+		 * 
+		 * @param[in]	src		Cubemap to downsample.
+		 * @param[in]   srcMip	Determines which mip level of the source texture to downsample.
+		 * @param[in]   dst		Desination texture to output the scaled data to. Must be usable as a render target.
+		 * @param[in]   dstMip			Determines which mip level of the destination texture to scale.
+		 */
+		static void downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip);
 	};
 
 	/** @} */

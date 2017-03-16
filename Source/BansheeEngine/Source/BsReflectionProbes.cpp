@@ -93,6 +93,7 @@ namespace bs { namespace ct
 			cubemapDesc.width = props.getWidth();
 			cubemapDesc.height = props.getHeight();
 			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
 			scratchCubemap = Texture::create(cubemapDesc);
 		}
@@ -115,20 +116,8 @@ namespace bs { namespace ct
 		// Fill out remaining scratch mip levels by downsampling
 		for (UINT32 mip = 1; mip < numMips; mip++)
 		{
-			for (UINT32 face = 0; face < 6; face++)
-			{
-				RENDER_TEXTURE_DESC cubeFaceRTDesc;
-				cubeFaceRTDesc.colorSurfaces[0].texture = scratchCubemap;
-				cubeFaceRTDesc.colorSurfaces[0].face = face;
-				cubeFaceRTDesc.colorSurfaces[0].numFaces = 1;
-				cubeFaceRTDesc.colorSurfaces[0].mipLevel = mip;
-
-				SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
-
-				UINT32 sourceMip = mip - 1;
-				TextureSurface sourceSurface(sourceMip, 1, 0, 6);
-				downsampleMat.execute(scratchCubemap, face, sourceSurface, target);
-			}
+			UINT32 sourceMip = mip - 1;
+			downsampleCubemap(scratchCubemap, sourceMip, scratchCubemap, mip);
 		}
 
 		// Importance sample
@@ -146,6 +135,72 @@ namespace bs { namespace ct
 
 				importanceSampleMat.execute(scratchCubemap, face, mip, target);
 			}
+		}
+	}
+
+	void ReflectionProbes::scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
+	{
+		static ReflectionCubeDownsampleMat downsampleMat;
+
+		auto& srcProps = src->getProperties();
+		auto& dstProps = dst->getProperties();
+
+		SPtr<Texture> scratchTex = src;
+		int sizeSrcLog2 = (int)log2((float)srcProps.getWidth());
+		int sizeDstLog2 = (int)log2((float)dstProps.getWidth());
+
+		int sizeLog2Diff = sizeSrcLog2 - sizeDstLog2;
+
+		// If size difference is greater than one mip-level and we're downscaling, we need to generate intermediate mip
+		// levels
+		if(sizeLog2Diff > 1)
+		{
+			UINT32 mipSize = (UINT32)exp2((float)(sizeSrcLog2 - 1));
+			UINT32 numDownsamples = sizeLog2Diff - 1;
+
+			TEXTURE_DESC cubemapDesc;
+			cubemapDesc.type = TEX_TYPE_CUBE_MAP;
+			cubemapDesc.format = srcProps.getFormat();
+			cubemapDesc.width = mipSize;
+			cubemapDesc.height = mipSize;
+			cubemapDesc.numMips = numDownsamples - 1;
+			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
+
+			scratchTex = Texture::create(cubemapDesc);
+
+			downsampleCubemap(src, srcMip, scratchTex, 0);
+			for(UINT32 i = 0; i < cubemapDesc.numMips; i++)
+				downsampleCubemap(scratchTex, i, scratchTex, i + 1);
+
+			srcMip = cubemapDesc.numMips;
+		}
+
+		// Same size so just copy
+		if(sizeSrcLog2 == sizeDstLog2)
+		{
+			for (UINT32 face = 0; face < 6; face++)
+				src->copy(dst, face, srcMip, face, dstMip);
+		}
+		else
+			downsampleCubemap(src, srcMip, dst, dstMip);
+	}
+
+	void ReflectionProbes::downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
+	{
+		static ReflectionCubeDownsampleMat downsampleMat;
+
+		for (UINT32 face = 0; face < 6; face++)
+		{
+			RENDER_TEXTURE_DESC cubeFaceRTDesc;
+			cubeFaceRTDesc.colorSurfaces[0].texture = dst;
+			cubeFaceRTDesc.colorSurfaces[0].face = face;
+			cubeFaceRTDesc.colorSurfaces[0].numFaces = 1;
+			cubeFaceRTDesc.colorSurfaces[0].mipLevel = dstMip;
+
+			SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
+
+			TextureSurface sourceSurface(srcMip, 1, 0, 6);
+			downsampleMat.execute(src, face, sourceSurface, target);
 		}
 	}
 }}
