@@ -58,6 +58,7 @@ namespace bs { namespace ct
 		mInputTexture.set(source);
 		gReflectionCubeImportanceSampleParamDef.gCubeFace.set(mParamBuffer, face);
 		gReflectionCubeImportanceSampleParamDef.gMipLevel.set(mParamBuffer, mip);
+		gReflectionCubeImportanceSampleParamDef.gNumMips.set(mParamBuffer, source->getProperties().getNumMipmaps() + 1);
 
 		float width = (float)source->getProperties().getWidth();
 		float height = (float)source->getProperties().getHeight();

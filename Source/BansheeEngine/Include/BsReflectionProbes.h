@@ -38,6 +38,7 @@ namespace bs { namespace ct
 	BS_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
 		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
 		BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
+		BS_PARAM_BLOCK_ENTRY(int, gNumMips)
 		BS_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
 	BS_PARAM_BLOCK_END
 
