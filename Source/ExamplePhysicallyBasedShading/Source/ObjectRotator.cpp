@@ -9,7 +9,7 @@
 
 namespace bs
 {
-	const float ObjectRotator::ROTATION_SPEED = 360.0f; // Degrees/second
+	const float ObjectRotator::ROTATION_SPEED = 120.0f; // Degrees/second
 
 	/** Wraps an angle so it always stays in [0, 360) range. */
 	Degree wrapAngle2(Degree angle)

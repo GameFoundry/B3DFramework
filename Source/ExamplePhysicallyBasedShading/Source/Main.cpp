@@ -296,7 +296,7 @@ namespace bs
         light->setPhysicallyBasedAttenuation(false);
 
 	    light->setRange(10.0f);
-        light->setIntensity(100.0f);
+        light->setIntensity(10.0f);
 
         /************************************************************************/
         /* 									SKYBOX                       		*/
