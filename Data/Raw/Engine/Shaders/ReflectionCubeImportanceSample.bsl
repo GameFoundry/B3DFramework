@@ -126,8 +126,15 @@ Technique
 					// Note: Adding +1 bias as it looks better
 					mipLevel++;
 					
-					// sum += H * GGX / PDF. In GGX/PDF most factors cancel out and we're left with 1/sin*cos
-					sum += gInputTex.SampleLevel(gInputSamp, H, mipLevel) * cosTheta;
+					// We need a light direction to properly evaluate the NoL term of the evaluation integral
+					//  Li(u) * brdf(u, v) * (u.n) / pdf(u, v)
+					// which we don't have, so we assume a viewing direction is equal to normal and calculate lighting dir from it and half-vector
+					float3 L = 2 * dot(N, H) * H - N;
+					float NoL = saturate(dot(N, L));
+					
+					// sum += radiance * GGX(h, roughness) * NoL / PDF. In GGX/PDF most factors cancel out and we're left with 1/cos (sine factor of the PDF only needed for the integral (I think), so we don't include it)
+					if(NoL > 0)
+						sum += gInputTex.SampleLevel(gInputSamp, H, mipLevel) * NoL / cosTheta;
 				}
 				
 				return sum / NUM_SAMPLES;

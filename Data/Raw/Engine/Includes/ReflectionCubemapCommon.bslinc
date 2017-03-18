@@ -35,13 +35,20 @@ Technique : base("ReflectionCubemapCommon") =
 			float mapRoughnessToMipLevel(float roughness, int numMips)
 			{
 				// We use the following equation:
-				//    mipLevel = log10(roughness) / log10(dropPercent)
+				//    mipLevel = log10(1 - roughness) / log10(dropPercent)
 				//
 				// Where dropPercent represent by what % to drop the roughness with each mip level.
-				// We convert to log2 and a assume a drop percent value of 0.6. This gives us:
-				//    mipLevel = -1.35692 * log2( roughness);
-
-				return max(0, (float)numMips - 1.0f - (-1.35692f * log2(roughness)));
+				// We convert to log2 and a assume a drop percent value of 0.7. This gives us:
+				//    mipLevel = -2.8 * log2(1 - roughness);
+				
+				// Note: Another value that could be used is drop 0.6, which yields a multiply by -1.35692. 
+				// This more accurately covers the mip range, but early mip levels end up being too smooth,
+				// and benefits from our cubemap importance sampling strategy seem to be lost as most samples
+				// fall within one pixel, resulting in same effect as just trivially downsampling. With 0.7 drop
+				// the roughness increases too early and higher mip levels don't cover the full [0, 1] range. Which
+				// is better depends on what looks better.
+				
+				return max(0, -2.8f * log2(1.0f - roughness));
 			}
 			
 			/**
@@ -54,7 +61,7 @@ Technique : base("ReflectionCubemapCommon") =
 			float mapMipLevelToRoughness(int mipLevel, int numMips)
 			{
 				// mapRoughnessToMipLevel() solved for roughness
-				return saturate(exp2(((float)mipLevel - (float)numMips + 1.0f) / 1.35692));
+				return 1 - exp2((float)mipLevel / -2.8f);
 			}	
 		};
 	};

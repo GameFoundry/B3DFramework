@@ -23,7 +23,7 @@ Technique : base("ReflectionCubemapSampling") =
 			TextureCube gSkyCubemapTex;
 			SamplerState gSkyCubemapSamp;
 			
-			TextureCubeArray gReflProbeCubmaps;
+			TextureCubeArray gReflProbeCubemaps;
 			SamplerState gReflProbeSamp;
 			
 			Texture2D gPreintegratedEnvBRDF;
@@ -171,10 +171,10 @@ Technique : base("ReflectionCubemapSampling") =
 							correctedDir = getLookupForBoxProxy(worldPos, dir, probeData.position, probeData.boxExtents, probeData.invBoxTransform, probeData.transitionDistance, contribution);
 						}
 						
-						float4 sample = gReflProbeCubmaps.SampleLevel(gReflProbeSamp, float4(correctedDir, probeData.cubemapIdx), mipLevel);
+						float4 sample = gReflProbeCubemaps.SampleLevel(gReflProbeSamp, float4(correctedDir, probeData.cubemapIdx), mipLevel);
 						sample *= contribution;
 						
-						output += sample * leftoverContribution; 
+						output += sample.rgb * leftoverContribution; 
 						leftoverContribution *= (1.0f - contribution);
 					}
 				}
@@ -184,13 +184,31 @@ Technique : base("ReflectionCubemapSampling") =
 					float skyMipLevel = mapRoughnessToMipLevel(roughness, gSkyCubemapNumMips);
 					float4 sample = gSkyCubemapTex.SampleLevel(gSkyCubemapSamp, dir, skyMipLevel);
 					
-					output += sample * leftoverContribution; 
+					output += sample.rgb * leftoverContribution; 
 				}
 						
 				return output;
 						
 				#endif
 			}
+			
+			half3 EnvBRDFApprox( half3 SpecularColor, half Roughness, half NoV )
+			{
+				// [ Lazarov 2013, "Getting More Physical in Call of Duty: Black Ops II" ]
+				// Adaptation to fit our G term.
+				const half4 c0 = { -1, -0.0275, -0.572, 0.022 };
+				const half4 c1 = { 1, 0.0425, 1.04, -0.04 };
+				half4 r = Roughness * c0 + c1;
+				half a004 = min( r.x * r.x, exp2( -9.28 * NoV ) ) * r.x + r.y;
+				half2 AB = half2( -1.04, 1.04 ) * a004 + r.zw;
+
+				// Anything less than 2% is physically impossible and is instead considered to be shadowing
+				// In ES2 this is skipped for performance as the impact can be small
+				// Note: this is needed for the 'specular' show flag to work, since it uses a SpecularColor of 0
+				AB.y *= saturate( 50.0 * SpecularColor.g );
+
+				return SpecularColor * AB.x + AB.y;
+			}			
 			
 			float3 getImageBasedSpecular(float3 worldPos, float3 V, SurfaceData surfaceData)
 			{
@@ -203,11 +221,12 @@ Technique : base("ReflectionCubemapSampling") =
 				float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceData.albedo.rgb, surfaceData.metalness);
 				
 				float3 R = 2 * dot(V, N) * N - V;
-				float radiance = gatherReflectionRadiance(worldPos, R, surfaceData.roughness, 0, 0);
+				float3 radiance = gatherReflectionRadiance(worldPos, R, surfaceData.roughness, 0, 0);
 				
-				float2 envBRDF = gPreintegratedEnvBRDF.SampleLevel(gPreintegratedEnvBRDFSamp, float2(NoV, surfaceData.roughness), 0).rg;
+				//float2 envBRDF = gPreintegratedEnvBRDF.SampleLevel(gPreintegratedEnvBRDFSamp, float2(NoV, surfaceData.roughness), 0).rg;
 				
-				return radiance * (specularColor * envBRDF.x + envBRDF.y);
+				//return radiance * (specularColor * envBRDF.x + envBRDF.y);
+				return radiance * EnvBRDFApprox(specularColor, surfaceData.roughness, NoV);
 			}		
 		};
 	};

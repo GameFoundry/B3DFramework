@@ -23,7 +23,7 @@ namespace bs
 	struct BS_CORE_EXPORT SAMPLER_STATE_DESC
 	{
 		SAMPLER_STATE_DESC()
-			: minFilter(FO_LINEAR), magFilter(FO_LINEAR), mipFilter(FO_POINT), 
+			: minFilter(FO_LINEAR), magFilter(FO_LINEAR), mipFilter(FO_LINEAR),
 			maxAniso(0), mipmapBias(0), mipMin(-FLT_MAX), mipMax(FLT_MAX),
 			borderColor(Color::White), comparisonFunc(CMPF_ALWAYS_PASS)
 		{ }
