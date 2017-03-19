@@ -38,22 +38,62 @@ namespace bs
 
 		bool operator==(const DEPTH_STENCIL_STATE_DESC& rhs) const;
 
+		/**
+		 * If enabled, any pixel about to be written will be tested against the depth value currently in the buffer. If the 
+		 * depth test passes (depending on the set valueand chosen depth comparison function), that pixel is written and 
+		 * depth is updated (if depth write is enabled).
+		 */
 		bool depthReadEnable;
+
+		/** If enabled rendering pixels will update the depth buffer value. */
 		bool depthWriteEnable;
+
+		/**
+		 * Determines what operation should the renderer use when comparing previous and current depth value. If the 
+		 * operation passes, pixel with the current depth value will be considered visible.
+		 */
 		CompareFunction depthComparisonFunc;
 
+		/**
+		 * If true then stencil buffer will also be updated when a pixel is written, and pixels will be tested against 
+		 * the stencil buffer before rendering.
+		 */
 		bool stencilEnable;
+
+		/** Mask to apply to any value read from the stencil buffer, before applying the stencil comparison function. */
 		UINT8 stencilReadMask;
+
+		/**	Mask to apply to any value about to be written in the stencil buffer. */
 		UINT8 stencilWriteMask;
 
+		/**	Operation that happens when stencil comparison function fails on a front facing polygon. */
 		StencilOperation frontStencilFailOp;
+
+		/** Operation that happens when stencil comparison function passes but depth test fails on a front facing polygon. */
 		StencilOperation frontStencilZFailOp;
+
+		/**	Operation that happens when stencil comparison function passes on a front facing polygon. */
 		StencilOperation frontStencilPassOp;
+
+		/**
+		 * Stencil comparison function used for front facing polygons. Stencil buffer will be modified according to 
+		 * previously set stencil operations depending whether this comparison passes or fails.
+		 */
 		CompareFunction frontStencilComparisonFunc;
 
+		/** Operation that happens when stencil comparison function fails on a back facing polygon. */
 		StencilOperation backStencilFailOp;
+
+		/** Operation that happens when stencil comparison function passes but depth test fails on a back facing polygon. */
 		StencilOperation backStencilZFailOp;
+
+		/**	Operation that happens when stencil comparison function passes on a back facing polygon. */
 		StencilOperation backStencilPassOp;
+
+		/**
+		 * Stencil comparison function used for back facing polygons. Stencil buffer will be modified according	to 
+		 * previously set stencil operations depending whether this comparison passes or fails.
+		 */
 		CompareFunction backStencilComparisonFunc;
 	};
 
@@ -67,62 +107,46 @@ namespace bs
 	public:
 		DepthStencilProperties(const DEPTH_STENCIL_STATE_DESC& desc);
 
-		/**
-		 * If enabled, any pixel about to be written will be tested against the depth value currently in the buffer. If the 
-		 * depth test passes (depending on the set valueand chosen depth comparison function), that pixel is written and 
-		 * depth is updated (if depth write is enabled).
-		 */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthReadEnable */
 		bool getDepthReadEnable() const { return mData.depthReadEnable; }
 
-		/** If enabled rendering pixels will update the depth buffer value. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthWriteEnable */
 		bool getDepthWriteEnable() const { return mData.depthWriteEnable; }
 
-		/**
-		 * Determines what operation should the renderer use when comparing previous and current depth value. If the 
-		 * operation passes, pixel with the current depth value will be considered visible.
-		 */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthComparisonFunc */
 		CompareFunction getDepthComparisonFunc() const { return mData.depthComparisonFunc; }
 
-		/**
-		 * If true then stencil buffer will also be updated when a pixel is written, and pixels will be tested against 
-		 * the stencil buffer before rendering.
-		 */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilEnable */
 		bool getStencilEnable() const { return mData.stencilEnable; }
 
-		/** Mask to apply to any value read from the stencil buffer, before applying the stencil comparison function. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilReadMask */
 		UINT8 getStencilReadMask() const { return mData.stencilReadMask; }
 
-		/**	Mask to apply to any value about to be written in the stencil buffer. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilWriteMask */
 		UINT8 getStencilWriteMask() const { return mData.stencilWriteMask; }
 
-		/**	Operation that happens when stencil comparison function fails on a front facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilFailOp */
 		StencilOperation getStencilFrontFailOp() const { return mData.frontStencilFailOp; }
 
-		/** Operation that happens when stencil comparison function passes but depth test fails on a front facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilZFailOp */
 		StencilOperation getStencilFrontZFailOp() const { return mData.frontStencilZFailOp; }
 
-		/**	Operation that happens when stencil comparison function passes on a front facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilPassOp */
 		StencilOperation getStencilFrontPassOp() const { return mData.frontStencilPassOp; }
 
-		/**
-		 * Stencil comparison function used for front facing polygons. Stencil buffer will be modified according to 
-		 * previously set stencil operations depending whether this comparison passes or fails.
-		 */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilComparisonFunc */
 		CompareFunction getStencilFrontCompFunc() const { return mData.frontStencilComparisonFunc; }
 
-		/** Operation that happens when stencil comparison function fails on a back facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilFailOp */
 		StencilOperation getStencilBackFailOp() const { return mData.backStencilFailOp; }
 
-		/** Operation that happens when stencil comparison function passes but depth test fails on a back facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilZFailOp */
 		StencilOperation getStencilBackZFailOp() const { return mData.backStencilZFailOp; }
 
-		/**	Operation that happens when stencil comparison function passes on a back facing polygon. */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilPassOp */
 		StencilOperation getStencilBackPassOp() const { return mData.backStencilPassOp; }
 
-		/**
-		 * Stencil comparison function used for back facing polygons. Stencil buffer will be modified according	to 
-		 * previously set stencil operations depending whether this comparison passes or fails.
-		 */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilComparisonFunc */
 		CompareFunction getStencilBackCompFunc() const { return mData.backStencilComparisonFunc; }
 
 		/** Returns the hash value generated from the depth-stencil state properties. */

@@ -76,7 +76,13 @@ A set of manuals covering advanced functionality intented for those wanting to e
 - **Low level rendering API**
  - [Core thread](@ref coreThread)
  - [GPU programs](@ref gpuPrograms)
- - [Render API](@ref renderAPI)
+ - [Non-programmable states](@ref nonProgrammableStates)
+ - [Load-store textures](@ref loadStoreTextures)
+ - [Vertex & index buffer](@ref vertexIndexBuffers)
+ - [Generic buffers](@ref genericBuffers)
+ - [Drawing](@ref drawing)
+ - [Compute](@ref compute)
+ - [Command buffers](@ref commandBuffers)
 
 ## General guides
 Name                                      | Description

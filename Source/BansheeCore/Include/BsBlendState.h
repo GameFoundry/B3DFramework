@@ -33,14 +33,54 @@ namespace bs
 
 		bool operator==(const RENDER_TARGET_BLEND_STATE_DESC& rhs) const;
 
+		/**
+		 * Queries is blending enabled for the specified render target. Blending allows you to combine the color from 
+		 * current and previous pixel based on some value.
+		 */
 		bool blendEnable;
+
+		/**
+		 * Determines what should the source blend factor be. This value determines what will the color being generated 
+		 * currently be multiplied by.
+		 */
 		BlendFactor srcBlend;
+
+		/**
+		 * Determines what should the destination blend factor be. This value determines what will the color already in 
+		 * render target be multiplied by.
+		 */
 		BlendFactor dstBlend;
+
+		/**
+		 * Determines how are source and destination colors combined (after they are multiplied by their respective blend 
+		 * factors).
+		 */
 		BlendOperation blendOp;
+
+		/**
+		 * Determines what should the alpha source blend factor be. This value determines what will the alpha value being 
+		 * generated currently be multiplied by.
+		 */
 		BlendFactor srcBlendAlpha;
+
+		/**
+		 * Determines what should the alpha destination blend factor be. This value determines what will the alpha value 
+		 * already in render target be multiplied by.
+		 */
 		BlendFactor dstBlendAlpha;
+
+		/**
+		 * Determines how are source and destination alpha values combined (after they are multiplied by their respective
+		 * blend factors).
+		 */
 		BlendOperation blendOpAlpha;
-		// Enable write to RGBA channels separately by setting first four bits (0 - R, 1 - G, 2 - B, 3 - A)
+
+		/**
+		 * Render target write mask allows to choose which pixel components should the pixel shader output.
+		 * 			
+		 * Only the first four bits are used. First bit representing red, second green, third blue and fourth alpha value. 
+		 * Set bits means pixel shader will output those channels.
+		 */
 		UINT8 renderTargetWriteMask;
 	};
 
@@ -54,17 +94,6 @@ namespace bs
 
 		bool operator==(const BLEND_STATE_DESC& rhs) const;
 
-		bool alphaToCoverageEnable;
-		bool independantBlendEnable;
-		RENDER_TARGET_BLEND_STATE_DESC renderTargetDesc[BS_MAX_MULTIPLE_RENDER_TARGETS];
-	};
-
-	/** Properties of a BlendState. Shared between sim and core thread versions of BlendState. */
-	class BS_CORE_EXPORT BlendProperties
-	{
-	public:
-		BlendProperties(const BLEND_STATE_DESC& desc);
-
 		/**
 		 * Alpha to coverage allows you to perform blending without needing to worry about order of rendering like regular 
 		 * blending does. It requires multi-sampling to be active in order to work, and you need to supply an alpha texture
@@ -76,62 +105,51 @@ namespace bs
 		 * Be aware this is a limited technique only useful for certain situations. Unless you are having performance 
 		 * problems use regular blending.
 		 */
-		bool getAlphaToCoverageEnabled() const { return mData.alphaToCoverageEnable; }
+		bool alphaToCoverageEnable;
 
 		/**
 		 * When not set, only the first render target blend descriptor will be used for all render targets. If set each 
 		 * render target will use its own blend descriptor.
 		 */
+		bool independantBlendEnable;
+
+		RENDER_TARGET_BLEND_STATE_DESC renderTargetDesc[BS_MAX_MULTIPLE_RENDER_TARGETS];
+	};
+
+	/** Properties of a BlendState. Shared between sim and core thread versions of BlendState. */
+	class BS_CORE_EXPORT BlendProperties
+	{
+	public:
+		BlendProperties(const BLEND_STATE_DESC& desc);
+
+		/** @copydoc BLEND_STATE_DESC::alphaToCoverageEnable */
+		bool getAlphaToCoverageEnabled() const { return mData.alphaToCoverageEnable; }
+
+		/** @copydoc BLEND_STATE_DESC::independantBlendEnable */
 		bool getIndependantBlendEnable() const { return mData.independantBlendEnable; }
 
-		/**
-		 * Queries is blending enabled for the specified render target. Blending allows you to combine the color from 
-		 * current and previous pixel based on some value.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendEnable */
 		bool getBlendEnabled(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines what should the source blend factor be. This value determines what will the color being generated 
-		 * currently be multiplied by.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::srcBlend */
 		BlendFactor getSrcBlend(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines what should the destination blend factor be. This value determines what will the color already in 
-		 * render target be multiplied by.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::dstBlend */
 		BlendFactor getDstBlend(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines how are source and destination colors combined (after they are multiplied by their respective blend 
-		 * factors).
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendOp */
 		BlendOperation getBlendOperation(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines what should the alpha source blend factor be. This value determines what will the alpha value being 
-		 * generated currently be multiplied by.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha */
 		BlendFactor getAlphaSrcBlend(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines what should the alpha destination blend factor be. This value determines what will the alpha value 
-		 * already in render target be multiplied by.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha */
 		BlendFactor getAlphaDstBlend(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Determines how are source and destination alpha values combined (after they are multiplied by their respective
-		 * blend factors).
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha */
 		BlendOperation getAlphaBlendOperation(UINT32 renderTargetIdx) const;
 
-		/**
-		 * Render target write mask allows to choose which pixel components should the pixel shader output.
-		 * 			
-		 * Only the first four bits are used. First bit representing red, second green, third blue and fourth alpha value. 
-		 * Set bits means pixel shader will output those channels.
-		 */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::renderTargetWriteMask */
 		UINT8 getRenderTargetWriteMask(UINT32 renderTargetIdx) const;
 
 		/** Returns the hash value generated from the blend state properties. */
@@ -148,7 +166,7 @@ namespace bs
 
 	/**
 	 * Render system pipeline state that allows you to modify how an object is rendered. More exactly this state allows to 
-	 * you to control how is a rendered object blended with any previously renderer objects.
+	 * you to control how is a rendered object blended with any previously rendered objects.
 	 * 			
 	 * @note	Blend states are immutable. Sim thread only.
 	 */
