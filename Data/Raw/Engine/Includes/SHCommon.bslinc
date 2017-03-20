@@ -1,0 +1,122 @@
+Technique : base("SHCommon") =
+{
+	Language = "HLSL11";
+
+	Pass =
+	{
+		Common = 
+		{
+			struct SHVector5
+			{
+				float4 v0;
+				float4 v1;
+				float4 v2;
+				float4 v3;
+				float4 v4;
+				float4 v5;
+				float v6;
+			};
+			
+			struct SHVector5RGB
+			{
+				SHVector5 R;
+				SHVector5 G;
+				SHVector5 B;
+			};
+			
+			void SHZero(inout SHVector5 v)
+			{
+				v.v0 = 0;
+				v.v1 = 0;
+				v.v2 = 0;
+				v.v3 = 0;
+				v.v4 = 0;
+				v.v5 = 0;
+				v.v6 = 0;
+			}
+
+			void SHMultiplyAdd(inout SHVector5 lhs, SHVector5 rhs, float c)
+			{
+				lhs.v0 += rhs.v0 * c;
+				lhs.v1 += rhs.v1 * c;
+				lhs.v2 += rhs.v2 * c;
+				lhs.v3 += rhs.v3 * c;
+				lhs.v4 += rhs.v4 * c;
+				lhs.v5 += rhs.v5 * c;
+				lhs.v6 += rhs.v6 * c;
+			}
+			
+			void SHAdd(inout SHVector5 lhs, SHVector5 rhs)
+			{
+				lhs.v0 += rhs.v0;
+				lhs.v1 += rhs.v1;
+				lhs.v2 += rhs.v2;
+				lhs.v3 += rhs.v3;
+				lhs.v4 += rhs.v4;
+				lhs.v5 += rhs.v5;
+				lhs.v6 += rhs.v6;
+			}
+			
+			void SHMultiply(inout SHVector5 lhs, SHVector5 rhs)
+			{
+				lhs.v0 *= rhs.v0;
+				lhs.v1 *= rhs.v1;
+				lhs.v2 *= rhs.v2;
+				lhs.v3 *= rhs.v3;
+				lhs.v4 *= rhs.v4;
+				lhs.v5 *= rhs.v5;
+				lhs.v6 *= rhs.v6;
+			}	
+			
+			SHVector5 SHBasis5(float3 dir)
+			{
+				float x = dir.x;
+				float y = dir.y;
+				float z = dir.z;
+
+				float x2 = x*x;
+				float y2 = y*y;
+				float z2 = z*z;
+
+				float z3 = z2 * z;
+
+				float x4 = x2 * x2;
+				float y4 = y2 * y2;
+				float z4 = z2 * z2;
+
+				SHVector5 o;
+				o.v0[0] = 0.282095f;
+
+				o.v0[1] = -0.488603f * y;
+				o.v0[2] =  0.488603f * z;
+				o.v0[3] = -0.488603f * x;
+
+				o.v1[0] =  1.092548f * x * y;
+				o.v1[1] = -1.092548f * y * z;
+				o.v1[2] =  0.315392f * (3.0f * z2 - 1.0f);
+				o.v1[3] = -1.092548f * x * z;
+				o.v2[0] =  0.546274f * (x2 - y2);
+
+				o.v2[1]  = -0.590043f * y * (3.0f * x2 - y2);
+				o.v2[2] =  2.890611f * y * x * z;
+				o.v2[3] = -0.646360f * y * (-1.0f + 5.0f * z2);
+				o.v3[0] =  0.373176f *(5.0f * z3 - 3.0f * z);
+				o.v3[1] = -0.457045f * x * (-1.0f + 5.0f * z2);
+				o.v3[2] =  1.445306f *(x2 - y2) * z;
+				o.v3[3] = -0.590043f * x * (x2 - 3.0f * y2);
+
+				o.v4[0] =  2.503340f * x * y * (x2 - y2);
+				o.v4[1] = -1.770130f * y * z * (3.0f * x2 - y2);
+				o.v4[2] =  0.946175f * y * x * (-1.0f + 7.0f * z2);
+				o.v4[3] = -0.669046f * y * z * (-3.0f + 7.0f * z2);
+				o.v5[0] =  (105.0f * z4 - 90.0f * z2 + 9.0f) / 9.02703f;
+				o.v5[1] = -0.669046f * x * z * (-3.0f + 7.0f * z2);
+				o.v5[2] =  0.473087f * (x2 - y2) * (-1.0f + 7.0f * z2);
+				o.v5[3] = -1.770130f * x * z * (x2 - 3.0f * y2);
+				o.v6 =  0.625836f * (x4 - 6.0f * y2 * x2 + y4);
+				
+				return o;
+			}
+		};
+	};
+};

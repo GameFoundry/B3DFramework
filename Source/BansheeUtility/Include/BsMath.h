@@ -107,6 +107,12 @@ namespace bs
 		/** Returns the integer nearest to the provided value. */
 		static int roundToInt(float val) { return (int)std::floor(val + 0.5f); }
 
+		/** 
+		 * Divides an integer by another integer and returns the result, rounded up. Only works if both integers are
+		 * positive. 
+		 */
+		static int divideAndRoundUp(int n, int d) { return (n + d - 1) / d; }
+
 		/** Returns the nearest integer equal or lower of the provided value. */
 		static float floor(float val) { return (float)std::floor(val); }
 

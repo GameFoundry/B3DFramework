@@ -119,6 +119,10 @@
         {
             "Path": "ReflectionCubemapSampling.bslinc",
             "UUID": "b65d98df-45db-4b03-a97c-bca6b07f1d22"
+        },
+        {
+            "Path": "SHCommon.bslinc",
+            "UUID": "b2a3ecfd-77d7-4a4c-900b-91c3804f4a58"
         }
     ],
     "Shaders": [
@@ -225,6 +229,18 @@
         {
             "Path": "ReflectionCubeImportanceSample.bsl",
             "UUID": "ed16fdd9-7982-4f5c-ae63-8303c786e9ad"
+        },
+        {
+            "Path": "IrradianceComputeSH.bsl",
+            "UUID": "5b431ac7-c97a-407e-9ca3-6845d6cd0d6c"
+        },
+        {
+            "Path": "IrradianceProjectSH.bsl",
+            "UUID": "64d9535e-b5e7-42f5-8dc4-c0b15a5c48b9"
+        },
+        {
+            "Path": "IrradianceReduceSH.bsl",
+            "UUID": "aa40f2be-00e4-4322-a4bf-e435528f1e6e"
         }
     ],
     "Skin": [
