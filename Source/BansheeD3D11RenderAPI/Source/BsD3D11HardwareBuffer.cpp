@@ -30,13 +30,28 @@ namespace bs { namespace ct
 		{
 			mDesc.Usage = D3D11_USAGE_STAGING;
 			mDesc.BindFlags = 0;
-			mDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ ;
+			mDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 		}
 		else if(randomGpuWrite)
 		{
 			mDesc.Usage = D3D11_USAGE_DEFAULT;
 			mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 			mDesc.CPUAccessFlags = 0;
+
+			switch (btype)
+			{
+			case BT_STRUCTURED:
+			case BT_APPENDCONSUME:
+				mDesc.StructureByteStride = elementSize;
+				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+				break;
+			case BT_RAW:
+				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
+				break;
+			case BT_INDIRECTARGUMENT:
+				mDesc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+				break;
+			}
 		}
 		else
 		{
@@ -45,6 +60,9 @@ namespace bs { namespace ct
 
 			switch(btype)
 			{
+			case BT_STANDARD:
+				mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+				break;
 			case BT_VERTEX:
 				mDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 				if (streamOut)

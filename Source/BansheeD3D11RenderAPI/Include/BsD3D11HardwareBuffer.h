@@ -33,7 +33,9 @@ namespace bs { namespace ct
 			/** Generic buffer that is used for holding parameters used for indirect rendering. */
 			BT_INDIRECTARGUMENT = BT_GROUP_GENERIC | 0x40, 
 			/** Generic buffer that allows the GPU program to use append/consume functionality. */
-			BT_APPENDCONSUME = BT_GROUP_GENERIC | 0x80 
+			BT_APPENDCONSUME = BT_GROUP_GENERIC | 0x80, 
+			/** Generic buffer that contains primitive types. */
+			BT_STANDARD = BT_GROUP_GENERIC | 0x100
 		};
 
 		D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 

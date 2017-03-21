@@ -39,6 +39,8 @@ namespace bs { namespace ct
 		switch (props.getType())
 		{
 		case GBT_STANDARD:
+			bufferType = D3D11HardwareBuffer::BT_STANDARD;
+			break;
 		case GBT_STRUCTURED:
 			bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
 			break;
