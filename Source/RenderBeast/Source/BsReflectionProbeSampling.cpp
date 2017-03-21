@@ -6,7 +6,7 @@
 #include "BsRenderBeast.h"
 #include "BsGpuBuffer.h"
 #include "BsReflectionProbe.h"
-#include "BsReflectionCubemapCache.h"
+#include "BsLightProbeCache.h"
 
 namespace bs { namespace ct
 {
@@ -54,7 +54,7 @@ namespace bs { namespace ct
 		arrayIdx = -1;
 		texture = nullptr;
 		customTexture = probe->getCustomTexture() != nullptr;
-		textureDirty = ReflectionCubemapCache::instance().isDirty(probe->getUUID());
+		textureDirty = LightProbeCache::instance().isRadianceDirty(probe->getUUID());
 		arrayDirty = true;
 		errorFlagged = false;
 	}

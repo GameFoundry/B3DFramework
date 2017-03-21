@@ -31,7 +31,7 @@
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererExtension.h"
-#include "BsReflectionCubemapCache.h"
+#include "BsLightProbeCache.h"
 #include "BsReflectionProbe.h"
 #include "BsReflectionProbes.h"
 #include "BsMeshData.h"
@@ -512,7 +512,7 @@ namespace bs { namespace ct
 		RendererReflectionProbe& probeInfo = mReflProbes[probeId];
 		probeInfo.arrayDirty = true;
 
-		ReflectionCubemapCache::instance().notifyDirty(probe->getUUID());
+		LightProbeCache::instance().notifyDirty(probe->getUUID());
 		probeInfo.textureDirty = true;
 	}
 
@@ -540,7 +540,7 @@ namespace bs { namespace ct
 		if (arrayIdx != -1)
 			mCubemapArrayUsedSlots[arrayIdx] = false;
 
-		ReflectionCubemapCache::instance().unloadCachedTexture(probe->getUUID());
+		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
 	}
 
 	void RenderBeast::notifySkyboxAdded(Skybox* skybox)
@@ -557,7 +557,7 @@ namespace bs { namespace ct
 
 	void RenderBeast::notifySkyboxTextureChanged(Skybox* skybox)
 	{
-		ReflectionCubemapCache::instance().notifyDirty(skybox->getUUID());
+		LightProbeCache::instance().notifyDirty(skybox->getUUID());
 
 		if (mSkybox == skybox)
 		{
@@ -569,7 +569,7 @@ namespace bs { namespace ct
 
 	void RenderBeast::notifySkyboxRemoved(Skybox* skybox)
 	{
-		ReflectionCubemapCache::instance().unloadCachedTexture(skybox->getUUID());
+		LightProbeCache::instance().unloadCachedTexture(skybox->getUUID());
 
 		if (mSkybox == skybox)
 			mSkyboxTexture = nullptr;
@@ -1274,7 +1274,7 @@ namespace bs { namespace ct
 				if (probeInfo.probe->getType() != ReflectionProbeType::Plane)
 				{
 					if (probeInfo.texture == nullptr)
-						probeInfo.texture = ReflectionCubemapCache::instance().getCachedTexture(probeInfo.probe->getUUID());
+						probeInfo.texture = LightProbeCache::instance().getCachedRadianceTexture(probeInfo.probe->getUUID());
 
 					if (probeInfo.texture == nullptr || probeInfo.textureDirty)
 					{
@@ -1291,7 +1291,7 @@ namespace bs { namespace ct
 						}
 
 						ReflectionProbes::filterCubemapForSpecular(probeInfo.texture, scratchCubemap);
-						ReflectionCubemapCache::instance().setCachedTexture(probeInfo.probe->getUUID(), probeInfo.texture);
+						LightProbeCache::instance().setCachedRadianceTexture(probeInfo.probe->getUUID(), probeInfo.texture);
 					}
 				}
 
@@ -1336,35 +1336,37 @@ namespace bs { namespace ct
 				// If haven't assigned them already, do it now
 				if (mSkyboxFilteredReflections == nullptr)
 				{
-					if (!ReflectionCubemapCache::instance().isDirty(mSkybox->getUUID()))
-						mSkyboxFilteredReflections = ReflectionCubemapCache::instance().getCachedTexture(mSkybox->getUUID());
+					if (!LightProbeCache::instance().isRadianceDirty(mSkybox->getUUID()))
+						mSkyboxFilteredReflections = LightProbeCache::instance().getCachedRadianceTexture(mSkybox->getUUID());
 					else
 					{
 						mSkyboxFilteredReflections = Texture::create(cubemapDesc);
 
 						ReflectionProbes::scaleCubemap(mSkyboxTexture, 0, mSkyboxFilteredReflections, 0);
 						ReflectionProbes::filterCubemapForSpecular(mSkyboxFilteredReflections, scratchCubemap);
-						ReflectionCubemapCache::instance().setCachedTexture(mSkybox->getUUID(), mSkyboxFilteredReflections);
+						LightProbeCache::instance().setCachedRadianceTexture(mSkybox->getUUID(), mSkyboxFilteredReflections);
 					}
 				}
 
 				if(mSkyboxIrradiance == nullptr)
 				{
-					// TODO - Not uisng cache
+					if (!LightProbeCache::instance().isIrradianceDirty(mSkybox->getUUID()))
+						mSkyboxIrradiance = LightProbeCache::instance().getCachedIrradianceTexture(mSkybox->getUUID());
+					else
+					{
+						TEXTURE_DESC irradianceCubemapDesc;
+						irradianceCubemapDesc.type = TEX_TYPE_CUBE_MAP;
+						irradianceCubemapDesc.format = PF_FLOAT_R11G11B10;
+						irradianceCubemapDesc.width = 32;
+						irradianceCubemapDesc.height = 32;
+						irradianceCubemapDesc.numMips = 0;
+						irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
+						mSkyboxIrradiance = Texture::create(irradianceCubemapDesc);
 
-					TEXTURE_DESC irradianceCubemapDesc;
-					irradianceCubemapDesc.type = TEX_TYPE_CUBE_MAP;
-					irradianceCubemapDesc.format = PF_FLOAT_R11G11B10;
-					irradianceCubemapDesc.width = 32;
-					irradianceCubemapDesc.height = 32;
-					irradianceCubemapDesc.numMips = 0;
-					irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
-
-					mSkyboxIrradiance = Texture::create(irradianceCubemapDesc);
-
-					ReflectionProbes::filterCubemapForIrradiance(mSkyboxFilteredReflections, mSkyboxIrradiance);
-					//ReflectionCubemapCache::instance().setCachedTexture(mSkybox->getUUID(), mSkyboxFilteredReflections);
+						ReflectionProbes::filterCubemapForIrradiance(mSkyboxFilteredReflections, mSkyboxIrradiance);
+						LightProbeCache::instance().setCachedIrradianceTexture(mSkybox->getUUID(), mSkyboxFilteredReflections);
+					}
 				}
 			}
 			else
