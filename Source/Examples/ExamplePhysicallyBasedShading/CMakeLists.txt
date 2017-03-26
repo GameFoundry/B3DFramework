@@ -4,9 +4,9 @@ include(CMakeSources.cmake)
 # Includes
 set(ExamplePhysicallyBasedShading_INC 
 	"Include"
-	"../BansheeUtility/Include" 
-	"../BansheeCore/Include"
-	"../BansheeEngine/Include")
+	"../../BansheeUtility/Include" 
+	"../../BansheeCore/Include"
+	"../../BansheeEngine/Include")
 
 include_directories(${ExamplePhysicallyBasedShading_INC})	
 	

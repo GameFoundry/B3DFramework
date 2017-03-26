@@ -249,9 +249,9 @@ if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 endif()
 
 ## Executables
-add_subdirectory(ExampleProject)
-add_subdirectory(ExampleLowLevelRendering)
-add_subdirectory(ExamplePhysicallyBasedShading)
+add_subdirectory(Examples/ExampleGettingStarted)
+add_subdirectory(Examples/ExampleLowLevelRendering)
+add_subdirectory(Examples/ExamplePhysicallyBasedShading)
 
 if(BUILD_EDITOR OR (INCLUDE_ALL_IN_WORKFLOW AND MSVC))
 	add_subdirectory(BansheeEditorExec)

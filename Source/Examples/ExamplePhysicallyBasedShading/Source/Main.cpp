@@ -281,17 +281,21 @@ namespace bs
 		// Add a rotator component so we can rotate the object during runtime
 		pistolSO->addComponent<ObjectRotator>();
 
-        /************************************************************************/
-        /* 									LIGHT                       		*/
-        /************************************************************************/
+		HSceneObject planeSO = SceneObject::create("Plane");
+		planeSO->setRotation(Quaternion::getRotationFromTo(Vector3::UNIT_Z, Vector3::UNIT_Y));
+		planeSO->setScale(Vector3(3.0f, 3.0f, 1.0f));
 
-        // Add a light so that our object isn't completely in the dark.
+		HMaterial planeMaterial = Material::create(exampleShader);
 
-        HSceneObject lightSO = SceneObject::create("Light");
-        lightSO->setPosition(Vector3(0.1f, 0.0f, 0.0f));
+		// Assign the four textures requires by the PBS shader
+		planeMaterial->setTexture("gAlbedoTex", BuiltinResources::getTexture(BuiltinTexture::White));
+		planeMaterial->setTexture("gNormalTex", BuiltinResources::getTexture(BuiltinTexture::Normal));
+		planeMaterial->setTexture("gRoughnessTex", BuiltinResources::getTexture(BuiltinTexture::Black));
+		planeMaterial->setTexture("gMetalnessTex", BuiltinResources::getTexture(BuiltinTexture::White));
 
-        HLight light = lightSO->addComponent<CLight>();
-        light->setIntensity(2.0f);
+		HRenderable planeRenderable = planeSO->addComponent<CRenderable>();
+		planeRenderable->setMesh(BuiltinResources::instance().getMesh(BuiltinMesh::Quad));
+		planeRenderable->setMaterial(planeMaterial);
 
         /************************************************************************/
         /* 									SKYBOX                       		*/

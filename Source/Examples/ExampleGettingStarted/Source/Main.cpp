@@ -283,11 +283,11 @@ namespace bs
 		HLight lightB = lightBSO->addComponent<CLight>();
 
 		// Disable physically based attentuation because we want to set our own range
-		lightA->setPhysicallyBasedAttenuation(false);
-		lightB->setPhysicallyBasedAttenuation(false);
+		lightA->setUseAutoAttenuation(false);
+		lightB->setUseAutoAttenuation(false);
 
-		lightA->setRange(500.0f);
-		lightB->setRange(300.0f);
+		lightA->setAttenuationRadius(500.0f);
+		lightB->setAttenuationRadius(300.0f);
 
 		lightA->setIntensity(10000.0f);
 		lightB->setIntensity(10000.0f);
