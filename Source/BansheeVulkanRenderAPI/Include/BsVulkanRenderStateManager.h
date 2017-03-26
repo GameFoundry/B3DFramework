@@ -15,7 +15,7 @@ namespace bs { namespace ct
 	class VulkanRenderStateManager : public RenderStateManager
 	{
 	protected:
-		/** @copydoc RenderStateManager::createSamplerStateStateInternal */
+		/** @copydoc RenderStateManager::createSamplerStateInternal */
 		SPtr<SamplerState> createSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask) const override;
 

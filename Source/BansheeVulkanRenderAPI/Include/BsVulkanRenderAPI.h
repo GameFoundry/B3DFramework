@@ -134,7 +134,7 @@ namespace bs { namespace ct
 	protected:
 		friend class VulkanRenderAPIFactory;
 
-		/** @copydoc RenderAPI::initializePrepare */
+		/** @copydoc RenderAPI::initialize */
 		void initialize() override;
 
 		/** @copydoc RenderAPI::destroyCore */

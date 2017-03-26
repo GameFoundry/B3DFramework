@@ -387,6 +387,7 @@ namespace bs
 		 *
 		 * @param[in]	name		Name of the shader parameter.
 		 * @param[out]	value		Output value of the parameter.
+		 * @param[out]	surface		Surface describing which part of the texture is being accessed.
 		 */
 		void getTexture(const String& name, TextureType& value, TextureSurface& surface) const;
 
@@ -396,6 +397,7 @@ namespace bs
 		 *
 		 * @param[in]	name		Name of the shader parameter.
 		 * @param[in]	value		New value of the parameter.
+		 * @param[in]	surface		Surface describing which part of the texture is being accessed.
 		 */
 		void setTexture(const String& name, const TextureType& value, 
 						const TextureSurface& surface = TextureSurface::COMPLETE);

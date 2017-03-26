@@ -64,6 +64,16 @@ namespace bs { namespace ct
 		 * Draws the specified mesh.
 		 *
 		 * @param[in]	mesh			Mesh to draw.
+		 * @param[in]	numInstances	Number of times to draw the mesh using instanced rendering.
+		 *
+		 * @note	Core thread.
+		 */
+		void draw(const SPtr<MeshBase>& mesh, UINT32 numInstances = 1);
+
+		/**
+		 * Draws the specified mesh.
+		 *
+		 * @param[in]	mesh			Mesh to draw.
 		 * @param[in]	subMesh			Portion of the mesh to draw.
 		 * @param[in]	numInstances	Number of times to draw the mesh using instanced rendering.
 		 *
@@ -148,11 +158,7 @@ namespace bs { namespace ct
 		SPtr<BlitMat> mBlitMat;
 	};
 
-	/**
-	 * Provides easy access to RendererUtility.
-	 * 			
-	 * @note	Core thread only.
-	 */
+	/** Provides easy access to RendererUtility. */
 	BS_EXPORT RendererUtility& gRendererUtility();
 
 	/** Shader that resolves a MSAA surface into a non-MSAA render target. */

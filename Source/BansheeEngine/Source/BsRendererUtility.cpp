@@ -164,6 +164,11 @@ namespace bs { namespace ct
 		rapi.setGpuParams(gpuParams);
 	}
 
+	void RendererUtility::draw(const SPtr<MeshBase>& mesh, UINT32 numInstances)
+	{
+		draw(mesh, mesh->getProperties().getSubMesh(0), numInstances);
+	}
+
 	void RendererUtility::draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
 	{
 		RenderAPI& rapi = RenderAPI::instance();

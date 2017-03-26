@@ -210,7 +210,7 @@ namespace bs { namespace ct
 		void unlockImpl() override;
 
 		/** @copydoc Texture::copyImpl */
-		void copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
+		void copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 dstFace, UINT32 dstMipLevel,
 					  const SPtr<Texture>& target, UINT32 queueIdx = 0) override;
 
 		/** @copydoc Texture::readData */

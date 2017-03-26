@@ -824,7 +824,7 @@ namespace bs { namespace ct
 		if (commandBuffer == nullptr)
 		{
 			executeRef(startIndex, indexCount, vertexOffset, vertexCount, instanceCount);
-			primCount = vertexCountToPrimCount(mActiveDrawOp, vertexCount);
+			primCount = vertexCountToPrimCount(mActiveDrawOp, indexCount);
 		}
 		else
 		{
@@ -833,7 +833,7 @@ namespace bs { namespace ct
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
 
-			primCount = vertexCountToPrimCount(cb->mActiveDrawOp, vertexCount);
+			primCount = vertexCountToPrimCount(cb->mActiveDrawOp, indexCount);
 		}
 
 		BS_INC_RENDER_STAT(NumDrawCalls);
