@@ -82,7 +82,12 @@ Technique
 				lightOffsets.z = lightOffsets.y + offsetAndSize.y;
 				lightOffsets.w = lightOffsets.z + offsetAndSize.z;
 				
-				float3 color = getDirectLighting(input.worldPosition, surfaceData, lightOffsets);
+				float3 V = normalize(gViewOrigin - input.worldPosition);
+				float3 N = surfaceData.worldNormal.xyz;
+				float3 R = 2 * dot(V, N) * N - V;
+				float3 specR = getSpecularDominantDir(N, R, surfaceData.roughness);
+				
+				float3 color = getDirectLighting(input.worldPosition, V, specR, surfaceData, lightOffsets);
 				return float4(color, gOpacity);
 			}	
 		};

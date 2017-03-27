@@ -852,6 +852,7 @@ namespace bs { namespace ct
 		}
 
 		UINT32 numRadialLights = (UINT32)mRadialLights.size();
+		UINT32 numVisibleRadialLights = 0;
 		mLightVisibilityTemp.resize(numRadialLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
 			views[i]->calculateVisibility(mPointLightWorldBounds, mLightVisibilityTemp);
@@ -863,9 +864,11 @@ namespace bs { namespace ct
 
 			mLightDataTemp.push_back(LightData());
 			mRadialLights[i].getParameters(mLightDataTemp.back());
+			numVisibleRadialLights++;
 		}
 
 		UINT32 numSpotLights = (UINT32)mSpotLights.size();
+		UINT32 numVisibleSpotLights = 0;
 		mLightVisibilityTemp.resize(numSpotLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
 			views[i]->calculateVisibility(mSpotLightWorldBounds, mLightVisibilityTemp);
@@ -877,9 +880,10 @@ namespace bs { namespace ct
 
 			mLightDataTemp.push_back(LightData());
 			mSpotLights[i].getParameters(mLightDataTemp.back());
+			numVisibleSpotLights++;
 		}
 
-		mGPULightData->setLights(mLightDataTemp, numDirLights, numRadialLights, numSpotLights);
+		mGPULightData->setLights(mLightDataTemp, numDirLights, numVisibleRadialLights, numVisibleSpotLights);
 
 		mLightDataTemp.clear();
 		mLightVisibilityTemp.clear();

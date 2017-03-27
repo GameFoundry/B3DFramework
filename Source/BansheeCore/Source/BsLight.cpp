@@ -49,6 +49,10 @@ namespace bs
 	void LightBase::setSourceRadius(float radius)
 	{
 		mSourceRadius = radius;
+
+		if (mAutoAttenuation)
+			updateAttenuationRange();
+
 		_markCoreDirty();
 	}
 
@@ -106,9 +110,28 @@ namespace bs
 
 	void LightBase::updateAttenuationRange()
 	{
-		// When lower than this attenuation light influence is assumed to be zero
+		// Value to which intensity needs to drop in order for the light contribution to fade out to zero
 		const float minAttenuation = 0.2f;
-		mAttRadius = sqrt(std::max(0.0f, getLuminance() / minAttenuation));
+
+		if(mSourceRadius > 0.0f)
+		{
+			// Inverse of the attenuation formula for area lights:
+			//   a = I / (1 + (2/r) * d + (1/r^2) * d^2
+			// Where r is the source radius, and d is the distance from the light. As derived here:
+			//   https://imdoingitwrong.wordpress.com/2011/01/31/light-attenuation/
+
+			float luminousFlux = getIntensity();
+
+			float a = sqrt(minAttenuation);
+			mAttRadius = (mSourceRadius * (sqrt(luminousFlux - a))) / a;
+		}
+		else // Based on the basic inverse square distance formula
+		{
+			float luminousIntensity = getLuminance();
+
+			float a = minAttenuation;
+			mAttRadius = sqrt(std::max(0.0f, luminousIntensity / a));
+		}
 
 		updateBounds();
 	}

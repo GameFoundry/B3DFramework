@@ -30,12 +30,9 @@ Technique
 				return F0 + (1.0f - F0) * pow(1.0f - LoH, 5.0f);
 			}
 
-			float calcMicrofacetShadowingSmithGGX(float roughness, float NoV, float NoL)
+			float calcMicrofacetShadowingSmithGGX(float roughness4, float NoV, float NoL)
 			{
 				// Note: It's probably better to use the joint shadowing + masking version of this function
-				// Note: Pull these multiplies out, since they're used by the distribution function as well?
-				float roughness2 = roughness * roughness;
-				float roughness4 = roughness2 * roughness2;
 
 				// Note: Original GGX G1 multiplied by NoV & NoL (respectively), so that the microfacet function divisor gets canceled out
 				// Original formula being (ignoring the factor for masking negative directions):
@@ -63,11 +60,8 @@ Technique
 				return rcp(g1V * g1L);
 			}
 			
-			float calcMicrofacetDistGGX(float roughness, float NoH)
+			float calcMicrofacetDistGGX(float roughness4, float NoH)
 			{
-				float roughness2 = roughness * roughness;
-				float roughness4 = roughness2 * roughness2;
-				
 				float d = (NoH * roughness4 - NoH) * NoH + 1.0f;
 				return roughness4 / (PI * d * d);
 			}
@@ -123,10 +117,10 @@ Technique
 				//  return lerp(N, R, smoothness * (sqrt(smoothness) + roughness));
 			
 				float r2 = roughness * roughness;
-				return lerp(N, R, (1 - r2) * (sqrt(1 - r2) + r2)); // Not normalized
+				return normalize(lerp(N, R, (1 - r2) * (sqrt(1 - r2) + r2)));
 			}
 			
-			float3 getSurfaceShading(float3 V, float3 L, SurfaceData surfaceData)
+			float3 getSurfaceShading(float3 V, float3 L, float specLobeEnergy, SurfaceData surfaceData)
 			{
 				float3 N = surfaceData.worldNormal.xyz;
 
@@ -143,12 +137,17 @@ Technique
 				float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceData.albedo.rgb, surfaceData.metalness);
 				
 				float3 diffuse = calcDiffuseLambert(diffuseColor);
+				
+				float roughness = max(surfaceData.roughness, 0.04f); // Prevent NaNs
+				float roughness2 = roughness * roughness;
+				float roughness4 = roughness2 * roughness2;
+				
 				float3 specular = calcMicrofacetFresnelShlick(specularColor, LoH) * 
-					calcMicrofacetDistGGX(surfaceData.roughness, NoH) *
-					calcMicrofacetShadowingSmithGGX(surfaceData.roughness, NoV, NoL);
+					calcMicrofacetDistGGX(roughness4, NoH) *
+					calcMicrofacetShadowingSmithGGX(roughness4, NoV, NoL);
 				
 				// Note: Need to add energy conservation between diffuse and specular terms?
-				return diffuse + specular;
+				return diffuse + specular * specLobeEnergy;
 			}	
 			
 			StructuredBuffer<LightData> gLights;
@@ -159,9 +158,11 @@ Technique
 				Buffer<uint> gLightIndices;
 			#endif
 			
-			float4 getDirectLighting(float3 worldPos, SurfaceData surfaceData, uint4 lightOffsets)
+			float4 getDirectLighting(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, uint4 lightOffsets)
 			{
 				float3 N = surfaceData.worldNormal;
+				float roughness2 = max(surfaceData.roughness, 0.08f);
+				roughness2 *= roughness2;
 				
 				float3 lightContribution = 0;
 				float alpha = 0.0f;
@@ -170,10 +171,27 @@ Technique
 					for(uint i = 0; i < lightOffsets.x; ++i)
 					{
 						float3 L = -gLights[i].direction;
-						float3 lightContrib = getDirLightContibution(surfaceData, gLights[i]);
-						
 						float NoL = saturate(dot(N, L));
-						lightContribution += lightContrib * NoL;
+						float specEnergy = 1.0f;
+						
+						// Distant disk area light. Calculate its contribution analytically by
+						// finding the most important (least error) point on the area light and
+						// use it as a form of importance sampling.
+						if(gLights[i].srcRadius > 0)
+						{
+							float diskRadius = sin(gLights[i].srcRadius);
+							float distanceToDisk = cos(gLights[i].srcRadius);
+							
+							// Closest point to disk (approximation for distant disks)
+							float DoR = dot(L, R);
+							float3 S = normalize(R - DoR * L);
+							L = DoR < distanceToDisk ? normalize(distanceToDisk * L + S * diskRadius) : R;
+						}
+						
+						// TODO - Energy conservation term?
+
+						float3 lightContrib = getDirLightContibution(surfaceData, gLights[i]);
+						lightContribution += lightContrib * getSurfaceShading(V, L, specEnergy, surfaceData) * NoL;
 					}
 					
                     for (uint i = lightOffsets.y; i < lightOffsets.z; ++i)
@@ -181,11 +199,70 @@ Technique
                         uint lightIdx = gLightIndices[i];
                         
 						float3 toLight = gLights[lightIdx].position - worldPos;
-						float3 lightContrib = getPointLightContribution(toLight, surfaceData, gLights[lightIdx]);
-
-						float3 L = normalize(toLight);
+						float distToLightSqrd = dot(toLight, toLight);
+						float invDistToLight = rsqrt(distToLightSqrd);
+						
+						float3 L = toLight * invDistToLight;
 						float NoL = saturate(dot(N, L));
-						lightContribution += lightContrib * NoL;
+						float specEnergy = 1.0f;
+						
+						// TODO - Need to return only attenuation (split into three method: dist, spot and radius attenuation)
+						float3 lightContrib = getPointLightContribution(toLight, surfaceData, gLights[lightIdx]);
+						
+						// Sphere area light. Calculate its contribution analytically by
+						// finding the most important (least error) point on the area light and
+						// use it as a form of importance sampling.
+						if(gLights[i].srcRadius > 0)
+						{
+							// Handle parts of the area light below the surface horizon
+							float radius2 = gLights[i].srcRadius * gLights[i].srcRadius;
+							float sinAlphaSqr = saturate(radius2 / distToLightSqrd);
+							float sinAlpha = sqrt(sinAlphaSqr);
+							
+							NoL = dot(N, L);
+							if(NoL < sinAlpha)
+							{
+							#if REFERENCE_QUALITY
+								float cosBeta = NoL;
+								float sinBeta = sqrt(1 - cosBeta * cosBeta);
+								float tanBeta = sinBeta / cosBeta;
+							
+								float x = sqrt(1 / sinAlphaSqr - 1);
+								float y = -x / tanBeta;
+								float z = sinBeta * sqrt(1 - y*y);
+
+								DistanceAttenuation = sinAlphaSqr * (NoL * acos(y) - x * z) + atan(z / x);
+								DistanceAttenuation /= PI * radius2;
+								NoL = 1;
+							#else
+								// Hermite spline approximation
+								NoL = max(NoL, -sinAlpha);
+								NoL = ((sinAlpha + NoL) * (sinAlpha + NoL)) / (4 * sinAlpha);
+							#endif
+							}		
+
+							// Energy conservation:
+							//    We are widening the specular distribution by the sphere's subtended angle, 
+							//    so we need to handle the increase in energy. It is not enough just to account
+							//    for the sphere solid angle, since the energy difference is highly dependent on
+							//    specular distribution. By accounting for this energy difference we ensure glossy
+							//    reflections have sharp edges, instead of being too blurry.
+							float sphereAngle = saturate(gLights[i].srcRadius * invDistToLight);
+							
+							specEnergy = roughness2 / saturate(roughness2 + 0.5f * sphereAngle);
+							specEnergy *= specEnergy;							
+						
+							// Find closest point on sphere to ray
+							float3 closestPointOnRay = dot(toLight, R) * R;
+							float3 centerToRay = closestPointOnRay - toLight;
+							float invDistToRay = rsqrt(dot(centerToRay, centerToRay));
+							float3 closestPointOnSphere = toLight + centerToRay * saturate(gLights[i].srcRadius * invDistToRay);
+							
+							toLight = closestPointOnSphere;
+							L = normalize(toLight);
+						}
+
+						lightContribution += lightContrib * getSurfaceShading(V, L, specEnergy, surfaceData) * NoL;
                     }
 
 					for(uint i = lightOffsets.z; i < lightOffsets.w; ++i)
@@ -193,18 +270,18 @@ Technique
                         uint lightIdx = gLightIndices[i];
 						
 						float3 toLight = gLights[lightIdx].position - worldPos;
-                        float3 lightContrib = getSpotLightContribution(toLight, surfaceData, gLights[lightIdx]);
+                        
+						// TODO - Handle spot area light
+						
+						float3 lightContrib = getSpotLightContribution(toLight, surfaceData, gLights[lightIdx]);
 						
 						float3 L = normalize(toLight);
 						float NoL = saturate(dot(N, L));
 						lightContribution += lightContrib * NoL;
                     }
-										
-					lightContribution += surfaceData.albedo.rgb * gAmbientFactor;
 					
-					// Note: Only possible because we are using Lambert only for lights
-					lightContribution *= surfaceData.albedo.rgb / PI;
-					
+					// Ambient term for in-editor visualization, not used in actual lighting
+					lightContribution += surfaceData.albedo.rgb * gAmbientFactor / PI;
 					alpha = 1.0f;
 				}
 				

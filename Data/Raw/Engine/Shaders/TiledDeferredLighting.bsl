@@ -165,7 +165,7 @@ Technique
 				float3 R = 2 * dot(V, N) * N - V;
 				float3 specR = getSpecularDominantDir(N, R, surfaceData.roughness);
 				
-				float4 directLighting = getDirectLighting(worldPosition, surfaceData, lightOffsets);
+				float4 directLighting = getDirectLighting(worldPosition, V, specR, surfaceData, lightOffsets);
 				float3 indirectDiffuse = getSkyIndirectDiffuse(surfaceData.worldNormal) * surfaceData.albedo;
 				float3 imageBasedSpecular = getImageBasedSpecular(worldPosition, V, specR, surfaceData);
 
