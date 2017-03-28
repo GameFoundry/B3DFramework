@@ -23,6 +23,7 @@ Technique
 				float3 spotAngles;
 				float attRadiusSqrdInv;
 				float3 color;
+				float3 shiftedLightPosition;
 			};
 			
 			float3 calcMicrofacetFresnelShlick(float3 F0, float LoH)
@@ -71,9 +72,9 @@ Technique
 				return color * (1.0f / PI);
 			}
 			
-			float getSpotAttenuation(float3 toLight, float3 direction, float3 angles)
+			float getSpotAttenuation(float3 toLight, LightData lightData)
 			{
-				float output = saturate((dot(-toLight, direction) - angles.y) * angles.z);
+				float output = saturate((dot(toLight, -lightData.direction) - lightData.spotAngles.y) * lightData.spotAngles.z);
 				return output * output;
 			}
 
@@ -311,8 +312,7 @@ Technique
 						
 						float specEnergy = 1.0f;
 						float illuminance = 0.0f;
-						
-						float spotAttenuation = getSpotAttenuation(toLight, lightData.direction, lightData.spotAngles);
+						float spotAttenuation = 1.0f;
 						
 						// Disc area light. Calculate its contribution analytically by
 						// finding the most important (least error) point on the area light and
@@ -320,35 +320,42 @@ Technique
 						if(lightData.srcRadius > 0)
 						{
 							// Calculate illuminance depending on source size, distance and angle
-							NoL = illuminanceDiscAreaLight(NoL, distToLightSqrd, L, lightData);	
+							illuminance = illuminanceDiscAreaLight(NoL, distToLightSqrd, L, lightData);	
 						
-							// TODO - Using sphere energy conservation
-						
-							// Energy conservation:
-							//    We are widening the specular distribution by the sphere's subtended angle, 
-							//    so we need to handle the increase in energy. It is not enough just to account
-							//    for the sphere solid angle, since the energy difference is highly dependent on
-							//    specular distribution. By accounting for this energy difference we ensure glossy
-							//    reflections have sharp edges, instead of being too blurry.
-							//    See http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf for reference
-							float sphereAngle = saturate(lightData.srcRadius * invDistToLight);
+							// Energy conservation: Similar case as with radial lights
+							float rightDiscAngle = saturate(lightData.srcRadius * invDistToLight);
 							
-							specEnergy = roughness2 / saturate(roughness2 + 0.5f * sphereAngle);
+							// Account for disc orientation somewhat
+							float discAngle = rightDiscAngle * saturate(dot(lightData.direction, -L));
+							
+							specEnergy = roughness2 / saturate(roughness2 + 0.5f * discAngle);
 							specEnergy *= specEnergy;							
 						
-							// Find closest point on sphere to ray
-							float3 closestPointOnRay = dot(toLight, R) * R;
-							float3 centerToRay = closestPointOnRay - toLight;
-							float invDistToRay = rsqrt(dot(centerToRay, centerToRay));
-							float3 closestPointOnSphere = toLight + centerToRay * saturate(lightData.srcRadius * invDistToRay);
+							// Find closest point on disc to ray
+							float3 discNormal = -lightData.direction;
+							float distAlongLightDir = max(dot(R, discNormal), 1e-6f);
+							float t = dot(toLight, discNormal) / distAlongLightDir;
+							float3 closestPointOnPlane = R * t; // Relative to shaded world point
 							
-							toLight = closestPointOnSphere;
+							float3 centerToRay = closestPointOnPlane - toLight;
+							float invDistToRay = rsqrt(dot(centerToRay, centerToRay));
+							float3 closestPointOnDisc = toLight + centerToRay * saturate(lightData.srcRadius * invDistToRay);
+
+							toLight = closestPointOnDisc;
 							L = normalize(toLight);
+							
+							// Expand spot attenuation by disc radius (not physically based)
+							float3 toSpotEdge = normalize(lightData.shiftedLightPosition - worldPos);
+							spotAttenuation = getSpotAttenuation(toSpotEdge, lightData);
+							
+							// TODO - Spot attenuation fades out the specular highlight in a noticeable way
 						}
 						else
 						{
 							NoL = saturate(NoL);
 							illuminance = illuminancePointLight(distToLightSqrd, NoL, lightData);
+							
+							spotAttenuation = getSpotAttenuation(L, lightData);
 						}
 						
 						float radialAttenuation = getRadialAttenuation(distToLightSqrd, lightData);
@@ -391,6 +398,7 @@ Technique
 				vec3 spotAngles;
 				float attRadiusSqrdInv;
 				vec3 color;
+				vec3 spotDiscPosition;
 			};
 									
 			vec3 calcMicrofacetFresnelShlick(vec3 F0, float LoH)

@@ -35,9 +35,15 @@ namespace bs { namespace ct
 		output.luminance = mInternal->getLuminance();
 		output.spotAngles.x = spotAngle.valueRadians();
 		output.spotAngles.y = Math::cos(output.spotAngles.x);
-		output.spotAngles.z = 1.0f / (Math::cos(spotFalloffAngle) - output.spotAngles.y);
+		output.spotAngles.z = 1.0f / std::max(Math::cos(spotFalloffAngle) - output.spotAngles.y, 0.001f);
 		output.attRadiusSqrdInv = 1.0f / (output.attRadius * output.attRadius);
 		output.color = Vector3(color.r, color.g, color.b);
+
+		// Create position for fake attenuation for area spot lights (with disc center)
+		if (mInternal->getType() == LightType::Spot)
+			output.shiftedLightPosition = output.position - output.direction * (output.srcRadius / Math::tan(spotAngle * 0.5f));
+		else
+			output.shiftedLightPosition = output.position;
 	}
 
 	GPULightData::GPULightData()

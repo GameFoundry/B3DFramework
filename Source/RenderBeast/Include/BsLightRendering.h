@@ -24,6 +24,7 @@ namespace bs { namespace ct
 		Vector3 spotAngles;
 		float attRadiusSqrdInv;
 		Vector3 color;
+		Vector3 shiftedLightPosition;
 	};
 
 	/**	Renderer information specific to a single light. */
