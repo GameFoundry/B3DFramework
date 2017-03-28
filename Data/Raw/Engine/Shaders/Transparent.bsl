@@ -27,6 +27,8 @@ Transparent = true;
 Technique 
  : inherits("LightingCommon")
  : inherits("LightGridCommon")
+ : inherits("ReflectionCubemapCommon")
+ : inherits("ImageBasedLighting") = 
  : base("Surface") =
 {
 	Language = "HLSL11";
@@ -87,8 +89,15 @@ Technique
 				float3 R = 2 * dot(V, N) * N - V;
 				float3 specR = getSpecularDominantDir(N, R, surfaceData.roughness);
 				
-				float3 color = getDirectLighting(input.worldPosition, V, specR, surfaceData, lightOffsets);
-				return float4(color, gOpacity);
+				float4 directLighting = getDirectLighting(input.worldPosition, V, specR, surfaceData, lightOffsets);
+				float3 indirectDiffuse = getSkyIndirectDiffuse(surfaceData.worldNormal) * surfaceData.albedo;
+				float3 imageBasedSpecular = getImageBasedSpecular(input.worldPosition, V, specR, surfaceData);
+
+				float3 totalLighting = directLighting.rgb;
+				totalLighting.rgb += indirectDiffuse;
+				totalLighting.rgb += imageBasedSpecular;
+
+				return float4(totalLighting, gOpacity);
 			}	
 		};
 	};
