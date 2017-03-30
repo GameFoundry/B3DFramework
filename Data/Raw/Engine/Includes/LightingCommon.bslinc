@@ -1,5 +1,8 @@
+#include "$ENGINE$\SurfaceData.bslinc"
+
 Technique
- : base("LightingCommon") =
+ : base("LightingCommon")
+ : inherits("SurfaceData") =
 {
 	Language = "HLSL11";
 	
@@ -375,7 +378,8 @@ Technique
 };
 
 Technique
- : base("LightingCommon") =
+ : base("LightingCommon")
+ : inherits("SurfaceData") =
 {
 	Language = "GLSL";
 	

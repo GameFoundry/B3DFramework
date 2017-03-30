@@ -1,6 +1,9 @@
 #include "$ENGINE$\BasePass.bslinc"
 #include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
+#include "$ENGINE$\ReflectionCubemapCommon.bslinc"
+#include "$ENGINE$\ImageBasedLighting.bslinc"
+#include "$ENGINE$\Surface.bslinc"
 
 Parameters =
 {
@@ -28,7 +31,7 @@ Technique
  : inherits("LightingCommon")
  : inherits("LightGridCommon")
  : inherits("ReflectionCubemapCommon")
- : inherits("ImageBasedLighting") = 
+ : inherits("ImageBasedLighting")
  : base("Surface") =
 {
 	Language = "HLSL11";
@@ -198,5 +201,3 @@ Technique
 		};
 	};
 };
-
-#include "$ENGINE$\Surface.bslinc"

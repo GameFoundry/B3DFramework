@@ -1,4 +1,4 @@
-#include "$ENGINE$\GBuffer.bslinc"
+#include "$ENGINE$\GBufferOutput.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 
@@ -51,7 +51,7 @@ Technique : base("BasePassCommon") =
 
 Technique
  : base("BasePass")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("NormalVertexInput")
@@ -62,7 +62,7 @@ Technique
 
 Technique
  : base("BasePassSkinned")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedVertexInput")
@@ -73,7 +73,7 @@ Technique
 
 Technique
  : base("BasePassMorph")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("MorphVertexInput")
@@ -84,7 +84,7 @@ Technique
 
 Technique
  : base("BasePassSkinnedMorph")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedMorphVertexInput")
@@ -134,7 +134,7 @@ Technique
 
 Technique
  : base("BasePass")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("NormalVertexInput")
@@ -145,7 +145,7 @@ Technique
 
 Technique
  : base("BasePassSkinned")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedVertexInput")
@@ -156,7 +156,7 @@ Technique
 
 Technique
  : base("BasePassMorph")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("MorphVertexInput")
@@ -167,7 +167,7 @@ Technique
 
 Technique
  : base("BasePassSkinnedMorph")
- : inherits("GBuffer")
+ : inherits("GBufferOutput")
  : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedMorphVertexInput")

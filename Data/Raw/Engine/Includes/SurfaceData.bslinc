@@ -14,6 +14,31 @@ Technique : base("SurfaceData") =
 				float roughness;
 				float metalness;
 			};
+			
+#if MSAA_COUNT > 1
+			bool needsPerSampleShading(SurfaceData samples[MSAA_COUNT])
+			{
+				float3 albedo = samples[0].albedo.xyz;
+				float3 normal = samples[0].worldNormal.xyz;
+				float depth = samples[0].depth;
+
+				[unroll]
+				for(int i = 1; i < MSAA_COUNT; i++)
+				{
+					float3 otherAlbedo = samples[i].albedo.xyz;
+					float3 otherNormal = samples[i].worldNormal.xyz;
+					float otherDepth = samples[i].depth;
+
+					[branch]
+					if(abs(depth - otherDepth) > 0.1f || abs(dot(abs(normal - otherNormal), float3(1, 1, 1))) > 0.1f || abs(dot(albedo - otherAlbedo, float3(1, 1, 1))) > 0.1f)
+					{
+						return true;
+					}
+				}
+				
+				return false;
+			}
+#endif			
 		};
 	};
 };

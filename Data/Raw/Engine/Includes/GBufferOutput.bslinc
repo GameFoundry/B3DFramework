@@ -2,7 +2,7 @@
 
 Technique 
  : inherits("SurfaceData")
- : base("GBuffer") =
+ : base("GBufferOutput") =
 {
 	Language = "HLSL11";
 
@@ -24,7 +24,7 @@ Technique
 
 Technique 
  : inherits("SurfaceData")
- : base("GBuffer") =
+ : base("GBufferOutput") =
 {
 	Language = "GLSL";
 

@@ -1,30 +1,12 @@
-#include "$ENGINE$\GBuffer.bslinc"
+#include "$ENGINE$\GBufferInput.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 #define USE_COMPUTE_INDICES
 #include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 
-Parameters =
-{
-	Sampler2D 	gGBufferASamp : alias("gGBufferATex");
-	Sampler2D 	gGBufferBSamp : alias("gGBufferBTex");
-	Sampler2D 	gGBufferCSamp : alias("gGBufferCTex");
-	Sampler2D 	gDepthBufferSamp : alias("gDepthBufferTex");
-	
-	Texture2D 	gGBufferATex : auto("GBufferA");
-	Texture2D	gGBufferBTex : auto("GBufferB");
-	Texture2D	gGBufferCTex : auto("GBufferC");
-	Texture2D 	gDepthBufferTex : auto("GBufferDepth");
-};
-
-Blocks =
-{
-	Block PerCamera : auto("PerCamera");
-};
-
 Technique 
-  : inherits("GBuffer")
+  : inherits("GBufferInput")
   : inherits("PerCameraData")
   : inherits("LightingCommon")
   : inherits("ReflectionCubemapCommon")
@@ -35,39 +17,7 @@ Technique
 	Pass =
 	{
 		Compute = 
-		{
-			SamplerState gGBufferASamp : register(s0);
-			SamplerState gGBufferBSamp : register(s1);
-			SamplerState gGBufferCSamp : register(s2);
-			SamplerState gDepthBufferSamp : register(s3);
-	
-			#if MSAA_COUNT > 1
-			Texture2DMS<float4, MSAA_COUNT> gGBufferATex : register(t0);
-			Texture2DMS<float4, MSAA_COUNT>	gGBufferBTex : register(t1);
-			Texture2DMS<float2, MSAA_COUNT>	gGBufferCTex : register(t2);
-			Texture2DMS<float4, MSAA_COUNT> gDepthBufferTex : register(t3);
-			#else
-			Texture2D gGBufferATex : register(t0);
-			Texture2D gGBufferBTex : register(t1);
-			Texture2D gGBufferCTex : register(t2);
-			Texture2D gDepthBufferTex : register(t3);
-			#endif
-			
-			SurfaceData decodeGBuffer(float4 GBufferAData, float4 GBufferBData, float2 GBufferCData, float deviceZ)
-			{
-				SurfaceData output;
-				
-				output.albedo.xyz = GBufferAData.xyz;
-				output.albedo.w = 1.0f;
-				output.worldNormal = GBufferBData * float4(2, 2, 2, 1) - float4(1, 1, 1, 0);
-				output.worldNormal.xyz = normalize(output.worldNormal.xyz);
-				output.depth = convertFromDeviceZ(deviceZ);
-				output.roughness = GBufferCData.x;
-				output.metalness = GBufferCData.y;
-				
-				return output;
-			}			
-						
+		{			
 			cbuffer Params : register(b0)
 			{
 				// Offsets at which specific light types begin in gLights buffer
@@ -90,52 +40,9 @@ Technique
 				uint idx = getLinearAddress(coord, sampleIndex);
 				gOutput[idx] = color;
 			}
-			
-			bool needsPerSampleShading(SurfaceData samples[MSAA_COUNT])
-			{
-				float3 albedo = samples[0].albedo.xyz;
-				float3 normal = samples[0].worldNormal.xyz;
-				float depth = samples[0].depth;
 
-				[unroll]
-				for(int i = 1; i < MSAA_COUNT; i++)
-				{
-					float3 otherAlbedo = samples[i].albedo.xyz;
-					float3 otherNormal = samples[i].worldNormal.xyz;
-					float otherDepth = samples[i].depth;
-
-					[branch]
-					if(abs(depth - otherDepth) > 0.1f || abs(dot(abs(normal - otherNormal), float3(1, 1, 1))) > 0.1f || abs(dot(albedo - otherAlbedo, float3(1, 1, 1))) > 0.1f)
-					{
-						return true;
-					}
-				}
-				
-				return false;
-			}
-			
-			SurfaceData getGBufferData(uint2 pixelPos, uint sampleIndex)
-			{
-				float4 GBufferAData = gGBufferATex.Load(pixelPos, sampleIndex);
-				float4 GBufferBData = gGBufferBTex.Load(pixelPos, sampleIndex);
-				float2 GBufferCData = gGBufferCTex.Load(pixelPos, sampleIndex).rg;
-				float deviceZ = gDepthBufferTex.Load(pixelPos, sampleIndex).r;
-				
-				return decodeGBuffer(GBufferAData, GBufferBData, GBufferCData, deviceZ);
-			}
-			
 			#else
 			RWTexture2D<float4>	gOutput : register(u0);
-			
-			SurfaceData getGBufferData(uint2 pixelPos)
-			{
-				float4 GBufferAData = gGBufferATex.Load(int3(pixelPos, 0));
-				float4 GBufferBData = gGBufferBTex.Load(int3(pixelPos, 0));
-				float2 GBufferCData = gGBufferCTex.Load(int3(pixelPos, 0)).rg;
-				float deviceZ = gDepthBufferTex.Load(int3(pixelPos, 0)).r;
-				
-				return decodeGBuffer(GBufferAData, GBufferBData, GBufferCData, deviceZ);
-			}			
 			#endif
 						
 			groupshared uint sTileMinZ;
@@ -374,7 +281,7 @@ Technique
 };
 
 Technique 
-  : inherits("GBuffer")
+  : inherits("SurfaceData")
   : inherits("PerCameraData")
   : inherits("LightingCommon") =
 {

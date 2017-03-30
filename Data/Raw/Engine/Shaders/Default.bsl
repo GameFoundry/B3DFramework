@@ -1,4 +1,5 @@
 #include "$ENGINE$\BasePass.bslinc"
+#include "$ENGINE$\Surface.bslinc"
 
 Technique : base("Surface") =
 {
@@ -53,5 +54,3 @@ Technique : base("Surface") =
 		};
 	};
 };
-
-#include "$ENGINE$\Surface.bslinc"

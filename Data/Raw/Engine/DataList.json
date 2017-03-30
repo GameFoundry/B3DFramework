@@ -49,10 +49,6 @@
     ],
     "Includes": [
         {
-            "Path": "GBuffer.bslinc",
-            "UUID": "ef1a179a-4bf9-4dbd-b62a-e18524d959b6"
-        },
-        {
             "Path": "NormalVertexInput.bslinc",
             "UUID": "967325e7-262b-49bf-8c90-032a8bbc8ce2"
         },
@@ -123,6 +119,14 @@
         {
             "Path": "ImageBasedLighting.bslinc",
             "UUID": "ff162afd-ed4d-4460-8982-ad6c0f7be19c"
+        },
+        {
+            "Path": "GBufferInput.bslinc",
+            "UUID": "d481b49b-a60b-4d0d-bd8c-c3ed9c53fc6c"
+        },
+        {
+            "Path": "GBufferOutput.bslinc",
+            "UUID": "46df32e8-6400-46d5-9ac2-beefdc9016ad"
         }
     ],
     "Shaders": [

@@ -1266,58 +1266,13 @@ namespace bs
 				break;
 			case OT_Technique:
 			{
+				// We initially parse only meta-data, so we can handle out-of-order technique definitions
 				TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
 
 				techniqueData.push_back(std::make_pair(option->value.nodePtr, TechniqueData()));
 				TechniqueData& data = techniqueData.back().second;
 				data.metaData = metaData;
 
-				if (data.metaData.baseName.empty())
-				{
-					std::function<bool(TechniqueMetaData&)> parseInherited = [&](TechniqueMetaData& metaData)
-					{
-						for (auto riter = metaData.inherits.rbegin(); riter != metaData.inherits.rend(); ++riter)
-						{
-							const String& inherits = *riter;
-
-							bool foundBase = false;
-							for (auto& entry : techniqueData)
-							{
-								if (entry.second.metaData.baseName == inherits)
-								{
-									bool matches = entry.second.metaData.language == metaData.language || entry.second.metaData.language == "Any";
-									matches &= entry.second.metaData.renderer == metaData.renderer || entry.second.metaData.renderer == RendererAny;
-
-									if (matches)
-									{
-										if (!parseInherited(entry.second.metaData))
-											return false;
-
-										parseTechnique(entry.first, codeBlocks, data);
-										foundBase = true;
-										break;
-									}
-								}
-							}
-
-							if (!foundBase)
-							{
-								output.errorMessage = "Base technique \"" + inherits + "\" cannot be found.";
-								return false;
-							}
-						}
-
-						return true;
-					};
-
-					if (!parseInherited(metaData))
-					{
-						parseStateDelete(parseState);
-						return output;
-					}
-
-					parseTechnique(option->value.nodePtr, codeBlocks, data);
-				}
 				break;
 			}
 			case OT_Parameters:
@@ -1330,6 +1285,76 @@ namespace bs
 				break;
 			}
 		}
+
+		bool* techniqueWasParsed = bs_stack_alloc<bool>((UINT32)techniqueData.size());
+		std::function<bool(const TechniqueMetaData&, TechniqueData&)> parseInherited = 
+			[&](const TechniqueMetaData& metaData, TechniqueData& outTechnique)
+		{
+			for (auto riter = metaData.inherits.rbegin(); riter != metaData.inherits.rend(); ++riter)
+			{
+				const String& inherits = *riter;
+
+				UINT32 baseIdx = -1;
+				for(UINT32 i = 0; i < (UINT32)techniqueData.size(); i++)
+				{
+					auto& entry = techniqueData[i];
+
+					if (entry.second.metaData.baseName == inherits)
+					{
+						bool matches = entry.second.metaData.language == metaData.language || entry.second.metaData.language == "Any";
+						matches &= entry.second.metaData.renderer == metaData.renderer || entry.second.metaData.renderer == RendererAny;
+
+						// We want the last matching technique, in order to allow techniques to override each other
+						if (matches)
+							baseIdx = i;
+					}
+				}
+
+				if (baseIdx != -1)
+				{
+					auto& entry = techniqueData[baseIdx];
+
+					// Was already parsed previously, don't parse it multiple times (happens when multiple techniques 
+					// include the same base)
+					if (techniqueWasParsed[baseIdx])
+						continue;
+
+					if (!parseInherited(entry.second.metaData, outTechnique))
+						return false;
+
+					parseTechnique(entry.first, codeBlocks, outTechnique);
+					techniqueWasParsed[baseIdx] = true;
+					
+				}
+				else
+				{
+					output.errorMessage = "Base technique \"" + inherits + "\" cannot be found.";
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+
+		// Actually parse techniques
+		for (auto& entry : techniqueData)
+		{
+			const TechniqueMetaData& metaData = entry.second.metaData;
+			if (!metaData.baseName.empty())
+				continue;
+
+			bs_zero_out(techniqueWasParsed, techniqueData.size());
+			if (!parseInherited(metaData, entry.second))
+			{
+				parseStateDelete(parseState);
+				return output;
+			}
+
+			parseTechnique(entry.first, codeBlocks, entry.second);
+		}
+
+		bs_stack_free(techniqueWasParsed);
 
 		Vector<SPtr<Technique>> techniques;
 		for(auto& entry : techniqueData)

@@ -1,4 +1,3 @@
-#include "$ENGINE$\GBuffer.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
@@ -10,7 +9,6 @@ Blocks =
 };
 
 Technique
- : inherits("GBuffer")
  : inherits("PerCameraData")
  : inherits("LightingCommon")
  : inherits("LightGridCommon") =
@@ -134,7 +132,6 @@ Technique
 };
 
 Technique
- : inherits("GBuffer")
  : inherits("PerCameraData")
  : inherits("LightingCommon")
  : inherits("LightGridCommon") =
