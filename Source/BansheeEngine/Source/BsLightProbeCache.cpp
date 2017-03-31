@@ -107,7 +107,10 @@ namespace bs { namespace ct
 	{
 		auto iterFind = mProbeInfos.find(uuid);
 		if (iterFind != mProbeInfos.end())
-			return iterFind->second.radiance.dirty;
+		{
+			if(iterFind->second.radiance.texture != nullptr)
+				return iterFind->second.radiance.dirty;
+		}
 
 		return true;
 	}
@@ -116,7 +119,10 @@ namespace bs { namespace ct
 	{
 		auto iterFind = mProbeInfos.find(uuid);
 		if (iterFind != mProbeInfos.end())
-			return iterFind->second.irradiance.dirty;
+		{
+			if(iterFind->second.irradiance.texture != nullptr)
+				return iterFind->second.irradiance.dirty;
+		}
 
 		return true;
 	}

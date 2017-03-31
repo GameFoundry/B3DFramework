@@ -199,13 +199,14 @@ Technique
 			
 			#ifdef USE_COMPUTE_INDICES
 				groupshared uint gLightIndices[MAX_LIGHTS];
-			#else
+			#endif
+			#ifdef USE_LIGHT_GRID_INDICES
 				Buffer<uint> gLightIndices;
 			#endif
 			
 			float4 getDirectLighting(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, uint4 lightOffsets)
 			{
-				float3 N = surfaceData.worldNormal;
+				float3 N = surfaceData.worldNormal.xyz;
 				float roughness2 = max(surfaceData.roughness, 0.08f);
 				roughness2 *= roughness2;
 				

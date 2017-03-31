@@ -36,7 +36,8 @@ Technique : base("ImageBasedLighting") =
 
 			#ifdef USE_COMPUTE_INDICES
 				groupshared uint gReflectionProbeIndices[MAX_PROBES];
-			#else
+			#endif
+			#ifdef USE_LIGHT_GRID_INDICES
 				Buffer<uint> gReflectionProbeIndices;
 			#endif
 			
@@ -54,7 +55,7 @@ Technique : base("ImageBasedLighting") =
 				return gSkyIrradianceTex.SampleLevel(gSkyIrradianceSamp, dir, 0).rgb * gSkyBrightness;
 			}
 			
-			float3 getSphereReflectionContribution(float normalizedDistance)
+			float getSphereReflectionContribution(float normalizedDistance)
 			{			
 				// If closer than 60% to the probe radius, then full contribution is used.
 				// For the other 40% we smoothstep and return contribution lower than 1 so other
@@ -87,7 +88,7 @@ Technique : base("ImageBasedLighting") =
 				return lookupDir;
 			}
 			
-			float3 getDistBoxToPoint(float3 pt, float3 extents)
+			float getDistBoxToPoint(float3 pt, float3 extents)
 			{
 				float3 d = max(max(-extents - pt, 0), pt - extents);
 				return length(d);
@@ -131,7 +132,7 @@ Technique : base("ImageBasedLighting") =
 				//   return t * t * (3.0 - 2.0 * t);
 				
 				float t = saturate(3.3333 - 3.3333 * normalizedDistance);
-				return t * t * (3.0 - 2.0 * t);
+				contribution = t * t * (3.0 - 2.0 * t);
 				
 				return lookupDir;
 			}
@@ -193,7 +194,7 @@ Technique : base("ImageBasedLighting") =
 				#endif
 			}
 			
-			float3 getImageBasedSpecular(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData)
+			float3 getImageBasedSpecular(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, uint probeOffset, uint numProbes)
 			{
 				// See C++ code for generation of gPreintegratedEnvBRDF to see why this code works as is
 				float3 N = surfaceData.worldNormal.xyz;
@@ -202,7 +203,7 @@ Technique : base("ImageBasedLighting") =
 				// Note: Using a fixed F0 value of 0.04 (plastic) for dielectrics, and using albedo as specular for conductors.
 				// For more customizability allow the user to provide separate albedo/specular colors for both types.
 				float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceData.albedo.rgb, surfaceData.metalness);
-				float3 radiance = gatherReflectionRadiance(worldPos, R, surfaceData.roughness, specularColor, 0, 0);
+				float3 radiance = gatherReflectionRadiance(worldPos, R, surfaceData.roughness, specularColor, probeOffset, numProbes);
 				
 				float2 envBRDF = gPreintegratedEnvBRDF.SampleLevel(gPreintegratedEnvBRDFSamp, float2(NoV, surfaceData.roughness), 0).rg;
 				

@@ -245,6 +245,10 @@
         {
             "Path": "IrradianceReduceSH.bsl",
             "UUID": "aa40f2be-00e4-4322-a4bf-e435528f1e6e"
+        },
+        {
+            "Path": "TiledDeferredImageBasedLighting.bsl",
+            "UUID": "6029db14-107f-43df-9a33-7105c56aa0fd"
         }
     ],
     "Skin": [

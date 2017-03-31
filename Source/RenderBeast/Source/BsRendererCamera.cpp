@@ -126,7 +126,7 @@ namespace bs { namespace ct
 			if (createGBuffer)
 				mRenderTargets = RenderTargets::create(mViewDesc.target, mViewDesc.isHDR);
 
-			mRenderTargets->allocate();
+			mRenderTargets->prepare();
 			mUsingGBuffer = true;
 		}
 	}
@@ -138,7 +138,7 @@ namespace bs { namespace ct
 
 		if(mUsingGBuffer)
 		{
-			mRenderTargets->release();
+			mRenderTargets->cleanup();
 			mUsingGBuffer = false;
 		}
 	}

@@ -8,7 +8,7 @@
 #include "BsSamplerOverrides.h"
 #include "BsRendererMaterial.h"
 #include "BsLightRendering.h"
-#include "BsReflectionProbeSampling.h"
+#include "BsImageBasedLighting.h"
 #include "BsObjectRendering.h"
 #include "BsPostProcessing.h"
 #include "BsRendererCamera.h"
@@ -224,48 +224,60 @@ namespace bs
 		void refreshSamplerOverrides(bool force = false);
 
 		// Core thread only fields
+
+		// Scene data
+		//// Cameras and render targets
 		Vector<RendererRenderTarget> mRenderTargets;
 		UnorderedMap<const Camera*, RendererCamera*> mCameras;
-		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
-
+		
+		//// Renderables
 		Vector<RendererObject*> mRenderables;
 		Vector<CullInfo> mRenderableCullInfos;
 		Vector<bool> mRenderableVisibility; // Transient
 
+		//// Lights
 		Vector<RendererLight> mDirectionalLights;
 		Vector<RendererLight> mRadialLights;
 		Vector<RendererLight> mSpotLights;
 		Vector<Sphere> mPointLightWorldBounds;
 		Vector<Sphere> mSpotLightWorldBounds;
 
+		//// Reflection probes
 		Vector<RendererReflectionProbe> mReflProbes;
 		Vector<Sphere> mReflProbeWorldBounds;
 		Vector<bool> mCubemapArrayUsedSlots;
 		SPtr<Texture> mReflCubemapArrayTex;
 
-		SPtr<RenderBeastOptions> mCoreOptions;
-
-		DefaultMaterial* mDefaultMaterial;
-		TiledDeferredLightingMaterials* mTiledDeferredLightingMats;
-		FlatFramebufferToTextureMat* mFlatFramebufferToTextureMat;
-		SkyboxMat<false>* mSkyboxMat;
-		SkyboxMat<true>* mSkyboxSolidColorMat;
-
-		Skybox* mSkybox;
+		//// Sky light
+		Skybox* mSkybox = nullptr;
 		SPtr<Texture> mSkyboxTexture;
 		SPtr<Texture> mSkyboxFilteredReflections;
 		SPtr<Texture> mSkyboxIrradiance;
 
+		// Materials & GPU data
+		//// Base pass
+		DefaultMaterial* mDefaultMaterial = nullptr;
+		ObjectRenderer* mObjectRenderer = nullptr;
+
+		//// Lighting
+		TiledDeferredLightingMaterials* mTiledDeferredLightingMats = nullptr;
+		LightGrid* mLightGrid = nullptr;
+		GPULightData* mGPULightData = nullptr;
+
+		//// Image based lighting
+		TiledDeferredImageBasedLightingMaterials* mTileDeferredImageBasedLightingMats = nullptr;
+		GPUReflProbeData* mGPUReflProbeData = nullptr;
 		SPtr<Texture> mPreintegratedEnvBRDF;
-		GPULightData* mGPULightData;
-		GPUReflProbeData* mGPUReflProbeData;
-		LightGrid* mLightGrid;
 
-		ObjectRenderer* mObjectRenderer;
+		//// Sky
+		SkyboxMat<false>* mSkyboxMat;
+		SkyboxMat<true>* mSkyboxSolidColorMat;
 
-		// Sim thread only fields
-		SPtr<RenderBeastOptions> mOptions;
-		bool mOptionsDirty;
+		//// Other
+		FlatFramebufferToTextureMat* mFlatFramebufferToTextureMat = nullptr;
+
+		SPtr<RenderBeastOptions> mCoreOptions;
+		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
 
 		// Helpers to avoid memory allocations
 		Vector<LightData> mLightDataTemp;
@@ -273,6 +285,10 @@ namespace bs
 
 		Vector<ReflProbeData> mReflProbeDataTemp;
 		Vector<bool> mReflProbeVisibilityTemp;
+
+		// Sim thread only fields
+		SPtr<RenderBeastOptions> mOptions;
+		bool mOptionsDirty = true;
 	};
 
 	/** @} */

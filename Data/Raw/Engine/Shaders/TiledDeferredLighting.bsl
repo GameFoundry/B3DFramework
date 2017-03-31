@@ -72,15 +72,7 @@ Technique
 				float3 R = 2 * dot(V, N) * N - V;
 				float3 specR = getSpecularDominantDir(N, R, surfaceData.roughness);
 				
-				float4 directLighting = getDirectLighting(worldPosition, V, specR, surfaceData, lightOffsets);
-				float3 indirectDiffuse = getSkyIndirectDiffuse(surfaceData.worldNormal) * surfaceData.albedo;
-				float3 imageBasedSpecular = getImageBasedSpecular(worldPosition, V, specR, surfaceData);
-
-				float4 totalLighting = directLighting;
-				totalLighting.rgb += indirectDiffuse;
-				totalLighting.rgb += imageBasedSpecular;
-				
-				return totalLighting;				
+				return getDirectLighting(worldPosition, V, specR, surfaceData, lightOffsets);				
 			}
 			
 			[numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -91,6 +83,12 @@ Technique
 			{
 				uint threadIndex = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 				uint2 pixelPos = dispatchThreadId.xy + gViewportRectangle.xy;
+				
+				// Note: To improve performance perhaps:
+				//  - Use halfZ (split depth range into two regions for better culling)
+				//  - Use parallel reduction instead of atomics
+				//  - Use AABB instead of frustum (no false positives)
+				//   - Increase tile size to 32x32 to amortize the cost of AABB calc (2x if using halfZ)
 				
 				// Get data for all samples, and determine per-pixel minimum and maximum depth values
 				SurfaceData surfaceData[MSAA_COUNT];

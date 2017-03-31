@@ -66,6 +66,12 @@ Technique : base("PerCameraData") =
 			{
 				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;
 			}
+			
+			/** Converts Z value from view space to NDC space. */
+			float convertToNDCZ(float viewZ)
+			{
+				return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
+			}
 		};
 	};
 };

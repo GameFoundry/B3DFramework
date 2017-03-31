@@ -1,7 +1,8 @@
 #include "$ENGINE$\BasePass.bslinc"
-#include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
+#define USE_LIGHT_GRID_INDICES
+#include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 #include "$ENGINE$\Surface.bslinc"
 
@@ -94,7 +95,7 @@ Technique
 				
 				float4 directLighting = getDirectLighting(input.worldPosition, V, specR, surfaceData, lightOffsets);
 				float3 indirectDiffuse = getSkyIndirectDiffuse(surfaceData.worldNormal) * surfaceData.albedo;
-				float3 imageBasedSpecular = getImageBasedSpecular(input.worldPosition, V, specR, surfaceData);
+				float3 imageBasedSpecular = getImageBasedSpecular(input.worldPosition, V, specR, surfaceData, 0, 0);
 
 				float3 totalLighting = directLighting.rgb;
 				totalLighting.rgb += indirectDiffuse;

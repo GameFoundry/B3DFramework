@@ -23,7 +23,27 @@ namespace bs { namespace ct
 		return bs_shared_ptr<RenderTargets>(new (bs_alloc<RenderTargets>()) RenderTargets(view, hdr));
 	}
 
-	void RenderTargets::allocate()
+	void RenderTargets::prepare()
+	{
+		GpuResourcePool& texPool = GpuResourcePool::instance();
+
+		UINT32 width = mViewTarget.viewRect.width;
+		UINT32 height = mViewTarget.viewRect.height;
+
+		mDepthTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 
+			mViewTarget.numSamples, false));
+	}
+
+	void RenderTargets::cleanup()
+	{
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(nullptr);
+
+		GpuResourcePool& texPool = GpuResourcePool::instance();
+		texPool.release(mDepthTex);
+	}
+
+	void RenderTargets::allocate(RenderTargetType type)
 	{
 		GpuResourcePool& texPool = GpuResourcePool::instance();
 
@@ -34,103 +54,140 @@ namespace bs { namespace ct
 		// could save on memory by deallocating and reallocating them every frame, but it remains to be seen how much of
 		// a performance impact would that have.
 
-		// Note: Albedo is allocated as SRGB, meaning when reading from textures during depth pass we decode from sRGB into linear,
-		// then back into sRGB when writing to albedo, and back to linear when reading from albedo during light pass. This /might/ have
-		// a performance impact. In which case we could just use a higher precision albedo buffer, which can then store linear color
-		// directly (storing linear in 8bit buffer causes too much detail to be lost in the blacks).
-		SPtr<PooledRenderTexture> newColorRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width, 
-			height, TU_RENDERTARGET | TU_LOADSTORE, mViewTarget.numSamples, false));
-		SPtr<PooledRenderTexture> newAlbedoRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mAlbedoFormat, width, 
-			height, TU_RENDERTARGET, mViewTarget.numSamples, true));
-		SPtr<PooledRenderTexture> newNormalRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mNormalFormat, width, 
-			height, TU_RENDERTARGET, mViewTarget.numSamples, false));
-		SPtr<PooledRenderTexture> newRoughMetalRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RG, width,
-			height, TU_RENDERTARGET, mViewTarget.numSamples, false));
-		SPtr<PooledRenderTexture> newDepthRT = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32_S8X24, width, height, 
-			TU_DEPTHSTENCIL, mViewTarget.numSamples, false));
-
-		if(mViewTarget.numSamples > 1)
+		if (type == RTT_GBuffer)
 		{
-			const RenderAPIInfo& rapiInfo = RenderAPI::instance().getAPIInfo();
+			// Note: Albedo is allocated as SRGB, meaning when reading from textures during depth pass we decode from sRGB
+			// into linear, then back into sRGB when writing to albedo, and back to linear when reading from albedo during
+			// light pass. This /might/ have a performance impact. In which case we could just use a higher precision albedo
+			// buffer, which can then store linear color directly (storing linear in 8bit buffer causes too much detail to
+			// be lost in the blacks).
+			mAlbedoTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mAlbedoFormat, width, height, TU_RENDERTARGET,
+				mViewTarget.numSamples, true));
+			mNormalTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mNormalFormat, width, height, TU_RENDERTARGET,
+				mViewTarget.numSamples, false));
+			mRoughMetalTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RG, width, height, TU_RENDERTARGET,
+				mViewTarget.numSamples, false)); // Note: Metal doesn't need 16-bit float
 
-			// DX11/HLSL is unable to have an UAV for a multisampled texture, so we need to use a buffer instead and then
-			// perform a blit to the actual scene color
-			if (!rapiInfo.isFlagSet(RenderAPIFeatureFlag::MSAAImageStores))
+			bool rebuildRT = false;
+			if (mGBufferRT != nullptr)
+			{
+				rebuildRT |= mGBufferRT->getColorTexture(0) != mAlbedoTex->texture;
+				rebuildRT |= mGBufferRT->getColorTexture(1) != mNormalTex->texture;
+				rebuildRT |= mGBufferRT->getColorTexture(2) != mRoughMetalTex->texture;
+				rebuildRT |= mGBufferRT->getDepthStencilTexture() != mDepthTex->texture;
+			}
+			else
+				rebuildRT = true;
+
+			if (mGBufferRT == nullptr || rebuildRT)
+			{
+				RENDER_TEXTURE_DESC gbufferDesc;
+				gbufferDesc.colorSurfaces[0].texture = mAlbedoTex->texture;
+				gbufferDesc.colorSurfaces[0].face = 0;
+				gbufferDesc.colorSurfaces[0].numFaces = 1;
+				gbufferDesc.colorSurfaces[0].mipLevel = 0;
+
+				gbufferDesc.colorSurfaces[1].texture = mNormalTex->texture;
+				gbufferDesc.colorSurfaces[1].face = 0;
+				gbufferDesc.colorSurfaces[1].numFaces = 1;
+				gbufferDesc.colorSurfaces[1].mipLevel = 0;
+
+				gbufferDesc.colorSurfaces[2].texture = mRoughMetalTex->texture;
+				gbufferDesc.colorSurfaces[2].face = 0;
+				gbufferDesc.colorSurfaces[2].numFaces = 1;
+				gbufferDesc.colorSurfaces[2].mipLevel = 0;
+
+				gbufferDesc.depthStencilSurface.texture = mDepthTex->texture;
+				gbufferDesc.depthStencilSurface.face = 0;
+				gbufferDesc.depthStencilSurface.mipLevel = 0;
+
+				mGBufferRT = RenderTexture::create(gbufferDesc);
+			}
+		}
+		else if(type == RTT_SceneColor)
+		{
+			mSceneColorTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width,
+				height, TU_RENDERTARGET | TU_LOADSTORE, mViewTarget.numSamples, false));
+
+			if (mViewTarget.numSamples > 1)
 			{
 				UINT32 bufferNumElements = width * height * mViewTarget.numSamples;
 				mFlattenedSceneColorBuffer = texPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
+
+				// Need a texture we'll resolve MSAA to before post-processing
+				mSceneColorNonMSAATex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width,
+					height, TU_RENDERTARGET, 1, false));
 			}
 
-			// Need a texture we'll resolve MSAA to before post-processing
-			mSceneColorNonMSAATex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width,
-																					 height, TU_RENDERTARGET, 1, false));
+			bool rebuildRT = false;
+			if (mSceneColorRT != nullptr)
+			{
+				rebuildRT |= mSceneColorRT->getColorTexture(0) != mSceneColorTex->texture;
+				rebuildRT |= mSceneColorRT->getDepthStencilTexture() != mDepthTex->texture;
+			}
+			else
+				rebuildRT = true;
+
+			if (rebuildRT)
+			{
+				RENDER_TEXTURE_DESC sceneColorDesc;
+				sceneColorDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
+				sceneColorDesc.colorSurfaces[0].face = 0;
+				sceneColorDesc.colorSurfaces[0].numFaces = 1;
+				sceneColorDesc.colorSurfaces[0].mipLevel = 0;
+
+				sceneColorDesc.depthStencilSurface.texture = mDepthTex->texture;
+				sceneColorDesc.depthStencilSurface.face = 0;
+				sceneColorDesc.depthStencilSurface.numFaces = 1;
+				sceneColorDesc.depthStencilSurface.mipLevel = 0;
+
+				mSceneColorRT = TextureManager::instance().createRenderTexture(sceneColorDesc);
+			}
 		}
-
-		bool rebuildTargets = newColorRT != mSceneColorTex || newAlbedoRT != mAlbedoTex || newNormalRT != mNormalTex 
-			|| newRoughMetalRT != mRoughMetalTex || newDepthRT != mDepthTex;
-
-		mSceneColorTex = newColorRT;
-		mAlbedoTex = newAlbedoRT;
-		mNormalTex = newNormalRT;
-		mRoughMetalTex = newRoughMetalRT;
-		mDepthTex = newDepthRT;
-
-		if (mGBufferRT == nullptr || mSceneColorRT == nullptr || rebuildTargets)
+		else if(type == RTT_LightAccumulation)
 		{
-			RENDER_TEXTURE_DESC gbufferDesc;
-			gbufferDesc.colorSurfaces[0].texture = mAlbedoTex->texture;
-			gbufferDesc.colorSurfaces[0].face = 0;
-			gbufferDesc.colorSurfaces[0].numFaces = 1;
-			gbufferDesc.colorSurfaces[0].mipLevel = 0;
-
-			gbufferDesc.colorSurfaces[1].texture = mNormalTex->texture;
-			gbufferDesc.colorSurfaces[1].face = 0;
-			gbufferDesc.colorSurfaces[1].numFaces = 1;
-			gbufferDesc.colorSurfaces[1].mipLevel = 0;
-
-			gbufferDesc.colorSurfaces[2].texture = mRoughMetalTex->texture;
-			gbufferDesc.colorSurfaces[2].face = 0;
-			gbufferDesc.colorSurfaces[2].numFaces = 1;
-			gbufferDesc.colorSurfaces[2].mipLevel = 0;
-
-			gbufferDesc.depthStencilSurface.texture = mDepthTex->texture;
-			gbufferDesc.depthStencilSurface.face = 0;
-			gbufferDesc.depthStencilSurface.mipLevel = 0;
-
-			mGBufferRT = RenderTexture::create(gbufferDesc);
-
-			RENDER_TEXTURE_DESC sceneColorDesc;
-			sceneColorDesc.colorSurfaces[0].texture = mSceneColorTex->texture;
-			sceneColorDesc.colorSurfaces[0].face = 0;
-			sceneColorDesc.colorSurfaces[0].numFaces = 1;
-			sceneColorDesc.colorSurfaces[0].mipLevel = 0;
-
-			sceneColorDesc.depthStencilSurface.texture = mDepthTex->texture;
-			sceneColorDesc.depthStencilSurface.face = 0;
-			sceneColorDesc.depthStencilSurface.numFaces = 1;
-			sceneColorDesc.depthStencilSurface.mipLevel = 0;
-
-			mSceneColorRT = TextureManager::instance().createRenderTexture(sceneColorDesc);
+			if (mViewTarget.numSamples > 1)
+			{
+				UINT32 bufferNumElements = width * height * mViewTarget.numSamples;
+				mFlattenedLightAccumulationBuffer =
+					texPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
+			}
+			else
+			{
+				mLightAccumulationTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width,
+					height, TU_LOADSTORE, mViewTarget.numSamples, false));
+			}
 		}
 	}
 
-	void RenderTargets::release()
+	void RenderTargets::release(RenderTargetType type)
 	{
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(nullptr);
-
 		GpuResourcePool& texPool = GpuResourcePool::instance();
 
-		texPool.release(mSceneColorTex);
-		texPool.release(mAlbedoTex);
-		texPool.release(mNormalTex);
-		texPool.release(mDepthTex);
+		if (type == RTT_GBuffer)
+		{
+			texPool.release(mSceneColorTex);
+			texPool.release(mAlbedoTex);
+			texPool.release(mNormalTex);
+		}
+		else if(type == RTT_SceneColor)
+		{
+			texPool.release(mSceneColorTex);
 
-		if(mSceneColorNonMSAATex != nullptr)
-			texPool.release(mSceneColorNonMSAATex);
+			if (mSceneColorNonMSAATex != nullptr)
+				texPool.release(mSceneColorNonMSAATex);
 
-		if (mFlattenedSceneColorBuffer != nullptr)
-			texPool.release(mFlattenedSceneColorBuffer);
+			if (mFlattenedSceneColorBuffer != nullptr)
+				texPool.release(mFlattenedSceneColorBuffer);
+		}
+		else if(type == RTT_LightAccumulation)
+		{
+			if (mLightAccumulationTex != nullptr)
+				texPool.release(mLightAccumulationTex);
+
+			if (mFlattenedLightAccumulationBuffer != nullptr)
+				texPool.release(mFlattenedLightAccumulationBuffer);
+		}
 	}
 
 	void RenderTargets::bindGBuffer()
@@ -146,7 +203,7 @@ namespace bs { namespace ct
 		if (clearFlags != 0)
 		{
 			RenderAPI::instance().clearViewport(clearFlags, mViewTarget.clearColor,
-												mViewTarget.clearDepthValue, mViewTarget.clearStencilValue, 0x01);
+				mViewTarget.clearDepthValue, mViewTarget.clearStencilValue, 0x01);
 		}
 
 		// Clear all non primary targets (Note: I could perhaps clear all but albedo, since it stores a per-pixel write mask)
@@ -167,27 +224,27 @@ namespace bs { namespace ct
 		return mSceneColorTex->texture;
 	}
 
-	SPtr<Texture> RenderTargets::getTextureA() const
+	SPtr<Texture> RenderTargets::getGBufferA() const
 	{
 		return mAlbedoTex->texture;
 	}
 
-	SPtr<Texture> RenderTargets::getTextureB() const
+	SPtr<Texture> RenderTargets::getGBufferB() const
 	{
 		return mNormalTex->texture;
 	}
 
-	SPtr<Texture> RenderTargets::getTextureC() const
+	SPtr<Texture> RenderTargets::getGBufferC() const
 	{
 		return mRoughMetalTex->texture;
 	}
 
-	SPtr<Texture> RenderTargets::getTextureDepth() const
+	SPtr<Texture> RenderTargets::getSceneDepth() const
 	{
 		return mDepthTex->texture;
 	}
 
-	SPtr<Texture> RenderTargets::getSceneColorNonMSAA() const
+	SPtr<Texture> RenderTargets::getResolvedSceneColor() const
 	{
 		if (mSceneColorNonMSAATex != nullptr)
 			return mSceneColorNonMSAATex->texture;
@@ -195,7 +252,7 @@ namespace bs { namespace ct
 		return getSceneColor();
 	}
 
-	SPtr<RenderTexture> RenderTargets::getSceneColorNonMSAART() const
+	SPtr<RenderTexture> RenderTargets::getResolvedSceneColorRT() const
 	{
 		if (mSceneColorNonMSAATex != nullptr)
 			return mSceneColorNonMSAATex->renderTexture;
@@ -203,8 +260,18 @@ namespace bs { namespace ct
 		return mSceneColorTex->renderTexture;
 	}
 
-	SPtr<GpuBuffer> RenderTargets::getFlattenedSceneColorBuffer() const
+	SPtr<GpuBuffer> RenderTargets::getSceneColorBuffer() const
 	{
 		return mFlattenedSceneColorBuffer->buffer;
+	}
+
+	SPtr<Texture> RenderTargets::getLightAccumulation() const
+	{
+		return mLightAccumulationTex->texture;
+	}
+
+	SPtr<GpuBuffer> RenderTargets::getLightAccumulationBuffer() const
+	{
+		return mFlattenedLightAccumulationBuffer->buffer;
 	}
 }}

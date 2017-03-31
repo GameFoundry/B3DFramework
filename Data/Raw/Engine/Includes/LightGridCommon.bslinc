@@ -17,12 +17,7 @@ Technique : base("LightGridCommon") =
 				uint gMaxNumLightsPerCell;
 				uint2 gGridPixelSize;
 			}
-			
-			float convertToNDCZ(float viewZ)
-			{
-				return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
-			}
-			
+						
 			float calcViewZFromCellZ(uint cellZ)
 			{
 				// We don't want to subdivide depth uniformly because XY sizes will be much

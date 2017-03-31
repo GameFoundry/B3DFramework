@@ -12,6 +12,20 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
+	/** Types of render target textures that can be allocated by RenderTargets manager. */
+	enum RenderTargetType
+	{
+		/** 
+		 * Buffer containing albedo, normals, metalness/roughness and other material data, populated during base pass and
+		 * used during lighting and other operations.
+		 */
+		RTT_GBuffer,
+		/** Buffer containing intermediate lighting information used during deferred lighting pass. */
+		RTT_LightAccumulation,
+		/** Buffer containing final scene color information. */
+		RTT_SceneColor
+	};
+
 	/**
 	 * Allocates and handles all the required render targets for rendering a scene from a specific view.
 	 *
@@ -20,67 +34,79 @@ namespace bs { namespace ct
 	class RenderTargets
 	{
 	public:
-		/**
-		 * Creates a new set of render targets. This will not actually allocate the internal render targets - this happens
-		 * the first time you call bind().
-		 *
-		 * @param[in]	view			Information about the view that the render targets will be used for. Determines size
-		 *								of the render targets, and the output color render target.
-		 * @param[in]	hdr				Should the render targets support high dynamic range rendering.
+		/** 
+		 * Prepares any internal data for rendering. Should be called at the beginning of each frame, before allocating,
+		 * retrieving or binding any textures. Must eventually be followed by cleanup().
 		 */
-		static SPtr<RenderTargets> create(const RENDERER_VIEW_TARGET_DESC& view, bool hdr);
+		void prepare();
+
+		/**
+		 * Cleans up any internal data after rendering. Should be called after done rendering for a frame. All allocations
+		 * must be released at this point and no further allocations or texture binds should be done until the next call
+		 * to prepare().
+		 */
+		void cleanup();
+
+		/**	Returns the depth buffer as a bindable texture. */
+		SPtr<Texture> getSceneDepth() const;
 
 		/**
 		 * Allocates the textures required for rendering. Allocations are pooled so this is generally a fast operation
 		 * unless the size or other render target options changed. This must be called before binding render targets.
 		 */
-		void allocate();
+		void allocate(RenderTargetType type);
 
 		/**
 		 * Deallocates textures by returning them to the pool. This should be done when the caller is done using the render
 		 * targets, so that other systems might re-use them. This will not release any memory unless all render targets
 		 * pointing to those textures go out of scope.
 		 */
-		void release();
+		void release(RenderTargetType type);
 
 		/**	Binds the GBuffer render target for rendering. */
 		void bindGBuffer();
 
+		/**	Returns the first color texture of the gbuffer as a bindable texture. */
+		SPtr<Texture> getGBufferA() const;
+
+		/**	Returns the second color texture of the gbuffer as a bindable texture. */
+		SPtr<Texture> getGBufferB() const;
+
+		/**	Returns the third color texture of the gbuffer as a bindable texture. */
+		SPtr<Texture> getGBufferC() const;
+
 		/**	Binds the scene color render target for rendering. */
 		void bindSceneColor(bool readOnlyDepthStencil);
 
-		/** Returns the scene color render target. */
-		SPtr<RenderTexture> getSceneColorRT() const { return mSceneColorRT; }
-
-		/** Returns the gbuffer texture that scene color is stored in. */
+		/** 
+		 * Returns the texture for storing the final scene color. If using MSAA see getSceneColorBuffer() instead. Only 
+		 * available after bindSceneColor() has been called from this frame.
+		 **/
 		SPtr<Texture> getSceneColor() const;
 
-		/**	Returns the first color texture of the gbuffer as a bindable texture. */
-		SPtr<Texture> getTextureA() const;
+		/** 
+		 * Flattened, buffer version of the texture returned by getSceneColor(). Required when MSAA is used, since
+		 * random writes to multisampled textures aren't supported on all render backends.
+		 */
+		SPtr<GpuBuffer> getSceneColorBuffer() const;
 
-		/**	Returns the second color texture of the gbuffer as a bindable texture. */
-		SPtr<Texture> getTextureB() const;
+		/** Returns the texture for storing of the intermediate lighting information. */
+		SPtr<Texture> getLightAccumulation() const;
 
-		/**	Returns the third color texture of the gbuffer as a bindable texture. */
-		SPtr<Texture> getTextureC() const;
-
-		/**	Returns the depth texture of the gbuffer as a bindable texture. */
-		SPtr<Texture> getTextureDepth() const;
+		/**
+		* Flattened, buffer version of the texture returned by getLightAccumulation(). Required when MSAA is used, since
+		* random writes to multisampled textures aren't supported on all render backends.
+		*/
+		SPtr<GpuBuffer> getLightAccumulationBuffer() const;
 
 		/** 
 		 * Returns a scene color texture with a single-sample per pixel. If no multisampling is used, this is the same as
 		 * getSceneColor().
 		 */
-		SPtr<Texture> getSceneColorNonMSAA() const;
+		SPtr<Texture> getResolvedSceneColor() const;
 
-		/** Returns a render target that can be used for rendering to the texture returned by getSceneColorNonMSAA(). */
-		SPtr<RenderTexture> getSceneColorNonMSAART() const;
-
-		/** 
-		 * Returns a buffer that is meant to be used for rendering when MSAA is used, since writes to multisampled textures
-		 * aren't supported on all render backends.
-		 */
-		SPtr<GpuBuffer> getFlattenedSceneColorBuffer() const;
+		/** Returns a render target that can be used for rendering to the texture returned by getResolvedSceneColor(). */
+		SPtr<RenderTexture> getResolvedSceneColorRT() const;
 
 		/**	Checks if the targets support HDR rendering. */
 		bool getHDR() const { return mHDR; }
@@ -94,17 +120,30 @@ namespace bs { namespace ct
 		/** Gets the height of the targets, in pixels. */
 		UINT32 getHeight() const { return mHeight; }
 
+		/**
+		 * Creates a new set of render targets. Note in order to actually use the render targets you need to call the
+		 * relevant allocate* method before use.
+		 *
+		 * @param[in]	view			Information about the view that the render targets will be used for. Determines size
+		 *								of the render targets, and the output color render target.
+		 * @param[in]	hdr				Should the render targets support high dynamic range rendering.
+		 */
+		static SPtr<RenderTargets> create(const RENDERER_VIEW_TARGET_DESC& view, bool hdr);
+
 	private:
 		RenderTargets(const RENDERER_VIEW_TARGET_DESC& view, bool hdr);
 
 		RENDERER_VIEW_TARGET_DESC mViewTarget;
 
-		SPtr<PooledRenderTexture> mSceneColorTex;
 		SPtr<PooledRenderTexture> mAlbedoTex;
 		SPtr<PooledRenderTexture> mNormalTex;
 		SPtr<PooledRenderTexture> mRoughMetalTex;
 		SPtr<PooledRenderTexture> mDepthTex;
 
+		SPtr<PooledRenderTexture> mLightAccumulationTex;
+		SPtr<PooledStorageBuffer> mFlattenedLightAccumulationBuffer;
+
+		SPtr<PooledRenderTexture> mSceneColorTex;
 		SPtr<PooledRenderTexture> mSceneColorNonMSAATex;
 		SPtr<PooledStorageBuffer> mFlattenedSceneColorBuffer;
 
