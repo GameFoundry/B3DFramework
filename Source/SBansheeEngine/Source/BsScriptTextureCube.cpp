@@ -8,10 +8,10 @@
 #include "BsMonoManager.h"
 #include "BsTexture.h"
 #include "BsPixelUtil.h"
-#include "BsException.h"
-#include "BsScriptPixelData.h"
 #include "BsScriptAsyncOp.h"
 #include "BsCoreThread.h"
+
+#include "BsScriptPixelData.generated.h"
 
 using namespace std::placeholders;
 
@@ -87,7 +87,7 @@ namespace bs
 		if (scriptPixelData != nullptr)
 		{
 			HTexture texture = thisPtr->getHandle();
-			texture->writeData(scriptPixelData->getInternalValue(), face, mipLevel, false);
+			texture->writeData(scriptPixelData->getInternal(), face, mipLevel, false);
 		}
 	}
 

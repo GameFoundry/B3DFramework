@@ -14,85 +14,84 @@ namespace bs
 	 */
 
 	/** Pixel formats usable by images, textures and render surfaces. */
-    enum PixelFormat
+    enum BS_SCRIPT_EXPORT(n:PixelFormat) PixelFormat
     {
         /** Unknown pixel format. */
-        PF_UNKNOWN = 0,
+        PF_UNKNOWN				BS_SCRIPT_EXPORT(ex:true) = 0,
         /** 8-bit pixel format, all bits red. */
-        PF_R8 = 1,
+        PF_R8					BS_SCRIPT_EXPORT(n:R8) = 1,
 		/** 2 byte pixel format, 1 byte red, 1 byte green. */
-		PF_R8G8 = 2,
+		PF_R8G8					BS_SCRIPT_EXPORT(n:R8G8) = 2,
         /** 24-bit pixel format, 8 bits for red, green and blue. */
-        PF_R8G8B8 = 3,
+        PF_R8G8B8				BS_SCRIPT_EXPORT(n:R8G8B8) = 3,
         /** 24-bit pixel format, 8 bits for blue, green and red. */
-        PF_B8G8R8 = 4,
+        PF_B8G8R8				BS_SCRIPT_EXPORT(n:B8G8R8) = 4,
         /** 32-bit pixel format, 8 bits for blue, green, red and alpha. */
-        PF_B8G8R8A8 = 7,
+        PF_B8G8R8A8				BS_SCRIPT_EXPORT(n:B8G8R8A8) = 7,
 		/** 32-bit pixel format, 8 bits for red, green, blue and alpha. */
-		PF_R8G8B8A8 = 8, 
+		PF_R8G8B8A8				BS_SCRIPT_EXPORT(n:R8G8B8A8) = 8,
         /** DXT1/BC1 format containing opaque RGB or 1-bit alpha RGB. 4 bits per pixel. */
-        PF_BC1 = 13,
+        PF_BC1					BS_SCRIPT_EXPORT(n:BC1) = 13,
 		/** DXT3/BC2 format containing RGB with premultiplied alpha. 4 bits per pixel. */
-		PF_BC1a = 14,
+		PF_BC1a					BS_SCRIPT_EXPORT(ex:true) = 14,
         /** DXT3/BC2 format containing RGB with explicit alpha. 8 bits per pixel. */
-        PF_BC2 = 15,
+        PF_BC2					BS_SCRIPT_EXPORT(n:BC2) = 15,
         /** DXT5/BC2 format containing RGB with explicit alpha. 8 bits per pixel. Better alpha gradients than BC2. */
-        PF_BC3 = 16,
+        PF_BC3					BS_SCRIPT_EXPORT(n:BC3) = 16,
 		/** One channel compressed format. 4 bits per pixel. */
-		PF_BC4 = 17,
+		PF_BC4					BS_SCRIPT_EXPORT(n:BC4) = 17,
 		/** Two channel compressed format. 8 bits per pixel. */
-		PF_BC5 = 18,
+		PF_BC5					BS_SCRIPT_EXPORT(n:BC5) = 18,
 		/** Format storing RGB in half (16-bit) floating point format usable for HDR. 8 bits per pixel. */
-		PF_BC6H = 19,
+		PF_BC6H					BS_SCRIPT_EXPORT(n:BC6H) = 19,
 		/** 
 		 * Format storing RGB with optional alpha channel. Similar to BC1/BC2/BC3 formats but with higher quality and 
 		 * higher decompress overhead. 8 bits per pixel. 
 		 */
-		PF_BC7 = 20,
+		PF_BC7					BS_SCRIPT_EXPORT(n:BC7) = 20,
 		/** 16-bit pixel format, 16 bits (float) for red. */
-        PF_FLOAT16_R = 21,
+        PF_FLOAT16_R			BS_SCRIPT_EXPORT(n:Float16_R) = 21,
 		/** 32-bit, 2-channel s10e5 floating point pixel format, 16-bit red, 16-bit green. */
-		PF_FLOAT16_RG = 22,
+		PF_FLOAT16_RG			BS_SCRIPT_EXPORT(n:Float16_RG) = 22,
         /** 48-bit pixel format, 16 bits (float) for red, 16 bits (float) for green, 16 bits (float) for blue. */
-        PF_FLOAT16_RGB = 23,
+        PF_FLOAT16_RGB			BS_SCRIPT_EXPORT(n:Float16_RGB) = 23,
         /** 
 		 * 64-bit pixel format, 16 bits (float) for red, 16 bits (float) for green, 16 bits (float) for blue, 16 bits 
 		 * (float) for alpha. 
 		 */
-        PF_FLOAT16_RGBA = 24,
+        PF_FLOAT16_RGBA			BS_SCRIPT_EXPORT(n:Float16_RGBA) = 24,
 		/** 32-bit pixel format, 32 bits (float) for red. */
-        PF_FLOAT32_R = 25,
+        PF_FLOAT32_R			BS_SCRIPT_EXPORT(n:Float32_R) = 25,
 		/** 64-bit, 2-channel floating point pixel format, 32-bit red, 32-bit green. */
-		PF_FLOAT32_RG = 26,
+		PF_FLOAT32_RG			BS_SCRIPT_EXPORT(n:Float32_RG) = 26,
         /** 96-bit pixel format, 32 bits (float) for red, 32 bits (float) for green, 32 bits (float) for blue. */
-        PF_FLOAT32_RGB = 27,
+        PF_FLOAT32_RGB			BS_SCRIPT_EXPORT(n:Float32_RGB) = 27,
         /** 
 		 * 128-bit pixel format, 32 bits (float) for red, 32 bits (float) for green, 32 bits (float) for blue, 32 bits 
 		 * (float) for alpha. 
 		 */
-        PF_FLOAT32_RGBA = 28,
+        PF_FLOAT32_RGBA			BS_SCRIPT_EXPORT(n:Float32_RGBA) = 28,
 		/** Depth stencil format, 32bit depth, 8bit stencil + 24 unused. */
-		PF_D32_S8X24 = 29,
+		PF_D32_S8X24			BS_SCRIPT_EXPORT(n:D32_S8X24) = 29,
 		/** Depth stencil fomrat, 24bit depth + 8bit stencil. */
-		PF_D24S8 = 30,
+		PF_D24S8				BS_SCRIPT_EXPORT(n:D24S8) = 30,
 		/** Depth format, 32bits. */
-		PF_D32 = 31,
+		PF_D32					BS_SCRIPT_EXPORT(n:D32) = 31,
 		/** Depth format, 16bits. */
-		PF_D16 = 32,
+		PF_D16					BS_SCRIPT_EXPORT(n:D16) = 32,
 		/** 
 		 * 32-bit float format, 11 bits (float) for red, 11 bits (float) for green, 10 bits (float) for blue. Framebuffer 
 		 * only format, not for CPU use. 
 		 */
-		PF_FLOAT_R11G11B10 = 33,
+		PF_FLOAT_R11G11B10		BS_SCRIPT_EXPORT(ex:true) = 33,
 		/** 
 		 * 32-bit unsigned normalized format, 10 bits (float) for red, 10 bits (float) for green, 10 bits (float) for blue, 
 		 * and two bits for alpha. Framebuffer only format, not for CPU use.
 		 */
-		PF_UNORM_R10G10B10A2 = 34,
+		PF_UNORM_R10G10B10A2	BS_SCRIPT_EXPORT(ex:true) = 34,
 		/** Number of pixel formats currently defined. */
-        PF_COUNT = 35
+        PF_COUNT				BS_SCRIPT_EXPORT(ex:true) = 35
     };
-	typedef Vector<PixelFormat> PixelFormatList;
 
 	/**	Flags defining some properties of pixel formats. */
     enum PixelFormatFlags {
@@ -156,7 +155,7 @@ namespace bs
 	 *
 	 * @see		GpuResourceData
 	 */
-    class BS_CORE_EXPORT PixelData : public GpuResourceData
+    class BS_CORE_EXPORT BS_SCRIPT_EXPORT(n:PixelData) PixelData : public GpuResourceData
 	{
     public:
 		PixelData();
@@ -181,12 +180,14 @@ namespace bs
 		 * Returns the number of pixels that offsets one row from another. This can be "width", but doesn't have to be as
 		 * some buffers require padding.
 		 */
+		BS_SCRIPT_EXPORT(n:RawRowPitch,pr:getter)
 		UINT32 getRowPitch() const { return mRowPitch; }
 
 		/**
 		 * Returns the number of pixels that offsets one depth slice from another. This can be "width * height", but 
 		 * doesn't have to be as some buffers require padding.
 		 */
+		BS_SCRIPT_EXPORT(n:RawSlicePitch,pr:getter)
 		UINT32 getSlicePitch() const { return mSlicePitch; }
 
 		/**
@@ -214,6 +215,7 @@ namespace bs
         UINT32 getSliceSkip() const { return mSlicePitch - (getHeight() * mRowPitch); }
 
 		/** Returns the pixel format used by the internal buffer for storing the pixels. */
+		BS_SCRIPT_EXPORT(n:Format,pr:getter)
 		PixelFormat getFormat() const { return mFormat; }
 
 		/**	Returns width of the buffer in pixels. */
@@ -262,11 +264,13 @@ namespace bs
 		UINT32 getBack() const { return mExtents.back; }
 
 		/** Returns extents of the pixel volume this object is capable of holding. */
+		BS_SCRIPT_EXPORT(n:Extents,pr:getter)
 		PixelVolume getExtents() const { return mExtents; }
 
 		/** 
 		 * Return whether this buffer is laid out consecutive in memory (meaning the pitches are equal to the dimensions). 
 		 */
+		BS_SCRIPT_EXPORT(n:RawIsConsecutive,pr:getter)
         bool isConsecutive() const 
 		{ 
 			return mRowPitch == getWidth() && mSlicePitch == getWidth()*getHeight(); 
@@ -276,6 +280,7 @@ namespace bs
       	UINT32 getConsecutiveSize() const;
 
 		/**	Return the size (in bytes) of the buffer this image requires. */
+		BS_SCRIPT_EXPORT(n:RawSize,pr:getter)
       	UINT32 getSize() const;
 
 		/**
@@ -334,7 +339,7 @@ namespace bs
 		 * Constructs a new object with an internal buffer capable of holding "extents" volume of pixels, where each pixel
 		 * is of the specified pixel format. Extent offsets are also stored, but are not used internally.
 		 */
-		static SPtr<PixelData> create(const PixelVolume &extents, PixelFormat pixelFormat);
+		static SPtr<PixelData> create(const PixelVolume& extents, PixelFormat pixelFormat);
 
 		/**
 		 * Constructs a new object with an internal buffer capable of holding volume of pixels described by provided width,

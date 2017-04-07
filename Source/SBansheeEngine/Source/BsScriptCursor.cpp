@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsCursor.h"
-#include "BsScriptPixelData.h"
+#include "BsScriptPixelData.generated.h"
 
 namespace bs
 {
@@ -78,7 +78,7 @@ namespace bs
 
 		if (scriptPixelData != nullptr)
 		{
-			SPtr<PixelData> pixelData = scriptPixelData->getInternalValue();
+			SPtr<PixelData> pixelData = scriptPixelData->getInternal();
 			Cursor::instance().setCursorIcon(nameStr, *pixelData, *hotspot);
 		}
 		else
@@ -91,7 +91,7 @@ namespace bs
 
 		if (scriptPixelData != nullptr)
 		{
-			SPtr<PixelData> pixelData = scriptPixelData->getInternalValue();
+			SPtr<PixelData> pixelData = scriptPixelData->getInternal();
 			Cursor::instance().setCursorIcon(cursor, *pixelData, *hotspot);
 		}
 		else

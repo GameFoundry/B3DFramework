@@ -165,7 +165,6 @@
     <Compile Include="Physics\SliderJoint.cs" />
     <Compile Include="Physics\SphereCollider.cs" />
     <Compile Include="Physics\SphericalJoint.cs" />
-    <Compile Include="Utility\PixelData.cs" />
     <Compile Include="Utility\PixelUtility.cs" />
     <Compile Include="Utility\PlainText.cs" />
     <Compile Include="Scene\Prefab.cs" />
@@ -213,7 +212,7 @@
     <Compile Include="Rendering\TextureCube.cs" />
     <Compile Include="Utility\Time.cs" />
     <Compile Include="Input\VirtualInput.cs" />
-	<Compile Include="Generated\*.cs"/>
+    <Compile Include="Generated\*.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

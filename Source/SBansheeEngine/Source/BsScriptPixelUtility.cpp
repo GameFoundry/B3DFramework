@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsDebug.h"
-#include "BsScriptPixelData.h"
+#include "BsScriptPixelData.generated.h"
 
 namespace bs
 {
@@ -64,7 +64,7 @@ namespace bs
 		if (sourceScriptPixelData == nullptr)
 			return nullptr;
 
-		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternalValue();
+		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternal();
 		SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(sourcePixelData->getWidth(), sourcePixelData->getHeight(), 
 			sourcePixelData->getDepth(), newFormat);
 		outputData->allocateInternalBuffer();
@@ -80,7 +80,7 @@ namespace bs
 		if (sourceScriptPixelData == nullptr)
 			return nullptr;
 
-		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternalValue();
+		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternal();
 		SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(sourcePixelData->getWidth(), sourcePixelData->getHeight(), 
 			sourcePixelData->getDepth(), options->format);
 		outputData->allocateInternalBuffer();
@@ -96,7 +96,7 @@ namespace bs
 		if (sourceScriptPixelData == nullptr)
 			return nullptr;
 
-		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternalValue();
+		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternal();
 		Vector<SPtr<PixelData>> mipmaps = PixelUtil::genMipmaps(*sourcePixelData, *options);
 
 		UINT32 numElements = (UINT32)mipmaps.size();
@@ -117,7 +117,7 @@ namespace bs
 		if (sourceScriptPixelData == nullptr)
 			return nullptr;
 
-		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternalValue();
+		SPtr<PixelData> sourcePixelData = sourceScriptPixelData->getInternal();
 		SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(newSize->getWidth(), newSize->getHeight(),
 			newSize->getDepth(), sourcePixelData->getFormat());
 		outputData->allocateInternalBuffer();
@@ -133,7 +133,7 @@ namespace bs
 		if (sourceScriptPixelData == nullptr)
 			return;
 
-		SPtr<PixelData> pixelData = sourceScriptPixelData->getInternalValue();
+		SPtr<PixelData> pixelData = sourceScriptPixelData->getInternal();
 		PixelUtil::applyGamma(pixelData->getData(), gamma, pixelData->getSize(), PixelUtil::getNumElemBits(pixelData->getFormat()));
 	}
 }
