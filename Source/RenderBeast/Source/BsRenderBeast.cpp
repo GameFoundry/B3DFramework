@@ -963,7 +963,12 @@ namespace bs { namespace ct
 			mTileDeferredImageBasedLightingMats->get(numSamples);
 
 		imageBasedLightingMat->setReflectionProbes(*mGPUReflProbeData, mReflCubemapArrayTex, viewInfo->isRenderingReflections());
-		imageBasedLightingMat->setSky(mSkyboxFilteredReflections, mSkyboxIrradiance, mSkybox->getBrightness());
+
+		float skyBrightness = 1.0f;
+		if (mSkybox != nullptr)
+			skyBrightness = mSkybox->getBrightness();
+
+		imageBasedLightingMat->setSky(mSkyboxFilteredReflections, mSkyboxIrradiance, skyBrightness);
 
 		// Assign camera and per-call data to all relevant renderables
 		const VisibilityInfo& visibility = viewInfo->getVisibilityMasks();
