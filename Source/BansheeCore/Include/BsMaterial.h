@@ -40,6 +40,13 @@ namespace bs
 	template<> struct TGpuParamsSetType < false > { typedef GpuParamsSet Type; };
 	template<> struct TGpuParamsSetType < true > { typedef ct::GpuParamsSet Type; };
 
+	/** Flags that signal in what way did the Material change. */
+	enum class MaterialDirtyFlags
+	{
+		Normal,
+		ResourceChanged
+	};
+
 	/**
 	 * Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that
 	 * shader. It provides a simple interface for manipulating the parameters.
@@ -80,15 +87,15 @@ namespace bs
 		 */
 
 		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
-		virtual void _markCoreDirty() { }
+		virtual void _markCoreDirty(MaterialDirtyFlags flags = MaterialDirtyFlags::Normal) { }
 
-		/** @} */
-	protected:
 		/** @copydoc CoreObject::markDependenciesDirty */
 		virtual void _markDependenciesDirty() { }
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
 		virtual void _markResourcesDirty() { }
+
+		/** @} */
 	};
 
 	/** @copydoc MaterialBase */
@@ -593,7 +600,13 @@ namespace bs
 		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced 
 		 * between core and sim threads. 
 		 */
-		void _markCoreDirty() override;
+		void _markCoreDirty(MaterialDirtyFlags flags = MaterialDirtyFlags::Normal) override;
+
+		/** @copydoc CoreObject::markDependenciesDirty */
+		void _markDependenciesDirty() override;
+
+		/** @copydoc IResourceListener::markResourcesDirty */
+		void _markResourcesDirty() override;
 
 		/** @} */
 	private:
@@ -610,12 +623,6 @@ namespace bs
 
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
-
-		/** @copydoc CoreObject::markDependenciesDirty */
-		void _markDependenciesDirty() override;
-
-		/** @copydoc IResourceListener::markResourcesDirty */
-		void _markResourcesDirty() override;
 
 		/** @copydoc IResourceListener::getListenerResources */
 		void getListenerResources(Vector<HResource>& resources) override;

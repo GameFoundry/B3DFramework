@@ -389,9 +389,9 @@ namespace bs
 		initializeIfLoaded();
 	}
 
-	void Material::_markCoreDirty()
+	void Material::_markCoreDirty(MaterialDirtyFlags flags)
 	{
-		markCoreDirty();
+		markCoreDirty((UINT32)flags);
 	}
 
 	void Material::_markDependenciesDirty()
@@ -438,9 +438,11 @@ namespace bs
 
 	CoreSyncData Material::syncToCore(FrameAlloc* allocator)
 	{
+		bool syncAllParams = getCoreDirtyFlags() == (UINT32)MaterialDirtyFlags::ResourceChanged;
+
 		UINT32 paramsSize = 0;
 		if (mParams != nullptr)
-			mParams->getSyncData(nullptr, paramsSize);
+			mParams->getSyncData(nullptr, paramsSize, syncAllParams);
 
 		UINT32 numTechniques = (UINT32)mTechniques.size();
 		UINT32 size = sizeof(UINT32) * 2 + sizeof(SPtr<ct::Shader>) + 
@@ -468,7 +470,7 @@ namespace bs
 
 		dataPtr = rttiWriteElem(paramsSize, dataPtr);
 		if (mParams != nullptr)
-			mParams->getSyncData((UINT8*)dataPtr, paramsSize);
+			mParams->getSyncData((UINT8*)dataPtr, paramsSize, syncAllParams);
 
 		dataPtr += paramsSize;
 
@@ -479,12 +481,18 @@ namespace bs
 	{
 		if (mShader.isLoaded())
 			dependencies.push_back(mShader.get());
+
+		if(mParams != nullptr)
+			mParams->getCoreObjectDependencies(dependencies);
 	}
 
 	void Material::getListenerResources(Vector<HResource>& resources)
 	{
 		if (mShader != nullptr)
 			resources.push_back(mShader);
+
+		if (mParams != nullptr)
+			mParams->getResourceDependencies(resources);
 	}
 
 	void Material::getResourceDependencies(FrameVector<HResource>& dependencies) const
@@ -525,13 +533,24 @@ namespace bs
 
 	void Material::notifyResourceLoaded(const HResource& resource)
 	{
-		initializeIfLoaded();
+		// Ready to initialize as soon as shader loads
+		if (resource->getRTTI()->getRTTIId() == TID_Shader)
+			initializeIfLoaded();
 	}
 
 	void Material::notifyResourceChanged(const HResource& resource)
 	{
-		mLoadFlags = Load_None;
-		initializeIfLoaded();
+		// Need full rebuild if shader changed
+		if (resource->getRTTI()->getRTTIId() == TID_Shader)
+		{
+			mLoadFlags = Load_None;
+			initializeIfLoaded();
+		}
+		else
+		{
+			// Otherwise just sync changes (most likely just a texture got reimported)
+			_markCoreDirty(MaterialDirtyFlags::ResourceChanged);
+		}
 	}
 
 	HMaterial Material::clone()

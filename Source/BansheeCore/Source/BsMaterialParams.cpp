@@ -553,7 +553,7 @@ namespace bs
 		:TMaterialParams(shader), mLastSyncVersion(1)
 	{ }
 
-	void MaterialParams::getSyncData(UINT8* buffer, UINT32& size)
+	void MaterialParams::getSyncData(UINT8* buffer, UINT32& size, bool forceAll)
 	{
 		// Note: Not syncing struct data
 
@@ -565,7 +565,7 @@ namespace bs
 		UINT32 dataParamSize = 0;
 		for(auto& param : mParams)
 		{
-			if (param.version <= mLastSyncVersion)
+			if (param.version <= mLastSyncVersion && !forceAll)
 				continue;
 
 			switch(param.type)
@@ -630,7 +630,7 @@ namespace bs
 		for(UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
 			ParamData& param = mParams[i];
-			if (param.version <= mLastSyncVersion)
+			if (param.version <= mLastSyncVersion && !forceAll)
 				continue;
 
 			switch (param.type)
@@ -703,6 +703,57 @@ namespace bs
 		}
 
 		mLastSyncVersion = mParamVersion;
+	}
+
+	void MaterialParams::getResourceDependencies(Vector<HResource>& resources)
+	{
+		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
+		{
+			ParamData& param = mParams[i];
+			if (param.type != ParamType::Texture)
+				continue;
+
+			const MaterialParamTextureData& textureData = mTextureParams[param.index];
+			if (textureData.value != nullptr)
+				resources.push_back(textureData.value);
+		}
+	}
+
+	void MaterialParams::getCoreObjectDependencies(Vector<CoreObject*>& coreObjects)
+	{
+		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
+		{
+			ParamData& param = mParams[i];
+
+			switch (param.type)
+			{
+			case ParamType::Texture:
+			{
+				const MaterialParamTextureData& textureData = mTextureParams[param.index];
+
+				if (textureData.value.isLoaded())
+					coreObjects.push_back(textureData.value.get());
+			}
+			break;
+			case ParamType::Buffer:
+			{
+				const MaterialParamBufferData& bufferData = mBufferParams[param.index];
+
+				if (bufferData.value != nullptr)
+					coreObjects.push_back(bufferData.value.get());
+			}
+			break;
+			case ParamType::Sampler:
+			{
+
+				const MaterialParamSamplerStateData& samplerData = mSamplerStateParams[param.index];
+
+				if (samplerData.value != nullptr)
+					coreObjects.push_back(samplerData.value.get());
+			}
+			break;
+			}
+		}
 	}
 
 	RTTITypeBase* MaterialParams::getRTTIStatic()

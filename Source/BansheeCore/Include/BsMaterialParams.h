@@ -591,8 +591,16 @@ namespace bs
 		 *								of the required buffer.
 		 * @param[in, out]	size		Size of the provided allocated buffer. Or if the buffer is null, this parameter will
 		 *								contain the required buffer size when the method executes.
+		 * @param[in]		forceAll	If false, only the parameters that were changed since the last call will be synced.
+		 *								Otherwise all parameters will be synced.
 		 */
-		void getSyncData(UINT8* buffer, UINT32& size);
+		void getSyncData(UINT8* buffer, UINT32& size, bool forceAll);
+
+		/** Appends any resources stored by this object to the provided vector. */
+		void getResourceDependencies(Vector<HResource>& resources);
+
+		/** Appends any core objects stored by this object to the provided vector. */
+		void getCoreObjectDependencies(Vector<CoreObject*>& coreObjects);
 
 	private:
 		friend class ct::MaterialParams;

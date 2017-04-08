@@ -172,6 +172,8 @@ namespace bs
 
 		params->setTexture(*data, newValue, surface);
 		mMaterial->_markCoreDirty();
+		mMaterial->_markDependenciesDirty();
+		mMaterial->_markResourcesDirty();
 	}
 
 	template<bool Core>
@@ -223,6 +225,8 @@ namespace bs
 
 		params->setLoadStoreTexture(*data, texture, surface);
 		mMaterial->_markCoreDirty();
+		mMaterial->_markDependenciesDirty();
+		mMaterial->_markResourcesDirty();
 	}
 
 	template<bool Core>
@@ -274,6 +278,7 @@ namespace bs
 
 		params->setBuffer(*data, buffer);
 		mMaterial->_markCoreDirty();
+		mMaterial->_markDependenciesDirty();
 	}
 
 	template<bool Core>
@@ -327,6 +332,7 @@ namespace bs
 
 		params->setSamplerState(*data, newValue);
 		mMaterial->_markCoreDirty();
+		mMaterial->_markDependenciesDirty();
 	}
 
 	template<bool Core>

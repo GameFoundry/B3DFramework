@@ -108,6 +108,8 @@ namespace bs
 
 				mDependants.erase(iterFind);
 			}
+
+			mDependencies.erase(internalId);
 		}
 	}
 
@@ -151,11 +153,11 @@ namespace bs
 
 					if (dependencies != nullptr)
 					{
-						std::set_difference(dependencies->begin(), dependencies->end(),
-							dependencies->begin(), dependencies->end(), toRemove.begin());
-
 						std::set_difference(oldDependencies.begin(), oldDependencies.end(),
-							oldDependencies.begin(), oldDependencies.end(), toAdd.begin());
+							dependencies->begin(), dependencies->end(), std::inserter(toRemove, toRemove.begin()));
+
+						std::set_difference(dependencies->begin(), dependencies->end(),
+							oldDependencies.begin(), oldDependencies.end(), std::inserter(toAdd, toAdd.begin()));
 					}
 					else
 					{
@@ -178,18 +180,22 @@ namespace bs
 								mDependants.erase(iterFind2);
 						}
 					}
+
+					if (dependencies != nullptr && dependencies->size() > 0)
+						mDependencies[id] = *dependencies;
+					else
+						mDependencies.erase(id);
 				}
 				else
 				{
-					if (dependencies != nullptr)
+					if (dependencies != nullptr && dependencies->size() > 0)
 					{
 						for (auto& dependency : *dependencies)
 							toAdd.push_back(dependency);
+
+						mDependencies[id] = *dependencies;
 					}
 				}
-
-				if (dependencies != nullptr)
-					mDependencies[id] = *dependencies;
 			}
 
 			// Register dependants
