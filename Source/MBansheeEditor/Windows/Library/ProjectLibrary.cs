@@ -570,7 +570,7 @@ namespace BansheeEditor
         /// <summary>
         /// Custom icon for the resource to display in the editor, if the resource has one.
         /// </summary>
-        public Texture2D Icon { get { return Internal_GetIcon(mCachedPtr); } }
+        public Texture Icon { get { return Internal_GetIcon(mCachedPtr); } }
 
         /// <summary>
         /// Type of the resource referenced by this entry.
@@ -589,7 +589,7 @@ namespace BansheeEditor
         private static extern string Internal_GetSubresourceName(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Texture2D Internal_GetIcon(IntPtr thisPtr);
+        private static extern Texture Internal_GetIcon(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ResourceType Internal_GetResourceType(IntPtr thisPtr);

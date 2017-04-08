@@ -592,29 +592,13 @@ namespace BansheeEditor
             switch (shaderParam.Type)
             {
                 case ShaderParameterType.Texture2D:
-                    guiElem.OnChanged += (x) =>
-                    {
-                        Texture2D texture = Resources.Load<Texture2D>(x);
-
-                        material.SetTexture2D(shaderParam.Name, texture);
-                        EditorApplication.SetDirty(material);
-                    };
-                    break;
                 case ShaderParameterType.Texture3D:
-                    guiElem.OnChanged += (x) =>
-                    {
-                        Texture3D texture = Resources.Load<Texture3D>(x);
-
-                        material.SetTexture3D(shaderParam.Name, texture);
-                        EditorApplication.SetDirty(material);
-                    };
-                    break;
                 case ShaderParameterType.TextureCube:
                     guiElem.OnChanged += (x) =>
                     {
-                        TextureCube texture = Resources.Load<TextureCube>(x);
+                        Texture texture = Resources.Load<Texture>(x);
 
-                        material.SetTextureCube(shaderParam.Name, texture);
+                        material.SetTexture(shaderParam.Name, texture);
                         EditorApplication.SetDirty(material);
                     };
                     break;
@@ -630,13 +614,9 @@ namespace BansheeEditor
             switch (shaderParam.Type)
             {
                 case ShaderParameterType.Texture2D:
-                    value = material.GetTexture2D(shaderParam.Name);
-                    break;
                 case ShaderParameterType.Texture3D:
-                    value = material.GetTexture3D(shaderParam.Name);
-                    break;
                 case ShaderParameterType.TextureCube:
-                    value = material.GetTextureCube(shaderParam.Name);
+                    value = material.GetTexture(shaderParam.Name);
                     break;
             }
 

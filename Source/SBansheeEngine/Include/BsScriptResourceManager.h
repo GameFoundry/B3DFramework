@@ -101,10 +101,6 @@ namespace bs
 
 		template<>
 		void BS_SCR_BE_EXPORT ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr,
-			const ResourceHandle<Texture>& resourceHandle, ScriptTextureBase** out);
-
-		template<>
-		void BS_SCR_BE_EXPORT ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr,
 			const HResource& resourceHandle, ScriptResourceBase** out);
 	}
 

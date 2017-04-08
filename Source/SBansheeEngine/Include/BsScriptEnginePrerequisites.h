@@ -63,9 +63,7 @@ namespace bs
 	class ScriptFont;
 	class ScriptSpriteTexture;
 	class ScriptShaderInclude;
-	class ScriptTexture2D;
-	class ScriptTexture3D;
-	class ScriptTextureCube;
+	class ScriptTexture;
 	class ScriptPlainText;
 	class ScriptScriptCode;
 	class ScriptShader;
@@ -88,7 +86,6 @@ namespace bs
 	class ScriptRenderTarget;
 	class ScriptRenderTexture2D;
 	class ScriptCamera;
-	class ScriptTextureBase;
 	class ScriptMeshData;
 	class ManagedComponent;
 	class ManagedSerializableFieldData;

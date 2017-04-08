@@ -129,7 +129,7 @@
     <Compile Include="Inspectors\ShaderInspector.cs" />
     <Compile Include="Inspectors\SpriteTextureInspector.cs" />
     <Compile Include="Inspectors\StringTableInspector.cs" />
-    <Compile Include="Inspectors\Texture2DInspector.cs" />
+    <Compile Include="Inspectors\TextureInspector.cs" />
     <Compile Include="Windows\Inspector\InspectableDictionary.cs" />
     <Compile Include="Windows\Inspector\InspectorPersistentData.cs" />
     <Compile Include="Windows\Inspector\InspectorUtility.cs" />
@@ -224,7 +224,7 @@
     <Compile Include="Tests\UnitTests.cs" />
     <Compile Include="Tests\UnitTestTypes.cs" />
     <Compile Include="Window\UndoRedoLocal.cs" />
-	<Compile Include="Generated\*.cs"/>
+    <Compile Include="Generated\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MBansheeEngine\MBansheeEngine.csproj">

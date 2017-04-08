@@ -10,9 +10,7 @@
 #include "BsMonoProperty.h"
 #include "BsScriptManagedResource.h"
 #include "BsScriptComponent.h"
-#include "BsScriptTexture2D.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
+#include "BsScriptTexture.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptMaterial.h"
 #include "BsScriptMesh.h"
@@ -328,12 +326,8 @@ namespace bs
 
 				if(monoClass == ScriptResource::getMetaData()->scriptClass)
 					typeInfo->mType = ScriptReferenceType::Resource;
-				else if (monoClass->isSubClassOf(ScriptTexture2D::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Texture2D;
-				else if (monoClass->isSubClassOf(ScriptTexture3D::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Texture3D;
-				else if (monoClass->isSubClassOf(ScriptTextureCube::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::TextureCube;
+				else if (monoClass->isSubClassOf(ScriptTexture::getMetaData()->scriptClass))
+					typeInfo->mType = ScriptReferenceType::Texture;
 				else if (monoClass->isSubClassOf(ScriptSpriteTexture::getMetaData()->scriptClass))
 					typeInfo->mType = ScriptReferenceType::SpriteTexture;
 				else if (monoClass->isSubClassOf(ScriptManagedResource::getMetaData()->scriptClass))

@@ -17,7 +17,7 @@
 #include "BsGUIManager.h"
 #include "BsStandardPostProcessSettings.h"
 #include "BsScriptPostProcessSettings.h"
-#include "BsScriptTextureCube.h"
+#include "BsScriptTexture.h"
 #include "BsScriptResourceManager.h"
 
 namespace bs

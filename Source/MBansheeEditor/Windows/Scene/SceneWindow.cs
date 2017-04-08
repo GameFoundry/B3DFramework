@@ -854,8 +854,8 @@ namespace BansheeEditor
             height = MathEx.Max(20, height);
 
             // Note: Depth buffer and readable flags are required because ScenePicking uses it
-            Texture2D colorTex = new Texture2D(width, height, PixelFormat.R8G8B8A8, TextureUsage.Render | TextureUsage.CPUReadable);
-            Texture2D depthTex = new Texture2D(width, height, PixelFormat.D32_S8X24, TextureUsage.DepthStencil | TextureUsage.CPUReadable);
+            Texture colorTex = Texture.Create2D(width, height, PixelFormat.R8G8B8A8, TextureUsage.Render | TextureUsage.CPUReadable);
+            Texture depthTex = Texture.Create2D(width, height, PixelFormat.D32_S8X24, TextureUsage.DepthStencil | TextureUsage.CPUReadable);
 
             renderTexture = new RenderTexture2D(colorTex, depthTex);
             renderTexture.Priority = 1;

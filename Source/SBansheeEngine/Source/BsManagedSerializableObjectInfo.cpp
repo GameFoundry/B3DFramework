@@ -8,11 +8,9 @@
 #include "BsMonoManager.h"
 #include "BsMonoField.h"
 #include "BsMonoProperty.h"
-#include "BsScriptTexture2D.h"
+#include "BsScriptTexture.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptAssemblyManager.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
 #include "BsScriptMaterial.h"
 #include "BsScriptMesh.h"
 #include "BsScriptFont.h"
@@ -374,9 +372,7 @@ namespace bs
 		switch (mType)
 		{
 		case ScriptReferenceType::Resource:
-		case ScriptReferenceType::Texture2D:
-		case ScriptReferenceType::Texture3D:
-		case ScriptReferenceType::TextureCube:
+		case ScriptReferenceType::Texture:
 		case ScriptReferenceType::SpriteTexture:
 		case ScriptReferenceType::Shader:
 		case ScriptReferenceType::ShaderInclude:
@@ -410,12 +406,8 @@ namespace bs
 		{
 		case ScriptReferenceType::Resource:
 			return ScriptResource::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Texture2D:
-			return ScriptTexture2D::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Texture3D:
-			return ScriptTexture3D::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::TextureCube:
-			return ScriptTextureCube::getMetaData()->scriptClass->_getInternalClass();
+		case ScriptReferenceType::Texture:
+			return ScriptTexture::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::SpriteTexture:
 			return ScriptSpriteTexture::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::Shader:

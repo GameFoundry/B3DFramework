@@ -5,9 +5,7 @@
 #include "BsMonoAssembly.h"
 #include "BsMonoClass.h"
 #include "BsResources.h"
-#include "BsScriptTexture2D.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
+#include "BsScriptTexture.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptPlainText.h"
 #include "BsScriptScriptCode.h"
@@ -93,19 +91,6 @@ namespace bs
 		}
 
 		template<>
-		void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>& resourceHandle, ScriptTextureBase** out)
-		{
-			TextureType type = resourceHandle->getProperties().getTextureType();
-
-			if (type == TEX_TYPE_3D)
-				return ScriptResourceManager_createScriptResource(thisPtr, resourceHandle, (ScriptTexture3D**)out);
-			else if (type == TEX_TYPE_CUBE_MAP)
-				return ScriptResourceManager_createScriptResource(thisPtr, resourceHandle, (ScriptTextureCube**)out);
-			else
-				return ScriptResourceManager_createScriptResource(thisPtr, resourceHandle, (ScriptTexture2D**)out);
-		}
-
-		template<>
 		void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const HResource& resourceHandle, ScriptResourceBase** out)
 		{
 #if BS_DEBUG_MODE
@@ -117,17 +102,7 @@ namespace bs
 			switch (resTypeID)
 			{
 			case TID_Texture:
-			{
-				HTexture texture = static_resource_cast<Texture>(resourceHandle);
-				TextureType type = texture->getProperties().getTextureType();
-
-				if (type == TEX_TYPE_3D)
-					return ScriptResourceManager_createScriptResource(thisPtr, texture, (ScriptTexture3D**)out);
-				else if (type == TEX_TYPE_CUBE_MAP)
-					return ScriptResourceManager_createScriptResource(thisPtr, texture, (ScriptTextureCube**)out);
-				else
-					return ScriptResourceManager_createScriptResource(thisPtr, texture, (ScriptTexture2D**)out);
-			}
+				return ScriptResourceManager_createScriptResource(thisPtr, static_resource_cast<Texture>(resourceHandle), (ScriptTexture**)out);
 			case TID_SpriteTexture:
 				return ScriptResourceManager_createScriptResource(thisPtr, static_resource_cast<SpriteTexture>(resourceHandle), (ScriptSpriteTexture**)out);
 			case TID_Font:
@@ -167,10 +142,7 @@ namespace bs
 			}
 		}
 
-		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>&, ScriptTexture2D**);
-		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>&, ScriptTexture3D**);
-		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>&, ScriptTextureCube**);
-		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>&, ScriptTextureBase**);
+		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Texture>&, ScriptTexture**);
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<SpriteTexture>&, ScriptSpriteTexture**);
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Mesh>&, ScriptMesh**);
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<Material>&, ScriptMaterial**);
@@ -188,9 +160,7 @@ namespace bs
 		template void ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr, const ResourceHandle<AnimationClip>&, ScriptAnimationClip**);
 	}
 
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Texture>&, ScriptTexture2D**);
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Texture>&, ScriptTexture3D**);
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Texture>&, ScriptTextureCube**);
+	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Texture>&, ScriptTexture**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<SpriteTexture>&, ScriptSpriteTexture**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Mesh>&, ScriptMesh**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<Material>&, ScriptMaterial**);
@@ -208,10 +178,7 @@ namespace bs
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<AnimationClip>&, ScriptAnimationClip**);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::createScriptResource(MonoObject*, const ResourceHandle<ManagedResource>&, ScriptManagedResource**);
 
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTexture2D** out, bool create);
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTexture3D** out, bool create);
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTextureCube** out, bool create);
-	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTextureBase** out, bool create);
+	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Texture>& resourceHandle, ScriptTexture** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<SpriteTexture>& resourceHandle, ScriptSpriteTexture** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Mesh>& resourceHandle, ScriptMesh** out, bool create);
 	template BS_SCR_BE_EXPORT void ScriptResourceManager::getScriptResource(const ResourceHandle<Material>& resourceHandle, ScriptMaterial** out, bool create);

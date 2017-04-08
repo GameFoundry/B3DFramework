@@ -88,7 +88,7 @@ namespace BansheeEngine
         /// <summary>
         /// Textures in which the character's pixels are stored.
         /// </summary>
-        public Texture2D[] Pages { get { return Internal_GetPages(mCachedPtr); } }
+        public Texture[] Pages { get { return Internal_GetPages(mCachedPtr); } }
 
         /// <summary>
         /// Returns a description of the character in the bitmap.
@@ -130,7 +130,7 @@ namespace BansheeEngine
         private static extern void Internal_GetMissingChar(IntPtr instance, out CharDesc output);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Texture2D[] Internal_GetPages(IntPtr instance);
+        private static extern Texture[] Internal_GetPages(IntPtr instance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_GetChar(IntPtr instance, int id, out CharDesc output);

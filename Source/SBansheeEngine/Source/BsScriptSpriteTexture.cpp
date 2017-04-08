@@ -7,7 +7,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 #include "BsSpriteTexture.h"
-#include "BsScriptTexture2D.h"
+#include "BsScriptTexture.h"
 
 namespace bs
 {
@@ -43,7 +43,7 @@ namespace bs
 
 	void ScriptSpriteTexture::internal_createInstance(MonoObject* instance, MonoObject* texture, Vector2* offset, Vector2* scale)
 	{
-		ScriptTexture2D* scriptTexture = ScriptTexture2D::toNative(texture);
+		ScriptTexture* scriptTexture = ScriptTexture::toNative(texture);
 		ScriptSpriteTexture* scriptInstance;
 
 		if (scriptTexture == nullptr)
@@ -68,13 +68,13 @@ namespace bs
 		if (!texture.isLoaded())
 			return nullptr;
 
-		ScriptTexture2D* scriptTexture = nullptr;
+		ScriptTexture* scriptTexture = nullptr;
 		ScriptResourceManager::instance().getScriptResource(texture, &scriptTexture, true);
 
 		return scriptTexture->getManagedInstance();
 	}
 
-	void ScriptSpriteTexture::internal_SetTexture(ScriptSpriteTexture* thisPtr, ScriptTexture2D* value)
+	void ScriptSpriteTexture::internal_SetTexture(ScriptSpriteTexture* thisPtr, ScriptTexture* value)
 	{
 		HSpriteTexture spriteTexture = thisPtr->getHandle();
 		if (!spriteTexture.isLoaded())

@@ -25,7 +25,7 @@ namespace BansheeEngine
         /// Creates a new sprite texture that references the entire area of the provided texture.
         /// </summary>
         /// <param name="texture">Texture to wrap by the sprite texture.</param>
-        public SpriteTexture(Texture2D texture)
+        public SpriteTexture(Texture texture)
         {
             Vector2 offset = Vector2.Zero;
             Vector2 scale = Vector2.One;
@@ -40,7 +40,7 @@ namespace BansheeEngine
         /// <param name="uvOffset">Top-left position of the area used by the sprite texture, in normalized coordinates.
         ///                        </param>
         /// <param name="uvScale">Size of the area used by the sprite texture, in normalized coordinates.</param>
-        public SpriteTexture(Texture2D texture, Vector2 uvOffset, Vector2 uvScale)
+        public SpriteTexture(Texture texture, Vector2 uvOffset, Vector2 uvScale)
         {
             Internal_CreateInstance(this, texture, ref uvOffset, ref uvScale);
         }
@@ -48,7 +48,7 @@ namespace BansheeEngine
         /// <summary>
         /// Texture that the sprite texture references.
         /// </summary>
-        public Texture2D Texture
+        public Texture Texture
         {
             get { return Internal_GetTexture(mCachedPtr); }
             set
@@ -97,10 +97,10 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_CreateInstance(SpriteTexture instance, 
-            Texture2D texture, ref Vector2 offset, ref Vector2 scale);
+            Texture texture, ref Vector2 offset, ref Vector2 scale);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Texture2D Internal_GetTexture(IntPtr thisPtr);
+        private static extern Texture Internal_GetTexture(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetTexture(IntPtr thisPtr, IntPtr value);

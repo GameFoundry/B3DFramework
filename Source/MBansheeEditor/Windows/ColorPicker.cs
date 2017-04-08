@@ -912,7 +912,7 @@ namespace BansheeEditor
             private const int SLIDER_Y_OFFSET = 5;
 
             private int width, height;
-            private Texture2D texture;
+            private Texture texture;
             private SpriteTexture spriteTexture;
 
             private GUITexture guiTexture;
@@ -933,7 +933,7 @@ namespace BansheeEditor
                 this.guiTexture = guiTexture;
                 this.guiSlider = guiSlider;
 
-                texture = new Texture2D(width, height);
+                texture = Texture.Create2D(width, height);
                 spriteTexture = new SpriteTexture(texture);
             }
 
@@ -976,7 +976,7 @@ namespace BansheeEditor
             private const int SLIDER_Y_OFFSET = 3;
 
             private int width, height;
-            private Texture2D texture;
+            private Texture texture;
             private SpriteTexture spriteTexture;
 
             private GUITexture guiTexture;
@@ -997,7 +997,7 @@ namespace BansheeEditor
                 this.guiTexture = guiTexture;
                 this.guiSlider = guiSlider;
 
-                texture = new Texture2D(width, height);
+                texture = Texture.Create2D(width, height);
                 spriteTexture = new SpriteTexture(texture);
             }
 
@@ -1038,7 +1038,7 @@ namespace BansheeEditor
         public class ColorSlider2D
         {
             private int width, height;
-            private Texture2D texture;
+            private Texture texture;
             private SpriteTexture spriteTexture;
 
             private GUITexture guiTexture;
@@ -1065,7 +1065,7 @@ namespace BansheeEditor
                 this.guiTexture = guiTexture;
                 this.guiSliderHandle = guiSliderHandle;
 
-                texture = new Texture2D(width, height);
+                texture = Texture.Create2D(width, height);
                 spriteTexture = new SpriteTexture(texture);
             }
 

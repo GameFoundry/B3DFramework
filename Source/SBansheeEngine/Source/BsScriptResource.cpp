@@ -4,9 +4,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsResource.h"
 #include "BsMonoUtil.h"
-#include "BsScriptTexture2D.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
+#include "BsScriptTexture.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptMaterial.h"
 #include "BsScriptMesh.h"
@@ -63,8 +61,7 @@ namespace bs
 		switch (typeId)
 		{
 		case TID_Texture:
-			// TODO - Need to distinguish from 2D/3D/Cube
-			return ScriptTexture2D::getMetaData()->scriptClass;
+			return ScriptTexture::getMetaData()->scriptClass;
 		case TID_SpriteTexture:
 			return ScriptSpriteTexture::getMetaData()->scriptClass;
 		case TID_Font:

@@ -7,8 +7,6 @@
 #include "BsMonoManager.h"
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
-#include "BsScriptTexture2D.h"
-#include "BsScriptResourceManager.h"
 #include "BsScriptPrefab.h"
 #include "BsScriptResourceRef.h"
 
@@ -152,7 +150,7 @@ namespace bs
 		WeakResourceHandle<Texture> icon = thisPtr->getWinPlatformInfo()->icon;
 
 		if (icon != nullptr)
-			return ScriptResourceRef::create(icon, TEX_TYPE_2D);
+			return ScriptResourceRef::create(icon);
 
 		return nullptr;
 	}

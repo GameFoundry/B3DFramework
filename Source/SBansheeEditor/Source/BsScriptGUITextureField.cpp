@@ -82,7 +82,7 @@ namespace bs
 			textureField->setValue(HTexture());
 		else
 		{
-			ScriptTextureBase* scriptTexture = ScriptTexture::toNative(value);
+			ScriptTexture* scriptTexture = ScriptTexture::toNative(value);
 			textureField->setValue(static_resource_cast<Texture>(scriptTexture->getGenericHandle()));
 		}
 	}
@@ -116,7 +116,6 @@ namespace bs
 
 	void ScriptGUITextureField::onChanged(MonoObject* instance, const WeakResourceHandle<Texture>& newHandle)
 	{
-		// TODO - Always returning a 2D texture, will not work for 3D/cube textures
 		MonoObject* managedObj = ScriptResourceRef::create(newHandle);
 		MonoUtil::invokeThunk(onChangedThunk, instance, managedObj);
 	}
@@ -126,7 +125,7 @@ namespace bs
 		if (instance == nullptr)
 			return nullptr;
 
-		ScriptTextureBase* scriptResource = nullptr;
+		ScriptTexture* scriptResource = nullptr;
 		ScriptResourceManager::instance().getScriptResource(instance, &scriptResource, true);
 
 		return scriptResource->getManagedInstance();

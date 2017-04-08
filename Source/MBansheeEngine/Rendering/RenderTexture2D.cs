@@ -37,7 +37,7 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="colorSurface">Color texture to render color data to.</param>
         /// <param name="depthStencilSurface">Optional depth/stencil texture to render depth/stencil data to.</param>
-        public RenderTexture2D(Texture2D colorSurface, Texture2D depthStencilSurface = null)
+        public RenderTexture2D(Texture colorSurface, Texture depthStencilSurface = null)
         {
             IntPtr[] colorSurfaceInstances = new IntPtr[1];
             colorSurfaceInstances[0] = colorSurface.GetCachedPtr();
@@ -54,7 +54,7 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="colorSurfaces">Color texture(s) to render color data to. </param>
         /// <param name="depthStencilSurface">>Optional depth/stencil texture to render depth/stencil data to.</param>
-        public RenderTexture2D(Texture2D[] colorSurfaces, Texture2D depthStencilSurface = null)
+        public RenderTexture2D(Texture[] colorSurfaces, Texture depthStencilSurface = null)
         {
             IntPtr[] colorSurfaceInstances = new IntPtr[colorSurfaces.Length];
 
@@ -71,11 +71,11 @@ namespace BansheeEngine
         /// <summary>
         /// Returns the primary color surface that contains rendered color data.
         /// </summary>
-        public Texture2D colorSurface
+        public Texture colorSurface
         {
             get
             {
-                Texture2D[] surfaces;
+                Texture[] surfaces;
                 Internal_GetColorSurfaces(mCachedPtr, out surfaces);
                 return surfaces[0];
             }
@@ -84,11 +84,11 @@ namespace BansheeEngine
         /// <summary>
         /// Returns all of the color surfaces.
         /// </summary>
-        public Texture2D[] colorSurfaces
+        public Texture[] colorSurfaces
         {
             get
             {
-                Texture2D[] surfaces;
+                Texture[] surfaces;
                 Internal_GetColorSurfaces(mCachedPtr, out surfaces);
                 return surfaces;
             }
@@ -97,11 +97,11 @@ namespace BansheeEngine
         /// <summary>
         /// Returns the depth/stencil surface that contains rendered depth and stencil data.
         /// </summary>
-        public Texture2D depthStencilSurface
+        public Texture depthStencilSurface
         {
             get
             {
-                Texture2D surface;
+                Texture surface;
                 Internal_GetDepthStencilSurface(mCachedPtr, out surface);
                 return surface;
             }
@@ -115,10 +115,10 @@ namespace BansheeEngine
         private static extern void Internal_Create(RenderTexture2D instance, IntPtr[] colorSurfaces, IntPtr depthStencilSurface);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_GetColorSurfaces(IntPtr thisPtr, out Texture2D[] surfaces);
+        private static extern void Internal_GetColorSurfaces(IntPtr thisPtr, out Texture[] surfaces);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_GetDepthStencilSurface(IntPtr thisPtr, out Texture2D surface);
+        private static extern void Internal_GetDepthStencilSurface(IntPtr thisPtr, out Texture surface);
     }
 
     /** @} */

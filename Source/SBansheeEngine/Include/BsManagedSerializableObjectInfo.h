@@ -33,9 +33,7 @@ namespace bs
 	/** Valid reference script types. */
 	enum class ScriptReferenceType
 	{
-		Texture2D,
-		Texture3D,
-		TextureCube,
+		Texture,
 		SpriteTexture,
 		ManagedResource,
 		PlainText,

@@ -131,47 +131,19 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Assigns a 2D texture to the shader parameter with the specified name.
+        /// Assigns a texture to the shader parameter with the specified name.
         /// </summary>
         /// <param name="name">Name of the shader parameter.</param>
         /// <param name="value">Value of the parameter.</param>
-        public void SetTexture2D(string name, Texture2D value)
+        public void SetTexture(string name, Texture value)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (value != null)
                 texturePtr = value.GetCachedPtr();
 
-            Internal_SetTexture2D(mCachedPtr, name, texturePtr);
+            Internal_SetTexture(mCachedPtr, name, texturePtr);
         }
-
-        /// <summary>
-        /// Assigns a 3D texture to the shader parameter with the specified name.
-        /// </summary>
-        /// <param name="name">Name of the shader parameter.</param>
-        /// <param name="value">Value of the parameter.</param>
-        public void SetTexture3D(string name, Texture3D value)
-        {
-            IntPtr texturePtr = IntPtr.Zero;
-            if (value != null)
-                texturePtr = value.GetCachedPtr();
-
-            Internal_SetTexture3D(mCachedPtr, name, texturePtr);
-        }
-
-        /// <summary>
-        /// Assigns a cube texture to the shader parameter with the specified name.
-        /// </summary>
-        /// <param name="name">Name of the shader parameter.</param>
-        /// <param name="value">Value of the parameter.</param>
-        public void SetTextureCube(string name, TextureCube value)
-        {
-            IntPtr texturePtr = IntPtr.Zero;
-            if (value != null)
-                texturePtr = value.GetCachedPtr();
-
-            Internal_SetTextureCube(mCachedPtr, name, texturePtr);
-        }
-
+        
         /// <summary>
         /// Returns a float value assigned with the parameter with the specified name.
         /// </summary>
@@ -255,35 +227,15 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Returns a 2D texture assigned with the parameter with the specified name.
+        /// Returns a texture assigned with the parameter with the specified name.
         /// </summary>
         /// <param name="name">Name of the shader parameter.</param>
         /// <returns>Value of the parameter.</returns>
-        public Texture2D GetTexture2D(string name)
+        public Texture GetTexture(string name)
         {
-            return Internal_GetTexture2D(mCachedPtr, name);
+            return Internal_GetTexture(mCachedPtr, name);
         }
-
-        /// <summary>
-        /// Returns a 3D texture assigned with the parameter with the specified name.
-        /// </summary>
-        /// <param name="name">Name of the shader parameter.</param>
-        /// <returns>Value of the parameter.</returns>
-        public Texture3D GetTexture3D(string name)
-        {
-            return Internal_GetTexture3D(mCachedPtr, name);
-        }
-
-        /// <summary>
-        /// Returns a cube texture assigned with the parameter with the specified name.
-        /// </summary>
-        /// <param name="name">Name of the shader parameter.</param>
-        /// <returns>Value of the parameter.</returns>
-        public TextureCube GetTextureCube(string name)
-        {
-            return Internal_GetTextureCube(mCachedPtr, name);
-        }
-
+        
         /// <summary>
         /// Creates a deep copy of the material.
         /// </summary>
@@ -324,13 +276,7 @@ namespace BansheeEngine
         private static extern void Internal_SetColor(IntPtr nativeInstance, string name, ref Color value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetTexture2D(IntPtr nativeInstance, string name, IntPtr value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetTexture3D(IntPtr nativeInstance, string name, IntPtr value);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetTextureCube(IntPtr nativeInstance, string name, IntPtr value);
+        private static extern void Internal_SetTexture(IntPtr nativeInstance, string name, IntPtr value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetFloat(IntPtr nativeInstance, string name);
@@ -354,13 +300,7 @@ namespace BansheeEngine
         private static extern void Internal_GetColor(IntPtr nativeInstance, string name, out Color value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Texture2D Internal_GetTexture2D(IntPtr nativeInstance, string name);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Texture3D Internal_GetTexture3D(IntPtr nativeInstance, string name);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern TextureCube Internal_GetTextureCube(IntPtr nativeInstance, string name);
+        private static extern Texture Internal_GetTexture(IntPtr nativeInstance, string name);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern Material Internal_Clone(IntPtr nativeInstance);

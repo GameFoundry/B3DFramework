@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "BsResources.h"
 #include "BsScriptResource.h"
-#include "BsScriptTexture2D.h"
+#include "BsScriptTexture.h"
 #include "BsScriptResourceManager.h"
 #include "BsApplication.h"
 
@@ -29,23 +29,6 @@ namespace bs
 		new (bs_alloc<ScriptResourceRef>()) ScriptResourceRef(obj, handle);
 
 		return obj;
-	}
-
-	MonoObject* ScriptResourceRef::create(const WeakResourceHandle<Texture>& handle, TextureType type)
-	{
-		switch (type)
-		{
-		case TEX_TYPE_2D:
-			return createInternal(handle);
-		case TEX_TYPE_3D:
-			return createInternal(handle);
-		case TEX_TYPE_CUBE_MAP:
-			return createInternal(handle);
-		default:
-			break;
-		}
-
-		return nullptr;
 	}
 
 	bool ScriptResourceRef::internal_IsLoaded(ScriptResourceRef* nativeInstance)

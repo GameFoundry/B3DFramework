@@ -160,7 +160,7 @@ namespace BansheeEditor
         /// </summary>
         private void TriggerReimport()
         {
-            Texture2D texture = (Texture2D)InspectedObject;
+            Texture texture = (Texture)InspectedObject;
             string resourcePath = ProjectLibrary.GetPath(texture);
 
             ProjectLibrary.Reimport(resourcePath, importOptions, true);

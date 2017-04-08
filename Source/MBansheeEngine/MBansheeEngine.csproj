@@ -204,12 +204,9 @@
     <Compile Include="GUI\StringTable.cs" />
     <Compile Include="GUI\StringTables.cs" />
     <Compile Include="Rendering\Texture.cs" />
-    <Compile Include="Rendering\Texture2D.cs" />
     <Compile Include="Math\Vector2.cs" />
     <Compile Include="Math\Vector3.cs" />
     <Compile Include="Math\Vector4.cs" />
-    <Compile Include="Rendering\Texture3D.cs" />
-    <Compile Include="Rendering\TextureCube.cs" />
     <Compile Include="Utility\Time.cs" />
     <Compile Include="Input\VirtualInput.cs" />
     <Compile Include="Generated\*.cs" />

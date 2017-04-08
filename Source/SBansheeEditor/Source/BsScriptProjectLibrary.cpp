@@ -9,7 +9,6 @@
 #include "BsResources.h"
 #include "BsProjectResourceMeta.h"
 #include "BsScriptResourceManager.h"
-#include "BsScriptTexture2D.h"
 #include "BsScriptImportOptions.h"
 #include "BsEditorApplication.h"
 #include "BsManagedSerializableObject.h"

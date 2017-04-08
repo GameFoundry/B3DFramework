@@ -10,10 +10,10 @@ namespace BansheeEditor
      */
 
     /// <summary>
-    /// Renders an inspector for the <see cref="Texture2D"/> resource.
+    /// Renders an inspector for the <see cref="Texture"/> resource.
     /// </summary>
-    [CustomInspector(typeof(Texture2D))]
-    internal class Texture2DInspector : Inspector
+    [CustomInspector(typeof(Texture))]
+    internal class TextureInspector : Inspector
     {
         private GUIEnumField formatField = new GUIEnumField(typeof(PixelFormat), new LocEdString("Format"));
         private GUIToggleField generateMipsField = new GUIToggleField(new LocEdString("Generate mipmaps"));
@@ -85,7 +85,7 @@ namespace BansheeEditor
         /// <returns>Texture import options object.</returns>
         private TextureImportOptions GetImportOptions()
         {
-            Texture2D texture = InspectedObject as Texture2D;
+            Texture texture = InspectedObject as Texture;
             TextureImportOptions output = null;
 
             if (texture != null)
@@ -114,7 +114,7 @@ namespace BansheeEditor
         /// </summary>
         private void TriggerReimport()
         {
-            Texture2D texture = (Texture2D)InspectedObject;
+            Texture texture = (Texture)InspectedObject;
             string resourcePath = ProjectLibrary.GetPath(texture);
 
             ProjectLibrary.Reimport(resourcePath, importOptions, true);

@@ -7,9 +7,7 @@
 #include "BsMonoManager.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptGameObjectManager.h"
-#include "BsScriptTexture2D.h"
-#include "BsScriptTexture3D.h"
-#include "BsScriptTextureCube.h"
+#include "BsScriptTexture.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptManagedResource.h"
 #include "BsScriptPlainText.h"
@@ -141,14 +139,8 @@ namespace bs
 			lookup[(int)ScriptReferenceType::Resource] =
 				{ &getScriptResource<Resource, ScriptResourceBase>, &setScriptResource<ScriptResourceBase> };
 
-			lookup[(int)ScriptReferenceType::Texture2D] =
-				{ &getScriptResource<Texture, ScriptTexture2D>, &setScriptResource<ScriptTexture2D> };
-
-			lookup[(int)ScriptReferenceType::Texture3D] =
-				{ &getScriptResource<Texture, ScriptTexture3D>, &setScriptResource<ScriptTexture3D> };
-
-			lookup[(int)ScriptReferenceType::TextureCube] =
-				{ &getScriptResource<Texture, ScriptTextureCube>, &setScriptResource<ScriptTextureCube> };
+			lookup[(int)ScriptReferenceType::Texture] =
+				{ &getScriptResource<Texture, ScriptTexture>, &setScriptResource<ScriptTexture> };
 
 			lookup[(int)ScriptReferenceType::SpriteTexture] =
 				{ &getScriptResource<SpriteTexture, ScriptSpriteTexture>, &setScriptResource<ScriptSpriteTexture> };

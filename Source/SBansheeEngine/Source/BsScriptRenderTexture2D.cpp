@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 #include "BsRenderTexture.h"
-#include "BsScriptTexture2D.h"
+#include "BsScriptTexture.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
 
@@ -46,7 +46,7 @@ namespace bs
 		new (bs_alloc<ScriptRenderTexture2D>()) ScriptRenderTexture2D(tex, instance);
 	}
 
-	void ScriptRenderTexture2D::internal_create(MonoObject* instance, MonoArray* colorSurfaces, ScriptTexture2D* depthStencilSurface)
+	void ScriptRenderTexture2D::internal_create(MonoObject* instance, MonoArray* colorSurfaces, ScriptTexture* depthStencilSurface)
 	{
 		ScriptArray colorSurfacesList(colorSurfaces);
 
@@ -76,7 +76,7 @@ namespace bs
 			surfaceDesc.mipLevel = 0;
 			surfaceDesc.numFaces = 1;
 
-			ScriptTexture2D* scriptSurface = colorSurfacesList.get<ScriptTexture2D*>(i);
+			ScriptTexture* scriptSurface = colorSurfacesList.get<ScriptTexture*>(i);
 			if (scriptSurface != nullptr)
 			{
 				HTexture textureHandle = scriptSurface->getHandle();
@@ -102,7 +102,7 @@ namespace bs
 		SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
 
 		UINT32 numColorSurfaces = BS_MAX_MULTIPLE_RENDER_TARGETS;
-		ScriptArray outArray = ScriptArray::create<ScriptTexture2D>(numColorSurfaces);
+		ScriptArray outArray = ScriptArray::create<ScriptTexture>(numColorSurfaces);
 
 		for (UINT32 i = 0; i < numColorSurfaces; i++)
 		{
@@ -110,7 +110,7 @@ namespace bs
 
 			if (colorTex != nullptr)
 			{
-				ScriptTexture2D* scriptSurface;
+				ScriptTexture* scriptSurface;
 				ScriptResourceManager::instance().getScriptResource(colorTex, &scriptSurface, true);
 
 				outArray.set<MonoObject*>(i, scriptSurface->getManagedInstance());
@@ -127,7 +127,7 @@ namespace bs
 		SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
 		HTexture depthTex = tex->getDepthStencilTexture();
 
-		ScriptTexture2D* scriptSurface;
+		ScriptTexture* scriptSurface;
 		ScriptResourceManager::instance().getScriptResource(depthTex, &scriptSurface, true);
 
 		*value = scriptSurface->getManagedInstance();
