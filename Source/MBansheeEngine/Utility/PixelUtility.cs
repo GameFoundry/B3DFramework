@@ -307,7 +307,12 @@ namespace BansheeEngine
         /// Should the downsampled values be re-normalized. Only relevant for mip-maps representing normal maps.
         /// </summary>
 		public bool normalizeMipmaps;
-	};
+
+        /// <summary>
+        /// Determines has the input data been gamma corrected.
+        /// </summary>
+        bool isSRGB; 
+    };
 
     /** @} */
 }

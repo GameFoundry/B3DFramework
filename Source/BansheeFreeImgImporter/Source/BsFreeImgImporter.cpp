@@ -198,7 +198,12 @@ namespace bs
 		{
 			Vector<SPtr<PixelData>> mipLevels;
 			if (numMips > 0)
-				mipLevels = PixelUtil::genMipmaps(*faceData[i], MipMapGenOptions());
+			{
+				MipMapGenOptions mipOptions;
+				mipOptions.isSRGB = sRGB;
+
+				mipLevels = PixelUtil::genMipmaps(*faceData[i], mipOptions);
+			}
 			else
 				mipLevels.push_back(faceData[i]);
 

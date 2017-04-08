@@ -1537,18 +1537,18 @@ namespace bs
             return;
         }
 
-		const UINT32 srcPixelSize = PixelUtil::getNumElemBytes(src.getFormat());
-		const UINT32 dstPixelSize = PixelUtil::getNumElemBytes(dst.getFormat());
+		UINT32 srcPixelSize = PixelUtil::getNumElemBytes(src.getFormat());
+		UINT32 dstPixelSize = PixelUtil::getNumElemBytes(dst.getFormat());
         UINT8 *srcptr = static_cast<UINT8*>(src.getData())
             + (src.getLeft() + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch()) * srcPixelSize;
         UINT8 *dstptr = static_cast<UINT8*>(dst.getData())
             + (dst.getLeft() + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch()) * dstPixelSize;
 		
         // Calculate pitches+skips in bytes
-		const UINT32 srcRowSkipBytes = src.getRowSkip()*srcPixelSize;
-		const UINT32 srcSliceSkipBytes = src.getSliceSkip()*srcPixelSize;
-		const UINT32 dstRowSkipBytes = dst.getRowSkip()*dstPixelSize;
-		const UINT32 dstSliceSkipBytes = dst.getSliceSkip()*dstPixelSize;
+		UINT32 srcRowSkipBytes = src.getRowSkip()*srcPixelSize;
+		UINT32 srcSliceSkipBytes = src.getSliceSkip()*srcPixelSize;
+		UINT32 dstRowSkipBytes = dst.getRowSkip()*dstPixelSize;
+		UINT32 dstSliceSkipBytes = dst.getSliceSkip()*dstPixelSize;
 
         // The brute force fallback
         float r,g,b,a;
@@ -1573,6 +1573,118 @@ namespace bs
             dstptr += dstSliceSkipBytes;
         }
     }
+
+	void PixelUtil::flipComponentOrder(PixelData& data)
+	{
+		if (isCompressed(data.getFormat()))
+		{
+			LOGERR("flipComponentOrder() not supported on compressed images.");
+			return;
+		}
+
+		const PixelFormatDescription& pfd = getDescriptionFor(data.getFormat());
+		if (pfd.componentCount <= 1) // Nothing to flip
+			return;
+
+		bool bitCountMismatch = false;
+		if (pfd.rbits != pfd.gbits)
+			bitCountMismatch = true;
+		
+		if(pfd.componentCount > 2 && pfd.rbits != pfd.bbits)
+			bitCountMismatch = true;
+
+		if (pfd.componentCount > 3 && pfd.rbits != pfd.abits)
+			bitCountMismatch = true;
+
+		if(bitCountMismatch)
+		{
+			LOGERR("flipComponentOrder() not supported for formats that don't have the same number of bytes for all components.");
+			return;
+		}
+
+		struct CompData
+		{
+			UINT32 mask;
+			UINT8 shift;
+		};
+
+		std::array<CompData, 4> compData =
+		{{
+			{ pfd.rmask, pfd.rshift },
+			{ pfd.gmask, pfd.gshift },
+			{ pfd.bmask, pfd.bshift },
+			{ pfd.amask, pfd.ashift }
+		}};
+
+		// Ensure unused components are at the end, after sort
+		if (pfd.componentCount < 4)
+			compData[4].shift = 0xFF;
+
+		if (pfd.componentCount < 3)
+			compData[3].shift = 0xFF;
+
+		std::sort(compData.begin(), compData.end(), 
+			[&](const CompData& lhs, const CompData& rhs) { return lhs.shift < rhs.shift; }
+		);
+
+		UINT8* dataPtr = data.getData();
+
+		UINT32 pixelSize = pfd.elemBytes;
+		UINT32 rowSkipBytes = data.getRowSkip()*pixelSize;
+		UINT32 sliceSkipBytes = data.getSliceSkip()*pixelSize;
+
+		for (UINT32 z = 0; z < data.getDepth(); z++)
+		{
+			for (UINT32 y = 0; y < data.getHeight(); y++)
+			{
+				for (UINT32 x = 0; x < data.getWidth(); x++)
+				{
+					if(pfd.componentCount == 2)
+					{
+						UINT64 pixelData = 0;
+						memcpy(&pixelData, dataPtr, pixelSize);
+
+						UINT64 output = 0;
+						output |= (pixelData & compData[1].mask) >> compData[1].shift;
+						output |= (pixelData & compData[0].mask) << compData[1].shift;
+
+						memcpy(dataPtr, &output, pixelSize);
+					}
+					else if(pfd.componentCount == 3)
+					{
+						UINT64 pixelData = 0;
+						memcpy(&pixelData, dataPtr, pixelSize);
+
+						UINT64 output = 0;
+						output |= (pixelData & compData[2].mask) >> compData[2].shift;
+						output |= (pixelData & compData[0].mask) << compData[2].shift;
+
+						memcpy(dataPtr, &output, pixelSize);
+					}
+					else if(pfd.componentCount == 4)
+					{
+						UINT64 pixelData = 0;
+						memcpy(&pixelData, dataPtr, pixelSize);
+
+						UINT64 output = 0;
+						output |= (pixelData & compData[3].mask) >> compData[3].shift;
+						output |= (pixelData & compData[0].mask) << compData[3].shift;
+
+						output |= (pixelData & compData[2].mask) >> (compData[2].shift - compData[1].shift);
+						output |= (pixelData & compData[1].mask) << (compData[2].shift - compData[1].shift);
+
+						memcpy(dataPtr, &output, pixelSize);
+					}
+
+					dataPtr += pixelSize;
+				}
+
+				dataPtr += rowSkipBytes;
+			}
+
+			dataPtr += sliceSkipBytes;
+		}
+	}
 
 	void PixelUtil::scale(const PixelData& src, PixelData& scaled, Filter filter)
 	{
@@ -1868,11 +1980,14 @@ namespace bs
 			return;
 		}
 
-		PixelFormat interimFormat = options.format == PF_BC6H ? PF_FLOAT32_RGBA : PF_R8G8B8A8;
+		PixelFormat interimFormat = options.format == PF_BC6H ? PF_FLOAT32_RGBA : PF_B8G8R8A8;
 
-		PixelData bgraData(src.getWidth(), src.getHeight(), 1, interimFormat);
-		bgraData.allocateInternalBuffer();
-		bulkPixelConversion(src, bgraData);
+		PixelData interimData(src.getWidth(), src.getHeight(), 1, interimFormat);
+		interimData.allocateInternalBuffer();
+		bulkPixelConversion(src, interimData);
+
+		if(interimFormat != PF_FLOAT32_RGBA)
+			flipComponentOrder(interimData);
 
 		nvtt::InputOptions io;
 		io.setTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
@@ -1890,7 +2005,7 @@ namespace bs
 		else
 			io.setGamma(1.0f, 1.0f);
 
-		io.setMipmapData(bgraData.getData(), src.getWidth(), src.getHeight());
+		io.setMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
 
 		nvtt::CompressionOptions co;
 		co.setFormat(toNVTTFormat(options.format));
@@ -1932,11 +2047,14 @@ namespace bs
 			return outputMipBuffers;
 		}
 
-		PixelFormat interimFormat = isFloatingPoint(src.getFormat()) ? PF_FLOAT32_RGBA : PF_R8G8B8A8;
+		PixelFormat interimFormat = isFloatingPoint(src.getFormat()) ? PF_FLOAT32_RGBA : PF_B8G8R8A8;
 
-		PixelData rgbaData(src.getWidth(), src.getHeight(), 1, interimFormat);
-		rgbaData.allocateInternalBuffer();
-		bulkPixelConversion(src, rgbaData);
+		PixelData interimData(src.getWidth(), src.getHeight(), 1, interimFormat);
+		interimData.allocateInternalBuffer();
+		bulkPixelConversion(src, interimData);
+		
+		if (interimFormat != PF_FLOAT32_RGBA)
+			flipComponentOrder(interimData);
 
 		nvtt::InputOptions io;
 		io.setTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
@@ -1950,7 +2068,12 @@ namespace bs
 		else
 			io.setFormat(nvtt::InputFormat_BGRA_8UB);
 
-		io.setMipmapData(rgbaData.getData(), src.getWidth(), src.getHeight());
+		if (options.isSRGB)
+			io.setGamma(2.2f, 2.2f);
+		else
+			io.setGamma(1.0f, 1.0f);
+
+		io.setMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
 
 		nvtt::CompressionOptions co;
 		co.setFormat(nvtt::Format_RGBA);
@@ -1963,7 +2086,7 @@ namespace bs
 		else
 		{
 			co.setPixelType(nvtt::PixelType_UnsignedNorm);
-			co.setPixelFormat(8, 8, 8, 8);
+			co.setPixelFormat(32, 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF);
 		}
 
 		UINT32 numMips = getMaxMipmaps(src.getWidth(), src.getHeight(), 1, src.getFormat());
@@ -2003,7 +2126,7 @@ namespace bs
 			return outputMipBuffers;
 		}
 
-		rgbaData.freeInternalBuffer();
+		interimData.freeInternalBuffer();
 
 		for (UINT32 i = 0; i < (UINT32)rgbaMipBuffers.size(); i++)
 		{

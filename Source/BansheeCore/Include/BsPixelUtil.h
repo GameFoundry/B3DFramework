@@ -72,6 +72,7 @@ namespace bs
 		MipMapWrapMode wrapMode = MipMapWrapMode::Mirror; /*< Determines how to downsample pixels on borders. */
 		bool isNormalMap = false; /*< Determines does the input data represent a normal map. */
 		bool normalizeMipmaps = false; /*< Should the downsampled values be re-normalized. Only relevant for mip-maps representing normal maps. */
+		bool isSRGB = false; /*< Determines has the input data been gamma corrected. */
 	};
 
 	/**	Utility methods for converting and managing pixel data and formats. */
@@ -239,6 +240,9 @@ namespace bs
 		 * of adequate size and their sizes must match.
 		 */
         static void bulkPixelConversion(const PixelData& src, PixelData& dst);
+
+		/** Flips the order of components in each individual pixel. For example RGBA -> ABGR. */
+		static void flipComponentOrder(PixelData& data);
 
 		/** Compresses the provided data using the specified compression options.  */
 		static void compress(const PixelData& src, PixelData& dst, const CompressionOptions& options);
