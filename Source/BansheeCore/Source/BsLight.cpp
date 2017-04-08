@@ -69,19 +69,18 @@ namespace bs
 	float LightBase::getLuminance() const
 	{
 		float radius2 = mSourceRadius * mSourceRadius;
-		float pi2 = Math::PI * Math::PI;
 
 		switch (mType)
 		{
 		case LightType::Radial:
 			if (mSourceRadius > 0.0f)
-				return mIntensity / (4 * radius2 * pi2); // Luminous flux -> luminance
+				return mIntensity / (4 * radius2 * Math::PI); // Luminous flux -> luminance
 			else
 				return mIntensity / (4 * Math::PI); // Luminous flux -> luminous intensity
 		case LightType::Spot:
 		{
 			if (mSourceRadius > 0.0f) 
-				return mIntensity / (radius2 * pi2); // Luminous flux -> luminance
+				return mIntensity / (radius2 * Math::PI); // Luminous flux -> luminance
 			else 
 			{
 				// Note: Consider using the simpler conversion I / PI to match with the area-light conversion
@@ -125,7 +124,7 @@ namespace bs
 		}
 		else // Based on the basic inverse square distance formula
 		{
-			float luminousIntensity = getLuminance();
+			float luminousIntensity = getIntensity();
 
 			float a = minAttenuation;
 			mAttRadius = sqrt(std::max(0.0f, luminousIntensity / a));
