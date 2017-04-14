@@ -99,9 +99,7 @@ namespace bs
 			MonoObject* managedImage = nullptr;
 			if (entry.image != nullptr)
 			{
-				ScriptSpriteTexture* scriptImage;
-				ScriptResourceManager::instance().getScriptResource(entry.image, &scriptImage, true);
-
+				ScriptResourceBase* scriptImage = ScriptResourceManager::instance().getScriptResource(entry.image, true);
 				managedImage = scriptImage->getManagedInstance();
 			}
 

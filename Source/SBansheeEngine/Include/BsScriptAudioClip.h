@@ -23,6 +23,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptAudioClip(MonoObject* instance, const HAudioClip& audioClip);
 

@@ -124,9 +124,7 @@ namespace bs
 		const GUIElementStyle& style = nativeInstance->mElementStyle;
 		if (style.font != nullptr)
 		{
-			ScriptFont* scriptFont;
-			ScriptResourceManager::instance().getScriptResource(style.font, &scriptFont, true);
-
+			ScriptResourceBase* scriptFont = ScriptResourceManager::instance().getScriptResource(style.font, true);
 			*value = scriptFont->getManagedInstance();
 		}
 		else

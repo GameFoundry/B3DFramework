@@ -23,6 +23,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptAnimationClip(MonoObject* instance, const HAnimationClip& animationClip);
 

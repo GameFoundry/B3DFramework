@@ -126,9 +126,7 @@ namespace bs
 		if (instance == nullptr)
 			return nullptr;
 
-		ScriptTexture* scriptResource = nullptr;
-		ScriptResourceManager::instance().getScriptResource(instance, &scriptResource, true);
-
+		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(instance, true);
 		return scriptResource->getManagedInstance();
 	}
 }

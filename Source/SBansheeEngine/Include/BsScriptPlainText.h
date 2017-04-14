@@ -24,6 +24,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptPlainText(MonoObject* instance, const HPlainText& plainText);
 

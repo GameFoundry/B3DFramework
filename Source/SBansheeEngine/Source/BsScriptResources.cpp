@@ -35,9 +35,7 @@ namespace bs
 		if (resource == nullptr)
 			return nullptr;
 
-		ScriptResourceBase* scriptResource;
-		ScriptResourceManager::instance().getScriptResource(resource, &scriptResource, true);
-
+		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
 		return scriptResource->getManagedInstance();
 	}
 
@@ -58,9 +56,7 @@ namespace bs
 		if (resource == nullptr)
 			return nullptr;
 
-		ScriptResourceBase* scriptResource;
-		ScriptResourceManager::instance().getScriptResource(resource, &scriptResource, true);
-
+		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
 		return scriptResource->getManagedInstance();
 	}
 

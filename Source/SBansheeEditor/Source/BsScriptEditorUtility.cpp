@@ -73,9 +73,7 @@ namespace bs
 		ScriptArray output = ScriptArray::create<ScriptResource>(numEntries);
 		for (UINT32 i = 0; i < numEntries; i++)
 		{
-			ScriptResourceBase* dependency;
-			ScriptResourceManager::instance().getScriptResource(dependencies[i].resource, &dependency, true);
-
+			ScriptResourceBase* dependency = ScriptResourceManager::instance().getScriptResource(dependencies[i].resource, true);
 			output.set(i, dependency->getManagedInstance());
 		}
 

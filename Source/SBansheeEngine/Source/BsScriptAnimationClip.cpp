@@ -41,8 +41,7 @@ namespace bs
 	{
 		HAnimationClip clip = AnimationClip::create();
 
-		ScriptAnimationClip* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, clip, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(clip, instance);
 	}
 
 	MonoObject* ScriptAnimationClip::internal_GetAnimationCurves(ScriptAnimationClip* thisPtr)

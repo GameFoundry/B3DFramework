@@ -16,6 +16,7 @@
 #include "BsBuiltinEditorResources.h"
 #include "BsScriptManagedResource.h"
 #include "BsSelection.h"
+#include "BsScriptAssemblyManager.h"
 
 using namespace std::placeholders;
 
@@ -300,10 +301,11 @@ namespace bs
 			String uuid = meta->getUUID();
 
 			bool found = false;
-			MonoClass* scriptClass = ScriptResource::getClassFromTypeId(typeId);
-			if (scriptClass != nullptr)
+
+			BuiltinResourceInfo* resInfo = ScriptAssemblyManager::instance().getBuiltinResourceInfo(typeId);
+			if (resInfo != nullptr)
 			{
-				if (scriptClass->isSubClassOf(acceptedClass))
+				if (resInfo->monoClass->isSubClassOf(acceptedClass))
 				{
 					setUUID(uuid);
 					found = true;

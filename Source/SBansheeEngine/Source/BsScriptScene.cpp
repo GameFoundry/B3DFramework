@@ -69,9 +69,7 @@ namespace bs
 				prefab->instantiate();
 			}
 
-			ScriptPrefab* scriptPrefab;
-			ScriptResourceManager::instance().getScriptResource(prefab, &scriptPrefab, true);
-
+			ScriptResourceBase* scriptPrefab = ScriptResourceManager::instance().getScriptResource(prefab, true);
 			return scriptPrefab->getManagedInstance();
 		}
 		else

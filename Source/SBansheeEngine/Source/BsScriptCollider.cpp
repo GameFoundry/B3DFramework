@@ -176,9 +176,7 @@ namespace bs
 		if (material == nullptr)
 			return nullptr;
 
-		ScriptPhysicsMaterial* scriptMaterial;
-		ScriptResourceManager::instance().getScriptResource(material, &scriptMaterial, true);
-
+		ScriptResourceBase* scriptMaterial = ScriptResourceManager::instance().getScriptResource(material, true);
 		return scriptMaterial->getManagedInstance();
 	}
 

@@ -9,20 +9,6 @@
 #include "BsScriptGameObjectManager.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptManagedResource.h"
-#include "BsScriptPlainText.h"
-#include "BsScriptScriptCode.h"
-#include "BsScriptShader.h"
-#include "BsScriptShaderInclude.h"
-#include "BsScriptMaterial.h"
-#include "BsScriptMesh.h"
-#include "BsScriptPrefab.h"
-#include "BsScriptFont.h"
-#include "BsScriptStringTable.h"
-#include "BsScriptGUISkin.h"
-#include "BsScriptPhysicsMaterial.h"
-#include "BsScriptPhysicsMesh.h"
-#include "BsScriptAudioClip.h"
-#include "BsScriptAnimationClip.h"
 #include "BsScriptSceneObject.h"
 #include "BsScriptComponent.h"
 #include "BsScriptManagedComponent.h"
@@ -31,8 +17,6 @@
 #include "BsManagedSerializableList.h"
 #include "BsManagedSerializableDictionary.h"
 #include "BsScriptAssemblyManager.h"
-
-#include "BsScriptTexture.generated.h"
 
 namespace bs
 {
@@ -79,120 +63,6 @@ namespace bs
 	SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::createDefault(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 	{
 		return create(typeInfo, nullptr, false);
-	}
-
-	template<class ResType, class ScriptType>
-	MonoObject* getScriptResource(const HResource& value)
-	{
-		ResourceHandle<ResType> castValue = static_resource_cast<ResType>(value);
-		if (castValue.isLoaded())
-		{
-			ScriptType* scriptResource;
-			ScriptResourceManager::instance().getScriptResource(castValue, &scriptResource, true);
-
-			return scriptResource->getManagedInstance();
-		}
-		else
-			return nullptr;
-	}
-
-	template<class ScriptType>
-	SPtr<ManagedSerializableFieldData> setScriptResource(MonoObject* value)
-	{
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
-
-		if (value != nullptr)
-		{
-			ScriptType* scriptResource = ScriptType::toNative(value);
-			fieldData->value = scriptResource->getHandle();
-		}
-
-		return fieldData;
-	}
-
-	template<>
-	SPtr<ManagedSerializableFieldData> setScriptResource<ScriptResourceBase>(MonoObject* value)
-	{
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
-
-		if (value != nullptr)
-		{
-			ScriptResourceBase* scriptResource = ScriptResource::toNative(value);
-			fieldData->value = scriptResource->getGenericHandle();
-		}
-
-		return fieldData;
-	}
-
-	struct ResourceFieldDataAccessors
-	{
-		std::function<MonoObject*(const HResource&)> getter;
-		std::function<SPtr<ManagedSerializableFieldData>(MonoObject*)> setter;
-	};
-
-	ResourceFieldDataAccessors* getResourceFieldLookup()
-	{
-		static ResourceFieldDataAccessors lookup[(int)ScriptReferenceType::Count];
-		static bool initialized = false;
-
-		if(!initialized)
-		{
-			lookup[(int)ScriptReferenceType::Resource] =
-				{ &getScriptResource<Resource, ScriptResourceBase>, &setScriptResource<ScriptResourceBase> };
-
-			lookup[(int)ScriptReferenceType::Texture] =
-				{ &getScriptResource<Texture, ScriptTexture>, &setScriptResource<ScriptTexture> };
-
-			lookup[(int)ScriptReferenceType::SpriteTexture] =
-				{ &getScriptResource<SpriteTexture, ScriptSpriteTexture>, &setScriptResource<ScriptSpriteTexture> };
-
-			lookup[(int)ScriptReferenceType::Shader] =
-				{ &getScriptResource<Shader, ScriptShader>, &setScriptResource<ScriptShader> };
-
-			lookup[(int)ScriptReferenceType::ShaderInclude] =
-				{ &getScriptResource<ShaderInclude, ScriptShaderInclude>, &setScriptResource<ScriptShaderInclude> };
-
-			lookup[(int)ScriptReferenceType::Material] =
-				{ &getScriptResource<Material, ScriptMaterial>, &setScriptResource<ScriptMaterial> };
-
-			lookup[(int)ScriptReferenceType::Mesh] =
-				{ &getScriptResource<Mesh, ScriptMesh>, &setScriptResource<ScriptMesh> };
-
-			lookup[(int)ScriptReferenceType::Prefab] =
-				{ &getScriptResource<Prefab, ScriptPrefab>, &setScriptResource<ScriptPrefab> };
-
-			lookup[(int)ScriptReferenceType::Font] =
-				{ &getScriptResource<Font, ScriptFont>, &setScriptResource<ScriptFont> };
-
-			lookup[(int)ScriptReferenceType::StringTable] =
-				{ &getScriptResource<StringTable, ScriptStringTable>, &setScriptResource<ScriptStringTable> };
-
-			lookup[(int)ScriptReferenceType::GUISkin] =
-				{ &getScriptResource<GUISkin, ScriptGUISkin>, &setScriptResource<ScriptGUISkin> };
-
-			lookup[(int)ScriptReferenceType::PhysicsMaterial] =
-				{ &getScriptResource<PhysicsMaterial, ScriptPhysicsMaterial>, &setScriptResource<ScriptPhysicsMaterial> };
-
-			lookup[(int)ScriptReferenceType::PhysicsMesh] =
-				{ &getScriptResource<PhysicsMesh, ScriptPhysicsMesh>, &setScriptResource<ScriptPhysicsMesh> };
-
-			lookup[(int)ScriptReferenceType::AudioClip] =
-				{ &getScriptResource<AudioClip, ScriptAudioClip>, &setScriptResource<ScriptAudioClip> };
-
-			lookup[(int)ScriptReferenceType::AnimationClip] =
-				{ &getScriptResource<AnimationClip, ScriptAnimationClip>, &setScriptResource<ScriptAnimationClip> };
-
-			lookup[(int)ScriptReferenceType::ManagedResource] =
-				{ &getScriptResource<ManagedResource, ScriptManagedResource>, &setScriptResource<ScriptManagedResource> };
-
-			lookup[(int)ScriptReferenceType::PlainText] =
-				{ &getScriptResource<PlainText, ScriptPlainText>, &setScriptResource<ScriptPlainText> };
-
-			lookup[(int)ScriptReferenceType::ScriptCode] =
-				{ &getScriptResource<ScriptCode, ScriptScriptCode>, &setScriptResource<ScriptScriptCode> };
-		}
-
-		return lookup;
 	}
 
 	SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::create(const SPtr<ManagedSerializableTypeInfo>& typeInfo, MonoObject* value, bool allowNull)
@@ -361,9 +231,36 @@ namespace bs
 
 				return fieldData;
 			}
-			default:
-				// Must be a resource
-				return getResourceFieldLookup()[(int)refTypeInfo->mType].setter(value);
+			case ScriptReferenceType::ManagedResourceBase:
+			case ScriptReferenceType::ManagedResource:
+			{
+				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+
+				if (value != nullptr)
+				{
+					ScriptResourceBase* scriptResource = ScriptManagedResource::toNative(value);
+					fieldData->value = scriptResource->getGenericHandle();
+				}
+
+				return fieldData;
+			}
+			case ScriptReferenceType::BuiltinResourceBase:
+			case ScriptReferenceType::BuiltinResource:
+			{
+				BuiltinResourceInfo* info = ScriptAssemblyManager::instance().getBuiltinResourceInfo(refTypeInfo->mRTIITypeId);
+				if (info == nullptr)
+					return nullptr;
+
+				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+
+				if (value != nullptr)
+				{
+					ScriptResourceBase* scriptResource = ScriptResource::toNative(value);
+					fieldData->value = scriptResource->getGenericHandle();
+				}
+
+				return fieldData;
+			}
 			}
 		}
 		else if(typeInfo->getTypeId() == TID_SerializableTypeInfoObject)
@@ -599,7 +496,31 @@ namespace bs
 		{
 			auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
 
-			return getResourceFieldLookup()[(int)refTypeInfo->mType].getter(value);
+			if (!value.isLoaded())
+				return nullptr;
+
+			if (refTypeInfo->mType == ScriptReferenceType::ManagedResourceBase ||
+				refTypeInfo->mType == ScriptReferenceType::ManagedResource)
+			{
+				ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(value, false);
+				assert(scriptResource != nullptr);
+
+				return scriptResource->getManagedInstance();
+			}
+			else if (refTypeInfo->mType == ScriptReferenceType::BuiltinResourceBase ||
+					 refTypeInfo->mType == ScriptReferenceType::BuiltinResource)
+			{
+				ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(value, true);
+
+				return scriptResource->getManagedInstance();
+			}
+
+			if (value.isLoaded())
+			{
+
+			}
+			else
+				return nullptr;
 		}
 
 		BS_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");

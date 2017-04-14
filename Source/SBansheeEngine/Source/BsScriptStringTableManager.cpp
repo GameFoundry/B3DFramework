@@ -39,9 +39,7 @@ namespace bs
 	{
 		HStringTable table = StringTableManager::instance().getTable(id);
 
-		ScriptStringTable* scriptStringTable;
-		ScriptResourceManager::instance().getScriptResource(table, &scriptStringTable, true);
-
+		ScriptResourceBase* scriptStringTable = ScriptResourceManager::instance().getScriptResource(table, true);
 		return scriptStringTable->getManagedInstance();
 	}
 

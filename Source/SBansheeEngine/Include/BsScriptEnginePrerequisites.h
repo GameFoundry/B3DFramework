@@ -188,4 +188,21 @@ namespace bs
 		MonoClass* monoClass;
 		std::function<ScriptComponentBase*(const HComponent&)> createCallback;
 	};
+
+	/**	Types of resources accessible from script code. */
+	enum class ScriptResourceType // Note: Must be the same as C# enum ResourceType
+	{
+		Texture, SpriteTexture, Mesh, Font, Shader, ShaderInclude, Material, Prefab,
+		PlainText, ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip, Undefined
+	};
+
+	/** Information about a builtin resource wrapped as a script object. */
+	struct BuiltinResourceInfo
+	{
+		const ScriptMeta* metaData;
+		UINT32 typeId;
+		MonoClass* monoClass;
+		ScriptResourceType resType;
+		std::function<ScriptResourceBase*(const HResource&, MonoObject*)> createCallback;
+	};
 }

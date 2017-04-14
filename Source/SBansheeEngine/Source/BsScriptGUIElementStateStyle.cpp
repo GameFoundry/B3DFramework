@@ -25,10 +25,10 @@ namespace bs
 
 	ScriptGUIElementStateStyleStruct ScriptGUIElementStateStyle::toManaged(const GUIElementStyle::GUIElementStateStyle& state)
 	{
-		ScriptSpriteTexture* scriptTexture = nullptr;
+		ScriptResourceBase* scriptTexture = nullptr;
 
 		if (state.texture != nullptr)
-			ScriptResourceManager::instance().getScriptResource(state.texture, &scriptTexture, true);
+			scriptTexture = ScriptResourceManager::instance().getScriptResource(state.texture, true);
 
 		ScriptGUIElementStateStyleStruct output;
 		output.texture = scriptTexture != nullptr ? scriptTexture->getManagedInstance() : nullptr;

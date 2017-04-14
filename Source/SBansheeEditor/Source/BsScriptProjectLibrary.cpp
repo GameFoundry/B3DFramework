@@ -9,6 +9,7 @@
 #include "BsResources.h"
 #include "BsProjectResourceMeta.h"
 #include "BsScriptResourceManager.h"
+#include "BsScriptAssemblyManager.h"
 #include "BsScriptImportOptions.h"
 #include "BsEditorApplication.h"
 #include "BsManagedSerializableObject.h"
@@ -93,9 +94,7 @@ namespace bs
 		if (!resource)
 			return nullptr;
 
-		ScriptResourceBase* scriptResource;
-		ScriptResourceManager::instance().getScriptResource(resource, &scriptResource, true);
-
+		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
 		return scriptResource->getManagedInstance();
 	}
 
@@ -191,8 +190,11 @@ namespace bs
 			ScriptArray typeArray(types);
 			for (UINT32 i = 0; i < typeArray.size(); i++)
 			{
-				UINT32 typeId = ScriptResource::getTypeIdFromType((ScriptResourceType)typeArray.get<UINT32>(i));
-				typeIds.push_back(typeId);
+				BuiltinResourceInfo* resInfo = ScriptAssemblyManager::instance().getBuiltinResourceInfo((ScriptResourceType)typeArray.get<UINT32>(i));
+				if (resInfo == nullptr)
+					continue;
+
+				typeIds.push_back(resInfo->typeId);
 			}
 		}
 
@@ -529,7 +531,11 @@ namespace bs
 
 	ScriptResourceType ScriptResourceMeta::internal_GetResourceType(ScriptResourceMeta* thisPtr)
 	{
-		return ScriptResource::getTypeFromTypeId(thisPtr->mMeta->getTypeID());
+		BuiltinResourceInfo* resInfo = ScriptAssemblyManager::instance().getBuiltinResourceInfo(thisPtr->mMeta->getTypeID());
+		if (resInfo == nullptr)
+			return ScriptResourceType::Undefined;
+
+		return resInfo->resType;
 	}
 
 	MonoObject* ScriptResourceMeta::internal_GetEditorData(ScriptResourceMeta* thisPtr)

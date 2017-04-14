@@ -57,18 +57,14 @@ namespace bs
 			nativeShader = BuiltinResources::instance().getBuiltinShader(BuiltinShader::Standard);
 
 		HMaterial material = Material::create(nativeShader);
-
-		ScriptMaterial* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, material, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(material, instance);
 	}
 
 	MonoObject* ScriptMaterial::internal_Clone(ScriptMaterial* nativeInstance)
 	{
 		HMaterial clone = nativeInstance->getHandle()->clone();
 
-		ScriptMaterial* scriptClone;
-		ScriptResourceManager::instance().createScriptResource(clone, &scriptClone);
-
+		ScriptResourceBase* scriptClone = ScriptResourceManager::instance().createBuiltinScriptResource(clone);
 		return scriptClone->getManagedInstance();
 	}
 
@@ -79,9 +75,7 @@ namespace bs
 		if (shader == nullptr)
 			return nullptr;
 
-		ScriptShader* scriptShader;
-		ScriptResourceManager::instance().getScriptResource(shader, &scriptShader, true);
-
+		ScriptResourceBase* scriptShader = ScriptResourceManager::instance().getScriptResource(shader, true);
 		return scriptShader->getManagedInstance();
 	}
 
@@ -215,9 +209,7 @@ namespace bs
 		if (texture == nullptr)
 			return nullptr;
 
-		ScriptTexture* scriptTexture;
-		ScriptResourceManager::instance().getScriptResource(texture, &scriptTexture, true);
-
+		ScriptResourceBase* scriptTexture = ScriptResourceManager::instance().getScriptResource(texture, true);
 		return scriptTexture->getManagedInstance();
 	}
 

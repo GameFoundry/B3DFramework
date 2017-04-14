@@ -63,6 +63,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptMesh(MonoObject* instance, const HMesh& mesh);
 

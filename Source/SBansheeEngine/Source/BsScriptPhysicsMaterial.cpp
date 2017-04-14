@@ -29,9 +29,7 @@ namespace bs
 		float dynamicFriction, float restitution)
 	{
 		HPhysicsMaterial material = PhysicsMaterial::create(staticFriction, dynamicFriction, restitution);
-
-		ScriptPhysicsMaterial* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, material, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(material, instance);
 	}
 
 	float ScriptPhysicsMaterial::internal_GetStaticFriction(ScriptPhysicsMaterial* thisPtr)

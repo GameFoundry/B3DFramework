@@ -234,9 +234,7 @@ namespace bs
 			gProjectLibrary().createEntry(scene, nativePath);
 		}
 
-		ScriptPrefab* scriptPrefab;
-		ScriptResourceManager::instance().getScriptResource(scene, &scriptPrefab, true);
-
+		ScriptResourceBase* scriptPrefab = ScriptResourceManager::instance().getScriptResource(scene, true);
 		return scriptPrefab->getManagedInstance();
 	}
 

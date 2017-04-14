@@ -8,26 +8,9 @@
 #include "BsMonoManager.h"
 #include "BsMonoField.h"
 #include "BsMonoProperty.h"
-#include "BsScriptSpriteTexture.h"
 #include "BsScriptAssemblyManager.h"
-#include "BsScriptMaterial.h"
-#include "BsScriptMesh.h"
-#include "BsScriptFont.h"
-#include "BsScriptShader.h"
-#include "BsScriptShaderInclude.h"
-#include "BsScriptPlainText.h"
-#include "BsScriptScriptCode.h"
-#include "BsScriptStringTable.h"
-#include "BsScriptGUISkin.h"
-#include "BsScriptPhysicsMaterial.h"
-#include "BsScriptPhysicsMesh.h"
-#include "BsScriptAudioClip.h"
-#include "BsScriptAnimationClip.h"
-#include "BsScriptPrefab.h"
 #include "BsScriptManagedResource.h"
 #include <BsScriptStep.h>
-
-#include "BsScriptTexture.generated.h"
 
 namespace bs
 {
@@ -372,27 +355,13 @@ namespace bs
 	{
 		switch (mType)
 		{
-		case ScriptReferenceType::Resource:
-		case ScriptReferenceType::Texture:
-		case ScriptReferenceType::SpriteTexture:
-		case ScriptReferenceType::Shader:
-		case ScriptReferenceType::ShaderInclude:
-		case ScriptReferenceType::Material:
-		case ScriptReferenceType::Mesh:
-		case ScriptReferenceType::PlainText:
-		case ScriptReferenceType::ScriptCode:
-		case ScriptReferenceType::Prefab:
-		case ScriptReferenceType::Font:
-		case ScriptReferenceType::StringTable:
-		case ScriptReferenceType::GUISkin:
-		case ScriptReferenceType::PhysicsMaterial:
-		case ScriptReferenceType::PhysicsMesh:
-		case ScriptReferenceType::AudioClip:
-		case ScriptReferenceType::AnimationClip:
-		case ScriptReferenceType::SceneObject:
+		case ScriptReferenceType::BuiltinResourceBase:
+		case ScriptReferenceType::ManagedResourceBase:
+		case ScriptReferenceType::BuiltinResource:
 		case ScriptReferenceType::BuiltinComponentBase:
 		case ScriptReferenceType::ManagedComponentBase:
 		case ScriptReferenceType::BuiltinComponent:
+		case ScriptReferenceType::SceneObject:
 			return true;
 		default:
 			break;
@@ -405,40 +374,10 @@ namespace bs
 	{
 		switch (mType)
 		{
-		case ScriptReferenceType::Resource:
+		case ScriptReferenceType::BuiltinResourceBase:
 			return ScriptResource::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Texture:
-			return ScriptTexture::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::SpriteTexture:
-			return ScriptSpriteTexture::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Shader:
-			return ScriptShader::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::ShaderInclude:
-			return ScriptShaderInclude::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Material:
-			return ScriptMaterial::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Mesh:
-			return ScriptMesh::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::PlainText:
-			return ScriptPlainText::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::ScriptCode:
-			return ScriptScriptCode::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Prefab:
-			return ScriptPrefab::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::Font:
-			return ScriptFont::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::StringTable:
-			return ScriptStringTable::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::GUISkin:
-			return ScriptGUISkin::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::PhysicsMaterial:
-			return ScriptPhysicsMaterial::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::PhysicsMesh:
-			return ScriptPhysicsMesh::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::AudioClip:
-			return ScriptAudioClip::getMetaData()->scriptClass->_getInternalClass();
-		case ScriptReferenceType::AnimationClip:
-			return ScriptAnimationClip::getMetaData()->scriptClass->_getInternalClass();
+		case ScriptReferenceType::ManagedResourceBase:
+			return ScriptManagedResource::getMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::SceneObject:
 			return ScriptAssemblyManager::instance().getSceneObjectClass()->_getInternalClass();
 		case ScriptReferenceType::BuiltinComponentBase:
@@ -449,7 +388,7 @@ namespace bs
 			break;
 		}
 
-		// Custom component or resource
+		// Specific component or resource (either builtin or custom)
 		SPtr<ManagedSerializableObjectInfo> objInfo;
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
 			return nullptr;

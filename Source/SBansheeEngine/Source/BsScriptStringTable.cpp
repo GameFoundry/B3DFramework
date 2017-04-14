@@ -33,9 +33,7 @@ namespace bs
 	void ScriptStringTable::internal_CreateInstance(MonoObject* instance)
 	{
 		HStringTable stringTable = StringTable::create();
-
-		ScriptStringTable* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, stringTable, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(stringTable, instance);
 	}
 
 	bool ScriptStringTable::internal_Contains(ScriptStringTable* thisPtr, MonoString* identifier)

@@ -111,9 +111,7 @@ namespace bs
 
 			if (colorTex != nullptr)
 			{
-				ScriptTexture* scriptSurface;
-				ScriptResourceManager::instance().getScriptResource(colorTex, &scriptSurface, true);
-
+				ScriptResourceBase* scriptSurface = ScriptResourceManager::instance().getScriptResource(colorTex, true);
 				outArray.set<MonoObject*>(i, scriptSurface->getManagedInstance());
 			}
 			else
@@ -128,9 +126,7 @@ namespace bs
 		SPtr<RenderTexture> tex = thisPtr->getRenderTexture();
 		HTexture depthTex = tex->getDepthStencilTexture();
 
-		ScriptTexture* scriptSurface;
-		ScriptResourceManager::instance().getScriptResource(depthTex, &scriptSurface, true);
-
+		ScriptResourceBase* scriptSurface = ScriptResourceManager::instance().getScriptResource(depthTex, true);
 		*value = scriptSurface->getManagedInstance();
 	}
 }

@@ -66,9 +66,7 @@ namespace bs
 		desc.indexType = indexType;
 
 		HMesh mesh = Mesh::create(desc);
-
-		ScriptMesh* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(mesh, instance);
 	}
 
 	void ScriptMesh::internal_CreateInstanceMeshData(MonoObject* instance, ScriptMeshData* data, MonoArray* subMeshes,
@@ -83,9 +81,7 @@ namespace bs
 		desc.usage = usage;
 
 		HMesh mesh = Mesh::create(meshData, desc);
-
-		ScriptMesh* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, mesh, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(mesh, instance);
 	}
 
 	MonoArray* ScriptMesh::internal_GetSubMeshes(ScriptMesh* thisPtr)

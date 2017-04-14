@@ -32,8 +32,7 @@ namespace bs
 	{
 		HGUISkin skin = GUISkin::create();
 
-		ScriptGUISkin* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, skin, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(skin, instance);
 	}
 
 	bool ScriptGUISkin::internal_HasStyle(ScriptGUISkin* thisPtr, MonoString* name)

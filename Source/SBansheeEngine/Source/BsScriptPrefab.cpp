@@ -25,9 +25,7 @@ namespace bs
 	void ScriptPrefab::internal_CreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene)
 	{
 		HPrefab prefab = Prefab::create(so->getNativeSceneObject(), isScene);
-
-		ScriptPrefab* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, prefab, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(prefab, instance);
 	}
 
 	MonoObject* ScriptPrefab::internal_Instantiate(ScriptPrefab* thisPtr)

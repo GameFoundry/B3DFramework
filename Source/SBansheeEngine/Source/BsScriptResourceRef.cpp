@@ -45,9 +45,7 @@ namespace bs
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 		HResource resource = gResources().load(nativeInstance->mResource, loadFlags);
-		ScriptResourceBase* scriptResource;
-
-		ScriptResourceManager::instance().getScriptResource(resource, &scriptResource, true);
+		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
 
 		return scriptResource->getManagedInstance();
 	}

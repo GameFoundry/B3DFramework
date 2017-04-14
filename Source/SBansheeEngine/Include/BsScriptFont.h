@@ -23,6 +23,7 @@ namespace bs
 		static MonoObject* createInstance();
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptFont(MonoObject* instance, const HFont& font);
 

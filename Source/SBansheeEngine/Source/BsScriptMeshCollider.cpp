@@ -48,9 +48,7 @@ namespace bs
 		if (mesh == nullptr)
 			return nullptr;
 
-		ScriptPhysicsMesh* scriptMesh;
-		ScriptResourceManager::instance().getScriptResource(mesh, &scriptMesh, true);
-
+		ScriptResourceBase* scriptMesh = ScriptResourceManager::instance().getScriptResource(mesh, true);
 		return scriptMesh->getManagedInstance();
 	}
 }

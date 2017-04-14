@@ -23,6 +23,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptPhysicsMaterial(MonoObject* instance, const HPhysicsMaterial& material);
 

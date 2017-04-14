@@ -91,9 +91,7 @@ namespace bs
 		ScriptArray output = ScriptArray::create<ScriptTexture>(numPages);
 		for (UINT32 i = 0; i < numPages; i++)
 		{
-			ScriptTexture* scriptTexture = nullptr;
-			ScriptResourceManager::instance().getScriptResource(texturePages[i], &scriptTexture, true);
-
+			ScriptResourceBase* scriptTexture = ScriptResourceManager::instance().getScriptResource(texturePages[i], true);
 			output.set(i, scriptTexture->getManagedInstance());
 		}
 

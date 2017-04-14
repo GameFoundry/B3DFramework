@@ -129,20 +129,11 @@ namespace bs
 	MonoObject* ScriptGUIResourceField::nativeToManagedResource(const HResource& instance)
 	{
 		if (instance == nullptr)
-		{
 			return nullptr;
-		}
 		else
 		{
-			ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(instance.getUUID());
-			if (scriptResource == nullptr)
-			{
-				ScriptResourceManager::instance().createScriptResource(instance, &scriptResource);
-
-				return scriptResource->getManagedInstance();
-			}
-			else
-				return scriptResource->getManagedInstance();
+			ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(instance, true);
+			return scriptResource->getManagedInstance();
 		}
 	}
 }

@@ -24,6 +24,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 		typedef std::pair<WString, WString> FullTypeName;
 
 		ScriptScriptCode(MonoObject* instance, const HScriptCode& scriptCode);

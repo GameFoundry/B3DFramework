@@ -12,25 +12,70 @@
 #include "BsScriptComponent.h"
 #include "BsScriptSpriteTexture.h"
 #include "BsScriptMaterial.h"
-#include "BsScriptMesh.h"
-#include "BsScriptFont.h"
-#include "BsScriptShader.h"
-#include "BsScriptShaderInclude.h"
+
+#include "BsBuiltinComponentLookup.generated.h"
+
+// Note: This resource registration code is only here because resource lookup auto-generation isn't yet hooked up
+#include "BsSpriteTexture.h"
+#include "BsMesh.h"
+#include "BsFont.h"
+#include "BsShader.h"
+#include "BsShaderInclude.h"
+#include "BsMaterial.h"
+#include "BsPrefab.h"
+#include "BsPlainText.h"
+#include "BsScriptCode.h"
+#include "BsStringTable.h"
+#include "BsGUISkin.h"
+#include "BsPhysicsMaterial.h"
+#include "BsPhysicsMesh.h"
+#include "BsAudioClip.h"
+#include "BsAnimationClip.h"
+
+#include "BsScriptTexture.generated.h"
+#include "BsScriptSpriteTexture.h"
 #include "BsScriptPlainText.h"
 #include "BsScriptScriptCode.h"
+#include "BsScriptShader.h"
+#include "BsScriptShaderInclude.h"
+#include "BsScriptMaterial.h"
+#include "BsScriptMesh.h"
+#include "BsScriptFont.h"
+#include "BsScriptPrefab.h"
 #include "BsScriptStringTable.h"
 #include "BsScriptGUISkin.h"
 #include "BsScriptPhysicsMaterial.h"
 #include "BsScriptPhysicsMesh.h"
 #include "BsScriptAudioClip.h"
-#include "BsScriptPrefab.h"
 #include "BsScriptAnimationClip.h"
+#include "BsBuiltinResourceLookup.h"
 
-#include "BsBuiltinComponentLookup.generated.h"
-#include "BsScriptTexture.generated.h"
 
 namespace bs
 {
+	LOOKUP_BEGIN
+		ADD_ENTRY(Texture, ScriptTexture, ScriptResourceType::Texture)
+		ADD_ENTRY(SpriteTexture, ScriptSpriteTexture, ScriptResourceType::SpriteTexture)
+		ADD_ENTRY(Mesh, ScriptMesh, ScriptResourceType::Mesh)
+		ADD_ENTRY(Font, ScriptFont, ScriptResourceType::Font)
+		ADD_ENTRY(Shader, ScriptShader, ScriptResourceType::Shader)
+		ADD_ENTRY(ShaderInclude, ScriptShaderInclude, ScriptResourceType::ShaderInclude)
+		ADD_ENTRY(Material, ScriptMaterial, ScriptResourceType::Material)
+		ADD_ENTRY(Prefab, ScriptPrefab, ScriptResourceType::Prefab)
+		ADD_ENTRY(PlainText, ScriptPlainText, ScriptResourceType::PlainText)
+		ADD_ENTRY(ScriptCode, ScriptScriptCode, ScriptResourceType::ScriptCode)
+		ADD_ENTRY(StringTable, ScriptStringTable, ScriptResourceType::StringTable)
+		ADD_ENTRY(GUISkin, ScriptGUISkin, ScriptResourceType::GUISkin)
+		ADD_ENTRY(PhysicsMaterial, ScriptPhysicsMaterial, ScriptResourceType::PhysicsMaterial)
+		ADD_ENTRY(PhysicsMesh, ScriptPhysicsMesh, ScriptResourceType::PhysicsMesh)
+		ADD_ENTRY(AudioClip, ScriptAudioClip, ScriptResourceType::AudioClip)
+		ADD_ENTRY(AnimationClip, ScriptAnimationClip, ScriptResourceType::AnimationClip)
+	LOOKUP_END
+
+#undef LOOKUP_BEGIN
+#undef ADD_ENTRY
+#undef LOOKUP_END
+
 	ScriptAssemblyManager::ScriptAssemblyManager()
 		: mBaseTypesInitialized(false), mSystemArrayClass(nullptr), mSystemGenericListClass(nullptr)
 		, mSystemGenericDictionaryClass(nullptr), mSystemTypeClass(nullptr), mComponentClass(nullptr)
@@ -62,6 +107,7 @@ namespace bs
 			initializeBaseTypes();
 
 		initializeBuiltinComponentInfos();
+		initializeBuiltinResourceInfos();
 
 		// Process all classes and fields
 		UINT32 mUniqueTypeId = 1;
@@ -75,15 +121,17 @@ namespace bs
 
 		mAssemblyInfos[assemblyName] = assemblyInfo;
 
+		MonoClass* resourceClass = ScriptResource::getMetaData()->scriptClass;
 		MonoClass* managedResourceClass = ScriptManagedResource::getMetaData()->scriptClass;
 
 		// Populate class data
 		const Vector<MonoClass*>& allClasses = curAssembly->getAllClasses();
 		for(auto& curClass : allClasses)
 		{
-			if ((curClass->isSubClassOf(mManagedComponentClass) || curClass->isSubClassOf(managedResourceClass) ||
-				curClass->hasAttribute(mSerializeObjectAttribute)) && curClass != mManagedComponentClass && 
-				curClass != managedResourceClass)
+			if ((curClass->isSubClassOf(mComponentClass) || curClass->isSubClassOf(resourceClass) ||
+				curClass->hasAttribute(mSerializeObjectAttribute)) && 
+				curClass != mComponentClass && curClass != resourceClass &&
+				curClass != mManagedComponentClass && curClass != managedResourceClass)
 			{
 				SPtr<ManagedSerializableTypeInfoObject> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoObject>();
 				typeInfo->mTypeNamespace = curClass->getNamespace();
@@ -324,46 +372,27 @@ namespace bs
 				SPtr<ManagedSerializableTypeInfoRef> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoRef>();
 				typeInfo->mTypeNamespace = monoClass->getNamespace();
 				typeInfo->mTypeName = monoClass->getTypeName();
+				typeInfo->mRTIITypeId = 0;
 
 				if(monoClass == ScriptResource::getMetaData()->scriptClass)
-					typeInfo->mType = ScriptReferenceType::Resource;
-				else if (monoClass->isSubClassOf(ScriptTexture::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Texture;
-				else if (monoClass->isSubClassOf(ScriptSpriteTexture::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::SpriteTexture;
+					typeInfo->mType = ScriptReferenceType::BuiltinResourceBase;
+				else if (monoClass == ScriptManagedResource::getMetaData()->scriptClass)
+					typeInfo->mType = ScriptReferenceType::ManagedResourceBase;
 				else if (monoClass->isSubClassOf(ScriptManagedResource::getMetaData()->scriptClass))
 					typeInfo->mType = ScriptReferenceType::ManagedResource;
-				else if (monoClass->isSubClassOf(ScriptShader::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Shader;
-				else if (monoClass->isSubClassOf(ScriptShaderInclude::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::ShaderInclude;
-				else if (monoClass->isSubClassOf(ScriptMaterial::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Material;
-				else if (monoClass->isSubClassOf(ScriptMesh::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Mesh;
-				else if (monoClass->isSubClassOf(ScriptPlainText::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::PlainText;
-				else if (monoClass->isSubClassOf(ScriptScriptCode::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::ScriptCode;
-				else if (monoClass->isSubClassOf(ScriptPrefab::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Prefab;
-				else if (monoClass->isSubClassOf(ScriptFont::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::Font;
-				else if (monoClass->isSubClassOf(ScriptStringTable::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::StringTable;
-				else if (monoClass->isSubClassOf(ScriptGUISkin::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::GUISkin;
-				else if (monoClass->isSubClassOf(ScriptPhysicsMaterial::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::PhysicsMaterial;
-				else if (monoClass->isSubClassOf(ScriptPhysicsMesh::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::PhysicsMesh;
-				else if (monoClass->isSubClassOf(ScriptAudioClip::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::AudioClip;
-				else if (monoClass->isSubClassOf(ScriptAnimationClip::getMetaData()->scriptClass))
-					typeInfo->mType = ScriptReferenceType::AnimationClip;
-				else
+				else if (monoClass->isSubClassOf(ScriptResource::getMetaData()->scriptClass))
 				{
-					assert(false && "Unrecognized resource type");
+					typeInfo->mType = ScriptReferenceType::BuiltinResource;
+
+					::MonoReflectionType* type = MonoUtil::getType(monoClass->_getInternalClass());
+					BuiltinResourceInfo* builtinInfo = getBuiltinResourceInfo(type);
+					if (builtinInfo == nullptr)
+					{
+						assert(false && "Unable to find information about a built-in resource. Did you update BuiltinResourceTypes list?");
+						return nullptr;
+					}
+
+					typeInfo->mRTIITypeId = builtinInfo->typeId;
 				}
 
 				return typeInfo;
@@ -619,6 +648,58 @@ namespace bs
 	{
 		auto iterFind = mBuiltinComponentInfosByTID.find(rttiTypeId);
 		if (iterFind == mBuiltinComponentInfosByTID.end())
+			return nullptr;
+
+		return &(iterFind->second);
+	}
+
+	void ScriptAssemblyManager::initializeBuiltinResourceInfos()
+	{
+		mBuiltinResourceInfos.clear();
+		mBuiltinResourceInfosByTID.clear();
+		mBuiltinResourceInfosByType.clear();
+
+		Vector<BuiltinResourceInfo> allResourceInfos = BuiltinResourceTypes::getEntries();
+
+		for (auto& entry : allResourceInfos)
+		{
+			MonoAssembly* assembly = MonoManager::instance().getAssembly(entry.metaData->assembly);
+			if (assembly == nullptr)
+				continue;
+
+			BuiltinResourceInfo info = entry;
+			info.monoClass = assembly->getClass(entry.metaData->ns, entry.metaData->name);
+
+			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->_getInternalClass());
+
+			mBuiltinResourceInfos[type] = info;
+			mBuiltinResourceInfosByTID[info.typeId] = info;
+			mBuiltinResourceInfosByType[(UINT32)info.resType] = info;
+		}
+	}
+
+	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(::MonoReflectionType* type)
+	{
+		auto iterFind = mBuiltinResourceInfos.find(type);
+		if (iterFind == mBuiltinResourceInfos.end())
+			return nullptr;
+
+		return &(iterFind->second);
+	}
+
+	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(UINT32 rttiTypeId)
+	{
+		auto iterFind = mBuiltinResourceInfosByTID.find(rttiTypeId);
+		if (iterFind == mBuiltinResourceInfosByTID.end())
+			return nullptr;
+
+		return &(iterFind->second);
+	}
+
+	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(ScriptResourceType type)
+	{
+		auto iterFind = mBuiltinResourceInfosByType.find((UINT32)type);
+		if (iterFind == mBuiltinResourceInfosByType.end())
 			return nullptr;
 
 		return &(iterFind->second);

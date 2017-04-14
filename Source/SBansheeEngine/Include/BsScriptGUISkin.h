@@ -22,6 +22,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptGUISkin(MonoObject* instance, const HGUISkin& skin);
 

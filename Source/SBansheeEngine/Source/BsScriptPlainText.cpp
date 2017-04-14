@@ -31,8 +31,7 @@ namespace bs
 		WString strText = MonoUtil::monoToWString(text);
 		HPlainText plainText = PlainText::create(strText);
 
-		ScriptPlainText* scriptInstance;
-		ScriptResourceManager::instance().createScriptResource(instance, plainText, &scriptInstance);
+		ScriptResourceBase* scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(plainText, instance);
 	}
 
 	MonoString* ScriptPlainText::internal_getText(ScriptPlainText* thisPtr)

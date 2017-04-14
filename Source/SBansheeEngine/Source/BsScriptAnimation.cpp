@@ -67,9 +67,7 @@ namespace bs
 
 	void ScriptAnimation::eventTriggered(const HAnimationClip& clip, const String& name)
 	{
-		ScriptAnimationClip* scriptClip = nullptr;
-		ScriptResourceManager::instance().getScriptResource(clip, &scriptClip, true);
-
+		ScriptResourceBase* scriptClip = ScriptResourceManager::instance().getScriptResource(clip, true);
 		MonoString* monoName = MonoUtil::stringToMono(name);
 
 		MonoUtil::invokeThunk(sOnEventTriggeredThunk, mManagedInstance, scriptClip->getManagedInstance(), monoName);
@@ -170,9 +168,7 @@ namespace bs
 		if (!clip.isLoaded())
 			return nullptr;
 
-		ScriptAnimationClip* scriptClip;
-		ScriptResourceManager::instance().getScriptResource(clip, &scriptClip, true);
-
+		ScriptResourceBase* scriptClip = ScriptResourceManager::instance().getScriptResource(clip, true);
 		return scriptClip->getManagedInstance();
 	}
 

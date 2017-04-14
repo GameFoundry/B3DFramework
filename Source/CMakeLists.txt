@@ -48,6 +48,8 @@ set_property(CACHE BUILD_SCOPE PROPERTY STRINGS "Runtime" "Framework")
 
 set(INCLUDE_ALL_IN_WORKFLOW OFF CACHE BOOL "If true, all libraries (even those not selected) will be included in the generated workflow (e.g. Visual Studio solution). This is useful when working on engine internals with a need for easy access to all parts of it. Only relevant for workflow generators like Visual Studio or XCode.")
 
+set(GENERATE_SCRIPT_BINDINGS ON CACHE BOOL "If true, script binding files will be generated. Script bindings are required for the project to build properly, however they take a while to generate. If you are sure the script bindings are up to date, you can turn off their generation (temporarily) to speed up the build.")
+
 if(BUILD_SCOPE MATCHES "Runtime")
 	set(BUILD_EDITOR ON)
 else()
@@ -235,7 +237,7 @@ configure_file("${PROJECT_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${PROJECT_S
 
 # Code generation for script bindings
 include(CMake/GenerateScriptBindings.cmake)
-
+	
 # Sub-directories
 ## Layers
 add_subdirectory(BansheeUtility)

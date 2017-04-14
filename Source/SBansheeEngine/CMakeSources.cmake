@@ -287,6 +287,7 @@ set(BS_SBANSHEEENGINE_INC_SERIALIZATION
 	"Include/BsManagedSerializableDiff.h"
 	"Include/BsManagedDiff.h"
 	"Include/BsBuiltinComponentLookup.h"
+	"Include/BsBuiltinResourceLookup.h"
 )
 
 set(BS_SBANSHEEENGINE_SRC_NOFILTER

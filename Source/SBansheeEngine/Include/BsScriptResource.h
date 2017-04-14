@@ -12,13 +12,6 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Types of resources accessible from script code. */
-	enum class ScriptResourceType // Note: Must be the same as C# enum ResourceType
-	{
-		Texture, SpriteTexture, Mesh, Font, Shader, ShaderInclude, Material, Prefab, 
-		PlainText, ScriptCode, StringTable, GUISkin, PhysicsMaterial, PhysicsMesh, AudioClip, AnimationClip, Undefined
-	};
-
 	/**	Base class for all resource interop objects. */
 	class BS_SCR_BE_EXPORT ScriptResourceBase : public PersistentScriptObjectBase
 	{
@@ -120,14 +113,6 @@ namespace bs
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "Resource")
 
-		/**	Converts a RTTI id belonging to a resource type into a ScriptResourceType. */
-		static ScriptResourceType getTypeFromTypeId(UINT32 typeId);
-
-		/**	Converts a ScriptResourceType into a RTTI id belonging to that resource type. */
-		static UINT32 getTypeIdFromType(ScriptResourceType type);
-
-		/**	Converts a RTTI id belonging to a resource type into a managed class representing that type. */
-		static MonoClass* getClassFromTypeId(UINT32 typeId);
 	private:
 		ScriptResource(MonoObject* instance)
 			:ScriptObject(instance)

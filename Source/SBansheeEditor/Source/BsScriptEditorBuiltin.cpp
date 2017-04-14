@@ -107,9 +107,7 @@ namespace bs
 	{
 		HFont font = BuiltinEditorResources::instance().getDefaultFont();
 
-		ScriptFont* scriptFont;
-		ScriptResourceManager::instance().getScriptResource(font, &scriptFont, true);
-
+		ScriptResourceBase* scriptFont = ScriptResourceManager::instance().getScriptResource(font, true);
 		return scriptFont->getManagedInstance();
 	}
 
@@ -117,9 +115,7 @@ namespace bs
 	{
 		HGUISkin guiSkin = BuiltinEditorResources::instance().getSkin();
 
-		ScriptGUISkin* scriptGUISkin;
-		ScriptResourceManager::instance().getScriptResource(guiSkin, &scriptGUISkin, true);
-
+		ScriptResourceBase* scriptGUISkin = ScriptResourceManager::instance().getScriptResource(guiSkin, true);
 		return scriptGUISkin->getManagedInstance();
 	}
 }

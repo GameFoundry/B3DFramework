@@ -24,40 +24,39 @@ namespace bs
 		~ScriptResourceManager();
 
 		/**
-		 * Creates a new managed instance and interop object for the specified resource.
+		 * Creates a new interop object for the specified builtin resource.
 		 *
-		 * @param[in]	resourceHandle	Native resource to wrap in a managed instance.
-		 * @param[out]	out				Output interop object corresponding to the new managed instance.
+		 * @param[in]	resource			Native resource to link to the managed instance.
+		 * @param[in]	existingInstance	Existing managed instance. Caller must ensure the managed instance matches the
+		 *									native resource type. If not provided new object instance will be created
+		 *									internally.
+		 * @return							Interop object corresponding to the managed instance.
 		 *
 		 * @note	Throws an exception if a managed instance for the provided resource already exists.
 		 */
-		template<class RetType, class InType>
-		void createScriptResource(const ResourceHandle<InType>& resourceHandle, RetType** out);
+		ScriptResourceBase* createBuiltinScriptResource(const HResource& resource, MonoObject* existingInstance = nullptr);
 
 		/**
-		 * Creates a new interop object for the specified resource using an existing managed instance.
+		 * Creates a new interop object for the specified custom managed resource.
 		 *
-		 * @param[in]	existingInstance	Existing managed instance. Caller must ensure the managed instance matches the
-		 *									native resource type.
-		 * @param[in]	resourceHandle		Native resource to link to the managed instance.
-		 * @param[out]	out					Output interop object corresponding to the new managed instance.
+		 * @param[in]	resource			Native resource to link to the managed instance.
+		 * @param[in]	existingInstance	Existing managed instance of the resource.
+		 * @return							Interop object corresponding to the managed instance.
 		 *
 		 * @note	Throws an exception if a managed instance for the provided resource already exists.
 		 */
-		template<class RetType, class InType>
-		void createScriptResource(MonoObject* existingInstance, const ResourceHandle<InType>& resourceHandle, RetType** out);
+		ScriptManagedResource* createManagedScriptResource(const HManagedResource& resource, MonoObject* existingInstance);
 
 		/**
 		 * Attempts to find an existing interop object for the specified resource, and optionally creates a new one if one
 		 * cannot be found.
 		 * 
-		 * @param[in]	resourceHandle	Resource to search for.
-		 * @param[out]	out				Found or created interop object containing the resource.
+		 * @param[in]	resource		Resource to search for.
 		 * @param[in]	create			If a resource cannot be found new one will be created when this is true. If false
 		 *								and the resource doesn't exist it will be null.
+		 * @return						Found or created interop object containing the resource.
 		 */
-		template<class RetType, class InType>
-		void getScriptResource(const ResourceHandle<InType>& resourceHandle, RetType** out, bool create = false);
+		ScriptResourceBase* getScriptResource(const HResource& resource, bool create = false);
 
 		/**
 		 * Attempts to find a resource interop object for a resource with the specified UUID. Returns null if the object
@@ -82,33 +81,4 @@ namespace bs
 	};
 
 	/** @} */
-
-	/** @addtogroup Implementation 
-	 *  @{
-	 */
-
-	namespace Detail
-	{
-		/** Another layer of indirection for specialized ScriptResourceManager methods. */
-
-		template<class RetType, class InType>
-		void BS_SCR_BE_EXPORT ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr,
-			const ResourceHandle<InType>& resourceHandle, RetType** out);
-
-		template<>
-		void BS_SCR_BE_EXPORT ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr,
-			const ResourceHandle<StringTable>& resourceHandle, ScriptStringTable** out);
-
-		template<>
-		void BS_SCR_BE_EXPORT ScriptResourceManager_createScriptResource(ScriptResourceManager* thisPtr,
-			const HResource& resourceHandle, ScriptResourceBase** out);
-	}
-
-	/** @} */
-
-	template<class RetType, class InType>
-	void ScriptResourceManager::createScriptResource(const ResourceHandle<InType>& resourceHandle, RetType** out)
-	{
-		Detail::ScriptResourceManager_createScriptResource<RetType, InType>(this, resourceHandle, out);
-	}
 }

@@ -33,29 +33,15 @@ namespace bs
 	/** Valid reference script types. */
 	enum class ScriptReferenceType
 	{
-		Texture,
-		SpriteTexture,
+		BuiltinResourceBase,
+		BuiltinResource,
+		ManagedResourceBase,
 		ManagedResource,
-		PlainText,
-		ScriptCode,
-		Shader,
-		ShaderInclude,
-		Material,
-		Mesh,
-		Prefab,
-		Font,
-		StringTable,
-		GUISkin,
-		SceneObject,
-		BuiltinComponent,
-		PhysicsMaterial,
-		PhysicsMesh,
-		AudioClip,
-		AnimationClip,
-		ManagedComponent,
-		Resource,
 		BuiltinComponentBase,
+		BuiltinComponent,
 		ManagedComponentBase,
+		ManagedComponent,
+		SceneObject,
 		Count // Keep at end
 	};
 

@@ -36,26 +36,21 @@ namespace bs
 		if (texture == nullptr)
 			return nullptr;
 
-		ScriptSpriteTexture* scriptSpriteTex;
-		ScriptResourceManager::instance().getScriptResource(texture, &scriptSpriteTex, true);
-
+		ScriptResourceBase* scriptSpriteTex = ScriptResourceManager::instance().getScriptResource(texture, true);
 		return scriptSpriteTex->getManagedInstance();
 	}
 
 	void ScriptSpriteTexture::internal_createInstance(MonoObject* instance, MonoObject* texture, Vector2* offset, Vector2* scale)
 	{
 		ScriptTexture* scriptTexture = ScriptTexture::toNative(texture);
-		ScriptSpriteTexture* scriptInstance;
+		ScriptResourceBase* scriptInstance;
 
 		if (scriptTexture == nullptr)
-		{
-			ScriptResourceManager::instance().createScriptResource(instance, SpriteTexture::dummy(), &scriptInstance);
-		}
+			scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(SpriteTexture::dummy(), instance);
 		else
 		{
 			HSpriteTexture spriteTexture = SpriteTexture::create(*offset, *scale, scriptTexture->getHandle());
-
-			ScriptResourceManager::instance().createScriptResource(instance, spriteTexture, &scriptInstance);
+			scriptInstance = ScriptResourceManager::instance().createBuiltinScriptResource(spriteTexture, instance);
 		}
 	}
 
@@ -69,9 +64,7 @@ namespace bs
 		if (!texture.isLoaded())
 			return nullptr;
 
-		ScriptTexture* scriptTexture = nullptr;
-		ScriptResourceManager::instance().getScriptResource(texture, &scriptTexture, true);
-
+		ScriptResourceBase* scriptTexture = ScriptResourceManager::instance().getScriptResource(texture, true);
 		return scriptTexture->getManagedInstance();
 	}
 

@@ -29,6 +29,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptMaterial(MonoObject* instance, const HMaterial& material);
 

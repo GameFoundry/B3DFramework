@@ -26,6 +26,7 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+		friend class BuiltinResourceTypes;
 
 		ScriptSpriteTexture(MonoObject* instance, const HSpriteTexture& texture);
 

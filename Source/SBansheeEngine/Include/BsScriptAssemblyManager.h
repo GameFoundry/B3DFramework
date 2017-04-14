@@ -59,6 +59,24 @@ namespace bs
 		 */
 		BuiltinComponentInfo* getBuiltinComponentInfo(UINT32 rttiTypeId);
 
+		/** 
+		 * Maps a mono type to information about a wrapped built-in resource. Returns null if type doesn't correspond to
+		 * a builtin resource. 
+		 */
+		BuiltinResourceInfo* getBuiltinResourceInfo(::MonoReflectionType* type);
+
+		/** 
+		 * Maps a type id to information about a wrapped built-in resource. Returns null if type id doesn't correspond to
+		 * a builtin resource. 
+		 */
+		BuiltinResourceInfo* getBuiltinResourceInfo(UINT32 rttiTypeId);
+
+		/** 
+		 * Maps a resource type to information about a wrapped built-in resource. Returns null if type id doesn't correspond to
+		 * a builtin resource. 
+		 */
+		BuiltinResourceInfo* getBuiltinResourceInfo(ScriptResourceType type);
+
 		/**
 		 * Checks if the managed serializable object info for the specified type exists.
 		 *
@@ -113,9 +131,15 @@ namespace bs
 		/** Initializes information required for mapping builtin components to managed components. */
 		void initializeBuiltinComponentInfos();
 
+		/** Initializes information required for mapping builtin resources to managed resources. */
+		void initializeBuiltinResourceInfos();
+
 		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
 		UnorderedMap<::MonoReflectionType*, BuiltinComponentInfo> mBuiltinComponentInfos;
 		UnorderedMap<UINT32, BuiltinComponentInfo> mBuiltinComponentInfosByTID;
+		UnorderedMap<::MonoReflectionType*, BuiltinResourceInfo> mBuiltinResourceInfos;
+		UnorderedMap<UINT32, BuiltinResourceInfo> mBuiltinResourceInfosByTID;
+		UnorderedMap<UINT32, BuiltinResourceInfo> mBuiltinResourceInfosByType;
 		bool mBaseTypesInitialized;
 
 		MonoClass* mSystemArrayClass;

@@ -30,9 +30,7 @@ namespace bs
 	{
 		HSpriteTexture whiteTexture = BuiltinResources::instance().getWhiteSpriteTexture();
 
-		ScriptSpriteTexture* scriptSpriteTex;
-		ScriptResourceManager::instance().getScriptResource(whiteTexture, &scriptSpriteTex, true);
-
+		ScriptResourceBase* scriptSpriteTex = ScriptResourceManager::instance().getScriptResource(whiteTexture, true);
 		return scriptSpriteTex->getManagedInstance();
 	}
 
@@ -40,9 +38,7 @@ namespace bs
 	{
 		HShader diffuseShader = BuiltinResources::instance().getBuiltinShader(type);
 
-		ScriptShader* scriptShader;
-		ScriptResourceManager::instance().getScriptResource(diffuseShader, &scriptShader, true);
-
+		ScriptResourceBase* scriptShader = ScriptResourceManager::instance().getScriptResource(diffuseShader, true);
 		return scriptShader->getManagedInstance();
 	}
 
@@ -50,9 +46,7 @@ namespace bs
 	{
 		HMesh mesh = BuiltinResources::instance().getMesh(meshType);
 
-		ScriptMesh* scriptMesh;
-		ScriptResourceManager::instance().getScriptResource(mesh, &scriptMesh, true);
-
+		ScriptResourceBase* scriptMesh = ScriptResourceManager::instance().getScriptResource(mesh, true);
 		return scriptMesh->getManagedInstance();
 	}
 
@@ -60,9 +54,7 @@ namespace bs
 	{
 		HFont font = BuiltinResources::instance().getDefaultFont();
 
-		ScriptFont* scriptFont;
-		ScriptResourceManager::instance().getScriptResource(font, &scriptFont, true);
-
+		ScriptResourceBase* scriptFont = ScriptResourceManager::instance().getScriptResource(font, true);
 		return scriptFont->getManagedInstance();
 	}
 }
