@@ -99,6 +99,15 @@ namespace bs
 			const Vector2& scale = Vector2::ONE);
 
 		/**
+		 * Draws a solid disc.
+		 *
+		 * @param[in]	position	Center of the disc.
+		 * @param[in]	normal		Orientation of the disc, pointing in the direction the disc is visible in.
+		 * @param[in]	radius		Radius of the disc.
+		 */
+		void drawDisc(const Vector3& position, const Vector3& normal, float radius);
+
+		/**
 		 * Draws a wireframe axis aligned cuboid.
 		 *
 		 * @param[in]	position	Center of the cuboid.
@@ -311,8 +320,8 @@ namespace bs
 			Vector<Vector3> linePoints;
 		};
 
-		/**	Data required for rendering a wireframe disc gizmo. */
-		struct WireDiscData : CommonData
+		/**	Data required for rendering a disc gizmo. */
+		struct DiscData : CommonData
 		{
 			Vector3 position;
 			Vector3 normal;
@@ -463,7 +472,8 @@ namespace bs
 		Vector<ConeData> mWireConeData;
 		Vector<LineData> mLineData;
 		Vector<LineListData> mLineListData;
-		Vector<WireDiscData> mWireDiscData;
+		Vector<DiscData> mSolidDiscData;
+		Vector<DiscData> mWireDiscData;
 		Vector<WireArcData> mWireArcData;
 		Vector<WireMeshData> mWireMeshData;
 		Vector<FrustumData> mFrustumData;

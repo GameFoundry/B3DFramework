@@ -99,6 +99,17 @@ namespace BansheeEditor
         }
 
         /// <summary>
+        /// Draws a solid disc.
+        /// </summary>
+        /// <param name="position">Center of the disc.</param>
+        /// <param name="normal">Normal towards which to orient the disc.</param>
+        /// <param name="radius">Radius of the disc.</param>
+        public static void DrawDisc(Vector3 position, Vector3 normal, float radius)
+        {
+            Internal_DrawDisc(ref position, ref normal, radius);
+        }
+
+        /// <summary>
         /// Draws an axis aligned wireframe cube.
         /// </summary>
         /// <param name="position">World coordinates of the center of the cube.</param>
@@ -272,6 +283,9 @@ namespace BansheeEditor
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawCone(ref Vector3 coneBase, ref Vector3 normal, float height, float radius, ref Vector2 scale);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_DrawDisc(ref Vector3 position, ref Vector3 normal, float radius);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawWireCube(ref Vector3 position, ref Vector3 extents);

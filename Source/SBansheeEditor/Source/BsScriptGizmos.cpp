@@ -20,6 +20,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_DrawCube", &ScriptGizmos::internal_DrawCube);
 		metaData.scriptClass->addInternalCall("Internal_DrawSphere", &ScriptGizmos::internal_DrawSphere);
 		metaData.scriptClass->addInternalCall("Internal_DrawCone", &ScriptGizmos::internal_DrawCone);
+		metaData.scriptClass->addInternalCall("Internal_DrawDisc", &ScriptGizmos::internal_DrawDisc);
 		metaData.scriptClass->addInternalCall("Internal_DrawWireCube", &ScriptGizmos::internal_DrawWireCube);
 		metaData.scriptClass->addInternalCall("Internal_DrawWireSphere", &ScriptGizmos::internal_DrawWireSphere);
 		metaData.scriptClass->addInternalCall("Internal_DrawWireCapsule", &ScriptGizmos::internal_DrawWireCapsule);
@@ -67,6 +68,11 @@ namespace bs
 	void ScriptGizmos::internal_DrawCone(Vector3* base, Vector3* normal, float height, float radius, Vector2* scale)
 	{
 		GizmoManager::instance().drawCone(*base, *normal, height, radius, *scale);
+	}
+
+	void ScriptGizmos::internal_DrawDisc(Vector3* position, Vector3* normal, float radius)
+	{
+		GizmoManager::instance().drawDisc(*position, *normal, radius);
 	}
 
 	void ScriptGizmos::internal_DrawWireCube(Vector3* position, Vector3* extents)

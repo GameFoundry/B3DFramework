@@ -50,6 +50,12 @@ namespace BansheeEditor
                 case LightType.Radial:
                     Gizmos.DrawWireSphere(position, light.AttenuationRadius);
 
+                    if (light.SourceRadius > 0.0f)
+                    {
+                        Gizmos.Color = light.Color;
+                        Gizmos.DrawSphere(position, light.SourceRadius);
+                    }
+
                     break;
                 case LightType.Spot:
                 {
@@ -57,7 +63,7 @@ namespace BansheeEditor
                     Vector3 up = light.SceneObject.Rotation.Rotate(Vector3.YAxis);
                     Vector3 forward = light.SceneObject.Forward;
 
-                    float discRadius = light.AttenuationRadius * MathEx.Tan(light.SpotAngle*0.5f);
+                    float discRadius = light.AttenuationRadius * MathEx.Tan(light.SpotAngle * 0.5f);
 
                     Gizmos.DrawLine(position, position + forward * light.AttenuationRadius + up * discRadius);
                     Gizmos.DrawLine(position, position + forward * light.AttenuationRadius - up * discRadius);
@@ -68,6 +74,12 @@ namespace BansheeEditor
 
                     Gizmos.DrawWireDisc(position + forward * light.AttenuationRadius, forward, discRadius);
                     Gizmos.DrawWireDisc(position + forward * light.AttenuationRadius, forward, falloffDiscRadius);
+
+                    if (light.SourceRadius > 0.0f)
+                    {
+                        Gizmos.Color = light.Color;
+                        Gizmos.DrawDisc(position, forward, light.SourceRadius);
+                    }
                 }
                     break;
             }
