@@ -2,50 +2,89 @@ Scripting									{#scripting}
 ===============
 [TOC]
 
-Often when you extend the native portion of the engine in some way you might want to expose that functionality to the managed (i.e. scripting) code. This guide will show you how to create C++ objects that communicate with C# code and vice versa. 
+In the previous chapter we talked about how to expose a C++ type to the scripting API by using the script binding generator tool. This tool ensures you can generate script bindings easily, but in some cases it is not robust enough and you must interact with the scripting API manually. This manual will explain how to interact with the scripting API and expose C++ code to it manually (without the script binding generator tool). 
 
-Before we delve into the specifics of Banshee's scripting you should understand how the scripting system works in general. All C# script code is ran from the C++ part of the engine using the Mono runtime. Mono runtime allows you to communicate with C# code (and for the C# code to communicate with C++), query class/method/field information and pass data between the two languages.
+You can use manual generation to achieve everything as with the script binding generator tool (in fact this tool uses the same API as described in this manual), plus a lot more. It is preferred you use automatic generation whenever possible, but when working with lower level systems that closely interact with the scripting system (like serialization, script compilation, etc.) you need more direct access.
 
-# Scripting system #	{#scripting_a}
+# Mono {#scripting_a}
+All C# script code is executed using the Mono runtime. Mono runtime allows you to communicate with C# code and vice-versa by invoking methods and querying class/method/field information. In this section we'll focus on how to interact with Mono (and therefore the C# runtime).
 
-Because using Mono directly is complex (mostly due to its lack of documentation), Banshee provides a set of easy to use wrappers for almost all of Mono related functionality. 
-
-BansheeMono is a plugin that wraps the functionality of the Mono runtime. The main entry point of the scripting system is the @ref bs::MonoManager "MonoManager" class which allows you to start the runtime and load managed (script) assemblies. The most important method here is @ref bs::MonoManager::loadAssembly "MonoManager::loadAssembly". It loads all the script code from the managed assembly at the provided path, and provides meta-data for the entire assembly through the returned @ref bs::MonoAssembly "MonoAssembly" object. 
+BansheeMono is a plugin that wraps the functionality of the Mono runtime. The main entry point of the scripting system is the @ref bs::MonoManager "MonoManager" class which allows you to start the runtime and load managed (script) assemblies. The most important method here is @ref bs::MonoManager::loadAssembly "MonoManager::loadAssembly()". It loads all the script code from the managed assembly (.dll) at the provided path, and provides meta-data for the entire assembly through the returned @ref bs::MonoAssembly "MonoAssembly" object. 
 
 ## MonoAssembly 	{#scripting_a_a}
-@ref bs::MonoAssembly "MonoAssembly" gives you access to all the script classes in an assembly. You can retrieve all clases using @ref bs::MonoAssembly::getAllClasses "MonoAssembly::getAllClasses", or retrieve a specific one by calling @ref bs::MonoAssembly::getClass(const String&, const String&) const "MonoAssembly::getClass(namespace, typename)". Both of these methods return a @ref bs::MonoClass "MonoClass" object.
+**MonoAssembly** gives you access to all the script classes in an assembly. You can retrieve all clases using @ref bs::MonoAssembly::getAllClasses "MonoAssembly::getAllClasses()", or retrieve a specific one by calling @ref bs::MonoAssembly::getClass(const String&, const String&) const "MonoAssembly::getClass(const String& namespace, const String& typename)". Both of these methods return a @ref bs::MonoClass "MonoClass" object.
 
 ## MonoClass 	{#scripting_a_b}
-@ref bs::MonoClass "MonoClass" gives you access to all methods, fields, properties and attributes of a specific class. It also allows you to register "internal" methods. These methods allow the managed code to call C++ code, and we'll go into them later.
+**MonoClass** gives you access to all methods, fields, properties and attributes of a specific class. It also allows you to register "internal" methods. These methods allow the managed code to call C++ code, and we'll go into them later.
 
-Classes also allow you to create object instances of their type. Use @ref bs::MonoClass::createInstance "MonoClass::createInstance" to create a new object instance. All managed objects are referenced using a `MonoObject` type (more on that later), which is returned from the @ref bs::MonoClass::createInstance "MonoClass:createInstance" call. When creating an instance you may choose whether to construct it or not, and to provide constructor signature if you need a specific one.
+Classes also allow you to create object instances of their type. Use @ref bs::MonoClass::createInstance "MonoClass::createInstance()" to create a new object instance. This method returns a **MonoObject** instance, which is a C++ representation of the C# object, but more on them later. When creating an instance you may choose whether to construct it or not, and to provide constructor signature if you need a specific one.
 
-To retrieve a method from a class call @ref bs::MonoClass::getMethod() "MonoClass::getMethod()", accepting a name (without parameter types) and a number of parameters. If your method is overloaded you can use @ref bs::MonoClass::getMethodExact "MonoClass:getMethodExact()" which accepts a method name, and a comma separated list of parameter types. You may also use @ref bs::MonoClass::getAllMethods "MonoClass::getAllMethods" to retrieve all methods in a class.
+To retrieve a method from a class call @ref bs::MonoClass::getMethod() "MonoClass::getMethod()", accepting a name (without parameter types) and a number of parameters. If your method is overloaded you can use @ref bs::MonoClass::getMethodExact "MonoClass:getMethodExact()" which accepts a method name, and a comma separated list of parameter types. You may also use @ref bs::MonoClass::getAllMethods "MonoClass::getAllMethods()" to retrieve all methods in a class. All three of these methods return a @ref bs::MonoMethod "MonoMethod" object.
 
-All the above methods return a @ref bs::MonoMethod "MonoMethod" object.
+
+
+
+TODO - Example getting a method
+
+
+
 
 ## MonoMethod {#scripting_a_c}
-This class provides information about about a managed method, as well as giving you multiple ways of invoking it (it allows you to call C# methods from C++).
+**MonoMethod** class provides information about about a managed method, as well as giving you multiple ways of invoking it (i.e. calling C# methods from C++).
 
 To invoke a method you may use multiple approaches:
- - @ref bs::MonoMethod::invoke "MonoMethod::invoke" - Calls the exact method on a specific managed object, with the provided parameters. We'll see how are managed objects referenced in native code later, as well as how passing data between C++ and managed code works.
- - @ref bs::MonoMethod::invokeVirtual "MonoMethod::invokeVirtual" - Calls the method polymorphically. Determines the actual type of the provided managed object instance and calls an overriden method if available.
- - @ref bs::MonoMethod::getThunk "MonoMethod::getThunk" - Returns a C++ function pointer accepting a managed object, zero or more parameters and an exception object. You can then call the function pointer like you would a C++ function. This is equivalent to @ref bs::MonoMethod::invoke "MonoMethod::invoke" but is significantly faster. A helper method @ref bs::MonoUtil::invokeThunk<T, Args> "MonoUtil::invokeThunk" is provided - it is suggested you use it instead of calling thunks manually (it handles exceptions internally).
+ - @ref bs::MonoMethod::invoke "MonoMethod::invoke()" - Accepts a **MonoObject** to invoke the method on (null if a static method), as well as an optional list of parameters. Invokes the exact method to exact type it was provided on.
+ - @ref bs::MonoMethod::invokeVirtual "MonoMethod::invokeVirtual()" - Accepts a **MonoObject** to invoke the method on (null if a static method), as well as an optional list of parameters. Unlike **MonoMethod::invoke()** it calls the method polymorphically, meaning it determines the actual type of the provided managed object instance and calls an overriden method if available.
+ - @ref bs::MonoMethod::getThunk "MonoMethod::getThunk()" - Returns a C++ function pointer accepting a **MonoObject**, zero or more parameters and an exception object. You can then call the function pointer like you would a C++ function. This is equivalent to **MonoMethod::invoke()** but is significantly faster. A helper method @ref bs::MonoUtil::invokeThunk<T, Args> "MonoUtil::invokeThunk()" is provided - it is suggested you use it instead of calling thunks manually  because it handles exceptions internally.
 
-When calling static methods you should provide a null value for the managed object instance.
 
+ 
+ 
+ 
+ TODO - Example invoking a method
+ TODO - Thunk example
+ 
+ 
+We'll talk more about how to pass parameters to methods later. 
+ 
 ## MonoField {#scripting_a_d}
-Similar to methods, field information can be retrieved from a @ref bs::MonoClass "MonoClass" object by calling @ref bs::MonoClass::getField "MonoClass::getField" or @ref bs::MonoClass::getAllFields "MonoClass::getAllFields". The returned value is a @ref bs::MonoField "MonoField" which provides information about the field and allows you to retrieve and set values in the field using @ref bs::MonoField::getValue "MonoField::getValue" / @ref bs::MonoField::setValue "MonoField::setValue". This works similar to how methods are invoked and is explained in more detail later.
+Similar to methods, field information can be retrieved from a **MonoClass** object by calling @ref bs::MonoClass::getField "MonoClass::getField()" or @ref bs::MonoClass::getAllFields "MonoClass::getAllFields()". The returned value is a @ref bs::MonoField "MonoField" which provides information about the field and allows you to retrieve and set values in the field using @ref bs::MonoField::getValue "MonoField::getValue()" / @ref bs::MonoField::setValue "MonoField::setValue()". 
+
+
+
+TODO - Example getting/setting a field
+
+
+
 
 ## MonoProperty {#scripting_a_e}
-Properties are very similar to fields, retrieved from a @ref bs::MonoClass "MonoClass" object by calling @ref bs::MonoClass::getProperty "MonoClass::getProperty". The returned value is a @ref bs::MonoProperty "MonoProperty" which provides information about the property and allows you to retrieve and set values on it. The main difference is that properties in C# can be indexed (like arrays) and therefore a two set of set/get methods are provided, one accepting an index and other one not. It's up to the user to know which one to call. The methods are @ref bs::MonoProperty::get "MonoProperty::get" / @ref bs::MonoProperty::set "MonoProperty::set" and @ref bs::MonoProperty::getIndexed "MonoProperty::getIndexed" / @ref bs::MonoProperty::setIndexed "MonoProperty::setIndexed".
+Properties are very similar to fields, retrieved from a **MonoClass** object by calling @ref bs::MonoClass::getProperty "MonoClass::getProperty()". The returned value is a @ref bs::MonoProperty "MonoProperty" which provides information about the property and allows you to retrieve and set values on it. The main difference is that properties in C# can be indexed (like arrays) and therefore a two set of set/get methods are provided, one accepting an index and other one not. It's up to the user to know which one to call. The methods are @ref bs::MonoProperty::get "MonoProperty::get()" / @ref bs::MonoProperty::set "MonoProperty::set()" and @ref bs::MonoProperty::getIndexed "MonoProperty::getIndexed()" / @ref bs::MonoProperty::setIndexed "MonoProperty::setIndexed()".
+
+
+
+TODO - Example getting/setting a property
+
 
 ## Attributes {#scripting_a_f}
 Attributes provide data about a class, method or field provided at runtime, which usually allows such objects to be specialized in some regard. Attributes don't have their own wrapper, because they are esentially normal managed objects and you can work with them as such.
 
-To retrieve a list of attributes from a class use @ref bs::MonoClass::getAllAttributes() "MonoClass::getAllAttributes", which returns a list of @ref bs::MonoClass "MonoClass" objects that identify the attribute types. To get the actual object instance of the attribute you may call @ref bs::MonoClass::getAttribute "MonoClass::getAttribute" with the wanted attribute's @ref bs::MonoClass "MonoClass". After that you can call methods, work with field values and other, same as you would with a normal managed object (described below).
+To retrieve a list of attributes from a class use @ref bs::MonoClass::getAllAttributes() "MonoClass::getAllAttributes()", which returns a list of **MonoClass** objects that identify the attribute types. To get the actual object instance of the attribute you may call @ref bs::MonoClass::getAttribute "MonoClass::getAttribute()" with the wanted attribute's **MonoClass**. After that you can call methods, work with field values and similar, same as you would with a normal managed object.
 
-Attributes can also be retrieved from a @ref bs::MonoMethod "MonoMethod" using @ref bs::MonoMethod::getAttribute "MonoMethod::getAttribute", or from @ref bs::MonoField "MonoField" using @ref bs::MonoField::getAttribute "MonoField::getAttribute".
+Attributes can also be retrieved from a **MonoMethod** by using @ref bs::MonoMethod::getAttribute "MonoMethod::getAttribute()", or from **MonoField** by using @ref bs::MonoField::getAttribute "MonoField::getAttribute()".
+
+
+
+
+
+
+
+
+TODO - Stopped here
+
+
+
+
+
 
 ## Managed objects {#scripting_a_g}
 So far we have talked about invoking methods and retrieving field values, but we haven't yet explained how to access managed object instances in C++ code. All managed objects in Mono are represented by a `MonoObject`.

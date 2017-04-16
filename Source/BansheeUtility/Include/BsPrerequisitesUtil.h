@@ -246,10 +246,10 @@
  */
 
 #if BS_COMPILER == BS_COMPILER_CLANG
-	/** @copydoc scriptBindingMacro */
+	/** @ref scriptBindingMacro */
 	#define BS_SCRIPT_EXPORT(...) __attribute__((annotate("se," #__VA_ARGS__)))
 #else
-	/** @copydoc scriptBindingMacro */
+	/** @ref scriptBindingMacro */
 	#define BS_SCRIPT_EXPORT(...) 
 #endif
 

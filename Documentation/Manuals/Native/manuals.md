@@ -105,11 +105,13 @@ A set of manuals covering advanced functionality intented for those wanting to e
 - **Resources**
  - [Creating new resource types](@ref customResources)
  - [Creating custom importers](@ref customImporters)
+- **Scripting**
+ - [Exposing code to script API (automated)](@ref scriptingAuto)
+ - [TODO - Exposing code to script API (manual)](@ref scripting)
  
 ## General guides
 Name                                      | Description
 ------------------------------------------|-------------
-[Scripting](@ref scripting)               | Shows you how to interact with the scripting system, and how to expose C++ objects to the scripting API.
 [BSLFX](@ref bsl)    	  		  		  | Provides a reference for the Banshee Shading Language syntax.
 [Custom GUI elements](@ref customGUI)     | Shows you how to create custom GUI elements, manually render text or modify GUI system in a general way.
 [Meshes](@ref meshes)                     | Shows you how to create, use and manipulate meshes.
