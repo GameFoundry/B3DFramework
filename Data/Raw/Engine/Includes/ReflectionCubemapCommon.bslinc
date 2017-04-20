@@ -1,7 +1,5 @@
 Technique : base("ReflectionCubemapCommon") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -63,36 +61,6 @@ Technique : base("ReflectionCubemapCommon") =
 				// mapRoughnessToMipLevel() solved for roughness
 				return 1 - exp2((float)mipLevel / -2.8f);
 			}	
-		};
-	};
-};
-
-Technique : base("ReflectionCubemapCommon") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-			vec3 getDirFromCubeFace(uint cubeFace, vec2 uv)
-			{
-				vec3 dir;
-				if(cubeFace == 0)
-					dir = vec3(1.0f, -uv.y, -uv.x);
-				else if(cubeFace == 1)
-					dir = vec3(-1.0f, -uv.y, uv.x);
-				else if(cubeFace == 2)
-					dir = vec3(uv.x, 1.0f, uv.y);
-				else if(cubeFace == 3)
-					dir = vec3(uv.x, -1.0f, -uv.y);
-				else if(cubeFace == 4)
-					dir = vec3(uv.x, -uv.y, 1.0f);
-				else
-					dir = vec3(-uv.x, -uv.y, -1.0f);
-					
-				return dir;
-			}			
 		};
 	};
 };

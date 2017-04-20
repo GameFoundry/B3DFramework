@@ -1,7 +1,5 @@
 Technique : base("SurfaceData") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -39,26 +37,6 @@ Technique : base("SurfaceData") =
 				return false;
 			}
 #endif			
-		};
-	};
-};
-
-Technique : base("SurfaceData") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-			struct SurfaceData
-			{
-				vec4 albedo;
-				vec4 worldNormal;
-				float depth;
-				float roughness;
-				float metalness;
-			};
 		};
 	};
 };

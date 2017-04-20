@@ -37,8 +37,6 @@ Blocks =
 
 Technique : base("PerCameraData") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -71,41 +69,6 @@ Technique : base("PerCameraData") =
 			float convertToNDCZ(float viewZ)
 			{
 				return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
-			}
-		};
-	};
-};
-
-Technique : base("PerCameraData") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-			layout(binding = 0, std140) uniform PerCamera
-			{
-				vec3 gViewDir;
-				vec3 gViewOrigin;
-				mat4 gMatViewProj;
-				mat4 gMatView;
-				mat4 gMatProj;
-				mat4 gMatInvProj;
-				mat4 gMatInvViewProj;
-				mat4 gMatScreenToWorld;
-				vec2 gDeviceZToWorldZ;
-				vec2 gNDCZToWorldZ;
-				vec2 gNearFar;
-				ivec4 gViewportRectangle;
-				vec4 gClipToUVScaleOffset;
-				float gAmbientFactor;
-			};
-			
-			/** Converts Z value in range [0,1] into Z value in view space. */
-			float convertFromDeviceZ(float deviceZ)
-			{
-				return (1.0f / (deviceZ + gDeviceZToWorldZ.y)) * gDeviceZToWorldZ.x;	
 			}
 		};
 	};

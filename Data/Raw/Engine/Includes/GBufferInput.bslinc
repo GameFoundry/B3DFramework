@@ -18,8 +18,6 @@ Technique
  : inherits("PerCameraData")
  : base("GBufferInput") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 

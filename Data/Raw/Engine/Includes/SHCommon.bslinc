@@ -1,7 +1,5 @@
 Technique : base("SHCommon") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 

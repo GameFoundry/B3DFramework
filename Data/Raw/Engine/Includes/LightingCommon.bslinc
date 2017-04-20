@@ -4,8 +4,6 @@ Technique
  : base("LightingCommon")
  : inherits("SurfaceData") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Common = 
@@ -373,118 +371,6 @@ Technique
 				}
 				
 				return float4(outLuminance, alpha);
-			}
-		};
-	};
-};
-
-Technique
- : base("LightingCommon")
- : inherits("SurfaceData") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Common = 
-		{
-			#define PI 3.1415926
-			#define HALF_PI 1.5707963
-			
-			struct LightData
-			{
-				vec3 position;
-				float attRadius;
-				float srcRadius;
-				vec3 direction;
-				float luminance;
-				vec3 spotAngles;
-				float attRadiusSqrdInv;
-				vec3 color;
-				vec3 spotDiscPosition;
-			};
-									
-			vec3 calcMicrofacetFresnelShlick(vec3 F0, float LoH)
-			{
-				return F0 + (1.0f - F0) * pow(1.0f - LoH, 5.0f);
-			}
-
-			float calcMicrofacetShadowingSmithGGX(float roughness, float NoV, float NoL)
-			{
-				// Note: It's probably better to use the joint shadowing + masking version of this function
-				// Note: Pull these multiplies out, since they're used by the distribution function as well?
-				float roughness2 = roughness * roughness;
-				float roughness4 = roughness2 * roughness2;
-
-				// Note: Original GGX G1 multiplied by NoV & NoL (respectively), so that the microfacet function divisor gets canceled out
-				// See HLSL code for derivation
-				
-				float g1V = NoV + sqrt(NoV * (NoV - NoV * roughness4) + roughness4);
-				float g1L = NoL + sqrt(NoL * (NoL - NoL * roughness4) + roughness4);
-				return 1.0f / (g1V * g1L);
-			}
-			
-			float calcMicrofacetDistGGX(float roughness, float NoH)
-			{
-				float roughness2 = roughness * roughness;
-				float roughness4 = roughness2 * roughness2;
-				
-				float d = (NoH * roughness4 - NoH) * NoH + 1.0f;
-				return roughness4 / (PI * d * d);
-			}
-			
-			float calcDiffuseLambert(float color)
-			{
-				return color * (1.0f / PI);
-			}
-									
-			float getSpotAttenuation(vec3 worldPosToLight, vec3 direction, vec3 angles)
-			{
-				float atten = clamp((dot(-worldPosToLight, direction) - angles.y) * angles.z, 0.0, 1.0);
-				return atten * atten;
-			}
-			
-			vec3 getDirLightContibution(SurfaceData surfaceData, LightData lightData)
-			{
-				vec3 N = surfaceData.worldNormal.xyz;
-				vec3 L = -lightData.direction;
-				
-				float NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
-				return lightData.color * lightData.luminance * NoL;
-			}
-			
-			vec3 getPointLightContribution(vec3 L, vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
-			{
-				vec3 N = surfaceData.worldNormal.xyz;
-
-				float distanceSqrd = dot(L, L);
-				float distanceAttenuation = 1/(distanceSqrd + 1);
-				
-				L = normalize(L);
-				float NoL = clamp(dot(N, L), 0.0, 1.0); // TODO - Add bias here?
-
-				float radiusAttenuation = distanceSqrd * lightData.attRadiusSqrdInv;
-				radiusAttenuation *= radiusAttenuation;
-				radiusAttenuation = clamp(1.0f - radiusAttenuation, 0.0, 1.0);
-				radiusAttenuation *= radiusAttenuation;
-				
-				float attenuation = distanceAttenuation * radiusAttenuation;
-				return lightData.color * lightData.luminance * ((NoL * attenuation));
-			}
-			
-			vec3 getPointLightContribution(vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
-			{
-				vec3 L = lightData.position - worldPosition;
-				return getPointLightContribution(L, worldPosition, surfaceData, lightData);
-			}
-			
-			vec3 getSpotLightContribution(vec3 worldPosition, SurfaceData surfaceData, LightData lightData)
-			{
-				vec3 L = lightData.position - worldPosition;
-				vec3 pointLightContribution = getPointLightContribution(L, worldPosition, surfaceData, lightData);
-				float spotFalloff = getSpotAttenuation(L, lightData.direction, lightData.spotAngles);
-				
-				return pointLightContribution * spotFalloff;
 			}
 		};
 	};

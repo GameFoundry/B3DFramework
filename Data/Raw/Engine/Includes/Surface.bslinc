@@ -28,34 +28,3 @@ Technique
 	Language = "HLSL11";
 	Tags = { "SkinnedMorph" };
 };
-
-Technique 
- : inherits("BasePass")
- : inherits("Surface") =
-{
-	Language = "GLSL";
-};
-
-Technique 
- : inherits("BasePassSkinned")
- : inherits("Surface") =
-{
-	Language = "GLSL";
-	Tags = { "Skinned" };
-};
-
-Technique 
- : inherits("BasePassMorph")
- : inherits("Surface") =
-{
-	Language = "GLSL";
-	Tags = { "Morph" };
-};
-
-Technique 
- : inherits("BasePassSkinnedMorph")
- : inherits("Surface") =
-{
-	Language = "GLSL";
-	Tags = { "SkinnedMorph" };
-};

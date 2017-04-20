@@ -16,8 +16,6 @@ Parameters =
 
 Technique : base("Surface") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Fragment =
@@ -48,42 +46,6 @@ Technique : base("Surface") =
 				surfaceData.metalness = gMetalnessTex.Sample(gMetalnessSamp, input.uv0).x;
 				
 				encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB, OutGBufferC);
-			}	
-		};
-	};
-};
-
-Technique : base("Surface") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Fragment =
-		{
-			layout(location = 0) in vec2 uv0;
-			layout(location = 2) in vec3 tangentToWorldZ;
-			layout(location = 3) in vec4 tangentToWorldX;
-		
-			layout(binding = 4) uniform sampler2D gAlbedoTex;
-			layout(binding = 5) uniform sampler2D gNormalTex;
-			layout(binding = 6) uniform sampler2D gRoughnessTex;
-			layout(binding = 7) uniform sampler2D gMetalnessTex;
-			
-			layout(location = 0) out vec4 fragColor[3];
-			
-			void main()
-			{
-				vec3 normal = normalize(texture(gNormalTex, uv0).xyz * 2.0f - vec3(1, 1, 1));
-				vec3 worldNormal = calcWorldNormal(tangentToWorldZ, tangentToWorldX, normal);
-			
-				SurfaceData surfaceData;
-				surfaceData.albedo = texture(gAlbedoTex, uv0);
-				surfaceData.worldNormal.xyz = worldNormal;
-				surfaceData.roughness = texture(gRoughnessTex, uv0).x;
-				surfaceData.metalness = texture(gMetalnessTex, uv0).x;
-				
-				encodeGBuffer(surfaceData, fragColor[0], fragColor[1], fragColor[2]);
 			}	
 		};
 	};

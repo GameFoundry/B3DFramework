@@ -41,38 +41,3 @@ Technique
 		};
 	};
 };
-
-Technique
- : inherits("PPBase")
- : inherits("ReflectionCubemapCommon") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Fragment =
-		{
-			in VStoFS
-			{
-				layout(location = 0) vec2 uv0;
-			} FSInput;		
-		
-			layout(location = 0) out vec4 fragColor;
-		
-			layout(binding = 0) uniform Input
-			{
-				int gCubeFace;
-			};
-			
-			layout(binding = 1) uniform samplerCube gInputTex;
-			
-			void main()
-			{
-				vec2 scaledUV = FSInput.uv0 * 2.0f - 1.0f;
-				vec3 dir = getDirFromCubeFace(gCubeFace, scaledUV);
-
-				fragColor = texture(gInputTex, dir);
-			}	
-		};
-	};
-};

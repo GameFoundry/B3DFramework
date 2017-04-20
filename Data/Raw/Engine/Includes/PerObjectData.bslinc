@@ -16,8 +16,6 @@ Blocks =
 
 Technique : base("PerObjectData") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -35,31 +33,6 @@ Technique : base("PerObjectData") =
 			{
 				float4x4 gMatWorldViewProj;
 			}			
-		};
-	};
-};
-
-Technique : base("PerObjectData") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-			layout(binding = 2, std140) uniform PerObject
-			{
-				mat4 gMatWorld;
-				mat4 gMatInvWorld;
-				mat4 gMatWorldNoScale;
-				mat4 gMatInvWorldNoScale;
-				float gWorldDeterminantSign;
-			};
-			
-			layout(binding = 3, std140) uniform PerCall
-			{
-				mat4 gMatWorldViewProj;
-			};	
 		};
 	};
 };

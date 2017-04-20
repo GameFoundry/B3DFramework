@@ -1,7 +1,5 @@
 Technique : base("LightGridCommon") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Common = 
@@ -54,66 +52,6 @@ Technique : base("LightGridCommon") =
 				uint cellZ = calcCellZFromViewZ(convertFromDeviceZ(deviceZ));
 				
 				uint cellIdx = (cellZ * gGridSize.y + cellXY.y) * gGridSize.x + cellXY.x;
-				return cellIdx;
-			}
-		};
-	};
-};
-
-Technique : base("LightGridCommon") = 
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Common = 
-		{
-			layout(binding = 4, std140) uniform GridParams
-			{
-				// Offsets at which specific light types begin in gLights buffer
-				// Assumed directional lights start at 0
-				// x - offset to point lights, y - offset to spot lights, z - total number of lights
-				uvec3 gLightOffsets;			
-				uint gNumCells;
-				uvec3 gGridSize;
-				uint gMaxNumLightsPerCell;
-				uvec2 gGridPixelSize;
-			};
-			
-			float convertToNDCZ(float viewZ)
-			{
-				return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
-			}
-			
-			float calcViewZFromCellZ(uint cellZ)
-			{
-				// See HLSL version for reasons behind this formulation
-			
-				// Note: Some of these calculations could be moved to CPU
-				float viewZ = (pow(cellZ, 2) / pow(gGridSize.z, 2)) * (gNearFar.y - gNearFar.x) + gNearFar.x; 
-				return -viewZ;
-			}
-			
-			uint calcCellZFromViewZ(float viewZ)
-			{
-				// Inverse of calculation in calcViewZFromCellZ
-				uint cellZ = min(uint(floor(sqrt(((-viewZ - gNearFar.x)*pow(gGridSize.z, 2))/(gNearFar.y - gNearFar.x)))), gGridSize.z);
-				
-				return cellZ;
-			}
-			
-			int calcCellIdx(uvec2 pixelPos, float deviceZ)
-			{
-				// OpenGL uses lower left for window space origin, we use upper-left
-				#ifdef OPENGL
-					pixelPos.y = gViewportRectangle.w - pixelPos.y;
-				#endif
-			
-				// Note: Use bitshift to divide since gGridPixelSize will be a power of 2
-				uvec2 cellXY = pixelPos / gGridPixelSize;
-				uint cellZ = calcCellZFromViewZ(convertFromDeviceZ(deviceZ));
-								
-				int cellIdx = int((cellZ * gGridSize.y + cellXY.y) * gGridSize.x + cellXY.x);
 				return cellIdx;
 			}
 		};

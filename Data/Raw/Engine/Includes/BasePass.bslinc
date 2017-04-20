@@ -11,8 +11,6 @@
 
 Technique : base("BasePassCommon") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Vertex =
@@ -56,9 +54,7 @@ Technique
  : inherits("PerObjectData")
  : inherits("NormalVertexInput")
  : inherits("BasePassCommon") =
-{ 
-	Language = "HLSL11";
-};
+{ };
 
 Technique
  : base("BasePassSkinned")
@@ -67,9 +63,7 @@ Technique
  : inherits("PerObjectData")
  : inherits("SkinnedVertexInput")
  : inherits("BasePassCommon") =
-{
-	Language = "HLSL11";
-};
+{ };
 
 Technique
  : base("BasePassMorph")
@@ -78,9 +72,7 @@ Technique
  : inherits("PerObjectData")
  : inherits("MorphVertexInput")
  : inherits("BasePassCommon") =
-{
-	Language = "HLSL11";
-};
+{ };
 
 Technique
  : base("BasePassSkinnedMorph")
@@ -89,89 +81,4 @@ Technique
  : inherits("PerObjectData")
  : inherits("SkinnedMorphVertexInput")
  : inherits("BasePassCommon") =
-{
-	Language = "HLSL11";
-};
-
-Technique 
-	: base("BasePassCommon") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Vertex =
-		{			
-			void main()
-			{
-				VertexIntermediate intermediate;
-				getVertexIntermediate(intermediate);
-			
-				vec4 worldPos;
-				getVertexWorldPosition(intermediate, worldPos);
-				
-				outWorldPosition = worldPos.xyz;
-				gl_Position = gMatViewProj * worldPos;
-				
-				populateVertexOutput(intermediate);
-			}
-		};
-		
-		Fragment =
-		{
-			vec3 calcWorldNormal(vec3 normal, vec4 tangent, vec3 surfaceNormal)
-			{
-				vec3 tangentToWorldX = tangent.xyz;
-				vec3 tangentToWorldZ = normal;
-				vec3 tangentToWorldY = cross(tangentToWorldZ, tangentToWorldX) * tangent.w;
-				
-				mat3 tangentToWorld = mat3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
-				return normalize(tangentToWorld * surfaceNormal);
-			}
-		};
-	};
-};
-
-Technique
- : base("BasePass")
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
- : inherits("PerObjectData")
- : inherits("NormalVertexInput")
- : inherits("BasePassCommon") =
-{ 
-	Language = "GLSL";
-};
-
-Technique
- : base("BasePassSkinned")
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
- : inherits("PerObjectData")
- : inherits("SkinnedVertexInput")
- : inherits("BasePassCommon") =
-{
-	Language = "GLSL";
-};
-
-Technique
- : base("BasePassMorph")
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
- : inherits("PerObjectData")
- : inherits("MorphVertexInput")
- : inherits("BasePassCommon") =
-{
-	Language = "GLSL";
-};
-
-Technique
- : base("BasePassSkinnedMorph")
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
- : inherits("PerObjectData")
- : inherits("SkinnedMorphVertexInput")
- : inherits("BasePassCommon") =
-{
-	Language = "GLSL";
-};
+{ };

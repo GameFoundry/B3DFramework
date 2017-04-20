@@ -4,8 +4,6 @@ Technique
  : base("ImageBasedLighting")
  : inherits("ReflectionCubemapCommon") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -211,19 +209,6 @@ Technique
 				
 				return radiance * (specularColor * envBRDF.x + envBRDF.y);
 			}		
-		};
-	};
-};
-
-Technique : base("ImageBasedLighting") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-		
 		};
 	};
 };

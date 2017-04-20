@@ -35,8 +35,6 @@ Technique
  : inherits("ImageBasedLighting")
  : base("Surface") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		DepthWrite = false;
@@ -106,102 +104,6 @@ Technique
 				totalLighting.rgb += imageBasedSpecular;
 
 				return float4(totalLighting, gOpacity);
-			}	
-		};
-	};
-};
-
-Technique 
- : inherits("LightingCommon")
- : inherits("LightGridCommon")
- : base("Surface") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		DepthWrite = false;
-		
-		Target = 
-		{
-			Blend = true;
-			Color = { SRCA, SRCIA, ADD };
-		};
-	
-		Fragment =
-		{
-			layout(location = 0) in vec2 uv0;
-			layout(location = 1) in vec3 worldPosition;
-			layout(location = 2) in vec3 tangentToWorldZ;
-			layout(location = 3) in vec4 tangentToWorldX;			
-		
-			layout(binding = 5) uniform sampler2D gAlbedoTex;
-			layout(binding = 6) uniform sampler2D gNormalTex;
-			layout(binding = 7) uniform sampler2D gRoughnessTex;
-			layout(binding = 8) uniform sampler2D gMetalnessTex;
-			
-			layout(binding = 9) uniform usamplerBuffer gGridOffsetsAndSize;
-			layout(binding = 10) uniform usamplerBuffer gGridLightIndices;
-			layout(std430, binding = 11) readonly buffer gLights
-			{
-				LightData[] gLightsData;
-			};
-						
-			layout(binding = 12, std140) uniform MaterialParams
-			{
-				float gOpacity;
-			};
-			
-			layout(location = 0) out vec4 fragColor;
-			
-			void main()
-			{
-				vec3 normal = normalize(texture(gNormalTex, uv0).xyz * 2.0f - vec3(1, 1, 1));
-				vec3 worldNormal = calcWorldNormal(tangentToWorldZ, tangentToWorldX, normal);
-			
-				SurfaceData surfaceData;
-				surfaceData.albedo = texture(gAlbedoTex, uv0);
-				surfaceData.worldNormal.xyz = worldNormal;
-				surfaceData.roughness = texture(gRoughnessTex, uv0).x;
-				surfaceData.metalness = texture(gMetalnessTex, uv0).x;
-				
-				// Directional lights
-				vec3 lightAccumulator = vec3(0, 0, 0);
-				for(uint i = 0; i < gLightOffsets[0]; ++i)
-				{
-					LightData lightData = gLightsData[i];
-					lightAccumulator += getDirLightContibution(surfaceData, lightData);
-				}
-				
-				uvec2 pixelPos = uvec2(gl_FragCoord.xy);
-				int cellIdx = calcCellIdx(pixelPos, gl_FragCoord.z);
-				uvec3 offsetAndSize = texelFetch(gGridOffsetsAndSize, cellIdx).xyz;
-				
-				// Radial lights
-				int i = int(offsetAndSize.x);
-				uint end = offsetAndSize.x + offsetAndSize.y;
-				for(; i < end; i++)
-				{
-					uint lightIndex = texelFetch(gGridLightIndices, i).x;
-					LightData lightData = gLightsData[lightIndex];
-					
-					lightAccumulator += getPointLightContribution(worldPosition, surfaceData, lightData);
-				}
-				
-				// Spot lights
-				end += offsetAndSize.z;
-				for(; i < end; i++)
-				{
-					uint lightIndex = texelFetch(gGridLightIndices, i).x;
-					LightData lightData = gLightsData[lightIndex];
-					
-					lightAccumulator += getSpotLightContribution(worldPosition, surfaceData, lightData);
-				}
-				
-				lightAccumulator += surfaceData.albedo.xyz * gAmbientFactor;
-				
-				vec3 diffuse = surfaceData.albedo.xyz / PI; // TODO - Add better lighting model later
-				fragColor = vec4(diffuse * lightAccumulator, gOpacity); 
 			}	
 		};
 	};

@@ -4,8 +4,6 @@ Technique
  : inherits("SurfaceData")
  : base("GBufferOutput") =
 {
-	Language = "HLSL11";
-
 	Pass =
 	{
 		Common = 
@@ -14,28 +12,6 @@ Technique
 			{
 				GBufferAData = data.albedo;
 				GBufferBData.xyz = float3(data.worldNormal.xyz * 0.5f + 0.5f);
-				GBufferBData.w = 1.0f; // Marks that some deferred data was written
-				GBufferCData.x = data.roughness;
-				GBufferCData.y = data.metalness;
-			}
-		};
-	};
-};
-
-Technique 
- : inherits("SurfaceData")
- : base("GBufferOutput") =
-{
-	Language = "GLSL";
-
-	Pass =
-	{
-		Common = 
-		{
-			void encodeGBuffer(SurfaceData data, out vec4 GBufferAData, out vec4 GBufferBData, out vec4 GBufferCData)
-			{
-				GBufferAData = data.albedo;
-				GBufferBData.xyz = vec3(data.worldNormal.xyz * 0.5f + 0.5f);
 				GBufferBData.w = 1.0f; // Marks that some deferred data was written
 				GBufferCData.x = data.roughness;
 				GBufferCData.y = data.metalness;
