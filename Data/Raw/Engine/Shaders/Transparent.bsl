@@ -73,7 +73,7 @@ Technique
 				SurfaceData surfaceData;
 				surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
 				surfaceData.worldNormal.xyz = worldNormal;
-				surfaceData.worldNormal.w = 0.0f;
+				surfaceData.worldNormal.w = 1.0f;
 				surfaceData.roughness = gRoughnessTex.Sample(gRoughnessSamp, input.uv0).x;
 				surfaceData.metalness = gMetalnessTex.Sample(gMetalnessSamp, input.uv0).x;
 				

@@ -66,8 +66,8 @@ namespace bs { namespace ct
 		if(gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
 			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize", element.gridLightOffsetsAndSizeParam);
 
-		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightIndices"))
-			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridLightIndices", element.gridLightIndicesParam);
+		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLightIndices"))
+			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLightIndices", element.gridLightIndicesParam);
 
 		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize"))
 			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize", element.gridProbeOffsetsAndSizeParam);
