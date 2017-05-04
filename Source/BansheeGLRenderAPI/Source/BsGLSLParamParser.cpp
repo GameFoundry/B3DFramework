@@ -103,7 +103,15 @@ namespace bs { namespace ct
 			GLSLAttribute("bs_texcoord", VES_TEXCOORD),
 			GLSLAttribute("bs_color", VES_COLOR),
 			GLSLAttribute("bs_blendweights", VES_BLEND_WEIGHTS),
-			GLSLAttribute("bs_blendindices", VES_BLEND_INDICES)
+			GLSLAttribute("bs_blendindices", VES_BLEND_INDICES),
+			GLSLAttribute("POSITION", VES_POSITION),
+			GLSLAttribute("NORMAL", VES_NORMAL),
+			GLSLAttribute("TANGENT", VES_TANGENT),
+			GLSLAttribute("BITANGENT", VES_BITANGENT),
+			GLSLAttribute("TEXCOORD", VES_TEXCOORD),
+			GLSLAttribute("COLOR", VES_COLOR),
+			GLSLAttribute("BLENDWEIGHT", VES_BLEND_WEIGHTS),
+			GLSLAttribute("BLENDINDICES", VES_BLEND_INDICES)
 		};
 
 		static const UINT32 numAttribs = sizeof(attributes) / sizeof(attributes[0]);

@@ -25,9 +25,9 @@ else()
 endif()
 
 set(DEPENDENCY_BUILD_DIR "${CMAKE_SOURCE_DIR}/../Dependencies/Build/${DEPENDENCY_NAME}")
-set(DEPENDENCY_PARAMS -DXSC_BUILD_SHELL=OFF)
+set(DEPENDENCY_PARAMS -DXSC_BUILD_SHELL=OFF -DXSC_ENABLE_LANGUAGE_EXT=ON)
 
-find_package_or_build(XShaderCompiler inc/Xsc/Xsc.h ${DEPENDENCY_PARAMS})
+find_package_or_build(XShaderCompiler inc/Xsc/Xsc.h "${DEPENDENCY_PARAMS}")
 
 # Source files and their filters
 include(CMakeSources.cmake)

@@ -14,17 +14,19 @@ Technique
 			#define PI 3.1415926
 			#define HALF_PI 1.5707963
 			
+			// Note: Size must be multiple of largest element, because of std430 rules
 			struct LightData
 			{
 				float3 position;
 				float attRadius;
-				float srcRadius;
 				float3 direction;
 				float luminance;
 				float3 spotAngles;
 				float attRadiusSqrdInv;
 				float3 color;
+				float srcRadius;
 				float3 shiftedLightPosition;
+				float padding;
 			};
 			
 			float3 calcMicrofacetFresnelShlick(float3 F0, float LoH)

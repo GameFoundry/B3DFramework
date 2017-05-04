@@ -94,9 +94,11 @@ Technique
 			
 			void calcTileAABB(uint2 tileId, float viewZMin, float viewZMax, out float3 center, out float3 extent)
 			{
+				uint2 pixelPos = tileId * TILE_SIZE;
+			
 				// Convert threat XY coordinates to NDC coordinates
-				float2 uvTopLeft = (tileId * TILE_SIZE + 0.5f) / gFramebufferSize;
-				float2 uvBottomRight = ((tileId + uint2(1, 1)) * TILE_SIZE - 0.5f) / gFramebufferSize;
+				float2 uvTopLeft = (pixelPos + 0.5f) / gFramebufferSize;
+				float2 uvBottomRight = (pixelPos + uint2(TILE_SIZE, TILE_SIZE) - 0.5f) / gFramebufferSize;
 			
 				float3 ndcMin;
 				float3 ndcMax;

@@ -47,6 +47,11 @@ Technique : base("LightGridCommon") =
 			
 			uint calcCellIdx(uint2 pixelPos, float deviceZ)
 			{
+				// OpenGL uses lower left for window space origin
+				#ifdef OPENGL
+					pixelPos.y = gViewportRectangle.w - pixelPos.y;
+				#endif			
+			
 				// Note: Use bitshift to divide since gGridPixelSize will be a power of 2
 				uint2 cellXY = pixelPos / gGridPixelSize;
 				uint cellZ = calcCellZFromViewZ(convertFromDeviceZ(deviceZ));

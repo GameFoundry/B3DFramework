@@ -14,6 +14,7 @@
 #include "BsMatrix4.h"
 #include "BsBuiltinResources.h"
 
+#define XSC_ENABLE_LANGUAGE_EXT 1
 #include "Xsc/Xsc.h"
 
 //DEBUG ONLY
@@ -74,16 +75,147 @@ namespace bs
 		}
 	}
 
+	class XscLog : public Xsc::Log
+	{
+	public:
+		void SumitReport(const Xsc::Report& report) override
+		{
+			switch (report.Type())
+			{
+			case Xsc::Report::Types::Info:
+				mInfos.push_back({ FullIndent(), report });
+				break;
+			case Xsc::Report::Types::Warning:
+				mWarnings.push_back({ FullIndent(), report });
+				break;
+			case Xsc::Report::Types::Error:
+				mErrors.push_back({ FullIndent(), report });
+				break;
+			}
+		}
+
+		void getMessages(StringStream& output)
+		{
+			printAndClearReports(output, mInfos);
+			printAndClearReports(output, mWarnings, (mWarnings.size() == 1 ? "WARNING" : "WARNINGS"));
+			printAndClearReports(output, mErrors, (mErrors.size() == 1 ? "ERROR" : "ERRORS"));
+		}
+
+	private:
+		struct IndentReport
+		{
+			std::string indent;
+			Xsc::Report      report;
+		};
+
+		static void printMultiLineString(StringStream& output, const std::string& str, const std::string& indent)
+		{
+			// Determine at which position the actual text begins (excluding the "error (X:Y) : " or the like) 
+			auto textStartPos = str.find(" : ");
+			if (textStartPos != std::string::npos)
+				textStartPos += 3;
+			else
+				textStartPos = 0;
+
+			std::string newLineIndent(textStartPos, ' ');
+
+			size_t start = 0;
+			bool useNewLineIndent = false;
+			while (start < str.size())
+			{
+				output << indent;
+
+				if (useNewLineIndent)
+					output << newLineIndent;
+
+				// Print next line
+				auto end = str.find('\n', start);
+
+				if (end != std::string::npos)
+				{
+					output << str.substr(start, end - start);
+					start = end + 1;
+				}
+				else
+				{
+					output << str.substr(start);
+					start = end;
+				}
+
+				output << std::endl;
+				useNewLineIndent = true;
+			}
+		}
+
+		void printReport(StringStream& output, const IndentReport& r)
+		{
+			// Print optional context description
+			if (!r.report.Context().empty())
+				printMultiLineString(output, r.report.Context(), r.indent);
+
+			// Print report message
+			const auto& msg = r.report.Message();
+			printMultiLineString(output, msg, r.indent);
+
+			// Print optional line and line-marker
+			if (r.report.HasLine())
+			{
+				const auto& line = r.report.Line();
+				const auto& marker = r.report.Marker();
+
+				// Print line
+				output << r.indent << line << std::endl;
+
+				// Print line marker
+				output << r.indent << marker << std::endl;
+			}
+
+			// Print optional hints
+			for (const auto& hint : r.report.GetHints())
+				output << r.indent << hint << std::endl;
+		}
+
+		void printAndClearReports(StringStream& output, Vector<IndentReport>& reports, const String& headline = "")
+		{
+			if (!reports.empty())
+			{
+				if (!headline.empty())
+				{
+					String s = toString(reports.size()) + " " + headline;
+					output << s << std::endl;
+					output << String(s.size(), '-') << std::endl;
+				}
+
+				for (const auto& r : reports)
+					printReport(output, r);
+
+				reports.clear();
+			}
+		}
+
+		Vector<IndentReport> mInfos;
+		Vector<IndentReport> mWarnings;
+		Vector<IndentReport> mErrors;
+
+	};
+
 	// Convert HLSL code to GLSL
-	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, UINT32& startBindingSlot)
+	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, bool vulkan, UINT32& startBindingSlot)
 	{
 		SPtr<StringStream> input = bs_shared_ptr_new<StringStream>();
+
+		if (vulkan)
+			*input << "#define VULKAN 1" << std::endl;
+		else
+			*input << "#define OPENGL 1" << std::endl;
+
 		*input << hlsl;
 
 		Xsc::ShaderInput inputDesc;
 		inputDesc.entryPoint = "main";
 		inputDesc.shaderVersion = Xsc::InputShaderVersion::HLSL5;
 		inputDesc.sourceCode = input;
+		inputDesc.extensions = Xsc::Extensions::LayoutAttribute;
 
 		switch (type)
 		{
@@ -102,23 +234,36 @@ namespace bs
 		case GPT_FRAGMENT_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::FragmentShader;
 			break;
+		case GPT_COMPUTE_PROGRAM:
+			inputDesc.shaderTarget = Xsc::ShaderTarget::ComputeShader;
+			break;
 		}
 
 		StringStream output;
 
 		Xsc::ShaderOutput outputDesc;
-		outputDesc.shaderVersion = Xsc::OutputShaderVersion::VKSL450;
 		outputDesc.sourceCode = &output;
-		outputDesc.options.autoBinding = true;
+		outputDesc.options.autoBinding = vulkan;
 		outputDesc.options.autoBindingStartSlot = startBindingSlot;
+		outputDesc.options.separateShaders = true;
+		outputDesc.options.separateSamplers = false;
 		outputDesc.nameMangling.inputPrefix = "bs_";
 		outputDesc.nameMangling.useAlwaysSemantics = true;
+		outputDesc.nameMangling.renameBufferFields = true;
 
-		Xsc::StdLog log;
+		if (vulkan)
+			outputDesc.shaderVersion = Xsc::OutputShaderVersion::VKSL450;
+		else
+			outputDesc.shaderVersion = Xsc::OutputShaderVersion::GLSL450;
+
+		XscLog log;
 		Xsc::Reflection::ReflectionData reflectionData;
 		if (!Xsc::CompileShader(inputDesc, outputDesc, &log, &reflectionData))
 		{
-			LOGERR("Shader cross compilation failed.");
+			StringStream logOutput;
+			log.getMessages(logOutput);
+
+			LOGERR("Shader cross compilation failed. Log: \n\n" + logOutput.str());
 			return "";
 		}
 
@@ -134,6 +279,17 @@ namespace bs
 
 		startBindingSlot = maxBindingSlot;
 		return output.str();
+	}
+
+	/* Remove non-standard HLSL attributes. */
+	void cleanNonStandardHLSL(GPU_PROGRAM_DESC& progDesc)
+	{
+		static std::regex regex("\\[.*layout.*\\(.*\\).*\\]");
+
+		if (progDesc.language != "hlsl")
+			return;
+
+		progDesc.source = regex_replace(progDesc.source, regex, "");
 	}
 
 	BSLFXCompileResult BSLFXCompiler::compile(const String& name, const String& source, 
@@ -1429,7 +1585,7 @@ namespace bs
 		bs_stack_free(techniqueWasParsed);
 
 		// If no GLSL technique, auto-generate them for each non-base technique
-		if(false /*!hasGLSLTechnique*/) // TODO : Disabled for now
+		if(!hasGLSLTechnique)
 		{
 			UINT32 end = (UINT32)techniqueData.size();
 			for(UINT32 i = 0; i < end; i++)
@@ -1438,60 +1594,60 @@ namespace bs
 				if (!metaData.baseName.empty())
 					continue;
 
-				TechniqueData copy = techniqueData[i].second;
-				copy.metaData.language = "glsl";
-				for(auto& passData : copy.passes)
+				auto createTechniqueForLanguage = [](const String& name, const TechniqueData& orig, bool vulkan)
 				{
-					UINT32 nextFreeBindingSlot = 0;
-					if (!passData.vertexCode.empty())
+					TechniqueData copy = orig;
+					copy.metaData.language = vulkan ? "vksl" : "glsl";
+					for (auto& passData : copy.passes)
 					{
-						String hlslCode = passData.commonCode + passData.vertexCode;
-						passData.vertexCode = HLSLtoGLSL(hlslCode, GPT_VERTEX_PROGRAM, nextFreeBindingSlot);
+						UINT32 nextFreeBindingSlot = 0;
+						if (!passData.vertexCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.vertexCode;
+							passData.vertexCode = HLSLtoGLSL(hlslCode, GPT_VERTEX_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
 
-						auto ds = FileSystem::createAndOpenFile("E:\\GenShaders\\" + name + "_VS.glsl");
-						ds->writeString(passData.vertexCode);
+						if (!passData.fragmentCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.fragmentCode;
+							passData.fragmentCode = HLSLtoGLSL(hlslCode, GPT_FRAGMENT_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
+
+						if (!passData.geometryCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.geometryCode;
+							passData.geometryCode = HLSLtoGLSL(hlslCode, GPT_GEOMETRY_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
+
+						if (!passData.hullCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.hullCode;
+							passData.hullCode = HLSLtoGLSL(hlslCode, GPT_HULL_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
+
+						if (!passData.domainCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.domainCode;
+							passData.domainCode = HLSLtoGLSL(hlslCode, GPT_DOMAIN_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
+
+						if (!passData.computeCode.empty())
+						{
+							String hlslCode = passData.commonCode + passData.computeCode;
+							passData.computeCode = HLSLtoGLSL(hlslCode, GPT_COMPUTE_PROGRAM, vulkan, nextFreeBindingSlot);
+						}
+
+						passData.commonCode = "";
 					}
 
-					if (!passData.fragmentCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.fragmentCode;
-						passData.fragmentCode = HLSLtoGLSL(hlslCode, GPT_FRAGMENT_PROGRAM, nextFreeBindingSlot);
+					return copy;
+				};
 
-						auto ds = FileSystem::createAndOpenFile("E:\\GenShaders\\" + name + "_FS.glsl");
-						ds->writeString(passData.fragmentCode);
-					}
+				TechniqueData glslTechnique = createTechniqueForLanguage(name, techniqueData[i].second, false);
+				techniqueData.push_back(std::make_pair(techniqueData[i].first, glslTechnique));
 
-					if (!passData.geometryCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.geometryCode;
-						passData.geometryCode = HLSLtoGLSL(hlslCode, GPT_GEOMETRY_PROGRAM, nextFreeBindingSlot);
-					}
-
-					if (!passData.hullCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.hullCode;
-						passData.hullCode = HLSLtoGLSL(hlslCode, GPT_HULL_PROGRAM, nextFreeBindingSlot);
-					}
-
-					if (!passData.domainCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.domainCode;
-						passData.domainCode = HLSLtoGLSL(hlslCode, GPT_DOMAIN_PROGRAM, nextFreeBindingSlot);
-					}
-
-					if (!passData.computeCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.computeCode;
-						passData.computeCode = HLSLtoGLSL(hlslCode, GPT_COMPUTE_PROGRAM, nextFreeBindingSlot);
-
-						auto ds = FileSystem::createAndOpenFile("E:\\GenShaders\\" + name + "_CS.glsl");
-						ds->writeString(passData.computeCode);
-					}
-
-					passData.commonCode = "";
-				}
-
-				techniqueData.push_back(std::make_pair(techniqueData[i].first, copy));
+				TechniqueData vkslTechnique = createTechniqueForLanguage(name, techniqueData[i].second, true);
+				techniqueData.push_back(std::make_pair(techniqueData[i].first, vkslTechnique));
 			}
 		}
 
@@ -1525,6 +1681,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.vertexCode;
 					desc.type = GPT_VERTEX_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.vertexProgram = GpuProgram::create(desc);
 				}
 
@@ -1533,6 +1690,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.fragmentCode;
 					desc.type = GPT_FRAGMENT_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.fragmentProgram = GpuProgram::create(desc);
 				}
 
@@ -1541,6 +1699,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.geometryCode;
 					desc.type = GPT_GEOMETRY_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.geometryProgram = GpuProgram::create(desc);
 				}
 
@@ -1549,6 +1708,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.hullCode;
 					desc.type = GPT_HULL_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.hullProgram = GpuProgram::create(desc);
 				}
 
@@ -1557,6 +1717,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.domainCode;
 					desc.type = GPT_DOMAIN_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.domainProgram = GpuProgram::create(desc);
 				}
 
@@ -1565,6 +1726,7 @@ namespace bs
 					desc.source = passData.commonCode + passData.computeCode;
 					desc.type = GPT_COMPUTE_PROGRAM;
 
+					cleanNonStandardHLSL(desc);
 					passDesc.computeProgram = GpuProgram::create(desc);
 				}
 

@@ -162,11 +162,18 @@ Technique
 				// This will yield a bias ranging from [-(tileScale - 1), tileScale - 1]. Every second bias is skipped as
 				// corresponds to a point in-between two tiles, overlapping existing frustums.
 				
+				float flipSign = 1.0f;
+				
+				// Adjust for OpenGL's upside down texture system
+				#if OPENGL
+					flipSign = -1;
+				#endif
+				
 				float At = gMatProj[0][0] * tileScale.x;
 				float Ctt = gMatProj[0][2] * tileScale.x - tileBias.x;
 				
-				float Bt = gMatProj[1][1] * tileScale.y;
-				float Dtt = gMatProj[1][2] * tileScale.y + tileBias.y;
+				float Bt = gMatProj[1][1] * tileScale.y * flipSign;
+				float Dtt = (gMatProj[1][2] * tileScale.y + flipSign * tileBias.y) * flipSign;
 				
 				// Extract left/right/top/bottom frustum planes from scaled projection matrix
 				// Note: Do this on the CPU? Since they're shared among all entries in a tile. Plus they don't change across frames.
@@ -242,8 +249,8 @@ Technique
 				float2 screenUv = ((float2)(gViewportRectangle.xy + pixelPos) + 0.5f) / (float2)gViewportRectangle.zw;
 				float2 clipSpacePos = (screenUv - gClipToUVScaleOffset.zw) / gClipToUVScaleOffset.xy;
 			
-				uint2 viewportMax = gViewportRectangle.xy + gViewportRectangle.zw;
-
+				uint2 viewportMax = gViewportRectangle.xy + gViewportRectangle.zw;			
+				
 				// Ignore pixels out of valid range
 				if (all(dispatchThreadId.xy < viewportMax))
 				{

@@ -86,7 +86,7 @@ namespace bs { namespace ct
 
 	void GLSLGpuProgram::initialize()
 	{
-		static const char* EXTRA_LINES[] = { "#version 440\n", "#define OPENGL\n" };
+		static const char* VERSION_LINE = "#version 450\n";
 		
 		if (!isSupported())
 		{
@@ -132,35 +132,41 @@ namespace bs { namespace ct
 		{
 			Vector<GLchar*> lines;
 
-			UINT32 numExtraLines = sizeof(EXTRA_LINES) / sizeof(EXTRA_LINES[0]);
-			for(UINT32 i = 0; i < numExtraLines; i++)
-			{
-				UINT32 length = (UINT32)strlen(EXTRA_LINES[i]) + 1;
-
-				GLchar* extraLineData = (GLchar*)bs_stack_alloc(length);
-				memcpy(extraLineData, EXTRA_LINES[i], length);
-
-				lines.push_back(extraLineData);
-			}
+			const char* versionStr = "#version ";
+			UINT32 versionStrLen = (UINT32)strlen(versionStr);
 
 			UINT32 lineLength = 0;
+			INT32 versionLine = -1;
 			for (UINT32 i = 0; i < source.size(); i++)
 			{
 				if (source[i] == '\n' || source[i] == '\r')
 				{
-					if (lineLength > 0)
+					assert(sizeof(source[i]) == sizeof(GLchar));
+
+					GLchar* lineData = (GLchar*)bs_stack_alloc(sizeof(GLchar) * (lineLength + 2));
+					memcpy(lineData, &source[i - lineLength], sizeof(GLchar) * lineLength);
+
+					lineData[lineLength] = '\n';
+					lineData[lineLength + 1] = '\0';
+
+					if(versionLine == -1 && lineLength >= versionStrLen)
 					{
-						assert(sizeof(source[i]) == sizeof(GLchar));
+						bool isEqual = true;
+						for (UINT32 j = 0; j < versionStrLen; ++j)
+						{
+							if(lineData[j] != versionStr[j])
+							{
+								isEqual = false;
+								break;
+							}
+						}
 
-						GLchar* lineData = (GLchar*)bs_stack_alloc(sizeof(GLchar) * (lineLength + 2));
-						memcpy(lineData, &source[i - lineLength], sizeof(GLchar) * lineLength);
-
-						lineData[lineLength] = '\n';
-						lineData[lineLength + 1] = '\0';
-
-						lines.push_back(lineData);
-						lineLength = 0;
+						if (isEqual)
+							versionLine = (INT32)lines.size();
 					}
+
+					lines.push_back(lineData);
+					lineLength = 0;
 				}
 				else
 				{
@@ -181,12 +187,42 @@ namespace bs { namespace ct
 				lineLength = 0;
 			}
 
+			int numInsertedLines = 0;
+			if(versionLine == -1)
+			{
+				UINT32 length = (UINT32)strlen(VERSION_LINE) + 1;
+
+				GLchar* extraLineData = (GLchar*)bs_stack_alloc(length);
+				memcpy(extraLineData, VERSION_LINE, length);
+
+				lines.insert(lines.begin(), extraLineData);
+				numInsertedLines++;
+			}
+
+			static const char* EXTRA_LINES[] = { "#define OPENGL\n" };
+			UINT32 numExtraLines = sizeof(EXTRA_LINES) / sizeof(EXTRA_LINES[0]);
+			UINT32 extraLineOffset = versionLine != -1 ? versionLine + 1 : 0;
+			for (UINT32 i = 0; i < numExtraLines; i++)
+			{
+				UINT32 length = (UINT32)strlen(EXTRA_LINES[i]) + 1;
+
+				GLchar* extraLineData = (GLchar*)bs_stack_alloc(length);
+				memcpy(extraLineData, EXTRA_LINES[i], length);
+
+				lines.insert(lines.begin() + extraLineOffset + numInsertedLines, extraLineData);
+				numInsertedLines++;
+			}
+
 			mGLHandle = glCreateShaderProgramv(shaderType, (GLsizei)lines.size(), (const GLchar**)lines.data());
 
+			for (INT32 i = numInsertedLines - 1; i >= 0; i--)
+				bs_stack_free(lines[extraLineOffset + i]);
+
+			if (numInsertedLines > 0)
+				lines.erase(lines.begin() + extraLineOffset, lines.begin() + extraLineOffset + numInsertedLines);
+
 			for (auto iter = lines.rbegin(); iter != lines.rend(); ++iter)
-			{
 				bs_stack_free(*iter);
-			}
 
 			mCompileError = "";
 			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileError);

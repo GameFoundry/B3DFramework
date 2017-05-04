@@ -18,10 +18,11 @@ namespace bs { namespace ct
 		Vector3 position;
 		float radius;
 		Vector3 boxExtents;
-		Matrix4 invBoxTransform;
 		float transitionDistance;
+		Matrix4 invBoxTransform;
 		UINT32 cubemapIdx;
 		UINT32 type;
+		Vector2 padding;
 	};
 
 	/** Contains GPU buffers used by the renderer to manipulate reflection probes. */

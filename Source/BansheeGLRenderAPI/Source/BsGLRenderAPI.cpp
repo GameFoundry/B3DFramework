@@ -427,6 +427,7 @@ namespace bs { namespace ct
 					textureUnits.clear();
 					imageUnits.clear();
 					uniformUnits.clear();
+					sharedStorageUnits.clear();
 
 					GpuProgramType type = (GpuProgramType)i;
 

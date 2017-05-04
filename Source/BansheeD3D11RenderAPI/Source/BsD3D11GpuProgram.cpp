@@ -124,11 +124,17 @@ namespace bs { namespace ct
 		const String& source = mProperties.getSource();
 		const String& entryPoint = mProperties.getEntryPoint();
 
+		const D3D_SHADER_MACRO defines[] = 
+		{ 
+			{ "HLSL", "1" },
+			{ nullptr, nullptr }
+		};
+
 		HRESULT hr = D3DCompile(
 			source.c_str(),		// [in] Pointer to the shader in memory. 
 			source.size(),		// [in] Size of the shader in memory.  
 			nullptr,			// [in] The name of the file that contains the shader code. 
-			nullptr,			// [in] Optional. Pointer to a NULL-terminated array of macro definitions. See D3D_SHADER_MACRO. If not used, set this to NULL. 
+			defines,			// [in] Optional. Pointer to a NULL-terminated array of macro definitions. See D3D_SHADER_MACRO. If not used, set this to NULL. 
 			nullptr,			// [in] Optional. Pointer to an ID3DInclude Interface interface for handling include files. Setting this to NULL will cause a compile error if a shader contains a #include. 
 			entryPoint.c_str(),	// [in] Name of the shader-entrypoint function where shader execution begins. 
 			profile.c_str(),// [in] A string that specifies the shader model; can be any profile in shader model 4 or higher. 

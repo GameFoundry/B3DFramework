@@ -40,12 +40,12 @@ Technique : inherits("PPBase") =
 				UV[2] = input.uv0 + gInvTexSize * float2(-1,  1);
 				UV[3] = input.uv0 + gInvTexSize * float2( 1,  1);
 
-				float4 sample[4];
+				float4 samples[4];
 
 				for(uint i = 0; i < 4; i++)
-					sample[i] = gInputTex.Sample(gInputSamp, UV[i]);
+					samples[i] = gInputTex.Sample(gInputSamp, UV[i]);
 
-				return (sample[0] + sample[1] + sample[2] + sample[3]) * 0.25f;
+				return (samples[0] + samples[1] + samples[2] + samples[3]) * 0.25f;
 			}	
 		};
 	};

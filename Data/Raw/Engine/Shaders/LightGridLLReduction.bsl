@@ -17,6 +17,7 @@ Technique
 			Buffer<uint> gProbesLLHeads;
 			Buffer<uint2> gProbesLL;
 			
+			[layout(r32ui)]
 			RWBuffer<uint> gGridDataCounter;
 			
 			RWBuffer<uint4> gGridLightOffsetAndSize;

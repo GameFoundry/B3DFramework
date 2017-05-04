@@ -17,13 +17,14 @@ namespace bs { namespace ct
 	{
 		Vector3 position;
 		float attRadius;
-		float srcRadius;
 		Vector3 direction;
 		float luminance;
 		Vector3 spotAngles;
 		float attRadiusSqrdInv;
 		Vector3 color;
+        float srcRadius;
 		Vector3 shiftedLightPosition;
+		float padding;
 	};
 
 	/**	Renderer information specific to a single light. */

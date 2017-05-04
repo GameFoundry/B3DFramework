@@ -5,7 +5,8 @@ project (Banshee)
 set (BS_VERSION_MAJOR 0)
 set (BS_VERSION_MINOR 4)
 
-set (BS_DEPENDENCIES_VERSION 1)
+set (BS_PREBUILT_DEPENDENCIES_VERSION 1)
+set (BS_SRC_DEPENDENCIES_VERSION 4)
 
 # Configuration types
 if(CMAKE_CONFIGURATION_TYPES) # Multiconfig generator?
@@ -67,7 +68,7 @@ if(NOT EXISTS ${BUILTIN_DEP_VERSION_FILE})
 	message(FATAL_ERROR "Precompiled dependencies package is missing our out of date. Re-run setup or manually re-download and extract dependencies.")
 else()
 	file (STRINGS ${BUILTIN_DEP_VERSION_FILE} CURRENT_BUILTIN_DEP_VERSION)
-	if(${BS_DEPENDENCIES_VERSION} GREATER ${CURRENT_BUILTIN_DEP_VERSION})
+	if(${BS_PREBUILT_DEPENDENCIES_VERSION} GREATER ${CURRENT_BUILTIN_DEP_VERSION})
 		message(FATAL_ERROR "Your precomiled dependencies package is out of date. Re-run setup or manually re-download and extract dependencies.")
 	endif()
 endif()
@@ -77,7 +78,7 @@ set(SOURCE_DEP_BUILD_DIR ${PROJECT_SOURCE_DIR}/../Dependencies/Build)
 set(SOURCE_DEP_BUILD_VERSION_FILE ${SOURCE_DEP_BUILD_DIR}/.version)
 if(EXISTS ${SOURCE_DEP_BUILD_VERSION_FILE})
 	file (STRINGS ${SOURCE_DEP_BUILD_VERSION_FILE} CURRENT_SOURCE_DEP_VERSION)
-	if(${BS_DEPENDENCIES_VERSION} GREATER ${CURRENT_SOURCE_DEP_VERSION})
+	if(${BS_SRC_DEPENDENCIES_VERSION} GREATER ${CURRENT_SOURCE_DEP_VERSION})
 		message(STATUS "Built dependencies are out of date, forcing recompile.")
 		execute_process(COMMAND "${CMAKE_COMMAND}" 
 			-E remove_directory "${SOURCE_DEP_BUILD_DIR}")	
@@ -122,7 +123,7 @@ if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE ${BS_LINKER_FLAGS_RELEASE})
 	
 	# Compiler
-	set(BS_COMPILER_FLAGS_COMMON "/GS- /W3 /GR- /WX- /nologo /bigobj /wd\"4577\"")
+	set(BS_COMPILER_FLAGS_COMMON "/GS- /W3 /GR- /WX- /nologo /bigobj /wd\"4577\" /wd\"4530\"")
 	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
 	
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} /Gm /Od /RTC1 /MDd")
@@ -137,7 +138,7 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} /GL /Gy /O2 /Oi /MD")
 	
 	# Global defines
-	add_definitions(-D_HAS_EXCEPTIONS=0)
+	#add_definitions(-D_HAS_EXCEPTIONS=0)
 	
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	# Note: Optionally add -ffunction-sections, -fdata-sections, but with linker option --gc-sections
