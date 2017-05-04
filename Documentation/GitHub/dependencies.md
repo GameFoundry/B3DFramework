@@ -218,5 +218,5 @@ If the library structure still isn't clear, download one of the pre-compiled dep
  - https://github.com/BearishSun/BansheeSBGen
  - Required for generation of C# script binding files. Not required if not using the scripting sub-system.
  - Outputs:
-  - Windows (tool):
-   - BansheeSBGen/BansheeSBGen_v1.0.0.exe
+   - Windows (tool):
+     - BansheeSBGen/BansheeSBGen_v1.0.0.exe

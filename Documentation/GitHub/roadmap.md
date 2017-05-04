@@ -39,4 +39,4 @@ Implementation times for each of those roughly ranges from 1-4 months.
 
 ---------------------------------------------------
 
-[Detailed task list] (https://trello.com/b/w6CyYY37/banshee-3d)
+[Detailed task list](https://trello.com/b/w6CyYY37/banshee-3d)
