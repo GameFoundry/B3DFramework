@@ -14,8 +14,6 @@ Blocks =
 
 Technique =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Scissor = true;
@@ -59,66 +57,6 @@ Technique =
 					discard;
 				
 				return inColor;
-			}
-		};
-	};
-};
-
-Technique =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Scissor = true;
-
-		Common =
-		{
-			layout(binding = 0, std140) uniform Uniforms
-			{
-				mat4 	gMatViewProj;
-				float	gAlphaCutoff;
-			};
-		};
-		
-		Vertex =
-		{
-			layout(location = 0) in vec3 bs_position;
-			layout(location = 1) in vec4 bs_color0;
-			layout(location = 2) in vec2 bs_texcoord0;
-			
-			layout(location = 0) out vec2 texcoord0;
-			layout(location = 1) out vec4 color0;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};
-			
-			void main()
-			{
-				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
-				texcoord0 = bs_texcoord0;
-				color0 = bs_color0;
-			}
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) in vec2 texcoord0;
-			layout(location = 1) in vec4 color0;
-			
-			layout(location = 0) out vec4 fragColor;
-			
-			layout(binding = 1) uniform sampler2D gMainTexture;
-			
-			void main()
-			{
-				vec4 texColor = texture(gMainTexture, texcoord0);
-				if(texColor.a < gAlphaCutoff)
-					discard;
-				
-				fragColor = color0;
 			}
 		};
 	};

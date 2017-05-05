@@ -1,7 +1,5 @@
 Technique =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Target = 
@@ -31,50 +29,5 @@ Technique =
 				return float4(0, 0, 0, 1);
 			}	
 		};	
-	};
-};
-
-Technique =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Target = 
-		{
-			WriteMask = A;
-		};
-		
-		DepthRead = false;
-		DepthWrite = false;	
-	
-		Stencil = true;
-		StencilOpFront = { KEEP, KEEP, KEEP, LTE };
-		StencilRef = 1;	
-	
-		Vertex =
-		{
-			layout(location = 0) in vec3 bs_position;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};
-			
-			void main()
-			{
-				gl_Position = vec4(bs_position.xy, 0, 1);
-			}
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) out vec4 fragColor;
-
-			void main()
-			{
-				fragColor = vec4(0, 0, 0, 1);
-			}
-		};
 	};
 };

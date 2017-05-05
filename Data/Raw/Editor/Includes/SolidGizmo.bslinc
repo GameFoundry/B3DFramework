@@ -11,8 +11,6 @@ Blocks =
 
 Technique : base("SolidGizmo") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Common =
@@ -48,59 +46,6 @@ Technique : base("SolidGizmo") =
 				outColor.a = color.a;
 				
 				return outColor;
-			}
-		};
-	};
-};
-
-Technique : base("SolidGizmo") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Common =
-		{
-			layout(binding = 0, std140) uniform Uniforms
-			{
-				mat4 	gMatViewProj;
-				vec4	gViewDir;
-			};
-		};
-	
-		Vertex =
-		{
-			layout(location = 0) in vec3 bs_position;
-			layout(location = 1) in vec3 bs_normal;
-			layout(location = 2) in vec4 bs_color0;
-			
-			layout(location = 0) out vec3 normal;
-			layout(location = 1) out vec4 color0;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};		
-		
-			void main()
-			{
-				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
-				normal = bs_normal;
-				color0 = bs_color0;
-			}
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) in vec3 normal;
-			layout(location = 1) in vec4 color0;
-			
-			layout(location = 0) out vec4 fragColor;
-
-			void main()
-			{
-				fragColor = color0 * dot(normalize(normal), -gViewDir.xyz);
-				fragColor.a = color0.a;
 			}
 		};
 	};

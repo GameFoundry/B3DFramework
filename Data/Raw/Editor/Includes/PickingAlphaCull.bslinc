@@ -15,8 +15,6 @@ Blocks =
 
 Technique : base("PickingAlphaCull") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Scissor = true;
@@ -64,68 +62,6 @@ Technique : base("PickingAlphaCull") =
 					discard;
 				
 				return gColorIndex;
-			}
-		};
-	};
-};
-
-Technique : base("PickingAlphaCull") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Scissor = true;
-
-		Common =
-		{
-			layout(binding = 0, std140) uniform Uniforms
-			{
-				mat4 	gMatWorldViewProj;
-				vec4	gColorIndex;
-				float	gAlphaCutoff;
-			};
-		};		
-		
-		Vertex =
-		{		
-			layout(location = 0) in vec3 bs_position;
-			layout(location = 1) in vec2 bs_texcoord0;
-			layout(location = 2) in vec3 bs_normal;
-			
-			layout(location = 0) out vec4 normal;
-			layout(location = 1) out vec2 texcoord0;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};
-						
-			void main()
-			{
-				gl_Position = gMatWorldViewProj * vec4(bs_position.xyz, 1);
-				texcoord0 = bs_texcoord0;
-				normal = vec4(bs_normal, 0);
-			}
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) in vec4 normal;
-			layout(location = 1) in vec2 texcoord0;		
-		
-			layout(location = 0) out vec4[2] outColor;
-
-			layout(binding = 2) uniform sampler2D gMainTexture;
-
-			void main()
-			{
-				vec4 color = texture(gMainTexture, texcoord0);
-				if(color.a < gAlphaCutoff)
-					discard;
-					
-				outColor[0] = gColorIndex;
-				outColor[1] = (normal + vec4(1,1,1,0)) / 2;	
 			}
 		};
 	};

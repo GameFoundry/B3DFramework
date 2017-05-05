@@ -14,8 +14,6 @@ Blocks =
 
 Technique =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Target = 
@@ -62,63 +60,4 @@ Technique =
 			}		
 		};
 	};
-};	
-
-Technique =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Target = 
-		{
-			Blend = true;
-			Color = { SRCA, SRCIA, ADD };
-		};
-		
-		DepthWrite = false;
-		
-		Vertex =
-		{
-			layout(location = 0) in vec3 bs_position;
-			layout(location = 1) in vec4 bs_color0;
-			layout(location = 2) in vec2 bs_texcoord0;
-			
-			layout(location = 0) out vec4 color0;
-			layout(location = 1) out vec2 texcoord0;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};		
-		
-			layout(binding = 0, std140) uniform Uniforms
-			{
-				mat4 	gMatViewProj;
-				vec4	gViewDir;
-			};
-			
-			void main()
-			{
-				gl_Position = gMatViewProj * vec4(bs_position.xyz, 1);
-				texcoord0 = bs_texcoord0;
-				color0 = bs_color0;
-			}		
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) in vec4 color0;
-			layout(location = 1) in vec2 texcoord0;
-			
-			layout(location = 0) out vec4 fragColor;
-
-			layout(binding = 1) uniform sampler2D gMainTexture;
-			
-			void main()
-			{
-				fragColor = vec4(color0.rgb, texture(gMainTexture, texcoord0.st).r * color0.a);
-			}		
-		};
-	};
-};	
+};

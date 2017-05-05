@@ -7,8 +7,6 @@ Parameters =
 
 Technique : base("SelectionBase") =
 {
-	Language = "HLSL11";
-	
 	Pass =
 	{
 		Fill = WIRE;
@@ -48,8 +46,6 @@ Technique
 #endif
  : inherits("SelectionBase") = 
 {
-	Language = "HLSL11";
-
 	Vertex =
 	{
 		struct VertexInput
@@ -67,8 +63,11 @@ Technique
 			#endif
 		};	
 	
-		float4x4 matWorldViewProj;
-	
+		cbuffer VertParams
+		{	
+			float4x4 matWorldViewProj;
+		};
+		
 #ifdef USE_SKELETON
 		StructuredBuffer<float4> boneMatrices;
 		
@@ -106,132 +105,6 @@ Technique
 #endif
 
 			oPosition = mul(matWorldViewProj, position);
-		}
-	};
-};
-
-Technique : base("SelectionBase") =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-		Fill = WIRE;
-		DepthBias = 0.00001f;
-		
-		Target =
-		{
-			Blend = true;
-			Color = { SRCA, SRCIA, ADD };
-		};
-		
-		Fragment =
-		{
-			layout(location = 0) out vec4 fragColor;
-		
-			layout(binding = 0) uniform FragUBO
-			{
-				vec4 selColor;
-			};
-		
-			void main()
-			{
-				fragColor = selColor;
-			}
-		};
-	};
-};
-
-Technique
-#ifdef USE_BLEND_SHAPES
-	#ifdef USE_SKELETON
-	 : base("SelectionSkinnedMorph")
-	#else
-	 : base("SelectionMorph")
-	#endif
-#else
-	#ifdef USE_SKELETON
-	 : base("SelectionSkinned")
-	#else
-	 : base("Selection")
-	#endif
-#endif
- : inherits("SelectionBase") = 
-{
-	Language = "GLSL";
-	
-	Vertex =
-	{
-		layout(location = 0) in vec3 bs_position;
-	
-		#ifdef USE_SKELETON
-			layout(location = 1) in ivec4 bs_blendindices;
-			layout(location = 2) in vec4 bs_blendweights;
-		#endif
-			
-		#ifdef USE_BLEND_SHAPES
-			layout(location = 3) in vec3 bs_position1;
-			layout(location = 4) in vec4 bs_normal1;
-		#endif
-		
-		out gl_PerVertex
-		{
-			vec4 gl_Position;
-		};
-		
-		layout(binding = 1) uniform VertUBO
-		{
-			mat4 matWorldViewProj;
-		};	
-		
-#ifdef USE_SKELETON
-		layout(binding = 2) uniform samplerBuffer boneMatrices;
-		
-		void getBoneMatrix(int idx, out mat4x3 result)
-		{
-			mat3x4 temp;
-		
-			temp[0] = texelFetch(boneMatrices, idx * 3 + 0);
-			temp[1] = texelFetch(boneMatrices, idx * 3 + 1);
-			temp[2] = texelFetch(boneMatrices, idx * 3 + 2);
-			
-			result = transpose(temp);				
-		}
-		
-		void getBlendMatrix(out mat4x3 result)
-		{
-			mat4x3 boneMatrix;
-			
-			getBoneMatrix(bs_blendindices.x, boneMatrix);
-			result = bs_blendweights.x * boneMatrix;
-			
-			getBoneMatrix(bs_blendindices.y, boneMatrix);
-			result += bs_blendweights.y * boneMatrix;
-			
-			getBoneMatrix(bs_blendindices.z, boneMatrix);
-			result += bs_blendweights.z * boneMatrix;
-			
-			getBoneMatrix(bs_blendindices.w, boneMatrix);
-			result += bs_blendweights.w * boneMatrix;
-		}
-#endif
-		
-		void main()
-		{
-#ifdef USE_BLEND_SHAPES
-			vec4 position = vec4(bs_position + bs_position1, 1.0f);
-#else
-			vec4 position = vec4(bs_position, 1.0f);
-#endif		
-		
-#ifdef USE_SKELETON
-			mat4x3 blendMatrix;
-			getBlendMatrix(blendMatrix);
-			
-			position = vec4(blendMatrix * position, 1.0f);
-#endif
-
-			gl_Position = matWorldViewProj * position;
 		}
 	};
 };

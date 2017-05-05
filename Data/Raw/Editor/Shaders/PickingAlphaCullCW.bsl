@@ -2,18 +2,6 @@
 
 Technique : inherits("PickingAlphaCull") =
 {
-	Language = "HLSL11";
-	
-	Pass =
-	{
-		Cull = CW;
-	};
-};
-
-Technique : inherits("PickingAlphaCull") =
-{
-	Language = "GLSL";
-	
 	Pass =
 	{
 		Cull = CW;
