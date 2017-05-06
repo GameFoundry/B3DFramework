@@ -1722,7 +1722,7 @@ namespace bs { namespace ct
 							for(UINT32 j = 0; j < numCutRanges; j++)
 							{
 								// Create a copy of the original subresource with the new range
-								ImageSubresourceInfo newInfo = subresource;
+								ImageSubresourceInfo newInfo = mSubresourceInfos[subresourceIdx];
 								newInfo.range = tempCutRanges[j];
 
 								if(VulkanUtility::rangeOverlaps(tempCutRanges[j], range))
