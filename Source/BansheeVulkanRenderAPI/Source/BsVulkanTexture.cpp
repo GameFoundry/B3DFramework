@@ -474,7 +474,8 @@ namespace bs { namespace ct
 
 							for (UINT32 i = 0; i < barrier->subresourceRange.levelCount; i++)
 							{
-								UINT32 idx = i * range.layerCount + (face - range.baseArrayLayer);
+								UINT32 curMip = (barrier->subresourceRange.baseMipLevel + i) - range.baseMipLevel;
+								UINT32 idx = curMip * range.layerCount + (face - range.baseArrayLayer);
 								processed[idx] = true;
 							}
 						}
@@ -505,7 +506,8 @@ namespace bs { namespace ct
 
 							for (UINT32 i = 0; i < barrier->subresourceRange.layerCount; i++)
 							{
-								UINT32 idx = (mip - range.baseMipLevel) * range.layerCount + i;
+								UINT32 curFace = (barrier->subresourceRange.baseArrayLayer + i) - range.baseArrayLayer;
+								UINT32 idx = (mip - range.baseMipLevel) * range.layerCount + curFace;
 								processed[idx] = true;
 							}
 						}
@@ -531,6 +533,7 @@ namespace bs { namespace ct
 							face = range.baseArrayLayer + j;
 
 							found = true;
+							processed[idx] = true;
 							break;
 						}
 					}
