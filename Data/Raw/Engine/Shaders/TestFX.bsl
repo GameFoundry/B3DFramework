@@ -145,10 +145,13 @@ Technique =
 		
 		Vertex = 
 		{
-			float invViewportWidth;
-			float invViewportHeight;
-			float4x4 worldTransform;
-
+			cbuffer VertParams
+			{
+				float invViewportWidth;
+				float invViewportHeight;
+				float4x4 worldTransform;
+			};
+			
 			void main(
 			in float3 inPos : POSITION,
 			in float2 uv : TEXCOORD0,
@@ -169,8 +172,12 @@ Technique =
 		{
 			SamplerState mainTexSamp : register(s0);
 			Texture2D mainTexture : register(t0);
-			float4 tint;
-
+			
+			cbuffer FragParams
+			{
+				float4 tint;
+			};
+			
 			float4 main(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 			{
 				float4 color = mainTexture.Sample(mainTexSamp, uv);

@@ -34,10 +34,13 @@ Technique =
 		
 		Vertex =
 		{
-			float invViewportWidth;
-			float invViewportHeight;
-			float4x4 worldTransform;
-
+			cbuffer VertParams
+			{
+				float invViewportWidth;
+				float invViewportHeight;
+				float4x4 worldTransform;
+			};
+			
 			struct VertexInput
 			{
 				float2 position : POSITION;
@@ -59,7 +62,10 @@ Technique =
 		
 		Fragment =
 		{
-			float4 tint;
+			cbuffer VertParams
+			{
+				float4 tint;
+			};
 			
 			float4 main(VStoFS input) : SV_Target
 			{

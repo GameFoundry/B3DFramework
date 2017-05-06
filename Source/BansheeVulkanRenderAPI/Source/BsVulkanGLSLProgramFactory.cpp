@@ -8,7 +8,7 @@
 
 namespace bs { namespace ct
 {
-    const String VulkanGLSLProgramFactory::LANGUAGE_NAME = "glsl";
+    const String VulkanGLSLProgramFactory::LANGUAGE_NAME = "vksl";
 
 	VulkanGLSLProgramFactory::VulkanGLSLProgramFactory()
 	{
@@ -20,7 +20,7 @@ namespace bs { namespace ct
 		glslang::FinalizeProcess();
 	}
 
-    const String& VulkanGLSLProgramFactory::getLanguage(void) const
+    const String& VulkanGLSLProgramFactory::getLanguage() const
     {
         return LANGUAGE_NAME;
     }

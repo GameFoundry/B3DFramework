@@ -47,7 +47,11 @@ Technique =
 		{
 			#ifdef ENABLE_MSAA
 			
-			int gNumSamples;
+			cbuffer FragParams
+			{
+				int gNumSamples;
+			};
+			
 			Texture2DMS<float4> gSource : register(t0);
 			
 			float4 main(VStoFS input) : SV_Target0

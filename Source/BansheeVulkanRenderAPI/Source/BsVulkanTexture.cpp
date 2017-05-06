@@ -608,7 +608,7 @@ namespace bs { namespace ct
 		// Note: I force rendertarget and depthstencil types to be readable in shader. Depending on performance impact
 		// it might be beneficial to allow the user to enable this explicitly only when needed.
 		
-		mImageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		mImageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 		int usage = props.getUsage();
 		if ((usage & TU_RENDERTARGET) != 0)
@@ -621,8 +621,6 @@ namespace bs { namespace ct
 			mImageCI.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			mSupportsGPUWrites = true;
 		}
-		else
-			mImageCI.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		
 		if ((usage & TU_LOADSTORE) != 0)
 		{
@@ -910,13 +908,13 @@ namespace bs { namespace ct
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			VulkanDevice& device = *rapi._getDevice(i);
-
 			VulkanImage* srcImage = mImages[i];
 			VulkanImage* dstImage = other->getResource(i);
 
 			if (srcImage == nullptr || dstImage == nullptr)
 				continue;
+
+			VulkanDevice& device = *rapi._getDevice(i);
 
 			VulkanImageSubresource* srcSubresource = srcImage->getSubresource(srcFace, srcMipLevel);
 			VulkanImageSubresource* dstSubresource = dstImage->getSubresource(destFace, destMipLevel);
@@ -935,7 +933,7 @@ namespace bs { namespace ct
 			bool isBoundWithoutUse = boundCount > useCount;
 			if (isBoundWithoutUse)
 			{
-				VulkanImage* newImage = createImage(device, mInternalFormats[i]);
+				VulkanImage* newImage = other->createImage(device, other->mInternalFormats[i]);
 
 				// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 				if (dstProps.getNumMipmaps() > 0 || dstProps.getNumFaces() > 1)
@@ -943,12 +941,12 @@ namespace bs { namespace ct
 					VkImageLayout oldDstLayout = dstImage->getOptimalLayout();
 
 					dstLayout = newImage->getOptimalLayout();
-					copyImage(transferCB, dstImage, newImage, oldDstLayout, dstLayout);
+					other->copyImage(transferCB, dstImage, newImage, oldDstLayout, dstLayout);
 				}
 
 				dstImage->destroy();
 				dstImage = newImage;
-				mImages[i] = dstImage;
+				other->mImages[i] = dstImage;
 			}
 
 			VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcLayout);

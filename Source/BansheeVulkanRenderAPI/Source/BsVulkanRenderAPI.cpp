@@ -98,7 +98,7 @@ namespace bs { namespace ct
 
 	const String& VulkanRenderAPI::getShadingLanguageName() const
 	{
-		static String strName("glsl");
+		static String strName("vksl");
 		return strName;
 	}
 

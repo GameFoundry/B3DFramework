@@ -31,12 +31,12 @@ namespace bs { namespace ct
 		const GpuBufferProperties& props = getProperties();
 
 		VulkanHardwareBuffer::BufferType bufferType;
-		if (props.getRandomGpuWrite())
-			bufferType = VulkanHardwareBuffer::BT_STORAGE;
+		if (props.getType() == GBT_STRUCTURED)
+			bufferType = VulkanHardwareBuffer::BT_STRUCTURED;
 		else
 		{
-			if(props.getType() == GBT_STRUCTURED)
-				bufferType = VulkanHardwareBuffer::BT_STRUCTURED;
+			if (props.getRandomGpuWrite())
+				bufferType = VulkanHardwareBuffer::BT_STORAGE;
 			else
 				bufferType = VulkanHardwareBuffer::BT_GENERIC;
 		}

@@ -72,8 +72,9 @@ Technique
 				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
 				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
 				
-				result.worldNormal = float3(tangentToWorld._m02_m12_m22); // Normal basis vector
-				result.worldTangent = float4(tangentToWorld._m00_m10_m20, tangentSign); // Tangent basis vector
+				// Note: Consider transposing these externally, for easier reads
+				result.worldNormal = float3(tangentToWorld[0][2], tangentToWorld[1][2], tangentToWorld[2][2]); // Normal basis vector
+				result.worldTangent = float4(tangentToWorld[0][0], tangentToWorld[1][0], tangentToWorld[2][0], tangentSign); // Tangent basis vector
 				
 				return result;
 			}

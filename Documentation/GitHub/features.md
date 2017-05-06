@@ -10,14 +10,15 @@ All features listed here are the ones currently available (implemented). If you 
   * Clean layered design
   * Fully documented
   * Modular & plugin based
-  * Minimal third-party dependencies
   * Multiplatform ready
 * __Renderer__
-  * Vulkan, DX11 and OpenGL 4.5 render systems
+  * Vulkan, DX11 and OpenGL 4.5 render backends
   * Multi-threaded rendering
-  * Powerful material system
-    * BansheeFX language for material definitions
-    * Shader parsing for HLSL9, HLSL11 and GLSL
+  * Banshee Shading Language
+    * Unified shader code across all render backends
+	* Complete material definition in a single file
+	* High level concepts like mixins and overloads
+    * Low level shader parsing and reflection for HLSL and GLSL
 * __Asset pipeline__
   * Asynchronous resource loading
   * Extensible importer system

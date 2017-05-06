@@ -17,7 +17,6 @@ Following 1.0 release the focus will be on following features (in no specific or
  - High level networking (replication, RPCs)
  - Effects/Particle editor
  - Terrain system
- - Unified shading language
  - Visual GUI editor 
  
 And more to come after that:

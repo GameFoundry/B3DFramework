@@ -302,7 +302,16 @@ namespace bs { namespace ct
 			PerSetData& perSetData = mPerDeviceData[i].perSetData[set];
 			if (imageRes != nullptr)
 			{
-				perSetData.writeInfos[bindingIdx].image.imageView = imageRes->getView(surface, false);
+				auto& texProps = texture->getProperties();
+
+				TextureSurface actualSurface = surface;
+				if (surface.numMipLevels == 0)
+					actualSurface.numMipLevels = texProps.getNumMipmaps() + 1;
+				
+				if(surface.numArraySlices == 0)
+					actualSurface.numArraySlices = texProps.getNumFaces();
+
+				perSetData.writeInfos[bindingIdx].image.imageView = imageRes->getView(actualSurface, false);
 				mPerDeviceData[i].sampledImages[sequentialIdx] = imageRes->getHandle();
 			}
 			else

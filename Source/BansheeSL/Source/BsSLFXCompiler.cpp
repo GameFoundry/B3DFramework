@@ -82,13 +82,13 @@ namespace bs
 		{
 			switch (report.Type())
 			{
-			case Xsc::Report::Types::Info:
+			case Xsc::ReportTypes::Info:
 				mInfos.push_back({ FullIndent(), report });
 				break;
-			case Xsc::Report::Types::Warning:
+			case Xsc::ReportTypes::Warning:
 				mWarnings.push_back({ FullIndent(), report });
 				break;
-			case Xsc::Report::Types::Error:
+			case Xsc::ReportTypes::Error:
 				mErrors.push_back({ FullIndent(), report });
 				break;
 			}
