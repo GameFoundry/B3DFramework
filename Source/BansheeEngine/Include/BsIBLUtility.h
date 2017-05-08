@@ -187,6 +187,12 @@ namespace bs { namespace ct
 	class BS_EXPORT IBLUtility
 	{
 	public:
+		/** Sets up any resources requires for operation. Must be called before any other methods in this class. */
+		static void startUp();
+
+		/** Cleans up any resources allocated during startUp(). */
+		static void shutDown();
+
 		/**
 		 * Performs filtering on the cubemap, populating its mip-maps with filtered values that can be used for
 		 * evaluating specular reflections.
@@ -230,6 +236,9 @@ namespace bs { namespace ct
 		 * @param[in]   dstMip			Determines which mip level of the destination texture to scale.
 		 */
 		static void downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip);
+
+		struct Members;
+		static Members* m;
 	};
 
 	/** @} */

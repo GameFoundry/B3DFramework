@@ -149,7 +149,8 @@ namespace bs { namespace ct
 			bool ready = true;
 			for (auto& entry : mQueries)
 			{
-				UINT64 timeBegin, timeEnd;
+				UINT64 timeBegin = 0;
+				UINT64 timeEnd = 0;
 				ready &= !entry.first->isBound() && entry.first->getResult(timeBegin);
 				ready &= !entry.second->isBound() && entry.second->getResult(timeEnd);
 

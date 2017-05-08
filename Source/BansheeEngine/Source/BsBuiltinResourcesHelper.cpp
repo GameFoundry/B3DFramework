@@ -7,6 +7,7 @@
 #include "BsShaderImportOptions.h"
 #include "BsTextureImportOptions.h"
 #include "BsRendererMaterialManager.h"
+#include "BsRendererMaterial.h"
 #include "BsFontImportOptions.h"
 #include "BsSpriteTexture.h"
 #include "BsTexture.h"

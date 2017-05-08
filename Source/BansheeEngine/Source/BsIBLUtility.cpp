@@ -8,6 +8,28 @@
 
 namespace bs { namespace ct
 {
+	struct IBLUtility::Members
+	{
+		ReflectionCubeDownsampleMat downsampleMat;
+		ReflectionCubeImportanceSampleMat importanceSampleMat;
+
+		IrradianceComputeSHMat shCompute;
+		IrradianceReduceSHMat shReduce;
+		IrradianceProjectSHMat shProject;
+	};
+
+	IBLUtility::Members* IBLUtility::m = nullptr;
+
+	void IBLUtility::startUp()
+	{
+		m = bs_new<Members>();
+	}
+
+	void IBLUtility::shutDown()
+	{
+		bs_delete(m);
+	}
+
 	ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
 	ReflectionCubeDownsampleMat::ReflectionCubeDownsampleMat()
@@ -231,9 +253,6 @@ namespace bs { namespace ct
 
 	void IBLUtility::filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch)
 	{
-		static ReflectionCubeDownsampleMat downsampleMat;
-		static ReflectionCubeImportanceSampleMat importanceSampleMat;
-
 		auto& props = cubemap->getProperties();
 
 		SPtr<Texture> scratchCubemap = scratch;
@@ -285,7 +304,7 @@ namespace bs { namespace ct
 
 				SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
 
-				importanceSampleMat.execute(scratchCubemap, face, mip, target);
+				m->importanceSampleMat.execute(scratchCubemap, face, mip, target);
 			}
 		}
 
@@ -295,17 +314,13 @@ namespace bs { namespace ct
 
 	void IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output)
 	{
-		static IrradianceComputeSHMat shCompute;
-		static IrradianceReduceSHMat shReduce;
-		static IrradianceProjectSHMat shProject;
-
 		UINT32 numCoeffSets;
 		SPtr<GpuBuffer> coeffSetBuffer = IrradianceComputeSHMat::createOutputBuffer(cubemap, numCoeffSets);
 		for (UINT32 face = 0; face < 6; face++)
-			shCompute.execute(cubemap, face, coeffSetBuffer);
+			m->shCompute.execute(cubemap, face, coeffSetBuffer);
 
 		SPtr<GpuBuffer> coeffBuffer = IrradianceReduceSHMat::createOutputBuffer();
-		shReduce.execute(coeffSetBuffer, numCoeffSets, coeffBuffer);
+		m->shReduce.execute(coeffSetBuffer, numCoeffSets, coeffBuffer);
 
 		for (UINT32 face = 0; face < 6; face++)
 		{
@@ -316,14 +331,12 @@ namespace bs { namespace ct
 			cubeFaceRTDesc.colorSurfaces[0].mipLevel = 0;
 
 			SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
-			shProject.execute(coeffBuffer, face, target);
+			m->shProject.execute(coeffBuffer, face, target);
 		}
 	}
 
 	void IBLUtility::scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
 	{
-		static ReflectionCubeDownsampleMat downsampleMat;
-
 		auto& srcProps = src->getProperties();
 		auto& dstProps = dst->getProperties();
 
@@ -369,8 +382,6 @@ namespace bs { namespace ct
 
 	void IBLUtility::downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
 	{
-		static ReflectionCubeDownsampleMat downsampleMat;
-
 		for (UINT32 face = 0; face < 6; face++)
 		{
 			RENDER_TEXTURE_DESC cubeFaceRTDesc;
@@ -382,7 +393,7 @@ namespace bs { namespace ct
 			SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
 
 			TextureSurface sourceSurface(srcMip, 1, 0, 6);
-			downsampleMat.execute(src, face, sourceSurface, target);
+			m->downsampleMat.execute(src, face, sourceSurface, target);
 		}
 	}
 }}

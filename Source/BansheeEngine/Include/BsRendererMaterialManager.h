@@ -2,9 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "BsPrerequisites.h"
 #include "BsModule.h"
-#include "BsRendererMaterial.h"
 
 namespace bs
 {
@@ -45,6 +44,7 @@ namespace bs
 	private:
 		template<class T>
 		friend class RendererMaterial;
+		friend class ct::RendererMaterialBase;
 
 		/**	Initializes all materials on the core thread. */
 		static void initOnCore(const Vector<SPtr<ct::Shader>>& shaders);

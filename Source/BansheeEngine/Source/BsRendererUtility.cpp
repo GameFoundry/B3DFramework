@@ -7,15 +7,11 @@
 #include "BsMaterial.h"
 #include "BsGpuParamsSet.h"
 #include "BsPass.h"
-#include "BsBlendState.h"
-#include "BsDepthStencilState.h"
-#include "BsRasterizerState.h"
 #include "BsGpuParams.h"
-#include "BsGpuParamDesc.h"
-#include "BsGpuParamBlockBuffer.h"
 #include "BsShapeMeshes3D.h"
 #include "BsLight.h"
 #include "BsShader.h"
+#include "BsIBLUtility.h"
 
 namespace bs { namespace ct
 {
@@ -130,11 +126,13 @@ namespace bs { namespace ct
 		// TODO - When I add proper preprocessor support, merge these into a single material
 		mResolveMat = bs_shared_ptr_new<ResolveMat>();
 		mBlitMat = bs_shared_ptr_new<BlitMat>();
+
+		IBLUtility::startUp();
 	}
 
 	RendererUtility::~RendererUtility()
 	{
-
+		IBLUtility::shutDown();
 	}
 
 	void RendererUtility::setPass(const SPtr<Material>& material, UINT32 passIdx, UINT32 techniqueIdx)

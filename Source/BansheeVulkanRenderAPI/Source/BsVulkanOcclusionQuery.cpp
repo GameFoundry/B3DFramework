@@ -127,7 +127,7 @@ namespace bs { namespace ct
 			bool ready = true;
 			for (auto& query : mQueries)
 			{
-				UINT64 numSamples;
+				UINT64 numSamples = 0;
 				ready &= !query->isBound() && query->getResult(numSamples);
 
 				totalNumSamples += numSamples;
