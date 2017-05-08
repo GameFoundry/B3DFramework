@@ -4,6 +4,7 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanRenderTexture.h"
 #include "BsVulkanResource.h"
+#include "BsVulkanUtility.h"
 
 namespace bs
 {
@@ -16,7 +17,12 @@ namespace bs
 
 	PixelFormat VulkanTextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
-		return PF_R8G8B8A8;;
+		PixelUtil::checkFormat(format, ttype, usage);
+
+		if (ct::VulkanUtility::getPixelFormat(format, hwGamma) == VK_FORMAT_UNDEFINED)
+			return PF_R8G8B8A8;
+
+		return format;
 	}
 
 	namespace ct

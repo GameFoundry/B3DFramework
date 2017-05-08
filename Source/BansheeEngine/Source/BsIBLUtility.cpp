@@ -364,7 +364,7 @@ namespace bs { namespace ct
 				src->copy(dst, face, srcMip, face, dstMip);
 		}
 		else
-			downsampleCubemap(src, srcMip, dst, dstMip);
+			downsampleCubemap(scratchTex, srcMip, dst, dstMip);
 	}
 
 	void IBLUtility::downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
