@@ -20,7 +20,10 @@ Technique : base("SelectionBase") =
 
 		Fragment =
 		{
-			float4 selColor;
+			cbuffer FragParams
+			{	
+				float4 selColor;
+			};
 
 			float4 main(in float4 inPos : SV_Position) : SV_Target
 			{

@@ -419,6 +419,10 @@ namespace bs
 		case GPOT_TEXTURE3D:
 		case GPOT_TEXTURECUBE:
 		case GPOT_TEXTURE2DMS:
+		case GPOT_TEXTURE1DARRAY:
+		case GPOT_TEXTURE2DARRAY:
+		case GPOT_TEXTURE2DMSARRAY:
+		case GPOT_TEXTURECUBEARRAY:
 			return true;
 		default:
 			return false;
@@ -433,6 +437,9 @@ namespace bs
 		case GPOT_RWTEXTURE2D:
 		case GPOT_RWTEXTURE3D:
 		case GPOT_RWTEXTURE2DMS:
+		case GPOT_RWTEXTURE1DARRAY:
+		case GPOT_RWTEXTURE2DARRAY:
+		case GPOT_RWTEXTURE2DMSARRAY:
 			return true;
 		default:
 			return false;

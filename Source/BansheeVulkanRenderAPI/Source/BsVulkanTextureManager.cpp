@@ -8,6 +8,26 @@
 
 namespace bs
 {
+	struct DummyTexFormat
+	{
+		TextureType type;
+		int arraySize;
+		int width;
+		int height;
+		int depth;
+	};
+
+	const static DummyTexFormat DummyTexTypes[] =
+	{
+		{ TEX_TYPE_1D,			1, 2, 1, 1 },
+		{ TEX_TYPE_1D,			2, 2, 1, 1 },
+		{ TEX_TYPE_2D,			1, 2, 2, 1 },
+		{ TEX_TYPE_2D,			2, 2, 2, 1 },
+		{ TEX_TYPE_3D,			1, 2, 2, 2 },
+		{ TEX_TYPE_CUBE_MAP,	1, 2, 2, 1 },
+		{ TEX_TYPE_CUBE_MAP,	2, 2, 2, 1 }
+	};
+
 	SPtr<RenderTexture> VulkanTextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
 		VulkanRenderTexture* tex = new (bs_alloc<VulkanRenderTexture>()) VulkanRenderTexture(desc);
@@ -31,36 +51,82 @@ namespace bs
 	{
 		TextureManager::onStartUp();
 
-		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
-		whitePixelData->setColorAt(Color::White, 0, 0);
-		whitePixelData->setColorAt(Color::White, 0, 1);
-		whitePixelData->setColorAt(Color::White, 1, 0);
-		whitePixelData->setColorAt(Color::White, 1, 1);
+		int idx = 0;
+		for(auto& entry : DummyTexTypes)
+		{
+			SPtr<PixelData> pixelData = PixelData::create(entry.width, entry.height, entry.depth, PF_R8G8B8A8);
 
-		TEXTURE_DESC desc;
-		desc.type = TEX_TYPE_2D;
-		desc.width = 2;
-		desc.height = 2;
-		desc.format = PF_R8G8B8A8;
-		desc.usage = TU_STATIC;
+			for(int depth = 0; depth < entry.depth; depth++)
+				for(int height = 0; height < entry.height; height++)
+					for(int width = 0; width < entry.width; width++)
+						pixelData->setColorAt(Color::White, width, height, depth);
 
-		// Note: When multi-GPU is properly tested, make sure to create these textures on all GPUs
-		mDummyReadTexture = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
-		mDummyReadTexture->writeData(*whitePixelData);
+			TEXTURE_DESC desc;
+			desc.type = entry.type;
+			desc.width = entry.width;
+			desc.height = entry.height;
+			desc.depth = entry.depth;
+			desc.format = PF_R8G8B8A8;
+			desc.usage = TU_STATIC;
 
-		desc.usage = TU_LOADSTORE;
+			mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
+			mDummyReadTextures[idx]->writeData(*pixelData);
 
-		mDummyStorageTexture = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
+			desc.usage = TU_LOADSTORE;
+			mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
+
+			idx++;
+		}
 	}
 
-	VkImageView VulkanTextureManager::getDummyReadImageView(UINT32 deviceIdx) const
+	VkImageView VulkanTextureManager::getDummyImageView(GpuParamObjectType type, UINT32 deviceIdx) const
 	{
-		return mDummyReadTexture->getResource(deviceIdx)->getView(false);
-	}
+		SPtr<VulkanTexture> texture;
+		switch(type)
+		{
+		case GPOT_TEXTURE2DMS:
+		case GPOT_TEXTURE2D:
+			texture = mDummyReadTextures[2];
+			break;
+		case GPOT_RWTEXTURE2D:
+		case GPOT_RWTEXTURE2DMS:
+			texture = mDummyStorageTextures[2];
+			break;
+		case GPOT_TEXTURECUBE:
+			texture = mDummyReadTextures[5];
+			break;
+		case GPOT_TEXTURECUBEARRAY:
+			texture = mDummyReadTextures[6];
+			break;
+		case GPOT_TEXTURE2DARRAY:
+		case GPOT_TEXTURE2DMSARRAY:
+			texture = mDummyReadTextures[3];
+			break;
+		case GPOT_RWTEXTURE2DARRAY:
+		case GPOT_RWTEXTURE2DMSARRAY:
+			texture = mDummyStorageTextures[3];
+			break;
+		case GPOT_TEXTURE3D:
+			texture = mDummyReadTextures[4];
+			break;
+		case GPOT_RWTEXTURE3D:
+			texture = mDummyStorageTextures[4];
+			break;
+		case GPOT_TEXTURE1D:
+			texture = mDummyReadTextures[0];
+			break;
+		case GPOT_TEXTURE1DARRAY:
+			texture = mDummyReadTextures[1];
+			break;
+		case GPOT_RWTEXTURE1D:
+			texture = mDummyStorageTextures[0];
+			break;
+		case GPOT_RWTEXTURE1DARRAY:
+			texture = mDummyStorageTextures[1];
+			break;
+		}
 
-	VkImageView VulkanTextureManager::getDummyStorageImageView(UINT32 deviceIdx) const
-	{
-		return mDummyStorageTexture->getResource(deviceIdx)->getView(false);
+		return texture->getResource(deviceIdx)->getView(false);
 	}
 
 	SPtr<Texture> VulkanTextureManager::createTextureInternal(const TEXTURE_DESC& desc,

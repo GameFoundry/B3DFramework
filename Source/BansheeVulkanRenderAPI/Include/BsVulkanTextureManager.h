@@ -32,11 +32,8 @@ namespace bs
 		/** @copydoc TextureManager::onStartUp */
 		void onStartUp() override;
 
-		/** Returns a image view that can be used for shader read operations when no other image is bound. */
-		VkImageView getDummyReadImageView(UINT32 deviceIdx) const;
-
-		/** Returns a image view that can be used for shader storage operations when no other image is bound. */
-		VkImageView getDummyStorageImageView(UINT32 deviceIdx) const;
+		/** Returns a image view that can be used for shader operations when no other image is bound. */
+		VkImageView getDummyImageView(GpuParamObjectType type, UINT32 deviceIdx) const;
 
 	protected:
 		/** @copydoc TextureManager::createTextureInternal */
@@ -47,8 +44,8 @@ namespace bs
 		SPtr<RenderTexture> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) override;
 
-		SPtr<VulkanTexture> mDummyReadTexture;
-		SPtr<VulkanTexture> mDummyStorageTexture;
+		SPtr<VulkanTexture> mDummyReadTextures[7];
+		SPtr<VulkanTexture> mDummyStorageTextures[7];
 	};
 	}
 	/** @} */

@@ -410,6 +410,13 @@ namespace bs
 		GPOT_RWTEXTURE2D = 51, /**< 2D texture with unordered read/writes. */
 		GPOT_RWTEXTURE3D = 52, /**< 3D texture with unordered read/writes. */
 		GPOT_RWTEXTURE2DMS = 53, /**< 2D texture with multiple samples and unordered read/writes. */
+		GPOT_TEXTURE1DARRAY = 54, /**< 1D texture with multiple array entries. */
+		GPOT_TEXTURE2DARRAY = 55, /**< 2D texture with multiple array entries. */
+		GPOT_TEXTURECUBEARRAY = 56, /**< Cubemap texture with multiple array entries. */
+		GPOT_TEXTURE2DMSARRAY = 57, /**< 2D texture with multiple samples and array entries. */
+		GPOT_RWTEXTURE1DARRAY = 58, /**< 1D texture with multiple array entries and unordered read/writes. */
+		GPOT_RWTEXTURE2DARRAY = 59, /**< 2D texture with multiple array entries and unordered read/writes. */
+		GPOT_RWTEXTURE2DMSARRAY = 60, /**< 2D texture with multiple array entries, samples and unordered read/writes. */
 		GPOT_UNKNOWN = 0xffff
 	};
 

@@ -323,36 +323,48 @@ namespace bs { namespace ct
 			{
 			case GL_SAMPLER_1D:
 			case GL_SAMPLER_1D_SHADOW:
-			case GL_SAMPLER_1D_ARRAY:
-			case GL_SAMPLER_1D_ARRAY_SHADOW:
 			case GL_UNSIGNED_INT_SAMPLER_1D:
 			case GL_INT_SAMPLER_1D:
-			case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
-			case GL_INT_SAMPLER_1D_ARRAY:
 				samplerType = GPOT_SAMPLER1D;
 				textureType = GPOT_TEXTURE1D;
 				isSampler = true;
 				break;
+			case GL_SAMPLER_1D_ARRAY:
+			case GL_SAMPLER_1D_ARRAY_SHADOW:
+			case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+			case GL_INT_SAMPLER_1D_ARRAY:
+				samplerType = GPOT_SAMPLER1D;
+				textureType = GPOT_TEXTURE1DARRAY;
+				isSampler = true;
+				break;
 			case GL_SAMPLER_2D:
 			case GL_SAMPLER_2D_SHADOW:
-			case GL_SAMPLER_2D_ARRAY:
-			case GL_SAMPLER_2D_ARRAY_SHADOW:
 			case GL_UNSIGNED_INT_SAMPLER_2D:
 			case GL_INT_SAMPLER_2D:
-			case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
-			case GL_INT_SAMPLER_2D_ARRAY:
 				samplerType = GPOT_SAMPLER2D;
 				textureType = GPOT_TEXTURE2D;
 				isSampler = true;
 				break;
+			case GL_SAMPLER_2D_ARRAY:
+			case GL_SAMPLER_2D_ARRAY_SHADOW:
+			case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+			case GL_INT_SAMPLER_2D_ARRAY:
+				samplerType = GPOT_SAMPLER2D;
+				textureType = GPOT_TEXTURE2DARRAY;
+				isSampler = true;
+				break;
 			case GL_SAMPLER_2D_MULTISAMPLE:
-			case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
 			case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
-			case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
 			case GL_INT_SAMPLER_2D_MULTISAMPLE:
-			case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
 				samplerType = GPOT_SAMPLER2DMS;
 				textureType = GPOT_TEXTURE2DMS;
+				isSampler = true;
+				break;
+			case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+			case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+			case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+				samplerType = GPOT_SAMPLER2DMS;
+				textureType = GPOT_TEXTURE2DMSARRAY;
 				isSampler = true;
 				break;
 			case GL_SAMPLER_3D:
@@ -363,40 +375,55 @@ namespace bs { namespace ct
 				isSampler = true;
 				break;
 			case GL_SAMPLER_CUBE:
-			case GL_SAMPLER_CUBE_MAP_ARRAY:
 			case GL_SAMPLER_CUBE_SHADOW:
-			case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
 			case GL_UNSIGNED_INT_SAMPLER_CUBE:
 			case GL_INT_SAMPLER_CUBE:
+				samplerType = GPOT_SAMPLERCUBE;
+				textureType = GPOT_TEXTURECUBE;
+				isSampler = true;
+				break;
+			case GL_SAMPLER_CUBE_MAP_ARRAY:
+			case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
 			case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
 			case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
 				samplerType = GPOT_SAMPLERCUBE;
-				textureType = GPOT_TEXTURECUBE;
+				textureType = GPOT_TEXTURECUBEARRAY;
 				isSampler = true;
 				break;
 			case GL_IMAGE_1D:
 			case GL_UNSIGNED_INT_IMAGE_1D:
 			case GL_INT_IMAGE_1D:
+				textureType = GPOT_RWTEXTURE1D;
+				isImage = true;
+				break;
 			case GL_IMAGE_1D_ARRAY:
 			case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
 			case GL_INT_IMAGE_1D_ARRAY:
-				textureType = GPOT_RWTEXTURE1D;
+				textureType = GPOT_RWTEXTURE1DARRAY;
 				isImage = true;
 				break;
 			case GL_IMAGE_2D:
 			case GL_UNSIGNED_INT_IMAGE_2D:
 			case GL_INT_IMAGE_2D:
-			case GL_IMAGE_2D_ARRAY:
-			case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
-			case GL_INT_IMAGE_2D_ARRAY:
 				textureType = GPOT_RWTEXTURE2D;
 				isImage = true;
 				break;
+			case GL_IMAGE_2D_ARRAY:
+			case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+			case GL_INT_IMAGE_2D_ARRAY:
+				textureType = GPOT_RWTEXTURE2DARRAY;
+				isImage = true;
+				break;
 			case GL_IMAGE_2D_MULTISAMPLE:
-			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
 			case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE:
 			case GL_INT_IMAGE_2D_MULTISAMPLE:
 				textureType = GPOT_RWTEXTURE2DMS;
+				isImage = true;
+				break;
+			case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+			case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+			case GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+				textureType = GPOT_RWTEXTURE2DMSARRAY;
 				isImage = true;
 				break;
 			case GL_IMAGE_3D:

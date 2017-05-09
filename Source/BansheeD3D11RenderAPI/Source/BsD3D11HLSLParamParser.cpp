@@ -118,23 +118,31 @@ namespace bs { namespace ct
 					switch (resourceDesc.Dimension)
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
-					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
 						memberDesc.type = GPOT_TEXTURE1D;
 						break;
+					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
+						memberDesc.type = GPOT_TEXTURE1DARRAY;
+						break;
 					case D3D_SRV_DIMENSION_TEXTURE2D:
-					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
 						memberDesc.type = GPOT_TEXTURE2D;
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
+						memberDesc.type = GPOT_TEXTURE2DARRAY;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE3D:
 						memberDesc.type = GPOT_TEXTURE3D;
 						break;
 					case D3D_SRV_DIMENSION_TEXTURECUBE:
-					case D3D_SRV_DIMENSION_TEXTURECUBEARRAY:
 						memberDesc.type = GPOT_TEXTURECUBE;
 						break;
+					case D3D_SRV_DIMENSION_TEXTURECUBEARRAY:
+						memberDesc.type = GPOT_TEXTURECUBEARRAY;
+						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMS:
-					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
 						memberDesc.type = GPOT_TEXTURE2DMS;
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
+						memberDesc.type = GPOT_TEXTURE2DMSARRAY;
 						break;
 					case D3D_SRV_DIMENSION_BUFFER:
 						memberDesc.type = GPOT_BYTE_BUFFER;
@@ -174,13 +182,19 @@ namespace bs { namespace ct
 					switch (resourceDesc.Dimension)
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
-					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE1D;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
+					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
+						memberDesc.type = GPOT_RWTEXTURE1DARRAY;
+						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
 					case D3D_SRV_DIMENSION_TEXTURE2D:
-					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2D;
+						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
+						memberDesc.type = GPOT_RWTEXTURE2DARRAY;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE3D:
@@ -188,8 +202,11 @@ namespace bs { namespace ct
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMS:
-					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2DMS;
+						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						break;
+					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
+						memberDesc.type = GPOT_RWTEXTURE2DMSARRAY;
 						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_BUFFER:

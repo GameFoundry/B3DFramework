@@ -25,6 +25,9 @@ namespace bs { namespace ct
 		/** Returns a pointer to an array of bindings for the layout at the specified index. */
 		VkDescriptorSetLayoutBinding* getBindings(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].bindings; }
 
+		/** Returns a pointer to any array of types expected by layout bindings. */
+		GpuParamObjectType* getLayoutTypes(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].types; }
+
 		/** Returns the sequential index of the binding at the specificn set/slot. Returns -1 if slot is not used. */
 		UINT32 getBindingIdx(UINT32 set, UINT32 slot) const { return mSetExtraInfos[set].slotIndices[slot]; }
 
@@ -42,6 +45,7 @@ namespace bs { namespace ct
 		struct LayoutInfo
 		{
 			VkDescriptorSetLayoutBinding* bindings;
+			GpuParamObjectType* types;
 			UINT32 numBindings;
 		};
 
