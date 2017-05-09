@@ -267,17 +267,15 @@ namespace bs
 			return "";
 		}
 
-		INT32 maxBindingSlot = 0;
 		for (auto& entry : reflectionData.constantBuffers)
-			maxBindingSlot = std::max(maxBindingSlot, entry.location);
+			startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
 		for (auto& entry : reflectionData.textures)
-			maxBindingSlot = std::max(maxBindingSlot, entry.location);
+			startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
 		for (auto& entry : reflectionData.storageBuffers)
-			maxBindingSlot = std::max(maxBindingSlot, entry.location);
+			startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
-		startBindingSlot = maxBindingSlot;
 		return output.str();
 	}
 
