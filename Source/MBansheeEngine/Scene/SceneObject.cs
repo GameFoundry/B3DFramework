@@ -43,6 +43,18 @@ namespace BansheeEngine
         }
 
         /// <summary>
+        /// Sets the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
+        /// with more restricted mobility will result in higher performance. Some mobility constraints will be enforced by
+        /// the engine itself, while for others the caller must be sure not to break the promise he made when mobility was
+        /// set. By default scene object's mobility is unrestricted.
+        /// </summary>
+        public ObjectMobility Mobility
+        {
+            get { return (ObjectMobility)Internal_GetMobility(mCachedPtr); }
+            set { Internal_SetMobility(mCachedPtr, (int)value); }
+        }
+
+        /// <summary>
         /// World position. This includes local position of this object, plus position offset of any parents.
         /// </summary>
         public Vector3 Position
@@ -467,6 +479,12 @@ namespace BansheeEngine
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool Internal_GetActive(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetMobility(IntPtr nativeInstance, int value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern int Internal_GetMobility(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetParent(IntPtr nativeInstance, SceneObject parent);

@@ -69,6 +69,7 @@ namespace BansheeEditor
         private int undoCommandIdx = -1;
         private GUITextBox soNameInput;
         private GUIToggle soActiveToggle;
+        private GUIEnumField soMobility;
         private GUILayout soPrefabLayout;
         private bool soHasPrefab;
         private GUIFloatField soPosX;
@@ -256,6 +257,14 @@ namespace BansheeEditor
             nameLayout.AddElement(soNameInput);
             nameLayout.AddFlexibleSpace();
 
+            GUILayoutX mobilityLayout = sceneObjectLayout.AddLayoutX();
+            GUILabel mobilityLbl = new GUILabel(new LocEdString("Mobility"), GUIOption.FixedWidth(50));
+            soMobility = new GUIEnumField(typeof(ObjectMobility), "", 0, GUIOption.FixedWidth(85));
+            soMobility.Value = (ulong)activeSO.Mobility;
+            soMobility.OnSelectionChanged += value => activeSO.Mobility = (ObjectMobility) value;
+            mobilityLayout.AddElement(mobilityLbl);
+            mobilityLayout.AddElement(soMobility);
+
             soPrefabLayout = sceneObjectLayout.AddLayoutX();
 
             GUILayoutX positionLayout = sceneObjectLayout.AddLayoutX();
@@ -360,6 +369,7 @@ namespace BansheeEditor
 
             soNameInput.Text = activeSO.Name;
             soActiveToggle.Value = activeSO.Active;
+            soMobility.Value = (ulong) activeSO.Mobility;
 
             SceneObject prefabParent = PrefabUtility.GetPrefabParent(activeSO);
 
@@ -724,6 +734,7 @@ namespace BansheeEditor
             activeSO = null;
             soNameInput = null;
             soActiveToggle = null;
+            soMobility = null;
             soPrefabLayout = null;
             soHasPrefab = false;
             soPosX = null;
@@ -747,7 +758,7 @@ namespace BansheeEditor
         /// <returns>Area of the title bar, relative to the window.</returns>
         private Rect2I GetTitleBounds()
         {
-            return new Rect2I(0, 0, Width, 115);
+            return new Rect2I(0, 0, Width, 135);
         }
 
         /// <summary>

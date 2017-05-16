@@ -27,7 +27,7 @@ namespace bs
 	template<bool Core>
 	TRenderable<Core>::TRenderable()
 		: mLayer(1), mUseOverrideBounds(false), mPosition(BsZero), mTransform(BsIdentity), mTransformNoScale(BsIdentity)
-		, mIsActive(true), mAnimType(RenderableAnimType::None)
+		, mIsActive(true), mAnimType(RenderableAnimType::None), mMobility(ObjectMobility::Movable)
 	{
 		mMaterials.resize(1);
 	}
@@ -122,6 +122,14 @@ namespace bs
 	{
 		mIsActive = active;
 		_markCoreDirty();
+	}
+
+	template <bool Core>
+	void TRenderable<Core>::setMobility(ObjectMobility mobility)
+	{
+		mMobility = mobility;
+
+		_markCoreDirty(RenderableDirtyFlag::Mobility);
 	}
 
 	template<bool Core>
@@ -314,6 +322,7 @@ namespace bs
 			rttiGetElemSize(mIsActive) +
 			rttiGetElemSize(animationId) +
 			rttiGetElemSize(mAnimType) + 
+			rttiGetElemSize(mMobility) +
 			rttiGetElemSize(getCoreDirtyFlags()) +
 			sizeof(SPtr<ct::Mesh>) +
 			numMaterials * sizeof(SPtr<ct::Material>);
@@ -330,6 +339,7 @@ namespace bs
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
 		dataPtr = rttiWriteElem(animationId, dataPtr);
 		dataPtr = rttiWriteElem(mAnimType, dataPtr);
+		dataPtr = rttiWriteElem(mMobility, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
 		SPtr<ct::Mesh>* mesh = new (dataPtr) SPtr<ct::Mesh>();
@@ -600,6 +610,7 @@ namespace bs
 		dataPtr = rttiReadElem(mIsActive, dataPtr);
 		dataPtr = rttiReadElem(mAnimationId, dataPtr);
 		dataPtr = rttiReadElem(mAnimType, dataPtr);
+		dataPtr = rttiReadElem(mMobility, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 
 		SPtr<Mesh>* mesh = (SPtr<Mesh>*)dataPtr;
@@ -615,12 +626,7 @@ namespace bs
 			dataPtr += sizeof(SPtr<Material>);
 		}
 
-		if (dirtyFlags == (UINT32)RenderableDirtyFlag::Transform)
-		{
-			if (mIsActive)
-				gRenderer()->notifyRenderableUpdated(this);
-		}
-		else
+		if((dirtyFlags & (UINT32)RenderableDirtyFlag::Everything) != 0)
 		{
 			createAnimationBuffers();
 
@@ -650,6 +656,16 @@ namespace bs
 				gRenderer()->notifyRenderableRemoved(this);
 				gRenderer()->notifyRenderableAdded(this);
 			}
+		}
+		else if((dirtyFlags & (UINT32)RenderableDirtyFlag::Mobility) != 0)
+		{
+				gRenderer()->notifyRenderableRemoved(this);
+				gRenderer()->notifyRenderableAdded(this);
+		}
+		else if ((dirtyFlags & (UINT32)RenderableDirtyFlag::Transform) != 0)
+		{
+			if (mIsActive)
+				gRenderer()->notifyRenderableUpdated(this);
 		}
 	}
 	}

@@ -28,7 +28,8 @@ namespace bs
 	enum class LightDirtyFlag
 	{
 		Transform = 0x01,
-		Everything = 0x02
+		Everything = 0x02,
+		Mobility = 0x04
 	};
 
 	/** @} */
@@ -161,6 +162,19 @@ namespace bs
 		/**	Sets whether the light should be rendered or not. */
 		void setIsActive(bool active) { mIsActive = active; _markCoreDirty(); }
 
+		/**
+		 * Sets the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
+		 * with more restricted mobility will result in higher performance. Some mobility constraints will be enforced by
+		 * the engine itself, while for others the caller must be sure not to break the promise he made when mobility was
+		 * set. By default scene object's mobility is unrestricted.
+		 */
+		void setMobility(ObjectMobility mobility);
+
+		/** 
+		 * Gets the mobility setting for this scene object. See setMobility(); 
+		 */
+		ObjectMobility getMobility() const { return mMobility; }
+
 		/** 
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core 
 		 * thread counterpart. 
@@ -188,6 +202,7 @@ namespace bs
 		bool mIsActive; /**< Whether the light should be rendered or not. */
 		Sphere mBounds; /**< Sphere that bounds the light area of influence. */
 		bool mAutoAttenuation; /**< Determines is attenuation radius is automatically determined. */
+		ObjectMobility mMobility; /**< Determines if there are any restrictions placed on light movement. */
 	};
 
 	/** @} */

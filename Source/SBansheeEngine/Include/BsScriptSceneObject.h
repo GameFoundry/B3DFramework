@@ -58,6 +58,9 @@ namespace bs
 		static void internal_setActive(ScriptSceneObject* nativeInstance, bool value);
 		static bool internal_getActive(ScriptSceneObject* nativeInstance);
 
+		static void internal_setMobility(ScriptSceneObject* nativeInstance, int value);
+		static int internal_getMobility(ScriptSceneObject* nativeInstance);
+
 		static void internal_setParent(ScriptSceneObject* nativeInstance, MonoObject* parent);
 		static MonoObject* internal_getParent(ScriptSceneObject* nativeInstance);
 

@@ -19,6 +19,7 @@ namespace bs
 		, mScale(Vector3::ONE), mWorldPosition(Vector3::ZERO), mWorldRotation(Quaternion::IDENTITY)
 		, mWorldScale(Vector3::ONE), mCachedLocalTfrm(Matrix4::IDENTITY), mCachedWorldTfrm(Matrix4::IDENTITY)
 		, mDirtyFlags(0xFFFFFFFF), mDirtyHash(0), mActiveSelf(true), mActiveHierarchy(true)
+		, mMobility(ObjectMobility::Movable)
 	{
 		setName(name);
 	}
@@ -235,24 +236,36 @@ namespace bs
 
 	void SceneObject::setPosition(const Vector3& position)
 	{
-		mPosition = position;
-		notifyTransformChanged(TCF_Transform);
+		if (mMobility == ObjectMobility::Movable)
+		{
+			mPosition = position;
+			notifyTransformChanged(TCF_Transform);
+		}
 	}
 
 	void SceneObject::setRotation(const Quaternion& rotation)
 	{
-		mRotation = rotation;
-		notifyTransformChanged(TCF_Transform);
+		if (mMobility == ObjectMobility::Movable)
+		{
+			mRotation = rotation;
+			notifyTransformChanged(TCF_Transform);
+		}
 	}
 
 	void SceneObject::setScale(const Vector3& scale)
 	{
-		mScale = scale;
-		notifyTransformChanged(TCF_Transform);
+		if (mMobility == ObjectMobility::Movable)
+		{
+			mScale = scale;
+			notifyTransformChanged(TCF_Transform);
+		}
 	}
 
 	void SceneObject::setWorldPosition(const Vector3& position)
 	{
+		if(mMobility != ObjectMobility::Movable)
+			return;
+
 		if (mParent != nullptr)
 		{
 			Vector3 invScale = mParent->getWorldScale();
@@ -272,6 +285,9 @@ namespace bs
 
 	void SceneObject::setWorldRotation(const Quaternion& rotation)
 	{
+		if (mMobility != ObjectMobility::Movable)
+			return;
+
 		if (mParent != nullptr)
 		{
 			Quaternion invRotation = mParent->getWorldRotation().inverse();
@@ -286,6 +302,9 @@ namespace bs
 
 	void SceneObject::setWorldScale(const Vector3& scale)
 	{
+		if (mMobility != ObjectMobility::Movable)
+			return;
+
 		if (mParent != nullptr)
 		{
 			Matrix3 rotScale;
@@ -433,26 +452,43 @@ namespace bs
 
 	void SceneObject::notifyTransformChanged(TransformChangedFlags flags) const
 	{
-		mDirtyFlags |= DirtyFlags::LocalTfrmDirty | DirtyFlags::WorldTfrmDirty;
-		mDirtyHash++;
-
-		for(auto& entry : mComponents)
+		// If object is immovable, don't send transform changed events nor mark the transform dirty
+		TransformChangedFlags componentFlags = flags;
+		if (mMobility != ObjectMobility::Movable)
+			componentFlags = (TransformChangedFlags)(componentFlags & ~TCF_Transform);
+		else
 		{
-			if (entry->supportsNotify(flags))
+			mDirtyFlags |= DirtyFlags::LocalTfrmDirty | DirtyFlags::WorldTfrmDirty;
+			mDirtyHash++;
+		}
+
+		// Only send component flags if we haven't removed them all
+		if (componentFlags != 0)
+		{
+			for (auto& entry : mComponents)
 			{
-				bool alwaysRun = entry->hasFlag(ComponentFlag::AlwaysRun);
-				if(alwaysRun || gSceneManager().isRunning())
-					entry->onTransformChanged(flags);
+				if (entry->supportsNotify(flags))
+				{
+					bool alwaysRun = entry->hasFlag(ComponentFlag::AlwaysRun);
+					if (alwaysRun || gSceneManager().isRunning())
+						entry->onTransformChanged(componentFlags);
+				}
 			}
 		}
 
-		for (auto& entry : mChildren)
-			entry->notifyTransformChanged(flags);
+		// Mobility flag is only relevant for this scene object
+		flags = (TransformChangedFlags)(flags & ~TCF_Mobility);
+		if (flags != 0)
+		{
+			for (auto& entry : mChildren)
+				entry->notifyTransformChanged(flags);
+		}
 	}
 
 	void SceneObject::updateWorldTfrm() const
 	{
-		if(mParent != nullptr)
+		// Don't allow movement from parent when not movable
+		if (mParent != nullptr && mMobility == ObjectMobility::Movable)
 		{
 			// Update orientation
 			const Quaternion& parentOrientation = mParent->getWorldRotation();
@@ -681,6 +717,20 @@ namespace bs
 			return mActiveSelf;
 		else
 			return mActiveHierarchy;
+	}
+
+	void SceneObject::setMobility(ObjectMobility mobility)
+	{
+		if(mMobility != mobility)
+		{
+			mMobility = mobility;
+
+			// If mobility changed to movable, update both the mobility flag and transform, otherwise just mobility
+			if (mMobility == ObjectMobility::Movable)
+				notifyTransformChanged((TransformChangedFlags)(TCF_Transform | TCF_Mobility));
+			else
+				notifyTransformChanged(TCF_Mobility);
+		}
 	}
 
 	HSceneObject SceneObject::clone(bool instantiate)
