@@ -258,14 +258,8 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 }
 <CONDITIONAL_ELIF>.				{ return yytext[0]; }
 
-	/* Code blocks */
-Vertex			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_VERTEX; }
-Fragment		{ BEGIN(CODEBLOCK_HEADER); return TOKEN_FRAGMENT; }
-Geometry		{ BEGIN(CODEBLOCK_HEADER); return TOKEN_GEOMETRY; }
-Hull			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_HULL; }
-Domain			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_DOMAIN; }
-Compute			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_COMPUTE; }
-Common			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_COMMON; }
+	/* Code block */
+code			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_CODE; }
 
 	/* Track when the code block begins, insert all code block characters into our own buffer, record a sequential index */
 	/* of all code blocks in the text, and track bracket open/closed state so we know when we're done with the code block. */

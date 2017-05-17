@@ -90,8 +90,7 @@ typedef struct YYLTYPE {
 %token TOKEN_RENDERER TOKEN_PASS TOKEN_TAGS
 
 	/* Pass keywords */
-%token TOKEN_VERTEX TOKEN_FRAGMENT TOKEN_GEOMETRY TOKEN_HULL TOKEN_DOMAIN TOKEN_COMPUTE TOKEN_COMMON
-%token TOKEN_BLEND TOKEN_RASTER TOKEN_DEPTH TOKEN_STENCIL
+%token TOKEN_CODE TOKEN_BLEND TOKEN_RASTER TOKEN_DEPTH TOKEN_STENCIL
 
 	/* Rasterizer state keywords */
 %token TOKEN_FILLMODE TOKEN_CULLMODE TOKEN_DEPTHBIAS TOKEN_SDEPTHBIAS
@@ -422,39 +421,9 @@ code
 	;
 
 code_header
-	: TOKEN_VERTEX
+	: TOKEN_CODE
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeVertex); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_FRAGMENT
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeFragment); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_GEOMETRY
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeGeometry); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_HULL
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeHull); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_DOMAIN
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeDomain); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_COMPUTE
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeCompute); 
-			nodePush(parse_state, $$);
-		}
-	| TOKEN_COMMON
-		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_CodeCommon); 
+			$$ = nodeCreate(parse_state->memContext, NT_Code); 
 			nodePush(parse_state, $$);
 		}
 	;

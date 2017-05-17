@@ -21,13 +21,7 @@ enum tagNodeType
 	NT_StencilOp,
 	NT_BlendDef,
 	NT_Tags,
-	NT_CodeVertex,
-	NT_CodeFragment,
-	NT_CodeGeometry,
-	NT_CodeHull,
-	NT_CodeDomain,
-	NT_CodeCompute,
-	NT_CodeCommon,
+	NT_Code
 };
 
 enum tagOptionType

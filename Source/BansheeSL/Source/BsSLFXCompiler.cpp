@@ -199,8 +199,318 @@ namespace bs
 
 	};
 
-	// Convert HLSL code to GLSL
-	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, bool vulkan, UINT32& startBindingSlot)
+	GpuParamObjectType ReflTypeToTextureType(Xsc::Reflection::BufferType type)
+	{
+		switch(type)
+		{
+		case Xsc::Reflection::BufferType::RWTexture1D: return GPOT_RWTEXTURE1D;
+		case Xsc::Reflection::BufferType::RWTexture1DArray: return GPOT_RWTEXTURE1DARRAY;
+		case Xsc::Reflection::BufferType::RWTexture2D: return GPOT_RWTEXTURE2D;
+		case Xsc::Reflection::BufferType::RWTexture2DArray: return GPOT_RWTEXTURE2DARRAY;
+		case Xsc::Reflection::BufferType::RWTexture3D: return GPOT_RWTEXTURE3D;
+		case Xsc::Reflection::BufferType::Texture1D: return GPOT_TEXTURE1D;
+		case Xsc::Reflection::BufferType::Texture1DArray: return GPOT_TEXTURE1DARRAY;
+		case Xsc::Reflection::BufferType::Texture2D: return GPOT_TEXTURE2D;
+		case Xsc::Reflection::BufferType::Texture2DArray: return GPOT_TEXTURE2DARRAY;
+		case Xsc::Reflection::BufferType::Texture3D: return GPOT_TEXTURE3D;
+		case Xsc::Reflection::BufferType::TextureCube: return GPOT_TEXTURECUBE;
+		case Xsc::Reflection::BufferType::TextureCubeArray: return GPOT_TEXTURECUBEARRAY;
+		case Xsc::Reflection::BufferType::Texture2DMS: return GPOT_TEXTURE2DMS;
+		case Xsc::Reflection::BufferType::Texture2DMSArray: return GPOT_TEXTURE2DMSARRAY;
+		default: return GPOT_UNKNOWN;
+		}
+	}
+
+	GpuParamObjectType ReflTypeToBufferType(Xsc::Reflection::BufferType type)
+	{
+		switch(type)
+		{
+		case Xsc::Reflection::BufferType::Buffer: return GPOT_RWTYPED_BUFFER;
+		case Xsc::Reflection::BufferType::StructuredBuffer: return GPOT_STRUCTURED_BUFFER;
+		case Xsc::Reflection::BufferType::ByteAddressBuffer: return GPOT_BYTE_BUFFER;
+		case Xsc::Reflection::BufferType::RWBuffer: return GPOT_RWTYPED_BUFFER;
+		case Xsc::Reflection::BufferType::RWStructuredBuffer: return GPOT_RWSTRUCTURED_BUFFER;
+		case Xsc::Reflection::BufferType::RWByteAddressBuffer: return GPOT_RWBYTE_BUFFER;
+		case Xsc::Reflection::BufferType::AppendStructuredBuffer: return GPOT_RWAPPEND_BUFFER;
+		case Xsc::Reflection::BufferType::ConsumeStructuredBuffer: return GPOT_RWCONSUME_BUFFER;
+		default: GPOT_UNKNOWN;
+		}
+	}
+
+	GpuParamDataType ReflTypeToDataType(Xsc::Reflection::DataType type)
+	{
+		switch (type)
+		{
+		case Xsc::Reflection::DataType::Bool: return GPDT_BOOL;
+		case Xsc::Reflection::DataType::Float: return GPDT_FLOAT1;
+		case Xsc::Reflection::DataType::Float2: return GPDT_FLOAT2;
+		case Xsc::Reflection::DataType::Float3: return GPDT_FLOAT3;
+		case Xsc::Reflection::DataType::Float4: return GPDT_FLOAT4;
+		case Xsc::Reflection::DataType::UInt:
+		case Xsc::Reflection::DataType::Int:
+			return GPDT_INT1;
+		case Xsc::Reflection::DataType::UInt2:
+		case Xsc::Reflection::DataType::Int2:
+			return GPDT_INT2;
+		case Xsc::Reflection::DataType::UInt3:
+		case Xsc::Reflection::DataType::Int3: 
+			return GPDT_INT3;
+		case Xsc::Reflection::DataType::UInt4:
+		case Xsc::Reflection::DataType::Int4: 
+			return GPDT_INT4;
+		case Xsc::Reflection::DataType::Float2x2: return GPDT_MATRIX_2X2;
+		case Xsc::Reflection::DataType::Float2x3: return GPDT_MATRIX_2X3;
+		case Xsc::Reflection::DataType::Float2x4: return GPDT_MATRIX_2X4;
+		case Xsc::Reflection::DataType::Float3x2: return GPDT_MATRIX_3X4;
+		case Xsc::Reflection::DataType::Float3x3: return GPDT_MATRIX_3X3;
+		case Xsc::Reflection::DataType::Float3x4: return GPDT_MATRIX_3X4;
+		case Xsc::Reflection::DataType::Float4x2: return GPDT_MATRIX_4X2;
+		case Xsc::Reflection::DataType::Float4x3: return GPDT_MATRIX_4X3;
+		case Xsc::Reflection::DataType::Float4x4: return GPDT_MATRIX_4X4;
+		default: return GPDT_UNKNOWN;
+		}
+	}
+
+	HTexture getBuiltinTexture(UINT32 idx)
+	{
+		if (idx == 1)
+			return BuiltinResources::getTexture(BuiltinTexture::White);
+		else if (idx == 2)
+			return BuiltinResources::getTexture(BuiltinTexture::Black);
+		else if (idx == 3)
+			return BuiltinResources::getTexture(BuiltinTexture::Normal);
+
+		return HTexture();
+	}
+
+	TextureAddressingMode parseTexAddrMode(Xsc::Reflection::TextureAddressMode addrMode)
+	{
+		switch (addrMode)
+		{
+		case Xsc::Reflection::TextureAddressMode::Border:
+			return TAM_BORDER;
+		case Xsc::Reflection::TextureAddressMode::Clamp:
+			return TAM_CLAMP;
+		case Xsc::Reflection::TextureAddressMode::Mirror:
+		case Xsc::Reflection::TextureAddressMode::MirrorOnce:
+			return TAM_MIRROR;
+		case Xsc::Reflection::TextureAddressMode::Wrap:
+		default:
+			return TAM_WRAP;
+		}
+	}
+
+	CompareFunction parseCompFunction(Xsc::Reflection::ComparisonFunc compFunc)
+	{
+		switch(compFunc)
+		{
+		case Xsc::Reflection::ComparisonFunc::Always:
+		default:
+			return CMPF_ALWAYS_PASS;
+		case Xsc::Reflection::ComparisonFunc::Never:
+			return CMPF_ALWAYS_FAIL;
+		case Xsc::Reflection::ComparisonFunc::Equal:
+			return CMPF_EQUAL;
+		case Xsc::Reflection::ComparisonFunc::Greater:
+			return CMPF_GREATER;
+		case Xsc::Reflection::ComparisonFunc::GreaterEqual:
+			return CMPF_GREATER_EQUAL;
+		case Xsc::Reflection::ComparisonFunc::Less:
+			return CMPF_LESS;
+		case Xsc::Reflection::ComparisonFunc::LessEqual:
+			return CMPF_LESS_EQUAL;
+		case Xsc::Reflection::ComparisonFunc::NotEqual:
+			return CMPF_NOT_EQUAL;
+		}
+	}
+
+	SPtr<SamplerState> parseSamplerState(const Xsc::Reflection::SamplerState& sampState)
+	{
+		SAMPLER_STATE_DESC desc;
+
+		desc.addressMode.u = parseTexAddrMode(sampState.addressU);
+		desc.addressMode.v = parseTexAddrMode(sampState.addressV);
+		desc.addressMode.w = parseTexAddrMode(sampState.addressW);
+
+		desc.borderColor[0] = sampState.borderColor[0];
+		desc.borderColor[1] = sampState.borderColor[1];
+		desc.borderColor[2] = sampState.borderColor[2];
+		desc.borderColor[3] = sampState.borderColor[3];
+
+		desc.comparisonFunc = parseCompFunction(sampState.comparisonFunc);
+		desc.maxAniso = sampState.maxAnisotropy;
+		desc.mipMax = sampState.maxLOD;
+		desc.mipMin = sampState.minLOD;
+		desc.mipmapBias = sampState.mipLODBias;
+
+		switch (sampState.filter)
+		{
+		case Xsc::Reflection::Filter::MinMagMipPoint: 
+			desc.minFilter = FO_POINT;
+			desc.magFilter = FO_POINT;
+			desc.mipFilter = FO_POINT;
+			break;
+		case Xsc::Reflection::Filter::MinMagPointMipLinear: 
+			desc.minFilter = FO_POINT;
+			desc.magFilter = FO_POINT;
+			desc.mipFilter = FO_LINEAR;
+			break;
+		case Xsc::Reflection::Filter::MinPointMagLinearMipPoint: 
+			desc.minFilter = FO_POINT;
+			desc.magFilter = FO_LINEAR;
+			desc.mipFilter = FO_POINT;
+			break;
+		case Xsc::Reflection::Filter::MinPointMagMipLinear: 
+			desc.minFilter = FO_POINT;
+			desc.magFilter = FO_LINEAR;
+			desc.mipFilter = FO_LINEAR;
+			break;
+		case Xsc::Reflection::Filter::MinLinearMagMipPoint: 
+			desc.minFilter = FO_LINEAR;
+			desc.magFilter = FO_POINT;
+			desc.mipFilter = FO_POINT;
+			break;
+		case Xsc::Reflection::Filter::MinLinearMagPointMipLinear: 
+			desc.minFilter = FO_LINEAR;
+			desc.magFilter = FO_POINT;
+			desc.mipFilter = FO_LINEAR;
+			break;
+		case Xsc::Reflection::Filter::MinMagLinearMipPoint: 
+			desc.minFilter = FO_LINEAR;
+			desc.magFilter = FO_LINEAR;
+			desc.mipFilter = FO_POINT;
+			break;
+		case Xsc::Reflection::Filter::MinMagMipLinear: 
+			desc.minFilter = FO_LINEAR;
+			desc.magFilter = FO_LINEAR;
+			desc.mipFilter = FO_LINEAR;
+			break;
+		case Xsc::Reflection::Filter::Anisotropic: 
+			desc.minFilter = FO_ANISOTROPIC;
+			desc.magFilter = FO_ANISOTROPIC;
+			desc.minFilter = FO_ANISOTROPIC;
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinMagMipPoint: 
+			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinMagPointMipLinear: 
+			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinPointMagLinearMipPoint: 
+			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinPointMagMipLinear: 
+			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinLinearMagMipPoint: 
+			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinLinearMagPointMipLinear: 
+			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinMagLinearMipPoint: 
+			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonMinMagMipLinear: 
+			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
+			break;
+		case Xsc::Reflection::Filter::ComparisonAnisotropic: 
+			desc.minFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
+			desc.magFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
+			desc.minFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
+			break;
+		default: 
+			break;
+		}
+		
+		return SamplerState::create(desc);
+	}
+
+	void parseParameters(const Xsc::Reflection::ReflectionData& reflData, SHADER_DESC& desc)
+	{
+		for(auto& entry : reflData.uniforms)
+		{
+			if ((entry.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0)
+				continue;
+
+			String ident = entry.ident.c_str();
+			switch(entry.type)
+			{
+			case Xsc::Reflection::UniformType::UniformBuffer:
+				desc.setParamBlockAttribs(entry.ident.c_str(), false, GPBU_STATIC);
+				break;
+			case Xsc::Reflection::UniformType::Buffer:
+				{
+					GpuParamObjectType objType = ReflTypeToTextureType((Xsc::Reflection::BufferType)entry.baseType);
+					if(objType != GPOT_UNKNOWN)
+					{
+						if (entry.defaultValue == -1)
+							desc.addParameter(ident, ident, objType);
+						else
+							desc.addParameter(ident, ident, objType, getBuiltinTexture(entry.defaultValue));
+					}
+					else
+					{
+						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
+						desc.addParameter(ident, ident, objType);
+					}
+				}
+				break;
+			case Xsc::Reflection::UniformType::Sampler: 
+			{
+				auto findIter = reflData.samplerStates.find(entry.ident);
+				if (findIter == reflData.samplerStates.end())
+					desc.addParameter(ident, ident, GPOT_SAMPLER2D);
+				else
+				{
+					SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
+					desc.addParameter(ident, ident, GPOT_SAMPLER2D, defaultVal);
+				}
+				break;
+			}
+			case Xsc::Reflection::UniformType::Variable: 
+			{
+				GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
+				if((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 && 
+					entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4)
+				{
+					type = GPDT_COLOR;
+				}
+
+				if (entry.defaultValue == -1)
+					desc.addParameter(ident, ident, type);
+				else
+				{
+					const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
+
+					desc.addParameter(ident, ident, type, StringID::NONE, 1, 0, (UINT8*)defVal.matrix);
+				}
+			}
+				break;
+			case Xsc::Reflection::UniformType::Struct: break;
+			default: ;
+			}
+		}
+	}
+
+	String CrossCompile(const String& hlsl, GpuProgramType type, bool vulkan, bool optionalEntry, UINT32& startBindingSlot,
+		SHADER_DESC* shaderDesc = nullptr, Vector<GpuProgramType>* detectedTypes = nullptr)
 	{
 		SPtr<StringStream> input = bs_shared_ptr_new<StringStream>();
 
@@ -212,7 +522,6 @@ namespace bs
 		*input << hlsl;
 
 		Xsc::ShaderInput inputDesc;
-		inputDesc.entryPoint = "main";
 		inputDesc.shaderVersion = Xsc::InputShaderVersion::HLSL5;
 		inputDesc.sourceCode = input;
 		inputDesc.extensions = Xsc::Extensions::LayoutAttribute;
@@ -221,21 +530,27 @@ namespace bs
 		{
 		case GPT_VERTEX_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::VertexShader;
+			inputDesc.entryPoint = "vsmain";
 			break;
 		case GPT_GEOMETRY_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::GeometryShader;
+			inputDesc.entryPoint = "gsmain";
 			break;
 		case GPT_HULL_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::TessellationControlShader;
+			inputDesc.entryPoint = "hsmain";
 			break;
 		case GPT_DOMAIN_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::TessellationEvaluationShader;
+			inputDesc.entryPoint = "dsmain";
 			break;
 		case GPT_FRAGMENT_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::FragmentShader;
+			inputDesc.entryPoint = "fsmain";
 			break;
 		case GPT_COMPUTE_PROGRAM:
 			inputDesc.shaderTarget = Xsc::ShaderTarget::ComputeShader;
+			inputDesc.entryPoint = "csmain";
 			break;
 		}
 
@@ -260,6 +575,23 @@ namespace bs
 		Xsc::Reflection::ReflectionData reflectionData;
 		if (!Xsc::CompileShader(inputDesc, outputDesc, &log, &reflectionData))
 		{
+			// If enabled, don't fail if entry point isn't found
+			if(optionalEntry)
+			{
+				bool entryFound = false;
+				for (auto& entry : reflectionData.functions)
+				{
+					if(entry.ident == inputDesc.entryPoint)
+					{
+						entryFound = true;
+						break;
+					}
+				}
+
+				if (!entryFound)
+					return "";
+			}
+
 			StringStream logOutput;
 			log.getMessages(logOutput);
 
@@ -276,18 +608,41 @@ namespace bs
 		for (auto& entry : reflectionData.storageBuffers)
 			startBindingSlot = std::max(startBindingSlot, entry.location + 1u);
 
+		if(detectedTypes != nullptr)
+		{
+			for(auto& entry : reflectionData.functions)
+			{
+				if (entry.ident == "vsmain")
+					detectedTypes->push_back(GPT_VERTEX_PROGRAM);
+				else if (entry.ident == "fsmain")
+					detectedTypes->push_back(GPT_FRAGMENT_PROGRAM);
+				else if (entry.ident == "gsmain")
+					detectedTypes->push_back(GPT_GEOMETRY_PROGRAM);
+				else if (entry.ident == "dsmain")
+					detectedTypes->push_back(GPT_DOMAIN_PROGRAM);
+				else if (entry.ident == "hsmain")
+					detectedTypes->push_back(GPT_HULL_PROGRAM);
+				else if (entry.ident == "csmain")
+					detectedTypes->push_back(GPT_COMPUTE_PROGRAM);
+			}
+		}
+
+		if (shaderDesc != nullptr)
+			parseParameters(reflectionData, *shaderDesc);
+
 		return output.str();
 	}
 
-	/* Remove non-standard HLSL attributes. */
-	void cleanNonStandardHLSL(GPU_PROGRAM_DESC& progDesc)
+	// Convert HLSL code to GLSL
+	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, bool vulkan, UINT32& startBindingSlot)
 	{
-		static std::regex regex("\\[.*layout.*\\(.*\\).*\\]");
+		return CrossCompile(hlsl, type, vulkan, false, startBindingSlot);
+	}
 
-		if (progDesc.language != "hlsl")
-			return;
-
-		progDesc.source = regex_replace(progDesc.source, regex, "");
+	void ReflectHLSL(const String& hlsl, SHADER_DESC& shaderDesc, Vector<GpuProgramType>& entryPoints)
+	{
+		UINT32 dummy = 0;
+		CrossCompile(hlsl, GPT_VERTEX_PROGRAM, false, true, dummy, &shaderDesc, &entryPoints);
 	}
 
 	BSLFXCompileResult BSLFXCompiler::compile(const String& name, const String& source, 
@@ -929,9 +1284,7 @@ namespace bs
 	
 	void BSLFXCompiler::parseCodeBlock(ASTFXNode* codeNode, const Vector<String>& codeBlocks, PassData& passData)
 	{
-		if (codeNode == nullptr || (codeNode->type != NT_CodeCommon && codeNode->type != NT_CodeVertex && 
-			codeNode->type != NT_CodeFragment && codeNode->type != NT_CodeGeometry && codeNode->type != NT_CodeHull &&
-			codeNode->type != NT_CodeDomain && codeNode->type != NT_CodeCompute))
+		if (codeNode == nullptr || (codeNode->type != NT_Code))
 		{
 			return;
 		}
@@ -947,26 +1300,8 @@ namespace bs
 		{
 			switch (codeNode->type)
 			{
-			case NT_CodeVertex:
-				passData.vertexCode += codeBlocks[index];
-				break;
-			case NT_CodeFragment:
-				passData.fragmentCode += codeBlocks[index];
-				break;
-			case NT_CodeGeometry:
-				passData.geometryCode += codeBlocks[index];
-				break;
-			case NT_CodeHull:
-				passData.hullCode += codeBlocks[index];
-				break;
-			case NT_CodeDomain:
-				passData.domainCode += codeBlocks[index];
-				break;
-			case NT_CodeCompute:
-				passData.computeCode += codeBlocks[index];
-				break;
-			case NT_CodeCommon:
-				passData.commonCode += codeBlocks[index];
+			case NT_Code:
+				passData.code += codeBlocks[index];
 				break;
 			default:
 				break;
@@ -1047,14 +1382,7 @@ namespace bs
 				}
 
 				nextPassIdx = std::max(nextPassIdx, passIdx) + 1;
-
-				passData->vertexCode = combinedCommonPassData.vertexCode + passData->vertexCode;
-				passData->fragmentCode = combinedCommonPassData.fragmentCode + passData->fragmentCode;
-				passData->geometryCode = combinedCommonPassData.geometryCode + passData->geometryCode;
-				passData->hullCode = combinedCommonPassData.hullCode + passData->hullCode;
-				passData->domainCode = combinedCommonPassData.domainCode + passData->domainCode;
-				passData->computeCode = combinedCommonPassData.computeCode + passData->computeCode;
-				passData->commonCode = combinedCommonPassData.commonCode + passData->commonCode;
+				passData->code = combinedCommonPassData.code + passData->code;
 				
 				ASTFXNode* passNode = option->value.nodePtr;
 				parsePass(passNode, codeBlocks, *passData);
@@ -1066,23 +1394,9 @@ namespace bs
 				parseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
 
 				for (auto& passData : techniqueData.passes)
-				{
-					passData.vertexCode += commonPassData.vertexCode;
-					passData.fragmentCode += commonPassData.fragmentCode;
-					passData.geometryCode += commonPassData.geometryCode;
-					passData.hullCode += commonPassData.hullCode;
-					passData.domainCode += commonPassData.domainCode;
-					passData.computeCode += commonPassData.computeCode;
-					passData.commonCode += commonPassData.commonCode;
-				}
+					passData.code += commonPassData.code;
 
-				combinedCommonPassData.vertexCode += commonPassData.vertexCode;
-				combinedCommonPassData.fragmentCode += commonPassData.fragmentCode;
-				combinedCommonPassData.geometryCode += commonPassData.geometryCode;
-				combinedCommonPassData.hullCode += commonPassData.hullCode;
-				combinedCommonPassData.domainCode += commonPassData.domainCode;
-				combinedCommonPassData.computeCode += commonPassData.computeCode;
-				combinedCommonPassData.commonCode += commonPassData.commonCode;
+				combinedCommonPassData.code += commonPassData.code;
 			}
 				break;
 			default:
@@ -1261,7 +1575,7 @@ namespace bs
 
 		bs_stack_free(techniqueWasParsed);
 
-		// Auto-generate GLSL techniques
+		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL
 		UINT32 end = (UINT32)techniqueData.size();
 		for(UINT32 i = 0; i < end; i++)
 		{
@@ -1269,59 +1583,79 @@ namespace bs
 			if (metaData.isMixin)
 				continue;
 
-			auto createTechniqueForLanguage = [](const String& name, const TechniqueData& orig, bool vulkan)
+			TechniqueData& hlslTechnique = techniqueData[i].second;
+
+			TechniqueData glslTechnique = techniqueData[i].second;
+			glslTechnique.metaData.language = "glsl";
+
+			TechniqueData vkslTechnique = techniqueData[i].second;
+			vkslTechnique.metaData.language = "vksl";
+
+			UINT32 numPasses = (UINT32)hlslTechnique.passes.size();
+
+			for(UINT32 j = 0; j < numPasses; j++)
 			{
-				TechniqueData copy = orig;
-				copy.metaData.language = vulkan ? "vksl" : "glsl";
-				for (auto& passData : copy.passes)
+				PassData& hlslPassData = hlslTechnique.passes[j];
+				PassData& glslPassData = glslTechnique.passes[j];
+				PassData& vkslPassData = vkslTechnique.passes[j];
+
+				// Clean non-standard HLSL 
+				static const std::regex regex("\\[.*layout.*\\(.*\\).*\\]");
+				hlslPassData.code = regex_replace(hlslPassData.code, regex, "");
+
+				// Find valid entry points and parameters
+				// Note: XShaderCompiler needs to do a full pass when doing reflection, and for each individual program
+				// type. If performance is ever important here it could be good to update XShaderCompiler so it can
+				// somehow save the AST and then re-use it for multiple actions.
+				Vector<GpuProgramType> types;
+				ReflectHLSL(glslPassData.code, shaderDesc, types);
+
+				UINT32 glslBinding = 0;
+				UINT32 vkslBinding = 0;
+
+				// Cross-compile for all detected shader types
+				// Note: I'm just copying HLSL code as-is. This code will contain all entry points which could have
+				// an effect on compile time. It would be ideal to remove dead code depending on program type. This would
+				// involve adding a HLSL code generator to XShaderCompiler.
+				for(auto& type : types)
 				{
-					UINT32 nextFreeBindingSlot = 0;
-					if (!passData.vertexCode.empty())
+					switch(type)
 					{
-						String hlslCode = passData.commonCode + passData.vertexCode;
-						passData.vertexCode = HLSLtoGLSL(hlslCode, GPT_VERTEX_PROGRAM, vulkan, nextFreeBindingSlot);
+					case GPT_VERTEX_PROGRAM:
+						hlslPassData.vertexCode = hlslPassData.code;
+						glslPassData.vertexCode = HLSLtoGLSL(glslPassData.code, GPT_VERTEX_PROGRAM, false, glslBinding);
+						vkslPassData.vertexCode = HLSLtoGLSL(glslPassData.code, GPT_VERTEX_PROGRAM, true, vkslBinding);
+						break;
+					case GPT_FRAGMENT_PROGRAM:
+						hlslPassData.fragmentCode = hlslPassData.code;
+						glslPassData.fragmentCode = HLSLtoGLSL(glslPassData.code, GPT_FRAGMENT_PROGRAM, false, glslBinding);
+						vkslPassData.fragmentCode = HLSLtoGLSL(glslPassData.code, GPT_FRAGMENT_PROGRAM, true, vkslBinding);
+						break;
+					case GPT_GEOMETRY_PROGRAM:
+						hlslPassData.geometryCode = hlslPassData.code;
+						glslPassData.geometryCode = HLSLtoGLSL(glslPassData.code, GPT_GEOMETRY_PROGRAM, false, glslBinding);
+						vkslPassData.geometryCode = HLSLtoGLSL(glslPassData.code, GPT_GEOMETRY_PROGRAM, true, vkslBinding);
+						break;
+					case GPT_HULL_PROGRAM:
+						hlslPassData.hullCode = hlslPassData.code;
+						glslPassData.hullCode = HLSLtoGLSL(glslPassData.code, GPT_HULL_PROGRAM, false, glslBinding);
+						vkslPassData.hullCode = HLSLtoGLSL(glslPassData.code, GPT_HULL_PROGRAM, true, vkslBinding);
+						break;
+					case GPT_DOMAIN_PROGRAM:
+						hlslPassData.domainCode = hlslPassData.code;
+						glslPassData.domainCode = HLSLtoGLSL(glslPassData.code, GPT_DOMAIN_PROGRAM, false, glslBinding);
+						vkslPassData.domainCode = HLSLtoGLSL(glslPassData.code, GPT_DOMAIN_PROGRAM, true, vkslBinding);
+						break;
+					case GPT_COMPUTE_PROGRAM:
+						hlslPassData.computeCode = hlslPassData.code;
+						glslPassData.computeCode = HLSLtoGLSL(glslPassData.code, GPT_COMPUTE_PROGRAM, false, glslBinding);
+						vkslPassData.computeCode = HLSLtoGLSL(glslPassData.code, GPT_COMPUTE_PROGRAM, true, vkslBinding);
+						break;
 					}
-
-					if (!passData.fragmentCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.fragmentCode;
-						passData.fragmentCode = HLSLtoGLSL(hlslCode, GPT_FRAGMENT_PROGRAM, vulkan, nextFreeBindingSlot);
-					}
-
-					if (!passData.geometryCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.geometryCode;
-						passData.geometryCode = HLSLtoGLSL(hlslCode, GPT_GEOMETRY_PROGRAM, vulkan, nextFreeBindingSlot);
-					}
-
-					if (!passData.hullCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.hullCode;
-						passData.hullCode = HLSLtoGLSL(hlslCode, GPT_HULL_PROGRAM, vulkan, nextFreeBindingSlot);
-					}
-
-					if (!passData.domainCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.domainCode;
-						passData.domainCode = HLSLtoGLSL(hlslCode, GPT_DOMAIN_PROGRAM, vulkan, nextFreeBindingSlot);
-					}
-
-					if (!passData.computeCode.empty())
-					{
-						String hlslCode = passData.commonCode + passData.computeCode;
-						passData.computeCode = HLSLtoGLSL(hlslCode, GPT_COMPUTE_PROGRAM, vulkan, nextFreeBindingSlot);
-					}
-
-					passData.commonCode = "";
 				}
+			}
 
-				return copy;
-			};
-
-			TechniqueData glslTechnique = createTechniqueForLanguage(name, techniqueData[i].second, false);
 			techniqueData.push_back(std::make_pair(techniqueData[i].first, glslTechnique));
-
-			TechniqueData vkslTechnique = createTechniqueForLanguage(name, techniqueData[i].second, true);
 			techniqueData.push_back(std::make_pair(techniqueData[i].first, vkslTechnique));
 		}
 
@@ -1352,55 +1686,49 @@ namespace bs
 
 				if (!passData.vertexCode.empty())
 				{
-					desc.source = passData.commonCode + passData.vertexCode;
+					desc.source = passData.vertexCode;
 					desc.type = GPT_VERTEX_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.vertexProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.fragmentCode.empty())
 				{
-					desc.source = passData.commonCode + passData.fragmentCode;
+					desc.source = passData.fragmentCode;
 					desc.type = GPT_FRAGMENT_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.fragmentProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.geometryCode.empty())
 				{
-					desc.source = passData.commonCode + passData.geometryCode;
+					desc.source = passData.geometryCode;
 					desc.type = GPT_GEOMETRY_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.geometryProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.hullCode.empty())
 				{
-					desc.source = passData.commonCode + passData.hullCode;
+					desc.source = passData.hullCode;
 					desc.type = GPT_HULL_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.hullProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.domainCode.empty())
 				{
-					desc.source = passData.commonCode + passData.domainCode;
+					desc.source = passData.domainCode;
 					desc.type = GPT_DOMAIN_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.domainProgram = GpuProgram::create(desc);
 				}
 
 				if (!passData.computeCode.empty())
 				{
-					desc.source = passData.commonCode + passData.computeCode;
+					desc.source = passData.computeCode;
 					desc.type = GPT_COMPUTE_PROGRAM;
 
-					cleanNonStandardHLSL(desc);
 					passDesc.computeProgram = GpuProgram::create(desc);
 				}
 
@@ -1453,17 +1781,5 @@ namespace bs
 			output[i] = input[i + 1];
 
 		return output;
-	}
-
-	HTexture BSLFXCompiler::getBuiltinTexture(const String& name)
-	{
-		if (StringUtil::compare(name, String("white"), false) == 0)
-			return BuiltinResources::getTexture(BuiltinTexture::White);
-		else if (StringUtil::compare(name, String("black"), false) == 0)
-			return BuiltinResources::getTexture(BuiltinTexture::Black);
-		else if (StringUtil::compare(name, String("normal"), false) == 0)
-			return BuiltinResources::getTexture(BuiltinTexture::Normal);
-
-		return HTexture();
 	}
 }

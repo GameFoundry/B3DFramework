@@ -51,7 +51,8 @@ namespace bs
 			bool rasterizerIsDefault = true;
 			bool depthStencilIsDefault = true;
 
-			String commonCode;
+			String code; // Parsed code block
+
 			String vertexCode;
 			String fragmentCode;
 			String geometryCode;
@@ -216,9 +217,6 @@ namespace bs
 		 * first and last index.
 		 */
 		static String removeQuotes(const char* input);
-
-		/** Returns one of the builtin textures based on their name. */
-		static HTexture getBuiltinTexture(const String& name);
 	};
 
 	/** @} */
