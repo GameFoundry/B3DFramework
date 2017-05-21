@@ -14,6 +14,7 @@ set(BS_RENDERBEAST_INC_NOFILTER
 	"Include/BsLightGrid.h"
 	"Include/BsImageBasedLighting.h"
 	"Include/BsShadowRendering.h"
+	"Include/BsRendererScene.h"
 )
 
 set(BS_RENDERBEAST_SRC_NOFILTER
@@ -31,6 +32,7 @@ set(BS_RENDERBEAST_SRC_NOFILTER
 	"Source/BsLightGrid.cpp"
 	"Source/BsImageBasedLighting.cpp"
 	"Source/BsShadowRendering.cpp"
+	"Source/BsRendererScene.cpp"
 )
 
 source_group("Header Files" FILES ${BS_RENDERBEAST_INC_NOFILTER})
