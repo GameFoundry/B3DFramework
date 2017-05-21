@@ -44,7 +44,6 @@ technique PPTonemapping
 		SamplerState gColorLUTSamp;
 		Texture3D gColorLUT;
 		
-		[internal]
 		cbuffer Input
 		{
 			float gRawGamma;

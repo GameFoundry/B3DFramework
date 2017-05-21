@@ -2,7 +2,6 @@ mixin PerCameraData
 {
 	code 
 	{
-		[internal]
 		cbuffer PerCamera
 		{
 			float3	 gViewDir;

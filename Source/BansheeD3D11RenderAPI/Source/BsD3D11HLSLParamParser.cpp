@@ -345,6 +345,7 @@ namespace bs { namespace ct
 			{
 				switch(varTypeDesc.Type)
 				{
+				case D3D_SVT_UINT:
 				case D3D_SVT_INT:
 					{
 						switch(varTypeDesc.Columns)

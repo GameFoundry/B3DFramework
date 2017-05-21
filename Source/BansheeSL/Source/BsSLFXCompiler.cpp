@@ -488,7 +488,7 @@ namespace bs
 			{
 				GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
 				if((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 && 
-					entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4)
+				   (entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4))
 				{
 					type = GPDT_COLOR;
 				}
@@ -576,6 +576,7 @@ namespace bs
 		if (!Xsc::CompileShader(inputDesc, outputDesc, &log, &reflectionData))
 		{
 			// If enabled, don't fail if entry point isn't found
+			bool done = true;
 			if(optionalEntry)
 			{
 				bool entryFound = false;
@@ -589,14 +590,17 @@ namespace bs
 				}
 
 				if (!entryFound)
-					return "";
+					done = false;
 			}
 
-			StringStream logOutput;
-			log.getMessages(logOutput);
+			if (done)
+			{
+				StringStream logOutput;
+				log.getMessages(logOutput);
 
-			LOGERR("Shader cross compilation failed. Log: \n\n" + logOutput.str());
-			return "";
+				LOGERR("Shader cross compilation failed. Log: \n\n" + logOutput.str());
+				return "";
+			}
 		}
 
 		for (auto& entry : reflectionData.constantBuffers)
@@ -1343,7 +1347,7 @@ namespace bs
 
 	void BSLFXCompiler::parseTechnique(ASTFXNode* techniqueNode, const Vector<String>& codeBlocks, TechniqueData& techniqueData)
 	{
-		if (techniqueNode == nullptr || techniqueNode->type != NT_Technique)
+		if (techniqueNode == nullptr || (techniqueNode->type != NT_Technique && techniqueNode->type != NT_Mixin))
 			return;
 
 		// There must always be at least one pass
@@ -1600,7 +1604,7 @@ namespace bs
 				PassData& vkslPassData = vkslTechnique.passes[j];
 
 				// Clean non-standard HLSL 
-				static const std::regex regex("\\[.*layout.*\\(.*\\).*\\]|\\[.*internal.*\\]|\\[.*color.*\\]");
+				static const std::regex regex("\\[\\s*layout\\s*\\(.*\\)\\s*\\]|\\[\\s*internal\\s*\\]|\\[\\s*color\\s*\\]");
 				hlslPassData.code = regex_replace(hlslPassData.code, regex, "");
 
 				// Find valid entry points and parameters
