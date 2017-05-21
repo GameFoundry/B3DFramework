@@ -33,6 +33,18 @@ mixin SkinnedVertexInput
 			#endif
 		};
 		
+		// Vertex input containing only position data
+		struct VertexInput_PO
+		{
+			float3 position : POSITION;
+			uint4 blendIndices : BLENDINDICES;
+			float4 blendWeights : BLENDWEIGHT;
+			
+			#ifdef USE_BLEND_SHAPES
+				float3 deltaPosition : POSITION1;
+			#endif
+		};		
+		
 		struct VertexIntermediate
 		{
 			float3x4 blendMatrix;
@@ -50,12 +62,12 @@ mixin SkinnedVertexInput
 			return float3x4(row0, row1, row2);
 		}
 		
-		float3x4 getBlendMatrix(VertexInput input)
+		float3x4 getBlendMatrix(float4 blendWeights, uint4 blendIndices)
 		{
-			float3x4 result = input.blendWeights.x * getBoneMatrix(input.blendIndices.x);
-			result += input.blendWeights.y * getBoneMatrix(input.blendIndices.y);
-			result += input.blendWeights.z * getBoneMatrix(input.blendIndices.z);
-			result += input.blendWeights.w * getBoneMatrix(input.blendIndices.w);
+			float3x4 result = blendWeights.x * getBoneMatrix(blendIndices.x);
+			result += blendWeights.y * getBoneMatrix(blendIndices.y);
+			result += blendWeights.z * getBoneMatrix(blendIndices.z);
+			result += blendWeights.w * getBoneMatrix(blendIndices.w);
 			
 			return result;
 		}
@@ -66,7 +78,7 @@ mixin SkinnedVertexInput
 		
 			float3 normal = input.normal * 2.0f - 1.0f;
 			float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
-			
+
 			#ifdef USE_BLEND_SHAPES
 				float3 deltaNormal = (input.deltaNormal.xyz * 2.0f - 1.0f) * 2.0f;
 				normal = normalize(normal + deltaNormal * input.deltaNormal.w);
@@ -89,12 +101,12 @@ mixin SkinnedVertexInput
 		{
 			VertexIntermediate result;
 			
-			result.blendMatrix = getBlendMatrix(input);
+			result.blendMatrix = getBlendMatrix(input.blendWeights, input.blendIndices);
 			
 			float tangentSign;
 			float3x3 tangentToLocal = getSkinnedTangentToLocal(input, result.blendMatrix, tangentSign);
 			float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
-			
+
 			// Note: Consider transposing these externally, for easier reads
 			result.worldNormal = float3(tangentToWorld[0][2], tangentToWorld[1][2], tangentToWorld[2][2]); // Normal basis vector
 			result.worldTangent = float4(tangentToWorld[0][0], tangentToWorld[1][0], tangentToWorld[2][0], tangentSign); // Tangent basis vector
@@ -113,6 +125,19 @@ mixin SkinnedVertexInput
 			position = float4(mul(intermediate.blendMatrix, position), 1.0f);
 			return mul(gMatWorld, position);
 		}
+		
+		float4 getVertexWorldPosition(VertexInput_PO input)
+		{
+			#ifdef USE_BLEND_SHAPES
+				float4 position = float4(input.position + input.deltaPosition, 1.0f);
+			#else
+				float4 position = float4(input.position, 1.0f);
+			#endif
+		
+			float3x4 blendMatrix = getBlendMatrix(input.blendWeights, input.blendIndices);
+			position = float4(mul(blendMatrix, position), 1.0f);
+			return mul(gMatWorld, position);
+		}		
 		
 		void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)
 		{

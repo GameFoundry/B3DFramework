@@ -15,13 +15,22 @@ Each library below lists a set of outputs required by Banshee. After you compile
    
 Legend:
 - (BansheeSource) - root directory of Banshee's source code
-- (LibName) - name of the library (title of the each library shown below)
+- (LibName) - name of the library (title of each library shown below)
 - (Platform) - x86 for 32-bit builds, x64 for 64-bit builds
 - (Configuration) - Debug, OptimizedDebug or Release
    
 If the library structure still isn't clear, download one of the pre-compiled dependency packages to see an example.   
       
 ## Library list 
+	  
+**snappy**
+- Google's Snappy compressor/decompressor
+- https://github.com/BearishSun/snappy
+- Required by BansheeUtility
+- Outputs:
+  - Windows (Static library):
+    - /Debug/Snappy.lib (Debug configuration)
+    - /Release/Snappy.lib (Release configuration)
 	  
 **nvtt**
 - NVIDIA Texture Tools 2.1.0 (commit e85d851cd9502d77c6e20769d8c21baa3a94ac18)

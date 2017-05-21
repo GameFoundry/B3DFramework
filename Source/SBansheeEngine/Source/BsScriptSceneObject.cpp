@@ -25,6 +25,9 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_SetName", &ScriptSceneObject::internal_setName);
 		metaData.scriptClass->addInternalCall("Internal_GetActive", &ScriptSceneObject::internal_getActive);
 		metaData.scriptClass->addInternalCall("Internal_SetActive", &ScriptSceneObject::internal_setActive);
+		metaData.scriptClass->addInternalCall("Internal_GetMobility", &ScriptSceneObject::internal_getMobility);
+		metaData.scriptClass->addInternalCall("Internal_SetMobility", &ScriptSceneObject::internal_setMobility);
+		metaData.scriptClass->addInternalCall("Internal_GetParent", &ScriptSceneObject::internal_getParent);
 		metaData.scriptClass->addInternalCall("Internal_GetParent", &ScriptSceneObject::internal_getParent);
 		metaData.scriptClass->addInternalCall("Internal_SetParent", &ScriptSceneObject::internal_setParent);
 		metaData.scriptClass->addInternalCall("Internal_GetNumChildren", &ScriptSceneObject::internal_getNumChildren);
@@ -102,6 +105,21 @@ namespace bs
 		return nativeInstance->mSceneObject->getActive(true);
 	}
 
+	void ScriptSceneObject::internal_setMobility(ScriptSceneObject* nativeInstance, int value)
+	{
+		if (checkIfDestroyed(nativeInstance))
+			return;
+
+		nativeInstance->mSceneObject->setMobility((ObjectMobility)value);
+	}
+
+	int ScriptSceneObject::internal_getMobility(ScriptSceneObject* nativeInstance)
+	{
+		if (checkIfDestroyed(nativeInstance))
+			return false;
+
+		return (int)nativeInstance->mSceneObject->getMobility();
+	}
 	void ScriptSceneObject::internal_setParent(ScriptSceneObject* nativeInstance, MonoObject* parent)
 	{
 		if (checkIfDestroyed(nativeInstance))

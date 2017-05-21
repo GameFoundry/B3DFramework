@@ -4,7 +4,7 @@
 
 #include "BsRenderBeastPrerequisites.h"
 #include "BsPixelUtil.h"
-#include "BsRendererCamera.h"
+#include "BsRendererView.h"
 
 namespace bs { namespace ct
 {

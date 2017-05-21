@@ -5,7 +5,7 @@ project (Banshee)
 set (BS_VERSION_MAJOR 0)
 set (BS_VERSION_MINOR 4)
 
-set (BS_PREBUILT_DEPENDENCIES_VERSION 1)
+set (BS_PREBUILT_DEPENDENCIES_VERSION 2)
 set (BS_SRC_DEPENDENCIES_VERSION 8)
 
 # Configuration types
@@ -65,11 +65,11 @@ mark_as_advanced(CMAKE_INSTALL_PREFIX)
 ## Check prebuilt dependencies that user downloads in a .zip
 set(BUILTIN_DEP_VERSION_FILE ${PROJECT_SOURCE_DIR}/../Dependencies/.version)
 if(NOT EXISTS ${BUILTIN_DEP_VERSION_FILE})
-	message(FATAL_ERROR "Precompiled dependencies package is missing our out of date. Re-run setup or manually re-download and extract dependencies.")
+	message(FATAL_ERROR "Precompiled dependencies package is missing our out of date. Re-run setup or manually download the latest dependencies package.")
 else()
 	file (STRINGS ${BUILTIN_DEP_VERSION_FILE} CURRENT_BUILTIN_DEP_VERSION)
 	if(${BS_PREBUILT_DEPENDENCIES_VERSION} GREATER ${CURRENT_BUILTIN_DEP_VERSION})
-		message(FATAL_ERROR "Your precomiled dependencies package is out of date. Re-run setup or manually re-download and extract dependencies.")
+		message(FATAL_ERROR "Your precomiled dependencies package is out of date. Re-run setup or manually download the latest dependencies package.")
 	endif()
 endif()
 	

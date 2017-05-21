@@ -166,6 +166,9 @@ namespace bs
 			SPtr<Renderable> renderable = renderablePair.second.renderable;
 			HSceneObject so = renderablePair.second.sceneObject;
 
+			if (so->getMobility() != renderable->getMobility())
+				renderable->setMobility(so->getMobility());
+
 			renderable->_updateTransform(so);
 
 			if (so->getActive() != renderable->getIsActive())
@@ -196,6 +199,9 @@ namespace bs
 		{
 			SPtr<Light> handler = lightPair.second.light;
 			HSceneObject so = lightPair.second.sceneObject;
+
+			if (so->getMobility() != handler->getMobility())
+				handler->setMobility(so->getMobility());
 
 			UINT32 curHash = so->getTransformHash();
 			if (curHash != handler->_getLastModifiedHash())

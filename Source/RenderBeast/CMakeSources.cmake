@@ -9,10 +9,11 @@ set(BS_RENDERBEAST_INC_NOFILTER
 	"Include/BsObjectRendering.h"
 	"Include/BsLightRendering.h"
 	"Include/BsPostProcessing.h"
-	"Include/BsRendererCamera.h"
+	"Include/BsRendererView.h"
 	"Include/BsRendererObject.h"
 	"Include/BsLightGrid.h"
 	"Include/BsImageBasedLighting.h"
+	"Include/BsShadowRendering.h"
 )
 
 set(BS_RENDERBEAST_SRC_NOFILTER
@@ -25,10 +26,11 @@ set(BS_RENDERBEAST_SRC_NOFILTER
 	"Source/BsObjectRendering.cpp"
 	"Source/BsLightRendering.cpp"
 	"Source/BsPostProcessing.cpp"
-	"Source/BsRendererCamera.cpp"
+	"Source/BsRendererView.cpp"
 	"Source/BsRendererObject.cpp"
 	"Source/BsLightGrid.cpp"
 	"Source/BsImageBasedLighting.cpp"
+	"Source/BsShadowRendering.cpp"
 )
 
 source_group("Header Files" FILES ${BS_RENDERBEAST_INC_NOFILTER})

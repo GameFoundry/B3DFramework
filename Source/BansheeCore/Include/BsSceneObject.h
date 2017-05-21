@@ -361,7 +361,7 @@ namespace bs
 		/** 
 		 * Notifies components and child scene object that a transform has been changed.  
 		 * 
-		 * @param	flags	Specifies in what way was the transform changed.
+		 * @param	flags		Specifies in what way was the transform changed.
 		 */
 		void notifyTransformChanged(TransformChangedFlags flags) const;
 
@@ -456,6 +456,19 @@ namespace bs
 		bool getActive(bool self = false);
 
 		/**
+		 * Sets the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
+		 * with more restricted mobility will result in higher performance. Some mobility constraints will be enforced by
+		 * the engine itself, while for others the caller must be sure not to break the promise he made when mobility was
+		 * set. By default scene object's mobility is unrestricted.
+		 */
+		void setMobility(ObjectMobility mobility);
+
+		/** 
+		 * Gets the mobility setting for this scene object. See setMobility(); 
+		 */
+		ObjectMobility getMobility() const { return mMobility; }
+
+		/**
 		 * Makes a deep copy of this object.
 		 * 			
 		 * @param[in]	instantiate	If false, the cloned hierarchy will just be a memory copy, but will not be present in the
@@ -468,6 +481,7 @@ namespace bs
 		Vector<HSceneObject> mChildren;
 		bool mActiveSelf;
 		bool mActiveHierarchy;
+		ObjectMobility mMobility;
 
 		/**
 		 * Internal version of setParent() that allows you to set a null parent.

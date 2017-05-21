@@ -8,58 +8,84 @@
 
 namespace bs
 {
-	/**	Clip planes that form the camera frustum (visible area). */
-	enum FrustumPlane
-	{
-		FRUSTUM_PLANE_NEAR = 0,
-		FRUSTUM_PLANE_FAR = 1,
-		FRUSTUM_PLANE_LEFT = 2,
-		FRUSTUM_PLANE_RIGHT = 3,
-		FRUSTUM_PLANE_TOP = 4,
-		FRUSTUM_PLANE_BOTTOM = 5
-	};
-
 	ConvexVolume::ConvexVolume(const Vector<Plane>& planes)
 		:mPlanes(planes)
 	{ }
 
-	ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix)
+	ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 	{
-		mPlanes.resize(6);
+		mPlanes.reserve(6);
 
 		const Matrix4& proj = projectionMatrix;
 
-		mPlanes[FRUSTUM_PLANE_LEFT].normal.x = proj[3][0] + proj[0][0];
-		mPlanes[FRUSTUM_PLANE_LEFT].normal.y = proj[3][1] + proj[0][1];
-		mPlanes[FRUSTUM_PLANE_LEFT].normal.z = proj[3][2] + proj[0][2];
-		mPlanes[FRUSTUM_PLANE_LEFT].d = proj[3][3] + proj[0][3];
+		// Left
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] + proj[0][0];
+			plane.normal.y = proj[3][1] + proj[0][1];
+			plane.normal.z = proj[3][2] + proj[0][2];
+			plane.d = proj[3][3] + proj[0][3];
 
-		mPlanes[FRUSTUM_PLANE_RIGHT].normal.x = proj[3][0] - proj[0][0];
-		mPlanes[FRUSTUM_PLANE_RIGHT].normal.y = proj[3][1] - proj[0][1];
-		mPlanes[FRUSTUM_PLANE_RIGHT].normal.z = proj[3][2] - proj[0][2];
-		mPlanes[FRUSTUM_PLANE_RIGHT].d = proj[3][3] - proj[0][3];
+			mPlanes.push_back(plane);
+		}
 
-		mPlanes[FRUSTUM_PLANE_TOP].normal.x = proj[3][0] - proj[1][0];
-		mPlanes[FRUSTUM_PLANE_TOP].normal.y = proj[3][1] - proj[1][1];
-		mPlanes[FRUSTUM_PLANE_TOP].normal.z = proj[3][2] - proj[1][2];
-		mPlanes[FRUSTUM_PLANE_TOP].d = proj[3][3] - proj[1][3];
+		// Right
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] - proj[0][0];
+			plane.normal.y = proj[3][1] - proj[0][1];
+			plane.normal.z = proj[3][2] - proj[0][2];
+			plane.d = proj[3][3] - proj[0][3];
 
-		mPlanes[FRUSTUM_PLANE_BOTTOM].normal.x = proj[3][0] + proj[1][0];
-		mPlanes[FRUSTUM_PLANE_BOTTOM].normal.y = proj[3][1] + proj[1][1];
-		mPlanes[FRUSTUM_PLANE_BOTTOM].normal.z = proj[3][2] + proj[1][2];
-		mPlanes[FRUSTUM_PLANE_BOTTOM].d = proj[3][3] + proj[1][3];
+			mPlanes.push_back(plane);
+		}
 
-		mPlanes[FRUSTUM_PLANE_NEAR].normal.x = proj[3][0] + proj[2][0];
-		mPlanes[FRUSTUM_PLANE_NEAR].normal.y = proj[3][1] + proj[2][1];
-		mPlanes[FRUSTUM_PLANE_NEAR].normal.z = proj[3][2] + proj[2][2];
-		mPlanes[FRUSTUM_PLANE_NEAR].d = proj[3][3] + proj[2][3];
+		// Top
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] - proj[1][0];
+			plane.normal.y = proj[3][1] - proj[1][1];
+			plane.normal.z = proj[3][2] - proj[1][2];
+			plane.d = proj[3][3] - proj[1][3];
 
-		mPlanes[FRUSTUM_PLANE_FAR].normal.x = proj[3][0] - proj[2][0];
-		mPlanes[FRUSTUM_PLANE_FAR].normal.y = proj[3][1] - proj[2][1];
-		mPlanes[FRUSTUM_PLANE_FAR].normal.z = proj[3][2] - proj[2][2];
-		mPlanes[FRUSTUM_PLANE_FAR].d = proj[3][3] - proj[2][3];
+			mPlanes.push_back(plane);
+		}
 
-		for (UINT32 i = 0; i < 6; i++)
+		// Bottom
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] + proj[1][0];
+			plane.normal.y = proj[3][1] + proj[1][1];
+			plane.normal.z = proj[3][2] + proj[1][2];
+			plane.d = proj[3][3] + proj[1][3];
+
+			mPlanes.push_back(plane);
+		}
+
+		// Near
+		if(useNearPlane)
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] + proj[2][0];
+			plane.normal.y = proj[3][1] + proj[2][1];
+			plane.normal.z = proj[3][2] + proj[2][2];
+			plane.d = proj[3][3] + proj[2][3];
+
+			mPlanes.push_back(plane);
+		}
+
+		// Far
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] - proj[2][0];
+			plane.normal.y = proj[3][1] - proj[2][1];
+			plane.normal.z = proj[3][2] - proj[2][2];
+			plane.d = proj[3][3] - proj[2][3];
+
+			mPlanes.push_back(plane);
+		}
+
+		for (UINT32 i = 0; i < (UINT32)mPlanes.size(); i++)
 		{
 			float length = mPlanes[i].normal.normalize();
 			mPlanes[i].d /= -length;

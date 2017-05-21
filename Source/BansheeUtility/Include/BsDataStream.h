@@ -155,6 +155,13 @@ namespace bs
 	{		
 	public:
 		/**
+		 * Allocates a new chunk of memory and wraps it in a stream.
+		 *
+		 * @param[in]	size		Size of the memory chunk in bytes.
+		 */
+		MemoryDataStream(size_t size);
+
+		/**
 		 * Wrap an existing memory chunk in a stream.
 		 *
 		 * @param[in] 	memory		Memory to wrap the data stream around.
@@ -162,7 +169,7 @@ namespace bs
 		 * @param[in]	freeOnClose	Should the memory buffer be freed when the data stream goes out of scope.
 		 */
 		MemoryDataStream(void* memory, size_t size, bool freeOnClose = true);
-		
+
 		/**
 		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely 
 		 * read and stored in an internal buffer.

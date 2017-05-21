@@ -60,8 +60,31 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 	};
 
-	/** Set of properties describing the output render target used by a renderer view. */
-	struct RENDERER_VIEW_TARGET_DESC
+	/** Data shared between RENDERER_VIEW_DESC and RendererViewProperties */
+	struct RendererViewData
+	{
+		Matrix4 viewTransform;
+		Matrix4 projTransform;
+		Vector3 viewDirection;
+		Vector3 viewOrigin;
+		bool flipView;
+		float nearPlane;
+		float farPlane;
+		ProjectionType projType;
+
+		bool isOverlay : 1;
+		bool isHDR : 1;
+		bool noLighting : 1;
+		bool triggerCallbacks : 1;
+		bool runPostProcessing : 1;
+		bool renderingReflections : 1;
+
+		UINT64 visibleLayers;
+		ConvexVolume cullFrustum;
+	};
+
+	/** Data shared between RENDERER_VIEW_TARGET_DESC and RendererViewTargetProperties */
+	struct RendererViewTargetData
 	{
 		SPtr<RenderTarget> target;
 
@@ -77,32 +100,35 @@ namespace bs { namespace ct
 		UINT16 clearStencilValue;
 	};
 
+	/** Set of properties describing the output render target used by a renderer view. */
+	struct RENDERER_VIEW_TARGET_DESC : RendererViewTargetData
+	{ };
+
 	/** Set of properties used describing a specific view that the renderer can render. */
-	struct RENDERER_VIEW_DESC
+	struct RENDERER_VIEW_DESC : RendererViewData
 	{
 		RENDERER_VIEW_TARGET_DESC target;
 
-		Matrix4 viewTransform;
-		Matrix4 projTransform;
-		Vector3 viewDirection;
-		Vector3 viewOrigin;
-		bool flipView;
-		float nearPlane;
-		float farPlane;
-
-		bool isOverlay : 1;
-		bool isHDR : 1;
-		bool noLighting : 1;
-		bool triggerCallbacks : 1;
-		bool runPostProcessing : 1;
-		bool renderingReflections : 1;
-
-		UINT64 visibleLayers;
-		ConvexVolume cullFrustum;
-
 		StateReduction stateReduction;
-
 		const Camera* sceneCamera;
+	};
+
+	/** Set of properties used describing a specific view that the renderer can render. */
+	struct RendererViewProperties : RendererViewData
+	{
+		RendererViewProperties() {}
+		RendererViewProperties(const RENDERER_VIEW_DESC& src);
+
+		Matrix4 viewProjTransform;
+
+		SPtr<RenderTarget> target;
+		Rect2 nrmViewRect;
+		UINT32 numSamples;
+
+		UINT32 clearFlags;
+		Color clearColor;
+		float clearDepthValue;
+		UINT16 clearStencilValue;
 	};
 
 	/** Information whether certain scene objects are visible in a view, per object type. */
@@ -122,12 +148,19 @@ namespace bs { namespace ct
 		UINT64 layer;
 	};
 
-	/** Contains information about a Camera, used by the Renderer. */
-	class RendererCamera
+	/**	Renderer information specific to a single render target. */
+	struct RendererRenderTarget
+	{
+		SPtr<RenderTarget> target;
+		Vector<const Camera*> cameras;
+	};
+
+	/** Contains information about a single view into the scene, used by the renderer. */
+	class RendererView
 	{
 	public:
-		RendererCamera();
-		RendererCamera(const RENDERER_VIEW_DESC& desc);
+		RendererView();
+		RendererView(const RENDERER_VIEW_DESC& desc);
 
 		/** Sets state reduction mode that determines how do render queues group & sort renderables. */
 		void setStateReductionMode(StateReduction reductionMode);
@@ -142,53 +175,11 @@ namespace bs { namespace ct
 		/** Updates all internal information with new view information. */
 		void setView(const RENDERER_VIEW_DESC& desc);
 
-		/** Returns the world position of the view. */
-		Vector3 getViewOrigin() const { return mViewDesc.viewOrigin; }
-
-		/** Returns a matrix that contains combined projection and view transforms. */
-		Matrix4 getViewProjMatrix() const { return mViewDesc.projTransform * mViewDesc.viewTransform; }
-
-		/** Returns the distance to the near clipping plane. */
-		float getNearPlane() const { return mViewDesc.nearPlane; }
-
-		/** Returns the distance to the far clipping plane. */
-		float getFarPlane() const { return mViewDesc.farPlane; }
-
-		/** Returns true if the view requires high dynamic range rendering. */
-		bool isHDR() const { return mViewDesc.isHDR; }
-
-		/** Returns true if this view only renders overlay, and not scene objects. */
-		bool isOverlay() const { return mViewDesc.isOverlay; }
-
-		/** Returns true if the view should be rendered with no lighting. */
-		bool renderWithNoLighting() const { return mViewDesc.noLighting; }
-
-		/** Returns the final render target the rendered contents should be output to. */
-		SPtr<RenderTarget> getFinalTarget() const { return mViewDesc.target.target; }
-
-		/** Returns normalized coordinates of the viewport area this view renders to. */
-		Rect2 getViewportRect() const { return mViewDesc.target.nrmViewRect; }
-
-		/** Returns true if the resulting render target should be flipped vertically. */
-		bool getFlipView() const { return mViewDesc.flipView; }
-
-		/** Returns the color to clear the non-rendered areas of the scene color target to. */
-		Color getClearColor() const { return mViewDesc.target.clearColor; }
-
-		/** Returns the number of samples per pixel to render. */
-		UINT32 getNumSamples() const { return mViewDesc.target.numSamples; }
-
-		/** Returns true if the current view is being used to render reflection probes. */
-		bool isRenderingReflections() const { return mViewDesc.renderingReflections; }
+		/** Returns a structure describing the view. */
+		const RendererViewProperties& getProperties() const { return mProperties; }
 
 		/** Returns the scene camera this object is based of. This can be null for manually constructed renderer cameras. */
-		const Camera* getSceneCamera() const { return mViewDesc.sceneCamera; }
-
-		/** Returns true if external render callbacks should trigger for this view. */
-		bool checkTriggerCallbacks() const { return mViewDesc.triggerCallbacks; }
-
-		/** Returns true if post-processing effects should be triggered for this view. */
-		bool checkRunPostProcessing() const { return mViewDesc.runPostProcessing; }
+		const Camera* getSceneCamera() const { return mCamera; }
 
 		/** 
 		 * Prepares render targets for rendering. When done call endRendering().
@@ -235,13 +226,13 @@ namespace bs { namespace ct
 
 		/**
 		 * Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
-		 * which entry is or ins't visible by this view. Both inputs must be arrays of the same size.
+		 * which entry is or isn't visible by this view. Both inputs must be arrays of the same size.
 		 */
 		void calculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const;
 
 		/**
 		* Culls the provided set of bounds against the current frustum and outputs a set of visibility flags determining
-		* which entry is or ins't visible by this view. Both inputs must be arrays of the same size.
+		* which entry is or isn't visible by this view. Both inputs must be arrays of the same size.
 		*/
 		void calculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const;
 
@@ -281,7 +272,9 @@ namespace bs { namespace ct
 		 */
 		Vector2 getNDCZTransform(const Matrix4& projMatrix) const;
 
-		RENDERER_VIEW_DESC mViewDesc;
+		RendererViewProperties mProperties;
+		RENDERER_VIEW_TARGET_DESC mTargetDesc;
+		const Camera* mCamera;
 
 		SPtr<RenderQueue> mOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;

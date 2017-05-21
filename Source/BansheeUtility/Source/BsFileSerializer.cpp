@@ -22,7 +22,7 @@ namespace bs
 		Path parentDir = fileLocation.getDirectory();
 		if (!FileSystem::exists(parentDir))
 			FileSystem::createDir(parentDir);
-
+		
 		mOutputStream.open(fileLocation.toPlatformString().c_str(), std::ios::out | std::ios::binary);
 		if (mOutputStream.fail())
 		{

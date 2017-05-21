@@ -1,3 +1,8 @@
+root = true;
+
 [*]
 indent_style = tab
 indent_size = 4
+
+[*.cs]
+indent_style = space

@@ -78,6 +78,9 @@ namespace bs
 
 		UINT32& getPrefabHash(SceneObject* obj) { return obj->mPrefabHash; }
 		void setPrefabHash(SceneObject* obj, UINT32& value) { obj->mPrefabHash = value; }
+
+		ObjectMobility& getMobility(SceneObject* obj) { return obj->mMobility; }
+		void setMobility(SceneObject* obj, ObjectMobility& value) { obj->mMobility = value; }
 	public:
 		SceneObjectRTTI()
 		{
@@ -93,6 +96,7 @@ namespace bs
 			addPlainField("mRotation", 7, &SceneObjectRTTI::getRotation, &SceneObjectRTTI::setRotation);
 			addPlainField("mScale", 8, &SceneObjectRTTI::getScale, &SceneObjectRTTI::setScale);
 			addPlainField("mActiveSelf", 9, &SceneObjectRTTI::getActive, &SceneObjectRTTI::setActive);
+			addPlainField("mMobility", 10, &SceneObjectRTTI::getMobility, &SceneObjectRTTI::setMobility);
 		}
 
 		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override

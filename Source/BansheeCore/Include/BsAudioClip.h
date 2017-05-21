@@ -141,6 +141,9 @@ namespace bs
 		/** @copydoc Resource::initialize */
 		void initialize() override;
 
+		/** @copydoc Resource::isCompressible */
+		bool isCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
+
 		/** Returns original audio data. Only available if @p keepSourceData has been provided on creation. */
 		virtual SPtr<DataStream> getSourceStream(UINT32& size) = 0;
 

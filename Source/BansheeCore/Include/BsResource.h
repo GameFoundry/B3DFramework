@@ -41,6 +41,14 @@ namespace bs
 		/**	Checks if all the resources this object is dependent on are fully loaded. */
 		bool areDependenciesLoaded() const;
 
+		/** 
+		 * Returns true if the resource can be compressed using a generic compression when saved on a storage device. 
+		 * Certain resources already have their contents compressed (like audio files) and will not benefit from further 
+		 * compression. Resources supporting streaming should never be compressed, instead such resources can handle
+		 * compression/decompression locally through their streams.
+		 */
+		virtual bool isCompressible() const { return true; }
+
 		UINT32 mSize;
 		SPtr<ResourceMetaData> mMetaData;
 

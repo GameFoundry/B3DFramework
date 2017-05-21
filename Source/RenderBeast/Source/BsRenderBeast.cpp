@@ -12,7 +12,6 @@
 #include "BsRenderTarget.h"
 #include "BsRenderQueue.h"
 #include "BsCoreThread.h"
-#include "BsGpuParams.h"
 #include "BsProfilerCPU.h"
 #include "BsProfilerGPU.h"
 #include "BsShader.h"
@@ -21,7 +20,6 @@
 #include "BsRenderableElement.h"
 #include "BsCoreObjectManager.h"
 #include "BsRenderBeastOptions.h"
-#include "BsSamplerOverrides.h"
 #include "BsLight.h"
 #include "BsGpuResourcePool.h"
 #include "BsRenderTargets.h"
@@ -34,9 +32,9 @@
 #include "BsLightProbeCache.h"
 #include "BsReflectionProbe.h"
 #include "BsIBLUtility.h"
-#include "BsMeshData.h"
 #include "BsLightGrid.h"
 #include "BsSkybox.h"
+#include "BsShadowRendering.h"
 
 using namespace std::placeholders;
 
@@ -75,10 +73,10 @@ namespace bs { namespace ct
 	{
 		RendererUtility::startUp();
 
-		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>();
+		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>(); 
+		mScene = bs_shared_ptr_new<RendererScene>(mCoreOptions);
 		mObjectRenderer = bs_new<ObjectRenderer>();
 
-		mDefaultMaterial = bs_new<DefaultMaterial>();
 		mSkyboxMat = bs_new<SkyboxMat<false>>();
 		mSkyboxSolidColorMat = bs_new<SkyboxMat<true>>();
 		mFlatFramebufferToTextureMat = bs_new<FlatFramebufferToTextureMat>();
@@ -93,6 +91,7 @@ namespace bs { namespace ct
 
 		GpuResourcePool::startUp();
 		PostProcessing::startUp();
+		ShadowRendering::startUp();
 	}
 
 	void RenderBeast::destroyCore()
@@ -100,26 +99,17 @@ namespace bs { namespace ct
 		if (mObjectRenderer != nullptr)
 			bs_delete(mObjectRenderer);
 
-		for (auto& entry : mRenderables)
-			bs_delete(entry);
-
-		for (auto& entry : mCameras)
-			bs_delete(entry.second);
-
-		mRenderTargets.clear();
-		mCameras.clear();
-		mRenderables.clear();
-		mRenderableVisibility.clear();
+		mScene = nullptr;
 
 		mReflCubemapArrayTex = nullptr;
 		mSkyboxTexture = nullptr;
 		mSkyboxFilteredReflections = nullptr;
 		mSkyboxIrradiance = nullptr;
 
+		ShadowRendering::shutDown();
 		PostProcessing::shutDown();
 		GpuResourcePool::shutDown();
 
-		bs_delete(mDefaultMaterial);
 		bs_delete(mSkyboxMat);
 		bs_delete(mSkyboxSolidColorMat);
 		bs_delete(mGPULightData);
@@ -132,361 +122,88 @@ namespace bs { namespace ct
 		mPreintegratedEnvBRDF = nullptr;
 
 		RendererUtility::shutDown();
-
-		assert(mSamplerOverrides.empty());
 	}
 
 	void RenderBeast::notifyRenderableAdded(Renderable* renderable)
 	{
-		UINT32 renderableId = (UINT32)mRenderables.size();
+		mScene->registerRenderable(renderable);
 
-		renderable->setRendererId(renderableId);
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+		RendererObject* rendererObject = sceneInfo.renderables[renderable->getRendererId()];
 
-		mRenderables.push_back(bs_new<RendererObject>());
-		mRenderableCullInfos.push_back(CullInfo(renderable->getBounds(), renderable->getLayer()));
-		mRenderableVisibility.push_back(false);
-
-		RendererObject* rendererObject = mRenderables.back();
-		rendererObject->renderable = renderable;
-		rendererObject->updatePerObjectBuffer();
-
-		SPtr<Mesh> mesh = renderable->getMesh();
-		if (mesh != nullptr)
-		{
-			const MeshProperties& meshProps = mesh->getProperties();
-			SPtr<VertexDeclaration> vertexDecl = mesh->getVertexData()->vertexDeclaration;
-
-			for (UINT32 i = 0; i < meshProps.getNumSubMeshes(); i++)
-			{
-				rendererObject->elements.push_back(BeastRenderableElement());
-				BeastRenderableElement& renElement = rendererObject->elements.back();
-
-				renElement.mesh = mesh;
-				renElement.subMesh = meshProps.getSubMesh(i);
-				renElement.renderableId = renderableId;
-				renElement.animType = renderable->getAnimType();
-				renElement.animationId = renderable->getAnimationId();
-				renElement.morphShapeVersion = 0;
-				renElement.morphShapeBuffer = renderable->getMorphShapeBuffer();
-				renElement.boneMatrixBuffer = renderable->getBoneMatrixBuffer();
-				renElement.morphVertexDeclaration = renderable->getMorphVertexDeclaration();
-
-				renElement.material = renderable->getMaterial(i);
-				if (renElement.material == nullptr)
-					renElement.material = renderable->getMaterial(0);
-
-				if (renElement.material != nullptr && renElement.material->getShader() == nullptr)
-					renElement.material = nullptr;
-
-				// If no material use the default material
-				if (renElement.material == nullptr)
-					renElement.material = mDefaultMaterial->getMaterial();
-
-				// Determine which technique to use
-				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };
-				static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
-				
-				UINT32 techniqueIdx = -1;
-				RenderableAnimType animType = renderable->getAnimType();
-				if(animType != RenderableAnimType::None)
-					techniqueIdx = renElement.material->findTechnique(techniqueIDLookup[(int)animType]);
-
-				if (techniqueIdx == (UINT32)-1)
-					techniqueIdx = renElement.material->getDefaultTechnique();
-
-				renElement.techniqueIdx = techniqueIdx;
-
-				// Validate mesh <-> shader vertex bindings
-				if (renElement.material != nullptr)
-				{
-					UINT32 numPasses = renElement.material->getNumPasses(techniqueIdx);
-					for (UINT32 j = 0; j < numPasses; j++)
-					{
-						SPtr<Pass> pass = renElement.material->getPass(j, techniqueIdx);
-
-						SPtr<VertexDeclaration> shaderDecl = pass->getVertexProgram()->getInputDeclaration();
-						if (!vertexDecl->isCompatible(shaderDecl))
-						{
-							Vector<VertexElement> missingElements = vertexDecl->getMissingElements(shaderDecl);
-
-							// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
-							if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
-							{
-								auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
-								{
-									return (x.getSemantic() == VES_POSITION && x.getSemanticIdx() == 1) ||
-										(x.getSemantic() == VES_NORMAL && x.getSemanticIdx() == 1);
-								});
-
-								missingElements.erase(removeIter, missingElements.end());
-							}
-
-							if (!missingElements.empty())
-							{
-								StringStream wrnStream;
-								wrnStream << "Provided mesh is missing required vertex attributes to render with the provided shader. Missing elements: " << std::endl;
-
-								for (auto& entry : missingElements)
-									wrnStream << "\t" << toString(entry.getSemantic()) << entry.getSemanticIdx() << std::endl;
-
-								LOGWRN(wrnStream.str());
-								break;
-							}
-						}
-					}
-				}
-
-				// Generate or assigned renderer specific data for the material
-				renElement.params = renElement.material->createParamsSet(techniqueIdx);
-				renElement.material->updateParamsSet(renElement.params, true);
-
-				// Generate or assign sampler state overrides
-				SamplerOverrideKey samplerKey(renElement.material, techniqueIdx);
-				auto iterFind = mSamplerOverrides.find(samplerKey);
-				if (iterFind != mSamplerOverrides.end())
-				{
-					renElement.samplerOverrides = iterFind->second;
-					iterFind->second->refCount++;
-				}
-				else
-				{
-					SPtr<Shader> shader = renElement.material->getShader();
-					MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(shader,
-						renElement.material->_getInternalParams(), renElement.params, mCoreOptions);
-
-					mSamplerOverrides[samplerKey] = samplerOverrides;
-
-					renElement.samplerOverrides = samplerOverrides;
-					samplerOverrides->refCount++;
-				}
-
-				mObjectRenderer->initElement(*rendererObject, renElement);
-			}
-		}
+		for(auto& entry : rendererObject->elements)
+			mObjectRenderer->initElement(*rendererObject, entry);
 	}
 
 	void RenderBeast::notifyRenderableRemoved(Renderable* renderable)
 	{
-		UINT32 renderableId = renderable->getRendererId();
-		Renderable* lastRenerable = mRenderables.back()->renderable;
-		UINT32 lastRenderableId = lastRenerable->getRendererId();
-
-		RendererObject* rendererObject = mRenderables[renderableId];
-		Vector<BeastRenderableElement>& elements = rendererObject->elements;
-		for (auto& element : elements)
-		{
-			SamplerOverrideKey samplerKey(element.material, element.techniqueIdx);
-
-			auto iterFind = mSamplerOverrides.find(samplerKey);
-			assert(iterFind != mSamplerOverrides.end());
-
-			MaterialSamplerOverrides* samplerOverrides = iterFind->second;
-			samplerOverrides->refCount--;
-			if (samplerOverrides->refCount == 0)
-			{
-				SamplerOverrideUtility::destroySamplerOverrides(samplerOverrides);
-				mSamplerOverrides.erase(iterFind);
-			}
-
-			element.samplerOverrides = nullptr;
-		}
-
-		if (renderableId != lastRenderableId)
-		{
-			// Swap current last element with the one we want to erase
-			std::swap(mRenderables[renderableId], mRenderables[lastRenderableId]);
-			std::swap(mRenderableCullInfos[renderableId], mRenderableCullInfos[lastRenderableId]);
-
-			lastRenerable->setRendererId(renderableId);
-
-			for (auto& element : elements)
-				element.renderableId = renderableId;
-		}
-
-		// Last element is the one we want to erase
-		mRenderables.erase(mRenderables.end() - 1);
-		mRenderableCullInfos.erase(mRenderableCullInfos.end() - 1);
-		mRenderableVisibility.erase(mRenderableVisibility.end() - 1);
-
-		bs_delete(rendererObject);
+		mScene->unregisterRenderable(renderable);
 	}
 
 	void RenderBeast::notifyRenderableUpdated(Renderable* renderable)
 	{
-		UINT32 renderableId = renderable->getRendererId();
-
-		mRenderables[renderableId]->updatePerObjectBuffer();
-		mRenderableCullInfos[renderableId].bounds = renderable->getBounds();
+		mScene->updateRenderable(renderable);
 	}
 
 	void RenderBeast::notifyLightAdded(Light* light)
 	{
-		if (light->getType() == LightType::Directional)
-		{
-			UINT32 lightId = (UINT32)mDirectionalLights.size();
-			light->setRendererId(lightId);
-
-			mDirectionalLights.push_back(RendererLight(light));
-		}
-		else
-		{
-			if (light->getType() == LightType::Radial)
-			{
-				UINT32 lightId = (UINT32)mRadialLights.size();
-				light->setRendererId(lightId);
-
-				mRadialLights.push_back(RendererLight(light));
-				mPointLightWorldBounds.push_back(light->getBounds());
-			}
-			else // Spot
-			{
-				UINT32 lightId = (UINT32)mSpotLights.size();
-				light->setRendererId(lightId);
-
-				mSpotLights.push_back(RendererLight(light));
-				mSpotLightWorldBounds.push_back(light->getBounds());
-			}
-		}
+		mScene->registerLight(light);
 	}
 
 	void RenderBeast::notifyLightUpdated(Light* light)
 	{
-		UINT32 lightId = light->getRendererId();
-
-		if (light->getType() == LightType::Radial)
-			mPointLightWorldBounds[lightId] = light->getBounds();
-		else if(light->getType() == LightType::Spot)
-			mSpotLightWorldBounds[lightId] = light->getBounds();
+		mScene->updateLight(light);
 	}
 
 	void RenderBeast::notifyLightRemoved(Light* light)
 	{
-		UINT32 lightId = light->getRendererId();
-		if (light->getType() == LightType::Directional)
-		{
-			Light* lastLight = mDirectionalLights.back().getInternal();
-			UINT32 lastLightId = lastLight->getRendererId();
-
-			if (lightId != lastLightId)
-			{
-				// Swap current last element with the one we want to erase
-				std::swap(mDirectionalLights[lightId], mDirectionalLights[lastLightId]);
-				lastLight->setRendererId(lightId);
-			}
-
-			// Last element is the one we want to erase
-			mDirectionalLights.erase(mDirectionalLights.end() - 1);
-		}
-		else
-		{
-			if (light->getType() == LightType::Radial)
-			{
-				Light* lastLight = mRadialLights.back().getInternal();
-				UINT32 lastLightId = lastLight->getRendererId();
-
-				if (lightId != lastLightId)
-				{
-					// Swap current last element with the one we want to erase
-					std::swap(mRadialLights[lightId], mRadialLights[lastLightId]);
-					std::swap(mPointLightWorldBounds[lightId], mPointLightWorldBounds[lastLightId]);
-
-					lastLight->setRendererId(lightId);
-				}
-
-				// Last element is the one we want to erase
-				mRadialLights.erase(mRadialLights.end() - 1);
-				mPointLightWorldBounds.erase(mPointLightWorldBounds.end() - 1);
-			}
-			else // Spot
-			{
-				Light* lastLight = mSpotLights.back().getInternal();
-				UINT32 lastLightId = lastLight->getRendererId();
-
-				if (lightId != lastLightId)
-				{
-					// Swap current last element with the one we want to erase
-					std::swap(mSpotLights[lightId], mSpotLights[lastLightId]);
-					std::swap(mSpotLightWorldBounds[lightId], mSpotLightWorldBounds[lastLightId]);
-
-					lastLight->setRendererId(lightId);
-				}
-
-				// Last element is the one we want to erase
-				mSpotLights.erase(mSpotLights.end() - 1);
-				mSpotLightWorldBounds.erase(mSpotLightWorldBounds.end() - 1);
-			}
-		}
+		mScene->unregisterLight(light);
 	}
 
 	void RenderBeast::notifyCameraAdded(const Camera* camera)
 	{
-		RendererCamera* renCamera = updateCameraData(camera);
-		renCamera->updatePerViewBuffer();
+		mScene->registerCamera(camera);
 	}
 
 	void RenderBeast::notifyCameraUpdated(const Camera* camera, UINT32 updateFlag)
 	{
-		RendererCamera* rendererCam;
-		if((updateFlag & (UINT32)CameraDirtyFlag::Everything) != 0)
-		{
-			rendererCam = updateCameraData(camera);
-		}
-		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
-		{
-			rendererCam = mCameras[camera];
-
-			rendererCam->setPostProcessSettings(camera->getPostProcessSettings());
-		}
-		else // Transform
-		{
-			rendererCam = mCameras[camera];
-
-			rendererCam->setTransform(
-				camera->getPosition(),
-				camera->getForward(),
-				camera->getViewMatrix(),
-				camera->getProjectionMatrixRS(),
-				camera->getWorldFrustum());
-		}
-
-		rendererCam->updatePerViewBuffer();
+		mScene->updateCamera(camera, updateFlag);
 	}
 
 	void RenderBeast::notifyCameraRemoved(const Camera* camera)
 	{
-		updateCameraData(camera, true);
+		mScene->unregisterCamera(camera);
 	}
 
 	void RenderBeast::notifyReflectionProbeAdded(ReflectionProbe* probe)
 	{
-		UINT32 probeId = (UINT32)mReflProbes.size();
-		probe->setRendererId(probeId);
-
-		mReflProbes.push_back(RendererReflectionProbe(probe));
-		RendererReflectionProbe& probeInfo = mReflProbes.back();
-
-		mReflProbeWorldBounds.push_back(probe->getBounds());
+		mScene->registerReflectionProbe(probe);
 
 		// Find a spot in cubemap array
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+
+		UINT32 probeId = probe->getRendererId();
+		const RendererReflectionProbe* probeInfo = &sceneInfo.reflProbes[probeId];
+
 		UINT32 numArrayEntries = (UINT32)mCubemapArrayUsedSlots.size();
 		for(UINT32 i = 0; i < numArrayEntries; i++)
 		{
 			if(!mCubemapArrayUsedSlots[i])
 			{
-				probeInfo.arrayIdx = i;
+				mScene->setReflectionProbeArrayIndex(probeId, i, false);
 				mCubemapArrayUsedSlots[i] = true;
 				break;
 			}
 		}
 
 		// No empty slot was found
-		if (probeInfo.arrayIdx == -1)
+		if (probeInfo->arrayIdx == -1)
 		{
-			probeInfo.arrayIdx = numArrayEntries;
+			mScene->setReflectionProbeArrayIndex(probeId, numArrayEntries, false);
 			mCubemapArrayUsedSlots.push_back(true);
 		}
 
-		if(probeInfo.arrayIdx > MaxReflectionCubemaps)
+		if(probeInfo->arrayIdx > MaxReflectionCubemaps)
 		{
 			LOGERR("Reached the maximum number of allowed reflection probe cubemaps at once. "
 				"Ignoring reflection probe data.");
@@ -495,42 +212,20 @@ namespace bs { namespace ct
 
 	void RenderBeast::notifyReflectionProbeUpdated(ReflectionProbe* probe)
 	{
-		// Should only get called if transform changes, any other major changes and ReflProbeInfo entry gets rebuild
-		UINT32 probeId = probe->getRendererId();
-		mReflProbeWorldBounds[probeId] = probe->getBounds();
-
-		RendererReflectionProbe& probeInfo = mReflProbes[probeId];
-		probeInfo.arrayDirty = true;
-
-		LightProbeCache::instance().notifyDirty(probe->getUUID());
-		probeInfo.textureDirty = true;
+		mScene->updateReflectionProbe(probe);
 	}
 
 	void RenderBeast::notifyReflectionProbeRemoved(ReflectionProbe* probe)
 	{
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+
 		UINT32 probeId = probe->getRendererId();
-		UINT32 arrayIdx = mReflProbes[probeId].arrayIdx;
-
-		ReflectionProbe* lastProbe = mReflProbes.back().probe;
-		UINT32 lastProbeId = lastProbe->getRendererId();
-
-		if (probeId != lastProbeId)
-		{
-			// Swap current last element with the one we want to erase
-			std::swap(mReflProbes[probeId], mReflProbes[lastProbeId]);
-			std::swap(mReflProbeWorldBounds[probeId], mReflProbeWorldBounds[lastProbeId]);
-
-			probe->setRendererId(probeId);
-		}
-
-		// Last element is the one we want to erase
-		mRadialLights.erase(mRadialLights.end() - 1);
-		mPointLightWorldBounds.erase(mPointLightWorldBounds.end() - 1);
+		UINT32 arrayIdx = sceneInfo.reflProbes[probeId].arrayIdx;
 
 		if (arrayIdx != -1)
 			mCubemapArrayUsedSlots[arrayIdx] = false;
 
-		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
+		mScene->unregisterReflectionProbe(probe);
 	}
 
 	void RenderBeast::notifySkyboxAdded(Skybox* skybox)
@@ -570,164 +265,6 @@ namespace bs { namespace ct
 		return bs_shared_ptr_new<StandardPostProcessSettings>();
 	}
 
-	RendererCamera* RenderBeast::updateCameraData(const Camera* camera, bool forceRemove)
-	{
-		RendererCamera* output;
-
-		SPtr<RenderTarget> renderTarget = camera->getViewport()->getTarget();
-
-		auto iterFind = mCameras.find(camera);
-		if(forceRemove)
-		{
-			if(iterFind != mCameras.end())
-			{
-				bs_delete(iterFind->second);
-				mCameras.erase(iterFind);
-			}
-
-			renderTarget = nullptr;
-			output = nullptr;
-		}
-		else
-		{
-			SPtr<Viewport> viewport = camera->getViewport();
-			RENDERER_VIEW_DESC viewDesc;
-
-			viewDesc.target.clearFlags = 0;
-			if (viewport->getRequiresColorClear())
-				viewDesc.target.clearFlags |= FBT_COLOR;
-
-			if (viewport->getRequiresDepthClear())
-				viewDesc.target.clearFlags |= FBT_DEPTH;
-
-			if (viewport->getRequiresStencilClear())
-				viewDesc.target.clearFlags |= FBT_STENCIL;
-
-			viewDesc.target.clearColor = viewport->getClearColor();
-			viewDesc.target.clearDepthValue = viewport->getClearDepthValue();
-			viewDesc.target.clearStencilValue = viewport->getClearStencilValue();
-
-			viewDesc.target.target = viewport->getTarget();
-			viewDesc.target.nrmViewRect = viewport->getNormArea();
-			viewDesc.target.viewRect = Rect2I(
-				viewport->getX(),
-				viewport->getY(),
-				(UINT32)viewport->getWidth(),
-				(UINT32)viewport->getHeight());
-
-			if (viewDesc.target.target != nullptr)
-			{
-				viewDesc.target.targetWidth = viewDesc.target.target->getProperties().getWidth();
-				viewDesc.target.targetHeight = viewDesc.target.target->getProperties().getHeight();
-			}
-			else
-			{
-				viewDesc.target.targetWidth = 0;
-				viewDesc.target.targetHeight = 0;
-			}
-
-			viewDesc.target.numSamples = camera->getMSAACount();
-
-			viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
-			viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
-			viewDesc.noLighting = camera->getFlags().isSet(CameraFlag::NoLighting);
-			viewDesc.triggerCallbacks = true;
-			viewDesc.runPostProcessing = true;
-			viewDesc.renderingReflections = false;
-
-			viewDesc.cullFrustum = camera->getWorldFrustum();
-			viewDesc.visibleLayers = camera->getLayers();
-			viewDesc.nearPlane = camera->getNearClipDistance();
-			viewDesc.farPlane = camera->getFarClipDistance();
-			viewDesc.flipView = false;
-
-			viewDesc.viewOrigin = camera->getPosition();
-			viewDesc.viewDirection = camera->getForward();
-			viewDesc.projTransform = camera->getProjectionMatrixRS();
-			viewDesc.viewTransform = camera->getViewMatrix();
-
-			viewDesc.stateReduction = mCoreOptions->stateReductionMode;
-			viewDesc.sceneCamera = camera;
-
-			if (iterFind != mCameras.end())
-			{
-				output = iterFind->second;
-				output->setView(viewDesc);
-			}
-			else
-			{
-				output = bs_new<RendererCamera>(viewDesc);
-				mCameras[camera] = output;
-			}
-
-			output->setPostProcessSettings(camera->getPostProcessSettings());
-		}
-
-		// Remove from render target list
-		int rtChanged = 0; // 0 - No RT, 1 - RT found, 2 - RT changed
-		for (auto iterTarget = mRenderTargets.begin(); iterTarget != mRenderTargets.end(); ++iterTarget)
-		{
-			RendererRenderTarget& target = *iterTarget;
-			for (auto iterCam = target.cameras.begin(); iterCam != target.cameras.end(); ++iterCam)
-			{
-				if (camera == *iterCam)
-				{
-					if (renderTarget != target.target)
-					{
-						target.cameras.erase(iterCam);
-						rtChanged = 2;
-
-					}
-					else
-						rtChanged = 1;
-
-					break;
-				}
-			}
-
-			if (target.cameras.empty())
-			{
-				mRenderTargets.erase(iterTarget);
-				break;
-			}
-		}
-
-		// Register in render target list
-		if (renderTarget != nullptr && (rtChanged == 0 || rtChanged == 2))
-		{
-			auto findIter = std::find_if(mRenderTargets.begin(), mRenderTargets.end(),
-				[&](const RendererRenderTarget& x) { return x.target == renderTarget; });
-
-			if (findIter != mRenderTargets.end())
-			{
-				findIter->cameras.push_back(camera);
-			}
-			else
-			{
-				mRenderTargets.push_back(RendererRenderTarget());
-				RendererRenderTarget& renderTargetData = mRenderTargets.back();
-
-				renderTargetData.target = renderTarget;
-				renderTargetData.cameras.push_back(camera);
-			}
-
-			// Sort render targets based on priority
-			auto cameraComparer = [&](const Camera* a, const Camera* b) { return a->getPriority() > b->getPriority(); };
-			auto renderTargetInfoComparer = [&](const RendererRenderTarget& a, const RendererRenderTarget& b)
-			{ return a.target->getProperties().getPriority() > b.target->getProperties().getPriority(); };
-			std::sort(begin(mRenderTargets), end(mRenderTargets), renderTargetInfoComparer);
-
-			for (auto& camerasPerTarget : mRenderTargets)
-			{
-				Vector<const Camera*>& cameras = camerasPerTarget.cameras;
-
-				std::sort(begin(cameras), end(cameras), cameraComparer);
-			}
-		}
-
-		return output;
-	}
-
 	void RenderBeast::setOptions(const SPtr<RendererOptions>& options)
 	{
 		mOptions = std::static_pointer_cast<RenderBeastOptions>(options);
@@ -746,15 +283,11 @@ namespace bs { namespace ct
 			filteringChanged |= mCoreOptions->anisotropyMax != options.anisotropyMax;
 
 		if (filteringChanged)
-			refreshSamplerOverrides(true);
+			mScene->refreshSamplerOverrides(true);
 
 		*mCoreOptions = options;
 
-		for (auto& entry : mCameras)
-		{
-			RendererCamera* rendererCam = entry.second;
-			rendererCam->setStateReductionMode(mCoreOptions->stateReductionMode);
-		}
+		mScene->setOptions(mCoreOptions);
 	}
 
 	void RenderBeast::renderAll() 
@@ -778,10 +311,12 @@ namespace bs { namespace ct
 		gProfilerGPU().beginFrame();
 		gProfilerCPU().beginSample("renderAllCore");
 
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+
 		// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
 		// issue consider handling this internally in ct::Material which can only do it when sampler states
 		// are actually modified after sync
-		refreshSamplerOverrides();
+		mScene->refreshSamplerOverrides();
 
 		// Update global per-frame hardware buffers
 		mObjectRenderer->setParamFrameParams(time);
@@ -796,16 +331,16 @@ namespace bs { namespace ct
 		updateLightProbes(frameInfo);
 
 		// Gather all views
-		Vector<RendererCamera*> views;
-		for (auto& rtInfo : mRenderTargets)
+		Vector<RendererView*> views;
+		for (auto& rtInfo : sceneInfo.renderTargets)
 		{
 			SPtr<RenderTarget> target = rtInfo.target;
-			Vector<const Camera*>& cameras = rtInfo.cameras;
+			const Vector<const Camera*>& cameras = rtInfo.cameras;
 
 			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
-				RendererCamera* viewInfo = mCameras[cameras[i]];
+				RendererView* viewInfo = sceneInfo.views.at(cameras[i]);
 				views.push_back(viewInfo);
 			}
 		}
@@ -816,7 +351,7 @@ namespace bs { namespace ct
 		gProfilerGPU().endFrame();
 
 		// Present render targets with back buffers
-		for (auto& rtInfo : mRenderTargets)
+		for (auto& rtInfo : sceneInfo.renderTargets)
 		{
 			if(rtInfo.target->getProperties().isWindow())
 				RenderAPI::instance().swapBuffers(rtInfo.target);
@@ -825,65 +360,68 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("renderAllCore");
 	}
 
-	void RenderBeast::renderViews(RendererCamera** views, UINT32 numViews, const FrameInfo& frameInfo)
+	void RenderBeast::renderViews(RendererView** views, UINT32 numViews, const FrameInfo& frameInfo)
 	{
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+
 		// Generate render queues per camera
+		mRenderableVisibility.resize(sceneInfo.renderables.size(), false);
 		mRenderableVisibility.assign(mRenderableVisibility.size(), false);
 
 		for(UINT32 i = 0; i < numViews; i++)
-			views[i]->determineVisible(mRenderables, mRenderableCullInfos, &mRenderableVisibility);
+			views[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &mRenderableVisibility);
 
 		// Generate a list of lights and their GPU buffers
-		UINT32 numDirLights = (UINT32)mDirectionalLights.size();
+		UINT32 numDirLights = (UINT32)sceneInfo.directionalLights.size();
 		for (UINT32 i = 0; i < numDirLights; i++)
 		{
 			mLightDataTemp.push_back(LightData());
-			mDirectionalLights[i].getParameters(mLightDataTemp.back());
+			sceneInfo.directionalLights[i].getParameters(mLightDataTemp.back());
 		}
 
-		UINT32 numRadialLights = (UINT32)mRadialLights.size();
+		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
 		UINT32 numVisibleRadialLights = 0;
-		mLightVisibilityTemp.resize(numRadialLights, false);
+		mRadialLightVisibility.resize(numRadialLights, false);
+		mRadialLightVisibility.assign(numRadialLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(mPointLightWorldBounds, mLightVisibilityTemp);
+			views[i]->calculateVisibility(sceneInfo.radialLightWorldBounds, mRadialLightVisibility);
 
 		for(UINT32 i = 0; i < numRadialLights; i++)
 		{
-			if (!mLightVisibilityTemp[i])
+			if (!mRadialLightVisibility[i])
 				continue;
 
 			mLightDataTemp.push_back(LightData());
-			mRadialLights[i].getParameters(mLightDataTemp.back());
+			sceneInfo.radialLights[i].getParameters(mLightDataTemp.back());
 			numVisibleRadialLights++;
 		}
 
-		UINT32 numSpotLights = (UINT32)mSpotLights.size();
+		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
 		UINT32 numVisibleSpotLights = 0;
-		mLightVisibilityTemp.resize(numSpotLights, false);
+		mSpotLightVisibility.resize(numSpotLights, false);
+		mSpotLightVisibility.assign(numSpotLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(mSpotLightWorldBounds, mLightVisibilityTemp);
+			views[i]->calculateVisibility(sceneInfo.spotLightWorldBounds, mSpotLightVisibility);
 
 		for (UINT32 i = 0; i < numSpotLights; i++)
 		{
-			if (!mLightVisibilityTemp[i])
+			if (!mSpotLightVisibility[i])
 				continue;
 
 			mLightDataTemp.push_back(LightData());
-			mSpotLights[i].getParameters(mLightDataTemp.back());
+			sceneInfo.spotLights[i].getParameters(mLightDataTemp.back());
 			numVisibleSpotLights++;
 		}
 
 		mGPULightData->setLights(mLightDataTemp, numDirLights, numVisibleRadialLights, numVisibleSpotLights);
-
 		mLightDataTemp.clear();
-		mLightVisibilityTemp.clear();
 
 		// Gemerate reflection probes and their GPU buffers
-		UINT32 numProbes = (UINT32)mReflProbes.size();
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
 
 		mReflProbeVisibilityTemp.resize(numProbes, false);
 		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(mReflProbeWorldBounds, mReflProbeVisibilityTemp);
+			views[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mReflProbeVisibilityTemp);
 
 		for(UINT32 i = 0; i < numProbes; i++)
 		{
@@ -891,7 +429,7 @@ namespace bs { namespace ct
 				continue;
 
 			mReflProbeDataTemp.push_back(ReflProbeData());
-			mReflProbes[i].getParameters(mReflProbeDataTemp.back());
+			sceneInfo.reflProbes[i].getParameters(mReflProbeDataTemp.back());
 		}
 
 		// Sort probes so bigger ones get accessed first, this way we overlay smaller ones on top of biggers ones when
@@ -909,48 +447,50 @@ namespace bs { namespace ct
 		mReflProbeVisibilityTemp.clear();
 
 		// Update various buffers required by each renderable
-		UINT32 numRenderables = (UINT32)mRenderables.size();
+		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			if (!mRenderableVisibility[i])
 				continue;
 
 			// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-			mRenderables[i]->renderable->updateAnimationBuffers(frameInfo.animData);
+			sceneInfo.renderables[i]->renderable->updateAnimationBuffers(frameInfo.animData);
 
 			// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
 			// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
-			for (auto& element : mRenderables[i]->elements)
+			for (auto& element : sceneInfo.renderables[i]->elements)
 				element.material->updateParamsSet(element.params);
 
-			mRenderables[i]->perObjectParamBuffer->flushToGPU();
+			sceneInfo.renderables[i]->perObjectParamBuffer->flushToGPU();
 		}
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (views[i]->isOverlay())
+			if (views[i]->getProperties().isOverlay)
 				renderOverlay(views[i]);
 			else
 				renderView(views[i], frameInfo.timeDelta);
 		}
 	}
 
-	void RenderBeast::renderView(RendererCamera* viewInfo, float frameDelta)
+	void RenderBeast::renderView(RendererView* viewInfo, float frameDelta)
 	{
 		gProfilerCPU().beginSample("Render");
 
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+		auto& viewProps = viewInfo->getProperties();
 		const Camera* sceneCamera = viewInfo->getSceneCamera();
 
 		SPtr<GpuParamBlockBuffer> perCameraBuffer = viewInfo->getPerViewBuffer();
 		perCameraBuffer->flushToGPU();
 
-		Matrix4 viewProj = viewInfo->getViewProjMatrix();
-		UINT32 numSamples = viewInfo->getNumSamples();
+		Matrix4 viewProj = viewProps.viewProjTransform;
+		UINT32 numSamples = viewProps.numSamples;
 
 		viewInfo->beginRendering(true);
 
 		// Prepare light grid required for transparent object rendering
-		mLightGrid->updateGrid(*viewInfo, *mGPULightData, *mGPUReflProbeData, viewInfo->renderWithNoLighting());
+		mLightGrid->updateGrid(*viewInfo, *mGPULightData, *mGPUReflProbeData, viewProps.noLighting);
 
 		SPtr<GpuParamBlockBuffer> gridParams;
 		SPtr<GpuBuffer> gridLightOffsetsAndSize, gridLightIndices;
@@ -962,7 +502,7 @@ namespace bs { namespace ct
 		ITiledDeferredImageBasedLightingMat* imageBasedLightingMat =
 			mTileDeferredImageBasedLightingMats->get(numSamples);
 
-		imageBasedLightingMat->setReflectionProbes(*mGPUReflProbeData, mReflCubemapArrayTex, viewInfo->isRenderingReflections());
+		imageBasedLightingMat->setReflectionProbes(*mGPUReflProbeData, mReflCubemapArrayTex, viewProps.renderingReflections);
 
 		float skyBrightness = 1.0f;
 		if (mSkybox != nullptr)
@@ -972,7 +512,7 @@ namespace bs { namespace ct
 
 		// Assign camera and per-call data to all relevant renderables
 		const VisibilityInfo& visibility = viewInfo->getVisibilityMasks();
-		UINT32 numRenderables = (UINT32)mRenderables.size();
+		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
 		SPtr<GpuParamBlockBuffer> reflParamBuffer = imageBasedLightingMat->getReflectionsParamBuffer();
 		SPtr<SamplerState> reflSamplerState = imageBasedLightingMat->getReflectionsSamplerState();
 		for (UINT32 i = 0; i < numRenderables; i++)
@@ -980,10 +520,10 @@ namespace bs { namespace ct
 			if (!visibility.renderables[i])
 				continue;
 
-			RendererObject* rendererObject = mRenderables[i];
+			RendererObject* rendererObject = sceneInfo.renderables[i];
 			rendererObject->updatePerCallBuffer(viewProj);
 
-			for (auto& element : mRenderables[i]->elements)
+			for (auto& element : sceneInfo.renderables[i]->elements)
 			{
 				if (element.perCameraBindingIdx != -1)
 					element.params->setParamBlockBuffer(element.perCameraBindingIdx, perCameraBuffer, true);
@@ -1027,7 +567,7 @@ namespace bs { namespace ct
 		// Trigger pre-base-pass callbacks
 		auto iterRenderCallback = mCallbacks.begin();
 
-		if (viewInfo->checkTriggerCallbacks())
+		if (viewProps.triggerCallbacks)
 		{
 			while (iterRenderCallback != mCallbacks.end())
 			{
@@ -1051,7 +591,7 @@ namespace bs { namespace ct
 		}
 
 		// Trigger post-base-pass callbacks
-		if (viewInfo->checkTriggerCallbacks())
+		if (viewProps.triggerCallbacks)
 		{
 			while (iterRenderCallback != mCallbacks.end())
 			{
@@ -1075,7 +615,7 @@ namespace bs { namespace ct
 		renderTargets->allocate(RTT_LightAccumulation);
 
 		lightingMat->setLights(*mGPULightData);
-		lightingMat->execute(renderTargets, perCameraBuffer, viewInfo->renderWithNoLighting());
+		lightingMat->execute(renderTargets, perCameraBuffer, viewProps.noLighting);
 
 		renderTargets->allocate(RTT_SceneColor);
 
@@ -1108,7 +648,7 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			Color clearColor = viewInfo->getClearColor();
+			Color clearColor = viewProps.clearColor;
 
 			mSkyboxSolidColorMat->bind(perCameraBuffer);
 			mSkyboxSolidColorMat->setParams(nullptr, clearColor);
@@ -1128,7 +668,7 @@ namespace bs { namespace ct
 		}
 
 		// Trigger post-light-pass callbacks
-		if (viewInfo->checkTriggerCallbacks())
+		if (viewProps.triggerCallbacks)
 		{
 			while (iterRenderCallback != mCallbacks.end())
 			{
@@ -1144,9 +684,9 @@ namespace bs { namespace ct
 		}
 
 		// Post-processing and final resolve
-		Rect2 viewportArea = viewInfo->getViewportRect();
+		Rect2 viewportArea = viewProps.nrmViewRect;
 
-		if (viewInfo->checkRunPostProcessing())
+		if (viewProps.runPostProcessing)
 		{
 			// If using MSAA, resolve into non-MSAA texture before post-processing
 			if(numSamples > 1)
@@ -1155,7 +695,7 @@ namespace bs { namespace ct
 				rapi.setViewport(viewportArea);
 
 				SPtr<Texture> sceneColor = renderTargets->getSceneColor();
-				gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewInfo->getFlipView());
+				gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewProps.flipView);
 			}
 
 			// Post-processing code also takes care of writting to the final output target
@@ -1164,19 +704,19 @@ namespace bs { namespace ct
 		else
 		{
 			// Just copy from scene color to output if no post-processing
-			SPtr<RenderTarget> target = viewInfo->getFinalTarget();
+			SPtr<RenderTarget> target = viewProps.target;
 
 			rapi.setRenderTarget(target);
 			rapi.setViewport(viewportArea);
 
 			SPtr<Texture> sceneColor = renderTargets->getSceneColor();
-			gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewInfo->getFlipView());
+			gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewProps.flipView);
 		}
 
 		renderTargets->release(RTT_SceneColor);
 
 		// Trigger overlay callbacks
-		if (viewInfo->checkTriggerCallbacks())
+		if (viewProps.triggerCallbacks)
 		{
 			while (iterRenderCallback != mCallbacks.end())
 			{
@@ -1196,15 +736,16 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render");
 	}
 
-	void RenderBeast::renderOverlay(RendererCamera* viewInfo)
+	void RenderBeast::renderOverlay(RendererView* viewInfo)
 	{
 		gProfilerCPU().beginSample("RenderOverlay");
 
 		viewInfo->getPerViewBuffer()->flushToGPU();
 		viewInfo->beginRendering(false);
 
+		auto& viewProps = viewInfo->getProperties();
 		const Camera* camera = viewInfo->getSceneCamera();
-		SPtr<RenderTarget> target = viewInfo->getFinalTarget();
+		SPtr<RenderTarget> target = viewProps.target;
 		SPtr<Viewport> viewport = camera->getViewport();
 
 		UINT32 clearBuffers = 0;
@@ -1269,7 +810,8 @@ namespace bs { namespace ct
 
 	void RenderBeast::updateLightProbes(const FrameInfo& frameInfo)
 	{
-		UINT32 numProbes = (UINT32)mReflProbes.size();
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
 
 		bs_frame_mark();
 		{		
@@ -1311,33 +853,32 @@ namespace bs { namespace ct
 			FrameQueue<UINT32> emptySlots;
 			for (UINT32 i = 0; i < numProbes; i++)
 			{
-				RendererReflectionProbe& probeInfo = mReflProbes[i];
+				const RendererReflectionProbe& probeInfo = sceneInfo.reflProbes[i];
 
 				if (probeInfo.arrayIdx > MaxReflectionCubemaps)
 					continue;
 
-				if (probeInfo.texture == nullptr)
-					probeInfo.texture = LightProbeCache::instance().getCachedRadianceTexture(probeInfo.probe->getUUID());
+				SPtr<Texture> texture = probeInfo.texture;
+				if (texture == nullptr)
+					texture = LightProbeCache::instance().getCachedRadianceTexture(probeInfo.probe->getUUID());
 
-				if (probeInfo.texture == nullptr || probeInfo.textureDirty)
+				if (texture == nullptr || probeInfo.textureDirty)
 				{
-					probeInfo.texture = Texture::create(cubemapDesc);
+					texture = Texture::create(cubemapDesc);
 
 					if (!probeInfo.customTexture)
-					{
-						captureSceneCubeMap(probeInfo.texture, probeInfo.probe->getPosition(), true, frameInfo);
-					}
+						captureSceneCubeMap(texture, probeInfo.probe->getPosition(), true, frameInfo);
 					else
 					{
 						SPtr<Texture> customTexture = probeInfo.probe->getCustomTexture();
-						IBLUtility::scaleCubemap(customTexture, 0, probeInfo.texture, 0);
+						IBLUtility::scaleCubemap(customTexture, 0, texture, 0);
 					}
 
-					IBLUtility::filterCubemapForSpecular(probeInfo.texture, scratchCubemap);
-					LightProbeCache::instance().setCachedRadianceTexture(probeInfo.probe->getUUID(), probeInfo.texture);
+					IBLUtility::filterCubemapForSpecular(texture, scratchCubemap);
+					LightProbeCache::instance().setCachedRadianceTexture(probeInfo.probe->getUUID(), texture);
 				}
 
-				probeInfo.textureDirty = false;
+				mScene->setReflectionProbeTexture(i, texture);
 
 				if(probeInfo.arrayDirty || forceArrayUpdate)
 				{
@@ -1366,7 +907,7 @@ namespace bs { namespace ct
 								probeInfo.texture->copy(mReflCubemapArrayTex, face, mip, probeInfo.arrayIdx * 6 + face, mip);
 					}
 
-					probeInfo.arrayDirty = false;
+					mScene->setReflectionProbeArrayIndex(i, probeInfo.arrayIdx, true);
 				}
 
 				// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
@@ -1455,13 +996,14 @@ namespace bs { namespace ct
 
 		viewDesc.viewOrigin = position;
 		viewDesc.projTransform = projTransform;
+		viewDesc.projType = PT_PERSPECTIVE;
 
 		viewDesc.stateReduction = mCoreOptions->stateReductionMode;
 		viewDesc.sceneCamera = nullptr;
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 
-		RendererCamera views[6];
+		RendererView views[6];
 		for(UINT32 i = 0; i < 6; i++)
 		{
 			// Calculate view matrix
@@ -1524,94 +1066,13 @@ namespace bs { namespace ct
 
 			views[i].setView(viewDesc);
 			views[i].updatePerViewBuffer();
-			views[i].determineVisible(mRenderables, mRenderableCullInfos);
+
+			const SceneInfo& sceneInfo = mScene->getSceneInfo();
+			views[i].determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos);
 		}
 
-		RendererCamera* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
+		RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
 		renderViews(viewPtrs, 6, frameInfo);
 	}
 
-	void RenderBeast::refreshSamplerOverrides(bool force)
-	{
-		bool anyDirty = false;
-		for (auto& entry : mSamplerOverrides)
-		{
-			SPtr<MaterialParams> materialParams = entry.first.material->_getInternalParams();
-
-			MaterialSamplerOverrides* materialOverrides = entry.second;
-			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)
-			{
-				SamplerOverride& override = materialOverrides->overrides[i];
-				const MaterialParamsBase::ParamData* materialParamData = materialParams->getParamData(override.paramIdx);
-
-				SPtr<SamplerState> samplerState;
-				materialParams->getSamplerState(*materialParamData, samplerState);
-
-				UINT64 hash = 0;
-				if (samplerState != nullptr)
-					hash = samplerState->getProperties().getHash();
-
-				if (hash != override.originalStateHash || force)
-				{
-					if (samplerState != nullptr)
-						override.state = SamplerOverrideUtility::generateSamplerOverride(samplerState, mCoreOptions);
-					else
-						override.state = SamplerOverrideUtility::generateSamplerOverride(SamplerState::getDefault(), mCoreOptions);
-
-					override.originalStateHash = override.state->getProperties().getHash();
-					materialOverrides->isDirty = true;
-				}
-
-				// Dirty flag can also be set externally, so check here even though we assign it above
-				if (materialOverrides->isDirty)
-					anyDirty = true;
-			}
-		}
-
-		// Early exit if possible
-		if (!anyDirty)
-			return;
-
-		UINT32 numRenderables = (UINT32)mRenderables.size();
-		for (UINT32 i = 0; i < numRenderables; i++)
-		{
-			for(auto& element : mRenderables[i]->elements)
-			{
-				MaterialSamplerOverrides* overrides = element.samplerOverrides;
-				if(overrides != nullptr && overrides->isDirty)
-				{
-					UINT32 numPasses = element.material->getNumPasses();
-					for(UINT32 j = 0; j < numPasses; j++)
-					{
-						SPtr<GpuParams> params = element.params->getGpuParams(j);
-
-						const UINT32 numStages = 6;
-						for (UINT32 k = 0; k < numStages; k++)
-						{
-							GpuProgramType type = (GpuProgramType)k;
-
-							SPtr<GpuParamDesc> paramDesc = params->getParamDesc(type);
-							if (paramDesc == nullptr)
-								continue;
-
-							for (auto& samplerDesc : paramDesc->samplers)
-							{
-								UINT32 set = samplerDesc.second.set;
-								UINT32 slot = samplerDesc.second.slot;
-
-								UINT32 overrideIndex = overrides->passes[j].stateOverrides[set][slot];
-								if (overrideIndex == (UINT32)-1)
-									continue;
-
-								params->setSamplerState(set, slot, overrides->overrides[overrideIndex].state);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for (auto& entry : mSamplerOverrides)
-			entry.second->isDirty = false;
-	}
 }}

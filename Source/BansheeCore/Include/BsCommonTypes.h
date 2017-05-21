@@ -344,6 +344,13 @@ namespace bs
 		TEX_TYPE_CUBE_MAP	BS_SCRIPT_EXPORT(n:TextureCube) = 4 
 	};
 
+	/**	Projection type to use by the camera. */
+	enum ProjectionType
+	{
+		PT_ORTHOGRAPHIC, /**< Projection type where object size remains constant and parallel lines remain parallel. */
+		PT_PERSPECTIVE /**< Projection type that emulates human vision. Objects farther away appear smaller. */
+	};
+
 	/**	Contains data about a type used for GPU data parameters. */
 	struct GpuParamDataTypeInfo
 	{
@@ -538,6 +545,23 @@ namespace bs
 
 	typedef Flags<RenderSurfaceMaskBits> RenderSurfaceMask;
 	BS_FLAGS_OPERATORS(RenderSurfaceMaskBits);
+
+	/** 
+	 * Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to
+	 * other systems. Generally the more restricted the mobility the higher performance can be achieved.
+	 */
+	enum class BS_SCRIPT_EXPORT() ObjectMobility
+	{
+		/** Scene object can be moved and has no mobility restrictions. */
+		Movable,
+		/** 
+		 * Scene object isn't allowed to be moved but is allowed to be visually changed in other ways (e.g. changing the
+		 * displayed mesh or light intensity (depends on attached components).
+		 */
+		Immovable,
+		/** Scene object isn't allowed to be moved nor is it allowed to be visually changed. Object must be fully static. */
+		Static
+	};
 
 	/**	Texture addressing mode, per component. */
 	struct UVWAddressingMode

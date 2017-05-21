@@ -16,22 +16,16 @@ namespace bs
 	class BS_CORE_EXPORT SavedResourceDataRTTI : public RTTIType <SavedResourceData, IReflectable, SavedResourceDataRTTI>
 	{
 	private:
-		String& getDependency(SavedResourceData* obj, UINT32 arrayIdx) { return obj->mDependencies[arrayIdx]; }
-		void setDependency(SavedResourceData* obj, UINT32 arrayIdx, String& val) { obj->mDependencies[arrayIdx] = val; }
-
-		UINT32 getNumDependencies(SavedResourceData* obj) { return (UINT32)obj->mDependencies.size(); }
-		void setNumDependencies(SavedResourceData* obj, UINT32 numEntries) { obj->mDependencies = Vector<String>(numEntries); }
-
-		bool& getAllowAsyncLoading(SavedResourceData* obj) { return obj->mAllowAsync; }
-		void setAllowAsyncLoading(SavedResourceData* obj, bool& value) { obj->mAllowAsync = value; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_ARRAY(mDependencies, 0)
+			BS_RTTI_MEMBER_PLAIN(mAllowAsync, 1)
+			BS_RTTI_MEMBER_PLAIN(mCompressionMethod, 2)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		SavedResourceDataRTTI()
-		{
-			addPlainArrayField("mDependencies", 0, &SavedResourceDataRTTI::getDependency, &SavedResourceDataRTTI::getNumDependencies,
-				&SavedResourceDataRTTI::setDependency, &SavedResourceDataRTTI::setNumDependencies);
-			addPlainField("mAllowAsync", 1, &SavedResourceDataRTTI::getAllowAsyncLoading, &SavedResourceDataRTTI::setAllowAsyncLoading);
-		}
+			:mInitMembers(this)
+		{ }
 
 		const String& getRTTIName() override
 		{

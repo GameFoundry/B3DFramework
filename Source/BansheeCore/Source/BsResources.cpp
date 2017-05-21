@@ -12,6 +12,10 @@
 #include "BsUtility.h"
 #include "BsSavedResourceData.h"
 #include "BsResourceListenerManager.h"
+#include "BsMemorySerializer.h"
+#include "BsCompression.h"
+#include "BsDataStream.h"
+#include "BsBinarySerializer.h"
 
 namespace bs
 {
@@ -355,14 +359,52 @@ namespace bs
 
 	SPtr<Resource> Resources::loadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData)
 	{
-		FileDecoder fs(filePath);
-		fs.skip(); // Skipped over saved resource data
+		// Note: Called asynchronously over multiple resources this will cause performance issues on hard drives as they
+		// work best when they are reading one thing at a time, and it won't have benefits on an SSD either. Think about
+		// executing all file reads on a single thread, while decompression and similar operations can execute on multiple.
 
-		UnorderedMap<String, UINT64> loadParams;
+		SPtr<DataStream> stream = FileSystem::openFile(filePath, true);
+		if (stream == nullptr)
+			return nullptr;
+
+		if (stream->size() > std::numeric_limits<UINT32>::max())
+		{
+			BS_EXCEPT(InternalErrorException,
+				"File size is larger that UINT32 can hold. Ask a programmer to use a bigger data type.");
+		}
+
+		UnorderedMap<String, UINT64> params;
 		if(loadWithSaveData)
-			loadParams["keepSourceData"] = 1;
+			params["keepSourceData"] = 1;
 
-		SPtr<IReflectable> loadedData = fs.decode(loadParams);
+		// Read meta-data
+		SPtr<SavedResourceData> metaData;
+		{
+			if (!stream->eof())
+			{
+				UINT32 objectSize = 0;
+				stream->read(&objectSize, sizeof(objectSize));
+
+				BinarySerializer bs;
+				metaData = std::static_pointer_cast<SavedResourceData>(bs.decode(stream, objectSize, params));
+			}
+		}
+
+		// Read resource data
+		SPtr<IReflectable> loadedData;
+		{
+			if(metaData && !stream->eof())
+			{
+				UINT32 objectSize = 0;
+				stream->read(&objectSize, sizeof(objectSize));
+
+				if (metaData->getCompressionMethod() != 0)
+					stream = Compression::decompress(stream);
+
+				BinarySerializer bs;
+				loadedData = std::static_pointer_cast<SavedResourceData>(bs.decode(stream, objectSize, params));
+			}
+		}
 
 		if (loadedData == nullptr)
 		{
@@ -488,7 +530,7 @@ namespace bs
 		resource.setHandleData(nullptr, uuid);
 	}
 
-	void Resources::save(const HResource& resource, const Path& filePath, bool overwrite)
+	void Resources::save(const HResource& resource, const Path& filePath, bool overwrite, bool compress)
 	{
 		if (resource == nullptr)
 			return;
@@ -534,21 +576,60 @@ namespace bs
 		for (UINT32 i = 0; i < (UINT32)dependencyList.size(); i++)
 			dependencyUUIDs[i] = dependencyList[i].resource.getUUID();
 
-		SPtr<SavedResourceData> resourceData = bs_shared_ptr_new<SavedResourceData>(dependencyUUIDs, resource->allowAsyncLoading());
+		UINT32 compressionMethod = (compress && resource->isCompressible()) ? 1 : 0;
+		SPtr<SavedResourceData> resourceData = bs_shared_ptr_new<SavedResourceData>(dependencyUUIDs, 
+			resource->allowAsyncLoading(), compressionMethod);
 
-		FileEncoder fs(filePath);
-		fs.encode(resourceData.get());
-		fs.encode(resource.get());
+		Path parentDir = filePath.getDirectory();
+		if (!FileSystem::exists(parentDir))
+			FileSystem::createDir(parentDir);
+		
+		std::ofstream stream;
+		stream.open(filePath.toPlatformString().c_str(), std::ios::out | std::ios::binary);
+		if (stream.fail())
+			LOGWRN("Failed to save file: \"" + filePath.toString() + "\". Error: " + strerror(errno) + ".");
+	
+		// Write meta-data
+		{
+			MemorySerializer ms;
+			UINT32 numBytes = 0;
+			UINT8* bytes = ms.encode(resourceData.get(), numBytes);
+			
+			stream.write((char*)&numBytes, sizeof(numBytes));
+			stream.write((char*)bytes, numBytes);
+			
+			bs_free(bytes);
+		}
+
+		// Write object data
+		{
+			MemorySerializer ms;
+			UINT32 numBytes = 0;
+			UINT8* bytes = ms.encode(resource.get(), numBytes);
+
+			SPtr<MemoryDataStream> objStream = bs_shared_ptr_new<MemoryDataStream>(bytes, numBytes);
+			if (compressionMethod != 0)
+			{
+				SPtr<DataStream> srcStream = std::static_pointer_cast<DataStream>(objStream);
+				objStream = Compression::compress(srcStream);
+			}
+
+			stream.write((char*)&numBytes, sizeof(numBytes));
+			stream.write((char*)objStream->getPtr(), objStream->size());
+		}
+
+		stream.close();
+		stream.clear();
 	}
 
-	void Resources::save(const HResource& resource)
+	void Resources::save(const HResource& resource, bool compress)
 	{
 		if (resource == nullptr)
 			return;
 
 		Path path;
 		if (getFilePathFromUUID(resource.getUUID(), path))
-			save(resource, path, true);
+			save(resource, path, true, compress);
 	}
 
 	void Resources::update(HResource& handle, const SPtr<Resource>& resource)

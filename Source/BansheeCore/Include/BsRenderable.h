@@ -21,7 +21,8 @@ namespace bs
 	enum class RenderableDirtyFlag
 	{
 		Transform = 0x01,
-		Everything = 0x02
+		Everything = 0x02,
+		Mobility = 0x04
 	};
 
 	/** Type of animation that can be applied to a renderable object. */
@@ -93,6 +94,19 @@ namespace bs
 		/**	Sets whether the object should be rendered or not. */
 		void setIsActive(bool active);
 
+		/**
+		 * Sets the mobility of a scene object. This is used primarily as a performance hint to engine systems. Objects
+		 * with more restricted mobility will result in higher performance. Some mobility constraints will be enforced by
+		 * the engine itself, while for others the caller must be sure not to break the promise he made when mobility was
+		 * set. By default scene object's mobility is unrestricted.
+		 */
+		void setMobility(ObjectMobility mobility);
+
+		/** 
+		 * Gets the mobility setting for this scene object. See setMobility(); 
+		 */
+		ObjectMobility getMobility() const { return mMobility; }
+	
 		/** 
 		 * Sets bounds that will be used when determining if object is visible. Only relevant if setUseOverrideBounds() is
 		 * set to true.
@@ -164,6 +178,7 @@ namespace bs
 		Matrix4 mTransformNoScale;
 		bool mIsActive;
 		RenderableAnimType mAnimType;
+		ObjectMobility mMobility;
 	};
 
 	/** @} */

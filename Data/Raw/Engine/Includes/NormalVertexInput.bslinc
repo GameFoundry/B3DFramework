@@ -29,6 +29,16 @@ mixin NormalVertexInput
 			#endif				
 		};
 		
+		// Vertex input containing only position data
+		struct VertexInput_PO
+		{
+			float3 position : POSITION;
+			
+			#ifdef USE_BLEND_SHAPES
+				float3 deltaPosition : POSITION1;
+			#endif	
+		};			
+		
 		struct VertexIntermediate
 		{
 			float3 worldNormal; // Note: Half-precision could be used
@@ -83,6 +93,17 @@ mixin NormalVertexInput
 		
 			return mul(gMatWorld, position);
 		}
+		
+		float4 getVertexWorldPosition(VertexInput_PO input)
+		{
+			#ifdef USE_BLEND_SHAPES
+				float4 position = float4(input.position + input.deltaPosition, 1.0f);
+			#else
+				float4 position = float4(input.position, 1.0f);
+			#endif			
+		
+			return mul(gMatWorld, position);
+		}		
 		
 		void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)
 		{

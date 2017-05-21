@@ -247,7 +247,7 @@ namespace bs { namespace ct
 		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
 		 * bound for rendering. 
 		 */
-		void postProcess(RendererCamera* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta);
+		void postProcess(RendererView* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta);
 		
 	private:
 		DownsampleMat mDownsample;

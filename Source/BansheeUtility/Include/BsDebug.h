@@ -44,8 +44,9 @@ namespace bs
 		/** Retrieves the Log used by the Debug instance. */
 		Log& getLog() { return mLog; }
 
-		/** Converts raw pixels into a BMP image. See BitmapWriter for more information. */
-		void writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, bool overwrite = true) const;
+		/** Converts raw pixels into a BMP image and saves it as a file */
+		void writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, 
+			bool overwrite = true) const;
 
 		/**
 		 * Saves a log about the current state of the application to the specified location.

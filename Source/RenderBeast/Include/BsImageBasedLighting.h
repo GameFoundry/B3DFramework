@@ -72,7 +72,7 @@ namespace bs { namespace ct
 		bool customTexture : 1;
 		bool textureDirty : 1;
 		bool arrayDirty : 1;
-		bool errorFlagged : 1;
+		mutable bool errorFlagged : 1;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)

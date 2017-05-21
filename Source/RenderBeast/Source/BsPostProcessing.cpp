@@ -7,7 +7,7 @@
 #include "BsTextureManager.h"
 #include "BsCamera.h"
 #include "BsGpuParamsSet.h"
-#include "BsRendererCamera.h"
+#include "BsRendererView.h"
 
 namespace bs { namespace ct
 {
@@ -426,15 +426,17 @@ namespace bs { namespace ct
 	template class TonemappingMat<true, false>;
 	template class TonemappingMat<false, false>;
 
-	void PostProcessing::postProcess(RendererCamera* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta)
+	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta)
 	{
+		auto& viewProps = viewInfo->getProperties();
+
 		PostProcessInfo& ppInfo = viewInfo->getPPInfo();
 		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
-		SPtr<RenderTarget> finalRT = viewInfo->getFinalTarget();
-		Rect2 viewportRect = viewInfo->getViewportRect();
+		SPtr<RenderTarget> finalRT = viewProps.target;
+		Rect2 viewportRect = viewProps.nrmViewRect;
 
-		bool hdr = viewInfo->isHDR();
+		bool hdr = viewProps.isHDR;
 
 		if(hdr && settings.enableAutoExposure)
 		{

@@ -34,7 +34,7 @@ set(BS_BANSHEEUTILITY_SRC_UNIX
 
 set(BS_BANSHEEUTILITY_INC_IMAGE
 	"Include/BsColor.h"
-	"Include/BsTexAtlasGenerator.h"
+	"Include/BsTextureAtlasLayout.h"
 )
 
 set(BS_BANSHEEUTILITY_INC_STRING
@@ -45,7 +45,7 @@ set(BS_BANSHEEUTILITY_INC_STRING
 
 set(BS_BANSHEEUTILITY_SRC_IMAGE
 	"Source/BsColor.cpp"
-	"Source/BsTexAtlasGenerator.cpp"
+	"Source/BsTextureAtlasLayout.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_GENERAL
@@ -55,6 +55,7 @@ set(BS_BANSHEEUTILITY_SRC_GENERAL
 	"Source/BsTimer.cpp"
 	"Source/BsTime.cpp"
 	"Source/BsUtil.cpp"
+	"Source/BsCompression.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_DEBUG
@@ -96,6 +97,7 @@ set(BS_BANSHEEUTILITY_INC_GENERAL
 	"Include/BsTimer.h"
 	"Include/BsUtil.h"
 	"Include/BsFlags.h"
+	"Include/BsCompression.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_ALLOCATORS

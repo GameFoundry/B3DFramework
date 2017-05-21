@@ -14,9 +14,10 @@ namespace bs
 	// a generic Serializer interface so it may write both binary, plain-text or some other form of data.
 
 	/** Encodes the provided object to the specified file using the RTTI system. */
+	
 	class BS_UTILITY_EXPORT FileEncoder
 	{
-	public:
+		public:
 		FileEncoder(const Path& fileLocation);
 		~FileEncoder();
 

@@ -4,7 +4,7 @@
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererUtility.h"
-#include "BsRendererCamera.h"
+#include "BsRendererView.h"
 #include "BsRenderTargets.h"
 #include "BsLightRendering.h"
 #include "BsImageBasedLighting.h"
@@ -108,7 +108,7 @@ namespace bs { namespace ct
 		mProbesBufferParam.set(probesBuffer);
 	}
 
-	void LightGridLLCreationMat::execute(const RendererCamera& view)
+	void LightGridLLCreationMat::execute(const RendererView& view)
 	{
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 
@@ -214,7 +214,7 @@ namespace bs { namespace ct
 		mProbesLLParam.set(probeLL);
 	}
 
-	void LightGridLLReductionMat::execute(const RendererCamera& view)
+	void LightGridLLReductionMat::execute(const RendererView& view)
 	{
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 
@@ -242,7 +242,7 @@ namespace bs { namespace ct
 		mGridParamBuffer = gLightGridParamDefDef.createBuffer();
 	}
 
-	void LightGrid::updateGrid(const RendererCamera& view, const GPULightData& lightData, const GPUReflProbeData& probeData,
+	void LightGrid::updateGrid(const RendererView& view, const GPULightData& lightData, const GPUReflProbeData& probeData,
 		bool noLighting)
 	{
 		UINT32 width = view.getRenderTargets()->getWidth();

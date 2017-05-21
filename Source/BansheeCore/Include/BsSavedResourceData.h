@@ -20,7 +20,7 @@ namespace bs
 	{
 	public:
 		SavedResourceData();
-		SavedResourceData(const Vector<String>& dependencies, bool allowAsync);
+		SavedResourceData(const Vector<String>& dependencies, bool allowAsync, UINT32 compressionMethod);
 
 		/**	Returns a list of all resource dependencies. */
 		const Vector<String>& getDependencies() const { return mDependencies; }
@@ -28,9 +28,13 @@ namespace bs
 		/**	Returns true if this resource is allow to be asynchronously loaded. */
 		bool allowAsyncLoading() const { return mAllowAsync; }
 
+		/** Returns the method used for compressing the resource. 0 if none. */
+		UINT32 getCompressionMethod() const { return mCompressionMethod; }
+
 	private:
 		Vector<String> mDependencies;
 		bool mAllowAsync;
+		UINT32 mCompressionMethod;
 
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/
@@ -38,7 +42,7 @@ namespace bs
 	public:
 		friend class SavedResourceDataRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

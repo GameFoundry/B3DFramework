@@ -97,22 +97,23 @@ namespace bs
 		}
 
 		/** Returns a row of the matrix. */
-		float* operator[] (UINT32 row)
-        {
-            assert(row < 4);
+		Vector4& operator[] (UINT32 row)
+		{
+			assert(row < 4);
 
-            return m[row];
-        }
+			return *(Vector4*)m[row];
+		}
 
-        const float *operator[] (UINT32 row) const
-        {
-            assert(row < 4);
+		/** Returns a row of the matrix. */
+		const Vector4& operator[] (UINT32 row) const
+		{
+			assert(row < 4);
 
-            return m[row];
-        }
+			return *(Vector4*)m[row];
+		}
 
-        Matrix4 operator* (const Matrix4 &rhs) const
-        {
+		Matrix4 operator* (const Matrix4 &rhs) const
+		{
 			Matrix4 r;
 
 			r.m[0][0] = m[0][0] * rhs.m[0][0] + m[0][1] * rhs.m[1][0] + m[0][2] * rhs.m[2][0] + m[0][3] * rhs.m[3][0];
@@ -456,7 +457,10 @@ namespace bs
 		/** Creates a 4x4 perspective projection matrix. */
 		static Matrix4 projectionPerspective(const Degree& horzFOV, float aspect, float near, float far);
 
-		/** Creates a view matrix and applies optional reflection. */
+		/** Creates a 4x4 ortographic projection matrix. */
+		static Matrix4 projectionOrthographic(float left, float right, float top, float bottom, float near, float far);
+
+		/** Creates a view matrix. */
 		static Matrix4 view(const Vector3& position, const Quaternion& orientation);
 
         /**

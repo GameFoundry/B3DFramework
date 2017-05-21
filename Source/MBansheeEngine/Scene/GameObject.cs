@@ -43,8 +43,12 @@ namespace BansheeEngine
         /// <summary>
         /// Component will be notified when its parent changes.
         /// </summary>
-        Parent = 0x02
-    }
+        Parent = 0x02,
+        /// <summary>
+        /// Component will be notified when its scene object's mobility state changes.
+        /// </summary>
+        Mobility = 0x04
+}
 
-    /** @} */
+/** @} */
 }

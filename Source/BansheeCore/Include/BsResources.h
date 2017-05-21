@@ -167,7 +167,9 @@ namespace bs
 		 *
 		 * @param[in]	resource 	Handle to the resource.
 		 * @param[in]	filePath 	Full pathname of the file to save as.
-		 * @param[in]	overwrite	(optional) If true, any existing resource at the specified location will be overwritten.
+		 * @param[in]	overwrite	If true, any existing resource at the specified location will be overwritten.
+		 * @param[in]	compress	Should the resource be compressed before saving. Some resource have data that is already
+		 *							compressed and this option will be ignored for such resources.
 		 * 			
 		 * @note
 		 * If the resource is a GpuResource and you are in some way modifying it from the core thread, make sure all those
@@ -176,12 +178,14 @@ namespace bs
 		 * If saving a core thread resource this is a potentially very slow operation as we must wait on the core thread 
 		 * and the GPU in order to read the resource.
 		 */
-		void save(const HResource& resource, const Path& filePath, bool overwrite);
+		void save(const HResource& resource, const Path& filePath, bool overwrite, bool compress = false);
 
 		/**
 		 * Saves an existing resource to its previous location.
 		 *
 		 * @param[in]	resource 	Handle to the resource.
+		 * @param[in]	compress	Should the resource be compressed before saving. Some resource have data that is already
+		 *							compressed and this option will be ignored for such resources.
 		 *
 		 * @note	
 		 * If the resource is a GpuResource and you are in some way modifying it from the Core thread, make sure all those
@@ -190,7 +194,7 @@ namespace bs
 		 * If saving a core thread resource this is a potentially very slow operation as we must wait on the core thread 
 		 * and the GPU in order to read the resource.
 		 */
-		void save(const HResource& resource);
+		void save(const HResource& resource, bool compress = false);
 
 		/**
 		 * Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the 

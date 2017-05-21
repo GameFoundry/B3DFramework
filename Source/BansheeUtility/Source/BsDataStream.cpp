@@ -38,12 +38,12 @@ namespace bs
 		return (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF);
 	}
 
-    template <typename T> DataStream& DataStream::operator>> (T& val)
-    {
-        read(static_cast<void*>(&val), sizeof(T));
+	template <typename T> DataStream& DataStream::operator>> (T& val)
+	{
+		read(static_cast<void*>(&val), sizeof(T));
 
-        return *this;
-    }
+		return *this;
+	}
 
 	void DataStream::writeString(const String& string, StringEncoding encoding)
 	{
@@ -246,65 +246,75 @@ namespace bs
 		}
 	}
 
-    MemoryDataStream::MemoryDataStream(void* memory, size_t inSize, bool freeOnClose)
+	MemoryDataStream::MemoryDataStream(size_t size)
+		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(true)
+	{
+		mData = mPos = (UINT8*)bs_alloc(size);
+		mSize = size;
+		mEnd = mData + mSize;
+
+		assert(mEnd >= mPos);
+	}
+
+	MemoryDataStream::MemoryDataStream(void* memory, size_t inSize, bool freeOnClose)
 		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(freeOnClose)
-    {
-        mData = mPos = static_cast<UINT8*>(memory);
-        mSize = inSize;
-        mEnd = mData + mSize;
+	{
+		mData = mPos = static_cast<UINT8*>(memory);
+		mSize = inSize;
+		mEnd = mData + mSize;
 
-        assert(mEnd >= mPos);
-    }
+		assert(mEnd >= mPos);
+	}
 
-    MemoryDataStream::MemoryDataStream(DataStream& sourceStream)
-        : DataStream(READ | WRITE), mData(nullptr)
-    {
-        // Copy data from incoming stream
-        mSize = sourceStream.size();
+	MemoryDataStream::MemoryDataStream(DataStream& sourceStream)
+		: DataStream(READ | WRITE), mData(nullptr)
+	{
+		// Copy data from incoming stream
+		mSize = sourceStream.size();
 
 		mData = (UINT8*)bs_alloc((UINT32)mSize);
 		mPos = mData;
 		mEnd = mData + sourceStream.read(mData, mSize);
 		mFreeOnClose = true;
 
-        assert(mEnd >= mPos);
-    }
+		assert(mEnd >= mPos);
+	}
 
-    MemoryDataStream::MemoryDataStream(const SPtr<DataStream>& sourceStream)
-        :DataStream(READ | WRITE), mData(nullptr)
-    {
-        // Copy data from incoming stream
-        mSize = sourceStream->size();
+	MemoryDataStream::MemoryDataStream(const SPtr<DataStream>& sourceStream)
+		:DataStream(READ | WRITE), mData(nullptr)
+	{
+		// Copy data from incoming stream
+		mSize = sourceStream->size();
 
 		mData = (UINT8*)bs_alloc((UINT32)mSize);
 		mPos = mData;
 		mEnd = mData + sourceStream->read(mData, mSize);
 		mFreeOnClose = true;
 
-        assert(mEnd >= mPos);
-    }
+		assert(mEnd >= mPos);
+	}
 
-    MemoryDataStream::~MemoryDataStream()
-    {
-        close();
-    }
+	MemoryDataStream::~MemoryDataStream()
+	{
+		close();
+	}
 
-    size_t MemoryDataStream::read(void* buf, size_t count)
-    {
-        size_t cnt = count;
+	size_t MemoryDataStream::read(void* buf, size_t count)
+	{
+		size_t cnt = count;
 
-        if (mPos + cnt > mEnd)
-            cnt = mEnd - mPos;
-        if (cnt == 0)
-            return 0;
+		if (mPos + cnt > mEnd)
+			cnt = mEnd - mPos;
+		if (cnt == 0)
+			return 0;
 
-        assert (cnt <= count);
+		assert (cnt <= count);
 
-        memcpy(buf, mPos, cnt);
-        mPos += cnt;
+		memcpy(buf, mPos, cnt);
+		mPos += cnt;
 
-        return cnt;
-    }
+		return cnt;
+	}
 
 	size_t MemoryDataStream::write(const void* buf, size_t count)
 	{
@@ -325,29 +335,29 @@ namespace bs
 		return written;
 	}
 
-    void MemoryDataStream::skip(size_t count)
-    {
-        size_t newpos = (size_t)( (mPos - mData) + count );
-        assert(mData + newpos <= mEnd);        
+	void MemoryDataStream::skip(size_t count)
+	{
+		size_t newpos = (size_t)( (mPos - mData) + count );
+		assert(mData + newpos <= mEnd);        
 
-        mPos = mData + newpos;
-    }
+		mPos = mData + newpos;
+	}
 
-    void MemoryDataStream::seek(size_t pos)
-    {
-        assert(mData + pos <= mEnd);
-        mPos = mData + pos;
-    }
+	void MemoryDataStream::seek(size_t pos)
+	{
+		assert(mData + pos <= mEnd);
+		mPos = mData + pos;
+	}
 
-    size_t MemoryDataStream::tell() const
+	size_t MemoryDataStream::tell() const
 	{
 		return mPos - mData;
 	}
 
-    bool MemoryDataStream::eof() const
-    {
-        return mPos >= mEnd;
-    }
+	bool MemoryDataStream::eof() const
+	{
+		return mPos >= mEnd;
+	}
 
 	SPtr<DataStream> MemoryDataStream::clone(bool copyData) const
 	{
@@ -357,20 +367,20 @@ namespace bs
 		return bs_shared_ptr_new<MemoryDataStream>(*this);
 	}
 
-    void MemoryDataStream::close()    
-    {
-        if (mData != nullptr)
-        {
+	void MemoryDataStream::close()    
+	{
+		if (mData != nullptr)
+		{
 			if(mFreeOnClose)
 				bs_free(mData);
 
-            mData = nullptr;
-        }
-    }
+			mData = nullptr;
+		}
+	}
 
-    FileDataStream::FileDataStream(const Path& path, AccessMode accessMode, bool freeOnClose)
-        : DataStream(accessMode), mPath(path), mFreeOnClose(freeOnClose)
-    {
+	FileDataStream::FileDataStream(const Path& path, AccessMode accessMode, bool freeOnClose)
+		: DataStream(accessMode), mPath(path), mFreeOnClose(freeOnClose)
+	{
 		// Always open in binary mode
 		// Also, always include reading
 		std::ios::openmode mode = std::ios::binary;
@@ -399,22 +409,22 @@ namespace bs
 			return;
 		}
 		
-        mInStream->seekg(0, std::ios_base::end);
-        mSize = (size_t)mInStream->tellg();
-        mInStream->seekg(0, std::ios_base::beg);
-    }
+		mInStream->seekg(0, std::ios_base::end);
+		mSize = (size_t)mInStream->tellg();
+		mInStream->seekg(0, std::ios_base::beg);
+	}
 
-    FileDataStream::~FileDataStream()
-    {
-        close();
-    }
+	FileDataStream::~FileDataStream()
+	{
+		close();
+	}
 
-    size_t FileDataStream::read(void* buf, size_t count)
-    {
+	size_t FileDataStream::read(void* buf, size_t count)
+	{
 		mInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
 
-        return (size_t)mInStream->gcount();
-    }
+		return (size_t)mInStream->gcount();
+	}
 
 	size_t FileDataStream::write(const void* buf, size_t count)
 	{
@@ -427,41 +437,41 @@ namespace bs
 
 		return written;
 	}
-    void FileDataStream::skip(size_t count)
-    {	
+	void FileDataStream::skip(size_t count)
+	{	
 		mInStream->clear(); // Clear fail status in case eof was set
 		mInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
-    }
+	}
 
-    void FileDataStream::seek(size_t pos)
-    {
+	void FileDataStream::seek(size_t pos)
+	{
 		mInStream->clear(); // Clear fail status in case eof was set
 		mInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 	}
 
-    size_t FileDataStream::tell() const
+	size_t FileDataStream::tell() const
 	{
 		mInStream->clear(); // Clear fail status in case eof was set
 
 		return (size_t)mInStream->tellg();
 	}
 
-    bool FileDataStream::eof() const
-    {
-        return mInStream->eof();
-    }
+	bool FileDataStream::eof() const
+	{
+		return mInStream->eof();
+	}
 
 	SPtr<DataStream> FileDataStream::clone(bool copyData) const
 	{
 		return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)getAccessMode(), true);
 	}
 
-    void FileDataStream::close()
-    {
-        if (mInStream)
-        {
+	void FileDataStream::close()
+	{
+		if (mInStream)
+		{
 			if (mFStreamRO)
-	            mFStreamRO->close();
+				mFStreamRO->close();
 
 			if (mFStream)
 			{
@@ -469,12 +479,12 @@ namespace bs
 				mFStream->close();
 			}
 
-            if (mFreeOnClose)
-            {
+			if (mFreeOnClose)
+			{
 				mInStream = nullptr;
 				mFStreamRO = nullptr; 
 				mFStream = nullptr; 
-            }
-        }
-    }
+			}
+		}
+	}
 }

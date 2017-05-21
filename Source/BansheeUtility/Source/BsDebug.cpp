@@ -52,7 +52,8 @@ namespace bs
 		logToIDEConsole(msg);
 	}
 
-	void Debug::writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, bool overwrite) const
+	void Debug::writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, 
+		bool overwrite) const
 	{
 		if(FileSystem::isFile(filePath))
 		{

@@ -127,6 +127,10 @@
         {
             "Path": "GBufferOutput.bslinc",
             "UUID": "46df32e8-6400-46d5-9ac2-beefdc9016ad"
+        },
+        {
+            "Path": "ShadowDepthBase.bslinc",
+            "UUID": "ff6f2a9d-6766-4f80-984b-c159a5fd3c5e"
         }
     ],
     "Shaders": [
@@ -245,6 +249,14 @@
         {
             "Path": "TiledDeferredImageBasedLighting.bsl",
             "UUID": "6029db14-107f-43df-9a33-7105c56aa0fd"
+        },
+        {
+            "Path": "ShadowDepthCube.bsl",
+            "UUID": "285c7b78-053a-4763-899e-8e11b5d4dac7"
+        },
+        {
+            "Path": "ShadowDepthNormal.bsl",
+            "UUID": "c9b64475-375d-410e-8cd4-e1b1181318d4"
         }
     ],
     "Skin": [

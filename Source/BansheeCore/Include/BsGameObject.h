@@ -16,7 +16,8 @@ namespace bs
 	{
 		TCF_None = 0x00, /**< Component will not be notified about any events relating to the transform. */
 		TCF_Transform = 0x01, /**< Component will be notified when the its position, rotation or scale has changed. */
-		TCF_Parent = 0x02 /**< Component will be notified when its parent changes. */
+		TCF_Parent = 0x02, /**< Component will be notified when its parent changes. */
+		TCF_Mobility = 0x04 /**< Component will be notified when mobility state changes. */
 	};
 
 	/** @} */

@@ -191,7 +191,8 @@ namespace bs
 				else
 				{
 					ScriptComponentBase* scriptComponent = ScriptGameObjectManager::instance().getBuiltinScriptComponent(component);
-					managedComponents.push_back(scriptComponent->getManagedInstance());
+					if(scriptComponent != nullptr)
+						managedComponents.push_back(scriptComponent->getManagedInstance());
 				}
 			}
 		}

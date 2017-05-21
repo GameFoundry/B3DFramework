@@ -4,9 +4,7 @@
 #include "BsFontImportOptions.h"
 #include "BsPixelData.h"
 #include "BsTexture.h"
-#include "BsResources.h"
-#include "BsDebug.h"
-#include "BsTexAtlasGenerator.h"
+#include "BsTextureAtlasLayout.h"
 #include "BsCoreApplication.h"
 #include "BsCoreThread.h"
 
@@ -124,7 +122,7 @@ namespace bs
 			SPtr<FontBitmap> fontData = bs_shared_ptr_new<FontBitmap>();
 
 			// Get all char sizes so we can generate texture layout
-			Vector<TexAtlasElementDesc> atlasElements;
+			Vector<TextureAtlasUtility::Element> atlasElements;
 			Map<UINT32, UINT32> seqIdxToCharIdx;
 			for(auto iter = charIndexRanges.begin(); iter != charIndexRanges.end(); ++iter)
 			{
@@ -142,7 +140,7 @@ namespace bs
 
 					FT_GlyphSlot slot = face->glyph;
 
-					TexAtlasElementDesc atlasElement;
+					TextureAtlasUtility::Element atlasElement;
 					atlasElement.input.width = slot->bitmap.width;
 					atlasElement.input.height = slot->bitmap.rows;
 
@@ -165,7 +163,7 @@ namespace bs
 
 				FT_GlyphSlot slot = face->glyph;
 
-				TexAtlasElementDesc atlasElement;
+				TextureAtlasUtility::Element atlasElement;
 				atlasElement.input.width = slot->bitmap.width;
 				atlasElement.input.height = slot->bitmap.rows;
 
@@ -173,8 +171,8 @@ namespace bs
 			}
 
 			// Create an optimal layout for character bitmaps
-			TexAtlasGenerator texAtlasGen(false, MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE);
-			Vector<TexAtlasPageDesc> pages = texAtlasGen.createAtlasLayout(atlasElements);
+			Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::createAtlasLayout(atlasElements, 64, 64,
+				MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE, true);
 
 			INT32 baselineOffset = 0;
 			UINT32 lineHeight = 0;
@@ -192,13 +190,15 @@ namespace bs
 				UINT8* pixelBuffer = pixelData->getData();
 				memset(pixelBuffer, 0, bufferSize);
 
-				for(size_t elementIdx = 0; elementIdx < atlasElements.size(); elementIdx++)
+				for(size_t i = 0; i < atlasElements.size(); i++)
 				{
 					// Copy character bitmap
-					if(atlasElements[elementIdx].output.page != pageIdx)
+					if(atlasElements[i].output.page != pageIdx)
 						continue;
 
-					TexAtlasElementDesc curElement = atlasElements[elementIdx];
+					TextureAtlasUtility::Element curElement = atlasElements[i];
+					UINT32 elementIdx = curElement.output.idx;
+					
 					bool isMissingGlypth = elementIdx == (atlasElements.size() - 1); // It's always the last element
 
 					UINT32 charIdx = 0;
@@ -343,8 +343,8 @@ namespace bs
 				}
 
 				newTex->setName(L"FontPage" + toWString((UINT32)fontData->texturePages.size()));
-				fontData->texturePages.push_back(newTex);
 
+				fontData->texturePages.push_back(newTex);
 				pageIdx++;
 			}
 

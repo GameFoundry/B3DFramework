@@ -1,0 +1,114 @@
+#include "$ENGINE$\GBufferOutput.bslinc"
+#include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerObjectData.bslinc"
+
+#include "$ENGINE$\SkinnedVertexInput.bslinc"
+#include "$ENGINE$\NormalVertexInput.bslinc"
+#define USE_BLEND_SHAPES
+#include "$ENGINE$\SkinnedVertexInput.bslinc"
+#include "$ENGINE$\NormalVertexInput.bslinc"
+#undef USE_BLEND_SHAPES
+
+Technique : base("ShadowDepthBase") =
+{
+	Pass =
+	{
+		Common =
+		{
+			struct ShadowVStoFS
+			{
+				float4 position : SV_Position;
+				
+				#ifdef USES_GS
+				float4 worldPos : TEXCOORD0;
+				#endif
+			};
+			
+			cbuffer ShadowParams
+			{
+				float gDepthBias;
+				float gDepthRange;
+			};
+		};
+	
+		Vertex =
+		{
+			void linearizeDepth(inout float4 clipPos)
+			{
+				// Clamp to near plane if behind it
+				if (clipPos.z < 0)
+				{
+					clipPos.z = 0.000001f;
+					clipPos.w = 1.0f;
+				}
+
+				// Output linear depth in range [0, 1]
+				// TODO - Handle case for backends using [-1, 1] depth range
+				float linearDepth = clipPos.z * gDepthRange + gDepthBias;
+				clipPos.z = linearDepth * clipPos.w;
+			}		
+		
+			ShadowVStoFS main(VertexInput_PO input)
+			{
+				ShadowVStoFS output;
+			
+				float4 worldPosition = getVertexWorldPosition(input);
+				
+				#ifdef USES_GS
+				output.worldPos = worldPosition;
+				output.position = worldPosition;
+				#else
+				float4 clipPos = mul(gMatViewProj, worldPosition);
+				linearizeDepth(clipPos);
+				
+				output.position = clipPos;
+				#endif
+				
+				return output;
+			}
+		};
+	};
+};
+
+Technique 
+ : inherits("GBufferOutput")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("NormalVertexInput")
+ : inherits("ShadowDepthBase")
+ : inherits("ShadowDepth") =
+{
+};
+
+Technique 
+ : inherits("GBufferOutput")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("SkinnedVertexInput")
+ : inherits("ShadowDepthBase")
+ : inherits("ShadowDepth") =
+{
+	Tags = { "Skinned" };
+};
+
+Technique 
+ : inherits("GBufferOutput")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("MorphVertexInput")
+ : inherits("ShadowDepthBase")
+ : inherits("ShadowDepth") =
+{
+	Tags = { "Morph" };
+};
+
+Technique 
+ : inherits("GBufferOutput")
+ : inherits("PerCameraData")
+ : inherits("PerObjectData")
+ : inherits("SkinnedMorphVertexInput")
+ : inherits("ShadowDepthBase")
+ : inherits("ShadowDepth") =
+{
+	Tags = { "SkinnedMorph" };
+};

@@ -376,15 +376,23 @@ namespace bs
 		mat[3][0] = 0.0f;	mat[3][1] = 0.0f;	mat[3][2] = -1;	mat[3][3] = 0.0f;
 
 		return mat;
-    }
+	}
+
+	Matrix4 Matrix4::projectionOrthographic(float left, float right, float top, float bottom, float near, float far)
+	{
+		Matrix4 output;
+		output.makeProjectionOrtho(left, right, top, bottom, near, far);
+
+		return output;
+	}
 
 	Matrix4 Matrix4::view(const Vector3& position, const Quaternion& orientation)
-    {
+	{
 		Matrix4 mat;
 		mat.makeView(position, orientation);
 
 		return mat;
-    }
+	}
 
 	Matrix4 Matrix4::TRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
 	{
