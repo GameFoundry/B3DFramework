@@ -1,19 +1,19 @@
 # Roadmap
 
-We are currently focusing on finish up a final set of features before releasing 1.0 stable. These features are:
- - Physically based renderer
- - Linux/Mac ports
-
-Planned for Q2 2017 release
-
+Remaining v1.0 features (in order):
+ - Physically based renderer (Planned for Q3 2017)
+ - Linux/Mac ports (Planned for Q4 2017)
+ - v1.0 BETA release (Late 2017/Early 2018)
+ 
 ---------------------------------------------------
 
-Following 1.0 release the focus will be on following features (in no specific order): 
+Post v1.0 features (in no specific order): 
  - Sprites & 2D rendering
  - 2D physics (Box2D integration)
  - 2D animation (Sprite based at least, likely bones as well)
  - Mobile render API (likely Vulkan, possibly Metal for iOS)
  - Android/iOS/WP ports
+ - Occlussion culling
  - High level networking (replication, RPCs)
  - Effects/Particle editor
  - Terrain system
@@ -21,7 +21,6 @@ Following 1.0 release the focus will be on following features (in no specific or
  
 And more to come after that:
  - Dynamic global illumination (+ other high fidelity graphical improvements)
- - Occlussion culling
  - AI (pathfinding, navmesh)
  - VR support
  - Cinematics editor
