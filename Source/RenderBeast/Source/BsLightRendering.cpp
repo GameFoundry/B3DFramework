@@ -18,20 +18,20 @@ namespace bs { namespace ct
 	TiledLightingParamDef gTiledLightingParamDef;
 
 	RendererLight::RendererLight(Light* light)
-		:mInternal(light)
+		:internal(light), shadowMapIndex(-1)
 	{ }
 
 	void RendererLight::getParameters(LightData& output) const
 	{
-		Radian spotAngle = Math::clamp(mInternal->getSpotAngle() * 0.5f, Degree(0), Degree(89));
-		Radian spotFalloffAngle = Math::clamp(mInternal->getSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
-		Color color = mInternal->getColor();
+		Radian spotAngle = Math::clamp(internal->getSpotAngle() * 0.5f, Degree(0), Degree(89));
+		Radian spotFalloffAngle = Math::clamp(internal->getSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
+		Color color = internal->getColor();
 
-		output.position = mInternal->getPosition();
-		output.attRadius = mInternal->getBounds().getRadius();
-		output.srcRadius = mInternal->getSourceRadius();
-		output.direction = mInternal->getRotation().zAxis();
-		output.luminance = mInternal->getLuminance();
+		output.position = internal->getPosition();
+		output.attRadius = internal->getBounds().getRadius();
+		output.srcRadius = internal->getSourceRadius();
+		output.direction = internal->getRotation().zAxis();
+		output.luminance = internal->getLuminance();
 		output.spotAngles.x = spotAngle.valueRadians();
 		output.spotAngles.y = Math::cos(output.spotAngles.x);
 		output.spotAngles.z = 1.0f / std::max(Math::cos(spotFalloffAngle) - output.spotAngles.y, 0.001f);
@@ -39,11 +39,11 @@ namespace bs { namespace ct
 		output.color = Vector3(color.r, color.g, color.b);
 
 		// If directional lights, convert angular radius in degrees to radians
-		if (mInternal->getType() == LightType::Directional)
+		if (internal->getType() == LightType::Directional)
 			output.srcRadius *= Math::DEG2RAD;
 
 		// Create position for fake attenuation for area spot lights (with disc center)
-		if (mInternal->getType() == LightType::Spot)
+		if (internal->getType() == LightType::Spot)
 			output.shiftedLightPosition = output.position - output.direction * (output.srcRadius / Math::tan(spotAngle * 0.5f));
 		else
 			output.shiftedLightPosition = output.position;

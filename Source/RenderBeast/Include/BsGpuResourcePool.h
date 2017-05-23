@@ -144,10 +144,11 @@ namespace bs { namespace ct
 		 * @param[in]	usage		Usage flags that control in which way is the texture going to be used.
 		 * @param[in]	samples		If higher than 1, texture containing multiple samples per pixel is created.
 		 * @param[in]	hwGamma		Should the written pixels be gamma corrected.
+		 * @param[in]	arraySize	Number of textures in a texture array. Specify 1 for no array.
 		 * @return					Descriptor that is accepted by RenderTexturePool.
 		 */
 		static POOLED_RENDER_TEXTURE_DESC create2D(PixelFormat format, UINT32 width, UINT32 height, 
-			INT32 usage = TU_STATIC, UINT32 samples = 0, bool hwGamma = false);
+			INT32 usage = TU_STATIC, UINT32 samples = 0, bool hwGamma = false, UINT32 arraySize = 1);
 
 		/**
 		 * Creates a descriptor for a three dimensional render texture.
@@ -169,10 +170,11 @@ namespace bs { namespace ct
 		 * @param[in]	width		Width of the render texture, in pixels.
 		 * @param[in]	height		Height of the render texture, in pixels.
 		 * @param[in]	usage		Usage flags that control in which way is the texture going to be used.
+		 * @param[in]	arraySize	Number of textures in a texture array. Specify 1 for no array.
 		 * @return					Descriptor that is accepted by RenderTexturePool.
 		 */
 		static POOLED_RENDER_TEXTURE_DESC createCube(PixelFormat format, UINT32 width, UINT32 height,
-			INT32 usage = TU_STATIC);
+			INT32 usage = TU_STATIC, UINT32 arraySize = 1);
 
 	private:
 		friend class GpuResourcePool;
@@ -185,6 +187,7 @@ namespace bs { namespace ct
 		TextureUsage flag;
 		TextureType type;
 		bool hwGamma;
+		UINT32 arraySize;
 	};
 
 	/** Structure used for describing a pooled storage buffer. */

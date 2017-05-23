@@ -69,6 +69,9 @@ namespace bs { namespace ct
 		texDesc.hwGamma = desc.hwGamma;
 		texDesc.numSamples = desc.numSamples;
 
+		if (desc.type != TEX_TYPE_3D)
+			texDesc.numArraySlices = desc.arraySize;
+
 		newTextureData->texture = TextureManager::instance().createTexture(texDesc);
 		
 		if ((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
@@ -79,7 +82,7 @@ namespace bs { namespace ct
 			{
 				rtDesc.colorSurfaces[0].texture = newTextureData->texture;
 				rtDesc.colorSurfaces[0].face = 0;
-				rtDesc.colorSurfaces[0].numFaces = 1;
+				rtDesc.colorSurfaces[0].numFaces = newTextureData->texture->getProperties().getNumFaces();
 				rtDesc.colorSurfaces[0].mipLevel = 0;
 			}
 
@@ -87,7 +90,7 @@ namespace bs { namespace ct
 			{
 				rtDesc.depthStencilSurface.texture = newTextureData->texture;
 				rtDesc.depthStencilSurface.face = 0;
-				rtDesc.depthStencilSurface.numFaces = 1;
+				rtDesc.depthStencilSurface.numFaces = newTextureData->texture->getProperties().getNumFaces();
 				rtDesc.depthStencilSurface.mipLevel = 0;
 			}
 
@@ -160,6 +163,7 @@ namespace bs { namespace ct
 					&& texProps.getDepth() == desc.depth)
 				|| (desc.type == TEX_TYPE_CUBE_MAP)
 				)
+			&& texProps.getNumArraySlices() == desc.arraySize
 			;
 
 		return match;
@@ -202,7 +206,7 @@ namespace bs { namespace ct
 	}
 
 	POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::create2D(PixelFormat format, UINT32 width, UINT32 height,
-		INT32 usage, UINT32 samples, bool hwGamma)
+		INT32 usage, UINT32 samples, bool hwGamma, UINT32 arraySize)
 	{
 		POOLED_RENDER_TEXTURE_DESC desc;
 		desc.width = width;
@@ -213,6 +217,7 @@ namespace bs { namespace ct
 		desc.flag = (TextureUsage)usage;
 		desc.hwGamma = hwGamma;
 		desc.type = TEX_TYPE_2D;
+		desc.arraySize = arraySize;
 
 		return desc;
 	}
@@ -229,12 +234,13 @@ namespace bs { namespace ct
 		desc.flag = (TextureUsage)usage;
 		desc.hwGamma = false;
 		desc.type = TEX_TYPE_3D;
+		desc.arraySize = 1;
 
 		return desc;
 	}
 
 	POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::createCube(PixelFormat format, UINT32 width, UINT32 height,
-		INT32 usage)
+		INT32 usage, UINT32 arraySize)
 	{
 		POOLED_RENDER_TEXTURE_DESC desc;
 		desc.width = width;
@@ -245,6 +251,7 @@ namespace bs { namespace ct
 		desc.flag = (TextureUsage)usage;
 		desc.hwGamma = false;
 		desc.type = TEX_TYPE_CUBE_MAP;
+		desc.arraySize = arraySize;
 
 		return desc;
 	}

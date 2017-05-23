@@ -99,7 +99,7 @@ namespace bs
 		AsyncOp queueReturnCommand(std::function<void(AsyncOp&)> commandCallback, CoreThreadQueueFlags flags = CTQF_Default);
 
 		/**
-		 * Queues a new command that will be to the global command queue. 
+		 * Queues a new command that will be added to the global command queue. 
 		 * 	
 		 * @param[in]	commandCallback		Command to queue.
 		 * @param[in]	flags				Flags that further control command submission.

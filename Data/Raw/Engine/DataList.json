@@ -261,6 +261,10 @@
         {
             "Path": "ShadowDepthNormal.bsl",
             "UUID": "c9b64475-375d-410e-8cd4-e1b1181318d4"
+        },
+        {
+            "Path": "ShadowDepthDirectional.bsl",
+            "UUID": "acd0f016-8084-4b32-806c-66a85b34ee5a"
         }
     ],
     "Skin": [

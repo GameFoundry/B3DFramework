@@ -10,6 +10,7 @@
 #include "BsPass.h"
 #include "BsGpuParamsSet.h"
 #include "BsRenderBeastOptions.h"
+#include "BsRenderBeast.h"
 
 namespace bs {	namespace ct
 {
@@ -116,7 +117,7 @@ namespace bs {	namespace ct
 		UINT32 lightId = light->getRendererId();
 		if (light->getType() == LightType::Directional)
 		{
-			Light* lastLight = mInfo.directionalLights.back().getInternal();
+			Light* lastLight = mInfo.directionalLights.back().internal;
 			UINT32 lastLightId = lastLight->getRendererId();
 
 			if (lightId != lastLightId)
@@ -133,7 +134,7 @@ namespace bs {	namespace ct
 		{
 			if (light->getType() == LightType::Radial)
 			{
-				Light* lastLight = mInfo.radialLights.back().getInternal();
+				Light* lastLight = mInfo.radialLights.back().internal;
 				UINT32 lastLightId = lastLight->getRendererId();
 
 				if (lightId != lastLightId)
@@ -151,7 +152,7 @@ namespace bs {	namespace ct
 			}
 			else // Spot
 			{
-				Light* lastLight = mInfo.spotLights.back().getInternal();
+				Light* lastLight = mInfo.spotLights.back().internal;
 				UINT32 lastLightId = lastLight->getRendererId();
 
 				if (lightId != lastLightId)
@@ -394,6 +395,22 @@ namespace bs {	namespace ct
 		mInfo.radialLightWorldBounds.erase(mInfo.radialLightWorldBounds.end() - 1);
 
 		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
+	}
+
+	void RendererScene::setLightShadowMapIdx(UINT32 lightIdx, LightType lightType, UINT32 shadowMapIndex)
+	{
+		switch (lightType)
+		{
+		case LightType::Directional:
+			mInfo.directionalLights[lightIdx].shadowMapIndex = shadowMapIndex;
+			break;
+		case LightType::Radial: 
+			mInfo.radialLights[lightIdx].shadowMapIndex = shadowMapIndex;
+			break;
+		case LightType::Spot: 
+			mInfo.spotLights[lightIdx].shadowMapIndex = shadowMapIndex;
+			break;
+		}
 	}
 
 	void RendererScene::setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture)
@@ -664,5 +681,22 @@ namespace bs {	namespace ct
 
 		for (auto& entry : mSamplerOverrides)
 			entry.second->isDirty = false;
+	}
+
+	void RendererScene::prepareRenderable(UINT32 idx, const FrameInfo& frameInfo)
+	{
+		if (mInfo.renderableReady[idx])
+			return;
+		
+		// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
+		mInfo.renderables[idx]->renderable->updateAnimationBuffers(frameInfo.animData);
+		
+		// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
+		// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
+		for (auto& element : mInfo.renderables[idx]->elements)
+			element.material->updateParamsSet(element.params);
+		
+		mInfo.renderables[idx]->perObjectParamBuffer->flushToGPU();
+		mInfo.renderableReady[idx] = true;
 	}
 }}

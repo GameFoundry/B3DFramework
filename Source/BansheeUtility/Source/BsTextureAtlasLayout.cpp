@@ -15,11 +15,12 @@ namespace bs
 	{ }
 
 	TextureAtlasLayout::TextureAtlasLayout()
-		: mWidth(0), mHeight(0), mMaxWidth(0), mMaxHeight(0), mPow2(false)
+		: mInitialWidth(0), mInitialHeight(0), mWidth(0), mHeight(0), mMaxWidth(0), mMaxHeight(0), mPow2(false)
 	{ }
 
 	TextureAtlasLayout::TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2)
-		: mWidth(width), mHeight(height), mMaxWidth(maxWidth), mMaxHeight(maxHeight), mPow2(pow2)
+		: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mMaxWidth(maxWidth)
+		, mMaxHeight(maxHeight), mPow2(pow2)
 	{
 		mNodes.push_back(TexAtlasNode(0, 0, maxWidth, maxHeight));
 	}
@@ -53,6 +54,15 @@ namespace bs
 		}
 
 		return true;
+	}
+
+	void TextureAtlasLayout::clear()
+	{
+		mNodes.clear();
+		mNodes.push_back(TexAtlasNode(0, 0, mWidth, mHeight));
+
+		mWidth = mInitialWidth;
+		mHeight = mInitialHeight;
 	}
 
 	bool TextureAtlasLayout::addToNode(UINT32 nodeIdx, UINT32 width, UINT32 height, UINT32& x, UINT32& y, bool allowGrowth)
@@ -119,7 +129,7 @@ namespace bs
 	{
 		for (size_t i = 0; i < elements.size(); i++)
 		{
-			elements[i].output.idx = i; // Preserve original index before sorting
+			elements[i].output.idx = (UINT32)i; // Preserve original index before sorting
 			elements[i].output.page = -1;
 		}
 

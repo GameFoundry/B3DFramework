@@ -91,7 +91,7 @@ namespace bs { namespace ct
 
 		GpuResourcePool::startUp();
 		PostProcessing::startUp();
-		ShadowRendering::startUp();
+		ShadowRendering::startUp(mCoreOptions->shadowMapSize);
 	}
 
 	void RenderBeast::destroyCore()
@@ -288,6 +288,7 @@ namespace bs { namespace ct
 		*mCoreOptions = options;
 
 		mScene->setOptions(mCoreOptions);
+		ShadowRendering::instance().setShadowMapSize(mCoreOptions->shadowMapSize);
 	}
 
 	void RenderBeast::renderAll() 
@@ -325,7 +326,13 @@ namespace bs { namespace ct
 		AnimationManager::instance().waitUntilComplete();
 		const RendererAnimationData& animData = AnimationManager::instance().getRendererData();
 		
+		sceneInfo.renderableReady.resize(sceneInfo.renderables.size(), false);
+		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
+		
 		FrameInfo frameInfo(delta, animData);
+
+		// Render shadow maps
+		//ShadowRendering::instance().renderShadowMaps(*mScene, frameInfo);
 
 		// Update reflection probes
 		updateLightProbes(frameInfo);
@@ -365,11 +372,11 @@ namespace bs { namespace ct
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 
 		// Generate render queues per camera
-		mRenderableVisibility.resize(sceneInfo.renderables.size(), false);
-		mRenderableVisibility.assign(mRenderableVisibility.size(), false);
+		sceneInfo.renderableVisibility.resize(sceneInfo.renderables.size(), false);
+		sceneInfo.renderableVisibility.assign(sceneInfo.renderableVisibility.size(), false);
 
 		for(UINT32 i = 0; i < numViews; i++)
-			views[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &mRenderableVisibility);
+			views[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &sceneInfo.renderableVisibility);
 
 		// Generate a list of lights and their GPU buffers
 		UINT32 numDirLights = (UINT32)sceneInfo.directionalLights.size();
@@ -381,14 +388,14 @@ namespace bs { namespace ct
 
 		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
 		UINT32 numVisibleRadialLights = 0;
-		mRadialLightVisibility.resize(numRadialLights, false);
-		mRadialLightVisibility.assign(numRadialLights, false);
+		sceneInfo.radialLightVisibility.resize(numRadialLights, false);
+		sceneInfo.radialLightVisibility.assign(numRadialLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(sceneInfo.radialLightWorldBounds, mRadialLightVisibility);
+			views[i]->calculateVisibility(sceneInfo.radialLightWorldBounds, sceneInfo.radialLightVisibility);
 
 		for(UINT32 i = 0; i < numRadialLights; i++)
 		{
-			if (!mRadialLightVisibility[i])
+			if (!sceneInfo.radialLightVisibility[i])
 				continue;
 
 			mLightDataTemp.push_back(LightData());
@@ -398,14 +405,14 @@ namespace bs { namespace ct
 
 		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
 		UINT32 numVisibleSpotLights = 0;
-		mSpotLightVisibility.resize(numSpotLights, false);
-		mSpotLightVisibility.assign(numSpotLights, false);
+		sceneInfo.spotLightVisibility.resize(numSpotLights, false);
+		sceneInfo.spotLightVisibility.assign(numSpotLights, false);
 		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(sceneInfo.spotLightWorldBounds, mSpotLightVisibility);
+			views[i]->calculateVisibility(sceneInfo.spotLightWorldBounds, sceneInfo.spotLightVisibility);
 
 		for (UINT32 i = 0; i < numSpotLights; i++)
 		{
-			if (!mSpotLightVisibility[i])
+			if (!sceneInfo.spotLightVisibility[i])
 				continue;
 
 			mLightDataTemp.push_back(LightData());
@@ -450,18 +457,10 @@ namespace bs { namespace ct
 		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
-			if (!mRenderableVisibility[i])
+			if (!sceneInfo.renderableVisibility[i])
 				continue;
 
-			// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-			sceneInfo.renderables[i]->renderable->updateAnimationBuffers(frameInfo.animData);
-
-			// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
-			// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
-			for (auto& element : sceneInfo.renderables[i]->elements)
-				element.material->updateParamsSet(element.params);
-
-			sceneInfo.renderables[i]->perObjectParamBuffer->flushToGPU();
+			mScene->prepareRenderable(i, frameInfo);
 		}
 
 		for (UINT32 i = 0; i < numViews; i++)

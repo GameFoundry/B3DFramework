@@ -39,6 +39,12 @@ namespace bs { namespace ct
 		 * changes. Sorting by material can reduce CPU usage but could increase overdraw.
 		 */
 		StateReduction stateReductionMode = StateReduction::Distance;
+
+		/**
+		 * Determines the maximum shadow map size, in pixels. The system might decide to use smaller resolution maps for
+		 * shadows far away, but will never increase the resolution past the provided value.
+		 */
+		UINT32 shadowMapSize = 2048;
 	};
 
 	/** @} */

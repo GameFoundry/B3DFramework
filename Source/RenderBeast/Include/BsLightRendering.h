@@ -35,12 +35,9 @@ namespace bs { namespace ct
 
 		/** Populates the structure with light parameters. */
 		void getParameters(LightData& output) const;
-
-		/** Gets the internal light representation. */
-		Light* getInternal() const { return mInternal; }
-
-	private:
-		Light* mInternal;
+		
+		Light* internal;
+		UINT32 shadowMapIndex;
 	};
 
 	/** Contains GPU buffers used by the renderer to manipulate lights. */

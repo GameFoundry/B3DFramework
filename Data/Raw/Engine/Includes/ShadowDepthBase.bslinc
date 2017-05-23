@@ -1,5 +1,3 @@
-#include "$ENGINE$\GBufferOutput.bslinc"
-#include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
 
 #include "$ENGINE$\SkinnedVertexInput.bslinc"
@@ -26,6 +24,7 @@ Technique : base("ShadowDepthBase") =
 			
 			cbuffer ShadowParams
 			{
+				float4x4 gMatViewProj;
 				float gDepthBias;
 				float gDepthRange;
 			};
@@ -44,8 +43,10 @@ Technique : base("ShadowDepthBase") =
 
 				// Output linear depth in range [0, 1]
 				// TODO - Handle case for backends using [-1, 1] depth range
-				float linearDepth = clipPos.z * gDepthRange + gDepthBias;
-				clipPos.z = linearDepth * clipPos.w;
+				#if LINEAR_DEPTH_RANGE
+					float linearDepth = clipPos.z * gDepthRange + gDepthBias;
+					clipPos.z = linearDepth * clipPos.w;
+				#endif
 			}		
 		
 			ShadowVStoFS main(VertexInput_PO input)
@@ -71,8 +72,6 @@ Technique : base("ShadowDepthBase") =
 };
 
 Technique 
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("NormalVertexInput")
  : inherits("ShadowDepthBase")
@@ -81,8 +80,6 @@ Technique
 };
 
 Technique 
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedVertexInput")
  : inherits("ShadowDepthBase")
@@ -92,8 +89,6 @@ Technique
 };
 
 Technique 
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("MorphVertexInput")
  : inherits("ShadowDepthBase")
@@ -103,8 +98,6 @@ Technique
 };
 
 Technique 
- : inherits("GBufferOutput")
- : inherits("PerCameraData")
  : inherits("PerObjectData")
  : inherits("SkinnedMorphVertexInput")
  : inherits("ShadowDepthBase")

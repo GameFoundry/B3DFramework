@@ -2,9 +2,641 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsShadowRendering.h"
 #include "BsRendererView.h"
+#include "BsRendererScene.h"
+#include "BsLight.h"
+#include "BsRendererUtility.h"
+#include "BsGpuParamsSet.h"
+#include "BsMesh.h"
 
 namespace bs { namespace ct
 {
+	ShadowParamsDef gShadowParamsDef;
+
+	ShadowDepthNormalMat::ShadowDepthNormalMat()
+	{ }
+
+	void ShadowDepthNormalMat::_initDefines(ShaderDefines& defines)
+	{
+		// No defines
+	}
+
+	void ShadowDepthNormalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	{
+		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
+
+		gRendererUtility().setPass(mMaterial);
+	}
+	
+	void ShadowDepthNormalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	{
+		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
+	{ }
+
+	void ShadowDepthDirectionalMat::_initDefines(ShaderDefines& defines)
+	{
+		// No defines
+	}
+
+	void ShadowDepthDirectionalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	{
+		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
+
+		gRendererUtility().setPass(mMaterial);
+	}
+	
+	void ShadowDepthDirectionalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	{
+		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	ShadowCubeMatricesDef gShadowCubeMatricesDef;
+	ShadowCubeMasksDef gShadowCubeMasksDef;
+
+	ShadowDepthCubeMat::ShadowDepthCubeMat()
+	{ }
+
+	void ShadowDepthCubeMat::_initDefines(ShaderDefines& defines)
+	{
+		// No defines
+	}
+
+	void ShadowDepthCubeMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams, 
+		const SPtr<GpuParamBlockBuffer>& shadowCubeMatrices)
+	{
+		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParamsSet->setParamBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
+
+		gRendererUtility().setPass(mMaterial);
+	}
+
+	void ShadowDepthCubeMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams,
+		const SPtr<GpuParamBlockBuffer>& shadowCubeMasks)
+	{
+		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
+		mParamsSet->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
+
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	void ShadowMapInfo::updateNormArea(UINT32 atlasSize)
+	{
+		normArea.x = area.x / (float)atlasSize;
+		normArea.y = area.y / (float)atlasSize;
+		normArea.width = area.width / (float)atlasSize;
+		normArea.height = area.height / (float)atlasSize;
+	}
+
+	ShadowMapAtlas::ShadowMapAtlas(UINT32 size)
+		:mLastUsedCounter(0)
+	{
+		mAtlas = GpuResourcePool::instance().get(
+			POOLED_RENDER_TEXTURE_DESC::create2D(PF_D24S8, size, size, TU_DEPTHSTENCIL));
+	}
+
+	ShadowMapAtlas::~ShadowMapAtlas()
+	{
+		GpuResourcePool::instance().release(mAtlas);
+	}
+
+	bool ShadowMapAtlas::addMap(UINT32 size, Rect2I& area, UINT32 border)
+	{
+		UINT32 sizeWithBorder = size + border * 2;
+
+		UINT32 x, y;
+		if (!mLayout.addElement(sizeWithBorder, sizeWithBorder, x, y))
+			return false;
+
+		area.width = area.height = size;
+		area.x = x + border;
+		area.y = y + border;
+
+		mLastUsedCounter = 0;
+		return true;
+	}
+
+	void ShadowMapAtlas::clear()
+	{
+		mLayout.clear();
+		mLastUsedCounter++;
+	}
+
+	bool ShadowMapAtlas::isEmpty() const
+	{
+		return mLayout.isEmpty();
+	}
+
+	SPtr<Texture> ShadowMapAtlas::getTexture() const
+	{
+		return mAtlas->texture;
+	}
+
+	SPtr<RenderTexture> ShadowMapAtlas::getTarget() const
+	{
+		return mAtlas->renderTexture;
+	}
+
+	ShadowMapBase::ShadowMapBase(UINT32 size)
+		: mSize(size), mIsUsed(false), mLastUsedCounter (0)
+	{ }
+
+	SPtr<Texture> ShadowMapBase::getTexture() const
+	{
+		return mShadowMap->texture;
+	}
+
+	ShadowCubemap::ShadowCubemap(UINT32 size)
+		:ShadowMapBase(size)
+	{
+		mShadowMap = GpuResourcePool::instance().get(
+			POOLED_RENDER_TEXTURE_DESC::createCube(PF_D24S8, size, size, TU_DEPTHSTENCIL));
+
+		RENDER_TEXTURE_DESC rtDesc;
+		rtDesc.depthStencilSurface.texture = mShadowMap->texture;
+		rtDesc.depthStencilSurface.numFaces = 6;
+	}
+
+	ShadowCubemap::~ShadowCubemap()
+	{
+		GpuResourcePool::instance().release(mShadowMap);
+	}
+
+	SPtr<RenderTexture> ShadowCubemap::getTarget() const
+	{
+		return mShadowMap->renderTexture;
+	}
+
+	ShadowCascadedMap::ShadowCascadedMap(UINT32 size)
+		:ShadowMapBase(size)
+	{
+		mShadowMap = GpuResourcePool::instance().get(
+			POOLED_RENDER_TEXTURE_DESC::create2D(PF_D24S8, size, size, TU_DEPTHSTENCIL, 0, false, NUM_CASCADE_SPLITS));
+
+		RENDER_TEXTURE_DESC rtDesc;
+		rtDesc.depthStencilSurface.texture = mShadowMap->texture;
+		rtDesc.depthStencilSurface.numFaces = 1;
+
+		for (int i = 0; i < NUM_CASCADE_SPLITS; ++i)
+		{
+			rtDesc.depthStencilSurface.face = i;
+			mTargets[i] = RenderTexture::create(rtDesc);
+		}
+	}
+
+	ShadowCascadedMap::~ShadowCascadedMap()
+	{
+		GpuResourcePool::instance().release(mShadowMap);
+	}
+
+	SPtr<RenderTexture> ShadowCascadedMap::getTarget(UINT32 cascadeIdx) const
+	{
+		return mTargets[cascadeIdx];
+	}
+
+	const UINT32 ShadowRendering::MAX_ATLAS_SIZE = 8192;
+	const UINT32 ShadowRendering::MAX_UNUSED_FRAMES = 60;
+
+	ShadowRendering::ShadowRendering(UINT32 shadowMapSize)
+		: mShadowMapSize(shadowMapSize)
+	{ }
+
+	void ShadowRendering::setShadowMapSize(UINT32 size)
+	{
+		if (mShadowMapSize == size)
+			return;
+
+		mCascadedShadowMaps.clear();
+		mDynamicShadowMaps.clear();
+		mShadowCubemaps.clear();
+	}
+
+	void ShadowRendering::renderShadowMaps(RendererScene& scene, const FrameInfo& frameInfo)
+	{
+		// Note: Currently all shadows are dynamic and are rebuilt every frame. I should later added support for static
+		// shadow maps which can be used for immovable lights. Such a light can then maintain a set of shadow maps,
+		// one of which is static and only effects the static geometry, while the rest are per-object shadow maps used
+		// for dynamic objects. Then only a small subset of geometry needs to be redrawn, instead of everything.
+
+		// Note: Add support for per-object shadows and a way to force a renderable to use per-object shadows. This can be
+		// used for adding high quality shadows on specific objects (e.g. important characters during cinematics).
+
+		const SceneInfo& sceneInfo = scene.getSceneInfo();
+		
+		// Clear all dynamic light atlases
+		for (auto& entry : mCascadedShadowMaps)
+			entry.clear();
+
+		for (auto& entry : mDynamicShadowMaps)
+			entry.clear();
+
+		for (auto& entry : mShadowCubemaps)
+			entry.clear();
+
+		// Render shadow maps
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.directionalLights.size(); ++i)
+		{
+			scene.setLightShadowMapIdx(i, LightType::Directional, -1);
+
+			for(auto& entry : sceneInfo.views)
+				renderCascadedShadowMaps(*entry.second, sceneInfo.directionalLights[i], scene, frameInfo);
+		}
+
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.spotLights.size(); ++i)
+		{
+			if (!sceneInfo.spotLightVisibility[i])
+				continue;
+
+			scene.setLightShadowMapIdx(i, LightType::Spot, -1);
+			renderSpotShadowMaps(sceneInfo.spotLights[i], scene, frameInfo);
+		}
+
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.radialLights.size(); ++i)
+		{
+			if (!sceneInfo.radialLightVisibility[i])
+				continue;
+
+			scene.setLightShadowMapIdx(i, LightType::Radial, -1);
+			renderRadialShadowMaps(sceneInfo.radialLights[i], scene, frameInfo);
+		}
+		
+		// Deallocate unused atlas textures
+		for(auto iter = mDynamicShadowMaps.begin(); iter != mDynamicShadowMaps.end(); ++iter)
+		{
+			if(iter->getLastUsedCounter() >= MAX_UNUSED_FRAMES)
+			{
+				mDynamicShadowMaps.erase(iter, mDynamicShadowMaps.end());
+				break;
+			}
+		}
+
+		for(auto iter = mCascadedShadowMaps.begin(); iter != mCascadedShadowMaps.end(); ++iter)
+		{
+			if(iter->getLastUsedCounter() >= MAX_UNUSED_FRAMES)
+			{
+				mCascadedShadowMaps.erase(iter, mCascadedShadowMaps.end());
+				break;
+			}
+		}
+		
+		for(auto iter = mShadowCubemaps.begin(); iter != mShadowCubemaps.end(); ++iter)
+		{
+			if(iter->getLastUsedCounter() >= MAX_UNUSED_FRAMES)
+			{
+				mShadowCubemaps.erase(iter, mShadowCubemaps.end());
+				break;
+			}
+		}
+	}
+
+	void ShadowRendering::renderCascadedShadowMaps(const RendererView& view, const RendererLight& rendererLight,
+		RendererScene& scene, const FrameInfo& frameInfo)
+	{
+		// Note: Currently I'm using spherical bounds for the cascaded frustum which might result in non-optimal usage
+		// of the shadow map. A different approach would be to generate a bounding box and then both adjust the aspect
+		// ratio (and therefore dimensions) of the shadow map, as well as rotate the camera so the visible area best fits
+		// in the map. It remains to be seen if this is viable.
+
+		Light* light = rendererLight.internal;
+
+		if (!light->getCastsShadow())
+			return;
+
+		const SceneInfo& sceneInfo = scene.getSceneInfo();
+		RenderAPI& rapi = RenderAPI::instance();
+
+		Vector3 lightDir = light->getRotation().zAxis();
+		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
+
+		// Assuming all cascaded shadow maps are the same size
+		UINT32 mapSize = std::min(mShadowMapSize, MAX_ATLAS_SIZE);
+
+		UINT32 mapIdx = -1;
+		for (UINT32 i = 0; i < (UINT32)mCascadedShadowMaps.size(); i++)
+		{
+			ShadowCascadedMap& shadowMap = mCascadedShadowMaps[i];
+
+			if (!shadowMap.isUsed() && shadowMap.getSize() == mapSize)
+			{
+				mapIdx = i;
+				shadowMap.markAsUsed();
+
+				break;
+			}
+		}
+
+		if (mapIdx == -1)
+		{
+			mapIdx = (UINT32)mCascadedShadowMaps.size();
+			mCascadedShadowMaps.push_back(ShadowCascadedMap(mapSize));
+
+			ShadowCascadedMap& shadowMap = mCascadedShadowMaps.back();
+			shadowMap.markAsUsed();
+		}
+
+		ShadowCascadedMap& shadowMap = mCascadedShadowMaps[mapIdx];
+
+		Matrix4 viewMat = Matrix4::view(light->getPosition(), light->getRotation());
+		for (int i = 0; i < NUM_CASCADE_SPLITS; ++i)
+		{
+			Sphere frustumBounds;
+			ConvexVolume cascadeCullVolume = getCSMSplitFrustum(view, lightDir, i, NUM_CASCADE_SPLITS, frustumBounds);
+
+			float orthoSize = frustumBounds.getRadius();
+			Matrix4 proj = Matrix4::projectionOrthographic(-orthoSize, orthoSize, -orthoSize, orthoSize, 0.0f, 1000.0f);
+			RenderAPI::instance().convertProjectionMatrix(proj, proj);
+
+			Matrix4 viewProj = proj * viewMat;
+
+			float nearDist = 0.05f;
+			float farDist = light->getAttenuationRadius();
+			float depthRange = farDist - nearDist;
+			float depthBias = 0.0f; // TODO - determine optimal depth bias
+
+			gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, depthBias);
+			gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, depthRange);
+			gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, viewProj);
+
+			rapi.setRenderTarget(shadowMap.getTarget(i));
+			rapi.clearRenderTarget(FBT_DEPTH);
+
+			mDepthDirectionalMat.bind(shadowParamsBuffer);
+
+			for (UINT32 j = 0; j < sceneInfo.renderables.size(); j++)
+			{
+				if (!cascadeCullVolume.intersects(sceneInfo.renderableCullInfos[j].bounds.getSphere()))
+					continue;
+
+				scene.prepareRenderable(j, frameInfo);
+
+				RendererObject* renderable = sceneInfo.renderables[j];
+				mDepthDirectionalMat.setPerObjectBuffer(renderable->perObjectParamBuffer);
+
+				for (auto& element : renderable->elements)
+				{
+					if (element.morphVertexDeclaration == nullptr)
+						gRendererUtility().draw(element.mesh, element.subMesh);
+					else
+						gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
+							element.morphVertexDeclaration);
+				}
+			}
+		}
+	}
+
+	void ShadowRendering::renderSpotShadowMaps(const RendererLight& rendererLight, RendererScene& scene,
+		const FrameInfo& frameInfo)
+	{
+		Light* light = rendererLight.internal;
+
+		if (!light->getCastsShadow())
+			return;
+
+		const SceneInfo& sceneInfo = scene.getSceneInfo();
+		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
+
+		// TODO - Calculate shadow map size depending on size on the screen
+		UINT32 mapSize = std::min(mShadowMapSize, MAX_ATLAS_SIZE);
+		ShadowMapInfo mapInfo;
+
+		bool foundSpace = false;
+		for (UINT32 i = 0; i < (UINT32)mDynamicShadowMaps.size(); i++)
+		{
+			ShadowMapAtlas& atlas = mDynamicShadowMaps[i];
+
+			if (atlas.addMap(mapSize, mapInfo.area))
+			{
+				mapInfo.atlasIdx = i;
+
+				foundSpace = true;
+				break;
+			}
+		}
+
+		if (!foundSpace)
+		{
+			mapInfo.atlasIdx = (UINT32)mDynamicShadowMaps.size();
+			mDynamicShadowMaps.push_back(ShadowMapAtlas(MAX_ATLAS_SIZE));
+
+			ShadowMapAtlas& atlas = mDynamicShadowMaps.back();
+			atlas.addMap(mapSize, mapInfo.area);
+		}
+
+		mapInfo.updateNormArea(MAX_ATLAS_SIZE);
+		ShadowMapAtlas& atlas = mDynamicShadowMaps[mapInfo.atlasIdx];
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(atlas.getTarget());
+		rapi.setViewport(mapInfo.normArea);
+		rapi.clearViewport(FBT_DEPTH);
+
+		float nearDist = 0.05f;
+		float farDist = light->getAttenuationRadius();
+		float depthRange = farDist - nearDist;
+		float depthBias = 0.0f; // TODO - determine optimal depth bias
+
+		Matrix4 view = Matrix4::view(light->getPosition(), light->getRotation());
+		Matrix4 proj = Matrix4::projectionPerspective(light->getSpotAngle(), 1.0f, 0.05f, light->getAttenuationRadius());
+		RenderAPI::instance().convertProjectionMatrix(proj, proj);
+
+		Matrix4 viewProj = proj * view;
+
+		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, depthBias);
+		gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, depthRange);
+		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, viewProj);
+
+		mDepthNormalMat.bind(shadowParamsBuffer);
+
+		ConvexVolume localFrustum = ConvexVolume(proj);
+
+		const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
+		Matrix4 worldMatrix = view.transpose();
+
+		Vector<Plane> worldPlanes(frustumPlanes.size());
+		UINT32 j = 0;
+		for (auto& plane : frustumPlanes)
+		{
+			worldPlanes[j] = worldMatrix.multiplyAffine(plane);
+			j++;
+		}
+
+		ConvexVolume worldFrustum(worldPlanes);
+		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
+		{
+			if (!worldFrustum.intersects(sceneInfo.renderableCullInfos[i].bounds.getSphere()))
+				continue;
+
+			scene.prepareRenderable(i, frameInfo);
+
+			RendererObject* renderable = sceneInfo.renderables[i];
+			mDepthNormalMat.setPerObjectBuffer(renderable->perObjectParamBuffer);
+
+			for (auto& element : renderable->elements)
+			{
+				if (element.morphVertexDeclaration == nullptr)
+					gRendererUtility().draw(element.mesh, element.subMesh);
+				else
+					gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
+						element.morphVertexDeclaration);
+			}
+		}
+
+		// Restore viewport
+		rapi.setViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+	}
+
+	void ShadowRendering::renderRadialShadowMaps(const RendererLight& rendererLight, RendererScene& scene,
+		const FrameInfo& frameInfo)
+	{
+		Light* light = rendererLight.internal;
+
+		if (!light->getCastsShadow())
+			return;
+
+		const SceneInfo& sceneInfo = scene.getSceneInfo();
+		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> shadowCubeMatricesBuffer = gShadowCubeMatricesDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> shadowCubeMasksBuffer = gShadowCubeMasksDef.createBuffer();
+
+		// TODO - Calculate shadow map size depending on size on the screen
+		UINT32 mapSize = std::min(mShadowMapSize, MAX_ATLAS_SIZE);
+
+		UINT32 mapIdx = -1;
+		for (UINT32 i = 0; i < (UINT32)mShadowCubemaps.size(); i++)
+		{
+			ShadowCubemap& cubemap = mShadowCubemaps[i];
+
+			if (!cubemap.isUsed() && cubemap.getSize() == mapSize)
+			{
+				mapIdx = i;
+				cubemap.markAsUsed();
+
+				break;
+			}
+		}
+
+		if (mapIdx == -1)
+		{
+			mapIdx = (UINT32)mShadowCubemaps.size();
+			mShadowCubemaps.push_back(ShadowCubemap(mapSize));
+
+			ShadowCubemap& cubemap = mShadowCubemaps.back();
+			cubemap.markAsUsed();
+		}
+
+		ShadowCubemap& cubemap = mShadowCubemaps[mapIdx];
+
+		float nearDist = 0.05f;
+		float farDist = light->getAttenuationRadius();
+		float depthRange = farDist - nearDist;
+		float depthBias = 0.0f; // TODO - determine optimal depth bias
+
+		Matrix4 proj = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->getAttenuationRadius());
+		RenderAPI::instance().convertProjectionMatrix(proj, proj);
+
+		ConvexVolume localFrustum(proj);
+
+		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, depthBias);
+		gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, depthRange);
+		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, Matrix4::IDENTITY);
+
+		Matrix4 viewOffsetMat = Matrix4::translation(-light->getPosition());
+
+		ConvexVolume frustums[6];
+		Vector<Plane> boundingPlanes;
+		for (UINT32 i = 0; i < 6; i++)
+		{
+			// Calculate view matrix
+			Vector3 forward;
+			Vector3 up = Vector3::UNIT_Y;
+
+			switch (i)
+			{
+			case CF_PositiveX:
+				forward = Vector3::UNIT_X;
+				break;
+			case CF_NegativeX:
+				forward = -Vector3::UNIT_X;
+				break;
+			case CF_PositiveY:
+				forward = Vector3::UNIT_Y;
+				up = -Vector3::UNIT_Z;
+				break;
+			case CF_NegativeY:
+				forward = Vector3::UNIT_X;
+				up = Vector3::UNIT_Z;
+				break;
+			case CF_PositiveZ:
+				forward = Vector3::UNIT_Z;
+				break;
+			case CF_NegativeZ:
+				forward = -Vector3::UNIT_Z;
+				break;
+			}
+
+			Vector3 right = Vector3::cross(up, forward);
+			Matrix3 viewRotationMat = Matrix3(right, up, forward);
+
+			Matrix4 view = Matrix4(viewRotationMat) * viewOffsetMat;
+			gShadowCubeMatricesDef.gFaceVPMatrices.set(shadowCubeMatricesBuffer, proj * view, i);
+
+			// Calculate world frustum for culling
+			const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
+			Matrix4 worldMatrix = view.transpose();
+
+			Vector<Plane> worldPlanes(frustumPlanes.size());
+			UINT32 j = 0;
+			for (auto& plane : frustumPlanes)
+			{
+				worldPlanes[j] = worldMatrix.multiplyAffine(plane);
+				j++;
+			}
+
+			frustums[i] = ConvexVolume(worldPlanes);
+
+			// Register far plane of all frustums
+			boundingPlanes.push_back(worldPlanes.back());
+		}
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(cubemap.getTarget());
+		rapi.clearRenderTarget(FBT_DEPTH);
+
+		mDepthCubeMat.bind(shadowParamsBuffer, shadowCubeMatricesBuffer);
+
+		// First cull against a global volume
+		ConvexVolume boundingVolume(boundingPlanes);
+		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
+		{
+			const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.getSphere();
+			if (!boundingVolume.intersects(bounds))
+				continue;
+
+			scene.prepareRenderable(i, frameInfo);
+
+			for(UINT32 j = 0; j < 6; j++)
+			{
+				int mask = frustums->intersects(bounds) ? 1 : 0;
+				gShadowCubeMasksDef.gFaceMasks.set(shadowCubeMasksBuffer, mask, j);
+			}
+
+			RendererObject* renderable = sceneInfo.renderables[i];
+			mDepthCubeMat.setPerObjectBuffer(renderable->perObjectParamBuffer, shadowCubeMasksBuffer);
+
+			for (auto& element : renderable->elements)
+			{
+				if (element.morphVertexDeclaration == nullptr)
+					gRendererUtility().draw(element.mesh, element.subMesh);
+				else
+					gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
+						element.morphVertexDeclaration);
+			}
+		}
+	}
+
 	ConvexVolume ShadowRendering::getCSMSplitFrustum(const RendererView& view, const Vector3& lightDir, UINT32 cascade, 
 		UINT32 numCascades, Sphere& outBounds)
 	{

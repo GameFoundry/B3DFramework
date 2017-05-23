@@ -32,11 +32,20 @@ namespace bs
 	static StringID RPS_GBufferDepth = "GBufferDepth";
 	static StringID RPS_BoneMatrices = "BoneMatrices";
 
+	/** Contains information global to an entire frame. */
+	struct FrameInfo
+	{
+		FrameInfo(float timeDelta, const RendererAnimationData& animData)
+			:timeDelta(timeDelta), animData(animData)
+		{ }
+
+		float timeDelta;
+		const RendererAnimationData& animData;
+	};
+
 	/**
 	 * Default renderer for Banshee. Performs frustum culling, sorting and renders all scene objects while applying
 	 * lighting, shadowing, special effects and post-processing.
-	 *
-	 * @note	Sim thread unless otherwise noted.
 	 */
 	class RenderBeast : public Renderer
 	{
@@ -45,17 +54,6 @@ namespace bs
 		{
 			Vector<SPtr<GpuParamsSet>> params;
 			UINT32 matVersion;
-		};
-
-		/** Contains information global to an entire frame. */
-		struct FrameInfo
-		{
-			FrameInfo(float timeDelta, const RendererAnimationData& animData)
-				:timeDelta(timeDelta), animData(animData)
-			{ }
-
-			float timeDelta;
-			const RendererAnimationData& animData;
 		};
 
 	public:
@@ -201,9 +199,6 @@ namespace bs
 
 		// Scene data
 		SPtr<RendererScene> mScene;
-		Vector<bool> mRenderableVisibility; // Transient
-		Vector<bool> mRadialLightVisibility; // Transient
-		Vector<bool> mSpotLightVisibility; // Transient
 
 		//// Reflection probes
 		Vector<bool> mCubemapArrayUsedSlots;

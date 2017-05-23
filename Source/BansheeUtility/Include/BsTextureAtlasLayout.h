@@ -51,6 +51,12 @@ namespace bs
 		 */
 		bool addElement(UINT32 width, UINT32 height, UINT32& x, UINT32& y);
 
+		/** Removes all entries from the layout. */
+		void clear();
+
+		/** Checks have any elements been added to the layout. */
+		bool isEmpty() const { return mNodes.size() == 1; }
+
 		/** Returns the width of the atlas texture, in pixels. */
 		UINT32 getWidth() const { return mWidth; }
 
@@ -73,6 +79,8 @@ namespace bs
 		 */
 		bool addToNode(UINT32 nodeIdx, UINT32 width, UINT32 height, UINT32& x, UINT32& y, bool allowGrowth);
 
+		UINT32 mInitialWidth;
+		UINT32 mInitialHeight;
 		UINT32 mWidth;
 		UINT32 mHeight;
 		UINT32 mMaxWidth;

@@ -7,6 +7,7 @@
 #include "BsSamplerOverrides.h"
 #include "BsLightRendering.h"
 #include "BsRendererView.h"
+#include "BsLight.h"
 
 namespace bs 
 { 
@@ -14,6 +15,8 @@ namespace bs
 
 	namespace ct
 	{
+		struct FrameInfo;
+
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
@@ -39,6 +42,15 @@ namespace bs
 		// Reflection probes
 		Vector<RendererReflectionProbe> reflProbes;
 		Vector<Sphere> reflProbeWorldBounds;
+
+		// Buffers for various transient data that gets rebuilt every frame
+		//// Rebuilt every frame
+		mutable Vector<bool> renderableReady;
+
+		//// Rebuilt for every set of views
+		mutable Vector<bool> renderableVisibility;
+		mutable Vector<bool> radialLightVisibility;
+		mutable Vector<bool> spotLightVisibility;
 	};
 
 	/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
@@ -84,6 +96,9 @@ namespace bs
 		/** Removes a reflection probe from the scene. */
 		void unregisterReflectionProbe(ReflectionProbe* probe);
 
+		/** Updates the index which maps the light to a particular shadow map in ShadowRendering. */
+		void setLightShadowMapIdx(UINT32 lightIdx, LightType lightType, UINT32 shadowMapIndex);
+
 		/** Updates or replaces the filtered reflection texture of the probe at the specified index. */
 		void setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture);
 
@@ -103,6 +118,16 @@ namespace bs
 		 *						was detected or not.
 		 */
 		void refreshSamplerOverrides(bool force = false);
+
+		/**
+		 * Performs necessary steps to make a renderable ready for rendering. This must be called at least once every frame,
+		 * for every renderable that will be drawn. Multiple calls for the same renderable during a single frame will result
+		 * in a no-op.
+		 * 
+		 * @param[in]	idx			Index of the renderable to prepare.
+		 * @param[in]	frameInfo	Global information describing the current frame.
+		 */
+		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
 	private:
 		/** 
 		 * Updates (or adds) renderer specific data for the specified camera. Should be called whenever camera properties

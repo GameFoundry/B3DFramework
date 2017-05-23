@@ -577,7 +577,7 @@ namespace bs
 
 		if (mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
-			if (mMorphShapeVersion < animInfo->morphShapeInfo.version)
+			if (mMorphShapeVersion != animInfo->morphShapeInfo.version)
 			{
 				SPtr<MeshData> meshData = animInfo->morphShapeInfo.meshData;
 
