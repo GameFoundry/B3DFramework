@@ -37,7 +37,6 @@ namespace bs { namespace ct
 		void getParameters(LightData& output) const;
 		
 		Light* internal;
-		UINT32 shadowMapIndex;
 	};
 
 	/** Contains GPU buffers used by the renderer to manipulate lights. */

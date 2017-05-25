@@ -90,15 +90,25 @@ namespace bs { namespace ct
 			const SPtr<GpuParamBlockBuffer>& shadowCubeMasks);
 	};
 
-	/** Information about a single shadow map in a shadow map atlas. */
-	struct ShadowMapInfo
+	/** Information about a shadow cast from a single light. */
+	struct ShadowInfo
 	{
 		/** Updates normalized area coordinates based on the non-normalized ones and the provided atlas size. */
 		void updateNormArea(UINT32 atlasSize);
 
-		Rect2I area; // Area in pixels
-		Rect2 normArea; // Normalized area in [0, 1] range
-		UINT32 atlasIdx;
+		UINT32 lightIdx; /**< Index of the light casting this shadow. */
+		Rect2I area; /**< Area of the shadow map in pixels, relative to its source texture. */
+		Rect2 normArea; /**< Normalized shadow map area in [0, 1] range. */
+		UINT32 textureIdx; /**< Index of the texture the shadow map is stored in. */
+
+		/** View-projection matrix from the shadow casters point of view. */
+		Matrix4 shadowVPTransform; 
+
+		/** View-projection matrix for each cubemap face, used for omni-directional shadows. */
+		Matrix4 shadowVPTransforms[6]; 
+
+		/** Determines the fade amount of the shadow, for each view in the scene. */
+		SmallVector<float, 4> fadePerView;
 	};
 
 	/** 
@@ -198,9 +208,15 @@ namespace bs { namespace ct
 
 		/** Returns a render target that allows rendering into a specific cascade of the cascaded shadow map. */
 		SPtr<RenderTexture> getTarget(UINT32 cascadeIdx) const;
-	private:
 
+		/** Provides information about a shadow for the specified cascade. */
+		void setShadowInfo(UINT32 cascadeIdx, const ShadowInfo& info) { mShadowInfos[cascadeIdx] = info; }
+
+		/** @copydoc setShadowInfo */
+		const ShadowInfo& getShadowInfo(UINT32 cascadeIdx) const { return mShadowInfos[cascadeIdx]; }
+	private:
 		SPtr<RenderTexture> mTargets[NUM_CASCADE_SPLITS];
+		ShadowInfo mShadowInfos[NUM_CASCADE_SPLITS];
 	};
 
 	/** Provides functionality for rendering shadow maps. */
@@ -211,7 +227,14 @@ namespace bs { namespace ct
 		{
 			UINT32 lightIdx;
 			UINT32 mapSize;
-			float fadePercent;
+			SmallVector<float, 4> fadePercents;
+		};
+
+		/** Contains references to all shadows cast by a specific light. */
+		struct LightShadows
+		{
+			UINT32 startIdx;
+			UINT32 numShadows;
 		};
 	public:
 		ShadowRendering(UINT32 shadowMapSize);
@@ -223,28 +246,29 @@ namespace bs { namespace ct
 		void setShadowMapSize(UINT32 size);
 	private:
 		/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
-		void renderCascadedShadowMaps(const RendererView& view, const RendererLight& light, RendererScene& scene,
-			const FrameInfo& frameInfo);
+		void renderCascadedShadowMaps(UINT32 viewIdx, UINT32 lightIdx, RendererScene& scene, const FrameInfo& frameInfo);
 
 		/** Renders shadow maps for the provided spot light. */
-		void renderSpotShadowMaps(const RendererLight& light, UINT32 mapSize, RendererScene& scene,
+		void renderSpotShadowMap(const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene,
 			const FrameInfo& frameInfo);
 
 		/** Renders shadow maps for the provided radial light. */
-		void renderRadialShadowMaps(const RendererLight& light, UINT32 mapSize, RendererScene& scene,
+		void renderRadialShadowMap(const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene, 
 			const FrameInfo& frameInfo);
 
 		/** 
 		 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value
 		 * that can be used for fading out small shadow maps.
 		 * 
-		 * @param[in]	light		Light for which to calculate the shadow map properties. Cannot be a directional light.
-		 * @param[in]	scene		Scene information containing all the views the light can be seen through.
-		 * @param[out]	size		Optimal size of the shadow map, in pixels.
-		 * @param[out]	fadePercent	Value in range [0, 1] determining how much should the shadow map be faded out.
+		 * @param[in]	light			Light for which to calculate the shadow map properties. Cannot be a directional light.
+		 * @param[in]	scene			Scene information containing all the views the light can be seen through.
+		 * @param[out]	size			Optimal size of the shadow map, in pixels.
+		 * @param[out]	fadePercents	Value in range [0, 1] determining how much should the shadow map be faded out. Each
+		 *								entry corresponds to a single view.
+		 * @param[out]	maxFadePercent	Maximum value in the @p fadePercents array.
 		 */
 		void calcShadowMapProperties(const RendererLight& light, RendererScene& scene, UINT32& size, 
-			float& fadePercent) const;
+			SmallVector<float, 4>& fadePercents, float& maxFadePercent) const;
 
 		/**
 		 * Generates a frustum for a single cascade of a cascaded shadow map. Also outputs spherical bounds of the
@@ -272,6 +296,16 @@ namespace bs { namespace ct
 		 */
 		static float getCSMSplitDistance(const RendererView& view, UINT32 index, UINT32 numCascades);
 
+		/**
+		 * Calculates a bias that can be applied when rendering shadow maps, in order to reduce shadow artifacts.
+		 * 
+		 * @param[in]	light		Light to calculate the depth bias for.
+		 * @param[in]	depthRange	Range of depths (distance between near and far planes) covered by the shadow.
+		 * @param[in]	mapSize		Size of the shadow map, in pixels.
+		 * @return					Depth bias that can be passed to shadow depth rendering shader. 
+		 */
+		static float getDepthBias(const Light& light, float depthRange, UINT32 mapSize);
+
 		/** Size of a single shadow map atlas, in pixels. */
 		static const UINT32 MAX_ATLAS_SIZE;
 
@@ -297,8 +331,11 @@ namespace bs { namespace ct
 		Vector<ShadowCascadedMap> mCascadedShadowMaps;
 		Vector<ShadowCubemap> mShadowCubemaps;
 
-		Vector<ShadowMapInfo> mSpotLightShadowInfos;
-		Vector<ShadowMapInfo> mRadialLightShadowInfos;
+		Vector<ShadowInfo> mShadowInfos;
+
+		Vector<LightShadows> mSpotLightShadows;
+		Vector<LightShadows> mRadialLightShadows;
+		Vector<UINT32> mDirectionalLightShadows;
 
 		Vector<bool> mRenderableVisibility; // Transient
 		Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient

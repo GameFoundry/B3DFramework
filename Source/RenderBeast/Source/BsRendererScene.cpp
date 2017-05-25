@@ -26,37 +26,54 @@ namespace bs {	namespace ct
 			bs_delete(entry);
 
 		for (auto& entry : mInfo.views)
-			bs_delete(entry.second);
+			bs_delete(entry);
 
 		assert(mSamplerOverrides.empty());
 
 		bs_delete(mDefaultMaterial);
 	}
 
-	void RendererScene::registerCamera(const Camera* camera)
+	void RendererScene::registerCamera(Camera* camera)
 	{
-		RendererView* view = updateCameraData(camera);
+		RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
+
+		RendererView* view = bs_new<RendererView>(viewDesc);
+		view->setPostProcessSettings(camera->getPostProcessSettings());
 		view->updatePerViewBuffer();
+
+		mInfo.cameraToView[camera] = view;
+
+		UINT32 cameraId = (UINT32)mInfo.views.size();
+		mInfo.views.push_back(view);
+
+		camera->setRendererId(cameraId);
+
+		updateCameraRenderTargets(camera);
 	}
 
-	void RendererScene::updateCamera(const Camera* camera, UINT32 updateFlag)
+	void RendererScene::updateCamera(Camera* camera, UINT32 updateFlag)
 	{
-		RendererView* rendererCam;
+		UINT32 cameraId = camera->getRendererId();
+		RendererView* view = mInfo.views[cameraId];
+
 		if((updateFlag & (UINT32)CameraDirtyFlag::Everything) != 0)
 		{
-			rendererCam = updateCameraData(camera);
+			RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
+
+			view->setView(viewDesc);
+			view->setPostProcessSettings(camera->getPostProcessSettings());
+
+			updateCameraRenderTargets(camera);
 		}
 		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
 		{
-			rendererCam = mInfo.views[camera];
-
-			rendererCam->setPostProcessSettings(camera->getPostProcessSettings());
+			view->setPostProcessSettings(camera->getPostProcessSettings());
 		}
 		else // Transform
 		{
-			rendererCam = mInfo.views[camera];
+			view = mInfo.views[cameraId];
 
-			rendererCam->setTransform(
+			view->setTransform(
 				camera->getPosition(),
 				camera->getForward(),
 				camera->getViewMatrix(),
@@ -64,12 +81,34 @@ namespace bs {	namespace ct
 				camera->getWorldFrustum());
 		}
 
-		rendererCam->updatePerViewBuffer();
+		view->updatePerViewBuffer();
 	}
 
-	void RendererScene::unregisterCamera(const Camera* camera)
+	void RendererScene::unregisterCamera(Camera* camera)
 	{
-		updateCameraData(camera, true);
+		UINT32 cameraId = camera->getRendererId();
+
+		Camera* lastCamera = mInfo.views.back()->getSceneCamera();
+		UINT32 lastCameraId = lastCamera->getRendererId();
+		
+		if (cameraId != lastCameraId)
+		{
+			// Swap current last element with the one we want to erase
+			std::swap(mInfo.views[cameraId], mInfo.views[lastCameraId]);
+			lastCamera->setRendererId(cameraId);
+		}
+		
+		// Last element is the one we want to erase
+		mInfo.views.erase(mInfo.views.end() - 1);
+
+		auto iterFind = mInfo.cameraToView.find(camera);
+		if(iterFind != mInfo.cameraToView.end())
+		{
+			bs_delete(iterFind->second);
+			mInfo.cameraToView.erase(iterFind);
+		}
+
+		updateCameraRenderTargets(camera);
 	}
 
 	void RendererScene::registerLight(Light* light)
@@ -397,22 +436,6 @@ namespace bs {	namespace ct
 		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
 	}
 
-	void RendererScene::setLightShadowMapIdx(UINT32 lightIdx, LightType lightType, UINT32 shadowMapIndex)
-	{
-		switch (lightType)
-		{
-		case LightType::Directional:
-			mInfo.directionalLights[lightIdx].shadowMapIndex = shadowMapIndex;
-			break;
-		case LightType::Radial: 
-			mInfo.radialLights[lightIdx].shadowMapIndex = shadowMapIndex;
-			break;
-		case LightType::Spot: 
-			mInfo.spotLights[lightIdx].shadowMapIndex = shadowMapIndex;
-			break;
-		}
-	}
-
 	void RendererScene::setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture)
 	{
 		RendererReflectionProbe* probe = &mInfo.reflProbes[probeIdx];
@@ -434,105 +457,77 @@ namespace bs {	namespace ct
 		mOptions = options;
 
 		for (auto& entry : mInfo.views)
-		{
-			RendererView* rendererCam = entry.second;
-			rendererCam->setStateReductionMode(mOptions->stateReductionMode);
-		}
+			entry->setStateReductionMode(mOptions->stateReductionMode);
 	}
 
-	RendererView* RendererScene::updateCameraData(const Camera* camera, bool forceRemove)
+	RENDERER_VIEW_DESC RendererScene::createViewDesc(Camera* camera) const
 	{
-		RendererView* output;
+		SPtr<Viewport> viewport = camera->getViewport();
+		RENDERER_VIEW_DESC viewDesc;
 
-		SPtr<RenderTarget> renderTarget = camera->getViewport()->getTarget();
+		viewDesc.target.clearFlags = 0;
+		if (viewport->getRequiresColorClear())
+			viewDesc.target.clearFlags |= FBT_COLOR;
 
-		auto iterFind = mInfo.views.find(camera);
-		if(forceRemove)
+		if (viewport->getRequiresDepthClear())
+			viewDesc.target.clearFlags |= FBT_DEPTH;
+
+		if (viewport->getRequiresStencilClear())
+			viewDesc.target.clearFlags |= FBT_STENCIL;
+
+		viewDesc.target.clearColor = viewport->getClearColor();
+		viewDesc.target.clearDepthValue = viewport->getClearDepthValue();
+		viewDesc.target.clearStencilValue = viewport->getClearStencilValue();
+
+		viewDesc.target.target = viewport->getTarget();
+		viewDesc.target.nrmViewRect = viewport->getNormArea();
+		viewDesc.target.viewRect = Rect2I(
+			viewport->getX(),
+			viewport->getY(),
+			(UINT32)viewport->getWidth(),
+			(UINT32)viewport->getHeight());
+
+		if (viewDesc.target.target != nullptr)
 		{
-			if(iterFind != mInfo.views.end())
-			{
-				bs_delete(iterFind->second);
-				mInfo.views.erase(iterFind);
-			}
-
-			renderTarget = nullptr;
-			output = nullptr;
+			viewDesc.target.targetWidth = viewDesc.target.target->getProperties().getWidth();
+			viewDesc.target.targetHeight = viewDesc.target.target->getProperties().getHeight();
 		}
 		else
 		{
-			SPtr<Viewport> viewport = camera->getViewport();
-			RENDERER_VIEW_DESC viewDesc;
-
-			viewDesc.target.clearFlags = 0;
-			if (viewport->getRequiresColorClear())
-				viewDesc.target.clearFlags |= FBT_COLOR;
-
-			if (viewport->getRequiresDepthClear())
-				viewDesc.target.clearFlags |= FBT_DEPTH;
-
-			if (viewport->getRequiresStencilClear())
-				viewDesc.target.clearFlags |= FBT_STENCIL;
-
-			viewDesc.target.clearColor = viewport->getClearColor();
-			viewDesc.target.clearDepthValue = viewport->getClearDepthValue();
-			viewDesc.target.clearStencilValue = viewport->getClearStencilValue();
-
-			viewDesc.target.target = viewport->getTarget();
-			viewDesc.target.nrmViewRect = viewport->getNormArea();
-			viewDesc.target.viewRect = Rect2I(
-				viewport->getX(),
-				viewport->getY(),
-				(UINT32)viewport->getWidth(),
-				(UINT32)viewport->getHeight());
-
-			if (viewDesc.target.target != nullptr)
-			{
-				viewDesc.target.targetWidth = viewDesc.target.target->getProperties().getWidth();
-				viewDesc.target.targetHeight = viewDesc.target.target->getProperties().getHeight();
-			}
-			else
-			{
-				viewDesc.target.targetWidth = 0;
-				viewDesc.target.targetHeight = 0;
-			}
-
-			viewDesc.target.numSamples = camera->getMSAACount();
-
-			viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
-			viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
-			viewDesc.noLighting = camera->getFlags().isSet(CameraFlag::NoLighting);
-			viewDesc.triggerCallbacks = true;
-			viewDesc.runPostProcessing = true;
-			viewDesc.renderingReflections = false;
-
-			viewDesc.cullFrustum = camera->getWorldFrustum();
-			viewDesc.visibleLayers = camera->getLayers();
-			viewDesc.nearPlane = camera->getNearClipDistance();
-			viewDesc.farPlane = camera->getFarClipDistance();
-			viewDesc.flipView = false;
-
-			viewDesc.viewOrigin = camera->getPosition();
-			viewDesc.viewDirection = camera->getForward();
-			viewDesc.projTransform = camera->getProjectionMatrixRS();
-			viewDesc.viewTransform = camera->getViewMatrix();
-			viewDesc.projType = camera->getProjectionType();
-
-			viewDesc.stateReduction = mOptions->stateReductionMode;
-			viewDesc.sceneCamera = camera;
-
-			if (iterFind != mInfo.views.end())
-			{
-				output = iterFind->second;
-				output->setView(viewDesc);
-			}
-			else
-			{
-				output = bs_new<RendererView>(viewDesc);
-				mInfo.views[camera] = output;
-			}
-
-			output->setPostProcessSettings(camera->getPostProcessSettings());
+			viewDesc.target.targetWidth = 0;
+			viewDesc.target.targetHeight = 0;
 		}
+
+		viewDesc.target.numSamples = camera->getMSAACount();
+
+		viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
+		viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
+		viewDesc.noLighting = camera->getFlags().isSet(CameraFlag::NoLighting);
+		viewDesc.triggerCallbacks = true;
+		viewDesc.runPostProcessing = true;
+		viewDesc.renderingReflections = false;
+
+		viewDesc.cullFrustum = camera->getWorldFrustum();
+		viewDesc.visibleLayers = camera->getLayers();
+		viewDesc.nearPlane = camera->getNearClipDistance();
+		viewDesc.farPlane = camera->getFarClipDistance();
+		viewDesc.flipView = false;
+
+		viewDesc.viewOrigin = camera->getPosition();
+		viewDesc.viewDirection = camera->getForward();
+		viewDesc.projTransform = camera->getProjectionMatrixRS();
+		viewDesc.viewTransform = camera->getViewMatrix();
+		viewDesc.projType = camera->getProjectionType();
+
+		viewDesc.stateReduction = mOptions->stateReductionMode;
+		viewDesc.sceneCamera = camera;
+
+		return viewDesc;
+	}
+
+	void RendererScene::updateCameraRenderTargets(Camera* camera)
+	{
+		SPtr<RenderTarget> renderTarget = camera->getViewport()->getTarget();
 
 		// Remove from render target list
 		int rtChanged = 0; // 0 - No RT, 1 - RT found, 2 - RT changed
@@ -590,13 +585,11 @@ namespace bs {	namespace ct
 
 			for (auto& camerasPerTarget : mInfo.renderTargets)
 			{
-				Vector<const Camera*>& cameras = camerasPerTarget.cameras;
+				Vector<Camera*>& cameras = camerasPerTarget.cameras;
 
 				std::sort(begin(cameras), end(cameras), cameraComparer);
 			}
 		}
-
-		return output;
 	}
 
 	void RendererScene::refreshSamplerOverrides(bool force)

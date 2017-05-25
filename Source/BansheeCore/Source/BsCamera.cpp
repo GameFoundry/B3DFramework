@@ -833,11 +833,13 @@ namespace bs
 	}
 
 	Camera::Camera(SPtr<RenderTarget> target, float left, float top, float width, float height)
+		: mRendererId(0)
 	{
 		mViewport = Viewport::create(target, left, top, width, height);
 	}
 
 	Camera::Camera(const SPtr<Viewport>& viewport)
+		: mRendererId(0)
 	{
 		mViewport = viewport;
 	}

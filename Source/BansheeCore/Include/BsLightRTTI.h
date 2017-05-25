@@ -28,6 +28,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mSpotFalloffAngle, 8)
 			BS_RTTI_MEMBER_PLAIN(mAutoAttenuation, 9)
 			BS_RTTI_MEMBER_PLAIN(mSourceRadius, 10)
+			BS_RTTI_MEMBER_PLAIN(mShadowBias, 11)
 		BS_END_RTTI_MEMBERS
 	public:
 		LightRTTI()

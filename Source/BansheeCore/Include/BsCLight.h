@@ -35,8 +35,14 @@ namespace bs
 	    /** @copydoc Light::getCastsShadow */
 		bool getCastsShadow() const { return mInternal->getCastsShadow(); }
 
-	    /** @copydoc Light::setCastsShadow  */
+	    /** @copydoc Light::setCastsShadow */
 		void setCastsShadow(bool castsShadow) { mInternal->setCastsShadow(castsShadow); }
+
+		/** @copydoc Light::setShadowBias */
+		void setShadowBias(float bias) { mInternal->setShadowBias(bias); }
+
+		/** @copydoc Light::setShadowBias() */
+		float getShadowBias() const { return mInternal->getShadowBias(); }
 
 	    /** @copydoc Light::getColor */
 		Color getColor() const { return mInternal->getColor(); }

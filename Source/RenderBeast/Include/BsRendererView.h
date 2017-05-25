@@ -110,7 +110,7 @@ namespace bs { namespace ct
 		RENDERER_VIEW_TARGET_DESC target;
 
 		StateReduction stateReduction;
-		const Camera* sceneCamera;
+		Camera* sceneCamera;
 	};
 
 	/** Set of properties used describing a specific view that the renderer can render. */
@@ -153,7 +153,7 @@ namespace bs { namespace ct
 	struct RendererRenderTarget
 	{
 		SPtr<RenderTarget> target;
-		Vector<const Camera*> cameras;
+		Vector<Camera*> cameras;
 	};
 
 	/** Contains information about a single view into the scene, used by the renderer. */
@@ -180,7 +180,7 @@ namespace bs { namespace ct
 		const RendererViewProperties& getProperties() const { return mProperties; }
 
 		/** Returns the scene camera this object is based of. This can be null for manually constructed renderer cameras. */
-		const Camera* getSceneCamera() const { return mCamera; }
+		Camera* getSceneCamera() const { return mCamera; }
 
 		/** 
 		 * Prepares render targets for rendering. When done call endRendering().
@@ -275,7 +275,7 @@ namespace bs { namespace ct
 
 		RendererViewProperties mProperties;
 		RENDERER_VIEW_TARGET_DESC mTargetDesc;
-		const Camera* mCamera;
+		Camera* mCamera;
 
 		SPtr<RenderQueue> mOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;

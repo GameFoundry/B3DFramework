@@ -583,6 +583,12 @@ namespace bs
 		/**	Returns the viewport used by the camera. */	
 		SPtr<Viewport> getViewport() const { return mViewport; }
 
+		/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
+		void setRendererId(UINT32 id) { mRendererId = id; }
+
+		/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
+		UINT32 getRendererId() const { return mRendererId; }
+
 	protected:
 		friend class bs::Camera;
 
@@ -600,6 +606,7 @@ namespace bs
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
 
+		UINT32 mRendererId;
 		SPtr<Viewport> mViewport;
 	};
 	}

@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	TiledLightingParamDef gTiledLightingParamDef;
 
 	RendererLight::RendererLight(Light* light)
-		:internal(light), shadowMapIndex(-1)
+		:internal(light)
 	{ }
 
 	void RendererLight::getParameters(LightData& output) const

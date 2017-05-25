@@ -160,17 +160,17 @@ namespace bs { namespace ct
 		mScene->unregisterLight(light);
 	}
 
-	void RenderBeast::notifyCameraAdded(const Camera* camera)
+	void RenderBeast::notifyCameraAdded(Camera* camera)
 	{
 		mScene->registerCamera(camera);
 	}
 
-	void RenderBeast::notifyCameraUpdated(const Camera* camera, UINT32 updateFlag)
+	void RenderBeast::notifyCameraUpdated(Camera* camera, UINT32 updateFlag)
 	{
 		mScene->updateCamera(camera, updateFlag);
 	}
 
-	void RenderBeast::notifyCameraRemoved(const Camera* camera)
+	void RenderBeast::notifyCameraRemoved(Camera* camera)
 	{
 		mScene->unregisterCamera(camera);
 	}
@@ -342,12 +342,12 @@ namespace bs { namespace ct
 		for (auto& rtInfo : sceneInfo.renderTargets)
 		{
 			SPtr<RenderTarget> target = rtInfo.target;
-			const Vector<const Camera*>& cameras = rtInfo.cameras;
+			const Vector<Camera*>& cameras = rtInfo.cameras;
 
 			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
-				RendererView* viewInfo = sceneInfo.views.at(cameras[i]);
+				RendererView* viewInfo = sceneInfo.cameraToView.at(cameras[i]);
 				views.push_back(viewInfo);
 			}
 		}

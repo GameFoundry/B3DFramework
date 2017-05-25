@@ -83,13 +83,13 @@ namespace bs
 
 	private:
 		/** @copydoc Renderer::notifyCameraAdded */
-		void notifyCameraAdded(const Camera* camera) override;
+		void notifyCameraAdded(Camera* camera) override;
 
 		/** @copydoc Renderer::notifyCameraUpdated */
-		void notifyCameraUpdated(const Camera* camera, UINT32 updateFlag) override;
+		void notifyCameraUpdated(Camera* camera, UINT32 updateFlag) override;
 
 		/** @copydocRenderer::notifyCameraRemoved */
-		void notifyCameraRemoved(const Camera* camera) override;
+		void notifyCameraRemoved(Camera* camera) override;
 
 		/** @copydoc Renderer::notifyLightAdded */
 		void notifyLightAdded(Light* light) override;

@@ -26,7 +26,8 @@ namespace bs
 	{
 		// Cameras and render targets
 		Vector<RendererRenderTarget> renderTargets;
-		UnorderedMap<const Camera*, RendererView*> views;
+		Vector<RendererView*> views;
+		UnorderedMap<const Camera*, RendererView*> cameraToView;
 		
 		// Renderables
 		Vector<RendererObject*> renderables;
@@ -61,13 +62,13 @@ namespace bs
 		~RendererScene();
 
 		/** Registers a new camera in the scene. */
-		void registerCamera(const Camera* camera);
+		void registerCamera(Camera* camera);
 
 		/** Updates information about a previously registered camera. */
-		void updateCamera(const Camera* camera, UINT32 updateFlag);
+		void updateCamera(Camera* camera, UINT32 updateFlag);
 
 		/** Removes a camera from the scene. */
-		void unregisterCamera(const Camera* camera);
+		void unregisterCamera(Camera* camera);
 
 		/** Registers a new light in the scene. */
 		void registerLight(Light* light);
@@ -95,9 +96,6 @@ namespace bs
 
 		/** Removes a reflection probe from the scene. */
 		void unregisterReflectionProbe(ReflectionProbe* probe);
-
-		/** Updates the index which maps the light to a particular shadow map in ShadowRendering. */
-		void setLightShadowMapIdx(UINT32 lightIdx, LightType lightType, UINT32 shadowMapIndex);
 
 		/** Updates or replaces the filtered reflection texture of the probe at the specified index. */
 		void setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture);
@@ -129,15 +127,14 @@ namespace bs
 		 */
 		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
 	private:
+		/** Creates a renderer view descriptor for the particular camera. */
+		RENDERER_VIEW_DESC createViewDesc(Camera* camera) const;
+
 		/** 
-		 * Updates (or adds) renderer specific data for the specified camera. Should be called whenever camera properties
-		 * change. 
-		 *
-		 * @param[in]	camera		Camera whose data to update.
-		 * @param[in]	forceRemove	If true, the camera data will be removed instead of updated.
-		 * @return					Renderer view object that represents the camera. Null if camera was removed.
+		 * Find the render target the camera belongs to and adds it to the relevant list. If the camera was previously
+		 * registered with some other render target it will be removed from it and added to the new target.
 		 */
-		RendererView* updateCameraData(const Camera* camera, bool forceRemove = false);
+		void updateCameraRenderTargets(Camera* camera);
 
 		SceneInfo mInfo;
 		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
@@ -145,7 +142,6 @@ namespace bs
 		DefaultMaterial* mDefaultMaterial = nullptr;
 		SPtr<RenderBeastOptions> mOptions;
 	};
-
 
 	/** @} */
 }}

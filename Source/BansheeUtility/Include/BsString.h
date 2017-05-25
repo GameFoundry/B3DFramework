@@ -33,6 +33,10 @@ namespace bs
 	/** Wide string stream used for primarily for constructing strings consisting of ASCII text. */
 	typedef BasicStringStream<char> StringStream;
 
+	/** Equivalent to String, except it avoids any dynamic allocations until the number of elements exceeds @p Count. */
+	template <int Count> 
+	using SmallString = std::basic_string <char, std::char_traits<char>, StdAlloc<char>>; // TODO: Currently equivalent to String, need to implement the allocator
+
 	/** @} */
 }
 

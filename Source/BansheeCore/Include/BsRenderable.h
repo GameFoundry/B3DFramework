@@ -277,10 +277,10 @@ namespace bs
 		/**	Gets world bounds of the mesh rendered by this object. */
 		Bounds getBounds() const;
 
-		/**	Sets an ID that can be used for uniquely identifying this handler by the renderer. */
+		/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
 		void setRendererId(UINT32 id) { mRendererId = id; }
 
-		/**	Retrieves an ID that can be used for uniquely identifying this handler by the renderer. */
+		/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
 		UINT32 getRendererId() const { return mRendererId; }
 
 		/** Returns the type of animation influencing this renderable, if any. */

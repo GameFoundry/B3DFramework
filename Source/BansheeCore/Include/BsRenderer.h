@@ -84,7 +84,7 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		virtual void notifyCameraAdded(const Camera* camera) { }
+		virtual void notifyCameraAdded(Camera* camera) { }
 
 		/**
 		 * Called whenever a camera's position or rotation is updated.
@@ -94,14 +94,14 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		virtual void notifyCameraUpdated(const Camera* camera, UINT32 updateFlag) { }
+		virtual void notifyCameraUpdated(Camera* camera, UINT32 updateFlag) { }
 
 		/**
 		 * Called whenever a camera is destroyed.
 		 *
 		 * @note	Core thread.
 		 */
-		virtual void notifyCameraRemoved(const Camera* camera) { }
+		virtual void notifyCameraRemoved(Camera* camera) { }
 
 		/**
 		 * Called whenever a new renderable is created.

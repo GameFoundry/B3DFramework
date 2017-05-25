@@ -249,7 +249,7 @@ namespace bs
 	MemoryDataStream::MemoryDataStream(size_t size)
 		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(true)
 	{
-		mData = mPos = (UINT8*)bs_alloc(size);
+		mData = mPos = (UINT8*)bs_alloc((UINT32)size);
 		mSize = size;
 		mEnd = mData + mSize;
 
