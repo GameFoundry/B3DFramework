@@ -131,6 +131,10 @@
         {
             "Path": "ShadowDepthBase.bslinc",
             "UUID": "ff6f2a9d-6766-4f80-984b-c159a5fd3c5e"
+        },
+        {
+            "Path": "ShadowFiltering.bslinc",
+            "UUID": "50cfc08b-4869-4373-9b7e-22de12c26b20"
         }
     ],
     "Shaders": [
