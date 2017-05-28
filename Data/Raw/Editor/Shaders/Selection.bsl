@@ -19,19 +19,19 @@ technique Selection2
 {
 	mixin SelectionSkinned;
 
-	Tags = { "Skinned" };
+	tags = { "Skinned" };
 };
 
 technique Selection3
 {
 	mixin SelectionMorph;
 
-	Tags = { "Morph" };
+	tags = { "Morph" };
 };
 
 technique Selection4
 {
 	mixin SelectionSkinnedMorph;
 
-	Tags = { "SkinnedMorph" };
+	tags = { "SkinnedMorph" };
 };

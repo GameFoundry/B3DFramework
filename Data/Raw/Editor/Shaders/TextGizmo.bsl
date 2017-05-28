@@ -4,7 +4,7 @@ technique TextGizmo
 	{
 		target 
 		{
-			enabled true;
+			enabled = true;
 			color = { srcA, srcIA, add };
 		};
 	};

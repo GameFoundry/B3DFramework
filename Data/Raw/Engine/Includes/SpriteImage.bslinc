@@ -8,7 +8,6 @@ mixin SpriteImage
 
 	code
 	{
-		[internal]
 		cbuffer GUIParams
 		{
 			float4x4 gWorldTransform;

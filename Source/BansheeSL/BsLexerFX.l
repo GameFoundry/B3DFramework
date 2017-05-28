@@ -228,7 +228,10 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 }
 <CONDITIONAL_IFN>.				{ return yytext[0]; }
 
-#else							{ BEGIN(CONDITIONAL_IGNORE); }
+#else							{ 
+	if(!switchConditional(yyextra))
+		BEGIN(CONDITIONAL_IGNORE); 
+}
 #elif							{ BEGIN(CONDITIONAL_IGNORE); }
 
 #endif							{ popConditional(yyextra); }

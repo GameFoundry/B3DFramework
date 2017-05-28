@@ -12,7 +12,7 @@
 namespace bs
 {
 	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material)
-		:mId(id), mMaterialStored(false)
+		:mId(id), mMaterialStored(false), mParamBufferIdx(-1)
 	{
 		mMaterial = material->getCore();
 		mMaterialStored.store(true, std::memory_order_release);
@@ -40,14 +40,7 @@ namespace bs
 			mSamplerParam = mMaterial->getParamSamplerState("gMainTexSamp");
 		}
 
-		static StringID GUIParamsSemantic = "GUIParams";
-		const Map<String, SHADER_PARAM_BLOCK_DESC>& paramBlockDescs = shader->getParamBlocks();
-
-		for (auto& paramBlockDesc : paramBlockDescs)
-		{
-			if (paramBlockDesc.second.rendererSemantic == GUIParamsSemantic)
-				mParamBufferIdx = mParams->getParamBlockBufferIndex(paramBlockDesc.second.name);
-		}
+		mParamBufferIdx = mParams->getParamBlockBufferIndex("GUIParams");
 
 		if(mParamBufferIdx == -1)
 			LOGERR("Sprite material shader missing \"GUIParams\" block.");

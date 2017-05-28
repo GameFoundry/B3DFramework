@@ -36,15 +36,15 @@ mixin SelectionBase
 mixin 
 #ifdef USE_BLEND_SHAPES
 	#ifdef USE_SKELETON
-	 : SelectionSkinnedMorph
+		SelectionSkinnedMorph
 	#else
-	 : SelectionMorph
+		SelectionMorph
 	#endif
 #else
 	#ifdef USE_SKELETON
-	 : SelectionSkinned
+		SelectionSkinned
 	#else
-	 : Selection
+		Selection
 	#endif
 #endif
 {

@@ -13,7 +13,7 @@ technique LineHandle
 	stencil
 	{
 		enabled = true;
-		front = { keep, keep, inc, pass };
+		front = { keep, keep, inc, always };
 	};
 	
 	raster

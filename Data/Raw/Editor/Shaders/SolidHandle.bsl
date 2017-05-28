@@ -3,7 +3,7 @@
 options
 {
 	priority = 10;
-}
+};
 
 technique SolidGizmo
 {
@@ -18,7 +18,7 @@ technique SolidGizmo
 	stencil
 	{
 		enabled = true;
-		front = { keep, keep, inc, pass };
+		front = { keep, keep, inc, always };
 	};
 	
 	blend

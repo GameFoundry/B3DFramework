@@ -38,7 +38,7 @@ technique Resolve
 			int gNumSamples;
 		};
 		
-		[internal] Texture2DMS<float4> gSource;
+		Texture2DMS<float4> gSource;
 		
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
@@ -53,7 +53,7 @@ technique Resolve
 		
 		#else
 		
-		[internal] Texture2D<float4> gSource;
+		Texture2D<float4> gSource;
 	
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
