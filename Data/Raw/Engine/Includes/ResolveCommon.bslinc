@@ -32,7 +32,6 @@ technique Resolve
 
 		#ifdef ENABLE_MSAA
 		
-		[internal]
 		cbuffer FragParams
 		{
 			int gNumSamples;

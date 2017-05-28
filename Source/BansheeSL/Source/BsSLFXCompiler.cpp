@@ -486,20 +486,37 @@ namespace bs
 			}
 			case Xsc::Reflection::UniformType::Variable: 
 			{
-				GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
-				if((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 && 
-				   (entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4))
+				bool isBlockInternal = false;
+				if(entry.uniformBlock != -1)
 				{
-					type = GPDT_COLOR;
+					std::string blockName = reflData.constantBuffers[entry.uniformBlock].ident;
+					for (auto& uniform : reflData.uniforms)
+					{
+						if (uniform.type == Xsc::Reflection::UniformType::UniformBuffer && uniform.ident == blockName)
+						{
+							isBlockInternal = (uniform.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
+							break;
+						}
+					}
 				}
 
-				if (entry.defaultValue == -1)
-					desc.addParameter(ident, ident, type);
-				else
+				if (!isBlockInternal)
 				{
-					const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
+					GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
+					if ((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 &&
+						(entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4))
+					{
+						type = GPDT_COLOR;
+					}
 
-					desc.addParameter(ident, ident, type, StringID::NONE, 1, 0, (UINT8*)defVal.matrix);
+					if (entry.defaultValue == -1)
+						desc.addParameter(ident, ident, type);
+					else
+					{
+						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
+
+						desc.addParameter(ident, ident, type, StringID::NONE, 1, 0, (UINT8*)defVal.matrix);
+					}
 				}
 			}
 				break;
