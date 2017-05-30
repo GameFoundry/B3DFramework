@@ -331,8 +331,8 @@ namespace bs
 	}
 
 	Matrix4 Matrix4::projectionPerspective(const Degree& horzFOV, float aspect, float near, float far)
-    {
-	    // Note: Duplicate code in Camera, bring it all here eventually
+	{
+		// Note: Duplicate code in Camera, bring it all here eventually
 		static constexpr float INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
 		Radian thetaX(horzFOV * 0.5f);

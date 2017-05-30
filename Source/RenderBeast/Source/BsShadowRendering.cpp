@@ -85,6 +85,153 @@ namespace bs { namespace ct
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
+	ShadowProjectParamsDef gShadowProjectParamsDef;
+
+	template<int ShadowQuality, bool Directional, bool MSAA>
+	ShadowProjectMat<ShadowQuality, Directional, MSAA>::ShadowProjectMat()
+		: mGBufferParams(mMaterial, mParamsSet)
+	{
+		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+
+		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
+		params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_POINT;
+		desc.magFilter = FO_POINT;
+		desc.mipFilter = FO_POINT;
+		desc.addressMode.u = TAM_CLAMP;
+		desc.addressMode.v = TAM_CLAMP;
+		desc.addressMode.w = TAM_CLAMP;
+
+		mSamplerState = SamplerState::create(desc);
+	}
+
+	template<int ShadowQuality, bool Directional, bool MSAA>
+	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::_initDefines(ShaderDefines& defines)
+	{
+		switch(ShadowQuality)
+		{
+		default:
+		case 1:
+			defines.set("SHADOW_QUALITY", 1);
+			break;
+		case 2:
+			defines.set("SHADOW_QUALITY", 2);
+			break;
+		case 3:
+			defines.set("SHADOW_QUALITY", 3);
+			break;
+		case 4:
+			defines.set("SHADOW_QUALITY", 4);
+			break;
+		}
+
+		defines.set("FADE_PLANE", Directional ? 1 : 0);
+		defines.set("NEEDS_TRANSFORM", Directional ? 0 : 1);
+
+		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
+	}
+
+	template<int ShadowQuality, bool Directional, bool MSAA>
+	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::bind(const SPtr<Texture>& shadowMap, 
+		const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& perCameraParams)
+	{
+		mShadowMapParam.set(shadowMap);
+		mShadowSamplerParam.set(mSamplerState);
+
+		mParamsSet->setParamBlockBuffer("Params", shadowParams);
+		mParamsSet->setParamBlockBuffer("PerCamera", perCameraParams);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+#define TEMPL_INSTANTIATE(QUALITY)								\
+	template class ShadowProjectMat<QUALITY, true, true>;		\
+	template class ShadowProjectMat<QUALITY, true, false>;		\
+	template class ShadowProjectMat<QUALITY, false, true>;		\
+	template class ShadowProjectMat<QUALITY, false, false>;
+	
+TEMPL_INSTANTIATE(0)
+TEMPL_INSTANTIATE(1)
+TEMPL_INSTANTIATE(2)
+TEMPL_INSTANTIATE(3)
+
+#undef TEMPL_INSTANTIATE
+
+	ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
+
+	template<int ShadowQuality, bool MSAA>
+	ShadowProjectOmniMat<ShadowQuality, MSAA>::ShadowProjectOmniMat()
+		: mGBufferParams(mMaterial, mParamsSet)
+	{
+		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+
+		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
+		params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_LINEAR;
+		desc.magFilter = FO_LINEAR;
+		desc.mipFilter = FO_POINT;
+		desc.addressMode.u = TAM_CLAMP;
+		desc.addressMode.v = TAM_CLAMP;
+		desc.addressMode.w = TAM_CLAMP;
+		desc.comparisonFunc = CMPF_GREATER_EQUAL;
+
+		mSamplerState = SamplerState::create(desc);
+	}
+
+	template<int ShadowQuality, bool MSAA>
+	void ShadowProjectOmniMat<ShadowQuality, MSAA>::_initDefines(ShaderDefines& defines)
+	{
+		switch(ShadowQuality)
+		{
+		default:
+		case 1:
+			defines.set("SHADOW_QUALITY", 1);
+			break;
+		case 2:
+			defines.set("SHADOW_QUALITY", 2);
+			break;
+		case 3:
+			defines.set("SHADOW_QUALITY", 3);
+			break;
+		case 4:
+			defines.set("SHADOW_QUALITY", 4);
+			break;
+		}
+
+		defines.set("NEEDS_TRANSFORM", 1);
+		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
+	}
+
+	template<int ShadowQuality, bool MSAA>
+	void ShadowProjectOmniMat<ShadowQuality, MSAA>::bind(const SPtr<Texture>& shadowMap, 
+		const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& perCameraParams)
+	{
+		mShadowMapParam.set(shadowMap);
+		mShadowSamplerParam.set(mSamplerState);
+
+		mParamsSet->setParamBlockBuffer("Params", shadowParams);
+		mParamsSet->setParamBlockBuffer("PerCamera", perCameraParams);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+#define TEMPL_INSTANTIATE(QUALITY)								\
+	template class ShadowProjectOmniMat<QUALITY, true>;			\
+	template class ShadowProjectOmniMat<QUALITY, false>;		\
+	
+TEMPL_INSTANTIATE(0)
+TEMPL_INSTANTIATE(1)
+TEMPL_INSTANTIATE(2)
+TEMPL_INSTANTIATE(3)
+
+#undef TEMPL_INSTANTIATE
+
 	void ShadowInfo::updateNormArea(UINT32 atlasSize)
 	{
 		normArea.x = area.x / (float)atlasSize;

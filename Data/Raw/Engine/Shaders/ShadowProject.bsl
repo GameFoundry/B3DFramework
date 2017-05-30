@@ -1,4 +1,9 @@
-Technique : base("ShadowFiltering") =
+#include "$ENGINE$/GBufferInput.bslinc"
+#include "$ENGINE$/ShadowProjectionCommon.bslinc"
+
+Technique
+ : inherits("GBufferInput")
+ : inherits("ShadowProjectionCommon") = 
 {
 	Pass =
 	{
@@ -9,9 +14,16 @@ Technique : base("ShadowFiltering") =
 		
 			cbuffer Params
 			{
+				// Transform a point in mixed space (xy - clip space, z - view space) to a point
+				// in shadow space
+				float4x4 gMixedToShadowSpace;
 				float2 gShadowMapSize;
 				float2 gShadowMapSizeInv;
-				float gSoftTransitionScale;				
+				float gSoftTransitionScale;
+				float gFadePercent;
+				
+				float gFadePlaneDepth;
+				float gInvFadePlaneRange;
 			};
 			
 			// Converts a set of shadow depths into occlusion values, where 1 means scene object is occluded and 0
@@ -19,13 +31,14 @@ Technique : base("ShadowFiltering") =
 			float4 getOcclusion(float4 shadowDepth, float sceneDepth)
 			{
 				// Offset the shadow a bit to reduce shadow acne and use scale for soft transitions.
-				return saturate((depthSamples - sceneDepth) * gSoftTransitionScale + 1);
+				// Visualization (Mathematica): Plot[1.0 - Clip[(500 - x)*0.5 + 1, {0, 1}], {x, 480, 520}]
+				return 1.0f - saturate((shadowDepth - sceneDepth) * gSoftTransitionScale + 1);
 			}
 			
 			// Takes UV coordinates as input and returns a location to sample from, and a fraction
 			// that can be used for bilinear interpolation between the samples. Returned sample
 			// center is always located on a border between texels, in UV space.
-			void getFilteringInfo(float2 uv, out float2 fraction)
+			float2 getFilteringInfo(float2 uv, out float2 fraction)
 			{
 				// UV to texel position
 				float2 texelXY = uv * gShadowMapSize;
@@ -52,7 +65,7 @@ Technique : base("ShadowFiltering") =
 				float2 sampleCenter = getFilteringInfo(uv, fraction);
 							
 				// Gather four samples. Samples are returned in counter-clockwise order, starting with lower left
-				float4 depthSamples = gShadowTex.GatherRed(gShadowSampler, samplerCenter);
+				float4 depthSamples = gShadowTex.GatherRed(gShadowSampler, sampleCenter);
 				
 				// Convert samples to occlusion
 				float4 occlusion = getOcclusion(depthSamples, sceneDepth);
@@ -69,10 +82,10 @@ Technique : base("ShadowFiltering") =
 								
 				// Gather 16 samples in four 2x2 gathers. Samples are returned in counter-clockwise order, starting with lower left.
 				// Gathers are performed in clockwise order, starting with top left block.
-				float4 topLeftSamples = gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(-1, -1));
-				float4 topRightSamples = gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(1, -1));
-				float4 botLeftSamples = gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(-1, 1));
-				float4 botRightSamples = gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(1, 1));
+				float4 topLeftSamples = gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-1, -1));
+				float4 topRightSamples = gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(1, -1));
+				float4 botLeftSamples = gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-1, 1));
+				float4 botRightSamples = gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(1, 1));
 				
 				// Convert samples to occlusion
 				float4 topLeftOcclusion = getOcclusion(topLeftSamples, sceneDepth);
@@ -145,9 +158,9 @@ Technique : base("ShadowFiltering") =
 				{
 					int y = -2 + i * 2;
 				
-					float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(-2, y)), sceneDepth);
-					float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(0, y)), sceneDepth);
-					float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, samplerCenter, int2(2, y)), sceneDepth);
+					float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-2, y)), sceneDepth);
+					float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(0, y)), sceneDepth);
+					float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(2, y)), sceneDepth);
 					
 					rows[i] = accumulateRows6x2(fraction.x, left, middle, right);
 				}
@@ -160,6 +173,49 @@ Technique : base("ShadowFiltering") =
 								
 				// Calc average occlusion using 5x5 area and return
 				return occlusionAccumulator * (1.0f / 25.0f);				
+			}
+
+			float4 main(VStoFS input, uint sampleIdx : SV_SampleIndex) : SV_Target0
+			{
+				// Get depth & calculate world position
+				#if MSAA_COUNT > 1
+				uint2 screenPos = NDCToScreen(input.position.xy);
+				float deviceZ = gDepthBufferTex.Load(screenPos, sampleIdx).r;
+				#else
+				float2 screenUV = NDCToUV(input.position.xy);				
+				float deviceZ = gDepthBufferTex.Sample(gDepthBufferSamp, screenUV).r;
+				#endif
+				
+				float depth = convertFromDeviceZ(deviceZ);
+				float4 mixedSpacePos = float4(input.position.xy * -depth, depth, 1);
+				
+				float4 shadowPosition = mul(gMixedToShadowSpace, mixedSpacePos); 
+				shadowPosition.xy /= shadowPosition.w;
+				
+				// Clamp depth range because pixels in the shadow map that haven't been rendered to will have a value of 1,
+				// and we want those to remain unshadowed.
+				float lightSpaceDepth = min(shadowPosition.z, 0.999999f);
+				
+				float occlusion = 0.0f;
+				#if SHADOW_QUALITY <= 1
+					occlusion = PCF1x1(shadowPosition.xy, lightSpaceDepth);
+				#elif SHADOW_QUALITY == 2
+					occlusion = PCF2x2(shadowPosition.xy, lightSpaceDepth);
+				#elif SHADOW_QUALITY == 3
+					occlusion = PCF4x4(shadowPosition.xy, lightSpaceDepth);
+				#else
+					occlusion = PCF6x6(shadowPosition.xy, lightSpaceDepth);
+				#endif
+				
+				float alpha = 1.0f;
+				#if FADE_PLANE
+					alpha = 1.0f - saturate((depth - gFadePlaneDepth) * gInvFadePlaneRange);
+				#endif
+
+				occlusion *= gFadePercent;
+				
+				// Encode to get better precision in the blacks, similar to gamma correction but cheaper to execute
+				return float4(sqrt(occlusion), 0.0f, 0.0f, alpha);
 			}
 		};
 	};

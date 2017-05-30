@@ -1,4 +1,9 @@
-Technique : base("CubeShadowFiltering")
+#include "$ENGINE$/GBufferInput.bslinc"
+#include "$ENGINE$/ShadowProjectionCommon.bslinc"
+
+Technique
+ : inherits("GBufferInput")
+ : inherits("ShadowProjectionCommon") = 
 {
 	Pass =
 	{
@@ -72,10 +77,14 @@ Technique : base("CubeShadowFiltering")
 			cbuffer Params
 			{
 				float4x4 gFaceVPMatrices[6];
+				float4 gLightPosAndRadius;
 				float gInvResolution;
+				float gFadePercent;
+				float gDepthBias;
 			};			
 			
-			float cubemapPCF(float3 worldPos, float3 lightPos, float lightRadius, float depthBias)
+			// Returns occlusion where 1 = fully shadowed, 0 = not shadowed
+			float cubemapPCF(float3 worldPos, float3 lightPos, float lightRadius)
 			{
 				float3 toLight = lightPos - worldPos;
 				float distToLight = length(toLight);
@@ -106,22 +115,20 @@ Technique : base("CubeShadowFiltering")
 					faceIdx = toLight.y > 0.0f ? 2 : 3;
 				
 				// Get position of the receiver in shadow space
-				float shadowPos = mul(gFaceVPMatrices[faceIdx], worldPos);
+				float4 shadowPos = mul(gFaceVPMatrices[faceIdx], worldPos);
 				
 				float receiverDepth = shadowPos.z / shadowPos.w;
-				float shadowBias = depthBias / shadowPos.w;
-				
-				// TODO: Sampler state must be greater or equal
+				float shadowBias = gDepthBias / shadowPos.w;
 				
 				float occlusion = 0.0f;
 				#if SHADOW_QUALITY <= 1
-					occlusion = gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, lightDir, receiverDepth + shadowBias);
+					//occlusion = gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, lightDir, receiverDepth - shadowBias);
 				#elif SHADOW_QUALITY == 2
 					[unroll]
 					for(int i = 0; i < 4; ++i)
 					{
 						float sampleDir = lightDir + side * discSamples4[i].x + up * discSamples4[i].y;
-						occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth + shadowBias);
+						//occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth - shadowBias);
 					}
 					
 					occlusion /= 4;
@@ -130,7 +137,7 @@ Technique : base("CubeShadowFiltering")
 					for(int i = 0; i < 12; ++i)
 					{
 						float sampleDir = lightDir + side * discSamples12[i].x + up * discSamples12[i].y;
-						occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth + shadowBias);
+						//occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth - shadowBias);
 					}
 					
 					occlusion /= 12;
@@ -139,13 +146,34 @@ Technique : base("CubeShadowFiltering")
 					for(int i = 0; i < 32; ++i)
 					{
 						float sampleDir = lightDir + side * discSamples32[i].x + up * discSamples32[i].y;
-						occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth + shadowBias);
+						//occlusion += gShadowCubeTex.SampleCmpLevelZero(gShadowCubeSampler, sampleDir, receiverDepth - shadowBias);
 					}
 					
 					occlusion /= 32;
 				#endif
 				
 				return occlusion;
+			}
+			
+			float4 main(VStoFS input, uint sampleIdx : SV_SampleIndex) : SV_Target0
+			{
+				// Get depth & calculate world position
+				#if MSAA_COUNT > 1
+				uint2 screenPos = NDCToScreen(input.position.xy);
+				float deviceZ = gDepthBufferTex.Load(screenPos, sampleIdx).r;
+				#else
+				float2 screenUV = NDCToUV(input.position.xy);				
+				float deviceZ = gDepthBufferTex.Sample(gDepthBufferSamp, screenUV).r;
+				#endif
+				
+				float depth = convertFromDeviceZ(deviceZ);
+				float3 worldPos = NDCToWorld(input.position.xy, depth);
+			
+				float occlusion = cubemapPCF(worldPos, gLightPosAndRadius.xyz, gLightPosAndRadius.w);
+				occlusion *= gFadePercent;
+				
+				// Encode to get better precision in the blacks, similar to gamma correction but cheaper to execute
+				return sqrt(occlusion);
 			}
 		};
 	};

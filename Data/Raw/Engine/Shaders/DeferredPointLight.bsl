@@ -86,9 +86,7 @@ Technique : inherits("DeferredLightCommon") =
 			float4 main(VStoFS input, uint sampleIdx : SV_SampleIndex) : SV_Target0
 			{
 				float2 ndcPos = input.screenPos.xy / input.screenPos.w;
-				float2 screenUV = ndcPos * gClipToUVScaleOffset.xy + gClipToUVScaleOffset.zw;
-
-				uint2 pixelPos = (uint2)(screenUV * (float2)gViewportRectangle.zw - ((float2)gViewportRectangle.xy + 0.5f));
+				uint2 pixelPos = NDCToScreen(ndcPos);
 				
 				#if MSAA_COUNT > 1
 				SurfaceData surfaceData = getGBufferData(pixelPos, sampleIdx);

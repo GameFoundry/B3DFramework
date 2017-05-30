@@ -70,6 +70,38 @@ Technique : base("PerCameraData") =
 			{
 				return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
 			}
+			
+			/** Converts position in NDC to UV coordinates mapped to the screen rectangle. */ 
+			float2 NDCToUV(float2 ndcPos)
+			{
+				return ndcPos.xy * gClipToUVScaleOffset.xy + gClipToUVScaleOffset.zw;
+			}
+			
+			/** Converts position in UV coordinates mapped to the screen, to screen coordinates in pixels. */
+			uint2 UVToScreen(float2 uv)
+			{
+				return (uint2)(uv * (float2)gViewportRectangle.zw - ((float2)gViewportRectangle.xy + 0.5f));
+			}
+			
+			/** Converts position in NDC to screen coordinates in pixels. */
+			uint2 NDCToScreen(float2 ndcPos)
+			{
+				float2 uv = NDCToUV(ndcPos);
+				return UVToScreen(uv);
+			}
+			
+			/** Converts position in NDC to world space. */
+			float3 NDCToWorld(float2 ndcPos, float depth)
+			{
+				// x, y are now in clip space, z, w are in view space
+				// We multiply them by a special inverse view-projection matrix, that had the projection entries that effect
+				// z, w eliminated (since they are already in view space)
+				// Note: Multiply by depth should be avoided if using ortographic projection
+				float4 mixedSpacePos = float4(ndcPos.xy * -depth, depth, 1);
+				float4 worldPosition4D = mul(gMatScreenToWorld, mixedSpacePos);
+				
+				return worldPosition4D.xyz / worldPosition4D.w;
+			}
 		};
 	};
 };

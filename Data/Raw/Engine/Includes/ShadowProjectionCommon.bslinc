@@ -1,0 +1,46 @@
+#include "$ENGINE$/PerCameraData.bslinc"
+
+Technique 
+  : base("ShadowProjectionCommon")
+  : inherits("PerCameraData") =
+{
+	Pass =
+	{
+		Common = 
+		{
+			struct VStoFS
+			{
+				float4 position : SV_POSITION;
+			};
+		};
+	
+		Vertex =
+		{
+			struct VertexInput
+			{
+				float3 position : POSITION;
+			};
+			
+			#if NEEDS_TRANSFORM
+			cbuffer VertParams
+			{
+				float4 gPositionAndScale;
+			};
+			#endif
+			
+			VStoFS main(VertexInput input)
+			{
+				VStoFS output;
+				
+				#if NEEDS_TRANSFORM
+					float3 worldPos = input.position.xyz * gPositionAndScale.w + gPositionAndScale.xyz;
+					output.position = mul(gMatViewProj, float4(worldPos, 1));
+				#else
+					output.position = float4(input.position, 1);
+				#endif
+			
+				return output;
+			}			
+		};
+	};
+};

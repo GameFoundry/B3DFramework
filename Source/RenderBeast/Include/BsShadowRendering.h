@@ -10,6 +10,7 @@
 #include "BsRendererMaterial.h"
 #include "BsTextureAtlasLayout.h"
 #include "BsLight.h"
+#include "BsLightRendering.h"
 
 namespace bs { namespace ct
 {
@@ -88,6 +89,72 @@ namespace bs { namespace ct
 		/** Sets a new buffer that determines per-object properties. */
 		void setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams, 
 			const SPtr<GpuParamBlockBuffer>& shadowCubeMasks);
+	};
+
+	BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
+		BS_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSizeInv)
+		BS_PARAM_BLOCK_ENTRY(float, gSoftTransitionScale)
+		BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
+		BS_PARAM_BLOCK_ENTRY(float, gFadePlaneDepth)
+		BS_PARAM_BLOCK_ENTRY(float, gInvFadePlaneRange)
+		BS_PARAM_BLOCK_END
+
+	extern ShadowProjectParamsDef gShadowProjectParamsDef;
+
+	/** Material used for projecting depth into a shadow accumulation buffer for non-omnidirectional shadow maps. */
+	template<int ShadowQuality, bool Directional, bool MSAA>
+	class ShadowProjectMat : public RendererMaterial<ShadowProjectMat<ShadowQuality, Directional, MSAA>>
+	{
+		RMAT_DEF("ShadowProject.bsl");
+
+	public:
+		ShadowProjectMat();
+
+		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
+		void bind(const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer>& shadowParams, 
+			const SPtr<GpuParamBlockBuffer>& perCamera);
+
+	private:
+		SPtr<SamplerState> mSamplerState;
+
+		GBufferParams mGBufferParams;
+
+		GpuParamTexture mShadowMapParam;
+		GpuParamSampState mShadowSamplerParam;
+	};
+
+	BS_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
+		BS_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gLightPosAndRadius)
+		BS_PARAM_BLOCK_ENTRY(float, gInvResolution)
+		BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
+		BS_PARAM_BLOCK_ENTRY(float, gDepthBias)
+		BS_PARAM_BLOCK_END
+
+	extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
+
+	/** Material used for projecting depth into a shadow accumulation buffer for omnidirectional shadow maps. */
+	template<int ShadowQuality, bool MSAA>
+	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat<ShadowQuality, MSAA>>
+	{
+		RMAT_DEF("ShadowProjectOmni.bsl");
+
+	public:
+		ShadowProjectOmniMat();
+
+		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
+		void bind(const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer>& shadowParams,
+			const SPtr<GpuParamBlockBuffer>& perCamera);
+
+	private:
+		SPtr<SamplerState> mSamplerState;
+
+		GBufferParams mGBufferParams;
+
+		GpuParamTexture mShadowMapParam;
+		GpuParamSampState mShadowSamplerParam;
 	};
 
 	/** Information about a shadow cast from a single light. */

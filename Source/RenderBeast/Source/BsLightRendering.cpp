@@ -144,6 +144,8 @@ namespace bs { namespace ct
 	void DirectionalLightMat<MSAA>::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
 	{
 		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
+		
+		gRendererUtility().setPassParams(mParamsSet);
 	}
 
 	template class DirectionalLightMat<true>;
@@ -181,6 +183,8 @@ namespace bs { namespace ct
 	void PointLightMat<MSAA, InsideGeometry>::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
 	{
 		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
+		
+		gRendererUtility().setPassParams(mParamsSet);
 	}
 
 	template class PointLightMat<false, false>;
