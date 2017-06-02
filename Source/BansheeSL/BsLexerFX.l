@@ -145,6 +145,7 @@ rsub			{ yylval->intValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
 min				{ yylval->intValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
 max				{ yylval->intValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
 
+empty			{ yylval->intValue = 0x0; return TOKEN_COLORMASK; }
 R				{ yylval->intValue = 0x1; return TOKEN_COLORMASK; }
 G				{ yylval->intValue = 0x2; return TOKEN_COLORMASK; }
 B				{ yylval->intValue = 0x4; return TOKEN_COLORMASK; }

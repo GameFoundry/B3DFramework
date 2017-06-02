@@ -10,6 +10,33 @@ namespace bs
 {
 	const AABox AABox::BOX_EMPTY;
 
+	const UINT32 AABox::CUBE_INDICES[36] =
+	{
+		// Near
+		NEAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_RIGHT_TOP,
+		NEAR_LEFT_BOTTOM, NEAR_RIGHT_TOP, NEAR_RIGHT_BOTTOM,
+
+		// Far
+		FAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_LEFT_TOP,
+		FAR_RIGHT_BOTTOM, FAR_LEFT_TOP, FAR_LEFT_BOTTOM,
+
+		// Left
+		FAR_LEFT_BOTTOM, FAR_LEFT_TOP, NEAR_LEFT_TOP,
+		FAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_LEFT_BOTTOM,
+
+		// Right
+		NEAR_RIGHT_BOTTOM, NEAR_RIGHT_TOP, FAR_RIGHT_TOP,
+		NEAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_RIGHT_BOTTOM,
+
+		// Top
+		FAR_LEFT_TOP, FAR_RIGHT_TOP, NEAR_RIGHT_TOP,
+		FAR_LEFT_TOP, NEAR_RIGHT_TOP, NEAR_LEFT_TOP,
+
+		// Bottom
+		NEAR_LEFT_BOTTOM, NEAR_RIGHT_BOTTOM, FAR_RIGHT_BOTTOM,
+		NEAR_LEFT_BOTTOM, FAR_RIGHT_BOTTOM, FAR_LEFT_BOTTOM
+	};
+
 	AABox::AABox() 
 		:mMinimum(Vector3::ZERO), mMaximum(Vector3::ONE)
 	{
@@ -52,7 +79,7 @@ namespace bs
 		setExtents(min, max);
 	}
 
-	Vector3 AABox::getCorner(CornerEnum cornerToGet) const
+	Vector3 AABox::getCorner(Corner cornerToGet) const
 	{
 		switch(cornerToGet)
 		{

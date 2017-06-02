@@ -128,4 +128,15 @@ namespace bs
 
 		return true;
 	}
+
+	bool ConvexVolume::contains(const Vector3& p, float expand) const
+	{
+		for(auto& plane : mPlanes)
+		{
+			if (plane.getDistance(p) < -expand)
+				return false;
+		}
+
+		return true;
+	}
 }

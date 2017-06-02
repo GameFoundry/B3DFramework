@@ -285,6 +285,10 @@
         {
             "Path": "ShadowProjectOmni.bsl",
             "UUID": "50447773-98e9-410c-8f64-eacbb9622c52"
+        },
+        {
+            "Path": "ShadowProjectStencil.bsl",
+            "UUID": "c8625547-f5e7-43df-85cf-4da6e1806cf9"
         }
     ],
     "Skin": [

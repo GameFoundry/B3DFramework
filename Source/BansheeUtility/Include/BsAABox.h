@@ -27,7 +27,7 @@ namespace bs
 		|/    |/
 		6-----7
 		*/
-		enum CornerEnum 
+		enum Corner 
 		{
 			FAR_LEFT_BOTTOM = 0,
 			FAR_LEFT_TOP = 1,
@@ -66,7 +66,7 @@ namespace bs
 		void scale(const Vector3& s);
 
 		/** Returns the coordinates of a specific corner. */
-		Vector3 getCorner(CornerEnum cornerToGet) const;
+		Vector3 getCorner(Corner cornerToGet) const;
 
 		/** Merges the two boxes, creating a new bounding box that encapsulates them both. */
 		void merge(const AABox& rhs);
@@ -106,11 +106,11 @@ namespace bs
 		/** Returns true if the plane intersects the bounding box. */
 		bool intersects(const Plane& p) const;
 
-        /** Ray / box intersection, returns a boolean result and nearest distance to intersection. */
-        std::pair<bool, float> intersects(const Ray& ray) const;
+		/** Ray / box intersection, returns a boolean result and nearest distance to intersection. */
+		std::pair<bool, float> intersects(const Ray& ray) const;
 
-        /** Ray / box intersection, returns boolean result and near and far intersection distance. */
-        bool intersects(const Ray& ray, float& d1, float& d2) const;
+		/** Ray / box intersection, returns boolean result and near and far intersection distance. */
+		bool intersects(const Ray& ray, float& d1, float& d2) const;
 
 		/** Center of the box. */
 		Vector3 getCenter() const;
@@ -127,16 +127,22 @@ namespace bs
 		/** Size of the volume in the box. */
 		float getVolume() const;
 
-        /** Returns true if the provided point is inside the bounding box. */
-        bool contains(const Vector3& v) const;
+		/** Returns true if the provided point is inside the bounding box. */
+		bool contains(const Vector3& v) const;
 
-        /** Returns true if the provided bounding box is completely inside the bounding box. */
-        bool contains(const AABox& other) const;
+		/** Returns true if the provided bounding box is completely inside the bounding box. */
+		bool contains(const AABox& other) const;
 
-        bool operator== (const AABox& rhs) const;
-        bool operator!= (const AABox& rhs) const;
+		bool operator== (const AABox& rhs) const;
+		bool operator!= (const AABox& rhs) const;
 
 		static const AABox BOX_EMPTY;
+
+		/** 
+		 * Indices that can be used for rendering a box constructed from 8 corner vertices, using AABox::Corner for 
+		 * mapping. 
+		 */
+		static const UINT32 CUBE_INDICES[36];
 
 	protected:
 		Vector3 mMinimum;

@@ -29,18 +29,22 @@ mixin ShadowDepthBase
 
 		void linearizeDepth(inout float4 clipPos)
 		{
+			float ndcZ = clipPos.z / clipPos.w;
+			float deviceZ = NDCZToDeviceZ(ndcZ);
+			
+			#ifdef CLAMP_TO_NEAR_PLANE
 			// Clamp to near plane if behind it
-			if (clipPos.z < 0)
+			if (deviceZ < 0)
 			{
-				clipPos.z = 0.000001f;
+				clipPos.z = DeviceZToNDCZ(0);
 				clipPos.w = 1.0f;
 			}
+			#endif
 
-			// Output linear depth in range [0, 1]
-			// TODO - Handle case for backends using [-1, 1] depth range
-			#if LINEAR_DEPTH_RANGE
-				float linearDepth = clipPos.z * gDepthRange + gDepthBias;
-				clipPos.z = linearDepth * clipPos.w;
+			// Output linear depth
+			#ifdef LINEAR_DEPTH_RANGE
+				float linearDepth = deviceZ * gDepthRange + gDepthBias;
+				clipPos.z = DeviceZToNDCZ(linearDepth) * clipPos.w;
 			#endif
 		}		
 	

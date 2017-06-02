@@ -46,6 +46,7 @@ technique SceneGrid
 			float4 worldCameraPos;
 			float gridSpacing;
 			float gridBorderWidth;
+			[color]
 			float4 gridColor;
 			float gridFadeOutStart;
 			float gridFadeOutEnd;

@@ -44,6 +44,15 @@ namespace bs
 		 */
 		bool intersects(const Sphere& sphere) const;
 
+		/**
+		 * Checks if the convex volume contains the provided point.
+		 * 
+		 * @param[in]	p		Point to check.
+		 * @param[in]	expand	Optional value to expand the size of the convex volume by the specified value during the
+		 *						check. Negative values shrink the volume.
+		 */
+		bool contains(const Vector3& p, float expand = 0.0f) const;
+
 		/** Returns the internal set of planes that represent the volume. */
 		Vector<Plane> getPlanes() const { return mPlanes; }
 

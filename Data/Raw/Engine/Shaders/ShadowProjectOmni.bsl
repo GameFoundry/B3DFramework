@@ -116,8 +116,8 @@ technique ShadowProjectOmni
 			// Get position of the receiver in shadow space
 			float4 shadowPos = mul(gFaceVPMatrices[faceIdx], worldPos);
 			
-			float receiverDepth = shadowPos.z / shadowPos.w;
-			float shadowBias = gDepthBias / shadowPos.w;
+			float receiverDepth = NDCZToDeviceZ(shadowPos.z / shadowPos.w);
+			float shadowBias = gDepthBias / -shadowPos.w;
 			
 			float occlusion = 0.0f;
 			#if SHADOW_QUALITY <= 1

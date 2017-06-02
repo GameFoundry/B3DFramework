@@ -20,6 +20,7 @@ mixin PerCameraData
 			// Converts device Z to world Z using this formula: worldZ = (1 / (deviceZ + y)) * x
 			float2 	 gDeviceZToWorldZ;
 			float2	 gNDCZToWorldZ;
+			float2 	 gNDCZToDeviceZ;
 			
 			// x - near plane distance, y - far plane distance
 			float2	 gNearFar;
@@ -44,6 +45,18 @@ mixin PerCameraData
 		float convertToNDCZ(float viewZ)
 		{
 			return -gNDCZToWorldZ.y + (gNDCZToWorldZ.x / viewZ);
+		}
+		
+		/** Converts Z value from NDC space to device Z value in range [0, 1]. */
+		float NDCZToDeviceZ(float ndcZ)
+		{
+			return (ndcZ + gNDCZToDeviceZ.y) * gNDCZToDeviceZ.x;
+		}
+		
+		/** Converts Z value from device range ([0, 1]) to NDC space. */
+		float DeviceZToNDCZ(float deviceZ)
+		{
+			return deviceZ / gNDCZToDeviceZ.x - gNDCZToDeviceZ.y;
 		}
 		
 		/** Converts position in NDC to UV coordinates mapped to the screen rectangle. */ 

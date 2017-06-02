@@ -17,6 +17,7 @@ namespace bs { namespace ct
 	struct FrameInfo;
 	class RendererLight;
 	class RendererScene;
+	struct ShadowInfo;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -91,6 +92,49 @@ namespace bs { namespace ct
 			const SPtr<GpuParamBlockBuffer>& shadowCubeMasks);
 	};
 
+	BS_PARAM_BLOCK_BEGIN(ShadowProjectVertParamsDef)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gPositionAndScale)
+	BS_PARAM_BLOCK_END
+
+	extern ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
+
+	/** Material used for populating the stencil buffer when projecting non-omnidirectional shadows. */
+	template<bool Directional, bool ZFailStencil>
+	class ShadowProjectStencilMat : public RendererMaterial<ShadowProjectStencilMat<Directional, ZFailStencil>>
+	{
+		RMAT_DEF("ShadowProjectStencil.bsl");
+
+	public:
+		ShadowProjectStencilMat();
+
+		/** Binds the material and its parameters to the pipeline. */
+		void bind(const SPtr<GpuParamBlockBuffer>& perCamera);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mVertParams;
+	};
+
+	/** Contains all variations of the ShadowProjectStencilMat material. */
+	class ShadowProjectStencilMaterials
+	{
+	public:
+		/** 
+		 * Binds a shader that can be used for populating the stencil buffer during non-omnidirectional shadow rendering. 
+		 *
+		 * @param[in]	directional		Set to true if shadows from a directional light are being rendered.
+		 * @param[in]	useZFailStencil	If true the material will use z-fail operation to modify the stencil buffer. If 
+		 *								false z-pass will be used instead. Z-pass is a more performant alternative as it
+		 *								doesn't disable hi-z optimization, but it cannot handle the case when the viewer is
+		 *								inside the drawn geometry.
+		 * @param[in]	perCamera		Buffer containing information about the current view.
+		 */
+		void bind(bool directional, bool useZFailStencil, const SPtr<GpuParamBlockBuffer>& perCamera);
+	private:
+		ShadowProjectStencilMat<true, true> mTT;
+		ShadowProjectStencilMat<false, true> mFT;
+		ShadowProjectStencilMat<false, false> mFF;
+	};
+
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
@@ -99,7 +143,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
 		BS_PARAM_BLOCK_ENTRY(float, gFadePlaneDepth)
 		BS_PARAM_BLOCK_ENTRY(float, gInvFadePlaneRange)
-		BS_PARAM_BLOCK_END
+	BS_PARAM_BLOCK_END
 
 	extern ShadowProjectParamsDef gShadowProjectParamsDef;
 
@@ -112,12 +156,13 @@ namespace bs { namespace ct
 	public:
 		ShadowProjectMat();
 
-		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-		void bind(const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer>& shadowParams, 
+		/** Binds the material and its parameters to the pipeline. */
+		void bind(const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer> shadowParams, 
 			const SPtr<GpuParamBlockBuffer>& perCamera);
 
 	private:
 		SPtr<SamplerState> mSamplerState;
+		SPtr<GpuParamBlockBuffer> mVertParams;
 
 		GBufferParams mGBufferParams;
 
@@ -131,7 +176,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(float, gInvResolution)
 		BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
 		BS_PARAM_BLOCK_ENTRY(float, gDepthBias)
-		BS_PARAM_BLOCK_END
+	BS_PARAM_BLOCK_END
 
 	extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
@@ -144,12 +189,13 @@ namespace bs { namespace ct
 	public:
 		ShadowProjectOmniMat();
 
-		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-		void bind(const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer>& shadowParams,
+		/** Binds the material and its parameters to the pipeline. */
+		void bind(const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer> shadowParams, 
 			const SPtr<GpuParamBlockBuffer>& perCamera);
 
 	private:
 		SPtr<SamplerState> mSamplerState;
+		SPtr<GpuParamBlockBuffer> mVertParams;
 
 		GBufferParams mGBufferParams;
 
@@ -167,6 +213,16 @@ namespace bs { namespace ct
 		Rect2I area; /**< Area of the shadow map in pixels, relative to its source texture. */
 		Rect2 normArea; /**< Normalized shadow map area in [0, 1] range. */
 		UINT32 textureIdx; /**< Index of the texture the shadow map is stored in. */
+
+		float depthNear; /**< Distance to the near plane. */
+		float depthFar; /**< Distance to the far plane. */
+		float depthFade; /**< Distance to the plane at which to start fading out the shadows (only for CSM). */
+		float fadeRange; /**< Distance from the fade plane to the far plane (only for CSM). */
+
+		float depthBias; /**< Bias used to reduce shadow acne. */
+		float depthRange; /**< Length of the range covered by the shadow caster volume. */
+
+		UINT32 cascadeIdx; /**< Index of a cascade. Only relevant for CSM. */
 
 		/** View-projection matrix from the shadow casters point of view. */
 		Matrix4 shadowVPTransform; 
@@ -344,6 +400,23 @@ namespace bs { namespace ct
 			SmallVector<float, 4>& fadePercents, float& maxFadePercent) const;
 
 		/**
+		 * Draws a mesh representing near and far planes at the provided coordinates. The mesh is constructed using
+		 * normalized device coordinates and requires no perspective transform. Near plane will be drawn using front facing
+		 * triangles, and the far plane will be drawn using back facing triangles.
+		 * 
+		 * @param[in]	near		Location of the near plane, in NDC.
+		 * @param[in]	far			Location of the far plane, in NDC.
+		 * @param[in]	drawNear	If disabled, only the far plane will be drawn.
+		 */
+		void drawNearFarPlanes(float near, float far, bool drawNear = true);
+
+		/** 
+		 * Draws a frustum mesh using the provided vertices as its corners. Corners should be in the order specified
+		 * by AABox::Corner enum.
+		 */
+		void drawFrustum(const std::array<Vector3, 8>& corners);
+
+		/**
 		 * Generates a frustum for a single cascade of a cascaded shadow map. Also outputs spherical bounds of the
 		 * split view frustum.
 		 * 
@@ -379,6 +452,17 @@ namespace bs { namespace ct
 		 */
 		static float getDepthBias(const Light& light, float depthRange, UINT32 mapSize);
 
+		/**
+		 * Calculates a fade transition value that can be used for slowly fading-in the shadow, in order to avoid or reduce
+		 * shadow acne.
+		 *
+		 * @param[in]	light		Light to calculate the fade transition size for.
+		 * @param[in]	depthRange	Range of depths (distance between near and far planes) covered by the shadow.
+		 * @param[in]	mapSize		Size of the shadow map, in pixels.
+		 * @return					Value that determines the size of the fade transition region.
+		 */
+		static float getFadeTransition(const Light& light, float depthRange, UINT32 mapSize);
+
 		/** Size of a single shadow map atlas, in pixels. */
 		static const UINT32 MAX_ATLAS_SIZE;
 
@@ -394,9 +478,14 @@ namespace bs { namespace ct
 		/** Size of the border of a shadow map in a shadow map atlas, in pixels. */
 		static const UINT32 SHADOW_MAP_BORDER;
 
+		/** Percent of the length of a single cascade in a CSM, in which to fade out the cascade. */
+		static const float CASCADE_FRACTION_FADE;
+
 		ShadowDepthNormalMat mDepthNormalMat;
 		ShadowDepthCubeMat mDepthCubeMat;
 		ShadowDepthDirectionalMat mDepthDirectionalMat;
+
+		ShadowProjectStencilMaterials mProjectStencilMaterials;
 
 		UINT32 mShadowMapSize;
 
@@ -409,6 +498,16 @@ namespace bs { namespace ct
 		Vector<LightShadows> mSpotLightShadows;
 		Vector<LightShadows> mRadialLightShadows;
 		Vector<UINT32> mDirectionalLightShadows;
+
+		SPtr<VertexDeclaration> mPositionOnlyVD;
+
+		// Mesh information used for drawing near & far planes
+		SPtr<IndexBuffer> mPlaneIB;
+		SPtr<VertexBuffer> mPlaneVB;
+
+		// Mesh information used for drawing a shadow frustum
+		SPtr<IndexBuffer> mFrustumIB;
+		SPtr<VertexBuffer> mFrustumVB;
 
 		Vector<bool> mRenderableVisibility; // Transient
 		Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient

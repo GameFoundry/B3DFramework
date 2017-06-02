@@ -373,7 +373,7 @@ namespace bs { namespace ct
 	/////////////////////////////////////////////////////////////////////////////////////
 	void writeBoxVertices(const AABox& box, UINT8* positions, UINT8* uvs, UINT32 stride)
 	{
-		AABox::CornerEnum vertOrder[] =
+		AABox::Corner vertOrder[] =
 		{
 			AABox::NEAR_LEFT_BOTTOM,	AABox::NEAR_RIGHT_BOTTOM,	AABox::NEAR_RIGHT_TOP,		AABox::NEAR_LEFT_TOP,
 			AABox::FAR_RIGHT_BOTTOM,	AABox::FAR_LEFT_BOTTOM,		AABox::FAR_LEFT_TOP,		AABox::FAR_RIGHT_TOP,

@@ -27,6 +27,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatScreenToWorld)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gDeviceZToWorldZ)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToWorldZ)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gNearFar)
 		BS_PARAM_BLOCK_ENTRY(Vector4I, gViewportRectangle)
 		BS_PARAM_BLOCK_ENTRY(Vector4, gClipToUVScaleOffset)

@@ -140,10 +140,13 @@ namespace bs { namespace ct
 			drawScreenQuad(uv, textureSize, numInstances);
 		}
 
-		/** Returns a stencil mesh used for a point light (a unit sphere). */
-		SPtr<Mesh> getPointLightStencil() const { return mPointLightStencilMesh; }
+		/** Returns a stencil mesh used for a radial light (a unit sphere). */
+		SPtr<Mesh> getRadialLightStencil() const { return mPointLightStencilMesh; }
 
-		/** Returns a stencil mesh used for spot light. Actual vertex positions need to be computed in shader. */
+		/** 
+		 * Returns a stencil mesh used for a spot light. Actual vertex positions need to be computed in shader as this
+		 * method will return uninitialized vertex positions. 
+		 */
 		SPtr<Mesh> getSpotLightStencil() const { return mSpotLightStencilMesh; }
 
 		/** Returns a mesh that can be used for rendering a skybox. */

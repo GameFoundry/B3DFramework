@@ -17,10 +17,6 @@
 #define XSC_ENABLE_LANGUAGE_EXT 1
 #include "Xsc/Xsc.h"
 
-//DEBUG ONLY
-#include "BsFileSystem.h"
-#include "BsDataStream.h"
-
 extern "C" {
 #include "BsMMAlloc.h"
 #include "BsParserFX.h"
@@ -504,7 +500,7 @@ namespace bs
 				{
 					GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
 					if ((entry.flags & Xsc::Reflection::Uniform::Flags::Color) != 0 &&
-						(entry.baseType == GPDT_FLOAT3 || entry.baseType == GPDT_FLOAT4))
+						(type == GPDT_FLOAT3 || type == GPDT_FLOAT4))
 					{
 						type = GPDT_COLOR;
 					}
@@ -526,7 +522,7 @@ namespace bs
 		}
 	}
 
-	String CrossCompile(const String& hlsl, GpuProgramType type, bool vulkan, bool optionalEntry, UINT32& startBindingSlot,
+	String crossCompile(const String& hlsl, GpuProgramType type, bool vulkan, bool optionalEntry, UINT32& startBindingSlot,
 		SHADER_DESC* shaderDesc = nullptr, Vector<GpuProgramType>* detectedTypes = nullptr)
 	{
 		SPtr<StringStream> input = bs_shared_ptr_new<StringStream>();
@@ -657,13 +653,13 @@ namespace bs
 	// Convert HLSL code to GLSL
 	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, bool vulkan, UINT32& startBindingSlot)
 	{
-		return CrossCompile(hlsl, type, vulkan, false, startBindingSlot);
+		return crossCompile(hlsl, type, vulkan, false, startBindingSlot);
 	}
 
-	void ReflectHLSL(const String& hlsl, SHADER_DESC& shaderDesc, Vector<GpuProgramType>& entryPoints)
+	void reflectHLSL(const String& hlsl, SHADER_DESC& shaderDesc, Vector<GpuProgramType>& entryPoints)
 	{
 		UINT32 dummy = 0;
-		CrossCompile(hlsl, GPT_VERTEX_PROGRAM, false, true, dummy, &shaderDesc, &entryPoints);
+		crossCompile(hlsl, GPT_VERTEX_PROGRAM, false, true, dummy, &shaderDesc, &entryPoints);
 	}
 
 	BSLFXCompileResult BSLFXCompiler::compile(const String& name, const String& source, 
@@ -1629,7 +1625,7 @@ namespace bs
 				// type. If performance is ever important here it could be good to update XShaderCompiler so it can
 				// somehow save the AST and then re-use it for multiple actions.
 				Vector<GpuProgramType> types;
-				ReflectHLSL(glslPassData.code, shaderDesc, types);
+				reflectHLSL(glslPassData.code, shaderDesc, types);
 
 				UINT32 glslBinding = 0;
 				UINT32 vkslBinding = 0;

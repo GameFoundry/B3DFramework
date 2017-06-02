@@ -333,6 +333,9 @@ namespace bs { namespace ct
 
 	void RendererView::updatePerViewBuffer()
 	{
+		RenderAPI& rapi = RenderAPI::instance();
+		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
+
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
 		Matrix4 invViewProj = viewProj.inverse();
 
@@ -342,11 +345,11 @@ namespace bs { namespace ct
 		gPerCameraParamDef.gMatInvViewProj.set(mParamBuffer, invViewProj); // Note: Calculate inverses separately (better precision possibly)
 		gPerCameraParamDef.gMatInvProj.set(mParamBuffer, mProperties.projTransform.inverse());
 
-		// Construct a special inverse view-projection matrix that had projection entries that affect z and w eliminated.
+		// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
 		// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and 
 		// view_z/view_w in view space, into world space.
 
-		// Only projects z/w coordinates
+		// Only projects z/w coordinates (cancels out with the inverse matrix below)
 		Matrix4 projZ = Matrix4::IDENTITY;
 		projZ[2][2] = mProperties.projTransform[2][2];
 		projZ[2][3] = mProperties.projTransform[2][3];
@@ -358,6 +361,11 @@ namespace bs { namespace ct
 		gPerCameraParamDef.gViewOrigin.set(mParamBuffer, mProperties.viewOrigin);
 		gPerCameraParamDef.gDeviceZToWorldZ.set(mParamBuffer, getDeviceZTransform(mProperties.projTransform));
 		gPerCameraParamDef.gNDCZToWorldZ.set(mParamBuffer, getNDCZTransform(mProperties.projTransform));
+
+		Vector2 ndcZToDeviceZ;
+		ndcZToDeviceZ.x = 1.0f / (rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue());
+		ndcZToDeviceZ.y = -rapiInfo.getMinimumDepthInputValue();
+		gPerCameraParamDef.gNDCZToDeviceZ.set(mParamBuffer, ndcZToDeviceZ);
 
 		Vector2 nearFar(mProperties.nearPlane, mProperties.farPlane);
 		gPerCameraParamDef.gNearFar.set(mParamBuffer, nearFar);
@@ -377,9 +385,6 @@ namespace bs { namespace ct
 
 		float rtWidth = mTargetDesc.targetWidth != 0 ? (float)mTargetDesc.targetWidth : 20.0f;
 		float rtHeight = mTargetDesc.targetHeight != 0 ? (float)mTargetDesc.targetHeight : 20.0f;
-
-		RenderAPI& rapi = RenderAPI::instance();
-		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 
 		Vector4 clipToUVScaleOffset;
 		clipToUVScaleOffset.x = halfWidth / rtWidth;
