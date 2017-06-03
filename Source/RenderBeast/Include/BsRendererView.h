@@ -253,7 +253,6 @@ namespace bs { namespace ct
 		/** Returns a buffer that stores per-view parameters. */
 		SPtr<GpuParamBlockBuffer> getPerViewBuffer() const { return mParamBuffer; }
 
-	private:
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
 		 * into view Z value.
@@ -262,7 +261,7 @@ namespace bs { namespace ct
 		 * @return					Returns two values that can be used to transform device z to view z using this formula:
 		 * 							z = (deviceZ + y) * x.
 		 */
-		Vector2 getDeviceZTransform(const Matrix4& projMatrix) const;
+		static Vector2 getDeviceZToViewZ(const Matrix4& projMatrix);
 
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform NDC Z value (range depending
@@ -272,8 +271,14 @@ namespace bs { namespace ct
 		 * @return					Returns two values that can be used to transform NDC z to view z using this formula:
 		 * 							z = (NDCZ + y) * x.
 		 */
-		Vector2 getNDCZTransform(const Matrix4& projMatrix) const;
+		static Vector2 getNDCZToViewZ(const Matrix4& projMatrix);
 
+		/** 
+		 * Returns a value that can be used for tranforming a depth value in NDC, to a depth value in device Z ([0, 1] 
+		 * range using this formula: (NDCZ + y) * x. 
+		 */
+		static Vector2 getNDCZToDeviceZ();
+	private:
 		RendererViewProperties mProperties;
 		RENDERER_VIEW_TARGET_DESC mTargetDesc;
 		Camera* mCamera;

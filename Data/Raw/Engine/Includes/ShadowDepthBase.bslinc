@@ -17,22 +17,41 @@ mixin ShadowDepthBase
 			
 			#ifdef USES_GS
 			float4 worldPos : TEXCOORD0;
+			#else
+			#ifndef LINEAR_DEPTH_RANGE
+				float shadowPos : TEXCOORD0;
+			#endif
 			#endif
 		};
 		
+		[internal]
 		cbuffer ShadowParams
 		{
 			float4x4 gMatViewProj;
+			float2 gNDCZToViewZ;
+			float2 gNDCZToDeviceZ;
 			float gDepthBias;
 			float gDepthRange;
 		};
+		
+		/** Converts Z value from view space to NDC space. */
+		float convertToNDCZ(float viewZ)
+		{
+			return -gNDCZToViewZ.y + (gNDCZToViewZ.x / viewZ);
+		}
+		
+		/** Converts Z value from NDC space to device Z value in range [0, 1]. */
+		float NDCZToDeviceZ(float ndcZ)
+		{
+			return (ndcZ + gNDCZToDeviceZ.y) * gNDCZToDeviceZ.x;
+		}		
 
 		void linearizeDepth(inout float4 clipPos)
-		{
+		{	
+			#ifdef CLAMP_TO_NEAR_PLANE
 			float ndcZ = clipPos.z / clipPos.w;
 			float deviceZ = NDCZToDeviceZ(ndcZ);
 			
-			#ifdef CLAMP_TO_NEAR_PLANE
 			// Clamp to near plane if behind it
 			if (deviceZ < 0)
 			{
@@ -43,8 +62,8 @@ mixin ShadowDepthBase
 
 			// Output linear depth
 			#ifdef LINEAR_DEPTH_RANGE
-				float linearDepth = deviceZ * gDepthRange + gDepthBias;
-				clipPos.z = DeviceZToNDCZ(linearDepth) * clipPos.w;
+				float linearDepth = -clipPos.z * gInvDepthRange + gDepthBias;
+				clipPos.z = linearDepth * clipPos.w;
 			#endif
 		}		
 	
@@ -60,6 +79,10 @@ mixin ShadowDepthBase
 			#else
 			float4 clipPos = mul(gMatViewProj, worldPosition);
 			linearizeDepth(clipPos);
+			
+			#ifndef LINEAR_DEPTH_RANGE
+			output.shadowPos = clipPos.z;
+			#endif
 			
 			output.position = clipPos;
 			#endif

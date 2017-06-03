@@ -67,10 +67,10 @@ namespace bs { namespace ct
 		void bind(const SPtr<RenderTargets>& renderTargets);
 
 	private:
-		GpuParamTexture mGBufferA;
-		GpuParamTexture mGBufferB;
-		GpuParamTexture mGBufferC;
-		GpuParamTexture mGBufferDepth;
+		MaterialParamTexture mGBufferA;
+		MaterialParamTexture mGBufferB;
+		MaterialParamTexture mGBufferC;
+		MaterialParamTexture mGBufferDepth;
 	};
 
 	/** Shader that renders directional light sources during deferred rendering light pass. */

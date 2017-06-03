@@ -91,12 +91,10 @@ namespace bs { namespace ct
 
 	GBufferParams::GBufferParams(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet)
 	{
-		SPtr<GpuParams> params = paramsSet->getGpuParams();
-
-		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferATex", mGBufferA);
-		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferBTex", mGBufferB);
-		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferCTex", mGBufferC);
-		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gDepthBufferTex", mGBufferDepth);
+		mGBufferA = material->getParamTexture("gGBufferATex");
+		mGBufferB = material->getParamTexture("gGBufferBTex");
+		mGBufferC = material->getParamTexture("gGBufferCTex");
+		mGBufferDepth = material->getParamTexture("gDepthBufferTex");
 	}
 
 	void GBufferParams::bind(const SPtr<RenderTargets>& renderTargets)

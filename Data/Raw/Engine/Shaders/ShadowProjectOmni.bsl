@@ -6,6 +6,39 @@ technique ShadowProjectOmni
 	mixin GBufferInput;
 	mixin ShadowProjectionCommon;
 
+	blend
+	{
+		target
+		{
+			enabled = true;
+			writemask = R;
+			color = { one, one, min };
+		};
+	};
+	
+	#ifdef VIEWER_INSIDE_VOLUME
+	depth
+	{
+		read = false;
+		write = false;
+	};
+	
+	raster
+	{
+		cull = cw;
+	};
+	#else
+	depth
+	{
+		write = false;
+	};
+	
+	raster
+	{
+		cull = ccw;
+	};
+	#endif
+	
 	code
 	{
 		// Random samples on a disc of radius 2.5. Random values generated using low discrepancy
@@ -73,6 +106,7 @@ technique ShadowProjectOmni
 		TextureCube gShadowCubeTex;
 		SamplerComparisonState gShadowCubeSampler;
 		
+		[internal]
 		cbuffer Params
 		{
 			float4x4 gFaceVPMatrices[6];

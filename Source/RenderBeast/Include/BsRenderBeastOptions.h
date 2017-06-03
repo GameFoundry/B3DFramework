@@ -45,6 +45,12 @@ namespace bs { namespace ct
 		 * shadows far away, but will never increase the resolution past the provided value.
 		 */
 		UINT32 shadowMapSize = 2048;
+
+		/**
+		 * Determines the number of samples used for percentage closer shadow map filtering. Higher values yield higher
+		 * quality shadows. Valid range is [1, 4].
+		 */
+		UINT32 shadowFilteringQuality = 4;
 	};
 
 	/** @} */

@@ -181,9 +181,10 @@ namespace bs { namespace ct
 			break;
 		}
 
-		defines.set("FADE_PLANE", Directional ? 1 : 0);
-		defines.set("NEEDS_TRANSFORM", Directional ? 0 : 1);
+		if(Directional)
+			defines.set("FADE_PLANE", 1);
 
+		defines.set("NEEDS_TRANSFORM", Directional ? 0 : 1);
 		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
 	}
 
@@ -229,39 +230,58 @@ namespace bs { namespace ct
 	}
 
 	template <int ShadowQuality, bool Directional, bool MSAA>
-	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::bind(const Light& light, const SPtr<Texture>& shadowMap, 
-		const SPtr<GpuParamBlockBuffer> shadowParams, const SPtr<GpuParamBlockBuffer>& perCamera)
+	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::bind(const ShadowProjectParams& params)
 	{
-		Vector4 lightPosAndScale(light.getPosition(), light.getAttenuationRadius());
+		Vector4 lightPosAndScale(params.light.getPosition(), params.light.getAttenuationRadius());
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mShadowMapParam.set(shadowMap);
+		TextureSurface surface;
+		surface.arraySlice = params.shadowMapFace;
+
+		mShadowMapParam.set(params.shadowMap, surface);
 		mShadowSamplerParam.set(mSamplerState);
 
-		mParamsSet->setParamBlockBuffer("Params", shadowParams);
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
+		mGBufferParams.bind(params.renderTargets);
+
+		mParamsSet->setParamBlockBuffer("Params", params.shadowParams);
+		mParamsSet->setParamBlockBuffer("PerCamera", params.perCamera);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-#define TEMPL_INSTANTIATE(QUALITY)								\
-	template class ShadowProjectMat<QUALITY, true, true>;		\
-	template class ShadowProjectMat<QUALITY, true, false>;		\
-	template class ShadowProjectMat<QUALITY, false, true>;		\
-	template class ShadowProjectMat<QUALITY, false, false>;
-	
-TEMPL_INSTANTIATE(0)
-TEMPL_INSTANTIATE(1)
-TEMPL_INSTANTIATE(2)
-TEMPL_INSTANTIATE(3)
+	void ShadowProjectMaterials::bind(UINT32 quality, bool directional, bool MSAA, const ShadowProjectParams& params)
+	{
+#define BIND_MAT(QUALITY)						\
+	{											\
+		if(directional)							\
+			if (MSAA)							\
+				mMat##QUALITY##TT.bind(params);	\
+			else								\
+				mMat##QUALITY##TF.bind(params);	\
+		else									\
+			if (MSAA)							\
+				mMat##QUALITY##FT.bind(params);	\
+			else								\
+				mMat##QUALITY##FF.bind(params);	\
+	}
 
-#undef TEMPL_INSTANTIATE
+		if(quality <= 1)
+			BIND_MAT(1)
+		else if(quality == 2)
+			BIND_MAT(2)
+		else if(quality == 3)
+			BIND_MAT(3)
+		else // 4 or higher
+			BIND_MAT(4)
+
+#undef BIND_MAT
+	}
 
 	ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
-	template<int ShadowQuality, bool MSAA>
-	ShadowProjectOmniMat<ShadowQuality, MSAA>::ShadowProjectOmniMat()
+	template<int ShadowQuality, bool Inside, bool MSAA>
+	ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::ShadowProjectOmniMat()
 		: mGBufferParams(mMaterial, mParamsSet)
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
@@ -285,8 +305,8 @@ TEMPL_INSTANTIATE(3)
 			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	template<int ShadowQuality, bool MSAA>
-	void ShadowProjectOmniMat<ShadowQuality, MSAA>::_initDefines(ShaderDefines& defines)
+	template<int ShadowQuality, bool Inside, bool MSAA>
+	void ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::_initDefines(ShaderDefines& defines)
 	{
 		switch(ShadowQuality)
 		{
@@ -307,35 +327,56 @@ TEMPL_INSTANTIATE(3)
 
 		defines.set("NEEDS_TRANSFORM", 1);
 		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
+		
+		if (Inside)
+			defines.set("VIEWER_INSIDE_VOLUME", 1);
 	}
 
-	template <int ShadowQuality, bool MSAA>
-	void ShadowProjectOmniMat<ShadowQuality, MSAA>::bind(const Light& light, const SPtr<Texture>& shadowMap, 
-		const SPtr<GpuParamBlockBuffer> shadowParams, const SPtr<GpuParamBlockBuffer>& perCamera)
+	template<int ShadowQuality, bool Inside, bool MSAA>
+	void ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::bind(const ShadowProjectParams& params)
 	{
-		Vector4 lightPosAndScale(light.getPosition(), light.getAttenuationRadius());
+		Vector4 lightPosAndScale(params.light.getPosition(), params.light.getAttenuationRadius());
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mShadowMapParam.set(shadowMap);
+		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
 
-		mParamsSet->setParamBlockBuffer("Params", shadowParams);
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
+		mGBufferParams.bind(params.renderTargets);
+
+		mParamsSet->setParamBlockBuffer("Params", params.shadowParams);
+		mParamsSet->setParamBlockBuffer("PerCamera", params.perCamera);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-#define TEMPL_INSTANTIATE(QUALITY)								\
-	template class ShadowProjectOmniMat<QUALITY, true>;			\
-	template class ShadowProjectOmniMat<QUALITY, false>;		\
-	
-TEMPL_INSTANTIATE(0)
-TEMPL_INSTANTIATE(1)
-TEMPL_INSTANTIATE(2)
-TEMPL_INSTANTIATE(3)
+	void ShadowProjectOmniMaterials::bind(UINT32 quality, bool directional, bool MSAA, const ShadowProjectParams& params)
+	{
+#define BIND_MAT(QUALITY)						\
+	{											\
+		if(directional)							\
+			if (MSAA)							\
+				mMat##QUALITY##TT.bind(params);	\
+			else								\
+				mMat##QUALITY##TF.bind(params);	\
+		else									\
+			if (MSAA)							\
+				mMat##QUALITY##FT.bind(params);	\
+			else								\
+				mMat##QUALITY##FF.bind(params);	\
+	}
 
-#undef TEMPL_INSTANTIATE
+		if(quality <= 1)
+			BIND_MAT(1)
+		else if(quality == 2)
+			BIND_MAT(2)
+		else if(quality == 3)
+			BIND_MAT(3)
+		else // 4 or higher
+			BIND_MAT(4)
+
+#undef BIND_MAT
+	}
 
 	void ShadowInfo::updateNormArea(UINT32 atlasSize)
 	{
@@ -706,8 +747,8 @@ TEMPL_INSTANTIATE(3)
 		return output;
 	}
 
-	void ShadowRendering::renderShadowOcclusion(const RendererScene& scene, const RendererLight& rendererLight, 
-		UINT32 viewIdx)
+	void ShadowRendering::renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, 
+		const RendererLight& rendererLight, UINT32 viewIdx)
 	{
 		const Light* light = rendererLight.internal;
 		UINT32 lightIdx = light->getRendererId();
@@ -723,8 +764,8 @@ TEMPL_INSTANTIATE(3)
 		RenderAPI& rapi = RenderAPI::instance();
 		// TODO - Calculate and set a scissor rectangle for the light
 
-		SPtr<GpuParamBlockBuffer> shadowParams = gShadowProjectParamsDef.createBuffer();
-		SPtr<GpuParamBlockBuffer> shadowOmniParams = gShadowProjectOmniParamsDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> shadowParamBuffer = gShadowProjectParamsDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> shadowOmniParamBuffer = gShadowProjectOmniParamsDef.createBuffer();
 
 		Vector<const ShadowInfo*> shadowInfos;
 
@@ -741,16 +782,28 @@ TEMPL_INSTANTIATE(3)
 					continue;
 
 				for(UINT32 j = 0; j < 6; j++)
-					gShadowProjectOmniParamsDef.gFaceVPMatrices.set(shadowOmniParams, shadowInfo.shadowVPTransforms[j], j);
+					gShadowProjectOmniParamsDef.gFaceVPMatrices.set(shadowOmniParamBuffer, shadowInfo.shadowVPTransforms[j], j);
 
-				gShadowProjectOmniParamsDef.gDepthBias.set(shadowOmniParams, shadowInfo.depthBias);
-				gShadowProjectOmniParamsDef.gFadePercent.set(shadowOmniParams, shadowInfo.fadePerView[viewIdx]);
-				gShadowProjectOmniParamsDef.gInvResolution.set(shadowOmniParams, 1.0f / shadowInfo.area.width);
+				gShadowProjectOmniParamsDef.gDepthBias.set(shadowOmniParamBuffer, shadowInfo.depthBias);
+				gShadowProjectOmniParamsDef.gFadePercent.set(shadowOmniParamBuffer, shadowInfo.fadePerView[viewIdx]);
+				gShadowProjectOmniParamsDef.gInvResolution.set(shadowOmniParamBuffer, 1.0f / shadowInfo.area.width);
 
 				Vector4 lightPosAndRadius(light->getPosition(), light->getAttenuationRadius());
-				gShadowProjectOmniParamsDef.gLightPosAndRadius.set(shadowOmniParams, lightPosAndRadius);
+				gShadowProjectOmniParamsDef.gLightPosAndRadius.set(shadowOmniParamBuffer, lightPosAndRadius);
 
-				// TODO - Bind material & render stencil geometry (also check if inside or outside of the volume?)
+				// Reduce shadow quality based on shadow map resolution for spot lights
+				UINT32 effectiveShadowQuality = getShadowQuality(shadowQuality, shadowInfo.area.width, 2);
+
+				// Check if viewer is inside the light bounds
+				//// Expand the light bounds slightly to handle the case when the near plane is intersecting the light volume
+				float lightRadius = light->getAttenuationRadius() + viewProps.nearPlane * 3.0f;
+				bool viewerInsideVolume = (light->getPosition() - viewProps.viewOrigin).length() < lightRadius;
+
+				SPtr<Texture> shadowMap = mShadowCubemaps[shadowInfo.textureIdx].getTexture();
+				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
+
+				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowParamBuffer, perViewBuffer, renderTargets);
+				mProjectOmniMaterials.bind(effectiveShadowQuality, viewerInsideVolume, viewProps.numSamples > 1, shadowParams);
 
 				gRendererUtility().draw(gRendererUtility().getRadialLightStencil());
 			}
@@ -759,7 +812,8 @@ TEMPL_INSTANTIATE(3)
 		{
 			shadowInfos.clear();
 
-			if(light->getType() == LightType::Spot)
+			bool isCSM = light->getType() == LightType::Directional;
+			if(!isCSM)
 			{
 				const LightShadows& shadows = mSpotLightShadows[lightIdx];
 				for (UINT32 i = 0; i < shadows.numShadows; ++i)
@@ -778,7 +832,9 @@ TEMPL_INSTANTIATE(3)
 				UINT32 mapIdx = mDirectionalLightShadows[lightIdx];
 				ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
 
-				for (UINT32 i = 0; i < NUM_CASCADE_SPLITS; i++)
+				// Render cascades in far to near order.
+				// Note: If rendering other non-cascade maps they should be rendered after cascades.
+				for (UINT32 i = NUM_CASCADE_SPLITS; i >= 0; i--)
 					shadowInfos.push_back(&cascadedMap.getShadowInfo(i));
 			}
 
@@ -790,17 +846,18 @@ TEMPL_INSTANTIATE(3)
 				Vector2 shadowMapSize((float)shadowInfo->area.width, (float)shadowInfo->area.height);
 				float transitionScale = getFadeTransition(*light, shadowInfo->depthRange, shadowInfo->area.width);
 
-				gShadowProjectParamsDef.gFadePercent.set(shadowParams, shadowInfo->fadePerView[viewIdx]);
-				gShadowProjectParamsDef.gFadePlaneDepth.set(shadowParams, shadowInfo->depthFade);
-				gShadowProjectParamsDef.gInvFadePlaneRange.set(shadowParams, 1.0f / shadowInfo->fadeRange);
-				gShadowProjectParamsDef.gMixedToShadowSpace.set(shadowParams, mixedToShadowUV);
-				gShadowProjectParamsDef.gShadowMapSize.set(shadowParams, shadowMapSize);
-				gShadowProjectParamsDef.gShadowMapSizeInv.set(shadowParams, 1.0f / shadowMapSize);
-				gShadowProjectParamsDef.gSoftTransitionScale.set(shadowParams, transitionScale);
+				gShadowProjectParamsDef.gFadePercent.set(shadowParamBuffer, shadowInfo->fadePerView[viewIdx]);
+				gShadowProjectParamsDef.gFadePlaneDepth.set(shadowParamBuffer, shadowInfo->depthFade);
+				gShadowProjectParamsDef.gInvFadePlaneRange.set(shadowParamBuffer, 1.0f / shadowInfo->fadeRange);
+				gShadowProjectParamsDef.gMixedToShadowSpace.set(shadowParamBuffer, mixedToShadowUV);
+				gShadowProjectParamsDef.gShadowMapSize.set(shadowParamBuffer, shadowMapSize);
+				gShadowProjectParamsDef.gShadowMapSizeInv.set(shadowParamBuffer, 1.0f / shadowMapSize);
+				gShadowProjectParamsDef.gSoftTransitionScale.set(shadowParamBuffer, transitionScale);
 
 				// Generate a stencil buffer to avoid evaluating pixels without any receiver geometry in the shadow area
 				std::array<Vector3, 8> frustumVertices;
-				if(light->getType() == LightType::Spot)
+				UINT32 effectiveShadowQuality = shadowQuality;
+				if(!isCSM)
 				{
 					ConvexVolume shadowFrustum;
 					frustumVertices = getFrustum(shadowInfo->shadowVPTransform.inverse(), shadowFrustum);
@@ -812,6 +869,9 @@ TEMPL_INSTANTIATE(3)
 
 					mProjectStencilMaterials.bind(false, viewerInsideFrustum, perViewBuffer);
 					drawFrustum(frustumVertices);
+
+					// Reduce shadow quality based on shadow map resolution for spot lights
+					effectiveShadowQuality = getShadowQuality(shadowQuality, shadowInfo->area.width, 2);
 				}
 				else
 				{
@@ -825,14 +885,22 @@ TEMPL_INSTANTIATE(3)
 					drawNearFarPlanes(near.z, far.z, shadowInfo->cascadeIdx != 0);
 				}
 
-				// TODO - Update projection shaders so they test against the stencil buffer, and clear it to zero
+				SPtr<Texture> shadowMap;
+				UINT32 shadowMapFace = 0;
+				if(!isCSM)
+					shadowMap = mDynamicShadowMaps[shadowInfo->textureIdx].getTexture();
+				else
+				{
+					shadowMap = mCascadedShadowMaps[shadowInfo->textureIdx].getTexture();
+					shadowMapFace = shadowInfo->cascadeIdx;
+				}
 
-				// TODO - Update shaders so they set relevant blend states
+				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
+				ShadowProjectParams shadowParams(*light, shadowMap, shadowMapFace, shadowParamBuffer, perViewBuffer, 
+					renderTargets);
+				mProjectMaterials.bind(effectiveShadowQuality, isCSM, viewProps.numSamples > 1, shadowParams);
 
-				// TODO - Bind material & render. Pick material depending on selected shadow quality, MSAA setting, light type
-				//      - Reduce shadow quality based on distance for CSM shadows
-
-				if(light->getType() == LightType::Spot)
+				if(!isCSM)
 					drawFrustum(frustumVertices);
 				else
 					gRendererUtility().drawScreenQuad();
@@ -918,8 +986,10 @@ TEMPL_INSTANTIATE(3)
 			shadowInfo.depthBias = getDepthBias(*light, shadowInfo.depthRange, mapSize);
 
 			gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, shadowInfo.depthBias);
-			gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, shadowInfo.depthRange);
+			gShadowParamsDef.gInvDepthRange.set(shadowParamsBuffer, 1.0f / shadowInfo.depthRange);
 			gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, shadowInfo.shadowVPTransform);
+			gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
+			gShadowParamsDef.gNDCZToViewZ.set(shadowParamsBuffer, RendererView::getNDCZToViewZ(proj));
 
 			rapi.setRenderTarget(shadowMap.getTarget(i));
 			rapi.clearRenderTarget(FBT_DEPTH);
@@ -1010,8 +1080,10 @@ TEMPL_INSTANTIATE(3)
 		mapInfo.shadowVPTransform = proj * view;
 
 		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, mapInfo.depthBias);
-		gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, mapInfo.depthRange);
+		gShadowParamsDef.gInvDepthRange.set(shadowParamsBuffer, 1.0f / mapInfo.depthRange);
 		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, mapInfo.shadowVPTransform);
+		gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
+		gShadowParamsDef.gNDCZToViewZ.set(shadowParamsBuffer, RendererView::getNDCZToViewZ(proj));
 
 		mDepthNormalMat.bind(shadowParamsBuffer);
 
@@ -1111,8 +1183,10 @@ TEMPL_INSTANTIATE(3)
 		ConvexVolume localFrustum(proj);
 
 		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, mapInfo.depthBias);
-		gShadowParamsDef.gDepthRange.set(shadowParamsBuffer, mapInfo.depthRange);
+		gShadowParamsDef.gInvDepthRange.set(shadowParamsBuffer, 1.0f / mapInfo.depthRange);
 		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, Matrix4::IDENTITY);
+		gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
+		gShadowParamsDef.gNDCZToViewZ.set(shadowParamsBuffer, RendererView::getNDCZToViewZ(proj));
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-light->getPosition());
 
@@ -1274,7 +1348,7 @@ TEMPL_INSTANTIATE(3)
 			{  1.0f,  1.0f * flipY, near },
 			{ -1.0f,  1.0f * flipY, near },
 
-			// Near plane
+			// Far plane
 			{ -1.0f, -1.0f * flipY, far },
 			{  1.0f, -1.0f * flipY, far },
 			{  1.0f,  1.0f * flipY, far },
@@ -1297,7 +1371,7 @@ TEMPL_INSTANTIATE(3)
 		RenderAPI& rapi = RenderAPI::instance();
 
 		// Update VB with new vertices
-		mPlaneVB->writeData(0, sizeof(Vector3) * 8, corners.data(), BWT_DISCARD);
+		mFrustumVB->writeData(0, sizeof(Vector3) * 8, corners.data(), BWT_DISCARD);
 
 		// Draw the mesh
 		rapi.setVertexDeclaration(mPositionOnlyVD);
@@ -1306,6 +1380,21 @@ TEMPL_INSTANTIATE(3)
 		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
 
 		rapi.drawIndexed(0, 36, 0, 8);
+	}
+
+	UINT32 ShadowRendering::getShadowQuality(UINT32 requestedQuality, UINT32 shadowMapResolution, UINT32 minAllowedQuality)
+	{
+		static const UINT32 TARGET_RESOLUTION = 512;
+
+		// If shadow map resolution is smaller than some target resolution drop the number of PCF samples (shadow quality)
+		// so that the penumbra better matches with larger sized shadow maps.
+		while(requestedQuality > minAllowedQuality && shadowMapResolution < TARGET_RESOLUTION)
+		{
+			shadowMapResolution *= 2;
+			requestedQuality = std::max(requestedQuality - 1, 1U);
+		}
+
+		return requestedQuality;
 	}
 
 	ConvexVolume ShadowRendering::getCSMSplitFrustum(const RendererView& view, const Vector3& lightDir, UINT32 cascade, 

@@ -28,8 +28,10 @@ namespace bs { namespace ct
 
 	BS_PARAM_BLOCK_BEGIN(ShadowParamsDef)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToViewZ)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
 		BS_PARAM_BLOCK_ENTRY(float, gDepthBias)
-		BS_PARAM_BLOCK_ENTRY(float, gDepthRange)
+		BS_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
 	BS_PARAM_BLOCK_END
 
 	extern ShadowParamsDef gShadowParamsDef;
@@ -135,6 +137,35 @@ namespace bs { namespace ct
 		ShadowProjectStencilMat<false, false> mFF;
 	};
 
+	/** Common parameters used by the shadow projection materials. */
+	struct ShadowProjectParams
+	{
+		ShadowProjectParams(const Light& light, const SPtr<Texture>& shadowMap, UINT32 shadowMapFace,
+			const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& perCameraParams,
+			const SPtr<RenderTargets>& renderTargets)
+			: light{light}, shadowMap{shadowMap}, shadowParams{shadowParams}, perCamera{perCameraParams}
+			, renderTargets{renderTargets}
+		{ }
+
+		/** Light which is casting the shadow. */
+		const Light& light;
+
+		/** Texture containing the shadow map. */
+		const SPtr<Texture>& shadowMap;
+
+		/** Face of the shadow map to bind, if it has multiple faces. */
+		UINT32 shadowMapFace;
+
+		/** Parameter block containing parameters specific for shadow projection. */
+		const SPtr<GpuParamBlockBuffer> shadowParams;
+
+		/** Parameter block containing parameters specific to this view. */
+		const SPtr<GpuParamBlockBuffer>& perCamera;
+
+		/** Contains the GBuffer textures. */
+		SPtr<RenderTargets> renderTargets;
+	};
+
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
@@ -157,8 +188,7 @@ namespace bs { namespace ct
 		ShadowProjectMat();
 
 		/** Binds the material and its parameters to the pipeline. */
-		void bind(const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer> shadowParams, 
-			const SPtr<GpuParamBlockBuffer>& perCamera);
+		void bind(const ShadowProjectParams& params);
 
 	private:
 		SPtr<SamplerState> mSamplerState;
@@ -168,6 +198,35 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
+	};
+
+	/** Contains all variations of the ShadowProjectMat material. */
+	class ShadowProjectMaterials
+	{
+	public:
+		/** 
+		 * Binds the appropriate variation of the ShadowProjectMat based on the provided parameters. 
+		 * 
+		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
+		 * @param[in]	directional		True if rendering a shadow from a directional light.
+		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
+		 * @param[in]	params			Parameters to be passed along to the material.
+		 */
+		void bind(UINT32 quality, bool directional, bool MSAA, const ShadowProjectParams& params);
+	private:
+#define MAT_MEMBERS(QUALITY)											\
+		ShadowProjectMat<QUALITY, true, true> mMat##QUALITY##TT;		\
+		ShadowProjectMat<QUALITY, true, false> mMat##QUALITY##TF;		\
+		ShadowProjectMat<QUALITY, false, true> mMat##QUALITY##FT;		\
+		ShadowProjectMat<QUALITY, false, false> mMat##QUALITY##FF;
+	
+		MAT_MEMBERS(1)
+		MAT_MEMBERS(2)
+		MAT_MEMBERS(3)
+		MAT_MEMBERS(4)
+
+#undef MAT_MEMBERS
+
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
@@ -181,8 +240,8 @@ namespace bs { namespace ct
 	extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
 	/** Material used for projecting depth into a shadow accumulation buffer for omnidirectional shadow maps. */
-	template<int ShadowQuality, bool MSAA>
-	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat<ShadowQuality, MSAA>>
+	template<int ShadowQuality, bool Inside, bool MSAA>
+	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>>
 	{
 		RMAT_DEF("ShadowProjectOmni.bsl");
 
@@ -190,8 +249,7 @@ namespace bs { namespace ct
 		ShadowProjectOmniMat();
 
 		/** Binds the material and its parameters to the pipeline. */
-		void bind(const Light& light, const SPtr<Texture>& shadowMap, const SPtr<GpuParamBlockBuffer> shadowParams, 
-			const SPtr<GpuParamBlockBuffer>& perCamera);
+		void bind(const ShadowProjectParams& params);
 
 	private:
 		SPtr<SamplerState> mSamplerState;
@@ -201,6 +259,35 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
+	};
+
+	/** Contains all variations of the ShadowProjectOmniMat material. */
+	class ShadowProjectOmniMaterials
+	{
+	public:
+		/** 
+		 * Binds the appropriate variation of the ShadowProjectOmniMat based on the provided parameters. 
+		 * 
+		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
+		 * @param[in]	inside			True if the viewer is inside the light volume.
+		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
+		 * @param[in]	params			Parameters to be passed along to the material.
+		 */
+		void bind(UINT32 quality, bool inside, bool MSAA, const ShadowProjectParams& params);
+	private:
+#define MAT_MEMBERS(QUALITY)												\
+		ShadowProjectOmniMat<QUALITY, true, true> mMat##QUALITY##TT;		\
+		ShadowProjectOmniMat<QUALITY, true, false> mMat##QUALITY##TF;		\
+		ShadowProjectOmniMat<QUALITY, false, true> mMat##QUALITY##FT;		\
+		ShadowProjectOmniMat<QUALITY, false, false> mMat##QUALITY##FF;
+	
+		MAT_MEMBERS(1)
+		MAT_MEMBERS(2)
+		MAT_MEMBERS(3)
+		MAT_MEMBERS(4)
+
+#undef MAT_MEMBERS
+
 	};
 
 	/** Information about a shadow cast from a single light. */
@@ -369,7 +456,8 @@ namespace bs { namespace ct
 		 * Renders shadow occlusion values for the specified light, into the currently bound render target. 
 		 * The system uses shadow maps rendered by renderShadowMaps().
 		 */
-		void renderShadowOcclusion(const RendererScene& scene, const RendererLight& light, UINT32 viewIdx);
+		void renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, const RendererLight& light,
+			UINT32 viewIdx);
 
 		/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 		void setShadowMapSize(UINT32 size);
@@ -415,6 +503,11 @@ namespace bs { namespace ct
 		 * by AABox::Corner enum.
 		 */
 		void drawFrustum(const std::array<Vector3, 8>& corners);
+
+		/**
+		 * Calculates optimal shadow quality based on the quality set in the options and the actual shadow map resolution.
+		 */
+		static UINT32 getShadowQuality(UINT32 requestedQuality, UINT32 shadowMapResolution, UINT32 minAllowedQuality);
 
 		/**
 		 * Generates a frustum for a single cascade of a cascaded shadow map. Also outputs spherical bounds of the
@@ -486,6 +579,8 @@ namespace bs { namespace ct
 		ShadowDepthDirectionalMat mDepthDirectionalMat;
 
 		ShadowProjectStencilMaterials mProjectStencilMaterials;
+		ShadowProjectMaterials mProjectMaterials;
+		ShadowProjectOmniMaterials mProjectOmniMaterials;
 
 		UINT32 mShadowMapSize;
 

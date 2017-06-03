@@ -245,7 +245,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	Vector2 RendererView::getDeviceZTransform(const Matrix4& projMatrix) const
+	Vector2 RendererView::getDeviceZToViewZ(const Matrix4& projMatrix)
 	{
 		// Returns a set of values that will transform depth buffer values (in range [0, 1]) to a distance
 		// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
@@ -292,7 +292,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	Vector2 RendererView::getNDCZTransform(const Matrix4& projMatrix) const
+	Vector2 RendererView::getNDCZToViewZ(const Matrix4& projMatrix)
 	{
 		// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
 		// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
@@ -331,6 +331,18 @@ namespace bs { namespace ct
 		return output;
 	}
 
+	Vector2 RendererView::getNDCZToDeviceZ()
+	{
+		RenderAPI& rapi = RenderAPI::instance();
+		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
+
+		Vector2 ndcZToDeviceZ;
+		ndcZToDeviceZ.x = 1.0f / (rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue());
+		ndcZToDeviceZ.y = -rapiInfo.getMinimumDepthInputValue();
+
+		return ndcZToDeviceZ;
+	}
+
 	void RendererView::updatePerViewBuffer()
 	{
 		RenderAPI& rapi = RenderAPI::instance();
@@ -359,13 +371,9 @@ namespace bs { namespace ct
 		gPerCameraParamDef.gMatScreenToWorld.set(mParamBuffer, invViewProj * projZ);
 		gPerCameraParamDef.gViewDir.set(mParamBuffer, mProperties.viewDirection);
 		gPerCameraParamDef.gViewOrigin.set(mParamBuffer, mProperties.viewOrigin);
-		gPerCameraParamDef.gDeviceZToWorldZ.set(mParamBuffer, getDeviceZTransform(mProperties.projTransform));
-		gPerCameraParamDef.gNDCZToWorldZ.set(mParamBuffer, getNDCZTransform(mProperties.projTransform));
-
-		Vector2 ndcZToDeviceZ;
-		ndcZToDeviceZ.x = 1.0f / (rapiInfo.getMaximumDepthInputValue() - rapiInfo.getMinimumDepthInputValue());
-		ndcZToDeviceZ.y = -rapiInfo.getMinimumDepthInputValue();
-		gPerCameraParamDef.gNDCZToDeviceZ.set(mParamBuffer, ndcZToDeviceZ);
+		gPerCameraParamDef.gDeviceZToWorldZ.set(mParamBuffer, getDeviceZToViewZ(mProperties.projTransform));
+		gPerCameraParamDef.gNDCZToWorldZ.set(mParamBuffer, getNDCZToViewZ(mProperties.projTransform));
+		gPerCameraParamDef.gNDCZToDeviceZ.set(mParamBuffer, getNDCZToDeviceZ());
 
 		Vector2 nearFar(mProperties.nearPlane, mProperties.farPlane);
 		gPerCameraParamDef.gNearFar.set(mParamBuffer, nearFar);

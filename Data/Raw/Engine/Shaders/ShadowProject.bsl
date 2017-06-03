@@ -6,11 +6,50 @@ technique ShadowProject
 	mixin GBufferInput;
 	mixin ShadowProjectionCommon;
 
+	depth
+	{
+		read = false;
+		write = false;
+	};
+	
+	stencil
+	{
+		enabled = true;
+		
+		// This clears the stencil at the same time as performing the test
+		// Note: Need to test performance clearing the stencil this way vs. clearing it separately,
+		//   as this disables HiStencil optimization.
+		front = { zero, zero, zero, neq };
+	};
+	
+	#ifdef FADE_PLANE
+	blend
+	{
+		target
+		{
+			enabled = true;
+			writemask = R;
+			color = { srcA, srcIA, add };
+		};
+	};
+	#else
+	blend
+	{
+		target
+		{
+			enabled = true;
+			writemask = R;
+			color = { one, one, min };
+		};
+	};	
+	#endif
+	
 	code
 	{
 		Texture2D gShadowTex;
 		SamplerState gShadowSampler;
 	
+		[internal]
 		cbuffer Params
 		{
 			// Transform a point in mixed space (xy - clip space, z - view space) to a point
@@ -207,7 +246,7 @@ technique ShadowProject
 			#endif
 			
 			float alpha = 1.0f;
-			#if FADE_PLANE
+			#ifdef FADE_PLANE
 				alpha = 1.0f - saturate((depth - gFadePlaneDepth) * gInvFadePlaneRange);
 			#endif
 

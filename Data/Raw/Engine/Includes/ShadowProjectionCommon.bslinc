@@ -17,6 +17,7 @@ mixin ShadowProjectionCommon
 		};
 		
 		#if NEEDS_TRANSFORM
+		[internal]
 		cbuffer VertParams
 		{
 			float4 gPositionAndScale;
