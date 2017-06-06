@@ -9,7 +9,7 @@
 
 namespace bs { namespace ct
 {
-	class GPUReflProbeData;
+	class VisibleReflProbeData;
 	class VisibleLightData;
 
 	/** @addtogroup RenderBeast
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 		LightGrid();
 
 		/** Updates the light grid from the provided view. */
-		void updateGrid(const RendererView& view, const VisibleLightData& lightData, const GPUReflProbeData& probeData, 
+		void updateGrid(const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData, 
 			bool noLighting);
 
 		/** 

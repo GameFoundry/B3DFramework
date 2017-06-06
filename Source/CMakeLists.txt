@@ -289,6 +289,7 @@ endif()
 
 ## Local experimental projects (not part of main repository)
 add_subdirectory_optional(Experimental/PBS)
+add_subdirectory_optional(Experimental/Shadows)
 
 ## Managed projects
 if(MSVC)

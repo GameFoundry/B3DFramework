@@ -10,6 +10,7 @@
 namespace bs { namespace ct
 {
 	struct SceneInfo;
+	class RendererViewGroup;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -75,9 +76,9 @@ namespace bs { namespace ct
 
 		/** 
 		 * Updates the internal buffers with a new set of lights. Before calling make sure that light visibility has
-		 * been calculated and assigned to @p sceneInfo.
+		 * been calculated for the provided view group.
 		 */
-		void setLights(const SceneInfo& sceneInfo);
+		void update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup);
 
 		/** Returns a GPU bindable buffer containing information about every light. */
 		SPtr<GpuBuffer> getLightBuffer() const { return mLightBuffer; }

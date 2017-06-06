@@ -109,8 +109,10 @@ namespace bs { namespace ct
 		:mNumLights{}, mNumShadowedLights{}
 	{ }
 
-	void VisibleLightData::setLights(const SceneInfo& sceneInfo)
+	void VisibleLightData::update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
 	{
+		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
+
 		for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
 			mVisibleLights[i].clear();
 
@@ -122,7 +124,7 @@ namespace bs { namespace ct
 		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
 		for(UINT32 i = 0; i < numRadialLights; i++)
 		{
-			if (!sceneInfo.radialLightVisibility[i])
+			if (!visibility.radialLights[i])
 				continue;
 
 			mVisibleLights[(UINT32)LightType::Radial].push_back(&sceneInfo.radialLights[i]);
@@ -131,7 +133,7 @@ namespace bs { namespace ct
 		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
 		for (UINT32 i = 0; i < numSpotLights; i++)
 		{
-			if (!sceneInfo.spotLightVisibility[i])
+			if (!visibility.spotLights[i])
 				continue;
 
 			mVisibleLights[(UINT32)LightType::Spot].push_back(&sceneInfo.spotLights[i]);

@@ -564,7 +564,8 @@ namespace bs { namespace ct
 		mShadowCubemaps.clear();
 	}
 
-	void ShadowRendering::renderShadowMaps(RendererScene& scene, const FrameInfo& frameInfo)
+	void ShadowRendering::renderShadowMaps(RendererScene& scene, const RendererViewGroup& viewGroup, 
+		const FrameInfo& frameInfo)
 	{
 		// Note: Currently all shadows are dynamic and are rebuilt every frame. I should later added support for static
 		// shadow maps which can be used for immovable lights. Such a light can then maintain a set of shadow maps,
@@ -575,6 +576,7 @@ namespace bs { namespace ct
 		// used for adding high quality shadows on specific objects (e.g. important characters during cinematics).
 
 		const SceneInfo& sceneInfo = scene.getSceneInfo();
+		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
 		
 		// Clear all transient data from last frame
 		mShadowInfos.clear();
@@ -604,7 +606,7 @@ namespace bs { namespace ct
 
 			// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 			// if I kept that information somewhere
-			if (!light.internal->getCastsShadow() || !sceneInfo.spotLightVisibility[i])
+			if (!light.internal->getCastsShadow() || !visibility.spotLights[i])
 				continue;
 
 			ShadowMapOptions options;
@@ -630,7 +632,7 @@ namespace bs { namespace ct
 
 			// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 			// if I kept that information somewhere
-			if (!light.internal->getCastsShadow() || !sceneInfo.radialLightVisibility[i])
+			if (!light.internal->getCastsShadow() || !visibility.radialLights[i])
 				continue;
 
 			ShadowMapOptions options;

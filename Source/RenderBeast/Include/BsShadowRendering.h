@@ -451,8 +451,8 @@ namespace bs { namespace ct
 	public:
 		ShadowRendering(UINT32 shadowMapSize);
 
-		/** For each visibile shadow casting light, renders a shadow map from its point of view. */
-		void renderShadowMaps(RendererScene& scene, const FrameInfo& frameInfo);
+		/** For each visible shadow casting light, renders a shadow map from its point of view. */
+		void renderShadowMaps(RendererScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 		/** 
 		 * Renders shadow occlusion values for the specified light, into the currently bound render target. 

@@ -87,7 +87,7 @@ namespace bs { namespace ct
 
 		mPreintegratedEnvBRDF = TiledDeferredImageBasedLighting::generatePreintegratedEnvBRDF();
 		mVisibleLightInfo = bs_new<VisibleLightData>();
-		mGPUReflProbeData = bs_new<GPUReflProbeData>();
+		mVisibleReflProbeInfo = bs_new<VisibleReflProbeData>();
 		mLightGrid = bs_new<LightGrid>();
 
 		GpuResourcePool::startUp();
@@ -116,7 +116,7 @@ namespace bs { namespace ct
 		bs_delete(mSkyboxMat);
 		bs_delete(mSkyboxSolidColorMat);
 		bs_delete(mVisibleLightInfo);
-		bs_delete(mGPUReflProbeData);
+		bs_delete(mVisibleReflProbeInfo);
 		bs_delete(mLightGrid);
 		bs_delete(mFlatFramebufferToTextureMat);
 		bs_delete(mTiledDeferredLightingMats);
@@ -334,12 +334,6 @@ namespace bs { namespace ct
 		
 		FrameInfo frameInfo(delta, animData);
 
-		// Render shadow maps
-		//ShadowRendering::instance().renderShadowMaps(*mScene, frameInfo);
-
-		// Update reflection probes
-		updateLightProbes(frameInfo);
-
 		// Gather all views
 		Vector<RendererView*> views;
 		for (auto& rtInfo : sceneInfo.renderTargets)
@@ -356,8 +350,17 @@ namespace bs { namespace ct
 			}
 		}
 
+		mMainViewGroup.setViews(views.data(), (UINT32)views.size());
+		mMainViewGroup.determineVisibility(sceneInfo);
+
+		// Render shadow maps
+		//ShadowRendering::instance().renderShadowMaps(*mScene, mMainViewGroup, frameInfo);
+
+		// Update reflection probes
+		updateLightProbes(frameInfo);
+
 		// Render everything
-		renderViews(views.data(), (UINT32)views.size(), frameInfo);
+		renderViews(mMainViewGroup, frameInfo);
 
 		gProfilerGPU().endFrame();
 
@@ -371,84 +374,36 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("renderAllCore");
 	}
 
-	void RenderBeast::renderViews(RendererView** views, UINT32 numViews, const FrameInfo& frameInfo)
+	void RenderBeast::renderViews(const RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 	{
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
-
-		// Generate render queues per camera
-		sceneInfo.renderableVisibility.resize(sceneInfo.renderables.size(), false);
-		sceneInfo.renderableVisibility.assign(sceneInfo.renderableVisibility.size(), false);
-
-		for(UINT32 i = 0; i < numViews; i++)
-			views[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &sceneInfo.renderableVisibility);
-
-		// Calculate light visibility for all views
-		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
-		sceneInfo.radialLightVisibility.resize(numRadialLights, false);
-		sceneInfo.radialLightVisibility.assign(numRadialLights, false);
-
-		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
-		sceneInfo.spotLightVisibility.resize(numSpotLights, false);
-		sceneInfo.spotLightVisibility.assign(numSpotLights, false);
-
-		for (UINT32 i = 0; i < numViews; i++)
-		{
-			views[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
-				&sceneInfo.radialLightVisibility);
-
-			views[i]->determineVisible(sceneInfo.spotLights, sceneInfo.spotLightWorldBounds, LightType::Spot,
-				&sceneInfo.spotLightVisibility);
-		}
+		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
 
 		// Update GPU light data
-		mVisibleLightInfo->setLights(sceneInfo);
+		mVisibleLightInfo->update(sceneInfo, viewGroup);
 
-		// Gemerate reflection probes and their GPU buffers
-		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
-
-		mReflProbeVisibilityTemp.resize(numProbes, false);
-		for (UINT32 i = 0; i < numViews; i++)
-			views[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mReflProbeVisibilityTemp);
-
-		for(UINT32 i = 0; i < numProbes; i++)
-		{
-			if (!mReflProbeVisibilityTemp[i])
-				continue;
-
-			mReflProbeDataTemp.push_back(ReflProbeData());
-			sceneInfo.reflProbes[i].getParameters(mReflProbeDataTemp.back());
-		}
-
-		// Sort probes so bigger ones get accessed first, this way we overlay smaller ones on top of biggers ones when
-		// rendering
-		auto sorter = [](const ReflProbeData& lhs, const ReflProbeData& rhs)
-		{
-			return rhs.radius < lhs.radius;
-		};
-
-		std::sort(mReflProbeDataTemp.begin(), mReflProbeDataTemp.end(), sorter);
-
-		mGPUReflProbeData->setProbes(mReflProbeDataTemp, numProbes);
-
-		mReflProbeDataTemp.clear();
-		mReflProbeVisibilityTemp.clear();
+		// Update reflection probe data
+		mVisibleReflProbeInfo->update(sceneInfo, viewGroup);
 
 		// Update various buffers required by each renderable
 		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
-			if (!sceneInfo.renderableVisibility[i])
+			if (!visibility.renderables[i])
 				continue;
 
 			mScene->prepareRenderable(i, frameInfo);
 		}
 
+		UINT32 numViews = viewGroup.getNumViews();
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (views[i]->getProperties().isOverlay)
-				renderOverlay(views[i]);
+			RendererView* view = viewGroup.getView(i);
+
+			if (view->getProperties().isOverlay)
+				renderOverlay(view);
 			else
-				renderView(views[i], frameInfo.timeDelta);
+				renderView(view, frameInfo.timeDelta);
 		}
 	}
 
@@ -481,7 +436,7 @@ namespace bs { namespace ct
 		viewInfo->beginRendering(true);
 
 		// Prepare light grid required for transparent object rendering
-		mLightGrid->updateGrid(*viewInfo, *mVisibleLightInfo, *mGPUReflProbeData, viewProps.noLighting);
+		mLightGrid->updateGrid(*viewInfo, *mVisibleLightInfo, *mVisibleReflProbeInfo, viewProps.noLighting);
 
 		SPtr<GpuParamBlockBuffer> gridParams;
 		SPtr<GpuBuffer> gridLightOffsetsAndSize, gridLightIndices;
@@ -493,7 +448,7 @@ namespace bs { namespace ct
 		ITiledDeferredImageBasedLightingMat* imageBasedLightingMat =
 			mTileDeferredImageBasedLightingMats->get(numSamples);
 
-		imageBasedLightingMat->setReflectionProbes(*mGPUReflProbeData, mReflCubemapArrayTex, viewProps.renderingReflections);
+		imageBasedLightingMat->setReflectionProbes(*mVisibleReflProbeInfo, mReflCubemapArrayTex, viewProps.renderingReflections);
 
 		float skyBrightness = 1.0f;
 		if (mSkybox != nullptr)
@@ -538,7 +493,7 @@ namespace bs { namespace ct
 				element.gridProbeOffsetsAndSizeParam.set(gridProbeOffsetsAndSize);
 
 				iblParams.reflectionProbeIndicesParam.set(gridProbeIndices);
-				iblParams.reflectionProbesParam.set(mGPUReflProbeData->getProbeBuffer());
+				iblParams.reflectionProbesParam.set(mVisibleReflProbeInfo->getProbeBuffer());
 
 				iblParams.skyReflectionsTexParam.set(mSkyboxFilteredReflections);
 				iblParams.skyIrradianceTexParam.set(mSkyboxIrradiance);
@@ -994,6 +949,7 @@ namespace bs { namespace ct
 
 	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr, const FrameInfo& frameInfo)
 	{
+		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 		auto& texProps = cubemap->getProperties();
 
 		Matrix4 projTransform = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
@@ -1098,12 +1054,15 @@ namespace bs { namespace ct
 			views[i].setView(viewDesc);
 			views[i].updatePerViewBuffer();
 
-			const SceneInfo& sceneInfo = mScene->getSceneInfo();
 			views[i].determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos);
 		}
 
 		RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
-		renderViews(viewPtrs, 6, frameInfo);
+
+		RendererViewGroup viewGroup(viewPtrs, 6);
+		viewGroup.determineVisibility(sceneInfo);
+
+		renderViews(viewGroup, frameInfo);
 	}
 
 }}

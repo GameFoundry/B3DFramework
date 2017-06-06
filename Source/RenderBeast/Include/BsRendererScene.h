@@ -47,11 +47,6 @@ namespace bs
 		// Buffers for various transient data that gets rebuilt every frame
 		//// Rebuilt every frame
 		mutable Vector<bool> renderableReady;
-
-		//// Rebuilt for every set of views
-		mutable Vector<bool> renderableVisibility;
-		mutable Vector<bool> radialLightVisibility;
-		mutable Vector<bool> spotLightVisibility;
 	};
 
 	/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */

@@ -13,6 +13,7 @@
 
 namespace bs { namespace ct
 {
+	struct SceneInfo;
 	class RendererLight;
 
 	/** @addtogroup RenderBeast
@@ -143,6 +144,7 @@ namespace bs { namespace ct
 		Vector<bool> renderables;
 		Vector<bool> radialLights;
 		Vector<bool> spotLights;
+		Vector<bool> reflProbes;
 	};
 
 	/** Information used for culling an object against a view. */
@@ -315,6 +317,44 @@ namespace bs { namespace ct
 		bool mUsingGBuffer;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		VisibilityInfo mVisibility;
+	};
+
+	/** Contains one or multiple RendererView%s that are in some way related. */
+	class RendererViewGroup
+	{
+	public:
+		RendererViewGroup() {}
+		RendererViewGroup(RendererView** views, UINT32 numViews);
+
+		/** 
+		 * Updates the internal list of views. This is more efficient than always constructing a new instance of this class
+		 * when views change, as internal buffers don't need to be re-allocated.
+		 */
+		void setViews(RendererView** views, UINT32 numViews);
+
+		/** Returns a view at the specified index. Index must be less than the value returned by getNumViews(). */
+		RendererView* getView(UINT32 idx) const { return mViews[idx]; }
+
+		/** Returns the total number of views in the group. */
+		UINT32 getNumViews() const { return (UINT32)mViews.size(); }
+
+		/** 
+		 * Returns information about visibility of various scene objects, from the perspective of all the views in the 
+		 * group (visibility will be true if the object is visible from any of the views. determineVisibility() must be
+		 * called whenever the scene or view information changes (usually every frame). 
+		 */
+		const VisibilityInfo& getVisibilityInfo() const { return mVisibility; }
+
+		/** 
+		 * Updates visibility information for the provided scene objects, from the perspective of all views in this group,
+		 * and updates the render queues of each individual view. Use getVisibilityInfo() to retrieve the calculated
+		 * visibility information.
+		 */
+		void determineVisibility(const SceneInfo& sceneInfo);
+
+	private:
+		Vector<RendererView*> mViews;
 		VisibilityInfo mVisibility;
 	};
 

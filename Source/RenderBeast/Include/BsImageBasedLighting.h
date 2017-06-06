@@ -8,6 +8,9 @@
 
 namespace bs { namespace ct
 {
+	struct SceneInfo;
+	class RendererViewGroup;
+
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
@@ -26,13 +29,16 @@ namespace bs { namespace ct
 	};
 
 	/** Contains GPU buffers used by the renderer to manipulate reflection probes. */
-	class GPUReflProbeData
+	class VisibleReflProbeData
 	{
 	public:
-		GPUReflProbeData();
+		VisibleReflProbeData();
 
-		/** Updates the internal buffers with a new set of probes. */
-		void setProbes(const Vector<ReflProbeData>& probeData, UINT32 numProbes);
+		/** 
+		 * Updates the internal buffers with a new set of refl. probes. Before calling make sure that probe visibility has
+		 * been calculated for the provided view group.
+		 */
+		void update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup);
 
 		/** Returns a GPU bindable buffer containing information about every reflection probe. */
 		SPtr<GpuBuffer> getProbeBuffer() const { return mProbeBuffer; }
@@ -42,8 +48,10 @@ namespace bs { namespace ct
 
 	private:
 		SPtr<GpuBuffer> mProbeBuffer;
-
 		UINT32 mNumProbes;
+
+		// Helper to avoid memory allocations
+		Vector<ReflProbeData> mReflProbeDataTemp;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ReflProbeParamsParamDef)
@@ -121,7 +129,7 @@ namespace bs { namespace ct
 					 const SPtr<Texture>& preintegratedGF);
 
 		/** Binds all the active reflection probes. */
-		void setReflectionProbes(const GPUReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
+		void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
 			bool capturingReflections);
 
 		/** Binds the sky reflection & irradiance textures. Set textures to null if not available. */
@@ -177,7 +185,7 @@ namespace bs { namespace ct
 			const SPtr<Texture>& preintegratedGF) = 0;
 
 		/** @copydoc TiledDeferredImageBasedLighting::setReflectionProbes() */
-		virtual void setReflectionProbes(const GPUReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps,
+		virtual void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps,
 			bool capturingReflections) = 0;
 
 		/** @copydoc TiledDeferredImageBasedLighting::setSky() */
@@ -205,7 +213,7 @@ namespace bs { namespace ct
 			const SPtr<Texture>& preintegratedGF) override;
 
 		/** @copydoc ITiledDeferredImageBasedLightingMat::setReflectionProbes() */
-		void setReflectionProbes(const GPUReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
+		void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
 			bool capturingReflections) override;
 
 		/** @copydoc ITiledDeferredImageBasedLightingMat::setSky() */

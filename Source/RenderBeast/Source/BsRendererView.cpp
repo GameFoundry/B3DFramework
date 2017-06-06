@@ -9,6 +9,7 @@
 #include "BsRendererUtility.h"
 #include "BsLightRendering.h"
 #include "BsGpuParamsSet.h"
+#include "BsRendererScene.h"
 
 namespace bs { namespace ct
 {
@@ -459,4 +460,64 @@ namespace bs { namespace ct
 
 	template class SkyboxMat<true>;
 	template class SkyboxMat<false>;
+
+	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews)
+	{
+		setViews(views, numViews);
+	}
+
+	void RendererViewGroup::setViews(RendererView** views, UINT32 numViews)
+	{
+		mViews.clear();
+
+		for (UINT32 i = 0; i < numViews; i++)
+			mViews.push_back(views[i]);
+	}
+
+	void RendererViewGroup::determineVisibility(const SceneInfo& sceneInfo)
+	{
+		UINT32 numViews = (UINT32)mViews.size();
+
+		// Generate render queues per camera
+		mVisibility.renderables.resize(sceneInfo.renderables.size(), false);
+		mVisibility.renderables.assign(sceneInfo.renderables.size(), false);
+
+		for(UINT32 i = 0; i < numViews; i++)
+			mViews[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &mVisibility.renderables);
+
+		// Calculate light visibility for all views
+		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
+		mVisibility.radialLights.resize(numRadialLights, false);
+		mVisibility.radialLights.assign(numRadialLights, false);
+
+		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
+		mVisibility.spotLights.resize(numSpotLights, false);
+		mVisibility.spotLights.assign(numSpotLights, false);
+
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
+				&mVisibility.radialLights);
+
+			mViews[i]->determineVisible(sceneInfo.spotLights, sceneInfo.spotLightWorldBounds, LightType::Spot,
+				&mVisibility.spotLights);
+		}
+
+		// Calculate refl. probe visibility for all views
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
+		mVisibility.reflProbes.resize(numProbes, false);
+		mVisibility.reflProbes.assign(numProbes, false);
+
+		// Note: Per-view visibility for refl. probes currently isn't calculated
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			const auto& viewProps = mViews[i]->getProperties();
+
+			// Don't recursively render reflection probes when generating reflection probe maps
+			if (viewProps.renderingReflections)
+				continue;
+
+			mViews[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mVisibility.reflProbes);
+		}
+	}
 }}

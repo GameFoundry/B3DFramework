@@ -138,11 +138,11 @@ namespace bs
 		void renderAllCore(float time, float delta);
 
 		/**
-		 * Renders all provided views.
+		 * Renders all views in the provided view group.
 		 * 
 		 * @note	Core thread only. 
 		 */
-		void renderViews(RendererView** views, UINT32 numViews, const FrameInfo& frameInfo);
+		void renderViews(const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 		/**
 		 * Renders all objects visible by the provided view.
@@ -214,7 +214,7 @@ namespace bs
 
 		//// Image based lighting
 		TiledDeferredImageBasedLightingMaterials* mTileDeferredImageBasedLightingMats = nullptr;
-		GPUReflProbeData* mGPUReflProbeData = nullptr;
+		VisibleReflProbeData* mVisibleReflProbeInfo = nullptr;
 		SPtr<Texture> mPreintegratedEnvBRDF;
 
 		//// Sky
@@ -227,8 +227,7 @@ namespace bs
 		SPtr<RenderBeastOptions> mCoreOptions;
 
 		// Helpers to avoid memory allocations
-		Vector<ReflProbeData> mReflProbeDataTemp;
-		Vector<bool> mReflProbeVisibilityTemp;
+		RendererViewGroup mMainViewGroup;
 
 		// Sim thread only fields
 		SPtr<RenderBeastOptions> mOptions;

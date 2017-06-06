@@ -242,7 +242,7 @@ namespace bs { namespace ct
 		mGridParamBuffer = gLightGridParamDefDef.createBuffer();
 	}
 
-	void LightGrid::updateGrid(const RendererView& view, const VisibleLightData& lightData, const GPUReflProbeData& probeData,
+	void LightGrid::updateGrid(const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData,
 		bool noLighting)
 	{
 		UINT32 width = view.getRenderTargets()->getWidth();
