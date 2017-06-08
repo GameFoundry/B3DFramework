@@ -15,11 +15,11 @@ namespace bs { namespace ct
 	 */
 
 	/** Implementation of a render system using OpenGL. Provides abstracted access to various low level OpenGL methods. */
-    class GLRenderAPI : public RenderAPI
-    {
-    public:
-        GLRenderAPI();
-        ~GLRenderAPI();
+	class GLRenderAPI : public RenderAPI
+	{
+	public:
+		GLRenderAPI();
+		~GLRenderAPI();
 
 		/** @copydoc RenderAPI::getName() */
 		const StringID& getName() const override;
@@ -179,13 +179,13 @@ namespace bs { namespace ct
 		 * Sets the texture addressing mode for a texture unit. This determines how are UV address values outside of [0, 1]
 		 * range handled when sampling from texture.
 		 */
-        void setTextureAddressingMode(UINT16 unit, const UVWAddressingMode& uvw);
+		void setTextureAddressingMode(UINT16 unit, const UVWAddressingMode& uvw);
 
 		/**
 		 * Sets the texture border color for a texture unit. Border color determines color returned by the texture sampler
 		 * when border addressing mode is used and texture address is outside of [0, 1] range.
 		 */
-        void setTextureBorderColor(UINT16 unit, const Color& color);
+		void setTextureBorderColor(UINT16 unit, const Color& color);
 
 		/**
 		 * Sets the mipmap bias value for a given texture unit. Bias allows	you to adjust the mipmap selection calculation.
@@ -198,10 +198,16 @@ namespace bs { namespace ct
 		 * Allows you to specify how is the texture bound to the specified texture unit filtered. Different filter types are
 		 * used for different situations like magnifying or minifying a texture.
 		 */
-        void setTextureFiltering(UINT16 unit, FilterType ftype, FilterOptions filter);
+		void setTextureFiltering(UINT16 unit, FilterType ftype, FilterOptions filter);
 
 		/**	Sets anisotropy value for the specified texture unit. */
 		void setTextureAnisotropy(UINT16 unit, UINT32 maxAnisotropy);
+		
+		/** 
+		 * Sets the compare mode to use when sampling the texture (anything but "always" implies the use of a shadow 
+		 * sampler. 
+		 */
+		void setTextureCompareMode(UINT16 unit, CompareFunction compare);
 
 		/**	Gets anisotropy value for the specified texture unit. */
 		GLfloat getCurrentAnisotropy(UINT16 unit);

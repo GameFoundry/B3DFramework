@@ -342,94 +342,58 @@ namespace bs
 		switch (sampState.filter)
 		{
 		case Xsc::Reflection::Filter::MinMagMipPoint: 
+		case Xsc::Reflection::Filter::ComparisonMinMagMipPoint: 
 			desc.minFilter = FO_POINT;
 			desc.magFilter = FO_POINT;
 			desc.mipFilter = FO_POINT;
 			break;
 		case Xsc::Reflection::Filter::MinMagPointMipLinear: 
+		case Xsc::Reflection::Filter::ComparisonMinMagPointMipLinear: 
 			desc.minFilter = FO_POINT;
 			desc.magFilter = FO_POINT;
 			desc.mipFilter = FO_LINEAR;
 			break;
 		case Xsc::Reflection::Filter::MinPointMagLinearMipPoint: 
+		case Xsc::Reflection::Filter::ComparisonMinPointMagLinearMipPoint: 
 			desc.minFilter = FO_POINT;
 			desc.magFilter = FO_LINEAR;
 			desc.mipFilter = FO_POINT;
 			break;
 		case Xsc::Reflection::Filter::MinPointMagMipLinear: 
+		case Xsc::Reflection::Filter::ComparisonMinPointMagMipLinear: 
 			desc.minFilter = FO_POINT;
 			desc.magFilter = FO_LINEAR;
 			desc.mipFilter = FO_LINEAR;
 			break;
 		case Xsc::Reflection::Filter::MinLinearMagMipPoint: 
+		case Xsc::Reflection::Filter::ComparisonMinLinearMagMipPoint: 
 			desc.minFilter = FO_LINEAR;
 			desc.magFilter = FO_POINT;
 			desc.mipFilter = FO_POINT;
 			break;
 		case Xsc::Reflection::Filter::MinLinearMagPointMipLinear: 
+		case Xsc::Reflection::Filter::ComparisonMinLinearMagPointMipLinear: 
 			desc.minFilter = FO_LINEAR;
 			desc.magFilter = FO_POINT;
 			desc.mipFilter = FO_LINEAR;
 			break;
 		case Xsc::Reflection::Filter::MinMagLinearMipPoint: 
+		case Xsc::Reflection::Filter::ComparisonMinMagLinearMipPoint: 
 			desc.minFilter = FO_LINEAR;
 			desc.magFilter = FO_LINEAR;
 			desc.mipFilter = FO_POINT;
 			break;
 		case Xsc::Reflection::Filter::MinMagMipLinear: 
+		case Xsc::Reflection::Filter::ComparisonMinMagMipLinear: 
 			desc.minFilter = FO_LINEAR;
 			desc.magFilter = FO_LINEAR;
 			desc.mipFilter = FO_LINEAR;
 			break;
 		case Xsc::Reflection::Filter::Anisotropic: 
+		case Xsc::Reflection::Filter::ComparisonAnisotropic: 
 			desc.minFilter = FO_ANISOTROPIC;
 			desc.magFilter = FO_ANISOTROPIC;
 			desc.minFilter = FO_ANISOTROPIC;
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinMagMipPoint: 
-			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinMagPointMipLinear: 
-			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinPointMagLinearMipPoint: 
-			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinPointMagMipLinear: 
-			desc.minFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinLinearMagMipPoint: 
-			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinLinearMagPointMipLinear: 
-			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinMagLinearMipPoint: 
-			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_POINT | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonMinMagMipLinear: 
-			desc.minFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			desc.mipFilter = (FilterOptions)(FO_LINEAR | FO_USE_COMPARISON);
-			break;
-		case Xsc::Reflection::Filter::ComparisonAnisotropic: 
-			desc.minFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
-			desc.magFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
-			desc.minFilter = (FilterOptions)(FO_ANISOTROPIC | FO_USE_COMPARISON);
 			break;
 		default: 
 			break;
@@ -471,7 +435,7 @@ namespace bs
 			case Xsc::Reflection::UniformType::Sampler: 
 			{
 				auto findIter = reflData.samplerStates.find(entry.ident);
-				if (findIter == reflData.samplerStates.end())
+				if (findIter == reflData.samplerStates.end() || !findIter->second.isNonDefault)
 					desc.addParameter(ident, ident, GPOT_SAMPLER2D);
 				else
 				{

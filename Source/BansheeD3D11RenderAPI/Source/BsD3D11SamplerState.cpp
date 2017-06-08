@@ -37,13 +37,9 @@ namespace bs { namespace ct
 		samplerState.MinLOD = mProperties.getMinimumMip();
 		samplerState.MipLODBias = mProperties.getTextureMipmapBias();
 
-		bool isComparison = ((mProperties.getTextureFiltering(FT_MIN) & FO_USE_COMPARISON) & 
-			(mProperties.getTextureFiltering(FT_MAG) & FO_USE_COMPARISON) &
-			(mProperties.getTextureFiltering(FT_MIP) & FO_USE_COMPARISON)) != 0;
-
-		FilterOptions minFilter = (FilterOptions)(mProperties.getTextureFiltering(FT_MIN) & ~FO_USE_COMPARISON);
-		FilterOptions magFilter = (FilterOptions)(mProperties.getTextureFiltering(FT_MAG) & ~FO_USE_COMPARISON);
-		FilterOptions mipFilter = (FilterOptions)(mProperties.getTextureFiltering(FT_MIP) & ~FO_USE_COMPARISON);
+		FilterOptions minFilter = mProperties.getTextureFiltering(FT_MIN);
+		FilterOptions magFilter = mProperties.getTextureFiltering(FT_MAG);
+		FilterOptions mipFilter = mProperties.getTextureFiltering(FT_MIP);
 
 		if (minFilter == FO_ANISOTROPIC && magFilter == FO_ANISOTROPIC && mipFilter == FO_ANISOTROPIC)
 		{
@@ -87,6 +83,7 @@ namespace bs { namespace ct
 			}
 		}
 
+		bool isComparison = mProperties.getComparisonFunction() != CMPF_ALWAYS_PASS;
 		if(isComparison)
 		{
 			// Adds COMPARISON flag to the filter

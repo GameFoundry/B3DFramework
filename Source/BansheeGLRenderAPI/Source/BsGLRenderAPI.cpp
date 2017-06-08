@@ -498,6 +498,7 @@ namespace bs { namespace ct
 							setTextureFiltering(unit, FT_MIP, stateProps.getTextureFiltering(FT_MIP));
 
 							setTextureAnisotropy(unit, stateProps.getTextureAnisotropy());
+							setTextureCompareMode(unit, stateProps.getComparisonFunction());
 							setTextureMipmapBias(unit, stateProps.getTextureMipmapBias());
 
 							const UVWAddressingMode& uvw = stateProps.getTextureAddressingMode();
@@ -1746,6 +1747,17 @@ namespace bs { namespace ct
 
 		if (getCurrentAnisotropy(unit) != maxAnisotropy)
 			glTexParameterf(mTextureInfos[unit].type, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)maxAnisotropy);
+	}
+
+	void GLRenderAPI::setTextureCompareMode(UINT16 unit, CompareFunction compare)
+	{
+		if (compare == CMPF_ALWAYS_PASS)
+			glTexParameteri(mTextureInfos[unit].type, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+		else
+		{
+			glTexParameteri(mTextureInfos[unit].type, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(mTextureInfos[unit].type, GL_TEXTURE_COMPARE_FUNC, convertCompareFunction(compare));
+		}
 	}
 
 	bool GLRenderAPI::activateGLTextureUnit(UINT16 unit)
