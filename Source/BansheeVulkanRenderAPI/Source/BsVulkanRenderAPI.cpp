@@ -220,6 +220,14 @@ namespace bs { namespace ct
 		static_assert(false, "mVideoModeInfo needs to be created.")
 #endif
 
+		GPUInfo gpuInfo;
+		gpuInfo.numGPUs = std::min(5U, mNumDevices);
+
+		for(UINT32 i = 0; i < gpuInfo.numGPUs; i++)
+			gpuInfo.names[i] = mDevices[i]->getDeviceProperties().deviceName;
+
+		PlatformUtility::_setGPUInfo(gpuInfo);
+
 		// Get required extension functions
 		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceSupportKHR);
 		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceFormatsKHR);

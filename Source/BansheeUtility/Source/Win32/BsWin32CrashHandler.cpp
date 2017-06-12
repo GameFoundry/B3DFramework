@@ -456,11 +456,8 @@ namespace bs
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
 
 	}
-	void CrashHandler::reportCrash(const String& type,
-	                               const String& description,
-	                               const String& function,
-	                               const String& file,
-	                               UINT32 line) const
+	void CrashHandler::reportCrash(const String& type, const String& description, const String& function, 
+		const String& file, UINT32 line) const
 	{
 		// Win32 debug methods are not thread safe
 		Lock(m->mutex);
@@ -485,7 +482,7 @@ namespace bs
 		win32_loadSymbols();
 
 		logErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
-		                      win32_getStackTrace(*exceptionData->ContextRecord, 0));
+			win32_getStackTrace(*exceptionData->ContextRecord, 0));
 		saveCrashLog();
 
 		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), exceptionData);

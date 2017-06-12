@@ -141,6 +141,15 @@ namespace bs { namespace ct
 		// Ensure cubemaps are filtered across seams
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+		GPUInfo gpuInfo;
+		gpuInfo.numGPUs = 1;
+
+		const char* vendor = (const char*)glGetString(GL_VENDOR);
+		const char* renderer = (const char*)glGetString(GL_RENDERER);
+		gpuInfo.names[0] = String(vendor) + " " + String(renderer);
+
+		PlatformUtility::_setGPUInfo(gpuInfo);
+
 		mGLInitialised = true;
 
 		RenderAPI::initializeWithWindow(primaryWindow);

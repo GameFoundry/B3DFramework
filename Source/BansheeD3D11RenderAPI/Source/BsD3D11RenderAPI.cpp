@@ -70,6 +70,14 @@ namespace bs { namespace ct
 		mActiveD3DDriver = mDriverList->item(0); // TODO: Always get first driver, for now
 		mVideoModeInfo = mActiveD3DDriver->getVideoModeInfo();
 
+		GPUInfo gpuInfo;
+		gpuInfo.numGPUs = std::min(5U, mDriverList->count());
+
+		for(UINT32 i = 0; i < gpuInfo.numGPUs; i++)
+			gpuInfo.names[i] = mDriverList->item(i)->getDriverName();
+
+		PlatformUtility::_setGPUInfo(gpuInfo);
+
 		IDXGIAdapter* selectedAdapter = mActiveD3DDriver->getDeviceAdapter();
 
 		D3D_FEATURE_LEVEL requestedLevels[] = {

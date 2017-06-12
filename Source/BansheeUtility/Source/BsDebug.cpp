@@ -191,8 +191,10 @@ table td
 <title>Banshee Engine Log</title>
 </head>
 <body>
-<h1>Banshee Engine Log</h1>
-<table border="1" cellpadding="1" cellspacing="1">
+)";
+
+		static const char* htmlEntriesTableHeader =
+			R"(<table border="1" cellpadding="1" cellspacing="1">
 	<thead>
 		<tr>
 			<th scope="col" style="width:60px">Type</th>
@@ -212,6 +214,31 @@ table td
 		stream << htmlPreStyleHeader;
 		stream << style;
 		stream << htmlPostStyleHeader;
+		stream << "<h1>Banshee Engine Log</h1>\n";
+
+		stream << "<h2>System information</h2>\n";
+
+		// Write header information
+		stream << "<p>Banshee version: " << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR << "</p>\n";
+
+		SystemInfo systemInfo = PlatformUtility::getSystemInfo();
+		stream << "<p>OS version: " << systemInfo.osName << " " << (systemInfo.osIs64Bit ? "64-bit" : "32-bit") << "</p>\n";
+		stream << "<p>CPU vendor: " << systemInfo.cpuManufacturer << "</p>\n";
+		stream << "<p>CPU name: " << systemInfo.cpuModel << "</p>\n";
+		stream << "<p>CPU clock speed: " << systemInfo.cpuClockSpeedMhz << "Mhz</p>\n";
+		stream << "<p>CPU core count: " << systemInfo.cpuNumCores << "</p>\n";
+
+		if(systemInfo.gpuInfo.numGPUs == 1)
+			stream << "<p>GPU: " << systemInfo.gpuInfo.names[0] << "</p>\n";
+		else
+		{
+			for(UINT32 i = 0; i < systemInfo.gpuInfo.numGPUs; i++)
+				stream << "<p>GPU #" << i << ": " << systemInfo.gpuInfo.names[i] << "</p>\n";
+		}
+
+		// Write log entries
+		stream << "<h2>Log entries</h2>\n";
+		stream << htmlEntriesTableHeader;
 
 		bool alternate = false;
 		Vector<LogEntry> entries = mLog.getAllEntries();
