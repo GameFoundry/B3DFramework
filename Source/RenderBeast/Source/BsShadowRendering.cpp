@@ -111,7 +111,7 @@ namespace bs { namespace ct
 	template<bool Directional, bool ZFailStencil>
 	void ShadowProjectStencilMat<Directional, ZFailStencil>::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
-		Vector4 lightPosAndScale(0, 0, 0, 0); // Not used
+		Vector4 lightPosAndScale(0, 0, 0, 1);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
@@ -220,8 +220,8 @@ namespace bs { namespace ct
 
 		Matrix4 shadowMapTfrm
 		(
-			shadowMapArea.width * 0.5f, 0, 0, shadowMapArea.x + 0.5f,
-			0, flipY * shadowMapArea.height * 0.5f, 0, shadowMapArea.y + 0.5f,
+			shadowMapArea.width * 0.5f, 0, 0, shadowMapArea.x + 0.5f * shadowMapArea.width,
+			0, flipY * shadowMapArea.height * 0.5f, 0, shadowMapArea.y + 0.5f * shadowMapArea.height,
 			0, 0, 1.0f / depthRange, 0,
 			0, 0, 0, 1
 		);
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 	template <int ShadowQuality, bool Directional, bool MSAA>
 	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::bind(const ShadowProjectParams& params)
 	{
-		Vector4 lightPosAndScale(params.light.getPosition(), params.light.getAttenuationRadius());
+		Vector4 lightPosAndScale(Vector3(0.0f, 0.0f, 0.0f), 1.0f);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
 		TextureSurface surface;
@@ -387,7 +387,7 @@ namespace bs { namespace ct
 	}
 
 	ShadowMapAtlas::ShadowMapAtlas(UINT32 size)
-		:mLastUsedCounter(0)
+		: mLayout(0, 0, size, size, true), mLastUsedCounter(0)
 	{
 		mAtlas = GpuResourcePool::instance().get(
 			POOLED_RENDER_TEXTURE_DESC::create2D(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL));
@@ -1072,8 +1072,13 @@ namespace bs { namespace ct
 		mapInfo.depthRange = mapInfo.depthFar - mapInfo.depthNear;
 		mapInfo.depthBias = getDepthBias(*light, mapInfo.depthRange, options.mapSize);
 
-		Matrix4 view = Matrix4::view(light->getPosition(), light->getRotation());
+		Quaternion lightRotation(BsIdentity);
+		lightRotation.lookRotation(light->getRotation().zAxis());
+
+		Matrix4 view = Matrix4::view(light->getPosition(), lightRotation);
 		Matrix4 proj = Matrix4::projectionPerspective(light->getSpotAngle(), 1.0f, 0.05f, light->getAttenuationRadius());
+
+		ConvexVolume localFrustum = ConvexVolume(proj);
 		RenderAPI::instance().convertProjectionMatrix(proj, proj);
 
 		mapInfo.shadowVPTransform = proj * view;
@@ -1084,8 +1089,6 @@ namespace bs { namespace ct
 		gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
 
 		mDepthNormalMat.bind(shadowParamsBuffer);
-
-		ConvexVolume localFrustum = ConvexVolume(proj);
 
 		const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
 		Matrix4 worldMatrix = view.transpose();
@@ -1584,9 +1587,9 @@ namespace bs { namespace ct
 
 	float ShadowRendering::getDepthBias(const Light& light, float depthRange, UINT32 mapSize)
 	{
-		const static float RADIAL_LIGHT_BIAS = 0.05f;
-		const static float SPOT_DEPTH_BIAS = 1.0f;
-		const static float DIR_DEPTH_BIAS = 5.0f;
+		const static float RADIAL_LIGHT_BIAS = 0.005f;
+		const static float SPOT_DEPTH_BIAS = 0.1f;
+		const static float DIR_DEPTH_BIAS = 0.5f;
 		const static float DEFAULT_RESOLUTION = 512.0f;
 		
 		// Increase bias if map size smaller than some resolution
@@ -1597,8 +1600,12 @@ namespace bs { namespace ct
 		else
 			resolutionScale = DEFAULT_RESOLUTION / (float)mapSize;
 
-		// Decrease bias with larger depth range
-		float rangeScale = 1.0f / depthRange;
+		// Adjust range because in shader we compare vs. clip space depth
+		float rangeScale;
+		if (light.getType() == LightType::Radial)
+			rangeScale = 1.0f;
+		else
+			rangeScale = 1.0f / depthRange;
 		
 		float defaultBias = 1.0f;
 		switch(light.getType())
@@ -1619,8 +1626,8 @@ namespace bs { namespace ct
 
 	float ShadowRendering::getFadeTransition(const Light& light, float depthRange, UINT32 mapSize)
 	{
-		const static float SPOT_LIGHT_SCALE = 1.0f / 50.0f;
-		const static float DIR_LIGHT_SCALE = 20.0f;
+		const static float SPOT_LIGHT_SCALE = 1000.0f;
+		const static float DIR_LIGHT_SCALE = 1000.0f;
 
 		// Note: Currently fade transitions are only used in spot & directional (non omni-directional) lights, so no need
 		// to account for radial light type.
@@ -1640,5 +1647,4 @@ namespace bs { namespace ct
 		else
 			return light.getShadowBias() * SPOT_LIGHT_SCALE;
 	}
-
 }}

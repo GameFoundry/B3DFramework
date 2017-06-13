@@ -85,7 +85,10 @@ namespace bs { namespace ct
 
 		gPerLightParamDef.gLightGeometry.set(buffer, lightGeometry);
 
-		Matrix4 transform = Matrix4::TRS(internal->getPosition(), internal->getRotation(), Vector3::ONE);
+		Quaternion lightRotation(BsIdentity);
+		lightRotation.lookRotation(internal->getRotation().zAxis());
+
+		Matrix4 transform = Matrix4::TRS(internal->getPosition(), lightRotation, Vector3::ONE);
 		gPerLightParamDef.gMatConeTransform.set(buffer, transform);
 	}
 
