@@ -1,8 +1,8 @@
-Shaders			{#shaders}
+BSL syntax			{#bsl}
 ===============
 [TOC]
 
-All shaders in Banshee are written in BSL (Banshee Shading Language). The core of the language is based on HLSL (High Level Shading Language), with various extensions to make development easier. In this manual we will not cover HLSL syntax, nor talk about shaders in general, and will instead focus on the extra functionality added by BSL.
+All shaders in Banshee are written in BSL (Banshee Shading Language). The core of the language is based on HLSL (High Level Shading Language), with various extensions to make development easier. In this manual we will not cover HLSL syntax, nor talk about shaders in general, and will instead focus on the functionality specific to BSL.
 
 # Basics 
 
@@ -20,8 +20,6 @@ technique MyShader
 		cbuffer PerObject
 		{
 			float4x4 gMatWorldViewProj;
-			float4x4 gMatWorld;
-			float4x4 gMatInvWorld;
 		}				
 		
 		struct VertexInput
@@ -48,7 +46,7 @@ technique MyShader
 As you can see, aside from the **technique** and **code** blocks, the shader code looks identical to HLSL. Each BSL shader must contain at least one **technique**. Inside the technique you can use a variety of options, but the minimum required is the **code** block, which allows you to specify programmable shader code. Using just this syntax you get the full power of HLSL, as if you were using it directly.
 
 There are a few restrictions compared to normal HLSL that you must be aware of:
- - All non-object shader constants (uniforms in GLSL lingo) must be part of a **cbuffer**. Non-object types are any types that are not textures, buffers or samplers.
+ - All primitive (non-object) shader constants (uniforms in GLSL lingo) must be part of a **cbuffer**. Primitive types are any types that are not textures, buffers or samplers.
  - Entry points for specific shader stages must have specific names. In the example above **vsmain** serves as the entry point for the vertex shader, while **fsmain** serves as the entry point for the fragment (pixel) shader. The full list of entry point names per type:
   - **vsmain** - Vertex shader
   - **gsmain** - Geometry shader
@@ -141,7 +139,7 @@ writemask    	  	 | R, G, B, A or any combination (e.g. RG, RBA, RGBA). "empty" 
 front				 | StencilOp block			   | Stencil operations and compare function for front facing geometry
 back				 | StencilOp block			   | Stencil operations and compare function for back facing geometry
  
-**front** and **back** options are blocks themselves, and they accept the following four options:
+**front** and **back** options are blocks themselves, and they accept the following options:
 Name                 | Valid values				   | Reference
 ---------------------|---------------------------- |-----------------------
 fail    	  	 	| keep, zero, replace, inc, dec, incwrap, decwrap, inverse (See @ref bs::StencilOperation "StencilOperation")			           | @ref bs::DEPTH_STENCIL_STATE_DESC::frontStencilFailOp "DEPTH_STENCIL_STATE_DESC::frontStencilFailOp" & @ref bs::DEPTH_STENCIL_STATE_DESC::backStencilFailOp "DEPTH_STENCIL_STATE_DESC::backStencilFailOp"
@@ -199,9 +197,9 @@ alpha				 | BlendOp block			   | Represents the blend operation to execute on th
 **BlendOp** block accepts the following options:
 Name                 | Valid values				   | Reference
 ---------------------|---------------------------- |-----------------------
-source    	  	     | one, zero, dstRGB, srcRGB, dstIRGB, srcIRGB, dstA, srcA, dstIA, srcIA (See @ref bs::BlendFactor "BlendFactor")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::srcBlend "RENDER_TARGET_BLEND_STATE_DESC::srcBlend" & @ref bs::RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha "RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha"
-dest    	  	     | one, zero, dstRGB, srcRGB, dstIRGB, srcIRGB, dstA, srcA, dstIA, srcIA (See @ref bs::BlendFactor "BlendFactor")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::dstBlend "RENDER_TARGET_BLEND_STATE_DESC::dstBlend" & @ref bs::RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha "RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha"
-op    	  	     | add, sub, rsub, min, max (See @ref bs::BlendOperation "BlendOperation")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::blendOp "RENDER_TARGET_BLEND_STATE_DESC::blendOp" & @ref bs::RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha "RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha"
+source    	  	     | one, zero, dstRGB, srcRGB, dstIRGB, srcIRGB, dstA, srcA, dstIA, srcIA (See @ref bs::BlendFactor "BlendFactor")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::srcBlend "RENDER_TARGET_BLEND_STATE_DESC::srcBlend", @ref bs::RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha "RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha"
+dest    	  	     | one, zero, dstRGB, srcRGB, dstIRGB, srcIRGB, dstA, srcA, dstIA, srcIA (See @ref bs::BlendFactor "BlendFactor")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::dstBlend "RENDER_TARGET_BLEND_STATE_DESC::dstBlend", @ref bs::RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha "RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha"
+op    	  	     | add, sub, rsub, min, max (See @ref bs::BlendOperation "BlendOperation")		       | @ref bs::RENDER_TARGET_BLEND_STATE_DESC::blendOp "RENDER_TARGET_BLEND_STATE_DESC::blendOp", @ref bs::RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha "RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha"
 
 An example of a **blend** block:
 ~~~~~~~~~~~~~~
@@ -240,7 +238,7 @@ technique MyShader
 ~~~~~~~~~~~~~~
 
 # Mixins
-When writing complex shaders is it is often useful to break them up into components. This is where the concept of a **mixin** comes in. Any shader code or programmable states defined in a **mixin** can be included in any **technique**. Syntax within a **mixin** block is identical to syntax in a **technique** block, meaning you can define code and non-programmable blocks as shown above.
+When writing complex shaders is it is often useful to break them up into components. This is where the concept of a **mixin** comes in. Any shader code or programmable states defined in a **mixin** can be included in any **technique**. Syntax within a **mixin** block is identical to syntax in a **technique** block, meaning you can define code and non-programmable state blocks as shown above.
 
 ~~~~~~~~~~~~~~
 // Provides common functionality that might be useful for many different shaders
@@ -292,9 +290,11 @@ technique MyShader
 };
 ~~~~~~~~~~~~~~
 
+Included mixins will append their shader code and states to the technique they are included in. If mixin and technique define the same states, the value of the states present on the technique will be used. If multiple included mixins use the same state then the state from the last included mixin will be used. Shader code is included in the order in which mixins are defined, followed by shader code from the technique itself.
+
 Often you will want to define mixins in separate files. BSL files are normally stored with the ".bsl" extension, but when writing include files you should use the ".bslinc" extension instead, in order to prevent the system trying to compile the shader code on its own.
 
-In order to include other files in BSL, use the &#35include command. The paths are relative to the working folder, or if you are working in Banshee 3D editor, the paths are relative to your project folder. You can use the special variables $ENGINE$ and $EDITOR$ to access paths to the builtin engine and editor shaders.
+In order to include other files in BSL, use the \#include command. The paths are relative to the working folder, or if you are working in Banshee 3D editor, the paths are relative to your project folder. You can use the special variables $ENGINE$ and $EDITOR$ to access paths to the builtin engine and editor shaders.
 
 ~~~~~~~~~~~~~~
 // Include the code for accessing Banshee's GBuffer
@@ -335,200 +335,283 @@ mixin MyMixin
 };
 ~~~~~~~~~~~~~~
 
-This allows you to override existing engine functionality with your own, without having to fully re-write the shaders - simply override the mixin of the part you are interested in. For example overriding the "Surface" mixin (defined in "$ENGINE$/Surface.bslinc") allows your shader to write custom information to the GBuffer. Overriding the "LightingCommon" mixin (define in "$ENGINE$/LightingCommon.bslinc") allows your shader to override how is lighting information calculated.
+# Passes
+Passes can be used when a technique needs to perform multiple complex operations in a sequence. Each pass can be thought of as its own fully functional shader. By default techniques have one pass, which doesn't have to be explicitly defined, as was the case in all examples above. To explicitly define a pass, use the **pass** block and define the relevant code/state blocks within it, same as it was shown for techniques above. Passes will be executed sequentially one after another in the order they are defined. 
 
-
-
-TODO - Passes
-TODO - Default values
-TODO - Attributes: internal, color
-TODO - Options
-TODO - Tags (Maybe)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Properties {#bslfx_c_a}
-
-Technique block should therefore always contain a "Language" property. This will ensure the proper technique is used depending on the render API the engine is set to use.
 ~~~~~~~~~~~~~~
-	Language = "HLSL"
-~~~~~~~~~~~~~~
-
-Supported values are "HLSL" and "GLSL".
-
-In case you are using a non-standard render, you can also specify a renderer using the "Renderer" property. This will ensure the propert technique is used as you switch between renderers.
-~~~~~~~~~~~~~~
-	Renderer = "Default"
-~~~~~~~~~~~~~~
-
-Supported values are "Any", or "Default". More values could be available if you are using a custom renderer, but otherwise you don't need to set this property.
-
-And finally you may specify an optional set of tags that serve as hints to the renderer when rendering a specific object. You may specify zero or multiple tags:
-~~~~~~~~~~~~~~
-	Tags = { "Animated", "OtherTag" }
-~~~~~~~~~~~~~~
-
-Currently recognized tags by the default renderer are:
- - Skinned - Technique capable of rendering a skin animated mesh
- - Morph -  Technique capable of rendering a blend shape animated mesh
- - SkinnedMorph -  Technique capable of rendering a skin and blend shape animated mesh
-
-When renderer detects an object is using skinned or morph animation (or both), it will prefer to pick a technique with the relevant tag. Unrecognized tags will just be ignored. Renderer can be extended so it supports custom tags.
- 
-Once the base properties are defined you can start defining code blocks and states.
-
-## Code blocks {#bslfx_c_b}
-Code blocks are elements in the technique that will contain HLSL/GLSL (or other supported language) code. There are six supported code blocks:
- - Vertex
- - Fragment
- - Geometry
- - Hull
- - Domain
- - Compute
- 
-Each corresponding to the programmable GPU pipline stage of the same name. A code block looks like this:
-~~~~~~~~~~~~~~
-Vertex =
+technique MyShader
 {
-	...raw HLSL/GLSL code...
-};
-~~~~~~~~~~~~~~
-
-Within a code block BSL parsing rules do not work, anything inside them is treated as native GPU program code in the language specified. BSL expects that main entry methods for each programmable stage are named "main" (similar to the OpenGL requirement). You can use any name for non-entry methods.
-
-Aside from the mentioned code blocks you can also use a "Common" code block. All code in the "Common" code block will be available in all other code blocks.
-
-
-## Passes {#bslfx_c_d}
-Each technique can support one or multiple passes. By default you do not have to specify any passes in technique if your shader only requires a single pass. If multiple passes are required use the "Pass" block.
-
-A "Pass" block supports all the code-block and state properties the Technique supports. It also supports an additional "Index" property that accepts an integer and allows you to specify an order in which the passes are executed. It also allows the pass to be uniquely identified if merging passes (see later sections for information about merging). By default index is not needed and pass order of execution is assumed to be sequential.
-
-If you specify code blocks and/or states in both a Technique and a Pass block, then the values under the Technique block will be inherited by all Pass blocks of that technique.
-
-Pass example:
-~~~~~~~~~~~~~~
-// Technique with two passes
-Technique 
-{
-	Pass
+	// First pass
+	pass
 	{
-		Index = 0; // Optional, assumed zero since it's first in technique
-		
-		// Uses same states and code blocks we described for Technique
-	}
+		code
+		{
+			// Some shader code	
+		};
+	};
 	
-	Pass
+	// Second pass
+	pass
 	{
-		Index = 1; // Optional, assumed one since it's second in technique
+		// Enable blending so data written by this pass gets blended with data from the previous pass
+		blend
+		{
+			target	
+			{
+				enabled = true;
+				color = { 
+					source = srcA;
+					dest = srcIA;
+					op = add;
+				};
+				writemask = RGB;
+			};
+		};	
+	
+		code
+		{
+			// Some shader code
+		};
+	};
+};
+~~~~~~~~~~~~~~
+
+# Default values
+All constants (uniforms) of primitive types can be assigned default values. These values will be used if the user doesn't assign the values explicitly. The relevant syntax is:
+ - For scalars: "type name = value;"
+ - For vectors/matrices: "type name = { v0, v1, ... };", where the number of values is the total number of elements in a vector/matrix
+ 
+~~~~~~~~~~~~~~
+technique MyShader
+{
+	code
+	{
+		cbuffer SomeBuffer
+		{
+			bool val1 = false;
+			float val2 = 5.0f;
+			float3 val3 = { 0.0f, 1.0f, 2.0f };
+			float2x2 val4 = { 0.0f, 1.0f, 2.0f, 3.0f };
+		};
 		
-		// Uses same states and code blocks we described for Technique
-	}
+		// ... remaining shader code
+	};
 };
 ~~~~~~~~~~~~~~
 
-# Advanced {#bslfx_d}
-
-## Technique inheritance {#bslfx_d_a}
-Techniques can inherit code and properties from one another. Simply define one technique as a base technique and give it a unique name:
-~~~~~~~~~~~~~~
-Technique : base("MyBaseTechnique") =
-{
-   ...
-};
-~~~~~~~~~~~~~~
-
-Then inherit the technique as such:
-~~~~~~~~~~~~~~
-Technique : inherits("MyBaseTechnique") =
-{
-   ...
-};
-~~~~~~~~~~~~~~
-
-You can also chain multiple inherited techniques:
-~~~~~~~~~~~~~~
-Technique : base("MyMoreSpecificBaseTechnique") : inherits("MyBaseTechnique") = 
-{
-   ...
-};
-~~~~~~~~~~~~~~
-
-Or inherit from multiple techniques at once:
-~~~~~~~~~~~~~~
-Technique 
- : inherits("MyBaseTechnique")
- : inherits("MyOtherBaseTechnique") = 
-{
-   ...
-};
-~~~~~~~~~~~~~~
-
-Properties of inherited techniques will be combined, with more specific technique overriding base technique's properties. Techniques defined as base will never be instantiated on their own, and will not be available in the shader unless inherited by another technique. Base techniques should always be defined earlier then more specialized techniques.
-
-Only techniques that share the same "Renderer" and "Language" properties can be inherited. This allows you to use the same technique names across multiple renderers and languages. Optionally you may define technique's "Renderer" or "Language" as "Any" in which case the technique will be inheritable from any language, but its name should then be globally unique.
-
-When merging passes within techniques, pass "Index" properties are compared and passes with the same index are merged. If no index is specified, passes are merged sequentially according to their order in the techniques.
-
-Code blocks are merged in the order they are defined.
-
-## Pre-processor {#bslfx_d_b}
-Use \#include "Path/To/File.bslinc" to share code by including other BSL files. Included files must end with a .bslinc extension but otherwise their syntax is the same as a normal BSL file. The provided path is a path to the shader relative to the project library if running in editor, or relative to the working directory otherwise. You can also use built-in $ENGINE$ and $EDITOR$ folders to access builtin shaders. e.g.
-~~~~~~~~~~~~~~
-#include "$ENGINE$/SpriteImage.bslinc"
-~~~~~~~~~~~~~~
-
-These values correspond to "Data/Engine/Includes" and "Data/Editor/Includes" folders, respectively. Be aware that $EDITOR$ folder will not be available in your standalone game.
-
-Use standard pre-processor commands \#define/\#undef/\#ifdef/\#ifndef/\#else/\#elif/\#endif to conditionally compile parts of the BSL file.
-
-Macros using \#defines are not supported in BSL code, but are within code-blocks. So while you are allowed to write:
-~~~~~~~~~~~~~~
-#define PI 3.14
-~~~~~~~~~~~~~~
-
-Any references to PI outside of code-blocks will not be replaced with 3.14 and will likely result in an error due to an unrecognized identifier.
-
-## Global shader properties {#bslfx_d_c}
-On the top-most level you may also specify additional parameters along with "Parameters", "Blocks" and "Technique":
- - Separable = [true/false]; - Specifies if passes within the shader need to be executed sequentially, or could some other shader be executed in-between them. This is an optimization as it can allow the system to render geometry sharing the same passes all at once. False by default.
- - Sort - [FRONTTOBACK/BACKTOFRONT/NOSORT]; - Specifies in what order are the objects using this shader sorted before rendering.
- - Priority - int; - Specifies when will objects with this shader be rendered compared to other objects. Higher value means the objects will be rendered sooner. Priority has higher importance than sorting.
- - Transparent - [true/false]; - Determines whether the shader renders transparent surfaces. Allows the renderer to better handle the shader.
+Textures can also be assigned default values, limited to a specific subset. Valid set of values is:
+ - white - All white texture
+ - black - All black texture
+ - normal - Texture representing a normal map with normals facing in the Y (up) direction
  
-## Sampler state default values {#bslfx_d_d}
-Earlier we mentioned that sampler states can be provided a set of default values in a form of their own block, but didn't specify their properties. Sampler state properties are:
- - AddressMode = AddressModeBlock;
- - MinFilter = [NOFILTER/POINT/LINEAR/ANISO/POINTC/LINEARC/ANISOC];
- - MaxFilter = [NOFILTER/POINT/LINEAR/ANISO/POINTC/LINEARC/ANISOC];
- - MipFiler = [NOFILTER/POINT/LINEAR/ANISO/POINTC/LINEARC/ANISOC];
- - MaxAniso = int;
- - MipmapBias = float;
- - MipMin = float;
- - MipMax = float;
- - BorderColor = { float, float, float, float };
- - CompareFunc = [FAIL/PASS/LT/GT/LTE/GTE/EQ/NEQ];
- 
-Where AddressModeBlock has the following properties:
- - U = [WRAP/MIRROR/CLAMP/BORDER];
- - V = [WRAP/MIRROR/CLAMP/BORDER];
- - W = [WRAP/MIRROR/CLAMP/BORDER];
- 
-It can also be specified in short form, where parameters are in order as above. For example:
- - AddressMode = { WRAP, WRAP, WRAP };
- 
-See @ref bs::SamplerState "SamplerState" documentation about the meaning of these properties. 
+~~~~~~~~~~~~~~
+technique MyShader
+{
+	code
+	{
+		Texture2D albedoMap = black;
+		Texture2D normalMap = normal;
+		
+		// ... remaining shader code
+	};
+};
+~~~~~~~~~~~~~~
+
+Finally, sampler states may also be assigned default values. The values are specified in a block immediately following the sampler state definition.
+
+~~~~~~~~~~~~~~
+technique MyShader
+{
+	code
+	{
+		SamplerState MySampler
+		{
+			Filter = MIN_MAG_MIP_LINEAR;
+			AddressU = Wrap;
+			AddressV = Wrap;
+		};
+
+		// ... remaining shader code
+	};
+};
+~~~~~~~~~~~~~~
+
+Valid values within the sampler state block are:
+Name                 | Valid values				   				  | Reference
+---------------------|--------------------------------------------|------------------------
+AddressU			 | WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE   | @ref bs::SAMPLER_STATE_DESC::addressMode "SAMPLER_STATE_DESC::addressMode"
+AddressV			 | WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE   | @ref bs::SAMPLER_STATE_DESC::addressMode "SAMPLER_STATE_DESC::addressMode"
+AddressW			 | WRAP, MIRROR, CLAMP, BORDER, MIRROR_ONCE   | @ref bs::SAMPLER_STATE_DESC::addressMode "SAMPLER_STATE_DESC::addressMode"
+BorderColor			 | float4									  | @ref bs::SAMPLER_STATE_DESC::borderColor "SAMPLER_STATE_DESC::borderColor"
+Filter				 | See table below							  | @ref bs::SAMPLER_STATE_DESC::minFilter "SAMPLER_STATE_DESC::minFilter", @ref bs::SAMPLER_STATE_DESC::magFilter "SAMPLER_STATE_DESC::magFilter", @ref bs::SAMPLER_STATE_DESC::mipFilter "SAMPLER_STATE_DESC::mipFilter"
+MaxAnisotropy		 | uint										  | @ref bs::SAMPLER_STATE_DESC::maxAniso "SAMPLER_STATE_DESC::maxAniso"
+MaxLOD				 | float									  | @ref bs::SAMPLER_STATE_DESC::mipMax "SAMPLER_STATE_DESC::mipMax"
+MinLOD				 | float									  | @ref bs::SAMPLER_STATE_DESC::mipMin "SAMPLER_STATE_DESC::mipMin"
+MipLODBias			 | float									  | @ref bs::SAMPLER_STATE_DESC::mipmapBias "SAMPLER_STATE_DESC::mipmapBias"
+ComparisonFunc		 | NEVER, LESS, EQUAL, LESS_EQUAL, GREATER, NOT_EQUAL, GREATER_EQUAL, ALWAYS | @ref bs::SAMPLER_STATE_DESC::comparisonFunc "SAMPLER_STATE_DESC::comparisonFunc"
+
+Filter valid values:
+- MIN_MAG_MIP_POINT
+- MIN_MAG_POINT_MIP_LINEAR
+- MIN_POINT_MAG_LINEAR_MIP_POINT
+- MIN_POINT_MAG_MIP_LINEAR
+- MIN_LINEAR_MAG_MIP_POINT
+- MIN_LINEAR_MAG_POINT_MIP_LINEAR
+- MIN_MAG_LINEAR_MIP_POINT
+- MIN_MAG_MIP_LINEAR
+- ANISOTROPIC
+- COMPARISON_MIN_MAG_MIP_POINT
+- COMPARISON_MIN_MAG_POINT_MIP_LINEAR
+- COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT
+- COMPARISON_MIN_POINT_MAG_MIP_LINEAR
+- COMPARISON_MIN_LINEAR_MAG_MIP_POINT
+- COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR
+- COMPARISON_MIN_MAG_LINEAR_MIP_POINT
+- COMPARISON_MIN_MAG_MIP_LINEAR
+- COMPARISON_ANISOTROPIC
+- MINIMUM_MIN_MAG_MIP_POINT
+- MINIMUM_MIN_MAG_POINT_MIP_LINEAR
+- MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT
+- MINIMUM_MIN_POINT_MAG_MIP_LINEAR
+- MINIMUM_MIN_LINEAR_MAG_MIP_POINT
+- MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR
+- MINIMUM_MIN_MAG_LINEAR_MIP_POINT
+- MINIMUM_MIN_MAG_MIP_LINEAR
+- MINIMUM_ANISOTROPIC
+- MAXIMUM_MIN_MAG_MIP_POINT
+- MAXIMUM_MIN_MAG_POINT_MIP_LINEAR
+- MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT
+- MAXIMUM_MIN_POINT_MAG_MIP_LINEAR
+- MAXIMUM_MIN_LINEAR_MAG_MIP_POINT
+- MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR
+- MAXIMUM_MIN_MAG_LINEAR_MIP_POINT
+- MAXIMUM_MIN_MAG_MIP_LINEAR
+- MAXIMUM_ANISOTROPIC
+
+> Note: Sampler state default values use the same syntax as HLSL Effects framework.
+
+# Attributes
+BSL provides a couple of extension attributes that can be applied to constants (uniforms) or constant (uniform) blocks. Attributes are specified using the standard HSLS [] attribute syntax.
+
+~~~~~~~~~~~~~~
+technique MyShader
+{
+	code
+	{
+		[someAttribute]
+		Texture2D someMap;
+		
+		[someAttributeWithParameters(p0, p1)]
+		Texture2D someMap2;
+	};
+};
+~~~~~~~~~~~~~~
+
+Supported attribute types are:
+Name                 | Parameters			   | Usable on              | Description
+---------------------|------------------------ |------------------------|------------------
+internal    	  	 | none					   | constants and cbuffers | Forces the constant (or all the constants in a buffer if applied to cbuffer) to be hidden from the materials public interface (editor UI or **Material** API). This is useful for constants that are set by the engine itself and shouldn't be touched by normal users. Additionaly internal cbuffers must be explicitly created and assigned by the low level rendering API, as they will not be created automatically.
+color				 | none					   | float3 or float4 constants	| Marks the floating point vector as a color. This ensures the constant is displayed as a color in the editor UI (with access to a color picker), and is represented by the **Color** structure in **Material** API.
+layout				 | See table below		   | RW texture or buffer constant | Used primarily as compatibility with OpenGL and Vulkan code, which require read-write objects (e.g. **RWTexture**) to have an explicit layout provided in shader. This is only required when READING from a read-write object AND when you will be using either OpenGL or Vulkan render backend.
+
+**layout** valid values:
+- rgba32f
+- rgba16f
+- rg32f
+- rg16f
+- r11f_g11f_b10f
+- r32f
+- r16f
+- rgba16
+- rgb10_a2
+- rgba8
+- rg16
+- rg8
+- r16
+- r8
+- rgba16_snorm
+- rgba8_snorm
+- rg16_snorm
+- rg8_snorm
+- r16_snorm
+- r8_snorm
+- rgba32i
+- rgba16i
+- rgba8i
+- rg32i
+- rg16i
+- rg8i
+- r32i
+- r16i
+- r8i
+- rgba32ui
+- rgba16ui
+- rgb10_a2ui
+- rgba8ui
+- rg32ui
+- rg16ui
+- rg8ui
+- r32ui
+- r16ui
+- r8ui
+
+Where:
+ - letters "rgba" represent the number of channels
+ - numbers represent number of bits per channel
+ - "f" - floating point
+ - "snorm" - normalized real in [-1, 1] range (internally backed by a signed integer)
+ - "i" - signed integer
+ - "ui" - unsigned integer
+ - no suffix - normalized real in [0, 1] range (internally backed by an unsigned integer)
+
+Example of attributes in action:
+~~~~~~~~~~~~~~
+technique MyShader
+{
+	code
+	{
+		// Hide from public interface
+		[internal]
+		Texture2D someMap;
+		
+		cbuffer SomeBuffer
+		{
+			float3 position;
+			
+			// Interpret as color, instead of a 3D vector
+			[color]
+			float3 tint;
+		};		
+		
+		// Texture contains 4-channel 16-bit floating point data, and we plan on reading from it
+		[layout(rgba16f))]
+		RWTexture2D someMap2;
+	};
+};
+~~~~~~~~~~~~~~
+
+# Global options
+BSL supports a few global options that control all techniques and mixins in a shader file. These options are specified in a **options** block, which must be defined at the top most level along with **technique** or **mixin** blocks.
+
+~~~~~~~~~~~~~~
+options
+{
+	separable = true;
+	sort = backtofront;
+	transparent = true;
+	priority = 100;
+};
+
+technique MyShader
+{
+	// Technique definition
+};
+~~~~~~~~~~~~~~
+
+Valid options are:
+Name                 | Valid values				   | Default value			| Description
+---------------------|---------------------------- |------------------------|------------------
+separable			 | true, false				   | false					| When true, tells the renderer that passes within the shader don't need to be renderered one straight after another. This allows the system to perform rendering more optimally, but can be unfeasible for most materials which will depend on exact rendering order. Only relevant if a technique has multiple passes.
+sort				 | none, backtofront, fronttoback | fronttoback			| Determines how does the renderer sort objects with this material before rendering. Most objects should be sorted front to back in order to avoid overdraw. Transparent (see below) objects will always be sorted back to front and this option is ignored. When no sorting is active the system will try to group objects based on the material alone, reducing material switching and potentially reducing CPU overhead, at the cost of overdraw.
+transparent			 | true, false				   | false					| Notifies the renderer that this object is see-through. This will force the renderer to the use back to front sorting mode, and likely employ a different rendering method. Attempting to render transparent geometry without this option set to true will likely result in graphical artifacts.
+priority			 | integer					   | 0						| Allows you to force objects with this shader to render before others. Objects with higher priority will be rendered before those with lower priority. If sorting is enabled, objects will be sorted within their priority groups (i.e. priority takes precedence over sort mode).
