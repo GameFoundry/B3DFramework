@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <iphlpapi.h>
 #include <VersionHelpers.h>
+#include <intrin.h>
 
 namespace bs
 {
