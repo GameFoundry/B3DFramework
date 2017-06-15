@@ -29,7 +29,12 @@ namespace bs
 	/** Types of builtin shaders that are always available. */
 	enum class BuiltinShader
 	{
-		Custom, Standard, Transparent
+		Custom, 
+		/** Physically based shader used for opaque 3D geometry. */
+		Standard, 
+
+		/** Physically based shader used for transparent 3D geometry. */
+		Transparent
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */

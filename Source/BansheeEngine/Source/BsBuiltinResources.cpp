@@ -416,9 +416,9 @@ namespace bs
 		BuiltinResourcesHelper::importAssets(iconsJSON, rawIconFolder, iconFolder, mResourceManifest, 
 			BuiltinResourcesHelper::AssetType::Normal, forceImport);
 		BuiltinResourcesHelper::importAssets(includesJSON, rawShaderIncludeFolder, shaderIncludeFolder, mResourceManifest,
-			BuiltinResourcesHelper::AssetType::Normal, forceImport); // Hidden dependency: Includes must be imported before shaders
+			BuiltinResourcesHelper::AssetType::Normal, true); // Hidden dependency: Includes must be imported before shaders
 		BuiltinResourcesHelper::importAssets(shadersJSON, rawShaderFolder, mEngineShaderFolder, mResourceManifest,
-			BuiltinResourcesHelper::AssetType::Normal, forceImport);
+			BuiltinResourcesHelper::AssetType::Normal, true);
 		BuiltinResourcesHelper::importAssets(skinJSON, rawSkinFolder, skinFolder, mResourceManifest, 
 			BuiltinResourcesHelper::AssetType::Sprite);
 
