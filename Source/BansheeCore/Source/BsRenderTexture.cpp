@@ -210,7 +210,7 @@ namespace bs
 				BS_EXCEPT(InvalidParametersException, "Provided texture is not created with depth stencil usage.");
 
 			mDepthStencilSurface = texture->requestView(mDesc.depthStencilSurface.mipLevel, 1,
-				mDesc.depthStencilSurface.face, 0, GVU_DEPTHSTENCIL);
+				mDesc.depthStencilSurface.face, 1, GVU_DEPTHSTENCIL);
 		}
 
 		throwIfBuffersDontMatch();

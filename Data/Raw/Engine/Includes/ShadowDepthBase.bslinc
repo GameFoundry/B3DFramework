@@ -18,7 +18,7 @@ mixin ShadowDepthBase
 			#ifdef USES_GS
 			float4 worldPos : TEXCOORD0;
 			#else
-			#ifndef LINEAR_DEPTH_RANGE
+			#ifdef USES_PS
 				float shadowPos : TEXCOORD0;
 			#endif
 			#endif
@@ -60,7 +60,7 @@ mixin ShadowDepthBase
 
 			// Output linear depth
 			#ifdef LINEAR_DEPTH_RANGE
-				float linearDepth = -clipPos.z * gInvDepthRange + gDepthBias;
+				float linearDepth = clipPos.z * gInvDepthRange + gDepthBias;
 				clipPos.z = linearDepth * clipPos.w;
 			#endif
 		}		
@@ -71,19 +71,39 @@ mixin ShadowDepthBase
 		
 			float4 worldPosition = getVertexWorldPosition(input);
 			
+			// If using a geometry shader, just pass through the relevant information
+			// as the GS does the necessary transform and applies the depth bias
 			#ifdef USES_GS
 			output.worldPos = worldPosition;
 			output.position = worldPosition;
-			#else
-			float4 clipPos = mul(gMatViewProj, worldPosition);
-			linearizeDepth(clipPos);
+			#else // USES_GS
 			
-			#ifndef LINEAR_DEPTH_RANGE
-			output.shadowPos = clipPos.z;
-			#endif
+			// Not using a geometry shader, transform to clip space
+			float4 clipPos = mul(gMatViewProj, worldPosition);
+			
+			// Clamp geometry behind the near plane
+			#ifdef CLAMP_TO_NEAR_PLANE
+				float ndcZ = clipPos.z / clipPos.w;
+				float deviceZ = NDCZToDeviceZ(ndcZ);
+			
+				if (deviceZ < 0)
+				{
+					clipPos.z = DeviceZToNDCZ(0);
+					clipPos.w = 1.0f;
+				}
+			#endif // CLAMP_TO_NEAR_PLANE
+
+			// If using a pixel shader, output shadow depth in clip space, as
+			// we'll apply bias to it in PS (depth needs to be interpolated in
+			// a perspective correct way)
+			#ifdef USES_PS
+				output.shadowPos = clipPos.z;
+			#else // Otherwise apply bias immediately
+				clipPos.z += gDepthBias;
+			#endif // USES_PS
 			
 			output.position = clipPos;
-			#endif
+			#endif // USES_GS
 			
 			return output;
 		}

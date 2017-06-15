@@ -1,3 +1,4 @@
+#define USES_PS
 #include "$ENGINE$\ShadowDepthBase.bslinc"
 
 mixin ShadowDepth

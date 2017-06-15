@@ -319,6 +319,9 @@ namespace bs { namespace ct
 		/** View-projection matrix for each cubemap face, used for omni-directional shadows. */
 		Matrix4 shadowVPTransforms[6]; 
 
+		/** Bounds of the geometry the shadow is being applied on. */
+		Sphere subjectBounds;
+
 		/** Determines the fade amount of the shadow, for each view in the scene. */
 		SmallVector<float, 4> fadePerView;
 	};
@@ -542,22 +545,24 @@ namespace bs { namespace ct
 		 * Calculates a bias that can be applied when rendering shadow maps, in order to reduce shadow artifacts.
 		 * 
 		 * @param[in]	light		Light to calculate the depth bias for.
+		 * @param[in]	radius		Radius of the light bounds.
 		 * @param[in]	depthRange	Range of depths (distance between near and far planes) covered by the shadow.
 		 * @param[in]	mapSize		Size of the shadow map, in pixels.
 		 * @return					Depth bias that can be passed to shadow depth rendering shader. 
 		 */
-		static float getDepthBias(const Light& light, float depthRange, UINT32 mapSize);
+		static float getDepthBias(const Light& light, float radius, float depthRange, UINT32 mapSize);
 
 		/**
 		 * Calculates a fade transition value that can be used for slowly fading-in the shadow, in order to avoid or reduce
 		 * shadow acne.
 		 *
 		 * @param[in]	light		Light to calculate the fade transition size for.
+		 * @param[in]	radius		Radius of the light bounds.
 		 * @param[in]	depthRange	Range of depths (distance between near and far planes) covered by the shadow.
 		 * @param[in]	mapSize		Size of the shadow map, in pixels.
 		 * @return					Value that determines the size of the fade transition region.
 		 */
-		static float getFadeTransition(const Light& light, float depthRange, UINT32 mapSize);
+		static float getFadeTransition(const Light& light, float radius, float depthRange, UINT32 mapSize);
 
 		/** Size of a single shadow map atlas, in pixels. */
 		static const UINT32 MAX_ATLAS_SIZE;

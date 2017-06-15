@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		output.position = internal->getPosition();
 		output.attRadius = internal->getBounds().getRadius();
 		output.srcRadius = internal->getSourceRadius();
-		output.direction = internal->getRotation().zAxis();
+		output.direction = -internal->getRotation().zAxis();
 		output.luminance = internal->getLuminance();
 		output.spotAngles.x = spotAngle.valueRadians();
 		output.spotAngles.y = Math::cos(output.spotAngles.x);
@@ -83,7 +83,7 @@ namespace bs { namespace ct
 		gPerLightParamDef.gLightGeometry.set(buffer, lightGeometry);
 
 		Quaternion lightRotation(BsIdentity);
-		lightRotation.lookRotation(internal->getRotation().zAxis());
+		lightRotation.lookRotation(-internal->getRotation().zAxis());
 
 		Matrix4 transform = Matrix4::TRS(lightData.shiftedLightPosition, lightRotation, Vector3::ONE);
 		gPerLightParamDef.gMatConeTransform.set(buffer, transform);
@@ -91,7 +91,7 @@ namespace bs { namespace ct
 
 	Vector3 RendererLight::getShiftedLightPosition() const
 	{
-		Vector3 direction = internal->getRotation().zAxis();
+		Vector3 direction = -internal->getRotation().zAxis();
 
 		// Create position for fake attenuation for area spot lights (with disc center)
 		if (internal->getType() == LightType::Spot)

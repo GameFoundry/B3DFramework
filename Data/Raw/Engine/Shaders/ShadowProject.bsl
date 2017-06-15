@@ -248,7 +248,7 @@ technique ShadowProject
 			
 			float alpha = 1.0f;
 			#ifdef FADE_PLANE
-				alpha = 1.0f - saturate((depth - gFadePlaneDepth) * gInvFadePlaneRange);
+				alpha = 1.0f - saturate((-depth - gFadePlaneDepth) * gInvFadePlaneRange);
 			#endif
 
 			occlusion *= gFadePercent;
