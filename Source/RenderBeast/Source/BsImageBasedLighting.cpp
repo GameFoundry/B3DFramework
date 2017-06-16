@@ -116,7 +116,11 @@ namespace bs { namespace ct
 		if (!optional || params->hasTexture(programType, "gSkyReflectionTex"))
 		{
 			params->getTextureParam(programType, "gSkyReflectionTex", skyReflectionsTexParam);
-			params->getSamplerStateParam(programType, "gSkyReflectionSamp", skyReflectionsSampParam);
+
+			if(params->hasSamplerState(programType, "gSkyReflectionSamp"))
+				params->getSamplerStateParam(programType, "gSkyReflectionSamp", skyReflectionsSampParam);
+			else
+				params->getSamplerStateParam(programType, "gSkyReflectionTex", skyReflectionsSampParam);
 
 			params->getTextureParam(programType, "gSkyIrradianceTex", skyIrradianceTexParam);
 		}
@@ -125,7 +129,11 @@ namespace bs { namespace ct
 		if (!optional || params->hasTexture(programType, "gReflProbeCubemaps"))
 		{
 			params->getTextureParam(programType, "gReflProbeCubemaps", reflectionProbeCubemapsTexParam);
-			params->getSamplerStateParam(programType, "gReflProbeSamp", reflectionProbeCubemapsSampParam);
+
+			if(params->hasSamplerState(programType, "gReflProbeSamp"))
+				params->getSamplerStateParam(programType, "gReflProbeSamp", reflectionProbeCubemapsSampParam);
+			else
+				params->getSamplerStateParam(programType, "gReflProbeCubemaps", reflectionProbeCubemapsSampParam);
 
 			params->getBufferParam(programType, "gReflectionProbes", reflectionProbesParam);
 

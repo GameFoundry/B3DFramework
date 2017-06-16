@@ -144,7 +144,10 @@ namespace bs { namespace ct
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
-		params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
+		if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowSampler"))
+			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
+		else
+			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowSamplerParam);
 
 		SAMPLER_STATE_DESC desc;
 		desc.minFilter = FO_POINT;
@@ -287,7 +290,11 @@ namespace bs { namespace ct
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
-		params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
+
+		if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler"))
+			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
+		else
+			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowSamplerParam);
 
 		SAMPLER_STATE_DESC desc;
 		desc.minFilter = FO_LINEAR;
@@ -935,6 +942,7 @@ namespace bs { namespace ct
 		Light* light = rendererLight.internal;
 
 		RenderAPI& rapi = RenderAPI::instance();
+	const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 
 		Vector3 lightDir = -light->getRotation().zAxis();
 		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
@@ -1209,12 +1217,27 @@ namespace bs { namespace ct
 		mapInfo.fadeRange = 0.0f;
 		mapInfo.depthRange = mapInfo.depthFar - mapInfo.depthNear;
 		mapInfo.depthBias = getDepthBias(*light, light->getBounds().getRadius(), mapInfo.depthRange, options.mapSize);
-        mapInfo.subjectBounds = light->getBounds();
+		mapInfo.subjectBounds = light->getBounds();
 
 		Matrix4 proj = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->getAttenuationRadius());
 		ConvexVolume localFrustum(proj);
 
-		RenderAPI::instance().convertProjectionMatrix(proj, proj);
+		RenderAPI& rapi = RenderAPI::instance();
+		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
+
+		rapi.convertProjectionMatrix(proj, proj);
+
+		// Render cubemaps upside down if necessary
+		Matrix4 adjustedProj = proj;
+		if(rapiInfo.isFlagSet(RenderAPIFeatureFlag::UVYAxisUp) ^ rapiInfo.isFlagSet(RenderAPIFeatureFlag::NDCYAxisDown))
+		{
+			// All big APIs use the same cubemap sampling coordinates, as well as the same face order. But APIs that
+			// use bottom-up UV coordinates require the cubemap faces to be stored upside down in order to get the same
+			// behaviour. APIs that use an upside-down NDC Y axis have the same problem as the rendered image will be
+			// upside down. If both of those are enabled, then the effect cancels out.
+
+			adjustedProj[1][1] = -proj[1][1];
+		}
 
 		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, mapInfo.depthBias);
 		gShadowParamsDef.gInvDepthRange.set(shadowParamsBuffer, 1.0f / mapInfo.depthRange);
@@ -1261,7 +1284,8 @@ namespace bs { namespace ct
 			Matrix4 view = Matrix4(viewRotationMat) * viewOffsetMat;
 			mapInfo.shadowVPTransforms[i] = proj * view;
 
-			gShadowCubeMatricesDef.gFaceVPMatrices.set(shadowCubeMatricesBuffer, mapInfo.shadowVPTransforms[i], i);
+			Matrix4 shadowViewProj = adjustedProj * view;
+			gShadowCubeMatricesDef.gFaceVPMatrices.set(shadowCubeMatricesBuffer, shadowViewProj, i);
 
 			// Calculate world frustum for culling
 			const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
@@ -1281,7 +1305,6 @@ namespace bs { namespace ct
 			boundingPlanes.push_back(worldPlanes.back());
 		}
 
-		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(cubemap.getTarget());
 		rapi.clearRenderTarget(FBT_DEPTH);
 

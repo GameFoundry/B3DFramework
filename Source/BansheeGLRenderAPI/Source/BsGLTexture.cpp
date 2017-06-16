@@ -62,9 +62,9 @@ namespace bs { namespace ct
 
 		if ((usage & TU_DEPTHSTENCIL) != 0)
 		{
-			if (texType != TEX_TYPE_2D)
+			if (texType != TEX_TYPE_2D && texType != TEX_TYPE_CUBE_MAP)
 			{
-				LOGERR("Only 2D depth stencil targets are supported at the moment");
+				LOGERR("Only 2D and cubemap depth stencil textures are supported. Ignoring depth-stencil flag.");
 				usage &= ~TU_DEPTHSTENCIL;
 			}
 		}
@@ -91,13 +91,6 @@ namespace bs { namespace ct
 				glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleCount, mGLFormat, width, height, GL_FALSE);
 			else
 				glTexStorage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, sampleCount, mGLFormat, width, height, numFaces, GL_FALSE);
-		}
-		else if((usage & TU_DEPTHSTENCIL) != 0 && mProperties.getTextureType() == TEX_TYPE_2D)
-		{
-			if (numFaces <= 1)
-				glTexStorage2D(GL_TEXTURE_2D, numMips, mGLFormat, width, height);
-			else
-				glTexStorage3D(GL_TEXTURE_2D_ARRAY, numMips, mGLFormat, width, height, numFaces);
 		}
 		else
 		{
