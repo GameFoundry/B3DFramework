@@ -315,8 +315,11 @@ namespace bs { namespace ct
 				readMask.set(RT_STENCIL);
 		}
 
-		for (auto& entry : mSubresourceInfos)
-			entry.needsBarrier = false;
+		for(auto& entry : mPassTouchedSubresourceInfos)
+		{
+			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
+			subresourceInfo.needsBarrier = false;
+		}
 
 		for (auto& entry : mBuffers)
 			entry.second.needsBarrier = false;
@@ -353,11 +356,14 @@ namespace bs { namespace ct
 
 		// Update any layout transitions that were performed by subpass dependencies, reset flags that signal image usage
 		// and reset read-only state.
-		for (auto& entry : mSubresourceInfos)
+		for(auto& entry : mPassTouchedSubresourceInfos)
 		{
-			entry.isShaderInput = false;
-			entry.isReadOnly = true;
+			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
+			subresourceInfo.isShaderInput = false;
+			subresourceInfo.isReadOnly = true;
 		}
+
+		mPassTouchedSubresourceInfos.clear();
 
 		updateFinalLayouts();
 
@@ -456,7 +462,7 @@ namespace bs { namespace ct
 			UINT32 currentQueueFamily = resource->getQueueFamily();
 			bool queueMismatch = resource->isExclusive() && currentQueueFamily != -1 && currentQueueFamily != mQueueFamily;
 
-			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 			if (queueMismatch)
 			{
 				Vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].imageBarriers;
@@ -771,7 +777,8 @@ namespace bs { namespace ct
 		mOcclusionQueries.clear();
 		mTimerQueries.clear();
 		mImageInfos.clear();
-		mSubresourceInfos.clear();
+		mSubresourceInfoStorage.clear();
+		mPassTouchedSubresourceInfos.clear();
 	}
 
 	void VulkanCmdBuffer::setRenderTarget(const SPtr<RenderTarget>& rt, UINT32 readOnlyFlags, 
@@ -839,7 +846,7 @@ namespace bs { namespace ct
 				UINT32 imageInfoIdx = mImages[fbAttachment.image];
 				ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-				ImageSubresourceInfo* subresourceInfos = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+				ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 				for(UINT32 j = 0; j < imageInfo.numSubresourceInfos; j++)
 				{
 					ImageSubresourceInfo& entry = subresourceInfos[j];
@@ -853,7 +860,7 @@ namespace bs { namespace ct
 				UINT32 imageInfoIdx = mImages[fbAttachment.image];
 				ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-				ImageSubresourceInfo* subresourceInfos = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+				ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 				for(UINT32 j = 0; j < imageInfo.numSubresourceInfos; j++)
 				{
 					ImageSubresourceInfo& entry = subresourceInfos[j];
@@ -1329,7 +1336,7 @@ namespace bs { namespace ct
 	{
 		auto createLayoutTransitionBarrier = [&](VulkanImage* image, ImageInfo& imageInfo)
 		{
-			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 			for (UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
 			{
 				ImageSubresourceInfo& subresourceInfo = subresourceInfos[i];
@@ -1548,11 +1555,14 @@ namespace bs { namespace ct
 
 		// Update any layout transitions that were performed by subpass dependencies, reset flags that signal image usage
 		// and reset read-only state.
-		for (auto& entry : mSubresourceInfos)
+		for(auto& entry : mPassTouchedSubresourceInfos)
 		{
-			entry.isShaderInput = false;
-			entry.isReadOnly = true;
+			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
+			subresourceInfo.isShaderInput = false;
+			subresourceInfo.isReadOnly = true;
 		}
+
+		mPassTouchedSubresourceInfos.clear();
 	}
 
 	void VulkanCmdBuffer::setEvent(VulkanEvent* event)
@@ -1680,8 +1690,8 @@ namespace bs { namespace ct
 		UINT32 nextImageInfoIdx = (UINT32)mImageInfos.size();
 		auto registerSubresourceInfo = [&](const VkImageSubresourceRange& subresourceRange)
 		{
-			mSubresourceInfos.push_back(ImageSubresourceInfo());
-			ImageSubresourceInfo& subresourceInfo = mSubresourceInfos.back();
+			mSubresourceInfoStorage.push_back(ImageSubresourceInfo());
+			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage.back();
 			subresourceInfo.currentLayout = newLayout;
 			subresourceInfo.initialLayout = newLayout;
 			subresourceInfo.requiredLayout = newLayout;
@@ -1693,6 +1703,8 @@ namespace bs { namespace ct
 			subresourceInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
 			subresourceInfo.isInitialReadOnly = subresourceInfo.isReadOnly;
 			subresourceInfo.needsBarrier = needsBarrier;
+
+			mPassTouchedSubresourceInfos.insert((UINT32)mSubresourceInfoStorage.size() - 1);
 		};
 
 		auto insertResult = mImages.insert(std::make_pair(res, nextImageInfoIdx));
@@ -1702,7 +1714,7 @@ namespace bs { namespace ct
 			mImageInfos.push_back(ImageInfo());
 
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-			imageInfo.subresourceInfoIdx = (UINT32)mSubresourceInfos.size();
+			imageInfo.subresourceInfoIdx = (UINT32)mSubresourceInfoStorage.size();
 			imageInfo.numSubresourceInfos = 1;
 
 			imageInfo.useHandle.used = false;
@@ -1723,7 +1735,7 @@ namespace bs { namespace ct
 			// See if there is an overlap between existing ranges and the new range. And if so break them up accordingly.
 			//// First test for the simplest and most common case (same range or no overlap) to avoid more complex
 			//// computations.
-			ImageSubresourceInfo* subresources = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+			ImageSubresourceInfo* subresources = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 			
 			bool foundRange = false;
 			for(UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
@@ -1738,6 +1750,7 @@ namespace bs { namespace ct
 						// Just update existing range
 						updateSubresourceInfo(res, imageInfoIdx, subresources[i], newLayout, finalLayout, flags, 
 							isFBAttachment);
+						mPassTouchedSubresourceInfos.insert(imageInfo.subresourceInfoIdx + i);
 
 						foundRange = true;
 						break;
@@ -1756,18 +1769,19 @@ namespace bs { namespace ct
 				bs_frame_mark();
 				{
 					// We orphan previously allocated memory (we reset it after submit() anyway)
-					UINT32 newSubresourceIdx = (UINT32)mSubresourceInfos.size();
+					UINT32 newSubresourceIdx = (UINT32)mSubresourceInfoStorage.size();
 
 					FrameVector<UINT32> cutOverlappingRanges;
 					for (UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
 					{
 						UINT32 subresourceIdx = imageInfo.subresourceInfoIdx + i;
-						ImageSubresourceInfo& subresource = mSubresourceInfos[subresourceIdx];
+						ImageSubresourceInfo& subresource = mSubresourceInfoStorage[subresourceIdx];
 
 						if (!VulkanUtility::rangeOverlaps(subresource.range, range))
 						{
 							// Just copy as is
-							mSubresourceInfos.push_back(subresource);
+							mSubresourceInfoStorage.push_back(subresource);
+							mPassTouchedSubresourceInfos.insert((UINT32)mSubresourceInfoStorage.size() - 1);
 						}
 						else // Need to cut
 						{
@@ -1777,7 +1791,7 @@ namespace bs { namespace ct
 							for(UINT32 j = 0; j < numCutRanges; j++)
 							{
 								// Create a copy of the original subresource with the new range
-								ImageSubresourceInfo newInfo = mSubresourceInfos[subresourceIdx];
+								ImageSubresourceInfo newInfo = mSubresourceInfoStorage[subresourceIdx];
 								newInfo.range = tempCutRanges[j];
 
 								if(VulkanUtility::rangeOverlaps(tempCutRanges[j], range))
@@ -1787,10 +1801,11 @@ namespace bs { namespace ct
 														  isFBAttachment);
 
 									// Keep track of the overlapping ranges for later
-									cutOverlappingRanges.push_back((UINT32)mSubresourceInfos.size());
+									cutOverlappingRanges.push_back((UINT32)mSubresourceInfoStorage.size());
 								}
 
-								mSubresourceInfos.push_back(newInfo);
+								mSubresourceInfoStorage.push_back(newInfo);
+								mPassTouchedSubresourceInfos.insert((UINT32)mSubresourceInfoStorage.size() - 1);
 							}
 						}
 					}
@@ -1807,7 +1822,7 @@ namespace bs { namespace ct
 
 						for(auto& entry : cutOverlappingRanges)
 						{
-							VkImageSubresourceRange& overlappingRange = mSubresourceInfos[entry].range;
+							VkImageSubresourceRange& overlappingRange = mSubresourceInfoStorage[entry].range;
 
 							UINT32 numSourceRanges = (UINT32)sourceRanges.size();
 							for(UINT32 i = 0; i < numSourceRanges; i++)
@@ -1836,7 +1851,7 @@ namespace bs { namespace ct
 					}
 
 					imageInfo.subresourceInfoIdx = newSubresourceIdx;
-					imageInfo.numSubresourceInfos = (UINT32)mSubresourceInfos.size() - newSubresourceIdx;
+					imageInfo.numSubresourceInfos = (UINT32)mSubresourceInfoStorage.size() - newSubresourceIdx;
 				}
 				bs_frame_clear();
 			}
@@ -2095,7 +2110,7 @@ namespace bs { namespace ct
 		UINT32 imageInfoIdx = mImages[image];
 		ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfos[imageInfo.subresourceInfoIdx];
+		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.subresourceInfoIdx];
 		for(UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
 		{
 			ImageSubresourceInfo& entry = subresourceInfos[i];

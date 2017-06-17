@@ -467,7 +467,8 @@ namespace bs { namespace ct
 		UnorderedSet<VulkanOcclusionQuery*> mOcclusionQueries;
 		UnorderedSet<VulkanTimerQuery*> mTimerQueries;
 		Vector<ImageInfo> mImageInfos;
-		Vector<ImageSubresourceInfo> mSubresourceInfos;
+		Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
+		Set<UINT32> mPassTouchedSubresourceInfos; // All subresource infos touched by the current render pass
 		UINT32 mGlobalQueueIdx;
 
 		SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
