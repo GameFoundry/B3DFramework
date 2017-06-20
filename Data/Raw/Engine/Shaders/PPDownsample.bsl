@@ -9,30 +9,54 @@ technique PPDownsample
 		[internal]
 		cbuffer Input
 		{
-			float2 gInvTexSize;
+			float2 gOffsets[4];
 		}		
-	
-		SamplerState gInputSamp;
-		Texture2D gInputTex;
 
+		#if MSAA
+			Texture2DMS<float4> gInputTex;
+			
+			// position is expected to be at the center of 2x2 pixel tile, in pixels
+			float4 bilinearFilter(float2 position)
+			{
+				float4 sampleSum;
+
+				sampleSum = gInputTex.Load(trunc(position + float2(-0.5f, -0.5f)), 0);
+				sampleSum += gInputTex.Load(trunc(position + float2(0.5f, -0.5f)), 0);
+				sampleSum += gInputTex.Load(trunc(position + float2(-0.5f, 0.5f)), 0);
+				sampleSum += gInputTex.Load(trunc(position + float2(0.5f, 0.5f)), 0);
+				
+				return sampleSum * 0.25f;
+			}
+		#else
+			SamplerState gInputSamp;
+			Texture2D gInputTex;
+			
+			// position is expected to be at the center of 2x2 pixel tile, in UV
+			float4 bilinearFilter(float2 position)
+			{
+				return gInputTex.Sample(gInputSamp, position);
+			}			
+		#endif
+		
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
-			float2 UV[4];
+			// input.uv0 is in the center of 2x2 block of pixels. If MSAA is enabled the value is
+			// in pixels, otherwise normal UV range.
+			
+			#if QUALITY == 0 
+				// Single bilinearly filtered sample (2x2 block average)
+				return bilinearFilter(input.uv0);
+			#else // QUALITY == 1
+				// Four bilinearly filtered samples (4x4 block average)
+				float4 samples[4];
 
-			// Blur using a 4x4 kernel. It's assumed current position is right in the middle of a 2x2 kernel (because the output
-			// texture should be 1/2 the size of the output texture), and moving by one in each direction will sample areas
-			// between a 2x2 kernel as well if bilinear filtering is enabled.
-			UV[0] = input.uv0 + gInvTexSize * float2(-1, -1);
-			UV[1] = input.uv0 + gInvTexSize * float2( 1, -1);
-			UV[2] = input.uv0 + gInvTexSize * float2(-1,  1);
-			UV[3] = input.uv0 + gInvTexSize * float2( 1,  1);
+				[unroll]
+				for(uint i = 0; i < 4; i++)
+					samples[i] = bilinearFilter(input.uv0 + gOffsets[i]);
 
-			float4 samples[4];
-
-			for(uint i = 0; i < 4; i++)
-				samples[i] = gInputTex.Sample(gInputSamp, UV[i]);
-
-			return (samples[0] + samples[1] + samples[2] + samples[3]) * 0.25f;
+				return (samples[0] + samples[1] + samples[2] + samples[3]) * 0.25f;
+				
+			#endif // QUALITY
 		}	
 	};
 };

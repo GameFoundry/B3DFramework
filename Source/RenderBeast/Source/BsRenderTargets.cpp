@@ -114,10 +114,6 @@ namespace bs { namespace ct
 			{
 				UINT32 bufferNumElements = width * height * mViewTarget.numSamples;
 				mFlattenedSceneColorBuffer = texPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
-
-				// Need a texture we'll resolve MSAA to before post-processing
-				mSceneColorNonMSAATex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, width,
-					height, TU_RENDERTARGET, 1, false));
 			}
 
 			bool rebuildRT = false;
@@ -232,9 +228,6 @@ namespace bs { namespace ct
 		{
 			texPool.release(mSceneColorTex);
 
-			if (mSceneColorNonMSAATex != nullptr)
-				texPool.release(mSceneColorNonMSAATex);
-
 			if (mFlattenedSceneColorBuffer != nullptr)
 				texPool.release(mFlattenedSceneColorBuffer);
 		}
@@ -326,22 +319,6 @@ namespace bs { namespace ct
 	SPtr<Texture> RenderTargets::getSceneDepth() const
 	{
 		return mDepthTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getResolvedSceneColor() const
-	{
-		if (mSceneColorNonMSAATex != nullptr)
-			return mSceneColorNonMSAATex->texture;
-
-		return getSceneColor();
-	}
-
-	SPtr<RenderTexture> RenderTargets::getResolvedSceneColorRT() const
-	{
-		if (mSceneColorNonMSAATex != nullptr)
-			return mSceneColorNonMSAATex->renderTexture;
-
-		return mSceneColorTex->renderTexture;
 	}
 
 	SPtr<GpuBuffer> RenderTargets::getSceneColorBuffer() const

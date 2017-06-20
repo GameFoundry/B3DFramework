@@ -113,15 +113,6 @@ namespace bs { namespace ct
 		 */
 		SPtr<GpuBuffer> getLightAccumulationBuffer() const;
 
-		/** 
-		 * Returns a scene color texture with a single-sample per pixel. If no multisampling is used, this is the same as
-		 * getSceneColor().
-		 */
-		SPtr<Texture> getResolvedSceneColor() const;
-
-		/** Returns a render target that can be used for rendering to the texture returned by getResolvedSceneColor(). */
-		SPtr<RenderTexture> getResolvedSceneColorRT() const;
-
 		/**	Checks if the targets support HDR rendering. */
 		bool getHDR() const { return mHDR; }
 
@@ -159,7 +150,6 @@ namespace bs { namespace ct
 		SPtr<PooledStorageBuffer> mFlattenedLightAccumulationBuffer;
 
 		SPtr<PooledRenderTexture> mSceneColorTex;
-		SPtr<PooledRenderTexture> mSceneColorNonMSAATex;
 		SPtr<PooledStorageBuffer> mFlattenedSceneColorBuffer;
 
 		SPtr<RenderTexture> mGBufferRT;

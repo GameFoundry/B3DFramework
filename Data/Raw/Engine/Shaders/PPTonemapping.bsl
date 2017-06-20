@@ -38,8 +38,12 @@ technique PPTonemapping
 			return output;
 		}			
 
-		SamplerState gInputSamp;
-		Texture2D gInputTex;
+		#if MSAA
+			Texture2DMS<float4> gInputTex;
+		#else
+			SamplerState gInputSamp;
+			Texture2D gInputTex;
+		#endif
 		
 		SamplerState gColorLUTSamp;
 		Texture3D gColorLUT;
@@ -48,6 +52,7 @@ technique PPTonemapping
 		{
 			float gRawGamma;
 			float gManualExposureScale;
+			uint gNumSamples;
 		}				
 		
 		float3 ColorLookupTable(float3 linearColor)
@@ -58,22 +63,37 @@ technique PPTonemapping
 			float3 gradedColor = gColorLUT.Sample(gColorLUTSamp, UVW).rgb;
 			return gradedColor;
 		}
-					
-		float4 fsmain(VStoFS input) : SV_Target0
+		
+		float3 tonemapSample(float3 samp, float exposureScale)
 		{
-			float4 sceneColor = gInputTex.Sample(gInputSamp, input.uv0);
-			
 			#if AUTO_EXPOSURE
-				sceneColor.rgb = sceneColor.rgb * input.exposureScale;
+				samp = samp * exposureScale;
 			#else
-				sceneColor.rgb = sceneColor.rgb * gManualExposureScale;
+				samp = samp * gManualExposureScale;
 			#endif
 			
 			#if GAMMA_ONLY
-				sceneColor.rgb = pow(sceneColor.rgb, gRawGamma);				
+				return pow(samp, gRawGamma);				
 			#else
-				sceneColor.rgb = ColorLookupTable(sceneColor.rgb);
+				return ColorLookupTable(samp);
 			#endif
+		}
+		
+		float4 fsmain(VStoFS input) : SV_Target0
+		{
+			float4 sceneColor = 0;
+			#if MSAA
+				for(uint i = 0; i < gNumSamples; ++i)
+					sceneColor.rgb += tonemapSample(gInputTex.Load(trunc(input.uv0), i).rgb, input.exposureScale);
+			
+				sceneColor.rgb /= gNumSamples;
+			#else
+				sceneColor.rgb = tonemapSample(gInputTex.Sample(gInputSamp, input.uv0).rgb, input.exposureScale);
+			#endif
+						
+			// Output luma in gamma-space, for FXAA
+			// Note: This can be avoided if FXAA is not used
+			sceneColor.a = dot(sceneColor.rgb, float3(0.299, 0.587, 0.114));
 
 			return sceneColor;
 		}	

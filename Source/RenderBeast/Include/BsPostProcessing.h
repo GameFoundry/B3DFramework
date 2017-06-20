@@ -29,13 +29,20 @@ namespace bs { namespace ct
 	};
 
 	BS_PARAM_BLOCK_BEGIN(DownsampleParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gInvTexSize)
+		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector2, gOffsets, 4)
 	BS_PARAM_BLOCK_END
 
 	extern DownsampleParamDef gDownsampleParamDef;
 
-	/** Shader that downsamples a texture to half its size. */
-	class DownsampleMat : public RendererMaterial<DownsampleMat>
+	/** 
+	 * Shader that downsamples a texture to half its size. 
+	 * 
+	 * @tparam	Quality		0 for a 2x2 filtered sample, 1 or higher for 4x4 filtered sample
+	 * @tparam	MSAA		True if the input texture is multi-sampled. Only first sample will be used, the rest will be
+	 *						discarded.
+	 */
+	template<int Quality, bool MSAA>
+	class DownsampleMat : public RendererMaterial<DownsampleMat<Quality, MSAA>>
 	{
 		RMAT_DEF("PPDownsample.bsl");
 
@@ -56,6 +63,35 @@ namespace bs { namespace ct
 
 		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
 		SPtr<RenderTexture> mOutput;
+	};
+
+	/** Contains all variations of the DownsampleMat material. */
+	class DownsampleMaterials
+	{
+	public:
+		/**
+		 * Executes the appropriate downsampling material.
+		 * 
+		 * @param[in]	quality		Determines quality of the downsampling filer. Specify 0 to use a 2x2 filter block, and
+		 *							1 or higher for a 4x4 filter block.
+		 * @param[in]	msaa		If true the input texture is assumed to have multiple samples. The downsampling shader
+		 *							will discard all samples except the first one.
+		 * @param[in]	target		Texture to downsample.
+		 * @param[in]	ppInfo		Information about the current post processing pass.
+		 */
+		void execute(UINT32 quality, bool msaa, const SPtr<Texture>& target, PostProcessInfo& ppInfo);
+
+		/**
+		 * Releases any resources allocated by execute(). Must be called using the same @p quality and @p msaa parameters as
+		 * the corresponding execute() call. @see execute().
+		 */
+		void release(UINT32 quality, bool msaa, PostProcessInfo& ppInfo);
+	private:
+		DownsampleMat<0, false> m0_NoMSAA;
+		DownsampleMat<0, true> m0_MSAA;
+		
+		DownsampleMat<1, false> m1_NoMSAA;
+		DownsampleMat<1, true> m1_MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EyeAdaptHistogramParamDef)
@@ -209,13 +245,14 @@ namespace bs { namespace ct
 	BS_PARAM_BLOCK_BEGIN(TonemappingParamDef)
 		BS_PARAM_BLOCK_ENTRY(float, gRawGamma)
 		BS_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
+		BS_PARAM_BLOCK_ENTRY(int, gNumSamples)
 	BS_PARAM_BLOCK_END
 
 	extern TonemappingParamDef gTonemappingParamDef;
 
 	/** Shader that applies tonemapping and converts a HDR image into a LDR image. */
-	template<bool GammaOnly, bool AutoExposure>
-	class TonemappingMat : public RendererMaterial<TonemappingMat<GammaOnly, AutoExposure>>
+	template<bool GammaOnly, bool AutoExposure, bool MSAA>
+	class TonemappingMat : public RendererMaterial<TonemappingMat<GammaOnly, AutoExposure, MSAA>>
 	{
 		RMAT_DEF("PPTonemapping.bsl");
 
@@ -234,6 +271,38 @@ namespace bs { namespace ct
 		GpuParamTexture mEyeAdaptationTex;
 	};
 
+	/** Container for all variations of the TonemappingMat material. */
+	class TonemappingMaterials
+	{
+	public:
+		/** 
+		 * Finds a valid tonemapping material according to the requested parameters and executes it. 
+		 *
+		 * @param[in]	gammaOnly		If true no color correction, white balancing or curve tonemapping will take place. 
+		 *								Instead the image will only be scaled by the exposure value and gamma corrected.
+		 * @param[in]	autoExposure	If true, the automatically calculated eye-adapatation exposure value will be used
+		 *								as the exposure scale. If false, the user provided value will be used instead.
+		 * @param[in]	MSAA			True if the input texture has multiple samples. This will ensure that the samples
+		 *								are resolved properly into a non-MSAA output texture.
+		 * @param[in]	sceneColor		Texture to apply tonemapping to.
+		 * @param[in]	outputRT		Render target to write the results to.
+		 * @param[in]	outputRect		Normalized rectangle determining to which part of the output texture to write to.
+		 * @param[in]	ppInfo			Information about the current post processing pass.
+		 */
+		void execute(bool gammaOnly, bool autoExposure, bool MSAA, const SPtr<Texture>& sceneColor,
+			const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo);
+
+	private:
+		TonemappingMat<false, false, false> mFFF;
+		TonemappingMat<false, false, true> mFFT;
+		TonemappingMat<false, true, false> mFTF;
+		TonemappingMat<false, true, true> mFTT;
+		TonemappingMat<true, false, false> mTFF;
+		TonemappingMat<true, false, true> mTFT;
+		TonemappingMat<true, true, false> mTTF;
+		TonemappingMat<true, true, true> mTTT;
+	};
+
 	/**
 	 * Renders post-processing effects for the provided render target.
 	 *
@@ -247,19 +316,16 @@ namespace bs { namespace ct
 		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
 		 * bound for rendering. 
 		 */
-		void postProcess(RendererView* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta);
+		void postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta);
 		
 	private:
-		DownsampleMat mDownsample;
+		DownsampleMaterials mDownsample;
 		EyeAdaptHistogramMat mEyeAdaptHistogram;
 		EyeAdaptHistogramReduceMat mEyeAdaptHistogramReduce;
 		EyeAdaptationMat mEyeAdaptation;
 
 		CreateTonemapLUTMat mCreateLUT;
-		TonemappingMat<false, true> mTonemapping_AE;
-		TonemappingMat<true, true> mTonemapping_AE_GO;
-		TonemappingMat<false, false> mTonemapping;
-		TonemappingMat<true, false> mTonemapping_GO;
+		TonemappingMaterials mTonemapping;
 	};
 
 	/** @} */

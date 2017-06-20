@@ -673,18 +673,8 @@ namespace bs { namespace ct
 
 		if (viewProps.runPostProcessing)
 		{
-			// If using MSAA, resolve into non-MSAA texture before post-processing
-			if(numSamples > 1)
-			{
-				rapi.setRenderTarget(renderTargets->getResolvedSceneColorRT());
-				rapi.setViewport(viewportArea);
-
-				SPtr<Texture> sceneColor = renderTargets->getSceneColor();
-				gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewProps.flipView);
-			}
-
 			// Post-processing code also takes care of writting to the final output target
-			PostProcessing::instance().postProcess(viewInfo, renderTargets->getResolvedSceneColor(), frameDelta);
+			PostProcessing::instance().postProcess(viewInfo, renderTargets, frameDelta);
 		}
 		else
 		{

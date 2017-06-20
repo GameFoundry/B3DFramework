@@ -8,33 +8,55 @@
 #include "BsCamera.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererView.h"
+#include "BsRenderTargets.h"
 
 namespace bs { namespace ct
 {
 	DownsampleParamDef gDownsampleParamDef;
 
-	DownsampleMat::DownsampleMat()
+	template<int Quality, bool MSAA>
+	DownsampleMat<Quality, MSAA>::DownsampleMat()
 	{
 		mParamBuffer = gDownsampleParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		if(gpuParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
+			mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void DownsampleMat::_initDefines(ShaderDefines& defines)
+	template<int Quality, bool MSAA>
+	void DownsampleMat<Quality, MSAA>::_initDefines(ShaderDefines& defines)
 	{
-		// Do nothing
+		defines.set("QUALITY", Quality);
+		defines.set("MSAA", MSAA ? 1 : 0);
 	}
 
-	void DownsampleMat::execute(const SPtr<Texture>& target, PostProcessInfo& ppInfo)
+	template<int Quality, bool MSAA>
+	void DownsampleMat<Quality, MSAA>::execute(const SPtr<Texture>& target, PostProcessInfo& ppInfo)
 	{
 		// Set parameters
 		mInputTexture.set(target);
 
 		const TextureProperties& rtProps = target->getProperties();
-		Vector2 invTextureSize(1.0f / rtProps.getWidth(), 1.0f / rtProps.getHeight());
 
-		gDownsampleParamDef.gInvTexSize.set(mParamBuffer, invTextureSize);
+		if(MSAA)
+		{
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, Vector2(-1.0f, -1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, Vector2(1.0f, -1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, Vector2(-1.0f, 1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, Vector2(1.0f, 1.0f));
+		}
+		else
+		{
+			Vector2 invTextureSize(1.0f / rtProps.getWidth(), 1.0f / rtProps.getHeight());
+
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, invTextureSize * Vector2(-1.0f, -1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, invTextureSize * Vector2(1.0f, -1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, invTextureSize * Vector2(-1.0f, 1.0f));
+			gDownsampleParamDef.gOffsets.set(mParamBuffer, invTextureSize * Vector2(1.0f, 1.0f));
+		}
 
 		// Set output
 		UINT32 width = std::max(1, Math::ceilToInt(rtProps.getWidth() * 0.5f));
@@ -50,18 +72,64 @@ namespace bs { namespace ct
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+
+		if (MSAA)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.getWidth(), (float)rtProps.getHeight()));
+		else
+			gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 
 		mOutput = ppInfo.downsampledSceneTex->renderTexture;
 	}
 
-	void DownsampleMat::release(PostProcessInfo& ppInfo)
+	template<int Quality, bool MSAA>
+	void DownsampleMat<Quality, MSAA>::release(PostProcessInfo& ppInfo)
 	{
 		GpuResourcePool::instance().release(ppInfo.downsampledSceneTex);
 		mOutput = nullptr;
 	}
+
+	void DownsampleMaterials::execute(UINT32 quality, bool msaa, const SPtr<Texture>& target, PostProcessInfo& ppInfo)
+	{
+		if(quality == 0)
+		{
+			if(msaa)
+				m0_MSAA.execute(target, ppInfo);
+			else
+				m0_NoMSAA.execute(target, ppInfo);
+		}
+		else
+		{
+			if (msaa)
+				m1_MSAA.execute(target, ppInfo);
+			else
+				m1_NoMSAA.execute(target, ppInfo);
+		}
+	}
+
+	void DownsampleMaterials::release(UINT32 quality, bool msaa, PostProcessInfo& ppInfo)
+	{
+		if(quality == 0)
+		{
+			if(msaa)
+				m0_MSAA.release(ppInfo);
+			else
+				m0_NoMSAA.release(ppInfo);
+		}
+		else
+		{
+			if (msaa)
+				m1_MSAA.release(ppInfo);
+			else
+				m1_NoMSAA.release(ppInfo);
+		}
+	}
+
+	template class DownsampleMat<0, false>;
+	template class DownsampleMat<0, true>;
+	template class DownsampleMat<1, false>;
+	template class DownsampleMat<1, true>;
 
 	EyeAdaptHistogramParamDef gEyeAdaptHistogramParamDef;
 
@@ -362,8 +430,8 @@ namespace bs { namespace ct
 
 	TonemappingParamDef gTonemappingParamDef;
 
-	template<bool GammaOnly, bool AutoExposure>
-	TonemappingMat<GammaOnly, AutoExposure>::TonemappingMat()
+	template<bool GammaOnly, bool AutoExposure, bool MSAA>
+	TonemappingMat<GammaOnly, AutoExposure, MSAA>::TonemappingMat()
 	{
 		mParamBuffer = gTonemappingParamDef.createBuffer();
 		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
@@ -376,8 +444,8 @@ namespace bs { namespace ct
 			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
 	}
 
-	template<bool GammaOnly, bool AutoExposure>
-	void TonemappingMat<GammaOnly, AutoExposure>::_initDefines(ShaderDefines& defines)
+	template<bool GammaOnly, bool AutoExposure, bool MSAA>
+	void TonemappingMat<GammaOnly, AutoExposure, MSAA>::_initDefines(ShaderDefines& defines)
 	{
 		if(GammaOnly)
 			defines.set("GAMMA_ONLY", 1);
@@ -385,15 +453,19 @@ namespace bs { namespace ct
 		if (AutoExposure)
 			defines.set("AUTO_EXPOSURE", 1);
 
+		defines.set("MSAA", MSAA ? 1 : 0);
 		defines.set("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE);
 	}
 
-	template<bool GammaOnly, bool AutoExposure>
-	void TonemappingMat<GammaOnly, AutoExposure>::execute(const SPtr<Texture>& sceneColor, 
+	template<bool GammaOnly, bool AutoExposure, bool MSAA>
+	void TonemappingMat<GammaOnly, AutoExposure, MSAA>::execute(const SPtr<Texture>& sceneColor, 
 		const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo)
 	{
+		const TextureProperties& texProps = sceneColor->getProperties();
+
 		gTonemappingParamDef.gRawGamma.set(mParamBuffer, 1.0f / ppInfo.settings->gamma);
 		gTonemappingParamDef.gManualExposureScale.set(mParamBuffer, Math::pow(2.0f, ppInfo.settings->exposureScale));
+		gTonemappingParamDef.gNumSamples.set(mParamBuffer, texProps.getNumSamples());
 
 		// Set parameters
 		mInputTex.set(sceneColor);
@@ -418,31 +490,79 @@ namespace bs { namespace ct
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+
+		if (MSAA)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)texProps.getWidth(), (float)texProps.getHeight()));
+		else
+			gRendererUtility().drawScreenQuad();
 	}
 
-	template class TonemappingMat<true, true>;
-	template class TonemappingMat<false, true>;
-	template class TonemappingMat<true, false>;
-	template class TonemappingMat<false, false>;
+	template class TonemappingMat<false, false, false>;
+	template class TonemappingMat<false, false, true>;
+	template class TonemappingMat<false, true, false>;
+	template class TonemappingMat<false, true, true>;
+	template class TonemappingMat<true, false, false>;
+	template class TonemappingMat<true, false, true>;
+	template class TonemappingMat<true, true, false>;
+	template class TonemappingMat<true, true, true>;
 
-	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<Texture>& sceneColor, float frameDelta)
+	void TonemappingMaterials::execute(bool gammaOnly, bool autoExposure, bool MSAA, const SPtr<Texture>& sceneColor, 
+		const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo)
+	{
+		if (gammaOnly)
+		{
+			if (autoExposure)
+			{
+				if (MSAA)
+					mTTT.execute(sceneColor, outputRT, outputRect, ppInfo);
+				else
+					mTTF.execute(sceneColor, outputRT, outputRect, ppInfo);
+			}
+			else
+			{
+				if (MSAA)
+					mTFT.execute(sceneColor, outputRT, outputRect, ppInfo);
+				else
+					mTFF.execute(sceneColor, outputRT, outputRect, ppInfo);
+			}
+		}
+		else
+		{
+			if (autoExposure)
+			{
+				if (MSAA)
+					mFTT.execute(sceneColor, outputRT, outputRect, ppInfo);
+				else
+					mFTF.execute(sceneColor, outputRT, outputRect, ppInfo);
+			}
+			else
+			{
+				if (MSAA)
+					mFFT.execute(sceneColor, outputRT, outputRect, ppInfo);
+				else
+					mFFF.execute(sceneColor, outputRT, outputRect, ppInfo);
+			}
+		}
+	}
+
+	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)
 	{
 		auto& viewProps = viewInfo->getProperties();
 
 		PostProcessInfo& ppInfo = viewInfo->getPPInfo();
 		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
-		SPtr<RenderTarget> finalRT = viewProps.target;
+		SPtr<Texture> sceneColor = renderTargets->getSceneColor();
 		Rect2 viewportRect = viewProps.nrmViewRect;
 
 		bool hdr = viewProps.isHDR;
+		bool msaa = viewProps.numSamples > 1;
 
 		if(hdr && settings.enableAutoExposure)
 		{
-			mDownsample.execute(sceneColor, ppInfo);
+			mDownsample.execute(1, msaa, sceneColor, ppInfo);
 			mEyeAdaptHistogram.execute(ppInfo);
-			mDownsample.release(ppInfo);
+			mDownsample.release(1, msaa, ppInfo);
 
 			mEyeAdaptHistogramReduce.execute(ppInfo);
 			mEyeAdaptHistogram.release(ppInfo);
@@ -451,23 +571,31 @@ namespace bs { namespace ct
 			mEyeAdaptHistogramReduce.release(ppInfo);
 		}
 
-		if (hdr && settings.enableTonemapping)
-		{
-			if (ppInfo.settingDirty) // Rebuild LUT if PP settings changed
-				mCreateLUT.execute(ppInfo);
+		SPtr<RenderTarget> resolveTarget = viewProps.target;
 
-			if (settings.enableAutoExposure)
-				mTonemapping_AE.execute(sceneColor, finalRT, viewportRect, ppInfo);
+		bool gammaOnly;
+		bool autoExposure;
+		if (hdr)
+		{
+			if (settings.enableTonemapping)
+			{
+				if (ppInfo.settingDirty) // Rebuild LUT if PP settings changed
+					mCreateLUT.execute(ppInfo);
+
+				gammaOnly = false;
+			}
 			else
-				mTonemapping.execute(sceneColor, finalRT, viewportRect, ppInfo);
+				gammaOnly = true;
+
+			autoExposure = settings.enableAutoExposure;
 		}
 		else
 		{
-			if (hdr && settings.enableAutoExposure)
-				mTonemapping_AE_GO.execute(sceneColor, finalRT, viewportRect, ppInfo);
-			else
-				mTonemapping_GO.execute(sceneColor, finalRT, viewportRect, ppInfo);
+			gammaOnly = true;
+			autoExposure = false;
 		}
+
+		mTonemapping.execute(gammaOnly, autoExposure, msaa, sceneColor, resolveTarget, viewportRect, ppInfo);
 
 		if (ppInfo.settingDirty)
 			ppInfo.settingDirty = false;
