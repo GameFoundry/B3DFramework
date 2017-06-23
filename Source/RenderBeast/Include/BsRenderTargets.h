@@ -24,8 +24,18 @@ namespace bs { namespace ct
 		RTT_LightAccumulation,
 		/** Buffer containing temporary combined occlusion data for a specific light (from shadow maps or attenuation. */
 		RTT_LightOcclusion,
-		/** Buffer containing final scene color information. */
-		RTT_SceneColor
+		/** Buffer containing (potentially multisampled) scene color information. */
+		RTT_SceneColor,
+		/** 
+		 * Buffer containing non-MSAA final scene color information. If MSAA is not used then this is equivalent to
+		 * RTT_SceneColor;
+		 */
+		RTT_ResolvedSceneColor,
+		/**
+		 * Secondary resolved scene color texture that can be used for ping-ponging between primary and secondary scene
+		 * color textures. Primarily useful for post-processing effects.
+		 */
+		RTT_ResolvedSceneColorSecondary
 	};
 
 	/**
@@ -77,8 +87,20 @@ namespace bs { namespace ct
 		/**	Returns the third color texture of the gbuffer as a bindable texture. */
 		SPtr<Texture> getGBufferC() const;
 
-		/**	Binds the scene color render target for rendering. */
+		/**	
+		 * Binds the scene color render target for rendering. If using MSAA this texture will be allocated as a texture 
+		 * with multiple samples.
+		 */
 		void bindSceneColor(bool readOnlyDepthStencil);
+
+		/**
+		 * Binds the non-MSAA version of the scene color texture for rendering. If not using MSAA this is equivalent to
+		 * calling bindSceneColor() (as long as @p secondary is false).
+		 * 
+		 * @param[in]	secondary	If true, a seconday scene color texture will be bound. This texture can be used
+		 *							for ping-pong operations between it and the primary scene color.
+		 */
+		void bindResolvedSceneColor(bool secondary = false);
 
 		/** Binds the light accumulation render target for rendering. */
 		void bindLightAccumulation();
@@ -89,17 +111,32 @@ namespace bs { namespace ct
 		 */
 		void bindLightOcclusion();
 
-		/** 
-		 * Returns the texture for storing the final scene color. If using MSAA see getSceneColorBuffer() instead. Only 
-		 * available after bindSceneColor() has been called from this frame.
-		 **/
+		/** Returns the texture containing (potentially multisampled) scene color. */
 		SPtr<Texture> getSceneColor() const;
 
 		/** 
-		 * Flattened, buffer version of the texture returned by getSceneColor(). Required when MSAA is used, since
+		 * Flattened, buffer version of the texture returned by getSceneColor(). Only available when MSAA is used, since
 		 * random writes to multisampled textures aren't supported on all render backends.
 		 */
 		SPtr<GpuBuffer> getSceneColorBuffer() const;
+
+		/**
+		 * Returns a non-MSAA version of the scene color texture. If MSAA is not used this is equivalent to calling
+		 * getSceneColor() (as long as @p secondary is set to false).
+		 * 
+		 * @param[in]	secondary	If true, a seconday scene color texture will be returned. This texture can be used
+		 *							for ping-pong operations between it and the primary scene color.
+		 */
+		SPtr<Texture> getResolvedSceneColor(bool secondary = false) const;
+
+		/**
+		 * Returns a non-MSAA version of the scene color render target. If MSAA is not used this will return the default
+		 * scene color render target (as long as @p secondary is set to false).
+		 * 
+		 * @param[in]	secondary	If true, a seconday scene color target will be returned. This target can be used
+		 *							for ping-pong operations between it and the primary scene color.
+		 */
+		SPtr<RenderTarget> getResolvedSceneColorRT(bool secondary = false) const;
 
 		/** Returns the texture for storing of the intermediate lighting information. */
 		SPtr<Texture> getLightAccumulation() const;
@@ -151,9 +188,13 @@ namespace bs { namespace ct
 
 		SPtr<PooledRenderTexture> mSceneColorTex;
 		SPtr<PooledStorageBuffer> mFlattenedSceneColorBuffer;
+		SPtr<PooledRenderTexture> mResolvedSceneColorTex1;
+		SPtr<PooledRenderTexture> mResolvedSceneColorTex2;
 
 		SPtr<RenderTexture> mGBufferRT;
 		SPtr<RenderTexture> mSceneColorRT;
+		SPtr<RenderTexture> mResolvedSceneColorRT1;
+		SPtr<RenderTexture> mResolvedSceneColorRT2;
 		SPtr<RenderTexture> mLightAccumulationRT;
 		SPtr<RenderTexture> mLightOcclusionRT;
 

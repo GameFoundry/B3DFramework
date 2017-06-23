@@ -1,0 +1,29 @@
+#include "$ENGINE$\PerCameraData.bslinc"
+
+mixin PPGaussianDOFCommon
+{
+	mixin PerCameraData;
+
+	code
+	{
+		[internal]
+		cbuffer Input
+		{
+			float gNearBlurPlane;
+			float gFarBlurPlane;
+			float gInvNearBlurRange;
+			float gInvFarBlurRange;
+			float2 gHalfPixelOffset;
+		}		
+		
+		float calcNearMask(float depth)
+		{
+			return saturate((gNearBlurPlane - depth) * gInvNearBlurRange);
+		}
+		
+		float calcFarMask(float depth)
+		{
+			return saturate((depth - gFarBlurPlane) * gInvFarBlurRange);
+		}
+	};
+};

@@ -349,7 +349,7 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTexture;
 	};
 
-	BS_PARAM_BLOCK_BEGIN(GaussianDOFSeparateParamDef)
+	BS_PARAM_BLOCK_BEGIN(GaussianDOFParamDef)
 		BS_PARAM_BLOCK_ENTRY(float, gNearBlurPlane)
 		BS_PARAM_BLOCK_ENTRY(float, gFarBlurPlane)
 		BS_PARAM_BLOCK_ENTRY(float, gInvNearBlurRange)
@@ -357,7 +357,37 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Vector2, gHalfPixelOffset)
 	BS_PARAM_BLOCK_END
 
-	extern GaussianDOFSeparateParamDef sGaussianDOFSeparateParamDef;
+	extern GaussianDOFParamDef sGaussianDOFParamDef;
+
+	/** Common interface for all variations of GaussianDOFSeparateMat. */
+	class IGaussianDOFSeparateMat
+	{
+	public:
+		virtual ~IGaussianDOFSeparateMat() { }
+
+		/** 
+		 * Renders the post-process effect with the provided parameters. 
+		 * 
+		 * @param[in]	color		Input color texture to process.
+		 * @param[in]	depth		Input depth buffer texture that will be used for determining pixel depth.
+		 * @param[in]	view		View through which the depth of field effect is viewed.
+		 * @param[in]	settings	Settings used to control depth of field rendering. 
+		 */
+		virtual void execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, 
+			const DepthOfFieldSettings& settings) = 0;
+
+		/**
+		 * Returns the texture generated after the shader was executed. Only valid to call this in-between calls to
+		 * execute() & release(), with @p idx value 0 or 1.
+		 */
+		virtual SPtr<PooledRenderTexture> getOutput(UINT32 idx) = 0;
+
+		/**
+		 * Releases the interally allocated output render textures. Must be called after each call to execute(), when the 
+		 * caller is done using the textures.
+		 */
+		virtual void release() = 0;
+	};
 
 	/** 
 	 * Shader that masks pixels from the input color texture into one or two output textures. The masking is done by
@@ -369,35 +399,22 @@ namespace bs { namespace ct
 	 *					pixels are output to the second render target instead.
 	 */
 	template<bool Near, bool Far>
-	class GaussianDOFSeparateMat : public RendererMaterial<GaussianDOFSeparateMat<Near, Far>>
+	class GaussianDOFSeparateMat : public IGaussianDOFSeparateMat, public RendererMaterial<GaussianDOFSeparateMat<Near, Far>>
 	{
 		RMAT_DEF("PPGaussianDOFSeparate.bsl");
 
 	public:
 		GaussianDOFSeparateMat();
 
-		/** 
-		 * Renders the post-process effect with the provided parameters. 
-		 * 
-		 * @param[in]	color		Input color texture to process.
-		 * @param[in]	depth		Input depth buffer texture that will be used for determining pixel depth.
-		 * @param[in]	view		View through which the depth of field effect is viewed.
-		 * @param[in]	settings	Settings used to control depth of field rendering. 
-		 */
+		/** @copydoc IGaussianDOFSeparateMat::execute() */
 		void execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, 
-			const DepthOfFieldSettings& settings);
+			const DepthOfFieldSettings& settings) override;
 
-		/**
-		 * Returns the texture generated after the shader was executed. Only valid to call this in-between calls to
-		 * execute() & release(), with @p idx value 0 or 1.
-		 */
-		SPtr<Texture> getOutput(UINT32 idx);
+		/** @copydoc IGaussianDOFSeparateMat::getOutput() */
+		SPtr<PooledRenderTexture> getOutput(UINT32 idx) override;
 
-		/**
-		 * Releases the interally allocated output render textures. Must be called after each call to execute(), when the 
-		 * caller is done using the textures.
-		 */
-		void release();
+		/** @copydoc IGaussianDOFSeparateMat::release() */
+		void release() override;
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -406,6 +423,88 @@ namespace bs { namespace ct
 
 		SPtr<PooledRenderTexture> mOutput0;
 		SPtr<PooledRenderTexture> mOutput1;
+	};
+
+	/** Common interface for all variations of GaussianDOFCombineMat. */
+	class IGaussianDOFCombineMat
+	{
+	public:
+		virtual ~IGaussianDOFCombineMat() { }
+
+		/** 
+		 * Renders the post-process effect with the provided parameters. 
+		 * 
+		 * @param[in]	focused		Input texture containing focused (default) scene color.
+		 * @param[in]	near		Input texture containing filtered (blurred) values for the unfocused foreground area.
+		 *							Can be null if no near plane needs to be blended.
+		 * @param[in]	far			Input texture containing filtered (blurred) values for the unfocused background area.
+		 *							Can be null if no far plane needs to be blended.
+		 * @param[in]	depth		Input depth buffer texture that will be used for determining pixel depth.
+		 * @param[in}	output		Texture to output the results to.
+		 * @param[in]	view		View through which the depth of field effect is viewed.
+		 * @param[in]	settings	Settings used to control depth of field rendering. 
+		 */
+		virtual void execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, 
+			const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, 
+			const DepthOfFieldSettings& settings) = 0;
+	};
+
+	/** 
+	 * Shader that combines pixels for near unfocused, focused and far unfocused planes, as calculated by 
+	 * GaussianDOFSeparateMat. Outputs final depth-of-field filtered image.
+	 *
+	 * @tparam	Near	If true, near plane pixels are read from the near plane texture, otherwise near plane is assumed
+	 *					not to exist.
+	 * @tparam	Far		If true, far plane pixels are read from the far plane texture, otherwise far plane is assumed not
+	 *					to exist.
+	 */
+	template<bool Near, bool Far>
+	class GaussianDOFCombineMat : public IGaussianDOFCombineMat, public RendererMaterial<GaussianDOFCombineMat<Near, Far>>
+	{
+		RMAT_DEF("PPGaussianDOFCombine.bsl");
+
+	public:
+		GaussianDOFCombineMat();
+
+		void execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, 
+			const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, 
+			const DepthOfFieldSettings& settings) override;
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mFocusedTexture;
+		GpuParamTexture mNearTexture;
+		GpuParamTexture mFarTexture;
+		GpuParamTexture mDepthTexture;
+	};
+
+	/** Performs Gaussian depth of field effect with the help of various related shaders. */
+	class GaussianDOF
+	{
+	public:
+		/** 
+		 * Executes the depth of field effect on the provided scene color texture.
+		 * 
+		 * @param[in]	sceneColor	Input texture containing scene color.
+		 * @param[in]	sceneDepth	Input depth buffer texture that will be used for determining pixel depth.
+		 * @param[in}	output		Texture to output the results to.
+		 * @param[in]	view		View through which the depth of field effect is viewed.
+		 * @param[in]	settings	Settings used to control depth of field rendering. 
+		 */
+		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& output, 
+			const RendererView& view, const DepthOfFieldSettings& settings);
+
+		/** Checks does the depth of field effect need to execute. */
+		static bool requiresDOF(const DepthOfFieldSettings& settings);
+	private:
+		GaussianDOFSeparateMat<true, true> mSeparateNF;
+		GaussianDOFSeparateMat<false, true> mSeparateF;
+		GaussianDOFSeparateMat<true, false> mSeparateN;
+
+		GaussianDOFCombineMat<true, true> mCombineNF;
+		GaussianDOFCombineMat<false, true> mCombineF;
+		GaussianDOFCombineMat<true, false> mCombineN;
+
+		GaussianBlurMat mBlur;
 	};
 
 	/**
@@ -431,6 +530,7 @@ namespace bs { namespace ct
 
 		CreateTonemapLUTMat mCreateLUT;
 		TonemappingMaterials mTonemapping;
+		GaussianDOF mGaussianDOF;
 	};
 
 	/** @} */

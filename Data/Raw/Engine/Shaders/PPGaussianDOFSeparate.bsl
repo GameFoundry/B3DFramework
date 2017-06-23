@@ -1,39 +1,19 @@
 #include "$ENGINE$\PPBase.bslinc"
-#include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PPGaussianDOFCommon.bslinc"
 
 technique PPGaussianDOFSeparate
 {
 	mixin PPBase;
-	mixin PerCameraData;
+	mixin PPGaussianDOFCommon;
 
 	code
 	{
-		[internal]
-		cbuffer Input
-		{
-			float gNearBlurPlane;
-			float gFarBlurPlane;
-			float gInvNearBlurRange;
-			float gInvFarBlurRange;
-			float2 gHalfPixelOffset;
-		}		
-
 		SamplerState gColorSamp;
 		Texture2D gColorTex;
 		
 		SamplerState gDepthSamp;
 		Texture2D gDepthTex;
-		
-		float calcNearMask(float depth)
-		{
-			return saturate((gNearBlurPlane - depth) * gInvNearBlurRange);
-		}
-		
-		float calcFarMask(float depth)
-		{
-			return saturate((gFarBlurPlane - depth) * gInvFarBlurRange);
-		}
-		
+
 		void addSample(float2 uv, float2 offset, float depth, inout float4 nearColor, inout float4 farColor)
 		{
 			float4 smp;
@@ -52,7 +32,7 @@ technique PPGaussianDOFSeparate
 			VStoFS input,
 			out float4 output0 : SV_Target0
 			#if NEAR_AND_FAR
-			out float4 output1 : SV_Target1
+			, out float4 output1 : SV_Target1
 			#endif
 			)
 		{

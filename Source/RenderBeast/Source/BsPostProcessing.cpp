@@ -712,7 +712,7 @@ namespace bs { namespace ct
 		return std::min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
 	}
 
-	GaussianDOFSeparateParamDef gGaussianDOFSeparateParamDef;
+	GaussianDOFParamDef gGaussianDOFParamDef;
 
 	template<bool Near, bool Far>
 	GaussianDOFSeparateMat<Near, Far>::GaussianDOFSeparateMat()
@@ -750,7 +750,6 @@ namespace bs { namespace ct
 	void GaussianDOFSeparateMat<Near, Far>::execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, 
 		const RendererView& view, const DepthOfFieldSettings& settings)
 	{
-		const RendererViewProperties& viewProps = view.getProperties();
 		const TextureProperties& srcProps = color->getProperties();
 
 		POOLED_RENDER_TEXTURE_DESC outputTexDesc = POOLED_RENDER_TEXTURE_DESC::create2D(srcProps.getFormat(), 
@@ -773,11 +772,11 @@ namespace bs { namespace ct
 
 		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
 
-		gGaussianDOFSeparateParamDef.gHalfPixelOffset.set(mParamBuffer, invTexSize * 0.5f);
-		gGaussianDOFSeparateParamDef.gNearBlurPlane.set(mParamBuffer, settings.focalDistance - settings.focalRange * 0.5f);
-		gGaussianDOFSeparateParamDef.gFarBlurPlane.set(mParamBuffer, settings.focalDistance + settings.focalRange * 0.5f);
-		gGaussianDOFSeparateParamDef.gInvNearBlurRange.set(mParamBuffer, 1.0f / settings.nearTransitionRange);
-		gGaussianDOFSeparateParamDef.gInvFarBlurRange.set(mParamBuffer, 1.0f / settings.farTransitionRange);
+		gGaussianDOFParamDef.gHalfPixelOffset.set(mParamBuffer, invTexSize * 0.5f);
+		gGaussianDOFParamDef.gNearBlurPlane.set(mParamBuffer, settings.focalDistance - settings.focalRange * 0.5f);
+		gGaussianDOFParamDef.gFarBlurPlane.set(mParamBuffer, settings.focalDistance + settings.focalRange * 0.5f);
+		gGaussianDOFParamDef.gInvNearBlurRange.set(mParamBuffer, 1.0f / settings.nearTransitionRange);
+		gGaussianDOFParamDef.gInvFarBlurRange.set(mParamBuffer, 1.0f / settings.farTransitionRange);
 
 		mColorTexture.set(color);
 		mDepthTexture.set(depth);
@@ -794,12 +793,12 @@ namespace bs { namespace ct
 	}
 
 	template <bool Near, bool Far>
-	SPtr<Texture> GaussianDOFSeparateMat<Near, Far>::getOutput(UINT32 idx)
+	SPtr<PooledRenderTexture> GaussianDOFSeparateMat<Near, Far>::getOutput(UINT32 idx)
 	{
 		if (idx == 0)
-			return mOutput0->texture;
+			return mOutput0;
 		else if (idx == 1)
-			return mOutput1->texture;
+			return mOutput1;
 
 		return nullptr;
 	}
@@ -814,6 +813,162 @@ namespace bs { namespace ct
 			GpuResourcePool::instance().release(mOutput1);
 	}
 
+	template class GaussianDOFSeparateMat<true, true>;
+	template class GaussianDOFSeparateMat<true, false>;
+	template class GaussianDOFSeparateMat<false, true>;
+
+	template<bool Near, bool Far>
+	GaussianDOFCombineMat<Near, Far>::GaussianDOFCombineMat()
+	{
+		mParamBuffer = gDownsampleParamDef.createBuffer();
+
+		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+
+		if(gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gNearTex"))
+			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNearTex", mNearTexture);
+
+		if(gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gFarTex"))
+			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gFarTex", mFarTexture);
+	}
+
+	template<bool Near, bool Far>
+	void GaussianDOFCombineMat<Near, Far>::_initDefines(ShaderDefines& defines)
+	{
+		defines.set("NEAR", Near ? 1 : 0);
+		defines.set("FAR", Far ? 1 : 0);
+		defines.set("NEAR_AND_FAR", (Near && Far) ? 1 : 0);
+	}
+
+	template<bool Near, bool Far>
+	void GaussianDOFCombineMat<Near, Far>::execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, 
+		const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output,
+		const RendererView& view, const DepthOfFieldSettings& settings)
+	{
+		const TextureProperties& srcProps = focused->getProperties();
+
+		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
+
+		gGaussianDOFParamDef.gHalfPixelOffset.set(mParamBuffer, invTexSize * 0.5f);
+		gGaussianDOFParamDef.gNearBlurPlane.set(mParamBuffer, settings.focalDistance - settings.focalRange * 0.5f);
+		gGaussianDOFParamDef.gFarBlurPlane.set(mParamBuffer, settings.focalDistance + settings.focalRange * 0.5f);
+		gGaussianDOFParamDef.gInvNearBlurRange.set(mParamBuffer, 1.0f / settings.nearTransitionRange);
+		gGaussianDOFParamDef.gInvFarBlurRange.set(mParamBuffer, 1.0f / settings.farTransitionRange);
+
+		mFocusedTexture.set(focused);
+		mNearTexture.set(near);
+		mFarTexture.set(far);
+		mDepthTexture.set(depth);
+
+		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(output);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+	}
+
+	template class GaussianDOFCombineMat<true, true>;
+	template class GaussianDOFCombineMat<true, false>;
+	template class GaussianDOFCombineMat<false, true>;
+
+	void GaussianDOF::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& sceneDepth, 
+		const SPtr<RenderTarget>& output, const RendererView& view, const DepthOfFieldSettings& settings)
+	{
+		bool near = settings.nearBlurAmount > 0.0f;
+		bool far = settings.farBlurAmount > 0.0f;
+
+		// This shouldn't have been called if both are false
+		assert(near || far);
+
+		IGaussianDOFSeparateMat* separateMat;
+		IGaussianDOFCombineMat* combineMat;
+
+		if (near && far)
+		{
+			separateMat = &mSeparateNF;
+			combineMat = &mCombineNF;
+		}
+		else
+		{
+			if(near)
+			{
+				separateMat = &mSeparateN;
+				combineMat = &mCombineN;
+			}
+			else
+			{
+				separateMat = &mSeparateF;
+				combineMat = &mCombineF;
+			}
+		}
+
+		separateMat->execute(sceneColor, sceneDepth, view, settings);
+
+		SPtr<PooledRenderTexture> nearTex, farTex;
+		if(near && far)
+		{
+			nearTex = separateMat->getOutput(0);
+			farTex = separateMat->getOutput(1);
+		}
+		else
+		{
+			if (near)
+				nearTex = separateMat->getOutput(0);
+			else
+				farTex = separateMat->getOutput(0);
+		}
+
+		// Blur the out of focus pixels
+		// Note: Perhaps set up stencil so I can avoid performing blur on unused parts of the textures?
+		const TextureProperties& texProps = sceneColor->getProperties();
+		POOLED_RENDER_TEXTURE_DESC tempTexDesc = POOLED_RENDER_TEXTURE_DESC::create2D(texProps.getFormat(), 
+			texProps.getWidth(), texProps.getHeight(), TU_RENDERTARGET);
+		SPtr<PooledRenderTexture> tempTexture = GpuResourcePool::instance().get(tempTexDesc);
+
+		SPtr<Texture> blurredNearTex;
+		if(nearTex)
+		{
+			mBlur.execute(nearTex->texture, settings.nearBlurAmount, tempTexture->renderTexture);
+			blurredNearTex = tempTexture->texture;
+		}
+
+		SPtr<Texture> blurredFarTex;
+		if(farTex)
+		{
+			// If temporary texture is used up, re-use the original near texture for the blurred result
+			if(blurredNearTex)
+			{
+				mBlur.execute(farTex->texture, settings.farBlurAmount, nearTex->renderTexture);
+				blurredFarTex = nearTex->texture;
+			}
+			else // Otherwise just use the temporary
+			{
+				mBlur.execute(farTex->texture, settings.farBlurAmount, tempTexture->renderTexture);
+				blurredFarTex = tempTexture->texture;
+			}
+		}
+		
+		combineMat->execute(sceneColor, blurredNearTex, blurredFarTex, sceneDepth, output, view, settings);
+
+		separateMat->release();
+		GpuResourcePool::instance().release(tempTexture);
+	}
+
+	bool GaussianDOF::requiresDOF(const DepthOfFieldSettings& settings)
+	{
+		bool near = settings.nearBlurAmount > 0.0f;
+		bool far = settings.farBlurAmount > 0.0f;
+
+		return settings.enabled && (near || far);
+	}
+	
 	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)
 	{
 		auto& viewProps = viewInfo->getProperties();
@@ -840,8 +995,6 @@ namespace bs { namespace ct
 			mEyeAdaptHistogramReduce.release(ppInfo);
 		}
 
-		SPtr<RenderTarget> resolveTarget = viewProps.target;
-
 		bool gammaOnly;
 		bool autoExposure;
 		if (hdr)
@@ -864,7 +1017,29 @@ namespace bs { namespace ct
 			autoExposure = false;
 		}
 
-		mTonemapping.execute(gammaOnly, autoExposure, msaa, sceneColor, resolveTarget, viewportRect, ppInfo);
+		bool performDOF = GaussianDOF::requiresDOF(settings.depthOfField);
+
+		SPtr<RenderTarget> tonemapTarget;
+		if (!performDOF)
+			tonemapTarget = viewProps.target;
+		else
+		{
+			renderTargets->allocate(RTT_ResolvedSceneColorSecondary);
+			tonemapTarget = renderTargets->getResolvedSceneColorRT(true);
+		}
+
+		mTonemapping.execute(gammaOnly, autoExposure, msaa, sceneColor, tonemapTarget, viewportRect, ppInfo);
+
+		if(GaussianDOF::requiresDOF(settings.depthOfField))
+		{
+			SPtr<RenderTarget> dofTarget = viewProps.target;
+
+			mGaussianDOF.execute(renderTargets->getResolvedSceneColor(true), renderTargets->getSceneDepth(), dofTarget,
+				*viewInfo, settings.depthOfField);
+		}
+
+		if(performDOF)
+			renderTargets->release(RTT_ResolvedSceneColorSecondary);
 
 		if (ppInfo.settingDirty)
 			ppInfo.settingDirty = false;

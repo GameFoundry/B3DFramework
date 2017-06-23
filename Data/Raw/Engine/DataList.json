@@ -139,6 +139,10 @@
         {
             "Path": "ShadowProjectionCommon.bslinc",
             "UUID": "36da8807-b201-482b-b320-96f5300d1751"
+        },
+        {
+            "Path": "PPGaussianDOFCommon.bslinc",
+            "UUID": "78521453-a352-4fd8-b997-8e58942dee2d"
         }
     ],
     "Shaders": [
@@ -297,6 +301,10 @@
         {
             "Path": "PPGaussianDOFSeparate.bsl",
             "UUID": "78285aaa-a862-46f3-837c-d13abbe8b351"
+        },
+        {
+            "Path": "PPGaussianDOFCombine.bsl",
+            "UUID": "2743e8f1-97cf-4441-b9e4-aad280343901"
         }
     ],
     "Skin": [
