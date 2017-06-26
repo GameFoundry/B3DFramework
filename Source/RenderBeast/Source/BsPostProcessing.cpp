@@ -576,24 +576,53 @@ namespace bs { namespace ct
 			dstProps.getWidth(), dstProps.getHeight(), TU_RENDERTARGET);
 		SPtr<PooledRenderTexture> tempTexture = GpuResourcePool::instance().get(tempTextureDesc);
 
-		// Horizontal pass
+		auto updateParamBuffer = [&](Direction direction)
 		{
-			float kernelRadius = calcKernelRadius(source, filterSize, DirHorizontal);
+			float kernelRadius = calcKernelRadius(source, filterSize, direction);
 			UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
 
-			for(UINT32 i = 0; i < numSamples; ++i)
+			for(UINT32 i = 0; i < (numSamples + 3) / 4; ++i)
 			{
-				gGaussianBlurParamDef.gSampleWeights.set(mParamBuffer, sampleWeights[i], i);
+				UINT32 remainder = std::min(4U, numSamples - i * 4);
 
-				Vector2 offset;
-				offset.x = sampleOffsets[i] * invTexSize.x;
-				offset.y = 0.0f;
+				Vector4 weights;
+				for (UINT32 j = 0; j < remainder; ++j)
+					weights[j] = sampleWeights[i * 4 + j];
+
+				gGaussianBlurParamDef.gSampleWeights.set(mParamBuffer, weights, i);
+			}
+
+			UINT32 axis0 = direction == DirHorizontal ? 0 : 1;
+			UINT32 axis1 = (axis0 + 1) % 2;
+
+			for(UINT32 i = 0; i < (numSamples + 1) / 2; ++i)
+			{
+				UINT32 remainder = std::min(2U, numSamples - i * 2);
+
+				Vector4 offset;
+				offset[axis0] = sampleOffsets[i * 2 + 0] * invTexSize[axis0];
+				offset[axis1] = 0.0f;
+
+				if(remainder == 2)
+				{
+					offset[axis0 + 2] = sampleOffsets[i * 2 + 1] * invTexSize[axis0];
+					offset[axis1 + 2] = 0.0f;
+				}
+				else
+				{
+					offset[axis0 + 2] = 0.0f;
+					offset[axis1 + 2] = 0.0f;
+				}
 
 				gGaussianBlurParamDef.gSampleOffsets.set(mParamBuffer, offset, i);
 			}
 
 			gGaussianBlurParamDef.gNumSamples.set(mParamBuffer, numSamples);
+		};
 
+		// Horizontal pass
+		{
+			updateParamBuffer(DirHorizontal);
 			mInputTexture.set(source);
 
 			RenderAPI& rapi = RenderAPI::instance();
@@ -606,22 +635,7 @@ namespace bs { namespace ct
 
 		// Vertical pass
 		{
-			float kernelRadius = calcKernelRadius(source, filterSize, DirVertical);
-			UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
-
-			for(UINT32 i = 0; i < numSamples; ++i)
-			{
-				gGaussianBlurParamDef.gSampleWeights.set(mParamBuffer, sampleWeights[i], i);
-
-				Vector2 offset;
-				offset.x = 0.0f;
-				offset.y = sampleOffsets[i] * invTexSize.y;
-
-				gGaussianBlurParamDef.gSampleOffsets.set(mParamBuffer, offset, i);
-			}
-
-			gGaussianBlurParamDef.gNumSamples.set(mParamBuffer, numSamples);
-
+			updateParamBuffer(DirVertical);
 			mInputTexture.set(tempTexture->texture);
 
 			RenderAPI& rapi = RenderAPI::instance();
@@ -915,10 +929,6 @@ namespace bs { namespace ct
 		}
 
 		separateMat->execute(sceneColor, sceneDepth, view, settings);
-		separateMat->release();
-
-		// DEBUG ONLY
-		return;
 
 		SPtr<PooledRenderTexture> nearTex, farTex;
 		if(near && far)

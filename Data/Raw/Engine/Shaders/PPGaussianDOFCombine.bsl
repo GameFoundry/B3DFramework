@@ -19,7 +19,7 @@ technique PPGaussianDOFCombine
 		float3 fsmain(VStoFS input) : SV_Target0
 		{
 			float4 focusedColor = gFocusedTex.Sample(gColorSamp, input.uv0);
-			float depth = convertFromDeviceZ(gDepthTex.Sample(gDepthSamp, input.uv0));
+			float depth = -convertFromDeviceZ(gDepthTex.Sample(gDepthSamp, input.uv0));
 			
 			float4 nearColor = 0;
 			float4 farColor = 0;
@@ -51,7 +51,7 @@ technique PPGaussianDOFCombine
 			// Foreground layer
 			//// Same type of blending as with the layer above
 			float foregroundMask = calcNearMask(depth);
-			foregroundMask = saturate(1.0f - foregroundMask * 5.0f);
+			foregroundMask = saturate(foregroundMask * 5.0f);
 			foregroundMask *= foregroundMask;
 			
 			combined = lerp(combined, nearColor.rgb, foregroundMask);

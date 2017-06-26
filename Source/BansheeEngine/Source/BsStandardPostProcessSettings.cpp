@@ -66,8 +66,8 @@ namespace bs
 	}
 
 	DepthOfFieldSettings::DepthOfFieldSettings()
-		: enabled(false), focalDistance(2.0f), focalRange(1.0f), nearTransitionRange(0.25f), farTransitionRange(0.25f)
-		, nearBlurAmount(16.0f), farBlurAmount(16.0f)
+		: enabled(false), focalDistance(0.75f), focalRange(0.75f), nearTransitionRange(0.25f), farTransitionRange(0.25f)
+		, nearBlurAmount(0.15f), farBlurAmount(0.15f)
 	{ }
 
 	RTTITypeBase* DepthOfFieldSettings::getRTTIStatic()

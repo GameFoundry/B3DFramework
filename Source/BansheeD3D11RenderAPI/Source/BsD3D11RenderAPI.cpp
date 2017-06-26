@@ -1403,7 +1403,9 @@ namespace bs { namespace ct
 				param.cpuMemOffset = block.blockSize;
 				param.gpuMemOffset = 0;
 
-				block.blockSize += size * param.arraySize;
+				// Last array element isn't rounded up to four component vectors
+				block.blockSize += size * (param.arraySize - 1);
+				block.blockSize += typeInfo.size / 4;
 			}
 			else
 			{

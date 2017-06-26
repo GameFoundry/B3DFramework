@@ -308,8 +308,8 @@ namespace bs { namespace ct
 	const int MAX_BLUR_SAMPLES = 128;
 
 	BS_PARAM_BLOCK_BEGIN(GaussianBlurParamDef)
-		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector2, gSampleOffsets, MAX_BLUR_SAMPLES)
-		BS_PARAM_BLOCK_ENTRY_ARRAY(float, gSampleWeights, MAX_BLUR_SAMPLES)
+		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleOffsets, (MAX_BLUR_SAMPLES + 1) / 2)
+		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, (MAX_BLUR_SAMPLES + 3) / 4)
 		BS_PARAM_BLOCK_ENTRY(int, gNumSamples)
 	BS_PARAM_BLOCK_END
 
