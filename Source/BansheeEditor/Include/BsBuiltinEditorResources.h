@@ -182,7 +182,7 @@ namespace bs
 		 * @note	
 		 * Normally you only want to use this during development phase and then ship with engine-ready format only.
 		 */
-		void preprocess(bool forceImport);
+		void preprocess(bool forceImport, time_t lastUpdateTime);
 
 		/**	Generates the default editor skin and all GUI element styles. */
 		SPtr<GUISkin> generateGUISkin();

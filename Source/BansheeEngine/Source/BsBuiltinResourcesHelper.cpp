@@ -25,17 +25,15 @@ using json = nlohmann::json;
 
 namespace bs
 {
-	bool BuiltinResourcesHelper::importAssets(const nlohmann::json& entries, const Path& inputFolder, 
-		const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode, bool forceImport)
+	void BuiltinResourcesHelper::importAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, 
+		const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode,
+		nlohmann::json* dependencies)
 	{
 		if (!FileSystem::exists(inputFolder))
-			return true;
+			return;
 
 		bool outputExists = FileSystem::exists(outputFolder);
-		if (forceImport && outputExists)
-			FileSystem::remove(outputFolder);
-		
-		if(!outputExists || forceImport)
+		if(!outputExists)
 			FileSystem::createDir(outputFolder);
 
 		Path spriteOutputFolder = outputFolder + "/Sprites/";
@@ -101,53 +99,32 @@ namespace bs
 					resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
 			}
 
-			// Check if this resource actually changed
-			bool import = true;
-			if(!forceImport)
+			// Use the provided UUID if just one resource, otherwise we ignore the UUID. The current assumption is that
+			// such resources don't require persistent UUIDs. If that changes then this method needs to be updated.
+			if (resourcesToSave.size() == 1)
 			{
-				import = false;
+				Path outputPath = outputFolder + resourcesToSave[0].first;
 
-				time_t lastModifiedSrc = FileSystem::getLastModifiedTime(filePath);
-				for(auto& entry : resourcesToSave)
+				HResource resource = Importer::instance().import(filePath, resourcesToSave[0].second, UUID);
+				if (resource != nullptr)
 				{
-					Path outputPath = outputFolder + entry.first;
-					if(lastModifiedSrc > FileSystem::getLastModifiedTime(outputPath))
-					{
-						import = true;
-						break;
-					}
+					Resources::instance().save(resource, outputPath, true);
+					manifest->registerResource(resource.getUUID(), outputPath);
 				}
+
+				return resource;
 			}
-
-			if (import)
+			else
 			{
-				// Use the provided UUID if just one resource, otherwise we ignore the UUID. The current assumption is that
-				// such resources don't require persistent UUIDs. If that changes then this method needs to be updated.
-				if (resourcesToSave.size() == 1)
+				for (auto& entry : resourcesToSave)
 				{
-					Path outputPath = outputFolder + resourcesToSave[0].first;
+					Path outputPath = outputFolder + entry.first;;
 
-					HResource resource = Importer::instance().import(filePath, resourcesToSave[0].second, UUID);
+					HResource resource = Importer::instance().import(filePath, entry.second);
 					if (resource != nullptr)
 					{
 						Resources::instance().save(resource, outputPath, true);
 						manifest->registerResource(resource.getUUID(), outputPath);
-					}
-
-					return resource;
-				}
-				else
-				{
-					for (auto& entry : resourcesToSave)
-					{
-						Path outputPath = outputFolder + entry.first;;
-
-						HResource resource = Importer::instance().import(filePath, entry.second);
-						if (resource != nullptr)
-						{
-							Resources::instance().save(resource, outputPath, true);
-							manifest->registerResource(resource.getUUID(), outputPath);
-						}
 					}
 				}
 			}
@@ -180,8 +157,15 @@ namespace bs
 
 		Vector<IconData> iconsToGenerate;
 
+		int idx = 0;
 		for(auto& entry : entries)
 		{
+			if(!importFlags[idx])
+			{
+				idx++;
+				continue;
+			}
+
 			std::string name = entry["Path"];
 			std::string uuid;
 
@@ -199,13 +183,44 @@ namespace bs
 
 			HResource outputRes = importResource(name.c_str(), uuid.c_str());
 			if (outputRes == nullptr)
+			{
+				idx++;
 				continue;
+			}
 
 			if (rtti_is_of_type<Shader>(outputRes.get()))
 			{
 				HShader shader = static_resource_cast<Shader>(outputRes);
 				if (!verifyAndReportShader(shader))
-					return false;
+					return;
+
+				if(dependencies != nullptr)
+				{
+					SPtr<ShaderMetaData> shaderMetaData = std::static_pointer_cast<ShaderMetaData>(shader->getMetaData());
+
+					nlohmann::json dependencyEntries;
+					if(shaderMetaData != nullptr && shaderMetaData->includes.size() > 0)
+					{
+						for(auto& include : shaderMetaData->includes)
+						{
+							Path includePath = include.c_str();
+							if (include.substr(0, 8) == "$ENGINE$" || include.substr(0, 8) == "$EDITOR$")
+							{
+								if (include.size() > 8)
+									includePath = include.substr(9, include.size() - 9);
+							}
+
+							nlohmann::json newDependencyEntry =
+							{ 
+								{ "Path", includePath.toString().c_str() }
+							};
+
+							dependencyEntries.push_back(newDependencyEntry);
+						}
+					}
+
+					(*dependencies)[name] = dependencyEntries;
+				}
 			}
 
 			if (mode == AssetType::Sprite)
@@ -241,6 +256,8 @@ namespace bs
 
 				iconsToGenerate.push_back(iconData);
 			}
+
+			idx++;
 		}
 
 		for(UINT32 i = 0; i < (UINT32)iconsToGenerate.size(); i++)
@@ -292,8 +309,6 @@ namespace bs
 				generateSprite(tex16, iconsToGenerate[i].name + "16", iconsToGenerate[i].SpriteUUIDs[2].c_str());
 			}
 		}
-
-		return true;
 	}
 
 	void BuiltinResourcesHelper::importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder,
@@ -336,6 +351,57 @@ namespace bs
 				manifest->registerResource(tex.getUUID(), texPageOutputPath);
 			}
 		}
+	}
+
+	Vector<bool> BuiltinResourcesHelper::generateImportFlags(const nlohmann::json& entries, const Path& inputFolder,
+		time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies, const Path& dependencyFolder)
+	{
+		Vector<bool> output(entries.size());
+		UINT32 idx = 0;
+		for (auto& entry : entries)
+		{
+			std::string name = entry["Path"];
+
+			if (forceImport)
+				output[idx] = true;
+			else
+			{
+				Path filePath = inputFolder + Path(name.c_str());
+
+				// Check timestamp
+				time_t lastModifiedSrc = FileSystem::getLastModifiedTime(filePath);
+				if (lastModifiedSrc > lastUpdateTime)
+					output[idx] = true;
+				else if (dependencies != nullptr) // Check dependencies
+				{
+					bool anyDepModified = false;
+					auto iterFind = dependencies->find(name);
+					if(iterFind != dependencies->end())
+					{
+						for(auto& dependency : *iterFind)
+						{
+							std::string dependencyName = dependency["Path"];
+							Path dependencyPath = dependencyFolder + Path(dependencyName.c_str());
+
+							time_t lastModifiedDep = FileSystem::getLastModifiedTime(dependencyPath);
+							if(lastModifiedDep > lastUpdateTime)
+							{
+								anyDepModified = true;
+								break;
+							}
+						}
+					}
+					
+					output[idx] = anyDepModified;
+				}
+				else
+					output[idx] = false;
+			}
+
+			idx++;
+		}
+
+		return output;
 	}
 
 	bool BuiltinResourcesHelper::updateJSON(const Path& folder, AssetType type, nlohmann::json& entries)
@@ -419,13 +485,15 @@ namespace bs
 		fileStream->close();
 	}
 
-	UINT32 BuiltinResourcesHelper::checkForModifications(const Path& folder, const Path& timeStampFile)
+	UINT32 BuiltinResourcesHelper::checkForModifications(const Path& folder, const Path& timeStampFile, 
+		time_t& lastUpdateTime)
 	{
+		lastUpdateTime = 0;
+
 		if (!FileSystem::exists(timeStampFile))
 			return 2;
 
 		SPtr<DataStream> fileStream = FileSystem::openFile(timeStampFile);
-		time_t lastUpdateTime = 0;
 		fileStream->read(&lastUpdateTime, sizeof(lastUpdateTime));
 		fileStream->close();
 
