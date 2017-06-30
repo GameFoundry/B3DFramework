@@ -71,6 +71,12 @@ mixin PerCameraData
 			return ndcPos.xy * gClipToUVScaleOffset.xy + gClipToUVScaleOffset.zw;
 		}
 		
+		/** Converts position in UV coordinates mapped to screen rectangle to NDC coordinates. */
+		float2 UVToNDC(float2 uvPos)
+		{
+			return (uvPos - gClipToUVScaleOffset.zw) / gClipToUVScaleOffset.xy;
+		}
+		
 		/** Converts position in UV coordinates mapped to the screen, to screen coordinates in pixels. */
 		uint2 UVToScreen(float2 uv)
 		{

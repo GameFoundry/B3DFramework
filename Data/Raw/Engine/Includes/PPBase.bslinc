@@ -12,6 +12,7 @@ mixin PPBase
 		{
 			float4 position : SV_POSITION;
 			float2 uv0 : TEXCOORD0;
+			float2 screenPos : TEXCOORD1;
 		};
 
 		struct VertexInput
@@ -26,6 +27,7 @@ mixin PPBase
 		
 			output.position = float4(input.screenPos, 0, 1);
 			output.uv0 = input.uv0;
+			output.screenPos = input.screenPos;
 
 			return output;
 		}			

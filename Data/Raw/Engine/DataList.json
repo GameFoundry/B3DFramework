@@ -313,6 +313,10 @@
         {
             "Path": "PPFXAA.bsl",
             "UUID": "f064b202-dbc0-440f-bd9f-37f094b2c521"
+        },
+        {
+            "Path": "PPSSAO.bsl",
+            "UUID": "7a65b0f1-9a37-452e-ba3f-2a1fb58362cb"
         }
     ],
     "Skin": [

@@ -583,6 +583,42 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTexture;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(SSAOParamDef)
+		BS_PARAM_BLOCK_ENTRY(Matrix4, gMixedToView)
+		BS_PARAM_BLOCK_ENTRY(float, gSampleRadius)
+		BS_PARAM_BLOCK_ENTRY(float, gWorldSpaceRadiusMask)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gTanHalfFOV)
+		BS_PARAM_BLOCK_ENTRY(float, gCotHalfFOV)
+	BS_PARAM_BLOCK_END
+
+	extern SSAOParamDef gSSAOParamDef;
+
+	/** Shader that computes ambient occlusion using screen based methods. */
+	class SSAOMat : public RendererMaterial<SSAOMat>
+	{
+		RMAT_DEF("PPSSAO.bsl");
+
+	public:
+		SSAOMat();
+
+		/** 
+		 * Renders the post-process effect with the provided parameters. 
+		 * 
+		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	sceneDepth		Input texture containing scene depth.
+		 * @param[in]	sceneNormals	Input texture containing scene world space normals.
+		 * @param[in]	destination		Output texture to which to write the ambient occlusion data to.
+		 */
+		void execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Texture>& sceneNormals, 
+			const SPtr<RenderTexture>& destination);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mDepthTexture;
+		GpuParamTexture mNormalsTexture;
+		GpuParamSampState mInputSampState;
+	};
+
 	/**
 	 * Renders post-processing effects for the provided render target.
 	 *
@@ -608,6 +644,7 @@ namespace bs { namespace ct
 		TonemappingMaterials mTonemapping;
 		GaussianDOF mGaussianDOF;
 		FXAAMat mFXAA;
+		SSAOMat mSSAO;
 	};
 
 	/** @} */

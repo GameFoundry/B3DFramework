@@ -1129,6 +1129,81 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
+	}
+
+	SSAOParamDef gSSAOParamDef;
+
+	SSAOMat::SSAOMat()
+	{
+		mParamBuffer = gSSAOParamDef.createBuffer();
+
+		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_POINT;
+		desc.magFilter = FO_POINT;
+		desc.mipFilter = FO_POINT;
+		desc.addressMode.u = TAM_CLAMP;
+		desc.addressMode.v = TAM_CLAMP;
+		desc.addressMode.w = TAM_CLAMP;
+
+		SPtr<SamplerState> sampState = SamplerState::create(desc);
+		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", sampState);
+	}
+
+	void SSAOMat::_initDefines(ShaderDefines& defines)
+	{
+		// Do nothing
+	}
+
+	void SSAOMat::execute(const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, 
+		const SPtr<RenderTexture>& destination)
+	{
+		const RendererViewProperties& viewProps = view.getProperties();
+
+		// TODO - Retrieve these from settings
+		Vector2 tanHalfFOV;
+		tanHalfFOV.x = 1.0f / viewProps.projTransform[0][0];
+		tanHalfFOV.y = 1.0f / viewProps.projTransform[1][1];
+
+		float cotHalfFOV = viewProps.projTransform[0][0];
+
+		gSSAOParamDef.gSampleRadius.set(mParamBuffer, 0.03f);
+		gSSAOParamDef.gCotHalfFOV.set(mParamBuffer, cotHalfFOV);
+		gSSAOParamDef.gTanHalfFOV.set(mParamBuffer, tanHalfFOV);
+		gSSAOParamDef.gWorldSpaceRadiusMask.set(mParamBuffer, 1.0f);
+
+		// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
+		// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and 
+		// view_z/view_w in view space, into world space.
+
+		// Only projects z/w coordinates (cancels out with the inverse matrix below)
+		Matrix4 projZ = Matrix4::IDENTITY;
+		projZ[2][2] = viewProps.projTransform[2][2];
+		projZ[2][3] = viewProps.projTransform[2][3];
+		projZ[3][2] = viewProps.projTransform[3][2];
+		projZ[3][3] = 0.0f;
+
+		Matrix4 xyProj = viewProps.projTransform.inverse() * projZ;
+		
+		gSSAOParamDef.gMixedToView.set(mParamBuffer, xyProj);
+
+		mDepthTexture.set(depth);
+		mNormalsTexture.set(normals);
+
+		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(destination);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
 }
 
 	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)
@@ -1143,6 +1218,14 @@ namespace bs { namespace ct
 
 		bool hdr = viewProps.isHDR;
 		bool msaa = viewProps.numSamples > 1;
+
+		// DEBUG ONLY
+		//SPtr<PooledRenderTexture> temp = GpuResourcePool::instance().get(
+		//	POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, viewProps.viewRect.width, viewProps.viewRect.height, 
+		//	TU_RENDERTARGET));
+
+		//mSSAO.execute(*viewInfo, renderTargets->getSceneDepth(), renderTargets->getGBufferB(), temp->renderTexture);
+		// END DEBUG ONLY
 
 		if(hdr && settings.enableAutoExposure)
 		{
@@ -1231,6 +1314,13 @@ namespace bs { namespace ct
 			else
 				renderTargets->release(RTT_ResolvedSceneColorSecondary);
 		}
+
+		// BEGIN DEBUG ONLY
+		//RenderAPI::instance().setRenderTarget(viewProps.target);
+		//gRendererUtility().blit(temp->texture);
+
+		//GpuResourcePool::instance().release(temp);
+		// END DEBUG ONLY
 
 		if (ppInfo.settingDirty)
 			ppInfo.settingDirty = false;
