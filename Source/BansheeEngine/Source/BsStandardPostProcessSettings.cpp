@@ -65,6 +65,20 @@ namespace bs
 		return ColorGradingSettings::getRTTIStatic();
 	}
 
+	AmbientOcclusionSettings::AmbientOcclusionSettings()
+		: enabled(true), radius(0.03f), bias(1.0f)
+	{ }
+
+	RTTITypeBase* AmbientOcclusionSettings::getRTTIStatic()
+	{
+		return AmbientOcclusionSettingsRTTI::instance();
+	}
+
+	RTTITypeBase* AmbientOcclusionSettings::getRTTI() const
+	{
+		return AmbientOcclusionSettings::getRTTIStatic();
+	}
+
 	DepthOfFieldSettings::DepthOfFieldSettings()
 		: enabled(false), focalDistance(0.75f), focalRange(0.75f), nearTransitionRange(0.25f), farTransitionRange(0.25f)
 		, nearBlurAmount(0.15f), farBlurAmount(0.15f)
@@ -136,6 +150,10 @@ namespace bs
 		bufferSize += rttiGetElemSize(depthOfField.nearBlurAmount);
 		bufferSize += rttiGetElemSize(depthOfField.farBlurAmount);
 
+		bufferSize += rttiGetElemSize(ambientOcclusion.enabled);
+		bufferSize += rttiGetElemSize(ambientOcclusion.radius);
+		bufferSize += rttiGetElemSize(ambientOcclusion.bias);
+
 		if (buffer == nullptr)
 		{
 			size = bufferSize;
@@ -187,6 +205,10 @@ namespace bs
 		writeDst = rttiWriteElem(depthOfField.farTransitionRange, writeDst);
 		writeDst = rttiWriteElem(depthOfField.nearBlurAmount, writeDst);
 		writeDst = rttiWriteElem(depthOfField.farBlurAmount, writeDst);
+
+		writeDst = rttiWriteElem(ambientOcclusion.enabled, writeDst);
+		writeDst = rttiWriteElem(ambientOcclusion.radius, writeDst);
+		writeDst = rttiWriteElem(ambientOcclusion.bias, writeDst);
 	}
 
 	void StandardPostProcessSettings::_setSyncData(UINT8* buffer, UINT32 size)
@@ -231,5 +253,9 @@ namespace bs
 		readSource = rttiReadElem(depthOfField.farTransitionRange, readSource);
 		readSource = rttiReadElem(depthOfField.nearBlurAmount, readSource);
 		readSource = rttiReadElem(depthOfField.farBlurAmount, readSource);
+
+		readSource = rttiReadElem(ambientOcclusion.enabled, readSource);
+		readSource = rttiReadElem(ambientOcclusion.radius, readSource);
+		readSource = rttiReadElem(ambientOcclusion.bias, readSource);
 	}
 }

@@ -199,6 +199,38 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Settings that control screen space ambient occlusion. */
+	struct BS_EXPORT AmbientOcclusionSettings : public IReflectable
+	{
+		AmbientOcclusionSettings();
+
+		/** Enables or disabled the screen space ambient occlusion effect. */
+		bool enabled;
+
+		/** 
+		 * Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling
+		 * precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower
+		 * quality or noise because of low sampling precision. Usually best to keep at around a few centimeters, valid range
+		 * is roughly [0.005, 0.5].
+		 */
+		float radius;
+
+		/**
+		 * Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause
+		 * details to be lost in areas where occlusion isn't high. Value is in millimeters. Usually best to keep at a few
+		 * dozen millimeters, valid range is roughly [0, 200].
+		 */
+		float bias;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class AmbientOcclusionSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** Settings that control the depth-of-field effect. */
 	struct BS_EXPORT DepthOfFieldSettings : public IReflectable
 	{
@@ -303,6 +335,9 @@ namespace bs
 
 		/** Parameters used for customizing the depth of field effect. */
 		DepthOfFieldSettings depthOfField;
+
+		/** Parameters used for customizing screen space ambient occlusion. */
+		AmbientOcclusionSettings ambientOcclusion;
 
 		/** Enables the fast approximate anti-aliasing effect. */
 		bool enableFXAA;

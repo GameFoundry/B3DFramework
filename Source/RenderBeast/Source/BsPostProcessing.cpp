@@ -1163,7 +1163,7 @@ namespace bs { namespace ct
 		randomSampDesc.addressMode.v = TAM_WRAP;
 		randomSampDesc.addressMode.w = TAM_WRAP;
 
-		SPtr<SamplerState> randomSampState = SamplerState::create(inputSampDesc);
+		SPtr<SamplerState> randomSampState = SamplerState::create(randomSampDesc);
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gRandomSamp", randomSampState);
 	}
 
@@ -1173,21 +1173,21 @@ namespace bs { namespace ct
 	}
 
 	void SSAOMat::execute(const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, 
-		const SPtr<Texture>& random, const SPtr<RenderTexture>& destination)
+		const SPtr<Texture>& random, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 
-		// TODO - Retrieve these from settings
 		Vector2 tanHalfFOV;
 		tanHalfFOV.x = 1.0f / viewProps.projTransform[0][0];
 		tanHalfFOV.y = 1.0f / viewProps.projTransform[1][1];
 
 		float cotHalfFOV = viewProps.projTransform[0][0];
 
-		gSSAOParamDef.gSampleRadius.set(mParamBuffer, 0.03f);
+		gSSAOParamDef.gSampleRadius.set(mParamBuffer, settings.radius);
 		gSSAOParamDef.gCotHalfFOV.set(mParamBuffer, cotHalfFOV);
 		gSSAOParamDef.gTanHalfFOV.set(mParamBuffer, tanHalfFOV);
 		gSSAOParamDef.gWorldSpaceRadiusMask.set(mParamBuffer, 1.0f);
+		gSSAOParamDef.gBias.set(mParamBuffer, settings.bias / 1000.0f);
 
 		// Generate a scale which we need to use in order to achieve tiling
 		const TextureProperties& rndProps = random->getProperties();
@@ -1267,7 +1267,7 @@ namespace bs { namespace ct
 		//	TU_RENDERTARGET));
 
 		//mSSAO.execute(*viewInfo, renderTargets->getSceneDepth(), renderTargets->getGBufferB(), mSSAORandomizationTex, 
-		//	temp->renderTexture);
+		//	temp->renderTexture, settings.ambientOcclusion);
 		// END DEBUG ONLY
 
 		if(hdr && settings.enableAutoExposure)

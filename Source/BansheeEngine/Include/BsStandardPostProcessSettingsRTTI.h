@@ -181,6 +181,37 @@ namespace bs
 		}
 	};
 
+	class BS_EXPORT AmbientOcclusionSettingsRTTI : public RTTIType <AmbientOcclusionSettings, IReflectable, AmbientOcclusionSettingsRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(enabled, 0)
+			BS_RTTI_MEMBER_PLAIN(radius, 1)
+			BS_RTTI_MEMBER_PLAIN(bias, 2)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		AmbientOcclusionSettingsRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "AmbientOcclusionSettings";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_AmbientOcclusionSettings;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<AmbientOcclusionSettings>();
+		}
+	};
+
 	class BS_EXPORT StandardPostProcessSettingsRTTI : public RTTIType <StandardPostProcessSettings, PostProcessSettings, StandardPostProcessSettingsRTTI>
 	{
 	private:
@@ -195,6 +226,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(gamma, 7)
 			BS_RTTI_MEMBER_REFL(depthOfField, 8)
 			BS_RTTI_MEMBER_PLAIN(enableFXAA, 9)
+			BS_RTTI_MEMBER_REFL(ambientOcclusion, 10)
 		BS_END_RTTI_MEMBERS
 			
 	public:

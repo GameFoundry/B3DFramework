@@ -16,6 +16,7 @@ technique PPSSAO
 			float2 gTanHalfFOV; // x - horz FOV, y - vert FOV
 			float2 gRandomTileScale;
 			float gCotHalfFOV;
+			float gBias;
 		}		
 
 		SamplerState gInputSamp;
@@ -72,14 +73,15 @@ technique PPSSAO
 			float3 viewNormal = normalize(mul((float3x3)gMatView, worldNormal));
 			float3 viewPos = getViewSpacePos(input.screenPos, sceneDepth);
 			
+			// Apply bias to avoid false occlusion due to depth quantization or other precision issues
+			viewPos += viewNormal * gBias * -sceneDepth;
+			
 			// Project sample radius to screen space (approximately), using the formula:
 			// screenRadius = worldRadius * 1/tan(fov/2) / z
 			// The formula approximates sphere projection and is more accurate the closer to the screen center
 			// the sphere origin is.
 			float sampleRadius = gSampleRadius * lerp(-sceneDepth, 1, gWorldSpaceRadiusMask) * gCotHalfFOV / -sceneDepth;
 			
-			// TODO - Apply bias to viewposition (and reconstruct screen pos from it)
-
 			// Get random rotation
 			float2 rotateDir = gRandomTex.Sample(gRandomSamp, input.uv0 * gRandomTileScale) * 2 - 1;
 			

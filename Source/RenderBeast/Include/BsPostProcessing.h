@@ -589,6 +589,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Vector2, gTanHalfFOV)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gRandomTileScale)
 		BS_PARAM_BLOCK_ENTRY(float, gCotHalfFOV)
+		BS_PARAM_BLOCK_ENTRY(float, gBias)
 	BS_PARAM_BLOCK_END
 
 	extern SSAOParamDef gSSAOParamDef;
@@ -609,9 +610,11 @@ namespace bs { namespace ct
 		 * @param[in]	sceneNormals	Input texture containing scene world space normals.
 		 * @param[in]	randomRotations	Tileable texture containing random rotations that will be applied to AO samples.
 		 * @param[in]	destination		Output texture to which to write the ambient occlusion data to.
+		 * @param[in]	settings		Settings used to control the ambient occlusion effect.
 		 */
 		void execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Texture>& sceneNormals, 
-			const SPtr<Texture>& randomRotations, const SPtr<RenderTexture>& destination);
+			const SPtr<Texture>& randomRotations, const SPtr<RenderTexture>& destination, 
+			const AmbientOcclusionSettings& settings);
 
 		/**
 		 * Generates a texture that is used for randomizing sample locations during SSAO calculation. The texture contains
