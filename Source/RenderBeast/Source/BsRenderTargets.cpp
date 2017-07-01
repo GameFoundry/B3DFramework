@@ -225,6 +225,23 @@ namespace bs { namespace ct
 			mResolvedSceneColorTex2 = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(mSceneColorFormat, 
 				width, height, TU_RENDERTARGET, 1, false));
 		}
+		else if(type == RTT_HiZ)
+		{
+			mHiZ = GpuResourcePool::instance().get(
+				BuildHiZ::getHiZTextureDesc(
+					mViewTarget.viewRect.width, 
+					mViewTarget.viewRect.height)
+			);
+		}
+		else if(type == RTT_ResolvedDepth)
+		{
+			// If not using MSAA, this is equivalent to default depth texture
+			if(mViewTarget.numSamples > 1)
+			{
+				mResolvedDepthTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32, width, height, TU_RENDERTARGET,
+					1, false));
+			}
+		}
 	}
 
 	void RenderTargets::release(RenderTargetType type)
@@ -267,6 +284,16 @@ namespace bs { namespace ct
 		{
 			if (mResolvedSceneColorTex2 != nullptr)
 				texPool.release(mResolvedSceneColorTex2);
+		}
+		else if(type == RTT_HiZ)
+		{
+			if (mHiZ != nullptr)
+				texPool.release(mHiZ);
+		}
+		else if(type == RTT_ResolvedDepth)
+		{
+			if (mResolvedDepthTex != nullptr)
+				texPool.release(mResolvedDepthTex);
 		}
 	}
 
@@ -320,21 +347,31 @@ namespace bs { namespace ct
 		RenderAPI::instance().clearViewport(FBT_COLOR, Color::ZERO);
 	}
 
-	void RenderTargets::generateHiZ()
+	void RenderTargets::generate(RenderTargetType type)
 	{
-		mHiZ = GpuResourcePool::instance().get(
-			BuildHiZ::getHiZTextureDesc(
-				mViewTarget.viewRect.width, 
-				mViewTarget.viewRect.height)
-		);
-
-		mBuildHiZ.execute(mViewTarget, mDepthTex->texture, mHiZ->texture);
+		switch(type)
+		{
+		case RTT_HiZ:
+			mBuildHiZ.execute(mViewTarget, getResolvedDepth(), mHiZ->texture);
+		break;
+		case RTT_ResolvedSceneColor:
+			if (mViewTarget.numSamples > 1)
+			{
+				RenderAPI::instance().setRenderTarget(mResolvedDepthTex->renderTexture);
+				gRendererUtility().blit(mDepthTex->texture);
+			}
+			break;
+		default:
+			break;
+		}
 	}
 
-	void RenderTargets::releaseHiZ()
+	SPtr<Texture> RenderTargets::getResolvedDepth() const
 	{
-		if (mHiZ)
-			GpuResourcePool::instance().release(mHiZ);
+		if (mViewTarget.numSamples > 1)
+			return mResolvedDepthTex->texture;
+
+		return mDepthTex->texture;
 	}
 
 	SPtr<Texture> RenderTargets::getHiZ() const

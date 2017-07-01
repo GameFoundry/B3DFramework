@@ -15,8 +15,29 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	class ResolveMat;
-	class BlitMat;
+	/** 
+	 * Shader that copies a source texture into a render target, and optionally resolves it. 
+	 * 
+	 * @tparam	MSAA_COUNT		Number of MSAA samples in the input texture. If larger than 1 the texture will be resolved
+	 *							before written to the destination.
+	 * @tparam	IS_COLOR		If true the input is assumed to be a 4-component color texture. If false it is assumed
+	 *							the input is a 1-component depth texture. This controls how is the texture resolve and is
+	 *							only relevant if MSAA_COUNT > 1. Color texture MSAA samples will be averaged, while for
+	 *							depth textures the minimum of all samples will be used.
+	 */
+	template<int MSAA_COUNT, bool IS_COLOR = true>
+	class BlitMat : public RendererMaterial<BlitMat<MSAA_COUNT, IS_COLOR>>
+	{
+		RMAT_DEF("Blit.bsl");
+
+	public:
+		BlitMat();
+
+		/** Updates the parameter buffers used by the material. */
+		void setParameters(const SPtr<Texture>& source);
+	private:
+		MaterialParamTexture mSource;
+	};
 
 	/**
 	 * Contains various utility methods that make various common operations in the renderer easier.
@@ -103,9 +124,13 @@ namespace bs { namespace ct
 		 * @param[in]	texture	Source texture to blit.
 		 * @param[in]	area	Area of the source texture to blit in pixels. If width or height is zero it is assumed
 		 *						the entire texture should be blitted.
-		 * @param[in]	flipUV If true, vertical UV coordinate will be flipped upside down.
+		 * @param[in]	flipUV	If true, vertical UV coordinate will be flipped upside down.
+		 * @param[in]	isDepth	If true, the input texture is assumed to be a depth texture (instead of a color one).
+		 *						Multisampled depth textures will be resolved by taking the minimum value of all samples,
+		 *						unlike color textures which wil be averaged.
 		 */
-		void blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::EMPTY, bool flipUV = false);
+		void blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::EMPTY, bool flipUV = false, 
+			bool isDepth = false);
 
 		/**
 		 * Draws a quad over the entire viewport in normalized device coordinates.
@@ -157,41 +182,18 @@ namespace bs { namespace ct
 		SPtr<Mesh> mPointLightStencilMesh;
 		SPtr<Mesh> mSpotLightStencilMesh;
 		SPtr<Mesh> mSkyBoxMesh;
-		SPtr<ResolveMat> mResolveMat;
-		SPtr<BlitMat> mBlitMat;
+
+		BlitMat<1, true> mBlitMat_Color_NoMSAA;
+		BlitMat<2, true> mBlitMat_Color_MSAA2x;
+		BlitMat<4, true> mBlitMat_Color_MSAA4x;
+		BlitMat<8, true> mBlitMat_Color_MSAA8x;
+		BlitMat<2, false> mBlitMat_Depth_MSAA2x;
+		BlitMat<4, false> mBlitMat_Depth_MSAA4x;
+		BlitMat<8, false> mBlitMat_Depth_MSAA8x;
 	};
 
 	/** Provides easy access to RendererUtility. */
 	BS_EXPORT RendererUtility& gRendererUtility();
-
-	/** Shader that resolves a MSAA surface into a non-MSAA render target. */
-	class ResolveMat : public RendererMaterial<ResolveMat>
-	{
-		RMAT_DEF("Resolve.bsl");
-
-	public:
-		ResolveMat();
-
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const SPtr<Texture>& source);
-	private:
-		MaterialParamInt mNumSamples;
-		MaterialParamTexture mSource;
-	};
-
-	/** Shader that copies a source texture into a render target. */
-	class BlitMat : public RendererMaterial<BlitMat>
-	{
-		RMAT_DEF("Blit.bsl");
-
-	public:
-		BlitMat();
-
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const SPtr<Texture>& source);
-	private:
-		MaterialParamTexture mSource;
-	};
 
 	/** @} */
 }}

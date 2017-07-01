@@ -537,8 +537,16 @@ namespace bs { namespace ct
 		}
 
 		// Build HiZ buffer
+		bool isMSAA = numSamples > 1;
 		// TODO - Avoid generating it unless it actually gets used in some system
-		renderTargets->generateHiZ();
+		if (isMSAA)
+		{
+			renderTargets->allocate(RTT_ResolvedDepth);
+			renderTargets->generate(RTT_ResolvedDepth);
+		}
+
+		renderTargets->allocate(RTT_HiZ);
+		renderTargets->generate(RTT_HiZ);
 
 		// Trigger post-base-pass callbacks
 		if (viewProps.triggerCallbacks)
@@ -569,7 +577,6 @@ namespace bs { namespace ct
 
 		// If we're using flattened accumulation buffer for MSAA we need to copy its contents to the MSAA texture before
 		// continuing
-		bool isMSAA = numSamples > 1;
 		if(isMSAA)
 		{
 			renderTargets->bindLightAccumulation();
@@ -692,8 +699,11 @@ namespace bs { namespace ct
 			gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewProps.flipView);
 		}
 
-		renderTargets->releaseHiZ();
+		renderTargets->release(RTT_HiZ);
 		renderTargets->release(RTT_SceneColor);
+
+		if (isMSAA)
+			renderTargets->release(RTT_ResolvedDepth);
 
 		// Trigger overlay callbacks
 		if (viewProps.triggerCallbacks)

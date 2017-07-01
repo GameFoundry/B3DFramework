@@ -988,21 +988,18 @@ namespace bs { namespace ct
 		return settings.enabled && (near || far);
 	}
 	
-	template<int MSAA_COUNT>
-	BuildHiZMat<MSAA_COUNT>::BuildHiZMat()
+	BuildHiZMat::BuildHiZMat()
 	{
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
 	}
 
-	template<int MSAA_COUNT>
-	void BuildHiZMat<MSAA_COUNT>::_initDefines(ShaderDefines& defines)
+	void BuildHiZMat::_initDefines(ShaderDefines& defines)
 	{
-		defines.set("MSAA_COUNT", MSAA_COUNT);
+		// Do nothing
 	}
 
-	template<int MSAA_COUNT>
-	void BuildHiZMat<MSAA_COUNT>::execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, 
+	void BuildHiZMat::execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, const Rect2& dstRect,
 		const SPtr<RenderTexture>& output)
 	{
 		RenderAPI& rapi = RenderAPI::instance();
@@ -1010,16 +1007,14 @@ namespace bs { namespace ct
 
 		mInputTexture.set(source, TextureSurface(srcMip));
 		rapi.setRenderTarget(output);
+		rapi.setViewport(dstRect);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad(srcRect);
-	}
 
-	template class BuildHiZMat<1>;
-	template class BuildHiZMat<2>;
-	template class BuildHiZMat<4>;
-	template class BuildHiZMat<8>;
+		rapi.setViewport(Rect2(0, 0, 1, 1));
+	}
 
 	void BuildHiZ::execute(const RendererViewTargetData& viewInfo, const SPtr<Texture>& source, const SPtr<Texture>& output)
 	{
@@ -1027,64 +1022,33 @@ namespace bs { namespace ct
 
 		// First resolve if MSAA if required
 		SPtr<PooledRenderTexture> resolvedDepth;
-		SPtr<Texture> depthInput;
-		Rect2 srcRect;
-		if (viewInfo.numSamples > 1)
-		{
-			resolvedDepth = pool.get(
-				POOLED_RENDER_TEXTURE_DESC::create2D(
-					PF_FLOAT16_R,
-					viewInfo.viewRect.width,
-					viewInfo.viewRect.height,
-					TU_RENDERTARGET)
-			);
-
-			srcRect.x = (float)viewInfo.viewRect.x;
-			srcRect.y = (float)viewInfo.viewRect.y;
-			srcRect.width = (float)viewInfo.viewRect.width;
-			srcRect.height = (float)viewInfo.viewRect.height;
-
-			switch(viewInfo.numSamples)
-			{
-			case 2:
-				mHiZMatMSAA2.execute(source, 0, srcRect, resolvedDepth->renderTexture);
-				break;
-			case 4:
-				mHiZMatMSAA4.execute(source, 0, srcRect, resolvedDepth->renderTexture);
-				break;
-			case 8:
-				mHiZMatMSAA8.execute(source, 0, srcRect, resolvedDepth->renderTexture);
-				break;
-			default:
-				LOGERR("Invalid MSAA count: " + toString(viewInfo.numSamples));
-				break;
-			}
-
-			depthInput = resolvedDepth->texture;
-			srcRect = Rect2(0, 0, 1, 1);
-		}
-		else
-		{
-			depthInput = source;
-			srcRect = viewInfo.nrmViewRect;
-		}
+		Rect2 srcRect = viewInfo.nrmViewRect;
 
 		// Generate first mip
 		RENDER_TEXTURE_DESC rtDesc;
 		rtDesc.colorSurfaces[0].texture = output;
 		rtDesc.colorSurfaces[0].mipLevel = 0;
 
+		// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
+		const TextureProperties& outProps = output->getProperties();
+		Rect2 destRect(0, 0,
+			Math::ceilToInt(viewInfo.viewRect.width / 2.0f) / (float)outProps.getWidth(),
+			Math::ceilToInt(viewInfo.viewRect.height / 2.0f) / (float)outProps.getHeight());
+
+		// If viewport size is odd, adjust UV
+		srcRect.width += (viewInfo.viewRect.width % 2) * (1.0f / viewInfo.viewRect.width);
+		srcRect.height += (viewInfo.viewRect.height % 2) * (1.0f / viewInfo.viewRect.height);
+
 		SPtr<RenderTexture> rt = RenderTexture::create(rtDesc);
-		mHiZMatNoMSAA.execute(depthInput, 0, srcRect, rt);
+		mHiZMat.execute(source, 0, srcRect, destRect, rt);
 
 		// Generate remaining mip levels
-		const TextureProperties& outProps = output->getProperties();
 		for(UINT32 i = 1; i <= outProps.getNumMipmaps(); i++)
 		{
 			rtDesc.colorSurfaces[0].mipLevel = i;
 
 			rt = RenderTexture::create(rtDesc);
-			mHiZMatNoMSAA.execute(output, i - 1, Rect2(0, 0, 1, 1), rt);
+			mHiZMat.execute(output, i - 1, destRect, destRect, rt);
 		}
 
 		if (resolvedDepth)
@@ -1094,9 +1058,13 @@ namespace bs { namespace ct
 	POOLED_RENDER_TEXTURE_DESC BuildHiZ::getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight)
 	{
 		UINT32 size = Bitwise::nextPow2(std::max(viewWidth, viewHeight));
-		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT16_R);
+		UINT32 numMips = std::max(1U, PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R) - 1);
+		size = 1 << numMips;
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_R, size, size, TU_RENDERTARGET, 1, false, 1, numMips);
+		// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
+		// depth values). Perhaps if the depth was linealized before generation, or the far plane distance reduced, 16-bit
+		// would work, but for now sticking with 32-bit.
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT32_R, size, size, TU_RENDERTARGET, 1, false, 1, numMips);
 	}
 
 	FXAAParamDef gFXAAParamDef;
@@ -1331,9 +1299,7 @@ namespace bs { namespace ct
 			else
 				dofTarget = viewProps.target;
 
-			// Use the HiZ buffer instead of main scene depth since DOF shaders don't support MSAA, and HiZ is guaranteed to
-			// be resolved.
-			SPtr<Texture> sceneDepth = renderTargets->getHiZ();
+			SPtr<Texture> sceneDepth = renderTargets->getResolvedDepth();
 
 			mGaussianDOF.execute(renderTargets->getResolvedSceneColor(true), sceneDepth, dofTarget, *viewInfo, 
 				settings.depthOfField);

@@ -510,8 +510,7 @@ namespace bs { namespace ct
 	};
 
 	/** Shader that calculates a single level of the hierarchical Z mipmap chain. */
-	template<int MSAA_COUNT>
-	class BuildHiZMat : public RendererMaterial<BuildHiZMat<MSAA_COUNT>>
+	class BuildHiZMat : public RendererMaterial<BuildHiZMat>
 	{
 		RMAT_DEF("PPBuildHiZ.bsl");
 
@@ -525,9 +524,11 @@ namespace bs { namespace ct
 		 * @param[in]	srcMip		Mip level to read from the @p source texture.
 		 * @param[in]	srcRect		Rectangle in normalized coordinates, describing from which portion of the source
 		 *							texture to read the input.
+		 * @param[in]	dstRect		Destination rectangle to limit the writes to.
 		 * @param[in]	output		Output target to which to write to results.
 		 */
-		void execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, const SPtr<RenderTexture>& output);
+		void execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, const Rect2& dstRect,
+			const SPtr<RenderTexture>& output);
 	private:
 		GpuParamTexture mInputTexture;
 	};
@@ -550,10 +551,7 @@ namespace bs { namespace ct
 		static POOLED_RENDER_TEXTURE_DESC getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight);
 
 	private:
-		BuildHiZMat<1> mHiZMatNoMSAA;
-		BuildHiZMat<2> mHiZMatMSAA2;
-		BuildHiZMat<4> mHiZMatMSAA4;
-		BuildHiZMat<8> mHiZMatMSAA8;
+		BuildHiZMat mHiZMat;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FXAAParamDef)

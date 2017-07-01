@@ -77,10 +77,6 @@
             "UUID": "eef92578-b8ed-45d6-8eed-d85697ade3c5"
         },
         {
-            "Path": "ResolveCommon.bslinc",
-            "UUID": "1cde4f3c-534e-4128-8ee1-63e3bb620734"
-        },
-        {
             "Path": "SkinnedVertexInput.bslinc",
             "UUID": "d6a2ea27-5f4c-41ad-88bc-cad7dd7adc8d"
         },
@@ -193,10 +189,6 @@
         {
             "Path": "PPTonemapping.bsl",
             "UUID": "a8aa01e7-7e72-4f84-89f8-a0097250b0d3"
-        },
-        {
-            "Path": "Resolve.bsl",
-            "UUID": "9d5f5101-2d7e-432c-b8ad-1998de9ca5c7"
         },
         {
             "Path": "Skybox.bsl",

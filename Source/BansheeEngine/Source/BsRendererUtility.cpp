@@ -123,10 +123,6 @@ namespace bs { namespace ct
 			mSkyBoxMesh = Mesh::create(meshData);
 		}
 
-		// TODO - When I add proper preprocessor support, merge these into a single material
-		mResolveMat = bs_shared_ptr_new<ResolveMat>();
-		mBlitMat = bs_shared_ptr_new<BlitMat>();
-
 		IBLUtility::startUp();
 	}
 
@@ -254,23 +250,61 @@ namespace bs { namespace ct
 		mesh->_notifyUsedOnGPU();
 	}
 
-	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV)
+	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth)
 	{
 		auto& texProps = texture->getProperties();
 		SPtr<Material> mat;
 		SPtr<GpuParamsSet> params;
+
+#define PICK_MATERIAL(Type)									\
+			mat = mBlitMat_##Type.getMaterial();			\
+			params = mBlitMat_##Type.getParamsSet();		\
+			mBlitMat_##Type.setParameters(texture);
+
 		if (texProps.getNumSamples() > 1)
 		{
-			mat = mResolveMat->getMaterial();
-			params = mResolveMat->getParamsSet();
-			mResolveMat->setParameters(texture);
+			if(texProps.getNumSamples() > 8)
+				LOGWRN("Unsupported sample count in an MSAA texture");
+
+			if(isDepth)
+			{
+				switch(texProps.getNumSamples())
+				{
+				case 2:
+					PICK_MATERIAL(Depth_MSAA2x)
+					break;
+				case 4:
+					PICK_MATERIAL(Depth_MSAA4x)
+					break;
+				default:
+				case 8:
+					PICK_MATERIAL(Depth_MSAA8x)
+					break;
+				}
+			}
+			else
+			{
+				switch(texProps.getNumSamples())
+				{
+				case 2:
+					PICK_MATERIAL(Color_MSAA2x)
+					break;
+				case 4:
+					PICK_MATERIAL(Color_MSAA4x)
+					break;
+				default:
+				case 8:
+					PICK_MATERIAL(Color_MSAA8x)
+					break;
+				}
+			}
 		}
 		else
 		{
-			mat = mBlitMat->getMaterial();
-			params = mBlitMat->getParamsSet();
-			mBlitMat->setParameters(texture);
+			PICK_MATERIAL(Color_NoMSAA)
 		}
+
+#undef PICK_MATERIAL
 
 		setPass(mat);
 		setPassParams(params);
@@ -359,40 +393,31 @@ namespace bs { namespace ct
 		return RendererUtility::instance();
 	}
 
-	BlitMat::BlitMat()
+	template<int MSAA_COUNT, bool IS_COLOR>
+	BlitMat<MSAA_COUNT, IS_COLOR>::BlitMat()
 	{
 		mSource = mMaterial->getParamTexture("gSource");
 	}
 
-	void BlitMat::_initDefines(ShaderDefines& defines)
+	template<int MSAA_COUNT, bool IS_COLOR>
+	void BlitMat<MSAA_COUNT, IS_COLOR>::_initDefines(ShaderDefines& defines)
 	{
-		// Do nothing
+		defines.set("MSAA_COUNT", MSAA_COUNT);
+		defines.set("COLOR", IS_COLOR ? 1 : 0);
 	}
 
-	void BlitMat::setParameters(const SPtr<Texture>& source)
+	template<int MSAA_COUNT, bool IS_COLOR>
+	void BlitMat<MSAA_COUNT, IS_COLOR>::setParameters(const SPtr<Texture>& source)
 	{
 		mSource.set(source);
 		mMaterial->updateParamsSet(mParamsSet);
 	}
 
-	ResolveMat::ResolveMat()
-	{
-		mSource = mMaterial->getParamTexture("gSource");
-		mMaterial->getParam("gNumSamples", mNumSamples);
-	}
-
-	void ResolveMat::_initDefines(ShaderDefines& defines)
-	{
-		// Do nothing
-	}
-
-	void ResolveMat::setParameters(const SPtr<Texture>& source)
-	{
-		mSource.set(source);
-
-		UINT32 sampleCount = source->getProperties().getNumSamples();
-		mNumSamples.set(sampleCount);
-
-		mMaterial->updateParamsSet(mParamsSet);
-	}
+	template class BlitMat<1, true>;
+	template class BlitMat<2, true>;
+	template class BlitMat<4, true>;
+	template class BlitMat<8, true>;
+	template class BlitMat<2, false>;
+	template class BlitMat<4, false>;
+	template class BlitMat<8, false>;
 }}
