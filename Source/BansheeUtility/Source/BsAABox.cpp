@@ -458,7 +458,7 @@ namespace bs
 
 	float AABox::getRadius() const
 	{
-		return (mMaximum - mMinimum).length();
+		return ((mMaximum + mMinimum) * 0.5).length();
 	}
 
 	float AABox::getVolume() const
