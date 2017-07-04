@@ -33,7 +33,7 @@ namespace bs { namespace ct {
 		RendererUtility::instance().setPass(mMaterial, 0);
 
 		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.getLightOcclusion());
+		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 	}
 
@@ -75,7 +75,7 @@ namespace bs { namespace ct {
 		RendererUtility::instance().setPass(mMaterial, 0);
 
 		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.getLightOcclusion());
+		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 	}
 

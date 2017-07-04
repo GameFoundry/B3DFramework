@@ -242,6 +242,10 @@ namespace bs { namespace ct
 					1, false));
 			}
 		}
+		else if(type == RTT_AmbientOcclusion)
+		{
+			mAmbientOcclusionTex = texPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width, height, TU_RENDERTARGET));
+		}
 	}
 
 	void RenderTargets::release(RenderTargetType type)
@@ -295,56 +299,75 @@ namespace bs { namespace ct
 			if (mResolvedDepthTex != nullptr)
 				texPool.release(mResolvedDepthTex);
 		}
-	}
-
-	void RenderTargets::bindGBuffer()
-	{
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(mGBufferRT);
-
-		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-		rapi.setViewport(area);
-
-		// Clear depth & stencil according to user defined values, don't clear color as all values will get written to
-		UINT32 clearFlags = mViewTarget.clearFlags & ~FBT_COLOR;
-		if (clearFlags != 0)
+		else if(type == RTT_AmbientOcclusion)
 		{
-			RenderAPI::instance().clearViewport(clearFlags, mViewTarget.clearColor,
-				mViewTarget.clearDepthValue, mViewTarget.clearStencilValue, 0x01);
+			if (mAmbientOcclusionTex != nullptr)
+				texPool.release(mAmbientOcclusionTex);
 		}
-
-		// Clear all non primary targets (Note: I could perhaps clear all but albedo, since it stores a per-pixel write mask)
-		RenderAPI::instance().clearViewport(FBT_COLOR, Color::ZERO, 1.0f, 0, 0xFF & ~0x01);
 	}
 
-	void RenderTargets::bindSceneColor(bool readOnlyDepthStencil)
-	{
-		int readOnlyFlags = 0;
-		if (readOnlyDepthStencil)
-			readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
-
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(mSceneColorRT, readOnlyFlags, RT_COLOR0 | RT_DEPTH_STENCIL);
-
-		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-		rapi.setViewport(area);
-	}
-
-	void RenderTargets::bindLightAccumulation()
+	void RenderTargets::bind(RenderTargetType type, bool readOnlyDepthStencil)
 	{
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(mLightAccumulationRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-	}
+		switch(type)
+		{
+		case RTT_GBuffer:
+		{
+			rapi.setRenderTarget(mGBufferRT);
 
-	void RenderTargets::bindLightOcclusion()
-	{
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
+			Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+			rapi.setViewport(area);
 
-		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-		rapi.setViewport(area);
+			// Clear depth & stencil according to user defined values, don't clear color as all values will get written to
+			UINT32 clearFlags = mViewTarget.clearFlags & ~FBT_COLOR;
+			if (clearFlags != 0)
+			{
+				RenderAPI::instance().clearViewport(clearFlags, mViewTarget.clearColor,
+					mViewTarget.clearDepthValue, mViewTarget.clearStencilValue, 0x01);
+			}
 
-		RenderAPI::instance().clearViewport(FBT_COLOR, Color::ZERO);
+			// Clear all non primary targets (Note: I could perhaps clear all but albedo, since it stores a per-pixel write mask)
+			RenderAPI::instance().clearViewport(FBT_COLOR, Color::ZERO, 1.0f, 0, 0xFF & ~0x01);
+		}
+		break;
+		case RTT_SceneColor:
+		{
+			int readOnlyFlags = 0;
+			if (readOnlyDepthStencil)
+				readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
+
+			rapi.setRenderTarget(mSceneColorRT, readOnlyFlags, RT_COLOR0 | RT_DEPTH_STENCIL);
+
+			Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+			rapi.setViewport(area);
+			
+		}
+		break;
+		case RTT_LightAccumulation:
+			rapi.setRenderTarget(mLightAccumulationRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+		break;
+		case RTT_LightOcclusion:
+		{
+			rapi.setRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
+
+			Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+			rapi.setViewport(area);
+
+			RenderAPI::instance().clearViewport(FBT_COLOR, Color::ZERO);
+		}
+		break;
+		default:
+		{
+			int readOnlyFlags = 0;
+			if (readOnlyDepthStencil)
+				readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
+
+			SPtr<RenderTexture> rt = getRT(type);
+			if (rt)
+				rapi.setRenderTarget(rt, readOnlyFlags);
+		}
+		break;
+		}
 	}
 
 	void RenderTargets::generate(RenderTargetType type)
@@ -352,12 +375,12 @@ namespace bs { namespace ct
 		switch(type)
 		{
 		case RTT_HiZ:
-			mBuildHiZ.execute(mViewTarget, getResolvedDepth(), mHiZ->texture);
+			mBuildHiZ.execute(mViewTarget, get(RTT_ResolvedDepth), mHiZ->texture);
 		break;
 		case RTT_ResolvedSceneColor:
 			if (mViewTarget.numSamples > 1)
 			{
-				RenderAPI::instance().setRenderTarget(mResolvedDepthTex->renderTexture);
+				RenderAPI::instance().setRenderTarget(mResolvedSceneColorTex1->renderTexture);
 				gRendererUtility().blit(mDepthTex->texture);
 			}
 			break;
@@ -366,45 +389,99 @@ namespace bs { namespace ct
 		}
 	}
 
-	SPtr<Texture> RenderTargets::getResolvedDepth() const
+	SPtr<Texture> RenderTargets::get(RenderTargetType type, RenderSurfaceMaskBits surface) const
 	{
-		if (mViewTarget.numSamples > 1)
-			return mResolvedDepthTex->texture;
+		switch(type)
+		{
+		case RTT_ResolvedDepth:
+			if (mViewTarget.numSamples > 1)
+				return mResolvedDepthTex->texture;
 
-		return mDepthTex->texture;
+			return mDepthTex->texture;
+		case RTT_ResolvedSceneColor:
+			if (mViewTarget.numSamples > 1)
+				return mResolvedSceneColorTex1->texture;
+			else
+				return mSceneColorTex->texture;
+		default:
+		{
+			SPtr<PooledRenderTexture> pooledTex = getPooledTexture(type, surface);
+			if(pooledTex)
+				return pooledTex->texture;
+
+			return nullptr;
+		}
+		}
 	}
 
-	SPtr<Texture> RenderTargets::getHiZ() const
+	SPtr<RenderTexture> RenderTargets::getRT(RenderTargetType type) const
 	{
-		if (mHiZ)
-			return mHiZ->texture;
+		switch(type)
+		{
+		case RTT_GBuffer:
+			return mGBufferRT;
+		case RTT_SceneColor:
+			return mSceneColorRT;
+		case RTT_LightOcclusion:
+			return mLightOcclusionRT;
+		case RTT_LightAccumulation:
+			return mLightAccumulationRT;
+		case RTT_ResolvedSceneColor:
+			if (mViewTarget.numSamples > 1)
+				return mResolvedSceneColorTex1->renderTexture;
+			else
+				return mSceneColorRT;
+		default:
+		{
+			SPtr<PooledRenderTexture> pooledTex = getPooledTexture(type);
 
-		return nullptr;
+			if(pooledTex)
+				return pooledTex->renderTexture;
+
+			return nullptr;
+		}
+		}
 	}
 
-	SPtr<Texture> RenderTargets::getSceneColor() const
+	SPtr<PooledRenderTexture> RenderTargets::getPooledTexture(RenderTargetType type, RenderSurfaceMaskBits surface) const
 	{
-		return mSceneColorTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getGBufferA() const
-	{
-		return mAlbedoTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getGBufferB() const
-	{
-		return mNormalTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getGBufferC() const
-	{
-		return mRoughMetalTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getSceneDepth() const
-	{
-		return mDepthTex->texture;
+		switch(type)
+		{
+		case RTT_GBuffer:
+		{
+			switch (surface)
+			{
+			default:
+			case RT_COLOR0:
+				return mAlbedoTex;
+			case RT_COLOR1:
+				return mNormalTex;
+			case RT_COLOR2:
+				return mRoughMetalTex;
+			case RT_DEPTH_STENCIL:
+			case RT_DEPTH:
+				return mDepthTex;
+			}
+		}
+		case RTT_SceneColor:
+			return mSceneColorTex;
+		case RTT_LightAccumulation:
+			return mLightAccumulationTex;
+		case RTT_LightOcclusion:
+			return mLightOcclusionTex;
+		case RTT_ResolvedSceneColor:
+			return mResolvedSceneColorTex1;
+		case RTT_ResolvedSceneColorSecondary:
+			return mResolvedSceneColorTex1;
+		case RTT_HiZ:
+			return mHiZ;
+		case RTT_ResolvedDepth:
+			return mResolvedDepthTex;
+		case RTT_AmbientOcclusion:
+			return mAmbientOcclusionTex;
+		default:
+			return nullptr;
+		}
 	}
 
 	SPtr<GpuBuffer> RenderTargets::getSceneColorBuffer() const
@@ -412,44 +489,8 @@ namespace bs { namespace ct
 		return mFlattenedSceneColorBuffer->buffer;
 	}
 
-	SPtr<Texture> RenderTargets::getLightAccumulation() const
-	{
-		return mLightAccumulationTex->texture;
-	}
-
-	SPtr<Texture> RenderTargets::getLightOcclusion() const
-	{
-		return mLightOcclusionTex->texture;
-	}
-
 	SPtr<GpuBuffer> RenderTargets::getLightAccumulationBuffer() const
 	{
 		return mFlattenedLightAccumulationBuffer->buffer;
-	}
-
-	SPtr<Texture> RenderTargets::getResolvedSceneColor(bool secondary) const
-	{
-		if (secondary)
-			return mResolvedSceneColorTex2->texture;
-		else
-		{
-			if (mViewTarget.numSamples > 1)
-				return mResolvedSceneColorTex1->texture;
-			else
-				return mSceneColorTex->texture;
-		}
-	}
-
-	SPtr<RenderTarget> RenderTargets::getResolvedSceneColorRT(bool secondary) const
-	{
-		if (secondary)
-			return mResolvedSceneColorTex2->renderTexture;
-		else
-		{
-			if (mViewTarget.numSamples > 1)
-				return mResolvedSceneColorTex1->renderTexture;
-			else
-				return mSceneColorRT;
-		}
 	}
 }}

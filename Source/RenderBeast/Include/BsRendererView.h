@@ -273,6 +273,9 @@ namespace bs { namespace ct
 		 */
 		PostProcessInfo& getPPInfo() { return mPostProcessInfo; }
 
+		/** @copydoc getPPInfo() */
+		const PostProcessInfo& getPPInfo() const { return mPostProcessInfo; }
+
 		/** Updates the GPU buffer containing per-view information, with the latest internal data. */
 		void updatePerViewBuffer();
 

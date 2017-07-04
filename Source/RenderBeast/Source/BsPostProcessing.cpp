@@ -1101,7 +1101,8 @@ namespace bs { namespace ct
 
 	SSAOParamDef gSSAOParamDef;
 
-	SSAOMat::SSAOMat()
+	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
+	SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::SSAOMat()
 	{
 		mParamBuffer = gSSAOParamDef.createBuffer();
 
@@ -1110,6 +1111,8 @@ namespace bs { namespace ct
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDownsampledAO", mDownsampledAOTexture);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSetupAO", mSetupAOTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gRandomTex", mRandomTexture);
 
 		SAMPLER_STATE_DESC inputSampDesc;
@@ -1135,13 +1138,17 @@ namespace bs { namespace ct
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gRandomSamp", randomSampState);
 	}
 
-	void SSAOMat::_initDefines(ShaderDefines& defines)
+	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
+	void SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::_initDefines(ShaderDefines& defines)
 	{
-		// Do nothing
+		defines.set("MIX_WITH_UPSAMPLED", UPSAMPLE ? 1 : 0);
+		defines.set("FINAL_AO", FINAL_PASS ? 1 : 0);
+		defines.set("QUALITY", QUALITY);
 	}
 
-	void SSAOMat::execute(const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, 
-		const SPtr<Texture>& random, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
+	template <bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
+	void SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::execute(const RendererView& view, const SSAOTextureInputs& textures, 
+		const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 
@@ -1156,9 +1163,20 @@ namespace bs { namespace ct
 		gSSAOParamDef.gTanHalfFOV.set(mParamBuffer, tanHalfFOV);
 		gSSAOParamDef.gWorldSpaceRadiusMask.set(mParamBuffer, 1.0f);
 		gSSAOParamDef.gBias.set(mParamBuffer, settings.bias / 1000.0f);
+		
+		if(UPSAMPLE)
+		{
+			const TextureProperties& props = textures.aoDownsampled->getProperties();
+
+			Vector2 downsampledPixelSize;
+			downsampledPixelSize.x = 1.0f / props.getWidth();
+			downsampledPixelSize.y = 1.0f / props.getHeight();
+
+			gSSAOParamDef.gDownsampledPixelSize.set(mParamBuffer, downsampledPixelSize);
+		}
 
 		// Generate a scale which we need to use in order to achieve tiling
-		const TextureProperties& rndProps = random->getProperties();
+		const TextureProperties& rndProps = textures.randomRotations->getProperties();
 		UINT32 rndWidth = rndProps.getWidth();
 		UINT32 rndHeight = rndProps.getHeight();
 
@@ -1169,9 +1187,18 @@ namespace bs { namespace ct
 		Vector2 randomTileScale((float)scaleWidth, (float)scaleHeight);
 		gSSAOParamDef.gRandomTileScale.set(mParamBuffer, randomTileScale);
 
-		mDepthTexture.set(depth);
-		mNormalsTexture.set(normals);
-		mRandomTexture.set(random);
+		mSetupAOTexture.set(textures.aoSetup);
+
+		if (FINAL_PASS)
+		{
+			mDepthTexture.set(textures.sceneDepth);
+			mNormalsTexture.set(textures.sceneNormals);
+		}
+
+		if (UPSAMPLE)
+			mDownsampledAOTexture.set(textures.aoDownsampled);
+		
+		mRandomTexture.set(textures.randomRotations);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);
@@ -1184,7 +1211,219 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	SPtr<Texture> SSAOMat::generate4x4RandomizationTexture() const
+	SSAODownsampleParamDef gSSAODownsampleParamDef;
+
+	SSAODownsampleMat::SSAODownsampleMat()
+	{
+		mParamBuffer = gSSAODownsampleParamDef.createBuffer();
+		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
+
+		SAMPLER_STATE_DESC inputSampDesc;
+		inputSampDesc.minFilter = FO_LINEAR;
+		inputSampDesc.magFilter = FO_LINEAR;
+		inputSampDesc.mipFilter = FO_LINEAR;
+		inputSampDesc.addressMode.u = TAM_CLAMP;
+		inputSampDesc.addressMode.v = TAM_CLAMP;
+		inputSampDesc.addressMode.w = TAM_CLAMP;
+
+		SPtr<SamplerState> inputSampState = SamplerState::create(inputSampDesc);
+		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
+	}
+
+	void SSAODownsampleMat::_initDefines(ShaderDefines& defines)
+	{
+		// Do nothing
+	}
+
+	void SSAODownsampleMat::execute(const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, 
+		const SPtr<RenderTexture>& destination, float depthRange)
+	{
+		const RendererViewProperties& viewProps = view.getProperties();
+		const RenderTargetProperties& rtProps = destination->getProperties();
+
+		Vector2 pixelSize;
+		pixelSize.x = 1.0f / rtProps.getWidth();
+		pixelSize.y = 1.0f / rtProps.getHeight();
+
+		float scale = viewProps.viewRect.width / (float)rtProps.getWidth();
+
+		gSSAODownsampleParamDef.gPixelSize.set(mParamBuffer, pixelSize);
+		gSSAODownsampleParamDef.gInvDepthThreshold.set(mParamBuffer, (1.0f / depthRange) / scale);
+
+		mDepthTexture.set(depth);
+		mNormalsTexture.set(normals);
+
+		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(destination);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+	}
+
+	SSAO::SSAO()
+	{
+		mSSAORandomizationTex = generate4x4RandomizationTexture();
+	}
+
+	void SSAO::execute(const RendererView& view, const SPtr<RenderTexture>& destination, 
+		const AmbientOcclusionSettings& settings)
+	{
+		/** Maximum valid depth range within samples in a sample set. In meters. */
+		static const float DEPTH_RANGE = 1.0f;
+
+		const RendererViewProperties& viewProps = view.getProperties();
+		SPtr<RenderTargets> renderTargets = view.getRenderTargets();
+
+		SPtr<Texture> sceneDepth = renderTargets->get(RTT_ResolvedDepth);
+		SPtr<Texture> sceneNormals = renderTargets->get(RTT_GBuffer, RT_COLOR1);
+
+		// TODO - Resolve normals if MSAA
+
+		UINT32 numDownsampleLevels = 1; // TODO - Make it a property, ranging [0, 2]
+		UINT32 quality = 1; // TODO - Make it a property
+
+		SPtr<PooledRenderTexture> setupTex0;
+		if(numDownsampleLevels > 0)
+		{
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.width, 2)),
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.height, 2))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			setupTex0 = GpuResourcePool::instance().get(desc);
+
+			mDownsample.execute(view, sceneDepth, sceneNormals, setupTex0->renderTexture, DEPTH_RANGE);
+		}
+
+		SPtr<PooledRenderTexture> setupTex1;
+		if(numDownsampleLevels > 1)
+		{
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.width, 4)),
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.height, 4))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			setupTex1 = GpuResourcePool::instance().get(desc);
+
+			mDownsample.execute(view, sceneDepth, sceneNormals, setupTex1->renderTexture, DEPTH_RANGE);
+		}
+
+		SSAOTextureInputs textures;
+		textures.sceneDepth = sceneDepth;
+		textures.sceneNormals = sceneNormals;
+		textures.randomRotations = mSSAORandomizationTex;
+
+		SPtr<PooledRenderTexture> downAOTex1;
+		if(numDownsampleLevels > 1)
+		{
+			textures.aoSetup = setupTex1->texture;
+
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.width, 4)),
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.height, 4))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			downAOTex1 = GpuResourcePool::instance().get(desc);
+
+			executeSSAOMat(false, false, quality, view, textures, downAOTex1->renderTexture, settings);
+
+			GpuResourcePool::instance().release(setupTex1);
+			setupTex1 = nullptr;
+		}
+
+		SPtr<PooledRenderTexture> downAOTex0;
+		if(numDownsampleLevels > 0)
+		{
+			textures.aoSetup = setupTex0->texture;
+			textures.aoDownsampled = downAOTex1->texture;
+
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.width, 2)),
+				std::max(1, Math::divideAndRoundUp(viewProps.viewRect.height, 2))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			downAOTex0 = GpuResourcePool::instance().get(desc);
+
+			bool upsample = numDownsampleLevels > 1;
+			executeSSAOMat(upsample, false, quality, view, textures, downAOTex0->renderTexture, settings);
+
+			if(upsample)
+			{
+				GpuResourcePool::instance().release(downAOTex1);
+				downAOTex1 = nullptr;
+			}
+		}
+
+		{
+			textures.aoSetup = setupTex0->texture;
+			textures.aoDownsampled = downAOTex0->texture;
+
+			bool upsample = numDownsampleLevels > 0;
+			executeSSAOMat(upsample, true, quality, view, textures, destination, settings);
+		}
+
+		if(numDownsampleLevels > 0)
+		{
+			GpuResourcePool::instance().release(setupTex0);
+			GpuResourcePool::instance().release(downAOTex0);
+		}
+	}
+
+	void SSAO::executeSSAOMat(bool upsample, bool final, int quality, const RendererView& view, 
+		const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
+	{
+#define PICK_MATERIAL(QUALITY)															\
+		if(upsample)																	\
+			if(final)																	\
+				mSSAO_TT_##QUALITY.execute(view, textures, destination, settings);		\
+			else																		\
+				mSSAO_TF_##QUALITY.execute(view, textures, destination, settings);		\
+		else																			\
+			if(final)																	\
+				mSSAO_FT_##QUALITY.execute(view, textures, destination, settings);		\
+			else																		\
+				mSSAO_FF_##QUALITY.execute(view, textures, destination, settings);		\
+
+		switch(quality)
+		{
+		case 0:
+			PICK_MATERIAL(0)
+			break;
+		case 1:
+			PICK_MATERIAL(1)
+			break;
+		case 2:
+			PICK_MATERIAL(2)
+			break;
+		case 3:
+			PICK_MATERIAL(3)
+			break;
+		default:
+		case 4:
+			PICK_MATERIAL(4)
+			break;
+		}
+
+#undef PICK_MATERIAL
+	}
+
+	SPtr<Texture> SSAO::generate4x4RandomizationTexture() const
 	{
 		UINT32 mapping[16] = { 13, 5, 1, 9, 14, 3, 7, 11, 15, 2, 6, 12, 4, 8, 0, 10 };
 		Vector2 bases[16];
@@ -1211,11 +1450,6 @@ namespace bs { namespace ct
 		return Texture::create(pixelData);
 	}
 
-	PostProcessing::PostProcessing()
-	{
-		mSSAORandomizationTex = mSSAO.generate4x4RandomizationTexture();
-	}
-
 	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)
 	{
 		auto& viewProps = viewInfo->getProperties();
@@ -1223,20 +1457,11 @@ namespace bs { namespace ct
 		PostProcessInfo& ppInfo = viewInfo->getPPInfo();
 		const StandardPostProcessSettings& settings = *ppInfo.settings;
 
-		SPtr<Texture> sceneColor = renderTargets->getSceneColor();
+		SPtr<Texture> sceneColor = renderTargets->get(RTT_SceneColor);
 		Rect2 viewportRect = viewProps.nrmViewRect;
 
 		bool hdr = viewProps.isHDR;
 		bool msaa = viewProps.numSamples > 1;
-
-		// DEBUG ONLY
-		//SPtr<PooledRenderTexture> temp = GpuResourcePool::instance().get(
-		//	POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, viewProps.viewRect.width, viewProps.viewRect.height, 
-		//	TU_RENDERTARGET));
-
-		//mSSAO.execute(*viewInfo, renderTargets->getSceneDepth(), renderTargets->getGBufferB(), mSSAORandomizationTex, 
-		//	temp->renderTexture, settings.ambientOcclusion);
-		// END DEBUG ONLY
 
 		if(hdr && settings.enableAutoExposure)
 		{
@@ -1281,7 +1506,7 @@ namespace bs { namespace ct
 		else
 		{
 			renderTargets->allocate(RTT_ResolvedSceneColorSecondary);
-			tonemapTarget = renderTargets->getResolvedSceneColorRT(true);
+			tonemapTarget = renderTargets->getRT(RTT_ResolvedSceneColorSecondary);
 		}
 
 		mTonemapping.execute(gammaOnly, autoExposure, msaa, sceneColor, tonemapTarget, viewportRect, ppInfo);
@@ -1294,14 +1519,14 @@ namespace bs { namespace ct
 			if (settings.enableFXAA)
 			{
 				renderTargets->allocate(RTT_ResolvedSceneColor);
-				dofTarget = renderTargets->getResolvedSceneColorRT(false);
+				dofTarget = renderTargets->getRT(RTT_ResolvedSceneColor);
 			}
 			else
 				dofTarget = viewProps.target;
 
-			SPtr<Texture> sceneDepth = renderTargets->getResolvedDepth();
+			SPtr<Texture> sceneDepth = renderTargets->get(RTT_ResolvedDepth);
 
-			mGaussianDOF.execute(renderTargets->getResolvedSceneColor(true), sceneDepth, dofTarget, *viewInfo, 
+			mGaussianDOF.execute(renderTargets->get(RTT_ResolvedSceneColorSecondary), sceneDepth, dofTarget, *viewInfo, 
 				settings.depthOfField);
 
 			renderTargets->release(RTT_ResolvedSceneColorSecondary);
@@ -1311,9 +1536,9 @@ namespace bs { namespace ct
 		{
 			SPtr<Texture> fxaaSource;
 			if (performDOF)
-				fxaaSource = renderTargets->getResolvedSceneColor(false);
+				fxaaSource = renderTargets->get(RTT_ResolvedSceneColor);
 			else
-				fxaaSource = renderTargets->getResolvedSceneColor(true);
+				fxaaSource = renderTargets->get(RTT_ResolvedSceneColorSecondary);
 
 			// Note: I could skip executing FXAA over DOF and motion blurred pixels
 			mFXAA.execute(fxaaSource, viewProps.target);
@@ -1324,14 +1549,15 @@ namespace bs { namespace ct
 				renderTargets->release(RTT_ResolvedSceneColorSecondary);
 		}
 
-		// BEGIN DEBUG ONLY
-		//RenderAPI::instance().setRenderTarget(viewProps.target);
-		//gRendererUtility().blit(temp->texture);
-
-		//GpuResourcePool::instance().release(temp);
-		// END DEBUG ONLY
-
 		if (ppInfo.settingDirty)
 			ppInfo.settingDirty = false;
+	}
+
+	void PostProcessing::buildSSAO(const RendererView& view)
+	{
+		const SPtr<RenderTargets> renderTargets = view.getRenderTargets();
+		const PostProcessInfo& ppInfo = view.getPPInfo();
+
+		mSSAO.execute(view, renderTargets->getRT(RTT_AmbientOcclusion), ppInfo.settings->ambientOcclusion);
 	}
 }}

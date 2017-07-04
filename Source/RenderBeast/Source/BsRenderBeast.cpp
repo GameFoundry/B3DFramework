@@ -508,7 +508,7 @@ namespace bs { namespace ct
 
 		SPtr<RenderTargets> renderTargets = viewInfo->getRenderTargets();
 		renderTargets->allocate(RTT_GBuffer);
-		renderTargets->bindGBuffer();
+		renderTargets->bind(RTT_GBuffer);
 
 		// Trigger pre-base-pass callbacks
 		auto iterRenderCallback = mCallbacks.begin();
@@ -545,9 +545,6 @@ namespace bs { namespace ct
 			renderTargets->generate(RTT_ResolvedDepth);
 		}
 
-		renderTargets->allocate(RTT_HiZ);
-		renderTargets->generate(RTT_HiZ);
-
 		// Trigger post-base-pass callbacks
 		if (viewProps.triggerCallbacks)
 		{
@@ -562,6 +559,19 @@ namespace bs { namespace ct
 
 				++iterRenderCallback;
 			}
+		}
+
+		renderTargets->allocate(RTT_HiZ);
+		renderTargets->generate(RTT_HiZ);
+
+		// Build AO if required
+		bool useSSAO = viewInfo->getPPInfo().settings->ambientOcclusion.enabled;
+		if(useSSAO)
+		{
+			renderTargets->allocate(RTT_AmbientOcclusion);
+
+			// Note: This could be done as async compute (and started earlier, right after base pass)
+			PostProcessing::instance().buildSSAO(*viewInfo);
 		}
 
 		RenderAPI& rapi = RenderAPI::instance();
@@ -579,9 +589,9 @@ namespace bs { namespace ct
 		// continuing
 		if(isMSAA)
 		{
-			renderTargets->bindLightAccumulation();
+			renderTargets->bind(RTT_LightAccumulation);
 			mFlatFramebufferToTextureMat->execute(renderTargets->getLightAccumulationBuffer(), 
-				renderTargets->getLightAccumulation());
+				renderTargets->get(RTT_LightAccumulation));
 		}
 
 		// Render shadowed lights into light accumulation texture, using standard deferred
@@ -601,14 +611,14 @@ namespace bs { namespace ct
 
 				for (UINT32 j = 0; j < count; j++)
 				{
-					renderTargets->bindLightOcclusion();
+					renderTargets->bind(RTT_LightOcclusion);
 
 					UINT32 lightIdx = offset + j;
 					const RendererLight& light = *lights[lightIdx];
 					ShadowRendering::instance().renderShadowOcclusion(*mScene, mCoreOptions->shadowFilteringQuality,
 						light, viewIdx);
 
-					renderTargets->bindLightAccumulation();
+					renderTargets->bind(RTT_LightAccumulation);
 					StandardDeferred::instance().renderLight(lightType, light, *viewInfo, *renderTargets);
 				}
 			}
@@ -623,15 +633,18 @@ namespace bs { namespace ct
 		renderTargets->allocate(RTT_SceneColor);
 		imageBasedLightingMat->execute(renderTargets, perCameraBuffer, mPreintegratedEnvBRDF);
 
+		if (useSSAO)
+			renderTargets->release(RTT_AmbientOcclusion);
+
 		renderTargets->release(RTT_LightAccumulation);
 		renderTargets->release(RTT_GBuffer);
 
-		renderTargets->bindSceneColor(true);
+		renderTargets->bind(RTT_SceneColor, true);
 
 		// If we're using flattened framebuffer for MSAA we need to copy its contents to the MSAA scene texture before
 		// continuing
 		if(isMSAA)
-			mFlatFramebufferToTextureMat->execute(renderTargets->getSceneColorBuffer(), renderTargets->getSceneColor());
+			mFlatFramebufferToTextureMat->execute(renderTargets->getSceneColorBuffer(), renderTargets->get(RTT_SceneColor));
 
 		// Render skybox (if any)
 		if (mSkyboxTexture != nullptr)
@@ -650,7 +663,7 @@ namespace bs { namespace ct
 		SPtr<Mesh> mesh = gRendererUtility().getSkyBoxMesh();
 		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
 
-		renderTargets->bindSceneColor(false);
+		renderTargets->bind(RTT_SceneColor, false);
 
 		// Render transparent objects
 		// TODO: Transparent objects cannot receive shadows. In order to support this I'd have to render the light occlusion
@@ -695,7 +708,7 @@ namespace bs { namespace ct
 			rapi.setRenderTarget(target);
 			rapi.setViewport(viewportArea);
 
-			SPtr<Texture> sceneColor = renderTargets->getSceneColor();
+			SPtr<Texture> sceneColor = renderTargets->get(RTT_SceneColor);
 			gRendererUtility().blit(sceneColor, Rect2I::EMPTY, viewProps.flipView);
 		}
 

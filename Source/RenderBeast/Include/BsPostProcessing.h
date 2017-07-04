@@ -588,12 +588,42 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Vector2, gRandomTileScale)
 		BS_PARAM_BLOCK_ENTRY(float, gCotHalfFOV)
 		BS_PARAM_BLOCK_ENTRY(float, gBias)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gDownsampledPixelSize)
 	BS_PARAM_BLOCK_END
 
 	extern SSAOParamDef gSSAOParamDef;
 
-	/** Shader that computes ambient occlusion using screen based methods. */
-	class SSAOMat : public RendererMaterial<SSAOMat>
+	/** Textures used as input when calculating SSAO. */
+	struct SSAOTextureInputs
+	{
+		/** Full resolution scene depth. Only used by final SSAO pass. */
+		SPtr<Texture> sceneDepth;
+
+		/** Full resolution buffer containing scene normals. Only used by final SSAO pass. */
+		SPtr<Texture> sceneNormals;
+
+		/** Precalculated texture containing downsampled normals/depth, to be used for AO input. */
+		SPtr<Texture> aoSetup;
+
+		/** Texture containing AO from the previous pass. Only used if upsampling is enabled. */
+		SPtr<Texture> aoDownsampled;
+
+		/** Tileable texture containing random rotations that will be applied to AO samples. */
+		SPtr<Texture> randomRotations;
+	};
+
+	/** 
+	 * Shader that computes ambient occlusion using screen based methods.
+	 *
+	 * @tparam	UPSAMPLE	If true the shader will blend the calculated AO with AO data from the previous pass.
+	 * @tparam	FINAL_PASS	If true the shader will use the full screen normal/depth information and perform
+	 *						intensity scaling, as well as distance fade. Otherwise the shader will use the
+	 *						downsampled AO setup information, with no scaling/fade.
+	 * @tparam	QUALITY		Integer in range [0, 4] that controls the quality of SSAO sampling. Higher numbers yield
+	 *						better quality at the cost of performance. 
+	 */
+	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
+	class SSAOMat : public RendererMaterial<SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>>
 	{
 		RMAT_DEF("PPSSAO.bsl");
 
@@ -604,14 +634,73 @@ namespace bs { namespace ct
 		 * Renders the post-process effect with the provided parameters. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
-		 * @param[in]	sceneDepth		Input texture containing scene depth.
-		 * @param[in]	sceneNormals	Input texture containing scene world space normals.
-		 * @param[in]	randomRotations	Tileable texture containing random rotations that will be applied to AO samples.
+		 * @param[in]	textures		Set of textures to be used as input. Which textures are used depends on the
+		 *								template parameters of this class.
 		 * @param[in]	destination		Output texture to which to write the ambient occlusion data to.
 		 * @param[in]	settings		Settings used to control the ambient occlusion effect.
 		 */
-		void execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Texture>& sceneNormals, 
-			const SPtr<Texture>& randomRotations, const SPtr<RenderTexture>& destination, 
+		void execute(const RendererView& view, const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, 
+			const AmbientOcclusionSettings& settings);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mDepthTexture;
+		GpuParamTexture mNormalsTexture;
+		GpuParamTexture mDownsampledAOTexture;
+		GpuParamTexture mSetupAOTexture;
+		GpuParamTexture mRandomTexture;
+	};
+
+	BS_PARAM_BLOCK_BEGIN(SSAODownsampleParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gPixelSize)
+		BS_PARAM_BLOCK_ENTRY(float, gInvDepthThreshold)
+	BS_PARAM_BLOCK_END
+
+	extern SSAOParamDef gSSAOParamDef;
+
+	/** 
+	 * Shader that downsamples the depth & normal buffer and stores their results in a common texture, to be consumed
+	 * by SSAOMat. 
+	 */
+	class SSAODownsampleMat : public RendererMaterial<SSAODownsampleMat>
+	{
+		RMAT_DEF("PPSSAODownsample.bsl");
+
+	public:
+		SSAODownsampleMat();
+
+		/** 
+		 * Renders the post-process effect with the provided parameters. 
+		 * 
+		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	sceneDepth		Input texture containing scene depth.
+		 * @param[in]	sceneNormals	Input texture containing scene world space normals.
+		 * @param[in]	destination		Output texture to which to write the downsampled data to.
+		 * @param[in]	depthRange		Valid depth range (in view space) within which nearby samples will be averaged.
+		 */
+		void execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Texture>& sceneNormals,
+			const SPtr<RenderTexture>& destination, float depthRange);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mDepthTexture;
+		GpuParamTexture mNormalsTexture;
+	};
+
+	/** Helper class that is used for calculating the SSAO information. */
+	class SSAO
+	{
+	public:
+		SSAO();
+
+		/** 
+		 * Calculates SSAO for the specified view. 
+		 * 
+		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	destination		Output texture to which to write the SSAO data to.
+		 * @param[in]	settings		Settings that control how is SSAO calculated.
+		 */
+		void execute(const RendererView& view, const SPtr<RenderTexture>& destination, 
 			const AmbientOcclusionSettings& settings);
 
 		/**
@@ -621,10 +710,27 @@ namespace bs { namespace ct
 		SPtr<Texture> generate4x4RandomizationTexture() const;
 
 	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mDepthTexture;
-		GpuParamTexture mNormalsTexture;
-		GpuParamTexture mRandomTexture;
+		/** @copydoc SSAOMat::execute() */
+		void executeSSAOMat(bool upsample, bool final, int quality, const RendererView& view, 
+			const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, 
+			const AmbientOcclusionSettings& settings);
+
+		SSAODownsampleMat mDownsample;
+		SPtr<Texture> mSSAORandomizationTex;
+
+#define DEFINE_MATERIAL(QUALITY)							\
+		SSAOMat<false, false, QUALITY> mSSAO_FF_##QUALITY;	\
+		SSAOMat<true, false, QUALITY> mSSAO_TF_##QUALITY;	\
+		SSAOMat<false, true, QUALITY> mSSAO_FT_##QUALITY;	\
+		SSAOMat<true, true, QUALITY> mSSAO_TT_##QUALITY;	\
+
+		DEFINE_MATERIAL(0)
+		DEFINE_MATERIAL(1)
+		DEFINE_MATERIAL(2)
+		DEFINE_MATERIAL(3)
+		DEFINE_MATERIAL(4)
+
+#undef DEFINE_MATERIAL
 	};
 
 	/**
@@ -635,8 +741,6 @@ namespace bs { namespace ct
 	class PostProcessing : public Module<PostProcessing>
 	{
 	public:
-		PostProcessing();
-
 		/** 
 		 * Renders post-processing effects for the provided render target. Resolves provided scene color texture into the
 		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
@@ -644,6 +748,11 @@ namespace bs { namespace ct
 		 */
 		void postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta);
 		
+		/**
+		 * Populates the ambient occlusion texture of the specified view with screen-space ambient occlusion information.
+		 * Ambient occlusion texture must be allocated on the view's render targets before calling this method.
+		 */
+		void buildSSAO(const RendererView& view);
 	private:
 		DownsampleMaterials mDownsample;
 		EyeAdaptHistogramMat mEyeAdaptHistogram;
@@ -654,9 +763,7 @@ namespace bs { namespace ct
 		TonemappingMaterials mTonemapping;
 		GaussianDOF mGaussianDOF;
 		FXAAMat mFXAA;
-		SSAOMat mSSAO;
-
-		SPtr<Texture> mSSAORandomizationTex;
+		SSAO mSSAO;
 	};
 
 	/** @} */

@@ -17,11 +17,14 @@ technique PPSSAO
 			float2 gRandomTileScale;
 			float gCotHalfFOV;
 			float gBias;
+			float2 gDownsampledPixelSize;
 		}		
 
 		SamplerState gInputSamp;
 		Texture2D gDepthTex;
 		Texture2D gNormalsTex;
+		Texture2D gDownsampledAO;
+		Texture2D gSetupAO;
 		
 		SamplerState gRandomSamp;
 		Texture2D gRandomTex;
@@ -63,18 +66,64 @@ technique PPSSAO
 			return float3(clipSpace * gTanHalfFOV, depth);
 		}
 		
+		float getUpsampledAO(float2 uv, float depth, float3 normal)
+		{
+			float2 uvs[9];
+			uvs[0] = uv + float2(-1, -1) * gDownsampledPixelSize;
+			uvs[1] = uv + float2( 0, -1) * gDownsampledPixelSize;
+			uvs[2] = uv + float2( 1, -1) * gDownsampledPixelSize;
+			uvs[3] = uv + float2(-1,  0) * gDownsampledPixelSize;
+			uvs[4] = uv + float2( 0,  0) * gDownsampledPixelSize;
+			uvs[5] = uv + float2( 1,  0) * gDownsampledPixelSize;
+			uvs[6] = uv + float2(-1,  1) * gDownsampledPixelSize;
+			uvs[7] = uv + float2( 0,  1) * gDownsampledPixelSize;
+			uvs[8] = uv + float2( 1,  1) * gDownsampledPixelSize;
+			
+			float weightedSum = 0.0f;
+			float weightSum = 0.00001f;
+			
+			[unroll]
+			for(int i = 0; i < 9; ++i)
+			{
+				// Get AO from previous step (half-resolution buffer)
+				float sampleAO = gDownsampledAO.Sample(gInputSamp, uvs[i]).r;
+				
+				// Get filtered normal/depth
+				float4 sampleNormalAndDepth = gSetupAO.Sample(gInputSamp, uvs[i]);
+				float3 sampleNormal = sampleNormalAndDepth.xyz * 2.0f - 1.0f;
+				float sampleDepth = sampleNormalAndDepth.w;
+				
+				// Compute sample contribution depending on how close it is to current
+				// depth and normal
+				float weight = saturate(1.0f - abs(sampleDepth - depth) * 0.3f);
+				weight *= saturate(dot(sampleNormal, normal));
+				
+				weightedSum += sampleAO * weight;
+				weightSum += weight;
+			}
+			
+			return weightedSum / weightSum;
+		}
+		
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			// TODO - Support MSAA (most likely don't require all samples)
 		
-			// TODO - Read depth and normal from intermediates if they are available
+			#if FINAL_AO // Final uses gbuffer input
 			float sceneDepth = convertFromDeviceZ(gDepthTex.Sample(gInputSamp, input.uv0).r);
 			float3 worldNormal = gNormalsTex.Sample(gInputSamp, input.uv0).xyz * 2.0f - 1.0f;
+			#else // Input from AO setup pass
+			float4 aoSetup = gSetupAO.Sample(gInputSamp, input.uv0);
+			float sceneDepth = aoSetup.w;
+			float3 worldNormal = aoSetup.xyz * 2.0f - 1.0f;
+			#endif
+			
 			float3 viewNormal = normalize(mul((float3x3)gMatView, worldNormal));
 			float3 viewPos = getViewSpacePos(input.screenPos, sceneDepth);
 			
 			// Apply bias to avoid false occlusion due to depth quantization or other precision issues
 			viewPos += viewNormal * gBias * -sceneDepth;
+			// Note: Do I want to recalculate screen position from this new view position?
 			
 			// Project sample radius to screen space (approximately), using the formula:
 			// screenRadius = worldRadius * 1/tan(fov/2) / z
@@ -158,10 +207,19 @@ technique PPSSAO
 			// Divide by total weight to get the weighted average
 			output.r = accumulator.x / accumulator.y;
 			
-			// TODO - Mix with upsampled AO data
+			#if MIX_WITH_UPSAMPLED
+			float upsampledAO = getUpsampledAO(input.uv0, sceneDepth, worldNormal);
+			
+			// Note: 0.6f just an arbitrary constant that looks good. Make this adjustable externally?
+			output.r = lerp(output.r, upsampledAO, 0.6f);
+			#endif
+			
+			#if FINAL_AO
 			// TODO - Fade out far away AO
 			// TODO - Adjust power/intensity
-			// TODO - Perform filtering over 2x2 pixels using derivatives
+			#endif
+			
+			// TODO - Perform filtering over 2x2 pixels using derivatives (on quality levels with no upsampling)
 			return output;
 		}	
 	};

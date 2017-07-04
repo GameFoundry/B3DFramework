@@ -309,6 +309,10 @@
         {
             "Path": "PPSSAO.bsl",
             "UUID": "7a65b0f1-9a37-452e-ba3f-2a1fb58362cb"
+        },
+        {
+            "Path": "PPSSAODownsample.bsl",
+            "UUID": "c06a649a-646e-48cf-89fc-f97e46f75264"
         }
     ],
     "Skin": [

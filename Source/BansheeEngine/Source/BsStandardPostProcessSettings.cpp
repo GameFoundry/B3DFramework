@@ -66,7 +66,7 @@ namespace bs
 	}
 
 	AmbientOcclusionSettings::AmbientOcclusionSettings()
-		: enabled(true), radius(0.03f), bias(1.0f)
+		: enabled(false), radius(0.03f), bias(1.0f)
 	{ }
 
 	RTTITypeBase* AmbientOcclusionSettings::getRTTIStatic()

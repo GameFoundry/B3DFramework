@@ -111,10 +111,10 @@ namespace bs { namespace ct
 
 	void GBufferParams::bind(const RenderTargets& renderTargets)
 	{
-		mGBufferA.set(renderTargets.getGBufferA());
-		mGBufferB.set(renderTargets.getGBufferB());
-		mGBufferC.set(renderTargets.getGBufferC());
-		mGBufferDepth.set(renderTargets.getSceneDepth());
+		mGBufferA.set(renderTargets.get(RTT_GBuffer, RT_COLOR0));
+		mGBufferB.set(renderTargets.get(RTT_GBuffer, RT_COLOR1));
+		mGBufferC.set(renderTargets.get(RTT_GBuffer, RT_COLOR2));
+		mGBufferDepth.set(renderTargets.get(RTT_GBuffer, RT_DEPTH));
 
 		mMaterial->updateParamsSet(mParamsSet);
 	}
@@ -287,7 +287,7 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			SPtr<Texture> lightAccumulation = renderTargets->getLightAccumulation();
+			SPtr<Texture> lightAccumulation = renderTargets->get(RTT_LightAccumulation);
 			mOutputTextureParam.set(lightAccumulation);
 		}
 
