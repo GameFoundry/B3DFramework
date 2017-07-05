@@ -1308,7 +1308,10 @@ namespace bs { namespace ct
 		// TODO - Resolve normals if MSAA
 		// TODO - When downsampling, consider using previous pass as input instead of always sampling gbuffer data
 
-		UINT32 numDownsampleLevels = 1; // TODO - Make it a property, ranging [0, 2]
+		// Multiple downsampled AO levels are used to minimize cache trashing. Downsampled AO targets use larger radius,
+		// whose contents are then blended with the higher level.
+
+		UINT32 numDownsampleLevels = 2; // TODO - Make it a property, ranging [0, 2]
 		UINT32 quality = 1; // TODO - Make it a property
 
 		SPtr<PooledRenderTexture> setupTex0;

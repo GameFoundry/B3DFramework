@@ -105,7 +105,7 @@ technique PPSSAO
 			return weightedSum / weightSum;
 		}
 		
-		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position) : SV_Target0
+		float fsmain(VStoFS input, float4 pixelPos : SV_Position) : SV_Target0
 		{
 			// TODO - Support MSAA (most likely don't require all samples)
 		
@@ -208,16 +208,16 @@ technique PPSSAO
 				accumulator += float2(weightedValue.x + weightedValue.y, 2.0f * stepAccum.z);
 			}
 			
-			float4 output = 0;
+			float output = 0;
 			
 			// Divide by total weight to get the weighted average
-			output.r = accumulator.x / accumulator.y;
+			output = accumulator.x / accumulator.y;
 			
 			#if MIX_WITH_UPSAMPLED
 			float upsampledAO = getUpsampledAO(input.uv0, sceneDepth, worldNormal);
 			
 			// Note: 0.6f just an arbitrary constant that looks good. Make this adjustable externally?
-			output.r = lerp(output.r, upsampledAO, 0.6f);
+			output = lerp(output, upsampledAO, 0.6f);
 			#endif
 			
 			#if FINAL_AO
@@ -229,7 +229,7 @@ technique PPSSAO
 			// Note: Ideally the blur would be 4x4 since the pattern is 4x4
 			
 			// TODO - Don't blur on minimal quality level
-			float4 myVal = float4(output.r, viewNormal);
+			float4 myVal = float4(output, viewNormal);
 			float4 dX = ddx_fine(myVal);
 			float4 dY = ddy_fine(myVal);
 			
@@ -248,9 +248,9 @@ technique PPSSAO
 			weightHorz *= invWeight;
 			weightVert *= invWeight;
 			
-			output.r = output.r * myWeight + horzVal.r * weightHorz + vertVal.r * weightVert;
+			output = output * myWeight + horzVal.r * weightHorz + vertVal.r * weightVert;
 			
-			return output; // TODO - No need to output 4 values
+			return output;
 		}	
 	};
 };
