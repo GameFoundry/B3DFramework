@@ -1510,6 +1510,8 @@ namespace bs { namespace ct
 		}
 
 		// Blur the output
+		// Note: If I implement temporal AA then this can probably be avoided. I can instead jitter the sample offsets
+		// each frame, and averaging them out should yield blurred AO.
 		if(quality > 1) // On level 0 we don't blur at all, on level 1 we use the ad-hoc blur in shader
 		{
 			const RenderTargetProperties& rtProps = destination->getProperties();

@@ -32,21 +32,42 @@ technique PPSSAO
 		SamplerState gRandomSamp;
 		Texture2D gRandomTex;
 		
-		// TODO - Allow these to be controlled by a quality level
-		#define SAMPLE_COUNT 6
-		#define SAMPLE_STEPS 3
+		#if QUALITY < 3
+			#define SAMPLE_STEPS 1
+		#else
+			#define SAMPLE_STEPS 3
+		#endif
 		
-		static const float2 SAMPLES[6] =
-		{
-			// Points within a disc, at equally separated angles from 0 to 2PI.
-			// Each point is also placed further away from the disc center, up to unit disc radius.
-			float2( 0.000f,  0.166f),
-			float2( 0.288f,  0.166f),
-			float2( 0.433f, -0.250f),
-			float2( 0.000f, -0.666f),
-			float2(-0.721f, -0.416f),
-			float2(-0.866,   0.500f)
-		};
+		#if QUALITY < 4
+			#define SAMPLE_SET 0
+		#else
+			#define SAMPLE_SET 1
+		#endif
+		
+		// Points within a disc, at equally separated angles from 0 to 2PI.
+		// Each point is also placed further away from the disc center, up to unit disc radius.
+		// f[x_, s_] := {((x + 1)/(s + 1))*Cos[(x/s)*2 Pi], (x + 1)/(s + 1)*Sin[(x/s)*2 Pi]}
+		#if SAMPLE_SET == 0
+			#define SAMPLE_COUNT 3
+			static const float2 SAMPLES[3] =
+			{
+				float2( 0.250f,  0.000f),
+				float2(-0.250f,  0.433f),
+				float2(-0.375f, -0.649f)
+			};
+		#else
+			#define SAMPLE_COUNT 6
+			static const float2 SAMPLES[6] =
+			{
+
+				float2( 0.142f,  0.000f),
+				float2( 0.142f,  0.247f),
+				float2(-0.214f,  0.371f),
+				float2(-0.571f,  0.000f),
+				float2(-0.357f, -0.618f),
+				float2( 0.428f, -0.742f)
+			};		
+		#endif
 		
 		float2 ndcToDepthUV(float2 ndc)
 		{
