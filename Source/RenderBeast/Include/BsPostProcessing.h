@@ -776,6 +776,32 @@ namespace bs { namespace ct
 #undef DEFINE_MATERIAL
 	};
 
+	BS_PARAM_BLOCK_BEGIN(SSRStencilParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gRoughnessScaleBias)
+	BS_PARAM_BLOCK_END
+
+	extern SSRStencilParamDef gSSRStencilParamDef;
+
+	/** Shader used for marking which parts of the screen require screen space reflections. */
+	class SSRStencilMat : public RendererMaterial<SSRStencilMat>
+	{
+		RMAT_DEF("PPSSRStencil.bsl");
+
+	public:
+		SSRStencilMat();
+
+		/** 
+		 * Renders the effect with the provided parameters, using the currently bound render target. 
+		 * 
+		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	settings		Parameters used for controling the SSR effect.
+		 */
+		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings);
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GBufferParams mGBufferParams;
+	};
+
 	BS_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
 		BS_PARAM_BLOCK_ENTRY(Vector4, gHiZUVMapping)
 		BS_PARAM_BLOCK_ENTRY(Vector2I, gHiZSize)
@@ -796,10 +822,18 @@ namespace bs { namespace ct
 		 * Renders the effect with the provided parameters. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 * @param[in]	destination		Output texture to which to write the results to.
 		 */
-		void execute(const RendererView& view, const SPtr<RenderTexture>& destination);
+		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings, 
+			const SPtr<RenderTexture>& destination);
 
+		/**
+		 * Calculates a scale & bias that is used for transforming roughness into a fade out value. Anything that is below
+		 * @p maxRoughness will have the fade value of 1. Values above @p maxRoughness is slowly fade out over a range that
+		 * is 1/2 the length of @p maxRoughness.
+		 */
+		static Vector2 calcRoughnessFadeScaleBias(float maxRoughness);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;

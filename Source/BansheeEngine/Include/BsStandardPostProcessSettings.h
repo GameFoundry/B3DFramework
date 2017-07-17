@@ -314,6 +314,46 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** 
+	 * Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like
+	 * reflections at low performance cost. They should be used together with reflection probes as the effects complement
+	 * each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will
+	 * fall back to refl. probes when screen space data is unavailable. Similarly the system will fall back to refl. probes
+	 * for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to
+	 * achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
+	 */
+	struct BS_EXPORT ScreenSpaceReflectionsSettings : public IReflectable
+	{
+		ScreenSpaceReflectionsSettings();
+
+		/** Enables or disables the SSR effect. */
+		bool enabled;
+
+		/** 
+		 * Quality of the SSR effect. Higher values cast more sample rays, and march those rays are lower increments for
+		 * better precision. This results in higher quality, as well as a higher performance requirement. Valid range is
+		 * [0, 4], default is 2.
+		 */
+		UINT32 quality;
+
+		/** Intensity of the screen space reflections. Valid range is [0, 1]. Default is 1 (100%). */
+		float intensity;
+
+		/** 
+		 * Roughness at which screen space reflections start fading out and become replaced with refl. probes. Valid range
+		 * is [0, 1]. Default is 0.8.
+		 */
+		float maxRoughness;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class ScreenSpaceReflectionsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** Settings that control the post-process operations. */
 	struct BS_EXPORT StandardPostProcessSettings : public PostProcessSettings
 	{
@@ -369,6 +409,9 @@ namespace bs
 
 		/** Parameters used for customizing screen space ambient occlusion. */
 		AmbientOcclusionSettings ambientOcclusion;
+
+		/** Parameters used for customizing screen space reflections. */
+		ScreenSpaceReflectionsSettings screenSpaceReflections;
 
 		/** Enables the fast approximate anti-aliasing effect. */
 		bool enableFXAA;

@@ -325,6 +325,10 @@
         {
             "Path": "PPSSRTrace.bsl",
             "UUID": "daadcf73-1ae5-4f8f-90e5-a6e538832304"
+        },
+        {
+            "Path": "PPSSRStencil.bsl",
+            "UUID": "a9eb5ddf-1196-48d8-9403-a80a9595cde0"
         }
     ],
     "Skin": [

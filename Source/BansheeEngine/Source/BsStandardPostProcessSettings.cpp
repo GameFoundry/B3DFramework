@@ -95,6 +95,20 @@ namespace bs
 		return DepthOfFieldSettings::getRTTIStatic();
 	}
 
+	ScreenSpaceReflectionsSettings::ScreenSpaceReflectionsSettings()
+		: enabled(true), intensity(1.0f), maxRoughness(0.8f), quality(2)
+	{ }
+
+	RTTITypeBase* ScreenSpaceReflectionsSettings::getRTTIStatic()
+	{
+		return ScreenSpaceReflectionsSettingsRTTI::instance();
+	}
+
+	RTTITypeBase* ScreenSpaceReflectionsSettings::getRTTI() const
+	{
+		return ScreenSpaceReflectionsSettings::getRTTIStatic();
+	}
+
 	StandardPostProcessSettings::StandardPostProcessSettings()
 		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(false), exposureScale(0.0f), gamma(2.2f)
 	{ }
@@ -160,6 +174,11 @@ namespace bs
 		bufferSize += rttiGetElemSize(ambientOcclusion.power);
 		bufferSize += rttiGetElemSize(ambientOcclusion.quality);
 
+		bufferSize += rttiGetElemSize(screenSpaceReflections.enabled);
+		bufferSize += rttiGetElemSize(screenSpaceReflections.intensity);
+		bufferSize += rttiGetElemSize(screenSpaceReflections.maxRoughness);
+		bufferSize += rttiGetElemSize(screenSpaceReflections.quality);
+
 		if (buffer == nullptr)
 		{
 			size = bufferSize;
@@ -220,6 +239,11 @@ namespace bs
 		writeDst = rttiWriteElem(ambientOcclusion.intensity, writeDst);
 		writeDst = rttiWriteElem(ambientOcclusion.power, writeDst);
 		writeDst = rttiWriteElem(ambientOcclusion.quality, writeDst);
+
+		writeDst = rttiWriteElem(screenSpaceReflections.enabled, writeDst);
+		writeDst = rttiWriteElem(screenSpaceReflections.intensity, writeDst);
+		writeDst = rttiWriteElem(screenSpaceReflections.maxRoughness, writeDst);
+		writeDst = rttiWriteElem(screenSpaceReflections.quality, writeDst);
 	}
 
 	void StandardPostProcessSettings::_setSyncData(UINT8* buffer, UINT32 size)
@@ -273,5 +297,10 @@ namespace bs
 		readSource = rttiReadElem(ambientOcclusion.intensity, readSource);
 		readSource = rttiReadElem(ambientOcclusion.power, readSource);
 		readSource = rttiReadElem(ambientOcclusion.quality, readSource);
+
+		readSource = rttiReadElem(screenSpaceReflections.enabled, readSource);
+		readSource = rttiReadElem(screenSpaceReflections.intensity, readSource);
+		readSource = rttiReadElem(screenSpaceReflections.maxRoughness, readSource);
+		readSource = rttiReadElem(screenSpaceReflections.quality, readSource);
 	}
 }

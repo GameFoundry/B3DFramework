@@ -1058,7 +1058,7 @@ namespace bs { namespace ct
 	POOLED_RENDER_TEXTURE_DESC BuildHiZ::getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight)
 	{
 		UINT32 size = Bitwise::nextPow2(std::max(viewWidth, viewHeight));
-		UINT32 numMips = std::max(1U, PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R) - 1);
+		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R);
 		size = 1 << numMips;
 
 		// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
@@ -1593,6 +1593,38 @@ namespace bs { namespace ct
 		return Texture::create(pixelData);
 	}
 
+	SSRStencilParamDef gSSRStencilParamDef;
+
+	SSRStencilMat::SSRStencilMat()
+		:mGBufferParams(mMaterial, mParamsSet)
+	{
+		mParamBuffer = gSSRStencilParamDef.createBuffer();
+		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+	}
+
+	void SSRStencilMat::_initDefines(ShaderDefines& defines)
+	{
+		// Do nothing
+	}
+
+	void SSRStencilMat::execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings)
+	{
+		const RendererViewProperties& viewProps = view.getProperties();
+		RenderTargets& renderTargets = *view.getRenderTargets();
+
+		mGBufferParams.bind(renderTargets);
+
+		Vector2 roughnessScaleBias = SSRTraceMat::calcRoughnessFadeScaleBias(settings.maxRoughness);
+		gSSRStencilParamDef.gRoughnessScaleBias.set(mParamBuffer, roughnessScaleBias);
+
+		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+	}
+
 	SSRTraceParamDef gSSRTraceParamDef;
 
 	SSRTraceMat::SSRTraceMat()
@@ -1610,7 +1642,8 @@ namespace bs { namespace ct
 		// Do nothing
 	}
 
-	void SSRTraceMat::execute(const RendererView& view, const SPtr<RenderTexture>& destination)
+	void SSRTraceMat::execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings, 
+		const SPtr<RenderTexture>& destination)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 		RenderTargets& renderTargets = *view.getRenderTargets();
@@ -1653,6 +1686,17 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
+	}
+
+	Vector2 SSRTraceMat::calcRoughnessFadeScaleBias(float maxRoughness)
+	{
+		const static float RANGE_SCALE = 2.0f;
+
+		Vector2 scaleBias;
+		scaleBias.x = -RANGE_SCALE / (-1.0f + maxRoughness);
+		scaleBias.y = (RANGE_SCALE * maxRoughness) / (-1.0f + maxRoughness);
+
+		return scaleBias;
 	}
 
 	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)

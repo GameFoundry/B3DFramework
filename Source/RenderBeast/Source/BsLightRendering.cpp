@@ -107,6 +107,14 @@ namespace bs { namespace ct
 		mGBufferB = material->getParamTexture("gGBufferBTex");
 		mGBufferC = material->getParamTexture("gGBufferCTex");
 		mGBufferDepth = material->getParamTexture("gDepthBufferTex");
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_POINT;
+		desc.magFilter = FO_POINT;
+		desc.mipFilter = FO_POINT;
+
+		SPtr<SamplerState> ss = SamplerState::create(desc);
+		material->setSamplerState("gDepthBufferSamp", ss);
 	}
 
 	void GBufferParams::bind(const RenderTargets& renderTargets)

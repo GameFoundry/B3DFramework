@@ -217,6 +217,38 @@ namespace bs
 		}
 	};
 
+	class BS_EXPORT ScreenSpaceReflectionsSettingsRTTI : public RTTIType <ScreenSpaceReflectionsSettings, IReflectable, ScreenSpaceReflectionsSettingsRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(enabled, 0)
+			BS_RTTI_MEMBER_PLAIN(intensity, 1)
+			BS_RTTI_MEMBER_PLAIN(maxRoughness, 2)
+			BS_RTTI_MEMBER_PLAIN(quality, 3)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		ScreenSpaceReflectionsSettingsRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "ScreenSpaceReflectionsSettings";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ScreenSpaceReflectionsSettings;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ScreenSpaceReflectionsSettings>();
+		}
+	};
+
 	class BS_EXPORT StandardPostProcessSettingsRTTI : public RTTIType <StandardPostProcessSettings, PostProcessSettings, StandardPostProcessSettingsRTTI>
 	{
 	private:
@@ -232,6 +264,7 @@ namespace bs
 			BS_RTTI_MEMBER_REFL(depthOfField, 8)
 			BS_RTTI_MEMBER_PLAIN(enableFXAA, 9)
 			BS_RTTI_MEMBER_REFL(ambientOcclusion, 10)
+			BS_RTTI_MEMBER_REFL(screenSpaceReflections, 11)
 		BS_END_RTTI_MEMBERS
 			
 	public:

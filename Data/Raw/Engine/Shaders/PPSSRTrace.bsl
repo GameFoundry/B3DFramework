@@ -10,6 +10,13 @@ technique PPSSRTrace
 	mixin GBufferInput;
 	mixin RayMarch;
 
+	stencil
+	{
+		enabled = true;
+		reference = 0;
+		front = { keep, keep, keep, eq };
+	};	
+	
 	code
 	{
 		[internal]
