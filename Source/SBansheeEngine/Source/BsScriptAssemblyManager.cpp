@@ -43,13 +43,13 @@
 #include "BsScriptPrefab.h"
 #include "BsScriptStringTable.h"
 #include "BsScriptGUISkin.h"
-#include "BsScriptPhysicsMaterial.h"
-#include "BsScriptPhysicsMesh.h"
 #include "BsScriptAudioClip.h"
 #include "BsScriptAnimationClip.h"
 #include "BsBuiltinResourceLookup.h"
 
 #include "BsScriptMesh.generated.h"
+#include "BsScriptPhysicsMesh.generated.h"
+#include "BsScriptPhysicsMaterial.generated.h"
 
 namespace bs
 {

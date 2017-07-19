@@ -27,7 +27,7 @@ namespace BansheeEngine
                 if (mesh == value)
                     return;
 
-                if (IsTrigger && mesh.MeshType == PhysicsMeshType.Triangle)
+                if (IsTrigger && mesh.Type == PhysicsMeshType.Triangle)
                 {
                     Debug.LogWarning("Triangle meshes are not supported on Trigger colliders.");
                     return;
@@ -43,7 +43,7 @@ namespace BansheeEngine
                     {
                         // If triangle mesh its possible the parent can no longer use this collider (they're not supported for 
                         // non-kinematic rigidbodies)
-                        if (mesh != null && mesh.MeshType == PhysicsMeshType.Triangle)
+                        if (mesh != null && mesh.Type == PhysicsMeshType.Triangle)
                             UpdateParentRigidbody();
                         else
                             parent.UpdateMassDistribution();
@@ -56,7 +56,7 @@ namespace BansheeEngine
         protected internal override bool IsValidParent(Rigidbody parent) 
 	    {
 		    // Triangle mesh colliders cannot be used for non-kinematic rigidbodies
-		    return mesh == null|| mesh.MeshType == PhysicsMeshType.Convex || parent.Kinematic;
+		    return mesh == null|| mesh.Type == PhysicsMeshType.Convex || parent.Kinematic;
         }
 
         /// <summary>

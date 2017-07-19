@@ -14,16 +14,17 @@ namespace bs
 	class FPhysicsMesh;
 
 	/** 
-	 * Represents a physics mesh that can be used for physics MeshCollider%s. Physics mesh can be a generic triangle mesh
+	 * Represents a physics mesh that can be used with a MeshCollider. Physics mesh can be a generic triangle mesh
 	 * or a convex mesh. Convex meshes are limited to 255 faces.
 	 */
-	class BS_CORE_EXPORT PhysicsMesh : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics) PhysicsMesh : public Resource
 	{
 	public:
 		PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
 		virtual ~PhysicsMesh() { }
 
 		/** Returns the type of the physics mesh. */
+		BS_SCRIPT_EXPORT(n:Type,pr:getter)
 		PhysicsMeshType getType() const;
 
 		/** Returns the mesh's indices and vertices. */

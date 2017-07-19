@@ -2,8 +2,9 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsScriptMeshCollider.h"
 #include "BsMeshCollider.h"
-#include "BsScriptPhysicsMesh.h"
 #include "BsScriptResourceManager.h"
+
+#include "BsScriptPhysicsMesh.generated.h"
 
 namespace bs
 {

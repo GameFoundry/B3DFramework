@@ -153,8 +153,6 @@
     <Compile Include="Physics\Interop\NativeSphereCollider.cs" />
     <Compile Include="Physics\Interop\NativeSphericalJoint.cs" />
     <Compile Include="Physics\Physics.cs" />
-    <Compile Include="Physics\PhysicsMaterial.cs" />
-    <Compile Include="Physics\PhysicsMesh.cs" />
     <Compile Include="Physics\PhysicsCommon.cs" />
     <Compile Include="Physics\PlaneCollider.cs" />
     <Compile Include="Physics\Rigidbody.cs" />

@@ -95,8 +95,6 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Include/BsScriptLogEntry.h"
 	"Include/BsScriptManagedResource.h"
 	"Include/BsScriptMaterial.h"
-	"Include/BsScriptPhysicsMaterial.h"
-	"Include/BsScriptPhysicsMesh.h"
 	"Include/BsScriptPixelUtility.h"
 	"Include/BsScriptPlainText.h"
 	"Include/BsScriptPrefab.h"
@@ -222,8 +220,6 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Source/BsScriptLogEntry.cpp"
 	"Source/BsScriptManagedResource.cpp"
 	"Source/BsScriptMaterial.cpp"
-	"Source/BsScriptPhysicsMaterial.cpp"
-	"Source/BsScriptPhysicsMesh.cpp"
 	"Source/BsScriptPixelUtility.cpp"
 	"Source/BsScriptPlainText.cpp"
 	"Source/BsScriptPrefab.cpp"
@@ -309,6 +305,7 @@ set(BS_SBANSHEEENGINE_INC_EXTENSIONS
 	"Include/BsMeshDataEx.h"
 	"Include/BsMeshEx.h"
 	"Include/BsSkeletonEx.h"
+	"Include/BsPhysicsMeshEx.h"
 )
 
 set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
@@ -318,6 +315,7 @@ set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
 	"Source/BsMeshDataEx.cpp"
 	"Source/BsMeshEx.cpp"
 	"Source/BsSkeletonEx.cpp"
+	"Source/BsPhysicsMeshEx.cpp"
 )
 
 source_group("Header Files" FILES ${BS_SBANSHEEENGINE_INC_NOFILTER})

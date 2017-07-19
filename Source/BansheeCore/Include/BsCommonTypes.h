@@ -496,15 +496,15 @@ namespace bs
 	};
 
 	/** Valid types of a mesh used for physics. */
-	enum class PhysicsMeshType
+	enum class BS_SCRIPT_EXPORT() PhysicsMeshType
 	{
 		/** 
 		 * A regular triangle mesh. Mesh can be of arbitrary size but cannot be used for triggers and non-kinematic 
-         * objects. Occurs a significantly larger performance impact than convex meshes.
+		 * objects. Incurrs a significantly larger performance impact than convex meshes.
 		 */
 		Triangle,
 		/** 
-		 * Mesh representing a convex shape. Mesh will not have more than 256 vertices. Occurs a significantly lower
+		 * Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower
 		 * performance impact than triangle meshes.
 		 */
 		Convex

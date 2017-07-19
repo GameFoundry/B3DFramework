@@ -5,9 +5,10 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsPhysics.h"
-#include "BsScriptPhysicsMesh.h"
 #include "BsScriptCollider.h"
 #include "BsCollider.h"
+
+#include "BsScriptPhysicsMesh.generated.h"
 
 namespace bs
 {

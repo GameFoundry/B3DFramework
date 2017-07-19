@@ -7,10 +7,11 @@
 #include "BsCollider.h"
 #include "BsRigidbody.h"
 #include "BsScriptRigidbody.h"
-#include "BsScriptPhysicsMaterial.h"
 #include "BsScriptCollisionData.h"
 #include "BsScriptPhysicsQueryHit.h"
 #include "BsScriptResourceManager.h"
+
+#include "BsScriptPhysicsMaterial.generated.h"
 
 using namespace std::placeholders;
 
