@@ -18,7 +18,8 @@ mixin PPTemporalResolve
 		#endif
 	
 		// 0 - System will use the velocity of the current pixel
-		// 1 - System will search 4 neighbor pixels in + pattern, and choose the velocity of the pixel nearest //     to the camera
+		// 1 - System will search 4 neighbor pixels in + pattern, and choose the velocity of the pixel nearest 
+		//     to the camera
 		// 2 - System will search 8 surrounding pixels and choose the velocity of the pixel nearest to the camera
 		//
 		// Searching the neighborhod instead of just using current velocity yields nicer edges for objects in 
@@ -76,6 +77,32 @@ mixin PPTemporalResolve
 		#ifndef TEMPORAL_SMOOTH_NEIGHBORHOOD
 			#define TEMPORAL_SMOOTH_NEIGHBORHOOD 1
 		#endif
+		
+		// When enabled, neighborhood clipping will use an AABB intersection to clip the history value. When disabled
+		// just a clamp will be used instead. Not relevant when TEMPORAL_YCOCG is enabled because it always uses a clamp.
+		#ifndef TEMPORAL_CLIP_AABB
+			#define TEMPORAL_CLIP_AABB 1
+		#endif
+		
+		// Determines how is the history value blended with the current value.
+		// 0 - The system will calculate the optimal blend value automatically
+		// >0 - A fixed blend factor will be used, equal to the multiplicative inverse of the provided value.
+		//      (i.e. a value of 8 will result in blend factor of 1/8, meaning 12.5% of the history value will be used)
+		#ifndef TEMPORAL_BLEND_FACTOR
+			#define TEMPORAL_BLEND_FACTOR 0
+		#endif
+		
+		// Determines how many frames should pixels deemed as "bad" (too different from current pixel) contribute to the
+		// current frame.
+		#ifndef TEMPORAL_BAD_RETENTION
+			#define TEMPORAL_BAD_RETENTION 3
+		#endif
+		
+		// Determines how many frames should pixels deemed as "good" (similar to the current pixel) contribute to the
+		// current frame.
+		#ifndef TEMPORAL_GOOD_RETENTION
+			#define TEMPORAL_GOOD_RETENTION 10
+		#endif
 	
 		////////////////////////// HELPER MACROS /////////////////////////
 		#if MSAA
@@ -123,27 +150,47 @@ mixin PPTemporalResolve
 			}
 			
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, -r).x;
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(-r, 0)).x;
 				dmin = depth < dmin.z ? float3(-r, 0, depth) : dmin;	
 			}
 			
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, -r).x;
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(r, 0)).x;
 				dmin = depth < dmin.z ? float3(r, 0, depth) : dmin;	
 			}
 
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, -r).x;
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, -r)).x;
 				dmin = depth < dmin.z ? float3(0, -r, depth) : dmin;	
 			}
 
 			{
-				float depth = _SAMPLEOFF(sceneDepth, uv, -r).x;
+				float depth = _SAMPLEOFF(sceneDepth, uv, int2(0, r)).x;
 				dmin = depth < dmin.z ? float3(0, r, depth) : dmin;	
 			}			
 			
 			return float3(uv + dmin.xy * _PIXSIZE(sceneDepth), dmin.z);
-		}		
+		}
+		
+		float3 clipAABB(float3 boxMin, float3 boxMax, float3 history, float3 current)
+		{
+			// Note: Is this necessary? Will "current" always be in the box?
+			boxMin = min(current, boxMin);
+			boxMax = max(current, boxMax);
+			
+			float3 center = (boxMax + boxMin) * 0.5f;
+			float3 extents = boxMax - center;
+			
+			float3 origin = history - center; // Relative to box
+			float3 dir = current - history;
+			
+			float3 rDir = rcp(dir);
+			float3 tNeg = (extents - origin) * rDir;
+			float3 tPos = (-extents - origin) * rDir;
+			
+			float t = saturate(max(max(min(tNeg.x, tPos.x), min(tNeg.y, tPos.y)), min(tNeg.z, tPos.z)));
+			return history + t * dir;
+		}
 		
 		// Encodes velocity into a format suitable for storing in a 16-bit SNORM texture. 
 		// Velocity range of [-2, 2] is supported (full NDC).
@@ -229,31 +276,13 @@ mixin PPTemporalResolve
 			#define _TONEMAP_COLOR(v) v
 		#endif // TEMPORAL_TONEMAP
 		
-		#if TEMPORAL_TONEMAP
-			#if TEMPORAL_YCOCG
-				#define _TONEMAP_COLOR_INV(v) HDRScaleYInv(v, exposureScale)
-			#elif TEMPORAL_GREEN_AS_LUMA
-				#define _TONEMAP_COLOR_INV(v) HDRScaleGInv(v, exposureScale)
-			#else
-				#define _TONEMAP_COLOR_INV(v) HDRScaleRGBInv(v, exposureScale)
-			#endif
-		#else // TEMPORAL_TONEMAP
-			#define _TONEMAP_COLOR_INV(v) v
-		#endif // TEMPORAL_TONEMAP		
-		
 		// Automatically convert from/to YCoCg space, if enabled
 		#if TEMPORAL_YCOCG
 			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(RGBToYCoCg(_SAMPLEOFF(n, uv, offset)))
 		#else // TEMPORAL_YCOCG
 			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(_SAMPLEOFF(n, uv, offset))
 		#endif // TEMPORAL_YCOCG
-				
-		#if TEMPORAL_YCOCG
-			#define _RESOLVE_COLOR(v) _TONEMAP_COLOR_INV(YCoCgToRGB(v))
-		#else // TEMPORAL_YCOCG
-			#define _RESOLVE_COLOR(v) _TONEMAP_COLOR_INV(v)
-		#endif // TEMPORAL_YCOCG
-		
+						
 		///////////////////////////// MAIN /////////////////////////////////
 		[internal]
 		cbuffer TemporalInput
@@ -320,13 +349,14 @@ mixin PPTemporalResolve
 			}
 			
 			#if MSAA
-			float prevUV = NDCToScreen(prevNdcPos);
+			float2 prevUV = NDCToScreen(prevNdcPos);
 			#else
 			float2 prevUV = NDCToUV(prevNdcPos);
 			#endif
 			
 			/////////////// GET FILTERED COLOR VALUE AND NEIGHBORHOOD MIN/MAX /////////////
 			#if TEMPORAL_YCOCG
+			// YCOCG only requires a + pattern for good quality
 			float3 neighbor[5];
 			neighbor[0] = _SAMPLE_COLOR(sceneColor, uv, int2(-1,  0));
 			neighbor[1] = _SAMPLE_COLOR(sceneColor, uv, int2( 0, -1));
@@ -374,7 +404,7 @@ mixin PPTemporalResolve
 			#endif // TEMPORAL_LOWPASS
 			
 			#if TEMPORAL_SMOOTH_NEIGHBORHOOD
-			
+			// Calculate standard deviation and determine neighborhood min/max based on it
 			float3 mean = 0;
 			[unroll]
 			for(uint i = 0; i < 9; ++i)
@@ -410,22 +440,71 @@ mixin PPTemporalResolve
 			/////////////////// GET PREVIOUS FRAME COLOR ///////////////////////
 			float3 prevColorVal = _SAMPLE_COLOR(prevColor, prevUV, int2(0, 0));
 			
-			// TODO - Do clamp
-			//  - Either basic or AABB based
+			///////////////////// CLAMP TO NEIGHBORHOOD ////////////////////////
+			// Clamping to neighborhood ensures we don't blend with values that are too
+			// different, which can happen when history data becomes invalid.
+			#if TEMPORAL_YCOCG
+				prevColorVal = clamp(prevColorVal, neighborMin, neighborMax);
+			#else // TEMPORAL_YCOCG
+				// Uses low-pass to reduce flickering
+				#if TEMPORAL_CLIP_AABB
+					prevColorVal = clipAABB(neighborMin, neighborMax, prevColorVal, filteredLow);
+				#else // TEMPORAL_CLIP_AABB
+					prevColorVal = clamp(prevColorVal, neighborMin, neighborMax);
+				#endif // TEMPORAL_CLIP_AABB
+			#endif // TEMPORAL_YCOCG
 			
-			// TODO - Sharpen
-			//  - Needs more research
+			//////////////// BLEND BETWEEN CURRENT AND HISTORY //////////////////
+			// Find out how much impact should the previous frame's color have
+			#if TEMPORAL_BLEND_FACTOR // Fixed blend factor
+				float blendAmount = 1.0f / TEMPORAL_BLEND_FACTOR;
+				float3 output = lerp(prevColorVal, filtered, blendAmount);
+			#else // TEMPORAL_BLEND_FACTOR
+				#if TEMPORAL_YCOCG
+					float lumaCurrent = filtered.r;
+					float lumaHistory = prevColorVal.r;
+				#else // TEMPORAL_YCOCG
+					#if TEMPORAL_GREEN_AS_LUMA
+						float lumaCurrent = filtered.g;
+						float lumaHistory = prevColorVal.g;
+					#else // TEMPORAL_GREEN_AS_LUMA
+						float lumaCurrent = LuminanceRGB(filtered);
+						float lumaHistory = LuminanceRGB(prevColorVal);
+					#endif // TEMPORAL_GREEN_AS_LUMA
+				#endif // TEMPORAL_YCOCG
 			
-			// TODO - Blend
-			//  - Determine blend value based on colors, or use a fixed amount
-			//  - Reverse YCOCG and tonemap as required
+				// Based on T. Lottes: https://www.youtube.com/watch?v=WzpLWzGvFK4&t=18m
+				float blendWeight = 1.0f - abs(lumaCurrent - lumaHistory) / max(max(lumaCurrent, lumaHistory), 0.001f);
+				
+				float weightBad = 1.0f - 1.0f / TEMPORAL_BAD_RETENTION;
+				float weightGood = 1.0f - 1.0f / TEMPORAL_GOOD_RETENTION;
+				
+				float blendAmount = lerp(weightBad, weightGood, blendWeight * blendWeight);
+				float3 output = lerp(filtered, prevColorVal, blendAmount);
+			#endif // TEMPORAL_BLEND_FACTOR
 			
-			// TODO - Limbo implementation does unjitter operation in specific places, do I need to as well?
-			//  - This seems to be applied during sample generation
+			//////// UNDO TONEMAP & MOVE BACK TO RGB SPACE //////////////////////
+			#if TEMPORAL_TONEMAP
+				#if TEMPORAL_YCOCG
+					output = HDRScaleYInv(output, exposureScale);
+				#elif TEMPORAL_GREEN_AS_LUMA
+					output = HDRScaleGInv(output, exposureScale);
+				#else
+					output = HDRScaleRGBInv(output, exposureScale);
+				#endif
+			#endif // TEMPORAL_TONEMAP
 			
-			// TODO - Not doing (investigate if needed):
-			//  - Sharpen
-			//  - AA border clamp
+			#if TEMPORAL_YCOCG
+				output = YCoCgToRGB(output);
+			#endif // TEMPORAL_YCOCG			
+			
+			// Note: Potential improvements:
+			//  - Add a sharpen step
+			//  - Use filtering when sampling history
+			//  - Properly handle borders when sampling neighbors
+			//  - Better blend amount calculation? (Needs experimentation)
+			
+			return output;
 		}
 		
 		#undef _TEX2D
