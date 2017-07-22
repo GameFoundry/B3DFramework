@@ -562,12 +562,13 @@ namespace bs
 					program->blockUntilCoreInitialized();
 					if(!program->isCompiled())
 					{
+						String errMsg = "Error occured while compiling a shader \"" + toString(shader->getName()) 
+							+ "\". Error message: " + program->getCompileErrorMessage();
+
 #if BS_DEBUG_MODE
-						BS_EXCEPT(InvalidStateException, "Error occured while compiling a shader. Error message: " + 
-							program->getCompileErrorMessage());
+						BS_EXCEPT(InvalidStateException, errMsg);
 #else
-						LOGERR("Error occured while compiling a shader. Error message: " +
-							program->getCompileErrorMessage())
+						LOGERR(errMsg)
 #endif
 						return false;
 					}
