@@ -129,7 +129,7 @@ namespace bs
 		 * Find the render target the camera belongs to and adds it to the relevant list. If the camera was previously
 		 * registered with some other render target it will be removed from it and added to the new target.
 		 */
-		void updateCameraRenderTargets(Camera* camera);
+		void updateCameraRenderTargets(Camera* camera, bool remove = false);
 
 		SceneInfo mInfo;
 		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
