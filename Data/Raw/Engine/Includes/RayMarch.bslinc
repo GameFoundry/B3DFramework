@@ -63,79 +63,10 @@ mixin RayMarch
 			
 			return false;
 		}
-		
-		// TODO - Debug only
-		bool hiZSearchLinear(Texture2D depth, SamplerState samp, int2 bufferSize, int maxMipLevel, float3 rayPos, float3 rayStep, out float3 hitPos)
+
+		bool hiZSearch(Texture2D depth, SamplerState samp, int2 bufferSize, int maxMipLevel, float3 rayPos, float3 rayStep, out float3 hitPos)
 		{		
-			bufferSize >>= 2;
-		
 			float iterationCount = 0.0f;
-			float mipLevel = 0.0f;
-		
-			// Get the ray equation, in the form so that t == Z
-			float3 D = rayStep / rayStep.z; // Scale vector so Z is moved into [0, 1] range
-			float3 O = rayPos + D * -rayPos.z; // Get point where Z equals 0 (on near plane)
-			// Our ray is now O + D * t, where t = 0 = near plane, and t = 1 = far plane
-			
-			// Avoid division by zero
-			D.x = abs(D.x) < 0.00001f ? 0.00001f : D.x;
-			D.y = abs(D.y) < 0.00001f ? 0.00001f : D.y;
-
-			while(rayPos.z <= 1.0f && iterationCount < 800.0f)
-			{
-				// Get depth of the current cell
-				float cellZ = depth.SampleLevel(samp, rayPos.xy, mipLevel).r;
-			
-				// Get pixel coordinates of the current cell
-				float2 curCellIdx = trunc(rayPos.xy * bufferSize);
-			
-				// Find intersection with the cell floor plane
-				float3 newRay = O + D * max(cellZ, rayPos.z); // max() so we can't hit the ceiling (ray going backwards)
-				
-				// Get pixel coordinates of the new ray's cell
-				float2 newCellIdx = trunc(newRay.xy * bufferSize);
-				
-				// If we moved to another cell, no intersection with floor
-				if(any(curCellIdx != newCellIdx))
-				{
-					// Find intersection with neighbor cell
-					float2 cellStart = (curCellIdx / bufferSize);
-					float2 cellEnd = ((curCellIdx + 1) / bufferSize);
-					
-					float2 intersectStart = (cellStart - rayPos.xy) / D.xy;
-					float2 intersectEnd = (cellEnd - rayPos.xy) / D.xy;
-					
-					// Only care about positive t
-					float maxIntersectX = max(intersectStart.x, intersectEnd.x);
-					float maxIntersectY = max(intersectStart.y, intersectEnd.y);
-					
-					// Closest t is the one at the boundary
-					float minIntersect = min(maxIntersectX, maxIntersectY);
-				
-					// Little extra to ensure the boundary is crossed. max() to ensure the value isn't too
-					// small to prevent it ever leaving a cell. Note that this clamping results in a quality loss,
-					// you want to keep the clamp value as low as possible, but not too low to avoid artifacts.
-					minIntersect = max(minIntersect * 1.05f, 1.0f / (bufferSize * 512)); // 1/512th of a pixel
-					
-					// Move the ray past the boundary
-					rayPos = O + D * (rayPos.z + minIntersect);
-				}
-				else // Intersection with floor
-				{
-					hitPos = newRay;
-					return true;
-				}
-
-				++iterationCount;
-			}
-			
-			hitPos = rayPos;			
-			return false;
-		}
-		
-		bool hiZSearch(Texture2D depth, SamplerState samp, int2 bufferSize, int maxMipLevel, float3 rayPos, float3 rayStep, out float3 hitPos, out float iterationCount)
-		{		
-			iterationCount = 0.0f;
 			int mipLevel = HIZ_START_LEVEL;
 			
 			bufferSize >>= mipLevel;
@@ -218,16 +149,15 @@ mixin RayMarch
 		{
 			int2 bufferSize;
 			int numMips;
-			float4 hiZUVMapping; // From NDC to HiZ UV. .xy - multiply, .zw - add
+			float4 NDCToHiZUV; // From NDC to HiZ UV. .xy - multiply, .zw - add
+			float2 HiZUVToScreenUV; // From HiZ UV to screen UV. .xy - multiply
 			float3 rayOrigin; // World space
 			float3 rayDir; // World space
 			float jitterOffset;
 		};
 	
-		float4 rayMarch(Texture2D depth, SamplerState samp, RayMarchParams params, out float dbg)
+		float4 rayMarch(Texture2D depth, SamplerState samp, RayMarchParams params)
 		{
-			dbg = 0.0f;
-		
 			float3 viewOrigin = mul(gMatView, float4(params.rayOrigin, 1));
 			float3 viewDir = mul(gMatView, float4(params.rayDir, 0));
 		
@@ -246,11 +176,11 @@ mixin RayMarch
 		
 			#if HI_Z
 			float3 uvStart;
-			uvStart.xy = ndcStart.xy * params.hiZUVMapping.xy + params.hiZUVMapping.zw;
+			uvStart.xy = ndcStart.xy * params.NDCToHiZUV.xy + params.NDCToHiZUV.zw;
 			uvStart.z = NDCZToDeviceZ(ndcStart.z);
 			
 			float3 uvStep;
-			uvStep.xy = ndcStep.xy * params.hiZUVMapping.xy;
+			uvStep.xy = ndcStep.xy * params.NDCToHiZUV.xy;
 			uvStep.z = NDCZToDeviceZ(ndcStep.z);
 		
 			#else
@@ -265,23 +195,21 @@ mixin RayMarch
 			
 			// Note: Perhaps tweak this value
 			float compareTolerance = uvStep.z * stepIncrement * 2.0f;
-			
-			// Always do three steps of linear search
-			// (HiZ search is more expensive for short runs)
-			//if(linearSearch(depth, samp, uvStart, uvStep, 3, stepIncrement, compareTolerance, t))
-			//	return float4(uvStart + uvStep * t, t);
-			
+						
 			#if HI_Z
+			
+			// Note: Perhaps do a few steps of linear search first to handle nearby surfaces
 			
 			// Hierarchical search
 			float3 rayPos = uvStart + uvStep * t;
 			float3 hitPos;
-			if(hiZSearch(depth, samp, params.bufferSize, params.numMips, rayPos, uvStep, hitPos, dbg))
-				return float4(NDCToUV((hitPos.xy - params.hiZUVMapping.zw) / params.hiZUVMapping.xy), hitPos.z, 0);
+			if(hiZSearch(depth, samp, params.bufferSize, params.numMips, rayPos, uvStep, hitPos))
+				return float4(hitPos.xy * params.HiZUVToScreenUV.xy, hitPos.z, 0);
+				
 			#else
 			
 			// Plain linear search
-			if(linearSearch(depth, samp, uvStart, uvStep, NUM_STEPS - 4, stepIncrement, compareTolerance, t))
+			if(linearSearch(depth, samp, uvStart, uvStep, NUM_STEPS, stepIncrement, compareTolerance, t))
 				return float4(uvStart + uvStep * t, t);
 			#endif
 			

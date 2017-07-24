@@ -803,7 +803,8 @@ namespace bs { namespace ct
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gHiZUVMapping)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gNDCToHiZUV)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gHiZUVToScreenUV)
 		BS_PARAM_BLOCK_ENTRY(Vector2I, gHiZSize)
 		BS_PARAM_BLOCK_ENTRY(int, gHiZNumMips)
 	BS_PARAM_BLOCK_END

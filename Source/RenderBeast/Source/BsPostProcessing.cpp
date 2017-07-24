@@ -1679,28 +1679,34 @@ namespace bs { namespace ct
 		Rect2I viewRect = viewProps.viewRect;
 
 		// Maps from NDC to UV [0, 1]
-		Vector4 ndcToUVMapping;
-		ndcToUVMapping.x = 0.5f;
-		ndcToUVMapping.y = -0.5f;
-		ndcToUVMapping.z = 0.5f;
-		ndcToUVMapping.w = 0.5f;
+		Vector4 ndcToHiZUV;
+		ndcToHiZUV.x = 0.5f;
+		ndcToHiZUV.y = -0.5f;
+		ndcToHiZUV.z = 0.5f;
+		ndcToHiZUV.w = 0.5f;
 
 		// Either of these flips the Y axis, but if they're both true they cancel out
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 		if (rapiInfo.isFlagSet(RenderAPIFeatureFlag::UVYAxisUp) ^ rapiInfo.isFlagSet(RenderAPIFeatureFlag::NDCYAxisDown))
-			ndcToUVMapping.y = -ndcToUVMapping.y;
+			ndcToHiZUV.y = -ndcToHiZUV.y;
 		
-		// Maps from [0, 1] to are of HiZ where depth is stored in
-		ndcToUVMapping.x *= (float)viewRect.width / hiZProps.getWidth();
-		ndcToUVMapping.y *= (float)viewRect.height / hiZProps.getHeight();
-		ndcToUVMapping.z *= (float)viewRect.width / hiZProps.getWidth();
-		ndcToUVMapping.w *= (float)viewRect.height / hiZProps.getHeight();
+		// Maps from [0, 1] to area of HiZ where depth is stored in
+		ndcToHiZUV.x *= (float)viewRect.width / hiZProps.getWidth();
+		ndcToHiZUV.y *= (float)viewRect.height / hiZProps.getHeight();
+		ndcToHiZUV.z *= (float)viewRect.width / hiZProps.getWidth();
+		ndcToHiZUV.w *= (float)viewRect.height / hiZProps.getHeight();
 		
+		// Maps from HiZ UV to [0, 1] UV
+		Vector2 HiZUVToScreenUV;
+		HiZUVToScreenUV.x = hiZProps.getWidth() / (float)viewRect.width;
+		HiZUVToScreenUV.y = hiZProps.getHeight() / (float)viewRect.height;
+
 		Vector2I bufferSize(viewRect.width, viewRect.height);
 		gSSRTraceParamDef.gHiZSize.set(mParamBuffer, bufferSize);
 		gSSRTraceParamDef.gHiZNumMips.set(mParamBuffer, hiZProps.getNumMipmaps());
-		gSSRTraceParamDef.gHiZUVMapping.set(mParamBuffer, ndcToUVMapping);
+		gSSRTraceParamDef.gNDCToHiZUV.set(mParamBuffer, ndcToHiZUV);
+		gSSRTraceParamDef.gHiZUVToScreenUV.set(mParamBuffer, HiZUVToScreenUV);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);

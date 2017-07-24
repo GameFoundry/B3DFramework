@@ -24,7 +24,8 @@ technique PPSSRTrace
 		[internal]
 		cbuffer Input
 		{
-			float4 gHiZUVMapping;
+			float4 gNDCToHiZUV;
+			float2 gHiZUVToScreenUV;
 			int2 gHiZSize;
 			int gHiZNumMips;
 		}
@@ -67,7 +68,6 @@ technique PPSSRTrace
 			
 			// TODO - Use Hammersley + random to generate ray directions based on GGX BRDF
 			//  - Clip BRDF lobe? And renormalize PDF?
-			// TODO - Generate random ray step offset
 			// TODO - Reject rays pointing under the surface
 			
 			// Eliminate rays pointing towards the viewer. They won't hit anything, plus they can screw up precision
@@ -83,15 +83,15 @@ technique PPSSRTrace
 			RayMarchParams rayMarchParams;
 			rayMarchParams.bufferSize = gHiZSize;
 			rayMarchParams.numMips = gHiZNumMips;
-			rayMarchParams.hiZUVMapping = gHiZUVMapping;
+			rayMarchParams.NDCToHiZUV = gNDCToHiZUV;
+			rayMarchParams.HiZUVToScreenUV = gHiZUVToScreenUV;
 			rayMarchParams.rayOrigin = P;
 			rayMarchParams.rayDir = R;
 			rayMarchParams.jitterOffset = jitterOffset;
 			
 			// TODO - Fade based on roughness
 			
-			float dbg = 0.0f;
-			float4 rayHit = rayMarch(gHiZ, gDepthBufferSamp, rayMarchParams, dbg);
+			float4 rayHit = rayMarch(gHiZ, gDepthBufferSamp, rayMarchParams);
 			if(rayHit.w < 1.0f) // Hit
 			{
 				float4 output = gSceneColor.Sample(gSceneColorSamp, rayHit.xy);
@@ -101,27 +101,8 @@ technique PPSSRTrace
 				float2 vignette = saturate(abs(rayHitNDC) * 5.0f - 4.0f);
 	
 				return output * (1.0f - dot(vignette, vignette));
-				
-				// DEBUG ONLY
-				if(dbg < 4.0)
-					return float4(0.0f, 1.0f, 0.0f, 1.0f);
-				else if(dbg < 8.0)
-					return float4(0.0f, 0.66f, 0.0f, 1.0f);
-				else if(dbg < 12.0)
-					return float4(0.0f, 0.33f, 0.0f, 1.0f);
-				else if(dbg < 16.0)
-					return float4(0.33f, 0.33f, 0.0f, 1.0f);
-				else if(dbg < 24.0)
-					return float4(0.5f, 0.0f, 0.0f, 1.0f);
-				else if(dbg < 32.0)
-					return float4(1.0f, 0.0f, 0.0f, 1.0f);
-				else
-					return float4(0.0f, 0.0f, 1.0f, 1.0f);
 			}
 			
-			//if(dbg > 0.5f)
-			//	return float4(1.0f, 0.0f, 0.0f, 1.0f);
-				
 			return 0.0f;
 		}	
 	};
