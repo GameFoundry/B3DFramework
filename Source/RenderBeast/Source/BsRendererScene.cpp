@@ -95,6 +95,8 @@ namespace bs {	namespace ct
 			// Swap current last element with the one we want to erase
 			std::swap(mInfo.views[cameraId], mInfo.views[lastCameraId]);
 			lastCamera->setRendererId(cameraId);
+
+			mInfo.cameraToView[lastCamera] = cameraId;
 		}
 		
 		// Last element is the one we want to erase
@@ -107,7 +109,7 @@ namespace bs {	namespace ct
 		if(iterFind != mInfo.cameraToView.end())
 			mInfo.cameraToView.erase(iterFind);
 
-		updateCameraRenderTargets(camera);
+		updateCameraRenderTargets(camera, true);
 	}
 
 	void RendererScene::registerLight(Light* light)
@@ -525,7 +527,7 @@ namespace bs {	namespace ct
 		return viewDesc;
 	}
 
-	void RendererScene::updateCameraRenderTargets(Camera* camera)
+	void RendererScene::updateCameraRenderTargets(Camera* camera, bool remove)
 	{
 		SPtr<RenderTarget> renderTarget = camera->getViewport()->getTarget();
 
@@ -538,14 +540,23 @@ namespace bs {	namespace ct
 			{
 				if (camera == *iterCam)
 				{
-					if (renderTarget != target.target)
+					if(remove)
 					{
 						target.cameras.erase(iterCam);
-						rtChanged = 2;
-
+						rtChanged = 1;
+						
 					}
 					else
-						rtChanged = 1;
+					{
+						if (renderTarget != target.target)
+						{
+							target.cameras.erase(iterCam);
+							rtChanged = 2;
+
+						}
+						else
+							rtChanged = 1;
+					}
 
 					break;
 				}
