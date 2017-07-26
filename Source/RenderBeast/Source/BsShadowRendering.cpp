@@ -200,7 +200,7 @@ namespace bs { namespace ct
 		TextureSurface surface;
 		surface.arraySlice = params.shadowMapFace;
 
-		mGBufferParams.bind(params.renderTargets);
+		mGBufferParams.bind(params.gbuffer);
 
 		mShadowMapParam.set(params.shadowMap, surface);
 		mShadowSamplerParam.set(mSamplerState);
@@ -304,7 +304,7 @@ namespace bs { namespace ct
 		Vector4 lightPosAndScale(params.light.getPosition(), params.light.getAttenuationRadius());
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mGBufferParams.bind(params.renderTargets);
+		mGBufferParams.bind(params.gbuffer);
 
 		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
@@ -756,13 +756,13 @@ namespace bs { namespace ct
 		return shadowMapTfrm * mixedToShadow;
 	}
 
-	void ShadowRendering::renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, 
-		const RendererLight& rendererLight, UINT32 viewIdx)
+	void ShadowRendering::renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, 
+		const RendererLight& rendererLight, UINT32 viewIdx, GBufferInput gbuffer) const
 	{
 		const Light* light = rendererLight.internal;
 		UINT32 lightIdx = light->getRendererId();
 
-		RendererView* view = scene.getSceneInfo().views[viewIdx];
+		RendererView* view = sceneInfo.views[viewIdx];
 		auto viewProps = view->getProperties();
 
 		const Matrix4& viewP = viewProps.projTransform;
@@ -812,7 +812,7 @@ namespace bs { namespace ct
 				SPtr<Texture> shadowMap = mShadowCubemaps[shadowInfo.textureIdx].getTexture();
 				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
 
-				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowOmniParamBuffer, perViewBuffer, *renderTargets);
+				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowOmniParamBuffer, perViewBuffer, gbuffer);
 				mProjectOmniMaterials.bind(effectiveShadowQuality, viewerInsideVolume, viewProps.numSamples > 1, shadowParams);
 
 				gRendererUtility().draw(gRendererUtility().getRadialLightStencil());
@@ -840,7 +840,7 @@ namespace bs { namespace ct
 			else // Directional
 			{
 				UINT32 mapIdx = mDirectionalLightShadows[lightIdx];
-				ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
+				const ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
 
 				// Render cascades in far to near order.
 				// Note: If rendering other non-cascade maps they should be rendered after cascades.
@@ -931,7 +931,7 @@ namespace bs { namespace ct
 
 				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
 				ShadowProjectParams shadowParams(*light, shadowMap, shadowMapFace, shadowParamBuffer, perViewBuffer, 
-					*renderTargets);
+					gbuffer);
 				mProjectMaterials.bind(effectiveShadowQuality, isCSM, viewProps.numSamples > 1, shadowParams);
 
 				if (!isCSM)
@@ -1414,7 +1414,7 @@ namespace bs { namespace ct
 		size = std::max(effectiveMapSize - 2 * border, 1u);
 	}
 
-	void ShadowRendering::drawNearFarPlanes(float near, float far, bool drawNear)
+	void ShadowRendering::drawNearFarPlanes(float near, float far, bool drawNear) const
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
@@ -1448,7 +1448,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(0, drawNear ? 12 : 6, 0, drawNear ? 8 : 4);
 	}
 
-	void ShadowRendering::drawFrustum(const std::array<Vector3, 8>& corners)
+	void ShadowRendering::drawFrustum(const std::array<Vector3, 8>& corners) const
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 

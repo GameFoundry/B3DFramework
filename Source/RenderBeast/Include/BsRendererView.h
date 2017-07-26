@@ -10,6 +10,9 @@
 #include "BsBounds.h"
 #include "BsConvexVolume.h"
 #include "BsLight.h"
+#include "BsLightGrid.h"
+#include "BsShadowRendering.h"
+#include "BsRenderCompositor.h"
 
 namespace bs { namespace ct
 {
@@ -193,13 +196,8 @@ namespace bs { namespace ct
 		/** Returns the scene camera this object is based of. This can be null for manually constructed renderer cameras. */
 		Camera* getSceneCamera() const { return mCamera; }
 
-		/** 
-		 * Prepares render targets for rendering. When done call endFrame().
-		 *
-		 * @param[in]	useGBuffer			Set to true if you will be rendering to internal render targets containing the
-		 *									GBuffer (retrieved via getRenderTargets()).
-		 */
-		void beginFrame(bool useGBuffer);
+		/** Prepares render targets for rendering. When done call endFrame(). */
+		void beginFrame();
 
 		/** Ends rendering and frees any acquired resources. */
 		void endFrame();
@@ -218,6 +216,9 @@ namespace bs { namespace ct
 		 * view or object transforms changed since the last time it was called.
 		 */
 		const SPtr<RenderQueue>& getTransparentQueue() const { return mTransparentQueue; }
+
+		/** Returns the compositor in charge of rendering for this view. */
+		const RenderCompositor& getCompositor() const { return mCompositor; }
 
 		/**
 		 * Populates view render queues by determining visible renderable objects. 
@@ -290,6 +291,15 @@ namespace bs { namespace ct
 		/** Returns a buffer that stores per-view parameters. */
 		SPtr<GpuParamBlockBuffer> getPerViewBuffer() const { return mParamBuffer; }
 
+		/** 
+		 * Returns information about visible lights, in the form of a light grid, used for forward rendering. Only valid
+		 * after a call to updateLightGrid().
+		 */
+		const LightGrid& getLightGrid() const { return mLightGrid; }
+
+		/** Updates the light grid used for forward rendering. */
+		void updateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData);
+
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
 		 * into view Z value.
@@ -323,20 +333,22 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;
 
-		SPtr<RenderTargets> mRenderTargets;
+		RenderCompositor mCompositor;
+
+		SPtr<RenderTargets> mRenderTargets; // TODO - Remove
 		PostProcessInfo mPostProcessInfo;
-		bool mUsingGBuffer;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		VisibilityInfo mVisibility;
+		LightGrid mLightGrid;
 	};
 
 	/** Contains one or multiple RendererView%s that are in some way related. */
 	class RendererViewGroup
 	{
 	public:
-		RendererViewGroup() {}
-		RendererViewGroup(RendererView** views, UINT32 numViews);
+		RendererViewGroup();
+		RendererViewGroup(RendererView** views, UINT32 numViews, UINT32 shadowMapSize);
 
 		/** 
 		 * Updates the internal list of views. This is more efficient than always constructing a new instance of this class
@@ -357,6 +369,24 @@ namespace bs { namespace ct
 		 */
 		const VisibilityInfo& getVisibilityInfo() const { return mVisibility; }
 
+		/**
+		 * Returns information about lights visible from this group of views. Only valid after a call to 
+		 * determineVisibility().
+		 */
+		const VisibleLightData& getVisibleLightData() const { return mVisibleLightData; }
+
+		/**
+		 * Returns information about refl. probes visible from this group of views. Only valid after a call to 
+		 * determineVisibility().
+		 */
+		const VisibleReflProbeData& getVisibleReflProbeData() const { return mVisibleReflProbeData; }
+
+		/** Returns the object responsible for rendering shadows for this view group. */
+		ShadowRendering& getShadowRenderer() { return mShadowRenderer; }
+
+		/** Returns the object responsible for rendering shadows for this view group. */
+		const ShadowRendering& getShadowRenderer() const { return mShadowRenderer; }
+
 		/** 
 		 * Updates visibility information for the provided scene objects, from the perspective of all views in this group,
 		 * and updates the render queues of each individual view. Use getVisibilityInfo() to retrieve the calculated
@@ -367,6 +397,15 @@ namespace bs { namespace ct
 	private:
 		Vector<RendererView*> mViews;
 		VisibilityInfo mVisibility;
+
+		VisibleLightData mVisibleLightData;
+		VisibleReflProbeData mVisibleReflProbeData;
+
+		// Note: Ideally we would want to keep this global, so all views share it. This way each view group renders its
+		// own set of shadows, but there might be shadows that are shared, and therefore we could avoid rendering them
+		// multiple times. Since non-primary view groups are used for pre-processing tasks exclusively (at the moment) 
+		// this isn't an issue right now.
+		ShadowRendering mShadowRenderer;
 	};
 
 	/** @} */

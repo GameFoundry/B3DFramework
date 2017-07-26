@@ -11,6 +11,7 @@
 #include "BsGpuParamsSet.h"
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeast.h"
+#include "BsSkybox.h"
 
 namespace bs {	namespace ct
 {
@@ -399,6 +400,31 @@ namespace bs {	namespace ct
 		RendererReflectionProbe& probeInfo = mInfo.reflProbes.back();
 
 		mInfo.reflProbeWorldBounds.push_back(probe->getBounds());
+
+		// Find a spot in cubemap array
+		UINT32 numArrayEntries = (UINT32)mInfo.reflProbeCubemapArrayUsedSlots.size();
+		for(UINT32 i = 0; i < numArrayEntries; i++)
+		{
+			if(!mInfo.reflProbeCubemapArrayUsedSlots[i])
+			{
+				setReflectionProbeArrayIndex(probeId, i, false);
+				mInfo.reflProbeCubemapArrayUsedSlots[i] = true;
+				break;
+			}
+		}
+
+		// No empty slot was found
+		if (probeInfo.arrayIdx == -1)
+		{
+			setReflectionProbeArrayIndex(probeId, numArrayEntries, false);
+			mInfo.reflProbeCubemapArrayUsedSlots.push_back(true);
+		}
+
+		if(probeInfo.arrayIdx > MaxReflectionCubemaps)
+		{
+			LOGERR("Reached the maximum number of allowed reflection probe cubemaps at once. "
+				"Ignoring reflection probe data.");
+		}
 	}
 
 	void RendererScene::updateReflectionProbe(ReflectionProbe* probe)
@@ -417,6 +443,10 @@ namespace bs {	namespace ct
 	void RendererScene::unregisterReflectionProbe(ReflectionProbe* probe)
 	{
 		UINT32 probeId = probe->getRendererId();
+		UINT32 arrayIdx = mInfo.reflProbes[probeId].arrayIdx;
+
+		if (arrayIdx != -1)
+			mInfo.reflProbeCubemapArrayUsedSlots[arrayIdx] = false;
 
 		ReflectionProbe* lastProbe = mInfo.reflProbes.back().probe;
 		UINT32 lastProbeId = lastProbe->getRendererId();
@@ -451,6 +481,42 @@ namespace bs {	namespace ct
 
 		if (markAsClean)
 			probe->arrayDirty = false;
+	}
+
+	void RendererScene::registerSkybox(Skybox* skybox)
+	{
+		mInfo.sky.skybox = skybox;
+
+		SPtr<Texture> skyTex = skybox->getTexture();
+		if (skyTex != nullptr && skyTex->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
+			mInfo.sky.radiance = skyTex;
+
+		mInfo.sky.filteredReflections = nullptr;
+		mInfo.sky.irradiance = nullptr;
+	}
+
+	void RendererScene::updateSkybox(Skybox* skybox)
+	{
+		LightProbeCache::instance().notifyDirty(skybox->getUUID());
+
+		if (mInfo.sky.skybox == skybox)
+		{
+			mInfo.sky.radiance = skybox->getTexture();
+			mInfo.sky.filteredReflections = nullptr;
+			mInfo.sky.irradiance = nullptr;
+		}
+	}
+
+	void RendererScene::unregisterSkybox(Skybox* skybox)
+	{
+		LightProbeCache::instance().unloadCachedTexture(skybox->getUUID());
+
+		if (mInfo.sky.skybox == skybox)
+		{
+			mInfo.sky.radiance = nullptr;
+			mInfo.sky.filteredReflections = nullptr;
+			mInfo.sky.irradiance = nullptr;
+		}
 	}
 
 	void RendererScene::setOptions(const SPtr<RenderBeastOptions>& options)

@@ -56,6 +56,15 @@ namespace bs { namespace ct
 		Light* internal;
 	};
 
+	/** Container for all GBuffer textures. */
+	struct GBufferInput
+	{
+		SPtr<Texture> albedo;
+		SPtr<Texture> normals;
+		SPtr<Texture> roughMetal;
+		SPtr<Texture> depth;
+	};
+
 	/** Allows you to easily bind GBuffer textures to some material. */
 	class GBufferParams
 	{
@@ -65,6 +74,8 @@ namespace bs { namespace ct
 		/** Binds the GBuffer textures to the pipeline. */
 		void bind(const RenderTargets& renderTargets);
 
+		/** Binds the GBuffer textures to the pipeline. */
+		void bind(const GBufferInput& gbuffer);
 	private:
 		SPtr<Material> mMaterial;
 		SPtr<GpuParamsSet> mParamsSet;
@@ -141,11 +152,8 @@ namespace bs { namespace ct
 		TiledDeferredLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet, UINT32 sampleCount);
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera, bool noLighting,
-			bool noShadows);
-
-		/** Binds all the active lights. */
-		void setLights(const VisibleLightData& lightData);
+		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer, 
+			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer);
 
 		static const UINT32 TILE_SIZE;
 	private:
@@ -155,9 +163,6 @@ namespace bs { namespace ct
 
 		GBufferParams mGBufferParams;
 
-		Vector4I mUnshadowedLightCounts;
-		Vector4I mLightCounts;
-		Vector2I mLightStrides;
 		GpuParamBuffer mLightBufferParam;
 		GpuParamLoadStoreTexture mOutputTextureParam;
 		GpuParamBuffer mOutputBufferParam;
@@ -172,11 +177,8 @@ namespace bs { namespace ct
 		virtual ~ITiledDeferredLightingMat() {}
 
 		/** @copydoc TiledDeferredLighting::execute() */
-		virtual void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			bool noLighting, bool noShadows) = 0;
-
-		/** @copydoc TiledDeferredLighting::setLights() */
-		virtual void setLights(const VisibleLightData& lightData) = 0;
+		virtual void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
+			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer) = 0;
 	};
 
 	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
@@ -189,31 +191,10 @@ namespace bs { namespace ct
 		TTiledDeferredLightingMat();
 
 		/** @copydoc ITiledDeferredLightingMat::execute() */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			bool noLighting, bool noShaodws) override;
-
-		/** @copydoc ITiledDeferredLightingMat::setLights() */
-		void setLights(const VisibleLightData& lightData) override;
+		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
+			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer) override;
 	private:
 		TiledDeferredLighting mInternal;
-	};
-
-	/** Contains instances for all types of tile deferred lighting materials. */
-	class TiledDeferredLightingMaterials
-	{
-	public:
-		TiledDeferredLightingMaterials();
-		~TiledDeferredLightingMaterials();
-
-		/**
-		 * Returns a version of the tile-deferred lighting material that matches the parameters.
-		 * 
-		 * @param[in]   msaa					Number of samples per pixel.
-		 */
-		ITiledDeferredLightingMat* get(UINT32 msaa);
-
-	private:
-		ITiledDeferredLightingMat* mInstances[4];
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FlatFramebufferToTextureParamDef)

@@ -141,9 +141,9 @@ namespace bs { namespace ct
 	{
 		ShadowProjectParams(const Light& light, const SPtr<Texture>& shadowMap, UINT32 shadowMapFace,
 			const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& perCameraParams,
-			const RenderTargets& renderTargets)
+			GBufferInput gbuffer)
 			: light(light), shadowMap(shadowMap), shadowMapFace(shadowMapFace), shadowParams(shadowParams)
-			, perCamera(perCameraParams), renderTargets(renderTargets)
+			, perCamera(perCameraParams), gbuffer(gbuffer)
 		{ }
 
 		/** Light which is casting the shadow. */
@@ -162,7 +162,7 @@ namespace bs { namespace ct
 		const SPtr<GpuParamBlockBuffer>& perCamera;
 
 		/** Contains the GBuffer textures. */
-		const RenderTargets& renderTargets;
+		GBufferInput gbuffer;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
@@ -435,7 +435,7 @@ namespace bs { namespace ct
 	};
 
 	/** Provides functionality for rendering shadow maps. */
-	class ShadowRendering : public Module<ShadowRendering>
+	class ShadowRendering
 	{
 		/** Contains information required for generating a shadow map for a specific light. */
 		struct ShadowMapOptions
@@ -461,8 +461,8 @@ namespace bs { namespace ct
 		 * Renders shadow occlusion values for the specified light, into the currently bound render target. 
 		 * The system uses shadow maps rendered by renderShadowMaps().
 		 */
-		void renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, const RendererLight& light,
-			UINT32 viewIdx);
+		void renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, const RendererLight& light,
+			UINT32 viewIdx, GBufferInput gbuffer) const;
 
 		/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 		void setShadowMapSize(UINT32 size);
@@ -502,13 +502,13 @@ namespace bs { namespace ct
 		 * @param[in]	far			Location of the far plane, in NDC.
 		 * @param[in]	drawNear	If disabled, only the far plane will be drawn.
 		 */
-		void drawNearFarPlanes(float near, float far, bool drawNear = true);
+		void drawNearFarPlanes(float near, float far, bool drawNear = true) const;
 
 		/** 
 		 * Draws a frustum mesh using the provided vertices as its corners. Corners should be in the order specified
 		 * by AABox::Corner enum.
 		 */
-		void drawFrustum(const std::array<Vector3, 8>& corners);
+		void drawFrustum(const std::array<Vector3, 8>& corners) const;
 
 		/**
 		 * Calculates optimal shadow quality based on the quality set in the options and the actual shadow map resolution.
@@ -586,9 +586,9 @@ namespace bs { namespace ct
 		ShadowDepthCubeMat mDepthCubeMat;
 		ShadowDepthDirectionalMat mDepthDirectionalMat;
 
-		ShadowProjectStencilMaterials mProjectStencilMaterials;
-		ShadowProjectMaterials mProjectMaterials;
-		ShadowProjectOmniMaterials mProjectOmniMaterials;
+		mutable ShadowProjectStencilMaterials mProjectStencilMaterials;
+		mutable ShadowProjectMaterials mProjectMaterials;
+		mutable ShadowProjectOmniMaterials mProjectOmniMaterials;
 
 		UINT32 mShadowMapSize;
 
@@ -605,12 +605,12 @@ namespace bs { namespace ct
 		SPtr<VertexDeclaration> mPositionOnlyVD;
 
 		// Mesh information used for drawing near & far planes
-		SPtr<IndexBuffer> mPlaneIB;
-		SPtr<VertexBuffer> mPlaneVB;
+		mutable SPtr<IndexBuffer> mPlaneIB;
+		mutable SPtr<VertexBuffer> mPlaneVB;
 
 		// Mesh information used for drawing a shadow frustum
-		SPtr<IndexBuffer> mFrustumIB;
-		SPtr<VertexBuffer> mFrustumVB;
+		mutable SPtr<IndexBuffer> mFrustumIB;
+		mutable SPtr<VertexBuffer> mFrustumVB;
 
 		Vector<bool> mRenderableVisibility; // Transient
 		Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient

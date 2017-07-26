@@ -28,12 +28,13 @@ namespace bs { namespace ct {
 	}
 
 	template<bool MSAA>
-	void DirectionalLightMat<MSAA>::bind(const RenderTargets& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera)
+	void DirectionalLightMat<MSAA>::bind(const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion, 
+		const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		RendererUtility::instance().setPass(mMaterial, 0);
 
-		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
+		mGBufferParams.bind(gBufferInput);
+		mLightOcclusionTexParam.set(lightOcclusion);
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 	}
 
@@ -69,13 +70,13 @@ namespace bs { namespace ct {
 	}
 
 	template<bool MSAA, bool InsideGeometry>
-	void PointLightMat<MSAA, InsideGeometry>::bind(const RenderTargets& renderTargets, 
+	void PointLightMat<MSAA, InsideGeometry>::bind(const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion, 
 		const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		RendererUtility::instance().setPass(mMaterial, 0);
 
-		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
+		mGBufferParams.bind(gBufferInput);
+		mLightOcclusionTexParam.set(lightOcclusion);
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 	}
 
@@ -98,7 +99,7 @@ namespace bs { namespace ct {
 	}
 
 	void StandardDeferred::renderLight(LightType lightType, const RendererLight& light, const RendererView& view, 
-		const RenderTargets& renderTargets)
+		const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion)
 	{
 		const auto& viewProps = view.getProperties();
 
@@ -111,12 +112,12 @@ namespace bs { namespace ct {
 		{
 			if(isMSAA)
 			{
-				mDirLightMat_T.bind(renderTargets, perViewBuffer);
+				mDirLightMat_T.bind(gBufferInput, lightOcclusion, perViewBuffer);
 				mDirLightMat_T.setPerLightParams(mPerLightBuffer);
 			}
 			else
 			{
-				mDirLightMat_F.bind(renderTargets, perViewBuffer);
+				mDirLightMat_F.bind(gBufferInput, lightOcclusion, perViewBuffer);
 				mDirLightMat_F.setPerLightParams(mPerLightBuffer);
 			}
 
@@ -137,12 +138,12 @@ namespace bs { namespace ct {
 			{
 				if(isInside)
 				{
-					mPointLightMat_TT.bind(renderTargets, perViewBuffer);
+					mPointLightMat_TT.bind(gBufferInput, lightOcclusion, perViewBuffer);
 					mPointLightMat_TT.setPerLightParams(mPerLightBuffer);
 				}
 				else
 				{
-					mPointLightMat_TF.bind(renderTargets, perViewBuffer);
+					mPointLightMat_TF.bind(gBufferInput, lightOcclusion, perViewBuffer);
 					mPointLightMat_TF.setPerLightParams(mPerLightBuffer);
 				}
 			}
@@ -150,12 +151,12 @@ namespace bs { namespace ct {
 			{
 				if(isInside)
 				{
-					mPointLightMat_FT.bind(renderTargets, perViewBuffer);
+					mPointLightMat_FT.bind(gBufferInput, lightOcclusion, perViewBuffer);
 					mPointLightMat_FT.setPerLightParams(mPerLightBuffer);
 				}
 				else
 				{
-					mPointLightMat_FF.bind(renderTargets, perViewBuffer);
+					mPointLightMat_FF.bind(gBufferInput, lightOcclusion, perViewBuffer);
 					mPointLightMat_TF.setPerLightParams(mPerLightBuffer);
 				}
 			}

@@ -245,8 +245,10 @@ namespace bs { namespace ct
 	void LightGrid::updateGrid(const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData,
 		bool noLighting)
 	{
-		UINT32 width = view.getRenderTargets()->getWidth();
-		UINT32 height = view.getRenderTargets()->getHeight();
+		const RendererViewProperties& viewProps = view.getProperties();
+
+		UINT32 width = viewProps.viewRect.width;
+		UINT32 height = viewProps.viewRect.height;
 
 		Vector3I gridSize;
 		gridSize[0] = (width + CELL_XY_SIZE - 1) / CELL_XY_SIZE;

@@ -5,9 +5,11 @@
 #include "BsRenderBeastPrerequisites.h"
 #include "BsRendererMaterial.h"
 #include "BsParamBlocks.h"
+#include "BsLightRendering.h"
 
 namespace bs { namespace ct
 {
+	struct SkyInfo;
 	struct SceneInfo;
 	class RendererViewGroup;
 
@@ -93,7 +95,7 @@ namespace bs { namespace ct
 	struct ImageBasedLightingParams
 	{
 		/** 
-		 * Initializes the parameters from the provided @p params object. 
+		 * Initializes the parameters from the provided parameters. 
 		 *
 		 * @param[in]	paramsSet	GPU parameters object to look for the parameters in.
 		 * @param[in]	programType	Type of the GPU program to look up the parameters for.
@@ -103,12 +105,9 @@ namespace bs { namespace ct
 		void populate(const SPtr<GpuParamsSet>& paramsSet, GpuProgramType programType, bool optional, bool gridIndices);
 
 		GpuParamTexture skyReflectionsTexParam;
-		GpuParamSampState skyReflectionsSampParam;
-
 		GpuParamTexture skyIrradianceTexParam;
 
 		GpuParamTexture reflectionProbeCubemapsTexParam;
-		GpuParamSampState reflectionProbeCubemapsSampParam;
 
 		GpuParamTexture preintegratedEnvBRDFParam;
 		GpuParamBuffer reflectionProbesParam;
@@ -117,39 +116,38 @@ namespace bs { namespace ct
 		UINT32 reflProbeParamsBindingIdx;
 	};
 
+	/** Parameter buffer containing information about reflection probes. */
+	struct ReflProbeParamBuffer
+	{
+		ReflProbeParamBuffer();
+
+		/** Updates the parameter buffer contents with require refl. probe data. */
+		void populate(const SkyInfo& sky, const VisibleReflProbeData& probeData, 
+			const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
+
+		SPtr<GpuParamBlockBuffer> buffer;
+	};
+
 	/** Functionality common to all versions of TiledDeferredImageBasedLightingMat<T>. */
 	class TiledDeferredImageBasedLighting
 	{
 	public:
+		/** Containers for parameters to be passed to the execute() method. */
+		struct Inputs
+		{
+			GBufferInput gbuffer;
+			SPtr<Texture> lightAccumulation;
+			SPtr<Texture> sceneColorTex;
+			SPtr<GpuBuffer> sceneColorBuffer;
+			SPtr<Texture> preIntegratedGF;
+		};
+
 		TiledDeferredImageBasedLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet, 
 			UINT32 sampleCount);
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-					 const SPtr<Texture>& preintegratedGF);
-
-		/** Binds all the active reflection probes. */
-		void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
-			bool capturingReflections);
-
-		/** Binds the sky reflection & irradiance textures. Set textures to null if not available. */
-		void setSky(const SPtr<Texture>& skyReflections, const SPtr<Texture>& skyIrradiance, float brightness);
-
-		/** Returns a param buffer containing information required to evaluate reflection probe data. */
-		SPtr<GpuParamBlockBuffer> getReflectionsParamBuffer() const { return mReflectionsParamBuffer; }
-
-		/** Returns a sampler state object that should be used for evaluating reflection maps. */
-		SPtr<SamplerState> getReflectionsSamplerState() const { return mReflectionSamplerState; }
-
-		/**
-		 * Generates a 2D 2-channel texture containing a pre-integrated G and F factors of the microfactet BRDF. This is an
-		 * approximation used for image based lighting, so we can avoid sampling environment maps for each light. Works in
-		 * tandem with the importance sampled reflection cubemaps.
-		 * 
-		 * (u, v) = (NoV, roughness)
-		 * (r, g) = (scale, bias)
-		 */
-		static SPtr<Texture> generatePreintegratedEnvBRDF();
+		void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
+			const Inputs& inputs);
 
 		static const UINT32 TILE_SIZE;
 	private:
@@ -170,8 +168,7 @@ namespace bs { namespace ct
 		GpuParamBuffer mOutputBufferParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		SPtr<GpuParamBlockBuffer> mReflectionsParamBuffer;
-		SPtr<SamplerState> mReflectionSamplerState;
+		ReflProbeParamBuffer mReflProbeParamBuffer;
 	};
 
 	/** Interface implemented by all versions of TTiledDeferredImageBasedLightingMat<T>. */
@@ -181,21 +178,8 @@ namespace bs { namespace ct
 		virtual ~ITiledDeferredImageBasedLightingMat() {}
 
 		/** @copydoc TiledDeferredImageBasedLighting::execute() */
-		virtual void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			const SPtr<Texture>& preintegratedGF) = 0;
-
-		/** @copydoc TiledDeferredImageBasedLighting::setReflectionProbes() */
-		virtual void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps,
-			bool capturingReflections) = 0;
-
-		/** @copydoc TiledDeferredImageBasedLighting::setSky() */
-		virtual void setSky(const SPtr<Texture>& skyReflections, const SPtr<Texture>& skyIrradiance, float brightness) = 0;
-
-		/** @copydoc TiledDeferredImageBasedLighting::getReflectionsParamBuffer() */
-		virtual SPtr<GpuParamBlockBuffer> getReflectionsParamBuffer() const = 0;
-
-		/** @copydoc TiledDeferredImageBasedLighting::getReflectionsSamplerState() */
-		virtual SPtr<SamplerState> getReflectionsSamplerState() const = 0;
+		virtual void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
+			const TiledDeferredImageBasedLighting::Inputs& inputs) = 0;
 	};
 
 	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
@@ -209,41 +193,10 @@ namespace bs { namespace ct
 		TTiledDeferredImageBasedLightingMat();
 
 		/** @copydoc ITiledDeferredImageBasedLightingMat::execute() */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			const SPtr<Texture>& preintegratedGF) override;
-
-		/** @copydoc ITiledDeferredImageBasedLightingMat::setReflectionProbes() */
-		void setReflectionProbes(const VisibleReflProbeData& probeData, const SPtr<Texture>& reflectionCubemaps, 
-			bool capturingReflections) override;
-
-		/** @copydoc ITiledDeferredImageBasedLightingMat::setSky() */
-		void setSky(const SPtr<Texture>& skyReflections, const SPtr<Texture>& skyIrradiance, float brightness) override;
-
-		/** @copydoc ITiledDeferredImageBasedLightingMat::getReflectionsParamBuffer() */
-		SPtr<GpuParamBlockBuffer> getReflectionsParamBuffer() const override;
-
-		/** @copydoc ITiledDeferredImageBasedLightingMat::getReflectionsSamplerState() */
-		SPtr<SamplerState> getReflectionsSamplerState() const override;
+		void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
+			const TiledDeferredImageBasedLighting::Inputs& inputs) override;
 	private:
 		TiledDeferredImageBasedLighting mInternal;
-	};
-
-	/** Contains instances for all types of tile deferred image based lighting materials. */
-	class TiledDeferredImageBasedLightingMaterials
-	{
-	public:
-		TiledDeferredImageBasedLightingMaterials();
-		~TiledDeferredImageBasedLightingMaterials();
-
-		/**
-		 * Returns a version of the tile-deferred image based lighting material that matches the parameters.
-		 *
-		 * @param[in]   msaa						Number of samples per pixel.
-		 */
-		ITiledDeferredImageBasedLightingMat* get(UINT32 msaa);
-
-	private:
-		ITiledDeferredImageBasedLightingMat* mInstances[4];
 	};
 
 	/** @} */

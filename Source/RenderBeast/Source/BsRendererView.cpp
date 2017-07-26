@@ -73,13 +73,12 @@ namespace bs { namespace ct
 	}
 
 	RendererView::RendererView()
-		: mUsingGBuffer(false)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 	}
 
 	RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
-		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mUsingGBuffer(false)
+		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
@@ -110,6 +109,9 @@ namespace bs { namespace ct
 			*mPostProcessInfo.settings = StandardPostProcessSettings();
 
 		mPostProcessInfo.settingDirty = true;
+
+		// Update compositor hierarchy
+		mCompositor.build(*this, RCNodeFinalResolve::getNodeId());
 	}
 
 	void RendererView::setTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, 
@@ -136,9 +138,9 @@ namespace bs { namespace ct
 		setStateReductionMode(desc.stateReduction);
 	}
 
-	void RendererView::beginFrame(bool useGBuffer)
+	void RendererView::beginFrame()
 	{
-		if (useGBuffer)
+		if (!mProperties.isOverlay)
 		{
 			// Render scene objects to g-buffer
 			bool createGBuffer = mRenderTargets == nullptr ||
@@ -149,7 +151,6 @@ namespace bs { namespace ct
 				mRenderTargets = RenderTargets::create(mTargetDesc, mProperties.isHDR);
 
 			mRenderTargets->prepare();
-			mUsingGBuffer = true;
 		}
 	}
 
@@ -161,11 +162,8 @@ namespace bs { namespace ct
 		mOpaqueQueue->clear();
 		mTransparentQueue->clear();
 
-		if(mUsingGBuffer)
-		{
+		if(!mProperties.isOverlay)
 			mRenderTargets->cleanup();
-			mUsingGBuffer = false;
-		}
 	}
 
 	void RendererView::determineVisible(const Vector<RendererObject*>& renderables, const Vector<CullInfo>& cullInfos,
@@ -474,10 +472,21 @@ namespace bs { namespace ct
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 0.0f);
 	}
 
+	void RendererView::updateLightGrid(const VisibleLightData& visibleLightData, 
+		const VisibleReflProbeData& visibleReflProbeData)
+	{
+		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, mProperties.noLighting);
+	}
+
 	template class SkyboxMat<true>;
 	template class SkyboxMat<false>;
 
-	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews)
+	RendererViewGroup::RendererViewGroup()
+		:mShadowRenderer(1024)
+	{ }
+
+	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews, UINT32 shadowMapSize)
+		:mShadowRenderer(shadowMapSize)
 	{
 		setViews(views, numViews);
 	}
@@ -493,6 +502,20 @@ namespace bs { namespace ct
 	void RendererViewGroup::determineVisibility(const SceneInfo& sceneInfo)
 	{
 		UINT32 numViews = (UINT32)mViews.size();
+
+		// Early exit if no views render scene geometry
+		bool allViewsOverlay = false;
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			if (!mViews[i]->getProperties().isOverlay)
+			{
+				allViewsOverlay = false;
+				break;
+			}
+		}
+
+		if (allViewsOverlay)
+			return;
 
 		// Generate render queues per camera
 		mVisibility.renderables.resize(sceneInfo.renderables.size(), false);
@@ -512,6 +535,9 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
+			if (mViews[i]->getProperties().isOverlay)
+				continue;
+
 			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
 				&mVisibility.radialLights);
 
@@ -534,6 +560,22 @@ namespace bs { namespace ct
 				continue;
 
 			mViews[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mVisibility.reflProbes);
+		}
+
+		// Organize light and refl. probe visibility infomation in a more GPU friendly manner
+
+		// Note: I'm determining light and refl. probe visibility for the entire group. It might be more performance
+		// efficient to do it per view. Additionally I'm using a single GPU buffer to hold their information, which is
+		// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
+		mVisibleLightData.update(sceneInfo, *this);
+		mVisibleReflProbeData.update(sceneInfo, *this);
+
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			if (mViews[i]->getProperties().isOverlay)
+				continue;
+
+			mViews[i]->updateLightGrid(mVisibleLightData, mVisibleReflProbeData);
 		}
 	}
 }}
