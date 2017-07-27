@@ -182,7 +182,14 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 };
 ~~~~~~~~~~~~~
 
-After that you can simply instantiate your renderer material, and access the underlying material by calling @ref bs::ct::RendererMaterial::getMaterial() "ct::RendererMaterial::getMaterial()", and the material parameters by calling @ref bs::ct::RendererMaterial::getParamsSet() "ct::RendererMaterial::getParamsSet()". Then you can bind the material for rendering as normal (using **RendererUtility** or directly through **RenderAPI**).
+Once defined the renderer material can be accessed through the static @ref bs::ct::RendererMaterial::get<T>() "ct::RendererMaterial::get<T>()" method. Underlying material can be accessed by calling @ref bs::ct::RendererMaterial::getMaterial() "ct::RendererMaterial::getMaterial()", and the material parameters by calling @ref bs::ct::RendererMaterial::getParamsSet() "ct::RendererMaterial::getParamsSet()". Then you can bind the material for rendering as normal (using **RendererUtility** or directly through **RenderAPI**).
+
+~~~~~~~~~~~~~{.cpp}
+DownsampleMat* renderMat = DownsampleMat::get():
+SPtr<Material> material = renderMat->getMaterial();
+
+// Render using the material as normal
+~~~~~~~~~~~~~
 
 You will normally also want to add a constructor in which you look up any necessary parameters the material might require, so they can be set more easily when rendering.
 ~~~~~~~~~~~~~{.cpp}
@@ -213,7 +220,7 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 	// Set up parameters and render a full screen quad using the material
 	void execute(const SPtr<Texture>& input)
 	{
-		// Actually assign parameters before rendering
+		// Assign parameters before rendering
 		mInputTexture.set(input);
 		
 		const TextureProperties& props = input->getProperties();
@@ -233,15 +240,46 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 };
 ~~~~~~~~~~~~~
 
-Renderer materials also support variations for cases where you might require slightly different versions of a shader for different use cases. The variations are handled by setting up preprocessor \#defines, which the shader code can then use to conditionally add or remove parts of code (via \#ifdef or similar). To determine which defines are set implement the _initDefines() method in your **RendererMaterial** implementation, and append your defines to the @ref bs::ShaderDefines "ShaderDefines" object. Note that this method must be present, even if not using any defines.
+Renderer materials also support variations for cases where you might require slightly different versions of a shader for different use cases. The variations are handled by setting up preprocessor \#defines, which the shader code can then use to conditionally add or remove parts of code (via \#if or similar). To determine which defines are set implement the _initVariations() method in your **RendererMaterial** implementation, and append your defines to the @ref bs::ct::ShaderVariations "ShaderVariations" object. Note that this method must be present, even if not using any variations (simply leave it empty).
 
 ~~~~~~~~~~~~~{.cpp}
-// Method defined in RMAT_DEF macro
-void DownsampleMat::_initDefines(ShaderDefines& defines)
+// Make our downsample shader come in two variations
+class DownsampleMat : public RendererMaterial<DownsampleMat>
 {
-	// Set up optional defines to control shader compilation
-	defines.set("BILINEAR_FILTERING", 1);
+	RMAT_DEF("Downsample.bsl");
+	
+	// ... other DownsampleMat code ...
+	
+private:
+	static ShaderVariation VAR_PointFiltering;
+	static ShaderVariation VAR_BilinearFiltering;
+};
+
+// Set up optional defines to control shader compilation
+ShaderVariation DownsampleMat::VAR_PointFiltering = ShaderVariation({
+	ShaderVariation::Param("BILINEAR_FILTERING", false)
+});
+
+ShaderVariation DownsampleMat::VAR_BilinearFiltering = ShaderVariation({
+	ShaderVariation::Param("BILINEAR_FILTERING", true)
+});
+
+// Method defined in RMAT_DEF macro
+void DownsampleMat::_initVariations(ShaderVariations& variations)
+{
+	variations.add(VAR_PointFiltering);
+	variations.add(VAR_BilinearFiltering);
 }
+~~~~~~~~~~~~~
+
+Specific variation of the material can the be retrieved by calling the static @ref bs::ct::RendererMaterial::get<T>(const ShaderVariation&) "ct::RendererMaterial::get<T>(const ShaderVariation&)" method.
+
+~~~~~~~~~~~~~{.cpp}
+// Get the variation that performs bilinear filtering
+DownsampleMat* renderMat = DownsampleMat::get(VAR_BilinearFiltering):
+SPtr<Material> material = renderMat->getMaterial();
+
+// Render using the material as normal
 ~~~~~~~~~~~~~
 
 > All builtin shaders are cached. The system will automatically pick up any changes to shaders in *Data/Raw/Engine* folder and rebuild the cache when needed. However if you are changing defines as above you must manually force the system to rebuild by deleting the *Timestamp.asset* file in *Data/Engine* folder.
