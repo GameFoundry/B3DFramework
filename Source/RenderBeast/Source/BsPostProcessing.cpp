@@ -11,13 +11,33 @@
 #include "BsRenderTargets.h"
 #include "BsPixelUtil.h"
 #include "BsBitwise.h"
+#include "BsBuiltinResourcesHelper.h"
 
 namespace bs { namespace ct
 {
 	DownsampleParamDef gDownsampleParamDef;
 
-	template<int Quality, bool MSAA>
-	DownsampleMat<Quality, MSAA>::DownsampleMat()
+	ShaderVariation DownsampleMat::VAR_LowQuality_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("QUALITY", 0),
+		ShaderVariation::Param("MSAA", 0)
+	});
+
+	ShaderVariation DownsampleMat::VAR_LowQuality_MSAA = ShaderVariation({
+		ShaderVariation::Param("QUALITY", 0),
+		ShaderVariation::Param("MSAA", 1)
+	});
+
+	ShaderVariation DownsampleMat::VAR_HighQuality_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("QUALITY", 1),
+		ShaderVariation::Param("MSAA", 0)
+	});
+
+	ShaderVariation DownsampleMat::VAR_HighQuality_MSAA = ShaderVariation({
+		ShaderVariation::Param("QUALITY", 1),
+		ShaderVariation::Param("MSAA", 1)
+	});
+
+	DownsampleMat::DownsampleMat()
 	{
 		mParamBuffer = gDownsampleParamDef.createBuffer();
 
@@ -28,21 +48,22 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	template<int Quality, bool MSAA>
-	void DownsampleMat<Quality, MSAA>::_initDefines(ShaderDefines& defines)
+	void DownsampleMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("QUALITY", Quality);
-		defines.set("MSAA", MSAA ? 1 : 0);
+		variations.add(VAR_LowQuality_NoMSAA);
+		variations.add(VAR_LowQuality_MSAA);
+		variations.add(VAR_HighQuality_NoMSAA);
+		variations.add(VAR_HighQuality_MSAA);
 	}
 
-	template<int Quality, bool MSAA>
-	void DownsampleMat<Quality, MSAA>::execute(const SPtr<Texture>& target, PostProcessInfo& ppInfo)
+	void DownsampleMat::execute(const SPtr<Texture>& target, PostProcessInfo& ppInfo)
 	{
 		// Set parameters
 		mInputTexture.set(target);
 
 		const TextureProperties& rtProps = target->getProperties();
 
+		bool MSAA = mVariation.getInt("MSAA") > 0;
 		if(MSAA)
 		{
 			gDownsampleParamDef.gOffsets.set(mParamBuffer, Vector2(-1.0f, -1.0f));
@@ -85,53 +106,29 @@ namespace bs { namespace ct
 		mOutput = ppInfo.downsampledSceneTex->renderTexture;
 	}
 
-	template<int Quality, bool MSAA>
-	void DownsampleMat<Quality, MSAA>::release(PostProcessInfo& ppInfo)
+	void DownsampleMat::release(PostProcessInfo& ppInfo)
 	{
 		GpuResourcePool::instance().release(ppInfo.downsampledSceneTex);
 		mOutput = nullptr;
 	}
 
-	void DownsampleMaterials::execute(UINT32 quality, bool msaa, const SPtr<Texture>& target, PostProcessInfo& ppInfo)
+	DownsampleMat* DownsampleMat::getVariation(UINT32 quality, bool msaa)
 	{
 		if(quality == 0)
 		{
-			if(msaa)
-				m0_MSAA.execute(target, ppInfo);
+			if (msaa)
+				return get(VAR_LowQuality_MSAA);
 			else
-				m0_NoMSAA.execute(target, ppInfo);
+				return get(VAR_LowQuality_NoMSAA);
 		}
 		else
 		{
 			if (msaa)
-				m1_MSAA.execute(target, ppInfo);
+				return get(VAR_HighQuality_MSAA);
 			else
-				m1_NoMSAA.execute(target, ppInfo);
+				return get(VAR_HighQuality_NoMSAA);
 		}
 	}
-
-	void DownsampleMaterials::release(UINT32 quality, bool msaa, PostProcessInfo& ppInfo)
-	{
-		if(quality == 0)
-		{
-			if(msaa)
-				m0_MSAA.release(ppInfo);
-			else
-				m0_NoMSAA.release(ppInfo);
-		}
-		else
-		{
-			if (msaa)
-				m1_MSAA.release(ppInfo);
-			else
-				m1_NoMSAA.release(ppInfo);
-		}
-	}
-
-	template class DownsampleMat<0, false>;
-	template class DownsampleMat<0, true>;
-	template class DownsampleMat<1, false>;
-	template class DownsampleMat<1, true>;
 
 	EyeAdaptHistogramParamDef gEyeAdaptHistogramParamDef;
 
@@ -145,12 +142,16 @@ namespace bs { namespace ct
 		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
-	void EyeAdaptHistogramMat::_initDefines(ShaderDefines& defines)
+	void EyeAdaptHistogramMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("THREADGROUP_SIZE_X", THREAD_GROUP_SIZE_X);
-		defines.set("THREADGROUP_SIZE_Y", THREAD_GROUP_SIZE_Y);
-		defines.set("LOOP_COUNT_X", LOOP_COUNT_X);
-		defines.set("LOOP_COUNT_Y", LOOP_COUNT_Y);
+		ShaderVariation variation({
+			ShaderVariation::Param("THREADGROUP_SIZE_X", THREAD_GROUP_SIZE_X),
+			ShaderVariation::Param("THREADGROUP_SIZE_Y", THREAD_GROUP_SIZE_Y),
+			ShaderVariation::Param("LOOP_COUNT_X", LOOP_COUNT_X),
+			ShaderVariation::Param("LOOP_COUNT_Y", LOOP_COUNT_Y),
+		});
+
+		variations.add(variation);
 	}
 
 	void EyeAdaptHistogramMat::execute(PostProcessInfo& ppInfo)
@@ -230,7 +231,7 @@ namespace bs { namespace ct
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 	}
 
-	void EyeAdaptHistogramReduceMat::_initDefines(ShaderDefines& defines)
+	void EyeAdaptHistogramReduceMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -291,10 +292,14 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
 	}
 
-	void EyeAdaptationMat::_initDefines(ShaderDefines& defines)
+	void EyeAdaptationMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("THREADGROUP_SIZE_X", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_X);
-		defines.set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_Y);
+		ShaderVariation variation({
+			ShaderVariation::Param("THREADGROUP_SIZE_X", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_X),
+			ShaderVariation::Param("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_Y)
+		});
+
+		variations.add(variation);
 	}
 
 	void EyeAdaptationMat::execute(PostProcessInfo& ppInfo, float frameDelta)
@@ -369,9 +374,13 @@ namespace bs { namespace ct
 		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
-	void CreateTonemapLUTMat::_initDefines(ShaderDefines& defines)
+	void CreateTonemapLUTMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("LUT_SIZE", LUT_SIZE);
+		ShaderVariation variation({
+			ShaderVariation::Param("LUT_SIZE", LUT_SIZE)
+		});
+
+		variations.add(variation);
 	}
 
 	void CreateTonemapLUTMat::execute(PostProcessInfo& ppInfo)
@@ -432,8 +441,63 @@ namespace bs { namespace ct
 
 	TonemappingParamDef gTonemappingParamDef;
 
-	template<bool GammaOnly, bool AutoExposure, bool MSAA>
-	TonemappingMat<GammaOnly, AutoExposure, MSAA>::TonemappingMat()
+	ShaderVariation TonemappingMat::VAR_Gamma_AutoExposure_MSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", true),
+		ShaderVariation::Param("AUTO_EXPOSURE", true),
+		ShaderVariation::Param("MSAA", true),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_Gamma_AutoExposure_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", true),
+		ShaderVariation::Param("AUTO_EXPOSURE", true),
+		ShaderVariation::Param("MSAA", false),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_Gamma_NoAutoExposure_MSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", true),
+		ShaderVariation::Param("AUTO_EXPOSURE", false),
+		ShaderVariation::Param("MSAA", true),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_Gamma_NoAutoExposure_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", true),
+		ShaderVariation::Param("AUTO_EXPOSURE", false),
+		ShaderVariation::Param("MSAA", false),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_NoGamma_AutoExposure_MSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", false),
+		ShaderVariation::Param("AUTO_EXPOSURE", true),
+		ShaderVariation::Param("MSAA", true),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_NoGamma_AutoExposure_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", false),
+		ShaderVariation::Param("AUTO_EXPOSURE", true),
+		ShaderVariation::Param("MSAA", false),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_NoGamma_NoAutoExposure_MSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", false),
+		ShaderVariation::Param("AUTO_EXPOSURE", false),
+		ShaderVariation::Param("MSAA", true),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	ShaderVariation TonemappingMat::VAR_NoGamma_NoAutoExposure_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("GAMMA_ONLY", false),
+		ShaderVariation::Param("AUTO_EXPOSURE", false),
+		ShaderVariation::Param("MSAA", false),
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
+	});
+
+	TonemappingMat::TonemappingMat()
 	{
 		mParamBuffer = gTonemappingParamDef.createBuffer();
 		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
@@ -442,25 +506,23 @@ namespace bs { namespace ct
 		params->getTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 
-		if(!GammaOnly)
+		if(!mVariation.getBool("GAMMA_ONLY"))
 			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
 	}
 
-	template<bool GammaOnly, bool AutoExposure, bool MSAA>
-	void TonemappingMat<GammaOnly, AutoExposure, MSAA>::_initDefines(ShaderDefines& defines)
+	void TonemappingMat::_initVariations(ShaderVariations& variations)
 	{
-		if(GammaOnly)
-			defines.set("GAMMA_ONLY", 1);
-
-		if (AutoExposure)
-			defines.set("AUTO_EXPOSURE", 1);
-
-		defines.set("MSAA", MSAA ? 1 : 0);
-		defines.set("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE);
+		variations.add(VAR_Gamma_AutoExposure_MSAA);
+		variations.add(VAR_Gamma_AutoExposure_NoMSAA);
+		variations.add(VAR_Gamma_NoAutoExposure_MSAA);
+		variations.add(VAR_Gamma_NoAutoExposure_NoMSAA);
+		variations.add(VAR_NoGamma_AutoExposure_MSAA);
+		variations.add(VAR_NoGamma_AutoExposure_NoMSAA);
+		variations.add(VAR_NoGamma_NoAutoExposure_MSAA);
+		variations.add(VAR_NoGamma_NoAutoExposure_NoMSAA);
 	}
 
-	template<bool GammaOnly, bool AutoExposure, bool MSAA>
-	void TonemappingMat<GammaOnly, AutoExposure, MSAA>::execute(const SPtr<Texture>& sceneColor, 
+	void TonemappingMat::execute(const SPtr<Texture>& sceneColor, 
 		const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo)
 	{
 		const TextureProperties& texProps = sceneColor->getProperties();
@@ -493,39 +555,29 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 
-		if (MSAA)
+		if (mVariation.getBool("MSAA"))
 			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)texProps.getWidth(), (float)texProps.getHeight()));
 		else
 			gRendererUtility().drawScreenQuad();
 	}
 
-	template class TonemappingMat<false, false, false>;
-	template class TonemappingMat<false, false, true>;
-	template class TonemappingMat<false, true, false>;
-	template class TonemappingMat<false, true, true>;
-	template class TonemappingMat<true, false, false>;
-	template class TonemappingMat<true, false, true>;
-	template class TonemappingMat<true, true, false>;
-	template class TonemappingMat<true, true, true>;
-
-	void TonemappingMaterials::execute(bool gammaOnly, bool autoExposure, bool MSAA, const SPtr<Texture>& sceneColor, 
-		const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo)
+	TonemappingMat* TonemappingMat::getVariation(bool gammaOnly, bool autoExposure, bool MSAA)
 	{
 		if (gammaOnly)
 		{
 			if (autoExposure)
 			{
 				if (MSAA)
-					mTTT.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_Gamma_AutoExposure_MSAA);
 				else
-					mTTF.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_Gamma_AutoExposure_NoMSAA);
 			}
 			else
 			{
 				if (MSAA)
-					mTFT.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_Gamma_NoAutoExposure_MSAA);
 				else
-					mTFF.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_Gamma_NoAutoExposure_NoMSAA);
 			}
 		}
 		else
@@ -533,16 +585,16 @@ namespace bs { namespace ct
 			if (autoExposure)
 			{
 				if (MSAA)
-					mFTT.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_NoGamma_AutoExposure_MSAA);
 				else
-					mFTF.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_NoGamma_AutoExposure_NoMSAA);
 			}
 			else
 			{
 				if (MSAA)
-					mFFT.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_NoGamma_NoAutoExposure_MSAA);
 				else
-					mFFF.execute(sceneColor, outputRT, outputRect, ppInfo);
+					return get(VAR_NoGamma_NoAutoExposure_NoMSAA);
 			}
 		}
 	}
@@ -557,9 +609,13 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void GaussianBlurMat::_initDefines(ShaderDefines& defines)
+	void GaussianBlurMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("MAX_NUM_SAMPLES", MAX_BLUR_SAMPLES);
+		ShaderVariation variation({
+			ShaderVariation::Param("MAX_NUM_SAMPLES", MAX_BLUR_SAMPLES)
+		});
+
+		variations.add(variation);
 	}
 
 	void GaussianBlurMat::execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination)
@@ -730,8 +786,25 @@ namespace bs { namespace ct
 
 	GaussianDOFParamDef gGaussianDOFParamDef;
 
-	template<bool Near, bool Far>
-	GaussianDOFSeparateMat<Near, Far>::GaussianDOFSeparateMat()
+	ShaderVariation GaussianDOFSeparateMat::VAR_Near_Far = ShaderVariation({
+		ShaderVariation::Param("NEAR", true),
+		ShaderVariation::Param("FAR", true),
+		ShaderVariation::Param("NEAR_AND_FAR", true)
+	});
+
+	ShaderVariation GaussianDOFSeparateMat::VAR_NoNear_Far = ShaderVariation({
+		ShaderVariation::Param("NEAR", false),
+		ShaderVariation::Param("FAR", true),
+		ShaderVariation::Param("NEAR_AND_FAR", false)
+	});
+
+	ShaderVariation GaussianDOFSeparateMat::VAR_Near_NoFar = ShaderVariation({
+		ShaderVariation::Param("NEAR", true),
+		ShaderVariation::Param("FAR", false),
+		ShaderVariation::Param("NEAR_AND_FAR", false)
+	});
+
+	GaussianDOFSeparateMat::GaussianDOFSeparateMat()
 	{
 		mParamBuffer = gGaussianDOFParamDef.createBuffer();
 
@@ -754,16 +827,14 @@ namespace bs { namespace ct
 		colorSampState.set(samplerState);
 	}
 
-	template<bool Near, bool Far>
-	void GaussianDOFSeparateMat<Near, Far>::_initDefines(ShaderDefines& defines)
+	void GaussianDOFSeparateMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("NEAR", Near ? 1 : 0);
-		defines.set("FAR", Far ? 1 : 0);
-		defines.set("NEAR_AND_FAR", (Near && Far) ? 1 : 0);
+		variations.add(VAR_Near_Far);
+		variations.add(VAR_Near_NoFar);
+		variations.add(VAR_NoNear_Far);
 	}
 
-	template<bool Near, bool Far>
-	void GaussianDOFSeparateMat<Near, Far>::execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, 
+	void GaussianDOFSeparateMat::execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, 
 		const RendererView& view, const DepthOfFieldSettings& settings)
 	{
 		const TextureProperties& srcProps = color->getProperties();
@@ -775,8 +846,11 @@ namespace bs { namespace ct
 			outputWidth, outputHeight, TU_RENDERTARGET);
 		mOutput0 = GpuResourcePool::instance().get(outputTexDesc);
 
+		bool near = mVariation.getBool("NEAR");
+		bool far = mVariation.getBool("FAR");
+
 		SPtr<RenderTexture> rt;
-		if (Near && Far)
+		if (near && far)
 		{
 			mOutput1 = GpuResourcePool::instance().get(outputTexDesc);
 
@@ -811,8 +885,7 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	template <bool Near, bool Far>
-	SPtr<PooledRenderTexture> GaussianDOFSeparateMat<Near, Far>::getOutput(UINT32 idx)
+	SPtr<PooledRenderTexture> GaussianDOFSeparateMat::getOutput(UINT32 idx)
 	{
 		if (idx == 0)
 			return mOutput0;
@@ -822,8 +895,7 @@ namespace bs { namespace ct
 		return nullptr;
 	}
 
-	template<bool Near, bool Far>
-	void GaussianDOFSeparateMat<Near, Far>::release()
+	void GaussianDOFSeparateMat::release()
 	{
 		if (mOutput0 != nullptr)
 			GpuResourcePool::instance().release(mOutput0);
@@ -832,12 +904,38 @@ namespace bs { namespace ct
 			GpuResourcePool::instance().release(mOutput1);
 	}
 
-	template class GaussianDOFSeparateMat<true, true>;
-	template class GaussianDOFSeparateMat<true, false>;
-	template class GaussianDOFSeparateMat<false, true>;
+	GaussianDOFSeparateMat* GaussianDOFSeparateMat::getVariation(bool near, bool far)
+	{
+		if (near)
+		{
+			if (far)
+				return get(VAR_Near_Far);
+			else
+				return get(VAR_Near_NoFar);
+		}
+		else
+			return get(VAR_NoNear_Far);
+	}
 
-	template<bool Near, bool Far>
-	GaussianDOFCombineMat<Near, Far>::GaussianDOFCombineMat()
+	ShaderVariation GaussianDOFCombineMat::VAR_Near_Far = ShaderVariation({
+		ShaderVariation::Param("NEAR", true),
+		ShaderVariation::Param("FAR", true),
+		ShaderVariation::Param("NEAR_AND_FAR", true)
+	});
+
+	ShaderVariation GaussianDOFCombineMat::VAR_NoNear_Far = ShaderVariation({
+		ShaderVariation::Param("NEAR", false),
+		ShaderVariation::Param("FAR", true),
+		ShaderVariation::Param("NEAR_AND_FAR", false)
+	});
+
+	ShaderVariation GaussianDOFCombineMat::VAR_Near_NoFar = ShaderVariation({
+		ShaderVariation::Param("NEAR", true),
+		ShaderVariation::Param("FAR", false),
+		ShaderVariation::Param("NEAR_AND_FAR", false)
+	});
+
+	GaussianDOFCombineMat::GaussianDOFCombineMat()
 	{
 		mParamBuffer = gGaussianDOFParamDef.createBuffer();
 
@@ -854,16 +952,14 @@ namespace bs { namespace ct
 			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gFarTex", mFarTexture);
 	}
 
-	template<bool Near, bool Far>
-	void GaussianDOFCombineMat<Near, Far>::_initDefines(ShaderDefines& defines)
+	void GaussianDOFCombineMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("NEAR", Near ? 1 : 0);
-		defines.set("FAR", Far ? 1 : 0);
-		defines.set("NEAR_AND_FAR", (Near && Far) ? 1 : 0);
+		variations.add(VAR_Near_Far);
+		variations.add(VAR_Near_NoFar);
+		variations.add(VAR_NoNear_Far);
 	}
 
-	template<bool Near, bool Far>
-	void GaussianDOFCombineMat<Near, Far>::execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, 
+	void GaussianDOFCombineMat::execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, 
 		const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output,
 		const RendererView& view, const DepthOfFieldSettings& settings)
 	{
@@ -893,9 +989,18 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	template class GaussianDOFCombineMat<true, true>;
-	template class GaussianDOFCombineMat<true, false>;
-	template class GaussianDOFCombineMat<false, true>;
+	GaussianDOFCombineMat* GaussianDOFCombineMat::getVariation(bool near, bool far)
+	{
+		if (near)
+		{
+			if (far)
+				return get(VAR_Near_Far);
+			else
+				return get(VAR_Near_NoFar);
+		}
+		else
+			return get(VAR_NoNear_Far);
+	}
 
 	void GaussianDOF::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& sceneDepth, 
 		const SPtr<RenderTarget>& output, const RendererView& view, const DepthOfFieldSettings& settings)
@@ -906,27 +1011,9 @@ namespace bs { namespace ct
 		// This shouldn't have been called if both are false
 		assert(near || far);
 
-		IGaussianDOFSeparateMat* separateMat;
-		IGaussianDOFCombineMat* combineMat;
-
-		if (near && far)
-		{
-			separateMat = &mSeparateNF;
-			combineMat = &mCombineNF;
-		}
-		else
-		{
-			if(near)
-			{
-				separateMat = &mSeparateN;
-				combineMat = &mCombineN;
-			}
-			else
-			{
-				separateMat = &mSeparateF;
-				combineMat = &mCombineF;
-			}
-		}
+		GaussianDOFSeparateMat* separateMat = GaussianDOFSeparateMat::getVariation(near, far);
+		GaussianDOFCombineMat* combineMat = GaussianDOFCombineMat::getVariation(near, far);
+		GaussianBlurMat* blurMat = GaussianBlurMat::get();
 
 		separateMat->execute(sceneColor, sceneDepth, view, settings);
 
@@ -954,7 +1041,7 @@ namespace bs { namespace ct
 		SPtr<Texture> blurredNearTex;
 		if(nearTex)
 		{
-			mBlur.execute(nearTex->texture, settings.nearBlurAmount, tempTexture->renderTexture);
+			blurMat->execute(nearTex->texture, settings.nearBlurAmount, tempTexture->renderTexture);
 			blurredNearTex = tempTexture->texture;
 		}
 
@@ -964,12 +1051,12 @@ namespace bs { namespace ct
 			// If temporary texture is used up, re-use the original near texture for the blurred result
 			if(blurredNearTex)
 			{
-				mBlur.execute(farTex->texture, settings.farBlurAmount, nearTex->renderTexture);
+				blurMat->execute(farTex->texture, settings.farBlurAmount, nearTex->renderTexture);
 				blurredFarTex = nearTex->texture;
 			}
 			else // Otherwise just use the temporary
 			{
-				mBlur.execute(farTex->texture, settings.farBlurAmount, tempTexture->renderTexture);
+				blurMat->execute(farTex->texture, settings.farBlurAmount, tempTexture->renderTexture);
 				blurredFarTex = tempTexture->texture;
 			}
 		}
@@ -994,7 +1081,7 @@ namespace bs { namespace ct
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
 	}
 
-	void BuildHiZMat::_initDefines(ShaderDefines& defines)
+	void BuildHiZMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -1041,7 +1128,8 @@ namespace bs { namespace ct
 				Math::ceilToInt(viewInfo.viewRect.width / 2.0f) / (float)outProps.getWidth(),
 				Math::ceilToInt(viewInfo.viewRect.height / 2.0f) / (float)outProps.getHeight());
 
-			mHiZMat.execute(source, 0, srcRect, destRect, rt);
+			BuildHiZMat* material = BuildHiZMat::get();
+			material->execute(source, 0, srcRect, destRect, rt);
 		}
 		else // First level is just a copy of the depth buffer
 		{
@@ -1069,7 +1157,9 @@ namespace bs { namespace ct
 			rtDesc.colorSurfaces[0].mipLevel = i;
 
 			rt = RenderTexture::create(rtDesc);
-			mHiZMat.execute(output, i - 1, destRect, destRect, rt);
+
+			BuildHiZMat* material = BuildHiZMat::get();
+			material->execute(output, i - 1, destRect, destRect, rt);
 		}
 	}
 
@@ -1095,7 +1185,7 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void FXAAMat::_initDefines(ShaderDefines& defines)
+	void FXAAMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -1119,8 +1209,37 @@ namespace bs { namespace ct
 
 	SSAOParamDef gSSAOParamDef;
 
-	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
-	SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::SSAOMat()
+#define VARIATION(QUALITY) \
+		ShaderVariation SSAOMat::VAR_Upsample_Final_Quality##QUALITY = ShaderVariation({		\
+			ShaderVariation::Param("MIX_WITH_UPSAMPLED", true),									\
+			ShaderVariation::Param("FINAL_AO", true),											\
+			ShaderVariation::Param("QUALITY", QUALITY)											\
+		});																						\
+		ShaderVariation SSAOMat::VAR_Upsample_NoFinal_Quality##QUALITY = ShaderVariation({		\
+			ShaderVariation::Param("MIX_WITH_UPSAMPLED", true),									\
+			ShaderVariation::Param("FINAL_AO", false),											\
+			ShaderVariation::Param("QUALITY", QUALITY)											\
+		});																						\
+		ShaderVariation SSAOMat::VAR_NoUpsample_Final_Quality##QUALITY = ShaderVariation({		\
+			ShaderVariation::Param("MIX_WITH_UPSAMPLED", false),								\
+			ShaderVariation::Param("FINAL_AO", true),											\
+			ShaderVariation::Param("QUALITY", QUALITY)											\
+		});																						\
+		ShaderVariation SSAOMat::VAR_NoUpsample_NoFinal_Quality##QUALITY = ShaderVariation({	\
+			ShaderVariation::Param("MIX_WITH_UPSAMPLED", false),								\
+			ShaderVariation::Param("FINAL_AO", false),											\
+			ShaderVariation::Param("QUALITY", QUALITY)											\
+		});
+
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION
+
+	SSAOMat::SSAOMat()
 	{
 		mParamBuffer = gSSAOParamDef.createBuffer();
 
@@ -1156,16 +1275,24 @@ namespace bs { namespace ct
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gRandomSamp", randomSampState);
 	}
 
-	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
-	void SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::_initDefines(ShaderDefines& defines)
+	void SSAOMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("MIX_WITH_UPSAMPLED", UPSAMPLE ? 1 : 0);
-		defines.set("FINAL_AO", FINAL_PASS ? 1 : 0);
-		defines.set("QUALITY", QUALITY);
+#define VARIATION(QUALITY) \
+		variations.add(VAR_Upsample_Final_Quality##QUALITY);		\
+		variations.add(VAR_Upsample_NoFinal_Quality##QUALITY);		\
+		variations.add(VAR_NoUpsample_Final_Quality##QUALITY);		\
+		variations.add(VAR_NoUpsample_NoFinal_Quality##QUALITY);	\
+
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION
 	}
 
-	template <bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
-	void SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>::execute(const RendererView& view, const SSAOTextureInputs& textures, 
+	void SSAOMat::execute(const RendererView& view, const SSAOTextureInputs& textures, 
 		const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
 	{
 		// Scale that can be used to adjust how quickly does AO radius increase with downsampled AO. This yields a very
@@ -1210,7 +1337,8 @@ namespace bs { namespace ct
 		gSSAOParamDef.gPower.set(mParamBuffer, settings.power);
 		gSSAOParamDef.gIntensity.set(mParamBuffer, settings.intensity);
 		
-		if(UPSAMPLE)
+		bool upsample = mVariation.getBool("MIX_WITH_UPSAMPLED");
+		if(upsample)
 		{
 			const TextureProperties& props = textures.aoDownsampled->getProperties();
 
@@ -1235,13 +1363,14 @@ namespace bs { namespace ct
 
 		mSetupAOTexture.set(textures.aoSetup);
 
-		if (FINAL_PASS)
+		bool finalPass = mVariation.getBool("FINAL_AO");
+		if (finalPass)
 		{
 			mDepthTexture.set(textures.sceneDepth);
 			mNormalsTexture.set(textures.sceneNormals);
 		}
 
-		if (UPSAMPLE)
+		if (upsample)
 			mDownsampledAOTexture.set(textures.aoDownsampled);
 		
 		mRandomTexture.set(textures.randomRotations);
@@ -1255,6 +1384,39 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
+	}
+
+	SSAOMat* SSAOMat::getVariation(bool upsample, bool finalPass, int quality)
+	{
+#define PICK_MATERIAL(QUALITY)															\
+		if(upsample)																	\
+			if(finalPass)																\
+				return get(VAR_Upsample_Final_Quality##QUALITY);						\
+			else																		\
+				return get(VAR_Upsample_NoFinal_Quality##QUALITY);						\
+		else																			\
+			if(finalPass)																\
+				return get(VAR_NoUpsample_Final_Quality##QUALITY);						\
+			else																		\
+				return get(VAR_NoUpsample_NoFinal_Quality##QUALITY);					\
+
+		switch(quality)
+		{
+		case 0:
+			PICK_MATERIAL(0)
+		case 1:
+			PICK_MATERIAL(1)
+		case 2:
+			PICK_MATERIAL(2)
+		case 3:
+			PICK_MATERIAL(3)
+		default:
+		case 4:
+			PICK_MATERIAL(4)
+		}
+
+#undef PICK_MATERIAL
+		
 	}
 
 	SSAODownsampleParamDef gSSAODownsampleParamDef;
@@ -1280,7 +1442,7 @@ namespace bs { namespace ct
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 	}
 
-	void SSAODownsampleMat::_initDefines(ShaderDefines& defines)
+	void SSAODownsampleMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -1316,8 +1478,15 @@ namespace bs { namespace ct
 
 	SSAOBlurParamDef gSSAOBlurParamDef;
 
-	template<bool HORIZONTAL>
-	SSAOBlurMat<HORIZONTAL>::SSAOBlurMat()
+	ShaderVariation SSAOBlurMat::VAR_Vertical = ShaderVariation({
+		ShaderVariation::Param("DIR_HORZ", false)
+	});
+
+	ShaderVariation SSAOBlurMat::VAR_Horizontal = ShaderVariation({
+		ShaderVariation::Param("DIR_HORZ", true)
+	});
+
+	SSAOBlurMat::SSAOBlurMat()
 	{
 		mParamBuffer = gSSAOBlurParamDef.createBuffer();
 		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
@@ -1338,14 +1507,13 @@ namespace bs { namespace ct
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 	}
 
-	template<bool HORIZONTAL>
-	void SSAOBlurMat<HORIZONTAL>::_initDefines(ShaderDefines& defines)
+	void SSAOBlurMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("DIR_HORZ", HORIZONTAL ? 1 : 0);
+		variations.add(VAR_Horizontal);
+		variations.add(VAR_Vertical);
 	}
 
-	template<bool HORIZONTAL>
-	void SSAOBlurMat<HORIZONTAL>::execute(const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& depth, 
+	void SSAOBlurMat::execute(const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& depth, 
 		const SPtr<RenderTexture>& destination, float depthRange)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
@@ -1356,7 +1524,7 @@ namespace bs { namespace ct
 		pixelSize.y = 1.0f / texProps.getHeight();
 
 		Vector2 pixelOffset(BsZero);
-		if (HORIZONTAL)
+		if (mVariation.getBool("DIR_HORZ"))
 			pixelOffset.x = pixelSize.x;
 		else
 			pixelOffset.y = pixelSize.y;
@@ -1379,6 +1547,14 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
+	}
+
+	SSAOBlurMat* SSAOBlurMat::getVariation(bool horizontal)
+	{
+		if (horizontal)
+			return get(VAR_Horizontal);
+		
+		return get(VAR_Vertical);
 	}
 
 	SSAO::SSAO()
@@ -1422,6 +1598,9 @@ namespace bs { namespace ct
 		else if (quality > 2)
 			numDownsampleLevels = 2;
 
+
+		SSAODownsampleMat* downsample = SSAODownsampleMat::get();
+
 		SPtr<PooledRenderTexture> setupTex0;
 		if(numDownsampleLevels > 0)
 		{
@@ -1434,7 +1613,7 @@ namespace bs { namespace ct
 				downsampledSize.y, TU_RENDERTARGET);
 			setupTex0 = GpuResourcePool::instance().get(desc);
 
-			mDownsample.execute(view, sceneDepth, sceneNormals, setupTex0->renderTexture, DEPTH_RANGE);
+			downsample->execute(view, sceneDepth, sceneNormals, setupTex0->renderTexture, DEPTH_RANGE);
 		}
 
 		SPtr<PooledRenderTexture> setupTex1;
@@ -1449,7 +1628,7 @@ namespace bs { namespace ct
 				downsampledSize.y, TU_RENDERTARGET);
 			setupTex1 = GpuResourcePool::instance().get(desc);
 
-			mDownsample.execute(view, sceneDepth, sceneNormals, setupTex1->renderTexture, DEPTH_RANGE);
+			downsample->execute(view, sceneDepth, sceneNormals, setupTex1->renderTexture, DEPTH_RANGE);
 		}
 
 		SSAOTextureInputs textures;
@@ -1471,7 +1650,8 @@ namespace bs { namespace ct
 				downsampledSize.y, TU_RENDERTARGET);
 			downAOTex1 = GpuResourcePool::instance().get(desc);
 
-			executeSSAOMat(false, false, quality, view, textures, downAOTex1->renderTexture, settings);
+			SSAOMat* ssaoMat = SSAOMat::getVariation(false, false, quality);
+			ssaoMat->execute(view, textures, downAOTex1->renderTexture, settings);
 
 			GpuResourcePool::instance().release(setupTex1);
 			setupTex1 = nullptr;
@@ -1495,7 +1675,8 @@ namespace bs { namespace ct
 			downAOTex0 = GpuResourcePool::instance().get(desc);
 
 			bool upsample = numDownsampleLevels > 1;
-			executeSSAOMat(upsample, false, quality, view, textures, downAOTex0->renderTexture, settings);
+			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, false, quality);
+			ssaoMat->execute(view, textures, downAOTex0->renderTexture, settings);
 
 			if(upsample)
 			{
@@ -1512,7 +1693,8 @@ namespace bs { namespace ct
 				textures.aoDownsampled = downAOTex0->texture;
 
 			bool upsample = numDownsampleLevels > 0;
-			executeSSAOMat(upsample, true, quality, view, textures, destination, settings);
+			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, true, quality);
+			ssaoMat->execute(view, textures, destination, settings);
 		}
 
 		if(resolvedNormals)
@@ -1538,50 +1720,15 @@ namespace bs { namespace ct
 				rtProps.getHeight(), TU_RENDERTARGET);
 			SPtr<PooledRenderTexture> blurIntermediateTex = GpuResourcePool::instance().get(desc);
 
-			mBlurHorz.execute(view, destination->getColorTexture(0), sceneDepth, blurIntermediateTex->renderTexture, 
+			SSAOBlurMat* blurHorz = SSAOBlurMat::getVariation(true);
+			SSAOBlurMat* blurVert = SSAOBlurMat::getVariation(false);
+
+			blurHorz->execute(view, destination->getColorTexture(0), sceneDepth, blurIntermediateTex->renderTexture, 
 				DEPTH_RANGE);
-			mBlurVert.execute(view, blurIntermediateTex->texture, sceneDepth, destination, DEPTH_RANGE);
+			blurVert->execute(view, blurIntermediateTex->texture, sceneDepth, destination, DEPTH_RANGE);
 
 			GpuResourcePool::instance().release(blurIntermediateTex);
 		}
-	}
-
-	void SSAO::executeSSAOMat(bool upsample, bool final, int quality, const RendererView& view, 
-		const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
-	{
-#define PICK_MATERIAL(QUALITY)															\
-		if(upsample)																	\
-			if(final)																	\
-				mSSAO_TT_##QUALITY.execute(view, textures, destination, settings);		\
-			else																		\
-				mSSAO_TF_##QUALITY.execute(view, textures, destination, settings);		\
-		else																			\
-			if(final)																	\
-				mSSAO_FT_##QUALITY.execute(view, textures, destination, settings);		\
-			else																		\
-				mSSAO_FF_##QUALITY.execute(view, textures, destination, settings);		\
-
-		switch(quality)
-		{
-		case 0:
-			PICK_MATERIAL(0)
-			break;
-		case 1:
-			PICK_MATERIAL(1)
-			break;
-		case 2:
-			PICK_MATERIAL(2)
-			break;
-		case 3:
-			PICK_MATERIAL(3)
-			break;
-		default:
-		case 4:
-			PICK_MATERIAL(4)
-			break;
-		}
-
-#undef PICK_MATERIAL
 	}
 
 	SPtr<Texture> SSAO::generate4x4RandomizationTexture() const
@@ -1620,7 +1767,7 @@ namespace bs { namespace ct
 		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 	}
 
-	void SSRStencilMat::_initDefines(ShaderDefines& defines)
+	void SSRStencilMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -1658,7 +1805,7 @@ namespace bs { namespace ct
 			gpuParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 	}
 
-	void SSRTraceMat::_initDefines(ShaderDefines& defines)
+	void SSRTraceMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -1737,8 +1884,17 @@ namespace bs { namespace ct
 	TemporalResolveParamDef gTemporalResolveParamDef;
 	SSRResolveParamDef gSSRResolveParamDef;
 
-	template<bool EyeAdaptation>
-	SSRResolveMat<EyeAdaptation>::SSRResolveMat()
+	ShaderVariation SSRResolveMat::VAR_EyeAdaptation = ShaderVariation({
+		ShaderVariation::Param("EYE_ADAPTATION", true),
+		ShaderVariation::Param("MSAA", false)
+	});
+
+	ShaderVariation SSRResolveMat::VAR_NoEyeAdaptation = ShaderVariation({
+		ShaderVariation::Param("EYE_ADAPTATION", false),
+		ShaderVariation::Param("MSAA", false)
+	});
+
+	SSRResolveMat::SSRResolveMat()
 	{
 		mSSRParamBuffer = gSSRResolveParamDef.createBuffer();
 		mTemporalParamBuffer = gTemporalResolveParamDef.createBuffer();
@@ -1774,15 +1930,13 @@ namespace bs { namespace ct
 		gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler", linearSampState);
 	}
 
-	template<bool EyeAdaptation>
-	void SSRResolveMat<EyeAdaptation>::_initDefines(ShaderDefines& defines)
+	void SSRResolveMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("EYE_ADAPTATION", EyeAdaptation ? 1 : 0);
-		defines.set("MSAA", 0);
+		variations.add(VAR_EyeAdaptation);
+		variations.add(VAR_NoEyeAdaptation);
 	}
 
-	template <bool EyeAdaptation>
-	void SSRResolveMat<EyeAdaptation>::execute(const RendererView& view, const SPtr<Texture>& prevFrame, 
+	void SSRResolveMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame, 
 		const SPtr<Texture>& curFrame, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination)
 	{
 		// TODO - MSAA not supported (remember UV must be in pixels) 
@@ -1796,7 +1950,7 @@ namespace bs { namespace ct
 		mSceneColorTexture.set(curFrame);
 		mSceneDepthTexture.set(sceneDepth);
 
-		if(EyeAdaptation)
+		if(mVariation.getBool("EYE_ADAPTATION"))
 		{
 			// TODO - Set eye adaptation texture
 		}
@@ -1915,12 +2069,15 @@ namespace bs { namespace ct
 
 		if(hdr && settings.enableAutoExposure)
 		{
-			mDownsample.execute(1, msaa, sceneColor, ppInfo);
-			mEyeAdaptHistogram.execute(ppInfo);
-			mDownsample.release(1, msaa, ppInfo);
+			DownsampleMat* downsample = DownsampleMat::getVariation(1, msaa);
+			EyeAdaptHistogramMat* eyeAdaptHistogram = EyeAdaptHistogramMat::get();
+
+			downsample->execute(sceneColor, ppInfo);
+			eyeAdaptHistogram->execute(ppInfo);
+			downsample->release(ppInfo);
 
 			mEyeAdaptHistogramReduce.execute(ppInfo);
-			mEyeAdaptHistogram.release(ppInfo);
+			eyeAdaptHistogram->release(ppInfo);
 
 			mEyeAdaptation.execute(ppInfo, frameDelta);
 			mEyeAdaptHistogramReduce.release(ppInfo);
@@ -1933,7 +2090,10 @@ namespace bs { namespace ct
 			if (settings.enableTonemapping)
 			{
 				if (ppInfo.settingDirty) // Rebuild LUT if PP settings changed
-					mCreateLUT.execute(ppInfo);
+				{
+					CreateTonemapLUTMat* createLUT = CreateTonemapLUTMat::get();
+					createLUT->execute(ppInfo);
+				}
 
 				gammaOnly = false;
 			}
@@ -1974,7 +2134,8 @@ namespace bs { namespace ct
 			tonemapTarget = renderTargets->getRT(RTT_ResolvedSceneColorSecondary);
 		}
 
-		mTonemapping.execute(gammaOnly, autoExposure, msaa, sceneColor, tonemapTarget, viewportRect, ppInfo);
+		TonemappingMat* tonemapping = TonemappingMat::getVariation(gammaOnly, autoExposure, msaa);
+		tonemapping->execute(sceneColor, tonemapTarget, viewportRect, ppInfo);
 
 
 
@@ -2013,7 +2174,8 @@ namespace bs { namespace ct
 				fxaaSource = renderTargets->get(RTT_ResolvedSceneColorSecondary);
 
 			// Note: I could skip executing FXAA over DOF and motion blurred pixels
-			mFXAA.execute(fxaaSource, viewProps.target);
+			FXAAMat* fxaa = FXAAMat::get();
+			fxaa->execute(fxaaSource, viewProps.target);
 
 			if (performDOF)
 				renderTargets->release(RTT_ResolvedSceneColor);

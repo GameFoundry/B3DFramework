@@ -240,12 +240,34 @@ namespace bs { namespace ct
 		mLightDataTemp.clear();
 	}
 
-	const UINT32 TiledDeferredLighting::TILE_SIZE = 16;
+	const UINT32 TiledDeferredLightingMat::TILE_SIZE = 16;
 
-	TiledDeferredLighting::TiledDeferredLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet,
-													UINT32 sampleCount)
-		: mSampleCount(sampleCount), mMaterial(material), mParamsSet(paramsSet), mGBufferParams(material, paramsSet)
+	ShaderVariation TiledDeferredLightingMat::VAR_1MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	ShaderVariation TiledDeferredLightingMat::VAR_2MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
+	ShaderVariation TiledDeferredLightingMat::VAR_4MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 4)
+	});
+
+	ShaderVariation TiledDeferredLightingMat::VAR_8MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 8)
+	});
+
+
+	TiledDeferredLightingMat::TiledDeferredLightingMat()
+		:mGBufferParams(mMaterial, mParamsSet)
 	{
+		mSampleCount = mVariation.getUInt("MSAA_COUNT");
+
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
@@ -260,7 +282,15 @@ namespace bs { namespace ct
 		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
 	}
 
-	void TiledDeferredLighting::execute(const RendererView& view, const VisibleLightData& lightData, 
+	void TiledDeferredLightingMat::_initVariations(ShaderVariations& variations)
+	{
+		variations.add(VAR_1MSAA);
+		variations.add(VAR_2MSAA);
+		variations.add(VAR_4MSAA);
+		variations.add(VAR_8MSAA);
+	}
+
+	void TiledDeferredLightingMat::execute(const RendererView& view, const VisibleLightData& lightData, 
 		const GBufferInput& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
@@ -335,31 +365,21 @@ namespace bs { namespace ct
 		RenderAPI::instance().dispatchCompute(numTilesX, numTilesY);
 	}
 
-	template<int MSAA_COUNT>
-	TTiledDeferredLightingMat<MSAA_COUNT>::TTiledDeferredLightingMat()
-		:mInternal(mMaterial, mParamsSet, MSAA_COUNT)
+	TiledDeferredLightingMat* TiledDeferredLightingMat::getVariation(UINT32 msaaCount)
 	{
-
+		switch(msaaCount)
+		{
+		case 1:
+			return get(VAR_1MSAA);
+		case 2:
+			return get(VAR_2MSAA);
+		case 4:
+			return get(VAR_4MSAA);
+		case 8:
+		default:
+			return get(VAR_8MSAA);
+		}
 	}
-
-	template<int MSAA_COUNT>
-	void TTiledDeferredLightingMat<MSAA_COUNT>::_initDefines(ShaderDefines& defines)
-	{
-		defines.set("TILE_SIZE", TiledDeferredLighting::TILE_SIZE);
-		defines.set("MSAA_COUNT", MSAA_COUNT);
-	}
-
-	template<int MSAA_COUNT>
-	void TTiledDeferredLightingMat<MSAA_COUNT>::execute(const RendererView& view, const VisibleLightData& lightData, 
-		const GBufferInput& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer)
-	{
-		mInternal.execute(view, lightData, gbuffer, lightAccumTex, lightAccumBuffer);
-	}
-
-	template class TTiledDeferredLightingMat<1>;
-	template class TTiledDeferredLightingMat<2>;
-	template class TTiledDeferredLightingMat<4>;
-	template class TTiledDeferredLightingMat<8>;
 
 	FlatFramebufferToTextureParamDef gFlatFramebufferToTextureParamDef;
 
@@ -372,7 +392,7 @@ namespace bs { namespace ct
 		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
 	}
 
-	void FlatFramebufferToTextureMat::_initDefines(ShaderDefines& defines)
+	void FlatFramebufferToTextureMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}

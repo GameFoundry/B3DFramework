@@ -26,6 +26,7 @@ namespace bs
 			ct::RendererMaterialMetaData* metaData;
 			Path shaderPath;
 			Path resourcePath;
+			UINT32 variationIdx;
 		};
 
 	public:

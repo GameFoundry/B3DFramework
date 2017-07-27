@@ -182,7 +182,6 @@ namespace bs { namespace ct
 		UINT32 mWidth;
 		UINT32 mHeight;
 
-		// Note: Only a single instance of this is needed, move it to a Module eventually
 		BuildHiZ mBuildHiZ;
 	};
 

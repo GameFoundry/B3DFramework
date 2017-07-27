@@ -145,22 +145,23 @@ namespace bs { namespace ct
 
 	extern TiledLightingParamDef gTiledLightingParamDef;
 
-	/** Functionality common to all versions of TiledDeferredLightingMat<T>. */
-	class TiledDeferredLighting
+	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+	class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
 	{
+		RMAT_DEF("TiledDeferredLighting.bsl");
+
 	public:
-		TiledDeferredLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet, UINT32 sampleCount);
+		TiledDeferredLightingMat();
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
-		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer, 
+		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
 			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer);
 
-		static const UINT32 TILE_SIZE;
+		/** Returns the material variation matching the provided parameters. */
+		static TiledDeferredLightingMat* getVariation(UINT32 msaaCount);
+
 	private:
 		UINT32 mSampleCount;
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
-
 		GBufferParams mGBufferParams;
 
 		GpuParamBuffer mLightBufferParam;
@@ -168,33 +169,13 @@ namespace bs { namespace ct
 		GpuParamBuffer mOutputBufferParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-	};
 
-	/** Interface implemented by all versions of TTiledDeferredLightingMat<T>. */
-	class ITiledDeferredLightingMat
-	{
-	public:
-		virtual ~ITiledDeferredLightingMat() {}
+		static const UINT32 TILE_SIZE;
 
-		/** @copydoc TiledDeferredLighting::execute() */
-		virtual void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
-			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer) = 0;
-	};
-
-	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-	template<int MSAA_COUNT>
-	class TTiledDeferredLightingMat : public ITiledDeferredLightingMat, public RendererMaterial<TTiledDeferredLightingMat<MSAA_COUNT>>
-	{
-		RMAT_DEF("TiledDeferredLighting.bsl");
-
-	public:
-		TTiledDeferredLightingMat();
-
-		/** @copydoc ITiledDeferredLightingMat::execute() */
-		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
-			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer) override;
-	private:
-		TiledDeferredLighting mInternal;
+		static ShaderVariation VAR_1MSAA;
+		static ShaderVariation VAR_2MSAA;
+		static ShaderVariation VAR_4MSAA;
+		static ShaderVariation VAR_8MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FlatFramebufferToTextureParamDef)

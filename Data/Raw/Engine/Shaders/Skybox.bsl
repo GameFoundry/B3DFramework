@@ -42,7 +42,7 @@ technique Skybox
 			in float4 inPos : SV_Position, 
 			in float3 dir : TEXCOORD0) : SV_Target
 		{
-			#ifdef SOLID_COLOR
+			#if SOLID_COLOR
 				return gClearColor;
 			#else
 				return gSkyTex.SampleLevel(gSkySamp, dir, 0);

@@ -15,18 +15,8 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	/** 
-	 * Shader that copies a source texture into a render target, and optionally resolves it. 
-	 * 
-	 * @tparam	MSAA_COUNT		Number of MSAA samples in the input texture. If larger than 1 the texture will be resolved
-	 *							before written to the destination.
-	 * @tparam	IS_COLOR		If true the input is assumed to be a 4-component color texture. If false it is assumed
-	 *							the input is a 1-component depth texture. This controls how is the texture resolve and is
-	 *							only relevant if MSAA_COUNT > 1. Color texture MSAA samples will be averaged, while for
-	 *							depth textures the minimum of all samples will be used.
-	 */
-	template<int MSAA_COUNT, bool IS_COLOR = true>
-	class BlitMat : public RendererMaterial<BlitMat<MSAA_COUNT, IS_COLOR>>
+	/** Shader that copies a source texture into a render target, and optionally resolves it. */
+	class BlitMat : public RendererMaterial<BlitMat>
 	{
 		RMAT_DEF("Blit.bsl");
 
@@ -35,8 +25,30 @@ namespace bs { namespace ct
 
 		/** Updates the parameter buffers used by the material. */
 		void setParameters(const SPtr<Texture>& source);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param	msaaCount		Number of MSAA samples in the input texture. If larger than 1 the texture will be resolved
+		 *							before written to the destination.
+		 * @param	isColor			If true the input is assumed to be a 4-component color texture. If false it is assumed
+		 *							the input is a 1-component depth texture. This controls how is the texture resolve and is
+		 *							only relevant if @p msaaCount > 1. Color texture MSAA samples will be averaged, while for
+		 *							depth textures the minimum of all samples will be used.
+		 */
+		static BlitMat* getVariation(UINT32 msaaCount, bool isColor);
 	private:
 		MaterialParamTexture mSource;
+
+		static ShaderVariation VAR_1MSAA_Color;
+		static ShaderVariation VAR_2MSAA_Color;
+		static ShaderVariation VAR_4MSAA_Color;
+		static ShaderVariation VAR_8MSAA_Color;
+
+		static ShaderVariation VAR_1MSAA_Depth;
+		static ShaderVariation VAR_2MSAA_Depth;
+		static ShaderVariation VAR_4MSAA_Depth;
+		static ShaderVariation VAR_8MSAA_Depth;
 	};
 
 	/**
@@ -182,14 +194,6 @@ namespace bs { namespace ct
 		SPtr<Mesh> mPointLightStencilMesh;
 		SPtr<Mesh> mSpotLightStencilMesh;
 		SPtr<Mesh> mSkyBoxMesh;
-
-		BlitMat<1, true> mBlitMat_Color_NoMSAA;
-		BlitMat<2, true> mBlitMat_Color_MSAA2x;
-		BlitMat<4, true> mBlitMat_Color_MSAA4x;
-		BlitMat<8, true> mBlitMat_Color_MSAA8x;
-		BlitMat<2, false> mBlitMat_Depth_MSAA2x;
-		BlitMat<4, false> mBlitMat_Depth_MSAA4x;
-		BlitMat<8, false> mBlitMat_Depth_MSAA8x;
 	};
 
 	/** Provides easy access to RendererUtility. */

@@ -112,14 +112,8 @@ namespace bs { namespace ct
 
 	extern IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
 
-	/** 
-	 * Computes spherical harmonic coefficients from a radiance cubemap. 
-	 * 
-	 * @tparam ORDER	SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are 
-	 *					supported.
-	 */
-	template<int ORDER = 5>
-	class IrradianceComputeSHMat : public RendererMaterial<IrradianceComputeSHMat<ORDER>>
+	/** Computes spherical harmonic coefficients from a radiance cubemap. */
+	class IrradianceComputeSHMat : public RendererMaterial<IrradianceComputeSHMat>
 	{
 		RMAT_DEF("IrradianceComputeSH.bsl")
 
@@ -134,12 +128,23 @@ namespace bs { namespace ct
 		void execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output);
 
 		/** Creates a buffer of adequate size to be used as output for this material. */
-		static SPtr<GpuBuffer> createOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets);
+		SPtr<GpuBuffer> createOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are 
+		 *					supported.
+		 */
+		static IrradianceComputeSHMat* getVariation(int order = 5);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mInputTexture;
 		GpuParamBuffer mOutputBuffer;
+
+		static ShaderVariation VAR_Order3;
+		static ShaderVariation VAR_Order5;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
@@ -152,12 +157,8 @@ namespace bs { namespace ct
 	/** 
 	 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a single
 	 * set of normalized coefficients. 
-	 *
-	 * @tparam ORDER	SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are 
-	 *					supported.
 	 */
-	template<int ORDER = 5>
-	class IrradianceReduceSHMat : public RendererMaterial<IrradianceReduceSHMat<ORDER>>
+	class IrradianceReduceSHMat : public RendererMaterial<IrradianceReduceSHMat>
 	{
 		RMAT_DEF("IrradianceReduceSH.bsl")
 
@@ -172,12 +173,23 @@ namespace bs { namespace ct
 		void execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, const SPtr<GpuBuffer>& output, UINT32 outputIdx);
 
 		/** Creates a buffer of adequate size to be used as output for this material. */
-		static SPtr<GpuBuffer> createOutputBuffer(UINT32 numEntries);
+		SPtr<GpuBuffer> createOutputBuffer(UINT32 numEntries);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are 
+		 *					supported.
+		 */
+		static IrradianceReduceSHMat* getVariation(int order = 5);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamBuffer mInputBuffer;
 		GpuParamBuffer mOutputBuffer;
+
+		static ShaderVariation VAR_Order3;
+		static ShaderVariation VAR_Order5;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceProjectSHParamDef)

@@ -253,61 +253,12 @@ namespace bs { namespace ct
 	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth)
 	{
 		auto& texProps = texture->getProperties();
-		SPtr<Material> mat;
-		SPtr<GpuParamsSet> params;
 
-#define PICK_MATERIAL(Type)									\
-			mat = mBlitMat_##Type.getMaterial();			\
-			params = mBlitMat_##Type.getParamsSet();		\
-			mBlitMat_##Type.setParameters(texture);
+		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth);
+		blitMat->setParameters(texture);
 
-		if (texProps.getNumSamples() > 1)
-		{
-			if(texProps.getNumSamples() > 8)
-				LOGWRN("Unsupported sample count in an MSAA texture");
-
-			if(isDepth)
-			{
-				switch(texProps.getNumSamples())
-				{
-				case 2:
-					PICK_MATERIAL(Depth_MSAA2x)
-					break;
-				case 4:
-					PICK_MATERIAL(Depth_MSAA4x)
-					break;
-				default:
-				case 8:
-					PICK_MATERIAL(Depth_MSAA8x)
-					break;
-				}
-			}
-			else
-			{
-				switch(texProps.getNumSamples())
-				{
-				case 2:
-					PICK_MATERIAL(Color_MSAA2x)
-					break;
-				case 4:
-					PICK_MATERIAL(Color_MSAA4x)
-					break;
-				default:
-				case 8:
-					PICK_MATERIAL(Color_MSAA8x)
-					break;
-				}
-			}
-		}
-		else
-		{
-			PICK_MATERIAL(Color_NoMSAA)
-		}
-
-#undef PICK_MATERIAL
-
-		setPass(mat);
-		setPassParams(params);
+		setPass(blitMat->getMaterial());
+		setPassParams(blitMat->getParamsSet());
 
 		Rect2 fArea((float)area.x, (float)area.y, (float)area.width, (float)area.height);
 		if (area.width == 0 || area.height == 0)
@@ -393,31 +344,102 @@ namespace bs { namespace ct
 		return RendererUtility::instance();
 	}
 
-	template<int MSAA_COUNT, bool IS_COLOR>
-	BlitMat<MSAA_COUNT, IS_COLOR>::BlitMat()
+	ShaderVariation BlitMat::VAR_1MSAA_Color = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1),
+		ShaderVariation::Param("COLOR", true)
+	});
+	ShaderVariation BlitMat::VAR_2MSAA_Color = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2),
+		ShaderVariation::Param("COLOR", true)
+	});
+
+	ShaderVariation BlitMat::VAR_4MSAA_Color = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 4),
+		ShaderVariation::Param("COLOR", true)
+	});
+
+	ShaderVariation BlitMat::VAR_8MSAA_Color = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 8),
+		ShaderVariation::Param("COLOR", true)
+	});
+
+	ShaderVariation BlitMat::VAR_1MSAA_Depth = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1),
+		ShaderVariation::Param("COLOR", false)
+	});
+
+	ShaderVariation BlitMat::VAR_2MSAA_Depth = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2),
+		ShaderVariation::Param("COLOR", false)
+	});
+
+	ShaderVariation BlitMat::VAR_4MSAA_Depth = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 4),
+		ShaderVariation::Param("COLOR", false)
+	});
+
+	ShaderVariation BlitMat::VAR_8MSAA_Depth = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 8),
+		ShaderVariation::Param("COLOR", false)
+	});
+
+
+	BlitMat::BlitMat()
 	{
 		mSource = mMaterial->getParamTexture("gSource");
 	}
 
-	template<int MSAA_COUNT, bool IS_COLOR>
-	void BlitMat<MSAA_COUNT, IS_COLOR>::_initDefines(ShaderDefines& defines)
+	void BlitMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("MSAA_COUNT", MSAA_COUNT);
-		defines.set("COLOR", IS_COLOR ? 1 : 0);
+		variations.add(VAR_1MSAA_Color);
+		variations.add(VAR_2MSAA_Color);
+		variations.add(VAR_4MSAA_Color);
+		variations.add(VAR_8MSAA_Color);
+
+		variations.add(VAR_1MSAA_Depth);
+		variations.add(VAR_2MSAA_Depth);
+		variations.add(VAR_4MSAA_Depth);
+		variations.add(VAR_8MSAA_Depth);
 	}
 
-	template<int MSAA_COUNT, bool IS_COLOR>
-	void BlitMat<MSAA_COUNT, IS_COLOR>::setParameters(const SPtr<Texture>& source)
+	void BlitMat::setParameters(const SPtr<Texture>& source)
 	{
 		mSource.set(source);
 		mMaterial->updateParamsSet(mParamsSet);
 	}
 
-	template class BlitMat<1, true>;
-	template class BlitMat<2, true>;
-	template class BlitMat<4, true>;
-	template class BlitMat<8, true>;
-	template class BlitMat<2, false>;
-	template class BlitMat<4, false>;
-	template class BlitMat<8, false>;
+	BlitMat* BlitMat::getVariation(UINT32 msaaCount, bool isColor)
+	{
+		if (msaaCount > 1)
+		{
+			if(isColor)
+			{
+				switch(msaaCount)
+				{
+				case 2:
+					return get(VAR_2MSAA_Color);
+				case 4:
+					return get(VAR_4MSAA_Color);
+				default:
+				case 8:
+					return get(VAR_8MSAA_Color);
+				}
+			}
+			else
+			{
+				switch(msaaCount)
+				{
+				case 2:
+					return get(VAR_2MSAA_Depth);
+				case 4:
+					return get(VAR_4MSAA_Depth);
+				default:
+				case 8:
+					return get(VAR_8MSAA_Depth);
+				}
+			}
+		}
+		else
+			return get(VAR_1MSAA_Color);
+	}
 }}

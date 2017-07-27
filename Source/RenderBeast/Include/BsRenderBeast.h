@@ -5,8 +5,6 @@
 #include "BsRenderBeastPrerequisites.h"
 #include "BsRenderer.h"
 #include "BsRendererMaterial.h"
-#include "BsLightRendering.h"
-#include "BsImageBasedLighting.h"
 #include "BsObjectRendering.h"
 #include "BsPostProcessing.h"
 #include "BsRendererView.h"

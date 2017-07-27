@@ -18,7 +18,6 @@ namespace bs {	namespace ct
 	RendererScene::RendererScene(const SPtr<RenderBeastOptions>& options)
 		:mOptions(options)
 	{
-		mDefaultMaterial = bs_new<DefaultMaterial>();
 	}
 
 	RendererScene::~RendererScene()
@@ -30,8 +29,6 @@ namespace bs {	namespace ct
 			bs_delete(entry);
 
 		assert(mSamplerOverrides.empty());
-
-		bs_delete(mDefaultMaterial);
 	}
 
 	void RendererScene::registerCamera(Camera* camera)
@@ -255,7 +252,7 @@ namespace bs {	namespace ct
 
 				// If no mInfo.aterial use the default mInfo.aterial
 				if (renElement.material == nullptr)
-					renElement.material = mDefaultMaterial->getMaterial();
+					renElement.material = DefaultMaterial::get()->getMaterial();
 
 				// Determine which technique to use
 				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };

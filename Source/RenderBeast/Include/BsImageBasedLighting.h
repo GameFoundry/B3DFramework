@@ -128,11 +128,13 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> buffer;
 	};
 
-	/** Functionality common to all versions of TiledDeferredImageBasedLightingMat<T>. */
-	class TiledDeferredImageBasedLighting
+	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+	class TiledDeferredImageBasedLightingMat : public RendererMaterial<TiledDeferredImageBasedLightingMat>
 	{
+		RMAT_DEF("TiledDeferredImageBasedLighting.bsl");
+
 	public:
-		/** Containers for parameters to be passed to the execute() method. */
+		/** Container for parameters to be passed to the execute() method. */
 		struct Inputs
 		{
 			GBufferInput gbuffer;
@@ -142,18 +144,17 @@ namespace bs { namespace ct
 			SPtr<Texture> preIntegratedGF;
 		};
 
-		TiledDeferredImageBasedLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet, 
-			UINT32 sampleCount);
+		TiledDeferredImageBasedLightingMat();
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
 		void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
 			const Inputs& inputs);
 
-		static const UINT32 TILE_SIZE;
+		/** Returns the material variation matching the provided parameters. */
+		static TiledDeferredImageBasedLightingMat* getVariation(UINT32 msaaCount);
+
 	private:
 		UINT32 mSampleCount;
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
 
 		GpuParamTexture mGBufferA;
 		GpuParamTexture mGBufferB;
@@ -169,34 +170,13 @@ namespace bs { namespace ct
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		ReflProbeParamBuffer mReflProbeParamBuffer;
-	};
 
-	/** Interface implemented by all versions of TTiledDeferredImageBasedLightingMat<T>. */
-	class ITiledDeferredImageBasedLightingMat
-	{
-	public:
-		virtual ~ITiledDeferredImageBasedLightingMat() {}
+		static const UINT32 TILE_SIZE;
 
-		/** @copydoc TiledDeferredImageBasedLighting::execute() */
-		virtual void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
-			const TiledDeferredImageBasedLighting::Inputs& inputs) = 0;
-	};
-
-	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-	template<int MSAA_COUNT>
-	class TTiledDeferredImageBasedLightingMat : public ITiledDeferredImageBasedLightingMat, 
-		public RendererMaterial<TTiledDeferredImageBasedLightingMat<MSAA_COUNT>>
-	{
-		RMAT_DEF("TiledDeferredImageBasedLighting.bsl");
-
-	public:
-		TTiledDeferredImageBasedLightingMat();
-
-		/** @copydoc ITiledDeferredImageBasedLightingMat::execute() */
-		void execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, 
-			const TiledDeferredImageBasedLighting::Inputs& inputs) override;
-	private:
-		TiledDeferredImageBasedLighting mInternal;
+		static ShaderVariation VAR_1MSAA;
+		static ShaderVariation VAR_2MSAA;
+		static ShaderVariation VAR_4MSAA;
+		static ShaderVariation VAR_8MSAA;
 	};
 
 	/** @} */

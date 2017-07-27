@@ -16,8 +16,15 @@ namespace bs { namespace ct
 	PerCameraParamDef gPerCameraParamDef;
 	SkyboxParamDef gSkyboxParamDef;
 
-	template<bool SOLID_COLOR>
-	SkyboxMat<SOLID_COLOR>::SkyboxMat()
+	ShaderVariation SkyboxMat::VAR_Texture = ShaderVariation({
+		ShaderVariation::Param("SOLID_COLOR", false)
+	});
+
+	ShaderVariation SkyboxMat::VAR_Color = ShaderVariation({
+		ShaderVariation::Param("SOLID_COLOR", true)
+	});
+
+	SkyboxMat::SkyboxMat()
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
@@ -30,23 +37,20 @@ namespace bs { namespace ct
 			mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::_initDefines(ShaderDefines& defines)
+	void SkyboxMat::_initVariations(ShaderVariations& variations)
 	{
-		if (SOLID_COLOR)
-			defines.set("SOLID_COLOR", 1);
+		variations.add(VAR_Color);
+		variations.add(VAR_Texture);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
+	void SkyboxMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 
 		gRendererUtility().setPass(mMaterial, 0);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::setParams(const SPtr<Texture>& texture, const Color& solidColor)
+	void SkyboxMat::setParams(const SPtr<Texture>& texture, const Color& solidColor)
 	{
 		mSkyTextureParam.set(texture, TextureSurface(1, 1, 0, 0));
 
@@ -54,6 +58,14 @@ namespace bs { namespace ct
 		mParamBuffer->flushToGPU();
 
 		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	SkyboxMat* SkyboxMat::getVariation(bool color)
+	{
+		if (color)
+			return get(VAR_Color);
+
+		return get(VAR_Texture);
 	}
 
 	RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
@@ -477,9 +489,6 @@ namespace bs { namespace ct
 	{
 		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, mProperties.noLighting);
 	}
-
-	template class SkyboxMat<true>;
-	template class SkyboxMat<false>;
 
 	RendererViewGroup::RendererViewGroup()
 		:mShadowRenderer(1024)

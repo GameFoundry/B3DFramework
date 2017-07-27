@@ -51,8 +51,7 @@ namespace bs { namespace ct
 	extern SkyboxParamDef gSkyboxParamDef;
 
 	/** Shader that renders a skybox using a cubemap or a solid color. */
-	template<bool SOLID_COLOR>
-	class SkyboxMat : public RendererMaterial<SkyboxMat<SOLID_COLOR>>
+	class SkyboxMat : public RendererMaterial<SkyboxMat>
 	{
 		RMAT_DEF("Skybox.bsl");
 
@@ -64,9 +63,20 @@ namespace bs { namespace ct
 
 		/** Updates the skybox texture & solid color used by the material. */
 		void setParams(const SPtr<Texture>& texture, const Color& solidColor);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 * 
+		 * @param[in]	color	When true the material will use a solid color to render a skybox. When false a user
+		 *						provided texture will be used instead.
+		 */
+		static SkyboxMat* getVariation(bool color);
 	private:
 		GpuParamTexture mSkyTextureParam;
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
+
+		static ShaderVariation VAR_Texture;
+		static ShaderVariation VAR_Color;
 	};
 
 	/** Data shared between RENDERER_VIEW_DESC and RendererViewProperties */

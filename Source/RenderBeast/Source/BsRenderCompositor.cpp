@@ -7,7 +7,6 @@
 #include "BsMesh.h"
 #include "BsGpuBuffer.h"
 #include "BsStandardDeferredLighting.h"
-#include "BsGlobalMaterials.h"
 #include "BsRenderBeastOptions.h"
 #include "BsCamera.h"
 #include "BsRendererScene.h"
@@ -425,8 +424,7 @@ namespace bs { namespace ct
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
-		ITiledDeferredLightingMat* tiledDeferredMat = 
-			GlobalMaterials::instance().getTileDeferredLighting(viewProps.numSamples);
+		TiledDeferredLightingMat* tiledDeferredMat = TiledDeferredLightingMat::getVariation(viewProps.numSamples);
 
 		GBufferInput gbuffer;
 		gbuffer.albedo = gbufferNode->albedoTex->texture;
@@ -573,7 +571,7 @@ namespace bs { namespace ct
 	void RCNodeUnflattenLightAccum::render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[0]);
-		FlatFramebufferToTextureMat* material = GlobalMaterials::instance().getUnflattenBuffer();
+		FlatFramebufferToTextureMat* material = FlatFramebufferToTextureMat::get();
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(lightAccumNode->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
@@ -598,9 +596,9 @@ namespace bs { namespace ct
 		RCNodeLightAccumulation* lightAccumNode = static_cast <RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
-		ITiledDeferredImageBasedLightingMat* material = GlobalMaterials::instance().getTileDeferredIBL(viewProps.numSamples);
+		TiledDeferredImageBasedLightingMat* material = TiledDeferredImageBasedLightingMat::getVariation(viewProps.numSamples);
 
-		TiledDeferredImageBasedLighting::Inputs iblInputs;
+		TiledDeferredImageBasedLightingMat::Inputs iblInputs;
 		iblInputs.gbuffer.albedo = gbufferNode->albedoTex->texture;
 		iblInputs.gbuffer.normals = gbufferNode->normalTex->texture;
 		iblInputs.gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
@@ -636,7 +634,7 @@ namespace bs { namespace ct
 	void RCNodeUnflattenSceneColor::render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
-		FlatFramebufferToTextureMat* material = GlobalMaterials::instance().getUnflattenBuffer();
+		FlatFramebufferToTextureMat* material = FlatFramebufferToTextureMat::get();
 
 		int readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
 
@@ -665,7 +663,7 @@ namespace bs { namespace ct
 
 		if (sky.radiance != nullptr)
 		{
-			SkyboxMat<false>* material = GlobalMaterials::instance().getSkyboxTexture();
+			SkyboxMat* material = SkyboxMat::getVariation(false);
 			material->bind(inputs.view.getPerViewBuffer());
 			material->setParams(sky.radiance, Color::White);
 		}
@@ -673,7 +671,7 @@ namespace bs { namespace ct
 		{
 			Color clearColor = inputs.view.getProperties().clearColor;
 
-			SkyboxMat<true>* material = GlobalMaterials::instance().getSkyboxColor();
+			SkyboxMat* material = SkyboxMat::getVariation(true);
 			material->bind(inputs.view.getPerViewBuffer());
 			material->setParams(nullptr, clearColor);
 		}

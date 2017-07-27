@@ -23,8 +23,7 @@ namespace bs { namespace ct {
 	extern PerLightParamDef gPerLightParamDef;
 
 	/** Shader that renders directional light sources during deferred rendering light pass. */
-	template<bool MSAA>
-	class DirectionalLightMat : public RendererMaterial<DirectionalLightMat<MSAA>>
+	class DirectionalLightMat : public RendererMaterial<DirectionalLightMat>
 	{
 		RMAT_DEF("DeferredDirectionalLight.bsl");
 
@@ -37,14 +36,19 @@ namespace bs { namespace ct {
 
 		/** Updates the per-light buffers used by the material. */
 		void setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight);
+		
+		/** Returns the material variation matching the provided parameters. */
+		static DirectionalLightMat* getVariation(bool msaa);
 	private:
 		GBufferParams mGBufferParams;
 		GpuParamTexture mLightOcclusionTexParam;
+
+		static ShaderVariation VAR_MSAA;
+		static ShaderVariation VAR_NoMSAA;
 	};
 
 	/** Shader that renders point (radial & spot) light sources during deferred rendering light pass. */
-	template<bool MSAA, bool InsideGeometry>
-	class PointLightMat : public RendererMaterial<PointLightMat<MSAA, InsideGeometry>>
+	class PointLightMat : public RendererMaterial<PointLightMat>
 	{
 		RMAT_DEF("DeferredPointLight.bsl");
 
@@ -57,9 +61,17 @@ namespace bs { namespace ct {
 
 		/** Updates the per-light buffers used by the material. */
 		void setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight);
+
+		/** Returns the material variation matching the provided parameters. */
+		static PointLightMat* getVariation(bool msaa, bool inside);
 	private:
 		GBufferParams mGBufferParams;
 		GpuParamTexture mLightOcclusionTexParam;
+
+		static ShaderVariation VAR_MSAA_Inside;
+		static ShaderVariation VAR_MSAA_Outside;
+		static ShaderVariation VAR_NoMSAA_Inside;
+		static ShaderVariation VAR_NoMSAA_Outside;
 	};
 
 	/** Provides functionality for standard (non-tiled) deferred rendering. */
@@ -74,12 +86,5 @@ namespace bs { namespace ct {
 
 	private:
 		SPtr<GpuParamBlockBuffer> mPerLightBuffer;
-
-		PointLightMat<true, true> mPointLightMat_TT;
-		PointLightMat<true, false> mPointLightMat_TF;
-		PointLightMat<false, true> mPointLightMat_FT;
-		PointLightMat<false, false> mPointLightMat_FF;
-		DirectionalLightMat<true> mDirLightMat_T;
-		DirectionalLightMat<false> mDirLightMat_F;
 	};
 }}

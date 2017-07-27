@@ -18,7 +18,6 @@ set(BS_RENDERBEAST_INC_NOFILTER
 	"Include/BsStandardDeferredLighting.h"
 	"Include/BsLightProbes.h"
 	"Include/BsRenderCompositor.h"
-	"Include/BsGlobalMaterials.h"
 )
 
 set(BS_RENDERBEAST_SRC_NOFILTER
@@ -40,7 +39,6 @@ set(BS_RENDERBEAST_SRC_NOFILTER
 	"Source/BsStandardDeferredLighting.cpp"
 	"Source/BsLightProbes.cpp"
 	"Source/BsRenderCompositor.cpp"
-	"Source/BsGlobalMaterials.cpp"
 )
 
 source_group("Header Files" FILES ${BS_RENDERBEAST_INC_NOFILTER})

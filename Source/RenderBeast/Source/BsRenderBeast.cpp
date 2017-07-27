@@ -4,13 +4,10 @@
 #include "BsCCamera.h"
 #include "BsCRenderable.h"
 #include "BsMaterial.h"
-#include "BsMesh.h"
 #include "BsPass.h"
-#include "BsSamplerState.h"
 #include "BsCoreApplication.h"
 #include "BsViewport.h"
 #include "BsRenderTarget.h"
-#include "BsRenderQueue.h"
 #include "BsCoreThread.h"
 #include "BsProfilerCPU.h"
 #include "BsProfilerGPU.h"
@@ -36,8 +33,8 @@
 #include "BsSkybox.h"
 #include "BsShadowRendering.h"
 #include "BsStandardDeferredLighting.h"
-#include "BsGlobalMaterials.h"
 #include "BsRenderCompositor.h"
+#include "BsMesh.h"
 
 using namespace std::placeholders;
 
@@ -82,7 +79,6 @@ namespace bs { namespace ct
 
 		PostProcessing::startUp();
 		StandardDeferred::startUp();
-		GlobalMaterials::startUp();
 
 		RenderCompositor::registerNodeType<RCNodeSceneDepth>();
 		RenderCompositor::registerNodeType<RCNodeGBuffer>();
@@ -106,7 +102,6 @@ namespace bs { namespace ct
 
 		RenderCompositor::cleanUp();
 
-		GlobalMaterials::shutDown();
 		StandardDeferred::shutDown();
 		PostProcessing::shutDown();
 

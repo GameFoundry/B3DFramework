@@ -137,15 +137,68 @@ namespace bs { namespace ct
 		reflProbeParamsBindingIdx = paramsSet->getParamBlockBufferIndex("ReflProbeParams");
 	}
 
+	ReflProbeParamBuffer::ReflProbeParamBuffer()
+	{
+		buffer = gReflProbeParamsParamDef.createBuffer();
+	}
+
+	void ReflProbeParamBuffer::populate(const SkyInfo& sky, const VisibleReflProbeData& probeData, 
+		const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
+	{
+		UINT32 skyReflectionsAvailable = 0;
+		UINT32 numSkyMips = 0;
+		if (sky.filteredReflections != nullptr)
+		{
+			numSkyMips = sky.filteredReflections->getProperties().getNumMipmaps() + 1;
+			skyReflectionsAvailable = 1;
+		}
+
+		float brightness = 1.0f;
+		if (sky.skybox != nullptr)
+			brightness = sky.skybox->getBrightness();
+
+		gReflProbeParamsParamDef.gSkyCubemapNumMips.set(buffer, numSkyMips);
+		gReflProbeParamsParamDef.gSkyCubemapAvailable.set(buffer, skyReflectionsAvailable);
+		gReflProbeParamsParamDef.gSkyBrightness.set(buffer, brightness);
+		gReflProbeParamsParamDef.gNumProbes.set(buffer, probeData.getNumProbes());
+
+		UINT32 numReflProbeMips = 0;
+		if (reflectionCubemaps != nullptr)
+			numReflProbeMips = reflectionCubemaps->getProperties().getNumMipmaps() + 1;
+
+		gReflProbeParamsParamDef.gReflCubemapNumMips.set(buffer, numReflProbeMips);
+		gReflProbeParamsParamDef.gUseReflectionMaps.set(buffer, capturingReflections ? 0 : 1);
+	}
+
+	ShaderVariation TiledDeferredImageBasedLightingMat::VAR_1MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	ShaderVariation TiledDeferredImageBasedLightingMat::VAR_2MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
+	ShaderVariation TiledDeferredImageBasedLightingMat::VAR_4MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 4)
+	});
+
+	ShaderVariation TiledDeferredImageBasedLightingMat::VAR_8MSAA = ShaderVariation({
+		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
+		ShaderVariation::Param("MSAA_COUNT", 8)
+	});
+
 	// Note: Using larger tiles than in tiled deferred lighting since we use AABB for intersections, which is more
 	// expensive to compute than frustums. This way we amortize the cost even though other parts of the shader might suffer
 	// due to increased thread group load.
-	const UINT32 TiledDeferredImageBasedLighting::TILE_SIZE = 32;
+	const UINT32 TiledDeferredImageBasedLightingMat::TILE_SIZE = 32;
 
-	TiledDeferredImageBasedLighting::TiledDeferredImageBasedLighting(const SPtr<Material>& material, 
-		const SPtr<GpuParamsSet>& paramsSet, UINT32 sampleCount)
-		:mSampleCount(sampleCount), mMaterial(material), mParamsSet(paramsSet)
+	TiledDeferredImageBasedLightingMat::TiledDeferredImageBasedLightingMat()
 	{
+		mSampleCount = mVariation.getUInt("MSAA_COUNT");
+
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
 		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferATex", mGBufferA);
@@ -167,7 +220,15 @@ namespace bs { namespace ct
 		mParamsSet->setParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
 	}
 
-	void TiledDeferredImageBasedLighting::execute(const RendererView& view, const SceneInfo& sceneInfo, 
+	void TiledDeferredImageBasedLightingMat::_initVariations(ShaderVariations& variations)
+	{
+		variations.add(VAR_1MSAA);
+		variations.add(VAR_2MSAA);
+		variations.add(VAR_4MSAA);
+		variations.add(VAR_8MSAA);
+	}
+
+	void TiledDeferredImageBasedLightingMat::execute(const RendererView& view, const SceneInfo& sceneInfo, 
 		const VisibleReflProbeData& probeData, const Inputs& inputs)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
@@ -213,62 +274,19 @@ namespace bs { namespace ct
 		RenderAPI::instance().dispatchCompute(numTilesX, numTilesY);
 	}
 
-	ReflProbeParamBuffer::ReflProbeParamBuffer()
+	TiledDeferredImageBasedLightingMat* TiledDeferredImageBasedLightingMat::getVariation(UINT32 msaaCount)
 	{
-		buffer = gReflProbeParamsParamDef.createBuffer();
-	}
-
-	void ReflProbeParamBuffer::populate(const SkyInfo& sky, const VisibleReflProbeData& probeData, 
-		const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
-	{
-		UINT32 skyReflectionsAvailable = 0;
-		UINT32 numSkyMips = 0;
-		if (sky.filteredReflections != nullptr)
+		switch(msaaCount)
 		{
-			numSkyMips = sky.filteredReflections->getProperties().getNumMipmaps() + 1;
-			skyReflectionsAvailable = 1;
+		case 1:
+			return get(VAR_1MSAA);
+		case 2:
+			return get(VAR_2MSAA);
+		case 4:
+			return get(VAR_4MSAA);
+		case 8:
+		default:
+			return get(VAR_8MSAA);
 		}
-
-		float brightness = 1.0f;
-		if (sky.skybox != nullptr)
-			brightness = sky.skybox->getBrightness();
-
-		gReflProbeParamsParamDef.gSkyCubemapNumMips.set(buffer, numSkyMips);
-		gReflProbeParamsParamDef.gSkyCubemapAvailable.set(buffer, skyReflectionsAvailable);
-		gReflProbeParamsParamDef.gSkyBrightness.set(buffer, brightness);
-		gReflProbeParamsParamDef.gNumProbes.set(buffer, probeData.getNumProbes());
-
-		UINT32 numReflProbeMips = 0;
-		if (reflectionCubemaps != nullptr)
-			numReflProbeMips = reflectionCubemaps->getProperties().getNumMipmaps() + 1;
-
-		gReflProbeParamsParamDef.gReflCubemapNumMips.set(buffer, numReflProbeMips);
-		gReflProbeParamsParamDef.gUseReflectionMaps.set(buffer, capturingReflections ? 0 : 1);
 	}
-
-	template<int MSAA_COUNT>
-	TTiledDeferredImageBasedLightingMat<MSAA_COUNT>::TTiledDeferredImageBasedLightingMat()
-		:mInternal(mMaterial, mParamsSet, MSAA_COUNT)
-	{
-
-	}
-
-	template<int MSAA_COUNT>
-	void TTiledDeferredImageBasedLightingMat<MSAA_COUNT>::_initDefines(ShaderDefines& defines)
-	{
-		defines.set("TILE_SIZE", TiledDeferredImageBasedLighting::TILE_SIZE);
-		defines.set("MSAA_COUNT", MSAA_COUNT);
-	}
-
-	template <int MSAA_COUNT>
-	void TTiledDeferredImageBasedLightingMat<MSAA_COUNT>::execute(const RendererView& view, const SceneInfo& sceneInfo, 
-		const VisibleReflProbeData& probeData, const TiledDeferredImageBasedLighting::Inputs& inputs)
-	{
-		mInternal.execute(view, sceneInfo, probeData, inputs);
-	}
-
-	template class TTiledDeferredImageBasedLightingMat<1>;
-	template class TTiledDeferredImageBasedLightingMat<2>;
-	template class TTiledDeferredImageBasedLightingMat<4>;
-	template class TTiledDeferredImageBasedLightingMat<8>;
 }}
