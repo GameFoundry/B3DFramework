@@ -14,6 +14,8 @@
 #include "BsRenderBeast.h"
 #include "BsBitwise.h"
 #include "BsRendererTextures.h"
+#include "BsObjectRendering.h"
+#include "BsGpuParamsSet.h"
 
 namespace bs { namespace ct
 {
@@ -251,6 +253,24 @@ namespace bs { namespace ct
 			gbufferDesc.depthStencilSurface.mipLevel = 0;
 
 			renderTarget = RenderTexture::create(gbufferDesc);
+		}
+
+		// Prepare all visible objects. Note that this also prepares non-opaque objects.
+		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
+		UINT32 numRenderables = (UINT32)inputs.scene.renderables.size();
+		for (UINT32 i = 0; i < numRenderables; i++)
+		{
+			if (!visibility.renderables[i])
+				continue;
+
+			RendererObject* rendererObject = inputs.scene.renderables[i];
+			rendererObject->updatePerCallBuffer(viewProps.viewProjTransform);
+
+			for (auto& element : inputs.scene.renderables[i]->elements)
+			{
+				if (element.perCameraBindingIdx != -1)
+					element.params->setParamBlockBuffer(element.perCameraBindingIdx, inputs.view.getPerViewBuffer(), true);
+			}
 		}
 
 		// Render base pass
@@ -671,6 +691,67 @@ namespace bs { namespace ct
 
 	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
 	{
+		const SceneInfo& sceneInfo = inputs.scene;
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+
+		const VisibleLightData& visibleLightData = inputs.viewGroup.getVisibleLightData();
+		const VisibleReflProbeData& visibleReflProbeData = inputs.viewGroup.getVisibleReflProbeData();
+
+		const LightGrid& lightGrid = inputs.view.getLightGrid();
+
+		SPtr<GpuParamBlockBuffer> gridParams;
+		SPtr<GpuBuffer> gridLightOffsetsAndSize, gridLightIndices;
+		SPtr<GpuBuffer> gridProbeOffsetsAndSize, gridProbeIndices;
+		lightGrid.getOutputs(gridLightOffsetsAndSize, gridLightIndices, gridProbeOffsetsAndSize, gridProbeIndices, 
+			gridParams);
+
+		// Prepare refl. probe param buffer
+		ReflProbeParamBuffer reflProbeParamBuffer;
+		reflProbeParamBuffer.populate(sceneInfo.sky, visibleReflProbeData, sceneInfo.reflProbeCubemapsTex, 
+			viewProps.renderingReflections);
+
+		// Prepare objects for rendering
+		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
+		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
+		for (UINT32 i = 0; i < numRenderables; i++)
+		{
+			if (!visibility.renderables[i])
+				continue;
+
+			for (auto& element : sceneInfo.renderables[i]->elements)
+			{
+				bool isTransparent = (element.material->getShader()->getFlags() & (UINT32)ShaderFlags::Transparent) != 0;
+				if (!isTransparent)
+					continue;
+
+				// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
+				// change (e.g. when growing). Although technically the internal systems should be smart enough to
+				// avoid updates unless objects actually changed.
+				if (element.gridParamsBindingIdx != -1)
+					element.params->setParamBlockBuffer(element.gridParamsBindingIdx, gridParams, true);
+
+				element.gridLightOffsetsAndSizeParam.set(gridLightOffsetsAndSize);
+				element.gridLightIndicesParam.set(gridLightIndices);
+				element.lightsBufferParam.set(visibleLightData.getLightBuffer());
+
+				// Image based lighting params
+				ImageBasedLightingParams& iblParams = element.imageBasedParams;
+				if (iblParams.reflProbeParamsBindingIdx != -1)
+					element.params->setParamBlockBuffer(iblParams.reflProbeParamsBindingIdx, reflProbeParamBuffer.buffer);
+
+				element.gridProbeOffsetsAndSizeParam.set(gridProbeOffsetsAndSize);
+
+				iblParams.reflectionProbeIndicesParam.set(gridProbeIndices);
+				iblParams.reflectionProbesParam.set(visibleReflProbeData.getProbeBuffer());
+
+				iblParams.skyReflectionsTexParam.set(sceneInfo.sky.filteredReflections);
+				iblParams.skyIrradianceTexParam.set(sceneInfo.sky.irradiance);
+
+				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
+				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
+			}
+		}
+
 		// TODO: Transparent objects cannot receive shadows. In order to support this I'd have to render the light occlusion
 		// for all lights affecting this object into a single (or a few) textures. I can likely use texture arrays for this,
 		// or to avoid sampling many textures, perhaps just jam it all in one or few texture channels. 
