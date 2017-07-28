@@ -5,7 +5,6 @@
 #include "BsRenderable.h"
 #include "BsMaterial.h"
 #include "BsShader.h"
-#include "BsRenderTargets.h"
 #include "BsRendererUtility.h"
 #include "BsLightRendering.h"
 #include "BsGpuParamsSet.h"
@@ -139,10 +138,6 @@ namespace bs { namespace ct
 
 	void RendererView::setView(const RENDERER_VIEW_DESC& desc)
 	{
-		if (mTargetDesc.targetWidth != desc.target.targetWidth ||
-			mTargetDesc.targetHeight != desc.target.targetHeight)
-			mRenderTargets = nullptr;
-
 		mCamera = desc.sceneCamera;
 		mProperties = desc;
 		mTargetDesc = desc.target;
@@ -152,18 +147,6 @@ namespace bs { namespace ct
 
 	void RendererView::beginFrame()
 	{
-		if (!mProperties.isOverlay)
-		{
-			// Render scene objects to g-buffer
-			bool createGBuffer = mRenderTargets == nullptr ||
-				mRenderTargets->getHDR() != mProperties.isHDR ||
-				mRenderTargets->getNumSamples() != mTargetDesc.numSamples;
-
-			if (createGBuffer)
-				mRenderTargets = RenderTargets::create(mTargetDesc, mProperties.isHDR);
-
-			mRenderTargets->prepare();
-		}
 	}
 
 	void RendererView::endFrame()
@@ -173,9 +156,6 @@ namespace bs { namespace ct
 
 		mOpaqueQueue->clear();
 		mTransparentQueue->clear();
-
-		if(!mProperties.isOverlay)
-			mRenderTargets->cleanup();
 	}
 
 	void RendererView::determineVisible(const Vector<RendererObject*>& renderables, const Vector<CullInfo>& cullInfos,

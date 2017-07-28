@@ -5,7 +5,6 @@
 #include "BsGpuParamsSet.h"
 #include "BsRendererUtility.h"
 #include "BsRendererView.h"
-#include "BsRenderTargets.h"
 #include "BsLightRendering.h"
 #include "BsImageBasedLighting.h"
 

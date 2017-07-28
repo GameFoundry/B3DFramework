@@ -224,12 +224,6 @@ namespace bs { namespace ct
 	class BS_EXPORT IBLUtility
 	{
 	public:
-		/** Sets up any resources requires for operation. Must be called before any other methods in this class. */
-		static void startUp();
-
-		/** Cleans up any resources allocated during startUp(). */
-		static void shutDown();
-
 		/**
 		 * Performs filtering on the cubemap, populating its mip-maps with filtered values that can be used for
 		 * evaluating specular reflections.
@@ -275,16 +269,6 @@ namespace bs { namespace ct
 		 */
 		static void scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip);
 
-		/**
-		 * Retrieves a 2D 2-channel texture containing a pre-integrated G and F factors of the microfactet BRDF. This is an
-		 * approximation used for image based lighting, so we can avoid sampling environment maps for each light. Works in
-		 * tandem with the importance sampled reflection cubemaps.
-		 * 
-		 * (u, v) = (NoV, roughness)
-		 * (r, g) = (scale, bias)
-		 */
-		static SPtr<Texture> getPreintegratedEnvBRDF();
-
 		static const UINT32 REFLECTION_CUBEMAP_SIZE;
 		static const UINT32 IRRADIANCE_CUBEMAP_SIZE;
 	private:
@@ -297,12 +281,6 @@ namespace bs { namespace ct
 		 * @param[in]   dstMip			Determines which mip level of the destination texture to scale.
 		 */
 		static void downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip);
-
-		/** Generates the texture returned by getPreIntegratedEnvBRDF(). */
-		static SPtr<Texture> generatePreintegratedEnvBRDF();
-
-		struct Members;
-		static Members* m;
 	};
 
 	/** @} */

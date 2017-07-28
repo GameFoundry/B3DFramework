@@ -8,7 +8,6 @@
 #include "BsReflectionProbe.h"
 #include "BsLightProbeCache.h"
 #include "BsGpuParamsSet.h"
-#include "BsRenderTargets.h"
 #include "BsRenderBeast.h"
 #include "BsRendererUtility.h"
 #include "BsSkybox.h"

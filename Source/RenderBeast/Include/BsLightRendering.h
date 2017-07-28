@@ -72,9 +72,6 @@ namespace bs { namespace ct
 		GBufferParams(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet);
 
 		/** Binds the GBuffer textures to the pipeline. */
-		void bind(const RenderTargets& renderTargets);
-
-		/** Binds the GBuffer textures to the pipeline. */
 		void bind(const GBufferInput& gbuffer);
 	private:
 		SPtr<Material> mMaterial;

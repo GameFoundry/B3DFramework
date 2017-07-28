@@ -8,7 +8,6 @@
 #include "BsCamera.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererView.h"
-#include "BsRenderTargets.h"
 #include "BsPixelUtil.h"
 #include "BsBitwise.h"
 #include "BsBuiltinResourcesHelper.h"
@@ -977,78 +976,6 @@ namespace bs { namespace ct
 		rapi.setViewport(Rect2(0, 0, 1, 1));
 	}
 
-	void BuildHiZ::execute(const RendererViewTargetData& viewInfo, const SPtr<Texture>& source, const SPtr<Texture>& output)
-	{
-		Rect2 srcRect = viewInfo.nrmViewRect;
-
-		// If viewport size is odd, adjust UV
-		srcRect.width += (viewInfo.viewRect.width % 2) * (1.0f / viewInfo.viewRect.width);
-		srcRect.height += (viewInfo.viewRect.height % 2) * (1.0f / viewInfo.viewRect.height);
-
-		// Generate first mip
-		RENDER_TEXTURE_DESC rtDesc;
-		rtDesc.colorSurfaces[0].texture = output;
-		rtDesc.colorSurfaces[0].mipLevel = 0;
-
-		SPtr<RenderTexture> rt = RenderTexture::create(rtDesc);
-		const TextureProperties& outProps = output->getProperties();
-
-		Rect2 destRect;
-		bool downsampledFirstMip = false; // Not used currently
-		if (downsampledFirstMip)
-		{
-			// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
-			destRect = Rect2(0, 0,
-				Math::ceilToInt(viewInfo.viewRect.width / 2.0f) / (float)outProps.getWidth(),
-				Math::ceilToInt(viewInfo.viewRect.height / 2.0f) / (float)outProps.getHeight());
-
-			BuildHiZMat* material = BuildHiZMat::get();
-			material->execute(source, 0, srcRect, destRect, rt);
-		}
-		else // First level is just a copy of the depth buffer
-		{
-			destRect = Rect2(0, 0,
-				viewInfo.viewRect.width / (float)outProps.getWidth(),
-				viewInfo.viewRect.height / (float)outProps.getHeight());
-
-			RenderAPI& rapi = RenderAPI::instance();
-			rapi.setRenderTarget(rt);
-			rapi.setViewport(destRect);
-
-			Rect2I srcAreaInt;
-			srcAreaInt.x = (INT32)(srcRect.x * viewInfo.viewRect.width);
-			srcAreaInt.y = (INT32)(srcRect.y * viewInfo.viewRect.height);
-			srcAreaInt.width = (UINT32)(srcRect.width * viewInfo.viewRect.width);
-			srcAreaInt.height = (UINT32)(srcRect.height * viewInfo.viewRect.height);
-
-			gRendererUtility().blit(source, srcAreaInt);			
-			rapi.setViewport(Rect2(0, 0, 1, 1));
-		}
-
-		// Generate remaining mip levels
-		for(UINT32 i = 1; i <= outProps.getNumMipmaps(); i++)
-		{
-			rtDesc.colorSurfaces[0].mipLevel = i;
-
-			rt = RenderTexture::create(rtDesc);
-
-			BuildHiZMat* material = BuildHiZMat::get();
-			material->execute(output, i - 1, destRect, destRect, rt);
-		}
-	}
-
-	POOLED_RENDER_TEXTURE_DESC BuildHiZ::getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight)
-	{
-		UINT32 size = Bitwise::nextPow2(std::max(viewWidth, viewHeight));
-		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R);
-		size = 1 << numMips;
-
-		// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
-		// depth values). 
-		//  - When I add UNORM 16-bit format I should be able to switch to that
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT32_R, size, size, TU_RENDERTARGET, 1, false, 1, numMips);
-	}
-
 	FXAAParamDef gFXAAParamDef;
 
 	FXAAMat::FXAAMat()
@@ -1431,207 +1358,6 @@ namespace bs { namespace ct
 		return get(VAR_Vertical);
 	}
 
-	SSAO::SSAO()
-	{
-		mSSAORandomizationTex = generate4x4RandomizationTexture();
-	}
-
-	void SSAO::execute(const RendererView& view, const SPtr<RenderTexture>& destination, 
-		const AmbientOcclusionSettings& settings)
-	{
-		/** Maximum valid depth range within samples in a sample set. In meters. */
-		static const float DEPTH_RANGE = 1.0f;
-
-		const RendererViewProperties& viewProps = view.getProperties();
-		SPtr<RenderTargets> renderTargets = view.getRenderTargets();
-
-		SPtr<Texture> sceneDepth = renderTargets->get(RTT_ResolvedDepth);
-		SPtr<Texture> sceneNormals = renderTargets->get(RTT_GBuffer, RT_COLOR1);
-
-		const TextureProperties& normalsProps = sceneNormals->getProperties();
-		SPtr<PooledRenderTexture> resolvedNormals;
-		if(sceneNormals->getProperties().getNumSamples() > 1)
-		{
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(normalsProps.getFormat(), 
-				normalsProps.getWidth(), normalsProps.getHeight(), TU_RENDERTARGET);
-			resolvedNormals = GpuResourcePool::instance().get(desc);
-
-			RenderAPI::instance().setRenderTarget(resolvedNormals->renderTexture);
-			gRendererUtility().blit(sceneNormals);
-
-			sceneNormals = resolvedNormals->texture;
-		}
-
-		// Multiple downsampled AO levels are used to minimize cache trashing. Downsampled AO targets use larger radius,
-		// whose contents are then blended with the higher level.
-
-		UINT32 quality = settings.quality;
-		UINT32 numDownsampleLevels = 0;
-		if (quality > 1)
-			numDownsampleLevels = 1;
-		else if (quality > 2)
-			numDownsampleLevels = 2;
-
-
-		SSAODownsampleMat* downsample = SSAODownsampleMat::get();
-
-		SPtr<PooledRenderTexture> setupTex0;
-		if(numDownsampleLevels > 0)
-		{
-			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 2)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 2))
-			);
-
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
-				downsampledSize.y, TU_RENDERTARGET);
-			setupTex0 = GpuResourcePool::instance().get(desc);
-
-			downsample->execute(view, sceneDepth, sceneNormals, setupTex0->renderTexture, DEPTH_RANGE);
-		}
-
-		SPtr<PooledRenderTexture> setupTex1;
-		if(numDownsampleLevels > 1)
-		{
-			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 4)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 4))
-			);
-
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
-				downsampledSize.y, TU_RENDERTARGET);
-			setupTex1 = GpuResourcePool::instance().get(desc);
-
-			downsample->execute(view, sceneDepth, sceneNormals, setupTex1->renderTexture, DEPTH_RANGE);
-		}
-
-		SSAOTextureInputs textures;
-		textures.sceneDepth = sceneDepth;
-		textures.sceneNormals = sceneNormals;
-		textures.randomRotations = mSSAORandomizationTex;
-
-		SPtr<PooledRenderTexture> downAOTex1;
-		if(numDownsampleLevels > 1)
-		{
-			textures.aoSetup = setupTex1->texture;
-
-			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 4)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 4))
-			);
-
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
-				downsampledSize.y, TU_RENDERTARGET);
-			downAOTex1 = GpuResourcePool::instance().get(desc);
-
-			SSAOMat* ssaoMat = SSAOMat::getVariation(false, false, quality);
-			ssaoMat->execute(view, textures, downAOTex1->renderTexture, settings);
-
-			GpuResourcePool::instance().release(setupTex1);
-			setupTex1 = nullptr;
-		}
-
-		SPtr<PooledRenderTexture> downAOTex0;
-		if(numDownsampleLevels > 0)
-		{
-			textures.aoSetup = setupTex0->texture;
-
-			if(downAOTex1)
-				textures.aoDownsampled = downAOTex1->texture;
-
-			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 2)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 2))
-			);
-
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
-				downsampledSize.y, TU_RENDERTARGET);
-			downAOTex0 = GpuResourcePool::instance().get(desc);
-
-			bool upsample = numDownsampleLevels > 1;
-			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, false, quality);
-			ssaoMat->execute(view, textures, downAOTex0->renderTexture, settings);
-
-			if(upsample)
-			{
-				GpuResourcePool::instance().release(downAOTex1);
-				downAOTex1 = nullptr;
-			}
-		}
-
-		{
-			if(setupTex0)
-				textures.aoSetup = setupTex0->texture;
-
-			if(downAOTex0)
-				textures.aoDownsampled = downAOTex0->texture;
-
-			bool upsample = numDownsampleLevels > 0;
-			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, true, quality);
-			ssaoMat->execute(view, textures, destination, settings);
-		}
-
-		if(resolvedNormals)
-		{
-			GpuResourcePool::instance().release(resolvedNormals);
-			resolvedNormals = nullptr;
-		}
-
-		if(numDownsampleLevels > 0)
-		{
-			GpuResourcePool::instance().release(setupTex0);
-			GpuResourcePool::instance().release(downAOTex0);
-		}
-
-		// Blur the output
-		// Note: If I implement temporal AA then this can probably be avoided. I can instead jitter the sample offsets
-		// each frame, and averaging them out should yield blurred AO.
-		if(quality > 1) // On level 0 we don't blur at all, on level 1 we use the ad-hoc blur in shader
-		{
-			const RenderTargetProperties& rtProps = destination->getProperties();
-
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, rtProps.getWidth(), 
-				rtProps.getHeight(), TU_RENDERTARGET);
-			SPtr<PooledRenderTexture> blurIntermediateTex = GpuResourcePool::instance().get(desc);
-
-			SSAOBlurMat* blurHorz = SSAOBlurMat::getVariation(true);
-			SSAOBlurMat* blurVert = SSAOBlurMat::getVariation(false);
-
-			blurHorz->execute(view, destination->getColorTexture(0), sceneDepth, blurIntermediateTex->renderTexture, 
-				DEPTH_RANGE);
-			blurVert->execute(view, blurIntermediateTex->texture, sceneDepth, destination, DEPTH_RANGE);
-
-			GpuResourcePool::instance().release(blurIntermediateTex);
-		}
-	}
-
-	SPtr<Texture> SSAO::generate4x4RandomizationTexture() const
-	{
-		UINT32 mapping[16] = { 13, 5, 1, 9, 14, 3, 7, 11, 15, 2, 6, 12, 4, 8, 0, 10 };
-		Vector2 bases[16];
-		for (UINT32 i = 0; i < 16; ++i)
-		{
-			float angle = (mapping[i] / 16.0f) * Math::PI;
-			bases[i].x = cos(angle);
-			bases[i].y = sin(angle);
-		}
-
-		SPtr<PixelData> pixelData = PixelData::create(4, 4, 1, PF_R8G8);
-		for(UINT32 y = 0; y < 4; ++y)
-			for(UINT32 x = 0; x < 4; ++x)
-			{
-				UINT32 base = (y * 4) + x;
-
-				Color color;
-				color.r = bases[base].x * 0.5f + 0.5f;
-				color.g = bases[base].y * 0.5f + 0.5f;
-
-				pixelData->setColorAt(color, x, y);
-			}
-
-		return Texture::create(pixelData);
-	}
-
 	SSRStencilParamDef gSSRStencilParamDef;
 
 	SSRStencilMat::SSRStencilMat()
@@ -1646,12 +1372,10 @@ namespace bs { namespace ct
 		// Do nothing
 	}
 
-	void SSRStencilMat::execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings)
+	void SSRStencilMat::execute(const RendererView& view, GBufferInput gbuffer, 
+		const ScreenSpaceReflectionsSettings& settings)
 	{
-		const RendererViewProperties& viewProps = view.getProperties();
-		RenderTargets& renderTargets = *view.getRenderTargets();
-
-		mGBufferParams.bind(renderTargets);
+		mGBufferParams.bind(gbuffer);
 
 		Vector2 roughnessScaleBias = SSRTraceMat::calcRoughnessFadeScaleBias(settings.maxRoughness);
 		gSSRStencilParamDef.gRoughnessScaleBias.set(mParamBuffer, roughnessScaleBias);
@@ -1684,17 +1408,16 @@ namespace bs { namespace ct
 		// Do nothing
 	}
 
-	void SSRTraceMat::execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings, 
-		const SPtr<RenderTarget>& destination)
+	void SSRTraceMat::execute(const RendererView& view, GBufferInput gbuffer, const SPtr<Texture>& sceneColor, 
+			const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, 
+			const SPtr<RenderTarget>& destination)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
-		RenderTargets& renderTargets = *view.getRenderTargets();
 
-		SPtr<Texture> hiZ = renderTargets.get(RTT_HiZ);
 		const TextureProperties& hiZProps = hiZ->getProperties();
 
-		mGBufferParams.bind(renderTargets);
-		mSceneColorTexture.set(renderTargets.get(RTT_ResolvedSceneColor));
+		mGBufferParams.bind(gbuffer);
+		mSceneColorTexture.set(sceneColor);
 		mHiZTexture.set(hiZ);
 		
 		Rect2I viewRect = viewProps.viewRect;
@@ -1926,32 +1649,5 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
-	}
-
-	void PostProcessing::postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta)
-	{
-		auto& viewProps = viewInfo->getProperties();
-
-		PostProcessInfo& ppInfo = viewInfo->getPPInfo();
-		const StandardPostProcessSettings& settings = *ppInfo.settings;
-
-		// DEBUG ONLY
-		//SSRTraceMat ssrTrace;
-
-		//renderTargets->allocate(RTT_ResolvedSceneColorSecondary);
-		//SPtr<RenderTarget> target = renderTargets->getRT(RTT_ResolvedSceneColorSecondary);
-
-		//ssrTrace.execute(*viewInfo, ppInfo.settings->screenSpaceReflections, target);
-
-		//RenderAPI::instance().setRenderTarget(renderTargets->getRT(RTT_ResolvedSceneColor));
-		//gRendererUtility().blit(renderTargets->get(RTT_ResolvedSceneColorSecondary));
-	}
-
-	void PostProcessing::buildSSAO(const RendererView& view)
-	{
-		const SPtr<RenderTargets> renderTargets = view.getRenderTargets();
-		const PostProcessInfo& ppInfo = view.getPPInfo();
-
-		mSSAO.execute(view, renderTargets->getRT(RTT_AmbientOcclusion), ppInfo.settings->ambientOcclusion);
 	}
 }}

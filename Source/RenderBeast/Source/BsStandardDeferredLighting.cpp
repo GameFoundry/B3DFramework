@@ -4,7 +4,6 @@
 #include "BsRendererUtility.h"
 #include "BsRendererView.h"
 #include "BsGpuParamsSet.h"
-#include "BsRenderTargets.h"
 #include "BsMesh.h"
 
 namespace bs { namespace ct {

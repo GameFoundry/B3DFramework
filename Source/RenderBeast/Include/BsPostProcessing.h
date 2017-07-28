@@ -22,13 +22,6 @@ namespace bs { namespace ct
 	{
 		SPtr<StandardPostProcessSettings> settings;
 		bool settingDirty = true;
-
-		SPtr<PooledRenderTexture> downsampledSceneTex;
-		SPtr<PooledRenderTexture> histogramTex;
-		SPtr<PooledRenderTexture> histogramReduceTex;
-		SPtr<PooledRenderTexture> eyeAdaptationTex[2];
-		SPtr<PooledRenderTexture> colorLUT;
-		INT32 lastEyeAdaptationTex = 0;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(DownsampleParamDef)
@@ -433,24 +426,6 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTexture;
 	};
 
-	/** Builds a hierarchical Z mipmap chain from the source depth texture. */
-	class BuildHiZ
-	{
-	public:
-		/** 
-		 * Renders the post-process effect with the provided parameters. 
-		 * 
-		 * @param[in]	viewInfo	Information about the view we're rendering from.
-		 * @param[in]	source		Input depth texture to use as the source.
-		 * @param[in]	output		Output target to which to write to results. This texture should be created using the
-		 *							descriptor returned by getHiZTextureDesc().
-		 */
-		void execute(const RendererViewTargetData& viewInfo, const SPtr<Texture>& source, const SPtr<Texture>& output);
-
-		/** Generates a descriptor that can be used for creating a texture to contain the HiZ mipmap chain. */
-		static POOLED_RENDER_TEXTURE_DESC getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight);
-	};
-
 	BS_PARAM_BLOCK_BEGIN(FXAAParamDef)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gInvTexSize)
 	BS_PARAM_BLOCK_END
@@ -645,32 +620,6 @@ namespace bs { namespace ct
 		static ShaderVariation VAR_Horizontal;
 	};
 
-	/** Helper class that is used for calculating the SSAO information. */
-	class SSAO
-	{
-	public:
-		SSAO();
-
-		/** 
-		 * Calculates SSAO for the specified view. 
-		 * 
-		 * @param[in]	view			Information about the view we're rendering from.
-		 * @param[in]	destination		Output texture to which to write the SSAO data to.
-		 * @param[in]	settings		Settings that control how is SSAO calculated.
-		 */
-		void execute(const RendererView& view, const SPtr<RenderTexture>& destination, 
-			const AmbientOcclusionSettings& settings);
-
-		/**
-		 * Generates a texture that is used for randomizing sample locations during SSAO calculation. The texture contains
-		 * 16 different rotations in a 4x4 tile.
-		 */
-		SPtr<Texture> generate4x4RandomizationTexture() const;
-
-	private:
-		SPtr<Texture> mSSAORandomizationTex;
-	};
-
 	BS_PARAM_BLOCK_BEGIN(SSRStencilParamDef)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gRoughnessScaleBias)
 	BS_PARAM_BLOCK_END
@@ -689,9 +638,10 @@ namespace bs { namespace ct
 		 * Renders the effect with the provided parameters, using the currently bound render target. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	gbuffer			GBuffer textures.
 		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 */
-		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings);
+		void execute(const RendererView& view, GBufferInput gbuffer, const ScreenSpaceReflectionsSettings& settings);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
@@ -720,10 +670,14 @@ namespace bs { namespace ct
 		 * Renders the effect with the provided parameters. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	gbuffer			GBuffer textures.
+		 * @param[in]	sceneColor		Scene color texture.
+		 * @param[in]	hiZ				Hierarchical Z buffer.
 		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 * @param[in]	destination		Render target to which to write the results to.
 		 */
-		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings, 
+		void execute(const RendererView& view, GBufferInput gbuffer, const SPtr<Texture>& sceneColor, 
+			const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, 
 			const SPtr<RenderTarget>& destination);
 
 		/**
@@ -794,30 +748,6 @@ namespace bs { namespace ct
 
 		static ShaderVariation VAR_EyeAdaptation;
 		static ShaderVariation VAR_NoEyeAdaptation;
-	};
-
-	/**
-	 * Renders post-processing effects for the provided render target.
-	 *
-	 * @note	Core thread only.
-	 */
-	class PostProcessing : public Module<PostProcessing>
-	{
-	public:
-		/** 
-		 * Renders post-processing effects for the provided render target. Resolves provided scene color texture into the
-		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
-		 * bound for rendering. 
-		 */
-		void postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta);
-		
-		/**
-		 * Populates the ambient occlusion texture of the specified view with screen-space ambient occlusion information.
-		 * Ambient occlusion texture must be allocated on the view's render targets before calling this method.
-		 */
-		void buildSSAO(const RendererView& view);
-	private:
-		SSAO mSSAO;
 	};
 
 	/** @} */

@@ -4,7 +4,6 @@
 #include "BsMaterial.h"
 #include "BsShader.h"
 #include "BsRenderBeast.h"
-#include "BsRenderTargets.h"
 #include "BsGpuParams.h"
 #include "BsGpuParamsSet.h"
 #include "BsGpuBuffer.h"
@@ -115,16 +114,6 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> ss = SamplerState::create(desc);
 		material->setSamplerState("gDepthBufferSamp", ss);
-	}
-
-	void GBufferParams::bind(const RenderTargets& renderTargets)
-	{
-		mGBufferA.set(renderTargets.get(RTT_GBuffer, RT_COLOR0));
-		mGBufferB.set(renderTargets.get(RTT_GBuffer, RT_COLOR1));
-		mGBufferC.set(renderTargets.get(RTT_GBuffer, RT_COLOR2));
-		mGBufferDepth.set(renderTargets.get(RTT_GBuffer, RT_DEPTH));
-
-		mMaterial->updateParamsSet(mParamsSet);
 	}
 
 	void GBufferParams::bind(const GBufferInput& gbuffer)

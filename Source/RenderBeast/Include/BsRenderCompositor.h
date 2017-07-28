@@ -356,6 +356,20 @@ namespace bs { namespace ct
 		void clear() override;
 	};
 
+	/** Renders transparent objects using clustered forward rendering. */
+	class RCNodeClusteredForward : public RenderCompositorNode
+	{
+	public:
+		static StringID getNodeId() { return "ClusteredForward"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+	};
+
 	/**
 	 * In case scene color was rendered into a buffer instead of a texture (if MSAA is used), this node will
 	 * unflatten the buffer and write its contents into the scene color texture.
@@ -486,6 +500,60 @@ namespace bs { namespace ct
 	{
 	public:
 		static StringID getNodeId() { return "FXAA"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+	};
+
+	/************************************************************************/
+	/* 							SCREEN SPACE								*/
+	/************************************************************************/
+
+	/** Resolves the depth buffer (if multi-sampled). Otherwise just references the original depth buffer. */
+	class RCNodeResolvedSceneDepth : public RenderCompositorNode
+	{
+	public:
+		SPtr<PooledRenderTexture> output;
+
+		static StringID getNodeId() { return "ResolvedSceneDepth"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+
+		bool mPassThrough = false;
+	};
+
+	/** Builds the hierarchical Z buffer. */
+	class RCNodeHiZ : public RenderCompositorNode
+	{
+	public:
+		SPtr<PooledRenderTexture> output;
+
+		static StringID getNodeId() { return "HiZ"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+	};
+
+	/** Renders screen space ambient occlusion. */
+	class RCNodeSSAO : public RenderCompositorNode
+	{
+	public:
+		SPtr<PooledRenderTexture> output;
+
+		static StringID getNodeId() { return "SSAO"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */

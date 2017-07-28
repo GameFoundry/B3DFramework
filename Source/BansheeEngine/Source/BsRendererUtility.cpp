@@ -122,14 +122,10 @@ namespace bs { namespace ct
 
 			mSkyBoxMesh = Mesh::create(meshData);
 		}
-
-		IBLUtility::startUp();
 	}
 
 	RendererUtility::~RendererUtility()
-	{
-		IBLUtility::shutDown();
-	}
+	{ }
 
 	void RendererUtility::setPass(const SPtr<Material>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{

@@ -860,8 +860,6 @@ namespace bs { namespace ct
 				bool viewerInsideVolume = (light->getPosition() - viewProps.viewOrigin).length() < lightRadius;
 
 				SPtr<Texture> shadowMap = mShadowCubemaps[shadowInfo.textureIdx].getTexture();
-				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
-
 				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowOmniParamBuffer, perViewBuffer, gbuffer);
 
 				ShadowProjectOmniMat* mat = ShadowProjectOmniMat::getVariation(effectiveShadowQuality, viewerInsideVolume, 
@@ -985,7 +983,6 @@ namespace bs { namespace ct
 					shadowMapFace = shadowInfo->cascadeIdx;
 				}
 
-				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
 				ShadowProjectParams shadowParams(*light, shadowMap, shadowMapFace, shadowParamBuffer, perViewBuffer, 
 					gbuffer);
 

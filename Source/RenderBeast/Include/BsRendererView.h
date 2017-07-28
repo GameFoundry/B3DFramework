@@ -212,9 +212,6 @@ namespace bs { namespace ct
 		/** Ends rendering and frees any acquired resources. */
 		void endFrame();
 
-		/** Returns the view's renderTargets. Only valid if called in-between beginRendering() and endRendering() calls. */
-		SPtr<RenderTargets> getRenderTargets() const { return mRenderTargets; }
-
 		/** 
 		 * Returns a render queue containing all opaque objects. Make sure to call determineVisible() beforehand if view 
 		 * or object transforms changed since the last time it was called.
@@ -344,8 +341,6 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mTransparentQueue;
 
 		RenderCompositor mCompositor;
-
-		SPtr<RenderTargets> mRenderTargets; // TODO - Remove
 		PostProcessInfo mPostProcessInfo;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;

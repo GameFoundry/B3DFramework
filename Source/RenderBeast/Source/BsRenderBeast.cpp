@@ -19,7 +19,6 @@
 #include "BsRenderBeastOptions.h"
 #include "BsLight.h"
 #include "BsGpuResourcePool.h"
-#include "BsRenderTargets.h"
 #include "BsRendererUtility.h"
 #include "BsAnimationManager.h"
 #include "BsSkeleton.h"
@@ -35,6 +34,7 @@
 #include "BsStandardDeferredLighting.h"
 #include "BsRenderCompositor.h"
 #include "BsMesh.h"
+#include "BsRendererTextures.h"
 
 using namespace std::placeholders;
 
@@ -70,6 +70,7 @@ namespace bs { namespace ct
 	{
 		RendererUtility::startUp();
 		GpuResourcePool::startUp();
+		RendererTextures::startUp();
 
 		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>(); 
 		mScene = bs_shared_ptr_new<RendererScene>(mCoreOptions);
@@ -77,7 +78,6 @@ namespace bs { namespace ct
 
 		mMainViewGroup = bs_new<RendererViewGroup>();
 
-		PostProcessing::startUp();
 		StandardDeferred::startUp();
 
 		RenderCompositor::registerNodeType<RCNodeSceneDepth>();
@@ -95,6 +95,10 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeTonemapping>();
 		RenderCompositor::registerNodeType<RCNodeGaussianDOF>();
 		RenderCompositor::registerNodeType<RCNodeFXAA>();
+		RenderCompositor::registerNodeType<RCNodeResolvedSceneDepth>();
+		RenderCompositor::registerNodeType<RCNodeHiZ>();
+		RenderCompositor::registerNodeType<RCNodeSSAO>();
+		RenderCompositor::registerNodeType<RCNodeClusteredForward>();
 	}
 
 	void RenderBeast::destroyCore()
@@ -107,10 +111,10 @@ namespace bs { namespace ct
 		RenderCompositor::cleanUp();
 
 		StandardDeferred::shutDown();
-		PostProcessing::shutDown();
 
 		bs_delete(mMainViewGroup);
 
+		RendererTextures::shutDown();
 		GpuResourcePool::shutDown();
 		RendererUtility::shutDown();
 	}
@@ -438,7 +442,7 @@ namespace bs { namespace ct
 				iblParams.skyIrradianceTexParam.set(sceneInfo.sky.irradiance);
 
 				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
-				iblParams.preintegratedEnvBRDFParam.set(IBLUtility::getPreintegratedEnvBRDF());
+				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
 			}
 		}
 
@@ -460,15 +464,6 @@ namespace bs { namespace ct
 			}
 		}
 
-		// Build HiZ buffer
-		bool isMSAA = numSamples > 1;
-		//// TODO - Avoid generating it unless it actually gets used in some system
-		//if (isMSAA)
-		//{
-		//	renderTargets->allocate(RTT_ResolvedDepth);
-		//	renderTargets->generate(RTT_ResolvedDepth);
-		//}
-
 		// Trigger post-base-pass callbacks
 		if (viewProps.triggerCallbacks)
 		{
@@ -488,35 +483,6 @@ namespace bs { namespace ct
 		const RenderCompositor& compositor = viewInfo->getCompositor();
 		compositor.execute(viewGroup, *viewInfo, sceneInfo, frameInfo, *mCoreOptions);
 		viewInfo->getPPInfo().settingDirty = false;
-
-		//renderTargets->allocate(RTT_HiZ);
-		//renderTargets->generate(RTT_HiZ);
-
-		//// Build AO if required
-		//bool useSSAO = viewInfo->getPPInfo().settings->ambientOcclusion.enabled;
-		//if(useSSAO)
-		//{
-		//	renderTargets->allocate(RTT_AmbientOcclusion);
-
-		//	// Note: This could be done as async compute (and started earlier, right after base pass)
-		//	PostProcessing::instance().buildSSAO(*viewInfo);
-		//}
-
-		//if (useSSAO)
-		//	renderTargets->release(RTT_AmbientOcclusion);
-
-		//renderTargets->bind(RTT_SceneColor, false);
-
-		// Render transparent objects
-		// TODO: Transparent objects cannot receive shadows. In order to support this I'd have to render the light occlusion
-		// for all lights affecting this object into a single (or a few) textures. I can likely use texture arrays for this,
-		// or to avoid sampling many textures, perhaps just jam it all in one or few texture channels. 
-		//const Vector<RenderQueueElement>& transparentElements = viewInfo->getTransparentQueue()->getSortedElements();
-		//for (auto iter = transparentElements.begin(); iter != transparentElements.end(); ++iter)
-		//{
-		//	BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
-		//	renderElement(*renderElem, iter->passIdx, iter->applyPass, viewProj);
-		//}
 
 		// Trigger post-light-pass callbacks
 		if (viewProps.triggerCallbacks)

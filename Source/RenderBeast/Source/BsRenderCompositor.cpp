@@ -12,6 +12,8 @@
 #include "BsRendererScene.h"
 #include "BsIBLUtility.h"
 #include "BsRenderBeast.h"
+#include "BsBitwise.h"
+#include "BsRendererTextures.h"
 
 namespace bs { namespace ct
 {
@@ -620,7 +622,7 @@ namespace bs { namespace ct
 		iblInputs.gbuffer.depth = sceneDepthNode->depthTex->texture;
 		iblInputs.sceneColorTex = sceneColorNode->sceneColorTex->texture;
 		iblInputs.lightAccumulation = lightAccumNode->lightAccumulationTex->texture;
-		iblInputs.preIntegratedGF = IBLUtility::getPreintegratedEnvBRDF();
+		iblInputs.preIntegratedGF = RendererTextures::preintegratedEnvGF;
 
 		if(sceneColorNode->flattenedSceneColorBuffer)
 			iblInputs.sceneColorBuffer = sceneColorNode->flattenedSceneColorBuffer->buffer;
@@ -665,6 +667,40 @@ namespace bs { namespace ct
 	void RCNodeUnflattenSceneColor::clear()
 	{
 		output = nullptr;
+	}
+
+	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
+	{
+		// TODO: Transparent objects cannot receive shadows. In order to support this I'd have to render the light occlusion
+		// for all lights affecting this object into a single (or a few) textures. I can likely use texture arrays for this,
+		// or to avoid sampling many textures, perhaps just jam it all in one or few texture channels. 
+		const Vector<RenderQueueElement>& transparentElements = inputs.view.getTransparentQueue()->getSortedElements();
+		for (auto iter = transparentElements.begin(); iter != transparentElements.end(); ++iter)
+		{
+			BeastRenderableElement* renderElem = static_cast<BeastRenderableElement*>(iter->renderElem);
+			SPtr<Material> material = renderElem->material;
+
+			if (iter->applyPass)
+				gRendererUtility().setPass(material, iter->passIdx, renderElem->techniqueIdx);
+
+			gRendererUtility().setPassParams(renderElem->params, iter->passIdx);
+
+			if(renderElem->morphVertexDeclaration == nullptr)
+				gRendererUtility().draw(renderElem->mesh, renderElem->subMesh);
+			else
+				gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer, 
+					renderElem->morphVertexDeclaration);
+		}
+	}
+
+	void RCNodeClusteredForward::clear()
+	{
+		// Do nothing
+	}
+
+	SmallVector<StringID, 4> RCNodeClusteredForward::getDependencies(const RendererView& view)
+	{
+		return { RCNodeSceneColor::getNodeId(), RCNodeSkybox::getNodeId() };
 	}
 
 	SmallVector<StringID, 4> RCNodeUnflattenSceneColor::getDependencies(const RendererView& view)
@@ -763,7 +799,7 @@ namespace bs { namespace ct
 		else
 		{
 			deps.push_back(RCNodeSceneColor::getNodeId());
-			deps.push_back(RCNodeSkybox::getNodeId());
+			deps.push_back(RCNodeClusteredForward::getNodeId());
 			
 		}
 
@@ -975,7 +1011,7 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeTonemapping::getDependencies(const RendererView& view)
 	{
-		return{ RCNodeSceneColor::getNodeId(), RCNodeSkybox::getNodeId(), RCNodePostProcess::getNodeId() };
+		return{ RCNodeSceneColor::getNodeId(), RCNodeClusteredForward::getNodeId(), RCNodePostProcess::getNodeId() };
 	}
 
 	void RCNodeGaussianDOF::render(const RenderCompositorNodeInputs& inputs)
@@ -1087,5 +1123,326 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeFXAA::getDependencies(const RendererView& view)
 	{
 		return { RCNodeGaussianDOF::getNodeId(), RCNodePostProcess::getNodeId() };
+	}
+
+	void RCNodeResolvedSceneDepth::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
+
+		if (viewProps.numSamples > 1)
+		{
+			UINT32 width = viewProps.viewRect.width;
+			UINT32 height = viewProps.viewRect.height;
+
+			output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32, width, height, TU_RENDERTARGET, 1, false)); 
+
+			RenderAPI& rapi = RenderAPI::instance();
+			rapi.setRenderTarget(output->renderTexture);
+			gRendererUtility().blit(sceneDepthNode->depthTex->texture, Rect2I::EMPTY, false, true);
+
+			mPassThrough = false;
+		}
+		else
+		{
+			output = sceneDepthNode->depthTex;
+			mPassThrough = true;
+		}
+	}
+
+	void RCNodeResolvedSceneDepth::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		if (!mPassThrough)
+			resPool.release(output);
+		else
+			output = nullptr;
+
+		mPassThrough = false;
+	}
+
+	SmallVector<StringID, 4> RCNodeResolvedSceneDepth::getDependencies(const RendererView& view)
+	{
+		// GBuffer require because it renders the base pass (populates the depth buffer)
+		return { RCNodeSceneDepth::getNodeId(), RCNodeGBuffer::getNodeId() };
+	}
+
+	void RCNodeHiZ::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+
+		RCNodeResolvedSceneDepth* resolvedSceneDepth = static_cast<RCNodeResolvedSceneDepth*>(inputs.inputNodes[0]);
+
+		UINT32 width = viewProps.viewRect.width;
+		UINT32 height = viewProps.viewRect.height;
+
+		UINT32 size = Bitwise::nextPow2(std::max(width, height));
+		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R);
+		size = 1 << numMips;
+
+		// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
+		// depth values). 
+		//  - When I add UNORM 16-bit format I should be able to switch to that
+		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT32_R, size, size, TU_RENDERTARGET, 1, false, 1, 
+			numMips));
+
+		Rect2 srcRect = viewProps.nrmViewRect;
+
+		// If viewport size is odd, adjust UV
+		srcRect.width += (viewProps.viewRect.width % 2) * (1.0f / viewProps.viewRect.width);
+		srcRect.height += (viewProps.viewRect.height % 2) * (1.0f / viewProps.viewRect.height);
+
+		// Generate first mip
+		RENDER_TEXTURE_DESC rtDesc;
+		rtDesc.colorSurfaces[0].texture = output->texture;
+		rtDesc.colorSurfaces[0].mipLevel = 0;
+
+		SPtr<RenderTexture> rt = RenderTexture::create(rtDesc);
+
+		Rect2 destRect;
+		bool downsampledFirstMip = false; // Not used currently
+		if (downsampledFirstMip)
+		{
+			// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
+			destRect = Rect2(0, 0,
+				Math::ceilToInt(viewProps.viewRect.width / 2.0f) / (float)size,
+				Math::ceilToInt(viewProps.viewRect.height / 2.0f) / (float)size);
+
+			BuildHiZMat* material = BuildHiZMat::get();
+			material->execute(resolvedSceneDepth->output->texture, 0, srcRect, destRect, rt);
+		}
+		else // First level is just a copy of the depth buffer
+		{
+			destRect = Rect2(0, 0,
+				viewProps.viewRect.width / (float)size,
+				viewProps.viewRect.height / (float)size);
+
+			RenderAPI& rapi = RenderAPI::instance();
+			rapi.setRenderTarget(rt);
+			rapi.setViewport(destRect);
+
+			Rect2I srcAreaInt;
+			srcAreaInt.x = (INT32)(srcRect.x * viewProps.viewRect.width);
+			srcAreaInt.y = (INT32)(srcRect.y * viewProps.viewRect.height);
+			srcAreaInt.width = (UINT32)(srcRect.width * viewProps.viewRect.width);
+			srcAreaInt.height = (UINT32)(srcRect.height * viewProps.viewRect.height);
+
+			gRendererUtility().blit(resolvedSceneDepth->output->texture, srcAreaInt);
+			rapi.setViewport(Rect2(0, 0, 1, 1));
+		}
+
+		// Generate remaining mip levels
+		for(UINT32 i = 1; i <= numMips; i++)
+		{
+			rtDesc.colorSurfaces[0].mipLevel = i;
+
+			rt = RenderTexture::create(rtDesc);
+
+			BuildHiZMat* material = BuildHiZMat::get();
+			material->execute(output->texture, i - 1, destRect, destRect, rt);
+		}
+	}
+
+	void RCNodeHiZ::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		resPool.release(output);
+	}
+
+	SmallVector<StringID, 4> RCNodeHiZ::getDependencies(const RendererView& view)
+	{
+		// Note: This doesn't actually use any gbuffer textures, but node is a dependency because it renders to the depth
+		// buffer. In order to avoid keeping gbuffer textures alive I could separate out the base pass into its own node
+		// perhaps. But at the moment it doesn't matter, as anything using HiZ also needs gbuffer.
+		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeGBuffer::getNodeId() };
+	}
+
+	void RCNodeSSAO::render(const RenderCompositorNodeInputs& inputs)
+	{
+		/** Maximum valid depth range within samples in a sample set. In meters. */
+		static const float DEPTH_RANGE = 1.0f;
+
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		const AmbientOcclusionSettings& settings = inputs.view.getPPInfo().settings->ambientOcclusion;
+
+		RCNodeResolvedSceneDepth* resolvedDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.inputNodes[0]);
+		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);
+
+		SPtr<Texture> sceneDepth = resolvedDepthNode->output->texture;
+		SPtr<Texture> sceneNormals = gbufferNode->normalTex->texture;
+
+		const TextureProperties& normalsProps = sceneNormals->getProperties();
+		SPtr<PooledRenderTexture> resolvedNormals;
+
+		RenderAPI& rapi = RenderAPI::instance();
+		if(sceneNormals->getProperties().getNumSamples() > 1)
+		{
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(normalsProps.getFormat(), 
+				normalsProps.getWidth(), normalsProps.getHeight(), TU_RENDERTARGET);
+			resolvedNormals = resPool.get(desc);
+
+			rapi.setRenderTarget(resolvedNormals->renderTexture);
+			gRendererUtility().blit(sceneNormals);
+
+			sceneNormals = resolvedNormals->texture;
+		}
+
+		// Multiple downsampled AO levels are used to minimize cache trashing. Downsampled AO targets use larger radius,
+		// whose contents are then blended with the higher level.
+		UINT32 quality = settings.quality;
+		UINT32 numDownsampleLevels = 0;
+		if (quality > 1)
+			numDownsampleLevels = 1;
+		else if (quality > 2)
+			numDownsampleLevels = 2;
+
+		SSAODownsampleMat* downsample = SSAODownsampleMat::get();
+
+		SPtr<PooledRenderTexture> setupTex0;
+		if(numDownsampleLevels > 0)
+		{
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 2)),
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 2))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			setupTex0 = GpuResourcePool::instance().get(desc);
+
+			downsample->execute(inputs.view, sceneDepth, sceneNormals, setupTex0->renderTexture, DEPTH_RANGE);
+		}
+
+		SPtr<PooledRenderTexture> setupTex1;
+		if(numDownsampleLevels > 1)
+		{
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 4)),
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 4))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			setupTex1 = GpuResourcePool::instance().get(desc);
+
+			downsample->execute(inputs.view, sceneDepth, sceneNormals, setupTex1->renderTexture, DEPTH_RANGE);
+		}
+
+		SSAOTextureInputs textures;
+		textures.sceneDepth = sceneDepth;
+		textures.sceneNormals = sceneNormals;
+		textures.randomRotations = RendererTextures::ssaoRandomization4x4;
+
+		SPtr<PooledRenderTexture> downAOTex1;
+		if(numDownsampleLevels > 1)
+		{
+			textures.aoSetup = setupTex1->texture;
+
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 4)),
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 4))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			downAOTex1 = GpuResourcePool::instance().get(desc);
+
+			SSAOMat* ssaoMat = SSAOMat::getVariation(false, false, quality);
+			ssaoMat->execute(inputs.view, textures, downAOTex1->renderTexture, settings);
+
+			GpuResourcePool::instance().release(setupTex1);
+			setupTex1 = nullptr;
+		}
+
+		SPtr<PooledRenderTexture> downAOTex0;
+		if(numDownsampleLevels > 0)
+		{
+			textures.aoSetup = setupTex0->texture;
+
+			if(downAOTex1)
+				textures.aoDownsampled = downAOTex1->texture;
+
+			Vector2I downsampledSize(
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.width, 2)),
+				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 2))
+			);
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x, 
+				downsampledSize.y, TU_RENDERTARGET);
+			downAOTex0 = GpuResourcePool::instance().get(desc);
+
+			bool upsample = numDownsampleLevels > 1;
+			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, false, quality);
+			ssaoMat->execute(inputs.view, textures, downAOTex0->renderTexture, settings);
+
+			if(upsample)
+			{
+				GpuResourcePool::instance().release(downAOTex1);
+				downAOTex1 = nullptr;
+			}
+		}
+
+		UINT32 width = viewProps.viewRect.width;
+		UINT32 height = viewProps.viewRect.height;
+		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width, height, TU_RENDERTARGET));
+
+		{
+			if(setupTex0)
+				textures.aoSetup = setupTex0->texture;
+
+			if(downAOTex0)
+				textures.aoDownsampled = downAOTex0->texture;
+
+			bool upsample = numDownsampleLevels > 0;
+			SSAOMat* ssaoMat = SSAOMat::getVariation(upsample, true, quality);
+			ssaoMat->execute(inputs.view, textures, output->renderTexture, settings);
+		}
+
+		if(resolvedNormals)
+		{
+			GpuResourcePool::instance().release(resolvedNormals);
+			resolvedNormals = nullptr;
+		}
+
+		if(numDownsampleLevels > 0)
+		{
+			GpuResourcePool::instance().release(setupTex0);
+			GpuResourcePool::instance().release(downAOTex0);
+		}
+
+		// Blur the output
+		// Note: If I implement temporal AA then this can probably be avoided. I can instead jitter the sample offsets
+		// each frame, and averaging them out should yield blurred AO.
+		if(quality > 1) // On level 0 we don't blur at all, on level 1 we use the ad-hoc blur in shader
+		{
+			const RenderTargetProperties& rtProps = output->renderTexture->getProperties();
+
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, rtProps.getWidth(), 
+				rtProps.getHeight(), TU_RENDERTARGET);
+			SPtr<PooledRenderTexture> blurIntermediateTex = GpuResourcePool::instance().get(desc);
+
+			SSAOBlurMat* blurHorz = SSAOBlurMat::getVariation(true);
+			SSAOBlurMat* blurVert = SSAOBlurMat::getVariation(false);
+
+			blurHorz->execute(inputs.view, output->texture, sceneDepth, blurIntermediateTex->renderTexture, DEPTH_RANGE);
+			blurVert->execute(inputs.view, blurIntermediateTex->texture, sceneDepth, output->renderTexture, DEPTH_RANGE);
+
+			GpuResourcePool::instance().release(blurIntermediateTex);
+		}
+	}
+
+	void RCNodeSSAO::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		resPool.release(output);
+	}
+
+	SmallVector<StringID, 4> RCNodeSSAO::getDependencies(const RendererView& view)
+	{
+		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeGBuffer::getNodeId() };
 	}
 }}
