@@ -9,8 +9,8 @@
 namespace bs
 {
 	/** @addtogroup Profiling
-	 *  @{
-	 */
+	*  @{
+	*/
 
 	/** Contains various profiler statistics about a single GPU profiling sample. */
 	struct GPUProfileSample
@@ -72,6 +72,7 @@ namespace bs
 
 	public:
 		ProfilerGPU();
+		~ProfilerGPU();
 
 		/**
 		 * Signals a start of a new frame. Every frame will generate a separate profiling report. This call must be followed
@@ -80,8 +81,8 @@ namespace bs
 		void beginFrame();
 
 		/**
-		 * Signals an end of the currently sampled frame. Results of the sampling will be available once 
-		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the core thread and 
+		 * Signals an end of the currently sampled frame. Results of the sampling will be available once
+		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the core thread and
 		 * on the GPU.
 		 */
 		void endFrame();
@@ -100,17 +101,17 @@ namespace bs
 		 *
 		 * @param[in]	name	Unique name for the sample.
 		 *
-		 * @note	
-		 * Unique name is primarily needed to more easily identify mismatched begin/end sample pairs. Otherwise the name in 
+		 * @note
+		 * Unique name is primarily needed to more easily identify mismatched begin/end sample pairs. Otherwise the name in
 		 * beginSample() would be enough. Must be called between beginFrame()/endFrame() calls.
 		 */
 		void endSample(const ProfilerString& name);
 
 		/**
-		 * Returns number of profiling reports that are ready but haven't been retrieved yet. 
+		 * Returns number of profiling reports that are ready but haven't been retrieved yet.
 		 *
-		 * @note	
-		 * There is an internal limit of maximum number of available reports, where oldest ones will get deleted so make 
+		 * @note
+		 * There is an internal limit of maximum number of available reports, where oldest ones will get deleted so make
 		 * sure to call this often if you don't want to miss some.
 		 * @note
 		 * Thread safe.
@@ -118,14 +119,15 @@ namespace bs
 		UINT32 getNumAvailableReports();
 
 		/**
-		 * Gets the oldest report available and removes it from the internal list. Throws an exception if no reports are 
+		 * Gets the oldest report available and removes it from the internal list. Throws an exception if no reports are
 		 * available.
 		 *
 		 * @note	Thread safe.
 		 */
 		GPUProfilerReport getNextReport();
 
-	public: // ***** INTERNAL ******
+	public: 
+		// ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
@@ -151,7 +153,7 @@ namespace bs
 		SPtr<ct::OcclusionQuery> getOcclusionQuery() const;
 
 		/**
-		 * Interprets the active frame results and generates a profiler report for the frame. Provided frame queries must 
+		 * Interprets the active frame results and generates a profiler report for the frame. Provided frame queries must
 		 * have finished before calling this.
 		 */
 		GPUProfilerReport resolveFrame(ActiveFrame& frame);
@@ -165,7 +167,11 @@ namespace bs
 		Stack<UINT32> mActiveSampleIndexes;
 
 		Queue<ActiveFrame> mUnresolvedFrames;
-		Queue<GPUProfilerReport> mReadyReports;
+		GPUProfilerReport* mReadyReports;
+
+		static const UINT32 MAX_QUEUE_ELEMENTS;
+		UINT32 mReportHeadPos;
+		UINT32 mReportCount;
 
 		mutable Stack<SPtr<ct::TimerQuery>> mFreeTimerQueries;
 		mutable Stack<SPtr<ct::OcclusionQuery>> mFreeOcclusionQueries;

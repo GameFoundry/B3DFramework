@@ -166,7 +166,7 @@ namespace bs
 		 * However it is hard to guarantee when GPU has finished using a buffer.
 		 */
 		GBL_WRITE_ONLY_NO_OVERWRITE,
-		/** Allows you to both read and write to a buffer. */
+		/** Allows you to write to a buffer. */
 		GBL_WRITE_ONLY	
 	};
 

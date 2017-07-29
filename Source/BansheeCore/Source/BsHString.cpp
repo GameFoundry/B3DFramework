@@ -11,7 +11,7 @@ namespace bs
 	{
 		mStringData = StringTableManager::instance().getTable(stringTableId)->getStringData(L"");
 
-		if(mStringData->numParameters > 0)
+		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<WString>(mStringData->numParameters);
 	}
 
@@ -20,7 +20,7 @@ namespace bs
 	{
 		mStringData = StringTableManager::instance().getTable(stringTableId)->getStringData(identifierString);
 
-		if(mStringData->numParameters > 0)
+		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<WString>(mStringData->numParameters);
 	}
 
@@ -38,7 +38,26 @@ namespace bs
 
 	HString::HString(const HString& copy)
 	{
-		*this = copy;
+		mStringData = copy.mStringData;
+		mIsDirty = copy.mIsDirty;
+		mCachedString = copy.mCachedString;
+
+		if (copy.mStringData->numParameters > 0)
+		{
+			mParameters = bs_newN<WString>(mStringData->numParameters);
+			if (copy.mParameters != nullptr)
+			{
+				for (UINT32 i = 0; i < mStringData->numParameters; i++)
+					mParameters[i] = copy.mParameters[i];
+			}
+
+			mStringPtr = &mCachedString;
+		}
+		else
+		{
+			mParameters = nullptr;
+			mStringPtr = &mStringData->string;
+		}
 	}
 
 	HString::~HString()
@@ -47,13 +66,19 @@ namespace bs
 			bs_deleteN(mParameters, mStringData->numParameters);
 	}
 
-	HString::operator const WString& () const 
-	{ 
-		return getValue(); 
+	HString::operator const WString& () const
+	{
+		return getValue();
 	}
 
 	HString& HString::operator=(const HString& rhs)
 	{
+		if (mParameters != nullptr)
+		{
+			bs_deleteN(mParameters, mStringData->numParameters);
+			mParameters = nullptr;
+		}
+
 		mStringData = rhs.mStringData;
 		mIsDirty = rhs.mIsDirty;
 		mCachedString = rhs.mCachedString;
@@ -80,9 +105,9 @@ namespace bs
 
 	const WString& HString::getValue() const
 	{
-		if(mIsDirty)
+		if (mIsDirty)
 		{
-			if(mParameters != nullptr)
+			if (mParameters != nullptr)
 			{
 				mStringData->concatenateString(mCachedString, mParameters, mStringData->numParameters);
 				mStringPtr = &mCachedString;
@@ -95,7 +120,7 @@ namespace bs
 			mIsDirty = false;
 		}
 
-		return *mStringPtr; 
+		return *mStringPtr;
 	}
 
 	void HString::setParameter(UINT32 idx, const WString& value)

@@ -235,6 +235,8 @@ namespace bs
 
 				allocBlock(totalBytes);
 			}
+			else
+				mBlocks[0]->mFreePtr = 0;
 		}
 	}
 

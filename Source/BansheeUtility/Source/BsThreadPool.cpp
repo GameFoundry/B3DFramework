@@ -261,8 +261,11 @@ namespace bs
 
 		for(auto& thread : idleThreads)
 		{
-			if(i < limit)
+			if (i < limit)
+			{
 				mThreads.push_back(thread);
+				i++;
+			}
 			else
 				destroyThread(thread);
 		}

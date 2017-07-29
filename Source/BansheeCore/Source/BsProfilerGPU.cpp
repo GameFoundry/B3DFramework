@@ -8,9 +8,18 @@
 
 namespace bs
 {
+	const UINT32 ProfilerGPU::MAX_QUEUE_ELEMENTS = 5;
+
 	ProfilerGPU::ProfilerGPU()
-		:mIsFrameActive(false)
-	{ }
+		:mIsFrameActive(false), mReadyReports(nullptr), mReportHeadPos(0), mReportCount(0)
+	{
+		mReadyReports = bs_newN<GPUProfilerReport>(MAX_QUEUE_ELEMENTS);
+	}
+
+	ProfilerGPU::~ProfilerGPU()
+	{
+		bs_deleteN(mReadyReports, MAX_QUEUE_ELEMENTS);
+	}
 
 	void ProfilerGPU::beginFrame()
 	{
@@ -62,7 +71,7 @@ namespace bs
 		ActiveSample& sample = mActiveFrame.samples[lastSampleIdx];
 		if (sample.sampleName != name)
 		{
-			String errorStr = "Attempting to end a sample that doesn't match. Got: " + 
+			String errorStr = "Attempting to end a sample that doesn't match. Got: " +
 				String(name.c_str()) + ". Expected: " + String(sample.sampleName.c_str());
 
 			BS_EXCEPT(InvalidStateException, errorStr);
@@ -76,18 +85,20 @@ namespace bs
 	{
 		Lock lock(mMutex);
 
-		return (UINT32)mReadyReports.size();
+		return mReportCount;
 	}
 
 	GPUProfilerReport ProfilerGPU::getNextReport()
 	{
 		Lock lock(mMutex);
 
-		if (mReadyReports.empty())
+		if (mReportCount == 0)
 			BS_EXCEPT(InvalidStateException, "No reports are available.")
 
-		GPUProfilerReport report = mReadyReports.front();
-		mReadyReports.pop();
+			GPUProfilerReport report = mReadyReports[mReportHeadPos];
+
+		mReportHeadPos = (mReportHeadPos + 1) % MAX_QUEUE_ELEMENTS;
+		mReportCount--;
 
 		return report;
 	}
@@ -107,7 +118,11 @@ namespace bs
 
 				{
 					Lock lock(mMutex);
-					mReadyReports.push(report);
+					mReadyReports[(mReportHeadPos + mReportCount) % MAX_QUEUE_ELEMENTS] = report;
+					if (mReportCount == MAX_QUEUE_ELEMENTS)
+						mReportHeadPos = (mReportHeadPos + 1) % MAX_QUEUE_ELEMENTS;
+					else
+						mReportCount++;
 				}
 			}
 			else
@@ -118,7 +133,7 @@ namespace bs
 	GPUProfilerReport ProfilerGPU::resolveFrame(ActiveFrame& frame)
 	{
 		GPUProfilerReport report;
-		
+
 		resolveSample(frame.frameSample, report.frameSample);
 
 		for (auto& sample : frame.samples)
@@ -145,7 +160,7 @@ namespace bs
 
 		reportSample.numVertices = (UINT32)(sample.endStats.numVertices - sample.startStats.numVertices);
 		reportSample.numPrimitives = (UINT32)(sample.endStats.numPrimitives - sample.startStats.numPrimitives);
-		
+
 		reportSample.numPipelineStateChanges = (UINT32)(sample.endStats.numPipelineStateChanges - sample.startStats.numPipelineStateChanges);
 
 		reportSample.numGpuParamBinds = (UINT32)(sample.endStats.numGpuParamBinds - sample.startStats.numGpuParamBinds);
