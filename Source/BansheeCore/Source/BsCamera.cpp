@@ -26,7 +26,7 @@ namespace bs
 		, mProjMatrixRSInv(BsZero), mProjMatrixInv(BsZero), mViewMatrixInv(BsZero), mRecalcFrustum(true)
 		, mRecalcFrustumPlanes(true), mRecalcView(true)
 	{
-		mPPSettings = bs_shared_ptr_new<PostProcessSettings>();
+		mRenderSettings = bs_shared_ptr_new<RenderSettings>();
 
 		invalidateFrustum();
 	}
@@ -763,9 +763,9 @@ namespace bs
 			size += rttiGetElemSize(mMSAA);
 			size += sizeof(UINT32);
 
-			if(mPPSettings != nullptr)
+			if(mRenderSettings != nullptr)
 			{
-				mPPSettings->_getSyncData(nullptr, ppSize);
+				mRenderSettings->_getSyncData(nullptr, ppSize);
 				size += ppSize;
 			}
 		}
@@ -796,8 +796,8 @@ namespace bs
 
 			dataPtr = rttiWriteElem(ppSize, dataPtr);
 
-			if(mPPSettings != nullptr)
-				mPPSettings->_getSyncData((UINT8*)dataPtr, ppSize);
+			if(mRenderSettings != nullptr)
+				mRenderSettings->_getSyncData((UINT8*)dataPtr, ppSize);
 
 			dataPtr += ppSize;
 		}
@@ -891,10 +891,10 @@ namespace bs
 
 			if(ppSize > 0)
 			{
-				if (mPPSettings == nullptr)
-					mPPSettings = bs_shared_ptr_new<PostProcessSettings>();
+				if (mRenderSettings == nullptr)
+					mRenderSettings = bs_shared_ptr_new<RenderSettings>();
 
-				mPPSettings->_setSyncData((UINT8*)dataPtr, ppSize);
+				mRenderSettings->_setSyncData((UINT8*)dataPtr, ppSize);
 				dataPtr += ppSize;
 			}
 		}

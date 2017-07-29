@@ -354,11 +354,11 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 	
-	/** Base class whose implementations contain settings that control post-process operations during rendering. */
-	struct BS_CORE_EXPORT PostProcessSettings : public IReflectable
+	/** Settings that control rendering for a specific camera (view). */
+	struct BS_CORE_EXPORT RenderSettings : public IReflectable
 	{
-		PostProcessSettings();
-		virtual ~PostProcessSettings() { }
+		RenderSettings();
+		virtual ~RenderSettings() { }
 
 		/**
 		 * Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness
@@ -460,7 +460,7 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class PostProcessSettingsRTTI;
+		friend class RenderSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};

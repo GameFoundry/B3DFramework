@@ -1010,7 +1010,7 @@ namespace bs { namespace ct
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
-		const PostProcessSettings& settings = inputs.view.getRenderSettings();
+		const RenderSettings& settings = inputs.view.getRenderSettings();
 
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
@@ -1229,7 +1229,7 @@ namespace bs { namespace ct
 
 	void RCNodeFXAA::render(const RenderCompositorNodeInputs& inputs)
 	{
-		const PostProcessSettings& settings = inputs.view.getRenderSettings();
+		const RenderSettings& settings = inputs.view.getRenderSettings();
 		if (!settings.enableFXAA)
 			return;
 

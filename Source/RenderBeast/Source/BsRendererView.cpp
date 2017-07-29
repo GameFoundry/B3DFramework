@@ -109,13 +109,13 @@ namespace bs { namespace ct
 		mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
 	}
 
-	void RendererView::setPostProcessSettings(const SPtr<PostProcessSettings>& ppSettings)
+	void RendererView::setRenderSettings(const SPtr<RenderSettings>& settings)
 	{
 		if (mRenderSettings == nullptr)
-			mRenderSettings = bs_shared_ptr_new<PostProcessSettings>();
+			mRenderSettings = bs_shared_ptr_new<RenderSettings>();
 
-		if (ppSettings != nullptr)
-			*mRenderSettings = *ppSettings;
+		if (settings != nullptr)
+			*mRenderSettings = *settings;
 
 		mRenderSettingsHash++;
 

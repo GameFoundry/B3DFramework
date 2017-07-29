@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsPostProcessSettings.h"
-#include "BsPostProcessSettingsRTTI.h"
+#include "BsRenderSettings.h"
+#include "BsRenderSettingsRTTI.h"
 
 namespace bs
 {
@@ -108,21 +108,21 @@ namespace bs
 		return ScreenSpaceReflectionsSettings::getRTTIStatic();
 	}
 
-	PostProcessSettings::PostProcessSettings()
+	RenderSettings::RenderSettings()
 		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(false), exposureScale(0.0f), gamma(2.2f)
 	{ }
 
-	RTTITypeBase* PostProcessSettings::getRTTIStatic()
+	RTTITypeBase* RenderSettings::getRTTIStatic()
 	{
-		return PostProcessSettingsRTTI::instance();
+		return RenderSettingsRTTI::instance();
 	}
 
-	RTTITypeBase* PostProcessSettings::getRTTI() const
+	RTTITypeBase* RenderSettings::getRTTI() const
 	{
-		return PostProcessSettings::getRTTIStatic();
+		return RenderSettings::getRTTIStatic();
 	}
 
-	void PostProcessSettings::_getSyncData(UINT8* buffer, UINT32& size)
+	void RenderSettings::_getSyncData(UINT8* buffer, UINT32& size)
 	{
 		UINT32 bufferSize = 0;
 		bufferSize += rttiGetElemSize(enableAutoExposure);
@@ -245,7 +245,7 @@ namespace bs
 		writeDst = rttiWriteElem(screenSpaceReflections.quality, writeDst);
 	}
 
-	void PostProcessSettings::_setSyncData(UINT8* buffer, UINT32 size)
+	void RenderSettings::_setSyncData(UINT8* buffer, UINT32 size)
 	{
 		char* readSource = (char*)buffer;
 

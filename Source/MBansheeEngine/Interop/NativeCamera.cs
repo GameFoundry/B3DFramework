@@ -137,10 +137,10 @@ namespace BansheeEngine
             set { Internal_SetNoLighting(mCachedPtr, value); }
         }
 
-        internal PostProcessSettings PostProcess
+        internal RenderSettings RenderSettings
         {
-            get { return Internal_GetPostProcessSettings(mCachedPtr); }
-            set { Internal_SetPostProcessSettings(mCachedPtr, value); }
+            get { return Internal_GetRenderSettings(mCachedPtr); }
+            set { Internal_SetRenderSettings(mCachedPtr, value); }
         }
 
         internal ulong layers
@@ -440,9 +440,9 @@ namespace BansheeEngine
         private static extern void Internal_SetNoLighting(IntPtr instance, bool value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern PostProcessSettings Internal_GetPostProcessSettings(IntPtr instance);
+        private static extern RenderSettings Internal_GetRenderSettings(IntPtr instance);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetPostProcessSettings(IntPtr instance, PostProcessSettings value);
+        private static extern void Internal_SetRenderSettings(IntPtr instance, RenderSettings value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong Internal_GetLayers(IntPtr instance);

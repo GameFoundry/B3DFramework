@@ -13,7 +13,7 @@
 #include "BsRay.h"
 #include "BsCoreObject.h"
 #include "BsConvexVolume.h"
-#include "BsPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs 
 {
@@ -26,7 +26,7 @@ namespace bs
 	{
 		Transform = 1<<0,
 		Everything = 1<<1,
-		PostProcess = 1<<2
+		RenderSettings = 1<<2
 	};
 
 	/**	Flags that describe a camera. */
@@ -309,11 +309,14 @@ namespace bs
 		 */
 		void setMSAACount(UINT32 count) { mMSAA = count; _markCoreDirty(); }
 
-		/** Returns settings that are used for controling post-process operations like tonemapping. */
-		const SPtr<PostProcessSettings>& getPostProcessSettings() const { return mPPSettings; }
+		/** @copydoc setRenderSettings() */
+		const SPtr<RenderSettings>& getRenderSettings() const { return mRenderSettings; }
 
-		/** Sets settings that are used for controling post-process operations like tonemapping. */
-		void setPostProcessSettings(const SPtr<PostProcessSettings>& settings) { mPPSettings = settings; _markCoreDirty(CameraDirtyFlag::PostProcess); }
+		/** 
+		 * Settings that control rendering for this view. They determine how will the renderer process this view, which
+		 * effects will be enabled, and what properties will those effects use.
+		 */
+		void setRenderSettings(const SPtr<RenderSettings>& settings) { mRenderSettings = settings; _markCoreDirty(CameraDirtyFlag::RenderSettings); }
 
 		/**	Retrieves flags that define the camera. */
 		CameraFlags getFlags() const { return mCameraFlags; }
@@ -476,7 +479,7 @@ namespace bs
 		bool mCustomProjMatrix; /**< Is custom projection matrix set. */
 		UINT8 mMSAA; /**< Number of samples to render the scene with. */
 
-		SPtr<PostProcessSettings> mPPSettings; /**< Settings used to control post-process operations. */
+		SPtr<RenderSettings> mRenderSettings; /**< Settings used to control rendering for this camera. */
 
 		bool mFrustumExtentsManuallySet; /**< Are frustum extents manually set. */
 

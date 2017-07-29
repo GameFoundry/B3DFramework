@@ -172,10 +172,10 @@ namespace BansheeEngine
     };
 
     /// <summary>
-    /// Settings that control the post-process operations.
+    /// Settings that control rendering operations for a single camera.
     /// </summary>
     [SerializeObject]
-    public class PostProcessSettings
+    public class RenderSettings
     {
         /// <summary>
         /// Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness
@@ -235,15 +235,15 @@ namespace BansheeEngine
         public float Gamma;
 
         /// <summary>
-        /// Creates a new instance of post process settings with the optimal default values.
+        /// Creates a new instance of render settings with the optimal default values.
         /// </summary>
-        /// <returns>New instance of post process settings.</returns>
-        public static PostProcessSettings CreateDefault()
+        /// <returns>New instance of render settings.</returns>
+        public static RenderSettings CreateDefault()
         {
             return Internal_CreateDefault();
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern PostProcessSettings Internal_CreateDefault();
+        private static extern RenderSettings Internal_CreateDefault();
     }
 }

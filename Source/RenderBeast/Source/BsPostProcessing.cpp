@@ -348,7 +348,7 @@ namespace bs { namespace ct
 		variations.add(variation);
 	}
 
-	void CreateTonemapLUTMat::execute(const SPtr<Texture>& output, const PostProcessSettings& settings)
+	void CreateTonemapLUTMat::execute(const SPtr<Texture>& output, const RenderSettings& settings)
 	{
 		// Set parameters
 		gCreateTonemapLUTParamDef.gGammaAdjustment.set(mParamBuffer, 2.2f / settings.gamma);
@@ -480,7 +480,7 @@ namespace bs { namespace ct
 	}
 
 	void TonemappingMat::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, 
-		const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const PostProcessSettings& settings)
+		const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings)
 	{
 		const TextureProperties& texProps = sceneColor->getProperties();
 

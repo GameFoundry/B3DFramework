@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
-#include "BsPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs
 {
@@ -249,7 +249,7 @@ namespace bs
 		}
 	};
 
-	class BS_CORE_EXPORT PostProcessSettingsRTTI : public RTTIType <PostProcessSettings, IReflectable, PostProcessSettingsRTTI>
+	class BS_CORE_EXPORT RenderSettingsRTTI : public RTTIType <RenderSettings, IReflectable, RenderSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -268,24 +268,24 @@ namespace bs
 		BS_END_RTTI_MEMBERS
 			
 	public:
-		PostProcessSettingsRTTI()
+		RenderSettingsRTTI()
 			:mInitMembers(this)
 		{ }
 
 		const String& getRTTIName() override
 		{
-			static String name = "PostProcessSettings";
+			static String name = "RenderSettings";
 			return name;
 		}
 
 		UINT32 getRTTIId() override
 		{
-			return TID_PostProcessSettings;
+			return TID_RenderSettings;
 		}
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return bs_shared_ptr_new<PostProcessSettings>();
+			return bs_shared_ptr_new<RenderSettings>();
 		}
 	};
 

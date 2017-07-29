@@ -36,7 +36,7 @@ namespace bs {	namespace ct
 		RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
 
 		RendererView* view = bs_new<RendererView>(viewDesc);
-		view->setPostProcessSettings(camera->getPostProcessSettings());
+		view->setRenderSettings(camera->getRenderSettings());
 		view->updatePerViewBuffer();
 
 		UINT32 viewIdx = (UINT32)mInfo.views.size();
@@ -58,13 +58,13 @@ namespace bs {	namespace ct
 			RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
 
 			view->setView(viewDesc);
-			view->setPostProcessSettings(camera->getPostProcessSettings());
+			view->setRenderSettings(camera->getRenderSettings());
 
 			updateCameraRenderTargets(camera);
 		}
-		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
+		else if((updateFlag & (UINT32)CameraDirtyFlag::RenderSettings) != 0)
 		{
-			view->setPostProcessSettings(camera->getPostProcessSettings());
+			view->setRenderSettings(camera->getRenderSettings());
 		}
 		else // Transform
 		{

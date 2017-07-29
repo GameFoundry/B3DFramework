@@ -1,12 +1,12 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsScriptPostProcessSettings.h"
+#include "BsScriptRenderSettings.h"
 #include "BsMonoManager.h"
 #include "BsMonoAssembly.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsCoreThread.h"
-#include "BsPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs
 {
@@ -194,22 +194,22 @@ namespace bs
 		return object;
 	}
 
-	MonoField* ScriptPostProcessSettings::sEnableAutoExposure = nullptr;
-	MonoField* ScriptPostProcessSettings::sAutoExposure = nullptr;
-	MonoField* ScriptPostProcessSettings::sEnableTonemapping = nullptr;
-	MonoField* ScriptPostProcessSettings::sTonemapping = nullptr;
-	MonoField* ScriptPostProcessSettings::sWhiteBalance = nullptr;
-	MonoField* ScriptPostProcessSettings::sColorGrading = nullptr;
-	MonoField* ScriptPostProcessSettings::sExposureScale = nullptr;
-	MonoField* ScriptPostProcessSettings::sGamma = nullptr;
+	MonoField* ScriptRenderSettings::sEnableAutoExposure = nullptr;
+	MonoField* ScriptRenderSettings::sAutoExposure = nullptr;
+	MonoField* ScriptRenderSettings::sEnableTonemapping = nullptr;
+	MonoField* ScriptRenderSettings::sTonemapping = nullptr;
+	MonoField* ScriptRenderSettings::sWhiteBalance = nullptr;
+	MonoField* ScriptRenderSettings::sColorGrading = nullptr;
+	MonoField* ScriptRenderSettings::sExposureScale = nullptr;
+	MonoField* ScriptRenderSettings::sGamma = nullptr;
 
-	ScriptPostProcessSettings::ScriptPostProcessSettings(MonoObject* instance)
+	ScriptRenderSettings::ScriptRenderSettings(MonoObject* instance)
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptPostProcessSettings::initRuntimeData()
+	void ScriptRenderSettings::initRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateDefault", &ScriptPostProcessSettings::internal_CreateDefault);
+		metaData.scriptClass->addInternalCall("Internal_CreateDefault", &ScriptRenderSettings::internal_CreateDefault);
 
 		sEnableAutoExposure = metaData.scriptClass->getField("EnableAutoExposure");
 		sAutoExposure = metaData.scriptClass->getField("AutoExposure");
@@ -221,9 +221,9 @@ namespace bs
 		sGamma = metaData.scriptClass->getField("Gamma");
 	}
 
-	SPtr<PostProcessSettings> ScriptPostProcessSettings::toNative(MonoObject* object)
+	SPtr<RenderSettings> ScriptRenderSettings::toNative(MonoObject* object)
 	{
-		SPtr<PostProcessSettings> output = bs_shared_ptr_new<PostProcessSettings>();
+		SPtr<RenderSettings> output = bs_shared_ptr_new<RenderSettings>();
 
 		sEnableAutoExposure->get(object, &output->enableAutoExposure);
 		sEnableTonemapping->get(object, &output->enableTonemapping);
@@ -249,7 +249,7 @@ namespace bs
 		return output;
 	}
 
-	MonoObject* ScriptPostProcessSettings::toManaged(const SPtr<PostProcessSettings>& value)
+	MonoObject* ScriptRenderSettings::toManaged(const SPtr<RenderSettings>& value)
 	{
 		MonoObject* object = metaData.scriptClass->createInstance();
 
@@ -273,8 +273,8 @@ namespace bs
 		return object;
 	}
 
-	MonoObject* ScriptPostProcessSettings::internal_CreateDefault()
+	MonoObject* ScriptRenderSettings::internal_CreateDefault()
 	{
-		return toManaged(bs_shared_ptr_new<PostProcessSettings>());
+		return toManaged(bs_shared_ptr_new<RenderSettings>());
 	}
 }

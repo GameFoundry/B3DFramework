@@ -351,11 +351,11 @@ namespace BansheeEditor
     }
 
     /// <summary>
-    /// Draws GUI elements for inspecting an <see cref="PostProcessSettings"/> object.
+    /// Draws GUI elements for inspecting an <see cref="RenderSettings"/> object.
     /// </summary>
-    internal class PostProcessSettingsGUI
+    internal class RenderSettingsGUI
     {
-        private PostProcessSettings settings;
+        private RenderSettings settings;
         private SerializableProperties properties;
 
         private GUIToggleField enableAutoExposureField = new GUIToggleField(new LocEdString("Enable auto exposure"));
@@ -378,13 +378,13 @@ namespace BansheeEditor
         private GUILayout whiteBalanceLayout;
         private GUILayout colorGradingLayout;
 
-        public Action<PostProcessSettings> OnChanged;
+        public Action<RenderSettings> OnChanged;
         public Action OnConfirmed;
 
         /// <summary>
         /// Current value of the settings object.
         /// </summary>
-        public PostProcessSettings Settings
+        public RenderSettings Settings
         {
             get { return settings; }
             set
@@ -409,7 +409,7 @@ namespace BansheeEditor
         /// <param name="layout">Layout to append the GUI elements to.</param>
         /// <param name="properties">A set of properties that are persisted by the parent inspector. Used for saving state.
         ///                          </param>
-        public PostProcessSettingsGUI(PostProcessSettings settings, GUILayout layout, SerializableProperties properties)
+        public RenderSettingsGUI(RenderSettings settings, GUILayout layout, SerializableProperties properties)
         {
             this.settings = settings;
             this.properties = properties;

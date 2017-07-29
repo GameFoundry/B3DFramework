@@ -562,7 +562,7 @@ namespace bs
 		TID_ImportedAnimationEvents = 1124,
 		TID_CBone = 1125,
 		TID_MaterialParamData = 1126,
-		TID_PostProcessSettings = 1127,
+		TID_RenderSettings = 1127,
 		TID_MorphShape = 1128,
 		TID_MorphShapes = 1129,
 		TID_MorphChannel = 1130,

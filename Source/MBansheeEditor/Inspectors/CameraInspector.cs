@@ -34,9 +34,9 @@ namespace BansheeEditor
         private GUIToggleField hdrField = new GUIToggleField(new LocEdString("HDR"));
         private GUIToggleField mainField = new GUIToggleField(new LocEdString("Main"));
 
-        private GUIToggle postProcessFoldout = new GUIToggle(new LocEdString("Post processing"), EditorStyles.Foldout);
-        private PostProcessSettingsGUI postProcessGUI;
-        private GUILayout postProcessLayout;
+        private GUIToggle renderSettingsFoldout = new GUIToggle(new LocEdString("Render settings"), EditorStyles.Foldout);
+        private RenderSettingsGUI renderSettingsGUI;
+        private GUILayout renderSettingsLayout;
 
         private ulong layersValue = 0;
         private InspectableState modifyState;
@@ -77,7 +77,7 @@ namespace BansheeEditor
             priorityField.Value = camera.Priority;
             mainField.Value = camera.Main;
             hdrField.Value = camera.HDR;
-            postProcessGUI.Settings = camera.PostProcess;
+            renderSettingsGUI.Settings = camera.RenderSettings;
 
             if (layersValue != camera.Layers)
             {
@@ -257,25 +257,25 @@ namespace BansheeEditor
                 Layout.AddElement(mainField);
                 Layout.AddElement(hdrField);
 
-                postProcessFoldout.OnToggled += x =>
+                renderSettingsFoldout.OnToggled += x =>
                 {
-                    Persistent.SetBool("postProcess_Expanded", x);
-                    postProcessLayout.Active = x;
+                    Persistent.SetBool("renderSettings_Expanded", x);
+                    renderSettingsLayout.Active = x;
                 };
-                Layout.AddElement(postProcessFoldout);
+                Layout.AddElement(renderSettingsFoldout);
 
-                postProcessLayout = Layout.AddLayoutX();
+                renderSettingsLayout = Layout.AddLayoutX();
                 {
-                    postProcessLayout.AddSpace(10);
+                    renderSettingsLayout.AddSpace(10);
 
-                    GUILayoutY contentsLayout = postProcessLayout.AddLayoutY();
-                    postProcessGUI = new PostProcessSettingsGUI(camera.PostProcess, contentsLayout, Persistent);
-                    postProcessGUI.OnChanged += x => { camera.PostProcess = x; MarkAsModified(); };
-                    postProcessGUI.OnConfirmed += ConfirmModify;
+                    GUILayoutY contentsLayout = renderSettingsLayout.AddLayoutY();
+                    renderSettingsGUI = new RenderSettingsGUI(camera.RenderSettings, contentsLayout, Persistent);
+                    renderSettingsGUI.OnChanged += x => { camera.RenderSettings = x; MarkAsModified(); };
+                    renderSettingsGUI.OnConfirmed += ConfirmModify;
                 }
 
                 ToggleTypeSpecificFields(camera.ProjectionType);
-                postProcessLayout.Active = Persistent.GetBool("postProcess_Expanded");
+                renderSettingsLayout.Active = Persistent.GetBool("renderSettings_Expanded");
             }
         }
 

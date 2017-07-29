@@ -190,8 +190,8 @@ namespace bs { namespace ct
 		/** Sets state reduction mode that determines how do render queues group & sort renderables. */
 		void setStateReductionMode(StateReduction reductionMode);
 
-		/** Updates the internal camera post-processing data. */
-		void setPostProcessSettings(const SPtr<PostProcessSettings>& ppSettings);
+		/** Updates the internal camera render settings. */
+		void setRenderSettings(const SPtr<RenderSettings>& settings);
 
 		/** Updates the internal information with a new view transform. */
 		void setTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view,
@@ -284,7 +284,7 @@ namespace bs { namespace ct
 		const VisibilityInfo& getVisibilityMasks() const { return mVisibility; }
 
 		/** Returns per-view settings that control rendering. */
-		const PostProcessSettings& getRenderSettings() const { return *mRenderSettings; }
+		const RenderSettings& getRenderSettings() const { return *mRenderSettings; }
 
 		/**
 		 * Retrieves a hash value that is updated whenever render settings change. This can be used by external systems
@@ -341,7 +341,7 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mTransparentQueue;
 
 		RenderCompositor mCompositor;
-		SPtr<PostProcessSettings> mRenderSettings;
+		SPtr<RenderSettings> mRenderSettings;
 		UINT32 mRenderSettingsHash;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;

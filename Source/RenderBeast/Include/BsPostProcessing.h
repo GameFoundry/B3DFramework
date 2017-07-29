@@ -7,7 +7,7 @@
 #include "BsParamBlocks.h"
 #include "BsGpuResourcePool.h"
 #include "BsLightRendering.h"
-#include "BsPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs { namespace ct
 {
@@ -177,7 +177,7 @@ namespace bs { namespace ct
 		CreateTonemapLUTMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& output, const PostProcessSettings& settings);
+		void execute(const SPtr<Texture>& output, const RenderSettings& settings);
 
 		/** Returns the texture descriptor that can be used for initializing the output render target. */
 		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
@@ -209,7 +209,7 @@ namespace bs { namespace ct
 
 		/** Executes the post-process effect with the provided parameters. */
 		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& colorLUT,
-			const SPtr<RenderTarget>& output, const PostProcessSettings& settings);
+			const SPtr<RenderTarget>& output, const RenderSettings& settings);
 
 		/** Returns the material variation matching the provided parameters. */
 		static TonemappingMat* getVariation(bool gammaOnly, bool autoExposure, bool MSAA);

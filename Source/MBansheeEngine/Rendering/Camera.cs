@@ -158,7 +158,7 @@ namespace BansheeEngine
         /// <summary>
         /// Determines should high dynamic range be enabled. High dynamic range allows light intensity to be more correctly
         /// recorded when rendering by allowing for a larger range of values. The stored light is then converted into
-        /// visible color range using exposure and a tone mapping operator. Use <see cref="PostProcess"/> to customize
+        /// visible color range using exposure and a tone mapping operator. Use <see cref="RenderSettings"/> to customize
         /// those operations.
         /// </summary>
         public bool HDR
@@ -181,10 +181,10 @@ namespace BansheeEngine
         /// Allows you to customize various post process operations that will be executed on the image produced by this 
         /// camera.
         /// </summary>
-        public PostProcessSettings PostProcess
+        public RenderSettings RenderSettings
         {
-            get { return native.PostProcess; }
-            set { native.PostProcess = value;  serializableData.postProcessSettings = value; }
+            get { return native.RenderSettings; }
+            set { native.RenderSettings = value;  serializableData.renderSettings = value; }
         }
 
         /// <summary>
@@ -459,7 +459,7 @@ namespace BansheeEngine
         {
             internal SerializableData()
             {
-                postProcessSettings = PostProcessSettings.CreateDefault();
+                renderSettings = RenderSettings.CreateDefault();
             }
 
             public float aspectRatio = 1.333f;
@@ -476,7 +476,7 @@ namespace BansheeEngine
             public int priority;
             public bool HDR = true;
             public bool noLighting;
-            public PostProcessSettings postProcessSettings;
+            public RenderSettings renderSettings;
             public ulong layers = 0xFFFFFFFFFFFFFFFF;
             public bool main;
         }

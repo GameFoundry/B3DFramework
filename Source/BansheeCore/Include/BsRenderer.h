@@ -10,7 +10,7 @@ namespace bs
 { 
 	class RendererExtension;
 	class LightProbeVolume;
-	struct PostProcessSettings;
+	struct RenderSettings;
 
 	namespace ct
 	{
