@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	struct StandardPostProcessSettings;
+	struct RenderSettings;
 	struct AutoExposureSettings;
 	struct TonemappingSettings;
 	struct WhiteBalanceSettings;
@@ -118,20 +118,20 @@ namespace bs
 		static MonoField* sOffset;
 	};
 
-	/**	Interop class between C++ & CLR for PostProcessSettings. */
-	class BS_SCR_BE_EXPORT ScriptPostProcessSettings : public ScriptObject<ScriptPostProcessSettings>
+	/**	Interop class between C++ & CLR for RenderSettings. */
+	class BS_SCR_BE_EXPORT ScriptRenderSettings : public ScriptObject<ScriptRenderSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "PostProcessSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "RenderSettings")
 
 		/** Converts managed object its native counterpart. */
-		static SPtr<StandardPostProcessSettings> toNative(MonoObject* object);
+		static SPtr<RenderSettings> toNative(MonoObject* object);
 
 		/** Converts native object to its managed counterpart. */
-		static MonoObject* toManaged(const SPtr<StandardPostProcessSettings>& value);
+		static MonoObject* toManaged(const SPtr<RenderSettings>& value);
 
 	private:
-		ScriptPostProcessSettings(MonoObject* instance);
+		ScriptRenderSettings(MonoObject* instance);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
@@ -146,6 +146,10 @@ namespace bs
 		static MonoField* sColorGrading;
 		static MonoField* sExposureScale;
 		static MonoField* sGamma;
+		static MonoField* sEnableHDR;
+		static MonoField* sEnableLighting;
+		static MonoField* sEnableShadows;
+		static MonoField* sOverlayOnly;
 	};
 
 	/** @} */

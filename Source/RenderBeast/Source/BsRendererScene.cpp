@@ -11,13 +11,13 @@
 #include "BsGpuParamsSet.h"
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeast.h"
+#include "BsSkybox.h"
 
 namespace bs {	namespace ct
 {
 	RendererScene::RendererScene(const SPtr<RenderBeastOptions>& options)
 		:mOptions(options)
 	{
-		mDefaultMaterial = bs_new<DefaultMaterial>();
 	}
 
 	RendererScene::~RendererScene()
@@ -29,8 +29,6 @@ namespace bs {	namespace ct
 			bs_delete(entry);
 
 		assert(mSamplerOverrides.empty());
-
-		bs_delete(mDefaultMaterial);
 	}
 
 	void RendererScene::registerCamera(Camera* camera)
@@ -38,7 +36,7 @@ namespace bs {	namespace ct
 		RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
 
 		RendererView* view = bs_new<RendererView>(viewDesc);
-		view->setPostProcessSettings(camera->getPostProcessSettings());
+		view->setRenderSettings(camera->getRenderSettings());
 		view->updatePerViewBuffer();
 
 		UINT32 viewIdx = (UINT32)mInfo.views.size();
@@ -60,13 +58,13 @@ namespace bs {	namespace ct
 			RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
 
 			view->setView(viewDesc);
-			view->setPostProcessSettings(camera->getPostProcessSettings());
+			view->setRenderSettings(camera->getRenderSettings());
 
 			updateCameraRenderTargets(camera);
 		}
-		else if((updateFlag & (UINT32)CameraDirtyFlag::PostProcess) != 0)
+		else if((updateFlag & (UINT32)CameraDirtyFlag::RenderSettings) != 0)
 		{
-			view->setPostProcessSettings(camera->getPostProcessSettings());
+			view->setRenderSettings(camera->getRenderSettings());
 		}
 		else // Transform
 		{
@@ -254,7 +252,7 @@ namespace bs {	namespace ct
 
 				// If no mInfo.aterial use the default mInfo.aterial
 				if (renElement.material == nullptr)
-					renElement.material = mDefaultMaterial->getMaterial();
+					renElement.material = DefaultMaterial::get()->getMaterial();
 
 				// Determine which technique to use
 				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };
@@ -399,6 +397,31 @@ namespace bs {	namespace ct
 		RendererReflectionProbe& probeInfo = mInfo.reflProbes.back();
 
 		mInfo.reflProbeWorldBounds.push_back(probe->getBounds());
+
+		// Find a spot in cubemap array
+		UINT32 numArrayEntries = (UINT32)mInfo.reflProbeCubemapArrayUsedSlots.size();
+		for(UINT32 i = 0; i < numArrayEntries; i++)
+		{
+			if(!mInfo.reflProbeCubemapArrayUsedSlots[i])
+			{
+				setReflectionProbeArrayIndex(probeId, i, false);
+				mInfo.reflProbeCubemapArrayUsedSlots[i] = true;
+				break;
+			}
+		}
+
+		// No empty slot was found
+		if (probeInfo.arrayIdx == -1)
+		{
+			setReflectionProbeArrayIndex(probeId, numArrayEntries, false);
+			mInfo.reflProbeCubemapArrayUsedSlots.push_back(true);
+		}
+
+		if(probeInfo.arrayIdx > MaxReflectionCubemaps)
+		{
+			LOGERR("Reached the maximum number of allowed reflection probe cubemaps at once. "
+				"Ignoring reflection probe data.");
+		}
 	}
 
 	void RendererScene::updateReflectionProbe(ReflectionProbe* probe)
@@ -417,6 +440,10 @@ namespace bs {	namespace ct
 	void RendererScene::unregisterReflectionProbe(ReflectionProbe* probe)
 	{
 		UINT32 probeId = probe->getRendererId();
+		UINT32 arrayIdx = mInfo.reflProbes[probeId].arrayIdx;
+
+		if (arrayIdx != -1)
+			mInfo.reflProbeCubemapArrayUsedSlots[arrayIdx] = false;
 
 		ReflectionProbe* lastProbe = mInfo.reflProbes.back().probe;
 		UINT32 lastProbeId = lastProbe->getRendererId();
@@ -451,6 +478,42 @@ namespace bs {	namespace ct
 
 		if (markAsClean)
 			probe->arrayDirty = false;
+	}
+
+	void RendererScene::registerSkybox(Skybox* skybox)
+	{
+		mInfo.sky.skybox = skybox;
+
+		SPtr<Texture> skyTex = skybox->getTexture();
+		if (skyTex != nullptr && skyTex->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
+			mInfo.sky.radiance = skyTex;
+
+		mInfo.sky.filteredReflections = nullptr;
+		mInfo.sky.irradiance = nullptr;
+	}
+
+	void RendererScene::updateSkybox(Skybox* skybox)
+	{
+		LightProbeCache::instance().notifyDirty(skybox->getUUID());
+
+		if (mInfo.sky.skybox == skybox)
+		{
+			mInfo.sky.radiance = skybox->getTexture();
+			mInfo.sky.filteredReflections = nullptr;
+			mInfo.sky.irradiance = nullptr;
+		}
+	}
+
+	void RendererScene::unregisterSkybox(Skybox* skybox)
+	{
+		LightProbeCache::instance().unloadCachedTexture(skybox->getUUID());
+
+		if (mInfo.sky.skybox == skybox)
+		{
+			mInfo.sky.radiance = nullptr;
+			mInfo.sky.filteredReflections = nullptr;
+			mInfo.sky.irradiance = nullptr;
+		}
 	}
 
 	void RendererScene::setOptions(const SPtr<RenderBeastOptions>& options)
@@ -501,10 +564,6 @@ namespace bs {	namespace ct
 
 		viewDesc.target.numSamples = camera->getMSAACount();
 
-		viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
-		viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
-		viewDesc.noLighting = camera->getFlags().isSet(CameraFlag::NoLighting);
-		viewDesc.noShadows = camera->getFlags().isSet(CameraFlag::NoShadows);
 		viewDesc.triggerCallbacks = true;
 		viewDesc.runPostProcessing = true;
 		viewDesc.renderingReflections = false;

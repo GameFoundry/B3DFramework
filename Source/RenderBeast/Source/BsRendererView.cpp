@@ -5,7 +5,6 @@
 #include "BsRenderable.h"
 #include "BsMaterial.h"
 #include "BsShader.h"
-#include "BsRenderTargets.h"
 #include "BsRendererUtility.h"
 #include "BsLightRendering.h"
 #include "BsGpuParamsSet.h"
@@ -16,8 +15,15 @@ namespace bs { namespace ct
 	PerCameraParamDef gPerCameraParamDef;
 	SkyboxParamDef gSkyboxParamDef;
 
-	template<bool SOLID_COLOR>
-	SkyboxMat<SOLID_COLOR>::SkyboxMat()
+	ShaderVariation SkyboxMat::VAR_Texture = ShaderVariation({
+		ShaderVariation::Param("SOLID_COLOR", false)
+	});
+
+	ShaderVariation SkyboxMat::VAR_Color = ShaderVariation({
+		ShaderVariation::Param("SOLID_COLOR", true)
+	});
+
+	SkyboxMat::SkyboxMat()
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
@@ -30,23 +36,20 @@ namespace bs { namespace ct
 			mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::_initDefines(ShaderDefines& defines)
+	void SkyboxMat::_initVariations(ShaderVariations& variations)
 	{
-		if (SOLID_COLOR)
-			defines.set("SOLID_COLOR", 1);
+		variations.add(VAR_Color);
+		variations.add(VAR_Texture);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
+	void SkyboxMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 
 		gRendererUtility().setPass(mMaterial, 0);
 	}
 
-	template<bool SOLID_COLOR>
-	void SkyboxMat<SOLID_COLOR>::setParams(const SPtr<Texture>& texture, const Color& solidColor)
+	void SkyboxMat::setParams(const SPtr<Texture>& texture, const Color& solidColor)
 	{
 		mSkyTextureParam.set(texture, TextureSurface(1, 1, 0, 0));
 
@@ -54,6 +57,14 @@ namespace bs { namespace ct
 		mParamBuffer->flushToGPU();
 
 		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	SkyboxMat* SkyboxMat::getVariation(bool color)
+	{
+		if (color)
+			return get(VAR_Color);
+
+		return get(VAR_Texture);
 	}
 
 	RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
@@ -73,13 +84,13 @@ namespace bs { namespace ct
 	}
 
 	RendererView::RendererView()
-		: mUsingGBuffer(false)
+		:mRenderSettingsHash(0)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 	}
 
 	RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
-		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mUsingGBuffer(false)
+		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mRenderSettingsHash(0)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
@@ -98,18 +109,18 @@ namespace bs { namespace ct
 		mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
 	}
 
-	void RendererView::setPostProcessSettings(const SPtr<PostProcessSettings>& ppSettings)
+	void RendererView::setRenderSettings(const SPtr<RenderSettings>& settings)
 	{
-		if (mPostProcessInfo.settings == nullptr)
-			mPostProcessInfo.settings = bs_shared_ptr_new<StandardPostProcessSettings>();
+		if (mRenderSettings == nullptr)
+			mRenderSettings = bs_shared_ptr_new<RenderSettings>();
 
-		SPtr<StandardPostProcessSettings> stdPPSettings = std::static_pointer_cast<StandardPostProcessSettings>(ppSettings);
-		if (stdPPSettings != nullptr)
-			*mPostProcessInfo.settings = *stdPPSettings;
-		else
-			*mPostProcessInfo.settings = StandardPostProcessSettings();
+		if (settings != nullptr)
+			*mRenderSettings = *settings;
 
-		mPostProcessInfo.settingDirty = true;
+		mRenderSettingsHash++;
+
+		// Update compositor hierarchy
+		mCompositor.build(*this, RCNodeFinalResolve::getNodeId());
 	}
 
 	void RendererView::setTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, 
@@ -125,10 +136,6 @@ namespace bs { namespace ct
 
 	void RendererView::setView(const RENDERER_VIEW_DESC& desc)
 	{
-		if (mTargetDesc.targetWidth != desc.target.targetWidth ||
-			mTargetDesc.targetHeight != desc.target.targetHeight)
-			mRenderTargets = nullptr;
-
 		mCamera = desc.sceneCamera;
 		mProperties = desc;
 		mTargetDesc = desc.target;
@@ -136,21 +143,8 @@ namespace bs { namespace ct
 		setStateReductionMode(desc.stateReduction);
 	}
 
-	void RendererView::beginFrame(bool useGBuffer)
+	void RendererView::beginFrame()
 	{
-		if (useGBuffer)
-		{
-			// Render scene objects to g-buffer
-			bool createGBuffer = mRenderTargets == nullptr ||
-				mRenderTargets->getHDR() != mProperties.isHDR ||
-				mRenderTargets->getNumSamples() != mTargetDesc.numSamples;
-
-			if (createGBuffer)
-				mRenderTargets = RenderTargets::create(mTargetDesc, mProperties.isHDR);
-
-			mRenderTargets->prepare();
-			mUsingGBuffer = true;
-		}
 	}
 
 	void RendererView::endFrame()
@@ -160,12 +154,6 @@ namespace bs { namespace ct
 
 		mOpaqueQueue->clear();
 		mTransparentQueue->clear();
-
-		if(mUsingGBuffer)
-		{
-			mRenderTargets->cleanup();
-			mUsingGBuffer = false;
-		}
 	}
 
 	void RendererView::determineVisible(const Vector<RendererObject*>& renderables, const Vector<CullInfo>& cullInfos,
@@ -174,7 +162,7 @@ namespace bs { namespace ct
 		mVisibility.renderables.clear();
 		mVisibility.renderables.resize(renderables.size(), false);
 
-		if (mProperties.isOverlay)
+		if (mRenderSettings->overlayOnly)
 			return;
 
 		calculateVisibility(cullInfos, mVisibility.renderables);
@@ -243,7 +231,7 @@ namespace bs { namespace ct
 			perViewVisibility = &mVisibility.spotLights;
 		}
 
-		if (mProperties.isOverlay)
+		if (mRenderSettings->overlayOnly)
 			return;
 
 		calculateVisibility(bounds, *perViewVisibility);
@@ -468,16 +456,24 @@ namespace bs { namespace ct
 
 		gPerCameraParamDef.gClipToUVScaleOffset.set(mParamBuffer, clipToUVScaleOffset);
 
-		if (mProperties.noLighting)
+		if (!mRenderSettings->enableLighting)
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 100.0f);
 		else
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 0.0f);
 	}
 
-	template class SkyboxMat<true>;
-	template class SkyboxMat<false>;
+	void RendererView::updateLightGrid(const VisibleLightData& visibleLightData, 
+		const VisibleReflProbeData& visibleReflProbeData)
+	{
+		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->enableLighting);
+	}
 
-	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews)
+	RendererViewGroup::RendererViewGroup()
+		:mShadowRenderer(1024)
+	{ }
+
+	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews, UINT32 shadowMapSize)
+		:mShadowRenderer(shadowMapSize)
 	{
 		setViews(views, numViews);
 	}
@@ -493,6 +489,20 @@ namespace bs { namespace ct
 	void RendererViewGroup::determineVisibility(const SceneInfo& sceneInfo)
 	{
 		UINT32 numViews = (UINT32)mViews.size();
+
+		// Early exit if no views render scene geometry
+		bool allViewsOverlay = false;
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			if (!mViews[i]->getRenderSettings().overlayOnly)
+			{
+				allViewsOverlay = false;
+				break;
+			}
+		}
+
+		if (allViewsOverlay)
+			return;
 
 		// Generate render queues per camera
 		mVisibility.renderables.resize(sceneInfo.renderables.size(), false);
@@ -512,6 +522,9 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
+			if (mViews[i]->getRenderSettings().overlayOnly)
+				continue;
+
 			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
 				&mVisibility.radialLights);
 
@@ -534,6 +547,22 @@ namespace bs { namespace ct
 				continue;
 
 			mViews[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mVisibility.reflProbes);
+		}
+
+		// Organize light and refl. probe visibility infomation in a more GPU friendly manner
+
+		// Note: I'm determining light and refl. probe visibility for the entire group. It might be more performance
+		// efficient to do it per view. Additionally I'm using a single GPU buffer to hold their information, which is
+		// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
+		mVisibleLightData.update(sceneInfo, *this);
+		mVisibleReflProbeData.update(sceneInfo, *this);
+
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			if (mViews[i]->getRenderSettings().overlayOnly)
+				continue;
+
+			mViews[i]->updateLightGrid(mVisibleLightData, mVisibleReflProbeData);
 		}
 	}
 }}

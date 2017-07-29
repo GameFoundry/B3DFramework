@@ -2,8 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "BsPostProcessSettings.h"
+#include "BsCorePrerequisites.h"
+#include "BsIReflectable.h"
 #include "BsVector3.h"
 
 namespace bs
@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
-	struct BS_EXPORT AutoExposureSettings : public IReflectable
+	struct BS_CORE_EXPORT AutoExposureSettings : public IReflectable
 	{
 		AutoExposureSettings();
 
@@ -85,7 +85,7 @@ namespace bs
 	};
 
 	/** Settings that control tonemap post-process. */
-	struct BS_EXPORT TonemappingSettings : public IReflectable
+	struct BS_CORE_EXPORT TonemappingSettings : public IReflectable
 	{
 		TonemappingSettings();
 
@@ -132,7 +132,7 @@ namespace bs
 	};
 
 	/** Settings that control white balance post-process. */
-	struct BS_EXPORT WhiteBalanceSettings : public IReflectable
+	struct BS_CORE_EXPORT WhiteBalanceSettings : public IReflectable
 	{
 		WhiteBalanceSettings();
 
@@ -162,7 +162,7 @@ namespace bs
 	};
 
 	/** Settings that control color grading post-process. */
-	struct BS_EXPORT ColorGradingSettings : public IReflectable
+	struct BS_CORE_EXPORT ColorGradingSettings : public IReflectable
 	{
 		ColorGradingSettings();
 
@@ -200,7 +200,7 @@ namespace bs
 	};
 
 	/** Settings that control screen space ambient occlusion. */
-	struct BS_EXPORT AmbientOcclusionSettings : public IReflectable
+	struct BS_CORE_EXPORT AmbientOcclusionSettings : public IReflectable
 	{
 		AmbientOcclusionSettings();
 
@@ -263,7 +263,7 @@ namespace bs
 	};
 
 	/** Settings that control the depth-of-field effect. */
-	struct BS_EXPORT DepthOfFieldSettings : public IReflectable
+	struct BS_CORE_EXPORT DepthOfFieldSettings : public IReflectable
 	{
 		DepthOfFieldSettings();
 
@@ -322,7 +322,7 @@ namespace bs
 	 * for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to
 	 * achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
 	 */
-	struct BS_EXPORT ScreenSpaceReflectionsSettings : public IReflectable
+	struct BS_CORE_EXPORT ScreenSpaceReflectionsSettings : public IReflectable
 	{
 		ScreenSpaceReflectionsSettings();
 
@@ -353,11 +353,12 @@ namespace bs
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};
-
-	/** Settings that control the post-process operations. */
-	struct BS_EXPORT StandardPostProcessSettings : public PostProcessSettings
+	
+	/** Settings that control rendering for a specific camera (view). */
+	struct BS_CORE_EXPORT RenderSettings : public IReflectable
 	{
-		StandardPostProcessSettings();
+		RenderSettings();
+		virtual ~RenderSettings() { }
 
 		/**
 		 * Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness
@@ -430,17 +431,59 @@ namespace bs
 		 */
 		float gamma;
 
-		/** @copydoc PostProcessSettings::_getSyncData */
-		void _getSyncData(UINT8* buffer, UINT32& size) override;
+		/** 
+		 * High dynamic range allows light intensity to be more correctly recorded when rendering by allowing for a larger
+		 * range of values. The stored light is then converted into visible color range using exposure and a tone mapping 
+		 * operator.
+		 */
+		bool enableHDR;
 
-		/** @copydoc PostProcessSettings::_setSyncData */
-		void _setSyncData(UINT8* buffer, UINT32 size) override;
+		/** 
+		 * Determines if scene objects will be lit by lights. If disabled everything will be rendered using their albedo
+		 * texture with no lighting applied.
+		 */
+		bool enableLighting;
 
+		/** Determines if shadows cast by lights should be rendered. Only relevant if lighting is turned on. */
+		bool enableShadows;
+
+		/** 
+		 * Signals the renderer to only render overlays (like GUI), and not scene objects. Such rendering doesn't require
+		 * depth buffer or multi-sampled render targets and will not render any scene objects. This can improve performance
+		 * and memory usage for overlay-only views. 
+		 */
+		bool overlayOnly;
+
+		/** @name Internal
+		 *  @{
+		 */
+
+		/** 
+		 * Populates the provided buffer with data that can be used for syncing between two versions of this object.
+		 * Apply the retrieved buffer via _setSyncData().
+		 *
+		 * @param[in]		buffer		Pre-allocated buffer to store the sync data in. Set to null to calculate the size
+		 *								of the required buffer.
+		 * @param[in, out]	size		Size of the provided allocated buffer. Or if the buffer is null, this parameter will
+		 *								contain the required buffer size when the method executes.
+		 */
+		void _getSyncData(UINT8* buffer, UINT32& size);
+
+		/** 
+		 * Updates the stored data from the provided buffer, allowing changes to be transfered between two versions of this
+		 * object. Buffer must be retrieved from _getSyncData(). 
+		 *
+		 * @param[in]		buffer		Buffer containing the dirty data.
+		 * @param[in, out]	size		Size of the provided buffer.
+		 */
+		void _setSyncData(UINT8* buffer, UINT32 size);
+
+		/** @} */
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class StandardPostProcessSettingsRTTI;
+		friend class RenderSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};

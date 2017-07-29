@@ -100,8 +100,7 @@ namespace bs { namespace ct
 	extern ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
 	/** Material used for populating the stencil buffer when projecting non-omnidirectional shadows. */
-	template<bool Directional, bool ZFailStencil>
-	class ShadowProjectStencilMat : public RendererMaterial<ShadowProjectStencilMat<Directional, ZFailStencil>>
+	class ShadowProjectStencilMat : public RendererMaterial<ShadowProjectStencilMat>
 	{
 		RMAT_DEF("ShadowProjectStencil.bsl");
 
@@ -111,29 +110,22 @@ namespace bs { namespace ct
 		/** Binds the material and its parameters to the pipeline. */
 		void bind(const SPtr<GpuParamBlockBuffer>& perCamera);
 
-	private:
-		SPtr<GpuParamBlockBuffer> mVertParams;
-	};
-
-	/** Contains all variations of the ShadowProjectStencilMat material. */
-	class ShadowProjectStencilMaterials
-	{
-	public:
-		/** 
-		 * Binds a shader that can be used for populating the stencil buffer during non-omnidirectional shadow rendering. 
+		/** Returns the material variation matching the provided parameters.
 		 *
 		 * @param[in]	directional		Set to true if shadows from a directional light are being rendered.
 		 * @param[in]	useZFailStencil	If true the material will use z-fail operation to modify the stencil buffer. If 
 		 *								false z-pass will be used instead. Z-pass is a more performant alternative as it
 		 *								doesn't disable hi-z optimization, but it cannot handle the case when the viewer is
 		 *								inside the drawn geometry.
-		 * @param[in]	perCamera		Buffer containing information about the current view.
 		 */
-		void bind(bool directional, bool useZFailStencil, const SPtr<GpuParamBlockBuffer>& perCamera);
+		static ShadowProjectStencilMat* getVariation(bool directional, bool useZFailStencil);
 	private:
-		ShadowProjectStencilMat<true, true> mTT;
-		ShadowProjectStencilMat<false, true> mFT;
-		ShadowProjectStencilMat<false, false> mFF;
+		SPtr<GpuParamBlockBuffer> mVertParams;
+
+		static ShaderVariation VAR_Dir_ZFailStencil;
+		static ShaderVariation VAR_Dir_NoZFailStencil;
+		static ShaderVariation VAR_NoDir_ZFailStencil;
+		static ShaderVariation VAR_NoDir_NoZFailStencil;
 	};
 
 	/** Common parameters used by the shadow projection materials. */
@@ -141,9 +133,9 @@ namespace bs { namespace ct
 	{
 		ShadowProjectParams(const Light& light, const SPtr<Texture>& shadowMap, UINT32 shadowMapFace,
 			const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& perCameraParams,
-			const RenderTargets& renderTargets)
+			GBufferInput gbuffer)
 			: light(light), shadowMap(shadowMap), shadowMapFace(shadowMapFace), shadowParams(shadowParams)
-			, perCamera(perCameraParams), renderTargets(renderTargets)
+			, perCamera(perCameraParams), gbuffer(gbuffer)
 		{ }
 
 		/** Light which is casting the shadow. */
@@ -162,7 +154,7 @@ namespace bs { namespace ct
 		const SPtr<GpuParamBlockBuffer>& perCamera;
 
 		/** Contains the GBuffer textures. */
-		const RenderTargets& renderTargets;
+		GBufferInput gbuffer;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
@@ -178,8 +170,7 @@ namespace bs { namespace ct
 	extern ShadowProjectParamsDef gShadowProjectParamsDef;
 
 	/** Material used for projecting depth into a shadow accumulation buffer for non-omnidirectional shadow maps. */
-	template<int ShadowQuality, bool Directional, bool MSAA>
-	class ShadowProjectMat : public RendererMaterial<ShadowProjectMat<ShadowQuality, Directional, MSAA>>
+	class ShadowProjectMat : public RendererMaterial<ShadowProjectMat>
 	{
 		RMAT_DEF("ShadowProject.bsl");
 
@@ -189,6 +180,13 @@ namespace bs { namespace ct
 		/** Binds the material and its parameters to the pipeline. */
 		void bind(const ShadowProjectParams& params);
 
+		/** Returns the material variation matching the provided parameters.
+		 *
+		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
+		 * @param[in]	directional		True if rendering a shadow from a directional light.
+		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
+		 */
+		static ShadowProjectMat* getVariation(UINT32 quality, bool directional, bool MSAA);
 	private:
 		SPtr<SamplerState> mSamplerState;
 		SPtr<GpuParamBlockBuffer> mVertParams;
@@ -197,35 +195,19 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
-	};
 
-	/** Contains all variations of the ShadowProjectMat material. */
-	class ShadowProjectMaterials
-	{
-	public:
-		/** 
-		 * Binds the appropriate variation of the ShadowProjectMat based on the provided parameters. 
-		 * 
-		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
-		 * @param[in]	directional		True if rendering a shadow from a directional light.
-		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
-		 * @param[in]	params			Parameters to be passed along to the material.
-		 */
-		void bind(UINT32 quality, bool directional, bool MSAA, const ShadowProjectParams& params);
-	private:
-#define MAT_MEMBERS(QUALITY)											\
-		ShadowProjectMat<QUALITY, true, true> mMat##QUALITY##TT;		\
-		ShadowProjectMat<QUALITY, true, false> mMat##QUALITY##TF;		\
-		ShadowProjectMat<QUALITY, false, true> mMat##QUALITY##FT;		\
-		ShadowProjectMat<QUALITY, false, false> mMat##QUALITY##FF;
+#define VARIATION(QUALITY)											\
+		static ShaderVariation VAR_Q##QUALITY##_Dir_MSAA;			\
+		static ShaderVariation VAR_Q##QUALITY##_Dir_NoMSAA;			\
+		static ShaderVariation VAR_Q##QUALITY##_NoDir_MSAA;			\
+		static ShaderVariation VAR_Q##QUALITY##_NoDir_NoMSAA;		\
 	
-		MAT_MEMBERS(1)
-		MAT_MEMBERS(2)
-		MAT_MEMBERS(3)
-		MAT_MEMBERS(4)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
 
-#undef MAT_MEMBERS
-
+#undef VARIATION 
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
@@ -239,8 +221,7 @@ namespace bs { namespace ct
 	extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
 	/** Material used for projecting depth into a shadow accumulation buffer for omnidirectional shadow maps. */
-	template<int ShadowQuality, bool Inside, bool MSAA>
-	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>>
+	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat>
 	{
 		RMAT_DEF("ShadowProjectOmni.bsl");
 
@@ -250,6 +231,13 @@ namespace bs { namespace ct
 		/** Binds the material and its parameters to the pipeline. */
 		void bind(const ShadowProjectParams& params);
 
+		/** Returns the material variation matching the provided parameters.
+		 *
+		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
+		 * @param[in]	inside			True if the viewer is inside the light volume.
+		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
+		 */
+		static ShadowProjectOmniMat* getVariation(UINT32 quality, bool inside, bool MSAA);
 	private:
 		SPtr<SamplerState> mSamplerState;
 		SPtr<GpuParamBlockBuffer> mVertParams;
@@ -258,35 +246,19 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
-	};
 
-	/** Contains all variations of the ShadowProjectOmniMat material. */
-	class ShadowProjectOmniMaterials
-	{
-	public:
-		/** 
-		 * Binds the appropriate variation of the ShadowProjectOmniMat based on the provided parameters. 
-		 * 
-		 * @param[in]	quality			Quality of the shadow filtering to use. In range [1, 4].
-		 * @param[in]	inside			True if the viewer is inside the light volume.
-		 * @param[in]	MSAA			True if the GBuffer contains per-sample data.
-		 * @param[in]	params			Parameters to be passed along to the material.
-		 */
-		void bind(UINT32 quality, bool inside, bool MSAA, const ShadowProjectParams& params);
-	private:
-#define MAT_MEMBERS(QUALITY)												\
-		ShadowProjectOmniMat<QUALITY, true, true> mMat##QUALITY##TT;		\
-		ShadowProjectOmniMat<QUALITY, true, false> mMat##QUALITY##TF;		\
-		ShadowProjectOmniMat<QUALITY, false, true> mMat##QUALITY##FT;		\
-		ShadowProjectOmniMat<QUALITY, false, false> mMat##QUALITY##FF;
+#define VARIATION(QUALITY)											\
+		static ShaderVariation VAR_Q##QUALITY##_Inside_MSAA;		\
+		static ShaderVariation VAR_Q##QUALITY##_Inside_NoMSAA;		\
+		static ShaderVariation VAR_Q##QUALITY##_Outside_MSAA;		\
+		static ShaderVariation VAR_Q##QUALITY##_Outside_NoMSAA;		\
 	
-		MAT_MEMBERS(1)
-		MAT_MEMBERS(2)
-		MAT_MEMBERS(3)
-		MAT_MEMBERS(4)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
 
-#undef MAT_MEMBERS
-
+#undef VARIATION 
 	};
 
 	/** Pixel format used for rendering and storing shadow maps. */
@@ -435,7 +407,7 @@ namespace bs { namespace ct
 	};
 
 	/** Provides functionality for rendering shadow maps. */
-	class ShadowRendering : public Module<ShadowRendering>
+	class ShadowRendering
 	{
 		/** Contains information required for generating a shadow map for a specific light. */
 		struct ShadowMapOptions
@@ -461,8 +433,8 @@ namespace bs { namespace ct
 		 * Renders shadow occlusion values for the specified light, into the currently bound render target. 
 		 * The system uses shadow maps rendered by renderShadowMaps().
 		 */
-		void renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, const RendererLight& light,
-			UINT32 viewIdx);
+		void renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, const RendererLight& light,
+			UINT32 viewIdx, GBufferInput gbuffer) const;
 
 		/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 		void setShadowMapSize(UINT32 size);
@@ -502,13 +474,13 @@ namespace bs { namespace ct
 		 * @param[in]	far			Location of the far plane, in NDC.
 		 * @param[in]	drawNear	If disabled, only the far plane will be drawn.
 		 */
-		void drawNearFarPlanes(float near, float far, bool drawNear = true);
+		void drawNearFarPlanes(float near, float far, bool drawNear = true) const;
 
 		/** 
 		 * Draws a frustum mesh using the provided vertices as its corners. Corners should be in the order specified
 		 * by AABox::Corner enum.
 		 */
-		void drawFrustum(const std::array<Vector3, 8>& corners);
+		void drawFrustum(const std::array<Vector3, 8>& corners) const;
 
 		/**
 		 * Calculates optimal shadow quality based on the quality set in the options and the actual shadow map resolution.
@@ -582,14 +554,6 @@ namespace bs { namespace ct
 		/** Percent of the length of a single cascade in a CSM, in which to fade out the cascade. */
 		static const float CASCADE_FRACTION_FADE;
 
-		ShadowDepthNormalMat mDepthNormalMat;
-		ShadowDepthCubeMat mDepthCubeMat;
-		ShadowDepthDirectionalMat mDepthDirectionalMat;
-
-		ShadowProjectStencilMaterials mProjectStencilMaterials;
-		ShadowProjectMaterials mProjectMaterials;
-		ShadowProjectOmniMaterials mProjectOmniMaterials;
-
 		UINT32 mShadowMapSize;
 
 		Vector<ShadowMapAtlas> mDynamicShadowMaps;
@@ -605,12 +569,12 @@ namespace bs { namespace ct
 		SPtr<VertexDeclaration> mPositionOnlyVD;
 
 		// Mesh information used for drawing near & far planes
-		SPtr<IndexBuffer> mPlaneIB;
-		SPtr<VertexBuffer> mPlaneVB;
+		mutable SPtr<IndexBuffer> mPlaneIB;
+		mutable SPtr<VertexBuffer> mPlaneVB;
 
 		// Mesh information used for drawing a shadow frustum
-		SPtr<IndexBuffer> mFrustumIB;
-		SPtr<VertexBuffer> mFrustumVB;
+		mutable SPtr<IndexBuffer> mFrustumIB;
+		mutable SPtr<VertexBuffer> mFrustumVB;
 
 		Vector<bool> mRenderableVisibility; // Transient
 		Vector<ShadowMapOptions> mSpotLightShadowOptions; // Transient

@@ -10,6 +10,9 @@
 #include "BsBounds.h"
 #include "BsConvexVolume.h"
 #include "BsLight.h"
+#include "BsLightGrid.h"
+#include "BsShadowRendering.h"
+#include "BsRenderCompositor.h"
 
 namespace bs { namespace ct
 {
@@ -48,8 +51,7 @@ namespace bs { namespace ct
 	extern SkyboxParamDef gSkyboxParamDef;
 
 	/** Shader that renders a skybox using a cubemap or a solid color. */
-	template<bool SOLID_COLOR>
-	class SkyboxMat : public RendererMaterial<SkyboxMat<SOLID_COLOR>>
+	class SkyboxMat : public RendererMaterial<SkyboxMat>
 	{
 		RMAT_DEF("Skybox.bsl");
 
@@ -61,9 +63,20 @@ namespace bs { namespace ct
 
 		/** Updates the skybox texture & solid color used by the material. */
 		void setParams(const SPtr<Texture>& texture, const Color& solidColor);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 * 
+		 * @param[in]	color	When true the material will use a solid color to render a skybox. When false a user
+		 *						provided texture will be used instead.
+		 */
+		static SkyboxMat* getVariation(bool color);
 	private:
 		GpuParamTexture mSkyTextureParam;
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
+
+		static ShaderVariation VAR_Texture;
+		static ShaderVariation VAR_Color;
 	};
 
 	/** Data shared between RENDERER_VIEW_DESC and RendererViewProperties */
@@ -78,10 +91,6 @@ namespace bs { namespace ct
 		float farPlane;
 		ProjectionType projType;
 
-		bool isOverlay : 1;
-		bool isHDR : 1;
-		bool noLighting : 1;
-		bool noShadows : 1;
 		bool triggerCallbacks : 1;
 		bool runPostProcessing : 1;
 		bool renderingReflections : 1;
@@ -177,8 +186,8 @@ namespace bs { namespace ct
 		/** Sets state reduction mode that determines how do render queues group & sort renderables. */
 		void setStateReductionMode(StateReduction reductionMode);
 
-		/** Updates the internal camera post-processing data. */
-		void setPostProcessSettings(const SPtr<PostProcessSettings>& ppSettings);
+		/** Updates the internal camera render settings. */
+		void setRenderSettings(const SPtr<RenderSettings>& settings);
 
 		/** Updates the internal information with a new view transform. */
 		void setTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view,
@@ -193,19 +202,11 @@ namespace bs { namespace ct
 		/** Returns the scene camera this object is based of. This can be null for manually constructed renderer cameras. */
 		Camera* getSceneCamera() const { return mCamera; }
 
-		/** 
-		 * Prepares render targets for rendering. When done call endFrame().
-		 *
-		 * @param[in]	useGBuffer			Set to true if you will be rendering to internal render targets containing the
-		 *									GBuffer (retrieved via getRenderTargets()).
-		 */
-		void beginFrame(bool useGBuffer);
+		/** Prepares render targets for rendering. When done call endFrame(). */
+		void beginFrame();
 
 		/** Ends rendering and frees any acquired resources. */
 		void endFrame();
-
-		/** Returns the view's renderTargets. Only valid if called in-between beginRendering() and endRendering() calls. */
-		SPtr<RenderTargets> getRenderTargets() const { return mRenderTargets; }
 
 		/** 
 		 * Returns a render queue containing all opaque objects. Make sure to call determineVisible() beforehand if view 
@@ -218,6 +219,9 @@ namespace bs { namespace ct
 		 * view or object transforms changed since the last time it was called.
 		 */
 		const SPtr<RenderQueue>& getTransparentQueue() const { return mTransparentQueue; }
+
+		/** Returns the compositor in charge of rendering for this view. */
+		const RenderCompositor& getCompositor() const { return mCompositor; }
 
 		/**
 		 * Populates view render queues by determining visible renderable objects. 
@@ -275,20 +279,29 @@ namespace bs { namespace ct
 		/** Returns the visibility mask calculated with the last call to determineVisible(). */
 		const VisibilityInfo& getVisibilityMasks() const { return mVisibility; }
 
-		/** 
-		 * Returns a structure containing information about post-processing effects. This structure will be modified and
-		 * maintained by the post-processing system.
-		 */
-		PostProcessInfo& getPPInfo() { return mPostProcessInfo; }
+		/** Returns per-view settings that control rendering. */
+		const RenderSettings& getRenderSettings() const { return *mRenderSettings; }
 
-		/** @copydoc getPPInfo() */
-		const PostProcessInfo& getPPInfo() const { return mPostProcessInfo; }
+		/**
+		 * Retrieves a hash value that is updated whenever render settings change. This can be used by external systems
+		 * to detect when they need to update.
+		 */
+		UINT64 getRenderSettingsHash() const { return mRenderSettingsHash; }
 
 		/** Updates the GPU buffer containing per-view information, with the latest internal data. */
 		void updatePerViewBuffer();
 
 		/** Returns a buffer that stores per-view parameters. */
 		SPtr<GpuParamBlockBuffer> getPerViewBuffer() const { return mParamBuffer; }
+
+		/** 
+		 * Returns information about visible lights, in the form of a light grid, used for forward rendering. Only valid
+		 * after a call to updateLightGrid().
+		 */
+		const LightGrid& getLightGrid() const { return mLightGrid; }
+
+		/** Updates the light grid used for forward rendering. */
+		void updateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData);
 
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
@@ -323,20 +336,21 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;
 
-		SPtr<RenderTargets> mRenderTargets;
-		PostProcessInfo mPostProcessInfo;
-		bool mUsingGBuffer;
+		RenderCompositor mCompositor;
+		SPtr<RenderSettings> mRenderSettings;
+		UINT32 mRenderSettingsHash;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		VisibilityInfo mVisibility;
+		LightGrid mLightGrid;
 	};
 
 	/** Contains one or multiple RendererView%s that are in some way related. */
 	class RendererViewGroup
 	{
 	public:
-		RendererViewGroup() {}
-		RendererViewGroup(RendererView** views, UINT32 numViews);
+		RendererViewGroup();
+		RendererViewGroup(RendererView** views, UINT32 numViews, UINT32 shadowMapSize);
 
 		/** 
 		 * Updates the internal list of views. This is more efficient than always constructing a new instance of this class
@@ -357,6 +371,24 @@ namespace bs { namespace ct
 		 */
 		const VisibilityInfo& getVisibilityInfo() const { return mVisibility; }
 
+		/**
+		 * Returns information about lights visible from this group of views. Only valid after a call to 
+		 * determineVisibility().
+		 */
+		const VisibleLightData& getVisibleLightData() const { return mVisibleLightData; }
+
+		/**
+		 * Returns information about refl. probes visible from this group of views. Only valid after a call to 
+		 * determineVisibility().
+		 */
+		const VisibleReflProbeData& getVisibleReflProbeData() const { return mVisibleReflProbeData; }
+
+		/** Returns the object responsible for rendering shadows for this view group. */
+		ShadowRendering& getShadowRenderer() { return mShadowRenderer; }
+
+		/** Returns the object responsible for rendering shadows for this view group. */
+		const ShadowRendering& getShadowRenderer() const { return mShadowRenderer; }
+
 		/** 
 		 * Updates visibility information for the provided scene objects, from the perspective of all views in this group,
 		 * and updates the render queues of each individual view. Use getVisibilityInfo() to retrieve the calculated
@@ -367,6 +399,15 @@ namespace bs { namespace ct
 	private:
 		Vector<RendererView*> mViews;
 		VisibilityInfo mVisibility;
+
+		VisibleLightData mVisibleLightData;
+		VisibleReflProbeData mVisibleReflProbeData;
+
+		// Note: Ideally we would want to keep this global, so all views share it. This way each view group renders its
+		// own set of shadows, but there might be shadows that are shared, and therefore we could avoid rendering them
+		// multiple times. Since non-primary view groups are used for pre-processing tasks exclusively (at the moment) 
+		// this isn't an issue right now.
+		ShadowRendering mShadowRenderer;
 	};
 
 	/** @} */

@@ -152,9 +152,6 @@ namespace bs { namespace ct
 			SPtr<GpuParamBlockBuffer>& gridParams) const;
 
 	private:
-		LightGridLLCreationMat mLLCreationMat;
-		LightGridLLReductionMat mLLReductionMat;
-
 		SPtr<GpuParamBlockBuffer> mGridParamBuffer;
 	};
 

@@ -101,6 +101,9 @@ namespace bs
 			return mData->chars;
 		}
 
+		/** Returns the unique identifier of the string. */
+		UINT32 id() const { return mData ? mData->id : -1; }
+
 		static const StringID NONE;
 
 	private:
@@ -194,3 +197,24 @@ namespace bs
 	/** @endcond */
 	/** @} */
 }
+
+/** @cond STDLIB */
+/** @addtogroup String
+ *  @{
+ */
+
+namespace std
+{
+/**	Hash value generator for StringID. */
+template<>
+struct hash<bs::StringID>
+{
+	size_t operator()(const bs::StringID& value) const
+	{
+		return (size_t)value.id();
+	}
+};
+}
+
+/** @} */
+/** @endcond */

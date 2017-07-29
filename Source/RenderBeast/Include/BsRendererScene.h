@@ -21,6 +21,19 @@ namespace bs
 	 *  @{
 	 */
 
+	// Limited by max number of array elements in texture for DX11 hardware
+	constexpr UINT32 MaxReflectionCubemaps = 2048 / 6;
+
+	/** Contains information about the skybox in the current scene. */
+	struct SkyInfo
+	{
+		Skybox* skybox = nullptr;
+
+		SPtr<Texture> radiance;
+		SPtr<Texture> filteredReflections;
+		SPtr<Texture> irradiance;
+	};
+
 	/** Contains most scene objects relevant to the renderer. */
 	struct SceneInfo
 	{
@@ -43,6 +56,11 @@ namespace bs
 		// Reflection probes
 		Vector<RendererReflectionProbe> reflProbes;
 		Vector<Sphere> reflProbeWorldBounds;
+		Vector<bool> reflProbeCubemapArrayUsedSlots;
+		SPtr<Texture> reflProbeCubemapsTex;
+
+		// Sky
+		SkyInfo sky;
 
 		// Buffers for various transient data that gets rebuilt every frame
 		//// Rebuilt every frame
@@ -98,6 +116,15 @@ namespace bs
 		/** Updates the index at which the reflection probe's texture is stored at, in the global array. */
 		void setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean);
 
+		/** Registers a new sky texture in the scene. */
+		void registerSkybox(Skybox* skybox);
+
+		/** Updates information about the previously registered skybox. */
+		void updateSkybox(Skybox* skybox);
+
+		/** Removes a skybox from the scene. */
+		void unregisterSkybox(Skybox* skybox);
+
 		/** Returns a container with all relevant scene objects. */
 		const SceneInfo& getSceneInfo() const { return mInfo; }
 
@@ -121,6 +148,9 @@ namespace bs
 		 * @param[in]	frameInfo	Global information describing the current frame.
 		 */
 		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
+
+		/** Returns a modifiable version of SceneInfo. Only to be used by friends who know what they are doing. */
+		SceneInfo& _getSceneInfo() { return mInfo; }
 	private:
 		/** Creates a renderer view descriptor for the particular camera. */
 		RENDERER_VIEW_DESC createViewDesc(Camera* camera) const;
@@ -134,7 +164,6 @@ namespace bs
 		SceneInfo mInfo;
 		UnorderedMap<SamplerOverrideKey, MaterialSamplerOverrides*> mSamplerOverrides;
 
-		DefaultMaterial* mDefaultMaterial = nullptr;
 		SPtr<RenderBeastOptions> mOptions;
 	};
 

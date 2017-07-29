@@ -10,7 +10,7 @@ namespace bs
 { 
 	class RendererExtension;
 	class LightProbeVolume;
-	struct PostProcessSettings;
+	struct RenderSettings;
 
 	namespace ct
 	{
@@ -223,9 +223,6 @@ namespace bs
 
 		/**	Returns current set of options used for controlling the rendering. */
 		virtual SPtr<RendererOptions> getOptions() const { return SPtr<RendererOptions>(); }
-
-		/** Creates post process settings that can be attached to a camera and processed by the active renderer. */
-		virtual SPtr<PostProcessSettings> createPostProcessSettings() const = 0;
 
 	protected:
 		/**	Contains information about a render callback. */

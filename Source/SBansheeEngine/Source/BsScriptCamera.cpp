@@ -15,8 +15,8 @@
 #include "BsRenderWindow.h"
 #include "BsRenderTexture.h"
 #include "BsGUIManager.h"
-#include "BsStandardPostProcessSettings.h"
-#include "BsScriptPostProcessSettings.h"
+#include "BsRenderSettings.h"
+#include "BsScriptRenderSettings.h"
 
 namespace bs
 {
@@ -73,14 +73,8 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetPriority", &ScriptCamera::internal_GetPriority);
 		metaData.scriptClass->addInternalCall("Internal_SetPriority", &ScriptCamera::internal_SetPriority);
 
-		metaData.scriptClass->addInternalCall("Internal_GetHDR", &ScriptCamera::internal_GetHDR);
-		metaData.scriptClass->addInternalCall("Internal_SetHDR", &ScriptCamera::internal_SetHDR);
-
-		metaData.scriptClass->addInternalCall("Internal_GetNoLighting", &ScriptCamera::internal_GetNoLighting);
-		metaData.scriptClass->addInternalCall("Internal_SetNoLighting", &ScriptCamera::internal_SetNoLighting);
-
-		metaData.scriptClass->addInternalCall("Internal_GetPostProcessSettings", &ScriptCamera::internal_GetPostProcessSettings);
-		metaData.scriptClass->addInternalCall("Internal_SetPostProcessSettings", &ScriptCamera::internal_SetPostProcessSettings);
+		metaData.scriptClass->addInternalCall("Internal_GetRenderSettings", &ScriptCamera::internal_GetRenderSettings);
+		metaData.scriptClass->addInternalCall("Internal_SetRenderSettings", &ScriptCamera::internal_SetRenderSettings);
 
 		metaData.scriptClass->addInternalCall("Internal_GetLayers", &ScriptCamera::internal_GetLayers);
 		metaData.scriptClass->addInternalCall("Internal_SetLayers", &ScriptCamera::internal_SetLayers);
@@ -294,49 +288,18 @@ namespace bs
 		instance->mCamera->setPriority(value);
 	}
 
-	bool ScriptCamera::internal_GetHDR(ScriptCamera* instance)
+	MonoObject* ScriptCamera::internal_GetRenderSettings(ScriptCamera* instance)
 	{
-		return instance->mCamera->getFlags().isSet(CameraFlag::HDR);
+		SPtr<RenderSettings> settings = instance->mCamera->getRenderSettings();
+		if (settings == nullptr)
+			settings = bs_shared_ptr_new<RenderSettings>();
+
+		return ScriptRenderSettings::toManaged(settings);
 	}
 
-	void ScriptCamera::internal_SetHDR(ScriptCamera* instance, bool value)
+	void ScriptCamera::internal_SetRenderSettings(ScriptCamera* instance, MonoObject* value)
 	{
-		instance->mCamera->setFlag(CameraFlag::HDR, value);
-	}
-
-	bool ScriptCamera::internal_GetNoLighting(ScriptCamera* instance)
-	{
-		return instance->mCamera->getFlags().isSet(CameraFlag::NoLighting);
-	}
-
-	void ScriptCamera::internal_SetNoLighting(ScriptCamera* instance, bool value)
-	{
-		instance->mCamera->setFlag(CameraFlag::NoLighting, value);
-	}
-
-	MonoObject* ScriptCamera::internal_GetPostProcessSettings(ScriptCamera* instance)
-	{
-		SPtr<PostProcessSettings> ppSettings = instance->mCamera->getPostProcessSettings();
-		SPtr<StandardPostProcessSettings> standardPPSettings;
-		if(ppSettings != nullptr)
-		{
-			if (!rtti_is_of_type<StandardPostProcessSettings>(ppSettings))
-			{
-				assert(false && "Invalid post process settings type.");
-			}
-			else
-				standardPPSettings = std::static_pointer_cast<StandardPostProcessSettings>(ppSettings);
-		}
-
-		if (standardPPSettings == nullptr)
-			standardPPSettings = bs_shared_ptr_new<StandardPostProcessSettings>();
-
-		return ScriptPostProcessSettings::toManaged(standardPPSettings);
-	}
-
-	void ScriptCamera::internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value)
-	{
-		instance->mCamera->setPostProcessSettings(ScriptPostProcessSettings::toNative(value));
+		instance->mCamera->setRenderSettings(ScriptRenderSettings::toNative(value));
 	}
 
 	UINT64 ScriptCamera::internal_GetLayers(ScriptCamera* instance)

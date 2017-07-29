@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	ShadowDepthNormalMat::ShadowDepthNormalMat()
 	{ }
 
-	void ShadowDepthNormalMat::_initDefines(ShaderDefines& defines)
+	void ShadowDepthNormalMat::_initVariations(ShaderVariations& variations)
 	{
 		// No defines
 	}
@@ -39,7 +39,7 @@ namespace bs { namespace ct
 	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
 	{ }
 
-	void ShadowDepthDirectionalMat::_initDefines(ShaderDefines& defines)
+	void ShadowDepthDirectionalMat::_initVariations(ShaderVariations& variations)
 	{
 		// No defines
 	}
@@ -63,7 +63,7 @@ namespace bs { namespace ct
 	ShadowDepthCubeMat::ShadowDepthCubeMat()
 	{ }
 
-	void ShadowDepthCubeMat::_initDefines(ShaderDefines& defines)
+	void ShadowDepthCubeMat::_initVariations(ShaderVariations& variations)
 	{
 		// No defines
 	}
@@ -89,8 +89,25 @@ namespace bs { namespace ct
 	ShadowProjectParamsDef gShadowProjectParamsDef;
 	ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
-	template<bool Directional, bool ZFailStencil>
-	ShadowProjectStencilMat<Directional, ZFailStencil>::ShadowProjectStencilMat()
+	ShaderVariation ShadowProjectStencilMat::VAR_Dir_ZFailStencil = ShaderVariation({
+		ShaderVariation::Param("NEEDS_TRANSFORM", true),
+		ShaderVariation::Param("USE_ZFAIL_STENCIL", true)
+	});
+
+	ShaderVariation ShadowProjectStencilMat::VAR_Dir_NoZFailStencil = ShaderVariation({
+		ShaderVariation::Param("NEEDS_TRANSFORM", true)
+	});
+
+	ShaderVariation ShadowProjectStencilMat::VAR_NoDir_ZFailStencil = ShaderVariation({
+		ShaderVariation::Param("NEEDS_TRANSFORM", false),
+		ShaderVariation::Param("USE_ZFAIL_STENCIL", true)
+	});
+
+	ShaderVariation ShadowProjectStencilMat::VAR_NoDir_NoZFailStencil = ShaderVariation({
+		ShaderVariation::Param("NEEDS_TRANSFORM", false)
+	});
+	
+	ShadowProjectStencilMat::ShadowProjectStencilMat()
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 
@@ -99,17 +116,15 @@ namespace bs { namespace ct
 			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	template<bool Directional, bool ZFailStencil>
-	void ShadowProjectStencilMat<Directional, ZFailStencil>::_initDefines(ShaderDefines& defines)
+	void ShadowProjectStencilMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("NEEDS_TRANSFORM", Directional ? 0 : 1);
-
-		if(ZFailStencil)
-			defines.set("USE_ZFAIL_STENCIL", 1);
+		variations.add(VAR_Dir_ZFailStencil);
+		variations.add(VAR_Dir_NoZFailStencil);
+		variations.add(VAR_NoDir_ZFailStencil);
+		variations.add(VAR_NoDir_NoZFailStencil);
 	}
 
-	template<bool Directional, bool ZFailStencil>
-	void ShadowProjectStencilMat<Directional, ZFailStencil>::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
+	void ShadowProjectStencilMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		Vector4 lightPosAndScale(0, 0, 0, 1);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
@@ -120,25 +135,54 @@ namespace bs { namespace ct
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-	void ShadowProjectStencilMaterials::bind(bool directional, bool useZFailStencil,
-		const SPtr<GpuParamBlockBuffer>& perCamera)
+	ShadowProjectStencilMat* ShadowProjectStencilMat::getVariation(bool directional, bool useZFailStencil)
 	{
 		if(directional)
 		{
 			// Always uses z-fail stencil
-			mTT.bind(perCamera);
+			return get(VAR_Dir_ZFailStencil);
 		}
 		else
 		{
 			if (useZFailStencil)
-				mFT.bind(perCamera);
+				return get(VAR_NoDir_ZFailStencil);
 			else
-				mFF.bind(perCamera);
+				return get(VAR_NoDir_NoZFailStencil);
 		}
 	}
 
-	template<int ShadowQuality, bool Directional, bool MSAA>
-	ShadowProjectMat<ShadowQuality, Directional, MSAA>::ShadowProjectMat()
+#define VARIATION(QUALITY)																	\
+		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_Dir_MSAA = ShaderVariation({		\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
+			ShaderVariation::Param("FADE_PLANE", true),										\
+			ShaderVariation::Param("NEEDS_TRANSFORM", false),								\
+			ShaderVariation::Param("MSAA_COUNT", 2)											\
+		});																					\
+		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_Dir_NoMSAA = ShaderVariation({	\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
+			ShaderVariation::Param("FADE_PLANE", true),										\
+			ShaderVariation::Param("NEEDS_TRANSFORM", false),								\
+			ShaderVariation::Param("MSAA_COUNT", 1)											\
+		});																					\
+		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_NoDir_MSAA = ShaderVariation({	\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),								\
+			ShaderVariation::Param("MSAA_COUNT", 2)											\
+		});																					\
+		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_NoDir_NoMSAA = ShaderVariation({	\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),								\
+			ShaderVariation::Param("MSAA_COUNT", 1)											\
+		});																					\
+	
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION 
+
+	ShadowProjectMat::ShadowProjectMat()
 		: mGBufferParams(mMaterial, mParamsSet)
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
@@ -164,35 +208,23 @@ namespace bs { namespace ct
 			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	template<int ShadowQuality, bool Directional, bool MSAA>
-	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::_initDefines(ShaderDefines& defines)
+	void ShadowProjectMat::_initVariations(ShaderVariations& variations)
 	{
-		switch(ShadowQuality)
-		{
-		default:
-		case 1:
-			defines.set("SHADOW_QUALITY", 1);
-			break;
-		case 2:
-			defines.set("SHADOW_QUALITY", 2);
-			break;
-		case 3:
-			defines.set("SHADOW_QUALITY", 3);
-			break;
-		case 4:
-			defines.set("SHADOW_QUALITY", 4);
-			break;
-		}
+#define VARIATION(QUALITY)									\
+		variations.add(VAR_Q##QUALITY##_Dir_MSAA);			\
+		variations.add(VAR_Q##QUALITY##_Dir_NoMSAA);		\
+		variations.add(VAR_Q##QUALITY##_NoDir_MSAA);		\
+		variations.add(VAR_Q##QUALITY##_NoDir_NoMSAA);		\
+	
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
 
-		if(Directional)
-			defines.set("FADE_PLANE", 1);
-
-		defines.set("NEEDS_TRANSFORM", Directional ? 0 : 1);
-		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
+#undef VARIATION 
 	}
 
-	template <int ShadowQuality, bool Directional, bool MSAA>
-	void ShadowProjectMat<ShadowQuality, Directional, MSAA>::bind(const ShadowProjectParams& params)
+	void ShadowProjectMat::bind(const ShadowProjectParams& params)
 	{
 		Vector4 lightPosAndScale(Vector3(0.0f, 0.0f, 0.0f), 1.0f);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
@@ -200,7 +232,7 @@ namespace bs { namespace ct
 		TextureSurface surface;
 		surface.arraySlice = params.shadowMapFace;
 
-		mGBufferParams.bind(params.renderTargets);
+		mGBufferParams.bind(params.gbuffer);
 
 		mShadowMapParam.set(params.shadowMap, surface);
 		mShadowSamplerParam.set(mSamplerState);
@@ -212,20 +244,20 @@ namespace bs { namespace ct
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-	void ShadowProjectMaterials::bind(UINT32 quality, bool directional, bool MSAA, const ShadowProjectParams& params)
+	ShadowProjectMat* ShadowProjectMat::getVariation(UINT32 quality, bool directional, bool MSAA)
 	{
-#define BIND_MAT(QUALITY)						\
-	{											\
-		if(directional)							\
-			if (MSAA)							\
-				mMat##QUALITY##TT.bind(params);	\
-			else								\
-				mMat##QUALITY##TF.bind(params);	\
-		else									\
-			if (MSAA)							\
-				mMat##QUALITY##FT.bind(params);	\
-			else								\
-				mMat##QUALITY##FF.bind(params);	\
+#define BIND_MAT(QUALITY)									\
+	{														\
+		if(directional)										\
+			if (MSAA)										\
+				return get(VAR_Q##QUALITY##_Dir_MSAA);		\
+			else											\
+				return get(VAR_Q##QUALITY##_Dir_NoMSAA);	\
+		else												\
+			if (MSAA)										\
+				return get(VAR_Q##QUALITY##_NoDir_MSAA);	\
+			else											\
+				return get(VAR_Q##QUALITY##_NoDir_NoMSAA);	\
 	}
 
 		if(quality <= 1)
@@ -242,8 +274,38 @@ namespace bs { namespace ct
 
 	ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
-	template<int ShadowQuality, bool Inside, bool MSAA>
-	ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::ShadowProjectOmniMat()
+#define VARIATION(QUALITY)																			\
+		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Inside_MSAA = ShaderVariation({		\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
+			ShaderVariation::Param("VIEWER_INSIDE_VOLUME", true),									\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
+			ShaderVariation::Param("MSAA_COUNT", 2)													\
+		});																							\
+		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Inside_NoMSAA = ShaderVariation({	\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
+			ShaderVariation::Param("VIEWER_INSIDE_VOLUME", true),									\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
+			ShaderVariation::Param("MSAA_COUNT", 1)													\
+		});																							\
+		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Outside_MSAA = ShaderVariation({		\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
+			ShaderVariation::Param("MSAA_COUNT", 2)													\
+		});																							\
+		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Outside_NoMSAA = ShaderVariation({	\
+			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
+			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
+			ShaderVariation::Param("MSAA_COUNT", 1)													\
+		});																							\
+	
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION 
+
+	ShadowProjectOmniMat::ShadowProjectOmniMat()
 		: mGBufferParams(mMaterial, mParamsSet)
 	{
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
@@ -271,40 +333,28 @@ namespace bs { namespace ct
 			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	template<int ShadowQuality, bool Inside, bool MSAA>
-	void ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::_initDefines(ShaderDefines& defines)
+	void ShadowProjectOmniMat::_initVariations(ShaderVariations& variations)
 	{
-		switch(ShadowQuality)
-		{
-		default:
-		case 1:
-			defines.set("SHADOW_QUALITY", 1);
-			break;
-		case 2:
-			defines.set("SHADOW_QUALITY", 2);
-			break;
-		case 3:
-			defines.set("SHADOW_QUALITY", 3);
-			break;
-		case 4:
-			defines.set("SHADOW_QUALITY", 4);
-			break;
-		}
+#define VARIATION(QUALITY)									\
+		variations.add(VAR_Q##QUALITY##_Inside_MSAA);		\
+		variations.add(VAR_Q##QUALITY##_Inside_NoMSAA);		\
+		variations.add(VAR_Q##QUALITY##_Outside_MSAA);		\
+		variations.add(VAR_Q##QUALITY##_Outside_NoMSAA);	\
+	
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
 
-		defines.set("NEEDS_TRANSFORM", 1);
-		defines.set("MSAA_COUNT", MSAA ? 2 : 1); // Actual count doesn't matter, as long as its >1 if enabled
-		
-		if (Inside)
-			defines.set("VIEWER_INSIDE_VOLUME", 1);
+#undef VARIATION 
 	}
 
-	template<int ShadowQuality, bool Inside, bool MSAA>
-	void ShadowProjectOmniMat<ShadowQuality, Inside, MSAA>::bind(const ShadowProjectParams& params)
+	void ShadowProjectOmniMat::bind(const ShadowProjectParams& params)
 	{
 		Vector4 lightPosAndScale(params.light.getPosition(), params.light.getAttenuationRadius());
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mGBufferParams.bind(params.renderTargets);
+		mGBufferParams.bind(params.gbuffer);
 
 		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
@@ -316,20 +366,20 @@ namespace bs { namespace ct
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-	void ShadowProjectOmniMaterials::bind(UINT32 quality, bool insideVolume, bool MSAA, const ShadowProjectParams& params)
+	ShadowProjectOmniMat* ShadowProjectOmniMat::getVariation(UINT32 quality, bool inside, bool MSAA)
 	{
-#define BIND_MAT(QUALITY)						\
-	{											\
-		if(insideVolume)						\
-			if (MSAA)							\
-				mMat##QUALITY##TT.bind(params);	\
-			else								\
-				mMat##QUALITY##TF.bind(params);	\
-		else									\
-			if (MSAA)							\
-				mMat##QUALITY##FT.bind(params);	\
-			else								\
-				mMat##QUALITY##FF.bind(params);	\
+#define BIND_MAT(QUALITY)										\
+	{															\
+		if(inside)												\
+			if (MSAA)											\
+				return get(VAR_Q##QUALITY##_Inside_MSAA);		\
+			else												\
+				return get(VAR_Q##QUALITY##_Inside_NoMSAA);		\
+		else													\
+			if (MSAA)											\
+				return get(VAR_Q##QUALITY##_Outside_MSAA);		\
+			else												\
+				return get(VAR_Q##QUALITY##_Outside_NoMSAA);	\
 	}
 
 		if(quality <= 1)
@@ -756,13 +806,13 @@ namespace bs { namespace ct
 		return shadowMapTfrm * mixedToShadow;
 	}
 
-	void ShadowRendering::renderShadowOcclusion(const RendererScene& scene, UINT32 shadowQuality, 
-		const RendererLight& rendererLight, UINT32 viewIdx)
+	void ShadowRendering::renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, 
+		const RendererLight& rendererLight, UINT32 viewIdx, GBufferInput gbuffer) const
 	{
 		const Light* light = rendererLight.internal;
 		UINT32 lightIdx = light->getRendererId();
 
-		RendererView* view = scene.getSceneInfo().views[viewIdx];
+		RendererView* view = sceneInfo.views[viewIdx];
 		auto viewProps = view->getProperties();
 
 		const Matrix4& viewP = viewProps.projTransform;
@@ -810,10 +860,11 @@ namespace bs { namespace ct
 				bool viewerInsideVolume = (light->getPosition() - viewProps.viewOrigin).length() < lightRadius;
 
 				SPtr<Texture> shadowMap = mShadowCubemaps[shadowInfo.textureIdx].getTexture();
-				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
+				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowOmniParamBuffer, perViewBuffer, gbuffer);
 
-				ShadowProjectParams shadowParams(*light, shadowMap, 0, shadowOmniParamBuffer, perViewBuffer, *renderTargets);
-				mProjectOmniMaterials.bind(effectiveShadowQuality, viewerInsideVolume, viewProps.numSamples > 1, shadowParams);
+				ShadowProjectOmniMat* mat = ShadowProjectOmniMat::getVariation(effectiveShadowQuality, viewerInsideVolume, 
+					viewProps.numSamples > 1);
+				mat->bind(shadowParams);
 
 				gRendererUtility().draw(gRendererUtility().getRadialLightStencil());
 			}
@@ -840,7 +891,7 @@ namespace bs { namespace ct
 			else // Directional
 			{
 				UINT32 mapIdx = mDirectionalLightShadows[lightIdx];
-				ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
+				const ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
 
 				// Render cascades in far to near order.
 				// Note: If rendering other non-cascade maps they should be rendered after cascades.
@@ -901,7 +952,8 @@ namespace bs { namespace ct
 					// for handling viewer outside the frustum will not properly render intersections with the near plane.
 					bool viewerInsideFrustum = shadowFrustum.contains(viewProps.viewOrigin, viewProps.nearPlane * 3.0f);
 
-					mProjectStencilMaterials.bind(false, viewerInsideFrustum, perViewBuffer);
+					ShadowProjectStencilMat* mat = ShadowProjectStencilMat::getVariation(false, viewerInsideFrustum);
+					mat->bind(perViewBuffer);
 					drawFrustum(frustumVertices);
 
 					// Reduce shadow quality based on shadow map resolution for spot lights
@@ -915,7 +967,9 @@ namespace bs { namespace ct
 					Vector3 near = viewProps.projTransform.multiply(Vector3(0, 0, -shadowInfo->depthNear));
 					Vector3 far = viewProps.projTransform.multiply(Vector3(0, 0, -shadowInfo->depthFar));
 
-					mProjectStencilMaterials.bind(true, true, perViewBuffer);
+					ShadowProjectStencilMat* mat = ShadowProjectStencilMat::getVariation(true, true);
+					mat->bind(perViewBuffer);
+
 					drawNearFarPlanes(near.z, far.z, shadowInfo->cascadeIdx != 0);
 				}
 
@@ -929,10 +983,11 @@ namespace bs { namespace ct
 					shadowMapFace = shadowInfo->cascadeIdx;
 				}
 
-				SPtr<RenderTargets> renderTargets = view->getRenderTargets();
 				ShadowProjectParams shadowParams(*light, shadowMap, shadowMapFace, shadowParamBuffer, perViewBuffer, 
-					*renderTargets);
-				mProjectMaterials.bind(effectiveShadowQuality, isCSM, viewProps.numSamples > 1, shadowParams);
+					gbuffer);
+
+				ShadowProjectMat* mat = ShadowProjectMat::getVariation(effectiveShadowQuality, isCSM, viewProps.numSamples > 1);
+				mat->bind(shadowParams);
 
 				if (!isCSM)
 					drawFrustum(frustumVertices);
@@ -1045,7 +1100,8 @@ namespace bs { namespace ct
 			rapi.setRenderTarget(shadowMap.getTarget(i));
 			rapi.clearRenderTarget(FBT_DEPTH);
 
-			mDepthDirectionalMat.bind(shadowParamsBuffer);
+			ShadowDepthDirectionalMat* depthDirMat = ShadowDepthDirectionalMat::get();
+			depthDirMat->bind(shadowParamsBuffer);
 
 			for (UINT32 j = 0; j < sceneInfo.renderables.size(); j++)
 			{
@@ -1055,7 +1111,7 @@ namespace bs { namespace ct
 				scene.prepareRenderable(j, frameInfo);
 
 				RendererObject* renderable = sceneInfo.renderables[j];
-				mDepthDirectionalMat.setPerObjectBuffer(renderable->perObjectParamBuffer);
+				depthDirMat->setPerObjectBuffer(renderable->perObjectParamBuffer);
 
 				for (auto& element : renderable->elements)
 				{
@@ -1141,7 +1197,8 @@ namespace bs { namespace ct
 		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, mapInfo.shadowVPTransform);
 		gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
 
-		mDepthNormalMat.bind(shadowParamsBuffer);
+		ShadowDepthNormalMat* depthNormalMat = ShadowDepthNormalMat::get();
+		depthNormalMat->bind(shadowParamsBuffer);
 
 		const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
 		Matrix4 worldMatrix = view.transpose();
@@ -1163,7 +1220,7 @@ namespace bs { namespace ct
 			scene.prepareRenderable(i, frameInfo);
 
 			RendererObject* renderable = sceneInfo.renderables[i];
-			mDepthNormalMat.setPerObjectBuffer(renderable->perObjectParamBuffer);
+			depthNormalMat->setPerObjectBuffer(renderable->perObjectParamBuffer);
 
 			for (auto& element : renderable->elements)
 			{
@@ -1324,7 +1381,8 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(cubemap.getTarget());
 		rapi.clearRenderTarget(FBT_DEPTH);
 
-		mDepthCubeMat.bind(shadowParamsBuffer, shadowCubeMatricesBuffer);
+		ShadowDepthCubeMat* depthCubeMat = ShadowDepthCubeMat::get();
+		depthCubeMat->bind(shadowParamsBuffer, shadowCubeMatricesBuffer);
 
 		// First cull against a global volume
 		ConvexVolume boundingVolume(boundingPlanes);
@@ -1343,7 +1401,7 @@ namespace bs { namespace ct
 			}
 
 			RendererObject* renderable = sceneInfo.renderables[i];
-			mDepthCubeMat.setPerObjectBuffer(renderable->perObjectParamBuffer, shadowCubeMasksBuffer);
+			depthCubeMat->setPerObjectBuffer(renderable->perObjectParamBuffer, shadowCubeMasksBuffer);
 
 			for (auto& element : renderable->elements)
 			{
@@ -1414,7 +1472,7 @@ namespace bs { namespace ct
 		size = std::max(effectiveMapSize - 2 * border, 1u);
 	}
 
-	void ShadowRendering::drawNearFarPlanes(float near, float far, bool drawNear)
+	void ShadowRendering::drawNearFarPlanes(float near, float far, bool drawNear) const
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
@@ -1448,7 +1506,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(0, drawNear ? 12 : 6, 0, drawNear ? 8 : 4);
 	}
 
-	void ShadowRendering::drawFrustum(const std::array<Vector3, 8>& corners)
+	void ShadowRendering::drawFrustum(const std::array<Vector3, 8>& corners) const
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 

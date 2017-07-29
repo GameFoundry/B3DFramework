@@ -4,93 +4,124 @@
 #include "BsRendererUtility.h"
 #include "BsRendererView.h"
 #include "BsGpuParamsSet.h"
-#include "BsRenderTargets.h"
 #include "BsMesh.h"
 
 namespace bs { namespace ct {
 	PerLightParamDef gPerLightParamDef;
 
-	template<bool MSAA>
-	DirectionalLightMat<MSAA>::DirectionalLightMat()
+	ShaderVariation DirectionalLightMat::VAR_MSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
+	ShaderVariation DirectionalLightMat::VAR_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	DirectionalLightMat::DirectionalLightMat()
 		:mGBufferParams(mMaterial, mParamsSet)
 	{
 		const GpuParams& gpuParams = *mParamsSet->getGpuParams();
 		gpuParams.getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 	}
 
-	template<bool MSAA>
-	void DirectionalLightMat<MSAA>::_initDefines(ShaderDefines& defines)
+	void DirectionalLightMat::_initVariations(ShaderVariations& variations)
 	{
-		if (MSAA)
-			defines.set("MSAA_COUNT", 2); // Actual count doesn't matter, as long as it's greater than one
-		else
-			defines.set("MSAA_COUNT", 1);
+		variations.add(VAR_MSAA);
+		variations.add(VAR_NoMSAA);
 	}
 
-	template<bool MSAA>
-	void DirectionalLightMat<MSAA>::bind(const RenderTargets& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera)
-	{
-		RendererUtility::instance().setPass(mMaterial, 0);
-
-		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
-	}
-
-	template<bool MSAA>
-	void DirectionalLightMat<MSAA>::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
-	{
-		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
-		
-		gRendererUtility().setPassParams(mParamsSet);
-	}
-
-	template class DirectionalLightMat<true>;
-	template class DirectionalLightMat<false>;
-
-	template<bool MSAA, bool InsideGeometry>
-	PointLightMat<MSAA, InsideGeometry>::PointLightMat()
-		:mGBufferParams(mMaterial, mParamsSet)
-	{
-		const GpuParams& gpuParams = *mParamsSet->getGpuParams();
-		gpuParams.getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
-	}
-
-	template<bool MSAA, bool InsideGeometry>
-	void PointLightMat<MSAA, InsideGeometry>::_initDefines(ShaderDefines& defines)
-	{
-		if (MSAA)
-			defines.set("MSAA_COUNT", 2); // Actual count doesn't matter, as long as it's greater than one
-		else
-			defines.set("MSAA_COUNT", 1);
-
-		if (InsideGeometry)
-			defines.set("INSIDE_GEOMETRY", 1);
-	}
-
-	template<bool MSAA, bool InsideGeometry>
-	void PointLightMat<MSAA, InsideGeometry>::bind(const RenderTargets& renderTargets, 
+	void DirectionalLightMat::bind(const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion, 
 		const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		RendererUtility::instance().setPass(mMaterial, 0);
 
-		mGBufferParams.bind(renderTargets);
-		mLightOcclusionTexParam.set(renderTargets.get(RTT_LightOcclusion));
+		mGBufferParams.bind(gBufferInput);
+		mLightOcclusionTexParam.set(lightOcclusion);
 		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
 	}
 
-	template<bool MSAA, bool InsideGeometry>
-	void PointLightMat<MSAA, InsideGeometry>::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
+	void DirectionalLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
 	{
 		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
 		
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
-	template class PointLightMat<false, false>;
-	template class PointLightMat<false, true>;
-	template class PointLightMat<true, false>;
-	template class PointLightMat<true, true>;
+	DirectionalLightMat* DirectionalLightMat::getVariation(bool msaa)
+	{
+		if (msaa)
+			return get(VAR_MSAA);
+
+		return get(VAR_NoMSAA);
+	}
+
+	ShaderVariation PointLightMat::VAR_MSAA_Inside = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2),
+		ShaderVariation::Param("INSIDE_GEOMETRY", true)
+	});
+
+	ShaderVariation PointLightMat::VAR_MSAA_Outside = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
+	ShaderVariation PointLightMat::VAR_NoMSAA_Inside = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1),
+		ShaderVariation::Param("INSIDE_GEOMETRY", true)
+	});
+
+	ShaderVariation PointLightMat::VAR_NoMSAA_Outside = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	PointLightMat::PointLightMat()
+		:mGBufferParams(mMaterial, mParamsSet)
+	{
+		const GpuParams& gpuParams = *mParamsSet->getGpuParams();
+		gpuParams.getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
+	}
+
+	void PointLightMat::_initVariations(ShaderVariations& variations)
+	{
+		variations.add(VAR_MSAA_Inside);
+		variations.add(VAR_MSAA_Outside);
+		variations.add(VAR_NoMSAA_Inside);
+		variations.add(VAR_NoMSAA_Outside);
+	}
+
+	void PointLightMat::bind(const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion, 
+		const SPtr<GpuParamBlockBuffer>& perCamera)
+	{
+		RendererUtility::instance().setPass(mMaterial, 0);
+
+		mGBufferParams.bind(gBufferInput);
+		mLightOcclusionTexParam.set(lightOcclusion);
+		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
+	}
+
+	void PointLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
+	{
+		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
+		
+		gRendererUtility().setPassParams(mParamsSet);
+	}
+
+	PointLightMat* PointLightMat::getVariation(bool msaa, bool inside)
+	{
+		if(msaa)
+		{
+			if (inside)
+				return get(VAR_MSAA_Inside);
+			else
+				return get(VAR_MSAA_Outside);
+		}
+		else
+		{
+			if (inside)
+				return get(VAR_NoMSAA_Inside);
+			else
+				return get(VAR_NoMSAA_Outside);
+		}
+	}
 
 	StandardDeferred::StandardDeferred()
 	{
@@ -98,7 +129,7 @@ namespace bs { namespace ct {
 	}
 
 	void StandardDeferred::renderLight(LightType lightType, const RendererLight& light, const RendererView& view, 
-		const RenderTargets& renderTargets)
+		const GBufferInput& gBufferInput, const SPtr<Texture>& lightOcclusion)
 	{
 		const auto& viewProps = view.getProperties();
 
@@ -109,16 +140,9 @@ namespace bs { namespace ct {
 
 		if (lightType == LightType::Directional)
 		{
-			if(isMSAA)
-			{
-				mDirLightMat_T.bind(renderTargets, perViewBuffer);
-				mDirLightMat_T.setPerLightParams(mPerLightBuffer);
-			}
-			else
-			{
-				mDirLightMat_F.bind(renderTargets, perViewBuffer);
-				mDirLightMat_F.setPerLightParams(mPerLightBuffer);
-			}
+			DirectionalLightMat* material = DirectionalLightMat::getVariation(isMSAA);
+			material->bind(gBufferInput, lightOcclusion, perViewBuffer);
+			material->setPerLightParams(mPerLightBuffer);
 
 			gRendererUtility().drawScreenQuad();
 		}
@@ -133,32 +157,10 @@ namespace bs { namespace ct {
 			float boundRadius = light.internal->getBounds().getRadius() + viewProps.nearPlane * 3.0f;
 
 			bool isInside = distSqrd < (boundRadius * boundRadius);
-			if(isMSAA)
-			{
-				if(isInside)
-				{
-					mPointLightMat_TT.bind(renderTargets, perViewBuffer);
-					mPointLightMat_TT.setPerLightParams(mPerLightBuffer);
-				}
-				else
-				{
-					mPointLightMat_TF.bind(renderTargets, perViewBuffer);
-					mPointLightMat_TF.setPerLightParams(mPerLightBuffer);
-				}
-			}
-			else
-			{
-				if(isInside)
-				{
-					mPointLightMat_FT.bind(renderTargets, perViewBuffer);
-					mPointLightMat_FT.setPerLightParams(mPerLightBuffer);
-				}
-				else
-				{
-					mPointLightMat_FF.bind(renderTargets, perViewBuffer);
-					mPointLightMat_TF.setPerLightParams(mPerLightBuffer);
-				}
-			}
+
+			PointLightMat* material = PointLightMat::getVariation(isMSAA, isInside);
+			material->bind(gBufferInput, lightOcclusion, perViewBuffer);
+			material->setPerLightParams(mPerLightBuffer);
 
 			SPtr<Mesh> stencilMesh;
 			if(lightType == LightType::Radial)

@@ -12,7 +12,7 @@
 #include "BsMatrix4.h"
 #include "BsRect2.h"
 #include "BsColor.h"
-#include "BsPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs
 {
@@ -87,14 +87,8 @@ namespace bs
 		static int internal_GetPriority(ScriptCamera* instance);
 		static void internal_SetPriority(ScriptCamera* instance, int value);
 
-		static bool internal_GetHDR(ScriptCamera* instance);
-		static void internal_SetHDR(ScriptCamera* instance, bool value);
-
-		static bool internal_GetNoLighting(ScriptCamera* instance);
-		static void internal_SetNoLighting(ScriptCamera* instance, bool value);
-
-		static MonoObject* internal_GetPostProcessSettings(ScriptCamera* instance);
-		static void internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value);
+		static MonoObject* internal_GetRenderSettings(ScriptCamera* instance);
+		static void internal_SetRenderSettings(ScriptCamera* instance, MonoObject* value);
 
 		static UINT64 internal_GetLayers(ScriptCamera* instance);
 		static void internal_SetLayers(ScriptCamera* instance, UINT64 value);

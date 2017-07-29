@@ -2,9 +2,9 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
-#include "BsStandardPostProcessSettings.h"
+#include "BsRenderSettings.h"
 
 namespace bs
 {
@@ -13,7 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT AutoExposureSettingsRTTI : public RTTIType <AutoExposureSettings, IReflectable, AutoExposureSettingsRTTI>
+	class BS_CORE_EXPORT AutoExposureSettingsRTTI : public RTTIType <AutoExposureSettings, IReflectable, AutoExposureSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -49,7 +49,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT TonemappingSettingsRTTI : public RTTIType <TonemappingSettings, IReflectable, TonemappingSettingsRTTI>
+	class BS_CORE_EXPORT TonemappingSettingsRTTI : public RTTIType <TonemappingSettings, IReflectable, TonemappingSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -84,7 +84,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT WhiteBalanceSettingsRTTI : public RTTIType <WhiteBalanceSettings, IReflectable, WhiteBalanceSettingsRTTI>
+	class BS_CORE_EXPORT WhiteBalanceSettingsRTTI : public RTTIType <WhiteBalanceSettings, IReflectable, WhiteBalanceSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -114,7 +114,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT ColorGradingSettingsRTTI : public RTTIType <ColorGradingSettings, IReflectable, ColorGradingSettingsRTTI>
+	class BS_CORE_EXPORT ColorGradingSettingsRTTI : public RTTIType <ColorGradingSettings, IReflectable, ColorGradingSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -146,7 +146,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT DepthOfFieldSettingsRTTI : public RTTIType <DepthOfFieldSettings, IReflectable, DepthOfFieldSettingsRTTI>
+	class BS_CORE_EXPORT DepthOfFieldSettingsRTTI : public RTTIType <DepthOfFieldSettings, IReflectable, DepthOfFieldSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -181,7 +181,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT AmbientOcclusionSettingsRTTI : public RTTIType <AmbientOcclusionSettings, IReflectable, AmbientOcclusionSettingsRTTI>
+	class BS_CORE_EXPORT AmbientOcclusionSettingsRTTI : public RTTIType <AmbientOcclusionSettings, IReflectable, AmbientOcclusionSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -217,7 +217,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT ScreenSpaceReflectionsSettingsRTTI : public RTTIType <ScreenSpaceReflectionsSettings, IReflectable, ScreenSpaceReflectionsSettingsRTTI>
+	class BS_CORE_EXPORT ScreenSpaceReflectionsSettingsRTTI : public RTTIType <ScreenSpaceReflectionsSettings, IReflectable, ScreenSpaceReflectionsSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -249,7 +249,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT StandardPostProcessSettingsRTTI : public RTTIType <StandardPostProcessSettings, PostProcessSettings, StandardPostProcessSettingsRTTI>
+	class BS_CORE_EXPORT RenderSettingsRTTI : public RTTIType <RenderSettings, IReflectable, RenderSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -265,27 +265,31 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(enableFXAA, 9)
 			BS_RTTI_MEMBER_REFL(ambientOcclusion, 10)
 			BS_RTTI_MEMBER_REFL(screenSpaceReflections, 11)
+			BS_RTTI_MEMBER_PLAIN(enableHDR, 12)
+			BS_RTTI_MEMBER_PLAIN(enableLighting, 13)
+			BS_RTTI_MEMBER_PLAIN(enableShadows, 14)
+			BS_RTTI_MEMBER_PLAIN(overlayOnly, 15)
 		BS_END_RTTI_MEMBERS
 			
 	public:
-		StandardPostProcessSettingsRTTI()
+		RenderSettingsRTTI()
 			:mInitMembers(this)
 		{ }
 
 		const String& getRTTIName() override
 		{
-			static String name = "StandardPostProcessSettings";
+			static String name = "RenderSettings";
 			return name;
 		}
 
 		UINT32 getRTTIId() override
 		{
-			return TID_StandardPostProcessSettings;
+			return TID_RenderSettings;
 		}
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return bs_shared_ptr_new<StandardPostProcessSettings>();
+			return bs_shared_ptr_new<RenderSettings>();
 		}
 	};
 

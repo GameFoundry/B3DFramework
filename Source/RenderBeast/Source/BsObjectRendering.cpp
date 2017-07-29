@@ -74,7 +74,7 @@ namespace bs { namespace ct
 		gPerFrameParamDef.gTime.set(mPerFrameParamBuffer, time);
 	}
 
-	void DefaultMaterial::_initDefines(ShaderDefines& defines)
+	void DefaultMaterial::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}

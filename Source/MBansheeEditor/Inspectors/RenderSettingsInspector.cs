@@ -351,12 +351,17 @@ namespace BansheeEditor
     }
 
     /// <summary>
-    /// Draws GUI elements for inspecting an <see cref="PostProcessSettings"/> object.
+    /// Draws GUI elements for inspecting an <see cref="RenderSettings"/> object.
     /// </summary>
-    internal class PostProcessSettingsGUI
+    internal class RenderSettingsGUI
     {
-        private PostProcessSettings settings;
+        private RenderSettings settings;
         private SerializableProperties properties;
+
+        private GUIToggleField enableHDRField = new GUIToggleField(new LocEdString("Enable HDR"));
+        private GUIToggleField enableLightingField = new GUIToggleField(new LocEdString("Enable lighting"));
+        private GUIToggleField enableShadowsField = new GUIToggleField(new LocEdString("Enable shadows"));
+        private GUIToggleField overlayOnlyField = new GUIToggleField(new LocEdString("Overlay only"));
 
         private GUIToggleField enableAutoExposureField = new GUIToggleField(new LocEdString("Enable auto exposure"));
         private GUIToggle autoExposureFoldout = new GUIToggle(new LocEdString("Auto exposure"), EditorStyles.Foldout);
@@ -378,13 +383,13 @@ namespace BansheeEditor
         private GUILayout whiteBalanceLayout;
         private GUILayout colorGradingLayout;
 
-        public Action<PostProcessSettings> OnChanged;
+        public Action<RenderSettings> OnChanged;
         public Action OnConfirmed;
 
         /// <summary>
         /// Current value of the settings object.
         /// </summary>
-        public PostProcessSettings Settings
+        public RenderSettings Settings
         {
             get { return settings; }
             set
@@ -399,6 +404,10 @@ namespace BansheeEditor
                 colorGradingGUI.Settings = value.ColorGrading;
                 gammaField.Value = value.Gamma;
                 exposureScaleField.Value = value.ExposureScale;
+                enableHDRField.Value = value.EnableHDR;
+                enableLightingField.Value = value.EnableLighting;
+                enableShadowsField.Value = value.EnableShadows;
+                overlayOnlyField.Value = value.OverlayOnly;
             }
         }
 
@@ -409,10 +418,26 @@ namespace BansheeEditor
         /// <param name="layout">Layout to append the GUI elements to.</param>
         /// <param name="properties">A set of properties that are persisted by the parent inspector. Used for saving state.
         ///                          </param>
-        public PostProcessSettingsGUI(PostProcessSettings settings, GUILayout layout, SerializableProperties properties)
+        public RenderSettingsGUI(RenderSettings settings, GUILayout layout, SerializableProperties properties)
         {
             this.settings = settings;
             this.properties = properties;
+
+            // Enable HDR
+            enableHDRField.OnChanged += x => { this.settings.EnableHDR = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableHDRField);
+
+            // Enable lighting
+            enableLightingField.OnChanged += x => { this.settings.EnableLighting = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableLightingField);
+
+            // Enable shadows
+            enableShadowsField.OnChanged += x => { this.settings.EnableShadows = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableShadowsField);
+
+            // Overlay only
+            overlayOnlyField.OnChanged += x => { this.settings.OverlayOnly = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(overlayOnlyField);
 
             // Auto exposure
             enableAutoExposureField.OnChanged += x => { this.settings.EnableAutoExposure = x; MarkAsModified(); ConfirmModify(); };

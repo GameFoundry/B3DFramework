@@ -12,6 +12,8 @@ namespace bs
 	{
 		BuiltinResources& br = BuiltinResources::instance();
 
+		// Note: Ideally I want to avoid loading all materials, and instead just load those that are used. This might be a
+		// problem on lower end systems that don't support all renderer features.
 		Vector<RendererMaterialData>& materials = getMaterials();
 		Vector<SPtr<ct::Shader>> shaders;
 		for (auto& material : materials)
@@ -36,15 +38,33 @@ namespace bs
 		Lock lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		UINT32 variationIdx = 0;
-		for (auto& entry : materials)
-		{
-			if (entry.shaderPath == shaderPath)
-				variationIdx++;
-		}
 
-		Path resourcePath = _getVariationPath(shaderPath, variationIdx);
-		materials.push_back({metaData, shaderPath, resourcePath });
+		const SmallVector<ct::ShaderVariation, 4>& variations = metaData->variations.getVariations();
+
+		if(variations.empty())
+		{
+			metaData->shaders.resize(1);
+			metaData->instances.resize(1);
+
+			Path resourcePath = _getVariationPath(shaderPath, 0);
+			materials.push_back({ metaData, shaderPath, resourcePath, 0 });
+		}
+		else
+		{
+			metaData->shaders.resize(variations.size());
+			metaData->instances.resize(variations.size());
+
+			UINT32 variationIdx = 0;
+			for (auto& variation : variations)
+			{
+				assert(variation.getIdx() == variationIdx);
+
+				Path resourcePath = _getVariationPath(shaderPath, variationIdx);
+				materials.push_back({ metaData, shaderPath, resourcePath, variationIdx });
+
+				variationIdx++;
+			}
+		}
 	}
 
 	Vector<ShaderDefines> RendererMaterialManager::_getVariations(const Path& shaderPath)
@@ -55,7 +75,17 @@ namespace bs
 		for (auto& entry : materials)
 		{
 			if (entry.shaderPath == shaderPath)
-				output.push_back(entry.metaData->defines);
+			{
+				if(entry.metaData->variations.getVariations().empty())
+				{
+					output.push_back(ShaderDefines());
+				}
+				else
+				{
+					const ct::ShaderVariation& variation = entry.metaData->variations.get(entry.variationIdx);
+					output.push_back(variation.getDefines());
+				}
+			}
 		}
 
 		return output;
@@ -83,7 +113,7 @@ namespace bs
 
 		Vector<RendererMaterialData>& materials = getMaterials();
 		for (UINT32 i = 0; i < materials.size(); i++)
-			materials[i].metaData->shader = shaders[i];
+			materials[i].metaData->shaders[materials[i].variationIdx] = shaders[i];
 	}
 
 	void RendererMaterialManager::destroyOnCore()
@@ -92,7 +122,17 @@ namespace bs
 
 		Vector<RendererMaterialData>& materials = getMaterials();
 		for (UINT32 i = 0; i < materials.size(); i++)
-			materials[i].metaData->shader = nullptr;
+		{
+			materials[i].metaData->shaders.clear();
+
+			for (auto& entry : materials[i].metaData->instances)
+			{
+				if(entry != nullptr)
+					bs_delete(entry);
+			}
+
+			materials[i].metaData->instances.clear();
+		}
 	}
 
 	Vector<RendererMaterialManager::RendererMaterialData>& RendererMaterialManager::getMaterials()

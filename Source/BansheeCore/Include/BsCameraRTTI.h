@@ -38,10 +38,10 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mRight, 19)
 			BS_RTTI_MEMBER_PLAIN(mTop, 20)
 			BS_RTTI_MEMBER_PLAIN(mBottom, 21)
-			BS_RTTI_MEMBER_PLAIN(mCameraFlags, 22)
+			//BS_RTTI_MEMBER_PLAIN(mCameraFlags, 22)
 			BS_RTTI_MEMBER_PLAIN(mMSAA, 23)
 			/** BS_RTTI_MEMBER_PLAIN(mPPSettings, 24) */
-			BS_RTTI_MEMBER_REFLPTR(mPPSettings, 25)
+			BS_RTTI_MEMBER_REFLPTR(mRenderSettings, 25)
 			/** BS_RTTI_MEMBER_REFL(mSkyTexture, 26) */
 		BS_END_RTTI_MEMBERS
 			
@@ -74,8 +74,6 @@ namespace bs
 			return Camera::createEmpty();
 		}
 	};
-
-	BS_ALLOW_MEMCPY_SERIALIZATION(CameraFlags);
 
 	/** @} */
 	/** @endcond */

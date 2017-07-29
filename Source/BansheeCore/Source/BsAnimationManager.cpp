@@ -88,7 +88,7 @@ namespace bs
 		auto& allCameras = gSceneManager().getAllCameras();
 		for(auto& entry : allCameras)
 		{
-			bool isOverlayCamera = entry.second.camera->getFlags().isSet(CameraFlag::Overlay);
+			bool isOverlayCamera = entry.second.camera->getRenderSettings()->overlayOnly;
 			if (isOverlayCamera)
 				continue;
 

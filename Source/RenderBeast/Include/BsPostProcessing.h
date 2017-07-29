@@ -6,8 +6,8 @@
 #include "BsRendererMaterial.h"
 #include "BsParamBlocks.h"
 #include "BsGpuResourcePool.h"
-#include "BsStandardPostProcessSettings.h"
 #include "BsLightRendering.h"
+#include "BsRenderSettings.h"
 
 namespace bs { namespace ct
 {
@@ -17,35 +17,14 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	/** Contains per-camera data used by post process effects. */
-	struct PostProcessInfo
-	{
-		SPtr<StandardPostProcessSettings> settings;
-		bool settingDirty = true;
-
-		SPtr<PooledRenderTexture> downsampledSceneTex;
-		SPtr<PooledRenderTexture> histogramTex;
-		SPtr<PooledRenderTexture> histogramReduceTex;
-		SPtr<PooledRenderTexture> eyeAdaptationTex[2];
-		SPtr<PooledRenderTexture> colorLUT;
-		INT32 lastEyeAdaptationTex = 0;
-	};
-
 	BS_PARAM_BLOCK_BEGIN(DownsampleParamDef)
 		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector2, gOffsets, 4)
 	BS_PARAM_BLOCK_END
 
 	extern DownsampleParamDef gDownsampleParamDef;
 
-	/** 
-	 * Shader that downsamples a texture to half its size. 
-	 * 
-	 * @tparam	Quality		0 for a 2x2 filtered sample, 1 or higher for 4x4 filtered sample
-	 * @tparam	MSAA		True if the input texture is multi-sampled. Only first sample will be used, the rest will be
-	 *						discarded.
-	 */
-	template<int Quality, bool MSAA>
-	class DownsampleMat : public RendererMaterial<DownsampleMat<Quality, MSAA>>
+	/** Shader that downsamples a texture to half its size. */
+	class DownsampleMat : public RendererMaterial<DownsampleMat>
 	{
 		RMAT_DEF("PPDownsample.bsl");
 
@@ -53,48 +32,22 @@ namespace bs { namespace ct
 		DownsampleMat();
 
 		/** Renders the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& target, PostProcessInfo& ppInfo);
+		void execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output);
 
-		/** Releases the output render target. */
-		void release(PostProcessInfo& ppInfo);
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc(const SPtr<Texture>& target);
 
-		/** Returns the render texture where the output will be written. */
-		SPtr<RenderTexture> getOutput() const { return mOutput; }
+		/** Returns the downsample material variation matching the provided parameters. */
+		static DownsampleMat* getVariation(UINT32 quality, bool msaa);
+
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mInputTexture;
 
-		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
-		SPtr<RenderTexture> mOutput;
-	};
-
-	/** Contains all variations of the DownsampleMat material. */
-	class DownsampleMaterials
-	{
-	public:
-		/**
-		 * Executes the appropriate downsampling material.
-		 * 
-		 * @param[in]	quality		Determines quality of the downsampling filer. Specify 0 to use a 2x2 filter block, and
-		 *							1 or higher for a 4x4 filter block.
-		 * @param[in]	msaa		If true the input texture is assumed to have multiple samples. The downsampling shader
-		 *							will discard all samples except the first one.
-		 * @param[in]	target		Texture to downsample.
-		 * @param[in]	ppInfo		Information about the current post processing pass.
-		 */
-		void execute(UINT32 quality, bool msaa, const SPtr<Texture>& target, PostProcessInfo& ppInfo);
-
-		/**
-		 * Releases any resources allocated by execute(). Must be called using the same @p quality and @p msaa parameters as
-		 * the corresponding execute() call. @see execute().
-		 */
-		void release(UINT32 quality, bool msaa, PostProcessInfo& ppInfo);
-	private:
-		DownsampleMat<0, false> m0_NoMSAA;
-		DownsampleMat<0, true> m0_MSAA;
-		
-		DownsampleMat<1, false> m1_NoMSAA;
-		DownsampleMat<1, true> m1_MSAA;
+		static ShaderVariation VAR_LowQuality_NoMSAA;
+		static ShaderVariation VAR_LowQuality_MSAA;
+		static ShaderVariation VAR_HighQuality_NoMSAA;
+		static ShaderVariation VAR_HighQuality_MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EyeAdaptHistogramParamDef)
@@ -114,22 +67,19 @@ namespace bs { namespace ct
 		EyeAdaptHistogramMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(PostProcessInfo& ppInfo);
+		void execute(const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings);
 
-		/** Releases the output render target. */
-		void release(PostProcessInfo& ppInfo);
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc(const SPtr<Texture>& target);
 
-		/** Returns the render texture where the output was written. */
-		SPtr<RenderTexture> getOutput() const { return mOutput; }
-
-		/** Calculates the number of thread groups that need to execute to cover the provided render target. */
-		static Vector2I getThreadGroupCount(const SPtr<RenderTexture>& target);
+		/** Calculates the number of thread groups that need to execute to cover the provided texture. */
+		static Vector2I getThreadGroupCount(const SPtr<Texture>& target);
 
 		/** 
 		 * Returns a vector containing scale and offset (in that order) that will be applied to luminance values
 		 * to determine their position in the histogram. 
 		 */
-		static Vector2 getHistogramScaleOffset(const PostProcessInfo& ppInfo);
+		static Vector2 getHistogramScaleOffset(const AutoExposureSettings& settings);
 
 		static const UINT32 THREAD_GROUP_SIZE_X = 8;
 		static const UINT32 THREAD_GROUP_SIZE_Y = 8;
@@ -139,9 +89,6 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mSceneColor;
 		GpuParamLoadStoreTexture mOutputTex;
-
-		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
-		SPtr<RenderTexture> mOutput;
 
 		static const UINT32 LOOP_COUNT_X = 8;
 		static const UINT32 LOOP_COUNT_Y = 8;
@@ -162,21 +109,16 @@ namespace bs { namespace ct
 		EyeAdaptHistogramReduceMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(PostProcessInfo& ppInfo);
+		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame,
+			const SPtr<RenderTarget>& output);
 
-		/** Releases the output render target. */
-		void release(PostProcessInfo& ppInfo);
-
-		/** Returns the render texture where the output was written. */
-		SPtr<RenderTexture> getOutput() const { return mOutput; }
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 
 		GpuParamTexture mHistogramTex;
 		GpuParamTexture mEyeAdaptationTex;
-
-		POOLED_RENDER_TEXTURE_DESC mOutputDesc;
-		SPtr<RenderTexture> mOutput;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EyeAdaptationParamDef)
@@ -194,7 +136,11 @@ namespace bs { namespace ct
 		EyeAdaptationMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(PostProcessInfo& ppInfo, float frameDelta);
+		void execute(const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, 
+			const AutoExposureSettings& settings, float exposureScale);
+
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mReducedHistogramTex;
@@ -231,10 +177,10 @@ namespace bs { namespace ct
 		CreateTonemapLUTMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(PostProcessInfo& ppInfo);
+		void execute(const SPtr<Texture>& output, const RenderSettings& settings);
 
-		/** Releases the output render target. */
-		void release(PostProcessInfo& ppInfo);
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
 
 		/** Size of the 3D color lookup table. */
 		static const UINT32 LUT_SIZE = 32;
@@ -254,8 +200,7 @@ namespace bs { namespace ct
 	extern TonemappingParamDef gTonemappingParamDef;
 
 	/** Shader that applies tonemapping and converts a HDR image into a LDR image. */
-	template<bool GammaOnly, bool AutoExposure, bool MSAA>
-	class TonemappingMat : public RendererMaterial<TonemappingMat<GammaOnly, AutoExposure, MSAA>>
+	class TonemappingMat : public RendererMaterial<TonemappingMat>
 	{
 		RMAT_DEF("PPTonemapping.bsl");
 
@@ -263,8 +208,11 @@ namespace bs { namespace ct
 		TonemappingMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& sceneColor, const SPtr<RenderTarget>& outputRT, const Rect2& outputRect,
-			PostProcessInfo& ppInfo);
+		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& colorLUT,
+			const SPtr<RenderTarget>& output, const RenderSettings& settings);
+
+		/** Returns the material variation matching the provided parameters. */
+		static TonemappingMat* getVariation(bool gammaOnly, bool autoExposure, bool MSAA);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -272,38 +220,15 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTex;
 		GpuParamTexture mColorLUT;
 		GpuParamTexture mEyeAdaptationTex;
-	};
 
-	/** Container for all variations of the TonemappingMat material. */
-	class TonemappingMaterials
-	{
-	public:
-		/** 
-		 * Finds a valid tonemapping material according to the requested parameters and executes it. 
-		 *
-		 * @param[in]	gammaOnly		If true no color correction, white balancing or curve tonemapping will take place. 
-		 *								Instead the image will only be scaled by the exposure value and gamma corrected.
-		 * @param[in]	autoExposure	If true, the automatically calculated eye-adapatation exposure value will be used
-		 *								as the exposure scale. If false, the user provided value will be used instead.
-		 * @param[in]	MSAA			True if the input texture has multiple samples. This will ensure that the samples
-		 *								are resolved properly into a non-MSAA output texture.
-		 * @param[in]	sceneColor		Texture to apply tonemapping to.
-		 * @param[in]	outputRT		Render target to write the results to.
-		 * @param[in]	outputRect		Normalized rectangle determining to which part of the output texture to write to.
-		 * @param[in]	ppInfo			Information about the current post processing pass.
-		 */
-		void execute(bool gammaOnly, bool autoExposure, bool MSAA, const SPtr<Texture>& sceneColor,
-			const SPtr<RenderTarget>& outputRT, const Rect2& outputRect, PostProcessInfo& ppInfo);
-
-	private:
-		TonemappingMat<false, false, false> mFFF;
-		TonemappingMat<false, false, true> mFFT;
-		TonemappingMat<false, true, false> mFTF;
-		TonemappingMat<false, true, true> mFTT;
-		TonemappingMat<true, false, false> mTFF;
-		TonemappingMat<true, false, true> mTFT;
-		TonemappingMat<true, true, false> mTTF;
-		TonemappingMat<true, true, true> mTTT;
+		static ShaderVariation VAR_Gamma_AutoExposure_MSAA;
+		static ShaderVariation VAR_Gamma_AutoExposure_NoMSAA;
+		static ShaderVariation VAR_Gamma_NoAutoExposure_MSAA;
+		static ShaderVariation VAR_Gamma_NoAutoExposure_NoMSAA;
+		static ShaderVariation VAR_NoGamma_AutoExposure_MSAA;
+		static ShaderVariation VAR_NoGamma_AutoExposure_NoMSAA;
+		static ShaderVariation VAR_NoGamma_NoAutoExposure_MSAA;
+		static ShaderVariation VAR_NoGamma_NoAutoExposure_NoMSAA;
 	};
 
 	const int MAX_BLUR_SAMPLES = 128;
@@ -362,11 +287,18 @@ namespace bs { namespace ct
 
 	extern GaussianDOFParamDef sGaussianDOFParamDef;
 
-	/** Common interface for all variations of GaussianDOFSeparateMat. */
-	class IGaussianDOFSeparateMat
+	/** 
+	 * Shader that masks pixels from the input color texture into one or two output textures. The masking is done by
+	 * determining if the pixel falls into near or far unfocused plane, as determined by depth-of-field parameters. User
+	 * can pick whether to output pixels just on the near plane, just on the far plane, or both.
+	 *
+	 */
+	class GaussianDOFSeparateMat : public RendererMaterial<GaussianDOFSeparateMat>
 	{
+		RMAT_DEF("PPGaussianDOFSeparate.bsl");
+
 	public:
-		virtual ~IGaussianDOFSeparateMat() { }
+		GaussianDOFSeparateMat();
 
 		/** 
 		 * Renders the post-process effect with the provided parameters. 
@@ -376,48 +308,29 @@ namespace bs { namespace ct
 		 * @param[in]	view		View through which the depth of field effect is viewed.
 		 * @param[in]	settings	Settings used to control depth of field rendering. 
 		 */
-		virtual void execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, 
-			const DepthOfFieldSettings& settings) = 0;
+		void execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, 
+			const DepthOfFieldSettings& settings);
 
 		/**
 		 * Returns the texture generated after the shader was executed. Only valid to call this in-between calls to
 		 * execute() & release(), with @p idx value 0 or 1.
 		 */
-		virtual SPtr<PooledRenderTexture> getOutput(UINT32 idx) = 0;
+		SPtr<PooledRenderTexture> getOutput(UINT32 idx);
 
 		/**
 		 * Releases the interally allocated output render textures. Must be called after each call to execute(), when the 
 		 * caller is done using the textures.
 		 */
-		virtual void release() = 0;
-	};
+		void release();
 
-	/** 
-	 * Shader that masks pixels from the input color texture into one or two output textures. The masking is done by
-	 * determining if the pixel falls into near or far unfocused plane, as determined by depth-of-field parameters. User
-	 * can pick whether to output pixels just on the near plane, just on the far plane, or both.
-	 *
-	 * @tparam	Near	If true, near plane pixels are output to the first render target.
-	 * @tparam	Far		If true, far plane pixels are output to the first render target. If @p Near is also enabled, the
-	 *					pixels are output to the second render target instead.
-	 */
-	template<bool Near, bool Far>
-	class GaussianDOFSeparateMat : public IGaussianDOFSeparateMat, public RendererMaterial<GaussianDOFSeparateMat<Near, Far>>
-	{
-		RMAT_DEF("PPGaussianDOFSeparate.bsl");
-
-	public:
-		GaussianDOFSeparateMat();
-
-		/** @copydoc IGaussianDOFSeparateMat::execute() */
-		void execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, 
-			const DepthOfFieldSettings& settings) override;
-
-		/** @copydoc IGaussianDOFSeparateMat::getOutput() */
-		SPtr<PooledRenderTexture> getOutput(UINT32 idx) override;
-
-		/** @copydoc IGaussianDOFSeparateMat::release() */
-		void release() override;
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param	near	If true, near plane pixels are output to the first render target.
+		 * @param	far		If true, far plane pixels are output to the first render target. If @p near is also enabled, the
+		 *					pixels are output to the second render target instead.
+		 */
+		static GaussianDOFSeparateMat* getVariation(bool near, bool far);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -426,13 +339,22 @@ namespace bs { namespace ct
 
 		SPtr<PooledRenderTexture> mOutput0;
 		SPtr<PooledRenderTexture> mOutput1;
+
+		static ShaderVariation VAR_Near_Far;
+		static ShaderVariation VAR_NoNear_Far;
+		static ShaderVariation VAR_Near_NoFar;
 	};
 
-	/** Common interface for all variations of GaussianDOFCombineMat. */
-	class IGaussianDOFCombineMat
+	/** 
+	 * Shader that combines pixels for near unfocused, focused and far unfocused planes, as calculated by 
+	 * GaussianDOFSeparateMat. Outputs final depth-of-field filtered image.
+	 */
+	class GaussianDOFCombineMat : public RendererMaterial<GaussianDOFCombineMat>
 	{
+		RMAT_DEF("PPGaussianDOFCombine.bsl");
+
 	public:
-		virtual ~IGaussianDOFCombineMat() { }
+		GaussianDOFCombineMat();
 
 		/** 
 		 * Renders the post-process effect with the provided parameters. 
@@ -447,67 +369,30 @@ namespace bs { namespace ct
 		 * @param[in]	view		View through which the depth of field effect is viewed.
 		 * @param[in]	settings	Settings used to control depth of field rendering. 
 		 */
-		virtual void execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, 
-			const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, 
-			const DepthOfFieldSettings& settings) = 0;
-	};
-
-	/** 
-	 * Shader that combines pixels for near unfocused, focused and far unfocused planes, as calculated by 
-	 * GaussianDOFSeparateMat. Outputs final depth-of-field filtered image.
-	 *
-	 * @tparam	Near	If true, near plane pixels are read from the near plane texture, otherwise near plane is assumed
-	 *					not to exist.
-	 * @tparam	Far		If true, far plane pixels are read from the far plane texture, otherwise far plane is assumed not
-	 *					to exist.
-	 */
-	template<bool Near, bool Far>
-	class GaussianDOFCombineMat : public IGaussianDOFCombineMat, public RendererMaterial<GaussianDOFCombineMat<Near, Far>>
-	{
-		RMAT_DEF("PPGaussianDOFCombine.bsl");
-
-	public:
-		GaussianDOFCombineMat();
-
 		void execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, 
 			const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, 
-			const DepthOfFieldSettings& settings) override;
+			const DepthOfFieldSettings& settings);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param	near	If true, near plane pixels are read from the near plane texture, otherwise near plane is assumed
+		 *					not to exist.
+		 * @param	far		If true, far plane pixels are read from the far plane texture, otherwise far plane is assumed not
+		 *					to exist.
+		 */
+		static GaussianDOFCombineMat* getVariation(bool near, bool far);
+
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mFocusedTexture;
 		GpuParamTexture mNearTexture;
 		GpuParamTexture mFarTexture;
 		GpuParamTexture mDepthTexture;
-	};
 
-	/** Performs Gaussian depth of field effect with the help of various related shaders. */
-	class GaussianDOF
-	{
-	public:
-		/** 
-		 * Executes the depth of field effect on the provided scene color texture.
-		 * 
-		 * @param[in]	sceneColor	Input texture containing scene color.
-		 * @param[in]	sceneDepth	Input depth buffer texture that will be used for determining pixel depth.
-		 * @param[in]	output		Texture to output the results to.
-		 * @param[in]	view		View through which the depth of field effect is viewed.
-		 * @param[in]	settings	Settings used to control depth of field rendering. 
-		 */
-		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& output, 
-			const RendererView& view, const DepthOfFieldSettings& settings);
-
-		/** Checks does the depth of field effect need to execute. */
-		static bool requiresDOF(const DepthOfFieldSettings& settings);
-	private:
-		GaussianDOFSeparateMat<true, true> mSeparateNF;
-		GaussianDOFSeparateMat<false, true> mSeparateF;
-		GaussianDOFSeparateMat<true, false> mSeparateN;
-
-		GaussianDOFCombineMat<true, true> mCombineNF;
-		GaussianDOFCombineMat<false, true> mCombineF;
-		GaussianDOFCombineMat<true, false> mCombineN;
-
-		GaussianBlurMat mBlur;
+		static ShaderVariation VAR_Near_Far;
+		static ShaderVariation VAR_NoNear_Far;
+		static ShaderVariation VAR_Near_NoFar;
 	};
 
 	/** Shader that calculates a single level of the hierarchical Z mipmap chain. */
@@ -532,27 +417,6 @@ namespace bs { namespace ct
 			const SPtr<RenderTexture>& output);
 	private:
 		GpuParamTexture mInputTexture;
-	};
-
-	/** Builds a hierarchical Z mipmap chain from the source depth texture. */
-	class BuildHiZ
-	{
-	public:
-		/** 
-		 * Renders the post-process effect with the provided parameters. 
-		 * 
-		 * @param[in]	viewInfo	Information about the view we're rendering from.
-		 * @param[in]	source		Input depth texture to use as the source.
-		 * @param[in]	output		Output target to which to write to results. This texture should be created using the
-		 *							descriptor returned by getHiZTextureDesc().
-		 */
-		void execute(const RendererViewTargetData& viewInfo, const SPtr<Texture>& source, const SPtr<Texture>& output);
-
-		/** Generates a descriptor that can be used for creating a texture to contain the HiZ mipmap chain. */
-		static POOLED_RENDER_TEXTURE_DESC getHiZTextureDesc(UINT32 viewWidth, UINT32 viewHeight);
-
-	private:
-		BuildHiZMat mHiZMat;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FXAAParamDef)
@@ -616,18 +480,8 @@ namespace bs { namespace ct
 		SPtr<Texture> randomRotations;
 	};
 
-	/** 
-	 * Shader that computes ambient occlusion using screen based methods.
-	 *
-	 * @tparam	UPSAMPLE	If true the shader will blend the calculated AO with AO data from the previous pass.
-	 * @tparam	FINAL_PASS	If true the shader will use the full screen normal/depth information and perform
-	 *						intensity scaling, as well as distance fade. Otherwise the shader will use the
-	 *						downsampled AO setup information, with no scaling/fade.
-	 * @tparam	QUALITY		Integer in range [0, 4] that controls the quality of SSAO sampling. Higher numbers yield
-	 *						better quality at the cost of performance. 
-	 */
-	template<bool UPSAMPLE, bool FINAL_PASS, int QUALITY>
-	class SSAOMat : public RendererMaterial<SSAOMat<UPSAMPLE, FINAL_PASS, QUALITY>>
+	/** Shader that computes ambient occlusion using screen based methods. */
+	class SSAOMat : public RendererMaterial<SSAOMat>
 	{
 		RMAT_DEF("PPSSAO.bsl");
 
@@ -646,6 +500,18 @@ namespace bs { namespace ct
 		void execute(const RendererView& view, const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, 
 			const AmbientOcclusionSettings& settings);
 
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param	upsample	If true the shader will blend the calculated AO with AO data from the previous pass.
+		 * @param	finalPass	If true the shader will use the full screen normal/depth information and perform
+		 *						intensity scaling, as well as distance fade. Otherwise the shader will use the
+		 *						downsampled AO setup information, with no scaling/fade.
+		 * @param	quality		Integer in range [0, 4] that controls the quality of SSAO sampling. Higher numbers yield
+		 *						better quality at the cost of performance. 
+		 */
+		static SSAOMat* getVariation(bool upsample, bool finalPass, int quality);
+
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mDepthTexture;
@@ -653,6 +519,20 @@ namespace bs { namespace ct
 		GpuParamTexture mDownsampledAOTexture;
 		GpuParamTexture mSetupAOTexture;
 		GpuParamTexture mRandomTexture;
+
+#define VARIATION(QUALITY) \
+		static ShaderVariation VAR_Upsample_Final_Quality##QUALITY;		\
+		static ShaderVariation VAR_Upsample_NoFinal_Quality##QUALITY;		\
+		static ShaderVariation VAR_NoUpsample_Final_Quality##QUALITY;		\
+		static ShaderVariation VAR_NoUpsample_NoFinal_Quality##QUALITY;		\
+
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSAODownsampleParamDef)
@@ -702,8 +582,7 @@ namespace bs { namespace ct
 	/** 
 	 * Shaders that blurs the ambient occlusion output, in order to hide the noise caused by the randomization texture.
 	 */
-	template<bool HORIZONTAL>
-	class SSAOBlurMat : public RendererMaterial<SSAOBlurMat<HORIZONTAL>>
+	class SSAOBlurMat : public RendererMaterial<SSAOBlurMat>
 	{
 		RMAT_DEF("PPSSAOBlur.bsl");
 
@@ -722,58 +601,16 @@ namespace bs { namespace ct
 		void execute(const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& sceneDepth,
 			const SPtr<RenderTexture>& destination, float depthRange);
 
+		/** Returns the material variation matching the provided parameters. */
+		static SSAOBlurMat* getVariation(bool horizontal);
+
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mAOTexture;
 		GpuParamTexture mDepthTexture;
-	};
 
-	/** Helper class that is used for calculating the SSAO information. */
-	class SSAO
-	{
-	public:
-		SSAO();
-
-		/** 
-		 * Calculates SSAO for the specified view. 
-		 * 
-		 * @param[in]	view			Information about the view we're rendering from.
-		 * @param[in]	destination		Output texture to which to write the SSAO data to.
-		 * @param[in]	settings		Settings that control how is SSAO calculated.
-		 */
-		void execute(const RendererView& view, const SPtr<RenderTexture>& destination, 
-			const AmbientOcclusionSettings& settings);
-
-		/**
-		 * Generates a texture that is used for randomizing sample locations during SSAO calculation. The texture contains
-		 * 16 different rotations in a 4x4 tile.
-		 */
-		SPtr<Texture> generate4x4RandomizationTexture() const;
-
-	private:
-		/** @copydoc SSAOMat::execute() */
-		void executeSSAOMat(bool upsample, bool final, int quality, const RendererView& view, 
-			const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, 
-			const AmbientOcclusionSettings& settings);
-
-		SSAODownsampleMat mDownsample;
-		SSAOBlurMat<true> mBlurHorz;
-		SSAOBlurMat<false> mBlurVert;
-		SPtr<Texture> mSSAORandomizationTex;
-
-#define DEFINE_MATERIAL(QUALITY)							\
-		SSAOMat<false, false, QUALITY> mSSAO_FF_##QUALITY;	\
-		SSAOMat<true, false, QUALITY> mSSAO_TF_##QUALITY;	\
-		SSAOMat<false, true, QUALITY> mSSAO_FT_##QUALITY;	\
-		SSAOMat<true, true, QUALITY> mSSAO_TT_##QUALITY;	\
-
-		DEFINE_MATERIAL(0)
-		DEFINE_MATERIAL(1)
-		DEFINE_MATERIAL(2)
-		DEFINE_MATERIAL(3)
-		DEFINE_MATERIAL(4)
-
-#undef DEFINE_MATERIAL
+		static ShaderVariation VAR_Vertical;
+		static ShaderVariation VAR_Horizontal;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSRStencilParamDef)
@@ -794,9 +631,10 @@ namespace bs { namespace ct
 		 * Renders the effect with the provided parameters, using the currently bound render target. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	gbuffer			GBuffer textures.
 		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 */
-		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings);
+		void execute(const RendererView& view, GBufferInput gbuffer, const ScreenSpaceReflectionsSettings& settings);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
@@ -825,10 +663,14 @@ namespace bs { namespace ct
 		 * Renders the effect with the provided parameters. 
 		 * 
 		 * @param[in]	view			Information about the view we're rendering from.
+		 * @param[in]	gbuffer			GBuffer textures.
+		 * @param[in]	sceneColor		Scene color texture.
+		 * @param[in]	hiZ				Hierarchical Z buffer.
 		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 * @param[in]	destination		Render target to which to write the results to.
 		 */
-		void execute(const RendererView& view, const ScreenSpaceReflectionsSettings& settings, 
+		void execute(const RendererView& view, GBufferInput gbuffer, const SPtr<Texture>& sceneColor, 
+			const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, 
 			const SPtr<RenderTarget>& destination);
 
 		/**
@@ -859,14 +701,8 @@ namespace bs { namespace ct
 
 	extern SSRResolveParamDef gSSRResolveParamDef;
 
-	/** 
-	 * Shader used for combining SSR information from the previous frame, in order to yield better quality. 
-	 * 
-	 * @tparam	EyeAdaptation	When true the shader will expect a texture containing an exposure value calculated by
-	 *							the eye adaptation shader. Otherwise the manually provided exposure value is used instead.
-	 */
-	template<bool EyeAdaptation>
-	class SSRResolveMat : public RendererMaterial<SSRResolveMat<EyeAdaptation>>
+	/** Shader used for combining SSR information from the previous frame, in order to yield better quality. */
+	class SSRResolveMat : public RendererMaterial<SSRResolveMat>
 	{
 		RMAT_DEF("PPSSRResolve.bsl");
 
@@ -885,6 +721,15 @@ namespace bs { namespace ct
 		void execute(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, 
 			const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination);
 
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param	eyeAdaptation	When true the shader will expect a texture containing an exposure value calculated by
+		 *							the eye adaptation shader. Otherwise the manually provided exposure value is used
+		 *							instead.
+		 */
+		SSRResolveMat* getVariation(bool eyeAdaptation);
+
 	private:
 		SPtr<GpuParamBlockBuffer> mSSRParamBuffer;
 		SPtr<GpuParamBlockBuffer> mTemporalParamBuffer;
@@ -893,39 +738,9 @@ namespace bs { namespace ct
 		GpuParamTexture mPrevColorTexture;
 		GpuParamTexture mSceneDepthTexture;
 		GpuParamTexture mEyeAdaptationTexture;
-	};
 
-	/**
-	 * Renders post-processing effects for the provided render target.
-	 *
-	 * @note	Core thread only.
-	 */
-	class PostProcessing : public Module<PostProcessing>
-	{
-	public:
-		/** 
-		 * Renders post-processing effects for the provided render target. Resolves provided scene color texture into the
-		 * view's final output render target. Once the method exits, final render target is guaranteed to be currently
-		 * bound for rendering. 
-		 */
-		void postProcess(RendererView* viewInfo, const SPtr<RenderTargets>& renderTargets, float frameDelta);
-		
-		/**
-		 * Populates the ambient occlusion texture of the specified view with screen-space ambient occlusion information.
-		 * Ambient occlusion texture must be allocated on the view's render targets before calling this method.
-		 */
-		void buildSSAO(const RendererView& view);
-	private:
-		DownsampleMaterials mDownsample;
-		EyeAdaptHistogramMat mEyeAdaptHistogram;
-		EyeAdaptHistogramReduceMat mEyeAdaptHistogramReduce;
-		EyeAdaptationMat mEyeAdaptation;
-
-		CreateTonemapLUTMat mCreateLUT;
-		TonemappingMaterials mTonemapping;
-		GaussianDOF mGaussianDOF;
-		FXAAMat mFXAA;
-		SSAO mSSAO;
+		static ShaderVariation VAR_EyeAdaptation;
+		static ShaderVariation VAR_NoEyeAdaptation;
 	};
 
 	/** @} */

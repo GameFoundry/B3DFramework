@@ -56,6 +56,15 @@ namespace bs { namespace ct
 		Light* internal;
 	};
 
+	/** Container for all GBuffer textures. */
+	struct GBufferInput
+	{
+		SPtr<Texture> albedo;
+		SPtr<Texture> normals;
+		SPtr<Texture> roughMetal;
+		SPtr<Texture> depth;
+	};
+
 	/** Allows you to easily bind GBuffer textures to some material. */
 	class GBufferParams
 	{
@@ -63,8 +72,7 @@ namespace bs { namespace ct
 		GBufferParams(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet);
 
 		/** Binds the GBuffer textures to the pipeline. */
-		void bind(const RenderTargets& renderTargets);
-
+		void bind(const GBufferInput& gbuffer);
 	private:
 		SPtr<Material> mMaterial;
 		SPtr<GpuParamsSet> mParamsSet;
@@ -134,86 +142,37 @@ namespace bs { namespace ct
 
 	extern TiledLightingParamDef gTiledLightingParamDef;
 
-	/** Functionality common to all versions of TiledDeferredLightingMat<T>. */
-	class TiledDeferredLighting
+	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+	class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
 	{
+		RMAT_DEF("TiledDeferredLighting.bsl");
+
 	public:
-		TiledDeferredLighting(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet, UINT32 sampleCount);
+		TiledDeferredLightingMat();
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera, bool noLighting,
-			bool noShadows);
+		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferInput& gbuffer,
+			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer);
 
-		/** Binds all the active lights. */
-		void setLights(const VisibleLightData& lightData);
+		/** Returns the material variation matching the provided parameters. */
+		static TiledDeferredLightingMat* getVariation(UINT32 msaaCount);
 
-		static const UINT32 TILE_SIZE;
 	private:
 		UINT32 mSampleCount;
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
-
 		GBufferParams mGBufferParams;
 
-		Vector4I mUnshadowedLightCounts;
-		Vector4I mLightCounts;
-		Vector2I mLightStrides;
 		GpuParamBuffer mLightBufferParam;
 		GpuParamLoadStoreTexture mOutputTextureParam;
 		GpuParamBuffer mOutputBufferParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-	};
 
-	/** Interface implemented by all versions of TTiledDeferredLightingMat<T>. */
-	class ITiledDeferredLightingMat
-	{
-	public:
-		virtual ~ITiledDeferredLightingMat() {}
+		static const UINT32 TILE_SIZE;
 
-		/** @copydoc TiledDeferredLighting::execute() */
-		virtual void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			bool noLighting, bool noShadows) = 0;
-
-		/** @copydoc TiledDeferredLighting::setLights() */
-		virtual void setLights(const VisibleLightData& lightData) = 0;
-	};
-
-	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-	template<int MSAA_COUNT>
-	class TTiledDeferredLightingMat : public ITiledDeferredLightingMat, public RendererMaterial<TTiledDeferredLightingMat<MSAA_COUNT>>
-	{
-		RMAT_DEF("TiledDeferredLighting.bsl");
-
-	public:
-		TTiledDeferredLightingMat();
-
-		/** @copydoc ITiledDeferredLightingMat::execute() */
-		void execute(const SPtr<RenderTargets>& renderTargets, const SPtr<GpuParamBlockBuffer>& perCamera,
-			bool noLighting, bool noShaodws) override;
-
-		/** @copydoc ITiledDeferredLightingMat::setLights() */
-		void setLights(const VisibleLightData& lightData) override;
-	private:
-		TiledDeferredLighting mInternal;
-	};
-
-	/** Contains instances for all types of tile deferred lighting materials. */
-	class TiledDeferredLightingMaterials
-	{
-	public:
-		TiledDeferredLightingMaterials();
-		~TiledDeferredLightingMaterials();
-
-		/**
-		 * Returns a version of the tile-deferred lighting material that matches the parameters.
-		 * 
-		 * @param[in]   msaa					Number of samples per pixel.
-		 */
-		ITiledDeferredLightingMat* get(UINT32 msaa);
-
-	private:
-		ITiledDeferredLightingMat* mInstances[4];
+		static ShaderVariation VAR_1MSAA;
+		static ShaderVariation VAR_2MSAA;
+		static ShaderVariation VAR_4MSAA;
+		static ShaderVariation VAR_8MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FlatFramebufferToTextureParamDef)

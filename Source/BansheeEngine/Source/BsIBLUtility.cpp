@@ -8,30 +8,6 @@
 
 namespace bs { namespace ct
 {
-	struct IBLUtility::Members
-	{
-		ReflectionCubeDownsampleMat downsampleMat;
-		ReflectionCubeImportanceSampleMat importanceSampleMat;
-
-		IrradianceComputeSHMat<3> shCompute3;
-		IrradianceComputeSHMat<5> shCompute5;
-		IrradianceReduceSHMat<3> shReduce3;
-		IrradianceReduceSHMat<5> shReduce5;
-		IrradianceProjectSHMat shProject5;
-	};
-
-	IBLUtility::Members* IBLUtility::m = nullptr;
-
-	void IBLUtility::startUp()
-	{
-		m = bs_new<Members>();
-	}
-
-	void IBLUtility::shutDown()
-	{
-		bs_delete(m);
-	}
-
 	ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
 	ReflectionCubeDownsampleMat::ReflectionCubeDownsampleMat()
@@ -42,7 +18,7 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void ReflectionCubeDownsampleMat::_initDefines(ShaderDefines& defines)
+	void ReflectionCubeDownsampleMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -72,13 +48,17 @@ namespace bs { namespace ct
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void ReflectionCubeImportanceSampleMat::_initDefines(ShaderDefines& defines)
+	void ReflectionCubeImportanceSampleMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("NUM_SAMPLES", NUM_SAMPLES); 
+		ShaderVariation variation({
+			ShaderVariation::Param("NUM_SAMPLES", NUM_SAMPLES)
+		});
+
+		variations.add(variation);
 	}
 
 	void ReflectionCubeImportanceSampleMat::execute(const SPtr<Texture>& source, UINT32 face, UINT32 mip, 
-													const SPtr<RenderTarget>& target)
+		const SPtr<RenderTarget>& target)
 	{
 		mInputTexture.set(source);
 		gReflectionCubeImportanceSampleParamDef.gCubeFace.set(mParamBuffer, face);
@@ -103,12 +83,28 @@ namespace bs { namespace ct
 
 	IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
 
+	// TILE_WIDTH * TILE_HEIGHT must be pow2 because of parallel reduction algorithm
 	const static UINT32 TILE_WIDTH = 8;
 	const static UINT32 TILE_HEIGHT = 8;
+
+	// For very small textures this should be reduced so number of launched threads can properly utilize GPU cores
 	const static UINT32 PIXELS_PER_THREAD = 4;
 
-	template<int ORDER>
-	IrradianceComputeSHMat<ORDER>::IrradianceComputeSHMat()
+	ShaderVariation IrradianceComputeSHMat::VAR_Order3 = ShaderVariation({
+		ShaderVariation::Param("TILE_WIDTH", TILE_WIDTH),
+		ShaderVariation::Param("TILE_HEIGHT", TILE_HEIGHT),
+		ShaderVariation::Param("PIXELS_PER_THREAD", PIXELS_PER_THREAD),
+		ShaderVariation::Param("ORDER", 3),
+	});
+
+	ShaderVariation IrradianceComputeSHMat::VAR_Order5 = ShaderVariation({
+		ShaderVariation::Param("TILE_WIDTH", TILE_WIDTH),
+		ShaderVariation::Param("TILE_HEIGHT", TILE_HEIGHT),
+		ShaderVariation::Param("PIXELS_PER_THREAD", PIXELS_PER_THREAD),
+		ShaderVariation::Param("ORDER", 5),
+	});
+
+	IrradianceComputeSHMat::IrradianceComputeSHMat()
 	{
 		mParamBuffer = gIrradianceComputeSHParamDef.createBuffer();
 
@@ -119,21 +115,13 @@ namespace bs { namespace ct
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
 
-	template<int ORDER>
-	void IrradianceComputeSHMat<ORDER>::_initDefines(ShaderDefines& defines)
+	void IrradianceComputeSHMat::_initVariations(ShaderVariations& variations)
 	{
-		// TILE_WIDTH * TILE_HEIGHT must be pow2 because of parallel reduction algorithm
-		defines.set("TILE_WIDTH", TILE_WIDTH);
-		defines.set("TILE_HEIGHT", TILE_HEIGHT);
-
-		// For very small textures this should be reduced so number of launched threads can properly utilize GPU cores
-		defines.set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
-
-		defines.set("ORDER", ORDER);
+		variations.add(VAR_Order3);
+		variations.add(VAR_Order5);
 	}
 
-	template<int ORDER>
-	void IrradianceComputeSHMat<ORDER>::execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output)
+	void IrradianceComputeSHMat::execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output)
 	{
 		auto& props = source->getProperties();
 		UINT32 faceSize = props.getWidth();
@@ -157,8 +145,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(dispatchSize.x, dispatchSize.y);
 	}
 
-	template<int ORDER>
-	SPtr<GpuBuffer> IrradianceComputeSHMat<ORDER>::createOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets)
+	SPtr<GpuBuffer> IrradianceComputeSHMat::createOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets)
 	{
 		auto& props = source->getProperties();
 		UINT32 faceSize = props.getWidth();
@@ -176,7 +163,7 @@ namespace bs { namespace ct
 		bufferDesc.format = BF_UNKNOWN;
 		bufferDesc.randomGpuWrite = true;
 
-		if(ORDER == 3)
+		if(mVariation.getInt("ORDER") == 3)
 			bufferDesc.elementSize = sizeof(SHCoeffsAndWeight3);
 		else
 			bufferDesc.elementSize = sizeof(SHCoeffsAndWeight5);
@@ -184,13 +171,25 @@ namespace bs { namespace ct
 		return GpuBuffer::create(bufferDesc);
 	}
 
-	template class IrradianceComputeSHMat<3>;
-	template class IrradianceComputeSHMat<5>;
+	IrradianceComputeSHMat* IrradianceComputeSHMat::getVariation(int order)
+	{
+		if (order == 3)
+			return get(VAR_Order3);
+
+		return get(VAR_Order5);
+	}
 
 	IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
 
-	template<int ORDER>
-	IrradianceReduceSHMat<ORDER>::IrradianceReduceSHMat()
+	ShaderVariation IrradianceReduceSHMat::VAR_Order3 = ShaderVariation({
+		ShaderVariation::Param("ORDER", 3),
+	});
+
+	ShaderVariation IrradianceReduceSHMat::VAR_Order5 = ShaderVariation({
+		ShaderVariation::Param("ORDER", 5),
+	});
+
+	IrradianceReduceSHMat::IrradianceReduceSHMat()
 	{
 		mParamBuffer = gIrradianceReduceSHParamDef.createBuffer();
 
@@ -201,14 +200,13 @@ namespace bs { namespace ct
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
 
-	template<int ORDER>
-	void IrradianceReduceSHMat<ORDER>::_initDefines(ShaderDefines& defines)
+	void IrradianceReduceSHMat::_initVariations(ShaderVariations& variations)
 	{
-		defines.set("ORDER", ORDER);
+		variations.add(VAR_Order3);
+		variations.add(VAR_Order5);
 	}
 
-	template<int ORDER>
-	void IrradianceReduceSHMat<ORDER>::execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, 
+	void IrradianceReduceSHMat::execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, 
 		const SPtr<GpuBuffer>& output, UINT32 outputIdx)
 	{
 		gIrradianceReduceSHParamDef.gNumEntries.set(mParamBuffer, numCoeffSets);
@@ -224,8 +222,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(1);
 	}
 
-	template<int ORDER>
-	SPtr<GpuBuffer> IrradianceReduceSHMat<ORDER>::createOutputBuffer(UINT32 numEntries)
+	SPtr<GpuBuffer> IrradianceReduceSHMat::createOutputBuffer(UINT32 numEntries)
 	{
 		GPU_BUFFER_DESC bufferDesc;
 		bufferDesc.type = GBT_STRUCTURED;
@@ -233,7 +230,7 @@ namespace bs { namespace ct
 		bufferDesc.format = BF_UNKNOWN;
 		bufferDesc.randomGpuWrite = true;
 
-		if(ORDER == 3)
+		if(mVariation.getInt("ORDER") == 3)
 			bufferDesc.elementSize = sizeof(SHVector3RGB);
 		else
 			bufferDesc.elementSize = sizeof(SHVector5RGB);
@@ -241,8 +238,13 @@ namespace bs { namespace ct
 		return GpuBuffer::create(bufferDesc);
 	}
 
-	template class IrradianceReduceSHMat<3>;
-	template class IrradianceReduceSHMat<5>;
+	IrradianceReduceSHMat* IrradianceReduceSHMat::getVariation(int order)
+	{
+		if (order == 3)
+			return get(VAR_Order3);
+
+		return get(VAR_Order5);
+	}
 
 	IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
 
@@ -256,7 +258,7 @@ namespace bs { namespace ct
 		params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputBuffer);
 	}
 
-	void IrradianceProjectSHMat::_initDefines(ShaderDefines& defines)
+	void IrradianceProjectSHMat::_initVariations(ShaderVariations& variations)
 	{
 		// Do nothing
 	}
@@ -331,7 +333,8 @@ namespace bs { namespace ct
 
 				SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
 
-				m->importanceSampleMat.execute(scratchCubemap, face, mip, target);
+				ReflectionCubeImportanceSampleMat* material = ReflectionCubeImportanceSampleMat::get();
+				material->execute(scratchCubemap, face, mip, target);
 			}
 		}
 
@@ -341,13 +344,17 @@ namespace bs { namespace ct
 
 	void IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output)
 	{
-		UINT32 numCoeffSets;
-		SPtr<GpuBuffer> coeffSetBuffer = IrradianceComputeSHMat<5>::createOutputBuffer(cubemap, numCoeffSets);
-		for (UINT32 face = 0; face < 6; face++)
-			m->shCompute5.execute(cubemap, face, coeffSetBuffer);
+		IrradianceComputeSHMat* shCompute = IrradianceComputeSHMat::getVariation(5);
+		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::getVariation(5);
+		IrradianceProjectSHMat* shProject = IrradianceProjectSHMat::get();
 
-		SPtr<GpuBuffer> coeffBuffer = IrradianceReduceSHMat<5>::createOutputBuffer(1);
-		m->shReduce5.execute(coeffSetBuffer, numCoeffSets, coeffBuffer, 0);
+		UINT32 numCoeffSets;
+		SPtr<GpuBuffer> coeffSetBuffer = shCompute->createOutputBuffer(cubemap, numCoeffSets);
+		for (UINT32 face = 0; face < 6; face++)
+			shCompute->execute(cubemap, face, coeffSetBuffer);
+
+		SPtr<GpuBuffer> coeffBuffer = shReduce->createOutputBuffer(1);
+		shReduce->execute(coeffSetBuffer, numCoeffSets, coeffBuffer, 0);
 
 		for (UINT32 face = 0; face < 6; face++)
 		{
@@ -358,19 +365,22 @@ namespace bs { namespace ct
 			cubeFaceRTDesc.colorSurfaces[0].mipLevel = 0;
 
 			SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
-			m->shProject5.execute(coeffBuffer, face, target);
+			shProject->execute(coeffBuffer, face, target);
 		}
 	}
 
 	void IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<GpuBuffer>& output, 
 		UINT32 outputIdx)
 	{
-		UINT32 numCoeffSets;
-		SPtr<GpuBuffer> coeffSetBuffer = IrradianceComputeSHMat<3>::createOutputBuffer(cubemap, numCoeffSets);
-		for (UINT32 face = 0; face < 6; face++)
-			m->shCompute3.execute(cubemap, face, coeffSetBuffer);
+		IrradianceComputeSHMat* shCompute = IrradianceComputeSHMat::getVariation(3);
+		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::getVariation(3);
 
-		m->shReduce3.execute(coeffSetBuffer, numCoeffSets, output, outputIdx);
+		UINT32 numCoeffSets;
+		SPtr<GpuBuffer> coeffSetBuffer = shCompute->createOutputBuffer(cubemap, numCoeffSets);
+		for (UINT32 face = 0; face < 6; face++)
+			shCompute->execute(cubemap, face, coeffSetBuffer);
+
+		shReduce->execute(coeffSetBuffer, numCoeffSets, output, outputIdx);
 	}
 
 	void IBLUtility::scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
@@ -431,7 +441,8 @@ namespace bs { namespace ct
 			SPtr<RenderTarget> target = RenderTexture::create(cubeFaceRTDesc);
 
 			TextureSurface sourceSurface(srcMip, 1, 0, 6);
-			m->downsampleMat.execute(src, face, sourceSurface, target);
+			ReflectionCubeDownsampleMat* material = ReflectionCubeDownsampleMat::get();
+			material->execute(src, face, sourceSurface, target);
 		}
 	}
 }}

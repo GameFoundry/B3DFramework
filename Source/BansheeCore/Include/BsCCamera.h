@@ -142,17 +142,11 @@ namespace bs
 		/** @copydoc Camera::setMSAACount */
 		void setMSAACount(UINT32 count) { mInternal->setMSAACount(count); }
 
-		/** Returns settings that are used for controling post-process operations like tonemapping. */
-		const SPtr<PostProcessSettings>& getPostProcessSettings() const { return mInternal->getPostProcessSettings(); }
+		/** @copydoc Camera::getRenderSettings() */
+		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
 
-		/** Sets settings that are used for controling post-process operations like tonemapping. */
-		void setPostProcessSettings(const SPtr<PostProcessSettings>& settings) { mInternal->setPostProcessSettings(settings); }
-
-		/** @copydoc Camera::getFlags */
-		CameraFlags getFlags() const { return mInternal->getFlags(); }
-
-		/** @copydoc Camera::setFlag */
-		void setFlag(const CameraFlag& flag, bool enable) { mInternal->setFlag(flag, enable); }
+		/** @copydoc Camera::setRenderSettings() */
+		void setRenderSettings(const SPtr<RenderSettings>& settings) { mInternal->setRenderSettings(settings); }
 
 		/** @copydoc Camera::worldToScreenPoint */
 		Vector2I worldToScreenPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToScreenPoint(worldPoint); }

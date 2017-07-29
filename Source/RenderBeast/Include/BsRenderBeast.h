@@ -5,8 +5,6 @@
 #include "BsRenderBeastPrerequisites.h"
 #include "BsRenderer.h"
 #include "BsRendererMaterial.h"
-#include "BsLightRendering.h"
-#include "BsImageBasedLighting.h"
 #include "BsObjectRendering.h"
 #include "BsPostProcessing.h"
 #include "BsRendererView.h"
@@ -70,9 +68,6 @@ namespace bs
 
 		/** @copydoc Renderer::destroy */
 		void destroy() override;
-
-		/** @copydoc Renderer::createPostProcessSettings */
-		SPtr<PostProcessSettings> createPostProcessSettings() const override;
 
 		/** 
 		 * Captures the scene at the specified location into a cubemap. 
@@ -168,14 +163,14 @@ namespace bs
 		 *			
 		 * @note	Core thread only.
 		 */
-		void renderView(RendererView* viewInfo, float frameDelta);
+		void renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 		/**
 		 * Renders all overlay callbacks of the provided view.
 		 * 					
 		 * @note	Core thread only.
 		 */
-		void renderOverlay(RendererView* viewInfo);
+		void renderOverlay(RendererView& view);
 
 		/** 
 		 * Renders a single element of a renderable object. 
@@ -195,48 +190,23 @@ namespace bs
 		void destroyCore();
 
 		/** Updates light probes, rendering & filtering ones that are dirty and updating the global probe cubemap array. */
-		void updateLightProbes(const FrameInfo& frameInfo);
+		void renderReflectionProbes(const FrameInfo& frameInfo);
+
+		/** Renders the skybox filtered reflections and irradiance cubemap, if they require updating. */
+		void updateSkybox();
 
 		// Core thread only fields
 
 		// Scene data
 		SPtr<RendererScene> mScene;
 
-		//// Reflection probes
-		Vector<bool> mCubemapArrayUsedSlots;
-		SPtr<Texture> mReflCubemapArrayTex;
-
-		//// Sky light
-		Skybox* mSkybox = nullptr;
-		SPtr<Texture> mSkyboxTexture;
-		SPtr<Texture> mSkyboxFilteredReflections;
-		SPtr<Texture> mSkyboxIrradiance;
-
-		// Materials & GPU data
 		//// Base pass
 		ObjectRenderer* mObjectRenderer = nullptr;
-
-		//// Lighting
-		TiledDeferredLightingMaterials* mTiledDeferredLightingMats = nullptr;
-		LightGrid* mLightGrid = nullptr;
-		VisibleLightData* mVisibleLightInfo = nullptr;
-
-		//// Image based lighting
-		TiledDeferredImageBasedLightingMaterials* mTileDeferredImageBasedLightingMats = nullptr;
-		VisibleReflProbeData* mVisibleReflProbeInfo = nullptr;
-		SPtr<Texture> mPreintegratedEnvBRDF;
-
-		//// Sky
-		SkyboxMat<false>* mSkyboxMat;
-		SkyboxMat<true>* mSkyboxSolidColorMat;
-
-		//// Other
-		FlatFramebufferToTextureMat* mFlatFramebufferToTextureMat = nullptr;
 
 		SPtr<RenderBeastOptions> mCoreOptions;
 
 		// Helpers to avoid memory allocations
-		RendererViewGroup mMainViewGroup;
+		RendererViewGroup* mMainViewGroup = nullptr;
 
 		// Sim thread only fields
 		SPtr<RenderBeastOptions> mOptions;

@@ -46,7 +46,7 @@
     <Compile Include="Inspectors\AudioListenerInspector.cs" />
     <Compile Include="Inspectors\AudioSourceInspector.cs" />
     <Compile Include="Inspectors\BoneInspector.cs" />
-    <Compile Include="Inspectors\PostProcessSettingsInspector.cs" />
+    <Compile Include="Inspectors\RenderSettingsInspector.cs" />
     <Compile Include="Utility\EdAnimationCurve.cs" />
     <Compile Include="Utility\SerializedSceneObject.cs" />
     <Compile Include="Utility\SerializedDiff.cs" />

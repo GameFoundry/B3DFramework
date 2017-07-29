@@ -1,8 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsStandardPostProcessSettings.h"
-#include "BsBinarySerializer.h"
-#include "BsStandardPostProcessSettingsRTTI.h"
+#include "BsRenderSettings.h"
+#include "BsRenderSettingsRTTI.h"
 
 namespace bs
 {
@@ -109,21 +108,22 @@ namespace bs
 		return ScreenSpaceReflectionsSettings::getRTTIStatic();
 	}
 
-	StandardPostProcessSettings::StandardPostProcessSettings()
+	RenderSettings::RenderSettings()
 		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(false), exposureScale(0.0f), gamma(2.2f)
+		, enableHDR(true), enableLighting(true), enableShadows(true), overlayOnly(false)
 	{ }
 
-	RTTITypeBase* StandardPostProcessSettings::getRTTIStatic()
+	RTTITypeBase* RenderSettings::getRTTIStatic()
 	{
-		return StandardPostProcessSettingsRTTI::instance();
+		return RenderSettingsRTTI::instance();
 	}
 
-	RTTITypeBase* StandardPostProcessSettings::getRTTI() const
+	RTTITypeBase* RenderSettings::getRTTI() const
 	{
-		return StandardPostProcessSettings::getRTTIStatic();
+		return RenderSettings::getRTTIStatic();
 	}
 
-	void StandardPostProcessSettings::_getSyncData(UINT8* buffer, UINT32& size)
+	void RenderSettings::_getSyncData(UINT8* buffer, UINT32& size)
 	{
 		UINT32 bufferSize = 0;
 		bufferSize += rttiGetElemSize(enableAutoExposure);
@@ -131,6 +131,10 @@ namespace bs
 		bufferSize += rttiGetElemSize(exposureScale);
 		bufferSize += rttiGetElemSize(gamma);
 		bufferSize += rttiGetElemSize(enableFXAA);
+		bufferSize += rttiGetElemSize(enableHDR);
+		bufferSize += rttiGetElemSize(enableLighting);
+		bufferSize += rttiGetElemSize(enableShadows);
+		bufferSize += rttiGetElemSize(overlayOnly);
 
 		bufferSize += rttiGetElemSize(autoExposure.histogramLog2Min);
 		bufferSize += rttiGetElemSize(autoExposure.histogramLog2Max);
@@ -197,6 +201,10 @@ namespace bs
 		writeDst = rttiWriteElem(exposureScale, writeDst);
 		writeDst = rttiWriteElem(gamma, writeDst);
 		writeDst = rttiWriteElem(enableFXAA, writeDst);
+		writeDst = rttiWriteElem(enableHDR, writeDst);
+		writeDst = rttiWriteElem(enableLighting, writeDst);
+		writeDst = rttiWriteElem(enableShadows, writeDst);
+		writeDst = rttiWriteElem(overlayOnly, writeDst);
 
 		writeDst = rttiWriteElem(autoExposure.histogramLog2Min, writeDst);
 		writeDst = rttiWriteElem(autoExposure.histogramLog2Max, writeDst);
@@ -246,7 +254,7 @@ namespace bs
 		writeDst = rttiWriteElem(screenSpaceReflections.quality, writeDst);
 	}
 
-	void StandardPostProcessSettings::_setSyncData(UINT8* buffer, UINT32 size)
+	void RenderSettings::_setSyncData(UINT8* buffer, UINT32 size)
 	{
 		char* readSource = (char*)buffer;
 
@@ -255,6 +263,10 @@ namespace bs
 		readSource = rttiReadElem(exposureScale, readSource);
 		readSource = rttiReadElem(gamma, readSource);
 		readSource = rttiReadElem(enableFXAA, readSource);
+		readSource = rttiReadElem(enableHDR, readSource);
+		readSource = rttiReadElem(enableLighting, readSource);
+		readSource = rttiReadElem(enableShadows, readSource);
+		readSource = rttiReadElem(overlayOnly, readSource);
 
 		readSource = rttiReadElem(autoExposure.histogramLog2Min, readSource);
 		readSource = rttiReadElem(autoExposure.histogramLog2Max, readSource);
