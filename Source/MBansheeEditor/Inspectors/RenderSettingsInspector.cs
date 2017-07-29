@@ -358,6 +358,11 @@ namespace BansheeEditor
         private RenderSettings settings;
         private SerializableProperties properties;
 
+        private GUIToggleField enableHDRField = new GUIToggleField(new LocEdString("Enable HDR"));
+        private GUIToggleField enableLightingField = new GUIToggleField(new LocEdString("Enable lighting"));
+        private GUIToggleField enableShadowsField = new GUIToggleField(new LocEdString("Enable shadows"));
+        private GUIToggleField overlayOnlyField = new GUIToggleField(new LocEdString("Overlay only"));
+
         private GUIToggleField enableAutoExposureField = new GUIToggleField(new LocEdString("Enable auto exposure"));
         private GUIToggle autoExposureFoldout = new GUIToggle(new LocEdString("Auto exposure"), EditorStyles.Foldout);
         private AutoExposureSettingsGUI autoExposureGUI;
@@ -399,6 +404,10 @@ namespace BansheeEditor
                 colorGradingGUI.Settings = value.ColorGrading;
                 gammaField.Value = value.Gamma;
                 exposureScaleField.Value = value.ExposureScale;
+                enableHDRField.Value = value.EnableHDR;
+                enableLightingField.Value = value.EnableLighting;
+                enableShadowsField.Value = value.EnableShadows;
+                overlayOnlyField.Value = value.OverlayOnly;
             }
         }
 
@@ -413,6 +422,22 @@ namespace BansheeEditor
         {
             this.settings = settings;
             this.properties = properties;
+
+            // Enable HDR
+            enableHDRField.OnChanged += x => { this.settings.EnableHDR = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableHDRField);
+
+            // Enable lighting
+            enableLightingField.OnChanged += x => { this.settings.EnableLighting = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableLightingField);
+
+            // Enable shadows
+            enableShadowsField.OnChanged += x => { this.settings.EnableShadows = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(enableShadowsField);
+
+            // Overlay only
+            overlayOnlyField.OnChanged += x => { this.settings.OverlayOnly = x; MarkAsModified(); ConfirmModify(); };
+            layout.AddElement(overlayOnlyField);
 
             // Auto exposure
             enableAutoExposureField.OnChanged += x => { this.settings.EnableAutoExposure = x; MarkAsModified(); ConfirmModify(); };

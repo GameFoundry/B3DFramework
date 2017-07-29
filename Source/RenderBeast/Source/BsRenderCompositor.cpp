@@ -1016,7 +1016,7 @@ namespace bs { namespace ct
 		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
 		SPtr<Texture> sceneColor = sceneColorNode->sceneColorTex->texture;
 
-		bool hdr = viewProps.isHDR;
+		bool hdr = settings.enableHDR;
 		bool msaa = viewProps.numSamples > 1;
 
 		if(hdr && settings.enableAutoExposure)

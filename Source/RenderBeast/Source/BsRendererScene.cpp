@@ -564,10 +564,6 @@ namespace bs {	namespace ct
 
 		viewDesc.target.numSamples = camera->getMSAACount();
 
-		viewDesc.isOverlay = camera->getFlags().isSet(CameraFlag::Overlay);
-		viewDesc.isHDR = camera->getFlags().isSet(CameraFlag::HDR);
-		viewDesc.noLighting = camera->getFlags().isSet(CameraFlag::NoLighting);
-		viewDesc.noShadows = camera->getFlags().isSet(CameraFlag::NoShadows);
 		viewDesc.triggerCallbacks = true;
 		viewDesc.runPostProcessing = true;
 		viewDesc.renderingReflections = false;

@@ -19,7 +19,7 @@ namespace bs
 	const float CameraBase::INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
 	CameraBase::CameraBase()
-		: mLayers(0xFFFFFFFFFFFFFFFF), mCameraFlags(CameraFlag::HDR), mPosition(BsZero), mRotation(BsIdentity)
+		: mLayers(0xFFFFFFFFFFFFFFFF), mPosition(BsZero), mRotation(BsIdentity)
 		, mIsActive(true), mProjType(PT_PERSPECTIVE), mHorzFOV(Degree(90.0f)), mFarDist(1000.0f), mNearDist(0.05f)
 		, mAspect(1.33333333333333f), mOrthoHeight(5), mPriority(0), mCustomViewMatrix(false), mCustomProjMatrix(false)
 		, mMSAA(1), mFrustumExtentsManuallySet(false), mProjMatrixRS(BsZero), mProjMatrix(BsZero), mViewMatrix(BsZero)
@@ -461,16 +461,6 @@ namespace bs
 		outbottom = mBottom;
 	}
 
-	void CameraBase::setFlag(const CameraFlag& flag, bool enable)
-	{
-		if (enable)
-			mCameraFlags.set(flag);
-		else
-			mCameraFlags.unset(flag);
-			
-		_markCoreDirty();
-	}
-
 	void CameraBase::setPosition(const Vector3& position)
 	{
 		mPosition = position;
@@ -758,7 +748,6 @@ namespace bs
 			size += rttiGetElemSize(mCustomViewMatrix);
 			size += rttiGetElemSize(mCustomProjMatrix);
 			size += rttiGetElemSize(mFrustumExtentsManuallySet);
-			size += rttiGetElemSize(mCameraFlags);
 			size += rttiGetElemSize(mIsActive);
 			size += rttiGetElemSize(mMSAA);
 			size += sizeof(UINT32);
@@ -790,7 +779,6 @@ namespace bs
 			dataPtr = rttiWriteElem(mCustomViewMatrix, dataPtr);
 			dataPtr = rttiWriteElem(mCustomProjMatrix, dataPtr);
 			dataPtr = rttiWriteElem(mFrustumExtentsManuallySet, dataPtr);
-			dataPtr = rttiWriteElem(mCameraFlags, dataPtr);
 			dataPtr = rttiWriteElem(mIsActive, dataPtr);
 			dataPtr = rttiWriteElem(mMSAA, dataPtr);
 
@@ -882,7 +870,6 @@ namespace bs
 			dataPtr = rttiReadElem(mCustomViewMatrix, dataPtr);
 			dataPtr = rttiReadElem(mCustomProjMatrix, dataPtr);
 			dataPtr = rttiReadElem(mFrustumExtentsManuallySet, dataPtr);
-			dataPtr = rttiReadElem(mCameraFlags, dataPtr);
 			dataPtr = rttiReadElem(mIsActive, dataPtr);
 			dataPtr = rttiReadElem(mMSAA, dataPtr);
 

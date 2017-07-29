@@ -110,6 +110,7 @@ namespace bs
 
 	RenderSettings::RenderSettings()
 		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(false), exposureScale(0.0f), gamma(2.2f)
+		, enableHDR(true), enableLighting(true), enableShadows(true), overlayOnly(false)
 	{ }
 
 	RTTITypeBase* RenderSettings::getRTTIStatic()
@@ -130,6 +131,10 @@ namespace bs
 		bufferSize += rttiGetElemSize(exposureScale);
 		bufferSize += rttiGetElemSize(gamma);
 		bufferSize += rttiGetElemSize(enableFXAA);
+		bufferSize += rttiGetElemSize(enableHDR);
+		bufferSize += rttiGetElemSize(enableLighting);
+		bufferSize += rttiGetElemSize(enableShadows);
+		bufferSize += rttiGetElemSize(overlayOnly);
 
 		bufferSize += rttiGetElemSize(autoExposure.histogramLog2Min);
 		bufferSize += rttiGetElemSize(autoExposure.histogramLog2Max);
@@ -196,6 +201,10 @@ namespace bs
 		writeDst = rttiWriteElem(exposureScale, writeDst);
 		writeDst = rttiWriteElem(gamma, writeDst);
 		writeDst = rttiWriteElem(enableFXAA, writeDst);
+		writeDst = rttiWriteElem(enableHDR, writeDst);
+		writeDst = rttiWriteElem(enableLighting, writeDst);
+		writeDst = rttiWriteElem(enableShadows, writeDst);
+		writeDst = rttiWriteElem(overlayOnly, writeDst);
 
 		writeDst = rttiWriteElem(autoExposure.histogramLog2Min, writeDst);
 		writeDst = rttiWriteElem(autoExposure.histogramLog2Max, writeDst);
@@ -254,6 +263,10 @@ namespace bs
 		readSource = rttiReadElem(exposureScale, readSource);
 		readSource = rttiReadElem(gamma, readSource);
 		readSource = rttiReadElem(enableFXAA, readSource);
+		readSource = rttiReadElem(enableHDR, readSource);
+		readSource = rttiReadElem(enableLighting, readSource);
+		readSource = rttiReadElem(enableShadows, readSource);
+		readSource = rttiReadElem(overlayOnly, readSource);
 
 		readSource = rttiReadElem(autoExposure.histogramLog2Min, readSource);
 		readSource = rttiReadElem(autoExposure.histogramLog2Max, readSource);

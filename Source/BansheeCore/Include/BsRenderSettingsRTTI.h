@@ -265,6 +265,10 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(enableFXAA, 9)
 			BS_RTTI_MEMBER_REFL(ambientOcclusion, 10)
 			BS_RTTI_MEMBER_REFL(screenSpaceReflections, 11)
+			BS_RTTI_MEMBER_PLAIN(enableHDR, 12)
+			BS_RTTI_MEMBER_PLAIN(enableLighting, 13)
+			BS_RTTI_MEMBER_PLAIN(enableShadows, 14)
+			BS_RTTI_MEMBER_PLAIN(overlayOnly, 15)
 		BS_END_RTTI_MEMBERS
 			
 	public:

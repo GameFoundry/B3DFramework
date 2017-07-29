@@ -156,28 +156,6 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Determines should high dynamic range be enabled. High dynamic range allows light intensity to be more correctly
-        /// recorded when rendering by allowing for a larger range of values. The stored light is then converted into
-        /// visible color range using exposure and a tone mapping operator. Use <see cref="RenderSettings"/> to customize
-        /// those operations.
-        /// </summary>
-        public bool HDR
-        {
-            get { return native.HDR; }
-            set { native.HDR = value; serializableData.HDR = value; }
-        }
-
-        /// <summary>
-        /// If enabled no lighting will be applied to scene objects and everything should be rendered using their
-        /// albedo texture.
-        /// </summary>
-        public bool NoLighting
-        {
-            get { return native.noLighting; }
-            set { native.noLighting = value; serializableData.noLighting = value; }
-        }
-
-        /// <summary>
         /// Allows you to customize various post process operations that will be executed on the image produced by this 
         /// camera.
         /// </summary>
@@ -436,7 +414,6 @@ namespace BansheeEngine
             native.priority = serializableData.priority;
             native.layers = serializableData.layers;
             native.main = serializableData.main;
-            native.noLighting = serializableData.noLighting;
 
             // TODO - Make RenderTexture a resource so I can save/restore it?
         }
@@ -475,7 +452,6 @@ namespace BansheeEngine
             public ClearFlags clearFlags = ClearFlags.Color | ClearFlags.Depth | ClearFlags.Stencil;
             public int priority;
             public bool HDR = true;
-            public bool noLighting;
             public RenderSettings renderSettings;
             public ulong layers = 0xFFFFFFFFFFFFFFFF;
             public bool main;

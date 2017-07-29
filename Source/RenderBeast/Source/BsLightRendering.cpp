@@ -283,6 +283,7 @@ namespace bs { namespace ct
 		const GBufferInput& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
+		const RenderSettings& settings = view.getRenderSettings();
 
 		mLightBufferParam.set(lightData.getLightBuffer());
 
@@ -294,7 +295,7 @@ namespace bs { namespace ct
 		framebufferSize[1] = height;
 		gTiledLightingParamDef.gFramebufferSize.set(mParamBuffer, framebufferSize);
 
-		if (viewProps.noLighting)
+		if (!settings.enableLighting)
 		{
 			Vector4I lightCounts;
 			lightCounts[0] = 0;
@@ -327,7 +328,7 @@ namespace bs { namespace ct
 			lightStrides[0] = lightCounts[0];
 			lightStrides[1] = lightStrides[0] + lightCounts[1];
 
-			if(viewProps.noShadows)
+			if(!settings.enableShadows)
 				gTiledLightingParamDef.gLightCounts.set(mParamBuffer, lightCounts);
 			else
 				gTiledLightingParamDef.gLightCounts.set(mParamBuffer, unshadowedLightCounts);

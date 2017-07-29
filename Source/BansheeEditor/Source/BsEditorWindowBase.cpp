@@ -88,7 +88,9 @@ namespace bs
 		mCamera->setNearClipDistance(5);
 		mCamera->setAspectRatio(1.0f);
 		mCamera->setLayers(0);
-		mCamera->setFlag(CameraFlag::Overlay, true);
+
+		SPtr<RenderSettings> settings = mCamera->getRenderSettings();
+		settings->overlayOnly = true;
 
 		mGUI = mSceneObject->addComponent<CGUIWidget>(mCamera);
 		mGUI->setDepth(128);

@@ -29,33 +29,6 @@ namespace bs
 		RenderSettings = 1<<2
 	};
 
-	/**	Flags that describe a camera. */
-	enum class CameraFlag
-	{
-		/** 
-		 * This flag is a signal to the renderer that his camera will only render overlays and doesn't require depth   
-		 * buffer or multi-sampled render targets. Such cameras will not render any scene objects. This can improve
-		 * performance and memory usage. 
-		 */
-		Overlay = 1 << 0,
-		/** 
-		 * High dynamic range allows light intensity to be more correctly recorded when rendering by allowing for a larger
-		 * range of values. The stored light is then converted into visible color range using exposure and a tone mapping 
-		 * operator.
-		 */
-		HDR = 1 << 1,
-		/** 
-		 * Specify that no lighting should be applied to scene objects and everything should be rendered using their
-		 * albedo texture.
-		 */
-		NoLighting = 1 << 2,
-		/** Specify that no shadows should be applied to scene objects. Only relevant if lighting is turned on. */
-		NoShadows = 1 << 3
-	};
-
-	typedef Flags<CameraFlag> CameraFlags;
-	BS_FLAGS_OPERATORS(CameraFlag);
-
 	/** @} */
 	/** @addtogroup Implementation
 	 *  @{
@@ -68,48 +41,48 @@ namespace bs
 	 * This class contains funcionality common to both core and non-core versions of the camera.
 	 */
 	class BS_CORE_EXPORT CameraBase
-    {
-    public:
+	{
+	public:
 		virtual ~CameraBase() { }
 
 		/**
 		 * Sets the camera horizontal field of view. This determines how wide the camera viewing angle is along the
 		 * horizontal axis. Vertical FOV is calculated from the horizontal FOV and the aspect ratio.
 		 */
-        virtual void setHorzFOV(const Radian& fovy);
+		virtual void setHorzFOV(const Radian& fovy);
 
 		/**	Retrieves the camera horizontal field of view. */
-        virtual const Radian& getHorzFOV() const;
+		virtual const Radian& getHorzFOV() const;
 
 		/**
 		 * Sets the distance from the frustum to the near clipping plane. Anything closer than the near clipping plane will
 		 * not be rendered. Decreasing this value decreases depth buffer precision.
 		 */
-        virtual void setNearClipDistance(float nearDist);
+		virtual void setNearClipDistance(float nearDist);
 
 		/**
 		 * Retrieves the distance from the frustum to the near clipping plane. Anything closer than the near clipping plane
 		 * will not be rendered. Decreasing this value decreases depth buffer precision.
 		 */
-        virtual float getNearClipDistance() const;
+		virtual float getNearClipDistance() const;
 
 		/**
 		 * Sets the distance from the frustum to the far clipping plane. Anything farther than the far clipping plane will
 		 * not be rendered. Increasing this value decreases depth buffer precision.
 		 */
-        virtual void setFarClipDistance(float farDist);
+		virtual void setFarClipDistance(float farDist);
 
 		/**
 		 * Retrieves the distance from the frustum to the far clipping plane. Anything farther than the far clipping plane
 		 * will not be rendered. Increasing this value decreases depth buffer precision.
 		 */
-        virtual float getFarClipDistance() const;
+		virtual float getFarClipDistance() const;
 
 		/**	Sets the current viewport aspect ratio (width / height). */
-        virtual void setAspectRatio(float ratio);
+		virtual void setAspectRatio(float ratio);
 
 		/**	Returns current viewport aspect ratio (width / height). */
-        virtual float getAspectRatio() const;
+		virtual float getAspectRatio() const;
 
 		/**	Sets camera world space position. */
 		virtual void setPosition(const Vector3& position);
@@ -164,14 +137,14 @@ namespace bs
 		 * You should use this matrix when sending the matrix to the render system to make sure everything works 
 		 * consistently when other render systems are used.
 		 */
-        virtual const Matrix4& getProjectionMatrixRS() const;
+		virtual const Matrix4& getProjectionMatrixRS() const;
 
 		/** 
 		 * Returns the inverse of the render-system specific projection matrix.
 		 *
 		 * @see		getProjectionMatrixRS
 		 */
-        virtual const Matrix4& getProjectionMatrixRSInv() const;
+		virtual const Matrix4& getProjectionMatrixRSInv() const;
 
 		/** 
 		 * Returns the standard projection matrix that determines how are 3D points projected to two dimensions. Returned
@@ -180,18 +153,18 @@ namespace bs
 		 * @note	
 		 * Different render systems will expect different projection matrix layouts, in which case use 
 		 * getProjectionMatrixRS().
-         */
-        virtual const Matrix4& getProjectionMatrix() const;
+		 */
+		virtual const Matrix4& getProjectionMatrix() const;
 
 		/** 
 		 * Returns the inverse of the projection matrix.
 		 *
 		 * @see		getProjectionMatrix
 		 */
-        virtual const Matrix4& getProjectionMatrixInv() const;
+		virtual const Matrix4& getProjectionMatrixInv() const;
 
 		/** Gets the camera view matrix. Used for positioning/orienting the camera. */
-        virtual const Matrix4& getViewMatrix() const;
+		virtual const Matrix4& getViewMatrix() const;
 
 		/** 
 		 * Returns the inverse of the view matrix.
@@ -203,7 +176,7 @@ namespace bs
 		/** 
 		 * Sets whether the camera should use the custom view matrix. When this is enabled camera will no longer calculate
 		 * its view matrix based on position/orientation and caller will be resonsible to keep the view matrix up to date.
-         */
+		 */
 		virtual void setCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::IDENTITY);
 
 		/** Returns true if a custom view matrix is used. */
@@ -213,32 +186,32 @@ namespace bs
 		 * Sets whether the camera should use the custom projection matrix. When this is enabled camera will no longer
 		 * calculate its projection matrix based on field of view, aspect and other parameters and caller will be resonsible
 		 * to keep the projection matrix up to date.
-         */
+		 */
 		virtual void setCustomProjectionMatrix(bool enable, const Matrix4& projectionMatrix = Matrix4::IDENTITY);
 
 		/** Returns true if a custom projection matrix is used. */
 		virtual bool isCustomProjectionMatrixEnabled() const { return mCustomProjMatrix; }
 
 		/** Returns a convex volume representing the visible area of the camera, in local space. */
-        virtual const ConvexVolume& getFrustum() const;
+		virtual const ConvexVolume& getFrustum() const;
 
 		/** Returns a convex volume representing the visible area of the camera, in world space. */
-        virtual ConvexVolume getWorldFrustum() const;
+		virtual ConvexVolume getWorldFrustum() const;
 
 		/**	Returns the bounding of the frustum. */
-        const AABox& getBoundingBox() const;
+		const AABox& getBoundingBox() const;
 
 		/**
 		 * Sets the type of projection used by the camera. Projection type controls how is 3D geometry projected onto a 
 		 * 2D plane.
 		 */
-        virtual void setProjectionType(ProjectionType pt);
+		virtual void setProjectionType(ProjectionType pt);
 
 		/**
 		 * Returns the type of projection used by the camera. Projection type controls how is 3D geometry projected onto a
 		 * 2D plane.
 		 */
-        virtual ProjectionType getProjectionType() const;
+		virtual ProjectionType getProjectionType() const;
 
 		/**
 		 * Sets the orthographic window height, for use with orthographic rendering only. 
@@ -317,12 +290,6 @@ namespace bs
 		 * effects will be enabled, and what properties will those effects use.
 		 */
 		void setRenderSettings(const SPtr<RenderSettings>& settings) { mRenderSettings = settings; _markCoreDirty(CameraDirtyFlag::RenderSettings); }
-
-		/**	Retrieves flags that define the camera. */
-		CameraFlags getFlags() const { return mCameraFlags; }
-
-		/**	Enables or disables flags that define the camera's behaviour. */
-		void setFlag(const CameraFlag& flag, bool enable);
 
 		/**
 		 * Converts a point in world space to screen coordinates (in pixels corresponding to the render target attached to
@@ -459,9 +426,8 @@ namespace bs
 		 */
 		virtual void _markCoreDirty(CameraDirtyFlag flag = CameraDirtyFlag::Everything) { }
 
-    protected:
+	protected:
 		UINT64 mLayers; /**< Bitfield that can be used for filtering what objects the camera sees. */
-		CameraFlags mCameraFlags; /**< Flags that further determine type of camera. */
 
 		Vector3 mPosition; /**< World space position. */
 		Quaternion mRotation; /**< World space rotation. */
@@ -575,7 +541,7 @@ namespace bs
 		friend class CameraRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
-     };
+	};
 
 	namespace ct
 	{

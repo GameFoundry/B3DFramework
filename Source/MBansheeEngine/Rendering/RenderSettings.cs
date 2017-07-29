@@ -235,6 +235,31 @@ namespace BansheeEngine
         public float Gamma;
 
         /// <summary>
+        /// High dynamic range allows light intensity to be more correctly recorded when rendering by allowing for a larger
+        /// range of values. The stored light is then converted into visible color range using exposure and a tone mapping 
+        /// operator.
+        /// </summary>
+        public bool EnableHDR;
+
+        /// <summary>
+        /// Determines if scene objects will be lit by lights. If disabled everything will be rendered using their albedo
+        /// texture with no lighting applied.
+        /// </summary>
+        public bool EnableLighting;
+
+        /// <summary>
+        /// Determines if shadows cast by lights should be rendered. Only relevant if lighting is turned on.
+        /// </summary>
+        public bool EnableShadows;
+
+        /// <summary>
+        /// Signals the renderer to only render overlays (like GUI), and not scene objects. Such rendering doesn't require
+        /// depth buffer or multi-sampled render targets and will not render any scene objects. This can improve performance
+        /// and memory usage for overlay-only views. 
+        /// </summary>
+        public bool OverlayOnly;
+
+        /// <summary>
         /// Creates a new instance of render settings with the optimal default values.
         /// </summary>
         /// <returns>New instance of render settings.</returns>

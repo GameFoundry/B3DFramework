@@ -148,12 +148,6 @@ namespace bs
 		/** @copydoc Camera::setRenderSettings() */
 		void setRenderSettings(const SPtr<RenderSettings>& settings) { mInternal->setRenderSettings(settings); }
 
-		/** @copydoc Camera::getFlags */
-		CameraFlags getFlags() const { return mInternal->getFlags(); }
-
-		/** @copydoc Camera::setFlag */
-		void setFlag(const CameraFlag& flag, bool enable) { mInternal->setFlag(flag, enable); }
-
 		/** @copydoc Camera::worldToScreenPoint */
 		Vector2I worldToScreenPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToScreenPoint(worldPoint); }
 

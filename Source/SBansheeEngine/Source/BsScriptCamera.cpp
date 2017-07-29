@@ -73,12 +73,6 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetPriority", &ScriptCamera::internal_GetPriority);
 		metaData.scriptClass->addInternalCall("Internal_SetPriority", &ScriptCamera::internal_SetPriority);
 
-		metaData.scriptClass->addInternalCall("Internal_GetHDR", &ScriptCamera::internal_GetHDR);
-		metaData.scriptClass->addInternalCall("Internal_SetHDR", &ScriptCamera::internal_SetHDR);
-
-		metaData.scriptClass->addInternalCall("Internal_GetNoLighting", &ScriptCamera::internal_GetNoLighting);
-		metaData.scriptClass->addInternalCall("Internal_SetNoLighting", &ScriptCamera::internal_SetNoLighting);
-
 		metaData.scriptClass->addInternalCall("Internal_GetRenderSettings", &ScriptCamera::internal_GetRenderSettings);
 		metaData.scriptClass->addInternalCall("Internal_SetRenderSettings", &ScriptCamera::internal_SetRenderSettings);
 
@@ -292,26 +286,6 @@ namespace bs
 	void ScriptCamera::internal_SetPriority(ScriptCamera* instance, int value)
 	{
 		instance->mCamera->setPriority(value);
-	}
-
-	bool ScriptCamera::internal_GetHDR(ScriptCamera* instance)
-	{
-		return instance->mCamera->getFlags().isSet(CameraFlag::HDR);
-	}
-
-	void ScriptCamera::internal_SetHDR(ScriptCamera* instance, bool value)
-	{
-		instance->mCamera->setFlag(CameraFlag::HDR, value);
-	}
-
-	bool ScriptCamera::internal_GetNoLighting(ScriptCamera* instance)
-	{
-		return instance->mCamera->getFlags().isSet(CameraFlag::NoLighting);
-	}
-
-	void ScriptCamera::internal_SetNoLighting(ScriptCamera* instance, bool value)
-	{
-		instance->mCamera->setFlag(CameraFlag::NoLighting, value);
 	}
 
 	MonoObject* ScriptCamera::internal_GetRenderSettings(ScriptCamera* instance)

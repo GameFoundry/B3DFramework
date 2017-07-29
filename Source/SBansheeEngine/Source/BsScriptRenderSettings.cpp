@@ -202,6 +202,10 @@ namespace bs
 	MonoField* ScriptRenderSettings::sColorGrading = nullptr;
 	MonoField* ScriptRenderSettings::sExposureScale = nullptr;
 	MonoField* ScriptRenderSettings::sGamma = nullptr;
+	MonoField* ScriptRenderSettings::sEnableHDR = nullptr;
+	MonoField* ScriptRenderSettings::sEnableLighting = nullptr;
+	MonoField* ScriptRenderSettings::sEnableShadows = nullptr;
+	MonoField* ScriptRenderSettings::sOverlayOnly = nullptr;
 
 	ScriptRenderSettings::ScriptRenderSettings(MonoObject* instance)
 		:ScriptObject(instance)
@@ -219,6 +223,10 @@ namespace bs
 		sColorGrading = metaData.scriptClass->getField("ColorGrading");
 		sExposureScale = metaData.scriptClass->getField("ExposureScale");
 		sGamma = metaData.scriptClass->getField("Gamma");
+		sEnableHDR = metaData.scriptClass->getField("EnableHDR");
+		sEnableLighting = metaData.scriptClass->getField("EnableLighting");
+		sEnableShadows = metaData.scriptClass->getField("EnableShadows");
+		sOverlayOnly = metaData.scriptClass->getField("OverlayOnly");
 	}
 
 	SPtr<RenderSettings> ScriptRenderSettings::toNative(MonoObject* object)
@@ -229,6 +237,10 @@ namespace bs
 		sEnableTonemapping->get(object, &output->enableTonemapping);
 		sExposureScale->get(object, &output->exposureScale);
 		sGamma->get(object, &output->gamma);
+		sEnableHDR->get(object, &output->enableHDR);
+		sEnableLighting->get(object, &output->enableLighting);
+		sEnableShadows->get(object, &output->enableShadows);
+		sOverlayOnly->get(object, &output->overlayOnly);
 
 		MonoObject* autoExposureMono;
 		sAutoExposure->get(object, &autoExposureMono);
@@ -257,6 +269,10 @@ namespace bs
 		sEnableTonemapping->set(object, &value->enableTonemapping);
 		sExposureScale->set(object, &value->exposureScale);
 		sGamma->set(object, &value->gamma);
+		sEnableHDR->set(object, &value->enableHDR);
+		sEnableLighting->set(object, &value->enableLighting);
+		sEnableShadows->set(object, &value->enableShadows);
+		sOverlayOnly->set(object, &value->overlayOnly);
 
 		MonoObject* autoExposureMono = ScriptAutoExposureSettings::toManaged(value->autoExposure);
 		sAutoExposure->set(object, autoExposureMono);

@@ -344,8 +344,9 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < numViews; i++)
 		{
 			RendererView* view = viewGroup.getView(i);
+			const RenderSettings& settings = view->getRenderSettings();
 
-			if (view->getProperties().isOverlay)
+			if (settings.overlayOnly)
 				renderOverlay(*view);
 			else
 				renderView(viewGroup, *view, frameInfo);
@@ -657,10 +658,6 @@ namespace bs { namespace ct
 		viewDesc.target.targetHeight = texProps.getHeight();
 		viewDesc.target.numSamples = 1;
 
-		viewDesc.isOverlay = false;
-		viewDesc.isHDR = hdr;
-		viewDesc.noLighting = false;
-		viewDesc.noShadows = true; // Note: If I ever change this I need to make sure that shadow map rendering is aware of this view (currently it is only aware of main camera views)
 		viewDesc.triggerCallbacks = false;
 		viewDesc.runPostProcessing = false;
 		viewDesc.renderingReflections = true;
@@ -676,6 +673,10 @@ namespace bs { namespace ct
 
 		viewDesc.stateReduction = mCoreOptions->stateReductionMode;
 		viewDesc.sceneCamera = nullptr;
+
+		SPtr<RenderSettings> settings = bs_shared_ptr_new<RenderSettings>();
+		settings->enableHDR = hdr;
+		settings->enableShadows = false; // Note: If I ever change this I need to make sure that shadow map rendering is aware of this view (currently it is only aware of main camera views)
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 
@@ -741,6 +742,7 @@ namespace bs { namespace ct
 			viewDesc.target.target = RenderTexture::create(cubeFaceRTDesc);
 
 			views[i].setView(viewDesc);
+			views[i].setRenderSettings(settings);
 			views[i].updatePerViewBuffer();
 		}
 

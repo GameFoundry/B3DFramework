@@ -87,12 +87,6 @@ namespace bs
 		static int internal_GetPriority(ScriptCamera* instance);
 		static void internal_SetPriority(ScriptCamera* instance, int value);
 
-		static bool internal_GetHDR(ScriptCamera* instance);
-		static void internal_SetHDR(ScriptCamera* instance, bool value);
-
-		static bool internal_GetNoLighting(ScriptCamera* instance);
-		static void internal_SetNoLighting(ScriptCamera* instance, bool value);
-
 		static MonoObject* internal_GetRenderSettings(ScriptCamera* instance);
 		static void internal_SetRenderSettings(ScriptCamera* instance, MonoObject* value);
 

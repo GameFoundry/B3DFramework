@@ -31,7 +31,6 @@ namespace BansheeEditor
         private GUIColorField clearColorField = new GUIColorField(new LocEdString("Clear color"));
         private GUIIntField priorityField = new GUIIntField(new LocEdString("Render priority"));
         private GUIListBoxField layersField = new GUIListBoxField(Layers.Names, true, new LocEdString("Layers"));
-        private GUIToggleField hdrField = new GUIToggleField(new LocEdString("HDR"));
         private GUIToggleField mainField = new GUIToggleField(new LocEdString("Main"));
 
         private GUIToggle renderSettingsFoldout = new GUIToggle(new LocEdString("Render settings"), EditorStyles.Foldout);
@@ -76,7 +75,6 @@ namespace BansheeEditor
             clearColorField.Value = camera.ClearColor;
             priorityField.Value = camera.Priority;
             mainField.Value = camera.Main;
-            hdrField.Value = camera.HDR;
             renderSettingsGUI.Settings = camera.RenderSettings;
 
             if (layersValue != camera.Layers)
@@ -223,13 +221,6 @@ namespace BansheeEditor
                     ConfirmModify();
                 };
 
-                hdrField.OnChanged += x =>
-                {
-                    camera.HDR = x;
-                    MarkAsModified();
-                    ConfirmModify();
-                };
-
                 Layout.AddElement(projectionTypeField);
                 Layout.AddElement(fieldOfView);
                 Layout.AddElement(orthoHeight);
@@ -255,7 +246,6 @@ namespace BansheeEditor
                 Layout.AddElement(priorityField);
                 Layout.AddElement(layersField);
                 Layout.AddElement(mainField);
-                Layout.AddElement(hdrField);
 
                 renderSettingsFoldout.OnToggled += x =>
                 {

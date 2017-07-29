@@ -146,6 +146,10 @@ namespace bs
 		static MonoField* sColorGrading;
 		static MonoField* sExposureScale;
 		static MonoField* sGamma;
+		static MonoField* sEnableHDR;
+		static MonoField* sEnableLighting;
+		static MonoField* sEnableShadows;
+		static MonoField* sOverlayOnly;
 	};
 
 	/** @} */

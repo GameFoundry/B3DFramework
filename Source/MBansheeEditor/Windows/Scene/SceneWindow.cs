@@ -826,7 +826,7 @@ namespace BansheeEditor
                     profilerCamera.ClearFlags = ClearFlags.None;
                     profilerCamera.Priority = 1;
                     profilerCamera.Layers = 0;
-                    profilerCamera.HDR = false;
+                    profilerCamera.RenderSettings.EnableHDR = false;
 
                     activeProfilerOverlay = profilerSO.AddComponent<ProfilerOverlay>();
                 }

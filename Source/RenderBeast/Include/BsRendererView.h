@@ -91,10 +91,6 @@ namespace bs { namespace ct
 		float farPlane;
 		ProjectionType projType;
 
-		bool isOverlay : 1;
-		bool isHDR : 1;
-		bool noLighting : 1;
-		bool noShadows : 1;
 		bool triggerCallbacks : 1;
 		bool runPostProcessing : 1;
 		bool renderingReflections : 1;

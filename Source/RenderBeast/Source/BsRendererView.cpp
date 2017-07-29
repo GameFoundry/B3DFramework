@@ -162,7 +162,7 @@ namespace bs { namespace ct
 		mVisibility.renderables.clear();
 		mVisibility.renderables.resize(renderables.size(), false);
 
-		if (mProperties.isOverlay)
+		if (mRenderSettings->overlayOnly)
 			return;
 
 		calculateVisibility(cullInfos, mVisibility.renderables);
@@ -231,7 +231,7 @@ namespace bs { namespace ct
 			perViewVisibility = &mVisibility.spotLights;
 		}
 
-		if (mProperties.isOverlay)
+		if (mRenderSettings->overlayOnly)
 			return;
 
 		calculateVisibility(bounds, *perViewVisibility);
@@ -456,7 +456,7 @@ namespace bs { namespace ct
 
 		gPerCameraParamDef.gClipToUVScaleOffset.set(mParamBuffer, clipToUVScaleOffset);
 
-		if (mProperties.noLighting)
+		if (!mRenderSettings->enableLighting)
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 100.0f);
 		else
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 0.0f);
@@ -465,7 +465,7 @@ namespace bs { namespace ct
 	void RendererView::updateLightGrid(const VisibleLightData& visibleLightData, 
 		const VisibleReflProbeData& visibleReflProbeData)
 	{
-		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, mProperties.noLighting);
+		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->enableLighting);
 	}
 
 	RendererViewGroup::RendererViewGroup()
@@ -494,7 +494,7 @@ namespace bs { namespace ct
 		bool allViewsOverlay = false;
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (!mViews[i]->getProperties().isOverlay)
+			if (!mViews[i]->getRenderSettings().overlayOnly)
 			{
 				allViewsOverlay = false;
 				break;
@@ -522,7 +522,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (mViews[i]->getProperties().isOverlay)
+			if (mViews[i]->getRenderSettings().overlayOnly)
 				continue;
 
 			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
@@ -559,7 +559,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (mViews[i]->getProperties().isOverlay)
+			if (mViews[i]->getRenderSettings().overlayOnly)
 				continue;
 
 			mViews[i]->updateLightGrid(mVisibleLightData, mVisibleReflProbeData);
