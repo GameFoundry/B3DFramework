@@ -95,7 +95,7 @@ namespace bs
 		if (mReportCount == 0)
 			BS_EXCEPT(InvalidStateException, "No reports are available.")
 
-			GPUProfilerReport report = mReadyReports[mReportHeadPos];
+		GPUProfilerReport report = mReadyReports[mReportHeadPos];
 
 		mReportHeadPos = (mReportHeadPos + 1) % MAX_QUEUE_ELEMENTS;
 		mReportCount--;

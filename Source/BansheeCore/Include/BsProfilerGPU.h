@@ -9,8 +9,8 @@
 namespace bs
 {
 	/** @addtogroup Profiling
-	*  @{
-	*/
+	 *  @{
+	 */
 
 	/** Contains various profiler statistics about a single GPU profiling sample. */
 	struct GPUProfileSample
