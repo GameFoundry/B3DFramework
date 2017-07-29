@@ -283,14 +283,14 @@ namespace bs { namespace ct
 		/** Returns the visibility mask calculated with the last call to determineVisible(). */
 		const VisibilityInfo& getVisibilityMasks() const { return mVisibility; }
 
-		/** 
-		 * Returns a structure containing information about post-processing effects. This structure will be modified and
-		 * maintained by the post-processing system.
-		 */
-		PostProcessInfo& getPPInfo() { return mPostProcessInfo; }
+		/** Returns per-view settings that control rendering. */
+		const PostProcessSettings& getRenderSettings() const { return *mRenderSettings; }
 
-		/** @copydoc getPPInfo() */
-		const PostProcessInfo& getPPInfo() const { return mPostProcessInfo; }
+		/**
+		 * Retrieves a hash value that is updated whenever render settings change. This can be used by external systems
+		 * to detect when they need to update.
+		 */
+		UINT64 getRenderSettingsHash() const { return mRenderSettingsHash; }
 
 		/** Updates the GPU buffer containing per-view information, with the latest internal data. */
 		void updatePerViewBuffer();
@@ -341,7 +341,8 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mTransparentQueue;
 
 		RenderCompositor mCompositor;
-		PostProcessInfo mPostProcessInfo;
+		SPtr<PostProcessSettings> mRenderSettings;
+		UINT32 mRenderSettingsHash;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		VisibilityInfo mVisibility;

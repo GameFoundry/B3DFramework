@@ -227,13 +227,12 @@ namespace bs
 		/* TID_CLight = 30012, */
 		TID_GameSettings = 30013,
 		TID_ResourceMapping = 30014,
-		TID_StandardPostProcessSettings = 30015,
-		TID_AutoExposureSettings = 30016,
-		TID_TonemappingSettings = 30017,
-		TID_WhiteBalanceSettings = 30018,
-		TID_ColorGradingSettings = 30019,
-		TID_DepthOfFieldSettings = 30020,
-		TID_AmbientOcclusionSettings = 30021,
-		TID_ScreenSpaceReflectionsSettings = 30022
+		//TID_AutoExposureSettings = 30016,
+		//TID_TonemappingSettings = 30017,
+		//TID_WhiteBalanceSettings = 30018,
+		//TID_ColorGradingSettings = 30019,
+		//TID_DepthOfFieldSettings = 30020,
+		//TID_AmbientOcclusionSettings = 30021,
+		//TID_ScreenSpaceReflectionsSettings = 30022
 	};
 }

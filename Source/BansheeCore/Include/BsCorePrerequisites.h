@@ -580,6 +580,13 @@ namespace bs
 		TID_Renderable = 30004,
 		TID_Light = 30011,
 		TID_CLight = 30012,
+		TID_AutoExposureSettings = 30016,
+		TID_TonemappingSettings = 30017,
+		TID_WhiteBalanceSettings = 30018,
+		TID_ColorGradingSettings = 30019,
+		TID_DepthOfFieldSettings = 30020,
+		TID_AmbientOcclusionSettings = 30021,
+		TID_ScreenSpaceReflectionsSettings = 30022
 	};
 }
 

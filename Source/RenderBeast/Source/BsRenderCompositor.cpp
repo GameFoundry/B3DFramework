@@ -16,6 +16,7 @@
 #include "BsRendererTextures.h"
 #include "BsObjectRendering.h"
 #include "BsGpuParamsSet.h"
+#include "BsRendererExtension.h"
 
 namespace bs { namespace ct
 {
@@ -126,8 +127,7 @@ namespace bs { namespace ct
 		bs_frame_clear();
 	}
 
-	void RenderCompositor::execute(const RendererViewGroup& viewGroup, const RendererView& view, const SceneInfo& scene, 
-		const FrameInfo& frameInfo, const RenderBeastOptions& options) const
+	void RenderCompositor::execute(RenderCompositorNodeInputs& inputs) const
 	{
 		if (!mIsValid)
 			return;
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 			UINT32 idx = 0;
 			for (auto& entry : mNodeInfos)
 			{
-				RenderCompositorNodeInputs inputs(viewGroup, view, scene, options, frameInfo, entry.inputs);
+				inputs.inputNodes = entry.inputs;
 				entry.node->render(inputs);
 
 				activeNodes.push_back(&entry);
@@ -273,6 +273,18 @@ namespace bs { namespace ct
 			}
 		}
 
+		Camera* sceneCamera = inputs.view.getSceneCamera();
+
+		// Trigger pre-base-pass callbacks
+		if (sceneCamera != nullptr)
+		{
+			for(auto& extension : inputs.extPreBasePass)
+			{
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+			}
+		}
+
 		// Render base pass
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget);
@@ -309,6 +321,16 @@ namespace bs { namespace ct
 			else
 				gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer, 
 					renderElem->morphVertexDeclaration);
+		}
+
+		// Trigger post-base-pass callbacks
+		if (sceneCamera != nullptr)
+		{
+			for(auto& extension : inputs.extPostBasePass)
+			{
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+			}
 		}
 	}
 
@@ -772,6 +794,17 @@ namespace bs { namespace ct
 				gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer, 
 					renderElem->morphVertexDeclaration);
 		}
+
+		// Trigger post-lighting callbacks
+		Camera* sceneCamera = inputs.view.getSceneCamera();
+		if (sceneCamera != nullptr)
+		{
+			for(auto& extension : inputs.extPostLighting)
+			{
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+			}
+		}
 	}
 
 	void RCNodeClusteredForward::clear()
@@ -862,6 +895,17 @@ namespace bs { namespace ct
 		rapi.setViewport(viewProps.nrmViewRect);
 
 		gRendererUtility().blit(input, Rect2I::EMPTY, viewProps.flipView);
+
+		// Trigger overlay callbacks
+		Camera* sceneCamera = inputs.view.getSceneCamera();
+		if (sceneCamera != nullptr)
+		{
+			for(auto& extension : inputs.extOverlay)
+			{
+				if (extension->check(*sceneCamera))
+					extension->render(*sceneCamera);
+			}
+		}
 	}
 
 	void RCNodeFinalResolve::clear()
@@ -966,8 +1010,7 @@ namespace bs { namespace ct
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
-		const PostProcessInfo& ppInfo = inputs.view.getPPInfo();
-		const StandardPostProcessSettings& settings = *inputs.view.getPPInfo().settings;
+		const PostProcessSettings& settings = inputs.view.getRenderSettings();
 
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
@@ -1031,13 +1074,18 @@ namespace bs { namespace ct
 		{
 			if (settings.enableTonemapping)
 			{
-				if (ppInfo.settingDirty) // Rebuild LUT if PP settings changed
+				UINT64 latestHash = inputs.view.getRenderSettingsHash();
+				bool tonemapLUTDirty = mTonemapLastUpdateHash != latestHash;
+
+				if (tonemapLUTDirty) // Rebuild LUT if PP settings changed
 				{
 					if(mTonemapLUT == nullptr)
 						mTonemapLUT = resPool.get(CreateTonemapLUTMat::getOutputDesc());
 
 					CreateTonemapLUTMat* createLUT = CreateTonemapLUTMat::get();
 					createLUT->execute(mTonemapLUT->texture, settings);
+
+					mTonemapLastUpdateHash = latestHash;
 				}
 
 				gammaOnly = false;
@@ -1100,7 +1148,7 @@ namespace bs { namespace ct
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
 		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
 
-		DepthOfFieldSettings& settings = inputs.view.getPPInfo().settings->depthOfField;
+		const DepthOfFieldSettings& settings = inputs.view.getRenderSettings().depthOfField;
 		bool near = settings.nearBlurAmount > 0.0f;
 		bool far = settings.farBlurAmount > 0.0f;
 
@@ -1181,7 +1229,7 @@ namespace bs { namespace ct
 
 	void RCNodeFXAA::render(const RenderCompositorNodeInputs& inputs)
 	{
-		const StandardPostProcessSettings& settings = *inputs.view.getPPInfo().settings;
+		const PostProcessSettings& settings = inputs.view.getRenderSettings();
 		if (!settings.enableFXAA)
 			return;
 
@@ -1348,7 +1396,7 @@ namespace bs { namespace ct
 
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
-		const AmbientOcclusionSettings& settings = inputs.view.getPPInfo().settings->ambientOcclusion;
+		const AmbientOcclusionSettings& settings = inputs.view.getRenderSettings().ambientOcclusion;
 
 		RCNodeResolvedSceneDepth* resolvedDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.inputNodes[0]);
 		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);

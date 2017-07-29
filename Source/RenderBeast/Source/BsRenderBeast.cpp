@@ -215,11 +215,6 @@ namespace bs { namespace ct
 		mScene->unregisterSkybox(skybox);
 	}
 
-	SPtr<PostProcessSettings> RenderBeast::createPostProcessSettings() const
-	{
-		return bs_shared_ptr_new<StandardPostProcessSettings>();
-	}
-
 	void RenderBeast::setOptions(const SPtr<RendererOptions>& options)
 	{
 		mOptions = std::static_pointer_cast<RenderBeastOptions>(options);
@@ -351,109 +346,67 @@ namespace bs { namespace ct
 			RendererView* view = viewGroup.getView(i);
 
 			if (view->getProperties().isOverlay)
-				renderOverlay(view);
+				renderOverlay(*view);
 			else
-				renderView(viewGroup, view, frameInfo);
+				renderView(viewGroup, *view, frameInfo);
 		}
 	}
 
-	void RenderBeast::renderView(const RendererViewGroup& viewGroup, RendererView* viewInfo, const FrameInfo& frameInfo)
+	void RenderBeast::renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 	{
 		gProfilerCPU().beginSample("Render");
 
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
-		auto& viewProps = viewInfo->getProperties();
-		const Camera* sceneCamera = viewInfo->getSceneCamera();
+		auto& viewProps = view.getProperties();
 
-		SPtr<GpuParamBlockBuffer> perCameraBuffer = viewInfo->getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perCameraBuffer = view.getPerViewBuffer();
 		perCameraBuffer->flushToGPU();
 
-		viewInfo->beginFrame();
+		view.beginFrame();
 
-		// Trigger pre-base-pass callbacks
-		auto iterRenderCallback = mCallbacks.begin();
+		RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo);
 
+		// Register callbacks
 		if (viewProps.triggerCallbacks)
 		{
-			while (iterRenderCallback != mCallbacks.end())
+			for(auto& extension : mCallbacks)
 			{
-				RendererExtension* extension = *iterRenderCallback;
-				if (extension->getLocation() != RenderLocation::PreBasePass)
+				RenderLocation location = extension->getLocation();
+				switch(location)
+				{
+				case RenderLocation::PreBasePass: 
+					inputs.extPreBasePass.push_back(extension);
 					break;
-
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera);
-
-				++iterRenderCallback;
+				case RenderLocation::PostBasePass:
+					inputs.extPostBasePass.push_back(extension);
+					break;
+				case RenderLocation::PostLightPass:
+					inputs.extPostLighting.push_back(extension);
+					break;
+				case RenderLocation::Overlay:
+					inputs.extOverlay.push_back(extension);
+					break;
+				}
 			}
 		}
 
-		// Trigger post-base-pass callbacks
-		if (viewProps.triggerCallbacks)
-		{
-			while (iterRenderCallback != mCallbacks.end())
-			{
-				RendererExtension* extension = *iterRenderCallback;
-				if (extension->getLocation() != RenderLocation::PostBasePass)
-					break;
+		const RenderCompositor& compositor = view.getCompositor();
+		compositor.execute(inputs);
 
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera);
-
-				++iterRenderCallback;
-			}
-		}
-
-		const RenderCompositor& compositor = viewInfo->getCompositor();
-		compositor.execute(viewGroup, *viewInfo, sceneInfo, frameInfo, *mCoreOptions);
-		viewInfo->getPPInfo().settingDirty = false;
-
-		// Trigger post-light-pass callbacks
-		if (viewProps.triggerCallbacks)
-		{
-			while (iterRenderCallback != mCallbacks.end())
-			{
-				RendererExtension* extension = *iterRenderCallback;
-				if (extension->getLocation() != RenderLocation::PostLightPass)
-					break;
-
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera);
-
-				++iterRenderCallback;
-			}
-		}
-
-		// Trigger overlay callbacks
-		if (viewProps.triggerCallbacks)
-		{
-			while (iterRenderCallback != mCallbacks.end())
-			{
-				RendererExtension* extension = *iterRenderCallback;
-				if (extension->getLocation() != RenderLocation::Overlay)
-					break;
-
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera);
-
-				++iterRenderCallback;
-			}
-		}
-
-		viewInfo->endFrame();
+		view.endFrame();
 
 		gProfilerCPU().endSample("Render");
 	}
 
-	void RenderBeast::renderOverlay(RendererView* viewInfo)
+	void RenderBeast::renderOverlay(RendererView& view)
 	{
 		gProfilerCPU().beginSample("RenderOverlay");
 
-		viewInfo->getPerViewBuffer()->flushToGPU();
-		viewInfo->beginFrame();
+		view.getPerViewBuffer()->flushToGPU();
+		view.beginFrame();
 
-		auto& viewProps = viewInfo->getProperties();
-		const Camera* camera = viewInfo->getSceneCamera();
+		auto& viewProps = view.getProperties();
+		const Camera* camera = view.getSceneCamera();
 		SPtr<RenderTarget> target = viewProps.target;
 		SPtr<Viewport> viewport = camera->getViewport();
 
@@ -495,7 +448,7 @@ namespace bs { namespace ct
 			++iterRenderCallback;
 		}
 
-		viewInfo->endFrame();
+		view.endFrame();
 
 		gProfilerCPU().endSample("RenderOverlay");
 	}

@@ -6,8 +6,8 @@
 #include "BsRendererMaterial.h"
 #include "BsParamBlocks.h"
 #include "BsGpuResourcePool.h"
-#include "BsStandardPostProcessSettings.h"
 #include "BsLightRendering.h"
+#include "BsPostProcessSettings.h"
 
 namespace bs { namespace ct
 {
@@ -16,13 +16,6 @@ namespace bs { namespace ct
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
-
-	/** Contains per-camera data used by post process effects. */
-	struct PostProcessInfo
-	{
-		SPtr<StandardPostProcessSettings> settings;
-		bool settingDirty = true;
-	};
 
 	BS_PARAM_BLOCK_BEGIN(DownsampleParamDef)
 		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector2, gOffsets, 4)
@@ -184,7 +177,7 @@ namespace bs { namespace ct
 		CreateTonemapLUTMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& output, const StandardPostProcessSettings& settings);
+		void execute(const SPtr<Texture>& output, const PostProcessSettings& settings);
 
 		/** Returns the texture descriptor that can be used for initializing the output render target. */
 		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
@@ -216,7 +209,7 @@ namespace bs { namespace ct
 
 		/** Executes the post-process effect with the provided parameters. */
 		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& colorLUT,
-			const SPtr<RenderTarget>& output, const StandardPostProcessSettings& settings);
+			const SPtr<RenderTarget>& output, const PostProcessSettings& settings);
 
 		/** Returns the material variation matching the provided parameters. */
 		static TonemappingMat* getVariation(bool gammaOnly, bool autoExposure, bool MSAA);

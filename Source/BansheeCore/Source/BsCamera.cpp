@@ -26,7 +26,7 @@ namespace bs
 		, mProjMatrixRSInv(BsZero), mProjMatrixInv(BsZero), mViewMatrixInv(BsZero), mRecalcFrustum(true)
 		, mRecalcFrustumPlanes(true), mRecalcView(true)
 	{
-		mPPSettings = RendererManager::instance().getActive()->createPostProcessSettings();
+		mPPSettings = bs_shared_ptr_new<PostProcessSettings>();
 
 		invalidateFrustum();
 	}
@@ -892,7 +892,7 @@ namespace bs
 			if(ppSize > 0)
 			{
 				if (mPPSettings == nullptr)
-					mPPSettings = RendererManager::instance().getActive()->createPostProcessSettings();
+					mPPSettings = bs_shared_ptr_new<PostProcessSettings>();
 
 				mPPSettings->_setSyncData((UINT8*)dataPtr, ppSize);
 				dataPtr += ppSize;

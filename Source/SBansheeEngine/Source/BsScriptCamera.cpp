@@ -15,7 +15,7 @@
 #include "BsRenderWindow.h"
 #include "BsRenderTexture.h"
 #include "BsGUIManager.h"
-#include "BsStandardPostProcessSettings.h"
+#include "BsPostProcessSettings.h"
 #include "BsScriptPostProcessSettings.h"
 
 namespace bs
@@ -317,21 +317,10 @@ namespace bs
 	MonoObject* ScriptCamera::internal_GetPostProcessSettings(ScriptCamera* instance)
 	{
 		SPtr<PostProcessSettings> ppSettings = instance->mCamera->getPostProcessSettings();
-		SPtr<StandardPostProcessSettings> standardPPSettings;
-		if(ppSettings != nullptr)
-		{
-			if (!rtti_is_of_type<StandardPostProcessSettings>(ppSettings))
-			{
-				assert(false && "Invalid post process settings type.");
-			}
-			else
-				standardPPSettings = std::static_pointer_cast<StandardPostProcessSettings>(ppSettings);
-		}
+		if (ppSettings == nullptr)
+			ppSettings = bs_shared_ptr_new<PostProcessSettings>();
 
-		if (standardPPSettings == nullptr)
-			standardPPSettings = bs_shared_ptr_new<StandardPostProcessSettings>();
-
-		return ScriptPostProcessSettings::toManaged(standardPPSettings);
+		return ScriptPostProcessSettings::toManaged(ppSettings);
 	}
 
 	void ScriptCamera::internal_SetPostProcessSettings(ScriptCamera* instance, MonoObject* value)

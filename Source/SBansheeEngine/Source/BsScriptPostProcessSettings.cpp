@@ -6,7 +6,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsCoreThread.h"
-#include "BsStandardPostProcessSettings.h"
+#include "BsPostProcessSettings.h"
 
 namespace bs
 {
@@ -221,9 +221,9 @@ namespace bs
 		sGamma = metaData.scriptClass->getField("Gamma");
 	}
 
-	SPtr<StandardPostProcessSettings> ScriptPostProcessSettings::toNative(MonoObject* object)
+	SPtr<PostProcessSettings> ScriptPostProcessSettings::toNative(MonoObject* object)
 	{
-		SPtr<StandardPostProcessSettings> output = bs_shared_ptr_new<StandardPostProcessSettings>();
+		SPtr<PostProcessSettings> output = bs_shared_ptr_new<PostProcessSettings>();
 
 		sEnableAutoExposure->get(object, &output->enableAutoExposure);
 		sEnableTonemapping->get(object, &output->enableTonemapping);
@@ -249,7 +249,7 @@ namespace bs
 		return output;
 	}
 
-	MonoObject* ScriptPostProcessSettings::toManaged(const SPtr<StandardPostProcessSettings>& value)
+	MonoObject* ScriptPostProcessSettings::toManaged(const SPtr<PostProcessSettings>& value)
 	{
 		MonoObject* object = metaData.scriptClass->createInstance();
 
@@ -275,6 +275,6 @@ namespace bs
 
 	MonoObject* ScriptPostProcessSettings::internal_CreateDefault()
 	{
-		return toManaged(bs_shared_ptr_new<StandardPostProcessSettings>());
+		return toManaged(bs_shared_ptr_new<PostProcessSettings>());
 	}
 }

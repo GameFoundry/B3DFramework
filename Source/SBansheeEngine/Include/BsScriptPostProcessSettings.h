@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	struct StandardPostProcessSettings;
+	struct PostProcessSettings;
 	struct AutoExposureSettings;
 	struct TonemappingSettings;
 	struct WhiteBalanceSettings;
@@ -125,10 +125,10 @@ namespace bs
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "PostProcessSettings")
 
 		/** Converts managed object its native counterpart. */
-		static SPtr<StandardPostProcessSettings> toNative(MonoObject* object);
+		static SPtr<PostProcessSettings> toNative(MonoObject* object);
 
 		/** Converts native object to its managed counterpart. */
-		static MonoObject* toManaged(const SPtr<StandardPostProcessSettings>& value);
+		static MonoObject* toManaged(const SPtr<PostProcessSettings>& value);
 
 	private:
 		ScriptPostProcessSettings(MonoObject* instance);

@@ -84,12 +84,13 @@ namespace bs { namespace ct
 	}
 
 	RendererView::RendererView()
+		:mRenderSettingsHash(0)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 	}
 
 	RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
-		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera)
+		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mRenderSettingsHash(0)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
@@ -110,16 +111,13 @@ namespace bs { namespace ct
 
 	void RendererView::setPostProcessSettings(const SPtr<PostProcessSettings>& ppSettings)
 	{
-		if (mPostProcessInfo.settings == nullptr)
-			mPostProcessInfo.settings = bs_shared_ptr_new<StandardPostProcessSettings>();
+		if (mRenderSettings == nullptr)
+			mRenderSettings = bs_shared_ptr_new<PostProcessSettings>();
 
-		SPtr<StandardPostProcessSettings> stdPPSettings = std::static_pointer_cast<StandardPostProcessSettings>(ppSettings);
-		if (stdPPSettings != nullptr)
-			*mPostProcessInfo.settings = *stdPPSettings;
-		else
-			*mPostProcessInfo.settings = StandardPostProcessSettings();
+		if (ppSettings != nullptr)
+			*mRenderSettings = *ppSettings;
 
-		mPostProcessInfo.settingDirty = true;
+		mRenderSettingsHash++;
 
 		// Update compositor hierarchy
 		mCompositor.build(*this, RCNodeFinalResolve::getNodeId());

@@ -4,7 +4,11 @@
 
 #include "BsRenderBeastPrerequisites.h"
 
-namespace bs { namespace ct
+namespace bs 
+{ 
+	class RendererExtension;
+
+namespace ct
 {
 	struct SceneInfo;
 	class RendererViewGroup;
@@ -20,9 +24,8 @@ namespace bs { namespace ct
 	struct RenderCompositorNodeInputs
 	{
 		RenderCompositorNodeInputs(const RendererViewGroup& viewGroup, const RendererView& view, const SceneInfo& scene, 
-			const RenderBeastOptions& options, const FrameInfo& frameInfo, 
-			const SmallVector<RenderCompositorNode*, 4>& inputNodes)
-			: viewGroup(viewGroup), view(view), scene(scene), options(options), frameInfo(frameInfo), inputNodes(inputNodes)
+			const RenderBeastOptions& options, const FrameInfo& frameInfo)
+			: viewGroup(viewGroup), view(view), scene(scene), options(options), frameInfo(frameInfo)
 		{ }
 
 		const RendererViewGroup& viewGroup;
@@ -30,6 +33,12 @@ namespace bs { namespace ct
 		const SceneInfo& scene;
 		const RenderBeastOptions& options;
 		const FrameInfo& frameInfo;
+
+		// Callbacks to external systems can hook into the compositor
+		SmallVector<RendererExtension*, 4> extPreBasePass;
+		SmallVector<RendererExtension*, 4> extPostBasePass;
+		SmallVector<RendererExtension*, 4> extPostLighting;
+		SmallVector<RendererExtension*, 4> extOverlay;
 
 		SmallVector<RenderCompositorNode*, 4> inputNodes;
 	};
@@ -87,17 +96,8 @@ namespace bs { namespace ct
 		 */
 		void build(const RendererView& view, const StringID& finalNode);
 
-		/**
-		 * Performs rendering using the current render node hierarchy. This is expected to be called once per frame.
-		 * 
-		 * @param[in]	viewGroup		Information about the current view group.
-		 * @param[in]	view			Information about the view this compositor belongs to.
-		 * @param[in]	scene			Information about the entire scene.
-		 * @param[in]	frameInfo		Information about the current frame.
-		 * @param[in]	options			Global renderer options.
-		 */
-		void execute(const RendererViewGroup& viewGroup, const RendererView& view, const SceneInfo& scene, 
-			const FrameInfo& frameInfo, const RenderBeastOptions& options) const;
+		/** Performs rendering using the current render node hierarchy. This is expected to be called once per frame. */
+		void execute(RenderCompositorNodeInputs& inputs) const;
 
 	private:
 		/** Clears the render node hierarchy. */
@@ -123,7 +123,6 @@ namespace bs { namespace ct
 
 			StringID id;
 		};
-
 		
 		/** Templated implementation of NodeType. */
 		template<class T>
@@ -479,6 +478,7 @@ namespace bs { namespace ct
 		void clear() override;
 
 		SPtr<PooledRenderTexture> mTonemapLUT;
+		UINT64 mTonemapLastUpdateHash = -1;
 	};
 
 	/** Renders the depth of field effect using Gaussian blurring. */

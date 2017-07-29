@@ -69,9 +69,6 @@ namespace bs
 		/** @copydoc Renderer::destroy */
 		void destroy() override;
 
-		/** @copydoc Renderer::createPostProcessSettings */
-		SPtr<PostProcessSettings> createPostProcessSettings() const override;
-
 		/** 
 		 * Captures the scene at the specified location into a cubemap. 
 		 * 
@@ -166,14 +163,14 @@ namespace bs
 		 *			
 		 * @note	Core thread only.
 		 */
-		void renderView(const RendererViewGroup& viewGroup, RendererView* viewInfo, const FrameInfo& frameInfo);
+		void renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 		/**
 		 * Renders all overlay callbacks of the provided view.
 		 * 					
 		 * @note	Core thread only.
 		 */
-		void renderOverlay(RendererView* viewInfo);
+		void renderOverlay(RendererView& view);
 
 		/** 
 		 * Renders a single element of a renderable object. 
