@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-	<CSFile Include="*.cs"/>
+    <CSFile Include="*.cs" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,9 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\Animation.cs" />
-    <Compile Include="Animation\AnimationClip.cs" />
-    <Compile Include="Animation\AnimationCurve.cs" />
-    <Compile Include="Animation\AnimationCurves.cs" />
     <Compile Include="Animation\Bone.cs" />
     <Compile Include="Animation\Interop\NativeAnimation.cs" />
     <Compile Include="Audio\Audio.cs" />

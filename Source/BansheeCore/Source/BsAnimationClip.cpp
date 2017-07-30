@@ -7,7 +7,6 @@
 
 namespace bs
 {
-
 	void AnimationCurves::addPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 	{
 		auto iterFind = std::find_if(position.begin(), position.end(), [&](auto x) { return x.name == name; });

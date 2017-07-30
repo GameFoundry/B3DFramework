@@ -130,7 +130,7 @@ namespace BansheeEditor
                         {
                             foreach (var tangentEntry in tangents)
                             {
-                                if (tangentEntry.name == curveEntry.Name)
+                                if (tangentEntry.name == curveEntry.name)
                                 {
                                     tangentsX = tangentEntry.tangentsX;
                                     tangentsY = tangentEntry.tangentsY;
@@ -140,39 +140,53 @@ namespace BansheeEditor
                             }
                         }
 
+                        // Convert compound curve to three per-component curves
+                        AnimationCurve[] componentCurves = AnimationUtility.SplitCurve(curveEntry.curve);
+
                         FieldAnimCurves fieldCurves = new FieldAnimCurves();
                         fieldCurves.type = SerializableProperty.FieldType.Vector3;
                         fieldCurves.curveInfos = new CurveDrawInfo[3];
                         fieldCurves.isPropertyCurve = !clipInfo.isImported;
 
                         fieldCurves.curveInfos[0] = new CurveDrawInfo();
-                        fieldCurves.curveInfos[0].curve = new EdAnimationCurve(curveEntry.X, tangentsX);
+                        fieldCurves.curveInfos[0].curve = new EdAnimationCurve(componentCurves[0], tangentsX);
                         fieldCurves.curveInfos[0].color = GUICurveDrawing.GetUniqueColor(globalCurveIdx++);
 
                         fieldCurves.curveInfos[1] = new CurveDrawInfo();
-                        fieldCurves.curveInfos[1].curve = new EdAnimationCurve(curveEntry.Y, tangentsY);
+                        fieldCurves.curveInfos[1].curve = new EdAnimationCurve(componentCurves[1], tangentsY);
                         fieldCurves.curveInfos[1].color = GUICurveDrawing.GetUniqueColor(globalCurveIdx++);
 
                         fieldCurves.curveInfos[2] = new CurveDrawInfo();
-                        fieldCurves.curveInfos[2].curve = new EdAnimationCurve(curveEntry.Z, tangentsZ);
+                        fieldCurves.curveInfos[2].curve = new EdAnimationCurve(componentCurves[2], tangentsZ);
                         fieldCurves.curveInfos[2].color = GUICurveDrawing.GetUniqueColor(globalCurveIdx++);
 
-                        string curvePath = curveEntry.Name.TrimEnd('/') + subPath;
+                        string curvePath = curveEntry.name.TrimEnd('/') + subPath;
                         clipInfo.curves[curvePath] = fieldCurves;
                     }
                 };
 
-            loadVector3Curve(clipCurves.PositionCurves, editorCurveData.positionCurves, "/Position");
-            loadVector3Curve(clipCurves.RotationCurves, editorCurveData.rotationCurves, "/Rotation");
-            loadVector3Curve(clipCurves.ScaleCurves, editorCurveData.scaleCurves, "/Scale");
+            // Convert rotation from quaternion to euler
+            NamedQuaternionCurve[] rotationCurves = clipCurves.Rotation;
+            NamedVector3Curve[] eulerRotationCurves = new NamedVector3Curve[rotationCurves.Length];
+            for(int i = 0; i < rotationCurves.Length; i++)
+            {
+                eulerRotationCurves[i] = new NamedVector3Curve();
+                eulerRotationCurves[i].name = rotationCurves[i].name;
+                eulerRotationCurves[i].flags = rotationCurves[i].flags;
+                eulerRotationCurves[i].curve = AnimationUtility.QuaternionToEulerCurve(rotationCurves[i].curve);
+            }
+
+            loadVector3Curve(clipCurves.Position, editorCurveData.positionCurves, "/Position");
+            loadVector3Curve(eulerRotationCurves, editorCurveData.rotationCurves, "/Rotation");
+            loadVector3Curve(clipCurves.Scale, editorCurveData.scaleCurves, "/Scale");
 
             // Find which individual float curves belong to the same field
             Dictionary<string, Tuple<int, int, bool>[]> floatCurveMapping = new Dictionary<string, Tuple<int, int, bool>[]>();
             {
                 int curveIdx = 0;
-                foreach (var curveEntry in clipCurves.FloatCurves)
+                foreach (var curveEntry in clipCurves.Generic)
                 {
-                    string path = curveEntry.Name;
+                    string path = curveEntry.name;
                     string pathNoSuffix = null;
 
                     string pathSuffix;
@@ -188,7 +202,7 @@ namespace BansheeEditor
                     int currentTangentIdx = 0;
                     foreach (var tangentEntry in editorCurveData.floatCurves)
                     {
-                        if (tangentEntry.name == curveEntry.Name)
+                        if (tangentEntry.name == curveEntry.name)
                         {
                             tangentIdx = currentTangentIdx;
                             break;
@@ -265,15 +279,15 @@ namespace BansheeEditor
                         tangents = editorCurveData.floatCurves[tangentIdx].tangents;
 
                     fieldCurves.curveInfos[i] = new CurveDrawInfo();
-                    fieldCurves.curveInfos[i].curve = new EdAnimationCurve(clipCurves.FloatCurves[curveIdx].Curve, tangents);
+                    fieldCurves.curveInfos[i].curve = new EdAnimationCurve(clipCurves.Generic[curveIdx].curve, tangents);
                     fieldCurves.curveInfos[i].color = GUICurveDrawing.GetUniqueColor(globalCurveIdx++);
 
-                    if (clipCurves.FloatCurves[curveIdx].Flags.HasFlag(AnimationCurveFlags.MorphFrame))
+                    if (clipCurves.Generic[curveIdx].flags.HasFlag(AnimationCurveFlags.MorphFrame))
                     {
                         curvePath = "MorphShapes/Frames/" + KVP.Key;
                         isMorphCurve = true;
                     }
-                    else if (clipCurves.FloatCurves[curveIdx].Flags.HasFlag(AnimationCurveFlags.MorphWeight))
+                    else if (clipCurves.Generic[curveIdx].flags.HasFlag(AnimationCurveFlags.MorphWeight))
                     {
                         curvePath = "MorphShapes/Weight/" + KVP.Key;
                         isMorphCurve = true;
@@ -338,7 +352,7 @@ namespace BansheeEditor
             }
 
             List<NamedVector3Curve> positionCurves = new List<NamedVector3Curve>();
-            List<NamedVector3Curve> rotationCurves = new List<NamedVector3Curve>();
+            List<NamedQuaternionCurve> rotationCurves = new List<NamedQuaternionCurve>();
             List<NamedVector3Curve> scaleCurves = new List<NamedVector3Curve>();
             List<NamedFloatCurve> floatCurves = new List<NamedFloatCurve>();
 
@@ -366,10 +380,14 @@ namespace BansheeEditor
 
                     string curvePath = sb.ToString();
 
-                    NamedVector3Curve curve = new NamedVector3Curve(curvePath,
+                    NamedVector3Curve curve = new NamedVector3Curve();
+                    curve.name = curvePath;
+                    curve.curve = AnimationUtility.CombineCurve(new[]
+                    {
                         new AnimationCurve(kvp.Value.curveInfos[0].curve.KeyFrames),
                         new AnimationCurve(kvp.Value.curveInfos[1].curve.KeyFrames),
-                        new AnimationCurve(kvp.Value.curveInfos[2].curve.KeyFrames));
+                        new AnimationCurve(kvp.Value.curveInfos[1].curve.KeyFrames)
+                    });
 
                     EditorVector3CurveTangents curveTangents = new EditorVector3CurveTangents();
                     curveTangents.name = curvePath;
@@ -384,7 +402,11 @@ namespace BansheeEditor
                     }
                     else if (lastEntry == "Rotation")
                     {
-                        rotationCurves.Add(curve);
+                        NamedQuaternionCurve quatCurve = new NamedQuaternionCurve();
+                        quatCurve.name = curve.name;
+                        quatCurve.curve = AnimationUtility.EulerToQuaternionCurve(curve.curve);
+
+                        rotationCurves.Add(quatCurve);
                         rotationTangents.Add(curveTangents);
                     }
                     else if (lastEntry == "Scale")
@@ -401,7 +423,7 @@ namespace BansheeEditor
 
                         NamedFloatCurve curve = new NamedFloatCurve(fullPath,
                             new AnimationCurve(kvp.Value.curveInfos[idx].curve.KeyFrames));
-                        curve.Flags = flags;
+                        curve.flags = flags;
 
                         EditorFloatCurveTangents curveTangents = new EditorFloatCurveTangents();
                         curveTangents.name = fullPath;
@@ -464,10 +486,10 @@ namespace BansheeEditor
             }
 
             AnimationCurves newClipCurves = new AnimationCurves();
-            newClipCurves.PositionCurves = positionCurves.ToArray();
-            newClipCurves.RotationCurves = rotationCurves.ToArray();
-            newClipCurves.ScaleCurves = scaleCurves.ToArray();
-            newClipCurves.FloatCurves = floatCurves.ToArray();
+            newClipCurves.Position = positionCurves.ToArray();
+            newClipCurves.Rotation = rotationCurves.ToArray();
+            newClipCurves.Scale = scaleCurves.ToArray();
+            newClipCurves.Generic = floatCurves.ToArray();
 
             clip.Curves = newClipCurves;
             clip.Events = events;

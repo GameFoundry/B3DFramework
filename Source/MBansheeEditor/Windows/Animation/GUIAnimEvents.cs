@@ -53,7 +53,7 @@ namespace BansheeEditor
             {
                 AnimationEvent evnt = events[i];
 
-                int xPos = (int)(((evnt.Time - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
+                int xPos = (int)(((evnt.time - rangeOffset) / GetRange()) * drawableWidth) + PADDING;
                 if (relativeCoords.x >= (xPos - EVENT_HALF_WIDTH) && relativeCoords.x <= (xPos + EVENT_HALF_WIDTH))
                 {
                     eventIdx = i;
@@ -122,7 +122,7 @@ namespace BansheeEditor
             float eventHalfWidth = lengthPerPixel * EVENT_HALF_WIDTH;
             for (int i = 0; i < events.Length; i++)
             {
-                float t = events[i].Time;
+                float t = events[i].time;
 
                 float min = t - eventHalfWidth;
                 float max = t + eventHalfWidth;

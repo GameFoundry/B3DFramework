@@ -342,7 +342,8 @@ namespace BansheeEditor
             });
 
             UpdateTangents();
-            native.KeyFrames = keyFrames;
+
+            native = new AnimationCurve(keyFrames);
         }
 
         /// <summary>

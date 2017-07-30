@@ -9,7 +9,8 @@
 #include "BsMonoUtil.h"
 #include "BsScriptSceneObject.h"
 #include "BsScriptResourceManager.h"
-#include "BsScriptAnimationClip.h"
+
+#include "BsScriptAnimationClip.generated.h"
 
 using namespace std::placeholders;
 

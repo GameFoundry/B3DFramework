@@ -1114,7 +1114,7 @@ namespace BansheeEditor
             AnimationEvent animEvent = events[eventIdx].animEvent;
 
             Vector2I position = new Vector2I();
-            position.x = guiEvents.GetOffset(animEvent.Time);
+            position.x = guiEvents.GetOffset(animEvent.time);
             position.y = EVENTS_HEIGHT/2;
 
             Rect2I eventBounds = GUIUtility.CalculateBounds(eventsPanel, window.GUI);
@@ -1227,9 +1227,9 @@ namespace BansheeEditor
         {
             int selectedIndex = -1;
             string methodName = "";
-            if (!string.IsNullOrEmpty(animEvent.Name))
+            if (!string.IsNullOrEmpty(animEvent.name))
             {
-                string[] nameEntries = animEvent.Name.Split('/');
+                string[] nameEntries = animEvent.name.Split('/');
                 if (nameEntries.Length > 1)
                 {
                     string typeName = nameEntries[0];
@@ -1247,8 +1247,8 @@ namespace BansheeEditor
             }
 
             GUIFloatField timeField = new GUIFloatField(new LocEdString("Time"), 40, "");
-            timeField.Value = animEvent.Time;
-            timeField.OnChanged += x => { animEvent.Time = x; changesMade = true; updateCallback(); };
+            timeField.Value = animEvent.time;
+            timeField.OnChanged += x => { animEvent.time = x; changesMade = true; updateCallback(); };
 
             GUIListBoxField componentField = new GUIListBoxField(componentNames, new LocEdString("Component"), 40);
             if (selectedIndex != -1)
@@ -1260,7 +1260,7 @@ namespace BansheeEditor
                 if (x != -1)
                     compName = componentNames[x] + "/";
 
-                animEvent.Name = compName + x;
+                animEvent.name = compName + x;
 
                 changesMade = true;
                 updateCallback();
@@ -1274,7 +1274,7 @@ namespace BansheeEditor
                 if(componentField.Index != -1)
                     compName = componentNames[componentField.Index] + "/";
 
-                animEvent.Name = compName + x;
+                animEvent.name = compName + x;
 
                 changesMade = true;
                 updateCallback();

@@ -130,11 +130,9 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Include/BsScriptAudio.h"
 	"Include/BsScriptAudioSource.h"
 	"Include/BsScriptAudioListener.h"
-	"Include/BsScriptAnimationClip.h"
 	"Include/BsScriptAnimation.h"
-	"Include/BsScriptAnimationCurve.h"
-	"Include/BsScriptAnimationCurves.h"
 	"Include/BsScriptManagedComponent.h"
+	"Include/BsScriptQuaternion.h"
 )
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS_GUI
@@ -255,11 +253,9 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Source/BsScriptAudio.cpp"
 	"Source/BsScriptAudioSource.cpp"
 	"Source/BsScriptAudioListener.cpp"
-	"Source/BsScriptAnimationClip.cpp"
 	"Source/BsScriptAnimation.cpp"
-	"Source/BsScriptAnimationCurve.cpp"
-	"Source/BsScriptAnimationCurves.cpp"
 	"Source/BsScriptManagedComponent.cpp"
+	"Source/BsScriptQuaternion.cpp"
 )
 
 set(BS_SBANSHEEENGINE_INC_SERIALIZATION
@@ -306,6 +302,7 @@ set(BS_SBANSHEEENGINE_INC_EXTENSIONS
 	"Include/BsMeshEx.h"
 	"Include/BsSkeletonEx.h"
 	"Include/BsPhysicsMeshEx.h"
+	"Include/BsAnimationEx.h"
 )
 
 set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
@@ -316,6 +313,7 @@ set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
 	"Source/BsMeshEx.cpp"
 	"Source/BsSkeletonEx.cpp"
 	"Source/BsPhysicsMeshEx.cpp"
+	"Source/BsAnimationEx.cpp"
 )
 
 source_group("Header Files" FILES ${BS_SBANSHEEENGINE_INC_NOFILTER})

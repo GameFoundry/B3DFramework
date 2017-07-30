@@ -1774,13 +1774,13 @@ namespace bs
 				boneAnim.scale = TAnimationCurve<Vector3>(keyframes);
 			}
 
-			TAnimationCurve<Vector3> eulerAnimation;
+			SPtr<TAnimationCurve<Vector3>> eulerAnimation = bs_shared_ptr_new<TAnimationCurve<Vector3>>();
 			if (hasCurveValues(rotation))
 			{
 				float defaultValues[3];
 				memcpy(defaultValues, &defaultRotation, sizeof(defaultValues));
 
-				eulerAnimation = importCurve<Vector3, 3>(rotation, defaultValues, importOptions, clip.start, clip.end);
+				*eulerAnimation = importCurve<Vector3, 3>(rotation, defaultValues, importOptions, clip.start, clip.end);
 			}
 			else
 			{
@@ -1789,18 +1789,18 @@ namespace bs
 				keyframes[0].inTangent = Vector3::ZERO;
 				keyframes[0].outTangent = Vector3::ZERO;
 
-				eulerAnimation = TAnimationCurve<Vector3>(keyframes);
+				*eulerAnimation = TAnimationCurve<Vector3>(keyframes);
 			}
 
 			if(importOptions.reduceKeyframes)
 			{
 				boneAnim.translation = reduceKeyframes(boneAnim.translation);
 				boneAnim.scale = reduceKeyframes(boneAnim.scale);
-				eulerAnimation = reduceKeyframes(eulerAnimation);
+				*eulerAnimation = reduceKeyframes(*eulerAnimation);
 			}
 
 			boneAnim.translation = AnimationUtility::scaleCurve(boneAnim.translation, importScene.scaleFactor);
-			boneAnim.rotation = AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
+			boneAnim.rotation = *AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
 		}
 
 		if (importOptions.importBlendShapes)

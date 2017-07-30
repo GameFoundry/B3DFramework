@@ -874,42 +874,47 @@ namespace BansheeEngine
             {
                 SceneObject root = SceneObject;
 
-                Action<NamedVector3Curve[]> findMappings = x =>
+                Action<string,AnimationCurveFlags> findMappings = (name, flags) =>
                 {
-                    foreach (var curve in x)
+                    if (flags.HasFlag(AnimationCurveFlags.ImportedCurve))
+                        return;
+
+                    SceneObject currentSO = FindSceneObject(root, name);
+
+                    bool found = false;
+                    for (int i = 0; i < newMappingInfos.Count; i++)
                     {
-                        if (curve.Flags.HasFlag(AnimationCurveFlags.ImportedCurve))
-                            continue;
-
-                        SceneObject currentSO = FindSceneObject(root, curve.Name);
-
-                        bool found = false;
-                        for (int i = 0; i < newMappingInfos.Count; i++)
+                        if (newMappingInfos[i].sceneObject == currentSO)
                         {
-                            if (newMappingInfos[i].sceneObject == currentSO)
-                            {
-                                found = true;
-                                break;
-                            }
+                            found = true;
+                            break;
                         }
+                    }
 
-                        if (!found)
-                        {
-                            SceneObjectMappingInfo newMappingInfo = new SceneObjectMappingInfo();
-                            newMappingInfo.isMappedToBone = false;
-                            newMappingInfo.sceneObject = currentSO;
+                    if (!found)
+                    {
+                        SceneObjectMappingInfo newMappingInfo = new SceneObjectMappingInfo();
+                        newMappingInfo.isMappedToBone = false;
+                        newMappingInfo.sceneObject = currentSO;
 
-                            newMappingInfos.Add(newMappingInfo);
+                        newMappingInfos.Add(newMappingInfo);
 
-                            _native.MapCurveToSceneObject(curve.Name, currentSO);
-                        }
+                        _native.MapCurveToSceneObject(name, currentSO);
                     }
                 };
 
                 AnimationCurves curves = primaryClip.Curves;
-                findMappings(curves.PositionCurves);
-                findMappings(curves.RotationCurves);
-                findMappings(curves.ScaleCurves);
+                NamedVector3Curve[] posCurves = curves.Position;
+                foreach (var curve in posCurves)
+                    findMappings(curve.name, curve.flags);
+
+                NamedQuaternionCurve[] rotCurves = curves.Rotation;
+                foreach (var curve in rotCurves)
+                    findMappings(curve.name, curve.flags);
+
+                NamedVector3Curve[] scaleCurves = curves.Scale;
+                foreach (var curve in scaleCurves)
+                    findMappings(curve.name, curve.flags);
             }
 
             mappingInfo = newMappingInfos;
@@ -1119,16 +1124,16 @@ namespace BansheeEngine
             AnimationCurves curves = clip.Curves;
 
             List<FloatCurvePropertyInfo> newFloatProperties = new List<FloatCurvePropertyInfo>();
-            for (int i = 0; i < curves.FloatCurves.Length; i++)
+            for (int i = 0; i < curves.Generic.Length; i++)
             {
-                bool isMorphCurve = curves.FloatCurves[i].Flags.HasFlag(AnimationCurveFlags.MorphWeight) ||
-                                    curves.FloatCurves[i].Flags.HasFlag(AnimationCurveFlags.MorphFrame);
+                bool isMorphCurve = curves.Generic[i].flags.HasFlag(AnimationCurveFlags.MorphWeight) ||
+                                    curves.Generic[i].flags.HasFlag(AnimationCurveFlags.MorphFrame);
 
                 if (isMorphCurve)
                     continue;
 
                 string suffix;
-                SerializableProperty property = FindProperty(SceneObject, curves.FloatCurves[i].Name, out suffix);
+                SerializableProperty property = FindProperty(SceneObject, curves.Generic[i].name, out suffix);
                 if (property == null)
                     continue;
 

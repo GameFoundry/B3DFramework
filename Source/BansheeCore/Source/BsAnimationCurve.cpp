@@ -525,7 +525,7 @@ namespace bs
 			mKeyframes[i].value = getDiff(mKeyframes[i].value, refKey.value);
 	}
 
-	template class TAnimationCurve<Vector3>;
-	template class TAnimationCurve<Quaternion>;
-	template class TAnimationCurve<float>;
+	template BS_CORE_EXPORT class TAnimationCurve<Vector3>;
+	template BS_CORE_EXPORT class TAnimationCurve<Quaternion>;
+	template BS_CORE_EXPORT class TAnimationCurve<float>;
 }

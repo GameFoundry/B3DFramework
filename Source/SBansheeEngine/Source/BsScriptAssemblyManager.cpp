@@ -44,12 +44,12 @@
 #include "BsScriptStringTable.h"
 #include "BsScriptGUISkin.h"
 #include "BsScriptAudioClip.h"
-#include "BsScriptAnimationClip.h"
 #include "BsBuiltinResourceLookup.h"
 
 #include "BsScriptMesh.generated.h"
 #include "BsScriptPhysicsMesh.generated.h"
 #include "BsScriptPhysicsMaterial.generated.h"
+#include "BsScriptAnimationClip.generated.h"
 
 namespace bs
 {

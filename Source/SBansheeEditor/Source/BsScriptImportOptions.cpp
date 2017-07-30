@@ -14,7 +14,8 @@
 #include "BsRenderer.h"
 #include "BsScriptFont.h"
 #include "BsRTTIType.h"
-#include "BsScriptAnimationClip.h"
+
+#include "BsScriptAnimationEvent.generated.h"
 
 using namespace std::placeholders;
 
@@ -755,9 +756,7 @@ namespace bs
 			ScriptArray scriptEvents(monoEvents);
 			for (UINT32 i = 0; i < scriptEvents.size(); i++)
 			{
-				MonoObject* monoEvent = scriptEvents.get<MonoObject*>(i);
-				AnimationEvent event = ScriptAnimationEvent::toNative(monoEvent);
-
+				AnimationEvent event = ScriptAnimationEvent::fromInterop(scriptEvents.get<__AnimationEventInterop>(i));
 				output.events.push_back(event);
 			}
 		}
@@ -773,10 +772,7 @@ namespace bs
 		ScriptArray scriptEvents = ScriptArray::create<ScriptAnimationEvent>(numEvents);
 
 		for (UINT32 i = 0; i < numEvents; i++)
-		{
-			MonoObject* monoEvent = ScriptAnimationEvent::toManaged(events.events[i]);
-			scriptEvents.set(i, monoEvent);
-		}
+			scriptEvents.set(i, ScriptAnimationEvent::toInterop(events.events[i]));
 
 		MonoObject* instance = metaData.scriptClass->createInstance();
 		nameField->set(instance, monoString);

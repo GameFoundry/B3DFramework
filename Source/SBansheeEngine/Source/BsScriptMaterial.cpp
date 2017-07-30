@@ -72,7 +72,7 @@ namespace bs
 	{
 		HShader shader = nativeInstance->getHandle()->getShader();
 
-		if (shader == nullptr)
+		if (!shader.isLoaded())
 			return nullptr;
 
 		ScriptResourceBase* scriptShader = ScriptResourceManager::instance().getScriptResource(shader, true);

@@ -861,7 +861,7 @@ namespace BansheeEditor
 
             clipState.events = new AnimationEvent[clipInfo.events.Length];
             for (int i = 0; i < clipState.events.Length; i++)
-                clipState.events[i] = new AnimationEvent(clipInfo.events[i].Name, clipInfo.events[i].Time);
+                clipState.events[i] = new AnimationEvent(clipInfo.events[i].name, clipInfo.events[i].time);
 
             foreach (var curveField in clipInfo.curves)
             {
@@ -901,7 +901,7 @@ namespace BansheeEditor
             AnimationEvent[] events = animationClipState.events;
             clipInfo.events = new AnimationEvent[events.Length];
             for(int i = 0; i < events.Length; i++)
-                clipInfo.events[i] = new AnimationEvent(events[i].Name, events[i].Time);
+                clipInfo.events[i] = new AnimationEvent(events[i].name, events[i].time);
 
             foreach (var KVP in animationClipState.curves)
             {
@@ -911,9 +911,7 @@ namespace BansheeEditor
 
                 for (int i = 0; i < fieldCurves.curveInfos.Length; i++)
                 {
-                    AnimationCurve curve = fieldCurves.curveInfos[i].curve.Normal;
-                    curve.KeyFrames = KVP.Value[i].keyFrames;
-
+                    AnimationCurve curve = new AnimationCurve(KVP.Value[i].keyFrames);
                     fieldCurves.curveInfos[i].curve = new EdAnimationCurve(curve, KVP.Value[i].tangentModes);
                 }
 
@@ -939,9 +937,7 @@ namespace BansheeEditor
                 FieldAnimCurves fieldCurves = currentKVP.Value;
                 for (int i = 0; i < fieldCurves.curveInfos.Length; i++)
                 {
-                    AnimationCurve curve = currentKVP.Value.curveInfos[i].curve.Normal;
-                    curve.KeyFrames = new KeyFrame[0];
-
+                    AnimationCurve curve = new AnimationCurve(new KeyFrame[0]);
                     fieldCurves.curveInfos[i].curve = new EdAnimationCurve(curve, new TangentMode[0]);
                 }
             }

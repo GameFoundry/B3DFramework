@@ -73,6 +73,7 @@ if(BansheeSBGen_FOUND)
 			-output-cs-editor ${BS_GENERATED_CS_EDITOR_OUTPUT_DIR}
 			-- ${BS_INCLUDE_DIRS}
 			-DBS_STATIC_LIB
+			-DBS_SBGEN
 			-w)
 
 		message(STATUS "Generating script bindings, please wait...")

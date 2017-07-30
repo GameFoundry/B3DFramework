@@ -4,6 +4,8 @@
 
 #include "BsCorePrerequisites.h"
 #include "BsCurveCache.h"
+#include "BsVector3.h"
+#include "BsQuaternion.h"
 
 namespace bs
 {
@@ -21,6 +23,10 @@ namespace bs
 		float time; /**< Position of the key along the animation spline. */
 	};
 
+	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrame,pl:true) TKeyframe<float>;
+	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameVec3,pl:true) TKeyframe<Vector3>;
+	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameQuat,pl:true) TKeyframe<Quaternion>;
+
 	/**
 	 * Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The
 	 * spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.
@@ -32,6 +38,13 @@ namespace bs
 		typedef TKeyframe<T> KeyFrame;
 
 		TAnimationCurve();
+
+		/**
+		 * Creates a new animation curve.
+		 * 
+		 * @param[in]	keyframes	Keyframes to initialize the curve with
+		 */
+		BS_SCRIPT_EXPORT()
 		TAnimationCurve(const Vector<KeyFrame>& keyframes);
 
 		/**
@@ -58,6 +71,7 @@ namespace bs
 		 *						value will be clamped.
 		 * @return				Interpolated value from the curve at provided time.
 		 */
+		BS_SCRIPT_EXPORT(n:Evaluate)
 		T evaluate(float time, bool loop = true) const;
 
 		/**
@@ -95,6 +109,10 @@ namespace bs
 
 		/** Returns a keyframe at the specified index. */
 		const TKeyframe<T>& getKeyFrame(UINT32 idx) const { return mKeyframes[idx]; }
+
+		/** Returns a list of all keyframes in the curve. */
+		BS_SCRIPT_EXPORT(n:KeyFrames,pr:getter)
+		const Vector<TKeyframe<T>>& getKeyFrames() const { return mKeyframes; }
 
 	private:
 		friend struct RTTIPlainType<TAnimationCurve<T>>;
@@ -154,10 +172,20 @@ namespace bs
 		float mLength;
 	};
 
-	/** Flags that described an TAnimationCurve<T>. */
-	enum class AnimationCurveFlag
+#ifdef BS_SBGEN
+	template class BS_SCRIPT_EXPORT(m:Animation,n:AnimationCurve) TAnimationCurve<float>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:Vector3Curve) TAnimationCurve<Vector3>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:QuaternionCurve) TAnimationCurve<Quaternion>;
+#endif
+
+	/** Flags that describe an animation curve. */
+	enum BS_SCRIPT_EXPORT(n:AnimationCurveFlags) class AnimationCurveFlag
 	{
-		/** Signifies that the curve was imported from an external file, and not created manually in-engine. */
+		/**
+		 * If enabled, the curve was imported from an external file and not created within the engine. This will affect
+		 * how are animation results applied to scene objects (with imported animations it is assumed the curve is
+		 * animating bones and with in-engine curves it is assumed the curve is animating scene objects).
+		 */
 		ImportedCurve = 1 << 0,
 		/** Signifies the curve is used to animate between different frames within a morph channel. In range [0, 1]. */
 		MorphFrame = 1 << 1,
@@ -172,10 +200,44 @@ namespace bs
 	template <class T>
 	struct TNamedAnimationCurve
 	{
+		TNamedAnimationCurve() { }
+
+		/**
+		 * Constructs a new named animation curve.
+		 * 
+		 * @param[in]	name	Name of the curve.
+		 * @param[in]	curve	Curve containing the animation data.
+		 */
+		TNamedAnimationCurve(const String& name, const TAnimationCurve<T> curve)
+			:name(name), curve(curve)
+		{ }
+
+		/**
+		 * Constructs a new named animation curve.
+		 * 
+		 * @param[in]	name	Name of the curve.
+		 * @param[in]	flags	Flags that describe the animation curve.
+		 * @param[in]	curve	Curve containing the animation data.
+		 */
+		TNamedAnimationCurve(const String& name, AnimationCurveFlags flags, const TAnimationCurve<T> curve)
+			:name(name), curve(curve)
+		{ }
+
+		/** Name of the curve. */
 		String name;
+
+		/** Flags that describe the animation curve. */
 		AnimationCurveFlags flags;
+
+		/** Actual curve containing animation data. */
 		TAnimationCurve<T> curve;
 	};
+
+#ifdef BS_SBGEN
+	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedFloatCurve,pl:true) TNamedAnimationCurve<float>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedVector3Curve,pl:true) TNamedAnimationCurve<Vector3>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedQuaternionCurve,pl:true) TNamedAnimationCurve<Quaternion>;
+#endif
 
 	/** @} */
 }
