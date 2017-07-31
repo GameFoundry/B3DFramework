@@ -64,9 +64,9 @@ namespace bs
 		/** @copydoc ReflectionProbe::getBounds */
 		Sphere getBounds() const;
 
-		/** @copydoc ReflectionProbe::generate */
-		BS_SCRIPT_EXPORT(n:Generate)
-		void generate() { mInternal->generate(); }
+		/** @copydoc ReflectionProbe::capture */
+		BS_SCRIPT_EXPORT(n:Capture)
+		void capture() { mInternal->capture(); }
 
 		/** @name Internal
 		 *  @{

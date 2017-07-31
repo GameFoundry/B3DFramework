@@ -4,7 +4,7 @@
 #include "BsLightProbeVolume.h"
 #include "BsGpuBuffer.h"
 #include "BsRendererView.h"
-#include "BsIBLUtility.h"
+#include "BsRenderBeastIBLUtility.h"
 #include "BsRendererManager.h"
 #include "BsRenderBeast.h"
 
@@ -147,9 +147,9 @@ namespace bs { namespace ct
 					SPtr<Texture> cubemap = Texture::create(cubemapDesc);
 
 					RenderBeast& renderer = static_cast<RenderBeast&>(*RendererManager::instance().getActive());
-					renderer.captureSceneCubeMap(cubemap, probePositions[entry.lastUpdatedProbe], true, frameInfo);
+					renderer.captureSceneCubeMap(cubemap, probePositions[entry.lastUpdatedProbe], true);
 
-					IBLUtility::filterCubemapForIrradiance(cubemap, mProbeCoefficientsGPU, probeInfo.bufferIdx);
+					gIBLUtility().filterCubemapForIrradiance(cubemap, mProbeCoefficientsGPU, probeInfo.bufferIdx);
 
 					probeInfo.flags = LightProbeFlags::Clean;
 					numProbeUpdates++;

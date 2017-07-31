@@ -102,6 +102,7 @@ set(BS_BANSHEECORE_INC_RENDERER
 	"Include/BsReflectionProbe.h"
 	"Include/BsSkybox.h"
 	"Include/BsLightProbeVolume.h"
+	"Include/BsIBLUtility.h"
 )
 
 set(BS_BANSHEECORE_SRC_LOCALIZATION
@@ -378,6 +379,7 @@ set(BS_BANSHEECORE_SRC_RENDERER
 	"Source/BsReflectionProbe.cpp"
 	"Source/BsSkybox.cpp"
 	"Source/BsLightProbeVolume.cpp"
+	"Source/BsIBLUtility.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_RESOURCES

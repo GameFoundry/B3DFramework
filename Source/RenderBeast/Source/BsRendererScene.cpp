@@ -424,17 +424,17 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::updateReflectionProbe(ReflectionProbe* probe)
+	void RendererScene::updateReflectionProbe(ReflectionProbe* probe, bool texture)
 	{
 		// Should only get called if transform changes, any other mInfo.ajor changes and ReflProbeInfo entry gets rebuild
 		UINT32 probeId = probe->getRendererId();
 		mInfo.reflProbeWorldBounds[probeId] = probe->getBounds();
 
-		RendererReflectionProbe& probeInfo = mInfo.reflProbes[probeId];
-		probeInfo.arrayDirty = true;
-
-		LightProbeCache::instance().notifyDirty(probe->getUUID());
-		probeInfo.textureDirty = true;
+		if (texture)
+		{
+			RendererReflectionProbe& probeInfo = mInfo.reflProbes[probeId];
+			probeInfo.arrayDirty = true;
+		}
 	}
 
 	void RendererScene::unregisterReflectionProbe(ReflectionProbe* probe)
@@ -462,13 +462,6 @@ namespace bs {	namespace ct
 		mInfo.radialLightWorldBounds.erase(mInfo.radialLightWorldBounds.end() - 1);
 
 		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
-	}
-
-	void RendererScene::setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture)
-	{
-		RendererReflectionProbe* probe = &mInfo.reflProbes[probeIdx];
-		probe->texture = texture;
-		probe->textureDirty = false;
 	}
 
 	void RendererScene::setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)
@@ -752,7 +745,8 @@ namespace bs {	namespace ct
 			return;
 		
 		// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
-		mInfo.renderables[idx]->renderable->updateAnimationBuffers(frameInfo.animData);
+		if(frameInfo.animData != nullptr)
+			mInfo.renderables[idx]->renderable->updateAnimationBuffers(*frameInfo.animData);
 		
 		// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
 		// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.

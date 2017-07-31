@@ -82,9 +82,6 @@ namespace bs { namespace ct
 		:probe(probe)
 	{
 		arrayIdx = -1;
-		texture = nullptr;
-		customTexture = probe->getCustomTexture() != nullptr;
-		textureDirty = LightProbeCache::instance().isRadianceDirty(probe->getUUID());
 		arrayDirty = true;
 		errorFlagged = false;
 	}

@@ -26,12 +26,12 @@ namespace bs
 	/** Contains information global to an entire frame. */
 	struct FrameInfo
 	{
-		FrameInfo(float timeDelta, const RendererAnimationData& animData)
+		FrameInfo(float timeDelta, const RendererAnimationData* animData = nullptr)
 			:timeDelta(timeDelta), animData(animData)
 		{ }
 
 		float timeDelta;
-		const RendererAnimationData& animData;
+		const RendererAnimationData* animData;
 	};
 
 	/**
@@ -69,15 +69,8 @@ namespace bs
 		/** @copydoc Renderer::destroy */
 		void destroy() override;
 
-		/** 
-		 * Captures the scene at the specified location into a cubemap. 
-		 * 
-		 * @param[in]	cubemap		Cubemap to store the results in.
-		 * @param[in]	position	Position to capture the scene at.
-		 * @param[in]	hdr			If true scene will be captured in a format that supports high dynamic range.
-		 * @param[in]	frameInfo	Global information about the the frame currently being rendered.
-		 */
-		void captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr, const FrameInfo& frameInfo);
+		/** @copydoc Renderer::captureSceneCubeMap */
+		void captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr) override;
 
 	private:
 		/** @copydoc Renderer::notifyCameraAdded */
@@ -111,7 +104,7 @@ namespace bs
 		void notifyReflectionProbeAdded(ReflectionProbe* probe) override;
 
 		/** @copydoc Renderer::notifyReflectionProbeUpdated */
-		void notifyReflectionProbeUpdated(ReflectionProbe* probe) override;
+		void notifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture) override;
 
 		/** @copydoc Renderer::notifyReflectionProbeRemoved */
 		void notifyReflectionProbeRemoved(ReflectionProbe* probe) override;
@@ -171,17 +164,6 @@ namespace bs
 		 * @note	Core thread only.
 		 */
 		void renderOverlay(RendererView& view);
-
-		/** 
-		 * Renders a single element of a renderable object. 
-		 *
-		 * @param[in]	element		Element to render.
-		 * @param[in]	passIdx		Index of the material pass to render the element with.
-		 * @param[in]	bindPass	If true the material pass will be bound for rendering, if false it is assumed it is
-		 *							already bound.
-		 * @param[in]	viewProj	View projection matrix of the camera the element is being rendered with.
-		 */
-		void renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass, const Matrix4& viewProj);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore();

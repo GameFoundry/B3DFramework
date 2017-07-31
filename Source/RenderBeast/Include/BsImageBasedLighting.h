@@ -78,9 +78,6 @@ namespace bs { namespace ct
 
 		ReflectionProbe* probe;
 		UINT32 arrayIdx;
-		SPtr<Texture> texture;
-		bool customTexture : 1;
-		bool textureDirty : 1;
 		bool arrayDirty : 1;
 		mutable bool errorFlagged : 1;
 	};

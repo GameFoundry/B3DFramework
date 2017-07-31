@@ -7,6 +7,7 @@
 #include "BsTexture.h"
 #include "BsRenderer.h"
 #include "BsUUID.h"
+#include "BsIBLUtility.h"
 
 namespace bs
 {
@@ -33,26 +34,6 @@ namespace bs
 		}
 	}
 
-	template <bool Core>
-	TReflectionProbe<Core>::TReflectionProbe()
-		:ReflectionProbeBase()
-	{ }
-
-	template <bool Core>
-	TReflectionProbe<Core>::TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-		: ReflectionProbeBase(type, radius, extents)
-	{ }
-
-	template <bool Core>
-	void TReflectionProbe<Core>::generate()
-	{
-		if (mCustomTexture != nullptr)
-			_markCoreDirty();
-	}
-
-	template class TReflectionProbe<true>;
-	template class TReflectionProbe<false>;
-
 	ReflectionProbe::ReflectionProbe()
 		:mLastUpdateHash(0)
 	{
@@ -60,10 +41,87 @@ namespace bs
 	}
 
 	ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-		: TReflectionProbe(type, radius, extents), mLastUpdateHash(0)
+		: ReflectionProbeBase(type, radius, extents), mLastUpdateHash(0)
 	{
 		// Calling virtual method is okay here because this is the most derived type
 		updateBounds();
+	}
+
+	void ReflectionProbe::capture()
+	{
+		if (mCustomTexture != nullptr)
+			return;
+
+		captureAndFilter();
+	}
+
+	void ReflectionProbe::filter()
+	{
+		if (mCustomTexture == nullptr)
+			return;
+
+		captureAndFilter();
+	}
+
+	void ReflectionProbe::captureAndFilter()
+	{
+		// If previous rendering task exists, cancel it
+		if (mRendererTask != nullptr)
+			mRendererTask->cancel();
+
+		TEXTURE_DESC cubemapDesc;
+		cubemapDesc.type = TEX_TYPE_CUBE_MAP;
+		cubemapDesc.format = PF_FLOAT_R11G11B10;
+		cubemapDesc.width = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+		cubemapDesc.height = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+		cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+		cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
+
+		mFilteredTexture = Texture::_createPtr(cubemapDesc);
+
+		auto renderComplete = [this]()
+		{
+			mRendererTask = nullptr;
+		};
+
+		SPtr<ct::ReflectionProbe> coreProbe = getCore();
+		SPtr<ct::Texture> coreTexture = mFilteredTexture->getCore();
+
+		if (mCustomTexture == nullptr)
+		{
+			auto renderReflProbe = [coreTexture, coreProbe]()
+			{
+				ct::gRenderer()->captureSceneCubeMap(coreTexture, coreProbe->getPosition(), true);
+				ct::gIBLUtility().filterCubemapForSpecular(coreTexture, nullptr);
+
+				coreProbe->mFilteredTexture = coreTexture;
+				ct::gRenderer()->notifyReflectionProbeUpdated(coreProbe.get(), true);
+
+				return true;
+			};
+
+			mRendererTask = ct::RendererTask::create("ReflProbeRender", renderReflProbe);
+		}
+		else
+		{
+			SPtr<ct::Texture> coreCustomTex = mCustomTexture->getCore();
+			auto filterReflProbe = [coreCustomTex, coreTexture, coreProbe]()
+			{
+				ct::gRenderer()->captureSceneCubeMap(coreTexture, coreProbe->getPosition(), true);
+				ct::gIBLUtility().scaleCubemap(coreCustomTex, 0, coreTexture, 0);
+				ct::gIBLUtility().filterCubemapForSpecular(coreTexture, nullptr);
+
+				coreProbe->mFilteredTexture = coreTexture;
+				ct::gRenderer()->notifyReflectionProbeUpdated(coreProbe.get(), true);
+
+				return true;
+			};
+
+			mRendererTask = ct::RendererTask::create("ReflProbeRender", filterReflProbe);
+		}
+
+		mRendererTask->onComplete.connect(renderComplete);
+		ct::gRenderer()->addTask(mRendererTask);
 	}
 
 	SPtr<ct::ReflectionProbe> ReflectionProbe::getCore() const
@@ -104,7 +162,12 @@ namespace bs
 
 	SPtr<ct::CoreObject> ReflectionProbe::createCore() const
 	{
-		ct::ReflectionProbe* probe = new (bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents);
+		SPtr<ct::Texture> filteredTexture;
+		if (mFilteredTexture != nullptr)
+			filteredTexture = mFilteredTexture->getCore();
+
+		ct::ReflectionProbe* probe = new (bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents, 
+			filteredTexture);
 		SPtr<ct::ReflectionProbe> probePtr = bs_shared_ptr<ct::ReflectionProbe>(probe);
 		probePtr->mUUID = mUUID;
 		probePtr->_setThisPtr(probePtr);
@@ -143,14 +206,6 @@ namespace bs
 		dataPtr = rttiWriteElem(mBounds, dataPtr);
 		dataPtr = rttiWriteElem(mUUID, dataPtr);
 
-		SPtr<ct::Texture>* customTexture = new (dataPtr)SPtr<ct::Texture>();
-		if (mCustomTexture.isLoaded(false))
-			*customTexture = mCustomTexture->getCore();
-		else
-			*customTexture = nullptr;
-
-		dataPtr += sizeof(SPtr<ct::Texture>);
-
 		return CoreSyncData(buffer, size);
 	}
 
@@ -184,8 +239,9 @@ namespace bs
 
 	namespace ct
 	{
-	ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-			: TReflectionProbe(type, radius, extents), mRendererId(0)
+	ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, 
+		const SPtr<Texture>& filteredTexture)
+		: ReflectionProbeBase(type, radius, extents), mRendererId(0), mFilteredTexture(filteredTexture)
 	{
 
 	}
@@ -223,18 +279,12 @@ namespace bs
 		dataPtr = rttiReadElem(mBounds, dataPtr);
 		dataPtr = rttiReadElem(mUUID, dataPtr);
 
-		SPtr<Texture>* texture = (SPtr<Texture>*)dataPtr;
-
-		mCustomTexture = *texture;
-		texture->~SPtr<Texture>();
-		dataPtr += sizeof(SPtr<Texture>);
-
 		updateBounds();
 
 		if (dirtyFlags == (UINT32)ReflectionProbeDirtyFlag::Transform)
 		{
 			if (mIsActive)
-				gRenderer()->notifyReflectionProbeUpdated(this);
+				gRenderer()->notifyReflectionProbeUpdated(this, false);
 		}
 		else
 		{

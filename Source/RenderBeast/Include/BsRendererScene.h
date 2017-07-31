@@ -105,13 +105,10 @@ namespace bs
 		void registerReflectionProbe(ReflectionProbe* probe);
 
 		/** Updates information about a previously registered reflection probe. */
-		void updateReflectionProbe(ReflectionProbe* probe);
+		void updateReflectionProbe(ReflectionProbe* probe, bool texture);
 
 		/** Removes a reflection probe from the scene. */
 		void unregisterReflectionProbe(ReflectionProbe* probe);
-
-		/** Updates or replaces the filtered reflection texture of the probe at the specified index. */
-		void setReflectionProbeTexture(UINT32 probeIdx, const SPtr<Texture>& texture);
 
 		/** Updates the index at which the reflection probe's texture is stored at, in the global array. */
 		void setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean);

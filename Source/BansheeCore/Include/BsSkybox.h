@@ -80,7 +80,7 @@ namespace bs
 	};
 
 	/** @} */
-	/** @addtogroup Renderer-Engine-Internal
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 

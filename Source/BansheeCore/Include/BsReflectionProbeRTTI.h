@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsReflectionProbe.h"
+#include "BsRenderer.h"
 
 namespace bs
 {
@@ -26,11 +27,21 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mTransitionDistance, 6)
 			BS_RTTI_MEMBER_REFL(mCustomTexture, 7)
 			BS_RTTI_MEMBER_PLAIN(mUUID, 8)
+			BS_RTTI_MEMBER_REFLPTR(mFilteredTexture, 9)
 		BS_END_RTTI_MEMBERS
 	public:
 		ReflectionProbeRTTI()
 			:mInitMembers(this)
 		{ }
+
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
+		{
+			ReflectionProbe* probe = static_cast<ReflectionProbe*>(obj);
+
+			// Force the renderer task to complete, so the filtered texture is up to date
+			if (probe->mRendererTask != nullptr)
+				probe->mRendererTask->wait();
+		}
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{

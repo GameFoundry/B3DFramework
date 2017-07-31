@@ -18,6 +18,7 @@ set(BS_RENDERBEAST_INC_NOFILTER
 	"Include/BsLightProbes.h"
 	"Include/BsRenderCompositor.h"
 	"Include/BsRendererTextures.h"
+	"Include/BsRenderBeastIBLUtility.h"
 )
 
 set(BS_RENDERBEAST_SRC_NOFILTER
@@ -39,6 +40,7 @@ set(BS_RENDERBEAST_SRC_NOFILTER
 	"Source/BsLightProbes.cpp"
 	"Source/BsRenderCompositor.cpp"
 	"Source/BsRendererTextures.cpp"
+	"Source/BsRenderBeastIBLUtility.cpp"
 )
 
 source_group("Header Files" FILES ${BS_RENDERBEAST_INC_NOFILTER})

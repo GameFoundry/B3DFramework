@@ -35,6 +35,7 @@
 #include "BsRenderCompositor.h"
 #include "BsMesh.h"
 #include "BsRendererTextures.h"
+#include "BsRenderBeastIBLUtility.h"
 
 using namespace std::placeholders;
 
@@ -70,6 +71,7 @@ namespace bs { namespace ct
 	{
 		RendererUtility::startUp();
 		GpuResourcePool::startUp();
+		IBLUtility::startUp<RenderBeastIBLUtility>();
 		RendererTextures::startUp();
 
 		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>(); 
@@ -103,6 +105,9 @@ namespace bs { namespace ct
 
 	void RenderBeast::destroyCore()
 	{
+		// Make sure all tasks finish first
+		processTasks(true);
+
 		if (mObjectRenderer != nullptr)
 			bs_delete(mObjectRenderer);
 
@@ -115,6 +120,7 @@ namespace bs { namespace ct
 		bs_delete(mMainViewGroup);
 
 		RendererTextures::shutDown();
+		IBLUtility::shutDown();
 		GpuResourcePool::shutDown();
 		RendererUtility::shutDown();
 	}
@@ -175,9 +181,9 @@ namespace bs { namespace ct
 		mScene->registerReflectionProbe(probe);
 	}
 
-	void RenderBeast::notifyReflectionProbeUpdated(ReflectionProbe* probe)
+	void RenderBeast::notifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture)
 	{
-		mScene->updateReflectionProbe(probe);
+		mScene->updateReflectionProbe(probe, texture);
 	}
 
 	void RenderBeast::notifyReflectionProbeRemoved(ReflectionProbe* probe)
@@ -253,7 +259,9 @@ namespace bs { namespace ct
 			gCoreThread().queueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
 			mOptionsDirty = false;
 		}
-
+		
+		// Execute render tasks, after all scene object information has been synced
+		gCoreThread().queueCommand(std::bind(&RenderBeast::processTasks, this, false));
 		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
 	}
 
@@ -281,7 +289,7 @@ namespace bs { namespace ct
 		sceneInfo.renderableReady.resize(sceneInfo.renderables.size(), false);
 		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
 		
-		FrameInfo frameInfo(delta, animData);
+		FrameInfo frameInfo(delta, &animData);
 
 		// Gather all views
 		Vector<RendererView*> views;
@@ -454,23 +462,6 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("RenderOverlay");
 	}
 	
-	void RenderBeast::renderElement(const BeastRenderableElement& element, UINT32 passIdx, bool bindPass, 
-									const Matrix4& viewProj)
-	{
-		SPtr<Material> material = element.material;
-
-		if (bindPass)
-			gRendererUtility().setPass(material, passIdx, element.techniqueIdx);
-
-		gRendererUtility().setPassParams(element.params, passIdx);
-
-		if(element.morphVertexDeclaration == nullptr)
-			gRendererUtility().draw(element.mesh, element.subMesh);
-		else
-			gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer, 
-				element.morphVertexDeclaration);
-	}
-
 	void RenderBeast::renderReflectionProbes(const FrameInfo& frameInfo)
 	{
 		SceneInfo& sceneInfo = mScene->_getSceneInfo();
@@ -501,18 +492,6 @@ namespace bs { namespace ct
 
 			auto& cubemapArrayProps = sceneInfo.reflProbeCubemapsTex->getProperties();
 
-			TEXTURE_DESC cubemapDesc;
-			cubemapDesc.type = TEX_TYPE_CUBE_MAP;
-			cubemapDesc.format = PF_FLOAT_R11G11B10;
-			cubemapDesc.width = IBLUtility::REFLECTION_CUBEMAP_SIZE;
-			cubemapDesc.height = IBLUtility::REFLECTION_CUBEMAP_SIZE;
-			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
-			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
-
-			SPtr<Texture> scratchCubemap;
-			if (numProbes > 0)
-				scratchCubemap = Texture::create(cubemapDesc);
-
 			FrameQueue<UINT32> emptySlots;
 			for (UINT32 i = 0; i < numProbes; i++)
 			{
@@ -521,31 +500,13 @@ namespace bs { namespace ct
 				if (probeInfo.arrayIdx > MaxReflectionCubemaps)
 					continue;
 
-				SPtr<Texture> texture = probeInfo.texture;
-				if (texture == nullptr)
-					texture = LightProbeCache::instance().getCachedRadianceTexture(probeInfo.probe->getUUID());
-
-				if (texture == nullptr || probeInfo.textureDirty)
-				{
-					texture = Texture::create(cubemapDesc);
-
-					if (!probeInfo.customTexture)
-						captureSceneCubeMap(texture, probeInfo.probe->getPosition(), true, frameInfo);
-					else
-					{
-						SPtr<Texture> customTexture = probeInfo.probe->getCustomTexture();
-						IBLUtility::scaleCubemap(customTexture, 0, texture, 0);
-					}
-
-					IBLUtility::filterCubemapForSpecular(texture, scratchCubemap);
-					LightProbeCache::instance().setCachedRadianceTexture(probeInfo.probe->getUUID(), texture);
-				}
-
-				mScene->setReflectionProbeTexture(i, texture);
-
 				if(probeInfo.arrayDirty || forceArrayUpdate)
 				{
-					auto& srcProps = probeInfo.texture->getProperties();
+					SPtr<Texture> texture = probeInfo.probe->getFilteredTexture();
+					if (texture == nullptr)
+						continue;
+
+					auto& srcProps = texture->getProperties();
 					bool isValid = srcProps.getWidth() == IBLUtility::REFLECTION_CUBEMAP_SIZE && 
 						srcProps.getHeight() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
 						srcProps.getNumMipmaps() == cubemapArrayProps.getNumMipmaps() &&
@@ -567,7 +528,7 @@ namespace bs { namespace ct
 					{
 						for(UINT32 face = 0; face < 6; face++)
 							for(UINT32 mip = 0; mip <= srcProps.getNumMipmaps(); mip++)
-								probeInfo.texture->copy(sceneInfo.reflProbeCubemapsTex, face, mip, probeInfo.arrayIdx * 6 + face, mip);
+								texture->copy(sceneInfo.reflProbeCubemapsTex, face, mip, probeInfo.arrayIdx * 6 + face, mip);
 					}
 
 					mScene->setReflectionProbeArrayIndex(i, probeInfo.arrayIdx, true);
@@ -603,8 +564,8 @@ namespace bs { namespace ct
 
 					sky.filteredReflections = Texture::create(cubemapDesc);
 
-					IBLUtility::scaleCubemap(sky.radiance, 0, sky.filteredReflections, 0);
-					IBLUtility::filterCubemapForSpecular(sky.filteredReflections, nullptr);
+					gIBLUtility().scaleCubemap(sky.radiance, 0, sky.filteredReflections, 0);
+					gIBLUtility().filterCubemapForSpecular(sky.filteredReflections, nullptr);
 					LightProbeCache::instance().setCachedRadianceTexture(sky.skybox->getUUID(), sky.filteredReflections);
 				}
 			}
@@ -625,7 +586,7 @@ namespace bs { namespace ct
 
 					sky.irradiance = Texture::create(irradianceCubemapDesc);
 
-					IBLUtility::filterCubemapForIrradiance(sky.filteredReflections, sky.irradiance);
+					gIBLUtility().filterCubemapForIrradiance(sky.filteredReflections, sky.irradiance);
 					LightProbeCache::instance().setCachedIrradianceTexture(sky.skybox->getUUID(), sky.filteredReflections);
 				}
 			}
@@ -637,7 +598,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr, const FrameInfo& frameInfo)
+	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr)
 	{
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 		auto& texProps = cubemap->getProperties();
@@ -751,7 +712,7 @@ namespace bs { namespace ct
 		RendererViewGroup viewGroup(viewPtrs, 6, mCoreOptions->shadowMapSize);
 		viewGroup.determineVisibility(sceneInfo);
 
+		FrameInfo frameInfo(1.0f/60.0f);
 		renderViews(viewGroup, frameInfo);
 	}
-
 }}

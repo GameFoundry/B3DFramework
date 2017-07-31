@@ -11,7 +11,7 @@
 
 namespace bs
 {
-	/** @addtogroup Renderer-Engine-Internal
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 
@@ -135,48 +135,50 @@ namespace bs
 		Sphere mBounds; /**< Sphere that bounds the light area of influence. */
 	};
 
-	/** Templated base class for both core and sim thread implementations of a reflection probe. */
-	template<bool Core>
-	class BS_CORE_EXPORT TReflectionProbe : public ReflectionProbeBase
-	{
-		typedef typename TTextureType<Core>::Type TextureType;
-
-	public:
-		TReflectionProbe();
-		TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
-		virtual ~TReflectionProbe() { }
-
-		/** 
-		 * Allows you assign a custom texture to use as a reflection map. This will disable automatic generation of
-		 * reflections. To re-enable auto-generation call this with a null parameter.
-		 */
-		void setCustomTexture(const TextureType& texture) { mCustomTexture = texture; _markCoreDirty(); }
-
-		/** Gets the custom texture assigned through setCustomTexture(). */
-		TextureType getCustomTexture() const { return mCustomTexture; }
-
-		/** Forces the reflection probe to regenerate its texture. Call is ignored if the probe uses a custom texture. */
-		void generate();
-
-	protected:
-		TextureType mCustomTexture;
-	};
-
-
 	/** @} */
-	/** @addtogroup Renderer-Engine-Internal
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 
-	namespace ct { class ReflectionProbe; }
+	namespace ct 
+	{
+		class RendererTask;
+		class ReflectionProbe; 
+	}
 
 	/**
 	 * Specifies a location at which a pre-computed texture containing scene radiance will be generated. This texture will
 	 * then be used by the renderer to provide specular reflections.
 	 */
-	class BS_CORE_EXPORT ReflectionProbe : public IReflectable, public CoreObject, public TReflectionProbe<false>
+	class BS_CORE_EXPORT ReflectionProbe : public IReflectable, public CoreObject, public ReflectionProbeBase
 	{
 	public:
+		/** 
+		 * Allows you assign a custom texture to use as a reflection map. This will disable automatic generation of
+		 * reflections. To re-enable auto-generation call this with a null parameter.
+		 */
+		void setCustomTexture(const HTexture& texture) { mCustomTexture = texture; filter(); }
+
+		/** Gets the custom texture assigned through setCustomTexture(). */
+		HTexture getCustomTexture() const { return mCustomTexture; }
+
+		/** 
+		 * Returns a pre-filtered texture that is generated either from the provided custom texture, or from scene capture.
+		 */
+		SPtr<Texture> getFilteredTexture() const { return mFilteredTexture; }
+
+		/** 
+		 * Captures the scene at the current location and generates a filtered reflection cubemap. No action is taken
+		 * if a custom texture is set.
+		 */
+		void capture();
+
+		/** 
+		 * Filters the custom texture, making it usable for rendering. Called automatically when custom texture changes. If 
+		 * no custom texture is set, no action is taken.
+		 */
+		void filter();
+
 		/**	Retrieves an implementation of the reflection probe usable only from the core thread. */
 		SPtr<ct::ReflectionProbe> getCore() const;
 
@@ -222,10 +224,20 @@ namespace bs
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
+		/** 
+		 * Captures the scene color at current probe location and generates a filtered map. If a custom texture is set then
+		 * it will be filtered, instead of capturing scene color.
+		 */
+		void captureAndFilter();
+
 		/**	Creates a light with without initializing it. Used for serialization. */
 		static SPtr<ReflectionProbe> createEmpty();
 
 		UINT32 mLastUpdateHash;
+		HTexture mCustomTexture;
+
+		SPtr<ct::RendererTask> mRendererTask;
+		SPtr<Texture> mFilteredTexture;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -242,7 +254,7 @@ namespace bs
 	namespace ct
 	{
 	/** Core thread usable version of a bs::ReflectionProbe */
-	class BS_CORE_EXPORT ReflectionProbe : public CoreObject, public TReflectionProbe<true>
+	class BS_CORE_EXPORT ReflectionProbe : public CoreObject, public ReflectionProbeBase
 	{
 	public:
 		~ReflectionProbe();
@@ -252,10 +264,16 @@ namespace bs
 
 		/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
 		UINT32 getRendererId() const { return mRendererId; }
+
+		/** 
+		 * Returns a pre-filtered texture that is generated either from the provided custom texture, or from scene capture.
+		 */
+		SPtr<Texture> getFilteredTexture() const { return mFilteredTexture; }
 	protected:
 		friend class bs::ReflectionProbe;
 
-		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
+		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, 
+			const SPtr<Texture>& filteredTexture);
 
 		/** @copydoc CoreObject::initialize */
 		void initialize() override;
@@ -264,6 +282,7 @@ namespace bs
 		void syncToCore(const CoreSyncData& data) override;
 
 		UINT32 mRendererId;
+		SPtr<Texture> mFilteredTexture;
 	};
 	}
 

@@ -88,7 +88,6 @@ set(BS_BANSHEEENGINE_INC_RENDERER
 	"Include/BsRenderQueue.h"
 	"Include/BsRendererUtility.h"
 	"Include/BsLightProbeCache.h"
-	"Include/BsIBLUtility.h"
 )
 
 set(BS_BANSHEEENGINE_SRC_RTTI
@@ -175,7 +174,6 @@ set(BS_BANSHEEENGINE_SRC_RENDERER
 	"Source/BsRenderQueue.cpp"
 	"Source/BsRendererUtility.cpp"
 	"Source/BsLightProbeCache.cpp"
-	"Source/BsIBLUtility.cpp"
 )
 
 set(BS_BANSHEEENGINE_SRC_INPUT

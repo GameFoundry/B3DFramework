@@ -238,6 +238,10 @@ namespace bs
 			// Send out resource events in case any were loaded/destroyed/modified
 			ResourceListenerManager::instance().update();
 
+			// Trigger any renderer task callbacks (should be done before scene object update, or core sync, so objects have
+			// a chance to respond to the callback).
+			RendererManager::instance().getActive()->update();
+
 			gSceneManager()._updateCoreObjectTransforms();
 			PROFILE_CALL(RendererManager::instance().getActive()->renderAll(), "Render");
 

@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsIBLUtility.h"
+#include "BsRenderBeastIBLUtility.h"
 #include "BsTexture.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererUtility.h"
@@ -277,10 +277,7 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	const UINT32 IBLUtility::REFLECTION_CUBEMAP_SIZE = 256;
-	const UINT32 IBLUtility::IRRADIANCE_CUBEMAP_SIZE = 32;
-
-	void IBLUtility::filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch)
+	void RenderBeastIBLUtility::filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
 	{
 		auto& props = cubemap->getProperties();
 
@@ -342,7 +339,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	void IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output)
+	void RenderBeastIBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const
 	{
 		IrradianceComputeSHMat* shCompute = IrradianceComputeSHMat::getVariation(5);
 		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::getVariation(5);
@@ -369,8 +366,8 @@ namespace bs { namespace ct
 		}
 	}
 
-	void IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<GpuBuffer>& output, 
-		UINT32 outputIdx)
+	void RenderBeastIBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<GpuBuffer>& output, 
+		UINT32 outputIdx) const
 	{
 		IrradianceComputeSHMat* shCompute = IrradianceComputeSHMat::getVariation(3);
 		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::getVariation(3);
@@ -383,7 +380,8 @@ namespace bs { namespace ct
 		shReduce->execute(coeffSetBuffer, numCoeffSets, output, outputIdx);
 	}
 
-	void IBLUtility::scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
+	void RenderBeastIBLUtility::scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, 
+		UINT32 dstMip) const
 	{
 		auto& srcProps = src->getProperties();
 		auto& dstProps = dst->getProperties();
@@ -428,7 +426,8 @@ namespace bs { namespace ct
 			downsampleCubemap(scratchTex, srcMip, dst, dstMip);
 	}
 
-	void IBLUtility::downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip)
+	void RenderBeastIBLUtility::downsampleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, 
+		UINT32 dstMip)
 	{
 		for (UINT32 face = 0; face < 6; face++)
 		{

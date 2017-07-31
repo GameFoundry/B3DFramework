@@ -41,6 +41,16 @@ namespace bs
 			mInternal = ReflectionProbe::createBox(Vector3::ONE);
 
 		gSceneManager()._registerReflectionProbe(mInternal, sceneObject());
+
+		// If filtered texture doesn't exist, ensure it is generated
+		SPtr<Texture> filteredTexture = mInternal->getFilteredTexture();
+		if(filteredTexture == nullptr)
+		{
+			if (mInternal->getCustomTexture())
+				mInternal->filter();
+			else
+				mInternal->capture();
+		}
 	}
 
 	void CReflectionProbe::onDestroyed()
