@@ -176,13 +176,6 @@ namespace bs
 		virtual void notifySkyboxAdded(Skybox* skybox) { }
 
 		/**
-		 * Called whenever the texture assigned to a skybox is changed.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void notifySkyboxTextureChanged(Skybox* skybox) { }
-
-		/**
 		 * Called whenever a skybox is destroyed.
 		 *
 		 * @note	Core thread.

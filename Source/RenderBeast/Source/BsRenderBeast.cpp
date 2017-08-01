@@ -14,7 +14,6 @@
 #include "BsShader.h"
 #include "BsGpuParamBlockBuffer.h"
 #include "BsTime.h"
-#include "BsRenderableElement.h"
 #include "BsCoreObjectManager.h"
 #include "BsRenderBeastOptions.h"
 #include "BsLight.h"
@@ -22,18 +21,13 @@
 #include "BsRendererUtility.h"
 #include "BsAnimationManager.h"
 #include "BsSkeleton.h"
-#include "BsGpuBuffer.h"
-#include "BsGpuParamsSet.h"
 #include "BsRendererExtension.h"
-#include "BsLightProbeCache.h"
 #include "BsReflectionProbe.h"
 #include "BsIBLUtility.h"
-#include "BsLightGrid.h"
 #include "BsSkybox.h"
-#include "BsShadowRendering.h"
 #include "BsStandardDeferredLighting.h"
+#include "BsShadowRendering.h"
 #include "BsRenderCompositor.h"
-#include "BsMesh.h"
 #include "BsRendererTextures.h"
 #include "BsRenderBeastIBLUtility.h"
 
@@ -211,11 +205,6 @@ namespace bs { namespace ct
 		mScene->registerSkybox(skybox);
 	}
 
-	void RenderBeast::notifySkyboxTextureChanged(Skybox* skybox)
-	{
-		mScene->updateSkybox(skybox);
-	}
-
 	void RenderBeast::notifySkyboxRemoved(Skybox* skybox)
 	{
 		mScene->unregisterSkybox(skybox);
@@ -314,9 +303,8 @@ namespace bs { namespace ct
 		ShadowRendering& shadowRenderer = mMainViewGroup->getShadowRenderer();
 		shadowRenderer.renderShadowMaps(*mScene, *mMainViewGroup, frameInfo);
 
-		// Update reflection probe and skybox textures, if required
-		renderReflectionProbes(frameInfo);
-		updateSkybox();
+		// Update reflection probe array if required
+		updateReflProbeArray();
 
 		// Render everything
 		renderViews(*mMainViewGroup, frameInfo);
@@ -462,7 +450,7 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("RenderOverlay");
 	}
 	
-	void RenderBeast::renderReflectionProbes(const FrameInfo& frameInfo)
+	void RenderBeast::updateReflProbeArray()
 	{
 		SceneInfo& sceneInfo = mScene->_getSceneInfo();
 		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
@@ -538,64 +526,6 @@ namespace bs { namespace ct
 			}
 		}
 		bs_frame_clear();
-	}
-
-	void RenderBeast::updateSkybox()
-	{
-		SkyInfo& sky = mScene->_getSceneInfo().sky;
-
-		// Get skybox image-based lighting textures if needed/available
-		if (sky.skybox != nullptr && sky.radiance != nullptr)
-		{
-			// If haven't assigned them already, do it now
-			if (sky.filteredReflections == nullptr)
-			{
-				if (!LightProbeCache::instance().isRadianceDirty(sky.skybox->getUUID()))
-					sky.filteredReflections = LightProbeCache::instance().getCachedRadianceTexture(sky.skybox->getUUID());
-				else
-				{
-					TEXTURE_DESC cubemapDesc;
-					cubemapDesc.type = TEX_TYPE_CUBE_MAP;
-					cubemapDesc.format = PF_FLOAT_R11G11B10;
-					cubemapDesc.width = IBLUtility::REFLECTION_CUBEMAP_SIZE;
-					cubemapDesc.height = IBLUtility::REFLECTION_CUBEMAP_SIZE;
-					cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
-					cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
-
-					sky.filteredReflections = Texture::create(cubemapDesc);
-
-					gIBLUtility().scaleCubemap(sky.radiance, 0, sky.filteredReflections, 0);
-					gIBLUtility().filterCubemapForSpecular(sky.filteredReflections, nullptr);
-					LightProbeCache::instance().setCachedRadianceTexture(sky.skybox->getUUID(), sky.filteredReflections);
-				}
-			}
-
-			if(sky.irradiance == nullptr)
-			{
-				if (!LightProbeCache::instance().isIrradianceDirty(sky.skybox->getUUID()))
-					sky.irradiance = LightProbeCache::instance().getCachedIrradianceTexture(sky.skybox->getUUID());
-				else
-				{
-					TEXTURE_DESC irradianceCubemapDesc;
-					irradianceCubemapDesc.type = TEX_TYPE_CUBE_MAP;
-					irradianceCubemapDesc.format = PF_FLOAT_R11G11B10;
-					irradianceCubemapDesc.width = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
-					irradianceCubemapDesc.height = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
-					irradianceCubemapDesc.numMips = 0;
-					irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
-
-					sky.irradiance = Texture::create(irradianceCubemapDesc);
-
-					gIBLUtility().filterCubemapForIrradiance(sky.filteredReflections, sky.irradiance);
-					LightProbeCache::instance().setCachedIrradianceTexture(sky.skybox->getUUID(), sky.filteredReflections);
-				}
-			}
-		}
-		else
-		{
-			sky.filteredReflections = nullptr;
-			sky.irradiance = nullptr;
-		}
 	}
 
 	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, bool hdr)

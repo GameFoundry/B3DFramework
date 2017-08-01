@@ -21,7 +21,6 @@
 #include "BsPlatform.h"
 #include "BsEngineShaderIncludeHandler.h"
 #include "BsEngineConfig.h"
-#include "BsLightProbeCache.h"
 
 namespace bs
 {
@@ -43,7 +42,6 @@ namespace bs
 		ShortcutManager::shutDown();
 		GUIManager::shutDown();
 		SpriteManager::shutDown();
-		ct::LightProbeCache::shutDown();
 		BuiltinResources::shutDown();
 		RendererMaterialManager::shutDown();
 		VirtualInput::shutDown();
@@ -58,7 +56,6 @@ namespace bs
 
 		VirtualInput::startUp();
 		BuiltinResources::startUp();
-		ct::LightProbeCache::startUp();
 		RendererMaterialManager::startUp();
 		RendererManager::instance().initialize();
 		SpriteManager::startUp();

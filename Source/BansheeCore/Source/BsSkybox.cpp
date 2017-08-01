@@ -7,6 +7,7 @@
 #include "BsTexture.h"
 #include "BsRenderer.h"
 #include "BsUUID.h"
+#include "BsIBLUtility.h"
 
 namespace bs
 {
@@ -23,7 +24,75 @@ namespace bs
 	template class TSkybox<false>;
 
 	Skybox::Skybox()
-	{ }
+	{
+		// This shouldn't normally happen, as filtered textures are generated when a radiance texture is assigned, but
+		// we check for it anyway (something could have gone wrong).
+		if(mTexture.isLoaded())
+		{
+			if (mFilteredRadiance == nullptr || mIrradiance == nullptr)
+				filterTexture();
+		}
+	}
+
+	void Skybox::filterTexture()
+	{
+		// If previous rendering task exists, cancel it
+		if (mRendererTask != nullptr)
+			mRendererTask->cancel();
+
+		{
+			TEXTURE_DESC cubemapDesc;
+			cubemapDesc.type = TEX_TYPE_CUBE_MAP;
+			cubemapDesc.format = PF_FLOAT_R11G11B10;
+			cubemapDesc.width = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+			cubemapDesc.height = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
+
+			mFilteredRadiance = Texture::_createPtr(cubemapDesc);
+		}
+
+		{
+			TEXTURE_DESC irradianceCubemapDesc;
+			irradianceCubemapDesc.type = TEX_TYPE_CUBE_MAP;
+			irradianceCubemapDesc.format = PF_FLOAT_R11G11B10;
+			irradianceCubemapDesc.width = ct::IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
+			irradianceCubemapDesc.height = ct::IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
+			irradianceCubemapDesc.numMips = 0;
+			irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
+
+			mIrradiance = Texture::_createPtr(irradianceCubemapDesc);
+		}
+
+		auto renderComplete = [this]()
+		{
+			mRendererTask = nullptr;
+		};
+
+		SPtr<ct::Skybox> coreSkybox = getCore();
+		SPtr<ct::Texture> coreFilteredRadiance = mFilteredRadiance->getCore();
+		SPtr<ct::Texture> coreIrradiance = mIrradiance->getCore();
+
+		auto filterSkybox = [coreFilteredRadiance, coreIrradiance, coreSkybox]()
+		{
+			// Filter radiance
+			ct::gIBLUtility().scaleCubemap(coreSkybox->getTexture(), 0, coreFilteredRadiance, 0);
+			ct::gIBLUtility().filterCubemapForSpecular(coreFilteredRadiance, nullptr);
+
+			coreSkybox->mFilteredRadiance = coreFilteredRadiance;
+
+			// Generate irradiance
+			ct::gIBLUtility().filterCubemapForIrradiance(coreFilteredRadiance, coreIrradiance);
+			coreSkybox->mIrradiance = coreIrradiance;
+
+			return true;
+		};
+
+		mRendererTask = ct::RendererTask::create("SkyboxFilter", filterSkybox);
+
+		mRendererTask->onComplete.connect(renderComplete);
+		ct::gRenderer()->addTask(mRendererTask);
+	}
 
 	SPtr<ct::Skybox> Skybox::getCore() const
 	{
@@ -43,7 +112,15 @@ namespace bs
 
 	SPtr<ct::CoreObject> Skybox::createCore() const
 	{
-		ct::Skybox* skybox = new (bs_alloc<ct::Skybox>()) ct::Skybox();
+		SPtr<ct::Texture> filteredRadiance;
+		if (mFilteredRadiance)
+			filteredRadiance = mFilteredRadiance->getCore();
+
+		SPtr<ct::Texture> irradiance;
+		if (mIrradiance)
+			irradiance = mIrradiance->getCore();
+
+		ct::Skybox* skybox = new (bs_alloc<ct::Skybox>()) ct::Skybox(filteredRadiance, irradiance);
 		SPtr<ct::Skybox> skyboxPtr = bs_shared_ptr<ct::Skybox>(skybox);
 		skyboxPtr->mUUID = mUUID;
 		skyboxPtr->_setThisPtr(skyboxPtr);
@@ -81,6 +158,9 @@ namespace bs
 
 	void Skybox::_markCoreDirty(SkyboxDirtyFlag flags)
 	{
+		if(flags == SkyboxDirtyFlag::Texture)
+			filterTexture();
+
 		markCoreDirty((UINT32)flags);
 	}
 
@@ -96,7 +176,8 @@ namespace bs
 
 	namespace ct
 	{
-		Skybox::Skybox()
+		Skybox::Skybox(const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance)
+			:mFilteredRadiance(filteredRadiance), mIrradiance(irradiance)
 		{ }
 
 		Skybox::~Skybox()
@@ -138,9 +219,7 @@ namespace bs
 			}
 			else
 			{
-				if (dirtyFlags == SkyboxDirtyFlag::Texture)
-					gRenderer()->notifySkyboxTextureChanged(this);
-				else
+				if (dirtyFlags != SkyboxDirtyFlag::Texture)
 				{
 					gRenderer()->notifySkyboxRemoved(this);
 					gRenderer()->notifySkyboxAdded(this);

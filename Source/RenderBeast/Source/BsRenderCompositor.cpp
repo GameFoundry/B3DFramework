@@ -17,6 +17,7 @@
 #include "BsObjectRendering.h"
 #include "BsGpuParamsSet.h"
 #include "BsRendererExtension.h"
+#include "BsSkybox.h"
 
 namespace bs { namespace ct
 {
@@ -729,8 +730,16 @@ namespace bs { namespace ct
 
 		// Prepare refl. probe param buffer
 		ReflProbeParamBuffer reflProbeParamBuffer;
-		reflProbeParamBuffer.populate(sceneInfo.sky, visibleReflProbeData, sceneInfo.reflProbeCubemapsTex, 
+		reflProbeParamBuffer.populate(sceneInfo.skybox, visibleReflProbeData, sceneInfo.reflProbeCubemapsTex, 
 			viewProps.renderingReflections);
+
+		SPtr<Texture> skyFilteredRadiance;
+		SPtr<Texture> skyIrradiance;
+		if(sceneInfo.skybox)
+		{
+			skyFilteredRadiance = sceneInfo.skybox->getFilteredRadiance();
+			skyIrradiance = sceneInfo.skybox->getIrradiance();
+		}
 
 		// Prepare objects for rendering
 		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
@@ -766,8 +775,8 @@ namespace bs { namespace ct
 				iblParams.reflectionProbeIndicesParam.set(gridProbeIndices);
 				iblParams.reflectionProbesParam.set(visibleReflProbeData.getProbeBuffer());
 
-				iblParams.skyReflectionsTexParam.set(sceneInfo.sky.filteredReflections);
-				iblParams.skyIrradianceTexParam.set(sceneInfo.sky.irradiance);
+				iblParams.skyReflectionsTexParam.set(skyFilteredRadiance);
+				iblParams.skyIrradianceTexParam.set(skyIrradiance);
 
 				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
 				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
@@ -824,13 +833,14 @@ namespace bs { namespace ct
 
 	void RCNodeSkybox::render(const RenderCompositorNodeInputs& inputs)
 	{
-		const SkyInfo& sky = inputs.scene.sky;
+		Skybox* skybox = inputs.scene.skybox;
+		SPtr<Texture> radiance = skybox ? skybox->getTexture() : nullptr;
 
-		if (sky.radiance != nullptr)
+		if (radiance != nullptr)
 		{
 			SkyboxMat* material = SkyboxMat::getVariation(false);
 			material->bind(inputs.view.getPerViewBuffer());
-			material->setParams(sky.radiance, Color::White);
+			material->setParams(radiance, Color::White);
 		}
 		else
 		{

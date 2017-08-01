@@ -8,6 +8,11 @@
 
 namespace bs
 {
+	namespace ct
+	{
+		class RendererTask;
+	}
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -99,6 +104,12 @@ namespace bs
 	protected:
 		Skybox();
 
+		/** 
+		 * Filters the skybox radiance texture, generating filtered radiance (for reflections) and irradiance. Should be 
+		 * called any time the skybox texture changes. 
+		 */
+		void filterTexture();
+
 		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> createCore() const override;
 
@@ -107,6 +118,10 @@ namespace bs
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
+
+		SPtr<Texture> mFilteredRadiance;
+		SPtr<Texture> mIrradiance;
+		SPtr<ct::RendererTask> mRendererTask;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -125,16 +140,30 @@ namespace bs
 		public:
 			~Skybox();
 
+			/** 
+			 * Returns a texture containing filtered version of the radiance texture used for reflections. This might not
+			 * be available if it hasn't been generated yet.
+			 */
+			SPtr<Texture> getFilteredRadiance() const { return mFilteredRadiance; }
+
+			/**
+			 * Returns a texture containing sky irradiance. This might not be available if it hasn't been generated yet.
+			 */
+			SPtr<Texture> getIrradiance() const { return mIrradiance; }
+
 		protected:
 			friend class bs::Skybox;
 
-			Skybox();
+			Skybox(const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
 
 			/** @copydoc CoreObject::initialize */
 			void initialize() override;
 
 			/** @copydoc CoreObject::syncToCore */
 			void syncToCore(const CoreSyncData& data) override;
+
+			SPtr<Texture> mFilteredRadiance;
+			SPtr<Texture> mIrradiance;
 		};
 	}
 

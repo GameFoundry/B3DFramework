@@ -119,7 +119,7 @@ namespace bs { namespace ct
 		ReflProbeParamBuffer();
 
 		/** Updates the parameter buffer contents with require refl. probe data. */
-		void populate(const SkyInfo& sky, const VisibleReflProbeData& probeData, 
+		void populate(const Skybox* sky, const VisibleReflProbeData& probeData, 
 			const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
 
 		SPtr<GpuParamBlockBuffer> buffer;

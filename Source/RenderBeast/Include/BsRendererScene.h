@@ -24,16 +24,6 @@ namespace bs
 	// Limited by max number of array elements in texture for DX11 hardware
 	constexpr UINT32 MaxReflectionCubemaps = 2048 / 6;
 
-	/** Contains information about the skybox in the current scene. */
-	struct SkyInfo
-	{
-		Skybox* skybox = nullptr;
-
-		SPtr<Texture> radiance;
-		SPtr<Texture> filteredReflections;
-		SPtr<Texture> irradiance;
-	};
-
 	/** Contains most scene objects relevant to the renderer. */
 	struct SceneInfo
 	{
@@ -60,7 +50,7 @@ namespace bs
 		SPtr<Texture> reflProbeCubemapsTex;
 
 		// Sky
-		SkyInfo sky;
+		Skybox* skybox = nullptr;
 
 		// Buffers for various transient data that gets rebuilt every frame
 		//// Rebuilt every frame
@@ -115,9 +105,6 @@ namespace bs
 
 		/** Registers a new sky texture in the scene. */
 		void registerSkybox(Skybox* skybox);
-
-		/** Updates information about the previously registered skybox. */
-		void updateSkybox(Skybox* skybox);
 
 		/** Removes a skybox from the scene. */
 		void unregisterSkybox(Skybox* skybox);

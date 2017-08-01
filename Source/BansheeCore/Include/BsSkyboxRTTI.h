@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsRTTIType.h"
 #include "BsSkybox.h"
+#include "BsRenderer.h"
 
 namespace bs
 {
@@ -20,11 +21,22 @@ namespace bs
 			BS_RTTI_MEMBER_REFL(mTexture, 0)
 			BS_RTTI_MEMBER_PLAIN(mUUID, 1)
 			BS_RTTI_MEMBER_PLAIN(mBrightness, 2)
+			BS_RTTI_MEMBER_REFLPTR(mFilteredRadiance, 3)
+			BS_RTTI_MEMBER_REFLPTR(mIrradiance, 4)
 		BS_END_RTTI_MEMBERS
 	public:
-        SkyboxRTTI()
+		SkyboxRTTI()
 			:mInitMembers(this)
 		{ }
+
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
+		{
+			Skybox* skybox = static_cast<Skybox*>(obj);
+
+			// Make sure that the renderer finishes generating filtered radiance and irradiance before saving
+			if (skybox->mRendererTask)
+				skybox->mRendererTask->wait();
+		}
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{

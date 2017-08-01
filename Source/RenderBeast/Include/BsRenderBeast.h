@@ -121,9 +121,6 @@ namespace bs
 		/** @copydoc Renderer::notifySkyboxAdded */
 		void notifySkyboxAdded(Skybox* skybox) override;
 
-		/** @copydoc Renderer::notifySkyboxTextureChanged */
-		void notifySkyboxTextureChanged(Skybox* skybox) override;
-
 		/** @copydoc Renderer::notifySkyboxRemoved */
 		void notifySkyboxRemoved(Skybox* skybox) override;
 
@@ -171,11 +168,8 @@ namespace bs
 		/**	Destroys data used by the renderer on the core thread. */
 		void destroyCore();
 
-		/** Updates light probes, rendering & filtering ones that are dirty and updating the global probe cubemap array. */
-		void renderReflectionProbes(const FrameInfo& frameInfo);
-
-		/** Renders the skybox filtered reflections and irradiance cubemap, if they require updating. */
-		void updateSkybox();
+		/** Updates the global reflection probe cubemap array with changed probe textures. */
+		void updateReflProbeArray();
 
 		// Core thread only fields
 

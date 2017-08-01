@@ -3,7 +3,6 @@
 #include "BsRendererScene.h"
 #include "BsCamera.h"
 #include "BsLight.h"
-#include "BsLightProbeCache.h"
 #include "BsReflectionProbe.h"
 #include "BsMesh.h"
 #include "BsRenderer.h"
@@ -460,8 +459,6 @@ namespace bs {	namespace ct
 		// Last element is the one we want to erase
 		mInfo.radialLights.erase(mInfo.radialLights.end() - 1);
 		mInfo.radialLightWorldBounds.erase(mInfo.radialLightWorldBounds.end() - 1);
-
-		LightProbeCache::instance().unloadCachedTexture(probe->getUUID());
 	}
 
 	void RendererScene::setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)
@@ -475,38 +472,13 @@ namespace bs {	namespace ct
 
 	void RendererScene::registerSkybox(Skybox* skybox)
 	{
-		mInfo.sky.skybox = skybox;
-
-		SPtr<Texture> skyTex = skybox->getTexture();
-		if (skyTex != nullptr && skyTex->getProperties().getTextureType() == TEX_TYPE_CUBE_MAP)
-			mInfo.sky.radiance = skyTex;
-
-		mInfo.sky.filteredReflections = nullptr;
-		mInfo.sky.irradiance = nullptr;
-	}
-
-	void RendererScene::updateSkybox(Skybox* skybox)
-	{
-		LightProbeCache::instance().notifyDirty(skybox->getUUID());
-
-		if (mInfo.sky.skybox == skybox)
-		{
-			mInfo.sky.radiance = skybox->getTexture();
-			mInfo.sky.filteredReflections = nullptr;
-			mInfo.sky.irradiance = nullptr;
-		}
+		mInfo.skybox = skybox;
 	}
 
 	void RendererScene::unregisterSkybox(Skybox* skybox)
 	{
-		LightProbeCache::instance().unloadCachedTexture(skybox->getUUID());
-
-		if (mInfo.sky.skybox == skybox)
-		{
-			mInfo.sky.radiance = nullptr;
-			mInfo.sky.filteredReflections = nullptr;
-			mInfo.sky.irradiance = nullptr;
-		}
+		if (mInfo.skybox == skybox)
+			mInfo.skybox = nullptr;
 	}
 
 	void RendererScene::setOptions(const SPtr<RenderBeastOptions>& options)

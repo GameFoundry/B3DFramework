@@ -6,7 +6,6 @@
 #include "BsGpuBuffer.h"
 #include "BsGpuParamsSet.h"
 #include "BsReflectionProbe.h"
-#include "BsLightProbeCache.h"
 #include "BsGpuParamsSet.h"
 #include "BsRenderBeast.h"
 #include "BsRendererUtility.h"
@@ -138,20 +137,24 @@ namespace bs { namespace ct
 		buffer = gReflProbeParamsParamDef.createBuffer();
 	}
 
-	void ReflProbeParamBuffer::populate(const SkyInfo& sky, const VisibleReflProbeData& probeData, 
+	void ReflProbeParamBuffer::populate(const Skybox* sky, const VisibleReflProbeData& probeData, 
 		const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
 	{
+		float brightness = 1.0f;
 		UINT32 skyReflectionsAvailable = 0;
 		UINT32 numSkyMips = 0;
-		if (sky.filteredReflections != nullptr)
-		{
-			numSkyMips = sky.filteredReflections->getProperties().getNumMipmaps() + 1;
-			skyReflectionsAvailable = 1;
-		}
 
-		float brightness = 1.0f;
-		if (sky.skybox != nullptr)
-			brightness = sky.skybox->getBrightness();
+		if(sky != nullptr)
+		{
+			SPtr<Texture> filteredReflections = sky->getFilteredRadiance();
+			if (filteredReflections)
+			{
+				numSkyMips = filteredReflections->getProperties().getNumMipmaps() + 1;
+				skyReflectionsAvailable = 1;
+			}
+
+			brightness = sky->getBrightness();
+		}
 
 		gReflProbeParamsParamDef.gSkyCubemapNumMips.set(buffer, numSkyMips);
 		gReflProbeParamsParamDef.gSkyCubemapAvailable.set(buffer, skyReflectionsAvailable);
@@ -236,7 +239,7 @@ namespace bs { namespace ct
 		framebufferSize[1] = height;
 		gTiledImageBasedLightingParamDef.gFramebufferSize.set(mParamBuffer, framebufferSize);
 
-		mReflProbeParamBuffer.populate(sceneInfo.sky, probeData, sceneInfo.reflProbeCubemapsTex, 
+		mReflProbeParamBuffer.populate(sceneInfo.skybox, probeData, sceneInfo.reflProbeCubemapsTex, 
 			viewProps.renderingReflections);
 
 		mParamBuffer->flushToGPU();
@@ -247,11 +250,19 @@ namespace bs { namespace ct
 		mGBufferC.set(inputs.gbuffer.roughMetal);
 		mGBufferDepth.set(inputs.gbuffer.depth);
 
+		SPtr<Texture> skyFilteredRadiance;
+		SPtr<Texture> skyIrradiance;
+		if(sceneInfo.skybox)
+		{
+			skyFilteredRadiance = sceneInfo.skybox->getFilteredRadiance();
+			skyIrradiance = sceneInfo.skybox->getIrradiance();
+		}
+
 		mImageBasedParams.preintegratedEnvBRDFParam.set(inputs.preIntegratedGF);
 		mImageBasedParams.reflectionProbesParam.set(probeData.getProbeBuffer());
 		mImageBasedParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
-		mImageBasedParams.skyReflectionsTexParam.set(sceneInfo.sky.filteredReflections);
-		mImageBasedParams.skyIrradianceTexParam.set(sceneInfo.sky.irradiance);
+		mImageBasedParams.skyReflectionsTexParam.set(skyFilteredRadiance);
+		mImageBasedParams.skyIrradianceTexParam.set(skyIrradiance);
 
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 
