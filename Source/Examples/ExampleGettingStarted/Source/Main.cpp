@@ -190,7 +190,7 @@ namespace bs
 				importOptions->setCPUCached(true);
 			}
 
-			model = gImporter().import<Mesh>(exampleModelPath);
+			model = gImporter().import<Mesh>(exampleModelPath, meshImportOptions);
 
 			// Save for later use, so we don't have to import on the next run.
 			gResources().save(model, exampleModelAssetPath, true);
