@@ -192,7 +192,7 @@ namespace bs
 
 	void Platform::setIcon(const PixelData& pixelData)
 	{
-		SPtr<PixelData> resizedData = PixelData::create(32, 32, 1, PF_R8G8B8A8);
+		SPtr<PixelData> resizedData = PixelData::create(32, 32, 1, PF_RGBA8);
 		PixelUtil::scale(pixelData, *resizedData);
 
 		Vector<Color> pixels = pixelData.getColors();

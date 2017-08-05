@@ -210,11 +210,11 @@ namespace bs { namespace ct
 		UINT32 numSamples = viewProps.numSamples;
 
 		// Note: Consider customizable formats. e.g. for testing if quality can be improved with higher precision normals.
-		albedoTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8G8B8A8, width, height, TU_RENDERTARGET,
+		albedoTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA8, width, height, TU_RENDERTARGET,
 			numSamples, true));
-		normalTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_UNORM_R10G10B10A2, width, height, TU_RENDERTARGET,
+		normalTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGB10A2, width, height, TU_RENDERTARGET,
 			numSamples, false));
-		roughMetalTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RG, width, height, TU_RENDERTARGET,
+		roughMetalTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RG16F, width, height, TU_RENDERTARGET,
 			numSamples, false)); // Note: Metal doesn't need 16-bit float
 
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
@@ -359,7 +359,7 @@ namespace bs { namespace ct
 		UINT32 numSamples = viewProps.numSamples;
 
 		// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
-		sceneColorTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, width, height, TU_RENDERTARGET | 
+		sceneColorTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET | 
 			TU_LOADSTORE, numSamples, false));
 
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
@@ -441,7 +441,7 @@ namespace bs { namespace ct
 		else
 			flattenedLightAccumBuffer = nullptr;
 
-		lightAccumulationTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, width,
+		lightAccumulationTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width,
 			height, TU_LOADSTORE | TU_RENDERTARGET, numSamples, false));
 
 		bool rebuildRT;
@@ -955,7 +955,7 @@ namespace bs { namespace ct
 
 		if(!mAllocated[mCurrentIdx])
 		{
-			mOutput[mCurrentIdx] = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8G8B8A8, width, height,
+			mOutput[mCurrentIdx] = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA8, width, height,
 					TU_RENDERTARGET, 1, false));
 
 			mAllocated[mCurrentIdx] = true;
@@ -1319,13 +1319,13 @@ namespace bs { namespace ct
 		UINT32 height = viewProps.viewRect.height;
 
 		UINT32 size = Bitwise::nextPow2(std::max(width, height));
-		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_FLOAT32_R);
+		UINT32 numMips = PixelUtil::getMaxMipmaps(size, size, 1, PF_R32F);
 		size = 1 << numMips;
 
 		// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
 		// depth values). 
 		//  - When I add UNORM 16-bit format I should be able to switch to that
-		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT32_R, size, size, TU_RENDERTARGET, 1, false, 1, 
+		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, size, size, TU_RENDERTARGET, 1, false, 1, 
 			numMips));
 
 		Rect2 srcRect = viewProps.nrmViewRect;
@@ -1449,7 +1449,7 @@ namespace bs { namespace ct
 				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 2))
 			);
 
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, downsampledSize.x, 
 				downsampledSize.y, TU_RENDERTARGET);
 			setupTex0 = GpuResourcePool::instance().get(desc);
 
@@ -1464,7 +1464,7 @@ namespace bs { namespace ct
 				std::max(1, Math::divideAndRoundUp((INT32)viewProps.viewRect.height, 4))
 			);
 
-			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, downsampledSize.x, 
+			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, downsampledSize.x, 
 				downsampledSize.y, TU_RENDERTARGET);
 			setupTex1 = GpuResourcePool::instance().get(desc);
 

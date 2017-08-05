@@ -40,7 +40,7 @@ namespace bs
 		PixelUtil::checkFormat(format, ttype, usage);
 
 		if (ct::VulkanUtility::getPixelFormat(format, hwGamma) == VK_FORMAT_UNDEFINED)
-			return PF_R8G8B8A8;
+			return PF_RGBA8;
 
 		return format;
 	}
@@ -54,7 +54,7 @@ namespace bs
 		int idx = 0;
 		for(auto& entry : DummyTexTypes)
 		{
-			SPtr<PixelData> pixelData = PixelData::create(entry.width, entry.height, entry.depth, PF_R8G8B8A8);
+			SPtr<PixelData> pixelData = PixelData::create(entry.width, entry.height, entry.depth, PF_RGBA8);
 
 			for(int depth = 0; depth < entry.depth; depth++)
 				for(int height = 0; height < entry.height; height++)
@@ -66,7 +66,7 @@ namespace bs
 			desc.width = entry.width;
 			desc.height = entry.height;
 			desc.depth = entry.depth;
-			desc.format = PF_R8G8B8A8;
+			desc.format = PF_RGBA8;
 			desc.usage = TU_STATIC;
 
 			mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));

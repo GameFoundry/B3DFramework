@@ -364,9 +364,9 @@ namespace bs
         PixelComponentType pct = PixelUtil::getElementType(format);
         switch(pct)
         {
-        case PCT_BYTE: format = PF_R8G8B8A8; break;
-        case PCT_FLOAT16: format = PF_FLOAT16_RGBA; break;
-        case PCT_FLOAT32: format = PF_FLOAT32_RGBA; break;
+        case PCT_BYTE: format = PF_RGBA8; break;
+        case PCT_FLOAT16: format = PF_RGBA16F; break;
+        case PCT_FLOAT32: format = PF_RGBA32F; break;
         default: break;
         }
 
@@ -374,7 +374,7 @@ namespace bs
             return format;
 
         // If none at all, return to default
-        return PF_R8G8B8A8;
+        return PF_RGBA8;
     }
 	}
 }

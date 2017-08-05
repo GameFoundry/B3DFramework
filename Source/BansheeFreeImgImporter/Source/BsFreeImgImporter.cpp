@@ -270,6 +270,7 @@ namespace bs
 		FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
 		FREE_IMAGE_COLOR_TYPE colourType = FreeImage_GetColorType(fiBitmap);
 		unsigned bpp = FreeImage_GetBPP(fiBitmap);
+		unsigned srcElemSize = 0;
 
 		switch(imageType)
 		{
@@ -312,6 +313,7 @@ namespace bs
 			{
 			case 8:
 				format = PF_R8;
+				srcElemSize = 1;
 				break;
 			case 16:
 				// Determine 555 or 565 from green mask
@@ -327,23 +329,26 @@ namespace bs
 					return nullptr;
 					// FreeImage doesn't support 4444 format so must be 1555
 				}
+				srcElemSize = 2;
 				break;
 			case 24:
 				// FreeImage differs per platform
 				//     PF_BYTE_BGR[A] for little endian (== PF_ARGB native)
 				//     PF_BYTE_RGB[A] for big endian (== PF_RGBA native)
 #if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
-				format = PF_R8G8B8;
+				format = PF_RGB8;
 #else
-				format = PF_B8G8R8;
+				format = PF_BGR8;
 #endif
+				srcElemSize = 3;
 				break;
 			case 32:
 #if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
-				format = PF_R8G8B8A8;
+				format = PF_RGBA8;
 #else
-				format = PF_B8G8R8A8;
+				format = PF_BGRA8;
 #endif
+				srcElemSize = 4;
 				break;
 
 
@@ -357,19 +362,24 @@ namespace bs
 			break;
 		case FIT_FLOAT:
 			// Single-component floating point data
-			format = PF_FLOAT32_R;
+			format = PF_R32F;
+			srcElemSize = 4;
 			break;
 		case FIT_RGB16:
-			format = PF_FLOAT16_RGB;
+			format = PF_RGBA16F;
+			srcElemSize = 2 * 3;
 			break;
 		case FIT_RGBA16:
-			format = PF_FLOAT16_RGBA;
+			format = PF_RGBA16F;
+			srcElemSize = 2 * 4;
 			break;
 		case FIT_RGBF:
-			format = PF_FLOAT32_RGB;
+			format = PF_RGB32F;
+			srcElemSize = 4 * 3;
 			break;
 		case FIT_RGBAF:
-			format = PF_FLOAT32_RGBA;
+			format = PF_RGBA32F;
+			srcElemSize = 4 * 4;
 			break;
 		};
 
@@ -377,6 +387,7 @@ namespace bs
 		unsigned srcPitch = FreeImage_GetPitch(fiBitmap);
 
 		// Final data - invert image and trim pitch at the same time
+		UINT32 dstElemSize = PixelUtil::getNumElemBytes(format);
 		UINT32 dstPitch = width * PixelUtil::getNumElemBytes(format);
 
 		// Bind output buffer
@@ -386,11 +397,28 @@ namespace bs
 
 		UINT8* pSrc;
 		UINT8* pDst = output;
-		for (UINT32 y = 0; y < height; ++y)
+
+		// Copy row by row, which is faster
+		if (srcElemSize == dstElemSize)
 		{
-			pSrc = srcData + (height - y - 1) * srcPitch;
-			memcpy(pDst, pSrc, dstPitch);
-			pDst += dstPitch;
+			for (UINT32 y = 0; y < height; ++y)
+			{
+				pSrc = srcData + (height - y - 1) * srcPitch;
+				memcpy(pDst, pSrc, dstPitch);
+				pDst += dstPitch;
+			}
+		}
+		else
+		{
+			for (UINT32 y = 0; y < height; ++y)
+			{
+				pSrc = srcData + (height - y - 1) * srcPitch;
+
+				for(UINT32 x = 0; x < width; ++x)
+					memcpy(pDst + x * dstElemSize, pSrc + x * srcElemSize, srcElemSize);
+
+				pDst += dstPitch;
+			}
 		}
 
 		FreeImage_Unload(fiBitmap);

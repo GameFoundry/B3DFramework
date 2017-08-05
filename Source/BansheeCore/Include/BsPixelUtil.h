@@ -126,9 +126,6 @@ namespace bs
 		/**	Checks is the provided pixel format a depth/stencil buffer format. */
 		static bool isDepth(PixelFormat format);
 
-		/**	Checks is the provided format in native endian format. */
-		static bool isNativeEndian(PixelFormat format);
-		
 		/** 
 		 * Checks is the provided format valid for the texture type and usage. 
 		 * 

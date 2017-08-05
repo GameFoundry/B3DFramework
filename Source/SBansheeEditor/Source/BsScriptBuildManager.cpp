@@ -208,7 +208,7 @@ namespace bs
 
 				for (auto& entry : textures)
 				{
-					entry.pixels = PixelData::create(entry.size, entry.size, 1, PF_R8G8B8A8);
+					entry.pixels = PixelData::create(entry.size, entry.size, 1, PF_RGBA8);
 					PixelUtil::scale(*pixels, *entry.pixels);
 
 					icons[entry.size] = entry.pixels;

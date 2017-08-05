@@ -286,7 +286,7 @@ namespace bs
 		mShaderDiffuse = getShader(ShaderDiffuseFile);
 		mShaderTransparent = getShader(ShaderTransparentFile);
 
-		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
 		dummyPixelData->setColorAt(Color::Red, 0, 0);
 		dummyPixelData->setColorAt(Color::Red, 0, 1);
@@ -1118,7 +1118,7 @@ namespace bs
 	{
 		StringStream ss;
 
-		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		blackPixelData->setColorAt(Color::Black, 0, 0);
 		blackPixelData->setColorAt(Color::Black, 0, 1);
 		blackPixelData->setColorAt(Color::Black, 1, 0);
@@ -1126,7 +1126,7 @@ namespace bs
 
 		SPtr<Texture> blackTexture = Texture::_createPtr(blackPixelData);
 
-		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		whitePixelData->setColorAt(Color::White, 0, 0);
 		whitePixelData->setColorAt(Color::White, 0, 1);
 		whitePixelData->setColorAt(Color::White, 1, 0);
@@ -1134,7 +1134,7 @@ namespace bs
 
 		SPtr<Texture> whiteTexture = Texture::_createPtr(whitePixelData);
 
-		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
 		Color encodedNormal(0.5f, 0.5f, 1.0f);
 		normalPixelData->setColorAt(encodedNormal, 0, 0);

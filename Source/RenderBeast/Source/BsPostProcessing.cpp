@@ -175,7 +175,7 @@ namespace bs { namespace ct
 		Vector2I threadGroupCount = getThreadGroupCount(target);
 		UINT32 numHistograms = threadGroupCount.x * threadGroupCount.y;
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, HISTOGRAM_NUM_TEXELS, numHistograms,
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, HISTOGRAM_NUM_TEXELS, numHistograms,
 			TU_LOADSTORE);
 	}
 
@@ -252,7 +252,7 @@ namespace bs { namespace ct
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::getOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT16_RGBA, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
 			TU_RENDERTARGET);
 	}
 
@@ -321,7 +321,7 @@ namespace bs { namespace ct
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::getOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_FLOAT32_R, 1, 1, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
 
 	CreateTonemapLUTParamDef gCreateTonemapLUTParamDef;
@@ -393,7 +393,7 @@ namespace bs { namespace ct
 
 	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::getOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create3D(PF_R8G8B8A8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
+		return POOLED_RENDER_TEXTURE_DESC::create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
 	}
 
 	TonemappingParamDef gTonemappingParamDef;

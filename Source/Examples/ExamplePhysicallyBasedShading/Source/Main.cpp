@@ -240,7 +240,7 @@ namespace bs
 
                 // Importing using a HDR format if requested
                 if (isHDR)
-                    importOptions->setFormat(PF_FLOAT_R11G11B10);
+                    importOptions->setFormat(PF_RG11B10F);
 			}
 
 			// Import texture with specified import options

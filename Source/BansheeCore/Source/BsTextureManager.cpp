@@ -90,13 +90,13 @@ namespace bs
 		desc.type = TEX_TYPE_2D;
 		desc.width = 2;
 		desc.height = 2;
-		desc.format = PF_R8G8B8A8;
+		desc.format = PF_RGBA8;
 		desc.usage = TU_STATIC;
 
 		// White built-in texture
 		SPtr<Texture> whiteTexture = createTexture(desc);
 
-		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		whitePixelData->setColorAt(Color::White, 0, 0);
 		whitePixelData->setColorAt(Color::White, 0, 1);
 		whitePixelData->setColorAt(Color::White, 1, 0);
@@ -108,7 +108,7 @@ namespace bs
 		// Black built-in texture
 		SPtr<Texture> blackTexture = createTexture(desc);
 
-		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		blackPixelData->setColorAt(Color::Black, 0, 0);
 		blackPixelData->setColorAt(Color::Black, 0, 1);
 		blackPixelData->setColorAt(Color::Black, 1, 0);
@@ -119,7 +119,7 @@ namespace bs
 
 		// Normal (Y = Up) built-in texture
 		SPtr<Texture> normalTexture = createTexture(desc);
-		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
 		Color encodedNormal(0.5f, 0.5f, 1.0f);
 		normalPixelData->setColorAt(encodedNormal, 0, 0);

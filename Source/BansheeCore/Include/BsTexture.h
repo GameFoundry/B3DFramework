@@ -48,7 +48,7 @@ namespace bs
 		TextureType type = TEX_TYPE_2D;
 
 		/** Format of pixels in the texture. */
-		PixelFormat format = PF_R8G8B8A8;
+		PixelFormat format = PF_RGBA8;
 
 		/** Width of the texture in pixels. */
 		UINT32 width = 1;

@@ -200,7 +200,7 @@ namespace bs { namespace ct
 				for(UINT32 i = 0; i < 4; ++i)
 				{
 					// Check for outer vertices, which have no SH data associated with them
-					if (entry.volume.vertices[i] >= innerVertexCount)
+					if (entry.volume.vertices[i] >= (INT32)innerVertexCount)
 						entry.volume.vertices[i] = -1;
 					else
 						entry.volume.vertices[i] = mTempTetrahedronBufferIndices[i];

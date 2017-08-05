@@ -334,121 +334,122 @@ namespace bs
 	};
 
 	/**	Data describing a pixel format. */
-    struct PixelFormatDescription 
+	struct PixelFormatDescription
 	{
 		const char* name; /**< Name of the format. */
 		UINT8 elemBytes; /**< Number of bytes one element (color value) uses. */
 		UINT32 flags; /**< PixelFormatFlags set by the pixel format. */
-        PixelComponentType componentType; /**< Data type of a single element of the format. */
+		PixelComponentType componentType; /**< Data type of a single element of the format. */
 		UINT8 componentCount; /**< Number of elements in the format. */
 
 		UINT8 rbits, gbits, bbits, abits; /**< Number of bits per element in the format. */
 
-        UINT32 rmask, gmask, bmask, amask; /**< Masks used by packers/unpackers. */
+		UINT32 rmask, gmask, bmask, amask; /**< Masks used by packers/unpackers. */
 		UINT8 rshift, gshift, bshift, ashift; /**< Shifts used by packers/unpackers. */
-    };
+	};
 
 	/**	A list of all available pixel formats. */
-    PixelFormatDescription _pixelFormats[PF_COUNT] = {
-        {"PF_UNKNOWN",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        0,
-        /* Component type and count */
-        PCT_BYTE, 0,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
-		//-----------------------------------------------------------------------
+	PixelFormatDescription _pixelFormats[PF_COUNT] = {
+		{"PF_UNKNOWN",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		0,
+		/* Component type and count */
+		PCT_BYTE, 0,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
 		{"PF_R8",
 		/* Bytes per element */
 		1,
 		/* Flags */
-		0,
+		PFF_INTEGER | PFF_NORMALIZED,
 		/* Component type and count */
 		PCT_BYTE, 1,
 		/* rbits, gbits, bbits, abits */
 		8, 0, 0, 0,
 		/* Masks and shifts */
 		0x000000FF, 0, 0, 0, 
-		0, 0, 0, 0
+		0, 0, 0, 0,
 		},
-		//-----------------------------------------------------------------------
-		{"PF_R8G8",
+	//-----------------------------------------------------------------------
+		{"PF_RG8",
 		/* Bytes per element */
 		2,
 		/* Flags */
-		0,
+		PFF_INTEGER | PFF_NORMALIZED,
 		/* Component type and count */
 		PCT_BYTE, 2,
 		/* rbits, gbits, bbits, abits */
 		8, 8, 0, 0,
 		/* Masks and shifts */
 		0x000000FF, 0x0000FF00, 0, 0, 
-		0, 8, 0, 0
+		0, 8, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-        {"PF_R8G8B8",
-        /* Bytes per element */
-        3,  // 24 bit integer -- special
-        /* Flags */
-        PFF_NATIVEENDIAN,
-        /* Component type and count */
-        PCT_BYTE, 3,
-        /* rbits, gbits, bbits, abits */
-        8, 8, 8, 0,
-        /* Masks and shifts */
-        0x000000FF, 0x0000FF00, 0x00FF0000, 0,
-        0, 8, 16, 0
-        },
+		{"PF_RGB8",
+		/* Bytes per element */
+		4,  // 4th byte is unused
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED,
+		/* Component type and count */
+		PCT_BYTE, 3,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 0,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0x00FF0000, 0,
+		0, 8, 16, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_B8G8R8",
-        /* Bytes per element */
-        3,  // 24 bit integer -- special
-        /* Flags */
-        PFF_NATIVEENDIAN,
-        /* Component type and count */
-        PCT_BYTE, 3,
-        /* rbits, gbits, bbits, abits */
-        8, 8, 8, 0,
-        /* Masks and shifts */
-        0x00FF0000, 0x0000FF00, 0x000000FF, 0,
-        16, 8, 0, 0
-        },
-	//-----------------------------------------------------------------------
-		{}, // Deleted format
+		{"PF_BGR8",
+		/* Bytes per element */
+		4,  // 4th byte is unused
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED,
+		/* Component type and count */
+		PCT_BYTE, 3,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 0,
+		/* Masks and shifts */
+		0x00FF0000, 0x0000FF00, 0x000000FF, 0,
+		16, 8, 0, 0,
+		},
 	//-----------------------------------------------------------------------
 		{}, // Deleted format
 	//-----------------------------------------------------------------------
-        {"PF_B8G8R8A8",
-        /* Bytes per element */
-        4,
-        /* Flags */
-        PFF_HASALPHA | PFF_NATIVEENDIAN,
-        /* Component type and count */
-        PCT_BYTE, 4,
-        /* rbits, gbits, bbits, abits */
-        8, 8, 8, 8,
-        /* Masks and shifts */
-        0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
-        16, 8, 0, 24
-        },
+		{}, // Deleted format
 	//-----------------------------------------------------------------------
-		{"PF_R8G8B8A8",
+		{"PF_BGRA8",
 		/* Bytes per element */
 		4,
 		/* Flags */
-		PFF_HASALPHA | PFF_NATIVEENDIAN,
+		PFF_HASALPHA | PFF_INTEGER | PFF_NORMALIZED,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 8,
+		/* Masks and shifts */
+		0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000,
+		16, 8, 0, 24,
+		},
+	//-----------------------------------------------------------------------
+		{"PF_RGBA8",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_HASALPHA | PFF_INTEGER | PFF_NORMALIZED,
 		/* Component type and count */
 		PCT_BYTE, 4,
 		/* rbits, gbits, bbits, abits */
 		8, 8, 8, 8,
 		/* Masks and shifts */
 		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000,
-		0, 8, 16, 24
+		0, 8, 16, 24,
 		},
 	//-----------------------------------------------------------------------
 		{}, // Deleted format
@@ -459,111 +460,119 @@ namespace bs
 	//-----------------------------------------------------------------------
 		{}, // Deleted format
 	//-----------------------------------------------------------------------
-        {"PF_BC1",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED | PFF_HASALPHA,
-        /* Component type and count */
-        PCT_BYTE, 3, // No alpha
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC1",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 3, // No alpha
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC1a",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED,
-        /* Component type and count */
-        PCT_BYTE, 3,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC1a",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED,
+		/* Component type and count */
+		PCT_BYTE, 3,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC2",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED | PFF_HASALPHA,
-        /* Component type and count */
-        PCT_BYTE, 4,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC2",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC3",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED | PFF_HASALPHA,
-        /* Component type and count */
-        PCT_BYTE, 4,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC3",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC4",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED,
-        /* Component type and count */
-        PCT_BYTE, 1,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC4",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED,
+		/* Component type and count */
+		PCT_BYTE, 1,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC5",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED,
-        /* Component type and count */
-        PCT_BYTE, 2,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC5",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED,
+		/* Component type and count */
+		PCT_BYTE, 2,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC6H",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED,
-        /* Component type and count */
-        PCT_FLOAT16, 3,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC6H",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED,
+		/* Component type and count */
+		PCT_FLOAT16, 3,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-        {"PF_BC7",
-        /* Bytes per element */
-        0,
-        /* Flags */
-        PFF_COMPRESSED | PFF_HASALPHA,
-        /* Component type and count */
-        PCT_BYTE, 4,
-        /* rbits, gbits, bbits, abits */
-        0, 0, 0, 0,
-        /* Masks and shifts */
-        0, 0, 0, 0, 0, 0, 0, 0
-        },
+		{ "PF_BC7",
+		/* Bytes per element */
+		0,
+		/* Flags */
+		PFF_COMPRESSED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		0, 0, 0, 0,
+		/* Masks and shifts */
+		0, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
 	//-----------------------------------------------------------------------
-		{"PF_FLOAT16_R",
+		{"PF_R16F",
 		/* Bytes per element */
 		2,
 		/* Flags */
@@ -573,10 +582,11 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		16, 0, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0x0000FFFF, 0, 0, 0, 
+		0, 0, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-		{"PF_FLOAT16_RG",
+		{"PF_RG16F",
 		/* Bytes per element */
 		4,
 		/* Flags */
@@ -586,23 +596,13 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		16, 16, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0x0000FFFF, 0xFFFF0000, 0, 0, 
+		0, 16, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-		{ "PF_FLOAT16_RGB",
-		/* Bytes per element */
-		6,
-		/* Flags */
-		PFF_FLOAT,
-		/* Component type and count */
-		PCT_FLOAT16, 3,
-		/* rbits, gbits, bbits, abits */
-		16, 16, 16, 0,
-		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
-		},
+		{ }, //  Deleted format
 	//-----------------------------------------------------------------------
-		{ "PF_FLOAT16_RGBA",
+		{ "PF_RGBA16F",
 		/* Bytes per element */
 		8,
 		/* Flags */
@@ -612,10 +612,11 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		16, 16, 16, 16,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0x0000FFFF, 0xFFFF0000, 0x0000FFFF, 0xFFFF0000, 
+		0, 16, 0, 16,
 		},
 	//-----------------------------------------------------------------------
-		{"PF_FLOAT32_R",
+		{"PF_R32F",
 		/* Bytes per element */
 		4,
 		/* Flags */
@@ -625,10 +626,11 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		32, 0, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0, 0, 0, 
+		0, 0, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-		{"PF_FLOAT32_RG",
+		{"PF_RG32F",
 		/* Bytes per element */
 		8,
 		/* Flags */
@@ -638,10 +640,11 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		32, 32, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 
+		0, 0, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-		{ "PF_FLOAT32_RGB",
+		{ "PF_RGB32F",
 		/* Bytes per element */
 		12,
 		/* Flags */
@@ -651,10 +654,11 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		32, 32, 32, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0, 
+		0, 0, 0, 0,
 		},
 	//-----------------------------------------------------------------------
-		{ "PF_FLOAT32_RGBA",
+		{ "PF_RGBA32F",
 		/* Bytes per element */
 		16,
 		/* Flags */
@@ -664,33 +668,36 @@ namespace bs
 		/* rbits, gbits, bbits, abits */
 		32, 32, 32, 32,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
+		0, 0, 0, 0,
 		},
 	//-----------------------------------------------------------------------
 		{"PF_D32_S8X24",
 		/* Bytes per element */
 		8,
 		/* Flags */
-		PFF_DEPTH | PFF_FLOAT,
+		PFF_DEPTH | PFF_NORMALIZED,
 		/* Component type and count */
 		PCT_FLOAT32, 2,
 		/* rbits, gbits, bbits, abits */
-		0, 0, 0, 0,
+		32, 8, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0x000000FF, 0x00000000, 0x00000000, 
+		0, 0, 0, 0,
 		}, 
 	//-----------------------------------------------------------------------
 		{"PF_D24_S8",
 		/* Bytes per element */
 		4,
 		/* Flags */
-		PFF_DEPTH | PFF_FLOAT,
+		PFF_DEPTH | PFF_INTEGER | PFF_NORMALIZED,
 		/* Component type and count */
-		PCT_FLOAT32, 1,
+		PCT_INT, 2,
 		/* rbits, gbits, bbits, abits */
-		0, 0, 0, 0,
+		24, 8, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0x00FFFFFF, 0x0FF0000, 0x00000000, 0x00000000, 
+		0, 24, 0, 0,
 		}, 
 	//-----------------------------------------------------------------------
 		{"PF_D32",
@@ -701,25 +708,27 @@ namespace bs
 		/* Component type and count */
 		PCT_FLOAT32, 1,
 		/* rbits, gbits, bbits, abits */
-		0, 0, 0, 0,
+		32, 0, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000, 
+		0, 0, 0, 0,
 		}, 
 	//-----------------------------------------------------------------------
 		{"PF_D16",
 		/* Bytes per element */
 		2,
 		/* Flags */
-		PFF_DEPTH | PFF_FLOAT,
+		PFF_DEPTH | PFF_INTEGER | PFF_NORMALIZED,
 		/* Component type and count */
-		PCT_FLOAT16, 1,
+		PCT_SHORT, 1,
 		/* rbits, gbits, bbits, abits */
-		0, 0, 0, 0,
+		16, 0, 0, 0,
 		/* Masks and shifts */
-		0, 0, 0, 0, 0, 0, 0, 0
+		0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 
+		0, 0, 0, 0,
 		}, 
 	//-----------------------------------------------------------------------
-		{ "PF_FLOAT_R11G11B10",
+		{ "PF_RG11B10F",
 		/* Bytes per element */
 		4,
 		/* Flags */
@@ -730,21 +739,287 @@ namespace bs
 		11, 11, 10, 0,
 		/* Masks and shifts */
 		0x000007FF, 0x003FF800, 0xFFC00000, 0,
-		0, 11, 22, 0
+		0, 11, 22, 0,
 		},
 	//-----------------------------------------------------------------------
-		{ "PF_UNORM_R10G10B10A2",
+		{ "PF_RGB10A2",
 		/* Bytes per element */
 		4,
 		/* Flags */
-		PFF_FLOAT | PFF_HASALPHA,
+		PFF_INTEGER | PFF_NORMALIZED | PFF_HASALPHA,
 		/* Component type and count */
 		PCT_PACKED_R10G10B10A2, 1,
 		/* rbits, gbits, bbits, abits */
 		10, 10, 10, 2,
 		/* Masks and shifts */
 		0x000003FF, 0x000FFC00, 0x3FF00000, 0xC0000000,
-		0, 10, 20, 30
+		0, 10, 20, 30,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R8I",
+		/* Bytes per element */
+		1,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_BYTE, 1,
+		/* rbits, gbits, bbits, abits */
+		8, 0, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG8I",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_BYTE, 2,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0, 0, 
+		0, 8, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA8I",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 8,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000,
+		0, 8, 16, 24,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R8S",
+		/* Bytes per element */
+		1,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED,
+		/* Component type and count */
+		PCT_BYTE, 1,
+		/* rbits, gbits, bbits, abits */
+		8, 0, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG8S",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED,
+		/* Component type and count */
+		PCT_BYTE, 2,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0, 0, 
+		0, 8, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA8S",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 8,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000,
+		0, 8, 16, 24,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R16I",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_SHORT, 1,
+		/* rbits, gbits, bbits, abits */
+		16, 0, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG16I",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_SHORT, 2,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0, 0, 
+		0, 16, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA16I",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_SHORT, 4,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 16, 16,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0x0000FFFF, 0xFFFF0000, 
+		0, 16, 0, 16,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R32I",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 1,
+		/* rbits, gbits, bbits, abits */
+		32, 0, 0, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0, 0, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG32I",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 2,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 0, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGB32I",
+		/* Bytes per element */
+		12,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 3,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 32, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA32I",
+		/* Bytes per element */
+		16,
+		/* Flags */
+		PFF_INTEGER | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_INT, 4,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 32, 32,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
+		0, 0, 0, 0
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R16S",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED,
+		/* Component type and count */
+		PCT_SHORT, 1,
+		/* rbits, gbits, bbits, abits */
+		16, 0, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0, 0, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG16S",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED,
+		/* Component type and count */
+		PCT_SHORT, 2,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0, 0,
+		0, 16, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA16S",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_SIGNED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_SHORT, 4,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 16, 16,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0x0000FFFF, 0xFFFF0000,
+		0, 16, 0, 16,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R16",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED,
+		/* Component type and count */
+		PCT_SHORT, 1,
+		/* rbits, gbits, bbits, abits */
+		16, 0, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0, 0, 0, 
+		0, 0, 0, 0
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG16",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED,
+		/* Component type and count */
+		PCT_SHORT, 2,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0, 0, 
+		0, 16, 0, 0
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA16",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER | PFF_NORMALIZED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_SHORT, 4,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 16, 16,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0x0000FFFF, 0xFFFF0000, 
+		0, 16, 0, 16
 		},
 	};
 
@@ -1004,11 +1279,6 @@ namespace bs
 		return (PixelUtil::getFlags(format) & PFF_DEPTH) > 0;
 	}
 
-	bool PixelUtil::isNativeEndian(PixelFormat format)
-	{
-		return (PixelUtil::getFlags(format) & PFF_NATIVEENDIAN) > 0;
-	}
-
 	bool PixelUtil::checkFormat(PixelFormat& format, TextureType texType, int usage)
 	{
 		// First check just the usage since it's the most limiting factor
@@ -1029,7 +1299,7 @@ namespace bs
 			if (!isDepth(format) && !isCompressed(format))
 				return true;
 
-			format = PF_R8G8B8A8;
+			format = PF_RGBA8;
 			return false;
 		}
 
@@ -1039,7 +1309,7 @@ namespace bs
 			if (!isDepth(format) && !isCompressed(format))
 				return true;
 
-			format = PF_R8G8B8A8;
+			format = PF_RGBA8;
 			return false;
 		}
 
@@ -1052,7 +1322,7 @@ namespace bs
 			if (!isDepth(format) && !isCompressed(format))
 				return true;
 
-			format = PF_R8G8B8A8;
+			format = PF_RGBA8;
 			return false;
 		}
 		case TEX_TYPE_3D:
@@ -1061,7 +1331,7 @@ namespace bs
 			if (!isDepth(format))
 				return true;
 
-			format = PF_R8G8B8A8;
+			format = PF_RGBA8;
 			return false;
 		}
 		default: // 2D & cube
@@ -1070,7 +1340,7 @@ namespace bs
 			if (!isDepth(format))
 				return true;
 
-			format = PF_R8G8B8A8;
+			format = PF_RGBA8;
 			return false;
 		}
 		}
@@ -1181,7 +1451,7 @@ namespace bs
 	{
 		const PixelFormatDescription &des = getDescriptionFor(format);
 
-		if (des.flags & PFF_NATIVEENDIAN)
+		if (des.flags & PFF_INTEGER)
 		{
 			// Shortcut for integer formats packing
 			UINT32 value = ((Bitwise::fixedToFixed(r, 8, des.rbits) << des.rshift) & des.rmask) |
@@ -1201,82 +1471,92 @@ namespace bs
 
 	void PixelUtil::packColor(float r, float g, float b, float a, const PixelFormat format, void* dest)
 	{
+		// Special cases
+		if (format == PF_RG11B10F)
+		{
+			UINT32 value;
+			value = Bitwise::floatToFloat11(r);
+			value |= Bitwise::floatToFloat11(g) << 11;
+			value |= Bitwise::floatToFloat10(b) << 22;
+
+			((UINT32*)dest)[0] = value;
+			return;
+		}
+
+		if (format == PF_RGB10A2)
+		{
+			LOGERR("packColor() not implemented for format \"" + getFormatName(PF_RGB10A2) + "\".");
+			return;
+		}
+
+		// All other formats handled in a generic way
 		const PixelFormatDescription& des = getDescriptionFor(format);
+		assert(des.componentCount <= 4);
 
-		if (des.flags & PFF_NATIVEENDIAN)
+		float inputs[] = { r, g, b, a };
+		UINT8 bits[] = { des.rbits, des.gbits, des.bbits, des.abits };
+		UINT32 masks[] = { des.rmask, des.gmask, des.bmask, des.amask };
+		UINT8 shifts[] = { des.rshift, des.gshift, des.bshift, des.ashift };
+
+		memset(dest, 0, des.elemBytes);
+
+		UINT32 curBit = 0;
+		UINT32 prevDword = 0;
+		UINT32 dwordValue = 0;
+		for (UINT32 i = 0; i < des.componentCount; i++)
 		{
-			// Do the packing
-			const unsigned int value = ((Bitwise::floatToFixed(r, des.rbits) << des.rshift) & des.rmask) |
-				((Bitwise::floatToFixed(g, des.gbits) << des.gshift) & des.gmask) |
-				((Bitwise::floatToFixed(b, des.bbits) << des.bshift) & des.bmask) |
-				((Bitwise::floatToFixed(a, des.abits) << des.ashift) & des.amask);
+			UINT32 curDword = curBit / 32;
 
-			// And write to memory
-			Bitwise::intWrite(dest, des.elemBytes, value);
-		}
-		else
-		{
-			switch (format)
+			// New dword reached, write current one and advance
+			if(curDword > prevDword)
 			{
-			case PF_FLOAT32_R:
-				((float*)dest)[0] = r;
-				break;
-			case PF_FLOAT32_RG:
-				((float*)dest)[0] = r;
-				((float*)dest)[1] = g;
-				break;
-			case PF_FLOAT32_RGB:
-				((float*)dest)[0] = r;
-				((float*)dest)[1] = g;
-				((float*)dest)[2] = b;
-				break;
-			case PF_FLOAT32_RGBA:
-				((float*)dest)[0] = r;
-				((float*)dest)[1] = g;
-				((float*)dest)[2] = b;
-				((float*)dest)[3] = a;
-				break;
-			case PF_FLOAT16_R:
-				((UINT16*)dest)[0] = Bitwise::floatToHalf(r);
-				break;
-			case PF_FLOAT16_RG:
-				((UINT16*)dest)[0] = Bitwise::floatToHalf(r);
-				((UINT16*)dest)[1] = Bitwise::floatToHalf(g);
-				break;
-			case PF_FLOAT16_RGB:
-				((UINT16*)dest)[0] = Bitwise::floatToHalf(r);
-				((UINT16*)dest)[1] = Bitwise::floatToHalf(g);
-				((UINT16*)dest)[2] = Bitwise::floatToHalf(b);
-				break;
-			case PF_FLOAT16_RGBA:
-				((UINT16*)dest)[0] = Bitwise::floatToHalf(r);
-				((UINT16*)dest)[1] = Bitwise::floatToHalf(g);
-				((UINT16*)dest)[2] = Bitwise::floatToHalf(b);
-				((UINT16*)dest)[3] = Bitwise::floatToHalf(a);
-				break;
-			case PF_R8G8:
-				((UINT8*)dest)[0] = (UINT8)Bitwise::floatToFixed(r, 8);
-				((UINT8*)dest)[1] = (UINT8)Bitwise::floatToFixed(g, 8);
-				break;
-			case PF_R8:
-				((UINT8*)dest)[0] = (UINT8)Bitwise::floatToFixed(r, 8);
-				break;
-			case PF_FLOAT_R11G11B10:
-			{
-				UINT32 value;
-				value = Bitwise::floatToFloat11(r);
-				value |= Bitwise::floatToFloat11(g) << 11;
-				value |= Bitwise::floatToFloat10(b) << 22;
+				UINT32* curDst = ((UINT32*)dest) + prevDword;
+				Bitwise::intWrite(curDst, 4, dwordValue);
 
-				((UINT32*)dest)[0] = value;
+				dwordValue = 0;
+				prevDword = curDword;
 			}
-			break;
-			default:
-				LOGERR("Pack to " + getFormatName(format) + " not implemented");
-				break;
+
+			if (des.flags & PFF_INTEGER)
+			{
+				if (des.flags & PFF_NORMALIZED)
+				{
+					if (des.flags & PFF_SIGNED)
+						dwordValue |= (Bitwise::snormToUint(inputs[i], bits[i]) << shifts[i]) & masks[i];
+					else
+						dwordValue |= (Bitwise::unormToUint(inputs[i], bits[i]) << shifts[i]) & masks[i];
+				}
+				else
+				{
+					// Note: Casting integer to float. A better option would be to have a separate unpackColor that has
+					// integer output parameters.
+					dwordValue |= (((UINT32)inputs[i]) << shifts[i]) & masks[i];
+				}
 			}
+			else if (des.flags & PFF_FLOAT)
+			{
+				// Note: Not handling unsigned floats
+
+				if (des.componentType == PCT_FLOAT16)
+					dwordValue |= (Bitwise::floatToHalf(inputs[i]) << shifts[i]) & masks[i];
+				else
+					dwordValue |= *(UINT32*)&inputs[i];
+			}
+			else
+			{
+				LOGERR("packColor() not implemented for format \"" + getFormatName(format) + "\".");
+				return;
+			}
+
+			curBit += bits[i];
 		}
+
+		// Write last dword
+		UINT32 numBytes = std::min((prevDword + 1) * 4, (UINT32)des.elemBytes) - (prevDword * 4);
+		UINT32* curDst = ((UINT32*)dest) + prevDword;
+		Bitwise::intWrite(curDst, numBytes, dwordValue);
 	}
+
 	void PixelUtil::unpackColor(Color* color, PixelFormat format, const void* src)
 	{
 		unpackColor(&color->r, &color->g, &color->b, &color->a, format, src);
@@ -1286,7 +1566,7 @@ namespace bs
 	{
 		const PixelFormatDescription &des = getDescriptionFor(format);
 
-		if (des.flags & PFF_NATIVEENDIAN)
+		if (des.flags & PFF_INTEGER)
 		{
 			// Shortcut for integer formats unpacking
 			const UINT32 value = Bitwise::intRead(src, des.elemBytes);
@@ -1310,105 +1590,89 @@ namespace bs
 			float rr, gg, bb, aa;
 			unpackColor(&rr, &gg, &bb, &aa, format, src);
 
-			*r = (UINT8)Bitwise::floatToFixed(rr, 8);
-			*g = (UINT8)Bitwise::floatToFixed(gg, 8);
-			*b = (UINT8)Bitwise::floatToFixed(bb, 8);
-			*a = (UINT8)Bitwise::floatToFixed(aa, 8);
+			*r = (UINT8)Bitwise::unormToUint(rr, 8);
+			*g = (UINT8)Bitwise::unormToUint(gg, 8);
+			*b = (UINT8)Bitwise::unormToUint(bb, 8);
+			*a = (UINT8)Bitwise::unormToUint(aa, 8);
 		}
 	}
 
 	void PixelUtil::unpackColor(float* r, float* g, float* b, float* a, PixelFormat format, const void* src)
 	{
-		const PixelFormatDescription &des = getDescriptionFor(format);
-		if (des.flags & PFF_NATIVEENDIAN)
+		// Special cases
+		if(format == PF_RG11B10F)
 		{
-			// Shortcut for integer formats unpacking
-			const unsigned int value = Bitwise::intRead(src, des.elemBytes);
+			UINT32 value = ((UINT32*)src)[0];
+			*r = Bitwise::float11ToFloat(value);
+			*g = Bitwise::float11ToFloat(value >> 11);
+			*b = Bitwise::float10ToFloat(value >> 22);
 
-			*r = Bitwise::fixedToFloat((value & des.rmask) >> des.rshift, des.rbits);
-			*g = Bitwise::fixedToFloat((value & des.gmask) >> des.gshift, des.gbits);
-			*b = Bitwise::fixedToFloat((value & des.bmask) >> des.bshift, des.bbits);
+			return;
+		}
+		
+		if(format == PF_RGB10A2)
+		{
+			LOGERR("unpackColor() not implemented for format \"" + getFormatName(PF_RGB10A2) + "\".");
+			return;
+		}
 
-			if (des.flags & PFF_HASALPHA)
+		// All other formats handled in a generic way
+		const PixelFormatDescription& des = getDescriptionFor(format);
+		assert(des.componentCount <= 4);
+
+		float* outputs[] = { r, g, b, a };
+		UINT8 bits[] = { des.rbits, des.gbits, des.bbits, des.abits };
+		UINT32 masks[] = { des.rmask, des.gmask, des.bmask, des.amask };
+		UINT8 shifts[] = { des.rshift, des.gshift, des.bshift, des.ashift };
+
+		UINT32 curBit = 0;
+		for(UINT32 i = 0; i < des.componentCount; i++)
+		{
+			UINT32 curDword = curBit / 32;
+			UINT32 numBytes = std::min((curDword + 1) * 4, (UINT32)des.elemBytes) - (curDword * 4);
+
+			UINT32* curSrc = ((UINT32*)src) + curDword;
+			UINT32 value = Bitwise::intRead(curSrc, numBytes);
+			if(des.flags & PFF_INTEGER)
 			{
-				*a = Bitwise::fixedToFloat((value & des.amask) >> des.ashift, des.abits);
+				if(des.flags & PFF_NORMALIZED)
+				{
+					if (des.flags & PFF_SIGNED)
+						*outputs[i] = Bitwise::uintToSnorm((value & masks[i]) >> shifts[i], bits[i]);
+					else
+						*outputs[i] = Bitwise::uintToUnorm((value & masks[i]) >> shifts[i], bits[i]);
+				}
+				else
+				{
+					// Note: Casting integer to float. A better option would be to have a separate unpackColor that has
+					// integer output parameters.
+					*outputs[i] = (float)((value & masks[i]) >> shifts[i]);
+				}
+			}
+			else if(des.flags & PFF_FLOAT)
+			{
+				// Note: Not handling unsigned floats
+
+				if (des.componentType == PCT_FLOAT16)
+					*outputs[i] = Bitwise::halfToFloat((UINT16)((value & masks[i]) >> shifts[i]));
+				else
+					*outputs[i] = *(float*)&value;
 			}
 			else
 			{
-				*a = 1.0f; // No alpha, default a component to full
+				LOGERR("unpackColor() not implemented for format \"" + getFormatName(format) + "\".");
+				return;
 			}
+
+			curBit += bits[i];
 		}
-		else
-		{
-			switch (format)
-			{
-			case PF_FLOAT32_R:
-				*r = *g = *b = ((float*)src)[0];
-				*a = 1.0f;
-				break;
-			case PF_FLOAT32_RG:
-				*r = ((float*)src)[0];
-				*g = *b = ((float*)src)[1];
-				*a = 1.0f;
-				break;
-			case PF_FLOAT32_RGB:
-				*r = ((float*)src)[0];
-				*g = ((float*)src)[1];
-				*b = ((float*)src)[2];
-				*a = 1.0f;
-				break;
-			case PF_FLOAT32_RGBA:
-				*r = ((float*)src)[0];
-				*g = ((float*)src)[1];
-				*b = ((float*)src)[2];
-				*a = ((float*)src)[3];
-				break;
-			case PF_FLOAT16_R:
-				*r = *g = *b = Bitwise::halfToFloat(((UINT16*)src)[0]);
-				*a = 1.0f;
-				break;
-			case PF_FLOAT16_RG:
-				*r = Bitwise::halfToFloat(((UINT16*)src)[0]);
-				*g = *b = Bitwise::halfToFloat(((UINT16*)src)[1]);
-				*a = 1.0f;
-				break;
-			case PF_FLOAT16_RGB:
-				*r = Bitwise::halfToFloat(((UINT16*)src)[0]);
-				*g = Bitwise::halfToFloat(((UINT16*)src)[1]);
-				*b = Bitwise::halfToFloat(((UINT16*)src)[2]);
-				*a = 1.0f;
-				break;
-			case PF_FLOAT16_RGBA:
-				*r = Bitwise::halfToFloat(((UINT16*)src)[0]);
-				*g = Bitwise::halfToFloat(((UINT16*)src)[1]);
-				*b = Bitwise::halfToFloat(((UINT16*)src)[2]);
-				*a = Bitwise::halfToFloat(((UINT16*)src)[3]);
-				break;
-			case PF_R8G8:
-				*r = Bitwise::fixedToFloat(((UINT8*)src)[0], 8);
-				*g = Bitwise::fixedToFloat(((UINT8*)src)[1], 8);
-				*b = 0.0f;
-				*a = 1.0f;
-				break;
-			case PF_R8:
-				*r = Bitwise::fixedToFloat(((UINT8*)src)[0], 8);
-				*g = 0.0f;
-				*b = 0.0f;
-				*a = 1.0f;
-				break;
-			case PF_FLOAT_R11G11B10:
-			{
-				UINT32 value = ((UINT32*)src)[0];
-				*r = Bitwise::float11ToFloat(value);
-				*g = Bitwise::float11ToFloat(value >> 11);
-				*b = Bitwise::float10ToFloat(value >> 22);
-			}
-			break;
-			default:
-				LOGERR("Unpack from " + getFormatName(format) + " not implemented");
-				break;
-			}
-		}
+
+		// Fill empty components
+		for (UINT32 i = des.componentCount; i < 3; i++)
+			*outputs[i] = 0.0f;
+
+		if (des.componentCount < 4)
+			*outputs[3] = 1.0f;
 	}
 
 	void PixelUtil::packDepth(float depth, const PixelFormat format, void* dest)
@@ -1419,9 +1683,8 @@ namespace bs
 			return;
 		}
 		
-		LOGERR("Method is not implemented");	
+		LOGERR("Method is not implemented");
 		//TODO implement depth packing
-
 	}
 
 	float PixelUtil::unpackDepth(PixelFormat format, void* src)
@@ -1583,6 +1846,12 @@ namespace bs
 		}
 
 		const PixelFormatDescription& pfd = getDescriptionFor(data.getFormat());
+		if(pfd.elemBytes > 4)
+		{
+			LOGERR("flipComponentOrder() only supported on 4 byte or smaller pixel formats.");
+			return;
+		}
+
 		if (pfd.componentCount <= 1) // Nothing to flip
 			return;
 
@@ -1737,9 +2006,9 @@ namespace bs
 		case FILTER_LINEAR:
 			switch (src.getFormat()) 
 			{
-			case PF_R8G8:
-			case PF_R8G8B8: case PF_B8G8R8:
-			case PF_R8G8B8A8: case PF_B8G8R8A8:
+			case PF_RG8:
+			case PF_RGB8: case PF_BGR8:
+			case PF_RGBA8: case PF_BGRA8:
 				if(src.getFormat() == scaled.getFormat()) 
 				{
 					// No intermediate buffer needed
@@ -1772,9 +2041,9 @@ namespace bs
 				}
 
 				break;
-			case PF_FLOAT32_RGB:
-			case PF_FLOAT32_RGBA:
-				if (scaled.getFormat() == PF_FLOAT32_RGB || scaled.getFormat() == PF_FLOAT32_RGBA)
+			case PF_RGB32F:
+			case PF_RGBA32F:
+				if (scaled.getFormat() == PF_RGB32F || scaled.getFormat() == PF_RGBA32F)
 				{
 					// float32 to float32, avoid unpack/repack overhead
 					LinearResampler_Float32::scale(src, scaled);
@@ -1980,13 +2249,13 @@ namespace bs
 			return;
 		}
 
-		PixelFormat interimFormat = options.format == PF_BC6H ? PF_FLOAT32_RGBA : PF_B8G8R8A8;
+		PixelFormat interimFormat = options.format == PF_BC6H ? PF_RGBA32F : PF_BGRA8;
 
 		PixelData interimData(src.getWidth(), src.getHeight(), 1, interimFormat);
 		interimData.allocateInternalBuffer();
 		bulkPixelConversion(src, interimData);
 
-		if(interimFormat != PF_FLOAT32_RGBA)
+		if(interimFormat != PF_RGBA32F)
 			flipComponentOrder(interimData);
 
 		nvtt::InputOptions io;
@@ -1995,7 +2264,7 @@ namespace bs
 		io.setAlphaMode(toNVTTAlphaMode(options.alphaMode));
 		io.setNormalMap(options.isNormalMap);
 
-		if (interimFormat == PF_FLOAT32_RGBA)
+		if (interimFormat == PF_RGBA32F)
 			io.setFormat(nvtt::InputFormat_RGBA_32F);
 		else
 			io.setFormat(nvtt::InputFormat_BGRA_8UB);
@@ -2047,13 +2316,13 @@ namespace bs
 			return outputMipBuffers;
 		}
 
-		PixelFormat interimFormat = isFloatingPoint(src.getFormat()) ? PF_FLOAT32_RGBA : PF_B8G8R8A8;
+		PixelFormat interimFormat = isFloatingPoint(src.getFormat()) ? PF_RGBA32F : PF_BGRA8;
 
 		PixelData interimData(src.getWidth(), src.getHeight(), 1, interimFormat);
 		interimData.allocateInternalBuffer();
 		bulkPixelConversion(src, interimData);
 		
-		if (interimFormat != PF_FLOAT32_RGBA)
+		if (interimFormat != PF_RGBA32F)
 			flipComponentOrder(interimData);
 
 		nvtt::InputOptions io;
@@ -2063,7 +2332,7 @@ namespace bs
 		io.setNormalizeMipmaps(options.normalizeMipmaps);
 		io.setWrapMode(toNVTTWrapMode(options.wrapMode));
 
-		if (interimFormat == PF_FLOAT32_RGBA)
+		if (interimFormat == PF_RGBA32F)
 			io.setFormat(nvtt::InputFormat_RGBA_32F);
 		else
 			io.setFormat(nvtt::InputFormat_BGRA_8UB);
@@ -2078,7 +2347,7 @@ namespace bs
 		nvtt::CompressionOptions co;
 		co.setFormat(nvtt::Format_RGBA);
 		
-		if (interimFormat == PF_FLOAT32_RGBA)
+		if (interimFormat == PF_RGBA32F)
 		{
 			co.setPixelType(nvtt::PixelType_Float);
 			co.setPixelFormat(32, 32, 32, 32);

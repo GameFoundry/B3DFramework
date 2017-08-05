@@ -64,11 +64,11 @@ namespace bs { namespace ct
 				PixelUtil::getBitDepths(format, bitDepths);
 
 				if (bitDepths[0] == 16) // 16-bit format, fall back to 4-channel 16-bit, guaranteed to be supported
-					format = PF_FLOAT16_RGBA;
+					format = PF_RGBA16F;
 				else if(format == PF_BC6H) // Fall back to uncompressed alternative
-					format = PF_FLOAT16_RGBA;
+					format = PF_RGBA16F;
 				else // Must be 8-bit per channel format, compressed format or some uneven format
-					format = PF_R8G8B8A8;
+					format = PF_RGBA8;
 			}
 		}
 
@@ -84,42 +84,78 @@ namespace bs { namespace ct
 				return VK_FORMAT_R8_SRGB;
 
 			return VK_FORMAT_R8_UNORM;
-		case PF_R8G8:
+		case PF_RG8:
 			if (sRGB)
 				return VK_FORMAT_R8G8_SRGB;
 
 			return VK_FORMAT_R8G8_UNORM;
-		case PF_R8G8B8:
+		case PF_RGB8:
 			if (sRGB)
 				return VK_FORMAT_R8G8B8_SRGB;
 
 			return VK_FORMAT_R8G8B8_UNORM;
-		case PF_R8G8B8A8:
+		case PF_RGBA8:
 			if (sRGB)
 				return VK_FORMAT_R8G8B8A8_SRGB;
 
 			return VK_FORMAT_R8G8B8A8_UNORM;
-		case PF_B8G8R8A8:
+		case PF_BGRA8:
 			if (sRGB)
 				return VK_FORMAT_B8G8R8A8_SRGB;
 
 			return VK_FORMAT_B8G8R8A8_UNORM;
-		case PF_FLOAT16_R:
+		case PF_R8I:
+			return VK_FORMAT_R8_SINT;
+		case PF_RG8I:
+			return VK_FORMAT_R8G8_SINT;
+		case PF_RGBA8I:
+			return VK_FORMAT_R8G8B8A8_SINT;
+		case PF_R8S:
+			return VK_FORMAT_R8_SNORM;
+		case PF_RG8S:
+			return VK_FORMAT_R8G8_SNORM;
+		case PF_RGBA8S:
+			return VK_FORMAT_R8G8B8A8_SNORM;
+		case PF_R16F:
 			return VK_FORMAT_R16_SFLOAT;
-		case PF_FLOAT16_RG:
+		case PF_RG16F:
 			return VK_FORMAT_R16G16_SFLOAT;
-		case PF_FLOAT16_RGB:
-			return VK_FORMAT_R16G16B16_SFLOAT;
-		case PF_FLOAT16_RGBA:
+		case PF_RGBA16F:
 			return VK_FORMAT_R16G16B16A16_SFLOAT;
-		case PF_FLOAT32_R:
+		case PF_R32F:
 			return VK_FORMAT_R32_SFLOAT;
-		case PF_FLOAT32_RG:
+		case PF_RG32F:
 			return VK_FORMAT_R32G32_SFLOAT;
-		case PF_FLOAT32_RGB:
+		case PF_RGB32F:
 			return VK_FORMAT_R32G32B32_SFLOAT;
-		case PF_FLOAT32_RGBA:
+		case PF_RGBA32F:
 			return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case PF_R16I:
+			return VK_FORMAT_R16_SINT;
+		case PF_RG16I:
+			return VK_FORMAT_R16G16_SINT;
+		case PF_RGBA16I:
+			return VK_FORMAT_R16G16B16A16_SINT;
+		case PF_R32I:
+			return VK_FORMAT_R32_SINT;
+		case PF_RG32I:
+			return VK_FORMAT_R32G32_SINT;
+		case PF_RGB32I:
+			return VK_FORMAT_R32G32B32_SINT;
+		case PF_RGBA32I:
+			return VK_FORMAT_R32G32B32A32_SINT;
+		case PF_R16S:
+			return VK_FORMAT_R16_SNORM;
+		case PF_RG16S:
+			return VK_FORMAT_R16G16_SNORM;
+		case PF_RGBA16S:
+			return VK_FORMAT_R16G16B16A16_SNORM;
+		case PF_R16:
+			return VK_FORMAT_R16_UNORM;
+		case PF_RG16:
+			return VK_FORMAT_R16G16_UNORM;
+		case PF_RGBA16:
+			return VK_FORMAT_R16G16B16A16_UNORM;
 		case PF_BC1:
 		case PF_BC1a:
 			if (sRGB)
@@ -155,9 +191,9 @@ namespace bs { namespace ct
 			return VK_FORMAT_D32_SFLOAT;
 		case PF_D16:
 			return VK_FORMAT_D16_UNORM;
-		case PF_FLOAT_R11G11B10:
+		case PF_RG11B10F:
 			return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-		case PF_UNORM_R10G10B10A2:
+		case PF_RGB10A2:
 			return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
 		case PF_UNKNOWN:
 		default:

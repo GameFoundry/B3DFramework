@@ -118,7 +118,7 @@ namespace bs
 		Color* colorDst = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			PixelUtil::unpackColor(colorDst, PF_R8G8B8A8, (void*)colorSrc);
+			PixelUtil::unpackColor(colorDst, PF_RGBA8, (void*)colorSrc);
 
 			colorSrc += stride;
 			colorDst++;
@@ -139,7 +139,7 @@ namespace bs
 		Color* colorSrc = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			PixelUtil::packColor(*colorSrc, PF_R8G8B8A8, (void*)colorDst);
+			PixelUtil::packColor(*colorSrc, PF_RGBA8, (void*)colorDst);
 
 			colorSrc++;
 			colorDst += stride;

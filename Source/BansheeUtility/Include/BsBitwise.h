@@ -168,20 +168,35 @@ namespace bs
 		}
 
 		/** 
-		 * Convert floating point color channel value between 0.0 and 1.0 (otherwise clamped) to integer of a certain 
-		 * number of bits. Works for any value of bits between 0 and 31.
+		 * Converts floating point value in range [0, 1] to an unsigned integer of a certain number of bits. Works for any
+		 * value of bits between 0 and 31.
 		 */
-		static unsigned int floatToFixed(const float value, const unsigned int bits)
+		static unsigned int unormToUint(float value, unsigned int bits)
 		{
 			if (value <= 0.0f) return 0;
 			else if (value >= 1.0f) return (1 << bits) - 1;
 			else return (unsigned int)(value * (1 << bits));
 		}
 
-		/** Fixed point to float. */
-		static float fixedToFloat(unsigned value, unsigned int bits)
+		/** 
+		 * Converts floating point value in range [-1, 1] to an unsigned integer of a certain number of bits. Works for any
+		 * value of bits between 0 and 31.
+		 */
+		static unsigned int snormToUint(float value, unsigned int bits)
+		{
+			return unormToUint((value + 1.0f) * 0.5f, bits);
+		}
+
+		/** Converts an unsigned integer to a floating point in range [0, 1]. */
+		static float uintToUnorm(unsigned value, unsigned int bits)
 		{
 			return (float)value / (float)((1 << bits) - 1);
+		}
+
+		/** Converts an unsigned integer to a floating point in range [-1, 1]. */
+		static float uintToSnorm(unsigned value, unsigned int bits)
+		{
+			return uintToUnorm(value, bits) * 2.0f - 1.0f;
 		}
 
 		/** Write a n*8 bits integer value to memory in native endian. */

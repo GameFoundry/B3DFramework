@@ -184,7 +184,7 @@ namespace bs
 				UINT32 bufferSize = pageIter->width * pageIter->height * 2;
 
 				// TODO - I don't actually need a 2 channel texture
-				SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(pageIter->width, pageIter->height, 1, PF_R8G8);
+				SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(pageIter->width, pageIter->height, 1, PF_RG8);
 
 				pixelData->allocateInternalBuffer();
 				UINT8* pixelBuffer = pixelData->getData();
@@ -325,7 +325,7 @@ namespace bs
 				TEXTURE_DESC texDesc;
 				texDesc.width = pageIter->width;
 				texDesc.height = pageIter->height;
-				texDesc.format = PF_R8G8;
+				texDesc.format = PF_RG8;
 
 				HTexture newTex = Texture::create(texDesc);
 

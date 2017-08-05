@@ -1547,7 +1547,6 @@ namespace bs
 			return true;
 		};
 
-
 		// Actually parse techniques
 		for (auto& entry : techniqueData)
 		{
@@ -1559,6 +1558,7 @@ namespace bs
 			if (!parseInherited(metaData, entry.second))
 			{
 				parseStateDelete(parseState);
+				bs_stack_free(techniqueWasParsed);
 				return output;
 			}
 

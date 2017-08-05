@@ -592,7 +592,7 @@ namespace bs
 		mDevice.getImmediateContext()->Map(tempTexture, 0,D3D11_MAP_READ, 0, &mappedTex2D);
 
 		// Copy the the texture to the dest
-		PixelData src(getProperties().getWidth(), getProperties().getHeight(), 1, PF_R8G8B8A8);
+		PixelData src(getProperties().getWidth(), getProperties().getHeight(), 1, PF_RGBA8);
 		src.setExternalBuffer((UINT8*)mappedTex2D.pData);
 		PixelUtil::bulkPixelConversion(src, dst);
 

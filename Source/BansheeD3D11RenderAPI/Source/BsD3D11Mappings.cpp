@@ -413,39 +413,39 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R32G32B32A32_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32B32A32_FLOAT:
-			return PF_FLOAT32_RGBA;
+			return PF_RGBA32F;
 		case DXGI_FORMAT_R32G32B32A32_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32B32A32_SINT:
-			return PF_UNKNOWN;
+			return PF_RGBA32I;
 		case DXGI_FORMAT_R32G32B32_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32B32_FLOAT:
-			return PF_FLOAT32_RGB;
+			return PF_RGB32F;
 		case DXGI_FORMAT_R32G32B32_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32B32_SINT:
-			return PF_UNKNOWN;
+			return PF_RGB32I;
 		case DXGI_FORMAT_R16G16B16A16_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16G16B16A16_FLOAT:
-			return PF_FLOAT16_RGBA;
+			return PF_RGBA16F;
 		case DXGI_FORMAT_R16G16B16A16_UNORM:
-			return PF_UNKNOWN;
+			return PF_RGBA16;
 		case DXGI_FORMAT_R16G16B16A16_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16G16B16A16_SNORM:
-			return PF_UNKNOWN;
+			return PF_RGBA16S;
 		case DXGI_FORMAT_R16G16B16A16_SINT:
-			return PF_UNKNOWN;
+			return PF_RGBA16I;
 		case DXGI_FORMAT_R32G32_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32_FLOAT:
-			return PF_FLOAT32_RG;
+			return PF_RG32F;
 		case DXGI_FORMAT_R32G32_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32G32_SINT:
-			return PF_UNKNOWN;
+			return PF_RG32I;
 		case DXGI_FORMAT_R32G8X24_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
@@ -457,44 +457,44 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R10G10B10A2_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R10G10B10A2_UNORM:
-			return PF_UNORM_R10G10B10A2;
+			return PF_RGB10A2;
 		case DXGI_FORMAT_R10G10B10A2_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R11G11B10_FLOAT:
-			return PF_FLOAT_R11G11B10;
+			return PF_RG11B10F;
 		case DXGI_FORMAT_R8G8B8A8_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8G8B8A8_UNORM:
 		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-			return PF_R8G8B8A8;
+			return PF_RGBA8;
 		case DXGI_FORMAT_R8G8B8A8_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8G8B8A8_SNORM:
-			return PF_UNKNOWN;
+			return PF_RGBA8S;
 		case DXGI_FORMAT_R8G8B8A8_SINT:
-			return PF_UNKNOWN;
+			return PF_RGBA8I;
 		case DXGI_FORMAT_R16G16_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16G16_FLOAT:
-			return PF_FLOAT16_RG;
+			return PF_RG16F;
 		case DXGI_FORMAT_R16G16_UNORM:
-			return PF_UNKNOWN;
+			return PF_RG16;
 		case DXGI_FORMAT_R16G16_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16G16_SNORM:
-			return PF_UNKNOWN;
+			return PF_RG16S;
 		case DXGI_FORMAT_R16G16_SINT:
-			return PF_UNKNOWN;
+			return PF_RG16I;
 		case DXGI_FORMAT_R32_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_D32_FLOAT:
 			return PF_D32;
 		case DXGI_FORMAT_R32_FLOAT:
-			return PF_FLOAT32_R;
+			return PF_R32F;
 		case DXGI_FORMAT_R32_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R32_SINT:
-			return PF_UNKNOWN;
+			return PF_R32I;
 		case DXGI_FORMAT_R24G8_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_D24_UNORM_S8_UINT:
@@ -506,27 +506,27 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R8G8_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8G8_UNORM:
-			return PF_R8G8;
+			return PF_RG8;
 		case DXGI_FORMAT_R8G8_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8G8_SNORM:
-			return PF_UNKNOWN;
+			return PF_RG8S;
 		case DXGI_FORMAT_R8G8_SINT:
-			return PF_UNKNOWN;
+			return PF_RG8I;
 		case DXGI_FORMAT_R16_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16_FLOAT:
-			return PF_FLOAT16_R;
+			return PF_R16F;
 		case DXGI_FORMAT_D16_UNORM:
 			return PF_D16;
 		case DXGI_FORMAT_R16_UNORM:
-			return PF_UNKNOWN;
+			return PF_R16;
 		case DXGI_FORMAT_R16_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R16_SNORM:
-			return PF_UNKNOWN;
+			return PF_R16S;
 		case DXGI_FORMAT_R16_SINT:
-			return PF_UNKNOWN;
+			return PF_R16I;
 		case DXGI_FORMAT_R8_TYPELESS:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8_UNORM:
@@ -534,9 +534,9 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R8_UINT:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R8_SNORM:
-			return PF_UNKNOWN;
+			return PF_R8S;
 		case DXGI_FORMAT_R8_SINT:
-			return PF_UNKNOWN;
+			return PF_R8I;
 		case DXGI_FORMAT_A8_UNORM:
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_R1_UNORM:
@@ -589,9 +589,12 @@ namespace bs { namespace ct
 			return PF_UNKNOWN;
 		case DXGI_FORMAT_B5G5R5A1_UNORM:
 			return PF_UNKNOWN;
+		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+		case DXGI_FORMAT_B8G8R8X8_UNORM:
+			return PF_BGR8;
 		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
 		case DXGI_FORMAT_B8G8R8A8_UNORM:
-			return PF_B8G8R8A8;
+			return PF_BGRA8;
 		default:
 			return PF_UNKNOWN;
 		}
@@ -603,35 +606,73 @@ namespace bs { namespace ct
 		{
 		case PF_R8:
 			return DXGI_FORMAT_R8_UNORM;
-		case PF_R8G8:
+		case PF_R8S:
+			return DXGI_FORMAT_R8_SNORM;
+		case PF_R8I:
+			return DXGI_FORMAT_R8_SINT;
+		case PF_RG8:
 			return DXGI_FORMAT_R8G8_UNORM; 
-		case PF_R8G8B8:
-		case PF_B8G8R8:
-			return DXGI_FORMAT_UNKNOWN;
-		case PF_R8G8B8A8:
+		case PF_RG8S:
+			return DXGI_FORMAT_R8G8_SNORM; 
+		case PF_RG8I:
+			return DXGI_FORMAT_R8G8_SINT; 
+		case PF_BGR8:
+			if (gamma)
+				return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
+			return DXGI_FORMAT_B8G8R8X8_UNORM;
+		case PF_RGB8:
+		case PF_RGBA8:
 			if (gamma)
 				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case PF_B8G8R8A8:
+		case PF_RGBA8I:
+			return DXGI_FORMAT_R8G8B8A8_SINT;
+		case PF_RGBA8S:
+			return DXGI_FORMAT_R8G8B8A8_SNORM;
+		case PF_BGRA8:
 			if (gamma)
 				return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case PF_FLOAT16_R:
+		case PF_R16F:
 			return DXGI_FORMAT_R16_FLOAT;
-		case PF_FLOAT16_RG:
+		case PF_RG16F:
 			return DXGI_FORMAT_R16G16_FLOAT;
-		case PF_FLOAT16_RGB:
-			return DXGI_FORMAT_UNKNOWN;
-		case PF_FLOAT16_RGBA:
+		case PF_RGBA16F:
 			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case PF_FLOAT32_R:
+		case PF_R32F:
 			return DXGI_FORMAT_R32_FLOAT;
-		case PF_FLOAT32_RG:
+		case PF_RG32F:
 			return DXGI_FORMAT_R32G32_FLOAT;
-		case PF_FLOAT32_RGB:
+		case PF_RGB32F:
 			return DXGI_FORMAT_R32G32B32_FLOAT;
-		case PF_FLOAT32_RGBA:
+		case PF_RGBA32F:
 			return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		case PF_R16I:
+			return DXGI_FORMAT_R16_SINT;
+		case PF_RG16I:
+			return DXGI_FORMAT_R16G16_SINT;
+		case PF_RGBA16I:
+			return DXGI_FORMAT_R16G16B16A16_SINT;
+		case PF_R32I:
+			return DXGI_FORMAT_R32_SINT;
+		case PF_RG32I:
+			return DXGI_FORMAT_R32G32_SINT;
+		case PF_RGB32I:
+			return DXGI_FORMAT_R32G32B32_SINT;
+		case PF_RGBA32I:
+			return DXGI_FORMAT_R32G32B32A32_SINT;
+		case PF_R16S:
+			return DXGI_FORMAT_R16_SNORM;
+		case PF_RG16S:
+			return DXGI_FORMAT_R16G16_SNORM;
+		case PF_RGBA16S:
+			return DXGI_FORMAT_R16G16B16A16_SNORM;
+		case PF_R16:
+			return DXGI_FORMAT_R16_UNORM;
+		case PF_RG16:
+			return DXGI_FORMAT_R16G16_UNORM;
+		case PF_RGBA16:
+			return DXGI_FORMAT_R16G16B16A16_UNORM;
 		case PF_BC1:
 		case PF_BC1a:
 			if(gamma)
@@ -663,9 +704,9 @@ namespace bs { namespace ct
 			return DXGI_FORMAT_D32_FLOAT;
 		case PF_D16:
 			return DXGI_FORMAT_D16_UNORM;
-		case PF_FLOAT_R11G11B10:
+		case PF_RG11B10F:
 			return DXGI_FORMAT_R11G11B10_FLOAT;
-		case PF_UNORM_R10G10B10A2:
+		case PF_RGB10A2:
 			return DXGI_FORMAT_R10G10B10A2_UNORM;
 		case PF_UNKNOWN:
 		default:
@@ -765,14 +806,8 @@ namespace bs { namespace ct
 		// Check for formats that are not supported at all by DX11
 		switch(pf)
 		{
-		case PF_R8G8B8:
-			pf = PF_R8G8B8A8;
-			break;
-		case PF_B8G8R8:
-			pf = PF_B8G8R8A8;
-			break;
-		case PF_FLOAT16_RGB:
-			pf = PF_FLOAT16_RGBA;
+		case PF_RGB8:
+			pf = PF_RGBA8;
 			break;
 		default:
 			break;
@@ -783,8 +818,8 @@ namespace bs { namespace ct
 		{
 			switch (pf)
 			{
-			case PF_B8G8R8A8:
-				pf = PF_R8G8B8A8;
+			case PF_BGRA8:
+				pf = PF_RGBA8;
 				break;
 			default:
 				break;

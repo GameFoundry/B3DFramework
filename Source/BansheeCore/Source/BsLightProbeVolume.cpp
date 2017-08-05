@@ -323,7 +323,7 @@ namespace bs
 			{
 				TEXTURE_DESC cubemapDesc;
 				cubemapDesc.type = TEX_TYPE_CUBE_MAP;
-				cubemapDesc.format = PF_FLOAT16_RGB;
+				cubemapDesc.format = PF_RGBA16F;
 				cubemapDesc.width = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
 				cubemapDesc.height = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
 				cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;

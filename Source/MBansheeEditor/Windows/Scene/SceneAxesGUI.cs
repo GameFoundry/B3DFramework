@@ -40,7 +40,7 @@ namespace BansheeEditor
         /// <param name="projType">Projection type to display on the GUI.</param>
         public SceneAxesGUI(SceneWindow window, GUIPanel panel, int width, int height, ProjectionType projType)
         {
-            renderTexture = new RenderTexture2D(PixelFormat.R8G8B8A8, width, height);
+            renderTexture = new RenderTexture2D(PixelFormat.RGBA8, width, height);
             renderTexture.Priority = 1;
 
             SceneObject cameraSO = new SceneObject("SceneAxesCamera", true);

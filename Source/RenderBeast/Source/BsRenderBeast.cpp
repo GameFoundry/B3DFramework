@@ -467,7 +467,7 @@ namespace bs { namespace ct
 			{
 				TEXTURE_DESC cubeMapDesc;
 				cubeMapDesc.type = TEX_TYPE_CUBE_MAP;
-				cubeMapDesc.format = PF_FLOAT_R11G11B10;
+				cubeMapDesc.format = PF_RG11B10F;
 				cubeMapDesc.width = IBLUtility::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.height = IBLUtility::REFLECTION_CUBEMAP_SIZE;
 				cubeMapDesc.numMips = PixelUtil::getMaxMipmaps(cubeMapDesc.width, cubeMapDesc.height, 1, cubeMapDesc.format);

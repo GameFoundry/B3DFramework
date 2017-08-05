@@ -20,7 +20,7 @@ namespace bs { namespace ct
 			bases[i].y = sin(angle);
 		}
 
-		SPtr<PixelData> pixelData = PixelData::create(4, 4, 1, PF_R8G8);
+		SPtr<PixelData> pixelData = PixelData::create(4, 4, 1, PF_RG8);
 		for(UINT32 y = 0; y < 4; ++y)
 			for(UINT32 x = 0; x < 4; ++x)
 			{
@@ -86,7 +86,7 @@ namespace bs { namespace ct
 	{
 		TEXTURE_DESC desc;
 		desc.type = TEX_TYPE_2D;
-		desc.format = PF_FLOAT16_RG;
+		desc.format = PF_RG16F;
 		desc.width = 128;
 		desc.height = 32;
 

@@ -247,7 +247,7 @@ namespace bs { namespace ct
 		gIndexBuffer->unlock();
 
 		// Create a simple 2x2 checkerboard texture to map to the object we're about to render
-		SPtr<PixelData> pixelData = PixelData::create(2, 2, 1, PF_R8G8B8A8);
+		SPtr<PixelData> pixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		pixelData->setColorAt(Color::White, 0, 0);
 		pixelData->setColorAt(Color::Black, 1, 0);
 		pixelData->setColorAt(Color::White, 1, 1);
@@ -266,7 +266,7 @@ namespace bs { namespace ct
 		TEXTURE_DESC colorAttDesc;
 		colorAttDesc.width = windowResWidth;
 		colorAttDesc.height = windowResHeight;
-		colorAttDesc.format = PF_R8G8B8A8;
+		colorAttDesc.format = PF_RGBA8;
 		colorAttDesc.usage = TU_RENDERTARGET;
 
 		SPtr<Texture> colorAtt = Texture::create(colorAttDesc);
