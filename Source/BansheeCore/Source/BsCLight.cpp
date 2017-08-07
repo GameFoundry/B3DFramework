@@ -23,7 +23,8 @@ namespace bs
 
 	CLight::~CLight()
 	{
-		mInternal->destroy();
+		if(mInternal != nullptr)
+			mInternal->destroy();
 	}
 
 	Sphere CLight::getBounds() const

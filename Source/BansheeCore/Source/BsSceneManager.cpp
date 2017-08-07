@@ -10,6 +10,7 @@
 #include "BsViewport.h"
 #include "BsGameObjectManager.h"
 #include "BsRenderTarget.h"
+#include "BsLightProbeVolume.h"
 
 namespace bs
 {
@@ -133,6 +134,16 @@ namespace bs
 		mReflectionProbes.erase(probe.get());
 	}
 
+	void SceneManager::_registerLightProbeVolume(const SPtr<LightProbeVolume>& volume, const HSceneObject& so)
+	{
+		mLightProbeVolumes[volume.get()] = SceneLightProbeVolumeData(volume, so);
+	}
+
+	void SceneManager::_unregisterLightProbeVolume(const SPtr<LightProbeVolume>& volume)
+	{
+		mLightProbeVolumes.erase(volume.get());
+	}
+
 	void SceneManager::_notifyMainCameraStateChanged(const SPtr<Camera>& camera)
 	{
 		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
@@ -236,6 +247,17 @@ namespace bs
 			{
 				probe->setIsActive(so->getActive());
 			}
+		}
+
+		for (auto& volumePair : mLightProbeVolumes)
+		{
+			SPtr<LightProbeVolume> volume = volumePair.second.volume;
+			HSceneObject so = volumePair.second.sceneObject;
+
+			volume->_updateTransform(so);
+
+			if (so->getActive() != volume->getIsActive())
+				volume->setIsActive(so->getActive());
 		}
 	}
 

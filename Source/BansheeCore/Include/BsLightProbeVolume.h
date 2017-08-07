@@ -162,7 +162,7 @@ namespace bs
 		 * Resets all probes to match the original grid pattern. This will reset probe positions, as well as add/remove
 		 * probes as necessary, essentially losing any custom changes to the probes.
 		 */
-		void reset();		
+		void reset();
 
 		/**	Retrieves an implementation of the object usable only from the core thread. */
 		SPtr<ct::LightProbeVolume> getCore() const;
@@ -176,6 +176,15 @@ namespace bs
 		 *							volume in an uniform way.
 		 */
 		static SPtr<LightProbeVolume> create(const AABox& volume = AABox::UNIT_BOX, const Vector3I& cellCount = {1, 1, 1});
+
+		/**	Returns the hash value that can be used to identify if the internal data needs an update. */
+		UINT32 _getLastModifiedHash() const { return mLastUpdateHash; }
+
+		/**	Sets the hash value that can be used to identify if the internal data needs an update. */
+		void _setLastModifiedHash(UINT32 hash) { mLastUpdateHash = hash; }
+
+		/** Updates the transfrom from the provided scene object, if the scene object's data is detected to be dirty. */
+		void _updateTransform(const HSceneObject& so, bool force = false);
 	protected:
 		friend class ct::LightProbeVolume;
 
@@ -206,6 +215,7 @@ namespace bs
 		UnorderedMap<UINT32, ProbeInfo> mProbes;
 		AABox mVolume = AABox::UNIT_BOX;
 		Vector3I mCellCount;
+		UINT32 mLastUpdateHash;
 
 		UINT32 mNextProbeId = 0;
 		SPtr<ct::RendererTask> mRendererTask;

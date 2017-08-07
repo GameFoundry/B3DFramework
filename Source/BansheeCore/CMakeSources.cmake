@@ -23,6 +23,7 @@ set(BS_BANSHEECORE_INC_COMPONENTS
 	"Include/BsCBone.h"	
 	"Include/BsCReflectionProbe.h"
 	"Include/BsCSkybox.h"
+	"Include/BsCLightProbeVolume.h"
 )
 
 set(BS_BANSHEECORE_INC_PHYSICS
@@ -264,6 +265,7 @@ set(BS_BANSHEECORE_SRC_COMPONENTS
 	"Source/BsCBone.cpp"	
 	"Source/BsCReflectionProbe.cpp"
 	"Source/BsCSkybox.cpp"
+	"Source/BsCLightProbeVolume.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_IMPORTER
@@ -364,6 +366,7 @@ set(BS_BANSHEECORE_INC_RTTI
 	"Include/BsCReflectionProbeRTTI.h"
 	"Include/BsSkyboxRTTI.h"
 	"Include/BsLightProbeVolumeRTTI.h"
+	"Include/BsCLightProbeVolumeRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER

@@ -8,6 +8,7 @@
 #include "BsGpuBuffer.h"
 #include "BsTexture.h"
 #include "BsIBLUtility.h"
+#include "BsSceneObject.h"
 
 namespace bs
 {
@@ -16,11 +17,11 @@ namespace bs
 	{ }
 
 	LightProbeVolume::LightProbeVolume()
-		: mVolume(AABox::UNIT_BOX), mCellCount { 1, 1, 1 }
+		: mVolume(AABox::UNIT_BOX), mCellCount { 1, 1, 1 }, mLastUpdateHash(0)
 	{ }
 
 	LightProbeVolume::LightProbeVolume(const AABox& volume, const Vector3I& cellCount)
-		:mVolume(volume), mCellCount(cellCount)
+		:mVolume(volume), mCellCount(cellCount), mLastUpdateHash(0)
 	{
 		reset();
 	}
@@ -193,6 +194,19 @@ namespace bs
 		{
 			_markCoreDirty();
 			runRenderProbeTask();
+		}
+	}
+
+	void LightProbeVolume::_updateTransform(const HSceneObject& so, bool force)
+	{
+		UINT32 curHash = so->getTransformHash();
+		if (curHash != _getLastModifiedHash() || force)
+		{
+			mPosition = so->getWorldPosition();
+			mRotation = so->getWorldRotation();
+
+			_markCoreDirty();
+			_setLastModifiedHash(curHash);
 		}
 	}
 

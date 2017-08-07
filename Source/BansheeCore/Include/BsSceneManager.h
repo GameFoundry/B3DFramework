@@ -8,6 +8,8 @@
 
 namespace bs
 {
+	class LightProbeVolume;
+
 	/** @addtogroup Scene-Internal
 	 *  @{
 	 */
@@ -60,6 +62,18 @@ namespace bs
 		{ }
 
 		SPtr<ReflectionProbe> probe;
+		HSceneObject sceneObject;
+	};
+
+	/**	Contains information about a light probe volume managed by the scene manager. */
+	struct SceneLightProbeVolumeData
+	{
+		SceneLightProbeVolumeData() { }
+		SceneLightProbeVolumeData(const SPtr<LightProbeVolume>& volume, const HSceneObject& sceneObject)
+			:volume(volume), sceneObject(sceneObject)
+		{ }
+
+		SPtr<LightProbeVolume> volume;
 		HSceneObject sceneObject;
 	};
 
@@ -139,6 +153,12 @@ namespace bs
 		/**	Notifies the scene manager that a reflection probe was removed. */
 		void _unregisterReflectionProbe(const SPtr<ReflectionProbe>& probe);
 
+		/**	Notifies the scene manager that a new light probe volume was created. */
+		void _registerLightProbeVolume(const SPtr<LightProbeVolume>& volume, const HSceneObject& so);
+
+		/**	Notifies the scene manager that a light proble volume was removed. */
+		void _unregisterLightProbeVolume(const SPtr<LightProbeVolume>& volume);
+
 		/**	Notifies the scene manager that a camera either became the main camera, or has stopped being main camera. */
 		void _notifyMainCameraStateChanged(const SPtr<Camera>& camera);
 
@@ -215,6 +235,7 @@ namespace bs
 		Map<Renderable*, SceneRenderableData> mRenderables;
 		Map<Light*, SceneLightData> mLights;
 		Map<ReflectionProbe*, SceneReflectionProbeData> mReflectionProbes;
+		Map<LightProbeVolume*, SceneLightProbeVolumeData> mLightProbeVolumes;
 
 		Vector<HComponent> mActiveComponents;
 		Vector<HComponent> mInactiveComponents;

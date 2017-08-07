@@ -17,25 +17,25 @@ namespace bs
 	 *
 	 * Wraps Light as a Component.
 	 */
-    class BS_CORE_EXPORT CLight : public Component
-    {
-    public:
+	class BS_CORE_EXPORT CLight : public Component
+	{
+	public:
 		CLight(const HSceneObject& parent, LightType type = LightType::Radial, Color color = Color::White, 
 			float intensity = 100.0f, float range = 1.0f, bool castsShadows = false, Degree spotAngle = Degree(45), 
 			Degree spotFalloffAngle = Degree(40));
 
 		virtual ~CLight();
 
-	    /** @copydoc Light::getType */
+		/** @copydoc Light::getType */
 		LightType getType() const { return mInternal->getType(); }
 
-	    /** @copydoc Light::setType */
+		/** @copydoc Light::setType */
 		void setType(LightType type) { mInternal->setType(type); }
 
-	    /** @copydoc Light::getCastsShadow */
+		/** @copydoc Light::getCastsShadow */
 		bool getCastsShadow() const { return mInternal->getCastsShadow(); }
 
-	    /** @copydoc Light::setCastsShadow */
+		/** @copydoc Light::setCastsShadow */
 		void setCastsShadow(bool castsShadow) { mInternal->setCastsShadow(castsShadow); }
 
 		/** @copydoc Light::setShadowBias */
@@ -44,16 +44,16 @@ namespace bs
 		/** @copydoc Light::setShadowBias() */
 		float getShadowBias() const { return mInternal->getShadowBias(); }
 
-	    /** @copydoc Light::getColor */
+		/** @copydoc Light::getColor */
 		Color getColor() const { return mInternal->getColor(); }
 
-	    /** @copydoc Light::setColor */
+		/** @copydoc Light::setColor */
 		void setColor(const Color& color) { mInternal->setColor(color); }
 
-	    /** @copydoc Light::getAttenuationRadius */
+		/** @copydoc Light::getAttenuationRadius */
 		float getAttenuationRadius() const { return mInternal->getAttenuationRadius(); }
 
-	    /** @copydoc Light::setAttenuationRadius */
+		/** @copydoc Light::setAttenuationRadius */
 		void setAttenuationRadius(float radius) { mInternal->setAttenuationRadius(radius); }
 
 		/** @copydoc Light::getSourceRadius */
@@ -62,16 +62,16 @@ namespace bs
 		/** @copydoc Light::setSourceRadius */
 		void setSourceRadius(float radius) { mInternal->setSourceRadius(radius); }
 
-	    /** @copydoc Light::getIntensity */
+		/** @copydoc Light::getIntensity */
 		float getIntensity() const { return mInternal->getIntensity(); }
 
-	    /** @copydoc Light::setIntensity */
+		/** @copydoc Light::setIntensity */
 		void setIntensity(float intensity) { mInternal->setIntensity(intensity); }
 
-	    /** @copydoc Light::getSpotAngle */
+		/** @copydoc Light::getSpotAngle */
 		Degree getSpotAngle() const { return mInternal->getSpotAngle(); }
 
-	    /** @copydoc Light::setSpotAngle */
+		/** @copydoc Light::setSpotAngle */
 		void setSpotAngle(const Degree& spotAngle) { mInternal->setSpotAngle(spotAngle); }
 
 		/** @copydoc Light::getSpotFalloffAngle */
@@ -86,19 +86,19 @@ namespace bs
 		/**  @copydoc Light::setUseAutoAttenuation  */
 		void setUseAutoAttenuation(bool enabled) { mInternal->setUseAutoAttenuation(enabled); }
 
-	    /** @copydoc Light::getBounds  */
+		/** @copydoc Light::getBounds  */
 		Sphere getBounds() const;
 
 		/** @name Internal 
 		 *  @{
 		 */
 
-	    /**	Returns the light that this component wraps. */
+		 /** Returns the light that this component wraps. */
 		SPtr<Light> _getLight() const { return mInternal; }
 
 		/** @} */
 
-    protected:
+	protected:
 		mutable SPtr<Light> mInternal;
 
 		// Only valid during construction
@@ -135,7 +135,7 @@ namespace bs
 
 	protected:
 		CLight(); // Serialization only
-     };
+	 };
 
 	 /** @} */
 }
