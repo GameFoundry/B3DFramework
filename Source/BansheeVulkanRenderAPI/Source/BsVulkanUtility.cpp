@@ -110,6 +110,12 @@ namespace bs { namespace ct
 			return VK_FORMAT_R8G8_SINT;
 		case PF_RGBA8I:
 			return VK_FORMAT_R8G8B8A8_SINT;
+		case PF_R8U:
+			return VK_FORMAT_R8_UINT;
+		case PF_RG8U:
+			return VK_FORMAT_R8G8_UINT;
+		case PF_RGBA8U:
+			return VK_FORMAT_R8G8B8A8_UINT;
 		case PF_R8S:
 			return VK_FORMAT_R8_SNORM;
 		case PF_RG8S:
@@ -136,6 +142,12 @@ namespace bs { namespace ct
 			return VK_FORMAT_R16G16_SINT;
 		case PF_RGBA16I:
 			return VK_FORMAT_R16G16B16A16_SINT;
+		case PF_R16U:
+			return VK_FORMAT_R16_UINT;
+		case PF_RG16U:
+			return VK_FORMAT_R16G16_UINT;
+		case PF_RGBA16U:
+			return VK_FORMAT_R16G16B16A16_UINT;
 		case PF_R32I:
 			return VK_FORMAT_R32_SINT;
 		case PF_RG32I:
@@ -144,6 +156,14 @@ namespace bs { namespace ct
 			return VK_FORMAT_R32G32B32_SINT;
 		case PF_RGBA32I:
 			return VK_FORMAT_R32G32B32A32_SINT;
+		case PF_R32U:
+			return VK_FORMAT_R32_UINT;
+		case PF_RG32U:
+			return VK_FORMAT_R32G32_UINT;
+		case PF_RGB32U:
+			return VK_FORMAT_R32G32B32_UINT;
+		case PF_RGBA32U:
+			return VK_FORMAT_R32G32B32A32_UINT;
 		case PF_R16S:
 			return VK_FORMAT_R16_SNORM;
 		case PF_RG16S:

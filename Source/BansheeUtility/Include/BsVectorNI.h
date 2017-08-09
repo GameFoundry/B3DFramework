@@ -29,7 +29,7 @@ namespace bs
 
 		VectorNI(std::initializer_list<INT32> list)
 		{
-			assert(list.size() < N);
+			assert(list.size() <= N);
 			std::copy(list.begin(), list.end(), v);
 		}
 

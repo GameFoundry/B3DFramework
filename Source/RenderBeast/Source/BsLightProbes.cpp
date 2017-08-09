@@ -91,7 +91,7 @@ namespace bs { namespace ct
 		UINT32 height = viewProps.viewRect.height;
 		UINT32 numSamples = viewProps.numSamples;
 
-		colorDesc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R16I, width, height, TU_RENDERTARGET, numSamples);
+		colorDesc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R16U, width, height, TU_RENDERTARGET, numSamples);
 		depthDesc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_D16, width, height, TU_DEPTHSTENCIL, numSamples);
 	}
 
@@ -284,21 +284,17 @@ namespace bs { namespace ct
 			resizeCoefficientBuffer(newSize);
 		}
 
-		UINT8* dest = (UINT8*)mProbeCoefficientsGPU->lock(0, mProbeCoefficientsGPU->getSize(), GBL_WRITE_ONLY_DISCARD);
+		UINT32 writePos = 0;
 		for(auto& entry : mVolumes)
 		{
 			UINT32 numProbes = (UINT32)entry.volume->getLightProbePositions().size();
+			UINT32 size = numProbes * sizeof(LightProbeSHCoefficients);
 			SPtr<GpuBuffer> localBuffer = entry.volume->getCoefficientsBuffer();
 			
 			// Note: Some of the coefficients might still be dirty (unrendered). Check for this and write them as black?
-			UINT32 size = numProbes * sizeof(LightProbeSHCoefficients);
-			UINT8* src = (UINT8*)localBuffer->lock(0, size, GBL_READ_ONLY);
-			memcpy(dest, src, size);
-
-			localBuffer->unlock();
-			dest += size;
+			mProbeCoefficientsGPU->copyData(*localBuffer, 0, writePos, size);
+			writePos += size;
 		}
-		mProbeCoefficientsGPU->unlock();
 
 		// Gather all positions
 		UINT32 bufferOffset = 0;
@@ -327,7 +323,7 @@ namespace bs { namespace ct
 		mTetrahedronInfos.clear();
 
 		UINT32 innerVertexCount = (UINT32)mTempTetrahedronPositions.size();
-		generateTetrahedronData(mTempTetrahedronPositions, mTetrahedronInfos, false);
+		generateTetrahedronData(mTempTetrahedronPositions, mTetrahedronInfos, true);
 
 		// Generate a mesh out of all the tetrahedron triangles
 		// Note: Currently the entire volume is rendered as a single large mesh, which will isn't optimal as we can't
@@ -345,6 +341,7 @@ namespace bs { namespace ct
 		SPtr<MeshData> meshData = MeshData::create(numVertices, numIndices, vertexDesc);
 		auto posIter = meshData->getVec3DataIter(VES_POSITION);
 		auto idIter = meshData->getDWORDDataIter(VES_TEXCOORD);
+		UINT32* indices = meshData->getIndices32();
 
 		UINT32 tetIdx = 0;
 		for(auto& entry : mTetrahedronInfos)
@@ -386,6 +383,12 @@ namespace bs { namespace ct
 				idIter.addValue(tetIdx);
 				idIter.addValue(tetIdx);
 				idIter.addValue(tetIdx);
+
+				indices[0] = tetIdx * 4 * 3 + i * 3 + 0;
+				indices[1] = tetIdx * 4 * 3 + i * 3 + 1;
+				indices[2] = tetIdx * 4 * 3 + i * 3 + 2;
+
+				indices += 3;
 			}
 
 			tetIdx++;
@@ -410,7 +413,7 @@ namespace bs { namespace ct
 				if (entry.volume.vertices[i] >= (INT32)innerVertexCount)
 					entry.volume.vertices[i] = -1;
 				else
-					entry.volume.vertices[i] = mTempTetrahedronBufferIndices[i];
+					entry.volume.vertices[i] = mTempTetrahedronBufferIndices[entry.volume.vertices[i]];
 			}
 
 			memcpy(dst->indices, entry.volume.vertices, sizeof(UINT32) * 4);
@@ -602,7 +605,6 @@ namespace bs { namespace ct
 
 				// For each face, generate outer tetrahedrons
 				Vector<Vector3> outerVolumeVerts;
-				FrameVector<TetrahedronVolume> outerTetrahedra;
 				for (UINT32 i = 0; i < numOuterFaces; ++i)
 				{
 					const TetrahedronFace& face = volume.outerFaces[i];
@@ -619,14 +621,10 @@ namespace bs { namespace ct
 					}
 
 					TetrahedronVolume outerVolume = Triangulation::tetrahedralize(outerVolumeVerts);
-
 					UINT32 tetStartIdx = (UINT32)volume.tetrahedra.size();
+
 					for (auto& entry : outerVolume.tetrahedra)
 					{
-						// Remap vertices back to global array
-						for (UINT32 j = 0; j < 4; j++)
-							entry.vertices[j] = originalIndices[entry.vertices[j]];
-
 						// Remap neighbors to global array
 						for (UINT32 j = 0; j < 4; j++)
 						{
@@ -641,6 +639,7 @@ namespace bs { namespace ct
 					// Connect the new volume to the original face
 					for (auto& entry : outerVolume.outerFaces)
 					{
+						// Look for the face sharing all vertices with the original face
 						bool isValid = true;
 						for (UINT32 j = 0; j < 3; j++)
 						{
@@ -675,11 +674,22 @@ namespace bs { namespace ct
 						for(UINT32 j = 0; j < 4; j++)
 						{
 							if (innerTet.neighbors[j] == -1)
-								innerTet.neighbors[j] = entry.tetrahedron;
+							{
+								// Note: Not searching for opposite neighbor here. If tet. has multiple free faces then we
+								// can't just pick the first one
+								innerTet.neighbors[j] = tetStartIdx + entry.tetrahedron;
+								break;
+							}
 						}
 					}
 
-					outerTetrahedra.push_back(outerVolume);
+					for (auto& entry : outerVolume.tetrahedra)
+					{
+						// Remap vertices back to global array
+						for (UINT32 j = 0; j < 4; j++)
+							entry.vertices[j] = originalIndices[entry.vertices[j]];
+					}
+
 					outerVolumeVerts.clear();
 
 					// Add to global tetrahedra array
@@ -731,13 +741,23 @@ namespace bs { namespace ct
 				const Vector3& P3 = positions[volume.tetrahedra[i].vertices[2]];
 				const Vector3& P4 = positions[volume.tetrahedra[i].vertices[3]];
 
-				Matrix4 mat;
-				mat.setColumn(0, Vector4(P1 - P4, 0.0f));
-				mat.setColumn(1, Vector4(P2 - P4, 0.0f));
-				mat.setColumn(2, Vector4(P3 - P4, 0.0f));
-				mat.setColumn(3, Vector4(P4, 1.0f));
+				Vector3 E1 = P1 - P4;
+				Vector3 E2 = P2 - P4;
+				Vector3 E3 = P3 - P4;
 
-				entry.transform = mat.inverse();
+				Matrix3 mat;
+				mat.setColumn(0, E1);
+				mat.setColumn(1, E2);
+				mat.setColumn(2, E3);
+
+				// If tetrahedron is co-planar just ignore it, shader will use some other nearby one instead. We can't
+				// handle coplanar tetrahedrons because the matrix is not invertible, and for nearly co-planar ones the
+				// math breaks down because of precision issues.
+				if (fabs(Vector3::dot(Vector3::normalize(Vector3::cross(E1, E2)), E3)) < 0.0001f)
+					continue;
+
+				entry.transform = Matrix4(mat.inverse());
+				entry.transform.setColumn(3, Vector4(P4, 1.0f));
 
 				output.push_back(entry);
 			}

@@ -4,6 +4,11 @@ technique TetrahedraRender
 	{
 		cull = cw;
 	};
+	
+	depth
+	{
+		compare = lte;
+	};
 
 	code
 	{

@@ -128,9 +128,9 @@ namespace bs
 			UINT32 z = (idx / slicePitch);
 
 			Vector3 position = mVolume.getMin();
-			position.x += size.x * (x / (float)numProbesX);
-			position.y += size.y * (y / (float)numProbesY);
-			position.z += size.z * (z / (float)numProbesZ);
+			position.x += size.x * (x / (float)(numProbesX - 1));
+			position.y += size.y * (y / (float)(numProbesY - 1));
+			position.z += size.z * (z / (float)(numProbesZ - 1));
 
 			iter->second.position = position;
 			iter->second.flags = LightProbeFlags::Clean;
@@ -378,6 +378,8 @@ namespace bs
 	LightProbeVolume::LightProbeVolume(const UnorderedMap<UINT32, bs::LightProbeVolume::ProbeInfo>& probes)
 	{
 		mInitCoefficients.resize(probes.size());
+		mProbePositions.resize(probes.size());
+		mProbeInfos.resize(probes.size());
 
 		UINT32 probeIdx = 0;
 		for(auto& entry : probes)
@@ -433,8 +435,8 @@ namespace bs
 				TEXTURE_DESC cubemapDesc;
 				cubemapDesc.type = TEX_TYPE_CUBE_MAP;
 				cubemapDesc.format = PF_RGBA16F;
-				cubemapDesc.width = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
-				cubemapDesc.height = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
+				cubemapDesc.width = 256; // Note: Test different sizes and their effect on quality
+				cubemapDesc.height = 256;
 				cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
 				SPtr<Texture> cubemap = Texture::create(cubemapDesc);
@@ -608,6 +610,7 @@ namespace bs
 		desc.elementCount = count;
 		desc.usage = GBU_STATIC;
 		desc.format = BF_UNKNOWN;
+		desc.randomGpuWrite = true;
 
 		SPtr<GpuBuffer> newBuffer = GpuBuffer::create(desc);
 		if (mCoefficients)

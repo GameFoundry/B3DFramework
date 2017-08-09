@@ -250,8 +250,6 @@ namespace bs { namespace ct
 			mOptionsDirty = false;
 		}
 		
-		// Execute render tasks, after all scene object information has been synced
-		gCoreThread().queueCommand(std::bind(&RenderBeast::processTasks, this, false));
 		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
 	}
 
@@ -280,6 +278,9 @@ namespace bs { namespace ct
 		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
 		
 		FrameInfo frameInfo(delta, &animData);
+
+		// Make sure any renderer tasks finish first, as rendering might depend on them
+		processTasks(false);
 
 		// Gather all views
 		Vector<RendererView*> views;
@@ -650,5 +651,8 @@ namespace bs { namespace ct
 
 		FrameInfo frameInfo(1.0f/60.0f);
 		renderViews(viewGroup, frameInfo);
+
+		// Make sure the render texture is available for reads
+		RenderAPI::instance().setRenderTarget(nullptr);
 	}
 }}

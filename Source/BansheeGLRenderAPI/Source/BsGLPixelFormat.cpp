@@ -23,10 +23,12 @@ namespace bs { namespace ct
 		{
 		case PF_R8:
 		case PF_R8I:
+		case PF_R8U:
 		case PF_R8S:
 			return GL_RED;
 		case PF_RG8:
 		case PF_RG8I:
+		case PF_RG8U:
 		case PF_RG8S:
 			return GL_RG;
 		case PF_RGB8:
@@ -35,36 +37,44 @@ namespace bs { namespace ct
 			return GL_BGR;
 		case PF_RGBA8:
 		case PF_RGBA8I:
+		case PF_RGBA8U:
 		case PF_RGBA8S:
 			return GL_RGBA;
 		case PF_BGRA8:
 			return GL_BGRA;
 		case PF_R16F:
 		case PF_R16I:
+		case PF_R16U:
 		case PF_R16S:
 		case PF_R16:
 			return GL_RED;
 		case PF_RG16F:
 		case PF_RG16I:
+		case PF_RG16U:
 		case PF_RG16S:
 		case PF_RG16:
 			return GL_RG;
 		case PF_RGBA16F:
 		case PF_RGBA16I:
+		case PF_RGBA16U:
 		case PF_RGBA16S:
 		case PF_RGBA16:
 			return GL_RGBA;
 		case PF_R32F:
 		case PF_R32I:
+		case PF_R32U:
 			return GL_RED;
 		case PF_RG32F:
 		case PF_RG32I:
+		case PF_RG32U:
 			return GL_RG;
 		case PF_RGB32F:
 		case PF_RGB32I:
+		case PF_RGB32U:
 			return GL_RGB;
 		case PF_RGBA32F:
 		case PF_RGBA32I:
+		case PF_RGBA32U:
 			return GL_RGBA;
 		case PF_RG11B10F:
 			return GL_RGB;
@@ -94,6 +104,9 @@ namespace bs { namespace ct
 		case PF_RG8:
 		case PF_RGB8:
 		case PF_BGR8:
+		case PF_R8U:
+		case PF_RG8U:
+		case PF_RGBA8U:
 			return GL_UNSIGNED_BYTE;
 		case PF_BGRA8:
 		case PF_RGBA8:
@@ -115,6 +128,9 @@ namespace bs { namespace ct
 		case PF_R16:
 		case PF_RG16:
 		case PF_RGBA16:
+		case PF_R16U:
+		case PF_RG16U:
+		case PF_RGBA16U:
 			return GL_UNSIGNED_SHORT;
 		case PF_R16F:
 		case PF_RG16F:
@@ -125,6 +141,11 @@ namespace bs { namespace ct
 		case PF_RGB32I:
 		case PF_RGBA32I:
 			return GL_INT;
+		case PF_R32U:
+		case PF_RG32U:
+		case PF_RGB32U:
+		case PF_RGBA32U:
+			return GL_UNSIGNED_INT;
 		case PF_R32F:
 		case PF_RG32F:
 		case PF_RGB32F:
@@ -146,12 +167,16 @@ namespace bs { namespace ct
 			return GL_R8;
 		case PF_R8I:
 			return GL_R8I;
+		case PF_R8U:
+			return GL_R8UI;
 		case PF_R8S:
 			return GL_R8_SNORM;
 		case PF_RG8:
 			return GL_RG8;
 		case PF_RG8I:
 			return GL_RG8I;
+		case PF_RG8U:
+			return GL_RG8UI;
 		case PF_RG8S:
 			return GL_RG8_SNORM;
 		case PF_RGB8:
@@ -168,12 +193,16 @@ namespace bs { namespace ct
 				return GL_RGBA8;
 		case PF_RGBA8I:
 			return GL_RGBA8I;
+		case PF_RGBA8U:
+			return GL_RGBA8UI;
 		case PF_RGBA8S:
 			return GL_RGBA8_SNORM;
 		case PF_R16F:
 			return GL_R16F;
 		case PF_R16I:
 			return GL_R16I;
+		case PF_R16U:
+			return GL_R16UI;
 		case PF_R16S:
 			return GL_R16_SNORM;
 		case PF_R16:
@@ -182,6 +211,8 @@ namespace bs { namespace ct
 			return GL_RG16F;
 		case PF_RG16I:
 			return GL_RG16I;
+		case PF_RG16U:
+			return GL_RG16UI;
 		case PF_RG16S:
 			return GL_RG16_SNORM;
 		case PF_RG16:
@@ -190,6 +221,8 @@ namespace bs { namespace ct
 			return GL_RGBA16F;
 		case PF_RGBA16I:
 			return GL_RGBA16I;
+		case PF_RGBA16U:
+			return GL_RGBA16UI;
 		case PF_RGBA16S:
 			return GL_RGBA16_SNORM;
 		case PF_RGBA16:
@@ -198,18 +231,26 @@ namespace bs { namespace ct
 			return GL_R32F;
 		case PF_R32I:
 			return GL_R32I;
+		case PF_R32U:
+			return GL_R32UI;
 		case PF_RG32F:
 			return GL_RG32F;
 		case PF_RG32I:
 			return GL_RG32I;
+		case PF_RG32U:
+			return GL_RG32UI;
 		case PF_RGB32F:
 			return GL_RGB32F;
 		case PF_RGB32I:
 			return GL_RGB32I;
+		case PF_RGB32U:
+			return GL_RGB32UI;
 		case PF_RGBA32F:
 			return GL_RGBA32F;
 		case PF_RGBA32I:
 			return GL_RGBA32I;
+		case PF_RGBA32U:
+			return GL_RGBA32UI;
 		case PF_BC1a:
 		case PF_BC1:
 			if (hwGamma)

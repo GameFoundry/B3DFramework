@@ -104,7 +104,8 @@ technique IrradianceEvaluate
 				ProbeVolume volume = gProbeVolumes[volumeIdx];
 				
 				float3 P = NDCToWorld(input.screenPos, surfaceData.depth);
-				float3 factors = mul(volume.transform, float4(P, 1.0f));			
+				float3 offset = float3(volume.transform[0][3], volume.transform[1][3], volume.transform[2][3]);
+				float3 factors = mul((float3x3)volume.transform, P - offset);			
 				float4 coords = float4(factors, 1.0f - factors.x - factors.y - factors.z);
 				
 				// Ignore extra points we added to make the volume cover everything

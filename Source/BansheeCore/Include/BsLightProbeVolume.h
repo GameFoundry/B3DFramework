@@ -73,6 +73,10 @@ namespace bs
 	/** Vector representing spherical harmonic coefficients for a light probe. */
 	struct LightProbeSHCoefficients
 	{
+		LightProbeSHCoefficients()
+			:coeffsR(), coeffsG(), coeffsB()
+		{ }
+
 		float coeffsR[9];
 		float coeffsG[9];
 		float coeffsB[9];
@@ -99,7 +103,7 @@ namespace bs
 		{
 			ProbeInfo() {}
 			ProbeInfo(LightProbeFlags flags, const Vector3& position)
-				:flags(flags), position(position) 
+				:flags(flags), position(position)
 			{ }
 
 			LightProbeFlags flags;

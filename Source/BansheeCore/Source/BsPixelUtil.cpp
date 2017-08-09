@@ -760,7 +760,7 @@ namespace bs
 		/* Bytes per element */
 		1,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_BYTE, 1,
 		/* rbits, gbits, bbits, abits */
@@ -774,7 +774,7 @@ namespace bs
 		/* Bytes per element */
 		2,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_BYTE, 2,
 		/* rbits, gbits, bbits, abits */
@@ -785,6 +785,48 @@ namespace bs
 		},
 	//-----------------------------------------------------------------------
 		{ "PF_RGBA8I",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER | PFF_SIGNED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_BYTE, 4,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 8, 8,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000,
+		0, 8, 16, 24,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R8U",
+		/* Bytes per element */
+		1,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_BYTE, 1,
+		/* rbits, gbits, bbits, abits */
+		8, 0, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG8U",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_BYTE, 2,
+		/* rbits, gbits, bbits, abits */
+		8, 8, 0, 0,
+		/* Masks and shifts */
+		0x000000FF, 0x0000FF00, 0, 0, 
+		0, 8, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA8U",
 		/* Bytes per element */
 		4,
 		/* Flags */
@@ -844,7 +886,7 @@ namespace bs
 		/* Bytes per element */
 		2,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_SHORT, 1,
 		/* rbits, gbits, bbits, abits */
@@ -858,7 +900,7 @@ namespace bs
 		/* Bytes per element */
 		4,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_SHORT, 2,
 		/* rbits, gbits, bbits, abits */
@@ -869,6 +911,48 @@ namespace bs
 		},
 	//-----------------------------------------------------------------------
 		{ "PF_RGBA16I",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER | PFF_SIGNED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_SHORT, 4,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 16, 16,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0x0000FFFF, 0xFFFF0000, 
+		0, 16, 0, 16,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R16U",
+		/* Bytes per element */
+		2,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_SHORT, 1,
+		/* rbits, gbits, bbits, abits */
+		16, 0, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0, 0, 0, 
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG16U",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_SHORT, 2,
+		/* rbits, gbits, bbits, abits */
+		16, 16, 0, 0,
+		/* Masks and shifts */
+		0x0000FFFF, 0xFFFF0000, 0, 0, 
+		0, 16, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA16U",
 		/* Bytes per element */
 		8,
 		/* Flags */
@@ -900,7 +984,7 @@ namespace bs
 		/* Bytes per element */
 		8,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_INT, 2,
 		/* rbits, gbits, bbits, abits */
@@ -914,7 +998,7 @@ namespace bs
 		/* Bytes per element */
 		12,
 		/* Flags */
-		PFF_INTEGER,
+		PFF_INTEGER | PFF_SIGNED,
 		/* Component type and count */
 		PCT_INT, 3,
 		/* rbits, gbits, bbits, abits */
@@ -925,6 +1009,62 @@ namespace bs
 		},
 	//-----------------------------------------------------------------------
 		{ "PF_RGBA32I",
+		/* Bytes per element */
+		16,
+		/* Flags */
+		PFF_INTEGER | PFF_SIGNED | PFF_HASALPHA,
+		/* Component type and count */
+		PCT_INT, 4,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 32, 32,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
+		0, 0, 0, 0
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_R32U",
+		/* Bytes per element */
+		4,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 1,
+		/* rbits, gbits, bbits, abits */
+		32, 0, 0, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0, 0, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RG32U",
+		/* Bytes per element */
+		8,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 2,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 0, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGB32U",
+		/* Bytes per element */
+		12,
+		/* Flags */
+		PFF_INTEGER,
+		/* Component type and count */
+		PCT_INT, 3,
+		/* rbits, gbits, bbits, abits */
+		32, 32, 32, 0,
+		/* Masks and shifts */
+		0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0,
+		0, 0, 0, 0,
+		},
+	//-----------------------------------------------------------------------
+		{ "PF_RGBA32U",
 		/* Bytes per element */
 		16,
 		/* Flags */

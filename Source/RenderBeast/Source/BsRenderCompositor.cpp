@@ -683,6 +683,10 @@ namespace bs { namespace ct
 
 			SPtr<RenderTexture> rt = RenderTexture::create(rtDesc);
 
+			RenderAPI& rapi = RenderAPI::instance();
+			rapi.setRenderTarget(rt);
+			rapi.clearRenderTarget(FBT_COLOR | FBT_DEPTH);			
+
 			TetrahedraRenderMat* renderTetrahedra = TetrahedraRenderMat::getVariation(viewProps.numSamples > 1);
 			renderTetrahedra->execute(inputs.view, sceneDepthNode->depthTex->texture, volumeMesh, rt);
 

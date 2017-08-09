@@ -415,7 +415,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R32G32B32A32_FLOAT:
 			return PF_RGBA32F;
 		case DXGI_FORMAT_R32G32B32A32_UINT:
-			return PF_UNKNOWN;
+			return PF_RGBA32U;
 		case DXGI_FORMAT_R32G32B32A32_SINT:
 			return PF_RGBA32I;
 		case DXGI_FORMAT_R32G32B32_TYPELESS:
@@ -423,7 +423,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R32G32B32_FLOAT:
 			return PF_RGB32F;
 		case DXGI_FORMAT_R32G32B32_UINT:
-			return PF_UNKNOWN;
+			return PF_RGB32U;
 		case DXGI_FORMAT_R32G32B32_SINT:
 			return PF_RGB32I;
 		case DXGI_FORMAT_R16G16B16A16_TYPELESS:
@@ -433,7 +433,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R16G16B16A16_UNORM:
 			return PF_RGBA16;
 		case DXGI_FORMAT_R16G16B16A16_UINT:
-			return PF_UNKNOWN;
+			return PF_RGBA16U;
 		case DXGI_FORMAT_R16G16B16A16_SNORM:
 			return PF_RGBA16S;
 		case DXGI_FORMAT_R16G16B16A16_SINT:
@@ -443,7 +443,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R32G32_FLOAT:
 			return PF_RG32F;
 		case DXGI_FORMAT_R32G32_UINT:
-			return PF_UNKNOWN;
+			return PF_RG32U;
 		case DXGI_FORMAT_R32G32_SINT:
 			return PF_RG32I;
 		case DXGI_FORMAT_R32G8X24_TYPELESS:
@@ -468,7 +468,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
 			return PF_RGBA8;
 		case DXGI_FORMAT_R8G8B8A8_UINT:
-			return PF_UNKNOWN;
+			return PF_RGBA8U;
 		case DXGI_FORMAT_R8G8B8A8_SNORM:
 			return PF_RGBA8S;
 		case DXGI_FORMAT_R8G8B8A8_SINT:
@@ -480,7 +480,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R16G16_UNORM:
 			return PF_RG16;
 		case DXGI_FORMAT_R16G16_UINT:
-			return PF_UNKNOWN;
+			return PF_RG16U;
 		case DXGI_FORMAT_R16G16_SNORM:
 			return PF_RG16S;
 		case DXGI_FORMAT_R16G16_SINT:
@@ -492,7 +492,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R32_FLOAT:
 			return PF_R32F;
 		case DXGI_FORMAT_R32_UINT:
-			return PF_UNKNOWN;
+			return PF_R32U;
 		case DXGI_FORMAT_R32_SINT:
 			return PF_R32I;
 		case DXGI_FORMAT_R24G8_TYPELESS:
@@ -508,7 +508,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R8G8_UNORM:
 			return PF_RG8;
 		case DXGI_FORMAT_R8G8_UINT:
-			return PF_UNKNOWN;
+			return PF_RG8U;
 		case DXGI_FORMAT_R8G8_SNORM:
 			return PF_RG8S;
 		case DXGI_FORMAT_R8G8_SINT:
@@ -522,7 +522,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R16_UNORM:
 			return PF_R16;
 		case DXGI_FORMAT_R16_UINT:
-			return PF_UNKNOWN;
+			return PF_R16U;
 		case DXGI_FORMAT_R16_SNORM:
 			return PF_R16S;
 		case DXGI_FORMAT_R16_SINT:
@@ -532,7 +532,7 @@ namespace bs { namespace ct
 		case DXGI_FORMAT_R8_UNORM:
 			return PF_R8;
 		case DXGI_FORMAT_R8_UINT:
-			return PF_UNKNOWN;
+			return PF_R8U;
 		case DXGI_FORMAT_R8_SNORM:
 			return PF_R8S;
 		case DXGI_FORMAT_R8_SINT:
@@ -610,12 +610,16 @@ namespace bs { namespace ct
 			return DXGI_FORMAT_R8_SNORM;
 		case PF_R8I:
 			return DXGI_FORMAT_R8_SINT;
+		case PF_R8U:
+			return DXGI_FORMAT_R8_UINT;
 		case PF_RG8:
 			return DXGI_FORMAT_R8G8_UNORM; 
 		case PF_RG8S:
 			return DXGI_FORMAT_R8G8_SNORM; 
 		case PF_RG8I:
 			return DXGI_FORMAT_R8G8_SINT; 
+		case PF_RG8U:
+			return DXGI_FORMAT_R8G8_UINT; 
 		case PF_BGR8:
 			if (gamma)
 				return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
@@ -627,6 +631,8 @@ namespace bs { namespace ct
 			return DXGI_FORMAT_R8G8B8A8_UNORM;
 		case PF_RGBA8I:
 			return DXGI_FORMAT_R8G8B8A8_SINT;
+		case PF_RGBA8U:
+			return DXGI_FORMAT_R8G8B8A8_UINT;
 		case PF_RGBA8S:
 			return DXGI_FORMAT_R8G8B8A8_SNORM;
 		case PF_BGRA8:
@@ -653,14 +659,26 @@ namespace bs { namespace ct
 			return DXGI_FORMAT_R16G16_SINT;
 		case PF_RGBA16I:
 			return DXGI_FORMAT_R16G16B16A16_SINT;
+		case PF_R16U:
+			return DXGI_FORMAT_R16_UINT;
+		case PF_RG16U:
+			return DXGI_FORMAT_R16G16_UINT;
+		case PF_RGBA16U:
+			return DXGI_FORMAT_R16G16B16A16_UINT;
 		case PF_R32I:
 			return DXGI_FORMAT_R32_SINT;
 		case PF_RG32I:
 			return DXGI_FORMAT_R32G32_SINT;
 		case PF_RGB32I:
 			return DXGI_FORMAT_R32G32B32_SINT;
-		case PF_RGBA32I:
-			return DXGI_FORMAT_R32G32B32A32_SINT;
+		case PF_R32U:
+			return DXGI_FORMAT_R32_UINT;
+		case PF_RG32U:
+			return DXGI_FORMAT_R32G32_UINT;
+		case PF_RGB32U:
+			return DXGI_FORMAT_R32G32B32_UINT;
+		case PF_RGBA32U:
+			return DXGI_FORMAT_R32G32B32A32_UINT;
 		case PF_R16S:
 			return DXGI_FORMAT_R16_SNORM;
 		case PF_RG16S:

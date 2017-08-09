@@ -344,8 +344,9 @@ namespace bs
 	class GraphicsPipelineState;
 	class ComputePipelineState;
 	class ReflectionProbe;
-    class CReflectionProbe;
-    class CSkybox;
+	class CReflectionProbe;
+	class CSkybox;
+	class CLightProbeVolume;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -447,7 +448,7 @@ namespace bs
 		class RenderStateManager;
 		class HardwareBufferManager;
 		class ReflectionProbe;
-        class Skybox;
+		class Skybox;
 	}
 }
 
@@ -652,8 +653,9 @@ namespace bs
 	typedef GameObjectHandle<CFixedJoint> HFixedJoint;
 	typedef GameObjectHandle<CD6Joint> HD6Joint;
 	typedef GameObjectHandle<CCharacterController> HCharacterController;
-    typedef GameObjectHandle<CReflectionProbe> HReflectionProbe;
-    typedef GameObjectHandle<CSkybox> HSkybox;
+	typedef GameObjectHandle<CReflectionProbe> HReflectionProbe;
+	typedef GameObjectHandle<CSkybox> HSkybox;
+	typedef GameObjectHandle<CLightProbeVolume> HLightProbeVolume;
 
 	/** @} */
 }

@@ -83,40 +83,60 @@ namespace bs
 		PF_RG8I					BS_SCRIPT_EXPORT(n:RG8I) = 36,
 		/** 8-bit 4-channel pixel format, signed integer. */
 		PF_RGBA8I				BS_SCRIPT_EXPORT(n:RGBA8I) = 37,
+		/** 8-bit 1-channel pixel format, unsigned integer. */
+		PF_R8U					BS_SCRIPT_EXPORT(n:R8U) = 38,
+		/** 8-bit 2-channel pixel format, unsigned integer. */
+		PF_RG8U					BS_SCRIPT_EXPORT(n:RG8U) = 39,
+		/** 8-bit 4-channel pixel format, unsigned integer. */
+		PF_RGBA8U				BS_SCRIPT_EXPORT(n:RGBA8U) = 40,
 		/** 8-bit 1-channel pixel format, signed normalized. */
-		PF_R8S					BS_SCRIPT_EXPORT(n:R8S) = 38,
+		PF_R8S					BS_SCRIPT_EXPORT(n:R8S) = 41,
 		/** 8-bit 2-channel pixel format, signed normalized. */
-		PF_RG8S					BS_SCRIPT_EXPORT(n:RG8S) = 39,
+		PF_RG8S					BS_SCRIPT_EXPORT(n:RG8S) = 42,
 		/** 8-bit 4-channel pixel format, signed normalized. */
-		PF_RGBA8S				BS_SCRIPT_EXPORT(n:RGBA8S) = 40,
+		PF_RGBA8S				BS_SCRIPT_EXPORT(n:RGBA8S) = 43,
 		/** 16-bit 1-channel pixel format, signed integer. */
-		PF_R16I					BS_SCRIPT_EXPORT(n:R16I) = 41,
+		PF_R16I					BS_SCRIPT_EXPORT(n:R16I) = 44,
 		/** 16-bit 2-channel pixel format, signed integer. */
-		PF_RG16I				BS_SCRIPT_EXPORT(n:RG16I) = 42,
+		PF_RG16I				BS_SCRIPT_EXPORT(n:RG16I) = 45,
 		/** 16-bit 4-channel pixel format, signed integer. */
-		PF_RGBA16I				BS_SCRIPT_EXPORT(n:RGBA16I) = 43,
+		PF_RGBA16I				BS_SCRIPT_EXPORT(n:RGBA16I) = 46,
+		/** 16-bit 1-channel pixel format, unsigned integer. */
+		PF_R16U					BS_SCRIPT_EXPORT(n:R16U) = 47,
+		/** 16-bit 2-channel pixel format, unsigned integer. */
+		PF_RG16U				BS_SCRIPT_EXPORT(n:RG16U) = 48,
+		/** 16-bit 4-channel pixel format, unsigned integer. */
+		PF_RGBA16U				BS_SCRIPT_EXPORT(n:RGBA16U) = 49,
 		/** 32-bit 1-channel pixel format, signed integer. */
-		PF_R32I					BS_SCRIPT_EXPORT(n:R32I) = 44,
+		PF_R32I					BS_SCRIPT_EXPORT(n:R32I) = 50,
 		/** 32-bit 2-channel pixel format, signed integer. */
-		PF_RG32I				BS_SCRIPT_EXPORT(n:RG32I) = 45,
+		PF_RG32I				BS_SCRIPT_EXPORT(n:RG32I) = 51,
 		/** 32-bit 3-channel pixel format, signed integer. */
-		PF_RGB32I				BS_SCRIPT_EXPORT(n:RGB32I) = 46,
+		PF_RGB32I				BS_SCRIPT_EXPORT(n:RGB32I) = 52,
 		/** 32-bit 4-channel pixel format, signed integer. */
-		PF_RGBA32I				BS_SCRIPT_EXPORT(n:RGBA32I) = 47,
+		PF_RGBA32I				BS_SCRIPT_EXPORT(n:RGBA32I) = 53,
+		/** 32-bit 1-channel pixel format, unsigned integer. */
+		PF_R32U					BS_SCRIPT_EXPORT(n:R32U) = 54,
+		/** 32-bit 2-channel pixel format, unsigned integer. */
+		PF_RG32U				BS_SCRIPT_EXPORT(n:RG32U) = 55,
+		/** 32-bit 3-channel pixel format, unsigned integer. */
+		PF_RGB32U				BS_SCRIPT_EXPORT(n:RGB32U) = 56,
+		/** 32-bit 4-channel pixel format, unsigned integer. */
+		PF_RGBA32U				BS_SCRIPT_EXPORT(n:RGBA32U) = 57,
 		/** 16-bit 1-channel pixel format, signed normalized. */
-		PF_R16S					BS_SCRIPT_EXPORT(n:R16S) = 48,
+		PF_R16S					BS_SCRIPT_EXPORT(n:R16S) = 58,
 		/** 16-bit 2-channel pixel format, signed normalized. */
-		PF_RG16S				BS_SCRIPT_EXPORT(n:RG16S) = 49,
+		PF_RG16S				BS_SCRIPT_EXPORT(n:RG16S) = 59,
 		/** 16-bit 4-channel pixel format, signed normalized. */
-		PF_RGBA16S				BS_SCRIPT_EXPORT(n:RGBA16S) = 50,
+		PF_RGBA16S				BS_SCRIPT_EXPORT(n:RGBA16S) = 60,
 		/** 16-bit 1-channel pixel format, unsigned normalized. */
-		PF_R16					BS_SCRIPT_EXPORT(n:R16) = 51,
+		PF_R16					BS_SCRIPT_EXPORT(n:R16) = 61,
 		/** 16-bit 2-channel pixel format, unsigned normalized. */
-		PF_RG16					BS_SCRIPT_EXPORT(n:RG16) = 52,
+		PF_RG16					BS_SCRIPT_EXPORT(n:RG16) = 62,
 		/** 16-bit 3-channel pixel format, unsigned normalized. */
-		PF_RGB16				BS_SCRIPT_EXPORT(n:RGB16) = 53,
+		PF_RGB16				BS_SCRIPT_EXPORT(n:RGB16) = 63,
 		/** 16-bit 4-channel pixel format, unsigned normalized. */
-		PF_RGBA16				BS_SCRIPT_EXPORT(n:RGBA16) = 54,
+		PF_RGBA16				BS_SCRIPT_EXPORT(n:RGBA16) = 64,
 		/** Number of pixel formats currently defined. */
 		PF_COUNT				BS_SCRIPT_EXPORT(ex:true)
 	};
