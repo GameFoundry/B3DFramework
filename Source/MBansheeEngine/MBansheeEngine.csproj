@@ -47,12 +47,6 @@
     <Compile Include="Animation\Animation.cs" />
     <Compile Include="Animation\Bone.cs" />
     <Compile Include="Animation\Interop\NativeAnimation.cs" />
-    <Compile Include="Audio\Audio.cs" />
-    <Compile Include="Audio\AudioClip.cs" />
-    <Compile Include="Audio\AudioListener.cs" />
-    <Compile Include="Audio\AudioSource.cs" />
-    <Compile Include="Audio\Interop\NativeAudioListener.cs" />
-    <Compile Include="Audio\Interop\NativeAudioSource.cs" />
     <Compile Include="GUI\GUICanvas.cs" />
     <Compile Include="GUI\GUIScrollBar.cs" />
     <Compile Include="Rendering\RenderSettings.cs" />

@@ -566,7 +566,7 @@ namespace BansheeEditor
     /// Determines how is a font rendered into the bitmap texture.
     /// </summary>
 	public enum FontRenderMode // Note: Must match C++ enum FontRenderMode
-	{
+    {
         /// <summary>Render antialiased fonts without hinting (slightly more blurry).</summary>
 		Smooth,
         /// <summary>Render non-antialiased fonts without hinting (slightly more blurry).</summary>
@@ -575,7 +575,18 @@ namespace BansheeEditor
 		HintedSmooth,
         /// <summary>Render non-antialiased fonts with hinting.</summary>
 		HintedRaster
-	}
+    }
+
+    /// <summary>
+    /// Numbers of bits per audio sample.
+    /// </summary>
+    public enum AudioBitDepth
+    {
+        Bits8 = 8,
+        Bits16 = 16,
+        Bits24 = 24,
+        Bits32 = 32
+    }
 
     /// <summary>
     /// Provides various options for controlling how is an audio clip file imported.

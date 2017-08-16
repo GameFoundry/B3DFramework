@@ -243,6 +243,8 @@
  *  - in - When enabled ensures only the interop C# method is generated, but not a public one. It is instead expected
  *		   the user will manually implement the public method. Supported values are "true" or "false". Default is "false".
  *		   Only supported on methods.
+ *  - m  - Specifies the name of the module to place the entry in. This determines the documentation group, and may also
+ *		   determine namespace and/or module (e.g. m:Animation to place it in the Animation module). Usable on types.
  */
 
 #if BS_COMPILER == BS_COMPILER_CLANG

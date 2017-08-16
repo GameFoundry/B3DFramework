@@ -13,13 +13,13 @@ namespace bs
 	 */
 
 	/** Identifier for a device that can be used for playing audio. */
-	struct AudioDevice
+	struct BS_SCRIPT_EXPORT(m:Audio,pl:true) AudioDevice
 	{
 		WString name;
 	};
 
 	/** Provides global functionality relating to sounds and music. */
-	class BS_CORE_EXPORT Audio : public Module<Audio>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio) Audio : public Module<Audio>
 	{
 	public:
 		virtual ~Audio() {}
@@ -34,28 +34,36 @@ namespace bs
 		 */
 		void play(const HAudioClip& clip, const Vector3& position = Vector3::ZERO, float volume = 1.0f);
 
-		/** Sets global audio volume. In range [0, 1]. */
+		/** Determines global audio volume. In range [0, 1]. */
+		BS_SCRIPT_EXPORT(n:Volume,pr:setter)
 		virtual void setVolume(float volume) = 0;
 
-		/** Returns global audio volume. In range [0, 1]. */
+		/** @copydoc setVolume() */
+		BS_SCRIPT_EXPORT(n:Volume,pr:getter)
 		virtual float getVolume() const = 0;
 
-		/** Pauses audio reproduction globally. */
+		/** Determines if audio reproduction is paused globally. */
+		BS_SCRIPT_EXPORT(n:Paused,pr:setter)
 		virtual void setPaused(bool paused) = 0;
 
-		/** Checks is audio reproduction currently paused. */
+		/** @copydoc setPaused() */
+		BS_SCRIPT_EXPORT(n:Paused,pr:getter)
 		virtual bool isPaused() const = 0;
 
-		/** Changes the device on which is the audio played back on. */
+		/** Determines the device on which is the audio played back on. */
+		BS_SCRIPT_EXPORT(n:ActiveDevice,pr:setter)
 		virtual void setActiveDevice(const AudioDevice& device) = 0;
 
-		/** Retrieves the identifier of the device that the audio is currently being played back on. */
+		/** @copydoc setActiveDevice() */
+		BS_SCRIPT_EXPORT(n:ActiveDevice,pr:getter)
 		virtual AudioDevice getActiveDevice() const = 0;
 		
 		/** Returns the default audio device identifier. */
+		BS_SCRIPT_EXPORT(n:DefaultDevice,pr:getter)
 		virtual AudioDevice getDefaultDevice() const = 0;
 
 		/** Returns a list of all available audio devices. */
+		BS_SCRIPT_EXPORT(n:AllDevices,pr:getter)
 		virtual const Vector<AudioDevice>& getAllDevices() const = 0;
 
 		/** @name Internal

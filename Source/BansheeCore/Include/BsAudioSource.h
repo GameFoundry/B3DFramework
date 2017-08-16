@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Valid states in which AudioSource can be in. */
-	enum class AudioSourceState
+	enum class BS_SCRIPT_EXPORT() AudioSourceState
 	{
 		Playing, /**< Source is currently playing. */
 		Paused, /**< Source is currently paused (play will resume from paused point). */
@@ -32,79 +32,73 @@ namespace bs
 	public:
 		virtual ~AudioSource() { }
 
-		/** Sets the audio clip to play. */
+		/** Aaudio clip to play. */
 		virtual void setClip(const HAudioClip& clip);
 
-		/** Returns the attached audio clip. */
+		/** @copydoc setClip() */
 		HAudioClip getClip() const { return mAudioClip; }
 
-		/** Sets the world position of the source. Only relevant for spatial (3D) sources. */
+		/** 
+		 * World position of the source. Determines volume/pitch in relation to AudioListener's position. Only relevant
+		 * for spatial (3D) sources. 
+		 */
 		virtual void setPosition(const Vector3& position);
 
-		/** Returns the world position of the source. Only relevant for spatial (3D) sources. */
+		/** @copydoc setPosition() */
 		Vector3 getPosition() const { return mPosition; }
 
-		/** Sets the velocity of the source. Only relevant for spatial (3D) sources. */
+		/** 
+		 * Velocity of the source. Determines pitch in relation to AudioListener's position. Only relevant for spatial 
+		 * (3D) sources. 
+		 */
 		virtual void setVelocity(const Vector3& velocity);
 
-		/** Gets the velocity of the source. Only relevant for spatial (3D) sources. */
+		/** @copydoc setVelocity() */
 		Vector3 getVelocity() const { return mVelocity; }
 
-		/** Sets the volume of the audio source, in [0, 1] range. */
+		/** Volume of the audio played from this source, in [0, 1] range. */
 		virtual void setVolume(float volume);
 
-		/** Retrieves the volume of the audio source, in [0, 1] range. */
+		/** @copydoc setVolume() */
 		float getVolume() const { return mVolume; }
 
-		/** Sets the pitch multiplier of the audio source. */
+		/** Determines the pitch of the played audio. 1 is the default. */
 		virtual void setPitch(float pitch);
 
-		/** Gets the pitch multiplier of the audio source. */
+		/** @copydoc setPitch() */
 		float getPitch() const { return mPitch; }
 
-		/** Sets whether the audio clip should loop when it finishes playing. */
+		/** Determines whether the audio clip should loop when it finishes playing. */
 		virtual void setIsLooping(bool loop);
 
-		/** Gets whether the audio clip should loop when it finishes playing. */
+		/** @copydoc setIsLooping() */
 		bool getIsLooping() const { return mLoop; }
 
 		/** 
-		 * Sets the priority of the audio source. If more audio sources are playing than supported by the hardware, some
-		 * might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources
+		 * Determines the priority of the audio source. If more audio sources are playing than supported by the hardware, 
+		 * some might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources
 		 * with lower priority.
 		 */
 		virtual void setPriority(INT32 priority);
 
-		/**
-		 * Gets the priority of the audio source. 
-		 *
-		 * @see	setPriority
-		 */
+		/** @copydoc setPriority() */
 		UINT32 getPriority() const { return mPriority; }
 
 		/** 
-		 * Returns the minimum distance at which audio attenuation starts. When the listener is closer to the source
+		 * Minimum distance at which audio attenuation starts. When the listener is closer to the source
 		 * than this value, audio is heard at full volume. Once farther away the audio starts attenuating.
 		 */
 		virtual void setMinDistance(float distance);
 
-		/** 
-		 * Gets the minimum distance at which audio attenuation starts. 
-		 *
-		 * @see	setMinDistance
-		 */
+		/** @copydoc setMinDistance() */
 		float getMinDistance() const { return mMinDistance; }
 
 		/**
-		 * Sets attenuation that controls how quickly does audio volume drop off as the listener moves further from the 
-		 * source.
+		 * Attenuation that controls how quickly does audio volume drop off as the listener moves further from the source.
 		 */
 		virtual void setAttenuation(float attenuation);
 
-		/** 
-		 * Gets attenuation that controls how quickly does audio volume drop off as the listener moves further from the 
-		 * source.
-		 */
+		/** @copydoc setAttenuation() */
 		float getAttenuation() const { return mAttenuation; }
 
 		/** Starts playing the currently assigned audio clip. */
@@ -116,18 +110,13 @@ namespace bs
 		/** Stops audio playback, rewinding it to the start. */
 		virtual void stop() = 0;
 
-		/**
-		 * Sets the time at which playback will begin.
-		 *
-		 * @param[in]	time	Time in seconds, in range [0, clipLength].
+		/** 
+		 * Determines the current time of playback. If playback hasn't yet started, it specifies the time at which playback
+		 * will start at. The time is in seconds, in range [0, clipLength]. 
 		 */
 		virtual void setTime(float time) = 0;
 
-		/**
-		 * Returns the current playback time.
-		 *
-		 * @return	time	Time in seconds, in range [0, clipLength].
-		 */
+		/** @copydoc setTime() */
 		virtual float getTime() const = 0;
 
 		/** Returns the current state of the audio playback (playing/paused/stopped). */

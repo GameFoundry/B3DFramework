@@ -15,11 +15,11 @@ namespace bs
 	/**
 	 * @copydoc	AudioListener
 	 *
-	 * Wraps AudioListener as a Component.
+	 * @note	Wraps AudioListener as a Component.
 	 */
-    class BS_CORE_EXPORT CAudioListener : public Component
-    {
-    public:
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio,n:AudioListener) CAudioListener : public Component
+	{
+	public:
 		CAudioListener(const HSceneObject& parent);
 		virtual ~CAudioListener() {}
 		
@@ -55,7 +55,7 @@ namespace bs
 
 		/** @copydoc Component::update() */
 		void update() override;
-    protected:
+	protected:
 		using Component::destroyInternal;
 
 		/** Creates the internal representation of the AudioListener and restores the values saved by the Component. */
@@ -84,7 +84,7 @@ namespace bs
 
 	protected:
 		CAudioListener() {} // Serialization only
-     };
+	};
 
 	 /** @} */
 }

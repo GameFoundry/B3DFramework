@@ -12,14 +12,14 @@ namespace bs
 	 */
 
 	/** Valid internal engine audio formats. */
-	enum class AudioFormat
+	enum class BS_SCRIPT_EXPORT(m:Audio) AudioFormat
 	{
 		PCM, /**< Pulse code modulation audio ("raw" uncompressed audio). */
 		VORBIS /**< Vorbis compressed audio. */
 	};
 
 	/** Modes that determine how and when is audio data read. */
-	enum class AudioReadMode
+	enum class BS_SCRIPT_EXPORT(m:Audio) AudioReadMode
 	{
 		/** Entire audio clip will be loaded and decompressed. Uses most memory but has lowest CPU impact. */
 		LoadDecompressed, 
@@ -72,18 +72,21 @@ namespace bs
 	 * Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or
 	 * other audio methods to be played.
 	 */
-	class BS_CORE_EXPORT AudioClip : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio) AudioClip : public Resource
 	{
 	public:
 		virtual ~AudioClip() { }
 
 		/** Returns the size of a single sample, in bits. */
+		BS_SCRIPT_EXPORT(n:BitDepth,pr:getter)
 		UINT32 getBitDepth() const { return mDesc.bitDepth; }
 		
 		/** Returns how many samples per second is the audio encoded in. */
+		BS_SCRIPT_EXPORT(n:SampleRate,pr:getter)
 		UINT32 getFrequency() const { return mDesc.frequency; }
 
 		/** Returns the number of channels provided by the clip. */
+		BS_SCRIPT_EXPORT(n:NumChannels,pr:getter)
 		UINT32 getNumChannels() const { return mDesc.numChannels; }
 
 		/** 
@@ -91,6 +94,7 @@ namespace bs
 		 *
 		 * @see	AudioFormat
 		 */
+		BS_SCRIPT_EXPORT(n:Format,pr:getter)
 		AudioFormat getFormat() const { return mDesc.format; }
 
 		/** 
@@ -98,15 +102,19 @@ namespace bs
 		 *
 		 * @see	AudioReadMode
 		 */
+		BS_SCRIPT_EXPORT(n:ReadMode,pr:getter)
 		AudioReadMode getReadMode() const { return mDesc.readMode; }
 
 		/** Returns the length of the audio clip, in seconds. */
+		BS_SCRIPT_EXPORT(n:Duration,pr:getter)
 		float getLength() const { return mLength; }
 
 		/** Returns the total number of samples in the clip (includes all channels). */
+		BS_SCRIPT_EXPORT(n:NumSamples,pr:getter)
 		UINT32 getNumSamples() const { return mNumSamples; }
 
 		/** Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music). */
+		BS_SCRIPT_EXPORT(n:Is3D,pr:getter)
 		bool is3D() const { return mDesc.is3D; }
 
 		/**
