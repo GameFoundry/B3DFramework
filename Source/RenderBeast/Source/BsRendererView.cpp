@@ -138,6 +138,7 @@ namespace bs { namespace ct
 	{
 		mCamera = desc.sceneCamera;
 		mProperties = desc;
+		mProperties.viewProjTransform = desc.projTransform * desc.viewTransform;
 		mTargetDesc = desc.target;
 
 		setStateReductionMode(desc.stateReduction);

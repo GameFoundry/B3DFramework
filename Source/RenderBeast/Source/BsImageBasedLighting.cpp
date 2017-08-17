@@ -123,6 +123,9 @@ namespace bs { namespace ct
 		// AO
 		params->getTextureParam(programType, "gAmbientOcclusionTex", ambientOcclusionTexParam);
 
+		// SSR
+		params->getTextureParam(programType, "gSSRTex", ssrTexParam);
+
 		if(gridIndices)
 		{
 			if (!optional || params->hasBuffer(programType, "gReflectionProbeIndices"))
@@ -166,6 +169,7 @@ namespace bs { namespace ct
 
 		gReflProbeParamsParamDef.gReflCubemapNumMips.set(buffer, numReflProbeMips);
 		gReflProbeParamsParamDef.gUseReflectionMaps.set(buffer, capturingReflections ? 0 : 1);
+		gReflProbeParamsParamDef.gSkyBrightness.set(buffer, brightness);
 	}
 
 	ShaderVariation TiledDeferredImageBasedLightingMat::VAR_1MSAA = ShaderVariation({
@@ -250,18 +254,15 @@ namespace bs { namespace ct
 		mGBufferDepth.set(inputs.gbuffer.depth);
 
 		SPtr<Texture> skyFilteredRadiance;
-		SPtr<Texture> skyIrradiance;
 		if(sceneInfo.skybox)
-		{
 			skyFilteredRadiance = sceneInfo.skybox->getFilteredRadiance();
-			skyIrradiance = sceneInfo.skybox->getIrradiance();
-		}
 
 		mImageBasedParams.preintegratedEnvBRDFParam.set(inputs.preIntegratedGF);
 		mImageBasedParams.reflectionProbesParam.set(probeData.getProbeBuffer());
 		mImageBasedParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
 		mImageBasedParams.skyReflectionsTexParam.set(skyFilteredRadiance);
 		mImageBasedParams.ambientOcclusionTexParam.set(inputs.ambientOcclusion);
+		mImageBasedParams.ssrTexParam.set(inputs.ssr);
 
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 

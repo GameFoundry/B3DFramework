@@ -66,8 +66,8 @@ technique PPSSRTrace
 			float roughness = surfData.roughness;
 			
 			
-			roughness = 0.3f;//DEBUG ONLY
-			
+			//roughness = 0.3f;//DEBUG ONLY
+			roughness = 0.0f;
 			
 			
 			float roughness2 = roughness * roughness;
@@ -91,7 +91,7 @@ technique PPSSRTrace
 			rayMarchParams.rayOrigin = P;
 			rayMarchParams.jitterOffset = jitterOffset;			
 			
-			int NUM_RAYS = 64; // DEBUG ONLY
+			int NUM_RAYS = 1; // DEBUG ONLY
 			
 			float4 sum = 0;
 			[loop]
@@ -113,14 +113,17 @@ technique PPSSRTrace
 				float3 tangentY = cross(N, tangentX);
 				
 				H = tangentX * H.x + tangentY * H.y + N * H.z; 
-				float3 R = 2 * dot( V, H ) * H - V;
-
+				//float3 R = 2 * dot( V, H ) * H - V;
+				float3 R = 2 * dot( V, N ) * N - V;
+				
 				// Eliminate rays pointing towards the viewer. They won't hit anything, plus they can screw up precision
 				// and cause ray step offset to be too small, causing self-intersections.
 				R = normalize(R); // Note: Normalization required?
-				if(dot(R, gViewDir) < 0.0f)
+				float dirFade = saturate(dot(R, gViewDir) * 10);
+				
+				if(dirFade < 0.00001f)
 					continue;
-					
+				
 				// Eliminate rays pointing below the surface
 				if(dot(R, N) < 0.0005f)
 					continue;
@@ -144,7 +147,7 @@ technique PPSSRTrace
 					// Tonemap the color to get a nicer visual average
 					color.rgb /= (1 + LuminanceRGB(color.rgb));
 					
-					sum += color;
+					sum += color * dirFade;
 				}
 			}
 			

@@ -96,6 +96,7 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeSSAO>();
 		RenderCompositor::registerNodeType<RCNodeClusteredForward>();
 		RenderCompositor::registerNodeType<RCNodeIndirectLighting>();
+		RenderCompositor::registerNodeType<RCNodeSSR>();
 	}
 
 	void RenderBeast::destroyCore()
@@ -575,6 +576,8 @@ namespace bs { namespace ct
 		settings->enableHDR = hdr;
 		settings->enableShadows = false; // Note: If I ever change this I need to make sure that shadow map rendering is aware of this view (currently it is only aware of main camera views)
 		settings->enableIndirectLighting = false;
+		settings->screenSpaceReflections.enabled = false;
+		settings->ambientOcclusion.enabled = false;
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 
@@ -600,7 +603,7 @@ namespace bs { namespace ct
 				up = -Vector3::UNIT_Z;
 				break;
 			case CF_NegativeY:
-				forward = Vector3::UNIT_X; // TODO: Why X here?
+				forward = -Vector3::UNIT_Y;
 				up = Vector3::UNIT_Z;
 				break;
 			case CF_PositiveZ:
@@ -612,7 +615,7 @@ namespace bs { namespace ct
 			}
 
 			Vector3 right = Vector3::cross(up, forward);
-			viewRotationMat = Matrix3(right, up, forward); // TODO - Use -forward here? (Works for shadows)
+			viewRotationMat = Matrix3(right, up, forward);
 
 			viewDesc.viewDirection = forward;
 			viewDesc.viewTransform = Matrix4(viewRotationMat) * viewOffsetMat;

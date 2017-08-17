@@ -29,6 +29,7 @@ mixin ImageBasedLighting
 		SamplerState gReflProbeSamp;
 		
 		Texture2D gAmbientOcclusionTex;
+		Texture2D gSSRTex;
 		
 		Texture2D gPreintegratedEnvBRDF;
 		SamplerState gPreintegratedEnvBRDFSamp;
@@ -134,7 +135,7 @@ mixin ImageBasedLighting
 			return lookupDir;
 		}
 		
-		float3 gatherReflectionRadiance(float3 worldPos, float3 dir, float roughness, float3 specularColor, uint probeOffset, uint numProbes)
+		float3 gatherReflectionRadiance(float3 worldPos, float3 dir, float roughness, float alpha, float3 specularColor, uint probeOffset, uint numProbes)
 		{
 			if(gUseReflectionMaps == 0)
 				return specularColor;
@@ -142,10 +143,9 @@ mixin ImageBasedLighting
 			float mipLevel = mapRoughnessToMipLevel(roughness, gReflCubemapNumMips);
 			
 			float3 output = 0;
-			float leftoverContribution = 1.0f;
 			for(uint i = 0; i < numProbes; i++)
 			{
-				if(leftoverContribution < 0.001f)
+				if(alpha < 0.001f)
 					break;
 						
 				uint probeIdx = gReflectionProbeIndices[probeOffset + i];
@@ -172,8 +172,8 @@ mixin ImageBasedLighting
 					float4 probeSample = gReflProbeCubemaps.SampleLevel(gReflProbeSamp, float4(correctedDir, probeData.cubemapIdx), mipLevel);
 					probeSample *= contribution;
 					
-					output += probeSample.rgb * leftoverContribution; 
-					leftoverContribution *= (1.0f - contribution);
+					output += probeSample.rgb * alpha; 
+					alpha *= (1.0f - contribution);
 				}
 			}
 				
@@ -182,7 +182,7 @@ mixin ImageBasedLighting
 				float skyMipLevel = mapRoughnessToMipLevel(roughness, gSkyCubemapNumMips);
 				float4 skySample = gSkyReflectionTex.SampleLevel(gSkyReflectionSamp, dir, skyMipLevel) * gSkyBrightness;
 				
-				output += skySample.rgb * leftoverContribution; 
+				output += skySample.rgb * alpha; 
 			}
 					
 			return output;
@@ -194,7 +194,7 @@ mixin ImageBasedLighting
 			return saturate(pow(NoV + ao, r2) - 1.0f + ao);
 		}		
 		
-		float3 getImageBasedSpecular(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, float ao, uint probeOffset, uint numProbes)
+		float3 getImageBasedSpecular(float3 worldPos, float3 V, float3 R, SurfaceData surfaceData, float ao, float4 ssr, uint probeOffset, uint numProbes)
 		{
 			// See C++ code for generation of gPreintegratedEnvBRDF to see why this code works as is
 			float3 N = surfaceData.worldNormal.xyz;
@@ -203,12 +203,21 @@ mixin ImageBasedLighting
 			// Note: Using a fixed F0 value of 0.04 (plastic) for dielectrics, and using albedo as specular for conductors.
 			// For more customizability allow the user to provide separate albedo/specular colors for both types.
 			float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceData.albedo.rgb, surfaceData.metalness);
-			float3 radiance = gatherReflectionRadiance(worldPos, R, surfaceData.roughness, specularColor, probeOffset, numProbes);
+			
+			// Get SSR
+			float3 radiance = ssr.rgb;
+			float alpha = 1.0f - ssr.a; // Determines how much to blend in reflection probes & skybox
+			
+			// Generate an approximate spec. occlusion value from AO. This doesn't need to be applied to SSR since it accounts
+			// for occlusion by tracing rays.
+			float specOcclusion = getSpecularOcclusion(NoV, surfaceData.roughness * surfaceData.roughness, ao);
+			alpha *= specOcclusion;
+			
+			// Get radiance from probes and skybox
+			radiance += gatherReflectionRadiance(worldPos, R, surfaceData.roughness, alpha, specularColor, probeOffset, numProbes);
 			
 			float2 envBRDF = gPreintegratedEnvBRDF.SampleLevel(gPreintegratedEnvBRDFSamp, float2(NoV, surfaceData.roughness), 0).rg;
-			float specOcclusion = getSpecularOcclusion(NoV, surfaceData.roughness * surfaceData.roughness, ao);
-			
-			return radiance * (specularColor * envBRDF.x + envBRDF.y) * specOcclusion;
+			return radiance * (specularColor * envBRDF.x + envBRDF.y);
 		}		
 	};
 };

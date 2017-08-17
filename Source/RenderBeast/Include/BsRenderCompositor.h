@@ -579,5 +579,21 @@ namespace ct
 		void clear() override;
 	};
 
+	/** Renders screen space reflections. */
+	class RCNodeSSR : public RenderCompositorNode
+	{
+	public:
+		SPtr<PooledRenderTexture> output;
+
+		static StringID getNodeId() { return "SSR"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+	};
+
 	/** @} */
 }}

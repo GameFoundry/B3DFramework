@@ -83,7 +83,8 @@ mixin Surface
 			
 			float4 directLighting = getDirectLighting(input.worldPosition, V, specR, surfaceData, lightOffsets);
 			float ao = gAmbientOcclusionTex.Sample(gAlbedoSamp, input.uv0);
-			float3 imageBasedSpecular = getImageBasedSpecular(input.worldPosition, V, specR, surfaceData, ao, 
+			float4 ssr = gSSRTex.Load(int3(pixelPos.xy, 0));
+			float3 imageBasedSpecular = getImageBasedSpecular(input.worldPosition, V, specR, surfaceData, ao, ssr,
 				reflProbeOffsetAndSize.x, reflProbeOffsetAndSize.y);
 
 			float3 totalLighting = directLighting.rgb;

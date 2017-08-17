@@ -175,7 +175,7 @@ mixin LightingCommon
 			float NoV = saturate(dot(N, V));
 			float NoL = saturate(dot(N, L));
 			
-			float3 diffuseColor = lerp(surfaceData.albedo.rgb, float3(0.0f, 0.0f, 0.0f), 1.0f - surfaceData.metalness);
+			float3 diffuseColor = lerp(surfaceData.albedo.rgb, float3(0.0f, 0.0f, 0.0f), surfaceData.metalness);
 			
 			// Note: Using a fixed F0 value of 0.04 (plastic) for dielectrics, and using albedo as specular for conductors.
 			// For more customizability allow the user to provide separate albedo/specular colors for both types.

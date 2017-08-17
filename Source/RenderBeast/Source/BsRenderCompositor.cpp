@@ -749,19 +749,32 @@ namespace bs { namespace ct
 
 	void RCNodeTiledDeferredIBL::render(const RenderCompositorNodeInputs& inputs)
 	{
+		const RenderSettings& rs = inputs.view.getRenderSettings();
+
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 		RCNodeLightAccumulation* lightAccumNode = static_cast <RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
 		SPtr<Texture> ssao;
-		if (inputs.view.getRenderSettings().ambientOcclusion.enabled)
+		if (rs.ambientOcclusion.enabled)
 		{
 			RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[5]);
 			ssao = ssaoNode->output->texture;
 		}
 		else
 			ssao = Texture::WHITE;
+
+		SPtr<Texture> ssr;
+		if (rs.screenSpaceReflections.enabled)
+		{
+			UINT32 nodeIdx = rs.ambientOcclusion.enabled ? 6 : 5;
+
+			RCNodeSSR* ssrNode = static_cast<RCNodeSSR*>(inputs.inputNodes[nodeIdx]);
+			ssr = ssrNode->output->texture;
+		}
+		else
+			ssr = Texture::BLACK;
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		TiledDeferredImageBasedLightingMat* material = TiledDeferredImageBasedLightingMat::getVariation(viewProps.numSamples);
@@ -775,6 +788,7 @@ namespace bs { namespace ct
 		iblInputs.lightAccumulation = lightAccumNode->lightAccumulationTex->texture;
 		iblInputs.preIntegratedGF = RendererTextures::preintegratedEnvGF;
 		iblInputs.ambientOcclusion = ssao;
+		iblInputs.ssr = ssr;
 
 		if(sceneColorNode->flattenedSceneColorBuffer)
 			iblInputs.sceneColorBuffer = sceneColorNode->flattenedSceneColorBuffer->buffer;
@@ -800,6 +814,9 @@ namespace bs { namespace ct
 		if(view.getRenderSettings().ambientOcclusion.enabled)
 			deps.push_back(RCNodeSSAO::getNodeId());
 
+		if (view.getRenderSettings().screenSpaceReflections.enabled)
+			deps.push_back(RCNodeSSR::getNodeId());
+
 		return deps;
 	}
 
@@ -822,6 +839,11 @@ namespace bs { namespace ct
 	void RCNodeUnflattenSceneColor::clear()
 	{
 		output = nullptr;
+	}
+
+	SmallVector<StringID, 4> RCNodeUnflattenSceneColor::getDependencies(const RendererView& view)
+	{
+		return { RCNodeSceneColor::getNodeId() };
 	}
 
 	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
@@ -885,6 +907,7 @@ namespace bs { namespace ct
 
 				iblParams.skyReflectionsTexParam.set(skyFilteredRadiance);
 				iblParams.ambientOcclusionTexParam.set(Texture::WHITE); // Note: Add SSAO here?
+				iblParams.ssrTexParam.set(Texture::BLACK); // Note: Add SSR here?
 
 				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
 				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
@@ -932,11 +955,6 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeClusteredForward::getDependencies(const RendererView& view)
 	{
 		return { RCNodeSceneColor::getNodeId(), RCNodeSkybox::getNodeId() };
-	}
-
-	SmallVector<StringID, 4> RCNodeUnflattenSceneColor::getDependencies(const RendererView& view)
-	{
-		return { RCNodeSceneColor::getNodeId() };
 	}
 
 	void RCNodeSkybox::render(const RenderCompositorNodeInputs& inputs)
@@ -1691,5 +1709,62 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeSSAO::getDependencies(const RendererView& view)
 	{
 		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeGBuffer::getNodeId() };
+	}
+
+	void RCNodeSSR::render(const RenderCompositorNodeInputs& inputs)
+	{
+		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
+		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[1]);
+		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[2]);
+		RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.inputNodes[3]);
+
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		const ScreenSpaceReflectionsSettings& settings = inputs.view.getRenderSettings().screenSpaceReflections;
+
+		SPtr<Texture> hiZ = hiZNode->output->texture;
+
+		// This will be executing before scene color is resolved
+		SPtr<Texture> sceneColor = lightAccumNode->lightAccumulationTex->texture;
+
+		GBufferTextures gbuffer;
+		gbuffer.albedo = gbufferNode->albedoTex->texture;
+		gbuffer.normals = gbufferNode->normalTex->texture;
+		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
+		gbuffer.depth = sceneDepthNode->depthTex->texture;
+
+		UINT32 width = viewProps.viewRect.width;
+		UINT32 height = viewProps.viewRect.height;
+
+		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+
+		// TODO - Run SSRStencil
+
+		SSRTraceMat* traceMat = SSRTraceMat::get();
+		traceMat->execute(inputs.view, gbuffer, sceneColor, hiZ, settings, output->renderTexture);
+
+		// TODO - Run temporal resolve
+
+		RenderAPI::instance().setRenderTarget(nullptr);
+	}
+
+	void RCNodeSSR::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		resPool.release(output);
+	}
+
+	SmallVector<StringID, 4> RCNodeSSR::getDependencies(const RendererView& view)
+	{
+		SmallVector<StringID, 4> deps;
+		deps.push_back(RCNodeSceneDepth::getNodeId());
+		deps.push_back(RCNodeLightAccumulation::getNodeId());
+		deps.push_back(RCNodeGBuffer::getNodeId());
+		deps.push_back(RCNodeHiZ::getNodeId());
+
+		if (view.getProperties().numSamples > 1)
+			deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+
+		return deps;
 	}
 }}

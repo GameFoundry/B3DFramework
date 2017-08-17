@@ -15,7 +15,7 @@ namespace bs
 	/**
 	 * @copydoc	AudioSource
 	 *
-	 * Wraps AudioSource as a Component.
+	 * @note Wraps AudioSource as a Component.
 	 */
     class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio,n:AudioSource) CAudioSource : public Component
     {

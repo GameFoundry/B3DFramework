@@ -65,7 +65,7 @@ namespace bs
 	}
 
 	AmbientOcclusionSettings::AmbientOcclusionSettings()
-		: enabled(true), radius(1.5f), bias(1.0f), fadeDistance(500.0f), fadeRange(50.0f), intensity(1.0f), power(1.0f)
+		: enabled(true), radius(1.5f), bias(1.0f), fadeDistance(500.0f), fadeRange(50.0f), intensity(1.0f), power(4.0f)
 		, quality(3)
 	{ }
 
@@ -109,7 +109,7 @@ namespace bs
 	}
 
 	RenderSettings::RenderSettings()
-		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(false), exposureScale(0.0f), gamma(2.2f)
+		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(true), exposureScale(0.0f), gamma(2.2f)
 		, enableHDR(true), enableLighting(true), enableShadows(true), enableIndirectLighting(true), overlayOnly(false)
 	{ }
 

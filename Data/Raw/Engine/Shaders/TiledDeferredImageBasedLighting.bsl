@@ -165,7 +165,8 @@ technique TiledDeferredImageBasedLighting
 			#endif				
 			
 			float ao = gAmbientOcclusionTex.Load(int3(pixelPos.xy, 0));
-			float3 imageBasedSpecular = getImageBasedSpecular(worldPosition, V, specR, surfaceData, ao, probeOffset, numProbes);
+			float4 ssr = gSSRTex.Load(int3(pixelPos.xy, 0));
+			float3 imageBasedSpecular = getImageBasedSpecular(worldPosition, V, specR, surfaceData, ao, ssr, probeOffset, numProbes);
 
 			float4 totalLighting = existingColor;
 			totalLighting.rgb += imageBasedSpecular;

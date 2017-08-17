@@ -62,6 +62,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(INT32, gSkyCubemapAvailable)
 		BS_PARAM_BLOCK_ENTRY(INT32, gUseReflectionMaps)
 		BS_PARAM_BLOCK_ENTRY(INT32, gSkyCubemapNumMips)
+		BS_PARAM_BLOCK_ENTRY(float, gSkyBrightness)
 	BS_PARAM_BLOCK_END
 
 	extern ReflProbeParamsParamDef gReflProbeParamsParamDef;
@@ -102,6 +103,7 @@ namespace bs { namespace ct
 
 		GpuParamTexture skyReflectionsTexParam;
 		GpuParamTexture ambientOcclusionTexParam;
+		GpuParamTexture ssrTexParam;
 		GpuParamTexture reflectionProbeCubemapsTexParam;
 
 		GpuParamTexture preintegratedEnvBRDFParam;
@@ -138,6 +140,7 @@ namespace bs { namespace ct
 			SPtr<GpuBuffer> sceneColorBuffer;
 			SPtr<Texture> preIntegratedGF;
 			SPtr<Texture> ambientOcclusion;
+			SPtr<Texture> ssr;
 		};
 
 		TiledDeferredImageBasedLightingMat();
