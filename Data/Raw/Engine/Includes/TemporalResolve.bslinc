@@ -235,10 +235,6 @@ mixin TemporalResolve
 			float gSampleWeightsLowpass[9];
 		}
 		
-		// TODO - Need to use SNORM 16-bit format for velocity
-		// TODO - Add gNDCToPrevNDC matrix to PerCameraData
-		// TODO - Generate C++ samples (make sure to account for YCoCg path, and remove jitter)
-		// TODO - Add notes that velocity buffer isn't currenlty being used
 		float3 temporalResolve(
 			_TEX2D(sceneDepth), 
 			_TEX2D(sceneColor), 
@@ -335,7 +331,7 @@ mixin TemporalResolve
 			[unroll]
 			for(uint i = 0; i < 9; ++i)
 				filtered += neighbor[i] * gSampleWeights[i];
-			
+
 			#if TEMPORAL_LOWPASS
 				float3 filteredLow = 0;
 				[unroll]
@@ -350,7 +346,7 @@ mixin TemporalResolve
 			float3 mean = 0;
 			[unroll]
 			for(uint i = 0; i < 9; ++i)
-					mean += neighbor[i];
+				mean += neighbor[i];
 			
 			mean /= 9.0f;
 			

@@ -250,11 +250,16 @@ namespace bs { namespace ct
 			gCoreThread().queueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
 			mOptionsDirty = false;
 		}
+
+		FrameTimings timings;
+		timings.time = gTime().getTime();
+		timings.timeDelta = gTime().getFrameDelta();
+		timings.frameIdx = gTime().getFrameIdx();
 		
-		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, gTime().getTime(), gTime().getFrameDelta()));
+		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, timings));
 	}
 
-	void RenderBeast::renderAllCore(float time, float delta)
+	void RenderBeast::renderAllCore(FrameTimings timings)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -269,7 +274,7 @@ namespace bs { namespace ct
 		mScene->refreshSamplerOverrides();
 
 		// Update global per-frame hardware buffers
-		mObjectRenderer->setParamFrameParams(time);
+		mObjectRenderer->setParamFrameParams(timings.time);
 
 		// Retrieve animation data
 		AnimationManager::instance().waitUntilComplete();
@@ -278,7 +283,7 @@ namespace bs { namespace ct
 		sceneInfo.renderableReady.resize(sceneInfo.renderables.size(), false);
 		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
 		
-		FrameInfo frameInfo(delta, &animData);
+		FrameInfo frameInfo(timings, &animData);
 
 		// Make sure any renderer tasks finish first, as rendering might depend on them
 		processTasks(false);
@@ -652,7 +657,7 @@ namespace bs { namespace ct
 		RendererViewGroup viewGroup(viewPtrs, 6, mCoreOptions->shadowMapSize);
 		viewGroup.determineVisibility(sceneInfo);
 
-		FrameInfo frameInfo(1.0f/60.0f);
+		FrameInfo frameInfo({ 0.0f, 1.0f / 60.0f, 0 });
 		renderViews(viewGroup, frameInfo);
 
 		// Make sure the render texture is available for reads

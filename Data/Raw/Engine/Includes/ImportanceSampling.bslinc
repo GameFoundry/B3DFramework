@@ -4,7 +4,7 @@ mixin ImportanceSampling
 	{
 		#define PI 3.1415926
 	
-		float radicalInverse(uint bits)  
+		uint radicalInverse(uint bits)  
 		{
 			// Reverse bits. Algorithm from Hacker's Delight.
 			bits = (bits << 16u) | (bits >> 16u);
@@ -13,18 +13,32 @@ mixin ImportanceSampling
 			bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
 			bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
 			
-			// Normalizes unsigned int in range [0, 4294967295] to [0, 1]
-			return float(bits) * 2.3283064365386963e-10;
+			return bits;
 		}
 		
 		float2 hammersleySequence(uint i, uint count)
 		{
 			float2 output;
 			output.x = i / (float)count;
-			output.y = radicalInverse(i);
+			uint y = radicalInverse(i);
+			
+			// Normalizes unsigned int in range [0, 4294967295] to [0, 1]
+			output.y = float(y) * 2.3283064365386963e-10;
 			
 			return output;
 		}
+		
+		float2 hammersleySequence(uint i, uint count, uint2 random)
+		{
+			float2 output;
+			output.x = frac(i / (float)count + float(random.x & 0xFFFF) / (1<<16));
+			uint y = radicalInverse(i) ^ random.y;
+			
+			// Normalizes unsigned int in range [0, 4294967295] to [0, 1]
+			output.y = float(y) * 2.3283064365386963e-10;
+			
+			return output;
+		}		
 		
 		// Returns cos(theta) in x and phi in y
 		float2 importanceSampleGGX(float2 e, float roughness4)

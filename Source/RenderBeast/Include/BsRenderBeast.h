@@ -23,14 +23,23 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Information about current time and frame index. */
+	struct FrameTimings
+	{
+		float time;
+		float timeDelta;
+		UINT64 frameIdx;
+	};
+
 	/** Contains information global to an entire frame. */
 	struct FrameInfo
 	{
-		FrameInfo(float timeDelta, const RendererAnimationData* animData = nullptr)
-			:timeDelta(timeDelta), animData(animData)
+		FrameInfo(const FrameTimings& timings, const RendererAnimationData* animData = nullptr)
+			:timeDelta(timings.timeDelta), frameIdx(timings.frameIdx), animData(animData)
 		{ }
 
 		float timeDelta;
+		UINT64 frameIdx;
 		const RendererAnimationData* animData;
 	};
 
@@ -134,12 +143,11 @@ namespace bs
 		/**
 		 * Performs rendering over all camera proxies.
 		 *
-		 * @param[in]	time	Current frame time in milliseconds.
-		 * @param[in]	delta	Time elapsed since the last frame.
+		 * @param[in]	timings		Information about frame time and frame index.
 		 *
 		 * @note	Core thread only.
 		 */
-		void renderAllCore(float time, float delta);
+		void renderAllCore(FrameTimings timings);
 
 		/**
 		 * Renders all views in the provided view group.

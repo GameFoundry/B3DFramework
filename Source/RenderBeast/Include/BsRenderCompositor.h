@@ -585,6 +585,8 @@ namespace ct
 	public:
 		SPtr<PooledRenderTexture> output;
 
+		~RCNodeSSR();
+
 		static StringID getNodeId() { return "SSR"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
@@ -593,6 +595,11 @@ namespace ct
 
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
+
+		/** Cleans up any outputs. */
+		void deallocOutputs();
+
+		SPtr<PooledRenderTexture> mPrevFrame;
 	};
 
 	/** @} */

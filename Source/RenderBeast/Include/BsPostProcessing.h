@@ -635,9 +635,15 @@ namespace bs { namespace ct
 		 * @param[in]	settings		Parameters used for controling the SSR effect.
 		 */
 		void execute(const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings);
+
+		/** Returns the material variation matching the provided parameters. */
+		static SSRStencilMat* getVariation(bool msaa);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
+
+		static ShaderVariation VAR_NoMSAA;
+		static ShaderVariation VAR_MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
@@ -647,6 +653,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(int, gHiZNumMips)
 		BS_PARAM_BLOCK_ENTRY(float, gIntensity)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gRoughnessScaleBias)
+		BS_PARAM_BLOCK_ENTRY(int, gTemporalJitter)
 	BS_PARAM_BLOCK_END
 
 	extern SSRTraceParamDef gSSRTraceParamDef;
@@ -679,11 +686,25 @@ namespace bs { namespace ct
 		 * is 1/2 the length of @p maxRoughness.
 		 */
 		static Vector2 calcRoughnessFadeScaleBias(float maxRoughness);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	msaa				True if the shader will operate on a multisampled surface.
+		 * @param[in]	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
+		 *									evaluated. Otherwise all samples will be evaluated.
+		 * @return							Requested variation of the material.
+		 */
+		static SSRTraceMat* getVariation(bool msaa, bool singleSampleMSAA = false);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
 		GpuParamTexture mSceneColorTexture;
 		GpuParamTexture mHiZTexture;
+
+		static ShaderVariation VAR_NoMSAA;
+		static ShaderVariation VAR_FullMSAA;
+		static ShaderVariation VAR_SingleMSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TemporalResolveParamDef)
@@ -728,7 +749,7 @@ namespace bs { namespace ct
 		 *							the eye adaptation shader. Otherwise the manually provided exposure value is used
 		 *							instead.
 		 */
-		SSRResolveMat* getVariation(bool eyeAdaptation);
+		static SSRResolveMat* getVariation(bool eyeAdaptation);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mSSRParamBuffer;

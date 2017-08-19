@@ -34,7 +34,12 @@ technique PPSSRTrace
 			int gHiZNumMips;
 			float gIntensity;
 			float2 gRoughnessScaleBias;
+			int gTemporalJitter;
 		}
+		
+		#ifndef MSAA_RESOLVE_0TH
+			#define MSAA_RESOLVE_0TH 0
+		#endif
 		
 		Texture2D gSceneColor;
 		SamplerState gSceneColorSamp;
@@ -54,11 +59,22 @@ technique PPSSRTrace
 				 | (y << 1) & 0x2 	| ((y << 2) & 0x8);
 		}		
 
-		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position) : SV_Target0
+		float4 fsmain(VStoFS input, float4 pixelPos : SV_Position
+			#if MSAA_COUNT > 1 && !MSAA_RESOLVE_0TH
+			, uint sampleIdx : SV_SampleIndex
+			#endif
+		) : SV_Target0
 		{
-			// TODO - Support MSAA?
+			#if MSAA_RESOLVE_0TH
+			uint sampleIdx = 0;
+			#endif
 		
+			#if MSAA_COUNT > 1
+			SurfaceData surfData = getGBufferData(trunc(pixelPos.xy), sampleIdx);
+			#else
 			SurfaceData surfData = getGBufferData(input.uv0);
+			#endif
+			
 			float3 P = NDCToWorld(input.screenPos, surfData.depth);
 			float3 V = normalize(gViewOrigin - P);
 			float3 N = surfData.worldNormal.xyz;
@@ -66,8 +82,7 @@ technique PPSSRTrace
 			float roughness = surfData.roughness;
 			
 			
-			//roughness = 0.3f;//DEBUG ONLY
-			roughness = 0.0f;
+			roughness = 0.3f;//DEBUG ONLY
 			
 			
 			float roughness2 = roughness * roughness;
@@ -81,7 +96,6 @@ technique PPSSRTrace
 
 			// Jitter ray offset in 4x4 tile, in order to avoid stairstep artifacts
 			uint pixelIdx = mortonCode4x4((uint)pixelPos.x, (uint)pixelPos.y);
-			float jitterOffset = (pixelIdx & 15) / 15.0f - 0.5f; // TODO - Also add per-frame jitter			
 			
 			RayMarchParams rayMarchParams;
 			rayMarchParams.bufferSize = gHiZSize;
@@ -89,17 +103,21 @@ technique PPSSRTrace
 			rayMarchParams.NDCToHiZUV = gNDCToHiZUV;
 			rayMarchParams.HiZUVToScreenUV = gHiZUVToScreenUV;
 			rayMarchParams.rayOrigin = P;
-			rayMarchParams.jitterOffset = jitterOffset;			
-			
-			int NUM_RAYS = 1; // DEBUG ONLY
+
+			// Make sure each pixel chooses different ray directions (noise looks better than repeating patterns)
+			//// Magic integer is arbitrary, in order to convert from [0, 1] float
+			uint2 pixRandom = random(pixelPos.xy + gTemporalJitter * uint2(61, 85)) * uint2(0x36174842, 0x15249835);
+			int NUM_RAYS = 8; // DEBUG ONLY
 			
 			float4 sum = 0;
 			[loop]
 			for(int i = 0; i < NUM_RAYS; ++i)
 			{
-				// TODO - Add per-frame random? (for temporal filtering)
-				float2 random = hammersleySequence(i, NUM_RAYS);
-				float2 sphericalH = importanceSampleGGX(random, roughness4);
+				uint rayRandom = (pixelIdx + (gTemporalJitter + i * 207) & 15);
+				rayMarchParams.jitterOffset = rayRandom / 15.0f - 0.5f;
+			
+				float2 e = hammersleySequence(i, NUM_RAYS, pixRandom);
+				float2 sphericalH = importanceSampleGGX(e, roughness4);
 				
 				float cosTheta = sphericalH.x;
 				float phi = sphericalH.y;
@@ -113,8 +131,7 @@ technique PPSSRTrace
 				float3 tangentY = cross(N, tangentX);
 				
 				H = tangentX * H.x + tangentY * H.y + N * H.z; 
-				//float3 R = 2 * dot( V, H ) * H - V;
-				float3 R = 2 * dot( V, N ) * N - V;
+				float3 R = 2 * dot( V, H ) * H - V;
 				
 				// Eliminate rays pointing towards the viewer. They won't hit anything, plus they can screw up precision
 				// and cause ray step offset to be too small, causing self-intersections.
@@ -141,8 +158,6 @@ technique PPSSRTrace
 					float2 vignette = saturate(abs(rayHitNDC) * 5.0f - 4.0f);
 		
 					color = color * saturate(1.0f - dot(vignette, vignette));
-					
-					// Note: Not accounting for PDF here since we don't evaluate BRDF until later. Looks good though.
 					
 					// Tonemap the color to get a nicer visual average
 					color.rgb /= (1 + LuminanceRGB(color.rgb));

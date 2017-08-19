@@ -68,7 +68,7 @@ namespace bs { namespace ct
 	}
 
 	RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
-		:RendererViewData(src)
+		:RendererViewData(src), frameIdx(0)
 	{
 		viewProjTransform = src.projTransform * src.viewTransform;
 
@@ -119,7 +119,8 @@ namespace bs { namespace ct
 
 		mRenderSettingsHash++;
 
-		// Update compositor hierarchy
+		// Update compositor hierarchy (Note: Needs to be called even when viewport size (or other information) changes,
+		// but we're currently calling it here as all such calls are followed by setRenderSettings.
 		mCompositor.build(*this, RCNodeFinalResolve::getNodeId());
 	}
 
@@ -139,6 +140,7 @@ namespace bs { namespace ct
 		mCamera = desc.sceneCamera;
 		mProperties = desc;
 		mProperties.viewProjTransform = desc.projTransform * desc.viewTransform;
+		mProperties.prevViewProjTransform = Matrix4::IDENTITY;
 		mTargetDesc = desc.target;
 
 		setStateReductionMode(desc.stateReduction);
@@ -146,12 +148,22 @@ namespace bs { namespace ct
 
 	void RendererView::beginFrame()
 	{
+		// Note: inverse view-projection can be cached, it doesn't change every frame
+		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
+		Matrix4 invViewProj = viewProj.inverse();
+		Matrix4 NDCToPrevNDC = mProperties.prevViewProjTransform * invViewProj;
+		
+		gPerCameraParamDef.gNDCToPrevNDC.set(mParamBuffer, NDCToPrevNDC);
 	}
 
 	void RendererView::endFrame()
 	{
 		// Save view-projection matrix to use for temporal filtering
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
+
+		// Advance per-view frame index. This is used primarily by temporal rendering effects, and pausing the frame index
+		// allows you to freeze the current rendering as is, without temporal artifacts.
+		mProperties.frameIdx++;
 
 		mOpaqueQueue->clear();
 		mTransparentQueue->clear();
@@ -395,8 +407,6 @@ namespace bs { namespace ct
 
 	void RendererView::updatePerViewBuffer()
 	{
-		RenderAPI& rapi = RenderAPI::instance();
-
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
 		Matrix4 invViewProj = viewProj.inverse();
 
@@ -416,9 +426,11 @@ namespace bs { namespace ct
 		projZ[2][3] = mProperties.projTransform[2][3];
 		projZ[3][2] = mProperties.projTransform[3][2];
 		projZ[3][3] = 0.0f;
+
+		Matrix4 NDCToPrevNDC = mProperties.prevViewProjTransform * invViewProj;
 		
 		gPerCameraParamDef.gMatScreenToWorld.set(mParamBuffer, invViewProj * projZ);
-		gPerCameraParamDef.gNDCToPrevNDC.set(mParamBuffer, mProperties.prevViewProjTransform * invViewProj);
+		gPerCameraParamDef.gNDCToPrevNDC.set(mParamBuffer, NDCToPrevNDC);
 		gPerCameraParamDef.gViewDir.set(mParamBuffer, mProperties.viewDirection);
 		gPerCameraParamDef.gViewOrigin.set(mParamBuffer, mProperties.viewOrigin);
 		gPerCameraParamDef.gDeviceZToWorldZ.set(mParamBuffer, getDeviceZToViewZ(mProperties.projTransform));

@@ -1360,6 +1360,14 @@ namespace bs { namespace ct
 
 	SSRStencilParamDef gSSRStencilParamDef;
 
+	ShaderVariation SSRStencilMat::VAR_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	ShaderVariation SSRStencilMat::VAR_MSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
 	SSRStencilMat::SSRStencilMat()
 		:mGBufferParams(mMaterial, mParamsSet)
 	{
@@ -1369,7 +1377,8 @@ namespace bs { namespace ct
 
 	void SSRStencilMat::_initVariations(ShaderVariations& variations)
 	{
-		// Do nothing
+		variations.add(VAR_NoMSAA);
+		variations.add(VAR_NoMSAA);
 	}
 
 	void SSRStencilMat::execute(const RendererView& view, GBufferTextures gbuffer, 
@@ -1388,7 +1397,28 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
+	SSRStencilMat* SSRStencilMat::getVariation(bool msaa)
+	{
+		if (msaa)
+			return get(VAR_MSAA);
+		else
+			return get(VAR_NoMSAA);
+	}
+
 	SSRTraceParamDef gSSRTraceParamDef;
+
+	ShaderVariation SSRTraceMat::VAR_NoMSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 1)
+	});
+
+	ShaderVariation SSRTraceMat::VAR_FullMSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2)
+	});
+
+	ShaderVariation SSRTraceMat::VAR_SingleMSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA_COUNT", 2),
+		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
+	});
 
 	SSRTraceMat::SSRTraceMat()
 		:mGBufferParams(mMaterial, mParamsSet)
@@ -1405,7 +1435,9 @@ namespace bs { namespace ct
 
 	void SSRTraceMat::_initVariations(ShaderVariations& variations)
 	{
-		// Do nothing
+		variations.add(VAR_NoMSAA);
+		variations.add(VAR_FullMSAA);
+		variations.add(VAR_SingleMSAA);
 	}
 
 	void SSRTraceMat::execute(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, 
@@ -1449,6 +1481,8 @@ namespace bs { namespace ct
 		// Used for roughness fading
 		Vector2 roughnessScaleBias = calcRoughnessFadeScaleBias(settings.maxRoughness);
 
+		UINT32 temporalJitter = (viewProps.frameIdx % 8) * 1503;
+
 		Vector2I bufferSize(viewRect.width, viewRect.height);
 		gSSRTraceParamDef.gHiZSize.set(mParamBuffer, bufferSize);
 		gSSRTraceParamDef.gHiZNumMips.set(mParamBuffer, hiZProps.getNumMipmaps());
@@ -1456,6 +1490,7 @@ namespace bs { namespace ct
 		gSSRTraceParamDef.gHiZUVToScreenUV.set(mParamBuffer, HiZUVToScreenUV);
 		gSSRTraceParamDef.gIntensity.set(mParamBuffer, settings.intensity);
 		gSSRTraceParamDef.gRoughnessScaleBias.set(mParamBuffer, roughnessScaleBias);
+		gSSRTraceParamDef.gTemporalJitter.set(mParamBuffer, temporalJitter);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);
@@ -1476,6 +1511,19 @@ namespace bs { namespace ct
 		scaleBias.y = (RANGE_SCALE * maxRoughness) / (-1.0f + maxRoughness);
 
 		return scaleBias;
+	}
+
+	SSRTraceMat* SSRTraceMat::getVariation(bool msaa, bool singleSampleMSAA)
+	{
+		if (msaa)
+		{
+			if (singleSampleMSAA)
+				return get(VAR_SingleMSAA);
+			else
+				return get(VAR_FullMSAA);
+		}
+		else
+			return get(VAR_NoMSAA);
 	}
 
 	TemporalResolveParamDef gTemporalResolveParamDef;
@@ -1560,7 +1608,7 @@ namespace bs { namespace ct
 
 		gSSRResolveParamDef.gSceneColorTexelSize.set(mSSRParamBuffer, colorPixelSize);
 		gSSRResolveParamDef.gSceneDepthTexelSize.set(mSSRParamBuffer, depthPixelSize);
-		// TODO - Set manual exposure value
+		gSSRResolveParamDef.gManualExposure.set(mSSRParamBuffer, 1.0f);
 
 		// Generate samples
 		// Note: Move this code to a more general spot where it can be used by other temporal shaders.
@@ -1636,8 +1684,8 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < 9; ++i)
 		{
-			gTemporalResolveParamDef.gSampleWeights.set(mTemporalParamBuffer, sampleWeights[i] / totalWeights);
-			gTemporalResolveParamDef.gSampleWeightsLowpass.set(mTemporalParamBuffer, sampleWeightsLowPass[i] / totalWeightsLowPass);
+			gTemporalResolveParamDef.gSampleWeights.set(mTemporalParamBuffer, sampleWeights[i] / totalWeights, i);
+			gTemporalResolveParamDef.gSampleWeightsLowpass.set(mTemporalParamBuffer, sampleWeightsLowPass[i] / totalWeightsLowPass, i);
 		}
 		
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
@@ -1649,5 +1697,13 @@ namespace bs { namespace ct
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
 		gRendererUtility().drawScreenQuad();
+	}
+
+	SSRResolveMat* SSRResolveMat::getVariation(bool eyeAdaptation)
+	{
+		if (eyeAdaptation)
+			return get(VAR_EyeAdaptation);
+		else
+			return get(VAR_NoEyeAdaptation);
 	}
 }}

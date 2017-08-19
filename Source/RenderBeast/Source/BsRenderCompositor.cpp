@@ -756,25 +756,23 @@ namespace bs { namespace ct
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 		RCNodeLightAccumulation* lightAccumNode = static_cast <RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
-		SPtr<Texture> ssao;
-		if (rs.ambientOcclusion.enabled)
-		{
-			RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[5]);
-			ssao = ssaoNode->output->texture;
-		}
-		else
-			ssao = Texture::WHITE;
-
 		SPtr<Texture> ssr;
 		if (rs.screenSpaceReflections.enabled)
 		{
-			UINT32 nodeIdx = rs.ambientOcclusion.enabled ? 6 : 5;
-
-			RCNodeSSR* ssrNode = static_cast<RCNodeSSR*>(inputs.inputNodes[nodeIdx]);
+			RCNodeSSR* ssrNode = static_cast<RCNodeSSR*>(inputs.inputNodes[5]);
 			ssr = ssrNode->output->texture;
 		}
 		else
 			ssr = Texture::BLACK;
+
+		SPtr<Texture> ssao;
+		if (rs.ambientOcclusion.enabled)
+		{
+			RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[6]);
+			ssao = ssaoNode->output->texture;
+		}
+		else
+			ssao = Texture::WHITE;
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		TiledDeferredImageBasedLightingMat* material = TiledDeferredImageBasedLightingMat::getVariation(viewProps.numSamples);
@@ -810,12 +808,10 @@ namespace bs { namespace ct
 		deps.push_back(RCNodeSceneDepth::getNodeId());
 		deps.push_back(RCNodeLightAccumulation::getNodeId());
 		deps.push_back(RCNodeIndirectLighting::getNodeId());
+		deps.push_back(RCNodeSSR::getNodeId());
 
 		if(view.getRenderSettings().ambientOcclusion.enabled)
 			deps.push_back(RCNodeSSAO::getNodeId());
-
-		if (view.getRenderSettings().screenSpaceReflections.enabled)
-			deps.push_back(RCNodeSSR::getNodeId());
 
 		return deps;
 	}
@@ -1711,59 +1707,124 @@ namespace bs { namespace ct
 		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeGBuffer::getNodeId() };
 	}
 
+	RCNodeSSR::~RCNodeSSR()
+	{
+		deallocOutputs();
+	}
+
 	void RCNodeSSR::render(const RenderCompositorNodeInputs& inputs)
 	{
-		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
-		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[1]);
-		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[2]);
-		RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.inputNodes[3]);
-
-		GpuResourcePool& resPool = GpuResourcePool::instance();
-		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		const ScreenSpaceReflectionsSettings& settings = inputs.view.getRenderSettings().screenSpaceReflections;
+		if (settings.enabled)
+		{
+			RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
+			RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[1]);
+			RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[2]);
+			RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.inputNodes[3]);
 
-		SPtr<Texture> hiZ = hiZNode->output->texture;
+			GpuResourcePool& resPool = GpuResourcePool::instance();
+			const RendererViewProperties& viewProps = inputs.view.getProperties();
 
-		// This will be executing before scene color is resolved
-		SPtr<Texture> sceneColor = lightAccumNode->lightAccumulationTex->texture;
+			UINT32 width = viewProps.viewRect.width;
+			UINT32 height = viewProps.viewRect.height;
 
-		GBufferTextures gbuffer;
-		gbuffer.albedo = gbufferNode->albedoTex->texture;
-		gbuffer.normals = gbufferNode->normalTex->texture;
-		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
-		gbuffer.depth = sceneDepthNode->depthTex->texture;
+			SPtr<Texture> hiZ = hiZNode->output->texture;
 
-		UINT32 width = viewProps.viewRect.width;
-		UINT32 height = viewProps.viewRect.height;
+			// This will be executing before scene color is resolved, so get the light accum buffer instead
+			SPtr<Texture> sceneColor = lightAccumNode->lightAccumulationTex->texture;
 
-		output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+			// Resolve multiple samples if MSAA is used
+			SPtr<PooledRenderTexture> resolvedSceneColor;
+			if(viewProps.numSamples > 1)
+			{
+				resolvedSceneColor = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, 
+					TU_RENDERTARGET));
 
-		// TODO - Run SSRStencil
+				RenderAPI::instance().setRenderTarget(resolvedSceneColor->renderTexture);
+				gRendererUtility().blit(sceneColor);
 
-		SSRTraceMat* traceMat = SSRTraceMat::get();
-		traceMat->execute(inputs.view, gbuffer, sceneColor, hiZ, settings, output->renderTexture);
+				sceneColor = resolvedSceneColor->texture;
+			}
 
-		// TODO - Run temporal resolve
+			GBufferTextures gbuffer;
+			gbuffer.albedo = gbufferNode->albedoTex->texture;
+			gbuffer.normals = gbufferNode->normalTex->texture;
+			gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
+			gbuffer.depth = sceneDepthNode->depthTex->texture;
 
-		RenderAPI::instance().setRenderTarget(nullptr);
+			SSRStencilMat* stencilMat = SSRStencilMat::getVariation(viewProps.numSamples > 1);
+
+			// TODO - Run SSRStencil
+			// TODO - Is stencil clear at this point? Also use stencil mask.
+			// RenderAPI::instance().setRenderTarget(sceneDepthNode->depthTex->renderTexture);
+			// stencilMat->execute(inputs.view, gbuffer, settings);
+
+			SPtr<PooledRenderTexture> traceOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, 
+				height, TU_RENDERTARGET));
+
+			SSRTraceMat* traceMat = SSRTraceMat::getVariation(viewProps.numSamples > 1);
+			traceMat->execute(inputs.view, gbuffer, sceneColor, hiZ, settings, traceOutput->renderTexture);
+
+			if (resolvedSceneColor)
+			{
+				resPool.release(resolvedSceneColor);
+				resolvedSceneColor = nullptr;
+			}
+
+			if (mPrevFrame)
+			{
+				output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+
+				SSRResolveMat* resolveMat = SSRResolveMat::getVariation(false);
+				resolveMat->execute(inputs.view, mPrevFrame->texture, traceOutput->texture, sceneDepthNode->depthTex->texture,
+					output->renderTexture);
+
+				resPool.release(traceOutput);
+			}
+			else
+				output = traceOutput;
+
+			RenderAPI::instance().setRenderTarget(nullptr);
+		}
+		else
+			deallocOutputs();
 	}
 
 	void RCNodeSSR::clear()
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
-		resPool.release(output);
+
+		if(mPrevFrame)
+			resPool.release(mPrevFrame);
+
+		mPrevFrame = output;
+		output = nullptr;
+	}
+
+	void RCNodeSSR::deallocOutputs()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		
+		if(mPrevFrame)
+		{
+			resPool.release(mPrevFrame);
+			mPrevFrame = nullptr;
+		}
 	}
 
 	SmallVector<StringID, 4> RCNodeSSR::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-		deps.push_back(RCNodeSceneDepth::getNodeId());
-		deps.push_back(RCNodeLightAccumulation::getNodeId());
-		deps.push_back(RCNodeGBuffer::getNodeId());
-		deps.push_back(RCNodeHiZ::getNodeId());
+		if (view.getRenderSettings().screenSpaceReflections.enabled)
+		{
+			deps.push_back(RCNodeSceneDepth::getNodeId());
+			deps.push_back(RCNodeLightAccumulation::getNodeId());
+			deps.push_back(RCNodeGBuffer::getNodeId());
+			deps.push_back(RCNodeHiZ::getNodeId());
 
-		if (view.getProperties().numSamples > 1)
-			deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+			if (view.getProperties().numSamples > 1)
+				deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+		}
 
 		return deps;
 	}

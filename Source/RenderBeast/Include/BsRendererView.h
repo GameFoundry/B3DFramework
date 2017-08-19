@@ -142,6 +142,7 @@ namespace bs { namespace ct
 		Rect2I viewRect;
 		Rect2 nrmViewRect;
 		UINT32 numSamples;
+		UINT32 frameIdx;
 
 		UINT32 clearFlags;
 		Color clearColor;

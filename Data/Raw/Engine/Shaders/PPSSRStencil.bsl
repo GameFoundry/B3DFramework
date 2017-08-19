@@ -23,11 +23,17 @@ technique PPSSRStencil
 			float2 gRoughnessScaleBias;
 		}
 		
-		float fsmain(VStoFS input) : SV_Target0
+		float fsmain(VStoFS input			
+		#if MSAA_COUNT > 1 
+			, uint sampleIdx : SV_SampleIndex
+		#endif
+		) : SV_Target0
 		{
-			// TODO - Support MSAA?
-		
+			#if MSAA_COUNT > 1 
+			SurfaceData surfData = getGBufferData(trunc(input.position.xy), sampleIdx);
+			#else
 			SurfaceData surfData = getGBufferData(input.uv0);
+			#endif
 			
 			// Surfaces that are too rough fall back to refl. probes
 			float fadeValue = 1.0f - saturate(surfData.roughness * gRoughnessScaleBias.x + gRoughnessScaleBias.y);

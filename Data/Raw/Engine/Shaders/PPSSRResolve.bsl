@@ -5,6 +5,7 @@
 #define TEMPORAL_LOCAL_VELOCITY 0
 #define TEMPORAL_SEARCH_NEAREST 0
 #define TEMPORAL_BLEND_FACTOR 8
+#define TEMPORAL_SMOOTH_NEIGHBORHOOD 0
 #include "$ENGINE$\TemporalResolve.bslinc"
 
 technique PPSSRStencil
@@ -56,7 +57,7 @@ technique PPSSRStencil
 			#else
 				return temporalResolve(
 					gSceneDepth, gPointSampler, gSceneDepthTexelSize,
-					gSceneColor, gPointSampler, gSceneColorTexelSize, 
+					gSceneColor, gLinearSampler, gSceneColorTexelSize, 
 					gPrevColor, gLinearSampler, gSceneColorTexelSize,
 					exposureScale, input.uv0, input.screenPos, 0);
 			#endif
