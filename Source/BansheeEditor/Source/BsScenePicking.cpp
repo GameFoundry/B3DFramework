@@ -261,7 +261,7 @@ namespace bs
 		normalTexDesc.type = TEX_TYPE_2D;
 		normalTexDesc.width = outputTextureProperties.getWidth();
 		normalTexDesc.height = outputTextureProperties.getHeight();
-		normalTexDesc.format = PF_FLOAT_R11G11B10;
+		normalTexDesc.format = PF_RG11B10F;
 		normalTexDesc.usage = TU_RENDERTARGET;
 
 		SPtr<Texture> normalsTexture = Texture::create(normalTexDesc);
