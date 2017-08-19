@@ -333,24 +333,28 @@ namespace bs
 
 		if (modifications > 0)
 		{
+			bool forceReimport = modifications == 2;
+
 			SPtr<ResourceManifest> oldResourceManifest;
-			if (FileSystem::exists(ResourceManifestPath))
+			if (!forceReimport && FileSystem::exists(ResourceManifestPath))
 			{
 				oldResourceManifest = ResourceManifest::load(ResourceManifestPath, BuiltinDataFolder);
 				if(oldResourceManifest != nullptr)
 					gResources().registerResourceManifest(oldResourceManifest);
 			}
 
-			mResourceManifest = ResourceManifest::create("BuiltinResources");
-			gResources().registerResourceManifest(mResourceManifest);
+			if (oldResourceManifest)
+				mResourceManifest = oldResourceManifest;
+			else
+			{
+				mResourceManifest = ResourceManifest::create("BuiltinResources");
+				gResources().registerResourceManifest(mResourceManifest);
+			}
 
 			preprocess(modifications == 2, lastUpdateTime);
 			BuiltinResourcesHelper::writeTimestamp(BuiltinDataFolder + L"Timestamp.asset");
 
 			ResourceManifest::save(mResourceManifest, ResourceManifestPath, BuiltinDataFolder);
-
-			if (oldResourceManifest != nullptr)
-				gResources().unregisterResourceManifest(oldResourceManifest);
 		}
 #endif
 
