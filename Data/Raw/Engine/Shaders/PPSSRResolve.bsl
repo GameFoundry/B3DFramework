@@ -6,9 +6,10 @@
 #define TEMPORAL_SEARCH_NEAREST 0
 #define TEMPORAL_BLEND_FACTOR 8
 #define TEMPORAL_SMOOTH_NEIGHBORHOOD 0
+#define MSAA_COLOR 0
 #include "$ENGINE$\TemporalResolve.bslinc"
 
-technique PPSSRStencil
+technique PPSSRResolve
 {
 	mixin PPBase;
 	mixin PerCameraData;
@@ -27,39 +28,30 @@ technique PPSSRStencil
 		
 		#if MSAA
 			Texture2DMS gSceneDepth;
-			Texture2DMS gSceneColor;
-			Texture2DMS gPrevColor;
 		#else
 			Texture2D gSceneDepth;
-			Texture2D gSceneColor;
-			Texture2D gPrevColor;
+		#endif	
 
-			SamplerState gPointSampler;
-			SamplerState gLinearSampler;
-		#endif		
-		
-		#if EYE_ADAPTATION
-			Texture2D gEyeAdaptationTex;
-		#endif
+		Texture2D gSceneColor;
+		Texture2D gPrevColor;
+
+		SamplerState gPointSampler;
+		SamplerState gLinearSampler;		
 		
 		float3 fsmain(VStoFS input) : SV_Target0
 		{
-			float exposureScale;
-			#if EYE_ADAPTATION
-				exposureScale = gEyeAdaptationTex.Load(int3(0, 0, 0)).r;
-			#else
-				exposureScale = gManualExposure;
-			#endif
-		
 			#if MSAA
-				return temporalResolve(gSceneDepth, gSceneColor, gPrevColor, 
-					exposureScale, input.uv0, input.screenPos, 0);
+				return temporalResolve(
+					gSceneDepth, 
+					gSceneColor, gLinearSampler, gSceneColorTexelSize, 
+					gPrevColor, gLinearSampler, gSceneColorTexelSize,
+					gManualExposure, input.position.xy, input.screenPos, 0);
 			#else
 				return temporalResolve(
 					gSceneDepth, gPointSampler, gSceneDepthTexelSize,
 					gSceneColor, gLinearSampler, gSceneColorTexelSize, 
 					gPrevColor, gLinearSampler, gSceneColorTexelSize,
-					exposureScale, input.uv0, input.screenPos, 0);
+					gManualExposure, input.uv0, input.screenPos, 0);
 			#endif
 		}	
 	};

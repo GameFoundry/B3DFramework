@@ -134,8 +134,8 @@ Name                 | Valid values				   | Reference
 ---------------------|---------------------------- |-----------------------
 reference    	  	 | integer			           | Reference value to use for stencil compare operations.
 enabled    	  	     | true, false				   | @ref bs::DEPTH_STENCIL_STATE_DESC::stencilEnable "DEPTH_STENCIL_STATE_DESC::stencilEnable"
-readmask    	  	 | R, G, B, A or any combination (e.g. RG, RBA, RGBA). "empty" for zero mask.				   | @ref bs::DEPTH_STENCIL_STATE_DESC::stencilReadMask "DEPTH_STENCIL_STATE_DESC::stencilReadMask"
-writemask    	  	 | R, G, B, A or any combination (e.g. RG, RBA, RGBA). "empty" for zero mask.				   | @ref bs::DEPTH_STENCIL_STATE_DESC::stencilWriteMask "DEPTH_STENCIL_STATE_DESC::stencilWriteMask"
+readmask    	  	 | integer in [0, 255] range   | @ref bs::DEPTH_STENCIL_STATE_DESC::stencilReadMask "DEPTH_STENCIL_STATE_DESC::stencilReadMask"
+writemask    	  	 | integer in [0, 255] range   | @ref bs::DEPTH_STENCIL_STATE_DESC::stencilWriteMask "DEPTH_STENCIL_STATE_DESC::stencilWriteMask"
 front				 | StencilOp block			   | Stencil operations and compare function for front facing geometry
 back				 | StencilOp block			   | Stencil operations and compare function for back facing geometry
  

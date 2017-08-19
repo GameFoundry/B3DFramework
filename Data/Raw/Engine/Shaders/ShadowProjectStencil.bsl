@@ -28,6 +28,7 @@ technique ShadowProjectStencil
 		enabled = true;
 		front = { keep, incwrap, keep, always };
 		back = { keep, decwrap, keep, always };
+		writemask = 0x7F;
 	};
 	#else
 	stencil
@@ -35,6 +36,7 @@ technique ShadowProjectStencil
 		enabled = true;
 		front = { keep, keep, incwrap, always };
 		back = { keep, keep, decwrap, always };
+		writemask = 0x7F;
 	};	
 	#endif
 };

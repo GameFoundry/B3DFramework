@@ -21,6 +21,7 @@ technique PPSSRTrace
 		enabled = true;
 		reference = 0;
 		front = { keep, keep, keep, eq };
+		readmask = 0x7F;
 	};	
 	
 	code
@@ -39,6 +40,18 @@ technique PPSSRTrace
 		
 		#ifndef MSAA_RESOLVE_0TH
 			#define MSAA_RESOLVE_0TH 0
+		#endif
+		
+		#if QUALITY == 0
+			#define NUM_RAYS 1
+		#elif QUALITY == 1
+			#define NUM_RAYS 4
+		#elif QUALITY == 2
+			#define NUM_RAYS 8
+		#elif QUALITY == 3
+			#define NUM_RAYS 12
+		#else
+			#define NUM_RAYS 16
 		#endif
 		
 		Texture2D gSceneColor;
@@ -81,19 +94,9 @@ technique PPSSRTrace
 			
 			float roughness = surfData.roughness;
 			
-			
-			roughness = 0.3f;//DEBUG ONLY
-			
-			
 			float roughness2 = roughness * roughness;
 			float roughness4 = roughness2 * roughness2;
 			
-			// TODO - DEBUG ONLY - Only handle reflections on up facing surfaces
-			if(dot(N, float3(0,1,0)) < 0.8)
-				return gSceneColor.Sample(gSceneColorSamp, input.uv0);	
-			else
-				N = float3(0,1,0);
-
 			// Jitter ray offset in 4x4 tile, in order to avoid stairstep artifacts
 			uint pixelIdx = mortonCode4x4((uint)pixelPos.x, (uint)pixelPos.y);
 			
@@ -107,8 +110,7 @@ technique PPSSRTrace
 			// Make sure each pixel chooses different ray directions (noise looks better than repeating patterns)
 			//// Magic integer is arbitrary, in order to convert from [0, 1] float
 			uint2 pixRandom = random(pixelPos.xy + gTemporalJitter * uint2(61, 85)) * uint2(0x36174842, 0x15249835);
-			int NUM_RAYS = 8; // DEBUG ONLY
-			
+
 			float4 sum = 0;
 			[loop]
 			for(int i = 0; i < NUM_RAYS; ++i)

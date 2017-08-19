@@ -361,6 +361,10 @@
         {
             "Path": "DebugDraw.bsl",
             "UUID": "6d3eb44e-b7e9-4c5a-8f8c-e5695607ca13"
+        },
+        {
+            "Path": "ClearStencilBits.bsl",
+            "UUID": "e123138f-af24-422f-9301-f71113fcd282"
         }
     ],
     "Skin": [

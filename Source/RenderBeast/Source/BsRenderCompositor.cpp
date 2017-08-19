@@ -293,16 +293,8 @@ namespace bs { namespace ct
 		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
 		rapi.setViewport(area);
 
-		// Clear depth & stencil according to user defined values, don't clear color as all values will get written to
-		UINT32 clearFlags = viewProps.clearFlags & ~FBT_COLOR;
-		if (clearFlags != 0)
-		{
-			rapi.clearViewport(clearFlags, viewProps.clearColor, viewProps.clearDepthValue, 
-				viewProps.clearStencilValue, 0x01);
-		}
-
-		// Clear all non primary targets (Note: I could perhaps clear all but albedo, since it stores a per-pixel write mask)
-		rapi.clearViewport(FBT_COLOR, Color::ZERO, 1.0f, 0, 0xFF & ~0x01);
+		// Clear all targets
+		rapi.clearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::ZERO, 1.0f, 0);
 
 		// Render all visible opaque elements
 		const Vector<RenderQueueElement>& opaqueElements = inputs.view.getOpaqueQueue()->getSortedElements();
@@ -1397,10 +1389,11 @@ namespace bs { namespace ct
 			UINT32 width = viewProps.viewRect.width;
 			UINT32 height = viewProps.viewRect.height;
 
-			output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32, width, height, TU_RENDERTARGET, 1, false)); 
+			output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32_S8X24, width, height, TU_RENDERTARGET, 1, false)); 
 
 			RenderAPI& rapi = RenderAPI::instance();
 			rapi.setRenderTarget(output->renderTexture);
+			rapi.clearRenderTarget(FBT_STENCIL);
 			gRendererUtility().blit(sceneDepthNode->depthTex->texture, Rect2I::EMPTY, false, true);
 
 			mPassThrough = false;
@@ -1717,10 +1710,13 @@ namespace bs { namespace ct
 		const ScreenSpaceReflectionsSettings& settings = inputs.view.getRenderSettings().screenSpaceReflections;
 		if (settings.enabled)
 		{
+			RenderAPI& rapi = RenderAPI::instance();
+
 			RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
 			RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[1]);
 			RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[2]);
 			RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.inputNodes[3]);
+			RCNodeResolvedSceneDepth* resolvedSceneDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.inputNodes[4]);
 
 			GpuResourcePool& resPool = GpuResourcePool::instance();
 			const RendererViewProperties& viewProps = inputs.view.getProperties();
@@ -1740,7 +1736,7 @@ namespace bs { namespace ct
 				resolvedSceneColor = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, 
 					TU_RENDERTARGET));
 
-				RenderAPI::instance().setRenderTarget(resolvedSceneColor->renderTexture);
+				rapi.setRenderTarget(resolvedSceneColor->renderTexture);
 				gRendererUtility().blit(sceneColor);
 
 				sceneColor = resolvedSceneColor->texture;
@@ -1754,16 +1750,24 @@ namespace bs { namespace ct
 
 			SSRStencilMat* stencilMat = SSRStencilMat::getVariation(viewProps.numSamples > 1);
 
-			// TODO - Run SSRStencil
-			// TODO - Is stencil clear at this point? Also use stencil mask.
-			// RenderAPI::instance().setRenderTarget(sceneDepthNode->depthTex->renderTexture);
-			// stencilMat->execute(inputs.view, gbuffer, settings);
+			// Note: Making the assumption that the stencil buffer is clear at this point
+			rapi.setRenderTarget(resolvedSceneDepthNode->output->renderTexture);
+			stencilMat->execute(inputs.view, gbuffer, settings);
 
 			SPtr<PooledRenderTexture> traceOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, 
 				height, TU_RENDERTARGET));
 
-			SSRTraceMat* traceMat = SSRTraceMat::getVariation(viewProps.numSamples > 1);
-			traceMat->execute(inputs.view, gbuffer, sceneColor, hiZ, settings, traceOutput->renderTexture);
+			RENDER_TEXTURE_DESC traceRtDesc;
+			traceRtDesc.colorSurfaces[0].texture = traceOutput->texture;
+			traceRtDesc.depthStencilSurface.texture = resolvedSceneDepthNode->output->texture;
+
+			SPtr<RenderTexture> traceRt = RenderTexture::create(traceRtDesc);
+
+			rapi.setRenderTarget(traceRt);
+			rapi.clearRenderTarget(FBT_COLOR);
+
+			SSRTraceMat* traceMat = SSRTraceMat::getVariation(settings.quality, viewProps.numSamples > 1);
+			traceMat->execute(inputs.view, gbuffer, sceneColor, hiZ, settings, traceRt);
 
 			if (resolvedSceneColor)
 			{
@@ -1775,7 +1779,10 @@ namespace bs { namespace ct
 			{
 				output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-				SSRResolveMat* resolveMat = SSRResolveMat::getVariation(false);
+				rapi.setRenderTarget(output->renderTexture);
+				rapi.clearRenderTarget(FBT_COLOR);
+
+				SSRResolveMat* resolveMat = SSRResolveMat::getVariation(viewProps.numSamples > 1);
 				resolveMat->execute(inputs.view, mPrevFrame->texture, traceOutput->texture, sceneDepthNode->depthTex->texture,
 					output->renderTexture);
 
@@ -1821,6 +1828,7 @@ namespace bs { namespace ct
 			deps.push_back(RCNodeLightAccumulation::getNodeId());
 			deps.push_back(RCNodeGBuffer::getNodeId());
 			deps.push_back(RCNodeHiZ::getNodeId());
+			deps.push_back(RCNodeResolvedSceneDepth::getNodeId());
 
 			if (view.getProperties().numSamples > 1)
 				deps.push_back(RCNodeUnflattenLightAccum::getNodeId());

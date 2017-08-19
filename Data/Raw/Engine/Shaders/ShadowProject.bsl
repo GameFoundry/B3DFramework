@@ -20,6 +20,8 @@ technique ShadowProject
 		// Note: Need to test performance clearing the stencil this way vs. clearing it separately,
 		//   as this disables HiStencil optimization.
 		front = { zero, zero, zero, neq };
+		readmask = 0x7F;
+		writemask = 0x7F;
 	};
 	
 	#ifdef FADE_PLANE

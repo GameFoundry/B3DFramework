@@ -13,6 +13,7 @@ technique PPSSRStencil
 		enabled = true;
 		reference = 1;
 		front = { replace, replace, replace, always };
+		writemask = 0x7F;
 	};		
 	
 	code
@@ -37,6 +38,12 @@ technique PPSSRStencil
 			
 			// Surfaces that are too rough fall back to refl. probes
 			float fadeValue = 1.0f - saturate(surfData.roughness * gRoughnessScaleBias.x + gRoughnessScaleBias.y);
+			
+			// Reflection contribution is too low for dieletrics to waste performance on high quality reflections
+			// 0 if metalness <= 0.4
+			// [0, 1] if metalness > 0.4 && < 0.6
+			// 1 if metalness >= 0.6
+			fadeValue *= saturate(surfData.metalness * 5 - 2);
 			
 			if(fadeValue > 0.0f)
 				discard;

@@ -1217,7 +1217,6 @@ namespace bs { namespace ct
 		}
 
 #undef PICK_MATERIAL
-		
 	}
 
 	SSAODownsampleParamDef gSSAODownsampleParamDef;
@@ -1407,18 +1406,28 @@ namespace bs { namespace ct
 
 	SSRTraceParamDef gSSRTraceParamDef;
 
-	ShaderVariation SSRTraceMat::VAR_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1)
-	});
+#define VARIATION(QUALITY)																	\
+		ShaderVariation SSRTraceMat::VAR_NoMSAA_Quality##QUALITY = ShaderVariation({		\
+			ShaderVariation::Param("MSAA_COUNT", 1),										\
+			ShaderVariation::Param("QUALITY", QUALITY)										\
+		});																					\
+		ShaderVariation SSRTraceMat::VAR_FullMSAA_Quality##QUALITY = ShaderVariation({		\
+			ShaderVariation::Param("MSAA_COUNT", 2),										\
+			ShaderVariation::Param("QUALITY", QUALITY)										\
+		});																					\
+		ShaderVariation SSRTraceMat::VAR_SingleMSAA_Quality##QUALITY = ShaderVariation({	\
+			ShaderVariation::Param("MSAA_COUNT", 2),										\
+			ShaderVariation::Param("MSAA_RESOLVE_0TH", true),								\
+			ShaderVariation::Param("QUALITY", QUALITY)										\
+		});																					\
 
-	ShaderVariation SSRTraceMat::VAR_FullMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2)
-	});
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
 
-	ShaderVariation SSRTraceMat::VAR_SingleMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
-	});
+#undef VARIATION
 
 	SSRTraceMat::SSRTraceMat()
 		:mGBufferParams(mMaterial, mParamsSet)
@@ -1435,9 +1444,18 @@ namespace bs { namespace ct
 
 	void SSRTraceMat::_initVariations(ShaderVariations& variations)
 	{
-		variations.add(VAR_NoMSAA);
-		variations.add(VAR_FullMSAA);
-		variations.add(VAR_SingleMSAA);
+#define VARIATION(QUALITY) \
+		variations.add(VAR_NoMSAA_Quality##QUALITY);		\
+		variations.add(VAR_FullMSAA_Quality##QUALITY);		\
+		variations.add(VAR_SingleMSAA_Quality##QUALITY);	\
+
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION
 	}
 
 	void SSRTraceMat::execute(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, 
@@ -1495,7 +1513,7 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);
 
-		rapi.setRenderTarget(destination);
+		rapi.setRenderTarget(destination, FBT_DEPTH);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
@@ -1513,29 +1531,43 @@ namespace bs { namespace ct
 		return scaleBias;
 	}
 
-	SSRTraceMat* SSRTraceMat::getVariation(bool msaa, bool singleSampleMSAA)
+	SSRTraceMat* SSRTraceMat::getVariation(UINT32 quality, bool msaa, bool singleSampleMSAA)
 	{
-		if (msaa)
+#define PICK_MATERIAL(QUALITY)											\
+		if(msaa)														\
+			if(singleSampleMSAA)										\
+				return get(VAR_SingleMSAA_Quality##QUALITY);			\
+			else														\
+				return get(VAR_FullMSAA_Quality##QUALITY);				\
+		else															\
+			return get(VAR_NoMSAA_Quality##QUALITY);					\
+
+		switch(quality)
 		{
-			if (singleSampleMSAA)
-				return get(VAR_SingleMSAA);
-			else
-				return get(VAR_FullMSAA);
+		case 0:
+			PICK_MATERIAL(0)
+		case 1:
+			PICK_MATERIAL(1)
+		case 2:
+			PICK_MATERIAL(2)
+		case 3:
+			PICK_MATERIAL(3)
+		default:
+		case 4:
+			PICK_MATERIAL(4)
 		}
-		else
-			return get(VAR_NoMSAA);
+
+#undef PICK_MATERIAL
 	}
 
 	TemporalResolveParamDef gTemporalResolveParamDef;
 	SSRResolveParamDef gSSRResolveParamDef;
 
-	ShaderVariation SSRResolveMat::VAR_EyeAdaptation = ShaderVariation({
-		ShaderVariation::Param("EYE_ADAPTATION", true),
-		ShaderVariation::Param("MSAA", false)
+	ShaderVariation SSRResolveMat::VAR_MSAA = ShaderVariation({
+		ShaderVariation::Param("MSAA", true)
 	});
 
-	ShaderVariation SSRResolveMat::VAR_NoEyeAdaptation = ShaderVariation({
-		ShaderVariation::Param("EYE_ADAPTATION", false),
+	ShaderVariation SSRResolveMat::VAR_NoMSAA = ShaderVariation({
 		ShaderVariation::Param("MSAA", false)
 	});
 
@@ -1577,15 +1609,13 @@ namespace bs { namespace ct
 
 	void SSRResolveMat::_initVariations(ShaderVariations& variations)
 	{
-		variations.add(VAR_EyeAdaptation);
-		variations.add(VAR_NoEyeAdaptation);
+		variations.add(VAR_NoMSAA);
+		variations.add(VAR_MSAA);
 	}
 
 	void SSRResolveMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame, 
 		const SPtr<Texture>& curFrame, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination)
 	{
-		// TODO - MSAA not supported (remember UV must be in pixels) 
-		
 		// Note: This shader should not be called when temporal AA is turned on
 		// Note: This shader doesn't have velocity texture enabled and will only account for camera movement (can be easily
 		//		 enabled when velocity texture is added)
@@ -1594,11 +1624,6 @@ namespace bs { namespace ct
 		mPrevColorTexture.set(prevFrame);
 		mSceneColorTexture.set(curFrame);
 		mSceneDepthTexture.set(sceneDepth);
-
-		if(mVariation.getBool("EYE_ADAPTATION"))
-		{
-			// TODO - Set eye adaptation texture
-		}
 
 		auto& colorProps = curFrame->getProperties(); // Assuming prev and current frame are the same size
 		auto& depthProps = sceneDepth->getProperties();
@@ -1699,11 +1724,26 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	SSRResolveMat* SSRResolveMat::getVariation(bool eyeAdaptation)
+	SSRResolveMat* SSRResolveMat::getVariation(bool msaa)
 	{
-		if (eyeAdaptation)
-			return get(VAR_EyeAdaptation);
+		if (msaa)
+			return get(VAR_MSAA);
 		else
-			return get(VAR_NoEyeAdaptation);
+			return get(VAR_NoMSAA);
+	}
+
+	ClearStencilBitsMat::ClearStencilBitsMat()
+	{ }
+
+	void ClearStencilBitsMat::_initVariations(ShaderVariations& variations)
+	{
+		// Do nothing
+	}
+
+	void ClearStencilBitsMat::execute()
+	{
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
 	}
 }}

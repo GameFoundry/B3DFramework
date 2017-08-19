@@ -690,21 +690,31 @@ namespace bs { namespace ct
 		/** 
 		 * Returns the material variation matching the provided parameters. 
 		 * 
+		 * @param[in]	quality				Determines how many rays to trace. In range [0, 4].
 		 * @param[in]	msaa				True if the shader will operate on a multisampled surface.
 		 * @param[in]	singleSampleMSAA	Only relevant of @p msaa is true. When enabled only the first sample will be
 		 *									evaluated. Otherwise all samples will be evaluated.
 		 * @return							Requested variation of the material.
 		 */
-		static SSRTraceMat* getVariation(bool msaa, bool singleSampleMSAA = false);
+		static SSRTraceMat* getVariation(UINT32 quality, bool msaa, bool singleSampleMSAA = false);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
 		GpuParamTexture mSceneColorTexture;
 		GpuParamTexture mHiZTexture;
 
-		static ShaderVariation VAR_NoMSAA;
-		static ShaderVariation VAR_FullMSAA;
-		static ShaderVariation VAR_SingleMSAA;
+#define VARIATION(QUALITY) \
+		static ShaderVariation VAR_NoMSAA_Quality##QUALITY;			\
+		static ShaderVariation VAR_FullMSAA_Quality##QUALITY;		\
+		static ShaderVariation VAR_SingleMSAA_Quality##QUALITY;		\
+
+		VARIATION(0)
+		VARIATION(1)
+		VARIATION(2)
+		VARIATION(3)
+		VARIATION(4)
+
+#undef VARIATION
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TemporalResolveParamDef)
@@ -745,11 +755,11 @@ namespace bs { namespace ct
 		/** 
 		 * Returns the material variation matching the provided parameters. 
 		 * 
-		 * @param	eyeAdaptation	When true the shader will expect a texture containing an exposure value calculated by
-		 *							the eye adaptation shader. Otherwise the manually provided exposure value is used
-		 *							instead.
+		 * @param[in]	msaa				True if the shader will operate on a multisampled surface. Note that previous
+		 *									and current frame color textures must be non-MSAA, regardless of this parameter.
+		 * @return							Requested variation of the material.
 		 */
-		static SSRResolveMat* getVariation(bool eyeAdaptation);
+		static SSRResolveMat* getVariation(bool msaa);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mSSRParamBuffer;
@@ -760,8 +770,20 @@ namespace bs { namespace ct
 		GpuParamTexture mSceneDepthTexture;
 		GpuParamTexture mEyeAdaptationTexture;
 
-		static ShaderVariation VAR_EyeAdaptation;
-		static ShaderVariation VAR_NoEyeAdaptation;
+		static ShaderVariation VAR_MSAA;
+		static ShaderVariation VAR_NoMSAA;
+	};
+
+	/** Shader that clears only the unreserved portion of the stencil buffer. */
+	class ClearStencilBitsMat : public RendererMaterial<ClearStencilBitsMat>
+	{
+		RMAT_DEF("ClearStencilBits.bsl");
+
+	public:
+		ClearStencilBitsMat();
+
+		/** Executes the material on the currently bound render target. */
+		void execute();
 	};
 
 	/** @} */

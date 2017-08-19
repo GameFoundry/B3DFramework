@@ -16,6 +16,12 @@ mixin TemporalResolve
 		#ifndef MSAA
 			#define MSAA 0
 		#endif
+		
+		// Only relevant when MSAA is enabled. When disabled color textures are assumed to be non-MSAA. When
+		// enabled all textures are assumed to be MSAA.
+		#ifndef MSAA_COLOR
+			#define MSAA_COLOR MSAA
+		#endif
 	
 		// 0 - System will use the velocity of the current pixel
 		// 1 - System will search 4 neighbor pixels in + pattern, and choose the velocity of the pixel nearest 
@@ -107,15 +113,30 @@ mixin TemporalResolve
 		////////////////////////// HELPER MACROS /////////////////////////
 		#if MSAA
 			#define _TEX2D(n) Texture2DMS n
+			#if MSAA_COLOR
+				#define _TEXCOLOR(n) Texture2DMS n
+			#else
+				#define _TEXCOLOR(n) Texture2D n, SamplerState n##SampState, float2 n##TexelSize
+			#endif
+			
 			#define _PTEX2D(n) n
 			#define _SAMPLE(n, uv) n.Load((int2)uv, sampleIdx)
 			#define _SAMPLEOFF(n, uv, offset) n.Load((int2)(uv) + offset)
+			
+			#if MSAA_COLOR
+				#define _SAMPLECOL(n, uv, offset) _SAMPLEOFF(n, uv, offset)
+			#else
+				#define _SAMPLECOL(n, uv, offset) n.Sample(n##SampState, uv, offset)
+			#endif
+			
 			#define _PIXSIZE(n) int2(1, 1)
 		#else
 			#define _TEX2D(n) Texture2D n, SamplerState n##SampState, float2 n##TexelSize
+			#define _TEXCOLOR(n) _TEX2D(n)
 			#define _PTEX2D(n) n, n##SampState, n##TexelSize
 			#define _SAMPLE(n, uv) n.Sample(n##SampState, uv)
 			#define _SAMPLEOFF(n, uv, offset) n.Sample(n##SampState, uv, offset)
+			#define _SAMPLECOL(n, uv, offset) _SAMPLEOFF(n, uv, offset)
 			#define _PIXSIZE(n) n##TexelSize
 		#endif
 		
@@ -222,9 +243,9 @@ mixin TemporalResolve
 		
 		// Automatically convert from/to YCoCg space, if enabled
 		#if TEMPORAL_YCOCG
-			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(RGBToYCoCg(_SAMPLEOFF(n, uv, offset).rgb))
+			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(RGBToYCoCg(_SAMPLECOL(n, uv, offset).rgb))
 		#else // TEMPORAL_YCOCG
-			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(_SAMPLEOFF(n, uv, offset).rgb)
+			#define _SAMPLE_COLOR(n, uv, offset) _TONEMAP_COLOR(_SAMPLECOL(n, uv, offset).rgb)
 		#endif // TEMPORAL_YCOCG
 						
 		///////////////////////////// MAIN /////////////////////////////////
@@ -237,8 +258,8 @@ mixin TemporalResolve
 		
 		float3 temporalResolve(
 			_TEX2D(sceneDepth), 
-			_TEX2D(sceneColor), 
-			_TEX2D(prevColor), 
+			_TEXCOLOR(sceneColor), 
+			_TEXCOLOR(prevColor), 
 			#if TEMPORAL_LOCAL_VELOCITY
 			_TEX2D(velocityBuffer),
 			#endif // TEMPORAL_LOCAL_VELOCITY
