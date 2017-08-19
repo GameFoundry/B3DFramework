@@ -1837,6 +1837,7 @@ namespace bs
 		}
 		
 		UINT32* color = (UINT32 *)src;
+		UINT32 masked = 0;
 		switch (format) 
 		{
 		case PF_D24S8:
@@ -1846,10 +1847,12 @@ namespace bs
 			return static_cast<float>(*color & 0xFFFF) / (float)65536;
 			break;
 		case PF_D32:
-			return static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			masked = *color & 0xFFFFFFFF;
+			return *((float*)&masked);
 			break;
 		case PF_D32_S8X24:
-			return static_cast<float>(*color & 0xFFFFFFFF) / (float)4294967296;
+			masked = *color & 0xFFFFFFFF;
+			return *( (float*) &masked );
 			break;
 		default:
 			LOGERR("Cannot unpack from " + getFormatName(format));

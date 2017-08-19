@@ -534,7 +534,7 @@ namespace bs
 		if (outNormals != nullptr)
 		{
 			outNormals += (vertexOffset * vertexStride);
-			for (UINT32 face = 0; face < 4; face++)
+			for (UINT32 face = 0; face < 6; face++)
 			{
 				outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
 				outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
