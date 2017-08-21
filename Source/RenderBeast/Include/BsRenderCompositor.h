@@ -311,7 +311,6 @@ namespace ct
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
 
-		SPtr<PooledRenderTexture> mLightOcclusionTex;
 		SPtr<RenderTexture> mRenderTarget;
 	};
 

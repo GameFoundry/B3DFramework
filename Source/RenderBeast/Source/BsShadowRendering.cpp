@@ -615,6 +615,8 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < (UINT32)sceneInfo.spotLights.size(); ++i)
 		{
 			const RendererLight& light = sceneInfo.spotLights[i];
+			mSpotLightShadows[i].startIdx = shadowInfoCount;
+			mSpotLightShadows[i].numShadows = 0;
 
 			// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 			// if I kept that information somewhere
@@ -625,22 +627,21 @@ namespace bs { namespace ct
 			options.lightIdx = i;
 
 			float maxFadePercent;
-			calcShadowMapProperties(light, scene, SHADOW_MAP_BORDER, options.mapSize, options.fadePercents, maxFadePercent);
+			calcShadowMapProperties(light, viewGroup, SHADOW_MAP_BORDER, options.mapSize, options.fadePercents, maxFadePercent);
 
 			// Don't render shadow maps that will end up nearly completely faded out
 			if (maxFadePercent < 0.005f)
 				continue;
 
 			mSpotLightShadowOptions.push_back(options);
-			mSpotLightShadows[i].startIdx = shadowInfoCount;
-			mSpotLightShadows[i].numShadows = 0;
-
 			shadowInfoCount++; // For now, always a single fully dynamic shadow for a single light, but that may change
 		}
 
 		for (UINT32 i = 0; i < (UINT32)sceneInfo.radialLights.size(); ++i)
 		{
 			const RendererLight& light = sceneInfo.radialLights[i];
+			mRadialLightShadows[i].startIdx = shadowInfoCount;
+			mRadialLightShadows[i].numShadows = 0;
 
 			// Note: I'm using visibility across all views, while I could be using visibility for every view individually,
 			// if I kept that information somewhere
@@ -651,15 +652,13 @@ namespace bs { namespace ct
 			options.lightIdx = i;
 
 			float maxFadePercent;
-			calcShadowMapProperties(light, scene, 0, options.mapSize, options.fadePercents, maxFadePercent);
+			calcShadowMapProperties(light, viewGroup, 0, options.mapSize, options.fadePercents, maxFadePercent);
 
 			// Don't render shadow maps that will end up nearly completely faded out
 			if (maxFadePercent < 0.005f)
 				continue;
 
 			mRadialLightShadowOptions.push_back(options);
-			mRadialLightShadows[i].startIdx = shadowInfoCount;
-			mRadialLightShadows[i].numShadows = 0;
 
 			shadowInfoCount++; // For now, always a single fully dynamic shadow for a single light, but that may change
 		}
@@ -706,8 +705,11 @@ namespace bs { namespace ct
 			if (!light.internal->getCastsShadow())
 				return;
 
-			for (UINT32 j = 0; j < (UINT32)sceneInfo.views.size(); ++j)
-				renderCascadedShadowMaps(j, i, scene, frameInfo);
+			UINT32 numViews = viewGroup.getNumViews();
+			mDirectionalLightShadows[i].viewShadows.resize(numViews);
+
+			for (UINT32 j = 0; j < numViews; ++j)
+				renderCascadedShadowMaps(*viewGroup.getView(j), i, scene, frameInfo);
 		}
 
 		for(auto& entry : mSpotLightShadowOptions)
@@ -806,19 +808,18 @@ namespace bs { namespace ct
 		return shadowMapTfrm * mixedToShadow;
 	}
 
-	void ShadowRendering::renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, 
-		const RendererLight& rendererLight, UINT32 viewIdx, GBufferTextures gbuffer) const
+	void ShadowRendering::renderShadowOcclusion(const RendererView& view, UINT32 shadowQuality, 
+		const RendererLight& rendererLight, GBufferTextures gbuffer) const
 	{
 		const Light* light = rendererLight.internal;
 		UINT32 lightIdx = light->getRendererId();
 
-		RendererView* view = sceneInfo.views[viewIdx];
-		auto viewProps = view->getProperties();
+		auto viewProps = view.getProperties();
 
 		const Matrix4& viewP = viewProps.projTransform;
 		Matrix4 viewInvVP = viewProps.viewProjTransform.inverse();
 
-		SPtr<GpuParamBlockBuffer> perViewBuffer = view->getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perViewBuffer = view.getPerViewBuffer();
 
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
@@ -827,6 +828,7 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> shadowParamBuffer = gShadowProjectParamsDef.createBuffer();
 		SPtr<GpuParamBlockBuffer> shadowOmniParamBuffer = gShadowProjectOmniParamsDef.createBuffer();
 
+		UINT32 viewIdx = view.getViewIdx();
 		Vector<const ShadowInfo*> shadowInfos;
 
 		if(light->getType() == LightType::Radial)
@@ -890,13 +892,17 @@ namespace bs { namespace ct
 			}
 			else // Directional
 			{
-				UINT32 mapIdx = mDirectionalLightShadows[lightIdx];
-				const ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
+				const LightShadows& shadows = mDirectionalLightShadows[lightIdx].viewShadows[viewIdx];
+				if (shadows.numShadows > 0)
+				{
+					UINT32 mapIdx = shadows.startIdx;
+					const ShadowCascadedMap& cascadedMap = mCascadedShadowMaps[mapIdx];
 
-				// Render cascades in far to near order.
-				// Note: If rendering other non-cascade maps they should be rendered after cascades.
-				for (INT32 i = NUM_CASCADE_SPLITS - 1; i >= 0; i--)
-					shadowInfos.push_back(&cascadedMap.getShadowInfo(i));
+					// Render cascades in far to near order.
+					// Note: If rendering other non-cascade maps they should be rendered after cascades.
+					for (INT32 i = NUM_CASCADE_SPLITS - 1; i >= 0; i--)
+						shadowInfos.push_back(&cascadedMap.getShadowInfo(i));
+				}
 			}
 
 			for(auto& shadowInfo : shadowInfos)
@@ -997,21 +1003,29 @@ namespace bs { namespace ct
 		}
 	}
 
-	void ShadowRendering::renderCascadedShadowMaps(UINT32 viewIdx, UINT32 lightIdx, RendererScene& scene, 
+	void ShadowRendering::renderCascadedShadowMaps(const RendererView& view, UINT32 lightIdx, RendererScene& scene, 
 		const FrameInfo& frameInfo)
 	{
+		UINT32 viewIdx = view.getViewIdx();
+		LightShadows& lightShadows = mDirectionalLightShadows[lightIdx].viewShadows[viewIdx];
+
+		if (!view.getRenderSettings().enableShadows)
+		{
+			lightShadows.startIdx = -1;
+			lightShadows.numShadows = 0;
+			return;
+		}
+
 		// Note: Currently I'm using spherical bounds for the cascaded frustum which might result in non-optimal usage
 		// of the shadow map. A different approach would be to generate a bounding box and then both adjust the aspect
 		// ratio (and therefore dimensions) of the shadow map, as well as rotate the camera so the visible area best fits
 		// in the map. It remains to be seen if this is viable.
 		const SceneInfo& sceneInfo = scene.getSceneInfo();
 
-		const RendererView* view = sceneInfo.views[viewIdx];
 		const RendererLight& rendererLight = sceneInfo.directionalLights[lightIdx];
 		Light* light = rendererLight.internal;
 
 		RenderAPI& rapi = RenderAPI::instance();
-		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 
 		Vector3 lightDir = -light->getRotation().zAxis();
 		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
@@ -1055,7 +1069,7 @@ namespace bs { namespace ct
 		for (int i = 0; i < NUM_CASCADE_SPLITS; ++i)
 		{
 			Sphere frustumBounds;
-			ConvexVolume cascadeCullVolume = getCSMSplitFrustum(*view, -lightDir, i, NUM_CASCADE_SPLITS, frustumBounds);
+			ConvexVolume cascadeCullVolume = getCSMSplitFrustum(view, -lightDir, i, NUM_CASCADE_SPLITS, frustumBounds);
 
 			// Move the light at the boundary of the subject frustum, so we don't waste depth range
 			Vector3 frustumCenterViewSpace = viewMat.multiply(frustumBounds.getCenter());
@@ -1077,8 +1091,8 @@ namespace bs { namespace ct
 			shadowInfo.shadowVPTransform = proj * offsetViewMat;
 
 			// Determine split range
-			float splitNear = getCSMSplitDistance(*view, i, NUM_CASCADE_SPLITS);
-			float splitFar = getCSMSplitDistance(*view, i + 1, NUM_CASCADE_SPLITS);
+			float splitNear = getCSMSplitDistance(view, i, NUM_CASCADE_SPLITS);
+			float splitFar = getCSMSplitDistance(view, i + 1, NUM_CASCADE_SPLITS);
 
 			shadowInfo.depthNear = splitNear;
 			shadowInfo.depthFade = splitFar;
@@ -1126,7 +1140,8 @@ namespace bs { namespace ct
 			shadowMap.setShadowInfo(i, shadowInfo);
 		}
 
-		mDirectionalLightShadows[lightIdx] = shadowInfo.textureIdx;
+		lightShadows.startIdx = shadowInfo.textureIdx;
+		lightShadows.numShadows = 1;
 	}
 
 	void ShadowRendering::renderSpotShadowMap(const RendererLight& rendererLight, const ShadowMapOptions& options,
@@ -1419,48 +1434,52 @@ namespace bs { namespace ct
 		lightShadows.numShadows++;
 	}
 
-	void ShadowRendering::calcShadowMapProperties(const RendererLight& light, RendererScene& scene, UINT32 border,
-		UINT32& size, SmallVector<float, 4>& fadePercents, float& maxFadePercent) const
+	void ShadowRendering::calcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, 
+		UINT32 border, UINT32& size, SmallVector<float, 4>& fadePercents, float& maxFadePercent) const
 	{
 		const static float SHADOW_TEXELS_PER_PIXEL = 1.0f;
-
-		const SceneInfo& sceneInfo = scene.getSceneInfo();
 
 		// Find a view in which the light has the largest radius
 		float maxMapSize = 0.0f;
 		maxFadePercent = 0.0f;
-		for (int i = 0; i < (int)sceneInfo.views.size(); ++i)
+		for (int i = 0; i < (int)viewGroup.getNumViews(); ++i)
 		{
-			const RendererViewProperties& viewProps = sceneInfo.views[i]->getProperties();
+			const RendererView& view = *viewGroup.getView(i);
+			const RendererViewProperties& viewProps = view.getProperties();
+			const RenderSettings& viewSettings = view.getRenderSettings();
 
-			// Approximation for screen space sphere radius: screenSize * 0.5 * cot(fov) * radius / Z, where FOV is the 
-			// largest one
-			//// First get sphere depth
-			const Matrix4& viewVP = viewProps.viewProjTransform;
-			float depth = viewVP.multiply(Vector4(light.internal->getPosition(), 1.0f)).w;
+			if(!viewSettings.enableShadows)
+				fadePercents.push_back(0.0f);
+			{
+				// Approximation for screen space sphere radius: screenSize * 0.5 * cot(fov) * radius / Z, where FOV is the 
+				// largest one
+				//// First get sphere depth
+				const Matrix4& viewVP = viewProps.viewProjTransform;
+				float depth = viewVP.multiply(Vector4(light.internal->getPosition(), 1.0f)).w;
 
-			// This is just 1/tan(fov), for both horz. and vert. FOV
-			float viewScaleX = viewProps.projTransform[0][0];
-			float viewScaleY = viewProps.projTransform[1][1];
+				// This is just 1/tan(fov), for both horz. and vert. FOV
+				float viewScaleX = viewProps.projTransform[0][0];
+				float viewScaleY = viewProps.projTransform[1][1];
 
-			float screenScaleX = viewScaleX * viewProps.viewRect.width * 0.5f;
-			float screenScaleY = viewScaleY * viewProps.viewRect.height * 0.5f;
+				float screenScaleX = viewScaleX * viewProps.viewRect.width * 0.5f;
+				float screenScaleY = viewScaleY * viewProps.viewRect.height * 0.5f;
 
-			float screenScale = std::max(screenScaleX, screenScaleY);
+				float screenScale = std::max(screenScaleX, screenScaleY);
 
-			//// Calc radius (clamp if too close to avoid massive numbers)
-			float radiusNDC = light.internal->getBounds().getRadius() / std::max(depth, 1.0f);
+				//// Calc radius (clamp if too close to avoid massive numbers)
+				float radiusNDC = light.internal->getBounds().getRadius() / std::max(depth, 1.0f);
 
-			//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
-			float radiusScreen = radiusNDC * screenScale;
+				//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
+				float radiusScreen = radiusNDC * screenScale;
 
-			float optimalMapSize = SHADOW_TEXELS_PER_PIXEL * radiusScreen;
-			maxMapSize = std::max(maxMapSize, optimalMapSize);
-			
-			// Determine if the shadow should fade out
-			float fadePercent = Math::lerp01(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
-			fadePercents.push_back(fadePercent);
-			maxFadePercent = std::max(maxFadePercent, fadePercent);
+				float optimalMapSize = SHADOW_TEXELS_PER_PIXEL * radiusScreen;
+				maxMapSize = std::max(maxMapSize, optimalMapSize);
+
+				// Determine if the shadow should fade out
+				float fadePercent = Math::lerp01(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
+				fadePercents.push_back(fadePercent);
+				maxFadePercent = std::max(maxFadePercent, fadePercent);
+			}
 		}
 
 		// If light fully (or nearly fully) covers the screen, use full shadow map resolution, otherwise

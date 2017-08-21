@@ -414,14 +414,20 @@ namespace bs { namespace ct
 		{
 			UINT32 lightIdx;
 			UINT32 mapSize;
-			SmallVector<float, 4> fadePercents;
+			SmallVector<float, 6> fadePercents;
 		};
 
 		/** Contains references to all shadows cast by a specific light. */
 		struct LightShadows
 		{
-			UINT32 startIdx;
-			UINT32 numShadows;
+			UINT32 startIdx = 0;
+			UINT32 numShadows = 0;
+		};
+
+		/** Contains references to all shadows cast by a specific light, per view. */
+		struct PerViewLightShadows
+		{
+			SmallVector<LightShadows, 6> viewShadows;
 		};
 	public:
 		ShadowRendering(UINT32 shadowMapSize);
@@ -430,17 +436,18 @@ namespace bs { namespace ct
 		void renderShadowMaps(RendererScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 		/** 
-		 * Renders shadow occlusion values for the specified light, into the currently bound render target. 
-		 * The system uses shadow maps rendered by renderShadowMaps().
+		 * Renders shadow occlusion values for the specified light, through the provided view, into the currently bound
+		 * render target. The system uses shadow maps rendered by renderShadowMaps().
 		 */
-		void renderShadowOcclusion(const SceneInfo& sceneInfo, UINT32 shadowQuality, const RendererLight& light,
-			UINT32 viewIdx, GBufferTextures gbuffer) const;
+		void renderShadowOcclusion(const RendererView& view, UINT32 shadowQuality, const RendererLight& light, 
+			GBufferTextures gbuffer) const;
 
 		/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 		void setShadowMapSize(UINT32 size);
 	private:
 		/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
-		void renderCascadedShadowMaps(UINT32 viewIdx, UINT32 lightIdx, RendererScene& scene, const FrameInfo& frameInfo);
+		void renderCascadedShadowMaps(const RendererView& view, UINT32 lightIdx, RendererScene& scene, 
+			const FrameInfo& frameInfo);
 
 		/** Renders shadow maps for the provided spot light. */
 		void renderSpotShadowMap(const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene,
@@ -455,15 +462,15 @@ namespace bs { namespace ct
 		 * that can be used for fading out small shadow maps.
 		 * 
 		 * @param[in]	light			Light for which to calculate the shadow map properties. Cannot be a directional light.
-		 * @param[in]	scene			Scene information containing all the views the light can be seen through.
+		 * @param[in]	viewGroup		All the views the shadow will (potentially) be seen through.
 		 * @param[in]	border			Border to reduce the shadow map size by, in pixels.
 		 * @param[out]	size			Optimal size of the shadow map, in pixels.
 		 * @param[out]	fadePercents	Value in range [0, 1] determining how much should the shadow map be faded out. Each
 		 *								entry corresponds to a single view.
 		 * @param[out]	maxFadePercent	Maximum value in the @p fadePercents array.
 		 */
-		void calcShadowMapProperties(const RendererLight& light, RendererScene& scene, UINT32 border, UINT32& size, 
-			SmallVector<float, 4>& fadePercents, float& maxFadePercent) const;
+		void calcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, UINT32 border, 
+			UINT32& size, SmallVector<float, 4>& fadePercents, float& maxFadePercent) const;
 
 		/**
 		 * Draws a mesh representing near and far planes at the provided coordinates. The mesh is constructed using
@@ -564,7 +571,7 @@ namespace bs { namespace ct
 
 		Vector<LightShadows> mSpotLightShadows;
 		Vector<LightShadows> mRadialLightShadows;
-		Vector<UINT32> mDirectionalLightShadows;
+		Vector<PerViewLightShadows> mDirectionalLightShadows;
 
 		SPtr<VertexDeclaration> mPositionOnlyVD;
 

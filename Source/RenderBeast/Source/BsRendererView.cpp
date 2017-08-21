@@ -84,13 +84,13 @@ namespace bs { namespace ct
 	}
 
 	RendererView::RendererView()
-		:mRenderSettingsHash(0)
+		: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 	}
 
 	RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
-		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mRenderSettingsHash(0)
+		: mProperties(desc), mTargetDesc(desc.target), mCamera(desc.sceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
 	{
 		mParamBuffer = gPerCameraParamDef.createBuffer();
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
@@ -505,7 +505,10 @@ namespace bs { namespace ct
 		mViews.clear();
 
 		for (UINT32 i = 0; i < numViews; i++)
+		{
 			mViews.push_back(views[i]);
+			views[i]->_setViewIdx(i);
+		}
 	}
 
 	void RendererViewGroup::determineVisibility(const SceneInfo& sceneInfo)

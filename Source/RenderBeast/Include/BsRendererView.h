@@ -312,6 +312,12 @@ namespace bs { namespace ct
 		 */
 		Vector4 getNDCToUV() const;
 
+		/** Returns an index of this view within the parent view group. */
+		UINT32 getViewIdx() const { return mViewIdx; }
+
+		/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
+		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
+
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
 		 * into view Z value.
@@ -352,6 +358,7 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		VisibilityInfo mVisibility;
 		LightGrid mLightGrid;
+		UINT32 mViewIdx;
 	};
 
 	/** Contains one or multiple RendererView%s that are in some way related. */

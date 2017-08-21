@@ -508,6 +508,13 @@ namespace bs { namespace ct
 
 	void RCNodeStandardDeferredLighting::render(const RenderCompositorNodeInputs& inputs)
 	{
+		RCNodeTiledDeferredLighting* tileDeferredNode = static_cast<RCNodeTiledDeferredLighting*>(inputs.inputNodes[0]);
+		output = tileDeferredNode->output;
+
+		// If shadows are disabled we handle all lights through tiled deferred
+		if (!inputs.view.getRenderSettings().enableShadows)
+			return;
+
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -515,20 +522,17 @@ namespace bs { namespace ct
 		UINT32 height = viewProps.viewRect.height;
 		UINT32 numSamples = viewProps.numSamples;
 
-		RCNodeTiledDeferredLighting* tileDeferredNode = static_cast<RCNodeTiledDeferredLighting*>(inputs.inputNodes[0]);
-		output = tileDeferredNode->output;
-
 		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 
 		// Allocate light occlusion
-		mLightOcclusionTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width,
+		SPtr<PooledRenderTexture> lightOcclusionTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width,
 			height, TU_RENDERTARGET, numSamples, false));
 
 		bool rebuildRT = false;
 		if (mRenderTarget != nullptr)
 		{
-			rebuildRT |= mRenderTarget->getColorTexture(0) != mLightOcclusionTex->texture;
+			rebuildRT |= mRenderTarget->getColorTexture(0) != lightOcclusionTex->texture;
 			rebuildRT |= mRenderTarget->getDepthStencilTexture() != sceneDepthNode->depthTex->texture;
 		}
 		else
@@ -537,7 +541,7 @@ namespace bs { namespace ct
 		if (rebuildRT)
 		{
 			RENDER_TEXTURE_DESC lightOcclusionRTDesc;
-			lightOcclusionRTDesc.colorSurfaces[0].texture = mLightOcclusionTex->texture;
+			lightOcclusionRTDesc.colorSurfaces[0].texture = lightOcclusionTex->texture;
 			lightOcclusionRTDesc.colorSurfaces[0].face = 0;
 			lightOcclusionRTDesc.colorSurfaces[0].numFaces = 1;
 			lightOcclusionRTDesc.colorSurfaces[0].mipLevel = 0;
@@ -559,46 +563,38 @@ namespace bs { namespace ct
 		const VisibleLightData& lightData = inputs.viewGroup.getVisibleLightData();
 		const ShadowRendering& shadowRenderer = inputs.viewGroup.getShadowRenderer();
 
-		Camera* sceneCamera = inputs.view.getSceneCamera();
-
-		// Note: Currently skipping shadow rendering for any views that aren't part of the scene (like temporary ones)
-		if (sceneCamera != nullptr)
+		RenderAPI& rapi = RenderAPI::instance();
+		for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
 		{
-			RenderAPI& rapi = RenderAPI::instance();
-			UINT32 viewIdx = sceneCamera->getRendererId();
-			for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
+			LightType lightType = (LightType)i;
+
+			auto& lights = lightData.getLights(lightType);
+			UINT32 count = lightData.getNumShadowedLights(lightType);
+			UINT32 offset = lightData.getNumUnshadowedLights(lightType);
+
+			for (UINT32 j = 0; j < count; j++)
 			{
-				LightType lightType = (LightType)i;
+				rapi.setRenderTarget(mRenderTarget, FBT_DEPTH, RT_DEPTH_STENCIL);
 
-				auto& lights = lightData.getLights(lightType);
-				UINT32 count = lightData.getNumShadowedLights(lightType);
-				UINT32 offset = lightData.getNumUnshadowedLights(lightType);
+				Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+				rapi.setViewport(area);
 
-				for (UINT32 j = 0; j < count; j++)
-				{
-					rapi.setRenderTarget(mRenderTarget, FBT_DEPTH, RT_DEPTH_STENCIL);
+				rapi.clearViewport(FBT_COLOR, Color::ZERO);
 
-					Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-					rapi.setViewport(area);
+				UINT32 lightIdx = offset + j;
+				const RendererLight& light = *lights[lightIdx];
+				shadowRenderer.renderShadowOcclusion(inputs.view, inputs.options.shadowFilteringQuality, light, gbuffer);
 
-					rapi.clearViewport(FBT_COLOR, Color::ZERO);
-
-					UINT32 lightIdx = offset + j;
-					const RendererLight& light = *lights[lightIdx];
-					shadowRenderer.renderShadowOcclusion(inputs.scene, inputs.options.shadowFilteringQuality,
-						light, viewIdx, gbuffer);
-
-					rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-					StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer,
-						mLightOcclusionTex->texture);
-				}
+				rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+				StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer,
+					lightOcclusionTex->texture);
 			}
-
-			// Makes sure light accumulation can be read by following passes
-			rapi.setRenderTarget(nullptr);
 		}
 
-		resPool.release(mLightOcclusionTex);
+		// Makes sure light accumulation can be read by following passes
+		rapi.setRenderTarget(nullptr);
+
+		resPool.release(lightOcclusionTex);
 	}
 
 	void RCNodeStandardDeferredLighting::clear()

@@ -154,7 +154,7 @@ namespace bs
 		 * 
 		 * @note	Core thread only. 
 		 */
-		void renderViews(const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
+		void renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 		/**
 		 * Renders all objects visible by the provided view.

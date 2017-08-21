@@ -307,10 +307,6 @@ namespace bs { namespace ct
 		mMainViewGroup->setViews(views.data(), (UINT32)views.size());
 		mMainViewGroup->determineVisibility(sceneInfo);
 
-		// Render shadow maps
-		ShadowRendering& shadowRenderer = mMainViewGroup->getShadowRenderer();
-		shadowRenderer.renderShadowMaps(*mScene, *mMainViewGroup, frameInfo);
-
 		// Update reflection probe array if required
 		updateReflProbeArray();
 
@@ -329,10 +325,14 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("renderAllCore");
 	}
 
-	void RenderBeast::renderViews(const RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+	void RenderBeast::renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 	{
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
+
+		// Render shadow maps
+		ShadowRendering& shadowRenderer = viewGroup.getShadowRenderer();
+		shadowRenderer.renderShadowMaps(*mScene, viewGroup, frameInfo);
 
 		// Update various buffers required by each renderable
 		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
@@ -579,7 +579,7 @@ namespace bs { namespace ct
 
 		SPtr<RenderSettings> settings = bs_shared_ptr_new<RenderSettings>();
 		settings->enableHDR = hdr;
-		settings->enableShadows = false; // Note: If I ever change this I need to make sure that shadow map rendering is aware of this view (currently it is only aware of main camera views)
+		settings->enableShadows = true;
 		settings->enableIndirectLighting = false;
 		settings->screenSpaceReflections.enabled = false;
 		settings->ambientOcclusion.enabled = false;
