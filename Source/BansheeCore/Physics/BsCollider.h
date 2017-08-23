@@ -49,10 +49,10 @@ namespace bs
 		/** @copydoc FCollider::getIsTrigger */
 		inline bool getIsTrigger() const;
 
-		/** Sets the Rigidbody that controls this collider (if any). */
+		/** Determines the Rigidbody that controls this collider (if any). */
 		inline void setRigidbody(Rigidbody* value);
 
-		/** Retrieves the Rigidbody that controls this collider (if any). */
+		/** @copydoc setRigidbody() */
 		Rigidbody* getRigidbody() const { return mRigidbody; }
 
 		/** @copydoc FCollider::setMass */
@@ -85,10 +85,10 @@ namespace bs
 		/** @copydoc FCollider::getLayer */
 		inline UINT64 getLayer() const;
 
-		/** Sets a value that determines which (if any) collision events are reported. */
+		/** @copydoc FCollider::setCollisionReportMode */
 		inline void setCollisionReportMode(CollisionReportMode mode);
 
-		/** Gets a value that determines which (if any) collision events are reported. */
+		/** @copydoc FCollider::getCollisionReportMode */
 		inline CollisionReportMode getCollisionReportMode() const;
 
 		/** 

@@ -19,14 +19,13 @@ namespace bs
 		MeshCollider();
 
 		/** 
-		 * Sets a mesh that represents the collider geometry. 
-		 *
-		 * @param[in]	mesh	Generic triangle mesh, or and convex mesh. Triangle meshes are not supported as triggers, 
-		 *						nor are they supported for colliders that are parts of a non-kinematic rigidbody.
+		 * Sets a mesh that represents the collider geometry. This can be a generic triangle mesh, or and convex mesh. 
+		 * Triangle meshes are not supported as triggers, nor are they supported for colliders that are parts of a 
+		 * non-kinematic rigidbody.
 		 */
 		void setMesh(const HPhysicsMesh& mesh) { mMesh = mesh; onMeshChanged(); markListenerResourcesDirty(); }
 
-		/** Returns a mesh that represents the collider geometry. */
+		/** @copydoc setMesh() */
 		HPhysicsMesh getMesh() const { return mMesh; }
 
 		/** 

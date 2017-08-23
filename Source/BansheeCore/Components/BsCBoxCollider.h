@@ -17,9 +17,9 @@ namespace bs
 	 *
 	 * Wraps BoxCollider as a Component.
 	 */
-    class BS_CORE_EXPORT CBoxCollider : public CCollider
-    {
-    public:
+	class BS_CORE_EXPORT CBoxCollider : public CCollider
+	{
+	public:
 		CBoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3::ONE);
 
 		/** @copydoc BoxCollider::setExtents */

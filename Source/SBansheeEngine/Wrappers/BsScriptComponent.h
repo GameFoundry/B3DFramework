@@ -23,10 +23,6 @@ namespace bs
 		/** Returns the component wrapped by this object. */
 		HComponent getComponent() const { return static_object_cast<Component>(getNativeHandle()); }
 
-		/** Returns the component wrapped by this object. */
-		template<class T>
-		GameObjectHandle<T> getComponent() const { return static_object_cast<T>(getNativeHandle()); }
-
 	protected:
 		friend class ScriptGameObjectManager;
 

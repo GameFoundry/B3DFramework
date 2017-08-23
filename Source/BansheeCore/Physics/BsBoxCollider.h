@@ -19,10 +19,10 @@ namespace bs
 	public:
 		BoxCollider();
 
-		/** Sets the extents (half size) of the geometry of the box. */
+		/** Determines the extents (half size) of the geometry of the box. */
 		virtual void setExtents(const Vector3& extents) = 0;
 
-		/** Gets the extents (half size) of the geometry of the box. */
+		/** @copdoc setExtents() */
 		virtual Vector3 getExtents() const = 0;
 
 		/** 

@@ -20,21 +20,18 @@ namespace bs
 		CapsuleCollider();
 
 		/** 
-		 * Sets the half height of the capsule, from the origin to one of the hemispherical centers, along the normal 
+		 * Determines the half height of the capsule, from the origin to one of the hemispherical centers, along the normal 
 		 * vector. 
 		 */
 		virtual void setHalfHeight(float halfHeight) = 0;
 
-		/** 
-		 * Gets the half height of the capsule, from the origin to one of the hemispherical centers, along the normal
-		 * vector. 
-		 */
+		/** @copdyoc setHalfHeight() */
 		virtual float getHalfHeight() const = 0;
 
-		/** Sets the radius of the capsule. */
+		/** Determines the radius of the capsule. */
 		virtual void setRadius(float radius) = 0;
 
-		/** Gets the radius of the capsule. */
+		/** @copydoc setRadius() .*/
 		virtual float getRadius() const = 0;
 
 		/** 

@@ -19,10 +19,10 @@ namespace bs
 	public:
 		SphereCollider();
 
-		/** Sets the radius of the sphere geometry. */
+		/** Determines the radius of the sphere geometry. */
 		virtual void setRadius(float radius) = 0;
 
-		/** Gets the radius of the sphere geometry. */
+		/** @copdyc setRadius(). */
 		virtual float getRadius() const = 0;
 
 		/**

@@ -17,9 +17,9 @@ namespace bs
 	 *
 	 * Wraps Collider as a Component.
 	 */
-    class BS_CORE_EXPORT CCollider : public Component
-    {
-    public:
+	class BS_CORE_EXPORT CCollider : public Component
+	{
+	public:
 		CCollider(const HSceneObject& parent);
 		virtual ~CCollider() {}
 
