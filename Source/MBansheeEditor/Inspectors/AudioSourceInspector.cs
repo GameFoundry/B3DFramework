@@ -92,7 +92,7 @@ namespace BansheeEditor
                 ConfirmModify();
             };
 
-            priorityField.OnChanged += x => { source.Priority = (uint)x; MarkAsModified(); };
+            priorityField.OnChanged += x => { source.Priority = x; MarkAsModified(); };
             priorityField.OnConfirmed += ConfirmModify;
             priorityField.OnFocusLost += ConfirmModify;
 
