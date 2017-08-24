@@ -51,7 +51,7 @@ namespace bs { namespace ct
 
 	void SkyboxMat::setParams(const SPtr<Texture>& texture, const Color& solidColor)
 	{
-		mSkyTextureParam.set(texture, TextureSurface(1, 1, 0, 0));
+		mSkyTextureParam.set(texture, TextureSurface(0, 1, 0, 0));
 
 		gSkyboxParamDef.gClearColor.set(mParamBuffer, solidColor);
 		mParamBuffer->flushToGPU();

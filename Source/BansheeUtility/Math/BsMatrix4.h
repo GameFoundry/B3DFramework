@@ -458,8 +458,18 @@ namespace bs
 		/** Creates a 4x4 transformation matrix that performs rotation. */
 		static Matrix4 rotation(const Quaternion& rotation);
 
-		/** Creates a 4x4 perspective projection matrix. */
-		static Matrix4 projectionPerspective(const Degree& horzFOV, float aspect, float near, float far);
+		/** 
+		 * Creates a 4x4 perspective projection matrix. 
+		 * 
+		 * @param[in]	horzFOV		Horizontal field of view.
+		 * @param[in]	aspect		Aspect ratio. Determines the vertical field of view.
+		 * @param[in]	near		Distance to the near plane.
+		 * @param[in]	far			Distance to the far plane.
+		 * @param[in]	positiveZ	If true the matrix will project geometry as if its looking along the positive Z axis.
+		 *							Otherwise it projects along the negative Z axis (default).
+		 */
+		static Matrix4 projectionPerspective(const Degree& horzFOV, float aspect, float near, float far, 
+			bool positiveZ = false);
 
 		/** @copydoc makeProjectionOrtho() */
 		static Matrix4 projectionOrthographic(float left, float right, float top, float bottom, float near, float far);

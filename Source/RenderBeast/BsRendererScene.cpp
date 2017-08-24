@@ -457,8 +457,8 @@ namespace bs {	namespace ct
 		}
 
 		// Last element is the one we want to erase
-		mInfo.radialLights.erase(mInfo.radialLights.end() - 1);
-		mInfo.radialLightWorldBounds.erase(mInfo.radialLightWorldBounds.end() - 1);
+		mInfo.reflProbes.erase(mInfo.reflProbes.end() - 1);
+		mInfo.reflProbeWorldBounds.erase(mInfo.reflProbeWorldBounds.end() - 1);
 	}
 
 	void RendererScene::setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)

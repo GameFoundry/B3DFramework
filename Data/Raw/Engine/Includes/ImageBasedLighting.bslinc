@@ -94,7 +94,7 @@ mixin ImageBasedLighting
 		
 		float3 getLookupForBoxProxy(float3 originWS, float3 dirWS, float3 centerWS, float3 extents, float4x4 invBoxTransform, float transitionDistance, out float contribution)
 		{
-			// Transform origin and direction into box local space, where it is united sized and axis aligned
+			// Transform origin and direction into box local space, where it is unit sized and axis aligned
 			float3 originLS = mul(invBoxTransform, float4(originWS, 1)).xyz;
 			float3 dirLS = mul(invBoxTransform, float4(dirWS, 0)).xyz;
 			

@@ -572,7 +572,7 @@ namespace bs { namespace ct
 		viewDesc.visibleLayers = 0xFFFFFFFFFFFFFFFF;
 		viewDesc.nearPlane = 0.5f;
 		viewDesc.farPlane = 1000.0f;
-		viewDesc.flipView = RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::UVYAxisUp);
+		viewDesc.flipView = !RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::UVYAxisUp);
 
 		viewDesc.viewOrigin = position;
 		viewDesc.projTransform = projTransform;
@@ -590,22 +590,25 @@ namespace bs { namespace ct
 
 		Matrix4 viewOffsetMat = Matrix4::translation(-position);
 
+		// Note: We render upside down, then flip the image vertically, which results in a horizontal flip. The horizontal
+		// flip is required due to the fact how cubemap faces are defined. Another option would be to change the view
+		// orientation matrix, but that also requires a culling mode flip which is inconvenient to do globally.
 		RendererView views[6];
 		for(UINT32 i = 0; i < 6; i++)
 		{
 			// Calculate view matrix
-			Matrix3 viewRotationMat;
 			Vector3 forward;
-
 			Vector3 up = Vector3::UNIT_Y;
 
 			switch (i)
 			{
 			case CF_PositiveX:
-				forward = Vector3::UNIT_X;
+				forward = -Vector3::UNIT_X;
+				up = -Vector3::UNIT_Y;
 				break;
 			case CF_NegativeX:
-				forward = -Vector3::UNIT_X;
+				forward = Vector3::UNIT_X;
+				up = -Vector3::UNIT_Y;
 				break;
 			case CF_PositiveY:
 				forward = Vector3::UNIT_Y;
@@ -616,17 +619,19 @@ namespace bs { namespace ct
 				up = Vector3::UNIT_Z;
 				break;
 			case CF_PositiveZ:
-				forward = Vector3::UNIT_Z;
+				forward = -Vector3::UNIT_Z;
+				up = -Vector3::UNIT_Y;
 				break;
 			case CF_NegativeZ:
-				forward = -Vector3::UNIT_Z;
+				forward = Vector3::UNIT_Z;
+				up = -Vector3::UNIT_Y;
 				break;
 			}
 
 			Vector3 right = Vector3::cross(up, forward);
-			viewRotationMat = Matrix3(right, up, forward);
+			Matrix3 viewRotationMat = Matrix3(right, up, forward);
 
-			viewDesc.viewDirection = forward;
+			viewDesc.viewDirection = -forward;
 			viewDesc.viewTransform = Matrix4(viewRotationMat) * viewOffsetMat;
 
 			// Calculate world frustum for culling
