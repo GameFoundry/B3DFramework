@@ -1432,7 +1432,8 @@ namespace bs { namespace ct
 			UINT32 width = viewProps.viewRect.width;
 			UINT32 height = viewProps.viewRect.height;
 
-			output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32_S8X24, width, height, TU_RENDERTARGET, 1, false)); 
+			output = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_D32_S8X24, width, height, 
+				TU_DEPTHSTENCIL, 1, false)); 
 
 			RenderAPI& rapi = RenderAPI::instance();
 			rapi.setRenderTarget(output->renderTexture);

@@ -1375,7 +1375,7 @@ namespace bs { namespace ct
 
 	void SSRStencilMat::_initVariations(ShaderVariations& variations)
 	{
-		variations.add(VAR_NoMSAA);
+		variations.add(VAR_MSAA);
 		variations.add(VAR_NoMSAA);
 	}
 

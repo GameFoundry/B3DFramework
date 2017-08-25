@@ -46,13 +46,13 @@ technique PPSSRResolve
 					gSceneDepth, 
 					gSceneColor, gLinearSampler, gSceneColorTexelSize, 
 					gPrevColor, gLinearSampler, gSceneColorTexelSize,
-					gManualExposure, input.position.xy, input.screenPos, 0);
+					gManualExposure, input.position.xy, input.uv0, input.screenPos, 0);
 			#else
 				col.rgb = temporalResolve(
 					gSceneDepth, gPointSampler, gSceneDepthTexelSize,
 					gSceneColor, gLinearSampler, gSceneColorTexelSize, 
 					gPrevColor, gLinearSampler, gSceneColorTexelSize,
-					gManualExposure, input.uv0, input.screenPos, 0);
+					gManualExposure, input.uv0, input.uv0, input.screenPos, 0);
 			#endif
 			
 			col.a = gSceneColor.Sample(gLinearSampler, input.uv0).a;

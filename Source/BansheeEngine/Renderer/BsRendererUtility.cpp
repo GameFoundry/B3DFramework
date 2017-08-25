@@ -350,6 +350,7 @@ namespace bs { namespace ct
 		ShaderVariation::Param("MSAA_COUNT", 1),
 		ShaderVariation::Param("COLOR", true)
 	});
+
 	ShaderVariation BlitMat::VAR_2MSAA_Color = ShaderVariation({
 		ShaderVariation::Param("MSAA_COUNT", 2),
 		ShaderVariation::Param("COLOR", true)
@@ -367,22 +368,26 @@ namespace bs { namespace ct
 
 	ShaderVariation BlitMat::VAR_1MSAA_Depth = ShaderVariation({
 		ShaderVariation::Param("MSAA_COUNT", 1),
-		ShaderVariation::Param("COLOR", false)
+		ShaderVariation::Param("COLOR", false),
+		ShaderVariation::Param("DEPTH", true)
 	});
 
 	ShaderVariation BlitMat::VAR_2MSAA_Depth = ShaderVariation({
 		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("COLOR", false)
+		ShaderVariation::Param("COLOR", false),
+		ShaderVariation::Param("DEPTH", true)
 	});
 
 	ShaderVariation BlitMat::VAR_4MSAA_Depth = ShaderVariation({
 		ShaderVariation::Param("MSAA_COUNT", 4),
-		ShaderVariation::Param("COLOR", false)
+		ShaderVariation::Param("COLOR", false),
+		ShaderVariation::Param("DEPTH", true)
 	});
 
 	ShaderVariation BlitMat::VAR_8MSAA_Depth = ShaderVariation({
 		ShaderVariation::Param("MSAA_COUNT", 8),
-		ShaderVariation::Param("COLOR", false)
+		ShaderVariation::Param("COLOR", false),
+		ShaderVariation::Param("DEPTH", true)
 	});
 
 	BlitMat::BlitMat()

@@ -267,6 +267,7 @@ mixin TemporalResolve
 			float exposureScale,
 			#endif // TEMPORAL_TONEMAP
 			float2 uv,
+			float2 uvColor, // Relevant for MSAA as uv is in screen space, but we might need the normalized one for color
 			float2 ndcPos, // Can be derived from UV, but we usually have it for free, so pass it directly
 			int sampleIdx)
 		{
@@ -317,11 +318,11 @@ mixin TemporalResolve
 			#if TEMPORAL_YCOCG
 			// YCOCG only requires a + pattern for good quality
 			float3 neighbor[5];
-			neighbor[0] = _SAMPLE_COLOR(sceneColor, uv, int2(-1,  0));
-			neighbor[1] = _SAMPLE_COLOR(sceneColor, uv, int2( 0, -1));
-			neighbor[2] = _SAMPLE_COLOR(sceneColor, uv, int2( 0,  0));
-			neighbor[3] = _SAMPLE_COLOR(sceneColor, uv, int2( 1,  0));
-			neighbor[4] = _SAMPLE_COLOR(sceneColor, uv, int2( 0,  1));
+			neighbor[0] = _SAMPLE_COLOR(sceneColor, uvColor, int2(-1,  0));
+			neighbor[1] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0, -1));
+			neighbor[2] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  0));
+			neighbor[3] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1,  0));
+			neighbor[4] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  1));
 			
 			float3 filtered = 0;
 			[unroll]
@@ -338,15 +339,15 @@ mixin TemporalResolve
 			
 			#else // TEMPORAL_YCOCG
 			float3 neighbor[9];
-			neighbor[0] = _SAMPLE_COLOR(sceneColor, uv, int2(-1, -1));
-			neighbor[1] = _SAMPLE_COLOR(sceneColor, uv, int2( 0, -1));
-			neighbor[2] = _SAMPLE_COLOR(sceneColor, uv, int2( 1, -1));
-			neighbor[3] = _SAMPLE_COLOR(sceneColor, uv, int2(-1,  0));
-			neighbor[4] = _SAMPLE_COLOR(sceneColor, uv, int2( 0,  0));
-			neighbor[5] = _SAMPLE_COLOR(sceneColor, uv, int2( 1,  0));
-			neighbor[6] = _SAMPLE_COLOR(sceneColor, uv, int2(-1,  1));
-			neighbor[7] = _SAMPLE_COLOR(sceneColor, uv, int2( 0,  1));
-			neighbor[8] = _SAMPLE_COLOR(sceneColor, uv, int2( 1,  1));
+			neighbor[0] = _SAMPLE_COLOR(sceneColor, uvColor, int2(-1, -1));
+			neighbor[1] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0, -1));
+			neighbor[2] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1, -1));
+			neighbor[3] = _SAMPLE_COLOR(sceneColor, uvColor, int2(-1,  0));
+			neighbor[4] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  0));
+			neighbor[5] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1,  0));
+			neighbor[6] = _SAMPLE_COLOR(sceneColor, uvColor, int2(-1,  1));
+			neighbor[7] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  1));
+			neighbor[8] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1,  1));
 			
 			float3 filtered = 0;
 			[unroll]
