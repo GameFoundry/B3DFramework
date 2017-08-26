@@ -141,6 +141,7 @@ namespace bs { namespace ct
 			SPtr<Texture> preIntegratedGF;
 			SPtr<Texture> ambientOcclusion;
 			SPtr<Texture> ssr;
+			SPtr<Texture> msaaCoverage;
 		};
 
 		TiledDeferredImageBasedLightingMat();
@@ -161,6 +162,7 @@ namespace bs { namespace ct
 		GpuParamTexture mGBufferDepth;
 
 		GpuParamTexture mInColorTextureParam;
+		GpuParamTexture mMSAACoverageTexParam;
 
 		ImageBasedLightingParams mImageBasedParams;
 

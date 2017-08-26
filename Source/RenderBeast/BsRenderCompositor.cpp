@@ -512,6 +512,13 @@ namespace bs { namespace ct
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		SPtr<Texture> msaaCoverage;
+		if(viewProps.numSamples > 1)
+		{
+			RCNodeMSAACoverage* coverageNode = static_cast<RCNodeMSAACoverage*>(inputs.inputNodes[3]);
+			msaaCoverage = coverageNode->output->texture;
+		}
+
 		TiledDeferredLightingMat* tiledDeferredMat = TiledDeferredLightingMat::getVariation(viewProps.numSamples);
 
 		GBufferTextures gbuffer;
@@ -529,7 +536,7 @@ namespace bs { namespace ct
 			flattenedLightAccumBuffer = output->flattenedLightAccumBuffer->buffer;
 
 		tiledDeferredMat->execute(inputs.view, lightData, gbuffer, output->lightAccumulationTex->texture, 
-			flattenedLightAccumBuffer);
+			flattenedLightAccumBuffer, msaaCoverage);
 	}
 
 	void RCNodeTiledDeferredLighting::clear()
@@ -539,7 +546,15 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeTiledDeferredLighting::getDependencies(const RendererView& view)
 	{
-		return { RCNodeLightAccumulation::getNodeId(), RCNodeGBuffer::getNodeId(), RCNodeSceneDepth::getNodeId() };
+		SmallVector<StringID, 4> deps;
+		deps.push_back(RCNodeLightAccumulation::getNodeId());
+		deps.push_back(RCNodeGBuffer::getNodeId());
+		deps.push_back(RCNodeSceneDepth::getNodeId());
+
+		if(view.getProperties().numSamples > 1)
+			deps.push_back(RCNodeMSAACoverage::getNodeId());
+
+		return deps;
 	}
 
 	void RCNodeStandardDeferredLighting::render(const RenderCompositorNodeInputs& inputs)
@@ -789,16 +804,24 @@ namespace bs { namespace ct
 		else
 			ssr = Texture::BLACK;
 
+		UINT32 nodeIdx = 6;
 		SPtr<Texture> ssao;
 		if (rs.ambientOcclusion.enabled)
 		{
-			RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[6]);
+			RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[nodeIdx++]);
 			ssao = ssaoNode->output->texture;
 		}
 		else
 			ssao = Texture::WHITE;
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		SPtr<Texture> msaaCoverage;
+		if(viewProps.numSamples > 1)
+		{
+			RCNodeMSAACoverage* coverageNode = static_cast<RCNodeMSAACoverage*>(inputs.inputNodes[nodeIdx++]);
+			msaaCoverage = coverageNode->output->texture;
+		}
+
 		TiledDeferredImageBasedLightingMat* material = TiledDeferredImageBasedLightingMat::getVariation(viewProps.numSamples);
 
 		TiledDeferredImageBasedLightingMat::Inputs iblInputs;
@@ -811,6 +834,7 @@ namespace bs { namespace ct
 		iblInputs.preIntegratedGF = RendererTextures::preintegratedEnvGF;
 		iblInputs.ambientOcclusion = ssao;
 		iblInputs.ssr = ssr;
+		iblInputs.msaaCoverage = msaaCoverage;
 
 		if(sceneColorNode->flattenedSceneColorBuffer)
 			iblInputs.sceneColorBuffer = sceneColorNode->flattenedSceneColorBuffer->buffer;
@@ -836,6 +860,9 @@ namespace bs { namespace ct
 
 		if(view.getRenderSettings().ambientOcclusion.enabled)
 			deps.push_back(RCNodeSSAO::getNodeId());
+
+		if(view.getProperties().numSamples > 1)
+			deps.push_back(RCNodeMSAACoverage::getNodeId());
 
 		return deps;
 	}

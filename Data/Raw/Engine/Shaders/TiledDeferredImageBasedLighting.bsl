@@ -24,6 +24,7 @@ technique TiledDeferredImageBasedLighting
 		#if MSAA_COUNT > 1
 		Texture2DMS<float4> gInColor;
 		RWBuffer<float4> gOutput;
+		Texture2D gMSAACoverage;
 		
 		uint getLinearAddress(uint2 coord, uint sampleIndex)
 		{
@@ -258,10 +259,12 @@ technique TiledDeferredImageBasedLighting
 			if (all(dispatchThreadId.xy < viewportMax))
 			{
 				#if MSAA_COUNT > 1
+				float coverage = gMSAACoverage.Load(int3(pixelPos, 0)).r;
+				
 				float4 lighting = getLighting(pixelPos, 0, clipSpacePos.xy, surfaceData[0], 0, sNumProbes);
 				writeBufferSample(pixelPos, 0, lighting);
 
-				bool doPerSampleShading = needsPerSampleShading(surfaceData);
+				bool doPerSampleShading = coverage > 0.5f;
 				if(doPerSampleShading)
 				{
 					[unroll]
@@ -273,6 +276,9 @@ technique TiledDeferredImageBasedLighting
 				}
 				else // Splat same information to all samples
 				{
+					// Note: The splatting step can be skipped if we account for coverage when resolving. However
+					// the coverage texture potentially becomes invalid after transparent geometry is renedered, 
+					// so we need to resolve all samples. Consider getting around this issue somehow.				
 					[unroll]
 					for(uint i = 1; i < MSAA_COUNT; ++i)
 						writeBufferSample(pixelPos, i, lighting);

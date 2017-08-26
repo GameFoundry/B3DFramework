@@ -84,7 +84,7 @@ mixin PerCameraData
 		/** Converts position in UV coordinates mapped to the screen, to screen coordinates in pixels. */
 		uint2 UVToScreen(float2 uv)
 		{
-			return (uint2)(uv * (float2)gViewportRectangle.zw - ((float2)gViewportRectangle.xy + 0.5f));
+			return (uint2)(uv * (float2)gViewportRectangle.zw - ((float2)gViewportRectangle.xy));
 		}
 		
 		/** Converts position in NDC to screen coordinates in pixels. */

@@ -267,6 +267,9 @@ namespace bs { namespace ct
 		if (params->hasBuffer(GPT_COMPUTE_PROGRAM, "gOutput"))
 			params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
 
+		if (mSampleCount > 1)
+			params->getTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
+
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
 		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
 	}
@@ -280,7 +283,8 @@ namespace bs { namespace ct
 	}
 
 	void TiledDeferredLightingMat::execute(const RendererView& view, const VisibleLightData& lightData, 
-		const GBufferTextures& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer)
+		const GBufferTextures& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer,
+		const SPtr<Texture>& msaaCoverage)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 		const RenderSettings& settings = view.getRenderSettings();
@@ -342,7 +346,10 @@ namespace bs { namespace ct
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 
 		if (mSampleCount > 1)
+		{
 			mOutputBufferParam.set(lightAccumBuffer);
+			mMSAACoverageTexParam.set(msaaCoverage);
+		}
 		else
 			mOutputTextureParam.set(lightAccumTex);
 

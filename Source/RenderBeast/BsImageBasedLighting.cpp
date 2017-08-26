@@ -210,7 +210,10 @@ namespace bs { namespace ct
 
 		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
 		if (mSampleCount > 1)
+		{
+			params->getTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 			params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
+		}
 		else
 			params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
@@ -268,7 +271,10 @@ namespace bs { namespace ct
 
 		mInColorTextureParam.set(inputs.lightAccumulation);
 		if (mSampleCount > 1)
+		{
 			mOutputBufferParam.set(inputs.sceneColorBuffer);
+			mMSAACoverageTexParam.set(inputs.msaaCoverage);
+		}
 		else
 			mOutputTextureParam.set(inputs.sceneColorTex);
 
