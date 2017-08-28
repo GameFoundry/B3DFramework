@@ -782,18 +782,6 @@ namespace bs { namespace ct
 		static ShaderVariation VAR_NoMSAA;
 	};
 
-	/** Shader that clears only the unreserved portion of the stencil buffer. */
-	class ClearStencilBitsMat : public RendererMaterial<ClearStencilBitsMat>
-	{
-		RMAT_DEF("ClearStencilBits.bsl");
-
-	public:
-		ClearStencilBitsMat();
-
-		/** Executes the material on the currently bound render target. */
-		void execute();
-	};
-
 	BS_PARAM_BLOCK_BEGIN(EncodeDepthParamDef)
 		BS_PARAM_BLOCK_ENTRY(float, gNear)
 		BS_PARAM_BLOCK_ENTRY(float, gFar)

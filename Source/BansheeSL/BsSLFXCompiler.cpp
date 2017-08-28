@@ -435,12 +435,29 @@ namespace bs
 			case Xsc::Reflection::UniformType::Sampler: 
 			{
 				auto findIter = reflData.samplerStates.find(entry.ident);
-				if (findIter == reflData.samplerStates.end() || !findIter->second.isNonDefault)
-					desc.addParameter(ident, ident, GPOT_SAMPLER2D);
+				if (findIter != reflData.samplerStates.end())
+				{
+					String alias = findIter->second.alias.c_str();
+
+					if(findIter->second.isNonDefault)
+					{
+						SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
+						desc.addParameter(ident, ident, GPOT_SAMPLER2D, defaultVal);
+
+						if (!alias.empty())
+							desc.addParameter(ident, alias, GPOT_SAMPLER2D, defaultVal);
+					}
+					else
+					{
+						desc.addParameter(ident, ident, GPOT_SAMPLER2D);
+
+						if (!alias.empty())
+							desc.addParameter(ident, alias, GPOT_SAMPLER2D);
+					}
+				}
 				else
 				{
-					SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
-					desc.addParameter(ident, ident, GPOT_SAMPLER2D, defaultVal);
+					desc.addParameter(ident, ident, GPOT_SAMPLER2D);
 				}
 				break;
 			}
@@ -1592,7 +1609,7 @@ namespace bs
 				PassData& vkslPassData = vkslTechnique.passes[j];
 
 				// Clean non-standard HLSL 
-				static const std::regex regex("\\[\\s*layout\\s*\\(.*\\)\\s*\\]|\\[\\s*internal\\s*\\]|\\[\\s*color\\s*\\]");
+				static const std::regex regex("\\[\\s*layout\\s*\\(.*\\)\\s*\\]|\\[\\s*internal\\s*\\]|\\[\\s*color\\s*\\]|\\[\\s*alias\\s*\\(.*\\)\\s*\\]");
 				hlslPassData.code = regex_replace(hlslPassData.code, regex, "");
 
 				// Find valid entry points and parameters

@@ -363,10 +363,6 @@
             "UUID": "6d3eb44e-b7e9-4c5a-8f8c-e5695607ca13"
         },
         {
-            "Path": "ClearStencilBits.bsl",
-            "UUID": "e123138f-af24-422f-9301-f71113fcd282"
-        },
-        {
             "Path": "PPEncodeDepth.bsl",
             "UUID": "8bbf989a-9f8d-4864-8332-7f8c499685ba"
         },

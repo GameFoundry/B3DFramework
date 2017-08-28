@@ -11,6 +11,7 @@ mixin GBufferInput
 		SamplerState gGBufferASamp;
 		SamplerState gGBufferBSamp;
 		SamplerState gGBufferCSamp;
+		[alias(gDepthBufferTex)]
 		SamplerState gDepthBufferSamp;
 		
 		#ifndef MSAA_COUNT

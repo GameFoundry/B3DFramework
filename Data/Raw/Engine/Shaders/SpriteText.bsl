@@ -42,8 +42,9 @@ technique SpriteText
 			oUv = uv;
 		}
 
-		SamplerState gMainTexSamp : register(s0);
-		Texture2D gMainTexture : register(t0);
+		[alias(gMainTexture)]
+		SamplerState gMainTexSamp;
+		Texture2D gMainTexture;
 
 		float4 fsmain(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 		{

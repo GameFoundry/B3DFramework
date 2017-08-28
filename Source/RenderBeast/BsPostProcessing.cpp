@@ -1742,21 +1742,6 @@ namespace bs { namespace ct
 			return get(VAR_NoMSAA);
 	}
 
-	ClearStencilBitsMat::ClearStencilBitsMat()
-	{ }
-
-	void ClearStencilBitsMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
-	}
-
-	void ClearStencilBitsMat::execute()
-	{
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
-	}
-
 	EncodeDepthParamDef gEncodeDepthParamDef;
 
 	EncodeDepthMat::EncodeDepthMat()
