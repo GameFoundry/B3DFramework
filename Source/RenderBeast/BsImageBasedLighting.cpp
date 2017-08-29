@@ -121,10 +121,12 @@ namespace bs { namespace ct
 		}
 
 		// AO
-		params->getTextureParam(programType, "gAmbientOcclusionTex", ambientOcclusionTexParam);
+		if(params->hasTexture(programType, "gAmbientOcclusionTex"))
+			params->getTextureParam(programType, "gAmbientOcclusionTex", ambientOcclusionTexParam);
 
 		// SSR
-		params->getTextureParam(programType, "gSSRTex", ssrTexParam);
+		if(params->hasTexture(programType, "gSSRTex"))
+			params->getTextureParam(programType, "gSSRTex", ssrTexParam);
 
 		if(gridIndices)
 		{
