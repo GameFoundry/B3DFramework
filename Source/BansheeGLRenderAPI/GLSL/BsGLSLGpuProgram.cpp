@@ -213,7 +213,9 @@ namespace bs { namespace ct
 				numInsertedLines++;
 			}
 
-			mGLHandle = glCreateShaderProgramv(shaderType, (GLsizei)lines.size(), (const GLchar**)lines.data());
+			StringStream codeStream;
+			for(auto& entry : lines)
+				codeStream << entry;
 
 			for (INT32 i = numInsertedLines - 1; i >= 0; i--)
 				bs_stack_free(lines[extraLineOffset + i]);
@@ -223,6 +225,10 @@ namespace bs { namespace ct
 
 			for (auto iter = lines.rbegin(); iter != lines.rend(); ++iter)
 				bs_stack_free(*iter);
+
+			String code = codeStream.str();
+			const char* codeRaw = code.c_str();
+			mGLHandle = glCreateShaderProgramv(shaderType, 1, (const GLchar**)&codeRaw);
 
 			mCompileError = "";
 			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileError);
