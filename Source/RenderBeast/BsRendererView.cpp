@@ -411,16 +411,47 @@ namespace bs { namespace ct
 		return ndcZToDeviceZ;
 	}
 
+	Matrix4 invertProjectionMatrix(const Matrix4& mat)
+	{
+		// Try to solve the most common case using high percision calculations, in order to reduce depth error
+		if(mat[0][1] == 0.0f && mat[0][3] == 0.0f &&
+		   mat[1][0] == 0.0f && mat[1][3] == 0.0f &&
+		   mat[2][0] == 0.0f && mat[2][1] == 0.0f &&
+		   mat[3][0] == 0.0f && mat[3][1] == 0.0f &&
+		   mat[3][2] == -1.0f && mat[3][3] == 0.0f)
+		{
+			double a = mat[0][0];
+			double b = mat[1][1];
+			double c = mat[2][2];
+			double d = mat[2][3];
+			double s = mat[0][2];
+			double t = mat[1][2];
+
+			return Matrix4(
+				(float)(1.0/a), 0.0f, 0.0f, (float)(-s/a),
+				0.0f, (float)(1.0/b), 0.0f, (float)(-t/b),
+				0.0f, 0.0f, 0.0f, -1.0f,
+				0.0f, 0.0f, (float)(1.0/d), (float)(c/d)
+				);
+		}
+		else
+		{
+			return mat.inverse();
+		}
+	}
+
 	void RendererView::updatePerViewBuffer()
 	{
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
-		Matrix4 invViewProj = viewProj.inverse();
+		Matrix4 invProj = invertProjectionMatrix(mProperties.projTransform);
+		Matrix4 invView = mProperties.viewTransform.inverseAffine();
+		Matrix4 invViewProj = invView * invProj;
 
 		gPerCameraParamDef.gMatProj.set(mParamBuffer, mProperties.projTransform);
 		gPerCameraParamDef.gMatView.set(mParamBuffer, mProperties.viewTransform);
 		gPerCameraParamDef.gMatViewProj.set(mParamBuffer, viewProj);
-		gPerCameraParamDef.gMatInvViewProj.set(mParamBuffer, invViewProj); // Note: Calculate inverses separately (better precision possibly)
-		gPerCameraParamDef.gMatInvProj.set(mParamBuffer, mProperties.projTransform.inverse());
+		gPerCameraParamDef.gMatInvViewProj.set(mParamBuffer, invViewProj);
+		gPerCameraParamDef.gMatInvProj.set(mParamBuffer, invProj);
 
 		// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
 		// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and 
