@@ -108,18 +108,21 @@ technique TiledDeferredImageBasedLighting
 			ndcMin.z = convertToNDCZ(viewZMin);
 			ndcMax.z = convertToNDCZ(viewZMax);
 		
-			float4 corner[5];
+			float4 corner[8];
 			// Far
 			corner[0] = mul(gMatInvProj, float4(ndcMin.x, ndcMin.y, ndcMax.z, 1.0f));
 			corner[1] = mul(gMatInvProj, float4(ndcMax.x, ndcMin.y, ndcMax.z, 1.0f));
 			corner[2] = mul(gMatInvProj, float4(ndcMax.x, ndcMax.y, ndcMax.z, 1.0f));
 			corner[3] = mul(gMatInvProj, float4(ndcMin.x, ndcMax.y, ndcMax.z, 1.0f));
 			
-			// Near (only one point, as the far away face is guaranteed to be larger in XY extents)
+			// Near
 			corner[4] = mul(gMatInvProj, float4(ndcMin.x, ndcMin.y, ndcMin.z, 1.0f));
+			corner[5] = mul(gMatInvProj, float4(ndcMax.x, ndcMin.y, ndcMin.z, 1.0f));
+			corner[6] = mul(gMatInvProj, float4(ndcMax.x, ndcMax.y, ndcMin.z, 1.0f));
+			corner[7] = mul(gMatInvProj, float4(ndcMin.x, ndcMax.y, ndcMin.z, 1.0f));
 		
 			[unroll]
-			for(uint i = 0; i < 5; ++i)
+			for(uint i = 0; i < 8; ++i)
 				corner[i].xy /= corner[i].w;
 		
 			// Flip min/max because min = closest to view plane and max = furthest from view plane
@@ -128,7 +131,7 @@ technique TiledDeferredImageBasedLighting
 			float3 viewMax = float3(corner[0].xy, viewZMin);
 			
 			[unroll]
-			for(uint i = 1; i < 4; ++i)
+			for(uint i = 1; i < 8; ++i)
 			{
 				viewMin.xy = min(viewMin.xy, corner[i].xy);
 				viewMax.xy = max(viewMax.xy, corner[i].xy);
