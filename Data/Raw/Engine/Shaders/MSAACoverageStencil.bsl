@@ -18,7 +18,7 @@ technique MSAACoverageStencil
 	
 		float fsmain(VStoFS input) : SV_Target0
 		{
-			int2 pixelPos = (int2)input.position.xy;
+			int2 pixelPos = (int2)input.uv0.xy;
 			float coverage = gMSAACoverage.Load(int3(pixelPos, 0));
 			
 			// Note: Consider checking 2x2 pixel block and only discard if none require per-sample

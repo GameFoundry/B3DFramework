@@ -861,9 +861,10 @@ namespace bs { namespace ct
 		/** 
 		 * Renders the effect with the provided parameters, using the currently bound render target. 
 		 * 
+		 * @param[in]	view		Information about the view we're rendering from.
 		 * @param[in]	coverage	Coverage texture as output by MSAACoverageMat.
 		 */
-		void execute(const SPtr<Texture>& coverage);
+		void execute(const RendererView& view, const SPtr<Texture>& coverage);
 	private:
 		GpuParamTexture mCoverageTexParam;
 	};

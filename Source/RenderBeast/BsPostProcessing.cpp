@@ -1396,9 +1396,15 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);
 
+		const RendererViewProperties& viewProps = view.getProperties();
+		const Rect2I& viewRect = viewProps.viewRect;
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+
+		if(viewProps.numSamples > 1)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+		else
+			gRendererUtility().drawScreenQuad();
 	}
 
 	SSRStencilMat* SSRStencilMat::getVariation(bool msaa, bool singleSampleMSAA)
@@ -1541,7 +1547,11 @@ namespace bs { namespace ct
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+
+		if(viewProps.numSamples > 1)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+		else
+			gRendererUtility().drawScreenQuad();
 	}
 
 	Vector2 SSRTraceMat::calcRoughnessFadeScaleBias(float maxRoughness)
@@ -1743,9 +1753,15 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(destination);
 
+		const RendererViewProperties& viewProps = view.getProperties();
+		const Rect2I& viewRect = viewProps.viewRect;
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+
+		if(viewProps.numSamples > 1)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+		else
+			gRendererUtility().drawScreenQuad();
 	}
 
 	SSRResolveMat* SSRResolveMat::getVariation(bool msaa)
@@ -1827,12 +1843,13 @@ namespace bs { namespace ct
 	{
 		mGBufferParams.bind(gbuffer);
 
+		const Rect2I& viewRect = view.getProperties().viewRect;
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
 		mParamsSet->setParamBlockBuffer("PerCamera", perView);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().drawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 
 	MSAACoverageMat* MSAACoverageMat::getVariation(UINT32 msaaCount)
@@ -1860,12 +1877,13 @@ namespace bs { namespace ct
 		// Do nothing
 	}
 
-	void MSAACoverageStencilMat::execute(const SPtr<Texture>& coverage)
+	void MSAACoverageStencilMat::execute(const RendererView& view, const SPtr<Texture>& coverage)
 	{
+		const Rect2I& viewRect = view.getProperties().viewRect;
 		mCoverageTexParam.set(coverage);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().drawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 }}

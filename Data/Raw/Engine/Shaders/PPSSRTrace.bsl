@@ -84,7 +84,7 @@ technique PPSSRTrace
 			#endif
 		
 			#if MSAA_COUNT > 1
-			SurfaceData surfData = getGBufferData(trunc(pixelPos.xy), sampleIdx);
+			SurfaceData surfData = getGBufferData(trunc(input.uv0.xy), sampleIdx);
 			#else
 			SurfaceData surfData = getGBufferData(input.uv0);
 			#endif

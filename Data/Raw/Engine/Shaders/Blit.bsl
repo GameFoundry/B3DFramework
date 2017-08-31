@@ -1,11 +1,13 @@
 technique Blit
 {
 	depth
-	{
-		read = false;
-		
+	{	
 		#ifndef DEPTH
+		read = false;
 		write = false;
+		#else
+		// Cannot use read = false because that disables gl_FragDepth writes on OpenGL
+		compare = always;		
 		#endif
 	};
 

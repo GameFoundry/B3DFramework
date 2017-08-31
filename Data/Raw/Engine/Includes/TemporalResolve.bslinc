@@ -267,7 +267,6 @@ mixin TemporalResolve
 			float exposureScale,
 			#endif // TEMPORAL_TONEMAP
 			float2 uv,
-			float2 uvColor, // Relevant for MSAA as uv is in screen space, but we might need the normalized one for color
 			float2 ndcPos, // Can be derived from UV, but we usually have it for free, so pass it directly
 			int sampleIdx)
 		{
@@ -308,13 +307,19 @@ mixin TemporalResolve
 				prevNdcPos = prevClip.xy / prevClip.w;
 			}
 			
-			#if MSAA
+			#if MSAA && MSAA_COLOR
 			float2 prevUV = NDCToScreen(prevNdcPos);
 			#else
 			float2 prevUV = NDCToUV(prevNdcPos);
 			#endif
 			
 			/////////////// GET FILTERED COLOR VALUE AND NEIGHBORHOOD MIN/MAX /////////////
+			#if MSAA && !MSAA_COLOR
+			float2 uvColor = uv * sceneColorTexelSize;
+			#else
+			float2 uvColor = uv;
+			#endif
+			
 			#if TEMPORAL_YCOCG
 			// YCOCG only requires a + pattern for good quality
 			float3 neighbor[5];

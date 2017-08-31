@@ -36,9 +36,9 @@ technique PPSSRStencil
 		{
 			#if MSAA_COUNT > 1 
 				#if MSAA_RESOLVE_0TH
-					SurfaceData surfData = getGBufferData(trunc(input.position.xy), 0);
+					SurfaceData surfData = getGBufferData(trunc(input.uv0.xy), 0);
 				#else
-					SurfaceData surfData = getGBufferData(trunc(input.position.xy), sampleIdx);
+					SurfaceData surfData = getGBufferData(trunc(input.uv0.xy), sampleIdx);
 				#endif
 			#else
 				SurfaceData surfData = getGBufferData(input.uv0);

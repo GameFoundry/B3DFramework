@@ -432,7 +432,7 @@ namespace bs { namespace ct
 
 		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::get();
 		rapi.setRenderTarget(sceneDepthNode->depthTex->renderTexture);
-		stencilMat->execute(output->texture);
+		stencilMat->execute(inputs.view, output->texture);
 	}
 
 	void RCNodeMSAACoverage::clear()

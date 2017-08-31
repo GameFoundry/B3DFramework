@@ -16,7 +16,7 @@ technique MSAACoverage
 
 			[unroll]
 			for(uint i = 0; i < MSAA_COUNT; ++i)
-				surfaceData[i] = getGBufferData((int2)input.position.xy, i);
+				surfaceData[i] = getGBufferData((int2)input.uv0, i);
 
 			float3 albedo = surfaceData[0].albedo.xyz;
 			float3 normal = surfaceData[0].worldNormal.xyz;
