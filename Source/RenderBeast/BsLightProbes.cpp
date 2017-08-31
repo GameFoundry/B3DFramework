@@ -14,6 +14,8 @@
 
 namespace bs { namespace ct 
 {
+	TetrahedraRenderParamDef gTetrahedraRenderParamDef;
+
 	ShaderVariation TetrahedraRenderMat::VAR_FullMSAA = ShaderVariation({
 		ShaderVariation::Param("MSAA", true)
 	});
@@ -45,6 +47,9 @@ namespace bs { namespace ct
 			SPtr<SamplerState> pointSampState = SamplerState::create(pointSampDesc);
 			params->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
 		}
+
+		mParamBuffer = gTetrahedraRenderParamDef.createBuffer();
+		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void TetrahedraRenderMat::_initVariations(ShaderVariations& variations)
@@ -57,6 +62,11 @@ namespace bs { namespace ct
 	void TetrahedraRenderMat::execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, 
 		const SPtr<RenderTexture>& output)
 	{
+		const TextureProperties& texProps = sceneDepth->getProperties();
+
+		Vector2I texSize(texProps.getWidth(), texProps.getHeight());
+		gTetrahedraRenderParamDef.gDepthTexSize.set(mParamBuffer, texSize);
+
 		mDepthBufferTex.set(sceneDepth);
 		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
 

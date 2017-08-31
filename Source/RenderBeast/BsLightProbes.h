@@ -22,6 +22,12 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
+	BS_PARAM_BLOCK_BEGIN(TetrahedraRenderParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2I, gDepthTexSize)
+	BS_PARAM_BLOCK_END
+
+	extern TetrahedraRenderParamDef gTetrahedraRenderParamDef;
+
 	/** 
 	 * Shader that renders the tetrahedra used for light probe evaluation. Tetrahedra depth is compare with current scene
 	 * depth, and for each scene pixel the matching tetrahedron index is written to the output target.
@@ -61,6 +67,7 @@ namespace bs { namespace ct
 		 */
 		static TetrahedraRenderMat* getVariation(bool msaa, bool singleSampleMSAA);
 	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mDepthBufferTex;
 
 		static ShaderVariation VAR_FullMSAA;
