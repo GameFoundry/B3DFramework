@@ -58,6 +58,7 @@ technique PPSSRTrace
 		SamplerState gSceneColorSamp;
 		
 		Texture2D gHiZ;
+		SamplerState gHiZSamp;
 		
 		float random (float2 st) 
 		{
@@ -149,7 +150,7 @@ technique PPSSRTrace
 					
 				rayMarchParams.rayDir = R;
 
-				float4 rayHit = rayMarch(gHiZ, gDepthBufferSamp, rayMarchParams);
+				float4 rayHit = rayMarch(gHiZ, gHiZSamp, rayMarchParams);
 				if(rayHit.w < 1.0f) // Hit
 				{
 					float4 color = gSceneColor.Sample(gSceneColorSamp, rayHit.xy);

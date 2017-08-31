@@ -1450,6 +1450,20 @@ namespace bs { namespace ct
 
 		if(gpuParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
 			gpuParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_POINT;
+		desc.magFilter = FO_POINT;
+		desc.mipFilter = FO_POINT;
+		desc.addressMode.u = TAM_CLAMP;
+		desc.addressMode.v = TAM_CLAMP;
+		desc.addressMode.w = TAM_CLAMP;
+
+		SPtr<SamplerState> hiZSamplerState = SamplerState::create(desc);
+		if (gpuParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
+			gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp", hiZSamplerState);
+		else if(gpuParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
+			gpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ", hiZSamplerState);
 	}
 
 	void SSRTraceMat::_initVariations(ShaderVariations& variations)

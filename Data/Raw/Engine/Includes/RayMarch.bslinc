@@ -45,8 +45,8 @@ mixin RayMarch
 				
 				// Check if ray is behind an object, but not too much behind otherwise we'll have false positives.
 				// Instead we treat "compareTolerance" as an approximate thickness of the object. Proper
-				// thickness you be calculated by rendering depth buffer for backfaces.
-				float depthDiff = rayPos.z - sampleDepth;
+				// thickness should be calculated by rendering depth buffer for backfaces.
+ 				float depthDiff = rayPos.z - sampleDepth;
 				bool hit = abs(depthDiff - compareTolerance) < compareTolerance;
 				if(hit)
 				{
@@ -174,18 +174,21 @@ mixin RayMarch
 			float2 stepScale = 1.0f / abs(ndcStep.xy + epsilon) - ndcStart.xy/(ndcStep.xy + epsilon);
 			ndcStep *= min(stepScale.x, stepScale.y);
 		
+			float deviceZStart = NDCZToDeviceZ(ndcStart.z);
+			float deviceZEnd = NDCZToDeviceZ(ndcStart.z + ndcStep.z);
+		
 			#if HI_Z
 			float3 uvStart;
 			uvStart.xy = ndcStart.xy * params.NDCToHiZUV.xy + params.NDCToHiZUV.zw;
-			uvStart.z = NDCZToDeviceZ(ndcStart.z);
+			uvStart.z = deviceZStart;
 			
 			float3 uvStep;
 			uvStep.xy = ndcStep.xy * params.NDCToHiZUV.xy;
-			uvStep.z = NDCZToDeviceZ(ndcStep.z);
+			uvStep.z = deviceZEnd - deviceZStart;
 		
 			#else
-			float3 uvStart = float3(NDCToUV(ndcStart.xy), NDCZToDeviceZ(ndcStart.z));
-			float3 uvStep = float3(ndcStep.xy * gClipToUVScaleOffset.xy, NDCZToDeviceZ(ndcStep.z));
+			float3 uvStart = float3(NDCToUV(ndcStart.xy), deviceZStart);
+			float3 uvStep = float3(ndcStep.xy * gClipToUVScaleOffset.xy, deviceZEnd - deviceZStart);
 			#endif
 		
 			float stepIncrement = 1.0f / NUM_STEPS;
