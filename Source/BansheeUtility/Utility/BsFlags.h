@@ -43,7 +43,7 @@ namespace bs
 		/** Activates all of the provided bits. */
 		Flags<Enum, Storage>& set(Enum value)
 		{
-			mBits = static_cast<Storage>(value);
+			mBits |= static_cast<Storage>(value);
 
 			return *this;
 		}
