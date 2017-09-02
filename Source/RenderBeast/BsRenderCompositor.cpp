@@ -542,9 +542,6 @@ namespace bs { namespace ct
 		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
 		gbuffer.depth = sceneDepthNode->depthTex->texture;
 
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-
 		const VisibleLightData& lightData = inputs.viewGroup.getVisibleLightData();
 		SPtr<GpuBuffer> flattenedLightAccumBuffer;
 		if (output->flattenedLightAccumBuffer)
