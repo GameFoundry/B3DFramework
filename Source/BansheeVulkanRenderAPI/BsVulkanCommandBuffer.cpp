@@ -129,6 +129,61 @@ namespace bs { namespace ct
 		return bs_new<VulkanCmdBuffer>(mDevice, mNextId++, poolInfo.pool, poolInfo.queueFamily, secondary);
 	}
 
+	/** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
+	VkPipelineStageFlags getPipelineStageFlags(VkAccessFlags accessFlags)
+	{
+		VkPipelineStageFlags flags = 0;
+
+		if ((accessFlags & VK_ACCESS_INDIRECT_COMMAND_READ_BIT) != 0)
+			flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+
+		if ((accessFlags & (VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT)) != 0)
+			flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+
+		if ((accessFlags & (VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) != 0)
+		{
+			flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		}
+
+		if ((accessFlags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT) != 0)
+			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+		if ((accessFlags & (VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT)) != 0)
+			flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+		if ((accessFlags & (VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)) != 0)
+			flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+
+		if ((accessFlags & (VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT)) != 0)
+			flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+		if ((accessFlags & (VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT)) != 0)
+			flags |= VK_PIPELINE_STAGE_HOST_BIT;
+
+		if (flags == 0)
+			flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+		return flags;
+	}
+
+	template<class T>
+	void getPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src, VkPipelineStageFlags& dst)
+	{
+		for(auto& entry : barriers)
+		{
+			src |= getPipelineStageFlags(entry.srcAccessMask);
+			dst |= getPipelineStageFlags(entry.dstAccessMask);
+		}
+
+		if (src == 0)
+			src = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+		if (dst == 0)
+			dst = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	}
+
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
 		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool)
 		, mIntraQueueSemaphore(nullptr), mInterQueueSemaphores(), mNumUsedInterQueueSemaphores(0)
@@ -315,15 +370,6 @@ namespace bs { namespace ct
 				readMask.set(RT_STENCIL);
 		}
 
-		for(auto& entry : mPassTouchedSubresourceInfos)
-		{
-			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
-			subresourceInfo.needsBarrier = false;
-		}
-
-		for (auto& entry : mBuffers)
-			entry.second.needsBarrier = false;
-
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
@@ -361,7 +407,11 @@ namespace bs { namespace ct
 			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
 			subresourceInfo.isShaderInput = false;
 			subresourceInfo.isReadOnly = true;
+			subresourceInfo.needsBarrier = false;
 		}
+
+		for (auto& entry : mBuffers)
+			entry.second.needsBarrier = false;
 
 		mPassTouchedSubresourceInfos.clear();
 
@@ -559,9 +609,12 @@ namespace bs { namespace ct
 			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.size();
 			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.size();
 
+			VkPipelineStageFlags srcStage = 0;
+			VkPipelineStageFlags dstStage = 0;
+			getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
+
 			vkCmdPipelineBarrier(vkCmdBuffer,
-								 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, // Note: VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT might be more correct here, according to the spec
-								 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, //       The main idea is that the barrier executes before the semaphore triggers, no actual stage dependencies are needed.
+								 srcStage, dstStage,
 								 0, 0, nullptr,
 								 numBufferBarriers, barriers.bufferBarriers.data(),
 								 numImgBarriers, barriers.imageBarriers.data());
@@ -645,9 +698,12 @@ namespace bs { namespace ct
 			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.size();
 			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.size();
 
+			VkPipelineStageFlags srcStage = 0;
+			VkPipelineStageFlags dstStage = 0;
+			getPipelineStageFlags(barriers.imageBarriers, srcStage, dstStage);
+
 			vkCmdPipelineBarrier(vkCmdBuffer,
-								 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, // Note: VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT might be more correct here, according to the spec
-								 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 
+								 srcStage, dstStage,
 								 0, 0, nullptr,
 								 numBufferBarriers, barriers.bufferBarriers.data(),
 								 numImgBarriers, barriers.imageBarriers.data());
@@ -1374,9 +1430,12 @@ namespace bs { namespace ct
 			createLayoutTransitionBarrier(entry.first, imageInfo);
 		}
 
+		VkPipelineStageFlags srcStage = 0;
+		VkPipelineStageFlags dstStage = 0;
+		getPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
+
 		vkCmdPipelineBarrier(mCmdBuffer,
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, // Note: VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT might be more correct here, according to the spec
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 srcStage, dstStage,
 							 0, 0, nullptr,
 							 0, nullptr,
 							 (UINT32)mLayoutTransitionBarriersTemp.size(), mLayoutTransitionBarriersTemp.data());
@@ -1445,12 +1504,11 @@ namespace bs { namespace ct
 		if (!isReadyForRender())
 			return;
 
-		// Note: Must begin render pass before binding GPU params as some GPU param related data gets cleared on begin, and
-		// we don't want to clear the currently used one
+		// Need to bind gpu params before starting render pass, in order to make sure any layout transitions execute
+		bindGpuParams();
+
 		if (!isInRenderPass())
 			beginRenderPass();
-
-		bindGpuParams();
 
 		if (mGfxPipelineRequiresBind)
 		{
@@ -1485,12 +1543,11 @@ namespace bs { namespace ct
 		if (!isReadyForRender())
 			return;
 
-		// Note: Must begin render pass before binding GPU params as some GPU param related data gets cleared on begin, and
-		// we don't want to clear the currently used one
+		// Need to bind gpu params before starting render pass, in order to make sure any layout transitions execute
+		bindGpuParams();
+
 		if (!isInRenderPass())
 			beginRenderPass();
-
-		bindGpuParams();
 
 		if (mGfxPipelineRequiresBind)
 		{
@@ -1528,6 +1585,11 @@ namespace bs { namespace ct
 		if (isInRenderPass())
 			endRenderPass();
 
+		// Note: Should I restore the render target after? Note that this is only being done is framebuffer subresources
+		// have their "isFBAttachment" flag reset, potentially I can just clear/restore those
+		setRenderTarget(nullptr, 0, RT_ALL);
+
+		// Need to bind gpu params before starting render pass, in order to make sure any layout transitions execute
 		bindGpuParams();
 		executeLayoutTransitions();
 
@@ -1566,7 +1628,11 @@ namespace bs { namespace ct
 			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
 			subresourceInfo.isShaderInput = false;
 			subresourceInfo.isReadOnly = true;
+			subresourceInfo.needsBarrier = false;
 		}
+
+		for (auto& entry : mBuffers)
+			entry.second.needsBarrier = false;
 
 		mPassTouchedSubresourceInfos.clear();
 	}
@@ -1648,9 +1714,12 @@ namespace bs { namespace ct
 		barrier.image = image;
 		barrier.subresourceRange = range;
 
+		VkPipelineStageFlags srcStage = getPipelineStageFlags(srcAccessFlags);
+		VkPipelineStageFlags dstStage = getPipelineStageFlags(dstAccessFlags);
+		
 		vkCmdPipelineBarrier(getHandle(),
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+							 srcStage,
+							 dstStage,
 							 0, 0, nullptr,
 							 0, nullptr,
 							 1, &barrier);
@@ -1676,18 +1745,20 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags)
+	void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags,
+		ResourceUsage usage)
 	{
 		VkImageLayout layout = res->getOptimalLayout();
 
-		registerResource(res, range, VK_IMAGE_LAYOUT_UNDEFINED, layout, flags, false);
+		registerResource(res, range, layout, layout, flags, usage);
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VkImageLayout newLayout,
-		VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment)
+		VkImageLayout finalLayout, VulkanUseFlags flags, ResourceUsage usage)
 	{
-		// Check if we're binding for shader use, or as a color attachment, or just for transfer purposes
-		bool isShaderBind = !isFBAttachment && newLayout != VK_IMAGE_LAYOUT_UNDEFINED;
+		bool isFBAttachment = usage == ResourceUsage::Framebuffer;
+		bool isTransfer = usage == ResourceUsage::Transfer;
+		bool isShaderBind = usage == ResourceUsage::ShaderBind;
 
 		// If binding it for write in a shader (not as color attachment or transfer op), we will need to issue a memory
 		// barrier if the image gets used again during this render pass, so remember this information.
@@ -1704,9 +1775,19 @@ namespace bs { namespace ct
 			subresourceInfo.finalLayout = finalLayout;
 			subresourceInfo.range = subresourceRange;
 			subresourceInfo.isFBAttachment = isFBAttachment;
-			subresourceInfo.isShaderInput = !isFBAttachment;
-			subresourceInfo.hasTransitioned = false;
-			subresourceInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
+			subresourceInfo.isShaderInput = isShaderBind;
+
+			if (!isTransfer)
+			{
+				subresourceInfo.hasTransitioned = false;
+				subresourceInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
+			}
+			else
+			{
+				subresourceInfo.hasTransitioned = true; // Transfers handle layout transitions externally (at this point they are assumed to already be done)
+				subresourceInfo.isReadOnly = true; // Doesn't matter for transfers
+			}
+
 			subresourceInfo.isInitialReadOnly = subresourceInfo.isReadOnly;
 			subresourceInfo.needsBarrier = needsBarrier;
 
@@ -1754,8 +1835,7 @@ namespace bs { namespace ct
 						subresources[i].range.baseMipLevel == range.baseMipLevel)
 					{
 						// Just update existing range
-						updateSubresourceInfo(res, imageInfoIdx, subresources[i], newLayout, finalLayout, flags, 
-							isFBAttachment);
+						updateSubresourceInfo(res, imageInfoIdx, subresources[i], newLayout, finalLayout, flags, usage);
 						mPassTouchedSubresourceInfos.insert(imageInfo.subresourceInfoIdx + i);
 
 						foundRange = true;
@@ -1803,8 +1883,7 @@ namespace bs { namespace ct
 								if(VulkanUtility::rangeOverlaps(tempCutRanges[j], range))
 								{
 									// Update overlapping sub-resource range with new data from this range
-									updateSubresourceInfo(res, imageInfoIdx, newInfo, newLayout, finalLayout, flags, 
-														  isFBAttachment);
+									updateSubresourceInfo(res, imageInfoIdx, newInfo, newLayout, finalLayout, flags, usage);
 
 									// Keep track of the overlapping ranges for later
 									cutOverlappingRanges.push_back((UINT32)mSubresourceInfoStorage.size());
@@ -1908,6 +1987,11 @@ namespace bs { namespace ct
 			bool isShaderRead = (accessFlags & VK_ACCESS_SHADER_READ_BIT) != 0;
 			if(bufferInfo.needsBarrier && (isShaderRead || isShaderWrite))
 			{
+				// Need to end render pass in order to execute the barrier. Hopefully this won't trigger much since most
+				// shader writes are done during compute
+				if (isInRenderPass())
+					endRenderPass();
+
 				VkPipelineStageFlags stages =
 					VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
 					VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
@@ -1961,7 +2045,8 @@ namespace bs { namespace ct
 				layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 			VkImageSubresourceRange range = attachment.image->getRange(attachment.surface);
-			registerResource(attachment.image, range, layout, attachment.finalLayout, VulkanUseFlag::Write, true);
+			registerResource(attachment.image, range, layout, attachment.finalLayout, VulkanUseFlag::Write, 
+				ResourceUsage::Framebuffer);
 		}
 
 		if(res->hasDepthAttachment())
@@ -1981,38 +2066,51 @@ namespace bs { namespace ct
 				layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 			VkImageSubresourceRange range = attachment.image->getRange(attachment.surface);
-			registerResource(attachment.image, range, layout, attachment.finalLayout, useFlag, true);
+			registerResource(attachment.image, range, layout, attachment.finalLayout, useFlag, ResourceUsage::Framebuffer);
 		}
 	}
 
 	bool VulkanCmdBuffer::updateSubresourceInfo(VulkanImage* image, UINT32 imageInfoIdx, 
 			ImageSubresourceInfo& subresourceInfo, VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, 
-			bool isFBAttachment)
+			ResourceUsage usage)
 	{
-		subresourceInfo.isReadOnly &= !flags.isSet(VulkanUseFlag::Write);
+		bool isTransfer = usage == ResourceUsage::Transfer;
+		bool isFBAttachment = usage == ResourceUsage::Framebuffer;
+		bool isShaderBind = usage == ResourceUsage::ShaderBind;
 
-		// New layout is valid, check for transitions (UNDEFINED signifies the caller doesn't want a layout transition)
-		if (newLayout != VK_IMAGE_LAYOUT_UNDEFINED)
+		// Transfers are always considered read only because this only matters for destination access mask, and transfers
+		// handle that externally
+		if(!isTransfer)
+			subresourceInfo.isReadOnly &= !flags.isSet(VulkanUseFlag::Write);
+
+		// For transfers, just assign new layout, external code does all the work
+		if (isTransfer)
+			subresourceInfo.requiredLayout = newLayout;
+		else
 		{
-			// If layout transition was requested by framebuffer bind, respect it because render-pass will only accept a
-			// specific layout (in certain cases), and we have no choice.
-			// In the case when a FB attachment is also bound for shader reads, this will override the layout required for
-			// shader read (GENERAL or DEPTH_READ_ONLY), but that is fine because those transitions are handled
-			// automatically by render-pass layout transitions.
-			// Any other texture (non FB attachment) will only even be bound in a single layout and we can keep the one it
-			// was originally registered with.
-			if (isFBAttachment)
-				subresourceInfo.requiredLayout = newLayout;
-			else if (!subresourceInfo.isFBAttachment) // Layout transition is not being done on a FB image
+			// New layout is valid, check for transitions (UNDEFINED signifies the caller doesn't want a layout transition)
+			if (newLayout != VK_IMAGE_LAYOUT_UNDEFINED)
 			{
-				// Check if the image had a layout previously assigned, and if so check if multiple different layouts
-				// were requested. In that case we wish to transfer the image to GENERAL layout.
-
-				bool firstUseInRenderPass = !subresourceInfo.isShaderInput && !subresourceInfo.isFBAttachment;
-				if (firstUseInRenderPass || subresourceInfo.requiredLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+				// If layout transition was requested by framebuffer bind, respect it because render-pass will only accept a
+				// specific layout (in certain cases), and we have no choice.
+				// In the case when a FB attachment is also bound for shader reads, this will override the layout required for
+				// shader read (GENERAL or DEPTH_READ_ONLY), but that is fine because those transitions are handled
+				// automatically by render-pass layout transitions.
+				// Any other texture (non FB attachment) will only even be bound in a single layout and we can keep the one it
+				// was originally registered with.
+				if (isFBAttachment)
 					subresourceInfo.requiredLayout = newLayout;
-				else if (subresourceInfo.requiredLayout != newLayout)
-					subresourceInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
+				else if (!subresourceInfo.isFBAttachment) // Layout transition is not being done on a FB image
+				{
+					// Check if the image had a layout previously assigned, and if so check if multiple different layouts
+					// were requested. In that case we wish to transfer the image to GENERAL layout.
+
+					bool firstUseInRenderPass = !subresourceInfo.isShaderInput && !subresourceInfo.isFBAttachment;
+					if (firstUseInRenderPass || subresourceInfo.requiredLayout == VK_IMAGE_LAYOUT_UNDEFINED)
+						subresourceInfo.requiredLayout = newLayout;
+					else if (subresourceInfo.requiredLayout != newLayout)
+						subresourceInfo.requiredLayout = VK_IMAGE_LAYOUT_GENERAL;
+				}
 			}
 		}
 
@@ -2026,19 +2124,30 @@ namespace bs { namespace ct
 				subresourceInfo.finalLayout = finalLayout;
 		}
 
-		// If we haven't done a layout transition yet, we can just overwrite the previously written values, and the
-		// transition will be handled as the first thing in submit(), otherwise we queue a non-initial transition
-		// below.
-		if (!subresourceInfo.hasTransitioned)
+		// Queue layout transition, if not transfer. Transfer handle layout transitions externally.
+		if (!isTransfer)
 		{
-			subresourceInfo.initialLayout = subresourceInfo.requiredLayout;
-			subresourceInfo.currentLayout = subresourceInfo.requiredLayout;
-			subresourceInfo.isInitialReadOnly = subresourceInfo.isReadOnly;
+			// If we haven't done a layout transition yet, we can just overwrite the previously written values, and the
+			// transition will be handled as the first thing in submit(), otherwise we queue a non-initial transition
+			// below.
+			if (!subresourceInfo.hasTransitioned)
+			{
+				subresourceInfo.initialLayout = subresourceInfo.requiredLayout;
+				subresourceInfo.currentLayout = subresourceInfo.requiredLayout;
+				subresourceInfo.isInitialReadOnly = subresourceInfo.isReadOnly;
+			}
+			else
+			{
+				if (subresourceInfo.currentLayout != subresourceInfo.requiredLayout)
+					mQueuedLayoutTransitions[image] = imageInfoIdx;
+			}
 		}
 		else
 		{
-			if (subresourceInfo.currentLayout != subresourceInfo.requiredLayout)
-				mQueuedLayoutTransitions[image] = imageInfoIdx;
+			// Resource has already transitioned its layout externally since this is a transfer. We cannot allow a
+			// transition in submit().
+			subresourceInfo.currentLayout = subresourceInfo.requiredLayout;
+			subresourceInfo.hasTransitioned = true;
 		}
 
 		// If a FB attachment was just bound as a shader input, we might need to restart the render pass with a FB
@@ -2086,8 +2195,6 @@ namespace bs { namespace ct
 			// in which case we need to issue a memory barrier so those writes are visible.
 
 			// Memory barrier only matters if image is bound for shader use (no need for color attachments or transfers)
-			bool isShaderBind = !isFBAttachment && newLayout != VK_IMAGE_LAYOUT_UNDEFINED;
-
 			if(subresourceInfo.needsBarrier && isShaderBind)
 			{
 				bool isWrite = flags.isSet(VulkanUseFlag::Write);

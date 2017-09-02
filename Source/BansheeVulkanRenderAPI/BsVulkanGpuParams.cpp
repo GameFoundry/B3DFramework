@@ -680,7 +680,8 @@ namespace bs { namespace ct
 
 			// Register with command buffer
 			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
-			buffer.registerResource(resource, range, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags);
+			buffer.registerResource(resource, range, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags, 
+				ResourceUsage::ShaderBind);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.storageImages[i] != VK_NULL_HANDLE);
@@ -724,7 +725,7 @@ namespace bs { namespace ct
 			const TextureSurface& surface = mSampledTextureData[i].surface;
 			VkImageSubresourceRange range = resource->getRange(surface);
 
-			buffer.registerResource(resource, range, layout, layout, VulkanUseFlag::Read);
+			buffer.registerResource(resource, range, layout, layout, VulkanUseFlag::Read, ResourceUsage::ShaderBind);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.sampledImages[i] != VK_NULL_HANDLE);

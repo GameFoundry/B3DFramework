@@ -820,8 +820,8 @@ namespace bs { namespace ct
 		cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
 							  transferDstLayout, dstFinalLayout, range);
 
-		cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::Read);
-		cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::Write);
+		cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
+		cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
 
 		bs_stack_free(imageRegions);
 	}
@@ -963,8 +963,8 @@ namespace bs { namespace ct
 			dstLayout, dstRange);
 
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerResource(srcImage, srcRange, VulkanUseFlag::Read);
-		vkCB->registerResource(dstImage, dstRange, VulkanUseFlag::Write);
+		vkCB->registerResource(srcImage, srcRange, VulkanUseFlag::Read, ResourceUsage::Transfer);
+		vkCB->registerResource(dstImage, dstRange, VulkanUseFlag::Write, ResourceUsage::Transfer);
 	}
 
 	PixelData VulkanTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
@@ -1196,7 +1196,7 @@ namespace bs { namespace ct
 
 			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Read);
+			transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1358,7 +1358,7 @@ namespace bs { namespace ct
 
 				// Notify the command buffer that these resources are being used on it
 				transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-				transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Write);
+				transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.

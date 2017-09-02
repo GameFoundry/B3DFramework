@@ -77,6 +77,14 @@ namespace bs { namespace ct
 		Compute = 1 << 1
 	};
 
+	/** Specifies for what purpose is a resource being bound to a command buffer. */
+	enum class ResourceUsage
+	{
+		ShaderBind,
+		Framebuffer,
+		Transfer
+	};
+
 	typedef Flags<DescriptorSetBindFlag> DescriptorSetBindFlags;
 	BS_FLAGS_OPERATORS(DescriptorSetBindFlag)
 
@@ -213,18 +221,17 @@ namespace bs { namespace ct
 		 *										submit() is called. Normally this will be same as @p newLayout, but can be
 		 *										different if some form of automatic layout transitions are happening.
 		 * @param[in]	flags					Flags that determine how will be command buffer be using the buffer.
-		 * @param[in]	isFBAttachment			Determines if the image is being used as a framebuffer attachment (if true),
-		 *										or just as regular shader input (if false).
+		 * @param[in]	usage					Determines for what purpose is the resource being registered for.
 		 */
 		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VkImageLayout newLayout, 
-							  VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment = false);
+							  VkImageLayout finalLayout, VulkanUseFlags flags, ResourceUsage usage);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. Performs no layout transitions on the image, they must be performed
-		 * by the caller, or not required at all.
+		 * device when the command buffer is submitted. Assumes the image is in its optimal layout.
 		 */
-		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags);
+		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags, 
+			ResourceUsage usage);
 
 		/** 
 		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
@@ -435,7 +442,7 @@ namespace bs { namespace ct
 		 * the bound sub-resource is a read-only framebuffer attachment.
 		 */
 		bool updateSubresourceInfo(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
-			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, bool isFBAttachment);
+			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, ResourceUsage usage);
 
 		/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
 		ImageSubresourceInfo& findSubresourceInfo(VulkanImage* image, UINT32 face, UINT32 mip);
