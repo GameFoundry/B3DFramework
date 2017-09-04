@@ -87,7 +87,9 @@ namespace bs { namespace ct
 	void VulkanGpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
 		bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
-		mBuffer->copyData(srcBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
+		VulkanGpuBuffer& vkSrcBuffer = static_cast<VulkanGpuBuffer&>(srcBuffer);
+
+		mBuffer->copyData(*vkSrcBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 	}
 
 	VulkanBuffer* VulkanGpuBuffer::getResource(UINT32 deviceIdx) const
