@@ -1,9 +1,8 @@
 # Roadmap
 
 Remaining v1.0 features (in order):
- - Physically based renderer (Planned for Q3 2017)
  - Linux/Mac ports (Planned for Q4 2017)
- - v1.0 BETA release (Late 2017/Early 2018)
+ - v1.0 BETA release (Early 2018)
  
 ---------------------------------------------------
 

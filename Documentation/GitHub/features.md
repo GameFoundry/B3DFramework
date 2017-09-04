@@ -14,11 +14,52 @@ All features listed here are the ones currently available (implemented). If you 
 * __Renderer__
   * Vulkan, DX11 and OpenGL 4.5 render backends
   * Multi-threaded rendering
-  * Banshee Shading Language
-    * Unified shader code across all render backends
-	* Complete material definition in a single file
-	* High level concepts like mixins and overloads
+  * Node based compositor
+  * Modern high fidelity graphics
+    * Fast hybrid tiled deferred / clustered forward renderer
+    * Physically based shading
+    * Area light sources
+    * Reflection probes with geometry proxies
+    * Indirect illumination via irradiance maps
+    * Screen space reflections
+    * HDR rendering
+	 * Automatic eye adaptation
+	 * Tonemapping with adjustable curve
+	 * White balance
+	 * Color grading
+    * Gamma correct rendering	
+    * MSAA (both forward and deferred)
+    * Shadows
+      * Percentage closer shadows
+      * Cascaded shadow maps
+      * Fully dynamic
+    * Post processing effects
+	  * Screen space ambient occlusion (SSAO)
+	  * Depth of field
+	  * Fast approximate anti-aliasing (FXAA)
+  * Extensive material & shader system
+    * Custom high level shading language (BSL)
+	  * Unified shader code for all render backends
+	  * HLSL-based with high level extensions
+	  * Complete material definitions in a single file
+	  * High level concepts like mixins and overloads
     * Low level shader parsing and reflection for HLSL and GLSL
+  * Low-level rendering API
+	* Fully featured, backend agnostic wrapper for Vulkan/DX/OpenGL
+	* Full support for all SM5 features, including:
+	   * Geometry, tesselation and compute shaders
+	   * Instanced rendering
+	   * Texture arrays and GPU buffers
+	   * Unordered access textures and buffers
+	* Designed to support the next generation of render backends (i.e. Vulkan), including features:
+	   * Pipeline state objects
+	   * Command lists
+	   * GPU queues (async compute and upload)
+	   * Explicit multi-GPU support
+  * Fully extensible
+    * Plugin based render backends
+	* Plugin based renderer
+	* Support for renderer extensions
 * __Asset pipeline__
   * Asynchronous resource loading
   * Extensible importer system
