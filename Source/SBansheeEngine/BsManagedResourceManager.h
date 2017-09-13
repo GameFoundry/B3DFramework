@@ -28,7 +28,7 @@ namespace bs
 		void unregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource);
 
 	private:
-		UnorderedMap<String, WeakResourceHandle<ManagedResource>> mResources;
+		UnorderedMap<UUID, WeakResourceHandle<ManagedResource>> mResources;
 	};
 
 	/** @} */

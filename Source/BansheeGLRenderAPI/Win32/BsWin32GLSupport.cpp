@@ -79,10 +79,9 @@ namespace bs { namespace ct
 		StringStream ext;
 		String instr;
 		ext << wgl_extensions;
-		while(ext >> instr)
-		{
+
+		while (ext >> instr)
 			extensionList.insert(instr);
-		}
 	}
 
 	SPtr<Win32Context> Win32GLSupport::createContext(HDC hdc, HGLRC externalGlrc)

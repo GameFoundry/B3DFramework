@@ -512,17 +512,17 @@ namespace bs
 
 		// Import fonts
 		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
-			BuiltinDataFolder, { DefaultFontSize }, true, "6ce69053-00d7-4c60-a229-249b8d8fd60e", mResourceManifest);
+			BuiltinDataFolder, { DefaultFontSize }, true, UUID("6ce69053-00d7-4c60-a229-249b8d8fd60e"), mResourceManifest);
 
 		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultAAFontFilename, 
-			BuiltinDataFolder, { TitleFontSize }, true, "10999b74-d976-4116-9f72-21e489a7a8e4", mResourceManifest);
+			BuiltinDataFolder, { TitleFontSize }, true, UUID("10999b74-d976-4116-9f72-21e489a7a8e4"), mResourceManifest);
 
 		// Generate & save GUI skin
 		{
 			SPtr<GUISkin> skin = generateGUISkin();
 			Path outputPath = BuiltinDataFolder + (GUISkinFile + L".asset");
 
-			HResource skinResource = gResources()._createResourceHandle(skin, "ec0ea68d-efa5-4a3b-a6fc-b15aaec9689f");
+			HResource skinResource = gResources()._createResourceHandle(skin, UUID("ec0ea68d-efa5-4a3b-a6fc-b15aaec9689f"));
 
 			gResources().save(skinResource, outputPath, true);
 			mResourceManifest->registerResource(skinResource.getUUID(), outputPath);

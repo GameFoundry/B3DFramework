@@ -50,7 +50,7 @@ namespace bs
 		 * are registered in the provided resource manifest.
 		 */
 		static void importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder, 
-			const Vector<UINT32>& fontSizes, bool antialiasing, const String& UUID, const SPtr<ResourceManifest>& manifest);
+			const Vector<UINT32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest);
 
 		/** 
 		 * Iterates over all the provided entries and generates a list of flags that determine should the asset be imported

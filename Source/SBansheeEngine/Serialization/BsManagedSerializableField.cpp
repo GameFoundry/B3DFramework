@@ -1033,7 +1033,7 @@ namespace bs
 
 	size_t ManagedSerializableFieldDataResourceRef::getHash()
 	{
-		std::hash<String> hasher;
+		std::hash<UUID> hasher;
 		return hasher(value.getUUID());
 	}
 

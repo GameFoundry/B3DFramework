@@ -13,21 +13,21 @@ namespace bs { namespace ct
 	/**
 	 * Abstract class that encapsulated an OpenGL context. Each platform should provide its own GLContext specialization.
 	 */
-    class GLContext
-    {
-    public:
-        GLContext();
-        virtual ~GLContext();
+	class GLContext
+	{
+	public:
+		GLContext();
+		virtual ~GLContext();
 
 		/**	Activates the rendering context (all subsequent rendering commands will be executed on it). */
         virtual void setCurrent(const RenderWindow& window) = 0;
 
 		/**	Deactivates the rendering context. Normally called just before setCurrent is called on another context. */
-        virtual void endCurrent() = 0;
-        
+		virtual void endCurrent() = 0;
+
 		/**	Releases the render context, freeing all of its resources. */
 		virtual void releaseContext() {}
-    };
+	};
 
 	/** @} */
 }}

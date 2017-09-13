@@ -73,7 +73,7 @@ namespace bs
 		}
 	}
 
-	void ResourceListenerManager::notifyListeners(const String& resourceUUID)
+	void ResourceListenerManager::notifyListeners(const UUID& resourceUUID)
 	{
 		RecursiveLock lock(mMutex);
 

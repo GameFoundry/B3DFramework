@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Reflection/BsIReflectable.h"
+#include "Utility/BsUUID.h"
 
 namespace bs
 {
@@ -18,7 +19,7 @@ namespace bs
 		{ }
 
 		SPtr<Resource> mPtr;
-		String mUUID;
+		UUID mUUID;
 		bool mIsCreated;	
 		UINT32 mRefCount;
 	};
@@ -58,7 +59,7 @@ namespace bs
 		void release();
 
 		/** Returns the UUID of the resource the handle is referring to. */
-		const String& getUUID() const { return mData != nullptr ? mData->mUUID : StringUtil::BLANK; }
+		const UUID& getUUID() const { return mData != nullptr ? mData->mUUID : UUID::EMPTY; }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -85,7 +86,7 @@ namespace bs
 		 * @note
 		 * Internal method.
 		 */
-		void setHandleData(const SPtr<Resource>& ptr, const String& uuid);
+		void setHandleData(const SPtr<Resource>& ptr, const UUID& uuid);
 
 		/** Increments the reference count of the handle. Only to be used by Resources for keeping internal references. */
 		void addInternalRef();
@@ -289,7 +290,7 @@ namespace bs
 		 *			
 		 * @note	Handle will take ownership of the provided resource pointer, so make sure you don't delete it elsewhere.
 		 */
-		explicit TResourceHandle(T* ptr, const String& uuid)
+		explicit TResourceHandle(T* ptr, const UUID& uuid)
 			:TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
@@ -302,7 +303,7 @@ namespace bs
 		 * Constructs an invalid handle with the specified UUID. You must call setHandleData() with the actual resource 
 		 * pointer to make the handle valid.
 		 */
-		TResourceHandle(const String& uuid)
+		TResourceHandle(const UUID& uuid)
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
 			this->mData->mUUID = uuid;
@@ -311,7 +312,7 @@ namespace bs
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided UUID. */
-		TResourceHandle(const SPtr<T> ptr, const String& uuid)
+		TResourceHandle(const SPtr<T> ptr, const UUID& uuid)
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
 			this->addRef();

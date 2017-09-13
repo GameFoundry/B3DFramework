@@ -186,6 +186,9 @@ namespace bs
 
 				// Ensures we can save the mesh contents
 				importOptions->setCPUCached(true);
+
+				// Modify the mesh scale so it matches Banshee's units (meters)
+				importOptions->setImportScale(100.0f);
 			}
 
 			model = gImporter().import<Mesh>(exampleModelPath, meshImportOptions);

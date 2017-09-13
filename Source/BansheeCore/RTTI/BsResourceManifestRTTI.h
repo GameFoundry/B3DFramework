@@ -19,9 +19,9 @@ namespace bs
 		String& getName(ResourceManifest* obj) { return obj->mName; }
 		void setName(ResourceManifest* obj, String& val) { obj->mName = val; }
 
-		UnorderedMap<String, Path>& getUUIDMap(ResourceManifest* obj) { return obj->mUUIDToFilePath; }
+		UnorderedMap<UUID, Path>& getUUIDMap(ResourceManifest* obj) { return obj->mUUIDToFilePath; }
 
-		void setUUIDMap(ResourceManifest* obj, UnorderedMap<String, Path>& val)
+		void setUUIDMap(ResourceManifest* obj, UnorderedMap<UUID, Path>& val)
 		{ 
 			obj->mUUIDToFilePath = val; 
 

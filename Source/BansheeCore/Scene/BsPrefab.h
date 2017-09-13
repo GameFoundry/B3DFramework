@@ -94,7 +94,7 @@ namespace bs
 
 		HSceneObject mRoot;
 		UINT32 mHash;
-		String mUUID;
+		UUID mUUID;
 		bool mIsScene;
 
 		/************************************************************************/

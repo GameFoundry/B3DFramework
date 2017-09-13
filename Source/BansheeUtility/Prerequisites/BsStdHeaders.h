@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef __BORLANDC__
-    #define __STD_ALGORITHM
+	#define __STD_ALGORITHM
 #endif
 
 #include <cassert>

@@ -26,7 +26,7 @@ namespace bs
 
 	ScriptManagedResource* ScriptResourceManager::createManagedScriptResource(const HManagedResource& resource, MonoObject* instance)
 	{
-		const String& uuid = resource.getUUID();
+		const UUID& uuid = resource.getUUID();
 #if BS_DEBUG_MODE
 		_throwExceptionIfInvalidOrDuplicate(uuid);
 #endif
@@ -39,7 +39,7 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::createBuiltinScriptResource(const HResource& resource, MonoObject* instance)
 	{
-		const String& uuid = resource.getUUID();
+		const UUID& uuid = resource.getUUID();
 #if BS_DEBUG_MODE
 		_throwExceptionIfInvalidOrDuplicate(uuid);
 #endif
@@ -58,7 +58,7 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::getScriptResource(const HResource& resource, bool create)
 	{
-		String uuid = resource.getUUID();
+		const UUID& uuid = resource.getUUID();
 
 		if (uuid.empty())
 			return nullptr;
@@ -71,9 +71,9 @@ namespace bs
 		return output;
 	}
 
-	ScriptResourceBase* ScriptResourceManager::getScriptResource(const String& uuid)
+	ScriptResourceBase* ScriptResourceManager::getScriptResource(const UUID& uuid)
 	{
-		if (uuid == "")
+		if (uuid.empty())
 			return nullptr;
 
 		auto findIter = mScriptResources.find(uuid);
@@ -86,9 +86,9 @@ namespace bs
 	void ScriptResourceManager::destroyScriptResource(ScriptResourceBase* resource)
 	{
 		HResource resourceHandle = resource->getGenericHandle();
-		const String& uuid = resourceHandle.getUUID();
+		const UUID& uuid = resourceHandle.getUUID();
 
-		if(uuid == "")
+		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
 
 		(resource)->~ScriptResourceBase();
@@ -97,7 +97,7 @@ namespace bs
 		mScriptResources.erase(uuid);
 	}
 
-	void ScriptResourceManager::onResourceDestroyed(const String& UUID)
+	void ScriptResourceManager::onResourceDestroyed(const UUID& UUID)
 	{
 		auto findIter = mScriptResources.find(UUID);
 		if (findIter != mScriptResources.end())
@@ -107,9 +107,9 @@ namespace bs
 		}
 	}
 
-	void ScriptResourceManager::_throwExceptionIfInvalidOrDuplicate(const String& uuid) const
+	void ScriptResourceManager::_throwExceptionIfInvalidOrDuplicate(const UUID& uuid) const
 	{
-		if(uuid == "")
+		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
 
 		auto findIter = mScriptResources.find(uuid);

@@ -124,18 +124,18 @@ namespace bs
 		return output;
 	}
 
-	String PlatformUtility::generateUUID()
+	UUID PlatformUtility::generateUUID()
 	{
-		UUID uuid;
+		::UUID uuid;
 		UuidCreate(&uuid);
 
-		UINT8* uuidStr;
-		UuidToStringA(&uuid, &uuidStr);
+		// Endianess might not be correct, but it shouldn't matter
+		UINT32 data1 = uuid.Data1;
+		UINT32 data2 = uuid.Data2 | (uuid.Data3 << 16);
+		UINT32 data3 = uuid.Data3 | (uuid.Data4[0] << 16) | (uuid.Data4[1] << 24);
+		UINT32 data4 = uuid.Data4[2] | (uuid.Data4[3] << 8) | (uuid.Data4[4] << 16) | (uuid.Data4[5] << 24);
 
-		String output((char*)uuidStr);
-		RpcStringFreeA(&uuidStr);
-
-		return output;
+		return UUID(data1, data2, data3, data4);
 	}
 
 	HBITMAP Win32PlatformUtility::createBitmap(const Color* pixels, UINT32 width, UINT32 height, bool premultiplyAlpha)

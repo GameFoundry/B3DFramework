@@ -299,7 +299,7 @@ namespace bs
 			auto& resourceMetas = resource->meta->getResourceMetaData();
 			for(auto& entry : resourceMetas)
 			{
-				String uuid = entry->getUUID();
+				const UUID& uuid = entry->getUUID();
 
 				Path path;
 				if (mResourceManifest->uuidToFilePath(uuid, path))
@@ -438,7 +438,7 @@ namespace bs
 				{
 					SPtr<ResourceMetaData> subMeta = entry.value->getMetaData();
 					UINT32 typeId = entry.value->getTypeId();
-					const String& UUID = entry.value.getUUID();
+					const UUID& UUID = entry.value.getUUID();
 
 					SPtr<ProjectResourceMeta> resMeta = ProjectResourceMeta::create(entry.name, UUID, typeId, subMeta);
 					fileEntry->meta->add(resMeta);
@@ -453,7 +453,7 @@ namespace bs
 					{
 						SubResource& entry = importedResources[i];
 
-						const String& UUID = entry.value.getUUID();
+						const UUID& UUID = entry.value.getUUID();
 						mUUIDToPath[UUID] = fileEntry->path + entry.name;
 					}
 				}
@@ -499,7 +499,7 @@ namespace bs
 
 							SPtr<ResourceMetaData> subMeta = resEntry.value->getMetaData();
 							UINT32 typeId = resEntry.value->getTypeId();
-							const String& UUID = importedResource.getUUID();
+							const UUID& UUID = importedResource.getUUID();
 
 							SPtr<ProjectResourceMeta> resMeta = ProjectResourceMeta::create(resEntry.name, UUID, typeId, subMeta);
 							fileEntry->meta->add(resMeta);
@@ -546,10 +546,12 @@ namespace bs
 
 				for (auto& entry : importedResources)
 				{
-					internalResourcesPath.setFilename(toWString(entry.value.getUUID()) + L".asset");
+					String uuidStr = entry.value.getUUID().toString();
+
+					internalResourcesPath.setFilename(toWString(uuidStr) + L".asset");
 					gResources().save(entry.value, internalResourcesPath, true);
 
-					String uuid = entry.value.getUUID();
+					const UUID& uuid = entry.value.getUUID();
 					mResourceManifest->registerResource(uuid, internalResourcesPath);
 				}
 			}
@@ -797,7 +799,7 @@ namespace bs
 		}
 	}
 
-	Path ProjectLibrary::uuidToPath(const String& uuid) const
+	Path ProjectLibrary::uuidToPath(const UUID& uuid) const
 	{
 		auto iterFind = mUUIDToPath.find(uuid);
 
@@ -937,7 +939,7 @@ namespace bs
 							{
 								SPtr<ProjectResourceMeta> resMeta = resourceMetas[i];
 
-								const String& UUID = resMeta->getUUID();
+								const UUID& UUID = resMeta->getUUID();
 								mUUIDToPath[UUID] = newFullPath + resMeta->getUniqueName();
 							}
 						}
@@ -1214,7 +1216,7 @@ namespace bs
 
 		ResourceLoadFlags loadFlags = ResourceLoadFlag::Default | ResourceLoadFlag::KeepSourceData;
 
-		String resUUID = meta->getUUID();
+		const UUID& resUUID = meta->getUUID();
 		return gResources().loadFromUUID(resUUID, false, loadFlags);
 	}
 
@@ -1497,7 +1499,7 @@ namespace bs
 			Vector<Path> toDelete;
 			auto processFile = [&](const Path& file)
 			{
-				String uuid = file.getFilename(false);
+				UUID uuid = UUID(file.getFilename(false));
 				if (mUUIDToPath.find(uuid) == mUUIDToPath.end())
 				{
 					mResourceManifest->unregisterResource(uuid);

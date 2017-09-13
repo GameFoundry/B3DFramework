@@ -45,13 +45,31 @@ namespace bs
 		return MonoUtil::wstringToMono(nativeInstance->getGenericHandle()->getName());
 	}
 
-	MonoString* ScriptResource::internal_getUUID(ScriptResourceBase* nativeInstance)
+	void ScriptResource::internal_getUUID(ScriptResourceBase* nativeInstance, UUID* uuid)
 	{
-		return MonoUtil::stringToMono(nativeInstance->getGenericHandle().getUUID());
+		*uuid = nativeInstance->getGenericHandle().getUUID();
 	}
 
 	void ScriptResource::internal_release(ScriptResourceBase* nativeInstance)
 	{
 		nativeInstance->getGenericHandle().release();
+	}
+
+	ScriptUUID::ScriptUUID(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
+	void ScriptUUID::initRuntimeData()
+	{ }
+
+	MonoObject* ScriptUUID::box(const UUID& value)
+	{
+		// We're casting away const but it's fine since structs are passed by value anyway
+		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+	}
+
+	UUID ScriptUUID::unbox(MonoObject* obj)
+	{
+		return *(UUID*)MonoUtil::unbox(obj);
 	}
 }

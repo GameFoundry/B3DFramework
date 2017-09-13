@@ -113,7 +113,7 @@ namespace bs
 		mThisHandle._setHandleData(thisPtr);
 	}
 
-	String SceneObject::getPrefabLink(bool onlyDirect) const
+	UUID SceneObject::getPrefabLink(bool onlyDirect) const
 	{
 		const SceneObject* curObj = this;
 
@@ -128,7 +128,7 @@ namespace bs
 				curObj = nullptr;
 		}
 
-		return "";
+		return UUID::EMPTY;
 	}
 
 	HSceneObject SceneObject::getPrefabParent() const
@@ -166,7 +166,7 @@ namespace bs
 
 		if (rootObj != nullptr)
 		{
-			rootObj->mPrefabLinkUUID = "";
+			rootObj->mPrefabLinkUUID = UUID::EMPTY;
 			rootObj->mPrefabDiff = nullptr;
 			PrefabUtility::clearPrefabIds(rootObj->getHandle(), true, false);
 		}
@@ -493,7 +493,7 @@ namespace bs
 			return;
 
 #if BS_EDITOR_BUILD
-		String originalPrefab = getPrefabLink();
+		UUID originalPrefab = getPrefabLink();
 #endif
 
 		if (mMobility != ObjectMobility::Movable)
@@ -504,7 +504,7 @@ namespace bs
 #if BS_EDITOR_BUILD
 		if (gCoreApplication().isEditor())
 		{
-			String newPrefab = getPrefabLink();
+			UUID newPrefab = getPrefabLink();
 			if (originalPrefab != newPrefab)
 				PrefabUtility::clearPrefabIds(mThisHandle);
 		}

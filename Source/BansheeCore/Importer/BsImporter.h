@@ -44,12 +44,12 @@ namespace bs
 		 * @see		createImportOptions
 		 */
 		HResource import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
-			const String& UUID = StringUtil::BLANK);
+			const UUID& UUID = UUID::EMPTY);
 
 		/** @copydoc import */
 		template <class T>
 		ResourceHandle<T> import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
-			const String& UUID = StringUtil::BLANK)
+			const UUID& UUID = UUID::EMPTY)
 		{
 			return static_resource_cast<T>(import(inputFilePath, importOptions, UUID));
 		}

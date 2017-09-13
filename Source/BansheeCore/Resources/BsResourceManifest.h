@@ -32,25 +32,25 @@ namespace bs
 		const String& getName() const { return mName; }
 
 		/**	Registers a new resource in the manifest. */
-		void registerResource(const String& uuid, const Path& filePath);
+		void registerResource(const UUID& uuid, const Path& filePath);
 
 		/**	Removes a resource from the manifest. */
-		void unregisterResource(const String& uuid);
+		void unregisterResource(const UUID& uuid);
 
 		/**
 		 * Attempts to find a resource with the provided UUID and outputs the path to the resource if found. Returns true
 		 * if UUID was found, false otherwise.
 		 */
-		bool uuidToFilePath(const String& uuid, Path& filePath) const;
+		bool uuidToFilePath(const UUID& uuid, Path& filePath) const;
 
 		/**
 		 * Attempts to find a resource with the provided path and outputs the UUID to the resource if found. Returns true
 		 * if path was found, false otherwise.
 		 */
-		bool filePathToUUID(const Path& filePath, String& outUUID) const;
+		bool filePathToUUID(const Path& filePath, UUID& outUUID) const;
 
 		/**	Checks if provided UUID exists in the manifest. */
-		bool uuidExists(const String& uuid) const;
+		bool uuidExists(const UUID& uuid) const;
 
 		/**	Checks if the provided path exists in the manifest. */
 		bool filePathExists(const Path& filePath) const;
@@ -78,8 +78,8 @@ namespace bs
 
 	private:
 		String mName;
-		UnorderedMap<String, Path> mUUIDToFilePath;
-		UnorderedMap<Path, String> mFilePathToUUID;
+		UnorderedMap<UUID, Path> mUUIDToFilePath;
+		UnorderedMap<Path, UUID> mFilePathToUUID;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

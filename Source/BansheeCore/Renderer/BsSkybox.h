@@ -46,9 +46,6 @@ namespace bs
 		/** @see setBrightness */
 		float getBrightness() const { return mBrightness; }
 
-		/** Returns an identifier that uniquely identifies the skybox. */
-		const String& getUUID() const { return mUUID; }
-
 		/**
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core
 		 * thread counterpart.
@@ -56,7 +53,6 @@ namespace bs
 		virtual void _markCoreDirty(SkyboxDirtyFlag flags = SkyboxDirtyFlag::Everything) { }
 
 	protected:
-		String mUUID; /**< Identifier that uniquely identifies the skybox. */
 		bool mIsActive; /**< Determines whether the skybox should be rendered or not. */
 		float mBrightness; /**< Multiplier to apply to evaluated skybox values before using them. */
 	};

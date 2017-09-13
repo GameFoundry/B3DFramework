@@ -76,7 +76,7 @@ namespace bs
 		gResources().destroy(*this);
 	}
 
-	void ResourceHandleBase::setHandleData(const SPtr<Resource>& ptr, const String& uuid)
+	void ResourceHandleBase::setHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
 	{
 		mData->mPtr = ptr;
 

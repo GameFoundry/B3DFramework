@@ -110,7 +110,6 @@ namespace bs
 		Skybox* skybox = new (bs_alloc<Skybox>()) Skybox();
 		SPtr<Skybox> skyboxPtr = bs_core_ptr<Skybox>(skybox);
 		skyboxPtr->_setThisPtr(skyboxPtr);
-		skyboxPtr->mUUID = UUIDGenerator::generateRandom();
 		skyboxPtr->initialize();
 
 		return skyboxPtr;
@@ -128,7 +127,6 @@ namespace bs
 
 		ct::Skybox* skybox = new (bs_alloc<ct::Skybox>()) ct::Skybox(filteredRadiance, irradiance);
 		SPtr<ct::Skybox> skyboxPtr = bs_shared_ptr<ct::Skybox>(skybox);
-		skyboxPtr->mUUID = mUUID;
 		skyboxPtr->_setThisPtr(skyboxPtr);
 
 		return skyboxPtr;
@@ -140,7 +138,6 @@ namespace bs
 		size += rttiGetElemSize(mIsActive);
 		size += rttiGetElemSize(mBrightness);
 		size += sizeof(SPtr<ct::Texture>);
-		size += rttiGetElemSize(mUUID);
 		size += rttiGetElemSize(getCoreDirtyFlags());
 
 		UINT8* buffer = allocator->alloc(size);
@@ -148,7 +145,6 @@ namespace bs
 		char* dataPtr = (char*)buffer;
 		dataPtr = rttiWriteElem(mIsActive, dataPtr);
 		dataPtr = rttiWriteElem(mBrightness, dataPtr);
-		dataPtr = rttiWriteElem(mUUID, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
 		SPtr<ct::Texture>* texture = new (dataPtr) SPtr<ct::Texture>();
@@ -207,7 +203,6 @@ namespace bs
 
 			dataPtr = rttiReadElem(mIsActive, dataPtr);
 			dataPtr = rttiReadElem(mBrightness, dataPtr);
-			dataPtr = rttiReadElem(mUUID, dataPtr);
 			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 
 			SPtr<Texture>* texture = (SPtr<Texture>*)dataPtr;

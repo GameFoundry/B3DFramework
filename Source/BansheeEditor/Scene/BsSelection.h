@@ -34,10 +34,10 @@ namespace bs
 		void setResourcePaths(const Vector<Path>& paths);
 
 		/**	Returns a currently selected set of resource UUIDs. */
-		Vector<String> getResourceUUIDs() const;
+		Vector<UUID> getResourceUUIDs() const;
 
 		/**	Sets a new set of resource UUIDs to select, replacing the old ones. */
-		void setResourceUUIDs(const Vector<String>& UUIDs);
+		void setResourceUUIDs(const Vector<UUID>& UUIDs);
 
 		/**	Deselects all currently selected scene objects. */
 		void clearSceneSelection();

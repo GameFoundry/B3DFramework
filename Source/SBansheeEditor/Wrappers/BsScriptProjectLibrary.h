@@ -71,7 +71,7 @@ namespace bs
 		static MonoObject* internal_GetEntry(MonoString* path);
 		static bool internal_IsSubresource(MonoString* path);
 		static MonoObject* internal_GetMeta(MonoString* path);
-		static MonoString* internal_GetPathFromUUID(MonoString* uuid);
+		static MonoString* internal_GetPathFromUUID(UUID* uuid);
 		static MonoString* internal_GetPath(MonoObject* resource);
 		static MonoArray* internal_Search(MonoString* pattern, MonoArray* types);
 		static void internal_Delete(MonoString* path);
@@ -171,7 +171,7 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static MonoString* internal_GetUUID(ScriptResourceMeta* thisPtr);
+		static void internal_GetUUID(ScriptResourceMeta* thisPtr, UUID* uuid);
 		static MonoString* internal_GetSubresourceName(ScriptResourceMeta* thisPtr);
 		static MonoObject* internal_GetIcon(ScriptResourceMeta* thisPtr);
 		static ScriptResourceType internal_GetResourceType(ScriptResourceMeta* thisPtr);

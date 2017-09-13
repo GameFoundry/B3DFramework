@@ -220,9 +220,9 @@ namespace BansheeEditor
         /// <param name="uuid">Unique identifier of the resources to retrieve the path of.</param>
         /// <returns>Path to relative to the project library resources folder if resource was found, null otherwise.
         ///          </returns>
-        public static string GetPath(string uuid)
+        public static string GetPath(UUID uuid)
         {
-            return Internal_GetPathFromUUID(uuid);
+            return Internal_GetPathFromUUID(ref uuid);
         }
 
         /// <summary>
@@ -426,7 +426,7 @@ namespace BansheeEditor
         private static extern string Internal_GetPath(Resource resource);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern string Internal_GetPathFromUUID(string uuid);
+        private static extern string Internal_GetPathFromUUID(ref UUID uuid);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Delete(string path);
@@ -560,7 +560,16 @@ namespace BansheeEditor
         /// <summary>
         /// Unique identifier of the resource.
         /// </summary>
-        public string UUID { get { return Internal_GetUUID(mCachedPtr); } }
+        public UUID UUID
+        {
+            get
+            {
+                UUID uuid;
+                Internal_GetUUID(mCachedPtr, out uuid);
+
+                return uuid;
+            }
+        }
 
         /// <summary>
         /// Returns a name of the subresources. Each resource within a file has a unique name.
@@ -583,7 +592,7 @@ namespace BansheeEditor
         public object EditorData { get { return Internal_GetEditorData(mCachedPtr); } }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern string Internal_GetUUID(IntPtr thisPtr);
+        private static extern void Internal_GetUUID(IntPtr thisPtr, out UUID uuid);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern string Internal_GetSubresourceName(IntPtr thisPtr);

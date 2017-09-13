@@ -17,14 +17,9 @@ namespace bs
 	class BS_CORE_EXPORT ResourceHandleRTTI : public RTTIType<TResourceHandleBase<false>, IReflectable, ResourceHandleRTTI>
 	{
 	private:
-		String& getUUID(TResourceHandleBase<false>* obj)
-		{ 
-			static String Blank = "";
+		UUID& getUUID(TResourceHandleBase<false>* obj) { return obj->mData != nullptr ? obj->mData->mUUID : UUID::EMPTY; }
+		void setUUID(TResourceHandleBase<false>* obj, UUID& uuid) { obj->mData->mUUID = uuid; }
 
-			return obj->mData != nullptr ? obj->mData->mUUID : Blank; 
-		}
-
-		void setUUID(TResourceHandleBase<false>* obj, String& uuid) { obj->mData->mUUID = uuid; }
 	public:
 		ResourceHandleRTTI()
 		{
@@ -35,7 +30,7 @@ namespace bs
 		{
 			TResourceHandleBase<false>* resourceHandle = static_cast<TResourceHandleBase<false>*>(obj);
 
-			if(resourceHandle->mData && resourceHandle->mData->mUUID != "")
+			if(resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
 				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
 
@@ -70,14 +65,9 @@ namespace bs
 	class BS_CORE_EXPORT WeakResourceHandleRTTI : public RTTIType<TResourceHandleBase<true>, IReflectable, WeakResourceHandleRTTI>
 	{
 	private:
-		String& getUUID(TResourceHandleBase<true>* obj)
-		{
-			static String Blank = "";
+		UUID& getUUID(TResourceHandleBase<true>* obj) { return obj->mData != nullptr ? obj->mData->mUUID : UUID::EMPTY; }
+		void setUUID(TResourceHandleBase<true>* obj, UUID& uuid) { obj->mData->mUUID = uuid; }
 
-			return obj->mData != nullptr ? obj->mData->mUUID : Blank;
-		}
-
-		void setUUID(TResourceHandleBase<true>* obj, String& uuid) { obj->mData->mUUID = uuid; }
 	public:
 		WeakResourceHandleRTTI()
 		{
@@ -88,7 +78,7 @@ namespace bs
 		{
 			TResourceHandleBase<true>* resourceHandle = static_cast<TResourceHandleBase<true>*>(obj);
 
-			if (resourceHandle->mData && resourceHandle->mData->mUUID != "")
+			if (resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
 				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
 				resourceHandle->mData = loadedResource.mData;

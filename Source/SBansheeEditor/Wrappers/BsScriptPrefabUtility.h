@@ -28,7 +28,7 @@ namespace bs
 		static void internal_revertPrefab(ScriptSceneObject* soPtr);
 		static bool internal_hasPrefabLink(ScriptSceneObject* soPtr);
 		static MonoObject* internal_getPrefabParent(ScriptSceneObject* soPtr);
-		static MonoString* internal_GetPrefabUUID(ScriptSceneObject* soPtr);
+		static void internal_GetPrefabUUID(ScriptSceneObject* soPtr, UUID* uuid);
 		static void internal_UpdateFromPrefab(ScriptSceneObject* soPtr);
 		static void internal_RecordPrefabDiff(ScriptSceneObject* soPtr);
 	};

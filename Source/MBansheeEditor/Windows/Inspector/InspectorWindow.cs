@@ -148,7 +148,7 @@ namespace BansheeEditor
             inspectorResource = new InspectorResource();
             inspectorResource.panel = inspectorLayout.AddPanel();
 
-            var persistentProperties = persistentData.GetProperties(activeResource.UUID);
+            var persistentProperties = persistentData.GetProperties(activeResource.UUID.ToString());
 
             inspectorResource.inspector = InspectorUtility.GetInspector(activeResource.GetType());
             inspectorResource.inspector.Initialize(inspectorResource.panel, activeResource, persistentProperties);

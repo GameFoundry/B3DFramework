@@ -139,7 +139,7 @@ namespace bs
 		 * @param[in]	uuid	UUID of the resource to look for.
 		 * @return				Absolute path to the resource.
 		 */
-		Path uuidToPath(const String& uuid) const;
+		Path uuidToPath(const UUID& uuid) const;
 
 		/**
 		 * Registers a new resource in the library.
@@ -305,14 +305,14 @@ namespace bs
 		 * Common code for deleting a directory from the library. This code only removes the library entry, not the actual
 		 * directory.
 		 *
-		 * @param[in]	resource	Entry to delete.
+		 * @param[in]	directory	Entry to delete.
 		 */
 		void deleteDirectoryInternal(DirectoryEntry* directory);
 
 		/**
 		 * Triggers a reimport of a resource using the provided import options, if needed. Doesn't import dependencies.
 		 *
-		 * @param[in]	path				Absolute Path to the resource to reimport.
+		 * @param[in]	file				File entry of the resource to reimport.
 		 * @param[in]	importOptions		Optional import options to use when importing the resource. Caller must ensure 
 		 *									the import options are of the correct type for the resource in question. If null
 		 *									is provided default import options are used.
@@ -390,7 +390,7 @@ namespace bs
 		bool mIsLoaded;
 
 		UnorderedMap<Path, Vector<Path>> mDependencies;
-		UnorderedMap<String, Path> mUUIDToPath;
+		UnorderedMap<UUID, Path> mUUIDToPath;
 	};
 
 	/**	Provides easy access to ProjectLibrary. */

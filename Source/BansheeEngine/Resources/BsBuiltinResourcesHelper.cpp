@@ -40,7 +40,7 @@ namespace bs
 		if(mode == AssetType::Sprite)
 			FileSystem::createDir(spriteOutputFolder);
 
-		auto importResource = [&](const String& fileName, const String& UUID)
+		auto importResource = [&](const String& fileName, const UUID& UUID)
 		{
 			Path filePath = inputFolder + fileName;
 			Vector<std::pair<Path, SPtr<ImportOptions>>> resourcesToSave;
@@ -137,7 +137,7 @@ namespace bs
 			return savedResources;
 		};
 
-		auto generateSprite = [&](const HTexture& texture, const String& fileName, const String& UUID)
+		auto generateSprite = [&](const HTexture& texture, const String& fileName, const UUID& UUID)
 		{
 			Path relativePath = fileName;
 			Path outputPath = spriteOutputFolder + relativePath;
@@ -186,7 +186,7 @@ namespace bs
 				isIcon = entry.find("TextureUUID16") != entry.end();
 			}
 
-			Vector<HResource> outputResources = importResource(name.c_str(), uuid.c_str());
+			Vector<HResource> outputResources = importResource(name.c_str(), UUID(uuid.c_str()));
 			bool foundDependencies = false;
 			for (auto& outputRes : outputResources)
 			{
@@ -234,7 +234,7 @@ namespace bs
 					std::string spriteUUID = entry["SpriteUUID"];
 
 					HTexture tex = static_resource_cast<Texture>(outputRes);
-					generateSprite(tex, name.c_str(), spriteUUID.c_str());
+					generateSprite(tex, name.c_str(), UUID(spriteUUID.c_str()));
 				}
 
 				if (isIcon)
@@ -277,10 +277,10 @@ namespace bs
 
 		gCoreThread().submit(true);
 
-		auto saveTexture = [&](auto& pixelData, auto& path, auto& UUID)
+		auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 		{
 			SPtr<Texture> texturePtr = Texture::_createPtr(pixelData);
-			HResource texture = gResources()._createResourceHandle(texturePtr, UUID.c_str());
+			HResource texture = gResources()._createResourceHandle(texturePtr, UUID(uuid.c_str()));
 
 			Resources::instance().save(texture, path, true);
 			manifest->registerResource(texture.getUUID(), path);
@@ -311,15 +311,15 @@ namespace bs
 
 			if (mode == AssetType::Sprite)
 			{
-				generateSprite(tex48, iconsToGenerate[i].name + "48", iconsToGenerate[i].SpriteUUIDs[0].c_str());
-				generateSprite(tex32, iconsToGenerate[i].name + "32", iconsToGenerate[i].SpriteUUIDs[1].c_str());
-				generateSprite(tex16, iconsToGenerate[i].name + "16", iconsToGenerate[i].SpriteUUIDs[2].c_str());
+				generateSprite(tex48, iconsToGenerate[i].name + "48", UUID(iconsToGenerate[i].SpriteUUIDs[0].c_str()));
+				generateSprite(tex32, iconsToGenerate[i].name + "32", UUID(iconsToGenerate[i].SpriteUUIDs[1].c_str()));
+				generateSprite(tex16, iconsToGenerate[i].name + "16", UUID(iconsToGenerate[i].SpriteUUIDs[2].c_str()));
 			}
 		}
 	}
 
 	void BuiltinResourcesHelper::importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder,
-		const Vector<UINT32>& fontSizes, bool antialiasing, const String& UUID, const SPtr<ResourceManifest>& manifest)
+		const Vector<UINT32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
 	{
 		SPtr<ImportOptions> fontImportOptions = Importer::instance().createImportOptions(inputFile);
 		if (rtti_is_of_type<FontImportOptions>(fontImportOptions))
@@ -432,7 +432,7 @@ namespace bs
 			{
 				if(type == AssetType::Normal)
 				{
-					String uuid = UUIDGenerator::generateRandom();
+					String uuid = UUIDGenerator::generateRandom().toString();
 					nlohmann::json newEntry =
 					{ 
 						{ "Path", relativePath.toString().c_str() },
@@ -443,8 +443,8 @@ namespace bs
 				}
 				else // Sprite
 				{
-					String texUuid = UUIDGenerator::generateRandom();
-					String spriteUuid = UUIDGenerator::generateRandom();
+					String texUuid = UUIDGenerator::generateRandom().toString();
+					String spriteUuid = UUIDGenerator::generateRandom().toString();
 					nlohmann::json newEntry = 
 					{ 
 						{ "Path", relativePath.toString().c_str() },
@@ -506,7 +506,7 @@ namespace bs
 			Path path = folder + name.c_str();
 			path.setFilename(path.getWFilename() + L".asset");
 
-			manifest->registerResource(uuid.c_str(), path);
+			manifest->registerResource(UUID(uuid.c_str()), path);
 			
 			if (type == AssetType::Sprite)
 			{
@@ -515,7 +515,7 @@ namespace bs
 				Path spritePath = folder + "/Sprites/";
 				spritePath.setFilename(String("sprite_") + name.c_str() + ".asset");
 
-				manifest->registerResource(spriteUUID.c_str(), spritePath);
+				manifest->registerResource(UUID(spriteUUID.c_str()), spritePath);
 			}
 
 			if (isIcon)
@@ -538,13 +538,13 @@ namespace bs
 				Path texPath = folder + name.c_str();
 
 				texPath.setFilename(texPath.getWFilename() + L"48.asset");
-				manifest->registerResource(texUUIDs[0].c_str(), texPath);
+				manifest->registerResource(UUID(texUUIDs[0].c_str()), texPath);
 
 				texPath.setFilename(texPath.getWFilename() + L"32.asset");
-				manifest->registerResource(texUUIDs[1].c_str(), texPath);
+				manifest->registerResource(UUID(texUUIDs[1].c_str()), texPath);
 
 				texPath.setFilename(texPath.getWFilename() + L"16.asset");
-				manifest->registerResource(texUUIDs[2].c_str(), texPath);
+				manifest->registerResource(UUID(texUUIDs[2].c_str()), texPath);
 
 				if(type == AssetType::Sprite)
 				{
@@ -557,13 +557,13 @@ namespace bs
 					Path spritePath = folder + "/Sprites/";
 
 					spritePath.setFilename(String("sprite_") + name.c_str() + "48.asset");
-					manifest->registerResource(spriteUUIDs[0].c_str(), spritePath);
+					manifest->registerResource(UUID(spriteUUIDs[0].c_str()), spritePath);
 
 					spritePath.setFilename(String("sprite_") + name.c_str() + "32.asset");
-					manifest->registerResource(spriteUUIDs[1].c_str(), spritePath);
+					manifest->registerResource(UUID(spriteUUIDs[1].c_str()), spritePath);
 
 					spritePath.setFilename(String("sprite_") + name.c_str() + "16.asset");
-					manifest->registerResource(spriteUUIDs[2].c_str(), spritePath);
+					manifest->registerResource(UUID(spriteUUIDs[2].c_str()), spritePath);
 				}
 			}
 		}

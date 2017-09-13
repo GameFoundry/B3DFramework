@@ -418,7 +418,7 @@ namespace BansheeEditor
         /// </summary>
         public static void SaveScene(Action onSuccess = null, Action onFailure = null)
         {
-            if (!string.IsNullOrEmpty(Scene.ActiveSceneUUID))
+            if (!Scene.ActiveSceneUUID.IsEmpty())
             {
                 string scenePath = ProjectLibrary.GetPath(Scene.ActiveSceneUUID);
                 if (!string.IsNullOrEmpty(scenePath))
@@ -555,7 +555,7 @@ namespace BansheeEditor
                 if (EditorUtility.IsInternal(child))
                     continue;
 
-                string prefabUUID = PrefabUtility.GetPrefabUUID(child);
+                UUID prefabUUID = PrefabUtility.GetPrefabUUID(child);
                 if (prefabUUID == Scene.ActiveSceneUUID)
                     root = child;
 
@@ -648,7 +648,7 @@ namespace BansheeEditor
             // Save all dirty resources to disk
             foreach (var KVP in persistentData.dirtyResources)
             {
-                string resourceUUID = KVP.Key;
+                UUID resourceUUID = KVP.Key;
                 string path = ProjectLibrary.GetPath(resourceUUID);
                 if (!IsNative(path))
                     continue; // Imported resources can't be changed
@@ -753,7 +753,7 @@ namespace BansheeEditor
             sceneDirty = dirty;
             SetStatusScene(Scene.ActiveSceneName, dirty);
 
-            if (!dirty && Scene.ActiveSceneUUID != null)
+            if (!dirty && !Scene.ActiveSceneUUID.IsEmpty())
                 persistentData.dirtyResources.Remove(Scene.ActiveSceneUUID);
         }
 

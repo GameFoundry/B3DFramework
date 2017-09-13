@@ -132,7 +132,7 @@ namespace bs
 	void CmdBreakPrefab::clear()
 	{
 		mPrefabRoot = nullptr;
-		mPrefabLinkUUID = "";
+		mPrefabLinkUUID = UUID::EMPTY;
 		mPrefabDiff = nullptr;
 		mLinkIds.clear();
 	}

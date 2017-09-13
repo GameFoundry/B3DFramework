@@ -122,8 +122,24 @@ namespace bs
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static MonoString* internal_getName(ScriptResourceBase* nativeInstance);
-		static MonoString* internal_getUUID(ScriptResourceBase* nativeInstance);
+		static void internal_getUUID(ScriptResourceBase* nativeInstance, UUID* uuid);
 		static void internal_release(ScriptResourceBase* nativeInstance);
+	};
+
+	/**	Interop class between C++ & CLR for UUID. */
+	class BS_SCR_BE_EXPORT ScriptUUID : public ScriptObject<ScriptUUID>
+	{
+	public:
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "UUID")
+
+		/**	Unboxes a boxed managed UUID struct and returns the native version of the structure. */
+		static UUID unbox(MonoObject* obj);
+
+		/**	Boxes a native UUID struct and returns a managed object containing it. */
+		static MonoObject* box(const UUID& value);
+
+	private:
+		ScriptUUID(MonoObject* instance);
 	};
 
 	/** @} */

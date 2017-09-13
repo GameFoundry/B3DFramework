@@ -382,26 +382,26 @@ namespace bs
 
 	void PrefabDiff::renameInstanceIds(const HSceneObject& prefab, const HSceneObject& instance, Vector<RenamedGameObject>& output)
 	{
-		UnorderedMap<String, UnorderedMap<UINT32, UINT64>> linkToInstanceId;
+		UnorderedMap<UUID, UnorderedMap<UINT32, UINT64>> linkToInstanceId;
 
 		struct StackEntry
 		{
 			HSceneObject so;
-			String uuid;
+			UUID uuid;
 		};
 
 		// When renaming it is important to rename the prefab and not the instance, since the diff will otherwise
 		// contain prefab's IDs, but will be used for the instance.
 
 		Stack<StackEntry> todo;
-		todo.push({ instance, "root" });
+		todo.push({ instance, UUID::EMPTY });
 
 		while (!todo.empty())
 		{
 			StackEntry current = todo.top();
 			todo.pop();
 
-			String childParentUUID;
+			UUID childParentUUID;
 			if (current.so->mPrefabLinkUUID.empty())
 				childParentUUID = current.uuid;
 			else
@@ -438,13 +438,13 @@ namespace bs
 			prefab->mInstanceData->mInstanceId = instance->getInstanceId();
 		}
 
-		todo.push({ prefab, "root" });
+		todo.push({ prefab, UUID::EMPTY });
 		while (!todo.empty())
 		{
 			StackEntry current = todo.top();
 			todo.pop();
 
-			String childParentUUID;
+			UUID childParentUUID;
 			if (current.so->mPrefabLinkUUID.empty())
 				childParentUUID = current.uuid;
 			else

@@ -21,7 +21,7 @@ namespace BansheeEngine
         /// <summary>
         /// Returns the UUID of the scene prefab. This is empty if scene hasn't been saved yet.
         /// </summary>
-        internal static string ActiveSceneUUID { get { return activeSceneUUID; } }
+        internal static UUID ActiveSceneUUID { get { return activeSceneUUID; } }
 
         /// <summary>
         /// Checks is the loaded scene a generic scene object group, instead of an actual scene. 
@@ -30,7 +30,7 @@ namespace BansheeEngine
         internal static bool IsGenericPrefab { get { return isGenericPrefab; } }
 
         private static string activeSceneName = "Unnamed";
-        private static string activeSceneUUID = "";
+        private static UUID activeSceneUUID;
         private static bool isGenericPrefab = false;
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace BansheeEngine
         public static void Clear()
         {
             Internal_ClearScene();
-            activeSceneUUID = null;
+            activeSceneUUID = UUID.Empty;
             activeSceneName = "Unnamed";
         }
 
@@ -116,7 +116,7 @@ namespace BansheeEngine
         /// Wrapper around scene UUID static field because Mono has problems accessing static fields directly.
         /// </summary>
         /// <returns>UUID of the currently active scene.</returns>
-        private static string GetSceneUUID()
+        private static UUID GetSceneUUID()
         {
             return activeSceneUUID;
         }
@@ -125,7 +125,7 @@ namespace BansheeEngine
         /// Wrapper around scene UUID static field because Mono has problems accessing static fields directly.
         /// </summary>
         /// <param name="uuid">UUID of the currently active scene.</param>
-        private static void SetSceneUUID(string uuid)
+        private static void SetSceneUUID(UUID uuid)
         {
             activeSceneUUID = uuid;
         }

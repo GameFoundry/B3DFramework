@@ -60,6 +60,7 @@ set(BS_BANSHEEUTILITY_SRC_UTILITY
 	"Utility/BsUtil.cpp"
 	"Utility/BsCompression.cpp"
 	"Utility/BsTriangulation.cpp"
+	"Utility/BsUUID.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_DEBUG
@@ -104,6 +105,7 @@ set(BS_BANSHEEUTILITY_INC_UTILITY
 	"Utility/BsCompression.h"
 	"Utility/BsTriangulation.h"
 	"Utility/BsNonCopyable.h"
+	"Utility/BsUUID.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_ALLOCATORS

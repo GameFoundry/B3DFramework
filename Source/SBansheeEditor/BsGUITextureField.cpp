@@ -178,7 +178,7 @@ namespace bs
 		if (value)
 			setUUID(value.getUUID(), false);
 		else
-			setUUID("", false);
+			setUUID(UUID::EMPTY, false);
 	}
 
 	WeakResourceHandle<Texture> GUITextureField::getValueWeak() const
@@ -192,10 +192,10 @@ namespace bs
 		if (value)
 			setUUID(value.getUUID(), false);
 		else
-			setUUID("", false);
+			setUUID(UUID::EMPTY, false);
 	}
 
-	void GUITextureField::setUUID(const String& uuid, bool triggerEvent)
+	void GUITextureField::setUUID(const UUID& uuid, bool triggerEvent)
 	{
 		if (mUUID == uuid)
 			return;
@@ -246,7 +246,7 @@ namespace bs
 
 	void GUITextureField::onDropButtonClicked()
 	{
-		if (mUUID == "")
+		if (mUUID.empty())
 			return;
 
 		Path resPath = gProjectLibrary().uuidToPath(mUUID);
@@ -287,7 +287,7 @@ namespace bs
 
 	void GUITextureField::onClearButtonClicked()
 	{
-		setUUID(StringUtil::BLANK);
+		setUUID(UUID::EMPTY);
 	}
 
 	const String& GUITextureField::getGUITypeName()

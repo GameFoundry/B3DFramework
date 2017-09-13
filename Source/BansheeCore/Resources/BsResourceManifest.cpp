@@ -28,7 +28,7 @@ namespace bs
 		return bs_shared_ptr_new<ResourceManifest>(ConstructPrivately());
 	}
 
-	void ResourceManifest::registerResource(const String& uuid, const Path& filePath)
+	void ResourceManifest::registerResource(const UUID& uuid, const Path& filePath)
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -53,7 +53,7 @@ namespace bs
 		}
 	}
 
-	void ResourceManifest::unregisterResource(const String& uuid)
+	void ResourceManifest::unregisterResource(const UUID& uuid)
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -64,7 +64,7 @@ namespace bs
 		}
 	}
 
-	bool ResourceManifest::uuidToFilePath(const String& uuid, Path& filePath) const
+	bool ResourceManifest::uuidToFilePath(const UUID& uuid, Path& filePath) const
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -80,7 +80,7 @@ namespace bs
 		}
 	}
 
-	bool ResourceManifest::filePathToUUID(const Path& filePath, String& outUUID) const
+	bool ResourceManifest::filePathToUUID(const Path& filePath, UUID& outUUID) const
 	{
 		auto iterFind = mFilePathToUUID.find(filePath);
 
@@ -91,12 +91,12 @@ namespace bs
 		}
 		else
 		{
-			outUUID = StringUtil::BLANK;
+			outUUID = UUID::EMPTY;
 			return false;
 		}
 	}
 
-	bool ResourceManifest::uuidExists(const String& uuid) const
+	bool ResourceManifest::uuidExists(const UUID& uuid) const
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 

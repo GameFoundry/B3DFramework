@@ -75,9 +75,6 @@ namespace bs
 		/** Retrieves transition distance set by setTransitionDistance(). */
 		float getTransitionDistance() const { return mTransitionDistance; }
 
-		/** Returns an identifier that uniquely identifies the probe. */
-		const String& getUUID() const { return mUUID; }
-
 	protected:
 		/** Updates the internal bounds for the probe. Call this whenever a property affecting the bounds changes. */
 		void updateBounds();
@@ -86,7 +83,6 @@ namespace bs
 		float mRadius; /**< Radius used for sphere reflection probes. */
 		Vector3 mExtents; /**< Extents used by box reflection probe. */
 		float mTransitionDistance; /**< Extra distance to used for fading out box probes. */
-		String mUUID; /**< Identifier that uniquely identifies the probe. */
 
 		Sphere mBounds; /**< Sphere that bounds the light area of influence. */
 	};

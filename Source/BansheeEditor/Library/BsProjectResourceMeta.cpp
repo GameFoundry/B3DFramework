@@ -11,7 +11,7 @@ namespace bs
 
 	}
 
-	SPtr<ProjectResourceMeta> ProjectResourceMeta::create(const WString& name, const String& uuid, UINT32 typeId,
+	SPtr<ProjectResourceMeta> ProjectResourceMeta::create(const WString& name, const UUID& uuid, UINT32 typeId,
 		const SPtr<ResourceMetaData>& resourceMetaData)
 	{
 		SPtr<ProjectResourceMeta> meta = bs_shared_ptr_new<ProjectResourceMeta>(ConstructPrivately());
@@ -88,7 +88,7 @@ namespace bs
 		return false;
 	}
 
-	bool ProjectFileMeta::hasUUID(const String& uuid) const
+	bool ProjectFileMeta::hasUUID(const UUID& uuid) const
 	{
 		for (auto& entry : mResourceMetaData)
 		{

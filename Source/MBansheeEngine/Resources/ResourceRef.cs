@@ -35,13 +35,21 @@ namespace BansheeEngine
                 return false;
 
             ResourceRef otherRef = (ResourceRef)other;
-            return Internal_GetUUID(mCachedPtr).Equals(Internal_GetUUID(otherRef.mCachedPtr));
+
+            UUID lhs, rhs;
+            Internal_GetUUID(mCachedPtr, out lhs);
+            Internal_GetUUID(otherRef.mCachedPtr, out rhs);
+
+            return lhs.Equals(rhs);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return Internal_GetUUID(mCachedPtr).GetHashCode();
+            UUID uuid;
+            Internal_GetUUID(mCachedPtr, out uuid);
+
+            return uuid.GetHashCode();
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -51,7 +59,7 @@ namespace BansheeEngine
         protected static extern Resource Internal_GetResource(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern string Internal_GetUUID(IntPtr thisPtr);
+        private static extern void Internal_GetUUID(IntPtr thisPtr, out UUID uuid);
     }
 
     /** @} */

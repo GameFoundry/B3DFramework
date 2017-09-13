@@ -192,7 +192,7 @@ namespace bs
 			}
 		}
 		else
-			setUUID("", false);
+			setUUID(UUID::EMPTY, false);
 	}
 
 	WeakResourceHandle<Resource> GUIResourceField::getValueWeak() const
@@ -222,10 +222,10 @@ namespace bs
 			}
 		}
 		else
-			setUUID("", false);
+			setUUID(UUID::EMPTY, false);
 	}
 
-	void GUIResourceField::setUUID(const String& uuid, bool triggerEvent)
+	void GUIResourceField::setUUID(const UUID& uuid, bool triggerEvent)
 	{ 
 		if (mUUID == uuid)
 			return;
@@ -270,7 +270,7 @@ namespace bs
 
 	void GUIResourceField::onDropButtonClicked()
 	{
-		if (mUUID == "")
+		if (mUUID == UUID::EMPTY)
 			return;
 
 		Path resPath = gProjectLibrary().uuidToPath(mUUID);
@@ -298,7 +298,7 @@ namespace bs
 				continue;
 
 			UINT32 typeId = meta->getTypeID();
-			String uuid = meta->getUUID();
+			const UUID& uuid = meta->getUUID();
 
 			bool found = false;
 
@@ -343,7 +343,7 @@ namespace bs
 
 	void GUIResourceField::onClearButtonClicked()
 	{
-		setUUID(StringUtil::BLANK);
+		setUUID(UUID::EMPTY);
 	}
 
 	const String& GUIResourceField::getGUITypeName()

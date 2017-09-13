@@ -52,7 +52,7 @@ namespace bs
 		return false;
 	}
 
-	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const String& UUID)
+	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
 	{
 		if(!FileSystem::isFile(inputFilePath))
 		{

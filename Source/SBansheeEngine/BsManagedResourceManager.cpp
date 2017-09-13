@@ -17,7 +17,7 @@ namespace bs
 
 	void ManagedResourceManager::clear()
 	{
-		UnorderedMap<String, WeakResourceHandle<ManagedResource>> resourceCopy = mResources;
+		UnorderedMap<UUID, WeakResourceHandle<ManagedResource>> resourceCopy = mResources;
 		for (auto& resourcePair : resourceCopy)
 		{
 			WeakResourceHandle<ManagedResource> resource = resourcePair.second;

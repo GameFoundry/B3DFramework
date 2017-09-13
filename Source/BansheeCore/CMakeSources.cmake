@@ -233,7 +233,6 @@ set(BS_BANSHEECORE_SRC_UTILITY
 	"Utility/BsUtility.cpp"
 	"Utility/BsDeferredCallManager.cpp"
 	"Utility/BsIconUtility.cpp"
-	"Utility/BsUUID.cpp"
 )
 
 set(BS_BANSHEECORE_INC_TEXT
@@ -293,7 +292,6 @@ set(BS_BANSHEECORE_INC_UTILITY
 	"Utility/BsUtility.h"
 	"Utility/BsDeferredCallManager.h"
 	"Utility/BsIconUtility.h"
-	"Utility/BsUUID.h"
 )
 
 set(BS_BANSHEECORE_INC_RTTI

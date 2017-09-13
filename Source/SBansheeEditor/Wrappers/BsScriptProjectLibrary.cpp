@@ -157,10 +157,9 @@ namespace bs
 		return ScriptResourceMeta::create(meta);
 	}
 
-	MonoString* ScriptProjectLibrary::internal_GetPathFromUUID(MonoString* uuid)
+	MonoString* ScriptProjectLibrary::internal_GetPathFromUUID(UUID* uuid)
 	{
-		String nativeUUID = MonoUtil::monoToString(uuid);
-		Path nativePath = gProjectLibrary().uuidToPath(nativeUUID);
+		Path nativePath = gProjectLibrary().uuidToPath(*uuid);
 
 		return MonoUtil::wstringToMono(nativePath.toWString());
 	}
@@ -517,9 +516,9 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetEditorData", (void*)&ScriptResourceMeta::internal_GetEditorData);
 	}
 
-	MonoString* ScriptResourceMeta::internal_GetUUID(ScriptResourceMeta* thisPtr)
+	void ScriptResourceMeta::internal_GetUUID(ScriptResourceMeta* thisPtr, UUID* uuid)
 	{
-		return MonoUtil::stringToMono(thisPtr->mMeta->getUUID());
+		*uuid = thisPtr->mMeta->getUUID();
 	}
 
 	MonoString* ScriptResourceMeta::internal_GetSubresourceName(ScriptResourceMeta* thisPtr)

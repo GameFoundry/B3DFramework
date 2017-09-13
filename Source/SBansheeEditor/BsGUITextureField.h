@@ -149,10 +149,10 @@ namespace bs
 		void setValueWeak(const WeakResourceHandle<Texture>& value);
 
 		/**	Returns the texture referenced by the field. Returns empty string with no texture is referenced. */
-		String getUUID() const { return mUUID; }
+		UUID getUUID() const { return mUUID; }
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		void setTint(const Color& color) override;
 
 		/** @copydoc GUIElement::_updateLayoutInternal */
 		void _updateLayoutInternal(const GUILayoutData& data) override;
@@ -178,7 +178,7 @@ namespace bs
 		 * @param[in]	triggerEvent	Determines should the onValueChanged() event be triggered if the new UUID is
 		 *								different from the previous one.
 		 */
-		void setUUID(const String& uuid, bool triggerEvent = true);
+		void setUUID(const UUID& uuid, bool triggerEvent = true);
 
 		/**	Triggered when a drag and drop operation finishes over this element. */
 		void dataDropped(void* data);
@@ -196,7 +196,7 @@ namespace bs
 		GUILabel* mLabel;
 		GUIDropButton* mDropButton;
 		GUIButton* mClearButton;
-		String mUUID;
+		UUID mUUID;
 	};
 
 	/** @} */

@@ -36,7 +36,7 @@ namespace bs { namespace ct
 		{
 			wglDeleteContext(mGlrc);
 			mGlrc = 0;
-			mHDC  = 0;
-		}		
+			mHDC = 0;
+		}
 	}
 }}

@@ -20,7 +20,7 @@ namespace bs
 	public:
 		GameSettings() { }
 
-		String mainSceneUUID; /**< Resource UUID of the default scene that is loaded when the application is started. */
+		UUID mainSceneUUID; /**< Resource UUID of the default scene that is loaded when the application is started. */
 		bool fullscreen = true; /**< If true the application will be started in fullscreen using user's desktop resolution. */
 		bool useDesktopResolution = true; /**< If running in fullscreen should the user's desktop resolution be used instead of the specified resolution. */
 		UINT32 resolutionWidth = 1280; /**< Width of the window. */
@@ -33,7 +33,7 @@ namespace bs
 	public:
 		friend class GameSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

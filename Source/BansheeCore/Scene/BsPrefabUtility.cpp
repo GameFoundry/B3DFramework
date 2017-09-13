@@ -10,7 +10,7 @@ namespace bs
 {
 	void PrefabUtility::revertToPrefab(const HSceneObject& so)
 	{
-		String prefabLinkUUID = so->getPrefabLink();
+		UUID prefabLinkUUID = so->getPrefabLink();
 		HPrefab prefabLink = static_resource_cast<Prefab>(gResources().loadFromUUID(prefabLinkUUID, false, ResourceLoadFlag::None));
 
 		if (!prefabLink.isLoaded(false))

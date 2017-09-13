@@ -56,9 +56,9 @@ namespace bs
 		onSelectionChanged(Vector<HSceneObject>(), mSelectedResourcePaths);
 	}
 
-	Vector<String> Selection::getResourceUUIDs() const
+	Vector<UUID> Selection::getResourceUUIDs() const
 	{
-		Vector<String> UUIDs;
+		Vector<UUID> UUIDs;
 		for (auto& path : mSelectedResourcePaths)
 		{
 			SPtr<ProjectResourceMeta> meta = gProjectLibrary().findResourceMeta(path);
@@ -69,7 +69,7 @@ namespace bs
 		return UUIDs;
 	}
 
-	void Selection::setResourceUUIDs(const Vector<String>& UUIDs)
+	void Selection::setResourceUUIDs(const Vector<UUID>& UUIDs)
 	{
 		mSelectedResourcePaths.clear();
 		for (auto& uuid : UUIDs)

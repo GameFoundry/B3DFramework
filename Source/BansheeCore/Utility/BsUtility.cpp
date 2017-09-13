@@ -8,7 +8,7 @@ namespace bs
 {
 	Vector<ResourceDependency> Utility::findResourceDependencies(IReflectable& obj, bool recursive)
 	{
-		Map<String, ResourceDependency> dependencies;
+		Map<UUID, ResourceDependency> dependencies;
 		findResourceDependenciesInternal(obj, recursive, dependencies);
 
 		Vector<ResourceDependency> dependencyList(dependencies.size());
@@ -36,7 +36,7 @@ namespace bs
 		return depth;
 	}
 
-	void Utility::findResourceDependenciesInternal(IReflectable& obj, bool recursive, Map<String, ResourceDependency>& dependencies)
+	void Utility::findResourceDependenciesInternal(IReflectable& obj, bool recursive, Map<UUID, ResourceDependency>& dependencies)
 	{
 		static const UnorderedMap<String, UINT64> dummyParams;
 

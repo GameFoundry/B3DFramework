@@ -28,7 +28,7 @@ namespace bs
 		if (meta == nullptr)
 			LOGWRN("Unable to load resource at path: \"" + path.toString() + "\". File not found. ");
 
-		String resUUID = meta->getUUID();
+		UUID resUUID = meta->getUUID();
 
 		if (resEntry->meta->getIncludeInBuild())
 		{

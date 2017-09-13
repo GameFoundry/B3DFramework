@@ -42,7 +42,7 @@ namespace bs
 		 * Forces the listener to send out events about the specified resource immediately, instead of waiting for the 
 		 * next update() call.
 		 */
-		void notifyListeners(const String& resourceUUID);
+		void notifyListeners(const UUID& resourceUUID);
 
 	private:
 		/**	Triggered by the resources system when a resource has finished loading. */
@@ -70,8 +70,8 @@ namespace bs
 		Map<UINT64, Vector<IResourceListener*>> mResourceToListenerMap;
 		Map<IResourceListener*, Vector<UINT64>> mListenerToResourceMap;
 
-		Map<String, HResource> mLoadedResources;
-		Map<String, HResource> mModifiedResources;
+		Map<UUID, HResource> mLoadedResources;
+		Map<UUID, HResource> mModifiedResources;
 
 		Vector<HResource> mTempResourceBuffer;
 

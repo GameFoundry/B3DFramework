@@ -169,10 +169,10 @@ namespace bs
 		void setValueWeak(const WeakResourceHandle<Resource>& value);
 
 		/** Returns the resource referenced by the field. Returns empty string with no resource is referenced. */
-		String getUUID() const { return mUUID; }
+		UUID getUUID() const { return mUUID; }
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		void setTint(const Color& color) override;
 
 		/**
 		 * Triggered whenever the referenced resource changes. Provides	a weak handle of the resource, or empty handle if
@@ -201,7 +201,7 @@ namespace bs
 		 * @param[in]	triggerEvent	Determines should the onValueChanged() event be triggered if the new UUID is
 		 *								different from the previous one.
 		 */
-		void setUUID(const String& uuid, bool triggerEvent = true);
+		void setUUID(const UUID& uuid, bool triggerEvent = true);
 
 		/** @copydoc GUIElement::styleUpdated */
 		void styleUpdated() override;
@@ -224,7 +224,7 @@ namespace bs
 		GUIButton* mClearButton;
 		String mNamespace;
 		String mType;
-		String mUUID;
+		UUID mUUID;
 	};
 
 	/** @} */

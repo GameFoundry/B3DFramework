@@ -79,7 +79,7 @@ namespace bs
 		 * @param[in]	onlyDirect	If true, this method will return prefab link only for the root object of the prefab
 		 *							instance. If false the parent objects will be searched for the prefab ID.
 		 */
-		String getPrefabLink(bool onlyDirect = false) const;
+		UUID getPrefabLink(bool onlyDirect = false) const;
 
 		/** 
 		 * Returns the root object of the prefab instance that this object belongs to, if any. Returns null if the object 
@@ -122,13 +122,13 @@ namespace bs
 		 * Returns the UUID of the prefab this object is linked to, if any. Unlike getPrefabLink() method this will not
 		 * search parents, but instead return only the value assigned to this object.
 		 */
-		const String& _getPrefabLinkUUID() const { return mPrefabLinkUUID; }
+		const UUID& _getPrefabLinkUUID() const { return mPrefabLinkUUID; }
 
 		/**
 		 * Allows you to change the prefab link UUID of this object. Normally this should be accompanied by reassigning the
 		 * link IDs.
 		 */
-		void _setPrefabLinkUUID(const String& UUID) { mPrefabLinkUUID = UUID; }
+		void _setPrefabLinkUUID(const UUID& UUID) { mPrefabLinkUUID = UUID; }
 
 		/**
 		 * Returns a prefab diff object containing instance specific modifications of this object compared to its prefab
@@ -186,7 +186,7 @@ namespace bs
 
 	private:
 		HSceneObject mThisHandle;
-		String mPrefabLinkUUID;
+		UUID mPrefabLinkUUID;
 		SPtr<PrefabDiff> mPrefabDiff;
 		UINT32 mPrefabHash;
 		UINT32 mFlags;

@@ -54,7 +54,7 @@ namespace bs
 		/************************************************************************/
 		static bool internal_IsLoaded(ScriptResourceRef* nativeInstance);
 		static MonoObject* internal_GetResource(ScriptResourceRef* nativeInstance);
-		static MonoString* internal_GetUUID(ScriptResourceRef* thisPtr);
+		static void internal_GetUUID(ScriptResourceRef* thisPtr, UUID* uuid);
 	};
 
 	/** @} */

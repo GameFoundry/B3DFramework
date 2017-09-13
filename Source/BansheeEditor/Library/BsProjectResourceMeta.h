@@ -29,14 +29,14 @@ namespace bs
 		 * @param[in]	resourceMetaData	Non-project library specific meta-data.
 		 * @return							New project library resource meta data instance.
 		 */
-		static SPtr<ProjectResourceMeta> create(const WString& name, const String& uuid, UINT32 typeId, 
+		static SPtr<ProjectResourceMeta> create(const WString& name, const UUID& uuid, UINT32 typeId, 
 			const SPtr<ResourceMetaData>& resourceMetaData);
 
 		/** Returns the name of the resource, unique within the file containing the resource. */
 		const WString& getUniqueName() const { return mName; }
 
 		/**	Returns the UUID of the resource this meta data belongs to. */
-		const String& getUUID() const { return mUUID; }
+		const UUID& getUUID() const { return mUUID; }
 
 		/**	Returns the non-project library specific meta-data. */
 		SPtr<ResourceMetaData> getResourceMetaData() const { return mResourceMeta; }
@@ -54,7 +54,7 @@ namespace bs
 		friend class ProjectLibrary;
 
 		WString mName;
-		String mUUID;
+		UUID mUUID;
 		SPtr<ResourceMetaData> mResourceMeta;
 		UINT32 mTypeId;
 		SPtr<IReflectable> mUserData;
@@ -129,7 +129,7 @@ namespace bs
 		bool hasTypeId(UINT32 typeId) const;
 
 		/** Checks does the file contain a resource with the specified UUID. */
-		bool hasUUID(const String& uuid) const;
+		bool hasUUID(const UUID& uuid) const;
 
 	private:
 		friend class ProjectLibrary;

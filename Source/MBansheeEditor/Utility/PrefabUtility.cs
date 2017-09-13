@@ -52,7 +52,7 @@ namespace BansheeEditor
                     Internal_RecordPrefabDiff(root.GetCachedPtr());
             }
 
-            string prefabUUID = GetPrefabUUID(prefabInstanceRoot);
+            UUID prefabUUID = GetPrefabUUID(prefabInstanceRoot);
             string prefabPath = ProjectLibrary.GetPath(prefabUUID);
             Prefab prefab = ProjectLibrary.Load<Prefab>(prefabPath);
             if (prefab != null)
@@ -134,13 +134,17 @@ namespace BansheeEditor
         /// </summary>
         /// <param name="obj">Scene object to retrieve the prefab UUID for.</param>
         /// <returns>Prefab UUID if the object is part of a prefab, null otherwise. </returns>
-        public static string GetPrefabUUID(SceneObject obj)
+        public static UUID GetPrefabUUID(SceneObject obj)
         {
             if (obj == null)
-                return null;
+                return UUID.Empty;
 
             IntPtr objPtr = obj.GetCachedPtr();
-            return Internal_GetPrefabUUID(objPtr);
+
+            UUID uuid;
+            Internal_GetPrefabUUID(objPtr, out uuid);
+
+            return uuid;
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -165,7 +169,7 @@ namespace BansheeEditor
         private static extern SceneObject Internal_GetPrefabParent(IntPtr soPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern string Internal_GetPrefabUUID(IntPtr soPtr);
+        private static extern void Internal_GetPrefabUUID(IntPtr soPtr, out UUID uuid);
     }
 
     /** @} */

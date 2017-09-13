@@ -44,7 +44,7 @@ namespace bs
 		HSceneObject mSceneObject;
 
 		HSceneObject mPrefabRoot;
-		String mPrefabLinkUUID;
+		UUID mPrefabLinkUUID;
 		SPtr<PrefabDiff> mPrefabDiff;
 		UnorderedMap<UINT64, UINT32> mLinkIds;
 	};

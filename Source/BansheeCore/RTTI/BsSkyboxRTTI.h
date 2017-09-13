@@ -19,10 +19,9 @@ namespace bs
 	private:
 		BS_BEGIN_RTTI_MEMBERS
 			BS_RTTI_MEMBER_REFL(mTexture, 0)
-			BS_RTTI_MEMBER_PLAIN(mUUID, 1)
-			BS_RTTI_MEMBER_PLAIN(mBrightness, 2)
-			BS_RTTI_MEMBER_REFLPTR(mFilteredRadiance, 3)
-			BS_RTTI_MEMBER_REFLPTR(mIrradiance, 4)
+			BS_RTTI_MEMBER_PLAIN(mBrightness, 1)
+			BS_RTTI_MEMBER_REFLPTR(mFilteredRadiance, 2)
+			BS_RTTI_MEMBER_REFLPTR(mIrradiance, 3)
 		BS_END_RTTI_MEMBERS
 	public:
 		SkyboxRTTI()

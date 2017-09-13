@@ -28,7 +28,7 @@ namespace bs
 	Resources::~Resources()
 	{
 		// Unload and invalidate all resources
-		UnorderedMap<String, LoadedResourceData> loadedResourcesCopy;
+		UnorderedMap<UUID, LoadedResourceData> loadedResourcesCopy;
 		
 		{
 			Lock lock(mLoadedResourceMutex);
@@ -48,7 +48,7 @@ namespace bs
 			return HResource();
 		}
 
-		String uuid;
+		UUID uuid;
 		bool foundUUID = getUUIDFromFilePath(filePath, uuid);
 
 		if (!foundUUID)
@@ -62,7 +62,7 @@ namespace bs
 		if (handle.mData == nullptr)
 			return HResource();
 
-		String uuid = handle.getUUID();
+		UUID uuid = handle.getUUID();
 		return loadFromUUID(uuid, false, loadFlags);
 	}
 
@@ -75,7 +75,7 @@ namespace bs
 			return HResource();
 		}
 
-		String uuid;
+		UUID uuid;
 		bool foundUUID = getUUIDFromFilePath(filePath, uuid);
 
 		if (!foundUUID)
@@ -84,7 +84,7 @@ namespace bs
 		return loadInternal(uuid, filePath, false, loadFlags);
 	}
 
-	HResource Resources::loadFromUUID(const String& uuid, bool async, ResourceLoadFlags loadFlags)
+	HResource Resources::loadFromUUID(const UUID& uuid, bool async, ResourceLoadFlags loadFlags)
 	{
 		Path filePath;
 
@@ -99,7 +99,7 @@ namespace bs
 		return loadInternal(uuid, filePath, !async, loadFlags);
 	}
 
-	HResource Resources::loadInternal(const String& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags)
+	HResource Resources::loadInternal(const UUID& uuid, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags)
 	{
 		HResource outputResource;
 
@@ -108,7 +108,7 @@ namespace bs
 		{
 			// Check if resource is already being loaded on a worker thread
 			Lock inProgressLock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.find(UUID);
+			auto iterFind2 = mInProgressResources.find(uuid);
 			if (iterFind2 != mInProgressResources.end())
 			{
 				LoadedResourceData& resData = iterFind2->second->resData;
@@ -131,7 +131,7 @@ namespace bs
 			if (!alreadyLoading)
 			{
 				Lock loadedLock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(UUID);
+				auto iterFind = mLoadedResources.find(uuid);
 				if (iterFind != mLoadedResources.end()) // Resource is already loaded
 				{
 					LoadedResourceData& resData = iterFind->second;
@@ -154,13 +154,13 @@ namespace bs
 		{
 			// Check if the handle already exists
 			Lock lock(mLoadedResourceMutex);
-			auto iterFind = mHandles.find(UUID);
+			auto iterFind = mHandles.find(uuid);
 			if (iterFind != mHandles.end())
 				outputResource = iterFind->second.lock();
 			else
 			{
-				outputResource = HResource(UUID);
-				mHandles[UUID] = outputResource.getWeak();
+				outputResource = HResource(uuid);
+				mHandles[uuid] = outputResource.getWeak();
 			}			
 		}
 
@@ -205,7 +205,7 @@ namespace bs
 				Lock lock(mInProgressResourcesMutex);
 
 				ResourceLoadData* loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
-				mInProgressResources[UUID] = loadData;
+				mInProgressResources[uuid] = loadData;
 				loadData->resData = outputResource.getWeak();
 
 				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
@@ -222,7 +222,7 @@ namespace bs
 				{
 					for (auto& dependency : savedResourceData->getDependencies())
 					{
-						if (dependency != UUID)
+						if (dependency != uuid)
 						{
 							mDependantLoads[dependency].push_back(loadData);
 							loadData->remainingDependencies++;
@@ -233,7 +233,7 @@ namespace bs
 
 			if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
 			{
-				const Vector<String>& dependencyUUIDs = savedResourceData->getDependencies();
+				const Vector<UUID>& dependencyUUIDs = savedResourceData->getDependencies();
 				UINT32 numDependencies = (UINT32)dependencyUUIDs.size();
 				Vector<HResource> dependencies(numDependencies);
 
@@ -249,13 +249,13 @@ namespace bs
 					Lock lock(mInProgressResourcesMutex);
 
 					// At this point the resource is guaranteed to still be in-progress, so it's safe to update its dependency list
-					mInProgressResources[UUID]->dependencies = dependencies;
+					mInProgressResources[uuid]->dependencies = dependencies;
 				}
 			}
 		}
 		else if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr) // Queue dependencies in case they aren't already loaded
 		{
-			const Vector<String>& dependencies = savedResourceData->getDependencies();
+			const Vector<UUID>& dependencies = savedResourceData->getDependencies();
 			if (!dependencies.empty())
 			{
 				{
@@ -263,7 +263,7 @@ namespace bs
 
 					ResourceLoadData* loadData = nullptr;
 
-					auto iterFind = mInProgressResources.find(UUID);
+					auto iterFind = mInProgressResources.find(uuid);
 					if (iterFind == mInProgressResources.end()) // Fully loaded
 					{
 						loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
@@ -271,7 +271,7 @@ namespace bs
 						loadData->remainingDependencies = 0;
 						loadData->notifyImmediately = synchronous; // Make resource listener trigger before exit if loading synchronously
 
-						mInProgressResources[UUID] = loadData;
+						mInProgressResources[uuid] = loadData;
 					}
 					else
 					{
@@ -281,7 +281,7 @@ namespace bs
 					// Register dependencies and count them so we know when the resource is fully loaded
 					for (auto& dependency : dependencies)
 					{
-						if (dependency != UUID)
+						if (dependency != uuid)
 						{
 							bool registerDependency = true;
 
@@ -348,7 +348,7 @@ namespace bs
 				// so trigger it manually so that the dependency count is properly decremented in case this resource
 				// is a dependency.
 				Lock lock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(UUID);
+				auto iterFind = mLoadedResources.find(uuid);
 				if (iterFind != mLoadedResources.end())
 					loadComplete(outputResource);
 			}
@@ -422,13 +422,13 @@ namespace bs
 
 	void Resources::release(ResourceHandleBase& resource)
 	{
-		const String& UUID = resource.getUUID();
+		const UUID& uuid = resource.getUUID();
 
 		{
 			bool loadInProgress = false;
 
 			Lock inProgressLock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.find(UUID);
+			auto iterFind2 = mInProgressResources.find(uuid);
 			if (iterFind2 != mInProgressResources.end())
 				loadInProgress = true;
 
@@ -441,7 +441,7 @@ namespace bs
 
 			{
 				Lock loadedLock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(UUID);
+				auto iterFind = mLoadedResources.find(uuid);
 				if (iterFind != mLoadedResources.end()) // Resource is already loaded
 				{
 					LoadedResourceData& resData = iterFind->second;
@@ -485,7 +485,7 @@ namespace bs
 		if (resource.mData == nullptr)
 			return;
 
-		const String& uuid = resource.getUUID();
+		const UUID& uuid = resource.getUUID();
 		if (!resource.isLoaded(false))
 		{
 			bool loadInProgress = false;
@@ -572,7 +572,7 @@ namespace bs
 		mDefaultResourceManifest->registerResource(resource.getUUID(), filePath);
 
 		Vector<ResourceDependency> dependencyList = Utility::findResourceDependencies(*resource.get());
-		Vector<String> dependencyUUIDs(dependencyList.size());
+		Vector<UUID> dependencyUUIDs(dependencyList.size());
 		for (UINT32 i = 0; i < (UINT32)dependencyList.size(); i++)
 			dependencyUUIDs[i] = dependencyList[i].resource.getUUID();
 
@@ -634,7 +634,7 @@ namespace bs
 
 	void Resources::update(HResource& handle, const SPtr<Resource>& resource)
 	{
-		const String& uuid = handle.getUUID();
+		const UUID& uuid = handle.getUUID();
 		handle.setHandleData(resource, uuid);
 
 		{
@@ -651,7 +651,7 @@ namespace bs
 		ResourceListenerManager::instance().notifyListeners(uuid);
 	}
 
-	Vector<String> Resources::getDependencies(const Path& filePath)
+	Vector<UUID> Resources::getDependencies(const Path& filePath)
 	{
 		SPtr<SavedResourceData> savedResourceData;
 		if (!filePath.isEmpty())
@@ -696,7 +696,7 @@ namespace bs
 		return nullptr;
 	}
 
-	bool Resources::isLoaded(const String& uuid, bool checkInProgress)
+	bool Resources::isLoaded(const UUID& uuid, bool checkInProgress)
 	{
 		if (checkInProgress)
 		{
@@ -722,11 +722,11 @@ namespace bs
 
 	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj)
 	{
-		String uuid = UUIDGenerator::generateRandom();
+		UUID uuid = UUIDGenerator::generateRandom();
 		return _createResourceHandle(obj, uuid);
 	}
 
-	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj, const String& UUID)
+	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj, const UUID& UUID)
 	{
 		HResource newHandle(obj, UUID);
 
@@ -741,7 +741,7 @@ namespace bs
 		return newHandle;
 	}
 
-	HResource Resources::_getResourceHandle(const String& uuid)
+	HResource Resources::_getResourceHandle(const UUID& uuid)
 	{
 		Lock lock(mLoadedResourceMutex);
 		auto iterFind3 = mHandles.find(uuid);
@@ -757,7 +757,7 @@ namespace bs
 		return handle;
 	}
 
-	bool Resources::getFilePathFromUUID(const String& uuid, Path& filePath) const
+	bool Resources::getFilePathFromUUID(const UUID& uuid, Path& filePath) const
 	{
 		for(auto iter = mResourceManifests.rbegin(); iter != mResourceManifests.rend(); ++iter) 
 		{
@@ -768,7 +768,7 @@ namespace bs
 		return false;
 	}
 
-	bool Resources::getUUIDFromFilePath(const Path& path, String& uuid) const
+	bool Resources::getUUIDFromFilePath(const Path& path, UUID& uuid) const
 	{
 		Path manifestPath = path;
 		if (!manifestPath.isAbsolute())
@@ -785,7 +785,7 @@ namespace bs
 
 	void Resources::loadComplete(HResource& resource)
 	{
-		String uuid = resource.getUUID();
+		UUID uuid = resource.getUUID();
 
 		ResourceLoadData* myLoadData = nullptr;
 		bool finishLoad = true;

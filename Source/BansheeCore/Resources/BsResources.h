@@ -141,7 +141,7 @@ namespace bs
 		 *													
 		 * @see		load(const Path&, bool)
 		 */
-		HResource loadFromUUID(const String& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
+		HResource loadFromUUID(const UUID& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
 		/**
 		 * Releases an internal reference to the resource held by the resources system. This allows the resource to be 
@@ -209,7 +209,7 @@ namespace bs
 		 * @param[in]	filePath	Full path to the resource to get dependencies for.
 		 * @return					List of dependencies represented as UUIDs.
 		 */
-		Vector<String> getDependencies(const Path& filePath);
+		Vector<UUID> getDependencies(const Path& filePath);
 
 		/**
 		 * Checks is the resource with the specified UUID loaded.
@@ -219,7 +219,7 @@ namespace bs
 		 *								asynchronously loaded.					
 		 * @return						True if loaded or loading in progress, false otherwise.
 		 */
-		bool isLoaded(const String& uuid, bool checkInProgress = true);
+		bool isLoaded(const UUID& uuid, bool checkInProgress = true);
 
 		/**
 		 *Allows you to set a resource manifest containing UUID <-> file path mapping that is used when resolving 
@@ -247,10 +247,10 @@ namespace bs
 		SPtr<ResourceManifest> getResourceManifest(const String& name) const;
 
 		/** Attempts to retrieve file path from the provided UUID. Returns true if successful, false otherwise. */
-		bool getFilePathFromUUID(const String& uuid, Path& filePath) const;
+		bool getFilePathFromUUID(const UUID& uuid, Path& filePath) const;
 
 		/** Attempts to retrieve UUID from the provided file path. Returns true if successful, false otherwise. */
-		bool getUUIDFromFilePath(const Path& path, String& uuid) const;
+		bool getUUIDFromFilePath(const Path& path, UUID& uuid) const;
 
 		/**
 		 * Called when the resource has been successfully loaded. 
@@ -266,7 +266,7 @@ namespace bs
 		 *
 		 * @note	It is undefined from which thread this will get called from.
 		 */
-		Event<void(const String&)> onResourceDestroyed;
+		Event<void(const UUID&)> onResourceDestroyed;
 
 		/**
 		 * Called when the internal resource the handle is pointing to has changed.
@@ -292,10 +292,10 @@ namespace bs
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource _createResourceHandle(const SPtr<Resource>& obj, const String& UUID);
+		HResource _createResourceHandle(const SPtr<Resource>& obj, const UUID& UUID);
 
 		/** Returns an existing handle for the specified UUID if one exists, or creates a new one. */
-		HResource _getResourceHandle(const String& uuid);
+		HResource _getResourceHandle(const UUID& uuid);
 
 		/** @} */
 	private:
@@ -306,7 +306,7 @@ namespace bs
 		 * resource, although you may provide an empty path in which case the resource will be retrieved from memory if its
 		 * currently loaded.
 		 */
-		HResource loadInternal(const String& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags);
+		HResource loadInternal(const UUID& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags);
 
 		/** Performs actually reading and deserializing of the resource file. Called from various worker threads. */
 		SPtr<Resource> loadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData);
@@ -327,10 +327,10 @@ namespace bs
 		Mutex mInProgressResourcesMutex;
 		Mutex mLoadedResourceMutex;
 
-		UnorderedMap<String, WeakResourceHandle<Resource>> mHandles;
-		UnorderedMap<String, LoadedResourceData> mLoadedResources;
-		UnorderedMap<String, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded
-		UnorderedMap<String, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded
+		UnorderedMap<UUID, WeakResourceHandle<Resource>> mHandles;
+		UnorderedMap<UUID, LoadedResourceData> mLoadedResources;
+		UnorderedMap<UUID, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded
+		UnorderedMap<UUID, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded
 	};
 
 	/** Provides easier access to Resources manager. */

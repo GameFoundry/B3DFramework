@@ -50,12 +50,9 @@ namespace bs
 		return scriptResource->getManagedInstance();
 	}
 
-	MonoString* ScriptResourceRef::internal_GetUUID(ScriptResourceRef* thisPtr)
+	void ScriptResourceRef::internal_GetUUID(ScriptResourceRef* thisPtr, UUID* uuid)
 	{
-		const String& uuid = thisPtr->getHandle().getUUID();
-
-		return MonoUtil::stringToMono(uuid);
+		*uuid = thisPtr->getHandle().getUUID();
 	}
-
 }
 

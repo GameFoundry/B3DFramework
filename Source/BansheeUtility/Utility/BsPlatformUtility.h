@@ -5,6 +5,7 @@
 #include "Prerequisites/BsPlatformDefines.h"
 #include "String/BsString.h"
 #include "Prerequisites/BsTypes.h"
+#include "Utility/BsUUID.h"
 
 namespace bs
 {
@@ -50,7 +51,7 @@ namespace bs
 		static SystemInfo getSystemInfo();
 
 		/** Creates a new universally unique identifier and returns it as a string. */
-		static String generateUUID();
+		static UUID generateUUID();
 
 		/** @name Internal
 		 *  @{

@@ -79,18 +79,15 @@ namespace bs
 		return nullptr;
 	}
 
-	MonoString* ScriptPrefabUtility::internal_GetPrefabUUID(ScriptSceneObject* soPtr)
+	void ScriptPrefabUtility::internal_GetPrefabUUID(ScriptSceneObject* soPtr, UUID* uuid)
 	{
+		*uuid = UUID::EMPTY;
+
 		if (ScriptSceneObject::checkIfDestroyed(soPtr))
-			return nullptr;
+			return;
 
 		HSceneObject so = soPtr->getNativeSceneObject();
-
-		String prefabUUID = soPtr->getNativeSceneObject()->getPrefabLink(true);
-		if (prefabUUID.empty())
-			return nullptr;
-
-		return MonoUtil::stringToMono(prefabUUID);
+		*uuid = soPtr->getNativeSceneObject()->getPrefabLink(true);
 	}
 
 	void ScriptPrefabUtility::internal_UpdateFromPrefab(ScriptSceneObject* soPtr)

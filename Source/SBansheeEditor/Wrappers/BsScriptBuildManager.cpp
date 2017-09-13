@@ -274,7 +274,7 @@ namespace bs
 			Vector<Path> allDependencies;
 			for (auto& entry : newResources)
 			{
-				Vector<String> curDependencies = gResources().getDependencies(entry);
+				Vector<UUID> curDependencies = gResources().getDependencies(entry);
 				for (auto& entry : curDependencies)
 				{
 					Path resourcePath;
@@ -303,7 +303,7 @@ namespace bs
 		Path libraryDir = gProjectLibrary().getResourcesFolder();
 		for (auto& entry : usedResources)
 		{
-			String uuid;
+			UUID uuid;
 			BS_ASSERT(gResources().getUUIDFromFilePath(entry, uuid));
 
 			Path sourcePath = gProjectLibrary().uuidToPath(uuid);

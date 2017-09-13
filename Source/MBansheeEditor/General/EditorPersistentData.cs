@@ -15,10 +15,10 @@ namespace BansheeEditor
     internal class EditorPersistentData : ManagedComponent
     {
         [SerializeField]
-        internal Dictionary<string, bool> dirtyResources = new Dictionary<string, bool>();
+        internal Dictionary<UUID, bool> dirtyResources = new Dictionary<UUID, bool>();
 
         [SerializeField]
-        internal Dictionary<string, EditorAnimClipInfo> dirtyAnimClips = new Dictionary<string, EditorAnimClipInfo>();
+        internal Dictionary<UUID, EditorAnimClipInfo> dirtyAnimClips = new Dictionary<UUID, EditorAnimClipInfo>();
     }
 
     /** @} */

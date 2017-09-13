@@ -62,7 +62,7 @@ namespace bs
 		 * Attempts to find a resource interop object for a resource with the specified UUID. Returns null if the object
 		 * cannot be found.
 		 */
-		ScriptResourceBase* getScriptResource(const String& UUID);
+		ScriptResourceBase* getScriptResource(const UUID& UUID);
 
 		/**
 		 * Deletes the provided resource interop objects. All resource interop objects should be deleted using this method.
@@ -70,13 +70,13 @@ namespace bs
 		void destroyScriptResource(ScriptResourceBase* resource);
 
 		/**	Throws an exception if the provided UUID already exists in the interop object lookup table. */
-		void _throwExceptionIfInvalidOrDuplicate(const String& uuid) const;
+		void _throwExceptionIfInvalidOrDuplicate(const UUID& uuid) const;
 
 	private:
 		/**	Triggered when the native resource has been unloaded and therefore destroyed. */
-		void onResourceDestroyed(const String& UUID);
+		void onResourceDestroyed(const UUID& UUID);
 
-		UnorderedMap<String, ScriptResourceBase*> mScriptResources;
+		UnorderedMap<UUID, ScriptResourceBase*> mScriptResources;
 		HEvent mResourceDestroyedConn;
 	};
 

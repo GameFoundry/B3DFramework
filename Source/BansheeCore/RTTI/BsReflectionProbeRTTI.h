@@ -26,8 +26,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mExtents, 5)
 			BS_RTTI_MEMBER_PLAIN(mTransitionDistance, 6)
 			BS_RTTI_MEMBER_REFL(mCustomTexture, 7)
-			BS_RTTI_MEMBER_PLAIN(mUUID, 8)
-			BS_RTTI_MEMBER_REFLPTR(mFilteredTexture, 9)
+			BS_RTTI_MEMBER_REFLPTR(mFilteredTexture, 8)
 		BS_END_RTTI_MEMBERS
 	public:
 		ReflectionProbeRTTI()

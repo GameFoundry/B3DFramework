@@ -53,7 +53,7 @@ namespace bs
 		 *
 		 * @see	findDependencies
 		 */
-		static void findResourceDependenciesInternal(IReflectable& object, bool recursive, Map<String, ResourceDependency>& dependencies);
+		static void findResourceDependenciesInternal(IReflectable& object, bool recursive, Map<UUID, ResourceDependency>& dependencies);
 
 		/**
 		 * Checks if the specified type (or any of its derived classes) have any IReflectable pointer or value types as 

@@ -73,8 +73,8 @@ namespace bs
 		UINT32 getNumComponents(SceneObject* obj) { return (UINT32)obj->mComponents.size(); }
 		void setNumComponents(SceneObject* obj, UINT32 size) { /* DO NOTHING */ }
 
-		String& getPrefabLink(SceneObject* obj) { return obj->mPrefabLinkUUID; }
-		void setPrefabLink(SceneObject* obj, String& value) { obj->mPrefabLinkUUID = value; }
+		UUID& getPrefabLink(SceneObject* obj) { return obj->mPrefabLinkUUID; }
+		void setPrefabLink(SceneObject* obj, UUID& value) { obj->mPrefabLinkUUID = value; }
 
 		SPtr<PrefabDiff> getPrefabDiff(SceneObject* obj) { return obj->mPrefabDiff; }
 		void setPrefabDiff(SceneObject* obj, SPtr<PrefabDiff> value) { obj->mPrefabDiff = value; }

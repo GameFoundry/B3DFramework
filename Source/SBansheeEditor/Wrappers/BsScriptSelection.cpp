@@ -8,6 +8,7 @@
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsMonoUtil.h"
 #include "BsScriptGameObjectManager.h"
+#include "Wrappers/BsScriptResource.h"
 
 namespace bs
 {
@@ -86,31 +87,23 @@ namespace bs
 
 	void ScriptSelection::internal_GetResourceUUIDSelection(MonoArray** selection)
 	{
-		Vector<String> uuids = Selection::instance().getResourceUUIDs();
+		Vector<UUID> uuids = Selection::instance().getResourceUUIDs();
 		ScriptArray uuidArray(MonoUtil::getStringClass(), (UINT32)uuids.size());
 
 		for (UINT32 i = 0; i < (UINT32)uuids.size(); i++)
-		{
-			MonoString* monoString = MonoUtil::stringToMono(uuids[i]);
-			uuidArray.set(i, monoString);
-		}
+			uuidArray.set(i, ScriptUUID::box(uuids[i]));
 
 		*selection = uuidArray.getInternal();
 	}
 
 	void ScriptSelection::internal_SetResourceUUIDSelection(MonoArray* selection)
 	{
-		Vector<String> uuids;
+		Vector<UUID> uuids;
 
 		ScriptArray uuidArray(selection);
 		UINT32 arrayLen = uuidArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
-		{
-			MonoString* monoString = uuidArray.get<MonoString*>(i);
-			String uuid = MonoUtil::monoToString(monoString);
-
-			uuids.push_back(uuid);
-		}
+			uuids.push_back(ScriptUUID::unbox(uuidArray.get<MonoObject*>(i)));
 
 		Selection::instance().setResourceUUIDs(uuids);
 	}
