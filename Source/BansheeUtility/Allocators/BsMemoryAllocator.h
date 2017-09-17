@@ -85,7 +85,7 @@ namespace bs
 			return nullptr;
 
 		UINT8* alignedData = ((UINT8*)data) + sizeof(void*);
-		alignedData += alignment - ((uintptr_t)alignedData) & (alignment - 1);
+		alignedData += (alignment - ((uintptr_t)alignedData) & (alignment - 1)) & (alignment - 1);
 
 		((void**)alignedData)[-1] = data;
 		return alignedData;
