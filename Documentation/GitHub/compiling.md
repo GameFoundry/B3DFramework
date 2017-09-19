@@ -5,6 +5,8 @@ Use the guide below to get Banshee up and running as quickly as possible. Scroll
 
 - Install git (https://git-scm.com) and CMake 3.9.0 or higher (https://cmake.org)
   - Ensure they are added to your *PATH* environment variable
+- Install other dependencies
+  - See [here](#otherDeps)
 - Run the following commands in the terminal/command line:
   - `git clone https://github.com/BearishSun/BansheeEngine.git`
   - `cd BansheeEngine`
@@ -19,8 +21,6 @@ Use the guide below to get Banshee up and running as quickly as possible. Scroll
 	- See all valid generators: [cmake-generators](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html)
 - Build the project using your chosen tool
   - Build files are in `BansheeEngine\Build` folder
-- Install dependencies
-  - See [here](#otherDeps)
 	 
 ## Customizing the build
 
