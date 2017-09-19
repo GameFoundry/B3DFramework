@@ -11,6 +11,7 @@ Use the guide below to get Banshee up and running as quickly as possible. Scroll
   - `git clone https://github.com/BearishSun/BansheeEngine.git`
   - `cd BansheeEngine`
   - `mkdir Build`
+  - `cd Build`
   - `cmake -G "$generator$" ../Source`
     - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
 	  - `Visual Studio 14 2015 Win64` - Visual Studio 2015 (64-bit build)
