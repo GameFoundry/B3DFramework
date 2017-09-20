@@ -778,25 +778,25 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../../Source/BansheeUtility/Include \
-                         ../../Source/BansheeCore/Include \
-                         ../../Source/BansheeEngine/Include \
-                         ../../Source/BansheeEditor/Include \
-                         ../../Source/BansheeD3D11RenderAPI/Include \
-                         ../../Source/BansheeGLRenderAPI/Include \
-                         ../../Source/BansheeFBXImporter/Include \
-                         ../../Source/BansheeFontImporter/Include \
-                         ../../Source/BansheeFreeImgImporter/Include \
-                         ../../Source/BansheeOISInput/Include \
-                         ../../Source/BansheePhysX/Include \
-                         ../../Source/BansheeSL/Include \
-                         ../../Source/RenderBeast/Include \
-                         ../../Source/BansheeMono/Include \
-                         ../../Source/SBansheeEngine/Include \
-                         ../../Source/SBansheeEditor/Include \
+INPUT                  = ../../Source/BansheeUtility \
+                         ../../Source/BansheeCore \
+                         ../../Source/BansheeEngine \
+                         ../../Source/BansheeEditor \
+                         ../../Source/BansheeD3D11RenderAPI \
+                         ../../Source/BansheeGLRenderAPI \
+                         ../../Source/BansheeFBXImporter \
+                         ../../Source/BansheeFontImporter \
+                         ../../Source/BansheeFreeImgImporter \
+                         ../../Source/BansheeOISInput \
+                         ../../Source/BansheePhysX \
+                         ../../Source/BansheeSL \
+                         ../../Source/RenderBeast \
+                         ../../Source/BansheeMono \
+                         ../../Source/SBansheeEngine \
+                         ../../Source/SBansheeEditor \
                          ../Manuals/Native \
-                         ../../Source/BansheeFMOD/Include \
-                         ../../Source/BansheeOpenAudio/Include \
+                         ../../Source/BansheeFMOD \
+                         ../../Source/BansheeOpenAudio \
                          ../Manuals/Native/User \
                          ../../Source/BansheeVulkanRenderAPI
 
@@ -823,31 +823,13 @@ INPUT_ENCODING         = UTF-8
 # *.m, *.markdown, *.md, *.mm, *.dox, *.py, *.f90, *.f, *.for, *.tcl, *.vhd,
 # *.vhdl, *.ucf, *.qsf, *.as and *.js.
 
-FILE_PATTERNS          = *.c \
-                         *.cc \
-                         *.cxx \
-                         *.cpp \
-                         *.c++ \
-                         *.java \
-                         *.ii \
-                         *.ixx \
-                         *.ipp \
-                         *.i++ \
-                         *.inl \
-                         *.idl \
-                         *.ddl \
-                         *.odl \
+FILE_PATTERNS          = *.inl \
                          *.h \
                          *.hh \
                          *.hxx \
                          *.hpp \
                          *.h++ \
                          *.cs \
-                         *.d \
-                         *.php \
-                         *.php4 \
-                         *.php5 \
-                         *.phtml \
                          *.inc \
                          *.m \
                          *.markdown \
@@ -879,7 +861,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../../Source/BansheeUtility/Include/ThirdParty
+EXCLUDE                = ../../Source/BansheeUtility/ThirdParty
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
