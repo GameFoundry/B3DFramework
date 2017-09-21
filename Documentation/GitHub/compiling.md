@@ -43,6 +43,7 @@ You can choose to use a different *CMake* generator than those specified above, 
     - (Mac & Linux coming soon)
   - Supported compilers:
     - MSVC++ 14.0 (Visual Studio 2015)
+	- MSVC++ 15.0 (Visual Studio 2017)
     - GCC 7.0 (or newer)
     - Clang 4 (or newer)
 
