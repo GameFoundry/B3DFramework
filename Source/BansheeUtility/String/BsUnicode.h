@@ -23,9 +23,11 @@ namespace bs
 		/**
 		 * Converts from an UTF-8 encoding into ANSI encoding in the specified locale.
 		 * 
-		 * @param[in]	input	Narrow string encoded as UTF-8 characters.
-		 * @param[in]	locale	Locale that determines from which code page to generate the ANSI characters.
-		 * @return				ANSI encoded string in the specified locale.
+		 * @param[in]	input			Narrow string encoded as UTF-8 characters.
+		 * @param[in]	locale			Locale that determines from which code page to generate the ANSI characters.
+		 * @param[in]	invalidChar		Character that will be used when an Unicode character cannot be represented using
+		 *								the selected ANSI code page.
+		 * @return						ANSI encoded string in the specified locale.
 		 */
 		static String toANSI(const String& input, const std::locale& locale = std::locale(), char invalidChar = 0);
 
