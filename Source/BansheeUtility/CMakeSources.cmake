@@ -29,9 +29,9 @@ set(BS_BANSHEEUTILITY_SRC_WIN32
 )
 
 set(BS_BANSHEEUTILITY_SRC_UNIX
-	"Unix/BsUnixCrashHandler.cpp"
-	"Unix/BsUnixFileSystem.cpp"
-	"Unix/BsUnixPlatformUtility.cpp"
+	"Linux/BsUnixCrashHandler.cpp"
+	"Linux/BsUnixFileSystem.cpp"
+	"Linux/BsUnixPlatformUtility.cpp"
 )
 
 set(BS_BANSHEEUTILITY_INC_IMAGE

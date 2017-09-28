@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsUnixWindow.h"
-#include "BsUnixPlatform.h"
+#include "BsLinuxWindow.h"
+#include "BsLinuxPlatform.h"
 #include "Math/BsRect2I.h"
 
 #include <X11/Xlib.h>
@@ -37,36 +37,36 @@ namespace bs
 		WindowState state = WindowState::Normal;
 
 		Rect2I dragZone;
-		int32_t dragStartX, dragStartY;
+		INT32 dragStartX, dragStartY;
 	};
 
 	LinuxWindow::LinuxWindow(const WINDOW_DESC &desc)
 	{
 		::Display* display = LinuxPlatform::getXDisplay();
 
-		int screen;
+		INT32 screen;
 		if(desc.screen == (UINT32)-1)
 			screen = XDefaultScreen(display);
 		else
-			screen = std::min((int)desc.screen, XScreenCount(display));
+			screen = std::min((INT32)desc.screen, XScreenCount(display));
 
 		XSetWindowAttributes attributes;
 		attributes.background_pixel = XWhitePixel(display, screen);
 		attributes.border_pixel = XBlackPixel(display, screen);
 
 		attributes.colormap = XCreateColormap(display,
-				XRootWindow(display, desc.visualInfo.screen),
+				XRootWindow(display, screen),
 				desc.visualInfo.visual,
 				AllocNone);
 
-		uint32_t borderWidth = 0;
+		UINT32 borderWidth = 0;
 
 		m->x = desc.x;
 		m->y = desc.y;
 		m->width = desc.width;
 		m->height = desc.height;
 		m->xWindow = XCreateWindow(display,
-				XRootWindow(display, desc.visualInfo.screen),
+				XRootWindow(display, screen),
 				desc.x, desc.y,
 				desc.width, desc.height,
 				borderWidth, desc.visualInfo.depth,
@@ -233,7 +233,7 @@ namespace bs
 		XWindowAttributes xwa;
 		XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->xWindow, &xwa);
 
-		return xwa.width;
+		return (UINT32)xwa.width;
 	}
 
 	UINT32 LinuxWindow::getHeight() const
@@ -241,7 +241,7 @@ namespace bs
 		XWindowAttributes xwa;
 		XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->xWindow, &xwa);
 
-		return xwa.height;
+		return (UINT32)xwa.height;
 	}
 
 	Vector2I LinuxWindow::windowToScreenPos(const Vector2I& windowPos) const
@@ -266,7 +266,7 @@ namespace bs
 		return windowPos;
 	}
 
-	void LinuxWindow::setIcon(const SPtr<PixelData>& data)
+	void LinuxWindow::setIcon(const PixelData& data)
 	{
 		Pixmap iconPixmap = LinuxPlatform::createPixmap(data);
 
@@ -285,6 +285,11 @@ namespace bs
 	{
 		LinuxPlatform::_unregisterWindow(m->xWindow);
 		m->xWindow = 0;
+	}
+
+	void LinuxWindow::_setDragZone(const Rect2I& rect)
+	{
+		m->dragZone = rect;
 	}
 
 	bool LinuxWindow::_dragStart(int32_t x, int32_t y)

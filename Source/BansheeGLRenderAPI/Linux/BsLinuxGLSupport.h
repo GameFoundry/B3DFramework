@@ -36,6 +36,21 @@ namespace bs { namespace ct
 	extern glXSwapIntervalMESAProc glXSwapIntervalMESA;
 	extern glXSwapIntervalSGIProc glXSwapIntervalSGI;
 
+	/** Determines which features are supported by a particular framebuffer configuration. */
+	struct GLVisualCapabilities
+	{
+		bool depthStencil = false;
+		UINT32 numSamples = 1;
+		bool srgb = false;
+	};
+
+	/** Contains information about a framebuffer configuration that can be used to initialize a window and GL context. */
+	struct GLVisualConfig
+	{
+		GLVisualCapabilities caps;
+		XVisualInfo visualInfo;
+	};
+
 	/**	Handles OpenGL initialization, window creation and extensions on Linux. */
 	class LinuxGLSupport : public GLSupport
 	{
@@ -72,7 +87,7 @@ namespace bs { namespace ct
 		 * 							will automatically be encoded into gamma space on write.
 		 * @return					X11 visual info structure you may use to initialize a window.
 		 */
-		XVisualInfo findBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const;
+		GLVisualConfig findBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const;
 
 		/** @copydoc GLSupport::getVideoModeInfo */
 		SPtr<VideoModeInfo> getVideoModeInfo() const override;

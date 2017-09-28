@@ -32,7 +32,10 @@ namespace bs
 		SPtr<PixelData> background;
 	};
 
-	/**	Represents a X11 window. */
+	/**
+	 * Represents a X11 window. Note that all accesses (including creation and destruction) to objects of this class must
+	 * be locked by the main X11 lock accessible through LinuxPlatform.
+	 */
 	class BS_UTILITY_EXPORT LinuxWindow
 	{
 	public:
@@ -76,7 +79,7 @@ namespace bs
 		void move(INT32 left, INT32 top);
 
 		/** Sets the icon to display for the window. */
-		void setIcon(const SPtr<PixelData>& icon);
+		void setIcon(const PixelData& icon);
 
 		/**	Converts screen position into window local position. */
 		Vector2I screenToWindowPos(const Vector2I& screenPos) const;

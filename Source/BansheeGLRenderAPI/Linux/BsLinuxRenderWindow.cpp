@@ -1,24 +1,16 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "CoreThread/BsCoreThread.h"
-#include "BsGLPixelFormat.h"
-#include "Unix/BsUnixPlatform.h"
+#include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxRenderWindow.h"
-#include "Unix/BsUnixWindow.h"
+#include "Linux/BsLinuxWindow.h"
 #include "Linux/BsLinuxVideoModeInfo.h"
 #include "Linux/BsLinuxGLSupport.h"
-#include "Math/BsMath.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "BsGLPixelFormat.h"
 #include "BsGLRenderWindowManager.h"
-#include <GL/glxew.h>
-#include "Math/BsVector2I.h"
 
 namespace bs
 {
-	LinuxRenderWindowProperties::LinuxRenderWindowProperties(const RENDER_WINDOW_DESC& desc)
-		:RenderWindowProperties(desc)
-	{ }
-
 	LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, ct::LinuxGLSupport& glSupport)
 		:RenderWindow(desc, windowId), mGLSupport(glSupport), mProperties(desc)
 	{ }
@@ -27,21 +19,32 @@ namespace bs
 	{
 		if (name == "WINDOW")
 		{
-			::Window *x11Window = (::Window*)data;
-			// TODOPORT
-			//*x11Window = (UINT64)getHWnd();
+			blockUntilCoreInitialized();
+			getCore()->getCustomAttribute(name, data);
 			return;
 		}
 	}
 
 	Vector2I LinuxRenderWindow::screenToWindowPos(const Vector2I& screenPos) const
 	{
-		// TODOPORT
+		blockUntilCoreInitialized();
+
+		LinuxPlatform::lockX();
+		Vector2I pos = getCore()->_getInternal()->screenToWindowPos(screenPos);
+		LinuxPlatform::unlockX();
+
+		return pos;
 	}
 
 	Vector2I LinuxRenderWindow::windowToScreenPos(const Vector2I& windowPos) const
 	{
-		// TODOPORT
+		blockUntilCoreInitialized();
+
+		LinuxPlatform::lockX();
+		Vector2I pos = getCore()->_getInternal()->windowToScreenPos(windowPos);
+		LinuxPlatform::unlockX();
+
+		return pos;
 	}
 
 	SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::getCore() const
@@ -51,7 +54,7 @@ namespace bs
 
 	void LinuxRenderWindow::syncProperties()
 	{
-		ScopedSpinLock lock(getCore()->mLock);
+		ScopedSpinLock lock(getCore()->_getPropertiesLock());
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -59,89 +62,84 @@ namespace bs
 	{
 	LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, LinuxGLSupport& glsupport)
 			: RenderWindow(desc, windowId), mWindow(nullptr), mGLSupport(glsupport), mContext(nullptr), mProperties(desc)
-			, mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false)
+			, mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false), mOldScreenConfig(nullptr)
 	{ }
 
 	LinuxRenderWindow::~LinuxRenderWindow()
 	{
-		LinuxRenderWindowProperties& props = mProperties;
+		RenderWindowProperties& props = mProperties;
 
 		if (mWindow != nullptr)
 		{
+			LinuxPlatform::lockX();
+
+			if(mOldScreenConfig)
+			{
+				XRRFreeScreenConfigInfo(mOldScreenConfig);
+				mOldScreenConfig = nullptr;
+			}
+
 			mWindow->close();
 
 			bs_delete(mWindow);
 			mWindow = nullptr;
-		}
 
-		props.mActive = false;
+			LinuxPlatform::unlockX();
+		}
 	}
 
 	void LinuxRenderWindow::initialize()
 	{
-		LinuxRenderWindowProperties& props = mProperties;
+		LinuxPlatform::lockX();
 
-		props.mIsFullScreen = mDesc.fullscreen;
+		RenderWindowProperties& props = mProperties;
+
+		props.isFullScreen = mDesc.fullscreen;
 		mIsChild = false;
-		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.getRefreshRate());
-		props.mColorDepth = 32;
+
+		GLVisualConfig visualConfig = mGLSupport.findBestVisual(LinuxPlatform::getXDisplay(), mDesc.depthBuffer,
+				mDesc.multisampleCount, mDesc.gamma);
 
 		WINDOW_DESC windowDesc;
-		windowDesc.fullscreen = mDesc.fullscreen;
 		windowDesc.x = mDesc.left;
 		windowDesc.y = mDesc.top;
 		windowDesc.width = mDesc.videoMode.getWidth();
 		windowDesc.height = mDesc.videoMode.getHeight();
-		windowDesc.hidden = mDesc.hidden || mDesc.hideUntilSwap;
 		windowDesc.title = mDesc.title;
 		windowDesc.showDecorations = !mDesc.toolWindow;
 		windowDesc.modal = mDesc.modal;
-		windowDesc.visualInfo = mGLSupport.findBestVisual(LinuxPlatform::getXDisplay(), mDesc.depthBuffer,
-				mDesc.multisampleCount, mDesc.gamma);
+		windowDesc.visualInfo = visualConfig.visualInfo;
+		windowDesc.screen = mDesc.videoMode.getOutputIdx();
 
 		NameValuePairList::const_iterator opt;
 		opt = mDesc.platformSpecific.find("parentWindowHandle");
 		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (::Window)parseUINT64(opt->second);
 
-		const LinuxVideoModeInfo& videoModeInfo = static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance()
-				.getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
-		if (numOutputs > 0)
-		{
-			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.getOutputIdx(), numOutputs - 1);
-			const LinuxVideoOutputInfo& outputInfo = static_cast<const LinuxVideoOutputInfo&>(videoModeInfo
-					.getOutputInfo(actualMonitorIdx));
-			windowDesc.monitor = outputInfo.getMonitorHandle();
-		}
-
 		mIsChild = windowDesc.parent != nullptr;
-		props.mIsFullScreen = mDesc.fullscreen && !mIsChild;
-		props.mColorDepth = 32;
-		props.mActive = true;
+		props.isFullScreen = mDesc.fullscreen && !mIsChild;
 
-		if (!windowDesc.external)
-		{
-			mShowOnSwap = mDesc.hideUntilSwap;
-			props.mHidden = mDesc.hideUntilSwap || mDesc.hidden;
-		}
+		mShowOnSwap = mDesc.hideUntilSwap;
+		props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
 		mWindow = bs_new<LinuxWindow>(windowDesc);
 
-		props.mWidth = mWindow->getWidth();
-		props.mHeight = mWindow->getHeight();
-		props.mTop = mWindow->getTop();
-		props.mLeft = mWindow->getLeft();
+		props.width = mWindow->getWidth();
+		props.height = mWindow->getHeight();
+		props.top = mWindow->getTop();
+		props.left = mWindow->getLeft();
 
-		props.mHwGamma = testHwGamma;
-		props.mMultisampleCount = testMultisample;
+		props.hwGamma = visualConfig.caps.srgb;
+		props.multisampleCount = visualConfig.caps.numSamples > 1;
 
 		XWindowAttributes windowAttributes;
 		XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), &windowAttributes);
 
 		XVisualInfo requestVI;
-		requestVI.screen = DefaultScreen(LinuxPlatform::getXDisplay());
+		requestVI.screen = windowDesc.screen;
 		requestVI.visualid = XVisualIDFromVisual(windowAttributes.visual);
+
+		LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
 
 		mContext = mGLSupport.createContext(LinuxPlatform::getXDisplay(), requestVI);
 
@@ -172,23 +170,110 @@ namespace bs
 		if (numOutputs == 0)
 			return;
 
-		LinuxRenderWindowProperties& props = mProperties;
+		RenderWindowProperties& props = mProperties;
 
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
 		const LinuxVideoOutputInfo& outputInfo = static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (actualMonitorIdx));
 
-		// TODO - Change screen mode
+		LinuxPlatform::lockX();
+		::Display* display = LinuxPlatform::getXDisplay();
 
+		// Change video mode if required
+		bool changeVideoMode = false;
 
+		XRRScreenConfiguration* screenConfig = XRRGetScreenInfo(display, XRootWindow(display, DefaultScreen (display)));
+		Rotation currentRotation;
+		SizeID currentSizeID = XRRConfigCurrentConfiguration(screenConfig, &currentRotation);
+		short currentRate = XRRConfigCurrentRate(screenConfig);
+
+		int numSizes;
+		XRRScreenSize* screenSizes = XRRConfigSizes(screenConfig, &numSizes);
+
+		if(width != screenSizes[currentSizeID].width || height != screenSizes[currentSizeID].height ||
+			currentRate != (short)refreshRate)
+			changeVideoMode = true;
+
+		// If provided mode matches current mode, avoid making the video mode change
+		if(changeVideoMode)
+		{
+			// Remember the old config so we can restore it when exiting fullscreen
+			if(mOldScreenConfig)
+			{
+				XRRFreeScreenConfigInfo(mOldScreenConfig);
+				mOldScreenConfig = nullptr;
+			}
+
+			mOldScreenConfig = screenConfig;
+			mOldConfigSizeID = currentSizeID;
+			mOldConfigRate = currentRate;
+
+			// Look for size that best matches our requested video mode
+			bool foundSize = false;
+			SizeID foundSizeID = 0;
+			for(int i = 0; i < numSizes; i++)
+			{
+				UINT32 curWidth, curHeight;
+				if(currentRotation == RR_Rotate_90 || currentRotation == RR_Rotate_270)
+				{
+					curWidth = screenSizes[i].height;
+					curHeight = screenSizes[i].width;
+				}
+				else
+				{
+					curWidth = screenSizes[i].width;
+					curHeight = screenSizes[i].height;
+				}
+
+				if(curWidth == width && curHeight == height)
+				{
+					foundSizeID = i;
+					foundSize = true;
+					break;
+				}
+			}
+
+			if(!foundSize)
+				LOGERR("Cannot change video mode, requested resolution not supported.");
+
+			// Find refresh rate closest to the requested one, or fall back to 60
+			if(foundSize)
+			{
+				int numRates;
+				short* rates = XRRConfigRates(screenConfig, foundSizeID, &numRates);
+
+				short bestRate = 60;
+				for(int i = 0; i < numRates; i++)
+				{
+					if(rates[i] == (short)refreshRate)
+					{
+						bestRate = rates[i];
+						break;
+					}
+					else
+					{
+						short diffNew = abs((short)refreshRate - rates[i]);
+						short diffOld = abs((short)refreshRate - bestRate);
+
+						if(diffNew < diffOld)
+							bestRate = rates[i];
+					}
+				}
+
+				XRRSetScreenConfigAndRate(display, screenConfig, XRootWindow(display, DefaultScreen(display)),
+						foundSizeID, currentRotation, bestRate, CurrentTime);
+			}
+		}
 
 		mWindow->_setFullscreen(true);
 
-		props.mIsFullScreen = true;
+		LinuxPlatform::unlockX();
 
-		props.mTop = monitorInfo.rcMonitor.top;
-		props.mLeft = monitorInfo.rcMonitor.left;
-		props.mWidth = width;
-		props.mHeight = height;
+		props.isFullScreen = true;
+
+		props.top = 0;
+		props.left = 0;
+		props.width = width;
+		props.height = height;
 
 		_windowMovedOrResized();
 	}
@@ -204,23 +289,33 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		LinuxRenderWindowProperties& props = mProperties;
+		RenderWindowProperties& props = mProperties;
 
-		if (!props.mIsFullScreen)
+		if (!props.isFullScreen)
 			return;
 
-		props.mIsFullScreen = false;
-		props.mWidth = width;
-		props.mHeight = height;
+		props.isFullScreen = false;
+		props.width = width;
+		props.height = height;
 
-		// TODO - Restore old screen config
+		LinuxPlatform::lockX();
 
+		// Restore old screen config
+		if(mOldScreenConfig)
+		{
+			::Display* display = LinuxPlatform::getXDisplay();
+			XRRSetScreenConfigAndRate(display, mOldScreenConfig, XRootWindow(display, DefaultScreen(display)),
+					mOldConfigSizeID, mOldConfigRotation, mOldConfigRate, CurrentTime);
+			XRRFreeScreenConfigInfo(mOldScreenConfig);
+		}
 		mWindow->_setFullscreen(false);
+
+		LinuxPlatform::unlockX();
 
 		{
 			ScopedSpinLock lock(mLock);
-			mSyncedProperties.mWidth = props.mWidth;
-			mSyncedProperties.mHeight = props.mHeight;
+			mSyncedProperties.width = props.width;
+			mSyncedProperties.height = props.height;
 		}
 
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
@@ -231,18 +326,20 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		LinuxRenderWindowProperties& props = mProperties;
-		if (!props.mIsFullScreen)
+		RenderWindowProperties& props = mProperties;
+		if (!props.isFullScreen)
 		{
+			LinuxPlatform::lockX();
 			mWindow->move(left, top);
+			LinuxPlatform::unlockX();
 
-			props.mTop = mWindow->getTop();
-			props.mLeft = mWindow->getLeft();
+			props.top = mWindow->getTop();
+			props.left = mWindow->getLeft();
 
 			{
 				ScopedSpinLock lock(mLock);
-				mSyncedProperties.mTop = props.mTop;
-				mSyncedProperties.mLeft = props.mLeft;
+				mSyncedProperties.top = props.top;
+				mSyncedProperties.left = props.left;
 			}
 
 			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
@@ -253,18 +350,20 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		LinuxRenderWindowProperties& props = mProperties;
-		if (!props.mIsFullScreen)
+		RenderWindowProperties& props = mProperties;
+		if (!props.isFullScreen)
 		{
+			LinuxPlatform::lockX();
 			mWindow->resize(width, height);
+			LinuxPlatform::unlockX();
 
-			props.mWidth = mWindow->getWidth();
-			props.mHeight = mWindow->getHeight();
+			props.width = mWindow->getWidth();
+			props.height = mWindow->getHeight();
 
 			{
 				ScopedSpinLock lock(mLock);
-				mSyncedProperties.mWidth = props.mWidth;
-				mSyncedProperties.mHeight = props.mHeight;
+				mSyncedProperties.width = props.width;
+				mSyncedProperties.height = props.height;
 			}
 
 			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
@@ -275,21 +374,27 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		LinuxPlatform::lockX();
 		mWindow->minimize();
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxRenderWindow::maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		LinuxPlatform::lockX();
 		mWindow->maximize();
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxRenderWindow::restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		LinuxPlatform::lockX();
 		mWindow->restore();
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxRenderWindow::swapBuffers(UINT32 syncMask)
@@ -299,15 +404,17 @@ namespace bs
 		if (mShowOnSwap)
 			setHidden(false);
 
+		LinuxPlatform::lockX();
 		glXSwapBuffers(LinuxPlatform::getXDisplay(), mWindow->_getXWindow());
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxRenderWindow::copyToMemory(PixelData &dst, FrameBuffer buffer)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if ((dst.getRight() > getProperties().getWidth()) ||
-			(dst.getBottom() > getProperties().getHeight()) ||
+		if ((dst.getRight() > getProperties().width) ||
+			(dst.getBottom() > getProperties().height) ||
 			(dst.getFront() != 0) || (dst.getBack() != 1))
 		{
 			BS_EXCEPT(InvalidParametersException, "Invalid box.");
@@ -315,7 +422,7 @@ namespace bs
 
 		if (buffer == FB_AUTO)
 		{
-			buffer = mProperties.isFullScreen() ? FB_FRONT : FB_BACK;
+			buffer = mProperties.isFullScreen ? FB_FRONT : FB_BACK;
 		}
 
 		GLenum format = GLPixelUtil::getGLOriginFormat(dst.getFormat());
@@ -366,8 +473,8 @@ namespace bs
 		}
 		else if(name == "WINDOW")
 		{
-			::Window* window = (::Window*)data;
-			*window = mWindow->_getXWindow();
+			LinuxWindow** window = (LinuxWindow**)data;
+			*window = mWindow;
 			return;
 		}
 	}
@@ -376,10 +483,14 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
+		LinuxPlatform::lockX();
+
 		if(state)
 			mWindow->restore();
 		else
 			mWindow->minimize();
+
+		LinuxPlatform::unlockX();
 
 		RenderWindow::setActive(state);
 	}
@@ -390,10 +501,14 @@ namespace bs
 
 		mShowOnSwap = false;
 
+		LinuxPlatform::lockX();
+
 		if(hidden)
 			mWindow->hide();
 		else
 			mWindow->show();
+
+		LinuxPlatform::unlockX();
 
 		RenderWindow::setHidden(hidden);
 	}
@@ -403,15 +518,13 @@ namespace bs
 		if (!mWindow)
 			return;
 
-		mWindow->_windowMovedOrResized();
-
-		LinuxRenderWindowProperties& props = mProperties;
-		if (!props.mIsFullScreen) // Fullscreen is handled directly by this object
+		RenderWindowProperties& props = mProperties;
+		if (!props.isFullScreen) // Fullscreen is handled directly by this object
 		{
-			props.mTop = mWindow->getTop();
-			props.mLeft = mWindow->getLeft();
-			props.mWidth = mWindow->getWidth();
-			props.mHeight = mWindow->getHeight();
+			props.top = mWindow->getTop();
+			props.left = mWindow->getLeft();
+			props.width = mWindow->getWidth();
+			props.height = mWindow->getHeight();
 		}
 
 		RenderWindow::_windowMovedOrResized();
@@ -422,6 +535,5 @@ namespace bs
 		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}
-	}
-}
+}}
 

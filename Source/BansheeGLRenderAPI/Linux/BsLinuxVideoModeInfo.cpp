@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Linux/BsLinuxVideoModeInfo.h"
-#include "Unix/BsUnixPlatform.h"
+#include "Linux/BsLinuxPlatform.h"
 #include <X11/extensions/Xrandr.h>
 
 #define XRANDR_ROTATION_LEFT    (1 << 1)
@@ -11,6 +11,8 @@ namespace bs { namespace ct
 {
 	LinuxVideoModeInfo::LinuxVideoModeInfo()
 	{
+		LinuxPlatform::lockX();
+
 		::Display* display = LinuxPlatform::getXDisplay();
 
 		INT32 minor, major;
@@ -53,6 +55,8 @@ namespace bs { namespace ct
 
 			XRRFreeScreenResources(screenRes);
 		}
+
+		LinuxPlatform::unlockX();
 	}
 
 	LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo,

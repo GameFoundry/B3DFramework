@@ -1,12 +1,13 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include <Image/BsPixelData.h>
-#include <Image/BsPixelUtil.h>
-#include <X11/Xutil.h>
+#include "Image/BsPixelData.h"
+#include "Image/BsPixelUtil.h"
+#include "String/BsUnicode.h"
+#include "Linux/BsLinuxPlatform.h"
+#include "Linux/BsLinuxWindow.h"
+#include "RenderAPI/BsRenderWindow.h"
 #include <X11/Xatom.h>
-#include <String/BsUnicode.h>
-#include "BsUnixPlatform.h"
-#include "BsUnixWindow.h"
+#include <X11/Xcursor/Xcursor.h>
 
 namespace bs
 {
@@ -19,7 +20,7 @@ namespace bs
 	Event<void(UINT32)> Platform::onCharInput;
 
 	Event<void(ct::RenderWindow*)> Platform::onMouseLeftWindow;
-	Event<void()> Platform::onMouseCaptureChanged
+	Event<void()> Platform::onMouseCaptureChanged;
 
 	enum class X11CursorType
 	{
@@ -47,6 +48,7 @@ namespace bs
 		::Window mainXWindow = 0;
 		::Window fullscreenXWindow = 0;
 		std::unordered_map<::Window, LinuxWindow*> windowMap;
+		Mutex lock;
 
 		XIM IM;
 		XIC IC;
@@ -69,63 +71,44 @@ namespace bs
 
 	static const UINT32 DOUBLE_CLICK_MS = 500;
 
-	Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
-
-	Platform::~Platform() { }
-
-	Vector2I Platform::getCursorPosition()
+	Vector2I _getCursorPosition(Platform::Pimpl* data)
 	{
-		UINT32 screenCount = XScreenCount(mData->xDisplay);
-
 		Vector2I pos;
-		for(UINT32 i = 0; i < screenCount; ++i)
+		UINT32 screenCount = (UINT32)XScreenCount(data->xDisplay);
+
+		for (UINT32 i = 0; i < screenCount; ++i)
 		{
 			::Window outRoot, outChild;
 			INT32 childX, childY;
 			UINT32 mask;
-			XQueryPointer(mData->xDisplay, XRootWindow(mData->xDisplay, i), &outRoot, &outChild, &pos.x,
-					&pos.y, &childX, &childY, &mask);
+			if(XQueryPointer(data->xDisplay, XRootWindow(data->xDisplay, i), &outRoot, &outChild, &pos.x,
+					&pos.y, &childX, &childY, &mask))
+				break;
 		}
 
 		return pos;
 	}
 
-	void Platform::setCursorPosition(const Vector2I& screenPos)
+	void _setCursorPosition(Platform::Pimpl* data, const Vector2I& screenPos)
 	{
-		UINT32 screenCount = XScreenCount(mData->xDisplay);
+		UINT32 screenCount = (UINT32)XScreenCount(data->xDisplay);
 
 		// Note assuming screens are laid out horizontally left to right
 		INT32 screenX = 0;
 		for(UINT32 i = 0; i < screenCount; ++i)
 		{
-			::Window root = XRootWindow(mData->xDisplay, i);
-			INT32 screenXEnd = screenX + XDisplayWidth(mData->xDisplay, i);
+			::Window root = XRootWindow(data->xDisplay, i);
+			INT32 screenXEnd = screenX + XDisplayWidth(data->xDisplay, i);
 
 			if(screenPos.x >= screenX && screenPos.x < screenXEnd)
 			{
-				XWarpPointer(mData->xDisplay, None, root, 0, 0, 0, 0, screenPos.x, screenPos.y);
-				XFlush(mData->xDisplay);
+				XWarpPointer(data->xDisplay, None, root, 0, 0, 0, 0, screenPos.x, screenPos.y);
+				XFlush(data->xDisplay);
 				return;
 			}
 
 			screenX = screenXEnd;
 		}
-	}
-
-	void Platform::captureMouse(const RenderWindow& window)
-	{
-		// TODOPORT
-	}
-
-	void Platform::releaseMouseCapture()
-	{
-		// TODOPORT
-	}
-
-	bool Platform::isPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
-	{
-		// TODOPORT
-		return false;
 	}
 
 	void applyCurrentCursor(Platform::Pimpl* data, ::Window window)
@@ -185,8 +168,84 @@ namespace bs
 		return false;
 	}
 
+	void setCurrentCursor(Platform::Pimpl* data, ::Cursor cursor)
+	{
+		if(data->currentCursor)
+			XFreeCursor(data->xDisplay, data->currentCursor);
+
+		data->currentCursor = cursor;
+		for(auto& entry : data->windowMap)
+			applyCurrentCursor(data, entry.first);
+	}
+
+	Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
+
+	Platform::~Platform()
+	{ }
+
+	Vector2I Platform::getCursorPosition()
+	{
+		Lock lock(mData->lock);
+		return _getCursorPosition(mData);
+	}
+
+	void Platform::setCursorPosition(const Vector2I& screenPos)
+	{
+		Lock lock(mData->lock);
+
+		_setCursorPosition(mData, screenPos);
+	}
+
+	void Platform::captureMouse(const RenderWindow& window)
+	{
+		Lock lock(mData->lock);
+
+		LinuxWindow* linuxWindow;
+		window.getCustomAttribute("WINDOW", &linuxWindow);
+
+		uint32_t mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
+		XGrabPointer(mData->xDisplay, linuxWindow->_getXWindow(), False, mask, GrabModeAsync,
+				GrabModeAsync, None, None, CurrentTime);
+		XSync(mData->xDisplay, False);
+	}
+
+	void Platform::releaseMouseCapture()
+	{
+		Lock lock(mData->lock);
+
+		XUngrabPointer(mData->xDisplay, CurrentTime);
+		XSync(mData->xDisplay, False);
+	}
+
+	bool Platform::isPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
+	{
+		Lock lock(mData->lock);
+
+		LinuxWindow* linuxWindow;
+		window.getCustomAttribute("WINDOW", &linuxWindow);
+		::Window xWindow = linuxWindow->_getXWindow();
+
+		Vector2I pos;
+		UINT32 screenCount = (UINT32)XScreenCount(mData->xDisplay);
+
+		for (UINT32 i = 0; i < screenCount; ++i)
+		{
+			::Window outRoot, outChild;
+			INT32 childX, childY;
+			UINT32 mask;
+			if(XQueryPointer(mData->xDisplay, XRootWindow(mData->xDisplay, i), &outRoot, &outChild, &pos.x,
+					&pos.y, &childX, &childY, &mask))
+			{
+				return outChild == xWindow;
+			}
+		}
+
+		return false;
+	}
+
 	void Platform::hideCursor()
 	{
+		Lock lock(mData->lock);
 		mData->isCursorHidden = true;
 
 		for(auto& entry : mData->windowMap)
@@ -195,6 +254,7 @@ namespace bs
 
 	void Platform::showCursor()
 	{
+		Lock lock(mData->lock);
 		mData->isCursorHidden = false;
 
 		for(auto& entry : mData->windowMap)
@@ -203,43 +263,68 @@ namespace bs
 
 	bool Platform::isCursorHidden()
 	{
+		Lock lock(mData->lock);
 		return mData->isCursorHidden;
 	}
 
 	void Platform::clipCursorToWindow(const RenderWindow& window)
 	{
+		Lock lock(mData->lock);
+
+		LinuxWindow* linuxWindow;
+		window.getCustomAttribute("WINDOW", &linuxWindow);
+
 		mData->cursorClipEnabled = true;
-		mData->cursorClipWindow = window->_getInternal();
+		mData->cursorClipWindow = linuxWindow;
 
-		updateClipBounds(window);
+		updateClipBounds(mData, linuxWindow);
 
-		Vector2I pos = getCursorPosition();
+		Vector2I pos = _getCursorPosition(mData);
 
 		if(clipCursor(mData, pos))
-			setCursorPosition(pos);
+			_setCursorPosition(mData, pos);
 	}
 
 	void Platform::clipCursorToRect(const Rect2I& screenRect)
 	{
+		Lock lock(mData->lock);
+
 		mData->cursorClipEnabled = true;
 		mData->cursorClipRect = screenRect;
 		mData->cursorClipWindow = nullptr;
 
-		Vector2I pos = getCursorPosition();
+		Vector2I pos = _getCursorPosition(mData);
 
 		if(clipCursor(mData, pos))
-			setCursorPosition(pos);
+			_setCursorPosition(mData, pos);
 	}
 
 	void Platform::clipCursorDisable()
 	{
+		Lock lock(mData->lock);
+
 		mData->cursorClipEnabled = false;
 		mData->cursorClipWindow = None;
 	}
 
 	void Platform::setCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	{
-		// TODOPORT
+		SPtr<PixelData> bgraData = PixelData::create(pixelData.getWidth(), pixelData.getHeight(), 1, PF_BGRA8);
+		PixelUtil::bulkPixelConversion(pixelData, *bgraData);
+
+		Lock lock(mData->lock);
+
+		XcursorImage* image = XcursorImageCreate((int)bgraData->getWidth(), (int)bgraData->getHeight());
+		image->xhot = hotSpot.x;
+		image->yhot = hotSpot.y;
+		image->delay = 0;
+
+		memcpy(image->pixels, bgraData->getData(), bgraData->getSize());
+
+		::Cursor cursor = XcursorImageLoadCursor(mData->xDisplay, image);
+		XcursorImageDestroy(image);
+
+		setCurrentCursor(mData, cursor);
 	}
 
 	void Platform::setIcon(const PixelData& pixelData)
@@ -247,12 +332,31 @@ namespace bs
 		SPtr<PixelData> resizedData = PixelData::create(32, 32, 1, PF_RGBA8);
 		PixelUtil::scale(pixelData, *resizedData);
 
-		// TODOPORT
+		if(!mData->mainXWindow)
+			return;
+
+		auto iterFind = mData->windowMap.find(mData->mainXWindow);
+		if(iterFind == mData->windowMap.end())
+			return;
+
+		LinuxWindow* mainLinuxWindow = iterFind->second;
+
+		Lock lock(mData->lock);
+		mainLinuxWindow->setIcon(pixelData);
 	}
 
 	void Platform::setCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
-		// TODOPORT
+		if(nonClientAreas.size() == 0)
+			return;
+
+		Lock lock(mData->lock);
+
+		LinuxWindow* linuxWindow;
+		window.getCustomAttribute("WINDOW", &linuxWindow);
+
+		// Note: Only supporting a single area
+		linuxWindow->_setDragZone(nonClientAreas[0]);
 	}
 
 	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
@@ -272,16 +376,19 @@ namespace bs
 
 	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, int x, int y, unsigned int width, unsigned int height)
 	{
+		Lock lock(mData->lock);
 		// TODOPORT
 	}
 
 	void Platform::destroyDropTarget(OSDropTarget& target)
 	{
+		Lock lock(mData->lock);
 		// TODOPORT
 	}
 
 	void Platform::copyToClipboard(const WString& string)
 	{
+		Lock lock(mData->lock);
 		mData->clipboardData = string;
 
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
@@ -290,6 +397,7 @@ namespace bs
 
 	WString Platform::copyFromClipboard()
 	{
+		Lock lock(mData->lock);
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
 		::Window selOwner = XGetSelectionOwner(mData->xDisplay, clipboardAtom);
 
@@ -340,14 +448,19 @@ namespace bs
 
 	WString Platform::keyCodeToUnicode(UINT32 keyCode)
 	{
+		Lock lock(mData->lock);
 		// TODOPORT
 		return L"";
 	}
 
 	void Platform::_messagePump()
 	{
-		while(XPending(mData->xDisplay) > 0)
+		while(true)
 		{
+			Lock lock(mData->lock);
+			if(XPending(mData->xDisplay) <= 0)
+				break;
+
 			XEvent event;
 			XNextEvent(mData->xDisplay, &event);
 
@@ -379,17 +492,18 @@ namespace bs
 				if(!XFilterEvent(&event, None))
 				{
 					Status status;
-					uint8_t buffer[16];
+					char buffer[16];
 
-					int32_t length = Xutf8LookupString(mData->IC, &event.xkey, (char*)buffer, sizeof(buffer), nullptr,
+					INT32 length = Xutf8LookupString(mData->IC, &event.xkey, buffer, sizeof(buffer), nullptr,
 							&status);
 
 					if(length > 0)
 					{
 						buffer[length] = '\0';
 
-						// TODOPORT - Buffer now contains the UTF8 value of length 'length' bytes. I can consider converting
-						// it to single UTF32 before returning
+						U32String utfStr = UTF8::toUTF32(String(buffer));
+						if(utfStr.length() > 0)
+							onCharInput((UINT32)utfStr[0]);
 					}
 				}
 
@@ -423,34 +537,57 @@ namespace bs
 				break;
 			case ButtonPress:
 			{
-				uint32_t button = event.xbutton.button;
+				UINT32 button = event.xbutton.button;
+
+				OSMouseButton mouseButton;
+				bool validPress = false;
 				switch(button)
 				{
-					// Button 4 & 5 is vertical wheel, 6 & 7 horizontal wheel, and we handle them elsewhere
-				case Button1: // Left
-				case Button2: // Middle
-				case Button3: // Right
-				case 8:
-				case 9:
-					int32_t x = event.xbutton.x_root;
-					int32_t y = event.xbutton.y_root;
+				case Button1:
+					mouseButton = OSMouseButton::Left;
+					validPress = true;
+					break;
+				case Button2:
+					mouseButton = OSMouseButton::Middle;
+					validPress = true;
+					break;
+				case Button3:
+					mouseButton = OSMouseButton::Right;
+					validPress = true;
+					break;
 
-					bool alt = (event.xbutton.state & Mod1Mask) != 0;
-					bool control = (event.xbutton.state & ControlMask) != 0;
-					bool shift = (event.xbutton.state & ShiftMask) != 0;
-
-					// TODOPORT - Report button press
+				default:
 					break;
 				}
 
-				// Handle double-click
-				if(event.xbutton.time < (mData->lastButtonPressTime + DOUBLE_CLICK_MS))
+				if(validPress)
 				{
-					// TODOPORT - Trigger double-click
-					mData->lastButtonPressTime = 0;
+					// Send event
+					Vector2I pos;
+					pos.x = event.xbutton.x_root;
+					pos.y = event.xbutton.y_root;
+
+					OSPointerButtonStates btnStates;
+					btnStates.ctrl = (event.xbutton.state & ControlMask) != 0;
+					btnStates.shift = (event.xbutton.state & ShiftMask) != 0;
+					btnStates.mouseButtons[0] = (event.xbutton.state & Button1Mask) != 0;
+					btnStates.mouseButtons[1] = (event.xbutton.state & Button2Mask) != 0;
+					btnStates.mouseButtons[2] = (event.xbutton.state & Button3Mask) != 0;
+
+					onCursorButtonPressed(pos, mouseButton, btnStates);
+
+					// Handle double-click
+					if(button == Button1)
+					{
+						if (event.xbutton.time < (mData->lastButtonPressTime + DOUBLE_CLICK_MS))
+						{
+							onCursorDoubleClick(pos, btnStates);
+							mData->lastButtonPressTime = 0;
+						}
+						else
+							mData->lastButtonPressTime = event.xbutton.time;
+					}
 				}
-				else
-					mData->lastButtonPressTime = event.xbutton.time;
 
 				// Handle window dragging for windows without a title bar
 				if(button == Button1)
@@ -467,39 +604,38 @@ namespace bs
 			}
 			case ButtonRelease:
 			{
-				uint32_t button = event.xbutton.button;
-				bool alt = (event.xbutton.state & Mod1Mask) != 0;
-				bool control = (event.xbutton.state & ControlMask) != 0;
-				bool shift = (event.xbutton.state & ShiftMask) != 0;
+				UINT32 button = event.xbutton.button;
+
+				Vector2I pos;
+				pos.x = event.xbutton.x_root;
+				pos.y = event.xbutton.y_root;
+
+				OSPointerButtonStates btnStates;
+				btnStates.ctrl = (event.xbutton.state & ControlMask) != 0;
+				btnStates.shift = (event.xbutton.state & ShiftMask) != 0;
+				btnStates.mouseButtons[0] = (event.xbutton.state & Button1Mask) != 0;
+				btnStates.mouseButtons[1] = (event.xbutton.state & Button2Mask) != 0;
+				btnStates.mouseButtons[2] = (event.xbutton.state & Button3Mask) != 0;
 
 				switch(button)
 				{
-				case Button2: // Middle
-				case Button3: // Right
-				case 8:
-				case 9:
-				{
-					int32_t x = event.xbutton.x_root;
-					int32_t y = event.xbutton.y_root;
-
-					// TODOPORT - Report button release
+				case Button1:
+					onCursorButtonReleased(pos, OSMouseButton::Left, btnStates);
 					break;
-				}
+				case Button2:
+					onCursorButtonReleased(pos, OSMouseButton::Middle, btnStates);
+					break;
+				case Button3:
+					onCursorButtonReleased(pos, OSMouseButton::Right, btnStates);
+					break;
 				case Button4: // Vertical mouse wheel
 				case Button5:
 				{
-					int32_t delta = button == Button4 ? 1 : -1;
-
-					// TODOPORT - Send mouse wheel scroll
+					INT32 delta = button == Button4 ? 1 : -1;
+					onMouseWheelScrolled((float)delta);
 				}
 					break;
-				case 6: // Horizontal mouse wheel
-				case 7:
-				{
-					int32_t delta = button == 6 ? 1 : -1;
-
-					// TODOPORT - Send mouse wheel scroll
-				}
+				default:
 					break;
 				}
 
@@ -524,9 +660,17 @@ namespace bs
 
 				// Handle clipping if enabled
 				if(clipCursor(mData, pos))
-					setCursorPosition(pos);
+					_setCursorPosition(mData, pos);
 
-				// TODOPORT - Send mouse move event
+				// Send event
+				OSPointerButtonStates btnStates;
+				btnStates.ctrl = (event.xmotion.state & ControlMask) != 0;
+				btnStates.shift = (event.xmotion.state & ShiftMask) != 0;
+				btnStates.mouseButtons[0] = (event.xmotion.state & Button1Mask) != 0;
+				btnStates.mouseButtons[1] = (event.xmotion.state & Button2Mask) != 0;
+				btnStates.mouseButtons[2] = (event.xmotion.state & Button3Mask) != 0;
+
+				onCursorMoved(pos, btnStates);
 
 				// Handle window dragging for windows without a title bar
 				auto iterFind = mData->windowMap.find(event.xmotion.window);
@@ -551,7 +695,7 @@ namespace bs
 					pos.y = event.xcrossing.y_root;
 
 					if(clipCursor(mData, pos))
-						setCursorPosition(pos);
+						_setCursorPosition(mData, pos);
 
 					// TODOPORT - Send mouse leave event
 				}
@@ -591,8 +735,8 @@ namespace bs
 				{
 					String utf8data = UTF8::fromWide(mData->clipboardData);
 
-					const uint8_t* data = (const uint8_t*)utf8data.c_str();
-					int32_t dataLength = utf8data.length();
+					const UINT8* data = (const UINT8*)utf8data.c_str();
+					INT32 dataLength = (INT32)utf8data.length();
 
 					XChangeProperty(mData->xDisplay, selReq.requestor, selReq.property,
 							selReq.target, 8, PropModeReplace, data, dataLength);
@@ -633,7 +777,7 @@ namespace bs
 
 	void Platform::_startUp()
 	{
-		// XInitThreads(); // TODO: Not sure if this will be necessary
+		Lock lock(mData->lock);
 		mData->xDisplay = XOpenDisplay(nullptr);
 
 		if(XSupportsLocale())
@@ -673,6 +817,8 @@ namespace bs
 
 	void Platform::_shutDown()
 	{
+		Lock lock(mData->lock);
+
 		// Free empty cursor
 		XFreeCursor(mData->xDisplay, mData->emptyCursor);
 		mData->emptyCursor = None;
@@ -704,6 +850,16 @@ namespace bs
 	::Window LinuxPlatform::getMainXWindow()
 	{
 		return mData->mainXWindow;
+	}
+
+	void LinuxPlatform::lockX()
+	{
+		mData->lock.lock();
+	}
+
+	void LinuxPlatform::unlockX()
+	{
+		mData->lock.unlock();
 	}
 
 	void LinuxPlatform::_registerWindow(::Window xWindow, LinuxWindow* window)
@@ -740,21 +896,21 @@ namespace bs
 			mData->mainXWindow = 0;
 	}
 
-	Pixmap LinuxPlatform::createPixmap(const SPtr<PixelData>& data)
+	Pixmap LinuxPlatform::createPixmap(const PixelData& data)
 	{
-		SPtr<PixelData> bgraData = PixelData::create(data->getWidth(), data->getHeight(), 1, PF_BGRA8);
-		PixelUtil::bulkPixelConversion(*data, *bgraData);
+		SPtr<PixelData> bgraData = PixelData::create(data.getWidth(), data.getHeight(), 1, PF_BGRA8);
+		PixelUtil::bulkPixelConversion(data, *bgraData);
 
-		uint32_t depth = XDefaultDepth(mData->xDisplay, 0);
+		UINT32 depth = (UINT32)XDefaultDepth(mData->xDisplay, 0);
 		XImage* image = XCreateImage(mData->xDisplay, XDefaultVisual(mData->xDisplay, 0), depth, ZPixmap, 0,
-				(char*)bgraData->getData(), data->getWidth(), data->getHeight(), 32, 0);
+				(char*)bgraData->getData(), data.getWidth(), data.getHeight(), 32, 0);
 
 		Pixmap pixmap = XCreatePixmap(mData->xDisplay, XDefaultRootWindow(mData->xDisplay),
-				data->getWidth(), data->getHeight(), depth);
+				data.getWidth(), data.getHeight(), depth);
 
 		XGCValues gcValues;
 		GC gc = XCreateGC(mData->xDisplay, pixmap, 0, &gcValues);
-		XPutImage(mData->xDisplay, pixmap, gc, image, 0, 0, 0, 0, data->getWidth(), data->getHeight());
+		XPutImage(mData->xDisplay, pixmap, gc, image, 0, 0, 0, 0, data.getWidth(), data.getHeight());
 		XFreeGC(mData->xDisplay, gc);
 
 		// Make sure XDestroyImage doesn't free the data pointed to by 'data.bytes'

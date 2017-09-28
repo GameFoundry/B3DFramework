@@ -3,6 +3,7 @@
 #pragma once
 
 #include "RenderAPI/BsRenderWindow.h"
+#include <X11/extensions/Xrandr.h>
 
 namespace bs
 {
@@ -19,18 +20,6 @@ namespace bs
 	/** @addtogroup GL
 	 *  @{
 	 */
-
-	/**	Contains various properties that describe a render window. */
-	class LinuxRenderWindowProperties : public RenderWindowProperties
-	{
-	public:
-		LinuxRenderWindowProperties(const RENDER_WINDOW_DESC& desc);
-		virtual ~LinuxRenderWindowProperties() { }
-
-	private:
-		friend class ct::LinuxRenderWindow;
-		friend class LinuxRenderWindow;
-	};
 
 	/**
 	 * Render window implementation for Linux.
@@ -69,7 +58,7 @@ namespace bs
 
 	private:
 		ct::LinuxGLSupport& mGLSupport;
-		LinuxRenderWindowProperties mProperties;
+		RenderWindowProperties mProperties;
 	};
 
 	namespace ct
@@ -132,6 +121,12 @@ namespace bs
 			/** @copydoc RenderWindow::_windowMovedOrResized */
 			void _windowMovedOrResized() override;
 
+			/** Returns a lock that can be used for accessing synced properties. */
+			SpinLock& _getPropertiesLock() { return mLock;}
+
+			/** Returns the internal X11 window that this object wraps. */
+			LinuxWindow* _getInternal() const { return mWindow; }
+
 		protected:
 			friend class LinuxGLSupport;
 
@@ -153,10 +148,16 @@ namespace bs
 			LinuxWindow* mWindow;
 			LinuxGLSupport& mGLSupport;
 			SPtr<LinuxContext> mContext;
-			LinuxRenderWindowProperties mProperties;
-			LinuxRenderWindowProperties mSyncedProperties;
+			RenderWindowProperties mProperties;
+			RenderWindowProperties mSyncedProperties;
 			bool mIsChild;
 			bool mShowOnSwap;
+
+			// Config before entering fullscreen
+			XRRScreenConfiguration* mOldScreenConfig;
+			SizeID mOldConfigSizeID;
+			short mOldConfigRate;
+			Rotation mOldConfigRotation;
 		};
 	}
 

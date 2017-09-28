@@ -26,6 +26,12 @@ namespace bs
 		/** Returns the main X11 window. Caller must ensure the main window has been created. */
 		static ::Window getMainXWindow();
 
+		/** Locks access to the X11 system, not allowing any other thread to access it. Must be used for every X11 access. */
+		static void lockX();
+
+		/** Unlocks access to the X11 system. Must follow every call to lockX(). */
+		static void unlockX();
+
 		/** Notifies the system that a new window was created. */
 		static void _registerWindow(::Window xWindow, LinuxWindow* window);
 
@@ -33,7 +39,7 @@ namespace bs
 		static void _unregisterWindow(::Window xWindow);
 
 		/** Generates a X11 Pixmap from the provided pixel data. */
-		static Pixmap createPixmap(const SPtr<PixelData>& data);
+		static Pixmap createPixmap(const PixelData& data);
 	};
 
 	/** @} */

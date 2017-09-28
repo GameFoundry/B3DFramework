@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Linux/BsLinuxContext.h"
-#include "Unix/BsUnixPlatform.h"
+#include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxGLSupport.h"
 
 namespace bs { namespace ct
@@ -15,6 +15,8 @@ namespace bs { namespace ct
 		LinuxContext::LinuxContext(::Display* display, XVisualInfo& visualInfo)
 		: mDisplay(display), mContext(None)
 	{
+		LinuxPlatform::lockX();
+
 		INT32 dummy;
 		XVisualInfo* windowVisualInfo = XGetVisualInfo(display, VisualIDMask | VisualScreenMask, &visualInfo, &dummy);
 
@@ -85,6 +87,8 @@ namespace bs { namespace ct
 		XFree(windowVisualInfo);
 
 		mContext = context;
+
+		LinuxPlatform::unlockX();
 	}
 
 	LinuxContext::~LinuxContext()
@@ -94,20 +98,28 @@ namespace bs { namespace ct
 
 	void LinuxContext::setCurrent()
 	{
+		LinuxPlatform::lockX();
 		glXMakeCurrent(mDisplay, LinuxPlatform::getMainXWindow(), mContext);
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxContext::endCurrent()
 	{
+		LinuxPlatform::lockX();
 		glXMakeCurrent(mDisplay, None, None);
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxContext::releaseContext()
 	{
 		if (mContext)
 		{
+			LinuxPlatform::lockX();
+
 			glXDestroyContext(mDisplay, mContext);
 			mContext = None;
+
+			LinuxPlatform::unlockX();
 		}
 	}
 }}

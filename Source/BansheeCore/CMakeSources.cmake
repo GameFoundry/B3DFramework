@@ -598,13 +598,13 @@ set(BS_BANSHEECORE_SRC_PLATFORM_WIN32
 )
 
 set(BS_BANSHEECORE_INC_PLATFORM_UNIX
-	"Unix/BsUnixPlatform.h"
-	"Unix/BsUnixWindow.h"
+	"Linux/BsLinuxPlatform.h"
+	"Linux/BsLinuxWindow.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_UNIX
-	"Unix/BsUnixPlatform.cpp"
-	"Unix/BsUnixWindow.cpp"
+	"Linux/BsLinuxPlatform.cpp"
+	"Linux/BsLinuxWindow.cpp"
 )
 
 if(WIN32)

@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "Unix/BsUnixPlatform.h"
+#include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxGLSupport.h"
 #include "Linux/BsLinuxContext.h"
 #include "Linux/BsLinuxRenderWindow.h"
@@ -106,6 +106,8 @@ namespace bs { namespace ct
 	void LinuxGLSupport::start()
 	{
 		// Retrieve all essential extensions
+		LinuxPlatform::lockX();
+
 		::Display* display = LinuxPlatform::getXDisplay();
 		const char* glExtensions = glXQueryExtensionsString(display, DefaultScreen(display));
 
@@ -133,6 +135,8 @@ namespace bs { namespace ct
 			}
 
 		} while(*iter++);
+
+		LinuxPlatform::unlockX();
 	}
 
 	void LinuxGLSupport::stop()
@@ -161,7 +165,7 @@ namespace bs { namespace ct
 		return (void*)glXGetProcAddressARB((const GLubyte*)procname.c_str());
 	}
 
-	XVisualInfo LinuxGLSupport::findBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const
+	GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const
 	{
 		static constexpr INT32 VISUAL_ATTRIBS[] =
 		{
@@ -177,29 +181,37 @@ namespace bs { namespace ct
 
 		INT32 numConfigs;
 		GLXFBConfig* configs = glXChooseFBConfig(display, DefaultScreen(display), VISUAL_ATTRIBS, &numConfigs);
+		GLVisualCapabilities* caps = bs_stack_new<GLVisualCapabilities>(numConfigs);
 
 		// Find a config that best matches the requested properties
 		INT32 bestScore = 0;
 		INT32 bestConfig = -1;
 		for (int i = 0; i < numConfigs; ++i)
 		{
-			uint32_t configScore = 0;
+			UINT32 configScore = 0;
 
 			// Depth buffer contributes the most to score
 			if(depthStencil)
 			{
-				int32_t depth, stencil;
+				INT32 depth, stencil;
 				glXGetFBConfigAttrib(display, configs[i], GLX_DEPTH_SIZE, &depth);
 				glXGetFBConfigAttrib(display, configs[i], GLX_STENCIL_SIZE, &stencil);
 
+				UINT32 score = 0;
 				if(depth == 24 && stencil == 8)
-					configScore += 10000;
+					score = 10000;
 				else if(depth == 32 && stencil == 8)
-					configScore += 9000;
+					score = 9000;
 				else if(depth == 32)
-					configScore += 8000;
+					score = 8000;
 				else if(depth == 16)
-					configScore += 7000;
+					score = 7000;
+
+				if(score > 0)
+				{
+					configScore += score;
+					caps[i].depthStencil = true;
+				}
 			}
 
 			// sRGB contributes second most
@@ -214,8 +226,10 @@ namespace bs { namespace ct
 					glXGetFBConfigAttrib(display, configs[i], GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, &hasSRGB);
 
 				if(hasSRGB)
+				{
 					configScore += 500;
-
+					caps[i].srgb = true;
+				}
 			}
 
 			if((multisample >= 1) && extGLX_ARB_multisample)
@@ -225,7 +239,10 @@ namespace bs { namespace ct
 				glXGetFBConfigAttrib(display, configs[i], GLX_SAMPLES, &numSamples);
 
 				if(hasMultisample && (numSamples <= multisample))
+				{
 					configScore += (32 - (multisample - numSamples)) * 10;
+					caps[i].numSamples = numSamples;
+				}
 			}
 
 			if(configScore > bestScore)
@@ -235,18 +252,25 @@ namespace bs { namespace ct
 			}
 		}
 
+		GLVisualConfig output;
+
 		if(bestConfig == -1)
 		{
 			// Something went wrong
 			XFree(configs);
-			return XVisualInfo();
+			bs_stack_delete(caps, numConfigs);
+
+			return output;
 		}
 
 		XVisualInfo* visualInfo = glXGetVisualFromFBConfig(display, configs[bestConfig]);
-		XVisualInfo output = *visualInfo;
+
+		output.visualInfo = *visualInfo;
+		output.caps = caps[bestConfig];
 
 		XFree(configs);
 		XFree(visualInfo);
+		bs_stack_delete(caps, numConfigs);
 
 		return output;
 	}
