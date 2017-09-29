@@ -217,7 +217,7 @@ namespace bs
 
 	}
 
-	char32_t ANSIToUTF32(char input, const std::locale& locale = std::locale())
+	char32_t ANSIToUTF32(char input, const std::locale& locale = std::locale(""))
 	{
 		const std::ctype<wchar_t>& facet = std::use_facet<std::ctype<wchar_t>>(locale);
 
@@ -245,7 +245,7 @@ namespace bs
 			return UTF32To16(input, output, maxElems, invalidChar);
 	}
 
-	char UTF32ToANSI(char32_t input, char invalidChar = 0, const std::locale& locale = std::locale())
+	char UTF32ToANSI(char32_t input, char invalidChar = 0, const std::locale& locale = std::locale(""))
 	{
 		const std::ctype<wchar_t>& facet = std::use_facet<std::ctype<wchar_t>>(locale);
 

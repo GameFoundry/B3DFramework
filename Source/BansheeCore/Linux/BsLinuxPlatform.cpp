@@ -6,6 +6,7 @@
 #include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxWindow.h"
 #include "RenderAPI/BsRenderWindow.h"
+#include "BsLinuxDragAndDrop.h"
 #include <X11/Xatom.h>
 #include <X11/Xcursor/Xcursor.h>
 
@@ -374,16 +375,14 @@ namespace bs
 		usleep(duration * 1000);
 	}
 
-	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, int x, int y, unsigned int width, unsigned int height)
+	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, INT32 x, INT32 y, UINT32 width, UINT32 height)
 	{
-		Lock lock(mData->lock);
-		// TODOPORT
+		return LinuxDragAndDrop::createDropTarget(window, x, y, width, height);
 	}
 
 	void Platform::destroyDropTarget(OSDropTarget& target)
 	{
-		Lock lock(mData->lock);
-		// TODOPORT
+		LinuxDragAndDrop::destroyDropTarget(target);
 	}
 
 	void Platform::copyToClipboard(const WString& string)
@@ -468,6 +467,9 @@ namespace bs
 			{
 			case ClientMessage:
 			{
+				if(LinuxDragAndDrop::handleClientMessage(event.xclient))
+					break;
+
 				if(event.xclient.data.l[0] == mData->atomDeleteWindow)
 					XDestroyWindow(mData->xDisplay, event.xclient.window);
 			}
@@ -722,6 +724,9 @@ namespace bs
 				// Update input context focus
 				XUnsetICFocus(mData->IC);
 				break;
+			case SelectionNotify:
+				LinuxDragAndDrop::handleSelectionNotify(event.xselection);
+				break;
 			case SelectionRequest:
 			{
 				// Send the data saved by the last clipboard copy operation
@@ -792,6 +797,9 @@ namespace bs
 
 		mData->atomDeleteWindow = XInternAtom(mData->xDisplay, "WM_DELETE_WINDOW", False);
 
+		// Drag and drop
+		LinuxDragAndDrop::startUp(mData->xDisplay);
+
 		// Create empty cursor
 		char data[1];
 		memset(data, 0, sizeof(data));
@@ -807,7 +815,7 @@ namespace bs
 
 	void Platform::_update()
 	{
-		// Do nothing
+		LinuxDragAndDrop::update();
 	}
 
 	void Platform::_coreUpdate()
@@ -822,6 +830,9 @@ namespace bs
 		// Free empty cursor
 		XFreeCursor(mData->xDisplay, mData->emptyCursor);
 		mData->emptyCursor = None;
+
+		// Shutdown drag and drop
+		LinuxDragAndDrop::shutDown();
 
 		if(mData->IC)
 		{

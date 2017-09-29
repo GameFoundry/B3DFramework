@@ -22,7 +22,7 @@ namespace bs
 		 * @param[in]	locale	Locale that determines how are the ANSI characters interpreted.
 		 * @return				UTF-8 encoded string.
 		 */
-		static String fromANSI(const String& input, const std::locale& locale = std::locale());
+		static String fromANSI(const String& input, const std::locale& locale = std::locale(""));
 
 		/**
 		 * Converts from an UTF-8 encoding into ANSI encoding in the specified locale.
@@ -33,7 +33,7 @@ namespace bs
 		 *								the selected ANSI code page.
 		 * @return						ANSI encoded string in the specified locale.
 		 */
-		static String toANSI(const String& input, const std::locale& locale = std::locale(), char invalidChar = 0);
+		static String toANSI(const String& input, const std::locale& locale = std::locale(""), char invalidChar = 0);
 
 		/**
 		 * Converts from a system-specific wide character encoding into UTF-8.

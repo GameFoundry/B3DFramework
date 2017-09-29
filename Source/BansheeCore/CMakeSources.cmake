@@ -600,11 +600,13 @@ set(BS_BANSHEECORE_SRC_PLATFORM_WIN32
 set(BS_BANSHEECORE_INC_PLATFORM_UNIX
 	"Linux/BsLinuxPlatform.h"
 	"Linux/BsLinuxWindow.h"
+	"Linux/BsLinuxDragAndDrop.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_UNIX
 	"Linux/BsLinuxPlatform.cpp"
 	"Linux/BsLinuxWindow.cpp"
+	"Linux/BsLinuxDragAndDrop.cpp"
 )
 
 if(WIN32)

@@ -251,7 +251,7 @@ namespace bs
 		Sleep((DWORD)duration);
 	}
 
-	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, int x, int y, unsigned int width, unsigned int height)
+	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, INT32 x, INT32 y, UINT32 width, UINT32 height)
 	{
 		Win32DropTarget* win32DropTarget = nullptr;
 		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(window);
@@ -279,7 +279,7 @@ namespace bs
 
 	void Platform::destroyDropTarget(OSDropTarget& target)
 	{
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target.getOwnerWindow());
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target._getOwnerWindow());
 		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
 		{
 			LOGWRN("Attempting to destroy a drop target but cannot find its parent window.");

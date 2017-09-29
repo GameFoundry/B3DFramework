@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsLinuxWindow.h"
 #include "BsLinuxPlatform.h"
-#include "Math/BsRect2I.h"
+#include "BsLinuxDragAndDrop.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -116,10 +116,13 @@ namespace bs
 		Atom atomDeleteWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
 		XSetWMProtocols(display, m->xWindow, &atomDeleteWindow, 1);
 
+		// Enable drag and drop
+		LinuxDragAndDrop::makeDNDAware(m->xWindow);
+
 		// Set background image if assigned
 		if(desc.background)
 		{
-			Pixmap pixmap = LinuxPlatform::createPixmap(desc.background);
+			Pixmap pixmap = LinuxPlatform::createPixmap(*desc.background);
 			XSetWindowBackgroundPixmap(display, m->xWindow, pixmap);
 			XFreePixmap(display, pixmap);
 		}
