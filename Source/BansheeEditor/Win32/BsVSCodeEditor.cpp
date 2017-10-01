@@ -7,9 +7,13 @@
 #include "FileSystem/BsDataStream.h"
 
 // Import EnvDTE
-#pragma warning(disable: 4278)
-#import "libid:80cc9f66-e7d8-4ddd-85b6-d9e6cd0e93e2" version("8.0") lcid("0") raw_interfaces_only named_guids
-#pragma warning(default: 4278)
+// Uncomment this code to generate the dte80a.tlh file below. We're not using #import directly because it is not
+// compatible with multi-processor compilation of the build
+//#pragma warning(disable: 4278)
+//#import "libid:80cc9f66-e7d8-4ddd-85b6-d9e6cd0e93e2" version("8.0") lcid("0") raw_interfaces_only named_guids
+//#pragma warning(default: 4278)
+
+#include "Win32/dte80a.tlh"
 
 namespace bs
 {
@@ -440,36 +444,36 @@ EndProject)";
 <Project ToolsVersion="{0}" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props')" />
   <PropertyGroup>
-    <Configuration Condition = " '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition = " '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>\{{1}\}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace></RootNamespace>
-    <AssemblyName>{2}</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <BaseDirectory>Resources</BaseDirectory>
-    <SchemaVersion>2.0</SchemaVersion>
+	<Configuration Condition = " '$(Configuration)' == '' ">Debug</Configuration>
+	<Platform Condition = " '$(Platform)' == '' ">AnyCPU</Platform>
+	<ProjectGuid>\{{1}\}</ProjectGuid>
+	<OutputType>Library</OutputType>
+	<AppDesignerFolder>Properties</AppDesignerFolder>
+	<RootNamespace></RootNamespace>
+	<AssemblyName>{2}</AssemblyName>
+	<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+	<FileAlignment>512</FileAlignment>
+	<BaseDirectory>Resources</BaseDirectory>
+	<SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>Internal\\Temp\\Assemblies\\Debug\\</OutputPath>
-    <BaseIntermediateOutputPath>Internal\\Temp\\Assemblies\\</BaseIntermediateOutputPath>
-    <DefineConstants>DEBUG;TRACE;{3}</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel >
+	<DebugSymbols>true</DebugSymbols>
+	<DebugType>full</DebugType>
+	<Optimize>false</Optimize>
+	<OutputPath>Internal\\Temp\\Assemblies\\Debug\\</OutputPath>
+	<BaseIntermediateOutputPath>Internal\\Temp\\Assemblies\\</BaseIntermediateOutputPath>
+	<DefineConstants>DEBUG;TRACE;{3}</DefineConstants>
+	<ErrorReport>prompt</ErrorReport>
+	<WarningLevel>4</WarningLevel >
   </PropertyGroup>
   <PropertyGroup Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>Internal\\Temp\\Assemblies\\Release\\</OutputPath>
+	<DebugType>pdbonly</DebugType>
+	<Optimize>true</Optimize>
+	<OutputPath>Internal\\Temp\\Assemblies\\Release\\</OutputPath>
 	<BaseIntermediateOutputPath>Internal\\Temp\\Assemblies\\</BaseIntermediateOutputPath>
-    <DefineConstants>TRACE;{3}</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+	<DefineConstants>TRACE;{3}</DefineConstants>
+	<ErrorReport>prompt</ErrorReport>
+	<WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>{4}
   </ItemGroup>
@@ -484,28 +488,28 @@ EndProject)";
 
 	const String VisualStudio::REFERENCE_ENTRY_TEMPLATE =
 		R"(
-    <Reference Include="{0}"/>)";
+	<Reference Include="{0}"/>)";
 
 	const String VisualStudio::REFERENCE_PATH_ENTRY_TEMPLATE =
 		R"(
-    <Reference Include="{0}">
-      <HintPath>{1}</HintPath>
-    </Reference>)";
+	<Reference Include="{0}">
+	  <HintPath>{1}</HintPath>
+	</Reference>)";
 
 	const String VisualStudio::REFERENCE_PROJECT_ENTRY_TEMPLATE =
 		R"(
-    <ProjectReference Include="{0}.csproj">
-      <Project>\{{1}\}</Project>
-      <Name>{0}</Name>
-    </ProjectReference>)";
+	<ProjectReference Include="{0}.csproj">
+	  <Project>\{{1}\}</Project>
+	  <Name>{0}</Name>
+	</ProjectReference>)";
 
 	const String VisualStudio::CODE_ENTRY_TEMPLATE =
 		R"(
-    <Compile Include="{0}"/>)";
+	<Compile Include="{0}"/>)";
 
 	const String VisualStudio::NON_CODE_ENTRY_TEMPLATE =
 		R"(
-    <None Include="{0}"/>)";
+	<None Include="{0}"/>)";
 
 	VSCodeEditor::VSCodeEditor(VisualStudioVersion version, const Path& execPath, const WString& CLSID)
 		:mVersion(version), mExecPath(execPath), mCLSID(CLSID)

@@ -149,10 +149,10 @@ if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE ${BS_LINKER_FLAGS_RELEASE})
 	
 	# Compiler
-	set(BS_COMPILER_FLAGS_COMMON "/GS- /W3 /GR- /WX- /nologo /bigobj /wd\"4577\" /wd\"4530\"")
+	set(BS_COMPILER_FLAGS_COMMON "/GS- /W3 /GR- /WX- /MP /nologo /bigobj /wd\"4577\" /wd\"4530\"")
 	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
 	
-	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} /Gm /Od /RTC1 /MDd")
+	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} /Od /RTC1 /MDd")
 	
 	if(BS_64BIT) # Debug edit and continue for 64-bit
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
