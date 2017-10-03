@@ -2,25 +2,28 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "String/BsUnicode.h"
 #include "Platform/BsPlatform.h"
+#include "Platform/BsDropTarget.h"
 #include "RenderAPI/BsRenderWindow.h"
-#include "BsLinuxDragAndDrop.h"
+#include "Math/BsRect2I.h"
+#include "BsLinuxDropTarget.h"
 #include "BsLinuxWindow.h"
 #include "BsLinuxPlatform.h"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 
+#undef None
+
 namespace bs
 {
 	::Display* LinuxDragAndDrop::sXDisplay = nullptr;
 	bool LinuxDragAndDrop::sDragActive = false;
-	Vector<OSDropTarget*> LinuxDragAndDrop::sTargets;
+	Vector<LinuxDragAndDrop::DropArea> LinuxDragAndDrop::sDropAreas;
 	Mutex LinuxDragAndDrop::sMutex;
 	INT32 LinuxDragAndDrop::sDNDVersion = 0;
-	::Window LinuxDragAndDrop::sDNDSource = None;
+	::Window LinuxDragAndDrop::sDNDSource = 0;
 	Vector2I LinuxDragAndDrop::sDragPosition;
 	Vector<LinuxDragAndDrop::DragAndDropOp> LinuxDragAndDrop::sQueuedOperations;
-	Vector<OSDropTarget*> LinuxDragAndDrop::sTargetsToRegister;
-	Vector<OSDropTarget*> LinuxDragAndDrop::sTargetsToUnregister;
+	Vector<LinuxDragAndDrop::DropAreaOp> LinuxDragAndDrop::sQueuedAreaOperations;
 
 	Atom LinuxDragAndDrop::sXdndAware;
 	Atom LinuxDragAndDrop::sXdndSelection;
@@ -182,6 +185,26 @@ namespace bs
 		return nullptr;
 	}
 
+	DropTarget::DropTarget(const RenderWindow* ownerWindow, const Rect2I& area)
+		: mArea(area), mActive(false), mOwnerWindow(ownerWindow), mDropType(DropTargetType::None)
+	{
+		LinuxDragAndDrop::registerDropTarget(this);
+	}
+
+	DropTarget::~DropTarget()
+	{
+		LinuxDragAndDrop::unregisterDropTarget(this);
+
+		_clear();
+	}
+
+	void DropTarget::setArea(const Rect2I& area)
+	{
+		mArea = area;
+
+		LinuxDragAndDrop::updateDropTarget(this);
+	}
+
 	void LinuxDragAndDrop::startUp(::Display* xDisplay)
 	{
 #define INIT_ATOM(name)		s##name = XInternAtom(xDisplay, #name, False);
@@ -212,20 +235,22 @@ namespace bs
 		XChangeProperty(sXDisplay, xWindow, sXdndAware, XA_ATOM, 32, PropModeReplace, (unsigned char*)&dndVersion, 1);
 	}
 
-	OSDropTarget& LinuxDragAndDrop::createDropTarget(const RenderWindow* window, INT32 x, INT32 y, UINT32 width,
-		UINT32 height)
+	void LinuxDragAndDrop::registerDropTarget(DropTarget* target)
 	{
 		Lock lock(sMutex);
-		OSDropTarget* newDropTarget = bs_new<OSDropTarget>(window, x, y, width, height);
-		sTargetsToRegister.push_back(newDropTarget);
-
-		return *newDropTarget;
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->getArea()));
 	}
 
-	void LinuxDragAndDrop::destroyDropTarget(OSDropTarget& target)
+	void LinuxDragAndDrop::unregisterDropTarget(DropTarget* target)
 	{
 		Lock lock(sMutex);
-		sTargetsToUnregister.push_back(&target);
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
+	}
+
+	void LinuxDragAndDrop::updateDropTarget(DropTarget* target)
+	{
+		Lock lock(sMutex);
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->getArea()));
 	}
 
 	bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
@@ -234,26 +259,49 @@ namespace bs
 		{
 			Lock lock(sMutex);
 
-			for(auto& target : sTargetsToRegister)
-				sTargets.push_back(target);
-
-			for(auto& target : sTargetsToUnregister)
+			for(auto& entry : sQueuedAreaOperations)
 			{
-				// Remove any operations queued for this target
-				for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
+				switch(entry.type)
 				{
-					if(iter->target == target)
-						iter = sQueuedOperations.erase(iter);
-					else
-						++iter;
+				case DropAreaOpType::Register:
+					sDropAreas.push_back(DropArea(entry.target, entry.area));
+					break;
+				case DropAreaOpType::Unregister:
+					// Remove any operations queued for this target
+					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
+					{
+						if(iter->target == entry.target)
+							iter = sQueuedOperations.erase(iter);
+						else
+							++iter;
+					}
+
+					// Remove the area
+					{
+						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+						{
+							return area.target == entry.target;
+						});
+
+						sDropAreas.erase(iterFind);
+					}
+
+					break;
+				case DropAreaOpType::Update:
+				{
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+					{
+						return area.target == entry.target;
+					});
+
+					if (iterFind != sDropAreas.end())
+						iterFind->area = entry.area;
 				}
-
-				auto iterFind = std::find(sTargets.begin(), sTargets.end(), target);
-				if (iterFind != sTargets.end())
-					sTargets.erase(iterFind);
-
-				bs_delete(target);
+					break;
+				}
 			}
+
+			sQueuedAreaOperations.clear();
 		}
 
 		// Source window notifies us a drag has just entered our window area
@@ -339,46 +387,46 @@ namespace bs
 
 			if(sDragActive)
 			{
-				for(auto& dropTarget : sTargets)
+				for(auto& dropArea : sDropAreas)
 				{
 					LinuxWindow* linuxWindow;
-					dropTarget->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
+					dropArea.target->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
 					::Window xWindow = linuxWindow->_getXWindow();
 
 					if(xWindow == event.window)
 					{
 						Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
-						if(dropTarget->_isInside(windowPos))
+						if(dropArea.area.contains(windowPos))
 						{
 							// Accept drop
 							response.data.l[1] = 1;
 
-							if(dropTarget->_isActive())
+							if(dropArea.target->_isActive())
 							{
 								Lock lock(sMutex);
-								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropTarget,
+								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropArea.target,
 									windowPos));
 							}
 							else
 							{
 								Lock lock(sMutex);
-								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, dropTarget,
+								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, dropArea.target,
 										windowPos));
 							}
 
-							dropTarget->_setActive(true);
+							dropArea.target->_setActive(true);
 						}
 						else
 						{
 							// Cursor left previously active target's area
-							if(dropTarget->_isActive())
+							if(dropArea.target->_isActive())
 							{
 								{
 									Lock lock(sMutex);
-									sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropTarget));
+									sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 								}
 
-								dropTarget->_setActive(false);
+								dropArea.target->_setActive(false);
 							}
 						}
 					}
@@ -391,16 +439,16 @@ namespace bs
 		// Cursor left the target window, or the drop was rejected
 		else if(event.message_type == sXdndLeave)
 		{
-			for(auto& dropTarget : sTargets)
+			for(auto& dropArea : sDropAreas)
 			{
-				if(dropTarget->_isActive())
+				if(dropArea.target->_isActive())
 				{
 					{
 						Lock lock(sMutex);
-						sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropTarget));
+						sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 					}
 
-					dropTarget->_setActive(false);
+					dropArea.target->_setActive(false);
 				}
 			}
 
@@ -413,9 +461,9 @@ namespace bs
 
 			if(sDragActive)
 			{
-				for (auto& dropTarget : sTargets)
+				for (auto& dropArea : sDropAreas)
 				{
-					if (dropTarget->_isActive())
+					if (dropArea.target->_isActive())
 						dropAccepted = true;
 				}
 			}
@@ -446,8 +494,8 @@ namespace bs
 				response.data.l[0] = LinuxPlatform::getMainXWindow();
 				response.data.l[1] = 0;
 				response.data.l[2] = 0;
-				response.data.l[3] = None;
-				response.data.l[4] = None;
+				response.data.l[3] = 0;
+				response.data.l[4] = 0;
 
 				XSendEvent(sXDisplay, source, False, NoEventMask, (XEvent*)&response);
 				XFlush(sXDisplay);
@@ -474,32 +522,32 @@ namespace bs
 		if(property.format == 8)
 		{
 			// Assuming this is a file list, since we rejected any other drop type
-			Vector<WString> filePaths;
+			Vector<Path> filePaths;
 
 			char* token = strtok((char*)property.data, "\r\n");
 			while(token != nullptr)
 			{
 				char* filePath = convertURIToLocalPath(token);
 				if(filePath != nullptr)
-					filePaths.push_back(UTF8::toWide(filePath));
+					filePaths.push_back(String(filePath));
 
 				token = strtok(nullptr, "\r\n");
 			}
 
-			for(auto& target : sTargets)
+			for(auto& dropArea : sDropAreas)
 			{
-				if(!target->_isActive())
+				if(!dropArea.target->_isActive())
 					continue;
 
 				LinuxWindow* linuxWindow;
-				target->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
+				dropArea.target->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
 
 				Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
 
 				Lock lock(sMutex);
-				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, target, windowPos, filePaths));
+				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.target, windowPos, filePaths));
 
-				target->_setActive(false);
+				dropArea.target->_setActive(false);
 			}
 		}
 
@@ -517,8 +565,8 @@ namespace bs
 		response.data.l[0] = LinuxPlatform::getMainXWindow();
 		response.data.l[1] = 1;
 		response.data.l[2] = sXdndActionCopy;
-		response.data.l[3] = None;
-		response.data.l[4] = None;
+		response.data.l[3] = 0;
+		response.data.l[4] = 0;
 
 		XSendEvent(sXDisplay, sDNDSource, False, NoEventMask, (XEvent*)&response);
 		XFlush(sXDisplay);

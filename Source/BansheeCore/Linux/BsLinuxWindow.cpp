@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsLinuxWindow.h"
 #include "BsLinuxPlatform.h"
-#include "BsLinuxDragAndDrop.h"
+#include "BsLinuxDropTarget.h"
 
 #include <X11/Xatom.h>
 

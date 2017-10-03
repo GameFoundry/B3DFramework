@@ -19,6 +19,7 @@
 #include "GUI/BsGUIMenuBar.h"
 #include "BsPlayInEditorManager.h"
 #include "Wrappers/BsScriptRenderTarget.h"
+#include "Platform/BsPlatform.h"
 #include "BsScriptResourceManager.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Wrappers/BsScriptPrefab.h"

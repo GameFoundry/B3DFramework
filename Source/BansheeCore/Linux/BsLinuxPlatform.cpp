@@ -6,7 +6,7 @@
 #include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxWindow.h"
 #include "RenderAPI/BsRenderWindow.h"
-#include "BsLinuxDragAndDrop.h"
+#include "BsLinuxDropTarget.h"
 #include "BsCoreApplication.h"
 #include <X11/X.h>
 #include <X11/Xatom.h>
@@ -380,16 +380,6 @@ namespace bs
 	void Platform::sleep(UINT32 duration)
 	{
 		usleep(duration * 1000);
-	}
-
-	OSDropTarget& Platform::createDropTarget(const RenderWindow* window, INT32 x, INT32 y, UINT32 width, UINT32 height)
-	{
-		return LinuxDragAndDrop::createDropTarget(window, x, y, width, height);
-	}
-
-	void Platform::destroyDropTarget(OSDropTarget& target)
-	{
-		LinuxDragAndDrop::destroyDropTarget(target);
 	}
 
 	void Platform::copyToClipboard(const WString& string)

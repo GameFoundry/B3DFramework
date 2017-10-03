@@ -7,7 +7,7 @@
 #include "GUI/BsGUIWidget.h"
 #include "RenderAPI/BsViewport.h"
 #include "RenderAPI/BsRenderWindow.h"
-#include "Platform/BsPlatform.h"
+#include "Platform/BsDropTarget.h"
 
 using namespace std::placeholders;
 
@@ -78,9 +78,7 @@ namespace bs
 		GUITreeView::_updateLayoutInternal(data);
 
 		if(mDropTarget != nullptr)
-		{
-			mDropTarget->setArea(data.area.x, data.area.y, data.area.width, data.area.height);
-		}
+			mDropTarget->setArea(data.area);
 	}
 
 	void GUIResourceTreeView::updateTreeElementHierarchy()
@@ -273,7 +271,7 @@ namespace bs
 	{
 		if(mDropTarget != nullptr)
 		{
-			Platform::destroyDropTarget(*mDropTarget);
+			mDropTarget = nullptr;
 
 			mDropTargetEnterConn.disconnect();
 			mDropTargetLeaveConn.disconnect();
@@ -284,7 +282,7 @@ namespace bs
 		if(parentWindow != nullptr)
 		{
 			mCurrentWindow = parentWindow;
-			mDropTarget = &Platform::createDropTarget(mCurrentWindow, mLayoutData.area.x, mLayoutData.area.y, mLayoutData.area.width, mLayoutData.area.height);
+			mDropTarget = DropTarget::create(mCurrentWindow, mLayoutData.area);
 
 			mDropTargetEnterConn = mDropTarget->onEnter.connect(std::bind(&GUIResourceTreeView::dropTargetDragMove, this, _1, _2));
 			mDropTargetMoveConn = mDropTarget->onDragOver.connect(std::bind(&GUIResourceTreeView::dropTargetDragMove, this, _1, _2));
@@ -341,9 +339,9 @@ namespace bs
 				treeElement = element->parent;
 		}
 
-		if(mDropTarget->getDropType() == OSDropType::FileList)
+		if(mDropTarget->getDropType() == DropTargetType::FileList)
 		{
-			Vector<WString> fileList = mDropTarget->getFileList();
+			Vector<Path> fileList = mDropTarget->getFileList();
 
 			mDraggedResources = bs_new<InternalDraggedResources>((UINT32)fileList.size());
 			for(UINT32 i = 0; i < (UINT32)fileList.size(); i++)

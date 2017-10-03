@@ -577,34 +577,34 @@ set(BS_BANSHEECORE_SRC_ANIMATION
 set(BS_BANSHEECORE_INC_PLATFORM
 	"Platform/BsPlatform.h"
 	"Platform/BsFolderMonitor.h"
-)
-
-set(BS_BANSHEECORE_INC_PLATFORM_WIN32
-	"Win32/BsWin32DropTarget.h"
-	"Win32/BsWin32Defs.h"
-	"Win32/BSWin32PlatformData.h"
-	"Win32/BsWin32Platform.h"
+	"Platform/BsDropTarget.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM
-	"Platform/BsPlatform.cpp"
+		"Platform/BsDropTarget.cpp"
+		)
+
+set(BS_BANSHEECORE_INC_PLATFORM_WIN32
+	"Win32/BsWin32DropTarget.h"
+	"Win32/BsWin32Platform.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_WIN32
 	"Win32/BsWin32FolderMonitor.cpp"
 	"Win32/BsWin32Platform.cpp"
+	"Win32/BsWin32DropTarget.cpp"
 )
 
 set(BS_BANSHEECORE_INC_PLATFORM_UNIX
 	"Linux/BsLinuxPlatform.h"
 	"Linux/BsLinuxWindow.h"
-	"Linux/BsLinuxDragAndDrop.h"
+	"Linux/BsLinuxDropTarget.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_UNIX
 	"Linux/BsLinuxPlatform.cpp"
 	"Linux/BsLinuxWindow.cpp"
-	"Linux/BsLinuxDragAndDrop.cpp"
+	"Linux/BsLinuxDropTarget.cpp"
 	"Linux/BsLinuxFolderMonitor.cpp"
 )
 

@@ -307,9 +307,9 @@ namespace bs
 
 	FolderMonitor::FolderMonitor()
 	{
-		mPimpl = bs_new<Pimpl>();
-		mPimpl->mWorkerThread = nullptr;
-		mPimpl->mCompPortHandle = nullptr;
+		m = bs_new<Pimpl>();
+		m->mWorkerThread = nullptr;
+		m->mCompPortHandle = nullptr;
 	}
 
 	FolderMonitor::~FolderMonitor()
@@ -317,15 +317,15 @@ namespace bs
 		stopMonitorAll();
 
 		// No need for mutex since we know worker thread is shut down by now
-		while(!mPimpl->mFileActions.empty())
+		while(!m->mFileActions.empty())
 		{
-			FileAction* action = mPimpl->mFileActions.front();
-			mPimpl->mFileActions.pop();
+			FileAction* action = m->mFileActions.front();
+			m->mFileActions.pop();
 
 			FileAction::destroy(action);
 		}
 
-		bs_delete(mPimpl);
+		bs_delete(m);
 	}
 
 	void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
@@ -354,40 +354,40 @@ namespace bs
 		if(changeFilter.isSet(FolderChangeBit::DirName))
 			filterFlags |= FILE_NOTIFY_CHANGE_DIR_NAME;
 
-		if(changeFilter.isSet(FolderChangeBit::LastWrite))
+		if(changeFilter.isSet(FolderChangeBit::FileWrite))
 			filterFlags |= FILE_NOTIFY_CHANGE_LAST_WRITE;
 
-		mPimpl->mFoldersToWatch.push_back(bs_new<FolderWatchInfo>(folderPath, dirHandle, subdirectories, filterFlags));
-		FolderWatchInfo* watchInfo = mPimpl->mFoldersToWatch.back();
+		m->mFoldersToWatch.push_back(bs_new<FolderWatchInfo>(folderPath, dirHandle, subdirectories, filterFlags));
+		FolderWatchInfo* watchInfo = m->mFoldersToWatch.back();
 
-		mPimpl->mCompPortHandle = CreateIoCompletionPort(dirHandle, mPimpl->mCompPortHandle, (ULONG_PTR)watchInfo, 0);
+		m->mCompPortHandle = CreateIoCompletionPort(dirHandle, m->mCompPortHandle, (ULONG_PTR)watchInfo, 0);
 
-		if(mPimpl->mCompPortHandle == nullptr)
+		if(m->mCompPortHandle == nullptr)
 		{
-			mPimpl->mFoldersToWatch.erase(mPimpl->mFoldersToWatch.end() - 1);
+			m->mFoldersToWatch.erase(m->mFoldersToWatch.end() - 1);
 			bs_delete(watchInfo);
 			BS_EXCEPT(InternalErrorException, "Failed to open completion port for folder monitoring. Error code: " + toString((UINT64)GetLastError()));
 		}
 
-		if(mPimpl->mWorkerThread == nullptr)
+		if(m->mWorkerThread == nullptr)
 		{
-			mPimpl->mWorkerThread = bs_new<Thread>(std::bind(&FolderMonitor::workerThreadMain, this));
+			m->mWorkerThread = bs_new<Thread>(std::bind(&FolderMonitor::workerThreadMain, this));
 
-			if(mPimpl->mWorkerThread == nullptr)
+			if(m->mWorkerThread == nullptr)
 			{
-				mPimpl->mFoldersToWatch.erase(mPimpl->mFoldersToWatch.end() - 1);
+				m->mFoldersToWatch.erase(m->mFoldersToWatch.end() - 1);
 				bs_delete(watchInfo);
 				BS_EXCEPT(InternalErrorException, "Failed to create a new worker thread for folder monitoring");
 			}
 		}
 
-		if(mPimpl->mWorkerThread != nullptr)
+		if(m->mWorkerThread != nullptr)
 		{
-			watchInfo->startMonitor(mPimpl->mCompPortHandle);
+			watchInfo->startMonitor(m->mCompPortHandle);
 		}
 		else
 		{
-			mPimpl->mFoldersToWatch.erase(mPimpl->mFoldersToWatch.end() - 1);
+			m->mFoldersToWatch.erase(m->mFoldersToWatch.end() - 1);
 			bs_delete(watchInfo);
 			BS_EXCEPT(InternalErrorException, "Failed to create a new worker thread for folder monitoring");
 		}
@@ -395,54 +395,54 @@ namespace bs
 
 	void FolderMonitor::stopMonitor(const Path& folderPath)
 	{
-		auto findIter = std::find_if(mPimpl->mFoldersToWatch.begin(), mPimpl->mFoldersToWatch.end(), 
+		auto findIter = std::find_if(m->mFoldersToWatch.begin(), m->mFoldersToWatch.end(), 
 			[&](const FolderWatchInfo* x) { return x->mFolderToMonitor == folderPath; });
 
-		if(findIter != mPimpl->mFoldersToWatch.end())
+		if(findIter != m->mFoldersToWatch.end())
 		{
 			FolderWatchInfo* watchInfo = *findIter;
 
-			watchInfo->stopMonitor(mPimpl->mCompPortHandle);
+			watchInfo->stopMonitor(m->mCompPortHandle);
 			bs_delete(watchInfo);
 
-			mPimpl->mFoldersToWatch.erase(findIter);
+			m->mFoldersToWatch.erase(findIter);
 		}
 
-		if(mPimpl->mFoldersToWatch.size() == 0)
+		if(m->mFoldersToWatch.size() == 0)
 			stopMonitorAll();
 	}
 
 	void FolderMonitor::stopMonitorAll()
 	{
-		for(auto& watchInfo : mPimpl->mFoldersToWatch)
+		for(auto& watchInfo : m->mFoldersToWatch)
 		{
-			watchInfo->stopMonitor(mPimpl->mCompPortHandle);
+			watchInfo->stopMonitor(m->mCompPortHandle);
 
 			{
 				// Note: Need this mutex to ensure worker thread is done with watchInfo.
 				// Even though we wait for a condition variable from the worker thread in stopMonitor,
 				// that doesn't mean the worker thread is done with the condition variable
 				// (which is stored inside watchInfo)
-				Lock lock(mPimpl->mMainMutex);
+				Lock lock(m->mMainMutex);
 				bs_delete(watchInfo);
 			}
 		}
 
-		mPimpl->mFoldersToWatch.clear();
+		m->mFoldersToWatch.clear();
 
-		if(mPimpl->mWorkerThread != nullptr)
+		if(m->mWorkerThread != nullptr)
 		{
-			PostQueuedCompletionStatus(mPimpl->mCompPortHandle, 0, 0, nullptr);
+			PostQueuedCompletionStatus(m->mCompPortHandle, 0, 0, nullptr);
 
-			mPimpl->mWorkerThread->join();
-			bs_delete(mPimpl->mWorkerThread);
-			mPimpl->mWorkerThread = nullptr;
+			m->mWorkerThread->join();
+			bs_delete(m->mWorkerThread);
+			m->mWorkerThread = nullptr;
 		}
 
-		if(mPimpl->mCompPortHandle != nullptr)
+		if(m->mCompPortHandle != nullptr)
 		{
-			CloseHandle(mPimpl->mCompPortHandle);
-			mPimpl->mCompPortHandle = nullptr;
+			CloseHandle(m->mCompPortHandle);
+			m->mCompPortHandle = nullptr;
 		}
 	}
 
@@ -455,7 +455,7 @@ namespace bs
 			DWORD numBytes;
 			LPOVERLAPPED overlapped;
 
-			if(!GetQueuedCompletionStatus(mPimpl->mCompPortHandle, &numBytes, (PULONG_PTR) &watchInfo, &overlapped, INFINITE))
+			if(!GetQueuedCompletionStatus(m->mCompPortHandle, &numBytes, (PULONG_PTR) &watchInfo, &overlapped, INFINITE))
 			{
 				assert(false);
 				// TODO: Folder handle was lost most likely. Not sure how to deal with that. Shutdown watch on this folder and cleanup?
@@ -528,7 +528,7 @@ namespace bs
 						}
 
 						{
-							Lock lock(mPimpl->mMainMutex); // Ensures that we don't delete "watchInfo" before this thread is done with mStartStopEvent
+							Lock lock(m->mMainMutex); // Ensures that we don't delete "watchInfo" before this thread is done with mStartStopEvent
 							watchInfo->mStartStopEvent.notify_one();
 						}
 					}
@@ -549,7 +549,7 @@ namespace bs
 						}
 
 						{
-							Lock lock(mPimpl->mMainMutex); // Ensures that we don't delete "watchInfo" before this thread is done with mStartStopEvent
+							Lock lock(m->mMainMutex); // Ensures that we don't delete "watchInfo" before this thread is done with mStartStopEvent
 							watchInfo->mStartStopEvent.notify_one();
 						}
 					}
@@ -597,28 +597,28 @@ namespace bs
 		} while(notifyInfo.getNext());
 
 		{
-			Lock lock(mPimpl->mMainMutex);
+			Lock lock(m->mMainMutex);
 
 			for(auto& action : mActions)
-				mPimpl->mFileActions.push(action);
+				m->mFileActions.push(action);
 		}
 	}
 
 	void FolderMonitor::_update()
 	{
 		{
-			Lock lock(mPimpl->mMainMutex);
+			Lock lock(m->mMainMutex);
 
-			while (!mPimpl->mFileActions.empty())
+			while (!m->mFileActions.empty())
 			{
-				FileAction* action = mPimpl->mFileActions.front();
-				mPimpl->mFileActions.pop();
+				FileAction* action = m->mFileActions.front();
+				m->mFileActions.pop();
 
-				mPimpl->mActiveFileActions.push_back(action);
+				m->mActiveFileActions.push_back(action);
 			}
 		}
 
-		for (auto iter = mPimpl->mActiveFileActions.begin(); iter != mPimpl->mActiveFileActions.end();)
+		for (auto iter = m->mActiveFileActions.begin(); iter != m->mActiveFileActions.end();)
 		{
 			FileAction* action = *iter;
 			
@@ -668,7 +668,7 @@ namespace bs
 				break;
 			}
 
-			mPimpl->mActiveFileActions.erase(iter++);
+			m->mActiveFileActions.erase(iter++);
 			FileAction::destroy(action);
 		}
 	}

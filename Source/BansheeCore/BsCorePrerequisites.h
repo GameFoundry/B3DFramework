@@ -361,7 +361,7 @@ namespace bs
 	class MeshHeap;
 	class Font;
 	class ResourceMetaData;
-	class OSDropTarget;
+	class DropTarget;
 	class StringTable;
 	class PhysicsMaterial;
 	class PhysicsMesh;

@@ -8,6 +8,8 @@
 
 namespace bs
 {
+	class DropTarget;
+
 	/** @addtogroup ScriptInteropEditor
 	 *  @{
 	 */
@@ -102,7 +104,7 @@ namespace bs
 		static void dropTargetDragDropped(ScriptOSDropTarget* thisPtr, INT32 x, INT32 y);
 
 		ScriptEditorWindow* mParent;
-		OSDropTarget* mDropTarget;
+		SPtr<DropTarget> mDropTarget;
 		Rect2I mParentArea;
 		Rect2I mArea;
 		bool mIsDestroyed;

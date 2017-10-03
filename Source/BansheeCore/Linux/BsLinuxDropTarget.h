@@ -31,23 +31,54 @@ namespace bs
 		/**	Structure describing a drag and drop operation. */
 		struct DragAndDropOp
 		{
-			DragAndDropOp(DragAndDropOpType type, OSDropTarget* target)
+			DragAndDropOp(DragAndDropOpType type, DropTarget* target)
 					:type(type), target(target)
 			{ }
 
-			DragAndDropOp(DragAndDropOpType type, OSDropTarget* target, const Vector2I& pos)
+			DragAndDropOp(DragAndDropOpType type, DropTarget* target, const Vector2I& pos)
 				:type(type), target(target), position(pos)
 			{ }
 
-			DragAndDropOp(DragAndDropOpType type, OSDropTarget* target, const Vector2I& pos,
-				const Vector<WString>& fileList)
+			DragAndDropOp(DragAndDropOpType type, DropTarget* target, const Vector2I& pos,
+				const Vector<Path>& fileList)
 				:type(type), target(target), position(pos), fileList(fileList)
 			{ }
 
 			DragAndDropOpType type;
-			OSDropTarget* target;
+			DropTarget* target;
 			Vector2I position;
-			Vector<WString> fileList;
+			Vector<Path> fileList;
+		};
+
+		/** Represents a single registered drop area. */
+		struct DropArea
+		{
+			DropArea(DropTarget* target, const Rect2I& area)
+				:target(target), area(area)
+			{ }
+
+			DropTarget* target;
+			Rect2I area;
+		};
+
+		/** Type of operations that can happen to a DropArea. */
+		enum class DropAreaOpType
+		{
+			Register, /**< New DropArea is being registered. */
+			Unregister, /**< DropArea is being unregistered. */
+			Update /**< DropArea was updated. */
+		};
+
+		/** Operation that in some way modifies a DropArea. */
+		struct DropAreaOp
+		{
+			DropAreaOp(DropTarget* target, DropAreaOpType type, const Rect2I& area = Rect2I::EMPTY)
+				:target(target), area(area), type(type)
+			{ }
+
+			DropTarget* target;
+			Rect2I area;
+			DropAreaOpType type;
 		};
 
 	public:
@@ -80,19 +111,26 @@ namespace bs
 		static void makeDNDAware(::Window xWindow);
 
 		/**
-		 * Creates a new drop target. Any further events processed will take this target into account, trigger its event
+		 * Registers a new drop target Any further events processed will take this target into account, trigger its event
 		 * and populate its data if a drop occurs.
 		 *
 		 * @note 	Thread safe.
 		 */
-		static OSDropTarget& createDropTarget(const RenderWindow* window, INT32 x, INT32 y, UINT32 width, UINT32 height);
+		static void registerDropTarget(DropTarget* target);
 
 		/**
-		 * Destroys a drop target.
+		 * Updates information about previous registered DropTarget. Call this when drop target area changes.
 		 *
 		 * @note	Thread safe.
 		 */
-		static void destroyDropTarget(OSDropTarget& target);
+		static void updateDropTarget(DropTarget* target);
+
+		/**
+		 * Unregisters a drop target. Its events will no longer be triggered.
+		 *
+		 * @note	Thread safe.
+		 */
+		static void unregisterDropTarget(DropTarget* target);
 
 		/**
 		 * Processes X11 ClientMessage event and handles any messages relating to drag and drop. Returns true if a message
@@ -113,15 +151,14 @@ namespace bs
 	private:
 		static ::Display* sXDisplay;
 		static bool sDragActive;
-		static Vector<OSDropTarget*> sTargets;
+		static Vector<DropArea> sDropAreas;
 		static Mutex sMutex;
 		static INT32 sDNDVersion;
 		static Atom sDNDType;
 		static ::Window sDNDSource;
 		static Vector2I sDragPosition;
 		static Vector<DragAndDropOp> sQueuedOperations;
-		static Vector<OSDropTarget*> sTargetsToRegister;
-		static Vector<OSDropTarget*> sTargetsToUnregister;
+		static Vector<DropAreaOp> sQueuedAreaOperations;
 
 		// Awareness
 		static Atom sXdndAware;

@@ -130,11 +130,4 @@ namespace bs
 
 		return String(uuidChars);
 	}
-
-	void PlatformUtility::open(const Path& path)
-	{
-		// TODOPORT - This call will likely need to be renamed to openURL, and additionals calls
-		// added depending on exact usage, since there is no direct equivalent to ShellExecute on
-		// Linux.
-	}
 }

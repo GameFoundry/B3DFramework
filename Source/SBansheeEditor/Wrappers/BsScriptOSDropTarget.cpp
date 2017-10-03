@@ -9,7 +9,7 @@
 #include "BsMonoUtil.h"
 #include "BsMonoArray.h"
 #include "Reflection/BsRTTIType.h"
-#include "Platform/BsPlatform.h"
+#include "Platform/BsDropTarget.h"
 #include "EditorWindow/BsEditorWidget.h"
 #include "EditorWindow/BsEditorWindowBase.h"
 #include "EditorWindow/BsEditorWidgetContainer.h"
@@ -86,12 +86,12 @@ namespace bs
 
 	MonoArray* ScriptOSDropTarget::internal_GetFilePaths(ScriptOSDropTarget* nativeInstance)
 	{
-		OSDropTarget* dropTarget = nativeInstance->mDropTarget;
+		SPtr<DropTarget> dropTarget = nativeInstance->mDropTarget;
 
-		if (nativeInstance->mIsDestroyed || dropTarget == nullptr || dropTarget->getDropType() != OSDropType::FileList)
+		if (nativeInstance->mIsDestroyed || dropTarget == nullptr || dropTarget->getDropType() != DropTargetType::FileList)
 			return ScriptArray::create<String>(0).getInternal();
 
-		Vector<WString> fileList = dropTarget->getFileList();
+		Vector<Path> fileList = dropTarget->getFileList();
 		ScriptArray output = ScriptArray::create<WString>((UINT32)fileList.size());
 
 		UINT32 idx = 0;
@@ -139,7 +139,7 @@ namespace bs
 	{
 		if (mDropTarget != nullptr)
 		{
-			Platform::destroyDropTarget(*mDropTarget);
+			mDropTarget = nullptr;
 
 			mDropTargetEnterConn.disconnect();
 			mDropTargetLeaveConn.disconnect();
@@ -149,7 +149,7 @@ namespace bs
 
 		if (parentWindow != nullptr)
 		{
-			mDropTarget = &Platform::createDropTarget(parentWindow.get(), x, y, width, height);
+			mDropTarget = DropTarget::create(parentWindow.get(), Rect2I(x, y, width, height));
 
 			mDropTargetEnterConn = mDropTarget->onEnter.connect(std::bind(&ScriptOSDropTarget::dropTargetDragEnter, this, _1, _2));
 			mDropTargetMoveConn = mDropTarget->onDragOver.connect(std::bind(&ScriptOSDropTarget::dropTargetDragMove, this, _1, _2));
@@ -166,7 +166,7 @@ namespace bs
 		Rect2I dropTargetArea = getDropTargetArea();
 
 		if (mDropTarget != nullptr)
-			mDropTarget->setArea(dropTargetArea.x, dropTargetArea.y, dropTargetArea.width, dropTargetArea.height);
+			mDropTarget->setArea(dropTargetArea);
 	}
 
 	void ScriptOSDropTarget::dropTargetDragEnter(ScriptOSDropTarget* thisPtr, INT32 x, INT32 y)

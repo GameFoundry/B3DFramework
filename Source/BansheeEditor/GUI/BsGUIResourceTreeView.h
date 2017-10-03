@@ -10,6 +10,8 @@
 
 namespace bs
 {
+	class DropTarget;
+
 	/** @addtogroup GUI-Editor-Internal
 	 *  @{
 	 */
@@ -105,7 +107,7 @@ namespace bs
 		InternalDraggedResources* mDraggedResources;
 		ResourceTreeElement mRootElement;
 		RenderWindow* mCurrentWindow;
-		OSDropTarget* mDropTarget;
+		SPtr<DropTarget> mDropTarget;
 		bool mDropTargetDragActive;
 
 		HEvent mDropTargetEnterConn;
