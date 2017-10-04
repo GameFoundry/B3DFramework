@@ -121,7 +121,7 @@ namespace bs
 	 * @note	
 	 * Sim thread unless noted otherwise. Retrieve core implementation from getCore() for core thread only functionality.
 	 */
-	class BS_CORE_EXPORT RenderTarget : public CoreObject
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) RenderTarget : public CoreObject
 	{
 	public:
 		RenderTarget();

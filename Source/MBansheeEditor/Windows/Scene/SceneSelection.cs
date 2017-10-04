@@ -39,7 +39,7 @@ namespace BansheeEditor
         /// <param name="sceneCamera">Camera into which to render the selection overlay, and perform picking from.</param>
         internal SceneSelection(Camera sceneCamera)
         {
-            Internal_Create(this, sceneCamera.Native.GetCachedPtr());
+            Internal_Create(this, sceneCamera.GetCachedPtr());
         }
 
         /// <summary>

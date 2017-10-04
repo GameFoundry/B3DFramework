@@ -722,7 +722,7 @@ namespace bs
 
 	Rect2I Camera::getViewportRect() const
 	{
-		return mViewport->getArea();
+		return mViewport->getPixelArea();
 	}
 
 	CoreSyncData Camera::syncToCore(FrameAlloc* allocator)
@@ -841,7 +841,7 @@ namespace bs
 
 	Rect2I Camera::getViewportRect() const
 	{
-		return mViewport->getArea();
+		return mViewport->getPixelArea();
 	}
 
 	void Camera::syncToCore(const CoreSyncData& data)

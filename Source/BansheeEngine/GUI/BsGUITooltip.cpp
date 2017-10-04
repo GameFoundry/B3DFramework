@@ -34,7 +34,7 @@ namespace bs
 		SPtr<Camera> camera = overlaidWidget.getCamera();
 		SPtr<Viewport> viewport = camera->getViewport();
 
-		Rect2I availableBounds(viewport->getX(), viewport->getY(), viewport->getWidth(), viewport->getHeight());
+		Rect2I availableBounds = viewport->getPixelArea();
 		
 		const GUISkin& skin = getSkin();
 		const GUIElementStyle* multiLineLabelStyle = skin.getStyle(BuiltinResources::MultiLineLabelStyle);

@@ -63,7 +63,7 @@ namespace BansheeEditor
                 spotAngleField.OnChanged += x => { light.SpotAngle = (Degree)x; MarkAsModified(); };
                 spotAngleField.OnFocusLost += ConfirmModify;
 
-                spotFalloffAngleField.OnChanged += x => { light.SpotFalloffAngle = (Degree)x; MarkAsModified(); };
+                spotFalloffAngleField.OnChanged += x => { light.SpotAngleFalloff = (Degree)x; MarkAsModified(); };
                 spotFalloffAngleField.OnFocusLost += ConfirmModify;
 
                 castShadowField.OnChanged += x =>
@@ -112,7 +112,7 @@ namespace BansheeEditor
             attRadiusField.Value = light.AttenuationRadius;
             sourceRadiusField.Value = light.SourceRadius;
             spotAngleField.Value = light.SpotAngle.Degrees;
-            spotFalloffAngleField.Value = light.SpotFalloffAngle.Degrees;
+            spotFalloffAngleField.Value = light.SpotAngleFalloff.Degrees;
             autoAttenuationField.Value = light.UseAutoAttenuation;
             castShadowField.Value = light.CastsShadow;
 

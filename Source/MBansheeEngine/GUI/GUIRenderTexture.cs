@@ -15,12 +15,12 @@ namespace BansheeEngine
     /// </summary>
     public sealed class GUIRenderTexture : GUIElement
     {
-        private RenderTexture2D renderTexture;
+        private RenderTexture renderTexture;
 
         /// <summary>
         /// Render texture that is displayed on the GUI element.
         /// </summary>
-        public RenderTexture2D RenderTexture
+        public RenderTexture RenderTexture
         {
             get
             {
@@ -48,7 +48,7 @@ namespace BansheeEngine
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUIRenderTexture(RenderTexture2D texture, bool transparent, string style, params GUIOption[] options)
+        public GUIRenderTexture(RenderTexture texture, bool transparent, string style, params GUIOption[] options)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)
@@ -64,7 +64,7 @@ namespace BansheeEngine
         /// <param name="transparent">Determines should the texture be rendered with transparency active.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUIRenderTexture(RenderTexture2D texture, bool transparent, params GUIOption[] options)
+        public GUIRenderTexture(RenderTexture texture, bool transparent, params GUIOption[] options)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)
@@ -82,7 +82,7 @@ namespace BansheeEngine
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUIRenderTexture(RenderTexture2D texture, string style, params GUIOption[] options)
+        public GUIRenderTexture(RenderTexture texture, string style, params GUIOption[] options)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)
@@ -97,7 +97,7 @@ namespace BansheeEngine
         /// <param name="texture">Render texture to display in the element.</param>
         /// <param name="options">Options that allow you to control how is the element  positioned and sized. This will 
         ///                       override any similar options set by style.</param>
-        public GUIRenderTexture(RenderTexture2D texture, params GUIOption[] options)
+        public GUIRenderTexture(RenderTexture texture, params GUIOption[] options)
         {
             IntPtr texturePtr = IntPtr.Zero;
             if (texture != null)

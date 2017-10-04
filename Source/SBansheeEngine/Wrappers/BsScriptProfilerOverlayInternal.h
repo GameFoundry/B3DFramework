@@ -8,6 +8,8 @@
 
 namespace bs
 {
+	class ScriptCCamera;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -30,7 +32,7 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void internal_CreateInstance(MonoObject* instance, ScriptCamera* camera);
+		static void internal_CreateInstance(MonoObject* instance, ScriptCCamera* camera);
 		static void internal_SetType(ScriptProfilerOverlayInternal* thisPtr, ProfilerOverlayType type);
 		static void internal_Update(ScriptProfilerOverlayInternal* thisPtr);
 		static void internal_DestroyInstance(ScriptProfilerOverlayInternal* thisPtr);

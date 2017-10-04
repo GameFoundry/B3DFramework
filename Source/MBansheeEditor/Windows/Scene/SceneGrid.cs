@@ -36,7 +36,7 @@ namespace BansheeEditor
         /// <param name="sceneCamera">Camera into which the grid will be rendered.</param>
         internal SceneGrid(Camera sceneCamera)
         {
-            Internal_Create(this, sceneCamera.Native.GetCachedPtr());
+            Internal_Create(this, sceneCamera.GetCachedPtr());
         }
 
         /// <summary>

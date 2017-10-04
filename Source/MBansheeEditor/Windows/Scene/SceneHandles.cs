@@ -22,7 +22,7 @@ namespace BansheeEditor
         /// <param name="sceneCamera">Camera through which the scene handles are displayed.</param>
         internal SceneHandles(EditorWindow parent, Camera sceneCamera)
         {
-            Internal_Create(this, parent.GetCachedPtr(), sceneCamera.Native.GetCachedPtr());
+            Internal_Create(this, parent.GetCachedPtr(), sceneCamera.GetCachedPtr());
         }
 
         /// <summary>

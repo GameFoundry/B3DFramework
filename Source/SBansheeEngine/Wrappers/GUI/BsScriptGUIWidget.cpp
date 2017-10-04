@@ -3,12 +3,14 @@
 #include "Wrappers/GUI/BsScriptGUIWidget.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "Wrappers/GUI/BsScriptGUISkin.h"
-#include "Wrappers/BsScriptCamera.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 #include "GUI/BsGUIWidget.h"
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsSceneManager.h"
 #include "Resources/BsBuiltinResources.h"
+#include "Components/BsCCamera.h"
+
+#include "BsScriptCCamera.generated.h"
 
 namespace bs
 {
@@ -65,7 +67,7 @@ namespace bs
 		}
 	}
 
-	void ScriptGUIWidget::internal_UpdateMainCamera(ScriptGUIWidget* instance, ScriptCamera* camera)
+	void ScriptGUIWidget::internal_UpdateMainCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
 	{
 		SPtr<GUIWidget> widget = instance->getInternal();
 
@@ -73,7 +75,7 @@ namespace bs
 		{
 			SPtr<Camera> nativeCamera;
 			if (camera != nullptr)
-				nativeCamera = camera->getInternal();
+				nativeCamera = camera->getHandle()->_getCamera();
 
 			widget->setCamera(nativeCamera);
 		}
@@ -93,11 +95,11 @@ namespace bs
 			widget->setSkin(guiSkin);
 	}
 
-	void ScriptGUIWidget::internal_SetCamera(ScriptGUIWidget* instance, ScriptCamera* camera)
+	void ScriptGUIWidget::internal_SetCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
 	{
 		SPtr<Camera> nativeCamera;
 		if (camera != nullptr)
-			nativeCamera = camera->getInternal();
+			nativeCamera = camera->getHandle()->_getCamera();
 
 		if(nativeCamera == nullptr)
 			nativeCamera = gSceneManager().getMainCamera().camera;

@@ -1,7 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Wrappers/BsScriptSceneHandles.h"
-#include "Wrappers/BsScriptCamera.h"
 #include "Wrappers/BsScriptEditorWindow.h"
 #include "Platform/BsCursor.h"
 #include "RenderAPI/BsRenderWindow.h"
@@ -9,6 +8,9 @@
 #include "EditorWindow/BsEditorWindow.h"
 #include "Handles/BsHandleManager.h"
 #include "BsEditorApplication.h"
+#include "Components/BsCCamera.h"
+
+#include "BsScriptCCamera.generated.h"
 
 namespace bs
 {
@@ -67,14 +69,14 @@ namespace bs
 		return offset;
 	}
 
-	void ScriptSceneHandles::internal_Create(MonoObject* managedInstance, ScriptEditorWindow* parentWindow, ScriptCamera* camera)
+	void ScriptSceneHandles::internal_Create(MonoObject* managedInstance, ScriptEditorWindow* parentWindow, ScriptCCamera* camera)
 	{
 		EditorWidgetBase* widget = nullptr;
 
 		if (parentWindow != nullptr && !parentWindow->isDestroyed())
 			widget = parentWindow->getEditorWidget();
 
-		new (bs_alloc<ScriptSceneHandles>()) ScriptSceneHandles(managedInstance, widget, camera->getInternal());
+		new (bs_alloc<ScriptSceneHandles>()) ScriptSceneHandles(managedInstance, widget, camera->getHandle()->_getCamera());
 	}
 
 	void ScriptSceneHandles::internal_Draw(ScriptSceneHandles* thisPtr)

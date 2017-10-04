@@ -321,7 +321,7 @@ namespace bs
 			float width = (float)renderTarget->getProperties().width;
 			float height = (float)renderTarget->getProperties().height;
 
-			Rect2 normArea = camera.getViewport()->getNormArea();
+			Rect2 normArea = camera.getViewport()->getArea();
 
 			Rect2I screenArea;
 			screenArea.x = (int)(normArea.x * width);

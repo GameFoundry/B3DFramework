@@ -181,7 +181,7 @@ namespace BansheeEditor
                 }
             }
 
-            RenderTexture2D renderTexture = new RenderTexture2D(PixelFormat.RGBA8, rtWidth, rtHeight) { Priority = 1};
+            RenderTexture renderTexture = new RenderTexture(PixelFormat.RGBA8, rtWidth, rtHeight) { Priority = 1};
 
             EditorApplication.MainRenderTarget = renderTexture;
             renderTextureGUI.RenderTexture = renderTexture;

@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	class ScriptCCamera;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -41,9 +43,9 @@ namespace bs
 		/************************************************************************/
 		static void internal_Create(MonoObject* instance);
 		static void internal_UpdateTransform(ScriptGUIWidget* instance, ScriptSceneObject* parentSO);
-		static void internal_UpdateMainCamera(ScriptGUIWidget* instance, ScriptCamera* camera);
+		static void internal_UpdateMainCamera(ScriptGUIWidget* instance, ScriptCCamera* camera);
 		static void internal_SetSkin(ScriptGUIWidget* instance, ScriptGUISkin* skin);
-		static void internal_SetCamera(ScriptGUIWidget* instance, ScriptCamera* camera);
+		static void internal_SetCamera(ScriptGUIWidget* instance, ScriptCCamera* camera);
 		static void internal_SetDepth(ScriptGUIWidget* instance, INT8 value);
 		static INT8 internal_GetDepth(ScriptGUIWidget* instance);
 		static void internal_Destroy(ScriptGUIWidget* instance);

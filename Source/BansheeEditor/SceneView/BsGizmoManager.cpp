@@ -778,11 +778,11 @@ namespace bs
 
 		float cameraScale = 1.0f;
 		if (camera->getProjectionType() == PT_ORTHOGRAPHIC)
-			cameraScale = camera->getViewport()->getHeight() / camera->getOrthoWindowHeight();
+			cameraScale = camera->getViewport()->getPixelArea().height / camera->getOrthoWindowHeight();
 		else
 		{
 			Radian vertFOV(Math::tan(camera->getHorzFOV() * 0.5f));
-			cameraScale = (camera->getViewport()->getHeight() * 0.5f) / vertFOV.valueRadians();
+			cameraScale = (camera->getViewport()->getPixelArea().height * 0.5f) / vertFOV.valueRadians();
 		}
 
 		iconRenderData = bs_shared_ptr_new<IconRenderDataVec>();
@@ -905,7 +905,7 @@ namespace bs
 
 		if (!fixedScale)
 		{
-			float iconToScreenRatio = iconHeight / (float)camera->getViewport()->getHeight();
+			float iconToScreenRatio = iconHeight / (float)camera->getViewport()->getPixelArea().height;
 
 			if (iconToScreenRatio > 0.3f)
 			{
@@ -1047,7 +1047,7 @@ namespace bs
 		if (renderTarget == nullptr)
 			return;
 
-		Rect2I screenArea = camera->getViewport()->getArea();
+		Rect2I screenArea = camera->getViewport()->getPixelArea();
 		Matrix4 viewMatrix = camera->getViewMatrix();
 		Matrix4 projMatrix = camera->getProjectionMatrixRS();
 		Matrix4 viewProjMat = projMatrix * viewMatrix;

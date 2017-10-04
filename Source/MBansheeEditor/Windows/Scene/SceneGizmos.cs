@@ -21,7 +21,7 @@ namespace BansheeEditor
         /// <param name="sceneCamera">Camera into which the gizmos will be rendered.</param>
         internal SceneGizmos(Camera sceneCamera)
         {
-            Internal_Create(this, sceneCamera.Native.GetCachedPtr());
+            Internal_Create(this, sceneCamera.GetCachedPtr());
         }
 
         /// <summary>

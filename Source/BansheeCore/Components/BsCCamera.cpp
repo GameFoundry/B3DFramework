@@ -16,11 +16,11 @@ namespace bs
 
 	CCamera::CCamera(const HSceneObject& parent, SPtr<RenderTarget> target, float left, float top, float width, float height)
 		: Component(parent), mTarget(target), mLeft(left), mTop(top), mWidth(width), mHeight(height)
-    {
+	{
 		if(mTarget == nullptr)
 			mTarget = CoreApplication::instance().getPrimaryWindow();
 
-		Component::setFlag(ComponentFlag::AlwaysRun, true);
+		setFlag(ComponentFlag::AlwaysRun, true);
 		setName("Camera");
 	}
 

@@ -40,7 +40,7 @@ namespace bs
 		SPtr<Viewport> viewport = camera->getViewport();
 		GUIPanel* captureHitBoxPanel = mGUI->getPanel()->addNewElement<GUIPanel>(std::numeric_limits<INT16>::max());
 		GUIDropDownHitBox* captureHitBox = GUIDropDownHitBox::create(true, false);
-		captureHitBox->setBounds(Rect2I(0, 0, viewport->getWidth(), viewport->getHeight()));
+		captureHitBox->setBounds(Rect2I(0, 0, viewport->getPixelArea().width, viewport->getPixelArea().height));
 		captureHitBoxPanel->addElement(captureHitBox);
 
 		setSize(width, height);
@@ -91,7 +91,7 @@ namespace bs
 
 	void DropDownWindow::setSize(UINT32 width, UINT32 height)
 	{
-		Rect2I availableBounds(0, 0, mGUI->getTarget()->getWidth(), mGUI->getTarget()->getHeight());
+		Rect2I availableBounds(0, 0, mGUI->getTarget()->getPixelArea().width, mGUI->getTarget()->getPixelArea().height);
 		DropDownAreaPlacement dropDownPlacement = DropDownAreaPlacement::aroundPosition(mPosition);
 
 		DropDownAreaPlacement::HorzDir horzDir;

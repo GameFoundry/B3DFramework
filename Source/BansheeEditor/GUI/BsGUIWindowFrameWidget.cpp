@@ -58,8 +58,8 @@ namespace bs
 		INT32 x = 0;
 		INT32 y = 0;
 
-		UINT32 width = getTarget()->getWidth();
-		UINT32 height = getTarget()->getHeight();
+		UINT32 width = getTarget()->getPixelArea().width;
+		UINT32 height = getTarget()->getPixelArea().height;
 
 		Vector<NonClientResizeArea> nonClientAreas(8);
 

@@ -164,9 +164,9 @@ namespace bs
 	 *
 	 * @note	Sim thread.
 	 */
-    class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Texture : public Resource
-    {
-    public:
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Texture : public Resource
+	{
+	public:
 		/**
 		 * Updates the texture with new data. Provided data buffer will be locked until the operation completes.
 		 *
@@ -263,7 +263,7 @@ namespace bs
 
 		/** @} */
 
-    protected:
+	protected:
 		friend class TextureManager;
 
 		Texture(const TEXTURE_DESC& desc);
@@ -302,7 +302,7 @@ namespace bs
 		friend class TextureRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
-    };
+	};
 
 	/** @} */
 

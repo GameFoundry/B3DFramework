@@ -1,14 +1,16 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Wrappers/BsScriptSceneSelection.h"
-#include "Wrappers/BsScriptCamera.h"
 #include "Scene/BsSelectionRenderer.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsScriptGameObjectManager.h"
 #include "Scene/BsScenePicking.h"
 #include "Scene/BsSelection.h"
 #include "BsMonoPrerequisites.h"
-#include <BsMonoArray.h>
+#include "BsMonoArray.h"
+#include "Components/BsCCamera.h"
+
+#include "BsScriptCCamera.generated.h"
 
 namespace bs
 {
@@ -32,9 +34,9 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_Snap", (void*)&ScriptSceneSelection::internal_Snap);
 	}
 
-	void ScriptSceneSelection::internal_Create(MonoObject* managedInstance, ScriptCamera* camera)
+	void ScriptSceneSelection::internal_Create(MonoObject* managedInstance, ScriptCCamera* camera)
 	{
-		new (bs_alloc<ScriptSceneSelection>()) ScriptSceneSelection(managedInstance, camera->getInternal());
+		new (bs_alloc<ScriptSceneSelection>()) ScriptSceneSelection(managedInstance, camera->getHandle()->_getCamera());
 	}
 
 	void ScriptSceneSelection::internal_Draw(ScriptSceneSelection* thisPtr)

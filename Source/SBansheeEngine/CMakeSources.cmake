@@ -55,7 +55,6 @@ set(BS_SBANSHEEENGINE_INC_SERIALIZATION_RTTI
 
 set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Wrappers/BsScriptBuiltin.h"
-	"Wrappers/BsScriptCamera.h"
 	"Wrappers/BsScriptColor.h"
 	"Wrappers/BsScriptComponent.h"
 	"Wrappers/BsScriptContextMenu.h"
@@ -68,16 +67,12 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Wrappers/BsScriptHString.h"
 	"Wrappers/BsScriptInput.h"
 	"Wrappers/BsScriptInputConfiguration.h"
-	"Wrappers/BsScriptLight.h"
 	"Wrappers/BsScriptLogEntry.h"
 	"Wrappers/BsScriptManagedResource.h"
 	"Wrappers/BsScriptPixelUtility.h"
 	"Wrappers/BsScriptPlainText.h"
 	"Wrappers/BsScriptPrefab.h"
 	"Wrappers/BsScriptProfilerOverlayInternal.h"
-	"Wrappers/BsScriptRenderTarget.h"
-	"Wrappers/BsScriptRenderTexture.h"
-	"Wrappers/BsScriptRenderTexture2D.h"
 	"Wrappers/BsScriptResource.h"
 	"Wrappers/BsScriptVirtualInput.h"
 	"Wrappers/BsScriptVirtualButton.h"
@@ -99,7 +94,6 @@ set(BS_SBANSHEEENGINE_INC_WRAPPERS
 	"Wrappers/BsScriptScene.h"
 	"Wrappers/BsScriptResources.h"
 	"Wrappers/BsScriptResourceRef.h"
-	"Wrappers/BsScriptRenderSettings.h"
 	"Wrappers/BsScriptManagedComponent.h"
 	"Wrappers/BsScriptQuaternion.h"
 )
@@ -147,7 +141,6 @@ set(BS_SBANSHEEENGINE_SRC_SERIALIZATION
 
 set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Wrappers/BsScriptBuiltin.cpp"
-	"Wrappers/BsScriptCamera.cpp"
 	"Wrappers/BsScriptColor.cpp"
 	"Wrappers/BsScriptComponent.cpp"
 	"Wrappers/BsScriptContextMenu.cpp"
@@ -160,7 +153,6 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Wrappers/BsScriptHString.cpp"
 	"Wrappers/BsScriptInput.cpp"
 	"Wrappers/BsScriptInputConfiguration.cpp"
-	"Wrappers/BsScriptLight.cpp"
 	"Wrappers/BsScriptLogEntry.cpp"
 	"Wrappers/BsScriptManagedResource.cpp"
 	"Wrappers/BsScriptPixelUtility.cpp"
@@ -188,10 +180,6 @@ set(BS_SBANSHEEENGINE_SRC_WRAPPERS
 	"Wrappers/BsScriptResources.cpp"
 	"Wrappers/BsScriptResourceRef.cpp"
 	"Wrappers/BsScriptResource.cpp"
-	"Wrappers/BsScriptRenderTexture2D.cpp"
-	"Wrappers/BsScriptRenderTexture.cpp"
-	"Wrappers/BsScriptRenderTarget.cpp"
-	"Wrappers/BsScriptRenderSettings.cpp"
 	"Wrappers/BsScriptManagedComponent.cpp"
 	"Wrappers/BsScriptQuaternion.cpp"
 )
@@ -243,6 +231,7 @@ set(BS_SBANSHEEENGINE_INC_EXTENSIONS
 	"Extensions/BsAnimationEx.h"
 	"Extensions/BsShaderEx.h"
 	"Extensions/BsMaterialEx.h"
+	"Extensions/BsRenderTargetEx.h"
 )
 
 set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
@@ -256,6 +245,7 @@ set(BS_SBANSHEEENGINE_SRC_EXTENSIONS
 	"Extensions/BsAnimationEx.cpp"
 	"Extensions/BsShaderEx.cpp"
 	"Extensions/BsMaterialEx.cpp"
+	"Extensions/BsRenderTargetEx.cpp"
 )
 
 source_group("Header Files" FILES ${BS_SBANSHEEENGINE_INC_NOFILTER})

@@ -17,7 +17,7 @@ namespace BansheeEngine
         {
             IntPtr ptr = IntPtr.Zero;
             if (camera != null)
-                ptr = camera.Native.GetCachedPtr();
+                ptr = camera.GetCachedPtr();
 
             Internal_CreateInstance(this, ptr);
         }

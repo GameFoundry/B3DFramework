@@ -94,7 +94,7 @@ namespace bs
 		float width = mLayoutData.area.width / (float)rtProps.width;
 		float height = mLayoutData.area.height / (float)rtProps.height;
 
-		viewport->setArea(x, y, width, height);
+		viewport->setArea(Rect2(x, y, width, height));
 	}
 
 	void GUIViewport::_changeParentWidget(GUIWidget* widget)

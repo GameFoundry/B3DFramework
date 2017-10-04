@@ -16,39 +16,17 @@ namespace bs
 	class BS_CORE_EXPORT ViewportRTTI : public RTTIType<Viewport, IReflectable, ViewportRTTI>
 	{
 	private:
-		Rect2& getNormArea(Viewport* obj) { return obj->mNormArea; }
-		void setNormArea(Viewport* obj, Rect2& val) { obj->mNormArea = val; }
-
-		bool& getRequireColorClear(Viewport* obj) { return obj->mRequiresColorClear; }
-		void setRequireColorClear(Viewport* obj, bool& val) { obj->mRequiresColorClear = val; }
-
-		bool& getRequireDepthClear(Viewport* obj) { return obj->mRequiresDepthClear; }
-		void setRequireDepthClear(Viewport* obj, bool& val) { obj->mRequiresDepthClear = val; }
-
-		bool& getRequireStencilClear(Viewport* obj) { return obj->mRequiresStencilClear; }
-		void setRequireStencilClear(Viewport* obj, bool& val) { obj->mRequiresStencilClear = val; }
-
-		Color& getClearColor(Viewport* obj) { return obj->mClearColor; }
-		void setClearColor(Viewport* obj, Color& val) { obj->mClearColor = val; }
-
-		float& getDepthClearValue(Viewport* obj) { return obj->mDepthClearValue; }
-		void setDepthClearValue(Viewport* obj, float& val) { obj->mDepthClearValue = val; }
-
-		UINT16& getStencilClearValue(Viewport* obj) { return obj->mStencilClearValue; }
-		void setStencilClearValue(Viewport* obj, UINT16& val) { obj->mStencilClearValue = val; }
-
-		// TODO - Not saving a render target reference. Need to re-think the design on how to reference those. Likely as a handle to resource.
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mNormArea, 0)
+			BS_RTTI_MEMBER_PLAIN(mClearColorValue, 1)
+			BS_RTTI_MEMBER_PLAIN(mClearDepthValue, 2)
+			BS_RTTI_MEMBER_PLAIN(mClearStencilValue, 3)
+			BS_RTTI_MEMBER_PLAIN(mClearFlags, 4)
+		BS_END_RTTI_MEMBERS
 	public:
 		ViewportRTTI()
-		{
-			addPlainField("mNormArea", 0, &ViewportRTTI::getNormArea, &ViewportRTTI::setNormArea);
-			addPlainField("mRequiresColorClear", 1, &ViewportRTTI::getRequireColorClear, &ViewportRTTI::setRequireColorClear);
-			addPlainField("mRequiresDepthClear", 2, &ViewportRTTI::getRequireDepthClear, &ViewportRTTI::setRequireDepthClear);
-			addPlainField("mRequiresStencilClear", 3, &ViewportRTTI::getRequireStencilClear, &ViewportRTTI::setRequireStencilClear);
-			addPlainField("mClearColor", 4, &ViewportRTTI::getClearColor, &ViewportRTTI::setClearColor);
-			addPlainField("mDepthClearValue", 5, &ViewportRTTI::getDepthClearValue, &ViewportRTTI::setDepthClearValue);
-			addPlainField("mStencilClearValue", 6, &ViewportRTTI::getStencilClearValue, &ViewportRTTI::setStencilClearValue);
-		}
+			:mInitMembers(this)
+		{ }
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{

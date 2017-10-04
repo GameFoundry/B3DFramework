@@ -354,10 +354,12 @@ namespace bs
 	};
 
 	/**	Projection type to use by the camera. */
-	enum ProjectionType
-	{
-		PT_ORTHOGRAPHIC, /**< Projection type where object size remains constant and parallel lines remain parallel. */
-		PT_PERSPECTIVE /**< Projection type that emulates human vision. Objects farther away appear smaller. */
+	enum BS_SCRIPT_EXPORT() ProjectionType
+	{ 
+		/** Projection type where object size remains constant and parallel lines remain parallel. */
+		PT_ORTHOGRAPHIC		BS_SCRIPT_EXPORT(n:Orthographic),
+		/** Projection type that emulates human vision. Objects farther away appear smaller. */
+		PT_PERSPECTIVE		BS_SCRIPT_EXPORT(n:Perspective)
 	};
 
 	/**	Contains data about a type used for GPU data parameters. */

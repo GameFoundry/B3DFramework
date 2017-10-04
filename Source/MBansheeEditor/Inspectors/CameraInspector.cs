@@ -65,14 +65,14 @@ namespace BansheeEditor
             aspectField.Value = camera.AspectRatio;
             nearPlaneField.Value = camera.NearClipPlane;
             farPlaneField.Value = camera.FarClipPlane;
-            viewportXField.Value = camera.ViewportRect.x;
-            viewportYField.Value = camera.ViewportRect.y;
-            viewportWidthField.Value = camera.ViewportRect.width;
-            viewportHeightField.Value = camera.ViewportRect.height;
-            clearFlagsFields.Value = (ulong)camera.ClearFlags;
-            clearStencilField.Value = camera.ClearStencil;
-            clearDepthField.Value = camera.ClearDepth;
-            clearColorField.Value = camera.ClearColor;
+            viewportXField.Value = camera.Viewport.Area.x;
+            viewportYField.Value = camera.Viewport.Area.y;
+            viewportWidthField.Value = camera.Viewport.Area.width;
+            viewportHeightField.Value = camera.Viewport.Area.height;
+            clearFlagsFields.Value = (ulong)camera.Viewport.ClearFlags;
+            clearStencilField.Value = camera.Viewport.ClearStencil;
+            clearDepthField.Value = camera.Viewport.ClearDepth;
+            clearColorField.Value = camera.Viewport.ClearColor;
             priorityField.Value = camera.Priority;
             mainField.Value = camera.Main;
             renderSettingsGUI.Settings = camera.RenderSettings;
@@ -132,9 +132,9 @@ namespace BansheeEditor
 
                 viewportXField.OnChanged += x =>
                 {
-                    Rect2 rect = camera.ViewportRect; 
+                    Rect2 rect = camera.Viewport.Area; 
                     rect.x = x; 
-                    camera.ViewportRect = rect;
+                    camera.Viewport.Area = rect;
 
                     MarkAsModified();
                 };
@@ -143,9 +143,9 @@ namespace BansheeEditor
 
                 viewportYField.OnChanged += x =>
                 {
-                    Rect2 rect = camera.ViewportRect; 
+                    Rect2 rect = camera.Viewport.Area; 
                     rect.y = x; 
-                    camera.ViewportRect = rect;
+                    camera.Viewport.Area = rect;
 
                     MarkAsModified();
                 };
@@ -154,9 +154,9 @@ namespace BansheeEditor
 
                 viewportWidthField.OnChanged += x =>
                 {
-                    Rect2 rect = camera.ViewportRect; 
+                    Rect2 rect = camera.Viewport.Area; 
                     rect.width = x; 
-                    camera.ViewportRect = rect;
+                    camera.Viewport.Area = rect;
 
                     MarkAsModified();
                 };
@@ -165,9 +165,9 @@ namespace BansheeEditor
 
                 viewportHeightField.OnChanged += x =>
                 {
-                    Rect2 rect = camera.ViewportRect; 
+                    Rect2 rect = camera.Viewport.Area; 
                     rect.height = x; 
-                    camera.ViewportRect = rect;
+                    camera.Viewport.Area = rect;
 
                     MarkAsModified();
                 };
@@ -176,22 +176,22 @@ namespace BansheeEditor
 
                 clearFlagsFields.OnSelectionChanged += x =>
                 {
-                    camera.ClearFlags = (ClearFlags) x;
+                    camera.Viewport.ClearFlags = (ClearFlags) x;
                     MarkAsModified();
                     ConfirmModify();
                 };
 
-                clearStencilField.OnChanged += x => { camera.ClearStencil = (ushort) x; };
+                clearStencilField.OnChanged += x => { camera.Viewport.ClearStencil = (ushort) x; };
                 clearStencilField.OnConfirmed += ConfirmModify;
                 clearStencilField.OnFocusLost += ConfirmModify;
 
-                clearDepthField.OnChanged += x => { camera.ClearDepth = x; };
+                clearDepthField.OnChanged += x => { camera.Viewport.ClearDepth = x; };
                 clearDepthField.OnConfirmed += ConfirmModify;
                 clearDepthField.OnFocusLost += ConfirmModify;
 
                 clearColorField.OnChanged += x =>
                 {
-                    camera.ClearColor = x;
+                    camera.Viewport.ClearColor = x;
                     MarkAsModified();
                     ConfirmModify();
                 };

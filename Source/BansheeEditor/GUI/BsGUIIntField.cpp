@@ -92,19 +92,20 @@ namespace bs
 					INT32 xDiff = event.getPosition().x - mLastDragPos;
 
 					INT32 jumpAmount = 0;
+					Rect2I viewArea = _getParentWidget()->getTarget()->getPixelArea();
 					if (event.getPosition().x < 0)
 					{
 						Vector2I cursorScreenPos = Cursor::instance().getScreenPosition();
-						cursorScreenPos.x += _getParentWidget()->getTarget()->getWidth();
-						jumpAmount = _getParentWidget()->getTarget()->getWidth();
+						cursorScreenPos.x += viewArea.width;
+						jumpAmount = viewArea.width;
 
 						Cursor::instance().setScreenPosition(cursorScreenPos);
 					}
-					else if (event.getPosition().x >= _getParentWidget()->getTarget()->getWidth())
+					else if (event.getPosition().x >= (INT32)viewArea.width)
 					{
 						Vector2I cursorScreenPos = Cursor::instance().getScreenPosition();
-						cursorScreenPos.x -= _getParentWidget()->getTarget()->getWidth();
-						jumpAmount = -_getParentWidget()->getTarget()->getWidth();
+						cursorScreenPos.x -= viewArea.width;
+						jumpAmount = -(INT32)viewArea.width;
 
 						Cursor::instance().setScreenPosition(cursorScreenPos);
 					}

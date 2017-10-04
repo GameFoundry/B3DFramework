@@ -14,7 +14,8 @@
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 #include "Wrappers/BsScriptHString.h"
 #include "Wrappers/GUI/BsScriptGUIContent.h"
-#include "Wrappers/BsScriptRenderTexture2D.h"
+
+#include "BsScriptRenderTexture.generated.h"
 
 namespace bs
 {
@@ -32,7 +33,7 @@ namespace bs
 	}
 
 	void ScriptGUIRenderTexture::internal_createInstance(MonoObject* instance, 
-		ScriptRenderTexture2D* texture, bool transparent, MonoString* style, MonoArray* guiOptions)
+		ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
@@ -43,18 +44,18 @@ namespace bs
 
 		SPtr<RenderTexture> renderTexture;
 		if (texture != nullptr)
-			renderTexture = texture->getRenderTexture();
+			renderTexture = texture->getInternal();
 
 		GUIRenderTexture* guiTexture = GUIRenderTexture::create(renderTexture, transparent, options, toString(MonoUtil::monoToWString(style)));
 
 		new (bs_alloc<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
 	}
 
-	void ScriptGUIRenderTexture::internal_setTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture2D* texture)
+	void ScriptGUIRenderTexture::internal_setTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture)
 	{
 		SPtr<RenderTexture> renderTexture;
 		if (texture != nullptr)
-			renderTexture = texture->getRenderTexture();
+			renderTexture = texture->getInternal();
 
 		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->getGUIElement();
 		guiTexture->setRenderTexture(renderTexture);

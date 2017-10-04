@@ -17,39 +17,48 @@ namespace bs
 	 * 			
 	 * Wraps a Camera as a Component.
 	 */
-    class BS_CORE_EXPORT CCamera : public Component
-    {
-    public:
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:Camera) CCamera : public Component
+	{
+	public:
 		CCamera(const HSceneObject& parent, SPtr<RenderTarget> target = nullptr,
 			float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
 
-        virtual ~CCamera();
+		virtual ~CCamera();
 
 		/** @copydoc Camera::getViewport */
+		BS_SCRIPT_EXPORT(n:Viewport,pr:getter)
 		SPtr<Viewport> getViewport() const { return mInternal->getViewport(); }
 
 		/** @copydoc Camera::setHorzFOV */
+		BS_SCRIPT_EXPORT(n:FieldOfView,pr:setter)
 		virtual void setHorzFOV(const Radian& fovy) { mInternal->setHorzFOV(fovy); }
 
 		/** @copydoc Camera::getHorzFOV */
+		BS_SCRIPT_EXPORT(n:FieldOfView,pr:getter)
 		virtual const Radian& getHorzFOV() const { return mInternal->getHorzFOV(); }
 
 		/** @copydoc Camera::setNearClipDistance */
+		BS_SCRIPT_EXPORT(n:NearClipPlane,pr:setter)
 		virtual void setNearClipDistance(float nearDist) { mInternal->setNearClipDistance(nearDist); }
 
 		/** @copydoc Camera::getNearClipDistance */
+		BS_SCRIPT_EXPORT(n:NearClipPlane,pr:getter)
 		virtual float getNearClipDistance() const { return mInternal->getNearClipDistance(); }
 
 		/** @copydoc Camera::setFarClipDistance */
+		BS_SCRIPT_EXPORT(n:FarClipPlane,pr:setter)
 		virtual void setFarClipDistance(float farDist) { mInternal->setFarClipDistance(farDist); }
 
 		/** @copydoc Camera::getFarClipDistance */
+		BS_SCRIPT_EXPORT(n:FarClipPlane,pr:getter)
 		virtual float getFarClipDistance() const { return mInternal->getFarClipDistance(); }
 
 		/** @copydoc Camera::setAspectRatio */
+		BS_SCRIPT_EXPORT(n:AspectRatio,pr:setter)
 		virtual void setAspectRatio(float ratio) { mInternal->setAspectRatio(ratio); }
 
 		/** @copydoc Camera::getAspectRatio */
+		BS_SCRIPT_EXPORT(n:AspectRatio,pr:getter)
 		virtual float getAspectRatio() const { return mInternal->getAspectRatio(); }
 
 		/** @copydoc Camera::setFrustumExtents */
@@ -68,12 +77,14 @@ namespace bs
 		}
 
 		/** @copydoc Camera::getProjectionMatrixRS */
+		BS_SCRIPT_EXPORT(n:ProjMatrix,pr:getter)
 		virtual const Matrix4& getProjectionMatrixRS() const { return mInternal->getProjectionMatrixRS(); }
 
 		/** @copydoc Camera::getProjectionMatrix */
 		virtual const Matrix4& getProjectionMatrix() const { return mInternal->getProjectionMatrix(); }
 
 		/** @copydoc Camera::getViewMatrix */
+		BS_SCRIPT_EXPORT(n:ViewMatrix,pr:getter)
 		virtual const Matrix4& getViewMatrix() const { updateView(); return mInternal->getViewMatrix(); }
 
 		/** @copydoc Camera::setCustomViewMatrix */
@@ -98,106 +109,137 @@ namespace bs
 		virtual const ConvexVolume& getFrustum() const { return mInternal->getFrustum(); }
 
 		/** @copydoc Camera::getWorldFrustum */
-        virtual ConvexVolume getWorldFrustum() const;
+		virtual ConvexVolume getWorldFrustum() const;
 
 		/** @copydoc Camera::getBoundingBox */
 		const AABox& getBoundingBox() const { return mInternal->getBoundingBox(); }
 
 		/** @copydoc Camera::setProjectionType */
+		BS_SCRIPT_EXPORT(n:ProjectionType,pr:setter)
 		virtual void setProjectionType(ProjectionType pt) { mInternal->setProjectionType(pt); }
 
 		/** @copydoc Camera::getProjectionType */
+		BS_SCRIPT_EXPORT(n:ProjectionType,pr:getter)
 		virtual ProjectionType getProjectionType() const { return mInternal->getProjectionType(); }
 
 		/** @copydoc Camera::setOrthoWindow */
 		virtual void setOrthoWindow(float w, float h) { mInternal->setOrthoWindow(w, h); }
 
 		/** @copydoc Camera::setOrthoWindowHeight */
+		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:setter)
 		virtual void setOrthoWindowHeight(float h) { mInternal->setOrthoWindowHeight(h); }
 
-		/** @copydoc Camera::setOrthoWindowWidth */
-		virtual void setOrthoWindowWidth(float w) { mInternal->setOrthoWindowWidth(w); }
-
 		/** @copydoc Camera::getOrthoWindowHeight */
+		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:getter)
 		virtual float getOrthoWindowHeight() const { return mInternal->getOrthoWindowHeight(); }
 
+		/** @copydoc Camera::setOrthoWindowWidth */
+		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:setter)
+		virtual void setOrthoWindowWidth(float w) { mInternal->setOrthoWindowWidth(w); }
+
 		/** @copydoc Camera::getOrthoWindowWidth */
+		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:getter)
 		virtual float getOrthoWindowWidth() const { return mInternal->getOrthoWindowWidth(); }
 
-		/** @copydoc Camera::getPriority */
-		INT32 getPriority() const { return mInternal->getPriority(); }
-
 		/** @copydoc Camera::setPriority */
+		BS_SCRIPT_EXPORT(n:Priority,pr:setter)
 		void setPriority(INT32 priority) { mInternal->setPriority(priority); }
 
-		/** @copydoc Camera::getLayers */
-		UINT64 getLayers() const { return mInternal->getLayers(); }
+		/** @copydoc Camera::getPriority */
+		BS_SCRIPT_EXPORT(n:Priority,pr:getter)
+		INT32 getPriority() const { return mInternal->getPriority(); }
 
 		/** @copydoc Camera::setLayers */
+		BS_SCRIPT_EXPORT(n:Layers,pr:setter)
 		void setLayers(UINT64 layers) { mInternal->setLayers(layers); }
 
-		/** @copydoc Camera::getMSAACount */
-		UINT32 getMSAACount() const { return mInternal->getMSAACount(); }
+		/** @copydoc Camera::getLayers */
+		BS_SCRIPT_EXPORT(n:Layers,pr:getter)
+		UINT64 getLayers() const { return mInternal->getLayers(); }
 
 		/** @copydoc Camera::setMSAACount */
+		BS_SCRIPT_EXPORT(n:SampleCount,pr:setter)
 		void setMSAACount(UINT32 count) { mInternal->setMSAACount(count); }
 
-		/** @copydoc Camera::getRenderSettings() */
-		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
+		/** @copydoc Camera::getMSAACount */
+		BS_SCRIPT_EXPORT(n:SampleCount,pr:getter)
+		UINT32 getMSAACount() const { return mInternal->getMSAACount(); }
 
 		/** @copydoc Camera::setRenderSettings() */
+		BS_SCRIPT_EXPORT(n:RenderSettings,pr:setter)
 		void setRenderSettings(const SPtr<RenderSettings>& settings) { mInternal->setRenderSettings(settings); }
 
+		/** @copydoc Camera::getRenderSettings() */
+		BS_SCRIPT_EXPORT(n:RenderSettings,pr:getter)
+		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
+
 		/** @copydoc Camera::worldToScreenPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2I worldToScreenPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToScreenPoint(worldPoint); }
 
 		/** @copydoc Camera::worldToNdcPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2 worldToNdcPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToNdcPoint(worldPoint); }
 
 		/** @copydoc Camera::worldToViewPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 worldToViewPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToViewPoint(worldPoint); }
 
 		/** @copydoc Camera::screenToWorldPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 screenToWorldPoint(const Vector2I& screenPoint, float depth = 0.5f) const { updateView(); return mInternal->screenToWorldPoint(screenPoint, depth); }
 
 		/** @copydoc Camera::screenToViewPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 screenToViewPoint(const Vector2I& screenPoint, float depth = 0.5f) const { return mInternal->screenToViewPoint(screenPoint, depth); }
 
 		/** @copydoc Camera::screenToNdcPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2 screenToNdcPoint(const Vector2I& screenPoint) const { return mInternal->screenToNdcPoint(screenPoint); }
 
 		/** @copydoc Camera::viewToWorldPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 viewToWorldPoint(const Vector3& viewPoint) const { updateView(); return mInternal->viewToWorldPoint(viewPoint); }
 
 		/** @copydoc Camera::viewToScreenPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2I viewToScreenPoint(const Vector3& viewPoint) const { return mInternal->viewToScreenPoint(viewPoint); }
 
 		/** @copydoc Camera::viewToNdcPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2 viewToNdcPoint(const Vector3& viewPoint) const { return mInternal->viewToNdcPoint(viewPoint); }
 
 		/** @copydoc Camera::ndcToWorldPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 ndcToWorldPoint(const Vector2& ndcPoint, float depth = 0.5f) const { updateView(); return mInternal->ndcToWorldPoint(ndcPoint, depth); }
 
 		/** @copydoc Camera::ndcToViewPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 ndcToViewPoint(const Vector2& ndcPoint, float depth = 0.5f) const { return mInternal->ndcToViewPoint(ndcPoint, depth); }
 
 		/** @copydoc Camera::ndcToScreenPoint */
+		BS_SCRIPT_EXPORT()
 		Vector2I ndcToScreenPoint(const Vector2& ndcPoint) const { return mInternal->ndcToScreenPoint(ndcPoint); }
 
 		/** @copydoc Camera::screenPointToRay */
+		BS_SCRIPT_EXPORT()
 		Ray screenPointToRay(const Vector2I& screenPoint) const { updateView(); return mInternal->screenPointToRay(screenPoint); }
 
 		/** @copydoc Camera::projectPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 projectPoint(const Vector3& point) const { return mInternal->projectPoint(point); }
 
 		/** @copydoc Camera::unprojectPoint */
+		BS_SCRIPT_EXPORT()
 		Vector3 unprojectPoint(const Vector3& point) const { return mInternal->unprojectPoint(point); }
 
-		/** @copydoc Camera::isMain */	
-		bool isMain() const { return mInternal->isMain(); }
-
 		/** @copydoc Camera::setMain */	
+		BS_SCRIPT_EXPORT(n:Main,pr:setter)
 		void setMain(bool main);
+
+		/** @copydoc Camera::isMain */
+		BS_SCRIPT_EXPORT(n:Main,pr:getter)
+		bool isMain() const { return mInternal->isMain(); }
 
 		/** @name Internal 
 		 *  @{
@@ -208,7 +250,7 @@ namespace bs
 
 		/** @} */
 
-    protected:
+	protected:
 		/** Checks if the world transform of the camera changed, and if needed updates the view matrix. */
 		void updateView() const;
 
@@ -247,7 +289,7 @@ namespace bs
 
 	protected:
 		CCamera();// Serialization only
-     };
+	 };
 
 	 /** @} */
 }

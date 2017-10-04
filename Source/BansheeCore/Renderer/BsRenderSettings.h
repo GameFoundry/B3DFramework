@@ -13,8 +13,9 @@ namespace bs
 	 */
 
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
-	struct BS_CORE_EXPORT AutoExposureSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) AutoExposureSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		AutoExposureSettings();
 
 		/**
@@ -22,6 +23,7 @@ namespace bs
 		 * average brightness of the scene. Any luminance value below this value will not be included in the histogram and
 		 * ignored in scene brightness calculations. In log2 units (-8 = 1/256). In the range [-16, 0].
 		 */
+		BS_SCRIPT_EXPORT()
 		float histogramLog2Min;
 
 		/**
@@ -29,6 +31,7 @@ namespace bs
 		 * average brightness of the scene. Any luminance value above this value will not be included in the histogram and
 		 * ignored in scene brightness calculations. In log2 units (4 = 16). In the range [0, 16].
 		 */
+		BS_SCRIPT_EXPORT()
 		float histogramLog2Max;
 
 		/**
@@ -38,6 +41,7 @@ namespace bs
 		 * in scene brightness calculations. This allows you to remove outliers on the lower end of the histogram (for
 		 * example a few very dark pixels in an otherwise bright image). In range [0.0f, 1.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float histogramPctLow;
 
 		/**
@@ -47,6 +51,7 @@ namespace bs
 		 * in scene brightness calculations. This allows you to remove outliers on the high end of the histogram (for 
 		 * example a few very bright pixels). In range [0.0f, 1.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float histogramPctHigh;
 
 		/**
@@ -54,6 +59,7 @@ namespace bs
 		 * is never too high (for example when in a very dark room you probably do not want the exposure to be so high that
 		 * everything is still visible). In range [0.0f, 10.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float minEyeAdaptation;
 
 		/**
@@ -61,18 +67,21 @@ namespace bs
 		 * is never too low (for example when looking at a very bright light source you probably don't want the exposure to
 		 * be so low that the rest of the scene is all white (overexposed). In range [0.0f, 10.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float maxEyeAdaptation;
 
 		/**
 		 * Determines how quickly does the eye adaptation adjust to larger values. This affects how quickly does the
 		 * automatic exposure changes when the scene brightness increases. In range [0.01f, 20.0f]. 
 		 */
+		BS_SCRIPT_EXPORT()
 		float eyeAdaptationSpeedUp;
 
 		/**
 		 * Determines how quickly does the eye adaptation adjust to smaller values. This affects how quickly does the
 		 * automatic exposure changes when the scene brightness decreases. In range [0.01f, 20.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float eyeAdaptationSpeedDown;
 
 		/************************************************************************/
@@ -85,41 +94,49 @@ namespace bs
 	};
 
 	/** Settings that control tonemap post-process. */
-	struct BS_CORE_EXPORT TonemappingSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) TonemappingSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		TonemappingSettings();
 
 		/**
 		 * Controls the shoulder (upper non-linear) section of the filmic curve used for tonemapping. Mostly affects bright
 		 * areas of the image and allows you to reduce over-exposure.
 		 */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveShoulderStrength;
 
 		/**
 		 * Controls the linear (middle) section of the filmic curve used for tonemapping. Mostly affects mid-range areas of
 		 * the image.
 		 */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveLinearStrength;
 
 		/**
 		 * Controls the linear (middle) section of the filmic curve used for tonemapping. Mostly affects mid-range areas of
 		 * the image and allows you to control how quickly does the curve climb.
 		 */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveLinearAngle;
 
 		/**
 		 * Controls the toe (lower non-linear) section of the filmic curve used for tonemapping. Mostly affects dark areas
 		 * of the image and allows you to reduce under-exposure.
 		 */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveToeStrength;
 
 		/** Controls the toe (lower non-linear) section of the filmic curve. used for tonemapping. Affects low-range. */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveToeNumerator;
 
 		/** Controls the toe (lower non-linear) section of the filmic curve used for tonemapping. Affects low-range. */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveToeDenominator;
 
 		/** Controls the white point of the filmic curve used for tonemapping. Affects the entire curve. */
+		BS_SCRIPT_EXPORT()
 		float filmicCurveLinearWhitePoint;
 
 		/************************************************************************/
@@ -132,8 +149,9 @@ namespace bs
 	};
 
 	/** Settings that control white balance post-process. */
-	struct BS_CORE_EXPORT WhiteBalanceSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) WhiteBalanceSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		WhiteBalanceSettings();
 
 		/**
@@ -141,6 +159,7 @@ namespace bs
 		 *
 		 * Moves along the Planckian locus. In range [1500.0f, 15000.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float temperature;
 
 		/**
@@ -150,6 +169,7 @@ namespace bs
 		 *
 		 * In range [-1.0f, 1.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		float tint;
 
 		/************************************************************************/
@@ -162,7 +182,7 @@ namespace bs
 	};
 
 	/** Settings that control color grading post-process. */
-	struct BS_CORE_EXPORT ColorGradingSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT() ColorGradingSettings : public IReflectable
 	{
 		ColorGradingSettings();
 
@@ -170,24 +190,28 @@ namespace bs
 		 * Saturation to be applied during color grading. Larger values increase vibrancy of the image.
 		 * In range [0.0f, 2.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 saturation;
 
 		/**
 		 * Contrast to be applied during color grading. Larger values increase difference between light and dark areas of
 		 * the image. In range [0.0f, 2.0f]. 
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 contrast;
 
 		/**
 		 * Gain to be applied during color grading. Simply increases all color values by an equal scale.
 		 * In range [0.0f, 2.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 gain;
 
 		/**
 		 * Gain to be applied during color grading. Simply offsets all color values by an equal amount.
 		 * In range [-1.0f, 1.0f].
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 offset;
 
 		/************************************************************************/
@@ -200,11 +224,13 @@ namespace bs
 	};
 
 	/** Settings that control screen space ambient occlusion. */
-	struct BS_CORE_EXPORT AmbientOcclusionSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) AmbientOcclusionSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		AmbientOcclusionSettings();
 
 		/** Enables or disabled the screen space ambient occlusion effect. */
+		BS_SCRIPT_EXPORT()
 		bool enabled;
 
 		/** 
@@ -213,6 +239,7 @@ namespace bs
 		 * quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range
 		 * is roughly [0.05, 5.0].
 		 */
+		BS_SCRIPT_EXPORT()
 		float radius;
 
 		/**
@@ -220,24 +247,28 @@ namespace bs
 		 * details to be lost in areas where occlusion isn't high. Value is in millimeters. Usually best to keep at a few
 		 * dozen millimeters, valid range is roughly [0, 200].
 		 */
+		BS_SCRIPT_EXPORT()
 		float bias;
 
 		/**
 		 * Distance (in view space, in meters) after which AO starts fading out. The fade process will happen over the
 		 * range as specified by @p fadeRange.
 		 */
+		BS_SCRIPT_EXPORT()
 		float fadeDistance;
 
 		/**
 		 * Range (in view space, in meters) in which AO fades out from 100% to 0%. AO starts fading out after the distance
 		 * specified in @p fadeDistance.
 		 */
+		BS_SCRIPT_EXPORT()
 		float fadeRange;
 
 		/**
 		 * Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice
 		 * versa. Valid range is roughly [0.2, 2].
 		 */
+		BS_SCRIPT_EXPORT()
 		float intensity;
 
 		/**
@@ -245,12 +276,14 @@ namespace bs
 		 * control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no
 		 * extra darkening will occur.
 		 */
+		BS_SCRIPT_EXPORT()
 		float power;
 
 		/**
 		 * Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost
 		 * of performance.
 		 */
+		BS_SCRIPT_EXPORT()
 		UINT32 quality;
 
 		/************************************************************************/
@@ -263,46 +296,54 @@ namespace bs
 	};
 
 	/** Settings that control the depth-of-field effect. */
-	struct BS_CORE_EXPORT DepthOfFieldSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT() DepthOfFieldSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		DepthOfFieldSettings();
 
 		/** Enables or disables the depth of field effect. */
+		BS_SCRIPT_EXPORT()
 		bool enabled;
 
 		/** 
 		 * Distance from the camera at which the focal plane is located in. Objects at this distance will be fully in focus.
 		 */
+		BS_SCRIPT_EXPORT()
 		float focalDistance;
 		
 		/** 
 		 * Range within which the objects remain fully in focus. This range is applied relative to the focal distance. 
 		 * Only relevant if Gaussian depth of field is used as other methods don't use a constant in-focus range.
 		 */
+		BS_SCRIPT_EXPORT()
 		float focalRange;
 
 		/**
 		 * Determines the size of the range within which objects transition from focused to fully unfocused, at the near 
 		 * plane. Only relevant for Gaussian depth of field.
 		 */
+		BS_SCRIPT_EXPORT()
 		float nearTransitionRange;
 
 		/**
 		 * Determines the size of the range within which objects transition from focused to fully unfocused, at the far 
 		 * plane. Only relevant for Gaussian depth of field.
 		 */
+		BS_SCRIPT_EXPORT()
 		float farTransitionRange;
 
 		/** 
 		 * Determines the amount of blur to apply to fully unfocused objects that are closer to camera than the in-focus
 		 * zone. Set to zero to disable near-field blur. Only relevant for Gaussian depth of field.
 		 */
+		BS_SCRIPT_EXPORT()
 		float nearBlurAmount;
 
 		/** 
 		 * Determines the amount of blur to apply to fully unfocused objects that are farther away from camera than the
 		 * in-focus zone. Set to zero to disable far-field blur. Only relevant for Gaussian depth of field.
 		 */
+		BS_SCRIPT_EXPORT()
 		float farBlurAmount;
 
 		/************************************************************************/
@@ -322,11 +363,13 @@ namespace bs
 	 * for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to
 	 * achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
 	 */
-	struct BS_CORE_EXPORT ScreenSpaceReflectionsSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ScreenSpaceReflectionsSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		ScreenSpaceReflectionsSettings();
 
 		/** Enables or disables the SSR effect. */
+		BS_SCRIPT_EXPORT()
 		bool enabled;
 
 		/** 
@@ -334,15 +377,18 @@ namespace bs
 		 * better precision. This results in higher quality, as well as a higher performance requirement. Valid range is
 		 * [0, 4], default is 2.
 		 */
+		BS_SCRIPT_EXPORT()
 		UINT32 quality;
 
 		/** Intensity of the screen space reflections. Valid range is [0, 1]. Default is 1 (100%). */
+		BS_SCRIPT_EXPORT()
 		float intensity;
 
 		/** 
 		 * Roughness at which screen space reflections start fading out and become replaced with refl. probes. Valid range
 		 * is [0, 1]. Default is 0.8.
 		 */
+		BS_SCRIPT_EXPORT()
 		float maxRoughness;
 
 		/************************************************************************/
@@ -355,8 +401,9 @@ namespace bs
 	};
 	
 	/** Settings that control rendering for a specific camera (view). */
-	struct BS_CORE_EXPORT RenderSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) RenderSettings : public IReflectable
 	{
+		BS_SCRIPT_EXPORT()
 		RenderSettings();
 		virtual ~RenderSettings() { }
 
@@ -367,6 +414,7 @@ namespace bs
 		 * manually adjust the automatic exposure. When automatic exposure is turned off you can use exposureScale to
 		 * manually set the exposure.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool enableAutoExposure;
 
 		/**
@@ -374,6 +422,7 @@ namespace bs
 		 *
 		 * @see	enableAutoExposure
 		 */
+		BS_SCRIPT_EXPORT()
 		AutoExposureSettings autoExposure;
 
 		/**
@@ -386,6 +435,7 @@ namespace bs
 		 * If this is disabled, then color grading and white balancing will not be enabled either. Only relevant for HDR
 		 * images.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool enableTonemapping;
 
 		/**
@@ -393,6 +443,7 @@ namespace bs
 		 *
 		 * @see	enableTonemapping
 		 */
+		BS_SCRIPT_EXPORT()
 		TonemappingSettings tonemapping;
 
 		/**
@@ -400,21 +451,27 @@ namespace bs
 		 * specified temperature into a scene illuminated by a standard D65 illuminant (average midday light) in order to
 		 * simulate the effects of chromatic adaptation of the human visual system.
 		 */
+		BS_SCRIPT_EXPORT()
 		WhiteBalanceSettings whiteBalance;
 
 		/** Parameters used for customizing color grading. */
+		BS_SCRIPT_EXPORT()
 		ColorGradingSettings colorGrading;
 
 		/** Parameters used for customizing the depth of field effect. */
+		BS_SCRIPT_EXPORT()
 		DepthOfFieldSettings depthOfField;
 
 		/** Parameters used for customizing screen space ambient occlusion. */
+		BS_SCRIPT_EXPORT()
 		AmbientOcclusionSettings ambientOcclusion;
 
 		/** Parameters used for customizing screen space reflections. */
+		BS_SCRIPT_EXPORT()
 		ScreenSpaceReflectionsSettings screenSpaceReflections;
 
 		/** Enables the fast approximate anti-aliasing effect. */
+		BS_SCRIPT_EXPORT()
 		bool enableFXAA;
 
 		/**
@@ -422,6 +479,7 @@ namespace bs
 		 * yield brighter image. Allows you to customize exposure manually, applied on top of eye adaptation exposure (if
 		 * enabled). In range [-8, 8].
 		 */
+		BS_SCRIPT_EXPORT()
 		float exposureScale;
 
 		/**
@@ -429,6 +487,7 @@ namespace bs
 		 * on the best gamma curve for the output device is chosen automatically and this value can by used to merely tweak
 		 * that curve. If tonemapping is turned off this is the exact value of the gamma curve that will be applied.
 		 */
+		BS_SCRIPT_EXPORT()
 		float gamma;
 
 		/** 
@@ -436,18 +495,22 @@ namespace bs
 		 * range of values. The stored light is then converted into visible color range using exposure and a tone mapping 
 		 * operator.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool enableHDR;
 
 		/** 
 		 * Determines if scene objects will be lit by lights. If disabled everything will be rendered using their albedo
 		 * texture with no lighting applied.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool enableLighting;
 
 		/** Determines if shadows cast by lights should be rendered. Only relevant if lighting is turned on. */
+		BS_SCRIPT_EXPORT()
 		bool enableShadows;
 
 		/** Determines if indirect lighting (e.g. from light probes or the sky) is rendered. */
+		BS_SCRIPT_EXPORT()
 		bool enableIndirectLighting;
 
 		/** 
@@ -455,6 +518,7 @@ namespace bs
 		 * depth buffer or multi-sampled render targets and will not render any scene objects. This can improve performance
 		 * and memory usage for overlay-only views. 
 		 */
+		BS_SCRIPT_EXPORT()
 		bool overlayOnly;
 
 		/** @name Internal

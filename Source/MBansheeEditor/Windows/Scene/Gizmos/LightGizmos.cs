@@ -70,7 +70,7 @@ namespace BansheeEditor
                     Gizmos.DrawLine(position, position + forward * light.AttenuationRadius + right * discRadius);
                     Gizmos.DrawLine(position, position + forward * light.AttenuationRadius - right * discRadius);
 
-                    float falloffDiscRadius = light.AttenuationRadius * MathEx.Tan(light.SpotFalloffAngle * 0.5f);
+                    float falloffDiscRadius = light.AttenuationRadius * MathEx.Tan(light.SpotAngleFalloff * 0.5f);
 
                     Gizmos.DrawWireDisc(position + forward * light.AttenuationRadius, forward, discRadius);
                     Gizmos.DrawWireDisc(position + forward * light.AttenuationRadius, forward, falloffDiscRadius);

@@ -17,13 +17,13 @@ namespace bs
 	 */
 
 	/** Light type that determines how is light information parsed by the renderer and other systems. */
-	enum class LightType
+	enum BS_SCRIPT_EXPORT(m:Rendering) class LightType
 	{
 		Directional, 
 		Radial, 
 		Spot,
 
-		Count // Keep at end
+		Count			BS_SCRIPT_EXPORT(ex:true) // Keep at end
 	};
 
 	/**	Signals which portion of a light is dirty. */
@@ -64,17 +64,17 @@ namespace bs
 		void setRotation(const Quaternion& rotation) 
 			{ mRotation = rotation; _markCoreDirty(LightDirtyFlag::Transform); updateBounds(); }
 
-		/**	Returns the type of the light. */
+		/**	Determines the type of the light. */
 		LightType getType() const { return mType; }
 
-		/**	Changes the type of the light. */
+		/** @copydoc getType() */
 		void setType(LightType type) { mType = type; _markCoreDirty(); updateBounds(); }
 
-		/**	Checks does this light cast shadows when rendered. */
-		bool getCastsShadow() const { return mCastsShadows; }
-
-		/**	Sets whether this light will cast shadows when rendered. */
+		/**	Determines does this light cast shadows when rendered. */
 		void setCastsShadow(bool castsShadow) { mCastsShadows = castsShadow; _markCoreDirty(); }
+
+		/** @copydoc setCastsShadow */
+		bool getCastsShadow() const { return mCastsShadows; }
 
 		/** 
 		 * Shadow bias determines shadow accuracy. Low bias values mean that shadows start closer near their caster surface
@@ -88,14 +88,11 @@ namespace bs
 		/** @copydoc setShadowBias() */
 		float getShadowBias() const { return mShadowBias; }
 
-		/**	Returns the color emitted from the light. */
-		Color getColor() const { return mColor; }
-
-		/**	Sets the color emitted from the light. */
+		/** Determines the color emitted by the light. */
 		void setColor(const Color& color) { mColor = color; _markCoreDirty(); }
 
-		/**	@see setAttenuationRadius */
-		float getAttenuationRadius() const { return mAttRadius; }
+		/** @copydoc setColor() */
+		Color getColor() const { return mColor; }
 
 		/**
 		 * Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius
@@ -104,8 +101,8 @@ namespace bs
 		 */
 		void setAttenuationRadius(float radius);
 
-		/**	@see setSourceRadius */
-		float getSourceRadius() const { return mSourceRadius; }
+		/**	@copydoc setAttenuationRadius */
+		float getAttenuationRadius() const { return mAttRadius; }
 
 		/**
 		 * Radius of the light source. If non-zero then this light represents an area light, otherwise it is a punctual
@@ -120,8 +117,8 @@ namespace bs
 		 */
 		void setSourceRadius(float radius);
 
-		/** @see setUseAutoAttenuation */
-		bool getUseAutoAttenuation() const { return mAutoAttenuation; }
+		/**	@copydoc setSourceRadius */
+		float getSourceRadius() const { return mSourceRadius; }
 
 		/** 
 		 * If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius, 
@@ -129,8 +126,8 @@ namespace bs
 		 */
 		void setUseAutoAttenuation(bool enabled);
 
-		/** @see setIntensity */
-		float getIntensity() const { return mIntensity; }
+		/** @copydoc setUseAutoAttenuation */
+		bool getUseAutoAttenuation() const { return mAutoAttenuation; }
 
 		/**
 		 * Determines the power of the light source. This will be luminous flux for radial & spot lights, 
@@ -139,24 +136,24 @@ namespace bs
 		 */
 		void setIntensity(float intensity);
 
-		/**	Gets the total angle covered by a spot light. */
-		Degree getSpotAngle() const { return mSpotAngle; }
+		/** @copydoc setIntensity */
+		float getIntensity() const { return mIntensity; }
 
-		/**	Sets the total angle covered by a spot light. */
+		/**	Determines the total angle covered by a spot light. */
 		void setSpotAngle(const Degree& spotAngle) { mSpotAngle = spotAngle; _markCoreDirty(); updateBounds(); }
 
-		/**
-		 * Gets the falloff angle covered by a spot light. Falloff angle determines at what point does light intensity 
-		 * starts quadratically falling off as the angle approaches the total spot angle.
-		 */
-		Degree getSpotFalloffAngle() const { return mSpotFalloffAngle; }
+		/** @copydoc setSpotAngle */
+		Degree getSpotAngle() const { return mSpotAngle; }
 
 		/**
-		 * Sets the falloff angle covered by a spot light. Falloff angle determines at what point does light intensity 
+		 * Determines the falloff angle covered by a spot light. Falloff angle determines at what point does light intensity 
 		 * starts quadratically falling off as the angle approaches the total spot angle.
 		 */
 		void setSpotFalloffAngle(const Degree& spotFallofAngle) 
 		{ mSpotFalloffAngle = spotFallofAngle; _markCoreDirty(); updateBounds(); }
+
+		/** @copydoc setSpotFalloffAngle */
+		Degree getSpotFalloffAngle() const { return mSpotFalloffAngle; }
 
 		/**	Returns world space bounds that completely encompass the light's area of influence. */
 		Sphere getBounds() const { return mBounds; }
@@ -227,7 +224,7 @@ namespace bs
 
 	namespace ct { class Light; }
 
-	/** Illuminates a portion of the scene covered by a light. */
+	/** Illuminates a portion of the scene covered by the light. */
 	class BS_CORE_EXPORT Light : public IReflectable, public CoreObject, public LightBase
 	{
 	public:

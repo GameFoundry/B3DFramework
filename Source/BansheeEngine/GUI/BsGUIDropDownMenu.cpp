@@ -103,7 +103,7 @@ namespace bs
 
 		SPtr<Viewport> viewport = desc.camera->getViewport();
 
-		Rect2I targetBounds(0, 0, viewport->getWidth(), viewport->getHeight());
+		Rect2I targetBounds(0, 0, viewport->getPixelArea().width, viewport->getPixelArea().height);
 		Vector<Rect2I> captureBounds;
 		targetBounds.cut(desc.additionalBounds, captureBounds);
 
@@ -118,7 +118,7 @@ namespace bs
 
 		mAdditionalCaptureBounds = desc.additionalBounds;
 
-		Rect2I availableBounds(viewport->getX(), viewport->getY(), viewport->getWidth(), viewport->getHeight());
+		Rect2I availableBounds = viewport->getPixelArea();
 		mRootMenu = bs_new<DropDownSubMenu>(this, nullptr, desc.placement, availableBounds, desc.dropDownData, type, 0);
 	}
 

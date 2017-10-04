@@ -166,12 +166,12 @@ namespace bs
 
 		SPtr<ct::RenderTarget> target = cam->getViewport()->getTarget()->getCore();
 		gCoreThread().queueCommand(std::bind(&ct::ScenePicking::corePickingBegin, mCore, target,
-			cam->getViewport()->getNormArea(), std::cref(pickData), position, area));
+			cam->getViewport()->getArea(), std::cref(pickData), position, area));
 
 		GizmoManager::instance().renderForPicking(cam, [&](UINT32 inputIdx) { return encodeIndex(firstGizmoIdx + inputIdx); });
 
 		AsyncOp op = gCoreThread().queueReturnCommand(std::bind(&ct::ScenePicking::corePickingEnd, mCore, target,
-			cam->getViewport()->getNormArea(), position, area, data != nullptr, _1));
+			cam->getViewport()->getArea(), position, area, data != nullptr, _1));
 		gCoreThread().submit(true);
 
 		assert(op.hasCompleted());

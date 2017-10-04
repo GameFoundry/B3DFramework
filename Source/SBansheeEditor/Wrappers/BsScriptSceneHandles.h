@@ -8,6 +8,8 @@
 
 namespace bs
 {
+	class ScriptCCamera;
+
 	/** @addtogroup ScriptInteropEditor
 	 *  @{
 	 */
@@ -38,7 +40,7 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void internal_Create(MonoObject* managedInstance, ScriptEditorWindow* parentWindow, ScriptCamera* camera);
+		static void internal_Create(MonoObject* managedInstance, ScriptEditorWindow* parentWindow, ScriptCCamera* camera);
 		static void internal_Draw(ScriptSceneHandles* thisPtr);
 		static void internal_BeginInput();
 		static void internal_EndInput();

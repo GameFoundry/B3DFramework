@@ -33,7 +33,7 @@ namespace BansheeEditor
 
         private Camera camera;
         private SceneCamera cameraController;
-        private RenderTexture2D renderTexture;
+        private RenderTexture renderTexture;
         private GUILayoutY mainLayout;
         private GUIPanel rtPanel;
         private GUIButton focusCatcher;
@@ -590,7 +590,7 @@ namespace BansheeEditor
                         }
                         else
                         {
-                            Ray worldRay = camera.ViewportToWorldRay(scenePos);
+                            Ray worldRay = camera.ScreenPointToRay(scenePos);
                             draggedSO.Position = worldRay * DefaultPlacementDepth - draggedSOOffset;
                         }
                     }
@@ -822,8 +822,8 @@ namespace BansheeEditor
                 {
                     SceneObject profilerSO = new SceneObject("EditorProfilerOverlay");
                     profilerCamera = profilerSO.AddComponent<Camera>();
-                    profilerCamera.Target = renderTexture;
-                    profilerCamera.ClearFlags = ClearFlags.None;
+                    profilerCamera.Viewport.Target = renderTexture;
+                    profilerCamera.Viewport.ClearFlags = ClearFlags.None;
                     profilerCamera.Priority = 1;
                     profilerCamera.Layers = 0;
                     profilerCamera.RenderSettings.EnableHDR = false;
@@ -849,7 +849,7 @@ namespace BansheeEditor
         /// <param name="width">Width of the scene render target, in pixels.</param>
         /// <param name="height">Height of the scene render target, in pixels.</param>
         private void UpdateRenderTexture(int width, int height)
-	    {
+        {
             width = MathEx.Max(20, width);
             height = MathEx.Max(20, height);
 
@@ -857,15 +857,15 @@ namespace BansheeEditor
             Texture colorTex = Texture.Create2D((uint)width, (uint)height, PixelFormat.RGBA8, TextureUsage.Render | TextureUsage.CPUReadable);
             Texture depthTex = Texture.Create2D((uint)width, (uint)height, PixelFormat.D32_S8X24, TextureUsage.DepthStencil | TextureUsage.CPUReadable);
 
-            renderTexture = new RenderTexture2D(colorTex, depthTex);
+            renderTexture = new RenderTexture(colorTex, depthTex);
             renderTexture.Priority = 1;
 
-		    if (camera == null)
-		    {
+            if (camera == null)
+            {
                 SceneObject sceneCameraSO = new SceneObject("SceneCamera", true);
                 camera = sceneCameraSO.AddComponent<Camera>();
-                camera.Target = renderTexture;
-                camera.ViewportRect = new Rect2(0.0f, 0.0f, 1.0f, 1.0f);
+                camera.Viewport.Target = renderTexture;
+                camera.Viewport.Area = new Rect2(0.0f, 0.0f, 1.0f, 1.0f);
 
                 sceneCameraSO.Position = new Vector3(0, 0.5f, 1);
                 sceneCameraSO.LookAt(new Vector3(0, 0.5f, 0));
@@ -873,7 +873,7 @@ namespace BansheeEditor
                 camera.Priority = 2;
                 camera.NearClipPlane = 0.05f;
                 camera.FarClipPlane = 2500.0f;
-                camera.ClearColor = ClearColor;
+                camera.Viewport.ClearColor = ClearColor;
                 camera.Layers = UInt64.MaxValue & ~SceneAxesHandle.LAYER; // Don't draw scene axes in this camera
 
                 cameraController = sceneCameraSO.AddComponent<SceneCamera>();
@@ -881,16 +881,16 @@ namespace BansheeEditor
                 renderTextureGUI = new GUIRenderTexture(renderTexture);
                 rtPanel.AddElement(renderTextureGUI);
 
-		        sceneGrid = new SceneGrid(camera);
-		        sceneSelection = new SceneSelection(camera);
-		        sceneGizmos = new SceneGizmos(camera);
-		        sceneHandles = new SceneHandles(this, camera);
-		    }
-		    else
-		    {
-		        camera.Target = renderTexture;
-		        renderTextureGUI.RenderTexture = renderTexture;
-		    }
+                sceneGrid = new SceneGrid(camera);
+                sceneSelection = new SceneSelection(camera);
+                sceneGizmos = new SceneGizmos(camera);
+                sceneHandles = new SceneHandles(this, camera);
+            }
+            else
+            {
+                camera.Viewport.Target = renderTexture;
+                renderTextureGUI.RenderTexture = renderTexture;
+            }
 
             Rect2I rtBounds = new Rect2I(0, 0, width, height);
             renderTextureGUI.Bounds = rtBounds;
@@ -904,8 +904,8 @@ namespace BansheeEditor
             camera.AspectRatio = width / (float)height;
 
             if (profilerCamera != null)
-                profilerCamera.Target = renderTexture;
-	    }
+                profilerCamera.Viewport.Target = renderTexture;
+        }
 
         /// <summary>
         /// Parses an array of scene objects and removes elements that are children of elements that are also in the array.
@@ -913,11 +913,11 @@ namespace BansheeEditor
         /// <param name="objects">Array containing duplicate objects as input, and array without duplicate objects as
         ///                       output.</param>
         private void CleanDuplicates(ref SceneObject[] objects)
-	    {
-		    List<SceneObject> cleanList = new List<SceneObject>();
-		    for (int i = 0; i < objects.Length; i++)
-		    {
-			    bool foundParent = false;
+        {
+            List<SceneObject> cleanList = new List<SceneObject>();
+            for (int i = 0; i < objects.Length; i++)
+            {
+                bool foundParent = false;
                 for (int j = 0; j < objects.Length; j++)
                 {
                     SceneObject elem = objects[i];
@@ -927,19 +927,19 @@ namespace BansheeEditor
 
                     bool isChildOf = elem == objects[j];
 
-				    if (i != j && isChildOf)
-				    {
-					    foundParent = true;
-					    break;
-				    }
-			    }
+                    if (i != j && isChildOf)
+                    {
+                        foundParent = true;
+                        break;
+                    }
+                }
 
-			    if (!foundParent)
-				    cleanList.Add(objects[i]);
-		    }
+                if (!foundParent)
+                    cleanList.Add(objects[i]);
+            }
 
-		    objects = cleanList.ToArray();
-	    }
+            objects = cleanList.ToArray();
+        }
 
         /// <summary>
         /// Starts a drag operation that displays a selection outline allowing the user to select multiple entries at once.

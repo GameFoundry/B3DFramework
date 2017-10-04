@@ -420,26 +420,27 @@ namespace bs { namespace ct
 		SPtr<RenderTarget> target = viewProps.target;
 		SPtr<Viewport> viewport = camera->getViewport();
 
+		ClearFlags clearFlags = viewport->getClearFlags();
 		UINT32 clearBuffers = 0;
-		if (viewport->getRequiresColorClear())
+		if (clearFlags.isSet(ClearFlagBits::Color))
 			clearBuffers |= FBT_COLOR;
 
-		if (viewport->getRequiresDepthClear())
+		if (clearFlags.isSet(ClearFlagBits::Depth))
 			clearBuffers |= FBT_DEPTH;
 
-		if (viewport->getRequiresStencilClear())
+		if (clearFlags.isSet(ClearFlagBits::Stencil))
 			clearBuffers |= FBT_STENCIL;
 
 		if (clearBuffers != 0)
 		{
 			RenderAPI::instance().setRenderTarget(target);
-			RenderAPI::instance().clearViewport(clearBuffers, viewport->getClearColor(),
+			RenderAPI::instance().clearViewport(clearBuffers, viewport->getClearColorValue(),
 				viewport->getClearDepthValue(), viewport->getClearStencilValue());
 		}
 		else
 			RenderAPI::instance().setRenderTarget(target, 0, RT_COLOR0);
 
-		RenderAPI::instance().setViewport(viewport->getNormArea());
+		RenderAPI::instance().setViewport(viewport->getArea());
 
 		// Trigger overlay callbacks
 		auto iterRenderCallback = mCallbacks.begin();

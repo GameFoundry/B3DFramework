@@ -7,8 +7,9 @@
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 #include "BsApplication.h"
-#include "Renderer/BsCamera.h"
-#include "Wrappers/BsScriptCamera.h"
+#include "Components/BsCCamera.h"
+
+#include "BsScriptCCamera.generated.h"
 
 namespace bs
 {
@@ -33,11 +34,11 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_DestroyInstance", (void*)&ScriptProfilerOverlayInternal::internal_DestroyInstance);
 	}
 
-	void ScriptProfilerOverlayInternal::internal_CreateInstance(MonoObject* instance, ScriptCamera* camera)
+	void ScriptProfilerOverlayInternal::internal_CreateInstance(MonoObject* instance, ScriptCCamera* camera)
 	{
 		SPtr<Camera> nativeCamera;
 		if (camera != nullptr)
-			nativeCamera = camera->getInternal();
+			nativeCamera = camera->getHandle()->_getCamera();
 
 		new (bs_alloc<ScriptProfilerOverlayInternal>()) ScriptProfilerOverlayInternal(instance, nativeCamera);
 	}

@@ -1153,8 +1153,8 @@ namespace bs
 
 		SPtr<Viewport> viewport = mCamera->getViewport();
 
-		float invViewportWidth = 1.0f / (viewport->getWidth() * 0.5f);
-		float invViewportHeight = 1.0f / (viewport->getHeight() * 0.5f);
+		float invViewportWidth = 1.0f / (viewport->getPixelArea().width * 0.5f);
+		float invViewportHeight = 1.0f / (viewport->getPixelArea().height * 0.5f);
 
 		mMaterial->setFloat("invViewportWidth", invViewportWidth);
 		mMaterial->setFloat("invViewportHeight", invViewportHeight);

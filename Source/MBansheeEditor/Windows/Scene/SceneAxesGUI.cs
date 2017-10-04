@@ -13,7 +13,7 @@ namespace BansheeEditor
     /// </summary>
     internal class SceneAxesGUI
     {
-        private RenderTexture2D renderTexture;
+        private RenderTexture renderTexture;
         private Camera camera;
         private SceneHandles sceneHandles;
 
@@ -40,13 +40,13 @@ namespace BansheeEditor
         /// <param name="projType">Projection type to display on the GUI.</param>
         public SceneAxesGUI(SceneWindow window, GUIPanel panel, int width, int height, ProjectionType projType)
         {
-            renderTexture = new RenderTexture2D(PixelFormat.RGBA8, width, height);
+            renderTexture = new RenderTexture(PixelFormat.RGBA8, width, height);
             renderTexture.Priority = 1;
 
             SceneObject cameraSO = new SceneObject("SceneAxesCamera", true);
             camera = cameraSO.AddComponent<Camera>();
-            camera.Target = renderTexture;
-            camera.ViewportRect = new Rect2(0.0f, 0.0f, 1.0f, 1.0f);
+            camera.Viewport.Target = renderTexture;
+            camera.Viewport.Area = new Rect2(0.0f, 0.0f, 1.0f, 1.0f);
             
             cameraSO.Position = new Vector3(0, 0, 5);
             cameraSO.LookAt(new Vector3(0, 0, 0));
@@ -54,7 +54,7 @@ namespace BansheeEditor
             camera.Priority = 2;
             camera.NearClipPlane = 0.05f;
             camera.FarClipPlane = 1000.0f;
-            camera.ClearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+            camera.Viewport.ClearColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
             camera.ProjectionType = ProjectionType.Orthographic;
             camera.Layers = SceneAxesHandle.LAYER;
             camera.AspectRatio = 1.0f;

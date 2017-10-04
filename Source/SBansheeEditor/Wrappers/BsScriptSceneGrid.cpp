@@ -1,9 +1,11 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Wrappers/BsScriptSceneGrid.h"
-#include "Wrappers/BsScriptCamera.h"
 #include "BsEditorApplication.h"
 #include "Scene/BsSceneGrid.h"
+#include "Components/BsCCamera.h"
+
+#include "BsScriptCCamera.generated.h"
 
 namespace bs
 {
@@ -26,9 +28,9 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_SetMode", (void*)&ScriptSceneGrid::internal_SetMode);
 	}
 
-	void ScriptSceneGrid::internal_Create(MonoObject* managedInstance, ScriptCamera* camera)
+	void ScriptSceneGrid::internal_Create(MonoObject* managedInstance, ScriptCCamera* camera)
 	{
-		new (bs_alloc<ScriptSceneGrid>()) ScriptSceneGrid(managedInstance, camera->getInternal());
+		new (bs_alloc<ScriptSceneGrid>()) ScriptSceneGrid(managedInstance, camera->getHandle()->_getCamera());
 	}
 
 	void ScriptSceneGrid::internal_Draw(ScriptSceneGrid* thisPtr)

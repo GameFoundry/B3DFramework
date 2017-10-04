@@ -13,23 +13,20 @@ namespace bs
 	const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(0.0f, 0.3685f, 0.7969f);
 
 	ViewportBase::ViewportBase(float x, float y, float width, float height)
-		: mNormArea(x, y, width, height), mRequiresColorClear(true), mRequiresDepthClear(true)
-		, mRequiresStencilClear(false), mClearColor(DEFAULT_CLEAR_COLOR), mDepthClearValue(1.0f), mStencilClearValue(0)
-    {
+		: mNormArea(x, y, width, height), mClearFlags(ClearFlagBits::Color | ClearFlagBits::Depth)
+		, mClearColorValue(DEFAULT_CLEAR_COLOR), mClearDepthValue(1.0f), mClearStencilValue(0)
+	{
 
-    }
+	}
 
-	void ViewportBase::setArea(float x, float y, float width, float height)
-    {
-        mNormArea.x = x;
-        mNormArea.y = y;
-        mNormArea.width = width;
-        mNormArea.height = height;
+	void ViewportBase::setArea(const Rect2& area)
+	{
+		mNormArea = area;
 
 		_markCoreDirty();
-    }
+	}
 
-	Rect2I ViewportBase::getArea() const
+	Rect2I ViewportBase::getPixelArea() const
 	{
 		float width = (float)getTargetWidth();
 		float height = (float)getTargetHeight();
@@ -43,42 +40,41 @@ namespace bs
 		return area;
 	}
 
-	void ViewportBase::setRequiresClear(bool colorClear, bool depthClear, bool stencilClear)
+	void ViewportBase::setClearFlags(ClearFlags flags)
 	{
-		mRequiresColorClear = colorClear;
-		mRequiresDepthClear = depthClear;
-		mRequiresStencilClear = stencilClear;
+		mClearFlags = flags;
 
 		_markCoreDirty();
 	}
 
 	void ViewportBase::setClearValues(const Color& clearColor, float clearDepth, UINT16 clearStencil)
 	{
-		mClearColor = clearColor;
-		mDepthClearValue = clearDepth;
-		mStencilClearValue = clearStencil;
+		mClearColorValue = clearColor;
+		mClearDepthValue = clearDepth;
+		mClearStencilValue = clearStencil;
 
 		_markCoreDirty();
 	}
 
-	INT32 ViewportBase::getX() const
-	{ 
-		return (INT32)(mNormArea.x * getTargetWidth());
+	void ViewportBase::setClearColorValue(const Color& color)
+	{
+		mClearColorValue = color;
+
+		_markCoreDirty();
 	}
 
-	INT32 ViewportBase::getY() const
-	{ 
-		return (INT32)(mNormArea.y * getTargetHeight());
+	void ViewportBase::setClearDepthValue(float depth)
+	{
+		mClearDepthValue = depth;
+
+		_markCoreDirty();
 	}
 
-	INT32 ViewportBase::getWidth() const
-	{ 
-		return (INT32)(mNormArea.width * getTargetWidth());
-	}
+	void ViewportBase::setClearStencilValue(UINT16 value)
+	{
+		mClearStencilValue = value;
 
-	INT32 ViewportBase::getHeight() const
-	{ 
-		return (INT32)(mNormArea.height * getTargetHeight());
+		_markCoreDirty();
 	}
 
 	Viewport::Viewport()
@@ -144,24 +140,20 @@ namespace bs
 	{
 		UINT32 size = 0;
 		size += rttiGetElemSize(mNormArea);
-		size += rttiGetElemSize(mRequiresColorClear);
-		size += rttiGetElemSize(mRequiresDepthClear);
-		size += rttiGetElemSize(mRequiresStencilClear);
-		size += rttiGetElemSize(mClearColor);
-		size += rttiGetElemSize(mDepthClearValue);
-		size += rttiGetElemSize(mStencilClearValue);
+		size += rttiGetElemSize(mClearFlags);
+		size += rttiGetElemSize(mClearColorValue);
+		size += rttiGetElemSize(mClearDepthValue);
+		size += rttiGetElemSize(mClearStencilValue);
 		size += sizeof(SPtr<ct::RenderTarget>);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
 		dataPtr = rttiWriteElem(mNormArea, dataPtr);
-		dataPtr = rttiWriteElem(mRequiresColorClear, dataPtr);
-		dataPtr = rttiWriteElem(mRequiresDepthClear, dataPtr);
-		dataPtr = rttiWriteElem(mRequiresStencilClear, dataPtr);
-		dataPtr = rttiWriteElem(mClearColor, dataPtr);
-		dataPtr = rttiWriteElem(mDepthClearValue, dataPtr);
-		dataPtr = rttiWriteElem(mStencilClearValue, dataPtr);
+		dataPtr = rttiWriteElem(mClearFlags, dataPtr);
+		dataPtr = rttiWriteElem(mClearColorValue, dataPtr);
+		dataPtr = rttiWriteElem(mClearDepthValue, dataPtr);
+		dataPtr = rttiWriteElem(mClearStencilValue, dataPtr);
 
 		SPtr<ct::RenderTarget>* rtPtr = new (dataPtr) SPtr<ct::RenderTarget>();
 		if (mTarget != nullptr)
@@ -246,12 +238,10 @@ namespace bs
 	{
 		char* dataPtr = (char*)data.getBuffer();
 		dataPtr = rttiReadElem(mNormArea, dataPtr);
-		dataPtr = rttiReadElem(mRequiresColorClear, dataPtr);
-		dataPtr = rttiReadElem(mRequiresDepthClear, dataPtr);
-		dataPtr = rttiReadElem(mRequiresStencilClear, dataPtr);
-		dataPtr = rttiReadElem(mClearColor, dataPtr);
-		dataPtr = rttiReadElem(mDepthClearValue, dataPtr);
-		dataPtr = rttiReadElem(mStencilClearValue, dataPtr);
+		dataPtr = rttiReadElem(mClearFlags, dataPtr);
+		dataPtr = rttiReadElem(mClearColorValue, dataPtr);
+		dataPtr = rttiReadElem(mClearDepthValue, dataPtr);
+		dataPtr = rttiReadElem(mClearStencilValue, dataPtr);
 
 		SPtr<RenderTarget>* rtPtr = (SPtr<RenderTarget>*)dataPtr;
 		mTarget = *rtPtr;

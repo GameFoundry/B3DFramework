@@ -18,11 +18,12 @@
 #include "Script/BsScriptManager.h"
 #include "GUI/BsGUIMenuBar.h"
 #include "BsPlayInEditorManager.h"
-#include "Wrappers/BsScriptRenderTarget.h"
 #include "Platform/BsPlatform.h"
 #include "BsScriptResourceManager.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Wrappers/BsScriptPrefab.h"
+
+#include "BsScriptRenderTexture.generated.h"
 
 namespace bs
 {
@@ -342,7 +343,7 @@ namespace bs
 		if (renderTarget == nullptr)
 			SceneManager::instance().setMainRenderTarget(nullptr);
 		else
-			SceneManager::instance().setMainRenderTarget(renderTarget->getNativeValue());
+			SceneManager::instance().setMainRenderTarget(renderTarget->getInternal());
 	}
 
 	bool ScriptEditorApplication::internal_HasFocus()

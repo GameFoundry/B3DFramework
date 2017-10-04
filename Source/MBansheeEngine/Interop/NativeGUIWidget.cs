@@ -42,7 +42,7 @@ namespace BansheeEngine
             {
                 IntPtr cameraPtr = IntPtr.Zero;
                 if (value != null)
-                    cameraPtr = value.Native.GetCachedPtr();
+                    cameraPtr = value.GetCachedPtr();
 
                 Internal_SetCamera(mCachedPtr, cameraPtr);
             }
@@ -93,7 +93,7 @@ namespace BansheeEngine
         {
             IntPtr cameraPtr = IntPtr.Zero;
             if (camera != null)
-                cameraPtr = camera.Native.GetCachedPtr();
+                cameraPtr = camera.GetCachedPtr();
 
             Internal_UpdateMainCamera(mCachedPtr, cameraPtr);
         }

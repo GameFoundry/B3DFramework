@@ -361,7 +361,7 @@ namespace bs
 			return false;
 
 		// Technically GUI widget bounds can be larger than the viewport, so make sure we clip to viewport first
-		if(!target->getArea().contains(position))
+		if(!target->getPixelArea().contains(position))
 			return false;
 
 		Vector3 vecPos((float)position.x, (float)position.y, 0.0f);
@@ -401,8 +401,9 @@ namespace bs
 		if (target == nullptr)
 			return;
 
-		UINT32 width = target->getWidth();
-		UINT32 height = target->getHeight();
+		Rect2I area = target->getPixelArea();
+		UINT32 width = area.width;
+		UINT32 height = area.height;
 
 		GUILayoutData layoutData;
 		layoutData.area.width = width;

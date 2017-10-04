@@ -1755,8 +1755,8 @@ namespace bs
 	{
 		Vector<GUIManager::GUICoreRenderData>& renderData = mPerCameraData[&camera];
 
-		float invViewportWidth = 1.0f / (camera.getViewport()->getWidth() * 0.5f);
-		float invViewportHeight = 1.0f / (camera.getViewport()->getHeight() * 0.5f);
+		float invViewportWidth = 1.0f / (camera.getViewport()->getPixelArea().width * 0.5f);
+		float invViewportHeight = 1.0f / (camera.getViewport()->getPixelArea().height * 0.5f);
 		float viewflipYFlip = bs::RenderAPI::getAPIInfo().isFlagSet(RenderAPIFeatureFlag::NDCYAxisDown) ? -1.0f : 1.0f;
 
 		for (auto& entry : renderData)
