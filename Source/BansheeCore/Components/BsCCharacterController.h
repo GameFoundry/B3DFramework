@@ -24,15 +24,15 @@ namespace bs
 
 		/** @copydoc CharacterController::move */
 		BS_SCRIPT_EXPORT(n:Move)
-		inline CharacterCollisionFlags move(const Vector3& displacement);
+		CharacterCollisionFlags move(const Vector3& displacement);
 
 		/** @copydoc CharacterController::getFootPosition */
 		BS_SCRIPT_EXPORT(n:FootPosition,pr:getter)
-		inline Vector3 getFootPosition() const;
+		Vector3 getFootPosition() const;
 
 		/** @copydoc CharacterController::setFootPosition */
 		BS_SCRIPT_EXPORT(n:FootPosition,pr:setter)
-		inline void setFootPosition(const Vector3& position);
+		void setFootPosition(const Vector3& position);
 
 		/** @copydoc CharacterController::getRadius */
 		BS_SCRIPT_EXPORT(n:Radius,pr:getter)
@@ -40,7 +40,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setRadius */
 		BS_SCRIPT_EXPORT(n:Radius,pr:setter)
-		inline void setRadius(float radius);
+		void setRadius(float radius);
 
 		/** @copydoc CharacterController::getHeight */
 		BS_SCRIPT_EXPORT(n:Height,pr:getter)
@@ -48,7 +48,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setHeight */
 		BS_SCRIPT_EXPORT(n:Height,pr:setter)
-		inline void setHeight(float height);
+		void setHeight(float height);
 
 		/** @copydoc CharacterController::getUp */
 		BS_SCRIPT_EXPORT(n:Up,pr:getter)
@@ -56,7 +56,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setUp */
 		BS_SCRIPT_EXPORT(n:Up,pr:setter)
-		inline void setUp(const Vector3& up);
+		void setUp(const Vector3& up);
 
 		/** @copydoc CharacterController::getClimbingMode */
 		BS_SCRIPT_EXPORT(n:ClimbingMode,pr:getter)
@@ -64,7 +64,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setClimbingMode */
 		BS_SCRIPT_EXPORT(n:ClimbingMode,pr:setter)
-		inline void setClimbingMode(CharacterClimbingMode mode);
+		void setClimbingMode(CharacterClimbingMode mode);
 
 		/** @copydoc CharacterController::getNonWalkableMode */
 		BS_SCRIPT_EXPORT(n:NonWalkableMode,pr:getter)
@@ -72,7 +72,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setNonWalkableMode */
 		BS_SCRIPT_EXPORT(n:NonWalkableMode,pr:setter)
-		inline void setNonWalkableMode(CharacterNonWalkableMode mode);
+		void setNonWalkableMode(CharacterNonWalkableMode mode);
 
 		/** @copydoc CharacterController::getMinMoveDistance */
 		BS_SCRIPT_EXPORT(n:MinMoveDistance,pr:getter)
@@ -80,7 +80,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setMinMoveDistance */
 		BS_SCRIPT_EXPORT(n:MinMoveDistance,pr:setter)
-		inline void setMinMoveDistance(float value);
+		void setMinMoveDistance(float value);
 
 		/** @copydoc CharacterController::getContactOffset */
 		BS_SCRIPT_EXPORT(n:ContactOffset,pr:getter)
@@ -88,15 +88,15 @@ namespace bs
 
 		/** @copydoc CharacterController::setContactOffset */
 		BS_SCRIPT_EXPORT(n:ContactOffset,pr:setter)
-		inline void setContactOffset(float value);
+		void setContactOffset(float value);
 
 		/** @copydoc CharacterController::getStepOffset */
 		BS_SCRIPT_EXPORT(n:StepOffset,pr:getter)
-		inline float getStepOffset() const { return mDesc.stepOffset; }
+		float getStepOffset() const { return mDesc.stepOffset; }
 
 		/** @copydoc CharacterController::setStepOffset */
 		BS_SCRIPT_EXPORT(n:StepOffset,pr:setter)
-		inline void setStepOffset(float value);
+		void setStepOffset(float value);
 
 		/** @copydoc CharacterController::getSlopeLimit */
 		BS_SCRIPT_EXPORT(n:SlopeLimit,pr:getter)
@@ -104,7 +104,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setSlopeLimit */
 		BS_SCRIPT_EXPORT(n:SlopeLimit,pr:setter)
-		inline void setSlopeLimit(Radian value);
+		void setSlopeLimit(Radian value);
 
 		/** @copydoc CharacterController::getLayer */
 		BS_SCRIPT_EXPORT(n:Layer,pr:getter)
@@ -112,7 +112,7 @@ namespace bs
 
 		/** @copydoc CharacterController::setLayer */
 		BS_SCRIPT_EXPORT(n:Layer,pr:setter)
-		inline void setLayer(UINT64 layer);
+		void setLayer(UINT64 layer);
 
 		/** @copydoc CharacterController::onColliderHit */
 		BS_SCRIPT_EXPORT(n:OnColliderHit)

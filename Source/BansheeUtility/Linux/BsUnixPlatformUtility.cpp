@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	GPUInfo PlatformUtility::sGPUInfo;
+
 	void PlatformUtility::terminate(bool force)
 	{
 		// TODOPORT - Support clean exit by sending the main window a quit message

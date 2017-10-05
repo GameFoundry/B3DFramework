@@ -24,35 +24,35 @@ namespace bs
 
 		/** @copydoc HingeJoint::getAngle */
 		BS_SCRIPT_EXPORT(n:Angle,pr:getter)
-		inline Radian getAngle() const;
+		Radian getAngle() const;
 
 		/** @copydoc HingeJoint::getSpeed */
 		BS_SCRIPT_EXPORT(n:Speed,pr:getter)
-		inline float getSpeed() const;
+		float getSpeed() const;
 
 		/** @copydoc HingeJoint::getLimit */
 		BS_SCRIPT_EXPORT(n:Limit,pr:getter)
-		inline LimitAngularRange getLimit() const;
+		LimitAngularRange getLimit() const;
 
 		/** @copydoc HingeJoint::setLimit */
 		BS_SCRIPT_EXPORT(n:Limit,pr:setter)
-		inline void setLimit(const LimitAngularRange& limit);
+		void setLimit(const LimitAngularRange& limit);
 
 		/** @copydoc HingeJoint::getDrive */
 		BS_SCRIPT_EXPORT(n:Drive,pr:getter)
-		inline HingeJointDrive getDrive() const;
+		HingeJointDrive getDrive() const;
 
 		/** @copydoc HingeJoint::setDrive */
 		BS_SCRIPT_EXPORT(n:Drive,pr:setter)
-		inline void setDrive(const HingeJointDrive& drive);
+		void setDrive(const HingeJointDrive& drive);
 
 		/** @copydoc HingeJoint::setFlag */
 		BS_SCRIPT_EXPORT(n:SetFlag)
-		inline void setFlag(HingeJointFlag flag, bool enabled);
+		void setFlag(HingeJointFlag flag, bool enabled);
 
 		/** @copydoc HingeJoint::hasFlag */
 		BS_SCRIPT_EXPORT(n:HasFlag)
-		inline bool hasFlag(HingeJointFlag flag) const;
+		bool hasFlag(HingeJointFlag flag) const;
 
 		/** @name Internal
 		 *  @{

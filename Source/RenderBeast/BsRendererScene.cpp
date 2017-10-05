@@ -410,7 +410,7 @@ namespace bs {	namespace ct
 		}
 
 		// No empty slot was found
-		if (probeInfo.arrayIdx == -1)
+		if (probeInfo.arrayIdx == (UINT32)-1)
 		{
 			setReflectionProbeArrayIndex(probeId, numArrayEntries, false);
 			mInfo.reflProbeCubemapArrayUsedSlots.push_back(true);
@@ -441,7 +441,7 @@ namespace bs {	namespace ct
 		UINT32 probeId = probe->getRendererId();
 		UINT32 arrayIdx = mInfo.reflProbes[probeId].arrayIdx;
 
-		if (arrayIdx != -1)
+		if (arrayIdx != (UINT32)-1)
 			mInfo.reflProbeCubemapArrayUsedSlots[arrayIdx] = false;
 
 		ReflectionProbe* lastProbe = mInfo.reflProbes.back().probe;

@@ -1,7 +1,5 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include <windows.h>
-
 #include "BsApplication.h"
 #include "Material/BsMaterial.h"
 #include "CoreThread/BsCoreThread.h"
@@ -20,6 +18,10 @@
 #include "Utility/BsTime.h"
 #include "Renderer/BsRendererUtility.h"
 #include "BsEngineConfig.h"
+
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+#include <windows.h>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // This example uses the low-level rendering API to render a textured cube mesh. This is opposed to using scene objects
@@ -100,16 +102,17 @@ namespace bs
 using namespace bs;
 
 // Main entry point into the application
+#if BS_PLATFORM == BS_PLATFORM_WIN32
 int CALLBACK WinMain(
 	_In_  HINSTANCE hInstance,
 	_In_  HINSTANCE hPrevInstance,
 	_In_  LPSTR lpCmdLine,
 	_In_  int nCmdShow
 )
+#else
+int main()
+#endif
 {
-	// Ensure all errors are reported properly
-	CrashHandler::startUp();
-
 	// Define a video mode for the resolution of the primary rendering window.
 	VideoMode videoMode(windowResWidth, windowResHeight);
 
@@ -122,7 +125,6 @@ int CALLBACK WinMain(
 	Application::instance().runMainLoop();
 
 	Application::shutDown();
-	CrashHandler::shutDown();
 
 	return 0;
 }
@@ -147,8 +149,8 @@ namespace bs { namespace ct
 	SPtr<IndexBuffer> gIndexBuffer;
 	SPtr<RenderTexture> gRenderTarget;
 	SPtr<RenderWindow> gRenderWindow;
+	bool gUseHLSL = true;
 
-	const bool USE_HLSL = BS_RENDER_API_MODULE == "BansheeD3D11RenderAPI";
 	const UINT32 NUM_VERTICES = 24;
 	const UINT32 NUM_INDICES = 36;
 
@@ -162,6 +164,9 @@ namespace bs { namespace ct
 	// Initializes any resources required for rendering
 	void setup(const SPtr<RenderWindow>& renderWindow)
 	{
+		// Determine which shading language to use (depending on the RenderAPI chosen during build)
+		gUseHLSL = strcmp(BS_RENDER_API_MODULE, "BansheeD3D11RenderAPI") == 0;
+
 		// This will be the primary output for our rendering (created by the main thread on start-up)
 		gRenderWindow = renderWindow;
 
@@ -171,7 +176,7 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC vertProgDesc;
 		vertProgDesc.type = GPT_VERTEX_PROGRAM;
 		vertProgDesc.entryPoint = "main";
-		vertProgDesc.language = USE_HLSL ? "hlsl" : "glsl";
+		vertProgDesc.language = gUseHLSL ? "hlsl" : "glsl";
 		vertProgDesc.source = vertProgSrc;
 
 		SPtr<GpuProgram> vertProg = GpuProgram::create(vertProgDesc);
@@ -182,7 +187,7 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC fragProgDesc;
 		fragProgDesc.type = GPT_FRAGMENT_PROGRAM;
 		fragProgDesc.entryPoint = "main";
-		fragProgDesc.language = USE_HLSL ? "hlsl" : "glsl";
+		fragProgDesc.language = gUseHLSL ? "hlsl" : "glsl";
 		fragProgDesc.source = fragProgSrc;
 
 		SPtr<GpuProgram> fragProg = GpuProgram::create(fragProgDesc);
@@ -307,7 +312,7 @@ namespace bs { namespace ct
 		gGpuParams->setTexture(GPT_FRAGMENT_PROGRAM, "gMainTexture", gSurfaceTex);
 
 		// HLSL uses separate sampler states, so we need to use a different name for the sampler
-		if(USE_HLSL)
+		if(gUseHLSL)
 			gGpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gMainTexSamp", gSurfaceSampler);
 		else
 			gGpuParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gMainTexture", gSurfaceSampler);
@@ -430,9 +435,9 @@ namespace bs { namespace ct
 
 	const char* getVertexProgSource()
 	{
-		if(USE_HLSL)
+		if(gUseHLSL)
 		{
-			static char* src = R"(
+			static const char* src = R"(
 cbuffer Params
 {
 	float4x4 gMatWVP;
@@ -454,7 +459,7 @@ void main(
 		}
 		else
 		{
-			static char* src = R"(
+			static const char* src = R"(
 layout (binding = 0, std140) uniform Params
 {
 	mat4 gMatWVP;
@@ -484,9 +489,9 @@ void main()
 
 	const char* getFragmentProgSource()
 	{
-		if (USE_HLSL)
+		if (gUseHLSL)
 		{
-			static char* src = R"(
+			static const char* src = R"(
 cbuffer Params
 {
 	float4x4 gMatWVP;
@@ -507,7 +512,7 @@ float4 main(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 		}
 		else
 		{
-			static char* src = R"(
+			static const char* src = R"(
 layout (binding = 0, std140) uniform Params
 {
 	mat4 gMatWVP;
@@ -549,7 +554,7 @@ void main()
 		Matrix4 viewProj = proj * view * world;
 
 		// GLSL uses column major matrices, so transpose
-		if(!USE_HLSL)
+		if(!gUseHLSL)
 			viewProj = viewProj.transpose();
 
 		return viewProj;

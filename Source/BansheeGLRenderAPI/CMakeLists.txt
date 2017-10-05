@@ -2,18 +2,8 @@
 include(CMakeSources.cmake)
 
 # Find packages
-if(NOT WIN32)
-	find_package(X11 REQUIRED)
-	find_package(LibUUID REQUIRED)
+if(LINUX)
 	find_package(OpenGL REQUIRED)
-
-	if(NOT X11_Xcursor_FOUND)
-		message(FATAL_ERROR "Could not find XCursor library.")
-	endif()
-
-	if(NOT X11_Xrandr_FOUND)
-		message(FATAL_ERROR "Could not find XRandR library.")
-	endif()
 endif()
 
 # Includes
@@ -42,9 +32,8 @@ if(WIN32)
 	## External lib: OpenGL
 	target_link_libraries(BansheeGLRenderAPI PRIVATE glu32 opengl32)
 else()
-	## External lib: OpenGL, X11, LibUUID
-	target_link_libraries(BansheeGLRenderAPI PRIVATE ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB}
-        ${OPENGL_LIBRARIES} ${LibUUID_LIBRARIES})
+	## External lib: OpenGL
+	target_link_libraries(BansheeGLRenderAPI PRIVATE ${OPENGL_LIBRARIES})
 endif()
 
 ## Local libs

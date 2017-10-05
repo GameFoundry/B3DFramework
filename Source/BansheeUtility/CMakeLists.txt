@@ -4,6 +4,19 @@ include(CMakeSources.cmake)
 # Packages
 find_package(snappy REQUIRED)
 
+if(LINUX)
+	find_package(X11 REQUIRED)
+	find_package(LibUUID REQUIRED)
+
+	if(NOT X11_Xcursor_FOUND)
+		message(FATAL_ERROR "Could not find XCursor library.")
+	endif()
+
+	if(NOT X11_Xrandr_FOUND)
+		message(FATAL_ERROR "Could not find XRandR library.")
+	endif()
+endif()
+
 # Includes
 set(BansheeUtility_INC 
 	"./" 
@@ -28,15 +41,16 @@ target_compile_definitions(BansheeUtility PRIVATE -DBS_UTILITY_EXPORTS)
 ## External lib: Snappy
 target_link_libraries(BansheeUtility PRIVATE ${snappy_LIBRARIES})	
 
-## OS libs
 if(WIN32)
-target_link_libraries(BansheeUtility PRIVATE
-	DbgHelp
-	IPHLPAPI
-	Rpcrt4
-	)
+	## OS libs
+	target_link_libraries(BansheeUtility PRIVATE DbgHelp IPHLPAPI Rpcrt4)
 else()
+	## OS libs
 	target_link_libraries(BansheeUtility PRIVATE dl pthread)
+
+	## External lib: X11, LibUUID
+	target_link_libraries(BansheeUtility PUBLIC ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB})
+	target_link_libraries(BansheeUtility PRIVATE ${LibUUID_LIBRARIES})
 endif()
 
 # IDE specific

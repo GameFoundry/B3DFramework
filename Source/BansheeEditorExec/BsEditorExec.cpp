@@ -5,10 +5,10 @@
 #include "BsEditorApplication.h"
 #include "Error/BsCrashHandler.h"
 
+using namespace bs;
+
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 #include <windows.h>
-
-using namespace bs;
 
 int CALLBACK WinMain(
 	_In_  HINSTANCE hInstance,
@@ -33,5 +33,12 @@ int CALLBACK WinMain(
 	CrashHandler::shutDown();
 
 	return 0;
+}
+#else
+int main()
+{
+	EditorApplication::startUp();
+	EditorApplication::instance().runMainLoop();
+	EditorApplication::shutDown();
 }
 #endif // End BS_PLATFORM

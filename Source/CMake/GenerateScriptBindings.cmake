@@ -25,7 +25,7 @@ function(addForGeneration name)
 
 	set(H_FILES "")
 	FOREACH(f ${BS_${LIBNAME}_SRC})
-		IF("${f}" MATCHES ".*\\.h")
+		IF("${f}" MATCHES ".*\\.h" AND NOT "${f}" MATCHES "Win32|Linux")
 			LIST(APPEND H_FILES ${f})
 		ENDIF()
 	ENDFOREACH(f)

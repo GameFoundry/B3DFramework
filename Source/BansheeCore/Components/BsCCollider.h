@@ -25,7 +25,7 @@ namespace bs
 
 		/** @copydoc Collider::setIsTrigger */
 		BS_SCRIPT_EXPORT(n:Trigger,pr:setter)
-		inline void setIsTrigger(bool value);
+		void setIsTrigger(bool value);
 
 		/** @copydoc Collider::getIsTrigger */
 		BS_SCRIPT_EXPORT(n:Trigger,pr:getter)
@@ -33,7 +33,7 @@ namespace bs
 
 		/** @copydoc Collider::setMass */
 		BS_SCRIPT_EXPORT(n:Mass,pr:setter)
-		inline void setMass(float mass);
+		void setMass(float mass);
 
 		/** @copydoc Collider::getMass */
 		BS_SCRIPT_EXPORT(n:Mass,pr:getter)
@@ -41,7 +41,7 @@ namespace bs
 
 		/** @copydoc Collider::setMaterial */
 		BS_SCRIPT_EXPORT(n:Material,pr:setter)
-		inline void setMaterial(const HPhysicsMaterial& material);
+		void setMaterial(const HPhysicsMaterial& material);
 
 		/** @copydoc Collider::getMaterial */
 		BS_SCRIPT_EXPORT(n:Material,pr:getter)
@@ -49,7 +49,7 @@ namespace bs
 
 		/** @copydoc Collider::setContactOffset */
 		BS_SCRIPT_EXPORT(n:ContactOffset,pr:setter)
-		inline void setContactOffset(float value);
+		void setContactOffset(float value);
 
 		/** @copydoc Collider::getContactOffset */
 		BS_SCRIPT_EXPORT(n:ContactOffset,pr:getter)
@@ -57,7 +57,7 @@ namespace bs
 
 		/** @copydoc Collider::setRestOffset */
 		BS_SCRIPT_EXPORT(n:RestOffset,pr:setter)
-		inline void setRestOffset(float value);
+		void setRestOffset(float value);
 
 		/** @copydoc Collider::getRestOffset */
 		BS_SCRIPT_EXPORT(n:RestOffset,pr:getter)
@@ -65,7 +65,7 @@ namespace bs
 
 		/** @copydoc Collider::setLayer */
 		BS_SCRIPT_EXPORT(n:Layer,pr:setter)
-		inline void setLayer(UINT64 layer);
+		void setLayer(UINT64 layer);
 
 		/** @copydoc Collider::getLayer */
 		BS_SCRIPT_EXPORT(n:Layer,pr:getter)
@@ -73,7 +73,7 @@ namespace bs
 
 		/** @copydoc Collider::setCollisionReportMode */
 		BS_SCRIPT_EXPORT(n:CollisionReportMode,pr:setter)
-		inline void setCollisionReportMode(CollisionReportMode mode);
+		void setCollisionReportMode(CollisionReportMode mode);
 
 		/** @copydoc Collider::getCollisionReportMode */
 		BS_SCRIPT_EXPORT(n:CollisionReportMode,pr:getter)
@@ -83,10 +83,10 @@ namespace bs
 		HRigidbody getRigidbody() const { return mParent; }
 
 		/** @copydoc Collider::rayCast(const Ray&, PhysicsQueryHit&, float) const */
-		inline bool rayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
+		bool rayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
 
 		/** @copydoc Collider::rayCast(const Vector3&, const Vector3&, PhysicsQueryHit&, float) const */
-		inline bool rayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit,
+		bool rayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit,
 			float maxDist = FLT_MAX) const;
 
 		/** @copydoc Collider::onCollisionBegin */

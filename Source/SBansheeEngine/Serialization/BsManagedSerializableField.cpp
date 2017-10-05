@@ -261,6 +261,8 @@ namespace bs
 
 				return fieldData;
 			}
+			default:
+				break;
 			}
 		}
 		else if(typeInfo->getTypeId() == TID_SerializableTypeInfoObject)

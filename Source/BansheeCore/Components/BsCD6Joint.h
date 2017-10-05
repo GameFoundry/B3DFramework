@@ -24,79 +24,79 @@ namespace bs
 
 		/** @copydoc D6Joint::getMotion */
 		BS_SCRIPT_EXPORT(n:GetMotion)
-		inline D6JointMotion getMotion(D6JointAxis axis) const;
+		D6JointMotion getMotion(D6JointAxis axis) const;
 
 		/** @copydoc D6Joint::setMotion */
 		BS_SCRIPT_EXPORT(n:SetMotion)
-		inline void setMotion(D6JointAxis axis, D6JointMotion motion);
+		void setMotion(D6JointAxis axis, D6JointMotion motion);
 
 		/** @copydoc D6Joint::getTwist */
 		BS_SCRIPT_EXPORT(n:Twist,pr:getter)
-		inline Radian getTwist() const;
+		Radian getTwist() const;
 
 		/** @copydoc D6Joint::getSwingY */
 		BS_SCRIPT_EXPORT(n:SwingY,pr:getter)
-		inline Radian getSwingY() const;
+		Radian getSwingY() const;
 
 		/** @copydoc D6Joint::getSwingZ */
 		BS_SCRIPT_EXPORT(n:SwingZ,pr:getter)
-		inline Radian getSwingZ() const;
+		Radian getSwingZ() const;
 
 		/** @copydoc D6Joint::getLimitLinear */
 		BS_SCRIPT_EXPORT(n:LimitLinear,pr:getter)
-		inline LimitLinear getLimitLinear() const;
+		LimitLinear getLimitLinear() const;
 
 		/** @copydoc D6Joint::setLimitLinear */
 		BS_SCRIPT_EXPORT(n:LimitLinear,pr:setter)
-		inline void setLimitLinear(const LimitLinear& limit);
+		void setLimitLinear(const LimitLinear& limit);
 
 		/** @copydoc D6Joint::getLimitTwist */
 		BS_SCRIPT_EXPORT(n:LimitTwist,pr:getter)
-		inline LimitAngularRange getLimitTwist() const;
+		LimitAngularRange getLimitTwist() const;
 
 		/** @copydoc D6Joint::setLimitTwist */
 		BS_SCRIPT_EXPORT(n:LimitTwist,pr:setter)
-		inline void setLimitTwist(const LimitAngularRange& limit);
+		void setLimitTwist(const LimitAngularRange& limit);
 
 		/** @copydoc D6Joint::getLimitSwing */
 		BS_SCRIPT_EXPORT(n:LimitSwing,pr:getter)
-		inline LimitConeRange getLimitSwing() const;
+		LimitConeRange getLimitSwing() const;
 
 		/** @copydoc D6Joint::setLimitSwing */
 		BS_SCRIPT_EXPORT(n:LimitSwing,pr:setter)
-		inline void setLimitSwing(const LimitConeRange& limit);
+		void setLimitSwing(const LimitConeRange& limit);
 
 		/** @copydoc D6Joint::getDrive */
 		BS_SCRIPT_EXPORT(n:GetDrive)
-		inline D6JointDrive getDrive(D6JointDriveType type) const;
+		D6JointDrive getDrive(D6JointDriveType type) const;
 
 		/** @copydoc D6Joint::setDrive */
 		BS_SCRIPT_EXPORT(n:SetDrive)
-		inline void setDrive(D6JointDriveType type, const D6JointDrive& drive);
+		void setDrive(D6JointDriveType type, const D6JointDrive& drive);
 
 		/** @copydoc D6Joint::getDrivePosition */
 		BS_SCRIPT_EXPORT(n:DrivePosition,pr:getter)
-		inline Vector3 getDrivePosition() const;
+		Vector3 getDrivePosition() const;
 
 		/** @copydoc D6Joint::getDriveRotation */
 		BS_SCRIPT_EXPORT(n:DriveRotation,pr:getter)
-		inline Quaternion getDriveRotation() const;
+		Quaternion getDriveRotation() const;
 
 		/** @copydoc D6Joint::setDriveTransform */
 		BS_SCRIPT_EXPORT(n:SetDriveTransform)
-		inline void setDriveTransform(const Vector3& position, const Quaternion& rotation);
+		void setDriveTransform(const Vector3& position, const Quaternion& rotation);
 
 		/** @copydoc D6Joint::getDriveLinearVelocity */
 		BS_SCRIPT_EXPORT(n:DriveLinearVelocity,pr:getter)
-		inline Vector3 getDriveLinearVelocity() const;
+		Vector3 getDriveLinearVelocity() const;
 
 		/** @copydoc D6Joint::getDriveAngularVelocity */
 		BS_SCRIPT_EXPORT(n:DriveAngularVelocity,pr:getter)
-		inline Vector3 getDriveAngularVelocity() const;
+		Vector3 getDriveAngularVelocity() const;
 
 		/** @copydoc D6Joint::setDriveVelocity */
 		BS_SCRIPT_EXPORT(n:SetDriveVelocity)
-		inline void setDriveVelocity(const Vector3& linear, const Vector3& angular);
+		void setDriveVelocity(const Vector3& linear, const Vector3& angular);
 
 		/** @name Internal
 		 *  @{

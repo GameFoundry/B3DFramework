@@ -44,6 +44,12 @@ int CALLBACK WinMain(
 
 	return 0;
 }
+#else
+int main()
+{
+	runApplication();
+	return 0;
+}
 #endif // End BS_PLATFORM
 
 using namespace bs;

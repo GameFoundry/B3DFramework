@@ -25,47 +25,47 @@ namespace bs
 
 		/** @copydoc Joint::getBody */
 		BS_SCRIPT_EXPORT(n:GetBody)
-		inline HRigidbody getBody(JointBody body) const;
+		HRigidbody getBody(JointBody body) const;
 
 		/** @copydoc Joint::setBody */
 		BS_SCRIPT_EXPORT(n:SetBody)
-		inline void setBody(JointBody body, const HRigidbody& value);
+		void setBody(JointBody body, const HRigidbody& value);
 
 		/** @copydoc Joint::getPosition */
 		BS_SCRIPT_EXPORT(n:GetPosition)
-		inline Vector3 getPosition(JointBody body) const;
+		Vector3 getPosition(JointBody body) const;
 
 		/** @copydoc Joint::getRotation */
 		BS_SCRIPT_EXPORT(n:GetRotation)
-		inline Quaternion getRotation(JointBody body) const;
+		Quaternion getRotation(JointBody body) const;
 
 		/** @copydoc Joint::setTransform */
 		BS_SCRIPT_EXPORT(n:SetTransform)
-		inline void setTransform(JointBody body, const Vector3& position, const Quaternion& rotation);
+		void setTransform(JointBody body, const Vector3& position, const Quaternion& rotation);
 
 		/** @copydoc Joint::getBreakForce */
 		BS_SCRIPT_EXPORT(n:BreakForce,pr:getter)
-		inline float getBreakForce() const;
+		float getBreakForce() const;
 
 		/** @copydoc Joint::setBreakForce */
 		BS_SCRIPT_EXPORT(n:BreakForce,pr:setter)
-		inline void setBreakForce(float force);
+		void setBreakForce(float force);
 
 		/** @copydoc Joint::getBreakTorque */
 		BS_SCRIPT_EXPORT(n:BreakTorque,pr:getter)
-		inline float getBreakTorque() const;
+		float getBreakTorque() const;
 
 		/** @copydoc Joint::setBreakTorque */
 		BS_SCRIPT_EXPORT(n:BreakTorque,pr:setter)
-		inline void setBreakTorque(float torque);
+		void setBreakTorque(float torque);
 
 		/** @copydoc Joint::getEnableCollision */
 		BS_SCRIPT_EXPORT(n:EnableCollision,pr:getter)
-		inline bool getEnableCollision() const;
+		bool getEnableCollision() const;
 
 		/** @copydoc Joint::setEnableCollision */
 		BS_SCRIPT_EXPORT(n:EnableCollision,pr:setter)
-		inline void setEnableCollision(bool value);
+		void setEnableCollision(bool value);
 
 		/** @copydoc Joint::onJointBreak */
 		BS_SCRIPT_EXPORT(n:OnJointBreak)

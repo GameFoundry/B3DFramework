@@ -1,7 +1,5 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include <windows.h>
-
 // Engine includes
 #include "BsApplication.h"
 #include "Resources/BsResources.h"
@@ -23,6 +21,10 @@
 // Example includes
 #include "CameraFlyer.h"
 #include "ObjectRotator.h"
+
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+#include <windows.h>
+#endif
 
 namespace bs
 {
@@ -72,16 +74,17 @@ namespace bs
 using namespace bs;
 
 /** Main entry point into the application. */
+#if BS_PLATFORM == BS_PLATFORM_WIN32
 int CALLBACK WinMain(
 	_In_  HINSTANCE hInstance,
 	_In_  HINSTANCE hPrevInstance,
 	_In_  LPSTR lpCmdLine,
 	_In_  int nCmdShow
 	)
+#else
+int main()
+#endif
 {
-	// Ensure all errors are reported properly
-	CrashHandler::startUp();
-
 	// Descriptor used for initializing the engine
 	START_UP_DESC startUpDesc;
 
@@ -115,7 +118,6 @@ int CALLBACK WinMain(
 	Application::instance().runMainLoop();
 
 	Application::shutDown();
-	CrashHandler::shutDown();
 
 	return 0;
 }

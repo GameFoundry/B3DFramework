@@ -20,6 +20,7 @@ namespace bs
 	Vector<LinuxDragAndDrop::DropArea> LinuxDragAndDrop::sDropAreas;
 	Mutex LinuxDragAndDrop::sMutex;
 	INT32 LinuxDragAndDrop::sDNDVersion = 0;
+	Atom LinuxDragAndDrop::sDNDType = 0;
 	::Window LinuxDragAndDrop::sDNDSource = 0;
 	Vector2I LinuxDragAndDrop::sDragPosition;
 	Vector<LinuxDragAndDrop::DragAndDropOp> LinuxDragAndDrop::sQueuedOperations;
@@ -35,6 +36,7 @@ namespace bs
 	Atom LinuxDragAndDrop::sXdndFinished;
 	Atom LinuxDragAndDrop::sXdndActionCopy;
 	Atom LinuxDragAndDrop::sXdndTypeList;
+	Atom LinuxDragAndDrop::sPRIMARY;
 
 	struct X11Property
 	{

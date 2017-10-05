@@ -55,7 +55,10 @@ namespace bs
 	CoreApplication::CoreApplication(START_UP_DESC desc)
 		: mPrimaryWindow(nullptr), mStartUpDesc(desc), mFrameStep(16666), mLastFrameTime(0), mRendererPlugin(nullptr)
 		, mIsFrameRenderingFinished(true), mSimThreadId(BS_THREAD_CURRENT_ID), mRunMainLoop(false)
-	{ }
+	{
+		// Ensure all errors are reported properly
+		CrashHandler::startUp();
+	}
 
 	CoreApplication::~CoreApplication()
 	{
@@ -115,6 +118,8 @@ namespace bs
 
 		MemStack::endThread();
 		Platform::_shutDown();
+
+		CrashHandler::shutDown();
 	}
 
 	void CoreApplication::onStartUp()

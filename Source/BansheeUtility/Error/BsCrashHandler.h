@@ -28,10 +28,21 @@ namespace bs
 		~CrashHandler();
 
 		/** Constructs and starts the module. */
-		static void startUp() { _instance() = bs_new<CrashHandler>(); }
+		static void startUp()
+		{
+			if(_instance() == nullptr)
+				_instance() = bs_new<CrashHandler>();
+		}
 
 		/** Shuts down this module and frees any resources it is using. */
-		static void shutDown() { bs_delete(_instance()); }
+		static void shutDown()
+		{
+			if(_instance() != nullptr)
+			{
+				bs_delete(_instance());
+				_instance() = nullptr;
+			}
+		}
 
 		/** Returns a reference to the module instance. */
 		static CrashHandler& instance() { return *_instance(); }
