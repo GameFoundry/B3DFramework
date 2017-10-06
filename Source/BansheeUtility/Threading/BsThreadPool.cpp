@@ -129,7 +129,6 @@ namespace bs
 			}
 #else
 			worker();
-			LOGWRN("Starting a thread with no error handling.");
 #endif
 
 			{

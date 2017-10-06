@@ -124,9 +124,9 @@ int main()
 namespace bs
 {
 	Path dataPath = Paths::getRuntimeDataPath();
-	Path exampleModelPath = dataPath + "Examples\\Dragon.fbx";
-	Path exampleTexturePath = dataPath + "Examples\\Dragon.tga";
-	Path exampleShaderPath = dataPath + "Examples\\Example.bsl";
+	Path exampleModelPath = dataPath + "Examples/Dragon.fbx";
+	Path exampleTexturePath = dataPath + "Examples/Dragon.tga";
+	Path exampleShaderPath = dataPath + "Examples/Example.bsl";
 
 	GUIButton* toggleFullscreenButton = nullptr;
 	bool fullscreen = false;

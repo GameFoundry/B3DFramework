@@ -49,7 +49,7 @@ namespace bs
 		return true;
 	}
 
-	InputHandlerOIS::InputHandlerOIS(unsigned int hWnd)
+	InputHandlerOIS::InputHandlerOIS(UINT64 hWnd)
 		:mInputManager(nullptr), mMouse(nullptr), mKeyboard(nullptr), mLastMouseUpdateFrame(0), mTimestampClockOffset(0)
 	{
 		mMouseSampleAccumulator[0] = 0;
@@ -68,12 +68,12 @@ namespace bs
 		windowHndStr << hWnd;
 		pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
 
-#if defined BS_PLATFORM == BS_PLATFORM_WIN32
+#if BS_PLATFORM == BS_PLATFORM_WIN32
 		pl.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND" )));
 		pl.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
 		pl.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_FOREGROUND")));
 		pl.insert(std::make_pair(std::string("w32_keyboard"), std::string("DISCL_NONEXCLUSIVE")));
-#elif defined BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
+#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
 		pl.insert(std::make_pair(std::string("x11_mouse_grab"), std::string("false")));
 		pl.insert(std::make_pair(std::string("x11_mouse_hide"), std::string("false")));
 		pl.insert(std::make_pair(std::string("x11_keyboard_grab"), std::string("false")));

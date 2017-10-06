@@ -209,7 +209,7 @@ namespace bs
 		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("WINDOW", &linuxWindow);
+		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		UINT32 mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
 		XGrabPointer(mData->xDisplay, linuxWindow->_getXWindow(), False, mask, GrabModeAsync,
@@ -230,7 +230,7 @@ namespace bs
 		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("WINDOW", &linuxWindow);
+		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 		::Window xWindow = linuxWindow->_getXWindow();
 
 		Vector2I pos;
@@ -280,7 +280,7 @@ namespace bs
 		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("WINDOW", &linuxWindow);
+		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		mData->cursorClipEnabled = true;
 		mData->cursorClipWindow = linuxWindow;
@@ -361,7 +361,7 @@ namespace bs
 		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("WINDOW", &linuxWindow);
+		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		// Note: Only supporting a single area
 		linuxWindow->_setDragZone(nonClientAreas[0]);

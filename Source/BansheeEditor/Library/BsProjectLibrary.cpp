@@ -22,7 +22,7 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	const Path ProjectLibrary::RESOURCES_DIR = L"Resources\\";
+	const Path ProjectLibrary::RESOURCES_DIR = L"Resources/";
 	const Path ProjectLibrary::INTERNAL_RESOURCES_DIR = PROJECT_INTERNAL_DIR + GAME_RESOURCES_FOLDER_NAME;
 	const WString ProjectLibrary::LIBRARY_ENTRIES_FILENAME = L"ProjectLibrary.asset";
 	const WString ProjectLibrary::RESOURCE_MANIFEST_FILENAME = L"ResourceManifest.asset";

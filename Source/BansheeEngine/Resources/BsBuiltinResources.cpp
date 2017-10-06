@@ -46,14 +46,14 @@ namespace bs
 	const WString BuiltinResources::GUISkinFile = L"GUISkin";
 
 	const char* BuiltinResources::DataListFile = "DataList.json";
-	const char* BuiltinResources::CursorFolder = "Cursors\\";
-	const char* BuiltinResources::IconFolder = "Icons\\";
-	const char* BuiltinResources::ShaderFolder = "Shaders\\";
-	const char* BuiltinResources::SkinFolder = "Skin\\";
-	const char* BuiltinResources::ShaderIncludeFolder = "Includes\\";
-	const char* BuiltinResources::MeshFolder = "Meshes\\";
-	const char* BuiltinResources::TextureFolder = "Textures\\";
-	const char* BuiltinResources::SpriteSubFolder = "Sprites\\";
+	const char* BuiltinResources::CursorFolder = "Cursors/";
+	const char* BuiltinResources::IconFolder = "Icons/";
+	const char* BuiltinResources::ShaderFolder = "Shaders/";
+	const char* BuiltinResources::SkinFolder = "Skin/";
+	const char* BuiltinResources::ShaderIncludeFolder = "Includes/";
+	const char* BuiltinResources::MeshFolder = "Meshes/";
+	const char* BuiltinResources::TextureFolder = "Textures/";
+	const char* BuiltinResources::SpriteSubFolder = "Sprites/";
 
 	/************************************************************************/
 	/* 								GUI TEXTURES                      		*/
@@ -224,7 +224,7 @@ namespace bs
 	BuiltinResources::BuiltinResources()
 	{
 		// Set up paths
-		mBuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw\\Engine\\";
+		mBuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw/Engine/";
 
 		mBuiltinDataFolder = Paths::getEngineDataPath();
 		mEngineSkinSpritesFolder = mBuiltinDataFolder + SkinFolder + SpriteSubFolder;

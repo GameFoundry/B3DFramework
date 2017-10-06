@@ -41,6 +41,8 @@ namespace bs
 
 	LinuxWindow::LinuxWindow(const WINDOW_DESC &desc)
 	{
+		m = bs_new<Pimpl>();
+
 		::Display* display = LinuxPlatform::getXDisplay();
 
 		INT32 screen;
@@ -136,6 +138,8 @@ namespace bs
 	{
 		if(m->xWindow != 0)
 			_cleanUp();
+
+		bs_delete(m);
 	}
 
 	void LinuxWindow::close()

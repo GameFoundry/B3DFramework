@@ -125,12 +125,12 @@ int main()
 namespace bs
 {
 	Path dataPath = Paths::getRuntimeDataPath();
-	Path exampleModelPath = dataPath + "Examples\\Pistol\\Pistol01.fbx";
-	Path exampleAlbedoTexPath = dataPath + "Examples\\Pistol\\Pistol_DFS.png";
-	Path exampleNormalsTexPath = dataPath + "Examples\\Pistol\\Pistol_NM.png";
-	Path exampleRoughnessTexPath = dataPath + "Examples\\Pistol\\Pistol_RGH.png";
-	Path exampleMetalnessTexPath = dataPath + "Examples\\Pistol\\Pistol_MTL.png";
-    Path exampleSkyCubemapPath = dataPath + "Examples\\Environments\\PaperMill_E_3k.hdr";
+	Path exampleModelPath = dataPath + "Examples/Pistol/Pistol01.fbx";
+	Path exampleAlbedoTexPath = dataPath + "Examples/Pistol/Pistol_DFS.png";
+	Path exampleNormalsTexPath = dataPath + "Examples/Pistol/Pistol_NM.png";
+	Path exampleRoughnessTexPath = dataPath + "Examples/Pistol/Pistol_RGH.png";
+	Path exampleMetalnessTexPath = dataPath + "Examples/Pistol/Pistol_MTL.png";
+    Path exampleSkyCubemapPath = dataPath + "Examples/Environments/PaperMill_E_3k.hdr";
 
 	HCamera sceneCamera;
 

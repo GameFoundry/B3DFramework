@@ -22,10 +22,10 @@ target_compile_definitions(BansheePhysX PRIVATE $<$<CONFIG:Debug>:_DEBUG> $<$<CO
 
 # Libraries
 ## External lib: PhysX
-target_link_libraries(BansheePhysX ${PhysX_LIBRARIES})
+target_link_libraries(BansheePhysX PRIVATE ${PhysX_LIBRARIES})
 
 ## Local libs
-target_link_libraries(BansheePhysX BansheeUtility BansheeCore)
+target_link_libraries(BansheePhysX PRIVATE BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheePhysX PROPERTY FOLDER Plugins)

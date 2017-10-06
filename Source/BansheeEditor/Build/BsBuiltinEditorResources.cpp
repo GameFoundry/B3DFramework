@@ -45,7 +45,7 @@ using json = nlohmann::json;
 
 namespace bs
 {
-	static const Path EDITOR_DATA_FOLDER = "Editor\\";
+	static const Path EDITOR_DATA_FOLDER = "Editor/";
 
 	const String BuiltinEditorResources::ObjectFieldStyleName = "GUIObjectField";
 	const String BuiltinEditorResources::ObjectFieldLabelStyleName = "EditorFieldLabel";
@@ -68,11 +68,11 @@ namespace bs
 	const WString BuiltinEditorResources::GUISkinFile = L"GUISkin";
 
 	const char* BuiltinEditorResources::DataListFile = "DataList.json";
-	const char* BuiltinEditorResources::ShaderFolder = "Shaders\\";
-	const char* BuiltinEditorResources::SkinFolder = "Skin\\";
-	const char* BuiltinEditorResources::IconFolder = "Icons\\";
-	const char* BuiltinEditorResources::ShaderIncludeFolder = "Includes\\";
-	const char* BuiltinEditorResources::SpriteSubFolder = "Sprites\\";
+	const char* BuiltinEditorResources::ShaderFolder = "Shaders/";
+	const char* BuiltinEditorResources::SkinFolder = "Skin/";
+	const char* BuiltinEditorResources::IconFolder = "Icons/";
+	const char* BuiltinEditorResources::ShaderIncludeFolder = "Includes/";
+	const char* BuiltinEditorResources::SpriteSubFolder = "Sprites/";
 
 	const WString BuiltinEditorResources::FolderIconTex = L"FolderIcon.psd";
 	const WString BuiltinEditorResources::MeshIconTex = L"MeshIcon.psd";
@@ -309,7 +309,7 @@ namespace bs
 	BuiltinEditorResources::BuiltinEditorResources()
 	{
 		// Set up paths
-		BuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw\\Editor\\";
+		BuiltinRawDataFolder = Paths::getRuntimeDataPath() + L"Raw/Editor/";
 		EditorRawSkinFolder = BuiltinRawDataFolder + SkinFolder;
 		EditorRawIconsFolder = BuiltinRawDataFolder + IconFolder;
 		EditorRawShaderFolder = BuiltinRawDataFolder + ShaderFolder;

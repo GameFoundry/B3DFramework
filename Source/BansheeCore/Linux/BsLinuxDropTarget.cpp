@@ -209,6 +209,8 @@ namespace bs
 
 	void LinuxDragAndDrop::startUp(::Display* xDisplay)
 	{
+		sXDisplay = xDisplay;
+
 #define INIT_ATOM(name)		s##name = XInternAtom(xDisplay, #name, False);
 
 		INIT_ATOM(XdndAware)
@@ -228,7 +230,7 @@ namespace bs
 
 	void LinuxDragAndDrop::shutDown()
 	{
-		// Do nothing
+		sXDisplay = nullptr;
 	}
 
 	void LinuxDragAndDrop::makeDNDAware(::Window xWindow)
@@ -392,7 +394,7 @@ namespace bs
 				for(auto& dropArea : sDropAreas)
 				{
 					LinuxWindow* linuxWindow;
-					dropArea.target->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
+					dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 					::Window xWindow = linuxWindow->_getXWindow();
 
 					if(xWindow == event.window)
@@ -542,7 +544,7 @@ namespace bs
 					continue;
 
 				LinuxWindow* linuxWindow;
-				dropArea.target->_getOwnerWindow()->getCustomAttribute("WINDOW", &linuxWindow);
+				dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 				Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
 

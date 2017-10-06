@@ -19,9 +19,9 @@
 
 namespace bs
 {
-	const String MONO_LIB_DIR = "bin\\Mono\\lib\\";
-	const String MONO_ETC_DIR = "bin\\Mono\\etc\\";
-	const String MONO_COMPILER_DIR = "bin\\Mono\\compiler\\";
+	const String MONO_LIB_DIR = "bin/Mono/lib/";
+	const String MONO_ETC_DIR = "bin/Mono/etc/";
+	const String MONO_COMPILER_DIR = "bin/Mono/compiler/";
 	const MonoVersion MONO_VERSION = MonoVersion::v4_5;
 	
 	struct MonoVersionData
@@ -32,7 +32,7 @@ namespace bs
 
 	static const MonoVersionData MONO_VERSION_DATA[1] =
 	{
-		{ MONO_LIB_DIR + "mono\\4.5", "v4.0.30319" }
+		{ MONO_LIB_DIR + "mono/4.5", "v4.0.30319" }
 	};
 
 	void monoLogCallback(const char* logDomain, const char* logLevel, const char* message, mono_bool fatal, void* userData)

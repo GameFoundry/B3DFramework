@@ -51,7 +51,7 @@ namespace bs
 		};
 
 	public:
-		InputHandlerOIS(unsigned int hWnd);
+		InputHandlerOIS(UINT64 hWnd);
 		virtual ~InputHandlerOIS();
 
 	private:

@@ -25,7 +25,7 @@ namespace bs
 		return BuildData::getRTTIStatic();
 	}
 
-	const WString BuildManager::BUILD_FOLDER_NAME = L"Builds\\";
+	const WString BuildManager::BUILD_FOLDER_NAME = L"Builds/";
 
 	BuildManager::BuildManager()
 	{
@@ -144,7 +144,7 @@ namespace bs
 		{
 		case PlatformType::Windows:
 		{
-			Path output = Paths::getRuntimeDataPath() + "Binaries\\Win64\\Game.exe";
+			Path output = Paths::getRuntimeDataPath() + "Binaries/Win64/Game.exe";
 			return output;
 		}
 		default:

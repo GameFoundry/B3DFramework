@@ -25,9 +25,7 @@ namespace bs
 		UINT64 windowId = 0;
 		primaryWindow->getCustomAttribute("WINDOW", &windowId);
 
-		// TODO - Window handles in Windows are 64 bits when compiled as x64, but OIS only accepts a 32bit value. Is this okay?
-		SPtr<RawInputHandler> inputHandler = bs_shared_ptr_new<InputHandlerOIS>((UINT32)windowId);
-
+		SPtr<RawInputHandler> inputHandler = bs_shared_ptr_new<InputHandlerOIS>(windowId);
 		gInput()._registerRawInputHandler(inputHandler);
 
 		return nullptr;

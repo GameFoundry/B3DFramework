@@ -18,7 +18,7 @@ namespace bs
 
 	void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
 	{
-		if (name == "WINDOW")
+		if (name == "WINDOW" || name == "LINUX_WINDOW")
 		{
 			blockUntilCoreInitialized();
 			getCore()->getCustomAttribute(name, data);
@@ -468,10 +468,16 @@ namespace bs
 			*contextPtr = mContext;
 			return;
 		}
-		else if(name == "WINDOW")
+		else if(name == "LINUX_WINDOW")
 		{
 			LinuxWindow** window = (LinuxWindow**)data;
 			*window = mWindow;
+			return;
+		}
+		else if(name == "WINDOW")
+		{
+			::Window* window = (::Window*)data;
+			*window = mWindow->_getXWindow();
 			return;
 		}
 	}
