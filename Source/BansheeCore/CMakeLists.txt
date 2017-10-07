@@ -30,7 +30,7 @@ target_link_libraries(BansheeCore PUBLIC BansheeUtility)
 	
 ## OS libs
 if(WIN32)
-target_link_libraries(BansheeCore PRIVATE Winmm)
+	target_link_libraries(BansheeCore PRIVATE Winmm dinput8 xinput9_1_0 dxguid.lib)
 else()
 	# TODO_OTHER_PLATFORMS_GO_HERE
 endif()

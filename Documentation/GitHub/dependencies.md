@@ -66,12 +66,6 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Required by BansheeFreeImgImporter
 - Compile as a static library
    
-**OIS**
-- OIS 1.3
-- https://github.com/BearishSun/OIS
-- Required by BansheeOISInput
-- Compile as a dynamic library
-   
 **mono**
 - Mono 4.4.0
 - http://www.mono-project.com/

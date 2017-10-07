@@ -8,22 +8,25 @@
 
 namespace bs
 {
+	class Mouse;
+	class Keyboard;
+	class Gamepad;
+	struct InputPrivateData;
+
 	/** @addtogroup Input-Internal
 	 *  @{
 	 */
 
 	/**
-	 * Contains relative and absolute position of an input axis. Relative state represents the difference between current 
-	 * and last state.
+	 * Contains relative position of an input axis. Relative state represents the difference between current and last state.
 	 */
 	struct RawAxisState
 	{
 		RawAxisState()
-		 :rel(0.0f), abs(0.0f)
+		 :rel(0.0f)
 		{ }
 
 		float rel;
-		float abs;
 	};
 
 	/**
@@ -34,11 +37,14 @@ namespace bs
 	class BS_CORE_EXPORT RawInputHandler
 	{
 	public:
-		RawInputHandler()
-			:mMouseSmoothingEnabled(false) 
-		{}
+		RawInputHandler(UINT64 windowHandle);
+		virtual ~RawInputHandler();
 
-		virtual ~RawInputHandler() {}
+		/** Enables or disables mouse smoothing. Smoothing makes the changes to mouse axes more gradual. */
+		void setMouseSmoothing(bool enabled) { mMouseSmoothingEnabled = enabled; }
+
+		/** Returns the number of detected devices of the specified type. */
+		UINT32 getDeviceCount(InputDevice device) const;
 
 		/**
 		 * Triggered when user presses a button. Parameters include device index, button code of the pressed button, 
@@ -59,20 +65,66 @@ namespace bs
 		Event<void(UINT32, const RawAxisState&, UINT32)> onAxisMoved;
 
 		/** Called once per frame. Capture input here if needed. */
-		virtual void _update() {}
+		void _update();
 
 		/**
 		 * Called whenever the active window changes.
 		 *
 		 * @param[in]	win	Newly active window.
 		 */
-		virtual void _inputWindowChanged(const RenderWindow& win) {}
+		void _inputWindowChanged(const RenderWindow& win);
 
-		/** Enables or disables mouse smoothing. Smoothing makes the changes to mouse axes more gradual. */
-		void setMouseSmoothing(bool enabled) { mMouseSmoothingEnabled = enabled; }
+		/** Returns internal, platform specific privata data. */
+		InputPrivateData* _getPrivateData() const { return mPlatformData; }
 
+		/** Returns a handle to the window that is currently receiving input. */
+		UINT64 _getWindowHandle() const { return mWindowHandle; }
+
+		/** Called by Mouse when mouse movement is detected. */
+		void _notifyMouseMoved(INT32 relX, INT32 relY, INT32 relZ);
+
+		/** Called by any of the devices when analog axis movement is detected. */
+		void _notifyAxisMoved(UINT32 gamepadIdx, UINT32 axisIdx, INT32 value);
+
+		/** Called by any of the devices when a button is pressed. */
+		void _notifyButtonPressed(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
+
+		/** Called by any of the devices when a button is released. */
+		void _notifyButtonReleased(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
 	protected:
+		/** Performs platform specific input system initialization. */
+		void initialize();
+
+		/** Performs platform specific input system cleanup. */
+		void cleanUp();
+
+		/**
+		 * Smooths the input mouse axis value. Smoothing makes the changes to the axis more gradual depending on previous
+		 * values.
+		 *
+		 * @param[in]	value	Value to smooth.
+		 * @param[in]	idx		Index of the mouse axis to smooth, 0 - horizontal, 1 - vertical.
+		 * @return				Smoothed value.
+		 */
+		float smoothMouse(float value, UINT32 idx);
+
 		bool mMouseSmoothingEnabled;
+		UINT64 mWindowHandle;
+
+		Mouse* mMouse;
+		Keyboard* mKeyboard;
+		Vector<Gamepad*> mGamepads;
+
+		float mTotalMouseSamplingTime[2];
+		UINT32 mTotalMouseNumSamples[2];
+		float mMouseZeroTime[2];
+		INT32 mMouseSampleAccumulator[2];
+		float mMouseSmoothedAxis[2];
+		UINT64 mLastMouseUpdateFrame;
+
+		UINT64 mTimestampClockOffset;
+
+		InputPrivateData* mPlatformData;
 	};
 
 	/** @} */

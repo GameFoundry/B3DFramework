@@ -13,7 +13,7 @@ function(add_engine_dependencies target_name)
 		add_dependencies(${target_name} BansheeOpenAudio)
 	endif()
 	
-	add_dependencies(${target_name} BansheeMono BansheeSL BansheeOISInput BansheePhysX RenderBeast SBansheeEngine)
+	add_dependencies(${target_name} BansheeMono BansheeSL BansheePhysX RenderBeast SBansheeEngine)
 endfunction()
 
 function(add_subdirectory_optional subdir_name)

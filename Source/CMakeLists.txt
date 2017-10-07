@@ -37,9 +37,6 @@ set_property(CACHE AUDIO_MODULE PROPERTY STRINGS OpenAudio FMOD)
 set(PHYSICS_MODULE "PhysX" CACHE STRING "Physics backend to use.")
 set_property(CACHE PHYSICS_MODULE PROPERTY STRINGS PhysX)
 
-set(INPUT_MODULE "OIS" CACHE STRING "Input backend to use.")
-set_property(CACHE INPUT_MODULE PROPERTY STRINGS OIS)
-
 if(WIN32)
 set(RENDER_API_MODULE "DirectX 11" CACHE STRING "Render API to use.")
 set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "DirectX 11" "OpenGL" "Vulkan")
@@ -244,7 +241,6 @@ else() # Default to OpenAudio
 endif()
 
 set(RENDERER_MODULE_LIB RenderBeast)
-set(INPUT_MODULE_LIB BansheeOISInput)
 set(PHYSICS_MODULE_LIB BansheePhysX)
 
 if(BUILD_EDITOR)
@@ -295,7 +291,6 @@ else() # Otherwise include only chosen ones
 endif()
 
 add_subdirectory(RenderBeast)
-add_subdirectory(BansheeOISInput)
 add_subdirectory(BansheePhysX)
 add_subdirectory(BansheeFBXImporter)
 add_subdirectory(BansheeFontImporter)

@@ -87,6 +87,9 @@ set(BS_BANSHEECORE_INC_INPUT
 	"Input/BsOSInputHandler.h"
 	"Input/BsInputFwd.h"
 	"Input/BsInput.h"
+	"Input/BsMouse.h"
+	"Input/BsKeyboard.h"
+	"Input/BsGamepad.h"
 )
 
 set(BS_BANSHEECORE_INC_RENDERER
@@ -432,6 +435,7 @@ set(BS_BANSHEECORE_SRC_MATERIAL
 set(BS_BANSHEECORE_SRC_INPUT
 	"Input/BsInput.cpp"
 	"Input/BsOSInputHandler.cpp"
+	"Input/BsRawInputHandler.cpp"
 )
 
 set(BS_BANSHEECORE_INC_LOCALIZATION
@@ -587,12 +591,17 @@ set(BS_BANSHEECORE_SRC_PLATFORM
 set(BS_BANSHEECORE_INC_PLATFORM_WIN32
 	"Win32/BsWin32DropTarget.h"
 	"Win32/BsWin32Platform.h"
+	"Win32/BsWin32Input.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_WIN32
 	"Win32/BsWin32FolderMonitor.cpp"
 	"Win32/BsWin32Platform.cpp"
 	"Win32/BsWin32DropTarget.cpp"
+	"Win32/BsWin32Input.cpp"
+	"Win32/BsWin32Mouse.cpp"
+	"Win32/BsWin32Keyboard.cpp"
+	"Win32/BsWin32Gamepad.cpp"
 )
 
 set(BS_BANSHEECORE_INC_PLATFORM_UNIX

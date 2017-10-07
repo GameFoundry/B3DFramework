@@ -17,8 +17,6 @@ namespace bs
 	/**
 	 * Primary module used for dealing with input. Allows you to receieve and query raw or OS input for 
 	 * mouse/keyboard/gamepad.
-	 *
-	 * All inputs are received through an input handler, which can be overriden to provide custom input functionality.
 	 */
 	class BS_CORE_EXPORT Input : public Module<Input>
 	{
@@ -157,9 +155,6 @@ namespace bs
 		/** @name Internal
 		 *  @{
 		 */
-
-		/** Registers a new input handler. Replaces any previous input handler. */
-		void _registerRawInputHandler(SPtr<RawInputHandler> inputHandler);
 
 		/**
 		 * Called every frame. Detects button state changes and prepares callback events to trigger via a call to 

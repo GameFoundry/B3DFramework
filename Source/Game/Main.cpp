@@ -78,7 +78,6 @@ void runApplication()
 	startUpDesc.renderer = BS_RENDERER_MODULE;
 	startUpDesc.audio = BS_AUDIO_MODULE;
 	startUpDesc.physics = BS_PHYSICS_MODULE;
-	startUpDesc.input = BS_INPUT_MODULE;
 	startUpDesc.scripting = true;
 
 	startUpDesc.primaryWindowDesc.videoMode = VideoMode(resolutionWidth, resolutionHeight);

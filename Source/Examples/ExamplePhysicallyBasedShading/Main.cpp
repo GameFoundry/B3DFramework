@@ -93,7 +93,6 @@ int main()
 	startUpDesc.renderer = BS_RENDERER_MODULE;
 	startUpDesc.audio = BS_AUDIO_MODULE;
 	startUpDesc.physics = BS_PHYSICS_MODULE;
-	startUpDesc.input = BS_INPUT_MODULE;
 
 	// Descriptor used for initializing the primary application window.
 	startUpDesc.primaryWindowDesc.videoMode = VideoMode(windowResWidth, windowResHeight);

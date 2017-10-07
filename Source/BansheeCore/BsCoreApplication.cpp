@@ -174,8 +174,6 @@ namespace bs
 
 		for (auto& importerName : mStartUpDesc.importers)
 			loadPlugin(importerName);
-
-		loadPlugin(mStartUpDesc.input, nullptr, mPrimaryWindow.get());
 	}
 
 	void CoreApplication::runMainLoop()

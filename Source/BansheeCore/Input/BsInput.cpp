@@ -6,6 +6,7 @@
 #include "Math/BsRect2I.h"
 #include "Debug/BsDebug.h"
 #include "Managers/BsRenderWindowManager.h"
+#include "BsCoreApplication.h"
 
 using namespace std::placeholders;
 
@@ -21,9 +22,15 @@ namespace bs
 	}
 
 	Input::Input()
-		:mPointerDoubleClicked(false), mLastPositionSet(false)
-	{ 
+		: mPointerDoubleClicked(false), mLastPositionSet(false)
+	{
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+
+		UINT64 windowId = 0;
+		primaryWindow->getCustomAttribute("WINDOW", &windowId);
+
 		mOSInputHandler = bs_shared_ptr_new<OSInputHandler>();
+		mRawInputHandler = bs_shared_ptr_new<RawInputHandler>(windowId);
 
 		mOSInputHandler->onCharInput.connect(std::bind(&Input::charInput, this, _1));
 		mOSInputHandler->onCursorMoved.connect(std::bind(&Input::cursorMoved, this, _1));
@@ -31,6 +38,11 @@ namespace bs
 		mOSInputHandler->onCursorReleased.connect(std::bind(&Input::cursorReleased, this, _1));
 		mOSInputHandler->onDoubleClick.connect(std::bind(&Input::cursorDoubleClick, this, _1));
 		mOSInputHandler->onInputCommand.connect(std::bind(&Input::inputCommandEntered, this, _1));
+
+		mRawInputHandler->onButtonDown.connect(std::bind(&Input::buttonDown, this, _1, _2, _3));
+		mRawInputHandler->onButtonUp.connect(std::bind(&Input::buttonUp, this, _1, _2, _3));
+
+		mRawInputHandler->onAxisMoved.connect(std::bind(&Input::axisMoved, this, _1, _2, _3));
 
 		RenderWindowManager::instance().onFocusGained.connect(std::bind(&Input::inputWindowChanged, this, _1));
 
@@ -40,22 +52,6 @@ namespace bs
 
 	Input::~Input()
 	{ }
-
-	void Input::_registerRawInputHandler(SPtr<RawInputHandler> inputHandler)
-	{
-		if(mRawInputHandler != inputHandler)
-		{
-			mRawInputHandler = inputHandler;
-
-			if(mRawInputHandler != nullptr)
-			{
-				mRawInputHandler->onButtonDown.connect(std::bind(&Input::buttonDown, this, _1, _2, _3));
-				mRawInputHandler->onButtonUp.connect(std::bind(&Input::buttonUp, this, _1, _2, _3));
-
-				mRawInputHandler->onAxisMoved.connect(std::bind(&Input::axisMoved, this, _1, _2, _3));
-			}
-		}
-	}
 
 	void Input::_update()
 	{
