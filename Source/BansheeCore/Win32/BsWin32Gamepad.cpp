@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Input/BsGamepad.h"
-#include "Input/BsRawInputHandler.h"
+#include "Input/BsInput.h"
 #include "Win32/BsWin32Input.h"
 #include "Error/BsException.h"
 
@@ -75,7 +75,7 @@ namespace bs
 	}
 
 	/** Handles a DirectInput POV event. */
-	void handlePOV(RawInputHandler* owner, Gamepad::Pimpl* m, int pov, DIDEVICEOBJECTDATA& di)
+	void handlePOV(Input* owner, Gamepad::Pimpl* m, int pov, DIDEVICEOBJECTDATA& di)
 	{
 		if (LOWORD(di.dwData) == 0xFFFF)
 		{
@@ -194,7 +194,7 @@ namespace bs
 		return (ButtonCode)(BC_GAMEPAD_BTN1 + (code - 15));
 	}
 
-	Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, RawInputHandler* owner)
+	Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner)
 		: mName(name), mOwner(owner)
 	{
 		InputPrivateData* pvtData = owner->_getPrivateData();

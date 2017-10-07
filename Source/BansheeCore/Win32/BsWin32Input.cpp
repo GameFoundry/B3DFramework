@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "Input/BsRawInputHandler.h"
+#include "Input/BsInput.h"
 #include "Error/BsException.h"
 #include "Win32/BsWin32Input.h"
 #include "Input/BsMouse.h"
@@ -143,7 +143,7 @@ namespace bs
 			CoUninitialize();
 	}
 
-	void RawInputHandler::initialize()
+	void Input::initRawInput()
 	{
 		mPlatformData = bs_new<InputPrivateData>();
 		
@@ -184,14 +184,23 @@ namespace bs
 			mGamepads.push_back(bs_new<Gamepad>(mPlatformData->gamepadInfos[i].name, mPlatformData->gamepadInfos[i], this));
 	}
 
-	void RawInputHandler::cleanUp()
+	void Input::cleanUpRawInput()
 	{
+		if (mMouse != nullptr)
+			bs_delete(mMouse);
+
+		if (mKeyboard != nullptr)
+			bs_delete(mKeyboard);
+
+		for (auto& gamepad : mGamepads)
+			bs_delete(gamepad);
+
 		mPlatformData->directInput->Release();
 
 		bs_delete(mPlatformData);
 	}
 
-	UINT32 RawInputHandler::getDeviceCount(InputDevice device) const
+	UINT32 Input::getDeviceCount(InputDevice device) const
 	{
 		switch(device)
 		{

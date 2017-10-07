@@ -6,29 +6,29 @@
 
 namespace bs
 {
-	/** Represents a single hardware mouse. Used by the RawInputHandler to report raw mouse input events. */
+	/** Represents a single hardware mouse. Used by the Input to report raw mouse input events. */
 	class BS_CORE_EXPORT Mouse
 	{
 	public:
 		struct Pimpl;
 
-		Mouse(const String& name, RawInputHandler* owner);
+		Mouse(const String& name, Input* owner);
 		~Mouse();
 
 		/** Returns the name of the device. */
 		String getName() const { return mName; }
 
-		/** Captures the input since the last call and triggers the events on the parent RawInputHandler. */
+		/** Captures the input since the last call and triggers the events on the parent Input. */
 		void capture();
 
 	private:
-		friend class RawInputHandler;
+		friend class Input;
 
 		/** Changes the capture context. Should be called when focus is moved to a new window. */
 		void changeCaptureContext(UINT64 windowHandle);
 
 		String mName;
-		RawInputHandler* mOwner;
+		Input* mOwner;
 
 		Pimpl* m;
 	};

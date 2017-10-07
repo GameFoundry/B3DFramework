@@ -4,12 +4,16 @@
 
 #include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
-#include "Input/BsOSInputHandler.h"
-#include "Input/BsRawInputHandler.h"
+#include "Platform/BsPlatform.h"
 #include "Input/BsInputFwd.h"
 
 namespace bs
 {
+	class Mouse;
+	class Keyboard;
+	class Gamepad;
+	struct InputPrivateData;
+
 	/** @addtogroup Input
 	 *  @{
 	 */
@@ -35,7 +39,7 @@ namespace bs
 		{
 			DeviceData();
 
-			Vector<RawAxisState> axes;
+			Vector<float> axes;
 			ButtonState keyStates[BC_Count];
 		};
 
@@ -126,6 +130,12 @@ namespace bs
 		/** Enables or disables mouse smoothing. Smoothing makes the changes to mouse axes more gradual. */
 		void setMouseSmoothing(bool enabled);
 
+		/** Returns the number of detected devices of the specified type. */
+		UINT32 getDeviceCount(InputDevice device) const;
+
+		/** Returns the name of a specific input device. Returns empty string if the device doesn't exist. */
+		String getDeviceName(InputDevice type, UINT32 idx);
+
 		/** Triggered whenever a button is first pressed. */
 		Event<void(const ButtonEvent&)> onButtonDown;
 
@@ -165,61 +175,157 @@ namespace bs
 		/** Triggers any queued input event callbacks. */
 		void _triggerCallbacks();
 
+		/** Returns internal, platform specific privata data. */
+		InputPrivateData* _getPrivateData() const { return mPlatformData; }
+
+		/** Returns a handle to the window that is currently receiving input. */
+		UINT64 _getWindowHandle() const { return mWindowHandle; }
+
+		/** Called by Mouse when mouse movement is detected. */
+		void _notifyMouseMoved(INT32 relX, INT32 relY, INT32 relZ);
+
+		/** Called by any of the raw input devices when analog axis movement is detected. */
+		void _notifyAxisMoved(UINT32 gamepadIdx, UINT32 axisIdx, INT32 value);
+
+		/** Called by any of the raw input devices when a button is pressed. */
+		void _notifyButtonPressed(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
+
+		/** Called by any of the raw input devices when a button is released. */
+		void _notifyButtonReleased(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
+
 		/** @} */
 
 	private:
+		/** Performs platform specific raw input system initialization. */
+		void initRawInput();
+
+		/** Performs platform specific raw input system cleanup. */
+		void cleanUpRawInput();
+		
+		/**
+		 * Smooths the input mouse axis value. Smoothing makes the changes to the axis more gradual depending on previous
+		 * values.
+		 *
+		 * @param[in]	value	Value to smooth.
+		 * @param[in]	idx		Index of the mouse axis to smooth, 0 - horizontal, 1 - vertical.
+		 * @return				Smoothed value.
+		 */
+		float smoothMouse(float value, UINT32 idx);
+
 		/**	Triggered by input handler when a button is pressed. */
 		void buttonDown(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
 
 		/**	Triggered by input handler when a button is released. */
 		void buttonUp(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
 
-		/**	Triggered by input handler when a single character is input. */
-		void charInput(UINT32 chr);
-
 		/**	Triggered by input handler when a mouse/joystick axis is moved. */
-		void axisMoved(UINT32 deviceIdx, const RawAxisState& state, UINT32 axis);
+		void axisMoved(UINT32 deviceIdx, float value, UINT32 axis);
 
-		/**	Cursor movement as OS reports it. Used for screen cursor position. */
-		void cursorMoved(const PointerEvent& event);
+		/**
+		 * Called from the message loop to notify user has entered a character.
+		 * 			
+		 * @see		onCharInput
+		 */
+		void charInput(UINT32 character);
 
-		/**	Cursor button presses as OS reports it. */
-		void cursorPressed(const PointerEvent& event);
+		/**
+		 * Called from the message loop to notify user has moved the cursor.
+		 * 			
+		 * @see		onCursorMoved
+		 */
+		void cursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates);
 
-		/**	Cursor button releases as OS reports it. */
-		void cursorReleased(const PointerEvent& event);
-		
-		/**	Cursor button releases as OS reports it. */
-		void cursorDoubleClick(const PointerEvent& event);
+		/**
+		 * Called from the message loop to notify user has pressed a mouse button.
+		 * 			
+		 * @see		onCursorPressed
+		 */
+		void cursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates);
 
-		/** Input commands as OS reports them. */
+		/**
+		 * Called from the message loop to notify user has released a mouse button.
+		 * 			
+		 * @see		onCursorReleased
+		 */
+		void cursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates);
+
+		/**
+		 * Called from the message loop to notify user has double-clicked a mouse button.
+		 * 
+		 * @see		onDoubleClick
+		 */
+		void cursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates);
+
+		/**
+		 * Called from the message loop to notify user has entered an input command.
+		 * 			
+		 * @see		onInputCommand
+		 */
 		void inputCommandEntered(InputCommandType commandType);
+
+		/**
+		 * Called from the message loop to notify user has scrolled the mouse wheel.
+		 * 			
+		 * @see		onMouseWheelScrolled
+		 */
+		void mouseWheelScrolled(float scrollPos);
 
 		/** Called when window in focus changes, as reported by the OS. */
 		void inputWindowChanged(RenderWindow& win);
 
 	private:
-		SPtr<RawInputHandler> mRawInputHandler;
-		SPtr<OSInputHandler> mOSInputHandler;
+		Mutex mMutex;
 
 		Vector<DeviceData> mDevices;
-		Vector2I mPointerPosition;
+		Vector2I mLastPointerPosition;
 		Vector2I mPointerDelta;
 		ButtonState mPointerButtonStates[3];
 		bool mPointerDoubleClicked;
 		bool mLastPositionSet;
 
-		Vector<QueuedEvent> mQueuedEvents;
+		// Thread safe
+		Vector2I mPointerPosition;
+		float mMouseScroll;
+		OSPointerButtonStates mPointerState;
 
-		Vector<TextInputEvent> mTextInputEvents;
-		Vector<InputCommandType> mCommandEvents;
-		Vector<PointerEvent> mPointerDoubleClickEvents;
-		Vector<PointerEvent> mPointerReleasedEvents;
-		Vector<PointerEvent> mPointerPressedEvents;
-		Vector<PointerEvent> mPointerMovedEvents;
+		Vector<QueuedEvent> mQueuedEvents[2];
 
-		Vector<ButtonEvent> mButtonDownEvents;
-		Vector<ButtonEvent> mButtonUpEvents;
+		Vector<TextInputEvent> mTextInputEvents[2];
+		Vector<InputCommandType> mCommandEvents[2];
+		Vector<PointerEvent> mPointerDoubleClickEvents[2];
+		Vector<PointerEvent> mPointerReleasedEvents[2];
+		Vector<PointerEvent> mPointerPressedEvents[2];
+
+		Vector<ButtonEvent> mButtonDownEvents[2];
+		Vector<ButtonEvent> mButtonUpEvents[2];
+
+		// OS input events
+		HEvent mCharInputConn;
+		HEvent mCursorMovedConn;
+		HEvent mCursorPressedConn;
+		HEvent mCursorReleasedConn;
+		HEvent mCursorDoubleClickConn;
+		HEvent mInputCommandConn;
+		HEvent mMouseWheelScrolledConn;
+
+		// Raw input
+		bool mMouseSmoothingEnabled;
+		UINT64 mWindowHandle;
+
+		Mouse* mMouse;
+		Keyboard* mKeyboard;
+		Vector<Gamepad*> mGamepads;
+
+		float mTotalMouseSamplingTime[2];
+		UINT32 mTotalMouseNumSamples[2];
+		float mMouseZeroTime[2];
+		INT32 mMouseSampleAccumulator[2];
+		float mMouseSmoothedAxis[2];
+		UINT64 mLastMouseUpdateFrame;
+
+		UINT64 mTimestampClockOffset;
+
+		InputPrivateData* mPlatformData;
 
 		/************************************************************************/
 		/* 								STATICS		                      		*/

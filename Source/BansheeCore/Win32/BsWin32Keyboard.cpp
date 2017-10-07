@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Input/BsKeyboard.h"
-#include "Input/BsRawInputHandler.h"
+#include "Input/BsInput.h"
 #include "Win32/BsWin32Input.h"
 #include "Error/BsException.h"
 
@@ -61,7 +61,7 @@ namespace bs
 		}
 	}
 
-	Keyboard::Keyboard(const String& name, RawInputHandler* owner)
+	Keyboard::Keyboard(const String& name, Input* owner)
 		: mName(name), mOwner(owner)
 	{
 		InputPrivateData* pvtData = owner->_getPrivateData();

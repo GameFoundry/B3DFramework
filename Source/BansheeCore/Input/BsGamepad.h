@@ -8,19 +8,19 @@ namespace bs
 {
 	struct GamepadInfo;
 
-	/** Represents a single hardware gamepad. Used by the RawInputHandler to report gamepad input events. */
+	/** Represents a single hardware gamepad. Used by the Input to report gamepad input events. */
 	class BS_CORE_EXPORT Gamepad
 	{
 	public:
 		struct Pimpl;
 
-		Gamepad(const String& name, const GamepadInfo& gamepadInfo, RawInputHandler* owner);
+		Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner);
 		~Gamepad();
 
 		/** Returns the name of the device. */
 		String getName() const { return mName; }
 
-		/** Captures the input since the last call and triggers the events on the parent RawInputHandler. */
+		/** Captures the input since the last call and triggers the events on the parent Input. */
 		void capture();
 
 		/** Minimum allowed value as reported by the axis movement events. */
@@ -29,13 +29,13 @@ namespace bs
 		/** Maximum allowed value as reported by the axis movement events. */
 		static constexpr int MAX_AXIS = 32767;
 	private:
-		friend class RawInputHandler;
+		friend class Input;
 
 		/** Changes the capture context. Should be called when focus is moved to a new window. */
 		void changeCaptureContext(UINT64 windowHandle);
 
 		String mName;
-		RawInputHandler* mOwner;
+		Input* mOwner;
 
 		Pimpl* m;
 	};

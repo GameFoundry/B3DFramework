@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Input/BsMouse.h"
-#include "Input/BsRawInputHandler.h"
+#include "Input/BsInput.h"
 #include "Win32/BsWin32Input.h"
 #include "Error/BsException.h"
 
@@ -60,7 +60,7 @@ namespace bs
 	}
 
 	/** Notifies the input handler that a mouse press or release occurred. Triggers an event in the input handler. */
-	void doMouseClick(RawInputHandler* owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
+	void doMouseClick(Input* owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
 	{
 		if (data.dwData & 0x80)
 			owner->_notifyButtonPressed(0, mouseButton, data.dwTimeStamp);
@@ -68,7 +68,7 @@ namespace bs
 			owner->_notifyButtonReleased(0, mouseButton, data.dwTimeStamp);
 	}
 
-	Mouse::Mouse(const String& name, RawInputHandler* owner)
+	Mouse::Mouse(const String& name, Input* owner)
 		: mName(name), mOwner(owner)
 	{
 		InputPrivateData* pvtData = owner->_getPrivateData();

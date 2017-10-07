@@ -83,8 +83,6 @@ set(BS_BANSHEECORE_INC_SCENE
 )
 
 set(BS_BANSHEECORE_INC_INPUT
-	"Input/BsRawInputHandler.h"
-	"Input/BsOSInputHandler.h"
 	"Input/BsInputFwd.h"
 	"Input/BsInput.h"
 	"Input/BsMouse.h"
@@ -434,8 +432,6 @@ set(BS_BANSHEECORE_SRC_MATERIAL
 
 set(BS_BANSHEECORE_SRC_INPUT
 	"Input/BsInput.cpp"
-	"Input/BsOSInputHandler.cpp"
-	"Input/BsRawInputHandler.cpp"
 )
 
 set(BS_BANSHEECORE_INC_LOCALIZATION
