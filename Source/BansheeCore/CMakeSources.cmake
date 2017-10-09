@@ -604,6 +604,7 @@ set(BS_BANSHEECORE_INC_PLATFORM_UNIX
 	"Linux/BsLinuxPlatform.h"
 	"Linux/BsLinuxWindow.h"
 	"Linux/BsLinuxDropTarget.h"
+	"Linux/BsLinuxInput.h"
 )
 
 set(BS_BANSHEECORE_SRC_PLATFORM_UNIX
@@ -611,6 +612,10 @@ set(BS_BANSHEECORE_SRC_PLATFORM_UNIX
 	"Linux/BsLinuxWindow.cpp"
 	"Linux/BsLinuxDropTarget.cpp"
 	"Linux/BsLinuxFolderMonitor.cpp"
+	"Linux/BsLinuxInput.cpp"
+	"Linux/BsLinuxGamepad.cpp"
+	"Linux/BsLinuxMouse.cpp"
+	"Linux/BsLinuxKeyboard.cpp"
 )
 
 if(WIN32)

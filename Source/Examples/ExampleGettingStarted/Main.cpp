@@ -399,7 +399,7 @@ namespace bs
 		guiCamera->setLayers(0);
 
 		// Don't clear this camera as that would clear anything the main camera has rendered.
-		guiCamera->getViewport()->setClearFlags(ClearFlagBits::None);
+		guiCamera->getViewport()->setClearFlags(ClearFlagBits::Empty);
 
 		// Add a GUIWidget, the top-level GUI component, parent to all GUI elements. GUI widgets
 		// require you to specify a viewport that they will output rendered GUI elements to.

@@ -19,7 +19,7 @@ namespace bs
 	/** Flags that determine which portion of the viewport to clear. */
 	enum BS_SCRIPT_EXPORT(n:ClearFlags) class ClearFlagBits
 	{
-		None,
+		Empty,
 		Color = 1 << 0,
 		Depth = 1 << 1,
 		Stencil = 1 << 2

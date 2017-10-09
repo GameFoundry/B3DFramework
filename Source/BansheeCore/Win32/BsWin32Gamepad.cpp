@@ -238,13 +238,14 @@ namespace bs
 			AxisState axisState[6];
 			bs_zero_out(axisState);
 
+			// Note: Order of axes must match InputAxis enum
 			// Left stick
-			axisState[0].value = -(int)inputState.Gamepad.sThumbLY;
-			axisState[1].value = (int)inputState.Gamepad.sThumbLX;
+			axisState[0].value = (int)inputState.Gamepad.sThumbLX;
+			axisState[1].value = -(int)inputState.Gamepad.sThumbLY;
 
 			// Right stick 
-			axisState[2].value = -(int)inputState.Gamepad.sThumbRY;
-			axisState[3].value = (int)inputState.Gamepad.sThumbRX;
+			axisState[2].value = (int)inputState.Gamepad.sThumbRX;
+			axisState[3].value = -(int)inputState.Gamepad.sThumbRY;
 
 			// Left trigger
 			axisState[4].value = std::min((int)inputState.Gamepad.bLeftTrigger * 129, MAX_AXIS);
@@ -313,6 +314,14 @@ namespace bs
 
 					m->buttonState[i] = buttonState;
 				}
+			}
+
+			for (int i = 0; i < 6; ++i)
+			{
+				if (!axisState[i].moved)
+					continue;
+
+				mOwner->_notifyAxisMoved(m->info.id, i + (int)InputAxis::MouseZ, axisState[i].value);
 			}
 		}
 		else // DirectInput
@@ -393,7 +402,7 @@ namespace bs
 				{
 					if (!axisState[i].moved)
 						continue;
-					
+
 					mOwner->_notifyAxisMoved(m->info.id, i + (int)InputAxis::MouseZ, axisState[i].value);
 				}
 			}
