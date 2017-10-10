@@ -9,6 +9,10 @@
 #include "Linux/BsLinuxContext.h"
 #include "BsGLPixelFormat.h"
 #include "BsGLRenderWindowManager.h"
+#include "Math/BsMath.h"
+
+#define XRANDR_ROTATION_LEFT    (1 << 1)
+#define XRANDR_ROTATION_RIGHT   (1 << 3)
 
 namespace bs
 {
@@ -63,7 +67,7 @@ namespace bs
 	{
 	LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, LinuxGLSupport& glsupport)
 			: RenderWindow(desc, windowId), mWindow(nullptr), mGLSupport(glsupport), mContext(nullptr), mProperties(desc)
-			, mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false), mOldScreenConfig(nullptr)
+			, mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false)
 	{ }
 
 	LinuxRenderWindow::~LinuxRenderWindow()
@@ -71,12 +75,6 @@ namespace bs
 		if (mWindow != nullptr)
 		{
 			LinuxPlatform::lockX();
-
-			if(mOldScreenConfig)
-			{
-				XRRFreeScreenConfigInfo(mOldScreenConfig);
-				mOldScreenConfig = nullptr;
-			}
 
 			mWindow->close();
 
@@ -106,6 +104,7 @@ namespace bs
 		windowDesc.height = mDesc.videoMode.getHeight();
 		windowDesc.title = mDesc.title;
 		windowDesc.showDecorations = !mDesc.toolWindow;
+		windowDesc.allowResize = true;
 		windowDesc.modal = mDesc.modal;
 		windowDesc.visualInfo = visualConfig.visualInfo;
 		windowDesc.screen = mDesc.videoMode.getOutputIdx();
@@ -114,6 +113,8 @@ namespace bs
 		opt = mDesc.platformSpecific.find("parentWindowHandle");
 		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (::Window)parseUINT64(opt->second);
+		else
+			windowDesc.parent = 0;
 
 		mIsChild = windowDesc.parent != 0;
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
@@ -162,124 +163,178 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if (mIsChild)
-			return;
+		VideoMode videoMode(width, height, refreshRate, monitorIdx);
+		setFullscreen(videoMode);
+	}
 
-		const LinuxVideoModeInfo& videoModeInfo = static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance() .getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
-		if (numOutputs == 0)
-			return;
-
-		RenderWindowProperties& props = mProperties;
-
-		LinuxPlatform::lockX();
+	void LinuxRenderWindow::setVideoMode(INT32 screen, RROutput output, RRMode mode)
+	{
 		::Display* display = LinuxPlatform::getXDisplay();
+		::Window rootWindow = RootWindow(display, screen);
 
-		// Change video mode if required
-		bool changeVideoMode = false;
-
-		XRRScreenConfiguration* screenConfig = XRRGetScreenInfo(display, XRootWindow(display, DefaultScreen (display)));
-		Rotation currentRotation;
-		SizeID currentSizeID = XRRConfigCurrentConfiguration(screenConfig, &currentRotation);
-		short currentRate = XRRConfigCurrentRate(screenConfig);
-
-		int numSizes;
-		XRRScreenSize* screenSizes = XRRConfigSizes(screenConfig, &numSizes);
-
-		if((INT32)width != screenSizes[currentSizeID].width || (INT32)height != screenSizes[currentSizeID].height ||
-			currentRate != (short)refreshRate)
-			changeVideoMode = true;
-
-		// If provided mode matches current mode, avoid making the video mode change
-		if(changeVideoMode)
+		XRRScreenResources* screenRes = XRRGetScreenResources (display, rootWindow);
+		if(screenRes == nullptr)
 		{
-			// Remember the old config so we can restore it when exiting fullscreen
-			if(mOldScreenConfig)
-			{
-				XRRFreeScreenConfigInfo(mOldScreenConfig);
-				mOldScreenConfig = nullptr;
-			}
-
-			mOldScreenConfig = screenConfig;
-			mOldConfigSizeID = currentSizeID;
-			mOldConfigRate = currentRate;
-
-			// Look for size that best matches our requested video mode
-			bool foundSize = false;
-			SizeID foundSizeID = 0;
-			for(int i = 0; i < numSizes; i++)
-			{
-				UINT32 curWidth, curHeight;
-				if(currentRotation == RR_Rotate_90 || currentRotation == RR_Rotate_270)
-				{
-					curWidth = (UINT32)screenSizes[i].height;
-					curHeight = (UINT32)screenSizes[i].width;
-				}
-				else
-				{
-					curWidth = (UINT32)screenSizes[i].width;
-					curHeight = (UINT32)screenSizes[i].height;
-				}
-
-				if(curWidth == width && curHeight == height)
-				{
-					foundSizeID = (SizeID)i;
-					foundSize = true;
-					break;
-				}
-			}
-
-			if(!foundSize)
-				LOGERR("Cannot change video mode, requested resolution not supported.");
-
-			// Find refresh rate closest to the requested one, or fall back to 60
-			if(foundSize)
-			{
-				int numRates;
-				short* rates = XRRConfigRates(screenConfig, foundSizeID, &numRates);
-
-				short bestRate = 60;
-				for(int i = 0; i < numRates; i++)
-				{
-					if(rates[i] == (short)refreshRate)
-					{
-						bestRate = rates[i];
-						break;
-					}
-					else
-					{
-						short diffNew = (short)abs((short)refreshRate - rates[i]);
-						short diffOld = (short)abs((short)refreshRate - bestRate);
-
-						if(diffNew < diffOld)
-							bestRate = rates[i];
-					}
-				}
-
-				XRRSetScreenConfigAndRate(display, screenConfig, XRootWindow(display, DefaultScreen(display)),
-						foundSizeID, currentRotation, bestRate, CurrentTime);
-			}
+			LOGERR("XRR: Failed to retrieve screen resources. ");
+			return;
 		}
 
-		mWindow->_setFullscreen(true);
+		XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, output);
+		if(outputInfo == nullptr)
+		{
+			XRRFreeScreenResources(screenRes);
 
-		LinuxPlatform::unlockX();
+			LOGERR("XRR: Failed to retrieve output info for output: " + toString((UINT32)output));
+			return;
+		}
 
-		props.isFullScreen = true;
+		XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
+		if(crtcInfo == nullptr)
+		{
+			XRRFreeScreenResources(screenRes);
+			XRRFreeOutputInfo(outputInfo);
 
-		props.top = 0;
-		props.left = 0;
-		props.width = width;
-		props.height = height;
+			LOGERR("XRR: Failed to retrieve CRTC info for output: " + toString((UINT32)output));
+			return;
+		}
 
-		_windowMovedOrResized();
+		// Note: This changes the user's desktop resolution permanently, even when the app exists, make sure to revert
+		// (Sadly there doesn't appear to be a better way)
+		Status status = XRRSetCrtcConfig (display, screenRes, outputInfo->crtc, CurrentTime,
+			crtcInfo->x, crtcInfo->y, mode, crtcInfo->rotation, &output, 1);
+
+		if(status != Success)
+			LOGERR("XRR: XRRSetCrtcConfig failed.");
+
+		XRRFreeCrtcInfo(crtcInfo);
+		XRRFreeOutputInfo(outputInfo);
+		XRRFreeScreenResources(screenRes);
 	}
 
 	void LinuxRenderWindow::setFullscreen(const VideoMode& mode)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		setFullscreen(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getOutputIdx());
+		if (mIsChild)
+			return;
+
+		const LinuxVideoModeInfo& videoModeInfo =
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+
+		UINT32 outputIdx = mode.getOutputIdx();
+		if(outputIdx >= videoModeInfo.getNumOutputs())
+		{
+			LOGERR("Invalid output device index.")
+			return;
+		}
+
+		const LinuxVideoOutputInfo& outputInfo =
+				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
+
+		INT32 screen = outputInfo._getScreen();
+		RROutput outputID = outputInfo._getOutputID();
+
+		RRMode modeID = 0;
+		if(!mode.isCustom())
+		{
+			const LinuxVideoMode& videoMode = static_cast<const LinuxVideoMode&>(mode);
+			modeID = videoMode._getModeID();
+		}
+		else
+		{
+			LinuxPlatform::lockX();
+
+			// Look for mode matching the requested resolution
+			::Display* display = LinuxPlatform::getXDisplay();
+			::Window rootWindow = RootWindow(display, screen);
+
+			XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
+			if (screenRes == nullptr)
+			{
+				LOGERR("XRR: Failed to retrieve screen resources. ");
+				return;
+			}
+
+			XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, outputID);
+			if (outputInfo == nullptr)
+			{
+				XRRFreeScreenResources(screenRes);
+
+				LOGERR("XRR: Failed to retrieve output info for output: " + toString((UINT32)outputID));
+				return;
+			}
+
+			XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
+			if (crtcInfo == nullptr)
+			{
+				XRRFreeScreenResources(screenRes);
+				XRRFreeOutputInfo(outputInfo);
+
+				LOGERR("XRR: Failed to retrieve CRTC info for output: " + toString((UINT32)outputID));
+				return;
+			}
+
+			bool foundMode = false;
+			for (INT32 i = 0; i < screenRes->nmode; i++)
+			{
+				const XRRModeInfo& modeInfo = screenRes->modes[i];
+
+				UINT32 width, height;
+
+				if (crtcInfo->rotation & (XRANDR_ROTATION_LEFT | XRANDR_ROTATION_RIGHT))
+				{
+					width = modeInfo.height;
+					height = modeInfo.width;
+				}
+				else
+				{
+					width = modeInfo.width;
+					height = modeInfo.height;
+				}
+
+				float refreshRate;
+				if (modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
+					refreshRate = (float) (modeInfo.dotClock / (double) (modeInfo.hTotal * modeInfo.vTotal));
+				else
+					refreshRate = 0.0f;
+
+				if (width == mode.getWidth() && height == mode.getHeight())
+				{
+					modeID = modeInfo.id;
+					foundMode = true;
+
+					if (Math::approxEquals(refreshRate, mode.getRefreshRate()))
+						break;
+				}
+			}
+
+			if (!foundMode)
+			{
+				LinuxPlatform::unlockX();
+
+				LOGERR("Unable to enter fullscreen, unsupported video mode requested.");
+				return;
+			}
+
+			LinuxPlatform::unlockX();
+		}
+
+		LinuxPlatform::lockX();
+
+		setVideoMode(screen, outputID, modeID);
+		mWindow->_setFullscreen(true);
+
+		LinuxPlatform::unlockX();
+
+		RenderWindowProperties& props = mProperties;
+		props.isFullScreen = true;
+
+		props.top = 0;
+		props.left = 0;
+		props.width = mode.getWidth();
+		props.height = mode.getHeight();
+
+		_windowMovedOrResized();
 	}
 
 	void LinuxRenderWindow::setWindowed(UINT32 width, UINT32 height)
@@ -291,23 +346,32 @@ namespace bs
 		if (!props.isFullScreen)
 			return;
 
-		props.isFullScreen = false;
-		props.width = width;
-		props.height = height;
+		// Restore old screen config
+		const LinuxVideoModeInfo& videoModeInfo =
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+
+		UINT32 outputIdx = 0; // 0 is always primary
+		if(outputIdx >= videoModeInfo.getNumOutputs())
+		{
+			LOGERR("Invalid output device index.")
+			return;
+		}
+
+		const LinuxVideoOutputInfo& outputInfo =
+				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
+
+		const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.getDesktopVideoMode());
 
 		LinuxPlatform::lockX();
 
-		// Restore old screen config
-		if(mOldScreenConfig)
-		{
-			::Display* display = LinuxPlatform::getXDisplay();
-			XRRSetScreenConfigAndRate(display, mOldScreenConfig, XRootWindow(display, DefaultScreen(display)),
-					mOldConfigSizeID, mOldConfigRotation, mOldConfigRate, CurrentTime);
-			XRRFreeScreenConfigInfo(mOldScreenConfig);
-		}
+		setVideoMode(outputInfo._getScreen(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
 		mWindow->_setFullscreen(false);
 
 		LinuxPlatform::unlockX();
+
+		props.isFullScreen = false;
+		props.width = width;
+		props.height = height;
 
 		{
 			ScopedSpinLock lock(mLock);

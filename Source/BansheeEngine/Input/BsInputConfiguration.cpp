@@ -18,12 +18,8 @@ namespace bs
 		:buttonCode(buttonCode), modifiers(modifiers), repeatable(repeatable)
 	{ }
 
-	VIRTUAL_AXIS_DESC::VIRTUAL_AXIS_DESC()
-		:deadZone(0.0001f), sensitivity(1.0f), invert(false), type((UINT32)InputAxis::MouseX)
-	{ }
-
-	VIRTUAL_AXIS_DESC::VIRTUAL_AXIS_DESC(UINT32 type, float deadZone, float sensitivity, bool invert)
-		:deadZone(deadZone), sensitivity(sensitivity), invert(invert), type(type)
+	VIRTUAL_AXIS_DESC::VIRTUAL_AXIS_DESC(UINT32 type)
+		:type(type)
 	{ }
 
 	VirtualButton::VirtualButton()

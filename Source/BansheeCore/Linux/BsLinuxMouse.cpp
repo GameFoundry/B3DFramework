@@ -131,13 +131,13 @@ namespace bs
 						switch(events[j].code)
 						{
 						case REL_X:
-							relX = events[j].value;
+							relX += events[j].value;
 							break;
 						case REL_Y:
-							relY = events[i].value;
+							relY += events[j].value;
 							break;
 						case REL_WHEEL:
-							relZ = events[i].value;
+							relZ += events[j].value;
 							break;
 						default:
 							break;

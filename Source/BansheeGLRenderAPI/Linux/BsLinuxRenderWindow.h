@@ -130,6 +130,9 @@ namespace bs
 		protected:
 			friend class LinuxGLSupport;
 
+			/** Changes the video mode to the specified RandR mode on the specified output device. */
+			void setVideoMode(INT32 screen, RROutput output, RRMode mode);
+
 			/** @copydoc CoreObject::initialize */
 			void initialize() override;
 
@@ -152,12 +155,6 @@ namespace bs
 			RenderWindowProperties mSyncedProperties;
 			bool mIsChild;
 			bool mShowOnSwap;
-
-			// Config before entering fullscreen
-			XRRScreenConfiguration* mOldScreenConfig;
-			SizeID mOldConfigSizeID;
-			short mOldConfigRate;
-			Rotation mOldConfigRotation;
 		};
 	}
 

@@ -7,8 +7,8 @@ namespace bs
 {
 	Task::Task(const PrivatelyConstruct& dummy, const String& name, std::function<void()> taskWorker, 
 		TaskPriority priority, SPtr<Task> dependency)
-		:mName(name), mPriority(priority), mTaskId(0), mTaskWorker(taskWorker), mTaskDependency(dependency),
-		mParent(nullptr)
+		: mName(name), mPriority(priority), mTaskId(0), mTaskWorker(taskWorker), mTaskDependency(dependency), mState(0)
+		, mParent(nullptr)
 	{
 
 	}

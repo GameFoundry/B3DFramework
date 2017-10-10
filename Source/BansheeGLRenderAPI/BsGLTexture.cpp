@@ -24,7 +24,7 @@ namespace bs { namespace ct
 	}
 
 	GLTexture::~GLTexture()
-    { 
+	{
 		mSurfaceList.clear();
 		glDeleteTextures(1, &mTextureID);
 
@@ -285,18 +285,18 @@ namespace bs { namespace ct
 		{
 			for (UINT32 mip = 0; mip <= mProperties.getNumMipmaps(); mip++)
 			{
-                GLPixelBuffer *buf = bs_new<GLTextureBuffer>(getGLTextureTarget(), mTextureID, face, mip,
+				GLPixelBuffer *buf = bs_new<GLTextureBuffer>(getGLTextureTarget(), mTextureID, face, mip,
 					static_cast<GpuBufferUsage>(mProperties.getUsage()), mInternalFormat, mProperties.getNumSamples());
 
 				mSurfaceList.push_back(bs_shared_ptr<GLPixelBuffer>(buf));
-                if(buf->getWidth() == 0 || buf->getHeight() == 0 || buf->getDepth() == 0)
-                {
-					BS_EXCEPT(RenderingAPIException, 
-                        "Zero sized texture surface on texture face "
+				if(buf->getWidth() == 0 || buf->getHeight() == 0 || buf->getDepth() == 0)
+				{
+					BS_EXCEPT(RenderingAPIException,
+						"Zero sized texture surface on texture face "
 						+ toString(face) 
 						+ " mipmap "+toString(mip)
 						+ ". Probably, the GL driver refused to create the texture.");
-                }
+				}
 			}
 		}
 	}

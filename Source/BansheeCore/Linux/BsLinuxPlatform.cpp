@@ -51,7 +51,8 @@ namespace bs
 		::Display* xDisplay = nullptr;
 		::Window mainXWindow = 0;
 		::Window fullscreenXWindow = 0;
-		std::unordered_map<::Window, LinuxWindow*> windowMap;
+		UnorderedMap<::Window, LinuxWindow*> windowMap;
+		Vector<::Window> toDestroy;
 		Mutex lock;
 
 		XIM IM;
@@ -186,6 +187,59 @@ namespace bs
 			applyCurrentCursor(data, entry.first);
 	}
 
+	/**
+	 * Searches the window hierarchy, from top to bottom, looking for the top-most window that contains the specified
+	 * point. Returns 0 if one is not found.
+	 */
+	::Window getWindowUnderPoint(::Display* display, ::Window rootWindow, ::Window window, const Vector2I& screenPos)
+	{
+		::Window outRoot, outParent;
+		::Window* children;
+		UINT32 numChildren;
+		XQueryTree(display, window, &outRoot, &outParent, &children, &numChildren);
+
+		if(children == nullptr || numChildren == 0)
+			return window;
+
+		for(UINT32 j = 0; j < numChildren; j++)
+		{
+			::Window curWindow = children[numChildren - j - 1];
+
+			XWindowAttributes xwa;
+			XGetWindowAttributes(display, curWindow, &xwa);
+
+			if(xwa.map_state != IsViewable || xwa.c_class != InputOutput)
+				continue;
+
+			// Get position in root window coordinates
+			::Window outChild;
+			Vector2I pos;
+			if(!XTranslateCoordinates(display, curWindow, rootWindow, 0, 0, &pos.x, &pos.y, &outChild))
+				continue;
+
+			Rect2I area(pos.x, pos.y, (UINT32)xwa.width, (UINT32)xwa.height);
+			if(area.contains(screenPos))
+			{
+				XFree(children);
+				return getWindowUnderPoint(display, rootWindow, curWindow, screenPos);
+			}
+		}
+
+		XFree(children);
+		return 0;
+	}
+
+	int x11ErrorHandler(::Display* display, XErrorEvent* event)
+	{
+		// X11 by default crashes the app on error, even though some errors can be just fine. So we provide our own handler.
+
+		char buffer[256];
+		XGetErrorText(display, event->error_code, buffer, sizeof(buffer));
+		LOGWRN("X11 error: " + String(buffer));
+
+		return 0;
+	}
+
 	Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
 
 	Platform::~Platform()
@@ -233,19 +287,14 @@ namespace bs
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 		::Window xWindow = linuxWindow->_getXWindow();
 
-		Vector2I pos;
 		UINT32 screenCount = (UINT32)XScreenCount(mData->xDisplay);
 
 		for (UINT32 i = 0; i < screenCount; ++i)
 		{
-			::Window outRoot, outChild;
-			INT32 childX, childY;
-			UINT32 mask;
-			if(XQueryPointer(mData->xDisplay, XRootWindow(mData->xDisplay, i), &outRoot, &outChild, &pos.x,
-					&pos.y, &childX, &childY, &mask))
-			{
-				return outChild == xWindow;
-			}
+			::Window rootWindow = XRootWindow(mData->xDisplay, i);
+
+			::Window curWindow = getWindowUnderPoint(mData->xDisplay, rootWindow, rootWindow, screenPos);
+			return curWindow == xWindow;
 		}
 
 		return false;
@@ -551,7 +600,16 @@ namespace bs
 		{
 			Lock lock(mData->lock);
 			if(XPending(mData->xDisplay) <= 0)
+			{
+				// No more events, destroy any queued windows
+				for(auto& entry : mData->toDestroy)
+					XDestroyWindow(mData->xDisplay, entry);
+
+				mData->toDestroy.clear();
+				XSync(mData->xDisplay, false);
+
 				break;
+			}
 
 			XEvent event;
 			XNextEvent(mData->xDisplay, &event);
@@ -564,7 +622,14 @@ namespace bs
 					break;
 
 				if((Atom)event.xclient.data.l[0] == mData->atomDeleteWindow)
-					XDestroyWindow(mData->xDisplay, event.xclient.window);
+				{
+					// We queue the window for destruction as soon as we process all current events (since some of those
+					// events could still refer to this window)
+					mData->toDestroy.push_back(event.xclient.window);
+
+					XUnmapWindow(mData->xDisplay, event.xclient.window);
+					XSync(mData->xDisplay, false);
+				}
 			}
 				break;
 			case DestroyNotify:
@@ -931,6 +996,7 @@ namespace bs
 	{
 		Lock lock(mData->lock);
 		mData->xDisplay = XOpenDisplay(nullptr);
+		XSetErrorHandler(x11ErrorHandler);
 
 		if(XSupportsLocale())
 		{

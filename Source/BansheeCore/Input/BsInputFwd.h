@@ -392,15 +392,15 @@ namespace bs
 	/**	Common input axis types. */
 	enum class InputAxis
 	{
-		MouseX, /**< Mouse axis X. */
-		MouseY, /**< Mouse axis Y. */
-		MouseZ, /**< Mouse wheel/scroll axis. */
-		LeftStickX, /**< Gamepad left stick X */
-		LeftStickY, /**<  Gamepad left stick Y */
-		RightStickX, /**< Gamepad right stick X */
-		RightStickY, /**< Gamepad right stick Y */
-		LeftTrigger, /**< Gamepad left trigger */
-		RightTrigger, /**< Gamepad right trigger */
+		MouseX, /**< Mouse axis X. Provides unnormalized relative movement. */
+		MouseY, /**< Mouse axis Y. Provides unnormalized relative movement. */
+		MouseZ, /**< Mouse wheel/scroll axis. Provides unnormalized relative movement. */
+		LeftStickX, /**< Gamepad left stick X. Provides normalized ([-1, 1] range) absolute position. */
+		LeftStickY, /**<  Gamepad left stick Y. Provides normalized ([-1, 1] range) absolute position. */
+		RightStickX, /**< Gamepad right stick X. Provides normalized ([-1, 1] range) absolute position.*/
+		RightStickY, /**< Gamepad right stick Y. Provides normalized ([-1, 1] range) absolute position. */
+		LeftTrigger, /**< Gamepad left trigger. Provides normalized ([-1, 1] range) absolute position. */
+		RightTrigger, /**< Gamepad right trigger. Provides normalized ([-1, 1] range) absolute position. */
 		Count // Keep at end
 	};
 

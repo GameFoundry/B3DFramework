@@ -40,23 +40,33 @@ namespace bs
 	 */
 	struct BS_EXPORT VIRTUAL_AXIS_DESC
 	{
-		VIRTUAL_AXIS_DESC();
+		VIRTUAL_AXIS_DESC() {}
 
 		/**
 		 * Constructs a new virtual axis descriptor.
 		 *
-		 * @param[in]	type		Type of physical axis to map to. See InputAxis type for common types, but you are not 
-		 *							limited to those values.
-		 * @param[in]	deadZone	Value below which to ignore axis value and consider it 0.
-		 * @param[in]	sensitivity	Higher sensitivity means the axis will more easily reach its maximum values.
-		 * @param[in]	invert		Should axis values be inverted.
+		 * @param[in]	type		@copydoc VIRTUAL_AXIS_DESC::type
 		 */
-		VIRTUAL_AXIS_DESC(UINT32 type, float deadZone = 0.0001f, float sensitivity = 1.0f, bool invert = false);
+		VIRTUAL_AXIS_DESC(UINT32 type);
 
-		float deadZone;
-		float sensitivity;
-		bool invert;
-		UINT32 type;
+		/** Type of physical axis to map to. See InputAxis type for common types, but you are not limited to those values. */
+		UINT32 type = (UINT32)InputAxis::MouseX;
+
+		/** Value below which to ignore axis value and consider it 0. */
+		float deadZone = 0.0001f;
+
+		/** Higher sensitivity means the axis will more easily reach its maximum values. */
+		float sensitivity = 1.0f;
+
+		/** Should the axis be inverted. */
+		bool invert = false;
+
+		/**
+		 * If enabled, axis values will be normalized to [-1, 1] range. Most axes already come in normalized form and this
+		 * value will not affect such axes. Some axes, like mouse movement are not normalized by default and will instead
+		 * report relative movement. By enabling this you will normalize such axes to [-1, 1] range.
+		 */
+		bool normalize = false;
 	};
 
 	/**

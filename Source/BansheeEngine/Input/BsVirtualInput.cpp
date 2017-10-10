@@ -82,7 +82,10 @@ namespace bs
 		{
 			float axisValue = gInput().getAxisValue((UINT32)axisDesc.type, deviceIdx);
 
-			if (axisDesc.deadZone > 0.0f)
+			bool isMouseAxis = (UINT32)axisDesc.type <= (UINT32)InputAxis::MouseZ;
+			bool isNormalized = axisDesc.normalize || !isMouseAxis;
+
+			if (isNormalized && axisDesc.deadZone > 0.0f)
 			{
 				// Scale to [-1, 1] range after removing the dead zone
 				if (axisValue > 0)
@@ -91,7 +94,19 @@ namespace bs
 					axisValue = -std::max(0.f, -axisValue - axisDesc.deadZone) / (1.0f - axisDesc.deadZone);
 			}
 
-			axisValue = Math::clamp(axisValue * axisDesc.sensitivity, -1.0f, 1.0f);
+			if(axisDesc.normalize)
+			{
+				if(isMouseAxis)
+				{
+					// Currently normalizing using value of 1, which isn't doing anything, but keep the code in case that
+					// changes
+					axisValue /= 1.0f;
+				}
+
+				axisValue = Math::clamp(axisValue * axisDesc.sensitivity, -1.0f, 1.0f);
+			}
+			else
+				axisValue *= axisDesc.sensitivity;
 
 			if (axisDesc.invert)
 				axisValue = -axisValue;

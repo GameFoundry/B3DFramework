@@ -7,8 +7,8 @@
 
 namespace bs 
 {
-    SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc)
-    {
+	SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc)
+	{
 		Texture* tex = new (bs_alloc<Texture>()) Texture(desc);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
@@ -16,10 +16,10 @@ namespace bs
 		ret->initialize();
 
 		return ret;
-    }
+	}
 
 	SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData)
-    {
+	{
 		Texture* tex = new (bs_alloc<Texture>()) Texture(desc, pixelData);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
@@ -27,7 +27,7 @@ namespace bs
 		ret->initialize();
 
 		return ret;
-    }
+	}
 
 	SPtr<Texture> TextureManager::_createEmpty()
 	{
@@ -129,15 +129,15 @@ namespace bs
 
 		normalTexture->writeData(*normalPixelData);
 		Texture::NORMAL = normalTexture;
-    }
+	}
 
 	void TextureManager::onShutDown()
-    {
+	{
 		// Need to make sure these are freed while still on the core thread
 		Texture::WHITE = nullptr;
 		Texture::BLACK = nullptr;
 		Texture::NORMAL = nullptr;
-    }
+	}
 
 	SPtr<Texture> TextureManager::createTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{

@@ -40,8 +40,8 @@ namespace bs { namespace ct
 				if(crtcInfo == nullptr)
 					continue;
 
-				VideoOutputInfo* output = bs_new<LinuxVideoOutputInfo>(display, outputInfo, crtcInfo, screenRes, j,
-						(UINT32)mOutputs.size());
+				VideoOutputInfo* output = bs_new<LinuxVideoOutputInfo>(display, i, outputInfo, crtcInfo, screenRes,
+						screenRes->outputs[j], (UINT32)mOutputs.size());
 
 				// Make sure the primary output is the first in the output list
 				if(i == defaultScreen && screenRes->outputs[j] == primaryOutput)
@@ -59,8 +59,9 @@ namespace bs { namespace ct
 		LinuxPlatform::unlockX();
 	}
 
-	LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo,
-		XRRScreenResources* screenRes, UINT32 resIdx, UINT32 outputIdx)
+	LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, INT32 screen, XRROutputInfo* outputInfo,
+		XRRCrtcInfo* crtcInfo, XRRScreenResources* screenRes, RROutput outputID, UINT32 outputIdx)
+			: mOutputID(outputID), mScreen(screen)
 	{
 		RRMode currentMode = crtcInfo->mode;
 
@@ -68,7 +69,7 @@ namespace bs { namespace ct
 		Atom EDID = XInternAtom(x11Display, "EDID", False);
 
 		INT32 numOutputProps;
-		Atom* outputProps = XRRListOutputProperties(x11Display, screenRes->outputs[resIdx], &numOutputProps);
+		Atom* outputProps = XRRListOutputProperties(x11Display, mOutputID, &numOutputProps);
 
 		for(INT32 k = 0; k < numOutputProps; k++)
 		{
@@ -80,9 +81,8 @@ namespace bs { namespace ct
 			INT32 actualFormat;
 			UINT8* data;
 
-			Status status = XRRGetOutputProperty(x11Display, screenRes->outputs[resIdx], outputProps[k], 0, 100, False,
-					False, AnyPropertyType, &actualType, &actualFormat, &numItems,
-					&bytesAfter, &data);
+			Status status = XRRGetOutputProperty(x11Display, mOutputID, outputProps[k], 0, 100, False,
+					False, AnyPropertyType, &actualType, &actualFormat, &numItems, &bytesAfter, &data);
 			if(status == Success)
 			{
 				// Decode EDID to get the name
@@ -148,7 +148,9 @@ namespace bs { namespace ct
 			else
 				refreshRate = 0.0f;
 
-			mVideoModes.push_back(bs_new<LinuxVideoMode>(width, height, refreshRate, outputIdx));
+			LinuxVideoMode* videoMode = new (bs_alloc<LinuxVideoMode>())
+					LinuxVideoMode(width, height, refreshRate, outputIdx, modeInfo.id);
+			mVideoModes.push_back(videoMode);
 		}
 
 		// Save current desktop mode
@@ -156,14 +158,21 @@ namespace bs { namespace ct
 		{
 			if(screenRes->modes[k].id == currentMode)
 			{
-				mDesktopVideoMode = bs_new<LinuxVideoMode>(mVideoModes[k]->getWidth(), mVideoModes[k]->getHeight(),
-						mVideoModes[k]->getRefreshRate(), mVideoModes[k]->getOutputIdx());
+				mDesktopVideoMode = new (bs_alloc<LinuxVideoMode>())
+						LinuxVideoMode(mVideoModes[k]->getWidth(), mVideoModes[k]->getHeight(),
+						mVideoModes[k]->getRefreshRate(), mVideoModes[k]->getOutputIdx(), currentMode);
 				break;
 			}
 		}
 	}
 
 	LinuxVideoMode::LinuxVideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx)
-			:VideoMode(width, height, refreshRate, outputIdx)
+		:VideoMode(width, height, refreshRate, outputIdx), mModeID((RRMode)-1)
 	{ }
+
+	LinuxVideoMode::LinuxVideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx, RRMode modeID)
+		:VideoMode(width, height, refreshRate, outputIdx), mModeID(modeID)
+	{
+		mIsCustom = false;
+	}
 }}
