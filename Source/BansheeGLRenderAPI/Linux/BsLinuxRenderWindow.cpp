@@ -72,6 +72,10 @@ namespace bs
 
 	LinuxRenderWindow::~LinuxRenderWindow()
 	{
+		// Make sure to set the original desktop video mode before we exit
+		if(mProperties.isFullScreen)
+			setWindowed(50, 50);
+
 		if (mWindow != nullptr)
 		{
 			LinuxPlatform::lockX();

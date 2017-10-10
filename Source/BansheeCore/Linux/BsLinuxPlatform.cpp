@@ -491,17 +491,150 @@ namespace bs
 		return L"";
 	}
 
-	WString Platform::keyCodeToUnicode(UINT32 keyCode)
+	/** Maps Banshee button codes to X11 names for physical key locations. */
+	const char* keyCodeToKeyName(ButtonCode code)
+	{
+		switch(code)
+		{
+			// Row #1
+		case BC_F1:			return "FK01";
+		case BC_F2:			return "FK02";
+		case BC_F3:			return "FK03";
+		case BC_F4:			return "FK04";
+		case BC_F5:			return "FK05";
+		case BC_F6:			return "FK06";
+		case BC_F7:			return "FK07";
+		case BC_F8:			return "FK08";
+		case BC_F9:			return "FK09";
+		case BC_F10:		return "FK10";
+		case BC_F11:		return "FK11";
+		case BC_F12:		return "FK12";
+
+			// Row #2
+		case BC_GRAVE:		return "TLDE";
+		case BC_1: 			return "AE01";
+		case BC_2:			return "AE02";
+		case BC_3:			return "AE03";
+		case BC_4:			return "AE04";
+		case BC_5:			return "AE05";
+		case BC_6:			return "AE06";
+		case BC_7:			return "AE07";
+		case BC_8:			return "AE08";
+		case BC_9:			return "AE09";
+		case BC_0:			return "AE10";
+		case BC_MINUS:		return "AE11";
+		case BC_EQUALS:		return "AE12";
+		case BC_BACK:		return "BKSP";
+
+			// Row #3
+		case BC_TAB:		return "TAB";
+		case BC_Q:			return "AD01";
+		case BC_W:			return "AD02";
+		case BC_E:			return "AD03";
+		case BC_R:			return "AD04";
+		case BC_T:			return "AD05";
+		case BC_Y:			return "AD06";
+		case BC_U:			return "AD07";
+		case BC_I:			return "AD08";
+		case BC_O:			return "AD09";
+		case BC_P:			return "AD10";
+		case BC_LBRACKET:	return "AD11";
+		case BC_RBRACKET:	return "AD12";
+
+			// Row #4
+		case BC_A:			return "AC01";
+		case BC_S:			return "AC02";
+		case BC_D:			return "AC03";
+		case BC_F:			return "AC04";
+		case BC_G:			return "AC05";
+		case BC_H:			return "AC06";
+		case BC_J:			return "AC07";
+		case BC_K:			return "AC08";
+		case BC_L:			return "AC09";
+		case BC_SEMICOLON:	return "AC10";
+		case BC_APOSTROPHE:	return "AC11";
+		case BC_BACKSLASH:	return "BKSL";
+
+			// Row #5
+		case BC_Z:			return "AB01";
+		case BC_X:			return "AB02";
+		case BC_C:			return "AB03";
+		case BC_V:			return "AB04";
+		case BC_B:			return "AB05";
+		case BC_N:			return "AB06";
+		case BC_M:			return "AB07";
+		case BC_COMMA:		return "AB08";
+		case BC_PERIOD:		return "AB09";
+		case BC_SLASH:		return "AB10";
+
+			// Keypad
+		case BC_NUMPAD0:	return "KP0";
+		case BC_NUMPAD1:	return "KP1";
+		case BC_NUMPAD2:	return "KP2";
+		case BC_NUMPAD3:	return "KP3";
+		case BC_NUMPAD4:	return "KP4";
+		case BC_NUMPAD5:	return "KP5";
+		case BC_NUMPAD6:	return "KP6";
+		case BC_NUMPAD7:	return "KP7";
+		case BC_NUMPAD8:	return "KP8";
+		case BC_NUMPAD9:	return "KP9";
+
+		default:
+			break;
+		}
+
+		return nullptr;
+	}
+
+	WString Platform::keyCodeToUnicode(UINT32 buttonCode)
 	{
 		Lock lock(mData->lock);
 
-		// Note: Assuming the keyCode is equal to X11 KeySym. Which it is because that's how our input manager reports them.
-		KeySym keySym = (KeySym)keyCode;
+		static bool mapInitialized = false;
+		static UnorderedMap<String, KeyCode> keyMap;
+		if(!mapInitialized)
+		{
+			char name[XkbKeyNameLength + 1];
+
+			XkbDescPtr desc = XkbGetMap(mData->xDisplay, 0, XkbUseCoreKbd);
+			XkbGetNames(mData->xDisplay, XkbKeyNamesMask, desc);
+
+			for(UINT32 keyCode = desc->min_key_code; keyCode <= desc->max_key_code; keyCode++)
+			{
+				memcpy(name, desc->names->keys[keyCode].name, XkbKeyNameLength);
+				name[XkbKeyNameLength] = '\0';
+
+				keyMap[String(name)] = keyCode;
+			}
+
+			XkbFreeNames(desc, XkbKeyNamesMask, True);
+			XkbFreeKeyboard(desc, 0, True);
+
+			mapInitialized = true;
+		}
+
+		const char* keyName = keyCodeToKeyName((ButtonCode)buttonCode);
+		if(keyName == nullptr)
+		{
+			// Not a printable key
+			return L"";
+		}
+
+		auto iterFind = keyMap.find(String(keyName));
+		if(iterFind == keyMap.end())
+		{
+			// Cannot find mapping, although this shouldn't really happen
+			return L"";
+		}
 
 		XKeyPressedEvent event;
 		bs_zero_out(event);
-		event.keycode = XKeysymToKeycode(mData->xDisplay, keySym);
+		event.type = KeyPress;
+		event.keycode = iterFind->second;
 		event.display = mData->xDisplay;
+		event.time = CurrentTime;
+		event.window = mData->mainXWindow;
+		event.root = RootWindow(mData->xDisplay, XDefaultScreen(mData->xDisplay));
 
 		Status status;
 		char buffer[16];
@@ -557,7 +690,7 @@ namespace bs
 		case XK_Escape:
 			command = InputCommandType::Escape;
 			return true;
-		case XK_ISO_Enter:
+		case XK_Return:
 			command = shift ? InputCommandType::Return : InputCommandType::Confirm;
 			return true;
 		case XK_BackSpace:
@@ -648,29 +781,34 @@ namespace bs
 			case KeyPress:
 			{
 				// Process text input
+				KeySym keySym = XkbKeycodeToKeysym(mData->xDisplay, (KeyCode)event.xkey.keycode, 0, 0);
+
 				//// Check if input manager wants this event. If not, we process it.
-				if(!XFilterEvent(&event, None))
+				if(XFilterEvent(&event, None) == False)
 				{
-					Status status;
-					char buffer[16];
-
-					INT32 length = Xutf8LookupString(mData->IC, &event.xkey, buffer, sizeof(buffer), nullptr,
-							&status);
-
-					if(length > 0)
+					// Don't consider Return key a character
+					if(keySym != XK_Return)
 					{
-						buffer[length] = '\0';
+						Status status;
+						char buffer[16];
 
-						U32String utfStr = UTF8::toUTF32(String(buffer));
-						if(utfStr.length() > 0)
-							onCharInput((UINT32)utfStr[0]);
+						INT32 length = Xutf8LookupString(mData->IC, &event.xkey, buffer, sizeof(buffer), nullptr,
+								&status);
+
+						if (length > 0)
+						{
+							buffer[length] = '\0';
+
+							U32String utfStr = UTF8::toUTF32(String(buffer));
+							if (utfStr.length() > 0)
+								onCharInput((UINT32) utfStr[0]);
+						}
 					}
 				}
 
 				// Handle input commands
 				InputCommandType command = InputCommandType::Backspace;
 
-				KeySym keySym = XkbKeycodeToKeysym(mData->xDisplay, (KeyCode)event.xkey.keycode, 0, 0);
 				bool shift = (event.xkey.state & ShiftMask) != 0;
 
 				if(parseInputCommand(keySym, shift, command))
@@ -1000,7 +1138,7 @@ namespace bs
 
 		if(XSupportsLocale())
 		{
-			XSetLocaleModifiers("");
+			XSetLocaleModifiers("@im=none");
 			mData->IM = XOpenIM(mData->xDisplay, nullptr, nullptr, nullptr);
 
 			// Note: Currently our windows don't support pre-edit and status areas, which are used for more complex types
