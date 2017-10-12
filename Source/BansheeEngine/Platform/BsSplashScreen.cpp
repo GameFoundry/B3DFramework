@@ -37,7 +37,9 @@ namespace bs
 			return;
 
 		WINDOW_DESC windowDesc;
-		windowDesc.border = WindowBorder::None;
+		windowDesc.allowResize = false;
+		windowDesc.showBorder = false;
+		windowDesc.showTitleBar = false;
 		windowDesc.width = 543;
 		windowDesc.height = 680;
 		windowDesc.left = -1;

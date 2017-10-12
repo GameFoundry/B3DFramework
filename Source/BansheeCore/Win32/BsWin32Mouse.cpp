@@ -90,6 +90,9 @@ namespace bs
 
 	void Mouse::capture()
 	{
+		if (m->mouse == nullptr)
+			return;
+
 		DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_MOUSE];
 		DWORD numEntries = DI_BUFFER_SIZE_MOUSE;
 
@@ -166,7 +169,11 @@ namespace bs
 		if(m->hWnd != newhWnd)
 		{
 			releaseDirectInput(m);
-			initializeDirectInput(m, newhWnd);
+
+			if (windowHandle != (UINT64)-1)
+				initializeDirectInput(m, newhWnd);
+			else
+				m->hWnd = (HWND)-1;
 		}
 	}
 }

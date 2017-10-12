@@ -84,6 +84,9 @@ namespace bs
 
 	void Keyboard::capture()
 	{
+		if (m->keyboard == nullptr)
+			return;
+
 		DIDEVICEOBJECTDATA diBuff[DI_BUFFER_SIZE_KEYBOARD];
 		DWORD numEntries = DI_BUFFER_SIZE_KEYBOARD;
 
@@ -160,7 +163,11 @@ namespace bs
 		if(m->hWnd != newhWnd)
 		{
 			releaseDirectInput(m);
-			initializeDirectInput(m, newhWnd);
+
+			if (windowHandle != (UINT64)-1)
+				initializeDirectInput(m, newhWnd);
+			else
+				m->hWnd = (HWND)-1;
 		}
 	}
 }

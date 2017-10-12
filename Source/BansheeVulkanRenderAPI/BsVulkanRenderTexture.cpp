@@ -63,15 +63,15 @@ namespace bs
 				if (view->getNumArraySlices() > 1)
 					LOGERR("Cannot specify array slices when rendering to a 3D texture.");
 
-				surface.arraySlice = 0;
-				surface.numArraySlices = mProperties.numSlices;
+				surface.face = 0;
+				surface.numFaces = mProperties.numSlices;
 
 				fbDesc.color[i].baseLayer = 0;
 			}
 			else
 			{
-				surface.arraySlice = view->getFirstArraySlice();
-				surface.numArraySlices = view->getNumArraySlices();
+				surface.face = view->getFirstArraySlice();
+				surface.numFaces = view->getNumArraySlices();
 
 				fbDesc.color[i].baseLayer = view->getFirstArraySlice();
 				fbDesc.layers = view->getNumArraySlices();
@@ -103,15 +103,15 @@ namespace bs
 					if (view->getNumArraySlices() > 1)
 						LOGERR("Cannot specify array slices when rendering to a 3D texture.");
 
-					surface.arraySlice = 0;
-					surface.numArraySlices = 1;
+					surface.face = 0;
+					surface.numFaces = 1;
 
 					fbDesc.depth.baseLayer = 0;
 				}
 				else
 				{
-					surface.arraySlice = view->getFirstArraySlice();
-					surface.numArraySlices = view->getNumArraySlices();
+					surface.face = view->getFirstArraySlice();
+					surface.numFaces = view->getNumArraySlices();
 
 					fbDesc.depth.baseLayer = view->getFirstArraySlice();
 					fbDesc.layers = view->getNumArraySlices();

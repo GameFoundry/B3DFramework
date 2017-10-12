@@ -222,6 +222,9 @@ namespace bs
 
 	void Gamepad::capture()
 	{
+		if (m->hWnd == (HWND)-1 || m->gamepad == nullptr)
+			return;
+
 		if(m->info.isXInput)
 		{
 			XINPUT_STATE inputState;
@@ -417,7 +420,7 @@ namespace bs
 		{
 			releaseDirectInput(m);
 
-			if (!m->info.isXInput)
+			if (!m->info.isXInput && windowHandle != (UINT64)-1)
 				initializeDirectInput(m, newhWnd);
 			else
 				m->hWnd = newhWnd;

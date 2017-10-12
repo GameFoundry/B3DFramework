@@ -14,7 +14,7 @@ namespace bs
 	const float CameraFlyer::TOP_SPEED = 13.0f;
 	const float CameraFlyer::ACCELERATION = 1.0f;
 	const float CameraFlyer::FAST_MODE_MULTIPLIER = 2.0f;
-	const float CameraFlyer::ROTATION_SPEED = 360.0f; // Degrees/second
+	const float CameraFlyer::ROTATION_SPEED = 3.0f;
 
 	/** Wraps an angle so it always stays in [0, 360) range. */
 	Degree wrapAngle(Degree angle)
@@ -71,8 +71,8 @@ namespace bs
 		float frameDelta = gTime().getFrameDelta();
 		if (camRotating)
 		{
-			mYaw += Degree(gVirtualInput().getAxisValue(mHorizontalAxis) * ROTATION_SPEED * frameDelta);
-			mPitch += Degree(gVirtualInput().getAxisValue(mVerticalAxis) * ROTATION_SPEED * frameDelta);
+			mYaw += Degree(gVirtualInput().getAxisValue(mHorizontalAxis) * ROTATION_SPEED);
+			mPitch += Degree(gVirtualInput().getAxisValue(mVerticalAxis) * ROTATION_SPEED);
 
 			mYaw = wrapAngle(mYaw);
 			mPitch = wrapAngle(mPitch);

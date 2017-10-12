@@ -823,7 +823,7 @@ namespace BansheeEditor
                     SceneObject profilerSO = new SceneObject("EditorProfilerOverlay");
                     profilerCamera = profilerSO.AddComponent<Camera>();
                     profilerCamera.Viewport.Target = renderTexture;
-                    profilerCamera.Viewport.ClearFlags = ClearFlags.None;
+                    profilerCamera.Viewport.ClearFlags = ClearFlags.Empty;
                     profilerCamera.Priority = 1;
                     profilerCamera.Layers = 0;
                     profilerCamera.RenderSettings.EnableHDR = false;

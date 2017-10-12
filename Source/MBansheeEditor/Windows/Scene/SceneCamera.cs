@@ -16,25 +16,25 @@ namespace BansheeEditor
     {
         #region Constants
         public const string MoveForwardBinding = "SceneForward";
-	    public const string MoveLeftBinding = "SceneLeft";
-	    public const string MoveRightBinding = "SceneRight";
-	    public const string MoveBackBinding = "SceneBackward";
+        public const string MoveLeftBinding = "SceneLeft";
+        public const string MoveRightBinding = "SceneRight";
+        public const string MoveBackBinding = "SceneBackward";
         public const string MoveUpBinding = "SceneUp";
         public const string MoveDownBinding = "SceneDown";
         public const string FastMoveBinding = "SceneFastMove";
         public const string PanBinding = "ScenePan";
         public const string RotateBinding = "SceneRotate";
-	    public const string HorizontalAxisBinding = "SceneHorizontal";
-	    public const string VerticalAxisBinding = "SceneVertical";
+        public const string HorizontalAxisBinding = "SceneHorizontal";
+        public const string VerticalAxisBinding = "SceneVertical";
         public const string ScrollAxisBinding = "SceneScroll";
 
         private const float StartSpeed = 4.0f;
-	    private const float TopSpeed = 12.0f;
-	    private const float Acceleration = 1.0f;
-	    private const float FastModeMultiplier = 2.0f;
+        private const float TopSpeed = 12.0f;
+        private const float Acceleration = 1.0f;
+        private const float FastModeMultiplier = 2.0f;
         private const float PanSpeed = 3.0f;
         private const float ScrollSpeed = 3.0f;
-	    private const float RotationalSpeed = 360.0f; // Degrees/second
+        private const float RotationalSpeed = 3.0f;
         private readonly Degree FieldOfView = (Degree)90.0f;
         #endregion
 
@@ -197,7 +197,7 @@ namespace BansheeEditor
                     float horzValue = VirtualInput.GetAxisValue(horizontalAxis);
                     float vertValue = VirtualInput.GetAxisValue(verticalAxis);
 
-                    float rotationAmount = RotationalSpeed * EditorSettings.MouseSensitivity * frameDelta;
+                    float rotationAmount = RotationalSpeed * EditorSettings.MouseSensitivity;
 
                     yaw += new Degree(horzValue * rotationAmount);
                     pitch += new Degree(vertValue * rotationAmount);

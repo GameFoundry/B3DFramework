@@ -9,7 +9,7 @@
 
 namespace bs
 {
-	const float ObjectRotator::ROTATION_SPEED = 120.0f; // Degrees/second
+	const float ObjectRotator::ROTATION_SPEED = 1.0f;
 
 	/** Wraps an angle so it always stays in [0, 360) range. */
 	Degree wrapAngle2(Degree angle)
@@ -56,8 +56,8 @@ namespace bs
 		float frameDelta = gTime().getFrameDelta();
 		if (isRotating)
 		{
-			mYaw -= Degree(gVirtualInput().getAxisValue(mHorizontalAxis) * ROTATION_SPEED * frameDelta);
-			mPitch -= Degree(gVirtualInput().getAxisValue(mVerticalAxis) * ROTATION_SPEED * frameDelta);
+			mYaw -= Degree(gVirtualInput().getAxisValue(mHorizontalAxis) * ROTATION_SPEED);
+			mPitch -= Degree(gVirtualInput().getAxisValue(mVerticalAxis) * ROTATION_SPEED);
 
 			mYaw = wrapAngle2(mYaw);
 			mPitch = wrapAngle2(mPitch);

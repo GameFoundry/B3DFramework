@@ -134,8 +134,8 @@ namespace bs { namespace ct
 		{
 			if (surface.mipLevel == entry.surface.mipLevel &&
 				surface.numMipLevels == entry.surface.numMipLevels &&
-				surface.arraySlice == entry.surface.arraySlice &&
-				surface.numArraySlices == entry.surface.numArraySlices)
+				surface.face == entry.surface.face &&
+				surface.numFaces == entry.surface.numFaces)
 			{
 				if((mUsage & TU_DEPTHSTENCIL) == 0)
 					return entry.view;
@@ -173,9 +173,9 @@ namespace bs { namespace ct
 		switch (oldViewType)
 		{
 		case VK_IMAGE_VIEW_TYPE_CUBE:
-			if(surface.numArraySlices == 1)
+			if(surface.numFaces == 1)
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			else if(surface.numArraySlices % 6 == 0)
+			else if(surface.numFaces % 6 == 0)
 			{
 				if(mNumFaces > 6)
 					mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
@@ -184,12 +184,12 @@ namespace bs { namespace ct
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 			break;
 		case VK_IMAGE_VIEW_TYPE_1D:
-			if(surface.numArraySlices > 1)
+			if(surface.numFaces > 1)
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
 			break;
 		case VK_IMAGE_VIEW_TYPE_2D:
 		case VK_IMAGE_VIEW_TYPE_3D:
-			if (surface.numArraySlices > 1)
+			if (surface.numFaces > 1)
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 			break;
 		default:
@@ -199,8 +199,8 @@ namespace bs { namespace ct
 		mImageViewCI.subresourceRange.aspectMask = aspectMask;
 		mImageViewCI.subresourceRange.baseMipLevel = surface.mipLevel;
 		mImageViewCI.subresourceRange.levelCount = surface.numMipLevels == 0 ? VK_REMAINING_MIP_LEVELS : surface.numMipLevels;
-		mImageViewCI.subresourceRange.baseArrayLayer = surface.arraySlice;
-		mImageViewCI.subresourceRange.layerCount = surface.numArraySlices == 0 ? VK_REMAINING_ARRAY_LAYERS : surface.numArraySlices;
+		mImageViewCI.subresourceRange.baseArrayLayer = surface.face;
+		mImageViewCI.subresourceRange.layerCount = surface.numFaces == 0 ? VK_REMAINING_ARRAY_LAYERS : surface.numFaces;
 
 		VkImageView view;
 		VkResult result = vkCreateImageView(mOwner->getDevice().getLogical(), &mImageViewCI, gVulkanAllocator, &view);
@@ -261,8 +261,8 @@ namespace bs { namespace ct
 	VkImageSubresourceRange VulkanImage::getRange(const TextureSurface& surface) const
 	{
 		VkImageSubresourceRange range;
-		range.baseArrayLayer = surface.arraySlice;
-		range.layerCount = surface.numArraySlices == 0 ? mNumFaces : surface.numArraySlices;
+		range.baseArrayLayer = surface.face;
+		range.layerCount = surface.numFaces == 0 ? mNumFaces : surface.numFaces;
 		range.baseMipLevel = surface.mipLevel;
 		range.levelCount = surface.numMipLevels == 0 ? mNumMipLevels : surface.numMipLevels;
 		range.aspectMask = getAspectFlags();

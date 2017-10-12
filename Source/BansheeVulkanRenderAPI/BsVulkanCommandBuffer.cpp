@@ -1257,7 +1257,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < numColorAttachments; i++)
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice, 
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face, 
 				fbAttachment.surface.mipLevel);
 
 			if (subresourceInfo.isShaderInput && !pipeline->isColorReadOnly(i))
@@ -1270,7 +1270,7 @@ namespace bs { namespace ct
 		if (mFramebuffer->hasDepthAttachment())
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice,
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face,
 				fbAttachment.surface.mipLevel);
 
 			if (subresourceInfo.isShaderInput && !pipeline->isDepthReadOnly())
@@ -1421,7 +1421,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < numColorAttachments; i++)
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice,
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face,
 																		fbAttachment.surface.mipLevel);
 
 			subresourceInfo.currentLayout = subresourceInfo.finalLayout;
@@ -1432,7 +1432,7 @@ namespace bs { namespace ct
 		if (mFramebuffer->hasDepthAttachment())
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice,
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face,
 																		fbAttachment.surface.mipLevel);
 
 			subresourceInfo.currentLayout = subresourceInfo.finalLayout;
@@ -2323,7 +2323,7 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < numColorAttachments; i++)
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getColorAttachment(i);
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice,
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face,
 				fbAttachment.surface.mipLevel);
 
 			bool readOnly = subresourceInfo.isShaderInput;
@@ -2335,7 +2335,7 @@ namespace bs { namespace ct
 		if (mFramebuffer->hasDepthAttachment())
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->getDepthStencilAttachment();
-			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.arraySlice,
+			ImageSubresourceInfo& subresourceInfo = findSubresourceInfo(fbAttachment.image, fbAttachment.surface.face,
 				fbAttachment.surface.mipLevel);
 
 			bool readOnly = subresourceInfo.isShaderInput;
