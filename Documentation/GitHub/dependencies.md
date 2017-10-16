@@ -83,6 +83,9 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - OpenAL Soft 1.17.2
 - https://github.com/kcat/openal-soft
 - Required by BansheeOpenAudio
+- **Linux only**
+ - Make sure to get audio backend libraries before compiling: PulseAudio, OSS, ALSA and JACK
+ - On Debian/Ubuntu run: *apt-get install libpulse libasound2-dev libjack-dev* 
 - Compile as a dynamic library
    
 **libogg**
