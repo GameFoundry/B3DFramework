@@ -78,9 +78,9 @@ namespace bs
 
 		if (mWindow != nullptr)
 		{
-			LinuxPlatform::lockX();
+			Platform::resetNonClientAreas(*this);
 
-			mWindow->close();
+			LinuxPlatform::lockX();
 
 			bs_delete(mWindow);
 			mWindow = nullptr;
@@ -113,6 +113,7 @@ namespace bs
 		windowDesc.modal = mDesc.modal;
 		windowDesc.visualInfo = visualConfig.visualInfo;
 		windowDesc.screen = mDesc.videoMode.getOutputIdx();
+		windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
 
 		NameValuePairList::const_iterator opt;
 		opt = mDesc.platformSpecific.find("parentWindowHandle");
@@ -152,8 +153,8 @@ namespace bs
 		if(mDesc.fullscreen && !mIsChild)
 			setFullscreen(mDesc.videoMode);
 
-		if(mDesc.hideUntilSwap || mDesc.hidden)
-			setHidden(true);
+		if(mDesc.vsync && mDesc.vsyncInterval > 0)
+			setVSync(true, mDesc.vsyncInterval);
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -463,6 +464,25 @@ namespace bs
 		LinuxPlatform::unlockX();
 	}
 
+	void LinuxRenderWindow::setVSync(bool enabled, UINT32 interval)
+	{
+		THROW_IF_NOT_CORE_THREAD;
+
+		if(!enabled)
+			interval = 0;
+
+		LinuxPlatform::lockX();
+
+		if(glXSwapIntervalEXT != nullptr)
+			glXSwapIntervalEXT(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), interval);
+		else if(glXSwapIntervalMESA != nullptr)
+			glXSwapIntervalMESA(interval);
+		else if(glXSwapIntervalSGI != nullptr)
+			glXSwapIntervalSGI(interval);
+
+		LinuxPlatform::unlockX();
+	}
+
 	void LinuxRenderWindow::swapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
@@ -571,7 +591,8 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mShowOnSwap = false;
+		if(!hidden)
+			mShowOnSwap = false;
 
 		LinuxPlatform::lockX();
 

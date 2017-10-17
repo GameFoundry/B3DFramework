@@ -99,6 +99,7 @@ namespace bs
 		}
 
 		destroySizeDependedD3DResources();
+		Platform::resetNonClientAreas(*this);
 	}
 
 	void D3D11RenderWindow::initialize()

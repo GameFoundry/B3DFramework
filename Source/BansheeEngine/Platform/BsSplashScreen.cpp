@@ -117,6 +117,7 @@ namespace bs
 		windowDesc.title = "Banshee Splash";
 		windowDesc.showDecorations = false;
 		windowDesc.allowResize = false;
+		windowDesc.hidden = false;
 
 		SPtr<PixelData> splashPixelData = BuiltinResources::getSplashScreen();
 		if (splashPixelData == nullptr)

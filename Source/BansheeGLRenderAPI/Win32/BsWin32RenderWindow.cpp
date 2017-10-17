@@ -30,6 +30,11 @@ namespace bs
 
 	}
 
+	Win32RenderWindow::~Win32RenderWindow()
+	{
+		Platform::resetNonClientAreas(*this);
+	}
+
 	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
 	{
 		if (name == "WINDOW")

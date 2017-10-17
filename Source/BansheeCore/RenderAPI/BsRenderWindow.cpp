@@ -242,8 +242,6 @@ namespace bs
 
 	RenderWindow::~RenderWindow()
 	{
-		Platform::resetNonClientAreas(*this);
-
 		RenderWindowManager::instance().windowDestroyed(this);
 	}
 

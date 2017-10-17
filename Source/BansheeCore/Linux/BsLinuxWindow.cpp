@@ -6,10 +6,15 @@
 
 #include <X11/Xatom.h>
 #include <X11/extensions/Xrandr.h>
+#include <X11/Xutil.h>
+#include <X11/Xlib.h>
 
 #define _NET_WM_STATE_REMOVE 0
 #define _NET_WM_STATE_ADD 1
 #define _NET_WM_STATE_TOGGLE 2
+
+#define _NET_WM_MOVERESIZE_MOVE 8
+#define _NET_WM_MOVERESIZE_CANCEL 11
 
 #define WM_NormalState 1
 #define WM_IconicState 3
@@ -34,8 +39,7 @@ namespace bs
 		bool resizeDisabled = false;
 		WindowState state = WindowState::Normal;
 
-		Rect2I dragZone;
-		INT32 dragStartX, dragStartY;
+		Vector<Rect2I> dragZones;
 
 		void* userData = nullptr;
 	};
@@ -169,6 +173,14 @@ namespace bs
 		setShowDecorations(desc.showDecorations);
 		setIsModal(desc.modal);
 
+		XClassHint* classHint = XAllocClassHint();
+
+		classHint->res_class = (char*)"banshee3d";
+		classHint->res_name = (char*)desc.title.c_str();
+
+		XSetClassHint(display, m->xWindow, classHint);
+		XFree(classHint);
+
 		// Ensures the child window is always on top of the parent window
 		if(desc.parent)
 			XSetTransientForHint(display, m->xWindow, desc.parent);
@@ -181,7 +193,6 @@ namespace bs
 				PointerMotionMask | ButtonMotionMask |
 				StructureNotifyMask | PropertyChangeMask
 		);
-		XMapWindow(display, m->xWindow);
 
 		// Make sure we get the window delete message from WM, so we can clean up ourselves
 		Atom atomDeleteWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
@@ -200,6 +211,10 @@ namespace bs
 			XSync(display, 0);
 		}
 
+		// Show the window (needs to happen after setting the background pixmap)
+		if(!desc.hidden)
+			XMapWindow(display, m->xWindow);
+
 		if(!desc.showOnTaskBar)
 			showOnTaskbar(false);
 
@@ -212,17 +227,17 @@ namespace bs
 	LinuxWindow::~LinuxWindow()
 	{
 		if(m->xWindow != 0)
+		{
+			XUnmapWindow(LinuxPlatform::getXDisplay(), m->xWindow);
+			XSync(LinuxPlatform::getXDisplay(), 0);
+
+			XDestroyWindow(LinuxPlatform::getXDisplay(), m->xWindow);
+			XSync(LinuxPlatform::getXDisplay(), 0);
+
 			_cleanUp();
+		}
 
 		bs_delete(m);
-	}
-
-	void LinuxWindow::close()
-	{
-		XDestroyWindow(LinuxPlatform::getXDisplay(), m->xWindow);
-		XFlush(LinuxPlatform::getXDisplay());
-
-		_cleanUp();
 	}
 
 	void LinuxWindow::move(INT32 x, INT32 y)
@@ -365,46 +380,81 @@ namespace bs
 		m->xWindow = 0;
 	}
 
-	void LinuxWindow::_setDragZone(const Rect2I& rect)
+	void LinuxWindow::_setDragZones(const Vector<Rect2I>& rects)
 	{
-		m->dragZone = rect;
+		m->dragZones = rects;
 	}
 
-	bool LinuxWindow::_dragStart(INT32 x, INT32 y)
+	void LinuxWindow::_dragStart(const XButtonEvent& event)
 	{
+		// Make sure to reset the flag since WM could have (and probably has) handled the drag end event, so we never
+		// received _dragEnd() call.
+		m->dragInProgress = false;
+
+		// If window has a titlebar, custom drag zones aren't used
 		if(m->hasTitleBar)
-			return false;
-
-		if(m->dragZone.width == 0 || m->dragZone.height == 0)
-			return false;
-
-		if(x >= m->dragZone.x && x < (INT32)(m->dragZone.x + m->dragZone.width) &&
-		   y >= m->dragZone.y && y < (INT32)(m->dragZone.y + m->dragZone.height))
-		{
-			m->dragStartX = x;
-			m->dragStartY = y;
-
-			m->dragInProgress = true;
-			return true;
-		}
-
-		return false;
-	}
-
-	void LinuxWindow::_dragUpdate(INT32 x, INT32 y)
-	{
-		if(!m->dragInProgress)
 			return;
 
-		INT32 offsetX = x - m->dragStartX;
-		INT32 offsetY = y - m->dragStartY;
+		for(auto& entry : m->dragZones)
+		{
+			if (entry.width == 0 || entry.height == 0)
+				continue;
 
-		move(getLeft() + offsetX, getTop() + offsetY);
+			if(entry.contains(Vector2I(event.x, event.y)))
+			{
+				XUngrabPointer(LinuxPlatform::getXDisplay(), 0L);
+				XFlush(LinuxPlatform::getXDisplay());
+
+				Atom wmMoveResize = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_MOVERESIZE", False);
+
+				XEvent xev;
+				memset(&xev, 0, sizeof(xev));
+				xev.type = ClientMessage;
+				xev.xclient.window = m->xWindow;
+				xev.xclient.message_type = wmMoveResize;
+				xev.xclient.format = 32;
+				xev.xclient.data.l[0] = event.x_root;
+				xev.xclient.data.l[1] = event.y_root;
+				xev.xclient.data.l[2] = _NET_WM_MOVERESIZE_MOVE;
+				xev.xclient.data.l[3] = Button1;
+				xev.xclient.data.l[4] = 0;
+
+				XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False,
+						SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+				XSync(LinuxPlatform::getXDisplay(), 0);
+
+				m->dragInProgress = true;
+				return;
+			}
+		}
+
+		return;
 	}
 
 	void LinuxWindow::_dragEnd()
 	{
-		m->dragInProgress = false;
+		// WM failed to end the drag, send the cancel drag event
+		if(m->dragInProgress)
+		{
+			Atom wmMoveResize = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_MOVERESIZE", False);
+
+			XEvent xev;
+			memset(&xev, 0, sizeof(xev));
+			xev.type = ClientMessage;
+			xev.xclient.window = m->xWindow;
+			xev.xclient.message_type = wmMoveResize;
+			xev.xclient.format = 32;
+			xev.xclient.data.l[0] = 0;
+			xev.xclient.data.l[1] = 0;
+			xev.xclient.data.l[2] = _NET_WM_MOVERESIZE_CANCEL;
+			xev.xclient.data.l[3] = Button1;
+			xev.xclient.data.l[4] = 0;
+
+			XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False,
+					SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+
+			m->dragInProgress = false;
+		}
 	}
 
 	::Window LinuxWindow::_getXWindow() const
@@ -523,6 +573,7 @@ namespace bs
 	{
 		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
 		Atom wmSkipTaskbar = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_SKIP_TASKBAR", False);
+		Atom wmSkipPager = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_SKIP_PAGER", False);
 
 		XEvent xev;
 		memset(&xev, 0, sizeof(xev));
@@ -530,11 +581,17 @@ namespace bs
 		xev.xclient.window = m->xWindow;
 		xev.xclient.message_type = wmState;
 		xev.xclient.format = 32;
-		xev.xclient.data.l[0] = enable ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
+		xev.xclient.data.l[0] = enable ? _NET_WM_STATE_REMOVE : _NET_WM_STATE_ADD;
 		xev.xclient.data.l[1] = wmSkipTaskbar;
 
 		XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False,
 				SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+
+		xev.xclient.data.l[1] = wmSkipPager;
+		XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False,
+				SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+
+		XSync(LinuxPlatform::getXDisplay(), 0);
 	}
 
 	void LinuxWindow::_setFullscreen(bool fullscreen)

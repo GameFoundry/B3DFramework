@@ -265,6 +265,17 @@ namespace bs
 		/**	Reposition the window. */
 		virtual void move(INT32 left, INT32 top) = 0;
 
+		/**
+		 * Enables or disables vertical synchronization. When enabled the system will wait for monitor refresh before
+		 * presenting the back buffer. This eliminates tearing but can result in increased input lag.
+		 *
+		 * @param enabled 		True to enable vsync, false to disable.
+		 * @param interval 		Interval at which to perform the sync. Value of one means the sync will be performed for
+		 * 						each monitor refresh, value of two means it will be performs for every second (half the
+		 * 						rate), and so on.
+		 */
+		virtual void setVSync(bool enabled, UINT32 interval = 1) = 0;
+
 		/**	Returns properties that describe the render window. */
 		const RenderWindowProperties& getProperties() const;
 

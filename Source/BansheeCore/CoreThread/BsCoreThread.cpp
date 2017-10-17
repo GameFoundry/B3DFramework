@@ -269,8 +269,6 @@ namespace bs
 
 		while(true)
 		{
-			// TODO - This might be causing a deadlock in Release mode. I'm thinking because mCommandsCompleted isn't marked as volatile.
-
 			// Check if our command id is in the completed list
 			auto iter = mCommandsCompleted.begin();
 			for(; iter != mCommandsCompleted.end(); ++iter)

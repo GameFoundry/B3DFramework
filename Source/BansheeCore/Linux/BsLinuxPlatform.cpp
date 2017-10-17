@@ -411,8 +411,7 @@ namespace bs
 		LinuxWindow* linuxWindow;
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
-		// Note: Only supporting a single area
-		linuxWindow->_setDragZone(nonClientAreas[0]);
+		linuxWindow->_setDragZones(nonClientAreas);
 	}
 
 	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
@@ -422,7 +421,12 @@ namespace bs
 
 	void Platform::resetNonClientAreas(const ct::RenderWindow& window)
 	{
-		// Do nothing, resize areas not supported on Linux (but they are provided even on undecorated windows by the WM)
+		Lock lock(mData->lock);
+
+		LinuxWindow* linuxWindow;
+		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+
+		linuxWindow->_setDragZones({});
 	}
 
 	void Platform::sleep(UINT32 duration)
@@ -769,11 +773,13 @@ namespace bs
 				LinuxWindow* window = getLinuxWindow(mData, event.xdestroywindow.window);
 				if(window != nullptr)
 				{
-					CoreApplication::instance().quitRequested();
 					window->_cleanUp();
 
 					if (mData->mainXWindow == 0)
+					{
+						CoreApplication::instance().quitRequested();
 						return;
+					}
 				}
 			}
 				break;
@@ -879,7 +885,7 @@ namespace bs
 				{
 					LinuxWindow* window = getLinuxWindow(mData, event.xbutton.window);
 					if(window != nullptr)
-						window->_dragStart(event.xbutton.x, event.xbutton.y);
+						window->_dragStart(event.xbutton);
 				}
 
 				break;
@@ -950,11 +956,6 @@ namespace bs
 				btnStates.mouseButtons[2] = (event.xmotion.state & Button3Mask) != 0;
 
 				onCursorMoved(pos, btnStates);
-
-				// Handle window dragging for windows without a title bar
-				LinuxWindow* window = getLinuxWindow(mData, event.xmotion.window);
-				if(window != nullptr)
-					window->_dragUpdate(event.xmotion.x, event.xmotion.y);
 			}
 				break;
 			case EnterNotify:
@@ -1076,6 +1077,10 @@ namespace bs
 				// Report minimize, maximize and restore events
 				if(event.xproperty.atom == mData->atomWmState)
 				{
+					// Check that the window hasn't been destroyed
+					if(getLinuxWindow(mData, event.xproperty.window) == nullptr)
+						break;
+
 					Atom type;
 					INT32 format;
 					unsigned long count, bytesRemaining;
