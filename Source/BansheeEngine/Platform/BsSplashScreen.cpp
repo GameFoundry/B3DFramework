@@ -4,7 +4,6 @@
 #include "Resources/BsBuiltinResources.h"
 #include "Utility/BsTimer.h"
 #include "CoreThread/BsCoreThread.h"
-#include <X11/Xutil.h>
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 #include "Win32/BsWin32Platform.h"

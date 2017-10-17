@@ -250,6 +250,9 @@ namespace bs
 
 		mContext = mGLSupport.createContext(mHDC, nullptr);
 
+		if (props.vsync && props.vsyncInterval > 0)
+			setVSync(true, props.vsyncInterval);
+
 		{
 			ScopedSpinLock lock(mLock);
 			mSyncedProperties = props;
@@ -438,6 +441,22 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->restore();
+	}
+
+	void Win32RenderWindow::setVSync(bool enabled, UINT32 interval)
+	{
+		wglSwapIntervalEXT(interval);
+
+		mProperties.vsync = enabled;
+		mProperties.vsyncInterval = interval;
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.vsync = enabled;
+			mSyncedProperties.vsyncInterval = interval;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
 	void Win32RenderWindow::swapBuffers(UINT32 syncMask)

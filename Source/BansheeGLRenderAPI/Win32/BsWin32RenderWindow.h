@@ -94,6 +94,9 @@ namespace bs
 		/** @copydoc RenderWindow::resize */
 		void resize(UINT32 width, UINT32 height) override;
 
+		/** @copydoc RenderWindow::setVSync */
+		void setVSync(bool enabled, UINT32 interval = 1) override;
+
 		/** 
 		 * Copies the contents of a frame buffer into the pre-allocated buffer. 
 		 *

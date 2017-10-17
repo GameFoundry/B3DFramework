@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	class Win32GLSupport : public GLSupport
 	{
 	public:
-        Win32GLSupport();
+		Win32GLSupport();
 
 		/** @copydoc GLSupport::newWindow */
 		SPtr<bs::RenderWindow> newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<bs::RenderWindow> parentWindow) override;
@@ -72,7 +72,7 @@ namespace bs { namespace ct
 		Win32RenderWindow *mInitialWindow;
 		Vector<int> mMultisampleLevels;
 		bool mHasPixelFormatARB;
-        bool mHasMultisample;
+		bool mHasMultisample;
 		bool mHasHardwareGamma;
 		bool mHasAdvancedContext;
 	};

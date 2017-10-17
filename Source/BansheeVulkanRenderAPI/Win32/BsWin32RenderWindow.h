@@ -19,7 +19,7 @@ namespace bs
 	class Win32RenderWindow : public RenderWindow
 	{
 	public:
-		~Win32RenderWindow();
+		~Win32RenderWindow() { }
 
 		/** @copydoc RenderWindow::screenToWindowPos */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -94,6 +94,9 @@ namespace bs
 
 		/** @copydoc RenderWindow::setWindowed */
 		void setWindowed(UINT32 width, UINT32 height) override;
+	
+		/** @copydoc RenderWindow::setVSync */
+		void setVSync(bool enabled, UINT32 interval = 1) override;
 
 		/** 
 		 * Copies the contents of a frame buffer into the pre-allocated buffer. 

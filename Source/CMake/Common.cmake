@@ -61,7 +61,7 @@ MACRO(gen_default_lib_search_dirs LIB_NAME)
 ENDMACRO()
 
 MACRO(add_imported_library LIB_NAME RELEASE_NAME DEBUG_NAME IS_SHARED)
-	if(${IS_SHARED})
+	if(${IS_SHARED} AND NOT WIN32)
 		add_library(${LIB_NAME} SHARED IMPORTED)
 	else()
 		add_library(${LIB_NAME} STATIC IMPORTED)

@@ -450,6 +450,20 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
+	void D3D11RenderWindow::setVSync(bool enabled, UINT32 interval)
+	{
+		mProperties.vsync = enabled;
+		mProperties.vsyncInterval = interval;
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.vsync = enabled;
+			mSyncedProperties.vsyncInterval = interval;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+	}
+
 	HWND D3D11RenderWindow::_getWindowHandle() const
 	{
 		return mWindow->getHWnd();

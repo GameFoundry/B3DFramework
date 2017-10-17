@@ -22,11 +22,6 @@ namespace bs
 		: RenderWindow(desc, windowId), mProperties(desc)
 	{ }
 
-	Win32RenderWindow::~Win32RenderWindow()
-	{
-		Platform::resetNonClientAreas(*this);
-	}
-
 	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
 	{
 		if (name == "WINDOW")
@@ -94,6 +89,8 @@ namespace bs
 
 		mSwapChain = nullptr;
 		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
+
+		Platform::resetNonClientAreas(*this);
 	}
 
 	void Win32RenderWindow::initialize()
@@ -572,6 +569,31 @@ namespace bs
 			ScopedSpinLock lock(mLock);
 			mSyncedProperties.width = props.width;
 			mSyncedProperties.height = props.height;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+	}
+
+	void Win32RenderWindow::setVSync(bool enabled, UINT32 interval)
+	{
+		// Rebuild swap chain
+		
+		//// Need to make sure nothing is using the swap buffer before we re-create it
+		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
+		// on those
+		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		presentDevice->waitIdle();
+
+		mSwapChain->rebuild(presentDevice, mSurface, mProperties.width, mProperties.height, enabled, mColorFormat, mColorSpace, 
+			mDesc.depthBuffer, mDepthFormat);
+
+		mProperties.vsync = enabled;
+		mProperties.vsyncInterval = interval;
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.vsync = enabled;
+			mSyncedProperties.vsyncInterval = interval;
 		}
 
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);

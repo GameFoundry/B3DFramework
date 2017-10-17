@@ -22,11 +22,11 @@ namespace bs { namespace ct
 	}
 
 	Win32GLSupport::Win32GLSupport()
-        : mInitialWindow(nullptr), mHasPixelFormatARB(false), mHasMultisample(false), 
+		: mInitialWindow(nullptr), mHasPixelFormatARB(false), mHasMultisample(false), 
 		mHasHardwareGamma(false), mHasAdvancedContext(false)
-    {
+	{
 		initialiseWGL();
-    } 
+	} 
 
 	SPtr<bs::RenderWindow> Win32GLSupport::newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<bs::RenderWindow> parentWindow)
 	{		
@@ -77,12 +77,12 @@ namespace bs { namespace ct
 
 		// Parse them, and add them to the main list
 		StringStream ext;
-        String instr;
+		String instr;
 		ext << wgl_extensions;
-        while(ext >> instr)
-        {
-            extensionList.insert(instr);
-        }
+		while(ext >> instr)
+		{
+			extensionList.insert(instr);
+		}
 	}
 
 	SPtr<Win32Context> Win32GLSupport::createContext(HDC hdc, HGLRC externalGlrc)
@@ -136,7 +136,7 @@ namespace bs { namespace ct
 
 	void* Win32GLSupport::getProcAddress(const String& procname)
 	{
-        return (void*)wglGetProcAddress(procname.c_str());
+		return (void*)wglGetProcAddress(procname.c_str());
 	}
 
 	void Win32GLSupport::initialiseWGL()
@@ -232,22 +232,22 @@ namespace bs { namespace ct
 
 				int formats[256];
 				unsigned int count;
-                WGLEW_GET_FUN(__wglewChoosePixelFormatARB) = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+				WGLEW_GET_FUN(__wglewChoosePixelFormatARB) = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 				PFNWGLGETPIXELFORMATATTRIBIVARBPROC _wglGetPixelFormatAttribivARB = 
 					(PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB");
-                if (WGLEW_GET_FUN(__wglewChoosePixelFormatARB)(hdc, iattr, 0, 256, formats, &count))
-                {
-                    // determine what multisampling levels are offered
-                    int query = WGL_SAMPLES_ARB, samples;
-                    for (unsigned int i = 0; i < count; ++i)
-                    {
-                        if (_wglGetPixelFormatAttribivARB(hdc, formats[i], 0, 1, &query, &samples))
-                        {
-                            mMultisampleLevels.push_back(samples);
-                        }
-                    }
-                    remove_duplicates(mMultisampleLevels);
-                }
+				if (WGLEW_GET_FUN(__wglewChoosePixelFormatARB)(hdc, iattr, 0, 256, formats, &count))
+				{
+					// determine what multisampling levels are offered
+					int query = WGL_SAMPLES_ARB, samples;
+					for (unsigned int i = 0; i < count; ++i)
+					{
+						if (_wglGetPixelFormatAttribivARB(hdc, formats[i], 0, 1, &query, &samples))
+						{
+							mMultisampleLevels.push_back(samples);
+						}
+					}
+					remove_duplicates(mMultisampleLevels);
+				}
 			}
 			
 			wglMakeCurrent(oldhdc, oldrc);

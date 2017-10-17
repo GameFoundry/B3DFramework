@@ -481,6 +481,17 @@ namespace bs
 			glXSwapIntervalSGI(interval);
 
 		LinuxPlatform::unlockX();
+		
+		mProperties.vsync = enabled;
+		mProperties.vsyncInterval = interval;
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.vsync = enabled;
+			mSyncedProperties.vsyncInterval = interval;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);		
 	}
 
 	void LinuxRenderWindow::swapBuffers(UINT32 syncMask)
