@@ -314,11 +314,11 @@ namespace bs
 							}
 						}
 
-						fontData->fontDesc.characters[charIdx] = charDesc;
+						fontData->characters[charIdx] = charDesc;
 					}
 					else
 					{
-						fontData->fontDesc.missingGlyph = charDesc;
+						fontData->missingGlyph = charDesc;
 					}
 				}
 
@@ -349,8 +349,8 @@ namespace bs
 			}
 
 			fontData->size = fontSizes[i];
-			fontData->fontDesc.baselineOffset = baselineOffset;
-			fontData->fontDesc.lineHeight = lineHeight;
+			fontData->baselineOffset = baselineOffset;
+			fontData->lineHeight = lineHeight;
 
 			// Get space size
 			error = FT_Load_Char(face, 32, loadFlags);
@@ -358,7 +358,7 @@ namespace bs
 			if(error)
 				BS_EXCEPT(InternalErrorException, "Failed to load a character");
 
-			fontData->fontDesc.spaceWidth = face->glyph->advance.x >> 6;
+			fontData->spaceWidth = face->glyph->advance.x >> 6;
 
 			dataPerSize.push_back(fontData);
 		}
