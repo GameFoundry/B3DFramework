@@ -145,5 +145,56 @@ namespace bs
 		virtual CodeEditor* create(CodeEditorType editor) const = 0;
 	};
 
+	/** Different versions of .csproj files, depending on which Microsoft Visual Studio version generated them. */
+	enum class CSProjectVersion
+	{
+		VS2008,
+		VS2010,
+		VS2012,
+		VS2013,
+		VS2015,
+		VS2017,
+		MonoDevelop
+	};
+
+	/** 
+	 * Contains helper functionality for the generation of .csproj files, as well as the .sln file. Those are used by C# IDE's like Visual Studio
+	 * and MonoDevelop, and build systems like msbuild or xbuild.
+	 */
+	class CSProject
+	{
+	public:
+		/**
+		 * Builds the .sln text for the provided version, using the provided solution data.
+		 *
+		 * @param[in]	version	Visual Studio version for which we're generating the solution file.
+		 * @param[in]	data	Data containing a list of projects and other information required to build the solution text.
+		 * @return				Generated text of the solution file.
+		 */
+		static String writeSolution(CSProjectVersion version, const CodeSolutionData& data);
+
+		/**
+		 * Builds the .csproj text for the provided version, using the provided project data.
+		 *
+		 * @param[in]	version		Visual Studio version for which we're generating the project file.
+		 * @param[in]	projectData	Data containing a list of files, references and other information required to 
+		 *							build the project text.
+		 * @return					Generated text of the project file.
+		 */
+		static String writeProject(CSProjectVersion version, const CodeProjectData& projectData);
+
+	private:
+		static const String SLN_TEMPLATE; /**< Template text used for a solution file. */
+		static const String PROJ_ENTRY_TEMPLATE; /**< Template text used for a project entry in a solution file. */
+		static const String PROJ_PLATFORM_TEMPLATE; /**< Template text used for platform specific information for a project entry in a solution file. */
+
+		static const String PROJ_TEMPLATE; /**< Template XML used for a project file. */
+		static const String REFERENCE_ENTRY_TEMPLATE; /**< Template XML used for a reference to another assembly entry by name. */
+		static const String REFERENCE_PROJECT_ENTRY_TEMPLATE; /**< Template XML used for a reference to another project entry. */
+		static const String REFERENCE_PATH_ENTRY_TEMPLATE; /**< Template XML used for a reference to another assembly entry by name and path. */
+		static const String CODE_ENTRY_TEMPLATE; /**< Template XML used for a single code file entry in a project. */
+		static const String NON_CODE_ENTRY_TEMPLATE; /**< Template XML used for a single non-code file entry in a project. */
+	};
+
 	/** @} */
 }

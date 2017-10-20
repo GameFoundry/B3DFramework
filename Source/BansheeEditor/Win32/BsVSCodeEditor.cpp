@@ -36,7 +36,7 @@ namespace bs
 	 * @param[in]	value			Output value read from the key.
 	 * @param[in]	defaultValue	Default value to return if the key or identifier doesn't exist.
 	 */
-	LONG getRegistryStringValue(HKEY hKey, const WString& name, WString& value, const WString& defaultValue)
+	static LONG getRegistryStringValue(HKEY hKey, const WString& name, WString& value, const WString& defaultValue)
 	{
 		value = defaultValue;
 
@@ -124,155 +124,6 @@ namespace bs
 
 	private:
 		LONG mRefCount;
-	};
-
-	/** 
-	 * Contains helper functionality for the generation of .csproj files, as well as the .sln file. Those are used by C# IDE's like Visual Studio
-	 * and MonoDevelop, and build systems like msbuild or xbuild.
-	 */
-	class CSProject
-	{
-	private:
-		static const String SLN_TEMPLATE; /**< Template text used for a solution file. */
-		static const String PROJ_ENTRY_TEMPLATE; /**< Template text used for a project entry in a solution file. */
-		static const String PROJ_PLATFORM_TEMPLATE; /**< Template text used for platform specific information for a project entry in a solution file. */
-
-		static const String PROJ_TEMPLATE; /**< Template XML used for a project file. */
-		static const String REFERENCE_ENTRY_TEMPLATE; /**< Template XML used for a reference to another assembly entry by name. */
-		static const String REFERENCE_PROJECT_ENTRY_TEMPLATE; /**< Template XML used for a reference to another project entry. */
-		static const String REFERENCE_PATH_ENTRY_TEMPLATE; /**< Template XML used for a reference to another assembly entry by name and path. */
-		static const String CODE_ENTRY_TEMPLATE; /**< Template XML used for a single code file entry in a project. */
-		static const String NON_CODE_ENTRY_TEMPLATE; /**< Template XML used for a single non-code file entry in a project. */
-
-	public:
-		/**	Generates a C# project GUID from the project name. */
-		static String getProjectGUID(const WString& projectName)
-		{
-			static const String guidTemplate = "{0}-{1}-{2}-{3}-{4}";
-			String hash = md5(projectName);
-
-			String output = StringUtil::format(guidTemplate, hash.substr(0, 8),
-				hash.substr(8, 4), hash.substr(12, 4), hash.substr(16, 4), hash.substr(20, 12));
-			StringUtil::toUpperCase(output);
-
-			return output;
-		}
-
-		/**
-		 * Builds the .sln text for the provided version, using the provided solution data.
-		 *
-		 * @param[in]	version	Visual Studio version for which we're generating the solution file.
-		 * @param[in]	data	Data containing a list of projects and other information required to build the solution text.
-		 * @return				Generated text of the solution file.
-		 */
-		static String writeSolution(VisualStudioVersion version, const CodeSolutionData& data)
-		{
-			struct VersionData
-			{
-				String formatVersion;
-			};
-
-			Map<VisualStudioVersion, VersionData> versionData =
-			{
-				{ VisualStudioVersion::VS2008, { "10.00" } },
-				{ VisualStudioVersion::VS2010, { "11.00" } },
-				{ VisualStudioVersion::VS2012, { "12.00" } },
-				{ VisualStudioVersion::VS2013, { "12.00" } },
-				{ VisualStudioVersion::VS2015, { "12.00" } },
-				{ VisualStudioVersion::VS2017, { "12.00" } }
-			};
-
-			StringStream projectEntriesStream;
-			StringStream projectPlatformsStream;
-			for (auto& project : data.projects)
-			{
-				String guid = getProjectGUID(project.name);
-				String projectName = toString(project.name);
-
-				projectEntriesStream << StringUtil::format(PROJ_ENTRY_TEMPLATE, projectName, projectName + ".csproj", guid);
-				projectPlatformsStream << StringUtil::format(PROJ_PLATFORM_TEMPLATE, guid);
-			}
-
-			String projectEntries = projectEntriesStream.str();
-			String projectPlatforms = projectPlatformsStream.str();
-
-			return StringUtil::format(SLN_TEMPLATE, versionData[version].formatVersion, projectEntries, projectPlatforms);
-		}
-
-		/**
-		 * Builds the .csproj text for the provided version, using the provided project data.
-		 *
-		 * @param[in]	version		Visual Studio version for which we're generating the project file.
-		 * @param[in]	projectData	Data containing a list of files, references and other information required to 
-		 *							build the project text.
-		 * @return					Generated text of the project file.
-		 */
-		static String writeProject(VisualStudioVersion version, const CodeProjectData& projectData)
-		{
-			struct VersionData
-			{
-				String toolsVersion;
-			};
-
-			Map<VisualStudioVersion, VersionData> versionData =
-			{
-				{ VisualStudioVersion::VS2008, { "3.5" } },
-				{ VisualStudioVersion::VS2010, { "4.0" } },
-				{ VisualStudioVersion::VS2012, { "4.0" } },
-				{ VisualStudioVersion::VS2013, { "12.0" } },
-				{ VisualStudioVersion::VS2015, { "13.0" } },
-				{ VisualStudioVersion::VS2017, { "15.0" } }
-			};
-
-			StringStream tempStream;
-			for (auto& codeEntry : projectData.codeFiles)
-				tempStream << StringUtil::format(CODE_ENTRY_TEMPLATE, codeEntry.toString());
-
-			String codeEntries = tempStream.str();
-			tempStream.str("");
-			tempStream.clear();
-
-			for (auto& nonCodeEntry : projectData.nonCodeFiles)
-				tempStream << StringUtil::format(NON_CODE_ENTRY_TEMPLATE, nonCodeEntry.toString());
-
-			String nonCodeEntries = tempStream.str();
-			tempStream.str("");
-			tempStream.clear();
-
-			for (auto& referenceEntry : projectData.assemblyReferences)
-			{
-				String referenceName = toString(referenceEntry.name);
-
-				if (referenceEntry.path.isEmpty())
-					tempStream << StringUtil::format(REFERENCE_ENTRY_TEMPLATE, referenceName);
-				else
-					tempStream << StringUtil::format(REFERENCE_PATH_ENTRY_TEMPLATE, referenceName, referenceEntry.path.toString());
-			}
-
-			String referenceEntries = tempStream.str();
-			tempStream.str("");
-			tempStream.clear();
-
-			for (auto& referenceEntry : projectData.projectReferences)
-			{
-				String referenceName = toString(referenceEntry.name);
-				String projectGUID = getProjectGUID(referenceEntry.name);
-
-				tempStream << StringUtil::format(REFERENCE_PROJECT_ENTRY_TEMPLATE, referenceName, projectGUID);
-			}
-
-			String projectReferenceEntries = tempStream.str();
-			tempStream.str("");
-			tempStream.clear();
-
-			tempStream << toString(projectData.defines);
-
-			String defines = tempStream.str();
-			String projectGUID = getProjectGUID(projectData.name);
-
-			return StringUtil::format(PROJ_TEMPLATE, versionData[version].toolsVersion, projectGUID, 
-				toString(projectData.name), defines, referenceEntries, projectReferenceEntries, codeEntries, nonCodeEntries);
-		}
 	};
 
 	/** Contains various helper functionality for interacting with a Visual Studio instance running on this machine. */
@@ -428,110 +279,7 @@ namespace bs
 
 			return true;
 		}
-
 	};
-
-	const String CSProject::SLN_TEMPLATE =
-		R"(Microsoft Visual Studio Solution File, Format Version {0}
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
-MinimumVisualStudioVersion = 10.0.40219.1{1}
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution{2}
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
-)";
-
-	const String CSProject::PROJ_ENTRY_TEMPLATE =
-		R"(
-Project("\{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC\}") = "{0}", "{1}", "\{{2}\}"
-EndProject)";
-
-	const String CSProject::PROJ_PLATFORM_TEMPLATE =
-		R"(
-		\{{0}\}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		\{{0}\}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		\{{0}\}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		\{{0}\}.Release|Any CPU.Build.0 = Release|Any CPU)";
-
-	const String CSProject::PROJ_TEMPLATE =
-		R"literal(<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="{0}" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props')" />
-  <PropertyGroup>
-	<Configuration Condition = " '$(Configuration)' == '' ">Debug</Configuration>
-	<Platform Condition = " '$(Platform)' == '' ">AnyCPU</Platform>
-	<ProjectGuid>\{{1}\}</ProjectGuid>
-	<OutputType>Library</OutputType>
-	<AppDesignerFolder>Properties</AppDesignerFolder>
-	<RootNamespace></RootNamespace>
-	<AssemblyName>{2}</AssemblyName>
-	<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-	<FileAlignment>512</FileAlignment>
-	<BaseDirectory>Resources</BaseDirectory>
-	<SchemaVersion>2.0</SchemaVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition = " '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-	<DebugSymbols>true</DebugSymbols>
-	<DebugType>full</DebugType>
-	<Optimize>false</Optimize>
-	<OutputPath>Internal\\Temp\\Assemblies\\Debug\\</OutputPath>
-	<BaseIntermediateOutputPath>Internal\\Temp\\Assemblies\\</BaseIntermediateOutputPath>
-	<DefineConstants>DEBUG;TRACE;{3}</DefineConstants>
-	<ErrorReport>prompt</ErrorReport>
-	<WarningLevel>4</WarningLevel >
-  </PropertyGroup>
-  <PropertyGroup Condition = " '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-	<DebugType>pdbonly</DebugType>
-	<Optimize>true</Optimize>
-	<OutputPath>Internal\\Temp\\Assemblies\\Release\\</OutputPath>
-	<BaseIntermediateOutputPath>Internal\\Temp\\Assemblies\\</BaseIntermediateOutputPath>
-	<DefineConstants>TRACE;{3}</DefineConstants>
-	<ErrorReport>prompt</ErrorReport>
-	<WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>{4}
-  </ItemGroup>
-  <ItemGroup>{5}
-  </ItemGroup>
-  <ItemGroup>{6}
-  </ItemGroup>
-  <ItemGroup>{7}
-  </ItemGroup>
-  <Import Project = "$(MSBuildToolsPath)\\Microsoft.CSharp.targets"/>
-</Project>)literal";
-
-	const String CSProject::REFERENCE_ENTRY_TEMPLATE =
-		R"(
-	<Reference Include="{0}"/>)";
-
-	const String CSProject::REFERENCE_PATH_ENTRY_TEMPLATE =
-		R"(
-	<Reference Include="{0}">
-	  <HintPath>{1}</HintPath>
-	</Reference>)";
-
-	const String CSProject::REFERENCE_PROJECT_ENTRY_TEMPLATE =
-		R"(
-	<ProjectReference Include="{0}.csproj">
-	  <Project>\{{1}\}</Project>
-	  <Name>{0}</Name>
-	</ProjectReference>)";
-
-	const String CSProject::CODE_ENTRY_TEMPLATE =
-		R"(
-	<Compile Include="{0}"/>)";
-
-	const String CSProject::NON_CODE_ENTRY_TEMPLATE =
-		R"(
-	<None Include="{0}"/>)";
 
 	VSCodeEditor::VSCodeEditor(VisualStudioVersion version, const Path& execPath, const WString& CLSID)
 		:mVersion(version), mExecPath(execPath), mCLSID(CLSID)
@@ -576,14 +324,26 @@ EndProject)";
 
 	void VSCodeEditor::syncSolution(const CodeSolutionData& data, const Path& outputPath) const
 	{
-		String solutionString = CSProject::writeSolution(mVersion, data);
+		CSProjectVersion csProjVer;
+		switch(mVersion)
+		{
+		case VisualStudioVersion::VS2008: csProjVer = CSProjectVersion::VS2008; break;
+		case VisualStudioVersion::VS2010: csProjVer = CSProjectVersion::VS2010; break;
+		case VisualStudioVersion::VS2012: csProjVer = CSProjectVersion::VS2012; break;
+		case VisualStudioVersion::VS2013: csProjVer = CSProjectVersion::VS2013; break;
+		case VisualStudioVersion::VS2015: csProjVer = CSProjectVersion::VS2015; break;
+		default:
+		case VisualStudioVersion::VS2017: csProjVer = CSProjectVersion::VS2017;  break;
+		}
+
+		String solutionString = CSProject::writeSolution(csProjVer, data);
 		solutionString = StringUtil::replaceAll(solutionString, "\n", "\r\n");
 		Path solutionPath = outputPath;
 		solutionPath.append(data.name + L".sln");
 
 		for (auto& project : data.projects)
 		{
-			String projectString = CSProject::writeProject(mVersion, project);
+			String projectString = CSProject::writeProject(csProjVer, project);
 			projectString = StringUtil::replaceAll(projectString, "\n", "\r\n");
 
 			Path projectPath = outputPath;

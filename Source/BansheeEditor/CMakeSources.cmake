@@ -225,10 +225,12 @@ set(BS_BANSHEEEDITOR_INC_TESTING
 
 set(BS_BANSHEEEDITOR_INC_CODEEDITOR
 	"CodeEditor/BsCodeEditor.h"
+	"CodeEditor/BsMDCodeEditor.h"
 )
 
 set(BS_BANSHEEEDITOR_SRC_CODEEDITOR
 	"CodeEditor/BsCodeEditor.cpp"
+	"CodeEditor/BsMDCodeEditor.cpp"
 )
 
 set(BS_BANSHEEEDITOR_INC_WIN32
@@ -280,6 +282,8 @@ source_group("Header Files\\Build" FILES ${BS_BANSHEEEDITOR_INC_BUILD})
 source_group("Source Files\\Build" FILES ${BS_BANSHEEEDITOR_SRC_BUILD})
 source_group("Source Files\\Handles" FILES ${BS_BANSHEEEDITOR_SRC_HANDLES})
 source_group("Header Files\\Testing" FILES ${BS_BANSHEEEDITOR_INC_TESTING})
+source_group("Header Files\\Win32" FILES ${BS_BANSHEEEDITOR_INC_WIN32})
+source_group("Source Files\\Win32" FILES ${BS_BANSHEEEDITOR_SRC_WIN32})
 
 set(BS_BANSHEEEDITOR_SRC
 	${BS_BANSHEEEDITOR_INC_SETTINGS}
