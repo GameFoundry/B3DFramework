@@ -330,6 +330,10 @@ namespace bs
 		:ScriptObjectBase(instance)
 	{ }
 
+	ScriptLibraryEntry::ScriptLibraryEntry(MonoObject* instance)
+		:ScriptObject(instance)
+	{ }
+
 	void ScriptLibraryEntry::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetPath", (void*)&ScriptLibraryEntry::internal_GetPath);

@@ -307,23 +307,33 @@ namespace bs
 
 		if(findIter != m->monitors.end())
 		{
-			Lock lock(m->mainMutex);
-			FolderWatchInfo* watchInfo = *findIter;
+			// Special case if this is the last monitor
+			if(m->monitors.size() == 1)
+				stopMonitorAll();
+			else
+			{
+				Lock lock(m->mainMutex);
+				FolderWatchInfo* watchInfo = *findIter;
 
-			watchInfo->stopMonitor();
-			bs_delete(watchInfo);
+				watchInfo->stopMonitor();
+				bs_delete(watchInfo);
 
-			m->monitors.erase(findIter);
+				m->monitors.erase(findIter);
+			}
 		}
-
-		if(m->monitors.size() == 0)
-			stopMonitorAll();
 	}
 
 	void FolderMonitor::stopMonitorAll()
 	{
+		if(m->started)
 		{
 			Lock lock(m->mainMutex);
+
+			// First tell the thread it's ready to be shutdown
+			m->started = false;
+
+			// Remove all watches (this will also wake up the thread). Note that at least one watch must be present otherwise
+			// the thread won't wake up (we ensure that elsewhere).
 			for (auto& watchInfo : m->monitors)
 			{
 				watchInfo->stopMonitor();
@@ -333,22 +343,22 @@ namespace bs
 			m->monitors.clear();
 		}
 
-		{
-			Lock lock(m->mainMutex);
-			if (m->started)
-			{
-				// This should trigger worker thread shut-down
-				close(m->inHandle);
-				m->inHandle = 0;
-				m->started = false;
-			}
-		}
-
+		// Wait for the thread to shutdown
 		if(m->workerThread != nullptr)
 		{
 			m->workerThread->join();
 			bs_delete(m->workerThread);
 			m->workerThread = nullptr;
+		}
+
+		// Close the inotify handle
+		{
+			Lock lock(m->mainMutex);
+			if (m->inHandle != 0)
+			{
+				close(m->inHandle);
+				m->inHandle = 0;
+			}
 		}
 	}
 
@@ -356,21 +366,29 @@ namespace bs
 	{
 		static const UINT32 BUFFER_SIZE = 16384;
 
+		bool shouldRun;
 		INT32 watchHandle;
 		{
 			Lock(m->mainMutex);
 			watchHandle = m->inHandle;
+			shouldRun = m->started;
 		}
 
 		UINT8 buffer[BUFFER_SIZE];
 
-		while(true)
+		while(shouldRun)
 		{
 			INT32 length = (INT32)read(watchHandle, buffer, sizeof(buffer));
 
 			// Handle was closed, shutdown thread
 			if (length < 0)
 				return;
+
+			// Note: Must be after read, so shutdown can be started when we remove the watches (as then read() will return)
+			{
+				Lock(m->mainMutex);
+				shouldRun = m->started;
+			}
 
 			INT32 readPos = 0;
 			while(readPos < length)

@@ -104,6 +104,8 @@ namespace bs
 	public:
 		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "LibraryEntry")
 
+		ScriptLibraryEntry(MonoObject* instance);
+
 	private:
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

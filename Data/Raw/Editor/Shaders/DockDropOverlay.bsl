@@ -22,9 +22,9 @@ technique DockDropOverlay
 			float invViewportWidth;
 			float invViewportHeight;
 
-			float4 tintColor;
-			float4 highlightColor;
-			float4 highlightActive;
+			[color]	float4 tintColor;
+			[color]	float4 highlightColor;
+			[color]	float4 highlightActive;
 		};
 
 		void vsmain(

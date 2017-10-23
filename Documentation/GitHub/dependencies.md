@@ -67,11 +67,11 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Compile as a static library
    
 **mono**
-- Mono 4.4.0
+- Mono 5.4
 - http://www.mono-project.com/
 - Required by BansheeMono
 - Compile as a dynamic library
- - See Mono-4.4.0-IntegrationGuide.txt for additional notes
+ - See MonoIntegrationGuide.txt for additional notes
    
 **PhysX**
 - PhysX 3.3

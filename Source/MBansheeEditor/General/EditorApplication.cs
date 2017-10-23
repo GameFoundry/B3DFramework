@@ -952,6 +952,13 @@ namespace BansheeEditor
             EditorSettings.Save();
 
             ProjectLibrary.Refresh();
+
+            if(monitor != null)
+            {
+                monitor.Destroy();
+                monitor = null;
+            }
+
             monitor = new FolderMonitor(ProjectLibrary.ResourceFolder);
             monitor.OnAdded += OnAssetModified;
             monitor.OnRemoved += OnAssetModified;
