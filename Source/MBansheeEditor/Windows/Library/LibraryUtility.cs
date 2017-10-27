@@ -99,7 +99,7 @@ namespace BansheeEditor
         /// <param name="folder">Folder relative to project library to create the C# script in.</param>
         public static void CreateEmptyCSScript(string folder)
         {
-            string path = Path.Combine(folder, "New Script.cs");
+            string path = Path.Combine(folder, "NewScript.cs");
             path = Path.Combine(ProjectLibrary.ResourceFolder, path);
             path = GetUniquePath(path);
 

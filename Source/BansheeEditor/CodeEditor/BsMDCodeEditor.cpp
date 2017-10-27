@@ -53,13 +53,20 @@ namespace bs
 		ShellExecuteW(0, L"open", pathStr.c_str(), args.c_str(), NULL, SW_HIDE);
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 		String narrowArgs = UTF8::fromWide(args);
-		const char* commandPattern = "flatpak run com.xamarin.MonoDevelop %s";
+		pid_t pid = fork();
 
-		char* commandStr = (char*)bs_stack_alloc((UINT32)narrowArgs.size() + (UINT32)strlen(commandPattern) + 1);
-		sprintf(commandStr, commandPattern, narrowArgs.c_str());
+		if(pid == 0)
+		{
+			const char* commandPattern = "flatpak run com.xamarin.MonoDevelop %s";
 
-		system(commandStr);
-		bs_stack_free(commandStr);
+			char* commandStr = (char*) malloc((UINT32) narrowArgs.size() + (UINT32) strlen(commandPattern) + 1);
+			sprintf(commandStr, commandPattern, narrowArgs.c_str());
+
+			system(commandStr);
+			free(commandStr);
+
+			exit(1);
+		}
 #endif
 	}
 
