@@ -76,19 +76,13 @@ namespace bs
 		template <typename ValueType>
 		Any& operator= (const ValueType& rhs)
 		{
-			if(mData)
-				bs_delete(mData);
-
-			mData = bs_new<Data<ValueType>>(rhs);
+			Any(rhs).swap(*this);
 			return *this;
 		}
 
 		Any& operator= (const Any& rhs)
 		{
-			if(mData)
-				bs_delete(mData);
-
-			mData = rhs.mData != nullptr ? rhs.mData->clone() : nullptr;
+			Any(rhs).swap(*this);
 			return *this;
 		}
 

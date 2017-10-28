@@ -1,6 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2017 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #ifdef _WIN32
+	#define _CRT_SECURE_NO_WARNINGS 1
 	#include <direct.h>
 	#define getcwd _getcwd
 #else

@@ -1,6 +1,7 @@
 ---------------------------------Compiling runtime-------------------------------------
  - Grab Mono 5.4 (or newer) source code
   - From tarball: https://download.mono-project.com/sources/mono/
+   - If on Windows, get the release from GitHub instead as tarballs don't seem to be configured for Windows builds
   - Optionally check it out from git repository: https://github.com/mono/mono
    - If on Windows, make sure your git client has this set: "git config --global core.autocrlf input" as otherwise you'll have problems with line endings during later steps
 

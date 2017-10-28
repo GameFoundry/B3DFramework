@@ -110,7 +110,7 @@ All features listed here are the ones currently available (implemented). If you 
 	* Collision filtering
 	* Discrete or continuous collision detection
 * __Scripting__
-  * C# 6.0
+  * C# 7.0
   * Separate high level engine API
   * Integrated runtime for maximum performance
   * Full access to .NET framework
