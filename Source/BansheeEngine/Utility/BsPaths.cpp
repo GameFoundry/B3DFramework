@@ -61,7 +61,7 @@ namespace bs
 			Path anchorFile = path;
 			anchorFile.setFilename("BansheeEngine" + String(DynLib::EXTENSION));
 
-			if (!FileSystem::exists(path))
+			if (!FileSystem::exists(anchorFile))
 			{
 				path = BINARIES_PATH;
 				if (!FileSystem::exists(path))
