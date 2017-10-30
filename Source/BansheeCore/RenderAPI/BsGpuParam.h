@@ -70,7 +70,7 @@ namespace bs
 	template<int N, int M>
 	struct TransposePolicy<MatrixNxM<N, M>>
 	{
-		static MatrixNxM<N, M> transpose(const MatrixNxM<N, M>& value) { return value.transpose(); }
+		static MatrixNxM<M, N> transpose(const MatrixNxM<N, M>& value) { return value.transpose(); }
 		static bool transposeEnabled(bool enabled) { return enabled; }
 	};
 

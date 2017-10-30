@@ -30,8 +30,8 @@ if(WIN32)
 			TARGET Game POST_BUILD
 			COMMAND xcopy /Y /I \"$(TargetDir)$(TargetName).exe\" \"$(SolutionDir)..\\..\\Data\\Binaries\\${BS_COPY_FOLDER}\\\")
 	else()
-		set(SRC_FILE ${BS_BINARY_OUTPUT_DIR}/Game)
-		set(DST_FOLDER ../${PROJECT_SOURCE_DIR}/Data/Binaries/${BS_COPY_FOLDER})
+		set(SRC_FILE ${BS_BINARY_OUTPUT_DIR}/${CMAKE_BUILD_TYPE}/Game)
+		set(DST_FOLDER ${PROJECT_SOURCE_DIR}/../Data/Binaries/${BS_COPY_FOLDER})
 		add_custom_command(TARGET Game POST_BUILD COMMAND xcopy /Y /I ${SRC_FILE} ${DST_FOLDER})
 	endif()
 
@@ -42,12 +42,12 @@ elseif(LINUX)
 		set(BS_COPY_FOLDER Linux32)
 	endif()
 
-	set(SRC_FILE ${BS_BINARY_OUTPUT_DIR}/Game)
-	set(DST_FOLDER ../${PROJECT_SOURCE_DIR}/Data/Binaries/${BS_COPY_FOLDER})
+	set(SRC_FILE ${BS_BINARY_OUTPUT_DIR}/${CMAKE_BUILD_TYPE}/Game)
+	set(DST_FOLDER ${PROJECT_SOURCE_DIR}/../Data/Binaries/${BS_COPY_FOLDER})
 	add_custom_command(
 		TARGET Game POST_BUILD
 		COMMAND rm -rf ${DST_FOLDER}
-		COMMAND mkdir ${DST_FOLDER}
+		COMMAND mkdir -p ${DST_FOLDER}
 		COMMAND cp ${SRC_FILE} ${DST_FOLDER})
 else()
 # TODO_OTHER_PLATFORMS_GO_HERE

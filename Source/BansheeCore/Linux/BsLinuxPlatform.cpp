@@ -662,7 +662,7 @@ namespace bs
 		char* commandStr = (char*)bs_stack_alloc((UINT32)pathString.size() + (UINT32)strlen(commandPattern) + 1);
 		sprintf(commandStr, commandPattern, pathString.c_str());
 
-		system(commandStr);
+		(void)system(commandStr);
 		bs_stack_free(commandStr);
 	}
 

@@ -67,20 +67,18 @@ include(CMake/Common.cmake)
 
 # Ensure dependencies are up to date
 ## Check prebuilt dependencies that are downloaded in a .zip
-if(WIN32)
-	set(BUILTIN_DEP_VERSION_FILE ${PROJECT_SOURCE_DIR}/../Dependencies/.version)
-	if(NOT EXISTS ${BUILTIN_DEP_VERSION_FILE})
-		message(STATUS "Binary dependencies are missing. Downloading package...")
-		update_binary_deps(${BS_PREBUILT_DEPENDENCIES_VERSION})	
-	else()
-		file (STRINGS ${BUILTIN_DEP_VERSION_FILE} CURRENT_BUILTIN_DEP_VERSION)
-		if(${BS_PREBUILT_DEPENDENCIES_VERSION} GREATER ${CURRENT_BUILTIN_DEP_VERSION})
-			message(STATUS "Your precomiled dependencies package is out of date. Downloading latest package...")
-			update_binary_deps(${BS_PREBUILT_DEPENDENCIES_VERSION})
-		endif()
+set(BUILTIN_DEP_VERSION_FILE ${PROJECT_SOURCE_DIR}/../Dependencies/.version)
+if(NOT EXISTS ${BUILTIN_DEP_VERSION_FILE})
+	message(STATUS "Binary dependencies are missing. Downloading package...")
+	update_binary_deps(${BS_PREBUILT_DEPENDENCIES_VERSION})
+else()
+	file (STRINGS ${BUILTIN_DEP_VERSION_FILE} CURRENT_BUILTIN_DEP_VERSION)
+	if(${BS_PREBUILT_DEPENDENCIES_VERSION} GREATER ${CURRENT_BUILTIN_DEP_VERSION})
+		message(STATUS "Your precomiled dependencies package is out of date. Downloading latest package...")
+		update_binary_deps(${BS_PREBUILT_DEPENDENCIES_VERSION})
 	endif()
 endif()
-	
+
 ## Check dependencies built from source
 if(WIN32)
 	set(SOURCE_DEP_BUILD_DIR ${PROJECT_SOURCE_DIR}/../Dependencies/Build)

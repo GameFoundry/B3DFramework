@@ -56,7 +56,7 @@ namespace bs
 	template<class T, bool Core>
 	T TMaterialDataParam<T, Core>::get(UINT32 arrayIdx) const
 	{
-		T output = T();
+		T output{};
 		if (mMaterial == nullptr || arrayIdx >= mArraySize)
 			return output;
 

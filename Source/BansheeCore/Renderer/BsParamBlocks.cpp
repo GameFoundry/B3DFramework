@@ -27,7 +27,7 @@ namespace bs { namespace ct
 		bool transposeMatrices = RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::ColumnMajorMatrices);
 		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 		{
-			T transposed = TransposePolicy<T>::transpose(value);
+			auto transposed = TransposePolicy<T>::transpose(value);
 			paramBlock->write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), 
 				&transposed, sizeBytes);
 		}
@@ -63,11 +63,7 @@ namespace bs { namespace ct
 		paramBlock->read((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), &value, 
 			sizeBytes);
 
-		bool transposeMatrices = RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::ColumnMajorMatrices);
-		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
-			return TransposePolicy<T>::transpose(value);
-		else
-			return value;
+		return value;
 	}
 
 	template class ParamBlockParam<float>;

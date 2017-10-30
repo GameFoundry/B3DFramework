@@ -1167,7 +1167,7 @@ namespace bs
 
 			for (UINT32 i = 0; i < polygonCount; i++)
 			{
-				TNative value;
+				TNative value{};
 				indexer.get(i, value);
 
 				output[index++] = value;
@@ -1178,7 +1178,7 @@ namespace bs
 			break;
 		case FbxLayerElement::eAllSame:
 		{
-			TNative value;
+			TNative value{};
 			indexer.get(0, value);
 
 			for (UINT32 i = 0; i < indexCount; i++)

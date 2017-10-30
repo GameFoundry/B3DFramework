@@ -157,8 +157,14 @@ function(update_binary_deps DEP_VERSION)
 	# Clean and create a temporary folder
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/../Temp)	
 	execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/../Temp)	
-	
-	set(BINARY_DEPENDENCIES_URL http://data.banshee3d.com/BansheeDependencies_VS2015_Master_${DEP_VERSION}.zip)
+
+	if(WIN32)
+		set(DEP_TYPE VS2015)
+	elseif(LINUX)
+		set(DEP_TYPE Linux)
+	endif()
+
+	set(BINARY_DEPENDENCIES_URL http://data.banshee3d.com/BansheeDependencies_${DEP_TYPE}_Master_${DEP_VERSION}.zip)
 	file(DOWNLOAD ${BINARY_DEPENDENCIES_URL} ${PROJECT_SOURCE_DIR}/../Temp/Dependencies.zip 
 		SHOW_PROGRESS
 		STATUS DOWNLOAD_STATUS)

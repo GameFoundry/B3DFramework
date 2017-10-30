@@ -39,8 +39,8 @@ Variety of *CMake* variables are provided that allow you to customize the build:
  
 You can choose to use a different *CMake* generator than those specified above, as long as the platform/compiler is supported:  
   - Supported platforms:
-    - Windows
-    - (Mac & Linux coming soon)
+    - Windows, Linux
+    - (macOS coming soon)
   - Supported compilers:
     - MSVC++ 14.0 (Visual Studio 2015)
 	- MSVC++ 15.0 (Visual Studio 2017)

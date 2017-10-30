@@ -333,7 +333,7 @@ namespace bs
 		auto iter = input.begin();
 		while(iter != input.end())
 		{
-			char32_t u32char;
+			char32_t u32char = 0;
 			iter = UTF16To32(iter, input.end(), u32char);
 			UTF32To8(u32char, backInserter, 4);
 		}

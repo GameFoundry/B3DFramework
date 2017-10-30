@@ -489,6 +489,8 @@ namespace bs
 			result.depth = depth;
 			result.normal = Vector3((normal.r * 2) - 1, (normal.g * 2) - 1, (normal.b * 2) - 1);
 		}
+		else
+			result.depth = 0;
 
 		mPickingTexture = nullptr;
 		

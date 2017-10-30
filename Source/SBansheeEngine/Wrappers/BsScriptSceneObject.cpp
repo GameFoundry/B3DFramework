@@ -297,7 +297,7 @@ namespace bs
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getLocalMatrix();
 		else
-			*value = Matrix4();
+			*value = Matrix4(BsIdentity);
 	}
 
 	void ScriptSceneObject::internal_getWorldTransform(ScriptSceneObject* nativeInstance, Matrix4* value)
@@ -305,7 +305,7 @@ namespace bs
 		if (!checkIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->getWorldMatrix();
 		else
-			*value = Matrix4();
+			*value = Matrix4(BsIdentity);
 	}
 
 	void ScriptSceneObject::internal_lookAt(ScriptSceneObject* nativeInstance, Vector3* direction, Vector3* up)

@@ -46,7 +46,7 @@ namespace bs
 		bool transposeMatrices = ct::RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::ColumnMajorMatrices);
 		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 		{
-			T transposed = TransposePolicy<T>::transpose(value);
+			auto transposed = TransposePolicy<T>::transpose(value);
 			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
 		}
 		else
@@ -86,11 +86,7 @@ namespace bs
 		T value;
 		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
-		bool transposeMatrices = ct::RenderAPI::instance().getAPIInfo().isFlagSet(RenderAPIFeatureFlag::ColumnMajorMatrices);
-		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
-			return TransposePolicy<T>::transpose(value);
-		else
-			return value;
+		return value;
 	}
 
 	template<bool Core>

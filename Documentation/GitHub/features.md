@@ -5,12 +5,12 @@ All features listed here are the ones currently available (implemented). If you 
 ---------------------------------------------------  
   
 ## Core
-* __Quality design__
-  * Modern code using C++14
+* __General__
+  * Modern C++14 code
   * Clean layered design
-  * Fully documented
   * Modular & plugin based
-  * Multiplatform ready
+  * Fully documented
+  * Platforms: Windows, Linux
 * __Renderer__
   * Vulkan, DX11 and OpenGL 4.5 render backends
   * Multi-threaded rendering

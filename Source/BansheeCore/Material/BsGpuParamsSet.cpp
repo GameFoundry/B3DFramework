@@ -892,9 +892,9 @@ namespace bs
 					{
 						UINT32 arrayOffset = i * paramSize;
 						memcpy(&temp, data + arrayOffset, paramSize);
-						temp = temp.transpose();
+						auto transposed = temp.transpose();
 
-						paramBlock->write((paramInfo.offset + arrayOffset) * sizeof(UINT32), &temp, paramSize);
+						paramBlock->write((paramInfo.offset + arrayOffset) * sizeof(UINT32), &transposed, paramSize);
 					}
 				};
 
