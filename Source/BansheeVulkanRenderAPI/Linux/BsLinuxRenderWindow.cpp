@@ -109,7 +109,7 @@ namespace bs
 
 		XVisualInfo visualInfoTempl = {};
 		visualInfoTempl.screen = XDefaultScreen(LinuxPlatform::getXDisplay());
-		visualInfoTempl.depth = 32;
+		visualInfoTempl.depth = 24;
 		visualInfoTempl.c_class = TrueColor;
 
 		int32_t numVisuals;
@@ -159,7 +159,7 @@ namespace bs
 
 		// Create Vulkan surface
 		VkXlibSurfaceCreateInfoKHR surfaceCreateInfo;
-		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
 		surfaceCreateInfo.pNext = nullptr;
 		surfaceCreateInfo.flags = 0;
 		surfaceCreateInfo.window = mWindow->_getXWindow();
@@ -692,10 +692,10 @@ namespace bs
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
 		presentDevice->waitIdle();
 
-		LinuxPlatform::lockX();
+		// Note: This assumes that this method was called from the main message loop, which already acquires X locks,
+		// so no need to lock here explicitly
 		mSwapChain->rebuild(presentDevice, mSurface, props.width, props.height, props.vsync, mColorFormat, mColorSpace,
 				mDesc.depthBuffer, mDepthFormat);
-		LinuxPlatform::unlockX();
 
 		RenderWindow::_windowMovedOrResized();
 	}
