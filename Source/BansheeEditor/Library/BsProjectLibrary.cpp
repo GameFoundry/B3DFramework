@@ -596,7 +596,12 @@ namespace bs
 		WString replace(L"\\\\&");
 		WString escapedPattern = std::regex_replace(pattern, escape, replace, std::regex_constants::match_default | std::regex_constants::format_sed);
 
+		// For some reason MSVC stdlib implementation requires a different pattern than stdlib one
+#if BS_PLATFORM == BS_PLATFORM_WIN32
+		std::wregex wildcard(L"\\\\\\*");
+#else
 		std::wregex wildcard(L"\\\\\\\\\\*");
+#endif
 		WString wildcardReplace(L".*");
 		WString searchPattern = std::regex_replace(escapedPattern, wildcard, L".*");
 

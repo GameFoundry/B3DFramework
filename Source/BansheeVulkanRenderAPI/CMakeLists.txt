@@ -14,12 +14,6 @@ set(BansheeVulkanRenderAPI_INC
 	"../BansheeCore"
 )
 
-if(WIN32)
-	set(BansheeVulkanRenderAPI_INC ${BansheeVulkanRenderAPI_INC} "Source/Win32")
-else()
-# TODO_OTHER_PLATFORMS_GO_HERE
-endif()	
-	
 include_directories(${BansheeVulkanRenderAPI_INC})	
 	
 # Target

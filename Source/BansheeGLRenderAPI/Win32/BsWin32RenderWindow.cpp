@@ -32,7 +32,6 @@ namespace bs
 
 	Win32RenderWindow::~Win32RenderWindow()
 	{
-		Platform::resetNonClientAreas(*this);
 	}
 
 	void Win32RenderWindow::getCustomAttribute(const String& name, void* pData) const
@@ -109,6 +108,8 @@ namespace bs
 			bs_free(mDeviceName);
 			mDeviceName = nullptr;
 		}
+
+		Platform::resetNonClientAreas(*this);
 	}
 
 	void Win32RenderWindow::initialize()

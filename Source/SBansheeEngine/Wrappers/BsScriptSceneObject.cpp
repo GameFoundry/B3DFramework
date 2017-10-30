@@ -405,8 +405,11 @@ namespace bs
 			ScriptGameObjectManager::instance().destroyScriptSceneObject(this);
 		else
 		{
-			MonoUtil::freeGCHandle(mManagedHandle);
-			mManagedHandle = 0;
+			if (mManagedHandle != 0)
+			{
+				MonoUtil::freeGCHandle(mManagedHandle);
+				mManagedHandle = 0;
+			}
 		}
 	}
 

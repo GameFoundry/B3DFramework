@@ -4,10 +4,10 @@
 #  BansheeSBGen_EXECUTABLE_PATH
 #  BansheeSBGen_FOUND
 
-set(BansheeSBGen_INSTALL_DIRS ${PROJECT_SOURCE_DIR}/../Dependencies/tools/BansheeSBGen CACHE PATH "")
+set(BansheeSBGen_INSTALL_DIRS ${PROJECT_SOURCE_DIR}/../Dependencies/tools/BansheeSBGen/bin CACHE PATH "")
 
 message(STATUS "Looking for BansheeSBGen installation...")
-find_program(BansheeSBGen_EXECUTABLE NAMES BansheeSBGen BansheeSBGen_v1.0.0 PATHS ${BansheeSBGen_INSTALL_DIRS})
+find_program(BansheeSBGen_EXECUTABLE NAMES BansheeSBGen PATHS ${BansheeSBGen_INSTALL_DIRS})
 
 if(BansheeSBGen_EXECUTABLE)
 	set(BansheeSBGen_FOUND TRUE)

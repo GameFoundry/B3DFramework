@@ -126,7 +126,6 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			rapi->_getMainContext()->setCurrent();
 			glrc = wglGetCurrentContext();
 		}
 
