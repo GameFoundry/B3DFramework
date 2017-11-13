@@ -7,6 +7,7 @@
 #include "Renderer/BsRenderable.h"
 #include "Renderer/BsParamBlocks.h"
 #include "Material/BsMaterialParam.h"
+#include "RenderAPI/BsGpuPipelineParamInfo.h"
 #include "BsImageBasedLighting.h"
 
 namespace bs { namespace ct
@@ -62,11 +63,11 @@ namespace bs { namespace ct
 		/** Index of the technique in the material to render the element with. */
 		UINT32 techniqueIdx;
 
-		/** Index to which should the per-camera param block buffer be bound to. */
-		UINT32 perCameraBindingIdx;
+		/** Binding indices representing where should the per-camera param block buffer be bound to. */
+		GpuParamBinding perCameraBindings[GPT_COUNT];
 
-		/** Index to which should the lights param block buffer be bound to. */
-		UINT32 gridParamsBindingIdx;
+		/** Binding indices representing where should lights param block buffer be bound to. */
+		GpuParamBinding gridParamsBindings[GPT_COUNT];
 
 		/** 
 		 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward

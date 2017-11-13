@@ -106,14 +106,14 @@ namespace bs { namespace ct
 		mProbesLLHeads->writeData(0, mProbesLLHeads->getSize(), headsClearData, BWT_DISCARD);
 		bs_stack_free(headsClearData);
 
-		mParamsSet->setParamBlockBuffer("GridParams", gridParams, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("GridParams", gridParams);
 		mLightBufferParam.set(lightsBuffer);
 		mProbesBufferParam.set(probesBuffer);
 	}
 
 	void LightGridLLCreationMat::execute(const RendererView& view)
 	{
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		UINT32 zeros[] = { 0, 0 };
 		mGridDataCounter->writeData(0, sizeof(UINT32) * 2, zeros, BWT_DISCARD);
 
-		mParamsSet->setParamBlockBuffer("GridParams", gridParams, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("GridParams", gridParams);
 
 		mLightsLLHeadsParam.set(lightsLLHeads);
 		mLightsLLParam.set(lightsLL);
@@ -223,7 +223,7 @@ namespace bs { namespace ct
 
 	void LightGridLLReductionMat::execute(const RendererView& view)
 	{
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;

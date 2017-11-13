@@ -99,8 +99,8 @@ namespace bs
 	 */
 	template<bool Core>
 	class BS_CORE_EXPORT TPass
-    {
-    public:
+	{
+	public:
 		typedef typename TPassTypes<Core>::BlendStateType BlendStateType;
 		typedef typename TPassTypes<Core>::RasterizerStateType RasterizerStateType;
 		typedef typename TPassTypes<Core>::DepthStencilStateType DepthStencilStateType;
@@ -111,7 +111,7 @@ namespace bs
 
 		virtual ~TPass() { }
 
-        bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
+		bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
 		bool hasFragmentProgram() const { return mData.fragmentProgram != nullptr; }
 		bool hasGeometryProgram() const { return mData.geometryProgram != nullptr; }
 		bool hasHullProgram() const { return mData.hullProgram != nullptr; }
@@ -147,7 +147,7 @@ namespace bs
 		PassDescType mData;
 		GraphicsPipelineStateType mGraphicsPipelineState;
 		ComputePipelineStateType mComputePipelineState;
-    };
+	};
 
 	/** @} */
 
@@ -161,8 +161,8 @@ namespace bs
 	 * @note	Sim thread.
 	 */
 	class BS_CORE_EXPORT Pass : public IReflectable, public CoreObject, public TPass<false>
-    {
-    public:
+	{
+	public:
 		virtual ~Pass() { }
 
 		/** Retrieves an implementation of a pass usable only from the core thread. */
@@ -199,7 +199,7 @@ namespace bs
 		friend class PassRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
-    };
+	};
 
 	/** @} */
 
@@ -215,8 +215,8 @@ namespace bs
 	 * @note	Core thread.
 	 */
 	class BS_CORE_EXPORT Pass : public CoreObject, public TPass<true>
-    {
-    public:
+	{
+	public:
 		virtual ~Pass() { }
 
 		/**	Creates a new empty pass. */
@@ -236,7 +236,7 @@ namespace bs
 
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
-    };
+	};
 
 	/** @} */
 	}

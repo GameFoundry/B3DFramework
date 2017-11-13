@@ -277,7 +277,7 @@ namespace bs { namespace ct
 			params->getTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
+		params->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void TiledDeferredLightingMat::_initVariations(ShaderVariations& variations)
@@ -349,7 +349,7 @@ namespace bs { namespace ct
 		mParamBuffer->flushToGPU();
 
 		mGBufferParams.bind(gbuffer);
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		if (mSampleCount > 1)
 		{
@@ -392,7 +392,7 @@ namespace bs { namespace ct
 		params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
 
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
+		params->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void FlatFramebufferToTextureMat::_initVariations(ShaderVariations& variations)

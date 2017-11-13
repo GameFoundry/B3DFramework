@@ -235,7 +235,7 @@ namespace bs { namespace ct
 			params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
 		mParamBuffer = gTiledImageBasedLightingParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
+		params->setParamBlockBuffer("Params", mParamBuffer);
 
 		mImageBasedParams.populate(mParamsSet, GPT_COMPUTE_PROGRAM, false, false);
 
@@ -251,7 +251,7 @@ namespace bs { namespace ct
 		mImageBasedParams.ssrSampParam.set(samplerState);
 		mImageBasedParams.ambientOcclusionSampParam.set(samplerState);
 
-		mParamsSet->setParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
+		params->setParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
 	}
 
 	void TiledDeferredImageBasedLightingMat::_initVariations(ShaderVariations& variations)
@@ -296,7 +296,7 @@ namespace bs { namespace ct
 		mImageBasedParams.ambientOcclusionTexParam.set(inputs.ambientOcclusion);
 		mImageBasedParams.ssrTexParam.set(inputs.ssr);
 
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		mInColorTextureParam.set(inputs.lightAccumulation);
 		if (mSampleCount > 1)

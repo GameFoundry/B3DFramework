@@ -14,8 +14,9 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gReflectionCubeDownsampleParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void ReflectionCubeDownsampleMat::_initVariations(ShaderVariations& variations)
@@ -44,8 +45,9 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gReflectionCubeImportanceSampleParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void ReflectionCubeImportanceSampleMat::_initVariations(ShaderVariations& variations)
@@ -108,9 +110,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceComputeSHParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
-
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Params", mParamBuffer);
 		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gInputTex", mInputTexture);
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
@@ -193,9 +194,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceReduceSHParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
-
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Params", mParamBuffer);
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
 		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
@@ -252,9 +252,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceProjectSHParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
-
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Params", mParamBuffer);
 		params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputBuffer);
 	}
 

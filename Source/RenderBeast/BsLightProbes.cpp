@@ -49,7 +49,7 @@ namespace bs { namespace ct
 			params->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
 
 		mParamBuffer = gTetrahedraRenderParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
+		params->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void TetrahedraRenderMat::_initVariations(ShaderVariations& variations)
@@ -68,7 +68,7 @@ namespace bs { namespace ct
 		gTetrahedraRenderParamDef.gDepthTexSize.set(mParamBuffer, texSize);
 
 		mDepthBufferTex.set(sceneDepth);
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output);
@@ -159,7 +159,7 @@ namespace bs { namespace ct
 		}
 
 		mParamBuffer = gIrradianceEvaluateParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer, true);
+		params->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void IrradianceEvaluateMat::_initVariations(ShaderVariations& variations)
@@ -206,7 +206,7 @@ namespace bs { namespace ct
 		gIrradianceEvaluateParamDef.gNumTetrahedra.set(mParamBuffer, lightProbesInfo.numTetrahedra);
 		mParamBuffer->flushToGPU();
 
-		mParamsSet->setParamBlockBuffer("PerCamera", view.getPerViewBuffer(), true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();

@@ -269,8 +269,13 @@ namespace bs { namespace ct
 
 			for (auto& element : inputs.scene.renderables[i]->elements)
 			{
-				if (element.perCameraBindingIdx != (UINT32)-1)
-					element.params->setParamBlockBuffer(element.perCameraBindingIdx, inputs.view.getPerViewBuffer(), true);
+				SPtr<GpuParams> gpuParams = element.params->getGpuParams();
+				for(UINT32 j = 0; j < GPT_COUNT; j++)
+				{
+					const GpuParamBinding& binding = element.perCameraBindings[j];
+					if(binding.slot != (UINT32)-1)
+						gpuParams->setParamBlockBuffer(binding.set, binding.slot, inputs.view.getPerViewBuffer());
+				}
 			}
 		}
 
@@ -961,10 +966,14 @@ namespace bs { namespace ct
 					continue;
 
 				// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
-				// change (e.g. when growing). Although technically the internal systems should be smart enough to
-				// avoid updates unless objects actually changed.
-				if (element.gridParamsBindingIdx != (UINT32)-1)
-					element.params->setParamBlockBuffer(element.gridParamsBindingIdx, gridParams, true);
+				// change (e.g. when growing). 
+				SPtr<GpuParams> gpuParams = element.params->getGpuParams();
+				for(UINT32 j = 0; j < GPT_COUNT; j++)
+				{
+					const GpuParamBinding& binding = element.gridParamsBindings[j];
+					if (binding.slot != (UINT32)-1)
+						gpuParams->setParamBlockBuffer(binding.set, binding.slot, gridParams);
+				}
 
 				element.gridLightOffsetsAndSizeParam.set(gridLightOffsetsAndSize);
 				element.gridLightIndicesParam.set(gridLightIndices);

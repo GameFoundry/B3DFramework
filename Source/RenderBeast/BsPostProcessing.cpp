@@ -58,7 +58,7 @@ namespace bs { namespace ct
 
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
 		if(gpuParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
-			mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+			gpuParams->setParamBlockBuffer("Input", mParamBuffer);
 
 		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
@@ -143,9 +143,9 @@ namespace bs { namespace ct
 	EyeAdaptHistogramMat::EyeAdaptHistogramMat()
 	{
 		mParamBuffer = gEyeAdaptHistogramParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Input", mParamBuffer);
 		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gSceneColorTex", mSceneColor);
 		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
@@ -223,9 +223,9 @@ namespace bs { namespace ct
 	EyeAdaptHistogramReduceMat::EyeAdaptHistogramReduceMat()
 	{
 		mParamBuffer = gEyeAdaptHistogramReduceParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Input", mParamBuffer);
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mHistogramTex);
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 	}
@@ -277,8 +277,10 @@ namespace bs { namespace ct
 	EyeAdaptationMat::EyeAdaptationMat()
 	{
 		mParamBuffer = gEyeAdaptationParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
 	}
 
 	void EyeAdaptationMat::_initVariations(ShaderVariations& variations)
@@ -348,10 +350,9 @@ namespace bs { namespace ct
 		mParamBuffer = gCreateTonemapLUTParamDef.createBuffer();
 		mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
-
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Input", mParamBuffer);
+		params->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
 		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
@@ -473,9 +474,9 @@ namespace bs { namespace ct
 	TonemappingMat::TonemappingMat()
 	{
 		mParamBuffer = gTonemappingParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		params->setParamBlockBuffer("Input", mParamBuffer);
 		params->getTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 
@@ -567,8 +568,9 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gGaussianBlurParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void GaussianBlurMat::_initVariations(ShaderVariations& variations)
@@ -770,9 +772,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gGaussianDOFParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gColorTex", mColorTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
@@ -836,7 +837,7 @@ namespace bs { namespace ct
 		mDepthTexture.set(depth);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(rt);
@@ -900,9 +901,9 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gGaussianDOFParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
@@ -940,7 +941,7 @@ namespace bs { namespace ct
 		mDepthTexture.set(depth);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output);
@@ -996,8 +997,9 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gFXAAParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-		mParamsSet->getGpuParams()->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void FXAAMat::_initVariations(ShaderVariations& variations)
@@ -1061,9 +1063,9 @@ namespace bs { namespace ct
 
 		mParamBuffer = gSSAOParamDef.createBuffer();
 
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
-
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+
 		if (isFinal)
 		{
 			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
@@ -1217,7 +1219,7 @@ namespace bs { namespace ct
 		mRandomTexture.set(textures.randomRotations);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(destination);
@@ -1264,9 +1266,9 @@ namespace bs { namespace ct
 	SSAODownsampleMat::SSAODownsampleMat()
 	{
 		mParamBuffer = gSSAODownsampleParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
 
@@ -1313,7 +1315,7 @@ namespace bs { namespace ct
 		mNormalsTexture.set(normals);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(destination);
@@ -1336,9 +1338,9 @@ namespace bs { namespace ct
 	SSAOBlurMat::SSAOBlurMat()
 	{
 		mParamBuffer = gSSAOBlurParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
 
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mAOTexture);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
@@ -1392,7 +1394,7 @@ namespace bs { namespace ct
 		mDepthTexture.set(depth);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(destination);
@@ -1429,7 +1431,7 @@ namespace bs { namespace ct
 		:mGBufferParams(mMaterial, mParamsSet)
 	{
 		mParamBuffer = gSSRStencilParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Input", mParamBuffer);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("Input", mParamBuffer);
 	}
 
 	void SSRStencilMat::_initVariations(ShaderVariations& variations)
@@ -1448,7 +1450,7 @@ namespace bs { namespace ct
 		gSSRStencilParamDef.gRoughnessScaleBias.set(mParamBuffer, roughnessScaleBias);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		const RendererViewProperties& viewProps = view.getProperties();
 		const Rect2I& viewRect = viewProps.viewRect;
@@ -1595,7 +1597,7 @@ namespace bs { namespace ct
 		gSSRTraceParamDef.gTemporalJitter.set(mParamBuffer, temporalJitter);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		rapi.setRenderTarget(destination, FBT_DEPTH);
 
@@ -1812,7 +1814,7 @@ namespace bs { namespace ct
 		}
 		
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(destination);
@@ -1841,9 +1843,9 @@ namespace bs { namespace ct
 	EncodeDepthMat::EncodeDepthMat()
 	{
 		mParamBuffer = gEncodeDepthParamDef.createBuffer();
-		mParamsSet->setParamBlockBuffer("Params", mParamBuffer);
 
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Params", mParamBuffer);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 
 		SAMPLER_STATE_DESC sampDesc;
@@ -1907,7 +1909,7 @@ namespace bs { namespace ct
 
 		const Rect2I& viewRect = view.getProperties().viewRect;
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
-		mParamsSet->setParamBlockBuffer("PerCamera", perView);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perView);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);

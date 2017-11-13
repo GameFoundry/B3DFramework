@@ -25,14 +25,14 @@ namespace bs { namespace ct
 
 	void ShadowDepthNormalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
-		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("ShadowParams", shadowParams);
 
 		gRendererUtility().setPass(mMaterial);
 	}
 	
 	void ShadowDepthNormalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
-		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerObject", perObjectParams);
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
@@ -46,14 +46,14 @@ namespace bs { namespace ct
 
 	void ShadowDepthDirectionalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
-		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("ShadowParams", shadowParams);
 
 		gRendererUtility().setPass(mMaterial);
 	}
 	
 	void ShadowDepthDirectionalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
-		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerObject", perObjectParams);
 		gRendererUtility().setPassParams(mParamsSet);
 	}
 
@@ -71,8 +71,9 @@ namespace bs { namespace ct
 	void ShadowDepthCubeMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams, 
 		const SPtr<GpuParamBlockBuffer>& shadowCubeMatrices)
 	{
-		mParamsSet->setParamBlockBuffer("ShadowParams", shadowParams);
-		mParamsSet->setParamBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("ShadowParams", shadowParams);
+		gpuParams->setParamBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 
 		gRendererUtility().setPass(mMaterial);
 	}
@@ -80,8 +81,9 @@ namespace bs { namespace ct
 	void ShadowDepthCubeMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams,
 		const SPtr<GpuParamBlockBuffer>& shadowCubeMasks)
 	{
-		mParamsSet->setParamBlockBuffer("PerObject", perObjectParams);
-		mParamsSet->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("PerObject", perObjectParams);
+		gpuParams->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
 
 		gRendererUtility().setPassParams(mParamsSet);
 	}
@@ -129,7 +131,7 @@ namespace bs { namespace ct
 		Vector4 lightPosAndScale(0, 0, 0, 1);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
@@ -237,8 +239,9 @@ namespace bs { namespace ct
 		mShadowMapParam.set(params.shadowMap, surface);
 		mShadowSamplerParam.set(mSamplerState);
 
-		mParamsSet->setParamBlockBuffer("Params", params.shadowParams);
-		mParamsSet->setParamBlockBuffer("PerCamera", params.perCamera);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Params", params.shadowParams);
+		gpuParams->setParamBlockBuffer("PerCamera", params.perCamera);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
@@ -359,8 +362,9 @@ namespace bs { namespace ct
 		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
 
-		mParamsSet->setParamBlockBuffer("Params", params.shadowParams);
-		mParamsSet->setParamBlockBuffer("PerCamera", params.perCamera);
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("Params", params.shadowParams);
+		gpuParams->setParamBlockBuffer("PerCamera", params.perCamera);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);

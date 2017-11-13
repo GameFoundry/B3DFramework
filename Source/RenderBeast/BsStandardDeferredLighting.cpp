@@ -45,12 +45,12 @@ namespace bs { namespace ct {
 
 		mGBufferParams.bind(gBufferInput);
 		mLightOcclusionTexParam.set(lightOcclusion);
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
 	}
 
 	void DirectionalLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
 	{
-		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerLight", perLight);
 		
 		gRendererUtility().setPassParams(mParamsSet);
 	}
@@ -125,12 +125,12 @@ namespace bs { namespace ct {
 
 		mGBufferParams.bind(gBufferInput);
 		mLightOcclusionTexParam.set(lightOcclusion);
-		mParamsSet->setParamBlockBuffer("PerCamera", perCamera, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
 	}
 
 	void PointLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
 	{
-		mParamsSet->setParamBlockBuffer("PerLight", perLight, true);
+		mParamsSet->getGpuParams()->setParamBlockBuffer("PerLight", perLight);
 		
 		gRendererUtility().setPassParams(mParamsSet);
 	}

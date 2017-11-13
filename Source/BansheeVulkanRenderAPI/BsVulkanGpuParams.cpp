@@ -571,7 +571,7 @@ namespace bs { namespace ct
 				perDeviceData.uniformBuffers[i] = vkBuffer;
 			
 				UINT32 set, slot;
-				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::ParamBlock, i, set, slot);
+				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::ParamBlock, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].buffer.buffer = vkBuffer;
@@ -611,7 +611,7 @@ namespace bs { namespace ct
 				perDeviceData.buffers[i] = vkBuffer;
 
 				UINT32 set, slot;
-				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::Buffer, i, set, slot);
+				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Buffer, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 
@@ -656,7 +656,7 @@ namespace bs { namespace ct
 				perDeviceData.samplers[i] = vkSampler;
 
 				UINT32 set, slot;
-				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::SamplerState, i, set, slot);
+				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::SamplerState, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.sampler = vkSampler;
@@ -692,7 +692,7 @@ namespace bs { namespace ct
 				perDeviceData.storageImages[i] = vkImage;
 
 				UINT32 set, slot;
-				mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
+				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
 
 				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(surface, false);;
@@ -733,7 +733,7 @@ namespace bs { namespace ct
 			assert(perDeviceData.sampledImages[i] != VK_NULL_HANDLE);
 
 			UINT32 set, slot;
-			mParamInfo->getSetSlot(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
+			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
 
 			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 			VkDescriptorImageInfo& imgInfo = perDeviceData.perSetData[set].writeInfos[bindingIdx].image;

@@ -23,6 +23,13 @@ namespace bs
 		SPtr<GpuParamDesc> computeParams;
 	};
 
+	/** Binding location for a single GPU program parameter. */
+	struct GpuParamBinding
+	{
+		UINT32 set = (UINT32)-1;
+		UINT32 slot = (UINT32)-1;
+	};
+
 	/** Contains code common to both sim and core thread implementations of GpuPipelineParamInfo. */
 	class BS_CORE_EXPORT GpuPipelineParamInfoBase
 	{
@@ -56,7 +63,13 @@ namespace bs
 		UINT32 getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const;
 
 		/** Converts a sequential slot index into a set/slot combination. */
-		void getSetSlot(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const;
+		void getBinding(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const;
+
+		/**
+		 * Finds set/slot indices of a parameter with the specified name for every GPU program stage. Set/slot indices are
+		 * set to -1 if a stage doesn't have a block with the specified name.
+		 */
+		void getBindings(ParamType type, const String& name, GpuParamBinding(&bindings)[GPT_COUNT]);
 
 		/** Returns descriptions of individual parameters for the specified GPU program type. */
 		const SPtr<GpuParamDesc>& getParamDesc(GpuProgramType type) const { return mParamDescs[(int)type]; }

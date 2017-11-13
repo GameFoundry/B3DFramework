@@ -26,9 +26,6 @@ namespace bs { namespace ct
 		SPtr<Shader> shader = element.material->getShader();
 		if (shader == nullptr)
 		{
-			element.perCameraBindingIdx = -1;
-			element.gridParamsBindingIdx = -1;
-
 			LOGWRN("Missing shader on material.");
 			return;
 		}
@@ -37,24 +34,26 @@ namespace bs { namespace ct
 
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the provided
 		// buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-		if(shader->hasParamBlock("PerFrame"))
-			element.params->setParamBlockBuffer("PerFrame", mPerFrameParamBuffer, true);
+		gpuParams->setParamBlockBuffer("PerFrame", mPerFrameParamBuffer);
+		gpuParams->setParamBlockBuffer("PerObject", owner.perObjectParamBuffer);
+		gpuParams->setParamBlockBuffer("PerCall", owner.perCallParamBuffer);
 
-		if(shader->hasParamBlock("PerObject"))
-			element.params->setParamBlockBuffer("PerObject", owner.perObjectParamBuffer, true);
+		gpuParams->getParamInfo()->getBindings(
+			GpuPipelineParamInfoBase::ParamType::ParamBlock, 
+			"PerCamera",
+			element.perCameraBindings
+		);
 
-		if(shader->hasParamBlock("PerCall"))
-			element.params->setParamBlockBuffer("PerCall", owner.perCallParamBuffer, true);
-
-		if(shader->hasParamBlock("PerCamera"))
-			element.perCameraBindingIdx = element.params->getParamBlockBufferIndex("PerCamera");
-
-		element.gridParamsBindingIdx = element.params->getParamBlockBufferIndex("GridParams");
+		gpuParams->getParamInfo()->getBindings(
+			GpuPipelineParamInfoBase::ParamType::ParamBlock,
+			"GridParams",
+			element.gridParamsBindings
+		);
 
 		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLights"))
 			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLights", element.lightsBufferParam);
 
-		if(gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
+		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
 			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize", element.gridLightOffsetsAndSizeParam);
 
 		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLightIndices"))
