@@ -68,7 +68,7 @@ All features listed here are the ones currently available (implemented). If you 
     * PNG, PSD, BMP, JPG, etc. images
     * OTF, TTF fonts
 	* OGG, FLAC, WAV, MP3 sounds
-    * HLSL9, HLSL11, GLSL shaders
+    * HLSL, GLSL shaders
 * __GUI system__
   * Unicode text rendering and input
   * Easy to use layout based system
@@ -114,7 +114,7 @@ All features listed here are the ones currently available (implemented). If you 
   * Separate high level engine API
   * Integrated runtime for maximum performance
   * Full access to .NET framework
-  * Integration with Visual Studio
+  * Integration with Visual Studio, MonoDevelop
   * Automatic serialization
 	* Works with custom components, resources or arbitrary types
 	* Save/load data with no additional code

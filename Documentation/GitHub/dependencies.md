@@ -125,18 +125,22 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Bison 3.0.4
 - **Windows**
   - http://sourceforge.net/projects/winflexbison/files/
-- **Linux/Mac**
-  - http://ftp.gnu.org/gnu/bison/
+- **Linux**
+  - Debian/Ubuntu: *apt-get install bison*
+  - Or equivalent package for your distribution
 - Required by BansheeSL
-   
+- Executable (tool)
+ 
 **flex**
 - Flex 2.6.1
 - **Windows**
   - http://sourceforge.net/projects/winflexbison/files/
-- **Linux/Mac**
-  - https://github.com/westes/flex/releases
+- **Linux**
+  - Debian/Ubuntu: *apt-get install flex*
+  - Or equivalent package for your distribution
 - Required by BansheeSL
-	
+- Executable (tool)
+
 **BansheeSBGen**
  - Banshee Script Binding Generator 1.0
  - https://github.com/BearishSun/BansheeSBGen

@@ -1,0 +1,65 @@
+﻿{
+    "ClearHandleAlpha.bsl": null,
+    "DockDropOverlay.bsl": null,
+    "GizmoPicking.bsl": null,
+    "GizmoPickingAlpha.bsl": null,
+    "IconGizmo.bsl": null,
+    "LineGizmo.bsl": [
+        {
+            "Path": "LineGizmo.bslinc"
+        }
+    ],
+    "LineHandle.bsl": [
+        {
+            "Path": "LineGizmo.bslinc"
+        }
+    ],
+    "PickingAlphaCullCCW.bsl": [
+        {
+            "Path": "PickingAlphaCull.bslinc"
+        }
+    ],
+    "PickingAlphaCullCW.bsl": [
+        {
+            "Path": "PickingAlphaCull.bslinc"
+        }
+    ],
+    "PickingAlphaCullNone.bsl": [
+        {
+            "Path": "PickingAlphaCull.bslinc"
+        }
+    ],
+    "PickingCullCCW.bsl": [
+        {
+            "Path": "PickingCull.bslinc"
+        }
+    ],
+    "PickingCullCW.bsl": [
+        {
+            "Path": "PickingCull.bslinc"
+        }
+    ],
+    "PickingCullNone.bsl": [
+        {
+            "Path": "PickingCull.bslinc"
+        }
+    ],
+    "SceneGrid.bsl": null,
+    "Selection.bsl": [
+        {
+            "Path": "SelectionBase.bslinc"
+        }
+    ],
+    "SolidGizmo.bsl": [
+        {
+            "Path": "SolidGizmo.bslinc"
+        }
+    ],
+    "SolidHandle.bsl": [
+        {
+            "Path": "SolidGizmo.bslinc"
+        }
+    ],
+    "TextGizmo.bsl": null,
+    "WireGizmo.bsl": null
+}
