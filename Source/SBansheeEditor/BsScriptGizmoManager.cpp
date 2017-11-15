@@ -14,6 +14,8 @@
 #include "Scene/BsGizmoManager.h"
 #include "Scene/BsSelection.h"
 #include "BsScriptObjectManager.h"
+#include "BsScriptGameObjectManager.h"
+#include "Wrappers/BsScriptComponent.h"
 
 using namespace std::placeholders;
 
@@ -65,36 +67,58 @@ namespace bs
 			const Vector<HComponent>& components = curSO->getComponents();
 			for (auto& component : components)
 			{
+				String componentName;
+				MonoObject* managedInstance = nullptr;
 				if (rtti_is_of_type<ManagedComponent>(component.get()))
 				{
 					ManagedComponent* managedComponent = static_cast<ManagedComponent*>(component.get());
+					componentName = managedComponent->getManagedFullTypeName();
+					managedInstance = managedComponent->getManagedInstance();
+				}
+				else
+				{
+					ScriptGameObjectManager& sgoManager = ScriptGameObjectManager::instance();
+					ScriptComponentBase* scriptComponent = sgoManager.getBuiltinScriptComponent(component, false);
 
-					auto iterFind = mGizmoDrawers.find(managedComponent->getManagedFullTypeName());
-					if (iterFind != mGizmoDrawers.end())
+					if (scriptComponent)
 					{
-						UINT32 flags = iterFind->second.flags;
+						managedInstance = scriptComponent->getManagedInstance();
 
-						bool drawGizmo = false;
-						if (((flags & (UINT32)DrawGizmoFlags::Selected) != 0) && isSelected)
-							drawGizmo = true;
+						String ns, typeName;
+						MonoUtil::getClassName(managedInstance, ns, typeName);
 
-						if (((flags & (UINT32)DrawGizmoFlags::ParentSelected) != 0) && isParentSelected)
-							drawGizmo = true;
+						componentName = ns + "." + typeName;
+					}
+				}
 
-						if (((flags & (UINT32)DrawGizmoFlags::NotSelected) != 0) && !isSelected && !isParentSelected)
-							drawGizmo = true;
+				if (componentName.empty())
+					continue;
 
-						if (drawGizmo)
-						{
-							bool pickable = (flags & (UINT32)DrawGizmoFlags::Pickable) != 0;
-							GizmoManager::instance().startGizmo(curSO);
-							GizmoManager::instance().setPickable(pickable);
+				auto iterFind = mGizmoDrawers.find(componentName);
+				if (iterFind != mGizmoDrawers.end())
+				{
+					UINT32 flags = iterFind->second.flags;
 
-							void* params[1] = { managedComponent->getManagedInstance() };
-							iterFind->second.drawGizmosMethod->invoke(nullptr, params);
+					bool drawGizmo = false;
+					if (((flags & (UINT32)DrawGizmoFlags::Selected) != 0) && isSelected)
+						drawGizmo = true;
 
-							GizmoManager::instance().endGizmo();
-						}
+					if (((flags & (UINT32)DrawGizmoFlags::ParentSelected) != 0) && isParentSelected)
+						drawGizmo = true;
+
+					if (((flags & (UINT32)DrawGizmoFlags::NotSelected) != 0) && !isSelected && !isParentSelected)
+						drawGizmo = true;
+
+					if (drawGizmo)
+					{
+						bool pickable = (flags & (UINT32)DrawGizmoFlags::Pickable) != 0;
+						GizmoManager::instance().startGizmo(curSO);
+						GizmoManager::instance().setPickable(pickable);
+
+						void* params[1] = { managedInstance };
+						iterFind->second.drawGizmosMethod->invoke(nullptr, params);
+
+						GizmoManager::instance().endGizmo();
 					}
 				}
 			}

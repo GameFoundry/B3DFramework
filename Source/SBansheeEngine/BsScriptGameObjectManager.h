@@ -61,9 +61,9 @@ namespace bs
 
 		/**
 		 * Attempts to find the interop object for the specified built-in component. If one cannot be found a new
-		 * script interop object is created.
+		 * script interop object is created if @p createNonExisting is enabled, or returns null otherwise.
 		 */
-		ScriptComponentBase* getBuiltinScriptComponent(const HComponent& component);
+		ScriptComponentBase* getBuiltinScriptComponent(const HComponent& component, bool createNonExisting = true);
 
 		/**
 		 * Attempts to find the interop object for the specified managed component. If one cannot be found null is returned.

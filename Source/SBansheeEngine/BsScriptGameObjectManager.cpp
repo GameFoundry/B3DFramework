@@ -102,13 +102,16 @@ namespace bs
 		return nativeInstance;
 	}
 
-	ScriptComponentBase* ScriptGameObjectManager::getBuiltinScriptComponent(const HComponent& component)
+	ScriptComponentBase* ScriptGameObjectManager::getBuiltinScriptComponent(const HComponent& component, bool createNonExisting)
 	{
 		ScriptComponentBase* scriptComponent = getScriptComponent(component.getInstanceId());
 		if (scriptComponent != nullptr)
 			return scriptComponent;
 
-		return createBuiltinScriptComponent(component);
+		if(createNonExisting)
+			return createBuiltinScriptComponent(component);
+
+		return nullptr;
 	}
 
 	ScriptManagedComponent* ScriptGameObjectManager::getManagedScriptComponent(const HManagedComponent& component) const
