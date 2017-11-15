@@ -44,6 +44,9 @@ namespace bs
 		_throwExceptionIfInvalidOrDuplicate(uuid);
 #endif
 
+		if (!resource.isLoaded(false))
+			return nullptr;
+
 		UINT32 rttiId = resource->getRTTI()->getRTTIId();
 		BuiltinResourceInfo* info = ScriptAssemblyManager::instance().getBuiltinResourceInfo(rttiId);
 

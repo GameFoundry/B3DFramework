@@ -321,6 +321,9 @@ raster_option
 	| TOKEN_SCISSOR '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_Scissor; $$.value.intValue = $3; }
 	| TOKEN_MULTISAMPLE '=' TOKEN_BOOLEAN ';'					{ $$.type = OT_Multisample; $$.value.intValue = $3; }
 	| TOKEN_AALINE '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_AALine; $$.value.intValue = $3; }
+	| TOKEN_DEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_DepthBias; $$.value.floatValue = $3; }
+	| TOKEN_SDEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_SDepthBias; $$.value.floatValue = $3; }
+	| TOKEN_DEPTHCLIP '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_DepthClip; $$.value.intValue = $3; }	
 	;	
 	
 	/* Depth state */
@@ -345,9 +348,6 @@ depth_option
 	: TOKEN_DEPTHREAD '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_DepthRead; $$.value.intValue = $3; }
 	| TOKEN_DEPTHWRITE '=' TOKEN_BOOLEAN ';'					{ $$.type = OT_DepthWrite; $$.value.intValue = $3; }
 	| TOKEN_COMPAREFUNC '=' TOKEN_COMPFUNCVALUE ';'				{ $$.type = OT_CompareFunc; $$.value.intValue = $3; }
-	| TOKEN_DEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_DepthBias; $$.value.floatValue = $3; }
-	| TOKEN_SDEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_SDepthBias; $$.value.floatValue = $3; }
-	| TOKEN_DEPTHCLIP '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_DepthClip; $$.value.intValue = $3; }
 	;
 	
 	/* Stencil state */

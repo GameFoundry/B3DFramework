@@ -1,38 +1,3 @@
-mixin SelectionBase
-{
-	raster
-	{
-		fill = wire;
-	};
-	
-	depth
-	{
-		bias = 0.00001f;
-	};
-	
-	blend
-	{
-		target
-		{
-			enabled = true;
-			color = { srcA, srcIA, add };
-		};
-	};
-	
-	code
-	{
-		cbuffer FragParams
-		{	
-			float4 selColor;
-		};
-
-		float4 fsmain(in float4 inPos : SV_Position) : SV_Target
-		{
-			return selColor;
-		}
-	};
-};
-
 mixin 
 #ifdef USE_BLEND_SHAPES
 	#ifdef USE_SKELETON
@@ -48,8 +13,21 @@ mixin
 	#endif
 #endif
 {
-	mixin SelectionBase;
-
+	raster
+	{
+		fill = wire;
+		bias = 0.00001f;
+	};
+	
+	blend
+	{
+		target
+		{
+			enabled = true;
+			color = { srcA, srcIA, add };
+		};
+	};
+	
 	code
 	{
 		struct VertexInput
@@ -110,5 +88,15 @@ mixin
 
 			oPosition = mul(matWorldViewProj, position);
 		}
+		
+		cbuffer FragParams
+		{	
+			float4 selColor;
+		};
+
+		float4 fsmain(in float4 inPos : SV_Position) : SV_Target
+		{
+			return selColor;
+		}		
 	};
 };
