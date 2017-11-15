@@ -182,7 +182,7 @@ namespace bs { namespace ct
 		dummySkyDesc.height = 2;
 
 		// Note: Eventually replace this with a time of day model
-		float intensity = 10.0f;
+		float intensity = 1.0f;
 		Color skyColor = Color::White * intensity;
 		SPtr<Texture> skyTexture = Texture::create(dummySkyDesc);
 		

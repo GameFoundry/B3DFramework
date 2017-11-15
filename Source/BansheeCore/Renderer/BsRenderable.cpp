@@ -143,6 +143,16 @@ namespace bs
 	template class TRenderable < false >;
 	template class TRenderable < true >;
 
+	void Renderable::initialize()
+	{
+		CoreObject::initialize();		
+
+		// Since we don't pass any information along to the core thread object on its construction, make sure the data
+		// sync executes
+		_markCoreDirty();
+	}
+
+
 	void Renderable::setAnimation(const SPtr<Animation>& animation)
 	{
 		mAnimation = animation;

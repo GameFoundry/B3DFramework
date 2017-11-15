@@ -21,7 +21,7 @@ namespace bs
 	{
 	public:
 		CLight(const HSceneObject& parent, LightType type = LightType::Radial, Color color = Color::White, 
-			float intensity = 100.0f, float range = 1.0f, bool castsShadows = false, Degree spotAngle = Degree(45), 
+			float intensity = 10000.0f, float range = 1.0f, bool castsShadows = false, Degree spotAngle = Degree(45), 
 			Degree spotFalloffAngle = Degree(40));
 
 		virtual ~CLight();
@@ -123,13 +123,13 @@ namespace bs
 		mutable SPtr<Light> mInternal;
 
 		// Only valid during construction
-		LightType mType;
-		Color mColor;
-		float mIntensity; 
-		float mRange; 
-		bool mCastsShadows; 
-		Degree mSpotAngle; 
-		Degree mSpotFalloffAngle;
+		LightType mType = LightType::Radial;
+		Color mColor = Color::White;
+		float mIntensity = 10000.0f;
+		float mRange = 1.0f;
+		bool mCastsShadows = false; 
+		Degree mSpotAngle = Degree(45); 
+		Degree mSpotFalloffAngle = Degree(40);
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/

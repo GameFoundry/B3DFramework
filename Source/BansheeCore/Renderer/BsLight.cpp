@@ -11,7 +11,7 @@ namespace bs
 {
 	LightBase::LightBase()
 		: mType(LightType::Radial), mCastsShadows(false), mColor(Color::White), mAttRadius(10.0f), mSourceRadius(0.0f)
-		, mIntensity(5.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(true), mShadowBias(0.5f)
+		, mIntensity(10000.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(true), mShadowBias(0.5f)
 	{
 		updateAttenuationRange();
 	}

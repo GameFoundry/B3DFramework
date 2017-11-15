@@ -170,6 +170,9 @@ namespace bs
 		/** @copydoc SceneActor::_updateState */
 		void _updateState(const SceneObject& so, bool force = false) override;
 
+		/** @copydoc CoreObject::initialize() */
+		void initialize() override;
+
 		/** @} */
 	protected:
 		/** @copydoc CoreObject::createCore */
