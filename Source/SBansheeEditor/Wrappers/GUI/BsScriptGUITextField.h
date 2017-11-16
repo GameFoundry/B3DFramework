@@ -21,17 +21,12 @@ namespace bs
 		/**
 		 * Triggered when the value in the native text field changes.
 		 *
-		 * @param[in]	instance	Managed GUITextField instance.
 		 * @param[in]	newValue	New string value.
 		 */
-		static void onChanged(MonoObject* instance, const WString& newValue);
+		void onChanged(const WString& newValue);
 
-		/**
-		 * Triggered when the user confirms input in the native text field.
-		 *
-		 * @param[in]	instance	Managed GUITextField instance.
-		 */
-		static void onConfirmed(MonoObject* instance);
+		/** Triggered when the user confirms input in the native text field. */
+		void onConfirmed();
 
 		ScriptGUITextField(MonoObject* instance, GUITextField* textField);
 

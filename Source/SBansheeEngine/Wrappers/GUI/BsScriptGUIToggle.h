@@ -21,19 +21,19 @@ namespace bs
 		ScriptGUIToggle(MonoObject* instance, GUIToggle* toggle);
 
 		/**	Triggered when the native toggle button is clicked. */
-		static void onClick(MonoObject* instance);
+		void onClick();
 
 		/**	Triggered when the native toggle button is hover over. */
-		static void onHover(MonoObject* instance);
+		void onHover();
 
 		/**	Triggered when the pointer leaves the native toggle button. */
-		static void onOut(MonoObject* instance);
+		void onOut();
 
 		/**	Triggered when the native toggle button is toggled. */
-		static void onToggled(MonoObject* instance, bool toggled);
+		void onToggled(bool toggled);
 
 		/**	Triggers when the native toggle button is double-clicked. */
-		static void onDoubleClick(MonoObject* instance);
+		void onDoubleClick();
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

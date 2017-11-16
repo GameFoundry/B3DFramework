@@ -24,7 +24,7 @@ namespace bs
 		~ManagedComponent();
 
 		/**	Returns managed component object instance. */
-		MonoObject* getManagedInstance() const { return mManagedInstance; }
+		MonoObject* getManagedInstance() const;
 
 		/**	Returns managed class of the component. */
 		MonoClass* getClass() const { return mManagedClass; }
@@ -84,29 +84,28 @@ namespace bs
 		typedef void(BS_THUNKCALL *OnDisabledThunkDef) (MonoObject*, MonoException**);
 		typedef void(BS_THUNKCALL *OnTransformChangedThunkDef) (MonoObject*, TransformChangedFlags, MonoException**);
 
-		MonoObject* mManagedInstance;
-		MonoClass* mManagedClass;
-		MonoReflectionType* mRuntimeType;
-		uint32_t mManagedHandle;
+		MonoClass* mManagedClass = nullptr;
+		MonoReflectionType* mRuntimeType = nullptr;
+		uint32_t mGCHandle = 0;
 
 		String mNamespace;
 		String mTypeName;
 		String mFullTypeName;
-		bool mRequiresReset;
+		bool mRequiresReset = true;
 
-		bool mMissingType;
+		bool mMissingType = false;
 		SPtr<ManagedSerializableObject> mSerializedObjectData;
 		SPtr<ManagedSerializableObjectInfo> mObjInfo; // Transient
 
-		OnCreatedThunkDef mOnCreatedThunk;
-		OnInitializedThunkDef mOnInitializedThunk;
-		OnUpdateThunkDef mOnUpdateThunk;
-		OnResetThunkDef mOnResetThunk;
-		OnDestroyedThunkDef mOnDestroyThunk;
-		OnDestroyedThunkDef mOnDisabledThunk;
-		OnDestroyedThunkDef mOnEnabledThunk;
-		OnTransformChangedThunkDef mOnTransformChangedThunk;
-		MonoMethod* mCalculateBoundsMethod;
+		OnCreatedThunkDef mOnCreatedThunk = nullptr;
+		OnInitializedThunkDef mOnInitializedThunk = nullptr;
+		OnUpdateThunkDef mOnUpdateThunk = nullptr;
+		OnResetThunkDef mOnResetThunk = nullptr;
+		OnDestroyedThunkDef mOnDestroyThunk = nullptr;
+		OnDestroyedThunkDef mOnDisabledThunk = nullptr;
+		OnDestroyedThunkDef mOnEnabledThunk = nullptr;
+		OnTransformChangedThunkDef mOnTransformChangedThunk = nullptr;
+		MonoMethod* mCalculateBoundsMethod = nullptr;
 
 		/************************************************************************/
 		/* 							COMPONENT OVERRIDES                    		*/

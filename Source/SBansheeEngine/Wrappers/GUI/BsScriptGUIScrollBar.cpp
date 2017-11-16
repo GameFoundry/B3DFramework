@@ -91,7 +91,7 @@ namespace bs
 
 	void ScriptGUIScrollBarH::onScroll(float position, float size)
 	{
-		MonoUtil::invokeThunk(onScrolledThunk, mManagedInstance, position);
+		MonoUtil::invokeThunk(onScrolledThunk, getManagedInstance(), position);
 	}
 
 	ScriptGUIScrollBarV::OnScrolledThunkDef ScriptGUIScrollBarV::onScrolledThunk;
@@ -126,7 +126,7 @@ namespace bs
 
 	void ScriptGUIScrollBarV::onScroll(float position, float size)
 	{
-		MonoUtil::invokeThunk(onScrolledThunk, mManagedInstance, position);
+		MonoUtil::invokeThunk(onScrolledThunk, getManagedInstance(), position);
 	}
 
 	ScriptGUIResizeableScrollBarH::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarH::onScrollOrResizeThunk;
@@ -161,7 +161,7 @@ namespace bs
 
 	void ScriptGUIResizeableScrollBarH::onScroll(float position, float size)
 	{
-		MonoUtil::invokeThunk(onScrollOrResizeThunk, mManagedInstance, position, size);
+		MonoUtil::invokeThunk(onScrollOrResizeThunk, getManagedInstance(), position, size);
 	}
 
 	ScriptGUIResizeableScrollBarV::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarV::onScrollOrResizeThunk;
@@ -196,6 +196,6 @@ namespace bs
 
 	void ScriptGUIResizeableScrollBarV::onScroll(float position, float size)
 	{
-		MonoUtil::invokeThunk(onScrollOrResizeThunk, mManagedInstance, position, size);
+		MonoUtil::invokeThunk(onScrollOrResizeThunk, getManagedInstance(), position, size);
 	}
 }

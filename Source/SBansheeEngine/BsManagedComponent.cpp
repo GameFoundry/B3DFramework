@@ -17,18 +17,10 @@
 namespace bs
 {
 	ManagedComponent::ManagedComponent()
-		: mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(nullptr), mManagedHandle(0)
-		, mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr), mOnInitializedThunk(nullptr)
-		, mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr), mOnDisabledThunk(nullptr)
-		, mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr), mCalculateBoundsMethod(nullptr)
 	{ }
 
 	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
-		: Component(parent), mManagedInstance(nullptr), mManagedClass(nullptr), mRuntimeType(runtimeType)
-		, mManagedHandle(0), mRequiresReset(true), mMissingType(false), mOnCreatedThunk(nullptr)
-		, mOnInitializedThunk(nullptr), mOnUpdateThunk(nullptr), mOnResetThunk(nullptr), mOnDestroyThunk(nullptr)
-		, mOnDisabledThunk(nullptr), mOnEnabledThunk(nullptr), mOnTransformChangedThunk(nullptr)
-		, mCalculateBoundsMethod(nullptr)
+		: Component(parent), mRuntimeType(runtimeType)
 	{
 		MonoUtil::getClassName(mRuntimeType, mNamespace, mTypeName);
 		setName(mTypeName);
@@ -39,6 +31,11 @@ namespace bs
 
 	}
 
+	MonoObject* ManagedComponent::getManagedInstance() const
+	{
+		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+	}
+
 	ComponentBackupData ManagedComponent::backup(bool clearExisting)
 	{
 		ComponentBackupData backupData;
@@ -47,7 +44,8 @@ namespace bs
 		// return the data we backed up before the type was lost
 		if (!mMissingType)
 		{
-			SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::createFromExisting(mManagedInstance);
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+			SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::createFromExisting(instance);
 
 			// Serialize the object information and its fields. We cannot just serialize the entire object because
 			// the managed instance had to be created in a previous step. So we handle creation of the top level object manually.
@@ -79,11 +77,10 @@ namespace bs
 
 		if (clearExisting)
 		{
-			if (mManagedInstance != nullptr)
+			if (mGCHandle != 0)
 			{
-				mManagedInstance = nullptr;
-				MonoUtil::freeGCHandle(mManagedHandle);
-				mManagedHandle = 0;
+				MonoUtil::freeGCHandle(mGCHandle);
+				mGCHandle = 0;
 			}
 
 			mManagedClass = nullptr;
@@ -131,18 +128,16 @@ namespace bs
 		mRequiresReset = true;
 	}
 
-	void ManagedComponent::initialize(MonoObject* object)
+	void ManagedComponent::initialize(MonoObject* instance)
 	{
 		mFullTypeName = mNamespace + "." + mTypeName;
-		mManagedInstance = object;
 		
 		mManagedClass = nullptr;
-		if (mManagedInstance != nullptr)
+		if (instance != nullptr)
 		{
-			mManagedHandle = MonoUtil::newGCHandle(mManagedInstance);
-			mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+			mGCHandle = MonoUtil::newGCHandle(instance, false);
 
-			::MonoClass* monoClass = MonoUtil::getClass(mManagedInstance);
+			::MonoClass* monoClass = MonoUtil::getClass(instance);
 			mRuntimeType = MonoUtil::getType(monoClass);
 
 			mManagedClass = MonoManager::instance().findClass(monoClass);
@@ -258,7 +253,8 @@ namespace bs
 
 	bool ManagedComponent::calculateBounds(Bounds& bounds)
 	{
-		if (mManagedInstance != nullptr && mCalculateBoundsMethod != nullptr)
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		if (instance != nullptr && mCalculateBoundsMethod != nullptr)
 		{
 			AABox box;
 			Sphere sphere;
@@ -267,7 +263,7 @@ namespace bs
 			params[0] = &box;
 			params[1] = &sphere;
 
-			MonoObject* areBoundsValidObj = mCalculateBoundsMethod->invokeVirtual(mManagedInstance, params);
+			MonoObject* areBoundsValidObj = mCalculateBoundsMethod->invokeVirtual(instance, params);
 
 			bool areBoundsValid;
 			areBoundsValid = *(bool*)MonoUtil::unbox(areBoundsValidObj);
@@ -281,25 +277,25 @@ namespace bs
 
 	void ManagedComponent::update()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mOnUpdateThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnUpdateThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnUpdateThunk, instance);
 		}
 	}
 
 	void ManagedComponent::triggerOnReset()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mRequiresReset && mOnResetThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnResetThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnResetThunk, instance);
 		}
 
 		mRequiresReset = false;
@@ -308,20 +304,22 @@ namespace bs
 	void ManagedComponent::_instantiate()
 	{
 		mObjInfo = nullptr;
+
+		MonoObject* instance;
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mTypeName, mObjInfo))
 		{
-			MonoObject* instance = ScriptAssemblyManager::instance().getMissingComponentClass()->createInstance(true);
+			instance = ScriptAssemblyManager::instance().getMissingComponentClass()->createInstance(true);
 
 			initialize(instance);
 			mMissingType = true;
 		}
 		else
 		{
-			initialize(mObjInfo->mMonoClass->createInstance());
+			instance = mObjInfo->mMonoClass->createInstance();
+
+			initialize(instance);
 			mMissingType = false;
 		}
-
-		assert(mManagedInstance != nullptr);
 
 		// Find handle to self
 		HManagedComponent componentHandle;
@@ -339,16 +337,16 @@ namespace bs
 		}
 
 		assert(componentHandle != nullptr);
-		ScriptGameObjectManager::instance().createManagedScriptComponent(mManagedInstance, componentHandle);
+		ScriptGameObjectManager::instance().createManagedScriptComponent(instance, componentHandle);
 	}
 
 	void ManagedComponent::onCreated()
 	{
-		assert(mManagedInstance != nullptr);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
 		if (mSerializedObjectData != nullptr && !mMissingType)
 		{
-			mSerializedObjectData->deserialize(mManagedInstance, mObjInfo);
+			mSerializedObjectData->deserialize(instance, mObjInfo);
 			mSerializedObjectData = nullptr;
 		}
 
@@ -356,7 +354,7 @@ namespace bs
 		{
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnCreatedThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnCreatedThunk, instance);
 		}
 
 		triggerOnReset();
@@ -364,13 +362,13 @@ namespace bs
 
 	void ManagedComponent::onInitialized()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mOnInitializedThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnInitializedThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnInitializedThunk, instance);
 		}
 
 		triggerOnReset();
@@ -378,40 +376,40 @@ namespace bs
 
 	void ManagedComponent::onDestroyed()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mOnDestroyThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnDestroyThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnDestroyThunk, instance);
 		}
 
-		mManagedInstance = nullptr;
-		MonoUtil::freeGCHandle(mManagedHandle);
+		MonoUtil::freeGCHandle(mGCHandle);
+		mGCHandle = 0;
 	}
 
 	void ManagedComponent::onEnabled()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mOnEnabledThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnEnabledThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnEnabledThunk, instance);
 		}
 	}
 
 	void ManagedComponent::onDisabled()
 	{
-		assert(mManagedInstance != nullptr);
-
 		if (mOnDisabledThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnDisabledThunk, mManagedInstance);
+			MonoUtil::invokeThunk(mOnDisabledThunk, instance);
 		}
 	}
 
@@ -419,9 +417,11 @@ namespace bs
 	{
 		if(mOnTransformChangedThunk != nullptr)
 		{
+			MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
-			MonoUtil::invokeThunk(mOnTransformChangedThunk, mManagedInstance, flags);
+			MonoUtil::invokeThunk(mOnTransformChangedThunk, instance, flags);
 		}
 	}
 

@@ -20,12 +20,8 @@ namespace bs
 	private:
 		ScriptGUIColorField(MonoObject* instance, GUIColorField* colorField);
 
-		/**
-		 * Triggered when the user clicks on the native color field.
-		 *
-		 * @param[in]	instance	Managed GUIColorField instance.
-		 */
-		static void onClicked(MonoObject* instance);
+		/** Triggered when the user clicks on the native color field. */
+		void onClicked();
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

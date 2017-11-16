@@ -24,8 +24,6 @@ namespace bs
 
 	void ScriptComponentBase::destroy()
 	{
-		mManagedInstance = nullptr;
-
 		// It's possible that managed component is destroyed but a reference to it is still kept during assembly refresh. 
 		// Such components shouldn't be restored so we delete them.
 

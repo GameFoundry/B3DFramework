@@ -53,12 +53,12 @@ namespace bs
 		GUIContent nativeContent(ScriptGUIContent::getText(content), ScriptGUIContent::getImage(content), ScriptGUIContent::getTooltip(content));
 		GUIButton* guiButton = GUIButton::create(nativeContent, options, toString(MonoUtil::monoToWString(style)));
 
-		guiButton->onClick.connect(std::bind(&ScriptGUIButton::onClick, instance));
-		guiButton->onDoubleClick.connect(std::bind(&ScriptGUIButton::onDoubleClick, instance));
-		guiButton->onHover.connect(std::bind(&ScriptGUIButton::onHover, instance));
-		guiButton->onOut.connect(std::bind(&ScriptGUIButton::onOut, instance));
+		auto nativeInstance = new (bs_alloc<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
 
-		new (bs_alloc<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
+		guiButton->onClick.connect(std::bind(&ScriptGUIButton::onClick, nativeInstance));
+		guiButton->onDoubleClick.connect(std::bind(&ScriptGUIButton::onDoubleClick, nativeInstance));
+		guiButton->onHover.connect(std::bind(&ScriptGUIButton::onHover, nativeInstance));
+		guiButton->onOut.connect(std::bind(&ScriptGUIButton::onOut, nativeInstance));
 	}
 
 	void ScriptGUIButton::internal_setContent(ScriptGUIButton* nativeInstance, MonoObject* content)
@@ -75,23 +75,23 @@ namespace bs
 		button->setTint(*color);
 	}
 
-	void ScriptGUIButton::onClick(MonoObject* instance)
+	void ScriptGUIButton::onClick()
 	{
-		MonoUtil::invokeThunk(onClickThunk, instance);
+		MonoUtil::invokeThunk(onClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onDoubleClick(MonoObject* instance)
+	void ScriptGUIButton::onDoubleClick()
 	{
-		MonoUtil::invokeThunk(onDoubleClickThunk, instance);
+		MonoUtil::invokeThunk(onDoubleClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onHover(MonoObject* instance)
+	void ScriptGUIButton::onHover()
 	{
-		MonoUtil::invokeThunk(onHoverThunk, instance);
+		MonoUtil::invokeThunk(onHoverThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onOut(MonoObject* instance)
+	void ScriptGUIButton::onOut()
 	{
-		MonoUtil::invokeThunk(onOutThunk, instance);
+		MonoUtil::invokeThunk(onOutThunk, getManagedInstance());
 	}
 }

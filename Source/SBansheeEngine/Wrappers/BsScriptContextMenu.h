@@ -31,6 +31,7 @@ namespace bs
 		void onContextMenuItemTriggered(UINT32 idx);
 
 		SPtr<GUIContextMenu> mContextMenu;
+		UINT32 mGCHandle = 0;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

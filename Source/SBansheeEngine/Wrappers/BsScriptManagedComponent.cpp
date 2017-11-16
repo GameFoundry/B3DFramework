@@ -24,6 +24,7 @@ namespace bs
 		assert(instance != nullptr);
 
 		MonoUtil::getClassName(instance, mNamespace, mType);
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
 	}
 
 	void ScriptManagedComponent::initRuntimeData()
@@ -72,14 +73,25 @@ namespace bs
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 		// See if this type even still exists
+		MonoObject* instance;
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 		{
 			mTypeMissing = true;
-			return ScriptAssemblyManager::instance().getMissingComponentClass()->createInstance(true);
+			instance = ScriptAssemblyManager::instance().getMissingComponentClass()->createInstance(true);
+		}
+		else
+		{
+			mTypeMissing = false;
+			instance = currentObjInfo->mMonoClass->createInstance(construct);
 		}
 
-		mTypeMissing = false;
-		return currentObjInfo->mMonoClass->createInstance(construct);
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+		return instance;
+	}
+
+	void ScriptManagedComponent::_clearManagedInstance()
+	{
+		mGCHandle = 0;
 	}
 
 	ScriptObjectBackup ScriptManagedComponent::beginRefresh()
@@ -102,14 +114,16 @@ namespace bs
 		HManagedComponent managedComponent = static_object_cast<ManagedComponent>(mComponent);
 
 		ComponentBackupData componentBackup = any_cast<ComponentBackupData>(backupData.data);
-		managedComponent->restore(mManagedInstance, componentBackup, mTypeMissing);
+
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		managedComponent->restore(instance, componentBackup, mTypeMissing);
 
 		ScriptGameObjectBase::endRefresh(backupData);
 	}
 
 	void ScriptManagedComponent::_onManagedInstanceDeleted()
 	{
-		mManagedInstance = nullptr;
+		mGCHandle = 0;
 
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept during assembly refresh. Such components shouldn't be restored

@@ -67,9 +67,9 @@ namespace bs
 			guiResourceField = GUIResourceField::create(typeNamespace, typeName, options, styleName);
 		}
 
-		guiResourceField->onValueChanged.connect(std::bind(&ScriptGUIResourceField::onChanged, instance, _1));
+		auto nativeInstance = new (bs_alloc<ScriptGUIResourceField>()) ScriptGUIResourceField(instance, guiResourceField);
 
-		new (bs_alloc<ScriptGUIResourceField>()) ScriptGUIResourceField(instance, guiResourceField);
+		guiResourceField->onValueChanged.connect(std::bind(&ScriptGUIResourceField::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUIResourceField::internal_getValue(ScriptGUIResourceField* nativeInstance, MonoObject** output)
@@ -120,10 +120,10 @@ namespace bs
 		resourceField->setTint(*color);
 	}
 
-	void ScriptGUIResourceField::onChanged(MonoObject* instance, const WeakResourceHandle<Resource>& newHandle)
+	void ScriptGUIResourceField::onChanged(const WeakResourceHandle<Resource>& newHandle)
 	{
 		MonoObject* managedObj = ScriptResourceRef::create(newHandle);
-		MonoUtil::invokeThunk(onChangedThunk, instance, managedObj);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), managedObj);
 	}
 
 	MonoObject* ScriptGUIResourceField::nativeToManagedResource(const HResource& instance)

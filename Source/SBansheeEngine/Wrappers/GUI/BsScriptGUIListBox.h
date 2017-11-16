@@ -12,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Interop class between C++ & CLR for GUIListBox.  */
+	/**	Interop class between C++ & CLR for GUIListBox. */
 	class BS_SCR_BE_EXPORT ScriptGUIListBox : public TScriptGUIElement<ScriptGUIListBox>
 	{
 	public:
@@ -22,7 +22,7 @@ namespace bs
 		ScriptGUIListBox(MonoObject* instance, GUIListBox* listBox);
 
 		/**	Triggered when the selected index in the native list box changes. */
-		static void onSelectionChanged(MonoObject* instance, UINT32 index, bool enabled);
+		void onSelectionChanged(UINT32 index, bool enabled);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

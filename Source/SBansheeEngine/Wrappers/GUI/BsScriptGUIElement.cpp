@@ -18,7 +18,9 @@ namespace bs
 {
 	ScriptGUIElementBaseTBase::ScriptGUIElementBaseTBase(MonoObject* instance)
 		:ScriptObjectBase(instance), mIsDestroyed(false), mElement(nullptr), mParent(nullptr)
-	{ }
+	{
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+	}
 
 	void ScriptGUIElementBaseTBase::initialize(GUIElementBase* element)
 	{
@@ -27,16 +29,23 @@ namespace bs
 		if (mElement != nullptr && mElement->_getType() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(element);
-			guiElem->onFocusChanged.connect(std::bind(&ScriptGUIElementBaseTBase::onFocusChanged, mManagedInstance, _1));
+			guiElem->onFocusChanged.connect(std::bind(&ScriptGUIElementBaseTBase::onFocusChanged, this, _1));
 		}
 	}
 
-	void ScriptGUIElementBaseTBase::onFocusChanged(MonoObject* instance, bool focus)
+	void ScriptGUIElementBaseTBase::onFocusChanged(ScriptGUIElementBaseTBase* thisPtr, bool focus)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
+
 		if (focus)
 			MonoUtil::invokeThunk(ScriptGUIElement::onFocusGainedThunk, instance);
 		else
 			MonoUtil::invokeThunk(ScriptGUIElement::onFocusLostThunk, instance);
+	}
+
+	MonoObject* ScriptGUIElementBaseTBase::getManagedInstance() const
+	{
+		return MonoUtil::getObjectFromGCHandle(mGCHandle);
 	}
 
 	void ScriptGUIElementBaseTBase::_onManagedInstanceDeleted()

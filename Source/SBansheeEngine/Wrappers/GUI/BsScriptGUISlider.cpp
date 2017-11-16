@@ -55,9 +55,9 @@ namespace bs
 			options.addOption(scriptArray.get<GUIOption>(i));
 
 		GUISliderHorz* guiSlider = GUISliderHorz::create(options, toString(MonoUtil::monoToWString(style)));
-		guiSlider->onChanged.connect(std::bind(&ScriptGUISliderH::onChanged, instance, _1));
 
-		new (bs_alloc<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
+		auto nativeInstance = new (bs_alloc<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
+		guiSlider->onChanged.connect(std::bind(&ScriptGUISliderH::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUISliderH::internal_setPercent(ScriptGUISliderH* nativeInstance, float percent)
@@ -120,9 +120,9 @@ namespace bs
 		slider->setTint(*color);
 	}
 
-	void ScriptGUISliderH::onChanged(MonoObject* instance, float percent)
+	void ScriptGUISliderH::onChanged(float percent)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, percent);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), percent);
 	}
 
 	ScriptGUISliderV::OnChangedThunkDef ScriptGUISliderV::onChangedThunk;
@@ -160,9 +160,9 @@ namespace bs
 			options.addOption(scriptArray.get<GUIOption>(i));
 
 		GUISliderVert* guiSlider = GUISliderVert::create(options, toString(MonoUtil::monoToWString(style)));
-		guiSlider->onChanged.connect(std::bind(&ScriptGUISliderV::onChanged, instance, _1));
 
-		new (bs_alloc<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
+		auto nativeInstance = new (bs_alloc<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
+		guiSlider->onChanged.connect(std::bind(&ScriptGUISliderV::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUISliderV::internal_setPercent(ScriptGUISliderV* nativeInstance, float percent)
@@ -225,8 +225,8 @@ namespace bs
 		slider->setTint(*color);
 	}
 
-	void ScriptGUISliderV::onChanged(MonoObject* instance, float percent)
+	void ScriptGUISliderV::onChanged(float percent)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, percent);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), percent);
 	}
 }

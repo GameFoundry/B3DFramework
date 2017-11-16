@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	AsyncOpEx::AsyncOpEx(const AsyncOp& op, const std::function<ScriptObjectBase*(const AsyncOp&)>& convertCallback)
+	AsyncOpEx::AsyncOpEx(const AsyncOp& op, const std::function<MonoObject*(const AsyncOp&)>& convertCallback)
 		:mAsyncOp(op), mConvertCallback(convertCallback)
 	{ }
 
@@ -14,7 +14,7 @@ namespace bs
 		return mAsyncOp.hasCompleted();
 	}
 
-	ScriptObjectBase* AsyncOpEx::getReturnValue() const
+	MonoObject* AsyncOpEx::getReturnValue() const
 	{
 		if (!mAsyncOp.hasCompleted())
 			return nullptr;

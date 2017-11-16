@@ -58,7 +58,7 @@ namespace bs
 		ChildInfo childInfo;
 
 		childInfo.element = element;
-		childInfo.gcHandle = MonoUtil::newGCHandle(element->getManagedInstance());
+		childInfo.gcHandle = MonoUtil::newGCHandle(element->getManagedInstance(), false);
 
 		mChildren.push_back(childInfo);
 	}
@@ -68,7 +68,7 @@ namespace bs
 		ChildInfo childInfo;
 
 		childInfo.element = element;
-		childInfo.gcHandle = MonoUtil::newGCHandle(element->getManagedInstance());
+		childInfo.gcHandle = MonoUtil::newGCHandle(element->getManagedInstance(), false);
 
 		mChildren.insert(mChildren.begin() + idx, childInfo);
 	}

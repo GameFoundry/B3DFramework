@@ -20,6 +20,7 @@ namespace bs
 		BS_ASSERT(instance != nullptr);
 
 		MonoUtil::getClassName(instance, mNamespace, mType);
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
 	}
 
 	void ScriptManagedResource::initRuntimeData()
@@ -40,7 +41,15 @@ namespace bs
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 			return nullptr;
 
-		return currentObjInfo->mMonoClass->createInstance(construct);
+		MonoObject* instance = currentObjInfo->mMonoClass->createInstance(construct);
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+
+		return instance;
+	}
+
+	void ScriptManagedResource::_clearManagedInstance()
+	{
+		mGCHandle = 0;
 	}
 
 	ScriptObjectBackup ScriptManagedResource::beginRefresh()
@@ -55,11 +64,13 @@ namespace bs
 
 	void ScriptManagedResource::endRefresh(const ScriptObjectBackup& backupData)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 		ResourceBackupData resourceBackup = any_cast<ResourceBackupData>(backupData.data);
-		mResource->restore(mManagedInstance, resourceBackup);
+		mResource->restore(instance, resourceBackup);
 
 		// If we could not find resource type after refresh, treat it as if it was destroyed
-		if (mManagedInstance == nullptr)
+		if (instance == nullptr)
 			_onManagedInstanceDeleted();
 
 		ScriptResourceBase::endRefresh(backupData);
@@ -67,7 +78,7 @@ namespace bs
 
 	void ScriptManagedResource::_onManagedInstanceDeleted()
 	{
-		mManagedInstance = nullptr;
+		mGCHandle = 0;
 		
 		if (!mRefreshInProgress)
 		{
@@ -85,12 +96,5 @@ namespace bs
 	void ScriptManagedResource::setResource(const HResource& resource)
 	{
 		mResource = static_resource_cast<ManagedResource>(resource);
-	}
-
-	MonoObject* ScriptManagedResource::createInstance()
-	{
-		// Implementation of this method is only relevant for native resources, this is just here to stop compiler from complaining
-		BS_ASSERT(false);
-		return nullptr;
 	}
 }

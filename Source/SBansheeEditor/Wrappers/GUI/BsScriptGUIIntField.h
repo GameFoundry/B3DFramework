@@ -21,17 +21,12 @@ namespace bs
 		/**
 		 * Triggered when the value in the native int field changes.
 		 *
-		 * @param[in]	instance	Managed GUIIntField instance.
 		 * @param[in]	newValue	New field value.
 		 */
-		static void onChanged(MonoObject* instance, INT32 newValue);
+		void onChanged(INT32 newValue);
 
-		/**
-		 * Triggered when the user confirms input in the native int field.
-		 *
-		 * @param[in]	instance	Managed GUIIntField instance.
-		 */
-		static void onConfirmed(MonoObject* instance);
+		/** Triggered when the user confirms input in the native int field. */
+		void onConfirmed();
 
 		ScriptGUIIntField(MonoObject* instance, GUIIntField* intField);
 

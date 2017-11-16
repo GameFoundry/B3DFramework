@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(n:AsyncOp) AsyncOpEx
 	{
 	public:
-		AsyncOpEx(const AsyncOp& op, const std::function<ScriptObjectBase*(const AsyncOp&)>& convertCallback);
+		AsyncOpEx(const AsyncOp& op, const std::function<MonoObject*(const AsyncOp&)>& convertCallback);
 
 		/** @copydoc AsyncOp::hasCompleted */
 		BS_SCRIPT_EXPORT(n:IsComplete,pr:getter)
@@ -28,7 +28,7 @@ namespace bs
 
 		/** Retrieves the value returned by the async operation. Only valid if IsComplete returns true. */
 		BS_SCRIPT_EXPORT(n:ReturnValue,pr:getter)
-		ScriptObjectBase* getReturnValue() const;
+		MonoObject* getReturnValue() const;
 
 		/** @copydoc AsyncOp::blockUntilComplete */
 		BS_SCRIPT_EXPORT(n:BlockUntilComplete)
@@ -36,7 +36,7 @@ namespace bs
 
 	private:
 		AsyncOp mAsyncOp;
-		std::function<ScriptObjectBase*(const AsyncOp&)> mConvertCallback;
+		std::function<MonoObject*(const AsyncOp&)> mConvertCallback;
 	};
 
 	/** @endcond */

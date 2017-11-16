@@ -21,10 +21,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native resource field changes.
 		 *
-		 * @param[in]	instance	Managed GUIResourceField instance.
 		 * @param[in]	newHandle	Weak handle of the newly selected resource.
 		 */
-		static void onChanged(MonoObject* instance, const WeakResourceHandle<Resource>& newHandle);
+		void onChanged(const WeakResourceHandle<Resource>& newHandle);
 
 		/** Retrieves a managed instance of the specified native resource. Will return null if one doesn't exist. */
 		static MonoObject* nativeToManagedResource(const HResource& instance);

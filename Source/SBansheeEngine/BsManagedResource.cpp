@@ -18,11 +18,11 @@
 namespace bs
 {
 	ManagedResource::ManagedResource()
-		:Resource(false), mManagedInstance(nullptr)
+		:Resource(false), mGCHandle(0)
 	{ }
 
 	ManagedResource::ManagedResource(MonoObject* managedInstance)
-		:Resource(false), mManagedInstance(nullptr)
+		:Resource(false), mGCHandle(0)
 	{
 		SPtr<ManagedResourceMetaData> metaData = bs_shared_ptr_new<ManagedResourceMetaData>();
 		mMetaData = metaData;
@@ -37,9 +37,15 @@ namespace bs
 		}
 	}
 
+	MonoObject* ManagedResource::getManagedInstance() const
+	{
+		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+	}
+
 	ResourceBackupData ManagedResource::backup(bool clearExisting)
 	{
-		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::createFromExisting(mManagedInstance);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::createFromExisting(instance);
 
 		ResourceBackupData backupData;
 		if (serializableObject != nullptr)
@@ -57,11 +63,10 @@ namespace bs
 
 		if (clearExisting)
 		{
-			if (mManagedInstance != nullptr)
+			if (mGCHandle != 0)
 			{
-				mManagedInstance = nullptr;
-				MonoUtil::freeGCHandle(mManagedHandle);
-				mManagedHandle = 0;
+				MonoUtil::freeGCHandle(mGCHandle);
+				mGCHandle = 0;
 			}
 		}
 
@@ -70,12 +75,9 @@ namespace bs
 
 	void ManagedResource::restore(MonoObject* instance, const ResourceBackupData& data)
 	{
-		mManagedInstance = instance;
-
-		if (mManagedInstance != nullptr)
+		if (instance != nullptr)
 		{
-			mManagedHandle = MonoUtil::newGCHandle(mManagedInstance);
-			mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+			mGCHandle = MonoUtil::newGCHandle(instance, false);
 
 			if (data.data != nullptr)
 			{
@@ -86,7 +88,7 @@ namespace bs
 				SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 				if (ScriptAssemblyManager::instance().getSerializableObjectInfo(managedResMetaData->typeNamespace, managedResMetaData->typeName, currentObjInfo))
-					serializableObject->deserialize(mManagedInstance, currentObjInfo);
+					serializableObject->deserialize(instance, currentObjInfo);
 			}
 		}
 		else
@@ -119,8 +121,7 @@ namespace bs
 
 	void ManagedResource::setHandle(MonoObject* object, const HManagedResource& myHandle)
 	{
-		mManagedHandle = MonoUtil::newGCHandle(object);
-		mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+		mGCHandle = MonoUtil::newGCHandle(object, false);
 		mMyHandle = myHandle.getWeak();
 
 		ScriptResourceManager::instance().createManagedScriptResource(myHandle, object);
@@ -131,10 +132,10 @@ namespace bs
 	{
 		Resource::destroy();
 
-		if (mManagedInstance != nullptr)
+		if (mGCHandle != 0)
 		{
-			mManagedInstance = nullptr;
-			MonoUtil::freeGCHandle(mManagedHandle);
+			MonoUtil::freeGCHandle(mGCHandle);
+			mGCHandle = 0;
 		}
 
 		ManagedResourceManager::instance().unregisterManagedResource(mMyHandle);

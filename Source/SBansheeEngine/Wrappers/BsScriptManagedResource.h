@@ -28,9 +28,6 @@ namespace bs
 
 		/**	Returns a handle to the internal wrapped resource. */
 		const HManagedResource& getHandle() const { return mResource; }
-
-		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
-		static MonoObject* createInstance();
 	private:
 		friend class ScriptResourceManager;
 
@@ -42,6 +39,9 @@ namespace bs
 
 		/** @copydoc ScriptObjectBase::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override;
+
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override;
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
 		void _onManagedInstanceDeleted() override;

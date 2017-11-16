@@ -67,9 +67,10 @@ namespace bs
 		}
 
 		GUIListBox* guiListBox = GUIListBox::create(nativeElements, multiselect, options, toString(MonoUtil::monoToWString(style)));
-		guiListBox->onSelectionToggled.connect(std::bind(&ScriptGUIListBox::onSelectionChanged, instance, _1, _2));
 
-		new (bs_alloc<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
+		auto nativeInstance = new (bs_alloc<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
+
+		guiListBox->onSelectionToggled.connect(std::bind(&ScriptGUIListBox::onSelectionChanged, nativeInstance, _1, _2));
 	}
 
 	void ScriptGUIListBox::internal_setElements(ScriptGUIListBox* nativeInstance, MonoArray* elements)
@@ -142,8 +143,8 @@ namespace bs
 		listBox->setElementStates(states);
 	}
 
-	void ScriptGUIListBox::onSelectionChanged(MonoObject* instance, UINT32 index, bool enabled)
+	void ScriptGUIListBox::onSelectionChanged(UINT32 index, bool enabled)
 	{
-		MonoUtil::invokeThunk(onSelectionChangedThunk, instance, index);
+		MonoUtil::invokeThunk(onSelectionChangedThunk, getManagedInstance(), index);
 	}
 }

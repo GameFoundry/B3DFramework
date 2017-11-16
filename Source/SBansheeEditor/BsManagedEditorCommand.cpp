@@ -17,6 +17,9 @@ namespace bs
 		:ScriptObject(managedInstance), mManagedCommand(nullptr)
 	{
 		mManagedCommand = bs_shared_ptr(new (bs_alloc<CmdManaged>()) CmdManaged(this));
+
+		mGCHandle = MonoUtil::newWeakGCHandle(managedInstance);
+		mWeakHandle = true;
 	}
 
 	ScriptCmdManaged::~ScriptCmdManaged()
@@ -46,7 +49,8 @@ namespace bs
 		if (sCommitMethod == nullptr)
 			return;
 
-		sCommitMethod->invokeVirtual(mManagedInstance, nullptr);
+		MonoObject* obj = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		sCommitMethod->invokeVirtual(obj, nullptr);
 	}
 
 	void ScriptCmdManaged::triggerRevert()
@@ -54,7 +58,8 @@ namespace bs
 		if (sRevertMethod == nullptr)
 			return;
 
-		sRevertMethod->invokeVirtual(mManagedInstance, nullptr);
+		MonoObject* obj = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		sRevertMethod->invokeVirtual(obj, nullptr);
 	}
 
 	void ScriptCmdManaged::notifyCommandDestroyed()
@@ -64,21 +69,33 @@ namespace bs
 
 	void ScriptCmdManaged::allocGCHandle()
 	{
-		if (mGCHandle == 0)
+		if (mWeakHandle)
 		{
-			mGCHandle = MonoUtil::newGCHandle(mManagedInstance);
-			mManagedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+			MonoObject* obj = MonoUtil::getObjectFromGCHandle(mGCHandle);
+			mGCHandle = MonoUtil::newGCHandle(obj);
+			mWeakHandle = false;
 		}
 	}
 
 	void ScriptCmdManaged::freeGCHandle()
 	{
-		if(mGCHandle != 0)
+		MonoObject* obj = nullptr;
+		if (mGCHandle)
+			obj = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
+		if (!mWeakHandle && mGCHandle != 0)
 			MonoUtil::freeGCHandle(mGCHandle);
+
+		// Note: Re-creating the weak handle might not be necessary as the command shouldn't be allowed to be re-added
+		// after it has been removed from the undo-redo stack (which should be the only place this method is called from).
+		if(obj)
+			mGCHandle = MonoUtil::newWeakGCHandle(obj);
+
+		mWeakHandle = true;
 	}
 
 	CmdManaged::CmdManaged(ScriptCmdManaged* scriptObj)
-		: EditorCommand(L""), mScriptObj(scriptObj), mGCHandle(0), mRefCount(0)
+		: EditorCommand(L""), mScriptObj(scriptObj), mRefCount(0)
 	{
 
 	}

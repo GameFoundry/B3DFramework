@@ -21,10 +21,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native texture field changes.
 		 *
-		 * @param[in]	instance	Managed GUITextureField instance.
 		 * @param[in]	newHandle	Handle of the new texture.
 		 */
-		static void onChanged(MonoObject* instance, const WeakResourceHandle<Texture>& newHandle);
+		void onChanged(const WeakResourceHandle<Texture>& newHandle);
 
 		/** Retrieves a managed instance of the specified native texture. Will return null if one doesn't exist. */
 		static MonoObject* nativeToManagedResource(const HTexture& instance);

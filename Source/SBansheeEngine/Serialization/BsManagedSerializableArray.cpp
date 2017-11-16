@@ -229,7 +229,7 @@ namespace bs
 			MonoObject* newArray = createManagedInstance(mArrayTypeInfo, newSizes);
 
 			void* params[3];
-			params[0] = getManagedInstance();;
+			params[0] = getManagedInstance();
 			params[1] = newArray;
 			params[2] = &copyCount;
 

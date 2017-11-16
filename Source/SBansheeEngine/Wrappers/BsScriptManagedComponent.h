@@ -41,6 +41,9 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override;
 
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override;
+
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
 		void _onManagedInstanceDeleted() override;
 

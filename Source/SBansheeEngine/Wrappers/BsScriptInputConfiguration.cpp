@@ -14,6 +14,8 @@ namespace bs
 	ScriptInputConfiguration::ScriptInputConfiguration(MonoObject* instance, const SPtr<InputConfiguration>& inputConfig)
 		:ScriptObject(instance), mInputConfig(inputConfig)
 	{ 
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+
 		UINT64 configId = (UINT64)inputConfig.get();
 		ScriptInputConfigurations[configId] = this;
 	}
@@ -27,6 +29,11 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_UnregisterAxis", (void*)&ScriptInputConfiguration::internal_UnregisterAxis);
 		metaData.scriptClass->addInternalCall("Internal_SetRepeatInterval", (void*)&ScriptInputConfiguration::internal_SetRepeatInterval);
 		metaData.scriptClass->addInternalCall("Internal_GetRepeatInterval", (void*)&ScriptInputConfiguration::internal_GetRepeatInterval);
+	}
+
+	MonoObject* ScriptInputConfiguration::getManagedInstance() const
+	{
+		return MonoUtil::getObjectFromGCHandle(mGCHandle);
 	}
 
 	ScriptInputConfiguration* ScriptInputConfiguration::getScriptInputConfig(const SPtr<InputConfiguration>& inputConfig)

@@ -21,10 +21,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native toggle field changes.
 		 *
-		 * @param[in]	instance	Managed GUIToggleField instance.
 		 * @param[in]	newValue	Is the toggle active.
 		 */
-		static void onChanged(MonoObject* instance, bool newValue);
+		void onChanged(bool newValue);
 
 		ScriptGUIToggleField(MonoObject* instance, GUIToggleField* toggleField);
 

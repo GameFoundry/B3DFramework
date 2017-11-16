@@ -11,7 +11,7 @@ namespace bs
 {
 	LightBase::LightBase()
 		: mType(LightType::Radial), mCastsShadows(false), mColor(Color::White), mAttRadius(10.0f), mSourceRadius(0.0f)
-		, mIntensity(10000.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(true), mShadowBias(0.5f)
+		, mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
 	{
 		updateAttenuationRange();
 	}
@@ -19,7 +19,7 @@ namespace bs
 	LightBase::LightBase(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, 
 		Degree spotAngle, Degree spotFalloffAngle)
 		: mType(type), mCastsShadows(castsShadows), mColor(color), mAttRadius(attRadius), mSourceRadius(srcRadius)
-		, mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(true)
+		, mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(false)
 		, mShadowBias(0.5f)
 	{
 		updateAttenuationRange();

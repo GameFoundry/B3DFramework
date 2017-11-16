@@ -61,10 +61,11 @@ namespace bs
 			field = GUIVector2Field::create(options, styleName);
 		}
 
-		field->onValueChanged.connect(std::bind(&ScriptGUIVector2Field::onChanged, instance, _1));
-		field->onConfirm.connect(std::bind(&ScriptGUIVector2Field::onConfirmed, instance));
 
-		new (bs_alloc<ScriptGUIVector2Field>()) ScriptGUIVector2Field(instance, field);
+		auto nativeInstance = new (bs_alloc<ScriptGUIVector2Field>()) ScriptGUIVector2Field(instance, field);
+
+		field->onValueChanged.connect(std::bind(&ScriptGUIVector2Field::onChanged, nativeInstance, _1));
+		field->onConfirm.connect(std::bind(&ScriptGUIVector2Field::onConfirmed, nativeInstance));
 	}
 
 	void ScriptGUIVector2Field::internal_getValue(ScriptGUIVector2Field* nativeInstance, Vector2* output)
@@ -91,13 +92,13 @@ namespace bs
 		field->setTint(*color);
 	}
 
-	void ScriptGUIVector2Field::onChanged(MonoObject* instance, const Vector2& newValue)
+	void ScriptGUIVector2Field::onChanged(const Vector2& newValue)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, ScriptVector2::box(newValue));
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), ScriptVector2::box(newValue));
 	}
 
-	void ScriptGUIVector2Field::onConfirmed(MonoObject* instance)
+	void ScriptGUIVector2Field::onConfirmed()
 	{
-		MonoUtil::invokeThunk(onConfirmedThunk, instance);
+		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}
 }

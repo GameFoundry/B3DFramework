@@ -18,12 +18,6 @@ namespace bs
 	/**	Interop class between C++ & CLR for ScriptEditorWidget. */
 	class BS_SCR_BED_EXPORT ScriptEditorWindow : public ScriptObject<ScriptEditorWindow, PersistentScriptObjectBase>
 	{
-		/**	Contains data about the managed handle to an editor window. */
-		struct EditorWindowHandle
-		{
-			uint32_t gcHandle;
-			ScriptEditorWindow* nativeObj;
-		};
 	public:
 		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "EditorWindow")
 
@@ -103,7 +97,7 @@ namespace bs
 		static EditorWidgetBase* openEditorWidgetCallback(String ns, String type, UINT32 width, UINT32 height, 
 			bool localUndoRedo, EditorWidgetContainer& parentContainer);
 
-		static UnorderedMap<String, EditorWindowHandle> OpenScriptEditorWindows;
+		static UnorderedMap<String, ScriptEditorWindow*> OpenScriptEditorWindows;
 		static Vector<String> AvailableWindowTypes;
 
 		/************************************************************************/
@@ -187,6 +181,9 @@ namespace bs
 		/**	Returns the managed instance for the editor window represented by this object. */
 		MonoObject* getManagedInstance() const { return mManagedInstance; }
 
+		/** Invalidates the managed instance pointer, and optionally frees the GC handle. */
+		void clearManagedInstance(bool freeHandle);
+
 	private:
 		typedef void(BS_THUNKCALL *OnInitializeThunkDef) (MonoObject*, MonoException**);
 		typedef void(BS_THUNKCALL *OnDestroyThunkDef) (MonoObject*, MonoException**);
@@ -199,6 +196,7 @@ namespace bs
 		OnDestroyThunkDef mOnDestroyThunk;
 		UpdateThunkDef mUpdateThunk;
 		MonoObject* mManagedInstance;
+		UINT32 mGCHandle;
 		MonoMethod* mGetDisplayName;
 
 		ScriptEditorWindow* mScriptOwner;

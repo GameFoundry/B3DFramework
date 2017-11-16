@@ -194,7 +194,7 @@ namespace bs
 		 * @param[in]	spotFalloffAngle	Spot light angle at which falloff starts. Must be smaller than total angle.
 		 */
 		static SPtr<Light> create(LightType type = LightType::Radial, Color color = Color::White,
-			float intensity = 10000.0f, float attRadius = 10.0f, bool castsShadows = false,
+			float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false,
 			Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
 
 	protected:

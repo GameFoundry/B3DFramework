@@ -123,9 +123,14 @@ namespace bs
 		return mono_type_get_object(MonoManager::instance().getDomain(), monoType);
 	}
 
-	UINT32 MonoUtil::newGCHandle(MonoObject* object)
+	UINT32 MonoUtil::newGCHandle(MonoObject* object, bool pinned)
 	{
-		return mono_gchandle_new(object, true);
+		return mono_gchandle_new(object, pinned);
+	}
+
+	UINT32 MonoUtil::newWeakGCHandle(MonoObject* object)
+	{
+		return mono_gchandle_new_weakref(object, false);
 	}
 
 	void MonoUtil::freeGCHandle(UINT32 handle)

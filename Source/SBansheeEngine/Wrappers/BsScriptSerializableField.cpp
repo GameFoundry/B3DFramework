@@ -26,7 +26,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetStyle", (void*)&ScriptSerializableField::internal_getStyle);
 	}
 
-	ScriptSerializableField* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
+	MonoObject* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
 	{
 		MonoString* monoStrName = MonoUtil::wstringToMono(toWString(fieldInfo->mName));
 		MonoReflectionType* internalType = MonoUtil::getType(fieldInfo->mTypeInfo->getMonoClass());
@@ -35,16 +35,13 @@ namespace bs
 		void* params[4] = { parentObject, monoStrName, &fieldFlags, internalType };
 		MonoObject* managedInstance = metaData.scriptClass->createInstance(params, 4);
 
-		ScriptSerializableField* nativeInstance = new (bs_alloc<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
-
-		return nativeInstance;
+		new (bs_alloc<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
+		return managedInstance;
 	}
 
 	MonoObject* ScriptSerializableField::internal_createProperty(ScriptSerializableField* nativeInstance)
 	{
-		ScriptSerializableProperty* newProperty = ScriptSerializableProperty::create(nativeInstance->mFieldInfo->mTypeInfo);
-
-		return newProperty->getManagedInstance();
+		return ScriptSerializableProperty::create(nativeInstance->mFieldInfo->mTypeInfo);
 	}
 
 	MonoObject* ScriptSerializableField::internal_getValue(ScriptSerializableField* nativeInstance, MonoObject* instance)

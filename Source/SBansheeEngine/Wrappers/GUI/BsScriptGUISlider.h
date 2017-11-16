@@ -21,7 +21,7 @@ namespace bs
 		ScriptGUISliderH(MonoObject* instance, GUISliderHorz* slider);
 
 		/**	Triggered when the native slider is moved. */
-		static void onChanged(MonoObject* instance, float percent);
+		void onChanged(float percent);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
@@ -52,7 +52,7 @@ namespace bs
 		ScriptGUISliderV(MonoObject* instance, GUISliderVert* slider);
 
 		/**	Triggered when the native slider is moved. */
-		static void onChanged(MonoObject* instance, float percent);
+		void onChanged(float percent);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

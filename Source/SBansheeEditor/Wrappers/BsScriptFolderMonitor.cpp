@@ -20,6 +20,8 @@ namespace bs
 	ScriptFolderMonitor::ScriptFolderMonitor(MonoObject* instance, FolderMonitor* monitor)
 		:ScriptObject(instance), mMonitor(monitor)
 	{
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+
 		if (mMonitor != nullptr)
 		{
 			ScriptFolderMonitorManager::instance()._registerMonitor(this);
@@ -73,28 +75,32 @@ namespace bs
 
 	void ScriptFolderMonitor::onMonitorFileModified(const Path& path)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoString* monoPath = MonoUtil::wstringToMono(path.toWString());
-		MonoUtil::invokeThunk(OnModifiedThunk, getManagedInstance(), monoPath);
+		MonoUtil::invokeThunk(OnModifiedThunk, instance, monoPath);
 	}
 
 	void ScriptFolderMonitor::onMonitorFileAdded(const Path& path)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoString* monoPath = MonoUtil::wstringToMono(path.toWString());
-		MonoUtil::invokeThunk(OnAddedThunk, getManagedInstance(), monoPath);
+		MonoUtil::invokeThunk(OnAddedThunk, instance, monoPath);
 	}
 
 	void ScriptFolderMonitor::onMonitorFileRemoved(const Path& path)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoString* monoPath = MonoUtil::wstringToMono(path.toWString());
-		MonoUtil::invokeThunk(OnRemovedThunk, getManagedInstance(), monoPath);
+		MonoUtil::invokeThunk(OnRemovedThunk, instance, monoPath);
 	}
 
 	void ScriptFolderMonitor::onMonitorFileRenamed(const Path& from, const Path& to)
 	{
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoString* monoPathFrom = MonoUtil::wstringToMono(from.toWString());
 		MonoString* monoPathTo = MonoUtil::wstringToMono(to.toWString());
 
-		MonoUtil::invokeThunk(OnRenamedThunk, getManagedInstance(), monoPathFrom, monoPathTo);
+		MonoUtil::invokeThunk(OnRenamedThunk, instance, monoPathFrom, monoPathTo);
 	}
 
 	void ScriptFolderMonitor::update()
@@ -112,6 +118,8 @@ namespace bs
 
 			ScriptFolderMonitorManager::instance()._unregisterMonitor(this);
 		}
+
+		mGCHandle = 0;
 	}
 
 	void ScriptFolderMonitorManager::update()

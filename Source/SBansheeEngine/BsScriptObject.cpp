@@ -9,16 +9,12 @@
 namespace bs
 {
 	ScriptObjectBase::ScriptObjectBase(MonoObject* instance)
-		:mManagedInstance(instance)
 	{	
 		ScriptObjectManager::instance().registerScriptObject(this);
 	}
 
 	ScriptObjectBase::~ScriptObjectBase() 
 	{
-		if(mManagedInstance != nullptr)
-			BS_EXCEPT(InvalidStateException, "Script object is being destroyed without its instance previously being released.");
-
 		ScriptObjectManager::instance().unregisterScriptObject(this);
 	}
 
@@ -34,7 +30,6 @@ namespace bs
 
 	void ScriptObjectBase::_onManagedInstanceDeleted()
 	{
-		mManagedInstance = nullptr;
 		bs_delete(this);
 	}
 

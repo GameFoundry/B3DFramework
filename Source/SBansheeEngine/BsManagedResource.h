@@ -18,7 +18,7 @@ namespace bs
 	{
 	public:
 		/**	Returns the internal managed resource object. */
-		MonoObject* getManagedInstance() const { return mManagedInstance; }
+		MonoObject* getManagedInstance() const;
 
 		/**
 		 * Serializes the internal managed resource.
@@ -69,8 +69,7 @@ namespace bs
 		/** @copydoc Resource::destroy */
 		void destroy() override;
 
-		MonoObject* mManagedInstance;
-		uint32_t mManagedHandle;
+		UINT32 mGCHandle;
 		WeakResourceHandle<ManagedResource> mMyHandle;
 
 		/************************************************************************/

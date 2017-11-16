@@ -12,15 +12,15 @@ namespace bs
 	 */
 
 	/** Contains information about a style of a serializable field. */
-    struct SerializableMemberStyle // Note: Must match C# struct SerializableFieldStyle
-    {
-        bool hasRange; /**< True if the range of the field is limited, false if unlimited. */
-        float rangeMin; /**< Returns the lower bound of the range. Only relevant if @see hasRange is true. */
-        float rangeMax; /**< Returns the upper bound of the range. Only relevant if @see hasRange is true. */
-        bool hasStep; /**< True if the field value can only be incremented in specific increments. */
+	struct SerializableMemberStyle // Note: Must match C# struct SerializableFieldStyle
+	{
+		bool hasRange; /**< True if the range of the field is limited, false if unlimited. */
+		float rangeMin; /**< Returns the lower bound of the range. Only relevant if @see hasRange is true. */
+		float rangeMax; /**< Returns the upper bound of the range. Only relevant if @see hasRange is true. */
+		bool hasStep; /**< True if the field value can only be incremented in specific increments. */
 		/** Minimum increment the field value can be increment/decremented by. Only relevant if @see hasStep is true. */
-        float stepIncrement; 
-        bool displayAsSlider; /**< If true, number fields will be displayed as sliders instead of regular input boxes. */
+		float stepIncrement; 
+		bool displayAsSlider; /**< If true, number fields will be displayed as sliders instead of regular input boxes. */
 	};
 
 	/**	Interop class between C++ & CLR for ManagedSerializableFieldInfo. */
@@ -36,7 +36,7 @@ namespace bs
 		 * @param[in]	fieldInfo		Information about the field. Caller must ensure the type matches the type of the
 		 *								provided parent object.
 		 */
-		static ScriptSerializableField* create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
+		static MonoObject* create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
 	private:
 		ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
 

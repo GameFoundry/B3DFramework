@@ -56,9 +56,8 @@ namespace bs
 			guiField = GUIToggleField::create(options, styleName);
 		}
 
-		guiField->onValueChanged.connect(std::bind(&ScriptGUIToggleField::onChanged, instance, _1));
-
-		new (bs_alloc<ScriptGUIToggleField>()) ScriptGUIToggleField(instance, guiField);
+		auto nativeInstance = new (bs_alloc<ScriptGUIToggleField>()) ScriptGUIToggleField(instance, guiField);
+		guiField->onValueChanged.connect(std::bind(&ScriptGUIToggleField::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUIToggleField::internal_getValue(ScriptGUIToggleField* nativeInstance, bool* output)
@@ -79,8 +78,8 @@ namespace bs
 		toggleField->setTint(*color);
 	}
 
-	void ScriptGUIToggleField::onChanged(MonoObject* instance, bool newValue)
+	void ScriptGUIToggleField::onChanged(bool newValue)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, newValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), newValue);
 	}
 }

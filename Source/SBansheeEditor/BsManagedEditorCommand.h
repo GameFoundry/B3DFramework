@@ -50,6 +50,7 @@ namespace bs
 
 		SPtr<CmdManaged> mManagedCommand;
 		UINT32 mGCHandle = 0;
+		bool mWeakHandle = true;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
@@ -100,7 +101,6 @@ namespace bs
 		void notifyScriptInstanceDestroyed();
 
 		ScriptCmdManaged* mScriptObj;
-		uint32_t mGCHandle;
 		UINT32 mRefCount;
 
 	};

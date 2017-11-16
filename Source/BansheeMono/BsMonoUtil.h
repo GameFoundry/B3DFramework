@@ -48,11 +48,26 @@ namespace bs
 		static MonoReflectionType* getType(::MonoClass* klass);
 
 		/**
-		 * Creates a new GC handle for the provided managed object, ensuring it doesn't go out of scope.
-		 * Note that after creating a handle you MUST call getObjectFromGCHandle() to get the latest MonoObject*, as
-		 * GC could have potentially moved the object to a new address.
-		 *  */
-		static UINT32 newGCHandle(MonoObject* object);
+		 * Creates a new GC handle for the provided managed object. The handle can be stored and later used for retrieving
+		 * the MonoObject* related to it by calling getObjectFromGCHandle(). This is a strong handle, meaning it will 
+		 * prevent the garbage collector from collecting the object until it is released by calling freeGCHandle().
+		 * 
+		 * @param[in]	object		Managed object to create the handle for.
+		 * @param[in]	pinned		If true the object will be pinned in memory, meaning you will be allowed to store
+		 *							a reference to the MonoObject directly. Never store MonoObject* unless they have been
+		 *							previously pinned (instead use getObjectFromGCHandle*( to get the current pointer). 
+		 *							Note that pinning can have an impact on memory fragmentation as it prevents the GC from
+		 *							moving the object, so use it sparingly.
+		 */
+		static UINT32 newGCHandle(MonoObject* object, bool pinned = true);
+
+		/**
+		 * Creates a new GC handle for the provided managed object. The handle can be stored and later used for retrieving
+		 * the MonoObject* related to it by calling getObjectFromGCHandle(). This is a weak handle, meaning it will NOT
+		 * prevent the garbage collector from collecting the object. getObjectFromGCHandle() will return null if the GC
+		 * collected the object and handle is no longer valid.
+		 */
+		static UINT32 newWeakGCHandle(MonoObject* object);
 
 		/** Frees a GC handle previously allocated with newGCHandle. */
 		static void freeGCHandle(UINT32 handle);

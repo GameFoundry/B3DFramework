@@ -21,7 +21,7 @@ namespace bs
 		 * Creates a new serializable dictionary interop object from the data in the provided property. Caller must ensure
 		 * the property references a System.Collections.Generic.Dictionary.
 		 */
-		static ScriptSerializableDictionary* create(const ScriptSerializableProperty* parentProperty);
+		static MonoObject* create(const ScriptSerializableProperty* native, MonoObject* managed);
 
 	private:
 		ScriptSerializableDictionary(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);

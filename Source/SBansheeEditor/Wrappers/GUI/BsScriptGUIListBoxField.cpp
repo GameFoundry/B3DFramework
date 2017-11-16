@@ -79,9 +79,8 @@ namespace bs
 			guiField = GUIListBoxField::create(nativeElements, multiselect, options, styleName);
 		}
 
-		guiField->onSelectionChanged.connect(std::bind(&ScriptGUIListBoxField::onSelectionChanged, instance, _1));
-
-		new (bs_alloc<ScriptGUIListBoxField>()) ScriptGUIListBoxField(instance, guiField);
+		auto nativeInstance = new (bs_alloc<ScriptGUIListBoxField>()) ScriptGUIListBoxField(instance, guiField);
+		guiField->onSelectionChanged.connect(std::bind(&ScriptGUIListBoxField::onSelectionChanged, nativeInstance, _1));
 	}
 
 	UINT32 ScriptGUIListBoxField::internal_getValue(ScriptGUIListBoxField* nativeInstance)
@@ -188,8 +187,8 @@ namespace bs
 		field->setTint(*color);
 	}
 
-	void ScriptGUIListBoxField::onSelectionChanged(MonoObject* instance, UINT32 newIndex)
+	void ScriptGUIListBoxField::onSelectionChanged(UINT32 newIndex)
 	{
-		MonoUtil::invokeThunk(onSelectionChangedThunk, instance, newIndex);
+		MonoUtil::invokeThunk(onSelectionChangedThunk, getManagedInstance(), newIndex);
 	}
 }

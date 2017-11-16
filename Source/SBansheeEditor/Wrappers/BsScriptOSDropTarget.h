@@ -103,11 +103,12 @@ namespace bs
 		 */
 		static void dropTargetDragDropped(ScriptOSDropTarget* thisPtr, INT32 x, INT32 y);
 
-		ScriptEditorWindow* mParent;
+		ScriptEditorWindow* mParent = nullptr;
 		SPtr<DropTarget> mDropTarget;
+		UINT32 mGCHandle = 0;
 		Rect2I mParentArea;
 		Rect2I mArea;
-		bool mIsDestroyed;
+		bool mIsDestroyed = false;
 
 		HEvent mDropTargetEnterConn;
 		HEvent mDropTargetMoveConn;

@@ -26,7 +26,7 @@ namespace bs
 		 *
 		 * @param[in]	typeInfo	Data about the type the property references.
 		 */
-		static ScriptSerializableProperty* create(const SPtr<ManagedSerializableTypeInfo>& typeInfo);
+		static MonoObject* create(const SPtr<ManagedSerializableTypeInfo>& typeInfo);
 
 		/**	Returns the data about the type the property is referencing. */
 		SPtr<ManagedSerializableTypeInfo> getTypeInfo() const { return mTypeInfo; }
@@ -43,10 +43,10 @@ namespace bs
 		/************************************************************************/
 		static void internal_CreateInstance(MonoObject* instance, MonoReflectionType* reflType);
 
-		static MonoObject* internal_createObject(ScriptSerializableProperty* nativeInstance);
-		static MonoObject* internal_createArray(ScriptSerializableProperty* nativeInstance);
-		static MonoObject* internal_createList(ScriptSerializableProperty* nativeInstance);
-		static MonoObject* internal_createDictionary(ScriptSerializableProperty* nativeInstance);
+		static MonoObject* internal_createObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
+		static MonoObject* internal_createArray(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
+		static MonoObject* internal_createList(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
+		static MonoObject* internal_createDictionary(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
 
 		static MonoObject* internal_createManagedObjectInstance(ScriptSerializableProperty* nativeInstance);
 		static MonoObject* internal_createManagedArrayInstance(ScriptSerializableProperty* nativeInstance, MonoArray* sizes);

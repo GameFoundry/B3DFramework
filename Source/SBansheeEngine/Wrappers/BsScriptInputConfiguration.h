@@ -18,6 +18,9 @@ namespace bs
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, "BansheeEngine", "InputConfiguration")
 
+		/** Returns the managed version of this object. */
+		MonoObject* getManagedInstance() const;
+
 		/**	Returns the internal wrapped InputConfiguration object. */
 		SPtr<InputConfiguration> getInternalValue() const { return mInputConfig; }
 
@@ -40,6 +43,7 @@ namespace bs
 		void _onManagedInstanceDeleted() override;
 
 		SPtr<InputConfiguration> mInputConfig;
+		UINT32 mGCHandle = 0;
 		static Map<UINT64, ScriptInputConfiguration*> ScriptInputConfigurations;
 
 		/************************************************************************/

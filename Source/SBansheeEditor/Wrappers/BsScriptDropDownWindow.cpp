@@ -26,7 +26,8 @@ namespace bs
 	ScriptDropDownWindow::ScriptDropDownWindow(ManagedDropDownWindow* window)
 		:ScriptObject(window->getManagedInstance()), mDropDownWindow(window)
 	{
-		mOnAssemblyRefreshStartedConn = ScriptObjectManager::instance().onRefreshStarted.connect(std::bind(&ScriptDropDownWindow::onAssemblyRefreshStarted, this));
+		mOnAssemblyRefreshStartedConn = ScriptObjectManager::instance().onRefreshStarted.connect(
+			std::bind(&ScriptDropDownWindow::onAssemblyRefreshStarted, this));
 	}
 
 	ScriptDropDownWindow::~ScriptDropDownWindow()

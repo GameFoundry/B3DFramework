@@ -56,9 +56,8 @@ namespace bs
 			guiField = GUIColorField::create(options, styleName);
 		}
 
-		guiField->onClicked.connect(std::bind(&ScriptGUIColorField::onClicked, instance));
-
-		new (bs_alloc<ScriptGUIColorField>()) ScriptGUIColorField(instance, guiField);
+		ScriptGUIColorField* nativeInstance = new (bs_alloc<ScriptGUIColorField>()) ScriptGUIColorField(instance, guiField);
+		guiField->onClicked.connect(std::bind(&ScriptGUIColorField::onClicked, nativeInstance));
 	}
 
 	void ScriptGUIColorField::internal_getValue(ScriptGUIColorField* nativeInstance, Color* output)
@@ -79,8 +78,8 @@ namespace bs
 		colorField->setTint(*color);
 	}
 
-	void ScriptGUIColorField::onClicked(MonoObject* instance)
+	void ScriptGUIColorField::onClicked()
 	{
-		MonoUtil::invokeThunk(onClickedThunk, instance);
+		MonoUtil::invokeThunk(onClickedThunk, getManagedInstance());
 	}
 }

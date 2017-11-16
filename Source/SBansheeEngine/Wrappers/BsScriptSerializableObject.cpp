@@ -27,16 +27,14 @@ namespace bs
 		FieldsField = metaData.scriptClass->getField("_fields");
 	}
 
-	ScriptSerializableObject* ScriptSerializableObject::create(const ScriptSerializableProperty* property)
+	MonoObject* ScriptSerializableObject::create(const ScriptSerializableProperty* native, MonoObject* managed)
 	{
-		MonoReflectionType* internalElementType = MonoUtil::getType(property->getTypeInfo()->getMonoClass());
+		MonoReflectionType* internalElementType = MonoUtil::getType(native->getTypeInfo()->getMonoClass());
 
-		void* params[2] = { internalElementType, property->getManagedInstance() };
+		void* params[2] = { internalElementType, managed };
 		MonoObject* managedInstance = metaData.scriptClass->createInstance(params, 2);
 
-		// Managed constructor will call back to native which will create ScriptSerializableObject instance,
-		// and we can now just retrieve it.
-		return ScriptSerializableObject::toNative(managedInstance);
+		return managedInstance;
 	}
 
 	void ScriptSerializableObject::internal_createInstance(MonoObject* instance, MonoReflectionType* type)
@@ -86,8 +84,7 @@ namespace bs
 		UINT32 i = 0;
 		for (auto& field : sortedFields)
 		{
-			ScriptSerializableField* serializableField = ScriptSerializableField::create(instance, field);
-			MonoObject* fieldManagedInstance = serializableField->getManagedInstance();
+			MonoObject* fieldManagedInstance = ScriptSerializableField::create(instance, field);
 
 			scriptArray.set(i, fieldManagedInstance);
 			i++;

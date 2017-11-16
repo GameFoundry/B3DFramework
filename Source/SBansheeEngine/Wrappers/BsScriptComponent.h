@@ -56,25 +56,24 @@ namespace bs
 		TScriptComponent(MonoObject* instance, const GameObjectHandle<CompType>& component)
 			:ScriptObject<ScriptClass, BaseType>(instance), mComponent(component)
 		{
-			mManagedHandle = MonoUtil::newGCHandle(instance);
-			this->mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
-
-			BS_DEBUG_ONLY(mHandleValid = true);
+			this->setManagedInstance(instance);
 		}
 
 		virtual ~TScriptComponent() {}
 
-		/**
-		 * Called after assembly reload starts to give the object a chance to restore the data backed up by the previous
-		 * beginRefresh() call.
-		 */
-		virtual void endRefresh(const ScriptObjectBackup& backupData) override
+		/** @copydoc ScriptObject::_createManagedInstance */
+		MonoObject* _createManagedInstance(bool construct) override
 		{
-			BS_ASSERT(!mHandleValid);
-			mManagedHandle = MonoUtil::newGCHandle(this->mManagedInstance);
-			this->mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
+			this->setManagedInstance(managedInstance);
 
-			ScriptObject<ScriptClass, BaseType>::endRefresh(backupData);
+			return managedInstance;
+		}
+
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override
+		{
+			this->mGCHandle = 0;
 		}
 
 		/**
@@ -83,22 +82,18 @@ namespace bs
 		 */
 		void _notifyDestroyed() override
 		{
-			MonoUtil::freeGCHandle(mManagedHandle);
-			BS_DEBUG_ONLY(mHandleValid = false);
+			this->freeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void _onManagedInstanceDeleted() override
 		{
-			MonoUtil::freeGCHandle(mManagedHandle);
-			BS_DEBUG_ONLY(mHandleValid = false);
+			this->freeManagedInstance();
 
 			this->destroy();
 		}
 
 		GameObjectHandle<CompType> mComponent;
-		uint32_t mManagedHandle;
-		BS_DEBUG_ONLY(bool mHandleValid);
 	};
 
 	/**	Interop class between C++ & CLR for Component. */

@@ -40,13 +40,12 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_CreateManagedDictionaryInstance", (void*)&ScriptSerializableProperty::internal_createManagedDictionaryInstance);
 	}
 
-	ScriptSerializableProperty* ScriptSerializableProperty::create(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+	MonoObject* ScriptSerializableProperty::create(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 	{
 		MonoObject* managedInstance = metaData.scriptClass->createInstance();
+		new (bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
 
-		ScriptSerializableProperty* nativeInstance = new (bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
-
-		return nativeInstance;
+		return managedInstance;
 	}
 
 	void ScriptSerializableProperty::internal_CreateInstance(MonoObject* instance, MonoReflectionType* reflType)
@@ -68,32 +67,24 @@ namespace bs
 		new (bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(instance, typeInfo);
 	}
 
-	MonoObject* ScriptSerializableProperty::internal_createObject(ScriptSerializableProperty* nativeInstance)
+	MonoObject* ScriptSerializableProperty::internal_createObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		ScriptSerializableObject* newObject = ScriptSerializableObject::create(nativeInstance);
-
-		return newObject->getManagedInstance();
+		return ScriptSerializableObject::create(nativeInstance, managedInstance);
 	}
 
-	MonoObject* ScriptSerializableProperty::internal_createArray(ScriptSerializableProperty* nativeInstance)
+	MonoObject* ScriptSerializableProperty::internal_createArray(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		ScriptSerializableArray* newObject = ScriptSerializableArray::create(nativeInstance);
-
-		return newObject->getManagedInstance();
+		return ScriptSerializableArray::create(nativeInstance, managedInstance);
 	}
 
-	MonoObject* ScriptSerializableProperty::internal_createList(ScriptSerializableProperty* nativeInstance)
+	MonoObject* ScriptSerializableProperty::internal_createList(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		ScriptSerializableList* newObject = ScriptSerializableList::create(nativeInstance);
-
-		return newObject->getManagedInstance();
+		return ScriptSerializableList::create(nativeInstance, managedInstance);
 	}
 
-	MonoObject* ScriptSerializableProperty::internal_createDictionary(ScriptSerializableProperty* nativeInstance)
+	MonoObject* ScriptSerializableProperty::internal_createDictionary(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		ScriptSerializableDictionary* newObject = ScriptSerializableDictionary::create(nativeInstance);
-
-		return newObject->getManagedInstance();
+		return ScriptSerializableDictionary::create(nativeInstance, managedInstance);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createManagedObjectInstance(ScriptSerializableProperty* nativeInstance)

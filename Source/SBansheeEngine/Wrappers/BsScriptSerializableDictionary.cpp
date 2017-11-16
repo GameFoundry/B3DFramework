@@ -24,32 +24,28 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_CreateValueProperty", (void*)&ScriptSerializableDictionary::internal_createValueProperty);
 	}
 
-	ScriptSerializableDictionary* ScriptSerializableDictionary::create(const ScriptSerializableProperty* parentProperty)
+	MonoObject* ScriptSerializableDictionary::create(const ScriptSerializableProperty* native, MonoObject* managed)
 	{
-		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(parentProperty->getTypeInfo());
+		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = 
+			std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(native->getTypeInfo());
 
 		MonoReflectionType* internalKeyType = MonoUtil::getType(dictTypeInfo->mKeyType->getMonoClass());
 		MonoReflectionType* internalValueType = MonoUtil::getType(dictTypeInfo->mValueType->getMonoClass());
 
-		void* params[3] = { internalKeyType, internalValueType, parentProperty->getManagedInstance() };
+		void* params[3] = { internalKeyType, internalValueType, managed };
 		MonoObject* managedInstance = metaData.scriptClass->createInstance(params, 3);
 
-		ScriptSerializableDictionary* nativeInstance = new (bs_alloc<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
-
-		return nativeInstance;
+		new (bs_alloc<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
+		return managedInstance;
 	}
 
 	MonoObject* ScriptSerializableDictionary::internal_createKeyProperty(ScriptSerializableDictionary* nativeInstance)
 	{
-		ScriptSerializableProperty* newProperty = ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mKeyType);
-
-		return newProperty->getManagedInstance();
+		return ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mKeyType);
 	}
 
 	MonoObject* ScriptSerializableDictionary::internal_createValueProperty(ScriptSerializableDictionary* nativeInstance)
 	{
-		ScriptSerializableProperty* newProperty = ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mValueType);
-
-		return newProperty->getManagedInstance();
+		return ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mValueType);
 	}
 }

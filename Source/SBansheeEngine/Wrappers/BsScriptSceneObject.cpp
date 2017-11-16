@@ -15,8 +15,7 @@ namespace bs
 	ScriptSceneObject::ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject)
 		:ScriptObject(instance), mSceneObject(sceneObject)
 	{
-		mManagedHandle = MonoUtil::newGCHandle(instance);
-		mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+		setManagedInstance(instance);
 	}
 
 	void ScriptSceneObject::initRuntimeData()
@@ -399,31 +398,28 @@ namespace bs
 
 	void ScriptSceneObject::_onManagedInstanceDeleted()
 	{
-		mManagedInstance = nullptr;
-
 		if (!mRefreshInProgress)
 			ScriptGameObjectManager::instance().destroyScriptSceneObject(this);
 		else
-		{
-			if (mManagedHandle != 0)
-			{
-				MonoUtil::freeGCHandle(mManagedHandle);
-				mManagedHandle = 0;
-			}
-		}
+			freeManagedInstance();
 	}
 
 	MonoObject* ScriptSceneObject::_createManagedInstance(bool construct)
 	{
 		MonoObject* managedInstance = metaData.scriptClass->createInstance(construct);
-		mManagedHandle = MonoUtil::newGCHandle(managedInstance);
-		return MonoUtil::getObjectFromGCHandle(mManagedHandle);
+		setManagedInstance(managedInstance);
+
+		return managedInstance;
+	}
+
+	void ScriptSceneObject::_clearManagedInstance()
+	{
+		this->mGCHandle = 0;
 	}
 
 	void ScriptSceneObject::_notifyDestroyed()
 	{
-		MonoUtil::freeGCHandle(mManagedHandle);
-		mManagedHandle = 0;
+		freeManagedInstance();
 	}
 
 	void ScriptSceneObject::setNativeHandle(const HGameObject& gameObject)

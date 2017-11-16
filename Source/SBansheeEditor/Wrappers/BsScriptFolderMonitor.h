@@ -43,7 +43,8 @@ namespace bs
 		/**	Triggered when the native folder monitor detects a file has been renamed. */
 		void onMonitorFileRenamed(const Path& from, const Path& to);
 
-		FolderMonitor* mMonitor;
+		FolderMonitor* mMonitor = nullptr;
+		UINT32 mGCHandle = 0;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

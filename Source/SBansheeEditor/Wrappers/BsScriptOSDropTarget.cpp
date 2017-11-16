@@ -25,8 +25,10 @@ namespace bs
 	ScriptOSDropTarget::OnDropThunkDef ScriptOSDropTarget::onDropThunk;
 
 	ScriptOSDropTarget::ScriptOSDropTarget(MonoObject* instance, ScriptEditorWindow* parent)
-		:ScriptObject(instance), mParent(parent), mDropTarget(nullptr), mIsDestroyed(false)
+		:ScriptObject(instance)
 	{
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
+
 		EditorWidgetBase* parentWidget = getParentWidget();
 
 		if (parentWidget != nullptr)
@@ -174,8 +176,8 @@ namespace bs
 		if (thisPtr->mIsDestroyed)
 			return;
 
-		MonoUtil::invokeThunk(onEnterThunk, thisPtr->getManagedInstance(), 
-			x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
+		MonoUtil::invokeThunk(onEnterThunk, instance, x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
 	}
 
 	void ScriptOSDropTarget::dropTargetDragMove(ScriptOSDropTarget* thisPtr, INT32 x, INT32 y)
@@ -183,8 +185,8 @@ namespace bs
 		if (thisPtr->mIsDestroyed)
 			return;
 
-		MonoUtil::invokeThunk(onMoveThunk, thisPtr->getManagedInstance(), 
-			x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
+		MonoUtil::invokeThunk(onMoveThunk, instance, x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
 	}
 
 	void ScriptOSDropTarget::dropTargetDragLeave(ScriptOSDropTarget* thisPtr)
@@ -192,7 +194,8 @@ namespace bs
 		if (thisPtr->mIsDestroyed)
 			return;
 
-		MonoUtil::invokeThunk(onLeaveThunk, thisPtr->getManagedInstance());
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
+		MonoUtil::invokeThunk(onLeaveThunk, instance);
 	}
 
 	void ScriptOSDropTarget::dropTargetDragDropped(ScriptOSDropTarget* thisPtr, INT32 x, INT32 y)
@@ -200,8 +203,8 @@ namespace bs
 		if (thisPtr->mIsDestroyed)
 			return;
 
-		MonoUtil::invokeThunk(onDropThunk, thisPtr->getManagedInstance(), 
-			x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
+		MonoUtil::invokeThunk(onDropThunk, instance, x - thisPtr->mParentArea.x, y - thisPtr->mParentArea.y);
 	}
 
 	void ScriptOSDropTarget::widgetParentChanged(EditorWidgetContainer* parent)

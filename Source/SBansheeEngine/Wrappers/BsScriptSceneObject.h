@@ -42,11 +42,13 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override;
 
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override;
+
 		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
 		void _notifyDestroyed();
 
 		HSceneObject mSceneObject;
-		uint32_t mManagedHandle;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

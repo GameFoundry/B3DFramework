@@ -21,10 +21,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native list box selection changes.
 		 *
-		 * @param[in]	instance	Managed GUIListBoxField instance.
 		 * @param[in]	newIndex	New selection index.
 		 */
-		static void onSelectionChanged(MonoObject* instance, UINT32 newIndex);
+		void onSelectionChanged(UINT32 newIndex);
 
 		ScriptGUIListBoxField(MonoObject* instance, GUIListBoxField* listBoxField);
 

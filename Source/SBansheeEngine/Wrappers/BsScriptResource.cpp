@@ -4,12 +4,18 @@
 #include "BsScriptResourceManager.h"
 #include "Resources/BsResource.h"
 #include "BsMonoUtil.h"
+#include <assert.h>
 
 namespace bs
 {
 	ScriptResourceBase::ScriptResourceBase(MonoObject* instance)
-		:PersistentScriptObjectBase(instance), mRefreshInProgress(false)
+		:PersistentScriptObjectBase(instance), mRefreshInProgress(false), mGCHandle(0)
 	{ }
+
+	ScriptResourceBase::~ScriptResourceBase()
+	{
+		BS_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
+	}
 
 	ScriptObjectBackup ScriptResourceBase::beginRefresh()
 	{
@@ -25,10 +31,29 @@ namespace bs
 		PersistentScriptObjectBase::endRefresh(backupData);
 	}
 
+	MonoObject* ScriptResourceBase::getManagedInstance() const
+	{
+		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+	}
+
+	void ScriptResourceBase::setManagedInstance(::MonoObject* instance)
+	{
+		BS_ASSERT(mGCHandle == 0 && "Attempting to set a new managed instance without freeing the old one.");
+
+		mGCHandle = MonoUtil::newGCHandle(instance, false);
+	}
+
+	void ScriptResourceBase::freeManagedInstance()
+	{
+		if (mGCHandle != 0)
+		{
+			MonoUtil::freeGCHandle(mGCHandle);
+			mGCHandle = 0;
+		}
+	}
+
 	void ScriptResourceBase::destroy()
 	{
-		mManagedInstance = nullptr;
-
 		if (!mRefreshInProgress)
 			ScriptResourceManager::instance().destroyScriptResource(this);
 	}

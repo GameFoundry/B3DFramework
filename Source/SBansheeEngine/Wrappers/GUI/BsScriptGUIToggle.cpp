@@ -70,13 +70,13 @@ namespace bs
 		GUIContent nativeContent(ScriptGUIContent::getText(content), ScriptGUIContent::getImage(content), ScriptGUIContent::getTooltip(content));
 		GUIToggle* guiToggle = GUIToggle::create(nativeContent, toggleGroup, options, toString(MonoUtil::monoToWString(style)));
 
-		guiToggle->onClick.connect(std::bind(&ScriptGUIToggle::onClick, instance));
-		guiToggle->onHover.connect(std::bind(&ScriptGUIToggle::onHover, instance));
-		guiToggle->onOut.connect(std::bind(&ScriptGUIToggle::onOut, instance));
-		guiToggle->onToggled.connect(std::bind(&ScriptGUIToggle::onToggled, instance, std::placeholders::_1));
-		guiToggle->onDoubleClick.connect(std::bind(&ScriptGUIToggle::onDoubleClick, instance));
+		auto nativeInstance = new (bs_alloc<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
 
-		new (bs_alloc<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
+		guiToggle->onClick.connect(std::bind(&ScriptGUIToggle::onClick, nativeInstance));
+		guiToggle->onHover.connect(std::bind(&ScriptGUIToggle::onHover, nativeInstance));
+		guiToggle->onOut.connect(std::bind(&ScriptGUIToggle::onOut, nativeInstance));
+		guiToggle->onToggled.connect(std::bind(&ScriptGUIToggle::onToggled, nativeInstance, std::placeholders::_1));
+		guiToggle->onDoubleClick.connect(std::bind(&ScriptGUIToggle::onDoubleClick, nativeInstance));
 	}
 
 	void ScriptGUIToggle::internal_setContent(ScriptGUIToggle* nativeInstance, MonoObject* content)
@@ -109,28 +109,28 @@ namespace bs
 		toggle->setTint(*color);
 	}
 
-	void ScriptGUIToggle::onClick(MonoObject* instance)
+	void ScriptGUIToggle::onClick()
 	{
-		MonoUtil::invokeThunk(onClickThunk, instance);
+		MonoUtil::invokeThunk(onClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onHover(MonoObject* instance)
+	void ScriptGUIToggle::onHover()
 	{
-		MonoUtil::invokeThunk(onHoverThunk, instance);
+		MonoUtil::invokeThunk(onHoverThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onOut(MonoObject* instance)
+	void ScriptGUIToggle::onOut()
 	{
-		MonoUtil::invokeThunk(onOutThunk, instance);
+		MonoUtil::invokeThunk(onOutThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onToggled(MonoObject* instance, bool toggled)
+	void ScriptGUIToggle::onToggled(bool toggled)
 	{
-		MonoUtil::invokeThunk(onToggledThunk, instance, toggled);
+		MonoUtil::invokeThunk(onToggledThunk, getManagedInstance(), toggled);
 	}
 
-	void ScriptGUIToggle::onDoubleClick(MonoObject* instance)
+	void ScriptGUIToggle::onDoubleClick()
 	{
-		MonoUtil::invokeThunk(onDoubleClickThunk, instance);
+		MonoUtil::invokeThunk(onDoubleClickThunk, getManagedInstance());
 	}
 }

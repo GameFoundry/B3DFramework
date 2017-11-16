@@ -93,11 +93,10 @@ namespace bs
 		SPtr<PixelData> readData = thisPtr->getProperties().allocBuffer(face, mipLevel);
 		AsyncOp asyncOp = thisPtr->readData(readData, face, mipLevel);
 
-		std::function<ScriptObjectBase*(const AsyncOp&)> asyncOpToMono =
+		std::function<MonoObject*(const AsyncOp&)> asyncOpToMono =
 			[&readData](const AsyncOp& op)
 		{
-			MonoObject* obj = ScriptPixelData::create(readData);
-			return ScriptPixelData::toNative(obj);
+			return ScriptPixelData::create(readData);
 		};
 
 		return bs_shared_ptr_new<AsyncOpEx>(asyncOp, asyncOpToMono);

@@ -61,10 +61,10 @@ namespace bs
 			guiSliderField = GUISliderField::create(options, styleName);
 		}
 
-		guiSliderField->setRange(min, max);
-		guiSliderField->onValueChanged.connect(std::bind(&ScriptGUISliderField::onChanged, instance, _1));
+		auto nativeInstance = new (bs_alloc<ScriptGUISliderField>()) ScriptGUISliderField(instance, guiSliderField);
 
-		new (bs_alloc<ScriptGUISliderField>()) ScriptGUISliderField(instance, guiSliderField);
+		guiSliderField->setRange(min, max);
+		guiSliderField->onValueChanged.connect(std::bind(&ScriptGUISliderField::onChanged, nativeInstance, _1));
 	}
 
 	float ScriptGUISliderField::internal_getValue(ScriptGUISliderField* nativeInstance)
@@ -109,8 +109,8 @@ namespace bs
 		sliderField->setStep(step);
 	}
 
-	void ScriptGUISliderField::onChanged(MonoObject* instance, float newValue)
+	void ScriptGUISliderField::onChanged(float newValue)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, newValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), newValue);
 	}
 }

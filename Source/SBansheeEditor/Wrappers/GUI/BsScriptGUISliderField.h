@@ -23,10 +23,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native slider field changes.
 		 *
-		 * @param[in]	instance	Managed GUISliderField instance.
 		 * @param[in]	newValue	New field value.
 		 */
-		static void onChanged(MonoObject* instance, float newValue);
+		void onChanged(float newValue);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

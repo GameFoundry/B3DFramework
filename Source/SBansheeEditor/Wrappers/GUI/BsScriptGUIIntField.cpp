@@ -62,10 +62,10 @@ namespace bs
 			guiIntField = GUIIntField::create(options, styleName);
 		}
 
-		guiIntField->onValueChanged.connect(std::bind(&ScriptGUIIntField::onChanged, instance, _1));
-		guiIntField->onConfirm.connect(std::bind(&ScriptGUIIntField::onConfirmed, instance));
+		auto nativeInstance = new (bs_alloc<ScriptGUIIntField>()) ScriptGUIIntField(instance, guiIntField);
 
-		new (bs_alloc<ScriptGUIIntField>()) ScriptGUIIntField(instance, guiIntField);
+		guiIntField->onValueChanged.connect(std::bind(&ScriptGUIIntField::onChanged, nativeInstance, _1));
+		guiIntField->onConfirm.connect(std::bind(&ScriptGUIIntField::onConfirmed, nativeInstance));
 	}
 
 	INT32 ScriptGUIIntField::internal_getValue(ScriptGUIIntField* nativeInstance)
@@ -110,13 +110,13 @@ namespace bs
 		return intField->getStep();
 	}
 
-	void ScriptGUIIntField::onChanged(MonoObject* instance, INT32 newValue)
+	void ScriptGUIIntField::onChanged(INT32 newValue)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, newValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), newValue);
 	}
 
-	void ScriptGUIIntField::onConfirmed(MonoObject* instance)
+	void ScriptGUIIntField::onConfirmed()
 	{
-		MonoUtil::invokeThunk(onConfirmedThunk, instance);
+		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}
 }

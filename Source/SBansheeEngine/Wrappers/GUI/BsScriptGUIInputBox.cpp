@@ -43,9 +43,10 @@ namespace bs
 			options.addOption(scriptArray.get<GUIOption>(i));
 
 		GUIInputBox* guiInputBox = GUIInputBox::create(multiline, options, toString(MonoUtil::monoToWString(style)));
-		guiInputBox->onValueChanged.connect(std::bind(&ScriptGUIInputBox::onChanged, instance, _1));
 
-		new (bs_alloc<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
+		auto nativeInstance = new (bs_alloc<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
+
+		guiInputBox->onValueChanged.connect(std::bind(&ScriptGUIInputBox::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUIInputBox::internal_getText(ScriptGUIInputBox* nativeInstance, MonoString** text)
@@ -66,14 +67,14 @@ namespace bs
 		inputBox->setTint(*color);
 	}
 
-	void ScriptGUIInputBox::onChanged(MonoObject* instance, const WString& newValue)
+	void ScriptGUIInputBox::onChanged(const WString& newValue)
 	{
 		MonoString* monoValue = MonoUtil::wstringToMono(newValue);
-		MonoUtil::invokeThunk(onChangedThunk, instance, monoValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), monoValue);
 	}
 
-	void ScriptGUIInputBox::onConfirmed(MonoObject* instance)
+	void ScriptGUIInputBox::onConfirmed()
 	{
-		MonoUtil::invokeThunk(onConfirmedThunk, instance);
+		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}
 }

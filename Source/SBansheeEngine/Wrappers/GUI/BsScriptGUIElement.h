@@ -20,6 +20,9 @@ namespace bs
 		ScriptGUIElementBaseTBase(MonoObject* instance);
 		virtual ~ScriptGUIElementBaseTBase() {}
 
+		/** Returns the managed version of this game object. */
+		MonoObject* getManagedInstance() const;
+
 		/**	Returns the underlying GUIElementBase wrapped by this object. */
 		GUIElementBase* getGUIElement() const { return (GUIElementBase*)mElement; }
 
@@ -46,11 +49,12 @@ namespace bs
 		void _onManagedInstanceDeleted() override;
 
 		/**	Triggered when the focus changes for the underlying GUIElementBase. */
-		static void onFocusChanged(MonoObject* instance, bool focus);
+		static void onFocusChanged(ScriptGUIElementBaseTBase* thisPtr, bool focus);
 
-		bool mIsDestroyed;
-		GUIElementBase* mElement;
-		ScriptGUILayout* mParent;
+		bool mIsDestroyed = false;
+		GUIElementBase* mElement = nullptr;
+		ScriptGUILayout* mParent = nullptr;
+		UINT32 mGCHandle = 0;
 	};
 
 	/**

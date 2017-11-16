@@ -21,6 +21,7 @@ namespace bs
 	ScriptContextMenu::ScriptContextMenu(MonoObject* instance)
 		: ScriptObject(instance)
 	{
+		mGCHandle = MonoUtil::newWeakGCHandle(instance);
 		mContextMenu = bs_shared_ptr_new<GUIContextMenu>();
 	}
 
@@ -85,6 +86,7 @@ namespace bs
 
 	void ScriptContextMenu::onContextMenuItemTriggered(UINT32 idx)
 	{
-		MonoUtil::invokeThunk(onEntryTriggered, getManagedInstance(), idx);
+		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		MonoUtil::invokeThunk(onEntryTriggered, instance, idx);
 	}
 }

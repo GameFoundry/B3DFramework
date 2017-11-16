@@ -143,7 +143,7 @@ namespace BansheeEngine
             if (type != FieldType.Object)
                 throw new Exception("Attempting to retrieve object information from a field that doesn't contain an object.");
 
-            return Internal_CreateObject(mCachedPtr);
+            return Internal_CreateObject(mCachedPtr, this);
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace BansheeEngine
             if (type != FieldType.Array)
                 throw new Exception("Attempting to retrieve array information from a field that doesn't contain an array.");
 
-            return Internal_CreateArray(mCachedPtr);
+            return Internal_CreateArray(mCachedPtr, this);
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace BansheeEngine
             if (type != FieldType.List)
                 throw new Exception("Attempting to retrieve array information from a field that doesn't contain a list.");
 
-            return Internal_CreateList(mCachedPtr);
+            return Internal_CreateList(mCachedPtr, this);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace BansheeEngine
             if (type != FieldType.Dictionary)
                 throw new Exception("Attempting to retrieve array information from a field that doesn't contain a dictionary.");
 
-            return Internal_CreateDictionary(mCachedPtr);
+            return Internal_CreateDictionary(mCachedPtr, this);
         }
 
         /// <summary>
@@ -287,16 +287,16 @@ namespace BansheeEngine
         private static extern void Internal_CreateInstance(SerializableProperty instance, Type type);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableObject Internal_CreateObject(IntPtr nativeInstance);
+        private static extern SerializableObject Internal_CreateObject(IntPtr nativeInstance, object managedInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableArray Internal_CreateArray(IntPtr nativeInstance);
+        private static extern SerializableArray Internal_CreateArray(IntPtr nativeInstance, object managedInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableList Internal_CreateList(IntPtr nativeInstance);
+        private static extern SerializableList Internal_CreateList(IntPtr nativeInstance, object managedInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableDictionary Internal_CreateDictionary(IntPtr nativeInstance);
+        private static extern SerializableDictionary Internal_CreateDictionary(IntPtr nativeInstance, object managedInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern object Internal_CreateManagedObjectInstance(IntPtr nativeInstance);

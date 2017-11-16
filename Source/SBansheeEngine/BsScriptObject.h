@@ -30,9 +30,6 @@ namespace bs
 		ScriptObjectBase(MonoObject* instance);
 		virtual ~ScriptObjectBase();
 
-		/**	Gets the managed object this interop object represents. */
-		MonoObject* getManagedInstance() const { return mManagedInstance; }
-
 		/**
 		 * Should the interop object persist through assembly reload. If false then the interop object will be destroyed on
 		 * reload.
@@ -59,9 +56,6 @@ namespace bs
 		 * beginRefresh() call.
 		 */
 		virtual void endRefresh(const ScriptObjectBackup& data);
-
-	protected:
-		MonoObject* mManagedInstance;
 	};
 
 	/**	Base class for all persistent interop objects. Persistent objects persist through assembly reload. */
@@ -72,7 +66,7 @@ namespace bs
 		virtual ~PersistentScriptObjectBase();
 
 		/** @copydoc ScriptObjectBase::isPersistent  */
-		virtual bool isPersistent() const override { return true; }
+		bool isPersistent() const override { return true; }
 	};
 
 	template <class Type, class Base>
@@ -110,27 +104,15 @@ namespace bs
 		virtual ~ScriptObject() 
 		{ }
 
-		/**	
-		 * Clears any managed instance references from the interop object. Normally called right after the assemblies are
-		 * unloaded.
-		 */
-		void _clearManagedInstance()
-		{
-			if (metaData.thisPtrField != nullptr && this->mManagedInstance != nullptr)
-				metaData.thisPtrField->set(this->mManagedInstance, nullptr);
-
-			this->mManagedInstance = nullptr;
-		}
-
 		/**	Allows persistent objects to restore their managed instances after assembly reload. */
 		void _restoreManagedInstance()
 		{
-			this->mManagedInstance = _createManagedInstance(true);
+			MonoObject* instance = _createManagedInstance(true);
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
-			if (metaData.thisPtrField != nullptr && this->mManagedInstance != nullptr)
-				metaData.thisPtrField->set(this->mManagedInstance, &param);
+			if (metaData.thisPtrField != nullptr && instance != nullptr)
+				metaData.thisPtrField->set(instance, &param);
 		}
 
 		/**	Creates a new managed instance of the type wrapped by this interop object. */

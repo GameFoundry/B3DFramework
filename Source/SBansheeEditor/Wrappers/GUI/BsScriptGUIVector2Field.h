@@ -21,17 +21,12 @@ namespace bs
 		/**
 		 * Triggered when the value in the native vector field changes.
 		 *
-		 * @param[in]	instance	Managed GUIVector2Field instance.
 		 * @param[in]	newValue	New vector value.
 		 */
-		static void onChanged(MonoObject* instance, const Vector2& newValue);
+		void onChanged(const Vector2& newValue);
 
-		/**
-		 * Triggered when the user confirms input in the native vector field.
-		 *
-		 * @param[in]	instance	Managed GUIVector2Field instance.
-		 */
-		static void onConfirmed(MonoObject* instance);
+		/** Triggered when the user confirms input in the native vector field. */
+		void onConfirmed();
 
 		ScriptGUIVector2Field(MonoObject* instance, GUIVector2Field* vector2Field);
 

@@ -21,10 +21,9 @@ namespace bs
 		/**
 		 * Triggered when the value in the native game object field changes.
 		 *
-		 * @param[in]	instance	Managed GUIGameObjectField instance.
 		 * @param[in]	newValue	New field value.
 		 */
-		static void onChanged(MonoObject* instance, const HGameObject& newValue);
+		void onChanged(const HGameObject& newValue);
 
 		/** Retrieves a managed instance of the specified native game object. Will return null if one doesn't exist. */
 		static MonoObject* nativeToManagedGO(const HGameObject& instance);

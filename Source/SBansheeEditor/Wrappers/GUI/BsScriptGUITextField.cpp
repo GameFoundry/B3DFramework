@@ -59,10 +59,10 @@ namespace bs
 			guiField = GUITextField::create(multiline, options, styleName);
 		}
 
-		guiField->onValueChanged.connect(std::bind(&ScriptGUITextField::onChanged, instance, _1));
-		guiField->onConfirm.connect(std::bind(&ScriptGUITextField::onConfirmed, instance));
+		auto nativeInstance = new (bs_alloc<ScriptGUITextField>()) ScriptGUITextField(instance, guiField);
 
-		new (bs_alloc<ScriptGUITextField>()) ScriptGUITextField(instance, guiField);
+		guiField->onValueChanged.connect(std::bind(&ScriptGUITextField::onChanged, nativeInstance, _1));
+		guiField->onConfirm.connect(std::bind(&ScriptGUITextField::onConfirmed, nativeInstance));
 	}
 
 	void ScriptGUITextField::internal_getValue(ScriptGUITextField* nativeInstance, MonoString** output)
@@ -101,14 +101,14 @@ namespace bs
 		field->setTint(*color);
 	}
 
-	void ScriptGUITextField::onChanged(MonoObject* instance, const WString& newValue)
+	void ScriptGUITextField::onChanged(const WString& newValue)
 	{
 		MonoString* monoNewValue = MonoUtil::wstringToMono(newValue);
-		MonoUtil::invokeThunk(onChangedThunk, instance, monoNewValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), monoNewValue);
 	}
 
-	void ScriptGUITextField::onConfirmed(MonoObject* instance)
+	void ScriptGUITextField::onConfirmed()
 	{
-		MonoUtil::invokeThunk(onConfirmedThunk, instance);
+		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}
 }

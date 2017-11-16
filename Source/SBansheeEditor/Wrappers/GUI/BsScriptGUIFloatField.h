@@ -23,17 +23,14 @@ namespace bs
 		/**
 		 * Triggered when the value in the native float field changes.
 		 *
-		 * @param[in]	instance	Managed GUIFloatField instance.
 		 * @param[in]	newValue	New field value.
 		 */
-		static void onChanged(MonoObject* instance, float newValue);
+		void onChanged(float newValue);
 
 		/**
 		 * Triggered when the user confirms input in the native float field.
-		 *
-		 * @param[in]	instance	Managed GUIFloatField instance.
 		 */
-		static void onConfirmed(MonoObject* instance);
+		void onConfirmed();
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

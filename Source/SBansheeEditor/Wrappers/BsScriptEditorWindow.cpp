@@ -23,7 +23,7 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	UnorderedMap<String, ScriptEditorWindow::EditorWindowHandle> ScriptEditorWindow::OpenScriptEditorWindows;
+	UnorderedMap<String, ScriptEditorWindow*> ScriptEditorWindow::OpenScriptEditorWindows;
 	Vector<String> ScriptEditorWindow::AvailableWindowTypes;
 	MonoMethod* ScriptEditorWindow::onResizedMethod = nullptr;
 	MonoMethod* ScriptEditorWindow::onFocusChangedMethod = nullptr;
@@ -31,13 +31,14 @@ namespace bs
 	MonoField* ScriptEditorWindow::undoRedoField = nullptr;
 
 	ScriptEditorWindow::ScriptEditorWindow(ScriptEditorWidget* editorWidget)
-		:ScriptObject(editorWidget->getManagedInstance()), mName(editorWidget->getName()), mEditorWidget(editorWidget), 
-		mRefreshInProgress(false), mIsDestroyed(false)
+		: ScriptObject(editorWidget->getManagedInstance()), mName(editorWidget->getName())
+		, mEditorWidget(editorWidget), mRefreshInProgress(false), mIsDestroyed(false)
 	{
 		mOnWidgetResizedConn = editorWidget->onResized.connect(std::bind(&ScriptEditorWindow::onWidgetResized, this, _1, _2));
 		mOnFocusChangedConn = editorWidget->onFocusChanged.connect(std::bind(&ScriptEditorWindow::onFocusChanged, this, _1));
 
-		mOnAssemblyRefreshStartedConn = ScriptObjectManager::instance().onRefreshStarted.connect(std::bind(&ScriptEditorWindow::onAssemblyRefreshStarted, this));
+		mOnAssemblyRefreshStartedConn = ScriptObjectManager::instance().onRefreshStarted.connect(
+			std::bind(&ScriptEditorWindow::onAssemblyRefreshStarted, this));
 	}
 
 	ScriptEditorWindow::~ScriptEditorWindow()
@@ -81,13 +82,13 @@ namespace bs
 
 		auto findIter = OpenScriptEditorWindows.find(fullName);
 		if(findIter != OpenScriptEditorWindows.end())
-			return findIter->second.nativeObj->mManagedInstance;
+			return findIter->second->mEditorWidget->getManagedInstance();
 
 		EditorWidgetManager::instance().open(fullName); // This will trigger openEditorWidgetCallback and update OpenScriptEditorWindows
 
 		auto findIter2 = OpenScriptEditorWindows.find(fullName);
 		if(findIter2 != OpenScriptEditorWindows.end())
-			return findIter2->second.nativeObj->mManagedInstance;
+			return findIter2->second->mEditorWidget->getManagedInstance();
 
 		return nullptr;
 	}
@@ -100,7 +101,7 @@ namespace bs
 
 		auto findIter = OpenScriptEditorWindows.find(fullName);
 		if (findIter != OpenScriptEditorWindows.end())
-			return findIter->second.nativeObj->mManagedInstance;
+			return findIter->second->mEditorWidget->getManagedInstance();
 
 		return nullptr;
 	}
@@ -112,7 +113,7 @@ namespace bs
 
 		UINT32 idx = 0;
 		for (auto& entry : OpenScriptEditorWindows)
-			output.set(idx++, entry.second.nativeObj->getManagedInstance());
+			output.set(idx++, entry.second->mEditorWidget->getManagedInstance());
 
 		return output.getInternal();
 	}
@@ -127,7 +128,7 @@ namespace bs
 		if (!mRefreshInProgress)
 			ScriptObject::_onManagedInstanceDeleted();
 		else
-			mManagedInstance = nullptr;
+			mEditorWidget->clearManagedInstance(false);
 	}
 
 	ScriptObjectBackup ScriptEditorWindow::beginRefresh()
@@ -136,12 +137,7 @@ namespace bs
 
 		auto iterFind = OpenScriptEditorWindows.find(mName);
 		if (iterFind != OpenScriptEditorWindows.end())
-		{
-			EditorWindowHandle& handle = iterFind->second;
-
-			MonoUtil::freeGCHandle(handle.gcHandle);
-			handle.gcHandle = 0;
-		}
+			iterFind->second->mEditorWidget->clearManagedInstance(true);
 
 		return PersistentScriptObjectBase::beginRefresh();
 	}
@@ -150,23 +146,7 @@ namespace bs
 	{
 		mRefreshInProgress = false;
 
-		if (!isDestroyed())
-			mManagedInstance = mEditorWidget->getManagedInstance();
-		else
-			mManagedInstance = nullptr;
-
-		if (mManagedInstance != nullptr)
-		{
-			auto iterFind = OpenScriptEditorWindows.find(mName);
-			if (iterFind != OpenScriptEditorWindows.end())
-			{
-				EditorWindowHandle& handle = iterFind->second;
-
-				handle.gcHandle = MonoUtil::newGCHandle(mManagedInstance);
-				mManagedInstance = MonoUtil::getObjectFromGCHandle(handle.gcHandle);
-			}
-		}
-		else
+		if (isDestroyed())
 		{
 			// We couldn't restore managed instance because window class cannot be found
 			_onManagedInstanceDeleted();
@@ -302,20 +282,22 @@ namespace bs
 
 	void ScriptEditorWindow::onWidgetResized(UINT32 width, UINT32 height)
 	{
-		if (isDestroyed() || !mEditorWidget->isInitialized() || mManagedInstance == nullptr)
+		MonoObject* managedInstance = mEditorWidget->getManagedInstance();
+		if (isDestroyed() || !mEditorWidget->isInitialized() || managedInstance == nullptr)
 			return;
 
 		void* params[2] = { &width, &height };
-		onResizedMethod->invokeVirtual(mManagedInstance, params);
+		onResizedMethod->invokeVirtual(managedInstance, params);
 	}
 
 	void ScriptEditorWindow::onFocusChanged(bool inFocus)
 	{
-		if (isDestroyed() || mManagedInstance == nullptr)
+		MonoObject* managedInstance = mEditorWidget->getManagedInstance();
+		if (isDestroyed() || managedInstance == nullptr)
 			return;
 
 		void* params[1] = { &inFocus};
-		onFocusChangedMethod->invokeVirtual(mManagedInstance, params);
+		onFocusChangedMethod->invokeVirtual(managedInstance, params);
 	}
 
 	void ScriptEditorWindow::registerManagedEditorWindows()
@@ -395,34 +377,21 @@ namespace bs
 
 		auto findIter = OpenScriptEditorWindows.find(editorWindow->mName);
 		if(findIter == OpenScriptEditorWindows.end())
-		{
-			EditorWindowHandle newHandle;
-			newHandle.nativeObj = editorWindow;
-			newHandle.gcHandle = MonoUtil::newGCHandle(editorWindow->mManagedInstance);
-
-			editorWindow->mManagedInstance = MonoUtil::getObjectFromGCHandle(newHandle.gcHandle);
-
-			OpenScriptEditorWindows[editorWindow->mName] = newHandle;
-		}
+			OpenScriptEditorWindows[editorWindow->mName] = editorWindow;
 	}
 
 	void ScriptEditorWindow::unregisterScriptEditorWindow(const String& windowTypeName)
 	{
 		auto findIter = OpenScriptEditorWindows.find(windowTypeName);
 		if(findIter != OpenScriptEditorWindows.end())
-		{
-			EditorWindowHandle& foundHandle = findIter->second;
-			MonoUtil::freeGCHandle(foundHandle.gcHandle);
-
 			OpenScriptEditorWindows.erase(findIter);
-		}
 	}
 
 	ScriptEditorWidget::ScriptEditorWidget(const String& ns, const String& type, UINT32 defaultWidth, 
 		UINT32 defaultHeight, bool localUndoRedo, EditorWidgetContainer& parentContainer)
 		: EditorWidgetBase(HString(toWString(type)), ns + "." + type, defaultWidth, defaultHeight, parentContainer)
 		, mNamespace(ns), mTypename(type), mOnInitializeThunk(nullptr), mOnDestroyThunk(nullptr), mUpdateThunk(nullptr)
-		, mManagedInstance(nullptr), mGetDisplayName(nullptr), mScriptOwner(nullptr), mContentsPanel(nullptr)
+		, mManagedInstance(nullptr), mGCHandle(0), mGetDisplayName(nullptr), mScriptOwner(nullptr), mContentsPanel(nullptr)
 		, mIsInitialized(false), mHasLocalUndoRedo(localUndoRedo)
 	{
 		if(createManagedInstance())
@@ -450,7 +419,19 @@ namespace bs
 		mContentsPanel = nullptr;
 
 		triggerOnDestroy();
+
+		clearManagedInstance(true);
+
 		ScriptEditorWindow::unregisterScriptEditorWindow(getName());
+	}
+
+	void ScriptEditorWidget::clearManagedInstance(bool freeHandle)
+	{
+		if(freeHandle)
+			MonoUtil::freeGCHandle(mGCHandle);
+
+		mManagedInstance = nullptr;
+		mGCHandle = 0;
 	}
 
 	bool ScriptEditorWidget::createManagedInstance()
@@ -469,6 +450,7 @@ namespace bs
 				if (editorWindowClass != nullptr)
 				{
 					mManagedInstance = editorWindowClass->createInstance();
+					mGCHandle = MonoUtil::newGCHandle(mManagedInstance);
 
 					MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mContent);
 					mContentsPanel = ScriptGUILayout::toNative(guiPanel);

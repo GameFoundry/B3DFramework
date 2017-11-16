@@ -67,8 +67,6 @@ namespace bs
 			guiField = GUIListBoxField::create(nativeNames, multiselect, options, styleName);
 		}
 
-		guiField->onSelectionChanged.connect(std::bind(&ScriptGUIEnumField::onSelectionChanged, instance, _1, _2));
-
 		ScriptArray valuesArr(values);
 		UINT32 elemSize = valuesArr.elementSize();
 
@@ -111,7 +109,10 @@ namespace bs
 		}
 			
 
-		new (bs_alloc<ScriptGUIEnumField>()) ScriptGUIEnumField(instance, guiField, nativeValues);
+		auto nativeInstance = new (bs_alloc<ScriptGUIEnumField>()) ScriptGUIEnumField(instance, guiField, nativeValues);
+
+		guiField->onSelectionChanged.connect(std::bind(&ScriptGUIEnumField::onSelectionChanged, nativeInstance, _1, _2));
+
 	}
 
 	UINT64 ScriptGUIEnumField::internal_getValue(ScriptGUIEnumField* nativeInstance)
@@ -197,18 +198,16 @@ namespace bs
 		field->setTint(*color);
 	}
 
-	void ScriptGUIEnumField::onSelectionChanged(MonoObject* instance, UINT64 newIndex, bool enabled)
+	void ScriptGUIEnumField::onSelectionChanged(UINT64 newIndex, bool enabled)
 	{
-		ScriptGUIEnumField* nativeInstance = ScriptGUIEnumField::toNative(instance);
-		GUIListBoxField* field = static_cast<GUIListBoxField*>(nativeInstance->getGUIElement());
+		GUIListBoxField* field = static_cast<GUIListBoxField*>(getGUIElement());
 
 		UINT32 outValue = 0;
 
-		const Vector<UINT64>& values = nativeInstance->mValues;
 		Vector<bool> states = field->getElementStates();
-		for (UINT32 i = 0; i < (UINT32)values.size(); i++)
-			outValue |= states[i] ? values[i] : 0;
+		for (UINT32 i = 0; i < (UINT32)mValues.size(); i++)
+			outValue |= states[i] ? mValues[i] : 0;
 
-		MonoUtil::invokeThunk(onSelectionChangedThunk, instance, outValue);
+		MonoUtil::invokeThunk(onSelectionChangedThunk, getManagedInstance(), outValue);
 	}
 }

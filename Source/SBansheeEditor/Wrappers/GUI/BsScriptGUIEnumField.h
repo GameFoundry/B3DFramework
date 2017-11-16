@@ -24,11 +24,10 @@ namespace bs
 		/**
 		 * Triggered when the value in the native list box selection changes.
 		 *
-		 * @param[in]	instance	Managed GUIEnumField instance.
 		 * @param[in]	newIndex	Index of the selected element.
 		 * @param[in]	enabled		Determines whether the element at the selection index was enabled or disabled.
 		 */
-		static void onSelectionChanged(MonoObject* instance, UINT64 newIndex, bool enabled);
+		void onSelectionChanged(UINT64 newIndex, bool enabled);
 
 		ScriptGUIEnumField(MonoObject* instance, GUIListBoxField* listBoxField, const Vector<UINT64>& values);
 

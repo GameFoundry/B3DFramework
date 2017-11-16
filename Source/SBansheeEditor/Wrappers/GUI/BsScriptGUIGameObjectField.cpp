@@ -63,9 +63,8 @@ namespace bs
 			guiGameObjectField = GUIGameObjectField::create(typeNamespace, typeName, options, styleName);
 		}
 
-		guiGameObjectField->onValueChanged.connect(std::bind(&ScriptGUIGameObjectField::onChanged, instance, _1));
-
-		new (bs_alloc<ScriptGUIGameObjectField>()) ScriptGUIGameObjectField(instance, guiGameObjectField);
+		auto nativeInstance = new (bs_alloc<ScriptGUIGameObjectField>()) ScriptGUIGameObjectField(instance, guiGameObjectField);
+		guiGameObjectField->onValueChanged.connect(std::bind(&ScriptGUIGameObjectField::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUIGameObjectField::internal_getValue(ScriptGUIGameObjectField* nativeInstance, MonoObject** output)
@@ -95,10 +94,10 @@ namespace bs
 		gameObjectField->setTint(*color);
 	}
 
-	void ScriptGUIGameObjectField::onChanged(MonoObject* instance, const HGameObject& newValue)
+	void ScriptGUIGameObjectField::onChanged(const HGameObject& newValue)
 	{
 		MonoObject* managedObj = nativeToManagedGO(newValue);
-		MonoUtil::invokeThunk(onChangedThunk, instance, managedObj);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), managedObj);
 	}
 
 	MonoObject* ScriptGUIGameObjectField::nativeToManagedGO(const HGameObject& instance)

@@ -264,7 +264,7 @@ namespace bs
 	public:
 		friend class ManagedSerializableDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

@@ -22,6 +22,9 @@ namespace bs
 		/**	Sets the internal resource this object wraps. */
 		virtual void setResource(const HResource& resource) = 0;
 
+		/** Returns the managed version of this resource. */
+		MonoObject* getManagedInstance() const;
+
 		/** @copydoc ScriptObjectBase::beginRefresh */
 		ScriptObjectBackup beginRefresh() override;
 
@@ -32,7 +35,22 @@ namespace bs
 		friend class ScriptResourceManager;
 
 		ScriptResourceBase(MonoObject* instance);
-		virtual ~ScriptResourceBase() {}
+		virtual ~ScriptResourceBase();
+
+		/** 
+		 * Makes the object reference the specific managed instance. Internally this allocates a GC handle that keeps a
+		 * reference to the object and allows getManagedInstance to retrieve the managed instance when requested. Should
+		 * be called on initial creation and whenever the managed instance changes (e.g. after assembly refresh). This
+		 * creates a strong reference to the managed instance, and you need to make sure to release it with
+		 * freeManagedInstance() when no longer required.
+		 */
+		void setManagedInstance(MonoObject* instance);
+
+		/** 
+		 * Frees a managed instace assigned with setManagedInstance(). Should be called before the object is destroyed or 
+		 * when you changing the managed instance it points to (in order to release the previous instance). 
+		 */
+		void freeManagedInstance();
 
 		/**	
 		 * Triggered by the script resource managed when the native resource handle this object point to has been destroyed.
@@ -43,6 +61,7 @@ namespace bs
 		void destroy();
 
 		bool mRefreshInProgress;
+		UINT32 mGCHandle;
 	};
 
 	/**	Base class for a specific resource's interop object. */
@@ -65,25 +84,24 @@ namespace bs
 		TScriptResource(MonoObject* instance, const ResourceHandle<ResType>& resource)
 			:ScriptObject<ScriptClass, BaseType>(instance), mResource(resource)
 		{
-			mManagedHandle = MonoUtil::newGCHandle(instance);
-			this->mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
-
-			BS_DEBUG_ONLY(mHandleValid = true);
+			this->setManagedInstance(instance);
 		}
 
 		virtual ~TScriptResource() {}
 
-		/**
-		 * Called after assembly reload starts to give the object a chance to restore the data backed up by the previous
-		 * beginRefresh() call.
-		 */
-		virtual void endRefresh(const ScriptObjectBackup& backupData) override
+		/** @copydoc ScriptObject::_createManagedInstance */
+		MonoObject* _createManagedInstance(bool construct) override
 		{
-			BS_ASSERT(!mHandleValid);
-			mManagedHandle = MonoUtil::newGCHandle(this->mManagedInstance);
-			this->mManagedInstance = MonoUtil::getObjectFromGCHandle(mManagedHandle);
+			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
+			this->setManagedInstance(managedInstance);
 
-			ScriptObject<ScriptClass, BaseType>::endRefresh(backupData);
+			return managedInstance;
+		}
+
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override
+		{
+			this->mGCHandle = 0;
 		}
 
 		/**	
@@ -91,22 +109,18 @@ namespace bs
 		 */
 		void notifyResourceDestroyed() override
 		{
-			MonoUtil::freeGCHandle(mManagedHandle);
-			BS_DEBUG_ONLY(mHandleValid = false);
+			this->freeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void _onManagedInstanceDeleted() override
 		{
-			MonoUtil::freeGCHandle(mManagedHandle);
-			BS_DEBUG_ONLY(mHandleValid = false);
+			this->freeManagedInstance();
 
 			this->destroy();
 		}
 
 		ResourceHandle<ResType> mResource;
-		uint32_t mManagedHandle;
-		BS_DEBUG_ONLY(bool mHandleValid);
 	};
 
 	/**	Interop class between C++ & CLR for Resource. */

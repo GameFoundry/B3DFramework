@@ -62,9 +62,8 @@ namespace bs
 			guiTextureField = GUITextureField::create(options, styleName);
 		}
 
-		guiTextureField->onValueChanged.connect(std::bind(&ScriptGUITextureField::onChanged, instance, _1));
-
-		new (bs_alloc<ScriptGUITextureField>()) ScriptGUITextureField(instance, guiTextureField);
+		auto nativeInstance = new (bs_alloc<ScriptGUITextureField>()) ScriptGUITextureField(instance, guiTextureField);
+		guiTextureField->onValueChanged.connect(std::bind(&ScriptGUITextureField::onChanged, nativeInstance, _1));
 	}
 
 	void ScriptGUITextureField::internal_getValue(ScriptGUITextureField* nativeInstance, MonoObject** output)
@@ -115,10 +114,10 @@ namespace bs
 		textureField->setTint(*color);
 	}
 
-	void ScriptGUITextureField::onChanged(MonoObject* instance, const WeakResourceHandle<Texture>& newHandle)
+	void ScriptGUITextureField::onChanged(const WeakResourceHandle<Texture>& newHandle)
 	{
 		MonoObject* managedObj = ScriptResourceRef::create(newHandle);
-		MonoUtil::invokeThunk(onChangedThunk, instance, managedObj);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), managedObj);
 	}
 
 	MonoObject* ScriptGUITextureField::nativeToManagedResource(const HTexture& instance)

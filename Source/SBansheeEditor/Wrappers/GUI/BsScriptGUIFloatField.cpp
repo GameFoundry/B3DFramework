@@ -62,10 +62,10 @@ namespace bs
 			guiFloatField = GUIFloatField::create(options, styleName);
 		}
 
-		guiFloatField->onValueChanged.connect(std::bind(&ScriptGUIFloatField::onChanged, instance, _1));
-		guiFloatField->onConfirm.connect(std::bind(&ScriptGUIFloatField::onConfirmed, instance));
+		auto nativeInstance = new (bs_alloc<ScriptGUIFloatField>()) ScriptGUIFloatField(instance, guiFloatField);
 
-		new (bs_alloc<ScriptGUIFloatField>()) ScriptGUIFloatField(instance, guiFloatField);
+		guiFloatField->onValueChanged.connect(std::bind(&ScriptGUIFloatField::onChanged, nativeInstance, _1));
+		guiFloatField->onConfirm.connect(std::bind(&ScriptGUIFloatField::onConfirmed, nativeInstance));
 	}
 
 	float ScriptGUIFloatField::internal_getValue(ScriptGUIFloatField* nativeInstance)
@@ -110,13 +110,13 @@ namespace bs
 		return floatField->getStep();
 	}
 
-	void ScriptGUIFloatField::onChanged(MonoObject* instance, float newValue)
+	void ScriptGUIFloatField::onChanged(float newValue)
 	{
-		MonoUtil::invokeThunk(onChangedThunk, instance, newValue);
+		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), newValue);
 	}
 
-	void ScriptGUIFloatField::onConfirmed(MonoObject* instance)
+	void ScriptGUIFloatField::onConfirmed()
 	{
-		MonoUtil::invokeThunk(onConfirmedThunk, instance);
+		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}
 }
