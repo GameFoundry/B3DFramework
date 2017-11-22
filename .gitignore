@@ -13,9 +13,11 @@ Data/Settings.asset
 Data/.version
 Data/Engine/*
 !Data/Engine/.gitkeep
+!Data/Engine/ShaderDependencies.json
 !Data/Engine/Includes
 !Data/Engine/Shaders
 Data/Editor/*
+!Data/Editor/ShaderDependencies.json
 !Data/Editor/EmptyCSScriptText.txt
 !Data/Editor/EmptyShaderText.txt
 !Data/Editor/Layout.asset

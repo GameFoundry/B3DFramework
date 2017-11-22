@@ -1,0 +1,541 @@
+﻿{
+    "Blit.bsl": null,
+    "Clear.bsl": null,
+    "DebugDraw.bsl": null,
+    "Default.bsl": [
+        {
+            "Path": "Surface.bslinc"
+        },
+        {
+            "Path": "BasePass.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferOutput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "DeferredDirectionalLight.bsl": [
+        {
+            "Path": "DeferredLightCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        }
+    ],
+    "DeferredPointLight.bsl": [
+        {
+            "Path": "DeferredLightCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        }
+    ],
+    "Diffuse.bsl": [
+        {
+            "Path": "Surface.bslinc"
+        },
+        {
+            "Path": "BasePass.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferOutput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "FlatFramebufferToTexture.bsl": null,
+    "IrradianceComputeSH.bsl": [
+        {
+            "Path": "SHCommon.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        }
+    ],
+    "IrradianceEvaluate.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "SHCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "IrradianceProjectSH.bsl": [
+        {
+            "Path": "SHCommon.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "IrradianceReduceSH.bsl": [
+        {
+            "Path": "SHCommon.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        }
+    ],
+    "LightGridLLCreation.bsl": [
+        {
+            "Path": "LightGridCommon.bslinc"
+        },
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "LightGridLLReduction.bsl": [
+        {
+            "Path": "LightGridCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "MSAACoverage.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "MSAACoverageStencil.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPBuildHiZ.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPCreateTonemapLUT.bsl": [
+        {
+            "Path": "PPWhiteBalance.bslinc"
+        },
+        {
+            "Path": "PPTonemapCommon.bslinc"
+        }
+    ],
+    "PPDownsample.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPEncodeDepth.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPEyeAdaptHistogram.bsl": null,
+    "PPEyeAdaptHistogramReduce.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPEyeAdaptation.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPFXAA.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPGaussianBlur.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPGaussianDOFCombine.bsl": [
+        {
+            "Path": "PPGaussianDOFCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPGaussianDOFSeparate.bsl": [
+        {
+            "Path": "PPGaussianDOFCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSAO.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSAOBlur.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSAODownsample.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSRResolve.bsl": [
+        {
+            "Path": "TemporalResolve.bslinc"
+        },
+        {
+            "Path": "ColorSpace.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSRStencil.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPSSRTrace.bsl": [
+        {
+            "Path": "RayMarch.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "ColorSpace.bslinc"
+        },
+        {
+            "Path": "ImportanceSampling.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPTonemapping.bsl": [
+        {
+            "Path": "PPTonemapCommon.bslinc"
+        }
+    ],
+    "ReflectionCubeDownsample.bsl": [
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "ReflectionCubeImportanceSample.bsl": [
+        {
+            "Path": "ImportanceSampling.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "ShadowDepthCube.bsl": [
+        {
+            "Path": "ShadowDepthBase.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        }
+    ],
+    "ShadowDepthDirectional.bsl": [
+        {
+            "Path": "ShadowDepthBase.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        }
+    ],
+    "ShadowDepthNormal.bsl": [
+        {
+            "Path": "ShadowDepthBase.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        }
+    ],
+    "ShadowProject.bsl": [
+        {
+            "Path": "ShadowProjectionCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "ShadowProjectOmni.bsl": [
+        {
+            "Path": "ShadowProjectionCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "ShadowProjectStencil.bsl": [
+        {
+            "Path": "ShadowProjectionCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "Skybox.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "SpriteImageAlpha.bsl": [
+        {
+            "Path": "SpriteImage.bslinc"
+        }
+    ],
+    "SpriteImageNoAlpha.bsl": [
+        {
+            "Path": "SpriteImage.bslinc"
+        }
+    ],
+    "SpriteLine.bsl": null,
+    "SpriteText.bsl": null,
+    "TetrahedraRender.bsl": [
+        {
+            "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "TiledDeferredImageBasedLighting.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        }
+    ],
+    "TiledDeferredLighting.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        }
+    ],
+    "Transparent.bsl": [
+        {
+            "Path": "Surface.bslinc"
+        },
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "LightingCommon.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "LightGridCommon.bslinc"
+        },
+        {
+            "Path": "BasePass.bslinc"
+        },
+        {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
+            "Path": "SkinnedVertexInput.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferOutput.bslinc"
+        }
+    ]
+}

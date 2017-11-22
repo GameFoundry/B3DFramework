@@ -84,6 +84,8 @@ The following dependencies will need to be installed manually. Which ones are re
   - **Mono** (Editor only)
     - Required for compilation of C# code. Optional if not building the editor.
     - Debian/Ubuntu: *apt-get install mono-complete*
+  - **Bison & Flex**
+    - Debian/Ubuntu: *apt-get install bison flex*
   - (Or equivalent packages for your distribution)
 
 **All OS**
