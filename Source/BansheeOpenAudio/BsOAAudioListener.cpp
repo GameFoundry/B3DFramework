@@ -17,38 +17,9 @@ namespace bs
 		gOAAudio()._unregisterListener(this);
 	}
 
-	void OAAudioListener::setPosition(const Vector3& position)
+	void OAAudioListener::setTransform(const Transform& transform)
 	{
-		AudioListener::setPosition(position);
-
-		auto& contexts = gOAAudio()._getContexts();
-		if (contexts.size() > 1)
-		{
-			auto context = gOAAudio()._getContext(this);
-			alcMakeContextCurrent(context);
-		}
-
-		updatePosition();
-	}
-
-	void OAAudioListener::setDirection(const Vector3& direction)
-	{
-		AudioListener::setDirection(direction);
-
-		std::array<float, 6> orientation = getOrientation();
-		auto& contexts = gOAAudio()._getContexts();
-		if (contexts.size() > 1)
-		{
-			auto context = gOAAudio()._getContext(this);
-			alcMakeContextCurrent(context);
-		}
-
-		updateOrientation(orientation);
-	}
-
-	void OAAudioListener::setUp(const Vector3& up)
-	{
-		AudioListener::setUp(up);
+		AudioListener::setTransform(transform);
 
 		std::array<float, 6> orientation = getOrientation();
 		auto& contexts = gOAAudio()._getContexts();
@@ -59,6 +30,7 @@ namespace bs
 			alcMakeContextCurrent(context);
 		}
 
+		updatePosition();
 		updateOrientation(orientation);
 	}
 
@@ -97,20 +69,25 @@ namespace bs
 
 	std::array<float, 6> OAAudioListener::getOrientation() const
 	{
+		Vector3 direction = getTransform().getForward();
+		Vector3 up = getTransform().getUp();
+
 		return
 		{
-			mDirection.x,
-			mDirection.y,
-			mDirection.z,
-			mUp.x,
-			mUp.y,
-			mUp.z
+			direction.x,
+			direction.y,
+			direction.z,
+			up.x,
+			up.y,
+			up.z
 		};
 	}
 
 	void OAAudioListener::updatePosition()
 	{
-		alListener3f(AL_POSITION, mPosition.x, mPosition.y, mPosition.z);
+		Vector3 position = getTransform().getPosition();
+
+		alListener3f(AL_POSITION, position.x, position.y, position.z);
 	}
 
 	void OAAudioListener::updateOrientation(const std::array<float, 6>& orientation)

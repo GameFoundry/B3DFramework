@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Scene/BsSceneActor.h"
 #include "Math/BsVector3.h"
 
 namespace bs
@@ -15,28 +16,10 @@ namespace bs
 	 * Represents a listener that hears audio sources. For spatial audio the volume and pitch of played audio is determined
 	 * by the distance, orientation and velocity differences between the source and the listener.
 	 */
-	class BS_CORE_EXPORT AudioListener
+	class BS_CORE_EXPORT AudioListener : public IReflectable, public SceneActor
 	{
 	public:
 		virtual ~AudioListener() {}
-
-		/** Sets the position of the listener in world space. */
-		virtual void setPosition(const Vector3& position);
-
-		/** Retrieves the position of the listener in world space. */
-		Vector3 getPosition() const { return mPosition; }
-
-		/** Sets the forward direction of the listener in world space. */
-		virtual void setDirection(const Vector3& direction);
-
-		/** Retrieves the forward direction of the listener in world space. */
-		Vector3 getDirection() const { return mDirection; }
-
-		/** Sets the up direction of the listener in world space. */
-		virtual void setUp(const Vector3& up);
-
-		/** Retrieves the up direction of the listener in world space. */
-		Vector3 getUp() const { return mUp; }
 
 		/** Sets the velocity of the listener. */
 		virtual void setVelocity(const Vector3& velocity);
@@ -50,10 +33,15 @@ namespace bs
 	protected:
 		AudioListener();
 
-		Vector3 mPosition;
-		Vector3 mDirection;
-		Vector3 mUp;
 		Vector3 mVelocity;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class AudioListenerRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

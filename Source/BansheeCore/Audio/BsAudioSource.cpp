@@ -3,12 +3,12 @@
 #include "Audio/BsAudioSource.h"
 #include "Audio/BsAudio.h"
 #include "Math/BsMath.h"
+#include "RTTI/BsAudioSourceRTTI.h"
 
 namespace bs
 {
 	AudioSource::AudioSource()
-		: mPosition(BsZero), mVelocity(BsZero), mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0)
-		, mMinDistance(1.0f), mAttenuation(1.0f)
+		: mVelocity(BsZero), mVolume(1.0f), mPitch(1.0f), mLoop(false), mPriority(0), mMinDistance(1.0f), mAttenuation(1.0f)
 	{
 
 	}
@@ -18,11 +18,6 @@ namespace bs
 		mAudioClip = clip;
 
 		markListenerResourcesDirty();
-	}
-
-	void AudioSource::setPosition(const Vector3& position)
-	{
-		mPosition = position;
 	}
 
 	void AudioSource::setVelocity(const Vector3& velocity)
@@ -74,5 +69,15 @@ namespace bs
 	void AudioSource::notifyResourceChanged(const HResource& resource)
 	{
 		onClipChanged();
+	}
+
+	RTTITypeBase* AudioSource::getRTTIStatic()
+	{
+		return AudioSourceRTTI::instance();
+	}
+
+	RTTITypeBase* AudioSource::getRTTI() const
+	{
+		return AudioSource::getRTTIStatic();
 	}
 }

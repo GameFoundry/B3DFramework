@@ -18,14 +18,8 @@ namespace bs
 		FMODAudioListener();
 		virtual ~FMODAudioListener();
 
-		/** @copydoc AudioListener::setPosition */
-		void setPosition(const Vector3& position) override;
-
-		/** @copydoc AudioListener::setDirection */
-		void setDirection(const Vector3& direction) override;
-
-		/** @copydoc AudioListener::setUp */
-		void setUp(const Vector3& up) override;
+		/** @copydoc SceneActor::setTransform */
+		void setTransform(const Transform& transform) override;
 
 		/** @copydoc AudioListener::setVelocity */
 		void setVelocity(const Vector3& velocity) override;

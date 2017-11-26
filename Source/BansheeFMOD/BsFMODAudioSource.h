@@ -19,11 +19,11 @@ namespace bs
 		FMODAudioSource();
 		virtual ~FMODAudioSource();
 
+		/** @copydoc SceneActor::setTransform */
+		void setTransform(const Transform& transform) override;
+
 		/** @copydoc AudioSource::setClip */
 		void setClip(const HAudioClip& clip) override;
-
-		/** @copydoc AudioSource::setPosition */
-		void setPosition(const Vector3& position) override;
 
 		/** @copydoc AudioSource::setVelocity */
 		void setVelocity(const Vector3& velocity) override;

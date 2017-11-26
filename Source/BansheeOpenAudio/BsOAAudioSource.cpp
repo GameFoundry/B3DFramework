@@ -32,9 +32,9 @@ namespace bs
 		applyClip();
 	}
 
-	void OAAudioSource::setPosition(const Vector3& position)
+	void OAAudioSource::setTransform(const Transform& transform)
 	{
-		AudioSource::setPosition(position);
+		AudioSource::setTransform(transform);
 
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -44,7 +44,10 @@ namespace bs
 				alcMakeContextCurrent(contexts[i]);
 
 			if (is3D())
+			{
+				Vector3 position = transform.getPosition();
 				alSource3f(mSourceIDs[i], AL_POSITION, position.x, position.y, position.z);
+			}
 			else
 				alSource3f(mSourceIDs[i], AL_POSITION, 0.0f, 0.0f, 0.0f);
 		}
@@ -389,8 +392,10 @@ namespace bs
 
 			if (is3D())
 			{
+				Vector3 position = mTransform.getPosition();
+
 				alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, false);
-				alSource3f(mSourceIDs[i], AL_POSITION, mPosition.x, mPosition.y, mPosition.z);
+				alSource3f(mSourceIDs[i], AL_POSITION, position.x, position.y, position.z);
 				alSource3f(mSourceIDs[i], AL_VELOCITY, mVelocity.x, mVelocity.y, mVelocity.z);
 			}
 			else

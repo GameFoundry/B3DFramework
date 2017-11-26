@@ -31,12 +31,14 @@ namespace bs
 		AudioSource::setClip(clip);
 	}
 
-	void FMODAudioSource::setPosition(const Vector3& position)
+	void FMODAudioSource::setTransform(const Transform& transform)
 	{
-		AudioSource::setPosition(position);
+		AudioSource::setTransform(transform);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 		{
+			Vector3 position = transform.getPosition();
+
 			FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
 			mChannel->set3DAttributes(&fmodPosition, nullptr);
 		}
@@ -133,7 +135,9 @@ namespace bs
 			mChannel->setPriority(mPriority);
 			mChannel->setPosition((UINT32)(mTime * 1000.0f), FMOD_TIMEUNIT_MS);
 
-			FMOD_VECTOR fmodPosition = { mPosition.x, mPosition.y, mPosition.z };
+			Vector3 position = getTransform().getPosition();
+
+			FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
 			FMOD_VECTOR fmodVelocity = { mVelocity.x, mVelocity.y, mVelocity.z };
 			mChannel->set3DAttributes(&fmodPosition, &fmodVelocity);
 		}

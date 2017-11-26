@@ -17,9 +17,9 @@ namespace bs
 	 *
 	 * @note Wraps AudioSource as a Component.
 	 */
-    class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio,n:AudioSource) CAudioSource : public Component
-    {
-    public:
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio,n:AudioSource) CAudioSource : public Component
+	{
+	public:
 		CAudioSource(const HSceneObject& parent);
 		virtual ~CAudioSource() {}
 		
@@ -143,7 +143,7 @@ namespace bs
 
 		/** @copydoc Component::update() */
 		void update() override;
-    protected:
+	protected:
 		using Component::destroyInternal;
 
 		/** Creates the internal representation of the AudioSource and restores the values saved by the Component. */
@@ -181,7 +181,7 @@ namespace bs
 
 	protected:
 		CAudioSource() {} // Serialization only
-     };
+	 };
 
 	 /** @} */
 }

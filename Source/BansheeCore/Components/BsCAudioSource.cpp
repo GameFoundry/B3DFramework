@@ -199,7 +199,7 @@ namespace bs
 
 	void CAudioSource::updateTransform()
 	{
-		mInternal->setPosition(SO()->getTransform().getPosition());
+		mInternal->setTransform(SO()->getTransform());
 		mInternal->setVelocity(mVelocity);
 	}
 

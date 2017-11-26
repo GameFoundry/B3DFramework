@@ -7,9 +7,12 @@ namespace bs
 {
 	void Audio::play(const HAudioClip& clip, const Vector3& position, float volume)
 	{
+		Transform transform;
+		transform.setPosition(position);
+
 		SPtr<AudioSource> source = createSource();
 		source->setClip(clip);
-		source->setPosition(position);
+		source->setTransform(transform);
 		source->setVolume(volume);
 		source->play();
 

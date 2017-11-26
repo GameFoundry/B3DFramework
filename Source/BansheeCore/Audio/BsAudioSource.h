@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Resources/BsIResourceListener.h"
+#include "Scene/BsSceneActor.h"
 #include "Math/BsVector3.h"
 
 namespace bs
@@ -27,7 +28,7 @@ namespace bs
 	 * Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a
 	 * spatial audio source is controlled by its position and the AudioListener's position/direction/velocity.
 	 */
-	class BS_CORE_EXPORT AudioSource : public IResourceListener
+	class BS_CORE_EXPORT AudioSource : public IReflectable, public SceneActor, public IResourceListener
 	{
 	public:
 		virtual ~AudioSource() { }
@@ -37,15 +38,6 @@ namespace bs
 
 		/** @copydoc setClip() */
 		HAudioClip getClip() const { return mAudioClip; }
-
-		/** 
-		 * World position of the source. Determines volume/pitch in relation to AudioListener's position. Only relevant
-		 * for spatial (3D) sources. 
-		 */
-		virtual void setPosition(const Vector3& position);
-
-		/** @copydoc setPosition() */
-		Vector3 getPosition() const { return mPosition; }
 
 		/** 
 		 * Velocity of the source. Determines pitch in relation to AudioListener's position. Only relevant for spatial 
@@ -138,7 +130,6 @@ namespace bs
 		virtual void onClipChanged() { }
 
 		HAudioClip mAudioClip;
-		Vector3 mPosition;
 		Vector3 mVelocity;
 		float mVolume;
 		float mPitch;
@@ -146,6 +137,14 @@ namespace bs
 		INT32 mPriority;
 		float mMinDistance;
 		float mAttenuation;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class AudioSourceRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

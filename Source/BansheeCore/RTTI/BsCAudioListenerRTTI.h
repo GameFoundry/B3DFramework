@@ -16,8 +16,12 @@ namespace bs
 
 	class BS_CORE_EXPORT CAudioListenerRTTI : public RTTIType<CAudioListener, Component, CAudioListenerRTTI>
 	{
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR(mInternal, 0)
+		BS_END_RTTI_MEMBERS
 	public:
 		CAudioListenerRTTI()
+			:mInitMembers(this)
 		{ }
 
 		const String& getRTTIName() override

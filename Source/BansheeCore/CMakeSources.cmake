@@ -373,6 +373,8 @@ set(BS_BANSHEECORE_INC_RTTI
 	"RTTI/BsLightProbeVolumeRTTI.h"
 	"RTTI/BsCLightProbeVolumeRTTI.h"
 	"RTTI/BsTransformRTTI.h"
+	"RTTI/BsAudioListenerRTTI.h"
+	"RTTI/BsAudioSourceRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER

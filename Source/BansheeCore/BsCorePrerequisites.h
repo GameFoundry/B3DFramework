@@ -578,6 +578,8 @@ namespace bs
 		TID_CLightProbeVolume = 1138,
 		TID_Transform = 1139,
 		TID_SceneActor = 1140,
+		TID_AudioListener = 1141,
+		TID_AudioSource = 1142,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

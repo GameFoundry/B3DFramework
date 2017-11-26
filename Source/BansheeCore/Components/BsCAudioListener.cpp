@@ -71,9 +71,7 @@ namespace bs
 	{
 		const Transform& tfrm = SO()->getTransform();
 
-		mInternal->setPosition(tfrm.getPosition());
-		mInternal->setDirection(tfrm.getForward());
-		mInternal->setUp(tfrm.getUp());
+		mInternal->setTransform(tfrm);
 		mInternal->setVelocity(mVelocity);
 	}
 	

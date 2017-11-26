@@ -2,28 +2,14 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Audio/BsAudioListener.h"
 #include "Audio/BsAudio.h"
+#include "RTTI/BsAudioListenerRTTI.h"
 
 namespace bs
 {
 	AudioListener::AudioListener()
-		:mPosition(BsZero), mDirection(-Vector3::UNIT_Z), mUp(Vector3::UNIT_Y), mVelocity(BsZero)
+		:mVelocity(BsZero)
 	{
 		
-	}
-
-	void AudioListener::setPosition(const Vector3& position)
-	{
-		mPosition = position;
-	}
-
-	void AudioListener::setDirection(const Vector3& direction)
-	{
-		mDirection = direction;
-	}
-
-	void AudioListener::setUp(const Vector3& up)
-	{
-		mUp = up;
 	}
 
 	void AudioListener::setVelocity(const Vector3& velocity)
@@ -35,4 +21,14 @@ namespace bs
 	{
 		return gAudio().createListener();
 	}	
+
+	RTTITypeBase* AudioListener::getRTTIStatic()
+	{
+		return AudioListenerRTTI::instance();
+	}
+
+	RTTITypeBase* AudioListener::getRTTI() const
+	{
+		return AudioListener::getRTTIStatic();
+	}
 }

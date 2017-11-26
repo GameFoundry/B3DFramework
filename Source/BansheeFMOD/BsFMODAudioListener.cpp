@@ -15,34 +15,20 @@ namespace bs
 		gFMODAudio()._unregisterListener(this);
 	}
 
-	void FMODAudioListener::setPosition(const Vector3& position)
+	void FMODAudioListener::setTransform(const Transform& transform)
 	{
-		AudioListener::setPosition(position);
+		AudioListener::setTransform(transform);
+
+		Vector3 position = transform.getPosition();
+		Vector3 direction = transform.getForward();
+		Vector3 up = transform.getUp();
 
 		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		FMOD_VECTOR value = { position.x, position.y, position.z };
+		FMOD_VECTOR fmodPos = { position.x, position.y, position.z };
+		FMOD_VECTOR fmodDir = { direction.x, direction.y, direction.z };
+		FMOD_VECTOR fmodUp = { up.x, up.y, up.z };
 
-		fmod->set3DListenerAttributes(mId, &value, nullptr, nullptr, nullptr);
-	}
-
-	void FMODAudioListener::setDirection(const Vector3& direction)
-	{
-		AudioListener::setDirection(direction);
-
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		FMOD_VECTOR value = { direction.x, direction.y, direction.z };
-
-		fmod->set3DListenerAttributes(mId, nullptr, nullptr, &value, nullptr);
-	}
-
-	void FMODAudioListener::setUp(const Vector3& up)
-	{
-		AudioListener::setUp(up);
-
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		FMOD_VECTOR value = { up.x, up.y, up.z };
-
-		fmod->set3DListenerAttributes(mId, nullptr, nullptr, nullptr, &value);
+		fmod->set3DListenerAttributes(mId, &fmodPos, nullptr, &fmodDir, &fmodUp);
 	}
 
 	void FMODAudioListener::setVelocity(const Vector3& velocity)
@@ -59,12 +45,16 @@ namespace bs
 	{
 		mId = id;
 
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
-		FMOD_VECTOR position = { mPosition.x, mPosition.y, mPosition.z };
-		FMOD_VECTOR velocity = { mVelocity.x, mVelocity.y, mVelocity.z };
-		FMOD_VECTOR forward = { mDirection.x, mDirection.y, mDirection.z };
-		FMOD_VECTOR up = { mUp.x, mUp.y, mUp.z };
+		Vector3 position = mTransform.getPosition();
+		Vector3 direction = mTransform.getForward();
+		Vector3 up = mTransform.getUp();
 
-		fmod->set3DListenerAttributes(mId, &position, &velocity, &forward, &up);
+		FMOD::System* fmod = gFMODAudio()._getFMOD();
+		FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
+		FMOD_VECTOR fmodVelocity = { mVelocity.x, mVelocity.y, mVelocity.z };
+		FMOD_VECTOR fmodForward = { direction.x, direction.y, direction.z };
+		FMOD_VECTOR fmodUp = { up.x, up.y, up.z };
+
+		fmod->set3DListenerAttributes(mId, &fmodPosition, &fmodVelocity, &fmodForward, &fmodUp);
 	}
 }
