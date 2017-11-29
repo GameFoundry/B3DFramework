@@ -73,7 +73,6 @@ if(BansheeSBGen_FOUND)
 			-output-cs-editor ${BS_GENERATED_CS_EDITOR_OUTPUT_DIR}
 			-- ${BS_INCLUDE_DIRS}
 			-std=c++14
-			-stdlib=libc++
 			-DBS_STATIC_LIB
 			-DBS_SBGEN
 			-w
@@ -82,6 +81,7 @@ if(BansheeSBGen_FOUND)
 		if(APPLE)
 			list(APPEND BS_GSB_COMMAND 
 				-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1)
+			list(APPEND BS_GSB_COMMAND -stdlib=libc++)
 		endif()
 
 		message(STATUS "Generating script bindings, please wait...")

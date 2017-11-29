@@ -31,7 +31,7 @@ target_link_libraries(BansheeCore PUBLIC BansheeUtility)
 ## OS libs
 if(WIN32)
 	target_link_libraries(BansheeCore PRIVATE Winmm dinput8 xinput9_1_0 dxguid.lib)
-else(APPLE) # MacOS
+elseif(APPLE) # MacOS
 	target_link_framework(BansheeCore CoreServices)
 	target_link_framework(BansheeCore IOKit)
 	target_link_framework(BansheeCore AppKit)

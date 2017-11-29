@@ -265,8 +265,8 @@ set(BS_BANSHEEUTILITY_SRC_UNIX
 )
 
 set(BS_BANSHEEUTILITY_SRC_LINUX
-	"Linux/BsUnixCrashHandler.cpp"
-	"Linux/BsUnixPlatformUtility.cpp"
+	"Linux/BsLinuxCrashHandler.cpp"
+	"Linux/BsLinuxPlatformUtility.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_MACOS
