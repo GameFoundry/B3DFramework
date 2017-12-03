@@ -40,10 +40,13 @@ namespace bs
 	{
 		Vector<CodeEditorType> availableEditors = CodeEditorManager::instance().getAvailableEditors();
 
-		ScriptArray outArray = ScriptArray::create<UINT32>((UINT32)availableEditors.size());
+		ScriptArray outArray = ScriptArray::create<INT32>((UINT32)availableEditors.size());
 		UINT32 idx = 0;
 		for (auto& entry : availableEditors)
-			outArray.set(idx, (UINT32)entry);
+		{
+			outArray.set(idx, (INT32)entry);
+			idx++;
+		}
 
 		return outArray.getInternal();
 	}
