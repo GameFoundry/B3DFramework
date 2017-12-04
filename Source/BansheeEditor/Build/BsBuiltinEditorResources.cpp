@@ -420,10 +420,25 @@ namespace bs
 
 		// Update DataList.json if needed
 		bool updatedDataLists = false;
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawIconsFolder, BuiltinResourcesHelper::AssetType::Sprite, iconsJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawShaderIncludeFolder, BuiltinResourcesHelper::AssetType::Normal, includesJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawShaderFolder, BuiltinResourcesHelper::AssetType::Normal, shadersJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(EditorRawSkinFolder, BuiltinResourcesHelper::AssetType::Sprite, skinJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			EditorRawIconsFolder,
+			BuiltinResourcesHelper::AssetType::Sprite,
+			iconsJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			EditorRawShaderIncludeFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			includesJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			EditorRawShaderFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			shadersJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			EditorRawSkinFolder,
+			BuiltinResourcesHelper::AssetType::Sprite,
+			skinJSON);
 
 		dataListStream->close();
 
@@ -463,42 +478,98 @@ namespace bs
 			stream->close();
 		}
 
+		// Import icons
 		{
-			BuiltinResourcesHelper::updateManifest(EditorIconFolder, iconsJSON, mResourceManifest, 
+			BuiltinResourcesHelper::updateManifest(
+				EditorIconFolder,
+				iconsJSON,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Sprite);
 
-			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(iconsJSON, EditorRawIconsFolder,
-				lastUpdateTime, forceImport);
+			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(
+				iconsJSON,
+				EditorRawIconsFolder,
+				lastUpdateTime,
+				forceImport);
 
-			BuiltinResourcesHelper::importAssets(iconsJSON, importFlags, EditorRawIconsFolder, EditorIconFolder, 
-				mResourceManifest, BuiltinResourcesHelper::AssetType::Sprite);
+			BuiltinResourcesHelper::importAssets(
+				iconsJSON,
+				importFlags,
+				EditorRawIconsFolder,
+				EditorIconFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Sprite);
 		}
 
+		// Import shaders
 		{
-			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(includesJSON, 
-				EditorRawShaderIncludeFolder, lastUpdateTime, forceImport);
+			BuiltinResourcesHelper::updateManifest(
+				EditorShaderIncludeFolder,
+				includesJSON,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
 
-			Vector<bool> shaderImportFlags = BuiltinResourcesHelper::generateImportFlags(shadersJSON, EditorRawShaderFolder,
-				lastUpdateTime, forceImport, &shaderDependenciesJSON, EditorRawShaderIncludeFolder);
+			BuiltinResourcesHelper::updateManifest(
+				EditorShaderFolder,
+				shadersJSON,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
+
+			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				includesJSON,
+				EditorRawShaderIncludeFolder,
+				lastUpdateTime,
+				forceImport);
+
+			Vector<bool> shaderImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				shadersJSON,
+				EditorRawShaderFolder,
+				lastUpdateTime,
+				forceImport,
+				&shaderDependenciesJSON,
+				EditorRawShaderIncludeFolder);
 
 			// Hidden dependency: Includes must be imported before shaders, but import flags for shaders must be generated
 			// before includes are imported, since the process checks if imports changed
-			BuiltinResourcesHelper::importAssets(includesJSON, includeImportFlags, EditorRawShaderIncludeFolder, 
-				EditorShaderIncludeFolder, mResourceManifest, BuiltinResourcesHelper::AssetType::Normal);
-		
-			BuiltinResourcesHelper::importAssets(shadersJSON, shaderImportFlags, EditorRawShaderFolder, EditorShaderFolder, 
-				mResourceManifest, BuiltinResourcesHelper::AssetType::Normal, &shaderDependenciesJSON);
+			BuiltinResourcesHelper::importAssets(
+				includesJSON,
+				includeImportFlags,
+				EditorRawShaderIncludeFolder,
+				EditorShaderIncludeFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
+
+			BuiltinResourcesHelper::importAssets(
+				shadersJSON,
+				shaderImportFlags,
+				EditorRawShaderFolder,
+				EditorShaderFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal,
+				&shaderDependenciesJSON);
 		}
 
+		// Import GUI sprites
 		{
-			BuiltinResourcesHelper::updateManifest(EditorSkinFolder, skinJSON, mResourceManifest, 
+			BuiltinResourcesHelper::updateManifest(
+				EditorSkinFolder,
+				skinJSON,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Sprite);
 
-			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(skinJSON, EditorRawSkinFolder, 
-				lastUpdateTime, forceImport);
+			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				skinJSON,
+				EditorRawSkinFolder,
+				lastUpdateTime,
+				forceImport);
 
-			BuiltinResourcesHelper::importAssets(skinJSON, includeImportFlags, EditorRawSkinFolder, EditorSkinFolder, 
-				mResourceManifest, BuiltinResourcesHelper::AssetType::Sprite);
+			BuiltinResourcesHelper::importAssets(
+				skinJSON,
+				includeImportFlags,
+				EditorRawSkinFolder,
+				EditorSkinFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Sprite);
 		}
 
 		// Update shader dependencies JSON
@@ -511,11 +582,23 @@ namespace bs
 		}
 
 		// Import fonts
-		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
-			BuiltinDataFolder, { DefaultFontSize }, true, UUID("6ce69053-00d7-4c60-a229-249b8d8fd60e"), mResourceManifest);
+		BuiltinResourcesHelper::importFont(
+			BuiltinRawDataFolder + DefaultFontFilename,
+			DefaultFontFilename,
+			BuiltinDataFolder,
+			{ DefaultFontSize },
+			true,
+			UUID("6ce69053-00d7-4c60-a229-249b8d8fd60e"),
+			mResourceManifest);
 
-		BuiltinResourcesHelper::importFont(BuiltinRawDataFolder + DefaultFontFilename, DefaultAAFontFilename, 
-			BuiltinDataFolder, { TitleFontSize }, true, UUID("10999b74-d976-4116-9f72-21e489a7a8e4"), mResourceManifest);
+		BuiltinResourcesHelper::importFont(
+			BuiltinRawDataFolder + DefaultFontFilename,
+			DefaultAAFontFilename,
+			BuiltinDataFolder,
+			{ TitleFontSize },
+			true,
+			UUID("10999b74-d976-4116-9f72-21e489a7a8e4"),
+			mResourceManifest);
 
 		// Generate & save GUI skin
 		{

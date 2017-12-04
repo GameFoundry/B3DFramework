@@ -238,8 +238,10 @@ namespace bs
 		if (FileSystem::exists(mBuiltinRawDataFolder))
 		{
 			time_t lastUpdateTime;
-			UINT32 modifications = BuiltinResourcesHelper::checkForModifications(mBuiltinRawDataFolder, 
-				mBuiltinDataFolder + L"Timestamp.asset", lastUpdateTime);
+			UINT32 modifications = BuiltinResourcesHelper::checkForModifications(
+				mBuiltinRawDataFolder,
+				mBuiltinDataFolder + L"Timestamp.asset",
+				lastUpdateTime);
 
 			// Check if manifest needs to be rebuilt
 			if (modifications == 0 && !FileSystem::exists(ResourceManifestPath))
@@ -391,11 +393,30 @@ namespace bs
 
 		// Update DataList.json if needed
 		bool updatedDataLists = false;
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawCursorFolder, BuiltinResourcesHelper::AssetType::Normal, cursorsJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawIconFolder, BuiltinResourcesHelper::AssetType::Normal, iconsJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawShaderIncludeFolder, BuiltinResourcesHelper::AssetType::Normal, includesJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawShaderFolder, BuiltinResourcesHelper::AssetType::Normal, shadersJSON);
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(rawSkinFolder, BuiltinResourcesHelper::AssetType::Sprite, skinJSON);
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			rawCursorFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			cursorsJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			rawIconFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			iconsJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			rawShaderIncludeFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			includesJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			rawShaderFolder,
+			BuiltinResourcesHelper::AssetType::Normal,
+			shadersJSON);
+
+		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+			rawSkinFolder,
+			BuiltinResourcesHelper::AssetType::Sprite,
+			skinJSON);
 
 		dataListStream->close();
 
@@ -441,52 +462,120 @@ namespace bs
 			stream->close();
 		}
 
+		// Import cursors
 		{
-			BuiltinResourcesHelper::updateManifest(mEngineCursorFolder, cursorsJSON, mResourceManifest, 
+			BuiltinResourcesHelper::updateManifest(
+				mEngineCursorFolder,
+				cursorsJSON,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Normal);
 
-			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(cursorsJSON, rawCursorFolder,
-				lastUpdateTime, forceImport);
+			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(
+				cursorsJSON,
+				rawCursorFolder,
+				lastUpdateTime,
+				forceImport);
 
-			BuiltinResourcesHelper::importAssets(cursorsJSON, importFlags, rawCursorFolder, mEngineCursorFolder, 
-				mResourceManifest, BuiltinResourcesHelper::AssetType::Normal);
+			BuiltinResourcesHelper::importAssets(
+				cursorsJSON,
+				importFlags,
+				rawCursorFolder,
+				mEngineCursorFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
 		}
 
+		// Import icons
 		{
-			BuiltinResourcesHelper::updateManifest(iconFolder, iconsJSON, mResourceManifest, 
+			BuiltinResourcesHelper::updateManifest(
+				iconFolder,
+				iconsJSON,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Normal);
 
-			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(iconsJSON, rawIconFolder,
-				lastUpdateTime, forceImport);
+			Vector<bool> importFlags = BuiltinResourcesHelper::generateImportFlags(
+				iconsJSON,
+				rawIconFolder,
+				lastUpdateTime,
+				forceImport);
 
-			BuiltinResourcesHelper::importAssets(iconsJSON, importFlags, rawIconFolder, iconFolder, mResourceManifest, 
+			BuiltinResourcesHelper::importAssets(
+				iconsJSON,
+				importFlags,
+				rawIconFolder,
+				iconFolder,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Normal);
 		}
 
+		// Import shaders
 		{
-			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(includesJSON, 
-				rawShaderIncludeFolder, lastUpdateTime, forceImport);
+			BuiltinResourcesHelper::updateManifest(
+				shaderIncludeFolder,
+				includesJSON,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
 
-			Vector<bool> shaderImportFlags = BuiltinResourcesHelper::generateImportFlags(shadersJSON, rawShaderFolder,
-				lastUpdateTime, forceImport, &shaderDependenciesJSON, rawShaderIncludeFolder);
+			BuiltinResourcesHelper::updateManifest(
+				mEngineShaderFolder,
+				shadersJSON,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
+
+			Vector<bool> includeImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				includesJSON,
+				rawShaderIncludeFolder,
+				lastUpdateTime,
+				forceImport);
+
+			Vector<bool> shaderImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				shadersJSON,
+				rawShaderFolder,
+				lastUpdateTime,
+				forceImport,
+				&shaderDependenciesJSON,
+				rawShaderIncludeFolder);
 
 			// Hidden dependency: Includes must be imported before shaders, but import flags for shaders must be generated
 			// before includes are imported, since the process checks if imports changed
-			BuiltinResourcesHelper::importAssets(includesJSON, includeImportFlags, rawShaderIncludeFolder, 
-				shaderIncludeFolder, mResourceManifest, BuiltinResourcesHelper::AssetType::Normal);
-		
-			BuiltinResourcesHelper::importAssets(shadersJSON, shaderImportFlags, rawShaderFolder, mEngineShaderFolder, 
-				mResourceManifest, BuiltinResourcesHelper::AssetType::Normal, &shaderDependenciesJSON);
+			BuiltinResourcesHelper::importAssets(
+				includesJSON,
+				includeImportFlags,
+				rawShaderIncludeFolder,
+				shaderIncludeFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal);
+
+			BuiltinResourcesHelper::importAssets(
+				shadersJSON,
+				shaderImportFlags,
+				rawShaderFolder,
+				mEngineShaderFolder,
+				mResourceManifest,
+				BuiltinResourcesHelper::AssetType::Normal,
+				&shaderDependenciesJSON);
 		}
 
+		// Import GUI sprites
 		{
-			BuiltinResourcesHelper::updateManifest(skinFolder, skinJSON, mResourceManifest, 
+			BuiltinResourcesHelper::updateManifest(
+				skinFolder,
+				skinJSON,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Sprite);
 
-			Vector<bool> skinImportFlags = BuiltinResourcesHelper::generateImportFlags(skinJSON, 
-				rawSkinFolder, lastUpdateTime, forceImport);
+			Vector<bool> skinImportFlags = BuiltinResourcesHelper::generateImportFlags(
+				skinJSON,
+				rawSkinFolder,
+				lastUpdateTime,
+				forceImport);
 
-			BuiltinResourcesHelper::importAssets(skinJSON, skinImportFlags, rawSkinFolder, skinFolder, mResourceManifest, 
+			BuiltinResourcesHelper::importAssets(
+				skinJSON,
+				skinImportFlags,
+				rawSkinFolder,
+				skinFolder,
+				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Sprite);
 		}
 
@@ -500,8 +589,14 @@ namespace bs
 		}
 
 		// Import font
-		BuiltinResourcesHelper::importFont(mBuiltinRawDataFolder + DefaultFontFilename, DefaultFontFilename, 
-			mBuiltinDataFolder, { DefaultFontSize }, false, UUID("c9f08cab-f9c9-47c4-96e0-1066a8d4455b"), mResourceManifest);
+		BuiltinResourcesHelper::importFont(
+			mBuiltinRawDataFolder + DefaultFontFilename,
+			DefaultFontFilename,
+			mBuiltinDataFolder,
+			{ DefaultFontSize },
+			false,
+			UUID("c9f08cab-f9c9-47c4-96e0-1066a8d4455b"),
+			mResourceManifest);
 
 		// Import splash screen
 		{
