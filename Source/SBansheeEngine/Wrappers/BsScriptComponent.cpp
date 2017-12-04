@@ -103,6 +103,9 @@ namespace bs
 		if (checkIfDestroyed(so))
 			return nullptr;
 
+		ScriptAssemblyManager& sam = ScriptAssemblyManager::instance();
+		BuiltinComponentInfo* info = sam.getBuiltinComponentInfo(type);
+
 		::MonoClass* baseClass = MonoUtil::getClass(type);
 
 		const Vector<HComponent>& mComponents = so->getComponents();
@@ -122,8 +125,14 @@ namespace bs
 			}
 			else
 			{
-				ScriptComponentBase* scriptComponent = ScriptGameObjectManager::instance().getBuiltinScriptComponent(component);
-				return scriptComponent->getManagedInstance();
+				if(info == nullptr)
+					continue;
+
+				if(info->typeId == component->getTypeId())
+				{
+					ScriptComponentBase* scriptComponent = ScriptGameObjectManager::instance().getBuiltinScriptComponent(component);
+					return scriptComponent->getManagedInstance();
+				}
 			}
 		}
 
@@ -134,6 +143,9 @@ namespace bs
 	{
 		ScriptSceneObject* scriptSO = ScriptSceneObject::toNative(parentSceneObject);
 		HSceneObject so = static_object_cast<SceneObject>(scriptSO->getNativeHandle());
+
+		ScriptAssemblyManager& sam = ScriptAssemblyManager::instance();
+		BuiltinComponentInfo* info = sam.getBuiltinComponentInfo(type);
 
 		::MonoClass* baseClass = MonoUtil::getClass(type);
 		Vector<MonoObject*> managedComponents;
@@ -155,8 +167,14 @@ namespace bs
 				}
 				else
 				{
-					ScriptComponentBase* scriptComponent = ScriptGameObjectManager::instance().getBuiltinScriptComponent(component);
-					managedComponents.push_back(scriptComponent->getManagedInstance());
+					if(info == nullptr)
+						continue;
+
+					if(info->typeId == component->getTypeId())
+					{
+						ScriptComponentBase* scriptComponent = ScriptGameObjectManager::instance().getBuiltinScriptComponent(component);
+						managedComponents.push_back(scriptComponent->getManagedInstance());
+					}
 				}
 			}
 		}
@@ -210,6 +228,9 @@ namespace bs
 		if (checkIfDestroyed(so))
 			return;
 
+		ScriptAssemblyManager& sam = ScriptAssemblyManager::instance();
+		BuiltinComponentInfo* info = sam.getBuiltinComponentInfo(type);
+
 		::MonoClass* baseClass = MonoUtil::getClass(type);
 
 		const Vector<HComponent>& mComponents = so->getComponents();
@@ -229,7 +250,16 @@ namespace bs
 				}
 			}
 			else
-				component->destroy();
+			{
+				if(info == nullptr)
+					continue;
+
+				if(info->typeId == component->getTypeId())
+				{
+					component->destroy();
+					return;
+				}
+			}
 		}
 
 		LOGWRN("Attempting to remove a component that doesn't exists on SceneObject \"" + so->getName() + "\"");
