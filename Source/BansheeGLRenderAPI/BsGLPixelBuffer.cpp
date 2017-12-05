@@ -110,11 +110,16 @@ namespace bs { namespace ct
 		BS_EXCEPT(RenderingAPIException, "Framebuffer bind not possible for this pixel buffer type");
 	}
 
-	GLTextureBuffer::GLTextureBuffer(GLenum target, GLuint id, 
-									 GLint face, GLint level, GpuBufferUsage usage, 
-									 PixelFormat format, UINT32 multisampleCount):
-		GLPixelBuffer(0, 0, 0, format, usage),
-		mTarget(target), mFaceTarget(0), mTextureID(id), mFace(face), mLevel(level), mMultisampleCount(multisampleCount)
+	GLTextureBuffer::GLTextureBuffer(
+		GLenum target,
+		GLuint id,
+		GLint face,
+		GLint level,
+		GpuBufferUsage usage,
+		PixelFormat format,
+		UINT32 multisampleCount)
+		: GLPixelBuffer(0, 0, 0, format, usage), mTarget(target), mFaceTarget(0), mTextureID(id), mFace(face)
+		, mLevel(level), mMultisampleCount(multisampleCount)
 	{
 		GLint value = 0;
 	
@@ -164,7 +169,7 @@ namespace bs { namespace ct
 	GLTextureBuffer::~GLTextureBuffer()
 	{ }
 
-	void GLTextureBuffer::upload(const PixelData &data, const PixelVolume &dest)
+	void GLTextureBuffer::upload(const PixelData& data, const PixelVolume& dest)
 	{
 		if ((mUsage & TU_RENDERTARGET) != 0)
 		{
@@ -476,10 +481,15 @@ namespace bs { namespace ct
 
 	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
 	{
+		// If supported, prefer direct image copy. If not supported, or if sample counts don't match, fall back to FB blit
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_2
 		if (src->mMultisampleCount > 1 && mMultisampleCount <= 1) // Resolving MS texture
+#endif
 		{
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_2
 			if (mTarget != GL_TEXTURE_2D || mTarget != GL_TEXTURE_2D_MULTISAMPLE)
 				BS_EXCEPT(InvalidParametersException, "Non-2D multisampled texture not supported.");
+#endif
 
 			GLint currentFBO = 0;
 			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
@@ -521,6 +531,7 @@ namespace bs { namespace ct
 			glBindFramebuffer(GL_FRAMEBUFFER, currentFBO);
 			BS_CHECK_GL_ERROR();
 		}
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_2
 		else // Just plain copy
 		{
 			if (mMultisampleCount != src->mMultisampleCount)
@@ -539,5 +550,6 @@ namespace bs { namespace ct
 				BS_CHECK_GL_ERROR();
 			}
 		}		
+#endif
 	}
 }}
