@@ -424,6 +424,12 @@ namespace bs { namespace ct
 				textureType = GPOT_TEXTURECUBEARRAY;
 				isSampler = true;
 				break;
+			case GL_SAMPLER_BUFFER:
+			case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+			case GL_INT_SAMPLER_BUFFER:
+				isBuffer = true;
+				break;
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			case GL_IMAGE_1D:
 			case GL_UNSIGNED_INT_IMAGE_1D:
 			case GL_INT_IMAGE_1D:
@@ -466,16 +472,12 @@ namespace bs { namespace ct
 				textureType = GPOT_RWTEXTURE3D;
 				isImage = true;
 				break;
-			case GL_SAMPLER_BUFFER:
-			case GL_UNSIGNED_INT_SAMPLER_BUFFER:
-			case GL_INT_SAMPLER_BUFFER:
-				isBuffer = true;
-				break;
 			case GL_IMAGE_BUFFER:
 			case GL_UNSIGNED_INT_IMAGE_BUFFER:
 			case GL_INT_IMAGE_BUFFER:
 				isRWBuffer = true;
 				break;
+#endif
 			}
 
 			if (isSampler)

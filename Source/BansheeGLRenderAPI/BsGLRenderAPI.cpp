@@ -403,11 +403,13 @@ namespace bs { namespace ct
 		{
 			THROW_IF_NOT_CORE_THREAD;
 
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			for (UINT32 i = 0; i < 8; i++)
 			{
 				glBindImageTexture(i, 0, 0, false, 0, GL_READ_WRITE, GL_R32F);
 				BS_CHECK_GL_ERROR();
 			}
+#endif
 
 			bs_frame_mark();
 			{
@@ -619,6 +621,7 @@ namespace bs { namespace ct
 								}
 							}
 							break;
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 						case GPOT_RWBYTE_BUFFER: // Storage buffer (read/write, unstructured)
 							{
 								UINT32 unit = getImageUnit(binding);
@@ -650,6 +653,7 @@ namespace bs { namespace ct
 								}
 							}
 							break;
+#endif
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 						case GPOT_RWSTRUCTURED_BUFFER: // Shared storage block (read/write, structured)
 							{
@@ -681,6 +685,7 @@ namespace bs { namespace ct
 						}
 					}
 
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 					for(auto& entry : paramDesc->loadStoreTextures)
 					{
 						UINT32 binding = entry.second.slot;
@@ -717,6 +722,7 @@ namespace bs { namespace ct
 							BS_CHECK_GL_ERROR();
 						}
 					}
+#endif
 
 					for (auto& entry : paramDesc->paramBlocks)
 					{
@@ -2600,8 +2606,13 @@ namespace bs { namespace ct
 
 			// Max number of load-store textures
 			GLint lsfUnits;
+
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			glGetIntegerv(GL_MAX_FRAGMENT_IMAGE_UNIFORMS, &lsfUnits);
 			BS_CHECK_GL_ERROR();
+#else
+			lsfUnits = 0;
+#endif
 
 			caps.setNumLoadStoreTextureUnits(GPT_FRAGMENT_PROGRAM, static_cast<UINT16>(lsfUnits));
 
@@ -2617,8 +2628,13 @@ namespace bs { namespace ct
 			caps.setNumLoadStoreTextureUnits(GPT_COMPUTE_PROGRAM, static_cast<UINT16>(lscUnits));
 
 			GLint combinedLoadStoreTextureUnits;
+
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			glGetIntegerv(GL_MAX_IMAGE_UNITS, &combinedLoadStoreTextureUnits);
 			BS_CHECK_GL_ERROR();
+#else
+			combinedLoadStoreTextureUnits = 0;
+#endif
 
 			caps.setNumCombinedLoadStoreTextureUnits(static_cast<UINT16>(combinedLoadStoreTextureUnits));
 		}
