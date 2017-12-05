@@ -504,6 +504,7 @@ namespace bs { namespace ct
 						GLTexture* glTex = static_cast<GLTexture*>(texture.get());
 						if (glTex != nullptr)
 						{
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_1 
 							SPtr<TextureView> texView = glTex->requestView(
 								surface.mipLevel,
 								surface.numMipLevels,
@@ -514,6 +515,22 @@ namespace bs { namespace ct
 							GLTextureView* glTexView = static_cast<GLTextureView*>(texView.get());
 
 							GLenum newTextureType = glTexView->getGLTextureTarget();
+							GLuint texId = glTexView->getGLID();
+#else
+							// Texture views are not supported, so if user requested a part of the texture surface report
+							// a warning
+							auto& props = texture->getProperties();
+							if (surface.mipLevel != 0 || surface.face != 0 ||
+								(surface.numMipLevels != 0 && surface.numMipLevels != props.getNumMipmaps()) ||
+								(surface.numFaces != 0 && surface.numFaces != props.getNumFaces()))
+							{
+								LOGWRN("Attempting to bind only a part of a texture, but texture views are not supported. "
+									"Entire texture will be bound instead.");
+							}
+
+							GLenum newTextureType = glTex->getGLTextureTarget();
+							GLuint texId = glTex->getGLID();
+#endif
 
 							if (mTextureInfos[unit].type != newTextureType)
 							{
@@ -521,7 +538,7 @@ namespace bs { namespace ct
 								BS_CHECK_GL_ERROR();
 							}
 
-							glBindTexture(newTextureType, glTexView->getGLID());
+							glBindTexture(newTextureType, texId);
 							BS_CHECK_GL_ERROR();
 
 							mTextureInfos[unit].type = newTextureType;
