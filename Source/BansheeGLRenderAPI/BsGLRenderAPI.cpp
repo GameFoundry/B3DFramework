@@ -650,6 +650,7 @@ namespace bs { namespace ct
 								}
 							}
 							break;
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 						case GPOT_RWSTRUCTURED_BUFFER: // Shared storage block (read/write, structured)
 							{
 								UINT32 unit = getSharedStorageUnit(binding);
@@ -674,6 +675,7 @@ namespace bs { namespace ct
 								}
 							}
 							break;
+#endif
 						default:
 							break;
 						}

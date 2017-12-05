@@ -48,6 +48,11 @@ namespace bs { namespace ct
 
 	void* GLBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options)
 	{
+		// If no buffer ID it's assumed this type of buffer is unsupported and we silently fail (it's up to the creator
+		// if the buffer to check for support and potentially print a warning)
+		if(mBufferId == 0)
+			return nullptr;
+
 		GLenum access = 0;
 
 		glBindBuffer(mTarget, mBufferId);
@@ -87,6 +92,9 @@ namespace bs { namespace ct
 
 	void GLBuffer::unlock()
 	{
+		if(mBufferId == 0)
+			return;
+
 		glBindBuffer(mTarget, mBufferId);
 		BS_CHECK_GL_ERROR();
 
@@ -102,6 +110,9 @@ namespace bs { namespace ct
 
 	void GLBuffer::readData(UINT32 offset, UINT32 length, void* pDest)
 	{
+		if(mBufferId == 0)
+			return;
+
 		void* bufferData = lock(offset, length, GBL_READ_ONLY);
 		memcpy(pDest, bufferData, length);
 		unlock();
@@ -110,6 +121,9 @@ namespace bs { namespace ct
 	void GLBuffer::writeData(UINT32 offset, UINT32 length,
 		const void* pSource, BufferWriteType writeFlags)
 	{
+		if(mBufferId == 0)
+			return;
+
 		GpuLockOptions lockOption = GBL_WRITE_ONLY;
 		if (writeFlags == BWT_DISCARD)
 			lockOption = GBL_WRITE_ONLY_DISCARD;
@@ -123,7 +137,10 @@ namespace bs { namespace ct
 
 	void GLBuffer::copyData(GLBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
 	{
-		glBindBuffer(GL_COPY_READ_BUFFER, getGLBufferId());
+		if(mBufferId == 0)
+			return;
+
+		glBindBuffer(GL_COPY_READ_BUFFER, mBufferId);
 		BS_CHECK_GL_ERROR();
 
 		glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer.getGLBufferId());

@@ -39,9 +39,13 @@ namespace bs { namespace ct
 		// Create buffer
 		if(mProperties.getType() == GBT_STRUCTURED)
 		{
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			const auto& props = getProperties();
 			UINT32 size = props.getElementCount() * props.getElementSize();
 			mBuffer.initialize(GL_SHADER_STORAGE_BUFFER, size, props.getUsage());
+#else
+			LOGWRN("SSBOs are not supported on the current OpenGL version.");
+#endif
 		}
 		else
 		{
