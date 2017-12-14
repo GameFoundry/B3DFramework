@@ -23,7 +23,12 @@ Data/Editor/*
 !Data/Editor/Layout.asset
 !Data/Editor/Includes
 !Data/Editor/Shaders
-Data/Raw
+Data/Raw/Engine/*
+!Data/Raw/Engine/Includes
+!Data/Raw/Engine/Shaders
+Data/Raw/Editor/*
+!Data/Raw/Editor/Includes
+!Data/Raw/Editor/Shaders
 Data/Examples
 Documentation/html
 /Build
