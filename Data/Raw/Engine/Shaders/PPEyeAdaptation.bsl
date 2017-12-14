@@ -1,22 +1,15 @@
 #include "$ENGINE$\PPBase.bslinc"
+#include "$ENGINE$\PPEyeAdaptationCommon.bslinc"
 
 technique PPEyeAdaptation
 {
 	mixin PPBase;
+	mixin PPEyeAdaptationParams;
 
 	code
 	{
 		#define NUM_BUCKETS (THREADGROUP_SIZE_X * THREADGROUP_SIZE_Y)
 	
-		[internal]
-		cbuffer Input
-		{
-			// [0]: x - histogram scale, y - histogram offset, z - histogram percent low, w - histogram percent high
-			// [1]: x - min adaptation, y - max adaptation, z - adaptation speed up, w - adaptation speed down
-			// [2]: x - exposure scale, y - frame time delta, zw - nothing
-			float4 gEyeAdaptationParams[3];
-		}		
-		
 		Texture2D gHistogramTex;
 		
 		/** 
@@ -123,28 +116,7 @@ technique PPEyeAdaptation
 
 			return avgLuminance;
 		}
-		
-		/** 
-		 * Smooths out eye adaptation changes over multiple frames so they aren't as jarring.
-		 *
-		 * @param	old			Eye adaptation value from the previous frame.
-		 * @param	target		Ideal eye adaptation value for this frame.
-		 * @param	frameDelta	Time difference between this and last frame, in seconds.
-		 * @return				Smoothed eye adaptation.
-		 */
-		float smoothEyeAdaptation(float old, float target, float frameDelta)
-		{
-			float diff = target - old;
-
-			float speedUp = gEyeAdaptationParams[1].z;
-			float speedDown = gEyeAdaptationParams[1].w;
-
-			float adaptionSpeed = (diff > 0) ? speedUp : speedDown;
-			float scale = 1.0f - exp2(-frameDelta * adaptionSpeed);
-
-			return clamp(old + diff * scale, gEyeAdaptationParams[1].x, gEyeAdaptationParams[1].y);
-		}
-		
+				
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			float exposureScale = gEyeAdaptationParams[2].x;

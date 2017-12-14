@@ -263,6 +263,7 @@ int getCodeBlockIndex(ParseState* parseState);
 void addDefine(ParseState* parseState, const char* value);
 void addDefineExpr(ParseState* parseState, const char* value);
 int hasDefine(ParseState* parseState, const char* value);
+int isDefineEnabled(ParseState* parseState, const char* value);
 void removeDefine(ParseState* parseState, const char* value);
 
 int pushConditional(ParseState* parseState, int state);

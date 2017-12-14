@@ -386,7 +386,7 @@ namespace bs { namespace ct
 
 		view.beginFrame();
 
-		RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo);
+		RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo, mFeatureSet);
 
 		// Register callbacks
 		if (viewProps.triggerCallbacks)

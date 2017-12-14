@@ -89,7 +89,34 @@
         }
     ],
     "FlatFramebufferToTexture.bsl": null,
+    "IrradianceAccumulateCubeSH.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        }
+    ],
+    "IrradianceAccumulateSH.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        }
+    ],
     "IrradianceComputeSH.bsl": [
+        {
+            "Path": "SHCommon.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        }
+    ],
+    "IrradianceComputeSHFrag.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        },
         {
             "Path": "SHCommon.bslinc"
         },
@@ -187,6 +214,9 @@
     ],
     "PPCreateTonemapLUT.bsl": [
         {
+            "Path": "PPBase.bslinc"
+        },
+        {
             "Path": "PPWhiteBalance.bslinc"
         },
         {
@@ -213,6 +243,25 @@
         }
     ],
     "PPEyeAdaptation.bsl": [
+        {
+            "Path": "PPEyeAdaptationCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPEyeAdaptationBasic.bsl": [
+        {
+            "Path": "PPEyeAdaptationCommon.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        }
+    ],
+    "PPEyeAdaptationBasicSetup.bsl": [
+        {
+            "Path": "PPEyeAdaptationCommon.bslinc"
+        },
         {
             "Path": "PPBase.bslinc"
         }

@@ -290,6 +290,23 @@ int hasDefine(ParseState* parseState, const char* value)
 	return 0;
 }
 
+int isDefineEnabled(ParseState* parseState, const char* value)
+{
+	for (int i = 0; i < parseState->numDefines; i++)
+	{
+		if (strcmp(parseState->defines[i].name, value) == 0)
+		{
+			if(parseState->defines[i].expr == 0)
+				return 0;
+
+			int val = atoi(parseState->defines[i].expr);
+			return val != 0;
+		}
+	}
+
+	return 0;
+}
+
 void removeDefine(ParseState* parseState, const char* value)
 {
 	for (int i = 0; i < parseState->numDefines; i++)

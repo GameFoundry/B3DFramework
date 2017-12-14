@@ -279,7 +279,7 @@ namespace bs { namespace ct
 		mParamBuffer = gEyeAdaptationParamDef.createBuffer();
 
 		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
+		gpuParams->setParamBlockBuffer("EyeAdaptationParams", mParamBuffer);
 		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
 	}
 
@@ -299,6 +299,27 @@ namespace bs { namespace ct
 		// Set parameters
 		mReducedHistogramTex.set(reducedHistogram);
 
+		populateParams(mParamBuffer, frameDelta, settings, exposureScale);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+
+		rapi.setRenderTarget(nullptr);
+	}
+
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::getOutputDesc()
+	{
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
+	}
+
+	void EyeAdaptationMat::populateParams(const SPtr<GpuParamBlockBuffer>& paramBuffer, float frameDelta, 
+		const AutoExposureSettings& settings, float exposureScale)
+	{
 		Vector2 histogramScaleAndOffset = EyeAdaptHistogramMat::getHistogramScaleOffset(settings);
 
 		Vector4 eyeAdaptationParams[3];
@@ -319,16 +340,47 @@ namespace bs { namespace ct
 		eyeAdaptationParams[2].x = Math::pow(2.0f, exposureScale);
 		eyeAdaptationParams[2].y = frameDelta;
 
-		eyeAdaptationParams[2].z = 0.0f; // Unused
+		eyeAdaptationParams[2].z = Math::pow(2.0f, settings.histogramLog2Min);
 		eyeAdaptationParams[2].w = 0.0f; // Unused
 
-		gEyeAdaptationParamDef.gEyeAdaptationParams.set(mParamBuffer, eyeAdaptationParams[0], 0);
-		gEyeAdaptationParamDef.gEyeAdaptationParams.set(mParamBuffer, eyeAdaptationParams[1], 1);
-		gEyeAdaptationParamDef.gEyeAdaptationParams.set(mParamBuffer, eyeAdaptationParams[2], 2);
+		gEyeAdaptationParamDef.gEyeAdaptationParams.set(paramBuffer, eyeAdaptationParams[0], 0);
+		gEyeAdaptationParamDef.gEyeAdaptationParams.set(paramBuffer, eyeAdaptationParams[1], 1);
+		gEyeAdaptationParamDef.gEyeAdaptationParams.set(paramBuffer, eyeAdaptationParams[2], 2);
+	}
+
+	EyeAdaptationBasicSetupMat::EyeAdaptationBasicSetupMat()
+	{
+		mParamBuffer = gEyeAdaptationParamDef.createBuffer();
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("EyeAdaptationParams", mParamBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+
+		SAMPLER_STATE_DESC desc;
+		desc.minFilter = FO_POINT;
+		desc.magFilter = FO_POINT;
+		desc.mipFilter = FO_POINT;
+
+		SPtr<SamplerState> samplerState = SamplerState::create(desc);
+		setSamplerState(gpuParams, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
+	}
+
+	void EyeAdaptationBasicSetupMat::_initVariations(ShaderVariations& variations)
+	{
+		// Do nothing
+	}
+
+	void EyeAdaptationBasicSetupMat::execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output, 
+		float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+	{
+		// Set parameters
+		mInputTex.set(input);
+
+		EyeAdaptationMat::populateParams(mParamBuffer, frameDelta, settings, exposureScale);
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+		rapi.setRenderTarget(output);
 
 		gRendererUtility().setPass(mMaterial);
 		gRendererUtility().setPassParams(mParamsSet);
@@ -337,7 +389,61 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::getOutputDesc(const SPtr<Texture>& input)
+	{
+		auto& props = input->getProperties();
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, props.getWidth(), props.getHeight(), TU_RENDERTARGET);
+	}
+
+	EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
+
+	EyeAdaptationBasicMat::EyeAdaptationBasicMat()
+	{
+		mEyeAdaptationParamsBuffer = gEyeAdaptationParamDef.createBuffer();
+		mParamsBuffer = gEyeAdaptationBasicParamsMatDef.createBuffer();
+
+		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
+		gpuParams->setParamBlockBuffer("EyeAdaptationParams", mEyeAdaptationParamsBuffer);
+		gpuParams->setParamBlockBuffer("Input", mParamsBuffer);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gCurFrameTex", mCurFrameTexParam);
+		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gPrevFrameTex", mPrevFrameTexParam);
+	}
+
+	void EyeAdaptationBasicMat::_initVariations(ShaderVariations& variations)
+	{
+		// Do nothing
+	}
+
+	void EyeAdaptationBasicMat::execute(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, 
+		const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
+	{
+		// Set parameters
+		mCurFrameTexParam.set(curFrame);
+
+		if (prevFrame == nullptr) // Could be that this is the first run
+			mPrevFrameTexParam.set(Texture::WHITE);
+		else
+			mPrevFrameTexParam.set(prevFrame);
+
+		EyeAdaptationMat::populateParams(mEyeAdaptationParamsBuffer, frameDelta, settings, exposureScale);
+
+		auto& texProps = curFrame->getProperties();
+		Vector2I texSize = { (INT32)texProps.getWidth(), (INT32)texProps.getHeight() };
+
+		gEyeAdaptationBasicParamsMatDef.gInputTexSize.set(mParamsBuffer, texSize);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(output);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+
+		rapi.setRenderTarget(nullptr);
+	}
+
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::getOutputDesc()
 	{
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
@@ -345,27 +451,71 @@ namespace bs { namespace ct
 	CreateTonemapLUTParamDef gCreateTonemapLUTParamDef;
 	WhiteBalanceParamDef gWhiteBalanceParamDef;
 
+	ShaderVariation CreateTonemapLUTMat::VAR_3D = ShaderVariation({
+		ShaderVariation::Param("LUT_SIZE", LUT_SIZE),
+		ShaderVariation::Param("VOLUME_LUT", true),
+	});
+
+	ShaderVariation CreateTonemapLUTMat::VAR_Unwrapped2D = ShaderVariation({
+		ShaderVariation::Param("LUT_SIZE", LUT_SIZE),
+		ShaderVariation::Param("VOLUME_LUT", false),
+	});
+
 	CreateTonemapLUTMat::CreateTonemapLUTMat()
 	{
+		mIs3D = mVariation.getBool("VOLUME_LUT");
+
 		mParamBuffer = gCreateTonemapLUTParamDef.createBuffer();
 		mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.createBuffer();
 
 		SPtr<GpuParams> params = mParamsSet->getGpuParams();
 		params->setParamBlockBuffer("Input", mParamBuffer);
 		params->setParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
-		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
+
+		if(mIs3D)
+			params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
 	void CreateTonemapLUTMat::_initVariations(ShaderVariations& variations)
 	{
-		ShaderVariation variation({
-			ShaderVariation::Param("LUT_SIZE", LUT_SIZE)
-		});
-
-		variations.add(variation);
+		variations.add(VAR_3D);
+		variations.add(VAR_Unwrapped2D);
 	}
 
-	void CreateTonemapLUTMat::execute(const SPtr<Texture>& output, const RenderSettings& settings)
+	void CreateTonemapLUTMat::execute3D(const SPtr<Texture>& output, const RenderSettings& settings)
+	{
+		assert(mIs3D);
+
+		populateParamBuffers(settings);
+
+		// Dispatch
+		mOutputTex.set(output);
+
+		RenderAPI& rapi = RenderAPI::instance();
+		
+		gRendererUtility().setComputePass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		rapi.dispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
+	}
+
+	void CreateTonemapLUTMat::execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
+	{
+		assert(!mIs3D);
+
+		populateParamBuffers(settings);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(output);
+
+		gRendererUtility().setPass(mMaterial);
+		gRendererUtility().setPassParams(mParamsSet);
+		gRendererUtility().drawScreenQuad();
+
+		rapi.setRenderTarget(nullptr);
+	}
+
+	void CreateTonemapLUTMat::populateParamBuffers(const RenderSettings& settings)
 	{
 		// Set parameters
 		gCreateTonemapLUTParamDef.gGammaAdjustment.set(mParamBuffer, 2.2f / settings.gamma);
@@ -397,79 +547,53 @@ namespace bs { namespace ct
 		// Set white balance params
 		gWhiteBalanceParamDef.gWhiteTemp.set(mWhiteBalanceParamBuffer, settings.whiteBalance.temperature);
 		gWhiteBalanceParamDef.gWhiteOffset.set(mWhiteBalanceParamBuffer, settings.whiteBalance.tint);
-
-		// Dispatch
-		mOutputTex.set(output);
-
-		RenderAPI& rapi = RenderAPI::instance();
-		
-		gRendererUtility().setComputePass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
-		rapi.dispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::getOutputDesc() const
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
+		if(mIs3D)
+			return POOLED_RENDER_TEXTURE_DESC::create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
+		
+		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA8, LUT_SIZE * LUT_SIZE, LUT_SIZE, TU_RENDERTARGET);
+	}
+
+	CreateTonemapLUTMat* CreateTonemapLUTMat::getVariation(bool is3D)
+	{
+		if(is3D)
+			return get(VAR_3D);
+		
+		return get(VAR_Unwrapped2D);
 	}
 
 	TonemappingParamDef gTonemappingParamDef;
 
-	ShaderVariation TonemappingMat::VAR_Gamma_AutoExposure_MSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", true),
-		ShaderVariation::Param("AUTO_EXPOSURE", true),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+#define VARIATION_MSAA(x, volumeLUT, gammaOnly, autoExposure, msaa)			\
+	ShaderVariation TonemappingMat::VAR_##x = ShaderVariation({				\
+		ShaderVariation::Param("VOLUME_LUT", volumeLUT),					\
+		ShaderVariation::Param("GAMMA_ONLY", gammaOnly),					\
+		ShaderVariation::Param("AUTO_EXPOSURE", autoExposure),				\
+		ShaderVariation::Param("MSAA", msaa),								\
+		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),	\
+	});																		\
 
-	ShaderVariation TonemappingMat::VAR_Gamma_AutoExposure_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", true),
-		ShaderVariation::Param("AUTO_EXPOSURE", true),
-		ShaderVariation::Param("MSAA", false),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+#define VARIATION_AUTOEXPOSURE(x, volumeLUT, gammaOnly, autoExposure)		\
+	VARIATION_MSAA(x##_MSAA, volumeLUT, gammaOnly, autoExposure, true)		\
+	VARIATION_MSAA(x##_NoMSAA, volumeLUT, gammaOnly, autoExposure, false)	\
 
-	ShaderVariation TonemappingMat::VAR_Gamma_NoAutoExposure_MSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", true),
-		ShaderVariation::Param("AUTO_EXPOSURE", false),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+#define VARIATION_GAMMAONLY(x, volumeLUT, gammaOnly)						\
+	VARIATION_AUTOEXPOSURE(x##_AutoExposure, volumeLUT, gammaOnly, true)	\
+	VARIATION_AUTOEXPOSURE(x##_NoAutoExposure, volumeLUT, gammaOnly, false)	\
 
-	ShaderVariation TonemappingMat::VAR_Gamma_NoAutoExposure_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", true),
-		ShaderVariation::Param("AUTO_EXPOSURE", false),
-		ShaderVariation::Param("MSAA", false),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+#define VARIATION_VOLUMELUT(x, volumeLUT)									\
+	VARIATION_GAMMAONLY(x##_Gamma, volumeLUT, true)							\
+	VARIATION_GAMMAONLY(x##_NoGamma, volumeLUT, false)						\
 
-	ShaderVariation TonemappingMat::VAR_NoGamma_AutoExposure_MSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", false),
-		ShaderVariation::Param("AUTO_EXPOSURE", true),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+	VARIATION_VOLUMELUT(VolumeLUT, true)
+	VARIATION_VOLUMELUT(NoVolumeLUT, false)
 
-	ShaderVariation TonemappingMat::VAR_NoGamma_AutoExposure_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", false),
-		ShaderVariation::Param("AUTO_EXPOSURE", true),
-		ShaderVariation::Param("MSAA", false),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
-
-	ShaderVariation TonemappingMat::VAR_NoGamma_NoAutoExposure_MSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", false),
-		ShaderVariation::Param("AUTO_EXPOSURE", false),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
-
-	ShaderVariation TonemappingMat::VAR_NoGamma_NoAutoExposure_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("GAMMA_ONLY", false),
-		ShaderVariation::Param("AUTO_EXPOSURE", false),
-		ShaderVariation::Param("MSAA", false),
-		ShaderVariation::Param("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE),
-	});
+#undef VARIATION_VOLUMELUT
+#undef VARIATION_GAMMAONLY
+#undef VARIATION_AUTOEXPOSURE
 
 	TonemappingMat::TonemappingMat()
 	{
@@ -486,14 +610,21 @@ namespace bs { namespace ct
 
 	void TonemappingMat::_initVariations(ShaderVariations& variations)
 	{
-		variations.add(VAR_Gamma_AutoExposure_MSAA);
-		variations.add(VAR_Gamma_AutoExposure_NoMSAA);
-		variations.add(VAR_Gamma_NoAutoExposure_MSAA);
-		variations.add(VAR_Gamma_NoAutoExposure_NoMSAA);
-		variations.add(VAR_NoGamma_AutoExposure_MSAA);
-		variations.add(VAR_NoGamma_AutoExposure_NoMSAA);
-		variations.add(VAR_NoGamma_NoAutoExposure_MSAA);
-		variations.add(VAR_NoGamma_NoAutoExposure_NoMSAA);
+#define VARIATION_GAMMA(x)									\
+		variations.add(VAR_##x##_AutoExposure_MSAA);		\
+		variations.add(VAR_##x##_AutoExposure_NoMSAA);		\
+		variations.add(VAR_##x##_NoAutoExposure_MSAA);		\
+		variations.add(VAR_##x##_NoAutoExposure_NoMSAA);	\
+
+#define VARIATION_VOLUMELUT(x)								\
+		VARIATION_GAMMA(x##_Gamma)							\
+		VARIATION_GAMMA(x##_NoGamma)
+
+		VARIATION_VOLUMELUT(VolumeLUT)
+		VARIATION_VOLUMELUT(NoVolumeLUT)
+
+#undef VARIATION_GAMMA
+#undef VARIATION_VOLUMELUT
 	}
 
 	void TonemappingMat::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, 
@@ -524,40 +655,80 @@ namespace bs { namespace ct
 			gRendererUtility().drawScreenQuad();
 	}
 
-	TonemappingMat* TonemappingMat::getVariation(bool gammaOnly, bool autoExposure, bool MSAA)
+	TonemappingMat* TonemappingMat::getVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA)
 	{
-		if (gammaOnly)
+		if(volumeLUT)
 		{
-			if (autoExposure)
+			if (gammaOnly)
 			{
-				if (MSAA)
-					return get(VAR_Gamma_AutoExposure_MSAA);
+				if (autoExposure)
+				{
+					if (MSAA)
+						return get(VAR_VolumeLUT_Gamma_AutoExposure_MSAA);
+					else
+						return get(VAR_VolumeLUT_Gamma_AutoExposure_NoMSAA);
+				}
 				else
-					return get(VAR_Gamma_AutoExposure_NoMSAA);
+				{
+					if (MSAA)
+						return get(VAR_VolumeLUT_Gamma_NoAutoExposure_MSAA);
+					else
+						return get(VAR_VolumeLUT_Gamma_NoAutoExposure_NoMSAA);
+				}
 			}
 			else
 			{
-				if (MSAA)
-					return get(VAR_Gamma_NoAutoExposure_MSAA);
+				if (autoExposure)
+				{
+					if (MSAA)
+						return get(VAR_VolumeLUT_NoGamma_AutoExposure_MSAA);
+					else
+						return get(VAR_VolumeLUT_NoGamma_AutoExposure_NoMSAA);
+				}
 				else
-					return get(VAR_Gamma_NoAutoExposure_NoMSAA);
+				{
+					if (MSAA)
+						return get(VAR_VolumeLUT_NoGamma_NoAutoExposure_MSAA);
+					else
+						return get(VAR_VolumeLUT_NoGamma_NoAutoExposure_NoMSAA);
+				}
 			}
 		}
 		else
 		{
-			if (autoExposure)
+			if (gammaOnly)
 			{
-				if (MSAA)
-					return get(VAR_NoGamma_AutoExposure_MSAA);
+				if (autoExposure)
+				{
+					if (MSAA)
+						return get(VAR_NoVolumeLUT_Gamma_AutoExposure_MSAA);
+					else
+						return get(VAR_NoVolumeLUT_Gamma_AutoExposure_NoMSAA);
+				}
 				else
-					return get(VAR_NoGamma_AutoExposure_NoMSAA);
+				{
+					if (MSAA)
+						return get(VAR_NoVolumeLUT_Gamma_NoAutoExposure_MSAA);
+					else
+						return get(VAR_NoVolumeLUT_Gamma_NoAutoExposure_NoMSAA);
+				}
 			}
 			else
 			{
-				if (MSAA)
-					return get(VAR_NoGamma_NoAutoExposure_MSAA);
+				if (autoExposure)
+				{
+					if (MSAA)
+						return get(VAR_NoVolumeLUT_NoGamma_AutoExposure_MSAA);
+					else
+						return get(VAR_NoVolumeLUT_NoGamma_AutoExposure_NoMSAA);
+				}
 				else
-					return get(VAR_NoGamma_NoAutoExposure_NoMSAA);
+				{
+					if (MSAA)
+						return get(VAR_NoVolumeLUT_NoGamma_NoAutoExposure_MSAA);
+					else
+						return get(VAR_NoVolumeLUT_NoGamma_NoAutoExposure_NoMSAA);
+				}
 			}
 		}
 	}

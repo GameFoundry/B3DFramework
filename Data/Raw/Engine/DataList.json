@@ -1,4 +1,4 @@
-{
+﻿{
     "Cursors": [
         {
             "Path": "Arrow.psd",
@@ -155,6 +155,10 @@
         {
             "Path": "ImportanceSampling.bslinc",
             "UUID": "52a46920-860e-4d05-a7c3-34e926b02664"
+        },
+        {
+            "Path": "PPEyeAdaptationCommon.bslinc",
+            "UUID": "1a0c4fb5-49b6-7eb8-28b8-49b698a6b7fe"
         }
     ],
     "Shaders": [
@@ -373,6 +377,26 @@
         {
             "Path": "MSAACoverageStencil.bsl",
             "UUID": "f4344aa8-d286-4f10-b25d-a76302487fa8"
+        },
+        {
+            "Path": "IrradianceAccumulateCubeSH.bsl",
+            "UUID": "92c3b1a4-4f21-6566-7cbe-4f21bcc8e0aa"
+        },
+        {
+            "Path": "IrradianceAccumulateSH.bsl",
+            "UUID": "c52783b0-4974-f349-0fae-4974f81eb485"
+        },
+        {
+            "Path": "IrradianceComputeSHFrag.bsl",
+            "UUID": "cc8139f7-4a48-4a74-2691-4a48e288b8dd"
+        },
+        {
+            "Path": "PPEyeAdaptationBasic.bsl",
+            "UUID": "b00f745f-4d40-5ebf-bcae-4d40161ceb6b"
+        },
+        {
+            "Path": "PPEyeAdaptationBasicSetup.bsl",
+            "UUID": "86cda288-4fd5-4d0f-a5a2-4fd56d3b92ea"
         }
     ],
     "Skin": [

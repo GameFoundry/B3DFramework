@@ -141,9 +141,71 @@ namespace bs { namespace ct
 
 		/** Returns the texture descriptor that can be used for initializing the output render target. */
 		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
+
+		/** 
+		 * Populates the provided paramater buffer with eye adaptation parameters. The parameter buffer is expected to be
+		 * created with EyeAdaptationParamDef block definition.
+		 */
+		static void populateParams(const SPtr<GpuParamBlockBuffer>& paramBuffer, float frameDelta, 
+			const AutoExposureSettings& settings, float exposureScale);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mReducedHistogramTex;
+	};
+
+	/** 
+	 * Shader that computes luminance of all the pixels in the provided texture, and stores them in log2 format, scaled
+	 * to [0, 1] range (according to eye adapatation parameters) and stores those values in the alpha channel of the
+	 * output texture. Color channel is just a copy of the input texture. Resulting texture is intended to be provided
+	 * to the downsampling shader in order to calculate the average luminance, used for non-histogram eye adaptation
+	 * calculation (when compute shader is not available).
+	 */
+	class EyeAdaptationBasicSetupMat : public RendererMaterial<EyeAdaptationBasicSetupMat>
+	{
+		RMAT_DEF("PPEyeAdaptationBasicSetup.bsl");
+
+	public:
+		EyeAdaptationBasicSetupMat();
+
+		/** Executes the post-process effect with the provided parameters. */
+		void execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, 
+			const AutoExposureSettings& settings, float exposureScale);
+
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc(const SPtr<Texture>& input);
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mInputTex;
+	};
+
+	BS_PARAM_BLOCK_BEGIN(EyeAdaptationBasicParamsMatDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2I, gInputTexSize)
+	BS_PARAM_BLOCK_END
+
+	extern EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
+
+	/** 
+	 * Shader that computes eye adapatation value from a texture that has luminance encoded in its alpha channel (as done
+	 * by EyeAdaptationBasicSetupMat). The result is a 1x1 texture containing the eye adaptation value.
+	 */
+	class EyeAdaptationBasicMat : public RendererMaterial<EyeAdaptationBasicMat>
+	{
+		RMAT_DEF("PPEyeAdaptationBasic.bsl");
+
+	public:
+		EyeAdaptationBasicMat();
+
+		/** Executes the post-process effect with the provided parameters. */
+		void execute(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, 
+			float frameDelta, const AutoExposureSettings& settings, float exposureScale);
+
+		/** Returns the texture descriptor that can be used for initializing the output render target. */
+		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
+	private:
+		SPtr<GpuParamBlockBuffer> mEyeAdaptationParamsBuffer;
+		SPtr<GpuParamBlockBuffer> mParamsBuffer;
+		GpuParamTexture mCurFrameTexParam;
+		GpuParamTexture mPrevFrameTexParam;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(CreateTonemapLUTParamDef)
@@ -176,19 +238,44 @@ namespace bs { namespace ct
 	public:
 		CreateTonemapLUTMat();
 
-		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& output, const RenderSettings& settings);
+		/** 
+		 * Executes the post-process effect with the provided parameters, generating a 3D LUT using a compute shader. 
+		 * Should only be called on the appropriate variation (3D one).
+		 */
+		void execute3D(const SPtr<Texture>& output, const RenderSettings& settings);
+
+		/** 
+		 * Executes the post-process effect with the provided parameters, generating an unwrapped 2D LUT without the use
+		 * of a compute shader. Should only be called on the appropriate variation (non-3D one).
+		 */
+		void execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings);
 
 		/** Returns the texture descriptor that can be used for initializing the output render target. */
-		static POOLED_RENDER_TEXTURE_DESC getOutputDesc();
+		POOLED_RENDER_TEXTURE_DESC getOutputDesc() const;
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	is3D	If true the material will generate a 3D LUT using a compute shader. Otherwise it will
+		 *						generate an unwrapped 2D LUT withou the use of a compute shader. Depending on this parameter
+		 *						you should call either execute3D() or execute2D() methods to render the material.
+		 */
+		static CreateTonemapLUTMat* getVariation(bool is3D);
 
 		/** Size of the 3D color lookup table. */
 		static const UINT32 LUT_SIZE = 32;
 	private:
+		/** Populates the parameter block buffers using the provided settings. */
+		void populateParamBuffers(const RenderSettings& settings);
+
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		SPtr<GpuParamBlockBuffer> mWhiteBalanceParamBuffer;
 
 		GpuParamLoadStoreTexture mOutputTex;
+		bool mIs3D;
+
+		static ShaderVariation VAR_3D;
+		static ShaderVariation VAR_Unwrapped2D;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TonemappingParamDef)
@@ -212,7 +299,7 @@ namespace bs { namespace ct
 			const SPtr<RenderTarget>& output, const RenderSettings& settings);
 
 		/** Returns the material variation matching the provided parameters. */
-		static TonemappingMat* getVariation(bool gammaOnly, bool autoExposure, bool MSAA);
+		static TonemappingMat* getVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -221,14 +308,21 @@ namespace bs { namespace ct
 		GpuParamTexture mColorLUT;
 		GpuParamTexture mEyeAdaptationTex;
 
-		static ShaderVariation VAR_Gamma_AutoExposure_MSAA;
-		static ShaderVariation VAR_Gamma_AutoExposure_NoMSAA;
-		static ShaderVariation VAR_Gamma_NoAutoExposure_MSAA;
-		static ShaderVariation VAR_Gamma_NoAutoExposure_NoMSAA;
-		static ShaderVariation VAR_NoGamma_AutoExposure_MSAA;
-		static ShaderVariation VAR_NoGamma_AutoExposure_NoMSAA;
-		static ShaderVariation VAR_NoGamma_NoAutoExposure_MSAA;
-		static ShaderVariation VAR_NoGamma_NoAutoExposure_NoMSAA;
+#define VARIATION_GAMMA(x)											\
+		static ShaderVariation VAR_##x##_AutoExposure_MSAA;			\
+		static ShaderVariation VAR_##x##_AutoExposure_NoMSAA;		\
+		static ShaderVariation VAR_##x##_NoAutoExposure_MSAA;		\
+		static ShaderVariation VAR_##x##_NoAutoExposure_NoMSAA;
+
+#define VARIATION_VOLUME_LUT(x)			\
+		VARIATION_GAMMA(##x##_Gamma)	\
+		VARIATION_GAMMA(##x##_NoGamma)
+
+		VARIATION_VOLUME_LUT(VolumeLUT)
+		VARIATION_VOLUME_LUT(NoVolumeLUT)
+
+#undef VARIATION_VOLUME_LUT
+#undef VARIATION_GAMMA
 	};
 
 	const int MAX_BLUR_SAMPLES = 128;

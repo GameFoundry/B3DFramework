@@ -24,8 +24,8 @@ namespace ct
 	struct RenderCompositorNodeInputs
 	{
 		RenderCompositorNodeInputs(const RendererViewGroup& viewGroup, const RendererView& view, const SceneInfo& scene, 
-			const RenderBeastOptions& options, const FrameInfo& frameInfo)
-			: viewGroup(viewGroup), view(view), scene(scene), options(options), frameInfo(frameInfo)
+			const RenderBeastOptions& options, const FrameInfo& frameInfo, RenderBeastFeatureSet featureSet)
+			: viewGroup(viewGroup), view(view), scene(scene), options(options), frameInfo(frameInfo), featureSet(featureSet)
 		{ }
 
 		const RendererViewGroup& viewGroup;
@@ -33,6 +33,7 @@ namespace ct
 		const SceneInfo& scene;
 		const RenderBeastOptions& options;
 		const FrameInfo& frameInfo;
+		const RenderBeastFeatureSet featureSet;
 
 		// Callbacks to external systems can hook into the compositor
 		SmallVector<RendererExtension*, 4> extPreBasePass;
@@ -516,6 +517,12 @@ namespace ct
 
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
+
+		/** 
+		 * Returns true if the more advanced (and more expensive) compute shader based method of computing eye adaptation
+		 * should be used. 
+		 */
+		bool useHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs);
 
 		SPtr<PooledRenderTexture> mTonemapLUT;
 		UINT64 mTonemapLastUpdateHash = -1;

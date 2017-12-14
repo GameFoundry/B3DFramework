@@ -1,11 +1,17 @@
 #include "$ENGINE$\PPTonemapCommon.bslinc"
 #include "$ENGINE$\PPWhiteBalance.bslinc"
+#include "$ENGINE$\PPBase.bslinc"
 
 technique PPCreateTonemapLUT
 {
 	mixin PPTonemapCommon;
 	mixin PPWhiteBalance;
-
+	
+	#if VOLUME_LUT
+	#else
+	mixin PPBase;
+	#endif
+	
 	code
 	{
 		[internal]
@@ -70,21 +76,16 @@ technique PPCreateTonemapLUT
 			color = color * gGain + gOffset;
 
 			return color;
-		}		
+		}
 		
-		RWTexture3D<unorm float4> gOutputTex;
-		
-		[numthreads(8, 8, 1)]
-		void csmain(
-			uint3 dispatchThreadId : SV_DispatchThreadID,
-			uint threadIndex : SV_GroupIndex)
+		/** Generates tonemap information to the specified color (in log encoded space). */
+		float3 tonemapColor(float3 logColor)
 		{
 			// Constants
 			const float3x3 sRGBToACES2065Matrix = mul(XYZToACES2065Matrix, mul(D65ToD60Matrix, sRGBToXYZMatrix));
 			const float3x3 sRGBToACEScgMatrix = mul(XYZToACEScgMatrix, mul(D65ToD60Matrix, sRGBToXYZMatrix));
-			const float3x3 ACEScgTosRGBMatrix = mul(XYZTosRGBMatrix, mul(D60ToD65Matrix, ACEScgToXYZMatrix));
-			
-			float3 logColor = float3(dispatchThreadId.xyz / (float)(LUT_SIZE - 1));
+			const float3x3 ACEScgTosRGBMatrix = mul(XYZTosRGBMatrix, mul(D60ToD65Matrix, ACEScgToXYZMatrix));		
+		
 			float3 linearColor = LogToLinearColor(logColor);
 			
 			linearColor = WhiteBalance(linearColor);
@@ -106,9 +107,49 @@ technique PPCreateTonemapLUT
 				gammaColor = LinearToGammaRec709(gammaColor);
 			else
 				gammaColor = pow(gammaColor, 1.0f/2.2f);
-			
+				
+			return gammaColor;
+		}
+		
+		#if VOLUME_LUT
+		RWTexture3D<unorm float4> gOutputTex;
+		
+		[numthreads(8, 8, 1)]
+		void csmain(
+			uint3 dispatchThreadId : SV_DispatchThreadID,
+			uint threadIndex : SV_GroupIndex)
+		{
+			float3 logColor = float3(dispatchThreadId.xyz / (float)(LUT_SIZE - 1));
+			float3 gammaColor = tonemapColor(logColor);
+							
 			// TODO - Divide by 1.05f here and then re-apply it when decoding from the texture?
 			gOutputTex[dispatchThreadId] = float4(gammaColor, 1.0f);	
+		}
+		#else
+		float4 fsmain(VStoFS input) : SV_Target0
+		{
+			float3 logColor;
+			
+			float2 uv = input.uv0;
+			// Make sure uv maps to [0,1], as it's currently specified for pixel centers
+			// (This way we get non-extrapolated color values for 0 and 1)
+			uv -= float2(0.5f / (LUT_SIZE * LUT_SIZE), 0.5f / LUT_SIZE);
+			uv *= LUT_SIZE / (LUT_SIZE - 1);
+			
+			// Red goes from 0 to 1, in each slice along X (LUT_SIZE number of slices)
+			logColor.r = frac(uv.x * LUT_SIZE);
+			
+			// Green value is constant within each slice, and increases by 1/LUT_SIZE with each slice along X
+			logColor.g = uv.x - logColor.r / LUT_SIZE;
+			
+			// Blue increases linearly with y
+			logColor.b = uv.y;
+			
+			float3 gammaColor = tonemapColor(logColor);
+							
+			// TODO - Divide by 1.05f here and then re-apply it when decoding from the texture?
+			return float4(gammaColor, 1.0f);	
 		}	
+		#endif
 	};
 };
