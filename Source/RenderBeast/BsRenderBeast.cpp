@@ -541,8 +541,18 @@ namespace bs { namespace ct
 					else
 					{
 						for(UINT32 face = 0; face < 6; face++)
+						{
 							for(UINT32 mip = 0; mip <= srcProps.getNumMipmaps(); mip++)
-								texture->copy(sceneInfo.reflProbeCubemapsTex, face, mip, probeInfo.arrayIdx * 6 + face, mip);
+							{
+								TEXTURE_COPY_DESC copyDesc;
+								copyDesc.srcFace = face;
+								copyDesc.srcMip = mip;
+								copyDesc.dstFace = probeInfo.arrayIdx * 6 + face;
+								copyDesc.dstMip = mip;
+
+								texture->copy(sceneInfo.reflProbeCubemapsTex, copyDesc);
+							}
+						}
 					}
 
 					mScene->setReflectionProbeArrayIndex(i, probeInfo.arrayIdx, true);

@@ -35,6 +35,7 @@ technique IrradianceEvaluate
 		struct Tetrahedron
 		{
 			uint4 indices;
+			uint2 offsets[4];
 			float3x4 transform;
 		};
 		
@@ -46,7 +47,7 @@ technique IrradianceEvaluate
 			float padding[3];
 		};		
 		
-		StructuredBuffer<SHVectorRGB> gSHCoeffs;
+		Texture2D gSHCoeffs;
 		StructuredBuffer<Tetrahedron> gTetrahedra;
 		StructuredBuffer<TetrahedronFace> gTetFaces;
 		
@@ -246,7 +247,7 @@ technique IrradianceEvaluate
 					{
 						if(coords[i] > 0.0f)
 						{
-							SHVectorRGB coeff = gSHCoeffs[volume.indices[i]];
+							SHVectorRGB coeff = SHLoad(gSHCoeffs, volume.offsets[i]);
 							SHMultiplyAdd(shCoeffs, coeff, coords[i]);
 						}
 					}

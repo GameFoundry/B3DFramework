@@ -124,7 +124,7 @@ namespace bs { namespace ct
 		GpuParamTexture mParamInputTex;
 		GpuParamTexture mParamSkyIrradianceTex;
 		GpuParamTexture mParamAmbientOcclusionTex;
-		GpuParamBuffer mParamSHCoeffsBuffer;
+		GpuParamTexture mParamSHCoeffsTexture;
 		GpuParamBuffer mParamTetrahedraBuffer;
 		GpuParamBuffer mParamTetFacesBuffer;
 		bool mSkyOnly;
@@ -141,7 +141,7 @@ namespace bs { namespace ct
 	struct LightProbesInfo
 	{
 		/** Contains a set of spherical harmonic coefficients for every light probe. */
-		SPtr<GpuBuffer> shCoefficients;
+		SPtr<Texture> shCoefficients;
 
 		/** 
 		 * Contains information about tetrahedra formed by light probes. First half of the buffer is populated by actual
@@ -249,20 +249,21 @@ namespace bs { namespace ct
 		void resizeTetrahedronFaceBuffer(UINT32 count);
 
 		/** 
-		 * Resized the GPU buffer that stores light probe SH coefficients, to the specified size (in the number of probes). 
+		 * Resized the GPU buffer that stores light probe SH coefficients, to the specified number of rows (each row
+		 * holds 4096 coefficients, and each volume starts in its own row.). 
 		 */
-		void resizeCoefficientBuffer(UINT32 count);
+		void resizeCoefficientTexture(UINT32 numRows);
 
 		Vector<VolumeInfo> mVolumes;
 		bool mTetrahedronVolumeDirty;
 
-		UINT32 mMaxCoefficients;
+		UINT32 mMaxCoefficientRows;
 		UINT32 mMaxTetrahedra;
 		UINT32 mMaxFaces;
 
 		Vector<TetrahedronData> mTetrahedronInfos;
 
-		SPtr<GpuBuffer> mProbeCoefficientsGPU;
+		SPtr<Texture> mProbeCoefficientsGPU;
 		SPtr<GpuBuffer> mTetrahedronInfosGPU;
 		SPtr<GpuBuffer> mTetrahedronFaceInfosGPU;
 		SPtr<Mesh> mVolumeMesh;
@@ -271,6 +272,7 @@ namespace bs { namespace ct
 		// Temporary buffers
 		Vector<Vector3> mTempTetrahedronPositions;
 		Vector<UINT32> mTempTetrahedronBufferIndices;
+		Vector<Vector2I> mTempTetrahedronBufferOffsets;
 	};
 
 	/** @} */

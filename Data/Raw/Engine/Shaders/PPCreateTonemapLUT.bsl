@@ -139,11 +139,11 @@ technique PPCreateTonemapLUT
 			// Red goes from 0 to 1, in each slice along X (LUT_SIZE number of slices)
 			logColor.r = frac(uv.x * LUT_SIZE);
 			
-			// Green value is constant within each slice, and increases by 1/LUT_SIZE with each slice along X
-			logColor.g = uv.x - logColor.r / LUT_SIZE;
+			// Blue value is constant within each slice, and increases by 1/LUT_SIZE with each slice along X
+			logColor.b = uv.x - logColor.r / LUT_SIZE;
 			
-			// Blue increases linearly with y
-			logColor.b = uv.y;
+			// Green increases linearly with y
+			logColor.g = uv.y;
 			
 			float3 gammaColor = tonemapColor(logColor);
 							

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Math/BsVector2I.h"
 
 namespace bs
 {
@@ -15,6 +16,7 @@ namespace bs
 	{
 		/** Indices of vertices that form the tetrahedron pointing to an external point array. */
 		INT32 vertices[4];
+
 		/** 
 		 * Indices pointing to neighbor tetrahedrons. Each neighbor index maps to the @p vertices array, so neighbor/vertex
 		 * pair at the same location will be the only neighbor not containing that vertex (i.e. neighbor opposite to

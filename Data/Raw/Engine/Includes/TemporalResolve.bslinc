@@ -243,19 +243,14 @@ mixin TemporalResolve
 			#define _TONEMAP_COLOR(v) v
 		#endif // TEMPORAL_TONEMAP
 		
-		// Samples the scene color texture, automatically converting to YCoCg space (if enabled),
-		// and tonemapping the value
-		float4 sampleColor(
-			_TEXCOLOR(tex), 
-			float2 uv, 
-			int2 offset
+		// Converts scene color to YCoCg space (if enabled) and applies tonemapping
+		float4 convertColor(
+			float4 color
 			#if TEMPORAL_TONEMAP
 			, float exposureScale
 			#endif // TEMPORAL_TONEMAP
 		)
 		{
-			float4 color = _SAMPLECOL(tex, uv, offset);
-			
 			#if TEMPORAL_YCOCG
 				color.rgb = _TONEMAP_COLOR(RGBToYCoCg(color.rgb));
 			#else
@@ -266,9 +261,9 @@ mixin TemporalResolve
 		}
 		
 		#if TEMPORAL_TONEMAP
-			#define _SAMPLE_COLOR(n, uv, offset) sampleColor(_PTEXCOLOR(n), uv, offset, exposureScale)
+			#define _SAMPLE_COLOR(n, uv, offset) convertColor(_SAMPLECOL(n, uv, offset), exposureScale)
 		#else
-			#define _SAMPLE_COLOR(n, uv, offset) sampleColor(_PTEXCOLOR(n), uv, offset)
+			#define _SAMPLE_COLOR(n, uv, offset) convertColor(_SAMPLECOL(n, uv, offset))
 		#endif
 		
 		///////////////////////////// MAIN /////////////////////////////////

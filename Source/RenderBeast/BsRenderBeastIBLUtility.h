@@ -150,8 +150,8 @@ namespace bs { namespace ct
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2I, gOutputIdx)
 		BS_PARAM_BLOCK_ENTRY(int, gNumEntries)
-		BS_PARAM_BLOCK_ENTRY(int, gOutputIdx)
 	BS_PARAM_BLOCK_END
 
 	extern IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
@@ -169,13 +169,13 @@ namespace bs { namespace ct
 
 		/** 
 		 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a
-		 * single set of normalized coefficients. Output buffer should be created by calling createOutputBuffer(). The
-		 * value will be recorded at the @p outputIdx position in the buffer.
+		 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
+		 * value will be recorded at the @p outputIdx position in the texture.
 		 */
-		void execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, const SPtr<GpuBuffer>& output, UINT32 outputIdx);
+		void execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, const SPtr<Texture>& output, UINT32 outputIdx);
 
-		/** Creates a buffer of adequate size to be used as output for this material. */
-		SPtr<GpuBuffer> createOutputBuffer(UINT32 numEntries);
+		/** Creates a texture of adequate size to be used as output for this material. */
+		SPtr<Texture> createOutputTexture(UINT32 numCoeffSets);
 
 		/** 
 		 * Returns the material variation matching the provided parameters.
@@ -188,7 +188,7 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamBuffer mInputBuffer;
-		GpuParamBuffer mOutputBuffer;
+		GpuParamLoadStoreTexture mOutputTexture;
 
 		static ShaderVariation VAR_Order3;
 		static ShaderVariation VAR_Order5;
@@ -286,7 +286,7 @@ namespace bs { namespace ct
 		 * Sums up all faces of the input cube texture and writes the value to the corresponding index in the output
 		 * texture. The source mip should point to a mip level with size 1x1.
 		 */
-		void execute(const SPtr<Texture>& source, UINT32 sourceMip, UINT32 coefficientIdx, 
+		void execute(const SPtr<Texture>& source, UINT32 sourceMip, const Vector2I& outputOffset, UINT32 coefficientIdx, 
 			const SPtr<RenderTarget>& output);
 
 		/** 
@@ -321,11 +321,11 @@ namespace bs { namespace ct
 		 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMat and projects them onto faces of
 		 * a cubemap.
 		 */
-		void execute(const SPtr<GpuBuffer>& shCoeffs, UINT32 face, const SPtr<RenderTarget>& target);
+		void execute(const SPtr<Texture>& shCoeffs, UINT32 face, const SPtr<RenderTarget>& target);
 
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamBuffer mInputBuffer;
+		GpuParamTexture mInputTexture;
 	};
 
 	/** Render beast implementation of IBLUtility. */
@@ -339,12 +339,11 @@ namespace bs { namespace ct
 		void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const override;
 
 		/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<GpuBuffer>&, UINT32) */
-		void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<GpuBuffer>& output, 
+		void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output, 
 			UINT32 outputIdx) const override;
 
 		/** @copydoc IBLUtility::scaleCubemap */
 		void scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip) const override;
-
 	private:
 		/** 
 		 * Downsamples a cubemap using hardware bilinear filtering. 
@@ -360,7 +359,8 @@ namespace bs { namespace ct
 		 * Generates irradiance SH coefficients from the input cubemap and writes them to a 1D texture. Does not make
 		 * use of the compute shader.
 		 */
-		static SPtr<Texture> filterCubemapForIrradianceNonCompute(const SPtr<Texture>& cubemap);
+		static void filterCubemapForIrradianceNonCompute(const SPtr<Texture>& cubemap, UINT32 outputIdx, 
+			const SPtr<RenderTexture>& output);
 	};
 
 	/** @} */

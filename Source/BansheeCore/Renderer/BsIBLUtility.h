@@ -37,16 +37,16 @@ namespace bs { namespace ct
 		virtual void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const = 0;
 
 		/**
-		 * Performs filtering on the cubemap, populating the output cubemap with values that can be used for evaluating
-		 * irradiance for use in diffuse lighting. Uses order-5 SH (9 coefficients) and outputs the values in the form of
-		 * a cubemap.
+		 * Performs filtering on the cubemap, populating the output texture with values that can be used for evaluating
+		 * irradiance for use in diffuse lighting. Uses order-3 SH (9 coefficients) and outputs the values in the form of
+		 * SH coefficients.
 		 * 
 		 * @param[in]		cubemap		Cubemap to filter. Its mip level 0 will be used as source.
-		 * @param[in]		output		Output buffer in which to place the results. Must be allocated using 
-		 *								IrradianceReduceMat<ORDER>::createOutputBuffer();
+		 * @param[in]		output		Output texture in which to place the results. Must be allocated using 
+		 *								IrradianceReduceMat::createOutputTexture();
 		 * @param[in]		outputIdx	Index in the output buffer at which to write the output coefficients to.
 		 */
-		virtual void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<GpuBuffer>& output, 
+		virtual void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output, 
 			UINT32 outputIdx) const = 0;
 
 		/**
@@ -59,6 +59,15 @@ namespace bs { namespace ct
 		 * @param[in]   dstMip			Determines which mip level of the destination texture to scale.
 		 */
 		virtual void scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip) const = 0;
+
+
+		/** Returns the size of the texture required to store the provided number of SH coefficient sets. */
+		static Vector2I getSHCoeffTextureSize(UINT32 numCoeffSets, UINT32 shOrder);
+		
+		/** 
+		 * Determines the position of a set of coefficients in the coefficient texture, depending on the coefficient index. 
+		 */
+		static Vector2I getSHCoeffXYFromIdx(UINT32 idx, UINT32 shOrder);
 
 		static const UINT32 REFLECTION_CUBEMAP_SIZE;
 		static const UINT32 IRRADIANCE_CUBEMAP_SIZE;

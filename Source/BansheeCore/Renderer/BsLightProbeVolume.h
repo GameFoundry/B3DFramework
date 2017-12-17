@@ -253,8 +253,8 @@ namespace bs
 		/** Populates the vector with SH coefficients for each light probe. Involves reading the GPU buffer. */
 		void getProbeCoefficients(Vector<LightProbeCoefficientInfo>& output) const;
 
-		/** Returns the GPU buffer containing SH coefficients. */
-		SPtr<GpuBuffer> getCoefficientsBuffer() const { return mCoefficients; }
+		/** Returns the texture containing SH coefficients for all probes in the volume. */
+		SPtr<Texture> getCoefficientsTexture() const { return mCoefficients; }
 	protected:
 		friend class bs::LightProbeVolume;
 
@@ -276,10 +276,10 @@ namespace bs
 		bool renderProbes(UINT32 maxProbes);
 
 		/** 
-		 * Resizes the internal GPU buffer that stores light probe SH coefficients, to the specified size (in the number
+		 * Resizes the internal texture that stores light probe SH coefficients, to the specified size (in the number
 		 * of probes). 
 		 */
-		void resizeCoefficientBuffer(UINT32 count);
+		void resizeCoefficientTexture(UINT32 count);
 
 		UINT32 mRendererId = 0;
 		UnorderedMap<UINT32, UINT32> mProbeMap; // Map from static indices to compact list of probes
@@ -289,7 +289,7 @@ namespace bs
 		Vector<LightProbeInfo> mProbeInfos;
 
 		// Contains SH coefficients for the probes
-		SPtr<GpuBuffer> mCoefficients;
+		SPtr<Texture> mCoefficients;
 		UINT32 mCoeffBufferSize = 0;
 
 		// Temporary until initialization

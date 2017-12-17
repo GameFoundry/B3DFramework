@@ -5,7 +5,6 @@
 #include "Allocators/BsFrameAlloc.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsLight.h"
-#include "RenderAPI/BsGpuBuffer.h"
 #include "Image/BsTexture.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Scene/BsSceneObject.h"
@@ -409,8 +408,33 @@ namespace bs
 		UINT32 numCoefficients = (UINT32)mInitCoefficients.size();
 		assert(mInitCoefficients.size() == mProbeMap.size());
 
-		resizeCoefficientBuffer(std::max(32U, numCoefficients));
-		mCoefficients->writeData(0, sizeof(LightProbeSHCoefficients) * numCoefficients, mInitCoefficients.data());
+		resizeCoefficientTexture(std::max(32U, numCoefficients));
+
+		SPtr<PixelData> coeffData = mCoefficients->getProperties().allocBuffer(0, 0);
+		UINT32 probesPerRow = coeffData->getWidth() / 9;
+		UINT32 probeIdx = 0;
+		for(UINT32 y = 0; y < coeffData->getHeight(); ++y)
+		{
+			for(UINT32 x = 0; x < probesPerRow; ++x)
+			{
+				if(probeIdx >= numCoefficients)
+					break;
+
+				for(UINT32 i = 0; i < 9; i++)
+				{
+					Color value;
+					value.r = mInitCoefficients[probeIdx].coeffsR[i];
+					value.g = mInitCoefficients[probeIdx].coeffsG[i];
+					value.b = mInitCoefficients[probeIdx].coeffsB[i];
+
+					coeffData->setColorAt(value, x * 9, y);
+				}
+
+				probeIdx++;
+			}
+		}
+
+		mCoefficients->writeData(*coeffData, 0, 0, true);
 		mInitCoefficients.clear();
 
 		gRenderer()->notifyLightProbeVolumeAdded(this);
@@ -422,7 +446,7 @@ namespace bs
 		// Probe map only contains active probes
 		UINT32 numUsedProbes = (UINT32)mProbeMap.size();
 		if(numUsedProbes > mCoeffBufferSize)
-			resizeCoefficientBuffer(std::max(32U, numUsedProbes * 2));
+			resizeCoefficientTexture(std::max(32U, numUsedProbes * 2));
 
 		UINT32 numProbeUpdates = 0;
 		for (; mFirstDirtyProbe < (UINT32)mProbeInfos.size(); ++mFirstDirtyProbe)
@@ -595,7 +619,31 @@ namespace bs
 		output.resize(numActiveProbes);
 
 		LightProbeSHCoefficients* coefficients = bs_stack_alloc<LightProbeSHCoefficients>(numActiveProbes);
-		mCoefficients->readData(0, sizeof(LightProbeSHCoefficients) * numActiveProbes, coefficients);
+
+		SPtr<PixelData> coeffData = mCoefficients->getProperties().allocBuffer(0, 0);
+		mCoefficients->readData(*coeffData);
+
+		UINT32 probesPerRow = coeffData->getWidth() / 9;
+		UINT32 probeIdx = 0;
+		for(UINT32 y = 0; y < coeffData->getHeight(); ++y)
+		{
+			for(UINT32 x = 0; x < probesPerRow; ++x)
+			{
+				if(probeIdx >= numActiveProbes)
+					break;
+
+				for(UINT32 i = 0; i < 9; i++)
+				{
+					Color value = coeffData->getColorAt(x * 9, y);
+
+					coefficients[probeIdx].coeffsR[i] = value.r;
+					coefficients[probeIdx].coeffsG[i] = value.g;
+					coefficients[probeIdx].coeffsB[i] = value.b;
+				}
+
+				probeIdx++;
+			}
+		}
 
 		for(UINT32 i = 0; i < numActiveProbes; ++i)
 		{
@@ -606,21 +654,21 @@ namespace bs
 		bs_stack_free(coefficients);
 	}
 
-	void LightProbeVolume::resizeCoefficientBuffer(UINT32 count)
+	void LightProbeVolume::resizeCoefficientTexture(UINT32 count)
 	{
-		GPU_BUFFER_DESC desc;
-		desc.type = GBT_STRUCTURED;
-		desc.elementSize = sizeof(LightProbeSHCoefficients);
-		desc.elementCount = count;
-		desc.usage = GBU_STATIC;
-		desc.format = BF_UNKNOWN;
-		desc.randomGpuWrite = true;
+		Vector2I texSize = IBLUtility::getSHCoeffTextureSize(count, 3);
 
-		SPtr<GpuBuffer> newBuffer = GpuBuffer::create(desc);
+		TEXTURE_DESC desc;
+		desc.width = (UINT32)texSize.x;
+		desc.height = (UINT32)texSize.y;
+		desc.usage = TU_LOADSTORE | TU_RENDERTARGET;
+		desc.format = PF_RGBA32F;
+
+		SPtr<Texture> newTexture = Texture::create(desc);
 		if (mCoefficients)
-			newBuffer->copyData(*mCoefficients, 0, 0, mCoefficients->getSize(), true);
+			mCoefficients->copy(newTexture);
 
-		mCoefficients = newBuffer;
+		mCoefficients = newTexture;
 		mCoeffBufferSize = count;
 	}
 }}

@@ -153,7 +153,7 @@ namespace bs { namespace ct
 		if(!mSkyOnly)
 		{
 			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
-			params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsBuffer);
+			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
 			params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
 			params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
 		}
@@ -197,7 +197,7 @@ namespace bs { namespace ct
 		if(!mSkyOnly)
 		{
 			mParamInputTex.set(lightProbeIndices);
-			mParamSHCoeffsBuffer.set(lightProbesInfo.shCoefficients);
+			mParamSHCoeffsTexture.set(lightProbesInfo.shCoefficients);
 			mParamTetrahedraBuffer.set(lightProbesInfo.tetrahedra);
 			mParamTetFacesBuffer.set(lightProbesInfo.faces);
 		}
@@ -266,6 +266,7 @@ namespace bs { namespace ct
 	struct TetrahedronDataGPU
 	{
 		UINT32 indices[4];
+		Vector2I offsets[4];
 		Matrix3x4 transform;
 	};
 
@@ -279,7 +280,7 @@ namespace bs { namespace ct
 	};
 
 	LightProbes::LightProbes()
-		:mTetrahedronVolumeDirty(false), mMaxCoefficients(0), mMaxTetrahedra(0), mMaxFaces(0), mNumValidTetrahedra(0)
+		:mTetrahedronVolumeDirty(false), mMaxCoefficientRows(0), mMaxTetrahedra(0), mMaxFaces(0), mNumValidTetrahedra(0)
 	{ }
 
 	void LightProbes::notifyAdded(LightProbeVolume* volume)
@@ -330,53 +331,59 @@ namespace bs { namespace ct
 			return;
 
 		// Move all coefficients into the global buffer
-		UINT32 numCoeffs = 0;
+		UINT32 numRows = 0;
 		for(auto& entry : mVolumes)
 		{
-			UINT32 numProbes = (UINT32)entry.volume->getLightProbePositions().size();
-			numCoeffs += numProbes;
+			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
+			numRows += localTexture->getProperties().getHeight();
 		}
 
-		if(numCoeffs > mMaxCoefficients)
-		{
-			UINT32 newSize = Math::divideAndRoundUp(numCoeffs, 32U) * 32U;
-			resizeCoefficientBuffer(newSize);
-		}
+		if(numRows > mMaxCoefficientRows)
+			resizeCoefficientTexture(numRows + 4);
 
-		UINT32 writePos = 0;
+		UINT32 rowIdx = 0;
 		for(auto& entry : mVolumes)
 		{
-			UINT32 numProbes = (UINT32)entry.volume->getLightProbePositions().size();
-			UINT32 size = numProbes * sizeof(LightProbeSHCoefficients);
-			SPtr<GpuBuffer> localBuffer = entry.volume->getCoefficientsBuffer();
+			TEXTURE_COPY_DESC copyDesc;
+			copyDesc.dstPosition = Vector3I(0, rowIdx, 0);
+
+			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
+			localTexture->copy(mProbeCoefficientsGPU, copyDesc);
 			
-			// Note: Some of the coefficients might still be dirty (unrendered). Check for this and write them as black?
-			mProbeCoefficientsGPU->copyData(*localBuffer, 0, writePos, size);
-			writePos += size;
+			rowIdx += localTexture->getProperties().getHeight();
 		}
 
 		// Gather all positions
 		UINT32 bufferOffset = 0;
+		rowIdx = 0;
 		for(auto& entry : mVolumes)
 		{
 			const Vector<LightProbeInfo>& infos = entry.volume->getLightProbeInfos();
 			const Vector<Vector3>& positions = entry.volume->getLightProbePositions();
+
 			UINT32 numProbes = entry.volume->getNumActiveProbes();
-			
+
 			if (numProbes == 0)
 				continue;
 
 			const Transform& tfrm = entry.volume->getTransform();
 			Vector3 offset = tfrm.getPosition();
 			Quaternion rotation = tfrm.getRotation();
-			for(UINT32 i = 0; i < numProbes; i++)
+
+			for (UINT32 i = 0; i < numProbes; i++)
 			{
 				Vector3 localPos = positions[i];
 				Vector3 transformedPos = rotation.rotate(localPos) + offset;
 				mTempTetrahedronPositions.push_back(transformedPos);
+
 				mTempTetrahedronBufferIndices.push_back(bufferOffset + infos[i].bufferIdx);
+
+				Vector2I offset = IBLUtility::getSHCoeffXYFromIdx(infos[i].bufferIdx, 3);
+				mTempTetrahedronBufferOffsets.push_back(offset);
 			}
 
+			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
+			rowIdx += localTexture->getProperties().getHeight();
 			bufferOffset += (UINT32)positions.size();
 		}
 
@@ -718,10 +725,15 @@ namespace bs { namespace ct
 
 			TetrahedronData& entry = mTetrahedronInfos[i];
 
+			Vector2I offsets[4];
 			for(UINT32 j = 0; j < 4; ++j)
+			{
 				entry.volume.vertices[j] = mTempTetrahedronBufferIndices[entry.volume.vertices[j]];
+				offsets[j] = mTempTetrahedronBufferOffsets[entry.volume.vertices[j]];
+			}
 
 			memcpy(dst->indices, entry.volume.vertices, sizeof(UINT32) * 4);
+			memcpy(dst->offsets, &offsets, sizeof(offsets));
 			memcpy(&dst->transform, &entry.transform, sizeof(float) * 12);
 
 			dst++;
@@ -736,12 +748,17 @@ namespace bs { namespace ct
 			const TetrahedronFaceData& entry = outerFaces[i];
 
 			UINT32 indices[4];
-			indices[0] = mTempTetrahedronBufferIndices[entry.innerVertices[0]];
-			indices[1] = mTempTetrahedronBufferIndices[entry.innerVertices[1]];
-			indices[2] = mTempTetrahedronBufferIndices[entry.innerVertices[2]];
+			Vector2I offsets[4];
+			for(UINT32 j = 0; j < 3; j++)
+			{
+				indices[j] = mTempTetrahedronBufferIndices[entry.innerVertices[j]];
+				offsets[j] = mTempTetrahedronBufferOffsets[entry.innerVertices[j]];
+			}
+
 			indices[3] = -1;
 
 			memcpy(dst->indices, indices, sizeof(UINT32) * 4);
+			memcpy(dst->offsets, offsets, sizeof(offsets));
 			memcpy(&dst->transform, &entry.transform, sizeof(float) * 12);
 
 			dst++;
@@ -835,17 +852,20 @@ namespace bs { namespace ct
 		mMaxFaces = count;
 	}
 
-	void LightProbes::resizeCoefficientBuffer(UINT32 count)
+	void LightProbes::resizeCoefficientTexture(UINT32 numRows)
 	{
-		GPU_BUFFER_DESC desc;
-		desc.type = GBT_STRUCTURED;
-		desc.elementSize = sizeof(LightProbeSHCoefficients);
-		desc.elementCount = count;
-		desc.usage = GBU_STATIC;
-		desc.format = BF_UNKNOWN;
+		TEXTURE_DESC desc;
+		desc.width = 4096;
+		desc.height = numRows;
+		desc.usage = TU_LOADSTORE | TU_RENDERTARGET;
+		desc.format = PF_RGBA32F;
 
-		mProbeCoefficientsGPU = GpuBuffer::create(desc);
-		mMaxCoefficients = count;
+		SPtr<Texture> newTexture = Texture::create(desc);
+		if (mProbeCoefficientsGPU)
+			mProbeCoefficientsGPU->copy(newTexture);
+
+		mProbeCoefficientsGPU = newTexture;
+		mMaxCoefficientRows = numRows;
 	}
 
 	void LightProbes::generateTetrahedronData(Vector<Vector3>& positions, Vector<TetrahedronData>& tetrahedra,

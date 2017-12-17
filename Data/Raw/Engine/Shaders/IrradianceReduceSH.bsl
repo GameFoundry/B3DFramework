@@ -17,13 +17,13 @@ technique IrradianceReduceSH
 		};
 
 		StructuredBuffer<SHCoeffsAndWeight> gInput;
-		RWStructuredBuffer<SHVectorRGB> gOutput;
+		RWTexture2D<float4> gOutput;
 		
 		[internal]
 		cbuffer Params
 		{
+			uint2 gOutputIdx;
 			uint gNumEntries;
-			uint gOutputIdx;
 		}			
 		
 		[numthreads(1, 1, 1)]
@@ -56,8 +56,14 @@ technique IrradianceReduceSH
 			SHMultiply(coeffs.R, normFactor);
 			SHMultiply(coeffs.G, normFactor);
 			SHMultiply(coeffs.B, normFactor);
-				
-			gOutput[gOutputIdx] = coeffs;
+			
+			uint2 writeIdx = gOutputIdx;
+			[unroll]
+			for(int i = 0; i < SH_NUM_COEFFS; ++i)
+			{			
+				gOutput[writeIdx] = float4(coeffs.R.v[i], coeffs.G.v[i], coeffs.B.v[i], 0.0f);
+				writeIdx.x += 1;
+			}
 		}
 	};
 };

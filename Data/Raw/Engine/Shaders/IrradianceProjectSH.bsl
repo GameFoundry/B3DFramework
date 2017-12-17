@@ -17,7 +17,7 @@ technique IrradianceProjectSH
 			int gCubeFace;
 		}	
 	
-		StructuredBuffer<SHVectorRGB> gSHCoeffs;
+		Texture2D gSHCoeffs;
 
 		float evaluateLambert(SHVector coeffs)
 		{
@@ -57,7 +57,7 @@ technique IrradianceProjectSH
 			
 			SHVector shBasis = SHBasis(dir);
 							
-			SHVectorRGB coeffs = gSHCoeffs[0];
+			SHVectorRGB coeffs = SHLoad(gSHCoeffs, int2(0, 0));
 			SHMultiply(coeffs.R, shBasis);
 			SHMultiply(coeffs.G, shBasis);
 			SHMultiply(coeffs.B, shBasis);

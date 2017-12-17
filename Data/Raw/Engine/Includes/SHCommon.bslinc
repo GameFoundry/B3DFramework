@@ -16,6 +16,23 @@ mixin SHCommon
 			SHVector B;
 		};
 		
+		SHVectorRGB SHLoad(Texture2D input, int2 offset)
+		{
+			SHVectorRGB output;
+						
+			[unroll]
+			for(int i = 0; i < SH_NUM_COEFFS; ++i)
+			{
+				float3 coeff = input.Load(int3(offset.x + i, offset.y, 0)).rgb;
+			
+				output.R.v[i] = coeff.r;
+				output.G.v[i] = coeff.g;
+				output.B.v[i] = coeff.b;
+			}
+			
+			return output;
+		}
+		
 		void SHZero(inout SHVector v)
 		{
 			[unroll]

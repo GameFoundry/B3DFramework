@@ -61,7 +61,8 @@ technique PPEyeAdaptationBasic
 			float avgLuminance = calcWeightedAverageAlpha(gCurFrameTex, gInputTexSize, slope);
 		
 			// Scale back into normal range (was log2 encoded and scale into [0, 1] range)
-			avgLuminance = exp2((pos - gEyeAdaptationParams[0].y) / gEyeAdaptationParams[0].x);
+			avgLuminance = exp2((avgLuminance - gEyeAdaptationParams[0].y) / gEyeAdaptationParams[0].x);
+			avgLuminance /= 0.16f;
 		
 			// Clamp to valid range
 			avgLuminance = clamp(avgLuminance, gEyeAdaptationParams[1].x, gEyeAdaptationParams[1].y);
