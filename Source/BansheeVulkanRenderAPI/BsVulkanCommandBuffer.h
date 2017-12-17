@@ -405,6 +405,7 @@ namespace bs { namespace ct
 			bool isFBAttachment : 1;
 			bool isShaderInput : 1;
 			bool hasTransitioned : 1;
+			bool hasExternalTransition : 1;
 			bool isReadOnly : 1;
 			bool isInitialReadOnly : 1;
 

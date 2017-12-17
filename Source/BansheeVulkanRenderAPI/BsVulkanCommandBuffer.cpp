@@ -518,35 +518,37 @@ namespace bs { namespace ct
 				const VkImageSubresourceRange& range = subresourceInfo.range;
 				UINT32 mipEnd = range.baseMipLevel + range.levelCount;
 				UINT32 faceEnd = range.baseArrayLayer + range.layerCount;
-
-				bool layoutMismatch = false;
-				for (UINT32 mip = range.baseMipLevel; mip < mipEnd; mip++)
+				if(!subresourceInfo.hasExternalTransition)
 				{
-					for (UINT32 face = range.baseArrayLayer; face < faceEnd; face++)
+					bool layoutMismatch = false;
+					for (UINT32 mip = range.baseMipLevel; mip < mipEnd; mip++)
 					{
-						VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
-						if(subresource->getLayout() != initialLayout)
+						for (UINT32 face = range.baseArrayLayer; face < faceEnd; face++)
 						{
-							layoutMismatch = true;
-							break;
+							VulkanImageSubresource* subresource = resource->getSubresource(face, mip);
+							if (subresource->getLayout() != initialLayout)
+							{
+								layoutMismatch = true;
+								break;
+							}
 						}
+
+						if (layoutMismatch)
+							break;
 					}
 
 					if (layoutMismatch)
-						break;
-				}
-
-				if(layoutMismatch)
-				{
-					UINT32 startIdx = (UINT32)localBarriers.size();
-					resource->getBarriers(subresourceInfo.range, localBarriers);
-
-					for (UINT32 j = startIdx; j < (UINT32)localBarriers.size(); j++)
 					{
-						VkImageMemoryBarrier& barrier = localBarriers[j];
+						UINT32 startIdx = (UINT32)localBarriers.size();
+						resource->getBarriers(subresourceInfo.range, localBarriers);
 
-						barrier.dstAccessMask = resource->getAccessFlags(initialLayout, subresourceInfo.isInitialReadOnly);
-						barrier.newLayout = initialLayout;
+						for (UINT32 j = startIdx; j < (UINT32)localBarriers.size(); j++)
+						{
+							VkImageMemoryBarrier& barrier = localBarriers[j];
+
+							barrier.dstAccessMask = resource->getAccessFlags(initialLayout, subresourceInfo.isInitialReadOnly);
+							barrier.newLayout = initialLayout;
+						}
 					}
 				}
 
@@ -1764,7 +1766,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		return image->getOptimalLayout();
+		return subresource->getLayout();
 	}
 
 	void VulkanCmdBuffer::registerResource(VulkanResource* res, VulkanUseFlags flags)
@@ -1821,12 +1823,15 @@ namespace bs { namespace ct
 
 			if (!isTransfer)
 			{
+				subresourceInfo.hasExternalTransition = false;
 				subresourceInfo.hasTransitioned = false;
 				subresourceInfo.isReadOnly = !flags.isSet(VulkanUseFlag::Write);
 			}
 			else
-			{
-				subresourceInfo.hasTransitioned = true; // Transfers handle layout transitions externally (at this point they are assumed to already be done)
+			{ 
+				// Transfers handle layout transitions externally (at this point they are assumed to already be done) 
+				subresourceInfo.hasExternalTransition = true;
+				subresourceInfo.hasTransitioned = true;
 				subresourceInfo.isReadOnly = true; // Doesn't matter for transfers
 			}
 
