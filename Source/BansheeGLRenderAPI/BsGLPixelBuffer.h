@@ -165,6 +165,9 @@ namespace bs { namespace ct
 
 		/** @copydoc GLPixelBuffer::download */
 		void download(const PixelData &data) override;
+
+		/** @copydoc GLPixelBuffer::blitFromTexture */
+		void blitFromTexture(GLTextureBuffer *src) override;
   
 		/** @copydoc GLPixelBuffer::blitFromTexture */
 		void blitFromTexture(GLTextureBuffer *src, const PixelVolume &srcBox, const PixelVolume &dstBox) override;

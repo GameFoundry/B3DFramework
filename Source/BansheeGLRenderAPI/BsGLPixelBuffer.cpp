@@ -479,6 +479,11 @@ namespace bs { namespace ct
 		}
 	}
 
+	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src)
+	{
+		GLPixelBuffer::blitFromTexture(src);
+	}
+
 	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
 	{
 		// If supported, prefer direct image copy. If not supported, or if sample counts don't match, fall back to FB blit

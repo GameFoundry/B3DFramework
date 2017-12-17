@@ -373,23 +373,40 @@ namespace bs { namespace ct
 			getBuffer(face, mipLevel)->upload(src, src.getExtents());
 	}
 
-	void GLTexture::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
-								 const SPtr<Texture>& target, const SPtr<CommandBuffer>& commandBuffer)
+	void GLTexture::copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, 
+		const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [this](UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel, 
-			const SPtr<Texture>& target)
+		auto executeRef = [this](const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc)
 		{
 			GLTexture* destTex = static_cast<GLTexture*>(target.get());
-			GLTextureBuffer *src = static_cast<GLTextureBuffer*>(getBuffer(srcFace, srcMipLevel).get());
+			GLTextureBuffer* dest = static_cast<GLTextureBuffer*>(destTex->getBuffer(desc.dstFace, desc.dstMip).get());
+			GLTextureBuffer* src = static_cast<GLTextureBuffer*>(getBuffer(desc.srcFace, desc.srcMip).get());
 
-			destTex->getBuffer(destFace, destMipLevel)->blitFromTexture(src);
+			bool copyEntireSurface = desc.srcVolume.getWidth() == 0 || 
+				desc.srcVolume.getHeight() == 0 || 
+				desc.srcVolume.getDepth() == 0;
+
+			if(copyEntireSurface)
+				dest->blitFromTexture(src);
+			else
+			{
+				PixelVolume dstVolume;
+				dstVolume.left = (UINT32)desc.dstPosition.x;
+				dstVolume.top = (UINT32)desc.dstPosition.y;
+				dstVolume.front = (UINT32)desc.dstPosition.z;
+				dstVolume.right = dstVolume.left + desc.srcVolume.getWidth();
+				dstVolume.bottom = dstVolume.top + desc.srcVolume.getHeight();
+				dstVolume.back = dstVolume.front + desc.srcVolume.getDepth();
+
+				dest->blitFromTexture(src, desc.srcVolume, dstVolume);
+			}
 		};
 
 		if (commandBuffer == nullptr)
-			executeRef(srcFace, srcMipLevel, destFace, destMipLevel, target);
+			executeRef(target, desc);
 		else
 		{
-			auto execute = [=]() { executeRef(srcFace, srcMipLevel, destFace, destMipLevel, target); };
+			auto execute = [=]() { executeRef(target, desc); };
 
 			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);

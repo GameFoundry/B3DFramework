@@ -61,16 +61,15 @@ namespace bs { namespace ct
 		Texture::initialize();
 	}
 
-	void D3D11Texture::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
-									const SPtr<Texture>& target, const SPtr<CommandBuffer>& commandBuffer)
+	void D3D11Texture::copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, 
+			const SPtr<CommandBuffer>& commandBuffer)
 	{
-		auto executeRef = [this](UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
-			const SPtr<Texture>& target)
+		auto executeRef = [this](const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc)
 		{
 			D3D11Texture* other = static_cast<D3D11Texture*>(target.get());
 
-			UINT32 srcResIdx = D3D11CalcSubresource(srcMipLevel, srcFace, mProperties.getNumMipmaps() + 1);
-			UINT32 destResIdx = D3D11CalcSubresource(destMipLevel, destFace, target->getProperties().getNumMipmaps() + 1);
+			UINT32 srcResIdx = D3D11CalcSubresource(desc.srcMip, desc.srcFace, mProperties.getNumMipmaps() + 1);
+			UINT32 destResIdx = D3D11CalcSubresource(desc.dstMip, desc.dstFace, target->getProperties().getNumMipmaps() + 1);
 
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
 			D3D11Device& device = rs->getPrimaryDevice();
@@ -78,19 +77,57 @@ namespace bs { namespace ct
 			bool srcHasMultisample = mProperties.getNumSamples() > 1;
 			bool destHasMultisample = target->getProperties().getNumSamples() > 1;
 
+			bool copyEntireSurface = desc.srcVolume.getWidth() == 0 || 
+				desc.srcVolume.getHeight() == 0 || 
+				desc.srcVolume.getDepth() == 0;
+
 			if (srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 			{
-				device.getImmediateContext()->ResolveSubresource(other->getDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
+				if(copyEntireSurface)
+					device.getImmediateContext()->ResolveSubresource(other->getDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
+				else
+				{
+					// Need to first resolve to a temporary texture, then copy
+					TEXTURE_DESC tempDesc;
+					tempDesc.width = mProperties.getWidth();
+					tempDesc.height = mProperties.getHeight();
+					tempDesc.format = mProperties.getFormat();
+					tempDesc.hwGamma = mProperties.isHardwareGammaEnabled();
+
+					SPtr<D3D11Texture> temporary = std::static_pointer_cast<D3D11Texture>(Texture::create(tempDesc));
+					device.getImmediateContext()->ResolveSubresource(temporary->getDX11Resource(), 0, mTex, srcResIdx, mDXGIFormat);
+
+					TEXTURE_COPY_DESC tempCopyDesc;
+					tempCopyDesc.dstMip = desc.dstMip;
+					tempCopyDesc.dstFace = desc.dstFace;
+					tempCopyDesc.dstPosition = desc.dstPosition;
+
+					temporary->copy(target, tempCopyDesc);
+				}
 			}
 			else
 			{
-				if (mProperties.getNumSamples() != target->getProperties().getNumSamples())
-				{
-					LOGERR("When copying textures their multisample counts must match. Ignoring copy.");
-					return;
-				}
+				D3D11_BOX srcRegion;
+				srcRegion.left = desc.srcVolume.left;
+				srcRegion.right = desc.srcVolume.right;
+				srcRegion.top = desc.srcVolume.top;
+				srcRegion.bottom = desc.srcVolume.bottom;
+				srcRegion.front = desc.srcVolume.front;
+				srcRegion.back = desc.srcVolume.back;
 
-				device.getImmediateContext()->CopySubresourceRegion(other->getDX11Resource(), destResIdx, 0, 0, 0, mTex, srcResIdx, nullptr);
+				D3D11_BOX* srcRegionPtr = nullptr;
+				if(!copyEntireSurface)
+					srcRegionPtr = &srcRegion;
+
+				device.getImmediateContext()->CopySubresourceRegion(
+					other->getDX11Resource(),
+					destResIdx,
+					(UINT32)desc.dstPosition.x,
+					(UINT32)desc.dstPosition.y,
+					(UINT32)desc.dstPosition.z,
+					mTex,
+					srcResIdx,
+					srcRegionPtr);
 
 				if (device.hasError())
 				{
@@ -101,10 +138,10 @@ namespace bs { namespace ct
 		};
 
 		if (commandBuffer == nullptr)
-			executeRef(srcFace, srcMipLevel, destFace, destMipLevel, target);
+			executeRef(target, desc);
 		else
 		{
-			auto execute = [=]() { executeRef(srcFace, srcMipLevel, destFace, destMipLevel, target); };
+			auto execute = [=]() { executeRef(target, desc); };
 
 			SPtr<D3D11CommandBuffer> cb = std::static_pointer_cast<D3D11CommandBuffer>(commandBuffer);
 			cb->queueCommand(execute);
@@ -442,7 +479,7 @@ namespace bs { namespace ct
 		desc.MipLevels = (numMips == MIP_UNLIMITED || (1U << numMips) > width) ? 0 : numMips + 1;
 
 		if (texType == TEX_TYPE_CUBE_MAP)
-            desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+			desc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 		if ((usage & TU_LOADSTORE) != 0)
 		{

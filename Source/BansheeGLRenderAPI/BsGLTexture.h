@@ -60,8 +60,8 @@ namespace bs { namespace ct
 		void unlockImpl() override;
 
 		/** @copydoc Texture::copyImpl */
-		void copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 dstFace, UINT32 dstMipLevel,
-					  const SPtr<Texture>& target, const SPtr<CommandBuffer>& commandBuffer) override;
+		void copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, 
+			const SPtr<CommandBuffer>& commandBuffer) override;
 
 		/** @copydoc Texture::readData */
 		void readDataImpl(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,

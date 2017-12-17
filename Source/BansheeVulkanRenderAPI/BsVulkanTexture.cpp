@@ -826,8 +826,8 @@ namespace bs { namespace ct
 		bs_stack_free(imageRegions);
 	}
 
-	void VulkanTexture::copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 destFace, UINT32 destMipLevel,
-									 const SPtr<Texture>& target, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanTexture::copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, 
+			const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanTexture* other = static_cast<VulkanTexture*>(target.get());
 
@@ -858,47 +858,67 @@ namespace bs { namespace ct
 		VkImageLayout transferDstLayout = other->mDirectlyMappable ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 		UINT32 mipWidth, mipHeight, mipDepth;
-		PixelUtil::getSizeForMipLevel(srcProps.getWidth(), srcProps.getHeight(), srcProps.getDepth(), srcMipLevel,
-									  mipWidth, mipHeight, mipDepth);
+
+		bool copyEntireSurface = desc.srcVolume.getWidth() == 0 || 
+			desc.srcVolume.getHeight() == 0 || 
+			desc.srcVolume.getDepth() == 0;
+
+		if(copyEntireSurface)
+		{
+			PixelUtil::getSizeForMipLevel(
+				srcProps.getWidth(),
+				srcProps.getHeight(),
+				srcProps.getDepth(),
+				desc.srcMip,
+				mipWidth,
+				mipHeight,
+				mipDepth);
+		}
+		else
+		{
+			mipWidth = desc.srcVolume.getWidth();
+			mipHeight = desc.srcVolume.getHeight();
+			mipDepth = desc.srcVolume.getDepth();
+		}
 
 		VkImageResolve resolveRegion;
-		resolveRegion.srcOffset = { 0, 0, 0 };
-		resolveRegion.dstOffset = { 0, 0, 0 };
+		resolveRegion.srcOffset = { (INT32)desc.srcVolume.left, (INT32)desc.srcVolume.top, (INT32)desc.srcVolume.front };
+		resolveRegion.dstOffset = { desc.dstPosition.x, desc.dstPosition.y, desc.dstPosition.z };
 		resolveRegion.extent = { mipWidth, mipHeight, mipDepth };
-		resolveRegion.srcSubresource.baseArrayLayer = srcFace;
+		resolveRegion.srcSubresource.baseArrayLayer = desc.srcFace;
 		resolveRegion.srcSubresource.layerCount = 1;
-		resolveRegion.srcSubresource.mipLevel = srcMipLevel;
+		resolveRegion.srcSubresource.mipLevel = desc.srcMip;
 		resolveRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		resolveRegion.dstSubresource.baseArrayLayer = destFace;
+		resolveRegion.dstSubresource.baseArrayLayer = desc.dstFace;
 		resolveRegion.dstSubresource.layerCount = 1;
-		resolveRegion.dstSubresource.mipLevel = destMipLevel;
+		resolveRegion.dstSubresource.mipLevel = desc.dstMip;
 		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
 		VkImageCopy imageRegion;
-		imageRegion.srcOffset = { 0, 0, 0 };
-		imageRegion.dstOffset = { 0, 0, 0 };
+		imageRegion.srcOffset = { (INT32)desc.srcVolume.left, (INT32)desc.srcVolume.top, (INT32)desc.srcVolume.front };
+		imageRegion.dstOffset = { desc.dstPosition.x, desc.dstPosition.y, desc.dstPosition.z };
 		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
-		imageRegion.srcSubresource.baseArrayLayer = srcFace;
+		imageRegion.srcSubresource.baseArrayLayer = desc.srcFace;
 		imageRegion.srcSubresource.layerCount = 1;
-		imageRegion.srcSubresource.mipLevel = srcMipLevel;
+		imageRegion.srcSubresource.mipLevel = desc.srcMip;
 		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageRegion.dstSubresource.baseArrayLayer = destFace;
+		imageRegion.dstSubresource.baseArrayLayer = desc.dstFace;
 		imageRegion.dstSubresource.layerCount = 1;
-		imageRegion.dstSubresource.mipLevel = destMipLevel;
+		imageRegion.dstSubresource.mipLevel = desc.dstMip;
 		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
 		VkImageSubresourceRange srcRange;
 		srcRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		srcRange.baseArrayLayer = srcFace;
+		srcRange.baseArrayLayer = desc.srcFace;
 		srcRange.layerCount = 1;
-		srcRange.baseMipLevel = srcMipLevel;
+		srcRange.baseMipLevel = desc.srcMip;
 		srcRange.levelCount = 1;
 
 		VkImageSubresourceRange dstRange;
 		dstRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		dstRange.baseArrayLayer = destFace;
+		dstRange.baseArrayLayer = desc.dstFace;
 		dstRange.layerCount = 1;
-		dstRange.baseMipLevel = destMipLevel;
+		dstRange.baseMipLevel = desc.dstMip;
 		dstRange.levelCount = 1;
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
@@ -949,19 +969,9 @@ namespace bs { namespace ct
 		// Transfer back to optimal layouts
 		srcLayout = srcImage->getOptimalLayout();
 
-		srcAccessMask = srcImage->getAccessFlags(srcLayout);
-		vkCB->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask, transferSrcLayout, 
-			srcLayout, srcRange);
-
-		dstLayout = dstImage->getOptimalLayout();
-
-		dstAccessMask = dstImage->getAccessFlags(dstLayout);
-		vkCB->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask, transferDstLayout, 
-			dstLayout, dstRange);
-
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerResource(srcImage, srcRange, VulkanUseFlag::Read, ResourceUsage::Transfer);
-		vkCB->registerResource(dstImage, dstRange, VulkanUseFlag::Write, ResourceUsage::Transfer);
+		vkCB->registerResource(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanUseFlag::Read, ResourceUsage::Transfer);
+		vkCB->registerResource(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanUseFlag::Write, ResourceUsage::Transfer);
 	}
 
 	PixelData VulkanTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,

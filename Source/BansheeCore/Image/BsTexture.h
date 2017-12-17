@@ -7,6 +7,7 @@
 #include "RenderAPI/BsHardwareBuffer.h"
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsTextureView.h"
+#include "Math/BsVector3I.h"
 
 namespace bs 
 {
@@ -76,6 +77,39 @@ namespace bs
 
 		/** Number of texture slices to create if creating a texture array. Ignored for 3D textures. */
 		UINT32 numArraySlices = 1;
+	};
+
+	/** Structure used for specifying information about a texture copy operation. */
+	struct TEXTURE_COPY_DESC
+	{
+		/** 
+		 * Face from which to copy. This can be an entry in an array of textures, or a single face of a cube map. If cubemap
+		 * array, then each array entry takes up six faces.
+		 */
+		UINT32 srcFace = 0;
+
+		/** Mip level from which to copy. */
+		UINT32 srcMip = 0;
+
+		/** Pixel volume from which to copy from. This defaults to all pixels of the face. */
+		PixelVolume srcVolume = PixelVolume(0, 0, 0, 0, 0, 0);
+
+		/** 
+		 * Face to which to copy. This can be an entry in an array of textures, or a single face of a cube map. If cubemap
+		 * array, then each array entry takes up six faces.
+		 */
+		UINT32 dstFace = 0;
+
+		/** Mip level to which to copy. */
+		UINT32 dstMip = 0;
+
+		/** 
+		 * Coordinates to write the source pixels to. The destination texture must have enough pixels to fit the entire
+		 * source volume.
+		 */
+		Vector3I dstPosition;
+
+		BS_CORE_EXPORT static TEXTURE_COPY_DESC DEFAULT;
 	};
 
 	/** Properties of a Texture. Shared between sim and core thread versions of a Texture. */
@@ -359,15 +393,12 @@ namespace bs
 		 * surface before copying.
 		 *
 		 * @param[in]	target				Texture that contains the destination subresource.
-		 * @param[in]	srcFace				Face to copy from.
-		 * @param[in]	srcMipLevel			Mip level to copy from.
-		 * @param[in]	dstFace				Face to copy to.
-		 * @param[in]	dstMipLevel			Mip level to copy to.
+		 * @param[in]	desc				Structure used for customizing the copy operation.
 		 * @param[in]	commandBuffer		Command buffer to queue the copy operation on. If null, main command buffer is
 		 *									used.
 		 */
-		void copy(const SPtr<Texture>& target, UINT32 srcFace = 0, UINT32 srcMipLevel = 0, UINT32 dstFace = 0,
-			UINT32 dstMipLevel = 0, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+		void copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc = TEXTURE_COPY_DESC::DEFAULT,
+			const SPtr<CommandBuffer>& commandBuffer = nullptr);
 
 		/**
 		 * Reads data from the texture buffer into the provided buffer.
@@ -445,8 +476,8 @@ namespace bs
 		virtual void unlockImpl() = 0;
 
 		/** @copydoc copy */
-		virtual void copyImpl(UINT32 srcFace, UINT32 srcMipLevel, UINT32 dstFace, UINT32 dstMipLevel, 
-			const SPtr<Texture>& target, const SPtr<CommandBuffer>& commandBuffer) = 0;
+		virtual void copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, 
+			const SPtr<CommandBuffer>& commandBuffer) = 0;
 
 		/** @copydoc readData */
 		virtual void readDataImpl(PixelData& dest, UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIdx = 0,

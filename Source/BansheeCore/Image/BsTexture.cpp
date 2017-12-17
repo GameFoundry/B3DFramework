@@ -12,6 +12,8 @@
 
 namespace bs 
 {
+	TEXTURE_COPY_DESC TEXTURE_COPY_DESC::DEFAULT = TEXTURE_COPY_DESC();
+
 	TextureProperties::TextureProperties()
 	{ }
 
@@ -402,14 +404,13 @@ namespace bs
 		unlockImpl();
 	}
 
-	void Texture::copy(const SPtr<Texture>& target, UINT32 srcFace, UINT32 srcMipLevel, UINT32 dstFace,
-						   UINT32 dstMipLevel, const SPtr<CommandBuffer>& commandBuffer)
+	void Texture::copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		if (target->mProperties.getTextureType() != mProperties.getTextureType())
 		{
-			LOGERR("Source and destination textures must be of same type and must have the same usage and type.");
+			LOGERR("Source and destination textures must be of same type.");
 			return;
 		}
 
@@ -425,45 +426,93 @@ namespace bs
 			return;
 		}
 
-		if (dstFace >= mProperties.getNumFaces())
+		if (desc.dstFace >= mProperties.getNumFaces())
 		{
-			LOGERR("Invalid destination face index");
+			LOGERR("Invalid destination face index.");
 			return;
 		}
 
-		if (srcFace >= target->mProperties.getNumFaces())
+		if (desc.srcFace >= target->mProperties.getNumFaces())
 		{
-			LOGERR("Invalid destination face index");
+			LOGERR("Invalid destination face index.");
 			return;
 		}
 
-		if (srcMipLevel > mProperties.getNumMipmaps())
+		if (desc.srcMip > mProperties.getNumMipmaps())
 		{
-			LOGERR("Source mip level out of range. Valid range is [0, " + toString(mProperties.getNumMipmaps()) + "]");
+			LOGERR("Source mip level out of range. Valid range is [0, " + toString(mProperties.getNumMipmaps()) + "].");
 			return;
 		}
 
-		if (dstMipLevel > target->mProperties.getNumMipmaps())
+		if (desc.dstMip > target->mProperties.getNumMipmaps())
 		{
-			LOGERR("Destination mip level out of range. Valid range is [0, " + toString(target->mProperties.getNumMipmaps()) + "]");
+			LOGERR("Destination mip level out of range. Valid range is [0, " + toString(target->mProperties.getNumMipmaps()) + "].");
 			return;
 		}
 
-		UINT32 srcMipWidth = mProperties.getWidth() >> srcMipLevel;
-		UINT32 srcMipHeight = mProperties.getHeight() >> srcMipLevel;
-		UINT32 srcMipDepth = mProperties.getDepth() >> srcMipLevel;
+		UINT32 srcWidth, srcHeight, srcDepth;
+		PixelUtil::getSizeForMipLevel(
+			mProperties.getWidth(),
+			mProperties.getHeight(),
+			mProperties.getDepth(),
+			desc.srcMip,
+			srcWidth,
+			srcHeight,
+			srcDepth);
 
-		UINT32 dstMipWidth = target->mProperties.getWidth() >> dstMipLevel;
-		UINT32 dstMipHeight = target->mProperties.getHeight() >> dstMipLevel;
-		UINT32 dstMipDepth = target->mProperties.getDepth() >> dstMipLevel;
+		UINT32 dstWidth, dstHeight, dstDepth;
+		PixelUtil::getSizeForMipLevel(
+			target->mProperties.getWidth(),
+			target->mProperties.getHeight(),
+			target->mProperties.getDepth(),
+			desc.dstMip,
+			dstWidth,
+			dstHeight,
+			dstDepth);
 
-		if (srcMipWidth != dstMipWidth || srcMipHeight != dstMipHeight || srcMipDepth != dstMipDepth)
+		if(desc.dstPosition.x < 0 || desc.dstPosition.x >= (INT32)dstWidth || 
+			desc.dstPosition.y < 0 || desc.dstPosition.y >= (INT32)dstHeight ||
+			desc.dstPosition.z < 0 || desc.dstPosition.z >= (INT32)dstDepth)
 		{
-			LOGERR("Source and destination sizes must match");
+			LOGERR("Destination position falls outside the destination texture.");
 			return;
 		}
 
-		copyImpl(srcFace, srcMipLevel, dstFace, dstMipLevel, target, commandBuffer);
+		bool entireSurface = desc.srcVolume.getWidth() == 0 || 
+			desc.srcVolume.getHeight() == 0 || 
+			desc.srcVolume.getDepth() == 0;
+
+		UINT32 dstRight = (UINT32)desc.dstPosition.x;
+		UINT32 dstBottom = (UINT32)desc.dstPosition.y;
+		UINT32 dstBack = (UINT32)desc.dstPosition.z;
+		if(!entireSurface)
+		{
+			if(desc.srcVolume.left >= srcWidth || desc.srcVolume.right > srcWidth ||
+				desc.srcVolume.top >= srcHeight || desc.srcVolume.bottom > srcHeight ||
+				desc.srcVolume.front >= srcDepth || desc.srcVolume.back > srcDepth)
+			{
+				LOGERR("Source volume falls outside the source texture.");
+				return;
+			}
+
+			dstRight += desc.srcVolume.getWidth();
+			dstBottom += desc.srcVolume.getHeight();
+			dstBack += desc.srcVolume.getDepth();
+		}
+		else
+		{
+			dstRight += srcWidth;
+			dstBottom += srcHeight;
+			dstBack += srcDepth;
+		}
+
+		if(dstRight > dstWidth || dstBottom > dstHeight || dstBack > dstDepth)
+		{
+			LOGERR("Destination volume falls outside the destination texture.");
+			return;
+		}
+
+		copyImpl(target, desc, commandBuffer);
 	}
 
 	/************************************************************************/
