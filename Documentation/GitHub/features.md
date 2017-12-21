@@ -136,6 +136,9 @@ All features listed here are the ones currently available (implemented). If you 
 	* Find references to specific objects (e.g. all resources used in a scene)
 	* Serialize/deserialize with no additional code and with automatic versioning
 	* Generate diffs
+  * Vector (SIMD) instruction API
+    * Compiles transparently to all popular instruction sets
+    * SSE4.1, AVX, AVX2, AVX512 NEON, NEONv2 and others	
   * Utility library
     * Math
 	* File system
