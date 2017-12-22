@@ -29,7 +29,7 @@ namespace bs
 #if BS_DEBUG_MODE
 	FrameAlloc::FrameAlloc(UINT32 blockSize)
 		:mBlockSize(blockSize), mFreeBlock(nullptr), mNextBlockIdx(0), mTotalAllocBytes(0),
-		mLastFrame(nullptr), mOwnerThread(BS_THREAD_CURRENT_ID)
+		mLastFrame(nullptr)
 	{
 	}
 #else
@@ -48,8 +48,6 @@ namespace bs
 	UINT8* FrameAlloc::alloc(UINT32 amount)
 	{
 #if BS_DEBUG_MODE
-		assert(mOwnerThread == BS_THREAD_CURRENT_ID && "Frame allocator called from invalid thread.");
-
 		amount += sizeof(UINT32);
 #endif
 		UINT32 freeMem = 0;
@@ -76,8 +74,6 @@ namespace bs
 	UINT8* FrameAlloc::allocAligned(UINT32 amount, UINT32 alignment)
 	{
 #if BS_DEBUG_MODE
-		assert(mOwnerThread == BS_THREAD_CURRENT_ID && "Frame allocator called from invalid thread.");
-
 		amount += sizeof(UINT32);
 #endif
 
@@ -148,10 +144,6 @@ namespace bs
 
 	void FrameAlloc::clear()
 	{
-#if BS_DEBUG_MODE
-		assert(mOwnerThread == BS_THREAD_CURRENT_ID && "Frame allocator called from invalid thread.");
-#endif
-
 		if(mLastFrame != nullptr)
 		{
 			assert(mBlocks.size() > 0 && mNextBlockIdx > 0);
@@ -298,9 +290,6 @@ namespace bs
 
 	void FrameAlloc::setOwnerThread(ThreadId thread)
 	{
-#if BS_DEBUG_MODE
-		mOwnerThread = thread;
-#endif
 	}
 
 	BS_THREADLOCAL FrameAlloc* _GlobalFrameAlloc = nullptr;
