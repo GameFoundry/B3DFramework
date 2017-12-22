@@ -93,6 +93,7 @@ set(BS_BANSHEEUTILITY_INC_UTILITY
 	"Utility/BsTriangulation.h"
 	"Utility/BsNonCopyable.h"
 	"Utility/BsUUID.h"
+	"Utility/BsOctree.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_ALLOCATORS
