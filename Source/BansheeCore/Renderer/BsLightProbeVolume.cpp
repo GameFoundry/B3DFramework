@@ -410,6 +410,8 @@ namespace bs
 		resizeCoefficientTexture(std::max(32U, numCoefficients));
 
 		SPtr<PixelData> coeffData = mCoefficients->getProperties().allocBuffer(0, 0);
+		coeffData->setColors(Color::ZERO);
+
 		UINT32 probesPerRow = coeffData->getWidth() / 9;
 		UINT32 probeIdx = 0;
 		for(UINT32 y = 0; y < coeffData->getHeight(); ++y)
@@ -664,7 +666,6 @@ namespace bs
 		desc.format = PF_RGBA32F;
 
 		SPtr<Texture> newTexture = Texture::create(desc);
-		newTexture->clear(Color::ZERO);
 
 		if (mCoefficients)
 			mCoefficients->copy(newTexture);
