@@ -4,6 +4,7 @@
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsMath.h"
+#include "Math/BsVector4I.h"
 #include "Math/BsSIMD.h"
 #include "Allocators/BsPoolAlloc.h"
 
@@ -645,8 +646,9 @@ namespace bs
 				{
 					if(node->mChildren[i])
 					{
-						freeElements(node->mChildren[i]->mElements);
 						destroyNode(node->mChildren[i]);
+
+						mNodeAlloc.destruct(node->mChildren[i]);
 						node->mChildren[i] = nullptr;
 					}
 				}
