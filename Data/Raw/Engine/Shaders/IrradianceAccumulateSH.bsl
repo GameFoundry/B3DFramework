@@ -38,7 +38,7 @@ technique IrradianceAccumulateSH
 				float3 dir = getDirFromCubeFace(gCubeFace, uv);
 				dir = normalize(dir);
 				
-				float4 value = gInputTex.SampleLevel(gInputSamp, dir, gCubeMip).rgb;
+				float4 value = gInputTex.SampleLevel(gInputSamp, dir, gCubeMip);
 				sum += value;
 			}
 			

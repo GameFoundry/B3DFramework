@@ -336,6 +336,7 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
+		rapi.setViewport(Rect2(0, 0, 1, 1));
 	}
 
 	POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateCubeSHMat::getOutputDesc()
