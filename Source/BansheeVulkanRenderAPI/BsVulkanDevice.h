@@ -88,22 +88,19 @@ namespace bs { namespace ct
 		 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
 		 * with the specified flags.
 		 */
-		VkDeviceMemory allocateMemory(VkImage image, VkMemoryPropertyFlags flags);
+		VmaAllocation allocateMemory(VkImage image, VkMemoryPropertyFlags flags);
 
 		/** 
 		 * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
 		 * with the specified flags.
 		 */
-		VkDeviceMemory allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
-
-		/** 
-		 * Allocates a block of memory according to the provided memory requirements. Returns null if it cannot find memory
-		 * with the specified flags. 
-		 */
-		VkDeviceMemory allocateMemory(const VkMemoryRequirements& reqs, VkMemoryPropertyFlags flags);
+		VmaAllocation allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
 
 		/** Frees a previously allocated block of memory. */
-		void freeMemory(VkDeviceMemory memory);
+		void freeMemory(VmaAllocation allocation);
+
+		/** Returns the device memory block and offset into the block for a specific memory allocation. */
+		void getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset);
 
 	private:
 		friend class VulkanRenderAPI;
@@ -123,6 +120,7 @@ namespace bs { namespace ct
 		VulkanQueryPool* mQueryPool;
 		VulkanDescriptorManager* mDescriptorManager;
 		VulkanResourceManager* mResourceManager;
+		VmaAllocator mAllocator;
 
 		VkPhysicalDeviceProperties mDeviceProperties;
 		VkPhysicalDeviceFeatures mDeviceFeatures;

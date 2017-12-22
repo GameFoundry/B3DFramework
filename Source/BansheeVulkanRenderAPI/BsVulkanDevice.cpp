@@ -6,10 +6,13 @@
 #include "Managers/BsVulkanDescriptorManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 
+#define VMA_IMPLEMENTATION
+#include "ThirdParty/vk_mem_alloc.h"
+
 namespace bs { namespace ct
 {
 	VulkanDevice::VulkanDevice(VkPhysicalDevice device, UINT32 deviceIdx)
-		:mPhysicalDevice(device), mLogicalDevice(nullptr), mIsPrimary(false), mDeviceIdx(deviceIdx), mQueueInfos()
+		: mPhysicalDevice(device), mLogicalDevice(nullptr), mIsPrimary(false), mDeviceIdx(deviceIdx), mQueueInfos()
 	{
 		// Set to default
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
@@ -77,13 +80,40 @@ namespace bs { namespace ct
 			}
 		}
 
-		// Create logical device
-		const char* extensions[] = { 
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-			VK_KHR_MAINTENANCE2_EXTENSION_NAME
-		};
-		uint32_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
+		// Set up extensions
+		const char* extensions[5];
+		uint32_t numExtensions = 0;
+
+		extensions[numExtensions++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+		extensions[numExtensions++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
+		extensions[numExtensions++] = VK_KHR_MAINTENANCE2_EXTENSION_NAME;
+
+		// Enumerate supported extensions
+		bool dedicatedAllocExt = false;
+		bool getMemReqExt = false;
+
+		uint32_t numAvailableExtensions = 0;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, nullptr);
+		if (numAvailableExtensions > 0)
+		{
+			Vector<VkExtensionProperties> availableExtensions(numAvailableExtensions);
+			if (vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, availableExtensions.data()) == VK_SUCCESS)
+			{
+				for (auto entry : extensions)
+				{
+					if(entry == VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)
+					{
+						extensions[numExtensions++] = VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME;
+						dedicatedAllocExt = true;
+					}
+					else if(entry == VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
+					{
+						extensions[numExtensions++] = VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME;
+						getMemReqExt = true;
+					}
+				}
+			}
+		}
 
 		VkDeviceCreateInfo deviceInfo;
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -113,6 +143,17 @@ namespace bs { namespace ct
 			}
 		}
 
+		// Set up the memory allocator
+		VmaAllocatorCreateInfo allocatorCI = {};
+		allocatorCI.physicalDevice = device;
+		allocatorCI.device = mLogicalDevice;
+		allocatorCI.pAllocationCallbacks = gVulkanAllocator;
+
+		if(dedicatedAllocExt && getMemReqExt)
+			allocatorCI.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+
+		vmaCreateAllocator(&allocatorCI, &mAllocator);
+
 		// Create pools/managers
 		mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
 		mQueryPool = bs_new<VulkanQueryPool>(*this);
@@ -141,6 +182,7 @@ namespace bs { namespace ct
 		// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
 		bs_delete(mResourceManager);
 		
+		vmaDestroyAllocator(mAllocator);
 		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 	}
 
@@ -263,54 +305,50 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	VkDeviceMemory VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags flags)
+	VmaAllocation VulkanDevice::allocateMemory(VkImage image, VkMemoryPropertyFlags flags)
 	{
-		VkMemoryRequirements memReq;
-		vkGetImageMemoryRequirements(mLogicalDevice, image, &memReq);
+		VmaAllocationCreateInfo allocCI = {};
+		allocCI.requiredFlags = flags;
 
-		VkDeviceMemory memory = allocateMemory(memReq, flags);
+		VmaAllocationInfo allocInfo;
+		VmaAllocation allocation;
+		VkResult result = vmaAllocateMemoryForImage(mAllocator, image, &allocCI, &allocation, &allocInfo);
+		assert(result == VK_SUCCESS);
 
-		VkResult result = vkBindImageMemory(mLogicalDevice, image, memory, 0);
+		result = vkBindImageMemory(mLogicalDevice, image, allocInfo.deviceMemory, allocInfo.offset);
+		assert(result == VK_SUCCESS);
+
+		return allocation;
+	}
+
+	VmaAllocation VulkanDevice::allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+	{
+		VmaAllocationCreateInfo allocCI = {};
+		allocCI.requiredFlags = flags;
+
+		VmaAllocationInfo allocInfo;
+		VmaAllocation memory;
+		VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocCI, &memory, &allocInfo);
+		assert(result == VK_SUCCESS);
+
+		result = vkBindBufferMemory(mLogicalDevice, buffer, allocInfo.deviceMemory, allocInfo.offset);
 		assert(result == VK_SUCCESS);
 
 		return memory;
 	}
 
-	VkDeviceMemory VulkanDevice::allocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+	void VulkanDevice::freeMemory(VmaAllocation allocation)
 	{
-		VkMemoryRequirements memReq;
-		vkGetBufferMemoryRequirements(mLogicalDevice, buffer, &memReq);
-
-		VkDeviceMemory memory = allocateMemory(memReq, flags);
-
-		VkResult result = vkBindBufferMemory(mLogicalDevice, buffer, memory, 0);
-		assert(result == VK_SUCCESS);
-
-		return memory;
+		vmaFreeMemory(mAllocator, allocation);
 	}
 
-	VkDeviceMemory VulkanDevice::allocateMemory(const VkMemoryRequirements& reqs, VkMemoryPropertyFlags flags)
+	void VulkanDevice::getAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset)
 	{
-		VkMemoryAllocateInfo allocateInfo;
-		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocateInfo.pNext = nullptr;
-		allocateInfo.memoryTypeIndex = findMemoryType(reqs.memoryTypeBits, flags);
-		allocateInfo.allocationSize = reqs.size;
+		VmaAllocationInfo allocInfo;
+		vmaGetAllocationInfo(mAllocator, allocation, &allocInfo);
 
-		if (allocateInfo.memoryTypeIndex == (UINT32)-1)
-			return VK_NULL_HANDLE;
-
-		VkDeviceMemory memory;
-
-		VkResult result = vkAllocateMemory(mLogicalDevice, &allocateInfo, gVulkanAllocator, &memory);
-		assert(result == VK_SUCCESS);
-
-		return memory;
-	}
-
-	void VulkanDevice::freeMemory(VkDeviceMemory memory)
-	{
-		vkFreeMemory(mLogicalDevice, memory, gVulkanAllocator);
+		memory = allocInfo.deviceMemory;
+		offset = allocInfo.offset;
 	}
 
 	uint32_t VulkanDevice::findMemoryType(uint32_t requirementBits, VkMemoryPropertyFlags wantedFlags)

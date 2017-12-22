@@ -10,9 +10,9 @@
 
 namespace bs { namespace ct
 {
-	VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VkDeviceMemory memory,
+	VulkanBuffer::VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation,
 							   UINT32 rowPitch, UINT32 slicePitch)
-		: VulkanResource(owner, false), mBuffer(buffer), mView(view), mMemory(memory), mRowPitch(rowPitch)
+		: VulkanResource(owner, false), mBuffer(buffer), mView(view), mAllocation(allocation), mRowPitch(rowPitch)
 	{
 		if (rowPitch != 0)
 			mSliceHeight = slicePitch / rowPitch;
@@ -28,15 +28,19 @@ namespace bs { namespace ct
 			vkDestroyBufferView(device.getLogical(), mView, gVulkanAllocator);
 
 		vkDestroyBuffer(device.getLogical(), mBuffer, gVulkanAllocator);
-		device.freeMemory(mMemory);
+		device.freeMemory(mAllocation);
 	}
 
 	UINT8* VulkanBuffer::map(VkDeviceSize offset, VkDeviceSize length) const
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
+		VkDeviceMemory memory;
+		VkDeviceSize memoryOffset;
+		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+
 		UINT8* data;
-		VkResult result = vkMapMemory(device.getLogical(), mMemory, offset, length, 0, (void**)&data);
+		VkResult result = vkMapMemory(device.getLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
 		assert(result == VK_SUCCESS);
 
 		return data;
@@ -46,7 +50,11 @@ namespace bs { namespace ct
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
-		vkUnmapMemory(device.getLogical(), mMemory);
+		VkDeviceMemory memory;
+		VkDeviceSize memoryOffset;
+		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+
+		vkUnmapMemory(device.getLogical(), memory);
 	}
 
 	void VulkanBuffer::copy(VulkanCmdBuffer* cb, VulkanBuffer* destination, VkDeviceSize srcOffset,
@@ -182,12 +190,7 @@ namespace bs { namespace ct
 		VkResult result = vkCreateBuffer(vkDevice, &mBufferCI, gVulkanAllocator, &buffer);
 		assert(result == VK_SUCCESS);
 
-		VkMemoryRequirements memReqs;
-		vkGetBufferMemoryRequirements(vkDevice, buffer, &memReqs);
-
-		VkDeviceMemory memory = device.allocateMemory(memReqs, flags);
-		result = vkBindBufferMemory(vkDevice, buffer, memory, 0);
-		assert(result == VK_SUCCESS);
+		VmaAllocation allocation = device.allocateMemory(buffer, flags);
 
 		VkBufferView view;
 		if (mRequiresView && !staging)
@@ -201,7 +204,7 @@ namespace bs { namespace ct
 			view = VK_NULL_HANDLE;
 
 		mBufferCI.usage = usage; // Restore original usage
-		return device.getResourceManager().create<VulkanBuffer>(buffer, view, memory);
+		return device.getResourceManager().create<VulkanBuffer>(buffer, view, allocation);
 	}
 
 	void* VulkanHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)

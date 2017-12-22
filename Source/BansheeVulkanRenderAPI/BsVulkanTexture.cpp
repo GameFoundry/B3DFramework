@@ -12,11 +12,11 @@
 
 namespace bs { namespace ct
 {
-	VULKAN_IMAGE_DESC createDesc(VkImage image, VkDeviceMemory memory, VkImageLayout layout, const TextureProperties& props)
+	VULKAN_IMAGE_DESC createDesc(VkImage image, VmaAllocation allocation, VkImageLayout layout, const TextureProperties& props)
 	{
 		VULKAN_IMAGE_DESC desc;
 		desc.image = image;
-		desc.memory = memory;
+		desc.allocation = allocation;
 		desc.type = props.getTextureType();
 		desc.format = VulkanUtility::getPixelFormat(props.getFormat(), props.isHardwareGammaEnabled());
 		desc.numFaces = props.getNumFaces();
@@ -27,14 +27,15 @@ namespace bs { namespace ct
 		return desc;
 	}
 
-	VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout,
+	VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout,
 							 const TextureProperties& props, bool ownsImage)
-		: VulkanImage(owner, createDesc(image, memory, layout, props), ownsImage)
+		: VulkanImage(owner, createDesc(image, allocation, layout, props), ownsImage)
 	{ }
 
 	VulkanImage::VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& desc, bool ownsImage)
-		: VulkanResource(owner, false), mImage(desc.image), mMemory(desc.memory), mFramebufferMainView(VK_NULL_HANDLE)
-		, mUsage(desc.usage), mOwnsImage(ownsImage), mNumFaces(desc.numFaces), mNumMipLevels(desc.numMipLevels)
+		: VulkanResource(owner, false), mImage(desc.image), mAllocation(desc.allocation)
+		, mFramebufferMainView(VK_NULL_HANDLE), mUsage(desc.usage), mOwnsImage(ownsImage), mNumFaces(desc.numFaces)
+		, mNumMipLevels(desc.numMipLevels)
 	{
 		mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		mImageViewCI.pNext = nullptr;
@@ -116,7 +117,7 @@ namespace bs { namespace ct
 		if (mOwnsImage)
 		{
 			vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
-			device.freeMemory(mMemory);
+			device.freeMemory(mAllocation);
 		}
 	}
 
@@ -295,8 +296,12 @@ namespace bs { namespace ct
 		output.setRowPitch((UINT32)layout.rowPitch);
 		output.setSlicePitch((UINT32)layout.depthPitch);
 
+		VkDeviceMemory memory;
+		VkDeviceSize memoryOffset;
+		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+
 		UINT8* data;
-		VkResult result = vkMapMemory(device.getLogical(), mMemory, layout.offset, layout.size, 0, (void**)&data);
+		VkResult result = vkMapMemory(device.getLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
 		assert(result == VK_SUCCESS);
 
 		output.setExternalBuffer(data);
@@ -306,8 +311,12 @@ namespace bs { namespace ct
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
+		VkDeviceMemory memory;
+		VkDeviceSize memoryOffset;
+		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+
 		UINT8* data;
-		VkResult result = vkMapMemory(device.getLogical(), mMemory, offset, size, 0, (void**)&data);
+		VkResult result = vkMapMemory(device.getLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
 		assert(result == VK_SUCCESS);
 
 		return data;
@@ -317,7 +326,11 @@ namespace bs { namespace ct
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
-		vkUnmapMemory(device.getLogical(), mMemory);
+		VkDeviceMemory memory;
+		VkDeviceSize memoryOffset;
+		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+
+		vkUnmapMemory(device.getLogical(), memory);
 	}
 
 	void VulkanImage::copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, const VkExtent3D& extent,
@@ -708,14 +721,8 @@ namespace bs { namespace ct
 		VkResult result = vkCreateImage(vkDevice, &mImageCI, gVulkanAllocator, &image);
 		assert(result == VK_SUCCESS);
 
-		VkMemoryRequirements memReqs;
-		vkGetImageMemoryRequirements(vkDevice, image, &memReqs);
-
-		VkDeviceMemory memory = device.allocateMemory(memReqs, flags);
-		result = vkBindImageMemory(vkDevice, image, memory, 0);
-		assert(result == VK_SUCCESS);
-
-		return device.getResourceManager().create<VulkanImage>(image, memory, mImageCI.initialLayout, getProperties());
+		VmaAllocation allocation = device.allocateMemory(image, flags);
+		return device.getResourceManager().create<VulkanImage>(image, allocation, mImageCI.initialLayout, getProperties());
 	}
 
 	VulkanBuffer* VulkanTexture::createStaging(VulkanDevice& device, const PixelData& pixelData, bool readable)
@@ -739,18 +746,12 @@ namespace bs { namespace ct
 		VkResult result = vkCreateBuffer(vkDevice, &bufferCI, gVulkanAllocator, &buffer);
 		assert(result == VK_SUCCESS);
 
-		VkMemoryRequirements memReqs;
-		vkGetBufferMemoryRequirements(vkDevice, buffer, &memReqs);
-
 		VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-		VkDeviceMemory memory = device.allocateMemory(memReqs, flags);
-		result = vkBindBufferMemory(vkDevice, buffer, memory, 0);
-		assert(result == VK_SUCCESS);
+		VmaAllocation allocation = device.allocateMemory(buffer, flags);
 
 		VkBufferView view = VK_NULL_HANDLE;
 
-		return device.getResourceManager().create<VulkanBuffer>(buffer, view, memory,
+		return device.getResourceManager().create<VulkanBuffer>(buffer, view, allocation,
 			pixelData.getRowPitch(), pixelData.getSlicePitch());
 	}
 

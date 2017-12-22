@@ -20,11 +20,11 @@ namespace bs { namespace ct
 		 * @param[in]	owner		Manager that takes care of tracking and releasing of this object.
 		 * @param[in]	buffer		Actual low-level Vulkan buffer handle.
 		 * @param[in]	view		Optional handle to the buffer view.
-		 * @param[in]	memory		Memory mapped to the buffer.
+		 * @param[in]	allocation	Information about memory mapped to the buffer.
 		 * @param[in]	rowPitch	If buffer maps to an image sub-resource, length of a single row (in elements).
 		 * @param[in]	slicePitch	If buffer maps to an image sub-resource, size of a single 2D surface (in elements).
 		 */
-		VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VkDeviceMemory memory, 
+		VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation, 
 			UINT32 rowPitch = 0, UINT32 slicePitch = 0);
 		~VulkanBuffer();
 
@@ -80,7 +80,7 @@ namespace bs { namespace ct
 	private:
 		VkBuffer mBuffer;
 		VkBufferView mView;
-		VkDeviceMemory mMemory;
+		VmaAllocation mAllocation;
 
 		UINT32 mRowPitch;
 		UINT32 mSliceHeight;

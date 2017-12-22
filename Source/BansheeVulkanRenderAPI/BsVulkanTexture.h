@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	struct VULKAN_IMAGE_DESC
 	{
 		VkImage image; /**< Internal Vulkan image object */
-		VkDeviceMemory memory; /**< Memory bound to the image. */
+		VmaAllocation allocation; /** Information about the memory allocated for this image. */
 		VkImageLayout layout; /**< Initial layout of the image. */
 		TextureType type; /**< Type of the image. */
 		VkFormat format; /**< Pixel format of the image. */
@@ -34,13 +34,13 @@ namespace bs { namespace ct
 		/**
 		 * @param[in]	owner		Resource manager that keeps track of lifetime of this resource.
 		 * @param[in]	image		Internal image Vulkan object.
-		 * @param[in]	memory		Memory bound to the image.
+		 * @param[in]	allocation	Information about the memory bound to the image.
 		 * @param[in]	layout		Initial layout of the image.
 		 * @param[in]	props		Properties describing the image.
 		 * @param[in]	ownsImage	If true, this object will take care of releasing the image and its memory, otherwise
 		 *							it is expected they will be released externally.
 		 */
-		VulkanImage(VulkanResourceManager* owner, VkImage image, VkDeviceMemory memory, VkImageLayout layout,
+		VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout,
 					const TextureProperties& props, bool ownsImage = true);
 
 		/**
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 		};
 
 		VkImage mImage;
-		VkDeviceMemory mMemory;
+		VmaAllocation mAllocation;
 		VkImageView mMainView;
 		VkImageView mFramebufferMainView;
 		INT32 mUsage;

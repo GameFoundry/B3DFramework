@@ -135,7 +135,7 @@ namespace bs { namespace ct
 		imageDesc.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageDesc.numFaces = 1;
 		imageDesc.numMipLevels = 1;
-		imageDesc.memory = VK_NULL_HANDLE;
+		imageDesc.allocation = VK_NULL_HANDLE;
 
 		mSurfaces.resize(numImages);
 		for (UINT32 i = 0; i < numImages; i++)
@@ -177,7 +177,7 @@ namespace bs { namespace ct
 			imageDesc.image = depthStencilImage;
 			imageDesc.usage = TU_DEPTHSTENCIL;
 			imageDesc.format = depthFormat;
-			imageDesc.memory = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			imageDesc.allocation = mDevice->allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 			mDepthStencilImage = resManager.create<VulkanImage>(imageDesc, true);
 		}
