@@ -142,8 +142,8 @@ namespace bs
 			if (data == nullptr)
 				return;
 
-#if BS_DEBUG_MODE
 			UINT8* dataPtr = (UINT8*)data;
+#if BS_DEBUG_MODE
 			dataPtr -= sizeof(UINT32);
 
 			UINT32* storedSize = (UINT32*)(dataPtr);
