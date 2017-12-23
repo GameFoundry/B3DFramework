@@ -156,6 +156,9 @@ namespace bs
 		/** Queues the GUI element for destruction. Element will be destroyed during the next call to update(). */
 		void queueForDestroy(GUIElement* element);
 
+		/** Forces all GUI elements that are queued for destruction to be destroyed immediately. */
+		void processDestroyQueue();
+
 		/**	Change the GUI element focus state. */
 		void setFocus(GUIElement* element, bool focus);
 
@@ -245,9 +248,9 @@ namespace bs
 		 *
 		 * @note	
 		 * Returns true if more elements have been added for destruction (will happen when destruction of one element
-		 * queues up destruction of another).
+		 * queues up destruction of another). Usually needs to be run in a loop with multiple iterations.
 		 */
-		bool processDestroyQueue();
+		bool processDestroyQueueIteration();
 
 		/**
 		 * Finds a GUI element under the pointer at the specified screen position. This method will also trigger pointer

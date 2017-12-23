@@ -133,9 +133,8 @@ namespace bs
 		for(auto& widget : widgetCopy)
 			widget.widget->_destroy();
 
-		// Ensure everything queued get destroyed, loop until queue empties
-		while (processDestroyQueue())
-		{ }
+		// Ensure everything queued get destroyed
+		processDestroyQueue();
 
 		mOnPointerPressedConn.disconnect();
 		mOnPointerReleasedConn.disconnect();
@@ -350,7 +349,7 @@ namespace bs
 
 			mForcedFocusElements.clear();
 
-		} while (processDestroyQueue());
+		} while (processDestroyQueueIteration());
 
 		// Blink caret
 		float curTime = gTime().getTime();
@@ -421,6 +420,13 @@ namespace bs
 
 			mCoreDirty = false;
 		}
+	}
+
+	void GUIManager::processDestroyQueue()
+	{
+		// Loop until everything empties
+		while (processDestroyQueueIteration())
+		{ }
 	}
 
 	void GUIManager::updateMeshes()
@@ -1539,7 +1545,7 @@ namespace bs
 		mForcedFocusElements.push_back(efi);
 	}
 
-	bool GUIManager::processDestroyQueue()
+	bool GUIManager::processDestroyQueueIteration()
 	{
 		Stack<GUIElement*> toDestroy = mScheduledForDestruction;
 		mScheduledForDestruction = Stack<GUIElement*>();

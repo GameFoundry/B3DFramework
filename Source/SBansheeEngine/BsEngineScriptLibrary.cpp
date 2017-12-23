@@ -18,6 +18,7 @@
 #include "Wrappers/GUI/BsScriptGUI.h"
 #include "BsPlayInEditorManager.h"
 #include "Wrappers/BsScriptScene.h"
+#include "GUI/BsGUIManager.h"
 
 namespace bs
 {
@@ -117,5 +118,8 @@ namespace bs
 		GameResourceManager::shutDown();
 		ScriptDebug::shutDown();
 		PlayInEditorManager::shutDown();
+
+		// Make sure all GUI elements are actually destroyed
+		GUIManager::instance().processDestroyQueue();
 	}
 }

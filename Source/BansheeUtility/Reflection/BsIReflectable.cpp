@@ -22,10 +22,14 @@ namespace bs
 	{
 		RTTITypeBase* type = _getRTTIfromTypeId(rttiTypeId);
 
+		SPtr<IReflectable> output;
 		if(type != nullptr)
-			return type->newRTTIObject();
+		{
+			output = type->newRTTIObject();
+			output->mRTTIData = nullptr;
+		}
 		
-		return nullptr;
+		return output;
 	}
 
 	RTTITypeBase* IReflectable::_getRTTIfromTypeId(UINT32 rttiTypeId)
