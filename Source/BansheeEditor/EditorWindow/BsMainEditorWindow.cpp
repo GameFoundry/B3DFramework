@@ -11,6 +11,7 @@
 #include "Testing/BsTestOutput.h"
 #include "RenderAPI/BsRenderWindow.h"
 #include "CoreThread/BsCoreThread.h"
+#include "BsCoreApplication.h"
 
 namespace bs
 {
@@ -34,7 +35,12 @@ namespace bs
 		updateAreas();
 
 		mMenuBar->addMenuItemSeparator(L"File", 10000);
-		mMenuBar->addMenuItem(L"File/Exit", nullptr, 10000);
+		mMenuBar->addMenuItem(L"File/Exit", 
+			[]()
+		{
+			gCoreApplication().quitRequested();
+		}, 
+			10000);
 
 		SPtr<TestSuite> testSuite = TestSuite::create<EditorTestSuite>();
 		ExceptionTestOutput testOutput;
