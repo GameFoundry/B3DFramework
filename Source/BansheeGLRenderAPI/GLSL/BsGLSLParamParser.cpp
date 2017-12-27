@@ -647,14 +647,13 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 		// Check if manually calculated and OpenGL buffer sizes match
-		UINT32 blockIdx = 0;
 		for (auto iter = returnParamDesc.paramBlocks.begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
 		{
 			if (iter->second.slot == 0)
 				continue;
 
 			GLint blockSize = 0;
-			glGetActiveUniformBlockiv(glProgram, blockIdx, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+			glGetActiveUniformBlockiv(glProgram, iter->second.slot - 1, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
 			BS_CHECK_GL_ERROR();
 
 			assert(blockSize % 4 == 0);
@@ -662,8 +661,6 @@ namespace bs { namespace ct
 
 			if ((INT32)iter->second.blockSize != blockSize)
 				BS_EXCEPT(InternalErrorException, "OpenGL specified and manual uniform block buffer sizes don't match!");
-
-			blockIdx++;
 		}
 #endif
 
