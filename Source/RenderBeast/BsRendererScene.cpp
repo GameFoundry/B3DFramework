@@ -613,7 +613,7 @@ namespace bs {	namespace ct
 		}
 
 		// Register in render target list
-		if (renderTarget != nullptr && (rtChanged == 0 || rtChanged == 2))
+		if (renderTarget != nullptr && !remove && (rtChanged == 0 || rtChanged == 2))
 		{
 			auto findIter = std::find_if(mInfo.renderTargets.begin(), mInfo.renderTargets.end(),
 				[&](const RendererRenderTarget& x) { return x.target == renderTarget; });
