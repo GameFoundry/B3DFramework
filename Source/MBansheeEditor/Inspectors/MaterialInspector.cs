@@ -57,9 +57,6 @@ namespace BansheeEditor
             bool isCustom = builtinType == BuiltinShader.Custom;
             shaderField.Active = isCustom;
 
-            Layout.AddElement(builtinShaderField);
-            Layout.AddElement(shaderField);
-
             RebuildParamGUI(material);
         }
 
@@ -98,6 +95,10 @@ namespace BansheeEditor
 
                 guiParams = null;
             }
+
+            Layout.Clear();
+            Layout.AddElement(builtinShaderField);
+            Layout.AddElement(shaderField);
 
             if (material != null && material.Shader != null)
                 guiParams = CreateMaterialGUI(material, Layout);
@@ -140,6 +141,8 @@ namespace BansheeEditor
             {
                 if (param.isInternal)
                     continue;
+
+                Debug.Log(param.name + "_" + param.type);
 
                 switch (param.type)
                 {

@@ -22,18 +22,23 @@ mixin ImageBasedLighting
 			float2 padding;
 		};
 	
+		[internal]
 		TextureCube gSkyReflectionTex;
 		SamplerState gSkyReflectionSamp;
-				
+		
+		[internal]
 		TextureCubeArray gReflProbeCubemaps;
 		SamplerState gReflProbeSamp;
 		
+		[internal]
 		Texture2D gAmbientOcclusionTex;
 		SamplerState gAmbientOcclusionSamp;
 		
+		[internal]
 		Texture2D gSSRTex;
 		SamplerState gSSRSamp;
 		
+		[internal]
 		Texture2D gPreintegratedEnvBRDF;
 		SamplerState gPreintegratedEnvBRDFSamp;
 		
@@ -46,6 +51,7 @@ mixin ImageBasedLighting
 			Buffer<uint> gReflectionProbeIndices;
 		#endif
 		
+		[internal]
 		cbuffer ReflProbeParams
 		{
 			uint gReflCubemapNumMips;
