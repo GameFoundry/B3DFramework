@@ -94,9 +94,9 @@ namespace BansheeEngine
         /// <param name="b">Second two dimensional point.</param>
         /// <returns>Manhattan distance between the two points.</returns>
         public static int Distance(Vector2I a, Vector2I b)
-		{
-			return Math.Abs(b.x - a.x) + Math.Abs(b.y - a.y);
-		}
+        {
+            return Math.Abs(b.x - a.x) + Math.Abs(b.y - a.y);
+        }
 
         public static Vector2I operator +(Vector2I a, Vector2I b)
         {

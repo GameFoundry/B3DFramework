@@ -223,9 +223,9 @@ namespace BansheeEngine
         /// <param name="b">Second vector.</param>
         /// <returns>Vector consisting of maximum components of the first and second vector.</returns>
         public static Vector2 Max(Vector2 a, Vector2 b)
-		{
-			return new Vector2(MathEx.Max(a.x, b.x), MathEx.Max(a.y, b.y));
-		}
+        {
+            return new Vector2(MathEx.Max(a.x, b.x), MathEx.Max(a.y, b.y));
+        }
 
         /// <summary>
         /// Returns the minimum of all the vector components as a new vector.

@@ -16,16 +16,16 @@ namespace BansheeEngine
     public struct Radian // Note: Must match C++ class Radian
     {
         [SerializeField]
-		readonly float value;
+        readonly float value;
 
         /// <summary>
         /// Creates a new radian value.
         /// </summary>
         /// <param name="value">Value in radians.</param>
-		public Radian(float value = 0.0f)
-	    {
-	        this.value = value;
-	    }
+        public Radian(float value = 0.0f)
+        {
+            this.value = value;
+        }
 
         /// <summary>
         /// Creates a new radian value.
@@ -83,14 +83,14 @@ namespace BansheeEngine
         }
 
         public static Radian operator +(Radian a)
-	    {
-	        return a;
-	    }
+        {
+            return a;
+        }
 
         public static Radian operator +(Radian a, Radian b)
-	    {
+        {
             return new Radian(a.value + b.value);
-	    }
+        }
 
         public static Radian operator +(Radian a, Degree d) 
         {
@@ -98,14 +98,14 @@ namespace BansheeEngine
         }
 
         public static Radian operator -(Radian a)
-	    {
+        {
             return new Radian(-a.value);
-	    }
+        }
 
         public static Radian operator -(Radian a, Radian b)
-	    {
+        {
             return new Radian(a.value - b.value);
-	    }
+        }
 
         public static Radian operator -(Radian a, Degree d) 
         {
@@ -143,9 +143,9 @@ namespace BansheeEngine
         }
 
         public static bool operator <(Radian a, Radian b)
-	    {
-	        return a.value < b.value;
-	    }
+        {
+            return a.value < b.value;
+        }
 
         public static bool operator >(Radian a, Radian b)
         {

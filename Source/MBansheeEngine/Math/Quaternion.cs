@@ -19,7 +19,7 @@ namespace BansheeEngine
         /// Contains constant data that is used when calculating euler angles in a certain order.
         /// </summary>
         private struct EulerAngleOrderData
-		{
+        {
             public EulerAngleOrderData(int a, int b, int c)
             {
                 this.a = a;
@@ -27,8 +27,8 @@ namespace BansheeEngine
                 this.c = c;
             }
 
-			public int a, b, c;
-		};
+            public int a, b, c;
+        };
 
         /// <summary>
         /// Quaternion with all zero elements.
@@ -43,8 +43,8 @@ namespace BansheeEngine
         private static readonly float epsilon = 1e-03f;
 
         private static readonly EulerAngleOrderData[] EA_LOOKUP = new EulerAngleOrderData[6]
-		    { new EulerAngleOrderData(0, 1, 2), new EulerAngleOrderData(0, 2, 1), new EulerAngleOrderData(1, 0, 2),
-		      new EulerAngleOrderData(1, 2, 0), new EulerAngleOrderData(2, 0, 1), new EulerAngleOrderData(2, 1, 0) };
+            { new EulerAngleOrderData(0, 1, 2), new EulerAngleOrderData(0, 2, 1), new EulerAngleOrderData(1, 0, 2),
+              new EulerAngleOrderData(1, 2, 0), new EulerAngleOrderData(2, 0, 1), new EulerAngleOrderData(2, 1, 0) };
 
         public float x;
         public float y;
@@ -274,12 +274,12 @@ namespace BansheeEngine
         ///                            Fallback axis should be perpendicular to both vectors.</param>
         public void SetFromToRotation(Vector3 fromDirection, Vector3 toDirection, Vector3 fallbackAxis)
         {
-		    fromDirection.Normalize();
-		    toDirection.Normalize();
+            fromDirection.Normalize();
+            toDirection.Normalize();
 
-		    float d = Vector3.Dot(fromDirection, toDirection);
+            float d = Vector3.Dot(fromDirection, toDirection);
 
-		    // If dot == 1, vectors are the same
+            // If dot == 1, vectors are the same
             if (d >= 1.0f)
             {
                 this = Identity;
@@ -287,35 +287,35 @@ namespace BansheeEngine
             }
 
             if (d < (1e-6f - 1.0f))
-		    {
-			    if (fallbackAxis != Vector3.Zero)
-			    {
-				    // Rotate 180 degrees about the fallback axis
-				    this = FromAxisAngle(fallbackAxis, MathEx.Pi);
-			    }
-			    else
-			    {
-				    // Generate an axis
-				    Vector3 axis = Vector3.Cross(Vector3.XAxis, fromDirection);
+            {
+                if (fallbackAxis != Vector3.Zero)
+                {
+                    // Rotate 180 degrees about the fallback axis
+                    this = FromAxisAngle(fallbackAxis, MathEx.Pi);
+                }
+                else
+                {
+                    // Generate an axis
+                    Vector3 axis = Vector3.Cross(Vector3.XAxis, fromDirection);
                     if (axis.SqrdLength < ((1e-06f * 1e-06f))) // Pick another if collinear
-					    axis = Vector3.Cross(Vector3.YAxis, fromDirection);
-				    axis.Normalize();
+                        axis = Vector3.Cross(Vector3.YAxis, fromDirection);
+                    axis.Normalize();
                     this = FromAxisAngle(axis, MathEx.Pi);
-			    }
-		    }
-		    else
-		    {
-			    float s = MathEx.Sqrt((1+d)*2);
-			    float invs = 1 / s;
+                }
+            }
+            else
+            {
+                float s = MathEx.Sqrt((1+d)*2);
+                float invs = 1 / s;
 
-			    Vector3 c = Vector3.Cross(fromDirection, toDirection);
+                Vector3 c = Vector3.Cross(fromDirection, toDirection);
 
-			    x = c.x * invs;
-			    y = c.y * invs;
-			    z = c.z * invs;
-			    w = s * 0.5f;
-			    Normalize();
-		    }
+                x = c.x * invs;
+                y = c.y * invs;
+                z = c.z * invs;
+                w = s * 0.5f;
+                Normalize();
+            }
         }
 
         /// <summary>
@@ -467,22 +467,22 @@ namespace BansheeEngine
         public void ToAxisAngle(out Vector3 axis, out Degree angle)
         {
             float fSqrLength = x*x+y*y+z*z;
-		    if (fSqrLength > 0.0f)
-		    {
+            if (fSqrLength > 0.0f)
+            {
                 angle = 2.0f * MathEx.Acos(w);
-			    float fInvLength = MathEx.InvSqrt(fSqrLength);
-			    axis.x = x*fInvLength;
-			    axis.y = y*fInvLength;
-			    axis.z = z*fInvLength;
-		    }
-		    else
-		    {
-			    // Angle is 0, so any axis will do
+                float fInvLength = MathEx.InvSqrt(fSqrLength);
+                axis.x = x*fInvLength;
+                axis.y = y*fInvLength;
+                axis.z = z*fInvLength;
+            }
+            else
+            {
+                // Angle is 0, so any axis will do
                 angle = (Degree)0.0f;
-			    axis.x = 1.0f;
-			    axis.y = 0.0f;
-			    axis.z = 0.0f;
-		    }
+                axis.x = 1.0f;
+                axis.y = 0.0f;
+                axis.z = 0.0f;
+            }
         }
 
         /// <summary>
@@ -496,17 +496,17 @@ namespace BansheeEngine
             Matrix3 matRot = ToRotationMatrix();
 
             xAxis.x = matRot[0, 0];
-		    xAxis.y = matRot[1, 0];
-		    xAxis.z = matRot[2, 0];
+            xAxis.y = matRot[1, 0];
+            xAxis.z = matRot[2, 0];
 
-		    yAxis.x = matRot[0, 1];
-		    yAxis.y = matRot[1, 1];
-		    yAxis.z = matRot[2, 1];
+            yAxis.x = matRot[0, 1];
+            yAxis.y = matRot[1, 1];
+            yAxis.z = matRot[2, 1];
 
-		    zAxis.x = matRot[0, 2];
-		    zAxis.y = matRot[1, 2];
-		    zAxis.z = matRot[2, 2];
-	    }
+            zAxis.x = matRot[0, 2];
+            zAxis.y = matRot[1, 2];
+            zAxis.z = matRot[2, 2];
+        }
 
     /// <summary>
     /// Converts the quaternion rotation into euler angle (pitch/yaw/roll) rotation.
@@ -595,7 +595,7 @@ namespace BansheeEngine
         }
 
         /// <summary>
-        /// Creates a quaternion that orients an object so it faces in te provided direction.
+        /// Creates a quaternion that orients an object so it faces in the provided direction.
         /// </summary>
         /// <param name="forward">Direction to orient the object towards.</param>
         /// <param name="up">Axis that determines the upward direction of the object.</param>
@@ -677,7 +677,7 @@ namespace BansheeEngine
                 quat[k] = (rotMatrix[k, i] + rotMatrix[i, k]) * root;
             }
 
-		    quat.Normalize();
+            quat.Normalize();
 
             return quat;
         }
@@ -740,27 +740,27 @@ namespace BansheeEngine
         public static Quaternion FromEuler(Degree xAngle, Degree yAngle, Degree zAngle, 
             EulerAngleOrder order = EulerAngleOrder.YXZ)
         {
-		    EulerAngleOrderData l = EA_LOOKUP[(int)order];
+            EulerAngleOrderData l = EA_LOOKUP[(int)order];
 
-		    Radian halfXAngle = xAngle * 0.5f;
-		    Radian halfYAngle = yAngle * 0.5f;
-		    Radian halfZAngle = zAngle * 0.5f;
+            Radian halfXAngle = xAngle * 0.5f;
+            Radian halfYAngle = yAngle * 0.5f;
+            Radian halfZAngle = zAngle * 0.5f;
 
-		    float cx = MathEx.Cos(halfXAngle);
-		    float sx = MathEx.Sin(halfXAngle);
+            float cx = MathEx.Cos(halfXAngle);
+            float sx = MathEx.Sin(halfXAngle);
 
-		    float cy = MathEx.Cos(halfYAngle);
-		    float sy = MathEx.Sin(halfYAngle);
+            float cy = MathEx.Cos(halfYAngle);
+            float sy = MathEx.Sin(halfYAngle);
 
-		    float cz = MathEx.Cos(halfZAngle);
-		    float sz = MathEx.Sin(halfZAngle);
+            float cz = MathEx.Cos(halfZAngle);
+            float sz = MathEx.Sin(halfZAngle);
 
-		    Quaternion[] quats = new Quaternion[3];
-		    quats[0] = new Quaternion(sx, 0.0f, 0.0f, cx);
-		    quats[1] = new Quaternion(0.0f, sy, 0.0f, cy);
-		    quats[2] = new Quaternion(0.0f, 0.0f, sz, cz);
+            Quaternion[] quats = new Quaternion[3];
+            quats[0] = new Quaternion(sx, 0.0f, 0.0f, cx);
+            quats[1] = new Quaternion(0.0f, sy, 0.0f, cy);
+            quats[2] = new Quaternion(0.0f, 0.0f, sz, cz);
 
-		    return (quats[l.a] * quats[l.b]) * quats[l.c];
+            return (quats[l.a] * quats[l.b]) * quats[l.c];
         }
 
         /// <summary>

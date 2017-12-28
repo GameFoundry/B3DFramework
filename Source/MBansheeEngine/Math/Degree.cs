@@ -13,8 +13,8 @@ namespace BansheeEngine
     /// values, and conversions will be done automatically between them.
     /// </summary>
     [StructLayout(LayoutKind.Sequential), SerializeObject]
-	public struct Degree // Note: Must match C++ class Degree
-	{
+    public struct Degree // Note: Must match C++ class Degree
+    {
         [SerializeField]
         readonly float value;
 
@@ -22,10 +22,10 @@ namespace BansheeEngine
         /// Creates a new degree value.
         /// </summary>
         /// <param name="value">Value in degrees.</param>
-		public Degree(float value = 0.0f)
-	    {
-	        this.value = value;
-	    }
+        public Degree(float value = 0.0f)
+        {
+            this.value = value;
+        }
 
         /// <summary>
         /// Creates a new degree value.
@@ -61,10 +61,10 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="d">Degree value to convert.</param>
         /// <returns>Value in degrees as floating point type.</returns>
-	    public static explicit operator float(Degree d)
-	    {
+        public static explicit operator float(Degree d)
+        {
             return d.value;
-	    }
+        }
 
         /// <summary>
         /// Returns the value in degrees as a floating point type.
@@ -83,29 +83,29 @@ namespace BansheeEngine
         }
 
         public static Degree operator+(Degree a)
-	    {
-	        return a;
-	    }
+        {
+            return a;
+        }
 
-	    public static Degree operator+(Degree a, Degree b)
-	    {
-	        return new Degree(a.value + b.value);
-	    }
+        public static Degree operator+(Degree a, Degree b)
+        {
+            return new Degree(a.value + b.value);
+        }
 
         public static Degree operator+(Degree a, Radian r) 
         { 
             return new Degree (a.value + r.Degrees); 
         }
 
-	    public static Degree operator-(Degree a)
-	    {
-	        return new Degree(-a.value);
-	    }
+        public static Degree operator-(Degree a)
+        {
+            return new Degree(-a.value);
+        }
 
-	    public static Degree operator-(Degree a, Degree b)
-	    {
-	        return new Degree(a.value - b.value);
-	    }
+        public static Degree operator-(Degree a, Degree b)
+        {
+            return new Degree(a.value - b.value);
+        }
 
         public static Degree operator-(Degree a, Radian r) 
         { 
@@ -132,10 +132,10 @@ namespace BansheeEngine
             return new Degree(a.value / b.value);
         }
 
-	    public static bool operator<(Degree a, Degree b)
-	    {
-	        return a.value < b.value;
-	    }
+        public static bool operator<(Degree a, Degree b)
+        {
+            return a.value < b.value;
+        }
 
         public static bool operator>(Degree a, Degree b)
         {
@@ -186,7 +186,7 @@ namespace BansheeEngine
         {
             return value.ToString();
         }
-	};
+    };
 
     /** @} */
 }

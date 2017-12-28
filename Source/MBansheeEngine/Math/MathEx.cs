@@ -12,14 +12,14 @@ namespace BansheeEngine
     /// Values that represent in which order are euler angles applied when used in transformations.
     /// </summary>
     public enum EulerAngleOrder
-	{
-		XYZ,
-		XZY,
-		YXZ,
-		YZX,
-		ZXY,
-		ZYX
-	};
+    {
+        XYZ,
+        XZY,
+        YXZ,
+        YZX,
+        ZXY,
+        ZYX
+    };
 
     /// <summary>
     /// Utility class providing common scalar math operations.

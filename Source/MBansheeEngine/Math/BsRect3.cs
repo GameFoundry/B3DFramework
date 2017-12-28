@@ -15,7 +15,7 @@ namespace BansheeEngine
     /// </summary>
     [StructLayout(LayoutKind.Sequential), SerializeObject]
     public struct Rect3 // Note: Must match C++ class Rect3
-	{
+    {
         /// <summary>
         /// Creates a new rectangle.
         /// </summary>
@@ -81,7 +81,7 @@ namespace BansheeEngine
         }
 
         [SerializeField]
-		private Vector3 _center;
+        private Vector3 _center;
         [SerializeField]
         private Vector3 _axisHorz;
         [SerializeField]
@@ -90,7 +90,7 @@ namespace BansheeEngine
         private float _extentHorz;
         [SerializeField]
         private float _extentVert;
-	};
+    };
 
     /** @} */
 }

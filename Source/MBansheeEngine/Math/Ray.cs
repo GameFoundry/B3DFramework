@@ -15,8 +15,8 @@ namespace BansheeEngine
     [StructLayout(LayoutKind.Sequential), SerializeObject]
     public struct Ray // Note: Must match C++ struct Ray
     {
-		public Vector3 origin;
-		public Vector3 direction;
+        public Vector3 origin;
+        public Vector3 direction;
 
         /// <summary>
         /// Creates a new ray.
@@ -35,10 +35,10 @@ namespace BansheeEngine
         /// <param name="ray">Ray to transform.</param>
         /// <param name="t">How far along the ray to retrieve the point.</param>
         /// <returns>Point along the ray <paramref name="t"/> units away from the origin.</returns>
-		public static Vector3 operator*(Ray ray, float t) 
-		{
+        public static Vector3 operator*(Ray ray, float t) 
+        {
             return ray.origin + ray.direction * t;
-		}
+        }
 
         /// <summary>
         /// Transforms the ray by the specified matrix. If the matrix is affine use
@@ -49,10 +49,10 @@ namespace BansheeEngine
         {
             Vector3 end = this * 1.0f;
 
-		    origin = matrix.Multiply(origin);
-		    end = matrix.Multiply(end);
+            origin = matrix.Multiply(origin);
+            end = matrix.Multiply(end);
 
-		    direction = Vector3.Normalize(end - origin);
+            direction = Vector3.Normalize(end - origin);
         }
 
         /// <summary>

@@ -33,31 +33,31 @@ namespace BansheeEngine
             this.height = height;
         }
 
-		public static bool operator== (Rect2I lhs, Rect2I rhs)
-		{
-			return lhs.x == rhs.x && lhs.y == rhs.y && lhs.width == rhs.width && lhs.height == rhs.height;
-		}
+        public static bool operator== (Rect2I lhs, Rect2I rhs)
+        {
+            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.width == rhs.width && lhs.height == rhs.height;
+        }
 
-		public static bool operator!= (Rect2I lhs, Rect2I rhs)
-		{
-			return !(lhs == rhs);
-		}
+        public static bool operator!= (Rect2I lhs, Rect2I rhs)
+        {
+            return !(lhs == rhs);
+        }
 
         /// <summary>
         /// Returns true if the rectangle contains the provided point.
         /// </summary>
         /// <param name="point">Point to check if it is in rectangle.</param>
         /// <returns>True if the point within rectangle bounds.</returns>
-	    public bool Contains(Vector2I point)
-	    {
-		    if(point.x >= x && point.x < (x + width))
-		    {
-			    if(point.y >= y && point.y < (y + height))
-				    return true;
-		    }
+        public bool Contains(Vector2I point)
+        {
+            if(point.x >= x && point.x < (x + width))
+            {
+                if(point.y >= y && point.y < (y + height))
+                    return true;
+            }
 
-		    return false;
-	    }
+            return false;
+        }
 
         /// <summary>
         /// Returns true if the rectangle overlaps the provided rectangle. Also returns true if the rectangles are 
@@ -65,39 +65,39 @@ namespace BansheeEngine
         /// </summary>
         /// <param name="other">Other rectangle to compare with.</param>
         /// <returns>True if the rectangles overlap.</returns>
-	    public bool Overlaps(Rect2I other)
-	    {
-		    int otherRight = other.x + other.width;
+        public bool Overlaps(Rect2I other)
+        {
+            int otherRight = other.x + other.width;
             int myRight = x + width;
 
             int otherBottom = other.y + other.height;
             int myBottom = y + height;
 
-		    if(x < otherRight && myRight > other.x &&
-			    y < otherBottom && myBottom > other.y)
-			    return true;
+            if(x < otherRight && myRight > other.x &&
+                y < otherBottom && myBottom > other.y)
+                return true;
 
-		    return false;
-	    }
+            return false;
+        }
 
         /// <summary>
         /// Clips current rectangle so that it does not overlap the provided rectangle. After clipping no area of this
         /// rectangle will intersect the clip area.
         /// </summary>
         /// <param name="clipRect">Rectangle to clip against.</param>
-	    public void Clip(Rect2I clipRect)
-	    {
-		    int newLeft = Math.Max(x, clipRect.x);
-		    int newTop = Math.Max(y, clipRect.y);
+        public void Clip(Rect2I clipRect)
+        {
+            int newLeft = Math.Max(x, clipRect.x);
+            int newTop = Math.Max(y, clipRect.y);
 
-		    int newRight = Math.Min(x + width, clipRect.x + clipRect.width);
-		    int newBottom = Math.Min(y + height, clipRect.y + clipRect.height);
+            int newRight = Math.Min(x + width, clipRect.x + clipRect.width);
+            int newBottom = Math.Min(y + height, clipRect.y + clipRect.height);
 
-		    x = Math.Min(newLeft, newRight);
-		    y = Math.Min(newTop, newBottom);
-		    width = Math.Max(0, newRight - newLeft);
+            x = Math.Min(newLeft, newRight);
+            y = Math.Min(newTop, newBottom);
+            width = Math.Max(0, newRight - newLeft);
             height = Math.Max(0, newBottom - newTop);
-	    }
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object other)

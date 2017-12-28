@@ -19,7 +19,7 @@ namespace BansheeEngine
         /// Contains constant data that is used when calculating euler angles in a certain order.
         /// </summary>
         private struct EulerAngleOrderData
-		{
+        {
             public EulerAngleOrderData(int a, int b, int c, float sign)
             {
                 this.a = a;
@@ -28,13 +28,13 @@ namespace BansheeEngine
                 this.sign = sign;
             }
 
-			public int a, b, c;
+            public int a, b, c;
             public float sign;
-		};
+        };
 
         private static EulerAngleOrderData[] EA_LOOKUP = 
-		{ new EulerAngleOrderData(0, 1, 2, 1.0f), new EulerAngleOrderData(0, 2, 1, -1.0f), new EulerAngleOrderData(1, 0, 2, -1.0f),
-		  new EulerAngleOrderData(1, 2, 0, 1.0f), new EulerAngleOrderData(2, 0, 1,  1.0f), new EulerAngleOrderData(2, 1, 0, -1.0f) };
+        { new EulerAngleOrderData(0, 1, 2, 1.0f), new EulerAngleOrderData(0, 2, 1, -1.0f), new EulerAngleOrderData(1, 0, 2, -1.0f),
+          new EulerAngleOrderData(1, 2, 0, 1.0f), new EulerAngleOrderData(2, 0, 1,  1.0f), new EulerAngleOrderData(2, 1, 0, -1.0f) };
 
         /// <summary>
         /// A matrix with all zero values.
@@ -389,34 +389,34 @@ namespace BansheeEngine
         public Vector3 ToEulerAngles()
         {
             Radian xAngle = -MathEx.Asin(this[1, 2]);
-		    if (xAngle < MathEx.HalfPi)
-		    {
-			    if (xAngle > -MathEx.HalfPi)
-			    {
-				    Radian yAngle = MathEx.Atan2(this[0, 2], this[2, 2]);
+            if (xAngle < MathEx.HalfPi)
+            {
+                if (xAngle > -MathEx.HalfPi)
+                {
+                    Radian yAngle = MathEx.Atan2(this[0, 2], this[2, 2]);
                     Radian zAngle = MathEx.Atan2(this[1, 0], this[1, 1]);
 
                     return new Vector3(xAngle.Degrees, yAngle.Degrees, zAngle.Degrees);
-			    }
-			    else
-			    {
-				    // Note: Not an unique solution.
-			        xAngle = -MathEx.HalfPi;
+                }
+                else
+                {
+                    // Note: Not an unique solution.
+                    xAngle = -MathEx.HalfPi;
                     Radian yAngle = MathEx.Atan2(-this[0, 1], this[0, 0]);
-				    Radian zAngle = (Radian)0.0f;
+                    Radian zAngle = (Radian)0.0f;
 
                     return new Vector3(xAngle.Degrees, yAngle.Degrees, zAngle.Degrees);
-			    }
-		    }
-		    else
-		    {
-			    // Note: Not an unique solution.
+                }
+            }
+            else
+            {
+                // Note: Not an unique solution.
                 xAngle = MathEx.HalfPi;
                 Radian yAngle = MathEx.Atan2(this[0, 1], this[0, 0]);
                 Radian zAngle = (Radian)0.0f;
 
                 return new Vector3(xAngle.Degrees, yAngle.Degrees, zAngle.Degrees);
-		    }
+            }
         }
 
         /// <summary>
@@ -556,30 +556,30 @@ namespace BansheeEngine
         {
             EulerAngleOrderData l = EA_LOOKUP[(int)order];
 
-		    Matrix3[] mats = new Matrix3[3];
+            Matrix3[] mats = new Matrix3[3];
 
             float cx = MathEx.Cos(xAngle);
             float sx = MathEx.Sin(xAngle);
-		    mats[0] = new Matrix3(
-			    1.0f, 0.0f, 0.0f,
-			    0.0f, cx, -sx,
-			    0.0f, sx, cx);
+            mats[0] = new Matrix3(
+                1.0f, 0.0f, 0.0f,
+                0.0f, cx, -sx,
+                0.0f, sx, cx);
 
             float cy = MathEx.Cos(yAngle);
             float sy = MathEx.Sin(yAngle);
-		    mats[1] = new Matrix3(
-			    cy, 0.0f, sy,
-			    0.0f, 1.0f, 0.0f,
-			    -sy, 0.0f, cy);
+            mats[1] = new Matrix3(
+                cy, 0.0f, sy,
+                0.0f, 1.0f, 0.0f,
+                -sy, 0.0f, cy);
 
             float cz = MathEx.Cos(zAngle);
             float sz = MathEx.Sin(zAngle);
-		    mats[2] = new Matrix3(
-			    cz, -sz, 0.0f,
-			    sz, cz, 0.0f,
-			    0.0f, 0.0f, 1.0f);
-	
-		    return mats[l.a]*(mats[l.b]*mats[l.c]);
+            mats[2] = new Matrix3(
+                cz, -sz, 0.0f,
+                sz, cz, 0.0f,
+                0.0f, 0.0f, 1.0f);
+    
+            return mats[l.a]*(mats[l.b]*mats[l.c]);
         }
 
         /// <summary>
@@ -605,26 +605,26 @@ namespace BansheeEngine
         {
             Matrix3 m = new Matrix3();
 
-		    float cx = MathEx.Cos(xAngle);
-		    float sx = MathEx.Sin(xAngle);
+            float cx = MathEx.Cos(xAngle);
+            float sx = MathEx.Sin(xAngle);
 
-		    float cy = MathEx.Cos(yAngle);
-		    float sy = MathEx.Sin(yAngle);
+            float cy = MathEx.Cos(yAngle);
+            float sy = MathEx.Sin(yAngle);
 
             float cz = MathEx.Cos(zAngle);
-		    float sz = MathEx.Sin(zAngle);
+            float sz = MathEx.Sin(zAngle);
 
-		    m[0, 0] = cy * cz + sx * sy * sz;
-		    m[0, 1] = cz * sx * sy - cy * sz;
-		    m[0, 2] = cx * sy;
+            m[0, 0] = cy * cz + sx * sy * sz;
+            m[0, 1] = cz * sx * sy - cy * sz;
+            m[0, 2] = cx * sy;
 
-		    m[1, 0] = cx * sz;
-		    m[1, 1] = cx * cz;
-		    m[1, 2] = -sx;
+            m[1, 0] = cx * sz;
+            m[1, 1] = cx * cz;
+            m[1, 2] = -sx;
 
-		    m[2, 0] = -cz * sy + cy * sx * sz;
-		    m[2, 1] = cy * cz * sx + sy * sz;
-		    m[2, 2] = cx * cy;
+            m[2, 0] = -cz * sy + cy * sx * sz;
+            m[2, 1] = cy * cz * sx + sy * sz;
+            m[2, 2] = cx * cy;
 
             return m;
         }
