@@ -195,10 +195,10 @@ namespace bs
 
 		for (auto& child : instance->mChildren)
 		{
-			MonoUtil::freeGCHandle(child.gcHandle);
+			instance->getInternalValue()->removeElement(child.element->getGUIElement());
 
+			MonoUtil::freeGCHandle(child.gcHandle);
 			child.element->setParent(nullptr);
-			child.element->destroy();
 		}
 
 		instance->mChildren.clear();
