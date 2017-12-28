@@ -23,9 +23,9 @@ namespace BansheeEditor
             SceneObject so = camera.SceneObject;
 
             Gizmos.Color = Color.Yellow;
-            Gizmos.Transform = Matrix4.TRS(Vector3.Zero, Quaternion.LookRotation(so.Rotation.Forward, so.Rotation.Up), Vector3.One);
+            Gizmos.Transform = Matrix4.TRS(so.Position, Quaternion.LookRotation(so.Rotation.Forward, so.Rotation.Up), Vector3.One);
 
-            Gizmos.DrawFrustum(so.Position, camera.AspectRatio, camera.FieldOfView, camera.NearClipPlane,
+            Gizmos.DrawFrustum(Vector3.Zero, camera.AspectRatio, camera.FieldOfView, camera.NearClipPlane,
                 camera.FarClipPlane);
         }
     }
