@@ -252,7 +252,17 @@ namespace bs
 		cache.cachedCurveEnd = rightKey.time;
 
 		float length = rightKey.time - leftKey.time;
-		assert(length > 0.0f);
+
+		// Handle the case where both keys are identical, or close enough to cause precision issues
+		if(length < 0.000001f)
+		{
+			cache.cachedCubicCoefficients[0] = getZero<T>();
+			cache.cachedCubicCoefficients[1] = getZero<T>();
+			cache.cachedCubicCoefficients[2] = getZero<T>();
+			cache.cachedCubicCoefficients[3] = leftKey.value;
+
+			return leftKey.value;
+		}
 
 		Math::cubicHermiteCoefficients(leftKey.value, rightKey.value, leftKey.outTangent, rightKey.inTangent, length,
 			cache.cachedCubicCoefficients);
