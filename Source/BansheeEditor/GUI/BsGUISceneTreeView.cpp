@@ -491,7 +491,20 @@ namespace bs
 		else
 			message = L"Duplicated " + toWString((UINT32)duplicateList.size()) + L" elements";
 
-		CmdCloneSO::execute(duplicateList, message);
+		Vector<Transform> savedTransforms(duplicateList.size());
+		for(UINT32 i = 0; i < (UINT32)duplicateList.size(); i++)
+			savedTransforms[i] = duplicateList[i]->getTransform();
+
+		Vector<HSceneObject> clonedObjects = CmdCloneSO::execute(duplicateList, message);
+
+		for(UINT32 i = 0; i < (UINT32)clonedObjects.size(); i++)
+		{
+			const Transform& tfrm = savedTransforms[i];
+			clonedObjects[i]->setWorldPosition(tfrm.getPosition());
+			clonedObjects[i]->setWorldRotation(tfrm.getRotation());
+			clonedObjects[i]->setWorldScale(tfrm.getScale());
+		}
+
 		onModified();
 	}
 

@@ -342,7 +342,16 @@ namespace BansheeEditor
                 else
                     message = "Duplicated " + selectedObjects.Length + " elements";
 
-                UndoRedo.CloneSO(selectedObjects, message);
+                Transform[] savedTransforms = new Transform[selectedObjects.Length];
+                for (int i = 0; i < savedTransforms.Length; i++)
+                    savedTransforms[i] = new Transform(selectedObjects[i]);
+
+                SceneObject[] clonedObjects = UndoRedo.CloneSO(selectedObjects, message);
+
+                // Restore world positions
+                for (int i = 0; i < savedTransforms.Length; i++)
+                    savedTransforms[i].Apply(clonedObjects[i]);
+
                 EditorApplication.SetSceneDirty();
             }
         }
@@ -1014,6 +1023,34 @@ namespace BansheeEditor
                 Input.IsButtonHeld(ButtonCode.LeftControl) || Input.IsButtonHeld(ButtonCode.RightControl));
             isDraggingSelection = false;
             return true;
+        }
+
+        /// <summary>
+        /// Contains information about world transform of a single scene object.
+        /// </summary>
+        struct Transform
+        {
+            public Transform(SceneObject so)
+            {
+                position = so.Position;
+                rotation = so.Rotation;
+                scale = so.Scale;
+            }
+
+            /// <summary>
+            /// Applies the saved transform to the specified scene object. The transform is assumed to be in world space.
+            /// </summary>
+            /// <param name="so">Scene object to apply the transform to.</param>
+            public void Apply(SceneObject so)
+            {
+                so.Position = position;
+                so.Rotation = rotation;
+                so.LocalScale = scale;
+            }
+
+            public Vector3 position;
+            public Quaternion rotation;
+            public Vector3 scale;
         }
     }
 
