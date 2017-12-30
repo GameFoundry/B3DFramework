@@ -90,7 +90,7 @@ mixin Surface
 			float3 totalLighting = directLighting.rgb;
 			totalLighting.rgb += imageBasedSpecular;
 
-			return float4(totalLighting, gOpacity);
+			return float4(totalLighting, surfaceData.albedo.a * gOpacity);
 		}	
 	};
 };
