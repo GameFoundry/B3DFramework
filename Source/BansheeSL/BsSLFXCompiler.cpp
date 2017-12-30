@@ -559,6 +559,7 @@ namespace bs
 		outputDesc.options.separateShaders = true;
 		outputDesc.options.separateSamplers = false;
 		outputDesc.nameMangling.inputPrefix = "bs_";
+		outputDesc.nameMangling.outputPrefix = "bs_";
 		outputDesc.nameMangling.useAlwaysSemantics = true;
 		outputDesc.nameMangling.renameBufferFields = true;
 
