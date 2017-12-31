@@ -194,11 +194,27 @@ namespace bs
 		if (mComponentState == state)
 			return;
 
+		ComponentState oldState = mComponentState;
+
+		// Make sure to change the state before calling any callbacks, so callbacks can query the state
+		mComponentState = state;
+
 		// Wake up all components with onInitialize/onEnable events if moving to running or paused state
 		if(state == ComponentState::Running || state == ComponentState::Paused)
 		{
-			if(mComponentState == ComponentState::Stopped)
+			if(oldState == ComponentState::Stopped)
 			{
+				// Disable, and then re-enable components that have an AlwaysRun flag
+				for(auto& entry : mActiveComponents)
+				{
+					if (entry->sceneObject()->getActive())
+					{
+						entry->onDisabled();
+						entry->onEnabled();
+					}
+					
+				}
+
 				// Trigger enable on all components that don't have AlwaysRun flag (at this point those will be all
 				// inactive components that have active scene object parents)
 				for(auto& entry : mInactiveComponents)
@@ -264,10 +280,11 @@ namespace bs
 					HComponent component = mActiveComponents[i];
 
 					bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
-					if (alwaysRun)
-						continue;
 
 					component->onDisabled();
+
+					if(alwaysRun)
+						component->onEnabled();
 				}
 			}
 
@@ -289,8 +306,6 @@ namespace bs
 				component->setSceneManagerId(encodeComponentId(inactiveIdx, InactiveList));
 			}
 		}
-
-		mComponentState = state;
 	}
 
 	void SceneManager::_notifyComponentCreated(const HComponent& component, bool parentActive)

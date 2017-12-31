@@ -109,7 +109,7 @@ namespace BansheeEngine
         /// 
         ///                    Path element prefixed with ":" signify names of components. If a path doesn't have a
         ///                    component element, it is assumed the field is relative to the scene object itself (only 
-        ///                    "Translation", "Rotation" and "Scale" fields are supported in such case). Only one component
+        ///                    "Position", "Rotation" and "Scale" fields are supported in such case). Only one component
         ///                    path element per path is allowed.
         /// 
         ///                    Path entries with no prefix are considered regular script object fields. Each path must have
@@ -123,12 +123,12 @@ namespace BansheeEngine
         ///                    <paramref name="suffix"/>.
         /// 
         ///                    Path examples:
-        ///                     :MyComponent/myInt (path to myInt variable on a component attached to this object)
-        ///                     :MyComponent/myArray[0] (path to first element of myArray on the same component)
+        ///                     :MyComponent/myInt (path to myInt variable on a component attached to the root object)
+        ///                     :MyComponent/myArray[0] (path to first element of myArray on the same component as above)
         ///                     !childSO/:MyComponent/myInt (path to myInt variable on a child scene object)
-        ///                     !childSO/Translation (path to the scene object translation)
-        ///                     :MyComponent/myVector.z (path to the z component of myVector on this object)
-        ///                    </param>
+        ///                     !childSO/Position (path to the scene object position)
+        ///                     :MyComponent/myVector.z (path to the z component of myVector on the root object)
+        /// </param>
         /// <param name="suffix">Suffix of the last field entry, if it has any. Contains the suffix separator ".".</param>
         /// <returns>If found, property object you can use for setting and getting the value from the property, otherwise 
         ///          null.</returns>

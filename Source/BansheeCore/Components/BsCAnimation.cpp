@@ -19,6 +19,8 @@ namespace bs
 	{
 		mNotifyFlags = TCF_Transform;
 		setFlag(ComponentFlag::AlwaysRun, true);
+
+		setName("Animation");
 	}
 
 	CAnimation::CAnimation(const HSceneObject& parent)
@@ -167,13 +169,7 @@ namespace bs
 				{
 					AABox bounds = mBounds;
 
-					Matrix4 parentTfrm;
-					if (SO()->getParent() != nullptr)
-						parentTfrm = SO()->getParent()->getWorldMatrix();
-					else
-						parentTfrm = Matrix4::IDENTITY;
-
-					bounds.transformAffine(parentTfrm); 
+					bounds.transformAffine(SO()->getWorldMatrix()); 
 					mInternal->setBounds(bounds);
 				}
 			}
@@ -233,8 +229,9 @@ namespace bs
 			destroyInternal();
 			mPreviewMode = false;
 		}
-
-		restoreInternal(false);
+		
+		if(SceneManager::instance().isRunning())
+			restoreInternal(false);
 	}
 
 	void CAnimation::update()

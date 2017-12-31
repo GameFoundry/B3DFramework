@@ -187,7 +187,7 @@ namespace bs
 
 		/**
 		 * Rebuilds internal curve -> property mapping about the currently playing animation clip. This mapping allows the
-		 * animation component to know which property to assign which values from an animation curve. This Should be called
+		 * animation component to know which property to assign which values from an animation curve. This should be called
 		 * whenever playback for a new clip starts, or when clip curves change.
 		 */
 		BS_SCRIPT_EXPORT(in:true)
