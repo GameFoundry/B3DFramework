@@ -321,6 +321,9 @@ namespace bs { namespace ct
 					renderElem->morphVertexDeclaration);
 		}
 
+		// Make sure that any compute shaders are able to read g-buffer by unbinding it
+		rapi.setRenderTarget(nullptr);
+
 		// Trigger post-base-pass callbacks
 		if (sceneCamera != nullptr)
 		{
@@ -438,6 +441,8 @@ namespace bs { namespace ct
 		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::get();
 		rapi.setRenderTarget(sceneDepthNode->depthTex->renderTexture);
 		stencilMat->execute(inputs.view, output->texture);
+
+		rapi.setRenderTarget(nullptr);
 	}
 
 	void RCNodeMSAACoverage::clear()
