@@ -8,6 +8,11 @@ technique MSAACoverage
 	mixin GBufferInput;
 	mixin PerCameraData;
 
+	variations
+	{
+		MSAA_COUNT = { 1, 2, 4, 8 };
+	};	
+	
 	code
 	{	
 		float fsmain(VStoFS input) : SV_Target0

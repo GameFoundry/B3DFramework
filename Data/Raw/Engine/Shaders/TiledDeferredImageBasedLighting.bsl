@@ -13,6 +13,11 @@ technique TiledDeferredImageBasedLighting
 	mixin ReflectionCubemapCommon;
 	mixin ImageBasedLighting;
 
+	variations
+	{
+		MSAA_COUNT = { 1, 2, 4, 8 };
+	};
+	
 	code
 	{			
 		[internal]

@@ -18,7 +18,7 @@ namespace bs
 		Vector<SPtr<ct::Shader>> shaders;
 		for (auto& material : materials)
 		{
-			HShader shader = br.getShader(material.resourcePath);
+			HShader shader = br.getShader(material.shaderPath);
 			if (shader.isLoaded())
 				shaders.push_back(shader->getCore());
 			else
@@ -38,73 +38,7 @@ namespace bs
 		Lock lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-
-		const SmallVector<ct::ShaderVariation, 4>& variations = metaData->variations.getVariations();
-
-		if(variations.empty())
-		{
-			metaData->shaders.resize(1);
-			metaData->instances.resize(1);
-
-			Path resourcePath = _getVariationPath(shaderPath, 0);
-			materials.push_back({ metaData, shaderPath, resourcePath, 0 });
-		}
-		else
-		{
-			metaData->shaders.resize(variations.size());
-			metaData->instances.resize(variations.size());
-
-			UINT32 variationIdx = 0;
-			for (auto& variation : variations)
-			{
-				assert(variation.getIdx() == variationIdx);
-
-				Path resourcePath = _getVariationPath(shaderPath, variationIdx);
-				materials.push_back({ metaData, shaderPath, resourcePath, variationIdx });
-
-				variationIdx++;
-			}
-		}
-	}
-
-	Vector<ShaderDefines> RendererMaterialManager::_getVariations(const Path& shaderPath)
-	{
-		Vector<ShaderDefines> output;
-
-		Vector<RendererMaterialData>& materials = getMaterials();
-		for (auto& entry : materials)
-		{
-			if (entry.shaderPath == shaderPath)
-			{
-				if(entry.metaData->variations.getVariations().empty())
-				{
-					output.push_back(ShaderDefines());
-				}
-				else
-				{
-					const ct::ShaderVariation& variation = entry.metaData->variations.get(entry.variationIdx);
-					output.push_back(variation.getDefines());
-				}
-			}
-		}
-
-		return output;
-	}
-
-	Path RendererMaterialManager::_getVariationPath(const Path& shaderPath, UINT32 variationIdx)
-	{
-		if (variationIdx == 0)
-		{
-			return shaderPath;
-		}
-		else
-		{
-			Path uniquePath = shaderPath;
-			uniquePath.setFilename(shaderPath.getWFilename(false) + L"_" + toWString(variationIdx) +
-				shaderPath.getWExtension());
-
-			return uniquePath;
-		}
+		materials.push_back({ metaData, shaderPath, });
 	}
 
 	void RendererMaterialManager::initOnCore(const Vector<SPtr<ct::Shader>>& shaders)
@@ -113,7 +47,30 @@ namespace bs
 
 		Vector<RendererMaterialData>& materials = getMaterials();
 		for (UINT32 i = 0; i < materials.size(); i++)
-			materials[i].metaData->shaders[materials[i].variationIdx] = shaders[i];
+		{
+			materials[i].metaData->shader = shaders[i];
+
+			// Note: Making the assumption here that all the techniques are generated due to shader variations
+			Vector<SPtr<ct::Technique>> techniques = shaders[i]->getCompatibleTechniques();
+			materials[i].metaData->instances.resize(techniques.size());
+
+			for(auto& entry : techniques)
+				materials[i].metaData->variations.add(entry->getVariation());
+		}
+	}
+
+	ShaderDefines RendererMaterialManager::_getDefines(const Path& shaderPath)
+	{
+		ShaderDefines output;
+
+		Vector<RendererMaterialData>& materials = getMaterials();
+		for (auto& entry : materials)
+		{
+			if (entry.shaderPath == shaderPath)
+				return entry.metaData->defines;
+		}
+
+		return output;
 	}
 
 	void RendererMaterialManager::destroyOnCore()
@@ -123,7 +80,7 @@ namespace bs
 		Vector<RendererMaterialData>& materials = getMaterials();
 		for (UINT32 i = 0; i < materials.size(); i++)
 		{
-			materials[i].metaData->shaders.clear();
+			materials[i].metaData->shader = nullptr;
 
 			for (auto& entry : materials[i].metaData->instances)
 			{

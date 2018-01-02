@@ -16,22 +16,9 @@ namespace bs { namespace ct
 {
 	TetrahedraRenderParamDef gTetrahedraRenderParamDef;
 
-	ShaderVariation TetrahedraRenderMat::VAR_FullMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA", true)
-	});
-
-	ShaderVariation TetrahedraRenderMat::VAR_SingleMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
-	});
-
-	ShaderVariation TetrahedraRenderMat::VAR_NoMSAA = ShaderVariation();
-
 	TetrahedraRenderMat::TetrahedraRenderMat()
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
 
 		SAMPLER_STATE_DESC pointSampDesc;
 		pointSampDesc.minFilter = FO_POINT;
@@ -43,20 +30,13 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> pointSampState = SamplerState::create(pointSampDesc);
 
-		if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
-			params->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
-		else if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-			params->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
+		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
+			mParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
+		else if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+			mParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
 
 		mParamBuffer = gTetrahedraRenderParamDef.createBuffer();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-	}
-
-	void TetrahedraRenderMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_FullMSAA);
-		variations.add(VAR_SingleMSAA);
-		variations.add(VAR_NoMSAA);
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void TetrahedraRenderMat::execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, 
@@ -68,13 +48,12 @@ namespace bs { namespace ct
 		gTetrahedraRenderParamDef.gDepthTexSize.set(mParamBuffer, texSize);
 
 		mDepthBufferTex.set(sceneDepth);
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().draw(mesh);
 	}
 
@@ -95,81 +74,34 @@ namespace bs { namespace ct
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return get(VAR_SingleMSAA);
+				return get(getVariation<true, true>());
 
-			return get(VAR_FullMSAA);
+			return get(getVariation<true, false>());
 		}
 
-		return get(VAR_NoMSAA);
+		return get(getVariation<false, false>());
 	}
 
 	IrradianceEvaluateParamDef gIrradianceEvaluateParamDef;
 
-	ShaderVariation IrradianceEvaluateMat::VAR_FullMSAA_Probes = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("SKY_ONLY", false)
-	});
-
-	ShaderVariation IrradianceEvaluateMat::VAR_SingleMSAA_Probes = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true),
-		ShaderVariation::Param("SKY_ONLY", false)
-	});
-
-	ShaderVariation IrradianceEvaluateMat::VAR_NoMSAA_Probes = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1),
-		ShaderVariation::Param("SKY_ONLY", false)
-	});
-
-	ShaderVariation IrradianceEvaluateMat::VAR_FullMSAA_Sky = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("SKY_ONLY", true)
-	});
-
-	ShaderVariation IrradianceEvaluateMat::VAR_SingleMSAA_Sky = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true),
-		ShaderVariation::Param("SKY_ONLY", true)
-	});
-
-	ShaderVariation IrradianceEvaluateMat::VAR_NoMSAA_Sky = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1),
-		ShaderVariation::Param("SKY_ONLY", true)
-	});
-
 	IrradianceEvaluateMat::IrradianceEvaluateMat()
-		:mGBufferParams(mMaterial, mParamsSet)
+		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
 		mSkyOnly = mVariation.getBool("SKY_ONLY");
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
 
 		if(!mSkyOnly)
 		{
-			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
-			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
-			params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
-			params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
+			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
+			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
+			mParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
+			mParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
 		}
 
 		mParamBuffer = gIrradianceEvaluateParamDef.createBuffer();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-	}
-
-	void IrradianceEvaluateMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_FullMSAA_Probes);
-		variations.add(VAR_FullMSAA_Sky);
-		variations.add(VAR_SingleMSAA_Probes);
-		variations.add(VAR_SingleMSAA_Sky);
-		variations.add(VAR_NoMSAA_Probes);
-		variations.add(VAR_NoMSAA_Sky);
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void IrradianceEvaluateMat::execute(const RendererView& view, const GBufferTextures& gbuffer, 
@@ -206,14 +138,13 @@ namespace bs { namespace ct
 		gIrradianceEvaluateParamDef.gNumTetrahedra.set(mParamBuffer, lightProbesInfo.numTetrahedra);
 		mParamBuffer->flushToGPU();
 
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_COLOR0);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 
 		gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.viewRect.width, 
 			(float)viewProps.viewRect.height));
@@ -228,24 +159,24 @@ namespace bs { namespace ct
 			if (msaa)
 			{
 				if (singleSampleMSAA)
-					return get(VAR_SingleMSAA_Sky);
+					return get(getVariation<true, true, true>());
 
-				return get(VAR_FullMSAA_Sky);
+				return get(getVariation<true, false, true>());
 			}
 
-			return get(VAR_NoMSAA_Sky);
+			return get(getVariation<false, false, true>());
 		}
 		else
 		{
 			if (msaa)
 			{
 				if (singleSampleMSAA)
-					return get(VAR_SingleMSAA_Probes);
+					return get(getVariation<true, true, false>());
 
-				return get(VAR_FullMSAA_Probes);
+				return get(getVariation<true, false, false>());
 			}
 
-			return get(VAR_NoMSAA_Probes);
+			return get(getVariation<false, false, false>());
 		}
 	}
 

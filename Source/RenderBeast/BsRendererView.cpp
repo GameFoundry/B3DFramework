@@ -15,56 +15,35 @@ namespace bs { namespace ct
 	PerCameraParamDef gPerCameraParamDef;
 	SkyboxParamDef gSkyboxParamDef;
 
-	ShaderVariation SkyboxMat::VAR_Texture = ShaderVariation({
-		ShaderVariation::Param("SOLID_COLOR", false)
-	});
-
-	ShaderVariation SkyboxMat::VAR_Color = ShaderVariation({
-		ShaderVariation::Param("SOLID_COLOR", true)
-	});
-
 	SkyboxMat::SkyboxMat()
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-
-		if(params->hasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
-			params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
+		if(mParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
+			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
 
 		mParamBuffer = gSkyboxParamDef.createBuffer();
 
-		if(params->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
-			params->setParamBlockBuffer("Params", mParamBuffer);
+		if(mParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
+			mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
-	void SkyboxMat::_initVariations(ShaderVariations& variations)
+	void SkyboxMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 	{
-		variations.add(VAR_Color);
-		variations.add(VAR_Texture);
-	}
+		mParams->setParamBlockBuffer("PerCamera", perCamera);
 
-	void SkyboxMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
-	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
-
-		gRendererUtility().setPass(mMaterial, 0);
-	}
-
-	void SkyboxMat::setParams(const SPtr<Texture>& texture, const Color& solidColor)
-	{
 		mSkyTextureParam.set(texture);
 
 		gSkyboxParamDef.gClearColor.set(mParamBuffer, solidColor);
 		mParamBuffer->flushToGPU();
 
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	SkyboxMat* SkyboxMat::getVariation(bool color)
 	{
 		if (color)
-			return get(VAR_Color);
+			return get(getVariation<true>());
 
-		return get(VAR_Texture);
+		return get(getVariation<false>());
 	}
 
 	RendererViewData::RendererViewData()

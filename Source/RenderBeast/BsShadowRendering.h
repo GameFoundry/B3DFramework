@@ -104,6 +104,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("ShadowProjectStencil.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool directional, bool useZFailStencil>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("NEEDS_TRANSFORM", directional),
+				ShaderVariation::Param("USE_ZFAIL_STENCIL", useZFailStencil)
+			});
+
+			return variation;
+		};
 	public:
 		ShadowProjectStencilMat();
 
@@ -121,11 +132,6 @@ namespace bs { namespace ct
 		static ShadowProjectStencilMat* getVariation(bool directional, bool useZFailStencil);
 	private:
 		SPtr<GpuParamBlockBuffer> mVertParams;
-
-		static ShaderVariation VAR_Dir_ZFailStencil;
-		static ShaderVariation VAR_Dir_NoZFailStencil;
-		static ShaderVariation VAR_NoDir_ZFailStencil;
-		static ShaderVariation VAR_NoDir_NoZFailStencil;
 	};
 
 	/** Common parameters used by the shadow projection materials. */
@@ -171,6 +177,20 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("ShadowProject.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 quality, bool directional, bool MSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SHADOW_QUALITY", quality),
+				ShaderVariation::Param("CASCADING", directional),
+				ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
+				ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1)
+			});
+
+			return variation;
+		};
+
 	public:
 		ShadowProjectMat();
 
@@ -192,19 +212,6 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
-
-#define VARIATION(QUALITY)											\
-		static ShaderVariation VAR_Q##QUALITY##_Dir_MSAA;			\
-		static ShaderVariation VAR_Q##QUALITY##_Dir_NoMSAA;			\
-		static ShaderVariation VAR_Q##QUALITY##_NoDir_MSAA;			\
-		static ShaderVariation VAR_Q##QUALITY##_NoDir_NoMSAA;		\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
@@ -221,6 +228,20 @@ namespace bs { namespace ct
 	class ShadowProjectOmniMat : public RendererMaterial<ShadowProjectOmniMat>
 	{
 		RMAT_DEF("ShadowProjectOmni.bsl");
+
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 quality, bool inside, bool MSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SHADOW_QUALITY", quality),
+				ShaderVariation::Param("VIEWER_INSIDE_VOLUME", inside),
+				ShaderVariation::Param("NEEDS_TRANSFORM", true),
+				ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1)
+			});
+
+			return variation;
+		};
 
 	public:
 		ShadowProjectOmniMat();
@@ -243,19 +264,6 @@ namespace bs { namespace ct
 
 		GpuParamTexture mShadowMapParam;
 		GpuParamSampState mShadowSamplerParam;
-
-#define VARIATION(QUALITY)											\
-		static ShaderVariation VAR_Q##QUALITY##_Inside_MSAA;		\
-		static ShaderVariation VAR_Q##QUALITY##_Inside_NoMSAA;		\
-		static ShaderVariation VAR_Q##QUALITY##_Outside_MSAA;		\
-		static ShaderVariation VAR_Q##QUALITY##_Outside_NoMSAA;		\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
 	};
 
 	/** Pixel format used for rendering and storing shadow maps. */

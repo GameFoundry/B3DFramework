@@ -6,6 +6,14 @@ technique ShadowProjectOmni
 	mixin GBufferInput;
 	mixin ShadowProjectionCommon;
 
+	variations
+	{
+		SHADOW_QUALITY = { 1, 2, 3, 4 };
+		VIEWER_INSIDE_VOLUME = { true, false };
+		NEEDS_TRANSFORM = { true, false };
+		MSAA_COUNT = { 1, 2 };
+	};	
+	
 	blend
 	{
 		target
@@ -16,7 +24,7 @@ technique ShadowProjectOmni
 		};
 	};
 	
-	#ifdef VIEWER_INSIDE_VOLUME
+	#if VIEWER_INSIDE_VOLUME
 	depth
 	{
 		read = false;

@@ -53,7 +53,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::getDynamicSize */
 		static UINT32 getDynamicSize(const AnimationEvent& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			UINT64 dataSize = sizeof(UINT8) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.time);
 			dataSize += rttiGetElemSize(data.name);
 

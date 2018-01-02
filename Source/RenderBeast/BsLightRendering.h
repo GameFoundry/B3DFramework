@@ -69,18 +69,17 @@ namespace bs { namespace ct
 	class GBufferParams
 	{
 	public:
-		GBufferParams(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet);
+		GBufferParams(GpuProgramType type, const SPtr<GpuParams>& gpuParams);
 
 		/** Binds the GBuffer textures to the pipeline. */
 		void bind(const GBufferTextures& gbuffer);
 	private:
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
+		SPtr<GpuParams> mParams;
 
-		MaterialParamTexture mGBufferA;
-		MaterialParamTexture mGBufferB;
-		MaterialParamTexture mGBufferC;
-		MaterialParamTexture mGBufferDepth;
+		GpuParamTexture mGBufferA;
+		GpuParamTexture mGBufferB;
+		GpuParamTexture mGBufferC;
+		GpuParamTexture mGBufferDepth;
 	};
 
 	/** 
@@ -145,8 +144,18 @@ namespace bs { namespace ct
 	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
 	class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
 	{
-		RMAT_DEF("TiledDeferredLighting.bsl");
+		RMAT_DEF_CUSTOMIZED("TiledDeferredLighting.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 msaa>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa)
+			});
+
+			return variation;
+		}
 	public:
 		TiledDeferredLightingMat();
 
@@ -169,11 +178,6 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 
 		static const UINT32 TILE_SIZE;
-
-		static ShaderVariation VAR_1MSAA;
-		static ShaderVariation VAR_2MSAA;
-		static ShaderVariation VAR_4MSAA;
-		static ShaderVariation VAR_8MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FlatFramebufferToTextureParamDef)

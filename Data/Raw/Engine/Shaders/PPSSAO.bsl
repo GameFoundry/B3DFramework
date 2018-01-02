@@ -6,6 +6,13 @@ technique PPSSAO
 	mixin PPBase;
 	mixin PerCameraData;
 
+	variations
+	{
+		MIX_WITH_UPSAMPLED = { true, false };
+		FINAL_AO = { true, false };
+		QUALITY = { 0, 1, 2, 3, 4 };
+	};
+	
 	code
 	{
 		[internal]

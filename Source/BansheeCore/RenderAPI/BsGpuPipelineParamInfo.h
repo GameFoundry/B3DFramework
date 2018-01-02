@@ -66,6 +66,12 @@ namespace bs
 		void getBinding(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const;
 
 		/**
+		 * Finds set/slot indices of a parameter with the specified name for the specified GPU program stage. Set/slot
+		 * indices are set to -1 if a stage doesn't have a block with the specified name.
+		 */
+		void getBinding(GpuProgramType progType, ParamType type, const String& name, GpuParamBinding &binding);
+
+		/**
 		 * Finds set/slot indices of a parameter with the specified name for every GPU program stage. Set/slot indices are
 		 * set to -1 if a stage doesn't have a block with the specified name.
 		 */

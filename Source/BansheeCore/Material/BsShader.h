@@ -238,6 +238,15 @@ namespace bs
 		/** Returns the list of all supported techniques based on current render API and renderer. */
 		Vector<SPtr<TechniqueType>> getCompatibleTechniques() const;
 
+		/** 
+		 * Returns the list of all supported techniques based on current render API and renderer, and limits the techniques
+		 * to only those implementing the specified variation.
+		 */
+		Vector<SPtr<TechniqueType>> getCompatibleTechniques(const ShaderVariation& variation) const;
+
+		/** Returns a list of all techniques in this shader. */
+		const Vector<SPtr<TechniqueType>>& getTechniques() const { return mTechniques; }
+
 		/**
 		 * Returns currently active queue sort type.
 		 *

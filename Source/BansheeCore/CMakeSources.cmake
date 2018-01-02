@@ -197,9 +197,9 @@ set(BS_BANSHEECORE_INC_MATERIAL
 	"Material/BsMaterialParam.h"
 	"Material/BsShaderManager.h"
 	"Material/BsMaterialParams.h"
-	"Material/BsShaderDefines.h"
 	"Material/BsGpuParamsSet.h"
 	"Material/BsShaderInclude.h"
+	"Material/BsShaderVariation.h"
 )
 
 set(BS_BANSHEECORE_INC_RESOURCES
@@ -375,6 +375,7 @@ set(BS_BANSHEECORE_INC_RTTI
 	"RTTI/BsTransformRTTI.h"
 	"RTTI/BsAudioListenerRTTI.h"
 	"RTTI/BsAudioSourceRTTI.h"
+	"RTTI/BsShaderVariationRTTI.h"
 )
 
 set(BS_BANSHEECORE_SRC_RENDERER
@@ -428,9 +429,9 @@ set(BS_BANSHEECORE_SRC_MATERIAL
 	"Material/BsMaterialParam.cpp"
 	"Material/BsShaderManager.cpp"
 	"Material/BsMaterialParams.cpp"
-	"Material/BsShaderDefines.cpp"
 	"Material/BsGpuParamsSet.cpp"
 	"Material/BsShaderInclude.cpp"
+	"Material/BsShaderVariation.cpp"
 )
 
 set(BS_BANSHEECORE_SRC_INPUT

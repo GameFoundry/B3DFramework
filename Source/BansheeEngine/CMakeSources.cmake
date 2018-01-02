@@ -182,7 +182,6 @@ set(BS_BANSHEEENGINE_INC_LOCALIZATION
 )
 
 set(BS_BANSHEEENGINE_SRC_RENDERER
-	"Renderer/BsRendererMaterial.cpp"
 	"Renderer/BsRendererMaterialManager.cpp"
 	"Renderer/BsRenderQueue.cpp"
 	"Renderer/BsRendererUtility.cpp"

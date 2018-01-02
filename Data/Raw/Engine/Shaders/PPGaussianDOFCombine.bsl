@@ -6,6 +6,12 @@ technique PPGaussianDOFCombine
 	mixin PPBase;
 	mixin PPGaussianDOFCommon;
 	
+	variations
+	{
+		NEAR = { true, false };
+		FAR = { true, false };
+	};
+	
 	code
 	{
 		SamplerState gColorSamp;

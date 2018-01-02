@@ -4,6 +4,11 @@ technique Skybox
 {
 	mixin PerCameraData;
 
+	variations
+	{
+		SOLID_COLOR = { true, false };
+	};	
+	
 	raster
 	{
 		cull = cw;

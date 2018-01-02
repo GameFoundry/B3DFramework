@@ -87,8 +87,8 @@ namespace bs
 	 */
 	template<bool Core>
 	class BS_CORE_EXPORT TGraphicsPipelineState
-    {
-    public:
+	{
+	public:
 		typedef typename TGpuPipelineStateTypes<Core>::BlendStateType BlendStateType;
 		typedef typename TGpuPipelineStateTypes<Core>::RasterizerStateType RasterizerStateType;
 		typedef typename TGpuPipelineStateTypes<Core>::DepthStencilStateType DepthStencilStateType;
@@ -98,7 +98,7 @@ namespace bs
 
 		virtual ~TGraphicsPipelineState() { }
 
-        bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
+		bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
 		bool hasFragmentProgram() const { return mData.fragmentProgram != nullptr; }
 		bool hasGeometryProgram() const { return mData.geometryProgram != nullptr; }
 		bool hasHullProgram() const { return mData.hullProgram != nullptr; }
@@ -123,7 +123,7 @@ namespace bs
 
 		StateDescType mData;
 		SPtr<GpuPipelineParamInfoType> mParamInfo;
-    };
+	};
 
 	/** 
 	 * Templated version of ComputePipelineState so it can be used for both core and non-core versions of the pipeline
@@ -131,8 +131,8 @@ namespace bs
 	 */
 	template<bool Core>
 	class BS_CORE_EXPORT TComputePipelineState
-    {
-    public:
+	{
+	public:
 		typedef typename TGpuPipelineStateTypes<Core>::GpuProgramType GpuProgramType;
 		typedef typename TGpuPipelineStateTypes<Core>::GpuPipelineParamInfoType GpuPipelineParamInfoType;
 
@@ -149,7 +149,7 @@ namespace bs
 
 		GpuProgramType mProgram;
 		SPtr<GpuPipelineParamInfoType> mParamInfo;
-    };
+	};
 
 	/** @} */
 
@@ -162,8 +162,8 @@ namespace bs
 	 * states (vertex, fragment, geometry, etc. GPU programs), as well as a set of fixed states (blend, rasterizer, 
 	 * depth-stencil). Once created the state is immutable, and can be bound to RenderAPI for rendering.
 	 */
-    class BS_CORE_EXPORT GraphicsPipelineState : public CoreObject, public TGraphicsPipelineState<false>
-    {
+	class BS_CORE_EXPORT GraphicsPipelineState : public CoreObject, public TGraphicsPipelineState<false>
+	{
 	public:
 		virtual ~GraphicsPipelineState() { }
 
@@ -183,15 +183,15 @@ namespace bs
 
 		/** @copydoc CoreObject::createCore */
 		virtual SPtr<ct::CoreObject> createCore() const;
-    };
+	};
 
 	/**
 	 * Describes the state of the GPU pipeline that determines how are compute programs executed. It consists of 
 	 * of a single programmable state (GPU program). Once created the state is immutable, and can be bound to RenderAPI for
 	 * use.
 	 */
-    class BS_CORE_EXPORT ComputePipelineState : public CoreObject, public TComputePipelineState<false>
-    {
+	class BS_CORE_EXPORT ComputePipelineState : public CoreObject, public TComputePipelineState<false>
+	{
 	public:
 		virtual ~ComputePipelineState() { }
 
@@ -211,7 +211,7 @@ namespace bs
 
 		/** @copydoc CoreObject::createCore */
 		virtual SPtr<ct::CoreObject> createCore() const;
-    };
+	};
 
 	/** @} */
 

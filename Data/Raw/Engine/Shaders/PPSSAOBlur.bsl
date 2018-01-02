@@ -6,6 +6,11 @@ technique PPSSAOBlur
 	mixin PPBase;
 	mixin PerCameraData;
 
+	variations
+	{
+		DIR_HORZ = { true, false };
+	};	
+	
 	code
 	{
 		[internal]

@@ -154,48 +154,28 @@ namespace bs
 
 	DebugDrawParamsDef gDebugDrawParamsDef;
 
-	ShaderVariation DebugDrawMat::VAR_Solid = ShaderVariation({
-		ShaderVariation::Param("SOLID", true)
-	});
-
-	ShaderVariation DebugDrawMat::VAR_Line = ShaderVariation({
-		ShaderVariation::Param("LINE", true)
-	});
-
-	ShaderVariation DebugDrawMat::VAR_Wire = ShaderVariation({
-		ShaderVariation::Param("WIRE", true)
-	});
-
 	DebugDrawMat::DebugDrawMat()
 	{
 		// Do nothing
 	}
 
-	void DebugDrawMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_Solid);
-		variations.add(VAR_Line);
-		variations.add(VAR_Wire);
-	}
-
 	void DebugDrawMat::execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<MeshBase>& mesh)
 	{
-		mParamsSet->setParamBlockBuffer("Params", params);
+		mParams->setParamBlockBuffer("Params", params);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().draw(mesh);
 	}
 
 	DebugDrawMat* DebugDrawMat::getVariation(DebugDrawMaterial mat)
 	{
 		if (mat == DebugDrawMaterial::Solid)
-			return get(VAR_Solid);
+			return get(getVariation<true, false, false>());
 		
 		if (mat == DebugDrawMaterial::Wire)
-			return get(VAR_Wire);
+			return get(getVariation<false, false, true>());
 
-		return get(VAR_Line);
+		return get(getVariation<false, true, false>());
 	}
 
 	DebugDrawRenderer::DebugDrawRenderer()

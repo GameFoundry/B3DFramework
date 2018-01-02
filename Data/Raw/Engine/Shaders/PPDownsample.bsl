@@ -4,6 +4,12 @@ technique PPDownsample
 {
 	mixin PPBase;
 
+	variations
+	{
+		QUALITY = { 0, 1 };
+		MSAA = { true, false };
+	};
+	
 	code
 	{
 		[internal]

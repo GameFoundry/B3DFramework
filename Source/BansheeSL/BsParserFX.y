@@ -87,10 +87,13 @@ typedef struct YYLTYPE {
 %token TOKEN_SEPARABLE TOKEN_SORT TOKEN_PRIORITY TOKEN_TRANSPARENT
 	
 	/* Technique keywords */
-%token TOKEN_RENDERER TOKEN_PASS TOKEN_TAGS
+%token TOKEN_RENDERER TOKEN_PASS TOKEN_TAGS TOKEN_VARIATIONS
 
 	/* Pass keywords */
 %token TOKEN_CODE TOKEN_BLEND TOKEN_RASTER TOKEN_DEPTH TOKEN_STENCIL
+
+	/* Variation keywords */
+%token TOKEN_VARIATION
 
 	/* Rasterizer state keywords */
 %token TOKEN_FILLMODE TOKEN_CULLMODE TOKEN_DEPTHBIAS TOKEN_SDEPTHBIAS
@@ -125,6 +128,12 @@ typedef struct YYLTYPE {
 %type <nodePtr>		pass_header;
 %type <nodeOption>	pass_statement;
 %type <nodeOption>	pass_option;
+
+%type <nodePtr>		variations;
+%type <nodePtr>		variations_header;
+%type <nodeOption>	variation;
+%type <nodePtr>		variation_header;
+%type <nodeOption>  variation_option;
 
 %type <nodePtr>		raster;
 %type <nodePtr>		raster_header;
@@ -237,6 +246,7 @@ technique_option
 	: TOKEN_RENDERER '=' TOKEN_STRING ';'	{ $$.type = OT_Renderer; $$.value.strValue = $3; }
 	| TOKEN_MIXIN TOKEN_IDENTIFIER ';'		{ $$.type = OT_Mixin; $$.value.strValue = $2; }
 	| tags									{ $$.type = OT_Tags; $$.value.nodePtr = $1; }
+	| variations							{ $$.type = OT_Variations; $$.value.nodePtr = $1; }
 	;
 	
 	/* Technique tags */
@@ -295,6 +305,66 @@ pass_option
 	| depth							{ $$.type = OT_Depth; $$.value.nodePtr = $1; }
 	| stencil						{ $$.type = OT_Stencil; $$.value.nodePtr = $1; }
 	| blend							{ $$.type = OT_Blend; $$.value.nodePtr = $1; }
+	;
+	
+	/* Variations */
+
+variations
+	: variations_header '{' variations_body '}' ';' { nodePop(parse_state); $$ = $1; }
+	;
+
+variations_header
+	: TOKEN_VARIATIONS
+		{ 
+			$$ = nodeCreate(parse_state->memContext, NT_Variations); 
+			nodePush(parse_state, $$);
+		}
+	;
+
+variations_body
+	: /* empty */
+	| variation variations_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	;
+
+variation
+	: variation_header '{' '}' ';'		{ nodePop(parse_state); $$.type = OT_Variation; $$.value.nodePtr = $1; }
+	| variation_header '{' TOKEN_BOOLEAN variation_body '}' ';'		
+		{ 
+			NodeOption entry; entry.type = OT_VariationValue; entry.value.intValue = $3;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+		
+			nodePop(parse_state); 
+			$$.type = OT_Variation; $$.value.nodePtr = $1;
+		}
+	| variation_header '{' TOKEN_INTEGER variation_body '}' ';'		
+		{ 
+			NodeOption entry; entry.type = OT_VariationValue; entry.value.intValue = $3;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			
+			nodePop(parse_state); 
+			$$.type = OT_Variation; $$.value.nodePtr = $1;
+		}
+	;	
+	
+variation_header
+	: TOKEN_IDENTIFIER '='
+		{ 
+			$$ = nodeCreate(parse_state->memContext, NT_Variation); 
+			nodePush(parse_state, $$);
+			
+			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $1;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 		
+		}
+	;
+	
+variation_body
+	: /* empty */
+	| variation_option variation_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	;
+	
+variation_option
+	: ',' TOKEN_BOOLEAN 	{ $$.type = OT_VariationValue; $$.value.intValue = $2; }
+	| ',' TOKEN_INTEGER 	{ $$.type = OT_VariationValue; $$.value.intValue = $2; }
 	;
 
 	/* Raster state */

@@ -20,17 +20,15 @@ namespace bs { namespace ct
 	LightGridLLCreationMat::LightGridLLCreationMat()
 		:mBufferNumCells(0)
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
-
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gReflectionProbes", mProbesBufferParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesCounter", mProbesCounterParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gReflectionProbes", mProbesBufferParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesCounter", mProbesCounterParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
 
 		GPU_BUFFER_DESC desc;
 		desc.elementCount = 1;
@@ -46,13 +44,9 @@ namespace bs { namespace ct
 		mProbesCounterParam.set(mProbesCounter);
 	}
 
-	void LightGridLLCreationMat::_initVariations(ShaderVariations& variations)
+	void LightGridLLCreationMat::_initDefines(ShaderDefines& defines)
 	{
-		ShaderVariation variation({
-			ShaderVariation::Param("THREADGROUP_SIZE", THREADGROUP_SIZE)
-		});
-
-		variations.add(variation);
+		defines.set("THREADGROUP_SIZE", THREADGROUP_SIZE);
 	}
 
 	void LightGridLLCreationMat::setParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams,
@@ -106,22 +100,20 @@ namespace bs { namespace ct
 		mProbesLLHeads->writeData(0, mProbesLLHeads->getSize(), headsClearData, BWT_DISCARD);
 		bs_stack_free(headsClearData);
 
-		mParamsSet->getGpuParams()->setParamBlockBuffer("GridParams", gridParams);
+		mParams->setParamBlockBuffer("GridParams", gridParams);
 		mLightBufferParam.set(lightsBuffer);
 		mProbesBufferParam.set(probesBuffer);
 	}
 
 	void LightGridLLCreationMat::execute(const RendererView& view)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 
-		gRendererUtility().setComputePass(mMaterial, 0);
-		gRendererUtility().setPassParams(mParamsSet);
-
+		bind();
 		RenderAPI::instance().dispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 	}
 
@@ -137,21 +129,19 @@ namespace bs { namespace ct
 	LightGridLLReductionMat::LightGridLLReductionMat()
 		:mBufferNumCells(0)
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridDataCounter", mGridDataCounterParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridDataCounter", mGridDataCounterParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridLightIndices", mGridLightIndicesParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridLightIndices", mGridLightIndicesParam);
-
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridProbeIndices", mGridProbeIndicesParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gGridProbeIndices", mGridProbeIndicesParam);
 
 		GPU_BUFFER_DESC desc;
 		desc.elementCount = 2;
@@ -164,13 +154,9 @@ namespace bs { namespace ct
 		mGridDataCounterParam.set(mGridDataCounter);
 	}
 
-	void LightGridLLReductionMat::_initVariations(ShaderVariations& variations)
+	void LightGridLLReductionMat::_initDefines(ShaderDefines& defines)
 	{
-		ShaderVariation variation({
-			ShaderVariation::Param("THREADGROUP_SIZE", THREADGROUP_SIZE)
-		});
-
-		variations.add(variation);
+		defines.set("THREADGROUP_SIZE", THREADGROUP_SIZE);
 	}
 
 	void LightGridLLReductionMat::setParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams,
@@ -212,7 +198,7 @@ namespace bs { namespace ct
 		UINT32 zeros[] = { 0, 0 };
 		mGridDataCounter->writeData(0, sizeof(UINT32) * 2, zeros, BWT_DISCARD);
 
-		mParamsSet->getGpuParams()->setParamBlockBuffer("GridParams", gridParams);
+		mParams->setParamBlockBuffer("GridParams", gridParams);
 
 		mLightsLLHeadsParam.set(lightsLLHeads);
 		mLightsLLParam.set(lightsLL);
@@ -223,15 +209,13 @@ namespace bs { namespace ct
 
 	void LightGridLLReductionMat::execute(const RendererView& view)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 
-		gRendererUtility().setComputePass(mMaterial, 0);
-		gRendererUtility().setPassParams(mParamsSet);
-
+		bind();
 		RenderAPI::instance().dispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 	}
 

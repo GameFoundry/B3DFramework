@@ -36,6 +36,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("TetrahedraRender.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool msaa, bool singleSampleMSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA", msaa),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
+			});
+
+			return variation;
+		}
 	public:
 		TetrahedraRenderMat();
 
@@ -69,10 +80,6 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mDepthBufferTex;
-
-		static ShaderVariation VAR_FullMSAA;
-		static ShaderVariation VAR_SingleMSAA;
-		static ShaderVariation VAR_NoMSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceEvaluateParamDef)
@@ -87,6 +94,18 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("IrradianceEvaluate.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool msaa, bool singleSampleMSAA, bool skyOnly>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA", msaa),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA),
+				ShaderVariation::Param("SKY_ONLY", skyOnly)
+			});
+
+			return variation;
+		}
 	public:
 		IrradianceEvaluateMat();
 
@@ -128,13 +147,6 @@ namespace bs { namespace ct
 		GpuParamBuffer mParamTetrahedraBuffer;
 		GpuParamBuffer mParamTetFacesBuffer;
 		bool mSkyOnly;
-
-		static ShaderVariation VAR_FullMSAA_Probes;
-		static ShaderVariation VAR_SingleMSAA_Probes;
-		static ShaderVariation VAR_NoMSAA_Probes;
-		static ShaderVariation VAR_FullMSAA_Sky;
-		static ShaderVariation VAR_SingleMSAA_Sky;
-		static ShaderVariation VAR_NoMSAA_Sky;
 	};
 
 	/** Contains information required by light probe shaders. Output by LightProbes. */

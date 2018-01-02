@@ -16,6 +16,7 @@
 
 #define XSC_ENABLE_LANGUAGE_EXT 1
 #include "Xsc/Xsc.h"
+#include "Material/BsShaderVariation.h"
 
 extern "C" {
 #include "BsMMAlloc.h"
@@ -660,53 +661,263 @@ namespace bs
 	BSLFXCompileResult BSLFXCompiler::compile(const String& name, const String& source, 
 		const UnorderedMap<String, String>& defines)
 	{
-		BSLFXCompileResult output;
-
 		String parsedSource = source;
 
+		// Run the lexer/parser and generate the AST
 		ParseState* parseState = parseStateCreate();
-		for(auto& define : defines)
-		{
-			if (define.first.size() == 0)
-				continue;
+		BSLFXCompileResult output = parseFX(parseState, parsedSource.c_str(), defines);
 
-			addDefine(parseState, define.first.c_str());
-
-			if(define.second.size() > 0)
-				addDefineExpr(parseState, define.second.c_str());
-		}
-
-		parseFX(parseState, parsedSource.c_str());
-
-		if (parseState->hasError > 0)
-		{
-			output.errorMessage = parseState->errorMessage;
-			output.errorLine = parseState->errorLine;
-			output.errorColumn = parseState->errorColumn;
-
-			if(parseState->errorFile != nullptr)
-				output.errorFile = parseState->errorFile;
-
+		if(!output.errorMessage.empty())
 			parseStateDelete(parseState);
-		}
 		else
 		{
 			// Only enable for debug purposes
 			//SLFXDebugPrint(parseState->rootNode, "");
 
-			Vector<String> codeBlocks;
-			CodeString* codeString = parseState->codeStrings;
-			while(codeString != nullptr)
+			if (parseState->rootNode == nullptr || parseState->rootNode->type != NT_Shader)
 			{
-				while ((INT32)codeBlocks.size() <= codeString->index)
-					codeBlocks.push_back(String());
+				parseStateDelete(parseState);
 
-				codeBlocks[codeString->index] = String(codeString->code, codeString->size);
-				codeString = codeString->next;
+				output.errorMessage = "Root not is null or not a shader.";
+				return output;
 			}
 
-			output = parseShader(name, parseState, codeBlocks);
+			// Parse global shader options & technique meta-data
+			SHADER_DESC shaderDesc;
+			Vector<pair<ASTFXNode*, TechniqueMetaData>> techniqueMetaData;
 
+			//// Go in reverse because options are added in reverse order during parsing
+			for (int i = parseState->rootNode->options->count - 1; i >= 0; i--)
+			{
+				NodeOption* option = &parseState->rootNode->options->entries[i];
+
+				switch (option->type)
+				{
+				case OT_Options:
+					parseOptions(option->value.nodePtr, shaderDesc);
+					break;
+				case OT_Technique:
+				{
+					// We initially parse only meta-data, so we can handle out-of-order technique definitions
+					TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
+					techniqueMetaData.push_back(std::make_pair(option->value.nodePtr, metaData));
+
+					break;
+				}
+				default:
+					break;
+				}
+			}
+
+			// Inherit variations from mixins
+			bool* techniqueWasParsed = bs_stack_alloc<bool>((UINT32)techniqueMetaData.size());
+
+			std::function<bool(const TechniqueMetaData&, TechniqueMetaData&)> parseInherited = 
+				[&](const TechniqueMetaData& metaData, TechniqueMetaData& combinedMetaData)
+			{
+				for (auto riter = metaData.includes.rbegin(); riter != metaData.includes.rend(); ++riter)
+				{
+					const String& includes = *riter;
+
+					UINT32 baseIdx = -1;
+					for (UINT32 i = 0; i < (UINT32)techniqueMetaData.size(); i++)
+					{
+						auto& entry = techniqueMetaData[i];
+						if (!entry.second.isMixin)
+							continue;
+
+						if (entry.second.name == includes)
+						{
+							bool matches =
+								(entry.second.language == metaData.language ||
+								entry.second.language == "Any") &&
+								(entry.second.renderer == metaData.renderer ||
+								entry.second.renderer == RendererAny);
+
+							// We want the last matching technique, in order to allow techniques to override each other
+							if (matches)
+								baseIdx = i;
+						}
+					}
+
+					if (baseIdx != (UINT32)-1)
+					{
+						auto& entry = techniqueMetaData[baseIdx];
+
+						// Was already parsed previously, don't parse it multiple times (happens when multiple techniques 
+						// include the same mixin)
+						if (techniqueWasParsed[baseIdx])
+							continue;
+
+						if (!parseInherited(entry.second, combinedMetaData))
+							return false;
+
+						for(auto& variation : entry.second.variations)
+							combinedMetaData.variations.push_back(variation);
+
+						techniqueWasParsed[baseIdx] = true;
+					}
+					else
+					{
+						output.errorMessage = "Mixin \"" + includes + "\" cannot be found.";
+						return false;
+					}
+				}
+
+				return true;
+			};
+
+			for (auto& entry : techniqueMetaData)
+			{
+				TechniqueMetaData& metaData = entry.second;
+				if (metaData.isMixin)
+					continue;
+
+				bs_zero_out(techniqueWasParsed, techniqueMetaData.size());
+				TechniqueMetaData combinedMetaData = metaData;
+				if (!parseInherited(metaData, combinedMetaData))
+				{
+					parseStateDelete(parseState);
+					bs_stack_free(techniqueWasParsed);
+					return output;
+				}
+
+				entry.second = combinedMetaData;
+			}
+
+			bs_stack_free(techniqueWasParsed);
+			parseStateDelete(parseState);
+
+			// Build a list of different variations and re-parse the source using the relevant defines
+			Vector<SPtr<Technique>> techniques;
+			UnorderedSet<String> includes;
+			for (auto& entry : techniqueMetaData)
+			{
+				TechniqueMetaData& metaData = entry.second;
+				if (metaData.isMixin)
+					continue;
+
+				// Generate a list of variations
+				Vector<ShaderVariation> variations;
+
+				if (metaData.variations.empty())
+					variations.push_back(ShaderVariation());
+				else
+				{
+					Vector<const VariationData*> todo;
+					for (UINT32 i = 0; i < (UINT32)metaData.variations.size(); i++)
+						todo.push_back(&metaData.variations[i]);
+
+					while (!todo.empty())
+					{
+						const VariationData* current = todo.back();
+						todo.erase(todo.end() - 1);
+
+						// Variation parameter that's either defined or isn't
+						if (current->values.empty())
+						{
+							// This is the first variation parameter, register new variations
+							if (variations.empty())
+							{
+								ShaderVariation a;
+								ShaderVariation b;
+
+								b.addParam(ShaderVariation::Param(current->identifier, 1));
+
+								variations.push_back(a);
+								variations.push_back(b);
+							}
+							else // Duplicate existing variations, and add the parameter
+							{
+								UINT32 numVariations = (UINT32)variations.size();
+								for (UINT32 i = 0; i < numVariations; i++)
+								{
+									// Make a copy
+									variations.push_back(variations[i]);
+
+									// Add the parameter to existing variation
+									variations[i].addParam(ShaderVariation::Param(current->identifier, 1));
+								}
+							}
+						}
+						else // Variation parameter with multiple values
+						{
+							// This is the first variation parameter, register new variations
+							if (variations.empty())
+							{
+								for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
+								{
+									ShaderVariation variation;
+									variation.addParam(ShaderVariation::Param(current->identifier, current->values[i]));
+
+									variations.push_back(variation);
+								}
+							}
+							else // Duplicate existing variations, and add the parameter
+							{
+								UINT32 numVariations = (UINT32)variations.size();
+								for (UINT32 i = 0; i < numVariations; i++)
+								{
+									for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
+									{
+										ShaderVariation copy = variations[i];
+										copy.addParam(ShaderVariation::Param(current->identifier, current->values[j]));
+
+										variations.push_back(copy);
+									}
+
+									variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0]));
+								}
+							}
+						}
+					}
+				}
+
+				// For every variation, re-parse the file with relevant defines
+				for(auto& variation : variations)
+				{
+					UnorderedMap<String, String> globalDefines = defines;
+					UnorderedMap<String, String> variationDefines = variation.getDefines().getAll();
+
+					for(auto& define : variationDefines)
+						globalDefines[define.first] = define.second;
+
+					ParseState* variationParseState = parseStateCreate();
+					output = parseFX(variationParseState, parsedSource.c_str(), globalDefines);
+
+					if (!output.errorMessage.empty())
+						parseStateDelete(variationParseState);
+					else
+					{
+						Vector<String> codeBlocks;
+						CodeString* codeString = variationParseState->codeStrings;
+						while (codeString != nullptr)
+						{
+							while ((INT32)codeBlocks.size() <= codeString->index)
+								codeBlocks.push_back(String());
+
+							codeBlocks[codeString->index] = String(codeString->code, codeString->size);
+							codeString = codeString->next;
+						}
+
+						output = parseTechniques(variationParseState, codeBlocks, variation, techniques, includes, 
+							shaderDesc);
+
+						if(!output.errorMessage.empty())
+							return output;
+					}
+				}
+			}
+
+			// Generate a shader from the parsed techniques
+			Vector<String> includeArray;
+			for (auto& entry : includes)
+				includeArray.push_back(entry);
+
+			output.shader = Shader::_createPtr(name, shaderDesc, techniques);
+			output.shader->setIncludeFiles(includeArray);
+
+			// Verify GPU programs compile correctly
 			StringStream gpuProgError;
 			bool hasError = false;
 			if (output.shader != nullptr)
@@ -756,13 +967,29 @@ namespace bs
 		return output;
 	}
 
-	void BSLFXCompiler::parseFX(ParseState* parseState, const char* source)
+	BSLFXCompileResult BSLFXCompiler::parseFX(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines)
 	{
+		for(auto& define : defines)
+		{
+			if (define.first.size() == 0)
+				continue;
+
+			addDefine(parseState, define.first.c_str());
+
+			if(define.second.size() > 0)
+				addDefineExpr(parseState, define.second.c_str());
+		}
+
 		yyscan_t scanner;
 		YY_BUFFER_STATE state;
 
+		BSLFXCompileResult output;
+
 		if (yylex_init_extra(parseState, &scanner))
-			return;
+		{
+			output.errorMessage = "Internal error: Lexer failed to initialize.";
+			return output;
+		}
 
 		// If debug output from lexer is needed uncomment this and add %debug option to lexer file
 		//yyset_debug(true, scanner);
@@ -773,10 +1000,26 @@ namespace bs
 		state = yy_scan_string(source, scanner);
 
 		if (yyparse(parseState, scanner))
-			return;
+		{
+			if (parseState->hasError > 0)
+			{
+				output.errorMessage = parseState->errorMessage;
+				output.errorLine = parseState->errorLine;
+				output.errorColumn = parseState->errorColumn;
+
+				if (parseState->errorFile != nullptr)
+					output.errorFile = parseState->errorFile;
+			}
+			else
+				output.errorMessage = "Internal error: Parsing failed.";
+
+			return output;
+		}
 
 		yy_delete_buffer(state, scanner);
 		yylex_destroy(scanner);
+
+		return output;
 	}
 
 	BSLFXCompiler::TechniqueMetaData BSLFXCompiler::parseTechniqueMetaData(ASTFXNode* technique)
@@ -808,6 +1051,17 @@ namespace bs
 				}
 			}
 				break;
+			case OT_Variations:
+			{
+				ASTFXNode* variationsNode = option->value.nodePtr;
+				for (int j = 0; j < variationsNode->options->count; j++)
+				{
+					NodeOption* variationOption = &variationsNode->options->entries[j];
+
+					if(variationOption->type == OT_Variation)
+						parseVariations(metaData, variationOption->value.nodePtr);
+				}
+			}
 			case OT_Identifier:
 				metaData.name = option->value.strValue;
 				break;
@@ -820,6 +1074,32 @@ namespace bs
 		}
 
 		return metaData;
+	}
+
+	void BSLFXCompiler::parseVariations(TechniqueMetaData& metaData, ASTFXNode* variations)
+	{
+		assert(variations->type == NT_Variation);
+
+		VariationData variationData;
+		for (int i = 0; i < variations->options->count; i++)
+		{
+			NodeOption* option = &variations->options->entries[i];
+
+			switch (option->type)
+			{
+			case OT_Identifier:
+				variationData.identifier = option->value.strValue;
+				break;
+			case OT_VariationValue:
+				variationData.values.push_back(option->value.intValue);
+				break;
+			default:
+				break;
+			}
+		}
+
+		if (!variationData.identifier.empty())
+			metaData.variations.push_back(variationData);
 	}
 
 	StringID BSLFXCompiler::parseRenderer(const String& name)
@@ -1478,7 +1758,9 @@ namespace bs
 		}
 	}
 
-	BSLFXCompileResult BSLFXCompiler::parseShader(const String& name, ParseState* parseState, Vector<String>& codeBlocks)
+	BSLFXCompileResult BSLFXCompiler::parseTechniques(ParseState* parseState, const Vector<String>& codeBlocks, 
+		const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, UnorderedSet<String>& includes, 
+		SHADER_DESC& shaderDesc)
 	{
 		BSLFXCompileResult output;
 
@@ -1490,7 +1772,6 @@ namespace bs
 			return output;
 		}
 
-		SHADER_DESC shaderDesc;
 		Vector<pair<ASTFXNode*, TechniqueData>> techniqueData;
 
 		// Go in reverse because options are added in reverse order during parsing
@@ -1500,9 +1781,6 @@ namespace bs
 
 			switch (option->type)
 			{
-			case OT_Options:
-				parseOptions(option->value.nodePtr, shaderDesc);
-				break;
 			case OT_Technique:
 			{
 				// We initially parse only meta-data, so we can handle out-of-order technique definitions
@@ -1536,8 +1814,11 @@ namespace bs
 
 					if (entry.second.metaData.name == includes)
 					{
-						bool matches = entry.second.metaData.language == metaData.language || entry.second.metaData.language == "Any";
-						matches &= entry.second.metaData.renderer == metaData.renderer || entry.second.metaData.renderer == RendererAny;
+						bool matches = 
+							(entry.second.metaData.language == metaData.language || 
+							entry.second.metaData.language == "Any") &&
+							(entry.second.metaData.renderer == metaData.renderer || 
+							entry.second.metaData.renderer == RendererAny);
 
 						// We want the last matching technique, in order to allow techniques to override each other
 						if (matches)
@@ -1590,6 +1871,20 @@ namespace bs
 		}
 
 		bs_stack_free(techniqueWasParsed);
+
+		IncludeLink* includeLink = parseState->includes;
+		while(includeLink != nullptr)
+		{
+			String includeFilename = includeLink->data->filename;
+
+			auto iterFind = std::find(includes.begin(), includes.end(), includeFilename);
+			if (iterFind == includes.end())
+				includes.insert(includeFilename);
+
+			includeLink = includeLink->next;
+		}
+
+		parseStateDelete(parseState);
 
 		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL
 		UINT32 end = (UINT32)techniqueData.size();
@@ -1673,11 +1968,10 @@ namespace bs
 				}
 			}
 
-			techniqueData.push_back(std::make_pair(techniqueData[i].first, glslTechnique));
-			techniqueData.push_back(std::make_pair(techniqueData[i].first, vkslTechnique));
+			techniqueData.push_back(std::make_pair(nullptr, glslTechnique));
+			techniqueData.push_back(std::make_pair(nullptr, vkslTechnique));
 		}
 
-		Vector<SPtr<Technique>> techniques;
 		for(auto& entry : techniqueData)
 		{
 			const TechniqueMetaData& metaData = entry.second.metaData;
@@ -1698,63 +1992,57 @@ namespace bs
 				if (!passData.depthStencilIsDefault)
 					passDesc.depthStencilState = DepthStencilState::create(passData.depthStencilDesc);
 
-				GPU_PROGRAM_DESC desc;
-				desc.language = metaData.language;
-
-				bool isHLSL = desc.language == "hlsl";
-				if (!passData.vertexCode.empty())
+				auto createProgram =
+					[](const String& language, const String& entry, const String& code, GpuProgramType type) -> SPtr<GpuProgram>
 				{
-					desc.entryPoint = isHLSL ? "vsmain" : "main";
-					desc.source = passData.vertexCode;
-					desc.type = GPT_VERTEX_PROGRAM;
+					if (code.empty())
+						return nullptr;
 
-					passDesc.vertexProgram = GpuProgram::create(desc);
-				}
+					GPU_PROGRAM_DESC desc;
+					desc.language = language;
+					desc.entryPoint = entry;
+					desc.source = code;
+					desc.type = type;
 
-				if (!passData.fragmentCode.empty())
-				{
-					desc.entryPoint = isHLSL ? "fsmain" : "main";
-					desc.source = passData.fragmentCode;
-					desc.type = GPT_FRAGMENT_PROGRAM;
+					return GpuProgram::create(desc);
+				};
 
-					passDesc.fragmentProgram = GpuProgram::create(desc);
-				}
+				bool isHLSL = metaData.language == "hlsl";
+				passDesc.vertexProgram = createProgram(
+					metaData.language,
+					isHLSL ? "vsmain" : "main",
+					passData.vertexCode,
+					GPT_VERTEX_PROGRAM);
 
-				if (!passData.geometryCode.empty())
-				{
-					desc.entryPoint = isHLSL ? "gsmain" : "main";
-					desc.source = passData.geometryCode;
-					desc.type = GPT_GEOMETRY_PROGRAM;
+				passDesc.fragmentProgram = createProgram(
+					metaData.language,
+					isHLSL ? "fsmain" : "main",
+					passData.fragmentCode,
+					GPT_FRAGMENT_PROGRAM);
 
-					passDesc.geometryProgram = GpuProgram::create(desc);
-				}
+				passDesc.geometryProgram = createProgram(
+					metaData.language,
+					isHLSL ? "gsmain" : "main",
+					passData.geometryCode,
+					GPT_GEOMETRY_PROGRAM);
 
-				if (!passData.hullCode.empty())
-				{
-					desc.entryPoint = isHLSL ? "hsmain" : "main";
-					desc.source = passData.hullCode;
-					desc.type = GPT_HULL_PROGRAM;
+				passDesc.hullProgram = createProgram(
+					metaData.language,
+					isHLSL ? "hsmain" : "main",
+					passData.hullCode,
+					GPT_HULL_PROGRAM);
 
-					passDesc.hullProgram = GpuProgram::create(desc);
-				}
+				passDesc.domainProgram = createProgram(
+					metaData.language,
+					isHLSL ? "dsmain" : "main",
+					passData.domainCode,
+					GPT_DOMAIN_PROGRAM);
 
-				if (!passData.domainCode.empty())
-				{
-					desc.entryPoint = isHLSL ? "dsmain" : "main";
-					desc.source = passData.domainCode;
-					desc.type = GPT_DOMAIN_PROGRAM;
-
-					passDesc.domainProgram = GpuProgram::create(desc);
-				}
-
-				if (!passData.computeCode.empty())
-				{
-					desc.entryPoint = isHLSL ? "csmain" : "main";
-					desc.source = passData.computeCode;
-					desc.type = GPT_COMPUTE_PROGRAM;
-
-					passDesc.computeProgram = GpuProgram::create(desc);
-				}
+				passDesc.computeProgram = createProgram(
+					metaData.language,
+					isHLSL ? "csmain" : "main",
+					passData.computeCode,
+					GPT_COMPUTE_PROGRAM);
 
 				passDesc.stencilRefValue = passData.stencilRefValue;
 
@@ -1769,29 +2057,11 @@ namespace bs
 
 			if (orderedPasses.size() > 0)
 			{
-				SPtr<Technique> technique = Technique::create(metaData.language, metaData.renderer, metaData.tags, 
-					orderedPasses);
+				SPtr<Technique> technique = Technique::create(metaData.language, metaData.renderer, metaData.tags,
+					variation, orderedPasses);
 				techniques.push_back(technique);
 			}
 		}
-
-		Vector<String> includes;
-		IncludeLink* includeLink = parseState->includes;
-		while(includeLink != nullptr)
-		{
-			String includeFilename = includeLink->data->filename;
-
-			auto iterFind = std::find(includes.begin(), includes.end(), includeFilename);
-			if (iterFind == includes.end())
-				includes.push_back(includeFilename);
-
-			includeLink = includeLink->next;
-		}
-
-		parseStateDelete(parseState);
-
-		output.shader = Shader::_createPtr(name, shaderDesc, techniques);
-		output.shader->setIncludeFiles(includes);
 
 		return output;
 	}

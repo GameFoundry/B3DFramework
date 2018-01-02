@@ -54,6 +54,9 @@ OptionInfo OPTION_LOOKUP[] =
 	{ OT_StencilRef, ODT_Int },
 	{ OT_Tags, ODT_Complex },
 	{ OT_TagValue, ODT_String },
+	{ OT_Variations, ODT_Complex },
+	{ OT_Variation, ODT_Complex },
+	{ OT_VariationValue, ODT_Int },
 };
 
 NodeOptions* nodeOptionsCreate(void* context)

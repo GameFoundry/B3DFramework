@@ -4,88 +4,88 @@
     "DebugDraw.bsl": null,
     "Default.bsl": [
         {
-            "Path": "Surface.bslinc"
+            "Path": "GBufferOutput.bslinc"
         },
         {
             "Path": "BasePass.bslinc"
         },
         {
+            "Path": "Surface.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
             "Path": "NormalVertexInput.bslinc"
-        },
-        {
-            "Path": "SkinnedVertexInput.bslinc"
-        },
-        {
-            "Path": "PerObjectData.bslinc"
         },
         {
             "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "GBufferOutput.bslinc"
+            "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "SkinnedVertexInput.bslinc"
         }
     ],
     "DeferredDirectionalLight.bsl": [
         {
-            "Path": "DeferredLightCommon.bslinc"
+            "Path": "LightingCommon.bslinc"
         },
         {
-            "Path": "LightingCommon.bslinc"
+            "Path": "DeferredLightCommon.bslinc"
         },
         {
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         }
     ],
     "DeferredPointLight.bsl": [
         {
-            "Path": "DeferredLightCommon.bslinc"
+            "Path": "LightingCommon.bslinc"
         },
         {
-            "Path": "LightingCommon.bslinc"
+            "Path": "DeferredLightCommon.bslinc"
         },
         {
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         }
     ],
     "Diffuse.bsl": [
         {
-            "Path": "Surface.bslinc"
+            "Path": "GBufferOutput.bslinc"
         },
         {
             "Path": "BasePass.bslinc"
         },
         {
+            "Path": "Surface.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
             "Path": "NormalVertexInput.bslinc"
-        },
-        {
-            "Path": "SkinnedVertexInput.bslinc"
-        },
-        {
-            "Path": "PerObjectData.bslinc"
         },
         {
             "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "GBufferOutput.bslinc"
+            "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "SkinnedVertexInput.bslinc"
         }
     ],
     "FlatFramebufferToTexture.bsl": null,
@@ -126,10 +126,10 @@
     ],
     "IrradianceEvaluate.bsl": [
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "SurfaceData.bslinc"
@@ -190,10 +190,10 @@
     ],
     "MSAACoverage.bsl": [
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "SurfaceData.bslinc"
@@ -324,6 +324,9 @@
     ],
     "PPSSRResolve.bsl": [
         {
+            "Path": "PPBase.bslinc"
+        },
+        {
             "Path": "TemporalResolve.bslinc"
         },
         {
@@ -333,24 +336,21 @@
             "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
             "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "PPBase.bslinc"
+            "Path": "SurfaceData.bslinc"
         }
     ],
     "PPSSRStencil.bsl": [
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "SurfaceData.bslinc"
@@ -361,10 +361,13 @@
     ],
     "PPSSRTrace.bsl": [
         {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
             "Path": "RayMarch.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "SurfaceData.bslinc"
         },
         {
             "Path": "ColorSpace.bslinc"
@@ -373,13 +376,10 @@
             "Path": "ImportanceSampling.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
             "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "PPBase.bslinc"
@@ -417,10 +417,10 @@
             "Path": "NormalVertexInput.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "PerObjectData.bslinc"
+            "Path": "SkinnedVertexInput.bslinc"
         }
     ],
     "ShadowDepthDirectional.bsl": [
@@ -431,10 +431,10 @@
             "Path": "NormalVertexInput.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "PerObjectData.bslinc"
+            "Path": "SkinnedVertexInput.bslinc"
         }
     ],
     "ShadowDepthNormal.bsl": [
@@ -445,10 +445,10 @@
             "Path": "NormalVertexInput.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "PerObjectData.bslinc"
+            "Path": "SkinnedVertexInput.bslinc"
         }
     ],
     "ShadowProject.bsl": [
@@ -459,10 +459,10 @@
             "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "GBufferInput.bslinc"
         }
     ],
     "ShadowProjectOmni.bsl": [
@@ -473,10 +473,10 @@
             "Path": "PerCameraData.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "SurfaceData.bslinc"
+            "Path": "GBufferInput.bslinc"
         }
     ],
     "ShadowProjectStencil.bsl": [
@@ -523,10 +523,10 @@
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         }
     ],
     "TiledDeferredLighting.bsl": [
@@ -543,13 +543,22 @@
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "PerCameraData.bslinc"
+            "Path": "GBufferInput.bslinc"
         },
         {
-            "Path": "GBufferInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         }
     ],
     "Transparent.bsl": [
+        {
+            "Path": "BasePass.bslinc"
+        },
+        {
+            "Path": "LightGridCommon.bslinc"
+        },
+        {
+            "Path": "GBufferOutput.bslinc"
+        },
         {
             "Path": "Surface.bslinc"
         },
@@ -563,28 +572,19 @@
             "Path": "LightingCommon.bslinc"
         },
         {
+            "Path": "NormalVertexInput.bslinc"
+        },
+        {
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "LightGridCommon.bslinc"
-        },
-        {
-            "Path": "BasePass.bslinc"
-        },
-        {
-            "Path": "NormalVertexInput.bslinc"
+            "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "SkinnedVertexInput.bslinc"
         },
         {
             "Path": "PerObjectData.bslinc"
-        },
-        {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
-            "Path": "GBufferOutput.bslinc"
         }
     ]
 }

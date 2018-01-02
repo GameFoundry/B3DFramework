@@ -6,6 +6,11 @@ technique IrradianceReduceSH
 	mixin ReflectionCubemapCommon;
 	mixin SHCommon;
 
+	variations
+	{
+		SH_ORDER = { 3, 5 };
+	};	
+	
 	code
 	{
 		#define PI 3.1415926

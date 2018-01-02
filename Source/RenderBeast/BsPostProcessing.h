@@ -28,6 +28,18 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPDownsample.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 quality, bool MSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("QUALITY", quality),
+				ShaderVariation::Param("MSAA", MSAA)
+			});
+
+			return variation;
+		};
+
 	public:
 		DownsampleMat();
 
@@ -43,11 +55,6 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mInputTexture;
-
-		static ShaderVariation VAR_LowQuality_NoMSAA;
-		static ShaderVariation VAR_LowQuality_MSAA;
-		static ShaderVariation VAR_HighQuality_NoMSAA;
-		static ShaderVariation VAR_HighQuality_MSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EyeAdaptHistogramParamDef)
@@ -61,7 +68,7 @@ namespace bs { namespace ct
 	/** Shader that creates a luminance histogram used for eye adaptation. */
 	class EyeAdaptHistogramMat : public RendererMaterial<EyeAdaptHistogramMat>
 	{
-		RMAT_DEF("PPEyeAdaptHistogram.bsl");
+		RMAT_DEF_CUSTOMIZED("PPEyeAdaptHistogram.bsl");
 
 	public:
 		EyeAdaptHistogramMat();
@@ -130,7 +137,7 @@ namespace bs { namespace ct
 	/** Shader that computes the eye adaptation value based on scene luminance. */
 	class EyeAdaptationMat : public RendererMaterial<EyeAdaptationMat>
 	{
-		RMAT_DEF("PPEyeAdaptation.bsl");
+		RMAT_DEF_CUSTOMIZED("PPEyeAdaptation.bsl");
 
 	public:
 		EyeAdaptationMat();
@@ -233,7 +240,18 @@ namespace bs { namespace ct
 	 */
 	class CreateTonemapLUTMat : public RendererMaterial<CreateTonemapLUTMat>
 	{
-		RMAT_DEF("PPCreateTonemapLUT.bsl");
+		RMAT_DEF_CUSTOMIZED("PPCreateTonemapLUT.bsl");
+
+		/** Helper method used for initializing variations of this material. */
+		template<bool is3D>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("VOLUME_LUT", is3D),
+			});
+
+			return variation;
+		};
 
 	public:
 		CreateTonemapLUTMat();
@@ -273,9 +291,6 @@ namespace bs { namespace ct
 
 		GpuParamLoadStoreTexture mOutputTex;
 		bool mIs3D;
-
-		static ShaderVariation VAR_3D;
-		static ShaderVariation VAR_Unwrapped2D;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TonemappingParamDef)
@@ -289,8 +304,21 @@ namespace bs { namespace ct
 	/** Shader that applies tonemapping and converts a HDR image into a LDR image. */
 	class TonemappingMat : public RendererMaterial<TonemappingMat>
 	{
-		RMAT_DEF("PPTonemapping.bsl");
+		RMAT_DEF_CUSTOMIZED("PPTonemapping.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("VOLUME_LUT", volumeLUT),
+				ShaderVariation::Param("GAMMA_ONLY", gammaOnly),
+				ShaderVariation::Param("AUTO_EXPOSURE", autoExposure),
+				ShaderVariation::Param("MSAA", MSAA),
+			});
+
+			return variation;
+		}
 	public:
 		TonemappingMat();
 
@@ -307,22 +335,6 @@ namespace bs { namespace ct
 		GpuParamTexture mInputTex;
 		GpuParamTexture mColorLUT;
 		GpuParamTexture mEyeAdaptationTex;
-
-#define VARIATION_GAMMA(x)											\
-		static ShaderVariation VAR_##x##_AutoExposure_MSAA;			\
-		static ShaderVariation VAR_##x##_AutoExposure_NoMSAA;		\
-		static ShaderVariation VAR_##x##_NoAutoExposure_MSAA;		\
-		static ShaderVariation VAR_##x##_NoAutoExposure_NoMSAA;
-
-#define VARIATION_VOLUME_LUT(x)			\
-		VARIATION_GAMMA(x##_Gamma)	\
-		VARIATION_GAMMA(x##_NoGamma)
-
-		VARIATION_VOLUME_LUT(VolumeLUT)
-		VARIATION_VOLUME_LUT(NoVolumeLUT)
-
-#undef VARIATION_VOLUME_LUT
-#undef VARIATION_GAMMA
 	};
 
 	const int MAX_BLUR_SAMPLES = 128;
@@ -345,7 +357,7 @@ namespace bs { namespace ct
 			DirHorizontal
 		};
 
-		RMAT_DEF("PPGaussianBlur.bsl");
+		RMAT_DEF_CUSTOMIZED("PPGaussianBlur.bsl");
 
 	public:
 		GaussianBlurMat();
@@ -391,6 +403,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPGaussianDOFSeparate.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool near, bool far>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("NEAR", near),
+				ShaderVariation::Param("FAR", far)
+			});
+
+			return variation;
+		}
 	public:
 		GaussianDOFSeparateMat();
 
@@ -433,10 +456,6 @@ namespace bs { namespace ct
 
 		SPtr<PooledRenderTexture> mOutput0;
 		SPtr<PooledRenderTexture> mOutput1;
-
-		static ShaderVariation VAR_Near_Far;
-		static ShaderVariation VAR_NoNear_Far;
-		static ShaderVariation VAR_Near_NoFar;
 	};
 
 	/** 
@@ -447,6 +466,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPGaussianDOFCombine.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool near, bool far>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("NEAR", near),
+				ShaderVariation::Param("FAR", far),
+			});
+
+			return variation;
+		}
 	public:
 		GaussianDOFCombineMat();
 
@@ -483,10 +513,6 @@ namespace bs { namespace ct
 		GpuParamTexture mNearTexture;
 		GpuParamTexture mFarTexture;
 		GpuParamTexture mDepthTexture;
-
-		static ShaderVariation VAR_Near_Far;
-		static ShaderVariation VAR_NoNear_Far;
-		static ShaderVariation VAR_Near_NoFar;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(BuildHiZFParamDef)
@@ -587,6 +613,18 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPSSAO.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool upsample, bool finalPass, int quality>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MIX_WITH_UPSAMPLED", upsample),
+				ShaderVariation::Param("FINAL_AO", finalPass),
+				ShaderVariation::Param("QUALITY", quality)
+			});
+
+			return variation;
+		}
 	public:
 		SSAOMat();
 
@@ -621,20 +659,6 @@ namespace bs { namespace ct
 		GpuParamTexture mDownsampledAOTexture;
 		GpuParamTexture mSetupAOTexture;
 		GpuParamTexture mRandomTexture;
-
-#define VARIATION(QUALITY) \
-		static ShaderVariation VAR_Upsample_Final_Quality##QUALITY;		\
-		static ShaderVariation VAR_Upsample_NoFinal_Quality##QUALITY;		\
-		static ShaderVariation VAR_NoUpsample_Final_Quality##QUALITY;		\
-		static ShaderVariation VAR_NoUpsample_NoFinal_Quality##QUALITY;		\
-
-		VARIATION(0)
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSAODownsampleParamDef)
@@ -688,6 +712,16 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPSSAOBlur.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool horizontal>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("DIR_HORZ", horizontal)
+			});
+
+			return variation;
+		}
 	public:
 		SSAOBlurMat();
 
@@ -710,9 +744,6 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mAOTexture;
 		GpuParamTexture mDepthTexture;
-
-		static ShaderVariation VAR_Vertical;
-		static ShaderVariation VAR_Horizontal;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSRStencilParamDef)
@@ -726,6 +757,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPSSRStencil.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool msaa, bool singleSampleMSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
+			});
+
+			return variation;
+		}
 	public:
 		SSRStencilMat();
 
@@ -750,10 +792,6 @@ namespace bs { namespace ct
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GBufferParams mGBufferParams;
-
-		static ShaderVariation VAR_FullMSAA;
-		static ShaderVariation VAR_SingleMSAA;
-		static ShaderVariation VAR_NoMSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(SSRTraceParamDef)
@@ -773,6 +811,18 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPSSRTrace.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 quality, bool msaa, bool singleSampleMSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
+				ShaderVariation::Param("QUALITY", quality),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
+			});
+
+			return variation;
+		}
 	public:
 		SSRTraceMat();
 
@@ -812,19 +862,6 @@ namespace bs { namespace ct
 		GBufferParams mGBufferParams;
 		GpuParamTexture mSceneColorTexture;
 		GpuParamTexture mHiZTexture;
-
-#define VARIATION(QUALITY) \
-		static ShaderVariation VAR_NoMSAA_Quality##QUALITY;			\
-		static ShaderVariation VAR_FullMSAA_Quality##QUALITY;		\
-		static ShaderVariation VAR_SingleMSAA_Quality##QUALITY;		\
-
-		VARIATION(0)
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION
 	};
 
 	BS_PARAM_BLOCK_BEGIN(TemporalResolveParamDef)
@@ -847,6 +884,16 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPSSRResolve.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool msaa>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA", msaa)
+			});
+
+			return variation;
+		}
 	public:
 		SSRResolveMat();
 
@@ -879,9 +926,6 @@ namespace bs { namespace ct
 		GpuParamTexture mPrevColorTexture;
 		GpuParamTexture mSceneDepthTexture;
 		GpuParamTexture mEyeAdaptationTexture;
-
-		static ShaderVariation VAR_MSAA;
-		static ShaderVariation VAR_NoMSAA;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EncodeDepthParamDef)
@@ -927,6 +971,16 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("MSAACoverage.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 msaa>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa)
+			});
+
+			return variation;
+		}
 	public:
 		MSAACoverageMat();
 
@@ -942,10 +996,6 @@ namespace bs { namespace ct
 		static MSAACoverageMat* getVariation(UINT32 msaaCount);
 	private:
 		GBufferParams mGBufferParams;
-
-		static ShaderVariation VAR_2x;
-		static ShaderVariation VAR_4x;
-		static ShaderVariation VAR_8x;
 	};
 
 	/** 

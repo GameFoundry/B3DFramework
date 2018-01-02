@@ -105,21 +105,34 @@ namespace bs { namespace ct
 			return tfrm.getPosition();
 	}
 
-	GBufferParams::GBufferParams(const SPtr<Material>& material, const SPtr<GpuParamsSet>& paramsSet)
-		: mMaterial(material), mParamsSet(paramsSet)
+	GBufferParams::GBufferParams(GpuProgramType type, const SPtr<GpuParams>& gpuParams)
+		: mParams(gpuParams)
 	{
-		mGBufferA = material->getParamTexture("gGBufferATex");
-		mGBufferB = material->getParamTexture("gGBufferBTex");
-		mGBufferC = material->getParamTexture("gGBufferCTex");
-		mGBufferDepth = material->getParamTexture("gDepthBufferTex");
+		if(mParams->hasTexture(type, "gGBufferATex"))
+			mParams->getTextureParam(type, "gGBufferATex", mGBufferA);
 
-		SAMPLER_STATE_DESC desc;
-		desc.minFilter = FO_POINT;
-		desc.magFilter = FO_POINT;
-		desc.mipFilter = FO_POINT;
+		if(mParams->hasTexture(type, "gGBufferBTex"))
+			mParams->getTextureParam(type, "gGBufferBTex", mGBufferB);
 
-		SPtr<SamplerState> ss = SamplerState::create(desc);
-		material->setSamplerState("gDepthBufferSamp", ss);
+		if(mParams->hasTexture(type, "gGBufferCTex"))
+			mParams->getTextureParam(type, "gGBufferCTex", mGBufferC);
+
+		if(mParams->hasTexture(type, "gDepthBufferTex"))
+			mParams->getTextureParam(type, "gDepthBufferTex", mGBufferDepth);
+
+		if(mParams->hasSamplerState(type, "gDepthBufferSamp"))
+		{
+			GpuParamSampState samplerStateParam;
+			mParams->getSamplerStateParam(type, "gDepthBufferSamp", samplerStateParam);
+
+			SAMPLER_STATE_DESC desc;
+			desc.minFilter = FO_POINT;
+			desc.magFilter = FO_POINT;
+			desc.mipFilter = FO_POINT;
+
+			SPtr<SamplerState> ss = SamplerState::create(desc);
+			samplerStateParam.set(ss);
+		}
 	}
 
 	void GBufferParams::bind(const GBufferTextures& gbuffer)
@@ -128,8 +141,6 @@ namespace bs { namespace ct
 		mGBufferB.set(gbuffer.normals);
 		mGBufferC.set(gbuffer.roughMetal);
 		mGBufferDepth.set(gbuffer.depth);
-
-		mMaterial->updateParamsSet(mParamsSet);
 	}
 
 	VisibleLightData::VisibleLightData()
@@ -243,55 +254,29 @@ namespace bs { namespace ct
 
 	const UINT32 TiledDeferredLightingMat::TILE_SIZE = 16;
 
-	ShaderVariation TiledDeferredLightingMat::VAR_1MSAA = ShaderVariation({
-		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
-		ShaderVariation::Param("MSAA_COUNT", 1)
-	});
-
-	ShaderVariation TiledDeferredLightingMat::VAR_2MSAA = ShaderVariation({
-		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
-		ShaderVariation::Param("MSAA_COUNT", 2)
-	});
-
-	ShaderVariation TiledDeferredLightingMat::VAR_4MSAA = ShaderVariation({
-		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
-		ShaderVariation::Param("MSAA_COUNT", 4)
-	});
-
-	ShaderVariation TiledDeferredLightingMat::VAR_8MSAA = ShaderVariation({
-		ShaderVariation::Param("TILE_SIZE", TILE_SIZE),
-		ShaderVariation::Param("MSAA_COUNT", 8)
-	});
-
-
 	TiledDeferredLightingMat::TiledDeferredLightingMat()
-		:mGBufferParams(mMaterial, mParamsSet)
+		:mGBufferParams(GPT_COMPUTE_PROGRAM, mParams)
 	{
 		mSampleCount = mVariation.getUInt("MSAA_COUNT");
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
 
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
+		if (mParams->hasLoadStoreTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
+			mParams->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
-		if (params->hasLoadStoreTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
-			params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
-
-		if (params->hasBuffer(GPT_COMPUTE_PROGRAM, "gOutput"))
-			params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
+		if (mParams->hasBuffer(GPT_COMPUTE_PROGRAM, "gOutput"))
+			mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
 
 		if (mSampleCount > 1)
-			params->getTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
+			mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
-		params->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
-	void TiledDeferredLightingMat::_initVariations(ShaderVariations& variations)
+	void TiledDeferredLightingMat::_initDefines(ShaderDefines& defines)
 	{
-		variations.add(VAR_1MSAA);
-		variations.add(VAR_2MSAA);
-		variations.add(VAR_4MSAA);
-		variations.add(VAR_8MSAA);
+		defines.set("TILE_SIZE", TILE_SIZE);
 	}
 
 	void TiledDeferredLightingMat::execute(const RendererView& view, const VisibleLightData& lightData, 
@@ -355,7 +340,7 @@ namespace bs { namespace ct
 		mParamBuffer->flushToGPU();
 
 		mGBufferParams.bind(gbuffer);
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		if (mSampleCount > 1)
 		{
@@ -368,9 +353,7 @@ namespace bs { namespace ct
 		UINT32 numTilesX = (UINT32)Math::ceilToInt(width / (float)TILE_SIZE);
 		UINT32 numTilesY = (UINT32)Math::ceilToInt(height / (float)TILE_SIZE);
 
-		gRendererUtility().setComputePass(mMaterial, 0);
-		gRendererUtility().setPassParams(mParamsSet);
-
+		bind();
 		RenderAPI::instance().dispatchCompute(numTilesX, numTilesY);
 	}
 
@@ -379,14 +362,14 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 1:
-			return get(VAR_1MSAA);
+			return get(getVariation<1>());
 		case 2:
-			return get(VAR_2MSAA);
+			return get(getVariation<2>());
 		case 4:
-			return get(VAR_4MSAA);
+			return get(getVariation<4>());
 		case 8:
 		default:
-			return get(VAR_8MSAA);
+			return get(getVariation<8>());
 		}
 	}
 
@@ -394,16 +377,10 @@ namespace bs { namespace ct
 
 	FlatFramebufferToTextureMat::FlatFramebufferToTextureMat()
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
+		mParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
 
 		mParamBuffer = gTiledLightingParamDef.createBuffer();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-	}
-
-	void FlatFramebufferToTextureMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void FlatFramebufferToTextureMat::execute(const SPtr<GpuBuffer>& flatFramebuffer, const SPtr<Texture>& target)
@@ -421,8 +398,7 @@ namespace bs { namespace ct
 
 		mInputParam.set(flatFramebuffer);
 
-		gRendererUtility().setPass(mMaterial, 0);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 
 		Rect2 area(0.0f, 0.0f, (float)props.getWidth(), (float)props.getHeight());
 		gRendererUtility().drawScreenQuad(area);

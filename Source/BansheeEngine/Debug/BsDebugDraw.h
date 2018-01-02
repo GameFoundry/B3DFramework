@@ -189,6 +189,18 @@ namespace bs
 	{
 		RMAT_DEF("DebugDraw.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool solid, bool line, bool wire>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SOLID", solid),
+				ShaderVariation::Param("LINE", line),
+				ShaderVariation::Param("WIRE", wire)
+			});
+
+			return variation;
+		}
 	public:
 		DebugDrawMat();
 
@@ -197,10 +209,6 @@ namespace bs
 
 		/** Returns the material variation matching the provided parameters. */
 		static DebugDrawMat* getVariation(DebugDrawMaterial drawMat);
-	private:
-		static ShaderVariation VAR_Solid;
-		static ShaderVariation VAR_Wire;
-		static ShaderVariation VAR_Line;
 	};
 
 	/** Performs rendering of meshes provided by DebugDraw. */

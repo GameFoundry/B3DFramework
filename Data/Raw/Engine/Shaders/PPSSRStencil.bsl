@@ -8,6 +8,12 @@ technique PPSSRStencil
 	mixin PerCameraData;
 	mixin GBufferInput;
 
+	variations
+	{
+		MSAA_COUNT = { 1, 2 };
+		MSAA_RESOLVE_0TH = { true, false };
+	};
+	
 	stencil
 	{
 		enabled = true;
@@ -18,10 +24,6 @@ technique PPSSRStencil
 	
 	code
 	{
-		#ifndef MSAA_RESOLVE_0TH
-			#define MSAA_RESOLVE_0TH 0
-		#endif	
-	
 		[internal]
 		cbuffer Input
 		{

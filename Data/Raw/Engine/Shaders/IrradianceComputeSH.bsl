@@ -6,6 +6,11 @@ technique IrradianceComputeSH
 	mixin ReflectionCubemapCommon;
 	mixin SHCommon;
 
+	variations
+	{
+		SH_ORDER = { 3, 5 };
+	};	
+	
 	code
 	{
 		struct SHCoeffsAndWeight

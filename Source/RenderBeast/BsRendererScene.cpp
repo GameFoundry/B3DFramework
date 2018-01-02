@@ -256,7 +256,7 @@ namespace bs {	namespace ct
 
 				// If no mInfo.aterial use the default mInfo.aterial
 				if (renElement.material == nullptr)
-					renElement.material = DefaultMaterial::get()->getMaterial();
+					renElement.material = Material::create(DefaultMaterial::get()->getShader());
 
 				// Determine which technique to use
 				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };

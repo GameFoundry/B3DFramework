@@ -9,50 +9,21 @@
 namespace bs { namespace ct {
 	PerLightParamDef gPerLightParamDef;
 
-	ShaderVariation DirectionalLightMat::VAR_FullMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true)
-	});
-
-	ShaderVariation DirectionalLightMat::VAR_SingleMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
-	});
-
-	ShaderVariation DirectionalLightMat::VAR_NoMSAA = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1)
-	});
-
 	DirectionalLightMat::DirectionalLightMat()
-		:mGBufferParams(mMaterial, mParamsSet)
+		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		const GpuParams& gpuParams = *mParamsSet->getGpuParams();
-		gpuParams.getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
-	}
-
-	void DirectionalLightMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_FullMSAA);
-		variations.add(VAR_SingleMSAA);
-		variations.add(VAR_NoMSAA);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 	}
 
 	void DirectionalLightMat::bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, 
-		const SPtr<GpuParamBlockBuffer>& perCamera)
+		const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight)
 	{
-		RendererUtility::instance().setPass(mMaterial, 0);
-
 		mGBufferParams.bind(gBufferInput);
 		mLightOcclusionTexParam.set(lightOcclusion);
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
-	}
+		mParams->setParamBlockBuffer("PerCamera", perCamera);
+		mParams->setParamBlockBuffer("PerLight", perLight);
 
-	void DirectionalLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
-	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerLight", perLight);
-		
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	DirectionalLightMat* DirectionalLightMat::getVariation(bool msaa, bool singleSampleMSAA)
@@ -60,79 +31,29 @@ namespace bs { namespace ct {
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return get(VAR_SingleMSAA);
+				return get(getVariation<true, true>());
 			else
-				return get(VAR_FullMSAA);
+				return get(getVariation<true, false>());
 		}
 
-		return get(VAR_NoMSAA);
+		return get(getVariation<false, false>());
 	}
-
-	ShaderVariation PointLightMat::VAR_FullMSAA_Inside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("INSIDE_GEOMETRY", true)
-	});
-
-	ShaderVariation PointLightMat::VAR_SingleMSAA_Inside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("INSIDE_GEOMETRY", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
-	});
-
-	ShaderVariation PointLightMat::VAR_FullMSAA_Outside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true)
-	});
-
-	ShaderVariation PointLightMat::VAR_SingleMSAA_Outside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 2),
-		ShaderVariation::Param("MSAA", true),
-		ShaderVariation::Param("MSAA_RESOLVE_0TH", true)
-	});
-
-	ShaderVariation PointLightMat::VAR_NoMSAA_Inside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1),
-		ShaderVariation::Param("INSIDE_GEOMETRY", true)
-	});
-
-	ShaderVariation PointLightMat::VAR_NoMSAA_Outside = ShaderVariation({
-		ShaderVariation::Param("MSAA_COUNT", 1)
-	});
 
 	PointLightMat::PointLightMat()
-		:mGBufferParams(mMaterial, mParamsSet)
+		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		const GpuParams& gpuParams = *mParamsSet->getGpuParams();
-		gpuParams.getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
-	}
-
-	void PointLightMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_FullMSAA_Inside);
-		variations.add(VAR_SingleMSAA_Inside);
-		variations.add(VAR_FullMSAA_Outside);
-		variations.add(VAR_SingleMSAA_Outside);
-		variations.add(VAR_NoMSAA_Inside);
-		variations.add(VAR_NoMSAA_Outside);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 	}
 
 	void PointLightMat::bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, 
-		const SPtr<GpuParamBlockBuffer>& perCamera)
+		const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight)
 	{
-		RendererUtility::instance().setPass(mMaterial, 0);
-
 		mGBufferParams.bind(gBufferInput);
 		mLightOcclusionTexParam.set(lightOcclusion);
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
-	}
+		mParams->setParamBlockBuffer("PerCamera", perCamera);
+		mParams->setParamBlockBuffer("PerLight", perLight);
 
-	void PointLightMat::setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight)
-	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerLight", perLight);
-		
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	PointLightMat* PointLightMat::getVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -142,24 +63,24 @@ namespace bs { namespace ct {
 			if (inside)
 			{
 				if (singleSampleMSAA)
-					return get(VAR_SingleMSAA_Inside);
+					return get(getVariation<true, true, true>());
 
-				return get(VAR_FullMSAA_Inside);
+				return get(getVariation<true, true, false>());
 			}
 			else
 			{
 				if (singleSampleMSAA)
-					return get(VAR_SingleMSAA_Outside);
+					return get(getVariation<false, true, true>());
 
-				return get(VAR_FullMSAA_Outside);
+				return get(getVariation<false, true, false>());
 			}
 		}
 		else
 		{
 			if (inside)
-				return get(VAR_NoMSAA_Inside);
+				return get(getVariation<true, false, false>());
 			else
-				return get(VAR_NoMSAA_Outside);
+				return get(getVariation<false, false, false>());
 		}
 	}
 
@@ -181,8 +102,7 @@ namespace bs { namespace ct {
 		if (lightType == LightType::Directional)
 		{
 			DirectionalLightMat* material = DirectionalLightMat::getVariation(isMSAA, true);
-			material->bind(gBufferInput, lightOcclusion, perViewBuffer);
-			material->setPerLightParams(mPerLightBuffer);
+			material->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			gRendererUtility().drawScreenQuad();
 
@@ -190,8 +110,7 @@ namespace bs { namespace ct {
 			if(isMSAA)
 			{
 				DirectionalLightMat* msaaMaterial = DirectionalLightMat::getVariation(true, false);
-				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer);
-				msaaMaterial->setPerLightParams(mPerLightBuffer);
+				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 				gRendererUtility().drawScreenQuad();
 			}
@@ -215,8 +134,7 @@ namespace bs { namespace ct {
 				stencilMesh = RendererUtility::instance().getSpotLightStencil();
 
 			PointLightMat* material = PointLightMat::getVariation(isInside, isMSAA, true);
-			material->bind(gBufferInput, lightOcclusion, perViewBuffer);
-			material->setPerLightParams(mPerLightBuffer);
+			material->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
 			gRendererUtility().draw(stencilMesh);
@@ -225,8 +143,7 @@ namespace bs { namespace ct {
 			if(isMSAA)
 			{
 				PointLightMat* msaaMaterial = PointLightMat::getVariation(isInside, true, false);
-				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer);
-				msaaMaterial->setPerLightParams(mPerLightBuffer);
+				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 				gRendererUtility().draw(stencilMesh);
 			}

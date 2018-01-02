@@ -1,13 +1,19 @@
 technique Blit
 {
+	variations
+	{
+		COLOR = { true, false };
+		MSAA_COUNT = { 1, 2, 4, 8 };
+	};
+
 	depth
 	{	
-		#ifndef DEPTH
+		#if COLOR
 		read = false;
-		write = false;
+		write = false;	
 		#else
 		// Cannot use read = false because that disables gl_FragDepth writes on OpenGL
-		compare = always;		
+		compare = always;	
 		#endif
 	};
 

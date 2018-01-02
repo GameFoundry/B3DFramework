@@ -1,6 +1,13 @@
 technique DebugDraw
 {
-	#ifdef LINE
+	variations
+	{
+		LINE = { 0, 1 };
+		WIRE = { 0, 1 };
+		SOLID = { 0, 1 };
+	};
+
+	#if LINE
 	raster
 	{
 		multisample = false; // This controls line rendering algorithm
@@ -17,7 +24,7 @@ technique DebugDraw
 	};
 	#endif
 	
-	#ifdef WIRE
+	#if WIRE
 	raster
 	{
 		fill = wire;
@@ -26,14 +33,6 @@ technique DebugDraw
 	
 	code
 	{
-		#ifndef LINE
-			#define LINE 0
-		#endif
-		
-		#ifndef WIRE
-			#define WIRE 0
-		#endif
-	
 		cbuffer Params
 		{
 			float4x4 	gMatViewProj;

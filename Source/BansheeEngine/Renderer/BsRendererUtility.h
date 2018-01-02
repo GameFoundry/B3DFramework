@@ -21,6 +21,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("Blit.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 msaa, bool color>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa),
+				ShaderVariation::Param("COLOR", color),
+			});
+
+			return variation;
+		}
 	public:
 		BlitMat();
 
@@ -39,17 +50,7 @@ namespace bs { namespace ct
 		 */
 		static BlitMat* getVariation(UINT32 msaaCount, bool isColor);
 	private:
-		MaterialParamTexture mSource;
-
-		static ShaderVariation VAR_1MSAA_Color;
-		static ShaderVariation VAR_2MSAA_Color;
-		static ShaderVariation VAR_4MSAA_Color;
-		static ShaderVariation VAR_8MSAA_Color;
-
-		static ShaderVariation VAR_1MSAA_Depth;
-		static ShaderVariation VAR_2MSAA_Depth;
-		static ShaderVariation VAR_4MSAA_Depth;
-		static ShaderVariation VAR_8MSAA_Depth;
+		GpuParamTexture mSource;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ClearParamDef)

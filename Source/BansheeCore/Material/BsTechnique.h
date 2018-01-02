@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
 #include "CoreThread/BsCoreObject.h"
+#include "Material/BsShaderVariation.h"
 
 namespace bs
 {
@@ -16,7 +17,8 @@ namespace bs
 	class BS_CORE_EXPORT TechniqueBase
 	{
 	public:
-		TechniqueBase(const String& language, const StringID& renderer, const Vector<StringID>& tags);
+		TechniqueBase(const String& language, const StringID& renderer, const Vector<StringID>& tags, 
+			const ShaderVariation& variation);
 		virtual ~TechniqueBase() { }
 
 		/**	Checks if this technique is supported based on current render and other systems. */
@@ -28,10 +30,14 @@ namespace bs
 		/** Checks if the technique has any tags. */
 		UINT32 hasTags() const { return !mTags.empty(); }
 
+		/** Returns a set of preprocessor defines used for compiling this particular technique. */
+		const ShaderVariation& getVariation() const { return mVariation; }
+
 	protected:
 		String mLanguage;
 		StringID mRenderer;
 		Vector<StringID> mTags;
+		ShaderVariation mVariation;
 	};
 
 	template<bool Core> struct TPassType { };
@@ -51,7 +57,7 @@ namespace bs
 		
 		TTechnique();
 		TTechnique(const String& language, const StringID& renderer, const Vector<StringID>& tags, 
-			const Vector<SPtr<PassType>>& passes);
+			const ShaderVariation& variation, const Vector<SPtr<PassType>>& passes);
 		virtual ~TTechnique() { }
 
 		/**	Returns a pass with the specified index. */
@@ -84,7 +90,7 @@ namespace bs
 	{
 	public:
 		Technique(const String& language, const StringID& renderer, const Vector<StringID>& tags,
-			const Vector<SPtr<Pass>>& passes);
+			const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
 
 		/** Retrieves an implementation of a technique usable only from the core thread. */
 		SPtr<ct::Technique> getCore() const;
@@ -110,11 +116,13 @@ namespace bs
 		 *							this technique unless this renderer is enabled.
 		 * @param[in]	tags		An optional set of tags that can be used for further identifying under which 
 		 *							circumstances should a technique be used.
+		 * @param[in]	variation	A set of preprocessor directives that were used for compiling this particular technique.
+		 *							Used for shaders that have multiple variations.
 		 * @param[in]	passes		A set of passes that define the technique.
 		 * @return					Newly creted technique.
 		 */
 		static SPtr<Technique> create(const String& language, const StringID& renderer, const Vector<StringID>& tags,
-			const Vector<SPtr<Pass>>& passes);
+			const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
 
 	protected:
 		/** @copydoc CoreObject::createCore */
@@ -153,15 +161,18 @@ namespace bs
 	{
 	public:
 		Technique(const String& language, const StringID& renderer, const Vector<StringID>& tags,
-			const Vector<SPtr<Pass>>& passes);
+			const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
 
 		/** @copydoc bs::Technique::create(const String&, const StringID&, const Vector<SPtr<Pass>>&) */
 		static SPtr<Technique> create(const String& language, const StringID& renderer,
 			const Vector<SPtr<Pass>>& passes);
 
-		/** @copydoc bs::Technique::create(const String&, const StringID&, const Vector<StringID>&, const Vector<SPtr<Pass>>&) */
+		/** 
+		 * @copydoc bs::Technique::create(const String&, const StringID&, const Vector<StringID>&, 
+		 *				const ShaderVariation&, const Vector<SPtr<Pass>>&) 
+		 */
 		static SPtr<Technique> create(const String& language, const StringID& renderer, const Vector<StringID>& tags,
-			const Vector<SPtr<Pass>>& passes);
+			const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
 	};
 
 	/** @} */

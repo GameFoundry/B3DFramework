@@ -15,14 +15,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gReflectionCubeDownsampleParamDef.createBuffer();
 
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
-		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	}
-
-	void ReflectionCubeDownsampleMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Input", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void ReflectionCubeDownsampleMat::execute(
@@ -49,8 +43,7 @@ namespace bs { namespace ct
 
 		rapi.setRenderTarget(target);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 	}
 
@@ -61,18 +54,13 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gReflectionCubeImportanceSampleParamDef.createBuffer();
 
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("Input", mParamBuffer);
-		gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+		mParams->setParamBlockBuffer("Input", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void ReflectionCubeImportanceSampleMat::_initVariations(ShaderVariations& variations)
+	void ReflectionCubeImportanceSampleMat::_initDefines(ShaderDefines& defines)
 	{
-		ShaderVariation variation({
-			ShaderVariation::Param("NUM_SAMPLES", NUM_SAMPLES)
-		});
-
-		variations.add(variation);
+		defines.set("NUM_SAMPLES", NUM_SAMPLES);
 	}
 
 	void ReflectionCubeImportanceSampleMat::execute(const SPtr<Texture>& source, UINT32 face, UINT32 mip, 
@@ -94,8 +82,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(target);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 	}
 
@@ -108,34 +95,20 @@ namespace bs { namespace ct
 	// For very small textures this should be reduced so number of launched threads can properly utilize GPU cores
 	const static UINT32 PIXELS_PER_THREAD = 4;
 
-	ShaderVariation IrradianceComputeSHMat::VAR_Order3 = ShaderVariation({
-		ShaderVariation::Param("TILE_WIDTH", TILE_WIDTH),
-		ShaderVariation::Param("TILE_HEIGHT", TILE_HEIGHT),
-		ShaderVariation::Param("PIXELS_PER_THREAD", PIXELS_PER_THREAD),
-		ShaderVariation::Param("SH_ORDER", 3),
-	});
-
-	ShaderVariation IrradianceComputeSHMat::VAR_Order5 = ShaderVariation({
-		ShaderVariation::Param("TILE_WIDTH", TILE_WIDTH),
-		ShaderVariation::Param("TILE_HEIGHT", TILE_HEIGHT),
-		ShaderVariation::Param("PIXELS_PER_THREAD", PIXELS_PER_THREAD),
-		ShaderVariation::Param("SH_ORDER", 5),
-	});
-
 	IrradianceComputeSHMat::IrradianceComputeSHMat()
 	{
 		mParamBuffer = gIrradianceComputeSHParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getTextureParam(GPT_COMPUTE_PROGRAM, "gInputTex", mInputTexture);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gInputTex", mInputTexture);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
 
-	void IrradianceComputeSHMat::_initVariations(ShaderVariations& variations)
+	void IrradianceComputeSHMat::_initDefines(ShaderDefines& defines)
 	{
-		variations.add(VAR_Order3);
-		variations.add(VAR_Order5);
+		defines.set("TILE_WIDTH", TILE_WIDTH);
+		defines.set("TILE_HEIGHT", TILE_HEIGHT);
+		defines.set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
 	}
 
 	void IrradianceComputeSHMat::execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output)
@@ -157,8 +130,7 @@ namespace bs { namespace ct
 
 		RenderAPI& rapi = RenderAPI::instance();
 
-		gRendererUtility().setComputePass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		rapi.dispatchCompute(dispatchSize.x, dispatchSize.y);
 	}
 
@@ -191,9 +163,9 @@ namespace bs { namespace ct
 	IrradianceComputeSHMat* IrradianceComputeSHMat::getVariation(int order)
 	{
 		if (order == 3)
-			return get(VAR_Order3);
+			return get(getVariation<3>());
 
-		return get(VAR_Order5);
+		return get(getVariation<5>());
 	}
 
 	IrradianceComputeSHFragParamDef gIrradianceComputeSHFragParamDef;
@@ -202,14 +174,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceComputeSHFragParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	}
-
-	void IrradianceComputeSHFragMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void IrradianceComputeSHFragMat::execute(const SPtr<Texture>& source, UINT32 face, UINT32 coefficientIdx, 
@@ -226,8 +192,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -245,14 +210,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceAccumulateSHParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	}
-
-	void IrradianceAccumulateSHMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void IrradianceAccumulateSHMat::execute(const SPtr<Texture>& source, UINT32 face, UINT32 sourceMip, 
@@ -272,8 +231,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(output);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -293,14 +251,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceAccumulateSHParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	}
-
-	void IrradianceAccumulateCubeSHMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
 	void IrradianceAccumulateCubeSHMat::execute(const SPtr<Texture>& source, UINT32 sourceMip, const Vector2I& outputOffset,
@@ -331,8 +283,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 		rapi.setViewport(viewRect);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
@@ -346,28 +297,13 @@ namespace bs { namespace ct
 
 	IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
 
-	ShaderVariation IrradianceReduceSHMat::VAR_Order3 = ShaderVariation({
-		ShaderVariation::Param("SH_ORDER", 3),
-	});
-
-	ShaderVariation IrradianceReduceSHMat::VAR_Order5 = ShaderVariation({
-		ShaderVariation::Param("SH_ORDER", 5),
-	});
-
 	IrradianceReduceSHMat::IrradianceReduceSHMat()
 	{
 		mParamBuffer = gIrradianceReduceSHParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getBufferParam(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
-		params->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTexture);
-	}
-
-	void IrradianceReduceSHMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_Order3);
-		variations.add(VAR_Order5);
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
+		mParams->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTexture);
 	}
 
 	void IrradianceReduceSHMat::execute(const SPtr<GpuBuffer>& source, UINT32 numCoeffSets, 
@@ -382,10 +318,9 @@ namespace bs { namespace ct
 		mInputBuffer.set(source);
 		mOutputTexture.set(output);
 
-		RenderAPI& rapi = RenderAPI::instance();
+		bind();
 
-		gRendererUtility().setComputePass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		RenderAPI& rapi = RenderAPI::instance();
 		rapi.dispatchCompute(1);
 	}
 
@@ -406,9 +341,9 @@ namespace bs { namespace ct
 	IrradianceReduceSHMat* IrradianceReduceSHMat::getVariation(int order)
 	{
 		if (order == 3)
-			return get(VAR_Order3);
+			return get(getVariation<3>());
 
-		return get(VAR_Order5);
+		return get(getVariation<5>());
 	}
 
 	IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
@@ -417,14 +352,8 @@ namespace bs { namespace ct
 	{
 		mParamBuffer = gIrradianceProjectSHParamDef.createBuffer();
 
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-		params->setParamBlockBuffer("Params", mParamBuffer);
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputTexture);
-	}
-
-	void IrradianceProjectSHMat::_initVariations(ShaderVariations& variations)
-	{
-		// Do nothing
+		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputTexture);
 	}
 
 	void IrradianceProjectSHMat::execute(const SPtr<Texture>& shCoeffs, UINT32 face, const SPtr<RenderTarget>& target)
@@ -436,8 +365,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(target);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		bind();
 		gRendererUtility().drawScreenQuad();
 	}
 

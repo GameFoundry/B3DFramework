@@ -21,7 +21,9 @@ enum tagNodeType
 	NT_StencilOp,
 	NT_BlendDef,
 	NT_Tags,
-	NT_Code
+	NT_Code,
+	NT_Variations,
+	NT_Variation
 };
 
 enum tagOptionType
@@ -74,6 +76,9 @@ enum tagOptionType
 	OT_StencilRef,
 	OT_Tags,
 	OT_TagValue,
+	OT_Variations,
+	OT_Variation,
+	OT_VariationValue,
 	OT_Count
 };
 

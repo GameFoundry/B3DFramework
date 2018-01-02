@@ -61,6 +61,13 @@ namespace bs
 			String computeCode;
 		};
 
+		/** Information about different variations of a single technique. */
+		struct VariationData
+		{
+			String identifier;
+			Vector<UINT32> values;
+		};
+
 		/** Information describing a technique, without the actual contents. */
 		struct TechniqueMetaData
 		{
@@ -72,6 +79,7 @@ namespace bs
 			StringID renderer = RendererAny;
 
 			Vector<StringID> tags;
+			Vector<VariationData> variations;
 		};
 
 		/** Temporary data for describing a technique during parsing. */
@@ -88,10 +96,14 @@ namespace bs
 
 	private:
 		/** Converts the provided source into an abstract syntax tree using the lexer & parser for BSL FX syntax. */
-		static void parseFX(ParseState* parseState, const char* source);
+		static BSLFXCompileResult parseFX(ParseState* parseState, const char* source, 
+			const UnorderedMap<String, String>& defines);
 
 		/** Parses the technique node and outputs the relevant meta-data. */
 		static TechniqueMetaData parseTechniqueMetaData(ASTFXNode* technique);
+
+		/** Parses technique variations and writes them to the provided meta-data object. */
+		static void parseVariations(TechniqueMetaData& metaData, ASTFXNode* variations);
 
 		/**	Converts FX renderer name into an in-engine renderer identifier. */
 		static StringID parseRenderer(const String& name);
@@ -176,7 +188,7 @@ namespace bs
 		static void parseCodeBlock(ASTFXNode* codeNode, const Vector<String>& codeBlocks, PassData& passData);
 
 		/**
-		 * Parses the pass AST node and populates the provided @passData with all relevant pass parameters.
+		 * Parses the pass AST node and populates the provided @p passData with all relevant pass parameters.
 		 *
 		 * @param[in]	passNode		Node to parse.
 		 * @param[in]	codeBlocks		GPU program source code.
@@ -202,15 +214,20 @@ namespace bs
 		static void parseOptions(ASTFXNode* optionsNode, SHADER_DESC& shaderDesc);
 
 		/**
-		 * Parses the AST node hierarchy and generates a shader object.
+		 * Parses the AST node hierarchy and generates a list of techniques.
 		 *
-		 * @param[in]		name		Optional name for the shader.
 		 * @param[in, out]	parseState	Parser state object that has previously been initialized with the AST using 
 		 *								parseFX().
-		 * @param	codeBlocks			GPU program source code.
-		 * @return						A result object containing the shader if successful, or error message if not.
+		 * @param[in]	codeBlocks		Blocks containing GPU program source code that are referenced by the AST.
+		 * @param[in]	variation		Shader variation the AST was parsed with.
+		 * @param[out]	techniques		Vector to append newly found techniques to.
+		 * @param[out]	includes		Set to append newly found includes to.
+		 * @param[out]	shaderDesc		Shader descriptor too append new parameters to.
+		 * @return						A result object containing an error message if not successful.
 		 */
-		static BSLFXCompileResult parseShader(const String& name, ParseState* parseState, Vector<String>& codeBlocks);
+		static BSLFXCompileResult parseTechniques(ParseState* parseState, const Vector<String>& codeBlocks, 
+			const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, UnorderedSet<String>& includes, 
+			SHADER_DESC& shaderDesc);
 
 		/**
 		 * Converts a null-terminated string into a standard string, and eliminates quotes that are assumed to be at the 

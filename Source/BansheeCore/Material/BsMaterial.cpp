@@ -72,6 +72,19 @@ namespace bs
 	}
 
 	template<bool Core>
+	UINT32 TMaterial<Core>::findTechnique(const ShaderVariation& variation) const
+	{
+		for(UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
+		{
+			const ShaderVariation& curVariation = mTechniques[i]->getVariation();
+			if(curVariation == variation)
+				return i;
+		}
+
+		return (UINT32)-1;
+	}
+
+	template<bool Core>
 	UINT32 TMaterial<Core>::getDefaultTechnique() const
 	{
 		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
@@ -151,14 +164,18 @@ namespace bs
 	}
 
 	template<bool Core>
-	void TMaterial<Core>::initializeTechniques()
+	void TMaterial<Core>::initializeTechniques(bool allVariations, const ShaderVariation& variation)
 	{
 		mTechniques.clear();
 
 		if (isShaderValid(mShader))
 		{
 			mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
-			mTechniques = mShader->getCompatibleTechniques();
+
+			if(allVariations)
+				mTechniques = mShader->getCompatibleTechniques();
+			else
+				mTechniques = mShader->getCompatibleTechniques(variation);
 
 			if (mTechniques.size() == 0)
 				return;
@@ -754,6 +771,11 @@ namespace bs
 	{
 		setShader(shader);
 	}
+	
+	Material::Material(const SPtr<Shader>& shader, const ShaderVariation& variation)
+	{
+		setShader(shader, variation);
+	}
 
 	Material::Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques,
 		const SPtr<MaterialParams>& materialParams)
@@ -768,7 +790,14 @@ namespace bs
 		mShader = shader;
 
 		initializeTechniques();
+		_markCoreDirty();
+	}
+	
+	void Material::setShader(const SPtr<Shader>& shader, const ShaderVariation& variation)
+	{
+		mShader = shader;
 
+		initializeTechniques(false, variation);
 		_markCoreDirty();
 	}
 
@@ -814,6 +843,16 @@ namespace bs
 	SPtr<Material> Material::create(const SPtr<Shader>& shader)
 	{
 		Material* material = new (bs_alloc<Material>()) Material(shader);
+		SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
+		materialPtr->_setThisPtr(materialPtr);
+		materialPtr->initialize();
+
+		return materialPtr;
+	}
+	
+	SPtr<Material> Material::create(const SPtr<Shader>& shader, const ShaderVariation& variation)
+	{
+		Material* material = new (bs_alloc<Material>()) Material(shader, variation);
 		SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
 		materialPtr->_setThisPtr(materialPtr);
 		materialPtr->initialize();

@@ -1,22 +1,35 @@
+#if MSAA
+#define MSAA_COUNT 2
+#else
+#define MSAA_COUNT 1
+#endif
+
 #include "$ENGINE$\DeferredLightCommon.bslinc"
 
 technique DeferredPointLight
 {
 	mixin DeferredLightCommon;
 
-	#ifdef MSAA
+	variations
+	{
+		MSAA = { true, false };
+		INSIDE_GEOMETRY = { true, false };
+		MSAA_RESOLVE_0TH = { true, false };
+	};		
+	
+	#if MSAA
 	stencil
 	{
 		enabled = true;
 		readmask = 0x80;
 		
-		#ifdef INSIDE_GEOMETRY
+		#if INSIDE_GEOMETRY
 		back = { keep, keep, keep, eq };
 		#else
 		front = { keep, keep, keep, eq };
 		#endif
 		
-		#ifdef MSAA_RESOLVE_0TH
+		#if MSAA_RESOLVE_0TH
 		reference = 0;
 		#else
 		reference = 0x80;
@@ -26,10 +39,6 @@ technique DeferredPointLight
 	
 	code
 	{
-		#ifndef MSAA_RESOLVE_0TH
-			#define MSAA_RESOLVE_0TH 0
-		#endif		
-	
 		struct VStoFS
 		{
 			float4 position : SV_POSITION;

@@ -25,8 +25,6 @@ namespace bs
 		{
 			ct::RendererMaterialMetaData* metaData;
 			Path shaderPath;
-			Path resourcePath;
-			UINT32 variationIdx;
 		};
 
 	public:
@@ -36,12 +34,8 @@ namespace bs
 		/**	Registers a new material that should be initialized on module start-up. */
 		static void _registerMaterial(ct::RendererMaterialMetaData* metaData, const Path& shaderPath);
 
-		/** Returns all available variations (specified by pre-processor defines) of a shader at the provided path. */
-		static Vector<ShaderDefines> _getVariations(const Path& shaderPath);
-
-		/** Generates a new unique shader path for a specific shader variation. */
-		static Path _getVariationPath(const Path& shaderPath, UINT32 variationIdx);
-
+		/** Returns a set of defines to be used when importing the shader.. */
+		static ShaderDefines _getDefines(const Path& shaderPath);
 	private:
 		template<class T>
 		friend class RendererMaterial;

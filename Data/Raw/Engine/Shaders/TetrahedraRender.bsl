@@ -4,6 +4,12 @@ technique TetrahedraRender
 {
 	mixin PerCameraData;
 
+	variations
+	{
+		MSAA = { true, false };
+		MSAA_RESOLVE_0TH = { true, false };
+	};
+	
 	raster
 	{
 		cull = cw;
@@ -40,14 +46,6 @@ technique TetrahedraRender
 			return output;
 		}
 		
-		#ifndef MSAA
-			#define MSAA 0
-		#endif
-		
-		#ifndef MSAA_RESOLVE_0TH
-			#define MSAA_RESOLVE_0TH 0
-		#endif		
-
 		#if MSAA
 		Texture2DMS<float> gDepthBufferTex;
 		#else

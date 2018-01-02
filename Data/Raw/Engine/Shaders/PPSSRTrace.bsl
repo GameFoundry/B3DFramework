@@ -16,6 +16,13 @@ technique PPSSRTrace
 	mixin ImportanceSampling;
 	mixin ColorSpace;
 
+	variations
+	{
+		MSAA_COUNT = { 1, 2 };
+		QUALITY = { 0, 1, 2, 3, 4 };
+		MSAA_RESOLVE_0TH = { true, false };
+	};	
+	
 	stencil
 	{
 		enabled = true;
@@ -37,10 +44,6 @@ technique PPSSRTrace
 			float2 gRoughnessScaleBias;
 			int gTemporalJitter;
 		}
-		
-		#ifndef MSAA_RESOLVE_0TH
-			#define MSAA_RESOLVE_0TH 0
-		#endif
 		
 		#if QUALITY == 0
 			#define NUM_RAYS 1

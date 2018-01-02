@@ -251,6 +251,13 @@ namespace bs
 			"Number of param descriptor structures must match the number of GPU program stages."
 		);
 
+		for (UINT32 i = 0; i < numParamDescs; i++)
+			getBinding((GpuProgramType)i, type, name, bindings[i]);
+	}
+
+	void GpuPipelineParamInfoBase::getBinding(GpuProgramType progType, ParamType type, const String& name, 
+		GpuParamBinding &binding)
+	{
 		auto findBinding = [](auto& paramMap, const String& name, GpuParamBinding& binding)
 		{
 			auto iterFind = paramMap.find(name);
@@ -263,37 +270,32 @@ namespace bs
 				binding.set = binding.slot = (UINT32)-1;
 		};
 
-		for (UINT32 i = 0; i < numParamDescs; i++)
+		const SPtr<GpuParamDesc>& paramDesc = mParamDescs[(UINT32)progType];
+		if (paramDesc == nullptr)
 		{
-			GpuParamBinding& binding = bindings[i];
+			binding.set = binding.slot = (UINT32)-1;
+			return;
+		}
 
-			const SPtr<GpuParamDesc>& paramDesc = mParamDescs[i];
-			if (paramDesc == nullptr)
-			{
-				binding.set = binding.slot = (UINT32)-1;
-				continue;
-			}
-
-			switch(type)
-			{
-			case ParamType::ParamBlock: 
-				findBinding(paramDesc->paramBlocks, name, binding);
-				break;
-			case ParamType::Texture: 
-				findBinding(paramDesc->textures, name, binding);
-				break;
-			case ParamType::LoadStoreTexture: 
-				findBinding(paramDesc->loadStoreTextures, name, binding);
-				break;
-			case ParamType::Buffer: 
-				findBinding(paramDesc->buffers, name, binding);
-				break;
-			case ParamType::SamplerState: 
-				findBinding(paramDesc->samplers, name, binding);
-				break;
-			default: 
-				break;
-			}
+		switch(type)
+		{
+		case ParamType::ParamBlock: 
+			findBinding(paramDesc->paramBlocks, name, binding);
+			break;
+		case ParamType::Texture: 
+			findBinding(paramDesc->textures, name, binding);
+			break;
+		case ParamType::LoadStoreTexture: 
+			findBinding(paramDesc->loadStoreTextures, name, binding);
+			break;
+		case ParamType::Buffer: 
+			findBinding(paramDesc->buffers, name, binding);
+			break;
+		case ParamType::SamplerState: 
+			findBinding(paramDesc->samplers, name, binding);
+			break;
+		default: 
+			break;
 		}
 	}
 

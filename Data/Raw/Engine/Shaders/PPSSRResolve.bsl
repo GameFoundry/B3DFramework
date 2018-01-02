@@ -15,6 +15,11 @@ technique PPSSRResolve
 	mixin PerCameraData;
 	mixin TemporalResolve;
 
+	variations
+	{
+		MSAA = { true, false };
+	};
+	
 	code
 	{
 		[internal]

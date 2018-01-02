@@ -27,16 +27,24 @@ namespace bs { namespace ct {
 	{
 		RMAT_DEF("DeferredDirectionalLight.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool msaa, bool singleSampleMSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA", msaa),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
+			});
+
+			return variation;
+		}
 	public:
 		DirectionalLightMat();
 
-		/** Binds the material for rendering and sets up any global parameters. */
+		/** Binds the material for rendering and sets up any parameters. */
 		void bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, 
-			const SPtr<GpuParamBlockBuffer>& perCamera);
+			const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight);
 
-		/** Updates the per-light buffers used by the material. */
-		void setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight);
-		
 		/** 
 		 * Returns the material variation matching the provided parameters. 
 		 * 
@@ -49,10 +57,6 @@ namespace bs { namespace ct {
 	private:
 		GBufferParams mGBufferParams;
 		GpuParamTexture mLightOcclusionTexParam;
-
-		static ShaderVariation VAR_FullMSAA;
-		static ShaderVariation VAR_SingleMSAA;
-		static ShaderVariation VAR_NoMSAA;
 	};
 
 	/** Shader that renders point (radial & spot) light sources during deferred rendering light pass. */
@@ -60,15 +64,24 @@ namespace bs { namespace ct {
 	{
 		RMAT_DEF("DeferredPointLight.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool inside, bool msaa, bool singleSampleMSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA", msaa),
+				ShaderVariation::Param("INSIDE_GEOMETRY", inside),
+				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
+			});
+
+			return variation;
+		}
 	public:
 		PointLightMat();
 
-		/** Binds the material for rendering and sets up any global parameters. */
+		/** Binds the material for rendering and sets up any parameters. */
 		void bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, 
-			const SPtr<GpuParamBlockBuffer>& perCamera);
-
-		/** Updates the per-light buffers used by the material. */
-		void setPerLightParams(const SPtr<GpuParamBlockBuffer>& perLight);
+			const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight);
 
 		/** 
 		 * Returns the material variation matching the provided parameters. 
@@ -83,13 +96,6 @@ namespace bs { namespace ct {
 	private:
 		GBufferParams mGBufferParams;
 		GpuParamTexture mLightOcclusionTexParam;
-
-		static ShaderVariation VAR_FullMSAA_Inside;
-		static ShaderVariation VAR_SingleMSAA_Inside;
-		static ShaderVariation VAR_FullMSAA_Outside;
-		static ShaderVariation VAR_SingleMSAA_Outside;
-		static ShaderVariation VAR_NoMSAA_Inside;
-		static ShaderVariation VAR_NoMSAA_Outside;
 	};
 
 	/** Provides functionality for standard (non-tiled) deferred rendering. */

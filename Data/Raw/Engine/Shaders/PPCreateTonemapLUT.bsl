@@ -12,6 +12,11 @@ technique PPCreateTonemapLUT
 	mixin PPBase;
 	#endif
 	
+	variations
+	{
+		VOLUME_LUT = { true, false };
+	};
+	
 	code
 	{
 		[internal]

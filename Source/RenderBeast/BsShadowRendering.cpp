@@ -18,43 +18,36 @@ namespace bs { namespace ct
 	ShadowDepthNormalMat::ShadowDepthNormalMat()
 	{ }
 
-	void ShadowDepthNormalMat::_initVariations(ShaderVariations& variations)
-	{
-		// No defines
-	}
-
 	void ShadowDepthNormalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
 
-		gRendererUtility().setPass(mMaterial);
+		RenderAPI::instance().setGraphicsPipeline(mGfxPipeline);
+		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 	
 	void ShadowDepthNormalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerObject", perObjectParams);
-		gRendererUtility().setPassParams(mParamsSet);
+		mParams->setParamBlockBuffer("PerObject", perObjectParams);
+
+		RenderAPI::instance().setGpuParams(mParams);
 	}
 
 	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
 	{ }
 
-	void ShadowDepthDirectionalMat::_initVariations(ShaderVariations& variations)
-	{
-		// No defines
-	}
-
 	void ShadowDepthDirectionalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
 
-		gRendererUtility().setPass(mMaterial);
+		RenderAPI::instance().setGraphicsPipeline(mGfxPipeline);
+		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 	
 	void ShadowDepthDirectionalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerObject", perObjectParams);
-		gRendererUtility().setPassParams(mParamsSet);
+		mParams->setParamBlockBuffer("PerObject", perObjectParams);
+		RenderAPI::instance().setGpuParams(mParams);
 	}
 
 	ShadowCubeMatricesDef gShadowCubeMatricesDef;
@@ -63,67 +56,33 @@ namespace bs { namespace ct
 	ShadowDepthCubeMat::ShadowDepthCubeMat()
 	{ }
 
-	void ShadowDepthCubeMat::_initVariations(ShaderVariations& variations)
-	{
-		// No defines
-	}
-
 	void ShadowDepthCubeMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams, 
 		const SPtr<GpuParamBlockBuffer>& shadowCubeMatrices)
 	{
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("ShadowParams", shadowParams);
-		gpuParams->setParamBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
+		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
+		mParams->setParamBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 
-		gRendererUtility().setPass(mMaterial);
+		RenderAPI::instance().setGraphicsPipeline(mGfxPipeline);
+		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 
 	void ShadowDepthCubeMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams,
 		const SPtr<GpuParamBlockBuffer>& shadowCubeMasks)
 	{
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("PerObject", perObjectParams);
-		gpuParams->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
+		mParams->setParamBlockBuffer("PerObject", perObjectParams);
+		mParams->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
 
-		gRendererUtility().setPassParams(mParamsSet);
+		RenderAPI::instance().setGpuParams(mParams);
 	}
 
 	ShadowProjectParamsDef gShadowProjectParamsDef;
 	ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
-	ShaderVariation ShadowProjectStencilMat::VAR_Dir_ZFailStencil = ShaderVariation({
-		ShaderVariation::Param("NEEDS_TRANSFORM", true),
-		ShaderVariation::Param("USE_ZFAIL_STENCIL", true)
-	});
-
-	ShaderVariation ShadowProjectStencilMat::VAR_Dir_NoZFailStencil = ShaderVariation({
-		ShaderVariation::Param("NEEDS_TRANSFORM", true)
-	});
-
-	ShaderVariation ShadowProjectStencilMat::VAR_NoDir_ZFailStencil = ShaderVariation({
-		ShaderVariation::Param("NEEDS_TRANSFORM", false),
-		ShaderVariation::Param("USE_ZFAIL_STENCIL", true)
-	});
-
-	ShaderVariation ShadowProjectStencilMat::VAR_NoDir_NoZFailStencil = ShaderVariation({
-		ShaderVariation::Param("NEEDS_TRANSFORM", false)
-	});
-	
 	ShadowProjectStencilMat::ShadowProjectStencilMat()
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-
 		mVertParams = gShadowProjectVertParamsDef.createBuffer();
-		if(params->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
-	}
-
-	void ShadowProjectStencilMat::_initVariations(ShaderVariations& variations)
-	{
-		variations.add(VAR_Dir_ZFailStencil);
-		variations.add(VAR_Dir_NoZFailStencil);
-		variations.add(VAR_NoDir_ZFailStencil);
-		variations.add(VAR_NoDir_NoZFailStencil);
+		if(mParams->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
 	void ShadowProjectStencilMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
@@ -131,69 +90,32 @@ namespace bs { namespace ct
 		Vector4 lightPosAndScale(0, 0, 0, 1);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
 
-		mParamsSet->getGpuParams()->setParamBlockBuffer("PerCamera", perCamera);
+		mParams->setParamBlockBuffer("PerCamera", perCamera);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	ShadowProjectStencilMat* ShadowProjectStencilMat::getVariation(bool directional, bool useZFailStencil)
 	{
 		if(directional)
-		{
-			// Always uses z-fail stencil
-			return get(VAR_Dir_ZFailStencil);
-		}
+			return get(getVariation<true, true>());
 		else
 		{
 			if (useZFailStencil)
-				return get(VAR_NoDir_ZFailStencil);
+				return get(getVariation<false, true>());
 			else
-				return get(VAR_NoDir_NoZFailStencil);
+				return get(getVariation<false, false>());
 		}
 	}
 
-#define VARIATION(QUALITY)																	\
-		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_Dir_MSAA = ShaderVariation({		\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
-			ShaderVariation::Param("CASCADINGE", true),										\
-			ShaderVariation::Param("NEEDS_TRANSFORM", false),								\
-			ShaderVariation::Param("MSAA_COUNT", 2)											\
-		});																					\
-		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_Dir_NoMSAA = ShaderVariation({	\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
-			ShaderVariation::Param("CASCADING", true),										\
-			ShaderVariation::Param("NEEDS_TRANSFORM", false),								\
-			ShaderVariation::Param("MSAA_COUNT", 1)											\
-		});																					\
-		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_NoDir_MSAA = ShaderVariation({	\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),								\
-			ShaderVariation::Param("MSAA_COUNT", 2)											\
-		});																					\
-		ShaderVariation ShadowProjectMat::VAR_Q##QUALITY##_NoDir_NoMSAA = ShaderVariation({	\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),								\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),								\
-			ShaderVariation::Param("MSAA_COUNT", 1)											\
-		});																					\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
-
 	ShadowProjectMat::ShadowProjectMat()
-		: mGBufferParams(mMaterial, mParamsSet)
+		: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
-
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
-		if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowSampler"))
-			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
+		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowSampler"))
+			mParams->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
 		else
-			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowSamplerParam);
+			mParams->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowSamplerParam);
 
 		SAMPLER_STATE_DESC desc;
 		desc.minFilter = FO_POINT;
@@ -206,24 +128,8 @@ namespace bs { namespace ct
 		mSamplerState = SamplerState::create(desc);
 
 		mVertParams = gShadowProjectVertParamsDef.createBuffer();
-		if(params->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
-	}
-
-	void ShadowProjectMat::_initVariations(ShaderVariations& variations)
-	{
-#define VARIATION(QUALITY)									\
-		variations.add(VAR_Q##QUALITY##_Dir_MSAA);			\
-		variations.add(VAR_Q##QUALITY##_Dir_NoMSAA);		\
-		variations.add(VAR_Q##QUALITY##_NoDir_MSAA);		\
-		variations.add(VAR_Q##QUALITY##_NoDir_NoMSAA);		\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
+		if(mParams->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
 	void ShadowProjectMat::bind(const ShadowProjectParams& params)
@@ -236,28 +142,26 @@ namespace bs { namespace ct
 		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
 
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("Params", params.shadowParams);
-		gpuParams->setParamBlockBuffer("PerCamera", params.perCamera);
+		mParams->setParamBlockBuffer("Params", params.shadowParams);
+		mParams->setParamBlockBuffer("PerCamera", params.perCamera);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	ShadowProjectMat* ShadowProjectMat::getVariation(UINT32 quality, bool directional, bool MSAA)
 	{
-#define BIND_MAT(QUALITY)									\
-	{														\
-		if(directional)										\
-			if (MSAA)										\
-				return get(VAR_Q##QUALITY##_Dir_MSAA);		\
-			else											\
-				return get(VAR_Q##QUALITY##_Dir_NoMSAA);	\
-		else												\
-			if (MSAA)										\
-				return get(VAR_Q##QUALITY##_NoDir_MSAA);	\
-			else											\
-				return get(VAR_Q##QUALITY##_NoDir_NoMSAA);	\
+#define BIND_MAT(QUALITY)											\
+	{																\
+		if(directional)												\
+			if (MSAA)												\
+				return get(getVariation<QUALITY, true, true>());	\
+			else													\
+				return get(getVariation<QUALITY, true, false>());	\
+		else														\
+			if (MSAA)												\
+				return get(getVariation<QUALITY, false, true>());	\
+			else													\
+				return get(getVariation<QUALITY, false, false>());	\
 	}
 
 		if(quality <= 1)
@@ -274,48 +178,15 @@ namespace bs { namespace ct
 
 	ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
-#define VARIATION(QUALITY)																			\
-		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Inside_MSAA = ShaderVariation({		\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
-			ShaderVariation::Param("VIEWER_INSIDE_VOLUME", true),									\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
-			ShaderVariation::Param("MSAA_COUNT", 2)													\
-		});																							\
-		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Inside_NoMSAA = ShaderVariation({	\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
-			ShaderVariation::Param("VIEWER_INSIDE_VOLUME", true),									\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
-			ShaderVariation::Param("MSAA_COUNT", 1)													\
-		});																							\
-		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Outside_MSAA = ShaderVariation({		\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
-			ShaderVariation::Param("MSAA_COUNT", 2)													\
-		});																							\
-		ShaderVariation ShadowProjectOmniMat::VAR_Q##QUALITY##_Outside_NoMSAA = ShaderVariation({	\
-			ShaderVariation::Param("SHADOW_QUALITY", QUALITY),										\
-			ShaderVariation::Param("NEEDS_TRANSFORM", true),										\
-			ShaderVariation::Param("MSAA_COUNT", 1)													\
-		});																							\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
-
 	ShadowProjectOmniMat::ShadowProjectOmniMat()
-		: mGBufferParams(mMaterial, mParamsSet)
+		: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		SPtr<GpuParams> params = mParamsSet->getGpuParams();
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
 
-		params->getTextureParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
-
-		if(params->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler"))
-			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
+		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler"))
+			mParams->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
 		else
-			params->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowSamplerParam);
+			mParams->getSamplerStateParam(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowSamplerParam);
 
 		SAMPLER_STATE_DESC desc;
 		desc.minFilter = FO_LINEAR;
@@ -329,24 +200,8 @@ namespace bs { namespace ct
 		mSamplerState = SamplerState::create(desc);
 
 		mVertParams = gShadowProjectVertParamsDef.createBuffer();
-		if(params->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-			params->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
-	}
-
-	void ShadowProjectOmniMat::_initVariations(ShaderVariations& variations)
-	{
-#define VARIATION(QUALITY)									\
-		variations.add(VAR_Q##QUALITY##_Inside_MSAA);		\
-		variations.add(VAR_Q##QUALITY##_Inside_NoMSAA);		\
-		variations.add(VAR_Q##QUALITY##_Outside_MSAA);		\
-		variations.add(VAR_Q##QUALITY##_Outside_NoMSAA);	\
-	
-		VARIATION(1)
-		VARIATION(2)
-		VARIATION(3)
-		VARIATION(4)
-
-#undef VARIATION 
+		if(mParams->hasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
 	void ShadowProjectOmniMat::bind(const ShadowProjectParams& params)
@@ -359,28 +214,26 @@ namespace bs { namespace ct
 		mShadowMapParam.set(params.shadowMap);
 		mShadowSamplerParam.set(mSamplerState);
 
-		SPtr<GpuParams> gpuParams = mParamsSet->getGpuParams();
-		gpuParams->setParamBlockBuffer("Params", params.shadowParams);
-		gpuParams->setParamBlockBuffer("PerCamera", params.perCamera);
+		mParams->setParamBlockBuffer("Params", params.shadowParams);
+		mParams->setParamBlockBuffer("PerCamera", params.perCamera);
 
-		gRendererUtility().setPass(mMaterial);
-		gRendererUtility().setPassParams(mParamsSet);
+		RendererMaterial::bind();
 	}
 
 	ShadowProjectOmniMat* ShadowProjectOmniMat::getVariation(UINT32 quality, bool inside, bool MSAA)
 	{
-#define BIND_MAT(QUALITY)										\
-	{															\
-		if(inside)												\
-			if (MSAA)											\
-				return get(VAR_Q##QUALITY##_Inside_MSAA);		\
-			else												\
-				return get(VAR_Q##QUALITY##_Inside_NoMSAA);		\
-		else													\
-			if (MSAA)											\
-				return get(VAR_Q##QUALITY##_Outside_MSAA);		\
-			else												\
-				return get(VAR_Q##QUALITY##_Outside_NoMSAA);	\
+#define BIND_MAT(QUALITY)											\
+	{																\
+		if(inside)													\
+			if (MSAA)												\
+				return get(getVariation<QUALITY, true, true>());	\
+			else													\
+				return get(getVariation<QUALITY, true, false>());	\
+		else														\
+			if (MSAA)												\
+				return get(getVariation<QUALITY, false, true>());	\
+			else													\
+				return get(getVariation<QUALITY, false, false>());	\
 	}
 
 		if(quality <= 1)

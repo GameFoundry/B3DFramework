@@ -6,6 +6,7 @@
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsParamBlocks.h"
 #include "BsLightRendering.h"
+#include "RenderAPI/BsGpuPipelineParamInfo.h"
 
 namespace bs { namespace ct
 {
@@ -94,12 +95,12 @@ namespace bs { namespace ct
 		/** 
 		 * Initializes the parameters from the provided parameters. 
 		 *
-		 * @param[in]	paramsSet	GPU parameters object to look for the parameters in.
+		 * @param[in]	params		GPU parameters object to look for the parameters in.
 		 * @param[in]	programType	Type of the GPU program to look up the parameters for.
 		 * @param[in]	optional	If true no warnings will be thrown if some or all of the parameters will be found.
 		 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
 		 */
-		void populate(const SPtr<GpuParamsSet>& paramsSet, GpuProgramType programType, bool optional, bool gridIndices);
+		void populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices);
 
 		GpuParamTexture skyReflectionsTexParam;
 		GpuParamTexture ambientOcclusionTexParam;
@@ -113,7 +114,7 @@ namespace bs { namespace ct
 		GpuParamSampState ssrSampParam;
 
 		GpuParamBuffer reflectionProbeIndicesParam;
-		UINT32 reflProbeParamsBindingIdx;
+		GpuParamBinding reflProbeParamBindings;
 	};
 
 	/** Parameter buffer containing information about reflection probes. */
@@ -131,8 +132,18 @@ namespace bs { namespace ct
 	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
 	class TiledDeferredImageBasedLightingMat : public RendererMaterial<TiledDeferredImageBasedLightingMat>
 	{
-		RMAT_DEF("TiledDeferredImageBasedLighting.bsl");
+		RMAT_DEF_CUSTOMIZED("TiledDeferredImageBasedLighting.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 msaa>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("MSAA_COUNT", msaa)
+			});
+
+			return variation;
+		}
 	public:
 		/** Container for parameters to be passed to the execute() method. */
 		struct Inputs
@@ -176,11 +187,6 @@ namespace bs { namespace ct
 		ReflProbeParamBuffer mReflProbeParamBuffer;
 
 		static const UINT32 TILE_SIZE;
-
-		static ShaderVariation VAR_1MSAA;
-		static ShaderVariation VAR_2MSAA;
-		static ShaderVariation VAR_4MSAA;
-		static ShaderVariation VAR_8MSAA;
 	};
 
 	/** @} */

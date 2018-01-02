@@ -1,3 +1,9 @@
+#if MSAA
+#define MSAA_COUNT 2
+#else
+#define MSAA_COUNT 1
+#endif
+
 #include "$ENGINE$\PPBase.bslinc"
 #define SH_ORDER 3
 #include "$ENGINE$\SHCommon.bslinc"
@@ -11,6 +17,13 @@ technique IrradianceEvaluate
 	mixin GBufferInput;
 	mixin PerCameraData;
 	
+	variations
+	{
+		MSAA = { true, false };
+		MSAA_RESOLVE_0TH = { true, false };
+		SKY_ONLY = { true, false };
+	};
+	
 	blend
 	{
 		target	
@@ -22,10 +35,6 @@ technique IrradianceEvaluate
 	
 	code
 	{
-		#ifndef MSAA_RESOLVE_0TH
-			#define MSAA_RESOLVE_0TH 0
-		#endif	
-	
 		#if MSAA_COUNT > 1
 			Texture2DMS<uint> gInputTex;
 		#else

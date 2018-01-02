@@ -316,6 +316,20 @@ namespace bs
 		return output;
 	}
 
+	template<bool Core>
+	Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::getCompatibleTechniques(
+		const ShaderVariation& variation) const
+	{
+		Vector<SPtr<TechniqueType>> output;
+		for (auto& technique : mTechniques)
+		{
+			if (technique->isSupported() && technique->getVariation() == variation)
+				output.push_back(technique);
+		}
+
+		return output;
+	}
+
 	template class TShader < false > ;
 	template class TShader < true >;
 

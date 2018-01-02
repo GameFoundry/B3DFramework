@@ -60,12 +60,16 @@ transparent		{ return TOKEN_TRANSPARENT; }
 renderer		{ return TOKEN_RENDERER; }
 tags			{ return TOKEN_TAGS; }
 pass			{ return TOKEN_PASS; }
+variations		{ return TOKEN_VARIATIONS; }
 
 	/* Pass keywords */
 blend			{ return TOKEN_BLEND; }
 raster			{ return TOKEN_RASTER; }
 depth			{ return TOKEN_DEPTH; }
 stencil			{ return TOKEN_STENCIL; }
+
+	/* Variation keywords */
+variation		{ return TOKEN_VARIATION; }
 
 	/* Rasterizer state keywords */
 fill			{ return TOKEN_FILLMODE; }
@@ -250,6 +254,7 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 #endif							{ popConditional(yyextra); }
 
 <CONDITIONAL_IGNORE>{WS}		{ /* Skip */ }
+<CONDITIONAL_IGNORE>#if			{ pushConditional(yyextra, 0); }
 <CONDITIONAL_IGNORE>#ifdef		{ pushConditional(yyextra, 0); }
 <CONDITIONAL_IGNORE>#ifndef		{ pushConditional(yyextra, 0); }
 <CONDITIONAL_IGNORE>#else		{ 

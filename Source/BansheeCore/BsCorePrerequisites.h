@@ -580,6 +580,8 @@ namespace bs
 		TID_SceneActor = 1140,
 		TID_AudioListener = 1141,
 		TID_AudioSource = 1142,
+		TID_ShaderVariationParam = 1143,
+		TID_ShaderVariation = 1144,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

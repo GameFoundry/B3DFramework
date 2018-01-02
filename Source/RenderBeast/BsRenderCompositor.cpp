@@ -986,8 +986,13 @@ namespace bs { namespace ct
 
 				// Image based lighting params
 				ImageBasedLightingParams& iblParams = element.imageBasedParams;
-				if (iblParams.reflProbeParamsBindingIdx != (UINT32)-1)
-					element.params->setParamBlockBuffer(iblParams.reflProbeParamsBindingIdx, reflProbeParamBuffer.buffer);
+				if (iblParams.reflProbeParamBindings.set != (UINT32)-1)
+				{
+					gpuParams->setParamBlockBuffer(
+						iblParams.reflProbeParamBindings.set,
+						iblParams.reflProbeParamBindings.slot,
+						reflProbeParamBuffer.buffer);
+				}
 
 				element.gridProbeOffsetsAndSizeParam.set(gridProbeOffsetsAndSize);
 
@@ -1057,16 +1062,14 @@ namespace bs { namespace ct
 		if (radiance != nullptr)
 		{
 			SkyboxMat* material = SkyboxMat::getVariation(false);
-			material->bind(inputs.view.getPerViewBuffer());
-			material->setParams(radiance, Color::White);
+			material->bind(inputs.view.getPerViewBuffer(), radiance, Color::White);
 		}
 		else
 		{
 			Color clearColor = inputs.view.getProperties().clearColor;
 
 			SkyboxMat* material = SkyboxMat::getVariation(true);
-			material->bind(inputs.view.getPerViewBuffer());
-			material->setParams(nullptr, clearColor);
+			material->bind(inputs.view.getPerViewBuffer(), nullptr, clearColor);
 		}
 
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);

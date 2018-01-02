@@ -4,6 +4,12 @@ technique ShadowProjectStencil
 {
 	mixin ShadowProjectionCommon;
 
+	variations
+	{
+		NEEDS_TRANSFORM = { true, false };
+		USE_ZFAIL_STENCIL = { true, false };
+	};		
+	
 	depth
 	{
 		write = false;
@@ -22,7 +28,7 @@ technique ShadowProjectStencil
 		cull = none;
 	};
 	
-	#ifdef USE_ZFAIL_STENCIL
+	#if USE_ZFAIL_STENCIL
 	stencil
 	{
 		enabled = true;

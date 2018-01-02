@@ -126,6 +126,9 @@ namespace bs
 		/** Attempts to find a technique with the supported tag. Returns an index of the technique, or -1 if not found. */
 		UINT32 findTechnique(const StringID& tag) const;
 
+		/** Attempts to find a technique matching the provided variation. Returns an index of the technique, or -1 if not found. */
+		UINT32 findTechnique(const ShaderVariation& variation) const;
+
 		/** Finds the index of the default (primary) technique to use. */
 		UINT32 getDefaultTechnique() const;
 
@@ -548,9 +551,10 @@ namespace bs
 
 		/**
 		 * Initializes the material by using the compatible techniques from the currently set shader. Shader must contain 
-		 * the techniques that matches the current renderer and render system.
+		 * the techniques that matches the current renderer and render system. Only the techniques matching the provided
+		 * variation will be used, unless @p allVariations is set to true, in which case @p variation parameter is ignored.
 		 */
-		void initializeTechniques();
+		void initializeTechniques(bool allVariations = true, const ShaderVariation& variation = ShaderVariation());
 
 		/** Assigns all the default parameters specified in the shader to the material. */
 		void initDefaultParameters();
@@ -576,15 +580,8 @@ namespace bs
 		~Material() { }
 
 		/**
-		 * Sets a shader that will be used by the material. Best technique within the provided shader will be used for the 
-		 * material.
-		 *
-		 * @note	
-		 * Shader must be set before doing any other operations with the material.
-		 * @note			
-		 * After setting the shader if you change the implementation of systems that a shader technique is dependent upon 
-		 * (render system, renderer, etc), you will need to call this method again on all your Materials to make sure
-		 * technique used is updated.
+		 * Sets a shader that will be used by the material. Material will be initialized using all compatible techniques
+		 * from the shader. Shader must be set before doing any other operations with the material.
 		 */
 		BS_SCRIPT_EXPORT(n:Shader,pr:setter)
 		void setShader(const HShader& shader);
@@ -693,14 +690,27 @@ namespace bs
 		/** @copydoc bs::Material::setShader */
 		void setShader(const SPtr<Shader>& shader);
 
-		/** Creates a new material with the specified shader. */
+		/**
+		 * Sets a shader that will be used by the material. Material will be initialized using a subset of compatible 
+		 * techniques matching the provided variation. Shader must be set before doing any other operations with the
+		 * material.
+		 */
+		void setShader(const SPtr<Shader>& shader, const ShaderVariation& variation);
+
+		/** 
+		 * Creates a new material with the specified shader. If the shader has multiple variations all of them are
+		 * initialized and can then be retrieved through findTechnique(const ShaderVariation&). 
+		 */
 		static SPtr<Material> create(const SPtr<Shader>& shader);
 
+		/** Creates a new material with the specified shader, using only the provided shader variation. */
+		static SPtr<Material> create(const SPtr<Shader>& shader, const ShaderVariation& variation);
 	private:
 		friend class bs::Material;
 
 		Material() { }
 		Material(const SPtr<Shader>& shader);
+		Material(const SPtr<Shader>& shader, const ShaderVariation& variation);
 		Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques,
 			const SPtr<MaterialParams>& materialParams);
 

@@ -4,6 +4,14 @@ technique PPTonemapping
 {
 	mixin PPTonemapCommon;
 
+	variations
+	{
+		VOLUME_LUT = { true, false };
+		GAMMA_ONLY = { true, false };
+		AUTO_EXPOSURE = { true, false };
+		MSAA = { true, false };
+	};
+	
 	depth
 	{
 		read = false;

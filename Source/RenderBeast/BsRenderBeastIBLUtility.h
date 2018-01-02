@@ -49,7 +49,7 @@ namespace bs { namespace ct
 	/** Performs importance sampling on cubemap faces in order for make them suitable for specular evaluation. */
 	class ReflectionCubeImportanceSampleMat : public RendererMaterial<ReflectionCubeImportanceSampleMat>
 	{
-		RMAT_DEF("ReflectionCubeImportanceSample.bsl")
+		RMAT_DEF_CUSTOMIZED("ReflectionCubeImportanceSample.bsl")
 
 	public:
 		ReflectionCubeImportanceSampleMat();
@@ -117,8 +117,18 @@ namespace bs { namespace ct
 	/** Computes spherical harmonic coefficients from a radiance cubemap. */
 	class IrradianceComputeSHMat : public RendererMaterial<IrradianceComputeSHMat>
 	{
-		RMAT_DEF("IrradianceComputeSH.bsl")
+		RMAT_DEF_CUSTOMIZED("IrradianceComputeSH.bsl")
 
+		/** Helper method used for initializing variations of this material. */
+		template<int shOrder>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SH_ORDER", shOrder)
+			});
+
+			return variation;
+		}
 	public:
 		IrradianceComputeSHMat();
 
@@ -144,9 +154,6 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mInputTexture;
 		GpuParamBuffer mOutputBuffer;
-
-		static ShaderVariation VAR_Order3;
-		static ShaderVariation VAR_Order5;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
@@ -164,6 +171,16 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("IrradianceReduceSH.bsl")
 
+		/** Helper method used for initializing variations of this material. */
+		template<int shOrder>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SH_ORDER", shOrder)
+			});
+
+			return variation;
+		}
 	public:
 		IrradianceReduceSHMat();
 
@@ -189,9 +206,6 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamBuffer mInputBuffer;
 		GpuParamLoadStoreTexture mOutputTexture;
-
-		static ShaderVariation VAR_Order3;
-		static ShaderVariation VAR_Order5;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHFragParamDef)

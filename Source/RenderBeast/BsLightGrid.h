@@ -33,7 +33,7 @@ namespace bs { namespace ct
 	 */
 	class LightGridLLCreationMat : public RendererMaterial<LightGridLLCreationMat>
 	{
-		RMAT_DEF("LightGridLLCreation.bsl");
+		RMAT_DEF_CUSTOMIZED("LightGridLLCreation.bsl");
 
 	public:
 		LightGridLLCreationMat();
@@ -74,7 +74,7 @@ namespace bs { namespace ct
 	/** Shader that reduces the linked list created by LightGridLLCreationMat into a sequential array. */
 	class LightGridLLReductionMat : public RendererMaterial<LightGridLLReductionMat>
 	{
-		RMAT_DEF("LightGridLLReduction.bsl");
+		RMAT_DEF_CUSTOMIZED("LightGridLLReduction.bsl");
 
 	public:
 		LightGridLLReductionMat();

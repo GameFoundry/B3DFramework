@@ -5,7 +5,10 @@
 #include "BsPrerequisites.h"
 #include "Material/BsMaterial.h"
 #include "Renderer/BsRendererMaterialManager.h"
-#include "Material/BsShaderDefines.h"
+#include "Material/BsShaderVariation.h"
+#include "Material/BsShader.h"
+#include "Material/BsPass.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 /** @addtogroup Renderer-Engine-Internal
  *  @{
@@ -16,10 +19,22 @@
 	public:																	\
 	static void _initMetaData()												\
 	{																		\
-		_initVariations(mMetaData.variations);								\
 		bs::RendererMaterialManager::_registerMaterial(&mMetaData, path);	\
 	};																		\
-	static void _initVariations(ShaderVariations& variations);
+
+/** 
+ * References the shader path in RendererMaterial implementation. Provides an _initDefines() method allowing the C++
+ * code to provide preprocessor defines to be set when compiling the shader. Note that when changing these defines you need
+ * to manually force the shader to be reimported.
+ */
+#define RMAT_DEF_CUSTOMIZED(path)											\
+	public:																	\
+	static void _initMetaData()												\
+	{																		\
+		_initDefines(mMetaData.defines);									\
+		bs::RendererMaterialManager::_registerMaterial(&mMetaData, path);	\
+	};																		\
+	static void _initDefines(ShaderDefines& defines);
 
 /** @} */
 
@@ -29,124 +44,13 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	/** 
-	 * Contains information about a single variation of a RendererMaterial. Each variation can have a separate set of
-	 * \#defines that control shader compilation.
-	 */
-	class BS_EXPORT ShaderVariation
-	{
-	public:
-		/** Possible types of a variation parameter. */
-		enum ParamType
-		{
-			Int,
-			UInt,
-			Float,
-			Bool
-		};
-
-		/** Name, type and value of a variation parameter. */
-		struct Param
-		{
-			Param()
-				:i(0), type(Int)
-			{ }
-
-			Param(const String& name, INT32 val)
-				:i(val), name(name), type(Int)
-			{ }
-
-			Param(const String& name, UINT32 val)
-				:ui(val), name(name), type(Int)
-			{ }
-
-			Param(const String& name, float val)
-				:f(val), name(name), type(Float)
-			{ }
-
-			Param(const String& name, bool val)
-				:i(val ? 1 : 0), name(name), type(Bool)
-			{ }
-
-			union
-			{
-				INT32 i;
-				UINT32 ui;
-				float f;
-			};
-
-			String name;
-			ParamType type;
-		};
-
-		ShaderVariation() { }
-		
-		/** Creates a new shader variation with the specified parameters. */
-		ShaderVariation(const SmallVector<Param, 4>& params);
-
-		/** 
-		 * Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be 
-		 * found.
-		 */
-		INT32 getInt(const String& name);
-
-		/** 
-		 * Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be
-		 * found.
-		 */
-		UINT32 getUInt(const String& name);
-
-		/** Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.  */
-		float getFloat(const String& name);
-
-		/** 
-		 * Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be 
-		 * found.
-		 */
-		bool getBool(const String& name);
-
-		/** Converts all the variation parameters in a ShaderDefines object, that may be consumed by the shader compiler. */
-		ShaderDefines getDefines() const;
-
-		/** 
-		 * Returns a unique index of this variation, relative to all other variations registered in ShaderVariations object.
-		 */
-		UINT32 getIdx() const { return mIdx;  }
-
-		/** Returns all the variation parameters. */
-		const UnorderedMap<String, Param>& getParams() const { return mParams; }
-
-	private:
-		friend class ShaderVariations;
-
-		UnorderedMap<String, Param> mParams;
-		UINT32 mIdx = -1;
-	};
-
-	/** A container for all variations of a single RendererMaterial. */
-	class BS_EXPORT ShaderVariations
-	{
-	public:
-		/** Registers a new variation. */
-		void add(ShaderVariation& variation);
-
-		/** Returns a variation at the specified index. Variations are indexed sequentially as they are added. */
-		const ShaderVariation& get(UINT32 idx) { return mVariations[idx]; }
-
-		/** Returns a list of all variations. */
-		const SmallVector<ShaderVariation, 4>& getVariations() const { return mVariations; }
-
-	private:
-		SmallVector<ShaderVariation, 4> mVariations;
-		UINT32 mNextIdx = 0;
-	};
-
 	/**	Contains data common to all render material instances of a specific type. */
 	struct RendererMaterialMetaData
 	{
-		SmallVector<SPtr<Shader>, 4> shaders;
+		SPtr<Shader> shader;
 		SmallVector<RendererMaterialBase*, 4> instances;
 		ShaderVariations variations;
+		ShaderDefines defines;
 	};
 
 	/**	Base class for all RendererMaterial instances, containing common data and methods. */
@@ -156,11 +60,11 @@ namespace bs { namespace ct
 		RendererMaterialBase() { }
 		virtual ~RendererMaterialBase() { }
 
-		/**	Returns the internal material. */
-		SPtr<Material> getMaterial() const { return mMaterial; }
+		/** Returns the shader used by the material. */
+		SPtr<Shader> getShader() const { return mShader; }
 
 		/** Returns the internal parameter set containing GPU bindable parameters. */
-		SPtr<GpuParamsSet> getParamsSet() const { return mParamsSet; }
+		SPtr<GpuParams> getParams() const { return mParams; }
 
 		/** 
 		 * Helper field to be set before construction. Identifiers the variation of the material to initialize this 
@@ -170,9 +74,13 @@ namespace bs { namespace ct
 	protected:
 		friend class RendererMaterialManager;
 
-		SPtr<Material> mMaterial;
-		SPtr<GpuParamsSet> mParamsSet;
+		SPtr<GpuParams> mParams;
+		SPtr<GraphicsPipelineState> mGfxPipeline;
+		SPtr<ComputePipelineState> mComputePipeline;
+		UINT32 mStencilRef = 0;
+
 		ShaderVariation mVariation;
+		SPtr<Shader> mShader;
 	};
 
 	/**	Helper class to initialize all renderer materials as soon as the library is loaded. */
@@ -217,8 +125,10 @@ namespace bs { namespace ct
 		/** Retrieves an instance of a particular variation of this renderer material. */
 		static T* get(const ShaderVariation& variation)
 		{
-			UINT32 varIdx = variation.getIdx();
+			if(variation.getIdx() == -1)
+				variation.setIdx(mMetaData.variations.find(variation));
 
+			UINT32 varIdx = variation.getIdx();
 			if(mMetaData.instances[varIdx] == nullptr)
 			{
 				RendererMaterialBase* mat = bs_alloc<T>();
@@ -231,15 +141,54 @@ namespace bs { namespace ct
 			return (T*)mMetaData.instances[varIdx];
 		}
 
+		/** 
+		 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
+		 * draw calls, or executing dispatch calls.
+		 */
+		void bind() const
+		{
+			RenderAPI& rapi = RenderAPI::instance();
+
+			if(mGfxPipeline)
+			{
+				rapi.setGraphicsPipeline(mGfxPipeline);
+				rapi.setStencilRef(mStencilRef);
+			}
+			else
+				rapi.setComputePipeline(mComputePipeline);
+
+			rapi.setGpuParams(mParams);
+		}
+
 	protected:
 		RendererMaterial()
 		{
 			mInitOnStart.instantiate();
-			mMaterial = Material::create(mMetaData.shaders[_varIdx]);
-			mParamsSet = mMaterial->createParamsSet();
+			mShader = mMetaData.shader;
+			mVariation = mMetaData.variations.get(_varIdx);
 
-			if(!mMetaData.variations.getVariations().empty())
-				mVariation = mMetaData.variations.get(_varIdx);
+			const Vector<SPtr<Technique>>& techniques = mMetaData.shader->getTechniques();
+			for(auto& entry : techniques)
+			{
+				if(!entry->isSupported())
+					continue;
+
+				if(entry->getVariation() == mVariation)
+				{
+					SPtr<Pass> pass = entry->getPass(0);
+
+					mGfxPipeline = pass->getGraphicsPipelineState();
+					if (mGfxPipeline != nullptr)
+						mParams = GpuParams::create(mGfxPipeline);
+					else
+					{
+						mComputePipeline = pass->getComputePipelineState();
+						mParams = GpuParams::create(mComputePipeline);
+					}
+
+					mStencilRef = pass->getStencilRefValue();
+				}
+			}
 		}
 
 		friend class RendererMaterialManager;

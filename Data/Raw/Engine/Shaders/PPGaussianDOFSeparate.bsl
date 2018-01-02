@@ -6,6 +6,12 @@ technique PPGaussianDOFSeparate
 	mixin PPBase;
 	mixin PPGaussianDOFCommon;
 
+	variations
+	{
+		NEAR = { true, false };
+		FAR = { true, false };
+	};
+	
 	code
 	{
 		SamplerState gColorSamp;
@@ -31,7 +37,7 @@ technique PPGaussianDOFSeparate
 		void fsmain(
 			VStoFS input,
 			out float4 output0 : SV_Target0
-			#if NEAR_AND_FAR
+			#if NEAR && FAR
 			, out float4 output1 : SV_Target1
 			#endif
 			)
@@ -51,7 +57,7 @@ technique PPGaussianDOFSeparate
 			nearColor *= 0.25f;
 			farColor *= 0.25f;
 			
-			#if NEAR_AND_FAR
+			#if NEAR && FAR
 				output0 = nearColor;
 				output1 = farColor;
 			#else

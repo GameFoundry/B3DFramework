@@ -6,6 +6,14 @@ technique ShadowProject
 	mixin GBufferInput;
 	mixin ShadowProjectionCommon;
 
+	variations
+	{
+		SHADOW_QUALITY = { 1, 2, 3, 4 };
+		CASCADING = { true, false };
+		NEEDS_TRANSFORM = { true, false };
+		MSAA_COUNT = { 1, 2 };
+	};			
+	
 	depth
 	{
 		read = false;
@@ -24,7 +32,7 @@ technique ShadowProject
 		writemask = 0x7F;
 	};
 	
-	#ifdef CASCADING
+	#if CASCADING
 	blend
 	{
 		target
@@ -274,7 +282,7 @@ technique ShadowProject
 			#endif
 			
 			float alpha = 1.0f;
-			#ifdef CASCADING
+			#if CASCADING
 				alpha = 1.0f - saturate((-depth - gFadePlaneDepth) * gInvFadePlaneRange);
 			#endif
 

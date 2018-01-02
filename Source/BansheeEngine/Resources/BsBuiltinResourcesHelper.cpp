@@ -62,35 +62,18 @@ namespace bs
 					}
 					else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
 					{
-						// Check if the shader is used for a renderer material, in which case generate different variations
-						// according to #defines (if any are specified).
-						Vector<ShaderDefines> variations = RendererMaterialManager::_getVariations(relativePath);
+						ShaderDefines defines = RendererMaterialManager::_getDefines(relativePath);
 
-						if (variations.size() == 0) // Not a renderer material or no variations, save normally
+						SPtr<ShaderImportOptions> shaderImportOptions;
+						if (!defines.getAll().empty())
 						{
-							resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
+							shaderImportOptions =
+								std::static_pointer_cast<ShaderImportOptions>(gImporter().createImportOptions(filePath));
+
+							shaderImportOptions->getDefines() = defines.getAll();
 						}
-						else // Renderer material, save a copy for each variation
-						{
-							// Note: Renderer materials are returned in an undefined order, meaning that renderer materials
-							// will not properly persist references. But this should be okay since they are used only in low
-							// level systems.
 
-							UINT32 variationIdx = 0;
-							for (auto& variation : variations)
-							{
-								SPtr<ShaderImportOptions> shaderImportOptions =
-									std::static_pointer_cast<ShaderImportOptions>(gImporter().createImportOptions(filePath));
-
-								shaderImportOptions->getDefines() = variation.getAll();
-
-								Path uniquePath = RendererMaterialManager::_getVariationPath(relativePath, variationIdx);
-								uniquePath.setFilename(uniquePath.getWFilename() + L".asset");
-
-								resourcesToSave.push_back(std::make_pair(uniquePath, shaderImportOptions));
-								variationIdx++;
-							}
-						}
+						resourcesToSave.push_back(std::make_pair(relativeAssetPath, shaderImportOptions));
 					}
 					else
 						resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
