@@ -7,9 +7,9 @@ mixin ReflectionCubemapCommon
 			float3 dir;
 			
 			if(cubeFace == 0)
-				dir = float3(-1.0f, -uv.y, uv.x);
-			else if(cubeFace == 1)
 				dir = float3(1.0f, -uv.y, -uv.x);
+			else if(cubeFace == 1)
+				dir = float3(-1.0f, -uv.y, uv.x);
 			else if(cubeFace == 2)
 				dir = float3(uv.x, 1.0f, uv.y);
 			else if(cubeFace == 3)
