@@ -214,10 +214,11 @@ namespace bs
 		static void parseOptions(ASTFXNode* optionsNode, SHADER_DESC& shaderDesc);
 
 		/**
-		 * Parses the AST node hierarchy and generates a list of techniques.
+		 * Parses the AST node hierarchy and generates a variation of the of the named technique.
 		 *
 		 * @param[in, out]	parseState	Parser state object that has previously been initialized with the AST using 
 		 *								parseFX().
+		 * @param[in]	name			Name of the technique to generate the variation for.
 		 * @param[in]	codeBlocks		Blocks containing GPU program source code that are referenced by the AST.
 		 * @param[in]	variation		Shader variation the AST was parsed with.
 		 * @param[out]	techniques		Vector to append newly found techniques to.
@@ -225,9 +226,9 @@ namespace bs
 		 * @param[out]	shaderDesc		Shader descriptor too append new parameters to.
 		 * @return						A result object containing an error message if not successful.
 		 */
-		static BSLFXCompileResult parseTechniques(ParseState* parseState, const Vector<String>& codeBlocks, 
-			const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, UnorderedSet<String>& includes, 
-			SHADER_DESC& shaderDesc);
+		static BSLFXCompileResult parseTechnique(ParseState* parseState, const String& name, 
+			const Vector<String>& codeBlocks, const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, 
+			UnorderedSet<String>& includes, SHADER_DESC& shaderDesc);
 
 		/**
 		 * Converts a null-terminated string into a standard string, and eliminates quotes that are assumed to be at the 

@@ -900,8 +900,8 @@ namespace bs
 							codeString = codeString->next;
 						}
 
-						output = parseTechniques(variationParseState, codeBlocks, variation, techniques, includes, 
-							shaderDesc);
+						output = parseTechnique(variationParseState, entry.second.name, codeBlocks, variation, techniques, 
+							includes, shaderDesc);
 
 						if(!output.errorMessage.empty())
 							return output;
@@ -1758,9 +1758,9 @@ namespace bs
 		}
 	}
 
-	BSLFXCompileResult BSLFXCompiler::parseTechniques(ParseState* parseState, const Vector<String>& codeBlocks, 
-		const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, UnorderedSet<String>& includes, 
-		SHADER_DESC& shaderDesc)
+	BSLFXCompileResult BSLFXCompiler::parseTechnique(ParseState* parseState, const String& name, 
+		const Vector<String>& codeBlocks, const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, 
+		UnorderedSet<String>& includes, SHADER_DESC& shaderDesc)
 	{
 		BSLFXCompileResult output;
 
@@ -1785,6 +1785,10 @@ namespace bs
 			{
 				// We initially parse only meta-data, so we can handle out-of-order technique definitions
 				TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
+
+				// Skip all techniques except the one we're parsing
+				if(metaData.name != name && !metaData.isMixin)
+					continue;
 
 				techniqueData.push_back(std::make_pair(option->value.nodePtr, TechniqueData()));
 				TechniqueData& data = techniqueData.back().second;
