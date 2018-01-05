@@ -1869,6 +1869,8 @@ namespace bs { namespace ct
 
 			GpuResourcePool::instance().release(blurIntermediateTex);
 		}
+
+		RenderAPI::instance().setRenderTarget(nullptr);
 	}
 
 	void RCNodeSSAO::clear()
