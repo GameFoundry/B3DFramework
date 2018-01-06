@@ -2520,7 +2520,7 @@ namespace bs { namespace ct
 		caps.setCapability(RSC_TEXTURE_COMPRESSION_BC);
 
 		// Check if geometry shaders are supported
-		if (getGLSupport()->checkExtension("GL_EXT_geometry_shader4"))
+		if (getGLSupport()->checkExtension("GL_ARB_geometry_shader4"))
 		{
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 			caps.setCapability(RSC_GEOMETRY_PROGRAM);
