@@ -254,6 +254,12 @@ namespace bs
 		 */
 		void getHSB(float* hue, float* saturation, float* brightness) const;
 
+        /**
+        * Linearly interpolates between the two colors using @p t. t should be in [0, 1] range, where t = 0 corresponds
+        * to the left color, while t = 1 corresponds to the right color.
+        */
+        static Color lerp(float t, const Color& a, const Color& b);
+
 		float r, g, b, a;
     };
 
