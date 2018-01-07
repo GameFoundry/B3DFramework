@@ -335,5 +335,14 @@ namespace bs
 				*hue -= 1.0f;
 		}
 	}
+
+	Color Color::lerp(float t, const Color& a, const Color& b)
+	{
+		t = Math::clamp01(t);
+		return Color(a.r + (b.r - a.r) * t,
+					 a.g + (b.g - a.g) * t,
+					 a.b + (b.b - a.b) * t,
+					 a.a + (b.a - a.a) * t);
+	}
 }
 
