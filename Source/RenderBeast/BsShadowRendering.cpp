@@ -723,7 +723,7 @@ namespace bs { namespace ct
 					viewProps.numSamples > 1);
 				mat->bind(shadowParams);
 
-				gRendererUtility().draw(gRendererUtility().getRadialLightStencil());
+				gRendererUtility().draw(gRendererUtility().getSphereStencil());
 			}
 		}
 		else // Directional & spot

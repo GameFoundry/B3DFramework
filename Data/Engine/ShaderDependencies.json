@@ -45,6 +45,83 @@
             "Path": "PerCameraData.bslinc"
         }
     ],
+    "DeferredIBLFinalize.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "DeferredIBLProbe.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "DeferredIBLSetup.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
+    "DeferredIBLSky.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
     "DeferredPointLight.bsl": [
         {
             "Path": "LightingCommon.bslinc"

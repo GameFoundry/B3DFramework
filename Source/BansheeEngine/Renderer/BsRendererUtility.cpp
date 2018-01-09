@@ -12,6 +12,7 @@
 #include "Renderer/BsLight.h"
 #include "Material/BsShader.h"
 #include "Renderer/BsIBLUtility.h"
+#include "Math/BsAABox.h"
 
 namespace bs { namespace ct
 {
@@ -42,7 +43,27 @@ namespace bs { namespace ct
 			ShapeMeshes3D::solidSphere(localSphere, positionData, nullptr, nullptr, 0,
 				vertexDesc->getVertexStride(), indexData, 0, 3);
 
-			mPointLightStencilMesh = Mesh::create(meshData);
+			mUnitSphereStencilMesh = Mesh::create(meshData);
+		}
+
+		{
+			SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+			vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
+
+			UINT32 numVertices = 0;
+			UINT32 numIndices = 0;
+
+			ShapeMeshes3D::getNumElementsAABox(numVertices, numIndices);
+			SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
+
+			UINT32* indexData = meshData->getIndices32();
+			UINT8* positionData = meshData->getElementData(VES_POSITION);
+
+			AABox localBox(-Vector3::ONE, Vector3::ONE);
+			ShapeMeshes3D::solidAABox(localBox, positionData, nullptr, nullptr, 0,
+				vertexDesc->getVertexStride(), indexData, 0);
+
+			mUnitBoxStencilMesh = Mesh::create(meshData);
 		}
 
 		{

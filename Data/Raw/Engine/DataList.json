@@ -397,6 +397,22 @@
         {
             "Path": "PPEyeAdaptationBasicSetup.bsl",
             "UUID": "86cda288-4fd5-4d0f-a5a2-4fd56d3b92ea"
+        },
+        {
+            "Path": "DeferredIBLFinalize.bsl",
+            "UUID": "5973a208-4956-8ea4-85af-495668744158"
+        },
+        {
+            "Path": "DeferredIBLProbe.bsl",
+            "UUID": "76dd3c87-4cea-7066-9182-4ceade228448"
+        },
+        {
+            "Path": "DeferredIBLSetup.bsl",
+            "UUID": "115c9291-4260-606d-1098-426042ea073a"
+        },
+        {
+            "Path": "DeferredIBLSky.bsl",
+            "UUID": "e3c4e19e-4d65-dd20-bca1-4d65a0b9980b"
         }
     ],
     "Skin": [

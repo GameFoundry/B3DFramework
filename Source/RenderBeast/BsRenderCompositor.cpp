@@ -358,14 +358,20 @@ namespace bs { namespace ct
 		UINT32 height = viewProps.viewRect.height;
 		UINT32 numSamples = viewProps.numSamples;
 
+		UINT32 usageFlags = TU_RENDERTARGET;
+
+		bool tiledDeferredSupported = inputs.featureSet != RenderBeastFeatureSet::DesktopMacOS;
+		if(tiledDeferredSupported)
+			usageFlags |= TU_LOADSTORE;
+
 		// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
-		sceneColorTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET | 
-			TU_LOADSTORE, numSamples, false));
+		sceneColorTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, usageFlags, 
+			numSamples, false));
 
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
 		SPtr<PooledRenderTexture> sceneDepthTex = sceneDepthNode->depthTex;
 
-		if (viewProps.numSamples > 1)
+		if (tiledDeferredSupported && viewProps.numSamples > 1)
 		{
 			UINT32 bufferNumElements = width * height * viewProps.numSamples;
 			flattenedSceneColorBuffer = resPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
@@ -458,6 +464,19 @@ namespace bs { namespace ct
 
 	void RCNodeLightAccumulation::render(const RenderCompositorNodeInputs& inputs)
 	{
+		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+		if(!supportsTiledDeferred)
+		{
+			// If tiled deferred is not supported, we don't need a separate texture for light accumulation, instead we
+			// use scene color directly
+			RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
+			lightAccumulationTex = sceneColorNode->sceneColorTex;
+			renderTarget = sceneColorNode->renderTarget;
+
+			mOwnsTexture = false;
+			return;
+		}
+
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -513,12 +532,20 @@ namespace bs { namespace ct
 
 			renderTarget = RenderTexture::create(lightAccumulationRTDesc);
 		}
+
+		mOwnsTexture = true;
 	}
 
 	void RCNodeLightAccumulation::clear()
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
-		resPool.release(lightAccumulationTex);
+		if(mOwnsTexture)
+			resPool.release(lightAccumulationTex);
+		else
+		{
+			lightAccumulationTex = nullptr;
+			renderTarget = nullptr;
+		}
 
 		if (flattenedLightAccumBuffer)
 			resPool.release(flattenedLightAccumBuffer);
@@ -526,7 +553,15 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeLightAccumulation::getDependencies(const RendererView& view)
 	{
-		return { RCNodeSceneDepth::getNodeId() };
+		SmallVector<StringID, 4> deps;
+
+		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+		if(!supportsTiledDeferred)
+			deps.push_back(RCNodeSceneColor::getNodeId());
+		else
+			deps.push_back(RCNodeSceneDepth::getNodeId());
+
+		return deps;
 	}
 
 	void RCNodeTiledDeferredLighting::render(const RenderCompositorNodeInputs& inputs)
@@ -581,14 +616,27 @@ namespace bs { namespace ct
 
 	void RCNodeStandardDeferredLighting::render(const RenderCompositorNodeInputs& inputs)
 	{
-		RCNodeTiledDeferredLighting* tileDeferredNode = static_cast<RCNodeTiledDeferredLighting*>(inputs.inputNodes[0]);
-		output = tileDeferredNode->output;
+		SPtr<RenderTexture> outputRT;
 
-		// If shadows are disabled we handle all lights through tiled deferred
-		if (!inputs.view.getRenderSettings().enableShadows)
+		bool tiledDeferredSupported = inputs.featureSet == RenderBeastFeatureSet::Desktop;
+		if(tiledDeferredSupported)
 		{
+			RCNodeTiledDeferredLighting* tileDeferredNode = static_cast<RCNodeTiledDeferredLighting*>(inputs.inputNodes[2]);
+			outputRT = tileDeferredNode->output->renderTarget;
+
+			// If shadows are disabled we handle all lights through tiled deferred, except when tiled deferred isn't available
+			if (!inputs.view.getRenderSettings().enableShadows)
+			{
+				mLightOcclusionRT = nullptr;
+				return;
+			}
+		}
+		else
+		{
+			RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[2]);
+			outputRT = lightAccumNode->renderTarget;
+
 			mLightOcclusionRT = nullptr;
-			return;
 		}
 
 		GpuResourcePool& resPool = GpuResourcePool::instance();
@@ -598,8 +646,40 @@ namespace bs { namespace ct
 		UINT32 height = viewProps.viewRect.height;
 		UINT32 numSamples = viewProps.numSamples;
 
-		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);
-		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
+		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[0]);
+		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
+
+		GBufferTextures gbuffer;
+		gbuffer.albedo = gbufferNode->albedoTex->texture;
+		gbuffer.normals = gbufferNode->normalTex->texture;
+		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
+		gbuffer.depth = sceneDepthNode->depthTex->texture;
+
+		const VisibleLightData& lightData = inputs.viewGroup.getVisibleLightData();
+
+		RenderAPI& rapi = RenderAPI::instance();
+
+		// Render unshadowed lights
+		if(!tiledDeferredSupported)
+		{
+			rapi.setRenderTarget(outputRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+
+			for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
+			{
+				LightType lightType = (LightType)i;
+
+				auto& lights = lightData.getLights(lightType);
+				UINT32 count = lightData.getNumUnshadowedLights(lightType);
+
+				for (UINT32 j = 0; j < count; j++)
+				{
+					UINT32 lightIdx = j;
+					const RendererLight& light = *lights[lightIdx];
+
+					StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer, Texture::BLACK);
+				}
+			}
+		}
 
 		// Allocate light occlusion
 		SPtr<PooledRenderTexture> lightOcclusionTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width,
@@ -630,16 +710,8 @@ namespace bs { namespace ct
 			mLightOcclusionRT = RenderTexture::create(lightOcclusionRTDesc);
 		}
 
-		GBufferTextures gbuffer;
-		gbuffer.albedo = gbufferNode->albedoTex->texture;
-		gbuffer.normals = gbufferNode->normalTex->texture;
-		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
-		gbuffer.depth = sceneDepthNode->depthTex->texture;
-
-		const VisibleLightData& lightData = inputs.viewGroup.getVisibleLightData();
+		// Render shadowed lights
 		const ShadowRendering& shadowRenderer = inputs.viewGroup.getShadowRenderer();
-
-		RenderAPI& rapi = RenderAPI::instance();
 		for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
 		{
 			LightType lightType = (LightType)i;
@@ -661,7 +733,7 @@ namespace bs { namespace ct
 				const RendererLight& light = *lights[lightIdx];
 				shadowRenderer.renderShadowOcclusion(inputs.view, inputs.options.shadowFilteringQuality, light, gbuffer);
 
-				rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+				rapi.setRenderTarget(outputRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
 				StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer,
 					lightOcclusionTex->texture);
 			}
@@ -675,23 +747,192 @@ namespace bs { namespace ct
 
 	void RCNodeStandardDeferredLighting::clear()
 	{
-		output = nullptr;
+		// Do nothing
 	}
 
 	SmallVector<StringID, 4> RCNodeStandardDeferredLighting::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 
-		deps.push_back(RCNodeTiledDeferredLighting::getNodeId());
 		deps.push_back(RCNodeGBuffer::getNodeId());
 		deps.push_back(RCNodeSceneDepth::getNodeId());
 
-		if (view.getProperties().numSamples > 1)
-			deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+		if(gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::DesktopMacOS)
+		{
+			deps.push_back(RCNodeLightAccumulation::getNodeId());
+		}
+		else
+		{
+			deps.push_back(RCNodeTiledDeferredLighting::getNodeId());
+
+			if (view.getProperties().numSamples > 1)
+				deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+		}
 
 		return deps;
 	}
 
+	void RCNodeStandardDeferredIBL::render(const RenderCompositorNodeInputs& inputs)
+	{
+		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[2]);
+		SPtr<RenderTexture>	outputRT = lightAccumNode->renderTarget;
+
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+
+		UINT32 width = viewProps.viewRect.width;
+		UINT32 height = viewProps.viewRect.height;
+		UINT32 numSamples = viewProps.numSamples;
+
+		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[0]);
+		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
+
+		GBufferTextures gbuffer;
+		gbuffer.albedo = gbufferNode->albedoTex->texture;
+		gbuffer.normals = gbufferNode->normalTex->texture;
+		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
+		gbuffer.depth = sceneDepthNode->depthTex->texture;
+
+		RenderAPI& rapi = RenderAPI::instance();
+
+		const RenderSettings& rs = inputs.view.getRenderSettings();
+		bool isMSAA = viewProps.numSamples > 1;
+
+		SPtr<PooledRenderTexture> iblRadianceTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width,
+			height, TU_RENDERTARGET, numSamples, false));
+
+		RENDER_TEXTURE_DESC rtDesc;
+		rtDesc.colorSurfaces[0].texture = iblRadianceTex->texture;
+		rtDesc.depthStencilSurface.texture = sceneDepthNode->depthTex->texture;
+
+		SPtr<GpuParamBlockBuffer> perViewBuffer = inputs.view.getPerViewBuffer();
+
+		SPtr<RenderTexture> iblRadianceRT = RenderTexture::create(rtDesc);
+		rapi.setRenderTarget(iblRadianceRT, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+
+		const VisibleReflProbeData& probeData = inputs.viewGroup.getVisibleReflProbeData();
+
+		ReflProbeParamBuffer reflProbeParams;
+		reflProbeParams.populate(inputs.scene.skybox, probeData.getNumProbes(), inputs.scene.reflProbeCubemapsTex,
+			viewProps.renderingReflections);
+
+		// Prepare the texture for refl. probe and skybox rendering
+		{
+			SPtr<Texture> ssr;
+			if (rs.screenSpaceReflections.enabled)
+			{
+				RCNodeSSR* ssrNode = static_cast<RCNodeSSR*>(inputs.inputNodes[3]);
+				ssr = ssrNode->output->texture;
+			}
+			else
+				ssr = Texture::BLACK;
+
+			UINT32 nodeIdx = 4;
+			SPtr<Texture> ssao;
+			if (rs.ambientOcclusion.enabled)
+			{
+				RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.inputNodes[nodeIdx++]);
+				ssao = ssaoNode->output->texture;
+			}
+			else
+				ssao = Texture::WHITE;
+
+			DeferredIBLSetupMat* mat = DeferredIBLSetupMat::getVariation(isMSAA, true);
+			mat->bind(gbuffer, perViewBuffer, ssr, ssao, reflProbeParams.buffer);
+
+			gRendererUtility().drawScreenQuad();
+
+			// Draw pixels requiring per-sample evaluation
+			if (isMSAA)
+			{
+				DeferredIBLSetupMat* msaaMat = DeferredIBLSetupMat::getVariation(true, false);
+				msaaMat->bind(gbuffer, perViewBuffer, ssr, ssao, reflProbeParams.buffer);
+
+				gRendererUtility().drawScreenQuad();
+			}
+		}
+
+		if (viewProps.renderingReflections)
+		{
+			// Render refl. probes
+			UINT32 numProbes = probeData.getNumProbes();
+			for (UINT32 i = 0; i < numProbes; i++)
+			{
+				const ReflProbeData& probe = probeData.getProbeData(i);
+
+				StandardDeferred::instance().renderReflProbe(probe, inputs.view, gbuffer, inputs.scene,
+					reflProbeParams.buffer);
+			}
+
+			// Render sky
+			SPtr<Texture> skyFilteredRadiance;
+			if (inputs.scene.skybox)
+				skyFilteredRadiance = inputs.scene.skybox->getFilteredRadiance();
+
+			if (skyFilteredRadiance)
+			{
+				DeferredIBLSkyMat* skymat = DeferredIBLSkyMat::getVariation(isMSAA, true);
+				skymat->bind(gbuffer, perViewBuffer, inputs.scene.skybox, reflProbeParams.buffer);
+
+				gRendererUtility().drawScreenQuad();
+
+				// Draw pixels requiring per-sample evaluation
+				if (isMSAA)
+				{
+					DeferredIBLSkyMat* msaaMat = DeferredIBLSkyMat::getVariation(true, false);
+					msaaMat->bind(gbuffer, perViewBuffer, inputs.scene.skybox, reflProbeParams.buffer);
+
+					gRendererUtility().drawScreenQuad();
+				}
+			}
+		}
+
+		// Finalize rendered reflections and output them to main render target
+		{
+			rapi.setRenderTarget(outputRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+
+			DeferredIBLFinalizeMat* mat = DeferredIBLFinalizeMat::getVariation(isMSAA, true);
+			mat->bind(gbuffer, perViewBuffer, iblRadianceTex->texture, RendererTextures::preintegratedEnvGF,
+				reflProbeParams.buffer);
+
+			gRendererUtility().drawScreenQuad();
+
+			// Draw pixels requiring per-sample evaluation
+			if (isMSAA)
+			{
+				DeferredIBLFinalizeMat* msaaMat = DeferredIBLFinalizeMat::getVariation(true, false);
+				msaaMat->bind(gbuffer, perViewBuffer, iblRadianceTex->texture, RendererTextures::preintegratedEnvGF,
+					reflProbeParams.buffer);
+
+				gRendererUtility().drawScreenQuad();
+			}
+		}
+
+		// Makes sure light accumulation can be read by following passes
+		rapi.setRenderTarget(nullptr);
+	}
+
+	void RCNodeStandardDeferredIBL::clear()
+	{
+		// Do nothing
+	}
+
+	SmallVector<StringID, 4> RCNodeStandardDeferredIBL::getDependencies(const RendererView& view)
+	{
+		SmallVector<StringID, 4> deps;
+
+		deps.push_back(RCNodeGBuffer::getNodeId());
+		deps.push_back(RCNodeSceneDepth::getNodeId());
+		deps.push_back(RCNodeLightAccumulation::getNodeId());
+		deps.push_back(RCNodeSSR::getNodeId());
+
+		if (view.getRenderSettings().ambientOcclusion.enabled)
+			deps.push_back(RCNodeSSAO::getNodeId());
+
+		deps.push_back(RCNodeStandardDeferredLighting::getNodeId());
+
+		return deps;
+	}
 	void RCNodeUnflattenLightAccum::render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[0]);
@@ -800,13 +1041,21 @@ namespace bs { namespace ct
 		deps.push_back(RCNodeGBuffer::getNodeId());
 		deps.push_back(RCNodeSceneDepth::getNodeId());
 		deps.push_back(RCNodeLightAccumulation::getNodeId());
-		deps.push_back(RCNodeStandardDeferredLighting::getNodeId());
+
+		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+		if(supportsTiledDeferred)
+			deps.push_back(RCNodeStandardDeferredLighting::getNodeId());
+		else
+			deps.push_back(RCNodeStandardDeferredIBL::getNodeId());
 
 		if(view.getRenderSettings().ambientOcclusion.enabled)
 			deps.push_back(RCNodeSSAO::getNodeId());
 
-		if (view.getProperties().numSamples > 1)
-			deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+		if(supportsTiledDeferred)
+		{
+			if (view.getProperties().numSamples > 1)
+				deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+		}
 
 		return deps;
 	}
@@ -949,7 +1198,7 @@ namespace bs { namespace ct
 
 		// Prepare refl. probe param buffer
 		ReflProbeParamBuffer reflProbeParamBuffer;
-		reflProbeParamBuffer.populate(sceneInfo.skybox, visibleReflProbeData, sceneInfo.reflProbeCubemapsTex, 
+		reflProbeParamBuffer.populate(sceneInfo.skybox, visibleReflProbeData.getNumProbes(), sceneInfo.reflProbeCubemapsTex, 
 			viewProps.renderingReflections);
 
 		SPtr<Texture> skyFilteredRadiance;
@@ -1072,7 +1321,7 @@ namespace bs { namespace ct
 			material->bind(inputs.view.getPerViewBuffer(), nullptr, clearColor);
 		}
 
-		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
+		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		int readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
 
 		RenderAPI& rapi = RenderAPI::instance();
@@ -1090,13 +1339,20 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeSkybox::getDependencies(const RendererView& view)
 	{
-		SmallVector<StringID, 4> deps;
+		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 
-		deps.push_back(RCNodeTiledDeferredIBL::getNodeId());
+		SmallVector<StringID, 4> deps;
 		deps.push_back(RCNodeSceneColor::getNodeId());
 
-		if (view.getProperties().numSamples > 1)
-			deps.push_back(RCNodeUnflattenSceneColor::getNodeId());
+		if(supportsTiledDeferred)
+		{
+			deps.push_back(RCNodeTiledDeferredIBL::getNodeId());
+
+			if (view.getProperties().numSamples > 1)
+				deps.push_back(RCNodeUnflattenSceneColor::getNodeId());
+		}
+		else
+			deps.push_back(RCNodeIndirectLighting::getNodeId());
 
 		return deps;
 	}
@@ -2014,8 +2270,12 @@ namespace bs { namespace ct
 			deps.push_back(RCNodeHiZ::getNodeId());
 			deps.push_back(RCNodeResolvedSceneDepth::getNodeId());
 
-			if (view.getProperties().numSamples > 1)
-				deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+			bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+			if(supportsTiledDeferred)
+			{
+				if (view.getProperties().numSamples > 1)
+					deps.push_back(RCNodeUnflattenLightAccum::getNodeId());
+			}
 		}
 
 		return deps;

@@ -93,6 +93,7 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeLightAccumulation>();
 		RenderCompositor::registerNodeType<RCNodeSceneColor>();
 		RenderCompositor::registerNodeType<RCNodeStandardDeferredLighting>();
+		RenderCompositor::registerNodeType<RCNodeStandardDeferredIBL>();
 		RenderCompositor::registerNodeType<RCNodeTiledDeferredLighting>();
 		RenderCompositor::registerNodeType<RCNodeTiledDeferredIBL>();
 		RenderCompositor::registerNodeType<RCNodeUnflattenLightAccum>();

@@ -205,8 +205,11 @@ namespace bs { namespace ct
 		 */
 		void clear(UINT32 value);
 
-		/** Returns a stencil mesh used for a radial light (a unit sphere). */
-		SPtr<Mesh> getRadialLightStencil() const { return mPointLightStencilMesh; }
+		/** Returns a unit sphere stencil mesh. */
+		SPtr<Mesh> getSphereStencil() const { return mUnitSphereStencilMesh; }
+
+		/** Returns a unit axis aligned box stencil mesh. */
+		SPtr<Mesh> getBoxStencil() const { return mUnitBoxStencilMesh; }
 
 		/** 
 		 * Returns a stencil mesh used for a spot light. Actual vertex positions need to be computed in shader as this
@@ -219,7 +222,8 @@ namespace bs { namespace ct
 
 	private:
 		SPtr<Mesh> mFullScreenQuadMesh;
-		SPtr<Mesh> mPointLightStencilMesh;
+		SPtr<Mesh> mUnitSphereStencilMesh;
+		SPtr<Mesh> mUnitBoxStencilMesh;
 		SPtr<Mesh> mSpotLightStencilMesh;
 		SPtr<Mesh> mSkyBoxMesh;
 	};

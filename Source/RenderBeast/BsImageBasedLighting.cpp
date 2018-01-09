@@ -24,6 +24,8 @@ namespace bs { namespace ct
 
 	void VisibleReflProbeData::update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
 	{
+		mReflProbeData.clear();
+
 		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
 
 		// Generate refl. probe data for the visible ones
@@ -33,8 +35,8 @@ namespace bs { namespace ct
 			if (!visibility.reflProbes[i])
 				continue;
 
-			mReflProbeDataTemp.push_back(ReflProbeData());
-			sceneInfo.reflProbes[i].getParameters(mReflProbeDataTemp.back());
+			mReflProbeData.push_back(ReflProbeData());
+			sceneInfo.reflProbes[i].getParameters(mReflProbeData.back());
 		}
 
 		// Sort probes so bigger ones get accessed first, this way we overlay smaller ones on top of biggers ones when
@@ -44,9 +46,9 @@ namespace bs { namespace ct
 			return rhs.radius < lhs.radius;
 		};
 
-		std::sort(mReflProbeDataTemp.begin(), mReflProbeDataTemp.end(), sorter);
+		std::sort(mReflProbeData.begin(), mReflProbeData.end(), sorter);
 
-		mNumProbes = (UINT32)mReflProbeDataTemp.size();
+		mNumProbes = (UINT32)mReflProbeData.size();
 
 		// Move refl. probe data into a GPU buffer
 		UINT32 size = mNumProbes * sizeof(ReflProbeData);
@@ -72,9 +74,7 @@ namespace bs { namespace ct
 		}
 
 		if (size > 0)
-			mProbeBuffer->writeData(0, size, mReflProbeDataTemp.data(), BWT_DISCARD);
-
-		mReflProbeDataTemp.clear();
+			mProbeBuffer->writeData(0, size, mReflProbeData.data(), BWT_DISCARD);
 	}
 
 	RendererReflectionProbe::RendererReflectionProbe(ReflectionProbe* probe)
@@ -105,7 +105,7 @@ namespace bs { namespace ct
 	}
 
 	void ImageBasedLightingParams::populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, 
-		bool gridIndices)
+		bool gridIndices, bool probeArray)
 	{
 		// Sky
 		if (!optional || params->hasTexture(programType, "gSkyReflectionTex"))
@@ -115,9 +115,13 @@ namespace bs { namespace ct
 		if (!optional || params->hasTexture(programType, "gReflProbeCubemaps"))
 		{
 			params->getTextureParam(programType, "gReflProbeCubemaps", reflectionProbeCubemapsTexParam);
-			params->getBufferParam(programType, "gReflectionProbes", reflectionProbesParam);
-			params->getTextureParam(programType, "gPreintegratedEnvBRDF", preintegratedEnvBRDFParam);
+
+			if(probeArray)
+				params->getBufferParam(programType, "gReflectionProbes", reflectionProbesParam);
 		}
+
+		if (!optional || params->hasTexture(programType, "gPreintegratedEnvBRDF"))
+			params->getTextureParam(programType, "gPreintegratedEnvBRDF", preintegratedEnvBRDFParam);
 
 		// AO
 		if (params->hasTexture(programType, "gAmbientOcclusionTex"))
@@ -160,8 +164,8 @@ namespace bs { namespace ct
 		buffer = gReflProbeParamsParamDef.createBuffer();
 	}
 
-	void ReflProbeParamBuffer::populate(const Skybox* sky, const VisibleReflProbeData& probeData, 
-		const SPtr<Texture>& reflectionCubemaps, bool capturingReflections)
+	void ReflProbeParamBuffer::populate(const Skybox* sky, UINT32 numProbes, const SPtr<Texture>& reflectionCubemaps, 
+		bool capturingReflections)
 	{
 		float brightness = 1.0f;
 		UINT32 skyReflectionsAvailable = 0;
@@ -181,7 +185,7 @@ namespace bs { namespace ct
 
 		gReflProbeParamsParamDef.gSkyCubemapNumMips.set(buffer, numSkyMips);
 		gReflProbeParamsParamDef.gSkyCubemapAvailable.set(buffer, skyReflectionsAvailable);
-		gReflProbeParamsParamDef.gNumProbes.set(buffer, probeData.getNumProbes());
+		gReflProbeParamsParamDef.gNumProbes.set(buffer, numProbes);
 
 		UINT32 numReflProbeMips = 0;
 		if (reflectionCubemaps != nullptr)
@@ -218,7 +222,7 @@ namespace bs { namespace ct
 		mParamBuffer = gTiledImageBasedLightingParamDef.createBuffer();
 		mParams->setParamBlockBuffer("Params", mParamBuffer);
 
-		mImageBasedParams.populate(mParams, GPT_COMPUTE_PROGRAM, false, false);
+		mImageBasedParams.populate(mParams, GPT_COMPUTE_PROGRAM, false, false, true);
 
 		SAMPLER_STATE_DESC desc;
 		desc.minFilter = FO_POINT;
@@ -252,7 +256,7 @@ namespace bs { namespace ct
 		framebufferSize[1] = height;
 		gTiledImageBasedLightingParamDef.gFramebufferSize.set(mParamBuffer, framebufferSize);
 
-		mReflProbeParamBuffer.populate(sceneInfo.skybox, probeData, sceneInfo.reflProbeCubemapsTex, 
+		mReflProbeParamBuffer.populate(sceneInfo.skybox, probeData.getNumProbes(), sceneInfo.reflProbeCubemapsTex, 
 			viewProps.renderingReflections);
 
 		mParamBuffer->flushToGPU();

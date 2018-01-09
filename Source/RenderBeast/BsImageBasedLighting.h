@@ -27,7 +27,7 @@ namespace bs { namespace ct
 		float transitionDistance;
 		Matrix4 invBoxTransform;
 		UINT32 cubemapIdx;
-		UINT32 type;
+		UINT32 type; // 0 - Sphere, 1 - Box
 		Vector2 padding;
 	};
 
@@ -49,12 +49,13 @@ namespace bs { namespace ct
 		/** Returns the number of reflection probes in the probe buffer. */
 		UINT32 getNumProbes() const { return mNumProbes; }
 
+		/** Returns information about a probe at the specified index. */
+		const ReflProbeData& getProbeData(UINT32 idx) const { return mReflProbeData[idx]; }
+
 	private:
+		Vector<ReflProbeData> mReflProbeData;
 		SPtr<GpuBuffer> mProbeBuffer;
 		UINT32 mNumProbes;
-
-		// Helper to avoid memory allocations
-		Vector<ReflProbeData> mReflProbeDataTemp;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ReflProbeParamsParamDef)
@@ -99,8 +100,10 @@ namespace bs { namespace ct
 		 * @param[in]	programType	Type of the GPU program to look up the parameters for.
 		 * @param[in]	optional	If true no warnings will be thrown if some or all of the parameters will be found.
 		 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
+		 * @param[in]	probeArray	True if the refl. probe data is to be provided in a structured buffer.
 		 */
-		void populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices);
+		void populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices, 
+			bool probeArray);
 
 		GpuParamTexture skyReflectionsTexParam;
 		GpuParamTexture ambientOcclusionTexParam;
@@ -122,9 +125,9 @@ namespace bs { namespace ct
 	{
 		ReflProbeParamBuffer();
 
-		/** Updates the parameter buffer contents with require refl. probe data. */
-		void populate(const Skybox* sky, const VisibleReflProbeData& probeData, 
-			const SPtr<Texture>& reflectionCubemaps, bool capturingReflections);
+		/** Updates the parameter buffer contents with required refl. probe data. */
+		void populate(const Skybox* sky, UINT32 numProbes, const SPtr<Texture>& reflectionCubemaps, 
+			bool capturingReflections);
 
 		SPtr<GpuParamBlockBuffer> buffer;
 	};

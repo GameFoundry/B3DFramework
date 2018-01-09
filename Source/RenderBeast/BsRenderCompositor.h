@@ -292,6 +292,8 @@ namespace ct
 
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
+
+		bool mOwnsTexture = false;
 	};
 
 	/** 
@@ -316,14 +318,12 @@ namespace ct
 
 	/**
 	 * Performs standard deferred lighting, outputting any lighting information in the light accumulation buffer.
-	 * Only renders shadowed lights.
+	 * Normally only used for shadowed light rendering, unless tiled deferred is unavailable, in which case it renders
+	 * all lights.
 	 */
 	class RCNodeStandardDeferredLighting : public RenderCompositorNode
 	{
 	public:
-		// Outputs
-		RCNodeLightAccumulation* output;
-
 		static StringID getNodeId() { return "StandardDeferredLighting"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
@@ -334,6 +334,23 @@ namespace ct
 		void clear() override;
 
 		SPtr<RenderTexture> mLightOcclusionRT;
+	};
+
+	/**
+	 * Render reflection probes and sky reflections using standard deferred lighting. Only used if tiled deferred IBL
+	 * is not supported.
+	 */
+	class RCNodeStandardDeferredIBL : public RenderCompositorNode
+	{
+	public:
+		static StringID getNodeId() { return "StandardDeferredIBL"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
 	};
 
 	/**

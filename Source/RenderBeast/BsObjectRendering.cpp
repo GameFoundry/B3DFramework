@@ -62,7 +62,7 @@ namespace bs { namespace ct
 		if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize"))
 			gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize", element.gridProbeOffsetsAndSizeParam);
 
-		element.imageBasedParams.populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, true);
+		element.imageBasedParams.populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, true, true);
 
 		if (gpuParams->hasBuffer(GPT_VERTEX_PROGRAM, "boneMatrices"))
 			gpuParams->setBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.boneMatrixBuffer);
