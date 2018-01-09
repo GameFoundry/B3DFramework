@@ -40,6 +40,18 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("ShadowDepthNormal.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool skinned, bool morph>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SKINNED", skinned),
+				ShaderVariation::Param("MORPH", morph)
+			});
+
+			return variation;
+		}
+
 	public:
 		ShadowDepthNormalMat();
 
@@ -48,6 +60,14 @@ namespace bs { namespace ct
 
 		/** Sets a new buffer that determines per-object properties. */
 		void setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	skinned		True if the shadow caster supports bone animation.
+		 * @param[in]	morph		True if the shadow caster supports morph shape animation.
+		 */
+		static ShadowDepthNormalMat* getVariation(bool skinned, bool morph);
 	};
 
 	/** Material used for rendering a single face of a shadow map, for a directional light. */
@@ -55,6 +75,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("ShadowDepthDirectional.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool skinned, bool morph>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SKINNED", skinned),
+				ShaderVariation::Param("MORPH", morph)
+			});
+
+			return variation;
+		}
 	public:
 		ShadowDepthDirectionalMat();
 
@@ -63,6 +94,14 @@ namespace bs { namespace ct
 
 		/** Sets a new buffer that determines per-object properties. */
 		void setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	skinned		True if the shadow caster supports bone animation.
+		 * @param[in]	morph		True if the shadow caster supports morph shape animation.
+		 */
+		static ShadowDepthDirectionalMat* getVariation(bool skinned, bool morph);
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowCubeMatricesDef)
@@ -82,6 +121,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("ShadowDepthCube.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool skinned, bool morph>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation({
+				ShaderVariation::Param("SKINNED", skinned),
+				ShaderVariation::Param("MORPH", morph)
+			});
+
+			return variation;
+		}
 	public:
 		ShadowDepthCubeMat();
 
@@ -91,6 +141,14 @@ namespace bs { namespace ct
 		/** Sets a new buffer that determines per-object properties. */
 		void setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams, 
 			const SPtr<GpuParamBlockBuffer>& shadowCubeMasks);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	skinned		True if the shadow caster supports bone animation.
+		 * @param[in]	morph		True if the shadow caster supports morph shape animation.
+		 */
+		static ShadowDepthCubeMat* getVariation(bool skinned, bool morph);
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ShadowProjectVertParamsDef)

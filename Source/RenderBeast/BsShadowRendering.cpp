@@ -10,6 +10,7 @@
 #include "Renderer/BsCamera.h"
 #include "Utility/BsBitwise.h"
 #include "RenderAPI/BsVertexDataDesc.h"
+#include "Renderer/BsRenderer.h"
 
 namespace bs { namespace ct
 {
@@ -32,6 +33,24 @@ namespace bs { namespace ct
 
 		RenderAPI::instance().setGpuParams(mParams);
 	}
+	
+	ShadowDepthNormalMat* ShadowDepthNormalMat::getVariation(bool skinned, bool morph)
+	{
+		if(skinned)
+		{
+			if(morph)
+				return get(getVariation<true, true>());
+
+			return get(getVariation<true, false>());
+		}
+		else
+		{
+			if(morph)
+				return get(getVariation<false, true>());
+
+			return get(getVariation<false, false>());
+		}
+	}
 
 	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
 	{ }
@@ -48,6 +67,24 @@ namespace bs { namespace ct
 	{
 		mParams->setParamBlockBuffer("PerObject", perObjectParams);
 		RenderAPI::instance().setGpuParams(mParams);
+	}
+	
+	ShadowDepthDirectionalMat* ShadowDepthDirectionalMat::getVariation(bool skinned, bool morph)
+	{
+		if(skinned)
+		{
+			if(morph)
+				return get(getVariation<true, true>());
+
+			return get(getVariation<true, false>());
+		}
+		else
+		{
+			if(morph)
+				return get(getVariation<false, true>());
+
+			return get(getVariation<false, false>());
+		}
 	}
 
 	ShadowCubeMatricesDef gShadowCubeMatricesDef;
@@ -73,6 +110,24 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
 
 		RenderAPI::instance().setGpuParams(mParams);
+	}
+	
+	ShadowDepthCubeMat* ShadowDepthCubeMat::getVariation(bool skinned, bool morph)
+	{
+		if(skinned)
+		{
+			if(morph)
+				return get(getVariation<true, true>());
+
+			return get(getVariation<true, false>());
+		}
+		else
+		{
+			if(morph)
+				return get(getVariation<false, true>());
+
+			return get(getVariation<false, false>());
+		}
 	}
 
 	ShadowProjectParamsDef gShadowProjectParamsDef;
@@ -357,6 +412,232 @@ namespace bs { namespace ct
 	{
 		return mTargets[cascadeIdx];
 	}
+
+	/** 
+	 * Provides a common for all types of shadow depth rendering to render the relevant objects into the depth map. Iterates
+	 * over all relevant objects in the scene, binds the relevant materials and renders the objects into the depth map.
+	 */
+	class ShadowRenderQueue
+	{
+	public:
+		struct Command
+		{
+			Command()
+			{ }
+
+			Command(BeastRenderableElement* element)
+				:element(element), isElement(true)
+			{ }
+
+			union
+			{
+				BeastRenderableElement* element;
+				RendererObject* renderable;
+			};
+
+
+			bool isElement : 1;
+			UINT32 mask : 6;
+		};
+
+		template<class Options>
+		static void execute(RendererScene& scene, const FrameInfo& frameInfo, const Options& opt)
+		{
+			static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
+
+			const SceneInfo& sceneInfo = scene.getSceneInfo();
+
+			bs_frame_mark();
+			{
+				FrameVector<Command> commands[4];
+
+				// Make a list of relevant renderables and prepare them for rendering
+				for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
+				{
+					const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.getSphere();
+					if (!opt.intersects(bounds))
+						continue;
+
+					scene.prepareRenderable(i, frameInfo);
+
+					Command renderableCommand;
+					renderableCommand.mask = 0;
+
+					RendererObject* renderable = sceneInfo.renderables[i];
+					renderableCommand.isElement = false;
+					renderableCommand.renderable = renderable;
+
+					opt.prepare(renderableCommand, bounds);
+
+					bool renderableBound[4];
+					bs_zero_out(renderableBound);
+
+					for (auto& element : renderable->elements)
+					{
+						UINT32 arrayIdx = (int)element.animType;
+
+						if (!renderableBound[arrayIdx])
+						{
+							commands[arrayIdx].push_back(renderableCommand);
+							renderableBound[arrayIdx] = true;
+						}
+
+						commands[arrayIdx].push_back(Command(&element));
+					}
+				}
+
+				static const ShaderVariation* VAR_LOOKUP[4] = 
+				{ 
+					&SVar_Static, &SVar_Skinned, &SVar_Morph, &SVar_SkinnedMorph 
+				};
+
+				for (UINT32 i = 0; i < (UINT32)RenderableAnimType::Count; i++)
+				{
+					opt.bindMaterial(*VAR_LOOKUP[i]);
+
+					for (auto& command : commands[i])
+					{
+						if (command.isElement)
+						{
+							const BeastRenderableElement& element = *command.element;
+
+							if (element.morphVertexDeclaration == nullptr)
+								gRendererUtility().draw(element.mesh, element.subMesh);
+							else
+								gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
+									element.morphVertexDeclaration);
+						}
+						else
+							opt.bindRenderable(command);
+					}
+				}
+			}
+			bs_frame_clear();
+		}
+	};
+
+	/** Specialization used for ShadowRenderQueue when rendering cube (omnidirectional) shadow maps. */
+	struct ShadowRenderQueueCubeOptions
+	{
+		ShadowRenderQueueCubeOptions(
+			const ConvexVolume (&frustums)[6], 
+			const ConvexVolume& boundingVolume, 
+			const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer, 
+			const SPtr<GpuParamBlockBuffer>& shadowCubeMatricesBuffer,
+			const SPtr<GpuParamBlockBuffer>& shadowCubeMasksBuffer)
+			: frustums(frustums), boundingVolume(boundingVolume), shadowParamsBuffer(shadowParamsBuffer)
+			, shadowCubeMatricesBuffer(shadowCubeMatricesBuffer), shadowCubeMasksBuffer(shadowCubeMasksBuffer)
+		{ }
+
+		bool intersects(const Sphere& bounds) const
+		{
+			return boundingVolume.intersects(bounds);
+		}
+
+		void prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
+		{
+			for (UINT32 j = 0; j < 6; j++)
+				command.mask |= (frustums[j].intersects(bounds) ? 1 : 0) << j;
+		}
+
+		void bindMaterial(const ShaderVariation& variation) const
+		{
+			material = ShadowDepthCubeMat::get(variation);
+			material->bind(shadowParamsBuffer, shadowCubeMatricesBuffer);
+		}
+
+		void bindRenderable(ShadowRenderQueue::Command& command) const
+		{
+			RendererObject* renderable = command.renderable;
+
+			for (UINT32 j = 0; j < 6; j++)
+				gShadowCubeMasksDef.gFaceMasks.set(shadowCubeMasksBuffer, (command.mask & (1 << j)), j);
+
+			material->setPerObjectBuffer(renderable->perObjectParamBuffer, shadowCubeMasksBuffer);
+		}
+		
+		const ConvexVolume (&frustums)[6];
+		const ConvexVolume& boundingVolume;
+		const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer;
+		const SPtr<GpuParamBlockBuffer>& shadowCubeMatricesBuffer;
+		const SPtr<GpuParamBlockBuffer>& shadowCubeMasksBuffer;
+
+		mutable ShadowDepthCubeMat* material = nullptr;
+	};
+
+	/** Specialization used for ShadowRenderQueue when rendering spot light shadow maps. */
+	struct ShadowRenderQueueSpotOptions
+	{
+		ShadowRenderQueueSpotOptions(
+			const ConvexVolume& boundingVolume, 
+			const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer)
+			: boundingVolume(boundingVolume), shadowParamsBuffer(shadowParamsBuffer)
+		{ }
+
+		bool intersects(const Sphere& bounds) const
+		{
+			return boundingVolume.intersects(bounds);
+		}
+
+		void prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
+		{
+		}
+
+		void bindMaterial(const ShaderVariation& variation) const
+		{
+			material = ShadowDepthNormalMat::get(variation);
+			material->bind(shadowParamsBuffer);
+		}
+
+		void bindRenderable(ShadowRenderQueue::Command& command) const
+		{
+			RendererObject* renderable = command.renderable;
+
+			material->setPerObjectBuffer(renderable->perObjectParamBuffer);
+		}
+		
+		const ConvexVolume& boundingVolume;
+		const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer;
+
+		mutable ShadowDepthNormalMat* material = nullptr;
+	};
+
+	/** Specialization used for ShadowRenderQueue when rendering directional light shadow maps. */
+	struct ShadowRenderQueueDirOptions
+	{
+		ShadowRenderQueueDirOptions(
+			const ConvexVolume& boundingVolume, 
+			const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer)
+			: boundingVolume(boundingVolume), shadowParamsBuffer(shadowParamsBuffer)
+		{ }
+
+		bool intersects(const Sphere& bounds) const
+		{
+			return boundingVolume.intersects(bounds);
+		}
+
+		void prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
+		{
+		}
+
+		void bindMaterial(const ShaderVariation& variation) const
+		{
+			material = ShadowDepthDirectionalMat::get(variation);
+			material->bind(shadowParamsBuffer);
+		}
+
+		void bindRenderable(ShadowRenderQueue::Command& command) const
+		{
+			RendererObject* renderable = command.renderable;
+
+			material->setPerObjectBuffer(renderable->perObjectParamBuffer);
+		}
+		
+		const ConvexVolume& boundingVolume;
+		const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer;
+
+		mutable ShadowDepthDirectionalMat* material = nullptr;
+	};
 
 	const UINT32 ShadowRendering::MAX_ATLAS_SIZE = 8192;
 	const UINT32 ShadowRendering::MAX_UNUSED_FRAMES = 60;
@@ -973,25 +1254,12 @@ namespace bs { namespace ct
 			ShadowDepthDirectionalMat* depthDirMat = ShadowDepthDirectionalMat::get();
 			depthDirMat->bind(shadowParamsBuffer);
 
-			for (UINT32 j = 0; j < sceneInfo.renderables.size(); j++)
-			{
-				if (!cascadeCullVolume.intersects(sceneInfo.renderableCullInfos[j].bounds.getSphere()))
-					continue;
-
-				scene.prepareRenderable(j, frameInfo);
-
-				RendererObject* renderable = sceneInfo.renderables[j];
-				depthDirMat->setPerObjectBuffer(renderable->perObjectParamBuffer);
-
-				for (auto& element : renderable->elements)
-				{
-					if (element.morphVertexDeclaration == nullptr)
-						gRendererUtility().draw(element.mesh, element.subMesh);
-					else
-						gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
-							element.morphVertexDeclaration);
-				}
-			}
+			// Render all renderables into the shadow map
+			ShadowRenderQueueDirOptions spotOptions(
+				cascadeCullVolume,
+				shadowParamsBuffer);
+			
+			ShadowRenderQueue::execute(scene, frameInfo, spotOptions);
 
 			shadowMap.setShadowInfo(i, shadowInfo);
 		}
@@ -1068,9 +1336,6 @@ namespace bs { namespace ct
 		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, mapInfo.shadowVPTransform);
 		gShadowParamsDef.gNDCZToDeviceZ.set(shadowParamsBuffer, RendererView::getNDCZToDeviceZ());
 
-		ShadowDepthNormalMat* depthNormalMat = ShadowDepthNormalMat::get();
-		depthNormalMat->bind(shadowParamsBuffer);
-
 		const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
 		Matrix4 worldMatrix = view.transpose();
 
@@ -1083,25 +1348,13 @@ namespace bs { namespace ct
 		}
 
 		ConvexVolume worldFrustum(worldPlanes);
-		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
-		{
-			if (!worldFrustum.intersects(sceneInfo.renderableCullInfos[i].bounds.getSphere()))
-				continue;
 
-			scene.prepareRenderable(i, frameInfo);
+		// Render all renderables into the shadow map
+		ShadowRenderQueueSpotOptions spotOptions(
+			worldFrustum,
+			shadowParamsBuffer);
 
-			RendererObject* renderable = sceneInfo.renderables[i];
-			depthNormalMat->setPerObjectBuffer(renderable->perObjectParamBuffer);
-
-			for (auto& element : renderable->elements)
-			{
-				if (element.morphVertexDeclaration == nullptr)
-					gRendererUtility().draw(element.mesh, element.subMesh);
-				else
-					gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
-						element.morphVertexDeclaration);
-			}
-		}
+		ShadowRenderQueue::execute(scene, frameInfo, spotOptions);
 
 		// Restore viewport
 		rapi.setViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
@@ -1252,37 +1505,16 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(cubemap.getTarget());
 		rapi.clearRenderTarget(FBT_DEPTH);
 
-		ShadowDepthCubeMat* depthCubeMat = ShadowDepthCubeMat::get();
-		depthCubeMat->bind(shadowParamsBuffer, shadowCubeMatricesBuffer);
-
-		// First cull against a global volume
+		// Render all renderables into the shadow map
 		ConvexVolume boundingVolume(boundingPlanes);
-		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
-		{
-			const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.getSphere();
-			if (!boundingVolume.intersects(bounds))
-				continue;
+		ShadowRenderQueueCubeOptions cubeOptions(
+			frustums,
+			boundingVolume,
+			shadowParamsBuffer,
+			shadowCubeMatricesBuffer,
+			shadowCubeMasksBuffer);
 
-			scene.prepareRenderable(i, frameInfo);
-
-			for(UINT32 j = 0; j < 6; j++)
-			{
-				int mask = frustums[j].intersects(bounds) ? 1 : 0;
-				gShadowCubeMasksDef.gFaceMasks.set(shadowCubeMasksBuffer, mask, j);
-			}
-
-			RendererObject* renderable = sceneInfo.renderables[i];
-			depthCubeMat->setPerObjectBuffer(renderable->perObjectParamBuffer, shadowCubeMasksBuffer);
-
-			for (auto& element : renderable->elements)
-			{
-				if (element.morphVertexDeclaration == nullptr)
-					gRendererUtility().draw(element.mesh, element.subMesh);
-				else
-					gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
-						element.morphVertexDeclaration);
-			}
-		}
+		ShadowRenderQueue::execute(scene, frameInfo, cubeOptions);
 
 		LightShadows& lightShadows = mRadialLightShadows[options.lightIdx];
 

@@ -1,8 +1,10 @@
 #define USES_PS
 #include "$ENGINE$\ShadowDepthBase.bslinc"
 
-mixin ShadowDepth
+technique ShadowDepth
 { 
+	mixin ShadowDepthBase;
+
 	code
 	{
 		float4 fsmain(ShadowVStoFS input, out float outDepth : SV_Depth) : SV_Target0

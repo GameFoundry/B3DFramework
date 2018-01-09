@@ -1062,6 +1062,7 @@ namespace bs
 						parseVariations(metaData, variationOption->value.nodePtr);
 				}
 			}
+				break;
 			case OT_Identifier:
 				metaData.name = option->value.strValue;
 				break;

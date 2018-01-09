@@ -159,6 +159,10 @@
         {
             "Path": "PPEyeAdaptationCommon.bslinc",
             "UUID": "1a0c4fb5-49b6-7eb8-28b8-49b698a6b7fe"
+        },
+        {
+            "Path": "VertexInput.bslinc",
+            "UUID": "2d0dc7e6-46bf-03bb-f48d-46bf25dda973"
         }
     ],
     "Shaders": [

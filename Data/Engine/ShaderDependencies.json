@@ -491,13 +491,10 @@
             "Path": "ShadowDepthBase.bslinc"
         },
         {
-            "Path": "NormalVertexInput.bslinc"
-        },
-        {
             "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "VertexInput.bslinc"
         }
     ],
     "ShadowDepthDirectional.bsl": [
@@ -505,13 +502,10 @@
             "Path": "ShadowDepthBase.bslinc"
         },
         {
-            "Path": "NormalVertexInput.bslinc"
-        },
-        {
             "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "VertexInput.bslinc"
         }
     ],
     "ShadowDepthNormal.bsl": [
@@ -519,13 +513,10 @@
             "Path": "ShadowDepthBase.bslinc"
         },
         {
-            "Path": "NormalVertexInput.bslinc"
-        },
-        {
             "Path": "PerObjectData.bslinc"
         },
         {
-            "Path": "SkinnedVertexInput.bslinc"
+            "Path": "VertexInput.bslinc"
         }
     ],
     "ShadowProject.bsl": [

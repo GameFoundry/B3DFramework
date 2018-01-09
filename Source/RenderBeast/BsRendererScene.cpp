@@ -260,10 +260,13 @@ namespace bs {	namespace ct
 
 				// Determine which technique to use
 				static StringID techniqueIDLookup[4] = { StringID::NONE, RTag_Skinned, RTag_Morph, RTag_SkinnedMorph };
+				static const ShaderVariation* variationLookup[4] = { &SVar_Static, &SVar_Skinned, &SVar_Morph, &SVar_SkinnedMorph };
 				static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
 
 				UINT32 techniqueIdx = -1;
 				RenderableAnimType animType = renderable->getAnimType();
+				renElement.vertexInputVariation = variationLookup[(int)animType];
+
 				if (animType != RenderableAnimType::None)
 					techniqueIdx = renElement.material->findTechnique(techniqueIDLookup[(int)animType]);
 

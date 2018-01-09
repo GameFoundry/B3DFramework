@@ -1,14 +1,11 @@
 #include "$ENGINE$\PerObjectData.bslinc"
-
-#include "$ENGINE$\SkinnedVertexInput.bslinc"
-#include "$ENGINE$\NormalVertexInput.bslinc"
-#define USE_BLEND_SHAPES
-#include "$ENGINE$\SkinnedVertexInput.bslinc"
-#include "$ENGINE$\NormalVertexInput.bslinc"
-#undef USE_BLEND_SHAPES
+#include "$ENGINE$\VertexInput.bslinc"
 
 mixin ShadowDepthBase
 {
+	mixin PerObjectData;
+	mixin VertexInput;
+
 	code
 	{
 		struct ShadowVStoFS
@@ -16,7 +13,7 @@ mixin ShadowDepthBase
 			float4 position : SV_Position;
 			
 			#ifdef USES_GS
-			float4 worldPos : TEXCOORD0;
+				float4 worldPos : TEXCOORD0;
 			#else
 			#ifdef USES_PS
 				float shadowPos : TEXCOORD0;
@@ -108,42 +105,4 @@ mixin ShadowDepthBase
 			return output;
 		}
 	};
-};
-
-technique ShadowDepth
-{
-	mixin PerObjectData;
-	mixin NormalVertexInput;
-	mixin ShadowDepthBase;
-	mixin ShadowDepth;
-};
-
-technique ShadowDepthSkinned
-{
-	mixin PerObjectData;
-	mixin SkinnedVertexInput;
-	mixin ShadowDepthBase;
-	mixin ShadowDepth;
-
-	tags = { "Skinned" };
-};
-
-technique ShadowDepthMorph
-{
-	mixin PerObjectData;
-	mixin MorphVertexInput;
-	mixin ShadowDepthBase;
-	mixin ShadowDepth;
-
-	tags = { "Morph" };
-};
-
-technique ShadowDepthSkinnedMorph
-{
-	mixin PerObjectData;
-	mixin SkinnedMorphVertexInput;
-	mixin ShadowDepthBase;
-	mixin ShadowDepth;
-
-	tags = { "SkinnedMorph" };
 };

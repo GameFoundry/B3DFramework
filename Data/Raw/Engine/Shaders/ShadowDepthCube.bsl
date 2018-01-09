@@ -1,8 +1,10 @@
 #define USES_GS
 #include "$ENGINE$\ShadowDepthBase.bslinc"
 
-mixin ShadowDepth
+technique ShadowDepth
 { 
+	mixin ShadowDepthBase;
+	
 	code
 	{
 		struct GSToPS

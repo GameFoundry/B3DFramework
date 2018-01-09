@@ -63,6 +63,9 @@ namespace bs { namespace ct
 		/** Index of the technique in the material to render the element with. */
 		UINT32 techniqueIdx;
 
+		/** Shader variation that controls the type of vertex input that is provided. */
+		const ShaderVariation* vertexInputVariation = nullptr;
+
 		/** Binding indices representing where should the per-camera param block buffer be bound to. */
 		GpuParamBinding perCameraBindings[GPT_COUNT];
 

@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "String/BsStringID.h"
 #include "Renderer/BsRendererMeshData.h"
+#include "Material/BsShaderVariation.h"
 
 namespace bs 
 { 
@@ -20,6 +21,27 @@ namespace bs
 	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
+
+	/** Common shader variations. */
+	static ShaderVariation SVar_Static = ShaderVariation({
+		ShaderVariation::Param("SKINNED", false),
+		ShaderVariation::Param("MORPH", false),
+	});
+
+	static ShaderVariation SVar_Skinned = ShaderVariation({
+		ShaderVariation::Param("SKINNED", true),
+		ShaderVariation::Param("MORPH", false),
+	});
+
+	static ShaderVariation SVar_Morph = ShaderVariation({
+		ShaderVariation::Param("SKINNED", false),
+		ShaderVariation::Param("MORPH", true),
+	});
+
+	static ShaderVariation SVar_SkinnedMorph = ShaderVariation({
+		ShaderVariation::Param("SKINNED", true),
+		ShaderVariation::Param("MORPH", true),
+	});
 
 	/** Technique tags. */
 	static StringID RTag_Skinned = "Skinned";
