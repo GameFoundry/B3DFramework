@@ -38,7 +38,7 @@ technique IrradianceComputeSHFrag
 			
 			SHVector shBasis = SHBasis(dir);
 			float3 radiance = gInputTex.SampleLevel(gInputSamp, dir, 0).rgb;
-						
+												
 			float4 output;
 			output.r = shBasis.v[gCoeffIdx] * radiance.r * weight;
 			output.g = shBasis.v[gCoeffIdx] * radiance.g * weight;

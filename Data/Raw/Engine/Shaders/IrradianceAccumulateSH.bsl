@@ -42,7 +42,7 @@ technique IrradianceAccumulateSH
 				sum += value;
 			}
 			
-			return sum / 4.0f;
+			return sum;
 		}
 	};
 };
