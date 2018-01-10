@@ -67,10 +67,10 @@ namespace bs { namespace ct
 		const RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 
-		//if(
-		//	!rapiInfo.isFlagSet(RenderAPIFeatureFlag::Compute) ||
-		//	!rapiInfo.isFlagSet(RenderAPIFeatureFlag::LoadStore) ||
-		//	!rapiInfo.isFlagSet(RenderAPIFeatureFlag::TextureViews))
+		if(
+			!rapiInfo.isFlagSet(RenderAPIFeatureFlag::Compute) ||
+			!rapiInfo.isFlagSet(RenderAPIFeatureFlag::LoadStore) ||
+			!rapiInfo.isFlagSet(RenderAPIFeatureFlag::TextureViews))
 		{
 			mFeatureSet = RenderBeastFeatureSet::DesktopMacOS;
 		}
