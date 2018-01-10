@@ -1384,11 +1384,12 @@ namespace bs { namespace ct
 		for (auto& param : params)
 		{
 			const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.lookup[param.type];
-			UINT32 size = typeInfo.size / 4;
 
 			if (param.arraySize > 1)
 			{
 				// Arrays perform no packing and their elements are always padded and aligned to four component vectors
+				UINT32 size = typeInfo.size / 4;
+
 				UINT32 alignOffset = size % typeInfo.baseTypeSize;
 				if (alignOffset != 0)
 				{
@@ -1414,6 +1415,8 @@ namespace bs { namespace ct
 			}
 			else
 			{
+				UINT32 size = typeInfo.baseTypeSize * (typeInfo.numRows * typeInfo.numColumns) / 4;
+
 				// Pack everything as tightly as possible as long as the data doesn't cross 16 byte boundary
 				UINT32 alignOffset = block.blockSize % 4;
 				if (alignOffset != 0 && size > (4 - alignOffset))
