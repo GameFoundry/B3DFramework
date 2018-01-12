@@ -625,7 +625,7 @@ namespace bs { namespace ct
 		mutable ShadowDepthDirectionalMat* material = nullptr;
 	};
 
-	const UINT32 ShadowRendering::MAX_ATLAS_SIZE = 8192;
+	const UINT32 ShadowRendering::MAX_ATLAS_SIZE = 4096;
 	const UINT32 ShadowRendering::MAX_UNUSED_FRAMES = 60;
 	const UINT32 ShadowRendering::MIN_SHADOW_MAP_SIZE = 32;
 	const UINT32 ShadowRendering::SHADOW_MAP_FADE_SIZE = 64;
