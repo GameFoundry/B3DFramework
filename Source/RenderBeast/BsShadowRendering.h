@@ -167,7 +167,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation({
-				ShaderVariation::Param("NEEDS_TRANSFORM", directional),
+				ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
 				ShaderVariation::Param("USE_ZFAIL_STENCIL", useZFailStencil)
 			});
 
