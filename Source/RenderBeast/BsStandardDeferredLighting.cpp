@@ -93,18 +93,6 @@ namespace bs { namespace ct {
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
 		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
-
-		SAMPLER_STATE_DESC desc;
-		desc.minFilter = FO_POINT;
-		desc.magFilter = FO_POINT;
-		desc.mipFilter = FO_POINT;
-		desc.addressMode.u = TAM_CLAMP;
-		desc.addressMode.v = TAM_CLAMP;
-		desc.addressMode.w = TAM_CLAMP;
-
-		SPtr<SamplerState> samplerState = SamplerState::create(desc);
-		mIBLParams.ssrSampParam.set(samplerState);
-		mIBLParams.ambientOcclusionSampParam.set(samplerState);
 	}
 
 	void DeferredIBLSetupMat::bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, 
@@ -205,18 +193,6 @@ namespace bs { namespace ct {
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
 		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
-
-		SAMPLER_STATE_DESC desc;
-		desc.minFilter = FO_POINT;
-		desc.magFilter = FO_POINT;
-		desc.mipFilter = FO_POINT;
-		desc.addressMode.u = TAM_CLAMP;
-		desc.addressMode.v = TAM_CLAMP;
-		desc.addressMode.w = TAM_CLAMP;
-
-		SPtr<SamplerState> samplerState = SamplerState::create(desc);
-		mIBLParams.ssrSampParam.set(samplerState);
-		mIBLParams.ambientOcclusionSampParam.set(samplerState);
 	}
 
 	void DeferredIBLSkyMat::bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, 

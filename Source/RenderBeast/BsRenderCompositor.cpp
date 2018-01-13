@@ -1170,17 +1170,7 @@ namespace bs { namespace ct
 	}
 
 	RCNodeClusteredForward::RCNodeClusteredForward()
-	{
-		SAMPLER_STATE_DESC desc;
-		desc.minFilter = FO_POINT;
-		desc.magFilter = FO_POINT;
-		desc.mipFilter = FO_POINT;
-		desc.addressMode.u = TAM_CLAMP;
-		desc.addressMode.v = TAM_CLAMP;
-		desc.addressMode.w = TAM_CLAMP;
-
-		mSSRAOSamplerState = SamplerState::create(desc);
-	}
+	{ }
 
 	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
 	{
@@ -1256,9 +1246,6 @@ namespace bs { namespace ct
 
 				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
 				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
-
-				iblParams.ssrSampParam.set(mSSRAOSamplerState);
-				iblParams.ambientOcclusionSampParam.set(mSSRAOSamplerState);
 			}
 		}
 

@@ -186,6 +186,51 @@ namespace bs { namespace ct
 						mParams = GpuParams::create(mComputePipeline);
 					}
 
+					// Assign default values from the shader
+					const auto& textureParams = mMetaData.shader->getTextureParams();
+					for(auto& param : textureParams)
+					{
+						UINT32 defaultValueIdx = param.second.defaultValueIdx;
+						if(defaultValueIdx == (UINT32)-1)
+							continue;
+
+						for (UINT32 i = 0; i < 6; i++)
+						{
+							GpuProgramType progType = (GpuProgramType)i;
+
+							for(auto& varName : param.second.gpuVariableNames)
+							{
+								if(mParams->hasTexture(progType, varName))
+								{
+									SPtr<Texture> texture = mMetaData.shader->getDefaultTexture(defaultValueIdx);
+									mParams->setTexture(progType, varName, texture);
+								}
+							}
+						}
+					}
+
+					const auto& samplerParams = mMetaData.shader->getSamplerParams();
+					for(auto& param : samplerParams)
+					{
+						UINT32 defaultValueIdx = param.second.defaultValueIdx;
+						if(defaultValueIdx == (UINT32)-1)
+							continue;
+
+						for (UINT32 i = 0; i < 6; i++)
+						{
+							GpuProgramType progType = (GpuProgramType)i;
+
+							for(auto& varName : param.second.gpuVariableNames)
+							{
+								if(mParams->hasSamplerState(progType, varName))
+								{
+									SPtr<SamplerState> samplerState = mMetaData.shader->getDefaultSampler(defaultValueIdx);
+									mParams->setSamplerState(progType, varName, samplerState);
+								}
+							}
+						}
+					}
+
 					mStencilRef = pass->getStencilRefValue();
 				}
 			}

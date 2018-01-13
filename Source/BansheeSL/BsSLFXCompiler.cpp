@@ -421,6 +421,11 @@ namespace bs
 					GpuParamObjectType objType = ReflTypeToTextureType((Xsc::Reflection::BufferType)entry.baseType);
 					if(objType != GPOT_UNKNOWN)
 					{
+						// Ignore parameters that were already registered in some previous variation. Note that this implies
+						// you cannot have same names for different parameters in different variations.
+						if (desc.textureParams.find(ident) != desc.textureParams.end())
+							continue;
+
 						if (entry.defaultValue == -1)
 							desc.addParameter(ident, ident, objType);
 						else
@@ -428,6 +433,11 @@ namespace bs
 					}
 					else
 					{
+						// Ignore parameters that were already registered in some previous variation. Note that this implies
+						// you cannot have same names for different parameters in different variations.
+						if (desc.bufferParams.find(ident) != desc.bufferParams.end())
+							continue;
+
 						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
 						desc.addParameter(ident, ident, objType);
 					}
@@ -438,6 +448,11 @@ namespace bs
 				auto findIter = reflData.samplerStates.find(entry.ident);
 				if (findIter != reflData.samplerStates.end())
 				{
+					// Ignore parameters that were already registered in some previous variation. Note that this implies
+					// you cannot have same names for different parameters in different variations.
+					if(desc.samplerParams.find(ident) != desc.samplerParams.end())
+						continue;
+
 					String alias = findIter->second.alias.c_str();
 
 					if(findIter->second.isNonDefault)

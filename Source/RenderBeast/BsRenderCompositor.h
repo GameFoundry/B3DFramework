@@ -423,8 +423,6 @@ namespace ct
 
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
-
-		SPtr<SamplerState> mSSRAOSamplerState;
 	};
 
 	/**

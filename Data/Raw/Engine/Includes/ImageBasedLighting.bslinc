@@ -32,15 +32,36 @@ mixin ImageBasedLighting
 		
 		[internal]
 		Texture2D gAmbientOcclusionTex;
-		SamplerState gAmbientOcclusionSamp;
+		
+		[internal] [alias(gAmbientOcclusionTex)]
+		SamplerState gAmbientOcclusionSamp
+		{
+			Filter = MIN_MAG_MIP_POINT;
+			AddressU = CLAMP;
+			AddressV = CLAMP;
+		};
 		
 		[internal]
 		Texture2D gSSRTex;
-		SamplerState gSSRSamp;
+		
+		[internal] [alias(gSSRTex)]
+		SamplerState gSSRSamp
+		{
+			Filter = MIN_MAG_MIP_POINT;
+			AddressU = CLAMP;
+			AddressV = CLAMP;
+		};
 		
 		[internal]
 		Texture2D gPreintegratedEnvBRDF;
-		SamplerState gPreintegratedEnvBRDFSamp;
+		
+		[internal] [alias(gPreintegratedEnvBRDF)]
+		SamplerState gPreintegratedEnvBRDFSamp
+		{
+			Filter = MIN_MAG_MIP_LINEAR;
+			AddressU = CLAMP;
+			AddressV = CLAMP;
+		};
 		
 		#ifndef STANDARD_DEFERRED
 		StructuredBuffer<ReflProbeData> gReflectionProbes;

@@ -125,25 +125,11 @@ namespace bs { namespace ct
 
 		// AO
 		if (params->hasTexture(programType, "gAmbientOcclusionTex"))
-		{
 			params->getTextureParam(programType, "gAmbientOcclusionTex", ambientOcclusionTexParam);
-
-			if(params->hasSamplerState(programType, "gAmbientOcclusionSamp"))
-				params->getSamplerStateParam(programType, "gAmbientOcclusionSamp", ambientOcclusionSampParam);
-			else
-				params->getSamplerStateParam(programType, "gAmbientOcclusionTex", ambientOcclusionSampParam);
-		}
 
 		// SSR
 		if (params->hasTexture(programType, "gSSRTex"))
-		{
 			params->getTextureParam(programType, "gSSRTex", ssrTexParam);
-
-			if(params->hasSamplerState(programType, "gSSRSamp"))
-				params->getSamplerStateParam(programType, "gSSRSamp", ssrSampParam);
-			else
-				params->getSamplerStateParam(programType, "gSSRTex", ssrSampParam);
-		}
 
 		if(gridIndices)
 		{
@@ -223,18 +209,6 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("Params", mParamBuffer);
 
 		mImageBasedParams.populate(mParams, GPT_COMPUTE_PROGRAM, false, false, true);
-
-		SAMPLER_STATE_DESC desc;
-		desc.minFilter = FO_POINT;
-		desc.magFilter = FO_POINT;
-		desc.mipFilter = FO_POINT;
-		desc.addressMode.u = TAM_CLAMP;
-		desc.addressMode.v = TAM_CLAMP;
-		desc.addressMode.w = TAM_CLAMP;
-
-		SPtr<SamplerState> samplerState = SamplerState::create(desc);
-		mImageBasedParams.ssrSampParam.set(samplerState);
-		mImageBasedParams.ambientOcclusionSampParam.set(samplerState);
 
 		mParams->setParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
 	}
