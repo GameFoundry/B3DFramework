@@ -68,7 +68,7 @@ technique DeferredDirectionalLight
 			#endif
 			) : SV_Target0
 		{
-			uint2 pixelPos = (uint2)(input.uv0 * (float2)gViewportRectangle.zw - ((float2)gViewportRectangle.xy + 0.5f));
+			uint2 pixelPos = UVToScreen(input.uv0);
 			
 			#if MSAA_COUNT > 1
 				#if MSAA_RESOLVE_0TH
