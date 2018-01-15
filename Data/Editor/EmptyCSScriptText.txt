@@ -1,6 +1,6 @@
 namespace BansheeEngine
 {
-	public class NewComponent : Component
+	public class NewComponent : ManagedComponent
 	{
 		private void OnInitialize()
 		{

@@ -1,95 +1,37 @@
-Parameters =
-{
-	mat4x4		matWorldViewProj : auto("WVP");
+#include "$ENGINE$\BasePass.bslinc"
 
-	Sampler2D 	samp : alias("tex");
-	Texture2D 	tex;
-};
-
-Blocks =
+technique Surface
 {
-	Block PerObject : auto("PerObject");
-};
+	mixin BasePass;
 
-Technique =
-{
-	Language = "HLSL11";
-	
-	Pass =
+	code
 	{
-
-		Vertex =
-		{
-			cbuffer PerObject
-			{
-				float4x4 matWorldViewProj;
-			}
-
-			void main(
-			  in float4 inPos : POSITION,
-			  in float2 uv : TEXCOORD0,
-			  out float4 oPosition : SV_Position,
-			  out float2 oUv : TEXCOORD0)
-			{
-			   oPosition = mul(matWorldViewProj, inPos);
-			   oUv = uv;
-			}
-		};
+		SamplerState gAlbedoSamp;
+		SamplerState gNormalSamp;
+		SamplerState gRoughnessSamp;
+		SamplerState gMetalnessSamp;
 		
-		Fragment =
+		Texture2D gAlbedoTex;
+		Texture2D gNormalTex;
+		Texture2D gRoughnessTex;
+		Texture2D gMetalnessTex;
+		
+		void fsmain(
+			in VStoFS input, 
+			out float4 OutGBufferA : SV_Target0,
+			out float4 OutGBufferB : SV_Target1,
+			out float2 OutGBufferC : SV_Target2)
 		{
-			SamplerState samp : register(s0);
-			Texture2D tex : register(t0);
-
-			float4 main(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
-			{
-			   return tex.Sample(samp, uv);
-			}
-		};
-	};
-};
-
-Technique =
-{
-	Language = "GLSL";
-	
-	Pass =
-	{
-
-		Vertex =
-		{
-			uniform PerObject
-			{
-				mat4 matWorldViewProj;
-			};
-
-			in vec4 bs_position;
-			in vec2 bs_texcoord0;
-			out vec2 texcoord0;
-
-			out gl_PerVertex
-			{
-				vec4 gl_Position;
-			};
+			float3 normal = normalize(gNormalTex.Sample(gNormalSamp, input.uv0) * 2.0f - float3(1, 1, 1));
+			float3 worldNormal = calcWorldNormal(input, normal);
+		
+			SurfaceData surfaceData;
+			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
+			surfaceData.worldNormal.xyz = worldNormal;
+			surfaceData.roughness = gRoughnessTex.Sample(gRoughnessSamp, input.uv0).x;
+			surfaceData.metalness = gMetalnessTex.Sample(gMetalnessSamp, input.uv0).x;
 			
-			void main()
-			{
-			   texcoord0 = bs_texcoord0;
-			   gl_Position = matWorldViewProj * bs_position;
-			}
-		};
-		
-		Fragment =
-		{
-			uniform sampler2D tex;
-
-			in vec2 texcoord0;
-			out vec4 fragColor;
-
-			void main()
-			{
-			   fragColor = texture2D(tex, texcoord0.st);
-			}
-		};
+			encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB, OutGBufferC);
+		}	
 	};
 };
