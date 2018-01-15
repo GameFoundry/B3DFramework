@@ -15,6 +15,10 @@ if(LINUX)
 	if(NOT X11_Xrandr_FOUND)
 		message(FATAL_ERROR "Could not find XRandR library.")
 	endif()
+
+	if(NOT X11_Xi_FOUND)
+		message(FATAL_ERROR "Could not find Xi (XInput) library.")
+	endif()
 endif()
 
 # Third party (non-package) libraries
@@ -52,7 +56,7 @@ else()
 	target_link_libraries(BansheeUtility PRIVATE dl pthread)
 
 	## External lib: X11, LibUUID
-	target_link_libraries(BansheeUtility PUBLIC ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB})
+	target_link_libraries(BansheeUtility PUBLIC ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB} ${X11_Xi_LIB})
 	target_link_libraries(BansheeUtility PRIVATE ${LibUUID_LIBRARIES})
 endif()
 

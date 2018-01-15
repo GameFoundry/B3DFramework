@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Platform/BsPlatform.h"
+#include "Linux/BsLinuxInput.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -43,6 +44,21 @@ namespace bs
 
 		/** Generates a X11 Pixmap from the provided pixel data. */
 		static Pixmap createPixmap(const PixelData& data, UINT32 depth);
+
+		/** Mutex for accessing buttonEvents / mouseEvent. */
+		static Mutex eventLock;
+
+		/**
+		 * Stores events captured on the core thread, waiting to be processed by the main thread.
+		 * Always lock on eventLock when accessing this.
+		 */
+		static Queue<LinuxButtonEvent> buttonEvents;
+
+		/**
+		 * Stores accumulated mouse motion events, waiting to be processed by the main thread.
+		 * Always lock on eventLock when accessing this.
+		 */
+		static LinuxMouseMotionEvent mouseMotionEvent;
 	};
 
 	/** @} */

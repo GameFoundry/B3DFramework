@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Input/BsInputFwd.h"
 
 namespace bs
 {
@@ -32,12 +33,24 @@ namespace bs
 	struct InputPrivateData
 	{
 		Vector<GamepadInfo> gamepadInfos;
-		Vector<INT32> mice;
-		Vector<INT32> keyboards;
+	};
+
+	/** Data about relative pointer / scroll wheel movement. */
+	struct LinuxMouseMotionEvent
+	{
+		double deltaX; /**< Relative pointer movement in X direction. */
+		double deltaY; /**< Relative pointer movement in Y direction. */
+		double deltaZ; /**< Relative vertical scroll amount. */
+	};
+
+	/** Data about a single button press or release. */
+	struct LinuxButtonEvent
+	{
+		UINT64 timestamp;
+		ButtonCode button;
+		bool pressed;
 	};
 
 #define BUFFER_SIZE_GAMEPAD 64
-#define BUFFER_SIZE_KEYBOARD 128
-#define BUFFER_SIZE_MOUSE 16
 }
 

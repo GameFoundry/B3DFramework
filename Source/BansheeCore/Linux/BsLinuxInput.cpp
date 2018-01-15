@@ -238,40 +238,6 @@ namespace bs
 		return isGamepad;
 	}
 
-	/** Checks is the event handler at the specified input file handle is a mouse. */
-	bool isMouse(int fileHandle)
-	{
-		EventInfo eventInfo;
-		if(!getEventInfo(fileHandle, eventInfo))
-			return false;
-
-		// Check for mouse buttons
-		for(auto& entry : eventInfo.buttons)
-		{
-			if((entry >= BTN_MOUSE && entry < BTN_JOYSTICK))
-				return true;
-		}
-
-		return false;
-	}
-
-	/** Checks is the event handler at the specified input file handle is a keyboard. */
-	bool isKeyboard(int fileHandle)
-	{
-		EventInfo eventInfo;
-		if(!getEventInfo(fileHandle, eventInfo))
-			return false;
-
-		// Check for keyboard keys
-		for(auto& entry : eventInfo.buttons)
-		{
-			if(entry >= KEY_ESC && entry < KEY_KPDOT)
-				return true;
-		}
-
-		return false;
-	}
-
 	void Input::initRawInput()
 	{
 		mPlatformData = bs_new<InputPrivateData>();
@@ -295,19 +261,12 @@ namespace bs
 				info.id = (UINT32)mPlatformData->gamepadInfos.size();
 				mPlatformData->gamepadInfos.push_back(info);
 			}
-			else if(isKeyboard(file))
-				mPlatformData->keyboards.push_back(i);
-			else if(isMouse(file))
-				mPlatformData->mice.push_back(i);
 
 			close(file);
 		}
 
-		if (getDeviceCount(InputDevice::Keyboard) > 0)
-			mKeyboard = bs_new<Keyboard>("Keyboard", this);
-
-		if (getDeviceCount(InputDevice::Mouse) > 0)
-			mMouse = bs_new<Mouse>("Mouse", this);
+		mKeyboard = bs_new<Keyboard>("Keyboard", this);
+		mMouse = bs_new<Mouse>("Mouse", this);
 
 		UINT32 numGamepads = getDeviceCount(InputDevice::Gamepad);
 		for (UINT32 i = 0; i < numGamepads; i++)

@@ -3,6 +3,7 @@
 #include "Image/BsPixelData.h"
 #include "Image/BsPixelUtil.h"
 #include "String/BsUnicode.h"
+#include "Linux/BsLinuxInput.h"
 #include "Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxWindow.h"
 #include "RenderAPI/BsRenderWindow.h"
@@ -13,6 +14,7 @@
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
+#include <X11/extensions/XInput2.h>
 #include <pwd.h>
 
 namespace bs
@@ -26,6 +28,10 @@ namespace bs
 	Event<void(UINT32)> Platform::onCharInput;
 
 	Event<void()> Platform::onMouseCaptureChanged;
+
+	Mutex LinuxPlatform::eventLock;
+	Queue<LinuxButtonEvent> LinuxPlatform::buttonEvents;
+	LinuxMouseMotionEvent LinuxPlatform::mouseMotionEvent;
 
 	enum class X11CursorType
 	{
@@ -45,7 +51,7 @@ namespace bs
 		Deny,
 
 		Count
-	};;
+	};
 
 	struct Platform::Pimpl
 	{
@@ -64,6 +70,11 @@ namespace bs
 		Atom atomWmStateHidden;
 		Atom atomWmStateMaxVert;
 		Atom atomWmStateMaxHorz;
+
+		// X11 Event handling
+		int xInput2Opcode;
+		UnorderedMap<String, KeyCode> keyNameMap; /**< Maps X11 key name (e.g. "TAB") to system-specific X11 KeyCode. */
+		Vector<ButtonCode> keyCodeMap; /**< Maps system-specific X11 KeyCode to Banshee ButtonCode. */
 
 		// Clipboard
 		WString clipboardData;
@@ -494,12 +505,29 @@ namespace bs
 		return L"";
 	}
 
+	/** Maps X11 mouse button codes to Banshee button codes. */
+	ButtonCode xButtonToButtonCode(int button)
+	{
+		switch (button)
+		{
+		case Button1:
+			return BC_MOUSE_LEFT;
+		case Button2:
+			return BC_MOUSE_MIDDLE;
+		case Button3:
+			return BC_MOUSE_RIGHT;
+		default:
+			return (ButtonCode)(BC_MOUSE_LEFT + button - 1);
+		}
+	}
+
 	/** Maps Banshee button codes to X11 names for physical key locations. */
-	const char* keyCodeToKeyName(ButtonCode code)
+	const char* buttonCodeToKeyName(ButtonCode code)
 	{
 		switch(code)
 		{
 			// Row #1
+		case BC_ESCAPE:		return "ESC";
 		case BC_F1:			return "FK01";
 		case BC_F2:			return "FK02";
 		case BC_F3:			return "FK03";
@@ -512,6 +540,9 @@ namespace bs
 		case BC_F10:		return "FK10";
 		case BC_F11:		return "FK11";
 		case BC_F12:		return "FK12";
+		case BC_F13:		return "FK13";
+		case BC_F14:		return "FK14";
+		case BC_F15:		return "FK15";
 
 			// Row #2
 		case BC_GRAVE:		return "TLDE";
@@ -543,8 +574,10 @@ namespace bs
 		case BC_P:			return "AD10";
 		case BC_LBRACKET:	return "AD11";
 		case BC_RBRACKET:	return "AD12";
+		case BC_RETURN:		return "RTRN";
 
 			// Row #4
+		case BC_CAPITAL:	return "CAPS";
 		case BC_A:			return "AC01";
 		case BC_S:			return "AC02";
 		case BC_D:			return "AC03";
@@ -559,6 +592,7 @@ namespace bs
 		case BC_BACKSLASH:	return "BKSL";
 
 			// Row #5
+		case BC_LSHIFT:		return "LFSH";
 		case BC_Z:			return "AB01";
 		case BC_X:			return "AB02";
 		case BC_C:			return "AB03";
@@ -569,6 +603,16 @@ namespace bs
 		case BC_COMMA:		return "AB08";
 		case BC_PERIOD:		return "AB09";
 		case BC_SLASH:		return "AB10";
+		case BC_RSHIFT:		return "RTSH";
+
+			// Row #6
+		case BC_LCONTROL:	return "LCTL";
+		case BC_LWIN:		return "LWIN";
+		case BC_LMENU:		return "LALT";
+		case BC_SPACE:		return "SPCE";
+		case BC_RMENU:		return "RALT";
+		case BC_RWIN:		return "RWIN";
+		case BC_RCONTROL:	return "RCTL";
 
 			// Keypad
 		case BC_NUMPAD0:	return "KP0";
@@ -582,7 +626,47 @@ namespace bs
 		case BC_NUMPAD8:	return "KP8";
 		case BC_NUMPAD9:	return "KP9";
 
+		case BC_NUMLOCK:		return "NMLK";
+		case BC_DIVIDE:			return "KPDV";
+		case BC_MULTIPLY:		return "KPMU";
+		case BC_SUBTRACT:		return "KPSU";
+		case BC_ADD:			return "KPAD";
+		case BC_DECIMAL:		return "KPDL";
+		case BC_NUMPADENTER:	return "KPEN";
+		case BC_NUMPADEQUALS:	return "KPEQ";
+
+			// Special keys
+		case BC_SCROLL:		return "SCLK";
+		case BC_PAUSE:		return "PAUS";
+
+		case BC_INSERT:		return "INS";
+		case BC_HOME:		return "HOME";
+		case BC_PGUP:		return "PGUP";
+		case BC_DELETE:		return "DELE";
+		case BC_END:		return "END";
+		case BC_PGDOWN:		return "PGDN";
+
+		case BC_UP:			return "UP";
+		case BC_LEFT:		return "LEFT";
+		case BC_DOWN:		return "DOWN";
+		case BC_RIGHT:		return "RGHT";
+
+		case BC_MUTE:		return "MUTE";
+		case BC_VOLUMEDOWN:	return "VOL-";
+		case BC_VOLUMEUP:	return "VOL+";
+		case BC_POWER:		return "POWR";
+
+			// International keys
+		case BC_OEM_102:	return "LSGT"; // German keyboard: < > |
+		case BC_KANA:		return "AB11"; // Taking a guess here, many layouts map <AB11> to "kana_RO"
+		case BC_YEN:		return "AE13"; // Taking a guess, often mapped to yen
+
 		default:
+			// Missing Japanese (?): KATA, HIRA, HENK, MUHE, JPCM
+			// Missing Korean (?): HNGL, HJCV
+			// Missing because it's not clear which BC_ is correct: PRSC (print screen), LVL3 (AltGr), MENU
+			// Misc: LNFD (line feed), I120, I126, I128, I129, COMP, STOP, AGAI (redo), PROP, UNDO, FRNT, COPY, OPEN, PAST
+			// FIND, CUT, HELP, I147-I190, FK16-FK24, MDSW (mode switch), ALT, META, SUPR, HYPR, I208-I253
 			break;
 		}
 
@@ -593,38 +677,15 @@ namespace bs
 	{
 		Lock lock(mData->lock);
 
-		static bool mapInitialized = false;
-		static UnorderedMap<String, KeyCode> keyMap;
-		if(!mapInitialized)
-		{
-			char name[XkbKeyNameLength + 1];
-
-			XkbDescPtr desc = XkbGetMap(mData->xDisplay, 0, XkbUseCoreKbd);
-			XkbGetNames(mData->xDisplay, XkbKeyNamesMask, desc);
-
-			for(UINT32 keyCode = desc->min_key_code; keyCode <= desc->max_key_code; keyCode++)
-			{
-				memcpy(name, desc->names->keys[keyCode].name, XkbKeyNameLength);
-				name[XkbKeyNameLength] = '\0';
-
-				keyMap[String(name)] = keyCode;
-			}
-
-			XkbFreeNames(desc, XkbKeyNamesMask, True);
-			XkbFreeKeyboard(desc, 0, True);
-
-			mapInitialized = true;
-		}
-
-		const char* keyName = keyCodeToKeyName((ButtonCode)buttonCode);
+		const char* keyName = buttonCodeToKeyName((ButtonCode)buttonCode);
 		if(keyName == nullptr)
 		{
 			// Not a printable key
 			return L"";
 		}
 
-		auto iterFind = keyMap.find(String(keyName));
-		if(iterFind == keyMap.end())
+		auto iterFind = mData->keyNameMap.find(String(keyName));
+		if(iterFind == mData->keyNameMap.end())
 		{
 			// Cannot find mapping, although this shouldn't really happen
 			return L"";
@@ -730,6 +791,27 @@ namespace bs
 		return nullptr;
 	}
 
+	/**
+	 * Enqueue a button press/release event to be handled by the main thread
+	 *
+	 * @param bc        ButtonCode for the button that was pressed or released
+	 * @param pressed   true if the button was pressed, false if it was released
+	 * @param timestamp Time when the event happened
+	 */
+	void enqueueButtonEvent(ButtonCode bc, bool pressed, UINT64 timestamp)
+	{
+		if (bc == BC_UNASSIGNED)
+			return;
+
+		Lock eventLock(LinuxPlatform::eventLock);
+
+		LinuxButtonEvent event;
+		event.button = bc;
+		event.pressed = pressed;
+		event.timestamp = timestamp;
+		LinuxPlatform::buttonEvents.push(event);
+	}
+
 	void Platform::_messagePump()
 	{
 		while(true)
@@ -741,6 +823,40 @@ namespace bs
 
 			XEvent event;
 			XNextEvent(mData->xDisplay, &event);
+
+			XGenericEventCookie* cookie = &event.xcookie;
+			if (cookie->type == GenericEvent && cookie->extension == mData->xInput2Opcode)
+			{
+				XGetEventData(mData->xDisplay, cookie);
+				XIRawEvent* xInput2Event = (XIRawEvent*) cookie->data;
+				switch (xInput2Event->evtype)
+				{
+				case XI_RawMotion:
+					if (xInput2Event->valuators.mask_len > 0)
+					{
+						// Assume X/Y delta is stored in valuators 0/1 and vertical scroll in valuator 3.
+						// While there is an API that reliably tells us the valuator index for vertical scroll, there's
+						// nothing "more reliable" for X/Y axes, as the only way to possibly identify them from device
+						// info is by axis name, so we can use the axis index directly just as well. GDK seems to assume
+						// 0 for x and 1 for y too, so that's hopefully safe, and 3 appears to be common for the scroll
+						// wheel.
+						float deltas[4] = {0};
+						int currentValuesIndex = 0;
+						for (unsigned int valuator = 0; valuator < 4; valuator++)
+							if (XIMaskIsSet(xInput2Event->valuators.mask, valuator))
+								deltas[valuator] = xInput2Event->raw_values[currentValuesIndex++];
+
+						Lock eventLock(LinuxPlatform::eventLock);
+						LinuxPlatform::mouseMotionEvent.deltaX += deltas[0];
+						LinuxPlatform::mouseMotionEvent.deltaY += deltas[1];
+						LinuxPlatform::mouseMotionEvent.deltaZ += deltas[3]; // Not a typo - 2 is for horizontal scroll.
+					}
+					break;
+				}
+
+				XFreeEventData(mData->xDisplay, cookie);
+			}
+
 
 			switch (event.type)
 			{
@@ -767,6 +883,9 @@ namespace bs
 				break;
 			case KeyPress:
 			{
+				XKeyPressedEvent* keyEvent = (XKeyPressedEvent*) &event;
+				enqueueButtonEvent(mData->keyCodeMap[keyEvent->keycode], true, (UINT64) keyEvent->time);
+
 				// Process text input
 				KeySym keySym = XkbKeycodeToKeysym(mData->xDisplay, (KeyCode)event.xkey.keycode, 0, 0);
 
@@ -806,11 +925,16 @@ namespace bs
 			}
 				break;
 			case KeyRelease:
-				// Do nothing
+			{
+				XKeyReleasedEvent* keyEvent = (XKeyReleasedEvent*) &event;
+				enqueueButtonEvent(mData->keyCodeMap[keyEvent->keycode], false, (UINT64) keyEvent->time);
+			}
 				break;
 			case ButtonPress:
 			{
+				XButtonPressedEvent* buttonEvent = (XButtonPressedEvent*) &event;
 				UINT32 button = event.xbutton.button;
+				enqueueButtonEvent(xButtonToButtonCode(button), true, (UINT64) buttonEvent->time);
 
 				OSPointerButtonStates btnStates;
 				btnStates.mouseButtons[0] = (event.xbutton.state & Button1Mask) != 0;
@@ -878,7 +1002,9 @@ namespace bs
 			}
 			case ButtonRelease:
 			{
+				XButtonReleasedEvent* buttonEvent = (XButtonReleasedEvent*) &event;
 				UINT32 button = event.xbutton.button;
+				enqueueButtonEvent(xButtonToButtonCode(button), false, (UINT64) buttonEvent->time);
 
 				Vector2I pos;
 				pos.x = event.xbutton.x_root;
@@ -1129,6 +1255,32 @@ namespace bs
 		mData->xDisplay = XOpenDisplay(nullptr);
 		XSetErrorHandler(x11ErrorHandler);
 
+		// For raw, relative mouse motion events, XInput2 extension is required
+		int firstEvent;
+		int firstError;
+		if (!XQueryExtension(mData->xDisplay, "XInputExtension", &mData->xInput2Opcode, &firstEvent, &firstError)) {
+			BS_EXCEPT(InternalErrorException, "X Server doesn't support the XInput extension");
+		}
+
+		int majorVersion = 2;
+		int minorVersion = 0;
+		if (XIQueryVersion(mData->xDisplay, &majorVersion, &minorVersion) != Success) {
+			BS_EXCEPT(InternalErrorException, "X Server doesn't support at least the XInput 2.0 extension");
+		}
+
+		// Let XInput know we are interested in raw mouse movement events
+		XIEventMask mask;
+		mask.deviceid = XIAllDevices;
+		mask.mask_len = XIMaskLen(XI_LASTEVENT);
+		unsigned char maskBuffer[mask.mask_len] = {0};
+		mask.mask = maskBuffer;
+		XISetMask(mask.mask, XI_RawMotion);
+
+		// "RawEvents are sent exclusively to all root windows", so this should receive all events, even though we only
+		// select on one display's root window (untested for lack of second screen).
+		XISelectEvents(mData->xDisplay, XRootWindow(mData->xDisplay, DefaultScreen(mData->xDisplay)), &mask, 1);
+		XFlush(mData->xDisplay);
+
 		if(XSupportsLocale())
 		{
 			XSetLocaleModifiers("@im=none");
@@ -1159,6 +1311,42 @@ namespace bs
 		mData->emptyCursor = XCreatePixmapCursor(mData->xDisplay, pixmap, pixmap, &color, &color, 0, 0);
 
 		XFreePixmap(mData->xDisplay, pixmap);
+
+		// Initialize "unique X11 keyname" -> "X11 keycode" map
+		char name[XkbKeyNameLength + 1];
+
+		XkbDescPtr desc = XkbGetMap(mData->xDisplay, 0, XkbUseCoreKbd);
+		XkbGetNames(mData->xDisplay, XkbKeyNamesMask, desc);
+
+		for (UINT32 keyCode = desc->min_key_code; keyCode <= desc->max_key_code; keyCode++)
+		{
+			memcpy(name, desc->names->keys[keyCode].name, XkbKeyNameLength);
+			name[XkbKeyNameLength] = '\0';
+
+			mData->keyNameMap[String(name)] = keyCode;
+		}
+
+		XkbFreeNames(desc, XkbKeyNamesMask, True);
+		XkbFreeKeyboard(desc, 0, True);
+
+		// Initialize "X11 keycode" -> "Banshee ButtonCode" map, based on the keyNameMap and keyCodeToKeyName()
+		mData->keyCodeMap.resize(desc->max_key_code + 1, BC_UNASSIGNED);
+		for (UINT32 buttonCodeNum = BC_UNASSIGNED; buttonCodeNum <= BC_NumKeys; buttonCodeNum++)
+		{
+			ButtonCode buttonCode = (ButtonCode) buttonCodeNum;
+			const char* keyNameCStr = buttonCodeToKeyName(buttonCode);
+
+			if (keyNameCStr != nullptr)
+			{
+				String keyName = String(keyNameCStr);
+				auto iterFind = mData->keyNameMap.find(keyName);
+				if (iterFind != mData->keyNameMap.end())
+				{
+					KeyCode keyCode = iterFind->second;
+					mData->keyCodeMap[keyCode] = buttonCode;
+				}
+			}
+		}
 	}
 
 	void Platform::_update()
