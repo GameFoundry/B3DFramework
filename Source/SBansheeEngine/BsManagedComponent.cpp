@@ -33,7 +33,10 @@ namespace bs
 
 	MonoObject* ManagedComponent::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		if(mGCHandle != 0)
+			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+
+		return nullptr;
 	}
 
 	ComponentBackupData ManagedComponent::backup(bool clearExisting)
@@ -253,7 +256,13 @@ namespace bs
 
 	bool ManagedComponent::calculateBounds(Bounds& bounds)
 	{
-		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		MonoObject* instance;
+		
+		if(mGCHandle != 0)
+			instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+		else
+			instance = nullptr;
+
 		if (instance != nullptr && mCalculateBoundsMethod != nullptr)
 		{
 			AABox box;

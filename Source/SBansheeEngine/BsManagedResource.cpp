@@ -39,7 +39,10 @@ namespace bs
 
 	MonoObject* ManagedResource::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		if(mGCHandle != 0)
+			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		
+		return nullptr;
 	}
 
 	ResourceBackupData ManagedResource::backup(bool clearExisting)
