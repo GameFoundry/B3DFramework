@@ -119,7 +119,6 @@ namespace bs
 			// Error handling
 			src.close();
 			if (!src)
-			
 			{
 				LOGERR(String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr +
 						": " + strerror(errno));
