@@ -1,5 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+#include "Image/BsColor.h"
+#include "Image/BsPixelData.h"
 #include "BsLinuxWindow.h"
 #include "BsLinuxPlatform.h"
 #include "BsLinuxDropTarget.h"
@@ -353,6 +355,8 @@ namespace bs
 	void LinuxWindow::setIcon(const PixelData& data)
 	{
 		::Display* display = LinuxPlatform::getXDisplay();
+
+		// Set icon the old way using IconPixmapHint.
 		Pixmap iconPixmap = LinuxPlatform::createPixmap(data, (UINT32)XDefaultDepth(display, XDefaultScreen(display)));
 
 		XWMHints* hints = XAllocWMHints();
@@ -360,10 +364,25 @@ namespace bs
 		hints->icon_pixmap = iconPixmap;
 
 		XSetWMHints(display, m->xWindow, hints);
-		XFlush(display);
 
 		XFree(hints);
 		XFreePixmap(display, iconPixmap);
+
+		// Also try to set _NET_WM_ICON for modern window managers.
+		// Although the property claims to use 32 bit, that actually means "long", i.e. 64 bit on 64 bit platforms.
+		Vector<unsigned long> wmIconData(2 + data.getWidth() * data.getHeight(), 0);
+		wmIconData[0] = data.getWidth();
+		wmIconData[1] = data.getHeight();
+		for (UINT32 y = 0; y < data.getHeight(); y++)
+			for (UINT32 x = 0; x < data.getWidth(); x++)
+				wmIconData[y * data.getWidth() + x + 2] = data.getColorAt(x, y).getAsARGB();
+
+		Atom iconAtom = XInternAtom(display, "_NET_WM_ICON", False);
+		Atom cardinalAtom = XInternAtom(display, "CARDINAL", False);
+		XChangeProperty(display, m->xWindow, iconAtom, cardinalAtom, 32, PropModeReplace,
+				(const unsigned char*) wmIconData.data(), wmIconData.size());
+
+		XFlush(display);
 	}
 
 	void LinuxWindow::_destroy()
