@@ -121,14 +121,10 @@ namespace bs
 
 	protected:
 		Module() 
-		{ 
-		}
+		{ }
 
 		virtual ~Module()
-		{ 
-			_instance() = nullptr;
-			isDestroyed() = true;
-		}
+		{ }
 
 		Module(const Module&) { }
 		Module& operator=(const Module&) { return *this; }
