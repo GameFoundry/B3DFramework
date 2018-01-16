@@ -205,7 +205,7 @@ technique TiledDeferredLighting
 			{
 				uint lightsStart = gLightStrides[type];
 				uint lightsEnd = lightsStart + gLightCounts[type + 1];
-				for (uint i = threadIndex + lightsStart; i < lightsEnd && i < MAX_LIGHTS; i += TILE_SIZE)
+				for (uint i = threadIndex + lightsStart; i < lightsEnd && i < MAX_LIGHTS; i += TILE_SIZE * TILE_SIZE)
 				{
 					float4 lightPosition = mul(gMatView, float4(gLights[i].position, 1.0f));
 					float lightRadius = gLights[i].attRadius;
