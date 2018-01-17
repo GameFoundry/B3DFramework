@@ -27,11 +27,19 @@ namespace bs
 
 	void Sphere::transform(const Matrix4& matrix)
 	{
-		Vector3 edge = mCenter + Vector3::UNIT_X * mRadius;
-		mCenter = matrix.multiplyAffine(mCenter);
-		edge = matrix.multiplyAffine(edge);
+		Matrix3 rotMatrix;
 
-		mRadius = mCenter.distance(edge);
+		float lengthSqrd[3];
+		for(UINT32 i = 0; i < 3; i++)
+		{
+			Vector3 column = rotMatrix.getColumn(i);
+			lengthSqrd[i] = column.dot(column);
+		}
+
+		float maxLengthSqrd = std::max(lengthSqrd[0], std::max(lengthSqrd[1], lengthSqrd[2]));
+
+		mCenter = matrix.multiplyAffine(mCenter);
+		mRadius *= sqrt(maxLengthSqrd);
 	}
 
 	bool Sphere::contains(const Vector3& v) const

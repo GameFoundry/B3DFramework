@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	 /** Class representing a 4x4 matrix. */
+	 /** Class representing a 4x4 matrix, in row major format. */
 	class BS_UTILITY_EXPORT Matrix4
 	{
 	private:
@@ -216,6 +216,22 @@ namespace bs
 				rhs*m[1][0], rhs*m[1][1], rhs*m[1][2], rhs*m[1][3],
 				rhs*m[2][0], rhs*m[2][1], rhs*m[2][2], rhs*m[2][3],
 				rhs*m[3][0], rhs*m[3][1], rhs*m[3][2], rhs*m[3][3]);
+		}
+
+		/** Returns the specified column of the matrix, ignoring the last row. */
+		Vector3 getColumn(UINT32 col) const
+		{
+			assert(col < 4);
+
+			return Vector3(m[0][col], m[1][col], m[2][col]);
+		}
+
+		/** Returns the specified column of the matrix. */
+		Vector4 getColumn4D(UINT32 col) const
+		{
+			assert(col < 4);
+
+			return Vector4(m[0][col], m[1][col], m[2][col], m[3][col]);
 		}
 
 		/** Returns a transpose of the matrix (switched columns and rows). */
