@@ -292,7 +292,7 @@ namespace bs
 		Quaternion mCMassRotation = Quaternion::IDENTITY;
 		Vector3 mInertiaTensor = Vector3::ZERO;
 		float mMass = 0.0f;
-		float mMaxAngularVelocity = 1.0f;
+		float mMaxAngularVelocity = FLT_MAX;
 		float mLinearDrag = 0.0f;
 		float mAngularDrag = 0.0f;
 		float mSleepThreshold = 0.0f;

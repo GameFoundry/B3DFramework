@@ -503,7 +503,7 @@ namespace bs
 
 		mSimulationStep = input.timeStep;
 		mSimulationTime = -mSimulationStep * 1.01f; // Ensures simulation runs on the first frame
-		mDefaultMaterial = mPhysics->createMaterial(0.0f, 0.0f, 0.0f);
+		mDefaultMaterial = mPhysics->createMaterial(1.0f, 1.0f, 0.5f);
 	}
 
 	PhysX::~PhysX()

@@ -5,6 +5,7 @@
 #include "Components/BsCCollider.h"
 #include "Components/BsCJoint.h"
 #include "RTTI/BsCRigidbodyRTTI.h"
+#include "Physics/BsPhysics.h"
 
 using namespace std::placeholders;
 
@@ -499,6 +500,9 @@ namespace bs
 #endif
 		}
 		
+		if(gPhysics()._isUpdateInProgress())
+			return;
+
 		const Transform& tfrm = SO()->getTransform();
 		mInternal->setTransform(tfrm.getPosition(), tfrm.getRotation());
 
