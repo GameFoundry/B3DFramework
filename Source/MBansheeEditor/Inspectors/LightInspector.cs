@@ -95,6 +95,7 @@ namespace BansheeEditor
                 Layout.AddElement(spotFalloffAngleField);
                 Layout.AddElement(autoAttenuationField);
                 Layout.AddElement(castShadowField);
+                Layout.AddElement(shadowBiasField);
 
                 ToggleTypeSpecificFields(light.Type, light.UseAutoAttenuation, light.CastsShadow);
             }
