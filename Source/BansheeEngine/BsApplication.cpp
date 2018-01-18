@@ -21,6 +21,7 @@
 #include "Debug/BsDebugDraw.h"
 #include "Platform/BsPlatform.h"
 #include "Resources/BsEngineShaderIncludeHandler.h"
+#include "Resources/BsResources.h"
 #include "BsEngineConfig.h"
 
 namespace bs
@@ -80,6 +81,9 @@ namespace bs
 		// Need to clear all objects before I unload any plugins, as they
 		// could have allocated parts or all of those objects.
 		SceneManager::instance().clearScene(true);
+
+		// Resources too (Prefabs especially, since they hold the same data as a scene)
+		Resources::instance().unloadAll();
 
 		// Shut down before script manager as scripts could have registered shortcut callbacks
 		ShortcutManager::shutDown();

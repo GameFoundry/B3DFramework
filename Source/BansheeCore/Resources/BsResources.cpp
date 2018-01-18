@@ -27,16 +27,7 @@ namespace bs
 
 	Resources::~Resources()
 	{
-		// Unload and invalidate all resources
-		UnorderedMap<UUID, LoadedResourceData> loadedResourcesCopy;
-		
-		{
-			Lock lock(mLoadedResourceMutex);
-			loadedResourcesCopy = mLoadedResources;
-		}
-
-		for (auto& loadedResourcePair : loadedResourcesCopy)
-			destroy(loadedResourcePair.second.resource);
+		unloadAll();
 	}
 
 	HResource Resources::load(const Path& filePath, ResourceLoadFlags loadFlags)
@@ -478,6 +469,20 @@ namespace bs
 		{
 			release(*iter);
 		}
+	}
+
+	void Resources::unloadAll()
+	{
+		// Unload and invalidate all resources
+		UnorderedMap<UUID, LoadedResourceData> loadedResourcesCopy;
+		
+		{
+			Lock lock(mLoadedResourceMutex);
+			loadedResourcesCopy = mLoadedResources;
+		}
+
+		for (auto& loadedResourcePair : loadedResourcesCopy)
+			destroy(loadedResourcePair.second.resource);
 	}
 
 	void Resources::destroy(ResourceHandleBase& resource)

@@ -162,6 +162,9 @@ namespace bs
 		 */
 		void unloadAllUnused();
 
+		/** Forces unload of all resources, whether they are being used or not. */
+		void unloadAll();
+
 		/**
 		 * Saves the resource at the specified location.
 		 *
