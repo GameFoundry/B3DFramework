@@ -722,11 +722,30 @@ namespace bs { namespace ct
 						if (texture != nullptr)
 						{
 							GLTexture* tex = static_cast<GLTexture*>(texture.get());
+							auto& texProps = tex->getProperties();
+
+							GLboolean bindAllLayers = 
+								texProps.getNumFaces() == surface.numFaces ||
+								surface.numFaces == 0;
+
+							if(!bindAllLayers && surface.numFaces > 1)
+							{
+								LOGWRN("Attempting to bind multiple faces of a load-store texture. You are allowed to bind \
+									either a single face, or all the faces of the texture. Only the first face will \
+									be bound instead.");
+							}
+
+							if(surface.numMipLevels > 1)
+							{
+								LOGWRN("Attempting to bind multiple mip levels of a load-store texture. This is not \
+									supported and only the first provided level will be bound.");
+							}
+
 							glBindImageTexture(
 								unit,
 								tex->getGLID(),
 								surface.mipLevel,
-								surface.numFaces > 1,
+								bindAllLayers,
 								surface.face,
 								GL_READ_WRITE,
 								tex->getGLFormat());
