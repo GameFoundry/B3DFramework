@@ -2538,24 +2538,20 @@ namespace bs { namespace ct
 		caps.addShaderProfile("glsl");
 		caps.setCapability(RSC_TEXTURE_COMPRESSION_BC);
 
-		// Check if geometry shaders are supported
-		if (getGLSupport()->checkExtension("GL_ARB_geometry_shader4"))
-		{
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
-			caps.setCapability(RSC_GEOMETRY_PROGRAM);
+		caps.setCapability(RSC_GEOMETRY_PROGRAM);
 #endif
 
-			GLint maxOutputVertices;
+		GLint maxOutputVertices;
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
-			glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT,&maxOutputVertices);
-			BS_CHECK_GL_ERROR();
+		glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &maxOutputVertices);
+		BS_CHECK_GL_ERROR();
 #else
-			maxOutputVertices = 0;
+		maxOutputVertices = 0;
 #endif
 
-			caps.setGeometryProgramNumOutputVertices(maxOutputVertices);
-		}
+		caps.setGeometryProgramNumOutputVertices(maxOutputVertices);
 
 		// Max number of fragment shader textures
 		GLint units;
@@ -2582,7 +2578,6 @@ namespace bs { namespace ct
 
 		caps.setNumGpuParamBlockBuffers(GPT_FRAGMENT_PROGRAM, numUniformBlocks);
 
-		if (mGLSupport->checkExtension("GL_ARB_geometry_shader4"))
 		{
 			GLint geomUnits;
 
