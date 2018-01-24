@@ -182,7 +182,6 @@ namespace bs { namespace ct
 		pair.bufferDeclId = vbDecl->getId();
 		pair.shaderDeclId = shaderInputDecl->getId();
 
-		Lock lock(mMutex);
 		newEntry.vertexInput = bs_shared_ptr_new<VulkanVertexInput>(mNextId++, vertexInputCI);
 		newEntry.lastUsedIdx = ++mLastUsedCounter;
 

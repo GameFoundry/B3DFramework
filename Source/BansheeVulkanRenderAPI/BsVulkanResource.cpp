@@ -41,7 +41,8 @@ namespace bs { namespace ct
 		Lock lock(mMutex);
 		assert(useFlags != VulkanUseFlag::None);
 
-		if(isUsed() && mState == State::Normal) // Used without support for concurrency
+		bool isUsed = mNumUsedHandles > 0;
+		if(isUsed && mState == State::Normal) // Used without support for concurrency
 		{
 			assert(mQueueFamily == queueFamily &&
 				"Vulkan resource without concurrency support can only be used by one queue family at once.");
@@ -85,7 +86,8 @@ namespace bs { namespace ct
 				mWriteUses[globalQueueIdx]--;
 			}
 
-			destroy = !isBound() && mState == State::Destroyed; // Queued for destruction
+			bool isBound = mNumBoundHandles > 0;
+			destroy = !isBound && mState == State::Destroyed; // Queued for destruction
 		}
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
@@ -100,7 +102,8 @@ namespace bs { namespace ct
 			Lock lock(mMutex);
 			mNumBoundHandles--;
 
-			destroy = !isBound() && mState == State::Destroyed; // Queued for destruction
+			bool isBound = mNumBoundHandles > 0;
+			destroy = !isBound && mState == State::Destroyed; // Queued for destruction
 		}
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
@@ -143,7 +146,8 @@ namespace bs { namespace ct
 			mState = State::Destroyed;
 
 			// If not bound anyhwere, destroy right away, otherwise check when it is reported as finished on the device
-			destroy = !isBound();
+			bool isBound = mNumBoundHandles > 0;
+			destroy = !isBound;
 		}
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
