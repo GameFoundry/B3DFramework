@@ -759,7 +759,7 @@ namespace bs { namespace ct
 
 	void LightProbes::resizeTetrahedronBuffer(UINT32 count)
 	{
-		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp(sizeof(TetrahedronDataGPU), 4ULL);
+		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronDataGPU), 4U);
 
 		GPU_BUFFER_DESC desc;
 		desc.type = GBT_STANDARD;
@@ -774,7 +774,7 @@ namespace bs { namespace ct
 
 	void LightProbes::resizeTetrahedronFaceBuffer(UINT32 count)
 	{
-		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp(sizeof(TetrahedronFaceDataGPU), 4ULL);
+		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronFaceDataGPU), 4U);
 
 		GPU_BUFFER_DESC desc;
 		desc.type = GBT_STANDARD;
