@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Resources/BsScriptCode.h"
 #include "Resources/BsResources.h"
-#include "RTTI/BsScriptCodeRTTI.h"
+#include "Private/RTTI/BsScriptCodeRTTI.h"
 
 namespace bs
 {

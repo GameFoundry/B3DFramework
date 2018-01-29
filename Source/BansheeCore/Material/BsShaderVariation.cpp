@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2017 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsShaderVariation.h"
-#include "RTTI/BsShaderVariationRTTI.h"
+#include "Private/RTTI/BsShaderVariationRTTI.h"
 
 namespace bs
 {

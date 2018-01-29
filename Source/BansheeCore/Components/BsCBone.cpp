@@ -3,7 +3,7 @@
 #include "Components/BsCBone.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCAnimation.h"
-#include "RTTI/BsCBoneRTTI.h"
+#include "Private/RTTI/BsCBoneRTTI.h"
 
 using namespace std::placeholders;
 

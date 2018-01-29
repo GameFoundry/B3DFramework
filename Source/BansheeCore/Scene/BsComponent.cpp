@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Scene/BsComponent.h"
 #include "Scene/BsSceneObject.h"
-#include "RTTI/BsComponentRTTI.h"
+#include "Private/RTTI/BsComponentRTTI.h"
 
 namespace bs
 {

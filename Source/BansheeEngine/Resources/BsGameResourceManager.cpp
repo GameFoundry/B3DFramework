@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Resources/BsGameResourceManager.h"
-#include "RTTI/BsResourceMappingRTTI.h"
+#include "Private/RTTI/BsResourceMappingRTTI.h"
 #include "Resources/BsResources.h"
 #include "FileSystem/BsFileSystem.h"
 

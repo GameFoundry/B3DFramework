@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Text/BsFont.h"
-#include "RTTI/BsFontRTTI.h"
+#include "Private/RTTI/BsFontRTTI.h"
 #include "Text/BsFontManager.h"
 #include "Resources/BsResources.h"
 

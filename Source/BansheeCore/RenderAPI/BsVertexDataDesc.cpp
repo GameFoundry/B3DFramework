@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Managers/BsHardwareBufferManager.h"
-#include "RTTI/BsVertexDataDescRTTI.h"
+#include "Private/RTTI/BsVertexDataDescRTTI.h"
 
 namespace bs
 {

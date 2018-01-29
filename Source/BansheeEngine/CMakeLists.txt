@@ -25,3 +25,18 @@ target_link_libraries(BansheeEngine BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeEngine PROPERTY FOLDER Layers)
+
+# Install
+install(
+	DIRECTORY . 
+	DESTINATION include
+	FILES_MATCHING PATTERN "*.h"
+	PATTERN "Private" EXCLUDE
+)
+
+install(
+	TARGETS BansheeEngine
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

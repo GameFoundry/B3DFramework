@@ -3,7 +3,7 @@
 #include "Localization/BsStringTable.h"
 #include "Error/BsException.h"
 #include "Resources/BsResources.h"
-#include "RTTI/BsStringTableRTTI.h"
+#include "Private/RTTI/BsStringTableRTTI.h"
 
 namespace bs
 {

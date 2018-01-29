@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Resources/BsScriptCodeImportOptions.h"
-#include "RTTI/BsScriptCodeImportOptionsRTTI.h"
+#include "Private/RTTI/BsScriptCodeImportOptionsRTTI.h"
 
 namespace bs
 {

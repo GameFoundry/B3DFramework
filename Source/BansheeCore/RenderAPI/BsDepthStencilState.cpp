@@ -3,7 +3,7 @@
 #include "RenderAPI/BsDepthStencilState.h"
 #include "Managers/BsRenderStateManager.h"
 #include "RenderAPI/BsRenderAPI.h"
-#include "RTTI/BsDepthStencilStateRTTI.h"
+#include "Private/RTTI/BsDepthStencilStateRTTI.h"
 #include "Error/BsException.h"
 #include "Resources/BsResources.h"
 

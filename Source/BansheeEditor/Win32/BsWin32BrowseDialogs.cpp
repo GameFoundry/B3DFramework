@@ -4,7 +4,7 @@
 #include "Threading/BsAsyncOp.h"
 #include "CoreThread/BsCoreThread.h"
 #include "String/BsUnicode.h"
-#include "Win32/BsWin32Window.h"
+#include "Private/Win32/BsWin32Window.h"
 #include <ShObjIdl.h>
 
 using namespace std::placeholders;

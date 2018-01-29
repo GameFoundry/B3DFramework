@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Resources/BsPlainText.h"
 #include "Resources/BsResources.h"
-#include "RTTI/BsPlainTextRTTI.h"
+#include "Private/RTTI/BsPlainTextRTTI.h"
 
 namespace bs
 {

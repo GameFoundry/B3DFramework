@@ -3,7 +3,7 @@
 #include "Components/BsCCharacterController.h"
 #include "Scene/BsSceneObject.h"
 #include "Physics/BsCollider.h"
-#include "RTTI/BsCCharacterControllerRTTI.h"
+#include "Private/RTTI/BsCCharacterControllerRTTI.h"
 
 using namespace std::placeholders;
 

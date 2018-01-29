@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Image/BsPixelData.h"
 #include "Image/BsPixelUtil.h"
-#include "RTTI/BsPixelDataRTTI.h"
+#include "Private/RTTI/BsPixelDataRTTI.h"
 #include "Image/BsColor.h"
 #include "Math/BsVector2.h"
 #include "Math/BsMath.h"

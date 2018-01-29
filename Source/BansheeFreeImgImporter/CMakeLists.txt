@@ -28,3 +28,11 @@ target_link_libraries(BansheeFreeImgImporter BansheeUtility BansheeCore BansheeE
 
 # IDE specific
 set_property(TARGET BansheeFreeImgImporter PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS BansheeFreeImgImporter
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

@@ -5,7 +5,7 @@
 #include "BsEditorPrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "GUI/BsGUIWindowFrameWidget.h"
-#include "RTTI/BsGameObjectRTTI.h"
+#include "Private/RTTI/BsGameObjectRTTI.h"
 
 namespace bs
 {

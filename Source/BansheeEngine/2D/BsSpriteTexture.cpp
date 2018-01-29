@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "2D/BsSpriteTexture.h"
-#include "RTTI/BsSpriteTextureRTTI.h"
+#include "Private/RTTI/BsSpriteTextureRTTI.h"
 #include "Image/BsTexture.h"
 #include "Resources/BsResources.h"
 #include "Resources/BsBuiltinResources.h"

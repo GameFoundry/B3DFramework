@@ -29,3 +29,11 @@ target_link_libraries(BansheePhysX PRIVATE BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheePhysX PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS BansheePhysX
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

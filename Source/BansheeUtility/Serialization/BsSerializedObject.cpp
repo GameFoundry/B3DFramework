@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Serialization/BsSerializedObject.h"
-#include "RTTI/BsSerializedObjectRTTI.h"
+#include "Private/RTTI/BsSerializedObjectRTTI.h"
 
 namespace bs
 {

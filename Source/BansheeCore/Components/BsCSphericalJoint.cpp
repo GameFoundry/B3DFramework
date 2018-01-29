@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Components/BsCSphericalJoint.h"
 #include "Scene/BsSceneObject.h"
-#include "RTTI/BsCSphericalJointRTTI.h"
+#include "Private/RTTI/BsCSphericalJointRTTI.h"
 
 namespace bs
 {

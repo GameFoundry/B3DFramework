@@ -19,4 +19,6 @@ endif()
 find_imported_includes(FLAC FLAC/all.h)
 find_imported_library_shared(FLAC ${FLAC_LIBNAME})
 
+install_dependency_binaries(FLAC)
+
 end_find_package(FLAC ${FLAC_LIBNAME})

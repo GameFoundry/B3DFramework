@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "GUI/BsCGUIWidget.h"
-#include "RTTI/BsCGUIWidgetRTTI.h"
+#include "Private/RTTI/BsCGUIWidgetRTTI.h"
 #include "GUI/BsGUIWidget.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCCamera.h"

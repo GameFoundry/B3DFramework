@@ -7,7 +7,7 @@
 #include "Mesh/BsMesh.h"
 #include "Animation/BsMorphShapes.h"
 #include "Animation/BsAnimationClip.h"
-#include "RTTI/BsCAnimationRTTI.h"
+#include "Private/RTTI/BsCAnimationRTTI.h"
 #include "Scene/BsSceneManager.h"
 
 using namespace std::placeholders;

@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Components/BsCD6Joint.h"
 #include "Scene/BsSceneObject.h"
-#include "RTTI/BsCD6JointRTTI.h"
+#include "Private/RTTI/BsCD6JointRTTI.h"
 
 namespace bs
 {

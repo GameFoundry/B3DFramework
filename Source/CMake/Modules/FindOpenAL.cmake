@@ -19,4 +19,6 @@ endif()
 find_imported_includes(OpenAL AL/al.h)
 find_imported_library_shared(OpenAL ${OpenAL_LIBNAME})
 
+install_dependency_binaries(OpenAL)
+
 end_find_package(OpenAL ${OpenAL_LIBNAME})

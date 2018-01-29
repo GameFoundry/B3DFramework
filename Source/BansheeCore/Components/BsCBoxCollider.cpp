@@ -3,7 +3,7 @@
 #include "Components/BsCBoxCollider.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
-#include "RTTI/BsCBoxColliderRTTI.h"
+#include "Private/RTTI/BsCBoxColliderRTTI.h"
 
 namespace bs
 {

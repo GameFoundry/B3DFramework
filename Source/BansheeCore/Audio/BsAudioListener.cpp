@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Audio/BsAudioListener.h"
 #include "Audio/BsAudio.h"
-#include "RTTI/BsAudioListenerRTTI.h"
+#include "Private/RTTI/BsAudioListenerRTTI.h"
 
 namespace bs
 {

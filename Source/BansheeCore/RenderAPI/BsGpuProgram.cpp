@@ -6,7 +6,7 @@
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "Managers/BsGpuProgramManager.h"
-#include "RTTI/BsGpuProgramRTTI.h"
+#include "Private/RTTI/BsGpuProgramRTTI.h"
 
 namespace bs
 {

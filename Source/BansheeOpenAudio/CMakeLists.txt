@@ -2,10 +2,12 @@
 include(CMakeSources.cmake)
 
 # Find packages
-find_package(OpenAL REQUIRED)
-find_package(ogg REQUIRED)
-find_package(vorbis REQUIRED)
-find_package(FLAC REQUIRED)
+if(AUDIO_MODULE MATCHES "OpenAudio")
+	find_package(OpenAL REQUIRED)
+	find_package(ogg REQUIRED)
+	find_package(vorbis REQUIRED)
+	find_package(FLAC REQUIRED)
+endif()
 
 # Includes
 set(BansheeOpenAudio_INC 
@@ -33,3 +35,13 @@ target_link_libraries(BansheeOpenAudio PRIVATE BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeOpenAudio PROPERTY FOLDER Plugins)
+
+# Install
+if(AUDIO_MODULE MATCHES "OpenAudio")
+	install(
+		TARGETS BansheeOpenAudio
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif()

@@ -3,7 +3,7 @@
 #include "RenderAPI/BsBlendState.h"
 #include "Managers/BsRenderStateManager.h"
 #include "RenderAPI/BsRenderAPI.h"
-#include "RTTI/BsBlendStateRTTI.h"
+#include "Private/RTTI/BsBlendStateRTTI.h"
 #include "Resources/BsResources.h"
 
 namespace bs

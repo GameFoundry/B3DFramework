@@ -22,3 +22,11 @@ target_link_libraries(RenderBeast BansheeEngine BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET RenderBeast PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS RenderBeast
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

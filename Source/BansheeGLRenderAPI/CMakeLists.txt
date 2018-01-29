@@ -41,3 +41,13 @@ target_link_libraries(BansheeGLRenderAPI PUBLIC BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeGLRenderAPI PROPERTY FOLDER Plugins)
+
+# Install
+if(RENDER_API_MODULE MATCHES "OpenGL")
+	install(
+		TARGETS BansheeGLRenderAPI
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif()

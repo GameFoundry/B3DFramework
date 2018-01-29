@@ -3,7 +3,7 @@
 #include "Audio/BsAudioClip.h"
 #include "Resources/BsResources.h"
 #include "Audio/BsAudio.h"
-#include "RTTI/BsAudioClipRTTI.h"
+#include "Private/RTTI/BsAudioClipRTTI.h"
 
 namespace bs
 {

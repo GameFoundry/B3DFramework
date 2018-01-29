@@ -3,7 +3,7 @@
 #include "Components/BsCSliderJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
-#include "RTTI/BsCSliderJointRTTI.h"
+#include "Private/RTTI/BsCSliderJointRTTI.h"
 
 namespace bs
 {

@@ -5,7 +5,7 @@
 #include "Material/BsTechnique.h"
 #include "Material/BsPass.h"
 #include "RenderAPI/BsRenderAPI.h"
-#include "RTTI/BsMaterialRTTI.h"
+#include "Private/RTTI/BsMaterialRTTI.h"
 #include "Material/BsMaterialManager.h"
 #include "Resources/BsResources.h"
 #include "Math/BsMatrixNxM.h"

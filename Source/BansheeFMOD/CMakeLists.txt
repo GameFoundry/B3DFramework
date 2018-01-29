@@ -34,3 +34,13 @@ target_link_libraries(BansheeFMOD PUBLIC BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeFMOD PROPERTY FOLDER Plugins)
+
+# Install
+if(AUDIO_MODULE MATCHES "FMOD")
+install(
+	TARGETS BansheeFMOD
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)
+endif()

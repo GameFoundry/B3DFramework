@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Renderer/BsRenderable.h"
-#include "RTTI/BsRenderableRTTI.h"
+#include "Private/RTTI/BsRenderableRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsMaterial.h"

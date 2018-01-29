@@ -3,7 +3,7 @@
 #include "Components/BsCAudioListener.h"
 #include "Scene/BsSceneObject.h"
 #include "Utility/BsTime.h"
-#include "RTTI/BsCAudioListenerRTTI.h"
+#include "Private/RTTI/BsCAudioListenerRTTI.h"
 
 using namespace std::placeholders;
 

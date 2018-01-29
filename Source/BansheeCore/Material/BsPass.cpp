@@ -4,7 +4,7 @@
 #include "RenderAPI/BsRasterizerState.h"
 #include "RenderAPI/BsBlendState.h"
 #include "RenderAPI/BsDepthStencilState.h"
-#include "RTTI/BsPassRTTI.h"
+#include "Private/RTTI/BsPassRTTI.h"
 #include "Material/BsMaterial.h"
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsGpuProgram.h"

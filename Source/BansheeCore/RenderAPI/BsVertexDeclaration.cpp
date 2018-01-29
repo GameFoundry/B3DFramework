@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "RenderAPI/BsVertexDeclaration.h"
-#include "RTTI/BsVertexDeclarationRTTI.h"
+#include "Private/RTTI/BsVertexDeclarationRTTI.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsRenderAPI.h"
 

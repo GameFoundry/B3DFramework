@@ -62,3 +62,11 @@ target_link_libraries(BansheeSL PRIVATE BansheeEngine BansheeUtility BansheeCore
 
 # IDE specific
 set_property(TARGET BansheeSL PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS BansheeSL
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

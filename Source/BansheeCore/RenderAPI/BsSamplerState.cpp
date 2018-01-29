@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "RenderAPI/BsSamplerState.h"
-#include "RTTI/BsSamplerStateRTTI.h"
+#include "Private/RTTI/BsSamplerStateRTTI.h"
 #include "Managers/BsRenderStateManager.h"
 
 namespace bs 

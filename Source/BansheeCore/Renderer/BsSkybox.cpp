@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Renderer/BsSkybox.h"
-#include "RTTI/BsSkyboxRTTI.h"
+#include "Private/RTTI/BsSkyboxRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Image/BsTexture.h"
 #include "Renderer/BsRenderer.h"

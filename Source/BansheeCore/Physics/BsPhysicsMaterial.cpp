@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Physics/BsPhysicsMaterial.h"
-#include "RTTI/BsPhysicsMaterialRTTI.h"
+#include "Private/RTTI/BsPhysicsMaterialRTTI.h"
 #include "Resources/BsResources.h"
 #include "Physics/BsPhysics.h"
 

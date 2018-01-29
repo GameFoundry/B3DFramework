@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "RTTI/BsGameObjectRTTI.h"
+#include "Private/RTTI/BsGameObjectRTTI.h"
 #include "BsManagedComponent.h"
 #include "BsMonoManager.h"
 #include "Serialization/BsManagedSerializableObject.h"

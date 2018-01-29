@@ -3,7 +3,7 @@
 #include "BsCorePrerequisites.h"
 #include "Resources/BsResourceHandle.h"
 #include "Resources/BsResource.h"
-#include "RTTI/BsResourceHandleRTTI.h"
+#include "Private/RTTI/BsResourceHandleRTTI.h"
 #include "Resources/BsResources.h"
 #include "Managers/BsResourceListenerManager.h"
 

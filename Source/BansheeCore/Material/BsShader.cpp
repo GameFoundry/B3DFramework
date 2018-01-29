@@ -4,7 +4,7 @@
 #include "Material/BsTechnique.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
-#include "RTTI/BsShaderRTTI.h"
+#include "Private/RTTI/BsShaderRTTI.h"
 #include "Resources/BsResources.h"
 #include "RenderAPI/BsGpuParams.h"
 #include "Material/BsPass.h"

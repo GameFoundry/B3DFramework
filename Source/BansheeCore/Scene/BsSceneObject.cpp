@@ -5,7 +5,7 @@
 #include "Scene/BsSceneManager.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
-#include "RTTI/BsSceneObjectRTTI.h"
+#include "Private/RTTI/BsSceneObjectRTTI.h"
 #include "Serialization/BsMemorySerializer.h"
 #include "Scene/BsGameObjectManager.h"
 #include "Scene/BsPrefabUtility.h"

@@ -4,7 +4,7 @@
 #include "GUI/BsGUIElementStyle.h"
 #include "Debug/BsDebug.h"
 #include "Resources/BsResources.h"
-#include "RTTI/BsGUISkinRTTI.h"
+#include "Private/RTTI/BsGUISkinRTTI.h"
 
 namespace bs
 {

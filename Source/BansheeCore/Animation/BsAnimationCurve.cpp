@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Animation/BsAnimationCurve.h"
-#include "RTTI/BsAnimationCurveRTTI.h"
+#include "Private/RTTI/BsAnimationCurveRTTI.h"
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 #include "Math/BsMath.h"

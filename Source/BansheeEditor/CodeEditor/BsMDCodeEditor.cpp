@@ -8,7 +8,7 @@
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 #include <Windows.h>
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
-#include "Linux/BsLinuxPlatform.h"
+#include "Private/Linux/BsLinuxPlatform.h"
 #endif
 
 namespace bs

@@ -3,7 +3,7 @@
 #include "Components/BsCFixedJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
-#include "RTTI/BsCFixedJointRTTI.h"
+#include "Private/RTTI/BsCFixedJointRTTI.h"
 
 namespace bs
 {

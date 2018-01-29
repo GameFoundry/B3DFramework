@@ -6,8 +6,8 @@
 #include "CoreThread/BsCoreThread.h"
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-#include "Win32/BsWin32Platform.h"
-#include "Win32/BsWin32Window.h"
+#include "Private/Win32/BsWin32Platform.h"
+#include "Private/Win32/BsWin32Window.h"
 
 namespace bs
 {
@@ -77,8 +77,8 @@ namespace bs
 }
 
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
-#include "Linux/BsLinuxPlatform.h"
-#include "Linux/BsLinuxWindow.h"
+#include "Private/Linux/BsLinuxPlatform.h"
+#include "Private/Linux/BsLinuxWindow.h"
 #include "X11/Xutil.h"
 
 namespace bs

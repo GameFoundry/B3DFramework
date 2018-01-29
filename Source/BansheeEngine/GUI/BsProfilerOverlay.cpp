@@ -15,7 +15,7 @@
 #include "Resources/BsBuiltinResources.h"
 #include "Profiling/BsProfilingManager.h"
 #include "RenderAPI/BsRenderTarget.h"
-#include "RTTI/BsProfilerOverlayRTTI.h"
+#include "Private/RTTI/BsProfilerOverlayRTTI.h"
 #include "Renderer/BsCamera.h"
 #include "Localization/BsHEString.h"
 

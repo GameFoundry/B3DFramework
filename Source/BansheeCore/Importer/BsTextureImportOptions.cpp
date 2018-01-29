@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Importer/BsTextureImportOptions.h"
-#include "RTTI/BsTextureImportOptionsRTTI.h"
+#include "Private/RTTI/BsTextureImportOptionsRTTI.h"
 
 namespace bs
 {

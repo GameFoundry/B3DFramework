@@ -125,7 +125,7 @@ namespace bs { namespace ct
 		/** Retrieves an instance of a particular variation of this renderer material. */
 		static T* get(const ShaderVariation& variation)
 		{
-			if(variation.getIdx() == -1)
+			if(variation.getIdx() == (UINT32)-1)
 				variation.setIdx(mMetaData.variations.find(variation));
 
 			UINT32 varIdx = variation.getIdx();

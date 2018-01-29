@@ -115,8 +115,8 @@ set(BS_BANSHEEUTILITY_SRC_DEBUG
 )
 
 set(BS_BANSHEEUTILITY_INC_RTTI
-	"RTTI/BsSerializedObjectRTTI.h"
-	"RTTI/BsIReflectableRTTI.h"
+	"Private/RTTI/BsSerializedObjectRTTI.h"
+	"Private/RTTI/BsIReflectableRTTI.h"
 )
 
 set(BS_BANSHEEUTILITY_INC_ALLOCATORS
@@ -249,29 +249,29 @@ set(BS_BANSHEEUTILITY_INC_REFLECTION
 )
 
 set(BS_BANSHEEUTILITY_INC_WIN32
-	"Win32/BsWin32PlatformUtility.h"
-	"Win32/BsWin32Window.h"
+	"Private/Win32/BsWin32PlatformUtility.h"
+	"Private/Win32/BsWin32Window.h"
 )
 
 set(BS_BANSHEEUTILITY_SRC_WIN32
-	"Win32/BsWin32FileSystem.cpp"
-	"Win32/BsWin32CrashHandler.cpp"
-	"Win32/BsWin32PlatformUtility.cpp"
-	"Win32/BsWin32Window.cpp"
+	"Private/Win32/BsWin32FileSystem.cpp"
+	"Private/Win32/BsWin32CrashHandler.cpp"
+	"Private/Win32/BsWin32PlatformUtility.cpp"
+	"Private/Win32/BsWin32Window.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_UNIX
-	"Unix/BsUnixFileSystem.cpp"
+	"Private/Unix/BsUnixFileSystem.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_LINUX
-	"Linux/BsLinuxCrashHandler.cpp"
-	"Linux/BsLinuxPlatformUtility.cpp"
+	"Private/Linux/BsLinuxCrashHandler.cpp"
+	"Private/Linux/BsLinuxPlatformUtility.cpp"
 )
 
 set(BS_BANSHEEUTILITY_SRC_MACOS
-	"MacOS/BsMacOSCrashHandler.cpp"
-	"MacOS/BsMacOSPlatformUtility.cpp"
+	"Private/MacOS/BsMacOSCrashHandler.cpp"
+	"Private/MacOS/BsMacOSPlatformUtility.cpp"
 )
 
 source_group("Header Files\\Threading" FILES ${BS_BANSHEEUTILITY_INC_THREADING})

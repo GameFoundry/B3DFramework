@@ -63,7 +63,11 @@ else()
 	set(BUILD_EDITOR OFF)
 endif()
 
-mark_as_advanced(CMAKE_INSTALL_PREFIX)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	if(LINUX)
+		set(CMAKE_INSTALL_PREFIX /usr/local/opt/bsf CACHE PATH "..." FORCE)
+	endif()
+endif()
 
 include(CMake/Common.cmake)
 
@@ -177,8 +181,8 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "A
 	endif()
 
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} -g -O0 -DDEBUG")
-	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} -gline-tables-only -O2 -DDEBUG")
-	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} -g0 -O2 -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} -gline-tables-only -O2 -DDEBUG -Wno-unused-variable")
+	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} -g0 -O2 -DNDEBUG -Wno-unused-variable")
 
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE -s)
 	set(CMAKE_MODULE_LINKER_FLAGS_RELEASE -s)
@@ -194,8 +198,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	endif()
 
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} -g -O0 -DDEBUG")
-	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} -gline-tables-only -O2 -DDEBUG")
-	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} -g0 -O2 -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} -gline-tables-only -O2 -DDEBUG -Wno-unused-variable")
+	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} -g0 -O2 -DNDEBUG -Wno-unused-variable")
 
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE -s)
 	set(CMAKE_MODULE_LINKER_FLAGS_RELEASE -s)
@@ -382,9 +386,9 @@ if(BUILD_TESTS)
 	enable_testing()
 
 	add_executable(UtilityTest 
-		BansheeUtility/UnitTests/BsUtilityTest.cpp 
-		BansheeUtility/UnitTests/BsUtilityTestSuite.cpp
-		BansheeUtility/UnitTests/BsFileSystemTestSuite.cpp)
+		BansheeUtility/Private/UnitTests/BsUtilityTest.cpp 
+		BansheeUtility/Private/UnitTests/BsUtilityTestSuite.cpp
+		BansheeUtility/Private/UnitTests/BsFileSystemTestSuite.cpp)
 		
 	target_link_libraries(UtilityTest BansheeUtility)
 	target_include_directories(UtilityTest PRIVATE "BansheeUtility")
@@ -393,3 +397,9 @@ if(BUILD_TESTS)
 
 	add_test(NAME FrameworkTests COMMAND $<TARGET_FILE:UtilityTest>)
 endif()
+
+## Install
+install(
+	DIRECTORY ../Data/Engine
+	DESTINATION bin/Data
+)

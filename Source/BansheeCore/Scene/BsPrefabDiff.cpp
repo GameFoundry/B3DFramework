@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Scene/BsPrefabDiff.h"
-#include "RTTI/BsPrefabDiffRTTI.h"
+#include "Private/RTTI/BsPrefabDiffRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Serialization/BsMemorySerializer.h"
 #include "Serialization/BsBinarySerializer.h"

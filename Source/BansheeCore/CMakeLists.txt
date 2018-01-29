@@ -40,3 +40,18 @@ endif()
 
 # IDE specific
 set_property(TARGET BansheeCore PROPERTY FOLDER Layers)
+
+# Install
+install(
+	DIRECTORY .
+	DESTINATION include
+	FILES_MATCHING PATTERN "*.h"
+	PATTERN "Private" EXCLUDE
+)
+
+install(
+	TARGETS BansheeCore
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

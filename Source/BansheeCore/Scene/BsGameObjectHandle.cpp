@@ -5,7 +5,7 @@
 #include "Scene/BsGameObjectHandle.h"
 #include "Error/BsException.h"
 #include "Scene/BsGameObject.h"
-#include "RTTI/BsGameObjectHandleRTTI.h"
+#include "Private/RTTI/BsGameObjectHandleRTTI.h"
 
 namespace bs
 {

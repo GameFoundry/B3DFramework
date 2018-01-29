@@ -4,7 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Physics/BsPhysicsMesh.h"
-#include "RTTI/BsCMeshColliderRTTI.h"
+#include "Private/RTTI/BsCMeshColliderRTTI.h"
 
 namespace bs
 {

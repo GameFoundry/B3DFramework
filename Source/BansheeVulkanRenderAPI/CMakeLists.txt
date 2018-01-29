@@ -32,3 +32,13 @@ target_link_libraries(BansheeVulkanRenderAPI PRIVATE BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeVulkanRenderAPI PROPERTY FOLDER Plugins)
+
+# Install
+if(RENDER_API_MODULE MATCHES "Vulkan")
+	install(
+		TARGETS BansheeVulkanRenderAPI
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif()

@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Scene/BsPrefab.h"
-#include "RTTI/BsPrefabRTTI.h"
+#include "Private/RTTI/BsPrefabRTTI.h"
 #include "Resources/BsResources.h"
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsPrefabUtility.h"

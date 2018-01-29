@@ -1,9 +1,9 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "CoreThread/BsCoreThread.h"
-#include "Linux/BsLinuxPlatform.h"
+#include "Private/Linux/BsLinuxPlatform.h"
+#include "Private/Linux/BsLinuxWindow.h"
 #include "Linux/BsLinuxRenderWindow.h"
-#include "Linux/BsLinuxWindow.h"
 #include "Linux/BsLinuxVideoModeInfo.h"
 #include "Math/BsMath.h"
 #include "Managers/BsRenderWindowManager.h"

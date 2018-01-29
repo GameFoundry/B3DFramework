@@ -3,7 +3,7 @@
 #include "RenderAPI/BsRasterizerState.h"
 #include "Managers/BsRenderStateManager.h"
 #include "RenderAPI/BsRenderAPI.h"
-#include "RTTI/BsRasterizerStateRTTI.h"
+#include "Private/RTTI/BsRasterizerStateRTTI.h"
 #include "Resources/BsResources.h"
 
 namespace bs

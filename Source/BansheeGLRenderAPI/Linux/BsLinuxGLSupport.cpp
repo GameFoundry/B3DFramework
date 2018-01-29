@@ -1,10 +1,10 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "Linux/BsLinuxPlatform.h"
+#include "Private/Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxGLSupport.h"
 #include "Linux/BsLinuxContext.h"
 #include "Linux/BsLinuxRenderWindow.h"
-#include "BsLinuxVideoModeInfo.h"
+#include "Linux/BsLinuxVideoModeInfo.h"
 #include "BsGLRenderAPI.h"
 
 namespace bs { namespace ct

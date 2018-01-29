@@ -51,9 +51,16 @@ namespace bs
 		 */
 		static Path findPath(const Path& path);
 
+		/** Path where the release configuration managed assemblies are located at, relative to the working directory. */
 		static const Path RELEASE_ASSEMBLY_PATH;
+
+		/** Path where the debug configuration managed assemblies are located at, relative to the working directory. */
 		static const Path DEBUG_ASSEMBLY_PATH;
+
+		/** Path to the root data directory. Relative to working directory, FRAMEWORK_DATA_ROOT, or RAW_APP_ROOT. */
 		static const Path RUNTIME_DATA_PATH;
+
+		/** Path to the engine-specific data, relative to the data directory. */
 		static const Path ENGINE_DATA_PATH;
 	};
 

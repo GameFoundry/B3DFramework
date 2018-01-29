@@ -27,3 +27,11 @@ target_link_libraries(BansheeFBXImporter BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeFBXImporter PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS BansheeFBXImporter
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

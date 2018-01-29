@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Components/BsCLight.h"
-#include "RTTI/BsCLightRTTI.h"
+#include "Private/RTTI/BsCLightRTTI.h"
 #include "Scene/BsSceneManager.h"
 
 namespace bs

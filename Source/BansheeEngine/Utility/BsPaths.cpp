@@ -12,6 +12,7 @@ namespace bs
 	const Path Paths::RUNTIME_DATA_PATH = "Data/";
 	const Path Paths::ENGINE_DATA_PATH = RUNTIME_DATA_PATH + "Engine/";
 
+
 	const Path& Paths::getReleaseAssemblyPath()
 	{
 		static Path path = findPath(RELEASE_ASSEMBLY_PATH);
@@ -76,13 +77,17 @@ namespace bs
 
 	Path Paths::findPath(const Path& path)
 	{
+		// Note: These paths should be searched for during start-up and cached
+
+		// First, look for the direct descendant of the working directory 
 		Path output = path;
 		if (FileSystem::exists(path))
 		{
 			output.makeAbsolute(FileSystem::getWorkingDirectoryPath());
 			return output;
 		}
-		
+
+		// Finally, check the source distribution itself, in case we're running directly from the build directory
 		output.makeAbsolute(RAW_APP_ROOT);
 		if (FileSystem::exists(output))
 			return output;

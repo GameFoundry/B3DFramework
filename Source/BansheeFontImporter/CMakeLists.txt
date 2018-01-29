@@ -27,3 +27,11 @@ target_link_libraries(BansheeFontImporter BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeFontImporter PROPERTY FOLDER Plugins)
+
+# Install
+install(
+	TARGETS BansheeFontImporter
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

@@ -11,11 +11,11 @@
 #include "Error/BsException.h"
 #include "Win32/BsWin32GLSupport.h"
 #include "Win32/BsWin32Context.h"
-#include "Win32/BsWin32Platform.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 #include "BsGLPixelFormat.h"
 #include "Managers/BsRenderWindowManager.h"
-#include "Win32/BsWin32Window.h"
+#include "Private/Win32/BsWin32Platform.h"
+#include "Private/Win32/BsWin32Window.h"
 #include "Math/BsMath.h"
 
 GLenum GLEWAPIENTRY wglewContextInit(bs::ct::GLSupport* glSupport);

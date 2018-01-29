@@ -90,7 +90,7 @@ set(BS_BANSHEEENGINE_INC_RENDERER
 )
 
 set(BS_BANSHEEENGINE_SRC_RTTI
-	"RTTI/BsGUISkinRTTI.cpp"
+	"Private/RTTI/BsGUISkinRTTI.cpp"
 )
 
 set(BS_BANSHEEENGINE_SRC_2D
@@ -130,16 +130,16 @@ set(BS_BANSHEEENGINE_INC_2D
 )
 
 set(BS_BANSHEEENGINE_INC_RTTI
-	"RTTI/BsSpriteTextureRTTI.h"
-	"RTTI/BsPlainTextRTTI.h"
-	"RTTI/BsScriptCodeRTTI.h"
-	"RTTI/BsScriptCodeImportOptionsRTTI.h"
-	"RTTI/BsGUIElementStyleRTTI.h"
-	"RTTI/BsGUISkinRTTI.h"
-	"RTTI/BsProfilerOverlayRTTI.h"
-	"RTTI/BsCGUIWidgetRTTI.h"
-	"RTTI/BsGameSettingsRTTI.h"
-	"RTTI/BsResourceMappingRTTI.h"
+	"Private/RTTI/BsSpriteTextureRTTI.h"
+	"Private/RTTI/BsPlainTextRTTI.h"
+	"Private/RTTI/BsScriptCodeRTTI.h"
+	"Private/RTTI/BsScriptCodeImportOptionsRTTI.h"
+	"Private/RTTI/BsGUIElementStyleRTTI.h"
+	"Private/RTTI/BsGUISkinRTTI.h"
+	"Private/RTTI/BsProfilerOverlayRTTI.h"
+	"Private/RTTI/BsCGUIWidgetRTTI.h"
+	"Private/RTTI/BsGameSettingsRTTI.h"
+	"Private/RTTI/BsResourceMappingRTTI.h"
 )
 
 set(BS_BANSHEEENGINE_INC_NOFILTER

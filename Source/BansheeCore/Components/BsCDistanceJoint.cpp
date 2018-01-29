@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Components/BsCDistanceJoint.h"
 #include "Scene/BsSceneObject.h"
-#include "RTTI/BsCDistanceJointRTTI.h"
+#include "Private/RTTI/BsCDistanceJointRTTI.h"
 
 namespace bs
 {

@@ -62,3 +62,18 @@ endif()
 
 # IDE specific
 set_property(TARGET BansheeUtility PROPERTY FOLDER Layers)
+
+# Install
+install(
+	DIRECTORY .
+	DESTINATION include
+	FILES_MATCHING PATTERN "*.h"
+	PATTERN "Private" EXCLUDE
+)
+
+install(
+	TARGETS BansheeUtility 
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+)

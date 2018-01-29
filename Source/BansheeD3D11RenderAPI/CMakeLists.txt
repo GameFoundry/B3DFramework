@@ -30,3 +30,13 @@ target_link_libraries(BansheeD3D11RenderAPI BansheeUtility BansheeCore)
 
 # IDE specific
 set_property(TARGET BansheeD3D11RenderAPI PROPERTY FOLDER Plugins)
+
+# Install
+if(RENDER_API_MODULE MATCHES "DirectX 11")
+	install(
+		TARGETS BansheeD3D11RenderAPI
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+	)
+endif()

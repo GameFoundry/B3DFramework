@@ -3,7 +3,7 @@
 #include "Components/BsCPlaneCollider.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
-#include "RTTI/BsCPlaneColliderRTTI.h"
+#include "Private/RTTI/BsCPlaneColliderRTTI.h"
 
 namespace bs
 {

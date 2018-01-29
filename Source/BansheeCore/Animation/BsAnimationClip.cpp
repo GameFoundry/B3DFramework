@@ -3,7 +3,7 @@
 #include "Animation/BsAnimationClip.h"
 #include "Resources/BsResources.h"
 #include "Animation/BsSkeleton.h"
-#include "RTTI/BsAnimationClipRTTI.h"
+#include "Private/RTTI/BsAnimationClipRTTI.h"
 
 namespace bs
 {

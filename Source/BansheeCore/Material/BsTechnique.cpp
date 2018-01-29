@@ -7,7 +7,7 @@
 #include "Material/BsPass.h"
 #include "Renderer/BsRenderer.h"
 #include "Managers/BsGpuProgramManager.h"
-#include "RTTI/BsTechniqueRTTI.h"
+#include "Private/RTTI/BsTechniqueRTTI.h"
 
 namespace bs
 {

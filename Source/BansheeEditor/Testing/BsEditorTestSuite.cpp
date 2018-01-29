@@ -6,7 +6,7 @@
 #include "UndoRedo/BsCmdDeleteSO.h"
 #include "UndoRedo/BsUndoRedo.h"
 #include "Reflection/BsRTTIType.h"
-#include "RTTI/BsGameObjectRTTI.h"
+#include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "Serialization/BsMemorySerializer.h"
 #include "Serialization/BsBinaryDiff.h"

@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Scene/BsGameObject.h"
-#include "RTTI/BsGameObjectRTTI.h"
+#include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Scene/BsGameObjectManager.h"
 
 namespace bs
