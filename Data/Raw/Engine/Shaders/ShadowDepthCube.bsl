@@ -53,13 +53,19 @@ technique ShadowDepth
 						output.targetIdx = faceIdx;
 
 						// Note: I'm reversing the order here because otherwise the triangle order is reversed
-						// (not sure why, but GS seems like it could be the only culprit)
+						// (not sure why, but GS seems like it could be the only culprit). This doesn't happen in
+						// OpenGL, because we flip the projection matrix Y axis due to upside-down UV coordinates
 						[unroll]
+						#ifdef OPENGL
+						for (int vertIdx = 0; vertIdx < 3; vertIdx++)
+						#else
 						for (int vertIdx = 2; vertIdx >= 0; vertIdx--)
+						#endif
 						{
 							output.position = clipPos[vertIdx];
 							outStream.Append(output);
 						}
+						
 						outStream.RestartStrip();
 					}
 				}
