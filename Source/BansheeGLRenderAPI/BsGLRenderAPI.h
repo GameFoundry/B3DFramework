@@ -358,11 +358,8 @@ namespace bs { namespace ct
 		/**	Converts the engine depth/stencil compare function into OpenGL representation. */
 		GLint convertCompareFunction(CompareFunction func) const;
 
-		/**
-		 * Convers the engine stencil operation in OpenGL representation. Optionally inverts the operation (increment
-		 * becomes decrement, etc.).
-		 */
-		GLint convertStencilOp(StencilOperation op, bool invert = false) const;
+		/** Convers the engine stencil operation in OpenGL representation. */
+		GLint convertStencilOp(StencilOperation op) const;
 
 	private:
 		/** Information about a currently bound texture. */

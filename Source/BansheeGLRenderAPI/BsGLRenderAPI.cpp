@@ -2018,9 +2018,9 @@ namespace bs { namespace ct
 		{
 			glStencilOpSeparate(
 				GL_BACK,
-				convertStencilOp(stencilFailOp, true),
-				convertStencilOp(depthFailOp, true),
-				convertStencilOp(passOp, true));
+				convertStencilOp(stencilFailOp),
+				convertStencilOp(depthFailOp),
+				convertStencilOp(passOp));
 			BS_CHECK_GL_ERROR();
 		}
 	}
@@ -2227,7 +2227,7 @@ namespace bs { namespace ct
 		return curAniso ? curAniso : 1;
 	}
 
-	GLint GLRenderAPI::convertStencilOp(StencilOperation op, bool invert) const
+	GLint GLRenderAPI::convertStencilOp(StencilOperation op) const
 	{
 		switch (op)
 		{
@@ -2238,17 +2238,17 @@ namespace bs { namespace ct
 		case SOP_REPLACE:
 			return GL_REPLACE;
 		case SOP_INCREMENT:
-			return invert ? GL_DECR : GL_INCR;
+			return GL_INCR;
 		case SOP_DECREMENT:
-			return invert ? GL_INCR : GL_DECR;
+			return GL_DECR;
 		case SOP_INCREMENT_WRAP:
-			return invert ? GL_DECR_WRAP_EXT : GL_INCR_WRAP_EXT;
+			return GL_INCR_WRAP_EXT;
 		case SOP_DECREMENT_WRAP:
-			return invert ? GL_INCR_WRAP_EXT : GL_DECR_WRAP_EXT;
+			return GL_DECR_WRAP_EXT;
 		case SOP_INVERT:
 			return GL_INVERT;
-		};
-		// to keep compiler happy
+		}
+
 		return SOP_KEEP;
 	}
 
@@ -2272,7 +2272,7 @@ namespace bs { namespace ct
 			return GL_GEQUAL;
 		case CMPF_GREATER:
 			return GL_GREATER;
-		};
+		}
 
 		return GL_ALWAYS;
 	}
@@ -2349,7 +2349,7 @@ namespace bs { namespace ct
 			return GL_ONE_MINUS_DST_ALPHA;
 		case BF_INV_SOURCE_ALPHA:
 			return GL_ONE_MINUS_SRC_ALPHA;
-		};
+		}
 
 		return GL_ONE;
 	}
