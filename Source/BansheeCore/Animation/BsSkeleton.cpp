@@ -85,14 +85,15 @@ namespace bs
 	}
 
 	Skeleton::Skeleton()
-		: mNumBones(0), mInvBindPoses(nullptr), mBoneInfo(nullptr)
 	{ }
 
 	Skeleton::Skeleton(BONE_DESC* bones, UINT32 numBones)
-		: mNumBones(numBones), mInvBindPoses(bs_newN<Matrix4>(numBones)), mBoneInfo(bs_newN<SkeletonBoneInfo>(numBones))
+		: mNumBones(numBones), mBoneTransforms(bs_newN<Matrix4>(numBones)), mInvBindPoses(bs_newN<Matrix4>(numBones))
+		, mBoneInfo(bs_newN<SkeletonBoneInfo>(numBones))
 	{
 		for(UINT32 i = 0; i < numBones; i++)
 		{
+			mBoneTransforms[i] = bones[i].localTfrm;
 			mInvBindPoses[i] = bones[i].invBindPose;
 			mBoneInfo[i].name = bones[i].name;
 			mBoneInfo[i].parent = bones[i].parent;
@@ -101,6 +102,9 @@ namespace bs
 
 	Skeleton::~Skeleton()
 	{
+		if(mBoneTransforms != nullptr)
+			bs_deleteN(mBoneTransforms, mNumBones);
+
 		if(mInvBindPoses != nullptr)
 			bs_deleteN(mInvBindPoses, mNumBones);
 
@@ -287,13 +291,13 @@ namespace bs
 			pose[i] = Matrix4::TRS(localPose.positions[i], localPose.rotations[i], localPose.scales[i]);
 		}
 
-		// Apply bind pose transforms to non-animated bones (so that any potential child bones are transformed properly)
+		// Apply default local tranform to non-animated bones (so that any potential child bones are transformed properly)
 		for(UINT32 i = 0; i < mNumBones; i++)
 		{
 			if(hasAnimCurve[i])
 				continue;
 
-			pose[i] = pose[i] * mInvBindPoses[i].inverseAffine();
+			pose[i] = mBoneTransforms[i] * pose[i];
 		}
 
 		// Calculate global poses

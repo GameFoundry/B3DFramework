@@ -39,6 +39,7 @@ namespace bs
 		~FBXImportNode();
 
 		Matrix4 geomTransform;
+		Matrix4 localTransform;
 		Matrix4 worldTransform;
 		String name;
 		FbxNode* fbxNode;
@@ -70,6 +71,7 @@ namespace bs
 	struct FBXBone
 	{
 		FBXImportNode* node;
+		Matrix4 localTfrm;
 		Matrix4 bindPose;
 	};
 

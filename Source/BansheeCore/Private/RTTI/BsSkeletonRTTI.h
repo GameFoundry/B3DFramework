@@ -38,6 +38,17 @@ namespace bs
 			obj->mBoneInfo = bs_newN<SkeletonBoneInfo>(size);
 		}
 
+		Matrix4& getBoneTransform(Skeleton* obj, UINT32 idx) { return obj->mBoneTransforms[idx]; }
+		void setBoneTransform(Skeleton* obj, UINT32 idx, Matrix4& value) { obj->mBoneTransforms[idx] = value; }
+
+		void setNumBoneTransforms(Skeleton* obj, UINT32 size)
+		{
+			obj->mNumBones = size;
+			
+			assert(obj->mBoneTransforms == nullptr);
+			obj->mBoneTransforms = bs_newN<Matrix4>(size);
+		}
+
 		UINT32 getNumBones(Skeleton* obj) { return obj->mNumBones; }
 	public:
 		SkeletonRTTI()
@@ -46,6 +57,8 @@ namespace bs
 				&SkeletonRTTI::setBindPose, &SkeletonRTTI::setNumBindPoses);
 			addPlainArrayField("boneInfo", 1, &SkeletonRTTI::getBoneInfo, &SkeletonRTTI::getNumBones,
 				&SkeletonRTTI::setBoneInfo, &SkeletonRTTI::setNumBoneInfos);
+			addPlainArrayField("boneTransforms", 2, &SkeletonRTTI::getBoneTransform, &SkeletonRTTI::getNumBones,
+				&SkeletonRTTI::setBoneTransform, &SkeletonRTTI::setNumBoneTransforms);
 		}
 
 		const String& getRTTIName() override

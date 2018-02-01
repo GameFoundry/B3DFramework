@@ -34,6 +34,7 @@ namespace bs
 		String name; /**< Unique name of the bone. */
 		UINT32 parent; /**< Index of the parent bone, if any. -1 if root bone. */
 
+		Matrix4 localTfrm; /**< Local transform of the bone, relative to other bones in the hierarchy. */
 		Matrix4 invBindPose; /**< Inverse bind pose which transforms vertices from their bind pose into local space. */
 	};
 
@@ -175,9 +176,10 @@ namespace bs
 		Skeleton();
 		Skeleton(BONE_DESC* bones, UINT32 numBones);
 
-		UINT32 mNumBones;
-		Matrix4* mInvBindPoses;
-		SkeletonBoneInfo* mBoneInfo;
+		UINT32 mNumBones = 0;
+		Matrix4* mBoneTransforms = nullptr;
+		Matrix4* mInvBindPoses = nullptr;
+		SkeletonBoneInfo* mBoneInfo = nullptr;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

@@ -243,7 +243,7 @@ namespace bs
 		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
 
 		skeleton = createSkeleton(importedScene, subMeshes.size() > 1);
-		morphShapes = createMorphShapes(importedScene);		
+		morphShapes = createMorphShapes(importedScene);
 
 		// Import animation clips
 		if (!importedScene.clips.empty())
@@ -276,6 +276,7 @@ namespace bs
 				BONE_DESC& bone = allBones.back();
 
 				bone.name = fbxBone.node->name;
+				bone.localTfrm = fbxBone.localTfrm;
 				bone.invBindPose = fbxBone.bindPose;
 			}
 		}
@@ -296,6 +297,7 @@ namespace bs
 				BONE_DESC& bone = allBones.back();
 
 				bone.name = "MultiMeshRoot";
+				bone.localTfrm = Matrix4::IDENTITY;
 				bone.invBindPose = Matrix4::IDENTITY;
 				bone.parent = (UINT32)-1;
 
@@ -318,9 +320,26 @@ namespace bs
 				{
 					UINT32 boneIdx = boneIter->second;
 					allBones[boneIdx].parent = parentBoneIdx;
-					numProcessedBones++;
 
 					parentBoneIdx = boneIdx;
+					numProcessedBones++;
+				}
+				else
+				{
+					// Node is not a bone, but it still needs to be part of the hierarchy. It wont be animated, nor will
+					// it directly influence any vertices, but its transform must be applied to any child bones.
+					UINT32 boneIdx = (UINT32)allBones.size();
+
+					allBones.push_back(BONE_DESC());
+					BONE_DESC& bone = allBones.back();
+
+					bone.name = node->name;
+					bone.localTfrm = node->localTransform;
+					bone.invBindPose = Matrix4::IDENTITY;
+					bone.parent = parentBoneIdx;
+
+					parentBoneIdx = boneIdx;
+					numProcessedBones++;
 				}
 
 				for (auto& child : node->children)
@@ -596,18 +615,18 @@ namespace bs
 
 		Quaternion rotation((Degree)rotationEuler.x, (Degree)rotationEuler.y, (Degree)rotationEuler.z);
 
-		Matrix4 localTransform = Matrix4::TRS(translation, rotation, scale);
 		node->name = fbxNode->GetNameWithoutNameSpacePrefix().Buffer();
 		node->fbxNode = fbxNode;
+		node->localTransform = Matrix4::TRS(translation, rotation, scale);
 
 		if (parent != nullptr)
 		{
-			node->worldTransform = parent->worldTransform * localTransform;
+			node->worldTransform = parent->worldTransform * node->localTransform;
 
 			parent->children.push_back(node);
 		}
 		else
-			node->worldTransform = localTransform;
+			node->worldTransform = node->localTransform;
 
 		// Geometry transform is applied to geometry (mesh data) only, it is not inherited by children, so we store it
 		// separately
@@ -1550,13 +1569,18 @@ namespace bs
 			}
 
 			// Calculate bind pose
-			FbxAMatrix clusterTransform;
-			cluster->GetTransformMatrix(clusterTransform);
-
+			////  Grab the transform of the node linked to this cluster (should be equivalent to bone.node->worldTransform)
 			FbxAMatrix linkTransform;
 			cluster->GetTransformLinkMatrix(linkTransform);
 
-			FbxAMatrix invLinkTransform = linkTransform.Inverse() * clusterTransform;
+			//// A reminder about the cluster transform:
+			////	Cluster transform is the global transform applied to the mesh containing the cluster. Normally we would
+			////	need to apply it before the link transform to get the bind pose, but we bake this transform directly
+			////	into mesh vertices. The cluster transform can be retrieved through cluster->GetTransformMatrix, and 
+			////	should be equivalent to mesh.referencedBy[0]->worldTransform.
+
+			FbxAMatrix invLinkTransform = linkTransform.Inverse();
+			bone.localTfrm = bone.node->localTransform;
 			bone.bindPose = FBXToNativeType(invLinkTransform);
 
 			// Apply global scale to bind pose (we only apply the scale to translation portion because we scale the
@@ -1614,7 +1638,7 @@ namespace bs
 				}
 			}
 		}
-
+		
 		if (mesh.bones.empty())
 			mesh.boneInfluences.clear();
 
