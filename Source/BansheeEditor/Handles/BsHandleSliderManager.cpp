@@ -109,7 +109,7 @@ namespace bs
 			bool layerMatches = (camera->getLayers() & slider->getLayer()) != 0;
 
 			float t;
-			if (layerMatches && slider->intersects(inputRay, t))
+			if (layerMatches && slider->intersects(inputPos, inputRay, t))
 			{
 				if (t < nearestT)
 				{

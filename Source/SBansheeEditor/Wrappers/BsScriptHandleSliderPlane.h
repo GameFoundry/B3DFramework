@@ -22,10 +22,10 @@ namespace bs
 
 	protected:
 		/** @copydoc ScriptHandleSliderBase::getSlider */
-		virtual HandleSlider* getSlider() const override { return mSlider; }
+		HandleSlider* getSlider() const override { return mSlider; }
 
 		/** @copydoc ScriptHandleSliderBase::getSlider */
-		virtual void destroyInternal() override;
+		void destroyInternal() override;
 
 	private:
 		ScriptHandleSliderPlane(MonoObject* instance, const Vector3& dir1, const Vector3& dir2, float length, 

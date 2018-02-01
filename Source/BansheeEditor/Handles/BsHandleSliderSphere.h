@@ -31,7 +31,7 @@ namespace bs
 		~HandleSliderSphere();
 
 		/** @copydoc	HandleSlider::intersects */
-		bool intersects(const Ray& ray, float& t) const override;
+		bool intersects(const Vector2I& screenPos, const Ray& ray, float& t) const override;
 
 		/** @copydoc	HandleSlider::handleInput */
 		void handleInput(const SPtr<Camera>& camera, const Vector2I& inputDelta) override;

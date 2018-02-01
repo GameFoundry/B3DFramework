@@ -24,11 +24,11 @@ namespace BansheeEditor
         public enum StateType
         {
             /// <summary>Slider is not being interacted with.</summary>
-	        Inactive,
+            Inactive,
             /// <summary>Slider is clicked on and being dragged.</summary>
-	        Active,
+            Active,
             /// <summary>Slider is being hovered over but isn't clicked on.</summary>
-	        Hover
+            Hover
         };
 
         /// <summary>

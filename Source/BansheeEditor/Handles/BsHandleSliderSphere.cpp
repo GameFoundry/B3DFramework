@@ -23,7 +23,7 @@ namespace bs
 		sliderManager._unregisterSlider(this);
 	}
 
-	bool HandleSliderSphere::intersects(const Ray& ray, float& t) const
+	bool HandleSliderSphere::intersects(const Vector2I& screenPos, const Ray& ray, float& t) const
 	{
 		Ray localRay = ray;
 		localRay.transformAffine(getTransformInv());
