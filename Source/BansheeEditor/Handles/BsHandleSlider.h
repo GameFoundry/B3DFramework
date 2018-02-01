@@ -84,7 +84,7 @@ namespace bs
 		/**	Sets the scale of the slider. */
 		void setScale(const Vector3& scale);
 
-		/**	Enables or disabled the slider, making it interactable or not. */
+		/**	Enables or disables the slider, making it interactable or not. */
 		void setEnabled(bool enabled);
 
 		/**	Gets the world position of the slider. */

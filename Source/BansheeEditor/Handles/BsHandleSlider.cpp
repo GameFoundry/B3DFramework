@@ -124,9 +124,15 @@ namespace bs
 		Vector2I diffStart = pointerStart - handleStart2D;
 		Vector2I diffEnd = pointerEnd - handleStart2D;
 
-		float mag = sqrt((float)sqrdMag);
-		float tStart = handleDir2D.dot(diffStart) / mag;
-		float tEnd = handleDir2D.dot(diffEnd) / mag;
+		float tStart = (float)handleDir2D.dot(diffStart);
+		float tEnd = (float)handleDir2D.dot(diffEnd);
+
+		// Smaller magnitude means the direction axis is at a steeper angle from the camera's perspective, meaning we
+		// want the movement to be larger. Largest maginitude is when the direction is perpendicular to the view direction.
+		float invMag = 1.0f / sqrt((float)sqrdMag);
+
+		tStart *= invMag;
+		tEnd *= invMag;
 
 		float arbitraryScale = 1.0f / 100.0f;
 		return negate * (tEnd - tStart) * arbitraryScale;

@@ -7,6 +7,7 @@
 #include "Math/BsLineSegment3.h"
 #include "Math/BsSphere.h"
 #include "Math/BsRay.h"
+#include "Renderer/BsCamera.h"
 
 namespace bs
 {
@@ -79,5 +80,11 @@ namespace bs
 
 		Vector3 worldDir = getRotation().rotate(mDirection);
 		mDelta = calcDelta(camera, mStartPosition, worldDir, mStartPointerPos, mCurrentPointerPos);
+
+		// Movement in screen space will cover larger range in world space if the camera is further away
+		float dist = (camera->getTransform().getPosition() - mStartPosition).length();
+
+		float arbitraryScale = 1.0f / 5.0f;
+		mDelta *= dist * arbitraryScale;
 	}
 }
