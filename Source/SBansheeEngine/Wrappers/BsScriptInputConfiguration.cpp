@@ -108,12 +108,12 @@ namespace bs
 		return thisPtr->getInternalValue()->getRepeatInterval();
 	}
 
-	void ScriptInputConfiguration::_onManagedInstanceDeleted()
+	void ScriptInputConfiguration::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		UINT64 configId = (UINT64)mInputConfig.get();
 		ScriptInputConfigurations.erase(configId);
 
-		ScriptObject::_onManagedInstanceDeleted();
+		ScriptObject::_onManagedInstanceDeleted(assemblyRefresh);
 	}
 
 	ScriptVirtualAxis::ScriptVirtualAxis(MonoObject* instance)

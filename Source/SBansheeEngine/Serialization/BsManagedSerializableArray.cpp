@@ -98,7 +98,7 @@ namespace bs
 			UINT32 numElems = scriptArray.size();
 			assert(arrayIdx < numElems);
 
-			void* arrayValue = scriptArray.getRawPtr(mElemSize, arrayIdx);
+			void* arrayValue = scriptArray.getRaw(arrayIdx, mElemSize);
 
 			if (MonoUtil::isValueType(mElementMonoClass))
 			{
@@ -175,8 +175,7 @@ namespace bs
 		UINT32 numElems = (UINT32)scriptArray.size();
 		assert(arrayIdx < numElems);
 	
-		void* elemAddr = scriptArray.getRawPtr(mElemSize, arrayIdx);
-		memcpy(elemAddr, val, mElemSize);
+		scriptArray.setRaw(arrayIdx, (UINT8*)val, mElemSize);
 	}
 
 	void ManagedSerializableArray::initMonoObjects()

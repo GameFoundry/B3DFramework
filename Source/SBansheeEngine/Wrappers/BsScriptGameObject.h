@@ -27,11 +27,6 @@ namespace bs
 		/** Returns the managed version of this game object. */
 		MonoObject* getManagedInstance() const;
 
-		/** @copydoc ScriptObjectBase::beginRefresh */
-		ScriptObjectBackup beginRefresh() override;
-
-		/** @copydoc ScriptObjectBase::endRefresh */
-		void endRefresh(const ScriptObjectBackup& backupData) override;
 	protected:
 		/** 
 		 * Makes the object reference the specific managed instance. Internally this allocates a GC handle that keeps a
@@ -48,7 +43,6 @@ namespace bs
 		 */
 		void freeManagedInstance();
 
-		bool mRefreshInProgress;
 		UINT32 mGCHandle;
 	};
 

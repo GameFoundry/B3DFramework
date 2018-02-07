@@ -44,7 +44,7 @@ namespace bs
 		void _clearManagedInstance() override;
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted() override;
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
 
 		HManagedResource mResource;
 		String mNamespace;

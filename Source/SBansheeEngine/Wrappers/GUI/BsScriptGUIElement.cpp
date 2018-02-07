@@ -48,11 +48,18 @@ namespace bs
 		return MonoUtil::getObjectFromGCHandle(mGCHandle);
 	}
 
-	void ScriptGUIElementBaseTBase::_onManagedInstanceDeleted()
+	void ScriptGUIElementBaseTBase::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		destroy();
 
-		ScriptObjectBase::_onManagedInstanceDeleted();
+		ScriptObjectBase::_onManagedInstanceDeleted(assemblyRefresh);
+	}
+
+	void ScriptGUIElementBaseTBase::_clearManagedInstance()
+	{
+		// Need to call destroy here because we need to release any GC handles before the domain is unloaded
+
+		destroy();
 	}
 
 	ScriptGUIElementTBase::ScriptGUIElementTBase(MonoObject* instance)

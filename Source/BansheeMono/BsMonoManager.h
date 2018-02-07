@@ -39,7 +39,7 @@ namespace bs
 		/**	Searches all loaded assemblies for the specified class. */
 		MonoClass* findClass(::MonoClass* rawMonoClass);
 
-		/**	Returns the current Mono domain. */
+		/**	Returns the main (scripting) Mono domain. */
 		MonoDomain* getDomain() const { return mScriptDomain; }
 
 		/**
@@ -52,12 +52,6 @@ namespace bs
 		 * associated with it.
 		 */
 		void unloadScriptDomain();
-
-		/**
-		 * Loads a new script domain. If another domain already exists it will be unloaded. This will also restore any
-		 * previously loaded assemblies.
-		 */
-		void loadScriptDomain();
 
 		/** Returns the absolute path of the folder where Mono framework assemblies are located. */
 		Path getFrameworkAssembliesFolder() const;
@@ -99,7 +93,7 @@ namespace bs
 		UnorderedMap<String, MonoAssembly*> mAssemblies;
 		MonoDomain* mScriptDomain;
 		MonoDomain* mRootDomain;
-		bool mIsCoreLoaded;
+		MonoAssembly* mCorlibAssembly;
 	};
 
 	/** @} */

@@ -22,13 +22,13 @@ namespace bs
 		:ScriptGameObjectBase(instance)
 	{ }
 
-	void ScriptComponentBase::destroy()
+	void ScriptComponentBase::destroy(bool assemblyRefresh)
 	{
 		// It's possible that managed component is destroyed but a reference to it is still kept during assembly refresh. 
 		// Such components shouldn't be restored so we delete them.
 
 		HComponent component = getComponent();
-		if (!mRefreshInProgress || component.isDestroyed(true))
+		if (!assemblyRefresh || component.isDestroyed(true))
 			ScriptGameObjectManager::instance().destroyScriptComponent(this);
 	}
 

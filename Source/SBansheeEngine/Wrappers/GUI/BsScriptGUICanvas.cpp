@@ -60,7 +60,7 @@ namespace bs
 		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> nativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRawPtr<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
 		canvas->drawPolyLine(nativeVertices, *color, depth);
 	}
@@ -86,7 +86,7 @@ namespace bs
 		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> nativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRawPtr<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
 		canvas->drawTriangleStrip(nativeVertices, *color, depth);
 	}
@@ -100,7 +100,7 @@ namespace bs
 		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> nativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRawPtr<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
 		canvas->drawTriangleList(nativeVertices, *color, depth);
 	}

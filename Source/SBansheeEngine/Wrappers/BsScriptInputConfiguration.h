@@ -40,7 +40,7 @@ namespace bs
 		ScriptInputConfiguration(MonoObject* instance, const SPtr<InputConfiguration>& inputConfig);
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted() override;
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
 
 		SPtr<InputConfiguration> mInputConfig;
 		UINT32 mGCHandle = 0;

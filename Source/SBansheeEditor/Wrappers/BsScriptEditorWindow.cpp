@@ -32,7 +32,7 @@ namespace bs
 
 	ScriptEditorWindow::ScriptEditorWindow(ScriptEditorWidget* editorWidget)
 		: ScriptObject(editorWidget->getManagedInstance()), mName(editorWidget->getName())
-		, mEditorWidget(editorWidget), mRefreshInProgress(false), mIsDestroyed(false)
+		, mEditorWidget(editorWidget), mIsDestroyed(false)
 	{
 		mOnWidgetResizedConn = editorWidget->onResized.connect(std::bind(&ScriptEditorWindow::onWidgetResized, this, _1, _2));
 		mOnFocusChangedConn = editorWidget->onFocusChanged.connect(std::bind(&ScriptEditorWindow::onFocusChanged, this, _1));
@@ -123,10 +123,10 @@ namespace bs
 		return mEditorWidget; 
 	}
 
-	void ScriptEditorWindow::_onManagedInstanceDeleted()
+	void ScriptEditorWindow::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
-		if (!mRefreshInProgress)
-			ScriptObject::_onManagedInstanceDeleted();
+		if (!assemblyRefresh)
+			ScriptObject::_onManagedInstanceDeleted(assemblyRefresh);
 		else
 		{
 			if(mEditorWidget)
@@ -136,8 +136,6 @@ namespace bs
 
 	ScriptObjectBackup ScriptEditorWindow::beginRefresh()
 	{
-		mRefreshInProgress = true;
-
 		auto iterFind = OpenScriptEditorWindows.find(mName);
 		if (iterFind != OpenScriptEditorWindows.end())
 			iterFind->second->mEditorWidget->clearManagedInstance(true);
@@ -147,12 +145,10 @@ namespace bs
 
 	void ScriptEditorWindow::endRefresh(const ScriptObjectBackup& backupData)
 	{
-		mRefreshInProgress = false;
-
 		if (isDestroyed())
 		{
 			// We couldn't restore managed instance because window class cannot be found
-			_onManagedInstanceDeleted();
+			_onManagedInstanceDeleted(false);
 		}
 
 		PersistentScriptObjectBase::endRefresh(backupData);
@@ -430,7 +426,7 @@ namespace bs
 
 	void ScriptEditorWidget::clearManagedInstance(bool freeHandle)
 	{
-		if(freeHandle)
+		if(freeHandle && mGCHandle != 0)
 			MonoUtil::freeGCHandle(mGCHandle);
 
 		mManagedInstance = nullptr;
@@ -454,6 +450,8 @@ namespace bs
 				{
 					mManagedInstance = editorWindowClass->createInstance();
 					mGCHandle = MonoUtil::newGCHandle(mManagedInstance);
+
+					assert(mManagedInstance == MonoUtil::getObjectFromGCHandle(mGCHandle));
 
 					MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mContent);
 					mContentsPanel = ScriptGUILayout::toNative(guiPanel);
@@ -505,6 +503,8 @@ namespace bs
 
 		if (mUpdateThunk != nullptr && mManagedInstance != nullptr)
 		{
+			assert(mManagedInstance == MonoUtil::getObjectFromGCHandle(mGCHandle));
+
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
 			MonoUtil::invokeThunk(mUpdateThunk, mManagedInstance);

@@ -15,7 +15,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for CmdManaged. */
-	class BS_SCR_BED_EXPORT ScriptCmdManaged : public ScriptObject <ScriptCmdManaged>
+	class BS_SCR_BED_EXPORT ScriptCmdManaged : public ScriptObject <ScriptCmdManaged, PersistentScriptObjectBase>
 	{
 	public:
 		SCRIPT_OBJ(EDITOR_ASSEMBLY, "BansheeEditor", "UndoableCommand")
@@ -40,17 +40,39 @@ namespace bs
 		 * Allocates a GC handle that ensures the object doesn't get GC collected. Must eventually be followed by
 		 * freeGCHandle().
 		 */
-		void allocGCHandle();
+		void notifyStackAdded();
 
 		/** Frees a GC handle previously allocated from allocGCHandle(). */
-		void freeGCHandle();
+		void notifyStackRemoved();
 
 		/** Notifies the script instance that the underlying managed command was destroyed. */
 		void notifyCommandDestroyed();
 
+		/** @copydoc ScriptObjectBase::beginRefresh */
+		ScriptObjectBackup beginRefresh() override;
+
+		/** @copydoc ScriptObjectBase::endRefresh */
+		void endRefresh(const ScriptObjectBackup& backupData) override;
+
+		/** @copydoc ScriptObjectBase::_createManagedInstance */
+		MonoObject* _createManagedInstance(bool construct) override;
+
+		/** @copydoc ScriptObjectBase::_clearManagedInstance */
+		void _clearManagedInstance() override;
+
+		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+
 		SPtr<CmdManaged> mManagedCommand;
+
 		UINT32 mGCHandle = 0;
-		bool mWeakHandle = true;
+		bool mInUndoRedoStack = false;
+
+		String mType;
+		String mNamespace;
+
+		bool mTypeMissing = false;
+		SPtr<ManagedSerializableObject> mSerializedObjectData;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

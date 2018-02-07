@@ -7,7 +7,7 @@
 namespace bs
 {
 	ScriptGameObjectBase::ScriptGameObjectBase(MonoObject* instance)
-		:PersistentScriptObjectBase(instance), mRefreshInProgress(false), mGCHandle(0)
+		:PersistentScriptObjectBase(instance), mGCHandle(0)
 	{
 		
 	}
@@ -17,20 +17,6 @@ namespace bs
 		BS_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
 	}
 	
-	ScriptObjectBackup ScriptGameObjectBase::beginRefresh()
-	{
-		mRefreshInProgress = true;
-
-		return PersistentScriptObjectBase::beginRefresh();
-	}
-
-	void ScriptGameObjectBase::endRefresh(const ScriptObjectBackup& backupData)
-	{
-		mRefreshInProgress = false;
-
-		PersistentScriptObjectBase::endRefresh(backupData);
-	}
-
 	MonoObject* ScriptGameObjectBase::getManagedInstance() const
 	{
 		return MonoUtil::getObjectFromGCHandle(mGCHandle);

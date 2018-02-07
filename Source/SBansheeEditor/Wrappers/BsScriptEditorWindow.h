@@ -55,7 +55,7 @@ namespace bs
 		void onAssemblyRefreshStarted();
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted() override;
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
 
 		/** @copydoc ScriptObjectBase::beginRefresh */
 		ScriptObjectBackup beginRefresh() override;
@@ -71,7 +71,6 @@ namespace bs
 		HEvent mOnWidgetResizedConn;
 		HEvent mOnFocusChangedConn;
 		HEvent mOnAssemblyRefreshStartedConn;
-		bool mRefreshInProgress;
 		bool mIsDestroyed;
 
 		static MonoMethod* onResizedMethod;

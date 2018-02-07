@@ -103,7 +103,7 @@ namespace BansheeEditor
         /// <summary>
         /// Removes a command with the specified identifier from undo/redo stack without executing it.
         /// </summary>
-        /// <param name="id">Identifier of the command as returned by <see cref="GetTopCommandId"/></param>
+        /// <param name="id">Identifier of the command as returned by <see cref="TopCommandId"/></param>
         public void PopCommand(int id)
         {
             Internal_PopCommand(mCachedPtr, id);

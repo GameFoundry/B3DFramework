@@ -124,7 +124,7 @@ namespace BansheeEngine
         /// <param name="options">Options controlling mip-map generation.</param>
         /// <returns>A list of calculated mip-map data. First entry is the largest mip and other follow in order from 
         ///          largest to smallest.</returns>
-		public static PixelData[] GenerateMipmaps(PixelData source, MipMapGenOptions options)
+        public static PixelData[] GenerateMipmaps(PixelData source, MipMapGenOptions options)
         {
             return Internal_GenerateMipmaps(source, ref options);
         }
@@ -204,109 +204,109 @@ namespace BansheeEngine
     /// Types of texture compression quality.
     /// </summary>
     public enum CompressionQuality // Note: Must match the C++ enum CompressionQuality
-	{
-		Fastest,
-		Normal,
-		Production,
-		Highest
-	};
+    {
+        Fastest,
+        Normal,
+        Production,
+        Highest
+    };
 
     /// <summary>
     /// Mode of the alpha channel in a texture.
     /// </summary>
     public enum AlphaMode // Note: Must match the C++ enum AlphaMode
-	{
+    {
         /// <summary>
         /// Texture has no alpha values.
         /// </summary>
-		None,
+        None,
         /// <summary>
         /// Alpha is in the separate transparency channel.
         /// </summary>
-		Transparency,
+        Transparency,
         /// <summary>
         /// Alpha values have been pre-multiplied with the color values.
         /// </summary>
-		Premultiplied
-	};
+        Premultiplied
+    };
 
     /// <summary>
     /// Wrap mode to use when generating mip maps.
     /// </summary>
     public enum MipMapWrapMode // Note: Must match the C++ enum MipMapWrapMode
-	{
-		Mirror,
-		Repeat,
-		Clamp
-	};
+    {
+        Mirror,
+        Repeat,
+        Clamp
+    };
 
     /// <summary>
     /// Filter to use when generating mip maps.
     /// </summary>
     public enum MipMapFilter // Note: Must match the C++ enum MipMapFilter
-	{
-		Box,
-		Triangle,
-		Kaiser
-	};
+    {
+        Box,
+        Triangle,
+        Kaiser
+    };
 
     /// <summary>
     /// Options used to control texture compression.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CompressionOptions // Note: Must match the C++ struct CompressionOptions
-	{
+    {
         /// <summary>
         /// Format to compress to. Must be a format containing compressed data.
         /// </summary>
-		public PixelFormat format;
+        public PixelFormat format;
 
         /// <summary>
         /// Controls how to (and if) to compress the alpha channel.
         /// </summary>
-	    public AlphaMode alphaMode;
+        public AlphaMode alphaMode;
 
         /// <summary>
         /// Determines does the input data represent a normal map.
         /// </summary>
-		public bool isNormalMap;
+        public bool isNormalMap;
 
         /// <summary>
         /// Determines has the input data been gamma corrected.
         /// </summary>
-		public bool isSRGB;
+        public bool isSRGB;
 
         /// <summary>
         /// Compressed image quality. Better compression might take longer to execute but will generate better results.
         /// </summary>
-		public CompressionQuality quality;
-	};
+        public CompressionQuality quality;
+    };
 
     /// <summary>
     /// Options used to control texture mip map generation.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct MipMapGenOptions // Note: Must match the C++ struct MipMapGenOptions
-	{
+    {
         /// <summary>
         /// Filter to use when downsamping input data.
         /// </summary>
-		public MipMapFilter filter;
+        public MipMapFilter filter;
 
         /// <summary>
         /// Determines how to downsample pixels on borders.
         /// </summary>
-		public MipMapWrapMode wrapMode;
+        public MipMapWrapMode wrapMode;
 
         /// <summary>
         /// Determines does the input data represent a normal map.
         /// </summary>
-		public bool isNormalMap;
+        public bool isNormalMap;
 
         /// <summary>
         /// Should the downsampled values be re-normalized. Only relevant for mip-maps representing normal maps.
         /// </summary>
-		public bool normalizeMipmaps;
+        public bool normalizeMipmaps;
 
         /// <summary>
         /// Determines has the input data been gamma corrected.

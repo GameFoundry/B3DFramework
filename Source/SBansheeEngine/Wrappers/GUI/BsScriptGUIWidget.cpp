@@ -139,10 +139,10 @@ namespace bs
 		}
 	}
 
-	void ScriptGUIWidget::_onManagedInstanceDeleted()
+	void ScriptGUIWidget::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		destroy();
 
-		ScriptObject::_onManagedInstanceDeleted();
+		ScriptObject::_onManagedInstanceDeleted(assemblyRefresh);
 	}
 }

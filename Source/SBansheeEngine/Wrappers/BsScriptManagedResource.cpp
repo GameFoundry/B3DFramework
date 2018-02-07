@@ -54,8 +54,6 @@ namespace bs
 
 	ScriptObjectBackup ScriptManagedResource::beginRefresh()
 	{
-		ScriptResourceBase::beginRefresh();
-
 		ScriptObjectBackup backupData;
 		backupData.data = mResource->backup(true);
 
@@ -71,16 +69,14 @@ namespace bs
 
 		// If we could not find resource type after refresh, treat it as if it was destroyed
 		if (instance == nullptr)
-			_onManagedInstanceDeleted();
-
-		ScriptResourceBase::endRefresh(backupData);
+			_onManagedInstanceDeleted(false);
 	}
 
-	void ScriptManagedResource::_onManagedInstanceDeleted()
+	void ScriptManagedResource::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		mGCHandle = 0;
 		
-		if (!mRefreshInProgress)
+		if (!assemblyRefresh)
 		{
 			// The only way this method should be reachable is when Resource::unload is called, which means the resource
 			// has had to been already freed. Even if all managed instances are released ManagedResource itself holds the last

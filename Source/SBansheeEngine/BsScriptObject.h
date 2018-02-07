@@ -18,7 +18,20 @@ namespace bs
 	/**	Contains backed up interop object data. */
 	struct ScriptObjectBackup
 	{
+		ScriptObjectBackup() {}
+
+		explicit ScriptObjectBackup(const Any& data)
+			:data(data)
+		{ }
+
 		Any data;
+	};
+
+	/** Contains backup data in the form of a raw memory buffer. */
+	struct RawBackupData
+	{
+		UINT8* data = nullptr;
+		UINT32 size = 0;
 	};
 
 	/**
@@ -36,9 +49,9 @@ namespace bs
 		 */
 		virtual bool isPersistent() const { return false; }
 
-		/**	
-		 * Clears any managed instance references from the interop object. Normally called right after the assemblies are
-		 * unloaded.
+		/** 
+		 * Clears any managed instance references from the interop object, and releases any GC handles. Called during
+		 * assembly refresh just before the script domain is unloaded. 
 		 */
 		virtual void _clearManagedInstance() { }
 
@@ -46,7 +59,7 @@ namespace bs
 		virtual void _restoreManagedInstance() { }
 
 		/**	Called when the managed instance gets finalized by the CLR. */
-		virtual void _onManagedInstanceDeleted();
+		virtual void _onManagedInstanceDeleted(bool assemblyRefresh);
 
 		/**	Called before assembly reload starts to give the object a chance to back up its data. */
 		virtual ScriptObjectBackup beginRefresh();

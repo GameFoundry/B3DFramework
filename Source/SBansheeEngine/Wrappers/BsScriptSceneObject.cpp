@@ -396,9 +396,9 @@ namespace bs
 		return false;
 	}
 
-	void ScriptSceneObject::_onManagedInstanceDeleted()
+	void ScriptSceneObject::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
-		if (!mRefreshInProgress)
+		if (!assemblyRefresh)
 			ScriptGameObjectManager::instance().destroyScriptSceneObject(this);
 		else
 			freeManagedInstance();
@@ -414,7 +414,7 @@ namespace bs
 
 	void ScriptSceneObject::_clearManagedInstance()
 	{
-		this->mGCHandle = 0;
+		freeManagedInstance();
 	}
 
 	void ScriptSceneObject::_notifyDestroyed()

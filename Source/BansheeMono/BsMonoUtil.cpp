@@ -135,6 +135,8 @@ namespace bs
 
 	void MonoUtil::freeGCHandle(UINT32 handle)
 	{
+		assert(handle != 0);
+
 		mono_gchandle_free(handle);
 	}
 
@@ -151,6 +153,11 @@ namespace bs
 	void* MonoUtil::unbox(MonoObject* object)
 	{
 		return mono_object_unbox(object);
+	}
+
+	void MonoUtil::valueCopy(void* dest, void* src, ::MonoClass* klass)
+	{
+		mono_value_copy(dest, src, klass);
 	}
 
 	bool MonoUtil::isSubClassOf(::MonoClass* subClass, ::MonoClass* parentClass)

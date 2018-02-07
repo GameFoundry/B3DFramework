@@ -51,7 +51,7 @@ namespace bs
 		unload();
 	}
 
-	void MonoAssembly::load(MonoDomain* domain)
+	void MonoAssembly::load()
 	{
 		if (mIsLoaded)
 			unload();
@@ -135,33 +135,35 @@ namespace bs
 		if(!mIsLoaded)
 			return;
 
-		if(mDebugData != nullptr)
-		{
-			mono_debug_close_image(mMonoImage);
-
-			bs_free(mDebugData);
-			mDebugData = nullptr;
-		}
-
 		for(auto& entry : mClassesByRaw)
 			bs_delete(entry.second);
 
 		mClasses.clear();
 		mClassesByRaw.clear();
 		mCachedClassList.clear();
-
-		if(mMonoImage != nullptr && !mIsDependency)
-		{
-			// Make sure to close the image, otherwise when we try to re-load this assembly the Mono will return the cached
-			// image
-			mono_image_close(mMonoImage);
-			mMonoImage = nullptr;
-		}
-
-		mIsLoaded = false;
-		mIsDependency = false;
-		mMonoAssembly = nullptr;
 		mHaveCachedClassList = false;
+
+		if(!mIsDependency)
+		{
+			if (mDebugData != nullptr)
+			{
+				mono_debug_close_image(mMonoImage);
+
+				bs_free(mDebugData);
+				mDebugData = nullptr;
+			}
+
+			if (mMonoImage != nullptr)
+			{
+				// Make sure to close the image, otherwise when we try to re-load this assembly the Mono will return the cached
+				// image
+				mono_image_close(mMonoImage);
+				mMonoImage = nullptr;
+			}
+
+			mMonoAssembly = nullptr;
+			mIsLoaded = false;
+		}
 	}
 
 	void MonoAssembly::invoke(const String& functionName)
@@ -221,15 +223,16 @@ namespace bs
 		String typeName;
 		MonoUtil::getClassName(rawMonoClass, ns, typeName);
 
+		// Verify the class is actually part of this assembly
+		MonoImage* classImage = mono_class_get_image(rawMonoClass);
+		if(classImage != mMonoImage)
+			return nullptr;
+
 		MonoClass* newClass = new (bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
-		
 		mClassesByRaw[rawMonoClass] = newClass;
 
-		if(!isGenericClass(typeName)) // No point in referencing generic types by name as all instances share it
-		{
-			MonoAssembly::ClassId classId(ns, typeName);
-			mClasses[classId] = newClass;
-		}
+		MonoAssembly::ClassId classId(ns, typeName);
+		mClasses[classId] = newClass;
 
 		return newClass;
 	}
@@ -246,6 +249,7 @@ namespace bs
 
 		if (iterFind != mClassesByRaw.end())
 			return iterFind->second;
+
 
 		MonoClass* newClass = new (bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
 

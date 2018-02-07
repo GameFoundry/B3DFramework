@@ -9,26 +9,12 @@
 namespace bs
 {
 	ScriptResourceBase::ScriptResourceBase(MonoObject* instance)
-		:PersistentScriptObjectBase(instance), mRefreshInProgress(false), mGCHandle(0)
+		:PersistentScriptObjectBase(instance), mGCHandle(0)
 	{ }
 
 	ScriptResourceBase::~ScriptResourceBase()
 	{
 		BS_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
-	}
-
-	ScriptObjectBackup ScriptResourceBase::beginRefresh()
-	{
-		mRefreshInProgress = true;
-
-		return PersistentScriptObjectBase::beginRefresh();
-	}
-
-	void ScriptResourceBase::endRefresh(const ScriptObjectBackup& backupData)
-	{
-		mRefreshInProgress = false;
-
-		PersistentScriptObjectBase::endRefresh(backupData);
 	}
 
 	MonoObject* ScriptResourceBase::getManagedInstance() const
@@ -54,8 +40,7 @@ namespace bs
 
 	void ScriptResourceBase::destroy()
 	{
-		if (!mRefreshInProgress)
-			ScriptResourceManager::instance().destroyScriptResource(this);
+		ScriptResourceManager::instance().destroyScriptResource(this);
 	}
 
 	void ScriptResource::initRuntimeData()

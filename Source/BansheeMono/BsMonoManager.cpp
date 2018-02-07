@@ -16,6 +16,7 @@
 #include <mono/metadata/mono-gc.h>
 #include <mono/metadata/mono-debug.h>
 #include <mono/utils/mono-logger.h>
+#include <mono/metadata/threads.h>
 
 namespace bs
 {
@@ -90,7 +91,7 @@ namespace bs
 	}
 
 	MonoManager::MonoManager()
-		:mScriptDomain(nullptr), mRootDomain(nullptr), mIsCoreLoaded(false)
+		:mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
 	{
 		Path libDir = Paths::findPath(MONO_LIB_DIR);
 		Path etcDir = getMonoEtcFolder();
@@ -100,13 +101,24 @@ namespace bs
 		mono_set_assemblies_path(assembliesDir.toString().c_str());
 
 #if BS_DEBUG_MODE
+		// Note: For proper debugging experience make sure to open a console window to display stdout and stderr, as Mono
+		// uses them for much of its logging.
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 
 		const char* options[] = {
 			"--soft-breakpoints",
-			"--debugger-agent=transport=dt_socket,address=127.0.0.1:17615,embedding=1,server=y,suspend=n"
+			"--debugger-agent=transport=dt_socket,address=127.0.0.1:17615,embedding=1,server=y,suspend=n",
+
+			// GC options:
+			// check-remset-consistency: Makes sure that write barriers are properly issued in native code, and therefore
+			//    all old->new generation references are properly present in the remset. This is easy to mess up in native
+			//    code by performing a simple memory copy without a barrier, so it's important to keep the option on.
+			// verify-before-collections: Unusure what exactly it does, but it sounds like it could help track down
+			//    things like accessing released/moved objects, or attempting to release handles for an unloaded domain.
+			// xdomain-checks: Makes sure that no references are left when a domain is unloaded.
+			"--gc-debug=check-remset-consistency,verify-before-collections,xdomain-checks"
 		};
-		mono_jit_parse_options(2, (char**)options);
+		mono_jit_parse_options(3, (char**)options);
 		mono_trace_set_level_string("warning"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
 #else
 		mono_trace_set_level_string("warning");
@@ -121,6 +133,14 @@ namespace bs
 		mRootDomain = mono_jit_init_version("BansheeMono", MONO_VERSION_DATA[(int)MONO_VERSION].version.c_str());
 		if (mRootDomain == nullptr)
 			BS_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
+
+		mono_thread_set_main(mono_thread_current());
+
+		// Load corlib
+		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly(L"corlib", "corlib");
+		mCorlibAssembly->loadFromImage(mono_get_corlib());
+
+		mAssemblies["corlib"] = mCorlibAssembly;
 	}
 
 	MonoManager::~MonoManager()
@@ -151,19 +171,14 @@ namespace bs
 
 		if (mScriptDomain == nullptr)
 		{
-			String appDomainName = toString(path);
+			String appDomainName = "ScriptDomain";
 
 			mScriptDomain = mono_domain_create_appdomain(const_cast<char *>(appDomainName.c_str()), nullptr);
-			mono_domain_set(mScriptDomain, true);
-
 			if (mScriptDomain == nullptr)
-			{
 				BS_EXCEPT(InternalErrorException, "Cannot create script app domain.");
-			}
 
-#if BS_DEBUG_MODE
-			mono_debug_domain_create(mScriptDomain);
-#endif
+			if(!mono_domain_set(mScriptDomain, true))
+				BS_EXCEPT(InternalErrorException, "Cannot set script app domain.");
 		}
 
 		auto iterFind = mAssemblies.find(name);
@@ -186,7 +201,7 @@ namespace bs
 	{
 		if (!assembly.mIsLoaded)
 		{
-			assembly.load(mScriptDomain);
+			assembly.load();
 
 			// Fully initialize all types that use this assembly
 			Vector<ScriptMetaInfo>& typeMetas = getScriptMetaData()[assembly.mName];
@@ -209,24 +224,6 @@ namespace bs
 
 				meta->initCallback();
 			}
-		}
-
-		if (!mIsCoreLoaded)
-		{
-			mIsCoreLoaded = true;
-
-			MonoAssembly* corlib = nullptr;
-
-			auto iterFind = mAssemblies.find("corlib");
-			if (iterFind == mAssemblies.end())
-			{
-				corlib = new (bs_alloc<MonoAssembly>()) MonoAssembly(L"corlib", "corlib");
-				mAssemblies["corlib"] = corlib;
-			}
-			else
-				corlib = iterFind->second;
-
-			corlib->loadFromImage(mono_get_corlib());
 		}
 	}
 
@@ -279,7 +276,6 @@ namespace bs
 			onDomainUnload();
 
 			mono_domain_set(mono_get_root_domain(), true);
-			mono_domain_finalize(mScriptDomain, 2000);
 
 			MonoObject* exception = nullptr;
 			mono_domain_try_unload(mScriptDomain, &exception);
@@ -287,14 +283,17 @@ namespace bs
 			if (exception != nullptr)
 				MonoUtil::throwIfException(exception);
 
-			mono_gc_collect(mono_gc_max_generation());
-
 			mScriptDomain = nullptr;
 		}
 
 		for (auto& assemblyEntry : mAssemblies)
 		{
 			assemblyEntry.second->unload();
+
+			// "corlib" assembly persists domain unload since it's in the root domain. However we make sure to clear its
+			// class list as it could contain generic instances that use types from other assemblies.
+			if(assemblyEntry.first != "corlib")
+				bs_delete(assemblyEntry.second);
 
 			// Metas hold references to various assembly objects that were just deleted, so clear them
 			Vector<ScriptMetaInfo>& typeMetas = getScriptMetaData()[assemblyEntry.first];
@@ -306,32 +305,7 @@ namespace bs
 		}
 
 		mAssemblies.clear();
-		mIsCoreLoaded = false;
-	}
-
-	void MonoManager::loadScriptDomain()
-	{
-		if (mScriptDomain != nullptr)
-			unloadScriptDomain();
-
-		if (mScriptDomain == nullptr)
-		{
-			char domainName[] = "ScriptDomain";
-
-			mScriptDomain = mono_domain_create_appdomain(domainName, nullptr);
-			mono_domain_set(mScriptDomain, false);
-
-			if (mScriptDomain == nullptr)
-			{
-				BS_EXCEPT(InternalErrorException, "Cannot create script app domain.");
-			}
-		}
-
-		if (mScriptDomain != nullptr)
-		{
-			for (auto& assemblyEntry : mAssemblies)
-				initializeAssembly(*assemblyEntry.second);
-		}
+		mAssemblies["corlib"] = mCorlibAssembly;
 	}
 
 	Path MonoManager::getFrameworkAssembliesFolder() const

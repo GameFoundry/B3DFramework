@@ -25,12 +25,6 @@ namespace bs
 		/** Returns the managed version of this resource. */
 		MonoObject* getManagedInstance() const;
 
-		/** @copydoc ScriptObjectBase::beginRefresh */
-		ScriptObjectBackup beginRefresh() override;
-
-		/** @copydoc ScriptObjectBase::endRefresh */
-		void endRefresh(const ScriptObjectBackup& backupData) override;
-
 	protected:
 		friend class ScriptResourceManager;
 
@@ -60,7 +54,6 @@ namespace bs
 		/** Destroys the interop object, unless refresh is in progress in which case it is just prepared for re-creation. */
 		void destroy();
 
-		bool mRefreshInProgress;
 		UINT32 mGCHandle;
 	};
 
@@ -101,7 +94,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void _clearManagedInstance() override
 		{
-			this->mGCHandle = 0;
+			this->freeManagedInstance();
 		}
 
 		/**	
@@ -113,11 +106,12 @@ namespace bs
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
-		void _onManagedInstanceDeleted() override
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override
 		{
 			this->freeManagedInstance();
 
-			this->destroy();
+			if(!assemblyRefresh)
+				this->destroy();
 		}
 
 		ResourceHandle<ResType> mResource;

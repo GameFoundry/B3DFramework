@@ -27,7 +27,7 @@ namespace bs
 		friend class ScriptGameObjectManager;
 
 		/** Destroys the interop object, unless refresh is in progress in which case it is just prepared for re-creation. */
-		void destroy();
+		void destroy(bool assemblyRefresh);
 
 		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
 		virtual void _notifyDestroyed() { }
@@ -73,7 +73,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void _clearManagedInstance() override
 		{
-			this->mGCHandle = 0;
+			this->freeManagedInstance();
 		}
 
 		/**
@@ -86,11 +86,11 @@ namespace bs
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
-		void _onManagedInstanceDeleted() override
+		void _onManagedInstanceDeleted(bool assemblyRefresh) override
 		{
 			this->freeManagedInstance();
 
-			this->destroy();
+			this->destroy(assemblyRefresh);
 		}
 
 		GameObjectHandle<CompType> mComponent;

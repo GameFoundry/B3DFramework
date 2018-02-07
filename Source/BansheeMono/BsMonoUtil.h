@@ -81,6 +81,13 @@ namespace bs
 		/** Unboxes a managed object back to a raw value type. */
 		static void* unbox(MonoObject* object);
 
+		/** 
+		 * Copies the value from @p src to @p dest. This must be a value-type of type @p klass. You need to use this
+		 * form of copying if @p dest is a struct that gets passed to managed code and it contains a reference type. This
+		 * way the GC is informed about the reference in the struct. You can use normal copies otherwise.
+		 */
+		static void valueCopy(void* dest, void* src, ::MonoClass* klass);
+
 		/**	Checks if this class is a sub class of the specified class. */
 		static bool isSubClassOf(::MonoClass* subClass, ::MonoClass* parentClass);
 

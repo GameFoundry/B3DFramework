@@ -80,27 +80,27 @@ namespace bs
 			case sizeof(UINT8):
 			{
 				UINT8 value = 0;
-				memcpy(&value, valuesArr.getRawPtr(elemSize, i), elemSize);
+				memcpy(&value, valuesArr.getRaw(i, elemSize), elemSize);
 				nativeValue = (UINT64)value;
 				break;
 			}
 			case sizeof(UINT16) :
 			{
 				UINT16 value = 0;
-				memcpy(&value, valuesArr.getRawPtr(elemSize, i), elemSize);
+				memcpy(&value, valuesArr.getRaw(i, elemSize), elemSize);
 				nativeValue = (UINT64)value;
 				break;
 			}
 			case sizeof(UINT32):
 			{
 				UINT32 value = 0;
-				memcpy(&value, valuesArr.getRawPtr(elemSize, i), elemSize);
+				memcpy(&value, valuesArr.getRaw(i, elemSize), elemSize);
 				nativeValue = (UINT64)value;
 				break;
 			}
 			case sizeof(UINT64) :
 			{
-				memcpy(&nativeValue, valuesArr.getRawPtr(elemSize, i), elemSize);
+				memcpy(&nativeValue, valuesArr.getRaw(i, elemSize), elemSize);
 				break;
 			}
 			}

@@ -98,84 +98,84 @@ namespace bs
 			R"(html {
   font-family: sans-serif;
 } 
-            
+			
 table
 {
-    border-collapse: collapse;
-    border-spacing: 0;
-    empty-cells: show;
-    border: 1px solid #cbcbcb;
-  	width:100%;
-  	table-layout:fixed;
+	border-collapse: collapse;
+	border-spacing: 0;
+	empty-cells: show;
+	border: 1px solid #cbcbcb;
+	width:100%;
+	table-layout:fixed;
 }
 
 table caption 
 {
-    color: #000;
-    font: italic 85%/1 arial, sans-serif;
-    padding: 1em 0;
-    text-align: center;
+	color: #000;
+	font: italic 85%/1 arial, sans-serif;
+	padding: 1em 0;
+	text-align: center;
 }
 
 table td,
 table th 
 {
-    border-left: 1px solid #cbcbcb;/*  inner column border */
-    border-width: 0 0 0 1px;
-    font-size: inherit;
-    margin: 0;
-    overflow: visible; /*to make ths where the title is really long work*/
-    padding: 0.5em 1em; /* cell padding */
+	border-left: 1px solid #cbcbcb;/*  inner column border */
+	border-width: 0 0 0 1px;
+	font-size: inherit;
+	margin: 0;
+	overflow: visible; /*to make ths where the title is really long work*/
+	padding: 0.5em 1em; /* cell padding */
 }
 
 table td:first-child,
 table th:first-child 
 {
-    border-left-width: 0;
+	border-left-width: 0;
 }
 
 table thead 
 {
-    background-color: #e0e0e0;
-    color: #000;
-    text-align: left;
-    vertical-align: bottom;
+	background-color: #e0e0e0;
+	color: #000;
+	text-align: left;
+	vertical-align: bottom;
 }
 
 table td 
 {
-    background-color: transparent;
-  	word-wrap:break-word;
-  	vertical-align: top;
-  	color: #7D7D7D;
+	background-color: transparent;
+	word-wrap:break-word;
+	vertical-align: top;
+	color: #7D7D7D;
 }
 
 .debug-row td {
-    background-color: #FFFFFF;
+	background-color: #FFFFFF;
 }
 
 .debug-alt-row td {
-    background-color: #f2f2f2;
+	background-color: #f2f2f2;
 }
 
 .warn-row td {
-    background-color: #ffc016;
-    color: #5F5F5F;
+	background-color: #ffc016;
+	color: #5F5F5F;
 }
 
 .warn-alt-row td {
-    background-color: #fdcb41;
-    color: #5F5F5F;
+	background-color: #fdcb41;
+	color: #5F5F5F;
 }
 
 .error-row td {
-    background-color: #9f1621;
-    color: #9F9F9F;
+	background-color: #9f1621;
+	color: #9F9F9F;
 }
 
 .error-alt-row td {
-    background-color: #ae1621;
-    color: #9F9F9F;
+	background-color: #ae1621;
+	color: #9F9F9F;
 }
 )";
 

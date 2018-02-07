@@ -96,8 +96,6 @@ namespace bs
 
 	ScriptObjectBackup ScriptManagedComponent::beginRefresh()
 	{
-		ScriptGameObjectBase::beginRefresh();
-
 		HManagedComponent managedComponent = static_object_cast<ManagedComponent>(mComponent);
 		ScriptObjectBackup backupData;
 
@@ -117,18 +115,16 @@ namespace bs
 
 		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		managedComponent->restore(instance, componentBackup, mTypeMissing);
-
-		ScriptGameObjectBase::endRefresh(backupData);
 	}
 
-	void ScriptManagedComponent::_onManagedInstanceDeleted()
+	void ScriptManagedComponent::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		mGCHandle = 0;
 
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept during assembly refresh. Such components shouldn't be restored
 		// so we delete them.
-		if (!mRefreshInProgress || mComponent.isDestroyed(true))
+		if (!assemblyRefresh || mComponent.isDestroyed(true))
 			ScriptGameObjectManager::instance().destroyScriptComponent(this);
 	}
 }

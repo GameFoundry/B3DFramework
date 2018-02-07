@@ -71,8 +71,8 @@ namespace bs
 	     */
 		MonoClass* getClass(const String& namespaceName, const String& name, ::MonoClass* rawMonoClass) const;
 
-		/**	Loads an assembly into the specified domain. */
-		void load(MonoDomain* domain);
+		/**	Loads an assembly into the current domain. */
+		void load();
 
 		/**
 		 * Initializes an assembly from an internal mono image.

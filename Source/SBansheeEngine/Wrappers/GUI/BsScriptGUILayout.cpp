@@ -83,7 +83,11 @@ namespace bs
 
 		if (iterFind != mChildren.end())
 		{
+			assert(iterFind->gcHandle != 0);
+
 			MonoUtil::freeGCHandle(iterFind->gcHandle);
+			iterFind->gcHandle = 0;
+
 			mChildren.erase(iterFind);
 		}
 	}
@@ -197,7 +201,11 @@ namespace bs
 		{
 			instance->getInternalValue()->removeElement(child.element->getGUIElement());
 
+			assert(child.gcHandle != 0);
+
 			MonoUtil::freeGCHandle(child.gcHandle);
+			child.gcHandle = 0;
+
 			child.element->setParent(nullptr);
 		}
 

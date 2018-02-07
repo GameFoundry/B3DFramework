@@ -46,9 +46,10 @@ namespace bs
 
 		/**
 		 * Triggers _onManagedInstanceDeleted deleted callbacks on all objects that were finalized this frame. This allows
-		 * the native portions of those objects to properly clean up any resources.
+		 * the native portions of those objects to properly clean up any resources. @p assemblyRefresh lets the
+		 * script objects know if finalization is happening due to assembly refresh.
 		 */
-		void processFinalizedObjects();
+		void processFinalizedObjects(bool assemblyRefresh = false);
 
 		/**
 		 * Triggered right after a domain was reloaded. This signals the outside world that they should update any kept Mono

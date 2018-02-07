@@ -42,16 +42,17 @@ namespace bs
 		for (auto& scriptObject : mScriptObjects)
 			backupData[scriptObject] = scriptObject->beginRefresh();
 
+		for (auto& scriptObject : mScriptObjects)
+			scriptObject->_clearManagedInstance();
+
 		MonoManager::instance().unloadScriptDomain();
+
 		// Unload script domain should trigger finalizers on everything, but since we usually delay
 		// their processing we need to manually trigger it here.
-		processFinalizedObjects();
+		processFinalizedObjects(true);
 
 		for (auto& scriptObject : mScriptObjects)
 			assert(scriptObject->isPersistent() && "Non-persistent ScriptObject alive after domain unload.");
-
-		for (auto& scriptObject : mScriptObjects)
-			scriptObject->_clearManagedInstance();
 
 		ScriptAssemblyManager::instance().clearAssemblyInfo();
 
@@ -90,7 +91,7 @@ namespace bs
 		processFinalizedObjects();
 	}
 
-	void ScriptObjectManager::processFinalizedObjects()
+	void ScriptObjectManager::processFinalizedObjects(bool assemblyRefresh)
 	{
 		UINT32 readQueueIdx = 0;
 		{
@@ -100,7 +101,7 @@ namespace bs
 		}
 		
 		for (auto& finalizedObj : mFinalizedObjects[readQueueIdx])
-			finalizedObj->_onManagedInstanceDeleted();
+			finalizedObj->_onManagedInstanceDeleted(assemblyRefresh);
 
 		mFinalizedObjects[readQueueIdx].clear();
 	}
