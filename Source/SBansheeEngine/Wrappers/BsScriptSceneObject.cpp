@@ -398,7 +398,7 @@ namespace bs
 
 	void ScriptSceneObject::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
-		if (!assemblyRefresh)
+		if (!assemblyRefresh || mSceneObject.isDestroyed(true))
 			ScriptGameObjectManager::instance().destroyScriptSceneObject(this);
 		else
 			freeManagedInstance();

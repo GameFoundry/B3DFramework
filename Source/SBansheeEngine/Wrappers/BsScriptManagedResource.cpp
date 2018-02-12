@@ -76,7 +76,7 @@ namespace bs
 	{
 		mGCHandle = 0;
 		
-		if (!assemblyRefresh)
+		if (!assemblyRefresh || mResource->isDestroyed())
 		{
 			// The only way this method should be reachable is when Resource::unload is called, which means the resource
 			// has had to been already freed. Even if all managed instances are released ManagedResource itself holds the last

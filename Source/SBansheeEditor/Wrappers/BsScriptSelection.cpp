@@ -57,7 +57,7 @@ namespace bs
 			sceneObjectArray.set(i, sceneMonoObject);
 		}
 
-		*selection = sceneObjectArray.getInternal();
+		MonoUtil::referenceCopy(selection, (MonoObject*)sceneObjectArray.getInternal());
 	}
 
 	void ScriptSelection::internal_SetSceneObjectSelection(MonoArray* selection)
@@ -93,7 +93,7 @@ namespace bs
 		for (UINT32 i = 0; i < (UINT32)uuids.size(); i++)
 			uuidArray.set(i, ScriptUUID::box(uuids[i]));
 
-		*selection = uuidArray.getInternal();
+		MonoUtil::referenceCopy(selection, (MonoObject*)uuidArray.getInternal());
 	}
 
 	void ScriptSelection::internal_SetResourceUUIDSelection(MonoArray* selection)
@@ -119,7 +119,7 @@ namespace bs
 			pathArray.set(i, monoString);
 		}
 
-		*selection = pathArray.getInternal();
+		MonoUtil::referenceCopy(selection, (MonoObject*)pathArray.getInternal());
 	}
 
 	void ScriptSelection::internal_SetResourcePathSelection(MonoArray* selection)

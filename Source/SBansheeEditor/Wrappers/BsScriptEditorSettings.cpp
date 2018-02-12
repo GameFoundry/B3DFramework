@@ -219,8 +219,8 @@ namespace bs
 			outputTimeStamps.set(i, recentProjects[i].accessTimestamp);
 		}
 
-		*paths = outputPaths.getInternal();
-		*timeStamps = outputPaths.getInternal();
+		MonoUtil::referenceCopy(paths, (MonoObject*)outputPaths.getInternal());
+		MonoUtil::referenceCopy(timeStamps, (MonoObject*)outputPaths.getInternal());
 	}
 
 	void ScriptEditorSettings::internal_SetRecentProjects(MonoArray* paths, MonoArray* timeStamps)

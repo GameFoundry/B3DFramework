@@ -109,9 +109,7 @@ namespace bs
 		void _onManagedInstanceDeleted(bool assemblyRefresh) override
 		{
 			this->freeManagedInstance();
-
-			if(!assemblyRefresh)
-				this->destroy();
+			this->destroy();
 		}
 
 		ResourceHandle<ResType> mResource;
