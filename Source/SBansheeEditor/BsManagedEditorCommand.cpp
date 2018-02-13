@@ -83,7 +83,7 @@ namespace bs
 		if (!mInUndoRedoStack)
 		{
 			MonoObject* obj = MonoUtil::getObjectFromGCHandle(mGCHandle);
-			mGCHandle = MonoUtil::newGCHandle(obj);
+			mGCHandle = MonoUtil::newGCHandle(obj, false);
 			mInUndoRedoStack = true;
 		}
 	}
@@ -123,7 +123,7 @@ namespace bs
 		}
 
 		MonoObject* instance = currentObjInfo->mMonoClass->createInstance(construct);
-		mGCHandle = MonoUtil::newGCHandle(instance);
+		mGCHandle = MonoUtil::newGCHandle(instance, false);
 
 		mTypeMissing = false;
 		return instance;

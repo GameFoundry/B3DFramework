@@ -39,6 +39,9 @@ namespace bs
 		// Make sure any managed game objects are properly destroyed so their OnDestroy callbacks fire before unloading the domain
 		GameObjectManager::instance().destroyQueuedObjects();
 
+		// Make sure all objects that are finalized due to reasons other than assembly refreshed are destroyed
+		processFinalizedObjects(false);
+
 		for (auto& scriptObject : mScriptObjects)
 			backupData[scriptObject] = scriptObject->beginRefresh();
 

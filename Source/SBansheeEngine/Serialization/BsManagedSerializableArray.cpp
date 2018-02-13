@@ -12,17 +12,18 @@
 namespace bs
 {
 	ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy)
-		:mManagedInstance(nullptr), mElementMonoClass(nullptr), mCopyMethod(nullptr), mElemSize(0)
 	{
 
 	}
 
-	ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, MonoObject* managedInstance)
-		: mManagedInstance(managedInstance), mElementMonoClass(nullptr), mCopyMethod(nullptr), mArrayTypeInfo(typeInfo)
-		, mElemSize(0)
+	ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, 
+		const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, MonoObject* managedInstance)
+		: mArrayTypeInfo(typeInfo)
 		
 	{
-		ScriptArray scriptArray((MonoArray*)mManagedInstance);
+		mGCHandle = MonoUtil::newGCHandle(managedInstance, false);
+
+		ScriptArray scriptArray((MonoArray*)managedInstance);
 		mElemSize = scriptArray.elementSize();
 
 		initMonoObjects();
@@ -32,7 +33,17 @@ namespace bs
 			mNumElements[i] = getLengthInternal(i);
 	}
 
-	SPtr<ManagedSerializableArray> ManagedSerializableArray::createFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo)
+	ManagedSerializableArray::~ManagedSerializableArray()
+	{
+		if(mGCHandle != 0)
+		{
+			MonoUtil::freeGCHandle(mGCHandle);
+			mGCHandle = 0;
+		}
+	}
+
+	SPtr<ManagedSerializableArray> ManagedSerializableArray::createFromExisting(MonoObject* managedInstance, 
+		const SPtr<ManagedSerializableTypeInfoArray>& typeInfo)
 	{
 		if(managedInstance == nullptr)
 			return nullptr;
@@ -70,17 +81,20 @@ namespace bs
 		return createInstance->invoke(nullptr, params);
 	}
 
+	MonoObject* ManagedSerializableArray::getManagedInstance() const
+	{
+		if(mGCHandle != 0)
+			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+
+		return nullptr;
+	}
+
 	void ManagedSerializableArray::setFieldData(UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
-		if (mManagedInstance != nullptr)
+		if (mGCHandle != 0)
 		{
-			if (MonoUtil::isValueType(mElementMonoClass))
-				setValueInternal(arrayIdx, val->getValue(mArrayTypeInfo->mElementType));
-			else
-			{
-				MonoObject* ptrToObj = (MonoObject*)val->getValue(mArrayTypeInfo->mElementType);
-				setValueInternal(arrayIdx, &ptrToObj);
-			}
+			MonoArray* array = (MonoArray*)MonoUtil::getObjectFromGCHandle(mGCHandle);
+			setFieldData(array, arrayIdx, val);
 		}
 		else
 		{
@@ -88,11 +102,22 @@ namespace bs
 		}
 	}
 
+	void ManagedSerializableArray::setFieldData(MonoArray* obj, UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
+	{
+		if (MonoUtil::isValueType(mElementMonoClass))
+			setValueInternal(obj, arrayIdx, val->getValue(mArrayTypeInfo->mElementType));
+		else
+		{
+			MonoObject* ptrToObj = (MonoObject*)val->getValue(mArrayTypeInfo->mElementType);
+			setValueInternal(obj, arrayIdx, &ptrToObj);
+		}
+	}
+
 	SPtr<ManagedSerializableFieldData> ManagedSerializableArray::getFieldData(UINT32 arrayIdx)
 	{
-		if (mManagedInstance != nullptr)
+		if (mGCHandle != 0)
 		{
-			MonoArray* array = (MonoArray*)mManagedInstance;
+			MonoArray* array = (MonoArray*)MonoUtil::getObjectFromGCHandle(mGCHandle);
 			ScriptArray scriptArray(array);
 
 			UINT32 numElems = scriptArray.size();
@@ -118,7 +143,7 @@ namespace bs
 
 	void ManagedSerializableArray::serialize()
 	{
-		if (mManagedInstance == nullptr)
+		if(mGCHandle == 0)
 			return;
 
 		mNumElements.resize(mArrayTypeInfo->mRank);
@@ -135,20 +160,18 @@ namespace bs
 		for (auto& fieldEntry : mCachedEntries)
 			fieldEntry->serialize();
 
-		mManagedInstance = nullptr;
+		MonoUtil::freeGCHandle(mGCHandle);
+		mGCHandle = 0;
 	}
 
-	void ManagedSerializableArray::deserialize()
+	MonoObject* ManagedSerializableArray::deserialize()
 	{
-		mManagedInstance = createManagedInstance(mArrayTypeInfo, mNumElements);
+		MonoObject* managedInstance = createManagedInstance(mArrayTypeInfo, mNumElements);
 
-		if (mManagedInstance == nullptr)
-		{
-			mCachedEntries.clear();
-			return;
-		}
+		if (managedInstance == nullptr)
+			return nullptr;
 
-		ScriptArray scriptArray((MonoArray*)mManagedInstance);
+		ScriptArray scriptArray((MonoArray*)managedInstance);
 		mElemSize = scriptArray.elementSize();
 
 		initMonoObjects();
@@ -160,18 +183,16 @@ namespace bs
 		UINT32 idx = 0;
 		for (auto& arrayEntry : mCachedEntries)
 		{
-			setFieldData(idx, arrayEntry);
+			setFieldData((MonoArray*)managedInstance, idx, arrayEntry);
 			idx++;
 		}
 
-		mCachedEntries.clear();
+		return managedInstance;
 	}
 	
-	void ManagedSerializableArray::setValueInternal(UINT32 arrayIdx, void* val)
+	void ManagedSerializableArray::setValueInternal(MonoArray* obj, UINT32 arrayIdx, void* val)
 	{
-		MonoArray* array = (MonoArray*)mManagedInstance;
-
-		ScriptArray scriptArray(array);
+		ScriptArray scriptArray(obj);
 		UINT32 numElems = (UINT32)scriptArray.size();
 		assert(arrayIdx < numElems);
 	
@@ -211,7 +232,7 @@ namespace bs
 
 	void ManagedSerializableArray::resize(const Vector<UINT32>& newSizes)
 	{
-		if (mManagedInstance != nullptr)
+		if (mGCHandle != 0)
 		{
 			assert(mArrayTypeInfo->mRank == (UINT32)newSizes.size());
 
@@ -234,7 +255,9 @@ namespace bs
 
 			mCopyMethod->invoke(nullptr, params);
 
-			mManagedInstance = newArray;
+			MonoUtil::freeGCHandle(mGCHandle);
+			mGCHandle = MonoUtil::newGCHandle(newArray, false);
+
 			mNumElements = newSizes;
 		}
 		else
@@ -246,11 +269,13 @@ namespace bs
 
 	UINT32 ManagedSerializableArray::getLengthInternal(UINT32 dimension) const
 	{
+		MonoObject* managedInstace = MonoUtil::getObjectFromGCHandle(mGCHandle);
+
 		MonoClass* systemArray = ScriptAssemblyManager::instance().getSystemArrayClass();
 		MonoMethod* getLength = systemArray->getMethod("GetLength", 1);
 
 		void* params[1] = { &dimension };
-		MonoObject* returnObj = getLength->invoke(mManagedInstance, params);
+		MonoObject* returnObj = getLength->invoke(managedInstace, params);
 
 		return *(UINT32*)MonoUtil::unbox(returnObj);
 	}

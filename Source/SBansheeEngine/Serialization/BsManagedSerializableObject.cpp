@@ -26,15 +26,23 @@ namespace bs
 	}
 
 	ManagedSerializableObject::ManagedSerializableObject(const ConstructPrivately& dummy)
-		:mManagedInstance(nullptr)
 	{
 
 	}
 
 	ManagedSerializableObject::ManagedSerializableObject(const ConstructPrivately& dummy, SPtr<ManagedSerializableObjectInfo> objInfo, MonoObject* managedInstance)
-		:mManagedInstance(managedInstance), mObjInfo(objInfo)
+		:mObjInfo(objInfo)
 	{
+		mGCHandle = MonoUtil::newGCHandle(managedInstance, false);
+	}
 
+	ManagedSerializableObject::~ManagedSerializableObject()
+	{
+		if(mGCHandle != 0)
+		{
+			MonoUtil::freeGCHandle(mGCHandle);
+			mGCHandle = 0;
+		}		
 	}
 
 	SPtr<ManagedSerializableObject> ManagedSerializableObject::createFromExisting(MonoObject* managedInstance)
@@ -82,9 +90,17 @@ namespace bs
 		return bs_shared_ptr_new<ManagedSerializableObject>(ConstructPrivately());
 	}
 
+	MonoObject* ManagedSerializableObject::getManagedInstance() const
+	{
+		if(mGCHandle != 0)
+			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+
+		return nullptr;
+	}
+
 	void ManagedSerializableObject::serialize()
 	{
-		if (mManagedInstance == nullptr)
+		if(mGCHandle == 0)
 			return;
 
 		mCachedData.clear();
@@ -108,32 +124,30 @@ namespace bs
 		for (auto& fieldEntry : mCachedData)
 			fieldEntry.second->serialize();
 
-		mManagedInstance = nullptr;
+		MonoUtil::freeGCHandle(mGCHandle);
+		mGCHandle = 0;
 	}
 
-	void ManagedSerializableObject::deserialize()
+	MonoObject* ManagedSerializableObject::deserialize()
 	{
 		// See if this type even still exists
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
-		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mObjInfo->mTypeInfo->mTypeNamespace, mObjInfo->mTypeInfo->mTypeName, currentObjInfo))
+		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mObjInfo->mTypeInfo->mTypeNamespace, 
+			mObjInfo->mTypeInfo->mTypeName, currentObjInfo))
 		{
-			mManagedInstance = nullptr;
-			mCachedData.clear();
-			return;
+			return nullptr;
 		}
 
-		deserialize(createManagedInstance(currentObjInfo->mTypeInfo), currentObjInfo);
+		MonoObject* managedInstance = createManagedInstance(currentObjInfo->mTypeInfo);
+		deserialize(managedInstance, currentObjInfo);
+
+		return managedInstance;
 	}
 
 	void ManagedSerializableObject::deserialize(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
 	{
-		mManagedInstance = instance;
-
-		if (mManagedInstance == nullptr)
-		{
-			mCachedData.clear();
+		if (instance == nullptr)
 			return;
-		}
 
 		// Deserialize children
 		for (auto& fieldEntry : mCachedData)
@@ -155,7 +169,7 @@ namespace bs
 
 					SPtr<ManagedSerializableMemberInfo> matchingFieldInfo = objInfo->findMatchingField(field.second, curType->mTypeInfo);
 					if (matchingFieldInfo != nullptr)
-						setFieldData(matchingFieldInfo, mCachedData[key]);
+						matchingFieldInfo->setValue(instance, mCachedData[key]->getValue(matchingFieldInfo->mTypeInfo));
 
 					i++;
 				}
@@ -163,15 +177,15 @@ namespace bs
 
 			curType = curType->mBaseClass;
 		}
-
-		mObjInfo = objInfo;
-		mCachedData.clear();
 	}
 
 	void ManagedSerializableObject::setFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
 	{
-		if (mManagedInstance != nullptr)
-			fieldInfo->setValue(mManagedInstance, val->getValue(fieldInfo->mTypeInfo));
+		if (mGCHandle != 0)
+		{
+			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+			fieldInfo->setValue(managedInstance, val->getValue(fieldInfo->mTypeInfo));
+		}
 		else
 		{
 			ManagedSerializableFieldKey key(fieldInfo->mParentTypeId, fieldInfo->mFieldId);
@@ -181,9 +195,10 @@ namespace bs
 
 	SPtr<ManagedSerializableFieldData> ManagedSerializableObject::getFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const
 	{
-		if (mManagedInstance != nullptr)
+		if (mGCHandle != 0)
 		{
-			MonoObject* fieldValue = fieldInfo->getValue(mManagedInstance);
+			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
+			MonoObject* fieldValue = fieldInfo->getValue(managedInstance);
 
 			return ManagedSerializableFieldData::create(fieldInfo->mTypeInfo, fieldValue);
 		}

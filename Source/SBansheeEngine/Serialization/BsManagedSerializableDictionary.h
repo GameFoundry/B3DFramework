@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
+#include "BsMonoArray.h"
 
 namespace bs
 {
@@ -27,7 +28,7 @@ namespace bs
 	public:
 		friend class ManagedSerializableDictionaryKeyValueRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/**
@@ -37,12 +38,15 @@ namespace bs
 	 * @note
 	 * This class can be in two states:
 	 *	 - Linked - When the object has a link to a managed object. This is the default state when a new instance
-	 *				of ManagedSerializableObject is created. Any operations during this state will operate directly
-	 *				on the linked managed object.
+	 *				of ManagedSerializableDictionary is created. Any operations during this state will operate directly
+	 *				on the linked managed object. A GC handle will be kept to the linked managed object. The handle can
+	 *				be freed by transfering to serialized mode or by destroying this object.
 	 *	 - Serialized - When the object has no link to the managed object but instead just contains cached object
 	 *					and field data that may be used for initializing a managed object. Any operations during
 	 *					this state will operate only on the cached internal data.
-	 * You can transfer between these states by calling serialize(linked->serialized) & deserialize (serialized->linked).
+	 *					
+	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
+	 * state you can call deserialize() to populated a managed object from the cached data. 	
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableDictionary : public IReflectable
 	{
@@ -72,12 +76,15 @@ namespace bs
 		{
 		public:
 			/**
-			 * Constructs a new enumerator for the provided managed object.
+			 * Constructs a new enumerator for a managed dictionary.
 			 *
-			 * @param[in]	instance	Managed instance of type System.Collections.Generic.Dictionary.
-			 * @param[in]	parent		Serializable parent of the managed instance.
+			 * @param[in]	parent		Owning dictionary object.
 			 */
-			Enumerator(MonoObject* instance, const ManagedSerializableDictionary* parent);
+			Enumerator(const ManagedSerializableDictionary* parent);
+			Enumerator(const Enumerator& other);
+			~Enumerator();
+
+			Enumerator& operator=(const Enumerator& other);
 
 			/**
 			 * Returns the wrapped key data at the current enumerator position. Only valid to call this if enumerator is
@@ -101,8 +108,13 @@ namespace bs
 			bool moveNext();
 
 		private:
-			MonoObject* mInstance;
-			MonoObject* mCurrent;
+			uint32_t mKeysArrayHandle = 0;
+			uint32_t mValuesArrayHandle = 0;
+			UINT32 mNumEntries = 0;
+			UINT32 mCurrentIdx = (UINT32)-1;
+			::MonoClass* mKeyType = nullptr;
+			::MonoClass* mValueType = nullptr;
+
 			CachedEntriesMap::const_iterator mCachedIter;
 			bool mIteratorInitialized;
 
@@ -110,14 +122,16 @@ namespace bs
 		};
 
 	public:
-		ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableDictionary(const ConstructPrivately& dummy, 
+			const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableDictionary(const ConstructPrivately& dummy);
+		~ManagedSerializableDictionary();
 
 		/**
 		 * Returns the internal managed instance of the dictionary. This will return null if the object is in serialized
 		 * mode.
 		 */
-		MonoObject* getManagedInstance() const { return mManagedInstance; }
+		MonoObject* getManagedInstance() const;
 
 		/**	Returns the type information for the internal dictionary. */
 		SPtr<ManagedSerializableTypeInfoDictionary> getTypeInfo() const { return mDictionaryTypeInfo; }
@@ -161,21 +175,18 @@ namespace bs
 
 		/**
 		 * Serializes the internal managed object into a set of cached data that can be saved in memory/disk and can be
-		 * deserialized later. Does nothing if object is already is serialized mode. When in serialized mode the reference
-		 * to the managed instance will be lost.
+		 * deserialized later. The internal managed object will be freed (if no other references to it). Calling serialize()
+		 * again will have no result.
 		 */
 		void serialize();
 
 		/**
-		 * Deserializes a set of cached data into a managed object. This action may fail in case the cached	data contains a
-		 * type that no longer exists. You may check if it completely successfully if getManagedInstance() returns non-null
-		 * after.
+		 * Deserializes a set of cached data into a managed object. This action may fail in case the cached data contains a
+		 * type that no longer exists in which case null is returned.
 		 *
-		 * This action transfers the object into linked mode. All further operations will operate directly on the managed
-		 * instance and the cached data will be cleared. If you call this method on an already linked object the old object
-		 * will be replaced and initialized with empty data (since cached data does not exist).
+		 * @return		Newly created object initialized with the cached data.
 		 */
-		void deserialize();
+		MonoObject* deserialize();
 
 		/**
 		 * Creates a managed serializable dictionary that references an existing managed dictionary. Created object will be
@@ -185,7 +196,8 @@ namespace bs
 		 *									correspond with the provided type info.
 		 * @param[in]	typeInfo			Type information for the dictionary and its key/value pair.
 		 */
-		static SPtr<ManagedSerializableDictionary> createFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
+		static SPtr<ManagedSerializableDictionary> createFromExisting(MonoObject* managedInstance, 
+			const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed serializable dictionary that creates and references a brand new managed dictionary instance.
@@ -208,17 +220,27 @@ namespace bs
 		 */
 		void initMonoObjects(MonoClass* dictionaryClass);
 
-		MonoObject* mManagedInstance;
+		/**
+		 * Sets the dictionary value at the specified key. Operates on the provided managed object.
+		 *
+		 * @param[in]	obj		Managed object to which to assign the data.
+		 * @param[in]	key		Wrapper around the key data at which to set the value.
+		 * @param[in]	val		Wrapper around the value to set at the specified key.
+		 */
+		void setFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key, 
+			const SPtr<ManagedSerializableFieldData>& val);
 
-		MonoMethod* mAddMethod;
-		MonoMethod* mRemoveMethod;
-		MonoMethod* mTryGetValueMethod;
-		MonoMethod* mContainsKeyMethod;
-		MonoMethod* mGetEnumerator;
-		MonoMethod* mEnumMoveNext;
-		MonoProperty* mEnumCurrentProp;
-		MonoProperty* mKeyProp;
-		MonoProperty* mValueProp;
+		uint32_t mGCHandle = 0;
+
+		MonoMethod* mAddMethod = nullptr;
+		MonoMethod* mRemoveMethod = nullptr;
+		MonoMethod* mTryGetValueMethod = nullptr;
+		MonoMethod* mContainsKeyMethod = nullptr;
+		MonoProperty* mCountProp = nullptr;
+		MonoProperty* mKeysProp = nullptr;
+		MonoMethod* mKeysCopyTo = nullptr;
+		MonoProperty* mValuesProp = nullptr;
+		MonoMethod* mValuesCopyTo = nullptr;
 
 		SPtr<ManagedSerializableTypeInfoDictionary> mDictionaryTypeInfo;
 		CachedEntriesMap mCachedEntries;
@@ -233,7 +255,7 @@ namespace bs
 	public:
 		friend class ManagedSerializableDictionaryRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

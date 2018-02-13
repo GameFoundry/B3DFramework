@@ -108,6 +108,7 @@ namespace bs
 		const char* options[] = {
 			"--soft-breakpoints",
 			"--debugger-agent=transport=dt_socket,address=127.0.0.1:17615,embedding=1,server=y,suspend=n",
+			"--debug-domain-unload",
 
 			// GC options:
 			// check-remset-consistency: Makes sure that write barriers are properly issued in native code, and therefore
@@ -118,7 +119,7 @@ namespace bs
 			// xdomain-checks: Makes sure that no references are left when a domain is unloaded.
 			"--gc-debug=check-remset-consistency,verify-before-collections,xdomain-checks"
 		};
-		mono_jit_parse_options(3, (char**)options);
+		mono_jit_parse_options(4, (char**)options);
 		mono_trace_set_level_string("warning"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
 #else
 		mono_trace_set_level_string("warning");

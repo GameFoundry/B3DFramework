@@ -88,12 +88,6 @@ namespace bs
 		if (serializedObject == nullptr)
 			return nullptr;
 
-		serializedObject->deserialize();
-		MonoObject* managedInstance = serializedObject->getManagedInstance();
-
-		// Note: Technically I could just clear managed data without a full serialization since I know nothing has changed
-		serializedObject->serialize(); 
-
-		return managedInstance;
+		return serializedObject->deserialize();
 	}
 }

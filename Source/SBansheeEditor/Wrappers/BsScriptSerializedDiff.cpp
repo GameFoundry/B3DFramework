@@ -29,6 +29,9 @@ namespace bs
 		if (oldSerializedObject == nullptr || newSerializedObject == nullptr)
 			return nullptr;
 
+		oldSerializedObject->serialize();
+		newSerializedObject->serialize();
+
 		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::create(oldSerializedObject, newSerializedObject);
 
 		MonoObject* instance = metaData.scriptClass->createInstance();

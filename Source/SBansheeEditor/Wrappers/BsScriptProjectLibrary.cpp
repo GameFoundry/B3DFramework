@@ -553,10 +553,6 @@ namespace bs
 			return nullptr;
 
 		SPtr<ManagedSerializableObject> userDataObj = std::static_pointer_cast<ManagedSerializableObject>(userData);
-		userDataObj->deserialize();
-		MonoObject* instance = userDataObj->getManagedInstance();
-		userDataObj->serialize();
-
-		return instance;
+		return userDataObj->deserialize();
 	}
 }

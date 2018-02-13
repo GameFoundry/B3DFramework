@@ -152,7 +152,8 @@ namespace bs
 	{
 	}
 
-	SPtr<ManagedSerializableDiff> ManagedSerializableDiff::create(const SPtr<ManagedSerializableObject>& oldObj, const SPtr<ManagedSerializableObject>& newObj)
+	SPtr<ManagedSerializableDiff> ManagedSerializableDiff::create(const SPtr<ManagedSerializableObject>& oldObj, 
+		const SPtr<ManagedSerializableObject>& newObj)
 	{
 		assert(oldObj != nullptr && newObj != nullptr);
 

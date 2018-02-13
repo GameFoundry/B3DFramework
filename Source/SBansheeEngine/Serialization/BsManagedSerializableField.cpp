@@ -1076,7 +1076,10 @@ namespace bs
 	void ManagedSerializableFieldDataObject::deserialize()
 	{
 		if (value != nullptr)
-			value->deserialize();
+		{
+			MonoObject* managedInstance = value->deserialize();
+			value = ManagedSerializableObject::createFromExisting(managedInstance);
+		}
 	}
 
 	void ManagedSerializableFieldDataArray::serialize()
@@ -1088,7 +1091,10 @@ namespace bs
 	void ManagedSerializableFieldDataArray::deserialize()
 	{
 		if (value != nullptr)
-			value->deserialize();
+		{
+			MonoObject* managedInstance = value->deserialize();
+			value = ManagedSerializableArray::createFromExisting(managedInstance, value->getTypeInfo());
+		}
 	}
 
 	void ManagedSerializableFieldDataList::serialize()
@@ -1100,7 +1106,10 @@ namespace bs
 	void ManagedSerializableFieldDataList::deserialize()
 	{
 		if (value != nullptr)
-			value->deserialize();
+		{
+			MonoObject* managedInstance = value->deserialize();
+			value = ManagedSerializableList::createFromExisting(managedInstance, value->getTypeInfo());
+		}
 	}
 
 	void ManagedSerializableFieldDataDictionary::serialize()
@@ -1112,7 +1121,10 @@ namespace bs
 	void ManagedSerializableFieldDataDictionary::deserialize()
 	{
 		if (value != nullptr)
-			value->deserialize();
+		{
+			MonoObject* managedInstance = value->deserialize();
+			value = ManagedSerializableDictionary::createFromExisting(managedInstance, value->getTypeInfo());
+		}
 	}
 
 	RTTITypeBase* ManagedSerializableFieldKey::getRTTIStatic()

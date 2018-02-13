@@ -47,11 +47,10 @@ namespace bs
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 			SPtr<ManagedSerializableObject> serializableObject = any_cast<SPtr<ManagedSerializableObject>>(mr->mRTTIData);
-			serializableObject->deserialize();
 
 			SPtr<Resource> mrPtr = std::static_pointer_cast<Resource>(mr->getThisPtr());
 			HManagedResource handle = static_resource_cast<ManagedResource>(gResources()._createResourceHandle(mrPtr));
-			mr->setHandle(serializableObject->getManagedInstance(), handle);
+			mr->setHandle(serializableObject->deserialize(), handle);
 			mr->mRTTIData = nullptr;
 		}
 
