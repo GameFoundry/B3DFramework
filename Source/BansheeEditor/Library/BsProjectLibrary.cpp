@@ -439,6 +439,7 @@ namespace bs
 					SPtr<ResourceMetaData> subMeta = entry.value->getMetaData();
 					UINT32 typeId = entry.value->getTypeId();
 					const UUID& UUID = entry.value.getUUID();
+					Path::stripInvalid(entry.name);
 
 					SPtr<ProjectResourceMeta> resMeta = ProjectResourceMeta::create(entry.name, UUID, typeId, subMeta);
 					fileEntry->meta->add(resMeta);
@@ -473,6 +474,8 @@ namespace bs
 
 					for(auto& resEntry : importedResourcesRaw)
 					{
+						Path::stripInvalid(resEntry.name);
+
 						bool foundMeta = false;
 						for (auto iter = existingResourceMetas.begin(); iter != existingResourceMetas.end(); ++iter)
 						{

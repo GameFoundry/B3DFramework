@@ -16,11 +16,11 @@ namespace bs
 	const String StringUtil::BLANK;
 	const WString StringUtil::WBLANK;
 
-    void StringUtil::trim(String& str, bool left, bool right)
-    {
-        static const String delims = " \t\r";
-        trim(str, delims, left, right);
-    }
+	void StringUtil::trim(String& str, bool left, bool right)
+	{
+		static const String delims = " \t\r";
+		trim(str, delims, left, right);
+	}
 
 	void StringUtil::trim(WString& str, bool left, bool right)
 	{
@@ -44,10 +44,10 @@ namespace bs
 			str.erase(0, str.find_first_not_of(delims)); // trim left
 	}
 
-    Vector<String> StringUtil::split(const String& str, const String& delims, unsigned int maxSplits)
-    {
-        return splitInternal<char>(str, delims, maxSplits);
-    }
+	Vector<String> StringUtil::split(const String& str, const String& delims, unsigned int maxSplits)
+	{
+		return splitInternal<char>(str, delims, maxSplits);
+	}
 
 	Vector<WString> StringUtil::split(const WString& str, const WString& delims, unsigned int maxSplits)
 	{
@@ -56,58 +56,58 @@ namespace bs
 
 	Vector<String> StringUtil::tokenise(const String& str, const String& singleDelims, const String& doubleDelims, unsigned int maxSplits)
 	{
-        return tokeniseInternal<char>(str, singleDelims, doubleDelims, maxSplits);
-    }
+		return tokeniseInternal<char>(str, singleDelims, doubleDelims, maxSplits);
+	}
 
 	Vector<WString> StringUtil::tokenise(const WString& str, const WString& singleDelims, const WString& doubleDelims, unsigned int maxSplits)
 	{
 		return tokeniseInternal<wchar_t>(str, singleDelims, doubleDelims, maxSplits);
 	}
 
-    void StringUtil::toLowerCase(String& str)
-    {
-        std::transform(str.begin(), str.end(), str.begin(), tolower);
-    }
+	void StringUtil::toLowerCase(String& str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), tolower);
+	}
 
 	void StringUtil::toLowerCase(WString& str)
 	{
 		std::transform(str.begin(), str.end(), str.begin(), tolower);
 	}
 
-    void StringUtil::toUpperCase(String& str) 
-    {
-        std::transform(str.begin(), str.end(), str.begin(), toupper);
-    }
+	void StringUtil::toUpperCase(String& str) 
+	{
+		std::transform(str.begin(), str.end(), str.begin(), toupper);
+	}
 
 	void StringUtil::toUpperCase(WString& str) 
 	{
 		std::transform(str.begin(), str.end(), str.begin(), toupper);
 	}
 
-    bool StringUtil::startsWith(const String& str, const String& pattern, bool lowerCase)
-    {
-        return startsWithInternal<char>(str, pattern, lowerCase);
-    }
+	bool StringUtil::startsWith(const String& str, const String& pattern, bool lowerCase)
+	{
+		return startsWithInternal<char>(str, pattern, lowerCase);
+	}
 
 	bool StringUtil::startsWith(const WString& str, const WString& pattern, bool lowerCase)
 	{
 		return startsWithInternal<wchar_t>(str, pattern, lowerCase);
 	}
 
-    bool StringUtil::endsWith(const String& str, const String& pattern, bool lowerCase)
-    {
-        return endsWithInternal<char>(str, pattern, lowerCase);
-    }
+	bool StringUtil::endsWith(const String& str, const String& pattern, bool lowerCase)
+	{
+		return endsWithInternal<char>(str, pattern, lowerCase);
+	}
 
 	bool StringUtil::endsWith(const WString& str, const WString& pattern, bool lowerCase)
 	{
 		return endsWithInternal<wchar_t>(str, pattern, lowerCase);
 	}
 
-    bool StringUtil::match(const String& str, const String& pattern, bool caseSensitive)
-    {
-        return matchInternal<char>(str, pattern, caseSensitive);
-    }
+	bool StringUtil::match(const String& str, const String& pattern, bool caseSensitive)
+	{
+		return matchInternal<char>(str, pattern, caseSensitive);
+	}
 
 	bool StringUtil::match(const WString& str, const WString& pattern, bool caseSensitive)
 	{

@@ -362,6 +362,12 @@ namespace bs
 		/** Combines two paths and returns the result. Right path should be relative. */
 		static Path combine(const Path& left, const Path& right);
 
+		/** Strips invalid characters from the provided string and replaces them with empty spaces. */
+		static void stripInvalid(String& path);
+
+		/** Strips invalid characters from the provided string and replaces them with empty spaces. */
+		static void stripInvalid(WString& path);
+
 		static const Path BLANK;
 	private:
 		/**
