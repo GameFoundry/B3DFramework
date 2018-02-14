@@ -1581,6 +1581,10 @@ namespace bs
 
 			FbxAMatrix invLinkTransform = linkTransform.Inverse();
 			bone.localTfrm = bone.node->localTransform;
+			bone.localTfrm[0][3] *= scene.scaleFactor;
+			bone.localTfrm[1][3] *= scene.scaleFactor;
+			bone.localTfrm[2][3] *= scene.scaleFactor;
+
 			bone.bindPose = FBXToNativeType(invLinkTransform);
 
 			// Apply global scale to bind pose (we only apply the scale to translation portion because we scale the
