@@ -270,6 +270,11 @@ namespace bs
 			for (auto& fbxBone : mesh->bones)
 			{
 				UINT32 boneIdx = (UINT32)allBones.size();
+
+				auto iterFind = boneMap.find(fbxBone.node);
+				if(iterFind != boneMap.end())
+					continue; // Duplicate
+
 				boneMap[fbxBone.node] = boneIdx;
 
 				allBones.push_back(BONE_DESC());
