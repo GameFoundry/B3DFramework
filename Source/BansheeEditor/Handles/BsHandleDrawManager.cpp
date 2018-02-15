@@ -319,17 +319,6 @@ namespace bs
 
 			SPtr<RenderTarget> renderTarget = camera.getViewport()->getTarget();
 
-			float width = (float)renderTarget->getProperties().width;
-			float height = (float)renderTarget->getProperties().height;
-
-			Rect2 normArea = camera.getViewport()->getArea();
-
-			Rect2I screenArea;
-			screenArea.x = (int)(normArea.x * width);
-			screenArea.y = (int)(normArea.y * height);
-			screenArea.width = (int)(normArea.width * width);
-			screenArea.height = (int)(normArea.height * height);
-
 			Matrix4 viewProjMat = camera.getProjectionMatrixRS() * camera.getViewMatrix();
 
 			gHandleParamBlockDef.gMatViewProj.set(mParamBuffer, viewProjMat);

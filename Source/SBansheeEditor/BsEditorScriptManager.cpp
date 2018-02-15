@@ -102,7 +102,6 @@ namespace bs
 			mLastUpdateTime += numUpdates * EDITOR_UPDATE_RATE;
 		}
 
-		ScriptGizmoManager::instance().update();
 		ScriptDragDropManager::instance().update();
 		ScriptFolderMonitorManager::instance().update();
 		ScriptEditorApplication::update();

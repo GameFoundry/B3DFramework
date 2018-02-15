@@ -2,6 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "Wrappers/BsScriptSceneGizmos.h"
 #include "Scene/BsGizmoManager.h"
+#include "BsScriptGizmoManager.h"
 #include "Components/BsCCamera.h"
 
 #include "BsScriptCCamera.generated.h"
@@ -33,6 +34,7 @@ namespace bs
 
 	void ScriptSceneGizmos::internal_Draw(ScriptSceneGizmos* thisPtr)
 	{
+		ScriptGizmoManager::instance().update();
 		GizmoManager::instance().update(thisPtr->mCamera);
 	}
 }

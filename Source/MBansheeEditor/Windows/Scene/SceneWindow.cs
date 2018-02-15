@@ -493,7 +493,6 @@ namespace BansheeEditor
             }
 
             // Update scene view handles and selection
-            sceneGizmos.Draw();
             sceneGrid.Draw();
 
             bool handleActive = sceneHandles.IsActive() || sceneAxesGUI.IsActive();
@@ -662,12 +661,14 @@ namespace BansheeEditor
             
             SceneHandles.BeginInput();
             sceneHandles.UpdateInput(scenePos, Input.PointerDelta);
-            sceneHandles.Draw();
-
             sceneAxesGUI.UpdateInput(scenePos);
-            sceneAxesGUI.Draw();
             SceneHandles.EndInput();
 
+            sceneHandles.Draw();
+            sceneAxesGUI.Draw();
+
+            // Must be done after handle input is processed, in order to reflect most recent transform
+            sceneGizmos.Draw();
             sceneSelection.Draw();
 
             UpdateGridMode();

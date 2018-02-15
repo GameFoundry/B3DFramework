@@ -90,26 +90,8 @@ namespace BansheeEditor
 
             if (activeHandle != null)
             {
-                Quaternion rotation;
-                if (EditorApplication.ActiveCoordinateMode == HandleCoordinateMode.World)
-                    rotation = Quaternion.Identity;
-                else
-                    rotation = selectedSceneObjects[0].Rotation; // We don't average rotation in case of multi-selection
-
-                Vector3 position;
-                if (EditorApplication.ActivePivotMode == HandlePivotMode.Pivot)
-                    position = selectedSceneObjects[0].Position; // Just take pivot from the first one, no averaging
-                else
-                {
-                    List<SceneObject> flatenedHierarchy = new List<SceneObject>();
-                    foreach (var so in selectedSceneObjects)
-                        flatenedHierarchy.AddRange(EditorUtility.FlattenHierarchy(so));
-
-                    position = EditorUtility.CalculateCenter(flatenedHierarchy.ToArray());
-                }
-
-                activeHandle.Position = position;
-                activeHandle.Rotation = rotation;
+                // In case the object moved programmatically, make the handle reflect its current transform
+                UpdateActiveHandleTransform(selectedSceneObjects);
 
                 activeHandle.PreInput();
             }
@@ -217,6 +199,13 @@ namespace BansheeEditor
                             break;
                     }
 
+                    SceneObject[] selectedSceneObjects = new SceneObject[activeSelection.Length];
+                    for (int i = 0; i < activeSelection.Length; i++)
+                        selectedSceneObjects[i] = activeSelection[i].so;
+
+                    // Make sure to update handle positions for the drawing method (otherwise they lag one frame)
+                    UpdateActiveHandleTransform(selectedSceneObjects);
+
                     EditorApplication.SetSceneDirty();
                 }
             }
@@ -232,6 +221,36 @@ namespace BansheeEditor
         {
             if (activeHandle != null)
                 activeHandle.Draw();
+        }
+
+        /// <summary>
+        /// Updates active handle position/rotation based on the currently selected object(s).
+        /// </summary>
+        private void UpdateActiveHandleTransform(SceneObject[] selectedSceneObjects)
+        {
+            if (activeHandle == null)
+                return;
+
+            Quaternion rotation;
+            if (EditorApplication.ActiveCoordinateMode == HandleCoordinateMode.World)
+                rotation = Quaternion.Identity;
+            else
+                rotation = selectedSceneObjects[0].Rotation; // We don't average rotation in case of multi-selection
+
+            Vector3 position;
+            if (EditorApplication.ActivePivotMode == HandlePivotMode.Pivot)
+                position = selectedSceneObjects[0].Position; // Just take pivot from the first one, no averaging
+            else
+            {
+                List<SceneObject> flatenedHierarchy = new List<SceneObject>();
+                foreach (var so in selectedSceneObjects)
+                    flatenedHierarchy.AddRange(EditorUtility.FlattenHierarchy(so));
+
+                position = EditorUtility.CalculateCenter(flatenedHierarchy.ToArray());
+            }
+
+            activeHandle.Position = position;
+            activeHandle.Rotation = rotation;
         }
     }
 
