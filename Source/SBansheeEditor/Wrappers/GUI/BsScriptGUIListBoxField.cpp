@@ -106,13 +106,8 @@ namespace bs
 		if (index >= numElements)
 			return;
 
-		for (UINT32 i = 0; i < numElements; i++)
-		{
-			if (states[i])
-				states[i] = true;
-			else
-				states[i] = false;
-		}
+		std::fill(states.begin(), states.end(), false);
+		states[index] = true;
 
 		field->setElementStates(states);
 	}
