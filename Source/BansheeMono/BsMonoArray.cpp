@@ -37,7 +37,7 @@ namespace bs
 		}
 
 		template<>
-		void ScriptArray_set<nullptr_t>(MonoArray* array, UINT32 idx, const nullptr_t& value)
+		void ScriptArray_set<std::nullptr_t>(MonoArray* array, UINT32 idx, const std::nullptr_t& value)
 		{
 			void** item = (void**)ScriptArray::_getArrayAddr(array, sizeof(void*), idx);
 			*item = nullptr;
