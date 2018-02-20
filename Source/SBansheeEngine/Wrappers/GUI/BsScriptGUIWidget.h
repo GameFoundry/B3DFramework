@@ -34,7 +34,6 @@ namespace bs
 
 		SPtr<GUIWidget> mGUIWidget;
 		ScriptGUILayout* mPanel;
-		UINT32 mLastUpdateHash;
 
 		static MonoField* sGUIPanelField;
 

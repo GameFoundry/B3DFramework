@@ -157,7 +157,7 @@ namespace bs
 		}
 
 		// Calc vertical alignment offset
-		UINT32 vertDiff = std::max(0U, height - curHeight);
+		UINT32 vertDiff = (UINT32)std::max(0, (INT32)height - (INT32)curHeight);
 		UINT32 vertOffset = 0;
 		switch(vertAlign)
 		{
@@ -165,10 +165,10 @@ namespace bs
 			vertOffset = 0;
 			break;
 		case TVA_Bottom:
-			vertOffset = std::max(0, (INT32)vertDiff);
+			vertOffset = (UINT32)std::max(0, (INT32)vertDiff);
 			break;
 		case TVA_Center:
-			vertOffset = std::max(0, (INT32)vertDiff) / 2;
+			vertOffset = (UINT32)std::max(0, (INT32)vertDiff) / 2;
 			break;
 		}
 
@@ -185,10 +185,10 @@ namespace bs
 				horzOffset = 0;
 				break;
 			case THA_Right:
-				horzOffset = std::max(0, (INT32)(width - line.getWidth()));
+				horzOffset = (UINT32)std::max(0, (INT32)(width - line.getWidth()));
 				break;
 			case THA_Center:
-				horzOffset = std::max(0, (INT32)(width - line.getWidth())) / 2;
+				horzOffset = (UINT32)std::max(0, (INT32)(width - line.getWidth())) / 2;
 				break;
 			}
 

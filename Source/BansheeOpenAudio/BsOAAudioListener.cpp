@@ -73,14 +73,14 @@ namespace bs
 		Vector3 up = getTransform().getUp();
 
 		return
-		{
+		{{
 			direction.x,
 			direction.y,
 			direction.z,
 			up.x,
 			up.y,
 			up.z
-		};
+		}};
 	}
 
 	void OAAudioListener::updatePosition()

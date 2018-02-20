@@ -1,12 +1,11 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2017 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #define BS_COCOA_INTERNALS
-#include "MacOS/BsMacOSWindow.h"
+#include "MacOS/BsMacOSVideoModeInfo.h"
+#include "Private/MacOS/BsMacOSWindow.h"
 #include "Math/BsMath.h"
 #include "CoreThread/BsCoreThread.h"
 #include "MacOS/BsMacOSRenderWindow.h"
-#include "MacOS/BsMacOSWindow.h"
-#include "MacOS/BsMacOSVideoModeInfo.h"
 #include "MacOS/BsMacOSGLSupport.h"
 #include "MacOS/BsMacOSContext.h"
 #include "BsGLRenderWindowManager.h"
@@ -64,7 +63,7 @@ namespace bs
 	namespace ct
 	{
 		MacOSRenderWindow::MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, MacOSGLSupport& glsupport)
-			: RenderWindow(desc, windowId), mWindow(nullptr), mGLSupport(glsupport), mContext(nullptr), mProperties(desc)
+			: RenderWindow(desc, windowId), mWindow(nullptr), mContext(nullptr), mGLSupport(glsupport), mProperties(desc)
 			, mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false)
 		{ }
 
@@ -466,12 +465,6 @@ namespace bs
 			{
 				CocoaWindow** window = (CocoaWindow**)data;
 				*window = mWindow;
-				return;
-			}
-			else if(name == "WINDOW")
-			{
-				NSWindow** window = (NSWindow**)data;
-				*window = mWindow->_getPrivateData()->window;
 				return;
 			}
 		}

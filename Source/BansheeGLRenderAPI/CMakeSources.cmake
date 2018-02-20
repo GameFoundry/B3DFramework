@@ -69,11 +69,8 @@ set(BS_BANSHEEGLRENDERAPI_SRC_NOFILTER
 	"BsGLCommandBuffer.cpp"
 	"BsGLCommandBufferManager.cpp"
 	"BsGLTextureView.cpp"
+	"glew.cpp"
 )
-
-if(NOT APPLE)
-	list(APPEND BS_BANSHEEGLRENDERAPI_SRC_NOFILTER "glew.cpp")
-endif()
 
 set(BS_BANSHEEGLRENDERAPI_INC_GLSL
 	"GLSL/BsGLSLProgramPipelineManager.h"

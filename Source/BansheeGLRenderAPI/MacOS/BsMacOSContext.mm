@@ -2,6 +2,8 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "MacOS/BsMacOSContext.h"
 #include "MacOS/BsMacOSGLSupport.h"
+#define BS_COCOA_INTERNALS
+#include "Private/MacOS/BsMacOSWindow.h"
 #import <AppKit/AppKit.h>
 
 namespace bs::ct
@@ -69,10 +71,12 @@ namespace bs::ct
 
 	void MacOSContext::setCurrent(const RenderWindow& renderWindow)
 	{
-		NSWindow* window;
-		renderWindow.getCustomAttribute("WINDOW", &window);
+		CocoaWindow* window;
+		renderWindow.getCustomAttribute("COCOA_WINDOW", &window);
 
-		[m->context setView:[window contentView]];
+		NSWindow* nsWindow = window->_getPrivateData()->window;
+
+		[m->context setView:[nsWindow contentView]];
 		[m->context makeCurrentContext];
 		[m->context update];
 

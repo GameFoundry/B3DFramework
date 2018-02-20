@@ -126,7 +126,7 @@ namespace bs
 			mInternal->setAngularVelocity(velocity);
 	}
 
-	inline Vector3 CRigidbody::getAngularVelocity() const
+	Vector3 CRigidbody::getAngularVelocity() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getAngularVelocity();

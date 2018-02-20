@@ -60,8 +60,8 @@ namespace bs
 	}
 
 	GUIMenuBar::GUIMenuBar(GUIWidget* parent, RenderWindow* parentWindow)
-		: mParentWindow(parentWindow), mParentWidget(parent), mMainPanel(nullptr), mBgPanel(nullptr)
-		, mMenuItemLayout(nullptr), mBgTexture(nullptr), mLogoTexture(nullptr), mSubMenuButton(nullptr), mSubMenuOpen(false)
+		: mParentWindow(parentWindow), mMainPanel(nullptr), mBgPanel(nullptr), mMenuItemLayout(nullptr)
+		, mBgTexture(nullptr), mLogoTexture(nullptr), mSubMenuButton(nullptr), mSubMenuOpen(false)
 	{
 		mMainPanel = parent->getPanel()->addNewElement<GUIPanel>(std::numeric_limits<INT16>::min() + 15);
 		mMainPanel->setWidth(1);

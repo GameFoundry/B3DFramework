@@ -2221,7 +2221,7 @@ namespace bs
 				}
 				else
 				{
-					setKeyframeValues(keyFrame, j, defaultValues[C], 0.0f, 0.0f);
+					setKeyframeValues(keyFrame, j, defaultValues[j], 0.0f, 0.0f);
 				}
 			}
 		}

@@ -1278,7 +1278,6 @@ namespace bs { namespace ct
 	{
 		Light* light = rendererLight.internal;
 
-		const SceneInfo& sceneInfo = scene.getSceneInfo();
 		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
 
 		ShadowInfo mapInfo;
@@ -1375,7 +1374,6 @@ namespace bs { namespace ct
 	{
 		Light* light = rendererLight.internal;
 
-		const SceneInfo& sceneInfo = scene.getSceneInfo();
 		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
 		SPtr<GpuParamBlockBuffer> shadowCubeMatricesBuffer = gShadowCubeMatricesDef.createBuffer();
 		SPtr<GpuParamBlockBuffer> shadowCubeMasksBuffer = gShadowCubeMasksDef.createBuffer();

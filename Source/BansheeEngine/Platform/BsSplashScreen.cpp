@@ -159,6 +159,66 @@ namespace bs
 
 #else
 
-static_assert("Missing SplashScreen implementation.");
+#include "Private/MacOS/BsMacOSWindow.h"
+
+namespace bs
+{
+	struct SplashScreen::Pimpl
+	{
+		CocoaWindow* window = nullptr;
+		Timer timer;
+	};
+
+	// Note: Never freed, but that's fine
+	SplashScreen::Pimpl* SplashScreen::m = bs_new<Pimpl>();
+	const UINT32 SplashScreen::SPLASH_SCREEN_DURATION_MS = 1000;
+
+	void SplashScreen::show()
+	{
+		gCoreThread().queueCommand(&SplashScreen::create, CTQF_InternalQueue);
+	}
+
+	void SplashScreen::hide()
+	{
+		gCoreThread().queueCommand(&SplashScreen::destroy, CTQF_InternalQueue);
+	}
+
+	void SplashScreen::create()
+	{
+		if (m->window != nullptr)
+			return;
+
+		WINDOW_DESC windowDesc;
+		windowDesc.width = 543;
+		windowDesc.height = 680;
+		windowDesc.x = -1;
+		windowDesc.y = -1;
+		windowDesc.title = "Banshee Splash";
+		windowDesc.showDecorations = false;
+		windowDesc.allowResize = false;
+
+		SPtr<PixelData> splashPixelData = BuiltinResources::getSplashScreen();
+		if (splashPixelData == nullptr)
+			return;
+
+		windowDesc.background = splashPixelData;
+
+		m->window = bs_new<CocoaWindow>(windowDesc);
+		m->timer.reset();
+	}
+
+	void SplashScreen::destroy()
+	{
+		if (m->window == nullptr)
+			return;
+
+		UINT64 currentTime = m->timer.getMilliseconds();
+		if (currentTime < SPLASH_SCREEN_DURATION_MS)
+			BS_THREAD_SLEEP(SPLASH_SCREEN_DURATION_MS - currentTime);
+
+		bs_delete(m->window);
+		m->window = nullptr;
+	}
+}
 
 #endif

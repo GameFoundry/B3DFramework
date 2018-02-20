@@ -537,12 +537,12 @@ namespace bs
 			};
 
 			std::array<Plane2D, 4> clipPlanes =
-			{
+			{{
 				Plane2D(Vector2(1.0f, 0.0f), (float)clipRect.x),
 				Plane2D(Vector2(-1.0f, 0.0f), (float)-(clipRect.x + (INT32)clipRect.width)),
 				Plane2D(Vector2(0.0f, 1.0f), (float)clipRect.y),
 				Plane2D(Vector2(0.0f, -1.0f), (float)-(clipRect.y + (INT32)clipRect.height))
-			};
+			}};
 
 			element.clippedVertexStart = (UINT32)mClippedLineVertices.size();
 			element.clippedNumVertices = 0;

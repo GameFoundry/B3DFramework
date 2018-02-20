@@ -78,7 +78,7 @@ namespace bs::ct
 	{ }
 
 	MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, UINT32 outputIdx)
-			:VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mModeRef)
+			:VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
 	{
 		mWidth = (UINT32)CGDisplayModeGetPixelWidth(mModeRef);
 		mHeight = (UINT32)CGDisplayModeGetPixelHeight(mModeRef);

@@ -202,7 +202,6 @@ namespace bs
 		static const UINT32 ELEMENT_SPACING;
 
 		RenderWindow* mParentWindow;
-		GUIWidget* mParentWidget;
 		GUIPanel* mMainPanel;
 		GUIPanel* mBgPanel;
 		GUILayout* mMenuItemLayout;

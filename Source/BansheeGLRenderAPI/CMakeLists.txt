@@ -37,6 +37,10 @@ elseif(LINUX)
 elseif(APPLE) # MacOS
 	target_link_framework(BansheeGLRenderAPI Foundation)
 	target_link_framework(BansheeGLRenderAPI CoreGraphics)
+	target_link_framework(BansheeGLRenderAPI CoreVideo)
+	target_link_framework(BansheeGLRenderAPI OpenGL)
+	target_link_framework(BansheeGLRenderAPI IOKit)
+	target_link_framework(BansheeGLRenderAPI AppKit)
 endif()
 
 ## Local libs

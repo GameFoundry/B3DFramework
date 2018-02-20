@@ -122,7 +122,7 @@ namespace bs
 		ScriptArray outStates = ScriptArray::create<bool>(numElements);
 
 		for (UINT32 i = 0; i < numElements; i++)
-			outStates.set(i, states[i]);
+			outStates.set(i, (bool)states[i]);
 
 		return outStates.getInternal();
 	}

@@ -17,7 +17,7 @@ namespace bs
 	MonoField* ScriptGUIWidget::sGUIPanelField = nullptr;
 
 	ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
-		:ScriptObject(managedInstance), mGUIWidget(nullptr), mLastUpdateHash((UINT32)-1)
+		:ScriptObject(managedInstance), mGUIWidget(nullptr)
 	{
 		SPtr<Camera> mainCamera = gSceneManager().getMainCamera();
 

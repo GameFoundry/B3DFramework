@@ -19,6 +19,8 @@ if(LINUX)
 	if(NOT X11_Xi_FOUND)
 		message(FATAL_ERROR "Could not find Xi (XInput) library.")
 	endif()
+elseif(APPLE)
+	find_package(LibUUID REQUIRED)
 endif()
 
 # Third party (non-package) libraries
@@ -51,12 +53,15 @@ target_link_libraries(BansheeUtility PUBLIC ThirdParty)
 if(WIN32)
 	## OS libs
 	target_link_libraries(BansheeUtility PRIVATE DbgHelp IPHLPAPI Rpcrt4)
-else()
+elseif(LINUX)
 	## OS libs
 	target_link_libraries(BansheeUtility PRIVATE dl pthread)
 
 	## External lib: X11, LibUUID
 	target_link_libraries(BansheeUtility PUBLIC ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB} ${X11_Xi_LIB})
+	target_link_libraries(BansheeUtility PRIVATE ${LibUUID_LIBRARIES})
+elseif(APPLE)
+	## External lib: LibUUID
 	target_link_libraries(BansheeUtility PRIVATE ${LibUUID_LIBRARIES})
 endif()
 
