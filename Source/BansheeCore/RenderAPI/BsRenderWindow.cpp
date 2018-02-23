@@ -231,6 +231,109 @@ namespace bs
 		return static_cast<const RenderWindowProperties&>(getPropertiesInternal());
 	}
 
+	void RenderWindow::_notifyWindowEvent(WindowEventType type)
+	{
+		THROW_IF_CORE_THREAD;
+
+		ct::RenderWindow* coreWindow = getCore().get();
+		RenderWindowProperties& syncProps = coreWindow->getSyncedProperties();
+		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
+
+		switch(type)
+		{
+			case WindowEventType::Resized:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.width = props.width;
+					syncProps.height = props.height;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				bs::RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
+				_windowMovedOrResized();
+
+				break;
+			}
+			case WindowEventType::Moved:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.top = props.top;
+					syncProps.left = props.left;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				bs::RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
+				_windowMovedOrResized();
+
+				break;
+			}
+			case WindowEventType::FocusReceived:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.hasFocus = true;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				bs::RenderWindowManager::instance().notifyFocusReceived(coreWindow);
+				break;
+			}
+			case WindowEventType::FocusLost:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.hasFocus = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				bs::RenderWindowManager::instance().notifyFocusLost(coreWindow);
+				break;
+			}
+			case WindowEventType::Minimized:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.isMaximized = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				break;
+			}
+			case WindowEventType::Maximized:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.isMaximized = true;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				break;
+			}
+			case WindowEventType::Restored:
+			{
+				{
+					ScopedSpinLock lock(coreWindow->mLock);
+					syncProps.isMaximized = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				break;
+			}
+			case WindowEventType::MouseLeft:
+			{
+				bs::RenderWindowManager::instance().notifyMouseLeft(coreWindow);
+				break;
+			}
+			case WindowEventType::CloseRequested:
+			{
+				bs::RenderWindowManager::instance().notifyCloseRequested(coreWindow);
+				break;
+			}
+		}
+	}
+
 	namespace ct
 	{
 	RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId)
@@ -264,110 +367,106 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 	}
 
-	void RenderWindow::_windowMovedOrResized()
+	void RenderWindow::_notifyWindowEvent(WindowEventType type)
 	{
-		THROW_IF_NOT_CORE_THREAD;
+		THROW_IF_CORE_THREAD;
 
-		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
-		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().top = props.top;
-			getSyncedProperties().left = props.left;
-			getSyncedProperties().width = props.width;
-			getSyncedProperties().height = props.height;
-		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
-	}
-
-	void RenderWindow::_windowFocusReceived()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		RenderWindowProperties& properties = const_cast<RenderWindowProperties&>(getProperties());
-		properties.hasFocus = true;
-		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().hasFocus = true;
-		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyFocusReceived(this);
-	}
-
-	void RenderWindow::_windowFocusLost()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		RenderWindowProperties& properties = const_cast<RenderWindowProperties&>(getProperties());
-		properties.hasFocus = false;
-		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().hasFocus = false;
-		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyFocusLost(this);
-	}
-
-	void RenderWindow::_notifyMaximized()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
+		RenderWindowProperties& syncProps = getSyncedProperties();
 		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
 
-		props.isMaximized = true;
+		switch(type)
 		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().isMaximized = true;
+			case WindowEventType::Resized:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.width = props.width;
+					syncProps.height = props.height;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+				_windowMovedOrResized();
+
+				break;
+			}
+			case WindowEventType::Moved:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.top = props.top;
+					syncProps.left = props.left;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+				_windowMovedOrResized();
+
+				break;
+			}
+			case WindowEventType::FocusReceived:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.hasFocus = true;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				bs::RenderWindowManager::instance().notifyFocusReceived(this);
+				break;
+			}
+			case WindowEventType::FocusLost:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.hasFocus = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				bs::RenderWindowManager::instance().notifyFocusLost(this);
+				break;
+			}
+			case WindowEventType::Minimized:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.isMaximized = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				break;
+			}
+			case WindowEventType::Maximized:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.isMaximized = true;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				break;
+			}
+			case WindowEventType::Restored:
+			{
+				{
+					ScopedSpinLock lock(mLock);
+					syncProps.isMaximized = false;
+				}
+
+				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+				break;
+			}
+			case WindowEventType::MouseLeft:
+			{
+				bs::RenderWindowManager::instance().notifyMouseLeft(this);
+				break;
+			}
+			case WindowEventType::CloseRequested:
+			{
+				bs::RenderWindowManager::instance().notifyCloseRequested(this);
+				break;
+			}
 		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-	}
-
-	void RenderWindow::_notifyMinimized()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
-
-		props.isMaximized = false;
-		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().isMaximized = false;
-		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-	}
-
-	void RenderWindow::_notifyRestored()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
-
-		props.isMaximized = false;
-		{
-			ScopedSpinLock lock(mLock);
-			getSyncedProperties().isMaximized = false;
-		}
-
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-	}
-
-	void RenderWindow::_notifyMouseLeft()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		bs::RenderWindowManager::instance().notifyMouseLeft(this);
-	}
-
-	void RenderWindow::_notifyCloseRequested()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		bs::RenderWindowManager::instance().notifyCloseRequested(this);
 	}
 
 	const RenderWindowProperties& RenderWindow::getProperties() const

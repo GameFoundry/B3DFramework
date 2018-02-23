@@ -274,25 +274,13 @@ namespace bs
 		/** Called during application start up from the sim thread. Must be called before any other operations are done. */
 		static void _startUp();
 
-		/**
-		 * Called once per frame from the sim thread.
-		 *
-		 * @note	Sim thread only.
-		 */
+		/** Called once per frame from the sim thread. */
 		static void _update();
 
-		/**
-		 * Called once per frame from the core thread.
-		 *
-		 * @note	Core thread only.
-		 */
+		/** Called once per frame from the core thread. */
 		static void _coreUpdate();
 
-		/**
-		 * Called during application shut down from the sim thread.
-		 *
-		 * @note	Sim thread only.
-		 */
+		/** Called during application shut down from the sim thread. */
 		static void _shutDown();
 
 		/**

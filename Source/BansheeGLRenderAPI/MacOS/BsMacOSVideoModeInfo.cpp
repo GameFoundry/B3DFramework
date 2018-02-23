@@ -13,6 +13,8 @@ namespace bs::ct
 		CGGetOnlineDisplayList(0, nullptr, &numDisplays);
 
 		auto displays = (CGDirectDisplayID*)bs_stack_alloc(sizeof(CGDirectDisplayID) * numDisplays);
+		CGGetOnlineDisplayList(numDisplays, displays, &numDisplays);
+
 		for(UINT32 i = 0; i < numDisplays; i++)
 		{
 			if(CGDisplayMirrorsDisplay(displays[i]) != kCGNullDirectDisplay)
@@ -43,7 +45,7 @@ namespace bs::ct
 
 		io_service_t service = CGDisplayIOServicePort(displayID);
 		CFDictionaryRef deviceInfo = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
-		auto locNames = (CFDictionaryRef)CFDictionaryGetValue(deviceInfo, kDisplayProductName);
+		auto locNames = (CFDictionaryRef)CFDictionaryGetValue(deviceInfo, CFSTR(kDisplayProductName));
 
 		CFIndex numNames = CFDictionaryGetCount(locNames);
 		if(numNames > 0)
@@ -51,9 +53,13 @@ namespace bs::ct
 			auto keys = (CFStringRef*)bs_stack_alloc(numNames * sizeof(CFTypeRef));
 			CFDictionaryGetKeysAndValues(locNames, (const void**)keys, nullptr);
 
-			mName = CFStringGetCStringPtr(keys[0], kCFStringEncodingUTF8);
+			CFStringRef value = (CFStringRef)CFDictionaryGetValue(locNames, keys[0]);
+			mName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+
 			bs_stack_free(keys);
 		}
+
+		CFRelease(deviceInfo);
 
 		mDesktopVideoMode = new (bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
 

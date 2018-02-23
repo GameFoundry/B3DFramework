@@ -4,6 +4,7 @@
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsVector2I.h"
+#include <Math/BsRect2I.h>
 
 #ifdef BS_COCOA_INTERNALS
 #import <Cocoa/Cocoa.h>
@@ -13,6 +14,7 @@
 @class BSWindowDelegate;
 @class BSWindowListener;
 @class BSView;
+@class BSWindow;
 #endif
 
 namespace bs
@@ -41,24 +43,26 @@ namespace bs
 		SPtr<PixelData> background;
 	};
 
-	/** Represents a Cocoa window. */
+	/**
+	 * Represents a Cocoa window. Note this class should only be used from the sim thread as Cocoa does not support
+	 * event handling, windows or views outside of the main thread.
+	 */
 	class BS_UTILITY_EXPORT CocoaWindow
 	{
 	public:
 #ifdef BS_COCOA_INTERNALS
 		struct Pimpl
 		{
-			NSWindow* window;
-			BSView* view;
-			BSWindowListener* responder;
-			BSWindowDelegate* delegate;
-
-			NSUInteger style = 0;
-			NSInteger windowNumber = 0;
-			bool isFullscreen = false;
-			NSRect windowedRect;
-			bool isModal = false;
+			NSWindow* window = nil;
+			BSView* view = nil;
+			BSWindowListener* responder = nil;
+			BSWindowDelegate* delegate = nil;
 			UINT32 numDropTargets = 0;
+			bool isModal = false;
+			NSUInteger style = 0;
+			bool isFullscreen;
+			NSRect windowedRect;
+			NSModalSession modalSession = nil;
 			void* userData = nullptr;
 		};
 #else
@@ -68,13 +72,8 @@ namespace bs
 		CocoaWindow(const WINDOW_DESC& desc);
 		~CocoaWindow();
 
-		/**
-		 * Returns the current area of the window, relative to the screen.
-		 *
-		 * @param[in] topLeftOrigin		If true the coordinates will use a top-left origin coordinate system (engine native).
-		 * 								If false the coordinates will use a bottom-left origin (Cocoa native).
-		 */
-		Rect2I getArea(bool topLeftOrigin = true) const;
+		/** Returns the current area of the window, relative to the top-left origin of the screen. */
+		Rect2I getArea() const;
 
 		/** Hides the window. */
 		void hide();
@@ -116,9 +115,12 @@ namespace bs
 
 		/**
 		 * Destroys the window, cleaning up any resources and removing it from the display. No further methods should be
-		 * called on this object after it has been destroyed.
+		 * called on this object after it has been destroyed. This called automatically in the destructor.
 		 */
 		void _destroy();
+
+		/** Returns an identifier that unique identifies this window. */
+		UINT32 _getWindowId() const { return mWindowId; }
 
 		/**
 		 * Sets a portion of the window in which the user can click and drag in order to move the window. This is needed
@@ -148,9 +150,6 @@ namespace bs
 		 */
 		void _unregisterForDragAndDrop();
 
-		/** Returns the area of the screen that the window currently occupies, in Cocoa screen coordinates. */
-		Rect2I _getScreenArea() const;
-
 		/** Returns internal private data for use by friends. */
 		Pimpl* _getPrivateData() const { return m; }
 
@@ -158,6 +157,7 @@ namespace bs
 
 	private:
 		Pimpl* m;
+		UINT32 mWindowId;
 	};
 
 	/** @} */

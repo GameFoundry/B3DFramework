@@ -42,12 +42,6 @@ namespace bs
 			void** item = (void**)ScriptArray::_getArrayAddr(array, sizeof(void*), idx);
 			*item = nullptr;
 		}
-
-		template String ScriptArray_get(MonoArray* array, UINT32 idx);
-		template WString ScriptArray_get(MonoArray* array, UINT32 idx);
-
-		template void ScriptArray_set(MonoArray* array, UINT32 idx, const String& value);
-		template void ScriptArray_set(MonoArray* array, UINT32 idx, const WString& value);
 	}
 
 	ScriptArray::ScriptArray(MonoArray* existingArray)

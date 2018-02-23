@@ -9,6 +9,9 @@
 #include "String/BsUnicode.h"
 #include "RenderAPI/BsRenderWindow.h"
 
+using namespace bs;
+
+/** Converts a keycode reported by Cocoa into a potential input command. */
 static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, bs::InputCommandType& inputCommand)
 {
 	switch(keyCode)
@@ -42,25 +45,9 @@ static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, bs::InputCommand
 	return false;
 }
 
-/**
- * Overrides window so even borderless windows can become key windows (allowing resize events and cursor changes, among
- * others.
- */
-@interface BSWindow : NSWindow
-@end
-
-@implementation BSWindow
-- (BOOL)canBecomeKeyWindow
-{
-	return YES;
-}
-@end
-
 /** Implementation of NSView that handles custom cursors, transparent background images and reports the right mouse click. */
 @interface BSView : NSView
-@property (atomic, strong) NSArray* resizeAreas;
-
--(void)rightMouseDown:(NSEvent *) event;
+-(void)rightMouseDown:(NSEvent*) event;
 -(void)setBackgroundImage:(NSImage*)image;
 @end
 
@@ -127,6 +114,8 @@ static bool keyCodeToInputCommand(uint32_t keyCode, bool shift, bs::InputCommand
 }}
 @end
 
+@class BSWindow;
+
 /** Types of mouse events reported by BSWindowListener. */
 enum class MouseEventType
 {
@@ -157,26 +146,47 @@ enum class MouseEventType
 -(void) keyDown:(NSEvent *)event;
 
 // Other
--(BSWindowListener*)initWithOwner:(bs::CocoaWindow*) owner;
+-(id)initWithWindow:(BSWindow*) window;
+@end
+
+/** Listens to window move, resize, focus change and close events, handles drag and drop operations. */
+@interface BSWindowDelegate : NSObject<NSWindowDelegate, NSDraggingDestination>
+-(id)initWithWindow:(BSWindow*) window;
+@end
+
+/**
+ * Overrides window so even borderless windows can become key windows (allowing resize events and cursor changes, among
+ * others.
+ */
+@interface BSWindow : NSWindow
+@property(atomic,assign) UINT32 WindowId;
+@end
+
+@implementation BSWindow
+
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
 @end
 
 @implementation BSWindowListener
 {
-	bs::CocoaWindow* mOwner;
+	BSWindow* mWindow;
 }
 @synthesize dragAreas;
 
-- (BSWindowListener* )initWithOwner:(bs::CocoaWindow*)owner
+- (id)initWithWindow:(BSWindow*) window
 {
 	self = [super init];
 
-	mOwner = owner;
+	mWindow = window;
 	dragAreas = nil;
 
 	return self;
 }
 
-- (void)handleMouseEvent:(NSEvent *)event type:(MouseEventType) type button:(bs::OSMouseButton) button
+- (void)handleMouseEvent:(NSEvent*) event type:(MouseEventType) type button:(bs::OSMouseButton) button
 {
 	NSPoint screenPos = NSEvent.mouseLocation;
 	NSUInteger modifierFlags = NSEvent.modifierFlags;
@@ -361,9 +371,7 @@ enum class MouseEventType
 
 - (void)mouseExited:(NSEvent*)event
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mOwner->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_notifyMouseLeft();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::MouseLeft, mWindow.WindowId);
 }
 @end
 
@@ -385,19 +393,14 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	return framePoint;
 }
 
-/** Listens to window move, resize, focus change and close events, handles drag and drop operations. */
-@interface BSWindowDelegate : NSObject<NSWindowDelegate, NSDraggingDestination>
--(id)initWithWindow:(bs::CocoaWindow*)window;
-@end
-
 @implementation BSWindowDelegate
 {
-	bs::CocoaWindow* mWindow;
+	BSWindow* mWindow;
 	NSRect mStandardZoomFrame;
 	bool mIsZooming;
 }
 
-- (id)initWithWindow:(bs::CocoaWindow*)window
+- (id)initWithWindow:(BSWindow*)window
 {
 	self = [super init];
 
@@ -408,26 +411,17 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (void)windowWillClose:(NSNotification *)notification
 {
-	// If it's a render window we allow the client code to handle the message
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_notifyCloseRequested();
-	else // If not, we just destroy the window
-		mWindow->_destroy();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::CloseRequested, mWindow.WindowId);
 }
 
 - (void)windowDidBecomeKey:(NSNotification*)notification
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_windowFocusReceived();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::FocusReceived, mWindow.WindowId);
 }
 
 - (void)windowDidResignKey:(NSNotification*)notification
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_windowFocusLost();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::FocusLost, mWindow.WindowId);
 }
 
 - (void)windowDidResize:(NSNotification*)notification
@@ -435,30 +429,22 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	if([[notification object] isKindOfClass:[NSWindow class]])
 		bs::MacOSPlatform::_updateClipBounds([notification object]);
 
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_windowMovedOrResized();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::Resized, mWindow.WindowId);
 }
 
 - (void)windowDidMove:(NSNotification*)notification
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_windowMovedOrResized();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::Moved, mWindow.WindowId);
 }
 
 - (void)windowDidMiniaturize:(NSNotification*)notification
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_notifyMinimized();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::Minimized, mWindow.WindowId);
 }
 
 - (void)windowDidDeminiaturize:(NSNotification*)notification
 {
-	bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-	if(renderWindow != nullptr)
-		renderWindow->_notifyRestored();
+	MacOSPlatform::notifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
 }
 
 - (BOOL)windowShouldZoom:(NSWindow*)window toFrame:(NSRect)newFrame
@@ -466,17 +452,22 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 	// Maximizing, or restoring
 	if(mIsZooming)
 	{
-		bs::ct::RenderWindow* renderWindow = (bs::ct::RenderWindow*)mWindow->_getUserData();
-		if(renderWindow != nullptr)
-		{
-			if (newFrame.size.width == mStandardZoomFrame.size.width &&
-				newFrame.size.height == mStandardZoomFrame.size.height)
-				renderWindow->_notifyMaximized();
-			else
-				renderWindow->_notifyRestored();
-		}
+		if (newFrame.size.width == mStandardZoomFrame.size.width &&
+			newFrame.size.height == mStandardZoomFrame.size.height)
+			MacOSPlatform::notifyWindowEvent(WindowEventType::Maximized, mWindow.WindowId);
+		else
+			MacOSPlatform::notifyWindowEvent(WindowEventType::Restored, mWindow.WindowId);
 
 		mIsZooming = true;
+
+		NSRect contentRect = [mWindow contentRectForFrameRect:newFrame];
+		flipY([mWindow screen], contentRect);
+
+		Rect2I area(
+				(INT32)contentRect.origin.x,
+				(INT32)contentRect.origin.y,
+				(UINT32)contentRect.size.width,
+				(UINT32)contentRect.size.height);
 	}
 
 	return YES;
@@ -492,13 +483,11 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
-	bs::CocoaWindow::Pimpl* privateData = mWindow->_getPrivateData();
-
 	NSPoint point = [sender draggingLocation];
-	point = frameToContentRect(privateData->window, point);
+	point = frameToContentRect(mWindow, point);
 
 	bs::Vector2I position((int32_t)point.x, (int32_t)point.y);
-	if(bs::CocoaDragAndDrop::_notifyDragEntered(mWindow, position))
+	if(bs::CocoaDragAndDrop::_notifyDragEntered(mWindow.WindowId, position))
 		return NSDragOperationLink;
 
 	return NSDragOperationNone;
@@ -506,13 +495,11 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
 {
-	bs::CocoaWindow::Pimpl* privateData = mWindow->_getPrivateData();
-
 	NSPoint point = [sender draggingLocation];
-	point = frameToContentRect(privateData->window, point);
+	point = frameToContentRect(mWindow, point);
 
 	bs::Vector2I position((int32_t)point.x, (int32_t)point.y);
-	if(bs::CocoaDragAndDrop::_notifyDragMoved(mWindow, position))
+	if(bs::CocoaDragAndDrop::_notifyDragMoved(mWindow.WindowId, position))
 		return NSDragOperationLink;
 
 	return NSDragOperationNone;
@@ -520,7 +507,7 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 - (void)draggingExited:(nullable id <NSDraggingInfo>)sender
 {
-	bs::CocoaDragAndDrop::_notifyDragLeft(mWindow);
+	bs::CocoaDragAndDrop::_notifyDragLeft(mWindow.WindowId);
 }
 
 - (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
@@ -537,14 +524,12 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 			paths.push_back(bs::Path(pathChars));
 		}
 
-		bs::CocoaWindow::Pimpl* privateData = mWindow->_getPrivateData();
-
 		NSPoint point = [sender draggingLocation];
-		point = frameToContentRect(privateData->window, point);
+		point = frameToContentRect(mWindow, point);
 
 		bs::Vector2I position((int32_t)point.x, (int32_t)point.y);
 
-		if(bs::CocoaDragAndDrop::_notifyDragDropped(mWindow, position, paths))
+		if(bs::CocoaDragAndDrop::_notifyDragDropped(mWindow.WindowId, position, paths))
 			return YES;
 	}
 
@@ -554,9 +539,15 @@ NSPoint frameToContentRect(NSWindow* window, NSPoint framePoint)
 
 namespace bs
 {
+	std::atomic<UINT32> gNextWindowId(1);
+
 	CocoaWindow::CocoaWindow(const WINDOW_DESC& desc)
 	{ @autoreleasepool {
 		m = bs_new<Pimpl>();
+
+		BSWindow* window = [BSWindow alloc];
+		m->isModal = desc.modal;
+		mWindowId = gNextWindowId++;
 
 		NSArray* screens = [NSScreen screens];
 
@@ -569,7 +560,7 @@ namespace bs
 			NSRect screenRect = [entry frame];
 
 			if(((desc.x >= screenRect.origin.x && desc.y < (screenRect.origin.x + screenRect.size.width)) || desc.x == -1) &&
-					((desc.y >= screenRect.origin.y && desc.y < (screenRect.origin.y + screenRect.size.height)) || desc.y == -1))
+			   ((desc.y >= screenRect.origin.y && desc.y < (screenRect.origin.y + screenRect.size.height)) || desc.y == -1))
 			{
 				if(desc.x == -1)
 					x = (INT32)screenRect.origin.x + std::max(0, (INT32)screenRect.size.width - (INT32)desc.width) / 2;
@@ -594,13 +585,14 @@ namespace bs
 		if(desc.allowResize)
 			m->style |= NSWindowStyleMaskResizable;
 
-		m->window = [BSWindow alloc];
-		m->window = [m->window
-			initWithContentRect:NSMakeRect(x, y, desc.width, desc.height)
-			styleMask:(NSWindowStyleMask)m->style
-			backing:NSBackingStoreBuffered
-			defer:NO
-			screen:screen];
+		window = [window
+				initWithContentRect:NSMakeRect(x, y, desc.width, desc.height)
+				styleMask:(NSWindowStyleMask)m->style
+				backing:NSBackingStoreBuffered
+				defer:NO
+				screen:screen];
+		m->window = window;
+		window.WindowId = mWindowId;
 
 		if(desc.allowResize)
 		{
@@ -616,10 +608,10 @@ namespace bs
 		[m->window setTitle:titleString];
 		[m->window makeKeyAndOrderFront:nil];
 
-		m->responder = [[BSWindowListener alloc] initWithOwner:this];
+		m->responder = [[BSWindowListener alloc] initWithWindow:window];
 		[m->window setNextResponder:m->responder];
 
-		m->delegate = [[BSWindowDelegate alloc] initWithWindow:this];
+		m->delegate = [[BSWindowDelegate alloc] initWithWindow:window];
 		[m->window setDelegate:m->delegate];
 
 		m->view = [[BSView alloc] init];
@@ -635,8 +627,10 @@ namespace bs
 			[m->view setBackgroundImage:image];
 		}
 
-		m->isModal = desc.modal;
-		m->windowNumber = [m->window windowNumber];
+		m->isFullscreen = false;
+
+		if(desc.modal)
+			m->modalSession = [NSApp beginModalSessionForWindow:m->window];
 
 		MacOSPlatform::registerWindow(this);
 	}}
@@ -650,78 +644,130 @@ namespace bs
 	}
 
 	void CocoaWindow::move(INT32 x, INT32 y)
-	{ @autoreleasepool {
-		NSPoint point;
-		point.x = x;
-		point.y = y;
-
-		[m->window setFrameTopLeftPoint:point];
-	}}
-
-	void CocoaWindow::resize(UINT32 width, UINT32 height)
-	{ @autoreleasepool {
-		NSRect frameRect = m->window.frame;
-		NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
-
-		contentRect.size.width = width;
-		contentRect.size.height = height;
-
-		[m->window setFrame:[m->window frameRectForContentRect:contentRect] display:YES];
-	}}
-
-	void CocoaWindow::_destroy()
 	{
-		MacOSPlatform::unregisterWindow(this);
-		m->window = nil;
+		@autoreleasepool
+		{
+			NSPoint point;
+			point.x = x;
+			point.y = y;
+
+			[m->window setFrameTopLeftPoint:point];
+		}
 	}
 
-	Rect2I CocoaWindow::getArea(bool topLeftOrigin) const
-	{ @autoreleasepool {
-		NSRect frameRect = [m->window frame];
-		NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
+	void CocoaWindow::resize(UINT32 width, UINT32 height)
+	{
+		@autoreleasepool
+		{
+			NSSize size;
+			size.width = width;
+			size.height = height;
 
-		if(topLeftOrigin)
+			NSRect frameRect = m->window.frame;
+			NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
+
+			contentRect.size.width = size.width;
+			contentRect.size.height = size.height;
+
+			[m->window setFrame:[m->window frameRectForContentRect:contentRect] display:YES];
+		}
+	}
+
+	Rect2I CocoaWindow::getArea() const
+	{
+		@autoreleasepool
+		{
+			NSRect frameRect = [m->window frame];
+			NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
+
 			flipY([m->window screen], contentRect);
 
-		return Rect2I(
-			(INT32)contentRect.origin.x,
-			(INT32)contentRect.origin.y,
-			(UINT32)contentRect.size.width,
-			(UINT32)contentRect.size.height
-		);
-	}}
+			return Rect2I(
+					(INT32)contentRect.origin.x,
+					(INT32)contentRect.origin.y,
+					(UINT32)contentRect.size.width,
+					(UINT32)contentRect.size.height);
+		}
+	}
 
 	void CocoaWindow::hide()
-	{ @autoreleasepool {
-		[m->window orderOut:nil];
-	}}
+	{
+		@autoreleasepool
+		{
+			[m->window orderOut:nil];
+		}
+	}
 
 	void CocoaWindow::show()
-	{ @autoreleasepool {
-		[m->window makeKeyAndOrderFront:nil];
-	}}
+	{
+		@autoreleasepool
+		{
+			[m->window makeKeyAndOrderFront:nil];
+		}
+	}
 
 	void CocoaWindow::maximize()
-	{ @autoreleasepool {
-		if(![m->window isZoomed])
-			[m->window zoom:nil];
-	}}
+	{
+		@autoreleasepool
+		{
+			if(![m->window isZoomed])
+				[m->window zoom:nil];
+		}
+	}
 
 	void CocoaWindow::minimize()
-	{ @autoreleasepool {
-		[m->window miniaturize:nil];
-	}}
+	{
+		@autoreleasepool
+		{
+			[m->window miniaturize:nil];
+		}
+	}
 
 	void CocoaWindow::restore()
-	{ @autoreleasepool {
-		if([m->window isMiniaturized])
-			[m->window deminiaturize:nil];
-		else if([m->window isZoomed])
-			[m->window zoom:nil];
-	}}
+	{
+		@autoreleasepool
+		{
+			if([m->window isMiniaturized])
+				[m->window deminiaturize:nil];
+			else if([m->window isZoomed])
+				[m->window zoom:nil];
+		}
+	}
+
+	void CocoaWindow::setWindowed()
+	{
+		@autoreleasepool
+		{
+			if(m->isFullscreen)
+			{
+				[m->window setStyleMask:(NSWindowStyleMask)m->style];
+				[m->window setFrame:m->windowedRect display:NO];
+				[m->window setLevel:NSNormalWindowLevel];
+
+				m->isFullscreen = false;
+			}
+		}
+	}
+
+	void CocoaWindow::setFullscreen()
+	{
+		@autoreleasepool
+		{
+			if(!m->isFullscreen)
+				m->windowedRect = [m->window frame];
+
+			NSRect frame = [[m->window screen] frame];
+			[m->window setStyleMask:NSWindowStyleMaskBorderless];
+			[m->window setFrame:frame display:NO];
+			[m->window setLevel:NSMainMenuWindowLevel+1];
+			[m->window makeKeyAndOrderFront:nil];
+
+			m->isFullscreen = true;
+		}
+	}
 
 	Vector2I CocoaWindow::windowToScreenPos(const Vector2I& windowPos) const
-	{ @autoreleasepool {
+	{
 		NSRect frameRect = [m->window frame];
 		NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
 
@@ -732,10 +778,10 @@ namespace bs
 		screenPos.y = windowPos.y + (INT32)contentRect.origin.y;
 
 		return screenPos;
-	}}
+	}
 
 	Vector2I CocoaWindow::screenToWindowPos(const Vector2I& screenPos) const
-	{ @autoreleasepool {
+	{
 		NSRect frameRect = [m->window frame];
 		NSRect contentRect = [m->window contentRectForFrameRect:frameRect];
 
@@ -746,43 +792,31 @@ namespace bs
 		windowPos.y = screenPos.y - (INT32) contentRect.origin.y;
 
 		return windowPos;
-	}}
-
-	void CocoaWindow::setWindowed()
-	{
-		if(m->isFullscreen)
-		{
-			[m->window setStyleMask:(NSWindowStyleMask)m->style];
-			[m->window setFrame:m->windowedRect display:NO];
-			[m->window setLevel:NSNormalWindowLevel];
-
-			m->isFullscreen = false;
-		}
 	}
 
-	void CocoaWindow::setFullscreen()
+	void CocoaWindow::_destroy()
 	{
-		if(!m->isFullscreen)
-			m->windowedRect = [m->window frame];
+		if(m->isModal)
+			[NSApp endModalSession:m->modalSession];
 
-		NSRect frame = [[m->window screen] frame];
-		[m->window setStyleMask:NSWindowStyleMaskBorderless];
-		[m->window setFrame:frame display:NO];
-		[m->window setLevel:NSMainMenuWindowLevel+1];
-		[m->window makeKeyAndOrderFront:nil];
+		// TODO - Need to unregister modal window as well
+		MacOSPlatform::unregisterWindow(this);
 
-		m->isFullscreen = true;
+		m->window = nil;
 	}
 
 	void CocoaWindow::_setDragZones(const Vector<Rect2I>& rects)
-	{ @autoreleasepool {
-		NSMutableArray* array = [[NSMutableArray alloc] init];
+	{
+		@autoreleasepool
+		{
+			NSMutableArray* array = [[NSMutableArray alloc] init];
 
-		for(auto& entry : rects)
-			[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Rect2I)]];
+			for(auto& entry : rects)
+				[array addObject:[NSValue valueWithBytes:&entry objCType:@encode(Rect2I)]];
 
-		[m->responder setDragAreas:array];
-	}}
+			[m->responder setDragAreas:array];
+		}
+	}
 
 	void CocoaWindow::_setUserData(void* data)
 	{
@@ -809,18 +843,5 @@ namespace bs
 
 		if(m->numDropTargets == 0)
 			[m->window unregisterDraggedTypes];
-	}
-
-	Rect2I CocoaWindow::_getScreenArea() const
-	{
-		NSRect screenRect = [[m->window screen] frame];
-
-		Rect2I area;
-		area.x = (INT32)screenRect.origin.x;
-		area.y = (INT32)screenRect.origin.y;
-		area.width = (UINT32)screenRect.size.width;
-		area.height = (UINT32)screenRect.size.height;
-
-		return area;
 	}
 }

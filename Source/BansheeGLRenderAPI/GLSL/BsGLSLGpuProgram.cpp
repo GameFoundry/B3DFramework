@@ -249,6 +249,14 @@ namespace bs { namespace ct
 
 			mCompileError = "";
 			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileError);
+
+
+
+			// DEBUG ONLY
+			if(!mIsCompiled)
+			{
+				LOGWRN(mCompileError);
+			}
 		}
 
 		if (mIsCompiled)

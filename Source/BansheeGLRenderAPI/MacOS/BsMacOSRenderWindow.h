@@ -39,8 +39,41 @@ namespace bs
 		/** @copydoc RenderWindow::windowToScreenPos */
 		Vector2I windowToScreenPos(const Vector2I& windowPos) const override;
 
+		/** @copydoc RenderWindow::resize */
+		void resize(UINT32 width, UINT32 height) override;
+
+		/** @copydoc RenderWindow::move */
+		void move(INT32 left, INT32 top) override;
+
+		/** @copydoc RenderWindow::hide */
+		void hide() override;
+
+		/** @copydoc RenderWindow::show */
+		void show() override;
+
+		/** @copydoc RenderWindow::minimize */
+		void minimize() override;
+
+		/** @copydoc RenderWindow::maximize */
+		void maximize() override;
+
+		/** @copydoc RenderWindow::restore */
+		void restore() override;
+
+		/** @copydoc RenderWindow::setFullscreen(UINT32, UINT32, float, UINT32) */
+		void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0) override;
+
+		/** @copydoc RenderWindow::setFullscreen(const VideoMode&) */
+		void setFullscreen(const VideoMode& videoMode) override;
+
+		/** @copydoc RenderWindow::setWindowed */
+		void setWindowed(UINT32 width, UINT32 height) override;
+
 		/** @copydoc RenderWindow::getCore */
 		SPtr<ct::MacOSRenderWindow> getCore() const;
+
+		/** Called when window is moved or resized. */
+		void _windowMovedOrResized() override;
 
 	protected:
 		friend class GLRenderWindowManager;
@@ -49,15 +82,27 @@ namespace bs
 
 		MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, ct::MacOSGLSupport& glSupport);
 
+		/** Changes the display mode (resolution, refresh rate) of the specified output device. */
+		void setDisplayMode(const VideoOutputInfo& output, const VideoMode& mode);
+
 		/** @copydoc RenderWindow::getProperties */
 		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
 
 		/** @copydoc RenderWindow::syncProperties */
 		void syncProperties() override;
 
+		/** @copydoc CoreObject::initialize() */
+		void initialize() override;
+
+		/** @copydoc CoreObject::destroy() */
+		void destroy() override;
+
 	private:
+		CocoaWindow* mWindow = nullptr;
+		bool mIsChild = false;
+
 		RenderWindowProperties mProperties;
-		const ct::MacOSGLSupport& mGLSupport;
+		ct::MacOSGLSupport& mGLSupport;
 	};
 
 	namespace ct
@@ -71,28 +116,6 @@ namespace bs
 		{
 		public:
 			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, MacOSGLSupport& glSupport);
-			~MacOSRenderWindow();
-
-			/** @copydoc RenderWindow::setFullscreen(UINT32, UINT32, float, UINT32) */
-			void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0) override;
-
-			/** @copydoc RenderWindow::setFullscreen(const VideoMode&) */
-			void setFullscreen(const VideoMode& videoMode) override;
-
-			/** @copydoc RenderWindow::setWindowed */
-			void setWindowed(UINT32 width, UINT32 height) override;
-
-			/** @copydoc RenderWindow::setHidden */
-			void setHidden(bool hidden) override;
-
-			/** @copydoc RenderWindow::minimize */
-			void minimize() override;
-
-			/** @copydoc RenderWindow::maximize */
-			void maximize() override;
-
-			/** @copydoc RenderWindow::restore */
-			void restore() override;
 
 			/** @copydoc RenderWindow::move */
 			void move(INT32 left, INT32 top) override;
@@ -108,7 +131,7 @@ namespace bs
 			 *
 			 * @param[out]	dst		Previously allocated buffer to read the contents into. Must be of valid size.
 			 * @param[in]	buffer	Frame buffer to read the contents from.
-			 */
+			 *
 			void copyToMemory(PixelData& dst, FrameBuffer buffer);
 
 			/** @copydoc RenderWindow::swapBuffers */
@@ -117,20 +140,11 @@ namespace bs
 			/** @copydoc RenderWindow::getCustomAttribute */
 			void getCustomAttribute(const String& name, void* pData) const override;
 
-			/** @copydoc RenderWindow::setActive */
-			void setActive(bool state) override;
-
-			/** @copydoc RenderWindow::_windowMovedOrResized */
-			void _windowMovedOrResized() override;
-
 			/** Returns a lock that can be used for accessing synced properties. */
 			SpinLock& _getPropertiesLock() { return mLock;}
 
 		protected:
 			friend class MacOSGLSupport;
-
-			/** @copydoc CoreObject::initialize */
-			void initialize() override;
 
 			/** @copydoc RenderWindow::getProperties */
 			const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
@@ -141,24 +155,14 @@ namespace bs
 			/** @copydoc RenderWindow::syncProperties */
 			void syncProperties() override;
 
-			/** Changes the display mode (resolution, refresh rate) of the specified output device. */
-			void setDisplayMode(const VideoOutputInfo& output, const VideoMode& mode);
-
 		protected:
 			friend class bs::MacOSRenderWindow;
 
-			CocoaWindow* mWindow;
 			SPtr<MacOSContext> mContext;
 			ct::MacOSGLSupport& mGLSupport;
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;
-			bool mIsChild;
 			bool mShowOnSwap;
-
-			// Coordinate conversions
-			Mutex mDimensionsMutex;
-			Rect2I mScreenArea;
-			Rect2I mNativeWindowArea;
 		};
 	}
 

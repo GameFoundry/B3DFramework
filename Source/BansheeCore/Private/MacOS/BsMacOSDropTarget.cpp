@@ -7,6 +7,7 @@
 #include "Math/BsRect2I.h"
 #include "Private/MacOS/BsMacOSDropTarget.h"
 #include "Private/MacOS/BsMacOSWindow.h"
+#include "CoreThread/BsCoreThread.h"
 
 namespace bs
 {
@@ -55,6 +56,64 @@ namespace bs
 
 	void CocoaDragAndDrop::update()
 	{
+		THROW_IF_CORE_THREAD
+
+		// First handle any queued registration/unregistration
+		{
+			Lock lock(sMutex);
+
+			for(auto& entry : sQueuedAreaOperations)
+			{
+				CocoaWindow* areaWindow;
+				entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
+
+				switch(entry.type)
+				{
+				case DropAreaOpType::Register:
+					sDropAreas.push_back(DropArea(entry.target, entry.area));
+					areaWindow->_registerForDragAndDrop();
+					break;
+				case DropAreaOpType::Unregister:
+					// Remove any operations queued for this target
+					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
+					{
+						if(iter->target == entry.target)
+							iter = sQueuedOperations.erase(iter);
+						else
+							++iter;
+					}
+
+					// Remove the area
+					{
+						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+						{
+							return area.target == entry.target;
+						});
+
+						sDropAreas.erase(iterFind);
+					}
+
+					areaWindow->_unregisterForDragAndDrop();
+
+					break;
+				case DropAreaOpType::Update:
+				{
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+					{
+						return area.target == entry.target;
+					});
+
+					if (iterFind != sDropAreas.end())
+						iterFind->area = entry.area;
+				}
+					break;
+				}
+			}
+
+			sQueuedAreaOperations.clear();
+		}
+
+		// Actually trigger events
 		Vector<DragAndDropOp> operations;
 
 		{
@@ -84,72 +143,16 @@ namespace bs
 		}
 	}
 
-	void CocoaDragAndDrop::coreUpdate()
+	bool CocoaDragAndDrop::_notifyDragEntered(UINT32 windowId, const Vector2I& position)
 	{
-		// First handle any queued registration/unregistration
-		{
-			Lock lock(sMutex);
+		THROW_IF_CORE_THREAD
 
-			for(auto& entry : sQueuedAreaOperations)
-			{
-				CocoaWindow* areaWindow;
-				entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
-
-				switch(entry.type)
-				{
-					case DropAreaOpType::Register:
-						sDropAreas.push_back(DropArea(entry.target, entry.area));
-						areaWindow->_registerForDragAndDrop();
-						break;
-					case DropAreaOpType::Unregister:
-						// Remove any operations queued for this target
-						for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
-						{
-							if(iter->target == entry.target)
-								iter = sQueuedOperations.erase(iter);
-							else
-								++iter;
-						}
-
-						// Remove the area
-						{
-							auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-							{
-								return area.target == entry.target;
-							});
-
-							sDropAreas.erase(iterFind);
-						}
-
-						areaWindow->_unregisterForDragAndDrop();
-
-						break;
-					case DropAreaOpType::Update:
-					{
-						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
-						{
-							return area.target == entry.target;
-						});
-
-						if (iterFind != sDropAreas.end())
-							iterFind->area = entry.area;
-					}
-						break;
-				}
-			}
-
-			sQueuedAreaOperations.clear();
-		}
-	}
-
-	bool CocoaDragAndDrop::_notifyDragEntered(CocoaWindow* window, const Vector2I& position)
-	{
 		bool eventAccepted = false;
 		for(auto& entry : sDropAreas)
 		{
-			CocoaWindow* areaWindow;
-			entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
-			if(areaWindow != window)
+			UINT32 areaWindowId = 0;
+			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			if(areaWindowId != windowId)
 				continue;
 
 			if(entry.area.contains(position))
@@ -170,14 +173,16 @@ namespace bs
 		return eventAccepted;
 	}
 
-	bool CocoaDragAndDrop::_notifyDragMoved(CocoaWindow* window, const Vector2I& position)
+	bool CocoaDragAndDrop::_notifyDragMoved(UINT32 windowId, const Vector2I& position)
 	{
+		THROW_IF_CORE_THREAD
+
 		bool eventAccepted = false;
 		for(auto& entry : sDropAreas)
 		{
-			CocoaWindow* areaWindow;
-			entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
-			if (areaWindow != window)
+			UINT32 areaWindowId = 0;
+			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			if(areaWindowId != windowId)
 				continue;
 
 			if (entry.area.contains(position))
@@ -213,13 +218,15 @@ namespace bs
 		return eventAccepted;
 	}
 
-	void CocoaDragAndDrop::_notifyDragLeft(CocoaWindow* window)
+	void CocoaDragAndDrop::_notifyDragLeft(UINT32 windowId)
 	{
+		THROW_IF_CORE_THREAD
+
 		for(auto& entry : sDropAreas)
 		{
-			CocoaWindow* areaWindow;
-			entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
-			if (areaWindow != window)
+			UINT32 areaWindowId = 0;
+			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			if(areaWindowId != windowId)
 				continue;
 
 			if(entry.target->_isActive())
@@ -234,14 +241,16 @@ namespace bs
 		}
 	}
 
-	bool CocoaDragAndDrop::_notifyDragDropped(CocoaWindow* window, const Vector2I& position, const Vector<Path>& paths)
+	bool CocoaDragAndDrop::_notifyDragDropped(UINT32 windowId, const Vector2I& position, const Vector<Path>& paths)
 	{
+		THROW_IF_CORE_THREAD
+
 		bool eventAccepted = false;
 		for(auto& entry : sDropAreas)
 		{
-			CocoaWindow* areaWindow;
-			entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
-			if(areaWindow != window)
+			UINT32 areaWindowId = 0;
+			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			if(areaWindowId != windowId)
 				continue;
 
 			if(!entry.target->_isActive())

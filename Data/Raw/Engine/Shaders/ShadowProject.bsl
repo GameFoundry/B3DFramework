@@ -226,18 +226,30 @@ technique ShadowProject
 			// Every three gathers (one row), the values are accumulated to their corresponding row.
 			// Samples for individual gather operations are returned in counter-clockwise order, starting with lower left.
 			float2 rows[3];
-			[unroll]
-			for(int i = 0; i < 3; i++)
 			{
-				int y = -2 + i * 2;
-			
-				float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-2, y)), sceneDepth);
-				float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(0, y)), sceneDepth);
-				float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(2, y)), sceneDepth);
+				float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-2, -2)), sceneDepth);
+				float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(0, -2)), sceneDepth);
+				float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(2, -2)), sceneDepth);
 				
-				rows[i] = accumulateRows6x2(fraction.x, left, middle, right);
+				rows[0] = accumulateRows6x2(fraction.x, left, middle, right);
 			}
-			
+
+			{
+				float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-2, 0)), sceneDepth);
+				float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(0, 0)), sceneDepth);
+				float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(2, 0)), sceneDepth);
+
+				rows[1] = accumulateRows6x2(fraction.x, left, middle, right);
+			}
+
+			{
+				float4 left = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(-2, 2)), sceneDepth);
+				float4 middle = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(0, 2)), sceneDepth);
+				float4 right = getOcclusion(gShadowTex.GatherRed(gShadowSampler, sampleCenter, int2(2, 2)), sceneDepth);
+
+				rows[2] = accumulateRows6x2(fraction.x, left, middle, right);
+			}
+
 			// Accumulate all rows
 			float occlusionAccumulator;
 			occlusionAccumulator = rows[0].x * (1.0f - fraction.y);

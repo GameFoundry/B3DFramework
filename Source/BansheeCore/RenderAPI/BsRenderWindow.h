@@ -11,6 +11,35 @@ namespace bs
 {
 	class RenderWindowManager;
 
+	/** @addtogroup RenderAPI-Internal
+	 *  @{
+	 */
+
+	/** Types of events that a RenderWindow can be notified of. */
+	enum class WindowEventType
+	{
+		/** Triggered when window size changes. */
+		Resized,
+		/** Triggered when window position changes. */
+		Moved,
+		/** Triggered when window receives input focus. */
+		FocusReceived,
+		/** Triggered when window loses input focus. */
+		FocusLost,
+		/** Triggered when the window is minimized (iconified). */
+		Minimized,
+		/** Triggered when the window is expanded to cover the current screen. */
+		Maximized,
+		/** Triggered when the window leaves minimized or maximized state. */
+		Restored,
+		/** Triggered when the mouse pointer leaves the window area. */
+		MouseLeft,
+		/** Triggered when the user wants to close the window. */
+		CloseRequested,
+	};
+
+	/** @} */
+
 	/** @addtogroup RenderAPI
 	 *  @{
 	 */
@@ -97,7 +126,7 @@ namespace bs
 		 * @param[in]	width		Width of the window in pixels.
 		 * @param[in]	height		Height of the window in pixels.
 		 */
-		void resize(UINT32 width, UINT32 height);
+		virtual void resize(UINT32 width, UINT32 height);
 
 		/**	
 		 * Move the window to specified screen coordinates. 
@@ -107,63 +136,63 @@ namespace bs
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void move(INT32 left, INT32 top);
+		virtual void move(INT32 left, INT32 top);
 
 		/** 
 		 * Hides the window. 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void hide();
+		virtual void hide();
 
 		/** 
 		 * Shows a previously hidden window. 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void show();
+		virtual void show();
 
 		/** 
 		 * @copydoc ct::RenderWindow::minimize  
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void minimize();
+		virtual void minimize();
 
 		/** 
 		 * @copydoc ct::RenderWindow::maximize 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void maximize();
+		virtual void maximize();
 
 		/** 
 		 * @copydoc ct::RenderWindow::restore  
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void restore();
+		virtual void restore();
 
 		/** 
 		 * @copydoc ct::RenderWindow::setFullscreen(UINT32, UINT32, float, UINT32) 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0);
+		virtual void setFullscreen(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 monitorIdx = 0);
 
 		/** 
 		 * @copydoc ct::RenderWindow::setFullscreen(const VideoMode&) 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setFullscreen(const VideoMode& videoMode);
+		virtual void setFullscreen(const VideoMode& videoMode);
 
 		/** 
 		 * @copydoc ct::RenderWindow::setWindowed 
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		void setWindowed(UINT32 width, UINT32 height);
+		virtual void setWindowed(UINT32 width, UINT32 height);
 
 		/**	Retrieves a core implementation of a render window usable only from the core thread. */
 		SPtr<ct::RenderWindow> getCore() const;
@@ -182,6 +211,18 @@ namespace bs
 
 		/** Triggers when the OS requests that the window is closed (e.g. user clicks on the X button in the title bar). */
 		Event<void()> onCloseRequested;
+
+		/**
+		 * @name Internal
+		 */
+
+		/** Notifies the window that a specific event occurred. Usually called by the platform specific main event loop. */
+		void _notifyWindowEvent(WindowEventType type);
+
+		/** Method that triggers whenever the window changes size or position. */
+		virtual void _windowMovedOrResized() { }
+
+		/** @} */
 
 	protected:
 		friend class RenderWindowManager;
@@ -282,61 +323,11 @@ namespace bs
 		/**	Returns properties that describe the render window. */
 		const RenderWindowProperties& getProperties() const;
 
-		/**
-		 * Called when window is moved or resized.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _windowMovedOrResized();
+		/** Notifies the window that a specific event occurred. Usually called by the platform specific main event loop. */
+		void _notifyWindowEvent(WindowEventType type);
 
-		/**
-		 * Called when window has received focus.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _windowFocusReceived();
-
-		/**
-		 * Called when window has lost focus.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _windowFocusLost();
-
-		/**
-		 * Called when window has been maximized.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _notifyMaximized();
-
-		/**
-		 * Called when window has been minimized.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _notifyMinimized();
-
-		/**
-		 * Called when window has been restored from minimized or maximized state.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _notifyRestored();
-
-		/**
-		 * Called when the mouse leaves the window.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _notifyMouseLeft();
-
-		/**
-		 * Called when the users requests for the window to be closed.
-		 *
-		 * @note	Core thread.
-		 */
-		virtual void _notifyCloseRequested();
+		/** Method that triggers whenever the window changes size or position. */
+		virtual void _windowMovedOrResized() { }
 	protected:
 		friend class bs::RenderWindow;
 		friend class RenderWindowManager;

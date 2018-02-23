@@ -57,10 +57,10 @@
 
 namespace bs
 {
-	/** Contains information about a currently open modal window. */
+	/** Contains information about a modal window session. */
 	struct ModalWindowInfo
 	{
-		CocoaWindow* window;
+		UINT32 windowId;
 		NSModalSession session;
 	};
 
@@ -68,7 +68,7 @@ namespace bs
 	{
 		BSAppDelegate* appDelegate = nil;
 		CocoaWindow* mainWindow = nullptr;
-		Vector<CocoaWindow*> allWindows;
+		UnorderedMap<UINT32, CocoaWindow*> allWindows;
 		Vector<ModalWindowInfo> modalWindows;
 
 		BSPlatform* platformManager = nil;
@@ -85,7 +85,6 @@ namespace bs
 		WString cachedClipboardData;
 		INT32 clipboardChangeCount = -1;
 	};
-
 }
 
 /**
@@ -246,11 +245,8 @@ namespace bs
 
 	for(auto& entry : platformData->allWindows)
 	{
-		NSWindow* window = entry->_getPrivateData()->window;
-		[window
-			performSelectorOnMainThread:@selector(invalidateCursorRectsForView:)
-			withObject:[window contentView]
-			waitUntilDone:NO];
+		NSWindow* window = entry.second->_getPrivateData()->window;
+		[window invalidateCursorRectsForView:[window contentView]];
 	}
 }
 
@@ -310,6 +306,7 @@ namespace bs
 - (void)resetNonClientAreas:(NSValue*) windowValue
 {
 	bs::CocoaWindow* window = (bs::CocoaWindow*)[windowValue pointerValue];
+
 	window->_setDragZones({});
 }
 
@@ -333,10 +330,10 @@ namespace bs
 	NSDictionary* options = [NSDictionary dictionary];
 
 	NSArray* items = [pasteboard readObjectsForClasses:classes options:options];
-	if(!items)
+	if(!items || items.count == 0)
 		return nil;
 
-	return (NSString*)[items objectAtIndex:0];
+	return (NSString*) items[0];
 }}
 
 - (int32_t)getClipboardChangeCount
@@ -445,11 +442,7 @@ namespace bs
 
 	void Platform::setCursorPosition(const Vector2I& screenPos)
 	{
-		NSPoint point = NSMakePoint(screenPos.x, screenPos.y);
-		CGWarpMouseCursorPosition(point);
-
-		Lock lock(mData->cursorMutex);
-		mData->cursorPos = screenPos;
+		[mData->cursorManager setPosition:screenPos];
 	}
 
 	void Platform::captureMouse(const RenderWindow& window)
@@ -474,7 +467,7 @@ namespace bs
 		CocoaWindow* cocoaWindow;
 		window.getCustomAttribute("COCOA_WINDOW", &cocoaWindow);
 
-		int32_t requestedWindowNumber = (int32_t)cocoaWindow->_getPrivateData()->windowNumber;
+		int32_t requestedWindowNumber = (int32_t)[cocoaWindow->_getPrivateData()->window windowNumber];
 		CGPoint point = CGPointMake(screenPos.x, screenPos.y);
 
 		CFIndex numEntries = CFArrayGetCount(windowDicts);
@@ -701,16 +694,11 @@ namespace bs
 	void Platform::_update()
 	{
 		CocoaDragAndDrop::update();
-	}
 
-	void Platform::_coreUpdate()
-	{
 		{
 			Lock lock(mData->cursorMutex);
 			mData->cursorPos = [mData->cursorManager getPosition];
 		}
-
-		CocoaDragAndDrop::coreUpdate();
 
 		INT32 changeCount = [mData->platformManager getClipboardChangeCount];
 		if(mData->clipboardChangeCount != changeCount)
@@ -729,6 +717,11 @@ namespace bs
 		_messagePump();
 	}
 
+	void Platform::_coreUpdate()
+	{
+		// Do nothing
+	}
+
 	void Platform::_shutDown()
 	{
 		// Do nothing
@@ -740,7 +733,8 @@ namespace bs
 		{
 			if(!mData->modalWindows.empty())
 			{
-				if([NSApp runModalSession:mData->modalWindows.back().session] != NSModalResponseContinue)
+				NSModalSession session = mData->modalWindows.back().session;
+				if([NSApp runModalSession:session] != NSModalResponseContinue)
 					break;
 			}
 			else
@@ -765,17 +759,14 @@ namespace bs
 		if(!mData->mainWindow)
 			mData->mainWindow = window;
 
-		mData->allWindows.push_back(window);
-
 		CocoaWindow::Pimpl* windowData = window->_getPrivateData();
 		if(windowData->isModal)
 		{
-			ModalWindowInfo info;
-			info.window = window;
-			info.session = [NSApp beginModalSessionForWindow:windowData->window];
-
+			ModalWindowInfo info = { window->_getWindowId(), windowData->modalSession };
 			mData->modalWindows.push_back(info);
 		}
+
+		mData->allWindows[window->_getWindowId()] = window;
 	}
 
 	void MacOSPlatform::unregisterWindow(CocoaWindow* window)
@@ -783,22 +774,18 @@ namespace bs
 		CocoaWindow::Pimpl* windowData = window->_getPrivateData();
 		if(windowData->isModal)
 		{
-			auto findIter = std::find_if(mData->modalWindows.begin(), mData->modalWindows.begin(),
-				[window](const ModalWindowInfo& x)
-				{
-					return x.window == window;
-				});
+			UINT32 windowId = window->_getWindowId();
+			auto iterFind = std::find_if(mData->modalWindows.begin(), mData->modalWindows.end(),
+										 [windowId](const ModalWindowInfo& x)
+										 {
+											 return x.windowId == windowId;
+										 });
 
-			if(findIter != mData->modalWindows.end())
-			{
-				[NSApp endModalSession:findIter->session];
-				mData->modalWindows.erase(findIter);
-			}
+			if(iterFind != mData->modalWindows.end())
+				mData->modalWindows.erase(iterFind);
 		}
 
-		auto findIter = std::find(mData->allWindows.begin(), mData->allWindows.end(), window);
-		if(findIter != mData->allWindows.end())
-			mData->allWindows.erase(findIter);
+		mData->allWindows.erase(window->_getWindowId());
 
 		[mData->cursorManager unregisterWindow:windowData->window];
 
@@ -888,6 +875,30 @@ namespace bs
 	void MacOSPlatform::sendMouseWheelScrollEvent(float delta)
 	{
 		onMouseWheelScrolled(delta);
+	}
+
+	void MacOSPlatform::notifyWindowEvent(bs::WindowEventType type, bs::UINT32 windowId)
+	{
+		CocoaWindow* window = nullptr;
+		{
+			auto iterFind = mData->allWindows.find(windowId);
+			if(iterFind == mData->allWindows.end())
+				return;
+
+			window = iterFind->second;
+		}
+
+		auto renderWindow = (RenderWindow*)window->_getUserData();
+		if(renderWindow == nullptr)
+		{
+			// If it's a render window we allow the client code to handle the message, otherwise we just destroy it
+			if(type == WindowEventType::CloseRequested)
+				window->_destroy();
+
+			return;
+		}
+
+		renderWindow->_notifyWindowEvent(type);
 	}
 
 	NSCursor* MacOSPlatform::_getCurrentCursor()

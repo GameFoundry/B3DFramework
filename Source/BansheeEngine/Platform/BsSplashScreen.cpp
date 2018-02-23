@@ -175,12 +175,12 @@ namespace bs
 
 	void SplashScreen::show()
 	{
-		gCoreThread().queueCommand(&SplashScreen::create, CTQF_InternalQueue);
+		SplashScreen::create();
 	}
 
 	void SplashScreen::hide()
 	{
-		gCoreThread().queueCommand(&SplashScreen::destroy, CTQF_InternalQueue);
+		SplashScreen::destroy();
 	}
 
 	void SplashScreen::create()

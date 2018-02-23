@@ -67,6 +67,9 @@ namespace bs
 		/** Sends an event notifying the system the user has scrolled the mouse wheel. */
 		static void sendMouseWheelScrollEvent(float delta);
 
+		/** Notifies the system that some window-related event has occurred. */
+		static void notifyWindowEvent(WindowEventType type, UINT32 windowId);
+
 		/** Returns the currently assigned custom cursor. */
 		static NSCursor* _getCurrentCursor();
 

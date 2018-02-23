@@ -92,13 +92,6 @@ namespace bs
 		static void update();
 
 		/**
-		 * Transfers information about drop areas to the core thread.
-		 *
-		 * @note 	Core thread only.
-		 */
-		static void coreUpdate();
-
-		/**
 		 * Registers a new drop target. Any further events processed will take this target into account, trigger its events
 		 * and populate its data if a drop occurs.
 		 *
@@ -121,16 +114,16 @@ namespace bs
 		static void unregisterDropTarget(DropTarget* target);
 
 		/** Triggered by Cocoa window when mouse cursor enters its content area while dragging. */
-		static bool _notifyDragEntered(CocoaWindow* window, const Vector2I& position);
+		static bool _notifyDragEntered(UINT32 windowId, const Vector2I& position);
 
 		/** Triggered by Cocoa window when mouse cursor moves within its content area while dragging. */
-		static bool _notifyDragMoved(CocoaWindow* window, const Vector2I& position);
+		static bool _notifyDragMoved(UINT32 windowId, const Vector2I& position);
 
 		/** Triggered by Cocoa window when mouse cursor leaves its content area while dragging.  */
-		static void _notifyDragLeft(CocoaWindow* window);
+		static void _notifyDragLeft(UINT32 windowId);
 
 		/** Triggered by Cocoa window when the user stops dragging (drops the items) within the window's content area. */
-		static bool _notifyDragDropped(CocoaWindow* window, const Vector2I& position, const Vector<Path>& paths);
+		static bool _notifyDragDropped(UINT32 windowId, const Vector2I& position, const Vector<Path>& paths);
 
 	private:
 		static Vector<DropArea> sDropAreas;

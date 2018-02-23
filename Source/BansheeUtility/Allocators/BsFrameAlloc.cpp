@@ -285,7 +285,7 @@ namespace bs
 	void FrameAlloc::deallocBlock(MemBlock* block)
 	{
 		block->~MemBlock();
-		bs_free_aligned(block);
+		bs_free_aligned16(block);
 	}
 
 	void FrameAlloc::setOwnerThread(ThreadId thread)

@@ -449,7 +449,11 @@ namespace bs { namespace ct
 				glFramebufferTexture3D(GL_FRAMEBUFFER, attachment, mFaceTarget, mTextureID, mLevel, zoffset);
 				BS_CHECK_GL_ERROR();
 				break;
-			default: // Texture arrays and cube maps
+			case GL_TEXTURE_CUBE_MAP:
+				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, mFaceTarget, mTextureID, mLevel);
+				BS_CHECK_GL_ERROR();
+				break;
+			default: // Texture arrays
 				glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, mTextureID, mLevel, mFace);
 				BS_CHECK_GL_ERROR();
 				break;
