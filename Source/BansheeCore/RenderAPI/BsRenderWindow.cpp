@@ -243,29 +243,31 @@ namespace bs
 		{
 			case WindowEventType::Resized:
 			{
+				_windowMovedOrResized();
+
 				{
 					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.width = props.width;
 					syncProps.height = props.height;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
-				bs::RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
-				_windowMovedOrResized();
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
 
 				break;
 			}
 			case WindowEventType::Moved:
 			{
+				_windowMovedOrResized();
+
 				{
 					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.top = props.top;
 					syncProps.left = props.left;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
-				bs::RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
-				_windowMovedOrResized();
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
 
 				break;
 			}
@@ -276,8 +278,8 @@ namespace bs
 					syncProps.hasFocus = true;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
-				bs::RenderWindowManager::instance().notifyFocusReceived(coreWindow);
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifyFocusReceived(coreWindow);
 				break;
 			}
 			case WindowEventType::FocusLost:
@@ -287,8 +289,8 @@ namespace bs
 					syncProps.hasFocus = false;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
-				bs::RenderWindowManager::instance().notifyFocusLost(coreWindow);
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifyFocusLost(coreWindow);
 				break;
 			}
 			case WindowEventType::Minimized:
@@ -298,7 +300,7 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::Maximized:
@@ -308,7 +310,7 @@ namespace bs
 					syncProps.isMaximized = true;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::Restored:
@@ -318,17 +320,17 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
-				bs::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::MouseLeft:
 			{
-				bs::RenderWindowManager::instance().notifyMouseLeft(coreWindow);
+				RenderWindowManager::instance().notifyMouseLeft(coreWindow);
 				break;
 			}
 			case WindowEventType::CloseRequested:
 			{
-				bs::RenderWindowManager::instance().notifyCloseRequested(coreWindow);
+				RenderWindowManager::instance().notifyCloseRequested(coreWindow);
 				break;
 			}
 		}
@@ -369,7 +371,7 @@ namespace bs
 
 	void RenderWindow::_notifyWindowEvent(WindowEventType type)
 	{
-		THROW_IF_CORE_THREAD;
+		THROW_IF_NOT_CORE_THREAD;
 
 		RenderWindowProperties& syncProps = getSyncedProperties();
 		RenderWindowProperties& props = const_cast<RenderWindowProperties&>(getProperties());
@@ -378,6 +380,8 @@ namespace bs
 		{
 			case WindowEventType::Resized:
 			{
+				_windowMovedOrResized();
+
 				{
 					ScopedSpinLock lock(mLock);
 					syncProps.width = props.width;
@@ -386,12 +390,13 @@ namespace bs
 
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				bs::RenderWindowManager::instance().notifyMovedOrResized(this);
-				_windowMovedOrResized();
 
 				break;
 			}
 			case WindowEventType::Moved:
 			{
+				_windowMovedOrResized();
+
 				{
 					ScopedSpinLock lock(mLock);
 					syncProps.top = props.top;
@@ -400,7 +405,6 @@ namespace bs
 
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				bs::RenderWindowManager::instance().notifyMovedOrResized(this);
-				_windowMovedOrResized();
 
 				break;
 			}

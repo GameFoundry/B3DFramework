@@ -574,8 +574,6 @@ namespace bs
 
 		mSwapChain->rebuild(presentDevice, mSurface, props.width, props.height, props.vsync, mColorFormat, mColorSpace, 
 			mDesc.depthBuffer, mDepthFormat);
-
-		RenderWindow::_windowMovedOrResized();
 	}
 
 	void Win32RenderWindow::syncProperties()

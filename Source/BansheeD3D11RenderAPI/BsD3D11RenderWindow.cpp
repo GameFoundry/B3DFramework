@@ -636,8 +636,6 @@ namespace bs
 			props.top = mWindow->getTop();
 			props.left = mWindow->getLeft();
 		}
-
-		RenderWindow::_windowMovedOrResized();
 	}
 
 	void D3D11RenderWindow::createSwapChain()

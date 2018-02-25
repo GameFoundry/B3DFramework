@@ -80,8 +80,8 @@ namespace bs
 		/**	Returns the native window handle. */
 		HWND getHWnd() const;
 
-        /**	Hide or show the window. */
-        void setHidden(bool hidden);
+		/**	Hide or show the window. */
+		void setHidden(bool hidden);
 
 		/**	Restores or minimizes the window. */
 		void setActive(bool state);
@@ -95,10 +95,10 @@ namespace bs
 		/**	Restores the window to original position and size if it is minimized or maximized. */
 		void restore();
 
-        /**	Change the size of the window. */
-        void resize(UINT32 width, UINT32 height);
+		/**	Change the size of the window. */
+		void resize(UINT32 width, UINT32 height);
 
-        /**	Reposition the window. */
+		/**	Reposition the window. */
 		void move(INT32 left, INT32 top);
 
 		/**	Converts screen position into window local position. */

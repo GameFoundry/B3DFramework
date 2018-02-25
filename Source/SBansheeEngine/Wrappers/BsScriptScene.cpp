@@ -62,7 +62,7 @@ namespace bs
 			if (prefab->isScene())
 			{
 				HSceneObject root = prefab->instantiate();
-				gSceneManager()._setRootNode(root);
+				gSceneManager().setRootNode(root);
 			}
 			else
 			{

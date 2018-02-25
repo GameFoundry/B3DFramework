@@ -609,14 +609,14 @@ namespace bs
 		case WM_SETFOCUS:
 			{
 				if (!win->getProperties().hasFocus)
-					win->_windowFocusReceived();
+					win->_notifyWindowEvent(WindowEventType::FocusReceived);
 
 				return 0;
 			}
 		case WM_KILLFOCUS:
 			{
 				if (win->getProperties().hasFocus)
-					win->_windowFocusLost();
+					win->_notifyWindowEvent(WindowEventType::FocusLost);
 
 				return 0;
 			}
@@ -625,20 +625,20 @@ namespace bs
 				return 0;
 			break;
 		case WM_MOVE:
-			win->_windowMovedOrResized();
+			win->_notifyWindowEvent(WindowEventType::Moved);
 			return 0;
 		case WM_DISPLAYCHANGE:
-			win->_windowMovedOrResized();
+			win->_notifyWindowEvent(WindowEventType::Resized);
 			break;
 		case WM_SIZE:
-			win->_windowMovedOrResized();
+			win->_notifyWindowEvent(WindowEventType::Resized);
 
 			if (wParam == SIZE_MAXIMIZED)
-				win->_notifyMaximized();
+				win->_notifyWindowEvent(WindowEventType::Maximized);
 			else if (wParam == SIZE_MINIMIZED)
-				win->_notifyMinimized();
+				win->_notifyWindowEvent(WindowEventType::Minimized);
 			else if (wParam == SIZE_RESTORED)
-				win->_notifyRestored();
+				win->_notifyWindowEvent(WindowEventType::Restored);
 
 			return 0;
 		case WM_SETCURSOR:
@@ -699,7 +699,7 @@ namespace bs
 			break;
 		case WM_CLOSE:
 			{
-				win->_notifyCloseRequested();
+			win->_notifyWindowEvent(WindowEventType::CloseRequested);
 
 				return 0;
 			}
@@ -758,7 +758,7 @@ namespace bs
 				mData->mIsTrackingMouse = false; // TrackMouseEvent ends when this message is received and needs to be re-applied
 
 				Lock lock(mData->mSync);
-				win->_notifyMouseLeft();
+				win->_notifyWindowEvent(WindowEventType::MouseLeft);
 			}
 			return 0;
 		case WM_LBUTTONUP:

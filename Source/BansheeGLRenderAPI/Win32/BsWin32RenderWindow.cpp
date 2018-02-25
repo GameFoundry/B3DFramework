@@ -316,6 +316,17 @@ namespace bs
 		SetWindowPos(mWindow->getHWnd(), HWND_TOP, props.left, props.top, width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
 		_windowMovedOrResized();
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.top = props.top;
+			mSyncedProperties.left = props.left;
+			mSyncedProperties.width = props.width;
+			mSyncedProperties.height = props.height;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
 	void Win32RenderWindow::setFullscreen(const VideoMode& mode)
@@ -369,14 +380,18 @@ namespace bs
 		SetWindowPos(mWindow->getHWnd(), HWND_NOTOPMOST, left, top, winWidth, winHeight,
 			SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
+		_windowMovedOrResized();
+
 		{
 			ScopedSpinLock lock(mLock);
+			mSyncedProperties.top = props.top;
+			mSyncedProperties.left = props.left;
 			mSyncedProperties.width = props.width;
 			mSyncedProperties.height = props.height;
 		}
 
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		_windowMovedOrResized();
+		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
 	void Win32RenderWindow::move(INT32 left, INT32 top)
@@ -580,8 +595,6 @@ namespace bs
 			props.width = mWindow->getWidth();
 			props.height = mWindow->getHeight();
 		}
-
-		RenderWindow::_windowMovedOrResized();
 	}
 
 	HWND Win32RenderWindow::_getHWnd() const

@@ -55,7 +55,7 @@ namespace bs
 
 			gSceneManager().setComponentState(ComponentState::Stopped);
 			mSavedScene->_instantiate();
-			gSceneManager()._setRootNode(mSavedScene);
+			gSceneManager().setRootNode(mSavedScene);
 
 			mSavedScene = nullptr;
 		}

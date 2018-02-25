@@ -50,10 +50,10 @@ namespace bs
 		GameObjectManager::instance().destroyQueuedObjects();
 
 		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
-		_setRootNode(newRoot);
+		setRootNode(newRoot);
 	}
 
-	void SceneManager::_setRootNode(const HSceneObject& root)
+	void SceneManager::setRootNode(const HSceneObject& root)
 	{
 		if (root == nullptr)
 			return;
