@@ -341,6 +341,17 @@ namespace bs
 		props.height = mode.getHeight();
 
 		_windowMovedOrResized();
+
+		{
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.left = props.left;
+			mSyncedProperties.top = props.top;
+			mSyncedProperties.width = props.width;
+			mSyncedProperties.height = props.height;
+		}
+
+		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::setWindowed(UINT32 width, UINT32 height)
@@ -379,14 +390,18 @@ namespace bs
 		props.width = width;
 		props.height = height;
 
+		_windowMovedOrResized();
+
 		{
 			ScopedSpinLock lock(mLock);
+			mSyncedProperties.left = props.left;
+			mSyncedProperties.top = props.top;
 			mSyncedProperties.width = props.width;
 			mSyncedProperties.height = props.height;
 		}
 
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		_windowMovedOrResized();
+		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::move(INT32 left, INT32 top)
@@ -630,8 +645,6 @@ namespace bs
 			props.width = mWindow->getWidth();
 			props.height = mWindow->getHeight();
 		}
-
-		RenderWindow::_windowMovedOrResized();
 	}
 
 	void LinuxRenderWindow::syncProperties()

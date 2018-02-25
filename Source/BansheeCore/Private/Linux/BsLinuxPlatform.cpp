@@ -874,7 +874,7 @@ namespace bs
 						// If it's a render window we allow the client code to handle the message
 						ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->_getUserData();
 						if(renderWindow != nullptr)
-							renderWindow->_notifyCloseRequested();
+							renderWindow->_notifyWindowEvent(WindowEventType::CloseRequested);
 						else // If not, we just destroy the window
 							window->_destroy();
 					}
@@ -1090,7 +1090,7 @@ namespace bs
 
 				ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xcrossing.window);
 				if(renderWindow != nullptr)
-					renderWindow->_notifyMouseLeft();
+					renderWindow->_notifyWindowEvent(WindowEventType::MouseLeft);
 			}
 				break;
 			case ConfigureNotify:
@@ -1102,7 +1102,10 @@ namespace bs
 
 					ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->_getUserData();
 					if(renderWindow != nullptr)
-						renderWindow->_windowMovedOrResized();
+					{
+						renderWindow->_notifyWindowEvent(WindowEventType::Resized);
+						renderWindow->_notifyWindowEvent(WindowEventType::Moved);
+					}
 				}
 			}
 				break;
@@ -1118,7 +1121,7 @@ namespace bs
 				if (renderWindow != nullptr)
 				{
 					if (!renderWindow->getProperties().hasFocus)
-						renderWindow->_windowFocusReceived();
+						renderWindow->_notifyWindowEvent(WindowEventType::FocusReceived);
 				}
 			}
 				break;
@@ -1134,7 +1137,7 @@ namespace bs
 				if (renderWindow != nullptr)
 				{
 					if (renderWindow->getProperties().hasFocus)
-						renderWindow->_windowFocusLost();
+						renderWindow->_notifyWindowEvent(WindowEventType::FocusLost);
 				}
 			}
 				break;
@@ -1225,17 +1228,17 @@ namespace bs
 							if (foundVert && foundHorz)
 							{
 								if(event.xproperty.state == PropertyNewValue)
-									renderWindow->_notifyMaximized();
+									renderWindow->_notifyWindowEvent(WindowEventType::Maximized);
 								else
-									renderWindow->_notifyRestored();
+									renderWindow->_notifyWindowEvent(WindowEventType::Restored);
 							}
 
 							if(atoms[i] == mData->atomWmStateHidden)
 							{
 								if(event.xproperty.state == PropertyNewValue)
-									renderWindow->_notifyMinimized();
+									renderWindow->_notifyWindowEvent(WindowEventType::Minimized);
 								else
-									renderWindow->_notifyRestored();
+									renderWindow->_notifyWindowEvent(WindowEventType::Restored);
 							}
 						}
 
