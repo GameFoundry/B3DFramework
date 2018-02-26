@@ -84,7 +84,10 @@ namespace bs
 	SPtr<ct::CoreObject> MacOSRenderWindow::createCore() const
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
-		return bs_shared_ptr_new<ct::MacOSRenderWindow>(desc, mWindow->_getWindowId(), mContext);
+		SPtr<ct::CoreObject> obj = bs_shared_ptr_new<ct::MacOSRenderWindow>(
+				desc, mWindowId, mWindow->_getWindowId(), mContext);
+		obj->_setThisPtr(obj);
+		return obj;
 	}
 
 	void MacOSRenderWindow::resize(UINT32 width, UINT32 height)
@@ -414,10 +417,10 @@ namespace bs
 
 	namespace ct
 	{
-		MacOSRenderWindow::MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 cocoaWindowId,
+		MacOSRenderWindow::MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 renderWindowId, UINT32 cocoaWindowId,
 			const SPtr<MacOSContext>& context)
-			: RenderWindow(desc), mShowOnSwap(desc.hideUntilSwap), mCocoaWindowId(cocoaWindowId), mProperties(desc)
-			, mSyncedProperties(desc)
+			: RenderWindow(desc, renderWindowId), mShowOnSwap(desc.hideUntilSwap), mCocoaWindowId(cocoaWindowId)
+			, mProperties(desc), mSyncedProperties(desc)
 		{
 			mContext = context;
 		}

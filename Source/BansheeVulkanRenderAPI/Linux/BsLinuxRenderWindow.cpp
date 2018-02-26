@@ -60,6 +60,17 @@ namespace bs
 		return std::static_pointer_cast<ct::LinuxRenderWindow>(mCoreSpecific);
 	}
 
+	SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
+	{
+		ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::instance());
+
+		RENDER_WINDOW_DESC desc = mDesc;
+		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
+		coreObj->_setThisPtr(coreObj);
+
+		return coreObj;
+	}
+
 	void LinuxRenderWindow::syncProperties()
 	{
 		ScopedSpinLock lock(getCore()->_getPropertiesLock());

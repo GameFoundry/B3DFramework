@@ -121,7 +121,7 @@ namespace bs
 		friend class bs::RenderWindowManager;
 
 		/**	Called whenever a window is created. */
-		UINT32 windowCreated(RenderWindow* window);
+		void windowCreated(RenderWindow* window);
 
 		/**	Called by the core thread when window is destroyed. */
 		void windowDestroyed(RenderWindow* window);

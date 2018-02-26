@@ -252,7 +252,7 @@ namespace bs
 	class BS_CORE_EXPORT RenderWindow : public RenderTarget
 	{
 	public:
-		RenderWindow(const RENDER_WINDOW_DESC& desc);
+		RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
 		virtual ~RenderWindow();
 
 		/** 

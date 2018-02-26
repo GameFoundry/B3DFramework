@@ -22,20 +22,5 @@ namespace bs
 		SPtr<RenderWindow> createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, const SPtr<RenderWindow>& parentWindow) override;
 	};
 
-	namespace ct
-	{
-	/** @copydoc RenderWindowManager */
-	class VulkanRenderWindowManager : public RenderWindowManager
-	{
-	public:
-		VulkanRenderWindowManager(VulkanRenderAPI& renderAPI);
-
-	protected:
-		/** @copydoc RenderWindowManager::createInternal */
-		SPtr<RenderWindow> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
-
-		VulkanRenderAPI& mRenderAPI;
-	};
-	}
 	/** @} */
 }

@@ -119,7 +119,8 @@ namespace bs
 		class MacOSRenderWindow : public RenderWindow
 		{
 		public:
-			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 cocoaWindowId, const SPtr<MacOSContext>& context);
+			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 renderWindowId, UINT32 cocoaWindowId,
+							  const SPtr<MacOSContext>& context);
 
 			/** @copydoc RenderWindow::move */
 			void move(INT32 left, INT32 top) override;

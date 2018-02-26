@@ -263,14 +263,11 @@ namespace bs
 		mDirtyProperties.clear();
 	}
 
-	UINT32 RenderWindowManager::windowCreated(RenderWindow* window)
+	void RenderWindowManager::windowCreated(RenderWindow* window)
 	{
-		UINT32 id = mNextWindowId.fetch_add(1, std::memory_order_relaxed);
 		Lock lock(mWindowMutex);
 
 		mCreatedWindows.push_back(window);
-
-		return id;
 	}
 
 	void RenderWindowManager::windowDestroyed(RenderWindow* window)

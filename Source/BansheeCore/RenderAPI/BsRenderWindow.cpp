@@ -332,10 +332,10 @@ namespace bs
 
 	namespace ct
 	{
-	RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc)
-		:mDesc(desc), mWindowId(0)
+	RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId)
+		:mDesc(desc), mWindowId(windowId)
 	{
-		mWindowId = RenderWindowManager::instance().windowCreated(this);
+		RenderWindowManager::instance().windowCreated(this);
 	}
 
 	RenderWindow::~RenderWindow()

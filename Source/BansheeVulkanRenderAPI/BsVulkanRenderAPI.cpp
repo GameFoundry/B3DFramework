@@ -258,7 +258,7 @@ namespace bs { namespace ct
 
 		// Create render window manager
 		bs::RenderWindowManager::startUp<bs::VulkanRenderWindowManager>();
-		RenderWindowManager::startUp<VulkanRenderWindowManager>(*this);
+		RenderWindowManager::startUp();
 
 		// Create query manager 
 		QueryManager::startUp<VulkanQueryManager>(*this);

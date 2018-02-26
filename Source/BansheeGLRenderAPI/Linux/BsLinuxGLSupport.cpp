@@ -95,13 +95,6 @@ namespace bs { namespace ct
 		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::LinuxRenderWindow, GenAlloc>);
 	}
 
-	SPtr<RenderWindow> LinuxGLSupport::newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId)
-	{
-		LinuxRenderWindow* window = new (bs_alloc<LinuxRenderWindow>()) LinuxRenderWindow(desc, windowId, *this);
-
-		return bs_shared_ptr<LinuxRenderWindow>(window);
-	}
-
 	void LinuxGLSupport::start()
 	{
 		// Retrieve all essential extensions

@@ -56,6 +56,9 @@ namespace bs
 		/** @copydoc RenderWindow::syncProperties */
 		void syncProperties() override;
 
+		/** @copydoc RenderWindow::createCore() */
+		SPtr<ct::CoreObject> createCore() const override;
+
 	private:
 		ct::LinuxGLSupport& mGLSupport;
 		RenderWindowProperties mProperties;
