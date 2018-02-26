@@ -356,10 +356,12 @@ enum class MouseEventType
 		bs::MacOSPlatform::sendInputCommandEvent(ict);
 	else
 	{
-		bs::String utf8String = [string UTF8String];
+		const char* chars = [string UTF8String];
+
+		bs::String utf8String(chars);
 		bs::U32String utf32String = bs::UTF8::toUTF32(utf8String);
 
-		for(size_t i = 0; utf32String.length(); i++)
+		for(size_t i = 0; i < utf32String.length(); i++)
 			bs::MacOSPlatform::sendCharInputEvent(utf32String[i]);
 	}
 }

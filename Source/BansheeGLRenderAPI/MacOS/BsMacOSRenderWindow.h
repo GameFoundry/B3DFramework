@@ -97,8 +97,12 @@ namespace bs
 		/** @copydoc CoreObject::destroy() */
 		void destroy() override;
 
+		/** @copydoc RenderTarget::createCore */
+		SPtr<ct::CoreObject> createCore() const override;
+
 	private:
 		CocoaWindow* mWindow = nullptr;
+		SPtr<ct::MacOSContext> mContext;
 		bool mIsChild = false;
 
 		RenderWindowProperties mProperties;
@@ -115,7 +119,7 @@ namespace bs
 		class MacOSRenderWindow : public RenderWindow
 		{
 		public:
-			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, MacOSGLSupport& glSupport);
+			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 cocoaWindowId, const SPtr<MacOSContext>& context);
 
 			/** @copydoc RenderWindow::move */
 			void move(INT32 left, INT32 top) override;
@@ -132,6 +136,7 @@ namespace bs
 			 * @param[out]	dst		Previously allocated buffer to read the contents into. Must be of valid size.
 			 * @param[in]	buffer	Frame buffer to read the contents from.
 			 *
+			 */
 			void copyToMemory(PixelData& dst, FrameBuffer buffer);
 
 			/** @copydoc RenderWindow::swapBuffers */
@@ -155,14 +160,18 @@ namespace bs
 			/** @copydoc RenderWindow::syncProperties */
 			void syncProperties() override;
 
+			/** @copydoc RenderWindow::initialize */
+			void initialize() override;
+
 		protected:
 			friend class bs::MacOSRenderWindow;
 
 			SPtr<MacOSContext> mContext;
-			ct::MacOSGLSupport& mGLSupport;
+			bool mShowOnSwap;
+			UINT32 mCocoaWindowId;
+
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;
-			bool mShowOnSwap;
 		};
 	}
 

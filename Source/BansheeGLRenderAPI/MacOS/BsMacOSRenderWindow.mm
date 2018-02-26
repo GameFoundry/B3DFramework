@@ -39,7 +39,6 @@ namespace bs
 
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
 
-		mShowOnSwap = mDesc.hideUntilSwap;
 		props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
 		mWindow = bs_new<CocoaWindow>(windowDesc);
@@ -58,9 +57,6 @@ namespace bs
 
 		if(mDesc.fullscreen && !mIsChild)
 			setFullscreen(mDesc.videoMode);
-
-		if(mDesc.vsync && mDesc.vsyncInterval > 0)
-			setVSync(true, mDesc.vsyncInterval);
 
 		RenderWindow::initialize();
 
@@ -83,6 +79,12 @@ namespace bs
 			bs_delete(mWindow);
 			mWindow = nullptr;
 		}
+	}
+
+	SPtr<ct::CoreObject> MacOSRenderWindow::createCore() const
+	{
+		RENDER_WINDOW_DESC desc = mDesc;
+		return bs_shared_ptr_new<ct::MacOSRenderWindow>(desc, mWindow->_getWindowId(), mContext);
 	}
 
 	void MacOSRenderWindow::resize(UINT32 width, UINT32 height)
@@ -354,10 +356,10 @@ namespace bs
 
 	void MacOSRenderWindow::getCustomAttribute(const String& name, void* data) const
 	{
-		if(name == "WINDOW" || name == "COCOA_WINDOW")
+		if(name == "COCOA_WINDOW")
 		{
-			blockUntilCoreInitialized();
-			getCore()->getCustomAttribute(name, data);
+			CocoaWindow** window = (CocoaWindow**)data;
+			*window = mWindow;
 			return;
 		}
 	}
@@ -412,10 +414,19 @@ namespace bs
 
 	namespace ct
 	{
-		MacOSRenderWindow::MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, MacOSGLSupport& glsupport)
-			: RenderWindow(desc, windowId), mWindow(nullptr), mContext(nullptr), mGLSupport(glsupport), mProperties(desc)
-			, mSyncedProperties(desc), mShowOnSwap(false)
-		{ }
+		MacOSRenderWindow::MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 cocoaWindowId,
+			const SPtr<MacOSContext>& context)
+			: RenderWindow(desc), mShowOnSwap(desc.hideUntilSwap), mCocoaWindowId(cocoaWindowId), mProperties(desc)
+			, mSyncedProperties(desc)
+		{
+			mContext = context;
+		}
+
+		void MacOSRenderWindow::initialize()
+		{
+			if(mDesc.vsync && mDesc.vsyncInterval > 0)
+				setVSync(true, mDesc.vsyncInterval);
+		}
 
 		void MacOSRenderWindow::move(INT32 left, INT32 top)
 		{
@@ -520,16 +531,10 @@ namespace bs
 				*contextPtr = mContext;
 				return;
 			}
-			else if(name == "COCOA_WINDOW")
-			{
-				CocoaWindow** window = (CocoaWindow**)data;
-				*window = mWindow;
-				return;
-			}
 			else if(name == "WINDOW_ID")
 			{
 				UINT32* windowId = (UINT32*)data;
-				*windowId = mWindow->_getWindowId();
+				*windowId = mCocoaWindowId;
 			}
 		}
 

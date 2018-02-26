@@ -67,6 +67,8 @@ namespace bs
 	struct Platform::Pimpl
 	{
 		BSAppDelegate* appDelegate = nil;
+
+		Mutex windowMutex;
 		CocoaWindow* mainWindow = nullptr;
 		UnorderedMap<UINT32, CocoaWindow*> allWindows;
 		Vector<ModalWindowInfo> modalWindows;
@@ -262,7 +264,7 @@ namespace bs
 @interface BSPlatform : NSObject
 -(BSPlatform*) initWithPlatformData:(bs::Platform::Pimpl*)platformData;
 -(void) setCaptionNonClientAreas:(NSArray*) params;
--(void) resetNonClientAreas:(NSValue*) windowValue;
+-(void) resetNonClientAreas:(NSValue*) windowIdValue;
 -(void) openFolder:(NSURL*) url;
 -(void) setClipboardText:(NSString*) text;
 -(NSString*) getClipboardText;
@@ -284,8 +286,16 @@ namespace bs
 
 - (void)setCaptionNonClientAreas:(NSArray*)params
 {
-	NSValue* windowValue = params[0];
-	bs::CocoaWindow* window = (bs::CocoaWindow*)[windowValue pointerValue];
+	NSValue* windowIdValue = params[0];
+
+	bs::UINT32 windowId;
+	[windowIdValue getValue:&windowId];
+
+	auto iterFind = mPlatformData->allWindows.find(windowId);
+	if(iterFind == mPlatformData->allWindows.end())
+		return;
+
+	bs::CocoaWindow* window = iterFind->second;
 
 	NSUInteger numEntries = [params count] - 1;
 
@@ -303,10 +313,16 @@ namespace bs
 	window->_setDragZones(areas);
 }
 
-- (void)resetNonClientAreas:(NSValue*) windowValue
+- (void)resetNonClientAreas:(NSValue*) windowIdValue
 {
-	bs::CocoaWindow* window = (bs::CocoaWindow*)[windowValue pointerValue];
+	bs::UINT32 windowId;
+	[windowIdValue getValue:&windowId];
 
+	auto iterFind = mPlatformData->allWindows.find(windowId);
+	if(iterFind == mPlatformData->allWindows.end())
+		return;
+
+	bs::CocoaWindow* window = iterFind->second;
 	window->_setDragZones({});
 }
 
@@ -510,7 +526,7 @@ namespace bs
 
 		if(!mData->cursorIsHidden)
 		{
-			[NSCursor performSelectorOnMainThread:@selector(unhide) withObject:nil waitUntilDone:NO];
+			[NSCursor performSelectorOnMainThread:@selector(hide) withObject:nil waitUntilDone:NO];
 			mData->cursorIsHidden = true;
 		}
 	}
@@ -521,7 +537,7 @@ namespace bs
 
 		if(mData->cursorIsHidden)
 		{
-			[NSCursor performSelectorOnMainThread:@selector(hide) withObject:nil waitUntilDone:NO];
+			[NSCursor performSelectorOnMainThread:@selector(unhide) withObject:nil waitUntilDone:NO];
 			mData->cursorIsHidden = false;
 		}
 	}
@@ -583,10 +599,12 @@ namespace bs
 	{ @autoreleasepool {
 		NSMutableArray* params = [[NSMutableArray alloc] init];
 
-		CocoaWindow* cocoaWindow;
-		window.getCustomAttribute("COCOA_WINDOW", &cocoaWindow);
+		UINT32 windowId;
+		window.getCustomAttribute("WINDOW_ID", &windowId);
 
-		[params addObject:[NSValue valueWithPointer:cocoaWindow]];
+		NSValue* windowIdValue = [NSValue valueWithBytes:&windowId objCType:@encode(UINT32)];
+
+		[params addObject:windowIdValue];
 		for(auto& entry : nonClientAreas)
 			[params addObject:[NSValue value:&entry withObjCType:@encode(bs::Rect2I)]];
 
@@ -603,14 +621,14 @@ namespace bs
 
 	void Platform::resetNonClientAreas(const ct::RenderWindow& window)
 	{
-		CocoaWindow* cocoaWindow;
-		window.getCustomAttribute("COCOA_WINDOW", &cocoaWindow);
+		UINT32 windowId;
+		window.getCustomAttribute("WINDOW_ID", &windowId);
 
-		NSValue* windowValue = [NSValue valueWithPointer:cocoaWindow];
+		NSValue* windowIdValue = [NSValue valueWithBytes:&windowId objCType:@encode(UINT32)];
 
 		[mData->platformManager
 			performSelectorOnMainThread:@selector(resetNonClientAreas:)
-			withObject:windowValue
+			withObject:windowIdValue
 			waitUntilDone:NO];
 	}
 
@@ -766,6 +784,7 @@ namespace bs
 			mData->modalWindows.push_back(info);
 		}
 
+		Lock lock(mData->windowMutex);
 		mData->allWindows[window->_getWindowId()] = window;
 	}
 
@@ -785,6 +804,7 @@ namespace bs
 				mData->modalWindows.erase(iterFind);
 		}
 
+		Lock lock(mData->windowMutex);
 		mData->allWindows.erase(window->_getWindowId());
 
 		[mData->cursorManager unregisterWindow:windowData->window];
@@ -795,6 +815,25 @@ namespace bs
 			bs::gCoreApplication().quitRequested();
 			mData->mainWindow = nullptr;
 		}
+	}
+
+	void MacOSPlatform::lockWindows()
+	{
+		mData->windowMutex.lock();
+	}
+
+	void MacOSPlatform::unlockWindows()
+	{
+		mData->windowMutex.unlock();
+	}
+
+	CocoaWindow* MacOSPlatform::getWindow(UINT32 windowId)
+	{
+		auto iterFind = mData->allWindows.find(windowId);
+		if(iterFind == mData->allWindows.end())
+			return nullptr;
+
+		return iterFind->second;
 	}
 
 	NSImage* MacOSPlatform::createNSImage(const PixelData& data)

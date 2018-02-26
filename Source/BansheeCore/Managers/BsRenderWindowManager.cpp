@@ -253,16 +253,6 @@ namespace bs
 		mNextWindowId = 0;
 	}
 
-	SPtr<RenderWindow> RenderWindowManager::create(RENDER_WINDOW_DESC& desc)
-	{
-		UINT32 id = mNextWindowId.fetch_add(1, std::memory_order_relaxed);
-
-		SPtr<RenderWindow> renderWindow = createInternal(desc, id);
-		renderWindow->initialize();
-
-		return renderWindow;
-	}
-
 	void RenderWindowManager::_update()
 	{
 		Lock lock(mWindowMutex);
@@ -273,11 +263,14 @@ namespace bs
 		mDirtyProperties.clear();
 	}
 
-	void RenderWindowManager::windowCreated(RenderWindow* window)
+	UINT32 RenderWindowManager::windowCreated(RenderWindow* window)
 	{
+		UINT32 id = mNextWindowId.fetch_add(1, std::memory_order_relaxed);
 		Lock lock(mWindowMutex);
 
 		mCreatedWindows.push_back(window);
+
+		return id;
 	}
 
 	void RenderWindowManager::windowDestroyed(RenderWindow* window)

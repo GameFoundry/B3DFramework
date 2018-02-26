@@ -232,9 +232,6 @@ namespace bs
 		/** Returns render window properties that may be edited. */
 		RenderWindowProperties& getMutableProperties();
 
-		/** @copydoc RenderTarget::createCore */
-		SPtr<ct::CoreObject> createCore() const override;
-
 		/**	Updates window properties from the synced property data. */
 		virtual void syncProperties() = 0;
 
@@ -255,7 +252,7 @@ namespace bs
 	class BS_CORE_EXPORT RenderWindow : public RenderTarget
 	{
 	public:
-		RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
+		RenderWindow(const RENDER_WINDOW_DESC& desc);
 		virtual ~RenderWindow();
 
 		/** 

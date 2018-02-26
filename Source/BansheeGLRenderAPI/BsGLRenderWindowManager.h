@@ -25,22 +25,5 @@ namespace bs
 		ct::GLRenderAPI* mRenderSystem;
 	};
 
-	namespace ct
-	{
-	/**	Manager that handles window creation for OpenGL. */
-	class GLRenderWindowManager : public RenderWindowManager
-	{
-	public:
-		GLRenderWindowManager(GLRenderAPI* renderSystem);
-
-	protected:
-		/** @copydoc RenderWindowManager::createInternal */
-		SPtr<RenderWindow> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
-
-	private:
-		GLRenderAPI* mRenderSystem;
-	};
-	}
-
 	/** @} */
 }

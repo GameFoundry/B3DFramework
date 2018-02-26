@@ -4,6 +4,7 @@
 #include "MacOS/BsMacOSGLSupport.h"
 #define BS_COCOA_INTERNALS
 #include "Private/MacOS/BsMacOSWindow.h"
+#include "Private/MacOS/BsMacOSPlatform.h"
 #import <AppKit/AppKit.h>
 
 namespace bs::ct
@@ -71,8 +72,14 @@ namespace bs::ct
 
 	void MacOSContext::setCurrent(const RenderWindow& renderWindow)
 	{
-		CocoaWindow* window;
-		renderWindow.getCustomAttribute("COCOA_WINDOW", &window);
+		UINT32 windowId;
+		renderWindow.getCustomAttribute("WINDOW_ID", &windowId);
+
+		MacOSPlatform::lockWindows();
+
+		CocoaWindow* window = MacOSPlatform::getWindow(windowId);
+		if(!window)
+			return;
 
 		NSWindow* nsWindow = window->_getPrivateData()->window;
 
@@ -81,6 +88,8 @@ namespace bs::ct
 		[m->context update];
 
 		m->dirty = false;
+
+		MacOSPlatform::unlockWindows();
 	}
 
 	void MacOSContext::endCurrent()

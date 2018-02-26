@@ -700,8 +700,13 @@ namespace bs
 					}
 				}
 
+				static int dbgi = 0;
 				if(relX != 0 || relY != 0 || relZ != 0)
+				{
+					LOGWRN("Mouse move " + toString(relX) + " " + toString(relY) + " " + toString(relZ) + " " +
+						toString(dbgi++));
 					mData.owner->_notifyMouseMoved(relX, relY, relZ);
+				}
 
 				for(UINT32 i = 0; i < 24; i++)
 				{
@@ -806,7 +811,7 @@ namespace bs
 					// Usage -1 and 1 are special signals that happen along with every button press/release and should be
 					// ignored
 					if(usage != -1 && usage != 1)
-						button = scanCodeToKeyCode((UINT32)value);
+						button = scanCodeToKeyCode((UINT32)usage);
 				}
 
 				if(button != BC_UNASSIGNED)

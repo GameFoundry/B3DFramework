@@ -21,26 +21,4 @@ namespace bs
 		// Create the window
 		return glSupport->newWindow(desc, windowId, parentWindow);
 	}
-
-	namespace ct
-	{
-	GLRenderWindowManager::GLRenderWindowManager(GLRenderAPI* renderSystem)
-		:mRenderSystem(renderSystem)
-	{
-		assert(mRenderSystem != nullptr);
-	}
-
-	SPtr<RenderWindow> GLRenderWindowManager::createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId)
-	{
-		GLSupport* glSupport = mRenderSystem->getGLSupport();
-
-		// Create the window
-		SPtr<RenderWindow> window = glSupport->newWindowCore(desc, windowId);
-		window->_setThisPtr(window);
-
-		windowCreated(window.get());
-
-		return window;
-	}
-	}
 }

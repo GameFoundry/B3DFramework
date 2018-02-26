@@ -210,12 +210,6 @@ namespace bs
 		return std::static_pointer_cast<ct::RenderWindow>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> RenderWindow::createCore() const
-	{
-		RENDER_WINDOW_DESC desc = mDesc;
-		return ct::RenderWindowManager::instance().createInternal(desc, mWindowId);
-	}
-
 	SPtr<RenderWindow> RenderWindow::create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
 	{
 		return RenderWindowManager::instance().create(desc, parentWindow);
@@ -338,10 +332,10 @@ namespace bs
 
 	namespace ct
 	{
-	RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId)
-		:mDesc(desc), mWindowId(windowId)
+	RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc)
+		:mDesc(desc), mWindowId(0)
 	{
-
+		mWindowId = RenderWindowManager::instance().windowCreated(this);
 	}
 
 	RenderWindow::~RenderWindow()

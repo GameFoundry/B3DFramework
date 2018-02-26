@@ -21,9 +21,6 @@ namespace bs::ct
 		/** @copydoc GLSupport::newWindow */
 		SPtr<bs::RenderWindow> newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<bs::RenderWindow> parentWindow) override;
 
-		/** @copydoc GLSupport::newWindowCore */
-		SPtr<RenderWindow> newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId) override;
-
 		/** @copydoc GLSupport::start */
 		void start() override;
 

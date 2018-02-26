@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Platform/BsPlatform.h"
+#include "RenderAPI/BsRenderWindow.h"
 
 // Don't include macOS frameworks when generating script bindings, as it can't find them
 #ifndef BS_SBGEN
@@ -36,6 +37,22 @@ namespace bs
 
 		/** Notifies the system that a window is about to be destroyed. */
 		static void unregisterWindow(CocoaWindow* window);
+
+		/**
+		 * Locks the access to the list of CocoaWindows ensuring no new windows can be created or destroyed. This must be
+		 * called any time CocoaWindow is being used outside of the main thread to ensure the window doesn't get destroyed
+		 * while being in use. Needs to be followed by unlockWindows().
+		 */
+		static void lockWindows();
+
+		/** Releases the lock acquires by lockWindows(). */
+		static void unlockWindows();
+
+		/**
+		 *  Returns a window based on its ID. Returns null if window cannot be found. Expects the caller to lock windows
+		 *  using lockWindows() in case this is called from non-main thread.
+		 */
+		static CocoaWindow* getWindow(UINT32 windowId);
 
 		/** Generates a Cocoa image from the provided pixel data. */
 		static NSImage* createNSImage(const PixelData& data);

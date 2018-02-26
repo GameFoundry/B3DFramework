@@ -134,7 +134,7 @@ namespace bs { namespace ct
 
 		CommandBufferManager::startUp<GLCommandBufferManager>();
 		bs::RenderWindowManager::startUp<bs::GLRenderWindowManager>(this);
-		RenderWindowManager::startUp<GLRenderWindowManager>(this);
+		RenderWindowManager::startUp();
 
 		RenderStateManager::startUp();
 

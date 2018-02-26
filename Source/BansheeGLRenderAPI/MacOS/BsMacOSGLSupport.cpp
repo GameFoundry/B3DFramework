@@ -18,13 +18,6 @@ namespace bs::ct
 		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
 	}
 
-	SPtr<RenderWindow> MacOSGLSupport::newWindowCore(RENDER_WINDOW_DESC& desc, UINT32 windowId)
-	{
-		MacOSRenderWindow* window = new (bs_alloc<MacOSRenderWindow>()) MacOSRenderWindow(desc, windowId, *this);
-
-		return bs_shared_ptr<MacOSRenderWindow>(window);
-	}
-
 	void MacOSGLSupport::start()
 	{
 		// Do nothing

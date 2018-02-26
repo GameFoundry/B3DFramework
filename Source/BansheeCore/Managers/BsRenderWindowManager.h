@@ -106,9 +106,6 @@ namespace bs
 	public:
 		RenderWindowManager();
 
-		/** Creates a new render window using the specified options. */
-		SPtr<RenderWindow> create(RENDER_WINDOW_DESC& desc);
-
 		/** Called once per frame. Dispatches events. */
 		void _update();
 
@@ -123,11 +120,8 @@ namespace bs
 		friend class bs::RenderWindow;
 		friend class bs::RenderWindowManager;
 
-		/** @copydoc create */
-		virtual SPtr<RenderWindow> createInternal(RENDER_WINDOW_DESC& desc, UINT32 windowId) = 0;
-
 		/**	Called whenever a window is created. */
-		void windowCreated(RenderWindow* window);
+		UINT32 windowCreated(RenderWindow* window);
 
 		/**	Called by the core thread when window is destroyed. */
 		void windowDestroyed(RenderWindow* window);
