@@ -81,9 +81,12 @@ namespace bs { namespace ct
 		glBindTexture(getGLTextureTarget(), mTextureID);
 		BS_CHECK_GL_ERROR();
 
-		// This needs to be set otherwise the texture doesn't get rendered
-		glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips - 1);
-		BS_CHECK_GL_ERROR();
+		if(mProperties.getNumSamples() <= 1)
+		{
+			// This needs to be set otherwise the texture doesn't get rendered
+			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips - 1);
+			BS_CHECK_GL_ERROR();
+		}
 
 		// Allocate internal buffer so that glTexSubImageXD can be used
 		mGLFormat = GLPixelUtil::getGLInternalFormat(mInternalFormat, mProperties.isHardwareGammaEnabled());

@@ -582,6 +582,7 @@ namespace bs
 		outputDesc.sourceCode = &output;
 		outputDesc.options.autoBinding = isVulkan;
 		outputDesc.options.autoBindingStartSlot = startBindingSlot;
+		outputDesc.options.fragmentLocations = true;
 		outputDesc.options.separateShaders = true;
 		outputDesc.options.separateSamplers = false;
 		outputDesc.nameMangling.inputPrefix = "bs_";
@@ -600,7 +601,6 @@ namespace bs
 		case CrossCompileOutput::VKSL45: 
 			outputDesc.shaderVersion = Xsc::OutputShaderVersion::VKSL450;
 			break;
-		default: ;
 		}
 
 		XscLog log;

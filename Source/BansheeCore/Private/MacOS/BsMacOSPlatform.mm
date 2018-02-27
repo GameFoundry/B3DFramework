@@ -722,7 +722,10 @@ namespace bs
 		if(mData->clipboardChangeCount != changeCount)
 		{
 			NSString* string = [mData->platformManager getClipboardText];
-			String utf8String = [string UTF8String];
+			String utf8String;
+
+			if(string)
+				utf8String = [string UTF8String];
 
 			{
 				Lock lock(mData->clipboardMutex);

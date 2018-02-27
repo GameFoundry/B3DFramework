@@ -17,15 +17,7 @@ namespace bs::ct
 
 	MacOSContext::MacOSContext(bool depthStencil, UINT32 msaaCount)
 	{ @autoreleasepool {
-		NSOpenGLPixelFormatAttribute attributes[] =
-		{
-			NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAAccelerated,
-			NSOpenGLPFADepthSize, depthStencil ? 24U : 0U,
-			NSOpenGLPFAStencilSize, depthStencil ? 8U : 0U,
-			NSOpenGLPFASampleBuffers, msaaCount > 1 ? 1U : 0U,
-		};
+		NSOpenGLPixelFormatAttribute attributes[17];
 
 		UINT32 attrIdx = 0;
 

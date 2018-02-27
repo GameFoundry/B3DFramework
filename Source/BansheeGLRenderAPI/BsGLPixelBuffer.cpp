@@ -512,13 +512,13 @@ namespace bs { namespace ct
 			glBindFramebuffer(GL_FRAMEBUFFER, readFBO);
 			BS_CHECK_GL_ERROR();
 
-			src->bindToFramebuffer(0, 0, true);
+			src->bindToFramebuffer(GL_COLOR_ATTACHMENT0, 0, false);
 
 			// Attach destination texture
 			glBindFramebuffer(GL_FRAMEBUFFER, drawFBO);
 			BS_CHECK_GL_ERROR();
 
-			bindToFramebuffer(0, 0, true);
+			bindToFramebuffer(GL_COLOR_ATTACHMENT0, 0, false);
 
 			// Perform blit
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBO);

@@ -210,7 +210,7 @@ namespace bs { namespace ct
 			strcat(versionDefine, VERSION_CHARS);
 			strcat(versionDefine, "\n");
 
-			static const char* EXTRA_LINES[] = 
+			const char* EXTRA_LINES[] =
 				{ 
 					"#define OPENGL\n",
 					versionDefine
@@ -249,14 +249,6 @@ namespace bs { namespace ct
 
 			mCompileError = "";
 			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileError);
-
-
-
-			// DEBUG ONLY
-			if(!mIsCompiled)
-			{
-				LOGWRN(mCompileError);
-			}
 		}
 
 		if (mIsCompiled)

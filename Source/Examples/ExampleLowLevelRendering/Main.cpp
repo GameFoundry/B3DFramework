@@ -70,7 +70,7 @@ namespace bs
 			// Ensure all parent systems are initialized first
 			Application::onStartUp();
 
-			// Get the primary window that was created during start-up. This will be the final desination for all our
+			// Get the primary window that was created during start-up. This will be the final destination for all our
 			// rendering.
 			SPtr<RenderWindow> renderWindow = getPrimaryWindow();
 
@@ -178,7 +178,7 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC vertProgDesc;
 		vertProgDesc.type = GPT_VERTEX_PROGRAM;
 		vertProgDesc.entryPoint = "main";
-		vertProgDesc.language = gUseHLSL ? "hlsl" : gUseVKSL ? "vksl" : "glsl";
+		vertProgDesc.language = gUseHLSL ? "hlsl" : gUseVKSL ? "vksl" : "glsl4_1";
 		vertProgDesc.source = vertProgSrc;
 
 		SPtr<GpuProgram> vertProg = GpuProgram::create(vertProgDesc);
@@ -189,7 +189,7 @@ namespace bs { namespace ct
 		GPU_PROGRAM_DESC fragProgDesc;
 		fragProgDesc.type = GPT_FRAGMENT_PROGRAM;
 		fragProgDesc.entryPoint = "main";
-		fragProgDesc.language = gUseHLSL ? "hlsl" : gUseVKSL ? "vksl" : "glsl";
+		fragProgDesc.language = gUseHLSL ? "hlsl" : gUseVKSL ? "vksl" : "glsl4_1";
 		fragProgDesc.source = fragProgSrc;
 
 		SPtr<GpuProgram> fragProg = GpuProgram::create(fragProgDesc);
@@ -459,25 +459,25 @@ void main(
 
 			return src;
 		}
-		else
+		else if(gUseVKSL)
 		{
 			static const char* src = R"(
 layout (binding = 0, std140) uniform Params
 {
 	mat4 gMatWVP;
 	vec4 gTint;
-};		
+};
 
 layout (location = 0) in vec3 bs_position;
 layout (location = 1) in vec2 bs_texcoord0;
-	
+
 layout (location = 0) out vec2 texcoord0;
 
 out gl_PerVertex
 {
 	vec4 gl_Position;
 };
-	
+
 void main()
 {
 	gl_Position = gMatWVP * vec4(bs_position.xyz, 1);
@@ -485,6 +485,33 @@ void main()
 }
 )";
 
+			return src;
+		}
+		else
+		{
+			static const char* src = R"(
+layout (std140) uniform Params
+{
+	mat4 gMatWVP;
+	vec4 gTint;
+};
+
+in vec3 bs_position;
+in vec2 bs_texcoord0;
+
+out vec2 texcoord0;
+
+out gl_PerVertex
+{
+	vec4 gl_Position;
+};
+
+void main()
+{
+	gl_Position = gMatWVP * vec4(bs_position.xyz, 1);
+	texcoord0 = bs_texcoord0;
+}
+)";
 			return src;
 		}
 	}
@@ -512,17 +539,17 @@ float4 main(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 
 			return src;
 		}
-		else
+		else if(gUseVKSL)
 		{
 			static const char* src = R"(
 layout (binding = 0, std140) uniform Params
 {
 	mat4 gMatWVP;
 	vec4 gTint;
-};	
+};
 
 layout (binding = 1) uniform sampler2D gMainTexture;
-	
+
 layout (location = 0) in vec2 texcoord0;
 layout (location = 0) out vec4 fragColor;
 
@@ -533,6 +560,29 @@ void main()
 }
 )";
 
+			return src;
+		}
+		else
+		{
+
+			static const char* src = R"(
+layout (std140) uniform Params
+{
+	mat4 gMatWVP;
+	vec4 gTint;
+};
+
+uniform sampler2D gMainTexture;
+
+in vec2 texcoord0;
+out vec4 fragColor;
+
+void main()
+{
+	vec4 color = texture(gMainTexture, texcoord0.st);
+	fragColor = color * gTint;
+}
+)";
 			return src;
 		}
 	}
