@@ -212,6 +212,7 @@ namespace bs
 
 		HIDDevice newDevice;
 		newDevice.ref = device;
+		bs_zero_out(newDevice.gamepadAxisTimestamps);
 
 		// Parse device name
 		CFTypeRef propertyRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
@@ -366,6 +367,30 @@ namespace bs
 
 		float targetRange = max - min;
 		return (INT32)(normalizedRange * targetRange) + min;
+	}
+
+	/** Callback triggered when an input value changes. */
+	static void HIDValueChangedCallback(void* context, IOReturn result, void* sender, IOHIDValueRef valueRef)
+	{
+		auto data = (HIDData*)context;
+
+		IOHIDElementRef elementRef = IOHIDValueGetElement(valueRef);
+		auto usage = (UINT32) IOHIDElementGetUsage(elementRef);
+		auto axisValue = (INT32)IOHIDValueGetIntegerValue(valueRef);
+		switch (usage)
+		{
+		case kHIDUsage_GD_X:
+			data->mouseAxisValues[0] += axisValue;
+			break;
+		case kHIDUsage_GD_Y:
+			data->mouseAxisValues[1] += axisValue;
+			break;
+		case kHIDUsage_GD_Z:
+			data->mouseAxisValues[2] += axisValue;
+			break;
+		default:
+			break;
+		}
 	}
 
 	/** Converts a keyboard scan key (as reported by the HID manager) into engine's ButtonCode. */
@@ -525,6 +550,7 @@ namespace bs
 	{
 		mData.type = type;
 		mData.owner = input;
+		bs_zero_out(mData.mouseAxisValues);
 
 		mHIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDManagerOptionNone);
 		if(mHIDManager == nullptr)
@@ -560,6 +586,10 @@ namespace bs
 		IOHIDManagerRegisterDeviceMatchingCallback(mHIDManager, HIDDeviceAddedCallback, &mData);
 		IOHIDManagerRegisterDeviceRemovalCallback(mHIDManager, HIDDeviceRemovedCallback, &mData);
 
+		// We only care about input callbacks for mice, so we can accumulate all axis movement
+		if(type == HIDType::Mouse)
+			IOHIDManagerRegisterInputValueCallback(mHIDManager, HIDValueChangedCallback, &mData);
+
 		CFStringRef runLoopMode = getRunLoopMode(type);
 		IOHIDManagerScheduleWithRunLoop(mHIDManager, CFRunLoopGetCurrent(), runLoopMode);
 
@@ -592,6 +622,9 @@ namespace bs
 
 	void HIDManager::capture(IOHIDDeviceRef device, bool ignoreEvents)
 	{
+		if(mData.type == HIDType::Mouse)
+			bs_zero_out(mData.mouseAxisValues);
+
 		// First trigger any callbacks
 		CFStringRef runLoopMode = getRunLoopMode(mData.type);
 		while(CFRunLoopRunInMode(runLoopMode, 0, TRUE) == kCFRunLoopRunHandledSource)
@@ -603,18 +636,16 @@ namespace bs
 				continue;
 
 			// Read non-queued elements
+			// These are generally gamepad axes for which we only care about the latest absolute values
 			if(!ignoreEvents)
 			{
-				INT32 relX, relY, relZ;
-				relX = relY = relZ = 0;
-
 				struct AxisState
 				{
 					bool moved;
 					INT32 value;
 				};
 
-				AxisState axisValues[24];
+				AxisState axisValues[HID_NUM_GAMEPAD_AXES];
 				bs_zero_out(axisValues);
 
 				for (auto& axis : entry.axes)
@@ -670,45 +701,26 @@ namespace bs
 							break;
 						}
 
-						if((INT32)axisType < 24)
+						if((INT32)axisType < HID_NUM_GAMEPAD_AXES)
 						{
+							IOHIDValueRef valueRef;
+							if(IOHIDDeviceGetValue(device, axis.ref, &valueRef) != kIOReturnSuccess)
+								continue;
+
+							// Ignore if axis value didn't change since last query
+							UINT64 timestamp = IOHIDValueGetTimeStamp(valueRef);
+							if(timestamp == entry.gamepadAxisTimestamps[(INT32)axisType])
+								continue;
+
 							axisValues[(INT32)axisType].moved = true;
 							axisValues[(INT32)axisType].value = axisValue;
-						}
 
-					}
-					else if (mData.type == HIDType::Mouse)
-					{
-						INT32 axisValue = HIDGetElementValue(entry, axis);
-						switch (axis.usage)
-						{
-						case kHIDUsage_GD_X:
-							axisType = InputAxis::MouseX;
-							relX += axisValue;
-							break;
-						case kHIDUsage_GD_Y:
-							axisType = InputAxis::MouseY;
-							relY += axisValue;
-							break;
-						case kHIDUsage_GD_Z:
-							axisType = InputAxis::MouseZ;
-							relZ += axisValue;
-							break;
-						default:
-							break;
+							entry.gamepadAxisTimestamps[(INT32)axisType] = timestamp;
 						}
 					}
 				}
 
-				static int dbgi = 0;
-				if(relX != 0 || relY != 0 || relZ != 0)
-				{
-					LOGWRN("Mouse move " + toString(relX) + " " + toString(relY) + " " + toString(relZ) + " " +
-						toString(dbgi++));
-					mData.owner->_notifyMouseMoved(relX, relY, relZ);
-				}
-
-				for(UINT32 i = 0; i < 24; i++)
+				for(UINT32 i = 0; i < HID_NUM_GAMEPAD_AXES; i++)
 				{
 					if(axisValues[i].moved)
 						mData.owner->_notifyAxisMoved(entry.id, (UINT32)i, axisValues[i].value);
@@ -824,6 +836,13 @@ namespace bs
 
 				CFRelease(valueRef);
 			}
+		}
+
+		// Report mouse axes
+		if (mData.type == HIDType::Mouse)
+		{
+			if (mData.mouseAxisValues[0] != 0 || mData.mouseAxisValues[1] != 0 || mData.mouseAxisValues[2] != 0)
+				mData.owner->_notifyMouseMoved(mData.mouseAxisValues[0], mData.mouseAxisValues[1], mData.mouseAxisValues[2]);
 		}
 	}
 

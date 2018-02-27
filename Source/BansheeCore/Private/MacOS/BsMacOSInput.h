@@ -7,6 +7,9 @@
 
 namespace bs
 {
+	static constexpr UINT32 HID_NUM_MOUSE_AXES = 3;
+	static constexpr UINT32 HID_NUM_GAMEPAD_AXES = 24;
+
 	/** Available types of devices supported by the HIDManager. */
 	enum class HIDType
 	{
@@ -41,6 +44,8 @@ namespace bs
 		Vector<HIDElement> axes;
 		Vector<HIDElement> buttons;
 		Vector<HIDElement> hats;
+
+		UINT64 gamepadAxisTimestamps[HID_NUM_GAMEPAD_AXES];
 	};
 
 	/** Contains information about all enumerated input devices for a specific HIDManager. */
@@ -49,6 +54,8 @@ namespace bs
 		Vector<HIDDevice> devices;
 		HIDType type;
 		Input* owner = nullptr;
+
+		INT32 mouseAxisValues[HID_NUM_MOUSE_AXES];
 	};
 
 	/**
