@@ -74,6 +74,3 @@ User manuals									{#manuals}
  - [Measuring time](@ref time)
  - [Cursors](@ref cursors)
  - [Profiling](@ref cpuProfiling)
-- **Other**
- - [Advanced RTTI](@ref advancedRtti)
- - [Prefabs](@ref prefabs)

@@ -77,7 +77,7 @@ UINT32 vertexSize = props.getVertexSize(0);
 ~~~~~~~~~~~~~
 
 # Index buffer {#geometry_c}
-Finally, before drawing you want to also bind an index buffer. Index buffers are optional, but you will usually want to use them. Each entry in an index buffer points to a vertex in the vertex buffer, and sequential indexes are used for form primitives for rendering (e.g. every three indices will form a triangle). This ensures you can re-use same vertex in multiple primitives, saving on memory and bandwidth, as well as create more optimal vertex order for GPU processing. Without an index buffer the vertices are instead read sequentially in the order they are defined in the vertex buffer.
+Finally, before drawing you will usually also want to also bind an index buffer. Index buffers are optional, but should be used in most cases. Each entry in an index buffer points to a vertex in the vertex buffer, and sequential indices are used to form primitives for rendering (e.g. every three indices will form a triangle). This ensures you can re-use same vertex in multiple primitives, saving on memory and bandwidth, as well as create more optimal vertex order for GPU processing. Without an index buffer the vertices are instead read sequentially in the order they are defined in the vertex buffer.
 
 To create an index buffer call @ref bs::ct::IndexBuffer::create "ct::IndexBuffer::create()" with a populated @ref bs::INDEX_BUFFER_DESC "INDEX_BUFFER_DESC" structure. The call requires a number of indices and their type. Indices can be either 16- or 32-bit. 
 

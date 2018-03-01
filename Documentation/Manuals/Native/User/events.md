@@ -45,7 +45,7 @@ public:
 
 # Subscribing to events
 
-An external object can register itself with an event by calling @ref bs::TEvent<RetType, Args> "Event::connect". 
+An external object can register itself with an event by calling @ref bs::TEvent<RetType, Args> "Event::connect()". 
 ~~~~~~~~~~~~~{.cpp}
 // Define a couple of methods that trigger when events are triggered
 auto playerJumpedCallback = [&]()
@@ -120,6 +120,30 @@ class MyEventSubscriber
 		// Bind the "this" pointer
 		auto callback = std::bind(&MyEventSubscriber::playerJumpedCallback, this);
 	
+		// Register the callback without the event needing to know about "this" pointer parameter
+		playerController.onPlayerJumped.connect(callback);
+	}
+};
+~~~~~~~~~~~~~
+
+Alternatively, you can wrap the class function call in a lambda function while capturing *this*.
+~~~~~~~~~~~~~{.cpp}
+// Alternative version of the above example, using lambda instead of std::bind
+class MyEventSubscriber
+{
+	void playerJumpedCallback() // Has a hidden "this" pointer parameter
+	{
+		gDebug().logDebug("Player jumped!");
+	}
+	
+	void subscribeToEvents(MyPlayerController& playerController)
+	{
+		// Wrap our class method call in a lambda function
+		auto callback = [this]()
+		{
+			playerJumpedCallback();
+		};
+		
 		// Register the callback without the event needing to know about "this" pointer parameter
 		playerController.onPlayerJumped.connect(callback);
 	}

@@ -276,7 +276,7 @@ namespace bs
 		//       an intermediate matrix.
 		Matrix3 rot;
 		toRotationMatrix(rot);
-		return rot.transform(v);
+		return rot.multiply(v);
 	}
 
 	void Quaternion::lookRotation(const Vector3& forwardDir)

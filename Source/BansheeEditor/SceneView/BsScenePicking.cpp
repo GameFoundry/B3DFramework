@@ -62,7 +62,7 @@ namespace bs
 		{
 			Matrix3 rotation;
 			selectedObjects[0]->getTransform().getRotation().toRotationMatrix(rotation);
-			data->normal = rotation.inverse().transpose().transform(data->normal);
+			data->normal = rotation.inverse().transpose().multiply(data->normal);
 		}
 		
 		return selectedObjects[0];

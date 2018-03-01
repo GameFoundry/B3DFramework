@@ -54,7 +54,7 @@ HProfilerOverlay profilerOverlay = profilerOverlaySO->addComponent<CProfilerOver
 ~~~~~~~~~~~~~
 
 ## Threads
-The profiler is thread-safe, but if you are profiling code on threads not managed by the engine, you must manually call @ref bs::ProfilerCPU::beginThread "ProfilerCPU::beginThread" before any sample calls, and @ref bs::ProfilerCPU::endThread "ProfilerCPU::endThread" after all sample calls.
+The profiler is thread-safe, but if you are profiling code on threads not managed by the engine, you must manually call @ref bs::ProfilerCPU::beginThread "ProfilerCPU::beginThread()" before any sample calls, and @ref bs::ProfilerCPU::endThread "ProfilerCPU::endThread()" after all sample calls.
 
 ## Overhead
 Profiler code itself will introduce a certain amount of overhead which will slightly skew profiling results. The profiler attempts to estimate this error, which is reported in the returned reports. You can choose to take this into consideration if you need really precise results.

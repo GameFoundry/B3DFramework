@@ -21,12 +21,12 @@ namespace bs
 		{ }
 
 		inline Vector2I(INT32 _x, INT32 _y )
-            :x(_x), y(_y)
-        { }
+			:x(_x), y(_y)
+		{ }
 
-        explicit Vector2I(int val)
-            :x(val), y(val)
-        { }
+		explicit Vector2I(int val)
+			:x(val), y(val)
+		{ }
 
 		/** Exchange the contents of this vector with another. */
 		void swap(Vector2I& other)
@@ -42,26 +42,26 @@ namespace bs
 		}
 
 		INT32 operator[] (size_t i) const
-        {
-            assert(i < 2);
+		{
+			assert(i < 2);
 
-            return *(&x+i);
-        }
+			return *(&x+i);
+		}
 
 		INT32& operator[] (size_t i)
-        {
-            assert(i < 2);
+		{
+			assert(i < 2);
 
-            return *(&x+i);
-        }
+			return *(&x+i);
+		}
 
-        Vector2I& operator= (const Vector2I& rhs)
-        {
-            x = rhs.x;
-            y = rhs.y;
+		Vector2I& operator= (const Vector2I& rhs)
+		{
+			x = rhs.x;
+			y = rhs.y;
 
-            return *this;
-        }
+			return *this;
+		}
 
 		Vector2I& operator= (int val)
 		{
@@ -71,129 +71,129 @@ namespace bs
 			return *this;
 		}
 
-        bool operator== (const Vector2I& rhs) const
-        {
-            return (x == rhs.x && y == rhs.y);
-        }
+		bool operator== (const Vector2I& rhs) const
+		{
+			return (x == rhs.x && y == rhs.y);
+		}
 
-        bool operator!= (const Vector2I& rhs) const
-        {
-            return (x != rhs.x || y != rhs.y);
-        }
+		bool operator!= (const Vector2I& rhs) const
+		{
+			return (x != rhs.x || y != rhs.y);
+		}
 
-        Vector2I operator+ (const Vector2I& rhs) const
-        {
-            return Vector2I(x + rhs.x, y + rhs.y);
-        }
+		Vector2I operator+ (const Vector2I& rhs) const
+		{
+			return Vector2I(x + rhs.x, y + rhs.y);
+		}
 
-        Vector2I operator- (const Vector2I& rhs) const
-        {
-            return Vector2I(x - rhs.x, y - rhs.y);
-        }
+		Vector2I operator- (const Vector2I& rhs) const
+		{
+			return Vector2I(x - rhs.x, y - rhs.y);
+		}
 
-        Vector2I operator* (int val) const
-        {
-            return Vector2I(x * val, y * val);
-        }
+		Vector2I operator* (int val) const
+		{
+			return Vector2I(x * val, y * val);
+		}
 
-        Vector2I operator* (const Vector2I& rhs) const
-        {
-            return Vector2I(x * rhs.x, y * rhs.y);
-        }
+		Vector2I operator* (const Vector2I& rhs) const
+		{
+			return Vector2I(x * rhs.x, y * rhs.y);
+		}
 
-        Vector2I operator/ (int val) const
-        {
-            assert(val != 0);
+		Vector2I operator/ (int val) const
+		{
+			assert(val != 0);
 
-            return Vector2I(x / val, y / val);
-        }
+			return Vector2I(x / val, y / val);
+		}
 
-        Vector2I operator/ (const Vector2I& rhs) const
-        {
-            return Vector2I(x / rhs.x, y / rhs.y);
-        }
+		Vector2I operator/ (const Vector2I& rhs) const
+		{
+			return Vector2I(x / rhs.x, y / rhs.y);
+		}
 
-        const Vector2I& operator+ () const
-        {
-            return *this;
-        }
+		const Vector2I& operator+ () const
+		{
+			return *this;
+		}
 
-        Vector2I operator- () const
-        {
-            return Vector2I(-x, -y);
-        }
+		Vector2I operator- () const
+		{
+			return Vector2I(-x, -y);
+		}
 
-        friend Vector2I operator* (int lhs, const Vector2I& rhs)
-        {
-            return Vector2I(lhs * rhs.x, lhs * rhs.y);
-        }
+		friend Vector2I operator* (int lhs, const Vector2I& rhs)
+		{
+			return Vector2I(lhs * rhs.x, lhs * rhs.y);
+		}
 
-        friend Vector2I operator/ (int lhs, const Vector2I& rhs)
-        {
-            return Vector2I(lhs / rhs.x, lhs / rhs.y);
-        }
+		friend Vector2I operator/ (int lhs, const Vector2I& rhs)
+		{
+			return Vector2I(lhs / rhs.x, lhs / rhs.y);
+		}
 
-        Vector2I& operator+= (const Vector2I& rhs)
-        {
-            x += rhs.x;
-            y += rhs.y;
+		Vector2I& operator+= (const Vector2I& rhs)
+		{
+			x += rhs.x;
+			y += rhs.y;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        Vector2I& operator-= (const Vector2I& rhs)
-        {
-            x -= rhs.x;
-            y -= rhs.y;
+		Vector2I& operator-= (const Vector2I& rhs)
+		{
+			x -= rhs.x;
+			y -= rhs.y;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        Vector2I& operator*= (INT32 val)
-        {
-            x *= val;
-            y *= val;
+		Vector2I& operator*= (INT32 val)
+		{
+			x *= val;
+			y *= val;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        Vector2I& operator*= (const Vector2I& rhs)
-        {
-            x *= rhs.x;
-            y *= rhs.y;
+		Vector2I& operator*= (const Vector2I& rhs)
+		{
+			x *= rhs.x;
+			y *= rhs.y;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        Vector2I& operator/= (INT32 val)
-        {
-            assert(val != 0);
+		Vector2I& operator/= (INT32 val)
+		{
+			assert(val != 0);
 
-            x /= val;
-            y /= val;
+			x /= val;
+			y /= val;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        Vector2I& operator/= (const Vector2I& rhs)
-        {
-            x /= rhs.x;
-            y /= rhs.y;
+		Vector2I& operator/= (const Vector2I& rhs)
+		{
+			x /= rhs.x;
+			y /= rhs.y;
 
-            return *this;
-        }
+			return *this;
+		}
 
-        /** Returns the square of the length(magnitude) of the vector. */
-        INT32 squaredLength() const
-        {
-            return x * x + y * y;
-        }
+		/** Returns the square of the length(magnitude) of the vector. */
+		INT32 squaredLength() const
+		{
+			return x * x + y * y;
+		}
 
-        /** Calculates the dot (scalar) product of this vector with another. */
+		/** Calculates the dot (scalar) product of this vector with another. */
 		INT32 dot(const Vector2I& vec) const
-        {
-            return x * vec.x + y * vec.y;
-        }
+		{
+			return x * vec.x + y * vec.y;
+		}
 
 		static const Vector2I ZERO;
 	};

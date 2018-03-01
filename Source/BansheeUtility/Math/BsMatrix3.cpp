@@ -138,7 +138,7 @@ namespace bs
 		return prod;
 	}
 
-	Vector3 Matrix3::transform(const Vector3& vec) const
+	Vector3 Matrix3::multiply(const Vector3& vec) const
 	{
 		Vector3 prod;
 		for (UINT32 row = 0; row < 3; row++)

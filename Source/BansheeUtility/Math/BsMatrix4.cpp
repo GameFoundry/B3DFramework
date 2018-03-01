@@ -244,7 +244,7 @@ namespace bs
 
 		// Make the translation relative to new axes
 		Matrix3 rotT = rot.transpose();
-		Vector3 trans = (-rotT).transform(position);
+		Vector3 trans = (-rotT).multiply(position);
 
 		// Make final matrix
 		*this = Matrix4(rotT);

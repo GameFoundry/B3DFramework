@@ -103,7 +103,7 @@ namespace bs
 		xform[2][0] = -normal.z * normal.x;
 		xform[2][1] = -normal.z * normal.y;
 		xform[2][2] = 1.0f - normal.z * normal.z;
-		return xform.transform(point);
+		return xform.multiply(point);
 
 	}
 

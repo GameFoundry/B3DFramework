@@ -1,7 +1,7 @@
 Smart pointers						{#smartPointers}
 ===============
 
-Smart pointers allow the user to allocate objects dynamically (i.e. like using *new* or *malloc*), but without having to worry about freeing the object. They are prefered to normal memory allocation as they prevent memory leaks when the user might forget to free memory. They are also very useful in situations when object ownership is not clearly defined and it might not be clear who is responsible for freeing the object, or when.
+Smart pointers allow the user to allocate objects dynamically, but without having to worry about freeing the object. They are prefered to normal memory allocation as they prevent memory leaks when the user might forget to free memory. They are particularily very useful in situations when object ownership is not clearly defined and it might not be clear who is responsible for freeing the object, or when.
 
 # Unique pointers
 Unique pointers hold ownership of a dynamically allocated object, and automatically free it when they go out of scope. As their name implies they cannot be copied - in other words, only one pointer to that object can exist. They are mostly useful for temporary allocations, or for places where object ownership is clearly defined to a single owner.
@@ -50,5 +50,5 @@ SPtr<MyStruct> ptr = bs_shared_ptr_new<MyStruct>(123, false);
 SPtr<MyStruct> anotherPtr = ptr;
 
 // Object will be freed after both "ptr" and "anotherPtr" go out of scope. 
-// Normally you'd want to pass a copy of the pointer to some other system, otherwise we could have used a unique ptr
+// Normally you'd want to pass a copy of the pointer to some other system, otherwise we could have used a unique ptr in this particular example
 ~~~~~~~~~~~~~

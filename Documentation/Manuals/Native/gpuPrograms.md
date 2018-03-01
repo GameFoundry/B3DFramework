@@ -12,7 +12,7 @@ In bs::f they are represented with the @ref bs::ct::GpuProgram "ct::GpuProgram" 
 To create a GPU program call @ref bs::ct::GpuProgram::create() "ct::GpuProgram::create()" with a @ref bs::GPU_PROGRAM_DESC "GPU_PROGRAM_DESC" structure. The structure needs to have the following fields populated:
  - @ref bs::GPU_PROGRAM_DESC::source "GPU_PROGRAM_DESC::source" - Source code of the GPU program. This should be in a language supported by the current render API (e.g. HLSL for DirectX, GLSL for OpenGL/Vulkan).
  - @ref bs::GPU_PROGRAM_DESC::entryPoint "GPU_PROGRAM_DESC::entryPoint" - Name of the entry point into the GPU program. This is the name of the function that will be called when the program is ran. Must be "main" for OpenGL & Vulkan.
- - @ref bs::GPU_PROGRAM_DESC::language "GPU_PROGRAM_DESC::language" - Language the source code is written in. This can be "hlsl" or "glsl".
+ - @ref bs::GPU_PROGRAM_DESC::language "GPU_PROGRAM_DESC::language" - Language the source code is written in. This can be "hlsl", "glsl" or "vksl".
  - @ref bs::GPU_PROGRAM_DESC::type "GPU_PROGRAM_DESC::type" - @ref bs::GpuProgramType "GpuProgramType" of the GPU program (vertex, fragment, etc.).
  
 For example if we wanted to create a HLSL fragment program (HLSL source not shown):
@@ -95,7 +95,7 @@ You generally don't need to use this information directly. It is instead automat
 
 ## GpuParams {#gpuPrograms_c_a}
 **GpuParams** is a container for all parameters required by a single GPU pipeline (graphics or compute). It allows you to set primitive/texture/sampler/buffer parameters used by the GPU programs, which it stores in an internal buffer. You can then bind it
-to a **RenderAPI** similar to how you bind the pipeline themselves. Assigned parameter will then be using with the current pipeline in any following *draw* or *dispatch* calls.
+to a **RenderAPI** similar to how you bind the pipeline themselves. Assigned parameter will then be used with the current pipeline in any following *draw* or *dispatch* calls.
 
 To create a **GpuParams** object call @ref bs::ct::GpuParams::create "ct::GpuParams::create()" with either a graphics or a compute pipeline state as a parameter.
 
@@ -190,7 +190,7 @@ params->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "myParamBlock", buffer);
 
 After it is bound you we free to set primitive parameters and they will be stored in the bound buffer. This buffer can then be shared between multiple GPU programs and/or GPU pipelines.
 
-> You can also write to **GpuParamBlockBuffer** directly by calling its @ref bs::ct::GpuParamBlockBuffer::write "ct::GpuParamBlockBuffer::write()" method. In this case you must be careful to respect the layout of the variables in the buffer as expected by the shader. This layout can be determined by examining the other entries in **GpuParamDesc** structure.
+> You can also write to **GpuParamBlockBuffer** directly by calling its @ref bs::ct::GpuParamBlockBuffer::write "ct::GpuParamBlockBuffer::write()" method. In this case you must be careful to respect the layout of the variables in the buffer as expected by the render backend. This layout can be determined by examining the other entries in **GpuParamDesc** structure.
 
 ## Binding GPU params {#gpuPrograms_c_c}
 Once **GpuParams** has been created and populated with necessary data, you can bind it to the GPU by calling @ref bs::ct::RenderAPI::setGpuParams "ct::RenderAPI::setGpuParams()". 
@@ -212,7 +212,7 @@ Input declaration can be used for creating meshes or vertex buffers that provide
 
 > Note: This method is only available on the core thread version of **GpuProgram**.
 
-## GLSL specifics {#gpuPrograms_d_a}
+# GLSL specifics {#gpuPrograms_e}
 When declaring vertex inputs for a GPU program written in GLSL you should use the following variable names depending on the input usage:
  - bs_position - Vertex position
  - bs_normal - Vertex normal

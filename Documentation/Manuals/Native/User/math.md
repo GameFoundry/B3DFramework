@@ -33,7 +33,7 @@ float length = a.length();
 ~~~~~~~~~~~~~
 
 ## Integer vectors
-Integer 2D vector type is also provided as @ref bs::Vector2I "Vector2I". It also supports a full range of operators and comes with a few helper methods. Higher level integer vector types can also be created in the form of @ref bs::VectorNI<T> "bs::VectorNI<T>".
+Integer 2D vector type is also provided as @ref bs::Vector2I "Vector2I". It also supports a full range of operators and comes with a few helper methods. Higher level integer vector types can also be created in the form of @ref bs::Vector3I "Vector3I" and @ref bs::Vector4I "Vector4I".
 
 ~~~~~~~~~~~~~{.cpp}
 Vector2I intVec(0, 10);
@@ -177,11 +177,11 @@ Vector3 scale(1.0f, 0.5f, 2.0f);
 Matrix3 d(someQuat, scale);
 ~~~~~~~~~~~~~
 
-To apply a matrix transformation to a 3D vector call @ref bs::Matrix3::transform "Matrix3::transform()".
+To apply a matrix transformation to a 3D vector call @ref bs::Matrix3::multiply() "Matrix3::multiply()".
 
 ~~~~~~~~~~~~~{.cpp}
 Vector3 myVector(1, 0, 0);
-Vector3 transformedVector = b.transform(myVector);
+Vector3 transformedVector = b.multiply(myVector);
 ~~~~~~~~~~~~~
 
 Matrices can be multiplied to combine their transformations.
@@ -341,7 +341,7 @@ bs::f supports a variety of other 3D shapes:
  - @ref bs::Plane "Plane"
  - @ref bs::Capsule "Capsule"
  
-We'll let you deduce how they are used from their API reference, as it should be fairly self explanatory. All of the shapes provide a way be initialized, to be transformed by a world matrix as well a set of intersection tests against rays and other shapes.
+How they work should be self explanatory from their API reference. All of the shapes provide a way be initialized, to be transformed by a world matrix as well a set of intersection tests against rays and other shapes.
 
 ~~~~~~~~~~~~~{.cpp}
 // Axis aligned box created from minimum and maximum corners

@@ -2,9 +2,9 @@ Core Thread								{#coreThread}
 ===============
 [TOC]
 
-bs::f is a multi-threaded engine that has two primary threads. One is the main thread on which the application is started, this is where your game code runs and what majority of users will be working with, we call this the **simulation** thread. The second thread is the rendering thread, this is where all calls to render API (like Vulkan/DirectX/OpenGL) are made. This thread also deals with the OS (like the main message loop). We call this the **core** thread.
+bs::f is a multi-threaded framework that has two primary threads. One is the main thread on which the application is started, this is where your game code runs and what majority of users will be working with, we call this the **simulation** thread. The second thread is the rendering thread, this is where all calls to render API (like Vulkan/DirectX/OpenGL) are made. This thread also deals with the OS (like the main message loop). We call this the **core** thread.
 
-Various other operations can use threads other than the two primary ones (async resource loading, physics, animation, etc.) in the form of worker threads or tasks. But we won't touch on those as they act as standard threads and the system using them has full control.
+Various other operations can use threads other than the two primary ones (async resource loading, physics, animation, etc.) in the form of worker threads or tasks. But we won't touch on those as they act as standard threads and require no special handling.
 
 Dealing with the core thread on the other hand requires some knowledge of how it interacts with the simulation thread. The core threads deals with:
  - Render API calls (Vulkan/DirectX/OpenGL)

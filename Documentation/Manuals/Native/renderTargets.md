@@ -26,19 +26,19 @@ rapi.setViewport(Rect2(0.25f, 0.25f, 0.5f, 0.5f));
 
 ## Advanced binding {#renderTargets_a_a}
 **ct::RenderAPI::setRenderTarget()** also has a couple of parameters to control more advanced behaviour:
- - @p readOnlyDepthStencil - Guarantees that the depth/stencil portion of the render target will not be written to. This allows the depth/stencil texture to be bound both as a render target, as well as a normal GPU program input.
+ - @p readOnlyFlags - Combination of one or more elements of @ref bs::FrameBufferType "FrameBufferType" denoting which buffers will be bound for read-only operations. This is useful for depth or stencil buffers which need to be bound both for depth/stencil tests, as well as shader reads. If you don't specify this the render backend will assume you will be writing to the render target which will result in undefined behaviour if you also try reading from that same texture.
  - @p loadMask - Mask described by @ref bs::RenderSurfaceMaskBits "RenderSurfaceMaskBits" which controls if current contents of any of the render target surfaces should be preserved. By default the system doesn't guarantee the contents will be preserved and data is instead undefined. In certain cases (like blending operations) you want to preserve the contents, in which case specify the necessary flags to tell the system which surfaces need their contents preserved.
 
 ~~~~~~~~~~~~~{.cpp}
 // Bind a render target with read-only depth/stencil, and preserve the existing contents of depth-stencil buffer on bind
 RenderAPI& rapi = RenderAPI::instance();
-rapi.setRenderTarget(target, true, RT_DEPTH);
+rapi.setRenderTarget(target, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 ~~~~~~~~~~~~~
  
 # Clearing {#renderTargets_b}
 Usually a render target will be re-used many times. Unless you are sure that every use will completely overwrite the render target contents, it can be beneficial (and in some cases necessary) to clear the render target to some value. Call @ref bs::ct::RenderAPI::clearRenderTarget "ct::RenderAPI::clearRenderTarget()" to clear the currently bound render target. 
 
-The first parameter represents a @ref bs::FrameBufferType "FrameBufferType" of which portions of the target to clear. Second, third and fourth parameters represent the clear values for the color, depth and stencil surfaces, respectively. In case you want to clear only a specific color surface (in case they are multiple), you can use the fifth parameter as a bitmask of which color surfaces to clear.
+The first parameter represents a **FrameBufferType** of which portions of the target to clear. Second, third and fourth parameters represent the clear values for the color, depth and stencil surfaces, respectively. In case you want to clear only a specific color surface (in case they are multiple), you can use the fifth parameter as a bitmask of which color surfaces to clear.
 
 ~~~~~~~~~~~~~{.cpp}
 // Clear color and depth surfaces. All color surfaces are cleared to blue color, while depth is cleared to the value of 1

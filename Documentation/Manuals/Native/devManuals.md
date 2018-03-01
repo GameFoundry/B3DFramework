@@ -26,6 +26,7 @@ Developer manuals									{#devManuals}
 - [Advanced materials](@ref advMaterials)
 - [Threading](@ref threading)
 - [Plugins](@ref plugins)
+- [Advanced RTTI](@ref advancedRtti)
 - **Renderer**
  - [Renderer extensions](@ref rendererExtensions)
  - [Creating a renderer plugin](@ref customRenderer)

@@ -147,7 +147,7 @@ namespace bs
 		friend Matrix3 operator* (float lhs, const Matrix3& rhs);
 
 		/** Transforms the given vector by this matrix and returns the newly transformed vector. */
-		Vector3 transform(const Vector3& vec) const;
+		Vector3 multiply(const Vector3& vec) const;
 
 		/** Returns a transpose of the matrix (switched columns and rows). */
 		Matrix3 transpose () const;
