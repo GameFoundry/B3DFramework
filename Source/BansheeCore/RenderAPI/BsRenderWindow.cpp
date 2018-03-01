@@ -49,15 +49,6 @@ namespace bs
 		getMutableProperties().width = width;
 		getMutableProperties().height = height;
 
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().width = width;
-			getCore()->getSyncedProperties().height = height;
-		}
-
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
-		onResized();
-
 		gCoreThread().queueCommand(std::bind(resizeFunc, getCore(), width, height));
 	}
 
@@ -72,13 +63,6 @@ namespace bs
 		getMutableProperties().left = left;
 		getMutableProperties().top = top;
 
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().left = left;
-			getCore()->getSyncedProperties().top = top;
-		}
-
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(moveFunc, getCore(), left, top));
 	}
 
@@ -91,12 +75,7 @@ namespace bs
 		};
 
 		getMutableProperties().isHidden = true;
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().isHidden = true;
-		}
 
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(hideFunc, getCore()));
 	}
 
@@ -109,12 +88,7 @@ namespace bs
 		};
 
 		getMutableProperties().isHidden = false;
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().isHidden = false;
-		}
 
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(showFunc, getCore()));
 	}
 
@@ -127,12 +101,7 @@ namespace bs
 		};
 
 		getMutableProperties().isMaximized = false;
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().isMaximized = false;
-		}
 
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(minimizeFunc, getCore()));
 	}
 
@@ -145,12 +114,7 @@ namespace bs
 		};
 
 		getMutableProperties().isMaximized = true;
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().isMaximized = true;
-		}
 
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(maximizeFunc, getCore()));
 	}
 
@@ -163,12 +127,7 @@ namespace bs
 		};
 
 		getMutableProperties().isMaximized = false;
-		{
-			ScopedSpinLock lock(getCore()->mLock);
-			getCore()->getSyncedProperties().isMaximized = false;
-		}
 
-		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		gCoreThread().queueCommand(std::bind(restoreFunc, getCore()));
 	}
 
@@ -245,7 +204,7 @@ namespace bs
 					syncProps.height = props.height;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
 
 				break;
@@ -260,7 +219,7 @@ namespace bs
 					syncProps.left = props.left;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyMovedOrResized(coreWindow);
 
 				break;
@@ -272,7 +231,7 @@ namespace bs
 					syncProps.hasFocus = true;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyFocusReceived(coreWindow);
 				break;
 			}
@@ -283,7 +242,7 @@ namespace bs
 					syncProps.hasFocus = false;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyFocusLost(coreWindow);
 				break;
 			}
@@ -294,7 +253,7 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::Maximized:
@@ -304,7 +263,7 @@ namespace bs
 					syncProps.isMaximized = true;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::Restored:
@@ -314,7 +273,7 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
-				RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
+				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
 			case WindowEventType::MouseLeft:

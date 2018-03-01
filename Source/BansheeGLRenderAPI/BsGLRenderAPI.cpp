@@ -432,8 +432,9 @@ namespace bs { namespace ct
 					return unit;
 				};
 
-				UINT32 imageUnitCount = 0;
 				FrameVector<UINT32> imageUnits(6);
+#if BS_OPENGL_4_2 || BS_OPENGLES_3_1
+				UINT32 imageUnitCount = 0;
 				auto getImageUnit = [&](UINT32 binding)
 				{
 					for (UINT32 i = 0; i < (UINT32)imageUnits.size(); i++)
@@ -447,6 +448,7 @@ namespace bs { namespace ct
 
 					return unit;
 				};
+#endif
 
 				UINT32 uniformUnitCount = 0;
 				FrameVector<UINT32> uniformUnits(6);
@@ -464,8 +466,9 @@ namespace bs { namespace ct
 					return unit;
 				};
 
-				UINT32 sharedStorageUnitCount = 0;
 				FrameVector<UINT32> sharedStorageUnits(6);
+#if BS_OPENGL_4_3 || BS_OPENGLES_3_1
+				UINT32 sharedStorageUnitCount = 0;
 				auto getSharedStorageUnit = [&](UINT32 binding)
 				{
 					for (UINT32 i = 0; i < (UINT32)sharedStorageUnits.size(); i++)
@@ -479,6 +482,7 @@ namespace bs { namespace ct
 
 					return unit;
 				};
+#endif
 
 				const UINT32 numStages = 6;
 				for(UINT32 i = 0; i < numStages; i++)

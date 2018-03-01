@@ -16,14 +16,6 @@ namespace bs
 	/** Handles creation and internal updates relating to render windows. */
 	class BS_CORE_EXPORT RenderWindowManager : public Module<RenderWindowManager>
 	{
-		/**	Holds information about a window that was moved or resized. */
-		struct MoveOrResizeData
-		{
-			INT32 x, y;
-			UINT32 width, height;
-			RenderWindow* window;
-		};
-
 	public:
 		RenderWindowManager();
 		~RenderWindowManager();
@@ -88,7 +80,7 @@ namespace bs
 
 		RenderWindow* mWindowInFocus;
 		RenderWindow* mNewWindowInFocus;
-		Vector<MoveOrResizeData> mMovedOrResizedWindows;
+		Vector<RenderWindow*> mMovedOrResizedWindows;
 		Vector<RenderWindow*> mMouseLeftWindows;
 		Vector<RenderWindow*> mCloseRequestedWindows;
 		UnorderedSet<RenderWindow*> mDirtyProperties;

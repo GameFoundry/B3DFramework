@@ -12,7 +12,7 @@ namespace bs::ct
 	struct MacOSContext::Pimpl
 	{
 		NSOpenGLContext* context = nil;
-		bool dirty = true;
+		std::atomic_bool dirty{true};
 	};
 
 	MacOSContext::MacOSContext(bool depthStencil, UINT32 msaaCount)
@@ -106,6 +106,7 @@ namespace bs::ct
 		if(m->dirty)
 		{
 			[m->context update];
+
 			m->dirty = false;
 		}
 	}

@@ -43,8 +43,7 @@ namespace bs
 		{
 			Lock lock(mWindowMutex);
 
-			auto iterFind = std::find_if(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows), 
-				[&](const MoveOrResizeData& x) { return x.window == window; });
+			auto iterFind = std::find(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows), window);
 
 			if(iterFind != mMovedOrResizedWindows.end())
 				mMovedOrResizedWindows.erase(iterFind);
@@ -86,29 +85,9 @@ namespace bs
 		if (window == nullptr)
 			return;
 
-		auto iterFind = std::find_if(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows),
-			[&](const MoveOrResizeData& x) { return x.window == window; });
-
-		const RenderWindowProperties& props = coreWindow->getProperties();
-		MoveOrResizeData* moveResizeData = nullptr;
-
-		if (iterFind != end(mMovedOrResizedWindows))
-		{
-			moveResizeData = &*iterFind;
-		}
-		else
-		{
-			MoveOrResizeData newEntry;
-			newEntry.window = window;
-
-			mMovedOrResizedWindows.push_back(newEntry);
-			moveResizeData = &mMovedOrResizedWindows.back();
-		}
-
-		moveResizeData->x = props.left;
-		moveResizeData->y = props.top;
-		moveResizeData->width = props.width;
-		moveResizeData->height = props.height;
+		auto iterFind = std::find(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows), window);
+		if (iterFind == end(mMovedOrResizedWindows))
+			mMovedOrResizedWindows.push_back(window);
 	}
 
 	void RenderWindowManager::notifyMouseLeft(ct::RenderWindow* coreWindow)
@@ -146,7 +125,7 @@ namespace bs
 	void RenderWindowManager::_update()
 	{
 		RenderWindow* newWinInFocus = nullptr;
-		Vector<MoveOrResizeData> movedOrResizedWindows;
+		Vector<RenderWindow*> movedOrResizedWindows;
 		Vector<RenderWindow*> mouseLeftWindows;
 		Vector<RenderWindow*> closeRequestedWindows;
 
@@ -154,25 +133,8 @@ namespace bs
 			Lock lock(mWindowMutex);
 			newWinInFocus = mNewWindowInFocus;
 
-			for (auto& moveResizeData : mMovedOrResizedWindows)
-			{
-				RenderWindow* window = moveResizeData.window;
-				const RenderWindowProperties& props = window->getProperties();
-
-				// Need to eliminate non-dirty ones because it's possible we already triggered the resize event
-				// if the resize call originated from the sim thread, so we don't trigger it twice.
-
-				bool isDirty = moveResizeData.x != props.left || moveResizeData.y != props.top
-					|| moveResizeData.width != props.width || moveResizeData.height != props.height;
-
-				if (isDirty)
-					movedOrResizedWindows.push_back(moveResizeData);
-			}
-
-			mMovedOrResizedWindows.clear();
-
-			mouseLeftWindows = mMouseLeftWindows;
-			mMouseLeftWindows.clear();
+			std::swap(mMovedOrResizedWindows, movedOrResizedWindows);
+			std::swap(mMouseLeftWindows, mouseLeftWindows);
 
 			for (auto& dirtyPropertyWindow : mDirtyProperties)
 				dirtyPropertyWindow->syncProperties();
@@ -193,8 +155,8 @@ namespace bs
 			mWindowInFocus = newWinInFocus;
 		}
 
-		for (auto& moveResizeData : movedOrResizedWindows)
-			moveResizeData.window->onResized();
+		for (auto& window : movedOrResizedWindows)
+			window->onResized();
 
 		if (!onMouseLeftWindow.empty())
 		{

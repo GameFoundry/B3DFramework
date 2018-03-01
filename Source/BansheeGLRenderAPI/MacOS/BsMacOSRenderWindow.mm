@@ -65,7 +65,7 @@ namespace bs
 			getCore()->mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 	}
 
 	void MacOSRenderWindow::destroy()
@@ -109,8 +109,7 @@ namespace bs
 				getCore()->getSyncedProperties().height = height;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
-			onResized();
+			ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		}
 	}
 
@@ -131,7 +130,7 @@ namespace bs
 				getCore()->getSyncedProperties().left = props.left;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+			ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		}
 	}
 
@@ -143,7 +142,7 @@ namespace bs
 			getCore()->getSyncedProperties().isHidden = true;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		mWindow->hide();
 	}
 
@@ -155,7 +154,7 @@ namespace bs
 			getCore()->getSyncedProperties().isHidden = false;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		mWindow->show();
 	}
 
@@ -168,7 +167,7 @@ namespace bs
 			getCore()->getSyncedProperties().isMaximized = false;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		mWindow->minimize();
 	}
 
@@ -181,7 +180,7 @@ namespace bs
 			getCore()->getSyncedProperties().isMaximized = true;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		mWindow->maximize();
 	}
 
@@ -194,7 +193,7 @@ namespace bs
 			getCore()->getSyncedProperties().isMaximized = false;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		mWindow->restore();
 	}
 
@@ -267,7 +266,7 @@ namespace bs
 			getCore()->getSyncedProperties().height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		_windowMovedOrResized();
 	}
 
@@ -303,7 +302,7 @@ namespace bs
 			getCore()->getSyncedProperties().height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
+		ct::RenderWindowManager::instance().notifySyncDataDirty(getCore().get());
 		_windowMovedOrResized();
 	}
 

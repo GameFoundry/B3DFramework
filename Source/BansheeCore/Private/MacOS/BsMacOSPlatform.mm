@@ -498,7 +498,11 @@ namespace bs
 			// Ignore windows outside of layer 0, as those appear to be desktop elements
 			int32_t layer;
 			CFNumberGetValue(layerRef, kCFNumberIntType, &layer);
-			if(layer != 0)
+
+			// Layer 0 appear to be normal windows
+			// Layer 25 appear to be fullscreen windows
+			// Note: This is based on experimentation, as no documentation about it exists
+			if(layer != 0 && layer != 25)
 				continue;
 
 			CFDictionaryRef boundsRef = (CFDictionaryRef)CFDictionaryGetValue(dict, kCGWindowBounds);
