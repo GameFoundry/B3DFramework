@@ -251,6 +251,7 @@ namespace bs { namespace ct
 			return GL_RGBA32I;
 		case PF_RGBA32U:
 			return GL_RGBA32UI;
+#if BS_OPENGL_4_1
 		case PF_BC1a:
 		case PF_BC1:
 			if (hwGamma)
@@ -271,6 +272,8 @@ namespace bs { namespace ct
 			return GL_COMPRESSED_RED_RGTC1;
 		case PF_BC5:
 			return GL_COMPRESSED_RG_RGTC2;
+#endif
+#if BS_OPENGL_4_2
 		case PF_BC6H:
 			return GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
 		case PF_BC7:
@@ -278,6 +281,7 @@ namespace bs { namespace ct
 				return GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
 			else
 				return GL_COMPRESSED_RGBA_BPTC_UNORM;
+#endif
 		case PF_D16:
 			return GL_DEPTH_COMPONENT16;
 		case PF_D32:

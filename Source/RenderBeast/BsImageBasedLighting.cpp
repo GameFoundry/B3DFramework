@@ -51,30 +51,34 @@ namespace bs { namespace ct
 		mNumProbes = (UINT32)mReflProbeData.size();
 
 		// Move refl. probe data into a GPU buffer
-		UINT32 size = mNumProbes * sizeof(ReflProbeData);
-		UINT32 curBufferSize;
-
-		if (mProbeBuffer != nullptr)
-			curBufferSize = mProbeBuffer->getSize();
-		else
-			curBufferSize = 0;
-
-		if (size > curBufferSize || curBufferSize == 0)
+		bool supportsStructuredBuffers = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+		if(supportsStructuredBuffers)
 		{
-			// Allocate at least one block even if no probes, to avoid issues with null buffers
-			UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float)BUFFER_INCREMENT)) * BUFFER_INCREMENT;
+			UINT32 size = mNumProbes * sizeof(ReflProbeData);
+			UINT32 curBufferSize;
 
-			GPU_BUFFER_DESC bufferDesc;
-			bufferDesc.type = GBT_STRUCTURED;
-			bufferDesc.elementCount = bufferSize / sizeof(ReflProbeData);
-			bufferDesc.elementSize = sizeof(ReflProbeData);
-			bufferDesc.format = BF_UNKNOWN;
+			if (mProbeBuffer != nullptr)
+				curBufferSize = mProbeBuffer->getSize();
+			else
+				curBufferSize = 0;
 
-			mProbeBuffer = GpuBuffer::create(bufferDesc);
+			if (size > curBufferSize || curBufferSize == 0)
+			{
+				// Allocate at least one block even if no probes, to avoid issues with null buffers
+				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) BUFFER_INCREMENT)) * BUFFER_INCREMENT;
+
+				GPU_BUFFER_DESC bufferDesc;
+				bufferDesc.type = GBT_STRUCTURED;
+				bufferDesc.elementCount = bufferSize / sizeof(ReflProbeData);
+				bufferDesc.elementSize = sizeof(ReflProbeData);
+				bufferDesc.format = BF_UNKNOWN;
+
+				mProbeBuffer = GpuBuffer::create(bufferDesc);
+			}
+
+			if (size > 0)
+				mProbeBuffer->writeData(0, size, mReflProbeData.data(), BWT_DISCARD);
 		}
-
-		if (size > 0)
-			mProbeBuffer->writeData(0, size, mReflProbeData.data(), BWT_DISCARD);
 	}
 
 	RendererReflectionProbe::RendererReflectionProbe(ReflectionProbe* probe)

@@ -79,6 +79,8 @@ namespace bs
 			bs_delete(mWindow);
 			mWindow = nullptr;
 		}
+
+		RenderWindow::destroy();
 	}
 
 	SPtr<ct::CoreObject> MacOSRenderWindow::createCore() const

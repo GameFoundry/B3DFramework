@@ -39,7 +39,8 @@
 #   include <GL/glu.h>
 #   define GL_GLEXT_PROTOTYPES
 #elif BS_PLATFORM == BS_PLATFORM_OSX
-#	include "GL/glew.h"
+#   include <OpenGL/gl3.h>
+#   include <OpenGL/gl3ext.h>
 #endif
 
 #if BS_THREAD_SUPPORT == 1

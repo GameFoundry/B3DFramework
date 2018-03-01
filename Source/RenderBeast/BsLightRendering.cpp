@@ -225,30 +225,34 @@ namespace bs { namespace ct
 			}
 		}
 
-		UINT32 size = (UINT32)mVisibleLightData.size() * sizeof(LightData);
-		UINT32 curBufferSize;
-
-		if (mLightBuffer != nullptr)
-			curBufferSize = mLightBuffer->getSize();
-		else
-			curBufferSize = 0;
-
-		if (size > curBufferSize || curBufferSize == 0)
+		bool supportsStructuredBuffers = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+		if(supportsStructuredBuffers)
 		{
-			// Allocate at least one block even if no lights, to avoid issues with null buffers
-			UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float)BUFFER_INCREMENT)) * BUFFER_INCREMENT;
+			UINT32 size = (UINT32) mVisibleLightData.size() * sizeof(LightData);
+			UINT32 curBufferSize;
 
-			GPU_BUFFER_DESC bufferDesc;
-			bufferDesc.type = GBT_STRUCTURED;
-			bufferDesc.elementCount = bufferSize / sizeof(LightData);
-			bufferDesc.elementSize = sizeof(LightData);
-			bufferDesc.format = BF_UNKNOWN;
+			if (mLightBuffer != nullptr)
+				curBufferSize = mLightBuffer->getSize();
+			else
+				curBufferSize = 0;
 
-			mLightBuffer = GpuBuffer::create(bufferDesc);
+			if (size > curBufferSize || curBufferSize == 0)
+			{
+				// Allocate at least one block even if no lights, to avoid issues with null buffers
+				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) BUFFER_INCREMENT)) * BUFFER_INCREMENT;
+
+				GPU_BUFFER_DESC bufferDesc;
+				bufferDesc.type = GBT_STRUCTURED;
+				bufferDesc.elementCount = bufferSize / sizeof(LightData);
+				bufferDesc.elementSize = sizeof(LightData);
+				bufferDesc.format = BF_UNKNOWN;
+
+				mLightBuffer = GpuBuffer::create(bufferDesc);
+			}
+
+			if (size > 0)
+				mLightBuffer->writeData(0, size, mVisibleLightData.data(), BWT_DISCARD);
 		}
-
-		if (size > 0)
-			mLightBuffer->writeData(0, size, mVisibleLightData.data(), BWT_DISCARD);
 	}
 
 	void VisibleLightData::gatherInfluencingLights(const Bounds& bounds, 

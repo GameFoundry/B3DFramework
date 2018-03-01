@@ -236,12 +236,6 @@ namespace bs { namespace ct
 			BlendFactor destFactorAlpha, BlendOperation op, BlendOperation alphaOp);
 
 		/**
-		 * Sets alpha test that allows you to reject pixels that fail the comparison function versus the provided reference
-		 * value.
-		 */
-		void setAlphaTest(CompareFunction func, unsigned char value);
-
-		/**
 		 * Enable alpha to coverage. Alpha to coverage allows you to perform blending without needing to worry about order
 		 * of rendering like regular blending does. It requires multi-sampling to be active in order to work, and you need
 		 * to supply an alpha texture that determines object transparency.

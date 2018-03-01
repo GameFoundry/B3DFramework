@@ -1674,16 +1674,8 @@ namespace bs { namespace ct
 			break;
 		}
 
-		if(GLEW_VERSION_1_4 || GLEW_ARB_imaging)
-		{
-			glBlendEquation(func);
-			BS_CHECK_GL_ERROR();
-		}
-		else if(GLEW_EXT_blend_minmax && (func == GL_MIN || func == GL_MAX))
-		{
-			glBlendEquationEXT(func);
-			BS_CHECK_GL_ERROR();
-		}
+		glBlendEquation(func);
+		BS_CHECK_GL_ERROR();
 	}
 
 	void GLRenderAPI::setSceneBlending(BlendFactor sourceFactor, BlendFactor destFactor, 
@@ -1750,23 +1742,6 @@ namespace bs { namespace ct
 
 		glBlendEquationSeparate(func, alphaFunc);
 		BS_CHECK_GL_ERROR();
-	}
-
-	void GLRenderAPI::setAlphaTest(CompareFunction func, unsigned char value)
-	{
-		if(func == CMPF_ALWAYS_PASS)
-		{
-			glDisable(GL_ALPHA_TEST);
-			BS_CHECK_GL_ERROR();
-		}
-		else
-		{
-			glEnable(GL_ALPHA_TEST);
-			BS_CHECK_GL_ERROR();
-
-			glAlphaFunc(convertCompareFunction(func), value / 255.0f);
-			BS_CHECK_GL_ERROR();
-		}
 	}
 
 	void GLRenderAPI::setAlphaToCoverage(bool enable)
@@ -2242,9 +2217,9 @@ namespace bs { namespace ct
 		case SOP_DECREMENT:
 			return GL_DECR;
 		case SOP_INCREMENT_WRAP:
-			return GL_INCR_WRAP_EXT;
+			return GL_INCR_WRAP;
 		case SOP_DECREMENT_WRAP:
-			return GL_DECR_WRAP_EXT;
+			return GL_DECR_WRAP;
 		case SOP_INVERT:
 			return GL_INVERT;
 		}
@@ -2382,17 +2357,17 @@ namespace bs { namespace ct
 			primType = GL_POINTS;
 			break;
 		case DOT_LINE_LIST:
-			primType = useAdjacency ? GL_LINES_ADJACENCY_EXT : GL_LINES;
+			primType = useAdjacency ? GL_LINES_ADJACENCY : GL_LINES;
 			break;
 		case DOT_LINE_STRIP:
-			primType = useAdjacency ? GL_LINE_STRIP_ADJACENCY_EXT : GL_LINE_STRIP;
+			primType = useAdjacency ? GL_LINE_STRIP_ADJACENCY : GL_LINE_STRIP;
 			break;
 		default:
 		case DOT_TRIANGLE_LIST:
-			primType = useAdjacency ? GL_TRIANGLES_ADJACENCY_EXT : GL_TRIANGLES;
+			primType = useAdjacency ? GL_TRIANGLES_ADJACENCY : GL_TRIANGLES;
 			break;
 		case DOT_TRIANGLE_STRIP:
-			primType = useAdjacency ? GL_TRIANGLE_STRIP_ADJACENCY_EXT : GL_TRIANGLE_STRIP;
+			primType = useAdjacency ? GL_TRIANGLE_STRIP_ADJACENCY : GL_TRIANGLE_STRIP;
 			break;
 		case DOT_TRIANGLE_FAN:
 			primType = GL_TRIANGLE_FAN;
@@ -2550,7 +2525,7 @@ namespace bs { namespace ct
 		GLint maxOutputVertices;
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
-		glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &maxOutputVertices);
+		glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &maxOutputVertices);
 		BS_CHECK_GL_ERROR();
 #else
 		maxOutputVertices = 0;

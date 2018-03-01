@@ -35,13 +35,6 @@ set(BS_BANSHEEGLRENDERAPI_INC_NOFILTER
 	"BsGLTextureView.h"
 )
 
-set(BS_BANSHEEGLRENDERAPI_SRC_WIN32
-	"Win32/BsWin32Context.cpp"
-	"Win32/BsWin32GLSupport.cpp"
-	"Win32/BsWin32RenderWindow.cpp"
-	"Win32/BsWin32VideoModeInfo.cpp"
-)
-
 set(BS_BANSHEEGLRENDERAPI_SRC_NOFILTER
 	"BsGLVertexArrayObjectManager.cpp"
 	"BsGLVertexBuffer.cpp"
@@ -69,7 +62,6 @@ set(BS_BANSHEEGLRENDERAPI_SRC_NOFILTER
 	"BsGLCommandBuffer.cpp"
 	"BsGLCommandBufferManager.cpp"
 	"BsGLTextureView.cpp"
-	"glew.cpp"
 )
 
 set(BS_BANSHEEGLRENDERAPI_INC_GLSL
@@ -87,6 +79,14 @@ set(BS_BANSHEEGLRENDERAPI_INC_WIN32
 	"Win32/BsWin32VideoModeInfo.h"
 )
 
+set(BS_BANSHEEGLRENDERAPI_SRC_WIN32
+	"Win32/BsWin32Context.cpp"
+	"Win32/BsWin32GLSupport.cpp"
+	"Win32/BsWin32RenderWindow.cpp"
+	"Win32/BsWin32VideoModeInfo.cpp"
+	"glew.cpp"
+)
+
 set(BS_BANSHEEGLRENDERAPI_INC_LINUX
 	"Linux/BsLinuxContext.h"
 	"Linux/BsLinuxGLSupport.h"
@@ -99,6 +99,7 @@ set(BS_BANSHEEGLRENDERAPI_SRC_LINUX
 	"Linux/BsLinuxGLSupport.cpp"
 	"Linux/BsLinuxRenderWindow.cpp"
 	"Linux/BsLinuxVideoModeInfo.cpp"
+	"glew.cpp"
 )
 
 set(BS_BANSHEEGLRENDERAPI_INC_MACOS

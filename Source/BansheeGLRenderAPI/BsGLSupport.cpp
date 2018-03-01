@@ -2,16 +2,21 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #include "BsGLSupport.h"
 #include "BsGLTexture.h"
+
+#if BS_PLATFORM != BS_PLATFORM_OSX
 #include "GL/glew.h"
 
 GLenum glewContextInit(bs::ct::GLSupport* glSupport);
+#endif
 
 namespace bs { namespace ct
 {
 	void GLSupport::initializeExtensions()
 	{
+#if BS_PLATFORM != BS_PLATFORM_OSX
 		glewContextInit(this);
 		BS_CHECK_GL_ERROR();
+#endif
 
 		// Set version string
 		const GLubyte* pcVer = glGetString(GL_VERSION);
