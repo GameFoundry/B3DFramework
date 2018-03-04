@@ -28,10 +28,10 @@ namespace bs
 		VertexBufferProperties(UINT32 numVertices, UINT32 vertexSize);
 
 		/**	Gets the size in bytes of a single vertex in this buffer. */
-        UINT32 getVertexSize() const { return mVertexSize; }
+		UINT32 getVertexSize() const { return mVertexSize; }
 
 		/**	Get the number of vertices in this buffer. */
-        UINT32 getNumVertices() const { return mNumVertices; }
+		UINT32 getNumVertices() const { return mNumVertices; }
 
 	protected:
 		friend class VertexBuffer;
@@ -42,8 +42,8 @@ namespace bs
 	};
 
 	/**	Specialization of a hardware buffer used for holding vertex data. */
-    class BS_CORE_EXPORT VertexBuffer : public CoreObject
-    {
+	class BS_CORE_EXPORT VertexBuffer : public CoreObject
+	{
 	public:
 		virtual ~VertexBuffer() { }
 
@@ -66,11 +66,10 @@ namespace bs
 		/** @copydoc CoreObject::createCore */
 		virtual SPtr<ct::CoreObject> createCore() const;
 
-	protected:
 		VertexBufferProperties mProperties;
 		GpuBufferUsage mUsage;
 		bool mStreamOut;
-    };
+	};
 
 	/** @} */
 

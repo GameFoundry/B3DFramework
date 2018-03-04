@@ -209,11 +209,12 @@ namespace bs
 		/** Data about a mesh rendered by the draw manager. */
 		struct MeshData
 		{
-			MeshData(const SPtr<MeshBase>& mesh, SPtr<Texture> texture, MeshType type)
-				:mesh(mesh), texture(texture), type(type)
+			MeshData(const SPtr<Mesh>& mesh, const SubMesh& subMesh, SPtr<Texture> texture, MeshType type)
+				:mesh(mesh), subMesh(subMesh), texture(texture), type(type)
 			{ }
 
-			SPtr<MeshBase> mesh;
+			SPtr<Mesh> mesh;
+			SubMesh subMesh;
 			SPtr<Texture> texture;
 			UINT32 paramIdx;
 			MeshType type;

@@ -382,11 +382,12 @@ namespace bs
 		/** Data about a mesh rendered by the draw manager. */
 		struct MeshRenderData
 		{
-			MeshRenderData(const SPtr<ct::MeshBase>& mesh, SPtr<ct::Texture> texture, GizmoMeshType type)
-				:mesh(mesh), texture(texture), type(type), paramsIdx(0)
+			MeshRenderData(const SPtr<ct::Mesh>& mesh, const SubMesh& subMesh, SPtr<ct::Texture> texture, GizmoMeshType type)
+				:mesh(mesh), subMesh(subMesh), texture(texture), type(type), paramsIdx(0)
 			{ }
 
-			SPtr<ct::MeshBase> mesh;
+			SPtr<ct::Mesh> mesh;
+			SubMesh subMesh;
 			SPtr<ct::Texture> texture;
 			GizmoMeshType type;
 
@@ -417,10 +418,9 @@ namespace bs
 		 * @param[in]	renderData	Output data that outlines the structure of the returned mesh. It tells us which portions
 		 *							of the mesh use which icon texture.
 		 *
-		 * @return					A mesh containing all of the visible icons. Mesh is allocated using the icon mesh heap
-		 *							and should be deallocated manually.
+		 * @return					A mesh containing all of the visible icons.	
 		 */
-		SPtr<TransientMesh> buildIconMesh(const SPtr<Camera>& camera, const Vector<IconData>& iconData, bool forPicking, 
+		SPtr<Mesh> buildIconMesh(const SPtr<Camera>& camera, const Vector<IconData>& iconData, bool forPicking, 
 			IconRenderDataVecPtr& renderData);
 
 		/**	Resizes the icon width/height so it is always scaled to optimal size (with preserved aspect). */
@@ -483,8 +483,7 @@ namespace bs
 
 		Vector<DrawHelper::ShapeMeshData> mActiveMeshes;
 
-		SPtr<MeshHeap> mIconMeshHeap;
-		SPtr<TransientMesh> mIconMesh;
+		SPtr<Mesh> mIconMesh;
 
 		SPtr<ct::GizmoRenderer> mGizmoRenderer;
 

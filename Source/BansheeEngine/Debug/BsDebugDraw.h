@@ -152,11 +152,12 @@ namespace bs
 		/** Data about a mesh rendered by the draw manager. */
 		struct MeshRenderData
 		{
-			MeshRenderData(const SPtr<ct::MeshBase>& mesh, DebugDrawMaterial type)
-				:mesh(mesh), type(type)
+			MeshRenderData(const SPtr<ct::Mesh>& mesh, const SubMesh& subMesh, DebugDrawMaterial type)
+				:mesh(mesh), subMesh(subMesh), type(type)
 			{ }
 
-			SPtr<ct::MeshBase> mesh;
+			SPtr<ct::Mesh> mesh;
+			SubMesh subMesh;
 			DebugDrawMaterial type;
 		};
 
@@ -205,7 +206,7 @@ namespace bs
 		DebugDrawMat();
 
 		/** Executes the material using the provided parameters. */
-		void execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<MeshBase>& mesh);
+		void execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
 
 		/** Returns the material variation matching the provided parameters. */
 		static DebugDrawMat* getVariation(DebugDrawMaterial drawMat);

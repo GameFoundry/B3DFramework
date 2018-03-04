@@ -15,6 +15,7 @@
 #include "Utility/BsEvent.h"
 #include "Material/BsMaterialParam.h"
 #include "Renderer/BsParamBlocks.h"
+#include "RenderAPI/BsSubMesh.h"
 
 namespace bs
 {
@@ -51,7 +52,8 @@ namespace bs
 		/** Data required for rendering a single GUI mesh. */
 		struct GUIMeshData
 		{
-			SPtr<TransientMesh> mesh;
+			UINT32 indexOffset = 0;
+			UINT32 indexCount = 0;
 			SpriteMaterial* material;
 			SpriteMaterialInfo matInfo;
 			GUIWidget* widget;
@@ -65,6 +67,8 @@ namespace bs
 				:isDirty(true)
 			{ }
 
+			SPtr<Mesh> triangleMesh;
+			SPtr<Mesh> lineMesh;
 			Vector<GUIMeshData> cachedMeshes;
 			Vector<GUIWidget*> widgets;
 			bool isDirty;
@@ -73,7 +77,8 @@ namespace bs
 		/**	Render data for a single GUI group used for notifying the core GUI renderer. */
 		struct GUICoreRenderData
 		{
-			SPtr<ct::TransientMesh> mesh;
+			SPtr<ct::Mesh> mesh;
+			SubMesh subMesh;
 			SPtr<ct::Texture> texture;
 			SpriteMaterial* material;
 			Color tint;
@@ -349,8 +354,6 @@ namespace bs
 
 		Vector<WidgetInfo> mWidgets;
 		UnorderedMap<const Viewport*, GUIRenderData> mCachedGUIData;
-		SPtr<MeshHeap> mTriangleMeshHeap;
-		SPtr<MeshHeap> mLineMeshHeap;
 
 		SPtr<ct::GUIRenderer> mRenderer;
 		bool mCoreDirty;

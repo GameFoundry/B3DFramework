@@ -66,7 +66,7 @@ namespace bs
 		return (UINT64)hash;
 	}
 
-	void SpriteMaterial::render(const SPtr<ct::MeshBase>& mesh, const SPtr<ct::Texture>& texture,
+	void SpriteMaterial::render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture,
 		const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer,
 		const SPtr<SpriteMaterialExtraInfo>& additionalData) const
 	{
@@ -86,6 +86,6 @@ namespace bs
 
 		ct::gRendererUtility().setPass(mMaterial);
 		ct::gRendererUtility().setPassParams(mParams);
-		ct::gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+		ct::gRendererUtility().draw(mesh, subMesh);
 	}
 }

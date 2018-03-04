@@ -6,7 +6,6 @@
 #include "Math/BsSphere.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Utility/BsShapeMeshes3D.h"
-#include "Mesh/BsMeshHeap.h"
 #include "Components/BsCCamera.h"
 #include "2D/BsSpriteTexture.h"
 #include "CoreThread/BsCoreThread.h"
@@ -17,7 +16,6 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsRendererUtility.h"
-#include "Mesh/BsTransientMesh.h"
 #include "Renderer/BsRendererManager.h"
 #include "Utility/BsDrawHelper.h"
 
@@ -25,8 +23,6 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	const UINT32 GizmoManager::VERTEX_BUFFER_GROWTH = 4096;
-	const UINT32 GizmoManager::INDEX_BUFFER_GROWTH = 4096 * 2;
 	const UINT32 GizmoManager::SPHERE_QUALITY = 1;
 	const UINT32 GizmoManager::WIRE_SPHERE_QUALITY = 10;
 	const float GizmoManager::MAX_ICON_RANGE = 500.0f;
@@ -47,8 +43,6 @@ namespace bs
 		mIconVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 		mIconVertexDesc->addVertElem(VET_COLOR, VES_COLOR, 0);
 		mIconVertexDesc->addVertElem(VET_COLOR, VES_COLOR, 1);
-
-		mIconMeshHeap = MeshHeap::create(VERTEX_BUFFER_GROWTH, INDEX_BUFFER_GROWTH, mIconVertexDesc);
 
 		HMaterial solidMaterial = BuiltinEditorResources::instance().createSolidGizmoMat();
 		HMaterial wireMaterial = BuiltinEditorResources::instance().createWireGizmoMat();
@@ -73,11 +67,7 @@ namespace bs
 
 	GizmoManager::~GizmoManager()
 	{
-		mDrawHelper->clearMeshes(mActiveMeshes);
 		mActiveMeshes.clear();
-
-		if (mIconMesh != nullptr)
-			mIconMeshHeap->dealloc(mIconMesh);
 
 		bs_delete(mDrawHelper);
 		bs_delete(mPickingDrawHelper);
@@ -438,13 +428,13 @@ namespace bs
 				tex = entry.texture->getCore();
 
 			if (entry.type == DrawHelper::MeshType::Solid)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Solid));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, tex, GizmoMeshType::Solid));
 			else if (entry.type == DrawHelper::MeshType::Wire)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Wire));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, tex, GizmoMeshType::Wire));
 			else if (entry.type == DrawHelper::MeshType::Line)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Line));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, tex, GizmoMeshType::Line));
 			else // Text
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), tex, GizmoMeshType::Text));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, tex, GizmoMeshType::Text));
 		}
 
 		return proxyData;
@@ -452,19 +442,11 @@ namespace bs
 
 	void GizmoManager::update(const SPtr<Camera>& camera)
 	{
-		mDrawHelper->clearMeshes(mActiveMeshes);
 		mActiveMeshes.clear();
-
-		if (mIconMesh != nullptr)
-			mIconMeshHeap->dealloc(mIconMesh);
-
-		IconRenderDataVecPtr iconRenderData;
-
-		mDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, camera->getTransform().getPosition());
-		mActiveMeshes = mDrawHelper->getMeshes();
+		mActiveMeshes = mDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, camera->getTransform().getPosition());
 
 		Vector<MeshRenderData> proxyData = createMeshProxyData(mActiveMeshes);
-
+		IconRenderDataVecPtr iconRenderData;
 		mIconMesh = buildIconMesh(camera, mIconData, false, iconRenderData);
 
 		SPtr<ct::MeshBase> iconMesh;
@@ -652,12 +634,12 @@ namespace bs
 			iconData.back().color = idxToColorCallback(iconDataEntry.idx);
 		}
 
-		mPickingDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, camera->getTransform().getPosition());
-		const Vector<DrawHelper::ShapeMeshData>& meshes = mPickingDrawHelper->getMeshes();
+		const Vector<DrawHelper::ShapeMeshData>& meshes = 
+			mPickingDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, camera->getTransform().getPosition());
 
-		SPtr<TransientMesh> iconMesh = buildIconMesh(camera, iconData, true, iconRenderData);
+		SPtr<Mesh> iconMesh = buildIconMesh(camera, iconData, true, iconRenderData);
 		
-		SPtr<ct::TransientMesh> iconMeshCore;
+		SPtr<ct::Mesh> iconMeshCore;
 		if (iconMesh != nullptr)
 			iconMeshCore = iconMesh->getCore();
 
@@ -667,9 +649,6 @@ namespace bs
 		Vector<MeshRenderData> proxyData = createMeshProxyData(meshes);
 		gCoreThread().queueCommand(std::bind(&ct::GizmoRenderer::renderData, renderer, camera->getCore(),
 											 proxyData, iconMeshCore, iconRenderData, true));
-
-		mPickingDrawHelper->clearMeshes(meshes);
-		mIconMeshHeap->dealloc(iconMesh);
 	}
 
 	void GizmoManager::clearGizmos()
@@ -698,12 +677,7 @@ namespace bs
 
 	void GizmoManager::clearRenderData()
 	{
-		mDrawHelper->clearMeshes(mActiveMeshes);
 		mActiveMeshes.clear();
-
-		if (mIconMesh != nullptr)
-			mIconMeshHeap->dealloc(mIconMesh);
-
 		mIconMesh = nullptr;
 
 		ct::GizmoRenderer* renderer = mGizmoRenderer.get();
@@ -713,7 +687,7 @@ namespace bs
 			nullptr, Vector<MeshRenderData>(), nullptr, iconRenderData));
 	}
 
-	SPtr<TransientMesh> GizmoManager::buildIconMesh(const SPtr<Camera>& camera, const Vector<IconData>& iconData,
+	SPtr<Mesh> GizmoManager::buildIconMesh(const SPtr<Camera>& camera, const Vector<IconData>& iconData,
 		bool forPicking, GizmoManager::IconRenderDataVecPtr& iconRenderData)
 	{
 		mSortedIconData.clear();
@@ -879,7 +853,7 @@ namespace bs
 		}
 
 		if(actualNumIcons > 0)
-			return mIconMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
+			return Mesh::_createPtr(meshData);
 
 		return nullptr;
 	}
@@ -1064,7 +1038,7 @@ namespace bs
 				gRendererUtility().setPass(mMeshMaterials[typeIdx]);
 				gRendererUtility().setPassParams(mMeshParamSets[typeIdx][entry.paramsIdx]);
 
-				gRendererUtility().draw(entry.mesh, entry.mesh->getProperties().getSubMesh(0));
+				gRendererUtility().draw(entry.mesh, entry.subMesh);
 			}
 		}
 		else
@@ -1116,7 +1090,7 @@ namespace bs
 				gRendererUtility().setPass(mPickingMaterials[typeIdx]);
 				gRendererUtility().setPassParams(mPickingParamSets[typeIdx][entry.paramsIdx]);
 
-				gRendererUtility().draw(entry.mesh, entry.mesh->getProperties().getSubMesh(0));
+				gRendererUtility().draw(entry.mesh, entry.subMesh);
 			}
 		}
 

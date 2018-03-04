@@ -5,7 +5,6 @@
 #include "Math/BsAABox.h"
 #include "Math/BsSphere.h"
 #include "RenderAPI/BsVertexDataDesc.h"
-#include "Mesh/BsMeshHeap.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Text/BsTextData.h"
 #include "Math/BsVector2.h"
@@ -17,7 +16,7 @@ namespace bs
 	const UINT32 DrawHelper::INDEX_BUFFER_GROWTH = 4096 * 2;
 
 	DrawHelper::DrawHelper()
-		:mLayer(1), mNumActiveMeshes(0)
+		:mLayer(1)
 	{
 		mTransform = Matrix4::IDENTITY;
 
@@ -38,16 +37,6 @@ namespace bs
 		mTextVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 		mTextVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 		mTextVertexDesc->addVertElem(VET_COLOR, VES_COLOR);
-
-		mSolidMeshHeap = MeshHeap::create(VERTEX_BUFFER_GROWTH, INDEX_BUFFER_GROWTH, mSolidVertexDesc);
-		mWireMeshHeap = MeshHeap::create(VERTEX_BUFFER_GROWTH, INDEX_BUFFER_GROWTH, mWireVertexDesc);
-		mLineMeshHeap = MeshHeap::create(VERTEX_BUFFER_GROWTH, INDEX_BUFFER_GROWTH, mLineVertexDesc);
-		mTextMeshHeap = MeshHeap::create(VERTEX_BUFFER_GROWTH, INDEX_BUFFER_GROWTH, mTextVertexDesc);
-	}
-
-	DrawHelper::~DrawHelper()
-	{
-		BS_ASSERT(mNumActiveMeshes == 0 && "Not all DrawHelper meshes were freed on shutdown.");
 	}
 
 	void DrawHelper::setColor(const Color& color)
@@ -335,9 +324,9 @@ namespace bs
 		mWireMeshData.clear();
 	}
 
-	void DrawHelper::buildMeshes(SortType sorting, const Vector3& reference, UINT64 layers)
+	Vector<DrawHelper::ShapeMeshData> DrawHelper::buildMeshes(SortType sorting, const Vector3& reference, UINT64 layers)
 	{
-		mMeshes.clear();
+		Vector<ShapeMeshData> meshInfos;
 
 		enum class ShapeType
 		{
@@ -824,21 +813,64 @@ namespace bs
 			}
 		}
 
+		// Allocate space for all the batch vertices/indices, per type
+		UINT32 vertexCount[4] = { 0, 0, 0, 0 };
+		UINT32 indexCount[4] = { 0, 0, 0, 0 };
+		for (auto& batch : batches)
+		{
+			UINT32 typeIdx = (UINT32)batch.type;
+
+			vertexCount[typeIdx] += batch.numVertices;
+			indexCount[typeIdx] += batch.numIndices;
+		}
+
+		SPtr<VertexDataDesc> vertexDesc[4] = { mSolidVertexDesc, mWireVertexDesc, mLineVertexDesc, mTextVertexDesc };
+		SPtr<MeshData> meshData[4];
+		for(UINT32 i = 0; i < 4; i++)
+		{
+			if(vertexCount[i] > 0 && indexCount[i] > 0)
+				meshData[i] = MeshData::create(vertexCount[i], indexCount[i], vertexDesc[i]);
+		}
+
 		/************************************************************************/
 		/* 					Generate geometry for each batch                    */
 		/************************************************************************/
+		UINT32 vertexOffset[4] = { 0, 0, 0, 0 };
+		UINT32 indexOffset[4] = { 0, 0, 0, 0 };
+
+		VertexElemIter<Vector3> positionIter[4]; 
+		VertexElemIter<UINT32> colorIter[4];
+
+		for(UINT32 i = 0; i < 4; i++)
+		{
+			if(!meshData[i])
+				continue;
+
+			positionIter[i] = meshData[i]->getVec3DataIter(VES_POSITION);
+			colorIter[i] = meshData[i]->getDWORDDataIter(VES_COLOR);
+		}
+
+		VertexElemIter<Vector3> solidNormalIter;
+		if(meshData[0])
+			solidNormalIter = meshData[0]->getVec3DataIter(VES_NORMAL);
+
+		VertexElemIter<Vector2> textUVIter;
+		
+		if(meshData[3])
+			textUVIter = meshData[3]->getVec2DataIter(VES_TEXCOORD);
+
 		for (auto& batch : batches)
 		{
+			UINT32 typeIdx = (UINT32)batch.type;
+
 			if (batch.type == MeshType::Solid)
 			{
-				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(batch.numVertices, batch.numIndices, mSolidVertexDesc);
-
-				UINT32 curVertexOffset = 0;
-				UINT32 curIndexOffet = 0;
-
-				auto positionIter = meshData->getVec3DataIter(VES_POSITION);
-				auto normalIter = meshData->getVec3DataIter(VES_NORMAL);
-				auto colorIter = meshData->getDWORDDataIter(VES_COLOR);
+				meshInfos.push_back(ShapeMeshData());
+				ShapeMeshData& newMesh = meshInfos.back();
+				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
+				newMesh.subMesh.indexCount = batch.numIndices;
+				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
+				newMesh.type = MeshType::Solid;
 
 				for (UINT32 i = batch.startIdx; i <= batch.endIdx; i++)
 				{
@@ -853,7 +885,7 @@ namespace bs
 					{
 						CubeData& cubeData = mSolidCubeData[shapeData.idx];
 						AABox box(cubeData.position - cubeData.extents, cubeData.position + cubeData.extents);
-						ShapeMeshes3D::solidAABox(box, meshData, curVertexOffset, curIndexOffet);
+						ShapeMeshes3D::solidAABox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &cubeData.transform;
 						color = cubeData.color.getAsRGBA();
@@ -863,7 +895,8 @@ namespace bs
 					{
 						SphereData& sphereData = mSolidSphereData[shapeData.idx];
 						Sphere sphere(sphereData.position, sphereData.radius);
-						ShapeMeshes3D::solidSphere(sphere, meshData, curVertexOffset, curIndexOffet, sphereData.quality);
+						ShapeMeshes3D::solidSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], 
+							sphereData.quality);
 
 						transform = &sphereData.transform;
 						color = sphereData.color.getAsRGBA();
@@ -873,7 +906,7 @@ namespace bs
 					{
 						ConeData& coneData = mConeData[shapeData.idx];
 						ShapeMeshes3D::solidCone(coneData.base, coneData.normal, coneData.height, coneData.radius, 
-							coneData.scale, meshData, curVertexOffset, curIndexOffet, coneData.quality);
+							coneData.scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], coneData.quality);
 
 						transform = &coneData.transform;
 						color = coneData.color.getAsRGBA();
@@ -883,7 +916,7 @@ namespace bs
 					{
 						DiscData& discData = mDiscData[shapeData.idx];
 						ShapeMeshes3D::solidDisc(discData.position, discData.radius, discData.normal,
-							meshData, curVertexOffset, curIndexOffet, discData.quality);
+							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.quality);
 
 						transform = &discData.transform;
 						color = discData.color.getAsRGBA();
@@ -893,7 +926,8 @@ namespace bs
 					{
 						ArcData& arcData = mArcData[shapeData.idx];
 						ShapeMeshes3D::solidArc(arcData.position, arcData.radius, arcData.normal,
-							arcData.startAngle, arcData.amountAngle, meshData, curVertexOffset, curIndexOffet, arcData.quality);
+							arcData.startAngle, arcData.amountAngle, meshData[typeIdx], vertexOffset[typeIdx], 
+							indexOffset[typeIdx], arcData.quality);
 
 						transform = &arcData.transform;
 						color = arcData.color.getAsRGBA();
@@ -902,7 +936,8 @@ namespace bs
 					case ShapeType::Rectangle:
 					{
 						Rect3Data& rectData = mRect3Data[shapeData.idx];
-						ShapeMeshes3D::solidQuad(rectData.area, meshData, curVertexOffset, curIndexOffet);
+						ShapeMeshes3D::solidQuad(rectData.area, meshData[typeIdx], vertexOffset[typeIdx], 
+							indexOffset[typeIdx]);
 
 						transform = &rectData.transform;
 						color = rectData.color.getAsRGBA();
@@ -915,32 +950,26 @@ namespace bs
 					Matrix4 transformIT = transform->inverseAffine().transpose();
 					for (UINT32 i = 0; i < shapeData.numVertices; i++)
 					{
-						Vector3 worldPos = transform->multiplyAffine(positionIter.getValue());
-						Vector3 worldNormal = transformIT.multiplyAffine(normalIter.getValue());
+						Vector3 worldPos = transform->multiplyAffine(positionIter[typeIdx].getValue());
+						Vector3 worldNormal = transformIT.multiplyAffine(solidNormalIter.getValue());
 
-						positionIter.addValue(worldPos);
-						normalIter.addValue(worldNormal);
-						colorIter.addValue(color);
+						positionIter[typeIdx].addValue(worldPos);
+						solidNormalIter.addValue(worldNormal);
+						colorIter[typeIdx].addValue(color);
 					}
 
-					curVertexOffset += shapeData.numVertices;
-					curIndexOffet += shapeData.numIndices;
+					vertexOffset[typeIdx] += shapeData.numVertices;
+					indexOffset[typeIdx] += shapeData.numIndices;
 				}
-
-				mMeshes.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = mMeshes.back();
-				newMesh.mesh = mSolidMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
-				newMesh.type = MeshType::Solid;
 			}
 			else if (batch.type == MeshType::Wire)
 			{
-				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(batch.numVertices, batch.numIndices, mWireVertexDesc);
-
-				UINT32 curVertexOffset = 0;
-				UINT32 curIndexOffset = 0;
-
-				auto positionIter = meshData->getVec3DataIter(VES_POSITION);
-				auto colorIter = meshData->getDWORDDataIter(VES_COLOR);
+				meshInfos.push_back(ShapeMeshData());
+				ShapeMeshData& newMesh = meshInfos.back();
+				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
+				newMesh.subMesh.indexCount = batch.numIndices;
+				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
+				newMesh.type = MeshType::Wire;
 
 				for (UINT32 i = batch.startIdx; i <= batch.endIdx; i++)
 				{
@@ -963,42 +992,35 @@ namespace bs
 						{
 							Vector3 worldPos = transform->multiplyAffine(vertIterRead.getValue());
 
-							positionIter.addValue(worldPos);
-							colorIter.addValue(color);
+							positionIter[typeIdx].addValue(worldPos);
+							colorIter[typeIdx].addValue(color);
 
 							vertIterRead.moveNext();
 						}
 
 						UINT32* srcIndexData = wireMeshData.meshData->getIndices32();
-						UINT32* destIndexData = meshData->getIndices32() + curIndexOffset;
+						UINT32* destIndexData = meshData[typeIdx]->getIndices32() + indexOffset[typeIdx];
 
 						for(UINT32 j = 0; j < shapeData.numIndices; j++)
-							destIndexData[j] = srcIndexData[j] + curVertexOffset;
+							destIndexData[j] = srcIndexData[j] + vertexOffset[typeIdx];
 
-						curVertexOffset += shapeData.numVertices;
-						curIndexOffset += shapeData.numIndices;
+						vertexOffset[typeIdx] += shapeData.numVertices;
+						indexOffset[typeIdx] += shapeData.numIndices;
 					}
 					break;
 					default:
 						break;
 					}
 				}
-
-				mMeshes.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = mMeshes.back();
-				newMesh.mesh = mWireMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
-				newMesh.type = MeshType::Wire;
 			}
 			else if(batch.type == MeshType::Line)
 			{
-				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(batch.numVertices,
-					batch.numIndices, mLineVertexDesc);
-
-				UINT32 curVertexOffset = 0;
-				UINT32 curIndexOffet = 0;
-
-				auto positionIter = meshData->getVec3DataIter(VES_POSITION);
-				auto colorIter = meshData->getDWORDDataIter(VES_COLOR);
+				meshInfos.push_back(ShapeMeshData());
+				ShapeMeshData& newMesh = meshInfos.back();
+				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
+				newMesh.subMesh.indexCount = batch.numIndices;
+				newMesh.subMesh.drawOp = DOT_LINE_LIST;
+				newMesh.type = MeshType::Line;
 
 				for (UINT32 i = batch.startIdx; i <= batch.endIdx; i++)
 				{
@@ -1014,7 +1036,7 @@ namespace bs
 						CubeData& cubeData = mWireCubeData[shapeData.idx];
 
 						AABox box(cubeData.position - cubeData.extents, cubeData.position + cubeData.extents);
-						ShapeMeshes3D::wireAABox(box, meshData, curVertexOffset, curIndexOffet);
+						ShapeMeshes3D::wireAABox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &cubeData.transform;
 						color = cubeData.color.getAsRGBA();
@@ -1025,7 +1047,8 @@ namespace bs
 						SphereData& sphereData = mWireSphereData[shapeData.idx];
 
 						Sphere sphere(sphereData.position, sphereData.radius);
-						ShapeMeshes3D::wireSphere(sphere, meshData, curVertexOffset, curIndexOffet, sphereData.quality);
+						ShapeMeshes3D::wireSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
+							sphereData.quality);
 
 						transform = &sphereData.transform;
 						color = sphereData.color.getAsRGBA();
@@ -1035,7 +1058,8 @@ namespace bs
 					{
 						ConeData& coneData = mWireConeData[shapeData.idx];
 						ShapeMeshes3D::wireCone(coneData.base, coneData.normal, coneData.height, coneData.radius,
-							coneData.scale, meshData, curVertexOffset, curIndexOffet, coneData.quality);
+							coneData.scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], 
+							coneData.quality);
 
 						transform = &coneData.transform;
 						color = coneData.color.getAsRGBA();
@@ -1045,7 +1069,8 @@ namespace bs
 					{
 						LineData& lineData = mLineData[shapeData.idx];
 
-						ShapeMeshes3D::pixelLine(lineData.start, lineData.end, meshData, curVertexOffset, curIndexOffet);
+						ShapeMeshes3D::pixelLine(lineData.start, lineData.end, meshData[typeIdx], vertexOffset[typeIdx], 
+							indexOffset[typeIdx]);
 
 						transform = &lineData.transform;
 						color = lineData.color.getAsRGBA();
@@ -1055,7 +1080,8 @@ namespace bs
 					{
 						LineListData& lineListData = mLineListData[shapeData.idx];
 
-						ShapeMeshes3D::pixelLineList(lineListData.lines, meshData, curVertexOffset, curIndexOffet);
+						ShapeMeshes3D::pixelLineList(lineListData.lines, meshData[typeIdx], vertexOffset[typeIdx], 
+							indexOffset[typeIdx]);
 
 						transform = &lineListData.transform;
 						color = lineListData.color.getAsRGBA();
@@ -1066,7 +1092,7 @@ namespace bs
 						FrustumData& frustumData = mFrustumData[shapeData.idx];
 
 						ShapeMeshes3D::wireFrustum(frustumData.position, frustumData.aspect, frustumData.FOV, frustumData.nearDist,
-							frustumData.farDist, meshData, curVertexOffset, curIndexOffet);
+							frustumData.farDist, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &frustumData.transform;
 						color = frustumData.color.getAsRGBA();
@@ -1077,7 +1103,7 @@ namespace bs
 						DiscData& discData = mWireDiscData[shapeData.idx];
 
 						ShapeMeshes3D::wireDisc(discData.position, discData.radius, discData.normal,
-							meshData, curVertexOffset, curIndexOffet, discData.quality);
+							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.quality);
 
 						transform = &discData.transform;
 						color = discData.color.getAsRGBA();
@@ -1088,7 +1114,8 @@ namespace bs
 						ArcData& arcData = mWireArcData[shapeData.idx];
 
 						ShapeMeshes3D::wireArc(arcData.position, arcData.radius, arcData.normal,
-							arcData.startAngle, arcData.amountAngle, meshData, curVertexOffset, curIndexOffet, arcData.quality);
+							arcData.startAngle, arcData.amountAngle, meshData[typeIdx], vertexOffset[typeIdx], 
+							indexOffset[typeIdx], arcData.quality);
 
 						transform = &arcData.transform;
 						color = arcData.color.getAsRGBA();
@@ -1100,32 +1127,25 @@ namespace bs
 
 					for (UINT32 i = 0; i < shapeData.numVertices; i++)
 					{
-						Vector3 worldPos = transform->multiplyAffine(positionIter.getValue());
+						Vector3 worldPos = transform->multiplyAffine(positionIter[typeIdx].getValue());
 
-						positionIter.addValue(worldPos);
-						colorIter.addValue(color);
+						positionIter[typeIdx].addValue(worldPos);
+						colorIter[typeIdx].addValue(color);
 					}
 
-					curVertexOffset += shapeData.numVertices;
-					curIndexOffet += shapeData.numIndices;
+					vertexOffset[typeIdx] += shapeData.numVertices;
+					indexOffset[typeIdx] += shapeData.numIndices;
 				}
-
-				mMeshes.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = mMeshes.back();
-				newMesh.mesh = mLineMeshHeap->alloc(meshData, DOT_LINE_LIST);
-				newMesh.type = MeshType::Line;
 			}
 			else // Text
 			{
-				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(batch.numVertices,
-					batch.numIndices, mTextVertexDesc);
-
-				UINT32 curVertexOffset = 0;
-				UINT32 curIndexOffet = 0;
-
-				auto positionIter = meshData->getVec3DataIter(VES_POSITION);
-				auto uvIter = meshData->getVec2DataIter(VES_TEXCOORD);
-				auto colorIter = meshData->getDWORDDataIter(VES_COLOR);
+				meshInfos.push_back(ShapeMeshData());
+				ShapeMeshData& newMesh = meshInfos.back();
+				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
+				newMesh.subMesh.indexCount = batch.numIndices;
+				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
+				newMesh.type = MeshType::Text;
+				newMesh.texture = batch.texture;
 
 				for (UINT32 i = batch.startIdx; i <= batch.endIdx; i++)
 				{
@@ -1135,7 +1155,7 @@ namespace bs
 					TextRenderData& renderData = textRenderData[shapeData.textIdx];
 					UINT32 numQuads = renderData.textData->getNumQuadsForPage(renderData.page);
 
-					UINT32* indices = meshData->getIndices32();
+					UINT32* indices = meshData[typeIdx]->getIndices32();
 
 					// Note: Need temporary buffers because TextLine doesn't support arbitrary vertex stride. Eventually
 					// that should be supported (should be almost trivial to implement)
@@ -1177,43 +1197,47 @@ namespace bs
 						Vector3 localPos(localPos2D.x, localPos2D.y, 0.0f);
 						Vector3 worldPos = transform.multiplyAffine(localPos);
 
-						positionIter.addValue(worldPos);
-						uvIter.addValue(tempUVs[j]);
-						colorIter.addValue(text2DData.color.getAsRGBA());
+						positionIter[typeIdx].addValue(worldPos);
+						textUVIter.addValue(tempUVs[j]);
+						colorIter[typeIdx].addValue(text2DData.color.getAsRGBA());
 					}
 
 					bs_stack_free(tempUVs);
 					bs_stack_free(tempVertices);
 
-					curVertexOffset += shapeData.numVertices;
-					curIndexOffet += shapeData.numIndices;
+					vertexOffset[typeIdx] += shapeData.numVertices;
+					indexOffset[typeIdx] += shapeData.numIndices;
 				}
-
-				mMeshes.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = mMeshes.back();
-				newMesh.mesh = mTextMeshHeap->alloc(meshData, DOT_TRIANGLE_LIST);
-				newMesh.type = MeshType::Text;
-				newMesh.texture = batch.texture;
 			}
 		}
 
-		mNumActiveMeshes += (UINT32)mMeshes.size();
-	}
-
-	void DrawHelper::clearMeshes(const Vector<ShapeMeshData>& meshes)
-	{
-		for (auto meshData : meshes)
+		SPtr<Mesh> meshes[4];
+		for(UINT32 i = 0; i < 4; i++)
 		{
-			if (meshData.type == MeshType::Solid)
-				mSolidMeshHeap->dealloc(meshData.mesh);
-			if (meshData.type == MeshType::Wire)
-				mWireMeshHeap->dealloc(meshData.mesh);
-			else if (meshData.type == MeshType::Line)
-				mLineMeshHeap->dealloc(meshData.mesh);
-			else // Text
-				mTextMeshHeap->dealloc(meshData.mesh);
+			if(meshData[i])
+				meshes[i] = Mesh::_createPtr(meshData[i]);
 		}
 
-		mNumActiveMeshes -= (UINT32)meshes.size();
+		for(auto& entry : meshInfos)
+		{
+			switch(entry.type)
+			{
+			case MeshType::Solid: 
+				entry.mesh = meshes[0];
+				break;
+			case MeshType::Wire: 
+				entry.mesh = meshes[1];
+				break;
+			case MeshType::Line: 
+				entry.mesh = meshes[2];
+				break;
+			case MeshType::Text: 
+				entry.mesh = meshes[3];
+				break;
+			default: ;
+			}
+		}
+
+		return meshInfos;
 	}
 }

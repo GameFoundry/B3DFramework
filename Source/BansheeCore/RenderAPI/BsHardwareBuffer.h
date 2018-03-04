@@ -155,7 +155,7 @@ namespace bs
 		bool mIsLocked;
 		UINT32 mLockStart;
 		UINT32 mLockSize;
-    };
+	};
 
 	/** @} */
 }

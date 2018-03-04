@@ -4,7 +4,6 @@
 #include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Utility/BsShapeMeshes3D.h"
-#include "Mesh/BsMeshHeap.h"
 #include "2D/BsSpriteTexture.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Material/BsMaterial.h"
@@ -13,7 +12,6 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsRendererUtility.h"
-#include "Mesh/BsTransientMesh.h"
 #include "Utility/BsDrawHelper.h"
 #include "Renderer/BsRendererExtension.h"
 #include "Resources/BsBuiltinResources.h"
@@ -32,9 +30,6 @@ namespace bs
 
 	DebugDraw::~DebugDraw()
 	{
-		mDrawHelper->clearMeshes(mActiveMeshes);
-		mActiveMeshes.clear();
-
 		bs_delete(mDrawHelper);
 	}
 
@@ -120,11 +115,11 @@ namespace bs
 		for (auto& entry : meshData)
 		{
 			if (entry.type == DrawHelper::MeshType::Solid)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), DebugDrawMaterial::Solid));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, DebugDrawMaterial::Solid));
 			else if (entry.type == DrawHelper::MeshType::Wire)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), DebugDrawMaterial::Wire));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, DebugDrawMaterial::Wire));
 			else if (entry.type == DrawHelper::MeshType::Line)
-				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), DebugDrawMaterial::Line));
+				proxyData.push_back(MeshRenderData(entry.mesh->getCore(), entry.subMesh, DebugDrawMaterial::Line));
 		}
 
 		return proxyData;
@@ -137,11 +132,8 @@ namespace bs
 
 	void DebugDraw::_update()
 	{
-		mDrawHelper->clearMeshes(mActiveMeshes);
 		mActiveMeshes.clear();
-
-		mDrawHelper->buildMeshes(DrawHelper::SortType::None, Vector3::ZERO);
-		mActiveMeshes = mDrawHelper->getMeshes();
+		mActiveMeshes = mDrawHelper->buildMeshes(DrawHelper::SortType::None, Vector3::ZERO);
 
 		Vector<MeshRenderData> proxyData = createMeshProxyData(mActiveMeshes);
 
@@ -159,12 +151,12 @@ namespace bs
 		// Do nothing
 	}
 
-	void DebugDrawMat::execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<MeshBase>& mesh)
+	void DebugDrawMat::execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
 	{
 		mParams->setParamBlockBuffer("Params", params);
 
 		bind();
-		gRendererUtility().draw(mesh);
+		gRendererUtility().draw(mesh, subMesh);
 	}
 
 	DebugDrawMat* DebugDrawMat::getVariation(DebugDrawMaterial mat)
@@ -216,7 +208,7 @@ namespace bs
 		for (auto& entry : mMeshes)
 		{
 			DebugDrawMat* mat = DebugDrawMat::getVariation(entry.type);
-			mat->execute(mParamBuffer, entry.mesh);
+			mat->execute(mParamBuffer, entry.mesh, entry.subMesh);
 		}
 	}
 	}

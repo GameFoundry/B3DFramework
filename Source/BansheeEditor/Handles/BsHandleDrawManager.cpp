@@ -8,7 +8,7 @@
 #include "CoreThread/BsCoreThread.h"
 #include "Renderer/BsRendererManager.h"
 #include "Renderer/BsRenderer.h"
-#include "Mesh/BsTransientMesh.h"
+#include "Mesh/BsMesh.h"
 #include "Renderer/BsCamera.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Image/BsTexture.h"
@@ -179,9 +179,9 @@ namespace bs
 		}
 
 		const Transform& tfrm = camera->getTransform();
-		mDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, tfrm.getPosition(), camera->getLayers());
+		const Vector<DrawHelper::ShapeMeshData>& meshes = 
+			mDrawHelper->buildMeshes(DrawHelper::SortType::BackToFront, tfrm.getPosition(), camera->getLayers());
 
-		const Vector<DrawHelper::ShapeMeshData>& meshes = mDrawHelper->getMeshes();
 		mActiveMeshes.push_back(meshes);
 
 		Vector<ct::HandleRenderer::MeshData> proxyData;
@@ -194,17 +194,17 @@ namespace bs
 			if (meshData.type == DrawHelper::MeshType::Solid)
 			{
 				proxyData.push_back(ct::HandleRenderer::MeshData(
-					meshData.mesh->getCore(), tex, ct::HandleRenderer::MeshType::Solid));
+					meshData.mesh->getCore(), meshData.subMesh, tex, ct::HandleRenderer::MeshType::Solid));
 			}
 			else if (meshData.type == DrawHelper::MeshType::Line)
 			{
 				proxyData.push_back(ct::HandleRenderer::MeshData(
-					meshData.mesh->getCore(), tex, ct::HandleRenderer::MeshType::Line));
+					meshData.mesh->getCore(), meshData.subMesh, tex, ct::HandleRenderer::MeshType::Line));
 			}
 			else // Text
 			{
 				proxyData.push_back(ct::HandleRenderer::MeshData(
-					meshData.mesh->getCore(), tex, ct::HandleRenderer::MeshType::Text));
+					meshData.mesh->getCore(), meshData.subMesh, tex, ct::HandleRenderer::MeshType::Text));
 			}
 		}
 
@@ -218,9 +218,6 @@ namespace bs
 
 	void HandleDrawManager::clearMeshes()
 	{
-		for (auto entry : mActiveMeshes)
-			mDrawHelper->clearMeshes(entry);
-
 		mActiveMeshes.clear();
 	}
 
@@ -335,7 +332,7 @@ namespace bs
 				}
 
 				gRendererUtility().setPassParams(mParamSets[typeIdx][meshData.paramIdx]);
-				gRendererUtility().draw(meshData.mesh, meshData.mesh->getProperties().getSubMesh(0));
+				gRendererUtility().draw(meshData.mesh, meshData.subMesh);
 			}
 
 			// Set alpha of everything that was drawn to 1 so we can overlay this texture onto GUI using transparency

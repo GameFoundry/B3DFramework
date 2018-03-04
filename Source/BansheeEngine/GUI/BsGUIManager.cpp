@@ -22,8 +22,6 @@
 #include "GUI/BsDragAndDropManager.h"
 #include "GUI/BsGUIDropDownBoxManager.h"
 #include "Profiling/BsProfilerCPU.h"
-#include "Mesh/BsMeshHeap.h"
-#include "Mesh/BsTransientMesh.h"
 #include "Input/BsVirtualInput.h"
 #include "Platform/BsCursor.h"
 #include "CoreThread/BsCoreThread.h"
@@ -70,8 +68,6 @@ namespace bs
 
 	const UINT32 GUIManager::DRAG_DISTANCE = 3;
 	const float GUIManager::TOOLTIP_HOVER_TIME = 1.0f;
-	const UINT32 GUIManager::MESH_HEAP_INITIAL_NUM_VERTS = 16384;
-	const UINT32 GUIManager::MESH_HEAP_INITIAL_NUM_INDICES = 49152;
 
 	GUIManager::GUIManager()
 		: mCoreDirty(false), mActiveMouseButton(GUIMouseButton::Left), mShowTooltip(false), mTooltipElementHoverStart(0.0f)
@@ -107,12 +103,8 @@ namespace bs
 		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
 		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 
-		mTriangleMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mTriangleVertexDesc);
-
 		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		mLineVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
-
-		mLineMeshHeap = MeshHeap::create(MESH_HEAP_INITIAL_NUM_VERTS, MESH_HEAP_INITIAL_NUM_INDICES, mLineVertexDesc);
 
 		// Need to defer this call because I want to make sure all managers are initialized first
 		deferredCall(std::bind(&GUIManager::updateCaretTexture, this));
@@ -218,17 +210,6 @@ namespace bs
 
 		if(renderData.widgets.size() == 0)
 		{
-			for (auto& entry : renderData.cachedMeshes)
-			{
-				if (entry.mesh == nullptr)
-					continue;
-
-				if(!entry.isLine)
-					mTriangleMeshHeap->dealloc(entry.mesh);
-				else
-					mLineMeshHeap->dealloc(entry.mesh);
-			}
-
 			mCachedGUIData.erase(renderTarget);
 			mCoreDirty = true;
 		}
@@ -395,7 +376,8 @@ namespace bs
 
 				for (auto& entry : renderData.cachedMeshes)
 				{
-					if (entry.mesh == nullptr)
+					const SPtr<Mesh>& mesh = entry.isLine ? renderData.lineMesh : renderData.triangleMesh;
+					if(!mesh)
 						continue;
 
 					cameraData.push_back(GUICoreRenderData());
@@ -408,11 +390,15 @@ namespace bs
 						textureCore = nullptr;
 
 					newEntry.material = entry.material;
+					newEntry.mesh = mesh->getCore();
 					newEntry.texture = textureCore;
 					newEntry.tint = entry.matInfo.tint;
-					newEntry.mesh = entry.mesh->getCore();
 					newEntry.worldTransform = entry.widget->getWorldTfrm();
 					newEntry.additionalData = entry.matInfo.additionalData;
+
+					newEntry.subMesh.indexOffset = entry.indexOffset;
+					newEntry.subMesh.indexCount = entry.indexCount;
+					newEntry.subMesh.drawOp = entry.isLine ? DOT_LINE_LIST : DOT_TRIANGLE_LIST;
 				}
 			}
 
@@ -609,32 +595,53 @@ namespace bs
 				};
 
 				UINT32 numMeshes = 0;
+				UINT32 numIndices[2] = { 0, 0 };
+				UINT32 numVertices[2] = { 0, 0 };
+
 				FrameSet<GUIMaterialGroup*, std::function<bool(GUIMaterialGroup*, GUIMaterialGroup*)>> sortedGroups(groupComp);
 				for(auto& material : materialGroups)
 				{
 					for(auto& group : material.second)
 					{
 						sortedGroups.insert(&group);
+
+						UINT32 typeIdx = (UINT32)group.meshType;
+						numIndices[typeIdx] += group.numIndices;
+						numVertices[typeIdx] += group.numVertices;
+
 						numMeshes++;
 					}
 				}
 
-				UINT32 oldNumMeshes = (UINT32)renderData.cachedMeshes.size();
-				for (UINT32 i = 0; i < oldNumMeshes; i++)
-				{
-					if(!renderData.cachedMeshes[i].isLine)
-						mTriangleMeshHeap->dealloc(renderData.cachedMeshes[i].mesh);
-					else
-						mLineMeshHeap->dealloc(renderData.cachedMeshes[i].mesh);
-				}
+				renderData.triangleMesh = nullptr;
+				renderData.lineMesh = nullptr;
 
 				renderData.cachedMeshes.resize(numMeshes);
-				
+
+				SPtr<MeshData> meshData[2];
+				SPtr<VertexDataDesc> vertexDesc[2] = { mTriangleVertexDesc, mLineVertexDesc };
+
+				UINT8* vertices[2] = { nullptr, nullptr };
+				UINT32* indices[2] = { nullptr, nullptr };
+
+				for(UINT32 i = 0; i < 2; i++)
+				{
+					if(numVertices[i] > 0 && numIndices[i] > 0)
+					{
+						meshData[i] = MeshData::create(numVertices[i], numIndices[i], vertexDesc[i]);
+
+						vertices[i] = meshData[i]->getElementData(VES_POSITION);
+						indices[i] = meshData[i]->getIndices32();
+					}
+				}
+
 				// Fill buffers for each group and update their meshes
 				UINT32 meshIdx = 0;
+				UINT32 vertexOffset[2] = { 0, 0 };
+				UINT32 indexOffset[2] = { 0, 0 };
+
 				for(auto& group : sortedGroups)
 				{
-					SPtr<MeshData> meshData;
 					GUIWidget* widget;
 
 					if (group->elements.size() == 0)
@@ -649,50 +656,46 @@ namespace bs
 					guiMeshData.matInfo = group->matInfo;
 					guiMeshData.material = group->material;
 					guiMeshData.widget = widget;
+					guiMeshData.isLine = group->meshType == GUIMeshType::Line;
 
-					if (group->meshType == GUIMeshType::Triangle)
-					{
-						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mTriangleVertexDesc);
-						guiMeshData.isLine = false;
-					}
-					else // Line
-					{
-						meshData = bs_shared_ptr_new<MeshData>(group->numVertices, group->numIndices, mLineVertexDesc);
-						guiMeshData.isLine = true;
-					}
+					UINT32 typeIdx = (UINT32)group->meshType;
+					guiMeshData.indexOffset = indexOffset[typeIdx];
 
-					UINT8* vertices = meshData->getElementData(VES_POSITION);
-					UINT32* indices = meshData->getIndices32();
-
-					UINT32 indexOffset = 0;
-					UINT32 vertexOffset = 0;
+					UINT32 groupNumIndices = 0;
 					for(auto& matElement : group->elements)
 					{
-						matElement.element->_fillBuffer(vertices, indices, vertexOffset, indexOffset, group->numVertices,
-							group->numIndices, matElement.renderElement);
+						matElement.element->_fillBuffer(
+							vertices[typeIdx], indices[typeIdx], 
+							vertexOffset[typeIdx], indexOffset[typeIdx], 
+							numVertices[typeIdx], numIndices[typeIdx], matElement.renderElement);
 
-						UINT32 numVertices;
-						UINT32 numIndices;
+						UINT32 elemNumVertices;
+						UINT32 elemNumIndices;
 						GUIMeshType meshType;
-						matElement.element->_getMeshInfo(matElement.renderElement, numVertices, numIndices, meshType);
+						matElement.element->_getMeshInfo(matElement.renderElement, elemNumVertices, elemNumIndices, meshType);
 
-						UINT32 indexStart = indexOffset;
-						UINT32 indexEnd = indexStart + numIndices;
+						UINT32 indexStart = indexOffset[typeIdx];
+						UINT32 indexEnd = indexStart + elemNumIndices;
 
 						for(UINT32 i = indexStart; i < indexEnd; i++)
-							indices[i] += vertexOffset;
+							indices[typeIdx][i] += vertexOffset[typeIdx];
 
-						indexOffset += numIndices;
-						vertexOffset += numVertices;
+						indexOffset[typeIdx] += elemNumIndices;
+						vertexOffset[typeIdx] += elemNumVertices;
+
+						groupNumIndices += elemNumIndices;
 					}
 
-					if (group->meshType == GUIMeshType::Triangle)
-						guiMeshData.mesh = mTriangleMeshHeap->alloc(meshData);
-					else // Line
-						guiMeshData.mesh = mLineMeshHeap->alloc(meshData, DOT_LINE_LIST);
+					guiMeshData.indexCount = groupNumIndices;
 
 					meshIdx++;
 				}
+
+				if(meshData[0])
+					renderData.triangleMesh = Mesh::_createPtr(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
+
+				if(meshData[1])
+					renderData.lineMesh = Mesh::_createPtr(meshData[1], MU_STATIC, DOT_LINE_LIST);
 			}
 
 			bs_frame_clear();			
@@ -1786,7 +1789,7 @@ namespace bs
 
 			SPtr<GpuParamBlockBuffer> buffer = mParamBlocks[entry.bufferIdx];
 
-			entry.material->render(entry.mesh, entry.texture, mSamplerState, buffer, entry.additionalData);
+			entry.material->render(entry.mesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
 		}
 	}
 

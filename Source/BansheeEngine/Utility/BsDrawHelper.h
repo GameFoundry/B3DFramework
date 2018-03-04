@@ -8,6 +8,7 @@
 #include "Math/BsVector2.h"
 #include "Image/BsColor.h"
 #include "Math/BsRect3.h"
+#include "RenderAPI/BsSubMesh.h"
 
 namespace bs
 {
@@ -36,13 +37,13 @@ namespace bs
 		/**	Container for mesh of a specific type output by the DrawHelper. */
 		struct ShapeMeshData
 		{
-			SPtr<TransientMesh> mesh;
+			SPtr<Mesh> mesh;
+			SubMesh subMesh;
 			MeshType type;
 			HTexture texture;
 		};
 
 		DrawHelper();
-		~DrawHelper();
 
 		/**	Sets a color that will be used for any shapes recorded after this call. */
 		void setColor(const Color& color);
@@ -128,17 +129,10 @@ namespace bs
 		 *						sorting.
 		 * @param	layers		(optional) Layers bitfield that can be used for controlling which shapes will be included
 		 *						in the mesh. This bitfield will be ANDed with the layer specified when recording the shape.
-		 *
-		 * @note	You must call clearMeshes() when done.
+		 * @return				Generated mesh data.
 		 */
-		void buildMeshes(SortType sorting = SortType::None, const Vector3& reference = Vector3::ZERO, 
+		Vector<ShapeMeshData> buildMeshes(SortType sorting = SortType::None, const Vector3& reference = Vector3::ZERO, 
 			UINT64 layers = 0xFFFFFFFFFFFFFFFF);
-
-		/** Returns a set of meshes that were built using the last call to buildMeshes(). */
-		const Vector<ShapeMeshData>& getMeshes() const { return mMeshes; }
-
-		/** Deallocates meshes previously built with buildMeshes(). */
-		void clearMeshes(const Vector<ShapeMeshData>& meshes);
 
 	private:
 		struct CommonData
@@ -251,14 +245,6 @@ namespace bs
 		Vector<ArcData> mWireArcData;
 		Vector<Text2DData> mText2DData;
 		Vector<WireMeshData> mWireMeshData;
-
-		Vector<ShapeMeshData> mMeshes;
-		UINT32 mNumActiveMeshes;
-
-		SPtr<MeshHeap> mSolidMeshHeap;
-		SPtr<MeshHeap> mWireMeshHeap;
-		SPtr<MeshHeap> mLineMeshHeap;
-		SPtr<MeshHeap> mTextMeshHeap;
 
 		SPtr<VertexDataDesc> mSolidVertexDesc;
 		SPtr<VertexDataDesc> mWireVertexDesc;

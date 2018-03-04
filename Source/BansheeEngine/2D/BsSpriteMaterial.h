@@ -87,12 +87,13 @@ namespace bs
 		 * Renders the provided mesh using the current material.
 		 *
 		 * @param[in]	mesh			Mesh to render, containing vertices in screen space.
+		 * @param[in]	subMesh			Portion of @p mesh to render.
 		 * @param[in]	texture			Optional texture to render the mesh with.
 		 * @param[in]	sampler			Optional sampler to render the texture with.
 		 * @param[in]	paramBuffer		Buffer containing data GPU parameters.
 		 * @param[in]	additionalData	Optional additional data that might be required by the renderer.
 		 */
-		virtual void render(const SPtr<ct::MeshBase>& mesh, const SPtr<ct::Texture>& texture,
+		virtual void render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture,
 			const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer,
 			const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
