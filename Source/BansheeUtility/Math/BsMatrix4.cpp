@@ -134,8 +134,6 @@ namespace bs
 
 	Matrix4 Matrix4::inverseAffine() const
 	{
-		BS_ASSERT(isAffine());
-
 		float m10 = m[1][0], m11 = m[1][1], m12 = m[1][2];
 		float m20 = m[2][0], m21 = m[2][1], m22 = m[2][2];
 

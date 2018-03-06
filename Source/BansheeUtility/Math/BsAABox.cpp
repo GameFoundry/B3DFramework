@@ -171,8 +171,6 @@ namespace bs
 
 	void AABox::transformAffine(const Matrix4& m)
 	{
-		BS_ASSERT(m.isAffine());
-
 		Vector3 min = m.getTranslation();
 		Vector3 max = m.getTranslation();
 		for(UINT32 i = 0; i < 3; i++)

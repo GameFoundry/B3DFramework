@@ -379,7 +379,6 @@ namespace bs
 		mCustomViewMatrix = enable;
 		if (enable)
 		{
-			BS_ASSERT(viewMatrix.isAffine());
 			mViewMatrix = viewMatrix;
 			mViewMatrixInv = mViewMatrix.inverseAffine();
 		}
