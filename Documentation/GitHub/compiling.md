@@ -45,7 +45,7 @@ You can choose to use a different *CMake* generator than those specified above, 
     - MSVC++ 14.0 (Visual Studio 2015)
 	- MSVC++ 15.0 (Visual Studio 2017)
     - GCC 7.0 (or newer)
-    - Clang 4 (or newer)
+    - Clang 5.0 (or newer)
 
 ### <a name="dependencies"></a>Third party dependencies
 Banshee relies on a variety of third party dependencies. A set of pre-compiled dependencies are provided for every supported platform/compiler. These will be fetched automatically by the build process, but you may also download them manually or compile them from source:

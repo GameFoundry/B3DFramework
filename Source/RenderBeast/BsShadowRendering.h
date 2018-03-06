@@ -41,7 +41,8 @@ namespace bs { namespace ct
 		template<bool skinned, bool morph>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SKINNED", skinned),
 				ShaderVariation::Param("MORPH", morph)
 			});
@@ -76,7 +77,8 @@ namespace bs { namespace ct
 		template<bool skinned, bool morph>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SKINNED", skinned),
 				ShaderVariation::Param("MORPH", morph)
 			});
@@ -122,7 +124,8 @@ namespace bs { namespace ct
 		template<bool skinned, bool morph>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SKINNED", skinned),
 				ShaderVariation::Param("MORPH", morph)
 			});
@@ -163,7 +166,8 @@ namespace bs { namespace ct
 		template<bool directional, bool useZFailStencil>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
 				ShaderVariation::Param("USE_ZFAIL_STENCIL", useZFailStencil)
 			});
@@ -236,7 +240,8 @@ namespace bs { namespace ct
 		template<UINT32 quality, bool directional, bool MSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SHADOW_QUALITY", quality),
 				ShaderVariation::Param("CASCADING", directional),
 				ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
@@ -288,7 +293,8 @@ namespace bs { namespace ct
 		template<UINT32 quality, bool inside, bool MSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SHADOW_QUALITY", quality),
 				ShaderVariation::Param("VIEWER_INSIDE_VOLUME", inside),
 				ShaderVariation::Param("NEEDS_TRANSFORM", true),

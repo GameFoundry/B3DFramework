@@ -123,7 +123,8 @@ namespace bs { namespace ct
 		template<int shOrder>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SH_ORDER", shOrder)
 			});
 
@@ -175,7 +176,8 @@ namespace bs { namespace ct
 		template<int shOrder>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SH_ORDER", shOrder)
 			});
 

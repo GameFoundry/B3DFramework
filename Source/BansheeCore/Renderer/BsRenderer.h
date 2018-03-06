@@ -29,7 +29,8 @@ namespace bs
 	template<bool skinned, bool morph>
 	static const ShaderVariation& getVertexInputVariation()
 	{
-		static ShaderVariation variation = ShaderVariation({
+		static ShaderVariation variation = ShaderVariation(
+		Vector<ShaderVariation::Param>{
 			ShaderVariation::Param("SKINNED", skinned),
 			ShaderVariation::Param("MORPH", morph),
 		});
@@ -41,7 +42,8 @@ namespace bs
 	template<bool skinned, bool morph, bool clustered>
 	static const ShaderVariation& getForwardRenderingVariation()
 	{
-		static ShaderVariation variation = ShaderVariation({
+		static ShaderVariation variation = ShaderVariation(
+		Vector<ShaderVariation::Param>{
 			ShaderVariation::Param("SKINNED", skinned),
 			ShaderVariation::Param("MORPH", morph),
 			ShaderVariation::Param("CLUSTERED", clustered),

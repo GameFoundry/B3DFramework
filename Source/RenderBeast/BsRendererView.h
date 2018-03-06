@@ -59,7 +59,8 @@ namespace bs { namespace ct
 		template<bool color>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("SOLID_COLOR", color)
 			});
 

@@ -144,7 +144,8 @@ namespace bs { namespace ct
 		template<UINT32 msaa>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA_COUNT", msaa)
 			});
 

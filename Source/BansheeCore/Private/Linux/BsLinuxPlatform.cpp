@@ -1261,21 +1261,21 @@ namespace bs
 		// For raw, relative mouse motion events, XInput2 extension is required
 		int firstEvent;
 		int firstError;
-		if (!XQueryExtension(mData->xDisplay, "XInputExtension", &mData->xInput2Opcode, &firstEvent, &firstError)) {
+		if (!XQueryExtension(mData->xDisplay, "XInputExtension", &mData->xInput2Opcode, &firstEvent, &firstError))
 			BS_EXCEPT(InternalErrorException, "X Server doesn't support the XInput extension");
-		}
 
 		int majorVersion = 2;
 		int minorVersion = 0;
-		if (XIQueryVersion(mData->xDisplay, &majorVersion, &minorVersion) != Success) {
+		if (XIQueryVersion(mData->xDisplay, &majorVersion, &minorVersion) != Success)
 			BS_EXCEPT(InternalErrorException, "X Server doesn't support at least the XInput 2.0 extension");
-		}
 
 		// Let XInput know we are interested in raw mouse movement events
+		constexpr int maskLen = XIMaskLen(XI_LASTEVENT);
 		XIEventMask mask;
 		mask.deviceid = XIAllDevices;
-		mask.mask_len = XIMaskLen(XI_LASTEVENT);
-		unsigned char maskBuffer[mask.mask_len] = {0};
+		mask.mask_len = maskLen;
+
+		unsigned char maskBuffer[maskLen] = {0};
 		mask.mask = maskBuffer;
 		XISetMask(mask.mask, XI_RawMotion);
 

@@ -32,7 +32,8 @@ namespace bs { namespace ct {
 		template<bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
@@ -69,7 +70,8 @@ namespace bs { namespace ct {
 		template<bool inside, bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("INSIDE_GEOMETRY", inside),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
@@ -124,7 +126,8 @@ namespace bs { namespace ct {
 		template<bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
@@ -166,7 +169,8 @@ namespace bs { namespace ct {
 		template<bool inside, bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("INSIDE_GEOMETRY", inside),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
@@ -211,7 +215,8 @@ namespace bs { namespace ct {
 		template<bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
@@ -253,7 +258,8 @@ namespace bs { namespace ct {
 		template<bool msaa, bool singleSampleMSAA>
 		static const ShaderVariation& getVariation()
 		{
-			static ShaderVariation variation = ShaderVariation({
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
