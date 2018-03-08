@@ -4,19 +4,19 @@ Interacting with the script runtime									{#mono}
 
 In the previous chapter we talked about how to expose a C++ type to the scripting API by using the script binding generator tool. This tool ensures you can generate script bindings easily, but in some cases it is not robust enough and you must interact with the scripting API manually. This manual will explain how to interact with the scripting API and expose C++ code to it manually (without the script binding generator tool). 
 
-You can use manual generation to achieve everything as with the script binding generator tool (in fact this tool uses the same API as described in this manual), plus a lot more. It is preferred you use automatic generation whenever possible, but when working with lower level systems that closely interact with the scripting system (like serialization, script compilation, etc.) you need more direct access.
+You can use manual generation to achieve everything as with the script binding generator tool (in fact the tool uses the same API as we'll describe in this manual), plus a lot more. It is preferred you use automatic generation whenever possible, but when working with lower level systems that closely interact with the scripting system (like serialization, script compilation, etc.) you need more direct access.
 
 All C# script code is executed using the Mono runtime. Mono runtime allows you to communicate with C# code and vice-versa by invoking methods and querying class/method/field information. In this section we'll focus on how to interact with Mono (and therefore the C# runtime).
 
 # MonoManager {#mono_a}
-BansheeMono is a plugin that wraps the functionality of the Mono runtime. The main entry point of the scripting system is the @ref bs::MonoManager "MonoManager" class which allows you to start the runtime and load managed (script) assemblies. The most important method here is @ref bs::MonoManager::loadAssembly "MonoManager::loadAssembly()". It loads all the script code from the managed assembly (.dll) at the provided path, and provides meta-data for the entire assembly through the returned @ref bs::MonoAssembly "MonoAssembly" object. 
+bsfMono is a plugin that wraps the functionality of the Mono runtime. The main entry point of the scripting system is the @ref bs::MonoManager "MonoManager" class which allows you to start the runtime and load managed (script) assemblies. The most important method here is @ref bs::MonoManager::loadAssembly "MonoManager::loadAssembly()". It loads all the script code from the managed assembly (.dll) at the provided path, and provides meta-data for the entire assembly through the returned @ref bs::MonoAssembly "MonoAssembly" object. 
 
 ~~~~~~~~~~~~~{.cpp}
 // Loads the MyManagedAssembly.dll
 MonoAssembly& assembly = MonoManager::instance().loadAssembly("Path/To/Assembly", "MyManagedAssembly");
 ~~~~~~~~~~~~~ 
 
-In most cases Banshee will load all the necessary assemblies for you, in which case you can just retrieve them by calling @ref bs::MonoManager::getAssembly "MonoManager::getAssembly()".
+You can retrieve a previously loaded assembly by calling @ref bs::MonoManager::getAssembly "MonoManager::getAssembly()".
 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve the MonoAssembly to a previously loaded assembly
@@ -56,7 +56,7 @@ MonoObject* instance3 = klass->createInstance("int,int,bool", params);
 
 When passing arguments to constructors (and methods in general) you need to place the correct number of parameters in a array of *void* pointers, which you then pass to the invoking method. We'll talk more about how to pass arguments to methods later.
 
-To retrieve a method from a class call @ref bs::MonoClass::getMethod() "MonoClass::getMethod()", accepting a name (without parameter types) and a number of parameters. If your method is overloaded you can use @ref bs::MonoClass::getMethodExact "MonoClass:getMethodExact()" which accepts a method name, and a comma separated list of parameter types. You may also use @ref bs::MonoClass::getAllMethods "MonoClass::getAllMethods()" to retrieve all methods in a class. All three of these methods return a @ref bs::MonoMethod "MonoMethod" object.
+To retrieve a method from a class call @ref bs::MonoClass::getMethod() "MonoClass::getMethod()", accepting a name (without parameter types) and a number of parameters. If your method is overloaded you can use @ref bs::MonoClass::getMethodExact "MonoClass::getMethodExact()" which accepts a method name, and a comma separated list of parameter types. You may also use @ref bs::MonoClass::getAllMethods "MonoClass::getAllMethods()" to retrieve all methods in a class. All three of these methods return a @ref bs::MonoMethod "MonoMethod" object.
 
 ~~~~~~~~~~~~~{.cpp}
 // Get method on the class named "MyMethod", accepting zero parameters
@@ -120,7 +120,7 @@ myStaticField->set(nullptr, &newStaticFieldValue)
 Field values are represented by their raw types if they are value types (*int*, *float* or *struct* types in C#), and as **MonoObject** pointer for reference types.
 
 # MonoProperty {#mono_f}
-Properties are very similar to fields, retrieved from a **MonoClass** object by calling @ref bs::MonoClass::getProperty "MonoClass::getProperty()". The returned value is a @ref bs::MonoProperty "MonoProperty" which provides information about the property and allows you to retrieve and set values on it. The main difference is that properties in C# can be indexed (like arrays) and therefore a two set of set/get methods are provided, one accepting an index and other one not. It's up to the user to know which one to call. The methods are @ref bs::MonoProperty::get "MonoProperty::get()" / @ref bs::MonoProperty::set "MonoProperty::set()" and @ref bs::MonoProperty::getIndexed "MonoProperty::getIndexed()" / @ref bs::MonoProperty::setIndexed "MonoProperty::setIndexed()".
+Properties are very similar to fields, retrieved from a **MonoClass** object by calling @ref bs::MonoClass::getProperty "MonoClass::getProperty()". The returned value is a @ref bs::MonoProperty "MonoProperty" which provides information about the property and allows you to retrieve and set values on it. The main difference is that properties in C# can be indexed (like arrays) and therefore two sets of set/get methods are provided, one accepting an index and other one not. It's up to the user to know which one to call. The methods are @ref bs::MonoProperty::get "MonoProperty::get()" / @ref bs::MonoProperty::set "MonoProperty::set()" and @ref bs::MonoProperty::getIndexed "MonoProperty::getIndexed()" / @ref bs::MonoProperty::setIndexed "MonoProperty::setIndexed()".
 
 ~~~~~~~~~~~~~{.cpp}
 // Read property value from a specific object instance
@@ -246,6 +246,50 @@ for(UINT32 i = 0; i < inArray.size(); i++)
 	output[i] = inArray.get<UINT32>(i);
 ~~~~~~~~~~~~~ 
 
+## MonoObject assignment {#mono_i_d}
+As we discussed earlier, **MonoObject** is garbage collected by the Mono's garbage collector. In order for the GC to be able to track **MonoObject**'s in C++, there are some rules that need to be followed when passing these objects around. 
+
+By default **MonoObject** will not be garabage collected if it is stored on the stack or registers (e.g. a local variable in a function). If that is your only use case then no further action is required. But if you copy it to some heap allocated memory you need to inform the GC of that copy, otherwise it might get collected while you are still using it. Often this is the case when outputting a **MonoObject** through a method parameter (marked with `ref` or `out` in C#).
+
+In these cases instead of assignment (`=` operator), use @ref bs::MonoUtil::referenceCopy() "MonoUtil::referenceCopy()";
+
+~~~~~~~~~~~~~{.cpp}
+// One common example for the use of MonoUtil::referenceCopy is outputting a MonoObject by parameter
+// This is an internal method that gets called from managed code
+void getObject(MonoObject** output)
+{
+	MonoObject* newObj = ...; // Create a new MonoObject (or retrieve one from a stored GC handle)
+	
+	*output = newObj; // WRONG - GC isn't aware of this new reference to the MonoObject*
+	MonoUtil::referenceCopy(output, newObj); // CORRECT - GC is properly notified
+}
+~~~~~~~~~~~~~ 
+
+If a **MonoObject** is a member of a struct which you are copying to some heap allocated memory, you need to use @ref bs::MonoUtil::valueCopy() "MonoUtil::valueCopy()" instead of normal assignment. 
+
+~~~~~~~~~~~~~{.cpp}
+struct SomeStruct
+{
+	int a;
+	MonoObject* b;
+};
+
+// This is an internal method that gets called from managed code
+void getObject(SomeStruct* output)
+{
+	SomeStruct obj;
+	obj.a = 5;
+	obj.b = ...; // Create a new MonoObject (or retrieve one from a stored GC handle)
+	
+	*output = obj; // WRONG
+	
+	MonoClass* structClass = ...; // Retrieve the MonoClass of the struct's type
+	MonoUtil::valueCopy(output, &obj, structClass); // CORRECT - GC is properly notified
+}
+~~~~~~~~~~~~~ 
+
+When writing to arrays using **ScriptArray** you do not need to follow these rules as **ScriptArray** will handle this internally.
+
 # Internal methods {#mono_j}
 So far we have talked about calling managed code, and retrieving information about managed types, but we have yet to show how managed code calls C++ code. This is accomplished using internal methods.
 
@@ -255,7 +299,7 @@ The first step is to define a stub method in managed code, like so:
 private static extern float Internal_GetSomeValue(MyObject obj);
 ~~~~~~~~~~~~~
 	
-You then hook up this method with managed code by calling @ref bs::MonoClass::addInternalCall "MonoClass::addInternalCall". In this specific case it would be:
+You then hook up this method with managed code by calling @ref bs::MonoClass::addInternalCall "MonoClass::addInternalCall()". In this specific case it would be:
 ~~~~~~~~~~~~~{.cpp}
 float myNativeFunction(MonoObject* obj)
 {

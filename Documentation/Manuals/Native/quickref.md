@@ -11,3 +11,5 @@ Here are some common conventions used throughout bs::f:
  - Clockwise faces are considered as front facing
  - Matrices are stored in row major format
  - Vectors are interpreted as column vectors
+ - Default unit of length is meters (1 unit = 1 m)
+ - Default unit of mass is kilogram (1 unit = 1 kg)

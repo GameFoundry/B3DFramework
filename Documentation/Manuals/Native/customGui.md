@@ -26,7 +26,7 @@ class GUITexture : public GUIElement
 ## Construction {#customGUI_a_a}
 In its constructor **GUIElement** expects two parameters:
  - `styleName` - Name of the style to use for rendering the element. This will be looked up in the currently active **GUISkin** and relevant @ref bs::GUIElementStyle "GUIElementStyle" objects will be used for determining object's textures, fonts, colors, borders, margins and similar. Each GUI element type should have a unique default style name, but you also might want to allow the user to override the default style name if he desires. 
- - `dimensions` - And initial set of dimensions determining GUI element's position and size, represented by @ref bs::GUIDimensions "GUIDimensions". You can create an empty set of dimensions by calling @ref bs::GUIDimensions::create "GUIDimensions::create()", in which case the system will use whichever dimensions are provided by the **GUIElementStyle**. Other overload of **GUIDimensions::create()** accepts a @ref bs::GUIOptions "GUIOptions" object, in which you can specify an arbitrary sized array of various dimension related options.
+ - `dimensions` - Initial set of dimensions determining GUI element's position and size, represented by @ref bs::GUIDimensions "GUIDimensions". You can create an empty set of dimensions by calling @ref bs::GUIDimensions::create "GUIDimensions::create()", in which case the system will use whichever dimensions are provided by the **GUIElementStyle**. Other overload of **GUIDimensions::create()** accepts a @ref bs::GUIOptions "GUIOptions" object, in which you can specify an arbitrary sized array of various dimension related options.
 
 As a rule of thumb in order to aid construction GUI elements should provide a set of static `create()` methods (but aren't required to). You usually want to provide a few overloads of `create()` that allow the user to use custom style/dimensions or stick with the default one.
 
@@ -82,7 +82,7 @@ This is done by implementing the following methods:
 
 @ref bs::GUIElement::_getNumRenderElements() "GUIElement::_getNumRenderElements()"
 
-Returns the number of separate elements that your GUI element consists of. Each element corresponds to a mesh and a material to render the mesh with. For most GUI elements there is only one element, but you will need multiple elements in case your GUI element uses multiple textures or materials.
+Returns the number of separate elements that your GUI element consists of. Each element corresponds to a mesh and a material to render the mesh with. For most GUI elements there will be only one element, but you will need multiple elements in case your GUI element uses multiple textures or materials.
 
 ~~~~~~~~~~~~~{.cpp}
 class GUITexture : public GUIElement
@@ -124,7 +124,7 @@ The method receives pointers to the index and vertex memory that must be populat
 
 The vertices are always in a specific format:
  - Each vertex contains a 2D position, followed by 2D texture coordinates
- - Vertex size if `sizeof(Vector2) * 2`
+ - Vertex size is `sizeof(Vector2) * 2`
 
 ~~~~~~~~~~~~~{.cpp}
 class GUITexture : public GUIElement

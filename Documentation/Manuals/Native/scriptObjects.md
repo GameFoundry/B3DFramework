@@ -2,7 +2,7 @@ Script objects									{#scriptObjects}
 ===============
 [TOC]
 
-What we have shown in the previous manual is enough to expose an object to C# and communicate with it. However Banshee provides another API built on top of that functionality in the form of script objects. This API handles some of the boilerplate code required for exposing an object to C#, provides a common interface all script objects need to implement, handles assembly refresh (due to script hot-swap) and gracefully handles managed object lifetime and destruction.
+What we have shown in the previous manual is enough to expose an object to C# and communicate with it. However bs::f provides another API built on top of that functionality in the form of script objects. This API handles some of the boilerplate code required for exposing an object to C#, provides a common interface all script objects need to implement, handles assembly refresh (due to script hot-swap) and gracefully handles managed object lifetime and destruction.
 
 To implement the script object interface for a particular type you need two classes:
  - A native interop class (C++)
@@ -83,12 +83,6 @@ void ScriptMyObject::internal_SetSomeObject(MonoObject* obj)
 }
 ~~~~~~~~~~~~~
 
-And vice versa, you can retrieve the **MonoObject** from a **ScriptObject** by calling @ref bs::ScriptObjectBase::getManagedInstance() "ScriptObject::getManagedInstance()".
-~~~~~~~~~~~~~{.cpp}
-ScriptMyObject myObj = ...;
-MonoObject* monoObj = myObj->getManagedInstance();
-~~~~~~~~~~~~~
-
 ## Destroying script object instances ### {#scripting_a_b}
 When the managed object is destroyed (e.g. goes out of scope and gets garbage collected) the system will automatically take care of freeing the related **ScriptObject**. If you need to add onto or replace that functionality you can override @ref bs::ScriptObjectBase::_onManagedInstanceDeleted "ScriptObject::_onManagedInstanceDeleted()" method. This is useful if you need to perform some additional cleanup.
 
@@ -153,7 +147,7 @@ float ScriptMyObject::internal_GetSomeValue(ScriptMyObject* obj)
 ~~~~~~~~~~~~~
 
 # Assembly refresh {#scripting_c}
-Assembly refresh is the process that happens when managed code is recompiled and scripts need to be reloaded. This is primarily used in Banshee editor to hot-reload the scripts while the editor is still running. When assembly refresh happens all managed objects are effectively destroyed.
+Assembly refresh is the process that happens when managed code is recompiled and scripts need to be reloaded. This is primarily used in Banshee 3D editor to hot-reload the scripts while the editor is still running. When assembly refresh happens all managed objects are effectively destroyed.
 
 By default any script objects of such managed objects are destroyed as well. In many cases this is okay, for example GUI elements don't persist refresh, because they're just rebuilt from the managed code every time the refresh happens. However objects like resources, scene objects and components are persistent - we don't wish to reload the entire scene and all resources every time assembly refresh happens.
 
@@ -167,7 +161,7 @@ class MyScriptObject : public ScriptObject<MyScriptObject, PersistentScriptObjec
 ~~~~~~~~~~~~~	
 	
 This ensures that your object is treated properly during assembly refresh. Persistent object then needs to handle four different actions, represented by overrideable methods. These methods are called in order specified, during assembly refresh.
- - @ref bs::ScriptObjectBase::beginRefresh() "ScriptObject::beginRefresh()" - Called just before the refresh starts. The object is still alive here and you can perform needed actions (e.g. saving managed object's contents).
+ - @ref bs::ScriptObjectBase::beginRefresh() "ScriptObject::beginRefresh()" - Called just before the refresh starts. The object is still alive here and you can use this time to save the contents of the managed object before it is destroyed.
  - @ref bs::ScriptObjectBase::_onManagedInstanceDeleted "ScriptObject::_onManagedInstanceDeleted()" - Called after assembly unload happened and the managed object was destroyed. You should override this to prevent the **ScriptObject** itself from being deleted if the assembly refresh is in progress. If assembly refresh is not in progress this method should delete the **ScriptObject** as it likely got called due to standard reasons (managed object went out of scope).
  - @ref bs::ScriptObject::_createManagedInstance "ScriptObject::_createManagedInstance()" - Creates the managed instance after new assemblies are loaded. You should override this if your managed class is constructed using a constructor with parameters. By default this will call **MonoClass::createInstance()** using the parameterless constructor.
  - @ref bs::ScriptObjectBase::endRefresh() "ScriptObject::endRefresh()" - Called after all assemblies are loaded, and after all script interop objects were either destroyed (non-persistent) or had their managed instances re-created (persistent). If you stored any data during **ScriptObject::beginRefresh()**, you should restore it here.

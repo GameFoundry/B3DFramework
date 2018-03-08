@@ -2,9 +2,9 @@ Exposing code to script API (automated)			{#scriptingAuto}
 ===============
 [TOC]
 
-When you've added a new feature, system or just extended existing ones you might want to expose that functionality to the scripting API. Banshee makes this process easier through its automated script binding generator tool. All you need to do is to decorate the C++ types and methods you wish to export and run the tool. The tool is ran automatically whenever you build through CMake.
+When you've added a new feature, system or just extended existing ones you might want to expose that functionality to the scripting API. bs::f makes this process easier through its automated script binding generator tool. All you need to do is to decorate the C++ types and methods you wish to export and run the tool. The tool is ran automatically whenever you build through CMake if *GENERATE_SCRIPT_BINDINGS* option is turned on.
 
-In order to decorate C++ you use the **BS_SCRIPT_EXPORT** macro, which supports a variety of parameters used for customizing how will the type/method be exported.
+@ref **BS_SCRIPT_EXPORT** macro supports a variety of parameters used for customizing how will the type/method be exported.
 
 # Exporting classes {#scriptingAuto_a}
 In order to export a class to script code you need to decorate the class and one or multiple methods with **BS_SCRIPT_EXPORT** macro. 
@@ -71,10 +71,10 @@ public:
 	void setPlainType(UINT32 value);	
 	
 	BS_SCRIPT_EXPORT()
-	std::string getString(); // or std::wstring
+	String getString();
 	
 	BS_SCRIPT_EXPORT()
-	void setString(const std::string& value); // or std::wstring	
+	void setString(const String& value);	
 	
 	BS_SCRIPT_EXPORT()
 	HMesh getResource();
@@ -123,7 +123,7 @@ public partial class MyRenamedClass : ScriptObject
 ~~~~~~~~~~~~~
 
 ## Visibility {#scriptingAuto_a_b}
-You can make a type or a method *public*, *internal* or *private* by specifying the "v" parameter. Accepted values are "public", "internal" and "private. By default all types and methods are public.
+You can make a type or a method *public*, *internal* or *private* by specifying the "v" parameter. Accepted values are "public", "internal" and "private". By default all types and methods are public.
 
 ~~~~~~~~~~~~~{.cpp}
 class BS_SCRIPT_EXPORT() MyClass
@@ -144,7 +144,7 @@ public partial class MyRenamedClass : ScriptObject
 ~~~~~~~~~~~~~
 
 ## Exporting as properties  {#scriptingAuto_a_c}
-Parameter named "pr" allows you to specify that a method should be exported as a property. The supported values for the parameter are "getter" or "setter". When exposing a method as a property the name ("n") parameter is required and ii should be the name of the property.
+Parameter named "pr" allows you to specify that a method should be exported as a property. The supported values for the parameter are "getter" or "setter". When exposing a method as a property the name ("n") parameter is required and should be the name of the property.
 
 ~~~~~~~~~~~~~{.cpp}
 // Decorate the class and the methods with BS_SCRIPT_EXPORT modifier
@@ -397,4 +397,4 @@ External methods must follow these rules:
  - External methods must accept the type they're external to as the first parameter 
  
 # Running the code generator {#scriptingAuto_f}
-Once you have decorated the C++ classes with necessary export parameters you can run the code generator simply by regenerating the CMake build. The generator will run automatically over all Banshee code and generate relevant script code.
+Once you have decorated the C++ classes with necessary export parameters you can run the code generator simply by enabling *GENERATE_SCRIPT_BINDINGS* and regenerating the CMake build. The generator will run automatically over all bs::f code and generate relevant script code.

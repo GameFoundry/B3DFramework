@@ -59,18 +59,24 @@ When making changes or additions that you plan on contributing to bs::f, you mus
  - Reference/pointer parameters that won't be modified by a function should always be `const` (e.g. `bool processData(const SomeStruct& input, SomeStruct& output)`)
  
 **Implementation**
- - Avoid the use of `auto` for variable types, with the exception of very long type names (like iterators)
-  - If `auto` is used try to name the variable so its type can be easily deduced
+ - Avoid the use of `auto` except for:
+  - Very long type names (like iterators), in which case include indication of the type in variable name (e.g. `auto iter = ...;`)
+  - Variables where type can be otherwise deduced (e.g. casts, `auto var = (UINT32)otherVar;`)
  - Use built-in typedefs for standard library containers (e.g. `Vector`) and shared pointers (`SPtr`).
  - Don't allocate memory using `new/delete` or `malloc/free`, instead use bs::f allocators
  - No code warnings under default compiler warning settings are allowed. Fix all your warnings or if absolutely not possible isolate that bit of code and disable that specific warning (but only in that bit of code).
  - Never use `using namespace` in a header
  
 **Documentation**
+ - Documentation must be in JavaDoc format
+ - Write **meaningful** documentation
+  - Avoid writing documentation that provides information that can be deduced from class/method name and instead try to provide the reader with deeper understanding. For example `/** Gets value */ getValue(); ` is pointless documentation
+  - Avoid giving away implementation details in documentation. Implementation should be allowed to change, and as long as the interface remains the same, the documentation should remain the same
  - Document every class/structure/enum with a short description on what their purpose is
-  - Optionally provide an use-case example
+  - Optionally provide a use-case example
   - Document every enum member
   - Document struct fields unless they have getter/setter methods that are already documented
+  - Getter/Setter methods should have the same documentation (e.g. document the setter, then use \@copydoc on getter)
   - Documentation for private class fields is optional
  - Document every method, both public and private
   - The only exceptions being very trivial methods whose use can be deduced from their name
@@ -84,13 +90,9 @@ When making changes or additions that you plan on contributing to bs::f, you mus
   - Carefully document complex mathematical expressions
    - Add a comment what the expression does or a hyperlink to expression source
    - If simplified or re-arranged, provide reference expression in comments, as well as explanation on how the current expression was derived (or a link to one)
- - Documentation must be in JavaDoc format 
- - Write **meaningful** documentation
-  - Avoid writing documentation that provides information that can be deduced from class/method name and instead try to provide the reader with deeper understanding. For example `/** Gets value */ getValue(); ` is pointless documentation
-  - Avoid giving away implementation details in documentation. Implementation should be allowed to change, and as long as the interface remains the same, the documentation should remain the same
  - Use \@`addtogroup` to group classes into relevant sections (e.g. a class doing something physics-related should be in the "Physics" group)
   - Classes/structs/functions/enums that aren't meant to be used by normal users should be placed in a separate group to avoid polluting the user-facing documentation (e.g. user-facing physics functionality should be in the "Physics" group, while non-user-facing should be in "Physics_Internal" group)
- - Use \@`name Internal` to mark methods inside a class that they are not meant for normal use (i.e. they might be used for internal communication within a sub-system only)
+ - Use \@`name Internal` to mark public methods inside a class that they are not meant for normal use (i.e. they might be used for internal communication within a sub-system only)
  - Documentation should produce no Doxygen warnings when it is generated
  - If it is not obvious for which thread is a class/method meant to be used on, note it in the documentation
  
