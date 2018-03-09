@@ -696,6 +696,8 @@ namespace bs { namespace ct
 		mCascadedShadowMaps.clear();
 		mDynamicShadowMaps.clear();
 		mShadowCubemaps.clear();
+
+		mShadowMapSize = size;
 	}
 
 	void ShadowRendering::renderShadowMaps(RendererScene& scene, const RendererViewGroup& viewGroup, 
@@ -1544,6 +1546,7 @@ namespace bs { namespace ct
 
 			if(!viewSettings.enableShadows)
 				fadePercents.push_back(0.0f);
+			else
 			{
 				// Approximation for screen space sphere radius: screenSize * 0.5 * cot(fov) * radius / Z, where FOV is the 
 				// largest one
